@@ -27,12 +27,10 @@
 */
 using System;
 using System.Collections;
-using System.Net;
+using libsecondlife;
 using Nwc.XmlRpc;
 using OpenSim.Framework;
 using OpenSim.Framework.UserManagement;
-using OpenSim.Framework;
-using libsecondlife;
 
 namespace OpenSim.Grid.UserServer
 {
@@ -118,11 +116,11 @@ namespace OpenSim.Grid.UserServer
         public XmlRpcResponse XmlRPCGetUserMethodName(XmlRpcRequest request)
         {
             XmlRpcResponse response = new XmlRpcResponse();
-            Hashtable requestData = (Hashtable)request.Params[0];
+            Hashtable requestData = (Hashtable) request.Params[0];
             UserProfileData userProfile;
             if (requestData.Contains("avatar_name"))
             {
-                userProfile = GetUserProfile((string)requestData["avatar_name"]);
+                userProfile = GetUserProfile((string) requestData["avatar_name"]);
                 if (userProfile == null)
                 {
                     return CreateUnknownUserErrorResponse();
@@ -139,12 +137,12 @@ namespace OpenSim.Grid.UserServer
         public XmlRpcResponse XmlRPCGetUserMethodUUID(XmlRpcRequest request)
         {
             XmlRpcResponse response = new XmlRpcResponse();
-            Hashtable requestData = (Hashtable)request.Params[0];
+            Hashtable requestData = (Hashtable) request.Params[0];
             UserProfileData userProfile;
-            System.Console.WriteLine("METHOD BY UUID CALLED");
+            Console.WriteLine("METHOD BY UUID CALLED");
             if (requestData.Contains("avatar_uuid"))
             {
-                userProfile = GetUserProfile((LLUUID)(string)requestData["avatar_uuid"]);
+                userProfile = GetUserProfile((LLUUID) (string) requestData["avatar_uuid"]);
                 if (userProfile == null)
                 {
                     return CreateUnknownUserErrorResponse();
@@ -158,6 +156,7 @@ namespace OpenSim.Grid.UserServer
 
             return ProfileToXmlRPCResponse(userProfile);
         }
+
         #endregion
 
         public override UserProfileData SetupMasterUser(string firstName, string lastName)

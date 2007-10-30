@@ -26,18 +26,16 @@
 * 
 */
 
-using System;
-using System.Collections.Generic;
-using System.Text;
 using System.Drawing;
+using System.Drawing.Imaging;
 
 namespace libTerrain
 {
-    class Raster
+    internal class Raster
     {
-        int w;
-        int h;
-        Bitmap bmp;
+        private int w;
+        private int h;
+        private Bitmap bmp;
 
         /// <summary>
         /// Creates a new Raster channel for use with bitmap or GDI functions
@@ -48,7 +46,7 @@ namespace libTerrain
         {
             w = width;
             h = height;
-            bmp = new Bitmap(width, height, System.Drawing.Imaging.PixelFormat.Format24bppRgb);
+            bmp = new Bitmap(width, height, PixelFormat.Format24bppRgb);
         }
 
         /// <summary>
@@ -65,7 +63,7 @@ namespace libTerrain
                 for (y = 0; y < bmp.Height; y++)
                 {
                     Color val = bmp.GetPixel(x, y);
-                    chan.map[x, y] = (((double)val.R + (double)val.G + (double)val.B) / 3.0) / 255.0;
+                    chan.map[x, y] = (((double) val.R + (double) val.G + (double) val.B)/3.0)/255.0;
                 }
             }
 
@@ -86,7 +84,7 @@ namespace libTerrain
             sf.LineAlignment = StringAlignment.Center;
 
             Graphics gd = Graphics.FromImage(bmp);
-            gd.DrawString(txt, new Font(font, (float)size), new SolidBrush(Color.White), area, sf);
+            gd.DrawString(txt, new Font(font, (float) size), new SolidBrush(Color.White), area, sf);
         }
     }
 }

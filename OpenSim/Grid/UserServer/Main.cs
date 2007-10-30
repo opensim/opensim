@@ -27,28 +27,23 @@
 */
 
 using System;
-using System.Collections.Generic;
 using System.IO;
-using System.Reflection;
-using libsecondlife;
+using OpenSim.Framework;
 using OpenSim.Framework.Console;
-using OpenSim.Framework.Interfaces;
 using OpenSim.Framework.Servers;
-using OpenSim.Framework;
-using OpenSim.Framework;
 
 namespace OpenSim.Grid.UserServer
 {
     /// <summary>
     /// </summary>
-    public class OpenUser_Main :  conscmd_callback
+    public class OpenUser_Main : conscmd_callback
     {
         private UserConfig Cfg;
 
         public UserManager m_userManager;
         public UserLoginService m_loginService;
 
-        LogBase m_console;
+        private LogBase m_console;
 
         [STAThread]
         public static void Main(string[] args)
@@ -67,7 +62,8 @@ namespace OpenSim.Grid.UserServer
             {
                 Directory.CreateDirectory(Util.logDir());
             }
-            m_console = new LogBase((Path.Combine(Util.logDir(), "opengrid-userserver-console.log")), "OpenUser", this, true);
+            m_console =
+                new LogBase((Path.Combine(Util.logDir(), "opengrid-userserver-console.log")), "OpenUser", this, true);
             MainLog.Instance = m_console;
         }
 
@@ -83,7 +79,7 @@ namespace OpenSim.Grid.UserServer
 
         public void Startup()
         {
-            this.Cfg = new UserConfig("USER SERVER", (Path.Combine(Util.configDir(), "UserServer_Config.xml")));
+            Cfg = new UserConfig("USER SERVER", (Path.Combine(Util.configDir(), "UserServer_Config.xml")));
 
             MainLog.Instance.Verbose("Main.cs:Startup() - Establishing data connection");
             m_userManager = new UserManager();
@@ -93,15 +89,16 @@ namespace OpenSim.Grid.UserServer
             m_loginService = new UserLoginService(m_userManager, Cfg, Cfg.DefaultStartupMsg);
 
             MainLog.Instance.Verbose("Main.cs:Startup() - Starting HTTP process");
-            BaseHttpServer httpServer = new BaseHttpServer((int)Cfg.HttpPort);
+            BaseHttpServer httpServer = new BaseHttpServer((int) Cfg.HttpPort);
 
             httpServer.AddXmlRPCHandler("login_to_simulator", m_loginService.XmlRpcLoginMethod);
 
             httpServer.AddXmlRPCHandler("get_user_by_name", m_userManager.XmlRPCGetUserMethodName);
             httpServer.AddXmlRPCHandler("get_user_by_uuid", m_userManager.XmlRPCGetUserMethodUUID);
 
-            httpServer.AddStreamHandler( new RestStreamHandler("DELETE", "/usersessions/", m_userManager.RestDeleteUserSessionMethod ));
-            
+            httpServer.AddStreamHandler(
+                new RestStreamHandler("DELETE", "/usersessions/", m_userManager.RestDeleteUserSessionMethod));
+
             httpServer.Start();
             m_console.Status("SERVER", "Userserver 0.4 - Startup complete");
         }
@@ -126,7 +123,7 @@ namespace OpenSim.Grid.UserServer
 
                     tempMD5Passwd = Util.Md5Hash(Util.Md5Hash(tempMD5Passwd) + ":" + "");
 
-                    m_userManager.AddUserProfile(tempfirstname, templastname, tempMD5Passwd, regX, regY); 
+                    m_userManager.AddUserProfile(tempfirstname, templastname, tempMD5Passwd, regX, regY);
                     break;
             }
         }

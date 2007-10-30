@@ -28,7 +28,6 @@
 
 using System.Xml.Serialization;
 using libsecondlife;
-using libsecondlife.Packets;
 
 namespace OpenSim.Framework
 {
@@ -93,47 +92,39 @@ namespace OpenSim.Framework
 
         public ProfileShape ProfileShape
         {
-            get
-            {
-                return (ProfileShape)(ProfileCurve & 0xf);
-            }
+            get { return (ProfileShape) (ProfileCurve & 0xf); }
             set
             {
-                byte oldValueMasked = (byte)(ProfileCurve & 0xf0);
-                ProfileCurve = (byte)(oldValueMasked | (byte)value);
+                byte oldValueMasked = (byte) (ProfileCurve & 0xf0);
+                ProfileCurve = (byte) (oldValueMasked | (byte) value);
             }
         }
 
         [XmlIgnore]
         public HollowShape HollowShape
         {
-            get
-            {
-                return (HollowShape)(ProfileHollow & 0xf0);
-            }
+            get { return (HollowShape) (ProfileHollow & 0xf0); }
             set
             {
-                byte oldValueMasked = (byte)(ProfileHollow & 0xf0);
-                ProfileHollow = (byte)(oldValueMasked | (byte)value);
+                byte oldValueMasked = (byte) (ProfileHollow & 0xf0);
+                ProfileHollow = (byte) (oldValueMasked | (byte) value);
             }
         }
 
         public LLVector3 PrimScale
         {
-            get
-            {
-                return this.Scale;
-            }
+            get { return Scale; }
         }
 
         static PrimitiveBaseShape()
         {
-            m_defaultTextureEntry = new LLObject.TextureEntry(new LLUUID("00000000-0000-0000-9999-000000000005")).ToBytes();
+            m_defaultTextureEntry =
+                new LLObject.TextureEntry(new LLUUID("00000000-0000-0000-9999-000000000005")).ToBytes();
         }
 
         public PrimitiveBaseShape()
         {
-            PCode = (byte)PCodeEnum.Primitive;
+            PCode = (byte) PCodeEnum.Primitive;
             ExtraParams = new byte[1];
             TextureEntry = m_defaultTextureEntry;
         }
@@ -141,12 +132,11 @@ namespace OpenSim.Framework
         //void returns need to change of course
         public virtual void GetMesh()
         {
-
         }
 
         public PrimitiveBaseShape Copy()
         {
-            return (PrimitiveBaseShape)this.MemberwiseClone();
+            return (PrimitiveBaseShape) MemberwiseClone();
         }
     }
 
@@ -155,7 +145,6 @@ namespace OpenSim.Framework
         public GenericShape()
             : base()
         {
-
         }
     }
 
@@ -164,7 +153,7 @@ namespace OpenSim.Framework
         public BoxShape()
             : base()
         {
-            PathCurve = (byte)Extrusion.Straight;
+            PathCurve = (byte) Extrusion.Straight;
             ProfileShape = ProfileShape.Square;
             PathScaleX = 100;
             PathScaleY = 100;
@@ -193,12 +182,13 @@ namespace OpenSim.Framework
             }
         }
     }
+
     public class CylinderShape : PrimitiveBaseShape
     {
         public CylinderShape()
             : base()
         {
-            PathCurve = (byte)Extrusion.Straight;
+            PathCurve = (byte) Extrusion.Straight;
             ProfileShape = ProfileShape.Circle;
             PathScaleX = 100;
             PathScaleY = 100;
@@ -218,7 +208,7 @@ namespace OpenSim.Framework
 
         private void SetRadius(float radius)
         {
-            Scale.X = Scale.Y = radius * 2f;
+            Scale.X = Scale.Y = radius*2f;
         }
     }
 }

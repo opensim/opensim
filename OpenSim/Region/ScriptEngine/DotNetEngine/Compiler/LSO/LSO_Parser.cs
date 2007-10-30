@@ -27,15 +27,16 @@
 */
 /* Original code: Tedd Hansen */
 using System;
+using System.Collections;
 using System.Collections.Generic;
-using System.Text;
 using System.IO;
 using System.Reflection;
 using System.Reflection.Emit;
+using System.Text;
 
 namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSO
 {
-    partial class LSO_Parser
+    internal partial class LSO_Parser
     {
         private string FileName;
         private FileStream fs;
@@ -45,7 +46,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSO
         //private System.Collections.Hashtable StaticBlocks = new System.Collections.Hashtable();
 
         private TypeBuilder typeBuilder;
-        private System.Collections.Generic.List<string> EventList = new System.Collections.Generic.List<string>();
+        private List<string> EventList = new List<string>();
 
         public LSO_Parser(string _FileName, TypeBuilder _typeBuilder)
         {
@@ -59,11 +60,10 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSO
             Common.SendToDebug("Opening filename: " + FileName);
             fs = File.Open(FileName, FileMode.Open, FileAccess.Read, FileShare.Read);
             br = new BinaryReader(fs, Encoding.BigEndianUnicode);
-
         }
+
         internal void CloseFile()
         {
-
             // Close
             br.Close();
             fs.Close();
@@ -75,9 +75,6 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSO
         /// </summary>
         public void Parse()
         {
-
-
-
             // The LSO Format consist of 6 major blocks: header, statics, functions, states, heap, and stack. 
 
 
@@ -148,14 +145,14 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSO
                 LSO_Struct.StaticBlock myStaticBlock = new LSO_Struct.StaticBlock();
                 myStaticBlock.Static_Chunk_Header_Size = BitConverter.ToUInt32(br_read(4), 0);
                 myStaticBlock.ObjectType = br_read(1)[0];
-                Common.SendToDebug("Static Block ObjectType: " + ((LSO_Enums.Variable_Type_Codes)myStaticBlock.ObjectType).ToString());
+                Common.SendToDebug("Static Block ObjectType: " +
+                                   ((LSO_Enums.Variable_Type_Codes) myStaticBlock.ObjectType).ToString());
                 myStaticBlock.Unknown = br_read(1)[0];
                 // Size of datatype varies -- what about strings?
                 if (myStaticBlock.ObjectType != 0)
                     myStaticBlock.BlockVariable = br_read(getObjectSize(myStaticBlock.ObjectType));
 
-                StaticBlocks.Add((UInt32)startReadPos, myStaticBlock);
-
+                StaticBlocks.Add((UInt32) startReadPos, myStaticBlock);
             }
             Common.SendToDebug("Number of Static Blocks read: " + StaticBlockCount);
 
@@ -183,7 +180,8 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSO
                         // TODO: ADD TO FUNCTION LIST (How do we identify it later?)
                         // Note! Absolute position
                         myFunctionBlock.CodeChunkPointer[i] = BitConverter.ToUInt32(br_read(4), 0) + myHeader.GFR;
-                        Common.SendToDebug("Fuction " + i + " code chunk position: " + myFunctionBlock.CodeChunkPointer[i]);
+                        Common.SendToDebug("Fuction " + i + " code chunk position: " +
+                                           myFunctionBlock.CodeChunkPointer[i]);
                     }
                 }
             }
@@ -204,14 +202,14 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSO
                     Common.SendToDebug("Reading STATE POINTER BLOCK " + (i + 1) + " at: " + fs.Position);
                     // Position is relative to state frame
                     myStateFrameBlock.StatePointer[i].Location = myHeader.SR + BitConverter.ToUInt32(br_read(4), 0);
-                    myStateFrameBlock.StatePointer[i].EventMask = new System.Collections.BitArray(br_read(8));
+                    myStateFrameBlock.StatePointer[i].EventMask = new BitArray(br_read(8));
                     Common.SendToDebug("Pointer: " + myStateFrameBlock.StatePointer[i].Location);
-                    Common.SendToDebug("Total potential EventMask bits: " + myStateFrameBlock.StatePointer[i].EventMask.Count);
+                    Common.SendToDebug("Total potential EventMask bits: " +
+                                       myStateFrameBlock.StatePointer[i].EventMask.Count);
 
                     //// Read STATE BLOCK
                     //long CurPos = fs.Position;
                     //fs.Seek(CurPos, SeekOrigin.Begin);
-
                 }
             }
 
@@ -224,19 +222,20 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSO
                 // Go through all State Frame Pointers found
                 for (int i = 0; i < myStateFrameBlock.StateCount; i++)
                 {
-
                     fs.Seek(myStateFrameBlock.StatePointer[i].Location, SeekOrigin.Begin);
                     Common.SendToDebug("Reading STATE BLOCK " + (i + 1) + " at: " + fs.Position);
 
                     // READ: STATE BLOCK HEADER
                     myStateFrameBlock.StatePointer[i].StateBlock = new LSO_Struct.StateBlock();
-                    myStateFrameBlock.StatePointer[i].StateBlock.StartPos = (UInt32)fs.Position; // Note
+                    myStateFrameBlock.StatePointer[i].StateBlock.StartPos = (UInt32) fs.Position; // Note
                     myStateFrameBlock.StatePointer[i].StateBlock.HeaderSize = BitConverter.ToUInt32(br_read(4), 0);
                     myStateFrameBlock.StatePointer[i].StateBlock.Unknown = br_read(1)[0];
-                    myStateFrameBlock.StatePointer[i].StateBlock.EndPos = (UInt32)fs.Position; // Note
+                    myStateFrameBlock.StatePointer[i].StateBlock.EndPos = (UInt32) fs.Position; // Note
                     Common.SendToDebug("State block Start Pos: " + myStateFrameBlock.StatePointer[i].StateBlock.StartPos);
-                    Common.SendToDebug("State block Header Size: " + myStateFrameBlock.StatePointer[i].StateBlock.HeaderSize);
-                    Common.SendToDebug("State block Header End Pos: " + myStateFrameBlock.StatePointer[i].StateBlock.EndPos);
+                    Common.SendToDebug("State block Header Size: " +
+                                       myStateFrameBlock.StatePointer[i].StateBlock.HeaderSize);
+                    Common.SendToDebug("State block Header End Pos: " +
+                                       myStateFrameBlock.StatePointer[i].StateBlock.EndPos);
 
                     // We need to count number of bits flagged in EventMask?
 
@@ -245,25 +244,34 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSO
 
                     // ADDING TO ALL RIGHT NOW, SHOULD LIMIT TO ONLY THE ONES IN USE
                     //TODO: Create event hooks
-                    myStateFrameBlock.StatePointer[i].StateBlock.StateBlockHandlers = new LSO_Struct.StateBlockHandler[myStateFrameBlock.StatePointer[i].EventMask.Count - 1];
+                    myStateFrameBlock.StatePointer[i].StateBlock.StateBlockHandlers =
+                        new LSO_Struct.StateBlockHandler[myStateFrameBlock.StatePointer[i].EventMask.Count - 1];
                     for (int ii = 0; ii < myStateFrameBlock.StatePointer[i].EventMask.Count - 1; ii++)
                     {
-
                         if (myStateFrameBlock.StatePointer[i].EventMask.Get(ii) == true)
                         {
                             // We got an event
                             //  READ: STATE BLOCK HANDLER
-                            Common.SendToDebug("Reading STATE BLOCK " + (i + 1) + " HANDLER matching EVENT MASK " + ii + " (" + ((LSO_Enums.Event_Mask_Values)ii).ToString() + ") at: " + fs.Position);
-                            myStateFrameBlock.StatePointer[i].StateBlock.StateBlockHandlers[ii].CodeChunkPointer = myStateFrameBlock.StatePointer[i].StateBlock.EndPos + BitConverter.ToUInt32(br_read(4), 0);
-                            myStateFrameBlock.StatePointer[i].StateBlock.StateBlockHandlers[ii].CallFrameSize = BitConverter.ToUInt32(br_read(4), 0);
-                            Common.SendToDebug("Reading STATE BLOCK " + (i + 1) + " HANDLER EVENT MASK " + ii + " (" + ((LSO_Enums.Event_Mask_Values)ii).ToString() + ") Code Chunk Pointer: " + myStateFrameBlock.StatePointer[i].StateBlock.StateBlockHandlers[ii].CodeChunkPointer);
-                            Common.SendToDebug("Reading STATE BLOCK " + (i + 1) + " HANDLER EVENT MASK " + ii + " (" + ((LSO_Enums.Event_Mask_Values)ii).ToString() + ") Call Frame Size: " + myStateFrameBlock.StatePointer[i].StateBlock.StateBlockHandlers[ii].CallFrameSize);
+                            Common.SendToDebug("Reading STATE BLOCK " + (i + 1) + " HANDLER matching EVENT MASK " + ii +
+                                               " (" + ((LSO_Enums.Event_Mask_Values) ii).ToString() + ") at: " +
+                                               fs.Position);
+                            myStateFrameBlock.StatePointer[i].StateBlock.StateBlockHandlers[ii].CodeChunkPointer =
+                                myStateFrameBlock.StatePointer[i].StateBlock.EndPos +
+                                BitConverter.ToUInt32(br_read(4), 0);
+                            myStateFrameBlock.StatePointer[i].StateBlock.StateBlockHandlers[ii].CallFrameSize =
+                                BitConverter.ToUInt32(br_read(4), 0);
+                            Common.SendToDebug("Reading STATE BLOCK " + (i + 1) + " HANDLER EVENT MASK " + ii + " (" +
+                                               ((LSO_Enums.Event_Mask_Values) ii).ToString() + ") Code Chunk Pointer: " +
+                                               myStateFrameBlock.StatePointer[i].StateBlock.StateBlockHandlers[ii].
+                                                   CodeChunkPointer);
+                            Common.SendToDebug("Reading STATE BLOCK " + (i + 1) + " HANDLER EVENT MASK " + ii + " (" +
+                                               ((LSO_Enums.Event_Mask_Values) ii).ToString() + ") Call Frame Size: " +
+                                               myStateFrameBlock.StatePointer[i].StateBlock.StateBlockHandlers[ii].
+                                                   CallFrameSize);
                         }
                     }
                 }
             }
-
-
 
 
             //// READ FUNCTION CODE CHUNKS
@@ -291,37 +299,32 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSO
                     // two level search ain't no good
                     for (int ii = 0; ii < myStateFrameBlock.StatePointer[i].EventMask.Count - 1; ii++)
                     {
-
-
                         if (myStateFrameBlock.StatePointer[i].StateBlock.StateBlockHandlers[ii].CodeChunkPointer > 0)
                         {
-                            Common.SendToDebug("Reading Event Code Chunk state " + i + ", event " + (LSO_Enums.Event_Mask_Values)ii);
+                            Common.SendToDebug("Reading Event Code Chunk state " + i + ", event " +
+                                               (LSO_Enums.Event_Mask_Values) ii);
 
 
                             // Override a Method / Function
-                            string eventname = i + "_event_" + (LSO_Enums.Event_Mask_Values)ii;
+                            string eventname = i + "_event_" + (LSO_Enums.Event_Mask_Values) ii;
                             Common.SendToDebug("Event Name: " + eventname);
                             if (Common.IL_ProcessCodeChunks)
                             {
                                 EventList.Add(eventname);
 
                                 // JUMP TO CODE PROCESSOR
-                                ProcessCodeChunk(myStateFrameBlock.StatePointer[i].StateBlock.StateBlockHandlers[ii].CodeChunkPointer, typeBuilder, eventname);
+                                ProcessCodeChunk(
+                                    myStateFrameBlock.StatePointer[i].StateBlock.StateBlockHandlers[ii].CodeChunkPointer,
+                                    typeBuilder, eventname);
                             }
                         }
-
                     }
-
                 }
-
             }
-
-
 
 
             if (Common.IL_CreateFunctionList)
                 IL_INSERT_FUNCTIONLIST();
-
         }
 
         internal LSO_Struct.HeapBlock GetHeap(UInt32 pos)
@@ -342,11 +345,13 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSO
 
 
             Common.SendToDebug("Heap Block Data Block Size: " + myHeapBlock.DataBlockSize);
-            Common.SendToDebug("Heap Block ObjectType: " + ((LSO_Enums.Variable_Type_Codes)myHeapBlock.ObjectType).ToString());
+            Common.SendToDebug("Heap Block ObjectType: " +
+                               ((LSO_Enums.Variable_Type_Codes) myHeapBlock.ObjectType).ToString());
             Common.SendToDebug("Heap Block Reference Count: " + myHeapBlock.ReferenceCount);
 
             return myHeapBlock;
         }
+
         private byte[] br_read(int len)
         {
             if (len <= 0)
@@ -365,6 +370,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSO
                 throw (e);
             }
         }
+
         //private byte[] br_read_smallendian(int len)
         //{
         //    byte[] bytes = new byte[len];    
@@ -373,29 +379,38 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSO
         //}
         private Type getLLObjectType(byte objectCode)
         {
-            switch ((LSO_Enums.Variable_Type_Codes)objectCode)
+            switch ((LSO_Enums.Variable_Type_Codes) objectCode)
             {
-                case LSO_Enums.Variable_Type_Codes.Void: return typeof(void);
-                case LSO_Enums.Variable_Type_Codes.Integer: return typeof(UInt32);
-                case LSO_Enums.Variable_Type_Codes.Float: return typeof(float);
-                case LSO_Enums.Variable_Type_Codes.String: return typeof(string);
-                case LSO_Enums.Variable_Type_Codes.Key: return typeof(string);
-                case LSO_Enums.Variable_Type_Codes.Vector: return typeof(LSO_Enums.Vector);
-                case LSO_Enums.Variable_Type_Codes.Rotation: return typeof(LSO_Enums.Rotation);
+                case LSO_Enums.Variable_Type_Codes.Void:
+                    return typeof (void);
+                case LSO_Enums.Variable_Type_Codes.Integer:
+                    return typeof (UInt32);
+                case LSO_Enums.Variable_Type_Codes.Float:
+                    return typeof (float);
+                case LSO_Enums.Variable_Type_Codes.String:
+                    return typeof (string);
+                case LSO_Enums.Variable_Type_Codes.Key:
+                    return typeof (string);
+                case LSO_Enums.Variable_Type_Codes.Vector:
+                    return typeof (LSO_Enums.Vector);
+                case LSO_Enums.Variable_Type_Codes.Rotation:
+                    return typeof (LSO_Enums.Rotation);
                 case LSO_Enums.Variable_Type_Codes.List:
                     Common.SendToDebug("TODO: List datatype not implemented yet!");
-                    return typeof(System.Collections.ArrayList);
+                    return typeof (ArrayList);
                 case LSO_Enums.Variable_Type_Codes.Null:
                     Common.SendToDebug("TODO: Datatype null is not implemented, using string instead.!");
-                    return typeof(string);
+                    return typeof (string);
                 default:
-                    Common.SendToDebug("Lookup of LSL datatype " + objectCode + " to .Net datatype failed: Unknown LSL datatype. Defaulting to object.");
-                    return typeof(object);
+                    Common.SendToDebug("Lookup of LSL datatype " + objectCode +
+                                       " to .Net datatype failed: Unknown LSL datatype. Defaulting to object.");
+                    return typeof (object);
             }
         }
+
         private int getObjectSize(byte ObjectType)
         {
-            switch ((LSO_Enums.Variable_Type_Codes)ObjectType)
+            switch ((LSO_Enums.Variable_Type_Codes) ObjectType)
             {
                 case LSO_Enums.Variable_Type_Codes.Integer:
                 case LSO_Enums.Variable_Type_Codes.Float:
@@ -411,13 +426,14 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSO
                     return 0;
             }
         }
+
         private string Read_String()
         {
             string ret = "";
             byte reader = br_read(1)[0];
             while (reader != 0x000)
             {
-                ret += (char)reader;
+                ret += (char) reader;
                 reader = br_read(1)[0];
             }
             return ret;
@@ -431,7 +447,6 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSO
         /// <param name="eventname">Name of event (function) to generate</param>
         private void ProcessCodeChunk(UInt32 pos, TypeBuilder typeBuilder, string eventname)
         {
-
             LSO_Struct.CodeChunk myCodeChunk = new LSO_Struct.CodeChunk();
 
             Common.SendToDebug("Reading Function Code Chunk at: " + pos);
@@ -442,12 +457,13 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSO
             myCodeChunk.Comment = Read_String();
             Common.SendToDebug("Function comment: " + myCodeChunk.Comment);
             myCodeChunk.ReturnTypePos = br_read(1)[0];
-            myCodeChunk.ReturnType = GetStaticBlock((long)myCodeChunk.ReturnTypePos + (long)myHeader.GVR);
-            Common.SendToDebug("Return type #" + myCodeChunk.ReturnType.ObjectType + ": " + ((LSO_Enums.Variable_Type_Codes)myCodeChunk.ReturnType.ObjectType).ToString());
+            myCodeChunk.ReturnType = GetStaticBlock((long) myCodeChunk.ReturnTypePos + (long) myHeader.GVR);
+            Common.SendToDebug("Return type #" + myCodeChunk.ReturnType.ObjectType + ": " +
+                               ((LSO_Enums.Variable_Type_Codes) myCodeChunk.ReturnType.ObjectType).ToString());
 
 
             // TODO: How to determine number of codechunks -- does this method work?
-            myCodeChunk.CodeChunkArguments = new System.Collections.Generic.List<LSO_Struct.CodeChunkArgument>();
+            myCodeChunk.CodeChunkArguments = new List<LSO_Struct.CodeChunkArgument>();
             byte reader = br_read(1)[0];
             reader = br_read(1)[0];
 
@@ -464,14 +480,17 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSO
                 CCA.NullString = reader;
                 CCA.FunctionReturnType = GetStaticBlock(CCA.FunctionReturnTypePos + myHeader.GVR);
                 myCodeChunk.CodeChunkArguments.Add(CCA);
-                Common.SendToDebug("Code Chunk Argument " + ccount + " type #" + CCA.FunctionReturnType.ObjectType + ": " + (LSO_Enums.Variable_Type_Codes)CCA.FunctionReturnType.ObjectType);
+                Common.SendToDebug("Code Chunk Argument " + ccount + " type #" + CCA.FunctionReturnType.ObjectType +
+                                   ": " + (LSO_Enums.Variable_Type_Codes) CCA.FunctionReturnType.ObjectType);
             }
             // Create string array
             Type[] MethodArgs = new Type[myCodeChunk.CodeChunkArguments.Count];
             for (int _ic = 0; _ic < myCodeChunk.CodeChunkArguments.Count; _ic++)
             {
                 MethodArgs[_ic] = getLLObjectType(myCodeChunk.CodeChunkArguments[_ic].FunctionReturnType.ObjectType);
-                Common.SendToDebug("Method argument " + _ic + ": " + getLLObjectType(myCodeChunk.CodeChunkArguments[_ic].FunctionReturnType.ObjectType).ToString());
+                Common.SendToDebug("Method argument " + _ic + ": " +
+                                   getLLObjectType(myCodeChunk.CodeChunkArguments[_ic].FunctionReturnType.ObjectType).
+                                       ToString());
             }
             // End marker is 0x000
             myCodeChunk.EndMarker = reader;
@@ -483,9 +502,9 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSO
 
             Common.SendToDebug("CLR:" + eventname + ":MethodBuilder methodBuilder = typeBuilder.DefineMethod...");
             MethodBuilder methodBuilder = typeBuilder.DefineMethod(eventname,
-                         MethodAttributes.Public,
-            typeof(void),
-                                new Type[] { typeof(object) });
+                                                                   MethodAttributes.Public,
+                                                                   typeof (void),
+                                                                   new Type[] {typeof (object)});
             //MethodArgs);
             //typeof(void), //getLLObjectType(myCodeChunk.ReturnType),
             //                new Type[] { typeof(object) }, //);
@@ -504,7 +523,6 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSO
                 IL_INSERT_TRY(il, eventname);
 
 
-
             // Push Console.WriteLine command to stack ... Console.WriteLine("Hello World!");
             //Common.SendToDebug("CLR:" + eventname + ":il.Emit(OpCodes.Call...");
             //il.Emit(OpCodes.Call, typeof(Console).GetMethod
@@ -518,7 +536,6 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSO
                 Common.SendToDebug("PARAMS: il.Emit(OpCodes.Ldarg, " + _ic + ");");
                 il.Emit(OpCodes.Ldarg, _ic);
             }
-
 
 
             //
@@ -538,12 +555,10 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSO
             il.Emit(OpCodes.Ret);
 
             return;
-
         }
 
         private void IL_INSERT_FUNCTIONLIST()
         {
-
             Common.SendToDebug("Creating function list");
 
 
@@ -557,18 +572,15 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSO
             //FieldBuilder mem = typeBuilder.DefineField("mem", typeof(Array), FieldAttributes.Private);
 
 
-
             MethodBuilder methodBuilder = typeBuilder.DefineMethod(eventname,
-                                             MethodAttributes.Public,
-                                             typeof(string[]),
-                                             null);
+                                                                   MethodAttributes.Public,
+                                                                   typeof (string[]),
+                                                                   null);
 
             //typeBuilder.DefineMethodOverride(methodBuilder,
             //                            typeof(LSL_CLRInterface.LSLScript).GetMethod(eventname));
 
             ILGenerator il = methodBuilder.GetILGenerator();
-
-
 
 
             //    IL_INSERT_TRY(il, eventname);
@@ -586,37 +598,34 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSO
 
             ////il.Emit(OpCodes.Ldarg_0);
 
-            il.DeclareLocal(typeof(string[]));
+            il.DeclareLocal(typeof (string[]));
 
             ////il.Emit(OpCodes.Ldarg_0);
-            il.Emit(OpCodes.Ldc_I4, EventList.Count);    // Specify array length
-            il.Emit(OpCodes.Newarr, typeof(String));    // create new string array
-            il.Emit(OpCodes.Stloc_0);                   // Store array as local variable 0 in stack
+            il.Emit(OpCodes.Ldc_I4, EventList.Count); // Specify array length
+            il.Emit(OpCodes.Newarr, typeof (String)); // create new string array
+            il.Emit(OpCodes.Stloc_0); // Store array as local variable 0 in stack
             ////SetFunctionList
 
             for (int lv = 0; lv < EventList.Count; lv++)
             {
-                il.Emit(OpCodes.Ldloc_0);                    // Load local variable 0 onto stack
-                il.Emit(OpCodes.Ldc_I4, lv);                 // Push index position
-                il.Emit(OpCodes.Ldstr, EventList[lv]);         // Push value
-                il.Emit(OpCodes.Stelem_Ref);                 // Perform array[index] = value
+                il.Emit(OpCodes.Ldloc_0); // Load local variable 0 onto stack
+                il.Emit(OpCodes.Ldc_I4, lv); // Push index position
+                il.Emit(OpCodes.Ldstr, EventList[lv]); // Push value
+                il.Emit(OpCodes.Stelem_Ref); // Perform array[index] = value
 
                 //il.Emit(OpCodes.Ldarg_0);
                 //il.Emit(OpCodes.Ldstr, EventList[lv]);         // Push value
                 //il.Emit(OpCodes.Call, typeof(LSL_BaseClass).GetMethod("AddFunction", new Type[] { typeof(string) }));
-
             }
-
 
 
             // IL_INSERT_END_TRY(il, eventname);
 
 
-            il.Emit(OpCodes.Ldloc_0);                   // Load local variable 0 onto stack
+            il.Emit(OpCodes.Ldloc_0); // Load local variable 0 onto stack
             //                il.Emit(OpCodes.Call, typeof(LSL_BaseClass).GetMethod("SetFunctionList", new Type[] { typeof(Array) }));
 
-            il.Emit(OpCodes.Ret);                       // Return
-
+            il.Emit(OpCodes.Ret); // Return
         }
 
 
@@ -631,7 +640,6 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSO
             // Push "Hello World!" string to stack
             //Common.SendToDebug("CLR:" + eventname + ":il.Emit(OpCodes.Ldstr...");
             //il.Emit(OpCodes.Ldstr, "Starting CLR dynamic execution of: " + eventname);
-
         }
 
         private void IL_INSERT_END_TRY(ILGenerator il, string eventname)
@@ -640,7 +648,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSO
              * CATCH
              */
             Common.SendToDebug("CLR:" + eventname + ":il.BeginCatchBlock(typeof(Exception));");
-            il.BeginCatchBlock(typeof(Exception));
+            il.BeginCatchBlock(typeof (Exception));
 
             // Push "Hello World!" string to stack
             Common.SendToDebug("CLR:" + eventname + ":il.Emit(OpCodes.Ldstr...");
@@ -648,18 +656,18 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSO
 
             //call void [mscorlib]System.Console::WriteLine(string)
             Common.SendToDebug("CLR:" + eventname + ":il.Emit(OpCodes.Call...");
-            il.Emit(OpCodes.Call, typeof(Console).GetMethod
-                ("Write", new Type[] { typeof(string) }));
+            il.Emit(OpCodes.Call, typeof (Console).GetMethod
+                                      ("Write", new Type[] {typeof (string)}));
 
             //callvirt instance string [mscorlib]System.Exception::get_Message()
             Common.SendToDebug("CLR:" + eventname + ":il.Emit(OpCodes.Callvirt...");
-            il.Emit(OpCodes.Callvirt, typeof(Exception).GetMethod
-                ("get_Message"));
+            il.Emit(OpCodes.Callvirt, typeof (Exception).GetMethod
+                                          ("get_Message"));
 
             //call void [mscorlib]System.Console::WriteLine(string)
             Common.SendToDebug("CLR:" + eventname + ":il.Emit(OpCodes.Call...");
-            il.Emit(OpCodes.Call, typeof(Console).GetMethod
-                ("WriteLine", new Type[] { typeof(string) }));
+            il.Emit(OpCodes.Call, typeof (Console).GetMethod
+                                      ("WriteLine", new Type[] {typeof (string)}));
 
             /*
              * CLR END TRY
@@ -673,7 +681,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSO
             long FirstPos = fs.Position;
             try
             {
-                UInt32 position = (UInt32)pos;
+                UInt32 position = (UInt32) pos;
                 // STATIC BLOCK
                 Common.SendToDebug("Reading STATIC BLOCK at: " + position);
                 fs.Seek(position, SeekOrigin.Begin);
@@ -681,7 +689,6 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSO
                 if (StaticBlocks.ContainsKey(position) == true)
                 {
                     Common.SendToDebug("Found cached STATIC BLOCK");
-
 
 
                     return StaticBlocks[pos];
@@ -699,7 +706,8 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSO
                 LSO_Struct.StaticBlock myStaticBlock = new LSO_Struct.StaticBlock();
                 myStaticBlock.Static_Chunk_Header_Size = BitConverter.ToUInt32(br_read(4), 0);
                 myStaticBlock.ObjectType = br_read(1)[0];
-                Common.SendToDebug("Static Block ObjectType: " + ((LSO_Enums.Variable_Type_Codes)myStaticBlock.ObjectType).ToString());
+                Common.SendToDebug("Static Block ObjectType: " +
+                                   ((LSO_Enums.Variable_Type_Codes) myStaticBlock.ObjectType).ToString());
                 myStaticBlock.Unknown = br_read(1)[0];
                 // Size of datatype varies
                 if (myStaticBlock.ObjectType != 0)
@@ -715,8 +723,6 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSO
                 // Go back to original read pos
                 fs.Seek(FirstPos, SeekOrigin.Begin);
             }
-
         }
-
     }
 }

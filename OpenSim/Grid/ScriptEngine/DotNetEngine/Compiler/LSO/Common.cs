@@ -27,31 +27,32 @@
 */
 /* Original code: Tedd Hansen */
 using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace OpenSim.Grid.ScriptEngine.DotNetEngine.Compiler.LSO
 {
     public static class Common
     {
-        static public bool Debug = true;
-        static public bool IL_UseTryCatch = true;
-        static public bool IL_CreateConstructor = true;
-        static public bool IL_CreateFunctionList = true;
-        static public bool IL_ProcessCodeChunks = true;
+        public static bool Debug = true;
+        public static bool IL_UseTryCatch = true;
+        public static bool IL_CreateConstructor = true;
+        public static bool IL_CreateFunctionList = true;
+        public static bool IL_ProcessCodeChunks = true;
 
         public delegate void SendToDebugEventDelegate(string Message);
-        public delegate void SendToLogEventDelegate(string Message);
-        static public event SendToDebugEventDelegate SendToDebugEvent;
-        static public event SendToLogEventDelegate SendToLogEvent;
 
-        static public void SendToDebug(string Message)
+        public delegate void SendToLogEventDelegate(string Message);
+
+        public static event SendToDebugEventDelegate SendToDebugEvent;
+        public static event SendToLogEventDelegate SendToLogEvent;
+
+        public static void SendToDebug(string Message)
         {
             //if (Debug == true)
             Console.WriteLine("COMPILER:Debug: " + Message);
             SendToDebugEvent("\r\n" + DateTime.Now.ToString("[HH:mm:ss] ") + Message);
         }
-        static public void SendToLog(string Message)
+
+        public static void SendToLog(string Message)
         {
             //if (Debug == true)
             Console.WriteLine("COMPILER:LOG: " + Message);
@@ -68,6 +69,7 @@ namespace OpenSim.Grid.ScriptEngine.DotNetEngine.Compiler.LSO
             Common.SendToDebug("ReverseFormatString format: " + format);
             return string.Format(format, text1);
         }
+
         public static string ReverseFormatString(string text1, UInt32 text2, string format)
         {
             Common.SendToDebug("ReverseFormatString text1: " + text1);
@@ -75,6 +77,7 @@ namespace OpenSim.Grid.ScriptEngine.DotNetEngine.Compiler.LSO
             Common.SendToDebug("ReverseFormatString format: " + format);
             return string.Format(format, text1, text2.ToString());
         }
+
         public static string Cast_ToString(object obj)
         {
             Common.SendToDebug("OBJECT TO BE CASTED: " + obj.GetType().ToString());

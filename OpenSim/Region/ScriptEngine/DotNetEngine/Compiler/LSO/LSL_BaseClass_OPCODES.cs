@@ -27,8 +27,6 @@
 */
 
 using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSO
 {
@@ -53,6 +51,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSO
                 LocalVariables.Remove(index);
             LocalVariables.Add(index, LSLStack.Peek());
         }
+
         public void StoreToGlobal(UInt32 index)
         {
             Common.SendToDebug("::StoreToGlobal " + index);
@@ -60,6 +59,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSO
                 GlobalVariables.Remove(index);
             GlobalVariables.Add(index, LSLStack.Peek());
         }
+
         public void StoreToStatic(UInt32 index)
         {
             Common.SendToDebug("::StoreToStatic " + index);
@@ -67,6 +67,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSO
             //    StaticVariables.Remove(index);
             StaticVariables.Add(index, LSLStack.Peek());
         }
+
         public void GetFromLocal(UInt32 index)
         {
             // TODO: How to determine local?
@@ -76,6 +77,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSO
             LSLStack.Push(ret);
             //return ret;
         }
+
         public void GetFromGlobal(UInt32 index)
         {
             Common.SendToDebug("::GetFromGlobal " + index);
@@ -84,6 +86,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSO
             LSLStack.Push(ret);
             //return ret;
         }
+
         public void GetFromStatic(UInt32 index)
         {
             Common.SendToDebug("::GetFromStatic " + index);
@@ -99,22 +102,22 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSO
             Common.SendToDebug("::POPToStack");
             //return LSLStack.Pop();
             object p = LSLStack.Pop();
-            if (p.GetType() == typeof(UInt32))
-                return (UInt32)p;
-            if (p.GetType() == typeof(string))
-                return (string)p;
-            if (p.GetType() == typeof(Int32))
-                return (Int32)p;
-            if (p.GetType() == typeof(UInt16))
-                return (UInt16)p;
-            if (p.GetType() == typeof(float))
-                return (float)p;
-            if (p.GetType() == typeof(LSO_Enums.Vector))
-                return (LSO_Enums.Vector)p;
-            if (p.GetType() == typeof(LSO_Enums.Rotation))
-                return (LSO_Enums.Rotation)p;
-            if (p.GetType() == typeof(LSO_Enums.Key))
-                return (LSO_Enums.Key)p;
+            if (p.GetType() == typeof (UInt32))
+                return (UInt32) p;
+            if (p.GetType() == typeof (string))
+                return (string) p;
+            if (p.GetType() == typeof (Int32))
+                return (Int32) p;
+            if (p.GetType() == typeof (UInt16))
+                return (UInt16) p;
+            if (p.GetType() == typeof (float))
+                return (float) p;
+            if (p.GetType() == typeof (LSO_Enums.Vector))
+                return (LSO_Enums.Vector) p;
+            if (p.GetType() == typeof (LSO_Enums.Rotation))
+                return (LSO_Enums.Rotation) p;
+            if (p.GetType() == typeof (LSO_Enums.Key))
+                return (LSO_Enums.Key) p;
 
             return p;
         }
@@ -151,6 +154,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSO
                 LSLStack.Pop();
             }
         }
+
         public void PUSH(object Param)
         {
             if (Param == null)
@@ -159,205 +163,218 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSO
             }
             else
             {
-
                 //Common.SendToDebug("::PUSH: " + Param.GetType());
             }
 
             LSLStack.Push(Param);
         }
+
         public void ADD(UInt32 Param)
         {
             Common.SendToDebug("::ADD: " + Param);
             object o2 = LSLStack.Pop();
             object o1 = LSLStack.Pop();
-            Common.SendToDebug("::ADD: Debug: o1: " + o1.GetType() + " (" + o1.ToString() + "), o2: " + o2.GetType() + " (" + o2.ToString() + ")");
-            if (o2.GetType() == typeof(string))
+            Common.SendToDebug("::ADD: Debug: o1: " + o1.GetType() + " (" + o1.ToString() + "), o2: " + o2.GetType() +
+                               " (" + o2.ToString() + ")");
+            if (o2.GetType() == typeof (string))
             {
-                LSLStack.Push((string)o1 + (string)o2);
+                LSLStack.Push((string) o1 + (string) o2);
                 return;
             }
-            if (o2.GetType() == typeof(UInt32))
+            if (o2.GetType() == typeof (UInt32))
             {
-                LSLStack.Push((UInt32)o1 + (UInt32)o2);
+                LSLStack.Push((UInt32) o1 + (UInt32) o2);
                 return;
             }
-
         }
+
         public void SUB(UInt32 Param)
         {
             Common.SendToDebug("::SUB: " + Param);
-            UInt32 i2 = (UInt32)LSLStack.Pop();
-            UInt32 i1 = (UInt32)LSLStack.Pop();
-            LSLStack.Push((UInt32)(i1 - i2));
+            UInt32 i2 = (UInt32) LSLStack.Pop();
+            UInt32 i1 = (UInt32) LSLStack.Pop();
+            LSLStack.Push((UInt32) (i1 - i2));
         }
+
         public void MUL(UInt32 Param)
         {
             Common.SendToDebug("::SUB: " + Param);
-            UInt32 i2 = (UInt32)LSLStack.Pop();
-            UInt32 i1 = (UInt32)LSLStack.Pop();
-            LSLStack.Push((UInt32)(i1 * i2));
+            UInt32 i2 = (UInt32) LSLStack.Pop();
+            UInt32 i1 = (UInt32) LSLStack.Pop();
+            LSLStack.Push((UInt32) (i1*i2));
         }
+
         public void DIV(UInt32 Param)
         {
             Common.SendToDebug("::DIV: " + Param);
-            UInt32 i2 = (UInt32)LSLStack.Pop();
-            UInt32 i1 = (UInt32)LSLStack.Pop();
-            LSLStack.Push((UInt32)(i1 / i2));
+            UInt32 i2 = (UInt32) LSLStack.Pop();
+            UInt32 i1 = (UInt32) LSLStack.Pop();
+            LSLStack.Push((UInt32) (i1/i2));
         }
 
 
         public void MOD(UInt32 Param)
         {
             Common.SendToDebug("::MOD: " + Param);
-            UInt32 i2 = (UInt32)LSLStack.Pop();
-            UInt32 i1 = (UInt32)LSLStack.Pop();
-            LSLStack.Push((UInt32)(i1 % i2));
+            UInt32 i2 = (UInt32) LSLStack.Pop();
+            UInt32 i1 = (UInt32) LSLStack.Pop();
+            LSLStack.Push((UInt32) (i1%i2));
         }
+
         public void EQ(UInt32 Param)
         {
             Common.SendToDebug("::EQ: " + Param);
-            UInt32 i2 = (UInt32)LSLStack.Pop();
-            UInt32 i1 = (UInt32)LSLStack.Pop();
+            UInt32 i2 = (UInt32) LSLStack.Pop();
+            UInt32 i1 = (UInt32) LSLStack.Pop();
             if (i1 == i2)
             {
-                LSLStack.Push((UInt32)1);
+                LSLStack.Push((UInt32) 1);
             }
             else
             {
-                LSLStack.Push((UInt32)0);
-            }
-        }
-        public void NEQ(UInt32 Param)
-        {
-            Common.SendToDebug("::NEQ: " + Param);
-            UInt32 i2 = (UInt32)LSLStack.Pop();
-            UInt32 i1 = (UInt32)LSLStack.Pop();
-            if (i1 != i2)
-            {
-                LSLStack.Push((UInt32)1);
-            }
-            else
-            {
-                LSLStack.Push((UInt32)0);
-            }
-        }
-        public void LEQ(UInt32 Param)
-        {
-            Common.SendToDebug("::LEQ: " + Param);
-            UInt32 i2 = (UInt32)LSLStack.Pop();
-            UInt32 i1 = (UInt32)LSLStack.Pop();
-            if (i1 <= i2)
-            {
-                LSLStack.Push((UInt32)1);
-            }
-            else
-            {
-                LSLStack.Push((UInt32)0);
-            }
-        }
-        public void GEQ(UInt32 Param)
-        {
-            Common.SendToDebug("::GEQ: " + Param);
-            UInt32 i2 = (UInt32)LSLStack.Pop();
-            UInt32 i1 = (UInt32)LSLStack.Pop();
-            if (i1 >= i2)
-            {
-                LSLStack.Push((UInt32)1);
-            }
-            else
-            {
-                LSLStack.Push((UInt32)0);
-            }
-        }
-        public void LESS(UInt32 Param)
-        {
-            Common.SendToDebug("::LESS: " + Param);
-            UInt32 i2 = (UInt32)LSLStack.Pop();
-            UInt32 i1 = (UInt32)LSLStack.Pop();
-            if (i1 < i2)
-            {
-                LSLStack.Push((UInt32)1);
-            }
-            else
-            {
-                LSLStack.Push((UInt32)0);
-            }
-        }
-        public void GREATER(UInt32 Param)
-        {
-            Common.SendToDebug("::GREATER: " + Param);
-            UInt32 i2 = (UInt32)LSLStack.Pop();
-            UInt32 i1 = (UInt32)LSLStack.Pop();
-            if (i1 > i2)
-            {
-                LSLStack.Push((UInt32)1);
-            }
-            else
-            {
-                LSLStack.Push((UInt32)0);
+                LSLStack.Push((UInt32) 0);
             }
         }
 
+        public void NEQ(UInt32 Param)
+        {
+            Common.SendToDebug("::NEQ: " + Param);
+            UInt32 i2 = (UInt32) LSLStack.Pop();
+            UInt32 i1 = (UInt32) LSLStack.Pop();
+            if (i1 != i2)
+            {
+                LSLStack.Push((UInt32) 1);
+            }
+            else
+            {
+                LSLStack.Push((UInt32) 0);
+            }
+        }
+
+        public void LEQ(UInt32 Param)
+        {
+            Common.SendToDebug("::LEQ: " + Param);
+            UInt32 i2 = (UInt32) LSLStack.Pop();
+            UInt32 i1 = (UInt32) LSLStack.Pop();
+            if (i1 <= i2)
+            {
+                LSLStack.Push((UInt32) 1);
+            }
+            else
+            {
+                LSLStack.Push((UInt32) 0);
+            }
+        }
+
+        public void GEQ(UInt32 Param)
+        {
+            Common.SendToDebug("::GEQ: " + Param);
+            UInt32 i2 = (UInt32) LSLStack.Pop();
+            UInt32 i1 = (UInt32) LSLStack.Pop();
+            if (i1 >= i2)
+            {
+                LSLStack.Push((UInt32) 1);
+            }
+            else
+            {
+                LSLStack.Push((UInt32) 0);
+            }
+        }
+
+        public void LESS(UInt32 Param)
+        {
+            Common.SendToDebug("::LESS: " + Param);
+            UInt32 i2 = (UInt32) LSLStack.Pop();
+            UInt32 i1 = (UInt32) LSLStack.Pop();
+            if (i1 < i2)
+            {
+                LSLStack.Push((UInt32) 1);
+            }
+            else
+            {
+                LSLStack.Push((UInt32) 0);
+            }
+        }
+
+        public void GREATER(UInt32 Param)
+        {
+            Common.SendToDebug("::GREATER: " + Param);
+            UInt32 i2 = (UInt32) LSLStack.Pop();
+            UInt32 i1 = (UInt32) LSLStack.Pop();
+            if (i1 > i2)
+            {
+                LSLStack.Push((UInt32) 1);
+            }
+            else
+            {
+                LSLStack.Push((UInt32) 0);
+            }
+        }
 
 
         public void BITAND()
         {
             Common.SendToDebug("::BITAND");
-            UInt32 i2 = (UInt32)LSLStack.Pop();
-            UInt32 i1 = (UInt32)LSLStack.Pop();
-            LSLStack.Push((UInt32)(i1 & i2));
+            UInt32 i2 = (UInt32) LSLStack.Pop();
+            UInt32 i1 = (UInt32) LSLStack.Pop();
+            LSLStack.Push((UInt32) (i1 & i2));
         }
+
         public void BITOR()
         {
             Common.SendToDebug("::BITOR");
-            UInt32 i2 = (UInt32)LSLStack.Pop();
-            UInt32 i1 = (UInt32)LSLStack.Pop();
-            LSLStack.Push((UInt32)(i1 | i2));
+            UInt32 i2 = (UInt32) LSLStack.Pop();
+            UInt32 i1 = (UInt32) LSLStack.Pop();
+            LSLStack.Push((UInt32) (i1 | i2));
         }
+
         public void BITXOR()
         {
             Common.SendToDebug("::BITXOR");
-            UInt32 i2 = (UInt32)LSLStack.Pop();
-            UInt32 i1 = (UInt32)LSLStack.Pop();
-            LSLStack.Push((UInt32)(i1 ^ i2));
+            UInt32 i2 = (UInt32) LSLStack.Pop();
+            UInt32 i1 = (UInt32) LSLStack.Pop();
+            LSLStack.Push((UInt32) (i1 ^ i2));
         }
+
         public void BOOLAND()
         {
             Common.SendToDebug("::BOOLAND");
-            bool b2 = bool.Parse((string)LSLStack.Pop());
-            bool b1 = bool.Parse((string)LSLStack.Pop());
+            bool b2 = bool.Parse((string) LSLStack.Pop());
+            bool b1 = bool.Parse((string) LSLStack.Pop());
             if (b1 && b2)
             {
-                LSLStack.Push((UInt32)1);
+                LSLStack.Push((UInt32) 1);
             }
             else
             {
-                LSLStack.Push((UInt32)0);
+                LSLStack.Push((UInt32) 0);
             }
         }
+
         public void BOOLOR()
         {
             Common.SendToDebug("::BOOLOR");
-            bool b2 = bool.Parse((string)LSLStack.Pop());
-            bool b1 = bool.Parse((string)LSLStack.Pop());
+            bool b2 = bool.Parse((string) LSLStack.Pop());
+            bool b1 = bool.Parse((string) LSLStack.Pop());
 
             if (b1 || b2)
             {
-                LSLStack.Push((UInt32)1);
+                LSLStack.Push((UInt32) 1);
             }
             else
             {
-                LSLStack.Push((UInt32)0);
+                LSLStack.Push((UInt32) 0);
             }
-
         }
+
         public void NEG(UInt32 Param)
         {
             Common.SendToDebug("::NEG: " + Param);
             //UInt32 i2 = (UInt32)LSLStack.Pop();
-            UInt32 i1 = (UInt32)LSLStack.Pop();
-            LSLStack.Push((UInt32)(i1 * -1));
+            UInt32 i1 = (UInt32) LSLStack.Pop();
+            LSLStack.Push((UInt32) (i1*-1));
         }
+
         public void BITNOT()
         {
             //Common.SendToDebug("::BITNOT");
@@ -365,6 +382,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSO
             //UInt32 i1 = (UInt32)LSLStack.Pop();
             //LSLStack.Push((UInt32)(i1 / i2));
         }
+
         public void BOOLNOT()
         {
             //Common.SendToDebug("::BOOLNOT");
@@ -372,7 +390,5 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSO
             //UInt32 i1 = (UInt32)LSLStack.Pop();
             //LSLStack.Push((UInt32)(i1));
         }
-
-
     }
 }

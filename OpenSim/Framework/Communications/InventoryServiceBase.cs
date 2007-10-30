@@ -30,10 +30,8 @@ using System;
 using System.Collections.Generic;
 using System.Reflection;
 using libsecondlife;
-using OpenSim.Framework.Communications;
 using OpenSim.Framework.Communications.Cache;
 using OpenSim.Framework.Console;
-using OpenSim.Framework;
 
 namespace OpenSim.Framework.Communications
 {
@@ -67,10 +65,10 @@ namespace OpenSim.Framework.Communications
                         if (typeInterface != null)
                         {
                             IInventoryData plug =
-                                (IInventoryData)Activator.CreateInstance(pluginAssembly.GetType(pluginType.ToString()));
+                                (IInventoryData) Activator.CreateInstance(pluginAssembly.GetType(pluginType.ToString()));
                             plug.Initialise();
-                            this.m_plugins.Add(plug.getName(), plug);
-                            MainLog.Instance.Verbose("INVENTORY","Added IInventoryData Interface");
+                            m_plugins.Add(plug.getName(), plug);
+                            MainLog.Instance.Verbose("INVENTORY", "Added IInventoryData Interface");
                         }
                     }
                 }
@@ -168,7 +166,7 @@ namespace OpenSim.Framework.Communications
         {
             foreach (InventoryFolderBase folder in inventory.Folders.Values)
             {
-                this.AddFolder(folder);
+                AddFolder(folder);
             }
         }
 
@@ -176,7 +174,7 @@ namespace OpenSim.Framework.Communications
         {
             UsersInventory inven = new UsersInventory();
             inven.CreateNewInventorySet(user);
-            this.AddNewInventorySet(inven);
+            AddNewInventorySet(inven);
         }
 
         public class UsersInventory
@@ -186,7 +184,6 @@ namespace OpenSim.Framework.Communications
 
             public UsersInventory()
             {
-
             }
 
             public virtual void CreateNewInventorySet(LLUUID user)
@@ -231,7 +228,9 @@ namespace OpenSim.Framework.Communications
             }
         }
 
-        public abstract void RequestInventoryForUser(LLUUID userID, InventoryFolderInfo folderCallBack, InventoryItemInfo itemCallBack);
+        public abstract void RequestInventoryForUser(LLUUID userID, InventoryFolderInfo folderCallBack,
+                                                     InventoryItemInfo itemCallBack);
+
         public abstract void AddNewInventoryFolder(LLUUID userID, InventoryFolderImpl folder);
         public abstract void AddNewInventoryItem(LLUUID userID, InventoryItemBase item);
         public abstract void DeleteInventoryItem(LLUUID userID, InventoryItemBase item);

@@ -34,18 +34,19 @@ namespace OpenSim.Framework.Data.DB4o
     /// <summary>
     /// A grid server storage mechanism employing the DB4o database system
     /// </summary>
-    class DB4oGridData : IGridData
+    internal class DB4oGridData : IGridData
     {
         /// <summary>
         /// The database manager object
         /// </summary>
-        DB4oGridManager manager;
+        private DB4oGridManager manager;
 
         /// <summary>
         /// Called when the plugin is first loaded (as constructors are not called)
         /// </summary>
-        public void Initialise() {
-             manager = new DB4oGridManager("gridserver.yap");
+        public void Initialise()
+        {
+            manager = new DB4oGridManager("gridserver.yap");
         }
 
         /// <summary>
@@ -93,7 +94,8 @@ namespace OpenSim.Framework.Data.DB4o
                 if (manager.simProfiles.ContainsKey(uuid))
                     return manager.simProfiles[uuid];
             }
-            throw new Exception("Unable to find profile with UUID (" + uuid.ToStringHyphenated() + "). Total Registered Regions: " + manager.simProfiles.Count);
+            throw new Exception("Unable to find profile with UUID (" + uuid.ToStringHyphenated() +
+                                "). Total Registered Regions: " + manager.simProfiles.Count);
         }
 
         /// <summary>
@@ -123,7 +125,8 @@ namespace OpenSim.Framework.Data.DB4o
         /// <param name="handle">The location the region is logging into (unused in Db4o)</param>
         /// <param name="key">The shared secret</param>
         /// <returns>Authenticated?</returns>
-        public bool AuthenticateSim(LLUUID uuid, ulong handle, string key) {
+        public bool AuthenticateSim(LLUUID uuid, ulong handle, string key)
+        {
             if (manager.simProfiles[uuid].regionRecvKey == key)
                 return true;
             return false;

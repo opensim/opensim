@@ -25,18 +25,11 @@
 * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 * 
 */
-using System;
-using System.Collections.Generic;
 using System.IO;
-using System.Threading;
 using Db4objects.Db4o;
 using Db4objects.Db4o.Query;
 using libsecondlife;
-using Nini.Config;
-using OpenSim.Framework.Communications.Cache;
 using OpenSim.Framework.Console;
-using OpenSim.Framework.Interfaces;
-using OpenSim.Framework;
 
 namespace OpenSim.Framework.Communications.Cache
 {
@@ -50,7 +43,7 @@ namespace OpenSim.Framework.Communications.Cache
             yapfile = File.Exists(Path.Combine(Util.dataDir(), "regionassets.yap"));
 
             db = Db4oFactory.OpenFile(Path.Combine(Util.dataDir(), "regionassets.yap"));
-            MainLog.Instance.Verbose("ASSETS","Db4 Asset database  creation");
+            MainLog.Instance.Verbose("ASSETS", "Db4 Asset database  creation");
 
             if (!yapfile)
             {
@@ -68,29 +61,29 @@ namespace OpenSim.Framework.Communications.Cache
             db.Commit();
         }
 
-        override public void Close()
+        public override void Close()
         {
             base.Close();
 
             if (db != null)
             {
-                MainLog.Instance.Verbose("ASSETSERVER","Closing local asset server database");
+                MainLog.Instance.Verbose("ASSETSERVER", "Closing local asset server database");
                 db.Close();
             }
         }
 
-        override  protected void RunRequests()
+        protected override void RunRequests()
         {
             while (true)
             {
                 byte[] idata = null;
                 bool found = false;
                 AssetStorage foundAsset = null;
-                ARequest req = this._assetRequests.Dequeue();
+                ARequest req = _assetRequests.Dequeue();
                 IObjectSet result = db.Query(new AssetUUIDQuery(req.AssetID));
                 if (result.Count > 0)
                 {
-                    foundAsset = (AssetStorage)result.Next();
+                    foundAsset = (AssetStorage) result.Next();
                     found = true;
                 }
 
@@ -110,12 +103,10 @@ namespace OpenSim.Framework.Communications.Cache
                     //asset.FullID = ;
                     _receiver.AssetNotFound(req.AssetID);
                 }
-
             }
-
         }
 
-        override protected void StoreAsset(AssetBase asset)
+        protected override void StoreAsset(AssetBase asset)
         {
             AssetStorage store = new AssetStorage();
             store.Data = asset.Data;
@@ -148,6 +139,7 @@ namespace OpenSim.Framework.Communications.Cache
         {
             _findID = find;
         }
+
         public bool Match(AssetStorage asset)
         {
             return (asset.UUID == _findID);

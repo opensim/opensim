@@ -29,10 +29,10 @@
 using System;
 using System.Collections.Generic;
 using libsecondlife;
+using Nini.Config;
 using OpenSim.Framework;
 using OpenSim.Region.Environment.Interfaces;
 using OpenSim.Region.Environment.Scenes;
-using Nini.Config;
 
 namespace OpenSim.Region.Environment.Modules
 {
@@ -99,7 +99,7 @@ namespace OpenSim.Region.Environment.Modules
             if (RenderPlugins.ContainsKey(contentType))
             {
                 //Console.WriteLine("dynamic texture being created: " + url + " of type " + contentType);
-            
+
                 DynamicTextureUpdater updater = new DynamicTextureUpdater();
                 updater.SimUUID = simID;
                 updater.PrimID = primID;

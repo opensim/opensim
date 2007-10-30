@@ -30,31 +30,28 @@ using System.Collections.Generic;
 using System.Net;
 using libsecondlife;
 using libsecondlife.Packets;
-using OpenSim.Framework;
 
 namespace OpenSim.Framework
 {
     // Base Args Interface
     public interface IEventArgs
     {
-        IScene Scene
-        {
-            get;
-            set;
-        }
+        IScene Scene { get; set; }
 
-        IClientAPI Sender
-        {
-            get;
-            set;
-        }
+        IClientAPI Sender { get; set; }
     }
 
     public delegate void ViewerEffectEventHandler(IClientAPI sender, ViewerEffectPacket.EffectBlock[] effectBlock);
 
     public delegate void ChatFromViewer(Object sender, ChatFromViewerArgs e);
 
-    public enum ChatTypeEnum { Whisper = 0, Say = 1, Shout = 2, Broadcast = 0xFF };
+    public enum ChatTypeEnum
+    {
+        Whisper = 0,
+        Say = 1,
+        Shout = 2,
+        Broadcast = 0xFF
+    } ;
 
     /// <summary>
     /// ChatFromViewer Arguments
@@ -163,68 +160,127 @@ namespace OpenSim.Framework
 
     public delegate void TextureRequest(Object sender, TextureRequestArgs e);
 
-    public delegate void ImprovedInstantMessage(LLUUID fromAgentID, LLUUID fromAgentSession, LLUUID toAgentID, LLUUID imSessionID, uint timestamp, string fromAgentName, string message, byte dialog); // Cut down from full list
+    public delegate void ImprovedInstantMessage(
+        LLUUID fromAgentID, LLUUID fromAgentSession, LLUUID toAgentID, LLUUID imSessionID, uint timestamp,
+        string fromAgentName, string message, byte dialog); // Cut down from full list
     public delegate void RezObject(IClientAPI remoteClient, LLUUID itemID, LLVector3 pos);
-    public delegate void ModifyTerrain(float height, float seconds, byte size, byte action, float north, float west, IClientAPI remoteClient);
+
+    public delegate void ModifyTerrain(
+        float height, float seconds, byte size, byte action, float north, float west, IClientAPI remoteClient);
+
     public delegate void SetAppearance(byte[] texture, AgentSetAppearancePacket.VisualParamBlock[] visualParam);
+
     public delegate void StartAnim(IClientAPI remoteClient, LLUUID animID, int seq);
+
     public delegate void LinkObjects(uint parent, List<uint> children);
+
     public delegate void RequestMapBlocks(IClientAPI remoteClient, int minX, int minY, int maxX, int maxY);
-    public delegate void TeleportLocationRequest(IClientAPI remoteClient, ulong regionHandle, LLVector3 position, LLVector3 lookAt, uint flags);
+
+    public delegate void TeleportLocationRequest(
+        IClientAPI remoteClient, ulong regionHandle, LLVector3 position, LLVector3 lookAt, uint flags);
+
     public delegate void DisconnectUser();
+
     public delegate void RequestAvatarProperties(IClientAPI remoteClient, LLUUID avatarID);
 
     public delegate void GenericCall(IClientAPI remoteClient);
+
     public delegate void GenericCall2();
-    public delegate void GenericCall3(Packet packet); // really don't want to be passing packets in these events, so this is very temporary.
+
+    public delegate void GenericCall3(Packet packet);
+
+    // really don't want to be passing packets in these events, so this is very temporary.
     public delegate void GenericCall4(Packet packet, IClientAPI remoteClient);
+
     public delegate void GenericCall5(IClientAPI remoteClient, bool status);
+
     public delegate void GenericCall6(LLUUID uid);
+
     public delegate void GenericCall7(uint localID, string message);
 
     public delegate void UpdateShape(uint localID, ObjectShapePacket.ObjectDataBlock shapeBlock);
+
     public delegate void ObjectExtraParams(uint localID, ushort type, bool inUse, byte[] data);
+
     public delegate void ObjectSelect(uint localID, IClientAPI remoteClient);
+
     public delegate void ObjectDeselect(uint localID, IClientAPI remoteClient);
+
     public delegate void UpdatePrimFlags(uint localID, Packet packet, IClientAPI remoteClient);
+
     public delegate void UpdatePrimTexture(uint localID, byte[] texture, IClientAPI remoteClient);
+
     public delegate void UpdateVector(uint localID, LLVector3 pos, IClientAPI remoteClient);
+
     public delegate void UpdatePrimRotation(uint localID, LLQuaternion rot, IClientAPI remoteClient);
+
     public delegate void UpdatePrimSingleRotation(uint localID, LLQuaternion rot, IClientAPI remoteClient);
-    public delegate void UpdatePrimGroupRotation(uint localID,LLVector3 pos, LLQuaternion rot, IClientAPI remoteClient);
+
+    public delegate void UpdatePrimGroupRotation(uint localID, LLVector3 pos, LLQuaternion rot, IClientAPI remoteClient);
+
     public delegate void ObjectDuplicate(uint localID, LLVector3 offset, uint dupeFlags);
+
     public delegate void StatusChange(bool status);
+
     public delegate void NewAvatar(IClientAPI remoteClient, LLUUID agentID, bool status);
+
     public delegate void UpdateAgent(IClientAPI remoteClient, uint flags, LLQuaternion bodyRotation);
+
     public delegate void AgentRequestSit(IClientAPI remoteClient, LLUUID agentID, LLUUID targetID);
+
     public delegate void AgentSit(IClientAPI remoteClient, LLUUID agentID);
+
     public delegate void MoveObject(LLUUID objectID, LLVector3 offset, LLVector3 grapPos, IClientAPI remoteClient);
 
-    public delegate void ParcelPropertiesRequest(int start_x, int start_y, int end_x, int end_y, int sequence_id, bool snap_selection, IClientAPI remote_client);
+    public delegate void ParcelPropertiesRequest(
+        int start_x, int start_y, int end_x, int end_y, int sequence_id, bool snap_selection, IClientAPI remote_client);
+
     public delegate void ParcelDivideRequest(int west, int south, int east, int north, IClientAPI remote_client);
+
     public delegate void ParcelJoinRequest(int west, int south, int east, int north, IClientAPI remote_client);
+
     public delegate void ParcelPropertiesUpdateRequest(ParcelPropertiesUpdatePacket packet, IClientAPI remote_client);
+
     public delegate void ParcelSelectObjects(int land_local_id, int request_type, IClientAPI remote_client);
+
     public delegate void ParcelObjectOwnerRequest(int local_id, IClientAPI remote_client);
+
     public delegate void EstateOwnerMessageRequest(EstateOwnerMessagePacket packet, IClientAPI remote_client);
 
     public delegate void UUIDNameRequest(LLUUID id, IClientAPI remote_client);
 
     public delegate void AddNewPrim(LLUUID ownerID, LLVector3 pos, PrimitiveBaseShape shape);
 
-    public delegate void CreateInventoryFolder(IClientAPI remoteClient, LLUUID folderID, ushort folderType, string folderName, LLUUID parentID);
-    public delegate void CreateNewInventoryItem(IClientAPI remoteClient, LLUUID transActionID, LLUUID folderID, uint callbackID, string description, string name, sbyte invType, sbyte type, byte wearableType, uint nextOwnerMask);
-    public delegate void FetchInventoryDescendents(IClientAPI remoteClient, LLUUID folderID, LLUUID ownerID, bool fetchFolders, bool fetchItems, int sortOrder);
+    public delegate void CreateInventoryFolder(
+        IClientAPI remoteClient, LLUUID folderID, ushort folderType, string folderName, LLUUID parentID);
+
+    public delegate void CreateNewInventoryItem(
+        IClientAPI remoteClient, LLUUID transActionID, LLUUID folderID, uint callbackID, string description, string name,
+        sbyte invType, sbyte type, byte wearableType, uint nextOwnerMask);
+
+    public delegate void FetchInventoryDescendents(
+        IClientAPI remoteClient, LLUUID folderID, LLUUID ownerID, bool fetchFolders, bool fetchItems, int sortOrder);
+
     public delegate void FetchInventory(IClientAPI remoteClient, LLUUID itemID, LLUUID ownerID);
+
     public delegate void RequestTaskInventory(IClientAPI remoteClient, uint localID);
-    public delegate void UpdateInventoryItemTransaction(IClientAPI remoteClient, LLUUID transactionID, LLUUID assetID, LLUUID itemID);
+
+    public delegate void UpdateInventoryItemTransaction(
+        IClientAPI remoteClient, LLUUID transactionID, LLUUID assetID, LLUUID itemID);
+
     public delegate void RezScript(IClientAPI remoteClient, LLUUID itemID, uint localID);
+
     public delegate void UpdateTaskInventory(IClientAPI remoteClient, LLUUID itemID, LLUUID folderID, uint localID);
+
     public delegate void RemoveTaskInventory(IClientAPI remoteClient, LLUUID itemID, uint localID);
 
-    public delegate void UDPAssetUploadRequest(IClientAPI remoteClient, LLUUID assetID, LLUUID transaction, sbyte type, byte[] data, bool storeLocal);
+    public delegate void UDPAssetUploadRequest(
+        IClientAPI remoteClient, LLUUID assetID, LLUUID transaction, sbyte type, byte[] data, bool storeLocal);
+
     public delegate void XferReceive(IClientAPI remoteClient, ulong xferID, uint packetID, byte[] data);
+
     public delegate void RequestXfer(IClientAPI remoteClient, ulong xferID, string fileName);
+
     public delegate void ConfirmXfer(IClientAPI remoteClient, ulong xferID, uint packetID);
 
     public interface IClientAPI
@@ -298,37 +354,17 @@ namespace OpenSim.Framework
         event ParcelObjectOwnerRequest OnParcelObjectOwnerRequest;
         event EstateOwnerMessageRequest OnEstateOwnerMessage;
 
-        LLVector3 StartPos
-        {
-            get;
-            set;
-        }
+        LLVector3 StartPos { get; set; }
 
-        LLUUID AgentId
-        {
-            get;
-        }
+        LLUUID AgentId { get; }
 
-        LLUUID SessionId
-        {
-            get;
-        }
+        LLUUID SessionId { get; }
 
-        string FirstName
-        {
-            get;
-        }
+        string FirstName { get; }
 
-        string LastName
-        {
-            get;
-        }
+        string LastName { get; }
 
-        uint CircuitCode
-        {
-            get;
-            set;
-        }
+        uint CircuitCode { get; set; }
 
         void OutPacket(Packet newPack);
         void SendWearables(AvatarWearable[] wearables);
@@ -339,28 +375,46 @@ namespace OpenSim.Framework
         void SendRegionHandshake(RegionInfo regionInfo);
         void SendChatMessage(string message, byte type, LLVector3 fromPos, string fromName, LLUUID fromAgentID);
         void SendChatMessage(byte[] message, byte type, LLVector3 fromPos, string fromName, LLUUID fromAgentID);
-        void SendInstantMessage(LLUUID fromAgent, LLUUID fromAgentSession, string message, LLUUID toAgent, LLUUID imSessionID, string fromName, byte dialog, uint timeStamp);
+
+        void SendInstantMessage(LLUUID fromAgent, LLUUID fromAgentSession, string message, LLUUID toAgent,
+                                LLUUID imSessionID, string fromName, byte dialog, uint timeStamp);
+
         void SendLayerData(float[] map);
         void SendLayerData(int px, int py, float[] map);
         void MoveAgentIntoRegion(RegionInfo regInfo, LLVector3 pos, LLVector3 look);
-        void InformClientOfNeighbour(ulong neighbourHandle, IPEndPoint neighbourExternalEndPoint );
+        void InformClientOfNeighbour(ulong neighbourHandle, IPEndPoint neighbourExternalEndPoint);
         AgentCircuitData RequestClientInfo();
-        void CrossRegion(ulong newRegionHandle, LLVector3 pos, LLVector3 lookAt, IPEndPoint newRegionExternalEndPoint, string capsURL );
+
+        void CrossRegion(ulong newRegionHandle, LLVector3 pos, LLVector3 lookAt, IPEndPoint newRegionExternalEndPoint,
+                         string capsURL);
+
         void SendMapBlock(List<MapBlockData> mapBlocks);
         void SendLocalTeleport(LLVector3 position, LLVector3 lookAt, uint flags);
-        void SendRegionTeleport(ulong regionHandle, byte simAccess, IPEndPoint regionExternalEndPoint, uint locationID, uint flags, string capsURL);
+
+        void SendRegionTeleport(ulong regionHandle, byte simAccess, IPEndPoint regionExternalEndPoint, uint locationID,
+                                uint flags, string capsURL);
+
         void SendTeleportCancel();
         void SendTeleportLocationStart();
         void SendMoneyBalance(LLUUID transaction, bool success, byte[] description, int balance);
 
-        void SendAvatarData(ulong regionHandle, string firstName, string lastName, LLUUID avatarID, uint avatarLocalID, LLVector3 Pos, byte[] textureEntry, uint parentID);
-        void SendAvatarTerseUpdate(ulong regionHandle, ushort timeDilation, uint localID, LLVector3 position, LLVector3 velocity, LLQuaternion rotation);
+        void SendAvatarData(ulong regionHandle, string firstName, string lastName, LLUUID avatarID, uint avatarLocalID,
+                            LLVector3 Pos, byte[] textureEntry, uint parentID);
+
+        void SendAvatarTerseUpdate(ulong regionHandle, ushort timeDilation, uint localID, LLVector3 position,
+                                   LLVector3 velocity, LLQuaternion rotation);
+
         void SendCoarseLocationUpdate(List<LLVector3> CoarseLocations);
 
         void AttachObject(uint localID, LLQuaternion rotation, byte attachPoint);
-        void SendPrimitiveToClient(ulong regionHandle, ushort timeDilation, uint localID, PrimitiveBaseShape primShape, LLVector3 pos, uint flags, LLUUID objectID, LLUUID ownerID, string text, uint parentID, byte[] particleSystem, LLQuaternion rotation);
-        void SendPrimTerseUpdate(ulong regionHandle, ushort timeDilation, uint localID, LLVector3 position, LLQuaternion rotation);
-    
+
+        void SendPrimitiveToClient(ulong regionHandle, ushort timeDilation, uint localID, PrimitiveBaseShape primShape,
+                                   LLVector3 pos, uint flags, LLUUID objectID, LLUUID ownerID, string text,
+                                   uint parentID, byte[] particleSystem, LLQuaternion rotation);
+
+        void SendPrimTerseUpdate(ulong regionHandle, ushort timeDilation, uint localID, LLVector3 position,
+                                 LLQuaternion rotation);
+
         void SendInventoryFolderDetails(LLUUID ownerID, LLUUID folderID, List<InventoryItemBase> items);
         void SendInventoryItemDetails(LLUUID ownerID, InventoryItemBase item);
         void SendInventoryItemUpdate(InventoryItemBase Item);
@@ -375,10 +429,13 @@ namespace OpenSim.Framework
         void SendAlertMessage(string message);
         void SendAgentAlertMessage(string message, bool modal);
         void SendLoadURL(string objectname, LLUUID objectID, LLUUID ownerID, bool groupOwned, string message, string url);
-        bool AddMoney( int debit );
+        bool AddMoney(int debit);
 
         void SendViewerTime(int phase);
-        void SendAvatarProperties(LLUUID avatarID, string aboutText, string bornOn, string charterMember, string flAbout, uint flags, LLUUID flImageID, LLUUID imageID, string profileURL, LLUUID partnerID);
+
+        void SendAvatarProperties(LLUUID avatarID, string aboutText, string bornOn, string charterMember, string flAbout,
+                                  uint flags, LLUUID flImageID, LLUUID imageID, string profileURL, LLUUID partnerID);
+
         void SetDebug(int newDebug);
         void InPacket(Packet NewPack);
         void Close();

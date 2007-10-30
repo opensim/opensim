@@ -25,18 +25,13 @@
 * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 * 
 */
+
 using System;
-using System.Threading;
 using System.Collections.Generic;
-
-using libsecondlife;
-
 using Axiom.Math;
 using Ode.NET;
 using OpenSim.Framework;
-using OpenSim.Framework.Console;
 using OpenSim.Region.Physics.Manager;
-
 
 namespace OpenSim.Region.Physics.OdePlugin
 {
@@ -49,7 +44,6 @@ namespace OpenSim.Region.Physics.OdePlugin
 
         public OdePlugin()
         {
-
         }
 
         public bool Init()
@@ -73,7 +67,6 @@ namespace OpenSim.Region.Physics.OdePlugin
 
         public void Dispose()
         {
-
         }
     }
 
@@ -82,17 +75,17 @@ namespace OpenSim.Region.Physics.OdePlugin
         private static float ODE_STEPSIZE = 0.004f;
         private static bool RENDER_FLAG = false;
         private IntPtr contactgroup;
-        private IntPtr LandGeom=(IntPtr)0;
+        private IntPtr LandGeom = (IntPtr) 0;
         private double[] _heightmap;
         private d.NearCallback nearCallback;
         public d.TriCallback triCallback;
         public d.TriArrayCallback triArrayCallback;
         private List<OdeCharacter> _characters = new List<OdeCharacter>();
         private List<OdePrim> _prims = new List<OdePrim>();
-        public Dictionary<IntPtr, String> geom_name_map=new Dictionary<IntPtr, String>();
+        public Dictionary<IntPtr, String> geom_name_map = new Dictionary<IntPtr, String>();
         private d.ContactGeom[] contacts = new d.ContactGeom[30];
         private d.Contact contact;
-        private float step_time=0.0f;
+        private float step_time = 0.0f;
         public IntPtr world;
         public IntPtr space;
         public static Object OdeLock = new Object();
@@ -140,7 +133,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                 return;
 
             d.GeomClassID id = d.GeomGetClass(g1);
-            if (id==d.GeomClassID.TriMeshClass)
+            if (id == d.GeomClassID.TriMeshClass)
             {
                 String name1 = null;
                 String name2 = null;
@@ -163,7 +156,6 @@ namespace OpenSim.Region.Physics.OdePlugin
                 IntPtr joint = d.JointCreateContact(world, contactgroup, ref contact);
                 d.JointAttach(joint, b1, b2);
             }
-
         }
 
         private void collision_optimized()
@@ -171,7 +163,8 @@ namespace OpenSim.Region.Physics.OdePlugin
             foreach (OdeCharacter chr in _characters)
             {
                 d.SpaceCollide2(space, chr.Shell, IntPtr.Zero, nearCallback);
-                foreach (OdeCharacter ch2 in _characters)           /// should be a separate space -- lots of avatars will be N**2 slow
+                foreach (OdeCharacter ch2 in _characters)
+                    /// should be a separate space -- lots of avatars will be N**2 slow
                 {
                     d.SpaceCollide2(chr.Shell, ch2.Shell, IntPtr.Zero, nearCallback);
                 }
@@ -193,8 +186,8 @@ namespace OpenSim.Region.Physics.OdePlugin
         {
             lock (OdeLock)
             {
-                ((OdeCharacter)actor).Destroy();
-                _characters.Remove((OdeCharacter)actor);
+                ((OdeCharacter) actor).Destroy();
+                _characters.Remove((OdeCharacter) actor);
             }
         }
 
@@ -204,13 +197,14 @@ namespace OpenSim.Region.Physics.OdePlugin
             {
                 lock (OdeLock)
                 {
-                    d.GeomDestroy(((OdePrim)prim).prim_geom);
-                    _prims.Remove((OdePrim)prim);
+                    d.GeomDestroy(((OdePrim) prim).prim_geom);
+                    _prims.Remove((OdePrim) prim);
                 }
             }
         }
 
-        PhysicsActor AddPrim(String name, PhysicsVector position, PhysicsVector size, Quaternion rotation, Mesh mesh, PrimitiveBaseShape pbs)
+        private PhysicsActor AddPrim(String name, PhysicsVector position, PhysicsVector size, Quaternion rotation,
+                                     Mesh mesh, PrimitiveBaseShape pbs)
         {
             PhysicsVector pos = new PhysicsVector();
             pos.X = position.X;
@@ -235,7 +229,7 @@ namespace OpenSim.Region.Physics.OdePlugin
         }
 
 
-        public int TriArrayCallback(System.IntPtr trimesh, System.IntPtr refObject, int[] triangleIndex, int triCount)
+        public int TriArrayCallback(IntPtr trimesh, IntPtr refObject, int[] triangleIndex, int triCount)
         {
 /*            String name1 = null;
             String name2 = null;
@@ -254,15 +248,14 @@ namespace OpenSim.Region.Physics.OdePlugin
             return 1;
         }
 
-        public int TriCallback(System.IntPtr trimesh, System.IntPtr refObject, int triangleIndex)
+        public int TriCallback(IntPtr trimesh, IntPtr refObject, int triangleIndex)
         {
-
             String name1 = null;
             String name2 = null;
 
             if (!geom_name_map.TryGetValue(trimesh, out name1))
             {
-                name1 = "null";     
+                name1 = "null";
             }
             if (!geom_name_map.TryGetValue(refObject, out name2))
             {
@@ -282,11 +275,12 @@ namespace OpenSim.Region.Physics.OdePlugin
         }
 
 
-        public override PhysicsActor AddPrimShape(string primName, PrimitiveBaseShape pbs, PhysicsVector position, PhysicsVector size, Quaternion rotation)
+        public override PhysicsActor AddPrimShape(string primName, PrimitiveBaseShape pbs, PhysicsVector position,
+                                                  PhysicsVector size, Quaternion rotation)
         {
             PhysicsActor result;
 
-            switch(pbs.ProfileShape)
+            switch (pbs.ProfileShape)
             {
                 case ProfileShape.Square:
                     /// support simple box & hollow box now; later, more shapes
@@ -310,7 +304,6 @@ namespace OpenSim.Region.Physics.OdePlugin
         }
 
 
-
         public override void Simulate(float timeStep)
         {
             step_time += timeStep;
@@ -327,11 +320,12 @@ namespace OpenSim.Region.Physics.OdePlugin
                         Vector3 rx, ry, rz;
                         p.Orientation.ToAxes(out rx, out ry, out rz);
                         Console.WriteLine("RENDER: block; " + p.Size.X + ", " + p.Size.Y + ", " + p.Size.Z + "; " +
-                            "  0, 0, 1;  " + //shape, size, color
-                        (p.Position.X - 128.0f) + ", " + (p.Position.Y - 128.0f) + ", " + (p.Position.Z - 33.0f) + ";  " + // position
-                        rx.x + "," + ry.x + "," + rz.x + ", " + // rotation
-                        rx.y + "," + ry.y + "," + rz.y + ", " +
-                        rx.z + "," + ry.z + "," + rz.z);
+                                          "  0, 0, 1;  " + //shape, size, color
+                                          (p.Position.X - 128.0f) + ", " + (p.Position.Y - 128.0f) + ", " +
+                                          (p.Position.Z - 33.0f) + ";  " + // position
+                                          rx.x + "," + ry.x + "," + rz.x + ", " + // rotation
+                                          rx.y + "," + ry.y + "," + rz.y + ", " +
+                                          rx.z + "," + ry.z + "," + rz.z);
                     }
                 }
                 int i = 0;
@@ -357,22 +351,27 @@ namespace OpenSim.Region.Physics.OdePlugin
                         float Zoff = -33.0f;
                         d.Matrix3 temp = d.BodyGetRotation(actor.Body);
                         Console.WriteLine("RENDER: cylinder; " + // shape
-                            OdeCharacter.CAPSULE_RADIUS + ", " + OdeCharacter.CAPSULE_LENGTH + //size
-                            "; 0, 1, 0;  " + // color
-                            (actor.Position.X - 128.0f) + ", " + (actor.Position.Y - 128.0f) + ", " + (actor.Position.Z + Zoff) + ";  " + // position
-                            temp.M00 + "," + temp.M10 + "," + temp.M20 + ", " + // rotation
-                            temp.M01 + "," + temp.M11 + "," + temp.M21 + ", " +
-                            temp.M02 + "," + temp.M12 + "," + temp.M22);
-                        d.Vector3 caphead; d.BodyGetRelPointPos(actor.Body, 0, 0, OdeCharacter.CAPSULE_LENGTH * .5f, out caphead);
-                        d.Vector3 capfoot; d.BodyGetRelPointPos(actor.Body, 0, 0, -OdeCharacter.CAPSULE_LENGTH * .5f, out capfoot);
+                                          OdeCharacter.CAPSULE_RADIUS + ", " + OdeCharacter.CAPSULE_LENGTH + //size
+                                          "; 0, 1, 0;  " + // color
+                                          (actor.Position.X - 128.0f) + ", " + (actor.Position.Y - 128.0f) + ", " +
+                                          (actor.Position.Z + Zoff) + ";  " + // position
+                                          temp.M00 + "," + temp.M10 + "," + temp.M20 + ", " + // rotation
+                                          temp.M01 + "," + temp.M11 + "," + temp.M21 + ", " +
+                                          temp.M02 + "," + temp.M12 + "," + temp.M22);
+                        d.Vector3 caphead;
+                        d.BodyGetRelPointPos(actor.Body, 0, 0, OdeCharacter.CAPSULE_LENGTH*.5f, out caphead);
+                        d.Vector3 capfoot;
+                        d.BodyGetRelPointPos(actor.Body, 0, 0, -OdeCharacter.CAPSULE_LENGTH*.5f, out capfoot);
                         Console.WriteLine("RENDER: sphere;  " + OdeCharacter.CAPSULE_RADIUS + // shape, size
-                            "; 1, 0, 1;  " +  //color
-                            (caphead.X - 128.0f) + ", " + (caphead.Y - 128.0f) + ", " + (caphead.Z + Zoff) + ";  " + // position
-                            "1,0,0, 0,1,0, 0,0,1"); // rotation
+                                          "; 1, 0, 1;  " + //color
+                                          (caphead.X - 128.0f) + ", " + (caphead.Y - 128.0f) + ", " + (caphead.Z + Zoff) +
+                                          ";  " + // position
+                                          "1,0,0, 0,1,0, 0,0,1"); // rotation
                         Console.WriteLine("RENDER: sphere;  " + OdeCharacter.CAPSULE_RADIUS + // shape, size
-                            "; 1, 0, 0;  " +  //color
-                            (capfoot.X - 128.0f) + ", " + (capfoot.Y - 128.0f) + ", " + (capfoot.Z + Zoff) + ";  " + // position
-                            "1,0,0, 0,1,0, 0,0,1"); // rotation
+                                          "; 1, 0, 0;  " + //color
+                                          (capfoot.X - 128.0f) + ", " + (capfoot.Y - 128.0f) + ", " + (capfoot.Z + Zoff) +
+                                          ";  " + // position
+                                          "1,0,0, 0,1,0, 0,0,1"); // rotation
                     }
                 }
             }
@@ -380,14 +379,11 @@ namespace OpenSim.Region.Physics.OdePlugin
 
         public override void GetResults()
         {
-
         }
 
         public override bool IsThreaded
         {
-            get
-            {
-                return (false); // for now we won't be multithreaded
+            get { return (false); // for now we won't be multithreaded
             }
         }
 
@@ -400,21 +396,21 @@ namespace OpenSim.Region.Physics.OdePlugin
             {
                 for (int y = 0; y < 258; y++)
                 {
-                    int xx = x-1;
+                    int xx = x - 1;
                     if (xx < 0) xx = 0;
                     if (xx > 255) xx = 255;
-                    int yy = y-1;
+                    int yy = y - 1;
                     if (yy < 0) yy = 0;
                     if (yy > 255) yy = 255;
 
-                    double val = (double)heightMap[yy * 256 + xx];
-                    _heightmap[x * 258 + y] = val;
+                    double val = (double) heightMap[yy*256 + xx];
+                    _heightmap[x*258 + y] = val;
                 }
             }
 
             lock (OdeLock)
             {
-                if (!(LandGeom == (IntPtr)0))
+                if (!(LandGeom == (IntPtr) 0))
                 {
                     d.SpaceRemove(space, LandGeom);
                 }
@@ -422,7 +418,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                 d.GeomHeightfieldDataBuildDouble(HeightmapData, _heightmap, 0, 258, 258, 258, 258, 1.0f, 0.0f, 2.0f, 0);
                 d.GeomHeightfieldDataSetBounds(HeightmapData, 256, 256);
                 LandGeom = d.CreateHeightfield(space, HeightmapData, 1);
-                this.geom_name_map[LandGeom]="Terrain";
+                geom_name_map[LandGeom] = "Terrain";
 
                 d.Matrix3 R = new d.Matrix3();
 
@@ -430,7 +426,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                 Quaternion q2 = Quaternion.FromAngleAxis(1.5707f, new Vector3(0, 1, 0));
                 //Axiom.Math.Quaternion q3 = Axiom.Math.Quaternion.FromAngleAxis(3.14f, new Axiom.Math.Vector3(0, 0, 1));
 
-                q1 = q1 * q2;
+                q1 = q1*q2;
                 //q1 = q1 * q3;
                 Vector3 v3 = new Vector3();
                 float angle = 0;
@@ -444,7 +440,6 @@ namespace OpenSim.Region.Physics.OdePlugin
 
         public override void DeleteTerrain()
         {
-
         }
     }
 
@@ -452,12 +447,12 @@ namespace OpenSim.Region.Physics.OdePlugin
     {
         private PhysicsVector _position;
         private d.Vector3 _zeroPosition;
-        private bool _zeroFlag=false;
+        private bool _zeroFlag = false;
         private PhysicsVector _velocity;
         private PhysicsVector _target_velocity;
         private PhysicsVector _acceleration;
-        private static float PID_D=4000.0f;
-        private static float PID_P=7000.0f;
+        private static float PID_D = 4000.0f;
+        private static float PID_P = 7000.0f;
         private static float POSTURE_SERVO = 10000.0f;
         public static float CAPSULE_RADIUS = 0.5f;
         public static float CAPSULE_LENGTH = 0.9f;
@@ -484,28 +479,18 @@ namespace OpenSim.Region.Physics.OdePlugin
                 d.BodySetPosition(Body, pos.X, pos.Y, pos.Z);
                 d.GeomSetBody(Shell, Body);
             }
-            parent_scene.geom_name_map[Shell]=avName;
-
+            parent_scene.geom_name_map[Shell] = avName;
         }
 
         public override bool Flying
         {
-            get
-            {
-                return flying;
-            }
-            set
-            {
-                flying = value;
-            }
+            get { return flying; }
+            set { flying = value; }
         }
 
         public override PhysicsVector Position
         {
-            get
-            {
-                return _position;
-            }
+            get { return _position; }
             set
             {
                 lock (OdeScene.OdeLock)
@@ -518,60 +503,34 @@ namespace OpenSim.Region.Physics.OdePlugin
 
         public override PhysicsVector Size
         {
-            get
-            {
-                return new PhysicsVector(0,0,0);
-            }
-            set
-            {
-            }
+            get { return new PhysicsVector(0, 0, 0); }
+            set { }
         }
 
 
         public override PhysicsVector Velocity
         {
-            get
-            {
-                return _velocity;
-            }
-            set
-            {
-                _target_velocity = value;
-            }
+            get { return _velocity; }
+            set { _target_velocity = value; }
         }
 
         public override bool Kinematic
         {
-            get
-            {
-                return false;
-            }
-            set
-            {
-
-            }
+            get { return false; }
+            set { }
         }
 
         public override Quaternion Orientation
         {
-            get
-            {
-                return Quaternion.Identity;
-            }
-            set
-            {
-
-            }
+            get { return Quaternion.Identity; }
+            set { }
         }
 
         public override PhysicsVector Acceleration
         {
-            get
-            {
-                return _acceleration;
-            }
-
+            get { return _acceleration; }
         }
+
         public void SetAcceleration(PhysicsVector accel)
         {
             _acceleration = accel;
@@ -579,12 +538,10 @@ namespace OpenSim.Region.Physics.OdePlugin
 
         public override void AddForce(PhysicsVector force)
         {
-
         }
 
         public override void SetMomentum(PhysicsVector momentum)
         {
-
         }
 
         public void Move(float timeStep)
@@ -603,28 +560,28 @@ namespace OpenSim.Region.Physics.OdePlugin
                     _zeroPosition = d.BodyGetPosition(Body);
                 }
                 d.Vector3 pos = d.BodyGetPosition(Body);
-                vec.X = (_target_velocity.X - vel.X) * PID_D + (_zeroPosition.X - pos.X) * PID_P;
-                vec.Y = (_target_velocity.Y - vel.Y) * PID_D + (_zeroPosition.Y - pos.Y) * PID_P;
+                vec.X = (_target_velocity.X - vel.X)*PID_D + (_zeroPosition.X - pos.X)*PID_P;
+                vec.Y = (_target_velocity.Y - vel.Y)*PID_D + (_zeroPosition.Y - pos.Y)*PID_P;
                 if (flying)
                 {
-                    vec.Z = (_target_velocity.Z - vel.Z) * PID_D + (_zeroPosition.Z - pos.Z) * PID_P;
+                    vec.Z = (_target_velocity.Z - vel.Z)*PID_D + (_zeroPosition.Z - pos.Z)*PID_P;
                 }
             }
             else
             {
                 _zeroFlag = false;
-                vec.X = (_target_velocity.X - vel.X) * PID_D;
-                vec.Y = (_target_velocity.Y - vel.Y) * PID_D;
+                vec.X = (_target_velocity.X - vel.X)*PID_D;
+                vec.Y = (_target_velocity.Y - vel.Y)*PID_D;
                 if (flying)
                 {
-                    vec.Z = (_target_velocity.Z - vel.Z) * PID_D;
+                    vec.Z = (_target_velocity.Z - vel.Z)*PID_D;
                 }
             }
             if (flying)
             {
                 vec.Z += 10.0f;
             }
-            d.BodyAddForce(this.Body, vec.X, vec.Y, vec.Z);
+            d.BodyAddForce(Body, vec.X, vec.Y, vec.Z);
 
             //  ok -- let's stand up straight!
             d.Vector3 feet;
@@ -634,7 +591,7 @@ namespace OpenSim.Region.Physics.OdePlugin
             float posture = head.Z - feet.Z;
 
             // restoring force proportional to lack of posture:
-            float servo = (2.5f-posture) * POSTURE_SERVO;
+            float servo = (2.5f - posture)*POSTURE_SERVO;
             d.BodyAddForceAtRelPos(Body, 0.0f, 0.0f, servo, 0.0f, 0.0f, 1.0f);
             d.BodyAddForceAtRelPos(Body, 0.0f, 0.0f, -servo, 0.0f, 0.0f, -1.0f);
         }
@@ -650,9 +607,9 @@ namespace OpenSim.Region.Physics.OdePlugin
             if (vec.X > 255.95f) vec.X = 255.95f;
             if (vec.Y > 255.95f) vec.Y = 255.95f;
 
-            this._position.X = vec.X;
-            this._position.Y = vec.Y;
-            this._position.Z = vec.Z;
+            _position.X = vec.X;
+            _position.Y = vec.Y;
+            _position.Z = vec.Z;
 
             if (_zeroFlag)
             {
@@ -673,9 +630,9 @@ namespace OpenSim.Region.Physics.OdePlugin
         {
             lock (OdeScene.OdeLock)
             {
-                d.GeomDestroy(this.Shell);
-                this._parent_scene.geom_name_map.Remove(this.Shell);
-                d.BodyDestroy(this.Body);
+                d.GeomDestroy(Shell);
+                _parent_scene.geom_name_map.Remove(Shell);
+                d.BodyDestroy(Body);
             }
         }
     }
@@ -693,7 +650,7 @@ namespace OpenSim.Region.Physics.OdePlugin
         public IntPtr prim_geom;
         public IntPtr _triMeshData;
 
-        public OdePrim(String primName, OdeScene parent_scene, PhysicsVector pos, PhysicsVector size, 
+        public OdePrim(String primName, OdeScene parent_scene, PhysicsVector pos, PhysicsVector size,
                        Quaternion rotation, Mesh mesh, PrimitiveBaseShape pbs)
         {
             _velocity = new PhysicsVector();
@@ -707,7 +664,7 @@ namespace OpenSim.Region.Physics.OdePlugin
 
             lock (OdeScene.OdeLock)
             {
-                if (mesh!=null)
+                if (mesh != null)
                 {
                     setMesh(parent_scene, mesh);
                 }
@@ -723,20 +680,22 @@ namespace OpenSim.Region.Physics.OdePlugin
                 myrot.Y = rotation.y;
                 myrot.Z = rotation.z;
                 d.GeomSetQuaternion(prim_geom, ref myrot);
-                parent_scene.geom_name_map[prim_geom] = primName;       //  don't do .add() here; old geoms get recycled with the same hash
+                parent_scene.geom_name_map[prim_geom] = primName;
+                    //  don't do .add() here; old geoms get recycled with the same hash
             }
         }
 
-        public void setMesh(OdeScene parent_scene, Mesh mesh) 
+        public void setMesh(OdeScene parent_scene, Mesh mesh)
         {
             float[] vertexList = mesh.getVertexListAsFloat(); // Note, that vertextList is pinned in memory
             int[] indexList = mesh.getIndexListAsInt(); // Also pinned, needs release after usage
-            int VertexCount = vertexList.GetLength(0) / 3;
+            int VertexCount = vertexList.GetLength(0)/3;
             int IndexCount = indexList.GetLength(0);
 
             _triMeshData = d.GeomTriMeshDataCreate();
 
-            d.GeomTriMeshDataBuildSimple(_triMeshData, vertexList, 3 * sizeof(float), VertexCount, indexList, IndexCount, 3 * sizeof(int));
+            d.GeomTriMeshDataBuildSimple(_triMeshData, vertexList, 3*sizeof (float), VertexCount, indexList, IndexCount,
+                                         3*sizeof (int));
             d.GeomTriMeshDataPreprocess(_triMeshData);
 
             prim_geom = d.CreateTriMesh(parent_scene.space, _triMeshData, parent_scene.triCallback, null, null);
@@ -744,21 +703,14 @@ namespace OpenSim.Region.Physics.OdePlugin
 
         public override bool Flying
         {
-            get
-            {
-                return false; //no flying prims for you
+            get { return false; //no flying prims for you
             }
-            set
-            {
-            }
+            set { }
         }
 
         public override PhysicsVector Position
         {
-            get
-            {
-                return _position;
-            }
+            get { return _position; }
             set
             {
                 _position = value;
@@ -771,10 +723,7 @@ namespace OpenSim.Region.Physics.OdePlugin
 
         public override PhysicsVector Size
         {
-            get
-            {
-                return _size;
-            }
+            get { return _size; }
             set
             {
                 _size = value;
@@ -798,33 +747,19 @@ namespace OpenSim.Region.Physics.OdePlugin
 
         public override PhysicsVector Velocity
         {
-            get
-            {
-                return _velocity;
-            }
-            set
-            {
-                _velocity = value;
-            }
+            get { return _velocity; }
+            set { _velocity = value; }
         }
 
         public override bool Kinematic
         {
-            get
-            {
-                return false;
-            }
-            set
-            {
-            }
+            get { return false; }
+            set { }
         }
 
         public override Quaternion Orientation
         {
-            get
-            {
-                return _orientation;
-            }
+            get { return _orientation; }
             set
             {
                 _orientation = value;
@@ -842,15 +777,12 @@ namespace OpenSim.Region.Physics.OdePlugin
 
         public override PhysicsVector Acceleration
         {
-            get
-            {
-                return _acceleration;
-            }
+            get { return _acceleration; }
         }
 
         public void SetAcceleration(PhysicsVector accel)
         {
-            this._acceleration = accel;
+            _acceleration = accel;
         }
 
         public override void AddForce(PhysicsVector force)

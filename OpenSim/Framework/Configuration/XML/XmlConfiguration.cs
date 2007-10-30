@@ -25,11 +25,10 @@
 * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 * 
 */
+
 using System;
 using System.IO;
 using System.Xml;
-
-using OpenSim.Framework;
 
 namespace OpenSim.Framework.Configuration
 {
@@ -56,6 +55,7 @@ namespace OpenSim.Framework.Configuration
             if (configNode.Name != "Config")
                 throw new Exception("Error: Invalid .xml File. <Root> first child should be <Config>");
         }
+
         public void LoadData()
         {
             lock (this)
@@ -81,7 +81,7 @@ namespace OpenSim.Framework.Configuration
 
                 if (createdFile)
                 {
-                    this.Commit();
+                    Commit();
                 }
             }
         }
@@ -93,12 +93,13 @@ namespace OpenSim.Framework.Configuration
 
             LoadDataToClass();
         }
+
         public string GetAttribute(string attributeName)
         {
             string result = null;
             if (configNode.Attributes[attributeName] != null)
             {
-                result = ((XmlAttribute)configNode.Attributes.GetNamedItem(attributeName)).Value;
+                result = ((XmlAttribute) configNode.Attributes.GetNamedItem(attributeName)).Value;
             }
             return result;
         }
@@ -107,7 +108,7 @@ namespace OpenSim.Framework.Configuration
         {
             if (configNode.Attributes[attributeName] != null)
             {
-                ((XmlAttribute)configNode.Attributes.GetNamedItem(attributeName)).Value = attributeValue;
+                ((XmlAttribute) configNode.Attributes.GetNamedItem(attributeName)).Value = attributeValue;
             }
             else
             {
@@ -124,7 +125,7 @@ namespace OpenSim.Framework.Configuration
             if (!Directory.Exists(Util.configDir()))
             {
                 Directory.CreateDirectory(Util.configDir());
-            } 
+            }
             doc.Save(fileName);
         }
 
@@ -134,6 +135,5 @@ namespace OpenSim.Framework.Configuration
             rootNode = null;
             doc = null;
         }
-
     }
 }

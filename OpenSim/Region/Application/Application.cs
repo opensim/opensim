@@ -26,27 +26,24 @@
 * 
 */
 using System;
-using OpenSim.Framework.Console;
-using OpenSim.Region.Environment.Scenes;
 using Nini.Config;
-using System.Threading;
 using OpenSim.Framework;
+using OpenSim.Framework.Console;
 
 namespace OpenSim
 {
     public class Application
-    {   
+    {
         //could move our main function into OpenSimMain and kill this class
         [STAThread]
         public static void Main(string[] args)
         {
-
             Console.WriteLine("OpenSim " + VersionInfo.Version + "\n");
-            
+
 
             Console.Write("Performing compatibility checks... ");
             string supported = "";
-            if (OpenSim.Framework.Util.IsEnvironmentSupported(ref supported))
+            if (Util.IsEnvironmentSupported(ref supported))
             {
                 Console.WriteLine(" Environment is compatible.\n");
             }
@@ -54,10 +51,10 @@ namespace OpenSim
             {
                 Console.WriteLine(" Environment is unsupported (" + supported + ")\n");
             }
-            
+
             Console.WriteLine("Starting...\n");
 
-           Culture.SetCurrentCulture();
+            Culture.SetCurrentCulture();
 
             ArgvConfigSource configSource = new ArgvConfigSource(args);
 

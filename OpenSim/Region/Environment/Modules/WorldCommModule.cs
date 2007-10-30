@@ -27,20 +27,12 @@
 */
 
 using System;
-using System.IO;
-using System.Net.Sockets;
-using System.Text;
-using System.Threading;
+using System.Collections.Generic;
 using libsecondlife;
-using OpenSim.Framework.Interfaces;
+using Nini.Config;
 using OpenSim.Framework;
 using OpenSim.Region.Environment.Interfaces;
 using OpenSim.Region.Environment.Scenes;
-using OpenSim.Framework.Servers;
-using Nwc.XmlRpc;
-using System.Collections;
-using System.Collections.Generic;
-using Nini.Config;
 
 /*****************************************************
  *
@@ -71,6 +63,7 @@ using Nini.Config;
  * thats the way it works.
  * 
  * **************************************************/
+
 namespace OpenSim.Region.Environment.Modules
 {
     public class WorldCommModule : IRegionModule, IWorldComm
@@ -120,9 +113,9 @@ namespace OpenSim.Region.Environment.Modules
         private void DeliverClientMessage(Object sender, ChatFromViewerArgs e)
         {
             DeliverMessage(e.Sender.AgentId.ToString(),
-                (int)e.Type, e.Channel,
-                e.Sender.FirstName + " " + e.Sender.LastName,
-                e.Message);
+                           (int) e.Type, e.Channel,
+                           e.Sender.FirstName + " " + e.Sender.LastName,
+                           e.Message);
         }
 
         public int Listen(uint localID, LLUUID itemID, LLUUID hostID, int channel, string name, string id, string msg)
@@ -132,11 +125,10 @@ namespace OpenSim.Region.Environment.Modules
 
         public void ListenControl(int handle, int active)
         {
-            if ( active == 1 )
+            if (active == 1)
                 m_listenerManager.Activate(handle);
-            else if ( active == 0 )
+            else if (active == 0)
                 m_listenerManager.Dectivate(handle);
-
         }
 
         public void ListenRemove(int handle)
@@ -151,7 +143,6 @@ namespace OpenSim.Region.Environment.Modules
         // nearby avatards, the SimChat function is used.
         public void DeliverMessage(string sourceItemID, int type, int channel, string name, string msg)
         {
-
             SceneObjectPart source = null;
             ScenePresence avatar = null;
 
@@ -160,7 +151,7 @@ namespace OpenSim.Region.Environment.Modules
             {
                 avatar = m_scene.GetScenePresence(new LLUUID(sourceItemID));
             }
-            if( (avatar != null) || (source != null) )
+            if ((avatar != null) || (source != null))
             {
                 // Loop through the objects in the scene
                 // If they are in proximity, then if they are
@@ -169,12 +160,12 @@ namespace OpenSim.Region.Environment.Modules
                 foreach (LLUUID eb in m_scene.Entities.Keys)
                 {
                     EntityBase sPart;
-                    
+
                     m_scene.Entities.TryGetValue(eb, out sPart);
 
                     // Dont process if this message is from itself!
                     if (eb.ToString().Equals(sourceItemID) ||
-                        sPart.UUID.ToString().Equals(sourceItemID) )
+                        sPart.UUID.ToString().Equals(sourceItemID))
                         continue;
 
                     double dis = 0;
@@ -192,12 +183,11 @@ namespace OpenSim.Region.Environment.Modules
                             {
                                 ListenerInfo isListener = m_listenerManager.IsListenerMatch(
                                     sourceItemID, sPart.UUID, channel, name, msg
-                                );
+                                    );
                                 if (isListener != null)
                                 {
                                     m_pending.Enqueue(isListener);
                                 }
-
                             }
                             break;
 
@@ -207,12 +197,11 @@ namespace OpenSim.Region.Environment.Modules
                             {
                                 ListenerInfo isListener = m_listenerManager.IsListenerMatch(
                                     sourceItemID, sPart.UUID, channel, name, msg
-                                );
+                                    );
                                 if (isListener != null)
                                 {
                                     m_pending.Enqueue(isListener);
                                 }
-
                             }
                             break;
 
@@ -221,22 +210,22 @@ namespace OpenSim.Region.Environment.Modules
                             {
                                 ListenerInfo isListener = m_listenerManager.IsListenerMatch(
                                     sourceItemID, sPart.UUID, channel, name, msg
-                                );
+                                    );
                                 if (isListener != null)
                                 {
                                     m_pending.Enqueue(isListener);
                                 }
-
                             }
                             break;
 
                         case 0xff: // Broadcast
-                            ListenerInfo isListen = m_listenerManager.IsListenerMatch(sourceItemID, eb, channel, name, msg);
+                            ListenerInfo isListen =
+                                m_listenerManager.IsListenerMatch(sourceItemID, eb, channel, name, msg);
                             if (isListen != null)
                             {
                                 ListenerInfo isListener = m_listenerManager.IsListenerMatch(
                                     sourceItemID, sPart.UUID, channel, name, msg
-                                );
+                                    );
                                 if (isListener != null)
                                 {
                                     m_pending.Enqueue(isListener);
@@ -244,10 +233,9 @@ namespace OpenSim.Region.Environment.Modules
                             }
                             break;
                     }
-                };
-
+                }
+                ;
             }
-
         }
 
         public bool HasMessages()
@@ -257,18 +245,15 @@ namespace OpenSim.Region.Environment.Modules
 
         public ListenerInfo GetNextMessage()
         {
-
             ListenerInfo li = null;
 
             lock (CommListLock)
             {
-                 li = m_pending.Dequeue();
+                li = m_pending.Dequeue();
             }
 
             return li;
-
         }
- 
     }
 
     // hostID: the ID of the ScenePart
@@ -285,20 +270,19 @@ namespace OpenSim.Region.Environment.Modules
             m_listeners = new Dictionary<int, ListenerInfo>();
         }
 
-        public int AddListener(uint localID, LLUUID itemID, LLUUID hostID, int channel, string name, string id, string msg)
+        public int AddListener(uint localID, LLUUID itemID, LLUUID hostID, int channel, string name, string id,
+                               string msg)
         {
-
-            if ( m_listeners.Count < m_MaxListeners )
+            if (m_listeners.Count < m_MaxListeners)
             {
                 ListenerInfo isListener = IsListenerMatch(LLUUID.Zero.ToString(), itemID, channel, name, msg);
 
-                if(isListener == null)
+                if (isListener == null)
                 {
                     int newHandle = GetNewHandle();
 
                     if (newHandle > -1)
                     {
-
                         ListenerInfo li = new ListenerInfo(localID, newHandle, itemID, hostID, channel, name, id, msg);
 
                         lock (ListenersLock)
@@ -308,13 +292,10 @@ namespace OpenSim.Region.Environment.Modules
 
                         return newHandle;
                     }
-
                 }
-
             }
 
             return -1;
-
         }
 
         public void Remove(int handle)
@@ -324,7 +305,6 @@ namespace OpenSim.Region.Environment.Modules
 
         private int GetNewHandle()
         {
-
             for (int i = 0; i < int.MaxValue - 1; i++)
             {
                 if (!m_listeners.ContainsKey(i))
@@ -332,12 +312,10 @@ namespace OpenSim.Region.Environment.Modules
             }
 
             return -1;
-
         }
 
         public bool IsListener(LLUUID hostID)
         {
-
             foreach (ListenerInfo li in m_listeners.Values)
             {
                 if (li.GetHostID().Equals(hostID))
@@ -345,15 +323,13 @@ namespace OpenSim.Region.Environment.Modules
             }
 
             return false;
-
         }
 
         public void Activate(int handle)
         {
-
             ListenerInfo li;
 
-            if( m_listeners.TryGetValue(handle, out li) )
+            if (m_listeners.TryGetValue(handle, out li))
             {
                 li.Activate();
             }
@@ -361,10 +337,9 @@ namespace OpenSim.Region.Environment.Modules
 
         public void Dectivate(int handle)
         {
-
             ListenerInfo li;
 
-            if( m_listeners.TryGetValue(handle, out li) )
+            if (m_listeners.TryGetValue(handle, out li))
             {
                 li.Deactivate();
             }
@@ -372,40 +347,40 @@ namespace OpenSim.Region.Environment.Modules
 
         // Theres probably a more clever and efficient way to
         // do this, maybe with regex.
-        public ListenerInfo IsListenerMatch(string sourceItemID, LLUUID listenerKey, int channel, string name, string msg)
+        public ListenerInfo IsListenerMatch(string sourceItemID, LLUUID listenerKey, int channel, string name,
+                                            string msg)
         {
-
             bool isMatch = true;
 
             foreach (ListenerInfo li in m_listeners.Values)
             {
                 if (li.GetHostID().Equals(listenerKey))
                 {
-                    if ( li.IsActive() )
+                    if (li.IsActive())
                     {
-                        if ( channel == li.GetChannel() )
+                        if (channel == li.GetChannel())
                         {
-                            if ( (li.GetID().ToString().Length > 0) &&
-                                 (!li.GetID().Equals(LLUUID.Zero)) )
+                            if ((li.GetID().ToString().Length > 0) &&
+                                (!li.GetID().Equals(LLUUID.Zero)))
                             {
                                 if (!li.GetID().ToString().Equals(sourceItemID))
                                 {
                                     isMatch = false;
                                 }
                             }
-                            if ( isMatch && (li.GetName().Length > 0) )
+                            if (isMatch && (li.GetName().Length > 0))
                             {
-                                if ( li.GetName().Equals(name) )
+                                if (li.GetName().Equals(name))
                                 {
                                     isMatch = false;
                                 }
                             }
-                            if ( isMatch )
+                            if (isMatch)
                             {
                                 return new ListenerInfo(
                                     li.GetLocalID(), li.GetHandle(), li.GetItemID(), li.GetHostID(),
                                     li.GetChannel(), name, li.GetID(), msg, new LLUUID(sourceItemID)
-                                );
+                                    );
                             }
                         }
                     }
@@ -413,35 +388,36 @@ namespace OpenSim.Region.Environment.Modules
             }
             return null;
         }
-
     }
 
     public class ListenerInfo
     {
+        private LLUUID m_itemID; // ID of the host script engine
+        private LLUUID m_hostID; // ID of the host/scene part
+        private LLUUID m_sourceItemID; // ID of the scenePart or avatar source of the message
+        private int m_channel; // Channel
+        private int m_handle; // Assigned handle of this listener
+        private uint m_localID; // Local ID from script engine
+        private string m_name; // Object name to filter messages from
+        private LLUUID m_id; // ID to filter messages from
+        private string m_message; // The message
+        private bool m_active; // Listener is active or not
 
-        private LLUUID m_itemID;            // ID of the host script engine
-        private LLUUID m_hostID;            // ID of the host/scene part
-        private LLUUID m_sourceItemID;      // ID of the scenePart or avatar source of the message
-        private int m_channel;              // Channel
-        private int m_handle;               // Assigned handle of this listener
-        private uint m_localID;             // Local ID from script engine
-        private string m_name;              // Object name to filter messages from
-        private LLUUID m_id;                // ID to filter messages from
-        private string m_message;           // The message
-        private bool m_active;              // Listener is active or not
-
-        public ListenerInfo(uint localID, int handle, LLUUID ItemID, LLUUID hostID, int channel, string name, LLUUID id, string message)
+        public ListenerInfo(uint localID, int handle, LLUUID ItemID, LLUUID hostID, int channel, string name, LLUUID id,
+                            string message)
         {
             Initialise(localID, handle, ItemID, hostID, channel, name, id, message);
         }
 
-        public ListenerInfo(uint localID, int handle, LLUUID ItemID, LLUUID hostID, int channel, string name, LLUUID id, string message, LLUUID sourceItemID)
+        public ListenerInfo(uint localID, int handle, LLUUID ItemID, LLUUID hostID, int channel, string name, LLUUID id,
+                            string message, LLUUID sourceItemID)
         {
             Initialise(localID, handle, ItemID, hostID, channel, name, id, message);
             m_sourceItemID = sourceItemID;
         }
 
-        private void Initialise(uint localID, int handle, LLUUID ItemID, LLUUID hostID, int channel, string name, LLUUID id, string message)
+        private void Initialise(uint localID, int handle, LLUUID ItemID, LLUUID hostID, int channel, string name,
+                                LLUUID id, string message)
         {
             m_handle = handle;
             m_channel = channel;
@@ -453,55 +429,65 @@ namespace OpenSim.Region.Environment.Modules
             m_active = true;
             m_localID = localID;
         }
+
         public LLUUID GetItemID()
         {
             return m_itemID;
         }
+
         public LLUUID GetHostID()
         {
             return m_hostID;
         }
+
         public LLUUID GetSourceItemID()
         {
             return m_sourceItemID;
         }
+
         public int GetChannel()
         {
             return m_channel;
         }
+
         public uint GetLocalID()
         {
             return m_localID;
         }
+
         public int GetHandle()
         {
             return m_handle;
         }
+
         public string GetMessage()
         {
             return m_message;
         }
+
         public string GetName()
         {
             return m_name;
         }
+
         public bool IsActive()
         {
             return m_active;
         }
+
         public void Deactivate()
         {
             m_active = false;
         }
+
         public void Activate()
         {
             m_active = true;
         }
+
         public LLUUID GetID()
         {
             return m_id;
         }
-
     }
-
 }

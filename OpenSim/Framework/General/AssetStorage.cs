@@ -29,19 +29,20 @@ using libsecondlife;
 
 namespace OpenSim.Framework
 {
-	public class AssetStorage
-	{
+    public class AssetStorage
+    {
+        public AssetStorage()
+        {
+        }
 
-		public AssetStorage() {
-		}
+        public AssetStorage(LLUUID assetUUID)
+        {
+            UUID = assetUUID;
+        }
 
-		public AssetStorage(LLUUID assetUUID) {
-			UUID=assetUUID;
-		}
-
-		public byte[] Data;
-		public sbyte Type;
-		public string Name;
-		public LLUUID UUID;
-	}
+        public byte[] Data;
+        public sbyte Type;
+        public string Name;
+        public LLUUID UUID;
+    }
 }

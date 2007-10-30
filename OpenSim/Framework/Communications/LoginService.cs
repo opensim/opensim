@@ -28,15 +28,9 @@
 
 using System;
 using System.Collections;
-using System.Collections.Generic;
-using System.Reflection;
-using System.Security.Cryptography;
 using libsecondlife;
 using Nwc.XmlRpc;
 using OpenSim.Framework.Console;
-
-using OpenSim.Framework;
-using InventoryFolder = OpenSim.Framework.InventoryFolder;
 
 namespace OpenSim.Framework.UserManagement
 {
@@ -61,12 +55,12 @@ namespace OpenSim.Framework.UserManagement
         /// <returns>The response to send</returns>
         public XmlRpcResponse XmlRpcLoginMethod(XmlRpcRequest request)
         {
-
-            MainLog.Instance.Verbose("LOGIN","Attempting login now...");
+            MainLog.Instance.Verbose("LOGIN", "Attempting login now...");
             XmlRpcResponse response = new XmlRpcResponse();
-            Hashtable requestData = (Hashtable)request.Params[0];
+            Hashtable requestData = (Hashtable) request.Params[0];
 
-            bool GoodXML = (requestData.Contains("first") && requestData.Contains("last") && requestData.Contains("passwd"));
+            bool GoodXML = (requestData.Contains("first") && requestData.Contains("last") &&
+                            requestData.Contains("passwd"));
             bool GoodLogin = false;
 
             UserProfileData userProfile;
@@ -74,9 +68,9 @@ namespace OpenSim.Framework.UserManagement
 
             if (GoodXML)
             {
-                string firstname = (string)requestData["first"];
-                string lastname = (string)requestData["last"];
-                string passwd = (string)requestData["passwd"];
+                string firstname = (string) requestData["first"];
+                string lastname = (string) requestData["last"];
+                string passwd = (string) requestData["passwd"];
 
                 userProfile = GetTheUser(firstname, lastname);
                 if (userProfile == null)
@@ -110,7 +104,7 @@ namespace OpenSim.Framework.UserManagement
                     LLUUID agentID = userProfile.UUID;
 
                     // Inventory Library Section
-                    InventoryData inventData = this.CreateInventoryData(agentID);
+                    InventoryData inventData = CreateInventoryData(agentID);
                     ArrayList AgentInventoryArray = inventData.InventoryArray;
 
                     Hashtable InventoryRootHash = new Hashtable();
@@ -120,7 +114,7 @@ namespace OpenSim.Framework.UserManagement
                     userProfile.rootInventoryFolderID = inventData.RootFolderID;
 
                     // Circuit Code
-                    uint circode = (uint)(Util.RandomClass.Next());
+                    uint circode = (uint) (Util.RandomClass.Next());
 
                     logResponse.Lastname = userProfile.surname;
                     logResponse.Firstname = userProfile.username;
@@ -129,20 +123,20 @@ namespace OpenSim.Framework.UserManagement
                     logResponse.SecureSessionID = userProfile.currentAgent.secureSessionID.ToStringHyphenated();
                     logResponse.InventoryRoot = InventoryRoot;
                     logResponse.InventorySkeleton = AgentInventoryArray;
-                    logResponse.InventoryLibrary = this.GetInventoryLibrary();
-                    logResponse.InventoryLibraryOwner = this.GetLibraryOwner();
-                    logResponse.CircuitCode = (Int32)circode;
+                    logResponse.InventoryLibrary = GetInventoryLibrary();
+                    logResponse.InventoryLibraryOwner = GetLibraryOwner();
+                    logResponse.CircuitCode = (Int32) circode;
                     //logResponse.RegionX = 0; //overwritten
                     //logResponse.RegionY = 0; //overwritten
-                    logResponse.Home = "!!null temporary value {home}!!";   // Overwritten
+                    logResponse.Home = "!!null temporary value {home}!!"; // Overwritten
                     //logResponse.LookAt = "\n[r" + TheUser.homeLookAt.X.ToString() + ",r" + TheUser.homeLookAt.Y.ToString() + ",r" + TheUser.homeLookAt.Z.ToString() + "]\n";
                     //logResponse.SimAddress = "127.0.0.1"; //overwritten
                     //logResponse.SimPort = 0; //overwritten
-                    logResponse.Message = this.GetMessage();
+                    logResponse.Message = GetMessage();
 
                     try
                     {
-                        this.CustomiseResponse(logResponse, userProfile);
+                        CustomiseResponse(logResponse, userProfile);
                     }
                     catch (Exception e)
                     {
@@ -152,7 +146,6 @@ namespace OpenSim.Framework.UserManagement
                     }
                     CommitAgent(ref userProfile);
                     return logResponse.ToXmlRpcResponse();
-
                 }
 
                 catch (Exception E)
@@ -162,7 +155,6 @@ namespace OpenSim.Framework.UserManagement
                 //}
             }
             return response;
-
         }
 
         /// <summary>
@@ -174,7 +166,7 @@ namespace OpenSim.Framework.UserManagement
         {
         }
 
-         /// <summary>
+        /// <summary>
         /// Saves a target agent to the database
         /// </summary>
         /// <param name="profile">The users profile</param>
@@ -194,8 +186,7 @@ namespace OpenSim.Framework.UserManagement
         /// <returns>Authenticated?</returns>
         public virtual bool AuthenticateUser(UserProfileData profile, string password)
         {
-            
-            MainLog.Instance.Verbose("LOGIN","Authenticating " + profile.username + " " + profile.surname);
+            MainLog.Instance.Verbose("LOGIN", "Authenticating " + profile.username + " " + profile.surname);
 
             password = password.Remove(0, 3); //remove $1$
 
@@ -211,7 +202,7 @@ namespace OpenSim.Framework.UserManagement
         /// <param name="request"></param>
         public void CreateAgent(UserProfileData profile, XmlRpcRequest request)
         {
-            this.m_userManager.CreateAgent(profile, request);
+            m_userManager.CreateAgent(profile, request);
         }
 
         /// <summary>
@@ -222,7 +213,7 @@ namespace OpenSim.Framework.UserManagement
         /// <returns></returns>
         public virtual UserProfileData GetTheUser(string firstname, string lastname)
         {
-            return this.m_userManager.GetUserProfile(firstname, lastname);
+            return m_userManager.GetUserProfile(firstname, lastname);
         }
 
         /// <summary>
@@ -286,8 +277,8 @@ namespace OpenSim.Framework.UserManagement
                 TempHash = new Hashtable();
                 TempHash["name"] = InvFolder.FolderName;
                 TempHash["parent_id"] = InvFolder.ParentID.ToStringHyphenated();
-                TempHash["version"] = (Int32)InvFolder.Version;
-                TempHash["type_default"] = (Int32)InvFolder.DefaultType;
+                TempHash["version"] = (Int32) InvFolder.Version;
+                TempHash["type_default"] = (Int32) InvFolder.DefaultType;
                 TempHash["folder_id"] = InvFolder.FolderID.ToStringHyphenated();
                 AgentInventoryArray.Add(TempHash);
             }

@@ -29,7 +29,6 @@
 using libsecondlife;
 using OpenSim.Region.Environment.LandManagement;
 using OpenSim.Region.Environment.Scenes;
-using OpenSim.Framework;
 
 namespace OpenSim.Region.Environment
 {

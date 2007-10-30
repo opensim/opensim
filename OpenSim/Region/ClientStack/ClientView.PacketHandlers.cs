@@ -27,9 +27,8 @@
 */
 using libsecondlife;
 using libsecondlife.Packets;
-using OpenSim.Framework.Console;
-using OpenSim.Framework.Interfaces;
 using OpenSim.Framework;
+using OpenSim.Framework.Console;
 
 namespace OpenSim.Region.ClientStack
 {
@@ -37,17 +36,17 @@ namespace OpenSim.Region.ClientStack
     {
         protected virtual void RegisterLocalPacketHandlers()
         {
-            this.AddLocalPacketHandler(PacketType.LogoutRequest, this.Logout);
-            this.AddLocalPacketHandler(PacketType.ViewerEffect, this.HandleViewerEffect);
-            this.AddLocalPacketHandler(PacketType.AgentCachedTexture, this.AgentTextureCached);
-            this.AddLocalPacketHandler(PacketType.MultipleObjectUpdate, this.MultipleObjUpdate);
+            AddLocalPacketHandler(PacketType.LogoutRequest, Logout);
+            AddLocalPacketHandler(PacketType.ViewerEffect, HandleViewerEffect);
+            AddLocalPacketHandler(PacketType.AgentCachedTexture, AgentTextureCached);
+            AddLocalPacketHandler(PacketType.MultipleObjectUpdate, MultipleObjUpdate);
         }
 
         private bool HandleViewerEffect(IClientAPI sender, Packet Pack)
         {
-            ViewerEffectPacket viewer = (ViewerEffectPacket)Pack;
+            ViewerEffectPacket viewer = (ViewerEffectPacket) Pack;
 
-            if( OnViewerEffect != null )
+            if (OnViewerEffect != null)
             {
                 OnViewerEffect(sender, viewer.Effect);
             }
@@ -59,7 +58,7 @@ namespace OpenSim.Region.ClientStack
         {
             MainLog.Instance.Verbose("CLIENT", "Got a logout request");
 
-            if( OnLogout != null )
+            if (OnLogout != null)
             {
                 OnLogout(client);
             }
@@ -70,13 +69,14 @@ namespace OpenSim.Region.ClientStack
         protected bool AgentTextureCached(IClientAPI simclient, Packet packet)
         {
             //System.Console.WriteLine("texture cached: " + packet.ToString());
-            AgentCachedTexturePacket chechedtex = (AgentCachedTexturePacket)packet;
+            AgentCachedTexturePacket chechedtex = (AgentCachedTexturePacket) packet;
             AgentCachedTextureResponsePacket cachedresp = new AgentCachedTextureResponsePacket();
-            cachedresp.AgentData.AgentID = this.AgentId;
-            cachedresp.AgentData.SessionID = this.m_sessionId;
-            cachedresp.AgentData.SerialNum = this.cachedtextureserial;
-            this.cachedtextureserial++;
-            cachedresp.WearableData = new AgentCachedTextureResponsePacket.WearableDataBlock[chechedtex.WearableData.Length];
+            cachedresp.AgentData.AgentID = AgentId;
+            cachedresp.AgentData.SessionID = m_sessionId;
+            cachedresp.AgentData.SerialNum = cachedtextureserial;
+            cachedtextureserial++;
+            cachedresp.WearableData =
+                new AgentCachedTextureResponsePacket.WearableDataBlock[chechedtex.WearableData.Length];
             for (int i = 0; i < chechedtex.WearableData.Length; i++)
             {
                 cachedresp.WearableData[i] = new AgentCachedTextureResponsePacket.WearableDataBlock();
@@ -84,17 +84,18 @@ namespace OpenSim.Region.ClientStack
                 cachedresp.WearableData[i].TextureID = LLUUID.Zero;
                 cachedresp.WearableData[i].HostName = new byte[0];
             }
-            this.OutPacket(cachedresp);
+            OutPacket(cachedresp);
             return true;
         }
 
         protected bool MultipleObjUpdate(IClientAPI simClient, Packet packet)
         {
-            MultipleObjectUpdatePacket multipleupdate = (MultipleObjectUpdatePacket)packet;
+            MultipleObjectUpdatePacket multipleupdate = (MultipleObjectUpdatePacket) packet;
             // System.Console.WriteLine("new multi update packet " + multipleupdate.ToString());
             for (int i = 0; i < multipleupdate.ObjectData.Length; i++)
             {
                 #region position
+
                 if (multipleupdate.ObjectData[i].Type == 9) //change position
                 {
                     if (OnUpdatePrimGroupPosition != null)
@@ -102,20 +103,20 @@ namespace OpenSim.Region.ClientStack
                         LLVector3 pos = new LLVector3(multipleupdate.ObjectData[i].Data, 0);
                         OnUpdatePrimGroupPosition(multipleupdate.ObjectData[i].ObjectLocalID, pos, this);
                     }
-
                 }
                 else if (multipleupdate.ObjectData[i].Type == 1) //single item of group change position
                 {
                     if (OnUpdatePrimSinglePosition != null)
                     {
-                        libsecondlife.LLVector3 pos = new LLVector3(multipleupdate.ObjectData[i].Data, 0);
+                        LLVector3 pos = new LLVector3(multipleupdate.ObjectData[i].Data, 0);
                         // System.Console.WriteLine("new movement position is " + pos.X + " , " + pos.Y + " , " + pos.Z);
                         OnUpdatePrimSinglePosition(multipleupdate.ObjectData[i].ObjectLocalID, pos, this);
                     }
                 }
-                #endregion position
-                #region rotation
-                else if (multipleupdate.ObjectData[i].Type == 2)// single item of group rotation from tab
+                    #endregion position
+                    #region rotation
+
+                else if (multipleupdate.ObjectData[i].Type == 2) // single item of group rotation from tab
                 {
                     if (OnUpdatePrimSingleRotation != null)
                     {
@@ -124,38 +125,39 @@ namespace OpenSim.Region.ClientStack
                         OnUpdatePrimSingleRotation(multipleupdate.ObjectData[i].ObjectLocalID, rot, this);
                     }
                 }
-                else if (multipleupdate.ObjectData[i].Type == 3)// single item of group rotation from mouse
+                else if (multipleupdate.ObjectData[i].Type == 3) // single item of group rotation from mouse
                 {
                     if (OnUpdatePrimSingleRotation != null)
                     {
-                        libsecondlife.LLQuaternion rot = new LLQuaternion(multipleupdate.ObjectData[i].Data, 12, true);
+                        LLQuaternion rot = new LLQuaternion(multipleupdate.ObjectData[i].Data, 12, true);
                         //System.Console.WriteLine("new mouse rotation is " + rot.X + " , " + rot.Y + " , " + rot.Z + " , " + rot.W);
                         OnUpdatePrimSingleRotation(multipleupdate.ObjectData[i].ObjectLocalID, rot, this);
                     }
                 }
-                else if (multipleupdate.ObjectData[i].Type == 10)//group rotation from object tab
+                else if (multipleupdate.ObjectData[i].Type == 10) //group rotation from object tab
                 {
                     if (OnUpdatePrimGroupRotation != null)
                     {
-                        libsecondlife.LLQuaternion rot = new LLQuaternion(multipleupdate.ObjectData[i].Data, 0, true);
+                        LLQuaternion rot = new LLQuaternion(multipleupdate.ObjectData[i].Data, 0, true);
                         //  Console.WriteLine("new rotation is " + rot.X + " , " + rot.Y + " , " + rot.Z + " , " + rot.W);
                         OnUpdatePrimGroupRotation(multipleupdate.ObjectData[i].ObjectLocalID, rot, this);
                     }
                 }
-                else if (multipleupdate.ObjectData[i].Type == 11)//group rotation from mouse
+                else if (multipleupdate.ObjectData[i].Type == 11) //group rotation from mouse
                 {
                     if (OnUpdatePrimGroupMouseRotation != null)
                     {
-                        libsecondlife.LLVector3 pos = new LLVector3(multipleupdate.ObjectData[i].Data, 0);
-                        libsecondlife.LLQuaternion rot = new LLQuaternion(multipleupdate.ObjectData[i].Data, 12, true);
+                        LLVector3 pos = new LLVector3(multipleupdate.ObjectData[i].Data, 0);
+                        LLQuaternion rot = new LLQuaternion(multipleupdate.ObjectData[i].Data, 12, true);
                         //Console.WriteLine("new rotation position is " + pos.X + " , " + pos.Y + " , " + pos.Z);
                         // Console.WriteLine("new rotation is " + rot.X + " , " + rot.Y + " , " + rot.Z + " , " + rot.W);
                         OnUpdatePrimGroupMouseRotation(multipleupdate.ObjectData[i].ObjectLocalID, pos, rot, this);
                     }
                 }
-                #endregion
-                #region scale
-                else if (multipleupdate.ObjectData[i].Type == 13)//group scale from object tab
+                    #endregion
+                    #region scale
+
+                else if (multipleupdate.ObjectData[i].Type == 13) //group scale from object tab
                 {
                     if (OnUpdatePrimScale != null)
                     {
@@ -164,40 +166,41 @@ namespace OpenSim.Region.ClientStack
                         OnUpdatePrimScale(multipleupdate.ObjectData[i].ObjectLocalID, scale, this);
 
                         // Change the position based on scale (for bug number 246)
-                        libsecondlife.LLVector3 pos = new LLVector3(multipleupdate.ObjectData[i].Data, 0);
+                        LLVector3 pos = new LLVector3(multipleupdate.ObjectData[i].Data, 0);
                         // System.Console.WriteLine("new movement position is " + pos.X + " , " + pos.Y + " , " + pos.Z);
                         OnUpdatePrimSinglePosition(multipleupdate.ObjectData[i].ObjectLocalID, pos, this);
                     }
                 }
-                else if (multipleupdate.ObjectData[i].Type == 29)//group scale from mouse
+                else if (multipleupdate.ObjectData[i].Type == 29) //group scale from mouse
                 {
                     if (OnUpdatePrimScale != null)
                     {
-                        libsecondlife.LLVector3 scale = new LLVector3(multipleupdate.ObjectData[i].Data, 12);
+                        LLVector3 scale = new LLVector3(multipleupdate.ObjectData[i].Data, 12);
                         // Console.WriteLine("new scale is " + scale.X + " , " + scale.Y + " , " + scale.Z );
                         OnUpdatePrimScale(multipleupdate.ObjectData[i].ObjectLocalID, scale, this);
-                        libsecondlife.LLVector3 pos = new LLVector3(multipleupdate.ObjectData[i].Data, 0);
+                        LLVector3 pos = new LLVector3(multipleupdate.ObjectData[i].Data, 0);
                         OnUpdatePrimSinglePosition(multipleupdate.ObjectData[i].ObjectLocalID, pos, this);
                     }
                 }
-                else if (multipleupdate.ObjectData[i].Type == 5)//single prim scale from object tab
+                else if (multipleupdate.ObjectData[i].Type == 5) //single prim scale from object tab
                 {
                     if (OnUpdatePrimScale != null)
                     {
-                        libsecondlife.LLVector3 scale = new LLVector3(multipleupdate.ObjectData[i].Data, 12);
+                        LLVector3 scale = new LLVector3(multipleupdate.ObjectData[i].Data, 12);
                         // Console.WriteLine("new scale is " + scale.X + " , " + scale.Y + " , " + scale.Z);
                         OnUpdatePrimScale(multipleupdate.ObjectData[i].ObjectLocalID, scale, this);
                     }
                 }
-                else if (multipleupdate.ObjectData[i].Type == 21)//single prim scale from mouse
+                else if (multipleupdate.ObjectData[i].Type == 21) //single prim scale from mouse
                 {
                     if (OnUpdatePrimScale != null)
                     {
-                        libsecondlife.LLVector3 scale = new LLVector3(multipleupdate.ObjectData[i].Data, 12);
+                        LLVector3 scale = new LLVector3(multipleupdate.ObjectData[i].Data, 12);
                         // Console.WriteLine("new scale is " + scale.X + " , " + scale.Y + " , " + scale.Z);
                         OnUpdatePrimScale(multipleupdate.ObjectData[i].ObjectLocalID, scale, this);
                     }
                 }
+
                 #endregion
             }
             return true;
@@ -208,7 +211,7 @@ namespace OpenSim.Region.ClientStack
             //should be getting the map layer from the grid server
             //send a layer covering the 800,800 - 1200,1200 area (should be covering the requested area)
             MapLayerReplyPacket mapReply = new MapLayerReplyPacket();
-            mapReply.AgentData.AgentID = this.AgentId;
+            mapReply.AgentData.AgentID = AgentId;
             mapReply.AgentData.Flags = 0;
             mapReply.LayerData = new MapLayerReplyPacket.LayerDataBlock[1];
             mapReply.LayerData[0] = new MapLayerReplyPacket.LayerDataBlock();
@@ -217,7 +220,7 @@ namespace OpenSim.Region.ClientStack
             mapReply.LayerData[0].Top = 30000;
             mapReply.LayerData[0].Right = 30000;
             mapReply.LayerData[0].ImageID = new LLUUID("00000000-0000-0000-9999-000000000006");
-            this.OutPacket(mapReply);
+            OutPacket(mapReply);
         }
 
         public void RequestMapBlocks(int minX, int minY, int maxX, int maxY)

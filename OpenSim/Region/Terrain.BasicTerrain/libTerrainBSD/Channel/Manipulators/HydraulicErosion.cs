@@ -27,8 +27,6 @@
 */
 
 using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace libTerrain
 {
@@ -44,7 +42,7 @@ namespace libTerrain
             Channel waterFlow = new Channel(w, h);
 
             NeighbourSystem type = NeighbourSystem.Moore;
-            int NEIGHBOUR_ME = 4; 
+            int NEIGHBOUR_ME = 4;
 
             int NEIGHBOUR_MAX = type == NeighbourSystem.Moore ? 9 : 5;
 
@@ -52,7 +50,7 @@ namespace libTerrain
             {
                 water += rain;
 
-                sediment = terrain * water;
+                sediment = terrain*water;
                 terrain -= sediment;
 
                 for (int x = 1; x < w - 1; x++)
@@ -72,7 +70,8 @@ namespace libTerrain
                                 coords[0] += x;
                                 coords[1] += y;
 
-                                heights[j] = map[coords[0], coords[1]] + water.map[coords[0], coords[1]] + sediment.map[coords[0], coords[1]];
+                                heights[j] = map[coords[0], coords[1]] + water.map[coords[0], coords[1]] +
+                                             sediment.map[coords[0], coords[1]];
                                 diffs[j] = heightCenter - heights[j];
                             }
                         }
@@ -97,13 +96,13 @@ namespace libTerrain
                         if (totalCellsCounted == 1)
                             continue;
 
-                        double averageHeight = totalHeight / totalCellsCounted;
+                        double averageHeight = totalHeight/totalCellsCounted;
                         double waterAmount = Math.Min(water.map[x, y], heightCenter - averageHeight);
 
                         // TODO: Check this.
                         waterFlow.map[x, y] += waterFlow.map[x, y] - waterAmount;
 
-                        double totalInverseDiff = waterAmount / totalHeightDiff;
+                        double totalInverseDiff = waterAmount/totalHeightDiff;
 
                         for (int j = 0; j < NEIGHBOUR_MAX; j++)
                         {
@@ -115,7 +114,8 @@ namespace libTerrain
 
                                 if (diffs[j] > 0)
                                 {
-                                    waterFlow.SetWrap(coords[0], coords[1], waterFlow.map[coords[0], coords[1]] + diffs[j] * totalInverseDiff);
+                                    waterFlow.SetWrap(coords[0], coords[1],
+                                                      waterFlow.map[coords[0], coords[1]] + diffs[j]*totalInverseDiff);
                                 }
                             }
                         }
@@ -131,7 +131,7 @@ namespace libTerrain
                 {
                     for (int y = 0; y < h; y++)
                     {
-                        double deposition = sediment.map[x, y] - water.map[x, y] * solubility;
+                        double deposition = sediment.map[x, y] - water.map[x, y]*solubility;
                         if (deposition > 0)
                         {
                             sediment.map[x, y] -= deposition;
@@ -139,7 +139,6 @@ namespace libTerrain
                         }
                     }
                 }
-
             }
         }
     }

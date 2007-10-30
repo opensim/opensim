@@ -28,24 +28,23 @@
 
 using System;
 using System.Collections.Generic;
-using System.Text;
 using System.Threading;
 using libsecondlife;
-using OpenSim.Region.ScriptEngine.Common;
-using OpenSim.Region.Environment.Modules;
 using OpenSim.Region.Environment.Interfaces;
+using OpenSim.Region.Environment.Modules;
 
 namespace OpenSim.Grid.ScriptEngine.DotNetEngine
 {
     /// <summary>
     /// Handles LSL commands that takes long time and returns an event, for example timers, HTTP requests, etc.
     /// </summary>
-    class LSLLongCmdHandler
+    internal class LSLLongCmdHandler
     {
         private Thread cmdHandlerThread;
         private int cmdHandlerThreadCycleSleepms = 100;
 
         private ScriptEngine m_ScriptEngine;
+
         public LSLLongCmdHandler(ScriptEngine _ScriptEngine)
         {
             m_ScriptEngine = _ScriptEngine;
@@ -56,8 +55,8 @@ namespace OpenSim.Grid.ScriptEngine.DotNetEngine
             cmdHandlerThread.Priority = ThreadPriority.BelowNormal;
             cmdHandlerThread.IsBackground = true;
             cmdHandlerThread.Start();
-
         }
+
         ~LSLLongCmdHandler()
         {
             // Shut down thread
@@ -72,7 +71,9 @@ namespace OpenSim.Grid.ScriptEngine.DotNetEngine
                     }
                 }
             }
-            catch { }
+            catch
+            {
+            }
         }
 
         private void CmdHandlerThreadLoop()
@@ -124,8 +125,10 @@ namespace OpenSim.Grid.ScriptEngine.DotNetEngine
             public double interval;
             public DateTime next;
         }
+
         private List<TimerClass> Timers = new List<TimerClass>();
         private object TimerListLock = new object();
+
         public void SetTimerEvent(uint m_localID, LLUUID m_itemID, double sec)
         {
             Console.WriteLine("SetTimerEvent");
@@ -146,6 +149,7 @@ namespace OpenSim.Grid.ScriptEngine.DotNetEngine
                 Timers.Add(ts);
             }
         }
+
         public void UnSetTimerEvents(uint m_localID, LLUUID m_itemID)
         {
             // Remove from timer
@@ -163,6 +167,7 @@ namespace OpenSim.Grid.ScriptEngine.DotNetEngine
                 Timers = NewTimers;
             }
         }
+
         public void CheckTimerEvents()
         {
             // Nothing to do here?
@@ -171,7 +176,6 @@ namespace OpenSim.Grid.ScriptEngine.DotNetEngine
 
             lock (TimerListLock)
             {
-
                 // Go through all timers
                 foreach (TimerClass ts in Timers)
                 {
@@ -179,7 +183,8 @@ namespace OpenSim.Grid.ScriptEngine.DotNetEngine
                     if (ts.next.ToUniversalTime() < DateTime.Now.ToUniversalTime())
                     {
                         // Add it to queue
-                        m_ScriptEngine.m_EventQueueManager.AddToScriptQueue(ts.localID, ts.itemID, "timer", new object[] { });
+                        m_ScriptEngine.m_EventQueueManager.AddToScriptQueue(ts.localID, ts.itemID, "timer",
+                                                                            new object[] {});
                         // set next interval
 
 
@@ -188,6 +193,7 @@ namespace OpenSim.Grid.ScriptEngine.DotNetEngine
                 }
             } // lock
         }
+
         #endregion
 
         #region HTTP REQUEST
@@ -213,10 +219,12 @@ namespace OpenSim.Grid.ScriptEngine.DotNetEngine
             {
                 // TODO: SEND REQUEST!!!
             }
+
             public void Stop()
             {
                 // TODO: Cancel any ongoing request
             }
+
             public bool CheckResponse()
             {
                 // TODO: Check if we got a response yet, return true if so -- false if not
@@ -227,11 +235,12 @@ namespace OpenSim.Grid.ScriptEngine.DotNetEngine
                 //response_status
                 //response_metadata
                 //response_body
-
             }
         }
+
         private List<HttpClass> HttpRequests = new List<HttpClass>();
         private object HttpListLock = new object();
+
         public void StartHttpRequest(uint localID, LLUUID itemID, string url, List<string> parameters, string body)
         {
             Console.WriteLine("StartHttpRequest");
@@ -244,11 +253,11 @@ namespace OpenSim.Grid.ScriptEngine.DotNetEngine
             htc.body = body;
             lock (HttpListLock)
             {
-
                 //ADD REQUEST
                 HttpRequests.Add(htc);
             }
         }
+
         public void StopHttpRequest(uint m_localID, LLUUID m_itemID)
         {
             // Remove from list
@@ -272,6 +281,7 @@ namespace OpenSim.Grid.ScriptEngine.DotNetEngine
                 HttpRequests = NewHttpList;
             }
         }
+
         public void CheckHttpRequests()
         {
             // Nothing to do here?
@@ -282,68 +292,64 @@ namespace OpenSim.Grid.ScriptEngine.DotNetEngine
             {
                 foreach (HttpClass ts in HttpRequests)
                 {
-
                     if (ts.CheckResponse() == true)
                     {
                         // Add it to event queue
                         //key request_id, integer status, list metadata, string body
-                        object[] resobj = new object[] { ts.response_request_id, ts.response_status, ts.response_metadata, ts.response_body };
-                        m_ScriptEngine.m_EventQueueManager.AddToScriptQueue(ts.localID, ts.itemID, "http_response", resobj);
+                        object[] resobj =
+                            new object[]
+                                {ts.response_request_id, ts.response_status, ts.response_metadata, ts.response_body};
+                        m_ScriptEngine.m_EventQueueManager.AddToScriptQueue(ts.localID, ts.itemID, "http_response",
+                                                                            resobj);
                         // Now stop it
                         StopHttpRequest(ts.localID, ts.itemID);
                     }
                 }
             } // lock
         }
+
         #endregion
 
         public void CheckXMLRPCRequests()
         {
-
             IXMLRPC xmlrpc = m_ScriptEngine.World.RequestModuleInterface<IXMLRPC>();
 
             while (xmlrpc.hasRequests())
             {
                 RPCRequestInfo rInfo = xmlrpc.GetNextRequest();
-                System.Console.WriteLine("PICKED REQUEST");
+                Console.WriteLine("PICKED REQUEST");
 
                 //Deliver data to prim's remote_data handler
-                object[] resobj = new object[] { 
-                    2, rInfo.GetChannelKey().ToString(), rInfo.GetMessageID().ToString(), "", rInfo.GetIntValue(), rInfo.GetStrVal() 
-                };
+                object[] resobj = new object[]
+                    {
+                        2, rInfo.GetChannelKey().ToString(), rInfo.GetMessageID().ToString(), "", rInfo.GetIntValue(),
+                        rInfo.GetStrVal()
+                    };
                 m_ScriptEngine.m_EventQueueManager.AddToScriptQueue(
                     rInfo.GetLocalID(), rInfo.GetItemID(), "remote_data", resobj
-                );
-
+                    );
             }
-
         }
 
         public void CheckListeners()
         {
-
             IWorldComm comms = m_ScriptEngine.World.RequestModuleInterface<IWorldComm>();
 
             while (comms.HasMessages())
             {
                 ListenerInfo lInfo = comms.GetNextMessage();
-                System.Console.WriteLine("PICKED LISTENER");
+                Console.WriteLine("PICKED LISTENER");
 
                 //Deliver data to prim's listen handler
-                object[] resobj = new object[] {
-                    lInfo.GetChannel(), lInfo.GetName(), lInfo.GetID().ToString(), lInfo.GetMessage() 
-                };
+                object[] resobj = new object[]
+                    {
+                        lInfo.GetChannel(), lInfo.GetName(), lInfo.GetID().ToString(), lInfo.GetMessage()
+                    };
 
                 m_ScriptEngine.m_EventQueueManager.AddToScriptQueue(
                     lInfo.GetLocalID(), lInfo.GetItemID(), "listen", resobj
-                );
-
+                    );
             }
-
         }
-
-
-
-
     }
 }

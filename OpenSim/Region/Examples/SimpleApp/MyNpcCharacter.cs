@@ -26,16 +26,14 @@
 * 
 */
 
+using System;
 using System.Collections.Generic;
 using System.Net;
 using System.Text;
 using libsecondlife;
 using libsecondlife.Packets;
-using OpenSim.Framework.Interfaces;
-using OpenSim.Framework;
 using OpenSim.Framework;
 using OpenSim.Region.Environment.Scenes;
-using System;
 
 namespace SimpleApp
 {
@@ -126,13 +124,15 @@ namespace SimpleApp
 #pragma warning restore 67
 
         private LLUUID myID = LLUUID.Random();
-        public MyNpcCharacter( EventManager eventManager )
+
+        public MyNpcCharacter(EventManager eventManager)
         {
-           // startPos = new LLVector3(128, (float)(Util.RandomClass.NextDouble()*100), 2);
+            // startPos = new LLVector3(128, (float)(Util.RandomClass.NextDouble()*100), 2);
             eventManager.OnFrame += Update;
         }
 
-        private LLVector3 startPos = new LLVector3(128, 128,2);
+        private LLVector3 startPos = new LLVector3(128, 128, 2);
+
         public virtual LLVector3 StartPos
         {
             get { return startPos; }
@@ -155,92 +155,218 @@ namespace SimpleApp
         }
 
         private string lastName = "NPC" + Util.RandomClass.Next(1, 1000);
+
         public virtual string LastName
         {
             get { return lastName; }
         }
 
-        public virtual void OutPacket(Packet newPack) { }
-        public virtual void SendWearables(AvatarWearable[] wearables) { }
-        public virtual void SendAppearance(LLUUID agentID, byte[] visualParams, byte[] textureEntry) { }
-        public virtual void SendStartPingCheck(byte seq) { }
-        public virtual void SendKillObject(ulong regionHandle, uint localID) { }
-        public virtual void SendAnimation(LLUUID animID, int seq, LLUUID sourceAgentId) { }
-        public virtual void SendChatMessage(string message, byte type, LLVector3 fromPos, string fromName, LLUUID fromAgentID) { }
-        public virtual void SendChatMessage(byte[] message, byte type, LLVector3 fromPos, string fromName, LLUUID fromAgentID) { }
-        public virtual void SendInstantMessage(LLUUID fromAgent, LLUUID fromAgentSession, string message, LLUUID toAgent, LLUUID imSessionID, string fromName, byte dialog, uint timeStamp) { }
-        public virtual void SendLayerData(float[] map) { }
-        public virtual void SendLayerData(int px, int py, float[] map) { }
-        public virtual void MoveAgentIntoRegion(RegionInfo regInfo, LLVector3 pos, LLVector3 look) { }
-        public virtual void InformClientOfNeighbour(ulong neighbourHandle, IPEndPoint neighbourExternalEndPoint) { }
-        public virtual AgentCircuitData RequestClientInfo() { return new AgentCircuitData(); }
-        public virtual void CrossRegion(ulong newRegionHandle, LLVector3 pos, LLVector3 lookAt, IPEndPoint newRegionExternalEndPoint, string capsURL) { }
-        public virtual void SendMapBlock(List<MapBlockData> mapBlocks) { }
-        public virtual void SendLocalTeleport(LLVector3 position, LLVector3 lookAt, uint flags) { }
-        public virtual void SendRegionTeleport(ulong regionHandle, byte simAccess, IPEndPoint regionExternalEndPoint, uint locationID, uint flags, string capsURL) { }
-        public virtual void SendTeleportCancel() { }
-        public virtual void SendTeleportLocationStart() { }
-        public virtual void SendMoneyBalance(LLUUID transaction, bool success, byte[] description, int balance) { }
+        public virtual void OutPacket(Packet newPack)
+        {
+        }
 
-        public virtual void SendAvatarData(ulong regionHandle, string firstName, string lastName, LLUUID avatarID, uint avatarLocalID, LLVector3 Pos, byte[] textureEntry, uint parentID) { }
-        public virtual void SendAvatarTerseUpdate(ulong regionHandle, ushort timeDilation, uint localID, LLVector3 position, LLVector3 velocity, LLQuaternion rotation) { }
-        public virtual void SendCoarseLocationUpdate(List<LLVector3> CoarseLocations) { }
+        public virtual void SendWearables(AvatarWearable[] wearables)
+        {
+        }
 
-        public virtual void AttachObject(uint localID, LLQuaternion rotation, byte attachPoint) { }
+        public virtual void SendAppearance(LLUUID agentID, byte[] visualParams, byte[] textureEntry)
+        {
+        }
 
-        public virtual void SendPrimitiveToClient(ulong regionHandle, ushort timeDilation, uint localID, PrimitiveBaseShape primShape, LLVector3 pos, uint flags, LLUUID objectID, LLUUID ownerID, string text, uint parentID, byte[] particleSystem, LLQuaternion rotation) { }
-        public virtual void SendPrimTerseUpdate(ulong regionHandle, ushort timeDilation, uint localID, LLVector3 position, LLQuaternion rotation) { }
+        public virtual void SendStartPingCheck(byte seq)
+        {
+        }
 
-        public virtual void SendInventoryFolderDetails(LLUUID ownerID, LLUUID folderID, List<InventoryItemBase> items) { }
-        public virtual void SendInventoryItemDetails(LLUUID ownerID, InventoryItemBase item) { }
-        public virtual void SendInventoryItemUpdate(InventoryItemBase Item) { }
-        public virtual void SendRemoveInventoryItem(LLUUID itemID) { }
-        public virtual void SendTaskInventory(LLUUID taskID, short serial, byte[] fileName) { }
-        public virtual void SendXferPacket(ulong xferID, uint packet, byte[] data) { }
+        public virtual void SendKillObject(ulong regionHandle, uint localID)
+        {
+        }
 
-        public virtual void SendNameReply(LLUUID profileId, string firstname, string lastname) { }
+        public virtual void SendAnimation(LLUUID animID, int seq, LLUUID sourceAgentId)
+        {
+        }
 
-        public virtual void SendPreLoadSound(LLUUID objectID, LLUUID ownerID, LLUUID soundID) { }
-        public virtual void SendPlayAttachedSound(LLUUID soundID, LLUUID objectID, LLUUID ownerID, float gain, byte flags) { }
+        public virtual void SendChatMessage(string message, byte type, LLVector3 fromPos, string fromName,
+                                            LLUUID fromAgentID)
+        {
+        }
 
-        public void SendAlertMessage(string message) { }
-        public void SendAgentAlertMessage(string message, bool modal) { }
-        public void SendLoadURL(string objectname, LLUUID objectID, LLUUID ownerID, bool groupOwned, string message, string url) { }
+        public virtual void SendChatMessage(byte[] message, byte type, LLVector3 fromPos, string fromName,
+                                            LLUUID fromAgentID)
+        {
+        }
+
+        public virtual void SendInstantMessage(LLUUID fromAgent, LLUUID fromAgentSession, string message, LLUUID toAgent,
+                                               LLUUID imSessionID, string fromName, byte dialog, uint timeStamp)
+        {
+        }
+
+        public virtual void SendLayerData(float[] map)
+        {
+        }
+
+        public virtual void SendLayerData(int px, int py, float[] map)
+        {
+        }
+
+        public virtual void MoveAgentIntoRegion(RegionInfo regInfo, LLVector3 pos, LLVector3 look)
+        {
+        }
+
+        public virtual void InformClientOfNeighbour(ulong neighbourHandle, IPEndPoint neighbourExternalEndPoint)
+        {
+        }
+
+        public virtual AgentCircuitData RequestClientInfo()
+        {
+            return new AgentCircuitData();
+        }
+
+        public virtual void CrossRegion(ulong newRegionHandle, LLVector3 pos, LLVector3 lookAt,
+                                        IPEndPoint newRegionExternalEndPoint, string capsURL)
+        {
+        }
+
+        public virtual void SendMapBlock(List<MapBlockData> mapBlocks)
+        {
+        }
+
+        public virtual void SendLocalTeleport(LLVector3 position, LLVector3 lookAt, uint flags)
+        {
+        }
+
+        public virtual void SendRegionTeleport(ulong regionHandle, byte simAccess, IPEndPoint regionExternalEndPoint,
+                                               uint locationID, uint flags, string capsURL)
+        {
+        }
+
+        public virtual void SendTeleportCancel()
+        {
+        }
+
+        public virtual void SendTeleportLocationStart()
+        {
+        }
+
+        public virtual void SendMoneyBalance(LLUUID transaction, bool success, byte[] description, int balance)
+        {
+        }
+
+        public virtual void SendAvatarData(ulong regionHandle, string firstName, string lastName, LLUUID avatarID,
+                                           uint avatarLocalID, LLVector3 Pos, byte[] textureEntry, uint parentID)
+        {
+        }
+
+        public virtual void SendAvatarTerseUpdate(ulong regionHandle, ushort timeDilation, uint localID,
+                                                  LLVector3 position, LLVector3 velocity, LLQuaternion rotation)
+        {
+        }
+
+        public virtual void SendCoarseLocationUpdate(List<LLVector3> CoarseLocations)
+        {
+        }
+
+        public virtual void AttachObject(uint localID, LLQuaternion rotation, byte attachPoint)
+        {
+        }
+
+        public virtual void SendPrimitiveToClient(ulong regionHandle, ushort timeDilation, uint localID,
+                                                  PrimitiveBaseShape primShape, LLVector3 pos, uint flags,
+                                                  LLUUID objectID, LLUUID ownerID, string text, uint parentID,
+                                                  byte[] particleSystem, LLQuaternion rotation)
+        {
+        }
+
+        public virtual void SendPrimTerseUpdate(ulong regionHandle, ushort timeDilation, uint localID,
+                                                LLVector3 position, LLQuaternion rotation)
+        {
+        }
+
+        public virtual void SendInventoryFolderDetails(LLUUID ownerID, LLUUID folderID, List<InventoryItemBase> items)
+        {
+        }
+
+        public virtual void SendInventoryItemDetails(LLUUID ownerID, InventoryItemBase item)
+        {
+        }
+
+        public virtual void SendInventoryItemUpdate(InventoryItemBase Item)
+        {
+        }
+
+        public virtual void SendRemoveInventoryItem(LLUUID itemID)
+        {
+        }
+
+        public virtual void SendTaskInventory(LLUUID taskID, short serial, byte[] fileName)
+        {
+        }
+
+        public virtual void SendXferPacket(ulong xferID, uint packet, byte[] data)
+        {
+        }
+
+        public virtual void SendNameReply(LLUUID profileId, string firstname, string lastname)
+        {
+        }
+
+        public virtual void SendPreLoadSound(LLUUID objectID, LLUUID ownerID, LLUUID soundID)
+        {
+        }
+
+        public virtual void SendPlayAttachedSound(LLUUID soundID, LLUUID objectID, LLUUID ownerID, float gain,
+                                                  byte flags)
+        {
+        }
+
+        public void SendAlertMessage(string message)
+        {
+        }
+
+        public void SendAgentAlertMessage(string message, bool modal)
+        {
+        }
+
+        public void SendLoadURL(string objectname, LLUUID objectID, LLUUID ownerID, bool groupOwned, string message,
+                                string url)
+        {
+        }
 
         public virtual void SendRegionHandshake(RegionInfo regionInfo)
         {
             if (OnRegionHandShakeReply != null)
             {
-                this.OnRegionHandShakeReply(this);
+                OnRegionHandShakeReply(this);
             }
 
             if (OnCompleteMovementToRegion != null)
             {
-                this.OnCompleteMovementToRegion();
+                OnCompleteMovementToRegion();
             }
         }
 
-        private void Update( )
+        private void Update()
         {
             Encoding enc = Encoding.ASCII;
 
-            if (this.OnAgentUpdate != null)
+            if (OnAgentUpdate != null)
             {
-                this.OnAgentUpdate(this, movementFlag, bodyDirection);
+                OnAgentUpdate(this, movementFlag, bodyDirection);
             }
-            if (this.flyState == 0)
+            if (flyState == 0)
             {
-                movementFlag = (uint)MainAvatar.ControlFlags.AGENT_CONTROL_FLY | (uint)MainAvatar.ControlFlags.AGENT_CONTROL_UP_NEG;
+                movementFlag = (uint) MainAvatar.ControlFlags.AGENT_CONTROL_FLY |
+                               (uint) MainAvatar.ControlFlags.AGENT_CONTROL_UP_NEG;
                 flyState = 1;
             }
-            else if (this.flyState == 1)
+            else if (flyState == 1)
             {
-                movementFlag = (uint)MainAvatar.ControlFlags.AGENT_CONTROL_FLY | (uint)MainAvatar.ControlFlags.AGENT_CONTROL_UP_POS;
+                movementFlag = (uint) MainAvatar.ControlFlags.AGENT_CONTROL_FLY |
+                               (uint) MainAvatar.ControlFlags.AGENT_CONTROL_UP_POS;
                 flyState = 2;
             }
             else
             {
-                movementFlag = (uint)MainAvatar.ControlFlags.AGENT_CONTROL_FLY;
+                movementFlag = (uint) MainAvatar.ControlFlags.AGENT_CONTROL_FLY;
                 flyState = 0;
             }
 
@@ -251,15 +377,14 @@ namespace SimpleApp
                     ChatFromViewerArgs args = new ChatFromViewerArgs();
                     args.Message = "Kinda quiet around here, isn't it?";
                     args.Channel = 0;
-                    args.From = this.FirstName + " " + this.LastName;
+                    args.From = FirstName + " " + LastName;
                     args.Position = new LLVector3(128, 128, 26);
                     args.Sender = this;
                     args.Type = ChatTypeEnum.Shout;
 
-                    this.OnChatFromViewer(this, args);
+                    OnChatFromViewer(this, args);
                 }
                 count = -1;
-                
             }
 
             count++;
@@ -270,9 +395,19 @@ namespace SimpleApp
             return false;
         }
 
-        public void SendViewerTime(int phase) { }
-        public void SendAvatarProperties(LLUUID avatarID, string aboutText, string bornOn, string charterMember, string flAbout, uint flags, LLUUID flImageID, LLUUID imageID, string profileURL, LLUUID partnerID) { }
-        public void SetDebug(int newDebug) { }
+        public void SendViewerTime(int phase)
+        {
+        }
+
+        public void SendAvatarProperties(LLUUID avatarID, string aboutText, string bornOn, string charterMember,
+                                         string flAbout, uint flags, LLUUID flImageID, LLUUID imageID, string profileURL,
+                                         LLUUID partnerID)
+        {
+        }
+
+        public void SetDebug(int newDebug)
+        {
+        }
 
         public void InPacket(Packet NewPack)
         {
@@ -281,18 +416,13 @@ namespace SimpleApp
         public void Close()
         {
         }
-     
+
         private uint m_circuitCode;
+
         public uint CircuitCode
         {
-            get
-            {
-                return m_circuitCode;
-            }
-            set
-            {
-                m_circuitCode = value;
-            }
+            get { return m_circuitCode; }
+            set { m_circuitCode = value; }
         }
 
         public void SendLogoutPacket()

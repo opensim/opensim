@@ -26,15 +26,12 @@
 * 
 */
 /* Original code: Tedd Hansen */
-using System;
 using System.Collections.Generic;
-using System.Text;
 
 namespace OpenSim.Region.ScriptEngine.Common
 {
     public interface LSL_BuiltIn_Commands_Interface
     {
-
         string State();
 
         double llSin(double f);
@@ -404,7 +401,9 @@ namespace OpenSim.Region.ScriptEngine.Common
         //wiki: llSetTextureAnim(integer mode, integer face, integer sizex, integer sizey, double start, double length, double rate)
         void llSetTextureAnim(int mode, int face, int sizex, int sizey, double start, double length, double rate);
         //wiki: llTriggerSoundLimited(string sound, double volume, vector top_north_east, vector bottom_south_west)
-        void llTriggerSoundLimited(string sound, double volume, LSL_Types.Vector3 top_north_east, LSL_Types.Vector3 bottom_south_west);
+        void llTriggerSoundLimited(string sound, double volume, LSL_Types.Vector3 top_north_east,
+                                   LSL_Types.Vector3 bottom_south_west);
+
         //wiki: llEjectFromLand(key pest)
         void llEjectFromLand(string pest);
         void llParseString2List();
@@ -437,7 +436,7 @@ namespace OpenSim.Region.ScriptEngine.Common
         //wiki: double llGetRegionFPS()
         double llGetRegionFPS();
         //wiki: llParticleSystem(List<Object> rules
-        void llParticleSystem(List<Object> rules);
+        void llParticleSystem(List<object> rules);
         //wiki: llGroundRepel(double height, integer water, double tau)
         void llGroundRepel(double height, int water, double tau);
         void llGiveInventoryList();
@@ -548,7 +547,9 @@ namespace OpenSim.Region.ScriptEngine.Common
         //wiki: list llParseStringKeepNulls( string src, list separators, list spacers )
         List<string> llParseStringKeepNulls(string src, List<string> seperators, List<string> spacers);
         //wiki: llRezAtRoot(string inventory, vector position, vector velocity, rotation rot, integer param)
-        void llRezAtRoot(string inventory, LSL_Types.Vector3 position, LSL_Types.Vector3 velocity, LSL_Types.Quaternion rot, int param);
+        void llRezAtRoot(string inventory, LSL_Types.Vector3 position, LSL_Types.Vector3 velocity,
+                         LSL_Types.Quaternion rot, int param);
+
         //wiki: integer llGetObjectPermMask(integer mask)
         int llGetObjectPermMask(int mask);
         //wiki: llSetObjectPermMask(integer mask, integer value)

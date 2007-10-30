@@ -44,6 +44,7 @@ namespace OpenSim.Framework
         /// The first component of a users account name
         /// </summary>
         public string username;
+
         /// <summary>
         /// The second component of a users account name
         /// </summary>
@@ -54,6 +55,7 @@ namespace OpenSim.Framework
         /// </summary>
         /// <remarks>This is double MD5'd because the client sends an unsalted MD5 to the loginserver</remarks>
         public string passwordHash;
+
         /// <summary>
         /// The salt used for the users hash, should be 32 bytes or longer
         /// </summary>
@@ -64,18 +66,22 @@ namespace OpenSim.Framework
         /// </summary>
         public ulong homeRegion
         {
-            get { return Helpers.UIntsToLong((homeRegionX * 256), (homeRegionY * 256)); }
-            set { 
-                homeRegionX = (uint)(value >> 40);
-                homeRegionY = (((uint)(value)) >> 8);
+            get { return Helpers.UIntsToLong((homeRegionX*256), (homeRegionY*256)); }
+            set
+            {
+                homeRegionX = (uint) (value >> 40);
+                homeRegionY = (((uint) (value)) >> 8);
             }
         }
+
         public uint homeRegionX;
         public uint homeRegionY;
+
         /// <summary>
         /// The coordinates inside the region of the home location
         /// </summary>
         public LLVector3 homeLocation;
+
         /// <summary>
         /// Where the user will be looking when they rez.
         /// </summary>
@@ -85,6 +91,7 @@ namespace OpenSim.Framework
         /// A UNIX Timestamp (seconds since epoch) for the users creation
         /// </summary>
         public int created;
+
         /// <summary>
         /// A UNIX Timestamp for the users last login date / time
         /// </summary>
@@ -96,6 +103,7 @@ namespace OpenSim.Framework
         /// A URI to the users inventory server, used for foreigners and large grids
         /// </summary>
         public string userInventoryURI = String.Empty;
+
         /// <summary>
         /// A URI to the users asset server, used for foreigners and large grids.
         /// </summary>
@@ -105,6 +113,7 @@ namespace OpenSim.Framework
         /// A uint mask containing the "I can do" fields of the users profile
         /// </summary>
         public uint profileCanDoMask;
+
         /// <summary>
         /// A uint mask containing the "I want to do" part of the users profile
         /// </summary>
@@ -114,6 +123,7 @@ namespace OpenSim.Framework
         /// The about text listed in a users profile.
         /// </summary>
         public string profileAboutText = String.Empty;
+
         /// <summary>
         /// The first life about text listed in a users profile
         /// </summary>
@@ -123,10 +133,12 @@ namespace OpenSim.Framework
         /// The profile image for an avatar stored on the asset server
         /// </summary>
         public LLUUID profileImage;
+
         /// <summary>
         /// The profile image for the users first life tab
         /// </summary>
         public LLUUID profileFirstImage;
+
         /// <summary>
         /// The users last registered agent (filled in on the user server)
         /// </summary>
@@ -142,47 +154,58 @@ namespace OpenSim.Framework
         /// The UUID of the users avatar (not the agent!)
         /// </summary>
         public LLUUID UUID;
+
         /// <summary>
         /// The IP address of the user
         /// </summary>
         public string agentIP = String.Empty;
+
         /// <summary>
         /// The port of the user
         /// </summary>
         public uint agentPort;
+
         /// <summary>
         /// Is the user online?
         /// </summary>
         public bool agentOnline;
+
         /// <summary>
         /// The session ID for the user (also the agent ID)
         /// </summary>
         public LLUUID sessionID;
+
         /// <summary>
         /// The "secure" session ID for the user
         /// </summary>
         /// <remarks>Not very secure. Dont rely on it for anything more than Linden Lab does.</remarks>
         public LLUUID secureSessionID;
+
         /// <summary>
         /// The region the user logged into initially
         /// </summary>
         public LLUUID regionID;
+
         /// <summary>
         /// A unix timestamp from when the user logged in
         /// </summary>
         public int loginTime;
+
         /// <summary>
         /// When this agent expired and logged out, 0 if still online
         /// </summary>
         public int logoutTime;
+
         /// <summary>
         /// Current region the user is logged into
         /// </summary>
         public LLUUID currentRegion;
+
         /// <summary>
         /// Region handle of the current region the user is in
         /// </summary>
         public ulong currentHandle;
+
         /// <summary>
         /// The position of the user within the region
         /// </summary>

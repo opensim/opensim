@@ -26,16 +26,14 @@
 * 
 */
 
-using System;
 using System.Collections.Generic;
-using System.Text;
 using libsecondlife;
 using OpenSim.Framework.Communications.Cache;
-using OpenSim.Framework;
 
 namespace OpenSim.Framework.Communications
 {
     public delegate void InventoryFolderInfo(LLUUID userID, InventoryFolderImpl folderInfo);
+
     public delegate void InventoryItemInfo(LLUUID userID, InventoryItemBase itemInfo);
 
     public interface IInventoryServices

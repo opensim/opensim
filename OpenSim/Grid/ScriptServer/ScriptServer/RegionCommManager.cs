@@ -25,9 +25,7 @@
 * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 * 
 */
-using System;
 using System.Collections.Generic;
-using System.Text;
 using System.Threading;
 using OpenSim.Framework.Console;
 
@@ -42,11 +40,13 @@ namespace OpenSim.Grid.ScriptServer
 
         private LogBase m_log;
         private ScriptServerMain m_ScriptServerMain;
+
         public RegionCommManager(ScriptServerMain scm, LogBase logger)
         {
             m_ScriptServerMain = scm;
             m_log = logger;
         }
+
         ~RegionCommManager()
         {
             Stop();
@@ -64,6 +64,7 @@ namespace OpenSim.Grid.ScriptServer
             listenThread.IsBackground = true;
             listenThread.Start();
         }
+
         /// <summary>
         /// Stops listening for region requests
         /// </summary>
@@ -78,7 +79,9 @@ namespace OpenSim.Grid.ScriptServer
                         listenThread.Abort();
                     listenThread.Join(1000); // Wait 1 second for thread to shut down
                 }
-                catch { }
+                catch
+                {
+                }
                 listenThread = null;
             }
         }
@@ -97,6 +100,5 @@ namespace OpenSim.Grid.ScriptServer
             // TODO: FAKING A CONNECTION
             Regions.Add(new RegionConnectionManager(m_ScriptServerMain, m_log, null));
         }
-
     }
 }

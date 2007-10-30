@@ -33,77 +33,77 @@ using OpenSim.Framework.Console;
 
 namespace OpenSim.Region.Physics.Manager
 {
-	/// <summary>
-	/// Description of MyClass.
-	/// </summary>
-	public class PhysicsPluginManager
-	{
-		private Dictionary<string, IPhysicsPlugin> _plugins=new Dictionary<string, IPhysicsPlugin>();
-		
-		public PhysicsPluginManager()
-		{
-			
-		}
-		
-		public PhysicsScene GetPhysicsScene(string engineName)
-		{
+    /// <summary>
+    /// Description of MyClass.
+    /// </summary>
+    public class PhysicsPluginManager
+    {
+        private Dictionary<string, IPhysicsPlugin> _plugins = new Dictionary<string, IPhysicsPlugin>();
+
+        public PhysicsPluginManager()
+        {
+        }
+
+        public PhysicsScene GetPhysicsScene(string engineName)
+        {
             if (String.IsNullOrEmpty(engineName))
             {
                 return PhysicsScene.Null;
             }
 
-			if(_plugins.ContainsKey(engineName))
-			{
-				MainLog.Instance.Verbose("PHYSICS","creating "+engineName);
-				return _plugins[engineName].GetScene();
-			}
-			else
+            if (_plugins.ContainsKey(engineName))
+            {
+                MainLog.Instance.Verbose("PHYSICS", "creating " + engineName);
+                return _plugins[engineName].GetScene();
+            }
+            else
             {
                 MainLog.Instance.Warn("PHYSICS", "couldn't find physicsEngine: {0}", engineName);
-                throw new ArgumentException(String.Format("couldn't find physicsEngine: {0}",engineName));
-			}
-		}
-		
-		public void LoadPlugins()
-		{
-			string path = Path.Combine(AppDomain.CurrentDomain.BaseDirectory ,"Physics");
-       		string[] pluginFiles = Directory.GetFiles(path, "*.dll");
-        
-
-        	for(int i= 0; i<pluginFiles.Length; i++)
-        	{
-        		this.AddPlugin(pluginFiles[i]);
-        	}
+                throw new ArgumentException(String.Format("couldn't find physicsEngine: {0}", engineName));
+            }
         }
-        	
-		private void AddPlugin(string FileName)
-		{
-			Assembly pluginAssembly = Assembly.LoadFrom(FileName);
-			
-			foreach (Type pluginType in pluginAssembly.GetTypes())
-			{
-				if (pluginType.IsPublic) 
-				{
-					if (!pluginType.IsAbstract)  
-					{
-						Type typeInterface = pluginType.GetInterface("IPhysicsPlugin", true);
-						
-						if (typeInterface != null)
-						{
-							IPhysicsPlugin plug = (IPhysicsPlugin)Activator.CreateInstance(pluginAssembly.GetType(pluginType.ToString()));
-							plug.Init();
-							this._plugins.Add(plug.GetName(),plug);
-                            OpenSim.Framework.Console.MainLog.Instance.Verbose("PHYSICS","Added physics engine: " + plug.GetName());
-							
-						}	
-						
-						typeInterface = null; 			
-					}				
-				}			
-			}
-			
-			pluginAssembly = null; 
-		}
+
+        public void LoadPlugins()
+        {
+            string path = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Physics");
+            string[] pluginFiles = Directory.GetFiles(path, "*.dll");
+
+
+            for (int i = 0; i < pluginFiles.Length; i++)
+            {
+                AddPlugin(pluginFiles[i]);
+            }
+        }
+
+        private void AddPlugin(string FileName)
+        {
+            Assembly pluginAssembly = Assembly.LoadFrom(FileName);
+
+            foreach (Type pluginType in pluginAssembly.GetTypes())
+            {
+                if (pluginType.IsPublic)
+                {
+                    if (!pluginType.IsAbstract)
+                    {
+                        Type typeInterface = pluginType.GetInterface("IPhysicsPlugin", true);
+
+                        if (typeInterface != null)
+                        {
+                            IPhysicsPlugin plug =
+                                (IPhysicsPlugin) Activator.CreateInstance(pluginAssembly.GetType(pluginType.ToString()));
+                            plug.Init();
+                            _plugins.Add(plug.GetName(), plug);
+                            MainLog.Instance.Verbose("PHYSICS", "Added physics engine: " + plug.GetName());
+                        }
+
+                        typeInterface = null;
+                    }
+                }
+            }
+
+            pluginAssembly = null;
+        }
+
         //---
         public static void PhysicsPluginMessage(string message, bool isWarning)
         {
@@ -116,14 +116,15 @@ namespace OpenSim.Region.Physics.Manager
                 MainLog.Instance.Verbose("PHYSICS", message);
             }
         }
-        //---
-	}
 
-	public interface IPhysicsPlugin
-	{
-		bool Init();
-		PhysicsScene GetScene();
-		string GetName();
-		void Dispose();
-	}
+        //---
+    }
+
+    public interface IPhysicsPlugin
+    {
+        bool Init();
+        PhysicsScene GetScene();
+        string GetName();
+        void Dispose();
+    }
 }

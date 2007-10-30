@@ -25,13 +25,13 @@
 * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 * 
 */
+
 using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Security.Cryptography;
 using System.Text;
 using libsecondlife;
-
 using OpenSim.Framework.Console;
 
 namespace OpenSim.Framework.Data.MySQL
@@ -59,7 +59,9 @@ namespace OpenSim.Framework.Data.MySQL
             string settingPooling = GridDataMySqlFile.ParseFileReadValue("pooling");
             string settingPort = GridDataMySqlFile.ParseFileReadValue("port");
 
-            database = new MySQLManager(settingHostname, settingDatabase, settingUsername, settingPassword, settingPooling, settingPort);
+            database =
+                new MySQLManager(settingHostname, settingDatabase, settingUsername, settingPassword, settingPooling,
+                                 settingPort);
         }
 
         /// <summary>
@@ -108,7 +110,10 @@ namespace OpenSim.Framework.Data.MySQL
                     param["?xmax"] = xmax.ToString();
                     param["?ymax"] = ymax.ToString();
 
-                    IDbCommand result = database.Query("SELECT * FROM regions WHERE locX >= ?xmin AND locX <= ?xmax AND locY >= ?ymin AND locY <= ?ymax", param);
+                    IDbCommand result =
+                        database.Query(
+                            "SELECT * FROM regions WHERE locX >= ?xmin AND locX <= ?xmax AND locY >= ?ymin AND locY <= ?ymax",
+                            param);
                     IDataReader reader = result.ExecuteReader();
 
                     RegionProfileData row;
@@ -123,7 +128,6 @@ namespace OpenSim.Framework.Data.MySQL
                     result.Dispose();
 
                     return rows.ToArray();
-
                 }
             }
             catch (Exception e)
@@ -266,7 +270,10 @@ namespace OpenSim.Framework.Data.MySQL
                     Dictionary<string, string> param = new Dictionary<string, string>();
                     param["?x"] = x.ToString();
                     param["?y"] = y.ToString();
-                    IDbCommand result = database.Query("SELECT * FROM reservations WHERE resXMin <= ?x AND resXMax >= ?x AND resYMin <= ?y AND resYMax >= ?y", param);
+                    IDbCommand result =
+                        database.Query(
+                            "SELECT * FROM reservations WHERE resXMin <= ?x AND resXMax >= ?x AND resYMin <= ?y AND resYMax >= ?y",
+                            param);
                     IDataReader reader = result.ExecuteReader();
 
                     ReservationData row = database.readReservationRow(reader);
@@ -284,6 +291,4 @@ namespace OpenSim.Framework.Data.MySQL
             }
         }
     }
-
-
 }

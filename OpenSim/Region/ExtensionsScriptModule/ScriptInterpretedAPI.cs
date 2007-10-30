@@ -27,16 +27,15 @@
 */
 
 using System;
-using System.Collections.Generic;
 using System.Text;
+using Axiom.Math;
+using OpenSim.Framework.Console;
+using OpenSim.Region.Environment.LandManagement;
+using OpenSim.Region.Environment.Scenes;
 using Key = libsecondlife.LLUUID;
 using Rotation = libsecondlife.LLQuaternion;
 using Vector = libsecondlife.LLVector3;
 using LSLList = System.Collections.Generic.List<string>;
-
-using OpenSim.Region.Environment.Scenes;
-using OpenSim.Region.Environment.LandManagement;
-using libsecondlife;
 
 namespace OpenSim.Region.ExtensionsScriptModule
 {
@@ -44,9 +43,9 @@ namespace OpenSim.Region.ExtensionsScriptModule
     /// A class inteded to act as an API for LSL-styled interpreted languages
     /// </summary>
     /// <remarks>Avoid at all costs. This should ONLY be used for LSL.</remarks>
-    class ScriptInterpretedAPI
+    internal class ScriptInterpretedAPI
     {
-        protected LLUUID m_object;
+        protected Key m_object;
         protected Scene m_scene;
 
         /// <summary>
@@ -78,7 +77,7 @@ namespace OpenSim.Region.ExtensionsScriptModule
         /// </summary>
         /// <param name="world">The scene the object is located in</param>
         /// <param name="member">The specific member being 'occupied' by the script</param>
-        public ScriptInterpretedAPI(Scene world, libsecondlife.LLUUID member)
+        public ScriptInterpretedAPI(Scene world, Key member)
         {
             m_scene = world;
             m_object = member;
@@ -96,7 +95,7 @@ namespace OpenSim.Region.ExtensionsScriptModule
 
         public float osAcos(float val)
         {
-            return (float)Math.Acos(val);
+            return (float) Math.Acos(val);
         }
 
         [Obsolete("Unimplemented")]
@@ -105,14 +104,15 @@ namespace OpenSim.Region.ExtensionsScriptModule
             Vector myPosition = Task.AbsolutePosition;
             Land myParcel = Scene.LandManager.getLandObject(myPosition.X, myPosition.Y);
 
-            OpenSim.Framework.Console.MainLog.Instance.Warn("script", "Unimplemented function called by script: osAddToLandPassList(Key avatar, float hours)");
+            MainLog.Instance.Warn("script",
+                                  "Unimplemented function called by script: osAddToLandPassList(Key avatar, float hours)");
             return;
         }
 
         [Obsolete("Unimplemented")]
         public void osAdjustSoundVolume(float volume)
         {
-            OpenSim.Framework.Console.MainLog.Instance.Warn("script", "Unimplemented function called by script: osAdjustSoundVolume(float volume)");
+            MainLog.Instance.Warn("script", "Unimplemented function called by script: osAdjustSoundVolume(float volume)");
             return;
         }
 
@@ -125,8 +125,8 @@ namespace OpenSim.Region.ExtensionsScriptModule
         [Obsolete("Unimplemented")]
         public float osAngleBetween(Rotation a, Rotation b)
         {
-            Axiom.Math.Quaternion axA = new Axiom.Math.Quaternion(a.W, a.X, a.Y, a.Z);
-            Axiom.Math.Quaternion axB = new Axiom.Math.Quaternion(b.W, b.X, b.Y, b.Z);
+            Quaternion axA = new Quaternion(a.W, a.X, a.Y, a.Z);
+            Quaternion axB = new Quaternion(b.W, b.X, b.Y, b.Z);
 
             return 0;
         }
@@ -145,12 +145,12 @@ namespace OpenSim.Region.ExtensionsScriptModule
 
         public float osAsin(float val)
         {
-            return (float)Math.Asin(val);
+            return (float) Math.Asin(val);
         }
 
         public float osAtan2(float x, float y)
         {
-            return (float)Math.Atan2(x, y);
+            return (float) Math.Atan2(x, y);
         }
 
         [Obsolete("Unimplemented")]
@@ -178,10 +178,10 @@ namespace OpenSim.Region.ExtensionsScriptModule
 
         public Rotation osAxes2Rot(Vector fwd, Vector left, Vector up)
         {
-            Axiom.Math.Quaternion axQ = new Axiom.Math.Quaternion();
-            Axiom.Math.Vector3 axFwd = new Axiom.Math.Vector3(fwd.X, fwd.Y, fwd.Z);
-            Axiom.Math.Vector3 axLeft = new Axiom.Math.Vector3(left.X, left.Y, left.Z);
-            Axiom.Math.Vector3 axUp = new Axiom.Math.Vector3(up.X, up.Y, up.Z);
+            Quaternion axQ = new Quaternion();
+            Vector3 axFwd = new Vector3(fwd.X, fwd.Y, fwd.Z);
+            Vector3 axLeft = new Vector3(left.X, left.Y, left.Z);
+            Vector3 axUp = new Vector3(up.X, up.Y, up.Z);
 
             axQ.FromAxes(axFwd, axLeft, axUp);
 
@@ -190,14 +190,14 @@ namespace OpenSim.Region.ExtensionsScriptModule
 
         public Rotation osAxisAngle2Rot(Vector axis, float angle)
         {
-            Axiom.Math.Quaternion axQ = Axiom.Math.Quaternion.FromAngleAxis(angle, new Axiom.Math.Vector3(axis.X, axis.Y, axis.Z));
+            Quaternion axQ = Quaternion.FromAngleAxis(angle, new Vector3(axis.X, axis.Y, axis.Z));
 
             return new Rotation(axQ.x, axQ.y, axQ.z, axQ.w);
         }
 
         public string osBase64ToString(string str)
         {
-            Encoding enc = System.Text.Encoding.UTF8;
+            Encoding enc = Encoding.UTF8;
             return enc.GetString(Convert.FromBase64String(str));
         }
 
@@ -223,7 +223,7 @@ namespace OpenSim.Region.ExtensionsScriptModule
 
         public int osCeil(float val)
         {
-            return (int)Math.Ceiling(val);
+            return (int) Math.Ceiling(val);
         }
 
         [Obsolete("Unimplemented")]
@@ -252,13 +252,13 @@ namespace OpenSim.Region.ExtensionsScriptModule
 
         public float osCos(float theta)
         {
-            return (float)Math.Cos(theta);
+            return (float) Math.Cos(theta);
         }
 
         public void osCreateLink(Key target, int parent)
         {
-            if(Scene.Entities[target] is SceneObjectGroup)
-                Task.LinkToGroup((SceneObjectGroup)Scene.Entities[target]);
+            if (Scene.Entities[target] is SceneObjectGroup)
+                Task.LinkToGroup((SceneObjectGroup) Scene.Entities[target]);
 
             return;
         }

@@ -1,18 +1,16 @@
 using System;
-using System.Collections.Generic;
-using System.Text;
-using System.Net;
-using System.IO;
 using System.Drawing;
+using System.IO;
+using System.Net;
 using libsecondlife;
-using OpenJPEGNet;
-using OpenSim.Region.Environment.Scenes;
-using OpenSim.Region.Environment.Interfaces;
 using Nini.Config;
+using OpenJPEGNet;
+using OpenSim.Region.Environment.Interfaces;
+using OpenSim.Region.Environment.Scenes;
 
 namespace OpenSim.Region.Environment.Modules
 {
-    public class LoadImageURLModule : IRegionModule , IDynamicTextureRender
+    public class LoadImageURLModule : IRegionModule, IDynamicTextureRender
     {
         private string m_name = "LoadImageURL";
         private IDynamicTextureManager m_textureManager;
@@ -85,25 +83,25 @@ namespace OpenSim.Region.Environment.Modules
         private void MakeHttpRequest(string url, LLUUID requestID)
         {
             WebRequest request = HttpWebRequest.Create(url);
-            RequestState state = new RequestState((HttpWebRequest)request, requestID);
+            RequestState state = new RequestState((HttpWebRequest) request, requestID);
             IAsyncResult result = request.BeginGetResponse(new AsyncCallback(HttpRequestReturn), state);
 
             TimeSpan t = (DateTime.UtcNow - new DateTime(1970, 1, 1));
-            state.TimeOfRequest = (int)t.TotalSeconds;
+            state.TimeOfRequest = (int) t.TotalSeconds;
         }
 
         private void HttpRequestReturn(IAsyncResult result)
         {
-            RequestState state = (RequestState)result.AsyncState;
-            WebRequest request = (WebRequest)state.Request;
-            HttpWebResponse response = (HttpWebResponse)request.EndGetResponse(result);
+            RequestState state = (RequestState) result.AsyncState;
+            WebRequest request = (WebRequest) state.Request;
+            HttpWebResponse response = (HttpWebResponse) request.EndGetResponse(result);
             if (response.StatusCode == HttpStatusCode.OK)
             {
-               Bitmap image = new Bitmap(response.GetResponseStream());
-               Bitmap resize = new Bitmap(image, new Size(512, 512));
-               byte[] imageJ2000 = OpenJPEG.EncodeFromImage(resize, true);
+                Bitmap image = new Bitmap(response.GetResponseStream());
+                Bitmap resize = new Bitmap(image, new Size(512, 512));
+                byte[] imageJ2000 = OpenJPEG.EncodeFromImage(resize, true);
 
-               m_textureManager.ReturnData(state.RequestID, imageJ2000);
+                m_textureManager.ReturnData(state.RequestID, imageJ2000);
             }
         }
 
@@ -119,6 +117,5 @@ namespace OpenSim.Region.Environment.Modules
                 RequestID = requestID;
             }
         }
-
     }
 }

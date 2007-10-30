@@ -27,14 +27,15 @@
 */
 using System.Collections.Generic;
 using libsecondlife;
-using OpenSim.Framework.Interfaces;
-using OpenSim.Framework;
 
 namespace OpenSim.Framework
 {
     public delegate void ExpectUserDelegate(ulong regionHandle, AgentCircuitData agent);
+
     public delegate void UpdateNeighbours(List<RegionInfo> neighbours);
+
     public delegate void AgentCrossing(ulong regionHandle, LLUUID agentID, LLVector3 position, bool isFlying);
+
     public delegate void AcknowledgeAgentCross(ulong regionHandle, LLUUID agentID);
 
     public interface IRegionCommsListener

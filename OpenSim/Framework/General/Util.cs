@@ -25,14 +25,16 @@
 * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 * 
 */
+
 using System;
 using System.Collections.Generic;
+using System.Data;
 using System.IO;
-using System.Security.Cryptography;
 using System.Net;
+using System.Net.Sockets;
+using System.Security.Cryptography;
 using System.Text;
 using libsecondlife;
-
 using Nini.Config;
 
 namespace OpenSim.Framework
@@ -52,16 +54,13 @@ namespace OpenSim.Framework
 
         public static Random RandomClass
         {
-            get
-            {
-                return randomClass;
-            }
+            get { return randomClass; }
         }
 
         public static uint GetNextXferID()
         {
             uint id = 0;
-            lock(XferLock)
+            lock (XferLock)
             {
                 id = nextXferID;
                 nextXferID++;
@@ -71,25 +70,24 @@ namespace OpenSim.Framework
 
         public Util()
         {
-
         }
 
         public static string GetFileName(string file)
         {
             // Return just the filename on UNIX platforms
             // TODO: this should be customisable with a prefix, but that's something to do later.
-            if (System.Environment.OSVersion.Platform == PlatformID.Unix)
+            if (Environment.OSVersion.Platform == PlatformID.Unix)
             {
                 return file;
             }
 
             // Return %APPDATA%/OpenSim/file for 2K/XP/NT/2K3/VISTA
             // TODO: Switch this to System.Enviroment.SpecialFolders.ApplicationData
-            if (System.Environment.OSVersion.Platform == PlatformID.Win32NT)
+            if (Environment.OSVersion.Platform == PlatformID.Win32NT)
             {
-                if (!System.IO.Directory.Exists("%APPDATA%\\OpenSim\\"))
+                if (!Directory.Exists("%APPDATA%\\OpenSim\\"))
                 {
-                    System.IO.Directory.CreateDirectory("%APPDATA%\\OpenSim");   
+                    Directory.CreateDirectory("%APPDATA%\\OpenSim");
                 }
 
                 return "%APPDATA%\\OpenSim\\" + file;
@@ -103,23 +101,23 @@ namespace OpenSim.Framework
         public static bool IsEnvironmentSupported(ref string reason)
         {
             // Must have .NET 2.0 (Generics / libsl)
-            if (System.Environment.Version.Major < 2)
+            if (Environment.Version.Major < 2)
             {
                 reason = ".NET 1.0/1.1 lacks components that is used by OpenSim";
                 return false;
             }
 
             // Windows 95/98/ME are unsupported
-            if (System.Environment.OSVersion.Platform == PlatformID.Win32Windows &&
-                System.Environment.OSVersion.Platform != PlatformID.Win32NT)
+            if (Environment.OSVersion.Platform == PlatformID.Win32Windows &&
+                Environment.OSVersion.Platform != PlatformID.Win32NT)
             {
                 reason = "Windows 95/98/ME will not run OpenSim";
                 return false;
             }
 
             // Windows 2000 / Pre-SP2 XP
-            if (System.Environment.OSVersion.Version.Major == 5 && (
-                System.Environment.OSVersion.Version.Minor == 0))
+            if (Environment.OSVersion.Version.Major == 5 && (
+                                                                Environment.OSVersion.Version.Minor == 0))
             {
                 reason = "Please update to Windows XP Service Pack 2 or Server2003";
                 return false;
@@ -131,7 +129,7 @@ namespace OpenSim.Framework
         public static int UnixTimeSinceEpoch()
         {
             TimeSpan t = (DateTime.UtcNow - new DateTime(1970, 1, 1));
-            int timestamp = (int)t.TotalSeconds;
+            int timestamp = (int) t.TotalSeconds;
             return timestamp;
         }
 
@@ -155,10 +153,10 @@ namespace OpenSim.Framework
 
         public static int fast_distance2d(int x, int y)
         {
-            x = System.Math.Abs(x);
-            y = System.Math.Abs(y);
+            x = Math.Abs(x);
+            y = Math.Abs(y);
 
-            int min = System.Math.Min(x, y);
+            int min = Math.Min(x, y);
 
             return (x + y - (min >> 1) - (min >> 2) + (min >> 4));
         }
@@ -233,7 +231,7 @@ namespace OpenSim.Framework
                     for (int j = 0; j < 16 && (i + j) < bytes.Length; j++)
                     {
                         if (bytes[i + j] >= 0x20 && bytes[i + j] < 0x7E)
-                            output.Append((char)bytes[i + j]);
+                            output.Append((char) bytes[i + j]);
                         else
                             output.Append(".");
                     }
@@ -250,7 +248,6 @@ namespace OpenSim.Framework
         /// <returns>An IP address, or null</returns>
         public static IPAddress GetHostFromDNS(string dnsAddress)
         {
-
             // Is it already a valid IP? No need to look it up.
             IPAddress ipa;
             if (IPAddress.TryParse(dnsAddress, out ipa))
@@ -261,7 +258,7 @@ namespace OpenSim.Framework
 
             foreach (IPAddress host in hosts)
             {
-                if (host.AddressFamily == System.Net.Sockets.AddressFamily.InterNetwork)
+                if (host.AddressFamily == AddressFamily.InterNetwork)
                 {
                     return host;
                 }
@@ -281,7 +278,7 @@ namespace OpenSim.Framework
 
             foreach (IPAddress host in hosts)
             {
-                if (!IPAddress.IsLoopback(host) && host.AddressFamily == System.Net.Sockets.AddressFamily.InterNetwork)
+                if (!IPAddress.IsLoopback(host) && host.AddressFamily == AddressFamily.InterNetwork)
                 {
                     return host;
                 }
@@ -302,7 +299,7 @@ namespace OpenSim.Framework
             string temp;
 //            string personal=(Environment.GetFolderPath(Environment.SpecialFolder.Personal));
 //            temp = Path.Combine(personal,".OpenSim");
-            temp=".";
+            temp = ".";
             return temp;
         }
 
@@ -349,9 +346,9 @@ namespace OpenSim.Framework
         }
 
         // Nini (config) related Methods
-        public static IConfigSource ConvertDataRowToXMLConfig(System.Data.DataRow row, string fileName)
+        public static IConfigSource ConvertDataRowToXMLConfig(DataRow row, string fileName)
         {
-            if(!File.Exists(fileName))
+            if (!File.Exists(fileName))
             {
                 //create new file
             }
@@ -362,12 +359,12 @@ namespace OpenSim.Framework
             return config;
         }
 
-        public static void AddDataRowToConfig(IConfigSource config, System.Data.DataRow row)
+        public static void AddDataRowToConfig(IConfigSource config, DataRow row)
         {
-            config.Configs.Add((string)row[0]);
+            config.Configs.Add((string) row[0]);
             for (int i = 0; i < row.Table.Columns.Count; i++)
             {
-                config.Configs[(string)row[0]].Set(row.Table.Columns[i].ColumnName, row[i]);
+                config.Configs[(string) row[0]].Set(row.Table.Columns[i].ColumnName, row[i]);
             }
         }
     }

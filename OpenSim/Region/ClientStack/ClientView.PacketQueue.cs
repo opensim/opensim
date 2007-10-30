@@ -32,13 +32,12 @@ using System.Net.Sockets;
 using System.Timers;
 using libsecondlife;
 using libsecondlife.Packets;
-using OpenSim.Framework.Console;
 using OpenSim.Framework;
-using OpenSim.Region.Environment;
+using OpenSim.Framework.Console;
 
 namespace OpenSim.Region.ClientStack
 {
-    public partial class ClientView 
+    public partial class ClientView
     {
         protected BlockingQueue<QueItem> PacketQueue;
         protected Dictionary<uint, uint> PendingAcks = new Dictionary<uint, uint>();
@@ -84,7 +83,7 @@ namespace OpenSim.Region.ClientStack
                     Pack.Header.Sequence = Sequence;
                 }
 
-                if (Pack.Header.Reliable)  //DIRTY HACK
+                if (Pack.Header.Reliable) //DIRTY HACK
                 {
                     lock (NeedAck)
                     {
@@ -148,19 +147,21 @@ namespace OpenSim.Region.ClientStack
                 if (Pack.Header.Zerocoded)
                 {
                     int packetsize = Helpers.ZeroEncode(sendbuffer, sendbuffer.Length, ZeroOutBuffer);
-                    m_networkServer.SendPacketTo(ZeroOutBuffer, packetsize, SocketFlags.None, m_circuitCode);//userEP);
+                    m_networkServer.SendPacketTo(ZeroOutBuffer, packetsize, SocketFlags.None, m_circuitCode); //userEP);
                 }
                 else
                 {
-                    m_networkServer.SendPacketTo(sendbuffer, sendbuffer.Length, SocketFlags.None, m_circuitCode); //userEP);
+                    m_networkServer.SendPacketTo(sendbuffer, sendbuffer.Length, SocketFlags.None, m_circuitCode);
+                        //userEP);
                 }
             }
             catch (Exception)
             {
-                MainLog.Instance.Warn("client", "OpenSimClient.cs:ProcessOutPacket() - WARNING: Socket exception occurred on connection " + userEP.ToString() + " - killing thread");
-                this.KillThread();
+                MainLog.Instance.Warn("client",
+                                      "OpenSimClient.cs:ProcessOutPacket() - WARNING: Socket exception occurred on connection " +
+                                      userEP.ToString() + " - killing thread");
+                KillThread();
             }
-
         }
 
         public virtual void InPacket(Packet NewPack)
@@ -180,7 +181,7 @@ namespace OpenSim.Region.ClientStack
             // Handle PacketAck packets
             if (NewPack.Type == PacketType.PacketAck)
             {
-                PacketAckPacket ackPacket = (PacketAckPacket)NewPack;
+                PacketAckPacket ackPacket = (PacketAckPacket) NewPack;
 
                 lock (NeedAck)
                 {
@@ -193,7 +194,7 @@ namespace OpenSim.Region.ClientStack
             else if ((NewPack.Type == PacketType.StartPingCheck))
             {
                 //reply to pingcheck
-                StartPingCheckPacket startPing = (StartPingCheckPacket)NewPack;
+                StartPingCheckPacket startPing = (StartPingCheckPacket) NewPack;
                 CompletePingCheckPacket endPing = new CompletePingCheckPacket();
                 endPing.PingID.PingID = startPing.PingID.PingID;
                 OutPacket(endPing);
@@ -203,9 +204,8 @@ namespace OpenSim.Region.ClientStack
                 QueItem item = new QueItem();
                 item.Packet = NewPack;
                 item.Incoming = true;
-                this.PacketQueue.Enqueue(item);
+                PacketQueue.Enqueue(item);
             }
-
         }
 
         public virtual void OutPacket(Packet NewPack)
@@ -213,7 +213,7 @@ namespace OpenSim.Region.ClientStack
             QueItem item = new QueItem();
             item.Packet = NewPack;
             item.Incoming = false;
-            this.PacketQueue.Enqueue(item);
+            PacketQueue.Enqueue(item);
         }
 
         # region Low Level Packet Methods
@@ -229,7 +229,6 @@ namespace OpenSim.Region.ClientStack
                 ack_it.Header.Reliable = false;
 
                 OutPacket(ack_it);
-
             }
             /*
             if (Pack.Header.Reliable)
@@ -252,8 +251,8 @@ namespace OpenSim.Region.ClientStack
                 {
                     if ((now - packet.TickCount > RESEND_TIMEOUT) && (!packet.Header.Resent))
                     {
-                        MainLog.Instance.Verbose( "Resending " + packet.Type.ToString() + " packet, " +
-                         (now - packet.TickCount) + "ms have passed");
+                        MainLog.Instance.Verbose("Resending " + packet.Type.ToString() + " packet, " +
+                                                 (now - packet.TickCount) + "ms have passed");
 
                         packet.Header.Resent = true;
                         OutPacket(packet);
@@ -271,7 +270,7 @@ namespace OpenSim.Region.ClientStack
                     if (PendingAcks.Count > 250)
                     {
                         // FIXME: Handle the odd case where we have too many pending ACKs queued up
-                        MainLog.Instance.Verbose( "Too many ACKs queued up!");
+                        MainLog.Instance.Verbose("Too many ACKs queued up!");
                         return;
                     }
 
@@ -302,6 +301,7 @@ namespace OpenSim.Region.ClientStack
             SendAcks();
             ResendUnacked();
         }
+
         #endregion
 
         #region Nested Classes
@@ -315,6 +315,7 @@ namespace OpenSim.Region.ClientStack
             public Packet Packet;
             public bool Incoming;
         }
+
         #endregion
     }
 }

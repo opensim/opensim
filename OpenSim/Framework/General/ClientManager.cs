@@ -26,16 +26,14 @@
 * 
 */
 
-using System;
 using System.Collections.Generic;
-using System.Text;
-using libsecondlife.Packets;
-using OpenSim.Framework.Interfaces;
 using libsecondlife;
+using libsecondlife.Packets;
 
 namespace OpenSim.Framework
 {
     public delegate void ForEachClientDelegate(IClientAPI client);
+
     public class ClientManager
     {
         private Dictionary<uint, IClientAPI> m_clients;
@@ -63,7 +61,7 @@ namespace OpenSim.Framework
             m_clients.Add(id, client);
         }
 
-        public void InPacket(uint circuitCode, libsecondlife.Packets.Packet packet)
+        public void InPacket(uint circuitCode, Packet packet)
         {
             IClientAPI client;
 
@@ -83,10 +81,10 @@ namespace OpenSim.Framework
             }
         }
 
-        public void CloseAllCircuits( LLUUID agentId )
+        public void CloseAllCircuits(LLUUID agentId)
         {
             uint[] circuits = GetAllCircuits(agentId);
-            foreach (uint circuit in circuits )
+            foreach (uint circuit in circuits)
             {
                 IClientAPI client;
                 if (m_clients.TryGetValue(circuit, out client))
@@ -94,7 +92,7 @@ namespace OpenSim.Framework
                     Remove(circuit);
                     client.Close();
                 }
-            }            
+            }
         }
 
         private uint[] GetAllCircuits(LLUUID agentId)
@@ -103,16 +101,16 @@ namespace OpenSim.Framework
 
             foreach (KeyValuePair<uint, IClientAPI> pair in m_clients)
             {
-                if( pair.Value.AgentId == agentId )
+                if (pair.Value.AgentId == agentId)
                 {
-                    circuits.Add( pair.Key );
+                    circuits.Add(pair.Key);
                 }
             }
 
             return circuits.ToArray();
         }
 
-      
+
         public void ViewerEffectHandler(IClientAPI sender, ViewerEffectPacket.EffectBlock[] effectBlock)
         {
             ViewerEffectPacket packet = new ViewerEffectPacket();

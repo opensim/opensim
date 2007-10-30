@@ -34,12 +34,10 @@ using OpenSim.Framework.Console;
 
 namespace OpenSim.Framework.UserManagement
 {
-
     /// <summary>
     /// A temp class to handle login response.
     /// Should make use of UserProfileManager where possible.
     /// </summary>
-
     public class LoginResponse
     {
         private Hashtable loginFlagsHash;
@@ -103,211 +101,222 @@ namespace OpenSim.Framework.UserManagement
 
         public LoginResponse()
         {
-            this.loginFlags = new ArrayList();
-            this.globalTextures = new ArrayList();
-            this.eventCategories = new ArrayList();
-            this.uiConfig = new ArrayList();
-            this.classifiedCategories = new ArrayList();
+            loginFlags = new ArrayList();
+            globalTextures = new ArrayList();
+            eventCategories = new ArrayList();
+            uiConfig = new ArrayList();
+            classifiedCategories = new ArrayList();
 
-            this.loginError = new Hashtable();
-            this.uiConfigHash = new Hashtable();
+            loginError = new Hashtable();
+            uiConfigHash = new Hashtable();
 
-            this.defaultXmlRpcResponse = new XmlRpcResponse();
-            this.userProfile = new UserInfo();
-            this.inventoryRoot = new ArrayList();
-            this.initialOutfit = new ArrayList();
-            this.agentInventory = new ArrayList();
-            this.inventoryLibrary = new ArrayList();
-            this.inventoryLibraryOwner = new ArrayList();
+            defaultXmlRpcResponse = new XmlRpcResponse();
+            userProfile = new UserInfo();
+            inventoryRoot = new ArrayList();
+            initialOutfit = new ArrayList();
+            agentInventory = new ArrayList();
+            inventoryLibrary = new ArrayList();
+            inventoryLibraryOwner = new ArrayList();
 
-            this.xmlRpcResponse = new XmlRpcResponse();
-            this.defaultXmlRpcResponse = new XmlRpcResponse();
+            xmlRpcResponse = new XmlRpcResponse();
+            defaultXmlRpcResponse = new XmlRpcResponse();
 
-            this.SetDefaultValues();
+            SetDefaultValues();
         } // LoginServer
 
         public void SetDefaultValues()
         {
-                this.DST = "N";
-                this.StipendSinceLogin = "N";
-                this.Gendered = "Y";
-                this.EverLoggedIn = "Y";
-                this.login = "false";
-                this.firstname = "Test";
-                this.lastname = "User";
-                this.agentAccess = "M";
-                this.startLocation = "last";
-                this.allowFirstLife = "Y";
+            DST = "N";
+            StipendSinceLogin = "N";
+            Gendered = "Y";
+            EverLoggedIn = "Y";
+            login = "false";
+            firstname = "Test";
+            lastname = "User";
+            agentAccess = "M";
+            startLocation = "last";
+            allowFirstLife = "Y";
 
-                this.SunTexture = "cce0f112-878f-4586-a2e2-a8f104bba271";
-                this.CloudTexture = "fc4b9f0b-d008-45c6-96a4-01dd947ac621";
-                this.MoonTexture = "fc4b9f0b-d008-45c6-96a4-01dd947ac621";
+            SunTexture = "cce0f112-878f-4586-a2e2-a8f104bba271";
+            CloudTexture = "fc4b9f0b-d008-45c6-96a4-01dd947ac621";
+            MoonTexture = "fc4b9f0b-d008-45c6-96a4-01dd947ac621";
 
-                this.ErrorMessage = "You have entered an invalid name/password combination.  Check Caps/lock.";
-                this.ErrorReason = "key";
-                this.welcomeMessage = "Welcome to OpenSim!";
-                this.seedCapability = "";
-                this.home = "{'region_handle':[r" + (1000 * 256).ToString() + ",r" + (1000 * 256).ToString() + "], 'position':[r" + this.userProfile.homepos.X.ToString() + ",r" + this.userProfile.homepos.Y.ToString() + ",r" + this.userProfile.homepos.Z.ToString() + "], 'look_at':[r" + this.userProfile.homelookat.X.ToString() + ",r" + this.userProfile.homelookat.Y.ToString() + ",r" + this.userProfile.homelookat.Z.ToString() + "]}";
-                this.lookAt = "[r0.99949799999999999756,r0.03166859999999999814,r0]";
-                this.RegionX = (uint)255232;
-                this.RegionY = (uint)254976;
+            ErrorMessage = "You have entered an invalid name/password combination.  Check Caps/lock.";
+            ErrorReason = "key";
+            welcomeMessage = "Welcome to OpenSim!";
+            seedCapability = "";
+            home = "{'region_handle':[r" + (1000*256).ToString() + ",r" + (1000*256).ToString() + "], 'position':[r" +
+                   userProfile.homepos.X.ToString() + ",r" + userProfile.homepos.Y.ToString() + ",r" +
+                   userProfile.homepos.Z.ToString() + "], 'look_at':[r" + userProfile.homelookat.X.ToString() + ",r" +
+                   userProfile.homelookat.Y.ToString() + ",r" + userProfile.homelookat.Z.ToString() + "]}";
+            lookAt = "[r0.99949799999999999756,r0.03166859999999999814,r0]";
+            RegionX = (uint) 255232;
+            RegionY = (uint) 254976;
 
-                // Classifieds;
-                this.AddClassifiedCategory((Int32)1, "Shopping");
-                this.AddClassifiedCategory((Int32)2, "Land Rental");
-                this.AddClassifiedCategory((Int32)3, "Property Rental");
-                this.AddClassifiedCategory((Int32)4, "Special Attraction");
-                this.AddClassifiedCategory((Int32)5, "New Products");
-                this.AddClassifiedCategory((Int32)6, "Employment");
-                this.AddClassifiedCategory((Int32)7, "Wanted");
-                this.AddClassifiedCategory((Int32)8, "Service");
-                this.AddClassifiedCategory((Int32)9, "Personal");
-                
+            // Classifieds;
+            AddClassifiedCategory((Int32) 1, "Shopping");
+            AddClassifiedCategory((Int32) 2, "Land Rental");
+            AddClassifiedCategory((Int32) 3, "Property Rental");
+            AddClassifiedCategory((Int32) 4, "Special Attraction");
+            AddClassifiedCategory((Int32) 5, "New Products");
+            AddClassifiedCategory((Int32) 6, "Employment");
+            AddClassifiedCategory((Int32) 7, "Wanted");
+            AddClassifiedCategory((Int32) 8, "Service");
+            AddClassifiedCategory((Int32) 9, "Personal");
 
-                this.SessionID = LLUUID.Random();
-                this.SecureSessionID = LLUUID.Random();
-                this.AgentID = LLUUID.Random();
 
-                Hashtable InitialOutfitHash = new Hashtable();
-                InitialOutfitHash["folder_name"] = "Nightclub Female";
-                InitialOutfitHash["gender"] = "female";
-                this.initialOutfit.Add(InitialOutfitHash);
-          
+            SessionID = LLUUID.Random();
+            SecureSessionID = LLUUID.Random();
+            AgentID = LLUUID.Random();
 
+            Hashtable InitialOutfitHash = new Hashtable();
+            InitialOutfitHash["folder_name"] = "Nightclub Female";
+            InitialOutfitHash["gender"] = "female";
+            initialOutfit.Add(InitialOutfitHash);
         } // SetDefaultValues
 
         #region Login Failure Methods
+
         public XmlRpcResponse GenerateFailureResponse(string reason, string message, string login)
         {
             // Overwrite any default values;
-            this.xmlRpcResponse = new XmlRpcResponse();
+            xmlRpcResponse = new XmlRpcResponse();
 
             // Ensure Login Failed message/reason;
-            this.ErrorMessage = message;
-            this.ErrorReason = reason;
+            ErrorMessage = message;
+            ErrorReason = reason;
 
-            this.loginError["reason"] = this.ErrorReason;
-            this.loginError["message"] = this.ErrorMessage;
-            this.loginError["login"] = login;
-            this.xmlRpcResponse.Value = this.loginError;
-            return (this.xmlRpcResponse);
+            loginError["reason"] = ErrorReason;
+            loginError["message"] = ErrorMessage;
+            loginError["login"] = login;
+            xmlRpcResponse.Value = loginError;
+            return (xmlRpcResponse);
         } // GenerateResponse
 
         public XmlRpcResponse CreateFailedResponse()
         {
-            return (this.CreateLoginFailedResponse());
+            return (CreateLoginFailedResponse());
         } // CreateErrorConnectingToGridResponse()
 
         public XmlRpcResponse CreateLoginFailedResponse()
         {
-            return (this.GenerateFailureResponse("key", "Could not authenticate your avatar. Please check your username and password, and check the grid if problems persist.", "false"));
+            return
+                (GenerateFailureResponse("key",
+                                         "Could not authenticate your avatar. Please check your username and password, and check the grid if problems persist.",
+                                         "false"));
         } // LoginFailedResponse
 
         public XmlRpcResponse CreateAlreadyLoggedInResponse()
         {
-            return (this.GenerateFailureResponse("presence", "You appear to be already logged in, if this is not the case please wait for your session to timeout, if this takes longer than a few minutes please contact the grid owner", "false"));
+            return
+                (GenerateFailureResponse("presence",
+                                         "You appear to be already logged in, if this is not the case please wait for your session to timeout, if this takes longer than a few minutes please contact the grid owner",
+                                         "false"));
         } // CreateAlreadyLoggedInResponse()
 
         public XmlRpcResponse CreateDeadRegionResponse()
         {
-            return (this.GenerateFailureResponse("key", "The region you are attempting to log into is not responding. Please select another region and try again.", "false"));
+            return
+                (GenerateFailureResponse("key",
+                                         "The region you are attempting to log into is not responding. Please select another region and try again.",
+                                         "false"));
         }
 
-         public XmlRpcResponse CreateGridErrorResponse()
+        public XmlRpcResponse CreateGridErrorResponse()
         {
-            return (this.GenerateFailureResponse("key", "Error connecting to grid. Could not percieve credentials from login XML.", "false"));
+            return
+                (GenerateFailureResponse("key",
+                                         "Error connecting to grid. Could not percieve credentials from login XML.",
+                                         "false"));
         }
-        
+
         #endregion
 
         public XmlRpcResponse ToXmlRpcResponse()
         {
             try
             {
-
                 Hashtable responseData = new Hashtable();
 
-                this.loginFlagsHash = new Hashtable();
-                this.loginFlagsHash["daylight_savings"] = this.DST;
-                this.loginFlagsHash["stipend_since_login"] = this.StipendSinceLogin;
-                this.loginFlagsHash["gendered"] = this.Gendered;
-                this.loginFlagsHash["ever_logged_in"] = this.EverLoggedIn;
-                this.loginFlags.Add(this.loginFlagsHash);
+                loginFlagsHash = new Hashtable();
+                loginFlagsHash["daylight_savings"] = DST;
+                loginFlagsHash["stipend_since_login"] = StipendSinceLogin;
+                loginFlagsHash["gendered"] = Gendered;
+                loginFlagsHash["ever_logged_in"] = EverLoggedIn;
+                loginFlags.Add(loginFlagsHash);
 
-                responseData["first_name"] = this.Firstname;
-                responseData["last_name"] = this.Lastname;
-                responseData["agent_access"] = this.agentAccess;
+                responseData["first_name"] = Firstname;
+                responseData["last_name"] = Lastname;
+                responseData["agent_access"] = agentAccess;
 
-                this.globalTexturesHash = new Hashtable();
-                this.globalTexturesHash["sun_texture_id"] = this.SunTexture;
-                this.globalTexturesHash["cloud_texture_id"] = this.CloudTexture;
-                this.globalTexturesHash["moon_texture_id"] = this.MoonTexture;
-                this.globalTextures.Add(this.globalTexturesHash);
-               // this.eventCategories.Add(this.eventCategoriesHash);
+                globalTexturesHash = new Hashtable();
+                globalTexturesHash["sun_texture_id"] = SunTexture;
+                globalTexturesHash["cloud_texture_id"] = CloudTexture;
+                globalTexturesHash["moon_texture_id"] = MoonTexture;
+                globalTextures.Add(globalTexturesHash);
+                // this.eventCategories.Add(this.eventCategoriesHash);
 
-                this.AddToUIConfig("allow_first_life", this.allowFirstLife);
-                this.uiConfig.Add(this.uiConfigHash);
+                AddToUIConfig("allow_first_life", allowFirstLife);
+                uiConfig.Add(uiConfigHash);
 
-                responseData["sim_port"] =(Int32) this.SimPort;
-                responseData["sim_ip"] = this.SimAddress;
-                
-                responseData["agent_id"] = this.AgentID.ToStringHyphenated();
-                responseData["session_id"] = this.SessionID.ToStringHyphenated();
-                responseData["secure_session_id"] = this.SecureSessionID.ToStringHyphenated();
-                responseData["circuit_code"] = this.CircuitCode;
-                responseData["seconds_since_epoch"] = (Int32)(DateTime.UtcNow - new DateTime(1970, 1, 1)).TotalSeconds;
-                responseData["login-flags"] = this.loginFlags;
-                responseData["global-textures"] = this.globalTextures;
-                responseData["seed_capability"] = this.seedCapability;
+                responseData["sim_port"] = (Int32) SimPort;
+                responseData["sim_ip"] = SimAddress;
 
-                responseData["event_categories"] = this.eventCategories;
+                responseData["agent_id"] = AgentID.ToStringHyphenated();
+                responseData["session_id"] = SessionID.ToStringHyphenated();
+                responseData["secure_session_id"] = SecureSessionID.ToStringHyphenated();
+                responseData["circuit_code"] = CircuitCode;
+                responseData["seconds_since_epoch"] = (Int32) (DateTime.UtcNow - new DateTime(1970, 1, 1)).TotalSeconds;
+                responseData["login-flags"] = loginFlags;
+                responseData["global-textures"] = globalTextures;
+                responseData["seed_capability"] = seedCapability;
+
+                responseData["event_categories"] = eventCategories;
                 responseData["event_notifications"] = new ArrayList(); // todo
-                responseData["classified_categories"] = this.classifiedCategories;
-                responseData["ui-config"] = this.uiConfig;
+                responseData["classified_categories"] = classifiedCategories;
+                responseData["ui-config"] = uiConfig;
 
-                responseData["inventory-skeleton"] = this.agentInventory;
-                responseData["inventory-skel-lib"] = this.inventoryLibrary;
-                responseData["inventory-root"] = this.inventoryRoot;
+                responseData["inventory-skeleton"] = agentInventory;
+                responseData["inventory-skel-lib"] = inventoryLibrary;
+                responseData["inventory-root"] = inventoryRoot;
                 responseData["gestures"] = new ArrayList(); // todo
-                responseData["inventory-lib-owner"] = this.inventoryLibraryOwner;
-                responseData["initial-outfit"] = this.initialOutfit;
-                responseData["start_location"] = this.startLocation;
-                responseData["seed_capability"] = this.seedCapability;
-                responseData["home"] = this.home;
-                responseData["look_at"] = this.lookAt;
-                responseData["message"] = this.welcomeMessage;
-                responseData["region_x"] = (Int32)this.RegionX * 256;
-                responseData["region_y"] = (Int32)this.RegionY * 256;
+                responseData["inventory-lib-owner"] = inventoryLibraryOwner;
+                responseData["initial-outfit"] = initialOutfit;
+                responseData["start_location"] = startLocation;
+                responseData["seed_capability"] = seedCapability;
+                responseData["home"] = home;
+                responseData["look_at"] = lookAt;
+                responseData["message"] = welcomeMessage;
+                responseData["region_x"] = (Int32) RegionX*256;
+                responseData["region_y"] = (Int32) RegionY*256;
 
                 //responseData["inventory-lib-root"] = new ArrayList(); // todo
                 //responseData["buddy-list"] = new ArrayList(); // todo
 
                 responseData["login"] = "true";
-                this.xmlRpcResponse.Value = responseData;
+                xmlRpcResponse.Value = responseData;
 
-                return (this.xmlRpcResponse);
+                return (xmlRpcResponse);
             }
             catch (Exception e)
             {
                 MainLog.Instance.Warn(
                     "CLIENT",
                     "LoginResponse: Error creating XML-RPC Response: " + e.Message
-                );
-                return (this.GenerateFailureResponse("Internal Error", "Error generating Login Response", "false"));
-
+                    );
+                return (GenerateFailureResponse("Internal Error", "Error generating Login Response", "false"));
             }
-
         } // ToXmlRpcResponse
 
         public void SetEventCategories(string category, string value)
         {
-          //  this.eventCategoriesHash[category] = value;
+            //  this.eventCategoriesHash[category] = value;
             //TODO
         } // SetEventCategories
 
         public void AddToUIConfig(string itemName, string item)
         {
-            this.uiConfigHash[itemName] = item;
+            uiConfigHash[itemName] = item;
         } // SetUIConfig
 
         public void AddClassifiedCategory(Int32 ID, string categoryName)
@@ -315,372 +324,193 @@ namespace OpenSim.Framework.UserManagement
             Hashtable hash = new Hashtable();
             hash["category_name"] = categoryName;
             hash["category_id"] = ID;
-            this.classifiedCategories.Add(hash);
+            classifiedCategories.Add(hash);
             // this.classifiedCategoriesHash.Clear();
         } // SetClassifiedCategory
 
         #region Properties
+
         public string Login
         {
-            get
-            {
-                return this.login;
-            }
-            set
-            {
-                this.login = value;
-            }
+            get { return login; }
+            set { login = value; }
         } // Login
 
         public string DST
         {
-            get
-            {
-                return this.dst;
-            }
-            set
-            {
-                this.dst = value;
-            }
+            get { return dst; }
+            set { dst = value; }
         } // DST
 
         public string StipendSinceLogin
         {
-            get
-            {
-                return this.stipendSinceLogin;
-            }
-            set
-            {
-                this.stipendSinceLogin = value;
-            }
+            get { return stipendSinceLogin; }
+            set { stipendSinceLogin = value; }
         } // StipendSinceLogin
 
         public string Gendered
         {
-            get
-            {
-                return this.gendered;
-            }
-            set
-            {
-                this.gendered = value;
-            }
+            get { return gendered; }
+            set { gendered = value; }
         } // Gendered
 
         public string EverLoggedIn
         {
-            get
-            {
-                return this.everLoggedIn;
-            }
-            set
-            {
-                this.everLoggedIn = value;
-            }
+            get { return everLoggedIn; }
+            set { everLoggedIn = value; }
         } // EverLoggedIn
 
         public int SimPort
         {
-            get
-            {
-                return this.simPort;
-            }
-            set
-            {
-                this.simPort = value;
-            }
+            get { return simPort; }
+            set { simPort = value; }
         } // SimPort
 
         public string SimAddress
         {
-            get
-            {
-                return this.simAddress;
-            }
-            set
-            {
-                this.simAddress = value;
-            }
+            get { return simAddress; }
+            set { simAddress = value; }
         } // SimAddress
 
         public LLUUID AgentID
         {
-            get
-            {
-                return this.agentID;
-            }
-            set
-            {
-                this.agentID = value;
-            }
+            get { return agentID; }
+            set { agentID = value; }
         } // AgentID
 
         public LLUUID SessionID
         {
-            get
-            {
-                return this.sessionID;
-            }
-            set
-            {
-                this.sessionID = value;
-            }
+            get { return sessionID; }
+            set { sessionID = value; }
         } // SessionID
 
         public LLUUID SecureSessionID
         {
-            get
-            {
-                return this.secureSessionID;
-            }
-            set
-            {
-                this.secureSessionID = value;
-            }
+            get { return secureSessionID; }
+            set { secureSessionID = value; }
         } // SecureSessionID
 
         public Int32 CircuitCode
         {
-            get
-            {
-                return this.circuitCode;
-            }
-            set
-            {
-                this.circuitCode = value;
-            }
+            get { return circuitCode; }
+            set { circuitCode = value; }
         } // CircuitCode
 
         public uint RegionX
         {
-            get
-            {
-                return this.regionX;
-            }
-            set
-            {
-                this.regionX = value;
-            }
+            get { return regionX; }
+            set { regionX = value; }
         } // RegionX
 
         public uint RegionY
         {
-            get
-            {
-                return this.regionY;
-            }
-            set
-            {
-                this.regionY = value;
-            }
+            get { return regionY; }
+            set { regionY = value; }
         } // RegionY
 
         public string SunTexture
         {
-            get
-            {
-                return this.sunTexture;
-            }
-            set
-            {
-                this.sunTexture = value;
-            }
+            get { return sunTexture; }
+            set { sunTexture = value; }
         } // SunTexture
 
         public string CloudTexture
         {
-            get
-            {
-                return this.cloudTexture;
-            }
-            set
-            {
-                this.cloudTexture = value;
-            }
+            get { return cloudTexture; }
+            set { cloudTexture = value; }
         } // CloudTexture
 
         public string MoonTexture
         {
-            get
-            {
-                return this.moonTexture;
-            }
-            set
-            {
-                this.moonTexture = value;
-            }
+            get { return moonTexture; }
+            set { moonTexture = value; }
         } // MoonTexture
 
         public string Firstname
         {
-            get
-            {
-                return this.firstname;
-            }
-            set
-            {
-                this.firstname = value;
-            }
+            get { return firstname; }
+            set { firstname = value; }
         } // Firstname
 
         public string Lastname
         {
-            get
-            {
-                return this.lastname;
-            }
-            set
-            {
-                this.lastname = value;
-            }
+            get { return lastname; }
+            set { lastname = value; }
         } // Lastname
 
         public string AgentAccess
         {
-            get
-            {
-                return this.agentAccess;
-            }
-            set
-            {
-                this.agentAccess = value;
-            }
+            get { return agentAccess; }
+            set { agentAccess = value; }
         }
 
         public string StartLocation
         {
-            get
-            {
-                return this.startLocation;
-            }
-            set
-            {
-                this.startLocation = value;
-            }
+            get { return startLocation; }
+            set { startLocation = value; }
         } // StartLocation
 
         public string LookAt
         {
-            get
-            {
-                return this.lookAt;
-            }
-            set
-            {
-                this.lookAt = value;
-            }
+            get { return lookAt; }
+            set { lookAt = value; }
         }
 
         public string SeedCapability
         {
-            get
-            {
-                return this.seedCapability;
-            }
-            set
-            {
-                this.seedCapability = value;
-            }
+            get { return seedCapability; }
+            set { seedCapability = value; }
         } // SeedCapability
 
         public string ErrorReason
         {
-            get
-            {
-                return this.errorReason;
-            }
-            set
-            {
-                this.errorReason = value;
-            }
+            get { return errorReason; }
+            set { errorReason = value; }
         } // ErrorReason
 
         public string ErrorMessage
         {
-            get
-            {
-                return this.errorMessage;
-            }
-            set
-            {
-                this.errorMessage = value;
-            }
+            get { return errorMessage; }
+            set { errorMessage = value; }
         } // ErrorMessage
 
         public ArrayList InventoryRoot
         {
-            get
-            {
-                return this.inventoryRoot;
-            }
-            set
-            {
-                this.inventoryRoot = value;
-            }
+            get { return inventoryRoot; }
+            set { inventoryRoot = value; }
         }
 
         public ArrayList InventorySkeleton
         {
-            get
-            {
-                return this.agentInventory;
-            }
-            set
-            {
-                this.agentInventory = value;
-            }
+            get { return agentInventory; }
+            set { agentInventory = value; }
         }
 
         public ArrayList InventoryLibrary
         {
-            get
-            {
-                return this.inventoryLibrary;
-            }
-            set
-            {
-                this.inventoryLibrary = value;
-            }
+            get { return inventoryLibrary; }
+            set { inventoryLibrary = value; }
         }
 
         public ArrayList InventoryLibraryOwner
         {
-            get
-            {
-                return this.inventoryLibraryOwner;
-            }
-            set
-            {
-                this.inventoryLibraryOwner = value;
-            }
+            get { return inventoryLibraryOwner; }
+            set { inventoryLibraryOwner = value; }
         }
 
         public string Home
         {
-            get
-            {
-                return this.home;
-            }
-            set
-            {
-                this.home = value;
-            }
+            get { return home; }
+            set { home = value; }
         }
 
         public string Message
         {
-            get
-            {
-                return this.welcomeMessage;
-            }
-            set
-            {
-                this.welcomeMessage = value;
-            }
+            get { return welcomeMessage; }
+            set { welcomeMessage = value; }
         }
-        #endregion
 
+        #endregion
 
         public class UserInfo
         {
@@ -692,5 +522,3 @@ namespace OpenSim.Framework.UserManagement
         }
     }
 }
-
-

@@ -38,18 +38,18 @@ namespace OpenSim.Framework
 
         public AssetLandmark(AssetBase a)
         {
-            this.Data = a.Data;
-            this.FullID = a.FullID;
-            this.Type = a.Type;
-            this.InvType = a.InvType;
-            this.Name = a.Name;
-            this.Description = a.Description;
+            Data = a.Data;
+            FullID = a.FullID;
+            Type = a.Type;
+            InvType = a.InvType;
+            Name = a.Name;
+            Description = a.Description;
             InternData();
         }
 
         private void InternData()
         {
-            string temp = Encoding.UTF8.GetString(Data).Trim(); 
+            string temp = Encoding.UTF8.GetString(Data).Trim();
             string[] parts = temp.Split('\n');
             int.TryParse(parts[0].Substring(17, 1), out Version);
             LLUUID.TryParse(parts[1].Substring(10, 36), out RegionID);

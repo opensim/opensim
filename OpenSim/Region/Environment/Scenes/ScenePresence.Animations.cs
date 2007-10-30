@@ -45,7 +45,7 @@ namespace OpenSim.Region.Environment.Scenes
             public void LoadAnims()
             {
                 //OpenSim.Framework.Console.MainLog.Instance.Verbose("Avatar.cs:LoadAnims() - Loading avatar animations");
-                using( XmlTextReader reader = new XmlTextReader("data/avataranimations.xml") )
+                using (XmlTextReader reader = new XmlTextReader("data/avataranimations.xml"))
                 {
                     XmlDocument doc = new XmlDocument();
                     doc.Load(reader);

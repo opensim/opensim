@@ -74,7 +74,8 @@ namespace OpenSim.Region.ExtensionsScriptModule.JScript
 
                     if (testInterface != null)
                     {
-                        IScript script = (IScript)compilerResults.CompiledAssembly.CreateInstance(pluginType.ToString());
+                        IScript script =
+                            (IScript) compilerResults.CompiledAssembly.CreateInstance(pluginType.ToString());
 
                         string scriptName = "JS.NET/" + script.Name;
                         Console.WriteLine("Script: " + scriptName + " loaded.");

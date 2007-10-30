@@ -31,23 +31,23 @@ using System.Collections.Generic;
 using System.IO;
 using System.Net;
 using libsecondlife;
+using Nini.Config;
+using OpenSim.Framework;
 using OpenSim.Framework.Communications.Cache;
 using OpenSim.Framework.Console;
-using OpenSim.Framework;
 using OpenSim.Region.ClientStack;
 using OpenSim.Region.Communications.Local;
 using OpenSim.Region.Environment;
 using OpenSim.Region.Environment.Scenes;
 using OpenSim.Region.Physics.Manager;
-using Nini.Config;
 
 namespace SimpleApp
 {
-    class Program : RegionApplicationBase, conscmd_callback
+    internal class Program : RegionApplicationBase, conscmd_callback
     {
         private ModuleLoader m_moduleLoader;
         private IConfigSource m_config;
-        
+
         protected override LogBase CreateLog()
         {
             return new LogBase(null, "SimpleApp", this, true);
@@ -57,45 +57,51 @@ namespace SimpleApp
         {
             StartLog();
 
-            m_networkServersInfo = new NetworkServersInfo( 1000, 1000 );
+            m_networkServersInfo = new NetworkServersInfo(1000, 1000);
 
             LocalAssetServer assetServer = new LocalAssetServer();
 
             m_assetCache = new AssetCache(assetServer);
         }
-        
+
         public void Run()
         {
             base.StartUp();
-           
+
             LocalInventoryService inventoryService = new LocalInventoryService();
-            LocalUserServices userService = new LocalUserServices(m_networkServersInfo, m_networkServersInfo.DefaultHomeLocX, m_networkServersInfo.DefaultHomeLocY, inventoryService);
+            LocalUserServices userService =
+                new LocalUserServices(m_networkServersInfo, m_networkServersInfo.DefaultHomeLocX,
+                                      m_networkServersInfo.DefaultHomeLocY, inventoryService);
             LocalBackEndServices backendService = new LocalBackEndServices();
 
-            CommunicationsLocal localComms = new CommunicationsLocal(m_networkServersInfo, m_httpServer, m_assetCache, userService, inventoryService, backendService, backendService, false);
+            CommunicationsLocal localComms =
+                new CommunicationsLocal(m_networkServersInfo, m_httpServer, m_assetCache, userService, inventoryService,
+                                        backendService, backendService, false);
             m_commsManager = localComms;
 
-            LocalLoginService loginService = new LocalLoginService(userService, "", localComms, m_networkServersInfo, false);
+            LocalLoginService loginService =
+                new LocalLoginService(userService, "", localComms, m_networkServersInfo, false);
             loginService.OnLoginToRegion += backendService.AddNewSession;
 
             m_httpServer.AddXmlRPCHandler("login_to_simulator", loginService.XmlRpcLoginMethod);
 
             m_log.Notice(m_log.LineInfo);
-            
-            IPEndPoint internalEndPoint = new IPEndPoint(IPAddress.Parse("127.0.0.1"), m_networkServersInfo.HttpListenerPort);
+
+            IPEndPoint internalEndPoint =
+                new IPEndPoint(IPAddress.Parse("127.0.0.1"), m_networkServersInfo.HttpListenerPort);
 
             RegionInfo regionInfo = new RegionInfo(1000, 1000, internalEndPoint, "localhost");
             regionInfo.DataStore = "simpleapp_datastore.yap";
-            
+
             UDPServer udpServer;
 
-            m_moduleLoader = new ModuleLoader( m_log, m_config );
+            m_moduleLoader = new ModuleLoader(m_log, m_config);
             m_moduleLoader.LoadDefaultSharedModules();
 
             Scene scene = SetupScene(regionInfo, out udpServer);
 
             m_moduleLoader.InitialiseSharedModules(scene);
-            
+
             scene.SetModuleInterfaces();
 
             scene.StartTimer();
@@ -104,18 +110,22 @@ namespace SimpleApp
 
             m_moduleLoader.PostInitialise();
             m_moduleLoader.ClearCache();
-            
+
             udpServer.ServerListener();
-            
+
             LLVector3 pos = new LLVector3(110, 129, 27);
 
-            SceneObjectGroup sceneObject = new CpuCounterObject(scene, regionInfo.RegionHandle, LLUUID.Zero, scene.PrimIDAllocate(), pos + new LLVector3( 1f, 1f, 1f ));
+            SceneObjectGroup sceneObject =
+                new CpuCounterObject(scene, regionInfo.RegionHandle, LLUUID.Zero, scene.PrimIDAllocate(),
+                                     pos + new LLVector3(1f, 1f, 1f));
             scene.AddEntity(sceneObject);
 
             for (int i = 0; i < 27; i++)
             {
-                LLVector3 posOffset = new LLVector3( (i%3)*4, (i%9)/3 * 4, (i/9) * 4 );
-                ComplexObject complexObject = new ComplexObject(scene, regionInfo.RegionHandle, LLUUID.Zero, scene.PrimIDAllocate(), pos + posOffset );
+                LLVector3 posOffset = new LLVector3((i%3)*4, (i%9)/3*4, (i/9)*4);
+                ComplexObject complexObject =
+                    new ComplexObject(scene, regionInfo.RegionHandle, LLUUID.Zero, scene.PrimIDAllocate(),
+                                      pos + posOffset);
                 scene.AddEntity(complexObject);
             }
 
@@ -128,45 +138,48 @@ namespace SimpleApp
             List<ScenePresence> avatars = scene.GetAvatars();
             foreach (ScenePresence avatar in avatars)
             {
-                avatar.AbsolutePosition = new LLVector3((float)OpenSim.Framework.Util.RandomClass.Next(100,200), (float)OpenSim.Framework.Util.RandomClass.Next(30, 200), 2);                
+                avatar.AbsolutePosition =
+                    new LLVector3((float) Util.RandomClass.Next(100, 200), (float) Util.RandomClass.Next(30, 200), 2);
             }
 
-          
-       
-            DirectoryInfo dirInfo = new DirectoryInfo( "." );
+
+            DirectoryInfo dirInfo = new DirectoryInfo(".");
 
             float x = 0;
             float z = 0;
-            
-            foreach( FileInfo fileInfo in dirInfo.GetFiles())
+
+            foreach (FileInfo fileInfo in dirInfo.GetFiles())
             {
                 LLVector3 filePos = new LLVector3(100 + x, 129, 27 + z);
                 x = x + 2;
-                if( x > 50 )
+                if (x > 50)
                 {
                     x = 0;
                     z = z + 2;
                 }
-                
-                FileSystemObject fileObject = new FileSystemObject( scene, fileInfo, filePos );
+
+                FileSystemObject fileObject = new FileSystemObject(scene, fileInfo, filePos);
                 scene.AddEntity(fileObject);
             }
-            
+
             m_log.Notice("Press enter to quit.");
-            m_log.ReadLine();            
+            m_log.ReadLine();
         }
 
-        protected override Scene CreateScene(RegionInfo regionInfo, StorageManager storageManager, AgentCircuitManager circuitManager)
+        protected override Scene CreateScene(RegionInfo regionInfo, StorageManager storageManager,
+                                             AgentCircuitManager circuitManager)
         {
-            return new MyWorld(regionInfo, circuitManager, m_commsManager, m_assetCache, storageManager, m_httpServer, new ModuleLoader( m_log, m_config ));
+            return
+                new MyWorld(regionInfo, circuitManager, m_commsManager, m_assetCache, storageManager, m_httpServer,
+                            new ModuleLoader(m_log, m_config));
         }
 
         protected override StorageManager CreateStorageManager(RegionInfo regionInfo)
         {
             return new StorageManager("OpenSim.DataStore.NullStorage.dll", "simpleapp.yap", "simpleapp");
         }
-        
-        protected override PhysicsScene GetPhysicsScene( )
+
+        protected override PhysicsScene GetPhysicsScene()
         {
             return GetPhysicsScene("basicphysics");
         }
@@ -185,7 +198,7 @@ namespace SimpleApp
 
         #endregion
 
-        static void Main(string[] args)
+        private static void Main(string[] args)
         {
             Program app = new Program();
 

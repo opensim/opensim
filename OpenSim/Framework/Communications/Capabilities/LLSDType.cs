@@ -37,22 +37,18 @@ namespace OpenSim.Region.Capabilities
         public LLSDType(string type)
         {
             myType = type;
-
         }
 
         public string ObjectType
         {
-            get
-            {
-                return myType;
-            }
+            get { return myType; }
         }
     }
 
     [AttributeUsage(AttributeTargets.Class)]
     public class LLSDMap : LLSDType
     {
-        public LLSDMap() : base( "MAP" )
+        public LLSDMap() : base("MAP")
         {
         }
     }

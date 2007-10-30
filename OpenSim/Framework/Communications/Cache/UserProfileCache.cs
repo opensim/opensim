@@ -25,16 +25,8 @@
 * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 * 
 */
-using System;
-using System.Collections;
 using System.Collections.Generic;
-using System.Text;
-using System.IO;
 using libsecondlife;
-using OpenSim.Framework.Communications.Cache;
-using OpenSim.Framework.Interfaces;
-using OpenSim.Framework;
-
 
 namespace OpenSim.Framework.Communications.Cache
 {
@@ -49,7 +41,7 @@ namespace OpenSim.Framework.Communications.Cache
         // Methods
         public UserProfileCache(CommunicationsManager parent)
         {
-            this.m_parent = parent;
+            m_parent = parent;
         }
 
         /// <summary>
@@ -62,14 +54,14 @@ namespace OpenSim.Framework.Communications.Cache
             // Potential fix - Multithreading issue.
             lock (UserProfiles)
             {
-                if (!this.UserProfiles.ContainsKey(userID))
+                if (!UserProfiles.ContainsKey(userID))
                 {
-                    CachedUserInfo userInfo = new CachedUserInfo(this.m_parent);
-                    userInfo.UserProfile = this.RequestUserProfileForUser(userID);
+                    CachedUserInfo userInfo = new CachedUserInfo(m_parent);
+                    userInfo.UserProfile = RequestUserProfileForUser(userID);
                     if (userInfo.UserProfile != null)
                     {
-                        this.RequestInventoryForUser(userID, userInfo);
-                        this.UserProfiles.Add(userID, userInfo);
+                        RequestInventoryForUser(userID, userInfo);
+                        UserProfiles.Add(userID, userInfo);
                     }
                     else
                     {
@@ -91,26 +83,28 @@ namespace OpenSim.Framework.Communications.Cache
 
         public CachedUserInfo GetUserDetails(LLUUID userID)
         {
-            if (this.UserProfiles.ContainsKey(userID))
+            if (UserProfiles.ContainsKey(userID))
             {
-                return this.UserProfiles[userID];
+                return UserProfiles[userID];
             }
             return null;
         }
 
-        public void HandleCreateInventoryFolder(IClientAPI remoteClient, LLUUID folderID, ushort folderType, string folderName, LLUUID parentID)
+        public void HandleCreateInventoryFolder(IClientAPI remoteClient, LLUUID folderID, ushort folderType,
+                                                string folderName, LLUUID parentID)
         {
-            if (this.UserProfiles.ContainsKey(remoteClient.AgentId))
+            if (UserProfiles.ContainsKey(remoteClient.AgentId))
             {
-                if (this.UserProfiles[remoteClient.AgentId].RootFolder != null)
+                if (UserProfiles[remoteClient.AgentId].RootFolder != null)
                 {
-                    CachedUserInfo info = this.UserProfiles[remoteClient.AgentId];
+                    CachedUserInfo info = UserProfiles[remoteClient.AgentId];
                     if (info.RootFolder.folderID == parentID)
                     {
-                        InventoryFolderImpl createdFolder = info.RootFolder.CreateNewSubFolder(folderID, folderName, folderType);
+                        InventoryFolderImpl createdFolder =
+                            info.RootFolder.CreateNewSubFolder(folderID, folderName, folderType);
                         if (createdFolder != null)
                         {
-                            this.m_parent.InventoryService.AddNewInventoryFolder(remoteClient.AgentId, createdFolder);
+                            m_parent.InventoryService.AddNewInventoryFolder(remoteClient.AgentId, createdFolder);
                         }
                     }
                     else
@@ -125,27 +119,30 @@ namespace OpenSim.Framework.Communications.Cache
             }
         }
 
-        public void HandleFecthInventoryDescendents(IClientAPI remoteClient, LLUUID folderID, LLUUID ownerID, bool fetchFolders, bool fetchItems, int sortOrder)
+        public void HandleFecthInventoryDescendents(IClientAPI remoteClient, LLUUID folderID, LLUUID ownerID,
+                                                    bool fetchFolders, bool fetchItems, int sortOrder)
         {
-            InventoryFolderImpl fold  = null;
-            if (folderID == libraryRoot.folderID )
+            InventoryFolderImpl fold = null;
+            if (folderID == libraryRoot.folderID)
             {
-                remoteClient.SendInventoryFolderDetails(libraryRoot.agentID, libraryRoot.folderID, libraryRoot.RequestListOfItems());
+                remoteClient.SendInventoryFolderDetails(libraryRoot.agentID, libraryRoot.folderID,
+                                                        libraryRoot.RequestListOfItems());
             }
-            else if (( fold = libraryRoot.HasSubFolder(folderID)) != null)
+            else if ((fold = libraryRoot.HasSubFolder(folderID)) != null)
             {
                 remoteClient.SendInventoryFolderDetails(libraryRoot.agentID, folderID, fold.RequestListOfItems());
             }
-            else if (this.UserProfiles.ContainsKey(remoteClient.AgentId))
+            else if (UserProfiles.ContainsKey(remoteClient.AgentId))
             {
-                if (this.UserProfiles[remoteClient.AgentId].RootFolder != null)
+                if (UserProfiles[remoteClient.AgentId].RootFolder != null)
                 {
-                    CachedUserInfo info = this.UserProfiles[remoteClient.AgentId];
+                    CachedUserInfo info = UserProfiles[remoteClient.AgentId];
                     if (info.RootFolder.folderID == folderID)
                     {
                         if (fetchItems)
                         {
-                            remoteClient.SendInventoryFolderDetails(remoteClient.AgentId, folderID, info.RootFolder.RequestListOfItems());
+                            remoteClient.SendInventoryFolderDetails(remoteClient.AgentId, folderID,
+                                                                    info.RootFolder.RequestListOfItems());
                         }
                     }
                     else
@@ -153,7 +150,8 @@ namespace OpenSim.Framework.Communications.Cache
                         InventoryFolderImpl folder = info.RootFolder.HasSubFolder(folderID);
                         if ((folder != null) && fetchItems)
                         {
-                            remoteClient.SendInventoryFolderDetails(remoteClient.AgentId, folderID, folder.RequestListOfItems());
+                            remoteClient.SendInventoryFolderDetails(remoteClient.AgentId, folderID,
+                                                                    folder.RequestListOfItems());
                         }
                     }
                 }
@@ -166,11 +164,11 @@ namespace OpenSim.Framework.Communications.Cache
             {
                 //Console.WriteLine("request info for library item");
             }
-            else if (this.UserProfiles.ContainsKey(remoteClient.AgentId))
+            else if (UserProfiles.ContainsKey(remoteClient.AgentId))
             {
-                if (this.UserProfiles[remoteClient.AgentId].RootFolder != null)
+                if (UserProfiles[remoteClient.AgentId].RootFolder != null)
                 {
-                    InventoryItemBase item = this.UserProfiles[remoteClient.AgentId].RootFolder.HasItem(itemID);
+                    InventoryItemBase item = UserProfiles[remoteClient.AgentId].RootFolder.HasItem(itemID);
                     if (item != null)
                     {
                         remoteClient.SendInventoryItemDetails(ownerID, item);
@@ -185,7 +183,7 @@ namespace OpenSim.Framework.Communications.Cache
         /// <param name="userID"></param>
         private void RequestInventoryForUser(LLUUID userID, CachedUserInfo userInfo)
         {
-            this.m_parent.InventoryService.RequestInventoryForUser(userID, userInfo.FolderReceive, userInfo.ItemReceive);
+            m_parent.InventoryService.RequestInventoryForUser(userID, userInfo.FolderReceive, userInfo.ItemReceive);
         }
 
         /// <summary>
@@ -194,7 +192,7 @@ namespace OpenSim.Framework.Communications.Cache
         /// <param name="userID"></param>
         private UserProfileData RequestUserProfileForUser(LLUUID userID)
         {
-            return this.m_parent.UserService.GetUserProfile(userID);
+            return m_parent.UserService.GetUserProfile(userID);
         }
 
         /// <summary>

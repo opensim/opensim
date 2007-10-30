@@ -27,8 +27,6 @@
 */
 
 using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace libTerrain
 {
@@ -54,18 +52,18 @@ namespace libTerrain
                 double rx, ry;
                 if (centerspawn)
                 {
-                    rx = w / 2.0;
-                    ry = h / 2.0;
+                    rx = w/2.0;
+                    ry = h/2.0;
                 }
                 else
                 {
-                    rx = random.NextDouble() * (w - 1);
-                    ry = random.NextDouble() * (h - 1);
+                    rx = random.NextDouble()*(w - 1);
+                    ry = random.NextDouble()*(h - 1);
                 }
                 for (j = 0; j < rounds; j++)
                 {
-                    rx += (random.NextDouble() * movement) - (movement / 2.0);
-                    ry += (random.NextDouble() * movement) - (movement / 2.0);
+                    rx += (random.NextDouble()*movement) - (movement/2.0);
+                    ry += (random.NextDouble()*movement) - (movement/2.0);
                     Raise(rx, ry, size, 1.0);
                 }
             }

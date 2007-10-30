@@ -27,36 +27,33 @@
 */
 
 using System;
-using System.Collections.Generic;
-using System.Text;
-using OpenSim.Region.Environment.Scenes;
+using System.Diagnostics;
 using libsecondlife;
 using OpenSim.Framework;
-using System.Timers;
-using System.Diagnostics;
+using OpenSim.Region.Environment.Scenes;
 
 namespace SimpleApp
 {
     public class CpuCounterObject : SceneObjectGroup
     {
         private PerformanceCounter m_counter;
-        
-        public CpuCounterObject(Scene world, ulong regionHandle, LLUUID ownerID, uint localID, LLVector3 pos )
-            : base(world, regionHandle, ownerID, localID, pos, BoxShape.Default )
+
+        public CpuCounterObject(Scene world, ulong regionHandle, LLUUID ownerID, uint localID, LLVector3 pos)
+            : base(world, regionHandle, ownerID, localID, pos, BoxShape.Default)
         {
             String objectName = "Processor";
             String counterName = "% Processor Time";
             String instanceName = "_Total";
-         
+
             m_counter = new PerformanceCounter(objectName, counterName, instanceName);
         }
 
-        public override void UpdateMovement( )
+        public override void UpdateMovement()
         {
-            float cpu = m_counter.NextValue() / 40f;
-            LLVector3 size = new LLVector3(cpu, cpu, cpu);            
+            float cpu = m_counter.NextValue()/40f;
+            LLVector3 size = new LLVector3(cpu, cpu, cpu);
             //rootPrimitive.ResizeGoup( size );
-            
+
             base.UpdateMovement();
         }
     }

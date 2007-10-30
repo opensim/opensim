@@ -63,7 +63,9 @@ namespace OpenSim.Framework.Data
     /// </summary>
     public interface ILogData
     {
-        void saveLog(string serverDaemon, string target, string methodCall, string arguments, int priority,string logMessage);
+        void saveLog(string serverDaemon, string target, string methodCall, string arguments, int priority,
+                     string logMessage);
+
         /// <summary>
         /// Initialises the interface
         /// </summary>
@@ -86,5 +88,4 @@ namespace OpenSim.Framework.Data
         /// <returns>A string containing the plugin version</returns>
         string getVersion();
     }
-
 }

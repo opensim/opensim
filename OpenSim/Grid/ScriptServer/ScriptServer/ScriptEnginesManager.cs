@@ -26,9 +26,7 @@
 * 
 */
 
-using System;
 using System.Collections.Generic;
-using System.Text;
 using OpenSim.Framework.Console;
 
 namespace OpenSim.Grid.ScriptServer
@@ -46,10 +44,11 @@ namespace OpenSim.Grid.ScriptServer
             m_ScriptServerMain = scm;
             m_log = logger;
             ScriptEngineLoader = new ScriptEngineLoader(m_log);
-            
+
             // Temp - we should not load during initialize... Loading should be done later.
             LoadEngine("DotNetScriptEngine");
         }
+
         ~ScriptEngineManager()
         {
         }
@@ -63,7 +62,5 @@ namespace OpenSim.Grid.ScriptServer
                 scriptEngines.Add(sei);
             }
         }
-
-        
     }
 }

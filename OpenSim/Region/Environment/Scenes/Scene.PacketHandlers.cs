@@ -28,9 +28,8 @@
 using System.Collections.Generic;
 using libsecondlife;
 using libsecondlife.Packets;
-using OpenSim.Framework.Console;
-using OpenSim.Framework.Interfaces;
 using OpenSim.Framework;
+using OpenSim.Framework.Console;
 
 namespace OpenSim.Region.Environment.Scenes
 {
@@ -73,12 +72,12 @@ namespace OpenSim.Region.Environment.Scenes
             {
                 ChatFromViewerArgs args = new ChatFromViewerArgs();
 
-                args.Message = OpenSim.Framework.Util.FieldToString(message);
+                args.Message = Util.FieldToString(message);
                 args.Channel = channel;
-                args.Type = (ChatTypeEnum)type;
+                args.Type = (ChatTypeEnum) type;
                 args.Position = fromPos;
 
-                ScenePresence user = this.GetScenePresence(fromAgentID);
+                ScenePresence user = GetScenePresence(fromAgentID);
                 if (user != null)
                     args.Sender = user.ControllingClient;
                 else
@@ -488,10 +487,7 @@ namespace OpenSim.Region.Environment.Scenes
 
         public void StartAnimation(LLUUID animID, int seq, LLUUID agentId)
         {
-            Broadcast(delegate(IClientAPI client)
-                          {
-                              client.SendAnimation(animID, seq, agentId);
-                          });
+            Broadcast(delegate(IClientAPI client) { client.SendAnimation(animID, seq, agentId); });
         }
 
         public virtual void ProcessObjectGrab(uint localID, LLVector3 offsetPos, IClientAPI remoteClient)
@@ -503,12 +499,12 @@ namespace OpenSim.Region.Environment.Scenes
                 if (ent is SceneObjectGroup)
                 {
                     SceneObjectGroup obj = ent as SceneObjectGroup;
-                    
-                    if( obj.HasChildPrim( localID ) )
+
+                    if (obj.HasChildPrim(localID))
                     {
                         obj.ObjectGrabHandler(localID, offsetPos, remoteClient);
                         return;
-                    }                    
+                    }
                 }
             }
         }

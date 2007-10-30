@@ -41,7 +41,7 @@ namespace OpenSim.Framework
     /// <para>When recieving data from the foreign host - run 'Authenticate' against the data and the attached byte[].</para>
     /// <para>Both hosts should be performing these operations for this to be effective.</para>
     /// </remarks>
-    class RemoteDigest
+    internal class RemoteDigest
     {
         private byte[] currentHash;
         private byte[] secret;
@@ -58,7 +58,7 @@ namespace OpenSim.Framework
         public RemoteDigest(string sharedSecret, byte[] salt, string challenge)
         {
             SHA512 = new SHA512Managed();
-            Rfc2898DeriveBytes RFC2898 = new Rfc2898DeriveBytes(sharedSecret,salt);
+            Rfc2898DeriveBytes RFC2898 = new Rfc2898DeriveBytes(sharedSecret, salt);
             secret = RFC2898.GetBytes(512);
             ASCIIEncoding ASCII = new ASCIIEncoding();
 
@@ -108,7 +108,7 @@ namespace OpenSim.Framework
             byte[] bytes = new byte[64];
             RNG.GetBytes(bytes);
 
-            StringBuilder sb = new StringBuilder(bytes.Length * 2);
+            StringBuilder sb = new StringBuilder(bytes.Length*2);
             foreach (byte b in bytes)
             {
                 sb.AppendFormat("{0:x2}", b);
@@ -130,6 +130,5 @@ namespace OpenSim.Framework
             Buffer.BlockCopy(b, 0, c, a.Length, b.Length);
             return c;
         }
-
     }
 }

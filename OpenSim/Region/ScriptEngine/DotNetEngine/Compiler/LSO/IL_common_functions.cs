@@ -27,30 +27,25 @@
 */
 /* Original code: Tedd Hansen */
 using System;
-using System.Collections.Generic;
-using System.Text;
 using System.Reflection;
 using System.Reflection.Emit;
 
 namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSO
 {
-    partial class LSO_Parser
+    internal partial class LSO_Parser
     {
         private static TypeBuilder CreateType(ModuleBuilder modBuilder, string typeName)
         {
             TypeBuilder typeBuilder = modBuilder.DefineType(typeName,
-                        TypeAttributes.Public |
-                        TypeAttributes.Class |
-                        TypeAttributes.AutoClass |
-                        TypeAttributes.AnsiClass |
-                        TypeAttributes.BeforeFieldInit |
-                        TypeAttributes.AutoLayout,
-                        typeof(object),
-                        new Type[] { typeof(object) });
+                                                            TypeAttributes.Public |
+                                                            TypeAttributes.Class |
+                                                            TypeAttributes.AutoClass |
+                                                            TypeAttributes.AnsiClass |
+                                                            TypeAttributes.BeforeFieldInit |
+                                                            TypeAttributes.AutoLayout,
+                                                            typeof (object),
+                                                            new Type[] {typeof (object)});
             return typeBuilder;
-
         }
-
-
     }
 }

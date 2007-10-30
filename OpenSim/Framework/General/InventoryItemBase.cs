@@ -39,50 +39,62 @@ namespace OpenSim.Framework
         /// A UUID containing the ID for the inventory item itself
         /// </summary>
         public LLUUID inventoryID;
+
         /// <summary>
         /// The UUID of the associated asset on the asset server
         /// </summary>
         public LLUUID assetID;
+
         /// <summary>
         /// This is an enumerated value determining the type of asset (eg Notecard, Sound, Object, etc)
         /// </summary>
         public int assetType;
+
         /// <summary>
         /// The type of inventory item. (Can be slightly different to the asset type
         /// </summary>
         public int invType;
+
         /// <summary>
         /// The folder this item is contained in 
         /// </summary>
         public LLUUID parentFolderID;
+
         /// <summary>
         /// The owner of this inventory item
         /// </summary>
         public LLUUID avatarID;
+
         /// <summary>
         /// The creator of this item
         /// </summary>
         public LLUUID creatorsID;
+
         /// <summary>
         /// The name of the inventory item (must be less than 64 characters)
         /// </summary>
         public string inventoryName;
+
         /// <summary>
         /// The description of the inventory item (must be less than 64 characters)
         /// </summary>
         public string inventoryDescription;
+
         /// <summary>
         /// A mask containing the permissions for the next owner (cannot be enforced)
         /// </summary>
         public uint inventoryNextPermissions;
+
         /// <summary>
         /// A mask containing permissions for the current owner (cannot be enforced)
         /// </summary>
         public uint inventoryCurrentPermissions;
+
         /// <summary>
         /// 
         /// </summary>
         public uint inventoryBasePermissions;
+
         /// <summary>
         /// 
         /// </summary>
@@ -98,22 +110,27 @@ namespace OpenSim.Framework
         /// The name of the folder (64 characters or less)
         /// </summary>
         public string name;
+
         /// <summary>
         /// The agent who's inventory this is contained by
         /// </summary>
         public LLUUID agentID;
+
         /// <summary>
         /// The folder this folder is contained in 
         /// </summary>
         public LLUUID parentID;
+
         /// <summary>
         /// The UUID for this folder
         /// </summary>
         public LLUUID folderID;
+
         /// <summary>
         /// Tyep of Items normally stored in this folder
         /// </summary>
         public short type;
+
         /// <summary>
         /// 
         /// </summary>

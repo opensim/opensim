@@ -28,17 +28,15 @@
 using System;
 using System.Collections.Generic;
 using System.Net;
+using libsecondlife;
 using OpenSim.Framework;
+using OpenSim.Framework.Communications;
 using OpenSim.Framework.Communications.Cache;
 using OpenSim.Framework.Console;
-using OpenSim.Framework.Interfaces;
 using OpenSim.Framework.Servers;
-using OpenSim.Framework;
-using OpenSim.Region.Physics.Manager;
 using OpenSim.Region.Environment;
-using libsecondlife;
 using OpenSim.Region.Environment.Scenes;
-using OpenSim.Framework.Communications;
+using OpenSim.Region.Physics.Manager;
 
 namespace OpenSim.Region.ClientStack
 {
@@ -67,9 +65,8 @@ namespace OpenSim.Region.ClientStack
             m_startuptime = DateTime.Now;
         }
 
-        virtual public void StartUp()
+        public virtual void StartUp()
         {
-
             ClientView.TerrainManager = new TerrainManager(new SecondLife());
 
             Initialize();
@@ -116,7 +113,10 @@ namespace OpenSim.Region.ClientStack
             scene.PhysScene.SetTerrain(scene.Terrain.GetHeights1D());
 
             //Master Avatar Setup
-            UserProfileData masterAvatar = m_commsManager.UserService.SetupMasterUser(scene.RegionInfo.MasterAvatarFirstName, scene.RegionInfo.MasterAvatarLastName, scene.RegionInfo.MasterAvatarSandboxPassword);
+            UserProfileData masterAvatar =
+                m_commsManager.UserService.SetupMasterUser(scene.RegionInfo.MasterAvatarFirstName,
+                                                           scene.RegionInfo.MasterAvatarLastName,
+                                                           scene.RegionInfo.MasterAvatarSandboxPassword);
             if (masterAvatar != null)
             {
                 m_log.Verbose("PARCEL", "Found master avatar [" + masterAvatar.UUID.ToStringHyphenated() + "]");
@@ -126,7 +126,7 @@ namespace OpenSim.Region.ClientStack
             else
             {
                 m_log.Verbose("PARCEL", "No master avatar found, using null.");
-                scene.RegionInfo.MasterAvatarAssignedUUID = libsecondlife.LLUUID.Zero;
+                scene.RegionInfo.MasterAvatarAssignedUUID = LLUUID.Zero;
                 //TODO: Load parcels from storageManager
             }
 
@@ -138,8 +138,7 @@ namespace OpenSim.Region.ClientStack
             return scene;
         }
 
-        protected abstract Scene CreateScene(RegionInfo regionInfo, StorageManager storageManager, AgentCircuitManager circuitManager);
-
-
+        protected abstract Scene CreateScene(RegionInfo regionInfo, StorageManager storageManager,
+                                             AgentCircuitManager circuitManager);
     }
 }

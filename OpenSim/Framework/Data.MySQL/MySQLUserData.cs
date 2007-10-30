@@ -29,7 +29,6 @@ using System;
 using System.Collections.Generic;
 using System.Data;
 using libsecondlife;
-using OpenSim.Framework;
 using OpenSim.Framework.Console;
 
 namespace OpenSim.Framework.Data.MySQL
@@ -37,7 +36,7 @@ namespace OpenSim.Framework.Data.MySQL
     /// <summary>
     /// A database interface class to a user profile storage system
     /// </summary>
-    class MySQLUserData : IUserData
+    internal class MySQLUserData : IUserData
     {
         /// <summary>
         /// Database manager for MySQL
@@ -59,7 +58,9 @@ namespace OpenSim.Framework.Data.MySQL
             string settingPooling = GridDataMySqlFile.ParseFileReadValue("pooling");
             string settingPort = GridDataMySqlFile.ParseFileReadValue("port");
 
-            database = new MySQLManager(settingHostname, settingDatabase, settingUsername, settingPassword, settingPooling, settingPort);
+            database =
+                new MySQLManager(settingHostname, settingDatabase, settingUsername, settingPassword, settingPooling,
+                                 settingPort);
         }
 
         /// <summary>
@@ -88,11 +89,12 @@ namespace OpenSim.Framework.Data.MySQL
                     param["?first"] = user;
                     param["?second"] = last;
 
-                    IDbCommand result = database.Query("SELECT * FROM users WHERE username = ?first AND lastname = ?second", param);
+                    IDbCommand result =
+                        database.Query("SELECT * FROM users WHERE username = ?first AND lastname = ?second", param);
                     IDataReader reader = result.ExecuteReader();
 
                     UserProfileData row = database.readUserRow(reader);
-                    
+
                     reader.Close();
                     result.Dispose();
 
@@ -201,21 +203,25 @@ namespace OpenSim.Framework.Data.MySQL
         /// <param name="user">The user profile to create</param>
         public void AddNewUserProfile(UserProfileData user)
         {
-                        try
-               {
-                   lock (database)
-                   {
-                       database.insertUserRow(user.UUID, user.username, user.surname, user.passwordHash, user.passwordSalt, user.homeRegion, user.homeLocation.X, user.homeLocation.Y, user.homeLocation.Z,
-                           user.homeLookAt.X, user.homeLookAt.Y, user.homeLookAt.Z, user.created, user.lastLogin, user.userInventoryURI, user.userAssetURI, user.profileCanDoMask, user.profileWantDoMask,
-                           user.profileAboutText, user.profileFirstText, user.profileImage, user.profileFirstImage);
-                   }
-               }
-               catch (Exception e)
-               {
-                   database.Reconnect();
-                   MainLog.Instance.Error(e.ToString());
-               }
-
+            try
+            {
+                lock (database)
+                {
+                    database.insertUserRow(user.UUID, user.username, user.surname, user.passwordHash, user.passwordSalt,
+                                           user.homeRegion, user.homeLocation.X, user.homeLocation.Y,
+                                           user.homeLocation.Z,
+                                           user.homeLookAt.X, user.homeLookAt.Y, user.homeLookAt.Z, user.created,
+                                           user.lastLogin, user.userInventoryURI, user.userAssetURI,
+                                           user.profileCanDoMask, user.profileWantDoMask,
+                                           user.profileAboutText, user.profileFirstText, user.profileImage,
+                                           user.profileFirstImage);
+                }
+            }
+            catch (Exception e)
+            {
+                database.Reconnect();
+                MainLog.Instance.Error(e.ToString());
+            }
         }
 
         /// <summary>
@@ -226,8 +232,8 @@ namespace OpenSim.Framework.Data.MySQL
         {
             // Do nothing.
         }
-        
-        
+
+
         public bool UpdateUserProfile(UserProfileData user)
         {
             return true;

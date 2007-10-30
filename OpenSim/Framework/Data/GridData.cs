@@ -106,6 +106,5 @@ namespace OpenSim.Framework.Data
         DataResponse AddProfile(RegionProfileData profile);
 
         ReservationData GetReservationAtPoint(uint x, uint y);
-
     }
 }

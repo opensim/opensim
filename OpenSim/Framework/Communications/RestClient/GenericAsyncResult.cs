@@ -1,13 +1,10 @@
 using System;
-using System.Collections.Generic;
-using System.Text;
 using System.Threading;
 
 namespace OpenSim.Framework.Communications
 {
     internal class SimpleAsyncResult : IAsyncResult
     {
-
         private readonly AsyncCallback m_callback;
 
         /// <summary>
@@ -36,14 +33,12 @@ namespace OpenSim.Framework.Communications
             m_completedSynchronously = 1;
         }
 
-
         #region IAsyncResult Members
 
         public object AsyncState
         {
             get { return m_asyncState; }
         }
-
 
 
         public WaitHandle AsyncWaitHandle
@@ -82,19 +77,18 @@ namespace OpenSim.Framework.Communications
             get { return Thread.VolatileRead(ref m_completed) == 1; }
         }
 
-
         #endregion
 
-
         #region class Methods
+
         internal void SetAsCompleted(bool completedSynchronously)
         {
             m_completed = 1;
-            if(completedSynchronously)
+            if (completedSynchronously)
                 m_completedSynchronously = 1;
             else
                 m_completedSynchronously = 0;
-            
+
             SignalCompletion();
         }
 
@@ -112,9 +106,9 @@ namespace OpenSim.Framework.Communications
 
         private void SignalCompletion()
         {
-            if(m_waitHandle != null) m_waitHandle.Set();
+            if (m_waitHandle != null) m_waitHandle.Set();
 
-            if(m_callback != null) m_callback(this);
+            if (m_callback != null) m_callback(this);
         }
 
         public void EndInvoke()
@@ -125,14 +119,14 @@ namespace OpenSim.Framework.Communications
                 // If the operation isn't done, wait for it
                 AsyncWaitHandle.WaitOne();
                 AsyncWaitHandle.Close();
-                m_waitHandle = null;  // Allow early GC
+                m_waitHandle = null; // Allow early GC
             }
 
             // Operation is done: if an exception occured, throw it
             if (m_exception != null) throw m_exception;
-        }       
+        }
 
-        #endregion 
+        #endregion
     }
 
     internal class AsyncResult<T> : SimpleAsyncResult
@@ -140,10 +134,12 @@ namespace OpenSim.Framework.Communications
         private T m_result = default(T);
 
         public AsyncResult(AsyncCallback asyncCallback, Object state) :
-            base(asyncCallback, state) { }
+            base(asyncCallback, state)
+        {
+        }
 
 
-        public void SetAsCompleted(T result,  bool completedSynchronously)
+        public void SetAsCompleted(T result, bool completedSynchronously)
         {
             // Save the asynchronous operation's result
             m_result = result;
@@ -153,11 +149,10 @@ namespace OpenSim.Framework.Communications
             base.SetAsCompleted(completedSynchronously);
         }
 
-        new public T EndInvoke()
+        public new T EndInvoke()
         {
-            base.EndInvoke(); 
-            return m_result;  
+            base.EndInvoke();
+            return m_result;
         }
-
     }
 }

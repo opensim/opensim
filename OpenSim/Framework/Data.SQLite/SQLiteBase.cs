@@ -26,13 +26,8 @@
 * 
 */
 using System;
-using System.IO;
-using libsecondlife;
-using OpenSim.Framework;
 using System.Data;
-using System.Data.SqlTypes;
 using Mono.Data.SqliteClient;
-using OpenSim.Framework.Console;
 
 namespace OpenSim.Framework.Data.SQLite
 {
@@ -48,8 +43,8 @@ namespace OpenSim.Framework.Data.SQLite
          *  This should be db agnostic as we define them in ADO.NET terms
          *
          **********************************************************************/
-        
-        protected static void createCol(DataTable dt, string name, System.Type type)
+
+        protected static void createCol(DataTable dt, string name, Type type)
         {
             DataColumn col = new DataColumn(name, type);
             dt.Columns.Add(col);
@@ -77,7 +72,8 @@ namespace OpenSim.Framework.Data.SQLite
              *  generate these strings instead of typing them out.
              */
             string[] cols = new string[dt.Columns.Count];
-            for (int i = 0; i < dt.Columns.Count; i++) {
+            for (int i = 0; i < dt.Columns.Count; i++)
+            {
                 DataColumn col = dt.Columns[i];
                 cols[i] = col.ColumnName;
             }
@@ -92,7 +88,7 @@ namespace OpenSim.Framework.Data.SQLite
 
             // this provides the binding for all our parameters, so
             // much less code than it used to be
-            foreach (DataColumn col in dt.Columns) 
+            foreach (DataColumn col in dt.Columns)
             {
                 cmd.Parameters.Add(createSqliteParameter(col.ColumnName, col.DataType));
             }
@@ -106,7 +102,8 @@ namespace OpenSim.Framework.Data.SQLite
             foreach (DataColumn col in dt.Columns)
             {
                 if (subsql.Length > 0)
-                { // a map function would rock so much here
+                {
+                    // a map function would rock so much here
                     subsql += ", ";
                 }
                 subsql += col.ColumnName + "= :" + col.ColumnName;
@@ -118,7 +115,7 @@ namespace OpenSim.Framework.Data.SQLite
             // this provides the binding for all our parameters, so
             // much less code than it used to be
 
-            foreach (DataColumn col in dt.Columns) 
+            foreach (DataColumn col in dt.Columns)
             {
                 cmd.Parameters.Add(createSqliteParameter(col.ColumnName, col.DataType));
             }
@@ -133,11 +130,12 @@ namespace OpenSim.Framework.Data.SQLite
             foreach (DataColumn col in dt.Columns)
             {
                 if (subsql.Length > 0)
-                { // a map function would rock so much here
+                {
+                    // a map function would rock so much here
                     subsql += ",\n";
                 }
                 subsql += col.ColumnName + " " + sqliteType(col.DataType);
-                if(col == dt.PrimaryKey[0])
+                if (col == dt.PrimaryKey[0])
                 {
                     subsql += " primary key";
                 }
@@ -167,7 +165,7 @@ namespace OpenSim.Framework.Data.SQLite
         /// for us.
         ///</summary>
         ///<returns>a built sqlite parameter</returns>
-        protected static SqliteParameter createSqliteParameter(string name, System.Type type)
+        protected static SqliteParameter createSqliteParameter(string name, Type type)
         {
             SqliteParameter param = new SqliteParameter();
             param.ParameterName = ":" + name;
@@ -182,51 +180,85 @@ namespace OpenSim.Framework.Data.SQLite
          *  Type conversion functions
          *
          **********************************************************************/
-        
+
         protected static DbType dbtypeFromType(Type type)
         {
-            if (type == typeof(System.String)) {
+            if (type == typeof (String))
+            {
                 return DbType.String;
-            } else if (type == typeof(System.Int32)) {
+            }
+            else if (type == typeof (Int32))
+            {
                 return DbType.Int32;
-            } else if (type == typeof(System.UInt32)) {
+            }
+            else if (type == typeof (UInt32))
+            {
                 return DbType.UInt32;
-            } else if (type == typeof(System.Int64)) {
+            }
+            else if (type == typeof (Int64))
+            {
                 return DbType.Int64;
-            } else if (type == typeof(System.UInt64)) {
+            }
+            else if (type == typeof (UInt64))
+            {
                 return DbType.UInt64;
-            } else if (type == typeof(System.Double)) {
+            }
+            else if (type == typeof (Double))
+            {
                 return DbType.Double;
-            } else if (type == typeof(System.Boolean)) {
+            }
+            else if (type == typeof (Boolean))
+            {
                 return DbType.Boolean;
-            } else if (type == typeof(System.Byte[])) {
+            }
+            else if (type == typeof (Byte[]))
+            {
                 return DbType.Binary;
-            } else {
+            }
+            else
+            {
                 return DbType.String;
             }
         }
-        
+
         // this is something we'll need to implement for each db
         // slightly differently.
         protected static string sqliteType(Type type)
         {
-            if (type == typeof(System.String)) {
+            if (type == typeof (String))
+            {
                 return "varchar(255)";
-            } else if (type == typeof(System.Int32)) {
+            }
+            else if (type == typeof (Int32))
+            {
                 return "integer";
-            } else if (type == typeof(System.UInt32)) {
+            }
+            else if (type == typeof (UInt32))
+            {
                 return "integer";
-            } else if (type == typeof(System.Int64)) {
+            }
+            else if (type == typeof (Int64))
+            {
                 return "varchar(255)";
-            } else if (type == typeof(System.UInt64)) {
+            }
+            else if (type == typeof (UInt64))
+            {
                 return "varchar(255)";
-            } else if (type == typeof(System.Double)) {
+            }
+            else if (type == typeof (Double))
+            {
                 return "float";
-            } else if (type == typeof(System.Boolean)) {
+            }
+            else if (type == typeof (Boolean))
+            {
                 return "integer";
-            } else if (type == typeof(System.Byte[])) {
+            }
+            else if (type == typeof (Byte[]))
+            {
                 return "blob";
-            } else {
+            }
+            else
+            {
                 return "string";
             }
         }

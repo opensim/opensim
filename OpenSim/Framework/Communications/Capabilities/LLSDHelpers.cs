@@ -51,7 +51,7 @@ namespace OpenSim.Region.Capabilities
         public static void SerializeLLSDType(XmlTextWriter writer, object obj)
         {
             Type myType = obj.GetType();
-            LLSDType[] llsdattributes = (LLSDType[])myType.GetCustomAttributes(typeof(LLSDType), false);
+            LLSDType[] llsdattributes = (LLSDType[]) myType.GetCustomAttributes(typeof (LLSDType), false);
             if (llsdattributes.Length > 0)
             {
                 switch (llsdattributes[0].ObjectType)
@@ -62,7 +62,8 @@ namespace OpenSim.Region.Capabilities
                         for (int i = 0; i < fields.Length; i++)
                         {
                             object fieldValue = fields[i].GetValue(obj);
-                            LLSDType[] fieldAttributes = (LLSDType[])fieldValue.GetType().GetCustomAttributes(typeof(LLSDType), false);
+                            LLSDType[] fieldAttributes =
+                                (LLSDType[]) fieldValue.GetType().GetCustomAttributes(typeof (LLSDType), false);
                             if (fieldAttributes.Length > 0)
                             {
                                 writer.WriteStartElement(String.Empty, "key", String.Empty);
@@ -83,7 +84,7 @@ namespace OpenSim.Region.Capabilities
                     case "ARRAY":
                         // LLSDArray arrayObject = obj as LLSDArray;
                         // ArrayList a = arrayObject.Array;
-                        ArrayList a = (ArrayList)obj.GetType().GetField("Array").GetValue(obj);
+                        ArrayList a = (ArrayList) obj.GetType().GetField("Array").GetValue(obj);
                         if (a != null)
                         {
                             writer.WriteStartElement(String.Empty, "array", String.Empty);
@@ -105,7 +106,7 @@ namespace OpenSim.Region.Capabilities
         public static object DeserialiseLLSDMap(Hashtable llsd, object obj)
         {
             Type myType = obj.GetType();
-            LLSDType[] llsdattributes = (LLSDType[])myType.GetCustomAttributes(typeof(LLSDType), false);
+            LLSDType[] llsdattributes = (LLSDType[]) myType.GetCustomAttributes(typeof (LLSDType), false);
             if (llsdattributes.Length > 0)
             {
                 switch (llsdattributes[0].ObjectType)
@@ -114,7 +115,7 @@ namespace OpenSim.Region.Capabilities
                         IDictionaryEnumerator enumerator = llsd.GetEnumerator();
                         while (enumerator.MoveNext())
                         {
-                            FieldInfo field = myType.GetField((string)enumerator.Key);
+                            FieldInfo field = myType.GetField((string) enumerator.Key);
                             if (field != null)
                             {
                                 if (enumerator.Value is Hashtable)
@@ -142,23 +143,4 @@ namespace OpenSim.Region.Capabilities
             return obj;
         }
     }
-
-    
-
-    
-
-   
-
-    
-
-    
-
-    
-
-    
-
-    
-
-
-    
 }

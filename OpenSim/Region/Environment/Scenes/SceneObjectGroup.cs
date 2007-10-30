@@ -34,7 +34,6 @@ using System.Xml;
 using Axiom.Math;
 using libsecondlife;
 using libsecondlife.Packets;
-using OpenSim.Framework.Interfaces;
 using OpenSim.Framework;
 using OpenSim.Region.Environment.Interfaces;
 using OpenSim.Region.Physics.Manager;
@@ -270,7 +269,7 @@ namespace OpenSim.Region.Environment.Scenes
             StringReader sr = new StringReader(xmlData);
             XmlTextReader reader = new XmlTextReader(sr);
             reader.Read();
-          
+
             reader.ReadStartElement("SceneObjectGroup");
             m_rootPart = SceneObjectPart.FromXml(reader);
 
@@ -285,14 +284,14 @@ namespace OpenSim.Region.Environment.Scenes
                         if (reader.Name == "SceneObjectPart")
                         {
                             SceneObjectPart Part = SceneObjectPart.FromXml(reader);
-                            AddPart(Part);       
+                            AddPart(Part);
                         }
                         break;
                     case XmlNodeType.EndElement:
-                        reader.Read();      
+                        reader.Read();
                         break;
                 }
-               more = !reader.EOF;
+                more = !reader.EOF;
             }
             reader.Close();
             sr.Close();
@@ -424,13 +423,13 @@ namespace OpenSim.Region.Environment.Scenes
                 PrimitiveBaseShape pbs = dupe.RootPart.Shape;
 
                 dupe.RootPart.PhysActor = m_scene.PhysScene.AddPrimShape(
-                        dupe.RootPart.Name,
-                        pbs,
-                       new PhysicsVector(dupe.RootPart.AbsolutePosition.X, dupe.RootPart.AbsolutePosition.Y, dupe.RootPart.AbsolutePosition.Z),
-                       new PhysicsVector(dupe.RootPart.Scale.X, dupe.RootPart.Scale.Y, dupe.RootPart.Scale.Z),
-                       new Axiom.Math.Quaternion(dupe.RootPart.RotationOffset.W, dupe.RootPart.RotationOffset.X,
-                                                 dupe.RootPart.RotationOffset.Y, dupe.RootPart.RotationOffset.Z));
-
+                    dupe.RootPart.Name,
+                    pbs,
+                    new PhysicsVector(dupe.RootPart.AbsolutePosition.X, dupe.RootPart.AbsolutePosition.Y,
+                                      dupe.RootPart.AbsolutePosition.Z),
+                    new PhysicsVector(dupe.RootPart.Scale.X, dupe.RootPart.Scale.Y, dupe.RootPart.Scale.Z),
+                    new Quaternion(dupe.RootPart.RotationOffset.W, dupe.RootPart.RotationOffset.X,
+                                   dupe.RootPart.RotationOffset.Y, dupe.RootPart.RotationOffset.Z));
             }
 
             List<SceneObjectPart> partList = new List<SceneObjectPart>(m_parts.Values);
@@ -951,14 +950,15 @@ namespace OpenSim.Region.Environment.Scenes
             }
             if (m_rootPart.PhysActor != null)
             {
-                this.m_scene.PhysScene.RemovePrim(m_rootPart.PhysActor);
+                m_scene.PhysScene.RemovePrim(m_rootPart.PhysActor);
                 m_rootPart.PhysActor = m_scene.PhysScene.AddPrimShape(
-                        m_rootPart.Name,
-                        m_rootPart.Shape,
-                       new PhysicsVector(m_rootPart.AbsolutePosition.X, m_rootPart.AbsolutePosition.Y, m_rootPart.AbsolutePosition.Z),
-                       new PhysicsVector(m_rootPart.Scale.X, m_rootPart.Scale.Y, m_rootPart.Scale.Z),
-                       new Axiom.Math.Quaternion(m_rootPart.RotationOffset.W, m_rootPart.RotationOffset.X,
-                                                 m_rootPart.RotationOffset.Y, m_rootPart.RotationOffset.Z));
+                    m_rootPart.Name,
+                    m_rootPart.Shape,
+                    new PhysicsVector(m_rootPart.AbsolutePosition.X, m_rootPart.AbsolutePosition.Y,
+                                      m_rootPart.AbsolutePosition.Z),
+                    new PhysicsVector(m_rootPart.Scale.X, m_rootPart.Scale.Y, m_rootPart.Scale.Z),
+                    new Quaternion(m_rootPart.RotationOffset.W, m_rootPart.RotationOffset.X,
+                                   m_rootPart.RotationOffset.Y, m_rootPart.RotationOffset.Z));
             }
         }
 
@@ -1001,7 +1001,7 @@ namespace OpenSim.Region.Environment.Scenes
             AbsolutePosition = pos;
             ScheduleGroupForTerseUpdate();
 
-            m_scene.EventManager.TriggerGroupMove(this.UUID, pos);
+            m_scene.EventManager.TriggerGroupMove(UUID, pos);
         }
 
         /// <summary>
@@ -1350,7 +1350,7 @@ namespace OpenSim.Region.Environment.Scenes
 
         public virtual void OnGrabGroup(LLVector3 offsetPos, IClientAPI remoteClient)
         {
-            m_scene.EventManager.TriggerGroupGrab(this.UUID, offsetPos, remoteClient.AgentId);
+            m_scene.EventManager.TriggerGroupGrab(UUID, offsetPos, remoteClient.AgentId);
         }
 
         public void DeleteGroup()

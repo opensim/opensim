@@ -25,15 +25,13 @@
 * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 * 
 */
-using libsecondlife;
-using OpenSim.Framework.Interfaces;
-using OpenSim.Framework;
 
 using System.Collections.Generic;
+using libsecondlife;
 
 namespace OpenSim.Framework
 {
-    public class RegionCommsListener :IRegionCommsListener
+    public class RegionCommsListener : IRegionCommsListener
     {
         public event ExpectUserDelegate OnExpectUser;
         public event GenericCall2 OnExpectChildAgent;
@@ -46,11 +44,10 @@ namespace OpenSim.Framework
         /// </summary>
         /// <param name="agent"></param>
         /// <returns></returns>
-        public virtual bool TriggerExpectUser(ulong regionHandle, AgentCircuitData  agent)
+        public virtual bool TriggerExpectUser(ulong regionHandle, AgentCircuitData agent)
         {
-            if(OnExpectUser != null)
+            if (OnExpectUser != null)
             {
-                
                 OnExpectUser(regionHandle, agent);
                 return true;
             }
@@ -58,7 +55,8 @@ namespace OpenSim.Framework
             return false;
         }
 
-        public virtual bool TriggerExpectAvatarCrossing(ulong regionHandle, LLUUID agentID, LLVector3 position, bool isFlying)
+        public virtual bool TriggerExpectAvatarCrossing(ulong regionHandle, LLUUID agentID, LLVector3 position,
+                                                        bool isFlying)
         {
             if (OnAvatarCrossingIntoRegion != null)
             {

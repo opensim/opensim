@@ -25,9 +25,7 @@
 * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 * 
 */
-using System;
 using System.Collections.Generic;
-using System.Text;
 
 namespace OpenSim.Region.ExtensionsScriptModule.JVMEngine.JVM
 {
@@ -37,7 +35,6 @@ namespace OpenSim.Region.ExtensionsScriptModule.JVMEngine.JVM
 
         public Heap()
         {
-
         }
     }
 }

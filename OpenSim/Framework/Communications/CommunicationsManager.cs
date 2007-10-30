@@ -28,69 +28,77 @@
 using System;
 using libsecondlife;
 using OpenSim.Framework.Communications.Cache;
+using OpenSim.Framework.Console;
 using OpenSim.Framework.Interfaces;
 using OpenSim.Framework.Servers;
-using OpenSim.Framework;
-using OpenSim.Framework.Console;
 
 namespace OpenSim.Framework.Communications
 {
     public class CommunicationsManager
     {
         protected IUserService m_userService;
+
         public IUserService UserService
         {
             get { return m_userService; }
         }
 
         protected IGridServices m_gridService;
+
         public IGridServices GridService
         {
             get { return m_gridService; }
         }
 
         protected IInventoryServices m_inventoryService;
+
         public IInventoryServices InventoryService
         {
             get { return m_inventoryService; }
         }
 
         protected IInterRegionCommunications m_interRegion;
+
         public IInterRegionCommunications InterRegion
         {
             get { return m_interRegion; }
         }
 
         protected UserProfileCache m_userProfileCache;
+
         public UserProfileCache UserProfileCache
         {
             get { return m_userProfileCache; }
         }
 
         protected AssetTransactionManager m_transactionsManager;
+
         public AssetTransactionManager TransactionsManager
         {
             get { return m_transactionsManager; }
         }
 
         protected AssetCache m_assetCache;
+
         public AssetCache AssetCache
         {
             get { return m_assetCache; }
         }
 
         protected NetworkServersInfo m_networkServersInfo;
+
         public NetworkServersInfo NetworkServersInfo
         {
             get { return m_networkServersInfo; }
         }
 
-        public CommunicationsManager(NetworkServersInfo serversInfo, BaseHttpServer httpServer, AssetCache assetCache, bool dumpAssetsToFile)
+        public CommunicationsManager(NetworkServersInfo serversInfo, BaseHttpServer httpServer, AssetCache assetCache,
+                                     bool dumpAssetsToFile)
         {
             m_networkServersInfo = serversInfo;
             m_assetCache = assetCache;
             m_userProfileCache = new UserProfileCache(this);
-            m_transactionsManager = new AssetTransactionManager(this, dumpAssetsToFile );
+            m_transactionsManager = new AssetTransactionManager(this, dumpAssetsToFile);
         }
 
         public void doCreate(string[] cmmdParams)
@@ -106,7 +114,6 @@ namespace OpenSim.Framework.Communications
 
                     if (cmmdParams.Length < 2)
                     {
-
                         firstName = MainLog.Instance.CmdPrompt("First name", "Default");
                         lastName = MainLog.Instance.CmdPrompt("Last name", "User");
                         password = MainLog.Instance.PasswdPrompt("Password");
@@ -120,7 +127,6 @@ namespace OpenSim.Framework.Communications
                         password = cmmdParams[3];
                         regX = Convert.ToUInt32(cmmdParams[4]);
                         regY = Convert.ToUInt32(cmmdParams[5]);
-
                     }
 
                     AddUser(firstName, lastName, password, regX, regY);
@@ -140,7 +146,7 @@ namespace OpenSim.Framework.Communications
             }
             else
             {
-                this.m_inventoryService.CreateNewUserInventory(userProf.UUID);
+                m_inventoryService.CreateNewUserInventory(userProf.UUID);
                 System.Console.WriteLine("Created new inventory set for " + firstName + " " + lastName);
                 return userProf.UUID;
             }

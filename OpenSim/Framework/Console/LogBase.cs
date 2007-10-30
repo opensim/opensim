@@ -26,10 +26,10 @@
 * 
 */
 using System;
+using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Net;
-using System.Diagnostics;
-using System.Collections.Generic;
 
 namespace OpenSim.Framework.Console
 {
@@ -48,7 +48,7 @@ namespace OpenSim.Framework.Console
     {
         private object m_syncRoot = new object();
 
-        StreamWriter Log;
+        private StreamWriter Log;
         public conscmd_callback cmdparser;
         public string componentname;
         private bool m_verbose;
@@ -57,7 +57,7 @@ namespace OpenSim.Framework.Console
         {
             this.componentname = componentname;
             this.cmdparser = cmdparser;
-            this.m_verbose = verbose;
+            m_verbose = verbose;
             System.Console.WriteLine("Creating new local console");
 
             if (String.IsNullOrEmpty(LogFile))
@@ -87,8 +87,8 @@ namespace OpenSim.Framework.Console
         /// <returns>an ansii color</returns>
         private ConsoleColor DeriveColor(string input)
         {
-            int colIdx = (input.ToUpper().GetHashCode() % 6) + 9;
-            return (ConsoleColor)colIdx;
+            int colIdx = (input.ToUpper().GetHashCode()%6) + 9;
+            return (ConsoleColor) colIdx;
         }
 
         /// <summary>
@@ -236,7 +236,7 @@ namespace OpenSim.Framework.Console
         {
             lock (m_syncRoot)
             {
-                string now = System.DateTime.Now.ToString("[MM-dd hh:mm:ss] ");
+                string now = DateTime.Now.ToString("[MM-dd hh:mm:ss] ");
                 Log.Write(now);
                 Log.WriteLine(format, args);
                 Log.Flush();
@@ -306,7 +306,7 @@ namespace OpenSim.Framework.Console
         public int Read()
         {
             int TempInt = System.Console.Read();
-            Log.Write((char)TempInt);
+            Log.Write((char) TempInt);
             return TempInt;
         }
 
@@ -359,7 +359,7 @@ namespace OpenSim.Framework.Console
         {
             // FIXME: Needs to be better abstracted
             Log.WriteLine(prompt);
-            this.Notice(prompt);
+            Notice(prompt);
             ConsoleColor oldfg = System.Console.ForegroundColor;
             System.Console.ForegroundColor = System.Console.BackgroundColor;
             string temp = System.Console.ReadLine();
@@ -370,8 +370,8 @@ namespace OpenSim.Framework.Console
         // Displays a command prompt and waits for the user to enter a string, then returns that string
         public string CmdPrompt(string prompt)
         {
-            this.Notice(String.Format("{0}: ", prompt));
-            return this.ReadLine();
+            Notice(String.Format("{0}: ", prompt));
+            return ReadLine();
         }
 
         // Displays a command prompt and returns a default value if the user simply presses enter
@@ -423,8 +423,7 @@ namespace OpenSim.Framework.Console
 
         public void MainLogPrompt()
         {
-
-            string tempstr = this.CmdPrompt(this.componentname + "# ");
+            string tempstr = CmdPrompt(componentname + "# ");
             MainLogRunCommand(tempstr);
         }
 
@@ -436,7 +435,7 @@ namespace OpenSim.Framework.Console
             Array.Reverse(tempstrarray);
             Array.Resize<string>(ref tempstrarray, tempstrarray.Length - 1);
             Array.Reverse(tempstrarray);
-            string[] cmdparams = (string[])tempstrarray;
+            string[] cmdparams = (string[]) tempstrarray;
             try
             {
                 RunCmd(cmd, cmdparams);
@@ -454,7 +453,7 @@ namespace OpenSim.Framework.Console
                 string result = String.Empty;
 
                 string stacktrace = Environment.StackTrace;
-                List<string> lines = new List<string>(stacktrace.Split(new string[] { "at " }, StringSplitOptions.None));
+                List<string> lines = new List<string>(stacktrace.Split(new string[] {"at "}, StringSplitOptions.None));
 
                 if (lines.Count > 4)
                 {

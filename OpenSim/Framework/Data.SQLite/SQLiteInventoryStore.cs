@@ -28,22 +28,14 @@
 
 using System;
 using System.Collections.Generic;
-using System.Text;
-using System.Reflection;
-
-using OpenSim.Framework.Console;
-using OpenSim.Framework;
-using OpenSim.Framework;
-using libsecondlife;
-
 using System.Data;
-using System.Data.SqlTypes;
-
+using System.Reflection;
+using libsecondlife;
 using Mono.Data.SqliteClient;
+using OpenSim.Framework.Console;
 
 namespace OpenSim.Framework.Data.SQLite
 {
-
     public class SQLiteInventoryStore : SQLiteBase, IInventoryData
     {
         private const string invItemsSelect = "select * from inventoryitems";
@@ -96,14 +88,14 @@ namespace OpenSim.Framework.Data.SQLite
         public InventoryItemBase buildItem(DataRow row)
         {
             InventoryItemBase item = new InventoryItemBase();
-            item.inventoryID = new LLUUID((string)row["UUID"]);
-            item.assetID = new LLUUID((string)row["assetID"]);
+            item.inventoryID = new LLUUID((string) row["UUID"]);
+            item.assetID = new LLUUID((string) row["assetID"]);
             item.assetType = Convert.ToInt32(row["assetType"]);
             item.invType = Convert.ToInt32(row["invType"]);
-            item.parentFolderID = new LLUUID((string)row["parentFolderID"]);
-            item.avatarID = new LLUUID((string)row["avatarID"]);
-            item.creatorsID = new LLUUID((string)row["creatorsID"]);
-            item.inventoryName =(string) row["inventoryName"];
+            item.parentFolderID = new LLUUID((string) row["parentFolderID"]);
+            item.avatarID = new LLUUID((string) row["avatarID"]);
+            item.creatorsID = new LLUUID((string) row["creatorsID"]);
+            item.inventoryName = (string) row["inventoryName"];
             item.inventoryDescription = (string) row["inventoryDescription"];
 
             item.inventoryNextPermissions = Convert.ToUInt32(row["inventoryNextPermissions"]);
@@ -147,7 +139,7 @@ namespace OpenSim.Framework.Data.SQLite
                 fillFolderRow(inventoryRow, folder);
             }
 
-            this.invFoldersDa.Update(ds, "inventoryfolders");
+            invFoldersDa.Update(ds, "inventoryfolders");
         }
 
         private void addItem(InventoryItemBase item)
@@ -165,7 +157,7 @@ namespace OpenSim.Framework.Data.SQLite
             {
                 fillItemRow(inventoryRow, item);
             }
-            this.invItemsDa.Update(ds, "inventoryitems");
+            invItemsDa.Update(ds, "inventoryitems");
         }
 
         public void Shutdown()
@@ -195,12 +187,14 @@ namespace OpenSim.Framework.Data.SQLite
         /// <returns>A string containing the plugin version</returns>
         public string getVersion()
         {
-            System.Reflection.Module module = this.GetType().Module;
+            Module module = GetType().Module;
             string dllName = module.Assembly.ManifestModule.Name;
             Version dllVersion = module.Assembly.GetName().Version;
 
 
-            return string.Format("{0}.{1}.{2}.{3}", dllVersion.Major, dllVersion.Minor, dllVersion.Build, dllVersion.Revision);
+            return
+                string.Format("{0}.{1}.{2}.{3}", dllVersion.Major, dllVersion.Minor, dllVersion.Build,
+                              dllVersion.Revision);
         }
 
         /// <summary>
@@ -306,7 +300,7 @@ namespace OpenSim.Framework.Data.SQLite
             List<InventoryFolderBase> folders = new List<InventoryFolderBase>();
             getInventoryFolders(ref folders, parentID);
 
-            for(int i=0; i<folders.Count; i++)
+            for (int i = 0; i < folders.Count; i++)
                 getInventoryFolders(ref folders, folders[i].folderID);
 
             return folders;
@@ -320,9 +314,12 @@ namespace OpenSim.Framework.Data.SQLite
         public InventoryItemBase getInventoryItem(LLUUID item)
         {
             DataRow row = ds.Tables["inventoryitems"].Rows.Find(item);
-            if (row != null) {
+            if (row != null)
+            {
                 return buildItem(row);
-            } else {
+            }
+            else
+            {
                 return null;
             }
         }
@@ -334,19 +331,21 @@ namespace OpenSim.Framework.Data.SQLite
         /// <returns>A class containing folder information</returns>
         public InventoryFolderBase getInventoryFolder(LLUUID folder)
         {
-          
-          // TODO: Deep voodoo here.  If you enable this code then
-          // multi region breaks.  No idea why, but I figured it was
-          // better to leave multi region at this point.  It does mean
-          // that you don't get to see system textures why creating
-          // clothes and the like. :(
-          
-          DataRow row = ds.Tables["inventoryfolders"].Rows.Find(folder);
-          if (row != null) {
+            // TODO: Deep voodoo here.  If you enable this code then
+            // multi region breaks.  No idea why, but I figured it was
+            // better to leave multi region at this point.  It does mean
+            // that you don't get to see system textures why creating
+            // clothes and the like. :(
+
+            DataRow row = ds.Tables["inventoryfolders"].Rows.Find(folder);
+            if (row != null)
+            {
                 return buildFolder(row);
-          } else {
+            }
+            else
+            {
                 return null;
-          }
+            }
         }
 
         /// <summary>
@@ -355,7 +354,7 @@ namespace OpenSim.Framework.Data.SQLite
         /// <param name="item">The item to be created</param>
         public void addInventoryItem(InventoryItemBase item)
         {
-            this.addItem(item);
+            addItem(item);
         }
 
         /// <summary>
@@ -364,7 +363,7 @@ namespace OpenSim.Framework.Data.SQLite
         /// <param name="item">The updated item</param>
         public void updateInventoryItem(InventoryItemBase item)
         {
-            this.addItem(item);
+            addItem(item);
         }
 
         /// <summary>
@@ -376,12 +375,12 @@ namespace OpenSim.Framework.Data.SQLite
             DataTable inventoryItemTable = ds.Tables["inventoryitems"];
 
             DataRow inventoryRow = inventoryItemTable.Rows.Find(itemID);
-             if (inventoryRow != null)
-             {
-                 inventoryRow.Delete();
-             }
+            if (inventoryRow != null)
+            {
+                inventoryRow.Delete();
+            }
 
-             this.invItemsDa.Update(ds, "inventoryitems");
+            invItemsDa.Update(ds, "inventoryitems");
         }
 
 
@@ -394,7 +393,7 @@ namespace OpenSim.Framework.Data.SQLite
         {
             List<InventoryItemBase> items = getInventoryInFolder(folderId);
 
-            foreach(InventoryItemBase i in items)
+            foreach (InventoryItemBase i in items)
                 deleteInventoryItem(i.inventoryID);
         }
 
@@ -404,7 +403,7 @@ namespace OpenSim.Framework.Data.SQLite
         /// <param name="folder">The inventory folder</param>
         public void addInventoryFolder(InventoryFolderBase folder)
         {
-            this.addFolder(folder);
+            addFolder(folder);
         }
 
         /// <summary>
@@ -413,7 +412,7 @@ namespace OpenSim.Framework.Data.SQLite
         /// <param name="folder">The inventory folder</param>
         public void updateInventoryFolder(InventoryFolderBase folder)
         {
-            this.addFolder(folder);
+            addFolder(folder);
         }
 
 
@@ -427,7 +426,7 @@ namespace OpenSim.Framework.Data.SQLite
         public void deleteInventoryFolder(LLUUID folderID)
         {
             List<InventoryFolderBase> subFolders = getFolderHierarchy(folderID);
-    
+
             DataTable inventoryFolderTable = ds.Tables["inventoryfolders"];
             DataRow inventoryRow;
 
@@ -450,7 +449,7 @@ namespace OpenSim.Framework.Data.SQLite
                 inventoryRow.Delete();
             }
 
-            this.invFoldersDa.Update(ds, "inventoryfolders");
+            invFoldersDa.Update(ds, "inventoryfolders");
         }
 
         /***********************************************************************
@@ -458,43 +457,43 @@ namespace OpenSim.Framework.Data.SQLite
          *  Data Table definitions
          *
          **********************************************************************/
-        
+
         private static DataTable createInventoryItemsTable()
         {
             DataTable inv = new DataTable("inventoryitems");
-            
-            createCol(inv, "UUID", typeof(System.String)); //inventoryID
-            createCol(inv, "assetID", typeof(System.String));
-            createCol(inv, "assetType", typeof(System.Int32));
-            createCol(inv, "invType", typeof(System.Int32));
-            createCol(inv, "parentFolderID", typeof(System.String));
-            createCol(inv, "avatarID", typeof(System.String));
-            createCol(inv, "creatorsID", typeof(System.String));
 
-            createCol(inv, "inventoryName", typeof(System.String));
-            createCol(inv, "inventoryDescription", typeof(System.String));
+            createCol(inv, "UUID", typeof (String)); //inventoryID
+            createCol(inv, "assetID", typeof (String));
+            createCol(inv, "assetType", typeof (Int32));
+            createCol(inv, "invType", typeof (Int32));
+            createCol(inv, "parentFolderID", typeof (String));
+            createCol(inv, "avatarID", typeof (String));
+            createCol(inv, "creatorsID", typeof (String));
+
+            createCol(inv, "inventoryName", typeof (String));
+            createCol(inv, "inventoryDescription", typeof (String));
             // permissions
-            createCol(inv, "inventoryNextPermissions", typeof(System.Int32));
-            createCol(inv, "inventoryCurrentPermissions", typeof(System.Int32));
-            createCol(inv, "inventoryBasePermissions", typeof(System.Int32));
-            createCol(inv, "inventoryEveryOnePermissions", typeof(System.Int32));
-            
-            inv.PrimaryKey = new DataColumn[] { inv.Columns["UUID"] };
+            createCol(inv, "inventoryNextPermissions", typeof (Int32));
+            createCol(inv, "inventoryCurrentPermissions", typeof (Int32));
+            createCol(inv, "inventoryBasePermissions", typeof (Int32));
+            createCol(inv, "inventoryEveryOnePermissions", typeof (Int32));
+
+            inv.PrimaryKey = new DataColumn[] {inv.Columns["UUID"]};
             return inv;
         }
-        
+
         private DataTable createInventoryFoldersTable()
         {
             DataTable fol = new DataTable("inventoryfolders");
-            
-            createCol(fol, "UUID", typeof(System.String)); //folderID
-            createCol(fol, "name", typeof(System.String));
-            createCol(fol, "agentID", typeof(System.String));
-            createCol(fol, "parentID", typeof(System.String));
-            createCol(fol, "type", typeof(System.Int32));
-            createCol(fol, "version", typeof(System.Int32));
-            
-            fol.PrimaryKey = new DataColumn[] { fol.Columns["UUID"] };
+
+            createCol(fol, "UUID", typeof (String)); //folderID
+            createCol(fol, "name", typeof (String));
+            createCol(fol, "agentID", typeof (String));
+            createCol(fol, "parentID", typeof (String));
+            createCol(fol, "type", typeof (Int32));
+            createCol(fol, "version", typeof (Int32));
+
+            fol.PrimaryKey = new DataColumn[] {fol.Columns["UUID"]};
             return fol;
         }
 
@@ -507,7 +506,7 @@ namespace OpenSim.Framework.Data.SQLite
             da.UpdateCommand.Connection = conn;
 
             SqliteCommand delete = new SqliteCommand("delete from inventoryitems where UUID = :UUID");
-            delete.Parameters.Add(createSqliteParameter("UUID", typeof(System.String)));
+            delete.Parameters.Add(createSqliteParameter("UUID", typeof (String)));
             delete.Connection = conn;
             da.DeleteCommand = delete;
         }
@@ -521,7 +520,7 @@ namespace OpenSim.Framework.Data.SQLite
             da.UpdateCommand.Connection = conn;
 
             SqliteCommand delete = new SqliteCommand("delete from inventoryfolders where UUID = :UUID");
-            delete.Parameters.Add(createSqliteParameter("UUID", typeof(System.String)));
+            delete.Parameters.Add(createSqliteParameter("UUID", typeof (String)));
             delete.Connection = conn;
             da.DeleteCommand = delete;
         }
@@ -529,10 +528,10 @@ namespace OpenSim.Framework.Data.SQLite
         private InventoryFolderBase buildFolder(DataRow row)
         {
             InventoryFolderBase folder = new InventoryFolderBase();
-            folder.folderID = new LLUUID((string)row["UUID"]);
-            folder.name = (string)row["name"];
-            folder.agentID = new LLUUID((string)row["agentID"]);
-            folder.parentID = new LLUUID((string)row["parentID"]);
+            folder.folderID = new LLUUID((string) row["UUID"]);
+            folder.name = (string) row["name"];
+            folder.agentID = new LLUUID((string) row["agentID"]);
+            folder.parentID = new LLUUID((string) row["parentID"]);
             folder.type = Convert.ToInt16(row["type"]);
             folder.version = Convert.ToUInt16(row["version"]);
             return folder;
@@ -554,17 +553,18 @@ namespace OpenSim.Framework.Data.SQLite
          *  Test and Initialization code
          *
          **********************************************************************/
+
         private void InitDB(SqliteConnection conn)
         {
             string createInventoryItems = defineTable(createInventoryItemsTable());
             string createInventoryFolders = defineTable(createInventoryFoldersTable());
-            
+
             SqliteCommand pcmd = new SqliteCommand(createInventoryItems, conn);
             SqliteCommand scmd = new SqliteCommand(createInventoryFolders, conn);
             conn.Open();
             pcmd.ExecuteNonQuery();
             scmd.ExecuteNonQuery();
-            conn.Close(); 
+            conn.Close();
         }
 
         private bool TestTables(SqliteConnection conn)
@@ -575,10 +575,13 @@ namespace OpenSim.Framework.Data.SQLite
             SqliteDataAdapter sDa = new SqliteDataAdapter(invFoldersSelectCmd);
 
             DataSet tmpDS = new DataSet();
-            try {
+            try
+            {
                 pDa.Fill(tmpDS, "inventoryitems");
                 sDa.Fill(tmpDS, "inventoryfolders");
-            } catch (Mono.Data.SqliteClient.SqliteSyntaxException) {
+            }
+            catch (SqliteSyntaxException)
+            {
                 MainLog.Instance.Verbose("DATASTORE", "SQLite Database doesn't exist... creating");
                 InitDB(conn);
             }
@@ -586,14 +589,18 @@ namespace OpenSim.Framework.Data.SQLite
             pDa.Fill(tmpDS, "inventoryitems");
             sDa.Fill(tmpDS, "inventoryfolders");
 
-            foreach (DataColumn col in createInventoryItemsTable().Columns) {
-                if (! tmpDS.Tables["inventoryitems"].Columns.Contains(col.ColumnName) ) {
+            foreach (DataColumn col in createInventoryItemsTable().Columns)
+            {
+                if (! tmpDS.Tables["inventoryitems"].Columns.Contains(col.ColumnName))
+                {
                     MainLog.Instance.Verbose("DATASTORE", "Missing required column:" + col.ColumnName);
                     return false;
                 }
             }
-            foreach (DataColumn col in createInventoryFoldersTable().Columns) {
-                if (! tmpDS.Tables["inventoryfolders"].Columns.Contains(col.ColumnName) ) {
+            foreach (DataColumn col in createInventoryFoldersTable().Columns)
+            {
+                if (! tmpDS.Tables["inventoryfolders"].Columns.Contains(col.ColumnName))
+                {
                     MainLog.Instance.Verbose("DATASTORE", "Missing required column:" + col.ColumnName);
                     return false;
                 }
@@ -602,7 +609,3 @@ namespace OpenSim.Framework.Data.SQLite
         }
     }
 }
-
-
-
-

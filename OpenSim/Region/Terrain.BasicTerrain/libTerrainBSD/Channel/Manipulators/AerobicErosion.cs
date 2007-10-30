@@ -27,8 +27,6 @@
 */
 
 using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace libTerrain
 {
@@ -74,17 +72,18 @@ namespace libTerrain
         /// <param name="carry">The percentage of rock which can be picked up to pickup 0..1</param>
         /// <param name="rounds">The number of erosion rounds (recommended: 25+)</param>
         /// <param name="lowest">Drop sediment at the lowest point?</param>
-        public void AerobicErosion(double windspeed, double pickupTalusMinimum, double dropTalusMinimum, double carry, int rounds, bool lowest, bool usingFluidDynamics)
+        public void AerobicErosion(double windspeed, double pickupTalusMinimum, double dropTalusMinimum, double carry,
+                                   int rounds, bool lowest, bool usingFluidDynamics)
         {
             bool debugImages = false;
 
-            Channel wind = new Channel(w, h) ;
+            Channel wind = new Channel(w, h);
             Channel sediment = new Channel(w, h);
             int x, y, i, j;
 
-            this.Normalise();
+            Normalise();
 
-            wind = this.Copy();
+            wind = Copy();
             wind.Noise();
 
             if (debugImages)
@@ -120,7 +119,7 @@ namespace libTerrain
                             surfacearea += Math.Abs(target - me);
                         }
 
-                        double amount = surfacearea * wind.map[x, y] * carry;
+                        double amount = surfacearea*wind.map[x, y]*carry;
 
                         if (amount < 0)
                             amount = 0;
@@ -147,7 +146,7 @@ namespace libTerrain
                 }
                 else
                 {
-                    wind.Pertubation(15);   // Can do better later
+                    wind.Pertubation(15); // Can do better later
                     wind.seed++;
                     sediment.Pertubation(10); // Sediment is blown around a bit
                     sediment.seed++;
@@ -175,12 +174,12 @@ namespace libTerrain
 
                             if (target < min && lowest)
                             {
-                                minside = (int[])coords.Clone();
+                                minside = (int[]) coords.Clone();
                                 min = target;
                             }
                         }
 
-                        double amount = surfacearea * (1.0 - wind.map[x, y]) * carry;
+                        double amount = surfacearea*(1.0 - wind.map[x, y])*carry;
 
                         if (amount < 0)
                             amount = 0;
@@ -199,7 +198,7 @@ namespace libTerrain
                 wind.Normalise();
                 wind *= windspeed;
 
-                this.Normalise();
+                Normalise();
             }
 
             Channel myself = this;
@@ -207,7 +206,7 @@ namespace libTerrain
             myself.Normalise();
 
             if (debugImages)
-                this.SaveImage("testimg/output.png");
+                SaveImage("testimg/output.png");
         }
     }
 }

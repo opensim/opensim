@@ -27,12 +27,8 @@
 */
 
 using System;
-using System.Globalization;
-using System.Diagnostics;
 using System.Collections.Generic;
-using System.Text;
 using System.Runtime.InteropServices;
-
 using OpenSim.Framework;
 using OpenSim.Region.Physics.Manager;
 
@@ -75,14 +71,14 @@ namespace OpenSim.Region.Physics.OdePlugin
 
         public float[] getVertexListAsFloat()
         {
-            float[] result = new float[vertices.Count * 3];
+            float[] result = new float[vertices.Count*3];
             for (int i = 0; i < vertices.Count; i++)
             {
                 Vertex v = vertices[i];
                 PhysicsVector point = v.point;
-                result[3 * i + 0] = point.X;
-                result[3 * i + 1] = point.Y;
-                result[3 * i + 2] = point.Z;
+                result[3*i + 0] = point.X;
+                result[3*i + 1] = point.Y;
+                result[3*i + 2] = point.Z;
             }
             GCHandle.Alloc(result, GCHandleType.Pinned);
             return result;
@@ -90,13 +86,13 @@ namespace OpenSim.Region.Physics.OdePlugin
 
         public int[] getIndexListAsInt()
         {
-            int[] result = new int[triangles.Count * 3];
+            int[] result = new int[triangles.Count*3];
             for (int i = 0; i < triangles.Count; i++)
             {
                 Triangle t = triangles[i];
-                result[3 * i + 0] = vertices.IndexOf(t.v1);
-                result[3 * i + 1] = vertices.IndexOf(t.v2);
-                result[3 * i + 2] = vertices.IndexOf(t.v3);
+                result[3*i + 0] = vertices.IndexOf(t.v1);
+                result[3*i + 1] = vertices.IndexOf(t.v2);
+                result[3*i + 2] = vertices.IndexOf(t.v3);
             }
             GCHandle.Alloc(result, GCHandleType.Pinned);
             return result;
@@ -110,16 +106,13 @@ namespace OpenSim.Region.Physics.OdePlugin
 
             foreach (Triangle t in newMesh.triangles)
                 Add(t);
-
         }
     }
 
 
-
     public class Meshmerizer
     {
-
-        static List<Triangle> FindInfluencedTriangles(List<Triangle> triangles, Vertex v) 
+        private static List<Triangle> FindInfluencedTriangles(List<Triangle> triangles, Vertex v)
         {
             List<Triangle> influenced = new List<Triangle>();
             foreach (Triangle t in triangles)
@@ -133,9 +126,10 @@ namespace OpenSim.Region.Physics.OdePlugin
             }
             return influenced;
         }
-        
-        
-        static void InsertVertices(List<Vertex> vertices, int usedForSeed, List<Triangle> triangles, List<int> innerBorders) 
+
+
+        private static void InsertVertices(List<Vertex> vertices, int usedForSeed, List<Triangle> triangles,
+                                           List<int> innerBorders)
         {
             // This is a variant of the delaunay algorithm
             // each time a new vertex is inserted, all triangles that are influenced by it are deleted
@@ -143,7 +137,7 @@ namespace OpenSim.Region.Physics.OdePlugin
             // It is not very time efficient but easy to implement.
 
             int iCurrentVertex;
-            int iMaxVertex=vertices.Count;
+            int iMaxVertex = vertices.Count;
             for (iCurrentVertex = usedForSeed; iCurrentVertex < iMaxVertex; iCurrentVertex++)
             {
                 // Background: A triangle mesh fulfills the delaunay condition if (iff!)
@@ -154,8 +148,8 @@ namespace OpenSim.Region.Physics.OdePlugin
                 // do not fulfill this condition with respect to the new triangle
 
                 // Find the triangles that are influenced by the new vertex
-                Vertex v=vertices[iCurrentVertex];
-                List<Triangle> influencedTriangles=FindInfluencedTriangles(triangles, v);
+                Vertex v = vertices[iCurrentVertex];
+                List<Triangle> influencedTriangles = FindInfluencedTriangles(triangles, v);
 
                 List<Simplex> simplices = new List<Simplex>();
 
@@ -175,10 +169,10 @@ namespace OpenSim.Region.Physics.OdePlugin
                 // Look for duplicate simplices here. 
                 // Remember, they are directly side by side in the list right now
                 int iSimplex;
-                List<Simplex> innerSimplices=new List<Simplex>();
+                List<Simplex> innerSimplices = new List<Simplex>();
                 for (iSimplex = 1; iSimplex < simplices.Count; iSimplex++) // Startindex=1, so we can refer backwards
                 {
-                    if (simplices[iSimplex - 1].CompareTo(simplices[iSimplex])==0)
+                    if (simplices[iSimplex - 1].CompareTo(simplices[iSimplex]) == 0)
                     {
                         innerSimplices.Add(simplices[iSimplex - 1]);
                         innerSimplices.Add(simplices[iSimplex]);
@@ -187,7 +181,7 @@ namespace OpenSim.Region.Physics.OdePlugin
 
                 foreach (Simplex s in innerSimplices)
                 {
-                        simplices.Remove(s);
+                    simplices.Remove(s);
                 }
 
                 // each simplex still in the list belongs to the hull of the region in question
@@ -210,7 +204,7 @@ namespace OpenSim.Region.Physics.OdePlugin
             foreach (Triangle t in triangles)
             {
                 if (
-                       innerBorders.Contains(vertices.IndexOf(t.v1))
+                    innerBorders.Contains(vertices.IndexOf(t.v1))
                     && innerBorders.Contains(vertices.IndexOf(t.v2))
                     && innerBorders.Contains(vertices.IndexOf(t.v3))
                     )
@@ -223,18 +217,18 @@ namespace OpenSim.Region.Physics.OdePlugin
         }
 
 
-        static Mesh CreateBoxMeshX(PrimitiveBaseShape primShape, PhysicsVector size)
-        // Builds the x (+ and -) surfaces of a box shaped prim
+        private static Mesh CreateBoxMeshX(PrimitiveBaseShape primShape, PhysicsVector size)
+            // Builds the x (+ and -) surfaces of a box shaped prim
         {
             UInt16 hollowFactor = primShape.ProfileHollow;
             Mesh meshMX = new Mesh();
 
 
             // Surface 0, -X
-            meshMX.Add(new Vertex("-X-Y-Z", -size.X / 2.0f, -size.Y / 2.0f, -size.Z / 2.0f));
-            meshMX.Add(new Vertex("-X+Y-Z", -size.X / 2.0f, +size.Y / 2.0f, -size.Z / 2.0f));
-            meshMX.Add(new Vertex("-X-Y+Z", -size.X / 2.0f, -size.Y / 2.0f, +size.Z / 2.0f));
-            meshMX.Add(new Vertex("-X+Y+Z", -size.X / 2.0f, +size.Y / 2.0f, +size.Z / 2.0f));
+            meshMX.Add(new Vertex("-X-Y-Z", -size.X/2.0f, -size.Y/2.0f, -size.Z/2.0f));
+            meshMX.Add(new Vertex("-X+Y-Z", -size.X/2.0f, +size.Y/2.0f, -size.Z/2.0f));
+            meshMX.Add(new Vertex("-X-Y+Z", -size.X/2.0f, -size.Y/2.0f, +size.Z/2.0f));
+            meshMX.Add(new Vertex("-X+Y+Z", -size.X/2.0f, +size.Y/2.0f, +size.Z/2.0f));
 
             meshMX.Add(new Triangle(meshMX.vertices[0], meshMX.vertices[2], meshMX.vertices[1]));
             meshMX.Add(new Triangle(meshMX.vertices[1], meshMX.vertices[2], meshMX.vertices[3]));
@@ -242,10 +236,10 @@ namespace OpenSim.Region.Physics.OdePlugin
 
             Mesh meshPX = new Mesh();
             // Surface 1, +X
-            meshPX.Add(new Vertex("+X-Y-Z", +size.X / 2.0f, -size.Y / 2.0f, -size.Z / 2.0f));
-            meshPX.Add(new Vertex("+X+Y-Z", +size.X / 2.0f, +size.Y / 2.0f, -size.Z / 2.0f));
-            meshPX.Add(new Vertex("+X-Y+Z", +size.X / 2.0f, -size.Y / 2.0f, +size.Z / 2.0f));
-            meshPX.Add(new Vertex("+X+Y+Z", +size.X / 2.0f, +size.Y / 2.0f, +size.Z / 2.0f));
+            meshPX.Add(new Vertex("+X-Y-Z", +size.X/2.0f, -size.Y/2.0f, -size.Z/2.0f));
+            meshPX.Add(new Vertex("+X+Y-Z", +size.X/2.0f, +size.Y/2.0f, -size.Z/2.0f));
+            meshPX.Add(new Vertex("+X-Y+Z", +size.X/2.0f, -size.Y/2.0f, +size.Z/2.0f));
+            meshPX.Add(new Vertex("+X+Y+Z", +size.X/2.0f, +size.Y/2.0f, +size.Z/2.0f));
 
 
             meshPX.Add(new Triangle(meshPX.vertices[0], meshPX.vertices[1], meshPX.vertices[2]));
@@ -254,17 +248,17 @@ namespace OpenSim.Region.Physics.OdePlugin
 
             if (hollowFactor > 0)
             {
-                float hollowFactorF = (float)hollowFactor / (float)50000;
+                float hollowFactorF = (float) hollowFactor/(float) 50000;
 
                 Vertex IPP;
                 Vertex IPM;
                 Vertex IMP;
                 Vertex IMM;
 
-                IPP = new Vertex("Inner-X+Y+Z", -size.X * hollowFactorF / 2.0f, +size.Y * hollowFactorF / 2.0f, +size.Z / 2.0f);
-                IPM = new Vertex("Inner-X+Y-Z", -size.X * hollowFactorF / 2.0f, +size.Y * hollowFactorF / 2.0f, -size.Z / 2.0f);
-                IMP = new Vertex("Inner-X-Y+Z", -size.X * hollowFactorF / 2.0f, -size.Y * hollowFactorF / 2.0f, +size.Z / 2.0f);
-                IMM = new Vertex("Inner-X-Y-Z", -size.X * hollowFactorF / 2.0f, -size.Y * hollowFactorF / 2.0f, -size.Z / 2.0f);
+                IPP = new Vertex("Inner-X+Y+Z", -size.X*hollowFactorF/2.0f, +size.Y*hollowFactorF/2.0f, +size.Z/2.0f);
+                IPM = new Vertex("Inner-X+Y-Z", -size.X*hollowFactorF/2.0f, +size.Y*hollowFactorF/2.0f, -size.Z/2.0f);
+                IMP = new Vertex("Inner-X-Y+Z", -size.X*hollowFactorF/2.0f, -size.Y*hollowFactorF/2.0f, +size.Z/2.0f);
+                IMM = new Vertex("Inner-X-Y-Z", -size.X*hollowFactorF/2.0f, -size.Y*hollowFactorF/2.0f, -size.Z/2.0f);
 
                 meshMX.Add(IPP);
                 meshMX.Add(IPM);
@@ -280,11 +274,10 @@ namespace OpenSim.Region.Physics.OdePlugin
                 }
 
 
-
-                IPP = new Vertex("Inner+X+Y+Z", +size.X * hollowFactorF / 2.0f, +size.Y * hollowFactorF / 2.0f, +size.Z / 2.0f);
-                IPM = new Vertex("Inner+X+Y-Z", +size.X * hollowFactorF / 2.0f, +size.Y * hollowFactorF / 2.0f, -size.Z / 2.0f);
-                IMP = new Vertex("Inner+X-Y+Z", +size.X * hollowFactorF / 2.0f, -size.Y * hollowFactorF / 2.0f, +size.Z / 2.0f);
-                IMM = new Vertex("Inner+X-Y-Z", +size.X * hollowFactorF / 2.0f, -size.Y * hollowFactorF / 2.0f, -size.Z / 2.0f);
+                IPP = new Vertex("Inner+X+Y+Z", +size.X*hollowFactorF/2.0f, +size.Y*hollowFactorF/2.0f, +size.Z/2.0f);
+                IPM = new Vertex("Inner+X+Y-Z", +size.X*hollowFactorF/2.0f, +size.Y*hollowFactorF/2.0f, -size.Z/2.0f);
+                IMP = new Vertex("Inner+X-Y+Z", +size.X*hollowFactorF/2.0f, -size.Y*hollowFactorF/2.0f, +size.Z/2.0f);
+                IMM = new Vertex("Inner+X-Y-Z", +size.X*hollowFactorF/2.0f, -size.Y*hollowFactorF/2.0f, -size.Z/2.0f);
 
                 meshPX.Add(IPP);
                 meshPX.Add(IPM);
@@ -308,18 +301,17 @@ namespace OpenSim.Region.Physics.OdePlugin
         }
 
 
-
-        static Mesh CreateBoxMeshY(PrimitiveBaseShape primShape, PhysicsVector size)
-        // Builds the y (+ and -) surfaces of a box shaped prim
+        private static Mesh CreateBoxMeshY(PrimitiveBaseShape primShape, PhysicsVector size)
+            // Builds the y (+ and -) surfaces of a box shaped prim
         {
             UInt16 hollowFactor = primShape.ProfileHollow;
 
             // (M)inus Y
             Mesh MeshMY = new Mesh();
-            MeshMY.Add(new Vertex("-X-Y-Z", -size.X / 2.0f, -size.Y / 2.0f, -size.Z / 2.0f));
-            MeshMY.Add(new Vertex("+X-Y-Z", +size.X / 2.0f, -size.Y / 2.0f, -size.Z / 2.0f));
-            MeshMY.Add(new Vertex("-X-Y+Z", -size.X / 2.0f, -size.Y / 2.0f, +size.Z / 2.0f));
-            MeshMY.Add(new Vertex("+X-Y+Z", +size.X / 2.0f, -size.Y / 2.0f, +size.Z / 2.0f));
+            MeshMY.Add(new Vertex("-X-Y-Z", -size.X/2.0f, -size.Y/2.0f, -size.Z/2.0f));
+            MeshMY.Add(new Vertex("+X-Y-Z", +size.X/2.0f, -size.Y/2.0f, -size.Z/2.0f));
+            MeshMY.Add(new Vertex("-X-Y+Z", -size.X/2.0f, -size.Y/2.0f, +size.Z/2.0f));
+            MeshMY.Add(new Vertex("+X-Y+Z", +size.X/2.0f, -size.Y/2.0f, +size.Z/2.0f));
 
             MeshMY.Add(new Triangle(MeshMY.vertices[0], MeshMY.vertices[1], MeshMY.vertices[2]));
             MeshMY.Add(new Triangle(MeshMY.vertices[2], MeshMY.vertices[1], MeshMY.vertices[3]));
@@ -327,27 +319,27 @@ namespace OpenSim.Region.Physics.OdePlugin
             // (P)lus Y
             Mesh MeshPY = new Mesh();
 
-            MeshPY.Add(new Vertex("-X+Y-Z", -size.X / 2.0f, +size.Y / 2.0f, -size.Z / 2.0f));
-            MeshPY.Add(new Vertex("+X+Y-Z", +size.X / 2.0f, +size.Y / 2.0f, -size.Z / 2.0f));
-            MeshPY.Add(new Vertex("-X+Y+Z", -size.X / 2.0f, +size.Y / 2.0f, +size.Z / 2.0f));
-            MeshPY.Add(new Vertex("+X+Y+Z", +size.X / 2.0f, +size.Y / 2.0f, +size.Z / 2.0f));
+            MeshPY.Add(new Vertex("-X+Y-Z", -size.X/2.0f, +size.Y/2.0f, -size.Z/2.0f));
+            MeshPY.Add(new Vertex("+X+Y-Z", +size.X/2.0f, +size.Y/2.0f, -size.Z/2.0f));
+            MeshPY.Add(new Vertex("-X+Y+Z", -size.X/2.0f, +size.Y/2.0f, +size.Z/2.0f));
+            MeshPY.Add(new Vertex("+X+Y+Z", +size.X/2.0f, +size.Y/2.0f, +size.Z/2.0f));
 
             MeshPY.Add(new Triangle(MeshPY.vertices[1], MeshPY.vertices[0], MeshPY.vertices[2]));
             MeshPY.Add(new Triangle(MeshPY.vertices[1], MeshPY.vertices[2], MeshPY.vertices[3]));
 
             if (hollowFactor > 0)
             {
-                float hollowFactorF = (float)hollowFactor / (float)50000;
+                float hollowFactorF = (float) hollowFactor/(float) 50000;
 
                 Vertex IPP;
                 Vertex IPM;
                 Vertex IMP;
                 Vertex IMM;
 
-                IPP = new Vertex("Inner+X-Y+Z", +size.X * hollowFactorF / 2.0f, -size.Y * hollowFactorF / 2.0f, +size.Z / 2.0f);
-                IPM = new Vertex("Inner+X-Y-Z", +size.X * hollowFactorF / 2.0f, -size.Y * hollowFactorF / 2.0f, -size.Z / 2.0f);
-                IMP = new Vertex("Inner-X-Y+Z", -size.X * hollowFactorF / 2.0f, -size.Y * hollowFactorF / 2.0f, +size.Z / 2.0f);
-                IMM = new Vertex("Inner-X-Y-Z", -size.X * hollowFactorF / 2.0f, -size.Y * hollowFactorF / 2.0f, -size.Z / 2.0f);
+                IPP = new Vertex("Inner+X-Y+Z", +size.X*hollowFactorF/2.0f, -size.Y*hollowFactorF/2.0f, +size.Z/2.0f);
+                IPM = new Vertex("Inner+X-Y-Z", +size.X*hollowFactorF/2.0f, -size.Y*hollowFactorF/2.0f, -size.Z/2.0f);
+                IMP = new Vertex("Inner-X-Y+Z", -size.X*hollowFactorF/2.0f, -size.Y*hollowFactorF/2.0f, +size.Z/2.0f);
+                IMM = new Vertex("Inner-X-Y-Z", -size.X*hollowFactorF/2.0f, -size.Y*hollowFactorF/2.0f, -size.Z/2.0f);
 
                 MeshMY.Add(IPP);
                 MeshMY.Add(IPM);
@@ -363,11 +355,10 @@ namespace OpenSim.Region.Physics.OdePlugin
                 }
 
 
-
-                IPP = new Vertex("Inner+X+Y+Z", +size.X * hollowFactorF / 2.0f, +size.Y * hollowFactorF / 2.0f, +size.Z / 2.0f);
-                IPM=new Vertex("Inner+X+Y-Z", +size.X * hollowFactorF / 2.0f, +size.Y  * hollowFactorF / 2.0f, -size.Z / 2.0f);
-                IMP=new Vertex("Inner-X+Y+Z", -size.X * hollowFactorF / 2.0f, +size.Y  * hollowFactorF / 2.0f, +size.Z / 2.0f);
-                IMM=new Vertex("Inner-X+Y-Z", -size.X * hollowFactorF / 2.0f, +size.Y  * hollowFactorF / 2.0f, -size.Z / 2.0f);
+                IPP = new Vertex("Inner+X+Y+Z", +size.X*hollowFactorF/2.0f, +size.Y*hollowFactorF/2.0f, +size.Z/2.0f);
+                IPM = new Vertex("Inner+X+Y-Z", +size.X*hollowFactorF/2.0f, +size.Y*hollowFactorF/2.0f, -size.Z/2.0f);
+                IMP = new Vertex("Inner-X+Y+Z", -size.X*hollowFactorF/2.0f, +size.Y*hollowFactorF/2.0f, +size.Z/2.0f);
+                IMM = new Vertex("Inner-X+Y-Z", -size.X*hollowFactorF/2.0f, +size.Y*hollowFactorF/2.0f, -size.Z/2.0f);
 
                 MeshPY.Add(IPP);
                 MeshPY.Add(IPM);
@@ -381,9 +372,6 @@ namespace OpenSim.Region.Physics.OdePlugin
                 {
                     PhysicsVector n = t.getNormal();
                 }
-
-
-
             }
 
 
@@ -393,9 +381,9 @@ namespace OpenSim.Region.Physics.OdePlugin
 
             return result;
         }
-            
-        static Mesh CreateBoxMeshZ(PrimitiveBaseShape primShape, PhysicsVector size)
-        // Builds the z (+ and -) surfaces of a box shaped prim
+
+        private static Mesh CreateBoxMeshZ(PrimitiveBaseShape primShape, PhysicsVector size)
+            // Builds the z (+ and -) surfaces of a box shaped prim
         {
             UInt16 hollowFactor = primShape.ProfileHollow;
 
@@ -403,10 +391,10 @@ namespace OpenSim.Region.Physics.OdePlugin
             // (M)inus Z
             Mesh MZ = new Mesh();
 
-            MZ.Add(new Vertex("-X-Y-Z", -size.X / 2.0f, -size.Y / 2.0f, -size.Z / 2.0f));
-            MZ.Add(new Vertex("+X-Y-Z", +size.X / 2.0f, -size.Y / 2.0f, -size.Z / 2.0f));
-            MZ.Add(new Vertex("-X+Y-Z", -size.X / 2.0f, +size.Y / 2.0f, -size.Z / 2.0f));
-            MZ.Add(new Vertex("+X+Y-Z", +size.X / 2.0f, +size.Y / 2.0f, -size.Z / 2.0f));
+            MZ.Add(new Vertex("-X-Y-Z", -size.X/2.0f, -size.Y/2.0f, -size.Z/2.0f));
+            MZ.Add(new Vertex("+X-Y-Z", +size.X/2.0f, -size.Y/2.0f, -size.Z/2.0f));
+            MZ.Add(new Vertex("-X+Y-Z", -size.X/2.0f, +size.Y/2.0f, -size.Z/2.0f));
+            MZ.Add(new Vertex("+X+Y-Z", +size.X/2.0f, +size.Y/2.0f, -size.Z/2.0f));
 
 
             MZ.Add(new Triangle(MZ.vertices[1], MZ.vertices[0], MZ.vertices[2]));
@@ -415,10 +403,10 @@ namespace OpenSim.Region.Physics.OdePlugin
             // (P)lus Z
             Mesh PZ = new Mesh();
 
-            PZ.Add(new Vertex("-X-Y+Z", -size.X / 2.0f, -size.Y / 2.0f, 0.0f));
-            PZ.Add(new Vertex("+X-Y+Z", +size.X / 2.0f, -size.Y / 2.0f, 0.0f));
-            PZ.Add(new Vertex("-X+Y+Z", -size.X / 2.0f, +size.Y / 2.0f, 0.0f));
-            PZ.Add(new Vertex("+X+Y+Z", +size.X / 2.0f, +size.Y / 2.0f, 0.0f));
+            PZ.Add(new Vertex("-X-Y+Z", -size.X/2.0f, -size.Y/2.0f, 0.0f));
+            PZ.Add(new Vertex("+X-Y+Z", +size.X/2.0f, -size.Y/2.0f, 0.0f));
+            PZ.Add(new Vertex("-X+Y+Z", -size.X/2.0f, +size.Y/2.0f, 0.0f));
+            PZ.Add(new Vertex("+X+Y+Z", +size.X/2.0f, +size.Y/2.0f, 0.0f));
 
             // Surface 5, +Z
             PZ.Add(new Triangle(PZ.vertices[0], PZ.vertices[1], PZ.vertices[2]));
@@ -426,12 +414,12 @@ namespace OpenSim.Region.Physics.OdePlugin
 
             if (hollowFactor > 0)
             {
-                float hollowFactorF = (float)hollowFactor / (float)50000;
+                float hollowFactorF = (float) hollowFactor/(float) 50000;
 
-                MZ.Add(new Vertex("-X-Y-Z", -size.X * hollowFactorF / 2.0f, -size.Y * hollowFactorF / 2.0f, 0.0f));
-                MZ.Add(new Vertex("-X+Y-Z", +size.X * hollowFactorF / 2.0f, -size.Y * hollowFactorF / 2.0f, 0.0f));
-                MZ.Add(new Vertex("-X-Y+Z", -size.X * hollowFactorF / 2.0f, +size.Y * hollowFactorF / 2.0f, 0.0f));
-                MZ.Add(new Vertex("-X+Y+Z", +size.X * hollowFactorF / 2.0f, +size.Y * hollowFactorF / 2.0f, 0.0f));
+                MZ.Add(new Vertex("-X-Y-Z", -size.X*hollowFactorF/2.0f, -size.Y*hollowFactorF/2.0f, 0.0f));
+                MZ.Add(new Vertex("-X+Y-Z", +size.X*hollowFactorF/2.0f, -size.Y*hollowFactorF/2.0f, 0.0f));
+                MZ.Add(new Vertex("-X-Y+Z", -size.X*hollowFactorF/2.0f, +size.Y*hollowFactorF/2.0f, 0.0f));
+                MZ.Add(new Vertex("-X+Y+Z", +size.X*hollowFactorF/2.0f, +size.Y*hollowFactorF/2.0f, 0.0f));
 
                 List<int> innerBorders = new List<int>();
                 innerBorders.Add(4);
@@ -441,10 +429,10 @@ namespace OpenSim.Region.Physics.OdePlugin
 
                 InsertVertices(MZ.vertices, 4, MZ.triangles, innerBorders);
 
-                PZ.Add(new Vertex("-X-Y-Z", -size.X * hollowFactorF / 2.0f, -size.Y * hollowFactorF / 2.0f, 0.0f));
-                PZ.Add(new Vertex("-X+Y-Z", +size.X * hollowFactorF / 2.0f, -size.Y * hollowFactorF / 2.0f, 0.0f));
-                PZ.Add(new Vertex("-X-Y+Z", -size.X * hollowFactorF / 2.0f, +size.Y * hollowFactorF / 2.0f, 0.0f));
-                PZ.Add(new Vertex("-X+Y+Z", +size.X * hollowFactorF / 2.0f, +size.Y * hollowFactorF / 2.0f, 0.0f));
+                PZ.Add(new Vertex("-X-Y-Z", -size.X*hollowFactorF/2.0f, -size.Y*hollowFactorF/2.0f, 0.0f));
+                PZ.Add(new Vertex("-X+Y-Z", +size.X*hollowFactorF/2.0f, -size.Y*hollowFactorF/2.0f, 0.0f));
+                PZ.Add(new Vertex("-X-Y+Z", -size.X*hollowFactorF/2.0f, +size.Y*hollowFactorF/2.0f, 0.0f));
+                PZ.Add(new Vertex("-X+Y+Z", +size.X*hollowFactorF/2.0f, +size.Y*hollowFactorF/2.0f, 0.0f));
 
                 innerBorders = new List<int>();
                 innerBorders.Add(4);
@@ -453,16 +441,15 @@ namespace OpenSim.Region.Physics.OdePlugin
                 innerBorders.Add(7);
 
                 InsertVertices(PZ.vertices, 4, PZ.triangles, innerBorders);
-
             }
 
             foreach (Vertex v in PZ.vertices)
             {
-                v.point.Z = size.Z / 2.0f;
+                v.point.Z = size.Z/2.0f;
             }
             foreach (Vertex v in MZ.vertices)
             {
-                v.point.Z = -size.Z / 2.0f;
+                v.point.Z = -size.Z/2.0f;
             }
 
             foreach (Triangle t in MZ.triangles)
@@ -486,15 +473,14 @@ namespace OpenSim.Region.Physics.OdePlugin
             return result;
         }
 
-        static Mesh CreateBoxMesh(PrimitiveBaseShape primShape, PhysicsVector size)
+        private static Mesh CreateBoxMesh(PrimitiveBaseShape primShape, PhysicsVector size)
         {
             Mesh result = new Mesh();
 
 
-
-            Mesh MeshX = Meshmerizer.CreateBoxMeshX(primShape, size);
-            Mesh MeshY = Meshmerizer.CreateBoxMeshY(primShape, size);
-            Mesh MeshZ = Meshmerizer.CreateBoxMeshZ(primShape, size);
+            Mesh MeshX = CreateBoxMeshX(primShape, size);
+            Mesh MeshY = CreateBoxMeshY(primShape, size);
+            Mesh MeshZ = CreateBoxMeshZ(primShape, size);
 
             result.Append(MeshX);
             result.Append(MeshY);
@@ -504,64 +490,63 @@ namespace OpenSim.Region.Physics.OdePlugin
         }
 
 
-        public static void CalcNormals(Mesh mesh) 
+        public static void CalcNormals(Mesh mesh)
         {
             int iTriangles = mesh.triangles.Count;
 
             mesh.normals = new float[iTriangles*3];
 
-            int i=0;
+            int i = 0;
             foreach (Triangle t in mesh.triangles)
             {
-
                 float ux, uy, uz;
                 float vx, vy, vz;
                 float wx, wy, wz;
 
-                    ux = t.v1.point.X;
-                    uy = t.v1.point.Y;
-                    uz = t.v1.point.Z;
+                ux = t.v1.point.X;
+                uy = t.v1.point.Y;
+                uz = t.v1.point.Z;
 
-                    vx = t.v2.point.X;
-                    vy = t.v2.point.Y;
-                    vz = t.v2.point.Z;
+                vx = t.v2.point.X;
+                vy = t.v2.point.Y;
+                vz = t.v2.point.Z;
 
-                    wx = t.v3.point.X;
-                    wy = t.v3.point.Y;
-                    wz = t.v3.point.Z;
+                wx = t.v3.point.X;
+                wy = t.v3.point.Y;
+                wz = t.v3.point.Z;
 
-                    // Vectors for edges
-                    float e1x, e1y, e1z;
-                    float e2x, e2y, e2z;
+                // Vectors for edges
+                float e1x, e1y, e1z;
+                float e2x, e2y, e2z;
 
-                    e1x = ux - vx;
-                    e1y = uy - vy;
-                    e1z = uz - vz;
+                e1x = ux - vx;
+                e1y = uy - vy;
+                e1z = uz - vz;
 
-                    e2x = ux - wx;
-                    e2y = uy - wy;
-                    e2z = uz - wz;
+                e2x = ux - wx;
+                e2y = uy - wy;
+                e2z = uz - wz;
 
 
-                    // Cross product for normal
-                    float nx, ny, nz;
-                    nx = e1y * e2z - e1z * e2y;
-                    ny = e1z * e2x - e1x * e2z;
-                    nz = e1x * e2y - e1y * e2x;
+                // Cross product for normal
+                float nx, ny, nz;
+                nx = e1y*e2z - e1z*e2y;
+                ny = e1z*e2x - e1x*e2z;
+                nz = e1x*e2y - e1y*e2x;
 
-                    // Length
-                    float l = (float)Math.Sqrt(nx * nx + ny * ny + nz * nz);
+                // Length
+                float l = (float) Math.Sqrt(nx*nx + ny*ny + nz*nz);
 
-                    // Normalized "normal"
-                    nx /= l;
-                    ny /= l;
-                    nz /= l;
+                // Normalized "normal"
+                nx /= l;
+                ny /= l;
+                nz /= l;
 
                 mesh.normals[i] = nx;
                 mesh.normals[i + 1] = ny;
                 mesh.normals[i + 2] = nz;
 
-                i+=3;
+                i += 3;
             }
         }
 
@@ -572,18 +557,15 @@ namespace OpenSim.Region.Physics.OdePlugin
             switch (primShape.ProfileShape)
             {
                 case ProfileShape.Square:
-                    mesh=CreateBoxMesh(primShape, size);
+                    mesh = CreateBoxMesh(primShape, size);
                     CalcNormals(mesh);
                     break;
                 default:
-                    mesh=null;
+                    mesh = null;
                     break;
             }
 
             return mesh;
-
         }
     }
 }
-
-

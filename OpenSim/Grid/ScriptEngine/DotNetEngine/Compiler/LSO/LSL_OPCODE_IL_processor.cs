@@ -27,32 +27,28 @@
 */
 /* Original code: Tedd Hansen */
 using System;
-using System.Collections.Generic;
-using System.Text;
 using System.Reflection;
 using System.Reflection.Emit;
 using OpenSim.Region.ScriptEngine.Common;
 
 namespace OpenSim.Grid.ScriptEngine.DotNetEngine.Compiler.LSO
 {
-    partial class LSO_Parser
+    internal partial class LSO_Parser
     {
         //internal Stack<Type> ILStack = new Stack<Type>();
         //LSO_Enums MyLSO_Enums = new LSO_Enums();
 
         internal bool LSL_PROCESS_OPCODE(ILGenerator il)
         {
-
             byte bp1;
             UInt32 u32p1;
             float fp1;
             UInt16 opcode = br_read(1)[0];
-            Common.SendToDebug("OPCODE: " + ((LSO_Enums.Operation_Table)opcode).ToString());
-            string idesc = ((LSO_Enums.Operation_Table)opcode).ToString();
-            switch ((LSO_Enums.Operation_Table)opcode)
+            Common.SendToDebug("OPCODE: " + ((LSO_Enums.Operation_Table) opcode).ToString());
+            string idesc = ((LSO_Enums.Operation_Table) opcode).ToString();
+            switch ((LSO_Enums.Operation_Table) opcode)
             {
-
-                /***************
+                    /***************
                  * IMPLEMENTED *
                  ***************/
                 case LSO_Enums.Operation_Table.NOOP:
@@ -60,33 +56,34 @@ namespace OpenSim.Grid.ScriptEngine.DotNetEngine.Compiler.LSO
                 case LSO_Enums.Operation_Table.PUSHSP:
                     // Push Stack Top (Memory Address) to stack
                     Common.SendToDebug("Instruction " + idesc);
-                    Common.SendToDebug("Instruction " + idesc + ": Description: Pushing Stack Top (Memory Address from header) to stack");
-                    IL_Push(il, (UInt32)myHeader.SP);
+                    Common.SendToDebug("Instruction " + idesc +
+                                       ": Description: Pushing Stack Top (Memory Address from header) to stack");
+                    IL_Push(il, (UInt32) myHeader.SP);
                     break;
-                // BYTE
+                    // BYTE
                 case LSO_Enums.Operation_Table.PUSHARGB:
                     Common.SendToDebug("Param1: " + br_read(1)[0]);
                     break;
-                // INTEGER
+                    // INTEGER
                 case LSO_Enums.Operation_Table.PUSHARGI:
                     u32p1 = BitConverter.ToUInt32(br_read(4), 0);
                     Common.SendToDebug("Instruction " + idesc + ", Param1: " + u32p1);
                     IL_Push(il, u32p1);
                     break;
-                // FLOAT
+                    // FLOAT
                 case LSO_Enums.Operation_Table.PUSHARGF:
                     fp1 = BitConverter.ToUInt32(br_read(4), 0);
                     Common.SendToDebug("Instruction " + idesc + ", Param1: " + fp1);
                     IL_Push(il, fp1);
                     break;
-                // STRING
+                    // STRING
                 case LSO_Enums.Operation_Table.PUSHARGS:
                     string s = Read_String();
                     Common.SendToDebug("Instruction " + idesc + ", Param1: " + s);
                     IL_Debug(il, "OPCODE: " + idesc + ":" + s);
                     IL_Push(il, s);
                     break;
-                // VECTOR z,y,x
+                    // VECTOR z,y,x
                 case LSO_Enums.Operation_Table.PUSHARGV:
                     LSO_Enums.Vector v = new LSO_Enums.Vector();
                     v.Z = BitConverter.ToUInt32(br_read(4), 0);
@@ -97,7 +94,7 @@ namespace OpenSim.Grid.ScriptEngine.DotNetEngine.Compiler.LSO
                     Common.SendToDebug("Param1 X: " + v.X);
                     IL_Push(il, v);
                     break;
-                // ROTATION s,z,y,x
+                    // ROTATION s,z,y,x
                 case LSO_Enums.Operation_Table.PUSHARGQ:
                     LSO_Enums.Rotation r = new LSO_Enums.Rotation();
                     r.S = BitConverter.ToUInt32(br_read(4), 0);
@@ -112,7 +109,7 @@ namespace OpenSim.Grid.ScriptEngine.DotNetEngine.Compiler.LSO
                     break;
 
                 case LSO_Enums.Operation_Table.PUSHE:
-                    IL_Push(il, (UInt32)0);
+                    IL_Push(il, (UInt32) 0);
                     break;
 
                 case LSO_Enums.Operation_Table.PUSHARGE:
@@ -121,7 +118,7 @@ namespace OpenSim.Grid.ScriptEngine.DotNetEngine.Compiler.LSO
                     //IL_Push(il, new string(" ".ToCharArray()[0], Convert.ToInt32(u32p1)));
                     IL_Push(il, u32p1);
                     break;
-                // BYTE
+                    // BYTE
                 case LSO_Enums.Operation_Table.ADD:
                 case LSO_Enums.Operation_Table.SUB:
                 case LSO_Enums.Operation_Table.MUL:
@@ -136,10 +133,10 @@ namespace OpenSim.Grid.ScriptEngine.DotNetEngine.Compiler.LSO
                 case LSO_Enums.Operation_Table.MOD:
                     bp1 = br_read(1)[0];
                     Common.SendToDebug("Param1: " + bp1);
-                    IL_CallBaseFunction(il, idesc, (UInt32)bp1);
+                    IL_CallBaseFunction(il, idesc, (UInt32) bp1);
                     break;
 
-                // NO ARGUMENTS
+                    // NO ARGUMENTS
                 case LSO_Enums.Operation_Table.BITAND:
                 case LSO_Enums.Operation_Table.BITOR:
                 case LSO_Enums.Operation_Table.BITXOR:
@@ -149,22 +146,23 @@ namespace OpenSim.Grid.ScriptEngine.DotNetEngine.Compiler.LSO
                 case LSO_Enums.Operation_Table.BOOLNOT:
                     IL_CallBaseFunction(il, idesc);
                     break;
-                // SHORT
+                    // SHORT
                 case LSO_Enums.Operation_Table.CALLLIB_TWO_BYTE:
                     // TODO: What is size of short?
                     UInt16 U16p1 = BitConverter.ToUInt16(br_read(2), 0);
-                    Common.SendToDebug("Instruction " + idesc + ": Builtin Command: " + ((LSO_Enums.BuiltIn_Functions)U16p1).ToString());
+                    Common.SendToDebug("Instruction " + idesc + ": Builtin Command: " +
+                                       ((LSO_Enums.BuiltIn_Functions) U16p1).ToString());
                     //Common.SendToDebug("Param1: " + U16p1);
-                    string fname = ((LSO_Enums.BuiltIn_Functions)U16p1).ToString();
+                    string fname = ((LSO_Enums.BuiltIn_Functions) U16p1).ToString();
 
                     bool cmdFound = false;
-                    foreach (MethodInfo mi in typeof(LSL_BuiltIn_Commands_Interface).GetMethods())
+                    foreach (MethodInfo mi in typeof (LSL_BuiltIn_Commands_Interface).GetMethods())
                     {
                         // Found command
                         if (mi.Name == fname)
                         {
                             il.Emit(OpCodes.Ldarg_0);
-                            il.Emit(OpCodes.Call, typeof(LSL_BaseClass).GetMethod("GetLSL_BuiltIn", new Type[] { }));
+                            il.Emit(OpCodes.Call, typeof (LSL_BaseClass).GetMethod("GetLSL_BuiltIn", new Type[] {}));
                             // Pop required number of items from my stack to .Net stack
                             IL_PopToStack(il, mi.GetParameters().Length);
                             il.Emit(OpCodes.Callvirt, mi);
@@ -179,7 +177,7 @@ namespace OpenSim.Grid.ScriptEngine.DotNetEngine.Compiler.LSO
 
                     break;
 
-                // RETURN
+                    // RETURN
                 case LSO_Enums.Operation_Table.RETURN:
 
                     Common.SendToDebug("OPCODE: RETURN");
@@ -195,7 +193,7 @@ namespace OpenSim.Grid.ScriptEngine.DotNetEngine.Compiler.LSO
                     IL_Pop(il);
                     break;
 
-                // LONG
+                    // LONG
                 case LSO_Enums.Operation_Table.STORE:
                 case LSO_Enums.Operation_Table.STORES:
                 case LSO_Enums.Operation_Table.STOREL:
@@ -238,7 +236,7 @@ namespace OpenSim.Grid.ScriptEngine.DotNetEngine.Compiler.LSO
                     IL_Pop(il);
                     break;
 
-                // PUSH FROM LOCAL FRAME
+                    // PUSH FROM LOCAL FRAME
                 case LSO_Enums.Operation_Table.PUSH:
                 case LSO_Enums.Operation_Table.PUSHS:
                 case LSO_Enums.Operation_Table.PUSHL:
@@ -250,7 +248,7 @@ namespace OpenSim.Grid.ScriptEngine.DotNetEngine.Compiler.LSO
 
                     break;
 
-                // PUSH FROM STATIC FRAME
+                    // PUSH FROM STATIC FRAME
                 case LSO_Enums.Operation_Table.PUSHG:
                 case LSO_Enums.Operation_Table.PUSHGS:
                 case LSO_Enums.Operation_Table.PUSHGL:
@@ -262,10 +260,9 @@ namespace OpenSim.Grid.ScriptEngine.DotNetEngine.Compiler.LSO
                     break;
 
 
-                /***********************
+                    /***********************
                  * NOT IMPLEMENTED YET *
                  ***********************/
-
 
 
                 case LSO_Enums.Operation_Table.POPIP:
@@ -274,14 +271,14 @@ namespace OpenSim.Grid.ScriptEngine.DotNetEngine.Compiler.LSO
                 case LSO_Enums.Operation_Table.POPARG:
                 case LSO_Enums.Operation_Table.POPBP:
                     //Common.SendToDebug("Instruction " + idesc + ": Ignored");
-                    Common.SendToDebug("Instruction " + idesc + ": Description: Drop x bytes from the stack (TODO: Only popping 1)");
+                    Common.SendToDebug("Instruction " + idesc +
+                                       ": Description: Drop x bytes from the stack (TODO: Only popping 1)");
                     //Common.SendToDebug("Param1: " + BitConverter.ToUInt32(br_read(4), 0));
                     IL_Pop(il);
                     break;
 
 
-
-                // None
+                    // None
                 case LSO_Enums.Operation_Table.PUSHIP:
                     // PUSH INSTRUCTION POINTER
                     break;
@@ -293,17 +290,17 @@ namespace OpenSim.Grid.ScriptEngine.DotNetEngine.Compiler.LSO
                     break;
 
 
-                // LONG
+                    // LONG
                 case LSO_Enums.Operation_Table.JUMP:
                     Common.SendToDebug("Param1: " + BitConverter.ToUInt32(br_read(4), 0));
                     break;
-                // BYTE, LONG
+                    // BYTE, LONG
                 case LSO_Enums.Operation_Table.JUMPIF:
                 case LSO_Enums.Operation_Table.JUMPNIF:
                     Common.SendToDebug("Param1: " + br_read(1)[0]);
                     Common.SendToDebug("Param2: " + BitConverter.ToUInt32(br_read(4), 0));
                     break;
-                // LONG
+                    // LONG
                 case LSO_Enums.Operation_Table.STATE:
                     bp1 = br_read(1)[0];
                     //il.Emit(OpCodes.Ld);                            // Load local variable 0 onto stack
@@ -315,12 +312,13 @@ namespace OpenSim.Grid.ScriptEngine.DotNetEngine.Compiler.LSO
                     Common.SendToDebug("Param1: " + BitConverter.ToUInt32(br_read(4), 0));
                     Common.SendToDebug("ERROR: Function CALL not implemented yet.");
                     break;
-                // BYTE
+                    // BYTE
                 case LSO_Enums.Operation_Table.CAST:
                     bp1 = br_read(1)[0];
-                    Common.SendToDebug("Instruction " + idesc + ": Cast to type: " + ((LSO_Enums.OpCode_Cast_TypeDefs)bp1));
+                    Common.SendToDebug("Instruction " + idesc + ": Cast to type: " +
+                                       ((LSO_Enums.OpCode_Cast_TypeDefs) bp1));
                     Common.SendToDebug("Param1: " + bp1);
-                    switch ((LSO_Enums.OpCode_Cast_TypeDefs)bp1)
+                    switch ((LSO_Enums.OpCode_Cast_TypeDefs) bp1)
                     {
                         case LSO_Enums.OpCode_Cast_TypeDefs.String:
                             Common.SendToDebug("Instruction " + idesc + ": il.Emit(OpCodes.Box, ILStack.Pop());");
@@ -330,12 +328,12 @@ namespace OpenSim.Grid.ScriptEngine.DotNetEngine.Compiler.LSO
                             break;
                     }
                     break;
-                // LONG
+                    // LONG
                 case LSO_Enums.Operation_Table.STACKTOS:
                 case LSO_Enums.Operation_Table.STACKTOL:
                     Common.SendToDebug("Param1: " + BitConverter.ToUInt32(br_read(4), 0));
                     break;
-                // BYTE
+                    // BYTE
                 case LSO_Enums.Operation_Table.PRINT:
                 case LSO_Enums.Operation_Table.CALLLIB:
                     Common.SendToDebug("Param1: " + br_read(1)[0]);
@@ -348,6 +346,7 @@ namespace OpenSim.Grid.ScriptEngine.DotNetEngine.Compiler.LSO
         {
             IL_PopToStack(il, 1);
         }
+
         private void IL_PopToStack(ILGenerator il, int count)
         {
             Common.SendToDebug("IL_PopToStack();");
@@ -360,31 +359,35 @@ namespace OpenSim.Grid.ScriptEngine.DotNetEngine.Compiler.LSO
                 //    new Type[] { }));
             }
         }
+
         private void IL_Pop(ILGenerator il)
         {
             Common.SendToDebug("IL_Pop();");
             IL_CallBaseFunction(il, "POP");
         }
+
         private void IL_Debug(ILGenerator il, string text)
         {
             il.Emit(OpCodes.Ldstr, text);
-            il.Emit(OpCodes.Call, typeof(Common).GetMethod("SendToDebug",
-                new Type[] { typeof(string) }
-            ));
+            il.Emit(OpCodes.Call, typeof (Common).GetMethod("SendToDebug",
+                                                            new Type[] {typeof (string)}
+                                      ));
         }
+
         private void IL_CallBaseFunction(ILGenerator il, string methodname)
         {
             il.Emit(OpCodes.Ldarg_0);
-            il.Emit(OpCodes.Call, typeof(LSL_BaseClass).GetMethod(methodname, new Type[] { }));
+            il.Emit(OpCodes.Call, typeof (LSL_BaseClass).GetMethod(methodname, new Type[] {}));
         }
+
         private void IL_CallBaseFunction(ILGenerator il, string methodname, object data)
         {
             il.Emit(OpCodes.Ldarg_0);
-            if (data.GetType() == typeof(string))
-                il.Emit(OpCodes.Ldstr, (string)data);
-            if (data.GetType() == typeof(UInt32))
-                il.Emit(OpCodes.Ldc_I4, (UInt32)data);
-            il.Emit(OpCodes.Call, typeof(LSL_BaseClass).GetMethod(methodname, new Type[] { data.GetType() }));
+            if (data.GetType() == typeof (string))
+                il.Emit(OpCodes.Ldstr, (string) data);
+            if (data.GetType() == typeof (UInt32))
+                il.Emit(OpCodes.Ldc_I4, (UInt32) data);
+            il.Emit(OpCodes.Call, typeof (LSL_BaseClass).GetMethod(methodname, new Type[] {data.GetType()}));
         }
 
         private void IL_Push(ILGenerator il, object data)
@@ -394,43 +397,39 @@ namespace OpenSim.Grid.ScriptEngine.DotNetEngine.Compiler.LSO
 
             IL_PushDataTypeToILStack(il, data);
 
-            il.Emit(OpCodes.Call, typeof(LSL_BaseClass).GetMethod("PUSH", new Type[] { data.GetType() }));
-
+            il.Emit(OpCodes.Call, typeof (LSL_BaseClass).GetMethod("PUSH", new Type[] {data.GetType()}));
         }
 
         private void IL_PushDataTypeToILStack(ILGenerator il, object data)
         {
-            if (data.GetType() == typeof(UInt16))
+            if (data.GetType() == typeof (UInt16))
             {
-                il.Emit(OpCodes.Ldc_I4, (UInt16)data);
+                il.Emit(OpCodes.Ldc_I4, (UInt16) data);
                 il.Emit(OpCodes.Box, data.GetType());
             }
-            if (data.GetType() == typeof(UInt32))
+            if (data.GetType() == typeof (UInt32))
             {
-                il.Emit(OpCodes.Ldc_I4, (UInt32)data);
+                il.Emit(OpCodes.Ldc_I4, (UInt32) data);
                 il.Emit(OpCodes.Box, data.GetType());
             }
-            if (data.GetType() == typeof(Int32))
+            if (data.GetType() == typeof (Int32))
             {
-                il.Emit(OpCodes.Ldc_I4, (Int32)data);
+                il.Emit(OpCodes.Ldc_I4, (Int32) data);
                 il.Emit(OpCodes.Box, data.GetType());
             }
-            if (data.GetType() == typeof(float))
+            if (data.GetType() == typeof (float))
             {
-                il.Emit(OpCodes.Ldc_I4, (float)data);
+                il.Emit(OpCodes.Ldc_I4, (float) data);
                 il.Emit(OpCodes.Box, data.GetType());
             }
-            if (data.GetType() == typeof(string))
-                il.Emit(OpCodes.Ldstr, (string)data);
+            if (data.GetType() == typeof (string))
+                il.Emit(OpCodes.Ldstr, (string) data);
             //if (data.GetType() == typeof(LSO_Enums.Rotation))
             //    il.Emit(OpCodes.Ldobj, (LSO_Enums.Rotation)data);
             //if (data.GetType() == typeof(LSO_Enums.Vector))
             //    il.Emit(OpCodes.Ldobj, (LSO_Enums.Vector)data);
             //if (data.GetType() == typeof(LSO_Enums.Key))
             //    il.Emit(OpCodes.Ldobj, (LSO_Enums.Key)data);
-
         }
-
-
     }
 }

@@ -28,8 +28,6 @@
 
 
 using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace libTerrain
 {
@@ -63,12 +61,12 @@ namespace libTerrain
                 {
                     double z = size;
                     z *= z;
-                    z -= ((x - rx) * (x - rx)) + ((y - ry) * (y - ry));
+                    z -= ((x - rx)*(x - rx)) + ((y - ry)*(y - ry));
 
                     if (z < 0)
                         z = 0;
 
-                    Set(x, y, map[x, y] + (z * amount));
+                    Set(x, y, map[x, y] + (z*amount));
                 }
             }
         }
@@ -88,12 +86,12 @@ namespace libTerrain
                 for (y = 0; y < h; y++)
                 {
                     double z = size;
-                    z -= Math.Sqrt(((x - rx) * (x - rx)) + ((y - ry) * (y - ry)));
+                    z -= Math.Sqrt(((x - rx)*(x - rx)) + ((y - ry)*(y - ry)));
 
                     if (z < 0)
                         z = 0;
 
-                    Set(x, y, map[x, y] + (z * amount));
+                    Set(x, y, map[x, y] + (z*amount));
                 }
             }
         }
@@ -126,12 +124,12 @@ namespace libTerrain
                 {
                     double z = size;
                     z *= z;
-                    z -= ((x - rx) * (x - rx)) + ((y - ry) * (y - ry));
+                    z -= ((x - rx)*(x - rx)) + ((y - ry)*(y - ry));
 
                     if (z < 0)
                         z = 0;
 
-                    Set(x, y, map[x, y] - (z * amount));
+                    Set(x, y, map[x, y] - (z*amount));
                 }
             }
         }

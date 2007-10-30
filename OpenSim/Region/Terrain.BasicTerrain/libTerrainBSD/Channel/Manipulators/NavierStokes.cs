@@ -26,10 +26,6 @@
 * 
 */
 
-using System;
-using System.Collections.Generic;
-using System.Text;
-
 namespace libTerrain
 {
     partial class Channel
@@ -42,7 +38,7 @@ namespace libTerrain
 
         private static int nsIX(int i, int j, int N)
         {
-            return ((i) + (N + 2) * (j));
+            return ((i) + (N + 2)*(j));
         }
 
         private static void nsSwap(ref double x0, ref double x)
@@ -62,10 +58,10 @@ namespace libTerrain
         private void nsAddSource(int N, ref double[] x, ref double[] s, double dt)
         {
             int i;
-            int size = (N + 2) * (N + 2);
+            int size = (N + 2)*(N + 2);
             for (i = 0; i < size; i++)
             {
-                x[i] += dt * s[i];
+                x[i] += dt*s[i];
             }
         }
 
@@ -74,15 +70,15 @@ namespace libTerrain
             int i;
             for (i = 0; i <= N; i++)
             {
-                x[nsIX(0, i, N)]        = b == 1 ? -x[nsIX(1, i, N)] : x[nsIX(1, i, N)];
-                x[nsIX(0, N + 1, N)]    = b == 1 ? -x[nsIX(N, i, N)] : x[nsIX(N, i, N)];
-                x[nsIX(i, 0, N)]        = b == 2 ? -x[nsIX(i, 1, N)] : x[nsIX(i, 1, N)];
-                x[nsIX(i, N + 1, N)]    = b == 2 ? -x[nsIX(i, N, N)] : x[nsIX(i, N, N)];
+                x[nsIX(0, i, N)] = b == 1 ? -x[nsIX(1, i, N)] : x[nsIX(1, i, N)];
+                x[nsIX(0, N + 1, N)] = b == 1 ? -x[nsIX(N, i, N)] : x[nsIX(N, i, N)];
+                x[nsIX(i, 0, N)] = b == 2 ? -x[nsIX(i, 1, N)] : x[nsIX(i, 1, N)];
+                x[nsIX(i, N + 1, N)] = b == 2 ? -x[nsIX(i, N, N)] : x[nsIX(i, N, N)];
             }
-            x[nsIX(0, 0, N)]            = 0.5f * (x[nsIX(1, 0, N)]      + x[nsIX(0, 1, N)]);
-            x[nsIX(0, N + 1, N)]        = 0.5f * (x[nsIX(1, N + 1, N)]  + x[nsIX(0, N, N)]);
-            x[nsIX(N + 1, 0, N)]        = 0.5f * (x[nsIX(N, 0, N)]      + x[nsIX(N + 1, 1, N)]);
-            x[nsIX(N + 1, N + 1, N)]    = 0.5f * (x[nsIX(N, N + 1, N)]  + x[nsIX(N + 1, N, N)]);
+            x[nsIX(0, 0, N)] = 0.5f*(x[nsIX(1, 0, N)] + x[nsIX(0, 1, N)]);
+            x[nsIX(0, N + 1, N)] = 0.5f*(x[nsIX(1, N + 1, N)] + x[nsIX(0, N, N)]);
+            x[nsIX(N + 1, 0, N)] = 0.5f*(x[nsIX(N, 0, N)] + x[nsIX(N + 1, 1, N)]);
+            x[nsIX(N + 1, N + 1, N)] = 0.5f*(x[nsIX(N, N + 1, N)] + x[nsIX(N + 1, N, N)]);
         }
 
         private void nsLinSolve(int N, int b, ref double[] x, ref double[] x0, double a, double c)
@@ -92,11 +88,11 @@ namespace libTerrain
             {
                 for (j = 1; j <= N; j++)
                 {
-                    x[nsIX(i, j, N)] = (x0[nsIX(i, j, N)] + a * 
-                        (x[nsIX(i - 1, j, N)] + 
-                         x[nsIX(i + 1, j, N)] + 
-                         x[nsIX(i, j - 1, N)] + x[nsIX(i, j + 1, N)])
-                        ) / c;
+                    x[nsIX(i, j, N)] = (x0[nsIX(i, j, N)] + a*
+                                                            (x[nsIX(i - 1, j, N)] +
+                                                             x[nsIX(i + 1, j, N)] +
+                                                             x[nsIX(i, j - 1, N)] + x[nsIX(i, j + 1, N)])
+                                       )/c;
                 }
             }
 
@@ -105,8 +101,8 @@ namespace libTerrain
 
         private void nsDiffuse(int N, int b, ref double[] x, ref double[] x0, double diff, double dt)
         {
-            double a = dt * diff * N * N;
-            nsLinSolve(N, b, ref x, ref x0, a, 1 + 4 * a);
+            double a = dt*diff*N*N;
+            nsLinSolve(N, b, ref x, ref x0, a, 1 + 4*a);
         }
 
         private void nsAdvect(int N, int b, ref double[] d, ref double[] d0, ref double[] u, ref double[] v, double dt)
@@ -114,27 +110,27 @@ namespace libTerrain
             int i, j, i0, j0, i1, j1;
             double x, y, s0, t0, s1, t1, dt0;
 
-            dt0 = dt * N;
+            dt0 = dt*N;
 
             for (i = 1; i <= N; i++)
             {
                 for (j = 1; j <= N; j++)
                 {
-                    x = i - dt0 * u[nsIX(i, j, N)];
-                    y = j - dt0 * v[nsIX(i, j, N)];
+                    x = i - dt0*u[nsIX(i, j, N)];
+                    y = j - dt0*v[nsIX(i, j, N)];
 
                     if (x < 0.5)
                         x = 0.5;
                     if (x > N + 0.5)
                         x = N + 0.5;
-                    i0 = (int)x; 
+                    i0 = (int) x;
                     i1 = i0 + 1;
 
                     if (y < 0.5)
                         y = 0.5;
                     if (y > N + 0.5)
                         y = N + 0.5;
-                    j0 = (int)y;
+                    j0 = (int) y;
                     j1 = j0 + 1;
 
                     s1 = x - i0;
@@ -142,8 +138,8 @@ namespace libTerrain
                     t1 = y - j0;
                     t0 = 1 - t1;
 
-                    d[nsIX(i, j, N)] =  s0 * (t0 * d0[nsIX(i0, j0, N)] + t1 * d0[nsIX(i0, j1, N)]) +
-                                        s1 * (t0 * d0[nsIX(i1, j0, N)] + t1 * d0[nsIX(i1, j1, N)]);
+                    d[nsIX(i, j, N)] = s0*(t0*d0[nsIX(i0, j0, N)] + t1*d0[nsIX(i0, j1, N)]) +
+                                       s1*(t0*d0[nsIX(i1, j0, N)] + t1*d0[nsIX(i1, j1, N)]);
                 }
             }
 
@@ -158,7 +154,9 @@ namespace libTerrain
             {
                 for (j = 1; j <= N; j++)
                 {
-                    div[nsIX(i, j, N)] = -0.5 * (u[nsIX(i + 1, j, N)] - u[nsIX(i - 1, j, N)] + v[nsIX(i, j + 1, N)] - v[nsIX(i, j - 1, N)]) / N;
+                    div[nsIX(i, j, N)] = -0.5*
+                                         (u[nsIX(i + 1, j, N)] - u[nsIX(i - 1, j, N)] + v[nsIX(i, j + 1, N)] -
+                                          v[nsIX(i, j - 1, N)])/N;
                     p[nsIX(i, j, N)] = 0;
                 }
             }
@@ -172,8 +170,8 @@ namespace libTerrain
             {
                 for (j = 1; j <= N; j++)
                 {
-                    u[nsIX(i, j, N)] -= 0.5 * N * (p[nsIX(i + 1, j, N)] - p[nsIX(i - 1, j, N)]);
-                    v[nsIX(i, j, N)] -= 0.5 * N * (p[nsIX(i, j + 1, N)] - p[nsIX(i, j - 1, N)]);
+                    u[nsIX(i, j, N)] -= 0.5*N*(p[nsIX(i + 1, j, N)] - p[nsIX(i - 1, j, N)]);
+                    v[nsIX(i, j, N)] -= 0.5*N*(p[nsIX(i, j + 1, N)] - p[nsIX(i, j - 1, N)]);
                 }
             }
 
@@ -181,7 +179,8 @@ namespace libTerrain
             nsSetBnd(N, 2, ref v);
         }
 
-        private void nsDensStep(int N, ref double[] x, ref double[] x0, ref double[] u, ref double[] v, double diff, double dt)
+        private void nsDensStep(int N, ref double[] x, ref double[] x0, ref double[] u, ref double[] v, double diff,
+                                double dt)
         {
             nsAddSource(N, ref x, ref x0, dt);
             nsSwap(ref x0, ref x);
@@ -190,7 +189,8 @@ namespace libTerrain
             nsAdvect(N, 0, ref x, ref x0, ref u, ref v, dt);
         }
 
-        private void nsVelStep(int N, ref double[] u, ref double[] v, ref double[] u0, ref double[] v0, double visc, double dt)
+        private void nsVelStep(int N, ref double[] u, ref double[] v, ref double[] u0, ref double[] v0, double visc,
+                               double dt)
         {
             nsAddSource(N, ref u, ref u0, dt);
             nsAddSource(N, ref v, ref v0, dt);
@@ -236,17 +236,17 @@ namespace libTerrain
 
         private void nsSimulate(int N, int rounds, double dt, double diff, double visc)
         {
-            int size = (N * 2) * (N * 2);
+            int size = (N*2)*(N*2);
 
-            double[] u          = new double[size]; // Force, X axis
-            double[] v          = new double[size]; // Force, Y axis
-            double[] u_prev     = new double[size];
-            double[] v_prev     = new double[size];
-            double[] dens       = new double[size];
-            double[] dens_prev  = new double[size];
+            double[] u = new double[size]; // Force, X axis
+            double[] v = new double[size]; // Force, Y axis
+            double[] u_prev = new double[size];
+            double[] v_prev = new double[size];
+            double[] dens = new double[size];
+            double[] dens_prev = new double[size];
 
-            nsDoublesToBuffer(this.map, N, ref dens);
-            nsDoublesToBuffer(this.map, N, ref dens_prev);
+            nsDoublesToBuffer(map, N, ref dens);
+            nsDoublesToBuffer(map, N, ref dens_prev);
 
             for (int i = 0; i < rounds; i++)
             {
@@ -258,7 +258,7 @@ namespace libTerrain
                 nsDensStep(N, ref dens, ref dens_prev, ref u, ref v, diff, dt);
             }
 
-            nsBufferToDoubles(ref dens, N, ref this.map);
+            nsBufferToDoubles(ref dens, N, ref map);
         }
 
         /// <summary>
@@ -270,14 +270,14 @@ namespace libTerrain
         /// <param name="visc">Fluid viscosity (Recommended: 0.0)</param>
         public void navierStokes(int rounds, double dt, double diff, double visc)
         {
-            nsSimulate(this.h, rounds, dt, diff, visc);
+            nsSimulate(h, rounds, dt, diff, visc);
         }
 
         public void navierStokes(int rounds, double dt, double diff, double visc, ref double[,] uret, ref double[,] vret)
         {
-            int N = this.h;
+            int N = h;
 
-            int size = (N * 2) * (N * 2);
+            int size = (N*2)*(N*2);
 
             double[] u = new double[size]; // Force, X axis
             double[] v = new double[size]; // Force, Y axis
@@ -286,8 +286,8 @@ namespace libTerrain
             double[] dens = new double[size];
             double[] dens_prev = new double[size];
 
-            nsDoublesToBuffer(this.map, N, ref dens);
-            nsDoublesToBuffer(this.map, N, ref dens_prev);
+            nsDoublesToBuffer(map, N, ref dens);
+            nsDoublesToBuffer(map, N, ref dens_prev);
 
             for (int i = 0; i < rounds; i++)
             {
@@ -301,7 +301,7 @@ namespace libTerrain
 
             nsBufferToDoubles(ref u, N, ref uret);
             nsBufferToDoubles(ref v, N, ref vret);
-            nsBufferToDoubles(ref dens, N, ref this.map);
+            nsBufferToDoubles(ref dens, N, ref map);
         }
     }
 }

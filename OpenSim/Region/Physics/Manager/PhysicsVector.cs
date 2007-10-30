@@ -35,7 +35,6 @@ namespace OpenSim.Region.Physics.Manager
 
         public PhysicsVector()
         {
-
         }
 
         public PhysicsVector(float x, float y, float z)
@@ -49,7 +48,7 @@ namespace OpenSim.Region.Physics.Manager
 
         public override string ToString()
         {
-            return "<" + this.X + "," + this.Y + "," + this.Z + ">";
+            return "<" + X + "," + Y + "," + Z + ">";
         }
     }
 }

@@ -26,8 +26,6 @@
 * 
 */
 using System;
-using System.Collections.Generic;
-using System.Text;
 using OpenSim.Region.ExtensionsScriptModule.JVMEngine.Types;
 using OpenSim.Region.ExtensionsScriptModule.JVMEngine.Types.PrimitiveTypes;
 
@@ -47,77 +45,77 @@ namespace OpenSim.Region.ExtensionsScriptModule.JVMEngine.JVM
             public bool Excute()
             {
                 bool run = true;
-                byte currentOpCode = GlobalMemory.MethodArea.MethodBuffer[this.m_thread.PC++];
-               // Console.WriteLine("opCode is: " + currentOpCode);
+                byte currentOpCode = GlobalMemory.MethodArea.MethodBuffer[m_thread.PC++];
+                // Console.WriteLine("opCode is: " + currentOpCode);
                 bool handled = false;
 
-                handled = this.IsLogicOpCode(currentOpCode);
+                handled = IsLogicOpCode(currentOpCode);
                 if (!handled)
                 {
-                    handled = this.IsMethodOpCode(currentOpCode);
+                    handled = IsMethodOpCode(currentOpCode);
                 }
                 if (!handled)
                 {
                     if (currentOpCode == 172)
                     {
-                        if (this.m_thread.stack.StackFrames.Count > 1)
+                        if (m_thread.stack.StackFrames.Count > 1)
                         {
                             Console.WriteLine("returning int from function");
-                            int retPC1 = this.m_thread.m_currentFrame.ReturnPC;
-                            BaseType bas1 = this.m_thread.m_currentFrame.OpStack.Pop();
-                            this.m_thread.stack.StackFrames.Pop();
-                            this.m_thread.m_currentFrame = this.m_thread.stack.StackFrames.Peek();
-                            this.m_thread.PC = retPC1;
+                            int retPC1 = m_thread.m_currentFrame.ReturnPC;
+                            BaseType bas1 = m_thread.m_currentFrame.OpStack.Pop();
+                            m_thread.stack.StackFrames.Pop();
+                            m_thread.m_currentFrame = m_thread.stack.StackFrames.Peek();
+                            m_thread.PC = retPC1;
                             if (bas1 is Int)
                             {
-                                this.m_thread.m_currentFrame.OpStack.Push((Int)bas1);
+                                m_thread.m_currentFrame.OpStack.Push((Int) bas1);
                             }
                         }
                         else
                         {
-                          //  Console.WriteLine("No parent function so ending program");
-                            this.m_thread.stack.StackFrames.Pop();
+                            //  Console.WriteLine("No parent function so ending program");
+                            m_thread.stack.StackFrames.Pop();
                             run = false;
                         }
                         handled = true;
                     }
                     if (currentOpCode == 174)
                     {
-                        if (this.m_thread.stack.StackFrames.Count > 1)
+                        if (m_thread.stack.StackFrames.Count > 1)
                         {
                             Console.WriteLine("returning float from function");
-                            int retPC1 = this.m_thread.m_currentFrame.ReturnPC;
-                            BaseType bas1 = this.m_thread.m_currentFrame.OpStack.Pop();
-                            this.m_thread.stack.StackFrames.Pop();
-                            this.m_thread.m_currentFrame = this.m_thread.stack.StackFrames.Peek();
-                            this.m_thread.PC = retPC1;
+                            int retPC1 = m_thread.m_currentFrame.ReturnPC;
+                            BaseType bas1 = m_thread.m_currentFrame.OpStack.Pop();
+                            m_thread.stack.StackFrames.Pop();
+                            m_thread.m_currentFrame = m_thread.stack.StackFrames.Peek();
+                            m_thread.PC = retPC1;
                             if (bas1 is Float)
                             {
-                                this.m_thread.m_currentFrame.OpStack.Push((Float)bas1);
+                                m_thread.m_currentFrame.OpStack.Push((Float) bas1);
                             }
                         }
                         else
                         {
-                           // Console.WriteLine("No parent function so ending program");
-                            this.m_thread.stack.StackFrames.Pop();
+                            // Console.WriteLine("No parent function so ending program");
+                            m_thread.stack.StackFrames.Pop();
                             run = false;
                         }
                         handled = true;
                     }
                     if (currentOpCode == 177)
                     {
-                        if (this.m_thread.stack.StackFrames.Count > 1)
+                        if (m_thread.stack.StackFrames.Count > 1)
                         {
                             Console.WriteLine("returning from function");
-                            int retPC = this.m_thread.m_currentFrame.ReturnPC;
-                            this.m_thread.stack.StackFrames.Pop();
-                            this.m_thread.m_currentFrame = this.m_thread.stack.StackFrames.Peek();
-                            this.m_thread.PC = retPC;
+                            int retPC = m_thread.m_currentFrame.ReturnPC;
+                            m_thread.stack.StackFrames.Pop();
+                            m_thread.m_currentFrame = m_thread.stack.StackFrames.Peek();
+                            m_thread.PC = retPC;
                         }
                         else
                         {
-                           // Console.WriteLine("No parent function so ending program");
-                            this.m_thread.stack.StackFrames.Pop();
+                            // Console.WriteLine("No parent function so ending program");
+                            m_thread.stack.StackFrames.Pop();
                             run = false;
                         }
                         handled = true;
@@ -128,7 +126,6 @@ namespace OpenSim.Region.ExtensionsScriptModule.JVMEngine.JVM
                     Console.WriteLine("opcode " + currentOpCode + " not been handled ");
                 }
                 return run;
-
             }
         }
     }

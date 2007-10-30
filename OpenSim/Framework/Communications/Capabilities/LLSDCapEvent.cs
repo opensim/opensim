@@ -35,7 +35,6 @@ namespace OpenSim.Region.Capabilities
 
         public LLSDCapEvent()
         {
-
         }
     }
 }

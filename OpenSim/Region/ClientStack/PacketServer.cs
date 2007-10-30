@@ -25,15 +25,11 @@
 * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 * 
 */
-using System.Collections.Generic;
 using System.Net;
 using System.Net.Sockets;
 using libsecondlife.Packets;
 using OpenSim.Framework;
 using OpenSim.Framework.Communications.Cache;
-using OpenSim.Framework;
-using OpenSim.Framework.Interfaces;
-using libsecondlife;
 
 namespace OpenSim.Region.ClientStack
 {
@@ -56,10 +52,7 @@ namespace OpenSim.Region.ClientStack
 
         public IScene LocalScene
         {
-            set
-            {
-                this.m_scene = value;
-            }
+            set { m_scene = value; }
         }
 
         /// <summary>
@@ -72,17 +65,21 @@ namespace OpenSim.Region.ClientStack
             m_scene.ClientManager.InPacket(circuitCode, packet);
         }
 
-        protected virtual IClientAPI CreateNewClient(EndPoint remoteEP, UseCircuitCodePacket initialcirpack, ClientManager clientManager, IScene scene, AssetCache assetCache, PacketServer packServer, AgentCircuitManager authenSessions)
+        protected virtual IClientAPI CreateNewClient(EndPoint remoteEP, UseCircuitCodePacket initialcirpack,
+                                                     ClientManager clientManager, IScene scene, AssetCache assetCache,
+                                                     PacketServer packServer, AgentCircuitManager authenSessions)
         {
-            return new ClientView(remoteEP, initialcirpack, clientManager, scene, assetCache, packServer, authenSessions );
+            return
+                new ClientView(remoteEP, initialcirpack, clientManager, scene, assetCache, packServer, authenSessions);
         }
 
-        public virtual bool AddNewClient(EndPoint epSender, UseCircuitCodePacket useCircuit, AssetCache assetCache, AgentCircuitManager authenticateSessionsClass)
+        public virtual bool AddNewClient(EndPoint epSender, UseCircuitCodePacket useCircuit, AssetCache assetCache,
+                                         AgentCircuitManager authenticateSessionsClass)
         {
             IClientAPI newuser;
 
             if (m_scene.ClientManager.TryGetClient(useCircuit.CircuitCode.Code, out newuser))
-            {                                
+            {
                 return false;
             }
             else
@@ -104,7 +101,7 @@ namespace OpenSim.Region.ClientStack
         {
             client.SendLogoutPacket();
 
-            CloseClient( client );
+            CloseClient(client);
         }
 
 
@@ -117,7 +114,7 @@ namespace OpenSim.Region.ClientStack
         /// <param name="circuitcode"></param>
         public virtual void SendPacketTo(byte[] buffer, int size, SocketFlags flags, uint circuitcode)
         {
-            this.m_networkHandler.SendPacketTo(buffer, size, flags, circuitcode);
+            m_networkHandler.SendPacketTo(buffer, size, flags, circuitcode);
         }
 
         /// <summary>
@@ -126,13 +123,13 @@ namespace OpenSim.Region.ClientStack
         /// <param name="circuitcode"></param>
         public virtual void CloseCircuit(uint circuitcode)
         {
-            m_networkHandler.RemoveClientCircuit( circuitcode );
+            m_networkHandler.RemoveClientCircuit(circuitcode);
             m_scene.ClientManager.CloseAllAgents(circuitcode);
         }
 
-        public virtual void CloseClient( IClientAPI client )
+        public virtual void CloseClient(IClientAPI client)
         {
-            CloseCircuit( client.CircuitCode );
+            CloseCircuit(client.CircuitCode);
         }
     }
 }

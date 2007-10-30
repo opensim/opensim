@@ -27,8 +27,6 @@
 */
 
 using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace libTerrain
 {
@@ -138,7 +136,7 @@ namespace libTerrain
             {
                 for (y = 0; y < A.h; y++)
                 {
-                    A.map[x, y] = Math.Pow(A.map[x,y],B.map[x, y]);
+                    A.map[x, y] = Math.Pow(A.map[x, y], B.map[x, y]);
                 }
             }
 
@@ -230,7 +228,7 @@ namespace libTerrain
             {
                 for (y = 0; y < A.h; y++)
                 {
-                    A.map[x, y] = Math.Pow(A.map[x,y],B);
+                    A.map[x, y] = Math.Pow(A.map[x, y], B);
                 }
             }
 
@@ -238,6 +236,5 @@ namespace libTerrain
 
             return A;
         }
-
     }
 }

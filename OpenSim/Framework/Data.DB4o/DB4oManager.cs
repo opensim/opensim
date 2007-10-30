@@ -29,23 +29,23 @@ using System;
 using System.Collections.Generic;
 using Db4objects.Db4o;
 using libsecondlife;
-using OpenSim.Framework;
 
 namespace OpenSim.Framework.Data.DB4o
 {
     /// <summary>
     /// A Database manager for Db4o
     /// </summary>
-    class DB4oGridManager
+    internal class DB4oGridManager
     {
         /// <summary>
         /// A list of the current regions connected (in-memory cache)
         /// </summary>
         public Dictionary<LLUUID, RegionProfileData> simProfiles = new Dictionary<LLUUID, RegionProfileData>();
+
         /// <summary>
         /// Database File Name
         /// </summary>
-        string dbfl;
+        private string dbfl;
 
         /// <summary>
         /// Creates a new grid storage manager
@@ -56,7 +56,7 @@ namespace OpenSim.Framework.Data.DB4o
             dbfl = db4odb;
             IObjectContainer database;
             database = Db4oFactory.OpenFile(dbfl);
-            IObjectSet result = database.Get(typeof(RegionProfileData));
+            IObjectSet result = database.Get(typeof (RegionProfileData));
             // Loads the file into the in-memory cache
             foreach (RegionProfileData row in result)
             {
@@ -94,23 +94,22 @@ namespace OpenSim.Framework.Data.DB4o
                 return false;
             }
         }
-
-
     }
 
     /// <summary>
     /// A manager for the DB4o database (user profiles)
     /// </summary>
-    class DB4oUserManager
+    internal class DB4oUserManager
     {
         /// <summary>
         /// A list of the user profiles (in memory cache)
         /// </summary>
         public Dictionary<LLUUID, UserProfileData> userProfiles = new Dictionary<LLUUID, UserProfileData>();
+
         /// <summary>
         /// Database filename
         /// </summary>
-        string dbfl;
+        private string dbfl;
 
         /// <summary>
         /// Initialises a new DB manager
@@ -122,7 +121,7 @@ namespace OpenSim.Framework.Data.DB4o
             IObjectContainer database;
             database = Db4oFactory.OpenFile(dbfl);
             // Load to cache
-            IObjectSet result = database.Get(typeof(UserProfileData));
+            IObjectSet result = database.Get(typeof (UserProfileData));
             foreach (UserProfileData row in result)
             {
                 if (userProfiles.ContainsKey(row.UUID))
@@ -144,7 +143,7 @@ namespace OpenSim.Framework.Data.DB4o
         /// <param name="record">The profile to update</param>
         /// <returns>true on success, false on fail to persist to db</returns>
         public bool UpdateRecord(UserProfileData record)
-        { 
+        {
             if (userProfiles.ContainsKey(record.UUID))
             {
                 userProfiles[record.UUID] = record;

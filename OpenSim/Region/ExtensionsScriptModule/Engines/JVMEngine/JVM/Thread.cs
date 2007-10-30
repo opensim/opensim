@@ -25,15 +25,9 @@
 * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 * 
 */
-using System;
-using System.Collections.Generic;
-using System.Text;
+using OpenSim.Region.Environment.Scenes;
 using OpenSim.Region.ExtensionsScriptModule.JVMEngine.Types;
 using OpenSim.Region.ExtensionsScriptModule.JVMEngine.Types.PrimitiveTypes;
-using OpenSim.Framework;
-using OpenSim.Framework.Interfaces;
-using OpenSim.Region.Environment.Scenes;
-using OpenSim.Region.ExtensionsScriptModule;
 
 namespace OpenSim.Region.ExtensionsScriptModule.JVMEngine.JVM
 {
@@ -55,8 +49,8 @@ namespace OpenSim.Region.ExtensionsScriptModule.JVMEngine.JVM
 
         public Thread()
         {
-            this.m_Interpreter = new Interpreter(this);
-            this.stack = new Stack();
+            m_Interpreter = new Interpreter(this);
+            stack = new Stack();
         }
 
         public void SetPC(int methodpointer)
@@ -68,15 +62,15 @@ namespace OpenSim.Region.ExtensionsScriptModule.JVMEngine.JVM
         public void StartMethod(ClassRecord rec, string methName)
         {
             m_currentFrame = new StackFrame();
-            this.stack.StackFrames.Push(m_currentFrame);
-            this.currentClass = rec;
+            stack.StackFrames.Push(m_currentFrame);
+            currentClass = rec;
             currentClass.StartMethod(this, methName);
         }
 
-        public void StartMethod( string methName)
+        public void StartMethod(string methName)
         {
             m_currentFrame = new StackFrame();
-            this.stack.StackFrames.Push(m_currentFrame);
+            stack.StackFrames.Push(m_currentFrame);
             currentClass.StartMethod(this, methName);
         }
 
@@ -84,7 +78,7 @@ namespace OpenSim.Region.ExtensionsScriptModule.JVMEngine.JVM
         {
             m_currentFrame = new StackFrame();
             m_currentFrame.ReturnPC = returnPC;
-            this.stack.StackFrames.Push(m_currentFrame);
+            stack.StackFrames.Push(m_currentFrame);
             currentClass.StartMethod(this, methName);
         }
 
@@ -95,25 +89,23 @@ namespace OpenSim.Region.ExtensionsScriptModule.JVMEngine.JVM
                 BaseType bs1 = m_currentFrame.OpStack.Pop();
                 m_currentFrame = new StackFrame();
                 m_currentFrame.ReturnPC = returnPC;
-                this.stack.StackFrames.Push(m_currentFrame);
-                m_currentFrame.LocalVariables[0] = ((Int)bs1);
+                stack.StackFrames.Push(m_currentFrame);
+                m_currentFrame.LocalVariables[0] = ((Int) bs1);
                 currentClass.StartMethod(this, methName);
             }
             if (param == "F")
             {
-
             }
         }
 
         public void JumpToClassStaticVoidMethod(string className, string methName, int returnPC)
         {
-
         }
 
         public bool Excute()
         {
             excutionCounter++;
-            return this.m_Interpreter.Excute();
+            return m_Interpreter.Excute();
         }
     }
 }

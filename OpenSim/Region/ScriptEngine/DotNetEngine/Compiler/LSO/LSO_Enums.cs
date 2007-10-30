@@ -27,8 +27,6 @@
 */
 /* Original code: Tedd Hansen */
 using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSO
 {
@@ -47,6 +45,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSO
             String = 51,
             UInt32 = 17
         }
+
         [Serializable]
         public enum OpCode_Cast_TypeDefs
         {
@@ -66,6 +65,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSO
             public UInt32 Y;
             public UInt32 X;
         }
+
         [Serializable]
         public struct Rotation
         {
@@ -74,6 +74,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSO
             public UInt32 Y;
             public UInt32 X;
         }
+
         [Serializable]
         public enum Variable_Type_Codes
         {
@@ -87,6 +88,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSO
             List = 7,
             Null = 8
         }
+
         [Serializable]
         public enum Event_Mask_Values
         {
@@ -124,6 +126,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSO
             remote_data = 31,
             http_response = 32
         }
+
         [Serializable]
         public enum Operation_Table
         {
@@ -220,6 +223,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSO
             SHL = 0xe0,
             SHR = 0xe1
         }
+
         [Serializable]
         public enum BuiltIn_Functions
         {
@@ -552,6 +556,5 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSO
             llGetParcelMaxPrims = 326,
             llGetParcelDetails = 327
         }
-
     }
 }

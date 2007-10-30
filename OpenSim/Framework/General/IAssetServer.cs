@@ -28,14 +28,12 @@
 using System;
 using System.Collections.Generic;
 using libsecondlife;
-using OpenSim.Framework;
 
 namespace OpenSim.Framework
 {
     /// <summary>
     /// Description of IAssetServer.
     /// </summary>
-
     public interface IAssetServer
     {
         void SetReceiver(IAssetReceiver receiver);

@@ -28,8 +28,6 @@
 using System;
 using System.IO;
 using libsecondlife;
-using OpenSim.Framework;
-using OpenSim.Framework;
 
 namespace OpenSim.Framework.Data.DB4o
 {
@@ -41,14 +39,14 @@ namespace OpenSim.Framework.Data.DB4o
         /// <summary>
         /// The database manager
         /// </summary>
-        DB4oUserManager manager;
+        private DB4oUserManager manager;
 
         /// <summary>
         /// Artificial constructor called upon plugin load
         /// </summary>
         public void Initialise()
         {
-            manager = new DB4oUserManager(Path.Combine(Util.dataDir(),"userprofiles.yap"));
+            manager = new DB4oUserManager(Path.Combine(Util.dataDir(), "userprofiles.yap"));
         }
 
         /// <summary>
@@ -58,7 +56,7 @@ namespace OpenSim.Framework.Data.DB4o
         /// <returns>A user profile</returns>
         public UserProfileData GetUserByUUID(LLUUID uuid)
         {
-            if(manager.userProfiles.ContainsKey(uuid))
+            if (manager.userProfiles.ContainsKey(uuid))
                 return manager.userProfiles[uuid];
             return null;
         }
@@ -95,7 +93,7 @@ namespace OpenSim.Framework.Data.DB4o
         /// <param name="uuid">The users account ID</param>
         /// <returns>A matching users profile</returns>
         public UserAgentData GetAgentByUUID(LLUUID uuid)
-        {   
+        {
             try
             {
                 return GetUserByUUID(uuid).currentAgent;
@@ -126,7 +124,7 @@ namespace OpenSim.Framework.Data.DB4o
         {
             try
             {
-                return GetUserByName(fname,lname).currentAgent;
+                return GetUserByName(fname, lname).currentAgent;
             }
             catch (Exception)
             {
@@ -149,7 +147,7 @@ namespace OpenSim.Framework.Data.DB4o
                 Console.WriteLine(e.ToString());
             }
         }
-      
+
         /// <summary>
         /// Creates a new user profile
         /// </summary>
@@ -157,15 +155,17 @@ namespace OpenSim.Framework.Data.DB4o
         /// <returns>True on success, false on error</returns>
         public bool UpdateUserProfile(UserProfileData user)
         {
-            try {
+            try
+            {
                 return manager.UpdateRecord(user);
-            } catch (Exception e) {
+            }
+            catch (Exception e)
+            {
                 Console.WriteLine(e.ToString());
                 return false;
             }
         }
 
-      
 
         /// <summary>
         /// Creates a new user agent

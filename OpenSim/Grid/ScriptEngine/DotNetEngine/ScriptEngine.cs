@@ -27,14 +27,10 @@
 */
 /* Original code: Tedd Hansen */
 using System;
-using System.Collections.Generic;
-using System.Text;
-using OpenSim.Framework.Console;
-using OpenSim.Region.Environment.Scenes;
-using OpenSim.Region.Environment.Scenes.Scripting;
-using OpenSim.Region.Environment.Interfaces;
-using libsecondlife;
 using Nini.Config;
+using OpenSim.Framework.Console;
+using OpenSim.Region.Environment.Interfaces;
+using OpenSim.Region.Environment.Scenes;
 
 namespace OpenSim.Grid.ScriptEngine.DotNetEngine
 {
@@ -42,17 +38,16 @@ namespace OpenSim.Grid.ScriptEngine.DotNetEngine
     /// This is the root object for ScriptEngine
     /// </summary>
     [Serializable]
-    public class ScriptEngine :IRegionModule
+    public class ScriptEngine : IRegionModule
     {
-
-        internal OpenSim.Region.Environment.Scenes.Scene World;
-        internal EventManager m_EventManager;                   // Handles and queues incoming events from OpenSim
-        internal EventQueueManager m_EventQueueManager;         // Executes events
-        internal ScriptManager m_ScriptManager;                 // Load, unload and execute scripts
+        internal Scene World;
+        internal EventManager m_EventManager; // Handles and queues incoming events from OpenSim
+        internal EventQueueManager m_EventQueueManager; // Executes events
+        internal ScriptManager m_ScriptManager; // Load, unload and execute scripts
         internal AppDomainManager m_AppDomainManager;
         internal LSLLongCmdHandler m_LSLLongCmdHandler;
 
-        private OpenSim.Framework.Console.LogBase m_log;
+        private LogBase m_log;
 
         public ScriptEngine()
         {
@@ -65,9 +60,8 @@ namespace OpenSim.Grid.ScriptEngine.DotNetEngine
             get { return m_log; }
         }
 
-        public void InitializeEngine(OpenSim.Region.Environment.Scenes.Scene Sceneworld, OpenSim.Framework.Console.LogBase logger)
+        public void InitializeEngine(Scene Sceneworld, LogBase logger)
         {
-
             World = Sceneworld;
             m_log = logger;
 
@@ -84,10 +78,8 @@ namespace OpenSim.Grid.ScriptEngine.DotNetEngine
 
             // Should we iterate the region for scripts that needs starting?
             // Or can we assume we are loaded before anything else so we can use proper events?
-            
-            
         }
-            
+
         public void Shutdown()
         {
             // We are shutting down
@@ -106,12 +98,11 @@ namespace OpenSim.Grid.ScriptEngine.DotNetEngine
 
         public void Initialise(Scene scene, IConfigSource config)
         {
-            this.InitializeEngine(scene, MainLog.Instance);
+            InitializeEngine(scene, MainLog.Instance);
         }
 
         public void PostInitialise()
         {
-
         }
 
         public void Close()

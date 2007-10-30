@@ -27,15 +27,12 @@
 */
 
 using System;
-using System.Collections.Generic;
-using System.Text;
+using OpenSim.Region.Environment.Scenes;
 using Key = libsecondlife.LLUUID;
 using Rotation = libsecondlife.LLQuaternion;
 using Vector = libsecondlife.LLVector3;
 using LSLList = System.Collections.Generic.List<string>;
 
-
-using OpenSim.Region.Environment.Scenes;
 
 namespace OpenSim.Region.ExtensionsScriptModule
 {
@@ -43,8 +40,8 @@ namespace OpenSim.Region.ExtensionsScriptModule
     // Scene access is preffered, but obviously not possible on some non-.NET languages.
     public class ScriptAPI
     {
-        Scene scene;
-        ScriptInterpretedAPI interpretedAPI;
+        private Scene scene;
+        private ScriptInterpretedAPI interpretedAPI;
 
         public ScriptAPI(Scene world, Key taskID)
         {

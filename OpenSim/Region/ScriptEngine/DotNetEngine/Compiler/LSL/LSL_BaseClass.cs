@@ -28,12 +28,9 @@
 
 using System;
 using System.Collections.Generic;
-using System.Text;
-using OpenSim.Region.ScriptEngine.DotNetEngine.Compiler;
-using OpenSim.Region.ScriptEngine.Common;
-using System.Threading;
-using System.Reflection;
 using System.Runtime.Remoting.Lifetime;
+using System.Threading;
+using OpenSim.Region.ScriptEngine.Common;
 using integer = System.Int32;
 using key = System.String;
 using vector = OpenSim.Region.ScriptEngine.Common.LSL_Types.Vector3;
@@ -44,13 +41,12 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL
     //[Serializable]
     public class LSL_BaseClass : MarshalByRefObject, LSL_BuiltIn_Commands_Interface, IScript
     {
-
         // Object never expires
         public override Object InitializeLifetimeService()
         {
             //Console.WriteLine("LSL_BaseClass: InitializeLifetimeService()");
             //            return null;
-            ILease lease = (ILease)base.InitializeLifetimeService();
+            ILease lease = (ILease) base.InitializeLifetimeService();
 
             if (lease.CurrentState == LeaseState.Initial)
             {
@@ -63,6 +59,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL
 
 
         private Executor m_Exec;
+
         public Executor Exec
         {
             get
@@ -79,6 +76,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL
         public LSL_BaseClass()
         {
         }
+
         public string State()
         {
             return m_LSL_Functions.State();
@@ -94,22 +92,21 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL
             // Get this AppDomain's settings and display some of them.
             AppDomainSetup ads = AppDomain.CurrentDomain.SetupInformation;
             Console.WriteLine("AppName={0}, AppBase={1}, ConfigFile={2}",
-                ads.ApplicationName,
-                ads.ApplicationBase,
-                ads.ConfigurationFile
-            );
+                              ads.ApplicationName,
+                              ads.ApplicationBase,
+                              ads.ConfigurationFile
+                );
 
             // Display the name of the calling AppDomain and the name 
             // of the second domain.
             // NOTE: The application's thread has transitioned between 
             // AppDomains.
             Console.WriteLine("Calling to '{0}'.",
-                Thread.GetDomain().FriendlyName
-            );
+                              Thread.GetDomain().FriendlyName
+                );
 
             return;
         }
-
 
 
         //
@@ -117,387 +114,1702 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL
         //
         // They are only forwarders to LSL_BuiltIn_Commands.cs
         //
-        public double llSin(double f) { return m_LSL_Functions.llSin(f); }
-        public double llCos(double f) { return m_LSL_Functions.llCos(f); }
-        public double llTan(double f) { return m_LSL_Functions.llTan(f); }
-        public double llAtan2(double x, double y) { return m_LSL_Functions.llAtan2(x, y); }
-        public double llSqrt(double f) { return m_LSL_Functions.llSqrt(f); }
-        public double llPow(double fbase, double fexponent) { return m_LSL_Functions.llPow(fbase, fexponent); }
-        public int llAbs(int i) { return m_LSL_Functions.llAbs(i); }
-        public double llFabs(double f) { return m_LSL_Functions.llFabs(f); }
-        public double llFrand(double mag) { return m_LSL_Functions.llFrand(mag); }
-        public int llFloor(double f) { return m_LSL_Functions.llFloor(f); }
-        public int llCeil(double f) { return m_LSL_Functions.llCeil(f); }
-        public int llRound(double f) { return m_LSL_Functions.llRound(f); }
-        public double llVecMag(LSL_Types.Vector3 v) { return m_LSL_Functions.llVecMag(v); }
-        public LSL_Types.Vector3 llVecNorm(LSL_Types.Vector3 v) { return m_LSL_Functions.llVecNorm(v); }
-        public double llVecDist(LSL_Types.Vector3 a, LSL_Types.Vector3 b) { return m_LSL_Functions.llVecDist(a, b); }
-        public LSL_Types.Vector3 llRot2Euler(LSL_Types.Quaternion r) { return m_LSL_Functions.llRot2Euler(r); }
-        public LSL_Types.Quaternion llEuler2Rot(LSL_Types.Vector3 v) { return m_LSL_Functions.llEuler2Rot(v); }
-        public LSL_Types.Quaternion llAxes2Rot(LSL_Types.Vector3 fwd, LSL_Types.Vector3 left, LSL_Types.Vector3 up) { return m_LSL_Functions.llAxes2Rot(fwd, left, up); }
-        public LSL_Types.Vector3 llRot2Fwd(LSL_Types.Quaternion r) { return m_LSL_Functions.llRot2Fwd(r); }
-        public LSL_Types.Vector3 llRot2Left(LSL_Types.Quaternion r) { return m_LSL_Functions.llRot2Left(r); }
-        public LSL_Types.Vector3 llRot2Up(LSL_Types.Quaternion r) { return m_LSL_Functions.llRot2Up(r); }
-        public LSL_Types.Quaternion llRotBetween(LSL_Types.Vector3 start, LSL_Types.Vector3 end) { return m_LSL_Functions.llRotBetween(start, end); }
-        public void llWhisper(int channelID, string text) { m_LSL_Functions.llWhisper(channelID, text); }
-        public void llSay(int channelID, string text) { m_LSL_Functions.llSay(channelID, text); }
+        public double llSin(double f)
+        {
+            return m_LSL_Functions.llSin(f);
+        }
+
+        public double llCos(double f)
+        {
+            return m_LSL_Functions.llCos(f);
+        }
+
+        public double llTan(double f)
+        {
+            return m_LSL_Functions.llTan(f);
+        }
+
+        public double llAtan2(double x, double y)
+        {
+            return m_LSL_Functions.llAtan2(x, y);
+        }
+
+        public double llSqrt(double f)
+        {
+            return m_LSL_Functions.llSqrt(f);
+        }
+
+        public double llPow(double fbase, double fexponent)
+        {
+            return m_LSL_Functions.llPow(fbase, fexponent);
+        }
+
+        public int llAbs(int i)
+        {
+            return m_LSL_Functions.llAbs(i);
+        }
+
+        public double llFabs(double f)
+        {
+            return m_LSL_Functions.llFabs(f);
+        }
+
+        public double llFrand(double mag)
+        {
+            return m_LSL_Functions.llFrand(mag);
+        }
+
+        public int llFloor(double f)
+        {
+            return m_LSL_Functions.llFloor(f);
+        }
+
+        public int llCeil(double f)
+        {
+            return m_LSL_Functions.llCeil(f);
+        }
+
+        public int llRound(double f)
+        {
+            return m_LSL_Functions.llRound(f);
+        }
+
+        public double llVecMag(vector v)
+        {
+            return m_LSL_Functions.llVecMag(v);
+        }
+
+        public vector llVecNorm(vector v)
+        {
+            return m_LSL_Functions.llVecNorm(v);
+        }
+
+        public double llVecDist(vector a, vector b)
+        {
+            return m_LSL_Functions.llVecDist(a, b);
+        }
+
+        public vector llRot2Euler(rotation r)
+        {
+            return m_LSL_Functions.llRot2Euler(r);
+        }
+
+        public rotation llEuler2Rot(vector v)
+        {
+            return m_LSL_Functions.llEuler2Rot(v);
+        }
+
+        public rotation llAxes2Rot(vector fwd, vector left, vector up)
+        {
+            return m_LSL_Functions.llAxes2Rot(fwd, left, up);
+        }
+
+        public vector llRot2Fwd(rotation r)
+        {
+            return m_LSL_Functions.llRot2Fwd(r);
+        }
+
+        public vector llRot2Left(rotation r)
+        {
+            return m_LSL_Functions.llRot2Left(r);
+        }
+
+        public vector llRot2Up(rotation r)
+        {
+            return m_LSL_Functions.llRot2Up(r);
+        }
+
+        public rotation llRotBetween(vector start, vector end)
+        {
+            return m_LSL_Functions.llRotBetween(start, end);
+        }
+
+        public void llWhisper(int channelID, string text)
+        {
+            m_LSL_Functions.llWhisper(channelID, text);
+        }
+
+        public void llSay(int channelID, string text)
+        {
+            m_LSL_Functions.llSay(channelID, text);
+        }
+
         //
         // DO NOT MODIFY HERE: MODIFY IN LSL_BuiltIn_Commands.cs
         //
-        public void llShout(int channelID, string text) { m_LSL_Functions.llShout(channelID, text); }
-        public int llListen(int channelID, string name, string ID, string msg) { return m_LSL_Functions.llListen(channelID, name, ID, msg); }
-        public void llListenControl(int number, int active) { m_LSL_Functions.llListenControl(number, active); }
-        public void llListenRemove(int number) { m_LSL_Functions.llListenRemove(number); }
-        public void llSensor(string name, string id, int type, double range, double arc) { m_LSL_Functions.llSensor(name, id, type, range, arc); }
-        public void llSensorRepeat(string name, string id, int type, double range, double arc, double rate) { m_LSL_Functions.llSensorRepeat(name, id, type, range, arc, rate); }
-        public void llSensorRemove() { m_LSL_Functions.llSensorRemove(); }
-        public string llDetectedName(int number) { return m_LSL_Functions.llDetectedName(number); }
-        public string llDetectedKey(int number) { return m_LSL_Functions.llDetectedKey(number); }
-        public string llDetectedOwner(int number) { return m_LSL_Functions.llDetectedOwner(number); }
-        public int llDetectedType(int number) { return m_LSL_Functions.llDetectedType(number); }
-        public LSL_Types.Vector3 llDetectedPos(int number) { return m_LSL_Functions.llDetectedPos(number); }
-        public LSL_Types.Vector3 llDetectedVel(int number) { return m_LSL_Functions.llDetectedVel(number); }
-        public LSL_Types.Vector3 llDetectedGrab(int number) { return m_LSL_Functions.llDetectedGrab(number); }
-        public LSL_Types.Quaternion llDetectedRot(int number) { return m_LSL_Functions.llDetectedRot(number); }
-        public int llDetectedGroup(int number) { return m_LSL_Functions.llDetectedGroup(number); }
-        public int llDetectedLinkNumber(int number) { return m_LSL_Functions.llDetectedLinkNumber(number); }
+        public void llShout(int channelID, string text)
+        {
+            m_LSL_Functions.llShout(channelID, text);
+        }
+
+        public int llListen(int channelID, string name, string ID, string msg)
+        {
+            return m_LSL_Functions.llListen(channelID, name, ID, msg);
+        }
+
+        public void llListenControl(int number, int active)
+        {
+            m_LSL_Functions.llListenControl(number, active);
+        }
+
+        public void llListenRemove(int number)
+        {
+            m_LSL_Functions.llListenRemove(number);
+        }
+
+        public void llSensor(string name, string id, int type, double range, double arc)
+        {
+            m_LSL_Functions.llSensor(name, id, type, range, arc);
+        }
+
+        public void llSensorRepeat(string name, string id, int type, double range, double arc, double rate)
+        {
+            m_LSL_Functions.llSensorRepeat(name, id, type, range, arc, rate);
+        }
+
+        public void llSensorRemove()
+        {
+            m_LSL_Functions.llSensorRemove();
+        }
+
+        public string llDetectedName(int number)
+        {
+            return m_LSL_Functions.llDetectedName(number);
+        }
+
+        public string llDetectedKey(int number)
+        {
+            return m_LSL_Functions.llDetectedKey(number);
+        }
+
+        public string llDetectedOwner(int number)
+        {
+            return m_LSL_Functions.llDetectedOwner(number);
+        }
+
+        public int llDetectedType(int number)
+        {
+            return m_LSL_Functions.llDetectedType(number);
+        }
+
+        public vector llDetectedPos(int number)
+        {
+            return m_LSL_Functions.llDetectedPos(number);
+        }
+
+        public vector llDetectedVel(int number)
+        {
+            return m_LSL_Functions.llDetectedVel(number);
+        }
+
+        public vector llDetectedGrab(int number)
+        {
+            return m_LSL_Functions.llDetectedGrab(number);
+        }
+
+        public rotation llDetectedRot(int number)
+        {
+            return m_LSL_Functions.llDetectedRot(number);
+        }
+
+        public int llDetectedGroup(int number)
+        {
+            return m_LSL_Functions.llDetectedGroup(number);
+        }
+
+        public int llDetectedLinkNumber(int number)
+        {
+            return m_LSL_Functions.llDetectedLinkNumber(number);
+        }
+
         //
         // DO NOT MODIFY HERE: MODIFY IN LSL_BuiltIn_Commands.cs
         //
-        public void llDie() { m_LSL_Functions.llDie(); }
-        public double llGround(LSL_Types.Vector3 offset) { return m_LSL_Functions.llGround(offset); }
-        public double llCloud(LSL_Types.Vector3 offset) { return m_LSL_Functions.llCloud(offset); }
-        public LSL_Types.Vector3 llWind(LSL_Types.Vector3 offset) { return m_LSL_Functions.llWind(offset); }
-        public void llSetStatus(int status, int value) { m_LSL_Functions.llSetStatus(status, value); }
-        public int llGetStatus(int status) { return m_LSL_Functions.llGetStatus(status); }
-        public void llSetScale(LSL_Types.Vector3 scale) { m_LSL_Functions.llSetScale(scale); }
-        public LSL_Types.Vector3 llGetScale() { return m_LSL_Functions.llGetScale(); }
-        public void llSetColor(LSL_Types.Vector3 color, int face) { m_LSL_Functions.llSetColor(color, face); }
-        public double llGetAlpha(int face) { return m_LSL_Functions.llGetAlpha(face); }
-        public void llSetAlpha(double alpha, int face) { m_LSL_Functions.llSetAlpha(alpha, face); }
-        public LSL_Types.Vector3 llGetColor(int face) { return m_LSL_Functions.llGetColor(face); }
-        public void llSetTexture(string texture, int face) { m_LSL_Functions.llSetTexture(texture, face); }
-        public void llScaleTexture(double u, double v, int face) { m_LSL_Functions.llScaleTexture(u, v, face); }
-        public void llOffsetTexture(double u, double v, int face) { m_LSL_Functions.llOffsetTexture(u, v, face); }
-        public void llRotateTexture(double rotation, int face) { m_LSL_Functions.llRotateTexture(rotation, face); }
-        public string llGetTexture(int face) { return m_LSL_Functions.llGetTexture(face); }
+        public void llDie()
+        {
+            m_LSL_Functions.llDie();
+        }
+
+        public double llGround(vector offset)
+        {
+            return m_LSL_Functions.llGround(offset);
+        }
+
+        public double llCloud(vector offset)
+        {
+            return m_LSL_Functions.llCloud(offset);
+        }
+
+        public vector llWind(vector offset)
+        {
+            return m_LSL_Functions.llWind(offset);
+        }
+
+        public void llSetStatus(int status, int value)
+        {
+            m_LSL_Functions.llSetStatus(status, value);
+        }
+
+        public int llGetStatus(int status)
+        {
+            return m_LSL_Functions.llGetStatus(status);
+        }
+
+        public void llSetScale(vector scale)
+        {
+            m_LSL_Functions.llSetScale(scale);
+        }
+
+        public vector llGetScale()
+        {
+            return m_LSL_Functions.llGetScale();
+        }
+
+        public void llSetColor(vector color, int face)
+        {
+            m_LSL_Functions.llSetColor(color, face);
+        }
+
+        public double llGetAlpha(int face)
+        {
+            return m_LSL_Functions.llGetAlpha(face);
+        }
+
+        public void llSetAlpha(double alpha, int face)
+        {
+            m_LSL_Functions.llSetAlpha(alpha, face);
+        }
+
+        public vector llGetColor(int face)
+        {
+            return m_LSL_Functions.llGetColor(face);
+        }
+
+        public void llSetTexture(string texture, int face)
+        {
+            m_LSL_Functions.llSetTexture(texture, face);
+        }
+
+        public void llScaleTexture(double u, double v, int face)
+        {
+            m_LSL_Functions.llScaleTexture(u, v, face);
+        }
+
+        public void llOffsetTexture(double u, double v, int face)
+        {
+            m_LSL_Functions.llOffsetTexture(u, v, face);
+        }
+
+        public void llRotateTexture(double rotation, int face)
+        {
+            m_LSL_Functions.llRotateTexture(rotation, face);
+        }
+
+        public string llGetTexture(int face)
+        {
+            return m_LSL_Functions.llGetTexture(face);
+        }
+
         //
         // DO NOT MODIFY HERE: MODIFY IN LSL_BuiltIn_Commands.cs
         //
-        public void llSetPos(LSL_Types.Vector3 pos) { m_LSL_Functions.llSetPos(pos); }
-        public LSL_Types.Vector3 llGetPos() { return m_LSL_Functions.llGetPos(); }
-        public LSL_Types.Vector3 llGetLocalPos() { return m_LSL_Functions.llGetLocalPos(); }
-        public void llSetRot(LSL_Types.Quaternion rot) { m_LSL_Functions.llSetRot(rot); }
-        public LSL_Types.Quaternion llGetRot() { return m_LSL_Functions.llGetRot(); }
-        public LSL_Types.Quaternion llGetLocalRot() { return m_LSL_Functions.llGetLocalRot(); }
-        public void llSetForce(LSL_Types.Vector3 force, int local) { m_LSL_Functions.llSetForce(force, local); }
-        public LSL_Types.Vector3 llGetForce() { return m_LSL_Functions.llGetForce(); }
-        public int llTarget(LSL_Types.Vector3 position, double range) { return m_LSL_Functions.llTarget(position, range); }
-        public void llTargetRemove(int number) { m_LSL_Functions.llTargetRemove(number); }
-        public int llRotTarget(LSL_Types.Quaternion rot, double error) { return m_LSL_Functions.llRotTarget(rot, error); }
-        public void llRotTargetRemove(int number) { m_LSL_Functions.llRotTargetRemove(number); }
-        public void llMoveToTarget(LSL_Types.Vector3 target, double tau) { m_LSL_Functions.llMoveToTarget(target, tau); }
-        public void llStopMoveToTarget() { m_LSL_Functions.llStopMoveToTarget(); }
-        public void llApplyImpulse(LSL_Types.Vector3 force, int local) { m_LSL_Functions.llApplyImpulse(force, local); }
+        public void llSetPos(vector pos)
+        {
+            m_LSL_Functions.llSetPos(pos);
+        }
+
+        public vector llGetPos()
+        {
+            return m_LSL_Functions.llGetPos();
+        }
+
+        public vector llGetLocalPos()
+        {
+            return m_LSL_Functions.llGetLocalPos();
+        }
+
+        public void llSetRot(rotation rot)
+        {
+            m_LSL_Functions.llSetRot(rot);
+        }
+
+        public rotation llGetRot()
+        {
+            return m_LSL_Functions.llGetRot();
+        }
+
+        public rotation llGetLocalRot()
+        {
+            return m_LSL_Functions.llGetLocalRot();
+        }
+
+        public void llSetForce(vector force, int local)
+        {
+            m_LSL_Functions.llSetForce(force, local);
+        }
+
+        public vector llGetForce()
+        {
+            return m_LSL_Functions.llGetForce();
+        }
+
+        public int llTarget(vector position, double range)
+        {
+            return m_LSL_Functions.llTarget(position, range);
+        }
+
+        public void llTargetRemove(int number)
+        {
+            m_LSL_Functions.llTargetRemove(number);
+        }
+
+        public int llRotTarget(rotation rot, double error)
+        {
+            return m_LSL_Functions.llRotTarget(rot, error);
+        }
+
+        public void llRotTargetRemove(int number)
+        {
+            m_LSL_Functions.llRotTargetRemove(number);
+        }
+
+        public void llMoveToTarget(vector target, double tau)
+        {
+            m_LSL_Functions.llMoveToTarget(target, tau);
+        }
+
+        public void llStopMoveToTarget()
+        {
+            m_LSL_Functions.llStopMoveToTarget();
+        }
+
+        public void llApplyImpulse(vector force, int local)
+        {
+            m_LSL_Functions.llApplyImpulse(force, local);
+        }
+
         //
         // DO NOT MODIFY HERE: MODIFY IN LSL_BuiltIn_Commands.cs
         //
-        public void llApplyRotationalImpulse(LSL_Types.Vector3 force, int local) { m_LSL_Functions.llApplyRotationalImpulse(force, local); }
-        public void llSetTorque(LSL_Types.Vector3 torque, int local) { m_LSL_Functions.llSetTorque(torque, local); }
-        public LSL_Types.Vector3 llGetTorque() { return m_LSL_Functions.llGetTorque(); }
-        public void llSetForceAndTorque(LSL_Types.Vector3 force, LSL_Types.Vector3 torque, int local) { m_LSL_Functions.llSetForceAndTorque(force, torque, local); }
-        public LSL_Types.Vector3 llGetVel() { return m_LSL_Functions.llGetVel(); }
-        public LSL_Types.Vector3 llGetAccel() { return m_LSL_Functions.llGetAccel(); }
-        public LSL_Types.Vector3 llGetOmega() { return m_LSL_Functions.llGetOmega(); }
-        public double llGetTimeOfDay() { return m_LSL_Functions.llGetTimeOfDay(); }
-        public double llGetWallclock() { return m_LSL_Functions.llGetWallclock(); }
-        public double llGetTime() { return m_LSL_Functions.llGetTime(); }
-        public void llResetTime() { m_LSL_Functions.llResetTime(); }
-        public double llGetAndResetTime() { return m_LSL_Functions.llGetAndResetTime(); }
-        public void llSound() { m_LSL_Functions.llSound(); }
-        public void llPlaySound(string sound, double volume) { m_LSL_Functions.llPlaySound(sound, volume); }
-        public void llLoopSound(string sound, double volume) { m_LSL_Functions.llLoopSound(sound, volume); }
-        public void llLoopSoundMaster(string sound, double volume) { m_LSL_Functions.llLoopSoundMaster(sound, volume); }
-        public void llLoopSoundSlave(string sound, double volume) { m_LSL_Functions.llLoopSoundSlave(sound, volume); }
-        public void llPlaySoundSlave(string sound, double volume) { m_LSL_Functions.llPlaySoundSlave(sound, volume); }
+        public void llApplyRotationalImpulse(vector force, int local)
+        {
+            m_LSL_Functions.llApplyRotationalImpulse(force, local);
+        }
+
+        public void llSetTorque(vector torque, int local)
+        {
+            m_LSL_Functions.llSetTorque(torque, local);
+        }
+
+        public vector llGetTorque()
+        {
+            return m_LSL_Functions.llGetTorque();
+        }
+
+        public void llSetForceAndTorque(vector force, vector torque, int local)
+        {
+            m_LSL_Functions.llSetForceAndTorque(force, torque, local);
+        }
+
+        public vector llGetVel()
+        {
+            return m_LSL_Functions.llGetVel();
+        }
+
+        public vector llGetAccel()
+        {
+            return m_LSL_Functions.llGetAccel();
+        }
+
+        public vector llGetOmega()
+        {
+            return m_LSL_Functions.llGetOmega();
+        }
+
+        public double llGetTimeOfDay()
+        {
+            return m_LSL_Functions.llGetTimeOfDay();
+        }
+
+        public double llGetWallclock()
+        {
+            return m_LSL_Functions.llGetWallclock();
+        }
+
+        public double llGetTime()
+        {
+            return m_LSL_Functions.llGetTime();
+        }
+
+        public void llResetTime()
+        {
+            m_LSL_Functions.llResetTime();
+        }
+
+        public double llGetAndResetTime()
+        {
+            return m_LSL_Functions.llGetAndResetTime();
+        }
+
+        public void llSound()
+        {
+            m_LSL_Functions.llSound();
+        }
+
+        public void llPlaySound(string sound, double volume)
+        {
+            m_LSL_Functions.llPlaySound(sound, volume);
+        }
+
+        public void llLoopSound(string sound, double volume)
+        {
+            m_LSL_Functions.llLoopSound(sound, volume);
+        }
+
+        public void llLoopSoundMaster(string sound, double volume)
+        {
+            m_LSL_Functions.llLoopSoundMaster(sound, volume);
+        }
+
+        public void llLoopSoundSlave(string sound, double volume)
+        {
+            m_LSL_Functions.llLoopSoundSlave(sound, volume);
+        }
+
+        public void llPlaySoundSlave(string sound, double volume)
+        {
+            m_LSL_Functions.llPlaySoundSlave(sound, volume);
+        }
+
         //
         // DO NOT MODIFY HERE: MODIFY IN LSL_BuiltIn_Commands.cs
         //
-        public void llTriggerSound(string sound, double volume) { m_LSL_Functions.llTriggerSound(sound, volume); }
-        public void llStopSound() { m_LSL_Functions.llStopSound(); }
-        public void llPreloadSound(string sound) { m_LSL_Functions.llPreloadSound(sound); }
-        public string llGetSubString(string src, int start, int end) { return m_LSL_Functions.llGetSubString(src, start, end); }
-        public string llDeleteSubString(string src, int start, int end) { return m_LSL_Functions.llDeleteSubString(src, start, end); }
-        public string llInsertString(string dst, int position, string src) { return m_LSL_Functions.llInsertString(dst, position, src); }
-        public string llToUpper(string source) { return m_LSL_Functions.llToUpper(source); }
-        public string llToLower(string source) { return m_LSL_Functions.llToLower(source); }
-        public int llGiveMoney(string destination, int amount) { return m_LSL_Functions.llGiveMoney(destination, amount); }
-        public void llMakeExplosion() { m_LSL_Functions.llMakeExplosion(); }
-        public void llMakeFountain() { m_LSL_Functions.llMakeFountain(); }
-        public void llMakeSmoke() { m_LSL_Functions.llMakeSmoke(); }
-        public void llMakeFire() { m_LSL_Functions.llMakeFire(); }
-        public void llRezObject(string inventory, LSL_Types.Vector3 pos, LSL_Types.Quaternion rot, int param) { m_LSL_Functions.llRezObject(inventory, pos, rot, param); }
-        public void llLookAt(LSL_Types.Vector3 target, double strength, double damping) { m_LSL_Functions.llLookAt(target, strength, damping); }
-        public void llStopLookAt() { m_LSL_Functions.llStopLookAt(); }
-        public void llSetTimerEvent(double sec) { m_LSL_Functions.llSetTimerEvent(sec); }
-        public void llSleep(double sec) { m_LSL_Functions.llSleep(sec); }
+        public void llTriggerSound(string sound, double volume)
+        {
+            m_LSL_Functions.llTriggerSound(sound, volume);
+        }
+
+        public void llStopSound()
+        {
+            m_LSL_Functions.llStopSound();
+        }
+
+        public void llPreloadSound(string sound)
+        {
+            m_LSL_Functions.llPreloadSound(sound);
+        }
+
+        public string llGetSubString(string src, int start, int end)
+        {
+            return m_LSL_Functions.llGetSubString(src, start, end);
+        }
+
+        public string llDeleteSubString(string src, int start, int end)
+        {
+            return m_LSL_Functions.llDeleteSubString(src, start, end);
+        }
+
+        public string llInsertString(string dst, int position, string src)
+        {
+            return m_LSL_Functions.llInsertString(dst, position, src);
+        }
+
+        public string llToUpper(string source)
+        {
+            return m_LSL_Functions.llToUpper(source);
+        }
+
+        public string llToLower(string source)
+        {
+            return m_LSL_Functions.llToLower(source);
+        }
+
+        public int llGiveMoney(string destination, int amount)
+        {
+            return m_LSL_Functions.llGiveMoney(destination, amount);
+        }
+
+        public void llMakeExplosion()
+        {
+            m_LSL_Functions.llMakeExplosion();
+        }
+
+        public void llMakeFountain()
+        {
+            m_LSL_Functions.llMakeFountain();
+        }
+
+        public void llMakeSmoke()
+        {
+            m_LSL_Functions.llMakeSmoke();
+        }
+
+        public void llMakeFire()
+        {
+            m_LSL_Functions.llMakeFire();
+        }
+
+        public void llRezObject(string inventory, vector pos, rotation rot, int param)
+        {
+            m_LSL_Functions.llRezObject(inventory, pos, rot, param);
+        }
+
+        public void llLookAt(vector target, double strength, double damping)
+        {
+            m_LSL_Functions.llLookAt(target, strength, damping);
+        }
+
+        public void llStopLookAt()
+        {
+            m_LSL_Functions.llStopLookAt();
+        }
+
+        public void llSetTimerEvent(double sec)
+        {
+            m_LSL_Functions.llSetTimerEvent(sec);
+        }
+
+        public void llSleep(double sec)
+        {
+            m_LSL_Functions.llSleep(sec);
+        }
+
         //
         // DO NOT MODIFY HERE: MODIFY IN LSL_BuiltIn_Commands.cs
         //
-        public double llGetMass() { return m_LSL_Functions.llGetMass(); }
-        public void llCollisionFilter(string name, string id, int accept) { m_LSL_Functions.llCollisionFilter(name, id, accept); }
-        public void llTakeControls(int controls, int accept, int pass_on) { m_LSL_Functions.llTakeControls(controls, accept, pass_on); }
-        public void llReleaseControls() { m_LSL_Functions.llReleaseControls(); }
-        public void llAttachToAvatar(int attachment) { m_LSL_Functions.llAttachToAvatar(attachment); }
-        public void llDetachFromAvatar() { m_LSL_Functions.llDetachFromAvatar(); }
-        public void llTakeCamera() { m_LSL_Functions.llTakeCamera(); }
-        public void llReleaseCamera() { m_LSL_Functions.llReleaseCamera(); }
-        public string llGetOwner() { return m_LSL_Functions.llGetOwner(); }
-        public void llInstantMessage(string user, string message) { m_LSL_Functions.llInstantMessage(user, message); }
-        public void llEmail(string address, string subject, string message) { m_LSL_Functions.llEmail(address, subject, message); }
-        public void llGetNextEmail(string address, string subject) { m_LSL_Functions.llGetNextEmail(address, subject); }
-        public string llGetKey() { return m_LSL_Functions.llGetKey(); }
-        public void llSetBuoyancy(double buoyancy) { m_LSL_Functions.llSetBuoyancy(buoyancy); }
-        public void llSetHoverHeight(double height, int water, double tau) { m_LSL_Functions.llSetHoverHeight(height, water, tau); }
-        public void llStopHover() { m_LSL_Functions.llStopHover(); }
-        public void llMinEventDelay(double delay) { m_LSL_Functions.llMinEventDelay(delay); }
-        public void llSoundPreload() { m_LSL_Functions.llSoundPreload(); }
-        public void llRotLookAt(LSL_Types.Quaternion target, double strength, double damping) { m_LSL_Functions.llRotLookAt(target, strength, damping); }
+        public double llGetMass()
+        {
+            return m_LSL_Functions.llGetMass();
+        }
+
+        public void llCollisionFilter(string name, string id, int accept)
+        {
+            m_LSL_Functions.llCollisionFilter(name, id, accept);
+        }
+
+        public void llTakeControls(int controls, int accept, int pass_on)
+        {
+            m_LSL_Functions.llTakeControls(controls, accept, pass_on);
+        }
+
+        public void llReleaseControls()
+        {
+            m_LSL_Functions.llReleaseControls();
+        }
+
+        public void llAttachToAvatar(int attachment)
+        {
+            m_LSL_Functions.llAttachToAvatar(attachment);
+        }
+
+        public void llDetachFromAvatar()
+        {
+            m_LSL_Functions.llDetachFromAvatar();
+        }
+
+        public void llTakeCamera()
+        {
+            m_LSL_Functions.llTakeCamera();
+        }
+
+        public void llReleaseCamera()
+        {
+            m_LSL_Functions.llReleaseCamera();
+        }
+
+        public string llGetOwner()
+        {
+            return m_LSL_Functions.llGetOwner();
+        }
+
+        public void llInstantMessage(string user, string message)
+        {
+            m_LSL_Functions.llInstantMessage(user, message);
+        }
+
+        public void llEmail(string address, string subject, string message)
+        {
+            m_LSL_Functions.llEmail(address, subject, message);
+        }
+
+        public void llGetNextEmail(string address, string subject)
+        {
+            m_LSL_Functions.llGetNextEmail(address, subject);
+        }
+
+        public string llGetKey()
+        {
+            return m_LSL_Functions.llGetKey();
+        }
+
+        public void llSetBuoyancy(double buoyancy)
+        {
+            m_LSL_Functions.llSetBuoyancy(buoyancy);
+        }
+
+        public void llSetHoverHeight(double height, int water, double tau)
+        {
+            m_LSL_Functions.llSetHoverHeight(height, water, tau);
+        }
+
+        public void llStopHover()
+        {
+            m_LSL_Functions.llStopHover();
+        }
+
+        public void llMinEventDelay(double delay)
+        {
+            m_LSL_Functions.llMinEventDelay(delay);
+        }
+
+        public void llSoundPreload()
+        {
+            m_LSL_Functions.llSoundPreload();
+        }
+
+        public void llRotLookAt(rotation target, double strength, double damping)
+        {
+            m_LSL_Functions.llRotLookAt(target, strength, damping);
+        }
+
         //
         // DO NOT MODIFY HERE: MODIFY IN LSL_BuiltIn_Commands.cs
         //
-        public int llStringLength(string str) { return m_LSL_Functions.llStringLength(str); }
-        public void llStartAnimation(string anim) { m_LSL_Functions.llStartAnimation(anim); }
-        public void llStopAnimation(string anim) { m_LSL_Functions.llStopAnimation(anim); }
-        public void llPointAt() { m_LSL_Functions.llPointAt(); }
-        public void llStopPointAt() { m_LSL_Functions.llStopPointAt(); }
-        public void llTargetOmega(LSL_Types.Vector3 axis, double spinrate, double gain) { m_LSL_Functions.llTargetOmega(axis, spinrate, gain); }
-        public int llGetStartParameter() { return m_LSL_Functions.llGetStartParameter(); }
-        public void llGodLikeRezObject(string inventory, LSL_Types.Vector3 pos) { m_LSL_Functions.llGodLikeRezObject(inventory, pos); }
-        public void llRequestPermissions(string agent, int perm) { m_LSL_Functions.llRequestPermissions(agent, perm); }
-        public string llGetPermissionsKey() { return m_LSL_Functions.llGetPermissionsKey(); }
-        public int llGetPermissions() { return m_LSL_Functions.llGetPermissions(); }
-        public int llGetLinkNumber() { return m_LSL_Functions.llGetLinkNumber(); }
-        public void llSetLinkColor(int linknumber, LSL_Types.Vector3 color, int face) { m_LSL_Functions.llSetLinkColor(linknumber, color, face); }
-        public void llCreateLink(string target, int parent) { m_LSL_Functions.llCreateLink(target, parent); }
-        public void llBreakLink(int linknum) { m_LSL_Functions.llBreakLink(linknum); }
-        public void llBreakAllLinks() { m_LSL_Functions.llBreakAllLinks(); }
-        public string llGetLinkKey(int linknum) { return m_LSL_Functions.llGetLinkKey(linknum); }
-        public void llGetLinkName(int linknum) { m_LSL_Functions.llGetLinkName(linknum); }
-        public int llGetInventoryNumber(int type) { return m_LSL_Functions.llGetInventoryNumber(type); }
-        public string llGetInventoryName(int type, int number) { return m_LSL_Functions.llGetInventoryName(type, number); }
+        public int llStringLength(string str)
+        {
+            return m_LSL_Functions.llStringLength(str);
+        }
+
+        public void llStartAnimation(string anim)
+        {
+            m_LSL_Functions.llStartAnimation(anim);
+        }
+
+        public void llStopAnimation(string anim)
+        {
+            m_LSL_Functions.llStopAnimation(anim);
+        }
+
+        public void llPointAt()
+        {
+            m_LSL_Functions.llPointAt();
+        }
+
+        public void llStopPointAt()
+        {
+            m_LSL_Functions.llStopPointAt();
+        }
+
+        public void llTargetOmega(vector axis, double spinrate, double gain)
+        {
+            m_LSL_Functions.llTargetOmega(axis, spinrate, gain);
+        }
+
+        public int llGetStartParameter()
+        {
+            return m_LSL_Functions.llGetStartParameter();
+        }
+
+        public void llGodLikeRezObject(string inventory, vector pos)
+        {
+            m_LSL_Functions.llGodLikeRezObject(inventory, pos);
+        }
+
+        public void llRequestPermissions(string agent, int perm)
+        {
+            m_LSL_Functions.llRequestPermissions(agent, perm);
+        }
+
+        public string llGetPermissionsKey()
+        {
+            return m_LSL_Functions.llGetPermissionsKey();
+        }
+
+        public int llGetPermissions()
+        {
+            return m_LSL_Functions.llGetPermissions();
+        }
+
+        public int llGetLinkNumber()
+        {
+            return m_LSL_Functions.llGetLinkNumber();
+        }
+
+        public void llSetLinkColor(int linknumber, vector color, int face)
+        {
+            m_LSL_Functions.llSetLinkColor(linknumber, color, face);
+        }
+
+        public void llCreateLink(string target, int parent)
+        {
+            m_LSL_Functions.llCreateLink(target, parent);
+        }
+
+        public void llBreakLink(int linknum)
+        {
+            m_LSL_Functions.llBreakLink(linknum);
+        }
+
+        public void llBreakAllLinks()
+        {
+            m_LSL_Functions.llBreakAllLinks();
+        }
+
+        public string llGetLinkKey(int linknum)
+        {
+            return m_LSL_Functions.llGetLinkKey(linknum);
+        }
+
+        public void llGetLinkName(int linknum)
+        {
+            m_LSL_Functions.llGetLinkName(linknum);
+        }
+
+        public int llGetInventoryNumber(int type)
+        {
+            return m_LSL_Functions.llGetInventoryNumber(type);
+        }
+
+        public string llGetInventoryName(int type, int number)
+        {
+            return m_LSL_Functions.llGetInventoryName(type, number);
+        }
+
         //
         // DO NOT MODIFY HERE: MODIFY IN LSL_BuiltIn_Commands.cs
         //
-        public void llSetScriptState(string name, int run) { m_LSL_Functions.llSetScriptState(name, run); }
-        public double llGetEnergy() { return m_LSL_Functions.llGetEnergy(); }
-        public void llGiveInventory(string destination, string inventory) { m_LSL_Functions.llGiveInventory(destination, inventory); }
-        public void llRemoveInventory(string item) { m_LSL_Functions.llRemoveInventory(item); }
-        public void llSetText(string text, LSL_Types.Vector3 color, double alpha) { m_LSL_Functions.llSetText(text, color, alpha); }
-        public double llWater(LSL_Types.Vector3 offset) { return m_LSL_Functions.llWater(offset); }
-        public void llPassTouches(int pass) { m_LSL_Functions.llPassTouches(pass); }
-        public string llRequestAgentData(string id, int data) { return m_LSL_Functions.llRequestAgentData(id, data); }
-        public string llRequestInventoryData(string name) { return m_LSL_Functions.llRequestInventoryData(name); }
-        public void llSetDamage(double damage) { m_LSL_Functions.llSetDamage(damage); }
-        public void llTeleportAgentHome(string agent) { m_LSL_Functions.llTeleportAgentHome(agent); }
-        public void llModifyLand(int action, int brush) { m_LSL_Functions.llModifyLand(action, brush); }
-        public void llCollisionSound(string impact_sound, double impact_volume) { m_LSL_Functions.llCollisionSound(impact_sound, impact_volume); }
-        public void llCollisionSprite(string impact_sprite) { m_LSL_Functions.llCollisionSprite(impact_sprite); }
-        public string llGetAnimation(string id) { return m_LSL_Functions.llGetAnimation(id); }
-        public void llResetScript() { m_LSL_Functions.llResetScript(); }
-        public void llMessageLinked(int linknum, int num, string str, string id) { m_LSL_Functions.llMessageLinked(linknum, num, str, id); }
-        public void llPushObject(string target, LSL_Types.Vector3 impulse, LSL_Types.Vector3 ang_impulse, int local) { m_LSL_Functions.llPushObject(target, impulse, ang_impulse, local); }
-        public void llPassCollisions(int pass) { m_LSL_Functions.llPassCollisions(pass); }
-        public string llGetScriptName() { return m_LSL_Functions.llGetScriptName(); }
-        public int llGetNumberOfSides() { return m_LSL_Functions.llGetNumberOfSides(); }
+        public void llSetScriptState(string name, int run)
+        {
+            m_LSL_Functions.llSetScriptState(name, run);
+        }
+
+        public double llGetEnergy()
+        {
+            return m_LSL_Functions.llGetEnergy();
+        }
+
+        public void llGiveInventory(string destination, string inventory)
+        {
+            m_LSL_Functions.llGiveInventory(destination, inventory);
+        }
+
+        public void llRemoveInventory(string item)
+        {
+            m_LSL_Functions.llRemoveInventory(item);
+        }
+
+        public void llSetText(string text, vector color, double alpha)
+        {
+            m_LSL_Functions.llSetText(text, color, alpha);
+        }
+
+        public double llWater(vector offset)
+        {
+            return m_LSL_Functions.llWater(offset);
+        }
+
+        public void llPassTouches(int pass)
+        {
+            m_LSL_Functions.llPassTouches(pass);
+        }
+
+        public string llRequestAgentData(string id, int data)
+        {
+            return m_LSL_Functions.llRequestAgentData(id, data);
+        }
+
+        public string llRequestInventoryData(string name)
+        {
+            return m_LSL_Functions.llRequestInventoryData(name);
+        }
+
+        public void llSetDamage(double damage)
+        {
+            m_LSL_Functions.llSetDamage(damage);
+        }
+
+        public void llTeleportAgentHome(string agent)
+        {
+            m_LSL_Functions.llTeleportAgentHome(agent);
+        }
+
+        public void llModifyLand(int action, int brush)
+        {
+            m_LSL_Functions.llModifyLand(action, brush);
+        }
+
+        public void llCollisionSound(string impact_sound, double impact_volume)
+        {
+            m_LSL_Functions.llCollisionSound(impact_sound, impact_volume);
+        }
+
+        public void llCollisionSprite(string impact_sprite)
+        {
+            m_LSL_Functions.llCollisionSprite(impact_sprite);
+        }
+
+        public string llGetAnimation(string id)
+        {
+            return m_LSL_Functions.llGetAnimation(id);
+        }
+
+        public void llResetScript()
+        {
+            m_LSL_Functions.llResetScript();
+        }
+
+        public void llMessageLinked(int linknum, int num, string str, string id)
+        {
+            m_LSL_Functions.llMessageLinked(linknum, num, str, id);
+        }
+
+        public void llPushObject(string target, vector impulse, vector ang_impulse, int local)
+        {
+            m_LSL_Functions.llPushObject(target, impulse, ang_impulse, local);
+        }
+
+        public void llPassCollisions(int pass)
+        {
+            m_LSL_Functions.llPassCollisions(pass);
+        }
+
+        public string llGetScriptName()
+        {
+            return m_LSL_Functions.llGetScriptName();
+        }
+
+        public int llGetNumberOfSides()
+        {
+            return m_LSL_Functions.llGetNumberOfSides();
+        }
+
         //
         // DO NOT MODIFY HERE: MODIFY IN LSL_BuiltIn_Commands.cs
         //
-        public LSL_Types.Quaternion llAxisAngle2Rot(LSL_Types.Vector3 axis, double angle) { return m_LSL_Functions.llAxisAngle2Rot(axis, angle); }
-        public LSL_Types.Vector3 llRot2Axis(LSL_Types.Quaternion rot) { return m_LSL_Functions.llRot2Axis(rot); }
-        public void llRot2Angle() { m_LSL_Functions.llRot2Angle(); }
-        public double llAcos(double val) { return m_LSL_Functions.llAcos(val); }
-        public double llAsin(double val) { return m_LSL_Functions.llAsin(val); }
-        public double llAngleBetween(LSL_Types.Quaternion a, LSL_Types.Quaternion b) { return m_LSL_Functions.llAngleBetween(a, b); }
-        public string llGetInventoryKey(string name) { return m_LSL_Functions.llGetInventoryKey(name); }
-        public void llAllowInventoryDrop(int add) { m_LSL_Functions.llAllowInventoryDrop(add); }
-        public LSL_Types.Vector3 llGetSunDirection() { return m_LSL_Functions.llGetSunDirection(); }
-        public LSL_Types.Vector3 llGetTextureOffset(int face) { return m_LSL_Functions.llGetTextureOffset(face); }
-        public LSL_Types.Vector3 llGetTextureScale(int side) { return m_LSL_Functions.llGetTextureScale(side); }
-        public double llGetTextureRot(int side) { return m_LSL_Functions.llGetTextureRot(side); }
-        public int llSubStringIndex(string source, string pattern) { return m_LSL_Functions.llSubStringIndex(source, pattern); }
-        public string llGetOwnerKey(string id) { return m_LSL_Functions.llGetOwnerKey(id); }
-        public LSL_Types.Vector3 llGetCenterOfMass() { return m_LSL_Functions.llGetCenterOfMass(); }
-        public List<string> llListSort(List<string> src, int stride, int ascending) { return m_LSL_Functions.llListSort(src, stride, ascending); }
-        public int llGetListLength(List<string> src) { return m_LSL_Functions.llGetListLength(src); }
+        public rotation llAxisAngle2Rot(vector axis, double angle)
+        {
+            return m_LSL_Functions.llAxisAngle2Rot(axis, angle);
+        }
+
+        public vector llRot2Axis(rotation rot)
+        {
+            return m_LSL_Functions.llRot2Axis(rot);
+        }
+
+        public void llRot2Angle()
+        {
+            m_LSL_Functions.llRot2Angle();
+        }
+
+        public double llAcos(double val)
+        {
+            return m_LSL_Functions.llAcos(val);
+        }
+
+        public double llAsin(double val)
+        {
+            return m_LSL_Functions.llAsin(val);
+        }
+
+        public double llAngleBetween(rotation a, rotation b)
+        {
+            return m_LSL_Functions.llAngleBetween(a, b);
+        }
+
+        public string llGetInventoryKey(string name)
+        {
+            return m_LSL_Functions.llGetInventoryKey(name);
+        }
+
+        public void llAllowInventoryDrop(int add)
+        {
+            m_LSL_Functions.llAllowInventoryDrop(add);
+        }
+
+        public vector llGetSunDirection()
+        {
+            return m_LSL_Functions.llGetSunDirection();
+        }
+
+        public vector llGetTextureOffset(int face)
+        {
+            return m_LSL_Functions.llGetTextureOffset(face);
+        }
+
+        public vector llGetTextureScale(int side)
+        {
+            return m_LSL_Functions.llGetTextureScale(side);
+        }
+
+        public double llGetTextureRot(int side)
+        {
+            return m_LSL_Functions.llGetTextureRot(side);
+        }
+
+        public int llSubStringIndex(string source, string pattern)
+        {
+            return m_LSL_Functions.llSubStringIndex(source, pattern);
+        }
+
+        public string llGetOwnerKey(string id)
+        {
+            return m_LSL_Functions.llGetOwnerKey(id);
+        }
+
+        public vector llGetCenterOfMass()
+        {
+            return m_LSL_Functions.llGetCenterOfMass();
+        }
+
+        public List<string> llListSort(List<string> src, int stride, int ascending)
+        {
+            return m_LSL_Functions.llListSort(src, stride, ascending);
+        }
+
+        public int llGetListLength(List<string> src)
+        {
+            return m_LSL_Functions.llGetListLength(src);
+        }
+
         //
         // DO NOT MODIFY HERE: MODIFY IN LSL_BuiltIn_Commands.cs
         //
-        public int llList2Integer(List<string> src, int index) { return m_LSL_Functions.llList2Integer(src, index); }
-        public double llList2double(List<string> src, int index) { return m_LSL_Functions.llList2double(src, index); }
-        public string llList2String(List<string> src, int index) { return m_LSL_Functions.llList2String(src, index); }
-        public string llList2Key(List<string> src, int index) { return m_LSL_Functions.llList2Key(src, index); }
-        public LSL_Types.Vector3 llList2Vector(List<string> src, int index) { return m_LSL_Functions.llList2Vector(src, index); }
-        public LSL_Types.Quaternion llList2Rot(List<string> src, int index) { return m_LSL_Functions.llList2Rot(src, index); }
-        public List<string> llList2List(List<string> src, int start, int end) { return m_LSL_Functions.llList2List(src, start, end); }
-        public List<string> llDeleteSubList(List<string> src, int start, int end) { return m_LSL_Functions.llDeleteSubList(src, start, end); }
-        public int llGetListEntryType(List<string> src, int index) { return m_LSL_Functions.llGetListEntryType(src, index); }
-        public string llList2CSV(List<string> src) { return m_LSL_Functions.llList2CSV(src); }
-        public List<string> llCSV2List(string src) { return m_LSL_Functions.llCSV2List(src); }
-        public List<string> llListRandomize(List<string> src, int stride) { return m_LSL_Functions.llListRandomize(src, stride); }
-        public List<string> llList2ListStrided(List<string> src, int start, int end, int stride) { return m_LSL_Functions.llList2ListStrided(src, start, end, stride); }
-        public LSL_Types.Vector3 llGetRegionCorner() { return m_LSL_Functions.llGetRegionCorner(); }
-        public List<string> llListInsertList(List<string> dest, List<string> src, int start) { return m_LSL_Functions.llListInsertList(dest, src, start); }
-        public int llListFindList(List<string> src, List<string> test) { return m_LSL_Functions.llListFindList(src, test); }
-        public string llGetObjectName() { return m_LSL_Functions.llGetObjectName(); }
-        public void llSetObjectName(string name) { m_LSL_Functions.llSetObjectName(name); }
-        public string llGetDate() { return m_LSL_Functions.llGetDate(); }
-        public int llEdgeOfWorld(LSL_Types.Vector3 pos, LSL_Types.Vector3 dir) { return m_LSL_Functions.llEdgeOfWorld(pos, dir); }
-        public int llGetAgentInfo(string id) { return m_LSL_Functions.llGetAgentInfo(id); }
+        public int llList2Integer(List<string> src, int index)
+        {
+            return m_LSL_Functions.llList2Integer(src, index);
+        }
+
+        public double llList2double(List<string> src, int index)
+        {
+            return m_LSL_Functions.llList2double(src, index);
+        }
+
+        public string llList2String(List<string> src, int index)
+        {
+            return m_LSL_Functions.llList2String(src, index);
+        }
+
+        public string llList2Key(List<string> src, int index)
+        {
+            return m_LSL_Functions.llList2Key(src, index);
+        }
+
+        public vector llList2Vector(List<string> src, int index)
+        {
+            return m_LSL_Functions.llList2Vector(src, index);
+        }
+
+        public rotation llList2Rot(List<string> src, int index)
+        {
+            return m_LSL_Functions.llList2Rot(src, index);
+        }
+
+        public List<string> llList2List(List<string> src, int start, int end)
+        {
+            return m_LSL_Functions.llList2List(src, start, end);
+        }
+
+        public List<string> llDeleteSubList(List<string> src, int start, int end)
+        {
+            return m_LSL_Functions.llDeleteSubList(src, start, end);
+        }
+
+        public int llGetListEntryType(List<string> src, int index)
+        {
+            return m_LSL_Functions.llGetListEntryType(src, index);
+        }
+
+        public string llList2CSV(List<string> src)
+        {
+            return m_LSL_Functions.llList2CSV(src);
+        }
+
+        public List<string> llCSV2List(string src)
+        {
+            return m_LSL_Functions.llCSV2List(src);
+        }
+
+        public List<string> llListRandomize(List<string> src, int stride)
+        {
+            return m_LSL_Functions.llListRandomize(src, stride);
+        }
+
+        public List<string> llList2ListStrided(List<string> src, int start, int end, int stride)
+        {
+            return m_LSL_Functions.llList2ListStrided(src, start, end, stride);
+        }
+
+        public vector llGetRegionCorner()
+        {
+            return m_LSL_Functions.llGetRegionCorner();
+        }
+
+        public List<string> llListInsertList(List<string> dest, List<string> src, int start)
+        {
+            return m_LSL_Functions.llListInsertList(dest, src, start);
+        }
+
+        public int llListFindList(List<string> src, List<string> test)
+        {
+            return m_LSL_Functions.llListFindList(src, test);
+        }
+
+        public string llGetObjectName()
+        {
+            return m_LSL_Functions.llGetObjectName();
+        }
+
+        public void llSetObjectName(string name)
+        {
+            m_LSL_Functions.llSetObjectName(name);
+        }
+
+        public string llGetDate()
+        {
+            return m_LSL_Functions.llGetDate();
+        }
+
+        public int llEdgeOfWorld(vector pos, vector dir)
+        {
+            return m_LSL_Functions.llEdgeOfWorld(pos, dir);
+        }
+
+        public int llGetAgentInfo(string id)
+        {
+            return m_LSL_Functions.llGetAgentInfo(id);
+        }
+
         //
         // DO NOT MODIFY HERE: MODIFY IN LSL_BuiltIn_Commands.cs
         //
-        public void llAdjustSoundVolume(double volume) { m_LSL_Functions.llAdjustSoundVolume(volume); }
-        public void llSetSoundQueueing(int queue) { m_LSL_Functions.llSetSoundQueueing(queue); }
-        public void llSetSoundRadius(double radius) { m_LSL_Functions.llSetSoundRadius(radius); }
-        public string llKey2Name(string id) { return m_LSL_Functions.llKey2Name(id); }
-        public void llSetTextureAnim(int mode, int face, int sizex, int sizey, double start, double length, double rate) { m_LSL_Functions.llSetTextureAnim(mode, face, sizex, sizey, start, length, rate); }
-        public void llTriggerSoundLimited(string sound, double volume, LSL_Types.Vector3 top_north_east, LSL_Types.Vector3 bottom_south_west) { m_LSL_Functions.llTriggerSoundLimited(sound, volume, top_north_east, bottom_south_west); }
-        public void llEjectFromLand(string pest) { m_LSL_Functions.llEjectFromLand(pest); }
-        public void llParseString2List() { m_LSL_Functions.llParseString2List(); }
-        public int llOverMyLand(string id) { return m_LSL_Functions.llOverMyLand(id); }
-        public string llGetLandOwnerAt(LSL_Types.Vector3 pos) { return m_LSL_Functions.llGetLandOwnerAt(pos); }
-        public string llGetNotecardLine(string name, int line) { return m_LSL_Functions.llGetNotecardLine(name, line); }
-        public LSL_Types.Vector3 llGetAgentSize(string id) { return m_LSL_Functions.llGetAgentSize(id); }
-        public int llSameGroup(string agent) { return m_LSL_Functions.llSameGroup(agent); }
-        public void llUnSit(string id) { m_LSL_Functions.llUnSit(id); }
-        public LSL_Types.Vector3 llGroundSlope(LSL_Types.Vector3 offset) { return m_LSL_Functions.llGroundSlope(offset); }
-        public LSL_Types.Vector3 llGroundNormal(LSL_Types.Vector3 offset) { return m_LSL_Functions.llGroundNormal(offset); }
-        public LSL_Types.Vector3 llGroundContour(LSL_Types.Vector3 offset) { return m_LSL_Functions.llGroundContour(offset); }
-        public int llGetAttached() { return m_LSL_Functions.llGetAttached(); }
-        public int llGetFreeMemory() { return m_LSL_Functions.llGetFreeMemory(); }
-        public string llGetRegionName() { return m_LSL_Functions.llGetRegionName(); }
-        public double llGetRegionTimeDilation() { return m_LSL_Functions.llGetRegionTimeDilation(); }
-        public double llGetRegionFPS() { return m_LSL_Functions.llGetRegionFPS(); }
+        public void llAdjustSoundVolume(double volume)
+        {
+            m_LSL_Functions.llAdjustSoundVolume(volume);
+        }
+
+        public void llSetSoundQueueing(int queue)
+        {
+            m_LSL_Functions.llSetSoundQueueing(queue);
+        }
+
+        public void llSetSoundRadius(double radius)
+        {
+            m_LSL_Functions.llSetSoundRadius(radius);
+        }
+
+        public string llKey2Name(string id)
+        {
+            return m_LSL_Functions.llKey2Name(id);
+        }
+
+        public void llSetTextureAnim(int mode, int face, int sizex, int sizey, double start, double length, double rate)
+        {
+            m_LSL_Functions.llSetTextureAnim(mode, face, sizex, sizey, start, length, rate);
+        }
+
+        public void llTriggerSoundLimited(string sound, double volume, vector top_north_east, vector bottom_south_west)
+        {
+            m_LSL_Functions.llTriggerSoundLimited(sound, volume, top_north_east, bottom_south_west);
+        }
+
+        public void llEjectFromLand(string pest)
+        {
+            m_LSL_Functions.llEjectFromLand(pest);
+        }
+
+        public void llParseString2List()
+        {
+            m_LSL_Functions.llParseString2List();
+        }
+
+        public int llOverMyLand(string id)
+        {
+            return m_LSL_Functions.llOverMyLand(id);
+        }
+
+        public string llGetLandOwnerAt(vector pos)
+        {
+            return m_LSL_Functions.llGetLandOwnerAt(pos);
+        }
+
+        public string llGetNotecardLine(string name, int line)
+        {
+            return m_LSL_Functions.llGetNotecardLine(name, line);
+        }
+
+        public vector llGetAgentSize(string id)
+        {
+            return m_LSL_Functions.llGetAgentSize(id);
+        }
+
+        public int llSameGroup(string agent)
+        {
+            return m_LSL_Functions.llSameGroup(agent);
+        }
+
+        public void llUnSit(string id)
+        {
+            m_LSL_Functions.llUnSit(id);
+        }
+
+        public vector llGroundSlope(vector offset)
+        {
+            return m_LSL_Functions.llGroundSlope(offset);
+        }
+
+        public vector llGroundNormal(vector offset)
+        {
+            return m_LSL_Functions.llGroundNormal(offset);
+        }
+
+        public vector llGroundContour(vector offset)
+        {
+            return m_LSL_Functions.llGroundContour(offset);
+        }
+
+        public int llGetAttached()
+        {
+            return m_LSL_Functions.llGetAttached();
+        }
+
+        public int llGetFreeMemory()
+        {
+            return m_LSL_Functions.llGetFreeMemory();
+        }
+
+        public string llGetRegionName()
+        {
+            return m_LSL_Functions.llGetRegionName();
+        }
+
+        public double llGetRegionTimeDilation()
+        {
+            return m_LSL_Functions.llGetRegionTimeDilation();
+        }
+
+        public double llGetRegionFPS()
+        {
+            return m_LSL_Functions.llGetRegionFPS();
+        }
+
         //
         // DO NOT MODIFY HERE: MODIFY IN LSL_BuiltIn_Commands.cs
         //
-        public void llParticleSystem(List<Object> rules) { m_LSL_Functions.llParticleSystem(rules); }
-        public void llGroundRepel(double height, int water, double tau) { m_LSL_Functions.llGroundRepel(height, water, tau); }
-        public void llGiveInventoryList() { m_LSL_Functions.llGiveInventoryList(); }
-        public void llSetVehicleType(int type) { m_LSL_Functions.llSetVehicleType(type); }
-        public void llSetVehicledoubleParam(int param, double value) { m_LSL_Functions.llSetVehicledoubleParam(param, value); }
-        public void llSetVehicleVectorParam(int param, LSL_Types.Vector3 vec) { m_LSL_Functions.llSetVehicleVectorParam(param, vec); }
-        public void llSetVehicleRotationParam(int param, LSL_Types.Quaternion rot) { m_LSL_Functions.llSetVehicleRotationParam(param, rot); }
-        public void llSetVehicleFlags(int flags) { m_LSL_Functions.llSetVehicleFlags(flags); }
-        public void llRemoveVehicleFlags(int flags) { m_LSL_Functions.llRemoveVehicleFlags(flags); }
-        public void llSitTarget(LSL_Types.Vector3 offset, LSL_Types.Quaternion rot) { m_LSL_Functions.llSitTarget(offset, rot); }
-        public string llAvatarOnSitTarget() { return m_LSL_Functions.llAvatarOnSitTarget(); }
-        public void llAddToLandPassList(string avatar, double hours) { m_LSL_Functions.llAddToLandPassList(avatar, hours); }
-        public void llSetTouchText(string text) { m_LSL_Functions.llSetTouchText(text); }
-        public void llSetSitText(string text) { m_LSL_Functions.llSetSitText(text); }
-        public void llSetCameraEyeOffset(LSL_Types.Vector3 offset) { m_LSL_Functions.llSetCameraEyeOffset(offset); }
-        public void llSetCameraAtOffset(LSL_Types.Vector3 offset) { m_LSL_Functions.llSetCameraAtOffset(offset); }
-        public void llDumpList2String() { m_LSL_Functions.llDumpList2String(); }
-        public void llScriptDanger(LSL_Types.Vector3 pos) { m_LSL_Functions.llScriptDanger(pos); }
-        public void llDialog(string avatar, string message, List<string> buttons, int chat_channel) { m_LSL_Functions.llDialog(avatar, message, buttons, chat_channel); }
-        public void llVolumeDetect(int detect) { m_LSL_Functions.llVolumeDetect(detect); }
-        public void llResetOtherScript(string name) { m_LSL_Functions.llResetOtherScript(name); }
-        public int llGetScriptState(string name) { return m_LSL_Functions.llGetScriptState(name); }
-        public void llRemoteLoadScript() { m_LSL_Functions.llRemoteLoadScript(); }
-        public void llSetRemoteScriptAccessPin(int pin) { m_LSL_Functions.llSetRemoteScriptAccessPin(pin); }
-        public void llRemoteLoadScriptPin(string target, string name, int pin, int running, int start_param) { m_LSL_Functions.llRemoteLoadScriptPin(target, name, pin, running, start_param); }
+        public void llParticleSystem(List<Object> rules)
+        {
+            m_LSL_Functions.llParticleSystem(rules);
+        }
+
+        public void llGroundRepel(double height, int water, double tau)
+        {
+            m_LSL_Functions.llGroundRepel(height, water, tau);
+        }
+
+        public void llGiveInventoryList()
+        {
+            m_LSL_Functions.llGiveInventoryList();
+        }
+
+        public void llSetVehicleType(int type)
+        {
+            m_LSL_Functions.llSetVehicleType(type);
+        }
+
+        public void llSetVehicledoubleParam(int param, double value)
+        {
+            m_LSL_Functions.llSetVehicledoubleParam(param, value);
+        }
+
+        public void llSetVehicleVectorParam(int param, vector vec)
+        {
+            m_LSL_Functions.llSetVehicleVectorParam(param, vec);
+        }
+
+        public void llSetVehicleRotationParam(int param, rotation rot)
+        {
+            m_LSL_Functions.llSetVehicleRotationParam(param, rot);
+        }
+
+        public void llSetVehicleFlags(int flags)
+        {
+            m_LSL_Functions.llSetVehicleFlags(flags);
+        }
+
+        public void llRemoveVehicleFlags(int flags)
+        {
+            m_LSL_Functions.llRemoveVehicleFlags(flags);
+        }
+
+        public void llSitTarget(vector offset, rotation rot)
+        {
+            m_LSL_Functions.llSitTarget(offset, rot);
+        }
+
+        public string llAvatarOnSitTarget()
+        {
+            return m_LSL_Functions.llAvatarOnSitTarget();
+        }
+
+        public void llAddToLandPassList(string avatar, double hours)
+        {
+            m_LSL_Functions.llAddToLandPassList(avatar, hours);
+        }
+
+        public void llSetTouchText(string text)
+        {
+            m_LSL_Functions.llSetTouchText(text);
+        }
+
+        public void llSetSitText(string text)
+        {
+            m_LSL_Functions.llSetSitText(text);
+        }
+
+        public void llSetCameraEyeOffset(vector offset)
+        {
+            m_LSL_Functions.llSetCameraEyeOffset(offset);
+        }
+
+        public void llSetCameraAtOffset(vector offset)
+        {
+            m_LSL_Functions.llSetCameraAtOffset(offset);
+        }
+
+        public void llDumpList2String()
+        {
+            m_LSL_Functions.llDumpList2String();
+        }
+
+        public void llScriptDanger(vector pos)
+        {
+            m_LSL_Functions.llScriptDanger(pos);
+        }
+
+        public void llDialog(string avatar, string message, List<string> buttons, int chat_channel)
+        {
+            m_LSL_Functions.llDialog(avatar, message, buttons, chat_channel);
+        }
+
+        public void llVolumeDetect(int detect)
+        {
+            m_LSL_Functions.llVolumeDetect(detect);
+        }
+
+        public void llResetOtherScript(string name)
+        {
+            m_LSL_Functions.llResetOtherScript(name);
+        }
+
+        public int llGetScriptState(string name)
+        {
+            return m_LSL_Functions.llGetScriptState(name);
+        }
+
+        public void llRemoteLoadScript()
+        {
+            m_LSL_Functions.llRemoteLoadScript();
+        }
+
+        public void llSetRemoteScriptAccessPin(int pin)
+        {
+            m_LSL_Functions.llSetRemoteScriptAccessPin(pin);
+        }
+
+        public void llRemoteLoadScriptPin(string target, string name, int pin, int running, int start_param)
+        {
+            m_LSL_Functions.llRemoteLoadScriptPin(target, name, pin, running, start_param);
+        }
+
         //
         // DO NOT MODIFY HERE: MODIFY IN LSL_BuiltIn_Commands.cs
         //
-        public void llOpenRemoteDataChannel() { m_LSL_Functions.llOpenRemoteDataChannel(); }
-        public string llSendRemoteData(string channel, string dest, int idata, string sdata) { return m_LSL_Functions.llSendRemoteData(channel, dest, idata, sdata); }
-        public void llRemoteDataReply(string channel, string message_id, string sdata, int idata) { m_LSL_Functions.llRemoteDataReply(channel, message_id, sdata, idata); }
-        public void llCloseRemoteDataChannel(string channel) { m_LSL_Functions.llCloseRemoteDataChannel(channel); }
-        public string llMD5String(string src, int nonce) { return m_LSL_Functions.llMD5String(src, nonce); }
-        public void llSetPrimitiveParams(List<string> rules) { m_LSL_Functions.llSetPrimitiveParams(rules); }
-        public string llStringToBase64(string str) { return m_LSL_Functions.llStringToBase64(str); }
-        public string llBase64ToString(string str) { return m_LSL_Functions.llBase64ToString(str); }
-        public void llXorBase64Strings() { m_LSL_Functions.llXorBase64Strings(); }
-        public void llRemoteDataSetRegion() { m_LSL_Functions.llRemoteDataSetRegion(); }
-        public double llLog10(double val) { return m_LSL_Functions.llLog10(val); }
-        public double llLog(double val) { return m_LSL_Functions.llLog(val); }
-        public List<string> llGetAnimationList(string id) { return m_LSL_Functions.llGetAnimationList(id); }
-        public void llSetParcelMusicURL(string url) { m_LSL_Functions.llSetParcelMusicURL(url); }
-        public LSL_Types.Vector3 llGetRootPosition() { return m_LSL_Functions.llGetRootPosition(); }
-        public LSL_Types.Quaternion llGetRootRotation() { return m_LSL_Functions.llGetRootRotation(); }
-        public string llGetObjectDesc() { return m_LSL_Functions.llGetObjectDesc(); }
-        public void llSetObjectDesc(string desc) { m_LSL_Functions.llSetObjectDesc(desc); }
-        public string llGetCreator() { return m_LSL_Functions.llGetCreator(); }
-        public string llGetTimestamp() { return m_LSL_Functions.llGetTimestamp(); }
-        public void llSetLinkAlpha(int linknumber, double alpha, int face) { m_LSL_Functions.llSetLinkAlpha(linknumber, alpha, face); }
-        public int llGetNumberOfPrims() { return m_LSL_Functions.llGetNumberOfPrims(); }
-        public string llGetNumberOfNotecardLines(string name) { return m_LSL_Functions.llGetNumberOfNotecardLines(name); }
-        public List<string> llGetBoundingBox(string obj) { return m_LSL_Functions.llGetBoundingBox(obj); }
-        public LSL_Types.Vector3 llGetGeometricCenter() { return m_LSL_Functions.llGetGeometricCenter(); }
-        public void llGetPrimitiveParams() { m_LSL_Functions.llGetPrimitiveParams(); }
+        public void llOpenRemoteDataChannel()
+        {
+            m_LSL_Functions.llOpenRemoteDataChannel();
+        }
+
+        public string llSendRemoteData(string channel, string dest, int idata, string sdata)
+        {
+            return m_LSL_Functions.llSendRemoteData(channel, dest, idata, sdata);
+        }
+
+        public void llRemoteDataReply(string channel, string message_id, string sdata, int idata)
+        {
+            m_LSL_Functions.llRemoteDataReply(channel, message_id, sdata, idata);
+        }
+
+        public void llCloseRemoteDataChannel(string channel)
+        {
+            m_LSL_Functions.llCloseRemoteDataChannel(channel);
+        }
+
+        public string llMD5String(string src, int nonce)
+        {
+            return m_LSL_Functions.llMD5String(src, nonce);
+        }
+
+        public void llSetPrimitiveParams(List<string> rules)
+        {
+            m_LSL_Functions.llSetPrimitiveParams(rules);
+        }
+
+        public string llStringToBase64(string str)
+        {
+            return m_LSL_Functions.llStringToBase64(str);
+        }
+
+        public string llBase64ToString(string str)
+        {
+            return m_LSL_Functions.llBase64ToString(str);
+        }
+
+        public void llXorBase64Strings()
+        {
+            m_LSL_Functions.llXorBase64Strings();
+        }
+
+        public void llRemoteDataSetRegion()
+        {
+            m_LSL_Functions.llRemoteDataSetRegion();
+        }
+
+        public double llLog10(double val)
+        {
+            return m_LSL_Functions.llLog10(val);
+        }
+
+        public double llLog(double val)
+        {
+            return m_LSL_Functions.llLog(val);
+        }
+
+        public List<string> llGetAnimationList(string id)
+        {
+            return m_LSL_Functions.llGetAnimationList(id);
+        }
+
+        public void llSetParcelMusicURL(string url)
+        {
+            m_LSL_Functions.llSetParcelMusicURL(url);
+        }
+
+        public vector llGetRootPosition()
+        {
+            return m_LSL_Functions.llGetRootPosition();
+        }
+
+        public rotation llGetRootRotation()
+        {
+            return m_LSL_Functions.llGetRootRotation();
+        }
+
+        public string llGetObjectDesc()
+        {
+            return m_LSL_Functions.llGetObjectDesc();
+        }
+
+        public void llSetObjectDesc(string desc)
+        {
+            m_LSL_Functions.llSetObjectDesc(desc);
+        }
+
+        public string llGetCreator()
+        {
+            return m_LSL_Functions.llGetCreator();
+        }
+
+        public string llGetTimestamp()
+        {
+            return m_LSL_Functions.llGetTimestamp();
+        }
+
+        public void llSetLinkAlpha(int linknumber, double alpha, int face)
+        {
+            m_LSL_Functions.llSetLinkAlpha(linknumber, alpha, face);
+        }
+
+        public int llGetNumberOfPrims()
+        {
+            return m_LSL_Functions.llGetNumberOfPrims();
+        }
+
+        public string llGetNumberOfNotecardLines(string name)
+        {
+            return m_LSL_Functions.llGetNumberOfNotecardLines(name);
+        }
+
+        public List<string> llGetBoundingBox(string obj)
+        {
+            return m_LSL_Functions.llGetBoundingBox(obj);
+        }
+
+        public vector llGetGeometricCenter()
+        {
+            return m_LSL_Functions.llGetGeometricCenter();
+        }
+
+        public void llGetPrimitiveParams()
+        {
+            m_LSL_Functions.llGetPrimitiveParams();
+        }
+
         //
         // DO NOT MODIFY HERE: MODIFY IN LSL_BuiltIn_Commands.cs
         //
-        public string llIntegerToBase64(int number) { return m_LSL_Functions.llIntegerToBase64(number); }
-        public int llBase64ToInteger(string str) { return m_LSL_Functions.llBase64ToInteger(str); }
-        public double llGetGMTclock() { return m_LSL_Functions.llGetGMTclock(); }
-        public string llGetSimulatorHostname() { return m_LSL_Functions.llGetSimulatorHostname(); }
-        public void llSetLocalRot(LSL_Types.Quaternion rot) { m_LSL_Functions.llSetLocalRot(rot); }
-        public List<string> llParseStringKeepNulls(string src, List<string> seperators, List<string> spacers) { return m_LSL_Functions.llParseStringKeepNulls(src, seperators, spacers); }
-        public void llRezAtRoot(string inventory, LSL_Types.Vector3 position, LSL_Types.Vector3 velocity, LSL_Types.Quaternion rot, int param) { m_LSL_Functions.llRezAtRoot(inventory, position, velocity, rot, param); }
-        public int llGetObjectPermMask(int mask) { return m_LSL_Functions.llGetObjectPermMask(mask); }
-        public void llSetObjectPermMask(int mask, int value) { m_LSL_Functions.llSetObjectPermMask(mask, value); }
-        public void llGetInventoryPermMask(string item, int mask) { m_LSL_Functions.llGetInventoryPermMask(item, mask); }
-        public void llSetInventoryPermMask(string item, int mask, int value) { m_LSL_Functions.llSetInventoryPermMask(item, mask, value); }
-        public string llGetInventoryCreator(string item) { return m_LSL_Functions.llGetInventoryCreator(item); }
-        public void llOwnerSay(string msg) { m_LSL_Functions.llOwnerSay(msg); }
-        public void llRequestSimulatorData(string simulator, int data) { m_LSL_Functions.llRequestSimulatorData(simulator, data); }
-        public void llForceMouselook(int mouselook) { m_LSL_Functions.llForceMouselook(mouselook); }
-        public double llGetObjectMass(string id) { return m_LSL_Functions.llGetObjectMass(id); }
-        public void llListReplaceList() { m_LSL_Functions.llListReplaceList(); }
-        public void llLoadURL(string avatar_id, string message, string url) { m_LSL_Functions.llLoadURL(avatar_id, message, url); }
-        public void llParcelMediaCommandList(List<string> commandList) { m_LSL_Functions.llParcelMediaCommandList(commandList); }
-        public void llParcelMediaQuery() { m_LSL_Functions.llParcelMediaQuery(); }
-        public int llModPow(int a, int b, int c) { return m_LSL_Functions.llModPow(a, b, c); }
+        public string llIntegerToBase64(int number)
+        {
+            return m_LSL_Functions.llIntegerToBase64(number);
+        }
+
+        public int llBase64ToInteger(string str)
+        {
+            return m_LSL_Functions.llBase64ToInteger(str);
+        }
+
+        public double llGetGMTclock()
+        {
+            return m_LSL_Functions.llGetGMTclock();
+        }
+
+        public string llGetSimulatorHostname()
+        {
+            return m_LSL_Functions.llGetSimulatorHostname();
+        }
+
+        public void llSetLocalRot(rotation rot)
+        {
+            m_LSL_Functions.llSetLocalRot(rot);
+        }
+
+        public List<string> llParseStringKeepNulls(string src, List<string> seperators, List<string> spacers)
+        {
+            return m_LSL_Functions.llParseStringKeepNulls(src, seperators, spacers);
+        }
+
+        public void llRezAtRoot(string inventory, vector position, vector velocity, rotation rot, int param)
+        {
+            m_LSL_Functions.llRezAtRoot(inventory, position, velocity, rot, param);
+        }
+
+        public int llGetObjectPermMask(int mask)
+        {
+            return m_LSL_Functions.llGetObjectPermMask(mask);
+        }
+
+        public void llSetObjectPermMask(int mask, int value)
+        {
+            m_LSL_Functions.llSetObjectPermMask(mask, value);
+        }
+
+        public void llGetInventoryPermMask(string item, int mask)
+        {
+            m_LSL_Functions.llGetInventoryPermMask(item, mask);
+        }
+
+        public void llSetInventoryPermMask(string item, int mask, int value)
+        {
+            m_LSL_Functions.llSetInventoryPermMask(item, mask, value);
+        }
+
+        public string llGetInventoryCreator(string item)
+        {
+            return m_LSL_Functions.llGetInventoryCreator(item);
+        }
+
+        public void llOwnerSay(string msg)
+        {
+            m_LSL_Functions.llOwnerSay(msg);
+        }
+
+        public void llRequestSimulatorData(string simulator, int data)
+        {
+            m_LSL_Functions.llRequestSimulatorData(simulator, data);
+        }
+
+        public void llForceMouselook(int mouselook)
+        {
+            m_LSL_Functions.llForceMouselook(mouselook);
+        }
+
+        public double llGetObjectMass(string id)
+        {
+            return m_LSL_Functions.llGetObjectMass(id);
+        }
+
+        public void llListReplaceList()
+        {
+            m_LSL_Functions.llListReplaceList();
+        }
+
+        public void llLoadURL(string avatar_id, string message, string url)
+        {
+            m_LSL_Functions.llLoadURL(avatar_id, message, url);
+        }
+
+        public void llParcelMediaCommandList(List<string> commandList)
+        {
+            m_LSL_Functions.llParcelMediaCommandList(commandList);
+        }
+
+        public void llParcelMediaQuery()
+        {
+            m_LSL_Functions.llParcelMediaQuery();
+        }
+
+        public int llModPow(int a, int b, int c)
+        {
+            return m_LSL_Functions.llModPow(a, b, c);
+        }
+
         //
         // DO NOT MODIFY HERE: MODIFY IN LSL_BuiltIn_Commands.cs
         //
-        public int llGetInventoryType(string name) { return m_LSL_Functions.llGetInventoryType(name); }
-        public void llSetPayPrice(int price, List<string> quick_pay_buttons) { m_LSL_Functions.llSetPayPrice(price, quick_pay_buttons); }
-        public LSL_Types.Vector3 llGetCameraPos() { return m_LSL_Functions.llGetCameraPos(); }
-        public LSL_Types.Quaternion llGetCameraRot() { return m_LSL_Functions.llGetCameraRot(); }
-        public void llSetPrimURL() { m_LSL_Functions.llSetPrimURL(); }
-        public void llRefreshPrimURL() { m_LSL_Functions.llRefreshPrimURL(); }
-        public string llEscapeURL(string url) { return m_LSL_Functions.llEscapeURL(url); }
-        public string llUnescapeURL(string url) { return m_LSL_Functions.llUnescapeURL(url); }
-        public void llMapDestination(string simname, LSL_Types.Vector3 pos, LSL_Types.Vector3 look_at) { m_LSL_Functions.llMapDestination(simname, pos, look_at); }
-        public void llAddToLandBanList(string avatar, double hours) { m_LSL_Functions.llAddToLandBanList(avatar, hours); }
-        public void llRemoveFromLandPassList(string avatar) { m_LSL_Functions.llRemoveFromLandPassList(avatar); }
-        public void llRemoveFromLandBanList(string avatar) { m_LSL_Functions.llRemoveFromLandBanList(avatar); }
-        public void llSetCameraParams(List<string> rules) { m_LSL_Functions.llSetCameraParams(rules); }
-        public void llClearCameraParams() { m_LSL_Functions.llClearCameraParams(); }
-        public double llListStatistics(int operation, List<string> src) { return m_LSL_Functions.llListStatistics(operation, src); }
-        public int llGetUnixTime() { return m_LSL_Functions.llGetUnixTime(); }
-        public int llGetParcelFlags(LSL_Types.Vector3 pos) { return m_LSL_Functions.llGetParcelFlags(pos); }
-        public int llGetRegionFlags() { return m_LSL_Functions.llGetRegionFlags(); }
-        public string llXorBase64StringsCorrect(string str1, string str2) { return m_LSL_Functions.llXorBase64StringsCorrect(str1, str2); }
-        public void llHTTPRequest(string url, List<string> parameters, string body) { m_LSL_Functions.llHTTPRequest(url, parameters, body); }
-        public void llResetLandBanList() { m_LSL_Functions.llResetLandBanList(); }
-        public void llResetLandPassList() { m_LSL_Functions.llResetLandPassList(); }
-        public int llGetParcelPrimCount(LSL_Types.Vector3 pos, int category, int sim_wide) { return m_LSL_Functions.llGetParcelPrimCount(pos, category, sim_wide); }
-        public List<string> llGetParcelPrimOwners(LSL_Types.Vector3 pos) { return m_LSL_Functions.llGetParcelPrimOwners(pos); }
-        public int llGetObjectPrimCount(string object_id) { return m_LSL_Functions.llGetObjectPrimCount(object_id); }
+        public int llGetInventoryType(string name)
+        {
+            return m_LSL_Functions.llGetInventoryType(name);
+        }
+
+        public void llSetPayPrice(int price, List<string> quick_pay_buttons)
+        {
+            m_LSL_Functions.llSetPayPrice(price, quick_pay_buttons);
+        }
+
+        public vector llGetCameraPos()
+        {
+            return m_LSL_Functions.llGetCameraPos();
+        }
+
+        public rotation llGetCameraRot()
+        {
+            return m_LSL_Functions.llGetCameraRot();
+        }
+
+        public void llSetPrimURL()
+        {
+            m_LSL_Functions.llSetPrimURL();
+        }
+
+        public void llRefreshPrimURL()
+        {
+            m_LSL_Functions.llRefreshPrimURL();
+        }
+
+        public string llEscapeURL(string url)
+        {
+            return m_LSL_Functions.llEscapeURL(url);
+        }
+
+        public string llUnescapeURL(string url)
+        {
+            return m_LSL_Functions.llUnescapeURL(url);
+        }
+
+        public void llMapDestination(string simname, vector pos, vector look_at)
+        {
+            m_LSL_Functions.llMapDestination(simname, pos, look_at);
+        }
+
+        public void llAddToLandBanList(string avatar, double hours)
+        {
+            m_LSL_Functions.llAddToLandBanList(avatar, hours);
+        }
+
+        public void llRemoveFromLandPassList(string avatar)
+        {
+            m_LSL_Functions.llRemoveFromLandPassList(avatar);
+        }
+
+        public void llRemoveFromLandBanList(string avatar)
+        {
+            m_LSL_Functions.llRemoveFromLandBanList(avatar);
+        }
+
+        public void llSetCameraParams(List<string> rules)
+        {
+            m_LSL_Functions.llSetCameraParams(rules);
+        }
+
+        public void llClearCameraParams()
+        {
+            m_LSL_Functions.llClearCameraParams();
+        }
+
+        public double llListStatistics(int operation, List<string> src)
+        {
+            return m_LSL_Functions.llListStatistics(operation, src);
+        }
+
+        public int llGetUnixTime()
+        {
+            return m_LSL_Functions.llGetUnixTime();
+        }
+
+        public int llGetParcelFlags(vector pos)
+        {
+            return m_LSL_Functions.llGetParcelFlags(pos);
+        }
+
+        public int llGetRegionFlags()
+        {
+            return m_LSL_Functions.llGetRegionFlags();
+        }
+
+        public string llXorBase64StringsCorrect(string str1, string str2)
+        {
+            return m_LSL_Functions.llXorBase64StringsCorrect(str1, str2);
+        }
+
+        public void llHTTPRequest(string url, List<string> parameters, string body)
+        {
+            m_LSL_Functions.llHTTPRequest(url, parameters, body);
+        }
+
+        public void llResetLandBanList()
+        {
+            m_LSL_Functions.llResetLandBanList();
+        }
+
+        public void llResetLandPassList()
+        {
+            m_LSL_Functions.llResetLandPassList();
+        }
+
+        public int llGetParcelPrimCount(vector pos, int category, int sim_wide)
+        {
+            return m_LSL_Functions.llGetParcelPrimCount(pos, category, sim_wide);
+        }
+
+        public List<string> llGetParcelPrimOwners(vector pos)
+        {
+            return m_LSL_Functions.llGetParcelPrimOwners(pos);
+        }
+
+        public int llGetObjectPrimCount(string object_id)
+        {
+            return m_LSL_Functions.llGetObjectPrimCount(object_id);
+        }
+
         //
         // DO NOT MODIFY HERE: MODIFY IN LSL_BuiltIn_Commands.cs
         //
-        public int llGetParcelMaxPrims(LSL_Types.Vector3 pos, int sim_wide) { return m_LSL_Functions.llGetParcelMaxPrims(pos, sim_wide); }
-        public List<string> llGetParcelDetails(LSL_Types.Vector3 pos, List<string> param) { return m_LSL_Functions.llGetParcelDetails(pos, param); }
+        public int llGetParcelMaxPrims(vector pos, int sim_wide)
+        {
+            return m_LSL_Functions.llGetParcelMaxPrims(pos, sim_wide);
+        }
+
+        public List<string> llGetParcelDetails(vector pos, List<string> param)
+        {
+            return m_LSL_Functions.llGetParcelDetails(pos, param);
+        }
 
         //
         // OpenSim Functions
         //
-        public string osSetDynamicTextureURL(string dynamicID, string contentType, string url, string extraParams, int timer) { return m_LSL_Functions.osSetDynamicTextureURL(dynamicID, contentType, url, extraParams, timer); }
+        public string osSetDynamicTextureURL(string dynamicID, string contentType, string url, string extraParams,
+                                             int timer)
+        {
+            return m_LSL_Functions.osSetDynamicTextureURL(dynamicID, contentType, url, extraParams, timer);
+        }
 
         // LSL CONSTANTS
         public const int TRUE = 1;
@@ -803,10 +2115,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL
         public const double SQRT2 = 1.414213538f;
 
         // Can not be public const?
-        public LSL_Types.Vector3 ZERO_VECTOR = new LSL_Types.Vector3(0, 0, 0);
-        public LSL_Types.Quaternion ZERO_ROTATION = new LSL_Types.Quaternion(0, 0, 0, 0);
-
-
-
+        public vector ZERO_VECTOR = new vector(0, 0, 0);
+        public rotation ZERO_ROTATION = new rotation(0, 0, 0, 0);
     }
 }

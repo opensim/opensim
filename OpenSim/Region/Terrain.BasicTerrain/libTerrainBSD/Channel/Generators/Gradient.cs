@@ -26,15 +26,10 @@
 * 
 */
 
-using System;
-using System.Collections.Generic;
-using System.Text;
-
 namespace libTerrain
 {
     partial class Channel
     {
-
         public void GradientCube()
         {
             SetDiff();

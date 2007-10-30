@@ -31,13 +31,9 @@ using libsecondlife;
 using OpenSim.Framework;
 using OpenSim.Framework.Communications;
 using OpenSim.Framework.Communications.Cache;
-using OpenSim.Framework.Interfaces;
 using OpenSim.Framework.Servers;
-using OpenSim.Framework;
- 
-using OpenSim.Region.Environment.Scenes;
-using OpenSim.Region.Terrain;
 using OpenSim.Region.Environment;
+using OpenSim.Region.Environment.Scenes;
 using Avatar=OpenSim.Region.Environment.Scenes.ScenePresence;
 
 namespace SimpleApp
@@ -46,8 +42,10 @@ namespace SimpleApp
     {
         private List<ScenePresence> m_avatars;
 
-        public MyWorld( RegionInfo regionInfo, AgentCircuitManager authen, CommunicationsManager commsMan, AssetCache assetCach, StorageManager storeMan, BaseHttpServer httpServer, ModuleLoader moduleLoader)
-            : base( regionInfo, authen, commsMan, assetCach, storeMan, httpServer, moduleLoader, false)
+        public MyWorld(RegionInfo regionInfo, AgentCircuitManager authen, CommunicationsManager commsMan,
+                       AssetCache assetCach, StorageManager storeMan, BaseHttpServer httpServer,
+                       ModuleLoader moduleLoader)
+            : base(regionInfo, authen, commsMan, assetCach, storeMan, httpServer, moduleLoader, false)
         {
             m_avatars = new List<Avatar>();
         }
@@ -58,29 +56,27 @@ namespace SimpleApp
 
             for (int i = 0; i < 65536; i++)
             {
-                int x = i % 256;
-                int y = i / 256;
+                int x = i%256;
+                int y = i/256;
 
                 map[i] = 25f;
             }
 
-            this.Terrain.GetHeights1D(map);
-            this.CreateTerrainTexture();
+            Terrain.GetHeights1D(map);
+            CreateTerrainTexture();
         }
 
-        override public void AddNewClient(IClientAPI client, bool child)
+        public override void AddNewClient(IClientAPI client, bool child)
         {
             SubscribeToClientEvents(client);
 
-            ScenePresence avatar = CreateAndAddScenePresence(client, child );
+            ScenePresence avatar = CreateAndAddScenePresence(client, child);
             avatar.AbsolutePosition = new LLVector3(128, 128, 26);
 
             LLVector3 pos = new LLVector3(128, 128, 128);
 
-            client.OnCompleteMovementToRegion += delegate()
-                 {
-                     client.SendChatMessage("Welcome to My World.", 1, pos, "System", LLUUID.Zero );
-                 };
+            client.OnCompleteMovementToRegion +=
+                delegate() { client.SendChatMessage("Welcome to My World.", 1, pos, "System", LLUUID.Zero); };
 
 
             client.SendRegionHandshake(m_regInfo);

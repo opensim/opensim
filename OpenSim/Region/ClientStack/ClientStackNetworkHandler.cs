@@ -29,12 +29,10 @@ using System.Net.Sockets;
 
 namespace OpenSim.Region.ClientStack
 {
-
     public interface ClientStackNetworkHandler
     {
-        void SendPacketTo(byte[] buffer, int size, SocketFlags flags, uint circuitcode);// EndPoint packetSender);
+        void SendPacketTo(byte[] buffer, int size, SocketFlags flags, uint circuitcode); // EndPoint packetSender);
         void RemoveClientCircuit(uint circuitcode);
         void RegisterPacketServer(PacketServer server);
     }
-
 }

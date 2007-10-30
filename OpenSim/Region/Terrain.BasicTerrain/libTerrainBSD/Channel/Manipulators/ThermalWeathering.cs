@@ -26,10 +26,6 @@
 * 
 */
 
-using System;
-using System.Collections.Generic;
-using System.Text;
-
 namespace libTerrain
 {
     partial class Channel
@@ -47,10 +43,11 @@ namespace libTerrain
             double[,] lastFrame;
             double[,] thisFrame;
 
-            lastFrame = (double[,])map.Clone();
-            thisFrame = (double[,])map.Clone();
+            lastFrame = (double[,]) map.Clone();
+            thisFrame = (double[,]) map.Clone();
 
-            NeighbourSystem type = NeighbourSystem.Moore; // Using moore neighbourhood (twice as computationally expensive)
+            NeighbourSystem type = NeighbourSystem.Moore;
+                // Using moore neighbourhood (twice as computationally expensive)
             int NEIGHBOUR_ME = 4; // I am always 4 in both systems.
 
             int NEIGHBOUR_MAX = type == NeighbourSystem.Moore ? 9 : 5;
@@ -88,19 +85,18 @@ namespace libTerrain
 
                                 if (target > heightF + talus)
                                 {
-                                    double calc = c * ((target - heightF) - talus);
+                                    double calc = c*((target - heightF) - talus);
                                     heightF += calc;
                                     target -= calc;
                                 }
 
                                 thisFrame[x, y] = heightF;
                                 thisFrame[coords[0], coords[1]] = target;
-
                             }
                         }
                     }
                 }
-                lastFrame = (double[,])thisFrame.Clone();
+                lastFrame = (double[,]) thisFrame.Clone();
             }
 
             map = thisFrame;

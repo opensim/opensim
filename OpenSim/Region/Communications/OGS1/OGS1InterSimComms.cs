@@ -27,17 +27,19 @@
 */
 
 using System;
+using System.Runtime.Remoting;
 using libsecondlife;
 using OpenSim.Framework;
 
 namespace OpenSim.Region.Communications.OGS1
 {
     public delegate bool InformRegionChild(ulong regionHandle, AgentCircuitData agentData);
+
     public delegate bool ExpectArrival(ulong regionHandle, LLUUID agentID, LLVector3 position, bool isFlying);
 
     public sealed class InterRegionSingleton
     {
-        static readonly InterRegionSingleton instance = new InterRegionSingleton();
+        private static readonly InterRegionSingleton instance = new InterRegionSingleton();
 
         public event InformRegionChild OnChildAgent;
         public event ExpectArrival OnArrival;
@@ -46,16 +48,13 @@ namespace OpenSim.Region.Communications.OGS1
         {
         }
 
-        InterRegionSingleton()
+        private InterRegionSingleton()
         {
         }
 
         public static InterRegionSingleton Instance
         {
-            get
-            {
-                return instance;
-            }
+            get { return instance; }
         }
 
         public bool InformRegionOfChildAgent(ulong regionHandle, AgentCircuitData agentData)
@@ -79,7 +78,6 @@ namespace OpenSim.Region.Communications.OGS1
 
     public class OGS1InterRegionRemoting : MarshalByRefObject
     {
-
         public OGS1InterRegionRemoting()
         {
         }
@@ -90,7 +88,7 @@ namespace OpenSim.Region.Communications.OGS1
             {
                 return InterRegionSingleton.Instance.InformRegionOfChildAgent(regionHandle, agentData);
             }
-            catch (System.Runtime.Remoting.RemotingException e)
+            catch (RemotingException e)
             {
                 Console.WriteLine("Remoting Error: Unable to connect to remote region.\n" + e.ToString());
                 return false;
@@ -103,7 +101,7 @@ namespace OpenSim.Region.Communications.OGS1
             {
                 return InterRegionSingleton.Instance.ExpectAvatarCrossing(regionHandle, agentID, position, isFlying);
             }
-            catch (System.Runtime.Remoting.RemotingException e)
+            catch (RemotingException e)
             {
                 Console.WriteLine("Remoting Error: Unable to connect to remote region.\n" + e.ToString());
                 return false;

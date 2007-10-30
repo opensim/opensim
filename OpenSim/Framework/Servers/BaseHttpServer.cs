@@ -31,11 +31,10 @@ using System.Collections.Generic;
 using System.IO;
 using System.Net;
 using System.Text;
-using System.Text.RegularExpressions;
 using System.Threading;
+using System.Xml;
 using Nwc.XmlRpc;
 using OpenSim.Framework.Console;
-using System.Xml;
 
 namespace OpenSim.Framework.Servers
 {
@@ -50,7 +49,7 @@ namespace OpenSim.Framework.Servers
 
         public int Port
         {
-            get { return m_port; } 
+            get { return m_port; }
         }
 
         public BaseHttpServer(int port)
@@ -58,11 +57,11 @@ namespace OpenSim.Framework.Servers
             m_port = port;
         }
 
-        public void AddStreamHandler( IStreamHandler handler)
+        public void AddStreamHandler(IStreamHandler handler)
         {
             string httpMethod = handler.HttpMethod;
             string path = handler.Path;
-            
+
             string handlerKey = GetHandlerKey(httpMethod, path);
             m_streamHandlers.Add(handlerKey, handler);
         }
@@ -74,9 +73,9 @@ namespace OpenSim.Framework.Servers
 
         public bool AddXmlRPCHandler(string method, XmlRpcMethod handler)
         {
-            if (!this.m_rpcHandlers.ContainsKey(method))
+            if (!m_rpcHandlers.ContainsKey(method))
             {
-                this.m_rpcHandlers.Add(method, handler);
+                m_rpcHandlers.Add(method, handler);
                 return true;
             }
 
@@ -87,7 +86,7 @@ namespace OpenSim.Framework.Servers
 
         public virtual void HandleRequest(Object stateinfo)
         {
-            HttpListenerContext context = (HttpListenerContext)stateinfo;
+            HttpListenerContext context = (HttpListenerContext) stateinfo;
 
             HttpListenerRequest request = context.Request;
             HttpListenerResponse response = context.Response;
@@ -96,11 +95,11 @@ namespace OpenSim.Framework.Servers
             response.SendChunked = false;
 
             string path = request.RawUrl;
-            string handlerKey = GetHandlerKey( request.HttpMethod, path );
+            string handlerKey = GetHandlerKey(request.HttpMethod, path);
 
             IStreamHandler streamHandler;
 
-            if (TryGetStreamHandler( handlerKey, out streamHandler))
+            if (TryGetStreamHandler(handlerKey, out streamHandler))
             {
                 byte[] buffer = streamHandler.Handle(path, request.InputStream);
                 request.InputStream.Close();
@@ -159,11 +158,11 @@ namespace OpenSim.Framework.Servers
 
             try
             {
-                xmlRprcRequest = (XmlRpcRequest)(new XmlRpcRequestDeserializer()).Deserialize(requestBody);
+                xmlRprcRequest = (XmlRpcRequest) (new XmlRpcRequestDeserializer()).Deserialize(requestBody);
             }
-            catch ( XmlException e )
-            {            
-                responseString = String.Format( "XmlException:\n{0}",e.Message );
+            catch (XmlException e)
+            {
+                responseString = String.Format("XmlException:\n{0}", e.Message);
             }
 
             if (xmlRprcRequest != null)
@@ -173,7 +172,7 @@ namespace OpenSim.Framework.Servers
                 XmlRpcResponse xmlRpcResponse;
 
                 XmlRpcMethod method;
-                if (this.m_rpcHandlers.TryGetValue(methodName, out method))
+                if (m_rpcHandlers.TryGetValue(methodName, out method))
                 {
                     xmlRpcResponse = method(xmlRprcRequest);
                 }
@@ -181,7 +180,8 @@ namespace OpenSim.Framework.Servers
                 {
                     xmlRpcResponse = new XmlRpcResponse();
                     Hashtable unknownMethodError = new Hashtable();
-                    unknownMethodError["reason"] = "XmlRequest"; ;
+                    unknownMethodError["reason"] = "XmlRequest";
+                    ;
                     unknownMethodError["message"] = "Unknown Rpc Request [" + methodName + "]";
                     unknownMethodError["login"] = "false";
                     xmlRpcResponse.Value = unknownMethodError;

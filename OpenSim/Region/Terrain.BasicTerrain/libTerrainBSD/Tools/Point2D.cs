@@ -26,10 +26,6 @@
 * 
 */
 
-using System;
-using System.Collections.Generic;
-using System.Text;
-
 namespace libTerrain
 {
     public class Point2D

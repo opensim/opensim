@@ -36,10 +36,9 @@ namespace OpenSim.Framework
 
         public AvatarWearable()
         {
-
         }
 
-        public AvatarWearable( LLUUID itemId, LLUUID assetId )
+        public AvatarWearable(LLUUID itemId, LLUUID assetId)
         {
             AssetID = assetId;
             ItemID = itemId;

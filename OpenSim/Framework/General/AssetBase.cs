@@ -44,7 +44,6 @@ namespace OpenSim.Framework
 
         public AssetBase()
         {
-     
         }
 
         public AssetBase(LLUUID assetId, string name)

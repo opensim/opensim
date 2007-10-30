@@ -25,9 +25,9 @@
 * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 * 
 */
+using Axiom.Math;
 using OpenSim.Framework;
 using OpenSim.Framework.Console;
-using Axiom.Math;
 
 namespace OpenSim.Region.Physics.Manager
 {
@@ -35,10 +35,7 @@ namespace OpenSim.Region.Physics.Manager
     {
         public static PhysicsScene Null
         {
-            get
-            {
-                return new NullPhysicsScene();
-            }
+            get { return new NullPhysicsScene(); }
         }
 
         public abstract PhysicsActor AddAvatar(string avName, PhysicsVector position);
@@ -47,7 +44,8 @@ namespace OpenSim.Region.Physics.Manager
 
         public abstract void RemovePrim(PhysicsActor prim);
 
-        public abstract PhysicsActor AddPrimShape(string primName, PrimitiveBaseShape pbs, PhysicsVector position, PhysicsVector size, Quaternion rotation);
+        public abstract PhysicsActor AddPrimShape(string primName, PrimitiveBaseShape pbs, PhysicsVector position,
+                                                  PhysicsVector size, Quaternion rotation);
 
         public abstract void Simulate(float timeStep);
 
@@ -57,10 +55,7 @@ namespace OpenSim.Region.Physics.Manager
 
         public abstract void DeleteTerrain();
 
-        public abstract bool IsThreaded
-        {
-            get;
-        }
+        public abstract bool IsThreaded { get; }
 
         private class NullPhysicsScene : PhysicsScene
         {
@@ -74,12 +69,10 @@ namespace OpenSim.Region.Physics.Manager
 
             public override void RemoveAvatar(PhysicsActor actor)
             {
-
             }
 
             public override void RemovePrim(PhysicsActor prim)
             {
-
             }
 
 /*
@@ -89,7 +82,9 @@ namespace OpenSim.Region.Physics.Manager
                 return PhysicsActor.Null;
             }
 */
-            public override PhysicsActor AddPrimShape(string primName, PrimitiveBaseShape pbs, PhysicsVector position, PhysicsVector size, Quaternion rotation)
+
+            public override PhysicsActor AddPrimShape(string primName, PrimitiveBaseShape pbs, PhysicsVector position,
+                                                      PhysicsVector size, Quaternion rotation)
             {
                 MainLog.Instance.Verbose("NullPhysicsScene : AddPrim({0},{1})", position, size);
                 return PhysicsActor.Null;
@@ -97,7 +92,7 @@ namespace OpenSim.Region.Physics.Manager
 
             public override void Simulate(float timeStep)
             {
-                m_workIndicator = (m_workIndicator + 1) % 10;
+                m_workIndicator = (m_workIndicator + 1)%10;
 
                 //OpenSim.Framework.Console.MainLog.Instance.SetStatus(m_workIndicator.ToString());
             }
@@ -114,7 +109,6 @@ namespace OpenSim.Region.Physics.Manager
 
             public override void DeleteTerrain()
             {
-
             }
 
             public override bool IsThreaded

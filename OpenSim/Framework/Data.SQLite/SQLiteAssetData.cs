@@ -26,15 +26,11 @@
 * 
 */
 using System;
-using System.IO;
-using libsecondlife;
-using OpenSim.Framework;
 using System.Data;
-using System.Data.SqlTypes;
+using System.Reflection;
+using libsecondlife;
 using Mono.Data.SqliteClient;
 using OpenSim.Framework.Console;
-using OpenSim.Framework;
-using OpenSim.Framework.Interfaces;
 
 namespace OpenSim.Framework.Data.SQLite
 {
@@ -46,11 +42,11 @@ namespace OpenSim.Framework.Data.SQLite
         /// <summary>
         /// The database manager
         /// </summary>
-
         /// <summary>
         /// Artificial constructor called upon plugin load
         /// </summary>
         private const string assetSelect = "select * from assets";
+
         private DataSet ds;
         private SqliteDataAdapter da;
 
@@ -58,13 +54,14 @@ namespace OpenSim.Framework.Data.SQLite
         {
             SqliteConnection conn = new SqliteConnection("URI=file:" + dbfile + ",version=3");
             TestTables(conn);
-            
+
             ds = new DataSet();
             da = new SqliteDataAdapter(new SqliteCommand(assetSelect, conn));
 
-            lock (ds) {
+            lock (ds)
+            {
                 ds.Tables.Add(createAssetsTable());
-                
+
                 setupAssetCommands(da, conn);
                 try
                 {
@@ -75,11 +72,11 @@ namespace OpenSim.Framework.Data.SQLite
                     MainLog.Instance.Verbose("AssetStorage", "Caught fill error on asset table");
                 }
             }
-            
+
             return;
         }
 
-        public AssetBase FetchAsset(LLUUID uuid) 
+        public AssetBase FetchAsset(LLUUID uuid)
         {
             AssetBase asset = new AssetBase();
             DataRow row = ds.Tables["assets"].Rows.Find(uuid);
@@ -92,27 +89,28 @@ namespace OpenSim.Framework.Data.SQLite
                 return null;
             }
         }
-        
-        public void CreateAsset(AssetBase asset) 
+
+        public void CreateAsset(AssetBase asset)
         {
             // no difference for now
             UpdateAsset(asset);
         }
-        
-        public void UpdateAsset(AssetBase asset) 
+
+        public void UpdateAsset(AssetBase asset)
         {
             LogAssetLoad(asset);
 
             DataTable assets = ds.Tables["assets"];
-            lock(ds) {
+            lock (ds)
+            {
                 DataRow row = assets.Rows.Find(asset.FullID);
-                if (row == null) 
+                if (row == null)
                 {
                     row = assets.NewRow();
                     fillAssetRow(row, asset);
                     assets.Rows.Add(row);
                 }
-                else 
+                else
                 {
                     fillAssetRow(row, asset);
                 }
@@ -124,9 +122,10 @@ namespace OpenSim.Framework.Data.SQLite
             string temporary = asset.Temporary ? "Temporary" : "Stored";
             string local = asset.Local ? "Local" : "Remote";
 
-            MainLog.Instance.Verbose("ASSETSTORAGE", 
-                                     string.Format("Loaded {6} {5} Asset: [{0}][{3}/{4}] \"{1}\":{2} ({7} bytes)", 
-                                                   asset.FullID, asset.Name, asset.Description, asset.Type, asset.InvType, temporary, local, asset.Data.Length) );
+            MainLog.Instance.Verbose("ASSETSTORAGE",
+                                     string.Format("Loaded {6} {5} Asset: [{0}][{3}/{4}] \"{1}\":{2} ({7} bytes)",
+                                                   asset.FullID, asset.Name, asset.Description, asset.Type,
+                                                   asset.InvType, temporary, local, asset.Data.Length));
         }
 
         public bool ExistsAsset(LLUUID uuid)
@@ -137,23 +136,26 @@ namespace OpenSim.Framework.Data.SQLite
 
         public void DeleteAsset(LLUUID uuid)
         {
-            lock (ds) {
+            lock (ds)
+            {
                 DataRow row = ds.Tables["assets"].Rows.Find(uuid);
-                if (row != null) {
+                if (row != null)
+                {
                     row.Delete();
                 }
             }
         }
-        
+
         public void CommitAssets() // force a sync to the database
         {
             MainLog.Instance.Verbose("AssetStorage", "Attempting commit");
-            lock (ds) {
+            lock (ds)
+            {
                 da.Update(ds, "assets");
                 ds.AcceptChanges();
             }
         }
-        
+
         /***********************************************************************
          *
          *  Database Definition Functions
@@ -161,24 +163,24 @@ namespace OpenSim.Framework.Data.SQLite
          *  This should be db agnostic as we define them in ADO.NET terms
          *
          **********************************************************************/
-        
+
         private DataTable createAssetsTable()
         {
             DataTable assets = new DataTable("assets");
 
-            createCol(assets, "UUID", typeof(System.String));
-            createCol(assets, "Name", typeof(System.String));
-            createCol(assets, "Description", typeof(System.String));
-            createCol(assets, "Type", typeof(System.Int32));
-            createCol(assets, "InvType", typeof(System.Int32));
-            createCol(assets, "Local", typeof(System.Boolean));
-            createCol(assets, "Temporary", typeof(System.Boolean));
-            createCol(assets, "Data", typeof(System.Byte[]));
+            createCol(assets, "UUID", typeof (String));
+            createCol(assets, "Name", typeof (String));
+            createCol(assets, "Description", typeof (String));
+            createCol(assets, "Type", typeof (Int32));
+            createCol(assets, "InvType", typeof (Int32));
+            createCol(assets, "Local", typeof (Boolean));
+            createCol(assets, "Temporary", typeof (Boolean));
+            createCol(assets, "Data", typeof (Byte[]));
             // Add in contraints
-            assets.PrimaryKey = new DataColumn[] { assets.Columns["UUID"] };
+            assets.PrimaryKey = new DataColumn[] {assets.Columns["UUID"]};
             return assets;
         }
-        
+
         /***********************************************************************
          *  
          *  Convert between ADO.NET <=> OpenSim Objects
@@ -193,19 +195,19 @@ namespace OpenSim.Framework.Data.SQLite
             // interesting has to be done to actually get these values
             // back out.  Not enough time to figure it out yet.
             AssetBase asset = new AssetBase();
-            
-            asset.FullID = new LLUUID((String)row["UUID"]);
-            asset.Name = (String)row["Name"];
-            asset.Description = (String)row["Description"];
+
+            asset.FullID = new LLUUID((String) row["UUID"]);
+            asset.Name = (String) row["Name"];
+            asset.Description = (String) row["Description"];
             asset.Type = Convert.ToSByte(row["Type"]);
             asset.InvType = Convert.ToSByte(row["InvType"]);
             asset.Local = Convert.ToBoolean(row["Local"]);
             asset.Temporary = Convert.ToBoolean(row["Temporary"]);
-            asset.Data = (byte[])row["Data"];
+            asset.Data = (byte[]) row["Data"];
             return asset;
         }
 
-        
+
         private void fillAssetRow(DataRow row, AssetBase asset)
         {
             row["UUID"] = asset.FullID;
@@ -225,8 +227,10 @@ namespace OpenSim.Framework.Data.SQLite
             row["Data"] = asset.Data;
 
             // ADO.NET doesn't handle NULL very well
-            foreach (DataColumn col in ds.Tables["assets"].Columns) {
-                if (row[col] == null) {
+            foreach (DataColumn col in ds.Tables["assets"].Columns)
+            {
+                if (row[col] == null)
+                {
                     row[col] = "";
                 }
             }
@@ -250,18 +254,18 @@ namespace OpenSim.Framework.Data.SQLite
             da.UpdateCommand.Connection = conn;
 
             SqliteCommand delete = new SqliteCommand("delete from assets where UUID = :UUID");
-            delete.Parameters.Add(createSqliteParameter("UUID", typeof(System.String)));
+            delete.Parameters.Add(createSqliteParameter("UUID", typeof (String)));
             delete.Connection = conn;
             da.DeleteCommand = delete;
         }
-        
+
         private void InitDB(SqliteConnection conn)
         {
             string createAssets = defineTable(createAssetsTable());
             SqliteCommand pcmd = new SqliteCommand(createAssets, conn);
             conn.Open();
             pcmd.ExecuteNonQuery();
-            conn.Close(); 
+            conn.Close();
         }
 
         private bool TestTables(SqliteConnection conn)
@@ -269,9 +273,12 @@ namespace OpenSim.Framework.Data.SQLite
             SqliteCommand cmd = new SqliteCommand(assetSelect, conn);
             SqliteDataAdapter pDa = new SqliteDataAdapter(cmd);
             DataSet tmpDS = new DataSet();
-            try {
+            try
+            {
                 pDa.Fill(tmpDS, "assets");
-            } catch (Mono.Data.SqliteClient.SqliteSyntaxException) {
+            }
+            catch (SqliteSyntaxException)
+            {
                 MainLog.Instance.Verbose("DATASTORE", "SQLite Database doesn't exist... creating");
                 InitDB(conn);
             }
@@ -279,14 +286,18 @@ namespace OpenSim.Framework.Data.SQLite
         }
 
         #region IPlugin interface
-        public string Version {
+
+        public string Version
+        {
             get
             {
-                System.Reflection.Module module = this.GetType().Module;
+                Module module = GetType().Module;
                 string dllName = module.Assembly.ManifestModule.Name;
                 Version dllVersion = module.Assembly.GetName().Version;
 
-                return string.Format("{0}.{1}.{2}.{3}", dllVersion.Major, dllVersion.Minor, dllVersion.Build, dllVersion.Revision);
+                return
+                    string.Format("{0}.{1}.{2}.{3}", dllVersion.Major, dllVersion.Minor, dllVersion.Build,
+                                  dllVersion.Revision);
             }
         }
 
@@ -295,9 +306,11 @@ namespace OpenSim.Framework.Data.SQLite
             Initialise("AssetStorage.db", "");
         }
 
-        public string Name {
+        public string Name
+        {
             get { return "SQLite Asset storage engine"; }
         }
+
         #endregion
     }
 }

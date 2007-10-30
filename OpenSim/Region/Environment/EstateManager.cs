@@ -30,11 +30,9 @@ using System.Collections.Generic;
 using System.Text;
 using libsecondlife;
 using libsecondlife.Packets;
-using OpenSim.Framework.Console;
-using OpenSim.Framework.Interfaces;
 using OpenSim.Framework;
+using OpenSim.Framework.Console;
 using OpenSim.Region.Environment.Scenes;
-
 
 namespace OpenSim.Region.Environment
 {
@@ -216,14 +214,14 @@ namespace OpenSim.Region.Environment
 
                 int tempMaxAgents =
                     Convert.ToInt16(Convert.ToDecimal(Helpers.FieldToUTF8String(packet.ParamList[4].Parameter)));
-                m_regInfo.EstateSettings.maxAgents = (byte)tempMaxAgents;
+                m_regInfo.EstateSettings.maxAgents = (byte) tempMaxAgents;
 
                 float tempObjectBonusFactor =
-                    (float)Convert.ToDecimal(Helpers.FieldToUTF8String(packet.ParamList[5].Parameter));
+                    (float) Convert.ToDecimal(Helpers.FieldToUTF8String(packet.ParamList[5].Parameter));
                 m_regInfo.EstateSettings.objectBonusFactor = tempObjectBonusFactor;
 
                 int tempMatureLevel = Convert.ToInt16(Helpers.FieldToUTF8String(packet.ParamList[6].Parameter));
-                m_regInfo.EstateSettings.simAccess = (Simulator.SimAccess)tempMatureLevel;
+                m_regInfo.EstateSettings.simAccess = (Simulator.SimAccess) tempMatureLevel;
 
 
                 if (convertParamStringToBool(packet.ParamList[7].Parameter))
@@ -250,13 +248,13 @@ namespace OpenSim.Region.Environment
             }
             else
             {
-                float WaterHeight = (float)Convert.ToDecimal(Helpers.FieldToUTF8String(packet.ParamList[0].Parameter));
+                float WaterHeight = (float) Convert.ToDecimal(Helpers.FieldToUTF8String(packet.ParamList[0].Parameter));
                 float TerrainRaiseLimit =
-                    (float)Convert.ToDecimal(Helpers.FieldToUTF8String(packet.ParamList[1].Parameter));
+                    (float) Convert.ToDecimal(Helpers.FieldToUTF8String(packet.ParamList[1].Parameter));
                 float TerrainLowerLimit =
-                    (float)Convert.ToDecimal(Helpers.FieldToUTF8String(packet.ParamList[2].Parameter));
+                    (float) Convert.ToDecimal(Helpers.FieldToUTF8String(packet.ParamList[2].Parameter));
                 bool UseFixedSun = convertParamStringToBool(packet.ParamList[4].Parameter);
-                float SunHour = (float)Convert.ToDecimal(Helpers.FieldToUTF8String(packet.ParamList[5].Parameter));
+                float SunHour = (float) Convert.ToDecimal(Helpers.FieldToUTF8String(packet.ParamList[5].Parameter));
 
                 setRegionSettings(WaterHeight, TerrainRaiseLimit, TerrainLowerLimit, UseFixedSun, SunHour);
 
@@ -273,8 +271,8 @@ namespace OpenSim.Region.Environment
                 if (splitField.Length == 3)
                 {
                     Int16 corner = Convert.ToInt16(splitField[0]);
-                    float lowValue = (float)Convert.ToDecimal(splitField[1]);
-                    float highValue = (float)Convert.ToDecimal(splitField[2]);
+                    float lowValue = (float) Convert.ToDecimal(splitField[1]);
+                    float highValue = (float) Convert.ToDecimal(splitField[2]);
 
                     setEstateTextureRange(corner, lowValue, highValue);
                 }
@@ -343,7 +341,7 @@ namespace OpenSim.Region.Environment
         {
             m_scene.Broadcast(
                 sendRegionHandshake
-            );
+                );
         }
 
         public void sendRegionInfoPacket(IClientAPI remote_client)
@@ -363,8 +361,8 @@ namespace OpenSim.Region.Environment
             regionInfoPacket.RegionInfo.PricePerMeter = m_regInfo.EstateSettings.pricePerMeter;
             regionInfoPacket.RegionInfo.RedirectGridX = m_regInfo.EstateSettings.redirectGridX;
             regionInfoPacket.RegionInfo.RedirectGridY = m_regInfo.EstateSettings.redirectGridY;
-            regionInfoPacket.RegionInfo.RegionFlags = (uint)m_regInfo.EstateSettings.regionFlags;
-            regionInfoPacket.RegionInfo.SimAccess = (byte)m_regInfo.EstateSettings.simAccess;
+            regionInfoPacket.RegionInfo.RegionFlags = (uint) m_regInfo.EstateSettings.regionFlags;
+            regionInfoPacket.RegionInfo.SimAccess = (byte) m_regInfo.EstateSettings.simAccess;
             regionInfoPacket.RegionInfo.SimName = _enc.GetBytes(m_regInfo.RegionName);
             regionInfoPacket.RegionInfo.SunHour = m_regInfo.EstateSettings.sunHour;
             regionInfoPacket.RegionInfo.TerrainLowerLimit = m_regInfo.EstateSettings.terrainLowerLimit;

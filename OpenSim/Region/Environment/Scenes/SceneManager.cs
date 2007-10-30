@@ -28,9 +28,9 @@
 
 using System;
 using System.Collections.Generic;
-using OpenSim.Framework.Console;
-using OpenSim.Framework;
 using libsecondlife;
+using OpenSim.Framework;
+using OpenSim.Framework.Console;
 
 namespace OpenSim.Region.Environment.Scenes
 {
@@ -152,10 +152,7 @@ namespace OpenSim.Region.Environment.Scenes
 
         public void SendGeneralMessage(string msg)
         {
-            ForEachCurrentScene(delegate(Scene scene)
-            {
-                scene.SendGeneralAlert(msg);
-            });
+            ForEachCurrentScene(delegate(Scene scene) { scene.SendGeneralAlert(msg); });
         }
 
         public bool TrySetCurrentScene(string regionName)
@@ -185,23 +182,24 @@ namespace OpenSim.Region.Environment.Scenes
         public void SetDebugPacketOnCurrentScene(LogBase log, int newDebug)
         {
             ForEachCurrentScene(delegate(Scene scene)
-                        {
-                            foreach (EntityBase entity in scene.Entities.Values)
-                            {
-                                if (entity is ScenePresence)
-                                {
-                                    ScenePresence scenePrescence = entity as ScenePresence;
-                                    if (!scenePrescence.IsChildAgent)
                                     {
-                                        log.Error(String.Format("Packet debug for {0} {1} set to {2}",
-                                                                scenePrescence.Firstname, scenePrescence.Lastname,
-                                                                newDebug));
+                                        foreach (EntityBase entity in scene.Entities.Values)
+                                        {
+                                            if (entity is ScenePresence)
+                                            {
+                                                ScenePresence scenePrescence = entity as ScenePresence;
+                                                if (!scenePrescence.IsChildAgent)
+                                                {
+                                                    log.Error(String.Format("Packet debug for {0} {1} set to {2}",
+                                                                            scenePrescence.Firstname,
+                                                                            scenePrescence.Lastname,
+                                                                            newDebug));
 
-                                        scenePrescence.ControllingClient.SetDebug(newDebug);
-                                    }
-                                }
-                            }
-                        });
+                                                    scenePrescence.ControllingClient.SetDebug(newDebug);
+                                                }
+                                            }
+                                        }
+                                    });
         }
 
         public List<ScenePresence> GetCurrentSceneAvatars()
@@ -209,19 +207,19 @@ namespace OpenSim.Region.Environment.Scenes
             List<ScenePresence> avatars = new List<ScenePresence>();
 
             ForEachCurrentScene(delegate(Scene scene)
-                        {
-                            foreach (EntityBase entity in scene.Entities.Values)
-                            {
-                                if (entity is ScenePresence)
-                                {
-                                    ScenePresence scenePrescence = entity as ScenePresence;
-                                    if (!scenePrescence.IsChildAgent)
                                     {
-                                        avatars.Add(scenePrescence);
-                                    }
-                                }
-                            }
-                        });
+                                        foreach (EntityBase entity in scene.Entities.Values)
+                                        {
+                                            if (entity is ScenePresence)
+                                            {
+                                                ScenePresence scenePrescence = entity as ScenePresence;
+                                                if (!scenePrescence.IsChildAgent)
+                                                {
+                                                    avatars.Add(scenePrescence);
+                                                }
+                                            }
+                                        }
+                                    });
 
             return avatars;
         }
@@ -242,11 +240,11 @@ namespace OpenSim.Region.Environment.Scenes
         public void SetCurrentSceneTimePhase(int timePhase)
         {
             ForEachCurrentScene(delegate(Scene scene)
-                        {
-                            scene.SetTimePhase(
-                                timePhase)
-                                ;
-                        });
+                                    {
+                                        scene.SetTimePhase(
+                                            timePhase)
+                                            ;
+                                    });
         }
 
 
@@ -260,11 +258,11 @@ namespace OpenSim.Region.Environment.Scenes
             ForEachCurrentScene(delegate(Scene scene) { scene.HandleEditCommand(cmdparams); });
         }
 
-        public bool TryGetAvatar( LLUUID avatarId, out ScenePresence avatar )
+        public bool TryGetAvatar(LLUUID avatarId, out ScenePresence avatar)
         {
             foreach (Scene scene in m_localScenes)
             {
-                if( scene.TryGetAvatar( avatarId, out avatar ))
+                if (scene.TryGetAvatar(avatarId, out avatar))
                 {
                     return true;
                 }
@@ -311,9 +309,9 @@ namespace OpenSim.Region.Environment.Scenes
             return false;
         }
 
-        public void ForEachScene(Action<Scene> action )
+        public void ForEachScene(Action<Scene> action)
         {
-            m_localScenes.ForEach( action );
+            m_localScenes.ForEach(action);
         }
     }
 }

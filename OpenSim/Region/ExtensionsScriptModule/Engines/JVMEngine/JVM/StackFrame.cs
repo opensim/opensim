@@ -25,9 +25,7 @@
 * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 * 
 */
-using System;
 using System.Collections.Generic;
-using System.Text;
 using OpenSim.Region.ExtensionsScriptModule.JVMEngine.Types;
 
 namespace OpenSim.Region.ExtensionsScriptModule.JVMEngine.JVM
@@ -44,6 +42,5 @@ namespace OpenSim.Region.ExtensionsScriptModule.JVMEngine.JVM
         {
             LocalVariables = new BaseType[20];
         }
-
     }
 }

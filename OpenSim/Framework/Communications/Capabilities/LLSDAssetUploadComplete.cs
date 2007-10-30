@@ -39,7 +39,6 @@ namespace OpenSim.Region.Capabilities
 
         public LLSDAssetUploadComplete()
         {
-
         }
     }
 }

@@ -5,8 +5,6 @@ using System.Threading;
 using libsecondlife;
 using Nini.Config;
 using OpenSim.Framework.Console;
-using OpenSim.Framework.Interfaces;
-using OpenSim.Framework;
 
 namespace OpenSim.Framework.Communications.Cache
 {
@@ -36,13 +34,12 @@ namespace OpenSim.Framework.Communications.Cache
 
         public AssetServerBase()
         {
+            MainLog.Instance.Verbose("ASSETSERVER", "Starting asset storage system");
+            _assetRequests = new BlockingQueue<ARequest>();
 
-            OpenSim.Framework.Console.MainLog.Instance.Verbose("ASSETSERVER","Starting asset storage system");
-            this._assetRequests = new BlockingQueue<ARequest>();
-
-            this._localAssetServerThread = new Thread(RunRequests);
-            this._localAssetServerThread.IsBackground = true;
-            this._localAssetServerThread.Start();
+            _localAssetServerThread = new Thread(RunRequests);
+            _localAssetServerThread.IsBackground = true;
+            _localAssetServerThread.Start();
         }
 
         public void LoadAsset(AssetBase info, bool image, string filename)
@@ -57,7 +54,7 @@ namespace OpenSim.Framework.Communications.Cache
             FileStream fStream = new FileStream(fileName, FileMode.Open, FileAccess.Read);
             byte[] idata = new byte[numBytes];
             BinaryReader br = new BinaryReader(fStream);
-            idata = br.ReadBytes((int)numBytes);
+            idata = br.ReadBytes((int) numBytes);
             br.Close();
             fStream.Close();
             info.Data = idata;
@@ -66,7 +63,7 @@ namespace OpenSim.Framework.Communications.Cache
 
         public void SetReceiver(IAssetReceiver receiver)
         {
-            this._receiver = receiver;
+            _receiver = receiver;
         }
 
         public void FetchAsset(LLUUID assetID, bool isTexture)
@@ -74,7 +71,7 @@ namespace OpenSim.Framework.Communications.Cache
             ARequest req = new ARequest();
             req.AssetID = assetID;
             req.IsTexture = isTexture;
-            this._assetRequests.Enqueue(req);
+            _assetRequests.Enqueue(req);
         }
 
         public void UpdateAsset(AssetBase asset)
@@ -102,7 +99,6 @@ namespace OpenSim.Framework.Communications.Cache
 
         public void SetServerInfo(string ServerUrl, string ServerKey)
         {
-
         }
 
         public virtual List<AssetBase> GetDefaultAssets()
@@ -175,8 +171,8 @@ namespace OpenSim.Framework.Communications.Cache
                     // System.Console.WriteLine("loading asset into database");
                     string assetIdStr = source.Configs[i].GetString("assetID", LLUUID.Random().ToStringHyphenated());
                     string name = source.Configs[i].GetString("name", "");
-                    sbyte type = (sbyte)source.Configs[i].GetInt("assetType", 0);
-                    sbyte invType = (sbyte)source.Configs[i].GetInt("inventoryType", 0);
+                    sbyte type = (sbyte) source.Configs[i].GetInt("assetType", 0);
+                    sbyte invType = (sbyte) source.Configs[i].GetInt("inventoryType", 0);
                     string fileName = source.Configs[i].GetString("fileName", "");
 
                     AssetBase newAsset = CreateAsset(assetIdStr, name, fileName, false);

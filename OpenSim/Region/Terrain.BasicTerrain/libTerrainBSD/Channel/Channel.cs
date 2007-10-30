@@ -26,12 +26,7 @@
 * 
 */
 
-using System;
-using System.Collections.Generic;
-using System.Text;
-
-
-/*  Channel
+ /*  Channel
  *  A channel is a single heightmap array
  * */
 
@@ -50,17 +45,16 @@ namespace libTerrain
         {
             w = 256;
             h = 256;
-            map = new double[w, h];
-            diff = new int[(int)(w / 16), (int)(h / 16)];
+            map = new double[w,h];
+            diff = new int[(int) (w/16),(int) (h/16)];
         }
 
         public Channel(int width, int height)
         {
             w = width;
             h = height;
-            map = new double[w, h];
-            diff = new int[(int)(w / 16), (int)(h / 16)];
+            map = new double[w,h];
+            diff = new int[(int) (w/16),(int) (h/16)];
         }
-
     }
 }

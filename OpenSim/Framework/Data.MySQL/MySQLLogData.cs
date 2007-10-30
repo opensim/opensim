@@ -25,14 +25,12 @@
 * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 * 
 */
-using System;
-
 namespace OpenSim.Framework.Data.MySQL
 {
     /// <summary>
     /// An interface to the log database for MySQL
     /// </summary>
-    class MySQLLogData : ILogData
+    internal class MySQLLogData : ILogData
     {
         /// <summary>
         /// The database manager
@@ -52,7 +50,9 @@ namespace OpenSim.Framework.Data.MySQL
             string settingPooling = GridDataMySqlFile.ParseFileReadValue("pooling");
             string settingPort = GridDataMySqlFile.ParseFileReadValue("port");
 
-            database = new MySQLManager(settingHostname, settingDatabase, settingUsername, settingPassword, settingPooling, settingPort);
+            database =
+                new MySQLManager(settingHostname, settingDatabase, settingUsername, settingPassword, settingPooling,
+                                 settingPort);
         }
 
         /// <summary>
@@ -64,7 +64,8 @@ namespace OpenSim.Framework.Data.MySQL
         /// <param name="arguments">The arguments passed to the method</param>
         /// <param name="priority">How critical is this?</param>
         /// <param name="logMessage">The message to log</param>
-        public void saveLog(string serverDaemon, string target, string methodCall, string arguments, int priority, string logMessage)
+        public void saveLog(string serverDaemon, string target, string methodCall, string arguments, int priority,
+                            string logMessage)
         {
             try
             {

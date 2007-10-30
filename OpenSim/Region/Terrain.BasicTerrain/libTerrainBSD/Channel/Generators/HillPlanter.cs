@@ -27,8 +27,6 @@
 */
 
 using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace libTerrain
 {
@@ -44,7 +42,8 @@ namespace libTerrain
         /// <param name="island">Whether to bias hills towards the center of the map</param>
         /// <param name="additive">Whether to add hills together or to pick the largest value</param>
         /// <param name="noisy">Generates hill-shaped noise instead of consistent hills</param>
-        public void HillsSpheres(int number, double scale_min, double scale_range, bool island, bool additive, bool noisy)
+        public void HillsSpheres(int number, double scale_min, double scale_range, bool island, bool additive,
+                                 bool noisy)
         {
             SetDiff();
 
@@ -55,20 +54,20 @@ namespace libTerrain
 
             for (i = 0; i < number; i++)
             {
-                double rx = Math.Min(255.0, random.NextDouble() * w);
-                double ry = Math.Min(255.0, random.NextDouble() * h);
+                double rx = Math.Min(255.0, random.NextDouble()*w);
+                double ry = Math.Min(255.0, random.NextDouble()*h);
                 double rand = random.NextDouble();
 
                 if (island)
                 {
                     // Move everything towards the center
-                    rx -= w / 2;
+                    rx -= w/2;
                     rx /= 2;
-                    rx += w / 2;
+                    rx += w/2;
 
-                    ry -= h / 2;
+                    ry -= h/2;
                     ry /= 2;
-                    ry += h / 2;
+                    ry += h/2;
                 }
 
                 for (x = 0; x < w; x++)
@@ -78,9 +77,9 @@ namespace libTerrain
                         if (noisy)
                             rand = random.NextDouble();
 
-                        double z = (scale_min + (scale_range * rand));
+                        double z = (scale_min + (scale_range*rand));
                         z *= z;
-                        z -= ((x - rx) * (x - rx)) + ((y - ry) * (y - ry));
+                        z -= ((x - rx)*(x - rx)) + ((y - ry)*(y - ry));
 
                         if (z < 0)
                             z = 0;
@@ -121,20 +120,20 @@ namespace libTerrain
 
             for (i = 0; i < number; i++)
             {
-                double rx = Math.Min(255.0, random.NextDouble() * w);
-                double ry = Math.Min(255.0, random.NextDouble() * h);
+                double rx = Math.Min(255.0, random.NextDouble()*w);
+                double ry = Math.Min(255.0, random.NextDouble()*h);
                 double rand = random.NextDouble();
 
                 if (island)
                 {
                     // Move everything towards the center
-                    rx -= w / 2;
+                    rx -= w/2;
                     rx /= 2;
-                    rx += w / 2;
+                    rx += w/2;
 
-                    ry -= h / 2;
+                    ry -= h/2;
                     ry /= 2;
-                    ry += h / 2;
+                    ry += h/2;
                 }
 
                 for (x = 0; x < w; x++)
@@ -144,8 +143,8 @@ namespace libTerrain
                         if (noisy)
                             rand = random.NextDouble();
 
-                        double z = (scale_min + (scale_range * rand));
-                        z -= Math.Sqrt(((x - rx) * (x - rx)) + ((y - ry) * (y - ry)));
+                        double z = (scale_min + (scale_range*rand));
+                        z -= Math.Sqrt(((x - rx)*(x - rx)) + ((y - ry)*(y - ry)));
 
                         if (z < 0)
                             z = 0;
@@ -176,20 +175,20 @@ namespace libTerrain
 
             for (i = 0; i < number; i++)
             {
-                double rx = Math.Min(255.0, random.NextDouble() * w);
-                double ry = Math.Min(255.0, random.NextDouble() * h);
+                double rx = Math.Min(255.0, random.NextDouble()*w);
+                double ry = Math.Min(255.0, random.NextDouble()*h);
                 double rand = random.NextDouble();
 
                 if (island)
                 {
                     // Move everything towards the center
-                    rx -= w / 2;
+                    rx -= w/2;
                     rx /= 2;
-                    rx += w / 2;
+                    rx += w/2;
 
-                    ry -= h / 2;
+                    ry -= h/2;
                     ry /= 2;
-                    ry += h / 2;
+                    ry += h/2;
                 }
 
                 for (x = 0; x < w; x++)
@@ -199,8 +198,8 @@ namespace libTerrain
                         if (noisy)
                             rand = random.NextDouble();
 
-                        double z = (scale_min + (scale_range * rand));
-                        z -= Math.Abs(x-rx) + Math.Abs(y-ry);
+                        double z = (scale_min + (scale_range*rand));
+                        z -= Math.Abs(x - rx) + Math.Abs(y - ry);
                         //z -= Math.Sqrt(((x - rx) * (x - rx)) + ((y - ry) * (y - ry)));
 
                         if (z < 0)
@@ -221,7 +220,8 @@ namespace libTerrain
             Normalise();
         }
 
-        public void HillsSquared(int number, double scale_min, double scale_range, bool island, bool additive, bool noisy)
+        public void HillsSquared(int number, double scale_min, double scale_range, bool island, bool additive,
+                                 bool noisy)
         {
             SetDiff();
 
@@ -232,20 +232,20 @@ namespace libTerrain
 
             for (i = 0; i < number; i++)
             {
-                double rx = Math.Min(255.0, random.NextDouble() * w);
-                double ry = Math.Min(255.0, random.NextDouble() * h);
+                double rx = Math.Min(255.0, random.NextDouble()*w);
+                double ry = Math.Min(255.0, random.NextDouble()*h);
                 double rand = random.NextDouble();
 
                 if (island)
                 {
                     // Move everything towards the center
-                    rx -= w / 2;
+                    rx -= w/2;
                     rx /= 2;
-                    rx += w / 2;
+                    rx += w/2;
 
-                    ry -= h / 2;
+                    ry -= h/2;
                     ry /= 2;
-                    ry += h / 2;
+                    ry += h/2;
                 }
 
                 for (x = 0; x < w; x++)
@@ -255,11 +255,11 @@ namespace libTerrain
                         if (noisy)
                             rand = random.NextDouble();
 
-                        double z = (scale_min + (scale_range * rand));
-                        z *= z * z * z;
+                        double z = (scale_min + (scale_range*rand));
+                        z *= z*z*z;
                         double dx = Math.Abs(x - rx);
                         double dy = Math.Abs(y - ry);
-                        z -= (dx * dx * dx * dx) + (dy * dy * dy * dy);
+                        z -= (dx*dx*dx*dx) + (dy*dy*dy*dy);
 
                         if (z < 0)
                             z = 0;
@@ -278,6 +278,5 @@ namespace libTerrain
 
             Normalise();
         }
-
     }
 }

@@ -36,12 +36,12 @@ namespace OpenSim.Framework.Data.MSSQL
     /// <summary>
     /// A management class for the MS SQL Storage Engine
     /// </summary>
-    class MSSqlManager
+    internal class MSSqlManager
     {
         /// <summary>
         /// The database connection object
         /// </summary>
-        IDbConnection dbcon;
+        private IDbConnection dbcon;
 
         /// <summary>
         /// Initialises and creates a new Sql connection and maintains it.
@@ -55,7 +55,8 @@ namespace OpenSim.Framework.Data.MSSQL
         {
             try
             {
-                string connectionString = "Server=" + hostname + ";Database=" + database + ";User ID=" + username + ";Password=" + password + ";Pooling=" + cpooling + ";";
+                string connectionString = "Server=" + hostname + ";Database=" + database + ";User ID=" + username +
+                                          ";Password=" + password + ";Pooling=" + cpooling + ";";
                 dbcon = new SqlConnection(connectionString);
 
                 dbcon.Open();
@@ -83,14 +84,14 @@ namespace OpenSim.Framework.Data.MSSQL
         /// <returns>A Sql DB Command</returns>
         public IDbCommand Query(string sql, Dictionary<string, string> parameters)
         {
-            SqlCommand dbcommand = (SqlCommand)dbcon.CreateCommand();
+            SqlCommand dbcommand = (SqlCommand) dbcon.CreateCommand();
             dbcommand.CommandText = sql;
             foreach (KeyValuePair<string, string> param in parameters)
             {
                 dbcommand.Parameters.AddWithValue(param.Key, param.Value);
             }
 
-            return (IDbCommand)dbcommand;
+            return (IDbCommand) dbcommand;
         }
 
         /// <summary>
@@ -105,42 +106,42 @@ namespace OpenSim.Framework.Data.MSSQL
             if (reader.Read())
             {
                 // Region Main
-                regionprofile.regionHandle = (ulong)reader["regionHandle"];
-                regionprofile.regionName = (string)reader["regionName"];
-                regionprofile.UUID = new LLUUID((string)reader["uuid"]);
+                regionprofile.regionHandle = (ulong) reader["regionHandle"];
+                regionprofile.regionName = (string) reader["regionName"];
+                regionprofile.UUID = new LLUUID((string) reader["uuid"]);
 
                 // Secrets
-                regionprofile.regionRecvKey = (string)reader["regionRecvKey"];
-                regionprofile.regionSecret = (string)reader["regionSecret"];
-                regionprofile.regionSendKey = (string)reader["regionSendKey"];
+                regionprofile.regionRecvKey = (string) reader["regionRecvKey"];
+                regionprofile.regionSecret = (string) reader["regionSecret"];
+                regionprofile.regionSendKey = (string) reader["regionSendKey"];
 
                 // Region Server
-                regionprofile.regionDataURI = (string)reader["regionDataURI"];
+                regionprofile.regionDataURI = (string) reader["regionDataURI"];
                 regionprofile.regionOnline = false; // Needs to be pinged before this can be set.
-                regionprofile.serverIP = (string)reader["serverIP"];
-                regionprofile.serverPort = (uint)reader["serverPort"];
-                regionprofile.serverURI = (string)reader["serverURI"];
+                regionprofile.serverIP = (string) reader["serverIP"];
+                regionprofile.serverPort = (uint) reader["serverPort"];
+                regionprofile.serverURI = (string) reader["serverURI"];
 
                 // Location
-                regionprofile.regionLocX = (uint)((int)reader["locX"]);
-                regionprofile.regionLocY = (uint)((int)reader["locY"]);
-                regionprofile.regionLocZ = (uint)((int)reader["locZ"]);
+                regionprofile.regionLocX = (uint) ((int) reader["locX"]);
+                regionprofile.regionLocY = (uint) ((int) reader["locY"]);
+                regionprofile.regionLocZ = (uint) ((int) reader["locZ"]);
 
                 // Neighbours - 0 = No Override
-                regionprofile.regionEastOverrideHandle = (ulong)reader["eastOverrideHandle"];
-                regionprofile.regionWestOverrideHandle = (ulong)reader["westOverrideHandle"];
-                regionprofile.regionSouthOverrideHandle = (ulong)reader["southOverrideHandle"];
-                regionprofile.regionNorthOverrideHandle = (ulong)reader["northOverrideHandle"];
+                regionprofile.regionEastOverrideHandle = (ulong) reader["eastOverrideHandle"];
+                regionprofile.regionWestOverrideHandle = (ulong) reader["westOverrideHandle"];
+                regionprofile.regionSouthOverrideHandle = (ulong) reader["southOverrideHandle"];
+                regionprofile.regionNorthOverrideHandle = (ulong) reader["northOverrideHandle"];
 
                 // Assets
-                regionprofile.regionAssetURI = (string)reader["regionAssetURI"];
-                regionprofile.regionAssetRecvKey = (string)reader["regionAssetRecvKey"];
-                regionprofile.regionAssetSendKey = (string)reader["regionAssetSendKey"];
+                regionprofile.regionAssetURI = (string) reader["regionAssetURI"];
+                regionprofile.regionAssetRecvKey = (string) reader["regionAssetRecvKey"];
+                regionprofile.regionAssetSendKey = (string) reader["regionAssetSendKey"];
 
                 // Userserver
-                regionprofile.regionUserURI = (string)reader["regionUserURI"];
-                regionprofile.regionUserRecvKey = (string)reader["regionUserRecvKey"];
-                regionprofile.regionUserSendKey = (string)reader["regionUserSendKey"];
+                regionprofile.regionUserURI = (string) reader["regionUserURI"];
+                regionprofile.regionUserRecvKey = (string) reader["regionUserRecvKey"];
+                regionprofile.regionUserSendKey = (string) reader["regionUserSendKey"];
             }
             else
             {
@@ -156,12 +157,15 @@ namespace OpenSim.Framework.Data.MSSQL
         /// <returns>Successful?</returns>
         public bool insertRow(RegionProfileData profile)
         {
-            string sql = "REPLACE INTO regions VALUES (regionHandle, regionName, uuid, regionRecvKey, regionSecret, regionSendKey, regionDataURI, ";
-            sql += "serverIP, serverPort, serverURI, locX, locY, locZ, eastOverrideHandle, westOverrideHandle, southOverrideHandle, northOverrideHandle, regionAssetURI, regionAssetRecvKey, ";
+            string sql =
+                "REPLACE INTO regions VALUES (regionHandle, regionName, uuid, regionRecvKey, regionSecret, regionSendKey, regionDataURI, ";
+            sql +=
+                "serverIP, serverPort, serverURI, locX, locY, locZ, eastOverrideHandle, westOverrideHandle, southOverrideHandle, northOverrideHandle, regionAssetURI, regionAssetRecvKey, ";
             sql += "regionAssetSendKey, regionUserURI, regionUserRecvKey, regionUserSendKey) VALUES ";
 
             sql += "(@regionHandle, @regionName, @uuid, @regionRecvKey, @regionSecret, @regionSendKey, @regionDataURI, ";
-            sql += "@serverIP, @serverPort, @serverURI, @locX, @locY, @locZ, @eastOverrideHandle, @westOverrideHandle, @southOverrideHandle, @northOverrideHandle, @regionAssetURI, @regionAssetRecvKey, ";
+            sql +=
+                "@serverIP, @serverPort, @serverURI, @locX, @locY, @locZ, @eastOverrideHandle, @westOverrideHandle, @southOverrideHandle, @northOverrideHandle, @regionAssetURI, @regionAssetRecvKey, ";
             sql += "@regionAssetSendKey, @regionUserURI, @regionUserRecvKey, @regionUserSendKey);";
 
             Dictionary<string, string> parameters = new Dictionary<string, string>();

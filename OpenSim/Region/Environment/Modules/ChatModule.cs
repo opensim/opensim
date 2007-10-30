@@ -27,13 +27,13 @@
 */
 
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Net.Sockets;
-using System.Threading;
-using System.Collections.Generic;
 using System.Text.RegularExpressions;
+using System.Threading;
 using libsecondlife;
-using OpenSim.Framework.Interfaces;
+using Nini.Config;
 using OpenSim.Framework;
 using OpenSim.Framework.Console;
 using OpenSim.Region.Environment.Interfaces;
@@ -54,18 +54,22 @@ namespace OpenSim.Region.Environment.Modules
 
         public ChatModule()
         {
-            m_log = OpenSim.Framework.Console.MainLog.Instance;
+            m_log = MainLog.Instance;
         }
 
-        public void Initialise(Scene scene, Nini.Config.IConfigSource config)
+        public void Initialise(Scene scene, IConfigSource config)
         {
             // wrap this in a try block so that defaults will work if
             // the config file doesn't specify otherwise.
-            try {
-                m_whisperdistance = config.Configs["Chat"].GetInt("whisper_distance",  m_whisperdistance);
+            try
+            {
+                m_whisperdistance = config.Configs["Chat"].GetInt("whisper_distance", m_whisperdistance);
                 m_saydistance = config.Configs["Chat"].GetInt("say_distance", m_saydistance);
                 m_shoutdistance = config.Configs["Chat"].GetInt("shout_distance", m_shoutdistance);
-            } catch (Exception e) {}
+            }
+            catch (Exception e)
+            {
+            }
 
             if (!m_scenes.Contains(scene))
             {
@@ -73,20 +77,20 @@ namespace OpenSim.Region.Environment.Modules
                 scene.EventManager.OnNewClient += NewClient;
                 scene.RegisterModuleInterface<ISimChat>(this);
             }
-            
+
             // setup IRC Relay
             m_irc = new IRCChatModule(config);
         }
 
         public void PostInitialise()
         {
-
-            if (m_irc.Enabled) {
+            if (m_irc.Enabled)
+            {
                 m_irc.Connect(m_scenes);
             }
         }
 
-        public void Close() 
+        public void Close()
         {
             m_irc.Close();
         }
@@ -111,7 +115,7 @@ namespace OpenSim.Region.Environment.Modules
             ScenePresence avatar = null;
 
             //TODO: Move ForEachScenePresence and others into IScene.
-            Scene scene = (Scene)e.Scene;
+            Scene scene = (Scene) e.Scene;
 
             //TODO: Remove the need for this check
             if (scene == null)
@@ -119,10 +123,12 @@ namespace OpenSim.Region.Environment.Modules
 
             // Filled in since it's easier than rewriting right now.
             LLVector3 fromPos = e.Position;
-            LLVector3 fromRegionPos = e.Position + new LLVector3(e.Scene.RegionInfo.RegionLocX * 256, e.Scene.RegionInfo.RegionLocY * 256, 0);
+            LLVector3 fromRegionPos = e.Position +
+                                      new LLVector3(e.Scene.RegionInfo.RegionLocX*256, e.Scene.RegionInfo.RegionLocY*256,
+                                                    0);
             string fromName = e.From;
             string message = e.Message;
-            byte type = (byte)e.Type;
+            byte type = (byte) e.Type;
             LLUUID fromAgentID = LLUUID.Zero;
 
             if (e.Sender != null)
@@ -133,7 +139,8 @@ namespace OpenSim.Region.Environment.Modules
             if (avatar != null)
             {
                 fromPos = avatar.AbsolutePosition;
-                fromRegionPos = fromPos + new LLVector3(e.Scene.RegionInfo.RegionLocX * 256, e.Scene.RegionInfo.RegionLocY * 256, 0);
+                fromRegionPos = fromPos +
+                                new LLVector3(e.Scene.RegionInfo.RegionLocX*256, e.Scene.RegionInfo.RegionLocY*256, 0);
                 fromName = avatar.Firstname + " " + avatar.Lastname;
                 fromAgentID = e.Sender.AgentId;
                 avatar = null;
@@ -159,75 +166,84 @@ namespace OpenSim.Region.Environment.Modules
                     break;
             }
 
-            m_log.Verbose("CHAT", fromName + " (" + e.Channel + " @ " + scene.RegionInfo.RegionName + ") " + typeName + ": " + e.Message);
+            m_log.Verbose("CHAT",
+                          fromName + " (" + e.Channel + " @ " + scene.RegionInfo.RegionName + ") " + typeName + ": " +
+                          e.Message);
 
-           if (m_irc.Connected) 
-           {
-               m_irc.PrivMsg(fromName, scene.RegionInfo.RegionName, e.Message);
-           }
-           
-           if (e.Channel == 0)
-           {
-               foreach (Scene m_scene in m_scenes)
-               {
-                   m_scene.ForEachScenePresence(delegate(ScenePresence presence)
-                                                {
-                                                    int dis = -100000;
+            if (m_irc.Connected)
+            {
+                m_irc.PrivMsg(fromName, scene.RegionInfo.RegionName, e.Message);
+            }
 
-                                                    LLVector3 avatarRegionPos = presence.AbsolutePosition + new LLVector3(scene.RegionInfo.RegionLocX * 256, scene.RegionInfo.RegionLocY * 256, 0);
-                                                    dis = Math.Abs((int)avatarRegionPos.GetDistanceTo(fromRegionPos));
+            if (e.Channel == 0)
+            {
+                foreach (Scene m_scene in m_scenes)
+                {
+                    m_scene.ForEachScenePresence(delegate(ScenePresence presence)
+                                                     {
+                                                         int dis = -100000;
 
-                                                    switch (e.Type)
-                                                    {
-                                                    case ChatTypeEnum.Whisper:
-                                                        if (dis < m_whisperdistance)
-                                                        {
-                                                            //should change so the message is sent through the avatar rather than direct to the ClientView
-                                                            presence.ControllingClient.SendChatMessage(message,
-                                                                                                       type,
-                                                                                                       fromPos,
-                                                                                                       fromName,
-                                                                                                       fromAgentID);
-                                                        }
-                                                        break;
-                                                    case ChatTypeEnum.Say:
-                                                        if (dis < m_saydistance)
-                                                        {
-                                                            //Console.WriteLine("sending chat");
-                                                            presence.ControllingClient.SendChatMessage(message,
-                                                                                                       type,
-                                                                                                       fromPos,
-                                                                                                       fromName,
-                                                                                                       fromAgentID);
-                                                        }
-                                                        break;
-                                                    case ChatTypeEnum.Shout:
-                                                        if (dis < m_shoutdistance)
-                                                        {
-                                                            presence.ControllingClient.SendChatMessage(message,
-                                                                                                       type,
-                                                                                                       fromPos,
-                                                                                                       fromName,
-                                                                                                       fromAgentID);
-                                                        }
-                                                        break;
-                                                        
-                                                    case ChatTypeEnum.Broadcast:
-                                                        presence.ControllingClient.SendChatMessage(message, type,
-                                                                                                   fromPos,
-                                                                                                   fromName,
-                                                                                                   fromAgentID);
-                                                        break;
-                                                    default:
-                                                        break;
-                                                    }
-                                                });
+                                                         LLVector3 avatarRegionPos = presence.AbsolutePosition +
+                                                                                     new LLVector3(
+                                                                                         scene.RegionInfo.RegionLocX*256,
+                                                                                         scene.RegionInfo.RegionLocY*256,
+                                                                                         0);
+                                                         dis =
+                                                             Math.Abs((int) avatarRegionPos.GetDistanceTo(fromRegionPos));
+
+                                                         switch (e.Type)
+                                                         {
+                                                             case ChatTypeEnum.Whisper:
+                                                                 if (dis < m_whisperdistance)
+                                                                 {
+                                                                     //should change so the message is sent through the avatar rather than direct to the ClientView
+                                                                     presence.ControllingClient.SendChatMessage(message,
+                                                                                                                type,
+                                                                                                                fromPos,
+                                                                                                                fromName,
+                                                                                                                fromAgentID);
+                                                                 }
+                                                                 break;
+                                                             case ChatTypeEnum.Say:
+                                                                 if (dis < m_saydistance)
+                                                                 {
+                                                                     //Console.WriteLine("sending chat");
+                                                                     presence.ControllingClient.SendChatMessage(message,
+                                                                                                                type,
+                                                                                                                fromPos,
+                                                                                                                fromName,
+                                                                                                                fromAgentID);
+                                                                 }
+                                                                 break;
+                                                             case ChatTypeEnum.Shout:
+                                                                 if (dis < m_shoutdistance)
+                                                                 {
+                                                                     presence.ControllingClient.SendChatMessage(message,
+                                                                                                                type,
+                                                                                                                fromPos,
+                                                                                                                fromName,
+                                                                                                                fromAgentID);
+                                                                 }
+                                                                 break;
+
+                                                             case ChatTypeEnum.Broadcast:
+                                                                 presence.ControllingClient.SendChatMessage(message,
+                                                                                                            type,
+                                                                                                            fromPos,
+                                                                                                            fromName,
+                                                                                                            fromAgentID);
+                                                                 break;
+                                                             default:
+                                                                 break;
+                                                         }
+                                                     });
                 }
             }
         }
     }
 
-    class IRCChatModule {
+    internal class IRCChatModule
+    {
         private string m_server = null;
         private int m_port = 6668;
         private string m_user = "USER OpenSimBot 8 * :I'm a OpenSim to irc bot";
@@ -238,7 +254,7 @@ namespace OpenSim.Region.Environment.Modules
         private TcpClient m_tcp;
         private StreamWriter m_writer;
         private StreamReader m_reader;
-        
+
         private Thread pingSender;
         private Thread listener;
 
@@ -248,29 +264,36 @@ namespace OpenSim.Region.Environment.Modules
         private List<Scene> m_scenes = null;
         private LogBase m_log;
 
-        public IRCChatModule(Nini.Config.IConfigSource config) {
+        public IRCChatModule(IConfigSource config)
+        {
             m_nick = "OSimBot" + Util.RandomClass.Next(1, 99);
             m_tcp = null;
             m_writer = null;
             m_reader = null;
 
-            try {
+            try
+            {
                 m_server = config.Configs["IRC"].GetString("server");
                 m_nick = config.Configs["IRC"].GetString("nick");
                 m_channel = config.Configs["IRC"].GetString("channel");
                 m_port = config.Configs["IRC"].GetInt("port", m_port);
                 m_user = config.Configs["IRC"].GetString("username", m_user);
-                if (m_server != null && m_nick != null && m_channel != null) {
+                if (m_server != null && m_nick != null && m_channel != null)
+                {
                     m_enabled = true;
                 }
-            } catch (Exception e) {
+            }
+            catch (Exception e)
+            {
                 Console.WriteLine("No IRC config information, skipping IRC bridge configuration");
             }
-            m_log = OpenSim.Framework.Console.MainLog.Instance;
+            m_log = MainLog.Instance;
         }
 
-        public bool Connect(List<Scene> scenes) {
-            try {
+        public bool Connect(List<Scene> scenes)
+        {
+            try
+            {
                 m_scenes = scenes;
 
                 m_tcp = new TcpClient(m_server, m_port);
@@ -279,13 +302,13 @@ namespace OpenSim.Region.Environment.Modules
                 m_log.Verbose("IRC", "Connected to " + m_server);
                 m_reader = new StreamReader(m_stream);
                 m_writer = new StreamWriter(m_stream);
-                    
-                pingSender = new Thread(new ThreadStart(this.PingRun));
+
+                pingSender = new Thread(new ThreadStart(PingRun));
                 pingSender.Start();
-                    
-                listener = new Thread(new ThreadStart(this.ListenerRun));
+
+                listener = new Thread(new ThreadStart(ListenerRun));
                 listener.Start();
-                
+
                 m_writer.WriteLine(m_user);
                 m_writer.Flush();
                 m_writer.WriteLine("NICK " + m_nick);
@@ -294,50 +317,61 @@ namespace OpenSim.Region.Environment.Modules
                 m_writer.Flush();
                 m_log.Verbose("IRC", "Connection fully established");
                 m_connected = true;
-            } catch (Exception e) {
+            }
+            catch (Exception e)
+            {
                 Console.WriteLine(e.ToString());
             }
             return m_connected;
         }
 
-        public bool Enabled 
+        public bool Enabled
         {
             get { return m_enabled; }
         }
-        
+
         public bool Connected
         {
             get { return m_connected; }
         }
 
-        public void PrivMsg(string from, string region, string msg) {
-            try {
+        public void PrivMsg(string from, string region, string msg)
+        {
+            try
+            {
                 m_writer.WriteLine("PRIVMSG {0} :<{1} in {2}>: {3}", m_channel, from, region, msg);
                 m_writer.Flush();
-            } catch (IOException) {
-                m_log.Error("IRC","Disconnected from IRC server.");
+            }
+            catch (IOException)
+            {
+                m_log.Error("IRC", "Disconnected from IRC server.");
                 listener.Abort();
                 pingSender.Abort();
                 m_connected = false;
             }
         }
 
-        private Dictionary<string, string> ExtractMsg(string input) {
+        private Dictionary<string, string> ExtractMsg(string input)
+        {
             Dictionary<string, string> result = null;
             string regex = @":(?<nick>\w*)!~(?<user>\S*) PRIVMSG (?<channel>\S+) :(?<msg>.*)";
             Regex RE = new Regex(regex, RegexOptions.Multiline);
             MatchCollection matches = RE.Matches(input);
             // Get some direct matches $1 $4 is a 
-            if ((matches.Count == 1) && (matches[0].Groups.Count == 5)) {
+            if ((matches.Count == 1) && (matches[0].Groups.Count == 5))
+            {
                 result = new Dictionary<string, string>();
                 result.Add("nick", matches[0].Groups[1].Value);
                 result.Add("user", matches[0].Groups[2].Value);
                 result.Add("channel", matches[0].Groups[3].Value);
                 result.Add("msg", matches[0].Groups[4].Value);
-            } else {
+            }
+            else
+            {
                 m_log.Verbose("IRC", "Number of matches: " + matches.Count);
-		if (matches.Count > 0) {
-		    m_log.Verbose("IRC", "Number of groups: " + matches[0].Groups.Count);
+                if (matches.Count > 0)
+                {
+                    m_log.Verbose("IRC", "Number of groups: " + matches[0].Groups.Count);
                 }
             }
             return result;
@@ -365,19 +399,20 @@ namespace OpenSim.Region.Environment.Modules
                     if (inputLine.Contains(m_channel))
                     {
                         Dictionary<string, string> data = ExtractMsg(inputLine);
-                        if (data != null ) 
+                        if (data != null)
                         {
                             foreach (Scene m_scene in m_scenes)
                             {
                                 m_scene.ForEachScenePresence(delegate(ScenePresence avatar)
-                                                             {
-                                                                 if (!avatar.IsChildAgent)
                                                                  {
-                                                                     avatar.ControllingClient.SendChatMessage(
-                                                                         Helpers.StringToField(data["msg"]), 255, pos, data["nick"],
-                                                                         LLUUID.Zero);
-                                                                 }
-                                                             });
+                                                                     if (!avatar.IsChildAgent)
+                                                                     {
+                                                                         avatar.ControllingClient.SendChatMessage(
+                                                                             Helpers.StringToField(data["msg"]), 255,
+                                                                             pos, data["nick"],
+                                                                             LLUUID.Zero);
+                                                                     }
+                                                                 });
                             }
                         }
                     }
@@ -387,7 +422,8 @@ namespace OpenSim.Region.Environment.Modules
         }
 
 
-        public void Close() {
+        public void Close()
+        {
             listener.Abort();
             pingSender.Abort();
             m_writer.Close();

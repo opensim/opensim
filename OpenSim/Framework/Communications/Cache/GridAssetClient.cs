@@ -25,19 +25,13 @@
 * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 * 
 */
+
 using System;
+using System.Collections.Generic;
 using System.IO;
-using System.Threading;
-using System.Reflection;
 using System.Xml.Serialization;
-
 using libsecondlife;
-
-using Nini.Config;
 using OpenSim.Framework.Console;
-using OpenSim.Framework.Interfaces;
-using OpenSim.Framework;
-using OpenSim.Framework.Communications;
 
 namespace OpenSim.Framework.Communications.Cache
 {
@@ -63,7 +57,6 @@ namespace OpenSim.Framework.Communications.Cache
             Stream s = null;
             try
             {
-
                 MainLog.Instance.Debug("ASSETCACHE", "Querying for {0}", assetID.ToString());
 
                 RestClient rc = new RestClient(_assetServerUrl);
@@ -77,8 +70,8 @@ namespace OpenSim.Framework.Communications.Cache
 
                 if (s.Length > 0)
                 {
-                    XmlSerializer xs = new XmlSerializer(typeof(AssetBase));
-                    AssetBase asset = (AssetBase)xs.Deserialize(s);
+                    XmlSerializer xs = new XmlSerializer(typeof (AssetBase));
+                    AssetBase asset = (AssetBase) xs.Deserialize(s);
 
                     _receiver.AssetReceived(asset, isTexture);
                 }
@@ -106,7 +99,7 @@ namespace OpenSim.Framework.Communications.Cache
             {
                 MemoryStream s = new MemoryStream();
 
-                XmlSerializer xs = new XmlSerializer(typeof(AssetBase));
+                XmlSerializer xs = new XmlSerializer(typeof (AssetBase));
                 xs.Serialize(s, asset);
                 RestClient rc = new RestClient(_assetServerUrl);
                 rc.AddResourcePath("assets");
@@ -129,7 +122,7 @@ namespace OpenSim.Framework.Communications.Cache
             throw new Exception("The method or operation is not implemented.");
         }
 
-        public System.Collections.Generic.List<AssetBase> GetDefaultAssets()
+        public List<AssetBase> GetDefaultAssets()
         {
             throw new Exception("The method or operation is not implemented.");
         }

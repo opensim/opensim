@@ -28,10 +28,9 @@
 using System;
 using System.Collections.Generic;
 using libsecondlife;
+using OpenSim.Framework;
 using OpenSim.Framework.Communications.Cache;
 using OpenSim.Framework.Console;
-using OpenSim.Framework.Interfaces;
-using OpenSim.Framework;
 using OpenSim.Region.Terrain;
 
 namespace OpenSim.Region.Environment.Scenes
@@ -39,6 +38,7 @@ namespace OpenSim.Region.Environment.Scenes
     public abstract class SceneBase : IScene
     {
         private readonly ClientManager m_clientManager = new ClientManager();
+
         public ClientManager ClientManager
         {
             get { return m_clientManager; }

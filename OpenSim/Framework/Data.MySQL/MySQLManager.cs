@@ -25,16 +25,14 @@
 * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 * 
 */
+
 using System;
-using System.IO;
-using System.Data;
-using System.Reflection;
 using System.Collections.Generic;
+using System.Data;
+using System.IO;
+using System.Reflection;
 using libsecondlife;
-
 using MySql.Data.MySqlClient;
-
-using OpenSim.Framework;
 using OpenSim.Framework.Console;
 
 namespace OpenSim.Framework.Data.MySQL
@@ -42,16 +40,17 @@ namespace OpenSim.Framework.Data.MySQL
     /// <summary>
     /// A MySQL Database manager
     /// </summary>
-    class MySQLManager
+    internal class MySQLManager
     {
         /// <summary>
         /// The database connection object
         /// </summary>
-        MySqlConnection dbcon;
+        private MySqlConnection dbcon;
+
         /// <summary>
         /// Connection string for ADO.net
         /// </summary>
-        string connectionString;
+        private string connectionString;
 
         /// <summary>
         /// Initialises and creates a new MySQL connection and maintains it.
@@ -61,11 +60,13 @@ namespace OpenSim.Framework.Data.MySQL
         /// <param name="username">The username logging into the database</param>
         /// <param name="password">The password for the user logging in</param>
         /// <param name="cpooling">Whether to use connection pooling or not, can be one of the following: 'yes', 'true', 'no' or 'false', if unsure use 'false'.</param>
-        public MySQLManager(string hostname, string database, string username, string password, string cpooling, string port)
+        public MySQLManager(string hostname, string database, string username, string password, string cpooling,
+                            string port)
         {
             try
             {
-                connectionString = "Server=" + hostname + ";Port=" + port + ";Database=" + database + ";User ID=" + username + ";Password=" + password + ";Pooling=" + cpooling + ";";
+                connectionString = "Server=" + hostname + ";Port=" + port + ";Database=" + database + ";User ID=" +
+                                   username + ";Password=" + password + ";Pooling=" + cpooling + ";";
                 dbcon = new MySqlConnection(connectionString);
 
                 dbcon.Open();
@@ -123,15 +124,17 @@ namespace OpenSim.Framework.Data.MySQL
         /// <returns>A string containing the DB provider</returns>
         public string getVersion()
         {
-            System.Reflection.Module module = this.GetType().Module;
+            Module module = GetType().Module;
             string dllName = module.Assembly.ManifestModule.Name;
             Version dllVersion = module.Assembly.GetName().Version;
 
 
-            return string.Format("{0}.{1}.{2}.{3}", dllVersion.Major, dllVersion.Minor, dllVersion.Build, dllVersion.Revision);
+            return
+                string.Format("{0}.{1}.{2}.{3}", dllVersion.Major, dllVersion.Minor, dllVersion.Build,
+                              dllVersion.Revision);
         }
 
-        
+
         /// <summary>
         /// Extract a named string resource from the embedded resources
         /// </summary>
@@ -139,7 +142,7 @@ namespace OpenSim.Framework.Data.MySQL
         /// <returns>string contained within the embedded resource</returns>
         private string getResourceString(string name)
         {
-            Assembly assem = this.GetType().Assembly;
+            Assembly assem = GetType().Assembly;
             string[] names = assem.GetManifestResourceNames();
 
             foreach (string s in names)
@@ -173,7 +176,10 @@ namespace OpenSim.Framework.Data.MySQL
         {
             lock (dbcon)
             {
-                MySqlCommand tablesCmd = new MySqlCommand("SELECT TABLE_NAME, TABLE_COMMENT FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA=?dbname", dbcon);
+                MySqlCommand tablesCmd =
+                    new MySqlCommand(
+                        "SELECT TABLE_NAME, TABLE_COMMENT FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA=?dbname",
+                        dbcon);
                 tablesCmd.Parameters.AddWithValue("?dbname", dbcon.Database);
                 using (MySqlDataReader tables = tablesCmd.ExecuteReader())
                 {
@@ -181,9 +187,9 @@ namespace OpenSim.Framework.Data.MySQL
                     {
                         try
                         {
-                            string tableName = (string)tables["TABLE_NAME"];
-                            string comment = (string)tables["TABLE_COMMENT"];
-                            if(tableList.ContainsKey(tableName))
+                            string tableName = (string) tables["TABLE_NAME"];
+                            string comment = (string) tables["TABLE_COMMENT"];
+                            if (tableList.ContainsKey(tableName))
                                 tableList[tableName] = comment;
                         }
                         catch (Exception e)
@@ -198,7 +204,7 @@ namespace OpenSim.Framework.Data.MySQL
 
 
         // at some time this code should be cleaned up
-        
+
         /// <summary>
         /// Runs a query with protection against SQL Injection by using parameterised input.
         /// </summary>
@@ -209,14 +215,14 @@ namespace OpenSim.Framework.Data.MySQL
         {
             try
             {
-                MySqlCommand dbcommand = (MySqlCommand)dbcon.CreateCommand();
+                MySqlCommand dbcommand = (MySqlCommand) dbcon.CreateCommand();
                 dbcommand.CommandText = sql;
                 foreach (KeyValuePair<string, string> param in parameters)
                 {
                     dbcommand.Parameters.AddWithValue(param.Key, param.Value);
                 }
 
-                return (IDbCommand)dbcommand;
+                return (IDbCommand) dbcommand;
             }
             catch
             {
@@ -227,7 +233,9 @@ namespace OpenSim.Framework.Data.MySQL
                     {
                         dbcon.Close();
                     }
-                    catch { }
+                    catch
+                    {
+                    }
 
                     // Try reopen it
                     try
@@ -243,14 +251,14 @@ namespace OpenSim.Framework.Data.MySQL
                     // Run the query again
                     try
                     {
-                        MySqlCommand dbcommand = (MySqlCommand)dbcon.CreateCommand();
+                        MySqlCommand dbcommand = (MySqlCommand) dbcon.CreateCommand();
                         dbcommand.CommandText = sql;
                         foreach (KeyValuePair<string, string> param in parameters)
                         {
                             dbcommand.Parameters.AddWithValue(param.Key, param.Value);
                         }
 
-                        return (IDbCommand)dbcommand;
+                        return (IDbCommand) dbcommand;
                     }
                     catch (Exception e)
                     {
@@ -275,20 +283,20 @@ namespace OpenSim.Framework.Data.MySQL
             {
                 // Region Main
                 retval.regionHandle = Convert.ToUInt64(reader["regionHandle"].ToString());
-                retval.regionName = (string)reader["regionName"];
-                retval.UUID = new LLUUID((string)reader["uuid"]);
+                retval.regionName = (string) reader["regionName"];
+                retval.UUID = new LLUUID((string) reader["uuid"]);
 
                 // Secrets
-                retval.regionRecvKey = (string)reader["regionRecvKey"];
-                retval.regionSecret = (string)reader["regionSecret"];
-                retval.regionSendKey = (string)reader["regionSendKey"];
+                retval.regionRecvKey = (string) reader["regionRecvKey"];
+                retval.regionSecret = (string) reader["regionSecret"];
+                retval.regionSendKey = (string) reader["regionSendKey"];
 
                 // Region Server
-                retval.regionDataURI = (string)reader["regionDataURI"];
+                retval.regionDataURI = (string) reader["regionDataURI"];
                 retval.regionOnline = false; // Needs to be pinged before this can be set.
-                retval.serverIP = (string)reader["serverIP"];
-                retval.serverPort = (uint)reader["serverPort"];
-                retval.serverURI = (string)reader["serverURI"];
+                retval.serverIP = (string) reader["serverIP"];
+                retval.serverPort = (uint) reader["serverPort"];
+                retval.serverURI = (string) reader["serverURI"];
                 retval.httpPort = Convert.ToUInt32(reader["serverHttpPort"].ToString());
                 retval.remotingPort = Convert.ToUInt32(reader["serverRemotingPort"].ToString());
 
@@ -304,14 +312,14 @@ namespace OpenSim.Framework.Data.MySQL
                 retval.regionNorthOverrideHandle = Convert.ToUInt64(reader["northOverrideHandle"].ToString());
 
                 // Assets
-                retval.regionAssetURI = (string)reader["regionAssetURI"];
-                retval.regionAssetRecvKey = (string)reader["regionAssetRecvKey"];
-                retval.regionAssetSendKey = (string)reader["regionAssetSendKey"];
+                retval.regionAssetURI = (string) reader["regionAssetURI"];
+                retval.regionAssetRecvKey = (string) reader["regionAssetRecvKey"];
+                retval.regionAssetSendKey = (string) reader["regionAssetSendKey"];
 
                 // Userserver
-                retval.regionUserURI = (string)reader["regionUserURI"];
-                retval.regionUserRecvKey = (string)reader["regionUserRecvKey"];
-                retval.regionUserSendKey = (string)reader["regionUserSendKey"];
+                retval.regionUserURI = (string) reader["regionUserURI"];
+                retval.regionUserRecvKey = (string) reader["regionUserRecvKey"];
+                retval.regionUserSendKey = (string) reader["regionUserSendKey"];
 
                 // World Map Addition
                 string tempRegionMap = reader["regionMapTexture"].ToString();
@@ -341,17 +349,16 @@ namespace OpenSim.Framework.Data.MySQL
             ReservationData retval = new ReservationData();
             if (reader.Read())
             {
-                retval.gridRecvKey = (string)reader["gridRecvKey"];
-                retval.gridSendKey = (string)reader["gridSendKey"];
-                retval.reservationCompany = (string)reader["resCompany"];
+                retval.gridRecvKey = (string) reader["gridRecvKey"];
+                retval.gridSendKey = (string) reader["gridSendKey"];
+                retval.reservationCompany = (string) reader["resCompany"];
                 retval.reservationMaxX = Convert.ToInt32(reader["resXMax"].ToString());
                 retval.reservationMaxY = Convert.ToInt32(reader["resYMax"].ToString());
                 retval.reservationMinX = Convert.ToInt32(reader["resXMin"].ToString());
                 retval.reservationMinY = Convert.ToInt32(reader["resYMin"].ToString());
-                retval.reservationName = (string)reader["resName"];
+                retval.reservationName = (string) reader["resName"];
                 retval.status = Convert.ToInt32(reader["status"].ToString()) == 1;
-                retval.userUUID = new LLUUID((string)reader["userUUID"]);
-
+                retval.userUUID = new LLUUID((string) reader["userUUID"]);
             }
             else
             {
@@ -359,6 +366,7 @@ namespace OpenSim.Framework.Data.MySQL
             }
             return retval;
         }
+
         /// <summary>
         /// Reads an agent row from a database reader
         /// </summary>
@@ -371,12 +379,12 @@ namespace OpenSim.Framework.Data.MySQL
             if (reader.Read())
             {
                 // Agent IDs
-                retval.UUID = new LLUUID((string)reader["UUID"]);
-                retval.sessionID = new LLUUID((string)reader["sessionID"]);
-                retval.secureSessionID = new LLUUID((string)reader["secureSessionID"]);
+                retval.UUID = new LLUUID((string) reader["UUID"]);
+                retval.sessionID = new LLUUID((string) reader["sessionID"]);
+                retval.secureSessionID = new LLUUID((string) reader["secureSessionID"]);
 
                 // Agent Who?
-                retval.agentIP = (string)reader["agentIP"];
+                retval.agentIP = (string) reader["agentIP"];
                 retval.agentPort = Convert.ToUInt32(reader["agentPort"].ToString());
                 retval.agentOnline = Convert.ToBoolean(reader["agentOnline"].ToString());
 
@@ -385,9 +393,9 @@ namespace OpenSim.Framework.Data.MySQL
                 retval.logoutTime = Convert.ToInt32(reader["logoutTime"].ToString());
 
                 // Current position
-                retval.currentRegion = (string)reader["currentRegion"];
+                retval.currentRegion = (string) reader["currentRegion"];
                 retval.currentHandle = Convert.ToUInt64(reader["currentHandle"].ToString());
-                LLVector3.TryParse((string)reader["currentPos"], out retval.currentPos);
+                LLVector3.TryParse((string) reader["currentPos"], out retval.currentPos);
             }
             else
             {
@@ -407,12 +415,12 @@ namespace OpenSim.Framework.Data.MySQL
 
             if (reader.Read())
             {
-                retval.UUID = new LLUUID((string)reader["UUID"]);
-                retval.username = (string)reader["username"];
-                retval.surname = (string)reader["lastname"];
+                retval.UUID = new LLUUID((string) reader["UUID"]);
+                retval.username = (string) reader["username"];
+                retval.surname = (string) reader["lastname"];
 
-                retval.passwordHash = (string)reader["passwordHash"];
-                retval.passwordSalt = (string)reader["passwordSalt"];
+                retval.passwordHash = (string) reader["passwordHash"];
+                retval.passwordSalt = (string) reader["passwordSalt"];
 
                 retval.homeRegion = Convert.ToUInt64(reader["homeRegion"].ToString());
                 retval.homeLocation = new LLVector3(
@@ -427,18 +435,17 @@ namespace OpenSim.Framework.Data.MySQL
                 retval.created = Convert.ToInt32(reader["created"].ToString());
                 retval.lastLogin = Convert.ToInt32(reader["lastLogin"].ToString());
 
-                retval.userInventoryURI = (string)reader["userInventoryURI"];
-                retval.userAssetURI = (string)reader["userAssetURI"];
+                retval.userInventoryURI = (string) reader["userInventoryURI"];
+                retval.userAssetURI = (string) reader["userAssetURI"];
 
                 retval.profileCanDoMask = Convert.ToUInt32(reader["profileCanDoMask"].ToString());
                 retval.profileWantDoMask = Convert.ToUInt32(reader["profileWantDoMask"].ToString());
 
-                retval.profileAboutText = (string)reader["profileAboutText"];
-                retval.profileFirstText = (string)reader["profileFirstText"];
+                retval.profileAboutText = (string) reader["profileAboutText"];
+                retval.profileFirstText = (string) reader["profileFirstText"];
 
-                retval.profileImage = new LLUUID((string)reader["profileImage"]);
-                retval.profileFirstImage = new LLUUID((string)reader["profileFirstImage"]);
-
+                retval.profileImage = new LLUUID((string) reader["profileImage"]);
+                retval.profileFirstImage = new LLUUID((string) reader["profileFirstImage"]);
             }
             else
             {
@@ -446,7 +453,6 @@ namespace OpenSim.Framework.Data.MySQL
             }
             return retval;
         }
-
 
 
         /// <summary>
@@ -459,7 +465,8 @@ namespace OpenSim.Framework.Data.MySQL
         /// <param name="priority">How critical is this?</param>
         /// <param name="logMessage">Extra message info</param>
         /// <returns>Saved successfully?</returns>
-        public bool insertLogRow(string serverDaemon, string target, string methodCall, string arguments, int priority, string logMessage)
+        public bool insertLogRow(string serverDaemon, string target, string methodCall, string arguments, int priority,
+                                 string logMessage)
         {
             string sql = "INSERT INTO logs (`target`, `server`, `method`, `arguments`, `priority`, `message`) VALUES ";
             sql += "(?target, ?server, ?method, ?arguments, ?priority, ?message)";
@@ -493,89 +500,97 @@ namespace OpenSim.Framework.Data.MySQL
         }
 
 
-           /// <summary>
-           /// Creates a new user and inserts it into the database
-           /// </summary>
-           /// <param name="uuid">User ID</param>
-           /// <param name="username">First part of the login</param>
-           /// <param name="lastname">Second part of the login</param>
-           /// <param name="passwordHash">A salted hash of the users password</param>
-           /// <param name="passwordSalt">The salt used for the password hash</param>
-           /// <param name="homeRegion">A regionHandle of the users home region</param>
-           /// <param name="homeLocX">Home region position vector</param>
-           /// <param name="homeLocY">Home region position vector</param>
-           /// <param name="homeLocZ">Home region position vector</param>
-           /// <param name="homeLookAtX">Home region 'look at' vector</param>
-           /// <param name="homeLookAtY">Home region 'look at' vector</param>
-           /// <param name="homeLookAtZ">Home region 'look at' vector</param>
-           /// <param name="created">Account created (unix timestamp)</param>
-           /// <param name="lastlogin">Last login (unix timestamp)</param>
-           /// <param name="inventoryURI">Users inventory URI</param>
-           /// <param name="assetURI">Users asset URI</param>
-           /// <param name="canDoMask">I can do mask</param>
-           /// <param name="wantDoMask">I want to do mask</param>
-           /// <param name="aboutText">Profile text</param>
-           /// <param name="firstText">Firstlife text</param>
-           /// <param name="profileImage">UUID for profile image</param>
-           /// <param name="firstImage">UUID for firstlife image</param>
-           /// <returns>Success?</returns>
-           public bool insertUserRow(libsecondlife.LLUUID uuid, string username, string lastname, string passwordHash, string passwordSalt, UInt64 homeRegion, float homeLocX, float homeLocY, float homeLocZ,
-               float homeLookAtX, float homeLookAtY, float homeLookAtZ, int created, int lastlogin, string inventoryURI, string assetURI, uint canDoMask, uint wantDoMask, string aboutText, string firstText,
-               libsecondlife.LLUUID profileImage, libsecondlife.LLUUID firstImage)
-           {
-               string sql = "INSERT INTO users (`UUID`, `username`, `lastname`, `passwordHash`, `passwordSalt`, `homeRegion`, ";
-               sql += "`homeLocationX`, `homeLocationY`, `homeLocationZ`, `homeLookAtX`, `homeLookAtY`, `homeLookAtZ`, `created`, ";
-               sql += "`lastLogin`, `userInventoryURI`, `userAssetURI`, `profileCanDoMask`, `profileWantDoMask`, `profileAboutText`, ";
-               sql += "`profileFirstText`, `profileImage`, `profileFirstImage`) VALUES ";
-   
-               sql += "(?UUID, ?username, ?lastname, ?passwordHash, ?passwordSalt, ?homeRegion, ";
-               sql += "?homeLocationX, ?homeLocationY, ?homeLocationZ, ?homeLookAtX, ?homeLookAtY, ?homeLookAtZ, ?created, ";
-               sql += "?lastLogin, ?userInventoryURI, ?userAssetURI, ?profileCanDoMask, ?profileWantDoMask, ?profileAboutText, ";
-               sql += "?profileFirstText, ?profileImage, ?profileFirstImage)";
-   
-               Dictionary<string, string> parameters = new Dictionary<string, string>();
-               parameters["?UUID"] = uuid.ToStringHyphenated();
-               parameters["?username"] = username.ToString();
-               parameters["?lastname"] = lastname.ToString();
-               parameters["?passwordHash"] = passwordHash.ToString();
-               parameters["?passwordSalt"] = passwordSalt.ToString();
-               parameters["?homeRegion"] = homeRegion.ToString();
-               parameters["?homeLocationX"] = homeLocX.ToString();
-               parameters["?homeLocationY"] = homeLocY.ToString();
-               parameters["?homeLocationZ"] = homeLocZ.ToString();
-               parameters["?homeLookAtX"] = homeLookAtX.ToString();
-               parameters["?homeLookAtY"] = homeLookAtY.ToString();
-               parameters["?homeLookAtZ"] = homeLookAtZ.ToString();
-               parameters["?created"] = created.ToString();
-               parameters["?lastLogin"] = lastlogin.ToString();
-               parameters["?userInventoryURI"] = "";
-               parameters["?userAssetURI"] = "";
-               parameters["?profileCanDoMask"] = "0";
-               parameters["?profileWantDoMask"] = "0";
-               parameters["?profileAboutText"] = "";
-               parameters["?profileFirstText"] = "";
-               parameters["?profileImage"] = libsecondlife.LLUUID.Zero.ToStringHyphenated();
-               parameters["?profileFirstImage"] = libsecondlife.LLUUID.Zero.ToStringHyphenated();
-   
-               bool returnval = false;
-   
-               try
-               {
-                   IDbCommand result = Query(sql, parameters);
-   
-                   if (result.ExecuteNonQuery() == 1)
-                       returnval = true;
-   
-                   result.Dispose();
-               }
-               catch (Exception e)
-               {
-                   MainLog.Instance.Error(e.ToString());
-                   return false;
-               }
-   
-               return returnval;
-           }
+        /// <summary>
+        /// Creates a new user and inserts it into the database
+        /// </summary>
+        /// <param name="uuid">User ID</param>
+        /// <param name="username">First part of the login</param>
+        /// <param name="lastname">Second part of the login</param>
+        /// <param name="passwordHash">A salted hash of the users password</param>
+        /// <param name="passwordSalt">The salt used for the password hash</param>
+        /// <param name="homeRegion">A regionHandle of the users home region</param>
+        /// <param name="homeLocX">Home region position vector</param>
+        /// <param name="homeLocY">Home region position vector</param>
+        /// <param name="homeLocZ">Home region position vector</param>
+        /// <param name="homeLookAtX">Home region 'look at' vector</param>
+        /// <param name="homeLookAtY">Home region 'look at' vector</param>
+        /// <param name="homeLookAtZ">Home region 'look at' vector</param>
+        /// <param name="created">Account created (unix timestamp)</param>
+        /// <param name="lastlogin">Last login (unix timestamp)</param>
+        /// <param name="inventoryURI">Users inventory URI</param>
+        /// <param name="assetURI">Users asset URI</param>
+        /// <param name="canDoMask">I can do mask</param>
+        /// <param name="wantDoMask">I want to do mask</param>
+        /// <param name="aboutText">Profile text</param>
+        /// <param name="firstText">Firstlife text</param>
+        /// <param name="profileImage">UUID for profile image</param>
+        /// <param name="firstImage">UUID for firstlife image</param>
+        /// <returns>Success?</returns>
+        public bool insertUserRow(LLUUID uuid, string username, string lastname, string passwordHash,
+                                  string passwordSalt, UInt64 homeRegion, float homeLocX, float homeLocY, float homeLocZ,
+                                  float homeLookAtX, float homeLookAtY, float homeLookAtZ, int created, int lastlogin,
+                                  string inventoryURI, string assetURI, uint canDoMask, uint wantDoMask,
+                                  string aboutText, string firstText,
+                                  LLUUID profileImage, LLUUID firstImage)
+        {
+            string sql =
+                "INSERT INTO users (`UUID`, `username`, `lastname`, `passwordHash`, `passwordSalt`, `homeRegion`, ";
+            sql +=
+                "`homeLocationX`, `homeLocationY`, `homeLocationZ`, `homeLookAtX`, `homeLookAtY`, `homeLookAtZ`, `created`, ";
+            sql +=
+                "`lastLogin`, `userInventoryURI`, `userAssetURI`, `profileCanDoMask`, `profileWantDoMask`, `profileAboutText`, ";
+            sql += "`profileFirstText`, `profileImage`, `profileFirstImage`) VALUES ";
+
+            sql += "(?UUID, ?username, ?lastname, ?passwordHash, ?passwordSalt, ?homeRegion, ";
+            sql +=
+                "?homeLocationX, ?homeLocationY, ?homeLocationZ, ?homeLookAtX, ?homeLookAtY, ?homeLookAtZ, ?created, ";
+            sql +=
+                "?lastLogin, ?userInventoryURI, ?userAssetURI, ?profileCanDoMask, ?profileWantDoMask, ?profileAboutText, ";
+            sql += "?profileFirstText, ?profileImage, ?profileFirstImage)";
+
+            Dictionary<string, string> parameters = new Dictionary<string, string>();
+            parameters["?UUID"] = uuid.ToStringHyphenated();
+            parameters["?username"] = username.ToString();
+            parameters["?lastname"] = lastname.ToString();
+            parameters["?passwordHash"] = passwordHash.ToString();
+            parameters["?passwordSalt"] = passwordSalt.ToString();
+            parameters["?homeRegion"] = homeRegion.ToString();
+            parameters["?homeLocationX"] = homeLocX.ToString();
+            parameters["?homeLocationY"] = homeLocY.ToString();
+            parameters["?homeLocationZ"] = homeLocZ.ToString();
+            parameters["?homeLookAtX"] = homeLookAtX.ToString();
+            parameters["?homeLookAtY"] = homeLookAtY.ToString();
+            parameters["?homeLookAtZ"] = homeLookAtZ.ToString();
+            parameters["?created"] = created.ToString();
+            parameters["?lastLogin"] = lastlogin.ToString();
+            parameters["?userInventoryURI"] = "";
+            parameters["?userAssetURI"] = "";
+            parameters["?profileCanDoMask"] = "0";
+            parameters["?profileWantDoMask"] = "0";
+            parameters["?profileAboutText"] = "";
+            parameters["?profileFirstText"] = "";
+            parameters["?profileImage"] = LLUUID.Zero.ToStringHyphenated();
+            parameters["?profileFirstImage"] = LLUUID.Zero.ToStringHyphenated();
+
+            bool returnval = false;
+
+            try
+            {
+                IDbCommand result = Query(sql, parameters);
+
+                if (result.ExecuteNonQuery() == 1)
+                    returnval = true;
+
+                result.Dispose();
+            }
+            catch (Exception e)
+            {
+                MainLog.Instance.Error(e.ToString());
+                return false;
+            }
+
+            return returnval;
+        }
 
 
         /// <summary>
@@ -585,13 +600,18 @@ namespace OpenSim.Framework.Data.MySQL
         /// <returns>Success?</returns>
         public bool insertRegion(RegionProfileData regiondata)
         {
-            string sql = "REPLACE INTO regions (regionHandle, regionName, uuid, regionRecvKey, regionSecret, regionSendKey, regionDataURI, ";
-            sql += "serverIP, serverPort, serverURI, locX, locY, locZ, eastOverrideHandle, westOverrideHandle, southOverrideHandle, northOverrideHandle, regionAssetURI, regionAssetRecvKey, ";
-            sql += "regionAssetSendKey, regionUserURI, regionUserRecvKey, regionUserSendKey, regionMapTexture, serverHttpPort, serverRemotingPort) VALUES ";
+            string sql =
+                "REPLACE INTO regions (regionHandle, regionName, uuid, regionRecvKey, regionSecret, regionSendKey, regionDataURI, ";
+            sql +=
+                "serverIP, serverPort, serverURI, locX, locY, locZ, eastOverrideHandle, westOverrideHandle, southOverrideHandle, northOverrideHandle, regionAssetURI, regionAssetRecvKey, ";
+            sql +=
+                "regionAssetSendKey, regionUserURI, regionUserRecvKey, regionUserSendKey, regionMapTexture, serverHttpPort, serverRemotingPort) VALUES ";
 
             sql += "(?regionHandle, ?regionName, ?uuid, ?regionRecvKey, ?regionSecret, ?regionSendKey, ?regionDataURI, ";
-            sql += "?serverIP, ?serverPort, ?serverURI, ?locX, ?locY, ?locZ, ?eastOverrideHandle, ?westOverrideHandle, ?southOverrideHandle, ?northOverrideHandle, ?regionAssetURI, ?regionAssetRecvKey, ";
-            sql += "?regionAssetSendKey, ?regionUserURI, ?regionUserRecvKey, ?regionUserSendKey, ?regionMapTexture, ?serverHttpPort, ?serverRemotingPort);";
+            sql +=
+                "?serverIP, ?serverPort, ?serverURI, ?locX, ?locY, ?locZ, ?eastOverrideHandle, ?westOverrideHandle, ?southOverrideHandle, ?northOverrideHandle, ?regionAssetURI, ?regionAssetRecvKey, ";
+            sql +=
+                "?regionAssetSendKey, ?regionUserURI, ?regionUserRecvKey, ?regionUserSendKey, ?regionMapTexture, ?serverHttpPort, ?serverRemotingPort);";
 
             Dictionary<string, string> parameters = new Dictionary<string, string>();
 
@@ -626,7 +646,6 @@ namespace OpenSim.Framework.Data.MySQL
 
             try
             {
-                
                 IDbCommand result = Query(sql, parameters);
 
                 //Console.WriteLine(result.CommandText);

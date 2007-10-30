@@ -26,11 +26,7 @@
 * 
 */
 
-using System;
 using System.Collections.Generic;
-using System.Text;
-
-using OpenSim.Region.ExtensionsScriptModule;
 
 namespace OpenSim.Region.ExtensionsScriptModule.JVMEngine
 {

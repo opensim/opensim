@@ -28,7 +28,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Text;
 
 namespace libTerrain
 {
@@ -57,8 +56,8 @@ namespace libTerrain
                 {
                     for (i = 0; i < pointsPerBlock; i++)
                     {
-                        double pX = x + (generator.NextDouble() * (double)blockSize);
-                        double pY = y + (generator.NextDouble() * (double)blockSize);
+                        double pX = x + (generator.NextDouble()*(double) blockSize);
+                        double pY = y + (generator.NextDouble()*(double) blockSize);
 
                         points.Add(new Point2D(pX, pY));
                     }
@@ -75,10 +74,10 @@ namespace libTerrain
                     for (i = 0; i < points.Count; i++)
                     {
                         double dx, dy;
-                        dx = Math.Abs((double)x - points[i].x);
-                        dy = Math.Abs((double)y - points[i].y);
+                        dx = Math.Abs((double) x - points[i].x);
+                        dy = Math.Abs((double) y - points[i].y);
 
-                        distances[i] = (dx * dx + dy * dy);
+                        distances[i] = (dx*dx + dy*dy);
                     }
 
                     Array.Sort(distances);
@@ -92,7 +91,7 @@ namespace libTerrain
                         if (i >= points.Count)
                             break;
 
-                        f += c[i] * distances[i];
+                        f += c[i]*distances[i];
                     }
 
                     map[x, y] = f;
@@ -119,10 +118,10 @@ namespace libTerrain
                     for (i = 0; i < points.Count; i++)
                     {
                         double dx, dy;
-                        dx = Math.Abs((double)x - points[i].x);
-                        dy = Math.Abs((double)y - points[i].y);
+                        dx = Math.Abs((double) x - points[i].x);
+                        dy = Math.Abs((double) y - points[i].y);
 
-                        distances[i] = (dx * dx + dy * dy);
+                        distances[i] = (dx*dx + dy*dy);
                     }
 
                     Array.Sort(distances);
@@ -136,7 +135,7 @@ namespace libTerrain
                         if (i >= points.Count)
                             break;
 
-                        f += c[i] * distances[i];
+                        f += c[i]*distances[i];
                     }
 
                     map[x, y] = f;
@@ -162,8 +161,8 @@ namespace libTerrain
                 {
                     for (i = 0; i < pointsPerBlock; i++)
                     {
-                        double pX = x + (generator.NextDouble() * (double)blockSize);
-                        double pY = y + (generator.NextDouble() * (double)blockSize);
+                        double pX = x + (generator.NextDouble()*(double) blockSize);
+                        double pY = y + (generator.NextDouble()*(double) blockSize);
 
                         points.Add(new Point2D(pX, pY));
                     }
@@ -180,10 +179,10 @@ namespace libTerrain
                     for (i = 0; i < points.Count; i++)
                     {
                         double dx, dy;
-                        dx = Math.Abs((double)x - points[i].x);
-                        dy = Math.Abs((double)y - points[i].y);
+                        dx = Math.Abs((double) x - points[i].x);
+                        dy = Math.Abs((double) y - points[i].y);
 
-                        distances[i] = (dx * dx + dy * dy);
+                        distances[i] = (dx*dx + dy*dy);
                     }
 
                     //Array.Sort(distances);
@@ -191,7 +190,7 @@ namespace libTerrain
                     double f = 0.0;
 
                     double min = double.MaxValue;
-                    for (int j = 0; j < distances.Length;j++ )
+                    for (int j = 0; j < distances.Length; j++)
                     {
                         if (distances[j] < min)
                         {

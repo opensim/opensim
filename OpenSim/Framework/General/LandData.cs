@@ -29,92 +29,95 @@ using libsecondlife;
 
 namespace OpenSim.Framework
 {
-    
-        public class LandData
+    public class LandData
+    {
+        public byte[] landBitmapByteArray = new byte[512];
+        public string landName = "Your Parcel";
+        public string landDesc = "";
+        public LLUUID ownerID = new LLUUID();
+        public bool isGroupOwned = false;
+        public LLVector3 AABBMin = new LLVector3();
+        public LLVector3 AABBMax = new LLVector3();
+        public int area = 0;
+        public uint auctionID = 0; //Unemplemented. If set to 0, not being auctioned
+        public LLUUID authBuyerID = new LLUUID(); //Unemplemented. Authorized Buyer's UUID
+        public Parcel.ParcelCategory category = new Parcel.ParcelCategory(); //Unemplemented. Parcel's chosen category
+        public int claimDate = 0; //Unemplemented
+        public int claimPrice = 0; //Unemplemented
+        public LLUUID groupID = new LLUUID(); //Unemplemented
+        public int groupPrims = 0;
+        public int otherPrims = 0;
+        public int ownerPrims = 0;
+        public int selectedPrims = 0;
+        public int simwidePrims = 0;
+        public int simwideArea = 0;
+        public int salePrice = 0; //Unemeplemented. Parcels price.
+        public Parcel.ParcelStatus landStatus = Parcel.ParcelStatus.Leased;
+
+        public uint landFlags = (uint) Parcel.ParcelFlags.AllowFly | (uint) Parcel.ParcelFlags.AllowLandmark |
+                                (uint) Parcel.ParcelFlags.AllowAllObjectEntry |
+                                (uint) Parcel.ParcelFlags.AllowDeedToGroup | (uint) Parcel.ParcelFlags.AllowTerraform |
+                                (uint) Parcel.ParcelFlags.CreateObjects | (uint) Parcel.ParcelFlags.AllowOtherScripts |
+                                (uint) Parcel.ParcelFlags.SoundLocal;
+
+        public byte landingType = 0;
+        public byte mediaAutoScale = 0;
+        public LLUUID mediaID = LLUUID.Zero;
+        public int localID = 0;
+        public LLUUID globalID = new LLUUID();
+
+        public string mediaURL = "";
+        public string musicURL = "";
+        public float passHours = 0;
+        public int passPrice = 0;
+        public LLUUID snapshotID = LLUUID.Zero;
+        public LLVector3 userLocation = new LLVector3();
+        public LLVector3 userLookAt = new LLVector3();
+
+        public LandData()
         {
-            public byte[] landBitmapByteArray = new byte[512];
-            public string landName = "Your Parcel";
-            public string landDesc = "";
-            public LLUUID ownerID = new LLUUID();
-            public bool isGroupOwned = false;
-            public LLVector3 AABBMin = new LLVector3();
-            public LLVector3 AABBMax = new LLVector3();
-            public int area = 0;
-            public uint auctionID = 0; //Unemplemented. If set to 0, not being auctioned
-            public LLUUID authBuyerID = new LLUUID(); //Unemplemented. Authorized Buyer's UUID
-            public Parcel.ParcelCategory category = new Parcel.ParcelCategory(); //Unemplemented. Parcel's chosen category
-            public int claimDate = 0; //Unemplemented
-            public int claimPrice = 0; //Unemplemented
-            public LLUUID groupID = new LLUUID(); //Unemplemented
-            public int groupPrims = 0;
-            public int otherPrims = 0;
-            public int ownerPrims = 0;
-            public int selectedPrims = 0;
-            public int simwidePrims = 0;
-            public int simwideArea = 0;
-            public int salePrice = 0; //Unemeplemented. Parcels price.
-            public Parcel.ParcelStatus landStatus = Parcel.ParcelStatus.Leased;
-            public uint landFlags = (uint)Parcel.ParcelFlags.AllowFly | (uint)Parcel.ParcelFlags.AllowLandmark | (uint)Parcel.ParcelFlags.AllowAllObjectEntry | (uint)Parcel.ParcelFlags.AllowDeedToGroup | (uint)Parcel.ParcelFlags.AllowTerraform | (uint)Parcel.ParcelFlags.CreateObjects | (uint)Parcel.ParcelFlags.AllowOtherScripts | (uint)Parcel.ParcelFlags.SoundLocal ;
-            public byte landingType = 0;
-            public byte mediaAutoScale = 0;
-            public LLUUID mediaID = LLUUID.Zero;
-            public int localID = 0;
-            public LLUUID globalID = new LLUUID();
-
-            public string mediaURL = "";
-            public string musicURL = "";
-            public float passHours = 0;
-            public int passPrice = 0;
-            public LLUUID snapshotID = LLUUID.Zero;
-            public LLVector3 userLocation = new LLVector3();
-            public LLVector3 userLookAt = new LLVector3();
-
-            public LandData()
-            {
-                globalID = LLUUID.Random();
-            }
-
-            public LandData Copy()
-            {
-                LandData landData = new LandData();
-
-                landData.AABBMax = this.AABBMax;
-                landData.AABBMin = this.AABBMin;
-                landData.area = this.area;
-                landData.auctionID = this.auctionID;
-                landData.authBuyerID = this.authBuyerID;
-                landData.category = this.category;
-                landData.claimDate = this.claimDate;
-                landData.claimPrice = this.claimPrice;
-                landData.globalID = this.globalID;
-                landData.groupID = this.groupID;
-                landData.groupPrims = this.groupPrims;
-                landData.otherPrims = this.otherPrims;
-                landData.ownerPrims = this.ownerPrims;
-                landData.selectedPrims = this.selectedPrims;
-                landData.isGroupOwned = this.isGroupOwned;
-                landData.localID = this.localID;
-                landData.landingType = this.landingType;
-                landData.mediaAutoScale = this.mediaAutoScale;
-                landData.mediaID = this.mediaID;
-                landData.mediaURL = this.mediaURL;
-                landData.musicURL = this.musicURL;
-                landData.ownerID = this.ownerID;
-                landData.landBitmapByteArray = (byte[])this.landBitmapByteArray.Clone();
-                landData.landDesc = this.landDesc;
-                landData.landFlags = this.landFlags;
-                landData.landName = this.landName;
-                landData.landStatus = this.landStatus;
-                landData.passHours = this.passHours;
-                landData.passPrice = this.passPrice;
-                landData.salePrice = this.salePrice;
-                landData.snapshotID = this.snapshotID;
-                landData.userLocation = this.userLocation;
-                landData.userLookAt = this.userLookAt;
-
-                return landData;
-           
-            }
+            globalID = LLUUID.Random();
         }
-    
+
+        public LandData Copy()
+        {
+            LandData landData = new LandData();
+
+            landData.AABBMax = AABBMax;
+            landData.AABBMin = AABBMin;
+            landData.area = area;
+            landData.auctionID = auctionID;
+            landData.authBuyerID = authBuyerID;
+            landData.category = category;
+            landData.claimDate = claimDate;
+            landData.claimPrice = claimPrice;
+            landData.globalID = globalID;
+            landData.groupID = groupID;
+            landData.groupPrims = groupPrims;
+            landData.otherPrims = otherPrims;
+            landData.ownerPrims = ownerPrims;
+            landData.selectedPrims = selectedPrims;
+            landData.isGroupOwned = isGroupOwned;
+            landData.localID = localID;
+            landData.landingType = landingType;
+            landData.mediaAutoScale = mediaAutoScale;
+            landData.mediaID = mediaID;
+            landData.mediaURL = mediaURL;
+            landData.musicURL = musicURL;
+            landData.ownerID = ownerID;
+            landData.landBitmapByteArray = (byte[]) landBitmapByteArray.Clone();
+            landData.landDesc = landDesc;
+            landData.landFlags = landFlags;
+            landData.landName = landName;
+            landData.landStatus = landStatus;
+            landData.passHours = passHours;
+            landData.passPrice = passPrice;
+            landData.salePrice = salePrice;
+            landData.snapshotID = snapshotID;
+            landData.userLocation = userLocation;
+            landData.userLookAt = userLookAt;
+
+            return landData;
+        }
+    }
 }

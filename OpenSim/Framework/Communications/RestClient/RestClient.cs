@@ -1,12 +1,10 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Net;
-using System.Web;
 using System.Text;
-using System.Collections.Generic;
 using System.Threading;
-
-using OpenSim.Framework.Console;
+using System.Web;
 
 namespace OpenSim.Framework.Communications
 {
@@ -29,9 +27,10 @@ namespace OpenSim.Framework.Communications
     /// </remarks>
     public class RestClient
     {
+        private string realuri;
 
-        string realuri;
         #region member variables
+
         /// <summary>
         /// The base Uri of the web-service e.g. http://www.google.com 
         /// </summary>
@@ -60,7 +59,7 @@ namespace OpenSim.Framework.Communications
         /// <summary>
         /// MemoryStream representing the resultiong resource
         /// </summary>
-        Stream _resource;
+        private Stream _resource;
 
         /// <summary>
         /// WebRequest object, held as a member variable
@@ -80,12 +79,12 @@ namespace OpenSim.Framework.Communications
         /// <summary>
         /// Default time out period
         /// </summary>
-        const int DefaultTimeout = 10 * 1000; // 10 seconds timeout
+        private const int DefaultTimeout = 10*1000; // 10 seconds timeout
 
         /// <summary>
         /// Default Buffer size of a block requested from the web-server
         /// </summary>
-        const int BufferSize = 4096; // Read blocks of 4 KB.
+        private const int BufferSize = 4096; // Read blocks of 4 KB.
 
 
         /// <summary>
@@ -97,6 +96,7 @@ namespace OpenSim.Framework.Communications
         #endregion member variables
 
         #region constructors
+
         /// <summary>
         /// Instantiate a new RestClient
         /// </summary>
@@ -111,7 +111,8 @@ namespace OpenSim.Framework.Communications
             _lock = new object();
         }
 
-        object _lock;
+        private object _lock;
+
         #endregion constructors
 
         /// <summary>
@@ -120,8 +121,8 @@ namespace OpenSim.Framework.Communications
         /// <param name="element">path entry</param>
         public void AddResourcePath(string element)
         {
-            if(isSlashed(element))
-                _pathElements.Add(element.Substring(0, element.Length-1));
+            if (isSlashed(element))
+                _pathElements.Add(element.Substring(0, element.Length - 1));
             else
                 _pathElements.Add(element);
         }
@@ -178,7 +179,7 @@ namespace OpenSim.Framework.Communications
         /// Build a Uri based on the intial Url, path elements and parameters
         /// </summary>
         /// <returns>fully constructed Uri</returns>
-        Uri buildUri()
+        private Uri buildUri()
         {
             StringBuilder sb = new StringBuilder();
             sb.Append(_url);
@@ -196,7 +197,8 @@ namespace OpenSim.Framework.Communications
                 {
                     sb.Append("?");
                     firstElement = false;
-                } else
+                }
+                else
                     sb.Append("&");
 
                 sb.Append(kv.Key);
@@ -209,7 +211,9 @@ namespace OpenSim.Framework.Communications
             realuri = sb.ToString();
             return new Uri(sb.ToString());
         }
+
         #region Async communications with server
+
         /// <summary>
         /// Async method, invoked when a block of data has been received from the service
         /// </summary>
@@ -218,13 +222,14 @@ namespace OpenSim.Framework.Communications
         {
             try
             {
-                Stream s = (Stream)ar.AsyncState;
+                Stream s = (Stream) ar.AsyncState;
                 int read = s.EndRead(ar);
 
                 if (read > 0)
                 {
                     _resource.Write(_readbuf, 0, read);
-                    IAsyncResult asynchronousResult = s.BeginRead(_readbuf, 0, BufferSize, new AsyncCallback(StreamIsReadyDelegate), s);
+                    IAsyncResult asynchronousResult =
+                        s.BeginRead(_readbuf, 0, BufferSize, new AsyncCallback(StreamIsReadyDelegate), s);
 
                     // TODO! Implement timeout, without killing the server
                     //ThreadPool.RegisterWaitForSingleObject(asynchronousResult.AsyncWaitHandle, new WaitOrTimerCallback(TimeoutCallback), _request, DefaultTimeout, true);
@@ -251,12 +256,13 @@ namespace OpenSim.Framework.Communications
             try
             {
                 // grab response
-                WebRequest wr = (WebRequest)ar.AsyncState;
-                _response = (HttpWebResponse)wr.EndGetResponse(ar);
+                WebRequest wr = (WebRequest) ar.AsyncState;
+                _response = (HttpWebResponse) wr.EndGetResponse(ar);
 
                 // get response stream, and setup async reading
                 Stream s = _response.GetResponseStream();
-                IAsyncResult asynchronousResult = s.BeginRead(_readbuf, 0, BufferSize, new AsyncCallback(StreamIsReadyDelegate), s);
+                IAsyncResult asynchronousResult =
+                    s.BeginRead(_readbuf, 0, BufferSize, new AsyncCallback(StreamIsReadyDelegate), s);
 
                 // TODO! Implement timeout, without killing the server
                 // wait until completed, or we timed out
@@ -281,6 +287,7 @@ namespace OpenSim.Framework.Communications
                 }
             }
         }
+
         #endregion Async communications with server
 
         /// <summary>
@@ -290,17 +297,17 @@ namespace OpenSim.Framework.Communications
         {
             lock (_lock)
             {
-                _request = (HttpWebRequest)WebRequest.Create(buildUri());
+                _request = (HttpWebRequest) WebRequest.Create(buildUri());
                 _request.KeepAlive = false;
                 _request.ContentType = "application/xml";
                 _request.Timeout = 200000;
                 _asyncException = null;
 
 //                IAsyncResult responseAsyncResult = _request.BeginGetResponse(new AsyncCallback(ResponseIsReadyDelegate), _request);
-                _response = (HttpWebResponse)_request.GetResponse();
+                _response = (HttpWebResponse) _request.GetResponse();
                 Stream src = _response.GetResponseStream();
                 int length = src.Read(_readbuf, 0, BufferSize);
-                while(length > 0)
+                while (length > 0)
                 {
                     _resource.Write(_readbuf, 0, length);
                     length = src.Read(_readbuf, 0, BufferSize);
@@ -329,7 +336,7 @@ namespace OpenSim.Framework.Communications
 
         public Stream Request(Stream src)
         {
-            _request = (HttpWebRequest)WebRequest.Create(buildUri());
+            _request = (HttpWebRequest) WebRequest.Create(buildUri());
             _request.KeepAlive = false;
             _request.ContentType = "application/xml";
             _request.Timeout = 900000;
@@ -340,13 +347,13 @@ namespace OpenSim.Framework.Communications
             src.Seek(0, SeekOrigin.Begin);
             Stream dst = _request.GetRequestStream();
             byte[] buf = new byte[1024];
-            int length = src.Read(buf,0, 1024);
+            int length = src.Read(buf, 0, 1024);
             while (length > 0)
             {
                 dst.Write(buf, 0, length);
                 length = src.Read(buf, 0, 1024);
             }
-            _response = (HttpWebResponse)_request.GetResponse();
+            _response = (HttpWebResponse) _request.GetResponse();
 
 //            IAsyncResult responseAsyncResult = _request.BeginGetResponse(new AsyncCallback(ResponseIsReadyDelegate), _request);
 
@@ -357,8 +364,8 @@ namespace OpenSim.Framework.Communications
             return null;
         }
 
-
         #region Async Invocation
+
         public IAsyncResult BeginRequest(AsyncCallback callback, object state)
         {
             /// <summary>
@@ -371,7 +378,7 @@ namespace OpenSim.Framework.Communications
 
         public Stream EndRequest(IAsyncResult asyncResult)
         {
-            AsyncResult<Stream> ar = (AsyncResult<Stream>)asyncResult;
+            AsyncResult<Stream> ar = (AsyncResult<Stream>) asyncResult;
 
             // Wait for operation to complete, then return result or 
             // throw exception
@@ -381,7 +388,7 @@ namespace OpenSim.Framework.Communications
         private void RequestHelper(Object asyncResult)
         {
             // We know that it's really an AsyncResult<DateTime> object
-            AsyncResult<Stream> ar = (AsyncResult<Stream>)asyncResult;
+            AsyncResult<Stream> ar = (AsyncResult<Stream>) asyncResult;
             try
             {
                 // Perform the operation; if sucessful set the result
@@ -394,6 +401,7 @@ namespace OpenSim.Framework.Communications
                 ar.HandleException(e, false);
             }
         }
+
         #endregion Async Invocation
     }
 }

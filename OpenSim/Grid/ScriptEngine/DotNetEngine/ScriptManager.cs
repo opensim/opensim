@@ -28,19 +28,14 @@
 /* Original code: Tedd Hansen */
 using System;
 using System.Collections.Generic;
-using System.Text;
-using System.Threading;
+using System.IO;
 using System.Reflection;
-using System.Runtime.Remoting;
-using System.Runtime.Serialization;
 using System.Runtime.Serialization.Formatters.Binary;
-using OpenSim.Region.Environment.Scenes;
-using OpenSim.Region.Environment.Scenes.Scripting;
+using System.Threading;
+using libsecondlife;
 using OpenSim.Grid.ScriptEngine.DotNetEngine.Compiler;
 using OpenSim.Grid.ScriptEngine.DotNetEngine.Compiler.LSL;
-using OpenSim.Region.ScriptEngine.Common;
-using libsecondlife;
-
+using OpenSim.Region.Environment.Scenes;
 
 namespace OpenSim.Grid.ScriptEngine.DotNetEngine
 {
@@ -53,16 +48,19 @@ namespace OpenSim.Grid.ScriptEngine.DotNetEngine
     public class ScriptManager
     {
         #region Declares
+
         private Thread scriptLoadUnloadThread;
         private int scriptLoadUnloadThread_IdleSleepms = 100;
         private Queue<LoadStruct> loadQueue = new Queue<LoadStruct>();
         private Queue<UnloadStruct> unloadQueue = new Queue<UnloadStruct>();
+
         private struct LoadStruct
         {
             public uint localID;
             public LLUUID itemID;
             public string script;
         }
+
         private struct UnloadStruct
         {
             public uint localID;
@@ -72,17 +70,20 @@ namespace OpenSim.Grid.ScriptEngine.DotNetEngine
         // Object<string, Script<string, script>>
         // IMPORTANT: Types and MemberInfo-derived objects require a LOT of memory.
         // Instead use RuntimeTypeHandle, RuntimeFieldHandle and RunTimeHandle (IntPtr) instead!
-        internal Dictionary<uint, Dictionary<LLUUID, LSL_BaseClass>> Scripts = new Dictionary<uint, Dictionary<LLUUID, LSL_BaseClass>>();
+        internal Dictionary<uint, Dictionary<LLUUID, LSL_BaseClass>> Scripts =
+            new Dictionary<uint, Dictionary<LLUUID, LSL_BaseClass>>();
+
         public Scene World
         {
-            get
-            {
-                return m_scriptEngine.World;
-            }
+            get { return m_scriptEngine.World; }
         }
-#endregion
+
+        #endregion
+
         #region Object init/shutdown
+
         private ScriptEngine m_scriptEngine;
+
         public ScriptManager(ScriptEngine scriptEngine)
         {
             m_scriptEngine = scriptEngine;
@@ -92,9 +93,9 @@ namespace OpenSim.Grid.ScriptEngine.DotNetEngine
             scriptLoadUnloadThread.IsBackground = true;
             scriptLoadUnloadThread.Priority = ThreadPriority.BelowNormal;
             scriptLoadUnloadThread.Start();
-
         }
-        ~ScriptManager ()
+
+        ~ScriptManager()
         {
             // Abort load/unload thread
             try
@@ -112,8 +113,11 @@ namespace OpenSim.Grid.ScriptEngine.DotNetEngine
             {
             }
         }
+
         #endregion
+
         #region Load / Unload scripts (Thread loop)
+
         private void ScriptLoadUnloadThreadLoop()
         {
             try
@@ -134,9 +138,6 @@ namespace OpenSim.Grid.ScriptEngine.DotNetEngine
                         UnloadStruct item = unloadQueue.Dequeue();
                         _StopScript(item.localID, item.itemID);
                     }
-                    
-                    
-
                 }
             }
             catch (ThreadAbortException tae)
@@ -145,21 +146,22 @@ namespace OpenSim.Grid.ScriptEngine.DotNetEngine
                 a = "";
                 // Expected
             }
-
         }
+
         #endregion
+
         #region Helper functions
+
         private static Assembly CurrentDomain_AssemblyResolve(object sender, ResolveEventArgs args)
         {
-
             //Console.WriteLine("ScriptManager.CurrentDomain_AssemblyResolve: " + args.Name);
             return Assembly.GetExecutingAssembly().FullName == args.Name ? Assembly.GetExecutingAssembly() : null;
-
         }
 
-
         #endregion
+
         #region Internal functions to keep track of script
+
         internal Dictionary<LLUUID, LSL_BaseClass>.KeyCollection GetScriptKeys(uint localID)
         {
             if (Scripts.ContainsKey(localID) == false)
@@ -169,7 +171,6 @@ namespace OpenSim.Grid.ScriptEngine.DotNetEngine
             Scripts.TryGetValue(localID, out Obj);
 
             return Obj.Keys;
-
         }
 
         internal LSL_BaseClass GetScript(uint localID, LLUUID itemID)
@@ -187,8 +188,8 @@ namespace OpenSim.Grid.ScriptEngine.DotNetEngine
             Obj.TryGetValue(itemID, out Script);
 
             return Script;
-
         }
+
         internal void SetScript(uint localID, LLUUID itemID, LSL_BaseClass Script)
         {
             // Create object if it doesn't exist
@@ -205,8 +206,8 @@ namespace OpenSim.Grid.ScriptEngine.DotNetEngine
 
             // Add to object
             Obj.Add(itemID, Script);
-
         }
+
         internal void RemoveScript(uint localID, LLUUID itemID)
         {
             // Don't have that object?
@@ -218,10 +219,12 @@ namespace OpenSim.Grid.ScriptEngine.DotNetEngine
             Scripts.TryGetValue(localID, out Obj);
             if (Obj.ContainsKey(itemID) == true)
                 Obj.Remove(itemID);
-
         }
+
         #endregion
+
         #region Start/Stop/Reset script
+
         /// <summary>
         /// Fetches, loads and hooks up a script to an objects events
         /// </summary>
@@ -235,6 +238,7 @@ namespace OpenSim.Grid.ScriptEngine.DotNetEngine
             ls.script = Script;
             loadQueue.Enqueue(ls);
         }
+
         /// <summary>
         /// Disables and unloads a script
         /// </summary>
@@ -247,6 +251,7 @@ namespace OpenSim.Grid.ScriptEngine.DotNetEngine
             ls.itemID = itemID;
             unloadQueue.Enqueue(ls);
         }
+
         public void ResetScript(uint localID, LLUUID itemID)
         {
             string script = GetScript(localID, itemID).SourceCode;
@@ -267,12 +272,8 @@ namespace OpenSim.Grid.ScriptEngine.DotNetEngine
 
             try
             {
-
-
-                
-
                 // Create a new instance of the compiler (currently we don't want reuse)
-                OpenSim.Grid.ScriptEngine.DotNetEngine.Compiler.LSL.Compiler LSLCompiler = new OpenSim.Grid.ScriptEngine.DotNetEngine.Compiler.LSL.Compiler();
+                Compiler.LSL.Compiler LSLCompiler = new Compiler.LSL.Compiler();
                 // Compile (We assume LSL)
                 ScriptSource = LSLCompiler.CompileFromLSLText(Script);
                 //Console.WriteLine("Compilation of " + FileName + " done");
@@ -289,10 +290,10 @@ namespace OpenSim.Grid.ScriptEngine.DotNetEngine
                 CompiledScript = m_scriptEngine.m_AppDomainManager.LoadScript(ScriptSource);
 
 #if DEBUG
-                    Console.WriteLine("Script " + itemID + " occupies {0} bytes", GC.GetTotalMemory(true) - before);
+                Console.WriteLine("Script " + itemID + " occupies {0} bytes", GC.GetTotalMemory(true) - before);
 #endif
 
-                    CompiledScript.SourceCode = ScriptSource;
+                CompiledScript.SourceCode = ScriptSource;
                 // Add it to our script memstruct
                 SetScript(localID, itemID, CompiledScript);
 
@@ -306,9 +307,7 @@ namespace OpenSim.Grid.ScriptEngine.DotNetEngine
                 CompiledScript.Start(LSLB);
 
                 // Fire the first start-event
-                m_scriptEngine.m_EventQueueManager.AddToScriptQueue(localID, itemID, "state_entry", new object[] { });
-
-
+                m_scriptEngine.m_EventQueueManager.AddToScriptQueue(localID, itemID, "state_entry", new object[] {});
             }
             catch (Exception e)
             {
@@ -326,9 +325,6 @@ namespace OpenSim.Grid.ScriptEngine.DotNetEngine
                     m_scriptEngine.Log.Error("ScriptEngine", "Error displaying error in-world: " + e2.ToString());
                 }
             }
-            
-
-
         }
 
         private void _StopScript(uint localID, LLUUID itemID)
@@ -359,19 +355,24 @@ namespace OpenSim.Grid.ScriptEngine.DotNetEngine
                 // Tell AppDomain that we have stopped script
                 m_scriptEngine.m_AppDomainManager.StopScript(ad);
             }
-            catch(Exception e)
+            catch (Exception e)
             {
-                Console.WriteLine("Exception stopping script localID: " + localID + " LLUID: " + itemID.ToString() + ": " + e.ToString());
+                Console.WriteLine("Exception stopping script localID: " + localID + " LLUID: " + itemID.ToString() +
+                                  ": " + e.ToString());
             }
         }
-            private string ProcessYield(string FileName)
+
+        private string ProcessYield(string FileName)
         {
             // TODO: Create a new assembly and copy old but insert Yield Code
             //return TempDotNetMicroThreadingCodeInjector.TestFix(FileName);
             return FileName;
         }
+
         #endregion
+
         #region Perform event execution in script
+
         /// <summary>
         /// Execute a LL-event-function in Script
         /// </summary>
@@ -381,7 +382,6 @@ namespace OpenSim.Grid.ScriptEngine.DotNetEngine
         /// <param name="args">Arguments to pass to function</param>
         internal void ExecuteEvent(uint localID, LLUUID itemID, string FunctionName, object[] args)
         {
-
             // Execute a function in the script
             //m_scriptEngine.Log.Verbose("ScriptEngine", "Executing Function localID: " + localID + ", itemID: " + itemID + ", FunctionName: " + FunctionName);
             LSL_BaseClass Script = m_scriptEngine.m_ScriptManager.GetScript(localID, itemID);
@@ -390,28 +390,29 @@ namespace OpenSim.Grid.ScriptEngine.DotNetEngine
 
             // Must be done in correct AppDomain, so leaving it up to the script itself
             Script.Exec.ExecuteEvent(FunctionName, args);
-
         }
+
         #endregion
 
         #region Script serialization/deserialization
+
         public void GetSerializedScript(uint localID, LLUUID itemID)
         {
             // Serialize the script and return it
             // Should not be a problem
-            System.IO.FileStream fs = System.IO.File.Create("SERIALIZED_SCRIPT_" + itemID);
+            FileStream fs = File.Create("SERIALIZED_SCRIPT_" + itemID);
             BinaryFormatter b = new BinaryFormatter();
-            b.Serialize(fs, GetScript(localID,itemID));
+            b.Serialize(fs, GetScript(localID, itemID));
             fs.Close();
-
-            
         }
+
         public void PutSerializedScript(uint localID, LLUUID itemID)
         {
             // Deserialize the script and inject it into an AppDomain
 
             // How to inject into an AppDomain?
         }
+
         #endregion
     }
 }

@@ -27,20 +27,19 @@
 */
 /* Original code: Tedd Hansen */
 using System;
+using System.IO;
 using System.Reflection;
 using System.Reflection.Emit;
+using System.Text;
 using System.Threading;
-
 
 namespace OpenSim.Grid.ScriptEngine.DotNetEngine.Compiler.LSO
 {
-
-
     public class Engine
     {
         //private string LSO_FileName = @"LSO\AdditionTest.lso";
-        private string LSO_FileName;// = @"LSO\CloseToDefault.lso";
-        AppDomain appDomain;
+        private string LSO_FileName; // = @"LSO\CloseToDefault.lso";
+        private AppDomain appDomain;
 
         public string Compile(string LSOFileName)
         {
@@ -52,18 +51,17 @@ namespace OpenSim.Grid.ScriptEngine.DotNetEngine.Compiler.LSO
 
             // Create Assembly Name
             AssemblyName asmName = new AssemblyName();
-            asmName.Name = System.IO.Path.GetFileNameWithoutExtension(LSO_FileName);
+            asmName.Name = Path.GetFileNameWithoutExtension(LSO_FileName);
             //asmName.Name = "TestAssembly";
 
             string DLL_FileName = asmName.Name + ".dll";
-            string DLL_FileName_WithPath = System.IO.Path.GetDirectoryName(LSO_FileName) + @"\" + DLL_FileName;
+            string DLL_FileName_WithPath = Path.GetDirectoryName(LSO_FileName) + @"\" + DLL_FileName;
 
-            Common.SendToLog("LSO File Name: " + System.IO.Path.GetFileName(LSO_FileName));
+            Common.SendToLog("LSO File Name: " + Path.GetFileName(LSO_FileName));
             Common.SendToLog("Assembly name: " + asmName.Name);
             Common.SendToLog("Assembly File Name: " + asmName.Name + ".dll");
             Common.SendToLog("Starting processing of LSL ByteCode...");
             Common.SendToLog("");
-
 
 
             // Create Assembly
@@ -78,22 +76,21 @@ namespace OpenSim.Grid.ScriptEngine.DotNetEngine.Compiler.LSO
 
             // Create a module (and save to disk)
             ModuleBuilder modBuilder = asmBuilder.DefineDynamicModule
-                            (asmName.Name,
-                            DLL_FileName);
+                (asmName.Name,
+                 DLL_FileName);
 
             //Common.SendToDebug("asmName.Name is still \"" + asmName.Name + "\"");
             // Create a Class (/Type)
             TypeBuilder typeBuilder = modBuilder.DefineType(
-                                    "LSL_ScriptObject",
-                                    TypeAttributes.Public | TypeAttributes.BeforeFieldInit,
-                                    typeof(OpenSim.Grid.ScriptEngine.DotNetEngine.Compiler.LSO.LSL_BaseClass));
+                "LSL_ScriptObject",
+                TypeAttributes.Public | TypeAttributes.BeforeFieldInit,
+                typeof (LSL_BaseClass));
             //,
             //                        typeof());
             //, typeof(LSL_BuiltIn_Commands_Interface));
             //,
             //                        typeof(object),
             //                        new Type[] { typeof(LSL_CLRInterface.LSLScript) });
-
 
 
             /*
@@ -123,7 +120,7 @@ namespace OpenSim.Grid.ScriptEngine.DotNetEngine.Compiler.LSO
             asmBuilder.Save(DLL_FileName);
 
             Common.SendToLog("Returning assembly filename: " + DLL_FileName);
-            
+
 
             return DLL_FileName;
 
@@ -133,9 +130,6 @@ namespace OpenSim.Grid.ScriptEngine.DotNetEngine.Compiler.LSO
             ////LSLScript hello = (LSLScript)Activator.CreateInstance(type);
             ////LSL_CLRInterface.LSLScript MyScript = (LSL_CLRInterface.LSLScript)Activator.CreateInstance(type);
             //object MyScript = (object)Activator.CreateInstance(type);
-
-
-
 
 
             //System.Reflection.MemberInfo[] Members = type.GetMembers();
@@ -165,29 +159,25 @@ namespace OpenSim.Grid.ScriptEngine.DotNetEngine.Compiler.LSO
             //    type.InvokeMember(s, BindingFlags.InvokeMethod, null, MyScript, new object[] { "Test" });
 
             //}
-
-            
         }
 
 
         private static void IL_CREATE_CONSTRUCTOR(TypeBuilder typeBuilder, LSO_Parser LSOP)
         {
-
-
             Common.SendToDebug("IL_CREATE_CONSTRUCTOR()");
             //ConstructorBuilder constructor = typeBuilder.DefineConstructor(
             //            MethodAttributes.Public,
             //            CallingConventions.Standard, 
             //            new Type[0]);
             ConstructorBuilder constructor = typeBuilder.DefineConstructor(
-                        MethodAttributes.Public |
-                        MethodAttributes.SpecialName |
-                        MethodAttributes.RTSpecialName,
-                        CallingConventions.Standard,
-                        new Type[0]);
+                MethodAttributes.Public |
+                MethodAttributes.SpecialName |
+                MethodAttributes.RTSpecialName,
+                CallingConventions.Standard,
+                new Type[0]);
 
             //Define the reflection ConstructorInfor for System.Object
-            ConstructorInfo conObj = typeof(LSL_BaseClass).GetConstructor(new Type[0]);
+            ConstructorInfo conObj = typeof (LSL_BaseClass).GetConstructor(new Type[0]);
 
             //call constructor of base object
             ILGenerator il = constructor.GetILGenerator();
@@ -230,56 +220,59 @@ namespace OpenSim.Grid.ScriptEngine.DotNetEngine.Compiler.LSO
                 LSO_Struct.StaticBlock sb;
                 LSOP.StaticBlocks.TryGetValue(pos, out sb);
 
-                if (sb.ObjectType > 0 && sb.ObjectType < 8) { // We don't want void or null's
-
-                il.Emit(OpCodes.Ldarg_0);
-                // Push position to stack
-                il.Emit(OpCodes.Ldc_I4, pos);
-                //il.Emit(OpCodes.Box, typeof(UInt32));
-
-
-                Type datatype = null;
-
-                // Push data to stack
-                Common.SendToDebug("Adding to static (" + pos + ") type: " + ((LSO_Enums.Variable_Type_Codes)sb.ObjectType).ToString() + " (" + sb.ObjectType + ")");
-                switch ((LSO_Enums.Variable_Type_Codes)sb.ObjectType)
+                if (sb.ObjectType > 0 && sb.ObjectType < 8)
                 {
-                    case LSO_Enums.Variable_Type_Codes.Float:
-                    case LSO_Enums.Variable_Type_Codes.Integer:
-                        //UInt32
-                        il.Emit(OpCodes.Ldc_I4, BitConverter.ToUInt32(sb.BlockVariable, 0));
-                        datatype = typeof(UInt32);
-                        il.Emit(OpCodes.Box, datatype);
-                        break;
-                    case LSO_Enums.Variable_Type_Codes.String:
-                    case LSO_Enums.Variable_Type_Codes.Key:
-                        //String
-                        LSO_Struct.HeapBlock hb = LSOP.GetHeap(LSOP.myHeader.HR + BitConverter.ToUInt32(sb.BlockVariable, 0) - 1);
-                        il.Emit(OpCodes.Ldstr, System.Text.Encoding.UTF8.GetString(hb.Data));
-                        datatype = typeof(string);
-                        break;
-                    case LSO_Enums.Variable_Type_Codes.Vector:
-                        datatype = typeof(LSO_Enums.Vector);
-                        //TODO: Not implemented
-                        break;
-                    case LSO_Enums.Variable_Type_Codes.Rotation:
-                        //Object
-                        //TODO: Not implemented
-                        datatype = typeof(LSO_Enums.Rotation);
-                        break;
-                    default:
-                        datatype = typeof(object);
-                        break;
+                    // We don't want void or null's
+
+                    il.Emit(OpCodes.Ldarg_0);
+                    // Push position to stack
+                    il.Emit(OpCodes.Ldc_I4, pos);
+                    //il.Emit(OpCodes.Box, typeof(UInt32));
+
+
+                    Type datatype = null;
+
+                    // Push data to stack
+                    Common.SendToDebug("Adding to static (" + pos + ") type: " +
+                                       ((LSO_Enums.Variable_Type_Codes) sb.ObjectType).ToString() + " (" + sb.ObjectType +
+                                       ")");
+                    switch ((LSO_Enums.Variable_Type_Codes) sb.ObjectType)
+                    {
+                        case LSO_Enums.Variable_Type_Codes.Float:
+                        case LSO_Enums.Variable_Type_Codes.Integer:
+                            //UInt32
+                            il.Emit(OpCodes.Ldc_I4, BitConverter.ToUInt32(sb.BlockVariable, 0));
+                            datatype = typeof (UInt32);
+                            il.Emit(OpCodes.Box, datatype);
+                            break;
+                        case LSO_Enums.Variable_Type_Codes.String:
+                        case LSO_Enums.Variable_Type_Codes.Key:
+                            //String
+                            LSO_Struct.HeapBlock hb =
+                                LSOP.GetHeap(LSOP.myHeader.HR + BitConverter.ToUInt32(sb.BlockVariable, 0) - 1);
+                            il.Emit(OpCodes.Ldstr, Encoding.UTF8.GetString(hb.Data));
+                            datatype = typeof (string);
+                            break;
+                        case LSO_Enums.Variable_Type_Codes.Vector:
+                            datatype = typeof (LSO_Enums.Vector);
+                            //TODO: Not implemented
+                            break;
+                        case LSO_Enums.Variable_Type_Codes.Rotation:
+                            //Object
+                            //TODO: Not implemented
+                            datatype = typeof (LSO_Enums.Rotation);
+                            break;
+                        default:
+                            datatype = typeof (object);
+                            break;
+                    }
+
+
+                    // Make call
+                    il.Emit(OpCodes.Call,
+                            typeof (LSL_BaseClass).GetMethod("AddToStatic", new Type[] {typeof (UInt32), datatype}));
                 }
-
-
-                // Make call
-                il.Emit(OpCodes.Call, typeof(LSL_BaseClass).GetMethod("AddToStatic", new Type[] { typeof(UInt32), datatype }));
-                }
-
             }
-
-
 
 
             ////il.Emit(OpCodes.Newobj, typeof(UInt32));
@@ -291,8 +284,6 @@ namespace OpenSim.Grid.ScriptEngine.DotNetEngine.Compiler.LSO
 
             il.Emit(OpCodes.Ret);
         }
-
-
 
 
         // End of class

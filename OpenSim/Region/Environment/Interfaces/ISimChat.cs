@@ -26,12 +26,13 @@
 * 
 */
 
-using libsecondlife;
+using System;
+using OpenSim.Framework;
 
 namespace OpenSim.Region.Environment.Interfaces
 {
     public interface ISimChat
     {
-        void SimChat(System.Object sender, OpenSim.Framework.ChatFromViewerArgs e);
+        void SimChat(Object sender, ChatFromViewerArgs e);
     }
 }

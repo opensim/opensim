@@ -40,7 +40,7 @@ namespace OpenSim.Region.ExtensionsScriptModule.CSharp
             return ".cs";
         }
 
-        private Dictionary<string,IScript> LoadDotNetScript(CodeDomProvider compiler, string filename)
+        private Dictionary<string, IScript> LoadDotNetScript(CodeDomProvider compiler, string filename)
         {
             CompilerParameters compilerParams = new CompilerParameters();
             CompilerResults compilerResults;
@@ -66,15 +66,16 @@ namespace OpenSim.Region.ExtensionsScriptModule.CSharp
             }
             else
             {
-                Dictionary<string,IScript> scripts = new Dictionary<string,IScript>();
-                
+                Dictionary<string, IScript> scripts = new Dictionary<string, IScript>();
+
                 foreach (Type pluginType in compilerResults.CompiledAssembly.GetExportedTypes())
                 {
                     Type testInterface = pluginType.GetInterface("IScript", true);
 
                     if (testInterface != null)
                     {
-                        IScript script = (IScript)compilerResults.CompiledAssembly.CreateInstance(pluginType.ToString());
+                        IScript script =
+                            (IScript) compilerResults.CompiledAssembly.CreateInstance(pluginType.ToString());
 
                         string scriptName = "C#/" + script.Name;
                         Console.WriteLine("Script: " + scriptName + " loaded.");
@@ -94,7 +95,7 @@ namespace OpenSim.Region.ExtensionsScriptModule.CSharp
             return null;
         }
 
-        public Dictionary<string,IScript> compile(string filename)
+        public Dictionary<string, IScript> compile(string filename)
         {
             CSharpCodeProvider csharpProvider = new CSharpCodeProvider();
             return LoadDotNetScript(csharpProvider, filename);

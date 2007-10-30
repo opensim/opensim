@@ -28,8 +28,6 @@
 
 
 using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace libTerrain
 {
@@ -39,6 +37,7 @@ namespace libTerrain
         {
             return w;
         }
+
         public int GetHeight()
         {
             return h;
@@ -47,7 +46,7 @@ namespace libTerrain
         public Channel Copy()
         {
             Channel x = new Channel(w, h);
-            x.map = (double[,])this.map.Clone();
+            x.map = (double[,]) map.Clone();
             return x;
         }
 
@@ -58,9 +57,9 @@ namespace libTerrain
 
         public void SetDiff(int val)
         {
-            for (int x = 0; x < w / 16; x++)
+            for (int x = 0; x < w/16; x++)
             {
-                for (int y = 0; y < h / 16; y++)
+                for (int y = 0; y < h/16; y++)
                 {
                     diff[x, y] = val;
                 }
@@ -69,7 +68,7 @@ namespace libTerrain
 
         public void SetDiff(int x, int y)
         {
-            diff[x / 16, y / 16]++;
+            diff[x/16, y/16]++;
         }
 
         public void Set(int x, int y, double val)
@@ -124,10 +123,10 @@ namespace libTerrain
                 y = 0.0;
 
             int stepSize = 1;
-            double h00 = Get((int)x, (int)y);
-            double h10 = Get((int)x + stepSize, (int)y);
-            double h01 = Get((int)x, (int)y + stepSize);
-            double h11 = Get((int)x + stepSize, (int)y + stepSize);
+            double h00 = Get((int) x, (int) y);
+            double h10 = Get((int) x + stepSize, (int) y);
+            double h01 = Get((int) x, (int) y + stepSize);
+            double h11 = Get((int) x + stepSize, (int) y + stepSize);
             double h1 = h00;
             double h2 = h10;
             double h3 = h01;
@@ -136,9 +135,9 @@ namespace libTerrain
             double a10 = h2 - h1;
             double a01 = h3 - h1;
             double a11 = h1 - h2 - h3 + h4;
-            double partialx = x - (int)x;
-            double partialz = y - (int)y;
-            double hi = a00 + (a10 * partialx) + (a01 * partialz) + (a11 * partialx * partialz);
+            double partialx = x - (int) x;
+            double partialz = y - (int) y;
+            double hi = a00 + (a10*partialx) + (a01*partialz) + (a11*partialx*partialz);
             return hi;
         }
 
@@ -159,7 +158,7 @@ namespace libTerrain
         {
             SetDiff(x, y);
 
-            map[x % w, y % h] = val;
+            map[x%w, y%h] = val;
         }
 
         public void SetWrapClip(int x, int y, double val)
@@ -171,7 +170,7 @@ namespace libTerrain
             if (val < 0.0)
                 val = 0.0;
 
-            map[x % w, y % h] = val;
+            map[x%w, y%h] = val;
         }
 
         public void Fill(double val)
@@ -255,7 +254,7 @@ namespace libTerrain
 
         public double Avg()
         {
-            return Sum() / (w * h);
+            return Sum()/(w*h);
         }
 
         public bool ContainsNaN()

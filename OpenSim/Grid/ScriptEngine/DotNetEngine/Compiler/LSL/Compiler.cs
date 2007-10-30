@@ -27,16 +27,13 @@
 */
 
 using System;
-using System.Collections.Generic;
-using System.Text;
-using System.IO;
-using Microsoft.CSharp;
 using System.CodeDom.Compiler;
+using System.IO;
 using System.Reflection;
+using Microsoft.CSharp;
 
 namespace OpenSim.Grid.ScriptEngine.DotNetEngine.Compiler.LSL
 {
-    
     public class Compiler
     {
         private LSL2CSConverter LSL_Converter = new LSL2CSConverter();
@@ -45,7 +42,7 @@ namespace OpenSim.Grid.ScriptEngine.DotNetEngine.Compiler.LSL
         //private ICodeCompiler icc = codeProvider.CreateCompiler();
         public string CompileFromFile(string LSOFileName)
         {
-            switch (System.IO.Path.GetExtension(LSOFileName).ToLower())
+            switch (Path.GetExtension(LSOFileName).ToLower())
             {
                 case ".txt":
                 case ".lsl":
@@ -58,6 +55,7 @@ namespace OpenSim.Grid.ScriptEngine.DotNetEngine.Compiler.LSL
                     throw new Exception("Unknown script type.");
             }
         }
+
         /// <summary>
         /// Converts script from LSL to CS and calls CompileFromCSText
         /// </summary>
@@ -67,13 +65,14 @@ namespace OpenSim.Grid.ScriptEngine.DotNetEngine.Compiler.LSL
         {
             if (Script.Substring(0, 4).ToLower() == "//c#")
             {
-                return CompileFromCSText( Script );
+                return CompileFromCSText(Script);
             }
             else
             {
                 return CompileFromCSText(LSL_Converter.Convert(Script));
             }
         }
+
         /// <summary>
         /// Compile CS script to .Net assembly (.dll)
         /// </summary>
@@ -81,14 +80,12 @@ namespace OpenSim.Grid.ScriptEngine.DotNetEngine.Compiler.LSL
         /// <returns>Filename to .dll assembly</returns>
         public string CompileFromCSText(string Script)
         {
-
-
             // Output assembly name
             scriptCompileCounter++;
             string OutFile = Path.Combine("ScriptEngines", "Script_" + scriptCompileCounter + ".dll");
             try
             {
-                System.IO.File.Delete(OutFile);
+                File.Delete(OutFile);
             }
             catch (Exception e)
             {
@@ -99,12 +96,15 @@ namespace OpenSim.Grid.ScriptEngine.DotNetEngine.Compiler.LSL
             // DEBUG - write source to disk
             try
             {
-                File.WriteAllText(Path.Combine("ScriptEngines", "debug_" + Path.GetFileNameWithoutExtension(OutFile) + ".cs"), Script);
+                File.WriteAllText(
+                    Path.Combine("ScriptEngines", "debug_" + Path.GetFileNameWithoutExtension(OutFile) + ".cs"), Script);
             }
-            catch { }
+            catch
+            {
+            }
 
             // Do actual compile
-            System.CodeDom.Compiler.CompilerParameters parameters = new CompilerParameters();
+            CompilerParameters parameters = new CompilerParameters();
             parameters.IncludeDebugInformation = true;
             // Add all available assemblies
             foreach (Assembly asm in AppDomain.CurrentDomain.GetAssemblies())
@@ -114,11 +114,11 @@ namespace OpenSim.Grid.ScriptEngine.DotNetEngine.Compiler.LSL
             }
 
             string rootPath = Path.GetDirectoryName(AppDomain.CurrentDomain.BaseDirectory);
-            string rootPathSE = Path.GetDirectoryName(this.GetType().Assembly.Location);
+            string rootPathSE = Path.GetDirectoryName(GetType().Assembly.Location);
             //Console.WriteLine("Assembly location: " + rootPath);
             parameters.ReferencedAssemblies.Add(Path.Combine(rootPath, "OpenSim.Region.ScriptEngine.Common.dll"));
             parameters.ReferencedAssemblies.Add(Path.Combine(rootPathSE, "OpenSim.Grid.ScriptEngine.DotNetEngine.dll"));
-            
+
             //parameters.ReferencedAssemblies.Add("OpenSim.Region.Environment");
             parameters.GenerateExecutable = false;
             parameters.OutputAssembly = OutFile;
@@ -129,13 +129,12 @@ namespace OpenSim.Grid.ScriptEngine.DotNetEngine.Compiler.LSL
             // TODO: Return errors to user somehow
             if (results.Errors.Count > 0)
             {
-
                 string errtext = "";
                 foreach (CompilerError CompErr in results.Errors)
                 {
                     errtext += "Line number " + (CompErr.Line - 1) +
-                        ", Error Number: " + CompErr.ErrorNumber +
-                        ", '" + CompErr.ErrorText + "'\r\n";
+                               ", Error Number: " + CompErr.ErrorNumber +
+                               ", '" + CompErr.ErrorText + "'\r\n";
                 }
                 throw new Exception(errtext);
             }
@@ -143,6 +142,5 @@ namespace OpenSim.Grid.ScriptEngine.DotNetEngine.Compiler.LSL
 
             return OutFile;
         }
-
     }
 }

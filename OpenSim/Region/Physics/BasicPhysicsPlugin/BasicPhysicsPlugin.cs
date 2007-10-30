@@ -39,7 +39,6 @@ namespace OpenSim.Region.Physics.BasicPhysicsPlugin
     {
         public BasicPhysicsPlugin()
         {
-
         }
 
         public bool Init()
@@ -59,7 +58,6 @@ namespace OpenSim.Region.Physics.BasicPhysicsPlugin
 
         public void Dispose()
         {
-
         }
     }
 
@@ -70,7 +68,6 @@ namespace OpenSim.Region.Physics.BasicPhysicsPlugin
 
         public BasicScene()
         {
-
         }
 
         public override PhysicsActor AddAvatar(string avName, PhysicsVector position)
@@ -83,17 +80,15 @@ namespace OpenSim.Region.Physics.BasicPhysicsPlugin
 
         public override void RemovePrim(PhysicsActor prim)
         {
-
         }
 
         public override void RemoveAvatar(PhysicsActor actor)
         {
-            BasicActor act = (BasicActor)actor;
+            BasicActor act = (BasicActor) actor;
             if (_actors.Contains(act))
             {
                 _actors.Remove(act);
             }
-
         }
 
 /*
@@ -102,7 +97,9 @@ namespace OpenSim.Region.Physics.BasicPhysicsPlugin
             return null;
         }
 */
-        public override PhysicsActor AddPrimShape(string primName, PrimitiveBaseShape pbs, PhysicsVector position, PhysicsVector size, Quaternion rotation)
+
+        public override PhysicsActor AddPrimShape(string primName, PrimitiveBaseShape pbs, PhysicsVector position,
+                                                  PhysicsVector size, Quaternion rotation)
         {
             return null;
         }
@@ -112,8 +109,8 @@ namespace OpenSim.Region.Physics.BasicPhysicsPlugin
         {
             foreach (BasicActor actor in _actors)
             {
-                actor.Position.X = actor.Position.X + (actor.Velocity.X * timeStep);
-                actor.Position.Y = actor.Position.Y + (actor.Velocity.Y * timeStep);
+                actor.Position.X = actor.Position.X + (actor.Velocity.X*timeStep);
+                actor.Position.Y = actor.Position.Y + (actor.Velocity.Y*timeStep);
                 if (actor.Position.Y < 0)
                 {
                     actor.Position.Y = 0.1F;
@@ -132,17 +129,18 @@ namespace OpenSim.Region.Physics.BasicPhysicsPlugin
                     actor.Position.X = 255.9F;
                 }
 
-                float height = _heightMap[(int)actor.Position.Y * 256 + (int)actor.Position.X] + 1.0f;
+                float height = _heightMap[(int) actor.Position.Y*256 + (int) actor.Position.X] + 1.0f;
                 if (actor.Flying)
                 {
-                    if (actor.Position.Z + (actor.Velocity.Z * timeStep) < _heightMap[(int)actor.Position.Y * 256 + (int)actor.Position.X] + 2)
+                    if (actor.Position.Z + (actor.Velocity.Z*timeStep) <
+                        _heightMap[(int) actor.Position.Y*256 + (int) actor.Position.X] + 2)
                     {
                         actor.Position.Z = height;
                         actor.Velocity.Z = 0;
                     }
                     else
                     {
-                        actor.Position.Z = actor.Position.Z + (actor.Velocity.Z * timeStep);
+                        actor.Position.Z = actor.Position.Z + (actor.Velocity.Z*timeStep);
                     }
                 }
                 else
@@ -150,32 +148,26 @@ namespace OpenSim.Region.Physics.BasicPhysicsPlugin
                     actor.Position.Z = height;
                     actor.Velocity.Z = 0;
                 }
-
-
             }
         }
 
         public override void GetResults()
         {
-
         }
 
         public override bool IsThreaded
         {
-            get
-            {
-                return (false); // for now we won't be multithreaded
+            get { return (false); // for now we won't be multithreaded
             }
         }
 
         public override void SetTerrain(float[] heightMap)
         {
-            this._heightMap = heightMap;
+            _heightMap = heightMap;
         }
 
         public override void DeleteTerrain()
         {
-
         }
     }
 
@@ -185,6 +177,7 @@ namespace OpenSim.Region.Physics.BasicPhysicsPlugin
         private PhysicsVector _velocity;
         private PhysicsVector _acceleration;
         private bool flying;
+
         public BasicActor()
         {
             _velocity = new PhysicsVector();
@@ -194,97 +187,56 @@ namespace OpenSim.Region.Physics.BasicPhysicsPlugin
 
         public override bool Flying
         {
-            get
-            {
-                return flying;
-            }
-            set
-            {
-                flying = value;
-            }
+            get { return flying; }
+            set { flying = value; }
         }
 
         public override PhysicsVector Position
         {
-            get
-            {
-                return _position;
-            }
-            set
-            {
-                _position = value;
-            }
+            get { return _position; }
+            set { _position = value; }
         }
 
         public override PhysicsVector Size
         {
-            get
-            {
-                return new PhysicsVector(0, 0, 0);
-            }
-            set
-            {
-            }
+            get { return new PhysicsVector(0, 0, 0); }
+            set { }
         }
 
         public override PhysicsVector Velocity
         {
-            get
-            {
-                return _velocity;
-            }
-            set
-            {
-                _velocity = value;
-            }
+            get { return _velocity; }
+            set { _velocity = value; }
         }
 
         public override Quaternion Orientation
         {
-            get
-            {
-                return Quaternion.Identity;
-            }
-            set
-            {
-
-            }
+            get { return Quaternion.Identity; }
+            set { }
         }
 
         public override PhysicsVector Acceleration
         {
-            get
-            {
-                return _acceleration;
-            }
-
+            get { return _acceleration; }
         }
 
         public override bool Kinematic
         {
-            get
-            {
-                return true;
-            }
-            set
-            {
-
-            }
+            get { return true; }
+            set { }
         }
+
         public void SetAcceleration(PhysicsVector accel)
         {
-            this._acceleration = accel;
+            _acceleration = accel;
         }
 
         public override void AddForce(PhysicsVector force)
         {
-
         }
 
         public override void SetMomentum(PhysicsVector momentum)
         {
-
         }
     }
-
 }

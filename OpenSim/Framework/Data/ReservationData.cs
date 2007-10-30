@@ -36,7 +36,7 @@ namespace OpenSim.Framework.Data
         public int reservationMinY = 0;
         public int reservationMaxX = 65536;
         public int reservationMaxY = 65536;
-        
+
         public string reservationName = "";
         public string reservationCompany = "";
         public bool status = true;

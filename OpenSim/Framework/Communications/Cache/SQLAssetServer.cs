@@ -26,14 +26,8 @@
 * 
 */
 using System;
-using System.IO;
-using System.Threading;
 using System.Reflection;
-using libsecondlife;
-using Nini.Config;
 using OpenSim.Framework.Console;
-using OpenSim.Framework.Interfaces;
-using OpenSim.Framework;
 
 namespace OpenSim.Framework.Communications.Cache
 {
@@ -62,11 +56,14 @@ namespace OpenSim.Framework.Communications.Cache
 
                     if (typeInterface != null)
                     {
-                        IAssetProvider plug = (IAssetProvider)Activator.CreateInstance(pluginAssembly.GetType(pluginType.ToString()));
+                        IAssetProvider plug =
+                            (IAssetProvider) Activator.CreateInstance(pluginAssembly.GetType(pluginType.ToString()));
                         m_assetProviderPlugin = plug;
                         m_assetProviderPlugin.Initialise();
 
-                        MainLog.Instance.Verbose("AssetStorage","Added " + m_assetProviderPlugin.Name + " " + m_assetProviderPlugin.Version);
+                        MainLog.Instance.Verbose("AssetStorage",
+                                                 "Added " + m_assetProviderPlugin.Name + " " +
+                                                 m_assetProviderPlugin.Version);
                     }
 
                     typeInterface = null;
@@ -84,13 +81,13 @@ namespace OpenSim.Framework.Communications.Cache
             m_assetProviderPlugin.CommitAssets();
         }
 
-        override protected void RunRequests()
+        protected override void RunRequests()
         {
             while (true)
             {
-                ARequest req = this._assetRequests.Dequeue();
+                ARequest req = _assetRequests.Dequeue();
 
-               //MainLog.Instance.Verbose("AssetStorage","Requesting asset: " + req.AssetID);
+                //MainLog.Instance.Verbose("AssetStorage","Requesting asset: " + req.AssetID);
 
                 AssetBase asset = null;
                 lock (syncLock)
@@ -105,9 +102,7 @@ namespace OpenSim.Framework.Communications.Cache
                 {
                     _receiver.AssetNotFound(req.AssetID);
                 }
-
             }
-
         }
 
         protected override void StoreAsset(AssetBase asset)

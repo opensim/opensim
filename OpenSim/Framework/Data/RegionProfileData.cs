@@ -25,11 +25,11 @@
 * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 * 
 */
-using libsecondlife;
-using Nwc.XmlRpc;
 
 using System;
 using System.Collections;
+using libsecondlife;
+using Nwc.XmlRpc;
 
 namespace OpenSim.Framework.Data
 {
@@ -57,6 +57,7 @@ namespace OpenSim.Framework.Data
         /// Coordinates of the region
         /// </summary>
         public uint regionLocX;
+
         public uint regionLocY;
         public uint regionLocZ; // Reserved (round-robin, layers, etc)
 
@@ -65,6 +66,7 @@ namespace OpenSim.Framework.Data
         /// </summary>
         /// <remarks>Not very secure, needs improvement.</remarks>
         public string regionSendKey = "";
+
         public string regionRecvKey = "";
         public string regionSecret = "";
 
@@ -77,6 +79,7 @@ namespace OpenSim.Framework.Data
         /// Information about the server that the region is currently hosted on
         /// </summary>
         public string serverIP = "";
+
         public uint serverPort;
         public string serverURI = "";
 
@@ -88,6 +91,7 @@ namespace OpenSim.Framework.Data
         /// Set of optional overrides. Can be used to create non-eulicidean spaces.
         /// </summary>
         public ulong regionNorthOverrideHandle;
+
         public ulong regionSouthOverrideHandle;
         public ulong regionEastOverrideHandle;
         public ulong regionWestOverrideHandle;
@@ -102,6 +106,7 @@ namespace OpenSim.Framework.Data
         /// Region Asset Details
         /// </summary>
         public string regionAssetURI = "";
+
         public string regionAssetSendKey = "";
         public string regionAssetRecvKey = "";
 
@@ -109,6 +114,7 @@ namespace OpenSim.Framework.Data
         /// Region Userserver Details
         /// </summary>
         public string regionUserURI = "";
+
         public string regionUserSendKey = "";
         public string regionUserRecvKey = "";
 
@@ -124,7 +130,8 @@ namespace OpenSim.Framework.Data
         /// <param name="gridserver_url"></param>
         /// <param name="?"></param>
         /// <returns></returns>
-        public RegionProfileData RequestSimProfileData(LLUUID region_uuid, string gridserver_url, string gridserver_sendkey, string gridserver_recvkey)
+        public RegionProfileData RequestSimProfileData(LLUUID region_uuid, string gridserver_url,
+                                                       string gridserver_sendkey, string gridserver_recvkey)
         {
             Hashtable requestData = new Hashtable();
             requestData["region_uuid"] = region_uuid.UUID.ToString();
@@ -134,7 +141,7 @@ namespace OpenSim.Framework.Data
             XmlRpcRequest GridReq = new XmlRpcRequest("simulator_data_request", SendParams);
             XmlRpcResponse GridResp = GridReq.Send(gridserver_url, 3000);
 
-            Hashtable responseData = (Hashtable)GridResp.Value;
+            Hashtable responseData = (Hashtable) GridResp.Value;
 
             if (responseData.ContainsKey("error"))
             {
@@ -142,21 +149,23 @@ namespace OpenSim.Framework.Data
             }
 
             RegionProfileData simData = new RegionProfileData();
-            simData.regionLocX = Convert.ToUInt32((string)responseData["region_locx"]);
-            simData.regionLocY = Convert.ToUInt32((string)responseData["region_locy"]);
-            simData.regionHandle = Helpers.UIntsToLong((simData.regionLocX * 256), (simData.regionLocY * 256));
-            simData.serverIP = (string)responseData["sim_ip"];
-            simData.serverPort = Convert.ToUInt32((string)responseData["sim_port"]);
-            simData.httpPort = Convert.ToUInt32((string)responseData["http_port"]);
-            simData.remotingPort = Convert.ToUInt32((string)responseData["remoting_port"]);
+            simData.regionLocX = Convert.ToUInt32((string) responseData["region_locx"]);
+            simData.regionLocY = Convert.ToUInt32((string) responseData["region_locy"]);
+            simData.regionHandle = Helpers.UIntsToLong((simData.regionLocX*256), (simData.regionLocY*256));
+            simData.serverIP = (string) responseData["sim_ip"];
+            simData.serverPort = Convert.ToUInt32((string) responseData["sim_port"]);
+            simData.httpPort = Convert.ToUInt32((string) responseData["http_port"]);
+            simData.remotingPort = Convert.ToUInt32((string) responseData["remoting_port"]);
             simData.serverURI = "http://" + simData.serverIP + ":" + simData.serverPort.ToString() + "/";
             simData.httpServerURI = "http://" + simData.serverIP + ":" + simData.httpPort.ToString() + "/";
-            simData.UUID = new LLUUID((string)responseData["region_UUID"]);
-            simData.regionName = (string)responseData["region_name"];
+            simData.UUID = new LLUUID((string) responseData["region_UUID"]);
+            simData.regionName = (string) responseData["region_name"];
 
-            return simData;            
+            return simData;
         }
-        public RegionProfileData RequestSimProfileData(ulong region_handle, string gridserver_url, string gridserver_sendkey, string gridserver_recvkey)
+
+        public RegionProfileData RequestSimProfileData(ulong region_handle, string gridserver_url,
+                                                       string gridserver_sendkey, string gridserver_recvkey)
         {
             Hashtable requestData = new Hashtable();
             requestData["region_handle"] = region_handle.ToString();
@@ -166,7 +175,7 @@ namespace OpenSim.Framework.Data
             XmlRpcRequest GridReq = new XmlRpcRequest("simulator_data_request", SendParams);
             XmlRpcResponse GridResp = GridReq.Send(gridserver_url, 3000);
 
-            Hashtable responseData = (Hashtable)GridResp.Value;
+            Hashtable responseData = (Hashtable) GridResp.Value;
 
             if (responseData.ContainsKey("error"))
             {
@@ -174,19 +183,19 @@ namespace OpenSim.Framework.Data
             }
 
             RegionProfileData simData = new RegionProfileData();
-            simData.regionLocX = Convert.ToUInt32((string)responseData["region_locx"]);
-            simData.regionLocY = Convert.ToUInt32((string)responseData["region_locy"]);
-            simData.regionHandle = Helpers.UIntsToLong((simData.regionLocX * 256), (simData.regionLocY * 256));
-            simData.serverIP = (string)responseData["sim_ip"];
-            simData.serverPort = Convert.ToUInt32((string)responseData["sim_port"]);
-            simData.httpPort = Convert.ToUInt32((string)responseData["http_port"]);
-            simData.remotingPort = Convert.ToUInt32((string)responseData["remoting_port"]);
+            simData.regionLocX = Convert.ToUInt32((string) responseData["region_locx"]);
+            simData.regionLocY = Convert.ToUInt32((string) responseData["region_locy"]);
+            simData.regionHandle = Helpers.UIntsToLong((simData.regionLocX*256), (simData.regionLocY*256));
+            simData.serverIP = (string) responseData["sim_ip"];
+            simData.serverPort = Convert.ToUInt32((string) responseData["sim_port"]);
+            simData.httpPort = Convert.ToUInt32((string) responseData["http_port"]);
+            simData.remotingPort = Convert.ToUInt32((string) responseData["remoting_port"]);
             simData.httpServerURI = "http://" + simData.serverIP + ":" + simData.httpPort.ToString() + "/";
             simData.serverURI = "http://" + simData.serverIP + ":" + simData.serverPort.ToString() + "/";
-            simData.UUID = new LLUUID((string)responseData["region_UUID"]);
-            simData.regionName = (string)responseData["region_name"];
+            simData.UUID = new LLUUID((string) responseData["region_UUID"]);
+            simData.regionName = (string) responseData["region_name"];
 
-            return simData; 
+            return simData;
         }
     }
 }

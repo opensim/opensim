@@ -28,14 +28,13 @@
 /* Original code: Tedd Hansen */
 
 using System;
+using System.Collections;
 using System.Collections.Generic;
-using System.Text;
 
 namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSO
 {
-    static class LSO_Struct
+    internal static class LSO_Struct
     {
-
         public struct Header
         {
             public UInt32 TM;
@@ -69,6 +68,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSO
             public byte Unknown;
             public byte[] BlockVariable;
         }
+
         /* Not actually a structure
         public struct StaticBlockVariable
         {
@@ -80,6 +80,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSO
             public byte[] Rotation_16;
             public UInt32 Pointer_List_Structure;
         } */
+
         public struct HeapBlock
         {
             public Int32 DataBlockSize;
@@ -87,17 +88,20 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSO
             public UInt16 ReferenceCount;
             public byte[] Data;
         }
+
         public struct StateFrameBlock
         {
             public UInt32 StateCount;
             public StatePointerBlock[] StatePointer;
         }
+
         public struct StatePointerBlock
         {
             public UInt32 Location;
-            public System.Collections.BitArray EventMask;
+            public BitArray EventMask;
             public StateBlock StateBlock;
         }
+
         public struct StateBlock
         {
             public UInt32 StartPos;
@@ -106,25 +110,29 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSO
             public byte Unknown;
             public StateBlockHandler[] StateBlockHandlers;
         }
+
         public struct StateBlockHandler
         {
             public UInt32 CodeChunkPointer;
             public UInt32 CallFrameSize;
         }
+
         public struct FunctionBlock
         {
             public UInt32 FunctionCount;
             public UInt32[] CodeChunkPointer;
         }
+
         public struct CodeChunk
         {
             public UInt32 CodeChunkHeaderSize;
             public string Comment;
-            public System.Collections.Generic.List<CodeChunkArgument> CodeChunkArguments;
+            public List<CodeChunkArgument> CodeChunkArguments;
             public byte EndMarker;
             public byte ReturnTypePos;
             public StaticBlock ReturnType;
         }
+
         public struct CodeChunkArgument
         {
             public byte FunctionReturnTypePos;

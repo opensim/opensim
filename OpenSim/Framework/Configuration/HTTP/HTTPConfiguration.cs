@@ -26,21 +26,18 @@
 * 
 */
 
-using System;
-using System.Collections.Generic;
-using System.Net;
 using System.IO;
+using System.Net;
 using System.Text;
-
-using OpenSim.Framework;
+using OpenSim.Framework.Console;
 
 namespace OpenSim.Framework.Configuration.HTTP
 {
     public class HTTPConfiguration : IGenericConfig
     {
-        RemoteConfigSettings remoteConfigSettings;
+        private RemoteConfigSettings remoteConfigSettings;
 
-        XmlConfiguration xmlConfig;
+        private XmlConfiguration xmlConfig;
 
         private string configFileName = "";
 
@@ -62,8 +59,9 @@ namespace OpenSim.Framework.Configuration.HTTP
                 StringBuilder sb = new StringBuilder();
 
                 byte[] buf = new byte[8192];
-                HttpWebRequest request = (HttpWebRequest)WebRequest.Create(this.remoteConfigSettings.baseConfigURL + this.configFileName);
-                HttpWebResponse response = (HttpWebResponse)request.GetResponse();
+                HttpWebRequest request =
+                    (HttpWebRequest) WebRequest.Create(remoteConfigSettings.baseConfigURL + configFileName);
+                HttpWebResponse response = (HttpWebResponse) request.GetResponse();
 
                 Stream resStream = response.GetResponseStream();
 
@@ -78,13 +76,14 @@ namespace OpenSim.Framework.Configuration.HTTP
                         tempString = Encoding.ASCII.GetString(buf, 0, count);
                         sb.Append(tempString);
                     }
-                }
-                while (count > 0);
+                } while (count > 0);
                 LoadDataFromString(sb.ToString());
             }
             catch (WebException)
             {
-                Console.MainLog.Instance.Warn("Unable to connect to remote configuration file (" + remoteConfigSettings.baseConfigURL + configFileName + "). Creating local file instead.");
+                MainLog.Instance.Warn("Unable to connect to remote configuration file (" +
+                                      remoteConfigSettings.baseConfigURL + configFileName +
+                                      "). Creating local file instead.");
                 xmlConfig.SetFileName(configFileName);
                 xmlConfig.LoadData();
             }
@@ -93,7 +92,6 @@ namespace OpenSim.Framework.Configuration.HTTP
         public void LoadDataFromString(string data)
         {
             xmlConfig.LoadDataFromString(data);
-            
         }
 
         public string GetAttribute(string attributeName)

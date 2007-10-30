@@ -28,29 +28,28 @@
 
 using System.Collections.Generic;
 using libsecondlife;
+using OpenSim.Framework;
 using OpenSim.Framework.Communications;
 using OpenSim.Framework.Communications.Cache;
-using OpenSim.Framework;
 
 namespace OpenSim.Region.Communications.Local
 {
     public class LocalInventoryService : InventoryServiceBase
     {
-
         public LocalInventoryService()
         {
-
         }
 
-        public override void RequestInventoryForUser(LLUUID userID, InventoryFolderInfo folderCallBack, InventoryItemInfo itemCallBack)
+        public override void RequestInventoryForUser(LLUUID userID, InventoryFolderInfo folderCallBack,
+                                                     InventoryItemInfo itemCallBack)
         {
-            List<InventoryFolderBase> folders = this.RequestFirstLevelFolders(userID);
+            List<InventoryFolderBase> folders = RequestFirstLevelFolders(userID);
             InventoryFolderImpl rootFolder = null;
 
             //need to make sure we send root folder first
             foreach (InventoryFolderBase folder in folders)
             {
-                if (folder.parentID == libsecondlife.LLUUID.Zero)
+                if (folder.parentID == LLUUID.Zero)
                 {
                     InventoryFolderImpl newfolder = new InventoryFolderImpl(folder);
                     rootFolder = newfolder;
@@ -67,7 +66,7 @@ namespace OpenSim.Region.Communications.Local
                         InventoryFolderImpl newfolder = new InventoryFolderImpl(folder);
                         folderCallBack(userID, newfolder);
 
-                        List<InventoryItemBase> items = this.RequestFolderItems(newfolder.folderID);
+                        List<InventoryItemBase> items = RequestFolderItems(newfolder.folderID);
                         foreach (InventoryItemBase item in items)
                         {
                             itemCallBack(userID, item);
@@ -79,17 +78,17 @@ namespace OpenSim.Region.Communications.Local
 
         public override void AddNewInventoryFolder(LLUUID userID, InventoryFolderImpl folder)
         {
-            this.AddFolder(folder);
+            AddFolder(folder);
         }
 
         public override void AddNewInventoryItem(LLUUID userID, InventoryItemBase item)
         {
-            this.AddItem(item);
+            AddItem(item);
         }
 
         public override void DeleteInventoryItem(LLUUID userID, InventoryItemBase item)
         {
-            this.deleteItem(item);
+            deleteItem(item);
         }
     }
 }

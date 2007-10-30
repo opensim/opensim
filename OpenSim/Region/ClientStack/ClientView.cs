@@ -36,7 +36,7 @@ using libsecondlife.Packets;
 using OpenSim.Framework;
 using OpenSim.Framework.Communications.Cache;
 using OpenSim.Framework.Console;
-using Timer = System.Timers.Timer;
+using Timer=System.Timers.Timer;
 
 namespace OpenSim.Region.ClientStack
 {
@@ -50,8 +50,11 @@ namespace OpenSim.Region.ClientStack
     {
         public static TerrainManager TerrainManager;
 
-        protected static Dictionary<PacketType, PacketMethod> PacketHandlers = new Dictionary<PacketType, PacketMethod>(); //Global/static handlers for all clients
-        protected Dictionary<PacketType, PacketMethod> m_packetHandlers = new Dictionary<PacketType, PacketMethod>(); //local handlers for this instance 
+        protected static Dictionary<PacketType, PacketMethod> PacketHandlers =
+            new Dictionary<PacketType, PacketMethod>(); //Global/static handlers for all clients
+
+        protected Dictionary<PacketType, PacketMethod> m_packetHandlers = new Dictionary<PacketType, PacketMethod>();
+                                                       //local handlers for this instance 
 
         private LLUUID m_sessionId;
         public LLUUID SecureSessionID = LLUUID.Zero;
@@ -84,7 +87,9 @@ namespace OpenSim.Region.ClientStack
         private int probesWithNoIngressPackets = 0;
         private int lastPacketsReceived = 0;
 
-        public ClientView(EndPoint remoteEP, UseCircuitCodePacket initialcirpack, ClientManager clientManager, IScene scene, AssetCache assetCache, PacketServer packServer, AgentCircuitManager authenSessions)
+        public ClientView(EndPoint remoteEP, UseCircuitCodePacket initialcirpack, ClientManager clientManager,
+                          IScene scene, AssetCache assetCache, PacketServer packServer,
+                          AgentCircuitManager authenSessions)
         {
             m_moneyBalance = 1000;
 
@@ -96,11 +101,11 @@ namespace OpenSim.Region.ClientStack
             // m_inventoryCache = inventoryCache;
             m_authenticateSessionsHandler = authenSessions;
 
-            MainLog.Instance.Verbose("CLIENT","Started up new client thread to handle incoming request");
+            MainLog.Instance.Verbose("CLIENT", "Started up new client thread to handle incoming request");
             cirpack = initialcirpack;
             userEP = remoteEP;
 
-            this.startpos = m_authenticateSessionsHandler.GetPosition(initialcirpack.CircuitCode.Code);
+            startpos = m_authenticateSessionsHandler.GetPosition(initialcirpack.CircuitCode.Code);
 
             PacketQueue = new BlockingQueue<QueItem>();
 
@@ -109,7 +114,7 @@ namespace OpenSim.Region.ClientStack
             AckTimer.Elapsed += new ElapsedEventHandler(AckTimer_Elapsed);
             AckTimer.Start();
 
-            this.RegisterLocalPacketHandlers();
+            RegisterLocalPacketHandlers();
 
             ClientThread = new Thread(new ThreadStart(AuthUser));
             ClientThread.IsBackground = true;
@@ -121,7 +126,7 @@ namespace OpenSim.Region.ClientStack
             get { return m_sessionId; }
         }
 
-        public void SetDebug(int newDebug) 
+        public void SetDebug(int newDebug)
         {
             debug = newDebug;
         }
@@ -132,14 +137,15 @@ namespace OpenSim.Region.ClientStack
         {
             clientPingTimer.Stop();
 
-            m_scene.RemoveClient(this.AgentId);
+            m_scene.RemoveClient(AgentId);
 
-            this.ClientThread.Abort();
+            ClientThread.Abort();
         }
 
         #endregion
 
         # region Packet Handling
+
         public static bool AddPacketHandler(PacketType packetType, PacketMethod handler)
         {
             bool result = false;
@@ -195,23 +201,27 @@ namespace OpenSim.Region.ClientStack
 
         protected void DebugPacket(string direction, Packet packet)
         {
-            if (debug > 0) {
+            if (debug > 0)
+            {
                 string info;
-                if (debug < 255 && packet.Type == PacketType.AgentUpdate) 
-                  return;
-                if (debug < 254 && packet.Type == PacketType.ViewerEffect) 
-                  return;
+                if (debug < 255 && packet.Type == PacketType.AgentUpdate)
+                    return;
+                if (debug < 254 && packet.Type == PacketType.ViewerEffect)
+                    return;
                 if (debug < 253 && (
-                      packet.Type == PacketType.CompletePingCheck ||
-                      packet.Type == PacketType.StartPingCheck 
-                      ) )
-                  return;
-                if (debug < 252 && packet.Type == PacketType.PacketAck) 
-                  return;
+                                       packet.Type == PacketType.CompletePingCheck ||
+                                       packet.Type == PacketType.StartPingCheck
+                                   ))
+                    return;
+                if (debug < 252 && packet.Type == PacketType.PacketAck)
+                    return;
 
-                if (debug > 1) {
+                if (debug > 1)
+                {
                     info = packet.ToString();
-                } else {
+                }
+                else
+                {
                     info = packet.Type.ToString();
                 }
                 Console.WriteLine(m_circuitCode + ":" + direction + ": " + info);
@@ -242,6 +252,7 @@ namespace OpenSim.Region.ClientStack
                 }
             }
         }
+
         # endregion
 
         protected void CheckClientConnectivity(object sender, ElapsedEventArgs e)
@@ -251,7 +262,7 @@ namespace OpenSim.Region.ClientStack
                 probesWithNoIngressPackets++;
                 if (probesWithNoIngressPackets > 30)
                 {
-                    if( OnConnectionClosed != null )
+                    if (OnConnectionClosed != null)
                     {
                         OnConnectionClosed(this);
                     }
@@ -278,14 +289,16 @@ namespace OpenSim.Region.ClientStack
             clientPingTimer.Elapsed += new ElapsedEventHandler(CheckClientConnectivity);
             clientPingTimer.Enabled = true;
 
-            MainLog.Instance.Verbose("CLIENT","Adding viewer agent to scene");
-            this.m_scene.AddNewClient(this, true);
+            MainLog.Instance.Verbose("CLIENT", "Adding viewer agent to scene");
+            m_scene.AddNewClient(this, true);
         }
 
         protected virtual void AuthUser()
         {
             // AuthenticateResponse sessionInfo = m_gridServer.AuthenticateSession(cirpack.m_circuitCode.m_sessionId, cirpack.m_circuitCode.ID, cirpack.m_circuitCode.Code);
-            AuthenticateResponse sessionInfo = this.m_authenticateSessionsHandler.AuthenticateSession(cirpack.CircuitCode.SessionID, cirpack.CircuitCode.ID, cirpack.CircuitCode.Code);
+            AuthenticateResponse sessionInfo =
+                m_authenticateSessionsHandler.AuthenticateSession(cirpack.CircuitCode.SessionID, cirpack.CircuitCode.ID,
+                                                                  cirpack.CircuitCode.Code);
             if (!sessionInfo.Authorised)
             {
                 //session/circuit not authorised
@@ -297,27 +310,26 @@ namespace OpenSim.Region.ClientStack
                 MainLog.Instance.Notice("CLIENT", "Got authenticated connection from " + userEP.ToString());
                 //session is authorised
                 m_agentId = cirpack.CircuitCode.ID;
-                this.m_sessionId = cirpack.CircuitCode.SessionID;
-                this.m_circuitCode = cirpack.CircuitCode.Code;
-                this.firstName = sessionInfo.LoginInfo.First;
-                this.lastName = sessionInfo.LoginInfo.Last;
+                m_sessionId = cirpack.CircuitCode.SessionID;
+                m_circuitCode = cirpack.CircuitCode.Code;
+                firstName = sessionInfo.LoginInfo.First;
+                lastName = sessionInfo.LoginInfo.Last;
 
                 if (sessionInfo.LoginInfo.SecureSession != LLUUID.Zero)
                 {
-                    this.SecureSessionID = sessionInfo.LoginInfo.SecureSession;
+                    SecureSessionID = sessionInfo.LoginInfo.SecureSession;
                 }
                 InitNewClient();
 
                 ClientLoop();
             }
         }
-        # endregion
 
+        # endregion
 
         protected void KillThread()
         {
-            this.ClientThread.Abort();
+            ClientThread.Abort();
         }
-
     }
 }

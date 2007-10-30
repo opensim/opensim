@@ -32,10 +32,8 @@ using System.Text;
 using Axiom.Math;
 using libsecondlife;
 using libsecondlife.Packets;
+using OpenSim.Framework;
 using OpenSim.Framework.Console;
-using OpenSim.Framework.Interfaces;
-using OpenSim.Framework;
-using OpenSim.Framework;
 
 namespace OpenSim.Region.ClientStack
 {
@@ -116,26 +114,18 @@ namespace OpenSim.Region.ClientStack
         /// </summary>
         public LLVector3 StartPos
         {
-            get
-            {
-                return startpos;
-            }
-            set
-            {
-                startpos = value;
-            }
+            get { return startpos; }
+            set { startpos = value; }
         }
 
         /// <summary>
         /// 
         /// </summary>
         private LLUUID m_agentId;
+
         public LLUUID AgentId
         {
-            get
-            {
-                return m_agentId;
-            }
+            get { return m_agentId; }
         }
 
         /// <summary>
@@ -143,11 +133,7 @@ namespace OpenSim.Region.ClientStack
         /// </summary>
         public string FirstName
         {
-            get
-            {
-                return this.firstName;
-            }
-
+            get { return firstName; }
         }
 
         /// <summary>
@@ -155,10 +141,7 @@ namespace OpenSim.Region.ClientStack
         /// </summary>
         public string LastName
         {
-            get
-            {
-                return this.lastName;
-            }
+            get { return lastName; }
         }
 
         #region Scene/Avatar to Client
@@ -182,11 +165,11 @@ namespace OpenSim.Region.ClientStack
             handshake.RegionInfo.TerrainStartHeight01 = regionInfo.EstateSettings.terrainStartHeight1;
             handshake.RegionInfo.TerrainStartHeight10 = regionInfo.EstateSettings.terrainStartHeight2;
             handshake.RegionInfo.TerrainStartHeight11 = regionInfo.EstateSettings.terrainStartHeight3;
-            handshake.RegionInfo.SimAccess = (byte)regionInfo.EstateSettings.simAccess;
+            handshake.RegionInfo.SimAccess = (byte) regionInfo.EstateSettings.simAccess;
             handshake.RegionInfo.WaterHeight = regionInfo.EstateSettings.waterHeight;
 
 
-            handshake.RegionInfo.RegionFlags = (uint)regionInfo.EstateSettings.regionFlags;
+            handshake.RegionInfo.RegionFlags = (uint) regionInfo.EstateSettings.regionFlags;
 
             handshake.RegionInfo.SimName = _enc.GetBytes(regionInfo.RegionName + "\0");
             handshake.RegionInfo.SimOwner = regionInfo.MasterAvatarAssignedUUID;
@@ -200,7 +183,7 @@ namespace OpenSim.Region.ClientStack
             handshake.RegionInfo.TerrainDetail3 = regionInfo.EstateSettings.terrainDetail3;
             handshake.RegionInfo.CacheID = LLUUID.Random(); //I guess this is for the client to remember an old setting?
 
-            this.OutPacket(handshake);
+            OutPacket(handshake);
         }
 
         /// <summary>
@@ -210,14 +193,14 @@ namespace OpenSim.Region.ClientStack
         public void MoveAgentIntoRegion(RegionInfo regInfo, LLVector3 pos, LLVector3 look)
         {
             AgentMovementCompletePacket mov = new AgentMovementCompletePacket();
-            mov.AgentData.SessionID = this.m_sessionId;
-            mov.AgentData.AgentID = this.AgentId;
+            mov.AgentData.SessionID = m_sessionId;
+            mov.AgentData.AgentID = AgentId;
             mov.Data.RegionHandle = regInfo.RegionHandle;
             mov.Data.Timestamp = 1172750370; // TODO - dynamicalise this
 
             if ((pos.X == 0) && (pos.Y == 0) && (pos.Z == 0))
             {
-                mov.Data.Position = this.startpos;
+                mov.Data.Position = startpos;
             }
             else
             {
@@ -255,7 +238,7 @@ namespace OpenSim.Region.ClientStack
             reply.ChatData.OwnerID = fromAgentID;
             reply.ChatData.SourceID = fromAgentID;
 
-            this.OutPacket(reply);
+            OutPacket(reply);
         }
 
         /// <summary>
@@ -264,27 +247,27 @@ namespace OpenSim.Region.ClientStack
         /// <remarks>TODO</remarks>
         /// <param name="message"></param>
         /// <param name="target"></param>
-        public void SendInstantMessage(LLUUID fromAgent, LLUUID fromAgentSession, string message, LLUUID toAgent, LLUUID imSessionID, string fromName, byte dialog, uint timeStamp)
+        public void SendInstantMessage(LLUUID fromAgent, LLUUID fromAgentSession, string message, LLUUID toAgent,
+                                       LLUUID imSessionID, string fromName, byte dialog, uint timeStamp)
         {
+            Encoding enc = Encoding.ASCII;
+            ImprovedInstantMessagePacket msg = new ImprovedInstantMessagePacket();
+            msg.AgentData.AgentID = fromAgent;
+            msg.AgentData.SessionID = fromAgentSession;
+            msg.MessageBlock.FromAgentName = enc.GetBytes(fromName + " \0");
+            msg.MessageBlock.Dialog = dialog;
+            msg.MessageBlock.FromGroup = false;
+            msg.MessageBlock.ID = imSessionID;
+            msg.MessageBlock.Offline = 0;
+            msg.MessageBlock.ParentEstateID = 0;
+            msg.MessageBlock.Position = new LLVector3();
+            msg.MessageBlock.RegionID = LLUUID.Random();
+            msg.MessageBlock.Timestamp = timeStamp;
+            msg.MessageBlock.ToAgentID = toAgent;
+            msg.MessageBlock.Message = enc.GetBytes(message + "\0");
+            msg.MessageBlock.BinaryBucket = new byte[0];
 
-                Encoding enc = Encoding.ASCII;
-                ImprovedInstantMessagePacket msg = new ImprovedInstantMessagePacket();
-                msg.AgentData.AgentID = fromAgent;
-                msg.AgentData.SessionID = fromAgentSession;
-                msg.MessageBlock.FromAgentName = enc.GetBytes(fromName + " \0");
-                msg.MessageBlock.Dialog = dialog;
-                msg.MessageBlock.FromGroup = false;
-                msg.MessageBlock.ID = imSessionID;
-                msg.MessageBlock.Offline = 0;
-                msg.MessageBlock.ParentEstateID = 0;
-                msg.MessageBlock.Position = new LLVector3();
-                msg.MessageBlock.RegionID = LLUUID.Random();
-                msg.MessageBlock.Timestamp = timeStamp;
-                msg.MessageBlock.ToAgentID = toAgent;
-                msg.MessageBlock.Message = enc.GetBytes(message + "\0");
-                msg.MessageBlock.BinaryBucket = new byte[0];
-
-                this.OutPacket(msg);
+            OutPacket(msg);
         }
 
         /// <summary>
@@ -301,10 +284,10 @@ namespace OpenSim.Region.ClientStack
                 {
                     for (int x = 0; x < 16; x = x + 4)
                     {
-                        patches[0] = x + 0 + y * 16;
-                        patches[1] = x + 1 + y * 16;
-                        patches[2] = x + 2 + y * 16;
-                        patches[3] = x + 3 + y * 16;
+                        patches[0] = x + 0 + y*16;
+                        patches[1] = x + 1 + y*16;
+                        patches[2] = x + 2 + y*16;
+                        patches[3] = x + 3 + y*16;
 
                         Packet layerpack = TerrainManager.CreateLandPacket(map, patches);
                         OutPacket(layerpack);
@@ -313,7 +296,8 @@ namespace OpenSim.Region.ClientStack
             }
             catch (Exception e)
             {
-                MainLog.Instance.Warn("client", "ClientView API.cs: SendLayerData() - Failed with exception " + e.ToString());
+                MainLog.Instance.Warn("client",
+                                      "ClientView API.cs: SendLayerData() - Failed with exception " + e.ToString());
             }
         }
 
@@ -332,14 +316,15 @@ namespace OpenSim.Region.ClientStack
                 patchx = px;
                 patchy = py;
 
-                patches[0] = patchx + 0 + patchy * 16;
+                patches[0] = patchx + 0 + patchy*16;
 
                 Packet layerpack = TerrainManager.CreateLandPacket(map, patches);
                 OutPacket(layerpack);
             }
             catch (Exception e)
             {
-                MainLog.Instance.Warn("client", "ClientView API .cs: SendLayerData() - Failed with exception " + e.ToString());
+                MainLog.Instance.Warn("client",
+                                      "ClientView API .cs: SendLayerData() - Failed with exception " + e.ToString());
             }
         }
 
@@ -352,17 +337,17 @@ namespace OpenSim.Region.ClientStack
         public void InformClientOfNeighbour(ulong neighbourHandle, IPEndPoint neighbourEndPoint)
         {
             IPAddress neighbourIP = neighbourEndPoint.Address;
-            ushort neighbourPort = (ushort)neighbourEndPoint.Port;
+            ushort neighbourPort = (ushort) neighbourEndPoint.Port;
 
             EnableSimulatorPacket enablesimpacket = new EnableSimulatorPacket();
             enablesimpacket.SimulatorInfo = new EnableSimulatorPacket.SimulatorInfoBlock();
             enablesimpacket.SimulatorInfo.Handle = neighbourHandle;
 
             byte[] byteIP = neighbourIP.GetAddressBytes();
-            enablesimpacket.SimulatorInfo.IP = (uint)byteIP[3] << 24;
-            enablesimpacket.SimulatorInfo.IP += (uint)byteIP[2] << 16;
-            enablesimpacket.SimulatorInfo.IP += (uint)byteIP[1] << 8;
-            enablesimpacket.SimulatorInfo.IP += (uint)byteIP[0];
+            enablesimpacket.SimulatorInfo.IP = (uint) byteIP[3] << 24;
+            enablesimpacket.SimulatorInfo.IP += (uint) byteIP[2] << 16;
+            enablesimpacket.SimulatorInfo.IP += (uint) byteIP[1] << 8;
+            enablesimpacket.SimulatorInfo.IP += (uint) byteIP[0];
             enablesimpacket.SimulatorInfo.Port = neighbourPort;
             OutPacket(enablesimpacket);
         }
@@ -374,46 +359,48 @@ namespace OpenSim.Region.ClientStack
         public AgentCircuitData RequestClientInfo()
         {
             AgentCircuitData agentData = new AgentCircuitData();
-            agentData.AgentID = this.AgentId;
-            agentData.SessionID = this.m_sessionId;
-            agentData.SecureSessionID = this.SecureSessionID;
-            agentData.circuitcode = this.m_circuitCode;
+            agentData.AgentID = AgentId;
+            agentData.SessionID = m_sessionId;
+            agentData.SecureSessionID = SecureSessionID;
+            agentData.circuitcode = m_circuitCode;
             agentData.child = false;
-            agentData.firstname = this.firstName;
-            agentData.lastname = this.lastName;
+            agentData.firstname = firstName;
+            agentData.lastname = lastName;
             agentData.CapsPath = "";
             return agentData;
         }
 
-        public void CrossRegion(ulong newRegionHandle, LLVector3 pos, LLVector3 lookAt, IPEndPoint externalIPEndPoint, string capsURL)
+        public void CrossRegion(ulong newRegionHandle, LLVector3 pos, LLVector3 lookAt, IPEndPoint externalIPEndPoint,
+                                string capsURL)
         {
-            LLVector3 look = new LLVector3(lookAt.X * 10, lookAt.Y * 10, lookAt.Z * 10);
+            LLVector3 look = new LLVector3(lookAt.X*10, lookAt.Y*10, lookAt.Z*10);
 
             CrossedRegionPacket newSimPack = new CrossedRegionPacket();
             newSimPack.AgentData = new CrossedRegionPacket.AgentDataBlock();
-            newSimPack.AgentData.AgentID = this.AgentId;
-            newSimPack.AgentData.SessionID = this.m_sessionId;
+            newSimPack.AgentData.AgentID = AgentId;
+            newSimPack.AgentData.SessionID = m_sessionId;
             newSimPack.Info = new CrossedRegionPacket.InfoBlock();
             newSimPack.Info.Position = pos;
-            newSimPack.Info.LookAt = look; // new LLVector3(0.0f, 0.0f, 0.0f);	// copied from Avatar.cs - SHOULD BE DYNAMIC!!!!!!!!!!
+            newSimPack.Info.LookAt = look;
+                // new LLVector3(0.0f, 0.0f, 0.0f);	// copied from Avatar.cs - SHOULD BE DYNAMIC!!!!!!!!!!
             newSimPack.RegionData = new CrossedRegionPacket.RegionDataBlock();
             newSimPack.RegionData.RegionHandle = newRegionHandle;
             byte[] byteIP = externalIPEndPoint.Address.GetAddressBytes();
-            newSimPack.RegionData.SimIP = (uint)byteIP[3] << 24;
-            newSimPack.RegionData.SimIP += (uint)byteIP[2] << 16;
-            newSimPack.RegionData.SimIP += (uint)byteIP[1] << 8;
-            newSimPack.RegionData.SimIP += (uint)byteIP[0];
-            newSimPack.RegionData.SimPort = (ushort)externalIPEndPoint.Port;
+            newSimPack.RegionData.SimIP = (uint) byteIP[3] << 24;
+            newSimPack.RegionData.SimIP += (uint) byteIP[2] << 16;
+            newSimPack.RegionData.SimIP += (uint) byteIP[1] << 8;
+            newSimPack.RegionData.SimIP += (uint) byteIP[0];
+            newSimPack.RegionData.SimPort = (ushort) externalIPEndPoint.Port;
             //newSimPack.RegionData.SeedCapability = new byte[0];
             newSimPack.RegionData.SeedCapability = Helpers.StringToField(capsURL);
 
-            this.OutPacket(newSimPack);
+            OutPacket(newSimPack);
         }
 
         public void SendMapBlock(List<MapBlockData> mapBlocks)
         {
             MapBlockReplyPacket mapReply = new MapBlockReplyPacket();
-            mapReply.AgentData.AgentID = this.AgentId;
+            mapReply.AgentData.AgentID = AgentId;
             mapReply.Data = new MapBlockReplyPacket.DataBlock[mapBlocks.Count];
             mapReply.AgentData.Flags = 0;
 
@@ -429,13 +416,13 @@ namespace OpenSim.Region.ClientStack
                 mapReply.Data[i].Access = mapBlocks[i].Access;
                 mapReply.Data[i].Agents = mapBlocks[i].Agents;
             }
-            this.OutPacket(mapReply);
+            OutPacket(mapReply);
         }
 
         public void SendLocalTeleport(LLVector3 position, LLVector3 lookAt, uint flags)
         {
             TeleportLocalPacket tpLocal = new TeleportLocalPacket();
-            tpLocal.Info.AgentID = this.AgentId;
+            tpLocal.Info.AgentID = AgentId;
             tpLocal.Info.TeleportFlags = flags;
             tpLocal.Info.LocationID = 2;
             tpLocal.Info.LookAt = lookAt;
@@ -443,10 +430,11 @@ namespace OpenSim.Region.ClientStack
             OutPacket(tpLocal);
         }
 
-        public void SendRegionTeleport(ulong regionHandle, byte simAccess, IPEndPoint newRegionEndPoint, uint locationID, uint flags, string capsURL)
+        public void SendRegionTeleport(ulong regionHandle, byte simAccess, IPEndPoint newRegionEndPoint, uint locationID,
+                                       uint flags, string capsURL)
         {
             TeleportFinishPacket teleport = new TeleportFinishPacket();
-            teleport.Info.AgentID = this.AgentId;
+            teleport.Info.AgentID = AgentId;
             teleport.Info.RegionHandle = regionHandle;
             teleport.Info.SimAccess = simAccess;
 
@@ -455,13 +443,13 @@ namespace OpenSim.Region.ClientStack
 
             IPAddress oIP = newRegionEndPoint.Address;
             byte[] byteIP = oIP.GetAddressBytes();
-            uint ip = (uint)byteIP[3] << 24;
-            ip += (uint)byteIP[2] << 16;
-            ip += (uint)byteIP[1] << 8;
-            ip += (uint)byteIP[0];
+            uint ip = (uint) byteIP[3] << 24;
+            ip += (uint) byteIP[2] << 16;
+            ip += (uint) byteIP[1] << 8;
+            ip += (uint) byteIP[0];
 
             teleport.Info.SimIP = ip;
-            teleport.Info.SimPort = (ushort)newRegionEndPoint.Port;
+            teleport.Info.SimPort = (ushort) newRegionEndPoint.Port;
             teleport.Info.LocationID = 4;
             teleport.Info.TeleportFlags = 1 << 4;
             OutPacket(teleport);
@@ -473,8 +461,8 @@ namespace OpenSim.Region.ClientStack
         public void SendTeleportCancel()
         {
             TeleportCancelPacket tpCancel = new TeleportCancelPacket();
-            tpCancel.Info.SessionID = this.m_sessionId;
-            tpCancel.Info.AgentID = this.AgentId;
+            tpCancel.Info.SessionID = m_sessionId;
+            tpCancel.Info.AgentID = AgentId;
 
             OutPacket(tpCancel);
         }
@@ -492,7 +480,7 @@ namespace OpenSim.Region.ClientStack
         public void SendMoneyBalance(LLUUID transaction, bool success, byte[] description, int balance)
         {
             MoneyBalanceReplyPacket money = new MoneyBalanceReplyPacket();
-            money.MoneyData.AgentID = this.AgentId;
+            money.MoneyData.AgentID = AgentId;
             money.MoneyData.TransactionID = transaction;
             money.MoneyData.TransactionSuccess = success;
             money.MoneyData.Description = description;
@@ -506,7 +494,6 @@ namespace OpenSim.Region.ClientStack
             pc.PingID.PingID = seq;
             pc.Header.Reliable = false;
             OutPacket(pc);
-
         }
 
         public void SendKillObject(ulong regionHandle, uint localID)
@@ -522,8 +509,8 @@ namespace OpenSim.Region.ClientStack
         {
             Encoding enc = Encoding.ASCII;
             uint FULL_MASK_PERMISSIONS = 2147483647;
-            InventoryDescendentsPacket descend = this.CreateInventoryDescendentsPacket(ownerID, folderID);
-            
+            InventoryDescendentsPacket descend = CreateInventoryDescendentsPacket(ownerID, folderID);
+
             int count = 0;
             if (items.Count < 40)
             {
@@ -550,25 +537,30 @@ namespace OpenSim.Region.ClientStack
                 descend.ItemData[i].FolderID = item.parentFolderID;
                 descend.ItemData[i].GroupID = new LLUUID("00000000-0000-0000-0000-000000000000");
                 descend.ItemData[i].GroupMask = 0;
-                descend.ItemData[i].InvType = (sbyte)item.invType;
+                descend.ItemData[i].InvType = (sbyte) item.invType;
                 descend.ItemData[i].Name = enc.GetBytes(item.inventoryName + "\0");
                 descend.ItemData[i].NextOwnerMask = item.inventoryNextPermissions;
                 descend.ItemData[i].OwnerID = item.avatarID;
                 descend.ItemData[i].OwnerMask = item.inventoryCurrentPermissions;
                 descend.ItemData[i].SalePrice = 0;
                 descend.ItemData[i].SaleType = 0;
-                descend.ItemData[i].Type = (sbyte)item.assetType;
-                descend.ItemData[i].CRC = Helpers.InventoryCRC(1000, 0, descend.ItemData[i].InvType, descend.ItemData[i].Type, descend.ItemData[i].AssetID, descend.ItemData[i].GroupID, 100, descend.ItemData[i].OwnerID, descend.ItemData[i].CreatorID, descend.ItemData[i].ItemID, descend.ItemData[i].FolderID, FULL_MASK_PERMISSIONS, 1, FULL_MASK_PERMISSIONS, FULL_MASK_PERMISSIONS, FULL_MASK_PERMISSIONS);
+                descend.ItemData[i].Type = (sbyte) item.assetType;
+                descend.ItemData[i].CRC =
+                    Helpers.InventoryCRC(1000, 0, descend.ItemData[i].InvType, descend.ItemData[i].Type,
+                                         descend.ItemData[i].AssetID, descend.ItemData[i].GroupID, 100,
+                                         descend.ItemData[i].OwnerID, descend.ItemData[i].CreatorID,
+                                         descend.ItemData[i].ItemID, descend.ItemData[i].FolderID, FULL_MASK_PERMISSIONS,
+                                         1, FULL_MASK_PERMISSIONS, FULL_MASK_PERMISSIONS, FULL_MASK_PERMISSIONS);
 
                 i++;
                 count++;
                 if (i == 40)
                 {
-                    this.OutPacket(descend);
-                    
+                    OutPacket(descend);
+
                     if ((items.Count - count) > 0)
                     {
-                        descend = this.CreateInventoryDescendentsPacket(ownerID, folderID);
+                        descend = CreateInventoryDescendentsPacket(ownerID, folderID);
                         if ((items.Count - count) < 40)
                         {
                             descend.ItemData = new InventoryDescendentsPacket.ItemDataBlock[items.Count - count];
@@ -586,15 +578,14 @@ namespace OpenSim.Region.ClientStack
 
             if (i < 40)
             {
-                this.OutPacket(descend);
+                OutPacket(descend);
             }
-
         }
 
         private InventoryDescendentsPacket CreateInventoryDescendentsPacket(LLUUID ownerID, LLUUID folderID)
         {
             InventoryDescendentsPacket descend = new InventoryDescendentsPacket();
-            descend.AgentData.AgentID = this.AgentId;
+            descend.AgentData.AgentID = AgentId;
             descend.AgentData.OwnerID = ownerID;
             descend.AgentData.FolderID = folderID;
             descend.AgentData.Version = 0;
@@ -607,31 +598,39 @@ namespace OpenSim.Region.ClientStack
             Encoding enc = Encoding.ASCII;
             uint FULL_MASK_PERMISSIONS = 2147483647;
             FetchInventoryReplyPacket inventoryReply = new FetchInventoryReplyPacket();
-            inventoryReply.AgentData.AgentID = this.AgentId;
+            inventoryReply.AgentData.AgentID = AgentId;
             inventoryReply.InventoryData = new FetchInventoryReplyPacket.InventoryDataBlock[1];
             inventoryReply.InventoryData[0] = new FetchInventoryReplyPacket.InventoryDataBlock();
             inventoryReply.InventoryData[0].ItemID = item.inventoryID;
             inventoryReply.InventoryData[0].AssetID = item.assetID;
             inventoryReply.InventoryData[0].CreatorID = item.creatorsID;
             inventoryReply.InventoryData[0].BaseMask = item.inventoryBasePermissions;
-            inventoryReply.InventoryData[0].CreationDate = (int)(DateTime.UtcNow - new DateTime(1970, 1, 1)).TotalSeconds;
+            inventoryReply.InventoryData[0].CreationDate =
+                (int) (DateTime.UtcNow - new DateTime(1970, 1, 1)).TotalSeconds;
             inventoryReply.InventoryData[0].Description = enc.GetBytes(item.inventoryDescription + "\0");
             inventoryReply.InventoryData[0].EveryoneMask = item.inventoryEveryOnePermissions;
             inventoryReply.InventoryData[0].Flags = 0;
             inventoryReply.InventoryData[0].FolderID = item.parentFolderID;
             inventoryReply.InventoryData[0].GroupID = new LLUUID("00000000-0000-0000-0000-000000000000");
             inventoryReply.InventoryData[0].GroupMask = 0;
-            inventoryReply.InventoryData[0].InvType = (sbyte)item.invType;
+            inventoryReply.InventoryData[0].InvType = (sbyte) item.invType;
             inventoryReply.InventoryData[0].Name = enc.GetBytes(item.inventoryName + "\0");
             inventoryReply.InventoryData[0].NextOwnerMask = item.inventoryNextPermissions;
             inventoryReply.InventoryData[0].OwnerID = item.avatarID;
             inventoryReply.InventoryData[0].OwnerMask = item.inventoryCurrentPermissions;
             inventoryReply.InventoryData[0].SalePrice = 0;
             inventoryReply.InventoryData[0].SaleType = 0;
-            inventoryReply.InventoryData[0].Type = (sbyte)item.assetType;
-            inventoryReply.InventoryData[0].CRC = Helpers.InventoryCRC(1000, 0, inventoryReply.InventoryData[0].InvType, inventoryReply.InventoryData[0].Type, inventoryReply.InventoryData[0].AssetID, inventoryReply.InventoryData[0].GroupID, 100, inventoryReply.InventoryData[0].OwnerID, inventoryReply.InventoryData[0].CreatorID, inventoryReply.InventoryData[0].ItemID, inventoryReply.InventoryData[0].FolderID, FULL_MASK_PERMISSIONS, 1, FULL_MASK_PERMISSIONS, FULL_MASK_PERMISSIONS, FULL_MASK_PERMISSIONS);
+            inventoryReply.InventoryData[0].Type = (sbyte) item.assetType;
+            inventoryReply.InventoryData[0].CRC =
+                Helpers.InventoryCRC(1000, 0, inventoryReply.InventoryData[0].InvType,
+                                     inventoryReply.InventoryData[0].Type, inventoryReply.InventoryData[0].AssetID,
+                                     inventoryReply.InventoryData[0].GroupID, 100,
+                                     inventoryReply.InventoryData[0].OwnerID, inventoryReply.InventoryData[0].CreatorID,
+                                     inventoryReply.InventoryData[0].ItemID, inventoryReply.InventoryData[0].FolderID,
+                                     FULL_MASK_PERMISSIONS, 1, FULL_MASK_PERMISSIONS, FULL_MASK_PERMISSIONS,
+                                     FULL_MASK_PERMISSIONS);
 
-            this.OutPacket(inventoryReply);
+            OutPacket(inventoryReply);
         }
 
         public void SendInventoryItemUpdate(InventoryItemBase Item)
@@ -639,7 +638,7 @@ namespace OpenSim.Region.ClientStack
             Encoding enc = Encoding.ASCII;
             uint FULL_MASK_PERMISSIONS = 2147483647;
             UpdateCreateInventoryItemPacket InventoryReply = new UpdateCreateInventoryItemPacket();
-            InventoryReply.AgentData.AgentID = this.AgentId;
+            InventoryReply.AgentData.AgentID = AgentId;
             InventoryReply.AgentData.SimApproved = true;
             InventoryReply.InventoryData = new UpdateCreateInventoryItemPacket.InventoryDataBlock[1];
             InventoryReply.InventoryData[0] = new UpdateCreateInventoryItemPacket.InventoryDataBlock();
@@ -654,15 +653,22 @@ namespace OpenSim.Region.ClientStack
             InventoryReply.InventoryData[0].FolderID = Item.parentFolderID;
             InventoryReply.InventoryData[0].GroupID = new LLUUID("00000000-0000-0000-0000-000000000000");
             InventoryReply.InventoryData[0].GroupMask = 0;
-            InventoryReply.InventoryData[0].InvType = (sbyte)Item.invType;
+            InventoryReply.InventoryData[0].InvType = (sbyte) Item.invType;
             InventoryReply.InventoryData[0].Name = enc.GetBytes(Item.inventoryName + "\0");
             InventoryReply.InventoryData[0].NextOwnerMask = Item.inventoryNextPermissions;
             InventoryReply.InventoryData[0].OwnerID = Item.avatarID;
             InventoryReply.InventoryData[0].OwnerMask = Item.inventoryCurrentPermissions;
             InventoryReply.InventoryData[0].SalePrice = 100;
             InventoryReply.InventoryData[0].SaleType = 0;
-            InventoryReply.InventoryData[0].Type = (sbyte)Item.assetType;
-            InventoryReply.InventoryData[0].CRC = Helpers.InventoryCRC(1000, 0, InventoryReply.InventoryData[0].InvType, InventoryReply.InventoryData[0].Type, InventoryReply.InventoryData[0].AssetID, InventoryReply.InventoryData[0].GroupID, 100, InventoryReply.InventoryData[0].OwnerID, InventoryReply.InventoryData[0].CreatorID, InventoryReply.InventoryData[0].ItemID, InventoryReply.InventoryData[0].FolderID, FULL_MASK_PERMISSIONS, 1, FULL_MASK_PERMISSIONS, FULL_MASK_PERMISSIONS, FULL_MASK_PERMISSIONS);
+            InventoryReply.InventoryData[0].Type = (sbyte) Item.assetType;
+            InventoryReply.InventoryData[0].CRC =
+                Helpers.InventoryCRC(1000, 0, InventoryReply.InventoryData[0].InvType,
+                                     InventoryReply.InventoryData[0].Type, InventoryReply.InventoryData[0].AssetID,
+                                     InventoryReply.InventoryData[0].GroupID, 100,
+                                     InventoryReply.InventoryData[0].OwnerID, InventoryReply.InventoryData[0].CreatorID,
+                                     InventoryReply.InventoryData[0].ItemID, InventoryReply.InventoryData[0].FolderID,
+                                     FULL_MASK_PERMISSIONS, 1, FULL_MASK_PERMISSIONS, FULL_MASK_PERMISSIONS,
+                                     FULL_MASK_PERMISSIONS);
 
             OutPacket(InventoryReply);
         }
@@ -670,8 +676,8 @@ namespace OpenSim.Region.ClientStack
         public void SendRemoveInventoryItem(LLUUID itemID)
         {
             RemoveInventoryItemPacket remove = new RemoveInventoryItemPacket();
-            remove.AgentData.AgentID = this.AgentId;
-            remove.AgentData.SessionID = this.m_sessionId;
+            remove.AgentData.AgentID = AgentId;
+            remove.AgentData.SessionID = m_sessionId;
             remove.InventoryData = new RemoveInventoryItemPacket.InventoryDataBlock[1];
             remove.InventoryData[0] = new RemoveInventoryItemPacket.InventoryDataBlock();
             remove.InventoryData[0].ItemID = itemID;
@@ -716,13 +722,14 @@ namespace OpenSim.Region.ClientStack
         public void SendAgentAlertMessage(string message, bool modal)
         {
             AgentAlertMessagePacket alertPack = new AgentAlertMessagePacket();
-            alertPack.AgentData.AgentID = this.AgentId;
+            alertPack.AgentData.AgentID = AgentId;
             alertPack.AlertData.Message = Helpers.StringToField(message);
             alertPack.AlertData.Modal = modal;
             OutPacket(alertPack);
         }
 
-        public void SendLoadURL(string objectname, LLUUID objectID, LLUUID ownerID, bool groupOwned, string message, string url)
+        public void SendLoadURL(string objectname, LLUUID objectID, LLUUID ownerID, bool groupOwned, string message,
+                                string url)
         {
             LoadURLPacket loadURL = new LoadURLPacket();
             loadURL.Data.ObjectName = Helpers.StringToField(objectname);
@@ -761,14 +768,13 @@ namespace OpenSim.Region.ClientStack
 
         public void SendViewerTime(int phase)
         {
-
             SimulatorViewerTimeMessagePacket viewertime = new SimulatorViewerTimeMessagePacket();
             //viewertime.TimeInfo.SecPerDay = 86400;
             // viewertime.TimeInfo.SecPerYear = 31536000;
             viewertime.TimeInfo.SecPerDay = 1000;
             viewertime.TimeInfo.SecPerYear = 365000;
             viewertime.TimeInfo.SunPhase = 1;
-            int sunPhase = (phase + 2) / 2;
+            int sunPhase = (phase + 2)/2;
             if ((sunPhase < 6) || (sunPhase > 36))
             {
                 viewertime.TimeInfo.SunDirection = new LLVector3(0f, 0.8f, -0.8f);
@@ -781,27 +787,41 @@ namespace OpenSim.Region.ClientStack
                     sunPhase = 12;
                 }
                 sunPhase = sunPhase - 12;
-                float yValue = 0.1f * (sunPhase);
-                if (yValue > 1.2f) { yValue = yValue - 1.2f; }
-                if (yValue > 1 ) { yValue = 1; }
-                if (yValue < 0) { yValue = 0; }
+                float yValue = 0.1f*(sunPhase);
+                if (yValue > 1.2f)
+                {
+                    yValue = yValue - 1.2f;
+                }
+                if (yValue > 1)
+                {
+                    yValue = 1;
+                }
+                if (yValue < 0)
+                {
+                    yValue = 0;
+                }
                 if (sunPhase < 14)
                 {
                     yValue = 1 - yValue;
                 }
-                if (sunPhase < 12) { yValue *= -1; }
+                if (sunPhase < 12)
+                {
+                    yValue *= -1;
+                }
                 viewertime.TimeInfo.SunDirection = new LLVector3(0f, yValue, 0.3f);
                 //Console.WriteLine("sending sun update " + yValue);
             }
             viewertime.TimeInfo.SunAngVelocity = new LLVector3(0, 0.0f, 10.0f);
-            viewertime.TimeInfo.UsecSinceStart = (ulong)Util.UnixTimeSinceEpoch();
+            viewertime.TimeInfo.UsecSinceStart = (ulong) Util.UnixTimeSinceEpoch();
             OutPacket(viewertime);
         }
 
-        public void SendAvatarProperties(LLUUID avatarID, string aboutText, string bornOn, string charterMember, string flAbout, uint flags, LLUUID flImageID, LLUUID imageID, string profileURL, LLUUID partnerID)
+        public void SendAvatarProperties(LLUUID avatarID, string aboutText, string bornOn, string charterMember,
+                                         string flAbout, uint flags, LLUUID flImageID, LLUUID imageID, string profileURL,
+                                         LLUUID partnerID)
         {
             AvatarPropertiesReplyPacket avatarReply = new AvatarPropertiesReplyPacket();
-            avatarReply.AgentData.AgentID = this.AgentId;
+            avatarReply.AgentData.AgentID = AgentId;
             avatarReply.AgentData.AvatarID = avatarID;
             avatarReply.PropertiesData.AboutText = Helpers.StringToField(aboutText);
             avatarReply.PropertiesData.BornOn = Helpers.StringToField(bornOn);
@@ -827,6 +847,7 @@ namespace OpenSim.Region.ClientStack
 
             OutPacket(avatarSitResponse);
         }
+
         #endregion
 
         #region Appearance/ Wearables Methods
@@ -838,22 +859,22 @@ namespace OpenSim.Region.ClientStack
         public void SendWearables(AvatarWearable[] wearables)
         {
             AgentWearablesUpdatePacket aw = new AgentWearablesUpdatePacket();
-            aw.AgentData.AgentID = this.AgentId;
+            aw.AgentData.AgentID = AgentId;
             aw.AgentData.SerialNum = 0;
-            aw.AgentData.SessionID = this.m_sessionId;
+            aw.AgentData.SessionID = m_sessionId;
 
             aw.WearableData = new AgentWearablesUpdatePacket.WearableDataBlock[13];
             AgentWearablesUpdatePacket.WearableDataBlock awb;
             for (int i = 0; i < wearables.Length; i++)
             {
                 awb = new AgentWearablesUpdatePacket.WearableDataBlock();
-                awb.WearableType = (byte)i;
+                awb.WearableType = (byte) i;
                 awb.AssetID = wearables[i].AssetID;
                 awb.ItemID = wearables[i].ItemID;
                 aw.WearableData[i] = awb;
             }
 
-            this.OutPacket(aw);
+            OutPacket(aw);
         }
 
         /// <summary>
@@ -893,7 +914,7 @@ namespace OpenSim.Region.ClientStack
             ani.AnimationList[0] = new AvatarAnimationPacket.AnimationListBlock();
             ani.AnimationList[0].AnimID = animID;
             ani.AnimationList[0].AnimSequenceID = seq;
-            this.OutPacket(ani);
+            OutPacket(ani);
         }
 
         #endregion
@@ -909,25 +930,26 @@ namespace OpenSim.Region.ClientStack
         /// <param name="avatarID"></param>
         /// <param name="avatarLocalID"></param>
         /// <param name="Pos"></param>
-        public void SendAvatarData(ulong regionHandle, string firstName, string lastName, LLUUID avatarID, uint avatarLocalID, LLVector3 Pos, byte[] textureEntry, uint parentID)
+        public void SendAvatarData(ulong regionHandle, string firstName, string lastName, LLUUID avatarID,
+                                   uint avatarLocalID, LLVector3 Pos, byte[] textureEntry, uint parentID)
         {
             ObjectUpdatePacket objupdate = new ObjectUpdatePacket();
             objupdate.RegionData.RegionHandle = regionHandle;
             objupdate.RegionData.TimeDilation = 64096;
             objupdate.ObjectData = new ObjectUpdatePacket.ObjectDataBlock[1];
-            objupdate.ObjectData[0] = this.CreateDefaultAvatarPacket(textureEntry);
+            objupdate.ObjectData[0] = CreateDefaultAvatarPacket(textureEntry);
 
             //give this avatar object a local id and assign the user a name
             objupdate.ObjectData[0].ID = avatarLocalID;
             objupdate.ObjectData[0].FullID = avatarID;
             objupdate.ObjectData[0].ParentID = parentID;
-            objupdate.ObjectData[0].NameValue = Helpers.StringToField("FirstName STRING RW SV " + firstName + "\nLastName STRING RW SV " + lastName);
-            LLVector3 pos2 = new LLVector3((float)Pos.X, (float)Pos.Y, (float)Pos.Z);
+            objupdate.ObjectData[0].NameValue =
+                Helpers.StringToField("FirstName STRING RW SV " + firstName + "\nLastName STRING RW SV " + lastName);
+            LLVector3 pos2 = new LLVector3((float) Pos.X, (float) Pos.Y, (float) Pos.Z);
             byte[] pb = pos2.GetBytes();
             Array.Copy(pb, 0, objupdate.ObjectData[0].ObjectData, 16, pb.Length);
 
             OutPacket(objupdate);
-
         }
 
         /// <summary>
@@ -938,38 +960,41 @@ namespace OpenSim.Region.ClientStack
         /// <param name="localID"></param>
         /// <param name="position"></param>
         /// <param name="velocity"></param>
-        public void SendAvatarTerseUpdate(ulong regionHandle, ushort timeDilation, uint localID, LLVector3 position, LLVector3 velocity, LLQuaternion rotation)
+        public void SendAvatarTerseUpdate(ulong regionHandle, ushort timeDilation, uint localID, LLVector3 position,
+                                          LLVector3 velocity, LLQuaternion rotation)
         {
-            ImprovedTerseObjectUpdatePacket.ObjectDataBlock terseBlock = this.CreateAvatarImprovedBlock(localID, position, velocity, rotation);
+            ImprovedTerseObjectUpdatePacket.ObjectDataBlock terseBlock =
+                CreateAvatarImprovedBlock(localID, position, velocity, rotation);
             ImprovedTerseObjectUpdatePacket terse = new ImprovedTerseObjectUpdatePacket();
             terse.RegionData.RegionHandle = regionHandle;
             terse.RegionData.TimeDilation = timeDilation;
             terse.ObjectData = new ImprovedTerseObjectUpdatePacket.ObjectDataBlock[1];
             terse.ObjectData[0] = terseBlock;
 
-            this.OutPacket(terse);
+            OutPacket(terse);
         }
 
-	public void SendCoarseLocationUpdate(List<LLVector3> CoarseLocations)
-	{
-	    CoarseLocationUpdatePacket loc = new CoarseLocationUpdatePacket();
-	    int total = CoarseLocations.Count;
-	    CoarseLocationUpdatePacket.IndexBlock ib = 
-	                   new CoarseLocationUpdatePacket.IndexBlock();
-	    loc.Location = new CoarseLocationUpdatePacket.LocationBlock[total];
-	    for(int i=0; i<total; i++) {
-	        CoarseLocationUpdatePacket.LocationBlock lb = 
-		           new CoarseLocationUpdatePacket.LocationBlock();
-	        lb.X = (byte)CoarseLocations[i].X;
-	        lb.Y = (byte)CoarseLocations[i].Y;
-	        lb.Z = (byte)(CoarseLocations[i].Z/4);
-	        loc.Location[i] = lb;
-	    }
-	    ib.You = -1;
-	    ib.Prey = -1;
-	    loc.Index = ib;
-	    this.OutPacket(loc);
-	}
+        public void SendCoarseLocationUpdate(List<LLVector3> CoarseLocations)
+        {
+            CoarseLocationUpdatePacket loc = new CoarseLocationUpdatePacket();
+            int total = CoarseLocations.Count;
+            CoarseLocationUpdatePacket.IndexBlock ib =
+                new CoarseLocationUpdatePacket.IndexBlock();
+            loc.Location = new CoarseLocationUpdatePacket.LocationBlock[total];
+            for (int i = 0; i < total; i++)
+            {
+                CoarseLocationUpdatePacket.LocationBlock lb =
+                    new CoarseLocationUpdatePacket.LocationBlock();
+                lb.X = (byte) CoarseLocations[i].X;
+                lb.Y = (byte) CoarseLocations[i].Y;
+                lb.Z = (byte) (CoarseLocations[i].Z/4);
+                loc.Location[i] = lb;
+            }
+            ib.You = -1;
+            ib.Prey = -1;
+            loc.Index = ib;
+            OutPacket(loc);
+        }
 
         #endregion
 
@@ -984,27 +1009,28 @@ namespace OpenSim.Region.ClientStack
         public void AttachObject(uint localID, LLQuaternion rotation, byte attachPoint)
         {
             ObjectAttachPacket attach = new ObjectAttachPacket();
-            attach.AgentData.AgentID = this.AgentId;
-            attach.AgentData.SessionID = this.m_sessionId;
+            attach.AgentData.AgentID = AgentId;
+            attach.AgentData.SessionID = m_sessionId;
             attach.AgentData.AttachmentPoint = attachPoint;
             attach.ObjectData = new ObjectAttachPacket.ObjectDataBlock[1];
             attach.ObjectData[0] = new ObjectAttachPacket.ObjectDataBlock();
             attach.ObjectData[0].ObjectLocalID = localID;
             attach.ObjectData[0].Rotation = rotation;
 
-            this.OutPacket(attach);
+            OutPacket(attach);
         }
 
         public void SendPrimitiveToClient(
-            ulong regionHandle, ushort timeDilation, uint localID, PrimitiveBaseShape primShape, LLVector3 pos, uint flags,
+            ulong regionHandle, ushort timeDilation, uint localID, PrimitiveBaseShape primShape, LLVector3 pos,
+            uint flags,
             LLUUID objectID, LLUUID ownerID, string text, uint parentID, byte[] particleSystem, LLQuaternion rotation)
         {
             ObjectUpdatePacket outPacket = new ObjectUpdatePacket();
             outPacket.RegionData.RegionHandle = regionHandle;
-            outPacket.RegionData.TimeDilation =  timeDilation;
+            outPacket.RegionData.TimeDilation = timeDilation;
             outPacket.ObjectData = new ObjectUpdatePacket.ObjectDataBlock[1];
 
-            outPacket.ObjectData[0] = this.CreatePrimUpdateBlock(primShape, flags);
+            outPacket.ObjectData[0] = CreatePrimUpdateBlock(primShape, flags);
 
             outPacket.ObjectData[0].ID = localID;
             outPacket.ObjectData[0].FullID = objectID;
@@ -1033,35 +1059,38 @@ namespace OpenSim.Region.ClientStack
         /// <param name="localID"></param>
         /// <param name="position"></param>
         /// <param name="rotation"></param>
-        public void SendPrimTerseUpdate(ulong regionHandle, ushort timeDilation, uint localID, LLVector3 position, LLQuaternion rotation)
+        public void SendPrimTerseUpdate(ulong regionHandle, ushort timeDilation, uint localID, LLVector3 position,
+                                        LLQuaternion rotation)
         {
             ImprovedTerseObjectUpdatePacket terse = new ImprovedTerseObjectUpdatePacket();
             terse.RegionData.RegionHandle = regionHandle;
             terse.RegionData.TimeDilation = timeDilation;
             terse.ObjectData = new ImprovedTerseObjectUpdatePacket.ObjectDataBlock[1];
-            terse.ObjectData[0] = this.CreatePrimImprovedBlock(localID, position, rotation);
+            terse.ObjectData[0] = CreatePrimImprovedBlock(localID, position, rotation);
 
-            this.OutPacket(terse);
+            OutPacket(terse);
         }
 
         #endregion
 
         #region Helper Methods
 
-        protected ImprovedTerseObjectUpdatePacket.ObjectDataBlock CreateAvatarImprovedBlock(uint localID, LLVector3 pos, LLVector3 velocity, LLQuaternion rotation)
+        protected ImprovedTerseObjectUpdatePacket.ObjectDataBlock CreateAvatarImprovedBlock(uint localID, LLVector3 pos,
+                                                                                            LLVector3 velocity,
+                                                                                            LLQuaternion rotation)
         {
             byte[] bytes = new byte[60];
             int i = 0;
             ImprovedTerseObjectUpdatePacket.ObjectDataBlock dat = new ImprovedTerseObjectUpdatePacket.ObjectDataBlock();
 
-            dat.TextureEntry = new byte[0];// AvatarTemplate.TextureEntry;
+            dat.TextureEntry = new byte[0]; // AvatarTemplate.TextureEntry;
 
             uint ID = localID;
 
-            bytes[i++] = (byte)(ID % 256);
-            bytes[i++] = (byte)((ID >> 8) % 256);
-            bytes[i++] = (byte)((ID >> 16) % 256);
-            bytes[i++] = (byte)((ID >> 24) % 256);
+            bytes[i++] = (byte) (ID%256);
+            bytes[i++] = (byte) ((ID >> 8)%256);
+            bytes[i++] = (byte) ((ID >> 16)%256);
+            bytes[i++] = (byte) ((ID >> 24)%256);
             bytes[i++] = 0;
             bytes[i++] = 1;
             i += 14;
@@ -1078,55 +1107,55 @@ namespace OpenSim.Region.ClientStack
 
             internDirec = new Vector3(velocity.X, velocity.Y, velocity.Z);
 
-            internDirec = internDirec / 128.0f;
+            internDirec = internDirec/128.0f;
             internDirec.x += 1;
             internDirec.y += 1;
             internDirec.z += 1;
 
-            InternVelocityX = (ushort)(32768 * internDirec.x);
-            InternVelocityY = (ushort)(32768 * internDirec.y);
-            InternVelocityZ = (ushort)(32768 * internDirec.z);
+            InternVelocityX = (ushort) (32768*internDirec.x);
+            InternVelocityY = (ushort) (32768*internDirec.y);
+            InternVelocityZ = (ushort) (32768*internDirec.z);
 
             ushort ac = 32767;
-            bytes[i++] = (byte)(InternVelocityX % 256);
-            bytes[i++] = (byte)((InternVelocityX >> 8) % 256);
-            bytes[i++] = (byte)(InternVelocityY % 256);
-            bytes[i++] = (byte)((InternVelocityY >> 8) % 256);
-            bytes[i++] = (byte)(InternVelocityZ % 256);
-            bytes[i++] = (byte)((InternVelocityZ >> 8) % 256);
+            bytes[i++] = (byte) (InternVelocityX%256);
+            bytes[i++] = (byte) ((InternVelocityX >> 8)%256);
+            bytes[i++] = (byte) (InternVelocityY%256);
+            bytes[i++] = (byte) ((InternVelocityY >> 8)%256);
+            bytes[i++] = (byte) (InternVelocityZ%256);
+            bytes[i++] = (byte) ((InternVelocityZ >> 8)%256);
 
             //accel
-            bytes[i++] = (byte)(ac % 256);
-            bytes[i++] = (byte)((ac >> 8) % 256);
-            bytes[i++] = (byte)(ac % 256);
-            bytes[i++] = (byte)((ac >> 8) % 256);
-            bytes[i++] = (byte)(ac % 256);
-            bytes[i++] = (byte)((ac >> 8) % 256);
+            bytes[i++] = (byte) (ac%256);
+            bytes[i++] = (byte) ((ac >> 8)%256);
+            bytes[i++] = (byte) (ac%256);
+            bytes[i++] = (byte) ((ac >> 8)%256);
+            bytes[i++] = (byte) (ac%256);
+            bytes[i++] = (byte) ((ac >> 8)%256);
 
             //rotation
             ushort rw, rx, ry, rz;
-            rw = (ushort)(32768 * (rotation.W + 1));
-            rx = (ushort)(32768 * (rotation.X + 1));
-            ry = (ushort)(32768 * (rotation.Y + 1));
-            rz = (ushort)(32768 * (rotation.Z + 1));
+            rw = (ushort) (32768*(rotation.W + 1));
+            rx = (ushort) (32768*(rotation.X + 1));
+            ry = (ushort) (32768*(rotation.Y + 1));
+            rz = (ushort) (32768*(rotation.Z + 1));
 
             //rot
-            bytes[i++] = (byte)(rx % 256);
-            bytes[i++] = (byte)((rx >> 8) % 256);
-            bytes[i++] = (byte)(ry % 256);
-            bytes[i++] = (byte)((ry >> 8) % 256);
-            bytes[i++] = (byte)(rz % 256);
-            bytes[i++] = (byte)((rz >> 8) % 256);
-            bytes[i++] = (byte)(rw % 256);
-            bytes[i++] = (byte)((rw >> 8) % 256);
+            bytes[i++] = (byte) (rx%256);
+            bytes[i++] = (byte) ((rx >> 8)%256);
+            bytes[i++] = (byte) (ry%256);
+            bytes[i++] = (byte) ((ry >> 8)%256);
+            bytes[i++] = (byte) (rz%256);
+            bytes[i++] = (byte) ((rz >> 8)%256);
+            bytes[i++] = (byte) (rw%256);
+            bytes[i++] = (byte) ((rw >> 8)%256);
 
             //rotation vel
-            bytes[i++] = (byte)(ac % 256);
-            bytes[i++] = (byte)((ac >> 8) % 256);
-            bytes[i++] = (byte)(ac % 256);
-            bytes[i++] = (byte)((ac >> 8) % 256);
-            bytes[i++] = (byte)(ac % 256);
-            bytes[i++] = (byte)((ac >> 8) % 256);
+            bytes[i++] = (byte) (ac%256);
+            bytes[i++] = (byte) ((ac >> 8)%256);
+            bytes[i++] = (byte) (ac%256);
+            bytes[i++] = (byte) ((ac >> 8)%256);
+            bytes[i++] = (byte) (ac%256);
+            bytes[i++] = (byte) ((ac >> 8)%256);
 
             dat.Data = bytes;
 
@@ -1140,7 +1169,9 @@ namespace OpenSim.Region.ClientStack
         /// <param name="position"></param>
         /// <param name="rotation"></param>
         /// <returns></returns>
-        protected ImprovedTerseObjectUpdatePacket.ObjectDataBlock CreatePrimImprovedBlock(uint localID, LLVector3 position, LLQuaternion rotation)
+        protected ImprovedTerseObjectUpdatePacket.ObjectDataBlock CreatePrimImprovedBlock(uint localID,
+                                                                                          LLVector3 position,
+                                                                                          LLQuaternion rotation)
         {
             uint ID = localID;
             byte[] bytes = new byte[60];
@@ -1148,10 +1179,10 @@ namespace OpenSim.Region.ClientStack
             int i = 0;
             ImprovedTerseObjectUpdatePacket.ObjectDataBlock dat = new ImprovedTerseObjectUpdatePacket.ObjectDataBlock();
             dat.TextureEntry = new byte[0];
-            bytes[i++] = (byte)(ID % 256);
-            bytes[i++] = (byte)((ID >> 8) % 256);
-            bytes[i++] = (byte)((ID >> 16) % 256);
-            bytes[i++] = (byte)((ID >> 24) % 256);
+            bytes[i++] = (byte) (ID%256);
+            bytes[i++] = (byte) ((ID >> 8)%256);
+            bytes[i++] = (byte) ((ID >> 16)%256);
+            bytes[i++] = (byte) ((ID >> 24)%256);
             bytes[i++] = 0;
             bytes[i++] = 0;
 
@@ -1161,44 +1192,44 @@ namespace OpenSim.Region.ClientStack
             ushort ac = 32767;
 
             //vel
-            bytes[i++] = (byte)(ac % 256);
-            bytes[i++] = (byte)((ac >> 8) % 256);
-            bytes[i++] = (byte)(ac % 256);
-            bytes[i++] = (byte)((ac >> 8) % 256);
-            bytes[i++] = (byte)(ac % 256);
-            bytes[i++] = (byte)((ac >> 8) % 256);
+            bytes[i++] = (byte) (ac%256);
+            bytes[i++] = (byte) ((ac >> 8)%256);
+            bytes[i++] = (byte) (ac%256);
+            bytes[i++] = (byte) ((ac >> 8)%256);
+            bytes[i++] = (byte) (ac%256);
+            bytes[i++] = (byte) ((ac >> 8)%256);
 
             //accel
-            bytes[i++] = (byte)(ac % 256);
-            bytes[i++] = (byte)((ac >> 8) % 256);
-            bytes[i++] = (byte)(ac % 256);
-            bytes[i++] = (byte)((ac >> 8) % 256);
-            bytes[i++] = (byte)(ac % 256);
-            bytes[i++] = (byte)((ac >> 8) % 256);
+            bytes[i++] = (byte) (ac%256);
+            bytes[i++] = (byte) ((ac >> 8)%256);
+            bytes[i++] = (byte) (ac%256);
+            bytes[i++] = (byte) ((ac >> 8)%256);
+            bytes[i++] = (byte) (ac%256);
+            bytes[i++] = (byte) ((ac >> 8)%256);
 
             ushort rw, rx, ry, rz;
-            rw = (ushort)(32768 * (rotation.W + 1));
-            rx = (ushort)(32768 * (rotation.X + 1));
-            ry = (ushort)(32768 * (rotation.Y + 1));
-            rz = (ushort)(32768 * (rotation.Z + 1));
+            rw = (ushort) (32768*(rotation.W + 1));
+            rx = (ushort) (32768*(rotation.X + 1));
+            ry = (ushort) (32768*(rotation.Y + 1));
+            rz = (ushort) (32768*(rotation.Z + 1));
 
             //rot
-            bytes[i++] = (byte)(rx % 256);
-            bytes[i++] = (byte)((rx >> 8) % 256);
-            bytes[i++] = (byte)(ry % 256);
-            bytes[i++] = (byte)((ry >> 8) % 256);
-            bytes[i++] = (byte)(rz % 256);
-            bytes[i++] = (byte)((rz >> 8) % 256);
-            bytes[i++] = (byte)(rw % 256);
-            bytes[i++] = (byte)((rw >> 8) % 256);
+            bytes[i++] = (byte) (rx%256);
+            bytes[i++] = (byte) ((rx >> 8)%256);
+            bytes[i++] = (byte) (ry%256);
+            bytes[i++] = (byte) ((ry >> 8)%256);
+            bytes[i++] = (byte) (rz%256);
+            bytes[i++] = (byte) ((rz >> 8)%256);
+            bytes[i++] = (byte) (rw%256);
+            bytes[i++] = (byte) ((rw >> 8)%256);
 
             //rotation vel
-            bytes[i++] = (byte)(ac % 256);
-            bytes[i++] = (byte)((ac >> 8) % 256);
-            bytes[i++] = (byte)(ac % 256);
-            bytes[i++] = (byte)((ac >> 8) % 256);
-            bytes[i++] = (byte)(ac % 256);
-            bytes[i++] = (byte)((ac >> 8) % 256);
+            bytes[i++] = (byte) (ac%256);
+            bytes[i++] = (byte) ((ac >> 8)%256);
+            bytes[i++] = (byte) (ac%256);
+            bytes[i++] = (byte) ((ac >> 8)%256);
+            bytes[i++] = (byte) (ac%256);
+            bytes[i++] = (byte) ((ac >> 8)%256);
 
             dat.Data = bytes;
             return dat;
@@ -1212,16 +1243,15 @@ namespace OpenSim.Region.ClientStack
         protected ObjectUpdatePacket.ObjectDataBlock CreatePrimUpdateBlock(PrimitiveBaseShape primShape, uint flags)
         {
             ObjectUpdatePacket.ObjectDataBlock objupdate = new ObjectUpdatePacket.ObjectDataBlock();
-            this.SetDefaultPrimPacketValues(objupdate);
+            SetDefaultPrimPacketValues(objupdate);
             objupdate.UpdateFlags = flags;
-            this.SetPrimPacketShapeData(objupdate, primShape);
+            SetPrimPacketShapeData(objupdate, primShape);
 
             return objupdate;
         }
 
         protected void SetPrimPacketShapeData(ObjectUpdatePacket.ObjectDataBlock objectData, PrimitiveBaseShape primData)
         {
-
             objectData.TextureEntry = primData.TextureEntry;
             objectData.PCode = primData.PCode;
             objectData.PathBegin = primData.PathBegin;
@@ -1278,10 +1308,11 @@ namespace OpenSim.Region.ClientStack
         /// <returns></returns>
         protected ObjectUpdatePacket.ObjectDataBlock CreateDefaultAvatarPacket(byte[] textureEntry)
         {
-            ObjectUpdatePacket.ObjectDataBlock objdata = new ObjectUpdatePacket.ObjectDataBlock(); //  new libsecondlife.Packets.ObjectUpdatePacket.ObjectDataBlock(data1, ref i);
+            ObjectUpdatePacket.ObjectDataBlock objdata = new ObjectUpdatePacket.ObjectDataBlock();
+                //  new libsecondlife.Packets.ObjectUpdatePacket.ObjectDataBlock(data1, ref i);
 
             SetDefaultAvatarPacketValues(ref objdata);
-            objdata.UpdateFlags =  61 + (9 << 8) + (130 << 16) + (16 << 24);
+            objdata.UpdateFlags = 61 + (9 << 8) + (130 << 16) + (16 << 24);
             objdata.PathCurve = 16;
             objdata.ProfileCurve = 1;
             objdata.PathScaleX = 100;
@@ -1353,6 +1384,5 @@ namespace OpenSim.Region.ClientStack
         }
 
         #endregion
-
     }
 }

@@ -27,6 +27,7 @@
 */
 
 #region Copyright
+
 /*
 * Copyright (c) Contributors, http://www.openmetaverse.org/
 * See CONTRIBUTORS.TXT for a full list of copyright holders.
@@ -54,18 +55,21 @@
 * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 * 
 */
+
 #endregion
+
 #region References
+
 using System;
 using System.Collections.Generic;
-using OpenSim.Region.Physics.Manager;
-using OpenSim.Framework;
-using Axiom.Math;
-using AxiomQuaternion = Axiom.Math.Quaternion;
-//Specific References for BulletXPlugin
 using MonoXnaCompactMaths;
+using OpenSim.Framework;
+using OpenSim.Region.Physics.Manager;
 using XnaDevRu.BulletX;
 using XnaDevRu.BulletX.Dynamics;
+using AxiomQuaternion = Axiom.Math.Quaternion;
+using BoxShape=XnaDevRu.BulletX.BoxShape;
+//Specific References for BulletXPlugin
 
 #endregion
 
@@ -80,27 +84,31 @@ namespace OpenSim.Region.Physics.BulletXPlugin
         {
         }
     }
+
     /// <summary>
     /// BulletXConversions are called now BulletXMaths
     /// This Class converts objects and types for BulletX and give some operations
     /// </summary>
-    public class BulletXMaths 
+    public class BulletXMaths
     {
         //Vector3
-        public static MonoXnaCompactMaths.Vector3 PhysicsVectorToXnaVector3(PhysicsVector physicsVector)
+        public static Vector3 PhysicsVectorToXnaVector3(PhysicsVector physicsVector)
         {
-            return new MonoXnaCompactMaths.Vector3(physicsVector.X, physicsVector.Y, physicsVector.Z);
+            return new Vector3(physicsVector.X, physicsVector.Y, physicsVector.Z);
         }
-        public static PhysicsVector XnaVector3ToPhysicsVector(MonoXnaCompactMaths.Vector3 xnaVector3)
+
+        public static PhysicsVector XnaVector3ToPhysicsVector(Vector3 xnaVector3)
         {
             return new PhysicsVector(xnaVector3.X, xnaVector3.Y, xnaVector3.Z);
         }
+
         //Quaternion
-        public static MonoXnaCompactMaths.Quaternion AxiomQuaternionToXnaQuaternion(AxiomQuaternion axiomQuaternion)
+        public static Quaternion AxiomQuaternionToXnaQuaternion(AxiomQuaternion axiomQuaternion)
         {
-            return new MonoXnaCompactMaths.Quaternion(axiomQuaternion.x, axiomQuaternion.y, axiomQuaternion.z, axiomQuaternion.w);
+            return new Quaternion(axiomQuaternion.x, axiomQuaternion.y, axiomQuaternion.z, axiomQuaternion.w);
         }
-        public static AxiomQuaternion XnaQuaternionToAxiomQuaternion(MonoXnaCompactMaths.Quaternion xnaQuaternion)
+
+        public static AxiomQuaternion XnaQuaternionToAxiomQuaternion(Quaternion xnaQuaternion)
         {
             return new AxiomQuaternion(xnaQuaternion.W, xnaQuaternion.X, xnaQuaternion.Y, xnaQuaternion.Z);
         }
@@ -110,70 +118,79 @@ namespace OpenSim.Region.Physics.BulletXPlugin
         //- GetRotation (class MatrixOperations)
         //- GetElement (class MathHelper)
         //- SetElement (class MathHelper)
-        internal static void SetRotation(ref Matrix m, MonoXnaCompactMaths.Quaternion q)
+        internal static void SetRotation(ref Matrix m, Quaternion q)
         {
             float d = q.LengthSquared();
-            float s = 2f / d;
-            float xs = q.X * s, ys = q.Y * s, zs = q.Z * s;
-            float wx = q.W * xs, wy = q.W * ys, wz = q.W * zs;
-            float xx = q.X * xs, xy = q.X * ys, xz = q.X * zs;
-            float yy = q.Y * ys, yz = q.Y * zs, zz = q.Z * zs;
+            float s = 2f/d;
+            float xs = q.X*s, ys = q.Y*s, zs = q.Z*s;
+            float wx = q.W*xs, wy = q.W*ys, wz = q.W*zs;
+            float xx = q.X*xs, xy = q.X*ys, xz = q.X*zs;
+            float yy = q.Y*ys, yz = q.Y*zs, zz = q.Z*zs;
             m = new Matrix(1 - (yy + zz), xy - wz, xz + wy, 0,
-                            xy + wz, 1 - (xx + zz), yz - wx, 0,
-                            xz - wy, yz + wx, 1 - (xx + yy), 0,
-                            m.M41, m.M42, m.M43, 1);
+                           xy + wz, 1 - (xx + zz), yz - wx, 0,
+                           xz - wy, yz + wx, 1 - (xx + yy), 0,
+                           m.M41, m.M42, m.M43, 1);
         }
-        internal static MonoXnaCompactMaths.Quaternion GetRotation(Matrix m)
+
+        internal static Quaternion GetRotation(Matrix m)
         {
-            MonoXnaCompactMaths.Quaternion q = new MonoXnaCompactMaths.Quaternion();
+            Quaternion q = new Quaternion();
 
             float trace = m.M11 + m.M22 + m.M33;
 
             if (trace > 0)
             {
-                float s = (float)Math.Sqrt(trace + 1);
-                q.W = s * 0.5f;
-                s = 0.5f / s;
+                float s = (float) Math.Sqrt(trace + 1);
+                q.W = s*0.5f;
+                s = 0.5f/s;
 
-                q.X = (m.M32 - m.M23) * s;
-                q.Y = (m.M13 - m.M31) * s;
-                q.Z = (m.M21 - m.M12) * s;
+                q.X = (m.M32 - m.M23)*s;
+                q.Y = (m.M13 - m.M31)*s;
+                q.Z = (m.M21 - m.M12)*s;
             }
             else
             {
-                int i = m.M11 < m.M22 ?
-                    (m.M22 < m.M33 ? 2 : 1) :
-                    (m.M11 < m.M33 ? 2 : 0);
-                int j = (i + 1) % 3;
-                int k = (i + 2) % 3;
+                int i = m.M11 < m.M22
+                            ?
+                                (m.M22 < m.M33 ? 2 : 1)
+                            :
+                                (m.M11 < m.M33 ? 2 : 0);
+                int j = (i + 1)%3;
+                int k = (i + 2)%3;
 
-                float s = (float)Math.Sqrt(GetElement(m, i, i) - GetElement(m, j, j) - GetElement(m, k, k) + 1);
-                SetElement(ref q, i, s * 0.5f);
-                s = 0.5f / s;
+                float s = (float) Math.Sqrt(GetElement(m, i, i) - GetElement(m, j, j) - GetElement(m, k, k) + 1);
+                SetElement(ref q, i, s*0.5f);
+                s = 0.5f/s;
 
-                q.W = (GetElement(m, k, j) - GetElement(m, j, k)) * s;
-                SetElement(ref q, j, (GetElement(m, j, i) + GetElement(m, i, j)) * s);
-                SetElement(ref q, k, (GetElement(m, k, i) + GetElement(m, i, k)) * s);
+                q.W = (GetElement(m, k, j) - GetElement(m, j, k))*s;
+                SetElement(ref q, j, (GetElement(m, j, i) + GetElement(m, i, j))*s);
+                SetElement(ref q, k, (GetElement(m, k, i) + GetElement(m, i, k))*s);
             }
 
             return q;
         }
-        internal static float SetElement(ref MonoXnaCompactMaths.Quaternion q, int index, float value)
+
+        internal static float SetElement(ref Quaternion q, int index, float value)
         {
             switch (index)
             {
                 case 0:
-                    q.X = value; break;
+                    q.X = value;
+                    break;
                 case 1:
-                    q.Y = value; break;
+                    q.Y = value;
+                    break;
                 case 2:
-                    q.Z = value; break;
+                    q.Z = value;
+                    break;
                 case 3:
-                    q.W = value; break;
+                    q.W = value;
+                    break;
             }
 
             return 0;
         }
+
         internal static float GetElement(Matrix mat, int row, int col)
         {
             switch (row)
@@ -187,7 +204,8 @@ namespace OpenSim.Region.Physics.BulletXPlugin
                             return mat.M12;
                         case 2:
                             return mat.M13;
-                    } break;
+                    }
+                    break;
                 case 1:
                     switch (col)
                     {
@@ -197,7 +215,8 @@ namespace OpenSim.Region.Physics.BulletXPlugin
                             return mat.M22;
                         case 2:
                             return mat.M23;
-                    } break;
+                    }
+                    break;
                 case 2:
                     switch (col)
                     {
@@ -207,12 +226,14 @@ namespace OpenSim.Region.Physics.BulletXPlugin
                             return mat.M32;
                         case 2:
                             return mat.M33;
-                    } break;
+                    }
+                    break;
             }
 
             return 0;
         }
     }
+
     /// <summary>
     /// PhysicsPlugin Class for BulletX
     /// </summary>
@@ -223,10 +244,12 @@ namespace OpenSim.Region.Physics.BulletXPlugin
         public BulletXPlugin()
         {
         }
+
         public bool Init()
         {
             return true;
         }
+
         public PhysicsScene GetScene()
         {
             if (_mScene == null)
@@ -235,20 +258,24 @@ namespace OpenSim.Region.Physics.BulletXPlugin
             }
             return (_mScene);
         }
+
         public string GetName()
         {
-            return ("modified_BulletX");//Changed!! "BulletXEngine" To "modified_BulletX"
+            return ("modified_BulletX"); //Changed!! "BulletXEngine" To "modified_BulletX"
         }
+
         public void Dispose()
         {
         }
     }
+
     /// <summary>
     /// PhysicsScene Class for BulletX
     /// </summary>
     public class BulletXScene : PhysicsScene
     {
         #region BulletXScene Fields
+
         public DiscreteDynamicsWorld ddWorld;
         private CollisionDispatcher cDispatcher;
         private OverlappingPairCache opCache;
@@ -271,33 +298,58 @@ namespace OpenSim.Region.Physics.BulletXPlugin
         private List<BulletXCharacter> _characters = new List<BulletXCharacter>();
         private List<BulletXPrim> _prims = new List<BulletXPrim>();
 
-        public static float Gravity { get { return gravity; } }
-        public static float HeightLevel0 { get { return heightLevel0; } }
-        public static float HeightLevel1 { get { return heightLevel1; } }
-        public static float LowGravityFactor { get { return lowGravityFactor; } }
-        public static int MaxXY { get { return maxXY; } }
-        public static int MaxZ { get { return maxZ; } }
+        public static float Gravity
+        {
+            get { return gravity; }
+        }
+
+        public static float HeightLevel0
+        {
+            get { return heightLevel0; }
+        }
+
+        public static float HeightLevel1
+        {
+            get { return heightLevel1; }
+        }
+
+        public static float LowGravityFactor
+        {
+            get { return lowGravityFactor; }
+        }
+
+        public static int MaxXY
+        {
+            get { return maxXY; }
+        }
+
+        public static int MaxZ
+        {
+            get { return maxZ; }
+        }
 
         private List<RigidBody> _forgottenRigidBodies = new List<RigidBody>();
         internal string is_ex_message = "Can't remove rigidBody!: ";
+
         #endregion
 
         public BulletXScene()
         {
             cDispatcher = new CollisionDispatcher();
-            MonoXnaCompactMaths.Vector3 worldMinDim = new MonoXnaCompactMaths.Vector3((float)minXY, (float)minXY, (float)minZ);
-            MonoXnaCompactMaths.Vector3 worldMaxDim = new MonoXnaCompactMaths.Vector3((float)maxXY, (float)maxXY, (float)maxZ);
+            Vector3 worldMinDim = new Vector3((float) minXY, (float) minXY, (float) minZ);
+            Vector3 worldMaxDim = new Vector3((float) maxXY, (float) maxXY, (float) maxZ);
             opCache = new AxisSweep3(worldMinDim, worldMaxDim, maxHandles);
             sicSolver = new SequentialImpulseConstraintSolver();
 
             lock (BulletXLock)
             {
                 ddWorld = new DiscreteDynamicsWorld(cDispatcher, opCache, sicSolver);
-                ddWorld.Gravity = new MonoXnaCompactMaths.Vector3(0, 0, -gravity);
+                ddWorld.Gravity = new Vector3(0, 0, -gravity);
             }
             //this._heightmap = new float[65536];
         }
-        public override PhysicsActor  AddAvatar(string avName, PhysicsVector position)
+
+        public override PhysicsActor AddAvatar(string avName, PhysicsVector position)
         {
             PhysicsVector pos = new PhysicsVector();
             pos.X = position.X;
@@ -311,6 +363,7 @@ namespace OpenSim.Region.Physics.BulletXPlugin
             }
             return newAv;
         }
+
         public override void RemoveAvatar(PhysicsActor actor)
         {
             if (actor is BulletXCharacter)
@@ -319,20 +372,22 @@ namespace OpenSim.Region.Physics.BulletXPlugin
                 {
                     try
                     {
-                        ddWorld.RemoveRigidBody(((BulletXCharacter)actor).RigidBody);
+                        ddWorld.RemoveRigidBody(((BulletXCharacter) actor).RigidBody);
                     }
                     catch (Exception ex)
                     {
                         BulletXMessage(is_ex_message + ex.Message, true);
-                        ((BulletXCharacter)actor).RigidBody.ActivationState = ActivationState.DisableSimulation;
-                        AddForgottenRigidBody(((BulletXCharacter)actor).RigidBody);
+                        ((BulletXCharacter) actor).RigidBody.ActivationState = ActivationState.DisableSimulation;
+                        AddForgottenRigidBody(((BulletXCharacter) actor).RigidBody);
                     }
-                    _characters.Remove((BulletXCharacter)actor);
+                    _characters.Remove((BulletXCharacter) actor);
                 }
                 GC.Collect();
             }
         }
-        public override PhysicsActor AddPrimShape(string primName, PrimitiveBaseShape pbs, PhysicsVector position, PhysicsVector size, AxiomQuaternion rotation)
+
+        public override PhysicsActor AddPrimShape(string primName, PrimitiveBaseShape pbs, PhysicsVector position,
+                                                  PhysicsVector size, AxiomQuaternion rotation)
         {
             PhysicsActor result;
 
@@ -358,11 +413,14 @@ namespace OpenSim.Region.Physics.BulletXPlugin
 
             return result;
         }
-        public PhysicsActor AddPrim(PhysicsVector position, PhysicsVector size, Axiom.Math.Quaternion rotation)
+
+        public PhysicsActor AddPrim(PhysicsVector position, PhysicsVector size, AxiomQuaternion rotation)
         {
             return AddPrim("", position, size, rotation, null, null);
         }
-        public PhysicsActor AddPrim(String name, PhysicsVector position, PhysicsVector size, AxiomQuaternion rotation, Mesh mesh, PrimitiveBaseShape pbs)
+
+        public PhysicsActor AddPrim(String name, PhysicsVector position, PhysicsVector size, AxiomQuaternion rotation,
+                                    Mesh mesh, PrimitiveBaseShape pbs)
         {
             BulletXPrim newPrim = null;
             lock (BulletXLock)
@@ -372,6 +430,7 @@ namespace OpenSim.Region.Physics.BulletXPlugin
             }
             return newPrim;
         }
+
         public override void RemovePrim(PhysicsActor prim)
         {
             if (prim is BulletXPrim)
@@ -380,19 +439,20 @@ namespace OpenSim.Region.Physics.BulletXPlugin
                 {
                     try
                     {
-                        ddWorld.RemoveRigidBody(((BulletXPrim)prim).RigidBody);
+                        ddWorld.RemoveRigidBody(((BulletXPrim) prim).RigidBody);
                     }
                     catch (Exception ex)
                     {
                         BulletXMessage(is_ex_message + ex.Message, true);
-                        ((BulletXPrim)prim).RigidBody.ActivationState = ActivationState.DisableSimulation;
-                        AddForgottenRigidBody(((BulletXPrim)prim).RigidBody);
+                        ((BulletXPrim) prim).RigidBody.ActivationState = ActivationState.DisableSimulation;
+                        AddForgottenRigidBody(((BulletXPrim) prim).RigidBody);
                     }
-                    _prims.Remove((BulletXPrim)prim);
+                    _prims.Remove((BulletXPrim) prim);
                 }
                 GC.Collect();
             }
         }
+
         public override void Simulate(float timeStep)
         {
             lock (BulletXLock)
@@ -408,6 +468,7 @@ namespace OpenSim.Region.Physics.BulletXPlugin
                 UpdateKineticsForAll();
             }
         }
+
         private void MoveAllObjects(float timeStep)
         {
             foreach (BulletXCharacter actor in _characters)
@@ -418,6 +479,7 @@ namespace OpenSim.Region.Physics.BulletXPlugin
             {
             }
         }
+
         private void ValidateHeightForAll()
         {
             float _height;
@@ -431,7 +493,7 @@ namespace OpenSim.Region.Physics.BulletXPlugin
             foreach (BulletXPrim prim in _prims)
             {
                 //_height = HeightValue(prim.RigidBodyPosition); 
-                _height = _simFlatPlanet.HeightValue(prim.RigidBodyPosition); 
+                _height = _simFlatPlanet.HeightValue(prim.RigidBodyPosition);
                 prim.ValidateHeight(_height);
                 //if (_simFlatPlanet.heightIsNotValid(prim.RigidBodyPosition, out _height)) prim.ValidateHeight(_height);
             }
@@ -444,6 +506,7 @@ namespace OpenSim.Region.Physics.BulletXPlugin
             //    prim.ValidateHeight(0);
             //}
         }
+
         private void UpdateKineticsForAll()
         {
             //UpdatePosition > UpdateKinetics.
@@ -458,17 +521,17 @@ namespace OpenSim.Region.Physics.BulletXPlugin
             }
             //if(this._simFlatPlanet!=null) this._simFlatPlanet.Restore();
         }
+
         public override void GetResults()
         {
-
         }
+
         public override bool IsThreaded
         {
-            get
-            {
-                return (false); // for now we won't be multithreaded
+            get { return (false); // for now we won't be multithreaded
             }
         }
+
         public override void SetTerrain(float[] heightMap)
         {
             ////As the same as ODE, heightmap (x,y) must be swapped for BulletX
@@ -494,41 +557,44 @@ namespace OpenSim.Region.Physics.BulletXPlugin
             DeleteTerrain();
             //There is a BulletXLock inside the constructor of BulletXPlanet
             //this._simFlatPlanet = new BulletXPlanet(this, swappedHeightMap);
-            this._simFlatPlanet = new BulletXPlanet(this, heightMap);
+            _simFlatPlanet = new BulletXPlanet(this, heightMap);
             //this._heightmap = heightMap;
         }
+
         public override void DeleteTerrain()
         {
-            if (this._simFlatPlanet != null)
+            if (_simFlatPlanet != null)
             {
                 lock (BulletXLock)
                 {
                     try
                     {
-                        ddWorld.RemoveRigidBody(this._simFlatPlanet.RigidBody);
+                        ddWorld.RemoveRigidBody(_simFlatPlanet.RigidBody);
                     }
                     catch (Exception ex)
                     {
                         BulletXMessage(is_ex_message + ex.Message, true);
-                        this._simFlatPlanet.RigidBody.ActivationState = ActivationState.DisableSimulation;
-                        AddForgottenRigidBody(this._simFlatPlanet.RigidBody);
+                        _simFlatPlanet.RigidBody.ActivationState = ActivationState.DisableSimulation;
+                        AddForgottenRigidBody(_simFlatPlanet.RigidBody);
                     }
                 }
-                this._simFlatPlanet = null;
+                _simFlatPlanet = null;
                 GC.Collect();
                 BulletXMessage("Terrain erased!", false);
             }
             //this._heightmap = null;
         }
+
         internal void AddForgottenRigidBody(RigidBody forgottenRigidBody)
         {
             _forgottenRigidBodies.Add(forgottenRigidBody);
         }
+
         private void RemoveForgottenRigidBodies()
         {
             RigidBody forgottenRigidBody;
             int nRigidBodies = _forgottenRigidBodies.Count;
-            for(int i = nRigidBodies - 1; i >= 0; i--)
+            for (int i = nRigidBodies - 1; i >= 0; i--)
             {
                 forgottenRigidBody = _forgottenRigidBodies[i];
                 try
@@ -544,10 +610,12 @@ namespace OpenSim.Region.Physics.BulletXPlugin
             }
             GC.Collect();
         }
+
         internal void BulletXMessage(string message, bool isWarning)
         {
             PhysicsPluginManager.PhysicsPluginMessage("[Modified BulletX]:\t" + message, isWarning);
         }
+
         //temp
         //private float HeightValue(MonoXnaCompactMaths.Vector3 position)
         //{
@@ -559,10 +627,11 @@ namespace OpenSim.Region.Physics.BulletXPlugin
         //    height = this._heightmap[li_y * 256 + li_x];
         //    if (height < 0) height = 0;
         //    else if (height > maxZ) height = maxZ;
- 
+
         //    return height;
         //}
     }
+
     /// <summary>
     /// PhysicsActor Character Class for BulletX
     /// </summary>
@@ -576,21 +645,24 @@ namespace OpenSim.Region.Physics.BulletXPlugin
         private bool flying;
         private RigidBody rigidBody;
 
-        public MonoXnaCompactMaths.Vector3 RigidBodyPosition
+        public Vector3 RigidBodyPosition
         {
-            get { return this.rigidBody.CenterOfMassPosition; }
+            get { return rigidBody.CenterOfMassPosition; }
         }
+
         public BulletXCharacter(BulletXScene parent_scene, PhysicsVector pos)
             : this("", parent_scene, pos)
         {
         }
+
         public BulletXCharacter(String avName, BulletXScene parent_scene, PhysicsVector pos)
             : this(avName, parent_scene, pos, new PhysicsVector(), new PhysicsVector(), new PhysicsVector(),
-            AxiomQuaternion.Identity)
+                   AxiomQuaternion.Identity)
         {
         }
+
         public BulletXCharacter(String avName, BulletXScene parent_scene, PhysicsVector pos, PhysicsVector velocity,
-            PhysicsVector size, PhysicsVector acceleration, AxiomQuaternion orientation)
+                                PhysicsVector size, PhysicsVector acceleration, AxiomQuaternion orientation)
         {
             //This fields will be removed. They're temporal
             float _sizeX = 0.5f;
@@ -622,23 +694,23 @@ namespace OpenSim.Region.Physics.BulletXPlugin
                 //For now, like ODE, collisionShape = sphere of radious = 1.0
                 CollisionShape _collisionShape = new SphereShape(1.0f);
                 DefaultMotionState _motionState = new DefaultMotionState(_startTransform, _centerOfMassOffset);
-                MonoXnaCompactMaths.Vector3 _localInertia = new MonoXnaCompactMaths.Vector3();
+                Vector3 _localInertia = new Vector3();
                 _collisionShape.CalculateLocalInertia(_mass, out _localInertia); //Always when mass > 0
-                rigidBody = new RigidBody(_mass, _motionState, _collisionShape, _localInertia, _linearDamping, _angularDamping, _friction, _restitution);
+                rigidBody =
+                    new RigidBody(_mass, _motionState, _collisionShape, _localInertia, _linearDamping, _angularDamping,
+                                  _friction, _restitution);
                 //rigidBody.ActivationState = ActivationState.DisableDeactivation;
                 //It's seems that there are a bug with rigidBody constructor and its CenterOfMassPosition
-                MonoXnaCompactMaths.Vector3 _vDebugTranslation;
+                Vector3 _vDebugTranslation;
                 _vDebugTranslation = _startTransform.Translation - rigidBody.CenterOfMassPosition;
                 rigidBody.Translate(_vDebugTranslation);
                 parent_scene.ddWorld.AddRigidBody(rigidBody);
             }
         }
+
         public override PhysicsVector Position
         {
-            get
-            {
-                return _position;
-            }
+            get { return _position; }
             set
             {
                 lock (BulletXScene.BulletXLock)
@@ -648,12 +720,10 @@ namespace OpenSim.Region.Physics.BulletXPlugin
                 }
             }
         }
+
         public override PhysicsVector Velocity
         {
-            get
-            {
-                return _velocity;
-            }
+            get { return _velocity; }
             set
             {
                 lock (BulletXScene.BulletXLock)
@@ -663,12 +733,10 @@ namespace OpenSim.Region.Physics.BulletXPlugin
                 }
             }
         }
+
         public override PhysicsVector Size
         {
-            get
-            {
-                return _size;
-            }
+            get { return _size; }
             set
             {
                 lock (BulletXScene.BulletXLock)
@@ -677,19 +745,15 @@ namespace OpenSim.Region.Physics.BulletXPlugin
                 }
             }
         }
+
         public override PhysicsVector Acceleration
         {
-            get
-            {
-                return _acceleration;
-            }
+            get { return _acceleration; }
         }
+
         public override AxiomQuaternion Orientation
         {
-            get
-            {
-                return _orientation;
-            }
+            get { return _orientation; }
             set
             {
                 lock (BulletXScene.BulletXLock)
@@ -698,24 +762,18 @@ namespace OpenSim.Region.Physics.BulletXPlugin
                 }
             }
         }
+
         public RigidBody RigidBody
         {
-            get
-            {
-                return rigidBody;
-            }
+            get { return rigidBody; }
         }
+
         public override bool Flying
         {
-            get
-            {
-                return flying;
-            }
-            set
-            {
-                flying = value;
-            }
+            get { return flying; }
+            set { flying = value; }
         }
+
         public void SetAcceleration(PhysicsVector accel)
         {
             lock (BulletXScene.BulletXLock)
@@ -723,116 +781,121 @@ namespace OpenSim.Region.Physics.BulletXPlugin
                 _acceleration = accel;
             }
         }
+
         public override bool Kinematic
         {
-            get
-            {
-                return false;
-            }
-            set
-            {
-
-            }
+            get { return false; }
+            set { }
         }
+
         public override void AddForce(PhysicsVector force)
         {
-
         }
+
         public override void SetMomentum(PhysicsVector momentum)
         {
-
         }
+
         internal void Move(float timeStep)
         {
-            MonoXnaCompactMaths.Vector3 vec = new MonoXnaCompactMaths.Vector3();
+            Vector3 vec = new Vector3();
             //At this point it's supossed that:
             //_velocity == rigidBody.LinearVelocity
-            vec.X = this._velocity.X; 
-            vec.Y = this._velocity.Y; 
-            vec.Z = this._velocity.Z;
+            vec.X = _velocity.X;
+            vec.Y = _velocity.Y;
+            vec.Z = _velocity.Z;
             if ((vec.X != 0.0f) || (vec.Y != 0.0f) || (vec.Z != 0.0f)) rigidBody.Activate();
             if (flying)
             {
                 //Antigravity with movement
-                if (this._position.Z <= BulletXScene.HeightLevel0)
+                if (_position.Z <= BulletXScene.HeightLevel0)
                 {
-                    vec.Z += BulletXScene.Gravity * timeStep;
+                    vec.Z += BulletXScene.Gravity*timeStep;
                 }
-                //Lowgravity with movement
-                else if ((this._position.Z > BulletXScene.HeightLevel0)
-                    && (this._position.Z <= BulletXScene.HeightLevel1))
+                    //Lowgravity with movement
+                else if ((_position.Z > BulletXScene.HeightLevel0)
+                         && (_position.Z <= BulletXScene.HeightLevel1))
                 {
-                    vec.Z += BulletXScene.Gravity * timeStep * (1.0f - BulletXScene.LowGravityFactor);
+                    vec.Z += BulletXScene.Gravity*timeStep*(1.0f - BulletXScene.LowGravityFactor);
                 }
-                //Lowgravity with...
-                else if (this._position.Z > BulletXScene.HeightLevel1)
+                    //Lowgravity with...
+                else if (_position.Z > BulletXScene.HeightLevel1)
                 {
                     if (vec.Z > 0) //no movement
-                        vec.Z = BulletXScene.Gravity * timeStep * (1.0f - BulletXScene.LowGravityFactor);
+                        vec.Z = BulletXScene.Gravity*timeStep*(1.0f - BulletXScene.LowGravityFactor);
                     else
-                        vec.Z += BulletXScene.Gravity * timeStep * (1.0f - BulletXScene.LowGravityFactor);
-
+                        vec.Z += BulletXScene.Gravity*timeStep*(1.0f - BulletXScene.LowGravityFactor);
                 }
             }
             rigidBody.LinearVelocity = vec;
         }
+
         //This validation is very basic
         internal void ValidateHeight(float heighmapPositionValue)
         {
-            if (rigidBody.CenterOfMassPosition.Z < heighmapPositionValue + _size.Z / 2.0f)
+            if (rigidBody.CenterOfMassPosition.Z < heighmapPositionValue + _size.Z/2.0f)
             {
                 Matrix m = rigidBody.WorldTransform;
-                MonoXnaCompactMaths.Vector3 v3 = m.Translation;
-                v3.Z = heighmapPositionValue + _size.Z / 2.0f;
+                Vector3 v3 = m.Translation;
+                v3.Z = heighmapPositionValue + _size.Z/2.0f;
                 m.Translation = v3;
                 rigidBody.WorldTransform = m;
                 //When an Avie touch the ground it's vertical velocity it's reduced to ZERO
-                Speed(new PhysicsVector(this.rigidBody.LinearVelocity.X, this.rigidBody.LinearVelocity.Y, 0.0f));
+                Speed(new PhysicsVector(rigidBody.LinearVelocity.X, rigidBody.LinearVelocity.Y, 0.0f));
             }
         }
+
         internal void UpdateKinetics()
         {
-            this._position = BulletXMaths.XnaVector3ToPhysicsVector(rigidBody.CenterOfMassPosition);
-            this._velocity = BulletXMaths.XnaVector3ToPhysicsVector(rigidBody.LinearVelocity);
+            _position = BulletXMaths.XnaVector3ToPhysicsVector(rigidBody.CenterOfMassPosition);
+            _velocity = BulletXMaths.XnaVector3ToPhysicsVector(rigidBody.LinearVelocity);
             //Orientation it seems that it will be the default.
             ReOrient();
         }
 
         #region Methods for updating values of RigidBody
+
         private void Translate()
         {
-            Translate(this._position);
+            Translate(_position);
         }
+
         private void Translate(PhysicsVector _newPos)
         {
-            MonoXnaCompactMaths.Vector3 _translation;
+            Vector3 _translation;
             _translation = BulletXMaths.PhysicsVectorToXnaVector3(_newPos) - rigidBody.CenterOfMassPosition;
             rigidBody.Translate(_translation);
         }
+
         private void Speed()
         {
-            Speed(this._velocity);
+            Speed(_velocity);
         }
+
         private void Speed(PhysicsVector _newSpeed)
         {
-            MonoXnaCompactMaths.Vector3 _speed;
+            Vector3 _speed;
             _speed = BulletXMaths.PhysicsVectorToXnaVector3(_newSpeed);
             rigidBody.LinearVelocity = _speed;
         }
+
         private void ReOrient()
         {
-            ReOrient(this._orientation);
+            ReOrient(_orientation);
         }
+
         private void ReOrient(AxiomQuaternion _newOrient)
         {
-            MonoXnaCompactMaths.Quaternion _newOrientation;
+            Quaternion _newOrientation;
             _newOrientation = BulletXMaths.AxiomQuaternionToXnaQuaternion(_newOrient);
             Matrix _comTransform = rigidBody.CenterOfMassTransform;
             BulletXMaths.SetRotation(ref _comTransform, _newOrientation);
             rigidBody.CenterOfMassTransform = _comTransform;
         }
+
         #endregion
     }
+
     /// <summary>
     /// PhysicsActor Prim Class for BulletX
     /// </summary>
@@ -851,27 +914,32 @@ namespace OpenSim.Region.Physics.BulletXPlugin
         //_physical value will be linked with the prim object value
         private Boolean _physical = false;
 
-        public MonoXnaCompactMaths.Vector3 RigidBodyPosition
+        public Vector3 RigidBodyPosition
         {
-            get { return this.rigidBody.CenterOfMassPosition; }
+            get { return rigidBody.CenterOfMassPosition; }
         }
+
         public BulletXPrim(BulletXScene parent_scene, PhysicsVector pos, PhysicsVector size, AxiomQuaternion rotation)
             : this("", parent_scene, pos, new PhysicsVector(), size, new PhysicsVector(), rotation, null, null)
         {
         }
-        public BulletXPrim(String primName, BulletXScene parent_scene, PhysicsVector pos, PhysicsVector size, 
-            AxiomQuaternion rotation, Mesh mesh, PrimitiveBaseShape pbs)
+
+        public BulletXPrim(String primName, BulletXScene parent_scene, PhysicsVector pos, PhysicsVector size,
+                           AxiomQuaternion rotation, Mesh mesh, PrimitiveBaseShape pbs)
             : this(primName, parent_scene, pos, new PhysicsVector(), size, new PhysicsVector(), rotation, mesh, pbs)
         {
         }
-        public BulletXPrim(String primName, BulletXScene parent_scene, PhysicsVector pos, PhysicsVector velocity, PhysicsVector size,
-            PhysicsVector aceleration, AxiomQuaternion rotation, Mesh mesh, PrimitiveBaseShape pbs)
+
+        public BulletXPrim(String primName, BulletXScene parent_scene, PhysicsVector pos, PhysicsVector velocity,
+                           PhysicsVector size,
+                           PhysicsVector aceleration, AxiomQuaternion rotation, Mesh mesh, PrimitiveBaseShape pbs)
         {
             if ((size.X == 0) || (size.Y == 0) || (size.Z == 0)) throw new Exception("Size 0");
             if (rotation.Norm == 0f) rotation = AxiomQuaternion.Identity;
 
             _position = pos;
-            if (_physical) _velocity = velocity; else _velocity = new PhysicsVector();
+            if (_physical) _velocity = velocity;
+            else _velocity = new PhysicsVector();
             _size = size;
             _acceleration = aceleration;
             _orientation = rotation;
@@ -889,26 +957,26 @@ namespace OpenSim.Region.Physics.BulletXPlugin
             {
                 _startTransform.Translation = BulletXMaths.PhysicsVectorToXnaVector3(pos);
                 //For now all prims are boxes
-                CollisionShape _collisionShape = new XnaDevRu.BulletX.BoxShape(BulletXMaths.PhysicsVectorToXnaVector3(_size) / 2.0f);
+                CollisionShape _collisionShape = new BoxShape(BulletXMaths.PhysicsVectorToXnaVector3(_size)/2.0f);
                 DefaultMotionState _motionState = new DefaultMotionState(_startTransform, _centerOfMassOffset);
-                MonoXnaCompactMaths.Vector3 _localInertia = new MonoXnaCompactMaths.Vector3();
-                if(_physical) _collisionShape.CalculateLocalInertia(Mass, out _localInertia); //Always when mass > 0
-                rigidBody = new RigidBody(Mass, _motionState, _collisionShape, _localInertia, _linearDamping, _angularDamping, _friction, _restitution);
+                Vector3 _localInertia = new Vector3();
+                if (_physical) _collisionShape.CalculateLocalInertia(Mass, out _localInertia); //Always when mass > 0
+                rigidBody =
+                    new RigidBody(Mass, _motionState, _collisionShape, _localInertia, _linearDamping, _angularDamping,
+                                  _friction, _restitution);
                 //rigidBody.ActivationState = ActivationState.DisableDeactivation;
                 //It's seems that there are a bug with rigidBody constructor and its CenterOfMassPosition
-                MonoXnaCompactMaths.Vector3 _vDebugTranslation;
+                Vector3 _vDebugTranslation;
                 _vDebugTranslation = _startTransform.Translation - rigidBody.CenterOfMassPosition;
                 rigidBody.Translate(_vDebugTranslation);
                 //---
                 parent_scene.ddWorld.AddRigidBody(rigidBody);
             }
         }
+
         public override PhysicsVector Position
         {
-            get
-            {
-                return _position;
-            }
+            get { return _position; }
             set
             {
                 lock (BulletXScene.BulletXLock)
@@ -918,12 +986,10 @@ namespace OpenSim.Region.Physics.BulletXPlugin
                 }
             }
         }
+
         public override PhysicsVector Velocity
         {
-            get
-            {
-                return _velocity;
-            }
+            get { return _velocity; }
             set
             {
                 lock (BulletXScene.BulletXLock)
@@ -941,12 +1007,10 @@ namespace OpenSim.Region.Physics.BulletXPlugin
                 }
             }
         }
+
         public override PhysicsVector Size
         {
-            get
-            {
-                return _size;
-            }
+            get { return _size; }
             set
             {
                 lock (BulletXScene.BulletXLock)
@@ -956,19 +1020,15 @@ namespace OpenSim.Region.Physics.BulletXPlugin
                 }
             }
         }
+
         public override PhysicsVector Acceleration
         {
-            get
-            {
-                return _acceleration;
-            }
+            get { return _acceleration; }
         }
+
         public override AxiomQuaternion Orientation
         {
-            get
-            {
-                return _orientation;
-            }
+            get { return _orientation; }
             set
             {
                 lock (BulletXScene.BulletXLock)
@@ -978,43 +1038,34 @@ namespace OpenSim.Region.Physics.BulletXPlugin
                 }
             }
         }
+
         public float Mass
         {
             get
             {
                 //For now all prims are boxes
-                return (_physical ? 1 : 0) * _density * _size.X * _size.Y * _size.Z;
+                return (_physical ? 1 : 0)*_density*_size.X*_size.Y*_size.Z;
             }
         }
+
         public RigidBody RigidBody
         {
-            get
-            {
-                return rigidBody;
-            }
+            get { return rigidBody; }
         }
+
         public override bool Flying
         {
-            get
-            {
-                return false; //no flying prims for you
+            get { return false; //no flying prims for you
             }
-            set
-            {
-
-            }
+            set { }
         }
+
         public Boolean Physical
         {
-            get
-            {
-                return _physical;
-            }
-            set
-            {
-                _physical = value;
-            }
+            get { return _physical; }
+            set { _physical = value; }
         }
+
         public void SetAcceleration(PhysicsVector accel)
         {
             lock (BulletXScene.BulletXLock)
@@ -1022,6 +1073,7 @@ namespace OpenSim.Region.Physics.BulletXPlugin
                 _acceleration = accel;
             }
         }
+
         public override bool Kinematic
         {
             get
@@ -1034,36 +1086,38 @@ namespace OpenSim.Region.Physics.BulletXPlugin
                 //this._prim.Kinematic = value;
             }
         }
+
         public override void AddForce(PhysicsVector force)
         {
-
         }
+
         public override void SetMomentum(PhysicsVector momentum)
         {
-
         }
+
         internal void ValidateHeight(float heighmapPositionValue)
         {
-            if (rigidBody.CenterOfMassPosition.Z < heighmapPositionValue + _size.Z / 2.0f)
+            if (rigidBody.CenterOfMassPosition.Z < heighmapPositionValue + _size.Z/2.0f)
             {
                 Matrix m = rigidBody.WorldTransform;
-                MonoXnaCompactMaths.Vector3 v3 = m.Translation;
-                v3.Z = heighmapPositionValue + _size.Z / 2.0f;
+                Vector3 v3 = m.Translation;
+                v3.Z = heighmapPositionValue + _size.Z/2.0f;
                 m.Translation = v3;
                 rigidBody.WorldTransform = m;
                 //When a Prim touch the ground it's vertical velocity it's reduced to ZERO
                 //Static objects don't have linear velocity
-                if(_physical)
-                    Speed(new PhysicsVector(this.rigidBody.LinearVelocity.X, this.rigidBody.LinearVelocity.Y, 0.0f));
+                if (_physical)
+                    Speed(new PhysicsVector(rigidBody.LinearVelocity.X, rigidBody.LinearVelocity.Y, 0.0f));
             }
         }
+
         internal void UpdateKinetics()
         {
             if (_physical) //Updates properties. Prim updates its properties physically
             {
-                this._position = BulletXMaths.XnaVector3ToPhysicsVector(rigidBody.CenterOfMassPosition);
-                this._velocity = BulletXMaths.XnaVector3ToPhysicsVector(rigidBody.LinearVelocity);
-                this._orientation = BulletXMaths.XnaQuaternionToAxiomQuaternion(rigidBody.Orientation);
+                _position = BulletXMaths.XnaVector3ToPhysicsVector(rigidBody.CenterOfMassPosition);
+                _velocity = BulletXMaths.XnaVector3ToPhysicsVector(rigidBody.LinearVelocity);
+                _orientation = BulletXMaths.XnaQuaternionToAxiomQuaternion(rigidBody.Orientation);
             }
             else //Doesn't updates properties. That's a cancel
             {
@@ -1074,35 +1128,41 @@ namespace OpenSim.Region.Physics.BulletXPlugin
         }
 
         #region Methods for updating values of RigidBody
+
         private void Translate()
         {
-            Translate(this._position);
+            Translate(_position);
         }
+
         private void Translate(PhysicsVector _newPos)
         {
-            MonoXnaCompactMaths.Vector3 _translation;
+            Vector3 _translation;
             _translation = BulletXMaths.PhysicsVectorToXnaVector3(_newPos) - rigidBody.CenterOfMassPosition;
             rigidBody.Translate(_translation);
         }
+
         private void Speed()
         {
-            Speed(this._velocity);
+            Speed(_velocity);
         }
+
         private void Speed(PhysicsVector _newSpeed)
         {
-            MonoXnaCompactMaths.Vector3 _speed;
+            Vector3 _speed;
             _speed = BulletXMaths.PhysicsVectorToXnaVector3(_newSpeed);
             rigidBody.LinearVelocity = _speed;
         }
+
         private void ReSize()
         {
-            ReSize(this._size);
+            ReSize(_size);
         }
+
         private void ReSize(PhysicsVector _newSize)
         {
             //I wonder to know how to resize with a simple instruction in BulletX. It seems that for now there isn't
             //so i have to do it manually. That's recreating rigidbody
-            MonoXnaCompactMaths.Vector3 _newsize;
+            Vector3 _newsize;
             _newsize = BulletXMaths.PhysicsVectorToXnaVector3(_newSize);
             if ((_newsize.X == 0) || (_newsize.Y == 0) || (_newsize.Z == 0)) throw new Exception("Size 0");
 
@@ -1114,67 +1174,77 @@ namespace OpenSim.Region.Physics.BulletXPlugin
             Matrix _startTransform = Matrix.Identity;
             Matrix _centerOfMassOffset = Matrix.Identity;
             RigidBody _tmpRigidBody;
-            _startTransform.Translation = BulletXMaths.PhysicsVectorToXnaVector3(this._position);
+            _startTransform.Translation = BulletXMaths.PhysicsVectorToXnaVector3(_position);
             //For now all prims are boxes
-            CollisionShape _collisionShape = new XnaDevRu.BulletX.BoxShape(BulletXMaths.PhysicsVectorToXnaVector3(_newSize) / 2.0f);
+            CollisionShape _collisionShape = new BoxShape(BulletXMaths.PhysicsVectorToXnaVector3(_newSize)/2.0f);
             DefaultMotionState _motionState = new DefaultMotionState(_startTransform, _centerOfMassOffset);
-            MonoXnaCompactMaths.Vector3 _localInertia = new MonoXnaCompactMaths.Vector3();
+            Vector3 _localInertia = new Vector3();
             if (_physical) _collisionShape.CalculateLocalInertia(Mass, out _localInertia); //Always when mass > 0
-            _tmpRigidBody = new RigidBody(Mass, _motionState, _collisionShape, _localInertia, _linearDamping, _angularDamping, _friction, _restitution);
+            _tmpRigidBody =
+                new RigidBody(Mass, _motionState, _collisionShape, _localInertia, _linearDamping, _angularDamping,
+                              _friction, _restitution);
             //rigidBody.ActivationState = ActivationState.DisableDeactivation;
             //It's seems that there are a bug with rigidBody constructor and its CenterOfMassPosition
-            MonoXnaCompactMaths.Vector3 _vDebugTranslation;
+            Vector3 _vDebugTranslation;
             _vDebugTranslation = _startTransform.Translation - rigidBody.CenterOfMassPosition;
             _tmpRigidBody.Translate(_vDebugTranslation);
             //---
             //There is a bug when trying to remove a rigidBody that is colliding with something..
             try
             {
-                this._parent_scene.ddWorld.RemoveRigidBody(rigidBody);
+                _parent_scene.ddWorld.RemoveRigidBody(rigidBody);
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
-                this._parent_scene.BulletXMessage(this._parent_scene.is_ex_message + ex.Message, true);
+                _parent_scene.BulletXMessage(_parent_scene.is_ex_message + ex.Message, true);
                 rigidBody.ActivationState = ActivationState.DisableSimulation;
-                this._parent_scene.AddForgottenRigidBody(rigidBody);
+                _parent_scene.AddForgottenRigidBody(rigidBody);
             }
             rigidBody = _tmpRigidBody;
-            this._parent_scene.ddWorld.AddRigidBody(rigidBody);
-            if (_physical) Speed();//Static objects don't have linear velocity
+            _parent_scene.ddWorld.AddRigidBody(rigidBody);
+            if (_physical) Speed(); //Static objects don't have linear velocity
             ReOrient();
             GC.Collect();
         }
+
         private void ReOrient()
         {
-            ReOrient(this._orientation);
+            ReOrient(_orientation);
         }
+
         private void ReOrient(AxiomQuaternion _newOrient)
         {
-            MonoXnaCompactMaths.Quaternion _newOrientation;
+            Quaternion _newOrientation;
             _newOrientation = BulletXMaths.AxiomQuaternionToXnaQuaternion(_newOrient);
             Matrix _comTransform = rigidBody.CenterOfMassTransform;
             BulletXMaths.SetRotation(ref _comTransform, _newOrientation);
             rigidBody.CenterOfMassTransform = _comTransform;
         }
-        #endregion
 
+        #endregion
     }
+
     /// <summary>
     /// This Class manage a HeighField as a RigidBody. This is for to be added in the BulletXScene
     /// </summary>
     internal class BulletXPlanet
     {
         private PhysicsVector _staticPosition;
-        private PhysicsVector _staticVelocity; 
+        private PhysicsVector _staticVelocity;
         private AxiomQuaternion _staticOrientation;
         private float _mass;
         private BulletXScene _parentscene;
         internal float[] _heightField;
         private RigidBody _flatPlanet;
-        internal RigidBody RigidBody { get { return _flatPlanet; } }
+
+        internal RigidBody RigidBody
+        {
+            get { return _flatPlanet; }
+        }
+
         internal BulletXPlanet(BulletXScene parent_scene, float[] heightField)
         {
-            _staticPosition = new PhysicsVector(BulletXScene.MaxXY / 2, BulletXScene.MaxXY/2, 0);
+            _staticPosition = new PhysicsVector(BulletXScene.MaxXY/2, BulletXScene.MaxXY/2, 0);
             _staticVelocity = new PhysicsVector();
             _staticOrientation = AxiomQuaternion.Identity;
             _mass = 0; //No active
@@ -1193,36 +1263,41 @@ namespace OpenSim.Region.Physics.BulletXPlugin
                 try
                 {
                     _startTransform.Translation = BulletXMaths.PhysicsVectorToXnaVector3(_staticPosition);
-                    CollisionShape _collisionShape = new HeightfieldTerrainShape(BulletXScene.MaxXY, BulletXScene.MaxXY, _heightField, (float)BulletXScene.MaxZ, 2, true, false);
+                    CollisionShape _collisionShape =
+                        new HeightfieldTerrainShape(BulletXScene.MaxXY, BulletXScene.MaxXY, _heightField,
+                                                    (float) BulletXScene.MaxZ, 2, true, false);
                     DefaultMotionState _motionState = new DefaultMotionState(_startTransform, _centerOfMassOffset);
-                    MonoXnaCompactMaths.Vector3 _localInertia = new MonoXnaCompactMaths.Vector3();
+                    Vector3 _localInertia = new Vector3();
                     //_collisionShape.CalculateLocalInertia(_mass, out _localInertia); //Always when mass > 0
-                    _flatPlanet = new RigidBody(_mass, _motionState, _collisionShape, _localInertia, _linearDamping, _angularDamping, _friction, _restitution);
+                    _flatPlanet =
+                        new RigidBody(_mass, _motionState, _collisionShape, _localInertia, _linearDamping,
+                                      _angularDamping, _friction, _restitution);
                     //It's seems that there are a bug with rigidBody constructor and its CenterOfMassPosition
-                    MonoXnaCompactMaths.Vector3 _vDebugTranslation;
+                    Vector3 _vDebugTranslation;
                     _vDebugTranslation = _startTransform.Translation - _flatPlanet.CenterOfMassPosition;
                     _flatPlanet.Translate(_vDebugTranslation);
                     parent_scene.ddWorld.AddRigidBody(_flatPlanet);
                 }
                 catch (Exception ex)
                 {
-                    this._parentscene.BulletXMessage(ex.Message, true);
+                    _parentscene.BulletXMessage(ex.Message, true);
                 }
             }
-            this._parentscene.BulletXMessage("BulletXPlanet created.", false);
+            _parentscene.BulletXMessage("BulletXPlanet created.", false);
         }
-        internal float HeightValue(MonoXnaCompactMaths.Vector3 position)
+
+        internal float HeightValue(Vector3 position)
         {
             int li_x, li_y;
             float height;
-            li_x = (int)Math.Round(position.X); 
+            li_x = (int) Math.Round(position.X);
             if (li_x < 0) li_x = 0;
             if (li_x >= BulletXScene.MaxXY) li_x = BulletXScene.MaxXY - 1;
-            li_y = (int)Math.Round(position.Y); 
+            li_y = (int) Math.Round(position.Y);
             if (li_y < 0) li_y = 0;
             if (li_y >= BulletXScene.MaxXY) li_y = BulletXScene.MaxXY - 1;
 
-            height = ((HeightfieldTerrainShape)this._flatPlanet.CollisionShape).getHeightFieldValue(li_x, li_y);
+            height = ((HeightfieldTerrainShape) _flatPlanet.CollisionShape).getHeightFieldValue(li_x, li_y);
             if (height < 0) height = 0;
             else if (height > BulletXScene.MaxZ) height = BulletXScene.MaxZ;
 

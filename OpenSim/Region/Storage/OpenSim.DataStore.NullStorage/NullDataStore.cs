@@ -26,21 +26,16 @@
 * 
 */
 
-using System;
 using System.Collections.Generic;
-using System.Text;
-
-using OpenSim.Region.Environment.Scenes;
-using OpenSim.Region.Environment.LandManagement;
-using OpenSim.Region.Environment.Interfaces;
-using OpenSim.Framework.Console;
 using libsecondlife;
+using OpenSim.Region.Environment.Interfaces;
+using OpenSim.Region.Environment.LandManagement;
+using OpenSim.Region.Environment.Scenes;
 
 namespace OpenSim.DataStore.NullStorage
 {
     public class NullDataStore : IRegionDataStore
     {
-        
         public void Initialise(string dbfile, string dbname)
         {
             return;
@@ -48,12 +43,10 @@ namespace OpenSim.DataStore.NullStorage
 
         public void StoreObject(SceneObjectGroup obj, LLUUID regionUUID)
         {
-
         }
 
         public void RemoveObject(LLUUID obj, LLUUID regionUUID)
         {
-
         }
 
         public List<SceneObjectGroup> LoadObjects(LLUUID regionUUID)
@@ -63,7 +56,6 @@ namespace OpenSim.DataStore.NullStorage
 
         public void StoreTerrain(double[,] ter, LLUUID regionID)
         {
-
         }
 
         public double[,] LoadTerrain(LLUUID regionID)
@@ -73,12 +65,10 @@ namespace OpenSim.DataStore.NullStorage
 
         public void RemoveLandObject(uint id)
         {
-
         }
 
         public void StoreParcel(Land land)
         {
-
         }
 
         public List<Land> LoadLandObjects()
@@ -88,7 +78,6 @@ namespace OpenSim.DataStore.NullStorage
 
         public void Shutdown()
         {
-
         }
     }
 }

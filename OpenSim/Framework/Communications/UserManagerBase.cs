@@ -33,18 +33,15 @@ using System.Reflection;
 using System.Security.Cryptography;
 using libsecondlife;
 using Nwc.XmlRpc;
-using OpenSim.Framework;
 using OpenSim.Framework.Console;
-using OpenSim.Framework.Data;
 using OpenSim.Framework.Interfaces;
-
 
 namespace OpenSim.Framework.UserManagement
 {
     public abstract class UserManagerBase : IUserService
     {
         public UserConfig _config;
-        Dictionary<string, IUserData> _plugins = new Dictionary<string, IUserData>();
+        private Dictionary<string, IUserData> _plugins = new Dictionary<string, IUserData>();
 
         /// <summary>
         /// Adds a new user server plugin - user servers will be requested in the order they were loaded.
@@ -78,11 +75,12 @@ namespace OpenSim.Framework.UserManagement
         public void AddPlugin(IUserData plug)
         {
             plug.Initialise();
-            this._plugins.Add(plug.getName(), plug);
-            MainLog.Instance.Verbose( "Userstorage: Added IUserData Interface");
+            _plugins.Add(plug.getName(), plug);
+            MainLog.Instance.Verbose("Userstorage: Added IUserData Interface");
         }
 
         #region Get UserProfile 
+
         /// <summary>
         /// Loads a user profile from a database by UUID
         /// </summary>
@@ -100,7 +98,7 @@ namespace OpenSim.Framework.UserManagement
                 }
                 catch (Exception e)
                 {
-                    MainLog.Instance.Verbose( "Unable to find user via " + plugin.Key + "(" + e.ToString() + ")");
+                    MainLog.Instance.Verbose("Unable to find user via " + plugin.Key + "(" + e.ToString() + ")");
                 }
             }
 
@@ -126,7 +124,7 @@ namespace OpenSim.Framework.UserManagement
                 catch (Exception e)
                 {
                     System.Console.WriteLine("EEK!");
-                    MainLog.Instance.Verbose( "Unable to find user via " + plugin.Key + "(" + e.ToString() + ")");
+                    MainLog.Instance.Verbose("Unable to find user via " + plugin.Key + "(" + e.ToString() + ")");
                 }
             }
 
@@ -145,7 +143,7 @@ namespace OpenSim.Framework.UserManagement
             {
                 try
                 {
-                    UserProfileData profile = plugin.Value.GetUserByName(fname,lname);
+                    UserProfileData profile = plugin.Value.GetUserByName(fname, lname);
 
                     profile.currentAgent = getUserAgent(profile.UUID);
 
@@ -153,7 +151,7 @@ namespace OpenSim.Framework.UserManagement
                 }
                 catch (Exception e)
                 {
-                    MainLog.Instance.Verbose( "Unable to find user via " + plugin.Key + "(" + e.ToString() + ")");
+                    MainLog.Instance.Verbose("Unable to find user via " + plugin.Key + "(" + e.ToString() + ")");
                 }
             }
 
@@ -170,20 +168,24 @@ namespace OpenSim.Framework.UserManagement
         {
             foreach (KeyValuePair<string, IUserData> plugin in _plugins)
             {
-                try {
+                try
+                {
                     plugin.Value.UpdateUserProfile(data);
                     return true;
-                } catch (Exception e) {
-                    MainLog.Instance.Verbose( "Unable to set user via " + plugin.Key + "(" + e.ToString() + ")");
+                }
+                catch (Exception e)
+                {
+                    MainLog.Instance.Verbose("Unable to set user via " + plugin.Key + "(" + e.ToString() + ")");
                 }
             }
-            
+
             return false;
         }
 
         #endregion
 
         #region Get UserAgent
+
         /// <summary>
         /// Loads a user agent by uuid (not called directly)
         /// </summary>
@@ -199,7 +201,7 @@ namespace OpenSim.Framework.UserManagement
                 }
                 catch (Exception e)
                 {
-                    MainLog.Instance.Verbose( "Unable to find user via " + plugin.Key + "(" + e.ToString() + ")");
+                    MainLog.Instance.Verbose("Unable to find user via " + plugin.Key + "(" + e.ToString() + ")");
                 }
             }
 
@@ -221,7 +223,7 @@ namespace OpenSim.Framework.UserManagement
                 }
                 catch (Exception e)
                 {
-                    MainLog.Instance.Verbose( "Unable to find user via " + plugin.Key + "(" + e.ToString() + ")");
+                    MainLog.Instance.Verbose("Unable to find user via " + plugin.Key + "(" + e.ToString() + ")");
                 }
             }
 
@@ -249,11 +251,11 @@ namespace OpenSim.Framework.UserManagement
             {
                 try
                 {
-                    return plugin.Value.GetAgentByName(fname,lname);
+                    return plugin.Value.GetAgentByName(fname, lname);
                 }
                 catch (Exception e)
                 {
-                    MainLog.Instance.Verbose( "Unable to find user via " + plugin.Key + "(" + e.ToString() + ")");
+                    MainLog.Instance.Verbose("Unable to find user via " + plugin.Key + "(" + e.ToString() + ")");
                 }
             }
 
@@ -263,6 +265,7 @@ namespace OpenSim.Framework.UserManagement
         #endregion
 
         #region CreateAgent
+
         /// <summary>
         /// Creates and initialises a new user agent - make sure to use CommitAgent when done to submit to the DB
         /// </summary>
@@ -270,7 +273,7 @@ namespace OpenSim.Framework.UserManagement
         /// <param name="request">The users loginrequest</param>
         public void CreateAgent(UserProfileData profile, XmlRpcRequest request)
         {
-            Hashtable requestData = (Hashtable)request.Params[0];
+            Hashtable requestData = (Hashtable) request.Params[0];
 
             UserAgentData agent = new UserAgentData();
 
@@ -297,7 +300,7 @@ namespace OpenSim.Framework.UserManagement
             // If user specified additional start, use that
             if (requestData.ContainsKey("start"))
             {
-                string startLoc = ((string)requestData["start"]).Trim();
+                string startLoc = ((string) requestData["start"]).Trim();
                 if (!(startLoc == "last" || startLoc == "home"))
                 {
                     // Format: uri:Ahern&162&213&34
@@ -312,7 +315,6 @@ namespace OpenSim.Framework.UserManagement
                     }
                     catch (Exception)
                     {
-
                     }
                 }
             }
@@ -323,7 +325,7 @@ namespace OpenSim.Framework.UserManagement
 
             // Current location
             agent.regionID = new LLUUID(); // Fill in later
-            agent.currentRegion = new LLUUID();      // Fill in later
+            agent.currentRegion = new LLUUID(); // Fill in later
 
             profile.currentAgent = agent;
         }
@@ -364,7 +366,6 @@ namespace OpenSim.Framework.UserManagement
                 try
                 {
                     plugin.Value.AddNewUserProfile(user);
-
                 }
                 catch (Exception e)
                 {

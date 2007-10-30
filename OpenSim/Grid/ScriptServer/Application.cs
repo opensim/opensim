@@ -26,25 +26,23 @@
 * 
 */
 using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace OpenSim.Grid.ScriptServer
 {
-    class OpenScript_Main
+    internal class OpenScript_Main
     {
-     
         public static ScriptServerMain SE;
-   
-        static void Main(string[] args)
+
+        private static void Main(string[] args)
         {
             // Application is starting
             SE = new ScriptServerMain();
 
-            System.AppDomain.CurrentDomain.UnhandledException += new UnhandledExceptionEventHandler(CurrentDomain_UnhandledException);
+            AppDomain.CurrentDomain.UnhandledException +=
+                new UnhandledExceptionEventHandler(CurrentDomain_UnhandledException);
         }
 
-        static void CurrentDomain_UnhandledException(object sender, UnhandledExceptionEventArgs e)
+        private static void CurrentDomain_UnhandledException(object sender, UnhandledExceptionEventArgs e)
         {
             Console.WriteLine("");
             Console.WriteLine("APPLICATION EXCEPTION DETECTED");
@@ -53,6 +51,5 @@ namespace OpenSim.Grid.ScriptServer
             Console.WriteLine("Exception:");
             Console.WriteLine(e.ExceptionObject.ToString());
         }
-
     }
 }

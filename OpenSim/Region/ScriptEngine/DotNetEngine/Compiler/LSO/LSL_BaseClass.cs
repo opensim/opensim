@@ -28,9 +28,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Text;
-using System.IO;
-using OpenSim.Region.ScriptEngine.DotNetEngine.Compiler;
 using OpenSim.Region.ScriptEngine.Common;
 
 namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSO
@@ -39,9 +36,9 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSO
     {
         //public MemoryStream LSLStack = new MemoryStream();
         public Stack<object> LSLStack = new Stack<object>();
-        public Dictionary<UInt32, object> StaticVariables = new Dictionary<UInt32, object>();
-        public Dictionary<UInt32, object> GlobalVariables = new Dictionary<UInt32, object>();
-        public Dictionary<UInt32, object> LocalVariables = new Dictionary<UInt32, object>();
+        public Dictionary<uint, object> StaticVariables = new Dictionary<uint, object>();
+        public Dictionary<uint, object> GlobalVariables = new Dictionary<uint, object>();
+        public Dictionary<uint, object> LocalVariables = new Dictionary<uint, object>();
         //public System.Collections.Generic.List<string> FunctionList = new System.Collections.Generic.List<string>();
         //public void AddFunction(String x) {
         //    FunctionList.Add(x);
@@ -54,19 +51,23 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSO
         //}
         public UInt32 State = 0;
         public LSL_BuiltIn_Commands_Interface LSL_Builtins;
+
         public LSL_BuiltIn_Commands_Interface GetLSL_BuiltIn()
         {
             return LSL_Builtins;
         }
 
 
-        public LSL_BaseClass() { }
+        public LSL_BaseClass()
+        {
+        }
 
 
         public virtual int OverrideMe()
         {
             return 0;
         }
+
         public void Start(LSL_BuiltIn_Commands_Interface LSLBuiltins)
         {
             LSL_Builtins = LSLBuiltins;
@@ -81,8 +82,5 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSO
             Common.SendToDebug("AddToStatic: " + index + " type: " + obj.GetType());
             StaticVariables.Add(index, obj);
         }
-
-
-
     }
 }

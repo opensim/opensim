@@ -27,11 +27,12 @@
 */
 
 using System.Collections.Generic;
+using libsecondlife;
+using Nini.Config;
+using OpenSim.Framework;
+using OpenSim.Framework.Console;
 using OpenSim.Region.Environment.Interfaces;
 using OpenSim.Region.Environment.Scenes;
-using OpenSim.Framework.Console;
-using OpenSim.Framework;
-using Nini.Config;
 
 namespace OpenSim.Region.Environment.Modules
 {
@@ -42,7 +43,7 @@ namespace OpenSim.Region.Environment.Modules
 
         public InstantMessageModule()
         {
-            m_log = OpenSim.Framework.Console.MainLog.Instance;
+            m_log = MainLog.Instance;
         }
 
         public void Initialise(Scene scene, IConfigSource config)
@@ -50,33 +51,34 @@ namespace OpenSim.Region.Environment.Modules
             if (!m_scenes.Contains(scene))
             {
                 m_scenes.Add(scene);
-                scene.EventManager.OnNewClient += OnNewClient;     
+                scene.EventManager.OnNewClient += OnNewClient;
             }
         }
 
-        void OnNewClient(OpenSim.Framework.IClientAPI client)
+        private void OnNewClient(IClientAPI client)
         {
             client.OnInstantMessage += OnInstantMessage;
         }
 
-        void OnInstantMessage(libsecondlife.LLUUID fromAgentID, 
-            libsecondlife.LLUUID fromAgentSession, libsecondlife.LLUUID toAgentID, 
-            libsecondlife.LLUUID imSessionID, uint timestamp, string fromAgentName, 
-            string message, byte dialog)
+        private void OnInstantMessage(LLUUID fromAgentID,
+                                      LLUUID fromAgentSession, LLUUID toAgentID,
+                                      LLUUID imSessionID, uint timestamp, string fromAgentName,
+                                      string message, byte dialog)
         {
             // TODO: Remove after debugging. Privacy implications.
-            m_log.Verbose("IM",fromAgentName + ": " + message);
+            m_log.Verbose("IM", fromAgentName + ": " + message);
 
             foreach (Scene m_scene in m_scenes)
             {
                 if (m_scene.Entities.ContainsKey(toAgentID) && m_scene.Entities[toAgentID] is ScenePresence)
                 {
                     // Local Message
-                    ScenePresence user = (ScenePresence)m_scene.Entities[toAgentID];
+                    ScenePresence user = (ScenePresence) m_scene.Entities[toAgentID];
                     if (!user.IsChildAgent)
                     {
                         user.ControllingClient.SendInstantMessage(fromAgentID, fromAgentSession, message,
-                            toAgentID, imSessionID, fromAgentName, dialog, timestamp);
+                                                                  toAgentID, imSessionID, fromAgentName, dialog,
+                                                                  timestamp);
                     }
                     // Message sent
                     return;

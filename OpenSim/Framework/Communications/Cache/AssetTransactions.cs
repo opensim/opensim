@@ -26,17 +26,12 @@
 * 
 */
 using System;
-using System.Collections;
 using System.Collections.Generic;
-using System.Text;
 using System.IO;
 using libsecondlife;
 using libsecondlife.Packets;
-using OpenSim.Framework.Communications.Cache;
-using OpenSim.Framework.Interfaces;
-using OpenSim.Framework;
-using OpenSim.Region.Capabilities;
 using OpenSim.Framework.Servers;
+using OpenSim.Region.Capabilities;
 
 namespace OpenSim.Framework.Communications.Cache
 {
@@ -53,7 +48,7 @@ namespace OpenSim.Framework.Communications.Cache
         // Methods
         public AgentAssetTransactions(LLUUID agentID, AssetTransactionManager manager, bool dumpAssetsToFile)
         {
-            this.UserID = agentID;
+            UserID = agentID;
             Manager = manager;
             m_dumpAssetsToFile = dumpAssetsToFile;
         }
@@ -61,24 +56,24 @@ namespace OpenSim.Framework.Communications.Cache
         public AssetCapsUploader RequestCapsUploader()
         {
             AssetCapsUploader uploader = new AssetCapsUploader();
-            this.CapsUploaders.Add(uploader);
+            CapsUploaders.Add(uploader);
             return uploader;
         }
 
         public NoteCardCapsUpdate RequestNoteCardUpdater()
         {
             NoteCardCapsUpdate update = new NoteCardCapsUpdate();
-            this.NotecardUpdaters.Add(update);
+            NotecardUpdaters.Add(update);
             return update;
         }
 
         public AssetXferUploader RequestXferUploader(LLUUID transactionID)
         {
-            if (!this.XferUploaders.ContainsKey(transactionID))
+            if (!XferUploaders.ContainsKey(transactionID))
             {
                 AssetXferUploader uploader = new AssetXferUploader(this, m_dumpAssetsToFile);
 
-                this.XferUploaders.Add(transactionID, uploader);
+                XferUploaders.Add(transactionID, uploader);
                 return uploader;
             }
             return null;
@@ -86,7 +81,7 @@ namespace OpenSim.Framework.Communications.Cache
 
         public void HandleXfer(ulong xferID, uint packetID, byte[] data)
         {
-            foreach (AssetXferUploader uploader in this.XferUploaders.Values)
+            foreach (AssetXferUploader uploader in XferUploaders.Values)
             {
                 if (uploader.XferID == xferID)
                 {
@@ -96,17 +91,21 @@ namespace OpenSim.Framework.Communications.Cache
             }
         }
 
-        public void RequestCreateInventoryItem(IClientAPI remoteClient, LLUUID transactionID, LLUUID folderID, uint callbackID, string description, string name, sbyte invType, sbyte type, byte wearableType, uint nextOwnerMask)
+        public void RequestCreateInventoryItem(IClientAPI remoteClient, LLUUID transactionID, LLUUID folderID,
+                                               uint callbackID, string description, string name, sbyte invType,
+                                               sbyte type, byte wearableType, uint nextOwnerMask)
         {
-            if (this.XferUploaders.ContainsKey(transactionID))
+            if (XferUploaders.ContainsKey(transactionID))
             {
-                this.XferUploaders[transactionID].RequestCreateInventoryItem(remoteClient, transactionID, folderID, callbackID, description, name, invType, type, wearableType, nextOwnerMask);
+                XferUploaders[transactionID].RequestCreateInventoryItem(remoteClient, transactionID, folderID,
+                                                                        callbackID, description, name, invType, type,
+                                                                        wearableType, nextOwnerMask);
             }
         }
 
         public AssetBase GetTransactionAsset(LLUUID transactionID)
         {
-            if (this.XferUploaders.ContainsKey(transactionID))
+            if (XferUploaders.ContainsKey(transactionID))
             {
                 return XferUploaders[transactionID].GetAssetData();
             }
@@ -130,15 +129,16 @@ namespace OpenSim.Framework.Communications.Cache
             public event UpLoadedAsset OnUpLoad;
 
             // Methods
-            public void Initialise(string assetName, string assetDescription, LLUUID assetID, LLUUID inventoryItem, LLUUID folderID, string path, BaseHttpServer httpServer, bool dumpImageToFile)
+            public void Initialise(string assetName, string assetDescription, LLUUID assetID, LLUUID inventoryItem,
+                                   LLUUID folderID, string path, BaseHttpServer httpServer, bool dumpImageToFile)
             {
-                this.m_assetName = assetName;
-                this.m_assetDescription = assetDescription;
-                this.m_folderID = folderID;
-                this.newAssetID = assetID;
-                this.inventoryItemID = inventoryItem;
-                this.uploaderPath = path;
-                this.httpListener = httpServer;
+                m_assetName = assetName;
+                m_assetDescription = assetDescription;
+                m_folderID = folderID;
+                newAssetID = assetID;
+                inventoryItemID = inventoryItem;
+                uploaderPath = path;
+                httpListener = httpServer;
                 m_dumpImageToFile = dumpImageToFile;
             }
 
@@ -156,18 +156,18 @@ namespace OpenSim.Framework.Communications.Cache
                 LLUUID inventoryItemID = this.inventoryItemID;
                 string text = "";
                 LLSDAssetUploadComplete complete = new LLSDAssetUploadComplete();
-                complete.new_asset = this.newAssetID.ToStringHyphenated();
+                complete.new_asset = newAssetID.ToStringHyphenated();
                 complete.new_inventory_item = inventoryItemID;
                 complete.state = "complete";
                 text = LLSDHelpers.SerialiseLLSDReply(complete);
-                this.httpListener.RemoveStreamHandler("POST", this.uploaderPath);
-                if (this.m_dumpImageToFile)
+                httpListener.RemoveStreamHandler("POST", uploaderPath);
+                if (m_dumpImageToFile)
                 {
-                    this.SaveImageToFile(this.m_assetName + ".jp2", data);
+                    SaveImageToFile(m_assetName + ".jp2", data);
                 }
-                if (this.OnUpLoad != null)
+                if (OnUpLoad != null)
                 {
-                    this.OnUpLoad(this.m_assetName, "description", this.newAssetID, inventoryItemID, LLUUID.Zero, data, "" , "");
+                    OnUpLoad(m_assetName, "description", newAssetID, inventoryItemID, LLUUID.Zero, data, "", "");
                 }
                 return text;
             }
@@ -196,90 +196,91 @@ namespace OpenSim.Framework.Communications.Cache
 
             public AssetXferUploader(AgentAssetTransactions transactions, bool dumpAssetToFile)
             {
-                this.m_userTransactions = transactions;
+                m_userTransactions = transactions;
                 m_dumpAssetToFile = dumpAssetToFile;
             }
 
             // Methods
             public void HandleXferPacket(ulong xferID, uint packetID, byte[] data)
             {
-                if (this.XferID == xferID)
+                if (XferID == xferID)
                 {
-                    if (this.Asset.Data.Length > 1)
+                    if (Asset.Data.Length > 1)
                     {
-                        byte[] destinationArray = new byte[this.Asset.Data.Length + data.Length];
-                        Array.Copy(this.Asset.Data, 0, destinationArray, 0, this.Asset.Data.Length);
-                        Array.Copy(data, 0, destinationArray, this.Asset.Data.Length, data.Length);
-                        this.Asset.Data = destinationArray;
+                        byte[] destinationArray = new byte[Asset.Data.Length + data.Length];
+                        Array.Copy(Asset.Data, 0, destinationArray, 0, Asset.Data.Length);
+                        Array.Copy(data, 0, destinationArray, Asset.Data.Length, data.Length);
+                        Asset.Data = destinationArray;
                     }
                     else
                     {
                         byte[] buffer2 = new byte[data.Length - 4];
                         Array.Copy(data, 4, buffer2, 0, data.Length - 4);
-                        this.Asset.Data = buffer2;
+                        Asset.Data = buffer2;
                     }
                     ConfirmXferPacketPacket newPack = new ConfirmXferPacketPacket();
                     newPack.XferID.ID = xferID;
                     newPack.XferID.Packet = packetID;
-                    this.ourClient.OutPacket(newPack);
+                    ourClient.OutPacket(newPack);
                     if ((packetID & 0x80000000) != 0)
                     {
-                        this.SendCompleteMessage();
+                        SendCompleteMessage();
                     }
                 }
             }
 
-            public void Initialise(IClientAPI remoteClient, LLUUID assetID, LLUUID transaction, sbyte type, byte[] data, bool storeLocal)
+            public void Initialise(IClientAPI remoteClient, LLUUID assetID, LLUUID transaction, sbyte type, byte[] data,
+                                   bool storeLocal)
             {
-                this.ourClient = remoteClient;
-                this.Asset = new AssetBase();
-                this.Asset.FullID = assetID;
-                this.Asset.InvType = type;
-                this.Asset.Type = type;
-                this.Asset.Data = data;
-                this.Asset.Name = "blank";
-                this.Asset.Description = "empty";
-                this.TransactionID = transaction;
-                this.m_storeLocal = storeLocal;
-                if (this.Asset.Data.Length > 2)
+                ourClient = remoteClient;
+                Asset = new AssetBase();
+                Asset.FullID = assetID;
+                Asset.InvType = type;
+                Asset.Type = type;
+                Asset.Data = data;
+                Asset.Name = "blank";
+                Asset.Description = "empty";
+                TransactionID = transaction;
+                m_storeLocal = storeLocal;
+                if (Asset.Data.Length > 2)
                 {
-                    this.SendCompleteMessage();
+                    SendCompleteMessage();
                 }
                 else
                 {
-                    this.ReqestStartXfer();
+                    ReqestStartXfer();
                 }
             }
 
             protected void ReqestStartXfer()
             {
-                this.UploadComplete = false;
-                this.XferID = Util.GetNextXferID();
+                UploadComplete = false;
+                XferID = Util.GetNextXferID();
                 RequestXferPacket newPack = new RequestXferPacket();
-                newPack.XferID.ID = this.XferID;
-                newPack.XferID.VFileType = this.Asset.Type;
-                newPack.XferID.VFileID = this.Asset.FullID;
+                newPack.XferID.ID = XferID;
+                newPack.XferID.VFileType = Asset.Type;
+                newPack.XferID.VFileID = Asset.FullID;
                 newPack.XferID.FilePath = 0;
                 newPack.XferID.Filename = new byte[0];
-                this.ourClient.OutPacket(newPack);
+                ourClient.OutPacket(newPack);
             }
 
             protected void SendCompleteMessage()
             {
-                this.UploadComplete = true;
+                UploadComplete = true;
                 AssetUploadCompletePacket newPack = new AssetUploadCompletePacket();
-                newPack.AssetBlock.Type = this.Asset.Type;
+                newPack.AssetBlock.Type = Asset.Type;
                 newPack.AssetBlock.Success = true;
-                newPack.AssetBlock.UUID = this.Asset.FullID;
-                this.ourClient.OutPacket(newPack);
-                this.m_finished = true;
+                newPack.AssetBlock.UUID = Asset.FullID;
+                ourClient.OutPacket(newPack);
+                m_finished = true;
                 if (m_createItem)
                 {
                     DoCreateItem();
                 }
                 else if (m_storeLocal)
                 {
-                    this.m_userTransactions.Manager.CommsManager.AssetCache.AddAsset(this.Asset);
+                    m_userTransactions.Manager.CommsManager.AssetCache.AddAsset(Asset);
                 }
 
                 // Console.WriteLine("upload complete "+ this.TransactionID);
@@ -287,8 +288,10 @@ namespace OpenSim.Framework.Communications.Cache
                 if (m_dumpAssetToFile)
                 {
                     DateTime now = DateTime.Now;
-                    string filename = String.Format("{6}_{7}_{0:d2}{1:d2}{2:d2}_{3:d2}{4:d2}{5:d2}", now.Year, now.Month, now.Day, now.Hour, now.Minute, now.Second, Asset.Name, Asset.Type );
-                    SaveAssetToFile(filename, this.Asset.Data);
+                    string filename =
+                        String.Format("{6}_{7}_{0:d2}{1:d2}{2:d2}_{3:d2}{4:d2}{5:d2}", now.Year, now.Month, now.Day,
+                                      now.Hour, now.Minute, now.Second, Asset.Name, Asset.Type);
+                    SaveAssetToFile(filename, Asset.Data);
                 }
             }
 
@@ -301,20 +304,22 @@ namespace OpenSim.Framework.Communications.Cache
                 fs.Close();
             }
 
-            public void RequestCreateInventoryItem(IClientAPI remoteClient, LLUUID transactionID, LLUUID folderID, uint callbackID, string description, string name, sbyte invType, sbyte type, byte wearableType, uint nextOwnerMask)
+            public void RequestCreateInventoryItem(IClientAPI remoteClient, LLUUID transactionID, LLUUID folderID,
+                                                   uint callbackID, string description, string name, sbyte invType,
+                                                   sbyte type, byte wearableType, uint nextOwnerMask)
             {
-                if (this.TransactionID == transactionID)
+                if (TransactionID == transactionID)
                 {
-                    this.InventFolder = folderID;
-                    this.m_name = name;
-                    this.m_description = description;
+                    InventFolder = folderID;
+                    m_name = name;
+                    m_description = description;
                     this.type = type;
                     this.invType = invType;
-                    this.nextPerm = nextOwnerMask;
-                    this.Asset.Name = name;
-                    this.Asset.Description = description;
-                    this.Asset.Type = type;
-                    this.Asset.InvType = invType;
+                    nextPerm = nextOwnerMask;
+                    Asset.Name = name;
+                    Asset.Description = description;
+                    Asset.Type = type;
+                    Asset.InvType = invType;
                     m_createItem = true;
                     if (m_finished)
                     {
@@ -326,22 +331,23 @@ namespace OpenSim.Framework.Communications.Cache
             private void DoCreateItem()
             {
                 //really need to fix this call, if lbsa71 saw this he would die. 
-                this.m_userTransactions.Manager.CommsManager.AssetCache.AddAsset(this.Asset);
-                CachedUserInfo userInfo = m_userTransactions.Manager.CommsManager.UserProfileCache.GetUserDetails(ourClient.AgentId);
+                m_userTransactions.Manager.CommsManager.AssetCache.AddAsset(Asset);
+                CachedUserInfo userInfo =
+                    m_userTransactions.Manager.CommsManager.UserProfileCache.GetUserDetails(ourClient.AgentId);
                 if (userInfo != null)
                 {
                     InventoryItemBase item = new InventoryItemBase();
-                    item.avatarID = this.ourClient.AgentId;
+                    item.avatarID = ourClient.AgentId;
                     item.creatorsID = ourClient.AgentId;
                     item.inventoryID = LLUUID.Random();
                     item.assetID = Asset.FullID;
-                    item.inventoryDescription = this.m_description;
+                    item.inventoryDescription = m_description;
                     item.inventoryName = m_name;
                     item.assetType = type;
-                    item.invType = this.invType;
-                    item.parentFolderID = this.InventFolder;
+                    item.invType = invType;
+                    item.parentFolderID = InventFolder;
                     item.inventoryCurrentPermissions = 2147483647;
-                    item.inventoryNextPermissions = this.nextPerm;
+                    item.inventoryNextPermissions = nextPerm;
 
                     userInfo.AddItem(ourClient.AgentId, item);
                     ourClient.SendInventoryItemUpdate(item);
@@ -350,14 +356,13 @@ namespace OpenSim.Framework.Communications.Cache
 
             public void UpdateInventoryItem(LLUUID itemID)
             {
-
             }
 
             public AssetBase GetAssetData()
             {
                 if (m_finished)
                 {
-                    return this.Asset;
+                    return Asset;
                 }
                 return null;
             }
@@ -379,10 +384,10 @@ namespace OpenSim.Framework.Communications.Cache
             // Methods
             public void Initialise(LLUUID inventoryItem, string path, BaseHttpServer httpServer)
             {
-                this.inventoryItemID = inventoryItem;
-                this.uploaderPath = path;
-                this.httpListener = httpServer;
-                this.newAssetID = LLUUID.Random();
+                inventoryItemID = inventoryItem;
+                uploaderPath = path;
+                httpListener = httpServer;
+                newAssetID = LLUUID.Random();
             }
 
             private void SaveImageToFile(string filename, byte[] data)
@@ -399,18 +404,18 @@ namespace OpenSim.Framework.Communications.Cache
                 LLUUID inventoryItemID = this.inventoryItemID;
                 string text = "";
                 LLSDAssetUploadComplete complete = new LLSDAssetUploadComplete();
-                complete.new_asset = this.newAssetID.ToStringHyphenated();
+                complete.new_asset = newAssetID.ToStringHyphenated();
                 complete.new_inventory_item = inventoryItemID;
                 complete.state = "complete";
                 text = LLSDHelpers.SerialiseLLSDReply(complete);
-                this.httpListener.RemoveStreamHandler("POST", this.uploaderPath);
-                if (this.SaveImages)
+                httpListener.RemoveStreamHandler("POST", uploaderPath);
+                if (SaveImages)
                 {
-                    this.SaveImageToFile(this.m_assetName + "notecard.txt", data);
+                    SaveImageToFile(m_assetName + "notecard.txt", data);
                 }
-                if (this.OnUpLoad != null)
+                if (OnUpLoad != null)
                 {
-                    this.OnUpLoad(this.m_assetName, "description", this.newAssetID, inventoryItemID, LLUUID.Zero, data, "" , "" );
+                    OnUpLoad(m_assetName, "description", newAssetID, inventoryItemID, LLUUID.Zero, data, "", "");
                 }
                 return text;
             }

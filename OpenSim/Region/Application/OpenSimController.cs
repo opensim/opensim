@@ -1,28 +1,15 @@
 using System;
-using System.Collections.Generic;
 using System.Collections;
-using System.IO;
-using System.Text;
-using Nini.Config;
-using OpenSim.Framework.Communications.Cache;
-using OpenSim.Framework.Console;
-using OpenSim.Framework.Interfaces;
-using OpenSim.Framework.Servers;
-using OpenSim.Framework;
-using OpenSim.Framework;
-using OpenSim.Region.ClientStack;
-using OpenSim.Region.Communications.Local;
-using OpenSim.Region.Communications.OGS1;
-using OpenSim.Region.Environment;
-using OpenSim.Region.Environment.Scenes;
-using OpenSim.Region.Physics.Manager;
-using System.Globalization;
+using System.Net;
+using System.Timers;
 using Nwc.XmlRpc;
-using RegionInfo = OpenSim.Framework.RegionInfo;
+using OpenSim.Framework;
+using OpenSim.Framework.Console;
+using OpenSim.Framework.Servers;
 
 namespace OpenSim
 {
-    class OpenSimController
+    internal class OpenSimController
     {
         private OpenSimMain m_app;
         private BaseHttpServer m_httpServer;
@@ -44,22 +31,23 @@ namespace OpenSim
         {
             MainLog.Instance.Verbose("CONTROLLER", "Recieved Shutdown Administrator Request");
             XmlRpcResponse response = new XmlRpcResponse();
-            Hashtable requestData = (Hashtable)request.Params[0];
+            Hashtable requestData = (Hashtable) request.Params[0];
 
-            if ((string)requestData["shutdown"] == "delayed")
+            if ((string) requestData["shutdown"] == "delayed")
             {
-                int timeout = Convert.ToInt32((string)requestData["milliseconds"]);
+                int timeout = Convert.ToInt32((string) requestData["milliseconds"]);
 
                 Hashtable responseData = new Hashtable();
                 responseData["accepted"] = "true";
                 response.Value = responseData;
 
-                m_app.SceneManager.SendGeneralMessage("Region is going down in " + ((int)(timeout / 1000)).ToString() + " second(s). Please save what you are doing and log out.");
+                m_app.SceneManager.SendGeneralMessage("Region is going down in " + ((int) (timeout/1000)).ToString() +
+                                                      " second(s). Please save what you are doing and log out.");
 
                 // Perform shutdown
-                System.Timers.Timer shutdownTimer = new System.Timers.Timer(timeout); // Wait before firing
+                Timer shutdownTimer = new Timer(timeout); // Wait before firing
                 shutdownTimer.AutoReset = false;
-                shutdownTimer.Elapsed += new System.Timers.ElapsedEventHandler(shutdownTimer_Elapsed);
+                shutdownTimer.Elapsed += new ElapsedEventHandler(shutdownTimer_Elapsed);
 
                 return response;
             }
@@ -72,15 +60,15 @@ namespace OpenSim
                 m_app.SceneManager.SendGeneralMessage("Region is going down now.");
 
                 // Perform shutdown
-                System.Timers.Timer shutdownTimer = new System.Timers.Timer(2000); // Wait 2 seconds before firing
+                Timer shutdownTimer = new Timer(2000); // Wait 2 seconds before firing
                 shutdownTimer.AutoReset = false;
-                shutdownTimer.Elapsed += new System.Timers.ElapsedEventHandler(shutdownTimer_Elapsed);
+                shutdownTimer.Elapsed += new ElapsedEventHandler(shutdownTimer_Elapsed);
 
                 return response;
             }
         }
 
-        void shutdownTimer_Elapsed(object sender, System.Timers.ElapsedEventArgs e)
+        private void shutdownTimer_Elapsed(object sender, ElapsedEventArgs e)
         {
             m_app.Shutdown();
         }
@@ -89,28 +77,28 @@ namespace OpenSim
         {
             MainLog.Instance.Verbose("CONTROLLER", "Recieved Create Region Administrator Request");
             XmlRpcResponse response = new XmlRpcResponse();
-            Hashtable requestData = (Hashtable)request.Params[0];
+            Hashtable requestData = (Hashtable) request.Params[0];
 
             RegionInfo newRegionData = new RegionInfo();
 
             try
             {
-                newRegionData.RegionID = (string)requestData["region_id"];
-                newRegionData.RegionName = (string)requestData["region_name"];
-                newRegionData.RegionLocX = Convert.ToUInt32((string)requestData["region_x"]);
-                newRegionData.RegionLocY = Convert.ToUInt32((string)requestData["region_y"]);
+                newRegionData.RegionID = (string) requestData["region_id"];
+                newRegionData.RegionName = (string) requestData["region_name"];
+                newRegionData.RegionLocX = Convert.ToUInt32((string) requestData["region_x"]);
+                newRegionData.RegionLocY = Convert.ToUInt32((string) requestData["region_y"]);
 
                 // Security risk
-                newRegionData.DataStore = (string)requestData["datastore"];
+                newRegionData.DataStore = (string) requestData["datastore"];
 
-                newRegionData.InternalEndPoint = new System.Net.IPEndPoint(
-                    System.Net.IPAddress.Parse((string)requestData["listen_ip"]), 0);
+                newRegionData.InternalEndPoint = new IPEndPoint(
+                    IPAddress.Parse((string) requestData["listen_ip"]), 0);
 
-                newRegionData.InternalEndPoint.Port = Convert.ToInt32((string)requestData["listen_port"]);
-                newRegionData.ExternalHostName = (string)requestData["external_address"];
+                newRegionData.InternalEndPoint.Port = Convert.ToInt32((string) requestData["listen_port"]);
+                newRegionData.ExternalHostName = (string) requestData["external_address"];
 
-                newRegionData.MasterAvatarFirstName = (string)requestData["region_master_first"];
-                newRegionData.MasterAvatarLastName = (string)requestData["region_master_last"];
+                newRegionData.MasterAvatarFirstName = (string) requestData["region_master_first"];
+                newRegionData.MasterAvatarLastName = (string) requestData["region_master_last"];
 
                 m_app.CreateRegion(newRegionData);
 

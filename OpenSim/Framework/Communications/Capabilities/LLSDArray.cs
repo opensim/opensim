@@ -36,7 +36,6 @@ namespace OpenSim.Region.Capabilities
 
         public LLSDArray()
         {
-
         }
     }
 }

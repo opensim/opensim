@@ -1,6 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Text;
 using libsecondlife;
 using Nini.Config;
 using OpenSim.Framework;
@@ -11,7 +8,8 @@ namespace OpenSim.Region.Environment.Modules
 {
     public class AvatarFactoryModule : IAvatarFactory
     {
-        public bool TryGetIntialAvatarAppearance(LLUUID avatarId, out AvatarWearable[] wearables, out byte[] visualParams)
+        public bool TryGetIntialAvatarAppearance(LLUUID avatarId, out AvatarWearable[] wearables,
+                                                 out byte[] visualParams)
         {
             GetDefaultAvatarAppearance(out wearables, out visualParams);
             return true;
@@ -51,7 +49,4 @@ namespace OpenSim.Region.Environment.Modules
             wearables = AvatarWearable.DefaultWearables;
         }
     }
-
-
-
 }

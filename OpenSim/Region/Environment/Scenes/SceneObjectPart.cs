@@ -33,12 +33,10 @@ using System.Xml.Serialization;
 using Axiom.Math;
 using libsecondlife;
 using libsecondlife.Packets;
-using OpenSim.Framework.Interfaces;
 using OpenSim.Framework;
 using OpenSim.Region.Environment.Interfaces;
 using OpenSim.Region.Environment.Scenes.Scripting;
 using OpenSim.Region.Physics.Manager;
-using OpenSim.Region.Environment.Types;
 
 namespace OpenSim.Region.Environment.Scenes
 {
@@ -49,8 +47,7 @@ namespace OpenSim.Region.Environment.Scenes
         private string m_inventoryFileName = "";
         private LLUUID m_folderID = LLUUID.Zero;
 
-        [XmlIgnore] 
-        public PhysicsActor PhysActor = null;
+        [XmlIgnore] public PhysicsActor PhysActor = null;
 
         protected Dictionary<LLUUID, TaskInventoryItem> TaskInventory = new Dictionary<LLUUID, TaskInventoryItem>();
 
@@ -68,10 +65,8 @@ namespace OpenSim.Region.Environment.Scenes
 
         protected byte[] m_particleSystem = new byte[0];
 
-        [XmlIgnore] 
-        public uint TimeStampFull = 0;
-        [XmlIgnore] 
-        public uint TimeStampTerse = 0;
+        [XmlIgnore] public uint TimeStampFull = 0;
+        [XmlIgnore] public uint TimeStampTerse = 0;
 
         protected SceneObjectGroup m_parentGroup;
 
@@ -124,7 +119,7 @@ namespace OpenSim.Region.Environment.Scenes
             set { m_name = value; }
         }
 
-        protected LLObject.ObjectFlags m_flags =0;
+        protected LLObject.ObjectFlags m_flags = 0;
 
         public uint ObjectFlags
         {
@@ -132,7 +127,7 @@ namespace OpenSim.Region.Environment.Scenes
             set { m_flags = (LLObject.ObjectFlags) value; }
         }
 
-        protected LLObject.MaterialType m_material =0;
+        protected LLObject.MaterialType m_material = 0;
 
         public byte Material
         {
@@ -712,7 +707,7 @@ namespace OpenSim.Region.Environment.Scenes
             List<ScenePresence> avatars = m_parentGroup.GetScenePresences();
             for (int i = 0; i < avatars.Count; i++)
             {
-                 avatars[i].QueuePartForUpdate(this);
+                avatars[i].QueuePartForUpdate(this);
             }
         }
 
@@ -774,13 +769,13 @@ namespace OpenSim.Region.Environment.Scenes
             List<ScenePresence> avatars = m_parentGroup.GetScenePresences();
             for (int i = 0; i < avatars.Count; i++)
             {
-                 avatars[i].QueuePartForUpdate(this);
+                avatars[i].QueuePartForUpdate(this);
             }
         }
 
         public void AddTerseUpdateToAvatar(ScenePresence presence)
         {
-             presence.QueuePartForUpdate(this);
+            presence.QueuePartForUpdate(this);
         }
 
         /// <summary>

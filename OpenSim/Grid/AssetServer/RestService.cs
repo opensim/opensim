@@ -1,29 +1,27 @@
 using System;
 using System.IO;
+using System.Text;
 using System.Xml;
 using System.Xml.Serialization;
-using System.Text;
-
 using libsecondlife;
 using OpenSim.Framework;
-using OpenSim.Framework.Servers;
-using OpenSim.Framework.Interfaces;
 using OpenSim.Framework.Console;
+using OpenSim.Framework.Servers;
 
 namespace OpenSim.Grid.AssetServer
 {
     public class GetAssetStreamHandler : BaseStreamHandler
     {
-        OpenAsset_Main m_assetManager;
-        IAssetProvider m_assetProvider;
+        private OpenAsset_Main m_assetManager;
+        private IAssetProvider m_assetProvider;
 
-        override public byte[] Handle(string path, Stream request)
+        public override byte[] Handle(string path, Stream request)
         {
             string param = GetParam(path);
-            byte[] result = new byte[] { };
-            try {
-
-                string[] p = param.Split(new char[] { '/', '?', '&' }, StringSplitOptions.RemoveEmptyEntries);
+            byte[] result = new byte[] {};
+            try
+            {
+                string[] p = param.Split(new char[] {'/', '?', '&'}, StringSplitOptions.RemoveEmptyEntries);
 
                 if (p.Length > 0)
                 {
@@ -42,7 +40,7 @@ namespace OpenSim.Grid.AssetServer
                     {
                         MainLog.Instance.Debug("REST", "GET:/asset found {0}, {1}", assetID, asset.Name);
 
-                        XmlSerializer xs = new XmlSerializer(typeof(AssetBase));
+                        XmlSerializer xs = new XmlSerializer(typeof (AssetBase));
                         MemoryStream ms = new MemoryStream();
                         XmlTextWriter xw = new XmlTextWriter(ms, Encoding.UTF8);
                         xw.Formatting = Formatting.Indented;
@@ -53,7 +51,7 @@ namespace OpenSim.Grid.AssetServer
                         StreamReader sr = new StreamReader(ms);
 
                         result = ms.GetBuffer();
-                        Array.Resize<byte>(ref result, (int)ms.Length);
+                        Array.Resize<byte>(ref result, (int) ms.Length);
                     }
                     else
                     {
@@ -69,7 +67,7 @@ namespace OpenSim.Grid.AssetServer
         }
 
         public GetAssetStreamHandler(OpenAsset_Main assetManager, IAssetProvider assetProvider)
-            : base("GET", "/assets" )
+            : base("GET", "/assets")
         {
             m_assetManager = assetManager;
             m_assetProvider = assetProvider;
@@ -78,25 +76,25 @@ namespace OpenSim.Grid.AssetServer
 
     public class PostAssetStreamHandler : BaseStreamHandler
     {
-        OpenAsset_Main m_assetManager;
-        IAssetProvider m_assetProvider;
+        private OpenAsset_Main m_assetManager;
+        private IAssetProvider m_assetProvider;
 
-        override public byte[] Handle(string path, Stream request)
+        public override byte[] Handle(string path, Stream request)
         {
             string param = GetParam(path);
-            
+
             LLUUID assetId;
-            if(param.Length > 0)
+            if (param.Length > 0)
                 LLUUID.TryParse(param, out assetId);
             byte[] txBuffer = new byte[4096];
 
-            XmlSerializer xs = new XmlSerializer(typeof(AssetBase));
-            AssetBase asset = (AssetBase)xs.Deserialize(request);
+            XmlSerializer xs = new XmlSerializer(typeof (AssetBase));
+            AssetBase asset = (AssetBase) xs.Deserialize(request);
 
             MainLog.Instance.Verbose("REST", "StoreAndCommitAsset {0}", asset.FullID);
             m_assetProvider.CreateAsset(asset);
 
-            return new byte[] { };
+            return new byte[] {};
         }
 
         public PostAssetStreamHandler(OpenAsset_Main assetManager, IAssetProvider assetProvider)

@@ -26,34 +26,30 @@
 * 
 */
 /* Original code: Tedd Hansen */
-using System;
-using System.Collections.Generic;
-using System.Text;
-
 namespace OpenSim.Region.ScriptEngine.DotNetEngine
 {
     public static class Common
     {
-        static public bool debug = true;
-        static public ScriptEngine mySE;
+        public static bool debug = true;
+        public static ScriptEngine mySE;
 
         //public delegate void SendToDebugEventDelegate(string Message);
         //public delegate void SendToLogEventDelegate(string Message);
         //static public event SendToDebugEventDelegate SendToDebugEvent;
         //static public event SendToLogEventDelegate SendToLogEvent;
 
-        static public void SendToDebug(string Message)
+        public static void SendToDebug(string Message)
         {
             //if (Debug == true)
             mySE.Log.Verbose("ScriptEngine", "Debug: " + Message);
             //SendToDebugEvent("\r\n" + DateTime.Now.ToString("[HH:mm:ss] ") + Message);
         }
-        static public void SendToLog(string Message)
+
+        public static void SendToLog(string Message)
         {
             //if (Debug == true)
             mySE.Log.Verbose("ScriptEngine", "LOG: " + Message);
             //SendToLogEvent("\r\n" + DateTime.Now.ToString("[HH:mm:ss] ") + Message);
         }
     }
-
 }

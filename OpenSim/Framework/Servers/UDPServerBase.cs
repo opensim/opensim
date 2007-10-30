@@ -51,7 +51,7 @@ namespace OpenSim.Framework.Servers
         protected virtual void OnReceivedData(IAsyncResult result)
         {
             ipeSender = new IPEndPoint(IPAddress.Parse("0.0.0.0"), 0);
-            epSender = (EndPoint)ipeSender;
+            epSender = (EndPoint) ipeSender;
             Packet packet = null;
             int numBytes = Server.EndReceiveFrom(result, ref epSender);
             int packetEnd = numBytes - 1;
@@ -67,21 +67,18 @@ namespace OpenSim.Framework.Servers
 
         public virtual void ServerListener()
         {
-
             ServerIncoming = new IPEndPoint(IPAddress.Parse("0.0.0.0"), listenPort);
             Server = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
             Server.Bind(ServerIncoming);
 
             ipeSender = new IPEndPoint(IPAddress.Parse("0.0.0.0"), 0);
-            epSender = (EndPoint)ipeSender;
-            ReceivedData = new AsyncCallback(this.OnReceivedData);
+            epSender = (EndPoint) ipeSender;
+            ReceivedData = new AsyncCallback(OnReceivedData);
             Server.BeginReceiveFrom(RecvBuffer, 0, RecvBuffer.Length, SocketFlags.None, ref epSender, ReceivedData, null);
         }
 
         public virtual void SendPacketTo(byte[] buffer, int size, SocketFlags flags, uint circuitcode)
         {
-
         }
     }
 }
-

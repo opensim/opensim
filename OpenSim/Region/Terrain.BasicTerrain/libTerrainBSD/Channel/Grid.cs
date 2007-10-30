@@ -27,8 +27,6 @@
 */
 
 using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace libTerrain
 {
@@ -49,13 +47,13 @@ namespace libTerrain
                 {
                     for (y = 0; y < h; y++)
                     {
-                        map[x, y] = (map[x, y] - min) * (1.0 / (max - min));
+                        map[x, y] = (map[x, y] - min)*(1.0/(max - min));
                     }
                 }
             }
             else
             {
-                this.Fill(0.5);
+                Fill(0.5);
             }
 
             return this;
@@ -82,7 +80,7 @@ namespace libTerrain
                 {
                     if (min != max)
                     {
-                        double val = (map[x, y] - min) * (1.0 / max - min);
+                        double val = (map[x, y] - min)*(1.0/max - min);
                         val *= maxv - minv;
                         val += minv;
 
@@ -179,9 +177,9 @@ namespace libTerrain
             SetDiff();
 
             double area = amount;
-            double step = amount / 4.0;
+            double step = amount/4.0;
 
-            double[,] manipulate = new double[w, h];
+            double[,] manipulate = new double[w,h];
             int x, y;
             double n, l;
             for (x = 0; x < w; x++)
@@ -200,7 +198,7 @@ namespace libTerrain
                         }
                     }
 
-                    manipulate[x, y] = average / avgsteps;
+                    manipulate[x, y] = average/avgsteps;
                 }
             }
             map = manipulate;
@@ -211,7 +209,7 @@ namespace libTerrain
             SetDiff();
 
             // Simple pertubation filter
-            double[,] manipulated = new double[w, h];
+            double[,] manipulated = new double[w,h];
             Random generator = new Random(seed); // Seeds FTW!
             //double amount = 8.0;
 
@@ -220,8 +218,8 @@ namespace libTerrain
             {
                 for (y = 0; y < h; y++)
                 {
-                    double offset_x = (double)x + (generator.NextDouble() * amount) - (amount / 2.0);
-                    double offset_y = (double)y + (generator.NextDouble() * amount) - (amount / 2.0);
+                    double offset_x = (double) x + (generator.NextDouble()*amount) - (amount/2.0);
+                    double offset_y = (double) y + (generator.NextDouble()*amount) - (amount/2.0);
                     double p = GetBilinearInterpolate(offset_x, offset_y);
                     manipulated[x, y] = p;
                 }
@@ -232,7 +230,7 @@ namespace libTerrain
         public void PertubationMask(Channel mask)
         {
             // Simple pertubation filter
-            double[,] manipulated = new double[w, h];
+            double[,] manipulated = new double[w,h];
             Random generator = new Random(seed); // Seeds FTW!
             //double amount = 8.0;
 
@@ -244,8 +242,8 @@ namespace libTerrain
                 for (y = 0; y < h; y++)
                 {
                     amount = mask.map[x, y];
-                    double offset_x = (double)x + (generator.NextDouble() * amount) - (amount / 2.0);
-                    double offset_y = (double)y + (generator.NextDouble() * amount) - (amount / 2.0);
+                    double offset_x = (double) x + (generator.NextDouble()*amount) - (amount/2.0);
+                    double offset_y = (double) y + (generator.NextDouble()*amount) - (amount/2.0);
 
                     if (offset_x > w)
                         offset_x = w - 1;
@@ -267,7 +265,7 @@ namespace libTerrain
         public void Distort(Channel mask, double str)
         {
             // Simple pertubation filter
-            double[,] manipulated = new double[w, h];
+            double[,] manipulated = new double[w,h];
 
             double amount;
 
@@ -277,8 +275,8 @@ namespace libTerrain
                 for (y = 0; y < h; y++)
                 {
                     amount = mask.map[x, y];
-                    double offset_x = (double)x + (amount * str) - (0.5 * str);
-                    double offset_y = (double)y + (amount * str) - (0.5 * str);
+                    double offset_x = (double) x + (amount*str) - (0.5*str);
+                    double offset_y = (double) y + (amount*str) - (0.5*str);
 
                     if (offset_x > w)
                         offset_x = w - 1;
@@ -295,13 +293,12 @@ namespace libTerrain
                 }
             }
             map = manipulated;
-
         }
 
         public void Distort(Channel mask, Channel mask2, double str)
         {
             // Simple pertubation filter
-            double[,] manipulated = new double[w, h];
+            double[,] manipulated = new double[w,h];
 
             double amountX;
             double amountY;
@@ -313,8 +310,8 @@ namespace libTerrain
                 {
                     amountX = mask.map[x, y];
                     amountY = mask2.map[x, y];
-                    double offset_x = (double)x + (amountX * str) - (0.5 * str);
-                    double offset_y = (double)y + (amountY * str) - (0.5 * str);
+                    double offset_x = (double) x + (amountX*str) - (0.5*str);
+                    double offset_y = (double) y + (amountY*str) - (0.5*str);
 
                     if (offset_x > w)
                         offset_x = w - 1;
@@ -331,7 +328,6 @@ namespace libTerrain
                 }
             }
             map = manipulated;
-
         }
 
         public Channel Blend(Channel other, double amount)

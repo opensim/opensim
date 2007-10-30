@@ -40,7 +40,6 @@ namespace OpenSim.Region.Capabilities
 
         public LLSDMapLayer()
         {
-
         }
     }
 }

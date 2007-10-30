@@ -26,10 +26,6 @@
 * 
 */
 /* Original code: Tedd Hansen */
-using System;
-using System.Collections.Generic;
-using System.Text;
-
 namespace OpenSim.Grid.ScriptEngine.DotNetEngine.Compiler.LSO
 {
     public class LSL_CLRInterface

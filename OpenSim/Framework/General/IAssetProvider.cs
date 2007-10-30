@@ -26,15 +26,11 @@
 * 
 */
 
-using System;
-using System.Collections.Generic;
-using System.Text;
-using OpenSim.Framework;
 using libsecondlife;
 
 namespace OpenSim.Framework
 {
-    public interface IAssetProvider :  IPlugin
+    public interface IAssetProvider : IPlugin
     {
         AssetBase FetchAsset(LLUUID uuid);
         void CreateAsset(AssetBase asset);

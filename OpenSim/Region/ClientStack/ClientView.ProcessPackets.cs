@@ -31,8 +31,6 @@ using System.Text;
 using libsecondlife;
 using libsecondlife.Packets;
 using OpenSim.Framework;
-using OpenSim.Framework.Interfaces;
-using OpenSim.Region.Environment.Scenes;
 
 namespace OpenSim.Region.ClientStack
 {
@@ -63,7 +61,7 @@ namespace OpenSim.Region.ClientStack
         {
             ack_pack(Pack);
 
-            if (this.ProcessPacketMethod(Pack))
+            if (ProcessPacketMethod(Pack))
             {
                 //there is a handler registered that handled this packet type 
                 return;
@@ -74,16 +72,17 @@ namespace OpenSim.Region.ClientStack
 
                 switch (Pack.Type)
                 {
-                    #region  Scene/Avatar
+                        #region  Scene/Avatar
+
                     case PacketType.AvatarPropertiesRequest:
-                        AvatarPropertiesRequestPacket avatarProperties = (AvatarPropertiesRequestPacket)Pack;
+                        AvatarPropertiesRequestPacket avatarProperties = (AvatarPropertiesRequestPacket) Pack;
                         if (OnRequestAvatarProperties != null)
                         {
                             OnRequestAvatarProperties(this, avatarProperties.AgentData.AvatarID);
                         }
                         break;
                     case PacketType.ChatFromViewer:
-                        ChatFromViewerPacket inchatpack = (ChatFromViewerPacket)Pack;
+                        ChatFromViewerPacket inchatpack = (ChatFromViewerPacket) Pack;
                         if (Util.FieldToString(inchatpack.ChatData.Message) == "")
                         {
                             //empty message so don't bother with it
@@ -103,30 +102,32 @@ namespace OpenSim.Region.ClientStack
                             args.Channel = channel;
                             args.From = fromName;
                             args.Message = Util.FieldToString(message);
-                            args.Type = (ChatTypeEnum)type;
+                            args.Type = (ChatTypeEnum) type;
                             args.Position = fromPos;
 
                             args.Scene = Scene;
                             args.Sender = this;
 
-                            this.OnChatFromViewer(this, args);
+                            OnChatFromViewer(this, args);
                         }
                         break;
                     case PacketType.ImprovedInstantMessage:
-                        ImprovedInstantMessagePacket msgpack = (ImprovedInstantMessagePacket)Pack;
+                        ImprovedInstantMessagePacket msgpack = (ImprovedInstantMessagePacket) Pack;
                         string IMfromName = Util.FieldToString(msgpack.MessageBlock.FromAgentName);
                         string IMmessage = Util.FieldToString(msgpack.MessageBlock.Message);
                         if (OnInstantMessage != null)
                         {
-                            this.OnInstantMessage(msgpack.AgentData.AgentID, msgpack.AgentData.SessionID, msgpack.MessageBlock.ToAgentID, msgpack.MessageBlock.ID,
-                                msgpack.MessageBlock.Timestamp, IMfromName, IMmessage, msgpack.MessageBlock.Dialog);
+                            OnInstantMessage(msgpack.AgentData.AgentID, msgpack.AgentData.SessionID,
+                                             msgpack.MessageBlock.ToAgentID, msgpack.MessageBlock.ID,
+                                             msgpack.MessageBlock.Timestamp, IMfromName, IMmessage,
+                                             msgpack.MessageBlock.Dialog);
                         }
                         break;
                     case PacketType.RezObject:
-                        RezObjectPacket rezPacket = (RezObjectPacket)Pack;
+                        RezObjectPacket rezPacket = (RezObjectPacket) Pack;
                         if (OnRezObject != null)
                         {
-                            this.OnRezObject(this, rezPacket.InventoryData.ItemID, rezPacket.RezData.RayEnd);
+                            OnRezObject(this, rezPacket.InventoryData.ItemID, rezPacket.RezData.RayEnd);
                         }
                         break;
                     case PacketType.DeRezObject:
@@ -136,13 +137,15 @@ namespace OpenSim.Region.ClientStack
                         }
                         break;
                     case PacketType.ModifyLand:
-                        ModifyLandPacket modify = (ModifyLandPacket)Pack;
+                        ModifyLandPacket modify = (ModifyLandPacket) Pack;
                         if (modify.ParcelData.Length > 0)
                         {
                             if (OnModifyTerrain != null)
                             {
-                                OnModifyTerrain(modify.ModifyBlock.Height, modify.ModifyBlock.Seconds, modify.ModifyBlock.BrushSize,
-                                    modify.ModifyBlock.Action, modify.ParcelData[0].North, modify.ParcelData[0].West, this);
+                                OnModifyTerrain(modify.ModifyBlock.Height, modify.ModifyBlock.Seconds,
+                                                modify.ModifyBlock.BrushSize,
+                                                modify.ModifyBlock.Action, modify.ParcelData[0].North,
+                                                modify.ParcelData[0].West, this);
                             }
                         }
                         break;
@@ -164,7 +167,7 @@ namespace OpenSim.Region.ClientStack
                         break;
                     case PacketType.AgentSetAppearance:
                         //OpenSim.Framework.Console.MainLog.Instance.Verbose("set appear", Pack.ToString());
-                        AgentSetAppearancePacket appear = (AgentSetAppearancePacket)Pack;
+                        AgentSetAppearancePacket appear = (AgentSetAppearancePacket) Pack;
                         if (OnSetAppearance != null)
                         {
                             OnSetAppearance(appear.ObjectData.TextureEntry, appear.VisualParam);
@@ -179,17 +182,16 @@ namespace OpenSim.Region.ClientStack
                     case PacketType.AgentUpdate:
                         if (OnAgentUpdate != null)
                         {
-                            AgentUpdatePacket agenUpdate = (AgentUpdatePacket)Pack;
+                            AgentUpdatePacket agenUpdate = (AgentUpdatePacket) Pack;
                             OnAgentUpdate(this, agenUpdate.AgentData.ControlFlags, agenUpdate.AgentData.BodyRotation);
                         }
                         break;
                     case PacketType.AgentAnimation:
-                        AgentAnimationPacket AgentAni = (AgentAnimationPacket)Pack;
+                        AgentAnimationPacket AgentAni = (AgentAnimationPacket) Pack;
                         for (int i = 0; i < AgentAni.AnimationList.Length; i++)
                         {
                             if (AgentAni.AnimationList[i].StartAnim)
                             {
-
                                 if (OnStartAnim != null)
                                 {
                                     OnStartAnim(this, AgentAni.AnimationList[i].AnimID, 1);
@@ -198,27 +200,29 @@ namespace OpenSim.Region.ClientStack
                         }
                         break;
                     case PacketType.AgentRequestSit:
-                        AgentRequestSitPacket agentRequestSit = (AgentRequestSitPacket)Pack;
+                        AgentRequestSitPacket agentRequestSit = (AgentRequestSitPacket) Pack;
                         SendSitResponse(agentRequestSit.TargetObject.TargetID, agentRequestSit.TargetObject.Offset);
                         if (OnAgentRequestSit != null)
                         {
-                            OnAgentRequestSit(this, agentRequestSit.AgentData.AgentID, agentRequestSit.TargetObject.TargetID);
+                            OnAgentRequestSit(this, agentRequestSit.AgentData.AgentID,
+                                              agentRequestSit.TargetObject.TargetID);
                         }
                         break;
                     case PacketType.AgentSit:
                         if (OnAgentSit != null)
                         {
-                            AgentSitPacket agentSit = (AgentSitPacket)Pack;
+                            AgentSitPacket agentSit = (AgentSitPacket) Pack;
                             OnAgentSit(this, agentSit.AgentData.AgentID);
                         }
                         break;
 
-                    #endregion
+                        #endregion
 
-                    #region Objects/m_sceneObjects
+                        #region Objects/m_sceneObjects
+
                     case PacketType.ObjectLink:
                         // OpenSim.Framework.Console.MainLog.Instance.Verbose( Pack.ToString());
-                        ObjectLinkPacket link = (ObjectLinkPacket)Pack;
+                        ObjectLinkPacket link = (ObjectLinkPacket) Pack;
                         uint parentprimid = 0;
                         List<uint> childrenprims = new List<uint>();
                         if (link.ObjectData.Length > 1)
@@ -238,13 +242,13 @@ namespace OpenSim.Region.ClientStack
                     case PacketType.ObjectAdd:
                         if (OnAddPrim != null)
                         {
-                            ObjectAddPacket addPacket = (ObjectAddPacket)Pack;
+                            ObjectAddPacket addPacket = (ObjectAddPacket) Pack;
                             PrimitiveBaseShape shape = GetShapeFromAddPacket(addPacket);
-                            OnAddPrim(this.AgentId, addPacket.ObjectData.RayEnd, shape);
+                            OnAddPrim(AgentId, addPacket.ObjectData.RayEnd, shape);
                         }
                         break;
                     case PacketType.ObjectShape:
-                        ObjectShapePacket shapePacket = (ObjectShapePacket)Pack;
+                        ObjectShapePacket shapePacket = (ObjectShapePacket) Pack;
                         for (int i = 0; i < shapePacket.ObjectData.Length; i++)
                         {
                             if (OnUpdatePrimShape != null)
@@ -254,26 +258,28 @@ namespace OpenSim.Region.ClientStack
                         }
                         break;
                     case PacketType.ObjectExtraParams:
-                        ObjectExtraParamsPacket extraPar = (ObjectExtraParamsPacket)Pack;
+                        ObjectExtraParamsPacket extraPar = (ObjectExtraParamsPacket) Pack;
                         if (OnUpdateExtraParams != null)
                         {
-                            OnUpdateExtraParams(extraPar.ObjectData[0].ObjectLocalID, extraPar.ObjectData[0].ParamType, extraPar.ObjectData[0].ParamInUse, extraPar.ObjectData[0].ParamData);
+                            OnUpdateExtraParams(extraPar.ObjectData[0].ObjectLocalID, extraPar.ObjectData[0].ParamType,
+                                                extraPar.ObjectData[0].ParamInUse, extraPar.ObjectData[0].ParamData);
                         }
                         break;
                     case PacketType.ObjectDuplicate:
-                        ObjectDuplicatePacket dupe = (ObjectDuplicatePacket)Pack;
+                        ObjectDuplicatePacket dupe = (ObjectDuplicatePacket) Pack;
                         for (int i = 0; i < dupe.ObjectData.Length; i++)
                         {
                             if (OnObjectDuplicate != null)
                             {
-                                OnObjectDuplicate(dupe.ObjectData[i].ObjectLocalID, dupe.SharedData.Offset, dupe.SharedData.DuplicateFlags);
+                                OnObjectDuplicate(dupe.ObjectData[i].ObjectLocalID, dupe.SharedData.Offset,
+                                                  dupe.SharedData.DuplicateFlags);
                             }
                         }
 
                         break;
 
                     case PacketType.ObjectSelect:
-                        ObjectSelectPacket incomingselect = (ObjectSelectPacket)Pack;
+                        ObjectSelectPacket incomingselect = (ObjectSelectPacket) Pack;
                         for (int i = 0; i < incomingselect.ObjectData.Length; i++)
                         {
                             if (OnObjectSelect != null)
@@ -283,7 +289,7 @@ namespace OpenSim.Region.ClientStack
                         }
                         break;
                     case PacketType.ObjectDeselect:
-                        ObjectDeselectPacket incomingdeselect = (ObjectDeselectPacket)Pack;
+                        ObjectDeselectPacket incomingdeselect = (ObjectDeselectPacket) Pack;
                         for (int i = 0; i < incomingdeselect.ObjectData.Length; i++)
                         {
                             if (OnObjectDeselect != null)
@@ -293,55 +299,58 @@ namespace OpenSim.Region.ClientStack
                         }
                         break;
                     case PacketType.ObjectFlagUpdate:
-                        ObjectFlagUpdatePacket flags = (ObjectFlagUpdatePacket)Pack;
+                        ObjectFlagUpdatePacket flags = (ObjectFlagUpdatePacket) Pack;
                         if (OnUpdatePrimFlags != null)
                         {
                             OnUpdatePrimFlags(flags.AgentData.ObjectLocalID, Pack, this);
                         }
                         break;
                     case PacketType.ObjectImage:
-                        ObjectImagePacket imagePack = (ObjectImagePacket)Pack;
+                        ObjectImagePacket imagePack = (ObjectImagePacket) Pack;
                         for (int i = 0; i < imagePack.ObjectData.Length; i++)
                         {
                             if (OnUpdatePrimTexture != null)
                             {
-                                OnUpdatePrimTexture(imagePack.ObjectData[i].ObjectLocalID, imagePack.ObjectData[i].TextureEntry, this);
+                                OnUpdatePrimTexture(imagePack.ObjectData[i].ObjectLocalID,
+                                                    imagePack.ObjectData[i].TextureEntry, this);
                             }
                         }
                         break;
                     case PacketType.ObjectGrab:
-                        ObjectGrabPacket grab = (ObjectGrabPacket)Pack;
+                        ObjectGrabPacket grab = (ObjectGrabPacket) Pack;
                         if (OnGrabObject != null)
                         {
                             OnGrabObject(grab.ObjectData.LocalID, grab.ObjectData.GrabOffset, this);
                         }
                         break;
                     case PacketType.ObjectGrabUpdate:
-                        ObjectGrabUpdatePacket grabUpdate = (ObjectGrabUpdatePacket)Pack;
+                        ObjectGrabUpdatePacket grabUpdate = (ObjectGrabUpdatePacket) Pack;
                         if (OnGrabUpdate != null)
                         {
-                            OnGrabUpdate(grabUpdate.ObjectData.ObjectID, grabUpdate.ObjectData.GrabOffsetInitial, grabUpdate.ObjectData.GrabPosition, this);
+                            OnGrabUpdate(grabUpdate.ObjectData.ObjectID, grabUpdate.ObjectData.GrabOffsetInitial,
+                                         grabUpdate.ObjectData.GrabPosition, this);
                         }
                         break;
                     case PacketType.ObjectDeGrab:
-                        ObjectDeGrabPacket deGrab = (ObjectDeGrabPacket)Pack;
+                        ObjectDeGrabPacket deGrab = (ObjectDeGrabPacket) Pack;
                         if (OnDeGrabObject != null)
                         {
                             OnDeGrabObject(deGrab.ObjectData.LocalID, this);
                         }
                         break;
                     case PacketType.ObjectDescription:
-                        ObjectDescriptionPacket objDes = (ObjectDescriptionPacket)Pack;
+                        ObjectDescriptionPacket objDes = (ObjectDescriptionPacket) Pack;
                         for (int i = 0; i < objDes.ObjectData.Length; i++)
                         {
                             if (OnObjectDescription != null)
                             {
-                                OnObjectDescription(objDes.ObjectData[i].LocalID, enc.GetString(objDes.ObjectData[i].Description));
+                                OnObjectDescription(objDes.ObjectData[i].LocalID,
+                                                    enc.GetString(objDes.ObjectData[i].Description));
                             }
                         }
                         break;
                     case PacketType.ObjectName:
-                        ObjectNamePacket objName = (ObjectNamePacket)Pack;
+                        ObjectNamePacket objName = (ObjectNamePacket) Pack;
                         for (int i = 0; i < objName.ObjectData.Length; i++)
                         {
                             if (OnObjectName != null)
@@ -353,15 +362,16 @@ namespace OpenSim.Region.ClientStack
                     case PacketType.ObjectPermissions:
                         //Console.WriteLine("permissions set " + Pack.ToString());
                         break;
-                    #endregion
 
-                    #region Inventory/Asset/Other related packets
+                        #endregion
+
+                        #region Inventory/Asset/Other related packets
+
                     case PacketType.RequestImage:
-                        RequestImagePacket imageRequest = (RequestImagePacket)Pack;
+                        RequestImagePacket imageRequest = (RequestImagePacket) Pack;
                         //Console.WriteLine("image request: " + Pack.ToString());
                         for (int i = 0; i < imageRequest.RequestImage.Length; i++)
                         {
-
                             // still working on the Texture download module so for now using old method
                             //  TextureRequestArgs args = new TextureRequestArgs();
                             //  args.RequestedAssetID = imageRequest.RequestImage[i].Image;
@@ -373,86 +383,104 @@ namespace OpenSim.Region.ClientStack
                             //      OnRequestTexture(this, args);
                             //  }
 
-                            m_assetCache.AddTextureRequest(this, imageRequest.RequestImage[i].Image, imageRequest.RequestImage[i].Packet, imageRequest.RequestImage[i].DiscardLevel);
+                            m_assetCache.AddTextureRequest(this, imageRequest.RequestImage[i].Image,
+                                                           imageRequest.RequestImage[i].Packet,
+                                                           imageRequest.RequestImage[i].DiscardLevel);
                         }
                         break;
                     case PacketType.TransferRequest:
                         //Console.WriteLine("OpenSimClient.cs:ProcessInPacket() - Got transfer request");
-                        TransferRequestPacket transfer = (TransferRequestPacket)Pack;
+                        TransferRequestPacket transfer = (TransferRequestPacket) Pack;
                         m_assetCache.AddAssetRequest(this, transfer);
                         break;
                     case PacketType.AssetUploadRequest:
-                        AssetUploadRequestPacket request = (AssetUploadRequestPacket)Pack;
+                        AssetUploadRequestPacket request = (AssetUploadRequestPacket) Pack;
                         // Console.WriteLine("upload request " + Pack.ToString());
                         // Console.WriteLine("upload request was for assetid: " + request.AssetBlock.TransactionID.Combine(this.SecureSessionID).ToStringHyphenated());
                         if (OnAssetUploadRequest != null)
                         {
-                            OnAssetUploadRequest(this, request.AssetBlock.TransactionID.Combine(this.SecureSessionID), request.AssetBlock.TransactionID, request.AssetBlock.Type, request.AssetBlock.AssetData, request.AssetBlock.StoreLocal);
+                            OnAssetUploadRequest(this, request.AssetBlock.TransactionID.Combine(SecureSessionID),
+                                                 request.AssetBlock.TransactionID, request.AssetBlock.Type,
+                                                 request.AssetBlock.AssetData, request.AssetBlock.StoreLocal);
                         }
                         break;
                     case PacketType.RequestXfer:
-                        RequestXferPacket xferReq = (RequestXferPacket)Pack;
+                        RequestXferPacket xferReq = (RequestXferPacket) Pack;
                         if (OnRequestXfer != null)
                         {
                             OnRequestXfer(this, xferReq.XferID.ID, Util.FieldToString(xferReq.XferID.Filename));
                         }
                         break;
                     case PacketType.SendXferPacket:
-                        SendXferPacketPacket xferRec = (SendXferPacketPacket)Pack;
+                        SendXferPacketPacket xferRec = (SendXferPacketPacket) Pack;
                         if (OnXferReceive != null)
                         {
                             OnXferReceive(this, xferRec.XferID.ID, xferRec.XferID.Packet, xferRec.DataPacket.Data);
                         }
                         break;
                     case PacketType.ConfirmXferPacket:
-                        ConfirmXferPacketPacket confirmXfer = (ConfirmXferPacketPacket)Pack;
+                        ConfirmXferPacketPacket confirmXfer = (ConfirmXferPacketPacket) Pack;
                         if (OnConfirmXfer != null)
                         {
                             OnConfirmXfer(this, confirmXfer.XferID.ID, confirmXfer.XferID.Packet);
                         }
                         break;
                     case PacketType.CreateInventoryFolder:
-                        if (this.OnCreateNewInventoryFolder != null)
+                        if (OnCreateNewInventoryFolder != null)
                         {
-                            CreateInventoryFolderPacket invFolder = (CreateInventoryFolderPacket)Pack;
-                            this.OnCreateNewInventoryFolder(this, invFolder.FolderData.FolderID, (ushort)invFolder.FolderData.Type, Util.FieldToString(invFolder.FolderData.Name), invFolder.FolderData.ParentID);
+                            CreateInventoryFolderPacket invFolder = (CreateInventoryFolderPacket) Pack;
+                            OnCreateNewInventoryFolder(this, invFolder.FolderData.FolderID,
+                                                       (ushort) invFolder.FolderData.Type,
+                                                       Util.FieldToString(invFolder.FolderData.Name),
+                                                       invFolder.FolderData.ParentID);
                         }
                         break;
                     case PacketType.CreateInventoryItem:
-                        CreateInventoryItemPacket createItem = (CreateInventoryItemPacket)Pack;
-                        if (this.OnCreateNewInventoryItem != null)
+                        CreateInventoryItemPacket createItem = (CreateInventoryItemPacket) Pack;
+                        if (OnCreateNewInventoryItem != null)
                         {
-                            this.OnCreateNewInventoryItem(this, createItem.InventoryBlock.TransactionID, createItem.InventoryBlock.FolderID, createItem.InventoryBlock.CallbackID,
-                                Util.FieldToString(createItem.InventoryBlock.Description), Util.FieldToString(createItem.InventoryBlock.Name), createItem.InventoryBlock.InvType,
-                                createItem.InventoryBlock.Type, createItem.InventoryBlock.WearableType, createItem.InventoryBlock.NextOwnerMask);
+                            OnCreateNewInventoryItem(this, createItem.InventoryBlock.TransactionID,
+                                                     createItem.InventoryBlock.FolderID,
+                                                     createItem.InventoryBlock.CallbackID,
+                                                     Util.FieldToString(createItem.InventoryBlock.Description),
+                                                     Util.FieldToString(createItem.InventoryBlock.Name),
+                                                     createItem.InventoryBlock.InvType,
+                                                     createItem.InventoryBlock.Type,
+                                                     createItem.InventoryBlock.WearableType,
+                                                     createItem.InventoryBlock.NextOwnerMask);
                         }
                         break;
                     case PacketType.FetchInventory:
-                        if (this.OnFetchInventory != null)
+                        if (OnFetchInventory != null)
                         {
-                            FetchInventoryPacket FetchInventory = (FetchInventoryPacket)Pack;
+                            FetchInventoryPacket FetchInventory = (FetchInventoryPacket) Pack;
                             for (int i = 0; i < FetchInventory.InventoryData.Length; i++)
                             {
-                                this.OnFetchInventory(this, FetchInventory.InventoryData[i].ItemID, FetchInventory.InventoryData[i].OwnerID);
+                                OnFetchInventory(this, FetchInventory.InventoryData[i].ItemID,
+                                                 FetchInventory.InventoryData[i].OwnerID);
                             }
                         }
                         break;
                     case PacketType.FetchInventoryDescendents:
-                        if (this.OnFetchInventoryDescendents != null)
+                        if (OnFetchInventoryDescendents != null)
                         {
-                            FetchInventoryDescendentsPacket Fetch = (FetchInventoryDescendentsPacket)Pack;
-                            this.OnFetchInventoryDescendents(this, Fetch.InventoryData.FolderID, Fetch.InventoryData.OwnerID, Fetch.InventoryData.FetchFolders, Fetch.InventoryData.FetchItems, Fetch.InventoryData.SortOrder);
+                            FetchInventoryDescendentsPacket Fetch = (FetchInventoryDescendentsPacket) Pack;
+                            OnFetchInventoryDescendents(this, Fetch.InventoryData.FolderID, Fetch.InventoryData.OwnerID,
+                                                        Fetch.InventoryData.FetchFolders, Fetch.InventoryData.FetchItems,
+                                                        Fetch.InventoryData.SortOrder);
                         }
                         break;
                     case PacketType.UpdateInventoryItem:
-                        UpdateInventoryItemPacket update = (UpdateInventoryItemPacket)Pack;
+                        UpdateInventoryItemPacket update = (UpdateInventoryItemPacket) Pack;
                         if (OnUpdateInventoryItem != null)
                         {
                             for (int i = 0; i < update.InventoryData.Length; i++)
                             {
                                 if (update.InventoryData[i].TransactionID != LLUUID.Zero)
                                 {
-                                    OnUpdateInventoryItem(this, update.InventoryData[i].TransactionID, update.InventoryData[i].TransactionID.Combine(this.SecureSessionID), update.InventoryData[i].ItemID);
+                                    OnUpdateInventoryItem(this, update.InventoryData[i].TransactionID,
+                                                          update.InventoryData[i].TransactionID.Combine(SecureSessionID),
+                                                          update.InventoryData[i].ItemID);
                                 }
                             }
                         }
@@ -488,25 +516,26 @@ namespace OpenSim.Region.ClientStack
                         }*/
                         break;
                     case PacketType.RequestTaskInventory:
-                        RequestTaskInventoryPacket requesttask = (RequestTaskInventoryPacket)Pack;
-                        if (this.OnRequestTaskInventory != null)
+                        RequestTaskInventoryPacket requesttask = (RequestTaskInventoryPacket) Pack;
+                        if (OnRequestTaskInventory != null)
                         {
-                            this.OnRequestTaskInventory(this, requesttask.InventoryData.LocalID);
+                            OnRequestTaskInventory(this, requesttask.InventoryData.LocalID);
                         }
                         break;
                     case PacketType.UpdateTaskInventory:
                         //Console.WriteLine(Pack.ToString());
-                        UpdateTaskInventoryPacket updatetask = (UpdateTaskInventoryPacket)Pack;
+                        UpdateTaskInventoryPacket updatetask = (UpdateTaskInventoryPacket) Pack;
                         if (OnUpdateTaskInventory != null)
                         {
                             if (updatetask.UpdateData.Key == 0)
                             {
-                                OnUpdateTaskInventory(this, updatetask.InventoryData.ItemID, updatetask.InventoryData.FolderID, updatetask.UpdateData.LocalID);
+                                OnUpdateTaskInventory(this, updatetask.InventoryData.ItemID,
+                                                      updatetask.InventoryData.FolderID, updatetask.UpdateData.LocalID);
                             }
                         }
                         break;
                     case PacketType.RemoveTaskInventory:
-                        RemoveTaskInventoryPacket removeTask = (RemoveTaskInventoryPacket)Pack;
+                        RemoveTaskInventoryPacket removeTask = (RemoveTaskInventoryPacket) Pack;
                         if (OnRemoveTaskItem != null)
                         {
                             OnRemoveTaskItem(this, removeTask.InventoryData.ItemID, removeTask.InventoryData.LocalID);
@@ -517,38 +546,39 @@ namespace OpenSim.Region.ClientStack
                         break;
                     case PacketType.RezScript:
                         //Console.WriteLine(Pack.ToString());
-                        RezScriptPacket rezScript = (RezScriptPacket)Pack;
+                        RezScriptPacket rezScript = (RezScriptPacket) Pack;
                         if (OnRezScript != null)
                         {
                             OnRezScript(this, rezScript.InventoryBlock.ItemID, rezScript.UpdateBlock.ObjectLocalID);
                         }
                         break;
                     case PacketType.MapLayerRequest:
-                        this.RequestMapLayer();
+                        RequestMapLayer();
                         break;
                     case PacketType.MapBlockRequest:
-                        MapBlockRequestPacket MapRequest = (MapBlockRequestPacket)Pack;
+                        MapBlockRequestPacket MapRequest = (MapBlockRequestPacket) Pack;
                         if (OnRequestMapBlocks != null)
                         {
-                            OnRequestMapBlocks(this, MapRequest.PositionData.MinX, MapRequest.PositionData.MinY, MapRequest.PositionData.MaxX, MapRequest.PositionData.MaxY);
+                            OnRequestMapBlocks(this, MapRequest.PositionData.MinX, MapRequest.PositionData.MinY,
+                                               MapRequest.PositionData.MaxX, MapRequest.PositionData.MaxY);
                         }
                         break;
                     case PacketType.TeleportLandmarkRequest:
-                        TeleportLandmarkRequestPacket tpReq = (TeleportLandmarkRequestPacket)Pack;
+                        TeleportLandmarkRequestPacket tpReq = (TeleportLandmarkRequestPacket) Pack;
 
                         TeleportStartPacket tpStart = new TeleportStartPacket();
                         tpStart.Info.TeleportFlags = 8; // tp via lm
-                        this.OutPacket(tpStart);
+                        OutPacket(tpStart);
 
                         TeleportProgressPacket tpProgress = new TeleportProgressPacket();
                         tpProgress.Info.Message = (new ASCIIEncoding()).GetBytes("sending_landmark");
                         tpProgress.Info.TeleportFlags = 8;
                         tpProgress.AgentData.AgentID = tpReq.Info.AgentID;
-                        this.OutPacket(tpProgress);
+                        OutPacket(tpProgress);
 
                         // Fetch landmark
                         LLUUID lmid = tpReq.Info.LandmarkID;
-                        AssetBase lma = this.m_assetCache.GetAsset(lmid);
+                        AssetBase lma = m_assetCache.GetAsset(lmid);
                         if (lma != null)
                         {
                             AssetLandmark lm = new AssetLandmark(lma);
@@ -558,7 +588,7 @@ namespace OpenSim.Region.ClientStack
                                 TeleportLocalPacket tpLocal = new TeleportLocalPacket();
 
                                 tpLocal.Info.AgentID = tpReq.Info.AgentID;
-                                tpLocal.Info.TeleportFlags = 8;  // Teleport via landmark
+                                tpLocal.Info.TeleportFlags = 8; // Teleport via landmark
                                 tpLocal.Info.LocationID = 2;
                                 tpLocal.Info.Position = lm.Position;
                                 OutPacket(tpLocal);
@@ -582,12 +612,13 @@ namespace OpenSim.Region.ClientStack
                         }
                         break;
                     case PacketType.TeleportLocationRequest:
-                        TeleportLocationRequestPacket tpLocReq = (TeleportLocationRequestPacket)Pack;
+                        TeleportLocationRequestPacket tpLocReq = (TeleportLocationRequestPacket) Pack;
                         // Console.WriteLine(tpLocReq.ToString());
 
                         if (OnTeleportLocationRequest != null)
                         {
-                            OnTeleportLocationRequest(this, tpLocReq.Info.RegionHandle, tpLocReq.Info.Position, tpLocReq.Info.LookAt, 16);
+                            OnTeleportLocationRequest(this, tpLocReq.Info.RegionHandle, tpLocReq.Info.Position,
+                                                      tpLocReq.Info.LookAt, 16);
                         }
                         else
                         {
@@ -598,76 +629,94 @@ namespace OpenSim.Region.ClientStack
                             OutPacket(tpCancel);
                         }
                         break;
-                    #endregion
+
+                        #endregion
 
                     case PacketType.MoneyBalanceRequest:
                         SendMoneyBalance(LLUUID.Zero, true, new byte[0], MoneyBalance);
                         break;
                     case PacketType.UUIDNameRequest:
-                        UUIDNameRequestPacket incoming = (UUIDNameRequestPacket)Pack;
+                        UUIDNameRequestPacket incoming = (UUIDNameRequestPacket) Pack;
                         foreach (UUIDNameRequestPacket.UUIDNameBlockBlock UUIDBlock in incoming.UUIDNameBlock)
                         {
                             OnNameFromUUIDRequest(UUIDBlock.ID, this);
                         }
                         break;
-                    #region Parcel related packets
+
+                        #region Parcel related packets
+
                     case PacketType.ParcelPropertiesRequest:
-                        ParcelPropertiesRequestPacket propertiesRequest = (ParcelPropertiesRequestPacket)Pack;
+                        ParcelPropertiesRequestPacket propertiesRequest = (ParcelPropertiesRequestPacket) Pack;
                         if (OnParcelPropertiesRequest != null)
                         {
-                            OnParcelPropertiesRequest((int)Math.Round(propertiesRequest.ParcelData.West), (int)Math.Round(propertiesRequest.ParcelData.South), (int)Math.Round(propertiesRequest.ParcelData.East), (int)Math.Round(propertiesRequest.ParcelData.North), propertiesRequest.ParcelData.SequenceID, propertiesRequest.ParcelData.SnapSelection, this);
+                            OnParcelPropertiesRequest((int) Math.Round(propertiesRequest.ParcelData.West),
+                                                      (int) Math.Round(propertiesRequest.ParcelData.South),
+                                                      (int) Math.Round(propertiesRequest.ParcelData.East),
+                                                      (int) Math.Round(propertiesRequest.ParcelData.North),
+                                                      propertiesRequest.ParcelData.SequenceID,
+                                                      propertiesRequest.ParcelData.SnapSelection, this);
                         }
                         break;
                     case PacketType.ParcelDivide:
-                        ParcelDividePacket landDivide = (ParcelDividePacket)Pack;
+                        ParcelDividePacket landDivide = (ParcelDividePacket) Pack;
                         if (OnParcelDivideRequest != null)
                         {
-                            OnParcelDivideRequest((int)Math.Round(landDivide.ParcelData.West), (int)Math.Round(landDivide.ParcelData.South), (int)Math.Round(landDivide.ParcelData.East), (int)Math.Round(landDivide.ParcelData.North), this);
+                            OnParcelDivideRequest((int) Math.Round(landDivide.ParcelData.West),
+                                                  (int) Math.Round(landDivide.ParcelData.South),
+                                                  (int) Math.Round(landDivide.ParcelData.East),
+                                                  (int) Math.Round(landDivide.ParcelData.North), this);
                         }
                         break;
                     case PacketType.ParcelJoin:
-                        ParcelJoinPacket landJoin = (ParcelJoinPacket)Pack;
+                        ParcelJoinPacket landJoin = (ParcelJoinPacket) Pack;
                         if (OnParcelJoinRequest != null)
                         {
-                            OnParcelJoinRequest((int)Math.Round(landJoin.ParcelData.West), (int)Math.Round(landJoin.ParcelData.South), (int)Math.Round(landJoin.ParcelData.East), (int)Math.Round(landJoin.ParcelData.North), this);
+                            OnParcelJoinRequest((int) Math.Round(landJoin.ParcelData.West),
+                                                (int) Math.Round(landJoin.ParcelData.South),
+                                                (int) Math.Round(landJoin.ParcelData.East),
+                                                (int) Math.Round(landJoin.ParcelData.North), this);
                         }
                         break;
                     case PacketType.ParcelPropertiesUpdate:
-                        ParcelPropertiesUpdatePacket updatePacket = (ParcelPropertiesUpdatePacket)Pack;
+                        ParcelPropertiesUpdatePacket updatePacket = (ParcelPropertiesUpdatePacket) Pack;
                         if (OnParcelPropertiesUpdateRequest != null)
                         {
                             OnParcelPropertiesUpdateRequest(updatePacket, this);
-
                         }
                         break;
                     case PacketType.ParcelSelectObjects:
-                        ParcelSelectObjectsPacket selectPacket = (ParcelSelectObjectsPacket)Pack;
+                        ParcelSelectObjectsPacket selectPacket = (ParcelSelectObjectsPacket) Pack;
                         if (OnParcelSelectObjects != null)
                         {
-                            OnParcelSelectObjects(selectPacket.ParcelData.LocalID, Convert.ToInt32(selectPacket.ParcelData.ReturnType), this);
+                            OnParcelSelectObjects(selectPacket.ParcelData.LocalID,
+                                                  Convert.ToInt32(selectPacket.ParcelData.ReturnType), this);
                         }
                         break;
 
                     case PacketType.ParcelObjectOwnersRequest:
-                        ParcelObjectOwnersRequestPacket reqPacket = (ParcelObjectOwnersRequestPacket)Pack;
+                        ParcelObjectOwnersRequestPacket reqPacket = (ParcelObjectOwnersRequestPacket) Pack;
                         if (OnParcelObjectOwnerRequest != null)
                         {
                             OnParcelObjectOwnerRequest(reqPacket.ParcelData.LocalID, this);
                         }
                         break;
-                    #endregion
 
-                    #region Estate Packets
+                        #endregion
+
+                        #region Estate Packets
+
                     case PacketType.EstateOwnerMessage:
-                        EstateOwnerMessagePacket messagePacket = (EstateOwnerMessagePacket)Pack;
+                        EstateOwnerMessagePacket messagePacket = (EstateOwnerMessagePacket) Pack;
                         if (OnEstateOwnerMessage != null)
                         {
                             OnEstateOwnerMessage(messagePacket, this);
                         }
                         break;
-                    #endregion
 
-                    #region unimplemented handlers
+                        #endregion
+
+                        #region unimplemented handlers
+
                     case PacketType.AgentIsNowWearing:
                         // AgentIsNowWearingPacket wear = (AgentIsNowWearingPacket)Pack;
                         //Console.WriteLine(Pack.ToString());
@@ -675,7 +724,8 @@ namespace OpenSim.Region.ClientStack
                     case PacketType.ObjectScale:
                         //OpenSim.Framework.Console.MainLog.Instance.Verbose( Pack.ToString());
                         break;
-                    #endregion
+
+                        #endregion
                 }
             }
         }

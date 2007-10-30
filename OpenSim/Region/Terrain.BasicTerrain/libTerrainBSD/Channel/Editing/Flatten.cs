@@ -28,8 +28,6 @@
 
 
 using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace libTerrain
 {
@@ -58,12 +56,12 @@ namespace libTerrain
 
             // Establish the average height under the area
             Channel newmap = new Channel(w, h);
-            newmap.map = (double[,])map.Clone();
+            newmap.map = (double[,]) map.Clone();
 
             newmap *= temp;
 
             double total_terrain = newmap.Sum();
-            double avg_height = total_terrain / total_mod;
+            double avg_height = total_terrain/total_mod;
 
             // Create a flat terrain using the average height
             Channel flat = new Channel(w, h);
@@ -72,7 +70,6 @@ namespace libTerrain
             // Blend the current terrain with the average height terrain
             // using the "raised" empty terrain as a mask
             Blend(flat, temp);
-
         }
 
         private void FlattenFast(double rx, double ry, double size, double amount)
@@ -81,10 +78,10 @@ namespace libTerrain
             double avg = 0;
             double div = 0;
 
-            int minX = Math.Max(0, (int)(rx - (size + 1)));
-            int maxX = Math.Min(w, (int)(rx + (size + 1)));
-            int minY = Math.Max(0, (int)(ry - (size + 1)));
-            int maxY = Math.Min(h, (int)(ry + (size + 1)));
+            int minX = Math.Max(0, (int) (rx - (size + 1)));
+            int maxX = Math.Min(w, (int) (rx + (size + 1)));
+            int minY = Math.Max(0, (int) (ry - (size + 1)));
+            int maxY = Math.Min(h, (int) (ry + (size + 1)));
 
             for (x = minX; x < maxX; x++)
             {
@@ -92,17 +89,17 @@ namespace libTerrain
                 {
                     double z = size;
                     z *= z;
-                    z -= ((x - rx) * (x - rx)) + ((y - ry) * (y - ry));
+                    z -= ((x - rx)*(x - rx)) + ((y - ry)*(y - ry));
 
                     if (z < 0)
                         z = 0;
 
-                    avg += z * amount;
+                    avg += z*amount;
                     div += z;
                 }
             }
 
-            double height = avg / div;
+            double height = avg/div;
 
             for (x = minX; x < maxX; x++)
             {
@@ -110,7 +107,7 @@ namespace libTerrain
                 {
                     double z = size;
                     z *= z;
-                    z -= ((x - rx) * (x - rx)) + ((y - ry) * (y - ry));
+                    z -= ((x - rx)*(x - rx)) + ((y - ry)*(y - ry));
 
                     if (z < 0)
                         z = 0;
@@ -123,19 +120,19 @@ namespace libTerrain
         public void Flatten(Channel mask, double amount)
         {
             // Generate the mask
-            Channel temp = mask * amount;
+            Channel temp = mask*amount;
             temp.Clip(0, 1); // Cut off out-of-bounds values
 
             double total_mod = temp.Sum();
 
             // Establish the average height under the area
             Channel map = new Channel(w, h);
-            map.map = (double[,])this.map.Clone();
+            map.map = (double[,]) this.map.Clone();
 
             map *= temp;
 
             double total_terrain = map.Sum();
-            double avg_height = total_terrain / total_mod;
+            double avg_height = total_terrain/total_mod;
 
             // Create a flat terrain using the average height
             Channel flat = new Channel(w, h);

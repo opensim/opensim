@@ -28,7 +28,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Text;
 
 namespace libTerrain
 {
@@ -36,10 +35,10 @@ namespace libTerrain
     {
         private double[] CoordinatesToPolar(int x, int y)
         {
-            double theta = Math.Atan2(x - (w / 2), y - (h / 2));
-            double rx = (double)x - ((double)w / 2);
-            double ry = (double)y - ((double)h / 2);
-            double r = Math.Sqrt((rx * rx) + (ry * ry));
+            double theta = Math.Atan2(x - (w/2), y - (h/2));
+            double rx = (double) x - ((double) w/2);
+            double ry = (double) y - ((double) h/2);
+            double r = Math.Sqrt((rx*rx) + (ry*ry));
 
             double[] coords = new double[2];
             coords[0] = r;
@@ -47,15 +46,16 @@ namespace libTerrain
             return coords;
         }
 
-        public int[] PolarToCoordinates(double r, double theta) {
+        public int[] PolarToCoordinates(double r, double theta)
+        {
             double nx;
             double ny;
 
-            nx = (double)r * Math.Cos(theta);
-            ny = (double)r * Math.Sin(theta);
+            nx = (double) r*Math.Cos(theta);
+            ny = (double) r*Math.Sin(theta);
 
-            nx += w / 2;
-            ny += h / 2;
+            nx += w/2;
+            ny += h/2;
 
             if (nx >= w)
                 nx = w - 1;
@@ -70,8 +70,8 @@ namespace libTerrain
                 ny = 0;
 
             int[] coords = new int[2];
-            coords[0] = (int)nx;
-            coords[1] = (int)ny;
+            coords[0] = (int) nx;
+            coords[1] = (int) ny;
             return coords;
         }
 
@@ -79,19 +79,19 @@ namespace libTerrain
         {
             SetDiff();
 
-            Channel n = this.Copy();
+            Channel n = Copy();
 
             int x, y;
             for (x = 0; x < w; x++)
             {
                 for (y = 0; y < h; y++)
                 {
-                    double[] coords = CoordinatesToPolar(x,y);
+                    double[] coords = CoordinatesToPolar(x, y);
 
-                    coords[0] += w / 2.0;
-                    coords[1] += h / 2.0;
+                    coords[0] += w/2.0;
+                    coords[1] += h/2.0;
 
-                    map[x, y] = n.map[(int)coords[0] % n.w, (int)coords[1] % n.h];
+                    map[x, y] = n.map[(int) coords[0]%n.w, (int) coords[1]%n.h];
                 }
             }
         }
@@ -108,12 +108,13 @@ namespace libTerrain
                 r += incRadius;
                 theta += incAngle;
 
-                int[] coords = PolarToCoordinates(r,theta);
+                int[] coords = PolarToCoordinates(r, theta);
                 Raise(coords[0], coords[1], 20, 1);
             }
         }
 
-        public void SpiralCells(int steps, double incAngle, double incRadius, double offsetRadius, double offsetAngle, double[] c)
+        public void SpiralCells(int steps, double incAngle, double incRadius, double offsetRadius, double offsetAngle,
+                                double[] c)
         {
             SetDiff();
 
@@ -128,7 +129,7 @@ namespace libTerrain
                 theta += incAngle;
 
                 int[] coords = PolarToCoordinates(r, theta);
-                points.Add(new Point2D(coords[0],coords[1]));
+                points.Add(new Point2D(coords[0], coords[1]));
             }
 
             VoronoiDiagram(points, c);
@@ -145,9 +146,9 @@ namespace libTerrain
                 for (y = 0; y < h; y++)
                 {
                     z++;
-                    double dx = Math.Abs((w / 2) - x);
-                    double dy = Math.Abs((h / 2) - y);
-                    map[x, y] += Math.Sin(dx / wid) + Math.Cos(dy / hig);
+                    double dx = Math.Abs((w/2) - x);
+                    double dy = Math.Abs((h/2) - y);
+                    map[x, y] += Math.Sin(dx/wid) + Math.Cos(dy/hig);
                 }
             }
             Normalise();

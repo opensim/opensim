@@ -26,10 +26,8 @@
 * 
 */
 
-using System;
-using System.Collections.Generic;
-using System.Text;
 using System.IO;
+using System.Text;
 
 namespace OpenSim.Framework.Servers
 {
@@ -37,14 +35,14 @@ namespace OpenSim.Framework.Servers
 
     public class BinaryStreamHandler : BaseStreamHandler
     {
-        BinaryMethod m_method;
+        private BinaryMethod m_method;
 
-        override public byte[] Handle(string path, Stream request)
+        public override byte[] Handle(string path, Stream request)
         {
             byte[] data = ReadFully(request);
             string param = GetParam(path);
             string responseString = m_method(data, path, param);
-            
+
             return Encoding.UTF8.GetBytes(responseString);
         }
 
@@ -67,11 +65,10 @@ namespace OpenSim.Framework.Servers
                     {
                         return ms.ToArray();
                     }
-                    
+
                     ms.Write(buffer, 0, read);
                 }
-            }           
+            }
         }
     }
-
 }

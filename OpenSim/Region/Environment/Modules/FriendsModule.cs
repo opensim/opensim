@@ -26,9 +26,9 @@
 * 
 */
 
+using Nini.Config;
 using OpenSim.Region.Environment.Interfaces;
 using OpenSim.Region.Environment.Scenes;
-using Nini.Config;
 
 namespace OpenSim.Region.Environment.Modules
 {

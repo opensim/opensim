@@ -27,6 +27,7 @@
 */
 using System.IO;
 using System.Text.RegularExpressions;
+
 /* 
  Taken from public code listing at by Alex Pinsker
  http://alexpinsker.blogspot.com/2005/12/reading-ini-file-from-c_113432097333021549.html
@@ -52,7 +53,8 @@ namespace OpenSim.Framework.Data
                 RegexOptions.Compiled |
                 RegexOptions.CultureInvariant);
         }
-        static private Regex _iniKeyValuePatternRegex;
+
+        private static Regex _iniKeyValuePatternRegex;
 
         public IniFile(string iniFileName)
         {
@@ -62,7 +64,7 @@ namespace OpenSim.Framework.Data
         public string ParseFileReadValue(string key)
         {
             using (StreamReader reader =
-                  new StreamReader(_iniFileName))
+                new StreamReader(_iniFileName))
             {
                 do
                 {
@@ -72,18 +74,16 @@ namespace OpenSim.Framework.Data
                     if (match.Success)
                     {
                         string currentKey =
-                                match.Groups["Key"].Value as string;
+                            match.Groups["Key"].Value as string;
                         if (currentKey != null &&
-                       currentKey.Trim().CompareTo(key) == 0)
+                            currentKey.Trim().CompareTo(key) == 0)
                         {
                             string value =
-                              match.Groups["Value"].Value as string;
+                                match.Groups["Value"].Value as string;
                             return value;
                         }
                     }
-
-                }
-                while (reader.Peek() != -1);
+                } while (reader.Peek() != -1);
             }
             return null;
         }
@@ -91,6 +91,8 @@ namespace OpenSim.Framework.Data
         public string IniFileName
         {
             get { return _iniFileName; }
-        }    private string _iniFileName;
+        }
+
+        private string _iniFileName;
     }
 }

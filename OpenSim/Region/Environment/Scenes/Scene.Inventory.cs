@@ -29,9 +29,8 @@
 using Axiom.Math;
 using libsecondlife;
 using libsecondlife.Packets;
-using OpenSim.Framework.Communications.Cache;
-using OpenSim.Framework.Interfaces;
 using OpenSim.Framework;
+using OpenSim.Framework.Communications.Cache;
 using OpenSim.Region.Physics.Manager;
 
 namespace OpenSim.Region.Environment.Scenes
@@ -45,7 +44,7 @@ namespace OpenSim.Region.Environment.Scenes
         {
             ScenePresence avatar;
 
-            if ( TryGetAvatar( avatarId, out avatar ))
+            if (TryGetAvatar(avatarId, out avatar))
             {
                 AddInventoryItem(avatar.ControllingClient, item);
             }
@@ -392,7 +391,7 @@ namespace OpenSim.Region.Environment.Scenes
                                 remoteClient.SendInventoryItemUpdate(item);
                             }
 
-                            DeleteSceneObjectGroup((SceneObjectGroup)selectedEnt);
+                            DeleteSceneObjectGroup((SceneObjectGroup) selectedEnt);
                         }
                     }
                 }

@@ -32,13 +32,10 @@ using System.Net.Sockets;
 using libsecondlife.Packets;
 using OpenSim.Framework;
 using OpenSim.Framework.Communications.Cache;
-using OpenSim.Framework;
 using OpenSim.Framework.Console;
-using OpenSim.Framework.Interfaces;
 
 namespace OpenSim.Region.ClientStack
 {
-
     public class UDPServer : ClientStackNetworkHandler
     {
         protected Dictionary<EndPoint, uint> clientCircuits = new Dictionary<EndPoint, uint>();
@@ -59,22 +56,16 @@ namespace OpenSim.Region.ClientStack
 
         public PacketServer PacketServer
         {
-            get
-            {
-                return m_packetServer;
-            }
-            set
-            {
-                m_packetServer = value;
-            }
+            get { return m_packetServer; }
+            set { m_packetServer = value; }
         }
 
         public IScene LocalScene
         {
             set
             {
-                this.m_localScene = value;
-                this.m_packetServer.LocalScene = this.m_localScene;
+                m_localScene = value;
+                m_packetServer.LocalScene = m_localScene;
             }
         }
 
@@ -85,10 +76,10 @@ namespace OpenSim.Region.ClientStack
         public UDPServer(int port, AssetCache assetCache, LogBase console, AgentCircuitManager authenticateClass)
         {
             listenPort = port;
-            this.m_assetCache = assetCache;
-            this.m_log = console;
-            this.m_authenticateSessionsClass = authenticateClass;
-            this.CreatePacketServer();
+            m_assetCache = assetCache;
+            m_log = console;
+            m_authenticateSessionsClass = authenticateClass;
+            CreatePacketServer();
         }
 
         protected virtual void CreatePacketServer()
@@ -99,7 +90,7 @@ namespace OpenSim.Region.ClientStack
         protected virtual void OnReceivedData(IAsyncResult result)
         {
             ipeSender = new IPEndPoint(IPAddress.Parse("0.0.0.0"), 0);
-            epSender = (EndPoint)ipeSender;
+            epSender = (EndPoint) ipeSender;
             Packet packet = null;
 
             int numBytes;
@@ -108,7 +99,7 @@ namespace OpenSim.Region.ClientStack
             {
                 numBytes = Server.EndReceiveFrom(result, ref epSender);
             }
-            catch (System.Net.Sockets.SocketException e)
+            catch (SocketException e)
             {
                 // TODO : Actually only handle those states that we have control over, re-throw everything else,
                 // TODO: implement cases as we encounter them.
@@ -134,7 +125,7 @@ namespace OpenSim.Region.ClientStack
             if (clientCircuits.TryGetValue(epSender, out circuit))
             {
                 //if so then send packet to the packetserver
-                this.m_packetServer.InPacket(circuit, packet);
+                m_packetServer.InPacket(circuit, packet);
             }
             else if (packet.Type == PacketType.UseCircuitCode)
             {
@@ -142,7 +133,8 @@ namespace OpenSim.Region.ClientStack
                 AddNewClient(packet);
             }
             else
-            { // invalid client
+            {
+                // invalid client
                 m_log.Warn("client", "Got a packet from an invalid client - " + epSender.ToString());
             }
 
@@ -160,10 +152,10 @@ namespace OpenSim.Region.ClientStack
 
         protected virtual void AddNewClient(Packet packet)
         {
-            UseCircuitCodePacket useCircuit = (UseCircuitCodePacket)packet;
-            this.clientCircuits.Add(epSender, useCircuit.CircuitCode.Code);
+            UseCircuitCodePacket useCircuit = (UseCircuitCodePacket) packet;
+            clientCircuits.Add(epSender, useCircuit.CircuitCode.Code);
 
-            this.PacketServer.AddNewClient(epSender, useCircuit, m_assetCache, m_authenticateSessionsClass);
+            PacketServer.AddNewClient(epSender, useCircuit, m_assetCache, m_authenticateSessionsClass);
         }
 
         public void ServerListener()
@@ -177,24 +169,24 @@ namespace OpenSim.Region.ClientStack
             m_log.Verbose("SERVER", "UDP socket bound, getting ready to listen");
 
             ipeSender = new IPEndPoint(IPAddress.Parse("0.0.0.0"), 0);
-            epSender = (EndPoint)ipeSender;
-            ReceivedData = new AsyncCallback(this.OnReceivedData);
+            epSender = (EndPoint) ipeSender;
+            ReceivedData = new AsyncCallback(OnReceivedData);
             Server.BeginReceiveFrom(RecvBuffer, 0, RecvBuffer.Length, SocketFlags.None, ref epSender, ReceivedData, null);
 
             m_log.Status("SERVER", "Listening...");
-
         }
 
         public virtual void RegisterPacketServer(PacketServer server)
         {
-            this.m_packetServer = server;
+            m_packetServer = server;
         }
 
-        public virtual void SendPacketTo(byte[] buffer, int size, SocketFlags flags, uint circuitcode)//EndPoint packetSender)
+        public virtual void SendPacketTo(byte[] buffer, int size, SocketFlags flags, uint circuitcode)
+            //EndPoint packetSender)
         {
             // find the endpoint for this circuit
             EndPoint sendto = null;
-            foreach (KeyValuePair<EndPoint, uint> p in this.clientCircuits)
+            foreach (KeyValuePair<EndPoint, uint> p in clientCircuits)
             {
                 if (p.Value == circuitcode)
                 {
@@ -205,22 +197,20 @@ namespace OpenSim.Region.ClientStack
             if (sendto != null)
             {
                 //we found the endpoint so send the packet to it
-                this.Server.SendTo(buffer, size, flags, sendto);
+                Server.SendTo(buffer, size, flags, sendto);
             }
         }
 
         public virtual void RemoveClientCircuit(uint circuitcode)
         {
-            foreach (KeyValuePair<EndPoint, uint> p in this.clientCircuits)
+            foreach (KeyValuePair<EndPoint, uint> p in clientCircuits)
             {
                 if (p.Value == circuitcode)
                 {
-                    this.clientCircuits.Remove(p.Key);
+                    clientCircuits.Remove(p.Key);
                     break;
                 }
             }
         }
-
-
     }
 }

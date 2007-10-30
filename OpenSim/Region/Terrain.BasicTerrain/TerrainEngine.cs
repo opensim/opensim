@@ -29,11 +29,11 @@ using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Drawing.Imaging;
+using System.Globalization;
 using System.IO;
+using System.Threading;
 using libTerrain;
 using OpenJPEGNet;
-using OpenSim.Framework.Interfaces;
-using System.Globalization;
 using OpenSim.Framework;
 
 namespace OpenSim.Region.Terrain
@@ -51,7 +51,7 @@ namespace OpenSim.Region.Terrain
 
     public class TerrainEngine
     {
-        public static System.Threading.Mutex fileIOLock = new System.Threading.Mutex();
+        public static Mutex fileIOLock = new Mutex();
 
         /// <summary>
         /// Plugin library for scripts
@@ -95,12 +95,13 @@ namespace OpenSim.Region.Terrain
         /// </summary>
         public int tainted;
 
-        int w, h;
+        private int w, h;
 
         /// <summary>
         /// Used to determine what offset to use when loading singular heightmaps across multiple sims
         /// </summary>
         private int offsetX;
+
         private int offsetY;
 
 
@@ -139,13 +140,13 @@ namespace OpenSim.Region.Terrain
 
         public bool Tainted(int x, int y)
         {
-            return (heightmap.diff[x / 16, y / 16] != 0);
+            return (heightmap.diff[x/16, y/16] != 0);
         }
 
         public void ResetTaint()
         {
             tainted = 0;
-            heightmap.diff = new int[w / 16, h / 16];
+            heightmap.diff = new int[w/16,h/16];
         }
 
         //Testing to see if moving the TerraForming packet handling code into here works well
@@ -158,40 +159,40 @@ namespace OpenSim.Region.Terrain
         /// <param name="action">The action to be performed</param>
         /// <param name="north">Distance from the north border where the cursor is located</param>
         /// <param name="west">Distance from the west border where the cursor is located</param>
-        public void ModifyTerrain(float height, float seconds, byte brushsize, byte action, float north, float west, IClientAPI remoteUser)
+        public void ModifyTerrain(float height, float seconds, byte brushsize, byte action, float north, float west,
+                                  IClientAPI remoteUser)
         {
-
             // Shiny.
-            double size = (double)(1 << brushsize);
+            double size = (double) (1 << brushsize);
 
             switch (action)
             {
                 case 0:
                     // flatten terrain
-                    this.FlattenTerrain(west, north, size, (double)seconds / 5.0);
+                    FlattenTerrain(west, north, size, (double) seconds/5.0);
                     break;
                 case 1:
                     // raise terrain
-                    this.RaiseTerrain(west, north, size, (double)seconds / 5.0);
+                    RaiseTerrain(west, north, size, (double) seconds/5.0);
                     break;
                 case 2:
                     //lower terrain
-                    this.LowerTerrain(west, north, size, (double)seconds / 5.0);
+                    LowerTerrain(west, north, size, (double) seconds/5.0);
                     break;
                 case 3:
                     // smooth terrain
-                    this.SmoothTerrain(west, north, size, (double)seconds / 5.0);
+                    SmoothTerrain(west, north, size, (double) seconds/5.0);
                     break;
                 case 4:
                     // noise
-                    this.NoiseTerrain(west, north, size, (double)seconds / 5.0);
+                    NoiseTerrain(west, north, size, (double) seconds/5.0);
                     break;
                 case 5:
                     // revert
-                    this.RevertTerrain(west, north, size, (double)seconds / 5.0);
+                    RevertTerrain(west, north, size, (double) seconds/5.0);
                     break;
 
-                // CLIENT EXTENSIONS GO HERE
+                    // CLIENT EXTENSIONS GO HERE
                 case 128:
                     // erode-thermal
                     break;
@@ -207,9 +208,9 @@ namespace OpenSim.Region.Terrain
             {
                 for (int y = 0; y < 16; y++)
                 {
-                    if (this.Tainted(x * 16, y * 16))
+                    if (Tainted(x*16, y*16))
                     {
-                        remoteUser.SendLayerData(x, y, this.GetHeights1D());
+                        remoteUser.SendLayerData(x, y, GetHeights1D());
                     }
                 }
             }
@@ -249,12 +250,12 @@ namespace OpenSim.Region.Terrain
         /// <returns>A float[65536] array containing the heightmap</returns>
         public float[] GetHeights1D()
         {
-            float[] heights = new float[w * h];
+            float[] heights = new float[w*h];
             int i;
 
-            for (i = 0; i < w * h; i++)
+            for (i = 0; i < w*h; i++)
             {
-                heights[i] = (float)heightmap.map[i % w, i / w];
+                heights[i] = (float) heightmap.map[i%w, i/w];
             }
 
             return heights;
@@ -266,13 +267,13 @@ namespace OpenSim.Region.Terrain
         /// <returns>An array of 256,256 values containing the heightmap</returns>
         public float[,] GetHeights2D()
         {
-            float[,] heights = new float[w, h];
+            float[,] heights = new float[w,h];
             int x, y;
             for (x = 0; x < w; x++)
             {
                 for (y = 0; y < h; y++)
                 {
-                    heights[x, y] = (float)heightmap.map[x, y];
+                    heights[x, y] = (float) heightmap.map[x, y];
                 }
             }
             return heights;
@@ -294,9 +295,9 @@ namespace OpenSim.Region.Terrain
         public void GetHeights1D(float[] heights)
         {
             int i;
-            for (i = 0; i < w * h; i++)
+            for (i = 0; i < w*h; i++)
             {
-                heightmap.map[i % w, i / w] = heights[i];
+                heightmap.map[i%w, i/w] = heights[i];
             }
 
             tainted++;
@@ -313,7 +314,7 @@ namespace OpenSim.Region.Terrain
             {
                 for (y = 0; y < h; y++)
                 {
-                    heightmap.Set(x, y, (double)heights[x, y]);
+                    heightmap.Set(x, y, (double) heights[x, y]);
                 }
             }
             SaveRevertMap();
@@ -376,28 +377,36 @@ namespace OpenSim.Region.Terrain
 
             try
             {
-
                 switch (command)
                 {
                     case "help":
                         resultText += "terrain regenerate - rebuilds the sims terrain using a default algorithm\n";
-                        resultText += "terrain hills <type> <number of hills> <min height> <max height> <island t/f> <additive t/f> <noisy t/f>\n";
+                        resultText +=
+                            "terrain hills <type> <number of hills> <min height> <max height> <island t/f> <additive t/f> <noisy t/f>\n";
                         resultText += "   type should be spheres, blocks, cones, or squared\n";
-                        resultText += "terrain voronoi <points> <blocksize> - generates a worley fractal with X points per block";
+                        resultText +=
+                            "terrain voronoi <points> <blocksize> - generates a worley fractal with X points per block";
                         resultText += "terrain seed <seed> - sets the random seed value to <seed>\n";
-                        resultText += "terrain load <type> <filename> - loads a terrain from disk, type can be 'F32', 'F64', 'RAW' or 'IMG'\n";
-                        resultText += "terrain save <type> <filename> - saves a terrain to disk, type can be 'F32', 'F64', 'PNG', 'RAW' or 'HIRAW'\n";
-                        resultText += "terrain save grdmap <filename> <gradient map> - creates a PNG snapshot of the region using a named gradient map\n";
-                        resultText += "terrain rescale <min> <max> - rescales a terrain to be between <min> and <max> meters high\n";
+                        resultText +=
+                            "terrain load <type> <filename> - loads a terrain from disk, type can be 'F32', 'F64', 'RAW' or 'IMG'\n";
+                        resultText +=
+                            "terrain save <type> <filename> - saves a terrain to disk, type can be 'F32', 'F64', 'PNG', 'RAW' or 'HIRAW'\n";
+                        resultText +=
+                            "terrain save grdmap <filename> <gradient map> - creates a PNG snapshot of the region using a named gradient map\n";
+                        resultText +=
+                            "terrain rescale <min> <max> - rescales a terrain to be between <min> and <max> meters high\n";
                         resultText += "terrain fill <val> - fills a terrain at the specified height\n";
-                        resultText += "terrain erode aerobic <windspeed> <pickupmin> <dropmin> <carry> <rounds> <lowest t/f> <fluid dynamics t/f>\n";
+                        resultText +=
+                            "terrain erode aerobic <windspeed> <pickupmin> <dropmin> <carry> <rounds> <lowest t/f> <fluid dynamics t/f>\n";
                         resultText += "terrain erode thermal <talus> <rounds> <carry>\n";
                         resultText += "terrain erode hydraulic <rain> <evaporation> <solubility> <frequency> <rounds>\n";
                         resultText += "terrain multiply <val> - multiplies a terrain by <val>\n";
                         resultText += "terrain revert - reverts the terrain to the stored original\n";
                         resultText += "terrain bake - saves the current terrain into the revert map\n";
-                        resultText += "terrain csfilter <filename.cs> - loads a new filter from the specified .cs file\n";
-                        resultText += "terrain jsfilter <filename.js> - loads a new filter from the specified .js file\n";
+                        resultText +=
+                            "terrain csfilter <filename.cs> - loads a new filter from the specified .cs file\n";
+                        resultText +=
+                            "terrain jsfilter <filename.js> - loads a new filter from the specified .js file\n";
                         foreach (KeyValuePair<string, ITerrainFilter> filter in customFilters.filters)
                         {
                             resultText += filter.Value.Help();
@@ -466,8 +475,8 @@ namespace OpenSim.Region.Terrain
 
                     case "load":
                         string filenameL = args[2].Replace("%name%", simName);
-                        filenameL = filenameL.Replace("%x%", this.offsetX.ToString());
-                        filenameL = filenameL.Replace("%y%", this.offsetY.ToString());
+                        filenameL = filenameL.Replace("%x%", offsetX.ToString());
+                        filenameL = filenameL.Replace("%y%", offsetY.ToString());
 
                         switch (args[1].ToLower())
                         {
@@ -499,11 +508,11 @@ namespace OpenSim.Region.Terrain
                         {
                             case "f32":
                                 LoadFromFileF32(args[2], Convert.ToInt32(args[3]), Convert.ToInt32(args[4]),
-                                    Convert.ToInt32(args[5]), Convert.ToInt32(args[6]));
+                                                Convert.ToInt32(args[5]), Convert.ToInt32(args[6]));
                                 break;
                             case "img":
                                 LoadFromFileIMG(args[2], Convert.ToInt32(args[3]), Convert.ToInt32(args[4]),
-                                    Convert.ToInt32(args[5]), Convert.ToInt32(args[6]));
+                                                Convert.ToInt32(args[5]), Convert.ToInt32(args[6]));
                                 break;
                             default:
                                 resultText = "Unknown or unsupported image or data format";
@@ -513,8 +522,8 @@ namespace OpenSim.Region.Terrain
 
                     case "save":
                         string filename = args[2].Replace("%name%", simName);
-                        filename = filename.Replace("%x%", this.offsetX.ToString());
-                        filename = filename.Replace("%y%", this.offsetY.ToString());
+                        filename = filename.Replace("%x%", offsetX.ToString());
+                        filename = filename.Replace("%y%", offsetY.ToString());
 
                         switch (args[1].ToLower())
                         {
@@ -589,15 +598,20 @@ namespace OpenSim.Region.Terrain
             {
                 case "aerobic":
                     // WindSpeed, PickupMinimum,DropMinimum,Carry,Rounds,Lowest
-                    heightmap.AerobicErosion(Convert.ToDouble(args[2]), Convert.ToDouble(args[3]), Convert.ToDouble(args[4]), Convert.ToDouble(args[5]), Convert.ToInt32(args[6]), Convert.ToBoolean(args[7]), Convert.ToBoolean(args[8]));
+                    heightmap.AerobicErosion(Convert.ToDouble(args[2]), Convert.ToDouble(args[3]),
+                                             Convert.ToDouble(args[4]), Convert.ToDouble(args[5]),
+                                             Convert.ToInt32(args[6]), Convert.ToBoolean(args[7]),
+                                             Convert.ToBoolean(args[8]));
                     break;
                 case "thermal":
-                    heightmap.ThermalWeathering(Convert.ToDouble(args[2]), Convert.ToInt32(args[3]), Convert.ToDouble(args[4]));
+                    heightmap.ThermalWeathering(Convert.ToDouble(args[2]), Convert.ToInt32(args[3]),
+                                                Convert.ToDouble(args[4]));
                     break;
                 case "hydraulic":
                     Channel rainMap = new Channel(w, h);
                     rainMap.Fill(Convert.ToDouble(args[2]));
-                    heightmap.HydraulicErosion(rainMap, Convert.ToDouble(args[3]), Convert.ToDouble(args[4]), Convert.ToInt32(args[5]), Convert.ToInt32(args[6]));
+                    heightmap.HydraulicErosion(rainMap, Convert.ToDouble(args[3]), Convert.ToDouble(args[4]),
+                                               Convert.ToInt32(args[5]), Convert.ToInt32(args[6]));
                     break;
                 default:
                     resultText = "Unknown erosion type";
@@ -624,8 +638,10 @@ namespace OpenSim.Region.Terrain
             if (args.GetLength(0) > 2)
             {
                 int.TryParse(args[2].ToString(), out count);
-                double.TryParse(args[3].ToString(), NumberStyles.AllowDecimalPoint, Culture.NumberFormatInfo, out sizeMin);
-                double.TryParse(args[4].ToString(), NumberStyles.AllowDecimalPoint, Culture.NumberFormatInfo, out sizeRange);
+                double.TryParse(args[3].ToString(), NumberStyles.AllowDecimalPoint, Culture.NumberFormatInfo,
+                                out sizeMin);
+                double.TryParse(args[4].ToString(), NumberStyles.AllowDecimalPoint, Culture.NumberFormatInfo,
+                                out sizeRange);
                 bool.TryParse(args[5].ToString(), out island);
                 bool.TryParse(args[6].ToString(), out additive);
                 bool.TryParse(args[7].ToString(), out noisy);
@@ -669,7 +685,7 @@ namespace OpenSim.Region.Terrain
         /// <param name="max">Maximum value of the new array</param>
         public void SetRange(float min, float max)
         {
-            heightmap.Normalise((double)min, (double)max);
+            heightmap.Normalise((double) min, (double) max);
             tainted++;
         }
 
@@ -713,7 +729,7 @@ namespace OpenSim.Region.Terrain
             {
                 for (x = 0; x < w; x++)
                 {
-                    heightmap.map[x, y] = (double)bs.ReadSingle();
+                    heightmap.map[x, y] = (double) bs.ReadSingle();
                 }
             }
 
@@ -736,11 +752,10 @@ namespace OpenSim.Region.Terrain
             fileIOLock.WaitOne();
             try
             {
+                int sectionToLoadX = ((offsetX - lowerboundX)*w);
+                int sectionToLoadY = ((offsetY - lowerboundY)*h);
 
-                int sectionToLoadX = ((this.offsetX - lowerboundX) * this.w);
-                int sectionToLoadY = ((this.offsetY - lowerboundY) * this.h);
-
-                double[,] tempMap = new double[dimensionX, dimensionY];
+                double[,] tempMap = new double[dimensionX,dimensionY];
 
                 FileInfo file = new FileInfo(filename);
                 FileStream s = file.Open(FileMode.Open, FileAccess.Read);
@@ -751,7 +766,7 @@ namespace OpenSim.Region.Terrain
                 {
                     for (y = 0; y < dimensionY; y++)
                     {
-                        tempMap[x, y] = (double)bs.ReadSingle();
+                        tempMap[x, y] = (double) bs.ReadSingle();
                     }
                 }
 
@@ -784,19 +799,19 @@ namespace OpenSim.Region.Terrain
         /// <param name="lowerboundY">Where sim coords begin for this patch</param>
         public void LoadFromFileIMG(string filename, int dimensionX, int dimensionY, int lowerboundX, int lowerboundY)
         {
-            int sectionToLoadX = ((this.offsetX - lowerboundX) * this.w);
-            int sectionToLoadY = ((this.offsetY - lowerboundY) * this.h);
+            int sectionToLoadX = ((offsetX - lowerboundX)*w);
+            int sectionToLoadY = ((offsetY - lowerboundY)*h);
 
-            double[,] tempMap = new double[dimensionX, dimensionY];
+            double[,] tempMap = new double[dimensionX,dimensionY];
 
-            System.Drawing.Bitmap lgrBmp = new Bitmap(filename);
+            Bitmap lgrBmp = new Bitmap(filename);
 
             int x, y;
             for (x = 0; x < dimensionX; x++)
             {
                 for (y = 0; y < dimensionY; y++)
                 {
-                    tempMap[x, y] = (float)lgrBmp.GetPixel(x, y).GetBrightness();
+                    tempMap[x, y] = (float) lgrBmp.GetPixel(x, y).GetBrightness();
                 }
             }
 
@@ -826,7 +841,7 @@ namespace OpenSim.Region.Terrain
             {
                 for (x = 0; x < w; x++)
                 {
-                    heightmap.map[x, y] = (double)bs.ReadByte() * ((double)bs.ReadByte() / 127.0);
+                    heightmap.map[x, y] = (double) bs.ReadByte()*((double) bs.ReadByte()/127.0);
                     bs.ReadBytes(11); // Advance the stream to next bytes.
                 }
             }
@@ -875,7 +890,7 @@ namespace OpenSim.Region.Terrain
             {
                 for (x = 0; x < w; x++)
                 {
-                    bs.Write((float)heightmap.Get(x, y));
+                    bs.Write((float) heightmap.Get(x, y));
                 }
             }
 
@@ -897,27 +912,27 @@ namespace OpenSim.Region.Terrain
             int x, y;
 
             // Used for the 'green' channel.
-            byte avgMultiplier = (byte)heightmap.Avg();
-            byte backupMultiplier = (byte)revertmap.Avg();
+            byte avgMultiplier = (byte) heightmap.Avg();
+            byte backupMultiplier = (byte) revertmap.Avg();
 
             // Limit the multiplier so it can represent points >64m.
             if (avgMultiplier > 196)
                 avgMultiplier = 196;
-            if(backupMultiplier > 196) 
+            if (backupMultiplier > 196)
                 backupMultiplier = 196;
             // Make sure it's at least one to prevent a div by zero
             if (avgMultiplier < 1)
                 avgMultiplier = 1;
-            if(backupMultiplier < 1)
+            if (backupMultiplier < 1)
                 backupMultiplier = 1;
 
             for (y = 0; y < h; y++)
             {
                 for (x = 0; x < h; x++)
                 {
-                    byte red = (byte)(heightmap.Get(x, y) / ((double)avgMultiplier / 128.0));
+                    byte red = (byte) (heightmap.Get(x, y)/((double) avgMultiplier/128.0));
                     byte green = avgMultiplier;
-                    byte blue = (byte)watermap.Get(x, y);
+                    byte blue = (byte) watermap.Get(x, y);
                     byte alpha1 = 0; // Land Parcels
                     byte alpha2 = 0; // For Sale Land
                     byte alpha3 = 0; // Public Edit Object
@@ -926,7 +941,7 @@ namespace OpenSim.Region.Terrain
                     byte alpha6 = 255; // Flying Allowed
                     byte alpha7 = 255; // Create Landmark
                     byte alpha8 = 255; // Outside Scripts
-                    byte alpha9 = (byte)(revertmap.Get(x, y) / ((double)backupMultiplier / 128.0));
+                    byte alpha9 = (byte) (revertmap.Get(x, y)/((double) backupMultiplier/128.0));
                     byte alpha10 = backupMultiplier;
 
                     binStream.Write(red);
@@ -966,7 +981,7 @@ namespace OpenSim.Region.Terrain
             {
                 for (j = 0; j < 256; j++)
                 {
-                    lookupHeightTable[i + (j * 256)] = ((double)i * ((double)j / 127.0));
+                    lookupHeightTable[i + (j*256)] = ((double) i*((double) j/127.0));
                 }
             }
 
@@ -988,9 +1003,9 @@ namespace OpenSim.Region.Terrain
                         }
                     }
 
-                    byte red = (byte)(index & 0xFF);
-                    byte green = (byte)((index >> 8) & 0xFF);
-                    byte blue = (byte)watermap.Get(x, y);
+                    byte red = (byte) (index & 0xFF);
+                    byte green = (byte) ((index >> 8) & 0xFF);
+                    byte blue = (byte) watermap.Get(x, y);
                     byte alpha1 = 0; // Land Parcels
                     byte alpha2 = 0; // For Sale Land
                     byte alpha3 = 0; // Public Edit Object
@@ -1140,7 +1155,7 @@ namespace OpenSim.Region.Terrain
                 smoothed.Smooth(amount);
 
                 Channel mask = new Channel();
-                mask.Raise(rx,ry,size,amount);
+                mask.Raise(rx, ry, size, amount);
 
                 heightmap.Blend(smoothed, mask);
             }
@@ -1221,8 +1236,7 @@ namespace OpenSim.Region.Terrain
             {
                 Bitmap bmp = TerrainToBitmap(gradientmap);
 
-                imageData = OpenJPEG.EncodeFromImage(bmp, true );
-                
+                imageData = OpenJPEG.EncodeFromImage(bmp, true);
             }
             catch (Exception e)
             {
@@ -1252,12 +1266,11 @@ namespace OpenSim.Region.Terrain
                 for (int x = 0; x < copy.w; x++)
                 {
                     // 512 is the largest possible height before colours clamp
-                    int colorindex = (int)(Math.Max(Math.Min(1.0, copy.Get(x, y) / 512.0), 0.0) * (pallete - 1));
+                    int colorindex = (int) (Math.Max(Math.Min(1.0, copy.Get(x, y)/512.0), 0.0)*(pallete - 1));
                     bmp.SetPixel(x, y, colours[colorindex]);
                 }
             }
             return bmp;
         }
-
     }
 }

@@ -25,8 +25,6 @@
 * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 * 
 */
-using OpenSim.Framework;
-
 namespace OpenSim.Framework
 {
     public class AuthenticateResponse
@@ -36,8 +34,6 @@ namespace OpenSim.Framework
 
         public AuthenticateResponse()
         {
-
         }
-
     }
 }

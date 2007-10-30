@@ -26,10 +26,6 @@
 * 
 */
 
-using System;
-using System.Collections.Generic;
-using System.Text;
-
 namespace OpenSim.Region.ExtensionsScriptModule.JVMEngine.Types
 {
     public class ObjectReference : BaseType
@@ -38,7 +34,6 @@ namespace OpenSim.Region.ExtensionsScriptModule.JVMEngine.Types
 
         public ObjectReference()
         {
-
         }
     }
 }

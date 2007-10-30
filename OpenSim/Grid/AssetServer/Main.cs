@@ -29,17 +29,10 @@
 using System;
 using System.IO;
 using System.Reflection;
-
 using libsecondlife;
 using Nini.Config;
-
-using OpenSim.Framework;
-using OpenSim.Framework.Communications.Cache;
 using OpenSim.Framework;
 using OpenSim.Framework.Console;
-using OpenSim.Framework.Interfaces;
-using OpenSim.Framework.Servers;
-using OpenSim.Framework;
 using OpenSim.Framework.Servers;
 
 namespace OpenSim.Grid.AssetServer
@@ -79,11 +72,12 @@ namespace OpenSim.Grid.AssetServer
 
         private OpenAsset_Main()
         {
-            if(!Directory.Exists(Util.logDir()))
+            if (!Directory.Exists(Util.logDir()))
             {
                 Directory.CreateDirectory(Util.logDir());
             }
-            m_console = new LogBase((Path.Combine(Util.logDir(),"opengrid-AssetServer-console.log")), "OpenAsset", this, true);
+            m_console =
+                new LogBase((Path.Combine(Util.logDir(), "opengrid-AssetServer-console.log")), "OpenAsset", this, true);
             MainLog.Instance = m_console;
         }
 
@@ -96,9 +90,9 @@ namespace OpenSim.Grid.AssetServer
 
             m_console.Verbose("ASSET", "Loading default asset set..");
             LoadDefaultAssets();
-            
+
             m_console.Verbose("ASSET", "Starting HTTP process");
-            BaseHttpServer httpServer = new BaseHttpServer((int)m_config.HttpPort);
+            BaseHttpServer httpServer = new BaseHttpServer((int) m_config.HttpPort);
 
             httpServer.AddStreamHandler(new GetAssetStreamHandler(this, m_assetProvider));
             httpServer.AddStreamHandler(new PostAssetStreamHandler(this, m_assetProvider));
@@ -125,7 +119,8 @@ namespace OpenSim.Grid.AssetServer
 
                     if (typeInterface != null)
                     {
-                        IAssetProvider plug = (IAssetProvider)Activator.CreateInstance(pluginAssembly.GetType(pluginType.ToString()));
+                        IAssetProvider plug =
+                            (IAssetProvider) Activator.CreateInstance(pluginAssembly.GetType(pluginType.ToString()));
                         assetPlugin = plug;
                         assetPlugin.Initialise();
 
@@ -174,7 +169,7 @@ namespace OpenSim.Grid.AssetServer
             FileStream fStream = new FileStream(fileName, FileMode.Open, FileAccess.Read);
             byte[] idata = new byte[numBytes];
             BinaryReader br = new BinaryReader(fStream);
-            idata = br.ReadBytes((int)numBytes);
+            idata = br.ReadBytes((int) numBytes);
             br.Close();
             fStream.Close();
             info.Data = idata;
@@ -213,8 +208,8 @@ namespace OpenSim.Grid.AssetServer
                 {
                     string assetIdStr = source.Configs[i].GetString("assetID", LLUUID.Random().ToStringHyphenated());
                     string name = source.Configs[i].GetString("name", "");
-                    sbyte type = (sbyte)source.Configs[i].GetInt("assetType", 0);
-                    sbyte invType = (sbyte)source.Configs[i].GetInt("inventoryType", 0);
+                    sbyte type = (sbyte) source.Configs[i].GetInt("assetType", 0);
+                    sbyte invType = (sbyte) source.Configs[i].GetInt("inventoryType", 0);
                     string fileName = source.Configs[i].GetString("fileName", "");
 
                     AssetBase newAsset = CreateAsset(assetIdStr, name, fileName, false);

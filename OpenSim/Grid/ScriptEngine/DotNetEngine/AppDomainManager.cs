@@ -27,27 +27,22 @@
 */
 
 using System;
+using System.Collections;
 using System.Collections.Generic;
-using System.Text;
 using System.Reflection;
-using System.Threading;
-using System.Runtime.Remoting;
-using System.IO;
-using OpenSim.Region.Environment.Scenes;
-using OpenSim.Region.Environment.Scenes.Scripting;
 using OpenSim.Grid.ScriptEngine.DotNetEngine.Compiler.LSL;
-using OpenSim.Region.ScriptEngine.Common;
-using libsecondlife;
 
 namespace OpenSim.Grid.ScriptEngine.DotNetEngine
 {
     public class AppDomainManager
     {
         private int maxScriptsPerAppDomain = 1;
+
         /// <summary>
         /// Internal list of all AppDomains
         /// </summary>
         private List<AppDomainStructure> appDomains = new List<AppDomainStructure>();
+
         /// <summary>
         /// Structure to keep track of data around AppDomain
         /// </summary>
@@ -57,19 +52,23 @@ namespace OpenSim.Grid.ScriptEngine.DotNetEngine
             /// The AppDomain itself
             /// </summary>
             public AppDomain CurrentAppDomain;
+
             /// <summary>
             /// Number of scripts loaded into AppDomain
             /// </summary>
             public int ScriptsLoaded;
+
             /// <summary>
             /// Number of dead scripts
             /// </summary>
             public int ScriptsWaitingUnload;
         }
+
         /// <summary>
         /// Current AppDomain
         /// </summary>
         private AppDomainStructure currentAD;
+
         private object getLock = new object(); // Mutex
         private object freeLock = new object(); // Mutex
 
@@ -94,22 +93,23 @@ namespace OpenSim.Grid.ScriptEngine.DotNetEngine
                 {
                     // Add it to AppDomains list and empty current
                     appDomains.Add(currentAD);
-                    currentAD = null;   
+                    currentAD = null;
                 }
                 // No current
                 if (currentAD == null)
                 {
                     // Create a new current AppDomain
                     currentAD = new AppDomainStructure();
-                    currentAD.CurrentAppDomain = PrepareNewAppDomain();                    
+                    currentAD.CurrentAppDomain = PrepareNewAppDomain();
                 }
 
-                Console.WriteLine("Scripts loaded in this Appdomain: " + currentAD.ScriptsLoaded);                
+                Console.WriteLine("Scripts loaded in this Appdomain: " + currentAD.ScriptsLoaded);
                 return currentAD;
             } // lock
         }
 
         private int AppDomainNameCount;
+
         /// <summary>
         /// Create and prepare a new AppDomain for scripts
         /// </summary>
@@ -130,12 +130,12 @@ namespace OpenSim.Grid.ScriptEngine.DotNetEngine
             ads.ConfigurationFile = AppDomain.CurrentDomain.SetupInformation.ConfigurationFile;
 
             AppDomain AD = AppDomain.CreateDomain("ScriptAppDomain_" + AppDomainNameCount, null, ads);
-            Console.WriteLine("Loading: " + AssemblyName.GetAssemblyName("OpenSim.Region.ScriptEngine.Common.dll").ToString());
+            Console.WriteLine("Loading: " +
+                              AssemblyName.GetAssemblyName("OpenSim.Region.ScriptEngine.Common.dll").ToString());
             AD.Load(AssemblyName.GetAssemblyName("OpenSim.Region.ScriptEngine.Common.dll"));
 
             // Return the new AppDomain
             return AD;
-
         }
 
         /// <summary>
@@ -146,7 +146,7 @@ namespace OpenSim.Grid.ScriptEngine.DotNetEngine
             lock (freeLock)
             {
                 // Go through all
-                foreach (AppDomainStructure ads in new System.Collections.ArrayList(appDomains))
+                foreach (AppDomainStructure ads in new ArrayList(appDomains))
                 {
                     // Don't process current AppDomain
                     if (ads.CurrentAppDomain != currentAD.CurrentAppDomain)
@@ -164,23 +164,25 @@ namespace OpenSim.Grid.ScriptEngine.DotNetEngine
                             // Unload
                             AppDomain.Unload(ads.CurrentAppDomain);
 #if DEBUG
-                            Console.WriteLine("AppDomain unload freed " + (m - GC.GetTotalMemory(true)) + " bytes of memory");
+                            Console.WriteLine("AppDomain unload freed " + (m - GC.GetTotalMemory(true)) +
+                                              " bytes of memory");
 #endif
                         }
                     }
                 } // foreach
             } // lock
         }
-        
 
 
-        public OpenSim.Grid.ScriptEngine.DotNetEngine.Compiler.LSL.LSL_BaseClass LoadScript(string FileName) 
+        public LSL_BaseClass LoadScript(string FileName)
         {
             // Find next available AppDomain to put it in
             AppDomainStructure FreeAppDomain = GetFreeAppDomain();
-            
+
             Console.WriteLine("Loading into AppDomain: " + FileName);
-            LSL_BaseClass mbrt = (LSL_BaseClass)FreeAppDomain.CurrentAppDomain.CreateInstanceFromAndUnwrap(FileName, "SecondLife.Script");
+            LSL_BaseClass mbrt =
+                (LSL_BaseClass)
+                FreeAppDomain.CurrentAppDomain.CreateInstanceFromAndUnwrap(FileName, "SecondLife.Script");
             //Console.WriteLine("ScriptEngine AppDomainManager: is proxy={0}", RemotingServices.IsTransparentProxy(mbrt));
             FreeAppDomain.ScriptsLoaded++;
 
@@ -207,7 +209,7 @@ namespace OpenSim.Grid.ScriptEngine.DotNetEngine
                 }
 
                 // Lopp through all AppDomains
-                foreach (AppDomainStructure ads in new System.Collections.ArrayList(appDomains))
+                foreach (AppDomainStructure ads in new ArrayList(appDomains))
                 {
                     if (ads.CurrentAppDomain == ad)
                     {
@@ -219,10 +221,6 @@ namespace OpenSim.Grid.ScriptEngine.DotNetEngine
             } // lock
 
             UnloadAppDomains(); // Outsite lock, has its own GetLock
-
-
         }
-
-
     }
 }

@@ -30,12 +30,10 @@ using System;
 using System.Collections;
 using System.Net;
 using Nwc.XmlRpc;
-using OpenSim.Framework.Data;
-using OpenSim.Framework.UserManagement;
-using OpenSim.Framework;
-using OpenSim.Framework;
 using OpenSim.Framework;
 using OpenSim.Framework.Console;
+using OpenSim.Framework.Data;
+using OpenSim.Framework.UserManagement;
 
 namespace OpenSim.Grid.UserServer
 {
@@ -58,18 +56,24 @@ namespace OpenSim.Grid.UserServer
         {
             // Load information from the gridserver
             RegionProfileData SimInfo = new RegionProfileData();
-            SimInfo = SimInfo.RequestSimProfileData(theUser.currentAgent.currentHandle, m_config.GridServerURL, m_config.GridSendKey, m_config.GridRecvKey);
+            SimInfo =
+                SimInfo.RequestSimProfileData(theUser.currentAgent.currentHandle, m_config.GridServerURL,
+                                              m_config.GridSendKey, m_config.GridRecvKey);
 
             // Customise the response
             // Home Location
-            response.Home = "{'region_handle':[r" + (SimInfo.regionLocX * 256).ToString() + ",r" + (SimInfo.regionLocY * 256).ToString() + "], " +
-                "'position':[r" + theUser.homeLocation.X.ToString() + ",r" + theUser.homeLocation.Y.ToString() + ",r" + theUser.homeLocation.Z.ToString() + "], " +
-                "'look_at':[r" + theUser.homeLocation.X.ToString() + ",r" + theUser.homeLocation.Y.ToString() + ",r" + theUser.homeLocation.Z.ToString() + "]}";
+            response.Home = "{'region_handle':[r" + (SimInfo.regionLocX*256).ToString() + ",r" +
+                            (SimInfo.regionLocY*256).ToString() + "], " +
+                            "'position':[r" + theUser.homeLocation.X.ToString() + ",r" +
+                            theUser.homeLocation.Y.ToString() + ",r" + theUser.homeLocation.Z.ToString() + "], " +
+                            "'look_at':[r" + theUser.homeLocation.X.ToString() + ",r" +
+                            theUser.homeLocation.Y.ToString() + ",r" + theUser.homeLocation.Z.ToString() + "]}";
 
             // Destination
-            MainLog.Instance.Verbose("CUSTOMISERESPONSE: Region X: " + SimInfo.regionLocX + "; Region Y: " + SimInfo.regionLocY);
+            MainLog.Instance.Verbose("CUSTOMISERESPONSE: Region X: " + SimInfo.regionLocX + "; Region Y: " +
+                                     SimInfo.regionLocY);
             response.SimAddress = Util.GetHostFromDNS(SimInfo.serverIP).ToString();
-            response.SimPort = (Int32)SimInfo.serverPort;
+            response.SimPort = (Int32) SimInfo.serverPort;
             response.RegionX = SimInfo.regionLocX;
             response.RegionY = SimInfo.regionLocY;
 
@@ -87,7 +91,7 @@ namespace OpenSim.Grid.UserServer
             SimParams["firstname"] = theUser.username;
             SimParams["lastname"] = theUser.surname;
             SimParams["agent_id"] = theUser.UUID.ToString();
-            SimParams["circuit_code"] = (Int32)Convert.ToUInt32(response.CircuitCode);
+            SimParams["circuit_code"] = (Int32) Convert.ToUInt32(response.CircuitCode);
             SimParams["startpos_x"] = theUser.currentAgent.currentPos.X.ToString();
             SimParams["startpos_y"] = theUser.currentAgent.currentPos.Y.ToString();
             SimParams["startpos_z"] = theUser.currentAgent.currentPos.Z.ToString();
@@ -107,15 +111,16 @@ namespace OpenSim.Grid.UserServer
                 XmlRpcRequest GridReq = new XmlRpcRequest("expect_user", SendParams);
                 XmlRpcResponse GridResp = GridReq.Send(SimInfo.httpServerURI, 6000);
             }
-            catch( WebException e )
+            catch (WebException e)
             {
-                switch( e.Status )
+                switch (e.Status)
                 {
                     case WebExceptionStatus.Timeout:
                         //TODO: Send him to nearby or default region instead
-			MainLog.Instance.Verbose("Unable to connect to " + SimInfo.regionName + " (" + SimInfo.serverURI + ")");
+                        MainLog.Instance.Verbose("Unable to connect to " + SimInfo.regionName + " (" + SimInfo.serverURI +
+                                                 ")");
                         break;
-                       
+
                     default:
                         throw;
                 }
@@ -123,5 +128,3 @@ namespace OpenSim.Grid.UserServer
         }
     }
 }
-
-

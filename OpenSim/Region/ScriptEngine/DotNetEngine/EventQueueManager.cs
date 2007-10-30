@@ -27,12 +27,11 @@
 */
 /* Original code: Tedd Hansen */
 using System;
+using System.Collections;
 using System.Collections.Generic;
-using System.Text;
 using System.Threading;
-using System.Reflection;
-using OpenSim.Region.Environment.Scenes.Scripting;
 using libsecondlife;
+using OpenSim.Region.Environment.Scenes.Scripting;
 using OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL;
 
 namespace OpenSim.Region.ScriptEngine.DotNetEngine
@@ -42,25 +41,30 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
     /// Events are queued and executed in separate thread
     /// </summary>
     [Serializable]
-    class EventQueueManager
+    internal class EventQueueManager
     {
         /// <summary>
         /// List of threads processing event queue
         /// </summary>
         private List<Thread> eventQueueThreads = new List<Thread>();
+
         private object queueLock = new object(); // Mutex lock object
+
         /// <summary>
         /// How many ms to sleep if queue is empty
         /// </summary>
         private int nothingToDoSleepms = 50;
+
         /// <summary>
         /// How many threads to process queue with
         /// </summary>
         private int numberOfThreads = 2;
+
         /// <summary>
         /// Queue containing events waiting to be executed
         /// </summary>
         private Queue<QueueItemStruct> eventQueue = new Queue<QueueItemStruct>();
+
         /// <summary>
         /// Queue item structure
         /// </summary>
@@ -76,9 +80,11 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
         /// List of localID locks for mutex processing of script events
         /// </summary>
         private List<uint> objectLocks = new List<uint>();
+
         private object tryLockLock = new object(); // Mutex lock object
 
         private ScriptEngine m_ScriptEngine;
+
         public EventQueueManager(ScriptEngine _ScriptEngine)
         {
             m_ScriptEngine = _ScriptEngine;
@@ -96,11 +102,11 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
                 EventQueueThread.Start();
             }
         }
+
         ~EventQueueManager()
         {
-
             // Kill worker threads
-            foreach (Thread EventQueueThread in new System.Collections.ArrayList(eventQueueThreads))
+            foreach (Thread EventQueueThread in new ArrayList(eventQueueThreads))
             {
                 if (EventQueueThread != null && EventQueueThread.IsAlive == true)
                 {
@@ -118,7 +124,6 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
             eventQueueThreads.Clear();
             // Todo: Clean up our queues
             eventQueue.Clear();
-
         }
 
         /// <summary>
@@ -176,18 +181,21 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
                                 // Execute function
                                 try
                                 {
-                                    m_ScriptEngine.m_ScriptManager.ExecuteEvent(QIS.localID, QIS.itemID, QIS.functionName, QIS.param);
+                                    m_ScriptEngine.m_ScriptManager.ExecuteEvent(QIS.localID, QIS.itemID,
+                                                                                QIS.functionName, QIS.param);
                                 }
                                 catch (Exception e)
                                 {
                                     // DISPLAY ERROR INWORLD
                                     string text = "Error executing script function \"" + QIS.functionName + "\":\r\n";
                                     if (e.InnerException != null)
-                                    { // Send inner exception
+                                    {
+                                        // Send inner exception
                                         text += e.InnerException.Message.ToString();
                                     }
                                     else
-                                    { // Send normal
+                                    {
+                                        // Send normal
                                         text += e.Message.ToString();
                                     }
                                     try
@@ -195,28 +203,33 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
                                         if (text.Length > 1500)
                                             text = text.Substring(0, 1500);
                                         IScriptHost m_host = m_ScriptEngine.World.GetSceneObjectPart(QIS.localID);
-                                    //if (m_host != null)
-                                    //{
-                                        m_ScriptEngine.World.SimChat(Helpers.StringToField(text), 1, 0, m_host.AbsolutePosition, m_host.Name, m_host.UUID);
-                                    } catch {
-                                    //}
-                                    //else
-                                    //{
+                                        //if (m_host != null)
+                                        //{
+                                        m_ScriptEngine.World.SimChat(Helpers.StringToField(text), 1, 0,
+                                                                     m_host.AbsolutePosition, m_host.Name, m_host.UUID);
+                                    }
+                                    catch
+                                    {
+                                        //}
+                                        //else
+                                        //{
                                         // T oconsole
                                         Console.WriteLine("Unable to send text in-world:\r\n" + text);
                                     }
-
                                 }
                                 finally
                                 {
                                     ReleaseLock(QIS.localID);
                                 }
                             }
-
                         } // Something in queue
-                    } catch (ThreadAbortException tae) {
+                    }
+                    catch (ThreadAbortException tae)
+                    {
                         throw tae;
-                    } catch (Exception e) {
+                    }
+                    catch (Exception e)
+                    {
                         Console.WriteLine("Exception in EventQueueThreadLoop: " + e.ToString());
                     }
                 } // while
@@ -283,15 +296,15 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
                 return;
             }
 
-            Dictionary<LLUUID, LSL_BaseClass>.KeyCollection scriptKeys = m_ScriptEngine.m_ScriptManager.GetScriptKeys(localID);
+            Dictionary<LLUUID, LSL_BaseClass>.KeyCollection scriptKeys =
+                m_ScriptEngine.m_ScriptManager.GetScriptKeys(localID);
 
-            foreach ( LLUUID itemID in scriptKeys )
+            foreach (LLUUID itemID in scriptKeys)
             {
                 // Add to each script in that object
                 // TODO: Some scripts may not subscribe to this event. Should we NOT add it? Does it matter?
                 AddToScriptQueue(localID, itemID, FunctionName, param);
             }
-
         }
 
         /// <summary>
@@ -316,6 +329,5 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
                 eventQueue.Enqueue(QIS);
             }
         }
-
     }
 }

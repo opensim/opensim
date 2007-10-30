@@ -27,7 +27,6 @@
 */
 using System;
 using System.Collections.Generic;
-using System.Text;
 
 namespace OpenSim.Framework
 {
@@ -37,15 +36,15 @@ namespace OpenSim.Framework
     // permissions rather than just the first. Deny permissions will
     // override all others.
 
-
     #region ACL Core Class
+
     /// <summary>
     /// Access Control List Engine
     /// </summary>
     public class ACL
     {
-        Dictionary<string, Role> Roles = new Dictionary<string, Role>();
-        Dictionary<string, Resource> Resources = new Dictionary<string, Resource>();
+        private Dictionary<string, Role> Roles = new Dictionary<string, Role>();
+        private Dictionary<string, Resource> Resources = new Dictionary<string, Resource>();
 
         public ACL AddRole(Role role)
         {
@@ -114,9 +113,11 @@ namespace OpenSim.Framework
             return this;
         }
     }
+
     #endregion
 
     #region Exceptions
+
     /// <summary>
     /// Thrown when an ACL attempts to add a duplicate role.
     /// </summary>
@@ -139,6 +140,7 @@ namespace OpenSim.Framework
             return "This ACL already contains a role called '" + m_role.Name + "'.";
         }
     }
+
     #endregion
 
     #region Roles and Resources
@@ -146,7 +148,12 @@ namespace OpenSim.Framework
     /// <summary>
     /// Does this Role have permission to access a specified Resource?
     /// </summary>
-    public enum Permission { Deny, None, Allow };
+    public enum Permission
+    {
+        Deny,
+        None,
+        Allow
+    } ;
 
     /// <summary>
     /// A role class, for use with Users or Groups
@@ -227,7 +234,7 @@ namespace OpenSim.Framework
 
     #region Tests
 
-    class ACLTester
+    internal class ACLTester
     {
         public ACLTester()
         {
@@ -249,7 +256,6 @@ namespace OpenSim.Framework
             acl.GrantPermission("Guests", "CanBuild");
 
             acl.HasPermission("JoeGuest", "CanBuild");
-
         }
     }
 

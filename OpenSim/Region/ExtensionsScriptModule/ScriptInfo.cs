@@ -25,6 +25,7 @@
 * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 * 
 */
+using libsecondlife;
 using OpenSim.Framework.Console;
 using OpenSim.Region.Environment.Scenes;
 
@@ -52,10 +53,10 @@ namespace OpenSim.Region.ExtensionsScriptModule
             world = scene;
             events = world.EventManager;
             logger = MainLog.Instance;
-            api = new ScriptAPI(world, libsecondlife.LLUUID.Zero);
+            api = new ScriptAPI(world, LLUUID.Zero);
         }
 
-        public void CreateTaskAPI(libsecondlife.LLUUID task)
+        public void CreateTaskAPI(LLUUID task)
         {
             api = new ScriptAPI(world, task);
         }

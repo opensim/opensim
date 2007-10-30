@@ -28,16 +28,10 @@
 
 using System;
 using System.IO;
-using System.Reflection;
-using System.Threading;
 using System.Timers;
+using OpenSim.Framework;
 using OpenSim.Framework.Console;
-using OpenSim.Framework.Interfaces;
 using OpenSim.Framework.Servers;
-using OpenSim.Framework;
-using OpenSim.Framework;
-
-using Timer=System.Timers.Timer;
 
 namespace OpenSim.Grid.GridServer
 {
@@ -90,10 +84,9 @@ namespace OpenSim.Grid.GridServer
             {
                 Directory.CreateDirectory(Util.logDir());
             }
-            m_console = new LogBase((Path.Combine(Util.logDir(),"opengrid-gridserver-console.log")), "OpenGrid", this, true);
+            m_console =
+                new LogBase((Path.Combine(Util.logDir(), "opengrid-gridserver-console.log")), "OpenGrid", this, true);
             MainLog.Instance = m_console;
-
-
         }
 
         public void managercallback(string cmd)
@@ -109,28 +102,28 @@ namespace OpenSim.Grid.GridServer
 
         public void Startup()
         {
-
-            this.Cfg = new GridConfig("GRID SERVER",(Path.Combine(Util.configDir(),"GridServer_Config.xml"))); //Yeah srsly, that's it.
+            Cfg = new GridConfig("GRID SERVER", (Path.Combine(Util.configDir(), "GridServer_Config.xml")));
+                //Yeah srsly, that's it.
             if (setuponly) Environment.Exit(0);
 
-            m_console.Verbose( "Main.cs:Startup() - Connecting to Storage Server");
+            m_console.Verbose("Main.cs:Startup() - Connecting to Storage Server");
             m_gridManager = new GridManager();
             m_gridManager.AddPlugin(Cfg.DatabaseProvider); // Made of win
             m_gridManager.config = Cfg;
 
-            m_console.Verbose( "Main.cs:Startup() - Starting HTTP process");
-            BaseHttpServer httpServer = new BaseHttpServer((int)Cfg.HttpPort);
+            m_console.Verbose("Main.cs:Startup() - Starting HTTP process");
+            BaseHttpServer httpServer = new BaseHttpServer((int) Cfg.HttpPort);
             //GridManagementAgent GridManagerAgent = new GridManagementAgent(httpServer, "gridserver", Cfg.SimSendKey, Cfg.SimRecvKey, managercallback);
 
             httpServer.AddXmlRPCHandler("simulator_login", m_gridManager.XmlRpcSimulatorLoginMethod);
             httpServer.AddXmlRPCHandler("simulator_data_request", m_gridManager.XmlRpcSimulatorDataRequestMethod);
             httpServer.AddXmlRPCHandler("map_block", m_gridManager.XmlRpcMapBlockMethod);
 
-            httpServer.AddStreamHandler(new RestStreamHandler("GET", "/sims/", m_gridManager.RestGetSimMethod ));
-            httpServer.AddStreamHandler(new RestStreamHandler("POST", "/sims/", m_gridManager.RestSetSimMethod ));
+            httpServer.AddStreamHandler(new RestStreamHandler("GET", "/sims/", m_gridManager.RestGetSimMethod));
+            httpServer.AddStreamHandler(new RestStreamHandler("POST", "/sims/", m_gridManager.RestSetSimMethod));
 
-            httpServer.AddStreamHandler( new RestStreamHandler("GET", "/regions/", m_gridManager.RestGetRegionMethod  ));
-            httpServer.AddStreamHandler( new RestStreamHandler("POST","/regions/", m_gridManager.RestSetRegionMethod  ));
+            httpServer.AddStreamHandler(new RestStreamHandler("GET", "/regions/", m_gridManager.RestGetRegionMethod));
+            httpServer.AddStreamHandler(new RestStreamHandler("POST", "/regions/", m_gridManager.RestSetRegionMethod));
 
             //httpServer.AddRestHandler("GET", "/sims/", m_gridManager.RestGetSimMethod);
             //httpServer.AddRestHandler("POST", "/sims/", m_gridManager.RestSetSimMethod);
@@ -139,9 +132,9 @@ namespace OpenSim.Grid.GridServer
 
             httpServer.Start();
 
-            m_console.Verbose( "Main.cs:Startup() - Starting sim status checker");
+            m_console.Verbose("Main.cs:Startup() - Starting sim status checker");
 
-            Timer simCheckTimer = new Timer(3600000 * 3); // 3 Hours between updates.
+            Timer simCheckTimer = new Timer(3600000*3); // 3 Hours between updates.
             simCheckTimer.Elapsed += new ElapsedEventHandler(CheckSims);
             simCheckTimer.Enabled = true;
         }

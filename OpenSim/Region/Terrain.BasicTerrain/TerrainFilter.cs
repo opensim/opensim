@@ -87,11 +87,12 @@ namespace OpenSim.Region.Terrain
             {
                 foreach (Type pluginType in compilerResults.CompiledAssembly.GetExportedTypes())
                 {
-                    Type testInterface = pluginType.GetInterface("ITerrainFilter",true);
+                    Type testInterface = pluginType.GetInterface("ITerrainFilter", true);
 
                     if (testInterface != null)
                     {
-                        ITerrainFilter filter = (ITerrainFilter)compilerResults.CompiledAssembly.CreateInstance(pluginType.ToString());
+                        ITerrainFilter filter =
+                            (ITerrainFilter) compilerResults.CompiledAssembly.CreateInstance(pluginType.ToString());
 
                         string filterName = filter.Register();
                         Console.WriteLine("Plugin: " + filterName + " loaded.");
@@ -107,7 +108,6 @@ namespace OpenSim.Region.Terrain
                     }
                 }
             }
-
         }
 
         public void LoadFilterCSharp(string filename)

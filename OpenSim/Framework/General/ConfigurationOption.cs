@@ -26,10 +26,6 @@
 * 
 */
 
-using System;
-using System.Collections.Generic;
-using System.Text;
-
 namespace OpenSim.Framework
 {
     public class ConfigurationOption
@@ -40,7 +36,7 @@ namespace OpenSim.Framework
             TYPE_STRING_NOT_EMPTY,
             TYPE_UINT16,
             TYPE_UINT32,
-            TYPE_UINT64, 
+            TYPE_UINT64,
             TYPE_INT16,
             TYPE_INT32,
             TYPE_INT64,
@@ -52,7 +48,7 @@ namespace OpenSim.Framework
             TYPE_LLVECTOR3,
             TYPE_FLOAT,
             TYPE_DOUBLE
-        };
+        } ;
 
         public string configurationKey = "";
         public string configurationQuestion = "";

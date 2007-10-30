@@ -31,7 +31,7 @@ using libsecondlife;
 
 namespace OpenSim.Framework
 {
-    class UUID
+    internal class UUID
     {
         public LLUUID llUUID;
 
@@ -73,7 +73,7 @@ namespace OpenSim.Framework
             n = BitConverter.GetBytes(fourth);
             n.CopyTo(uuid, 12);
 
-            llUUID = new LLUUID(uuid,0);
+            llUUID = new LLUUID(uuid, 0);
         }
 
         public override string ToString()

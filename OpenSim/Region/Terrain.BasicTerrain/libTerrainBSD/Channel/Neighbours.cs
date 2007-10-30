@@ -26,19 +26,15 @@
 * 
 */
 
-using System;
-using System.Collections.Generic;
-using System.Text;
-
 namespace libTerrain
 {
     partial class Channel
     {
-        enum NeighbourSystem
+        private enum NeighbourSystem
         {
             Moore,
             VonNeumann
-        };
+        } ;
 
         private int[] Neighbours(NeighbourSystem type, int index)
         {

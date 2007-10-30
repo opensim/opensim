@@ -26,19 +26,13 @@
 * 
 */
 
-using OpenSim.Framework.Console;
-using OpenSim.Framework;
-using OpenSim.Region.Environment;
 using OpenSim.Region.Environment.Scenes;
-
-using System.Collections.Generic;
-using libsecondlife;
 
 namespace OpenSim.Region.ExtensionsScriptModule.CSharp.Examples
 {
     public class LSLExportScript : IScript
     {
-        ScriptInfo script;
+        private ScriptInfo script;
 
         public string Name
         {
@@ -48,11 +42,11 @@ namespace OpenSim.Region.ExtensionsScriptModule.CSharp.Examples
         public void Initialise(ScriptInfo scriptInfo)
         {
             script = scriptInfo;
-            
+
             script.events.OnPluginConsole += new EventManager.OnPluginConsoleDelegate(ProcessConsoleMsg);
         }
 
-        void ProcessConsoleMsg(string[] args)
+        private void ProcessConsoleMsg(string[] args)
         {
             /*if (args[0].ToLower() == "lslexport")
             {
@@ -79,7 +73,7 @@ namespace OpenSim.Region.ExtensionsScriptModule.CSharp.Examples
             }*/
         }
 
-        string processPrimitiveToString(OpenSim.Region.Environment.Scenes.SceneObjectPart prim)
+        private string processPrimitiveToString(SceneObjectPart prim)
         {
             /*string desc = prim.Description;
             string name = prim.Name;

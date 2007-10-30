@@ -28,13 +28,14 @@
 
 using System;
 using System.Net;
+using System.Net.Sockets;
 
 namespace OpenSim.Framework
 {
     /// <summary>
     /// A class for manipulating RegionHandle coordinates
     /// </summary>
-    class RegionHandle
+    internal class RegionHandle
     {
         private UInt64 handle;
 
@@ -48,28 +49,28 @@ namespace OpenSim.Framework
         {
             IPAddress addr = IPAddress.Parse(ip);
 
-            if (addr.AddressFamily != System.Net.Sockets.AddressFamily.InterNetwork)
+            if (addr.AddressFamily != AddressFamily.InterNetwork)
                 throw new Exception("Bad RegionHandle Parameter - must be an IPv4 address");
 
             uint baseHandle = BitConverter.ToUInt32(addr.GetAddressBytes(), 0);
 
             // Split the IP address in half
-            short a = (short)((baseHandle << 16) & 0xFFFF);
-            short b = (short)((baseHandle <<  0) & 0xFFFF);
+            short a = (short) ((baseHandle << 16) & 0xFFFF);
+            short b = (short) ((baseHandle << 0) & 0xFFFF);
 
             // Raise the bounds a little
-            uint nx = (uint)x;
-            uint ny = (uint)y;
+            uint nx = (uint) x;
+            uint ny = (uint) y;
 
             // Multiply grid coords to get region coords
             nx *= 256;
             ny *= 256;
 
             // Stuff the IP address in too
-            nx = (uint)a << 16;
-            ny = (uint)b << 16;
+            nx = (uint) a << 16;
+            ny = (uint) b << 16;
 
-            handle = ((UInt64)nx << 32) | (uint)ny;
+            handle = ((UInt64) nx << 32) | (uint) ny;
         }
 
         /// <summary>
@@ -79,7 +80,7 @@ namespace OpenSim.Framework
         /// <param name="y">Grid Y Coordinate</param>
         public RegionHandle(uint x, uint y)
         {
-            handle = ((x * 256) << 32) | (y * 256);
+            handle = ((x*256) << 32) | (y*256);
         }
 
         /// <summary>
@@ -118,10 +119,10 @@ namespace OpenSim.Framework
         /// <returns>Grid Server IP Address</returns>
         public IPAddress getGridIP()
         {
-            uint a = (uint)((handle >> 16) & 0xFFFF);
-            uint b = (uint)((handle >> 48) & 0xFFFF);
+            uint a = (uint) ((handle >> 16) & 0xFFFF);
+            uint b = (uint) ((handle >> 48) & 0xFFFF);
 
-            return new IPAddress((long)(a << 16) | (long)b);
+            return new IPAddress((long) (a << 16) | (long) b);
         }
 
         /// <summary>
@@ -130,7 +131,7 @@ namespace OpenSim.Framework
         /// <returns>X Coordinate</returns>
         public uint getGridX()
         {
-            uint x = (uint)((handle >> 32) & 0xFFFF);
+            uint x = (uint) ((handle >> 32) & 0xFFFF);
 
             return x;
         }
@@ -141,7 +142,7 @@ namespace OpenSim.Framework
         /// <returns>Y Coordinate</returns>
         public uint getGridY()
         {
-            uint y = (uint)((handle >> 0) & 0xFFFF);
+            uint y = (uint) ((handle >> 0) & 0xFFFF);
 
             return y;
         }

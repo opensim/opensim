@@ -31,21 +31,17 @@ using System.Collections.Generic;
 using System.IO;
 using System.Text;
 using Nini.Config;
+using OpenSim.Framework;
 using OpenSim.Framework.Communications.Cache;
 using OpenSim.Framework.Console;
-using OpenSim.Framework.Interfaces;
 using OpenSim.Framework.Servers;
-using OpenSim.Framework;
-using OpenSim.Framework;
 using OpenSim.Region.ClientStack;
 using OpenSim.Region.Communications.Local;
 using OpenSim.Region.Communications.OGS1;
 using OpenSim.Region.Environment;
+using OpenSim.Region.Environment.Interfaces;
 using OpenSim.Region.Environment.Scenes;
 using OpenSim.Region.Physics.Manager;
-using OpenSim.Framework;
-using System.Globalization;
-using RegionInfo = OpenSim.Framework.RegionInfo;
 
 namespace OpenSim
 {
@@ -114,7 +110,6 @@ namespace OpenSim
                 }
                 else
                 {
-
                     // no default config files, so set default values, and save it
                     SetDefaultConfig();
 
@@ -125,7 +120,6 @@ namespace OpenSim
             }
 
             ReadConfigSettings();
-
         }
 
         protected void SetDefaultConfig()
@@ -148,7 +142,6 @@ namespace OpenSim
                 config.Set("script_engine", "DotNetEngine");
 
                 config.Set("asset_database", "sqlite");
-
             }
 
             if (m_config.Configs["StandAlone"] == null)
@@ -217,7 +210,8 @@ namespace OpenSim
                     standaloneConfig.GetString("inventory_plugin", "OpenSim.Framework.Data.SQLite.dll");
                 m_standaloneUserPlugin =
                     standaloneConfig.GetString("userDatabase_plugin", "OpenSim.Framework.Data.DB4o.dll");
-                m_standaloneAssetPlugin = standaloneConfig.GetString("asset_plugin", "OpenSim.Framework.Data.SQLite.dll");
+                m_standaloneAssetPlugin =
+                    standaloneConfig.GetString("asset_plugin", "OpenSim.Framework.Data.SQLite.dll");
 
                 m_dumpAssetsToFile = standaloneConfig.GetBoolean("dump_assets_to_file", false);
             }
@@ -230,7 +224,6 @@ namespace OpenSim
         /// </summary>
         public override void StartUp()
         {
-
             if (!Directory.Exists(Util.logDir()))
             {
                 Directory.CreateDirectory(Util.logDir());
@@ -248,22 +241,28 @@ namespace OpenSim
                 LocalInventoryService inventoryService = new LocalInventoryService();
                 inventoryService.AddPlugin(m_standaloneInventoryPlugin);
 
-                LocalUserServices userService = new LocalUserServices(m_networkServersInfo, m_networkServersInfo.DefaultHomeLocX, m_networkServersInfo.DefaultHomeLocY, inventoryService);
+                LocalUserServices userService =
+                    new LocalUserServices(m_networkServersInfo, m_networkServersInfo.DefaultHomeLocX,
+                                          m_networkServersInfo.DefaultHomeLocY, inventoryService);
                 userService.AddPlugin(m_standaloneUserPlugin);
 
                 LocalBackEndServices backendService = new LocalBackEndServices();
 
-                CommunicationsLocal localComms = new CommunicationsLocal(m_networkServersInfo, m_httpServer, m_assetCache, userService, inventoryService, backendService, backendService, m_dumpAssetsToFile);
+                CommunicationsLocal localComms =
+                    new CommunicationsLocal(m_networkServersInfo, m_httpServer, m_assetCache, userService,
+                                            inventoryService, backendService, backendService, m_dumpAssetsToFile);
                 m_commsManager = localComms;
 
-                m_loginService = new LocalLoginService(userService, m_standaloneWelcomeMessage, localComms, m_networkServersInfo, m_standaloneAuthenticate);
+                m_loginService =
+                    new LocalLoginService(userService, m_standaloneWelcomeMessage, localComms, m_networkServersInfo,
+                                          m_standaloneAuthenticate);
                 m_loginService.OnLoginToRegion += backendService.AddNewSession;
 
                 m_httpServer.AddXmlRPCHandler("login_to_simulator", m_loginService.XmlRpcLoginMethod);
 
                 if (m_standaloneAuthenticate)
                 {
-                    this.CreateAccount = localComms.doCreate;
+                    CreateAccount = localComms.doCreate;
                 }
             }
             else
@@ -308,7 +307,7 @@ namespace OpenSim
             // Start UDP servers
             for (int i = 0; i < m_udpServers.Count; i++)
             {
-                this.m_udpServers[i].ServerListener();
+                m_udpServers[i].ServerListener();
             }
 
             //Run Startup Commands
@@ -321,7 +320,8 @@ namespace OpenSim
                 MainLog.Instance.Verbose("STARTUP", "No startup command script specified. Moving on...");
             }
 
-            MainLog.Instance.Status("STARTUP", "Startup complete, serving " + m_udpServers.Count.ToString() + " region(s)");
+            MainLog.Instance.Status("STARTUP",
+                                    "Startup complete, serving " + m_udpServers.Count.ToString() + " region(s)");
         }
 
         public UDPServer CreateRegion(RegionInfo regionInfo)
@@ -365,9 +365,12 @@ namespace OpenSim
             return new StorageManager(m_storageDLL, regionInfo.DataStore, regionInfo.RegionName);
         }
 
-        protected override Scene CreateScene(RegionInfo regionInfo, StorageManager storageManager, AgentCircuitManager circuitManager)
+        protected override Scene CreateScene(RegionInfo regionInfo, StorageManager storageManager,
+                                             AgentCircuitManager circuitManager)
         {
-            return new Scene(regionInfo, circuitManager, m_commsManager, m_assetCache, storageManager, m_httpServer, m_moduleLoader, m_dumpAssetsToFile);
+            return
+                new Scene(regionInfo, circuitManager, m_commsManager, m_assetCache, storageManager, m_httpServer,
+                          m_moduleLoader, m_dumpAssetsToFile);
         }
 
         protected override void Initialize()
@@ -436,7 +439,6 @@ namespace OpenSim
 
         protected void ConnectToRemoteGridServer()
         {
-
         }
 
         #endregion
@@ -464,6 +466,7 @@ namespace OpenSim
         }
 
         #region Console Commands
+
         /// <summary>
         /// 
         /// </summary>
@@ -649,11 +652,10 @@ namespace OpenSim
                 case "change-region":
                     if (cmdparams.Length > 0)
                     {
-                        string regionName = this.CombineParams(cmdparams, 0);
+                        string regionName = CombineParams(cmdparams, 0);
 
                         if (m_sceneManager.TrySetCurrentScene(regionName))
                         {
-
                         }
                         else
                         {
@@ -663,11 +665,13 @@ namespace OpenSim
 
                     if (m_sceneManager.CurrentScene == null)
                     {
-                        MainLog.Instance.Verbose("Currently at Root level. To change region please use 'change-region <regioname>'");
+                        MainLog.Instance.Verbose(
+                            "Currently at Root level. To change region please use 'change-region <regioname>'");
                     }
                     else
                     {
-                        MainLog.Instance.Verbose("Current Region: " + m_sceneManager.CurrentScene.RegionInfo.RegionName + ". To change region please use 'change-region <regioname>'");
+                        MainLog.Instance.Verbose("Current Region: " + m_sceneManager.CurrentScene.RegionInfo.RegionName +
+                                                 ". To change region please use 'change-region <regioname>'");
                     }
 
                     break;
@@ -676,7 +680,6 @@ namespace OpenSim
                     m_log.Error("Unknown command");
                     break;
             }
-
         }
 
         public void Debug(string[] args)
@@ -695,8 +698,7 @@ namespace OpenSim
                         {
                             m_log.Error("packet debug should be 0..2");
                         }
-                        System.Console.WriteLine("New packet debug: " + newDebug.ToString());
-
+                        Console.WriteLine("New packet debug: " + newDebug.ToString());
                     }
 
                     break;
@@ -704,7 +706,6 @@ namespace OpenSim
                     m_log.Error("Unknown debug");
                     break;
             }
-
         }
 
         /// <summary>
@@ -720,7 +721,9 @@ namespace OpenSim
                     m_log.Error("That is " + (DateTime.Now - m_startuptime).ToString());
                     break;
                 case "users":
-                    m_log.Error(String.Format("{0,-16}{1,-16}{2,-25}{3,-25}{4,-16}{5,-16}{6,-16}", "Firstname", "Lastname", "Agent ID", "Session ID", "Circuit", "IP", "World"));
+                    m_log.Error(
+                        String.Format("{0,-16}{1,-16}{2,-25}{3,-25}{4,-16}{5,-16}{6,-16}", "Firstname", "Lastname",
+                                      "Agent ID", "Session ID", "Circuit", "IP", "World"));
 
                     foreach (ScenePresence presence in m_sceneManager.GetCurrentSceneAvatars())
                     {
@@ -750,7 +753,7 @@ namespace OpenSim
                     break;
                 case "modules":
                     m_log.Error("The currently loaded shared modules are:");
-                    foreach (OpenSim.Region.Environment.Interfaces.IRegionModule module in m_moduleLoader.GetLoadedSharedModules )
+                    foreach (IRegionModule module in m_moduleLoader.GetLoadedSharedModules)
                     {
                         m_log.Error("Shared Module: " + module.Name);
                     }
@@ -768,8 +771,7 @@ namespace OpenSim
             result = result.TrimEnd(' ');
             return result;
         }
+
         #endregion
     }
-
-
 }

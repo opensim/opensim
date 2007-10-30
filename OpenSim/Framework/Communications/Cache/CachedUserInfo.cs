@@ -26,7 +26,6 @@
 * 
 */
 using libsecondlife;
-using OpenSim.Framework;
 
 namespace OpenSim.Framework.Communications.Cache
 {
@@ -45,22 +44,22 @@ namespace OpenSim.Framework.Communications.Cache
         // Methods
         public void FolderReceive(LLUUID userID, InventoryFolderImpl folderInfo)
         {
-            if (userID == this.UserProfile.UUID)
+            if (userID == UserProfile.UUID)
             {
-                if (this.RootFolder == null)
+                if (RootFolder == null)
                 {
                     if (folderInfo.parentID == LLUUID.Zero)
                     {
-                        this.RootFolder = folderInfo;
+                        RootFolder = folderInfo;
                     }
                 }
-                else if (this.RootFolder.folderID == folderInfo.parentID)
+                else if (RootFolder.folderID == folderInfo.parentID)
                 {
-                    this.RootFolder.SubFolders.Add(folderInfo.folderID, folderInfo);
+                    RootFolder.SubFolders.Add(folderInfo.folderID, folderInfo);
                 }
                 else
                 {
-                    InventoryFolderImpl folder = this.RootFolder.HasSubFolder(folderInfo.parentID);
+                    InventoryFolderImpl folder = RootFolder.HasSubFolder(folderInfo.parentID);
                     if (folder != null)
                     {
                         folder.SubFolders.Add(folderInfo.folderID, folderInfo);
@@ -71,18 +70,18 @@ namespace OpenSim.Framework.Communications.Cache
 
         public void ItemReceive(LLUUID userID, InventoryItemBase itemInfo)
         {
-            if ((userID == this.UserProfile.UUID) && (this.RootFolder != null))
+            if ((userID == UserProfile.UUID) && (RootFolder != null))
             {
-                if (itemInfo.parentFolderID == this.RootFolder.folderID)
+                if (itemInfo.parentFolderID == RootFolder.folderID)
                 {
-                    this.RootFolder.Items.Add(itemInfo.inventoryID, itemInfo);
+                    RootFolder.Items.Add(itemInfo.inventoryID, itemInfo);
                 }
                 else
                 {
-                    InventoryFolderImpl folder = this.RootFolder.HasSubFolder(itemInfo.parentFolderID);
+                    InventoryFolderImpl folder = RootFolder.HasSubFolder(itemInfo.parentFolderID);
                     if (folder != null)
                     {
-                        folder.Items.Add(itemInfo.inventoryID, itemInfo);                    
+                        folder.Items.Add(itemInfo.inventoryID, itemInfo);
                     }
                 }
             }
@@ -90,30 +89,30 @@ namespace OpenSim.Framework.Communications.Cache
 
         public void AddItem(LLUUID userID, InventoryItemBase itemInfo)
         {
-            if ((userID == this.UserProfile.UUID) && (this.RootFolder != null))
+            if ((userID == UserProfile.UUID) && (RootFolder != null))
             {
-                this.ItemReceive(userID, itemInfo);
-                this.m_parentCommsManager.InventoryService.AddNewInventoryItem(userID, itemInfo);
+                ItemReceive(userID, itemInfo);
+                m_parentCommsManager.InventoryService.AddNewInventoryItem(userID, itemInfo);
             }
         }
 
         public void UpdateItem(LLUUID userID, InventoryItemBase itemInfo)
         {
-            if ((userID == this.UserProfile.UUID) && (this.RootFolder != null))
+            if ((userID == UserProfile.UUID) && (RootFolder != null))
             {
-                this.m_parentCommsManager.InventoryService.AddNewInventoryItem(userID, itemInfo);
+                m_parentCommsManager.InventoryService.AddNewInventoryItem(userID, itemInfo);
             }
         }
 
         public bool DeleteItem(LLUUID userID, InventoryItemBase item)
         {
             bool result = false;
-            if ((userID == this.UserProfile.UUID) && (this.RootFolder != null))
+            if ((userID == UserProfile.UUID) && (RootFolder != null))
             {
                 result = RootFolder.DeleteItem(item.inventoryID);
                 if (result)
                 {
-                    this.m_parentCommsManager.InventoryService.DeleteInventoryItem(userID, item);
+                    m_parentCommsManager.InventoryService.DeleteInventoryItem(userID, item);
                 }
             }
             return result;

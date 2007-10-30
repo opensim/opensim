@@ -26,9 +26,7 @@
 * 
 */
 
-using System;
 using System.Collections.Generic;
-using System.Text;
 using System.Text.RegularExpressions;
 
 namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL
@@ -51,9 +49,8 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL
             dataTypes.Add("rotation", "LSL_Types.Quaternion");
             dataTypes.Add("list", "list");
             dataTypes.Add("null", "null");
-
         }
- 
+
         public string Convert(string Script)
         {
             string Return = "";
@@ -81,7 +78,6 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL
             int quote_replaced_count = 0;
             for (int p = 0; p < Script.Length; p++)
             {
-
                 C = Script.Substring(p, 1);
                 while (true)
                 {
@@ -99,10 +95,13 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL
                             if (quote == "")
                             {
                                 // We didn't replace quote, probably because of empty string?
-                                _Script += quote_replacement_string + quote_replaced_count.ToString().PadLeft(5, "0".ToCharArray()[0]);
+                                _Script += quote_replacement_string +
+                                           quote_replaced_count.ToString().PadLeft(5, "0".ToCharArray()[0]);
                             }
                             // We just left a quote
-                            quotes.Add(quote_replacement_string + quote_replaced_count.ToString().PadLeft(5, "0".ToCharArray()[0]), quote);
+                            quotes.Add(
+                                quote_replacement_string +
+                                quote_replaced_count.ToString().PadLeft(5, "0".ToCharArray()[0]), quote);
                             quote = "";
                         }
                         break;
@@ -112,7 +111,6 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL
                     {
                         // We are not inside a quote
                         quote_replaced = false;
-
                     }
                     else
                     {
@@ -120,7 +118,8 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL
                         if (!quote_replaced)
                         {
                             // Replace quote
-                            _Script += quote_replacement_string + quote_replaced_count.ToString().PadLeft(5, "0".ToCharArray()[0]);
+                            _Script += quote_replacement_string +
+                                       quote_replaced_count.ToString().PadLeft(5, "0".ToCharArray()[0]);
                             quote_replaced = true;
                         }
                         quote += C;
@@ -139,7 +138,6 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL
             //
             // END OF QUOTE REPLACEMENT
             //
-
 
 
             //
@@ -170,7 +168,9 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL
                     if (ilevel == 1 && lastlevel == 0)
                     {
                         // 0 => 1: Get last 
-                        Match m = Regex.Match(cache, @"(?![a-zA-Z_]+)\s*([a-zA-Z_]+)[^a-zA-Z_\(\)]*{", RegexOptions.Compiled | RegexOptions.Multiline | RegexOptions.Singleline);
+                        Match m =
+                            Regex.Match(cache, @"(?![a-zA-Z_]+)\s*([a-zA-Z_]+)[^a-zA-Z_\(\)]*{",
+                                        RegexOptions.Compiled | RegexOptions.Multiline | RegexOptions.Singleline);
 
                         in_state = false;
                         if (m.Success)
@@ -179,7 +179,11 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL
                             in_state = true;
                             current_statename = m.Groups[1].Captures[0].Value;
                             //Console.WriteLine("Current statename: " + current_statename);
-                            cache = Regex.Replace(cache, @"(?<s1>(?![a-zA-Z_]+)\s*)" + @"([a-zA-Z_]+)(?<s2>[^a-zA-Z_\(\)]*){", "${s1}${s2}", RegexOptions.Compiled | RegexOptions.Multiline | RegexOptions.Singleline);
+                            cache =
+                                Regex.Replace(cache,
+                                              @"(?<s1>(?![a-zA-Z_]+)\s*)" + @"([a-zA-Z_]+)(?<s2>[^a-zA-Z_\(\)]*){",
+                                              "${s1}${s2}",
+                                              RegexOptions.Compiled | RegexOptions.Multiline | RegexOptions.Singleline);
                         }
                         ret += cache;
                         cache = "";
@@ -196,7 +200,11 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL
                             // void dataserver(key query_id, string data) {
                             //cache = Regex.Replace(cache, @"([^a-zA-Z_]\s*)((?!if|switch|for)[a-zA-Z_]+\s*\([^\)]*\)[^{]*{)", "$1" + "<STATE>" + "$2", RegexOptions.Compiled | RegexOptions.Multiline | RegexOptions.Singleline);
                             //Console.WriteLine("Replacing using statename: " + current_statename);
-                            cache = Regex.Replace(cache, @"^(\s*)((?!(if|switch|for)[^a-zA-Z0-9_])[a-zA-Z0-9_]*\s*\([^\)]*\)[^;]*\{)", @"$1public " + current_statename + "_event_$2", RegexOptions.Compiled | RegexOptions.Multiline | RegexOptions.Singleline);
+                            cache =
+                                Regex.Replace(cache,
+                                              @"^(\s*)((?!(if|switch|for)[^a-zA-Z0-9_])[a-zA-Z0-9_]*\s*\([^\)]*\)[^;]*\{)",
+                                              @"$1public " + current_statename + "_event_$2",
+                                              RegexOptions.Compiled | RegexOptions.Multiline | RegexOptions.Singleline);
                         }
 
                         ret += cache;
@@ -216,32 +224,48 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL
             ret = "";
 
 
-
             foreach (string key in dataTypes.Keys)
             {
                 string val;
                 dataTypes.TryGetValue(key, out val);
 
                 // Replace CAST - (integer) with (int)
-                Script = Regex.Replace(Script, @"\(" + key + @"\)", @"(" + val + ")", RegexOptions.Compiled | RegexOptions.Multiline);
+                Script =
+                    Regex.Replace(Script, @"\(" + key + @"\)", @"(" + val + ")",
+                                  RegexOptions.Compiled | RegexOptions.Multiline);
                 // Replace return types and function variables - integer a() and f(integer a, integer a)
-                Script = Regex.Replace(Script, @"(^|;|}|[\(,])(\s*)" + key + @"(\s*)", @"$1$2" + val + "$3", RegexOptions.Compiled | RegexOptions.Multiline);
+                Script =
+                    Regex.Replace(Script, @"(^|;|}|[\(,])(\s*)" + key + @"(\s*)", @"$1$2" + val + "$3",
+                                  RegexOptions.Compiled | RegexOptions.Multiline);
             }
 
             // Add "void" in front of functions that needs it
-            Script = Regex.Replace(Script, @"^(\s*public\s+)((?!(if|switch|for)[^a-zA-Z0-9_])[a-zA-Z0-9_]*\s*\([^\)]*\)[^;]*\{)", @"$1void $2", RegexOptions.Compiled | RegexOptions.Multiline | RegexOptions.Singleline);
+            Script =
+                Regex.Replace(Script,
+                              @"^(\s*public\s+)((?!(if|switch|for)[^a-zA-Z0-9_])[a-zA-Z0-9_]*\s*\([^\)]*\)[^;]*\{)",
+                              @"$1void $2", RegexOptions.Compiled | RegexOptions.Multiline | RegexOptions.Singleline);
 
             // Replace <x,y,z> and <x,y,z,r>
-            Script = Regex.Replace(Script, @"<([^,>]*,[^,>]*,[^,>]*,[^,>]*)>", @"new LSL_Types.Quaternion($1)", RegexOptions.Compiled | RegexOptions.Multiline | RegexOptions.Singleline);
-            Script = Regex.Replace(Script, @"<([^,>]*,[^,>]*,[^,>]*)>", @"new LSL_Types.Vector3($1)", RegexOptions.Compiled | RegexOptions.Multiline | RegexOptions.Singleline);
+            Script =
+                Regex.Replace(Script, @"<([^,>]*,[^,>]*,[^,>]*,[^,>]*)>", @"new LSL_Types.Quaternion($1)",
+                              RegexOptions.Compiled | RegexOptions.Multiline | RegexOptions.Singleline);
+            Script =
+                Regex.Replace(Script, @"<([^,>]*,[^,>]*,[^,>]*)>", @"new LSL_Types.Vector3($1)",
+                              RegexOptions.Compiled | RegexOptions.Multiline | RegexOptions.Singleline);
 
             // Replace List []'s
-            Script = Regex.Replace(Script, @"\[([^\]]*)\]", @"List.Parse($1)", RegexOptions.Compiled | RegexOptions.Multiline | RegexOptions.Singleline);
+            Script =
+                Regex.Replace(Script, @"\[([^\]]*)\]", @"List.Parse($1)",
+                              RegexOptions.Compiled | RegexOptions.Multiline | RegexOptions.Singleline);
 
 
             // Replace (string) to .ToString() //
-            Script = Regex.Replace(Script, @"\(string\)\s*([a-zA-Z0-9_]+(\s*\([^\)]*\))?)", @"$1.ToString()", RegexOptions.Compiled | RegexOptions.Multiline | RegexOptions.Singleline);
-            Script = Regex.Replace(Script, @"\((float|int)\)\s*([a-zA-Z0-9_]+(\s*\([^\)]*\))?)", @"$1.Parse($2)", RegexOptions.Compiled | RegexOptions.Multiline | RegexOptions.Singleline);
+            Script =
+                Regex.Replace(Script, @"\(string\)\s*([a-zA-Z0-9_]+(\s*\([^\)]*\))?)", @"$1.ToString()",
+                              RegexOptions.Compiled | RegexOptions.Multiline | RegexOptions.Singleline);
+            Script =
+                Regex.Replace(Script, @"\((float|int)\)\s*([a-zA-Z0-9_]+(\s*\([^\)]*\))?)", @"$1.Parse($2)",
+                              RegexOptions.Compiled | RegexOptions.Multiline | RegexOptions.Singleline);
 
 
             // REPLACE BACK QUOTES
@@ -256,7 +280,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL
             // Add namespace, class name and inheritance
 
             Return = "" +
-                "using OpenSim.Region.ScriptEngine.Common;";
+                     "using OpenSim.Region.ScriptEngine.Common;";
             //"using System; " +
             //"using System.Collections.Generic; " +
             //"using System.Text; " +
@@ -278,17 +302,15 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL
 
 
             Return += "" +
-            "namespace SecondLife { ";
-            Return += "" + 
-                //"[Serializable] " +
-                "public class Script : OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL.LSL_BaseClass { ";
+                      "namespace SecondLife { ";
+            Return += "" +
+                      //"[Serializable] " +
+                      "public class Script : OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL.LSL_BaseClass { ";
             Return += @"public Script() { } ";
             Return += Script;
             Return += "} }\r\n";
 
             return Return;
         }
-
-
     }
 }

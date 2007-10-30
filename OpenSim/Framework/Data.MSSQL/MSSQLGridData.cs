@@ -185,10 +185,10 @@ namespace OpenSim.Framework.Data.MSSQL
             byte[] hash = HashProvider.ComputeHash(stream);
             return false;
         }
+
         public ReservationData GetReservationAtPoint(uint x, uint y)
         {
             return null;
         }
     }
-    
 }

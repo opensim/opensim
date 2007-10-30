@@ -27,11 +27,8 @@
 */
 /* Original code: Tedd Hansen */
 using System;
-using System.Collections.Generic;
-using System.Text;
 using libsecondlife;
 using OpenSim.Framework;
-using OpenSim.Region.Environment.Scenes.Scripting;
 
 namespace OpenSim.Grid.ScriptEngine.DotNetEngine
 {
@@ -39,7 +36,7 @@ namespace OpenSim.Grid.ScriptEngine.DotNetEngine
     /// Prepares events so they can be directly executed upon a script by EventQueueManager, then queues it.
     /// </summary>
     [Serializable]
-    class EventManager
+    internal class EventManager
     {
         private ScriptEngine myScriptEngine;
         //public IScriptHost TEMP_OBJECT_ID;
@@ -55,7 +52,6 @@ namespace OpenSim.Grid.ScriptEngine.DotNetEngine
             myScriptEngine.World.EventManager.OnObjectGrab += touch_start;
             myScriptEngine.World.EventManager.OnRezScript += OnRezScript;
             myScriptEngine.World.EventManager.OnRemoveScript += OnRemoveScript;
-
         }
 
         public void touch_start(uint localID, LLVector3 offsetPos, IClientAPI remoteClient)
@@ -63,17 +59,20 @@ namespace OpenSim.Grid.ScriptEngine.DotNetEngine
             // Add to queue for all scripts in ObjectID object
             //myScriptEngine.m_logger.Verbose("ScriptEngine", "EventManager Event: touch_start");
             //Console.WriteLine("touch_start localID: " + localID);
-            myScriptEngine.m_EventQueueManager.AddToObjectQueue(localID, "touch_start", new object[] { (int)1 });
+            myScriptEngine.m_EventQueueManager.AddToObjectQueue(localID, "touch_start", new object[] {(int) 1});
         }
+
         public void OnRezScript(uint localID, LLUUID itemID, string script)
         {
             //myScriptEngine.myScriptManager.StartScript(
             //    Path.Combine("ScriptEngines", "Default.lsl"), 
             //    new OpenSim.Region.Environment.Scenes.Scripting.NullScriptHost()
             //);
-            Console.WriteLine("OnRezScript localID: " + localID + " LLUID: " + itemID.ToString() + " Size: " + script.Length);
+            Console.WriteLine("OnRezScript localID: " + localID + " LLUID: " + itemID.ToString() + " Size: " +
+                              script.Length);
             myScriptEngine.m_ScriptManager.StartScript(localID, itemID, script);
         }
+
         public void OnRemoveScript(uint localID, LLUUID itemID)
         {
             //myScriptEngine.myScriptManager.StartScript(
@@ -84,48 +83,138 @@ namespace OpenSim.Grid.ScriptEngine.DotNetEngine
             myScriptEngine.m_ScriptManager.StopScript(
                 localID,
                 itemID
-            );
-
+                );
         }
 
         // TODO: Replace placeholders below
         //  These needs to be hooked up to OpenSim during init of this class
         //   then queued in EventQueueManager.
         // When queued in EventQueueManager they need to be LSL compatible (name and params)
-        
-        //public void state_entry() { } // 
-        public void state_exit() { }
-        //public void touch_start() { }
-        public void touch() { }
-        public void touch_end() { }
-        public void collision_start() { }
-        public void collision() { }
-        public void collision_end() { }
-        public void land_collision_start() { }
-        public void land_collision() { }
-        public void land_collision_end() { }
-        public void timer() { }
-        public void listen() { }
-        public void on_rez() { }
-        public void sensor() { }
-        public void no_sensor() { }
-        public void control() { }
-        public void money() { }
-        public void email() { }
-        public void at_target() { }
-        public void not_at_target() { }
-        public void at_rot_target() { }
-        public void not_at_rot_target() { }
-        public void run_time_permissions() { }
-        public void changed() { }
-        public void attach() { }
-        public void dataserver() { }
-        public void link_message() { }
-        public void moving_start() { }
-        public void moving_end() { }
-        public void object_rez() { }
-        public void remote_data() { }
-        public void http_response() { }
 
+        //public void state_entry() { } // 
+        public void state_exit()
+        {
+        }
+
+        //public void touch_start() { }
+        public void touch()
+        {
+        }
+
+        public void touch_end()
+        {
+        }
+
+        public void collision_start()
+        {
+        }
+
+        public void collision()
+        {
+        }
+
+        public void collision_end()
+        {
+        }
+
+        public void land_collision_start()
+        {
+        }
+
+        public void land_collision()
+        {
+        }
+
+        public void land_collision_end()
+        {
+        }
+
+        public void timer()
+        {
+        }
+
+        public void listen()
+        {
+        }
+
+        public void on_rez()
+        {
+        }
+
+        public void sensor()
+        {
+        }
+
+        public void no_sensor()
+        {
+        }
+
+        public void control()
+        {
+        }
+
+        public void money()
+        {
+        }
+
+        public void email()
+        {
+        }
+
+        public void at_target()
+        {
+        }
+
+        public void not_at_target()
+        {
+        }
+
+        public void at_rot_target()
+        {
+        }
+
+        public void not_at_rot_target()
+        {
+        }
+
+        public void run_time_permissions()
+        {
+        }
+
+        public void changed()
+        {
+        }
+
+        public void attach()
+        {
+        }
+
+        public void dataserver()
+        {
+        }
+
+        public void link_message()
+        {
+        }
+
+        public void moving_start()
+        {
+        }
+
+        public void moving_end()
+        {
+        }
+
+        public void object_rez()
+        {
+        }
+
+        public void remote_data()
+        {
+        }
+
+        public void http_response()
+        {
+        }
     }
 }

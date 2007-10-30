@@ -26,10 +26,6 @@
 * 
 */
 
-using System;
-using System.Collections.Generic;
-using System.Text;
-
 namespace OpenSim.Region.ExtensionsScriptModule.JVMEngine.JVM
 {
     public enum OpCode : byte

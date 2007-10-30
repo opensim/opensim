@@ -30,13 +30,14 @@ using System.Collections.Generic;
 using System.Data;
 using System.Data.SQLite;
 using libsecondlife;
+using Mono.Data.SqliteClient;
 using OpenSim.Framework.Console;
 
 namespace OpenSim.Framework.Data.SQLite
 {
-    class SQLiteManager : SQLiteBase
+    internal class SQLiteManager : SQLiteBase
     {
-        IDbConnection dbcon;
+        private IDbConnection dbcon;
 
         /// <summary>
         /// Initialises and creates a new SQLite connection and maintains it.
@@ -78,15 +79,15 @@ namespace OpenSim.Framework.Data.SQLite
         /// <returns>A SQLite DB Command</returns>
         public IDbCommand Query(string sql, Dictionary<string, string> parameters)
         {
-            SQLiteCommand dbcommand = (SQLiteCommand)dbcon.CreateCommand();
+            SQLiteCommand dbcommand = (SQLiteCommand) dbcon.CreateCommand();
             dbcommand.CommandText = sql;
             foreach (KeyValuePair<string, string> param in parameters)
             {
-                SQLiteParameter paramx = new SQLiteParameter(param.Key,param.Value);
+                SQLiteParameter paramx = new SQLiteParameter(param.Key, param.Value);
                 dbcommand.Parameters.Add(paramx);
             }
 
-            return (IDbCommand)dbcommand;
+            return (IDbCommand) dbcommand;
         }
 
         private bool TestTables(SQLiteConnection conn)
@@ -98,7 +99,7 @@ namespace OpenSim.Framework.Data.SQLite
             {
                 pDa.Fill(tmpDS, "regions");
             }
-            catch (Mono.Data.SqliteClient.SqliteSyntaxException)
+            catch (SqliteSyntaxException)
             {
                 MainLog.Instance.Verbose("DATASTORE", "SQLite Database doesn't exist... creating");
                 InitDB(conn);
@@ -110,39 +111,39 @@ namespace OpenSim.Framework.Data.SQLite
         {
             DataTable regions = new DataTable("regions");
 
-            createCol(regions, "regionHandle", typeof(ulong));
-            createCol(regions, "regionName", typeof(System.String));
-            createCol(regions, "uuid", typeof(System.String));
+            createCol(regions, "regionHandle", typeof (ulong));
+            createCol(regions, "regionName", typeof (String));
+            createCol(regions, "uuid", typeof (String));
 
-            createCol(regions, "regionRecvKey", typeof(System.String));
-            createCol(regions, "regionSecret", typeof(System.String));
-            createCol(regions, "regionSendKey", typeof(System.String));
-            
-            createCol(regions, "regionDataURI", typeof(System.String));
-            createCol(regions, "serverIP", typeof(System.String));
-            createCol(regions, "serverPort", typeof(System.String));
-            createCol(regions, "serverURI", typeof(System.String));
+            createCol(regions, "regionRecvKey", typeof (String));
+            createCol(regions, "regionSecret", typeof (String));
+            createCol(regions, "regionSendKey", typeof (String));
 
-            
-            createCol(regions, "locX", typeof( uint));
-            createCol(regions, "locY", typeof( uint));
-            createCol(regions, "locZ", typeof( uint));
+            createCol(regions, "regionDataURI", typeof (String));
+            createCol(regions, "serverIP", typeof (String));
+            createCol(regions, "serverPort", typeof (String));
+            createCol(regions, "serverURI", typeof (String));
 
-            createCol(regions, "eastOverrideHandle", typeof( ulong ));
-            createCol(regions, "westOverrideHandle", typeof( ulong ));
-            createCol(regions, "southOverrideHandle", typeof( ulong ));
-            createCol(regions, "northOverrideHandle", typeof( ulong ));
 
-            createCol(regions, "regionAssetURI", typeof(System.String));
-            createCol(regions, "regionAssetRecvKey", typeof(System.String));
-            createCol(regions, "regionAssetSendKey", typeof(System.String));
+            createCol(regions, "locX", typeof (uint));
+            createCol(regions, "locY", typeof (uint));
+            createCol(regions, "locZ", typeof (uint));
 
-            createCol(regions, "regionUserURI", typeof(System.String));
-            createCol(regions, "regionUserRecvKey", typeof(System.String));
-            createCol(regions, "regionUserSendKey", typeof(System.String));
+            createCol(regions, "eastOverrideHandle", typeof (ulong));
+            createCol(regions, "westOverrideHandle", typeof (ulong));
+            createCol(regions, "southOverrideHandle", typeof (ulong));
+            createCol(regions, "northOverrideHandle", typeof (ulong));
+
+            createCol(regions, "regionAssetURI", typeof (String));
+            createCol(regions, "regionAssetRecvKey", typeof (String));
+            createCol(regions, "regionAssetSendKey", typeof (String));
+
+            createCol(regions, "regionUserURI", typeof (String));
+            createCol(regions, "regionUserRecvKey", typeof (String));
+            createCol(regions, "regionUserSendKey", typeof (String));
 
             // Add in contraints
-            regions.PrimaryKey = new DataColumn[] { regions.Columns["UUID"] };
+            regions.PrimaryKey = new DataColumn[] {regions.Columns["UUID"]};
             return regions;
         }
 
@@ -168,42 +169,42 @@ namespace OpenSim.Framework.Data.SQLite
             if (reader.Read())
             {
                 // Region Main
-                retval.regionHandle = (ulong)reader["regionHandle"];
-                retval.regionName = (string)reader["regionName"];
-                retval.UUID = new LLUUID((string)reader["uuid"]);
+                retval.regionHandle = (ulong) reader["regionHandle"];
+                retval.regionName = (string) reader["regionName"];
+                retval.UUID = new LLUUID((string) reader["uuid"]);
 
                 // Secrets
-                retval.regionRecvKey = (string)reader["regionRecvKey"];
-                retval.regionSecret = (string)reader["regionSecret"];
-                retval.regionSendKey = (string)reader["regionSendKey"];
+                retval.regionRecvKey = (string) reader["regionRecvKey"];
+                retval.regionSecret = (string) reader["regionSecret"];
+                retval.regionSendKey = (string) reader["regionSendKey"];
 
                 // Region Server
-                retval.regionDataURI = (string)reader["regionDataURI"];
+                retval.regionDataURI = (string) reader["regionDataURI"];
                 retval.regionOnline = false; // Needs to be pinged before this can be set.
-                retval.serverIP = (string)reader["serverIP"];
-                retval.serverPort = (uint)reader["serverPort"];
-                retval.serverURI = (string)reader["serverURI"];
+                retval.serverIP = (string) reader["serverIP"];
+                retval.serverPort = (uint) reader["serverPort"];
+                retval.serverURI = (string) reader["serverURI"];
 
                 // Location
-                retval.regionLocX = (uint)((int)reader["locX"]);
-                retval.regionLocY = (uint)((int)reader["locY"]);
-                retval.regionLocZ = (uint)((int)reader["locZ"]);
+                retval.regionLocX = (uint) ((int) reader["locX"]);
+                retval.regionLocY = (uint) ((int) reader["locY"]);
+                retval.regionLocZ = (uint) ((int) reader["locZ"]);
 
                 // Neighbours - 0 = No Override
-                retval.regionEastOverrideHandle = (ulong)reader["eastOverrideHandle"];
-                retval.regionWestOverrideHandle = (ulong)reader["westOverrideHandle"];
-                retval.regionSouthOverrideHandle = (ulong)reader["southOverrideHandle"];
-                retval.regionNorthOverrideHandle = (ulong)reader["northOverrideHandle"];
+                retval.regionEastOverrideHandle = (ulong) reader["eastOverrideHandle"];
+                retval.regionWestOverrideHandle = (ulong) reader["westOverrideHandle"];
+                retval.regionSouthOverrideHandle = (ulong) reader["southOverrideHandle"];
+                retval.regionNorthOverrideHandle = (ulong) reader["northOverrideHandle"];
 
                 // Assets
-                retval.regionAssetURI = (string)reader["regionAssetURI"];
-                retval.regionAssetRecvKey = (string)reader["regionAssetRecvKey"];
-                retval.regionAssetSendKey = (string)reader["regionAssetSendKey"];
+                retval.regionAssetURI = (string) reader["regionAssetURI"];
+                retval.regionAssetRecvKey = (string) reader["regionAssetRecvKey"];
+                retval.regionAssetSendKey = (string) reader["regionAssetSendKey"];
 
                 // Userserver
-                retval.regionUserURI = (string)reader["regionUserURI"];
-                retval.regionUserRecvKey = (string)reader["regionUserRecvKey"];
-                retval.regionUserSendKey = (string)reader["regionUserSendKey"];
+                retval.regionUserURI = (string) reader["regionUserURI"];
+                retval.regionUserRecvKey = (string) reader["regionUserRecvKey"];
+                retval.regionUserSendKey = (string) reader["regionUserSendKey"];
             }
             else
             {
@@ -219,12 +220,15 @@ namespace OpenSim.Framework.Data.SQLite
         /// <returns>Success?</returns>
         public bool insertRow(RegionProfileData profile)
         {
-            string sql = "REPLACE INTO regions VALUES (regionHandle, regionName, uuid, regionRecvKey, regionSecret, regionSendKey, regionDataURI, ";
-            sql += "serverIP, serverPort, serverURI, locX, locY, locZ, eastOverrideHandle, westOverrideHandle, southOverrideHandle, northOverrideHandle, regionAssetURI, regionAssetRecvKey, ";
+            string sql =
+                "REPLACE INTO regions VALUES (regionHandle, regionName, uuid, regionRecvKey, regionSecret, regionSendKey, regionDataURI, ";
+            sql +=
+                "serverIP, serverPort, serverURI, locX, locY, locZ, eastOverrideHandle, westOverrideHandle, southOverrideHandle, northOverrideHandle, regionAssetURI, regionAssetRecvKey, ";
             sql += "regionAssetSendKey, regionUserURI, regionUserRecvKey, regionUserSendKey) VALUES ";
 
             sql += "(@regionHandle, @regionName, @uuid, @regionRecvKey, @regionSecret, @regionSendKey, @regionDataURI, ";
-            sql += "@serverIP, @serverPort, @serverURI, @locX, @locY, @locZ, @eastOverrideHandle, @westOverrideHandle, @southOverrideHandle, @northOverrideHandle, @regionAssetURI, @regionAssetRecvKey, ";
+            sql +=
+                "@serverIP, @serverPort, @serverURI, @locX, @locY, @locZ, @eastOverrideHandle, @westOverrideHandle, @southOverrideHandle, @northOverrideHandle, @regionAssetURI, @regionAssetRecvKey, ";
             sql += "@regionAssetSendKey, @regionUserURI, @regionUserRecvKey, @regionUserSendKey);";
 
             Dictionary<string, string> parameters = new Dictionary<string, string>();

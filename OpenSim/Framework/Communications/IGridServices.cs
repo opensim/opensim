@@ -27,10 +27,6 @@
 */
 
 using System.Collections.Generic;
-using System.Net;
-using libsecondlife;
-
-using OpenSim.Framework;
 
 namespace OpenSim.Framework.Communications
 {

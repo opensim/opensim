@@ -30,7 +30,9 @@ using Axiom.Math;
 namespace OpenSim.Region.Physics.Manager
 {
     public delegate void PositionUpdate(PhysicsVector position);
+
     public delegate void VelocityUpdate(PhysicsVector velocity);
+
     public delegate void OrientationUpdate(Quaternion orientation);
 
     public abstract class PhysicsActor
@@ -43,52 +45,22 @@ namespace OpenSim.Region.Physics.Manager
 
         public static PhysicsActor Null
         {
-            get
-            {
-                return new NullPhysicsActor();
-            }
+            get { return new NullPhysicsActor(); }
         }
 
-        public abstract PhysicsVector Size
-        {
-            get;
-            set;
-        }
+        public abstract PhysicsVector Size { get; set; }
 
-        public abstract PhysicsVector Position
-        {
-            get;
-            set;
-        }
+        public abstract PhysicsVector Position { get; set; }
 
-        public abstract PhysicsVector Velocity
-        {
-            get;
-            set;
-        }
+        public abstract PhysicsVector Velocity { get; set; }
 
-        public abstract PhysicsVector Acceleration
-        {
-            get;
-        }
+        public abstract PhysicsVector Acceleration { get; }
 
-        public abstract Quaternion Orientation
-        {
-            get;
-            set;
-        }
+        public abstract Quaternion Orientation { get; set; }
 
-        public abstract bool Flying
-        {
-            get;
-            set;
-        }
+        public abstract bool Flying { get; set; }
 
-        public abstract bool Kinematic
-        {
-            get;
-            set;
-        }
+        public abstract bool Kinematic { get; set; }
 
         public abstract void AddForce(PhysicsVector force);
 
@@ -99,50 +71,26 @@ namespace OpenSim.Region.Physics.Manager
     {
         public override PhysicsVector Position
         {
-            get
-            {
-                return PhysicsVector.Zero;
-            }
-            set
-            {
-                return;
-            }
+            get { return PhysicsVector.Zero; }
+            set { return; }
         }
 
         public override PhysicsVector Size
         {
-            get
-            {
-                return PhysicsVector.Zero;
-            }
-            set
-            {
-                return;
-            }
+            get { return PhysicsVector.Zero; }
+            set { return; }
         }
 
         public override PhysicsVector Velocity
         {
-            get
-            {
-                return PhysicsVector.Zero;
-            }
-            set
-            {
-                return;
-            }
+            get { return PhysicsVector.Zero; }
+            set { return; }
         }
 
         public override Quaternion Orientation
         {
-            get
-            {
-                return Quaternion.Identity;
-            }
-            set
-            {
-
-            }
+            get { return Quaternion.Identity; }
+            set { }
         }
 
         public override PhysicsVector Acceleration
@@ -152,26 +100,14 @@ namespace OpenSim.Region.Physics.Manager
 
         public override bool Flying
         {
-            get
-            {
-                return false;
-            }
-            set
-            {
-                return;
-            }
+            get { return false; }
+            set { return; }
         }
 
         public override bool Kinematic
         {
-            get
-            {
-                return true;
-            }
-            set
-            {
-                return;
-            }
+            get { return true; }
+            set { return; }
         }
 
         public override void AddForce(PhysicsVector force)

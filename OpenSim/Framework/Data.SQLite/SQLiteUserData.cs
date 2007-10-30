@@ -26,12 +26,8 @@
 * 
 */
 using System;
-using System.IO;
-using libsecondlife;
-using OpenSim.Framework;
-using OpenSim.Framework;
 using System.Data;
-using System.Data.SqlTypes;
+using libsecondlife;
 using Mono.Data.SqliteClient;
 using OpenSim.Framework.Console;
 
@@ -45,30 +41,31 @@ namespace OpenSim.Framework.Data.SQLite
         /// <summary>
         /// The database manager
         /// </summary>
-
         /// <summary>
         /// Artificial constructor called upon plugin load
         /// </summary>
         private const string userSelect = "select * from users";
+
         private DataSet ds;
         private SqliteDataAdapter da;
-        
+
         public void Initialise()
         {
             SqliteConnection conn = new SqliteConnection("URI=file:userprofiles.db,version=3");
             TestTables(conn);
-            
+
             ds = new DataSet();
             da = new SqliteDataAdapter(new SqliteCommand(userSelect, conn));
 
-            lock (ds) {
+            lock (ds)
+            {
                 ds.Tables.Add(createUsersTable());
                 ds.Tables.Add(createUserAgentsTable());
-                
+
                 setupUserCommands(da, conn);
                 da.Fill(ds.Tables["users"]);
             }
-            
+
             return;
         }
 
@@ -79,16 +76,21 @@ namespace OpenSim.Framework.Data.SQLite
         /// <returns>A user profile</returns>
         public UserProfileData GetUserByUUID(LLUUID uuid)
         {
-            lock (ds) {
+            lock (ds)
+            {
                 DataRow row = ds.Tables["users"].Rows.Find(uuid);
-                if(row != null) {
+                if (row != null)
+                {
                     UserProfileData user = buildUserProfile(row);
                     row = ds.Tables["useragents"].Rows.Find(uuid);
-                    if(row != null) {
+                    if (row != null)
+                    {
                         user.currentAgent = buildUserAgent(row);
                     }
                     return user;
-                } else {
+                }
+                else
+                {
                     return null;
                 }
             }
@@ -113,16 +115,21 @@ namespace OpenSim.Framework.Data.SQLite
         public UserProfileData GetUserByName(string fname, string lname)
         {
             string select = "surname = '" + lname + "' and username = '" + fname + "'";
-            lock (ds) {
+            lock (ds)
+            {
                 DataRow[] rows = ds.Tables["users"].Select(select);
-                if(rows.Length > 0) {
+                if (rows.Length > 0)
+                {
                     UserProfileData user = buildUserProfile(rows[0]);
                     DataRow row = ds.Tables["useragents"].Rows.Find(user.UUID);
-                    if(row != null) {
+                    if (row != null)
+                    {
                         user.currentAgent = buildUserAgent(row);
                     }
                     return user;
-                } else {
+                }
+                else
+                {
                     return null;
                 }
             }
@@ -134,7 +141,7 @@ namespace OpenSim.Framework.Data.SQLite
         /// <param name="uuid">The users account ID</param>
         /// <returns>A matching users profile</returns>
         public UserAgentData GetAgentByUUID(LLUUID uuid)
-        {   
+        {
             try
             {
                 return GetUserByUUID(uuid).currentAgent;
@@ -165,7 +172,7 @@ namespace OpenSim.Framework.Data.SQLite
         {
             try
             {
-                return GetUserByName(fname,lname).currentAgent;
+                return GetUserByName(fname, lname).currentAgent;
             }
             catch (Exception)
             {
@@ -180,8 +187,9 @@ namespace OpenSim.Framework.Data.SQLite
         public void AddNewUserProfile(UserProfileData user)
         {
             DataTable users = ds.Tables["users"];
-            lock (ds) {
-                DataRow row = users.Rows.Find(user.UUID); 
+            lock (ds)
+            {
+                DataRow row = users.Rows.Find(user.UUID);
                 if (row == null)
                 {
                     row = users.NewRow();
@@ -192,10 +200,11 @@ namespace OpenSim.Framework.Data.SQLite
                 {
                     fillUserRow(row, user);
                 }
-                
-                if(user.currentAgent != null) {
+
+                if (user.currentAgent != null)
+                {
                     DataTable ua = ds.Tables["useragents"];
-                    row = ua.Rows.Find(user.UUID); 
+                    row = ua.Rows.Find(user.UUID);
                     if (row == null)
                     {
                         row = ua.NewRow();
@@ -207,12 +216,13 @@ namespace OpenSim.Framework.Data.SQLite
                         fillUserAgentRow(row, user.currentAgent);
                     }
                 }
-                MainLog.Instance.Verbose("SQLITE", "Syncing user database: " + ds.Tables["users"].Rows.Count + " users stored");
+                MainLog.Instance.Verbose("SQLITE",
+                                         "Syncing user database: " + ds.Tables["users"].Rows.Count + " users stored");
                 // save changes off to disk
                 da.Update(ds, "users");
             }
         }
-      
+
         /// <summary>
         /// Creates a new user profile
         /// </summary>
@@ -220,10 +230,13 @@ namespace OpenSim.Framework.Data.SQLite
         /// <returns>True on success, false on error</returns>
         public bool UpdateUserProfile(UserProfileData user)
         {
-            try {
+            try
+            {
                 AddNewUserProfile(user);
                 return true;
-            } catch (Exception) {
+            }
+            catch (Exception)
+            {
                 return false;
             }
         }
@@ -279,51 +292,51 @@ namespace OpenSim.Framework.Data.SQLite
         {
             return "0.1";
         }
-        
+
         /***********************************************************************
          *
          *  DataTable creation 
          *
          **********************************************************************/
-                /***********************************************************************
+        /***********************************************************************
          *
          *  Database Definition Functions
          * 
          *  This should be db agnostic as we define them in ADO.NET terms
          *
          **********************************************************************/
-        
+
         private DataTable createUsersTable()
         {
             DataTable users = new DataTable("users");
 
-            createCol(users, "UUID", typeof(System.String));
-            createCol(users, "username", typeof(System.String));
-            createCol(users, "surname", typeof(System.String));
-            createCol(users, "passwordHash", typeof(System.String));
-            createCol(users, "passwordSalt", typeof(System.String));
+            createCol(users, "UUID", typeof (String));
+            createCol(users, "username", typeof (String));
+            createCol(users, "surname", typeof (String));
+            createCol(users, "passwordHash", typeof (String));
+            createCol(users, "passwordSalt", typeof (String));
 
-            createCol(users, "homeRegionX", typeof(System.Int32));
-            createCol(users, "homeRegionY", typeof(System.Int32));
-            createCol(users, "homeLocationX", typeof(System.Double));
-            createCol(users, "homeLocationY", typeof(System.Double));
-            createCol(users, "homeLocationZ", typeof(System.Double));
-            createCol(users, "homeLookAtX", typeof(System.Double));
-            createCol(users, "homeLookAtY", typeof(System.Double));
-            createCol(users, "homeLookAtZ", typeof(System.Double));
-            createCol(users, "created", typeof(System.Int32));
-            createCol(users, "lastLogin", typeof(System.Int32));
-            createCol(users, "rootInventoryFolderID", typeof(System.String));
-            createCol(users, "userInventoryURI", typeof(System.String));
-            createCol(users, "userAssetURI", typeof(System.String));
-            createCol(users, "profileCanDoMask", typeof(System.Int32));
-            createCol(users, "profileWantDoMask", typeof(System.Int32));
-            createCol(users, "profileAboutText", typeof(System.String));
-            createCol(users, "profileFirstText", typeof(System.String));
-            createCol(users, "profileImage", typeof(System.String));
-            createCol(users, "profileFirstImage", typeof(System.String));
+            createCol(users, "homeRegionX", typeof (Int32));
+            createCol(users, "homeRegionY", typeof (Int32));
+            createCol(users, "homeLocationX", typeof (Double));
+            createCol(users, "homeLocationY", typeof (Double));
+            createCol(users, "homeLocationZ", typeof (Double));
+            createCol(users, "homeLookAtX", typeof (Double));
+            createCol(users, "homeLookAtY", typeof (Double));
+            createCol(users, "homeLookAtZ", typeof (Double));
+            createCol(users, "created", typeof (Int32));
+            createCol(users, "lastLogin", typeof (Int32));
+            createCol(users, "rootInventoryFolderID", typeof (String));
+            createCol(users, "userInventoryURI", typeof (String));
+            createCol(users, "userAssetURI", typeof (String));
+            createCol(users, "profileCanDoMask", typeof (Int32));
+            createCol(users, "profileWantDoMask", typeof (Int32));
+            createCol(users, "profileAboutText", typeof (String));
+            createCol(users, "profileFirstText", typeof (String));
+            createCol(users, "profileImage", typeof (String));
+            createCol(users, "profileFirstImage", typeof (String));
             // Add in contraints
-            users.PrimaryKey = new DataColumn[] { users.Columns["UUID"] };
+            users.PrimaryKey = new DataColumn[] {users.Columns["UUID"]};
             return users;
         }
 
@@ -331,27 +344,27 @@ namespace OpenSim.Framework.Data.SQLite
         {
             DataTable ua = new DataTable("useragents");
             // this is the UUID of the user
-            createCol(ua, "UUID", typeof(System.String));
-            createCol(ua, "agentIP", typeof(System.String));
-            createCol(ua, "agentPort", typeof(System.Int32));
-            createCol(ua, "agentOnline", typeof(System.Boolean));
-            createCol(ua, "sessionID", typeof(System.String));
-            createCol(ua, "secureSessionID", typeof(System.String));
-            createCol(ua, "regionID", typeof(System.String));
-            createCol(ua, "loginTime", typeof(System.Int32));
-            createCol(ua, "logoutTime", typeof(System.Int32));
-            createCol(ua, "currentRegion", typeof(System.String));
-            createCol(ua, "currentHandle", typeof(System.Int32));
+            createCol(ua, "UUID", typeof (String));
+            createCol(ua, "agentIP", typeof (String));
+            createCol(ua, "agentPort", typeof (Int32));
+            createCol(ua, "agentOnline", typeof (Boolean));
+            createCol(ua, "sessionID", typeof (String));
+            createCol(ua, "secureSessionID", typeof (String));
+            createCol(ua, "regionID", typeof (String));
+            createCol(ua, "loginTime", typeof (Int32));
+            createCol(ua, "logoutTime", typeof (Int32));
+            createCol(ua, "currentRegion", typeof (String));
+            createCol(ua, "currentHandle", typeof (Int32));
             // vectors
-            createCol(ua, "currentPosX", typeof(System.Double));
-            createCol(ua, "currentPosY", typeof(System.Double));
-            createCol(ua, "currentPosZ", typeof(System.Double));
+            createCol(ua, "currentPosX", typeof (Double));
+            createCol(ua, "currentPosY", typeof (Double));
+            createCol(ua, "currentPosZ", typeof (Double));
             // constraints
-            ua.PrimaryKey = new DataColumn[] { ua.Columns["UUID"] };
+            ua.PrimaryKey = new DataColumn[] {ua.Columns["UUID"]};
 
             return ua;
         }
-        
+
         /***********************************************************************
          *  
          *  Convert between ADO.NET <=> OpenSim Objects
@@ -366,35 +379,35 @@ namespace OpenSim.Framework.Data.SQLite
             // interesting has to be done to actually get these values
             // back out.  Not enough time to figure it out yet.
             UserProfileData user = new UserProfileData();
-            user.UUID = new LLUUID((String)row["UUID"]);
-            user.username = (String)row["username"];
-            user.surname = (String)row["surname"];
-            user.passwordHash = (String)row["passwordHash"];
-            user.passwordSalt = (String)row["passwordSalt"];
+            user.UUID = new LLUUID((String) row["UUID"]);
+            user.username = (String) row["username"];
+            user.surname = (String) row["surname"];
+            user.passwordHash = (String) row["passwordHash"];
+            user.passwordSalt = (String) row["passwordSalt"];
 
             user.homeRegionX = Convert.ToUInt32(row["homeRegionX"]);
             user.homeRegionY = Convert.ToUInt32(row["homeRegionY"]);
             user.homeLocation = new LLVector3(
-                                              Convert.ToSingle(row["homeLocationX"]),
-                                              Convert.ToSingle(row["homeLocationY"]),
-                                              Convert.ToSingle(row["homeLocationZ"])
-                                              );
+                Convert.ToSingle(row["homeLocationX"]),
+                Convert.ToSingle(row["homeLocationY"]),
+                Convert.ToSingle(row["homeLocationZ"])
+                );
             user.homeLookAt = new LLVector3(
-                                            Convert.ToSingle(row["homeLookAtX"]),
-                                            Convert.ToSingle(row["homeLookAtY"]),
-                                            Convert.ToSingle(row["homeLookAtZ"])
-                                            );
+                Convert.ToSingle(row["homeLookAtX"]),
+                Convert.ToSingle(row["homeLookAtY"]),
+                Convert.ToSingle(row["homeLookAtZ"])
+                );
             user.created = Convert.ToInt32(row["created"]);
             user.lastLogin = Convert.ToInt32(row["lastLogin"]);
-            user.rootInventoryFolderID = new LLUUID((String)row["rootInventoryFolderID"]);
-            user.userInventoryURI = (String)row["userInventoryURI"];
-            user.userAssetURI = (String)row["userAssetURI"];
+            user.rootInventoryFolderID = new LLUUID((String) row["rootInventoryFolderID"]);
+            user.userInventoryURI = (String) row["userInventoryURI"];
+            user.userAssetURI = (String) row["userAssetURI"];
             user.profileCanDoMask = Convert.ToUInt32(row["profileCanDoMask"]);
             user.profileWantDoMask = Convert.ToUInt32(row["profileWantDoMask"]);
-            user.profileAboutText = (String)row["profileAboutText"];
-            user.profileFirstText = (String)row["profileFirstText"];
-            user.profileImage = new LLUUID((String)row["profileImage"]);
-            user.profileFirstImage = new LLUUID((String)row["profileFirstImage"]);
+            user.profileAboutText = (String) row["profileAboutText"];
+            user.profileFirstText = (String) row["profileFirstText"];
+            user.profileImage = new LLUUID((String) row["profileImage"]);
+            user.profileFirstImage = new LLUUID((String) row["profileFirstImage"]);
             return user;
         }
 
@@ -405,8 +418,8 @@ namespace OpenSim.Framework.Data.SQLite
             row["surname"] = user.surname;
             row["passwordHash"] = user.passwordHash;
             row["passwordSalt"] = user.passwordSalt;
-            
-            
+
+
             row["homeRegionX"] = user.homeRegionX;
             row["homeRegionY"] = user.homeRegionY;
             row["homeLocationX"] = user.homeLocation.X;
@@ -427,10 +440,12 @@ namespace OpenSim.Framework.Data.SQLite
             row["profileFirstText"] = user.profileFirstText;
             row["profileImage"] = user.profileImage;
             row["profileFirstImage"] = user.profileFirstImage;
-            
+
             // ADO.NET doesn't handle NULL very well
-            foreach (DataColumn col in ds.Tables["users"].Columns) {
-                if (row[col] == null) {
+            foreach (DataColumn col in ds.Tables["users"].Columns)
+            {
+                if (row[col] == null)
+                {
                     row[col] = "";
                 }
             }
@@ -439,33 +454,33 @@ namespace OpenSim.Framework.Data.SQLite
         private UserAgentData buildUserAgent(DataRow row)
         {
             UserAgentData ua = new UserAgentData();
-            
-            ua.UUID = new LLUUID((String)row["UUID"]);
-            ua.agentIP = (String)row["agentIP"];
+
+            ua.UUID = new LLUUID((String) row["UUID"]);
+            ua.agentIP = (String) row["agentIP"];
             ua.agentPort = Convert.ToUInt32(row["agentPort"]);
             ua.agentOnline = Convert.ToBoolean(row["agentOnline"]);
-            ua.sessionID = new LLUUID((String)row["sessionID"]);
-            ua.secureSessionID = new LLUUID((String)row["secureSessionID"]);
-            ua.regionID = new LLUUID((String)row["regionID"]);
+            ua.sessionID = new LLUUID((String) row["sessionID"]);
+            ua.secureSessionID = new LLUUID((String) row["secureSessionID"]);
+            ua.regionID = new LLUUID((String) row["regionID"]);
             ua.loginTime = Convert.ToInt32(row["loginTime"]);
             ua.logoutTime = Convert.ToInt32(row["logoutTime"]);
-            ua.currentRegion = new LLUUID((String)row["currentRegion"]);
+            ua.currentRegion = new LLUUID((String) row["currentRegion"]);
             ua.currentHandle = Convert.ToUInt32(row["currentHandle"]);
             ua.currentPos = new LLVector3(
-                                            Convert.ToSingle(row["currentPosX"]),
-                                            Convert.ToSingle(row["currentPosY"]),
-                                            Convert.ToSingle(row["currentPosZ"])
-                                            );
+                Convert.ToSingle(row["currentPosX"]),
+                Convert.ToSingle(row["currentPosY"]),
+                Convert.ToSingle(row["currentPosZ"])
+                );
             return ua;
         }
 
         private void fillUserAgentRow(DataRow row, UserAgentData ua)
         {
             row["UUID"] = ua.UUID;
-            row["agentIP"] =  ua.agentIP;
-            row["agentPort"] =  ua.agentPort;
-            row["agentOnline"] =  ua.agentOnline;
-            row["sessionID"] =  ua.sessionID;
+            row["agentIP"] = ua.agentIP;
+            row["agentPort"] = ua.agentPort;
+            row["agentOnline"] = ua.agentOnline;
+            row["sessionID"] = ua.sessionID;
             row["secureSessionID"] = ua.secureSessionID;
             row["regionID"] = ua.regionID;
             row["loginTime"] = ua.loginTime;
@@ -496,18 +511,18 @@ namespace OpenSim.Framework.Data.SQLite
             da.UpdateCommand.Connection = conn;
 
             SqliteCommand delete = new SqliteCommand("delete from users where UUID = :UUID");
-            delete.Parameters.Add(createSqliteParameter("UUID", typeof(System.String)));
+            delete.Parameters.Add(createSqliteParameter("UUID", typeof (String)));
             delete.Connection = conn;
             da.DeleteCommand = delete;
         }
-        
+
         private void InitDB(SqliteConnection conn)
         {
             string createUsers = defineTable(createUsersTable());
             SqliteCommand pcmd = new SqliteCommand(createUsers, conn);
             conn.Open();
             pcmd.ExecuteNonQuery();
-            conn.Close(); 
+            conn.Close();
         }
 
         private bool TestTables(SqliteConnection conn)
@@ -515,14 +530,16 @@ namespace OpenSim.Framework.Data.SQLite
             SqliteCommand cmd = new SqliteCommand(userSelect, conn);
             SqliteDataAdapter pDa = new SqliteDataAdapter(cmd);
             DataSet tmpDS = new DataSet();
-            try {
+            try
+            {
                 pDa.Fill(tmpDS, "users");
-            } catch (Mono.Data.SqliteClient.SqliteSyntaxException) {
+            }
+            catch (SqliteSyntaxException)
+            {
                 MainLog.Instance.Verbose("DATASTORE", "SQLite Database doesn't exist... creating");
                 InitDB(conn);
             }
             return true;
         }
-
     }
 }

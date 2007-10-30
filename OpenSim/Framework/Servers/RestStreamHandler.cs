@@ -26,18 +26,16 @@
 * 
 */
 
-using System;
-using System.Collections.Generic;
-using System.Text;
 using System.IO;
+using System.Text;
 
 namespace OpenSim.Framework.Servers
 {
     public class RestStreamHandler : BaseStreamHandler
     {
-        RestMethod m_restMethod;
+        private RestMethod m_restMethod;
 
-        override public byte[] Handle(string path, Stream request )
+        public override byte[] Handle(string path, Stream request)
         {
             Encoding encoding = Encoding.UTF8;
             StreamReader streamReader = new StreamReader(request, encoding);
@@ -46,12 +44,12 @@ namespace OpenSim.Framework.Servers
             streamReader.Close();
 
             string param = GetParam(path);
-            string responseString = m_restMethod(requestBody, path, param );
+            string responseString = m_restMethod(requestBody, path, param);
 
             return Encoding.UTF8.GetBytes(responseString);
         }
 
-        public RestStreamHandler(string httpMethod, string path, RestMethod restMethod) : base( httpMethod, path )
+        public RestStreamHandler(string httpMethod, string path, RestMethod restMethod) : base(httpMethod, path)
         {
             m_restMethod = restMethod;
         }

@@ -27,10 +27,9 @@
 */
 
 using System;
-using System.Globalization;
-using System.Diagnostics;
 using System.Collections.Generic;
-
+using System.Diagnostics;
+using System.Globalization;
 using OpenSim.Region.Physics.Manager;
 
 public class Vertex : IComparable<Vertex>
@@ -76,8 +75,6 @@ public class Vertex : IComparable<Vertex>
     {
         return me.CompareTo(other) < 0;
     }
-
-
 }
 
 public class Simplex : IComparable<Simplex>
@@ -122,8 +119,7 @@ public class Simplex : IComparable<Simplex>
 
         return 0;
     }
-
-};
+} ;
 
 public class Triangle
 {
@@ -131,9 +127,9 @@ public class Triangle
     public Vertex v2;
     public Vertex v3;
 
-    float radius_square;
-    float cx;
-    float cy;
+    private float radius_square;
+    private float cx;
+    private float cy;
 
     public Triangle(Vertex _v1, Vertex _v2, Vertex _v3)
     {
@@ -149,18 +145,18 @@ public class Triangle
         float dx, dy;
         float dd;
 
-        dx = x - this.cx;
-        dy = y - this.cy;
+        dx = x - cx;
+        dy = y - cy;
 
-        dd = dx * dx + dy * dy;
-        if (dd < this.radius_square)
+        dd = dx*dx + dy*dy;
+        if (dd < radius_square)
             return true;
         else
             return false;
     }
 
 
-    void CalcCircle()
+    private void CalcCircle()
     {
         // Calculate the center and the radius of a circle given by three points p1, p2, p3
         // It is assumed, that the triangles vertices are already set correctly
@@ -198,8 +194,8 @@ public class Triangle
         p3y = v3.point.Y;
 
         /* calc helping values first */
-        c1 = (p1x * p1x + p1y * p1y - p2x * p2x - p2y * p2y) / 2;
-        c2 = (p1x * p1x + p1y * p1y - p3x * p3x - p3y * p3y) / 2;
+        c1 = (p1x*p1x + p1y*p1y - p2x*p2x - p2y*p2y)/2;
+        c2 = (p1x*p1x + p1y*p1y - p3x*p3x - p3y*p3y)/2;
 
         v1x = p1x - p2x;
         v1y = p1y - p2y;
@@ -207,35 +203,34 @@ public class Triangle
         v2x = p1x - p3x;
         v2y = p1y - p3y;
 
-        z = (c1 * v2x - c2 * v1x);
-        n = (v1y * v2x - v2y * v1x);
+        z = (c1*v2x - c2*v1x);
+        n = (v1y*v2x - v2y*v1x);
 
-        if (n == 0.0)	// This is no triangle, i.e there are (at least) two points at the same location
+        if (n == 0.0) // This is no triangle, i.e there are (at least) two points at the same location
         {
             radius_square = 0.0f;
             return;
         }
 
-        this.cy = (float)(z / n);
+        cy = (float) (z/n);
 
         if (v2x != 0.0)
         {
-            this.cx = (float)((c2 - v2y * this.cy) / v2x);
+            cx = (float) ((c2 - v2y*cy)/v2x);
         }
         else if (v1x != 0.0)
         {
-            this.cx = (float)((c1 - v1y * this.cy) / v1x);
+            cx = (float) ((c1 - v1y*cy)/v1x);
         }
         else
         {
             Debug.Assert(false, "Malformed triangle"); /* Both terms zero means nothing good */
         }
 
-        rx = (p1x - this.cx);
-        ry = (p1y - this.cy);
+        rx = (p1x - cx);
+        ry = (p1y - cy);
 
-        this.radius_square = (float)(rx * rx + ry * ry);
-
+        radius_square = (float) (rx*rx + ry*ry);
     }
 
     public List<Simplex> GetSimplices()
@@ -254,17 +249,18 @@ public class Triangle
 
     public override String ToString()
     {
-
         NumberFormatInfo nfi = new NumberFormatInfo();
         nfi.CurrencyDecimalDigits = 2;
         nfi.CurrencyDecimalSeparator = ".";
 
-        String s1 = "<" + v1.point.X.ToString(nfi) + "," + v1.point.Y.ToString(nfi) + "," + v1.point.Z.ToString(nfi) + ">";
-        String s2 = "<" + v2.point.X.ToString(nfi) + "," + v2.point.Y.ToString(nfi) + "," + v2.point.Z.ToString(nfi) + ">";
-        String s3 = "<" + v3.point.X.ToString(nfi) + "," + v3.point.Y.ToString(nfi) + "," + v3.point.Z.ToString(nfi) + ">";
+        String s1 = "<" + v1.point.X.ToString(nfi) + "," + v1.point.Y.ToString(nfi) + "," + v1.point.Z.ToString(nfi) +
+                    ">";
+        String s2 = "<" + v2.point.X.ToString(nfi) + "," + v2.point.Y.ToString(nfi) + "," + v2.point.Z.ToString(nfi) +
+                    ">";
+        String s3 = "<" + v3.point.X.ToString(nfi) + "," + v3.point.Y.ToString(nfi) + "," + v3.point.Z.ToString(nfi) +
+                    ">";
 
         return s1 + ";" + s2 + ";" + s3;
-
     }
 
     public PhysicsVector getNormal()
@@ -281,12 +277,12 @@ public class Triangle
         // Cross product for normal
         PhysicsVector n = new PhysicsVector();
         float nx, ny, nz;
-        n.X = e1.Y * e2.Z - e1.Z * e2.Y;
-        n.Y = e1.Z * e2.X - e1.X * e2.Z;
-        n.Z = e1.X * e2.Y - e1.Y * e2.X;
+        n.X = e1.Y*e2.Z - e1.Z*e2.Y;
+        n.Y = e1.Z*e2.X - e1.X*e2.Z;
+        n.Z = e1.X*e2.Y - e1.Y*e2.X;
 
         // Length
-        float l = (float)Math.Sqrt(n.X * n.X + n.Y * n.Y + n.Z * n.Z);
+        float l = (float) Math.Sqrt(n.X*n.X + n.Y*n.Y + n.Z*n.Z);
 
         // Normalized "normal"
         n.X /= l;
@@ -304,5 +300,3 @@ public class Triangle
         v2 = vt;
     }
 }
-
-

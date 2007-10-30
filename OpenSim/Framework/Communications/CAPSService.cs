@@ -37,17 +37,17 @@ namespace OpenSim.Framework.Communications
         public CAPSService(BaseHttpServer httpServer)
         {
             m_server = httpServer;
-            this.AddCapsSeedHandler("/CapsSeed/", CapsRequest);
+            AddCapsSeedHandler("/CapsSeed/", CapsRequest);
         }
 
         private void AddCapsSeedHandler(string path, RestMethod restMethod)
         {
-            m_server.AddStreamHandler(new RestStreamHandler("POST",  path, restMethod));
+            m_server.AddStreamHandler(new RestStreamHandler("POST", path, restMethod));
         }
 
         public string CapsRequest(string request, string path, string param)
         {
-            System.Console.WriteLine("new caps request " + request +" from path "+ path);
+            System.Console.WriteLine("new caps request " + request + " from path " + path);
             return "";
         }
     }

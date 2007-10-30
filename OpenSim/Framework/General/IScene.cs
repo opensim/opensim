@@ -26,7 +26,6 @@
 * 
 */
 using libsecondlife;
-using OpenSim.Framework;
 
 namespace OpenSim.Framework
 {
@@ -34,14 +33,11 @@ namespace OpenSim.Framework
     {
         void AddNewClient(IClientAPI client, bool child);
         void RemoveClient(LLUUID agentID);
-        
+
         RegionInfo RegionInfo { get; }
         object SyncRoot { get; }
         uint NextLocalId { get; }
 
-        ClientManager ClientManager
-        {
-            get;
-        }
+        ClientManager ClientManager { get; }
     }
 }

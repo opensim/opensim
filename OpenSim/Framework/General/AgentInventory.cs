@@ -28,8 +28,6 @@
 using System.Collections.Generic;
 using libsecondlife;
 using libsecondlife.Packets;
-using OpenSim.Framework;
-
 
 namespace OpenSim.Framework
 {
@@ -39,7 +37,7 @@ namespace OpenSim.Framework
         public Dictionary<LLUUID, InventoryFolder> InventoryFolders;
         public Dictionary<LLUUID, InventoryItem> InventoryItems;
         public InventoryFolder InventoryRoot;
-        public int LastCached;  //maybe used by opensim app, time this was last stored/compared to user server
+        public int LastCached; //maybe used by opensim app, time this was last stored/compared to user server
         public LLUUID AgentID;
         public AvatarWearable[] Wearables;
 
@@ -47,12 +45,12 @@ namespace OpenSim.Framework
         {
             InventoryFolders = new Dictionary<LLUUID, InventoryFolder>();
             InventoryItems = new Dictionary<LLUUID, InventoryItem>();
-            this.Initialise();
+            Initialise();
         }
 
         public virtual void Initialise()
         {
-            Wearables = new AvatarWearable[13]; 
+            Wearables = new AvatarWearable[13];
             for (int i = 0; i < 13; i++)
             {
                 Wearables[i] = new AvatarWearable();
@@ -63,27 +61,27 @@ namespace OpenSim.Framework
         {
             InventoryFolder Folder = new InventoryFolder();
             Folder.FolderID = folderID;
-            Folder.OwnerID = this.AgentID;
+            Folder.OwnerID = AgentID;
             Folder.DefaultType = type;
-            this.InventoryFolders.Add(Folder.FolderID, Folder);
+            InventoryFolders.Add(Folder.FolderID, Folder);
             return (true);
         }
 
         public void CreateRootFolder(LLUUID newAgentID, bool createTextures)
         {
-            this.AgentID = newAgentID;
+            AgentID = newAgentID;
             InventoryRoot = new InventoryFolder();
             InventoryRoot.FolderID = LLUUID.Random();
             InventoryRoot.ParentID = new LLUUID();
             InventoryRoot.Version = 1;
             InventoryRoot.DefaultType = 8;
-            InventoryRoot.OwnerID = this.AgentID;
+            InventoryRoot.OwnerID = AgentID;
             InventoryRoot.FolderName = "My Inventory";
             InventoryFolders.Add(InventoryRoot.FolderID, InventoryRoot);
-            InventoryRoot.OwnerID = this.AgentID;
+            InventoryRoot.OwnerID = AgentID;
             if (createTextures)
             {
-                this.CreateNewFolder(LLUUID.Random(), 0, "Textures", InventoryRoot.FolderID);
+                CreateNewFolder(LLUUID.Random(), 0, "Textures", InventoryRoot.FolderID);
             }
         }
 
@@ -91,32 +89,32 @@ namespace OpenSim.Framework
         {
             InventoryFolder Folder = new InventoryFolder();
             Folder.FolderID = folderID;
-            Folder.OwnerID = this.AgentID;
+            Folder.OwnerID = AgentID;
             Folder.DefaultType = type;
             Folder.FolderName = folderName;
-            this.InventoryFolders.Add(Folder.FolderID, Folder);
+            InventoryFolders.Add(Folder.FolderID, Folder);
             return (true);
         }
 
         public bool CreateNewFolder(LLUUID folderID, ushort type, string folderName, LLUUID parentID)
         {
-            if (!this.InventoryFolders.ContainsKey(folderID))
+            if (!InventoryFolders.ContainsKey(folderID))
             {
                 System.Console.WriteLine("creating new folder called " + folderName + " in agents inventory");
                 InventoryFolder Folder = new InventoryFolder();
                 Folder.FolderID = folderID;
-                Folder.OwnerID = this.AgentID;
+                Folder.OwnerID = AgentID;
                 Folder.DefaultType = type;
                 Folder.FolderName = folderName;
                 Folder.ParentID = parentID;
-                this.InventoryFolders.Add(Folder.FolderID, Folder);
+                InventoryFolders.Add(Folder.FolderID, Folder);
             }
             return (true);
         }
 
         public bool HasFolder(LLUUID folderID)
         {
-            if (this.InventoryFolders.ContainsKey(folderID))
+            if (InventoryFolders.ContainsKey(folderID))
             {
                 return true;
             }
@@ -125,7 +123,7 @@ namespace OpenSim.Framework
 
         public LLUUID GetFolderID(string folderName)
         {
-            foreach (InventoryFolder inv in this.InventoryFolders.Values)
+            foreach (InventoryFolder inv in InventoryFolders.Values)
             {
                 if (inv.FolderName == folderName)
                 {
@@ -137,11 +135,12 @@ namespace OpenSim.Framework
 
         public bool UpdateItemAsset(LLUUID itemID, AssetBase asset)
         {
-            if(this.InventoryItems.ContainsKey(itemID))
+            if (InventoryItems.ContainsKey(itemID))
             {
-                InventoryItem Item = this.InventoryItems[itemID];
+                InventoryItem Item = InventoryItems[itemID];
                 Item.AssetID = asset.FullID;
-                System.Console.WriteLine("updated inventory item " + itemID.ToStringHyphenated() + " so it now is set to asset " + asset.FullID.ToStringHyphenated());
+                System.Console.WriteLine("updated inventory item " + itemID.ToStringHyphenated() +
+                                         " so it now is set to asset " + asset.FullID.ToStringHyphenated());
                 //TODO need to update the rest of the info
             }
             return true;
@@ -150,10 +149,10 @@ namespace OpenSim.Framework
         public bool UpdateItemDetails(LLUUID itemID, UpdateInventoryItemPacket.InventoryDataBlock packet)
         {
             System.Console.WriteLine("updating inventory item details");
-            if (this.InventoryItems.ContainsKey(itemID))
+            if (InventoryItems.ContainsKey(itemID))
             {
-                System.Console.WriteLine("changing name to "+ Util.FieldToString(packet.Name));
-                InventoryItem Item = this.InventoryItems[itemID];
+                System.Console.WriteLine("changing name to " + Util.FieldToString(packet.Name));
+                InventoryItem Item = InventoryItems[itemID];
                 Item.Name = Util.FieldToString(packet.Name);
                 System.Console.WriteLine("updated inventory item " + itemID.ToStringHyphenated());
                 //TODO need to update the rest of the info
@@ -163,7 +162,7 @@ namespace OpenSim.Framework
 
         public LLUUID AddToInventory(LLUUID folderID, AssetBase asset)
         {
-            if (this.InventoryFolders.ContainsKey(folderID))
+            if (InventoryFolders.ContainsKey(folderID))
             {
                 LLUUID NewItemID = LLUUID.Random();
 
@@ -176,7 +175,7 @@ namespace OpenSim.Framework
                 Item.Name = asset.Name;
                 Item.Description = asset.Description;
                 Item.InvType = asset.InvType;
-                this.InventoryItems.Add(Item.ItemID, Item);
+                InventoryItems.Add(Item.ItemID, Item);
                 InventoryFolder Folder = InventoryFolders[Item.FolderID];
                 Folder.Items.Add(Item);
                 return (Item.ItemID);
@@ -190,10 +189,10 @@ namespace OpenSim.Framework
         public bool DeleteFromInventory(LLUUID itemID)
         {
             bool res = false;
-            if (this.InventoryItems.ContainsKey(itemID))
+            if (InventoryItems.ContainsKey(itemID))
             {
-                InventoryItem item = this.InventoryItems[itemID];
-                this.InventoryItems.Remove(itemID);
+                InventoryItem item = InventoryItems[itemID];
+                InventoryItems.Remove(itemID);
                 foreach (InventoryFolder fold in InventoryFolders.Values)
                 {
                     if (fold.Items.Contains(item))
@@ -203,7 +202,6 @@ namespace OpenSim.Framework
                     }
                 }
                 res = true;
-                
             }
             return res;
         }
@@ -225,7 +223,6 @@ namespace OpenSim.Framework
             Items = new List<InventoryItem>();
             //Subfolders = new List<InventoryFolder>();
         }
-
     }
 
     public class InventoryItem
@@ -237,12 +234,12 @@ namespace OpenSim.Framework
         public LLUUID CreatorID;
         public sbyte InvType;
         public sbyte Type;
-        public string Name ="";
+        public string Name = "";
         public string Description;
 
         public InventoryItem()
         {
-            this.CreatorID = LLUUID.Zero;
+            CreatorID = LLUUID.Zero;
         }
 
         public string ExportString()
@@ -251,9 +248,9 @@ namespace OpenSim.Framework
             string result = "";
             result += "\tinv_object\t0\n\t{\n";
             result += "\t\tobj_id\t%s\n";
-            result +=  "\t\tparent_id\t"+ ItemID.ToString() +"\n";
-            result += "\t\ttype\t"+ typ +"\n";
-            result += "\t\tname\t" + Name+"|\n";
+            result += "\t\tparent_id\t" + ItemID.ToString() + "\n";
+            result += "\t\ttype\t" + typ + "\n";
+            result += "\t\tname\t" + Name + "|\n";
             result += "\t}\n";
             return result;
         }

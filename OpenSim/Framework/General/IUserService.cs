@@ -26,7 +26,6 @@
 * 
 */
 using libsecondlife;
-using OpenSim.Framework;
 
 namespace OpenSim.Framework.Interfaces
 {

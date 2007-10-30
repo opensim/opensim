@@ -28,18 +28,17 @@
 
 using System;
 using System.Collections.Generic;
-using MySql.Data.MySqlClient;
-
+using System.Data;
 using libsecondlife;
+using MySql.Data.MySqlClient;
 using OpenSim.Framework.Console;
-using OpenSim.Framework.Interfaces;
-using OpenSim.Framework;
 
 namespace OpenSim.Framework.Data.MySQL
 {
-    class MySQLAssetData : IAssetProvider   
+    internal class MySQLAssetData : IAssetProvider
     {
-        MySQLManager _dbConnection;
+        private MySQLManager _dbConnection;
+
         #region IAssetProvider Members
 
         private void UpgradeAssetsTable(string oldVersion)
@@ -58,14 +57,12 @@ namespace OpenSim.Framework.Data.MySQL
         /// </summary>
         private void TestTables()
         {
-
             Dictionary<string, string> tableList = new Dictionary<string, string>();
 
             tableList["assets"] = null;
             _dbConnection.GetTableVersion(tableList);
 
             UpgradeAssetsTable(tableList["assets"]);
-
         }
 
         public AssetBase FetchAsset(LLUUID assetID)
@@ -73,21 +70,24 @@ namespace OpenSim.Framework.Data.MySQL
             AssetBase asset = null;
             lock (_dbConnection)
             {
-                MySqlCommand cmd = new MySqlCommand("SELECT name, description, assetType, invType, local, temporary, data FROM assets WHERE id=?id", _dbConnection.Connection);
+                MySqlCommand cmd =
+                    new MySqlCommand(
+                        "SELECT name, description, assetType, invType, local, temporary, data FROM assets WHERE id=?id",
+                        _dbConnection.Connection);
                 MySqlParameter p = cmd.Parameters.Add("?id", MySqlDbType.Binary, 16);
                 p.Value = assetID.GetBytes();
-                using (MySqlDataReader dbReader = cmd.ExecuteReader(System.Data.CommandBehavior.SingleRow))
+                using (MySqlDataReader dbReader = cmd.ExecuteReader(CommandBehavior.SingleRow))
                 {
                     if (dbReader.Read())
                     {
                         asset = new AssetBase();
-                        asset.Data = (byte[])dbReader["data"];
-                        asset.Description = (string)dbReader["description"];
+                        asset.Data = (byte[]) dbReader["data"];
+                        asset.Description = (string) dbReader["description"];
                         asset.FullID = assetID;
-                        asset.InvType = (sbyte)dbReader["invType"];
-                        asset.Local = ((sbyte)dbReader["local"]) != 0 ? true : false;
-                        asset.Name = (string)dbReader["name"];
-                        asset.Type = (sbyte)dbReader["assetType"];
+                        asset.InvType = (sbyte) dbReader["invType"];
+                        asset.Local = ((sbyte) dbReader["local"]) != 0 ? true : false;
+                        asset.Name = (string) dbReader["name"];
+                        asset.Type = (sbyte) dbReader["assetType"];
                     }
                 }
             }
@@ -96,8 +96,11 @@ namespace OpenSim.Framework.Data.MySQL
 
         public void CreateAsset(AssetBase asset)
         {
-            MySqlCommand cmd = new MySqlCommand("REPLACE INTO assets(id, name, description, assetType, invType, local, temporary, data)" +
-                                                             "VALUES(?id, ?name, ?description, ?assetType, ?invType, ?local, ?temporary, ?data)", _dbConnection.Connection);
+            MySqlCommand cmd =
+                new MySqlCommand(
+                    "REPLACE INTO assets(id, name, description, assetType, invType, local, temporary, data)" +
+                    "VALUES(?id, ?name, ?description, ?assetType, ?invType, ?local, ?temporary, ?data)",
+                    _dbConnection.Connection);
             MySqlParameter p = cmd.Parameters.Add("?id", MySqlDbType.Binary, 16);
             p.Value = asset.FullID.GetBytes();
             cmd.Parameters.AddWithValue("?name", asset.Name);
@@ -148,7 +151,7 @@ namespace OpenSim.Framework.Data.MySQL
 
         public string Version
         {
-            get { return _dbConnection.getVersion(); } 
+            get { return _dbConnection.getVersion(); }
         }
 
         public string Name

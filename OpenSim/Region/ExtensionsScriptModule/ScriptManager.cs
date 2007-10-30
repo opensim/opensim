@@ -26,27 +26,28 @@
 * 
 */
 using System.Collections.Generic;
+using Nini.Config;
 using OpenSim.Framework.Console;
 using OpenSim.Region.Environment.Interfaces;
 using OpenSim.Region.Environment.Scenes;
 using OpenSim.Region.ExtensionsScriptModule.CSharp;
 using OpenSim.Region.ExtensionsScriptModule.JScript;
 using OpenSim.Region.ExtensionsScriptModule.JVMEngine;
-using Nini.Config;
 
 namespace OpenSim.Region.ExtensionsScriptModule
 {
     public class ScriptManager : IRegionModule, IExtensionScriptModule
     {
-        readonly List<IScript> scripts = new List<IScript>();
-        Scene m_scene;
-        readonly Dictionary<string, IScriptCompiler> compilers = new Dictionary<string, IScriptCompiler>();
+        private readonly List<IScript> scripts = new List<IScript>();
+        private Scene m_scene;
+        private readonly Dictionary<string, IScriptCompiler> compilers = new Dictionary<string, IScriptCompiler>();
 
         private void LoadFromCompiler(Dictionary<string, IScript> compiledscripts)
         {
             foreach (KeyValuePair<string, IScript> script in compiledscripts)
             {
-                ScriptInfo scriptInfo = new ScriptInfo(m_scene); // Since each script could potentially corrupt their access with a stray assignment, making a new one for each script.
+                ScriptInfo scriptInfo = new ScriptInfo(m_scene);
+                    // Since each script could potentially corrupt their access with a stray assignment, making a new one for each script.
                 MainLog.Instance.Verbose("Loading " + script.Key);
                 script.Value.Initialise(scriptInfo);
                 scripts.Add(script.Value);
@@ -70,7 +71,7 @@ namespace OpenSim.Region.ExtensionsScriptModule
 
         public void Initialise(Scene scene, IConfigSource config)
         {
-            OpenSim.Framework.Console.MainLog.Instance.Verbose("SCRIPTMODULE", "Initialising Extensions Scripting Module");
+            MainLog.Instance.Verbose("SCRIPTMODULE", "Initialising Extensions Scripting Module");
             m_scene = scene;
 
             m_scene.RegisterModuleInterface<IExtensionScriptModule>(this);
@@ -78,12 +79,10 @@ namespace OpenSim.Region.ExtensionsScriptModule
 
         public void PostInitialise()
         {
-
         }
 
         public void Close()
         {
-
         }
 
         public string Name
@@ -92,8 +91,8 @@ namespace OpenSim.Region.ExtensionsScriptModule
         }
 
         public bool IsSharedModule
-{
-        get { return false; }
+        {
+            get { return false; }
         }
 
         public bool Compile(string filename)
@@ -127,7 +126,8 @@ namespace OpenSim.Region.ExtensionsScriptModule
         public bool AddPreCompiledScript(IScript script)
         {
             MainLog.Instance.Verbose("Loading script " + script.Name);
-            ScriptInfo scriptInfo = new ScriptInfo(m_scene); // Since each script could potentially corrupt their access with a stray assignment, making a new one for each script.
+            ScriptInfo scriptInfo = new ScriptInfo(m_scene);
+                // Since each script could potentially corrupt their access with a stray assignment, making a new one for each script.
             script.Initialise(scriptInfo);
             scripts.Add(script);
 
@@ -141,7 +141,7 @@ namespace OpenSim.Region.ExtensionsScriptModule
         bool AddPreCompiledScript(IScript script);
     }
 
-    interface IScriptCompiler
+    internal interface IScriptCompiler
     {
         Dictionary<string, IScript> compile(string filename);
         string FileExt();

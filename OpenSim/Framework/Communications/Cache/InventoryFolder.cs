@@ -25,14 +25,8 @@
 * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 * 
 */
-using System;
-using System.Collections;
 using System.Collections.Generic;
-using System.Text;
-using System.IO;
 using libsecondlife;
-using OpenSim.Framework.Interfaces;
-using OpenSim.Framework;
 
 namespace OpenSim.Framework.Communications.Cache
 {
@@ -44,17 +38,16 @@ namespace OpenSim.Framework.Communications.Cache
 
         public InventoryFolderImpl(InventoryFolderBase folderbase)
         {
-            this.agentID = folderbase.agentID;
-            this.folderID = folderbase.folderID;
-            this.name = folderbase.name;
-            this.parentID = folderbase.parentID;
-            this.type = folderbase.type;
-            this.version = folderbase.version;
+            agentID = folderbase.agentID;
+            folderID = folderbase.folderID;
+            name = folderbase.name;
+            parentID = folderbase.parentID;
+            type = folderbase.type;
+            version = folderbase.version;
         }
 
         public InventoryFolderImpl()
         {
-
         }
 
         // Methods
@@ -65,19 +58,19 @@ namespace OpenSim.Framework.Communications.Cache
             subFold.folderID = folderID;
             subFold.type = (short) type;
             subFold.parentID = this.folderID;
-            subFold.agentID = this.agentID;
-            this.SubFolders.Add(subFold.folderID, subFold);
+            subFold.agentID = agentID;
+            SubFolders.Add(subFold.folderID, subFold);
             return subFold;
         }
 
         public InventoryItemBase HasItem(LLUUID itemID)
         {
             InventoryItemBase base2 = null;
-            if (this.Items.ContainsKey(itemID))
+            if (Items.ContainsKey(itemID))
             {
-                return this.Items[itemID];
+                return Items[itemID];
             }
-            foreach (InventoryFolderImpl folder in this.SubFolders.Values)
+            foreach (InventoryFolderImpl folder in SubFolders.Values)
             {
                 base2 = folder.HasItem(itemID);
                 if (base2 != null)
@@ -91,12 +84,12 @@ namespace OpenSim.Framework.Communications.Cache
         public bool DeleteItem(LLUUID itemID)
         {
             bool found = false;
-            if (this.Items.ContainsKey(itemID))
+            if (Items.ContainsKey(itemID))
             {
                 Items.Remove(itemID);
                 return true;
             }
-            foreach (InventoryFolderImpl folder in this.SubFolders.Values)
+            foreach (InventoryFolderImpl folder in SubFolders.Values)
             {
                 found = folder.DeleteItem(itemID);
                 if (found == true)
@@ -111,13 +104,13 @@ namespace OpenSim.Framework.Communications.Cache
         public InventoryFolderImpl HasSubFolder(LLUUID folderID)
         {
             InventoryFolderImpl returnFolder = null;
-            if (this.SubFolders.ContainsKey(folderID))
+            if (SubFolders.ContainsKey(folderID))
             {
-                returnFolder = this.SubFolders[folderID];
+                returnFolder = SubFolders[folderID];
             }
             else
             {
-                foreach (InventoryFolderImpl folder in this.SubFolders.Values)
+                foreach (InventoryFolderImpl folder in SubFolders.Values)
                 {
                     returnFolder = folder.HasSubFolder(folderID);
                     if (returnFolder != null)
@@ -132,7 +125,7 @@ namespace OpenSim.Framework.Communications.Cache
         public List<InventoryItemBase> RequestListOfItems()
         {
             List<InventoryItemBase> itemList = new List<InventoryItemBase>();
-            foreach (InventoryItemBase item in this.Items.Values)
+            foreach (InventoryItemBase item in Items.Values)
             {
                 itemList.Add(item);
             }

@@ -27,15 +27,11 @@
 */
 using System;
 using System.Collections.Generic;
-using System.Text;
+using System.Diagnostics;
 using System.IO;
-using System.Threading;
-using OpenSim.Framework;
-using OpenSim.Framework.Interfaces;
 using OpenSim.Framework;
 using OpenSim.Region.Environment.Scenes;
 using OpenSim.Region.ExtensionsScriptModule.JVMEngine.JVM;
-using Thread = OpenSim.Region.ExtensionsScriptModule.JVMEngine.JVM.Thread;
 
 namespace OpenSim.Region.ExtensionsScriptModule.JVMEngine
 {
@@ -45,14 +41,14 @@ namespace OpenSim.Region.ExtensionsScriptModule.JVMEngine
         private BlockingQueue<CompileInfo> CompileScripts = new BlockingQueue<CompileInfo>();
         private MainMemory _mainMemory;
 
-        ScriptInfo scriptInfo;
+        private ScriptInfo scriptInfo;
 
         public void Initialise(ScriptInfo info)
         {
             scriptInfo = info;
 
             _mainMemory = new MainMemory();
-            Thread.GlobalMemory = this._mainMemory;
+            Thread.GlobalMemory = _mainMemory;
             Thread.World = info.world;
             CompileScript();
 
@@ -60,33 +56,33 @@ namespace OpenSim.Region.ExtensionsScriptModule.JVMEngine
             scriptInfo.events.OnNewPresence += new EventManager.OnNewPresenceDelegate(events_OnNewPresence);
         }
 
-        void events_OnNewPresence(ScenePresence presence)
+        private void events_OnNewPresence(ScenePresence presence)
         {
-            for (int i = 0; i < this._threads.Count; i++)
+            for (int i = 0; i < _threads.Count; i++)
             {
-                if (!this._threads[i].running)
+                if (!_threads[i].running)
                 {
-                    this._threads[i].StartMethod("OnNewPresence");
+                    _threads[i].StartMethod("OnNewPresence");
                     bool run = true;
                     while (run)
                     {
-                        run = this._threads[i].Excute();
+                        run = _threads[i].Excute();
                     }
                 }
             }
         }
 
-        void events_OnFrame()
+        private void events_OnFrame()
         {
-            for (int i = 0; i < this._threads.Count; i++)
+            for (int i = 0; i < _threads.Count; i++)
             {
-                if (!this._threads[i].running)
+                if (!_threads[i].running)
                 {
-                    this._threads[i].StartMethod("OnFrame");
+                    _threads[i].StartMethod("OnFrame");
                     bool run = true;
                     while (run)
                     {
-                        run = this._threads[i].Excute();
+                        run = _threads[i].Excute();
                     }
                 }
             }
@@ -103,12 +99,12 @@ namespace OpenSim.Region.ExtensionsScriptModule.JVMEngine
             CompileInfo comp = new CompileInfo();
             comp.script = script;
             comp.scriptName = script;
-            this.CompileScripts.Enqueue(comp);
+            CompileScripts.Enqueue(comp);
         }
 
         public void CompileScript()
         {
-            CompileInfo comp = this.CompileScripts.Dequeue();
+            CompileInfo comp = CompileScripts.Dequeue();
             string script = comp.script;
             string scriptName = comp.scriptName;
             try
@@ -121,13 +117,13 @@ namespace OpenSim.Region.ExtensionsScriptModule.JVMEngine
                 tw.Close();
 
                 //now compile
-                System.Diagnostics.ProcessStartInfo psi = new System.Diagnostics.ProcessStartInfo("javac.exe", "*.java");
+                ProcessStartInfo psi = new ProcessStartInfo("javac.exe", "*.java");
                 // psi.RedirectStandardOutput = true;
-                psi.WindowStyle = System.Diagnostics.ProcessWindowStyle.Hidden;
+                psi.WindowStyle = ProcessWindowStyle.Hidden;
                 psi.UseShellExecute = false;
 
-                System.Diagnostics.Process javacomp;
-                javacomp = System.Diagnostics.Process.Start(psi);
+                Process javacomp;
+                javacomp = Process.Start(psi);
                 javacomp.WaitForExit();
 
 
@@ -136,17 +132,17 @@ namespace OpenSim.Region.ExtensionsScriptModule.JVMEngine
                 class1.LoadClassFromFile(scriptName + ".class");
                 class1.PrintToConsole();
                 //Console.WriteLine();
-                this._mainMemory.MethodArea.Classes.Add(class1);
-                class1.AddMethodsToMemory(this._mainMemory.MethodArea);
+                _mainMemory.MethodArea.Classes.Add(class1);
+                class1.AddMethodsToMemory(_mainMemory.MethodArea);
 
                 Thread newThread = new Thread();
-                this._threads.Add(newThread);
+                _threads.Add(newThread);
                 newThread.currentClass = class1;
                 newThread.scriptInfo = scriptInfo;
 
                 //now delete the created files
-                System.IO.File.Delete(scriptName + ".java");
-                System.IO.File.Delete(scriptName + ".class");
+                File.Delete(scriptName + ".java");
+                File.Delete(scriptName + ".class");
                 //this.OnFrame();
             }
             catch (Exception e)
@@ -164,7 +160,6 @@ namespace OpenSim.Region.ExtensionsScriptModule.JVMEngine
 
             public CompileInfo()
             {
-
             }
         }
     }

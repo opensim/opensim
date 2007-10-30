@@ -27,14 +27,10 @@
 */
 
 using System;
-using System.Collections.Generic;
-using System.Text;
-using OpenSim.Region.Environment.Scenes;
+using System.IO;
 using libsecondlife;
 using OpenSim.Framework;
-using System.Timers;
-using System.Diagnostics;
-using System.IO;
+using OpenSim.Region.Environment.Scenes;
 
 namespace SimpleApp
 {
@@ -43,9 +39,7 @@ namespace SimpleApp
         public FileSystemObject(Scene world, FileInfo fileInfo, LLVector3 pos)
             : base(world, world.RegionInfo.RegionHandle, LLUUID.Zero, world.NextLocalId, pos, BoxShape.Default)
         {
-
-
-            float size = (float)Math.Pow((double)fileInfo.Length, (double)1 / 3) / 5;
+            float size = (float) Math.Pow((double) fileInfo.Length, (double) 1/3)/5;
             // rootPrimitive.ResizeGoup(new LLVector3(size, size, size));
             Text = fileInfo.Name;
             ScheduleGroupForFullUpdate();

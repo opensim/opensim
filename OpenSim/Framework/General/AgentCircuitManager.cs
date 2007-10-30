@@ -27,8 +27,6 @@
 */
 using System.Collections.Generic;
 using libsecondlife;
-using OpenSim.Framework.Interfaces;
-using OpenSim.Framework;
 
 namespace OpenSim.Framework
 {
@@ -38,15 +36,14 @@ namespace OpenSim.Framework
 
         public AgentCircuitManager()
         {
-
         }
 
         public virtual AuthenticateResponse AuthenticateSession(LLUUID sessionID, LLUUID agentID, uint circuitcode)
         {
             AgentCircuitData validcircuit = null;
-            if (this.AgentCircuits.ContainsKey(circuitcode))
+            if (AgentCircuits.ContainsKey(circuitcode))
             {
-                validcircuit = this.AgentCircuits[circuitcode];
+                validcircuit = AgentCircuits[circuitcode];
             }
             AuthenticateResponse user = new AuthenticateResponse();
             if (validcircuit == null)
@@ -79,50 +76,50 @@ namespace OpenSim.Framework
 
         public virtual void AddNewCircuit(uint circuitCode, AgentCircuitData agentData)
         {
-            if (this.AgentCircuits.ContainsKey(circuitCode))
+            if (AgentCircuits.ContainsKey(circuitCode))
             {
-                this.AgentCircuits[circuitCode] = agentData;
+                AgentCircuits[circuitCode] = agentData;
             }
             else
             {
-                this.AgentCircuits.Add(circuitCode, agentData);
+                AgentCircuits.Add(circuitCode, agentData);
             }
         }
 
         public LLVector3 GetPosition(uint circuitCode)
         {
             LLVector3 vec = new LLVector3();
-            if (this.AgentCircuits.ContainsKey(circuitCode))
+            if (AgentCircuits.ContainsKey(circuitCode))
             {
-                vec = this.AgentCircuits[circuitCode].startpos;
+                vec = AgentCircuits[circuitCode].startpos;
             }
             return vec;
         }
 
         public void UpdateAgentData(AgentCircuitData agentData)
         {
-            if (this.AgentCircuits.ContainsKey((uint)agentData.circuitcode))
+            if (AgentCircuits.ContainsKey((uint) agentData.circuitcode))
             {
-                this.AgentCircuits[(uint)agentData.circuitcode].firstname = agentData.firstname;
-                this.AgentCircuits[(uint)agentData.circuitcode].lastname = agentData.lastname;
-                this.AgentCircuits[(uint)agentData.circuitcode].startpos = agentData.startpos;
-               // Console.WriteLine("update user start pos is " + agentData.startpos.X + " , " + agentData.startpos.Y + " , " + agentData.startpos.Z);
+                AgentCircuits[(uint) agentData.circuitcode].firstname = agentData.firstname;
+                AgentCircuits[(uint) agentData.circuitcode].lastname = agentData.lastname;
+                AgentCircuits[(uint) agentData.circuitcode].startpos = agentData.startpos;
+                // Console.WriteLine("update user start pos is " + agentData.startpos.X + " , " + agentData.startpos.Y + " , " + agentData.startpos.Z);
             }
         }
 
         public void UpdateAgentChildStatus(uint circuitcode, bool childstatus)
         {
-            if (this.AgentCircuits.ContainsKey(circuitcode))
+            if (AgentCircuits.ContainsKey(circuitcode))
             {
-                this.AgentCircuits[circuitcode].child = childstatus;
+                AgentCircuits[circuitcode].child = childstatus;
             }
         }
 
         public bool GetAgentChildStatus(uint circuitcode)
         {
-            if (this.AgentCircuits.ContainsKey(circuitcode))
+            if (AgentCircuits.ContainsKey(circuitcode))
             {
-                return this.AgentCircuits[circuitcode].child;
+                return AgentCircuits[circuitcode].child;
             }
             return false;
         }

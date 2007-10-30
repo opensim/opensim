@@ -25,15 +25,6 @@
 * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 * 
 */
-using System;
-using System.Collections.Generic;
-using System.Text;
-using OpenSim.Framework.Interfaces;
-using OpenSim.Framework;
-using OpenSim.Framework;
-using OpenSim.Region.ExtensionsScriptModule.JVMEngine.Types;
-using OpenSim.Region.ExtensionsScriptModule.JVMEngine.Types.PrimitiveTypes;
-
 namespace OpenSim.Region.ExtensionsScriptModule.JVMEngine.JVM
 {
     partial class Thread
@@ -46,10 +37,15 @@ namespace OpenSim.Region.ExtensionsScriptModule.JVMEngine.JVM
                 switch (opcode)
                 {
                     case 184:
-                        short refIndex = (short) ((GlobalMemory.MethodArea.MethodBuffer[this.m_thread.PC] << 8) + GlobalMemory.MethodArea.MethodBuffer[this.m_thread.PC+1]);
-                        if (this.m_thread.currentClass.m_constantsPool[refIndex - 1] is ClassRecord.PoolMethodRef)
+                        short refIndex =
+                            (short)
+                            ((GlobalMemory.MethodArea.MethodBuffer[m_thread.PC] << 8) +
+                             GlobalMemory.MethodArea.MethodBuffer[m_thread.PC + 1]);
+                        if (m_thread.currentClass.m_constantsPool[refIndex - 1] is ClassRecord.PoolMethodRef)
                         {
-                            string typ = ((ClassRecord.PoolMethodRef)this.m_thread.currentClass.m_constantsPool[refIndex - 1]).mNameType.Type.Value;
+                            string typ =
+                                ((ClassRecord.PoolMethodRef) m_thread.currentClass.m_constantsPool[refIndex - 1]).
+                                    mNameType.Type.Value;
                             string typeparam = "";
                             string typereturn = "";
                             int firstbrak = 0;
@@ -58,16 +54,22 @@ namespace OpenSim.Region.ExtensionsScriptModule.JVMEngine.JVM
                             secondbrak = typ.LastIndexOf(')');
                             typeparam = typ.Substring(firstbrak + 1, secondbrak - firstbrak - 1);
                             typereturn = typ.Substring(secondbrak + 1, typ.Length - secondbrak - 1);
-                            if (((ClassRecord.PoolMethodRef)this.m_thread.currentClass.m_constantsPool[refIndex - 1]).mClass.Name.Value == this.m_thread.currentClass.MClass.Name.Value)
+                            if (
+                                ((ClassRecord.PoolMethodRef) m_thread.currentClass.m_constantsPool[refIndex - 1]).mClass
+                                    .Name.Value == m_thread.currentClass.MClass.Name.Value)
                             {
                                 //calling a method in this class
                                 if (typeparam.Length == 0)
                                 {
-                                    this.m_thread.JumpToStaticVoidMethod(((ClassRecord.PoolMethodRef)this.m_thread.currentClass.m_constantsPool[refIndex - 1]).mNameType.Name.Value, (this.m_thread.PC + 2));
+                                    m_thread.JumpToStaticVoidMethod(
+                                        ((ClassRecord.PoolMethodRef) m_thread.currentClass.m_constantsPool[refIndex - 1])
+                                            .mNameType.Name.Value, (m_thread.PC + 2));
                                 }
                                 else
                                 {
-                                    this.m_thread.JumpToStaticParamMethod(((ClassRecord.PoolMethodRef)this.m_thread.currentClass.m_constantsPool[refIndex - 1]).mNameType.Name.Value, typeparam, (this.m_thread.PC + 2));
+                                    m_thread.JumpToStaticParamMethod(
+                                        ((ClassRecord.PoolMethodRef) m_thread.currentClass.m_constantsPool[refIndex - 1])
+                                            .mNameType.Name.Value, typeparam, (m_thread.PC + 2));
                                 }
                             }
                             else
@@ -75,15 +77,19 @@ namespace OpenSim.Region.ExtensionsScriptModule.JVMEngine.JVM
                                 //calling a method of a different class
 
                                 // OpenSimAPI Class
-                                if (((ClassRecord.PoolMethodRef)this.m_thread.currentClass.m_constantsPool[refIndex - 1]).mClass.Name.Value == "OpenSimAPI")
+                                if (
+                                    ((ClassRecord.PoolMethodRef) m_thread.currentClass.m_constantsPool[refIndex - 1]).
+                                        mClass.Name.Value == "OpenSimAPI")
                                 {
-                                    this.m_thread.scriptInfo.api.CallMethod(((ClassRecord.PoolMethodRef)this.m_thread.currentClass.m_constantsPool[refIndex - 1]).mNameType.Name.Value, null);
+                                    m_thread.scriptInfo.api.CallMethod(
+                                        ((ClassRecord.PoolMethodRef) m_thread.currentClass.m_constantsPool[refIndex - 1])
+                                            .mNameType.Name.Value, null);
                                 }
                             }
                         }
                         else
                         {
-                            this.m_thread.PC += 2;
+                            m_thread.PC += 2;
                         }
                         result = true;
                         break;

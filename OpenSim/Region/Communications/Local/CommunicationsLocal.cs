@@ -25,32 +25,30 @@
 * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 * 
 */
+using OpenSim.Framework;
 using OpenSim.Framework.Communications;
 using OpenSim.Framework.Communications.Cache;
 using OpenSim.Framework.Interfaces;
 using OpenSim.Framework.Servers;
-using OpenSim.Framework;
 
 namespace OpenSim.Region.Communications.Local
 {
     public class CommunicationsLocal : CommunicationsManager
     {
         public CommunicationsLocal(
-            NetworkServersInfo serversInfo, 
-            BaseHttpServer httpServer, 
-            AssetCache assetCache, 
-            IUserService userService, 
-            LocalInventoryService inventoryService, 
-            IInterRegionCommunications interRegionService, 
-            IGridServices gridService, bool dumpAssetsToFile )
+            NetworkServersInfo serversInfo,
+            BaseHttpServer httpServer,
+            AssetCache assetCache,
+            IUserService userService,
+            LocalInventoryService inventoryService,
+            IInterRegionCommunications interRegionService,
+            IGridServices gridService, bool dumpAssetsToFile)
             : base(serversInfo, httpServer, assetCache, dumpAssetsToFile)
         {
             m_inventoryService = inventoryService;
             m_userService = userService;
             m_gridService = gridService;
             m_interRegion = interRegionService;
-
         }
-
     }
 }

@@ -32,7 +32,6 @@ namespace OpenSim.Region.Capabilities
     {
         public LLSDEmpty()
         {
-
         }
     }
 }

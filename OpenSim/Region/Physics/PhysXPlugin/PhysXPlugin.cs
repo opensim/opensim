@@ -34,102 +34,99 @@ using Quaternion=Axiom.Math.Quaternion;
 
 namespace OpenSim.Region.Physics.PhysXPlugin
 {
-	/// <summary>
-	/// Will be the PhysX plugin but for now will be a very basic physics engine
-	/// </summary>
-	public class PhysXPlugin : IPhysicsPlugin
-	{
-		private PhysXScene _mScene;
-		
-		public PhysXPlugin()
-		{
-			
-		}
-		
-		public bool Init()
-		{
-			return true;
-		}
-		
-		public PhysicsScene GetScene()
-		{
-			if(_mScene == null)
-			{
-				_mScene = new PhysXScene();
-			}
-			return(_mScene);
-		}
-		
-		public string GetName()
-		{
-			return("RealPhysX");
-		}
-		
-		public void Dispose()
-		{
-			
-		}
-	}
-	
-	public class PhysXScene :PhysicsScene
-	{
-		private List<PhysXCharacter> _characters = new List<PhysXCharacter>();
-		private List<PhysXPrim> _prims = new List<PhysXPrim>();
-		private float[] _heightMap = null;
-		private NxPhysicsSDK mySdk;
-		private NxScene scene;
-		
-		public PhysXScene()
-		{
-			mySdk = NxPhysicsSDK.CreateSDK();
-			Console.WriteLine("Sdk created - now creating scene");
-			scene = mySdk.CreateScene();
-		
-		}
-		
-		public override PhysicsActor AddAvatar(string avName, PhysicsVector position)
-		{
-			Vec3 pos = new Vec3();
-			pos.X = position.X;
-			pos.Y = position.Y;
-			pos.Z = position.Z;
-			PhysXCharacter act = new PhysXCharacter( scene.AddCharacter(pos));
+    /// <summary>
+    /// Will be the PhysX plugin but for now will be a very basic physics engine
+    /// </summary>
+    public class PhysXPlugin : IPhysicsPlugin
+    {
+        private PhysXScene _mScene;
+
+        public PhysXPlugin()
+        {
+        }
+
+        public bool Init()
+        {
+            return true;
+        }
+
+        public PhysicsScene GetScene()
+        {
+            if (_mScene == null)
+            {
+                _mScene = new PhysXScene();
+            }
+            return (_mScene);
+        }
+
+        public string GetName()
+        {
+            return ("RealPhysX");
+        }
+
+        public void Dispose()
+        {
+        }
+    }
+
+    public class PhysXScene : PhysicsScene
+    {
+        private List<PhysXCharacter> _characters = new List<PhysXCharacter>();
+        private List<PhysXPrim> _prims = new List<PhysXPrim>();
+        private float[] _heightMap = null;
+        private NxPhysicsSDK mySdk;
+        private NxScene scene;
+
+        public PhysXScene()
+        {
+            mySdk = NxPhysicsSDK.CreateSDK();
+            Console.WriteLine("Sdk created - now creating scene");
+            scene = mySdk.CreateScene();
+        }
+
+        public override PhysicsActor AddAvatar(string avName, PhysicsVector position)
+        {
+            Vec3 pos = new Vec3();
+            pos.X = position.X;
+            pos.Y = position.Y;
+            pos.Z = position.Z;
+            PhysXCharacter act = new PhysXCharacter(scene.AddCharacter(pos));
             act.Position = position;
-			_characters.Add(act);
-			return act;
-		}
+            _characters.Add(act);
+            return act;
+        }
 
         public override void RemovePrim(PhysicsActor prim)
         {
-
         }
 
         public override void RemoveAvatar(PhysicsActor actor)
         {
-
         }
-		
-		PhysicsActor AddPrim(PhysicsVector position, PhysicsVector size, Quaternion rotation)
-		{
-			Vec3 pos = new Vec3();
-			pos.X = position.X;
-			pos.Y = position.Y;
-			pos.Z = position.Z;
-			Vec3 siz = new Vec3();
-			siz.X = size.X;
-			siz.Y = size.Y;
-			siz.Z = size.Z;
-			PhysXPrim act = new PhysXPrim( scene.AddNewBox(pos, siz));
-			_prims.Add(act);
-			return act;
-		}
-        public override PhysicsActor AddPrimShape(string primName, PrimitiveBaseShape pbs, PhysicsVector position, PhysicsVector size, Quaternion rotation)
+
+        private PhysicsActor AddPrim(PhysicsVector position, PhysicsVector size, Quaternion rotation)
+        {
+            Vec3 pos = new Vec3();
+            pos.X = position.X;
+            pos.Y = position.Y;
+            pos.Z = position.Z;
+            Vec3 siz = new Vec3();
+            siz.X = size.X;
+            siz.Y = size.Y;
+            siz.Z = size.Z;
+            PhysXPrim act = new PhysXPrim(scene.AddNewBox(pos, siz));
+            _prims.Add(act);
+            return act;
+        }
+
+        public override PhysicsActor AddPrimShape(string primName, PrimitiveBaseShape pbs, PhysicsVector position,
+                                                  PhysicsVector size, Quaternion rotation)
         {
             return AddPrim(position, size, rotation);
         }
 
-		public override void Simulate(float timeStep)
-		{
+        public override void Simulate(float timeStep)
+        {
             try
             {
                 foreach (PhysXCharacter actor in _characters)
@@ -149,309 +146,237 @@ namespace OpenSim.Region.Physics.PhysXPlugin
             {
                 Console.WriteLine(e.Message);
             }
-				
-		}
-		
-		public override void GetResults()
-		{
-		
-		}
-		
-		public override bool IsThreaded
-		{
-			get
-			{
-				return(false); // for now we won't be multithreaded
-			}
-		}
-		
-		public override void SetTerrain(float[] heightMap)
-		{
-            if (this._heightMap != null)
+        }
+
+        public override void GetResults()
+        {
+        }
+
+        public override bool IsThreaded
+        {
+            get { return (false); // for now we won't be multithreaded
+            }
+        }
+
+        public override void SetTerrain(float[] heightMap)
+        {
+            if (_heightMap != null)
             {
                 Console.WriteLine("PhysX - deleting old terrain");
-                this.scene.DeleteTerrain();
+                scene.DeleteTerrain();
             }
-			this._heightMap = heightMap;
-			this.scene.AddTerrain(heightMap);
-		}
+            _heightMap = heightMap;
+            scene.AddTerrain(heightMap);
+        }
 
         public override void DeleteTerrain()
         {
-            this.scene.DeleteTerrain();
-        }	
+            scene.DeleteTerrain();
+        }
     }
-	
-	public  class PhysXCharacter : PhysicsActor
-	{
-		private PhysicsVector _position;
-		private PhysicsVector _velocity;
-		private PhysicsVector _acceleration;
-		private NxCharacter _character;
-		private bool flying;
-		private float gravityAccel;
-		
-		public PhysXCharacter(NxCharacter character)
-		{
-			_velocity = new PhysicsVector();
-			_position = new PhysicsVector();
-			_acceleration = new PhysicsVector();
-			_character = character;
-		}
-		
-		public override bool Flying
-		{
-			get
-			{
-				return flying;
-			}
-			set
-			{
-				flying = value;
-			}
-		}
-		
-		public override PhysicsVector Position
-		{
-			get
-			{
-				return _position;
-			}
-			set
-			{
-				_position = value;
+
+    public class PhysXCharacter : PhysicsActor
+    {
+        private PhysicsVector _position;
+        private PhysicsVector _velocity;
+        private PhysicsVector _acceleration;
+        private NxCharacter _character;
+        private bool flying;
+        private float gravityAccel;
+
+        public PhysXCharacter(NxCharacter character)
+        {
+            _velocity = new PhysicsVector();
+            _position = new PhysicsVector();
+            _acceleration = new PhysicsVector();
+            _character = character;
+        }
+
+        public override bool Flying
+        {
+            get { return flying; }
+            set { flying = value; }
+        }
+
+        public override PhysicsVector Position
+        {
+            get { return _position; }
+            set
+            {
+                _position = value;
                 Vec3 ps = new Vec3();
                 ps.X = value.X;
                 ps.Y = value.Y;
                 ps.Z = value.Z;
-                this._character.Position = ps;
-			}
-		}
-
-        public override PhysicsVector Size
-        {
-            get
-            {
-                return new PhysicsVector(0,0,0);
-            }
-            set
-            {
-            }
-        }
-		public override PhysicsVector Velocity
-		{
-			get
-			{
-				return _velocity;
-			}
-			set
-			{
-				_velocity = value;
-			}
-		}
-		
-		public override bool Kinematic
-		{
-			get
-			{
-				return false;
-			}
-			set
-			{
-				
-			}
-		}
-		
-		public override Quaternion Orientation
-		{
-			get
-			{
-				return Quaternion.Identity;
-			}
-			set
-			{
-				
-			}
-		}
-		
-		public override PhysicsVector Acceleration
-		{
-			get
-			{
-				return _acceleration;
-			}
-			
-		}
-		public void SetAcceleration (PhysicsVector accel)
-		{
-			this._acceleration = accel;
-		}
-		
-		public override void AddForce(PhysicsVector force)
-		{
-			
-		}
-		
-		public override void SetMomentum(PhysicsVector momentum)
-		{
-			
-		}
-		
-		public void Move(float timeStep)
-		{
-			Vec3 vec = new Vec3();
-			vec.X = this._velocity.X * timeStep;
-			vec.Y = this._velocity.Y * timeStep;
-			if(flying)
-			{
-				vec.Z = ( this._velocity.Z) * timeStep;
-			}
-			else
-			{
-				gravityAccel+= -9.8f;
-				vec.Z = (gravityAccel + this._velocity.Z) * timeStep;
-			}
-			int res = this._character.Move(vec);
-			if(res == 1)
-			{
-				gravityAccel = 0;
-			}
-		}
-		
-		public void UpdatePosition()
-		{
-			Vec3 vec = this._character.Position;
-			this._position.X = vec.X;
-			this._position.Y = vec.Y;
-			this._position.Z = vec.Z;
-		}
-	}
-	
-	public  class PhysXPrim : PhysicsActor
-	{
-		private PhysicsVector _position;
-		private PhysicsVector _velocity;
-		private PhysicsVector _acceleration;
-		private NxActor _prim;
-		
-		public PhysXPrim(NxActor prim)
-		{
-			_velocity = new PhysicsVector();
-			_position = new PhysicsVector();
-			_acceleration = new PhysicsVector();
-			_prim = prim;
-		}
-		public override bool Flying
-		{
-			get
-			{
-				return false; //no flying prims for you
-			}
-			set
-			{
-				
-			}
-		}
-		public override PhysicsVector Position
-		{
-			get
-			{
-				PhysicsVector pos = new PhysicsVector();
-				Vec3 vec = this._prim.Position;
-				pos.X = vec.X;
-				pos.Y = vec.Y;
-				pos.Z = vec.Z;
-				return pos;
-				
-			}
-			set
-			{
-				PhysicsVector vec = value;
-				Vec3 pos = new Vec3();
-				pos.X = vec.X;
-				pos.Y = vec.Y;
-				pos.Z = vec.Z;
-				this._prim.Position = pos;
-			}
-		}
-
-        public override PhysicsVector Size
-        {
-            get
-            {
-                return new PhysicsVector(0, 0, 0);
-            }
-            set
-            {
+                _character.Position = ps;
             }
         }
 
-		public override PhysicsVector Velocity
-		{
-			get
-			{
-				return _velocity;
-			}
-			set
-			{
-				_velocity = value;
-			}
-		}
-		
-		public override bool Kinematic
-		{
-			get
-			{
-				return this._prim.Kinematic;
-			}
-			set
-			{
-				this._prim.Kinematic = value;
-			}
-		}
-		
-		public override Quaternion Orientation
-		{
-			get
-			{
-				Quaternion res = new Quaternion();
-				PhysXWrapper.Quaternion quat = this._prim.GetOrientation();
-				res.w = quat.W;
-				res.x = quat.X;
-				res.y = quat.Y;
-				res.z = quat.Z;
-				return res;
-			}
-			set
-			{
-				
-			}
-		}
-		
-		public override PhysicsVector Acceleration
-		{
-			get
-			{
-				return _acceleration;
-			}
-			
-		}
-		public void SetAcceleration (PhysicsVector accel)
-		{
-			this._acceleration = accel;
-		}
-		
-		public override void AddForce(PhysicsVector force)
-		{
-			
-		}
-		
-		public override void SetMomentum(PhysicsVector momentum)
-		{
-			
-		}
-		
-		
-	}
+        public override PhysicsVector Size
+        {
+            get { return new PhysicsVector(0, 0, 0); }
+            set { }
+        }
 
+        public override PhysicsVector Velocity
+        {
+            get { return _velocity; }
+            set { _velocity = value; }
+        }
+
+        public override bool Kinematic
+        {
+            get { return false; }
+            set { }
+        }
+
+        public override Quaternion Orientation
+        {
+            get { return Quaternion.Identity; }
+            set { }
+        }
+
+        public override PhysicsVector Acceleration
+        {
+            get { return _acceleration; }
+        }
+
+        public void SetAcceleration(PhysicsVector accel)
+        {
+            _acceleration = accel;
+        }
+
+        public override void AddForce(PhysicsVector force)
+        {
+        }
+
+        public override void SetMomentum(PhysicsVector momentum)
+        {
+        }
+
+        public void Move(float timeStep)
+        {
+            Vec3 vec = new Vec3();
+            vec.X = _velocity.X*timeStep;
+            vec.Y = _velocity.Y*timeStep;
+            if (flying)
+            {
+                vec.Z = (_velocity.Z)*timeStep;
+            }
+            else
+            {
+                gravityAccel += -9.8f;
+                vec.Z = (gravityAccel + _velocity.Z)*timeStep;
+            }
+            int res = _character.Move(vec);
+            if (res == 1)
+            {
+                gravityAccel = 0;
+            }
+        }
+
+        public void UpdatePosition()
+        {
+            Vec3 vec = _character.Position;
+            _position.X = vec.X;
+            _position.Y = vec.Y;
+            _position.Z = vec.Z;
+        }
+    }
+
+    public class PhysXPrim : PhysicsActor
+    {
+        private PhysicsVector _position;
+        private PhysicsVector _velocity;
+        private PhysicsVector _acceleration;
+        private NxActor _prim;
+
+        public PhysXPrim(NxActor prim)
+        {
+            _velocity = new PhysicsVector();
+            _position = new PhysicsVector();
+            _acceleration = new PhysicsVector();
+            _prim = prim;
+        }
+
+        public override bool Flying
+        {
+            get { return false; //no flying prims for you
+            }
+            set { }
+        }
+
+        public override PhysicsVector Position
+        {
+            get
+            {
+                PhysicsVector pos = new PhysicsVector();
+                Vec3 vec = _prim.Position;
+                pos.X = vec.X;
+                pos.Y = vec.Y;
+                pos.Z = vec.Z;
+                return pos;
+            }
+            set
+            {
+                PhysicsVector vec = value;
+                Vec3 pos = new Vec3();
+                pos.X = vec.X;
+                pos.Y = vec.Y;
+                pos.Z = vec.Z;
+                _prim.Position = pos;
+            }
+        }
+
+        public override PhysicsVector Size
+        {
+            get { return new PhysicsVector(0, 0, 0); }
+            set { }
+        }
+
+        public override PhysicsVector Velocity
+        {
+            get { return _velocity; }
+            set { _velocity = value; }
+        }
+
+        public override bool Kinematic
+        {
+            get { return _prim.Kinematic; }
+            set { _prim.Kinematic = value; }
+        }
+
+        public override Quaternion Orientation
+        {
+            get
+            {
+                Quaternion res = new Quaternion();
+                PhysXWrapper.Quaternion quat = _prim.GetOrientation();
+                res.w = quat.W;
+                res.x = quat.X;
+                res.y = quat.Y;
+                res.z = quat.Z;
+                return res;
+            }
+            set { }
+        }
+
+        public override PhysicsVector Acceleration
+        {
+            get { return _acceleration; }
+        }
+
+        public void SetAcceleration(PhysicsVector accel)
+        {
+            _acceleration = accel;
+        }
+
+        public override void AddForce(PhysicsVector force)
+        {
+        }
+
+        public override void SetMomentum(PhysicsVector momentum)
+        {
+        }
+    }
 }

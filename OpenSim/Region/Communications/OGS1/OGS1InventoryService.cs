@@ -28,46 +28,39 @@
 
 using System.Collections.Generic;
 using libsecondlife;
+using OpenSim.Framework;
 using OpenSim.Framework.Communications;
 using OpenSim.Framework.Communications.Cache;
-using OpenSim.Framework;
-
 
 namespace OpenSim.Region.Communications.OGS1
 {
     public class OGS1InventoryService : IInventoryServices
     {
-
         public OGS1InventoryService()
         {
-
         }
 
         #region IInventoryServices Members
-       
-        public void RequestInventoryForUser(LLUUID userID, InventoryFolderInfo folderCallBack, InventoryItemInfo itemCallBack)
+
+        public void RequestInventoryForUser(LLUUID userID, InventoryFolderInfo folderCallBack,
+                                            InventoryItemInfo itemCallBack)
         {
-            
         }
 
         public void AddNewInventoryFolder(LLUUID userID, InventoryFolderImpl folder)
         {
-            
         }
 
         public void AddNewInventoryItem(LLUUID userID, InventoryItemBase item)
         {
-            
         }
 
         public void DeleteInventoryItem(LLUUID userID, InventoryItemBase item)
         {
-            
         }
 
         public void CreateNewUserInventory(LLUUID user)
         {
-            
         }
 
         public List<InventoryFolderBase> RequestFirstLevelFolders(LLUUID userID)

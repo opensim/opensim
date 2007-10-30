@@ -25,15 +25,18 @@
 * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 * 
 */
-using libsecondlife;
 using System;
+using libsecondlife;
 
 namespace OpenSim.Framework
 {
     [Serializable]
     public class AgentCircuitData
     {
-        public AgentCircuitData() { }
+        public AgentCircuitData()
+        {
+        }
+
         public LLUUID AgentID;
         public LLUUID SessionID;
         public LLUUID SecureSessionID;
@@ -44,6 +47,6 @@ namespace OpenSim.Framework
         public bool child;
         public LLUUID InventoryFolder;
         public LLUUID BaseFolder;
-        public string CapsPath = ""; 
+        public string CapsPath = "";
     }
 }

@@ -27,15 +27,14 @@
 */
 
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
+using Nini.Config;
 using OpenSim.Framework.Console;
 using OpenSim.Region.Environment.Interfaces;
 using OpenSim.Region.Environment.Modules;
 using OpenSim.Region.Environment.Scenes;
-using Nini.Config;
 
 namespace OpenSim.Region.Environment
 {
@@ -58,8 +57,8 @@ namespace OpenSim.Region.Environment
         {
             get
             {
-                IRegionModule[] regionModules = new IRegionModule[ m_loadedSharedModules.Count ];
-                m_loadedSharedModules.Values.CopyTo( regionModules, 0 );
+                IRegionModule[] regionModules = new IRegionModule[m_loadedSharedModules.Count];
+                m_loadedSharedModules.Values.CopyTo(regionModules, 0);
                 return regionModules;
             }
         }
@@ -132,7 +131,7 @@ namespace OpenSim.Region.Environment
 
             if (modules.Length > 0)
             {
-                m_log.Verbose("MODULES", "Found Module Library [{0}]", dllName );
+                m_log.Verbose("MODULES", "Found Module Library [{0}]", dllName);
                 foreach (IRegionModule module in modules)
                 {
                     if (!module.IsSharedModule)
@@ -179,16 +178,16 @@ namespace OpenSim.Region.Environment
             List<IRegionModule> modules = new List<IRegionModule>();
 
             Assembly pluginAssembly;
-            if (!LoadedAssemblys.TryGetValue(dllName, out pluginAssembly ))
+            if (!LoadedAssemblys.TryGetValue(dllName, out pluginAssembly))
             {
                 try
                 {
                     pluginAssembly = Assembly.LoadFrom(dllName);
                     LoadedAssemblys.Add(dllName, pluginAssembly);
                 }
-                catch( BadImageFormatException e )
+                catch (BadImageFormatException e)
                 {
-                    m_log.Verbose( "MODULES", "The file [{0}] is not a module assembly.", e.FileName );
+                    m_log.Verbose("MODULES", "The file [{0}] is not a module assembly.", e.FileName);
                 }
             }
 
@@ -201,7 +200,7 @@ namespace OpenSim.Region.Environment
                     {
                         if (!pluginType.IsAbstract)
                         {
-                            if( pluginType.GetInterface("IRegionModule") != null )
+                            if (pluginType.GetInterface("IRegionModule") != null)
                             {
                                 modules.Add((IRegionModule) Activator.CreateInstance(pluginType));
                             }

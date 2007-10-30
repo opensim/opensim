@@ -27,8 +27,6 @@
 */
 
 using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace libTerrain
 {
@@ -60,19 +58,19 @@ namespace libTerrain
             }
             if (val < 512)
             {
-                ret[0] = (val % 256);
+                ret[0] = (val%256);
                 ret[1] = 255;
                 return ret;
             }
             if (val < 768)
             {
                 ret[0] = 255;
-                ret[1] = 255 - (val % 256);
+                ret[1] = 255 - (val%256);
                 return ret;
             }
             if (val < 1024)
             {
-                ret[0] = 255 - (val % 256);
+                ret[0] = 255 - (val%256);
                 ret[1] = 255;
                 return ret;
             }
@@ -100,7 +98,7 @@ namespace libTerrain
                 {
                     for (int y = 0; y < h; y++)
                     {
-                        double miny = Tools.LinearInterpolate(a[1], b[1], (double)x / (double)w);
+                        double miny = Tools.LinearInterpolate(a[1], b[1], (double) x/(double) w);
 
                         if (v >= 0.5)
                         {

@@ -27,8 +27,8 @@
 */
 
 using System;
-using OpenSim.Framework.Communications;
 using OpenSim.Framework;
+using OpenSim.Framework.Communications;
 using OpenSim.Framework.UserManagement;
 
 namespace OpenSim.Region.Communications.Local
@@ -41,7 +41,8 @@ namespace OpenSim.Region.Communications.Local
         private IInventoryServices m_inventoryService;
 
 
-        public LocalUserServices(NetworkServersInfo serversInfo, uint defaultHomeLocX, uint defaultHomeLocY, IInventoryServices inventoryService)
+        public LocalUserServices(NetworkServersInfo serversInfo, uint defaultHomeLocX, uint defaultHomeLocY,
+                                 IInventoryServices inventoryService)
         {
             m_serversInfo = serversInfo;
 
@@ -49,7 +50,6 @@ namespace OpenSim.Region.Communications.Local
             m_defaultHomeY = defaultHomeLocY;
 
             m_inventoryService = inventoryService;
-            
         }
 
         public override UserProfileData SetupMasterUser(string firstName, string lastName)

@@ -37,7 +37,7 @@ namespace OpenSim.Region.ExtensionsScriptModule
 
     public class TestScript : IScript
     {
-        ScriptInfo script;
+        private ScriptInfo script;
 
         public string Name
         {
@@ -51,12 +51,12 @@ namespace OpenSim.Region.ExtensionsScriptModule
             script.events.OnNewPresence += events_OnNewPresence;
         }
 
-        void events_OnNewPresence(ScenePresence presence)
+        private void events_OnNewPresence(ScenePresence presence)
         {
             script.logger.Verbose("Hello " + presence.Firstname.ToString() + "!");
         }
 
-        void events_OnFrame()
+        private void events_OnFrame()
         {
             //script.logger.Verbose("Hello World!");
         }
