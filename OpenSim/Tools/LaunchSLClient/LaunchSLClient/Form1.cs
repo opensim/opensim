@@ -189,7 +189,7 @@ namespace LaunchSLClient
             if (comboBox1.Text == "DeepGrid - www.deepgrid.com") { runUrl = " -loginuri " + deepGridUrl; }
             if (comboBox1.Text == "OSGrid - www.osgrid.org") { runUrl = " -loginuri " + osGridUrl; }
             if (comboBox1.Text == "Linden Labs - www.secondlife.com") { runUrl = ""; }
-            if (comboBox1.Text == "OpenlifeGrid - www.openlifegrid.com") { runUrl = "http://logingrid.net:8002"; }
+            if (comboBox1.Text == "OpenlifeGrid - www.openlifegrid.com") { runUrl = " -loginuri http://logingrid.net:8002"; }
 
             System.Diagnostics.Process proc = new System.Diagnostics.Process();
             proc.StartInfo.FileName = runLine;
