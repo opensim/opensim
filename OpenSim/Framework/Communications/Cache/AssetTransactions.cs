@@ -289,7 +289,7 @@ namespace OpenSim.Framework.Communications.Cache
                 {
                     DateTime now = DateTime.Now;
                     string filename =
-                        String.Format("{6}_{7}_{0:d2}{1:d2}{2:d2}_{3:d2}{4:d2}{5:d2}", now.Year, now.Month, now.Day,
+                        String.Format("{6}_{7}_{0:d2}{1:d2}{2:d2}_{3:d2}{4:d2}{5:d2}.dat", now.Year, now.Month, now.Day,
                                       now.Hour, now.Minute, now.Second, Asset.Name, Asset.Type);
                     SaveAssetToFile(filename, Asset.Data);
                 }
