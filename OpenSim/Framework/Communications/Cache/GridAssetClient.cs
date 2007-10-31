@@ -84,6 +84,7 @@ namespace OpenSim.Framework.Communications.Cache
             catch (Exception e)
             {
                 MainLog.Instance.Error("ASSETCACHE", e.Message);
+                MainLog.Instance.Debug("ASSETCACHE", "Getting asset {0}", assetID.ToString());
                 MainLog.Instance.Error("ASSETCACHE", e.StackTrace);
             }
         }
