@@ -338,7 +338,7 @@ namespace OpenSim.Region.Environment.Scenes
                         updateCount++;
                     }
 
-                    if (m_partsUpdateQueue.Count < 1 | updateCount > 60)
+                    if (m_partsUpdateQueue.Count < 1 || updateCount > 60)
                     {
                         runUpdate = false;
                     }

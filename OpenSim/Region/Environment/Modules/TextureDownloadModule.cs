@@ -187,7 +187,7 @@ namespace OpenSim.Region.Environment.Modules
             {
                 SendPacket();
                 counter++;
-                if ((PacketCounter >= NumPackets) | counter > 100 | (NumPackets == 1) | (request.DiscardLevel == -1))
+                if ((PacketCounter >= NumPackets) || counter > 100 || (NumPackets == 1) || (request.DiscardLevel == -1))
                 {
                     return true;
                 }

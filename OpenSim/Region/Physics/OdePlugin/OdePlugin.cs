@@ -333,13 +333,13 @@ namespace OpenSim.Region.Physics.OdePlugin
             step_time += timeStep;
             lock (OdeLock)
             {
-                if (_characters.Count > 0 & RENDER_FLAG)
+                if (_characters.Count > 0 && RENDER_FLAG)
                 {
                     Console.WriteLine("RENDER: frame");
                 }
                 foreach (OdePrim p in _prims)
                 {
-                    if (_characters.Count > 0 & RENDER_FLAG)
+                    if (_characters.Count > 0 && RENDER_FLAG)
                     {
                         Vector3 rx, ry, rz;
                         p.Orientation.ToAxes(out rx, out ry, out rz);
@@ -607,7 +607,7 @@ namespace OpenSim.Region.Physics.OdePlugin
             d.Vector3 vel = d.BodyGetLinearVel(Body);
 
             //  if velocity is zero, use position control; otherwise, velocity control
-            if (_target_velocity.X == 0.0f & _target_velocity.Y == 0.0f & _target_velocity.Z == 0.0f & iscolliding)
+            if (_target_velocity.X == 0.0f && _target_velocity.Y == 0.0f && _target_velocity.Z == 0.0f && iscolliding)
             {
                 //  keep track of where we stopped.  No more slippin' & slidin'
                 if (!_zeroFlag)
