@@ -220,6 +220,11 @@ namespace OpenSim.Region.Environment.LandManagement
             }
         }
 
+        public void sendLandUpdateToClient(IClientAPI remote_client)
+        {
+            sendLandProperties(0, false, 0, remote_client);
+        }
+
         public void sendLandUpdateToAvatarsOverMe()
         {
             List<ScenePresence> avatars = m_scene.GetAvatars();
@@ -230,7 +235,7 @@ namespace OpenSim.Region.Environment.LandManagement
                                                       (int) Math.Round(avatars[i].AbsolutePosition.Y));
                 if (over.landData.localID == landData.localID)
                 {
-                    sendLandProperties(0, false, 0, avatars[i].ControllingClient);
+                    sendLandUpdateToClient(avatars[i].ControllingClient);
                 }
             }
         }

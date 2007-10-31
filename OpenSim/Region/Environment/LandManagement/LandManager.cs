@@ -533,17 +533,24 @@ namespace OpenSim.Region.Environment.LandManagement
             addLandObject(fullSimParcel);
         }
 
+        public void sendLandUpdate(ScenePresence avatar)
+        {
+            Land over = getLandObject((int) Math.Round(avatar.AbsolutePosition.X),
+                                      (int) Math.Round(avatar.AbsolutePosition.Y));
+
+            if (over != null)
+            {
+                over.sendLandUpdateToClient(avatar.ControllingClient);
+            }
+        }
 
         public void handleSignificantClientMovement(IClientAPI remote_client)
         {
             ScenePresence clientAvatar = m_scene.GetScenePresence(remote_client.AgentId);
+
             if (clientAvatar != null)
             {
-                Land over = getLandObject(clientAvatar.AbsolutePosition.X, clientAvatar.AbsolutePosition.Y);
-                if (over != null)
-                {
-                    over.sendLandProperties(0, false, 0, remote_client);
-                }
+                sendLandUpdate(clientAvatar);
             }
         }
 

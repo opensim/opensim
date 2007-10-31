@@ -281,6 +281,8 @@ namespace OpenSim.Region.Environment.Scenes
             {
                 //do we need to use newAvatar? not sure so have added this to kill the compile warning
             }
+
+            m_scene.LandManager.sendLandUpdate(this);
         }
 
         #endregion
