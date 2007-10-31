@@ -30,11 +30,8 @@ using System.IO;
 
 namespace OpenSim.Framework.Servers
 {
-    public interface IStreamHandler
+    public interface IRequestHandler
     {
-        // Handle request stream, return byte array
-        byte[] Handle(string path, Stream request);
-
         // Return response content type
         string ContentType { get; }
 
@@ -44,4 +41,17 @@ namespace OpenSim.Framework.Servers
         // Return path
         string Path { get; }
     }
+
+    public interface IStreamedRequestHandler : IRequestHandler
+    {
+        // Handle request stream, return byte array
+        byte[] Handle(string path, Stream request);
+    }
+
+    public interface IStreamHandler : IRequestHandler
+    {
+        // Handle request stream, return byte array
+        void Handle(string path, Stream request, Stream response);
+    }
+
 }

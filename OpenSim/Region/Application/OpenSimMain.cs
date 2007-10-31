@@ -415,7 +415,7 @@ namespace OpenSim
             return GetPhysicsScene(m_physicsEngine);
         }
 
-        private class SimStatusHandler : IStreamHandler
+        private class SimStatusHandler : IStreamedRequestHandler
         {
             public byte[] Handle(string path, Stream request)
             {

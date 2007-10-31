@@ -43,7 +43,7 @@ namespace OpenSim.Framework.Servers
         protected Thread m_workerThread;
         protected HttpListener m_httpListener;
         protected Dictionary<string, XmlRpcMethod> m_rpcHandlers = new Dictionary<string, XmlRpcMethod>();
-        protected Dictionary<string, IStreamHandler> m_streamHandlers = new Dictionary<string, IStreamHandler>();
+        protected Dictionary<string, IRequestHandler> m_streamHandlers = new Dictionary<string, IRequestHandler>();
         protected int m_port;
         protected bool m_firstcaps = true;
 
@@ -57,7 +57,7 @@ namespace OpenSim.Framework.Servers
             m_port = port;
         }
 
-        public void AddStreamHandler(IStreamHandler handler)
+        public void AddStreamHandler(IRequestHandler handler)
         {
             string httpMethod = handler.HttpMethod;
             string path = handler.Path;
@@ -97,14 +97,32 @@ namespace OpenSim.Framework.Servers
             string path = request.RawUrl;
             string handlerKey = GetHandlerKey(request.HttpMethod, path);
 
-            IStreamHandler streamHandler;
+            IRequestHandler requestHandler;
 
-            if (TryGetStreamHandler(handlerKey, out streamHandler))
+            if (TryGetStreamHandler(handlerKey, out requestHandler))
             {
-                byte[] buffer = streamHandler.Handle(path, request.InputStream);
-                request.InputStream.Close();
+                // Okay, so this is bad, but should be considered temporary until everything is IStreamHandler.
+                byte[] buffer;
+                if (requestHandler is IStreamedRequestHandler)
+                {
+                    IStreamedRequestHandler streamedRequestHandler = requestHandler as IStreamedRequestHandler;
+                    buffer = streamedRequestHandler.Handle(path, request.InputStream);
 
-                response.ContentType = streamHandler.ContentType;
+                }
+                else
+                {
+                    IStreamHandler streamHandler = (IStreamHandler)requestHandler;
+
+                    using (MemoryStream memoryStream = new MemoryStream())
+                    {
+                        streamHandler.Handle(path, request.InputStream, memoryStream);
+                        memoryStream.Flush();
+                        buffer = memoryStream.ToArray();
+                    }
+                }
+
+                request.InputStream.Close();
+                response.ContentType = requestHandler.ContentType;
                 response.ContentLength64 = buffer.LongLength;
                 response.OutputStream.Write(buffer, 0, buffer.Length);
                 response.OutputStream.Close();
@@ -115,7 +133,7 @@ namespace OpenSim.Framework.Servers
             }
         }
 
-        private bool TryGetStreamHandler(string handlerKey, out IStreamHandler streamHandler)
+        private bool TryGetStreamHandler(string handlerKey, out IRequestHandler streamHandler)
         {
             string bestMatch = null;
 

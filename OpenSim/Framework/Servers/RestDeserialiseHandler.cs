@@ -7,35 +7,35 @@ using System.Xml.Serialization;
 
 namespace OpenSim.Framework.Servers
 {
-    public delegate string RestDeserialiseMethod<TRequest>(TRequest request);
+    public delegate TResponse RestDeserialiseMethod<TRequest, TResponse>(TRequest request);
 
-    public class RestDeserialisehandler<TRequest> : BaseStreamHandler
+    public class RestDeserialisehandler<TRequest, TResponse> : BaseRequestHandler, IStreamHandler
         where TRequest : new()
     {
-        private RestDeserialiseMethod<TRequest> m_method;
+        private RestDeserialiseMethod<TRequest, TResponse> m_method;
 
-        public RestDeserialisehandler(string httpMethod, string path, RestDeserialiseMethod<TRequest> method)
+        public RestDeserialisehandler(string httpMethod, string path, RestDeserialiseMethod<TRequest, TResponse> method)
             : base(httpMethod, path)
         {
             m_method = method;
         }
 
-        public override byte[] Handle(string path, Stream request)
+        public void Handle(string path, Stream request, Stream responseStream )
         {
-            Type type = typeof(TRequest);
-
-            TRequest deserial= default(TRequest);
-            using (XmlTextReader xreader = new XmlTextReader(request))
+            TRequest deserial;
+            using (XmlTextReader xmlReader = new XmlTextReader(request))
             {
-                XmlSerializer serializer = new XmlSerializer(type);
-                deserial = (TRequest)serializer.Deserialize(xreader);
+                XmlSerializer deserializer = new XmlSerializer(typeof(TRequest));
+                deserial = (TRequest)deserializer.Deserialize(xmlReader);
             }
 
-            string response = m_method(deserial);
+            TResponse response = m_method(deserial);
 
-            Encoding encoding = new UTF8Encoding(false);
-            return encoding.GetBytes(response);
-
+            using (XmlWriter xmlWriter = XmlTextWriter.Create( responseStream ))
+            {
+                XmlSerializer serializer = new XmlSerializer(typeof(TResponse));
+                serializer.Serialize(xmlWriter, response );
+            }
         }
     }
 }
