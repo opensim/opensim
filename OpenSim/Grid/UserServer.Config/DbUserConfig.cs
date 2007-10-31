@@ -47,7 +47,7 @@ namespace OpenUser.Config.UserConfigDb4o
 		private IObjectContainer db;	
 		
 		public void LoadDefaults() {
-			MainLog.Instance.Notice("Config.cs:LoadDefaults() - Please press enter to retain default or enter new settings");
+			MainLog.Instance.Notice("DbUserConfig.cs:LoadDefaults() - Please press enter to retain default or enter new settings");
 			
 			this.DefaultStartupMsg = MainLog.Instance.CmdPrompt("Default startup message", "Welcome to OGS");
 
@@ -61,7 +61,7 @@ namespace OpenUser.Config.UserConfigDb4o
 				db = Db4oFactory.OpenFile("openuser.yap");
 				IObjectSet result = db.Get(typeof(DbUserConfig));
 				if(result.Count==1) {
-					MainLog.Instance.Verbose("Config.cs:InitConfig() - Found a UserConfig object in the local database, loading");
+					MainLog.Instance.Verbose("DbUserConfig.cs:InitConfig() - Found a UserConfig object in the local database, loading");
 					foreach (DbUserConfig cfg in result) {
 						this.GridServerURL=cfg.GridServerURL;
 						this.GridSendKey=cfg.GridSendKey;
@@ -69,14 +69,14 @@ namespace OpenUser.Config.UserConfigDb4o
 						this.DefaultStartupMsg=cfg.DefaultStartupMsg;
 					}
 				} else {
-					MainLog.Instance.Verbose("Config.cs:InitConfig() - Could not find object in database, loading precompiled defaults");
+					MainLog.Instance.Verbose("DbUserConfig.cs:InitConfig() - Could not find object in database, loading precompiled defaults");
 					LoadDefaults();
 					MainLog.Instance.Verbose("Writing out default settings to local database");
 					db.Set(this);
 					db.Close();
 				}
 			} catch(Exception e) {
-				MainLog.Instance.Warn("Config.cs:InitConfig() - Exception occured");
+				MainLog.Instance.Warn("DbUserConfig.cs:InitConfig() - Exception occured");
                 MainLog.Instance.Warn(e.ToString());
 			}
 			

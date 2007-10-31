@@ -388,7 +388,7 @@ namespace OpenSim.Region.ClientStack
                         }
                         break;
                     case PacketType.TransferRequest:
-                        //Console.WriteLine("OpenSimClient.cs:ProcessInPacket() - Got transfer request");
+                        //Console.WriteLine("ClientView.ProcessPackets.cs:ProcessInPacket() - Got transfer request");
                         TransferRequestPacket transfer = (TransferRequestPacket) Pack;
                         m_assetCache.AddAssetRequest(this, transfer);
                         break;

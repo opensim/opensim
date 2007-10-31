@@ -497,7 +497,7 @@ namespace OpenSim.Region.Environment.Scenes
             }
             catch (Exception e)
             {
-                MainLog.Instance.Warn("terrain", "World.cs: LoadWorldMap() - Failed with exception " + e.ToString());
+                MainLog.Instance.Warn("terrain", "Scene.cs: LoadWorldMap() - Failed with exception " + e.ToString());
             }
         }
 
@@ -1079,7 +1079,7 @@ namespace OpenSim.Region.Environment.Scenes
         /// <param name="agent"></param>
         public void NewUserConnection(ulong regionHandle, AgentCircuitData agent)
         {
-            // Console.WriteLine("World.cs - add new user connection");
+            // Console.WriteLine("Scene.cs - add new user connection");
             //should just check that its meant for this region 
             if (regionHandle == m_regInfo.RegionHandle)
             {

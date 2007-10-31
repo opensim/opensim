@@ -297,7 +297,7 @@ namespace OpenSim.Region.ClientStack
             catch (Exception e)
             {
                 MainLog.Instance.Warn("client",
-                                      "ClientView API.cs: SendLayerData() - Failed with exception " + e.ToString());
+                                      "ClientView.API.cs: SendLayerData() - Failed with exception " + e.ToString());
             }
         }
 
@@ -324,7 +324,7 @@ namespace OpenSim.Region.ClientStack
             catch (Exception e)
             {
                 MainLog.Instance.Warn("client",
-                                      "ClientView API .cs: SendLayerData() - Failed with exception " + e.ToString());
+                                      "ClientView.API.cs: SendLayerData() - Failed with exception " + e.ToString());
             }
         }
 

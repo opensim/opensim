@@ -113,7 +113,7 @@ namespace OpenSim.Framework.Servers
             }
             catch (Exception)
             {
-                OpenSim.Framework.Console.MainLog.Instance.Warn("OpenSimClient.cs:ProcessOutPacket() - WARNING: Socket exception occurred on connection ");
+                OpenSim.Framework.Console.MainLog.Instance.Warn("CheckSumServer.cs:ProcessOutPacket() - WARNING: Socket exception occurred on connection ");
 
             }
         }

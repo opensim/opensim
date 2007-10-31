@@ -158,7 +158,7 @@ namespace OpenSim.Region.ClientStack
             catch (Exception)
             {
                 MainLog.Instance.Warn("client",
-                                      "OpenSimClient.cs:ProcessOutPacket() - WARNING: Socket exception occurred on connection " +
+                                      "ClientView.PacketQueue.cs:ProcessOutPacket() - WARNING: Socket exception occurred on connection " +
                                       userEP.ToString() + " - killing thread");
                 KillThread();
             }

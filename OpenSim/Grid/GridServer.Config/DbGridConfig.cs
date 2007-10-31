@@ -63,7 +63,7 @@ namespace OpenGrid.Config.GridConfigDb4o
         /// User configuration for the Grid Config interfaces
         /// </summary>
 		public void LoadDefaults() {
-			MainLog.Instance.Notice("Config.cs:LoadDefaults() - Please press enter to retain default or enter new settings");
+			MainLog.Instance.Notice("DbGridConfig.cs:LoadDefaults() - Please press enter to retain default or enter new settings");
 			
             // About the grid options
 			this.GridOwner = MainLog.Instance.CmdPrompt("Grid owner", "OGS development team");
@@ -95,7 +95,7 @@ namespace OpenGrid.Config.GridConfigDb4o
 				IObjectSet result = db.Get(typeof(DbGridConfig));
                 // Found?
 				if(result.Count==1) {
-					MainLog.Instance.Verbose("Config.cs:InitConfig() - Found a GridConfig object in the local database, loading");
+					MainLog.Instance.Verbose("DbGridConfig.cs:InitConfig() - Found a GridConfig object in the local database, loading");
 					foreach (DbGridConfig cfg in result) {
                         // Import each setting into this class
                         // Grid Settings
@@ -114,7 +114,7 @@ namespace OpenGrid.Config.GridConfigDb4o
 					}
                 // Create a new configuration object from this class
 				} else {
-					MainLog.Instance.Verbose("Config.cs:InitConfig() - Could not find object in database, loading precompiled defaults");
+					MainLog.Instance.Verbose("DbGridConfig.cs:InitConfig() - Could not find object in database, loading precompiled defaults");
 
                     // Load default settings into this class
 					LoadDefaults();
@@ -127,7 +127,7 @@ namespace OpenGrid.Config.GridConfigDb4o
 					db.Close();
 				}
 			} catch(Exception e) {
-				MainLog.Instance.Warn("Config.cs:InitConfig() - Exception occured");
+				MainLog.Instance.Warn("DbGridConfig.cs:InitConfig() - Exception occured");
                 MainLog.Instance.Warn(e.ToString());
 			}
 			
