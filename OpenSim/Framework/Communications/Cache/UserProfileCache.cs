@@ -33,8 +33,8 @@ namespace OpenSim.Framework.Communications.Cache
     public class UserProfileCache
     {
         // Fields
-        private CommunicationsManager m_parent;
-        public Dictionary<LLUUID, CachedUserInfo> UserProfiles = new Dictionary<LLUUID, CachedUserInfo>();
+        private readonly CommunicationsManager m_parent;
+        private readonly Dictionary<LLUUID, CachedUserInfo> m_userProfiles = new Dictionary<LLUUID, CachedUserInfo>();
 
         public LibraryRootFolder libraryRoot = new LibraryRootFolder();
 
@@ -52,16 +52,17 @@ namespace OpenSim.Framework.Communications.Cache
         public void AddNewUser(LLUUID userID)
         {
             // Potential fix - Multithreading issue.
-            lock (UserProfiles)
+            lock (m_userProfiles)
             {
-                if (!UserProfiles.ContainsKey(userID))
+                if (!m_userProfiles.ContainsKey(userID))
                 {
                     CachedUserInfo userInfo = new CachedUserInfo(m_parent);
-                    userInfo.UserProfile = RequestUserProfileForUser(userID);
+                    userInfo.UserProfile = m_parent.UserService.GetUserProfile(userID);
+
                     if (userInfo.UserProfile != null)
                     {
                         RequestInventoryForUser(userID, userInfo);
-                        UserProfiles.Add(userID, userInfo);
+                        m_userProfiles.Add(userID, userInfo);
                     }
                     else
                     {
@@ -71,37 +72,25 @@ namespace OpenSim.Framework.Communications.Cache
             }
         }
 
-        /// <summary>
-        /// A new user has moved into a region in this instance
-        /// so get info from servers
-        /// </summary>
-        /// <param name="firstName"></param>
-        /// <param name="lastName"></param>
-        public void AddNewUser(string firstName, string lastName)
-        {
-        }
-
         public CachedUserInfo GetUserDetails(LLUUID userID)
         {
-            if (UserProfiles.ContainsKey(userID))
-            {
-                return UserProfiles[userID];
-            }
-            return null;
+            return m_userProfiles[userID];
         }
 
         public void HandleCreateInventoryFolder(IClientAPI remoteClient, LLUUID folderID, ushort folderType,
                                                 string folderName, LLUUID parentID)
         {
-            if (UserProfiles.ContainsKey(remoteClient.AgentId))
+            CachedUserInfo userProfile;
+
+            if (m_userProfiles.TryGetValue(remoteClient.AgentId, out userProfile))
             {
-                if (UserProfiles[remoteClient.AgentId].RootFolder != null)
+                if (userProfile.RootFolder != null)
                 {
-                    CachedUserInfo info = UserProfiles[remoteClient.AgentId];
-                    if (info.RootFolder.folderID == parentID)
+                    if (userProfile.RootFolder.folderID == parentID)
                     {
                         InventoryFolderImpl createdFolder =
-                            info.RootFolder.CreateNewSubFolder(folderID, folderName, folderType);
+                            userProfile.RootFolder.CreateNewSubFolder(folderID, folderName, folderType);
+             
                         if (createdFolder != null)
                         {
                             m_parent.InventoryService.AddNewInventoryFolder(remoteClient.AgentId, createdFolder);
@@ -109,7 +98,7 @@ namespace OpenSim.Framework.Communications.Cache
                     }
                     else
                     {
-                        InventoryFolderImpl folder = info.RootFolder.HasSubFolder(parentID);
+                        InventoryFolderImpl folder = userProfile.RootFolder.HasSubFolder(parentID);
                         if (folder != null)
                         {
                             folder.CreateNewSubFolder(folderID, folderName, folderType);
@@ -127,27 +116,33 @@ namespace OpenSim.Framework.Communications.Cache
             {
                 remoteClient.SendInventoryFolderDetails(libraryRoot.agentID, libraryRoot.folderID,
                                                         libraryRoot.RequestListOfItems());
+
+                return;
             }
-            else if ((fold = libraryRoot.HasSubFolder(folderID)) != null)
+            
+            if ((fold = libraryRoot.HasSubFolder(folderID)) != null)
             {
                 remoteClient.SendInventoryFolderDetails(libraryRoot.agentID, folderID, fold.RequestListOfItems());
+
+                return;
             }
-            else if (UserProfiles.ContainsKey(remoteClient.AgentId))
-            {
-                if (UserProfiles[remoteClient.AgentId].RootFolder != null)
+
+            CachedUserInfo userProfile;
+            if (m_userProfiles.TryGetValue(remoteClient.AgentId, out userProfile))
+            {               
+                if (userProfile.RootFolder != null)
                 {
-                    CachedUserInfo info = UserProfiles[remoteClient.AgentId];
-                    if (info.RootFolder.folderID == folderID)
+                    if (userProfile.RootFolder.folderID == folderID)
                     {
                         if (fetchItems)
                         {
                             remoteClient.SendInventoryFolderDetails(remoteClient.AgentId, folderID,
-                                                                    info.RootFolder.RequestListOfItems());
+                                                                    userProfile.RootFolder.RequestListOfItems());
                         }
                     }
                     else
                     {
-                        InventoryFolderImpl folder = info.RootFolder.HasSubFolder(folderID);
+                        InventoryFolderImpl folder = userProfile.RootFolder.HasSubFolder(folderID);
                         if ((folder != null) && fetchItems)
                         {
                             remoteClient.SendInventoryFolderDetails(remoteClient.AgentId, folderID,
@@ -163,12 +158,16 @@ namespace OpenSim.Framework.Communications.Cache
             if (ownerID == libraryRoot.agentID)
             {
                 //Console.WriteLine("request info for library item");
+
+                return;
             }
-            else if (UserProfiles.ContainsKey(remoteClient.AgentId))
+
+            CachedUserInfo userProfile;
+            if (m_userProfiles.TryGetValue(remoteClient.AgentId, out userProfile))
             {
-                if (UserProfiles[remoteClient.AgentId].RootFolder != null)
+                if (userProfile.RootFolder != null)
                 {
-                    InventoryItemBase item = UserProfiles[remoteClient.AgentId].RootFolder.HasItem(itemID);
+                    InventoryItemBase item = userProfile.RootFolder.HasItem(itemID);
                     if (item != null)
                     {
                         remoteClient.SendInventoryItemDetails(ownerID, item);
@@ -177,48 +176,9 @@ namespace OpenSim.Framework.Communications.Cache
             }
         }
 
-        /// <summary>
-        /// Request Iventory Info from Inventory server
-        /// </summary>
-        /// <param name="userID"></param>
         private void RequestInventoryForUser(LLUUID userID, CachedUserInfo userInfo)
         {
             m_parent.InventoryService.RequestInventoryForUser(userID, userInfo.FolderReceive, userInfo.ItemReceive);
-        }
-
-        /// <summary>
-        /// Request the user profile from User server
-        /// </summary>
-        /// <param name="userID"></param>
-        private UserProfileData RequestUserProfileForUser(LLUUID userID)
-        {
-            return m_parent.UserService.GetUserProfile(userID);
-        }
-
-        /// <summary>
-        /// Update Inventory data to Inventory server
-        /// </summary>
-        /// <param name="userID"></param>
-        private void UpdateInventoryToServer(LLUUID userID)
-        {
-        }
-
-        /// <summary>
-        /// Make sure UserProfile is updated on user server
-        /// </summary>
-        /// <param name="userID"></param>
-        private void UpdateUserProfileToServer(LLUUID userID)
-        {
-        }
-
-        /// <summary>
-        /// A user has left this instance 
-        /// so make sure servers have been updated
-        /// Then remove cached info
-        /// </summary>
-        /// <param name="userID"></param>
-        public void UserLogOut(LLUUID userID)
-        {
         }
     }
 }
