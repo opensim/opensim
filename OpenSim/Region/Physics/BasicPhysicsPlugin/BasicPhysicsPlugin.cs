@@ -177,6 +177,7 @@ namespace OpenSim.Region.Physics.BasicPhysicsPlugin
         private PhysicsVector _velocity;
         private PhysicsVector _acceleration;
         private bool flying;
+        private bool iscolliding;
 
         public BasicActor()
         {
@@ -189,6 +190,12 @@ namespace OpenSim.Region.Physics.BasicPhysicsPlugin
         {
             get { return flying; }
             set { flying = value; }
+        }
+
+        public override bool IsColliding
+        {
+            get { return iscolliding; }
+            set { iscolliding = value; }
         }
 
         public override PhysicsVector Position

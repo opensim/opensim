@@ -182,6 +182,7 @@ namespace OpenSim.Region.Physics.PhysXPlugin
         private PhysicsVector _acceleration;
         private NxCharacter _character;
         private bool flying;
+        private bool iscolliding = false;
         private float gravityAccel;
 
         public PhysXCharacter(NxCharacter character)
@@ -196,6 +197,11 @@ namespace OpenSim.Region.Physics.PhysXPlugin
         {
             get { return flying; }
             set { flying = value; }
+        }
+        public override bool IsColliding
+        {
+            get { return iscolliding; }
+            set { iscolliding = value; }
         }
 
         public override PhysicsVector Position
@@ -305,7 +311,14 @@ namespace OpenSim.Region.Physics.PhysXPlugin
             }
             set { }
         }
-
+        public override bool IsColliding
+        {
+            get
+            {
+                return false; //no flying prims for you
+            }
+            set { }
+        }
         public override PhysicsVector Position
         {
             get

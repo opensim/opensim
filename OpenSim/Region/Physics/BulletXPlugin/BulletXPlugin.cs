@@ -643,6 +643,7 @@ namespace OpenSim.Region.Physics.BulletXPlugin
         private PhysicsVector _acceleration;
         private AxiomQuaternion _orientation;
         private bool flying;
+        private bool iscolliding = false;
         private RigidBody rigidBody;
 
         public Vector3 RigidBodyPosition
@@ -772,6 +773,11 @@ namespace OpenSim.Region.Physics.BulletXPlugin
         {
             get { return flying; }
             set { flying = value; }
+        }
+        public override bool IsColliding
+        {
+            get { return iscolliding; }
+            set { iscolliding = value; }
         }
 
         public void SetAcceleration(PhysicsVector accel)
@@ -913,6 +919,7 @@ namespace OpenSim.Region.Physics.BulletXPlugin
         private BulletXScene _parent_scene;
         //_physical value will be linked with the prim object value
         private Boolean _physical = false;
+        private Boolean iscolliding = false;
 
         public Vector3 RigidBodyPosition
         {
@@ -1060,6 +1067,11 @@ namespace OpenSim.Region.Physics.BulletXPlugin
             set { }
         }
 
+        public override bool IsColliding
+        {
+            get { return iscolliding; }
+            set { iscolliding = value; }
+        }
         public Boolean Physical
         {
             get { return _physical; }

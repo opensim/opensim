@@ -83,8 +83,10 @@ namespace OpenSim.Region.Physics.OdePlugin
         private List<OdeCharacter> _characters = new List<OdeCharacter>();
         private List<OdePrim> _prims = new List<OdePrim>();
         public Dictionary<IntPtr, String> geom_name_map = new Dictionary<IntPtr, String>();
+        public Dictionary<IntPtr, PhysicsActor> actor_name_map = new Dictionary<IntPtr, PhysicsActor>();
         private d.ContactGeom[] contacts = new d.ContactGeom[30];
         private d.Contact contact;
+        private PhysicsActor PANull = new NullPhysicsActor();
         private float step_time = 0.0f;
         public IntPtr world;
         public IntPtr space;
@@ -117,36 +119,33 @@ namespace OpenSim.Region.Physics.OdePlugin
             }
 
             _heightmap = new double[258*258];
+            
         }
 
         // This function blatantly ripped off from BoxStack.cs
         private void near(IntPtr space, IntPtr g1, IntPtr g2)
         {
             //  no lock here!  It's invoked from within Simulate(), which is thread-locked
-            if (g1 == g2)
-                return; // Can't collide with yourself
-
             IntPtr b1 = d.GeomGetBody(g1);
             IntPtr b2 = d.GeomGetBody(g2);
+
+
+            if (g1 == g2)
+                return; // Can't collide with yourself
+  
+
 
             if (b1 != IntPtr.Zero && b2 != IntPtr.Zero && d.AreConnectedExcluding(b1, b2, d.JointType.Contact))
                 return;
 
+
             d.GeomClassID id = d.GeomGetClass(g1);
             if (id == d.GeomClassID.TriMeshClass)
             {
-                String name1 = null;
-                String name2 = null;
-                if (!geom_name_map.TryGetValue(g1, out name1))
-                {
-                    name1 = "null";
-                }
-                if (!geom_name_map.TryGetValue(g2, out name2))
-                {
-                    name2 = "null";
-                }
+                
 
-//                MainLog.Instance.Verbose("near: A collision was detected between {1} and {2}", 0, name1, name2);
+//               MainLog.Instance.Verbose("near: A collision was detected between {1} and {2}", 0, name1, name2);
+                //System.Console.WriteLine("near: A collision was detected between {1} and {2}", 0, name1, name2);
             }
 
             int count = d.Collide(g1, g2, contacts.GetLength(0), contacts, d.ContactGeom.SizeOf);
@@ -155,6 +154,22 @@ namespace OpenSim.Region.Physics.OdePlugin
                 contact.geom = contacts[i];
                 IntPtr joint = d.JointCreateContact(world, contactgroup, ref contact);
                 d.JointAttach(joint, b1, b2);
+                PhysicsActor p1;
+                PhysicsActor p2;
+
+
+                if (!actor_name_map.TryGetValue(g1, out p1))
+                {
+                    p1 = PANull;
+                }
+                if (!actor_name_map.TryGetValue(g2, out p2))
+                {
+                    p2 = PANull;
+                }
+
+                p1.IsColliding = true;
+                p2.IsColliding = true;
+                //System.Console.WriteLine("near: A collision was detected between {1} and {2}", 0, name1, name2);
             }
         }
 
@@ -162,10 +177,19 @@ namespace OpenSim.Region.Physics.OdePlugin
         {
             foreach (OdeCharacter chr in _characters)
             {
+                chr.IsColliding = false;
+            }
+            foreach (OdeCharacter chr in _characters)
+            {
+                
+                    
+               
                 d.SpaceCollide2(space, chr.Shell, IntPtr.Zero, nearCallback);
                 foreach (OdeCharacter ch2 in _characters)
                     /// should be a separate space -- lots of avatars will be N**2 slow
-                {
+                {   
+
+                    
                     d.SpaceCollide2(chr.Shell, ch2.Shell, IntPtr.Zero, nearCallback);
                 }
             }
@@ -333,8 +357,9 @@ namespace OpenSim.Region.Physics.OdePlugin
                 {
                     foreach (OdeCharacter actor in _characters)
                     {
-                        actor.Move(timeStep);
+                            actor.Move(timeStep);
                     }
+
                     collision_optimized();
                     d.WorldQuickStep(world, ODE_STEPSIZE);
                     d.JointGroupEmpty(contactgroup);
@@ -457,6 +482,8 @@ namespace OpenSim.Region.Physics.OdePlugin
         public static float CAPSULE_RADIUS = 0.5f;
         public static float CAPSULE_LENGTH = 0.9f;
         private bool flying = false;
+        private bool iscolliding = false;
+        private bool jumping = false;
         //private float gravityAccel;
         public IntPtr Body;
         private OdeScene _parent_scene;
@@ -480,6 +507,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                 d.GeomSetBody(Shell, Body);
             }
             parent_scene.geom_name_map[Shell] = avName;
+            parent_scene.actor_name_map[Shell] = (PhysicsActor)this;
         }
 
         public override bool Flying
@@ -487,7 +515,12 @@ namespace OpenSim.Region.Physics.OdePlugin
             get { return flying; }
             set { flying = value; }
         }
-
+        public override bool IsColliding
+        {
+            get { return iscolliding; }
+            set
+            {iscolliding = value;}
+        }
         public override PhysicsVector Position
         {
             get { return _position; }
@@ -538,12 +571,35 @@ namespace OpenSim.Region.Physics.OdePlugin
 
         public override void AddForce(PhysicsVector force)
         {
-        }
 
+            _target_velocity.X += force.X;
+            _target_velocity.Y += force.Y;
+            _target_velocity.Z += force.Z;
+
+
+        }
+        public void doForce(PhysicsVector force)
+        {
+            d.BodyAddForce(Body, force.X, force.Y, force.Z);
+
+            //  ok -- let's stand up straight!
+            d.Vector3 feet;
+            d.Vector3 head;
+            d.BodyGetRelPointPos(Body, 0.0f, 0.0f, -1.0f, out feet);
+            d.BodyGetRelPointPos(Body, 0.0f, 0.0f, 1.0f, out head);
+            float posture = head.Z - feet.Z;
+
+            // restoring force proportional to lack of posture:
+            float servo = (2.5f - posture) * POSTURE_SERVO;
+            d.BodyAddForceAtRelPos(Body, 0.0f, 0.0f, servo, 0.0f, 0.0f, 1.0f);
+            d.BodyAddForceAtRelPos(Body, 0.0f, 0.0f, -servo, 0.0f, 0.0f, -1.0f);
+
+        }
         public override void SetMomentum(PhysicsVector momentum)
         {
-        }
 
+        }
+        
         public void Move(float timeStep)
         {
             //  no lock; for now it's only called from within Simulate()
@@ -551,7 +607,7 @@ namespace OpenSim.Region.Physics.OdePlugin
             d.Vector3 vel = d.BodyGetLinearVel(Body);
 
             //  if velocity is zero, use position control; otherwise, velocity control
-            if (_target_velocity.X == 0.0f & _target_velocity.Y == 0.0f & _target_velocity.Z == 0.0f)
+            if (_target_velocity.X == 0.0f & _target_velocity.Y == 0.0f & _target_velocity.Z == 0.0f & iscolliding)
             {
                 //  keep track of where we stopped.  No more slippin' & slidin'
                 if (!_zeroFlag)
@@ -569,9 +625,19 @@ namespace OpenSim.Region.Physics.OdePlugin
             }
             else
             {
+                
                 _zeroFlag = false;
-                vec.X = (_target_velocity.X - vel.X)*PID_D;
-                vec.Y = (_target_velocity.Y - vel.Y)*PID_D;
+                if (iscolliding || flying)
+                {
+                    vec.X = (_target_velocity.X - vel.X) * PID_D;
+                    vec.Y = (_target_velocity.Y - vel.Y) * PID_D;
+                }
+                if (iscolliding && !flying && _target_velocity.Z > 0.0f)
+                {
+                    d.Vector3 pos = d.BodyGetPosition(Body);
+                    vec.Z = (_target_velocity.Z - vel.Z) * PID_D + (_zeroPosition.Z - pos.Z) * PID_P;
+                }
+
                 if (flying)
                 {
                     vec.Z = (_target_velocity.Z - vel.Z)*PID_D;
@@ -581,19 +647,7 @@ namespace OpenSim.Region.Physics.OdePlugin
             {
                 vec.Z += 10.0f;
             }
-            d.BodyAddForce(Body, vec.X, vec.Y, vec.Z);
-
-            //  ok -- let's stand up straight!
-            d.Vector3 feet;
-            d.Vector3 head;
-            d.BodyGetRelPointPos(Body, 0.0f, 0.0f, -1.0f, out feet);
-            d.BodyGetRelPointPos(Body, 0.0f, 0.0f, 1.0f, out head);
-            float posture = head.Z - feet.Z;
-
-            // restoring force proportional to lack of posture:
-            float servo = (2.5f - posture)*POSTURE_SERVO;
-            d.BodyAddForceAtRelPos(Body, 0.0f, 0.0f, servo, 0.0f, 0.0f, 1.0f);
-            d.BodyAddForceAtRelPos(Body, 0.0f, 0.0f, -servo, 0.0f, 0.0f, -1.0f);
+            doForce(vec);
         }
 
         public void UpdatePositionAndVelocity()
@@ -649,6 +703,7 @@ namespace OpenSim.Region.Physics.OdePlugin
         private OdeScene _parent_scene;
         public IntPtr prim_geom;
         public IntPtr _triMeshData;
+        private bool iscolliding = false;
 
         public OdePrim(String primName, OdeScene parent_scene, PhysicsVector pos, PhysicsVector size,
                        Quaternion rotation, Mesh mesh, PrimitiveBaseShape pbs)
@@ -661,6 +716,7 @@ namespace OpenSim.Region.Physics.OdePlugin
             _mesh = mesh;
             _pbs = pbs;
             _parent_scene = parent_scene;
+            
 
             lock (OdeScene.OdeLock)
             {
@@ -681,6 +737,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                 myrot.Z = rotation.z;
                 d.GeomSetQuaternion(prim_geom, ref myrot);
                 parent_scene.geom_name_map[prim_geom] = primName;
+                parent_scene.actor_name_map[prim_geom] = (PhysicsActor) this;
                     //  don't do .add() here; old geoms get recycled with the same hash
             }
         }
@@ -707,6 +764,13 @@ namespace OpenSim.Region.Physics.OdePlugin
             }
             set { }
         }
+
+        public override bool IsColliding
+        {
+            get { return iscolliding; }
+            set { iscolliding = value; }
+        }
+
 
         public override PhysicsVector Position
         {

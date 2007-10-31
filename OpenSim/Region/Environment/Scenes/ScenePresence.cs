@@ -613,12 +613,27 @@ namespace OpenSim.Region.Environment.Scenes
                     }
                     else
                     {
-                        SendAnimPack(Animations.AnimsLLUUID["WALK"], 1);
+                        if (((m_movementflag & (uint)MainAvatar.ControlFlags.AGENT_CONTROL_UP_NEG) != 0) && PhysicsActor.IsColliding)
+                        {
+                            SendAnimPack(Animations.AnimsLLUUID["CROUCHWALK"], 1);
+                        }
+                        else
+                        {   
+                            SendAnimPack(Animations.AnimsLLUUID["WALK"], 1);  
+                        }
+                        
                     }
                 }
                 else
                 {
-                    SendAnimPack(Animations.AnimsLLUUID["STAND"], 1);
+                    if (((m_movementflag & (uint)MainAvatar.ControlFlags.AGENT_CONTROL_UP_NEG) != 0) && PhysicsActor.IsColliding)
+                    {
+                        SendAnimPack(Animations.AnimsLLUUID["CROUCH"], 1);
+                    }
+                    else
+                    {
+                        SendAnimPack(Animations.AnimsLLUUID["STAND"], 1);
+                    }
                 }
             }
         }
@@ -638,7 +653,21 @@ namespace OpenSim.Region.Environment.Scenes
 
             direc = direc*((0.03f)*128f);
             if (m_physicsActor.Flying)
-                direc *= 4;
+            { direc *= 4; }
+            else
+            {
+                if (!m_physicsActor.Flying && m_physicsActor.IsColliding)
+                {
+                    //direc.z *= 40;
+                    if (direc.z > 2.0f)
+                    {
+                        direc.z *= 3;
+                        //System.Console.WriteLine("Jump");
+                        SendAnimPack(Animations.AnimsLLUUID["PRE_JUMP"], 1);
+                    }
+
+                }
+            }
 
             newVelocity.X = direc.x;
             newVelocity.Y = direc.y;
@@ -867,7 +896,7 @@ namespace OpenSim.Region.Environment.Scenes
 
         protected void CheckForSignificantMovement()
         {
-            if (AbsolutePosition.GetDistanceTo(posLastSignificantMove) > 2.0)
+            if (AbsolutePosition.GetDistanceTo(posLastSignificantMove) > 0.02)
             {
                 posLastSignificantMove = AbsolutePosition;
                 if (OnSignificantClientMovement != null)
@@ -982,6 +1011,8 @@ namespace OpenSim.Region.Environment.Scenes
                         NewForce force = m_forcesList[i];
 
                         m_updateflag = true;
+
+
                         Velocity = new LLVector3(force.X, force.Y, force.Z);
                         m_newForce = true;
                     }

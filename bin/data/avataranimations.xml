@@ -8,4 +8,7 @@
 	<animation name="WALK">6ed24bd8-91aa-4b12-ccc7-c97c857ab4e0</animation>
 	<animation name="FLY">aec4610c-757f-bc4e-c092-c6e9caf18daf</animation>
 	<animation name="SIT">1a5fe8ac-a804-8a5d-7cbd-56bd83184568</animation>
+	<animation name="PRE_JUMP">7a4e87fe-de39-6fcb-6223-024b00893244</animation>
+	<animation name="CROUCH">201f3fdf-cb1f-dbec-201f-7333e328ae7c</animation>
+	<animation name="CROUCHWALK">47f5f6fb-22e5-ae44-f871-73aaaf4a6022</animation>
 </animations>
