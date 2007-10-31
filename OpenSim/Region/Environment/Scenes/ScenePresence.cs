@@ -69,6 +69,7 @@ namespace OpenSim.Region.Environment.Scenes
 
         private readonly Vector3[] Dir_Vectors = new Vector3[6];
         private LLVector3 lastPhysPos = new LLVector3();
+        private int m_wearablesSerial = 1;
 
         private enum Dir_ControlFlags
         {
@@ -825,7 +826,7 @@ namespace OpenSim.Region.Environment.Scenes
         /// <param name="client"></param>
         public void SendOurAppearance(IClientAPI client)
         {
-            client.SendWearables(m_wearables);
+            client.SendWearables(m_wearables, m_wearablesSerial++);
 
             //this.SendFullUpdateToAllClients();
             //this.SendAppearanceToAllOtherAgents();
@@ -851,10 +852,10 @@ namespace OpenSim.Region.Environment.Scenes
         {
             m_scene.ForEachScenePresence(delegate(ScenePresence scenePresence)
                                              {
-                                                 if (scenePresence != this)
-                                                 {
-                                                     SendAppearanceToOtherAgent(scenePresence);
-                                                 }
+                                                 // if (scenePresence != this)
+                                                 // {
+                                                 SendAppearanceToOtherAgent(scenePresence);
+                                                 // }
                                              });
         }
 
@@ -1087,7 +1088,7 @@ namespace OpenSim.Region.Environment.Scenes
         public void SetWearable(int wearableId, AvatarWearable wearable)
         {
             m_wearables[wearableId] = wearable;
-            SendOurAppearance(m_controllingClient);
+            m_controllingClient.SendWearables(m_wearables, m_wearablesSerial++);
         }
     }
 }

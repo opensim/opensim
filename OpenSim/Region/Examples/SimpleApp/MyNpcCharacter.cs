@@ -161,11 +161,12 @@ namespace SimpleApp
             get { return lastName; }
         }
 
+
         public virtual void OutPacket(Packet newPack)
         {
         }
 
-        public virtual void SendWearables(AvatarWearable[] wearables)
+        public virtual void SendWearables(AvatarWearable[] wearables, int serial)
         {
         }
 

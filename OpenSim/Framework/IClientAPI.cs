@@ -367,7 +367,7 @@ namespace OpenSim.Framework
         uint CircuitCode { get; set; }
 
         void OutPacket(Packet newPack);
-        void SendWearables(AvatarWearable[] wearables);
+        void SendWearables(AvatarWearable[] wearables, int serial);
         void SendAppearance(LLUUID agentID, byte[] visualParams, byte[] textureEntry);
         void SendStartPingCheck(byte seq);
         void SendKillObject(ulong regionHandle, uint localID);

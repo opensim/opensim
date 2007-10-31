@@ -203,7 +203,7 @@ namespace OpenSim.Region.ClientStack
         {
             if (debug > 0)
             {
-                string info;
+                string info= "";
                 if (debug < 255 && packet.Type == PacketType.AgentUpdate)
                     return;
                 if (debug < 254 && packet.Type == PacketType.ViewerEffect)

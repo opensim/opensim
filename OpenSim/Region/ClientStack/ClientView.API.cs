@@ -843,11 +843,11 @@ namespace OpenSim.Region.ClientStack
         /// 
         /// </summary>
         /// <param name="wearables"></param>
-        public void SendWearables(AvatarWearable[] wearables)
+        public void SendWearables(AvatarWearable[] wearables, int serial)
         {
             AgentWearablesUpdatePacket aw = new AgentWearablesUpdatePacket();
             aw.AgentData.AgentID = AgentId;
-            aw.AgentData.SerialNum = 0;
+            aw.AgentData.SerialNum = (uint)serial;
             aw.AgentData.SessionID = m_sessionId;
 
             aw.WearableData = new AgentWearablesUpdatePacket.WearableDataBlock[13];
