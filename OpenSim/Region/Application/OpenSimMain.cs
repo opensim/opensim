@@ -79,9 +79,9 @@ namespace OpenSim
         private string m_standaloneWelcomeMessage = null;
         private string m_standaloneInventoryPlugin = "OpenSim.Framework.Data.SQLite.dll";
         private string m_standaloneAssetPlugin = "OpenSim.Framework.Data.SQLite.dll";
-        private string m_standaloneUserPlugin = "OpenSim.Framework.Data.DB4o.dll";
+        private string m_standaloneUserPlugin = "OpenSim.Framework.Data.SQLite.dll";
 
-        private string m_assetStorage = "db4o";
+        private string m_assetStorage = "sqlite";
 
         public ConsoleCommand CreateAccount = null;
         private bool m_dumpAssetsToFile;
@@ -199,7 +199,7 @@ namespace OpenSim
 
                 m_scriptEngine = startupConfig.GetString("script_engine", "DotNetEngine");
 
-                m_assetStorage = startupConfig.GetString("asset_database", "db4o");
+                m_assetStorage = startupConfig.GetString("asset_database", "sqlite");
             }
 
             IConfig standaloneConfig = m_config.Configs["StandAlone"];
@@ -210,7 +210,7 @@ namespace OpenSim
                 m_standaloneInventoryPlugin =
                     standaloneConfig.GetString("inventory_plugin", "OpenSim.Framework.Data.SQLite.dll");
                 m_standaloneUserPlugin =
-                    standaloneConfig.GetString("userDatabase_plugin", "OpenSim.Framework.Data.DB4o.dll");
+                    standaloneConfig.GetString("userDatabase_plugin", "OpenSim.Framework.Data.SQLite.dll");
                 m_standaloneAssetPlugin =
                     standaloneConfig.GetString("asset_plugin", "OpenSim.Framework.Data.SQLite.dll");
 
