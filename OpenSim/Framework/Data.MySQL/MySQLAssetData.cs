@@ -102,6 +102,7 @@ namespace OpenSim.Framework.Data.MySQL
                     "VALUES(?id, ?name, ?description, ?assetType, ?invType, ?local, ?temporary, ?data)",
                     _dbConnection.Connection);
 
+            // need to ensure we dispose
             using (cmd)
             {
                 MySqlParameter p = cmd.Parameters.Add("?id", MySqlDbType.Binary, 16);
