@@ -66,7 +66,7 @@ namespace OpenSim.Framework.Communications.Cache
             _receiver = receiver;
         }
 
-        public void FetchAsset(LLUUID assetID, bool isTexture)
+        public void RequestAsset(LLUUID assetID, bool isTexture)
         {
             ARequest req = new ARequest();
             req.AssetID = assetID;

@@ -161,7 +161,7 @@ namespace OpenSim.Framework.Communications.Cache
                         RequestLists.Add(assetID, reqList);
                     }
                 }
-                _assetServer.FetchAsset(assetID, false);
+                _assetServer.RequestAsset(assetID, false);
             }
         }
 
@@ -171,7 +171,7 @@ namespace OpenSim.Framework.Communications.Cache
             AssetBase asset = GetAsset(assetID);
             if (asset == null)
             {
-                _assetServer.FetchAsset(assetID, isTexture);
+                _assetServer.RequestAsset(assetID, isTexture);
             }
             return asset;
         }
@@ -409,7 +409,7 @@ namespace OpenSim.Framework.Communications.Cache
                     request.AssetRequestSource = source;
                     request.Params = transferRequest.TransferInfo.Params;
                     RequestedAssets.Add(requestID, request);
-                    _assetServer.FetchAsset(requestID, false);
+                    _assetServer.RequestAsset(requestID, false);
                 }
                 return;
             }
@@ -576,7 +576,7 @@ namespace OpenSim.Framework.Communications.Cache
                     request.IsTextureRequest = true;
                     request.DiscardLevel = discard;
                     RequestedTextures.Add(imageID, request);
-                    _assetServer.FetchAsset(imageID, true);
+                    _assetServer.RequestAsset(imageID, true);
                 }
                 return;
             }
