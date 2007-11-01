@@ -35,10 +35,9 @@ using OpenSim.Framework.Console;
 
 namespace OpenSim.Framework.Communications.Cache
 {
-    public class GridAssetClient : IAssetServer
+    public class GridAssetClient : AssetServerBase 
     {
         private string _assetServerUrl;
-        private IAssetReceiver _receiver;
 
         public GridAssetClient(string serverUrl)
         {
@@ -47,54 +46,60 @@ namespace OpenSim.Framework.Communications.Cache
 
         #region IAssetServer Members
 
-        public void SetReceiver(IAssetReceiver receiver)
+        protected override void RunRequests()
         {
-            _receiver = receiver;
+            while (true)
+            {
+                ARequest req = _assetRequests.Dequeue();
+
+                //MainLog.Instance.Verbose("AssetStorage","Requesting asset: " + req.AssetID);
+
+
+                Stream s = null;
+                try
+                {
+                    MainLog.Instance.Debug("ASSETCACHE", "Querying for {0}", req.AssetID.ToString());
+
+                    RestClient rc = new RestClient(_assetServerUrl);
+                    rc.AddResourcePath("assets");
+                    rc.AddResourcePath(req.AssetID.ToString());
+                    if (req.IsTexture)
+                        rc.AddQueryParameter("texture");
+
+                    rc.RequestMethod = "GET";
+                    s = rc.Request();
+
+                    if (s.Length > 0)
+                    {
+                        XmlSerializer xs = new XmlSerializer(typeof(AssetBase));
+                        AssetBase newAsset = (AssetBase)xs.Deserialize(s);
+
+                        _receiver.AssetReceived(newAsset, req.IsTexture);
+                    }
+                    else
+                    {
+                        MainLog.Instance.Debug("ASSETCACHE", "Asset not found {0}", req.AssetID.ToString());
+                        _receiver.AssetNotFound(req.AssetID);
+                    }
+                }
+                catch (Exception e)
+                {
+                    MainLog.Instance.Error("ASSETCACHE", e.Message);
+                    MainLog.Instance.Debug("ASSETCACHE", "Getting asset {0}", req.AssetID.ToString());
+                    MainLog.Instance.Error("ASSETCACHE", e.StackTrace);
+                }
+               
+            }
         }
 
-        public void FetchAsset(LLUUID assetID, bool isTexture)
-        {
-            Stream s = null;
-            try
-            {
-                MainLog.Instance.Debug("ASSETCACHE", "Querying for {0}", assetID.ToString());
+       
 
-                RestClient rc = new RestClient(_assetServerUrl);
-                rc.AddResourcePath("assets");
-                rc.AddResourcePath(assetID.ToString());
-                if (isTexture)
-                    rc.AddQueryParameter("texture");
-
-                rc.RequestMethod = "GET";
-                s = rc.Request();
-
-                if (s.Length > 0)
-                {
-                    XmlSerializer xs = new XmlSerializer(typeof (AssetBase));
-                    AssetBase asset = (AssetBase) xs.Deserialize(s);
-
-                    _receiver.AssetReceived(asset, isTexture);
-                }
-                else
-                {
-                    MainLog.Instance.Debug("ASSETCACHE", "Asset not found {0}", assetID.ToString());
-                    _receiver.AssetNotFound(assetID);
-                }
-            }
-            catch (Exception e)
-            {
-                MainLog.Instance.Error("ASSETCACHE", e.Message);
-                MainLog.Instance.Debug("ASSETCACHE", "Getting asset {0}", assetID.ToString());
-                MainLog.Instance.Error("ASSETCACHE", e.StackTrace);
-            }
-        }
-
-        public void UpdateAsset(AssetBase asset)
+        public override void UpdateAsset(AssetBase asset)
         {
             throw new Exception("The method or operation is not implemented.");
         }
 
-        public void StoreAndCommitAsset(AssetBase asset)
+        protected override void StoreAsset(AssetBase asset)
         {
             try
             {
@@ -113,40 +118,16 @@ namespace OpenSim.Framework.Communications.Cache
             }
         }
 
-        public void Close()
+        protected override void CommitAssets()
+        {
+        }
+
+        public override void Close()
         {
             throw new Exception("The method or operation is not implemented.");
         }
 
-        public void LoadAsset(AssetBase info, bool image, string filename)
-        {
-            throw new Exception("The method or operation is not implemented.");
-        }
-
-        public List<AssetBase> GetDefaultAssets()
-        {
-            throw new Exception("The method or operation is not implemented.");
-        }
-
-        public AssetBase CreateImageAsset(string assetIdStr, string name, string filename)
-        {
-            throw new Exception("The method or operation is not implemented.");
-        }
-
-        public void ForEachDefaultAsset(Action<AssetBase> action)
-        {
-            throw new Exception("The method or operation is not implemented.");
-        }
-
-        public AssetBase CreateAsset(string assetIdStr, string name, string filename, bool isImage)
-        {
-            throw new Exception("The method or operation is not implemented.");
-        }
-
-        public void ForEachXmlAsset(Action<AssetBase> action)
-        {
-            throw new Exception("The method or operation is not implemented.");
-        }
+       
 
         #endregion
     }

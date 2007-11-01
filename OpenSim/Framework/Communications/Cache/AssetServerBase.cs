@@ -74,7 +74,7 @@ namespace OpenSim.Framework.Communications.Cache
             _assetRequests.Enqueue(req);
         }
 
-        public void UpdateAsset(AssetBase asset)
+        public virtual void UpdateAsset(AssetBase asset)
         {
             lock (syncLock)
             {
