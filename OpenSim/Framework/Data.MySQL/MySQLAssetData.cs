@@ -101,16 +101,20 @@ namespace OpenSim.Framework.Data.MySQL
                     "REPLACE INTO assets(id, name, description, assetType, invType, local, temporary, data)" +
                     "VALUES(?id, ?name, ?description, ?assetType, ?invType, ?local, ?temporary, ?data)",
                     _dbConnection.Connection);
-            MySqlParameter p = cmd.Parameters.Add("?id", MySqlDbType.Binary, 16);
-            p.Value = asset.FullID.GetBytes();
-            cmd.Parameters.AddWithValue("?name", asset.Name);
-            cmd.Parameters.AddWithValue("?description", asset.Description);
-            cmd.Parameters.AddWithValue("?assetType", asset.Type);
-            cmd.Parameters.AddWithValue("?invType", asset.InvType);
-            cmd.Parameters.AddWithValue("?local", asset.Local);
-            cmd.Parameters.AddWithValue("?temporary", asset.Temporary);
-            cmd.Parameters.AddWithValue("?data", asset.Data);
-            cmd.ExecuteNonQuery();
+
+            using (cmd)
+            {
+                MySqlParameter p = cmd.Parameters.Add("?id", MySqlDbType.Binary, 16);
+                p.Value = asset.FullID.GetBytes();
+                cmd.Parameters.AddWithValue("?name", asset.Name);
+                cmd.Parameters.AddWithValue("?description", asset.Description);
+                cmd.Parameters.AddWithValue("?assetType", asset.Type);
+                cmd.Parameters.AddWithValue("?invType", asset.InvType);
+                cmd.Parameters.AddWithValue("?local", asset.Local);
+                cmd.Parameters.AddWithValue("?temporary", asset.Temporary);
+                cmd.Parameters.AddWithValue("?data", asset.Data);
+                cmd.ExecuteNonQuery();
+            }
         }
 
         public void UpdateAsset(AssetBase asset)
