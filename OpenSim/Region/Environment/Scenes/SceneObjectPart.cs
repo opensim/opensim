@@ -271,6 +271,11 @@ namespace OpenSim.Region.Environment.Scenes
         {
         }
 
+        public SceneObjectPart(ulong regionHandle, SceneObjectGroup parent, LLUUID ownerID, uint localID,
+                               PrimitiveBaseShape shape, LLVector3 groupPosition, LLVector3 offsetPosition):this(regionHandle, parent, ownerID, localID, shape, groupPosition, LLQuaternion.Identity, offsetPosition)
+		{
+		}
+
         /// <summary>
         /// Create a completely new SceneObjectPart (prim)
         /// </summary>
@@ -281,7 +286,7 @@ namespace OpenSim.Region.Environment.Scenes
         /// <param name="shape"></param>
         /// <param name="position"></param>
         public SceneObjectPart(ulong regionHandle, SceneObjectGroup parent, LLUUID ownerID, uint localID,
-                               PrimitiveBaseShape shape, LLVector3 groupPosition, LLVector3 offsetPosition)
+                               PrimitiveBaseShape shape, LLVector3 groupPosition, LLQuaternion rotationOffset, LLVector3 offsetPosition)
         {
             m_name = "Primitive";
             m_regionHandle = regionHandle;
@@ -297,7 +302,7 @@ namespace OpenSim.Region.Environment.Scenes
 
             GroupPosition = groupPosition;
             OffsetPosition = offsetPosition;
-            RotationOffset = LLQuaternion.Identity;
+            RotationOffset = rotationOffset;
             Velocity = new LLVector3(0, 0, 0);
             AngularVelocity = new LLVector3(0, 0, 0);
             Acceleration = new LLVector3(0, 0, 0);

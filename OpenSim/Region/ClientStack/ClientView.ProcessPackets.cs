@@ -243,7 +243,7 @@ namespace OpenSim.Region.ClientStack
                         {
                             ObjectAddPacket addPacket = (ObjectAddPacket) Pack;
                             PrimitiveBaseShape shape = GetShapeFromAddPacket(addPacket);
-                            OnAddPrim(AgentId, addPacket.ObjectData.RayEnd, shape);
+                            OnAddPrim(AgentId, addPacket.ObjectData.RayEnd, addPacket.ObjectData.Rotation, shape);
                         }
                         break;
                     case PacketType.ObjectShape:

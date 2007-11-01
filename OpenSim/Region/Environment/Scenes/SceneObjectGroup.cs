@@ -322,7 +322,7 @@ namespace OpenSim.Region.Environment.Scenes
         /// 
         /// </summary>
         public SceneObjectGroup(Scene scene, ulong regionHandle, LLUUID ownerID, uint localID, LLVector3 pos,
-                                PrimitiveBaseShape shape)
+                                LLQuaternion rot, PrimitiveBaseShape shape)
         {
             m_regionHandle = regionHandle;
             m_scene = scene;
@@ -330,11 +330,19 @@ namespace OpenSim.Region.Environment.Scenes
             // this.Pos = pos;
             LLVector3 rootOffset = new LLVector3(0, 0, 0);
             SceneObjectPart newPart =
-                new SceneObjectPart(m_regionHandle, this, ownerID, localID, shape, pos, rootOffset);
+                new SceneObjectPart(m_regionHandle, this, ownerID, localID, shape, pos, rot, rootOffset);
             m_parts.Add(newPart.UUID, newPart);
             SetPartAsRoot(newPart);
 
             AttachToBackup();
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        public SceneObjectGroup(Scene scene, ulong regionHandle, LLUUID ownerID, uint localID, LLVector3 pos,
+                                PrimitiveBaseShape shape):this(scene, regionHandle, ownerID, localID, pos, LLQuaternion.Identity, shape)
+		{
         }
 
         #endregion

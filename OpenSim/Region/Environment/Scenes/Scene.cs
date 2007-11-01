@@ -568,12 +568,12 @@ namespace OpenSim.Region.Environment.Scenes
         /// </summary>
         /// <param name="addPacket"></param>
         /// <param name="ownerID"></param>
-        public void AddNewPrim(LLUUID ownerID, LLVector3 pos, PrimitiveBaseShape shape)
+        public void AddNewPrim(LLUUID ownerID, LLVector3 pos, LLQuaternion rot, PrimitiveBaseShape shape)
         {
             if (PermissionsMngr.CanRezObject(ownerID, pos))
             {
                 SceneObjectGroup sceneOb =
-                    new SceneObjectGroup(this, m_regionHandle, ownerID, PrimIDAllocate(), pos, shape);
+                    new SceneObjectGroup(this, m_regionHandle, ownerID, PrimIDAllocate(), pos, rot, shape);
                 AddEntity(sceneOb);
                 SceneObjectPart rootPart = sceneOb.GetChildPart(sceneOb.UUID);
                 // if grass or tree, make phantom

@@ -249,7 +249,7 @@ namespace OpenSim.Framework
 
     public delegate void UUIDNameRequest(LLUUID id, IClientAPI remote_client);
 
-    public delegate void AddNewPrim(LLUUID ownerID, LLVector3 pos, PrimitiveBaseShape shape);
+    public delegate void AddNewPrim(LLUUID ownerID, LLVector3 pos, LLQuaternion rot, PrimitiveBaseShape shape);
 
     public delegate void CreateInventoryFolder(
         IClientAPI remoteClient, LLUUID folderID, ushort folderType, string folderName, LLUUID parentID);
