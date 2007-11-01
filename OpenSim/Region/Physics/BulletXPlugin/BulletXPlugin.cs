@@ -633,35 +633,227 @@ namespace OpenSim.Region.Physics.BulletXPlugin
     }
 
     /// <summary>
-    /// PhysicsActor Character Class for BulletX
+    /// Generic Physics Actor for BulletX inherit from PhysicActor
     /// </summary>
-    public class BulletXCharacter : PhysicsActor
+    public class BulletXActor : PhysicsActor
     {
-        private PhysicsVector _position;
-        private PhysicsVector _velocity;
-        private PhysicsVector _size;
-        private PhysicsVector _acceleration;
-        private AxiomQuaternion _orientation;
-        private bool flying;
-        private bool iscolliding = false;
-        private RigidBody rigidBody;
+        protected bool flying = false;
+        protected bool _physical = true;
+        protected PhysicsVector _position;
+        protected PhysicsVector _velocity;
+        protected PhysicsVector _size;
+        protected PhysicsVector _acceleration;
+        protected AxiomQuaternion _orientation;
+        protected RigidBody rigidBody;
+        private Boolean iscolliding = false;
 
-        public Vector3 RigidBodyPosition
+        public BulletXActor()
         {
-            get { return rigidBody.CenterOfMassPosition; }
         }
 
+        public override PhysicsVector Position
+        {
+            get
+            {
+                return _position;
+            }
+            set
+            {
+                lock (BulletXScene.BulletXLock)
+                {
+                    _position = value;
+                    Translate();
+                }
+            }
+        }
+        public override PhysicsVector Velocity
+        {
+            get
+            {
+                return _velocity;
+            }
+            set
+            {
+                lock (BulletXScene.BulletXLock)
+                {
+                    //Static objects don' have linear velocity
+                    if (_physical)
+                    {
+                        _velocity = value;
+                        Speed();
+                    }
+                    else
+                    {
+                        _velocity = new PhysicsVector();
+                    }
+                }
+            }
+        }
+        public override PhysicsVector Size
+        {
+            get
+            {
+                return _size;
+            }
+            set
+            {
+                lock (BulletXScene.BulletXLock)
+                {
+                    _size = value;
+                }
+            }
+        }
+        public override PhysicsVector Acceleration
+        {
+            get
+            {
+                return _acceleration;
+            }
+        }
+        public override AxiomQuaternion Orientation
+        {
+            get
+            {
+                return _orientation;
+            }
+            set
+            {
+                lock (BulletXScene.BulletXLock)
+                {
+                    _orientation = value;
+                    ReOrient();
+                }
+            }
+        }
+        public virtual float Mass
+        { get { return 0; } }
+        public RigidBody RigidBody
+        {
+            get
+            {
+                return rigidBody;
+            }
+        }
+        public MonoXnaCompactMaths.Vector3 RigidBodyPosition
+        {
+            get { return this.rigidBody.CenterOfMassPosition; }
+        }
+        public override bool Flying
+        {
+            get
+            {
+                return flying;
+            }
+            set
+            {
+                flying = value;
+            }
+        }
+        public override bool IsColliding
+        {
+            get { return iscolliding; }
+            set { iscolliding = value; }
+        }
+        /*public override bool Physical
+        {
+            get
+            {
+                return _physical;
+            }
+            set
+            {
+                _physical = value;
+            }
+        }*/
+        public virtual void SetAcceleration(PhysicsVector accel)
+        {
+            lock (BulletXScene.BulletXLock)
+            {
+                _acceleration = accel;
+            }
+        }
+        public override bool Kinematic
+        {
+            get
+            {
+                return false;
+            }
+            set
+            {
+
+            }
+        }
+        public override void AddForce(PhysicsVector force)
+        {
+
+        }
+        public override void SetMomentum(PhysicsVector momentum)
+        {
+        }
+        internal virtual void ValidateHeight(float heighmapPositionValue)
+        {
+        }
+        internal virtual void UpdateKinetics()
+        {
+        }
+
+        #region Methods for updating values of RigidBody
+        internal protected void Translate()
+        {
+            Translate(this._position);
+        }
+        internal protected void Translate(PhysicsVector _newPos)
+        {
+            MonoXnaCompactMaths.Vector3 _translation;
+            _translation = BulletXMaths.PhysicsVectorToXnaVector3(_newPos) - rigidBody.CenterOfMassPosition;
+            rigidBody.Translate(_translation);
+        }
+        internal protected void Speed()
+        {
+            Speed(this._velocity);
+        }
+        internal protected void Speed(PhysicsVector _newSpeed)
+        {
+            MonoXnaCompactMaths.Vector3 _speed;
+            _speed = BulletXMaths.PhysicsVectorToXnaVector3(_newSpeed);
+            rigidBody.LinearVelocity = _speed;
+        }
+        internal protected void ReOrient()
+        {
+            ReOrient(this._orientation);
+        }
+        internal protected void ReOrient(AxiomQuaternion _newOrient)
+        {
+            MonoXnaCompactMaths.Quaternion _newOrientation;
+            _newOrientation = BulletXMaths.AxiomQuaternionToXnaQuaternion(_newOrient);
+            Matrix _comTransform = rigidBody.CenterOfMassTransform;
+            BulletXMaths.SetRotation(ref _comTransform, _newOrientation);
+            rigidBody.CenterOfMassTransform = _comTransform;
+        }
+        internal protected void ReSize()
+        {
+            ReSize(this._size);
+        }
+        internal protected virtual void ReSize(PhysicsVector _newSize)
+        {
+        }
+        #endregion
+    }
+
+    /// <summary>
+    /// PhysicsActor Character Class for BulletX
+    /// </summary>
+    public class BulletXCharacter : BulletXActor
+    {
         public BulletXCharacter(BulletXScene parent_scene, PhysicsVector pos)
             : this("", parent_scene, pos)
         {
         }
-
         public BulletXCharacter(String avName, BulletXScene parent_scene, PhysicsVector pos)
             : this(avName, parent_scene, pos, new PhysicsVector(), new PhysicsVector(), new PhysicsVector(),
                    AxiomQuaternion.Identity)
         {
         }
-
         public BulletXCharacter(String avName, BulletXScene parent_scene, PhysicsVector pos, PhysicsVector velocity,
                                 PhysicsVector size, PhysicsVector acceleration, AxiomQuaternion orientation)
         {
@@ -711,95 +903,55 @@ namespace OpenSim.Region.Physics.BulletXPlugin
 
         public override PhysicsVector Position
         {
-            get { return _position; }
-            set
-            {
-                lock (BulletXScene.BulletXLock)
-                {
-                    _position = value;
-                    Translate();
-                }
-            }
+            get { return base.Position; }
+            set { base.Position = value; }
         }
-
         public override PhysicsVector Velocity
         {
-            get { return _velocity; }
-            set
-            {
-                lock (BulletXScene.BulletXLock)
-                {
-                    _velocity = value;
-                    Speed();
-                }
-            }
+            get { return base.Velocity; }
+            set { base.Velocity = value; }
         }
-
         public override PhysicsVector Size
         {
-            get { return _size; }
-            set
-            {
-                lock (BulletXScene.BulletXLock)
-                {
-                    _size = value;
-                }
-            }
+            get { return base.Size; }
+            set { base.Size = value; }
         }
-
         public override PhysicsVector Acceleration
         {
-            get { return _acceleration; }
+            get { return base.Acceleration; }
         }
-
         public override AxiomQuaternion Orientation
         {
-            get { return _orientation; }
-            set
-            {
-                lock (BulletXScene.BulletXLock)
-                {
-                    _orientation = value;
-                }
-            }
+            get { return base.Orientation; }
+            set { base.Orientation = value; }
         }
-
-        public RigidBody RigidBody
-        {
-            get { return rigidBody; }
-        }
-
         public override bool Flying
         {
-            get { return flying; }
-            set { flying = value; }
+            get { return base.Flying; }
+            set { base.Flying = value; }
         }
         public override bool IsColliding
         {
-            get { return iscolliding; }
-            set { iscolliding = value; }
+            get { return base.IsColliding; }
+            set { base.IsColliding = value; }
         }
-
-        public void SetAcceleration(PhysicsVector accel)
-        {
-            lock (BulletXScene.BulletXLock)
-            {
-                _acceleration = accel;
-            }
-        }
-
         public override bool Kinematic
         {
-            get { return false; }
-            set { }
+            get { return base.Kinematic; }
+            set { base.Kinematic = value; }
         }
 
+        public override void SetAcceleration(PhysicsVector accel)
+        {
+            base.SetAcceleration(accel);
+        }
         public override void AddForce(PhysicsVector force)
         {
+            base.AddForce(force);
         }
-
         public override void SetMomentum(PhysicsVector momentum)
         {
+            base.SetMomentum(momentum);
         }
 
         internal void Move(float timeStep)
@@ -835,9 +987,8 @@ namespace OpenSim.Region.Physics.BulletXPlugin
             }
             rigidBody.LinearVelocity = vec;
         }
-
         //This validation is very basic
-        internal void ValidateHeight(float heighmapPositionValue)
+        internal override void ValidateHeight(float heighmapPositionValue)
         {
             if (rigidBody.CenterOfMassPosition.Z < heighmapPositionValue + _size.Z/2.0f)
             {
@@ -850,93 +1001,30 @@ namespace OpenSim.Region.Physics.BulletXPlugin
                 Speed(new PhysicsVector(rigidBody.LinearVelocity.X, rigidBody.LinearVelocity.Y, 0.0f));
             }
         }
-
-        internal void UpdateKinetics()
+        internal override void UpdateKinetics()
         {
             _position = BulletXMaths.XnaVector3ToPhysicsVector(rigidBody.CenterOfMassPosition);
             _velocity = BulletXMaths.XnaVector3ToPhysicsVector(rigidBody.LinearVelocity);
             //Orientation it seems that it will be the default.
             ReOrient();
         }
-
-        #region Methods for updating values of RigidBody
-
-        private void Translate()
-        {
-            Translate(_position);
-        }
-
-        private void Translate(PhysicsVector _newPos)
-        {
-            Vector3 _translation;
-            _translation = BulletXMaths.PhysicsVectorToXnaVector3(_newPos) - rigidBody.CenterOfMassPosition;
-            rigidBody.Translate(_translation);
-        }
-
-        private void Speed()
-        {
-            Speed(_velocity);
-        }
-
-        private void Speed(PhysicsVector _newSpeed)
-        {
-            Vector3 _speed;
-            _speed = BulletXMaths.PhysicsVectorToXnaVector3(_newSpeed);
-            rigidBody.LinearVelocity = _speed;
-        }
-
-        private void ReOrient()
-        {
-            ReOrient(_orientation);
-        }
-
-        private void ReOrient(AxiomQuaternion _newOrient)
-        {
-            Quaternion _newOrientation;
-            _newOrientation = BulletXMaths.AxiomQuaternionToXnaQuaternion(_newOrient);
-            Matrix _comTransform = rigidBody.CenterOfMassTransform;
-            BulletXMaths.SetRotation(ref _comTransform, _newOrientation);
-            rigidBody.CenterOfMassTransform = _comTransform;
-        }
-
-        #endregion
     }
 
     /// <summary>
     /// PhysicsActor Prim Class for BulletX
     /// </summary>
-    public class BulletXPrim : PhysicsActor
+    public class BulletXPrim : BulletXActor
     {
-        private PhysicsVector _position;
-        private PhysicsVector _velocity;
-        private PhysicsVector _size;
-        private PhysicsVector _acceleration;
-        private AxiomQuaternion _orientation;
         //Density it will depends of material. 
         //For now all prims have the same density, all prims are made of water. Be water my friend! :D
         private const float _density = 1000.0f;
-        private RigidBody rigidBody;
         private BulletXScene _parent_scene;
-        //_physical value will be linked with the prim object value
-        private Boolean _physical = false;
-        private Boolean iscolliding = false;
-
-        public Vector3 RigidBodyPosition
-        {
-            get { return rigidBody.CenterOfMassPosition; }
-        }
-
-        public BulletXPrim(BulletXScene parent_scene, PhysicsVector pos, PhysicsVector size, AxiomQuaternion rotation)
-            : this("", parent_scene, pos, new PhysicsVector(), size, new PhysicsVector(), rotation, null, null)
-        {
-        }
 
         public BulletXPrim(String primName, BulletXScene parent_scene, PhysicsVector pos, PhysicsVector size,
                            AxiomQuaternion rotation, Mesh mesh, PrimitiveBaseShape pbs)
             : this(primName, parent_scene, pos, new PhysicsVector(), size, new PhysicsVector(), rotation, mesh, pbs)
         {
         }
-
         public BulletXPrim(String primName, BulletXScene parent_scene, PhysicsVector pos, PhysicsVector velocity,
                            PhysicsVector size,
                            PhysicsVector aceleration, AxiomQuaternion rotation, Mesh mesh, PrimitiveBaseShape pbs)
@@ -983,41 +1071,20 @@ namespace OpenSim.Region.Physics.BulletXPlugin
 
         public override PhysicsVector Position
         {
-            get { return _position; }
-            set
-            {
-                lock (BulletXScene.BulletXLock)
-                {
-                    _position = value;
-                    Translate();
-                }
-            }
+            get { return base.Position; }
+            set { base.Position = value; }
         }
-
         public override PhysicsVector Velocity
         {
-            get { return _velocity; }
-            set
-            {
-                lock (BulletXScene.BulletXLock)
-                {
-                    //Static objects don' have linear velocity
-                    if (_physical)
-                    {
-                        _velocity = value;
-                        Speed();
-                    }
-                    else
-                    {
-                        _velocity = new PhysicsVector();
-                    }
-                }
-            }
+            get { return base.Velocity; }
+            set { base.Velocity = value; }
         }
-
         public override PhysicsVector Size
         {
-            get { return _size; }
+            get
+            {
+                return _size;
+            }
             set
             {
                 lock (BulletXScene.BulletXLock)
@@ -1027,87 +1094,86 @@ namespace OpenSim.Region.Physics.BulletXPlugin
                 }
             }
         }
-
         public override PhysicsVector Acceleration
         {
-            get { return _acceleration; }
+            get { return base.Acceleration; }
         }
-
         public override AxiomQuaternion Orientation
         {
-            get { return _orientation; }
-            set
-            {
-                lock (BulletXScene.BulletXLock)
-                {
-                    _orientation = value;
-                    ReOrient();
-                }
-            }
+            get { return base.Orientation; }
+            set { base.Orientation = value; }
         }
-
-        public float Mass
+        public override float Mass
         {
             get
             {
                 //For now all prims are boxes
-                return (_physical ? 1 : 0)*_density*_size.X*_size.Y*_size.Z;
+                return (_physical ? 1 : 0) * _density * _size.X * _size.Y * _size.Z;
             }
-        }
-
-        public RigidBody RigidBody
-        {
-            get { return rigidBody; }
-        }
-
-        public override bool Flying
-        {
-            get { return false; //no flying prims for you
-            }
-            set { }
-        }
-
-        public override bool IsColliding
-        {
-            get { return iscolliding; }
-            set { iscolliding = value; }
         }
         public Boolean Physical
         {
             get { return _physical; }
             set { _physical = value; }
         }
+        /*public override bool Physical
+        {
+            get
+            {
+                return base.Physical;
+            }
+            set
+            {
+                base.Physical = value;
+                if (value)
+                {
+                    //---
+                    PhysicsPluginManager.PhysicsPluginMessage("Physical - Recreate", true);
+                    //---
+                    ReCreateRigidBody(this._size);
+                }
+                else
+                {
+                    //---
+                    PhysicsPluginManager.PhysicsPluginMessage("Physical - SetMassProps", true);
+                    //---
+                    this.rigidBody.SetMassProps(Mass, new MonoXnaCompactMaths.Vector3());
+                }
+            }
+        }*/
+        public override bool Flying
+        {
+            get { return base.Flying; }
+            set { base.Flying = value; }
+        }
+        public override bool IsColliding
+        {
+            get { return base.IsColliding; }
+            set { base.IsColliding = value; }
+        }
+        public override bool Kinematic
+        {
+            get { return base.Kinematic; }
+            set { base.Kinematic = value; }
+        }
 
-        public void SetAcceleration(PhysicsVector accel)
+        public override void SetAcceleration(PhysicsVector accel)
         {
             lock (BulletXScene.BulletXLock)
             {
                 _acceleration = accel;
             }
         }
-
-        public override bool Kinematic
-        {
-            get
-            {
-                return false;
-                //return this._prim.Kinematic;
-            }
-            set
-            {
-                //this._prim.Kinematic = value;
-            }
-        }
-
         public override void AddForce(PhysicsVector force)
         {
+            base.AddForce(force);
         }
-
         public override void SetMomentum(PhysicsVector momentum)
         {
+            base.SetMomentum(momentum);
         }
 
-        internal void ValidateHeight(float heighmapPositionValue)
+        internal override void ValidateHeight(float heighmapPositionValue)
         {
             if (rigidBody.CenterOfMassPosition.Z < heighmapPositionValue + _size.Z/2.0f)
             {
@@ -1122,8 +1188,7 @@ namespace OpenSim.Region.Physics.BulletXPlugin
                     Speed(new PhysicsVector(rigidBody.LinearVelocity.X, rigidBody.LinearVelocity.Y, 0.0f));
             }
         }
-
-        internal void UpdateKinetics()
+        internal override void UpdateKinetics()
         {
             if (_physical) //Updates properties. Prim updates its properties physically
             {
@@ -1140,44 +1205,8 @@ namespace OpenSim.Region.Physics.BulletXPlugin
         }
 
         #region Methods for updating values of RigidBody
-
-        private void Translate()
+        internal protected void CreateRigidBody(BulletXScene parent_scene, PhysicsVector pos, PhysicsVector size)
         {
-            Translate(_position);
-        }
-
-        private void Translate(PhysicsVector _newPos)
-        {
-            Vector3 _translation;
-            _translation = BulletXMaths.PhysicsVectorToXnaVector3(_newPos) - rigidBody.CenterOfMassPosition;
-            rigidBody.Translate(_translation);
-        }
-
-        private void Speed()
-        {
-            Speed(_velocity);
-        }
-
-        private void Speed(PhysicsVector _newSpeed)
-        {
-            Vector3 _speed;
-            _speed = BulletXMaths.PhysicsVectorToXnaVector3(_newSpeed);
-            rigidBody.LinearVelocity = _speed;
-        }
-
-        private void ReSize()
-        {
-            ReSize(_size);
-        }
-
-        private void ReSize(PhysicsVector _newSize)
-        {
-            //I wonder to know how to resize with a simple instruction in BulletX. It seems that for now there isn't
-            //so i have to do it manually. That's recreating rigidbody
-            Vector3 _newsize;
-            _newsize = BulletXMaths.PhysicsVectorToXnaVector3(_newSize);
-            if ((_newsize.X == 0) || (_newsize.Y == 0) || (_newsize.Z == 0)) throw new Exception("Size 0");
-
             //For RigidBody Constructor. The next values might change
             float _linearDamping = 0.0f;
             float _angularDamping = 0.0f;
@@ -1185,54 +1214,48 @@ namespace OpenSim.Region.Physics.BulletXPlugin
             float _restitution = 0.0f;
             Matrix _startTransform = Matrix.Identity;
             Matrix _centerOfMassOffset = Matrix.Identity;
-            RigidBody _tmpRigidBody;
-            _startTransform.Translation = BulletXMaths.PhysicsVectorToXnaVector3(_position);
-            //For now all prims are boxes
-            CollisionShape _collisionShape = new BoxShape(BulletXMaths.PhysicsVectorToXnaVector3(_newSize)/2.0f);
-            DefaultMotionState _motionState = new DefaultMotionState(_startTransform, _centerOfMassOffset);
-            Vector3 _localInertia = new Vector3();
-            if (_physical) _collisionShape.CalculateLocalInertia(Mass, out _localInertia); //Always when mass > 0
-            _tmpRigidBody =
-                new RigidBody(Mass, _motionState, _collisionShape, _localInertia, _linearDamping, _angularDamping,
-                              _friction, _restitution);
-            //rigidBody.ActivationState = ActivationState.DisableDeactivation;
-            //It's seems that there are a bug with rigidBody constructor and its CenterOfMassPosition
-            Vector3 _vDebugTranslation;
-            _vDebugTranslation = _startTransform.Translation - rigidBody.CenterOfMassPosition;
-            _tmpRigidBody.Translate(_vDebugTranslation);
-            //---
+            lock (BulletXScene.BulletXLock)
+            {
+                _startTransform.Translation = BulletXMaths.PhysicsVectorToXnaVector3(pos);
+                //For now all prims are boxes
+                CollisionShape _collisionShape = new XnaDevRu.BulletX.BoxShape(BulletXMaths.PhysicsVectorToXnaVector3(size) / 2.0f);
+                DefaultMotionState _motionState = new DefaultMotionState(_startTransform, _centerOfMassOffset);
+                MonoXnaCompactMaths.Vector3 _localInertia = new MonoXnaCompactMaths.Vector3();
+                if (_physical) _collisionShape.CalculateLocalInertia(Mass, out _localInertia); //Always when mass > 0
+                rigidBody = new RigidBody(Mass, _motionState, _collisionShape, _localInertia, _linearDamping, _angularDamping, _friction, _restitution);
+                //rigidBody.ActivationState = ActivationState.DisableDeactivation;
+                //It's seems that there are a bug with rigidBody constructor and its CenterOfMassPosition
+                MonoXnaCompactMaths.Vector3 _vDebugTranslation;
+                _vDebugTranslation = _startTransform.Translation - rigidBody.CenterOfMassPosition;
+                rigidBody.Translate(_vDebugTranslation);
+                //---
+                parent_scene.ddWorld.AddRigidBody(rigidBody);
+            }
+        }
+        internal protected void ReCreateRigidBody(PhysicsVector size)
+        {
             //There is a bug when trying to remove a rigidBody that is colliding with something..
             try
             {
-                _parent_scene.ddWorld.RemoveRigidBody(rigidBody);
+                this._parent_scene.ddWorld.RemoveRigidBody(rigidBody);
             }
             catch (Exception ex)
             {
-                _parent_scene.BulletXMessage(_parent_scene.is_ex_message + ex.Message, true);
+                this._parent_scene.BulletXMessage(this._parent_scene.is_ex_message + ex.Message, true);
                 rigidBody.ActivationState = ActivationState.DisableSimulation;
-                _parent_scene.AddForgottenRigidBody(rigidBody);
+                this._parent_scene.AddForgottenRigidBody(rigidBody);
             }
-            rigidBody = _tmpRigidBody;
-            _parent_scene.ddWorld.AddRigidBody(rigidBody);
-            if (_physical) Speed(); //Static objects don't have linear velocity
+            CreateRigidBody(this._parent_scene, this._position, size);
+            if (_physical) Speed();//Static objects don't have linear velocity
             ReOrient();
             GC.Collect();
         }
-
-        private void ReOrient()
+        internal protected override void ReSize(PhysicsVector _newSize)
         {
-            ReOrient(_orientation);
+            //I wonder to know how to resize with a simple instruction in BulletX. It seems that for now there isn't
+            //so i have to do it manually. That's recreating rigidbody
+            ReCreateRigidBody(_newSize);
         }
-
-        private void ReOrient(AxiomQuaternion _newOrient)
-        {
-            Quaternion _newOrientation;
-            _newOrientation = BulletXMaths.AxiomQuaternionToXnaQuaternion(_newOrient);
-            Matrix _comTransform = rigidBody.CenterOfMassTransform;
-            BulletXMaths.SetRotation(ref _comTransform, _newOrientation);
-            rigidBody.CenterOfMassTransform = _comTransform;
-        }
-
         #endregion
     }
 
