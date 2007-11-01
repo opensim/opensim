@@ -82,6 +82,10 @@ namespace OpenSim.Region.ScriptEngine.Common
 
             string EventName = m_Script.State() + "_event_" + FunctionName;
 
+#if DEBUG
+            Console.WriteLine("ScriptEngine: Script event function name: " + EventName);
+#endif
+
             //type.InvokeMember(EventName, BindingFlags.InvokeMethod, null, m_Script, args);
 
             //Console.WriteLine("ScriptEngine Executor.ExecuteEvent: \"" + EventName + "\"");
@@ -112,6 +116,9 @@ namespace OpenSim.Region.ScriptEngine.Common
                 return;
             }
 
+#if DEBUG
+            Console.WriteLine("ScriptEngine: Executing function name: " + EventName);
+#endif
             // Found
             //try
             //{

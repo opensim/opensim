@@ -225,6 +225,8 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
 
         #region Start/Stop/Reset script
 
+        Object startStopLock = new Object();
+
         /// <summary>
         /// Fetches, loads and hooks up a script to an objects events
         /// </summary>
@@ -259,76 +261,83 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
             StartScript(localID, itemID, script);
         }
 
+        // Create a new instance of the compiler (reuse)
+        Compiler.LSL.Compiler LSLCompiler = new Compiler.LSL.Compiler();
         private void _StartScript(uint localID, LLUUID itemID, string Script)
         {
-            //IScriptHost root = host.GetRoot();
-            Console.WriteLine("ScriptManager StartScript: localID: " + localID + ", itemID: " + itemID);
-
-            // We will initialize and start the script.
-            // It will be up to the script itself to hook up the correct events.
-            string ScriptSource = "";
-
-            SceneObjectPart m_host = World.GetSceneObjectPart(localID);
-
-            try
+            lock (startStopLock)
             {
-                // Create a new instance of the compiler (currently we don't want reuse)
-                Compiler.LSL.Compiler LSLCompiler = new Compiler.LSL.Compiler();
-                // Compile (We assume LSL)
-                ScriptSource = LSLCompiler.CompileFromLSLText(Script);
-                //Console.WriteLine("Compilation of " + FileName + " done");
-                // * Insert yield into code
-                ScriptSource = ProcessYield(ScriptSource);
+                //IScriptHost root = host.GetRoot();
+                Console.WriteLine("ScriptManager StartScript: localID: " + localID + ", itemID: " + itemID);
 
+                // We will initialize and start the script.
+                // It will be up to the script itself to hook up the correct events.
+                string ScriptSource = "";
 
-#if DEBUG
-                long before;
-                before = GC.GetTotalMemory(true);
-#endif
+                SceneObjectPart m_host = World.GetSceneObjectPart(localID);
 
-                LSL_BaseClass CompiledScript;
-                CompiledScript = m_scriptEngine.m_AppDomainManager.LoadScript(ScriptSource);
-
-#if DEBUG
-                Console.WriteLine("Script " + itemID + " occupies {0} bytes", GC.GetTotalMemory(true) - before);
-#endif
-
-                CompiledScript.SourceCode = ScriptSource;
-                // Add it to our script memstruct
-                SetScript(localID, itemID, CompiledScript);
-
-                // We need to give (untrusted) assembly a private instance of BuiltIns
-                //  this private copy will contain Read-Only FullitemID so that it can bring that on to the server whenever needed.
-
-
-                LSL_BuiltIn_Commands LSLB = new LSL_BuiltIn_Commands(m_scriptEngine, m_host, localID, itemID);
-
-                // Start the script - giving it BuiltIns
-                CompiledScript.Start(LSLB);
-
-                // Fire the first start-event
-                m_scriptEngine.m_EventQueueManager.AddToScriptQueue(localID, itemID, "state_entry", new object[] {});
-            }
-            catch (Exception e)
-            {
-                //m_scriptEngine.Log.Error("ScriptEngine", "Error compiling script: " + e.ToString());
                 try
                 {
-                    // DISPLAY ERROR INWORLD
-                    string text = "Error compiling script:\r\n" + e.Message.ToString();
-                    if (text.Length > 1500)
-                        text = text.Substring(0, 1500);
-                    World.SimChat(Helpers.StringToField(text), 1, 0, m_host.AbsolutePosition, m_host.Name, m_host.UUID);
+                    
+                    // Compile (We assume LSL)
+                    ScriptSource = LSLCompiler.CompileFromLSLText(Script);
+                    //Console.WriteLine("Compilation of " + FileName + " done");
+                    // * Insert yield into code
+                    ScriptSource = ProcessYield(ScriptSource);
+
+
+#if DEBUG
+                    long before;
+                    before = GC.GetTotalMemory(true);
+#endif
+
+                    LSL_BaseClass CompiledScript;
+                    CompiledScript = m_scriptEngine.m_AppDomainManager.LoadScript(ScriptSource);
+
+#if DEBUG
+                    Console.WriteLine("Script " + itemID + " occupies {0} bytes", GC.GetTotalMemory(true) - before);
+#endif
+
+                    CompiledScript.SourceCode = ScriptSource;
+                    // Add it to our script memstruct
+                    SetScript(localID, itemID, CompiledScript);
+
+                    // We need to give (untrusted) assembly a private instance of BuiltIns
+                    //  this private copy will contain Read-Only FullitemID so that it can bring that on to the server whenever needed.
+
+
+                    LSL_BuiltIn_Commands LSLB = new LSL_BuiltIn_Commands(m_scriptEngine, m_host, localID, itemID);
+
+                    // Start the script - giving it BuiltIns
+                    CompiledScript.Start(LSLB);
+
+                    // Fire the first start-event
+                    m_scriptEngine.m_EventQueueManager.AddToScriptQueue(localID, itemID, "state_entry", new object[] { });
                 }
-                catch (Exception e2)
+                catch (Exception e)
                 {
-                    m_scriptEngine.Log.Error("ScriptEngine", "Error displaying error in-world: " + e2.ToString());
+                    //m_scriptEngine.Log.Error("ScriptEngine", "Error compiling script: " + e.ToString());
+                    try
+                    {
+                        // DISPLAY ERROR INWORLD
+                        string text = "Error compiling script:\r\n" + e.Message.ToString();
+                        if (text.Length > 1500)
+                            text = text.Substring(0, 1500);
+                        World.SimChat(Helpers.StringToField(text), 1, 0, m_host.AbsolutePosition, m_host.Name, m_host.UUID);
+                    }
+                    catch (Exception e2)
+                    {
+                        m_scriptEngine.Log.Error("ScriptEngine", "Error displaying error in-world: " + e2.ToString());
+                        m_scriptEngine.Log.Error("ScriptEngine", "Errormessage: Error compiling script:\r\n" + e.Message.ToString());
+                    }
                 }
             }
         }
 
         private void _StopScript(uint localID, LLUUID itemID)
         {
+            lock (startStopLock)
+            {
             // Stop script
             Console.WriteLine("Stop script localID: " + localID + " LLUID: " + itemID.ToString());
 
@@ -361,6 +370,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
                                   ": " + e.ToString());
             }
         }
+        }
 
         private string ProcessYield(string FileName)
         {
@@ -382,12 +392,18 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
         /// <param name="args">Arguments to pass to function</param>
         internal void ExecuteEvent(uint localID, LLUUID itemID, string FunctionName, object[] args)
         {
+#if DEBUG
+            Console.WriteLine("ScriptEngine: Inside ExecuteEvent for event " + FunctionName);
+#endif
             // Execute a function in the script
             //m_scriptEngine.Log.Verbose("ScriptEngine", "Executing Function localID: " + localID + ", itemID: " + itemID + ", FunctionName: " + FunctionName);
             LSL_BaseClass Script = m_scriptEngine.m_ScriptManager.GetScript(localID, itemID);
             if (Script == null)
                 return;
 
+#if DEBUG
+            Console.WriteLine("ScriptEngine: Executing event: " + FunctionName);
+#endif
             // Must be done in correct AppDomain, so leaving it up to the script itself
             Script.Exec.ExecuteEvent(FunctionName, args);
         }

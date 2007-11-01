@@ -53,6 +53,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL
 
         public string Convert(string Script)
         {
+            quotes.Clear();
             string Return = "";
             Script = " \r\n" + Script;
 
@@ -310,6 +311,9 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL
             Return += Script;
             Return += "} }\r\n";
 
+
+            quotes.Clear();
+            
             return Return;
         }
     }

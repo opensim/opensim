@@ -181,6 +181,12 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
                                 // Execute function
                                 try
                                 {
+#if DEBUG
+                                    m_ScriptEngine.Log.Debug("ScriptEngine", "Executing event:\r\n"
+                                        + "QIS.localID: " + QIS.localID
+                                        + ", QIS.itemID: " + QIS.itemID
+                                        + ", QIS.functionName: " + QIS.functionName);
+#endif
                                     m_ScriptEngine.m_ScriptManager.ExecuteEvent(QIS.localID, QIS.itemID,
                                                                                 QIS.functionName, QIS.param);
                                 }
@@ -188,16 +194,17 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
                                 {
                                     // DISPLAY ERROR INWORLD
                                     string text = "Error executing script function \"" + QIS.functionName + "\":\r\n";
-                                    if (e.InnerException != null)
-                                    {
+                                    //if (e.InnerException != null)
+                                    //{
                                         // Send inner exception
                                         text += e.InnerException.Message.ToString();
-                                    }
-                                    else
-                                    {
+                                    //}
+                                    //else
+                                    //{
+                                        text += "\r\n";
                                         // Send normal
                                         text += e.Message.ToString();
-                                    }
+                                    //}
                                     try
                                     {
                                         if (text.Length > 1500)
@@ -214,7 +221,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
                                         //else
                                         //{
                                         // T oconsole
-                                        Console.WriteLine("Unable to send text in-world:\r\n" + text);
+                                        m_ScriptEngine.Log.Error("ScriptEngine", "Unable to send text in-world:\r\n" + text);
                                     }
                                 }
                                 finally
@@ -230,7 +237,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
                     }
                     catch (Exception e)
                     {
-                        Console.WriteLine("Exception in EventQueueThreadLoop: " + e.ToString());
+                        m_ScriptEngine.Log.Error("ScriptEngine", "Exception in EventQueueThreadLoop: " + e.ToString());
                     }
                 } // while
             } // try
