@@ -108,9 +108,11 @@ namespace OpenSim.Framework.Communications.Cache
                 XmlSerializer xs = new XmlSerializer(typeof (AssetBase));
                 xs.Serialize(s, asset);
                 RestClient rc = new RestClient(_assetServerUrl);
+		MainLog.Instance.Verbose("ASSET", "Storing {0}", rc);
                 rc.AddResourcePath("assets");
                 rc.RequestMethod = "POST";
                 rc.Request(s);
+		MainLog.Instance.Verbose("ASSET", "Stored {0}", rc);
             }
             catch (Exception e)
             {

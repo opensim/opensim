@@ -17,6 +17,7 @@ namespace OpenSim.Grid.AssetServer
 
         public override byte[] Handle(string path, Stream request)
         {
+	    MainLog.Instance.Verbose("REST", "In Handle");
             string param = GetParam(path);
             byte[] result = new byte[] {};
             try
@@ -51,6 +52,7 @@ namespace OpenSim.Grid.AssetServer
                         StreamReader sr = new StreamReader(ms);
 
                         result = ms.GetBuffer();
+                        MainLog.Instance.Verbose("REST", "Buffer: {0}", result);
                         Array.Resize<byte>(ref result, (int) ms.Length);
                     }
                     else
@@ -69,6 +71,7 @@ namespace OpenSim.Grid.AssetServer
         public GetAssetStreamHandler(OpenAsset_Main assetManager, IAssetProvider assetProvider)
             : base("GET", "/assets")
         {
+            MainLog.Instance.Verbose("REST", "In Get Request");
             m_assetManager = assetManager;
             m_assetProvider = assetProvider;
         }

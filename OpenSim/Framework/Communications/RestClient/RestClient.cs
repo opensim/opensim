@@ -5,6 +5,7 @@ using System.Net;
 using System.Text;
 using System.Threading;
 using System.Web;
+using OpenSim.Framework.Console;
 
 namespace OpenSim.Framework.Communications
 {
@@ -209,6 +210,7 @@ namespace OpenSim.Framework.Communications
                 }
             }
             realuri = sb.ToString();
+	    MainLog.Instance.Verbose("REST", "RestURL: {0}", realuri);
             return new Uri(sb.ToString());
         }
 
@@ -335,7 +337,7 @@ namespace OpenSim.Framework.Communications
         }
 
         public Stream Request(Stream src)
-        {
+	{
             _request = (HttpWebRequest) WebRequest.Create(buildUri());
             _request.KeepAlive = false;
             _request.ContentType = "application/xml";
@@ -344,10 +346,16 @@ namespace OpenSim.Framework.Communications
             _asyncException = null;
             _request.ContentLength = src.Length;
 
+	    MainLog.Instance.Verbose("REST", "Request Length {0}", _request.ContentLength);
+	    MainLog.Instance.Verbose("REST", "Sending Web Request {0}", buildUri());
             src.Seek(0, SeekOrigin.Begin);
+	    MainLog.Instance.Verbose("REST", "Seek is ok");
             Stream dst = _request.GetRequestStream();
+	    MainLog.Instance.Verbose("REST", "GetRequestStream is ok");
+
             byte[] buf = new byte[1024];
             int length = src.Read(buf, 0, 1024);
+            MainLog.Instance.Verbose("REST", "First Read is ok"); 
             while (length > 0)
             {
                 dst.Write(buf, 0, length);

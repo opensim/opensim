@@ -71,7 +71,9 @@ namespace OpenSim.Framework.Communications.Cache
             ARequest req = new ARequest();
             req.AssetID = assetID;
             req.IsTexture = isTexture;
+	    MainLog.Instance.Verbose("ASSET","Adding {0} to request queue", assetID);
             _assetRequests.Enqueue(req);
+	    MainLog.Instance.Verbose("ASSET","Added {0} to request queue", assetID);
         }
 
         public virtual void UpdateAsset(AssetBase asset)
