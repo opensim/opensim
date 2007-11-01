@@ -69,8 +69,6 @@ using XnaDevRu.BulletX;
 using XnaDevRu.BulletX.Dynamics;
 using AxiomQuaternion = Axiom.Math.Quaternion;
 using BoxShape=XnaDevRu.BulletX.BoxShape;
-//Specific References for BulletXPlugin
-
 #endregion
 
 namespace OpenSim.Region.Physics.BulletXPlugin
@@ -734,7 +732,7 @@ namespace OpenSim.Region.Physics.BulletXPlugin
                 return rigidBody;
             }
         }
-        public MonoXnaCompactMaths.Vector3 RigidBodyPosition
+        public Vector3 RigidBodyPosition
         {
             get { return this.rigidBody.CenterOfMassPosition; }
         }
@@ -804,7 +802,7 @@ namespace OpenSim.Region.Physics.BulletXPlugin
         }
         internal protected void Translate(PhysicsVector _newPos)
         {
-            MonoXnaCompactMaths.Vector3 _translation;
+            Vector3 _translation;
             _translation = BulletXMaths.PhysicsVectorToXnaVector3(_newPos) - rigidBody.CenterOfMassPosition;
             rigidBody.Translate(_translation);
         }
@@ -814,7 +812,7 @@ namespace OpenSim.Region.Physics.BulletXPlugin
         }
         internal protected void Speed(PhysicsVector _newSpeed)
         {
-            MonoXnaCompactMaths.Vector3 _speed;
+            Vector3 _speed;
             _speed = BulletXMaths.PhysicsVectorToXnaVector3(_newSpeed);
             rigidBody.LinearVelocity = _speed;
         }
@@ -824,7 +822,7 @@ namespace OpenSim.Region.Physics.BulletXPlugin
         }
         internal protected void ReOrient(AxiomQuaternion _newOrient)
         {
-            MonoXnaCompactMaths.Quaternion _newOrientation;
+            Quaternion _newOrientation;
             _newOrientation = BulletXMaths.AxiomQuaternionToXnaQuaternion(_newOrient);
             Matrix _comTransform = rigidBody.CenterOfMassTransform;
             BulletXMaths.SetRotation(ref _comTransform, _newOrientation);
@@ -1033,6 +1031,9 @@ namespace OpenSim.Region.Physics.BulletXPlugin
             if (rotation.Norm == 0f) rotation = AxiomQuaternion.Identity;
 
             _position = pos;
+            //ZZZ
+            _physical = false;
+            //zzz
             if (_physical) _velocity = velocity;
             else _velocity = new PhysicsVector();
             _size = size;
@@ -1041,32 +1042,7 @@ namespace OpenSim.Region.Physics.BulletXPlugin
 
             _parent_scene = parent_scene;
 
-            //For RigidBody Constructor. The next values might change
-            float _linearDamping = 0.0f;
-            float _angularDamping = 0.0f;
-            float _friction = 0.5f;
-            float _restitution = 0.0f;
-            Matrix _startTransform = Matrix.Identity;
-            Matrix _centerOfMassOffset = Matrix.Identity;
-            lock (BulletXScene.BulletXLock)
-            {
-                _startTransform.Translation = BulletXMaths.PhysicsVectorToXnaVector3(pos);
-                //For now all prims are boxes
-                CollisionShape _collisionShape = new BoxShape(BulletXMaths.PhysicsVectorToXnaVector3(_size)/2.0f);
-                DefaultMotionState _motionState = new DefaultMotionState(_startTransform, _centerOfMassOffset);
-                Vector3 _localInertia = new Vector3();
-                if (_physical) _collisionShape.CalculateLocalInertia(Mass, out _localInertia); //Always when mass > 0
-                rigidBody =
-                    new RigidBody(Mass, _motionState, _collisionShape, _localInertia, _linearDamping, _angularDamping,
-                                  _friction, _restitution);
-                //rigidBody.ActivationState = ActivationState.DisableDeactivation;
-                //It's seems that there are a bug with rigidBody constructor and its CenterOfMassPosition
-                Vector3 _vDebugTranslation;
-                _vDebugTranslation = _startTransform.Translation - rigidBody.CenterOfMassPosition;
-                rigidBody.Translate(_vDebugTranslation);
-                //---
-                parent_scene.ddWorld.AddRigidBody(rigidBody);
-            }
+            CreateRigidBody(parent_scene, pos, size);
         }
 
         public override PhysicsVector Position
@@ -1108,7 +1084,10 @@ namespace OpenSim.Region.Physics.BulletXPlugin
             get
             {
                 //For now all prims are boxes
-                return (_physical ? 1 : 0) * _density * _size.X * _size.Y * _size.Z;
+                //ZZZ
+                return _density * _size.X * _size.Y * _size.Z;
+                //return (_physical ? 1 : 0) * _density * _size.X * _size.Y * _size.Z;
+                //zzz
             }
         }
         public Boolean Physical
@@ -1210,7 +1189,7 @@ namespace OpenSim.Region.Physics.BulletXPlugin
             //For RigidBody Constructor. The next values might change
             float _linearDamping = 0.0f;
             float _angularDamping = 0.0f;
-            float _friction = 0.5f;
+            float _friction = 1.0f;
             float _restitution = 0.0f;
             Matrix _startTransform = Matrix.Identity;
             Matrix _centerOfMassOffset = Matrix.Identity;
@@ -1220,12 +1199,15 @@ namespace OpenSim.Region.Physics.BulletXPlugin
                 //For now all prims are boxes
                 CollisionShape _collisionShape = new XnaDevRu.BulletX.BoxShape(BulletXMaths.PhysicsVectorToXnaVector3(size) / 2.0f);
                 DefaultMotionState _motionState = new DefaultMotionState(_startTransform, _centerOfMassOffset);
-                MonoXnaCompactMaths.Vector3 _localInertia = new MonoXnaCompactMaths.Vector3();
-                if (_physical) _collisionShape.CalculateLocalInertia(Mass, out _localInertia); //Always when mass > 0
+                Vector3 _localInertia = new Vector3();
+                //ZZZ
+                if (Mass > 0) _collisionShape.CalculateLocalInertia(Mass, out _localInertia); //Always when mass > 0
+                //if (_physical) _collisionShape.CalculateLocalInertia(Mass, out _localInertia); //Always when mass > 0
+                //zzz
                 rigidBody = new RigidBody(Mass, _motionState, _collisionShape, _localInertia, _linearDamping, _angularDamping, _friction, _restitution);
                 //rigidBody.ActivationState = ActivationState.DisableDeactivation;
                 //It's seems that there are a bug with rigidBody constructor and its CenterOfMassPosition
-                MonoXnaCompactMaths.Vector3 _vDebugTranslation;
+                Vector3 _vDebugTranslation;
                 _vDebugTranslation = _startTransform.Translation - rigidBody.CenterOfMassPosition;
                 rigidBody.Translate(_vDebugTranslation);
                 //---
