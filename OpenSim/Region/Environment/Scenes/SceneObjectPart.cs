@@ -313,6 +313,7 @@ namespace OpenSim.Region.Environment.Scenes
                         LLObject.ObjectFlags.ObjectMove |
                        LLObject.ObjectFlags.AllowInventoryDrop |
                        LLObject.ObjectFlags.ObjectTransfer |
+					   LLObject.ObjectFlags.CreateSelected |
                        LLObject.ObjectFlags.ObjectOwnerModify;
 
             ScheduleFullUpdate();
@@ -855,8 +856,24 @@ namespace OpenSim.Region.Environment.Scenes
         {
             LLQuaternion lRot;
             lRot = RotationOffset;
+			uint clientFlags = ObjectFlags & ~(uint)LLObject.ObjectFlags.CreateSelected;
 
-            remoteClient.SendPrimitiveToClient(m_regionHandle, 64096, LocalID, m_shape, lPos, ObjectFlags, m_uuid,
+			List<ScenePresence> avatars=m_parentGroup.GetScenePresences();
+			foreach(ScenePresence s in avatars)
+			{
+				if(s.m_uuid == OwnerID)
+				{
+					if(s.ControllingClient == remoteClient)
+					{
+						clientFlags = ObjectFlags;
+						m_flags &= ~LLObject.ObjectFlags.CreateSelected;
+
+					}
+					break;
+				}
+			}
+
+            remoteClient.SendPrimitiveToClient(m_regionHandle, 64096, LocalID, m_shape, lPos, clientFlags, m_uuid,
                                                OwnerID,
                                                m_text, ParentID, m_particleSystem, lRot);
         }
