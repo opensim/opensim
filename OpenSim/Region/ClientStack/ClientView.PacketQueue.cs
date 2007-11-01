@@ -152,7 +152,7 @@ namespace OpenSim.Region.ClientStack
                 else
                 {
                     m_networkServer.SendPacketTo(sendbuffer, sendbuffer.Length, SocketFlags.None, m_circuitCode);
-                        //userEP);
+                    //userEP);
                 }
             }
             catch (Exception)

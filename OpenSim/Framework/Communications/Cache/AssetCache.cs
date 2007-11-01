@@ -52,10 +52,10 @@ namespace OpenSim.Framework.Communications.Cache
         public List<AssetRequest> TextureRequests = new List<AssetRequest>(); //textures ready to be sent
 
         public Dictionary<LLUUID, AssetRequest> RequestedAssets = new Dictionary<LLUUID, AssetRequest>();
-                                                //Assets requested from the asset server
+        //Assets requested from the asset server
 
         public Dictionary<LLUUID, AssetRequest> RequestedTextures = new Dictionary<LLUUID, AssetRequest>();
-                                                //Textures requested from the asset server
+        //Textures requested from the asset server
 
         public Dictionary<LLUUID, TextureSender> SendingTextures = new Dictionary<LLUUID, TextureSender>();
         private BlockingQueue<TextureSender> QueueTextures = new BlockingQueue<TextureSender>();

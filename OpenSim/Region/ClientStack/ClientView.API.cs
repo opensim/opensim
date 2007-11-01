@@ -382,7 +382,7 @@ namespace OpenSim.Region.ClientStack
             newSimPack.Info = new CrossedRegionPacket.InfoBlock();
             newSimPack.Info.Position = pos;
             newSimPack.Info.LookAt = look;
-                // new LLVector3(0.0f, 0.0f, 0.0f);	// copied from Avatar.cs - SHOULD BE DYNAMIC!!!!!!!!!!
+            // new LLVector3(0.0f, 0.0f, 0.0f);	// copied from Avatar.cs - SHOULD BE DYNAMIC!!!!!!!!!!
             newSimPack.RegionData = new CrossedRegionPacket.RegionDataBlock();
             newSimPack.RegionData.RegionHandle = newRegionHandle;
             byte[] byteIP = externalIPEndPoint.Address.GetAddressBytes();
@@ -847,7 +847,7 @@ namespace OpenSim.Region.ClientStack
         {
             AgentWearablesUpdatePacket aw = new AgentWearablesUpdatePacket();
             aw.AgentData.AgentID = AgentId;
-            aw.AgentData.SerialNum = (uint)serial;
+            aw.AgentData.SerialNum = (uint) serial;
             aw.AgentData.SessionID = m_sessionId;
 
             aw.WearableData = new AgentWearablesUpdatePacket.WearableDataBlock[13];
@@ -1296,7 +1296,7 @@ namespace OpenSim.Region.ClientStack
         protected ObjectUpdatePacket.ObjectDataBlock CreateDefaultAvatarPacket(byte[] textureEntry)
         {
             ObjectUpdatePacket.ObjectDataBlock objdata = new ObjectUpdatePacket.ObjectDataBlock();
-                //  new libsecondlife.Packets.ObjectUpdatePacket.ObjectDataBlock(data1, ref i);
+            //  new libsecondlife.Packets.ObjectUpdatePacket.ObjectDataBlock(data1, ref i);
 
             SetDefaultAvatarPacketValues(ref objdata);
             objdata.UpdateFlags = 61 + (9 << 8) + (130 << 16) + (16 << 24);

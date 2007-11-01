@@ -455,7 +455,7 @@ namespace OpenSim.Region.Environment.Scenes
 
             // Must check for standing up even when PhysicsActor is null,
             // since sitting currently removes avatar from physical scene
-            if ((flags & (uint)MainAvatar.ControlFlags.AGENT_CONTROL_STAND_UP) != 0)
+            if ((flags & (uint) MainAvatar.ControlFlags.AGENT_CONTROL_STAND_UP) != 0)
             {
                 StandUp();
                 UpdateMovementAnimations(true);
@@ -526,7 +526,8 @@ namespace OpenSim.Region.Environment.Scenes
                 SceneObjectPart part = m_scene.GetSceneObjectPart(m_parentID);
                 LLVector3 pos = new LLVector3();
                 if (part != null)
-                    pos = part.AbsolutePosition + m_requestedSitOffset + new LLVector3(0.0f, 0.0f, 2.0f * m_sitAvatarHeight);
+                    pos = part.AbsolutePosition + m_requestedSitOffset +
+                          new LLVector3(0.0f, 0.0f, 2.0f*m_sitAvatarHeight);
                 MakeRootAgent(pos, false);
                 m_parentID = 0;
                 SendFullUpdateToAllClients();
@@ -569,7 +570,7 @@ namespace OpenSim.Region.Environment.Scenes
 
             remoteClient.OutPacket(avatarSitResponse);
         }
-            
+
         public void HandleAgentRequestSit(IClientAPI remoteClient, LLUUID agentID, LLUUID targetID, LLVector3 offset)
         {
             SendSitResponse(remoteClient, targetID, offset);
@@ -597,7 +598,8 @@ namespace OpenSim.Region.Environment.Scenes
         {
             // these magic numbers come mostly from experimenting with ODE,
             // and seeing what looks right
-            AbsolutePosition = m_requestedSitOffset + new LLVector3(m_physicsActor.Size.X / 2.7f, 0f, m_physicsActor.Size.Z / 1.45f);
+            AbsolutePosition = m_requestedSitOffset +
+                               new LLVector3(m_physicsActor.Size.X/2.7f, 0f, m_physicsActor.Size.Z/1.45f);
             m_parentID = m_requestedSitTargetID;
             MakeChildAgent();
             SendAnimPack(Animations.AnimsLLUUID["SIT"], 1);
@@ -616,20 +618,21 @@ namespace OpenSim.Region.Environment.Scenes
                     }
                     else
                     {
-                        if (((m_movementflag & (uint)MainAvatar.ControlFlags.AGENT_CONTROL_UP_NEG) != 0) && PhysicsActor.IsColliding)
+                        if (((m_movementflag & (uint) MainAvatar.ControlFlags.AGENT_CONTROL_UP_NEG) != 0) &&
+                            PhysicsActor.IsColliding)
                         {
                             SendAnimPack(Animations.AnimsLLUUID["CROUCHWALK"], 1);
                         }
                         else
-                        {   
-                            SendAnimPack(Animations.AnimsLLUUID["WALK"], 1);  
+                        {
+                            SendAnimPack(Animations.AnimsLLUUID["WALK"], 1);
                         }
-                        
                     }
                 }
                 else
                 {
-                    if (((m_movementflag & (uint)MainAvatar.ControlFlags.AGENT_CONTROL_UP_NEG) != 0) && PhysicsActor.IsColliding)
+                    if (((m_movementflag & (uint) MainAvatar.ControlFlags.AGENT_CONTROL_UP_NEG) != 0) &&
+                        PhysicsActor.IsColliding)
                     {
                         SendAnimPack(Animations.AnimsLLUUID["CROUCH"], 1);
                     }
@@ -656,7 +659,9 @@ namespace OpenSim.Region.Environment.Scenes
 
             direc = direc*((0.03f)*128f);
             if (m_physicsActor.Flying)
-            { direc *= 4; }
+            {
+                direc *= 4;
+            }
             else
             {
                 if (!m_physicsActor.Flying && m_physicsActor.IsColliding)
@@ -668,7 +673,6 @@ namespace OpenSim.Region.Environment.Scenes
                         //System.Console.WriteLine("Jump");
                         SendAnimPack(Animations.AnimsLLUUID["PRE_JUMP"], 1);
                     }
-
                 }
             }
 

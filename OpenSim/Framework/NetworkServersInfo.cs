@@ -94,7 +94,8 @@ namespace OpenSim.Framework
             UserRecvKey = config.Configs["Network"].GetString("user_recv_key", "null");
             AssetURL = config.Configs["Network"].GetString("asset_server_url", AssetURL);
             InventoryURL = config.Configs["Network"].GetString("inventory_server_url",
-                                                    "http://127.0.0.1:" + InventoryConfig.DefaultHttpPort.ToString());
+                                                               "http://127.0.0.1:" +
+                                                               InventoryConfig.DefaultHttpPort.ToString());
         }
     }
 }

@@ -332,16 +332,14 @@ namespace OpenSim.Region.Environment.Scenes
             {
                 if (ent is SceneObjectGroup)
                 {
-                    hasprim = ((SceneObjectGroup)ent).HasChildPrim(localID);
+                    hasprim = ((SceneObjectGroup) ent).HasChildPrim(localID);
                     if (hasprim != false)
                     {
-                        
-                        ((SceneObjectGroup)ent).UpdatePrimFlags(localID, (ushort)packet.Type, true, packet.ToBytes());
-
+                        ((SceneObjectGroup) ent).UpdatePrimFlags(localID, (ushort) packet.Type, true, packet.ToBytes());
                     }
                 }
             }
-            
+
             //System.Console.WriteLine("Got primupdate packet: " + packet.UsePhysics.ToString());
         }
 

@@ -26,7 +26,7 @@
 * 
 */
 
- /*  Channel
+/*  Channel
  *  A channel is a single heightmap array
  * */
 

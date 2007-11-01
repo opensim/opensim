@@ -90,7 +90,7 @@ namespace OpenSim.Framework.Communications.Cache
                     {
                         InventoryFolderImpl createdFolder =
                             userProfile.RootFolder.CreateNewSubFolder(folderID, folderName, folderType);
-             
+
                         if (createdFolder != null)
                         {
                             m_parent.InventoryService.AddNewInventoryFolder(remoteClient.AgentId, createdFolder);
@@ -119,7 +119,7 @@ namespace OpenSim.Framework.Communications.Cache
 
                 return;
             }
-            
+
             if ((fold = libraryRoot.HasSubFolder(folderID)) != null)
             {
                 remoteClient.SendInventoryFolderDetails(libraryRoot.agentID, folderID, fold.RequestListOfItems());
@@ -129,7 +129,7 @@ namespace OpenSim.Framework.Communications.Cache
 
             CachedUserInfo userProfile;
             if (m_userProfiles.TryGetValue(remoteClient.AgentId, out userProfile))
-            {               
+            {
                 if (userProfile.RootFolder != null)
                 {
                     if (userProfile.RootFolder.folderID == folderID)

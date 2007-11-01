@@ -54,7 +54,7 @@ namespace OpenSim.Region.ClientStack
             new Dictionary<PacketType, PacketMethod>(); //Global/static handlers for all clients
 
         protected Dictionary<PacketType, PacketMethod> m_packetHandlers = new Dictionary<PacketType, PacketMethod>();
-                                                       //local handlers for this instance 
+        //local handlers for this instance 
 
         private LLUUID m_sessionId;
         public LLUUID SecureSessionID = LLUUID.Zero;
@@ -203,7 +203,7 @@ namespace OpenSim.Region.ClientStack
         {
             if (debug > 0)
             {
-                string info= "";
+                string info = "";
                 if (debug < 255 && packet.Type == PacketType.AgentUpdate)
                     return;
                 if (debug < 254 && packet.Type == PacketType.ViewerEffect)

@@ -107,11 +107,10 @@ namespace OpenSim.Framework.Servers
                 {
                     IStreamedRequestHandler streamedRequestHandler = requestHandler as IStreamedRequestHandler;
                     buffer = streamedRequestHandler.Handle(path, request.InputStream);
-
                 }
                 else
                 {
-                    IStreamHandler streamHandler = (IStreamHandler)requestHandler;
+                    IStreamHandler streamHandler = (IStreamHandler) requestHandler;
 
                     using (MemoryStream memoryStream = new MemoryStream())
                     {

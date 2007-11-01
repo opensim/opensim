@@ -47,7 +47,7 @@ namespace OpenSim.Region.ExtensionsScriptModule
             foreach (KeyValuePair<string, IScript> script in compiledscripts)
             {
                 ScriptInfo scriptInfo = new ScriptInfo(m_scene);
-                    // Since each script could potentially corrupt their access with a stray assignment, making a new one for each script.
+                // Since each script could potentially corrupt their access with a stray assignment, making a new one for each script.
                 MainLog.Instance.Verbose("Loading " + script.Key);
                 script.Value.Initialise(scriptInfo);
                 scripts.Add(script.Value);
@@ -127,7 +127,7 @@ namespace OpenSim.Region.ExtensionsScriptModule
         {
             MainLog.Instance.Verbose("Loading script " + script.Name);
             ScriptInfo scriptInfo = new ScriptInfo(m_scene);
-                // Since each script could potentially corrupt their access with a stray assignment, making a new one for each script.
+            // Since each script could potentially corrupt their access with a stray assignment, making a new one for each script.
             script.Initialise(scriptInfo);
             scripts.Add(script);
 

@@ -202,7 +202,7 @@ namespace OpenSim.Region.ClientStack
                     case PacketType.AgentRequestSit:
                         if (OnAgentRequestSit != null)
                         {
-                            AgentRequestSitPacket agentRequestSit = (AgentRequestSitPacket)Pack;
+                            AgentRequestSitPacket agentRequestSit = (AgentRequestSitPacket) Pack;
                             OnAgentRequestSit(this, agentRequestSit.AgentData.AgentID,
                                               agentRequestSit.TargetObject.TargetID, agentRequestSit.TargetObject.Offset);
                         }

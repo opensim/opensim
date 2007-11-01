@@ -59,7 +59,7 @@ namespace OpenSim.Region.Physics.Manager
         public abstract Quaternion Orientation { get; set; }
 
         public abstract bool Flying { get; set; }
-  
+
         public abstract bool IsColliding { get; set; }
 
         public abstract bool Kinematic { get; set; }
@@ -105,6 +105,7 @@ namespace OpenSim.Region.Physics.Manager
             get { return false; }
             set { return; }
         }
+
         public override bool IsColliding
         {
             get { return false; }

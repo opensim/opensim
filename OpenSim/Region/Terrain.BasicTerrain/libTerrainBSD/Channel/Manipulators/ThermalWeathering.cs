@@ -47,7 +47,7 @@ namespace libTerrain
             thisFrame = (double[,]) map.Clone();
 
             NeighbourSystem type = NeighbourSystem.Moore;
-                // Using moore neighbourhood (twice as computationally expensive)
+            // Using moore neighbourhood (twice as computationally expensive)
             int NEIGHBOUR_ME = 4; // I am always 4 in both systems.
 
             int NEIGHBOUR_MAX = type == NeighbourSystem.Moore ? 9 : 5;

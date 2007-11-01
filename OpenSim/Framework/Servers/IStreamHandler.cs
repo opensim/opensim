@@ -53,5 +53,4 @@ namespace OpenSim.Framework.Servers
         // Handle request stream, return byte array
         void Handle(string path, Stream request, Stream response);
     }
-
 }

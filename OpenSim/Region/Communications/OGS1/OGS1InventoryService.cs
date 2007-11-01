@@ -25,9 +25,6 @@
 * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 * 
 */
-using System;
-using System.IO;
-using System.Xml.Serialization;
 using System.Collections.Generic;
 using libsecondlife;
 using OpenSim.Framework;
@@ -38,7 +35,7 @@ namespace OpenSim.Region.Communications.OGS1
 {
     public class OGS1InventoryService : IInventoryServices
     {
-        string _inventoryServerUrl;
+        private string _inventoryServerUrl;
 
         public OGS1InventoryService(string inventoryServerUrl)
         {

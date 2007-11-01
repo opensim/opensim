@@ -1,6 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Text;
 using System.IO;
 using System.Xml;
 using System.Xml.Serialization;
@@ -20,21 +17,21 @@ namespace OpenSim.Framework.Servers
             m_method = method;
         }
 
-        public void Handle(string path, Stream request, Stream responseStream )
+        public void Handle(string path, Stream request, Stream responseStream)
         {
             TRequest deserial;
             using (XmlTextReader xmlReader = new XmlTextReader(request))
             {
-                XmlSerializer deserializer = new XmlSerializer(typeof(TRequest));
-                deserial = (TRequest)deserializer.Deserialize(xmlReader);
+                XmlSerializer deserializer = new XmlSerializer(typeof (TRequest));
+                deserial = (TRequest) deserializer.Deserialize(xmlReader);
             }
 
             TResponse response = m_method(deserial);
 
-            using (XmlWriter xmlWriter = XmlTextWriter.Create( responseStream ))
+            using (XmlWriter xmlWriter = XmlTextWriter.Create(responseStream))
             {
-                XmlSerializer serializer = new XmlSerializer(typeof(TResponse));
-                serializer.Serialize(xmlWriter, response );
+                XmlSerializer serializer = new XmlSerializer(typeof (TResponse));
+                serializer.Serialize(xmlWriter, response);
             }
         }
     }

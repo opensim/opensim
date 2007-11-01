@@ -341,8 +341,9 @@ namespace OpenSim.Region.Environment.Scenes
         /// 
         /// </summary>
         public SceneObjectGroup(Scene scene, ulong regionHandle, LLUUID ownerID, uint localID, LLVector3 pos,
-                                PrimitiveBaseShape shape):this(scene, regionHandle, ownerID, localID, pos, LLQuaternion.Identity, shape)
-		{
+                                PrimitiveBaseShape shape)
+            : this(scene, regionHandle, ownerID, localID, pos, LLQuaternion.Identity, shape)
+        {
         }
 
         #endregion
@@ -927,6 +928,7 @@ namespace OpenSim.Region.Environment.Scenes
                 part.UpdatePrimFlags(type, inUse, data);
             }
         }
+
         public void UpdateExtraParam(uint localID, ushort type, bool inUse, byte[] data)
         {
             SceneObjectPart part = GetChildPart(localID);

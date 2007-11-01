@@ -272,9 +272,10 @@ namespace OpenSim.Region.Environment.Scenes
         }
 
         public SceneObjectPart(ulong regionHandle, SceneObjectGroup parent, LLUUID ownerID, uint localID,
-                               PrimitiveBaseShape shape, LLVector3 groupPosition, LLVector3 offsetPosition):this(regionHandle, parent, ownerID, localID, shape, groupPosition, LLQuaternion.Identity, offsetPosition)
-		{
-		}
+                               PrimitiveBaseShape shape, LLVector3 groupPosition, LLVector3 offsetPosition)
+            : this(regionHandle, parent, ownerID, localID, shape, groupPosition, LLQuaternion.Identity, offsetPosition)
+        {
+        }
 
         /// <summary>
         /// Create a completely new SceneObjectPart (prim)
@@ -286,7 +287,8 @@ namespace OpenSim.Region.Environment.Scenes
         /// <param name="shape"></param>
         /// <param name="position"></param>
         public SceneObjectPart(ulong regionHandle, SceneObjectGroup parent, LLUUID ownerID, uint localID,
-                               PrimitiveBaseShape shape, LLVector3 groupPosition, LLQuaternion rotationOffset, LLVector3 offsetPosition)
+                               PrimitiveBaseShape shape, LLVector3 groupPosition, LLQuaternion rotationOffset,
+                               LLVector3 offsetPosition)
         {
             m_name = "Primitive";
             m_regionHandle = regionHandle;
@@ -313,12 +315,12 @@ namespace OpenSim.Region.Environment.Scenes
             m_flags = 0;
             m_flags |= LLObject.ObjectFlags.ObjectModify |
                        LLObject.ObjectFlags.ObjectCopy |
-                        LLObject.ObjectFlags.ObjectYouOwner |
-                        LLObject.ObjectFlags.Touch |
-                        LLObject.ObjectFlags.ObjectMove |
+                       LLObject.ObjectFlags.ObjectYouOwner |
+                       LLObject.ObjectFlags.Touch |
+                       LLObject.ObjectFlags.ObjectMove |
                        LLObject.ObjectFlags.AllowInventoryDrop |
                        LLObject.ObjectFlags.ObjectTransfer |
-					   LLObject.ObjectFlags.CreateSelected |
+                       LLObject.ObjectFlags.CreateSelected |
                        LLObject.ObjectFlags.ObjectOwnerModify;
 
             ScheduleFullUpdate();
@@ -447,23 +449,25 @@ namespace OpenSim.Region.Environment.Scenes
             TimeStampFull = (uint) Util.UnixTimeSinceEpoch();
             m_updateFlag = 2;
         }
+
         public void AddFlag(LLObject.ObjectFlags flag)
         {
-            LLObject.ObjectFlags prevflag =  m_flags;
+            LLObject.ObjectFlags prevflag = m_flags;
             //uint objflags = m_flags;
-            if ((this.ObjectFlags & (uint)flag) == 0)
+            if ((ObjectFlags & (uint) flag) == 0)
             {
                 //Console.WriteLine("Adding flag: " + ((LLObject.ObjectFlags) flag).ToString());
                 m_flags |= flag;
             }
-            uint currflag = (uint)m_flags;
+            uint currflag = (uint) m_flags;
             //System.Console.WriteLine("Aprev: " + prevflag.ToString() + " curr: " + m_flags.ToString());
             //ScheduleFullUpdate();
         }
+
         public void RemFlag(LLObject.ObjectFlags flag)
         {
-            LLObject.ObjectFlags prevflag  = m_flags;
-            if ((this.ObjectFlags & (uint) flag) != 0)
+            LLObject.ObjectFlags prevflag = m_flags;
+            if ((ObjectFlags & (uint) flag) != 0)
             {
                 //Console.WriteLine("Removing flag: " + ((LLObject.ObjectFlags)flag).ToString());
                 m_flags &= ~flag;
@@ -640,6 +644,7 @@ namespace OpenSim.Region.Environment.Scenes
         #endregion
 
         #region ExtraParams
+
         public void UpdatePrimFlags(ushort type, bool inUse, byte[] data)
         {
             bool hasPrim = false;
@@ -649,8 +654,8 @@ namespace OpenSim.Region.Environment.Scenes
             bool CastsShadows = false;
             //bool IsLocked = false;
             int i = 0;
-            
-            
+
+
             try
             {
                 i += 46;
@@ -661,40 +666,41 @@ namespace OpenSim.Region.Environment.Scenes
                 IsPhantom = (data[i++] != 0) ? true : false;
                 CastsShadows = (data[i++] != 0) ? true : false;
             }
-            catch (System.Exception e)
+            catch (Exception e)
             {
-                System.Console.WriteLine("Ignoring invalid Packet:");
+                Console.WriteLine("Ignoring invalid Packet:");
                 //Silently ignore it - TODO: FIXME Quick
             }
 
             if (IsPhantom)
             {
                 AddFlag(LLObject.ObjectFlags.Phantom);
-                if(this.PhysActor != null) {
-                    this.m_parentGroup.m_scene.PhysScene.RemovePrim(this.PhysActor);        /// that's not wholesome.  Had to make m_scene public
-                    this.PhysActor = null;
+                if (PhysActor != null)
+                {
+                    m_parentGroup.m_scene.PhysScene.RemovePrim(PhysActor);
+                        /// that's not wholesome.  Had to make m_scene public
+                    PhysActor = null;
                 }
             }
             else
             {
                 RemFlag(LLObject.ObjectFlags.Phantom);
-                if (this.PhysActor == null)
+                if (PhysActor == null)
                 {
-                    this.PhysActor = this.m_parentGroup.m_scene.PhysScene.AddPrimShape(
-                        this.Name,
-                        this.Shape,
-                        new PhysicsVector(this.AbsolutePosition.X, this.AbsolutePosition.Y,
-                                          this.AbsolutePosition.Z),
-                        new PhysicsVector(this.Scale.X, this.Scale.Y, this.Scale.Z),
-                        new Quaternion(this.RotationOffset.W, this.RotationOffset.X,
-                                       this.RotationOffset.Y, this.RotationOffset.Z));
+                    PhysActor = m_parentGroup.m_scene.PhysScene.AddPrimShape(
+                        Name,
+                        Shape,
+                        new PhysicsVector(AbsolutePosition.X, AbsolutePosition.Y,
+                                          AbsolutePosition.Z),
+                        new PhysicsVector(Scale.X, Scale.Y, Scale.Z),
+                        new Quaternion(RotationOffset.W, RotationOffset.X,
+                                       RotationOffset.Y, RotationOffset.Z));
                 }
             }
 
             if (UsePhysics)
             {
                 AddFlag(LLObject.ObjectFlags.Physics);
-
             }
             else
             {
@@ -710,9 +716,6 @@ namespace OpenSim.Region.Environment.Scenes
             }
 //            System.Console.WriteLine("Update:  PHY:" + UsePhysics.ToString() + ", T:" + IsTemporary.ToString() + ", PHA:" + IsPhantom.ToString() + " S:" + CastsShadows.ToString());
             ScheduleFullUpdate();
-
-
-
         }
 
         public void UpdateExtraParam(ushort type, bool inUse, byte[] data)
@@ -861,22 +864,21 @@ namespace OpenSim.Region.Environment.Scenes
         {
             LLQuaternion lRot;
             lRot = RotationOffset;
-			uint clientFlags = ObjectFlags & ~(uint)LLObject.ObjectFlags.CreateSelected;
+            uint clientFlags = ObjectFlags & ~(uint) LLObject.ObjectFlags.CreateSelected;
 
-			List<ScenePresence> avatars=m_parentGroup.GetScenePresences();
-			foreach(ScenePresence s in avatars)
-			{
-				if(s.m_uuid == OwnerID)
-				{
-					if(s.ControllingClient == remoteClient)
-					{
-						clientFlags = ObjectFlags;
-						m_flags &= ~LLObject.ObjectFlags.CreateSelected;
-
-					}
-					break;
-				}
-			}
+            List<ScenePresence> avatars = m_parentGroup.GetScenePresences();
+            foreach (ScenePresence s in avatars)
+            {
+                if (s.m_uuid == OwnerID)
+                {
+                    if (s.ControllingClient == remoteClient)
+                    {
+                        clientFlags = ObjectFlags;
+                        m_flags &= ~LLObject.ObjectFlags.CreateSelected;
+                    }
+                    break;
+                }
+            }
 
             remoteClient.SendPrimitiveToClient(m_regionHandle, 64096, LocalID, m_shape, lPos, clientFlags, m_uuid,
                                                OwnerID,
