@@ -118,7 +118,13 @@ namespace OpenSim.Region.ClientStack
 
             int packetEnd = numBytes - 1;
 
-            packet = Packet.BuildPacket(RecvBuffer, ref packetEnd, ZeroBuffer);
+            try
+            {
+                packet = Packet.BuildPacket(RecvBuffer, ref packetEnd, ZeroBuffer);
+            }
+            catch(Exception)
+            {
+            }
 
             // do we already have a circuit for this endpoint
             uint circuit;
