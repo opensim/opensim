@@ -32,6 +32,7 @@ using System.IO;
 using System.Xml.Serialization;
 using libsecondlife;
 using OpenSim.Framework.Console;
+using OpenSim.Framework.Servers;
 
 namespace OpenSim.Framework.Communications.Cache
 {
@@ -103,16 +104,17 @@ namespace OpenSim.Framework.Communications.Cache
         {
             try
             {
-                MemoryStream s = new MemoryStream();
+              //  MemoryStream s = new MemoryStream();
 
-                XmlSerializer xs = new XmlSerializer(typeof (AssetBase));
-                xs.Serialize(s, asset);
-                RestClient rc = new RestClient(_assetServerUrl);
-		MainLog.Instance.Verbose("ASSET", "Storing {0}", rc);
-                rc.AddResourcePath("assets");
-                rc.RequestMethod = "POST";
-                rc.Request(s);
-		MainLog.Instance.Verbose("ASSET", "Stored {0}", rc);
+               // XmlSerializer xs = new XmlSerializer(typeof(AssetBase));
+             //   xs.Serialize(s, asset);
+              //  RestClient rc = new RestClient(_assetServerUrl);
+		MainLog.Instance.Verbose("ASSET", "Storing asset");
+                //rc.AddResourcePath("assets");
+               // rc.RequestMethod = "POST";
+              //  rc.Request(s);
+		//MainLog.Instance.Verbose("ASSET", "Stored {0}", rc);
+        RestObjectPoster.BeginPostObject<AssetBase>(_assetRequests + "/assets/", asset);
             }
             catch (Exception e)
             {
