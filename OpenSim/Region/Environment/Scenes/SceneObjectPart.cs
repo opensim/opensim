@@ -199,10 +199,14 @@ namespace OpenSim.Region.Environment.Scenes
             {
                 if (PhysActor != null)
                 {
-                    m_rotationOffset.X = PhysActor.Orientation.x;
-                    m_rotationOffset.Y = PhysActor.Orientation.y;
-                    m_rotationOffset.Z = PhysActor.Orientation.z;
-                    m_rotationOffset.W = PhysActor.Orientation.w;
+                    if(PhysActor.Orientation.x != 0 || PhysActor.Orientation.y != 0 
+                    || PhysActor.Orientation.z != 0 || PhysActor.Orientation.w != 0)
+                    {
+                        m_rotationOffset.X = PhysActor.Orientation.x;
+                        m_rotationOffset.Y = PhysActor.Orientation.y;
+                        m_rotationOffset.Z = PhysActor.Orientation.z;
+                        m_rotationOffset.W = PhysActor.Orientation.w;
+                    }
                 }
                 return m_rotationOffset; 
             }
