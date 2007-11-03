@@ -672,6 +672,15 @@ namespace OpenSim.Region.Environment.Scenes
                 //Silently ignore it - TODO: FIXME Quick
             }
 
+            if (UsePhysics)
+            {
+                AddFlag(LLObject.ObjectFlags.Physics);
+            }
+            else
+            {
+                RemFlag(LLObject.ObjectFlags.Physics);
+            }
+
             if (IsPhantom)
             {
                 AddFlag(LLObject.ObjectFlags.Phantom);
@@ -694,18 +703,10 @@ namespace OpenSim.Region.Environment.Scenes
                                           AbsolutePosition.Z),
                         new PhysicsVector(Scale.X, Scale.Y, Scale.Z),
                         new Quaternion(RotationOffset.W, RotationOffset.X,
-                                       RotationOffset.Y, RotationOffset.Z));
+                                       RotationOffset.Y, RotationOffset.Z), UsePhysics);
                 }
             }
 
-            if (UsePhysics)
-            {
-                AddFlag(LLObject.ObjectFlags.Physics);
-            }
-            else
-            {
-                RemFlag(LLObject.ObjectFlags.Physics);
-            }
             if (IsTemporary)
             {
                 AddFlag(LLObject.ObjectFlags.TemporaryOnRez);

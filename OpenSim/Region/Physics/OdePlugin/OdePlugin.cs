@@ -300,7 +300,12 @@ namespace OpenSim.Region.Physics.OdePlugin
 
 
         public override PhysicsActor AddPrimShape(string primName, PrimitiveBaseShape pbs, PhysicsVector position,
-                                                  PhysicsVector size, Quaternion rotation)
+                                                  PhysicsVector size, Quaternion rotation) //To be removed
+        {
+            return this.AddPrimShape(primName, pbs, position, size, rotation, false);
+        }
+        public override PhysicsActor AddPrimShape(string primName, PrimitiveBaseShape pbs, PhysicsVector position,
+                                                  PhysicsVector size, Quaternion rotation, bool isPhysical)
         {
             PhysicsActor result;
 
@@ -508,6 +513,12 @@ namespace OpenSim.Region.Physics.OdePlugin
             }
             parent_scene.geom_name_map[Shell] = avName;
             parent_scene.actor_name_map[Shell] = (PhysicsActor)this;
+        }
+
+        public override bool IsPhysical
+        {
+            get { return false; }
+            set { return; }
         }
 
         public override bool Flying
@@ -756,6 +767,12 @@ namespace OpenSim.Region.Physics.OdePlugin
             d.GeomTriMeshDataPreprocess(_triMeshData);
 
             prim_geom = d.CreateTriMesh(parent_scene.space, _triMeshData, parent_scene.triCallback, null, null);
+        }
+
+        public override bool IsPhysical
+        {
+            get { return false; }
+            set { return; }
         }
 
         public override bool Flying

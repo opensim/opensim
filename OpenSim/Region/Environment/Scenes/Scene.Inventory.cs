@@ -456,6 +456,7 @@ namespace OpenSim.Region.Environment.Scenes
             AddEntity(group);
             group.AbsolutePosition = pos;
             SceneObjectPart rootPart = group.GetChildPart(group.UUID);
+            bool UsePhysics = ((rootPart.ObjectFlags & (uint)LLObject.ObjectFlags.Physics) > 0);
             if ((rootPart.ObjectFlags & (uint) LLObject.ObjectFlags.Phantom) == 0)
             {
                 PrimitiveBaseShape pbs = rootPart.Shape;
@@ -466,7 +467,7 @@ namespace OpenSim.Region.Environment.Scenes
                                       rootPart.AbsolutePosition.Z),
                     new PhysicsVector(rootPart.Scale.X, rootPart.Scale.Y, rootPart.Scale.Z),
                     new Quaternion(rootPart.RotationOffset.W, rootPart.RotationOffset.X,
-                                   rootPart.RotationOffset.Y, rootPart.RotationOffset.Z));
+                                   rootPart.RotationOffset.Y, rootPart.RotationOffset.Z), UsePhysics);
             }
         }
     }

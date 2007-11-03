@@ -438,7 +438,8 @@ namespace OpenSim.Region.Environment.Scenes
                                       dupe.RootPart.AbsolutePosition.Z),
                     new PhysicsVector(dupe.RootPart.Scale.X, dupe.RootPart.Scale.Y, dupe.RootPart.Scale.Z),
                     new Quaternion(dupe.RootPart.RotationOffset.W, dupe.RootPart.RotationOffset.X,
-                                   dupe.RootPart.RotationOffset.Y, dupe.RootPart.RotationOffset.Z));
+                                   dupe.RootPart.RotationOffset.Y, dupe.RootPart.RotationOffset.Z),
+                                   dupe.RootPart.PhysActor.IsPhysical);
             }
 
             List<SceneObjectPart> partList = new List<SceneObjectPart>(m_parts.Values);
@@ -977,7 +978,8 @@ namespace OpenSim.Region.Environment.Scenes
                                       m_rootPart.AbsolutePosition.Z),
                     new PhysicsVector(m_rootPart.Scale.X, m_rootPart.Scale.Y, m_rootPart.Scale.Z),
                     new Quaternion(m_rootPart.RotationOffset.W, m_rootPart.RotationOffset.X,
-                                   m_rootPart.RotationOffset.Y, m_rootPart.RotationOffset.Z));
+                                   m_rootPart.RotationOffset.Y, m_rootPart.RotationOffset.Z),
+                    m_rootPart.PhysActor.IsPhysical);
             }
         }
 

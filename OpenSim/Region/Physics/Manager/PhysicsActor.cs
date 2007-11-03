@@ -58,6 +58,8 @@ namespace OpenSim.Region.Physics.Manager
 
         public abstract Quaternion Orientation { get; set; }
 
+        public abstract bool IsPhysical {get; set;}
+
         public abstract bool Flying { get; set; }
 
         public abstract bool IsColliding { get; set; }
@@ -98,6 +100,12 @@ namespace OpenSim.Region.Physics.Manager
         public override PhysicsVector Acceleration
         {
             get { return PhysicsVector.Zero; }
+        }
+
+        public override bool IsPhysical
+        {
+            get { return false; }
+            set { return; }
         }
 
         public override bool Flying

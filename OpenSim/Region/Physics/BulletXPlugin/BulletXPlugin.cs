@@ -387,6 +387,11 @@ namespace OpenSim.Region.Physics.BulletXPlugin
         public override PhysicsActor AddPrimShape(string primName, PrimitiveBaseShape pbs, PhysicsVector position,
                                                   PhysicsVector size, AxiomQuaternion rotation)
         {
+            return this.AddPrimShape(primName, pbs, position, size, rotation, false);
+        }
+        public override PhysicsActor AddPrimShape(string primName, PrimitiveBaseShape pbs, PhysicsVector position,
+                                                  PhysicsVector size, AxiomQuaternion rotation, bool isPhysical)
+        {
             PhysicsActor result;
 
             switch (pbs.ProfileShape)
@@ -651,10 +656,7 @@ namespace OpenSim.Region.Physics.BulletXPlugin
 
         public override PhysicsVector Position
         {
-            get
-            {
-                return _position;
-            }
+            get { return _position; }
             set
             {
                 lock (BulletXScene.BulletXLock)
@@ -666,10 +668,7 @@ namespace OpenSim.Region.Physics.BulletXPlugin
         }
         public override PhysicsVector Velocity
         {
-            get
-            {
-                return _velocity;
-            }
+            get { return _velocity; }
             set
             {
                 lock (BulletXScene.BulletXLock)
@@ -689,31 +688,16 @@ namespace OpenSim.Region.Physics.BulletXPlugin
         }
         public override PhysicsVector Size
         {
-            get
-            {
-                return _size;
-            }
-            set
-            {
-                lock (BulletXScene.BulletXLock)
-                {
-                    _size = value;
-                }
-            }
+            get { return _size; }
+            set { lock (BulletXScene.BulletXLock) { _size = value; } }
         }
         public override PhysicsVector Acceleration
         {
-            get
-            {
-                return _acceleration;
-            }
+            get { return _acceleration; }
         }
         public override AxiomQuaternion Orientation
         {
-            get
-            {
-                return _orientation;
-            }
+            get { return _orientation; }
             set
             {
                 lock (BulletXScene.BulletXLock)
@@ -723,29 +707,29 @@ namespace OpenSim.Region.Physics.BulletXPlugin
                 }
             }
         }
-        public virtual float Mass
-        { get { return 0; } }
+        public virtual float Mass 
+        { 
+            get { return 0; } 
+        }
         public RigidBody RigidBody
         {
-            get
-            {
-                return rigidBody;
-            }
+            get { return rigidBody; }
         }
         public Vector3 RigidBodyPosition
         {
             get { return this.rigidBody.CenterOfMassPosition; }
         }
+
+        public override bool IsPhysical
+        {
+            get { return false; }
+            set { return; }
+        }
+
         public override bool Flying
         {
-            get
-            {
-                return flying;
-            }
-            set
-            {
-                flying = value;
-            }
+            get { return flying; }
+            set { flying = value; }
         }
         public override bool IsColliding
         {

@@ -533,6 +533,7 @@ namespace OpenSim.Region.Environment.Scenes
             {
                 AddEntityFromStorage(prim);
                 SceneObjectPart rootPart = prim.GetChildPart(prim.UUID);
+                bool UsePhysics = ((rootPart.ObjectFlags & (uint)LLObject.ObjectFlags.Physics) > 0);
                 if ((rootPart.ObjectFlags & (uint) LLObject.ObjectFlags.Phantom) == 0)
                     rootPart.PhysActor = phyScene.AddPrimShape(
                         rootPart.Name,
@@ -541,7 +542,7 @@ namespace OpenSim.Region.Environment.Scenes
                                           rootPart.AbsolutePosition.Z),
                         new PhysicsVector(rootPart.Scale.X, rootPart.Scale.Y, rootPart.Scale.Z),
                         new Quaternion(rootPart.RotationOffset.W, rootPart.RotationOffset.X,
-                                       rootPart.RotationOffset.Y, rootPart.RotationOffset.Z));
+                                       rootPart.RotationOffset.Y, rootPart.RotationOffset.Z), UsePhysics);
             }
             MainLog.Instance.Verbose("Loaded " + PrimsFromDB.Count.ToString() + " SceneObject(s)");
         }
@@ -582,6 +583,7 @@ namespace OpenSim.Region.Environment.Scenes
                     rootPart.ObjectFlags += (uint) LLObject.ObjectFlags.Phantom;
                 }
                 // if not phantom, add to physics
+                bool UsePhysics = ((rootPart.ObjectFlags & (uint)LLObject.ObjectFlags.Physics) > 0);
                 if ((rootPart.ObjectFlags & (uint) LLObject.ObjectFlags.Phantom) == 0)
                     rootPart.PhysActor =
                         phyScene.AddPrimShape(
@@ -589,7 +591,7 @@ namespace OpenSim.Region.Environment.Scenes
                             rootPart.Shape,
                             new PhysicsVector(pos.X, pos.Y, pos.Z),
                             new PhysicsVector(shape.Scale.X, shape.Scale.Y, shape.Scale.Z),
-                            new Quaternion());
+                            new Quaternion(), UsePhysics);
             }
         }
 
@@ -669,6 +671,7 @@ namespace OpenSim.Region.Environment.Scenes
                     AddEntity(obj);
 
                     SceneObjectPart rootPart = obj.GetChildPart(obj.UUID);
+                    bool UsePhysics = ((rootPart.ObjectFlags & (uint)LLObject.ObjectFlags.Physics) > 0);
                     if ((rootPart.ObjectFlags & (uint) LLObject.ObjectFlags.Phantom) == 0)
                         rootPart.PhysActor = phyScene.AddPrimShape(
                             rootPart.Name,
@@ -677,7 +680,7 @@ namespace OpenSim.Region.Environment.Scenes
                                               rootPart.AbsolutePosition.Z),
                             new PhysicsVector(rootPart.Scale.X, rootPart.Scale.Y, rootPart.Scale.Z),
                             new Quaternion(rootPart.RotationOffset.W, rootPart.RotationOffset.X,
-                                           rootPart.RotationOffset.Y, rootPart.RotationOffset.Z));
+                                           rootPart.RotationOffset.Y, rootPart.RotationOffset.Z), UsePhysics);
                     primCount++;
                 }
             }
@@ -734,6 +737,7 @@ namespace OpenSim.Region.Environment.Scenes
             AddEntityFromStorage(obj);
 
             SceneObjectPart rootPart = obj.GetChildPart(obj.UUID);
+            bool UsePhysics = ((rootPart.ObjectFlags & (uint)LLObject.ObjectFlags.Physics) > 0);
             if ((rootPart.ObjectFlags & (uint) LLObject.ObjectFlags.Phantom) == 0)
                 rootPart.PhysActor = phyScene.AddPrimShape(
                     rootPart.Name,
@@ -742,7 +746,7 @@ namespace OpenSim.Region.Environment.Scenes
                                       rootPart.AbsolutePosition.Z),
                     new PhysicsVector(rootPart.Scale.X, rootPart.Scale.Y, rootPart.Scale.Z),
                     new Quaternion(rootPart.RotationOffset.W, rootPart.RotationOffset.X,
-                                   rootPart.RotationOffset.Y, rootPart.RotationOffset.Z));
+                                   rootPart.RotationOffset.Y, rootPart.RotationOffset.Z), UsePhysics);
         }
 
         public void SavePrimsToXml2(string fileName)

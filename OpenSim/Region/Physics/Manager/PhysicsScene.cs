@@ -45,7 +45,9 @@ namespace OpenSim.Region.Physics.Manager
         public abstract void RemovePrim(PhysicsActor prim);
 
         public abstract PhysicsActor AddPrimShape(string primName, PrimitiveBaseShape pbs, PhysicsVector position,
-                                                  PhysicsVector size, Quaternion rotation);
+                                                  PhysicsVector size, Quaternion rotation); //To be removed
+        public abstract PhysicsActor AddPrimShape(string primName, PrimitiveBaseShape pbs, PhysicsVector position,
+                                                  PhysicsVector size, Quaternion rotation, bool isPhysical);
 
         public abstract void Simulate(float timeStep);
 
@@ -82,9 +84,13 @@ namespace OpenSim.Region.Physics.Manager
                 return PhysicsActor.Null;
             }
 */
-
             public override PhysicsActor AddPrimShape(string primName, PrimitiveBaseShape pbs, PhysicsVector position,
-                                                      PhysicsVector size, Quaternion rotation)
+                                                      PhysicsVector size, Quaternion rotation) //To be removed
+            {
+                return this.AddPrimShape(primName, pbs, position, size, rotation, false);
+            }
+            public override PhysicsActor AddPrimShape(string primName, PrimitiveBaseShape pbs, PhysicsVector position,
+                                                      PhysicsVector size, Quaternion rotation, bool isPhysical)
             {
                 MainLog.Instance.Verbose("NullPhysicsScene : AddPrim({0},{1})", position, size);
                 return PhysicsActor.Null;

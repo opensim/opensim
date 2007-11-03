@@ -101,9 +101,14 @@ namespace OpenSim.Region.Physics.BasicPhysicsPlugin
         public override PhysicsActor AddPrimShape(string primName, PrimitiveBaseShape pbs, PhysicsVector position,
                                                   PhysicsVector size, Quaternion rotation)
         {
-            return null;
+            return this.AddPrimShape(primName, pbs, position, size, rotation, false);
         }
 
+        public override PhysicsActor AddPrimShape(string primName, PrimitiveBaseShape pbs, PhysicsVector position, 
+                                                  PhysicsVector size, Quaternion rotation, bool isPhysical)
+        {
+            return null;
+        }
 
         public override void Simulate(float timeStep)
         {
@@ -184,6 +189,12 @@ namespace OpenSim.Region.Physics.BasicPhysicsPlugin
             _velocity = new PhysicsVector();
             _position = new PhysicsVector();
             _acceleration = new PhysicsVector();
+        }
+
+        public override bool IsPhysical
+        {
+            get { return false; }
+            set { return; }
         }
 
         public override bool Flying

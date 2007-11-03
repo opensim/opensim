@@ -120,7 +120,12 @@ namespace OpenSim.Region.Physics.PhysXPlugin
         }
 
         public override PhysicsActor AddPrimShape(string primName, PrimitiveBaseShape pbs, PhysicsVector position,
-                                                  PhysicsVector size, Quaternion rotation)
+                                                  PhysicsVector size, Quaternion rotation) //To be removed
+        {
+            return this.AddPrimShape(primName, pbs, position, size, rotation, false);
+        }
+        public override PhysicsActor AddPrimShape(string primName, PrimitiveBaseShape pbs, PhysicsVector position,
+                                                  PhysicsVector size, Quaternion rotation, bool isPhysical)
         {
             return AddPrim(position, size, rotation);
         }
@@ -191,6 +196,12 @@ namespace OpenSim.Region.Physics.PhysXPlugin
             _position = new PhysicsVector();
             _acceleration = new PhysicsVector();
             _character = character;
+        }
+
+        public override bool IsPhysical
+        {
+            get { return false; }
+            set { return; }
         }
 
         public override bool Flying
@@ -303,6 +314,12 @@ namespace OpenSim.Region.Physics.PhysXPlugin
             _position = new PhysicsVector();
             _acceleration = new PhysicsVector();
             _prim = prim;
+        }
+
+        public override bool IsPhysical
+        {
+            get { return false; }
+            set { return; }
         }
 
         public override bool Flying
