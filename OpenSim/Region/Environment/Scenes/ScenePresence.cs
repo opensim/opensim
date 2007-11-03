@@ -71,6 +71,8 @@ namespace OpenSim.Region.Environment.Scenes
         private LLVector3 lastPhysPos = new LLVector3();
         private int m_wearablesSerial = 1;
 
+        private List<ulong> m_KnownChildRegions = new List<ulong>(); //neighbouring regions we have enabled a child agent in
+
         private enum Dir_ControlFlags
         {
             DIR_CONTROL_FLAG_FOWARD = MainAvatar.ControlFlags.AGENT_CONTROL_AT_POS,
@@ -365,7 +367,7 @@ namespace OpenSim.Region.Environment.Scenes
             m_scene.SendAllSceneObjectsToClient(this);
         }
 
-        protected void MakeChildAgent()
+        public void MakeChildAgent()
         {
             Velocity = new LLVector3(0, 0, 0);
             m_isChildAgent = true;
@@ -399,6 +401,14 @@ namespace OpenSim.Region.Environment.Scenes
         /// </summary>
         public void StopMovement()
         {
+        }
+
+        public void AddNeighbourRegion(ulong regionHandle)
+        {
+            if (!m_KnownChildRegions.Contains(regionHandle))
+            {
+                m_KnownChildRegions.Add(regionHandle);
+            }
         }
 
         #endregion
@@ -818,7 +828,7 @@ namespace OpenSim.Region.Environment.Scenes
                                                AbsolutePosition, m_textureEntry.ToBytes(), m_parentID);
             if (!m_isChildAgent)
             {
-                m_scene.InformClientOfNeighbours(m_controllingClient);
+                m_scene.InformClientOfNeighbours(this);
                 m_newAvatar = false;
             }
 
@@ -833,22 +843,8 @@ namespace OpenSim.Region.Environment.Scenes
         public void SendOurAppearance(IClientAPI client)
         {
             client.SendWearables(m_wearables, m_wearablesSerial++);
-
-            //this.SendFullUpdateToAllClients();
-            //this.SendAppearanceToAllOtherAgents();
-
             m_scene.SendAllSceneObjectsToClient(this);
             m_controllingClient.SendViewerTime(m_scene.TimePhase);
-
-            //Please don't remove the following code (at least not yet), just leave it commented out
-            //gives the user god powers, should help with debuging things in the future
-            /*
-            GrantGodlikePowersPacket grant = new GrantGodlikePowersPacket();
-            grant.AgentData.AgentID = this.ControllingClient.AgentId;
-            grant.AgentData.SessionID = this.ControllingClient.SessionId;
-            grant.GrantData.GodLevel = 255;
-            grant.GrantData.Token = LLUUID.Random();
-            this.ControllingClient.OutPacket(grant);*/
         }
 
         /// <summary>
@@ -975,7 +971,7 @@ namespace OpenSim.Region.Environment.Scenes
 
             LLVector3 vel = m_velocity;
             ulong neighbourHandle = Helpers.UIntsToLong((uint) (neighbourx*256), (uint) (neighboury*256));
-            RegionInfo neighbourRegion = m_scene.RequestNeighbouringRegionInfo(neighbourHandle);
+            SimpleRegionInfo neighbourRegion = m_scene.RequestNeighbouringRegionInfo(neighbourHandle);
             if (neighbourRegion != null)
             {
                 bool res =
