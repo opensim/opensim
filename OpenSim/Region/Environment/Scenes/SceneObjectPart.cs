@@ -148,8 +148,34 @@ namespace OpenSim.Region.Environment.Scenes
 
         public LLVector3 GroupPosition
         {
-            get { return m_groupPosition; }
-            set { m_groupPosition = value; }
+            get 
+            {
+                if (PhysActor != null)
+                {
+                    m_groupPosition.X = PhysActor.Position.X;
+                    m_groupPosition.Y = PhysActor.Position.Y;
+                    m_groupPosition.Z = PhysActor.Position.Z;
+                }
+                return m_groupPosition; 
+            }
+            set 
+            {
+                if (PhysActor != null)
+                {
+                    try
+                    {
+                        //lock (m_scene.SyncRoot)
+                        //{
+                        PhysActor.Position = new PhysicsVector(value.X, value.Y, value.Z);
+                        //}
+                    }
+                    catch (Exception e)
+                    {
+                        Console.WriteLine(e.Message);
+                    }
+                }
+                m_groupPosition = value; 
+            }
         }
 
         protected LLVector3 m_offsetPosition;
@@ -169,8 +195,35 @@ namespace OpenSim.Region.Environment.Scenes
 
         public LLQuaternion RotationOffset
         {
-            get { return m_rotationOffset; }
-            set { m_rotationOffset = value; }
+            get 
+            {
+                if (PhysActor != null)
+                {
+                    m_rotationOffset.X = PhysActor.Orientation.x;
+                    m_rotationOffset.Y = PhysActor.Orientation.y;
+                    m_rotationOffset.Z = PhysActor.Orientation.z;
+                    m_rotationOffset.W = PhysActor.Orientation.w;
+                }
+                return m_rotationOffset; 
+            }
+            set 
+            {
+                if (PhysActor != null)
+                {
+                    try
+                    {
+                        //lock (m_scene.SyncRoot)
+                        //{
+                        PhysActor.Orientation = new Quaternion(value.W, value.X, value.Y, value.Z);
+                        //}
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine(ex.Message);
+                    }
+                }
+                m_rotationOffset = value; 
+            }
         }
 
         protected LLVector3 m_velocity;
@@ -260,7 +313,12 @@ namespace OpenSim.Region.Environment.Scenes
         public SceneObjectGroup ParentGroup
         {
             get { return m_parentGroup; }
-            
+        }
+
+        public byte UpdateFlag
+        {
+            get { return m_updateFlag; }
+            set { m_updateFlag = value; }
         }
 
         #region Constructors
@@ -502,6 +560,7 @@ namespace OpenSim.Region.Environment.Scenes
             {
                 AddTerseUpdateToAllAvatars();
                 ClearUpdateSchedule();
+                ScheduleTerseUpdate();
             }
             else
             {
@@ -705,6 +764,10 @@ namespace OpenSim.Region.Environment.Scenes
                         new PhysicsVector(Scale.X, Scale.Y, Scale.Z),
                         new Quaternion(RotationOffset.W, RotationOffset.X,
                                        RotationOffset.Y, RotationOffset.Z), UsePhysics);
+                }
+                else
+                {
+                    PhysActor.IsPhysical = UsePhysics;
                 }
             }
 

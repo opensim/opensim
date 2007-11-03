@@ -55,6 +55,9 @@ namespace OpenSim.Region.Environment.Scenes
 
         public bool HasChanged = false;
 
+        private LLVector3 lastPhysGroupPos;
+        private LLQuaternion lastPhysGroupRot;
+
         #region Properties
 
         /// <summary>
@@ -490,6 +493,25 @@ namespace OpenSim.Region.Environment.Scenes
         /// </summary>
         public override void Update()
         {
+            if (lastPhysGroupPos.GetDistanceTo(AbsolutePosition) > 0.02)
+            {
+                foreach (SceneObjectPart part in m_parts.Values)
+                {
+                    if (part.UpdateFlag == 0) part.UpdateFlag = 1;
+                }
+                lastPhysGroupPos = AbsolutePosition;
+            }
+            if ((Math.Abs(lastPhysGroupRot.W - GroupRotation.W) > 0.1)
+                || (Math.Abs(lastPhysGroupRot.X - GroupRotation.X) > 0.1)
+                || (Math.Abs(lastPhysGroupRot.Y - GroupRotation.Y) > 0.1)
+                || (Math.Abs(lastPhysGroupRot.Z - GroupRotation.Z) > 0.1))
+            {
+                foreach (SceneObjectPart part in m_parts.Values)
+                {
+                    if (part.UpdateFlag == 0) part.UpdateFlag = 1;
+                }
+                lastPhysGroupRot = GroupRotation;
+            }
             foreach (SceneObjectPart part in m_parts.Values)
             {
                 part.SendScheduledUpdates();

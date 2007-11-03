@@ -400,35 +400,30 @@ namespace OpenSim.Region.Physics.BulletXPlugin
                     /// support simple box & hollow box now; later, more shapes
                     if (pbs.ProfileHollow == 0)
                     {
-                        result = AddPrim(primName, position, size, rotation, null, null);
+                        result = AddPrim(primName, position, size, rotation, null, null, isPhysical);
                     }
                     else
                     {
                         Mesh mesh = null;
-                        result = AddPrim(primName, position, size, rotation, mesh, pbs);
+                        result = AddPrim(primName, position, size, rotation, mesh, pbs, isPhysical);
                     }
                     break;
 
                 default:
-                    result = AddPrim(primName, position, size, rotation, null, null);
+                    result = AddPrim(primName, position, size, rotation, null, null, isPhysical);
                     break;
             }
 
             return result;
         }
 
-        public PhysicsActor AddPrim(PhysicsVector position, PhysicsVector size, AxiomQuaternion rotation)
-        {
-            return AddPrim("", position, size, rotation, null, null);
-        }
-
         public PhysicsActor AddPrim(String name, PhysicsVector position, PhysicsVector size, AxiomQuaternion rotation,
-                                    Mesh mesh, PrimitiveBaseShape pbs)
+                                    Mesh mesh, PrimitiveBaseShape pbs, bool isPhysical)
         {
             BulletXPrim newPrim = null;
             lock (BulletXLock)
             {
-                newPrim = new BulletXPrim(name, this, position, size, rotation, mesh, pbs);
+                newPrim = new BulletXPrim(name, this, position, size, rotation, mesh, pbs, isPhysical);
                 _prims.Add(newPrim);
             }
             return newPrim;
@@ -641,7 +636,7 @@ namespace OpenSim.Region.Physics.BulletXPlugin
     public class BulletXActor : PhysicsActor
     {
         protected bool flying = false;
-        protected bool _physical = true;
+        protected bool _physical = false;
         protected PhysicsVector _position;
         protected PhysicsVector _velocity;
         protected PhysicsVector _size;
@@ -722,8 +717,8 @@ namespace OpenSim.Region.Physics.BulletXPlugin
 
         public override bool IsPhysical
         {
-            get { return false; }
-            set { return; }
+            get { return _physical; }
+            set { _physical = value; }
         }
 
         public override bool Flying
@@ -736,17 +731,6 @@ namespace OpenSim.Region.Physics.BulletXPlugin
             get { return iscolliding; }
             set { iscolliding = value; }
         }
-        /*public override bool Physical
-        {
-            get
-            {
-                return _physical;
-            }
-            set
-            {
-                _physical = value;
-            }
-        }*/
         public virtual void SetAcceleration(PhysicsVector accel)
         {
             lock (BulletXScene.BulletXLock)
@@ -854,6 +838,8 @@ namespace OpenSim.Region.Physics.BulletXPlugin
             //.
             _acceleration = acceleration;
             _orientation = orientation;
+            _physical = true;
+
             float _mass = 50.0f; //This depends of avatar's dimensions
             //For RigidBody Constructor. The next values might change
             float _linearDamping = 0.0f;
@@ -1003,25 +989,23 @@ namespace OpenSim.Region.Physics.BulletXPlugin
         private BulletXScene _parent_scene;
 
         public BulletXPrim(String primName, BulletXScene parent_scene, PhysicsVector pos, PhysicsVector size,
-                           AxiomQuaternion rotation, Mesh mesh, PrimitiveBaseShape pbs)
-            : this(primName, parent_scene, pos, new PhysicsVector(), size, new PhysicsVector(), rotation, mesh, pbs)
+                           AxiomQuaternion rotation, Mesh mesh, PrimitiveBaseShape pbs, bool isPhysical)
+            : this(primName, parent_scene, pos, new PhysicsVector(), size, new PhysicsVector(), rotation, mesh, pbs, isPhysical)
         {
         }
         public BulletXPrim(String primName, BulletXScene parent_scene, PhysicsVector pos, PhysicsVector velocity,
                            PhysicsVector size,
-                           PhysicsVector aceleration, AxiomQuaternion rotation, Mesh mesh, PrimitiveBaseShape pbs)
+                           PhysicsVector acceleration, AxiomQuaternion rotation, Mesh mesh, PrimitiveBaseShape pbs, 
+                           bool isPhysical)
         {
             if ((size.X == 0) || (size.Y == 0) || (size.Z == 0)) throw new Exception("Size 0");
             if (rotation.Norm == 0f) rotation = AxiomQuaternion.Identity;
 
             _position = pos;
-            //ZZZ
-            _physical = false;
-            //zzz
-            if (_physical) _velocity = velocity;
-            else _velocity = new PhysicsVector();
+            _physical = isPhysical;
+            _velocity = _physical ? velocity : new PhysicsVector();
             _size = size;
-            _acceleration = aceleration;
+            _acceleration = acceleration;
             _orientation = rotation;
 
             _parent_scene = parent_scene;
@@ -1068,26 +1052,18 @@ namespace OpenSim.Region.Physics.BulletXPlugin
             get
             {
                 //For now all prims are boxes
-                //ZZZ
-                return _density * _size.X * _size.Y * _size.Z;
-                //return (_physical ? 1 : 0) * _density * _size.X * _size.Y * _size.Z;
-                //zzz
+                return (_physical ? 1 : 0) * _density * _size.X * _size.Y * _size.Z;
             }
         }
-        public Boolean Physical
-        {
-            get { return _physical; }
-            set { _physical = value; }
-        }
-        /*public override bool Physical
+        public override bool IsPhysical
         {
             get
             {
-                return base.Physical;
+                return base.IsPhysical;
             }
             set
             {
-                base.Physical = value;
+                base.IsPhysical = value;
                 if (value)
                 {
                     //---
@@ -1100,10 +1076,10 @@ namespace OpenSim.Region.Physics.BulletXPlugin
                     //---
                     PhysicsPluginManager.PhysicsPluginMessage("Physical - SetMassProps", true);
                     //---
-                    this.rigidBody.SetMassProps(Mass, new MonoXnaCompactMaths.Vector3());
+                    this.rigidBody.SetMassProps(Mass, new Vector3());
                 }
             }
-        }*/
+        }
         public override bool Flying
         {
             get { return base.Flying; }
@@ -1184,10 +1160,7 @@ namespace OpenSim.Region.Physics.BulletXPlugin
                 CollisionShape _collisionShape = new XnaDevRu.BulletX.BoxShape(BulletXMaths.PhysicsVectorToXnaVector3(size) / 2.0f);
                 DefaultMotionState _motionState = new DefaultMotionState(_startTransform, _centerOfMassOffset);
                 Vector3 _localInertia = new Vector3();
-                //ZZZ
-                if (Mass > 0) _collisionShape.CalculateLocalInertia(Mass, out _localInertia); //Always when mass > 0
-                //if (_physical) _collisionShape.CalculateLocalInertia(Mass, out _localInertia); //Always when mass > 0
-                //zzz
+                if (_physical) _collisionShape.CalculateLocalInertia(Mass, out _localInertia); //Always when mass > 0
                 rigidBody = new RigidBody(Mass, _motionState, _collisionShape, _localInertia, _linearDamping, _angularDamping, _friction, _restitution);
                 //rigidBody.ActivationState = ActivationState.DisableDeactivation;
                 //It's seems that there are a bug with rigidBody constructor and its CenterOfMassPosition
