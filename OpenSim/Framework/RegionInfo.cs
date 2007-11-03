@@ -26,10 +26,16 @@
 * 
 */
 using System;
+using System.Globalization;
 using System.Net;
+using System.Xml;
 using System.Net.Sockets;
-using libsecondlife;
 using Nini.Config;
+using libsecondlife;
+using OpenSim.Framework.Console;
+using OpenSim.Framework;
+
+
 
 namespace OpenSim.Framework
 {
@@ -41,6 +47,7 @@ namespace OpenSim.Framework
 
         public SimpleRegionInfo(uint regionLocX, uint regionLocY, IPEndPoint internalEndPoint, string externalUri)
         {
+
             m_regionLocX = regionLocX;
             m_regionLocY = regionLocY;
 
@@ -50,6 +57,7 @@ namespace OpenSim.Framework
 
         public SimpleRegionInfo(uint regionLocX, uint regionLocY, string externalUri, int port)
         {
+
             m_regionLocX = regionLocX;
             m_regionLocY = regionLocY;
 
@@ -61,11 +69,16 @@ namespace OpenSim.Framework
         public LLUUID RegionID = new LLUUID();
 
         private uint m_remotingPort;
-
         public uint RemotingPort
         {
-            get { return m_remotingPort; }
-            set { m_remotingPort = value; }
+            get
+            {
+                return m_remotingPort;
+            }
+            set
+            {
+                m_remotingPort = value;
+            }
         }
 
         public string RemotingAddress;
@@ -98,49 +111,76 @@ namespace OpenSim.Framework
                         ia = Adr;
                         break;
                     }
+
                 }
 
                 return new IPEndPoint(ia, m_internalEndPoint.Port);
             }
 
-            set { m_externalHostName = value.ToString(); }
+            set
+            {
+                m_externalHostName = value.ToString();
+            }
         }
 
         protected string m_externalHostName;
-
         public string ExternalHostName
         {
-            get { return m_externalHostName; }
-            set { m_externalHostName = value; }
+            get
+            {
+                return m_externalHostName;
+            }
+            set
+            {
+                m_externalHostName = value;
+            }
         }
 
         protected IPEndPoint m_internalEndPoint;
-
         public IPEndPoint InternalEndPoint
         {
-            get { return m_internalEndPoint; }
-            set { m_internalEndPoint = value; }
+            get
+            {
+                return m_internalEndPoint;
+            }
+            set
+            {
+                m_internalEndPoint = value;
+            }
         }
 
         protected uint? m_regionLocX;
-
         public uint RegionLocX
         {
-            get { return m_regionLocX.Value; }
-            set { m_regionLocX = value; }
+            get
+            {
+                return m_regionLocX.Value;
+            }
+            set
+            {
+                m_regionLocX = value;
+            }
         }
 
         protected uint? m_regionLocY;
-
         public uint RegionLocY
         {
-            get { return m_regionLocY.Value; }
-            set { m_regionLocY = value; }
+            get
+            {
+                return m_regionLocY.Value;
+            }
+            set
+            {
+                m_regionLocY = value;
+            }
         }
 
         public ulong RegionHandle
         {
-            get { return Util.UIntsToLong((RegionLocX*256), (RegionLocY*256)); }
+            get
+            {
+                return Util.UIntsToLong((RegionLocX * 256), (RegionLocY * 256));
+            }
         }
     }
 
@@ -158,81 +198,84 @@ namespace OpenSim.Framework
 
         // Apparently, we're applying the same estatesettings regardless of whether it's local or remote.
         private static EstateSettings m_estateSettings;
-
         public EstateSettings EstateSettings
         {
             get
             {
-                if (m_estateSettings == null)
+                if( m_estateSettings == null )
                 {
                     m_estateSettings = new EstateSettings();
                 }
 
                 return m_estateSettings;
             }
+            
         }
 
         public ConfigurationMember configMember;
-
         public RegionInfo(string description, string filename)
         {
-            configMember =
-                new ConfigurationMember(filename, description, loadConfigurationOptions, handleIncomingConfiguration);
+            configMember = new ConfigurationMember(filename, description, loadConfigurationOptions, handleIncomingConfiguration);
             configMember.performConfigurationRetrieve();
         }
-
+        public RegionInfo(string description, XmlNode xmlNode)
+        {
+            configMember = new ConfigurationMember(xmlNode, description, loadConfigurationOptions, handleIncomingConfiguration);
+            configMember.performConfigurationRetrieve();
+        }
         public RegionInfo(uint regionLocX, uint regionLocY, IPEndPoint internalEndPoint, string externalUri) :
             base(regionLocX, regionLocY, internalEndPoint, externalUri)
         {
+
+
         }
 
         public RegionInfo()
         {
+
         }
 
         //not in use, should swap to nini though.
         public void LoadFromNiniSource(IConfigSource source)
         {
-            LoadFromNiniSource(source, "RegionInfo");
+            this.LoadFromNiniSource(source, "RegionInfo");
         }
 
         //not in use, should swap to nini though.
         public void LoadFromNiniSource(IConfigSource source, string sectionName)
         {
             string errorMessage = "";
-            RegionID =
-                new LLUUID(source.Configs[sectionName].GetString("Region_ID", LLUUID.Random().ToStringHyphenated()));
-            RegionName = source.Configs[sectionName].GetString("sim_name", "OpenSim Test");
-            m_regionLocX = Convert.ToUInt32(source.Configs[sectionName].GetString("sim_location_x", "1000"));
-            m_regionLocY = Convert.ToUInt32(source.Configs[sectionName].GetString("sim_location_y", "1000"));
-            DataStore = source.Configs[sectionName].GetString("datastore", "OpenSim.db");
+            this.RegionID = new LLUUID(source.Configs[sectionName].GetString("Region_ID", LLUUID.Random().ToStringHyphenated()));
+            this.RegionName = source.Configs[sectionName].GetString("sim_name", "OpenSim Test");
+            this.m_regionLocX = Convert.ToUInt32(source.Configs[sectionName].GetString("sim_location_x", "1000"));
+            this.m_regionLocY = Convert.ToUInt32(source.Configs[sectionName].GetString("sim_location_y", "1000"));
+            this.DataStore = source.Configs[sectionName].GetString("datastore", "OpenSim.db");
 
             string ipAddress = source.Configs[sectionName].GetString("internal_ip_address", "0.0.0.0");
             IPAddress ipAddressResult;
             if (IPAddress.TryParse(ipAddress, out ipAddressResult))
             {
-                m_internalEndPoint = new IPEndPoint(ipAddressResult, 0);
+                this.m_internalEndPoint = new IPEndPoint(ipAddressResult, 0);
             }
             else
             {
                 errorMessage = "needs an IP Address (IPAddress)";
             }
-            m_internalEndPoint.Port =
-                source.Configs[sectionName].GetInt("internal_ip_port", NetworkServersInfo.DefaultHttpListenerPort);
+            this.m_internalEndPoint.Port = source.Configs[sectionName].GetInt("internal_ip_port", NetworkServersInfo.DefaultHttpListenerPort);
 
             string externalHost = source.Configs[sectionName].GetString("external_host_name", "127.0.0.1");
             if (externalHost != "SYSTEMIP")
             {
-                m_externalHostName = externalHost;
+                this.m_externalHostName = externalHost;
             }
             else
             {
-                m_externalHostName = Util.GetLocalHost().ToString();
+                this.m_externalHostName = Util.GetLocalHost().ToString();
             }
 
-            MasterAvatarFirstName = source.Configs[sectionName].GetString("master_avatar_first", "Test");
-            MasterAvatarLastName = source.Configs[sectionName].GetString("master_avatar_last", "User");
-            MasterAvatarSandboxPassword = source.Configs[sectionName].GetString("master_avatar_pass", "test");
+            this.MasterAvatarFirstName = source.Configs[sectionName].GetString("master_avatar_first", "Test");
+            this.MasterAvatarLastName = source.Configs[sectionName].GetString("master_avatar_last", "User");
+            this.MasterAvatarSandboxPassword = source.Configs[sectionName].GetString("master_avatar_pass", "test");
 
             if (errorMessage != "")
             {
@@ -242,36 +285,17 @@ namespace OpenSim.Framework
 
         public void loadConfigurationOptions()
         {
-            configMember.addConfigurationOption("sim_UUID", ConfigurationOption.ConfigurationTypes.TYPE_LLUUID,
-                                                "UUID of Region (Default is recommended, random UUID)",
-                                                LLUUID.Random().ToString(), true);
-            configMember.addConfigurationOption("sim_name", ConfigurationOption.ConfigurationTypes.TYPE_STRING_NOT_EMPTY,
-                                                "Region Name", "OpenSim Test", false);
-            configMember.addConfigurationOption("sim_location_x", ConfigurationOption.ConfigurationTypes.TYPE_UINT32,
-                                                "Grid Location (X Axis)", "1000", false);
-            configMember.addConfigurationOption("sim_location_y", ConfigurationOption.ConfigurationTypes.TYPE_UINT32,
-                                                "Grid Location (Y Axis)", "1000", false);
-            configMember.addConfigurationOption("datastore",
-                                                ConfigurationOption.ConfigurationTypes.TYPE_STRING_NOT_EMPTY,
-                                                "Filename for local storage", "OpenSim.db", false);
-            configMember.addConfigurationOption("internal_ip_address",
-                                                ConfigurationOption.ConfigurationTypes.TYPE_IP_ADDRESS,
-                                                "Internal IP Address for incoming UDP client connections", "0.0.0.0",
-                                                false);
-            configMember.addConfigurationOption("internal_ip_port", ConfigurationOption.ConfigurationTypes.TYPE_INT32,
-                                                "Internal IP Port for incoming UDP client connections",
-                                                NetworkServersInfo.DefaultHttpListenerPort.ToString(), false);
-            configMember.addConfigurationOption("external_host_name",
-                                                ConfigurationOption.ConfigurationTypes.TYPE_STRING_NOT_EMPTY,
-                                                "External Host Name", "127.0.0.1", false);
-            configMember.addConfigurationOption("master_avatar_first",
-                                                ConfigurationOption.ConfigurationTypes.TYPE_STRING_NOT_EMPTY,
-                                                "First Name of Master Avatar", "Test", false);
-            configMember.addConfigurationOption("master_avatar_last",
-                                                ConfigurationOption.ConfigurationTypes.TYPE_STRING_NOT_EMPTY,
-                                                "Last Name of Master Avatar", "User", false);
-            configMember.addConfigurationOption("master_avatar_pass", ConfigurationOption.ConfigurationTypes.TYPE_STRING,
-                                                "(Sandbox Mode Only)Password for Master Avatar account", "test", false);
+            configMember.addConfigurationOption("sim_UUID", ConfigurationOption.ConfigurationTypes.TYPE_LLUUID, "UUID of Region (Default is recommended, random UUID)", LLUUID.Random().ToString(), true);
+            configMember.addConfigurationOption("sim_name", ConfigurationOption.ConfigurationTypes.TYPE_STRING_NOT_EMPTY, "Region Name", "OpenSim Test", false);
+            configMember.addConfigurationOption("sim_location_x", ConfigurationOption.ConfigurationTypes.TYPE_UINT32, "Grid Location (X Axis)", "1000", false);
+            configMember.addConfigurationOption("sim_location_y", ConfigurationOption.ConfigurationTypes.TYPE_UINT32, "Grid Location (Y Axis)", "1000", false);
+            configMember.addConfigurationOption("datastore", ConfigurationOption.ConfigurationTypes.TYPE_STRING_NOT_EMPTY, "Filename for local storage", "OpenSim.db", false);
+            configMember.addConfigurationOption("internal_ip_address", ConfigurationOption.ConfigurationTypes.TYPE_IP_ADDRESS, "Internal IP Address for incoming UDP client connections", "0.0.0.0", false);
+            configMember.addConfigurationOption("internal_ip_port", ConfigurationOption.ConfigurationTypes.TYPE_INT32, "Internal IP Port for incoming UDP client connections", NetworkServersInfo.DefaultHttpListenerPort.ToString(), false);
+            configMember.addConfigurationOption("external_host_name", ConfigurationOption.ConfigurationTypes.TYPE_STRING_NOT_EMPTY, "External Host Name", "127.0.0.1", false);
+            configMember.addConfigurationOption("master_avatar_first", ConfigurationOption.ConfigurationTypes.TYPE_STRING_NOT_EMPTY, "First Name of Master Avatar", "Test", false);
+            configMember.addConfigurationOption("master_avatar_last", ConfigurationOption.ConfigurationTypes.TYPE_STRING_NOT_EMPTY, "Last Name of Master Avatar", "User", false);
+            configMember.addConfigurationOption("master_avatar_pass", ConfigurationOption.ConfigurationTypes.TYPE_STRING, "(Sandbox Mode Only)Password for Master Avatar account", "test", false);
         }
 
         public bool handleIncomingConfiguration(string configuration_key, object configuration_result)
@@ -279,50 +303,51 @@ namespace OpenSim.Framework
             switch (configuration_key)
             {
                 case "sim_UUID":
-                    RegionID = (LLUUID) configuration_result;
+                    this.RegionID = (LLUUID)configuration_result;
                     break;
                 case "sim_name":
-                    RegionName = (string) configuration_result;
+                    this.RegionName = (string)configuration_result;
                     break;
                 case "sim_location_x":
-                    m_regionLocX = (uint) configuration_result;
+                    this.m_regionLocX = (uint)configuration_result;
                     break;
                 case "sim_location_y":
-                    m_regionLocY = (uint) configuration_result;
+                    this.m_regionLocY = (uint)configuration_result;
                     break;
                 case "datastore":
-                    DataStore = (string) configuration_result;
+                    this.DataStore = (string)configuration_result;
                     break;
                 case "internal_ip_address":
-                    IPAddress address = (IPAddress) configuration_result;
-                    m_internalEndPoint = new IPEndPoint(address, 0);
+                    IPAddress address = (IPAddress)configuration_result;
+                    this.m_internalEndPoint = new IPEndPoint(address, 0);
                     break;
                 case "internal_ip_port":
-                    m_internalEndPoint.Port = (int) configuration_result;
+                    this.m_internalEndPoint.Port = (int)configuration_result;
                     break;
                 case "external_host_name":
-                    if ((string) configuration_result != "SYSTEMIP")
+                    if ((string)configuration_result != "SYSTEMIP")
                     {
-                        m_externalHostName = (string) configuration_result;
+                        this.m_externalHostName = (string)configuration_result;
                     }
                     else
                     {
-                        m_externalHostName = Util.GetLocalHost().ToString();
+                        this.m_externalHostName = Util.GetLocalHost().ToString();
                     }
                     break;
                 case "master_avatar_first":
-                    MasterAvatarFirstName = (string) configuration_result;
+                    this.MasterAvatarFirstName = (string)configuration_result;
                     break;
                 case "master_avatar_last":
-                    MasterAvatarLastName = (string) configuration_result;
+                    this.MasterAvatarLastName = (string)configuration_result;
                     break;
                 case "master_avatar_pass":
-                    string tempMD5Passwd = (string) configuration_result;
-                    MasterAvatarSandboxPassword = Util.Md5Hash(Util.Md5Hash(tempMD5Passwd) + ":" + "");
+                    string tempMD5Passwd = (string)configuration_result;
+                    this.MasterAvatarSandboxPassword = Util.Md5Hash(Util.Md5Hash(tempMD5Passwd) + ":" + "");
                     break;
             }
 
             return true;
         }
+
     }
 }

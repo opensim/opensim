@@ -35,6 +35,8 @@ using OpenSim.Framework;
 using OpenSim.Framework.Communications.Cache;
 using OpenSim.Framework.Console;
 using OpenSim.Framework.Servers;
+using OpenSim.Framework.RegionLoader.Filesystem;
+using OpenSim.Framework.RegionLoader.Web;
 using OpenSim.Region.ClientStack;
 using OpenSim.Region.Communications.Local;
 using OpenSim.Region.Communications.OGS1;
@@ -42,6 +44,7 @@ using OpenSim.Region.Environment;
 using OpenSim.Region.Environment.Interfaces;
 using OpenSim.Region.Environment.Scenes;
 using OpenSim.Region.Physics.Manager;
+
 
 namespace OpenSim
 {
@@ -272,20 +275,20 @@ namespace OpenSim
                 m_httpServer.AddStreamHandler(new SimStatusHandler());
             }
 
-            string regionConfigPath = Path.Combine(Util.configDir(), "Regions");
-
-            if (!Directory.Exists(regionConfigPath))
+            IRegionLoader regionLoader;
+            if (m_config.Configs["Startup"].GetString("region_info_source", "filesystem") == "filesystem")
             {
-                Directory.CreateDirectory(regionConfigPath);
+                MainLog.Instance.Notice("Loading Region Info from filesystem");
+                regionLoader = new RegionLoaderFileSystem();
+            }
+            else
+            {
+                MainLog.Instance.Notice("Loading Region Info from web");
+                regionLoader = new RegionLoaderWebServer();
             }
 
-            string[] configFiles = Directory.GetFiles(regionConfigPath, "*.xml");
-
-            if (configFiles.Length == 0)
-            {
-                CreateDefaultRegionInfoXml(Path.Combine(regionConfigPath, "default.xml"));
-                configFiles = Directory.GetFiles(regionConfigPath, "*.xml");
-            }
+            regionLoader.SetIniConfigSource(m_config);
+            RegionInfo[] regionsToLoad = regionLoader.LoadRegions();
 
             m_moduleLoader = new ModuleLoader(m_log, m_config);
             MainLog.Instance.Verbose("Loading Shared Modules");
@@ -294,12 +297,10 @@ namespace OpenSim
             // Load all script engines found (scripting engine is now a IRegionModule so loaded in the module loader
             // OpenSim.Region.Environment.Scenes.Scripting.ScriptEngineLoader ScriptEngineLoader = new OpenSim.Region.Environment.Scenes.Scripting.ScriptEngineLoader(m_log);
 
-            for (int i = 0; i < configFiles.Length; i++)
+            for (int i = 0; i < regionsToLoad.Length; i++)
             {
-                //Console.WriteLine("Loading region config file");
-                RegionInfo regionInfo = new RegionInfo("REGION CONFIG #" + (i + 1), configFiles[i]);
-
-                CreateRegion(regionInfo);
+                MainLog.Instance.Debug("Creating Region: " + regionsToLoad[i].RegionName);
+                CreateRegion(regionsToLoad[i]);
             }
 
             m_moduleLoader.PostInitialise();
