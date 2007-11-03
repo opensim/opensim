@@ -260,6 +260,7 @@ namespace OpenSim.Region.Environment.Scenes
         public SceneObjectGroup ParentGroup
         {
             get { return m_parentGroup; }
+            
         }
 
         #region Constructors

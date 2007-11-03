@@ -37,6 +37,7 @@ namespace OpenSim.Region.Environment.Scenes
 {
     public abstract class SceneBase : IScene
     {
+        #region Fields
         private readonly ClientManager m_clientManager = new ClientManager();
 
         public ClientManager ClientManager
@@ -44,7 +45,7 @@ namespace OpenSim.Region.Environment.Scenes
             get { return m_clientManager; }
         }
 
-        public Dictionary<LLUUID, EntityBase> Entities;
+      //  public Dictionary<LLUUID, EntityBase> Entities;
         protected ulong m_regionHandle;
         protected string m_regionName;
         protected RegionInfo m_regInfo;
@@ -68,6 +69,8 @@ namespace OpenSim.Region.Environment.Scenes
         protected object m_syncRoot = new object();
         private uint m_nextLocalId = 8880000;
         protected AssetCache assetCache;
+
+        #endregion
 
         #region Update Methods
 

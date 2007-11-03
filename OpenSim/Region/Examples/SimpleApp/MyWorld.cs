@@ -42,10 +42,10 @@ namespace SimpleApp
     {
         private List<ScenePresence> m_avatars;
 
-        public MyWorld(RegionInfo regionInfo, AgentCircuitManager authen, CommunicationsManager commsMan,
+        public MyWorld(RegionInfo regionInfo, AgentCircuitManager authen, CommunicationsManager commsMan, SceneCommunicationService sceneGridService,
                        AssetCache assetCach, StorageManager storeMan, BaseHttpServer httpServer,
                        ModuleLoader moduleLoader)
-            : base(regionInfo, authen, commsMan, assetCach, storeMan, httpServer, moduleLoader, false)
+            : base(regionInfo, authen, commsMan, sceneGridService, assetCach, storeMan, httpServer, moduleLoader, false)
         {
             m_avatars = new List<Avatar>();
         }
