@@ -293,9 +293,19 @@ namespace OpenSim.Framework
             configMember.addConfigurationOption("internal_ip_address", ConfigurationOption.ConfigurationTypes.TYPE_IP_ADDRESS, "Internal IP Address for incoming UDP client connections", "0.0.0.0", false);
             configMember.addConfigurationOption("internal_ip_port", ConfigurationOption.ConfigurationTypes.TYPE_INT32, "Internal IP Port for incoming UDP client connections", NetworkServersInfo.DefaultHttpListenerPort.ToString(), false);
             configMember.addConfigurationOption("external_host_name", ConfigurationOption.ConfigurationTypes.TYPE_STRING_NOT_EMPTY, "External Host Name", "127.0.0.1", false);
-            configMember.addConfigurationOption("master_avatar_first", ConfigurationOption.ConfigurationTypes.TYPE_STRING_NOT_EMPTY, "First Name of Master Avatar", "Test", false);
-            configMember.addConfigurationOption("master_avatar_last", ConfigurationOption.ConfigurationTypes.TYPE_STRING_NOT_EMPTY, "Last Name of Master Avatar", "User", false);
-            configMember.addConfigurationOption("master_avatar_pass", ConfigurationOption.ConfigurationTypes.TYPE_STRING, "(Sandbox Mode Only)Password for Master Avatar account", "test", false);
+            configMember.addConfigurationOption("master_avatar_uuid", ConfigurationOption.ConfigurationTypes.TYPE_LLUUID, "Master Avatar UUID", LLUUID.Zero.ToString(), true);
+            configMember.addConfigurationOption("master_avatar_first", ConfigurationOption.ConfigurationTypes.TYPE_STRING_NOT_EMPTY, "First Name of Master Avatar", "Test", false,(ConfigurationOption.ConfigurationOptionShouldBeAsked)shouldMasterAvatarDetailsBeAsked);
+            configMember.addConfigurationOption("master_avatar_last", ConfigurationOption.ConfigurationTypes.TYPE_STRING_NOT_EMPTY, "Last Name of Master Avatar", "User", false, (ConfigurationOption.ConfigurationOptionShouldBeAsked)shouldMasterAvatarDetailsBeAsked);
+            configMember.addConfigurationOption("master_avatar_pass", ConfigurationOption.ConfigurationTypes.TYPE_STRING, "(Sandbox Mode Only)Password for Master Avatar account", "test", false, (ConfigurationOption.ConfigurationOptionShouldBeAsked)shouldMasterAvatarDetailsBeAsked);
+        }
+
+        public bool shouldMasterAvatarDetailsBeAsked(string configuration_key)
+        {
+            if (MasterAvatarAssignedUUID == null || MasterAvatarAssignedUUID.ToStringHyphenated() == LLUUID.Zero.ToStringHyphenated())
+            {
+                return true;
+            }
+            return false;
         }
 
         public bool handleIncomingConfiguration(string configuration_key, object configuration_result)
@@ -333,6 +343,9 @@ namespace OpenSim.Framework
                     {
                         this.m_externalHostName = Util.GetLocalHost().ToString();
                     }
+                    break;
+                case "master_avatar_uuid":
+                    this.MasterAvatarAssignedUUID = (LLUUID)configuration_result;
                     break;
                 case "master_avatar_first":
                     this.MasterAvatarFirstName = (string)configuration_result;

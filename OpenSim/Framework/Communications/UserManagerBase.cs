@@ -376,5 +376,6 @@ namespace OpenSim.Framework.UserManagement
 
         public abstract UserProfileData SetupMasterUser(string firstName, string lastName);
         public abstract UserProfileData SetupMasterUser(string firstName, string lastName, string password);
+        public abstract UserProfileData SetupMasterUser(libsecondlife.LLUUID uuid);
     }
 }

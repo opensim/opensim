@@ -38,6 +38,7 @@ namespace OpenSim.Framework.Interfaces
 
         UserProfileData SetupMasterUser(string firstName, string lastName);
         UserProfileData SetupMasterUser(string firstName, string lastName, string password);
+        UserProfileData SetupMasterUser(LLUUID userId);
 
         /// <summary>
         /// 

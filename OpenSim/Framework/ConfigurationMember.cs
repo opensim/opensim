@@ -92,6 +92,21 @@ namespace OpenSim.Framework
         {
             configurationPluginFilename = dll_filename;
         }
+        private void checkAndAddConfigOption(ConfigurationOption option)
+        {
+            if ((option.configurationKey != "" && option.configurationQuestion != "") || (option.configurationKey != "" && option.configurationUseDefaultNoPrompt))
+            {
+                if (!configurationOptions.Contains(option))
+                {
+                    configurationOptions.Add(option);
+                }
+            }
+            else
+            {
+                MainLog.Instance.Notice("Required fields for adding a configuration option is invalid. Will not add this option (" + option.configurationKey + ")");
+            }
+        }
+
         public void addConfigurationOption(string configuration_key, ConfigurationOption.ConfigurationTypes configuration_type, string configuration_question, string configuration_default, bool use_default_no_prompt)
         {
             ConfigurationOption configOption = new ConfigurationOption();
@@ -100,18 +115,20 @@ namespace OpenSim.Framework
             configOption.configurationDefault = configuration_default;
             configOption.configurationType = configuration_type;
             configOption.configurationUseDefaultNoPrompt = use_default_no_prompt;
+            configOption.shouldIBeAsked = null; //Assumes true, I can ask whenever
+            checkAndAddConfigOption(configOption);
+        }
 
-            if ((configuration_key != "" && configuration_question != "") || (configuration_key != "" && use_default_no_prompt))
-            {
-                if (!configurationOptions.Contains(configOption))
-                {
-                    configurationOptions.Add(configOption);
-                }
-            }
-            else
-            {
-                MainLog.Instance.Notice("Required fields for adding a configuration option is invalid. Will not add this option (" + configuration_key + ")");
-            }
+        public void addConfigurationOption(string configuration_key, ConfigurationOption.ConfigurationTypes configuration_type, string configuration_question, string configuration_default, bool use_default_no_prompt, ConfigurationOption.ConfigurationOptionShouldBeAsked shouldIBeAskedDelegate)
+        {
+            ConfigurationOption configOption = new ConfigurationOption();
+            configOption.configurationKey = configuration_key;
+            configOption.configurationQuestion = configuration_question;
+            configOption.configurationDefault = configuration_default;
+            configOption.configurationType = configuration_type;
+            configOption.configurationUseDefaultNoPrompt = use_default_no_prompt;
+            configOption.shouldIBeAsked = shouldIBeAskedDelegate;
+            checkAndAddConfigOption(configOption);
         }
 
         public void performConfigurationRetrieve()
@@ -195,15 +212,23 @@ namespace OpenSim.Framework
                         }
                         else
                         {
-                        
-                            if (configurationDescription.Trim() != "")
+                            if ((configOption.shouldIBeAsked != null && configOption.shouldIBeAsked(configOption.configurationKey)) || configOption.shouldIBeAsked == null)
                             {
-                                console_result = MainLog.Instance.CmdPrompt(configurationDescription + ": " + configOption.configurationQuestion, configOption.configurationDefault);
+                                if (configurationDescription.Trim() != "")
+                                {
+                                    console_result = MainLog.Instance.CmdPrompt(configurationDescription + ": " + configOption.configurationQuestion, configOption.configurationDefault);
+                                }
+                                else
+                                {
+                                    console_result = MainLog.Instance.CmdPrompt(configOption.configurationQuestion, configOption.configurationDefault);
+                                }
                             }
                             else
                             {
-                                console_result = MainLog.Instance.CmdPrompt(configOption.configurationQuestion, configOption.configurationDefault);
+                                //Dont Ask! Just use default
+                                console_result = configOption.configurationDefault;
                             }
+
                         }                        
                     }
                     else

@@ -168,5 +168,10 @@ namespace OpenSim.Grid.UserServer
         {
             throw new Exception("The method or operation is not implemented.");
         }
+
+        public override UserProfileData SetupMasterUser(libsecondlife.LLUUID uuid)
+        {
+            throw new Exception("The method or operation is not implemented.");
+        }
     }
 }

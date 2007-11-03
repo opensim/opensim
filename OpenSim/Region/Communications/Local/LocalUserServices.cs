@@ -81,5 +81,15 @@ namespace OpenSim.Region.Communications.Local
 
             return profile;
         }
+
+        public override UserProfileData SetupMasterUser(libsecondlife.LLUUID uuid)
+        {
+            UserProfileData data = GetUserProfile(uuid);
+            if (data == null)
+            {
+                throw new Exception("Unknown master user UUID");
+            }
+            return data;
+        }
     }
 }

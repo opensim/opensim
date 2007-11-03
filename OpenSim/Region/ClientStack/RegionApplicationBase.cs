@@ -113,10 +113,19 @@ namespace OpenSim.Region.ClientStack
             scene.PhysScene.SetTerrain(scene.Terrain.GetHeights1D());
 
             //Master Avatar Setup
-            UserProfileData masterAvatar =
-                m_commsManager.UserService.SetupMasterUser(scene.RegionInfo.MasterAvatarFirstName,
+            UserProfileData masterAvatar;
+            if (scene.RegionInfo.MasterAvatarAssignedUUID != LLUUID.Zero)
+            {
+                masterAvatar = m_commsManager.UserService.SetupMasterUser(scene.RegionInfo.MasterAvatarAssignedUUID);
+            }
+            else
+            {
+                masterAvatar =
+                    m_commsManager.UserService.SetupMasterUser(scene.RegionInfo.MasterAvatarFirstName,
                                                            scene.RegionInfo.MasterAvatarLastName,
                                                            scene.RegionInfo.MasterAvatarSandboxPassword);
+            }
+
             if (masterAvatar != null)
             {
                 m_log.Verbose("PARCEL", "Found master avatar [" + masterAvatar.UUID.ToStringHyphenated() + "]");

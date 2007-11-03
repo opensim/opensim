@@ -30,6 +30,9 @@ namespace OpenSim.Framework
 {
     public class ConfigurationOption
     {
+
+        public delegate bool ConfigurationOptionShouldBeAsked(string configuration_key);
+
         public enum ConfigurationTypes
         {
             TYPE_STRING,
@@ -56,5 +59,6 @@ namespace OpenSim.Framework
 
         public ConfigurationTypes configurationType = ConfigurationTypes.TYPE_STRING;
         public bool configurationUseDefaultNoPrompt = false;
+        public ConfigurationOptionShouldBeAsked shouldIBeAsked; //Should I be asked now? Based on previous answers
     }
 }
