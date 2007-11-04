@@ -1,4 +1,4 @@
-﻿using System;
+﻿﻿using System;
 using System.Collections.Generic;
 using System.Net;
 using System.Text;
@@ -204,9 +204,10 @@ namespace OpenSim.Region.Environment.Scenes
             return m_commsProvider.InterRegion.ExpectAvatarCrossing(regionhandle, agentID, position, isFlying);
         }
 
-        public void CloseAgentConnection(ScenePresence presence)
+        public void CloseChildAgentConnections(ScenePresence presence)
         {
-            throw new Exception("The method or operation is not implemented.");
+
         }
     }
 }
+

@@ -178,6 +178,14 @@ namespace OpenSim.Region.Communications.Local
             return false;
         }
 
+        public void TellRegionToCloseChildConnection(ulong regionHandle, LLUUID agentID)
+        {
+            if (m_regionListeners.ContainsKey(regionHandle))
+            {
+              // m_regionListeners[regionHandle].TriggerExpectAvatarCrossing(regionHandle, agentID, position, isFlying);
+            }
+        }
+
         public bool AcknowledgeAgentCrossed(ulong regionHandle, LLUUID agentId)
         {
             if (m_regionListeners.ContainsKey(regionHandle))

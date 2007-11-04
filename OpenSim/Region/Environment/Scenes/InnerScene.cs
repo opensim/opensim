@@ -1,4 +1,4 @@
-﻿using System;
+﻿﻿using System;
 using System.Collections.Generic;
 using System.Text;
 using libsecondlife;
@@ -12,6 +12,7 @@ namespace OpenSim.Region.Environment.Scenes
 {
     public class InnerScene
     {
+        #region Fields
         public Dictionary<LLUUID, ScenePresence> ScenePresences;
         public Dictionary<LLUUID, SceneObjectGroup> SceneObjects;
         public Dictionary<LLUUID, EntityBase> Entities;
@@ -19,11 +20,13 @@ namespace OpenSim.Region.Environment.Scenes
         public BasicQuadTreeNode QuadTree;
 
         protected RegionInfo m_regInfo;
-
         protected Scene m_parentScene;
-        public PhysicsScene PhyScene;
+        protected PermissionManager PermissionsMngr;
 
-        private PermissionManager PermissionsMngr;
+        internal object m_syncRoot = new object();
+
+        public PhysicsScene PhyScene;
+        #endregion
 
         public InnerScene(Scene parent, RegionInfo regInfo, PermissionManager permissionsMngr)
         {
@@ -42,6 +45,51 @@ namespace OpenSim.Region.Environment.Scenes
             Entities.Clear();
         }
 
+        #region Update Methods
+        internal void UpdatePreparePhysics()
+        {
+            // If we are using a threaded physics engine
+            // grab the latest scene from the engine before
+            // trying to process it.
+
+            // PhysX does this (runs in the background).
+
+            if (PhyScene.IsThreaded)
+            {
+                PhyScene.GetResults();
+            }
+        }
+
+        internal void UpdateEntities()
+        {
+            List<EntityBase> updateEntities = new List<EntityBase>(Entities.Values);
+
+            foreach (EntityBase entity in updateEntities)
+            {
+                entity.Update();
+            }
+        }
+
+        internal void UpdatePhysics(double elapsed)
+        {
+            lock (m_syncRoot)
+            {
+                PhyScene.Simulate((float)elapsed);
+            }
+        }
+
+        internal void UpdateEntityMovement()
+        {
+            List<EntityBase> moveEntities = new List<EntityBase>(Entities.Values);
+
+            foreach (EntityBase entity in moveEntities)
+            {
+                entity.UpdateMovement();
+            }
+        }
+        #endregion
+
+        #region Entity Methods
         public void AddEntityFromStorage(SceneObjectGroup sceneObject)
         {
             sceneObject.RegionHandle = m_regInfo.RegionHandle;
@@ -122,6 +170,9 @@ namespace OpenSim.Region.Environment.Scenes
 
             return newAvatar;
         }
+        #endregion
+
+        #region Get Methods
 
         /// <summary>
         /// Request a List of all m_scenePresences in this World
@@ -173,35 +224,6 @@ namespace OpenSim.Region.Environment.Scenes
                 return ScenePresences[avatarID];
             }
             return null;
-        }
-
-
-        public LLUUID ConvertLocalIDToFullID(uint localID)
-        {
-            bool hasPrim = false;
-            foreach (EntityBase ent in Entities.Values)
-            {
-                if (ent is SceneObjectGroup)
-                {
-                    hasPrim = ((SceneObjectGroup)ent).HasChildPrim(localID);
-                    if (hasPrim != false)
-                    {
-                        return ((SceneObjectGroup)ent).GetPartsFullID(localID);
-                    }
-                }
-            }
-            return LLUUID.Zero;
-        }
-
-        public void SendAllSceneObjectsToClient(ScenePresence presence)
-        {
-            foreach (EntityBase ent in Entities.Values)
-            {
-                if (ent is SceneObjectGroup)
-                {
-                    ((SceneObjectGroup)ent).ScheduleFullUpdateToAvatar(presence);
-                }
-            }
         }
 
         public SceneObjectPart GetSceneObjectPart(uint localID)
@@ -274,6 +296,37 @@ namespace OpenSim.Region.Environment.Scenes
             return false;
         }
 
+        #endregion
+
+        #region Other Methods
+
+        public LLUUID ConvertLocalIDToFullID(uint localID)
+        {
+            bool hasPrim = false;
+            foreach (EntityBase ent in Entities.Values)
+            {
+                if (ent is SceneObjectGroup)
+                {
+                    hasPrim = ((SceneObjectGroup)ent).HasChildPrim(localID);
+                    if (hasPrim != false)
+                    {
+                        return ((SceneObjectGroup)ent).GetPartsFullID(localID);
+                    }
+                }
+            }
+            return LLUUID.Zero;
+        }
+
+        public void SendAllSceneObjectsToClient(ScenePresence presence)
+        {
+            foreach (EntityBase ent in Entities.Values)
+            {
+                if (ent is SceneObjectGroup)
+                {
+                    ((SceneObjectGroup)ent).ScheduleFullUpdateToAvatar(presence);
+                }
+            }
+        }
 
         internal void ForEachClient(Action<IClientAPI> action)
         {
@@ -282,6 +335,7 @@ namespace OpenSim.Region.Environment.Scenes
                 action(presence.ControllingClient);
             }
         }
+        #endregion
 
         #region Client Event handlers
         /// <summary>
@@ -306,7 +360,6 @@ namespace OpenSim.Region.Environment.Scenes
                 }
             }
         }
-
 
         /// <summary>
         /// 
@@ -394,7 +447,6 @@ namespace OpenSim.Region.Environment.Scenes
                 }
             }
         }
-
 
         /// <summary>
         /// 
@@ -653,3 +705,4 @@ namespace OpenSim.Region.Environment.Scenes
         #endregion
     }
 }
+

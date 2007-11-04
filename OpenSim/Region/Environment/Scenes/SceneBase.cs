@@ -45,7 +45,6 @@ namespace OpenSim.Region.Environment.Scenes
             get { return m_clientManager; }
         }
 
-      //  public Dictionary<LLUUID, EntityBase> Entities;
         protected ulong m_regionHandle;
         protected string m_regionName;
         protected RegionInfo m_regInfo;
@@ -66,7 +65,6 @@ namespace OpenSim.Region.Environment.Scenes
 
         protected string m_datastore;
 
-        protected object m_syncRoot = new object();
         private uint m_nextLocalId = 8880000;
         private AssetCache m_assetCache;
 
@@ -130,11 +128,6 @@ namespace OpenSim.Region.Environment.Scenes
         public virtual RegionInfo RegionInfo
         {
             get { return m_regInfo; }
-        }
-
-        public object SyncRoot
-        {
-            get { return m_syncRoot; }
         }
 
         public uint NextLocalId

@@ -472,6 +472,11 @@ namespace OpenSim.Region.Communications.OGS1
             }
         }
 
+        public void TellRegionToCloseChildConnection(ulong regionHandle, LLUUID agentID)
+        {
+
+        }
+
         public bool AcknowledgeAgentCrossed(ulong regionHandle, LLUUID agentId)
         {
             return m_localBackend.AcknowledgeAgentCrossed(regionHandle, agentId);

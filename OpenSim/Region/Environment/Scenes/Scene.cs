@@ -75,6 +75,7 @@ namespace OpenSim.Region.Environment.Scenes
         public CommunicationsManager CommsManager;
         // protected XferManager xferManager;
         protected SceneCommunicationService m_sceneGridService;
+        protected SceneXmlLoader m_sceneXmlLoader;
 
         protected Dictionary<LLUUID, Caps> m_capsHandlers = new Dictionary<LLUUID, Caps>();
         protected BaseHttpServer httpListener;
@@ -138,6 +139,11 @@ namespace OpenSim.Region.Environment.Scenes
         {
             set { m_innerScene.PhyScene = value; }
             get { return (m_innerScene.PhyScene); }
+        }
+
+        public object SyncRoot
+        {
+            get { return m_innerScene.m_syncRoot; }
         }
 
         public EstateManager EstateManager
@@ -207,7 +213,8 @@ namespace OpenSim.Region.Environment.Scenes
             m_eventManager = new EventManager();
             m_permissionManager = new PermissionManager(this);
 
-            m_innerScene = new InnerScene(this, regInfo, m_permissionManager);
+            m_innerScene = new InnerScene(this, m_regInfo, m_permissionManager);
+            m_sceneXmlLoader = new SceneXmlLoader(this, m_innerScene, m_regInfo);
 
             m_eventManager.OnParcelPrimCountAdd +=
                 m_LandManager.addPrimToLandPrimCounts;
@@ -292,18 +299,18 @@ namespace OpenSim.Region.Environment.Scenes
                     m_frame = 0;
 
                 if (m_frame%m_update_physics == 0)
-                    UpdatePreparePhysics();
+                    m_innerScene.UpdatePreparePhysics();
 
                 if (m_frame%m_update_entitymovement == 0)
-                    UpdateEntityMovement();
+                    m_innerScene.UpdateEntityMovement();
 
                 if (m_frame%m_update_physics == 0)
-                    UpdatePhysics(
+                    m_innerScene.UpdatePhysics(
                         Math.Max(SinceLastFrame.TotalSeconds, m_timespan)
                         );
 
                 if (m_frame%m_update_entities == 0)
-                    UpdateEntities();
+                    m_innerScene.UpdateEntities();
 
                 if (m_frame%m_update_events == 0)
                     UpdateEvents();
@@ -334,20 +341,6 @@ namespace OpenSim.Region.Environment.Scenes
 
                 m_timedilation = m_timespan/(float) SinceLastFrame.TotalSeconds;
                 m_lastupdate = DateTime.Now;
-            }
-        }
-
-        private void UpdatePreparePhysics()
-        {
-            // If we are using a threaded physics engine
-            // grab the latest scene from the engine before
-            // trying to process it.
-
-            // PhysX does this (runs in the background).
-
-            if (phyScene.IsThreaded)
-            {
-                phyScene.GetResults();
             }
         }
 
@@ -388,7 +381,7 @@ namespace OpenSim.Region.Environment.Scenes
 
                 lock (Terrain.heightmap)
                 {
-                    lock (m_syncRoot)
+                    lock (SyncRoot)
                     {
                         phyScene.SetTerrain(Terrain.GetHeights1D());
                     }
@@ -425,34 +418,6 @@ namespace OpenSim.Region.Environment.Scenes
         private void UpdateEvents()
         {
             m_eventManager.TriggerOnFrame();
-        }
-
-        private void UpdateEntities()
-        {
-            List<EntityBase> updateEntities = new List<EntityBase>(Entities.Values);
-
-            foreach (EntityBase entity in updateEntities)
-            {
-                entity.Update();
-            }
-        }
-
-        private void UpdatePhysics(double elapsed)
-        {
-            lock (m_syncRoot)
-            {
-                phyScene.Simulate((float) elapsed);
-            }
-        }
-
-        private void UpdateEntityMovement()
-        {
-            List<EntityBase> moveEntities = new List<EntityBase>(Entities.Values);
-
-            foreach (EntityBase entity in moveEntities)
-            {
-                entity.UpdateMovement();
-            }
         }
 
         /// <summary>
@@ -655,120 +620,22 @@ namespace OpenSim.Region.Environment.Scenes
 
         public void LoadPrimsFromXml(string fileName)
         {
-            XmlDocument doc = new XmlDocument();
-            XmlNode rootNode;
-            int primCount = 0;
-            if (fileName.StartsWith("http:") || File.Exists(fileName))
-            {
-                XmlTextReader reader = new XmlTextReader(fileName);
-                reader.WhitespaceHandling = WhitespaceHandling.None;
-                doc.Load(reader);
-                reader.Close();
-                rootNode = doc.FirstChild;
-                foreach (XmlNode aPrimNode in rootNode.ChildNodes)
-                {
-                    SceneObjectGroup obj = new SceneObjectGroup(this,
-                                                                m_regionHandle, aPrimNode.OuterXml);
-                    //if we want this to be a import method then we need new uuids for the object to avoid any clashes
-                    //obj.RegenerateFullIDs(); 
-                    AddEntity(obj);
-
-                    SceneObjectPart rootPart = obj.GetChildPart(obj.UUID);
-                    bool UsePhysics = ((rootPart.ObjectFlags & (uint)LLObject.ObjectFlags.Physics) > 0);
-                    if ((rootPart.ObjectFlags & (uint) LLObject.ObjectFlags.Phantom) == 0)
-                        rootPart.PhysActor = phyScene.AddPrimShape(
-                            rootPart.Name,
-                            rootPart.Shape,
-                            new PhysicsVector(rootPart.AbsolutePosition.X, rootPart.AbsolutePosition.Y,
-                                              rootPart.AbsolutePosition.Z),
-                            new PhysicsVector(rootPart.Scale.X, rootPart.Scale.Y, rootPart.Scale.Z),
-                            new Quaternion(rootPart.RotationOffset.W, rootPart.RotationOffset.X,
-                                           rootPart.RotationOffset.Y, rootPart.RotationOffset.Z), UsePhysics);
-                    primCount++;
-                }
-            }
-            else
-            {
-                throw new Exception("Could not open file " + fileName + " for reading");
-            }
+            m_sceneXmlLoader.LoadPrimsFromXml(fileName);
         }
 
         public void SavePrimsToXml(string fileName)
         {
-            FileStream file = new FileStream(fileName, FileMode.Create);
-            StreamWriter stream = new StreamWriter(file);
-            int primCount = 0;
-            stream.WriteLine("<scene>\n");
-            foreach (EntityBase ent in Entities.Values)
-            {
-                if (ent is SceneObjectGroup)
-                {
-                    stream.WriteLine(((SceneObjectGroup) ent).ToXmlString());
-                    primCount++;
-                }
-            }
-            stream.WriteLine("</scene>\n");
-            stream.Close();
-            file.Close();
+            m_sceneXmlLoader.SavePrimsToXml(fileName);
         }
 
         public void LoadPrimsFromXml2(string fileName)
         {
-            XmlDocument doc = new XmlDocument();
-            XmlNode rootNode;
-            if (fileName.StartsWith("http:") || File.Exists(fileName))
-            {
-                XmlTextReader reader = new XmlTextReader(fileName);
-                reader.WhitespaceHandling = WhitespaceHandling.None;
-                doc.Load(reader);
-                reader.Close();
-                rootNode = doc.FirstChild;
-                foreach (XmlNode aPrimNode in rootNode.ChildNodes)
-                {
-                    CreatePrimFromXml(aPrimNode.OuterXml);
-                }
-            }
-            else
-            {
-                throw new Exception("Could not open file " + fileName + " for reading");
-            }
-        }
-
-        public void CreatePrimFromXml(string xmlData)
-        {
-            SceneObjectGroup obj = new SceneObjectGroup(xmlData);
-            AddEntityFromStorage(obj);
-
-            SceneObjectPart rootPart = obj.GetChildPart(obj.UUID);
-            bool UsePhysics = ((rootPart.ObjectFlags & (uint)LLObject.ObjectFlags.Physics) > 0);
-            if ((rootPart.ObjectFlags & (uint) LLObject.ObjectFlags.Phantom) == 0)
-                rootPart.PhysActor = phyScene.AddPrimShape(
-                    rootPart.Name,
-                    rootPart.Shape,
-                    new PhysicsVector(rootPart.AbsolutePosition.X, rootPart.AbsolutePosition.Y,
-                                      rootPart.AbsolutePosition.Z),
-                    new PhysicsVector(rootPart.Scale.X, rootPart.Scale.Y, rootPart.Scale.Z),
-                    new Quaternion(rootPart.RotationOffset.W, rootPart.RotationOffset.X,
-                                   rootPart.RotationOffset.Y, rootPart.RotationOffset.Z), UsePhysics);
+            m_sceneXmlLoader.LoadPrimsFromXml2(fileName);
         }
 
         public void SavePrimsToXml2(string fileName)
         {
-            FileStream file = new FileStream(fileName, FileMode.Create);
-            StreamWriter stream = new StreamWriter(file);
-            int primCount = 0;
-            stream.WriteLine("<scene>\n");
-            foreach (EntityBase ent in Entities.Values)
-            {
-                if (ent is SceneObjectGroup)
-                {
-                    stream.WriteLine(((SceneObjectGroup) ent).ToXmlString2());
-                    primCount++;
-                }
-            }
-            stream.WriteLine("</scene>\n");
-            stream.Close();
-            file.Close();
+            m_sceneXmlLoader.SavePrimsToXml2(fileName);
         }
 
         #endregion
