@@ -601,7 +601,7 @@ namespace OpenSim.Framework.Data.MySQL
         public bool insertRegion(RegionProfileData regiondata)
         {
             string sql =
-                "REPLACE INTO regions (regionHandle, regionName, uuid, regionRecvKey, regionSecret, regionSendKey, regionDataURI, ";
+                "INSERT INTO regions (regionHandle, regionName, uuid, regionRecvKey, regionSecret, regionSendKey, regionDataURI, ";
             sql +=
                 "serverIP, serverPort, serverURI, locX, locY, locZ, eastOverrideHandle, westOverrideHandle, southOverrideHandle, northOverrideHandle, regionAssetURI, regionAssetRecvKey, ";
             sql +=
@@ -611,7 +611,8 @@ namespace OpenSim.Framework.Data.MySQL
             sql +=
                 "?serverIP, ?serverPort, ?serverURI, ?locX, ?locY, ?locZ, ?eastOverrideHandle, ?westOverrideHandle, ?southOverrideHandle, ?northOverrideHandle, ?regionAssetURI, ?regionAssetRecvKey, ";
             sql +=
-                "?regionAssetSendKey, ?regionUserURI, ?regionUserRecvKey, ?regionUserSendKey, ?regionMapTexture, ?serverHttpPort, ?serverRemotingPort);";
+                "?regionAssetSendKey, ?regionUserURI, ?regionUserRecvKey, ?regionUserSendKey, ?regionMapTexture, ?serverHttpPort, ?serverRemotingPort)";
+            sql += "ON DUPLICATE KEY UPDATE;";
 
             Dictionary<string, string> parameters = new Dictionary<string, string>();
 
