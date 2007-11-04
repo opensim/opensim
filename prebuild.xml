@@ -665,7 +665,7 @@
       <ReferencePath>../../../bin/</ReferencePath>
       <Reference name="System" localCopy="false"/>
       <Reference name="System.Xml"/>
-      <Reference name="Mono.Addins.exe" />
+      <Reference name="Mono.Addins.dll" />
       <Reference name="libsecondlife.dll"/>
       <Reference name="Axiom.MathLib.dll"/>
       <Reference name="Db4objects.Db4o.dll"/>
@@ -702,7 +702,7 @@
       </Configuration>
 
       <ReferencePath>../../../bin/</ReferencePath>
-      <Reference name="Mono.Addins.exe" />
+      <Reference name="Mono.Addins.dll" />
       <Reference name="System"/>
       <Reference name="System.Xml"/>
       <Reference name="libsecondlife.dll" />
