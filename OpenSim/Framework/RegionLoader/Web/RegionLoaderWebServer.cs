@@ -47,7 +47,7 @@ namespace OpenSim.Framework.RegionLoader.Web
         {
             if (m_configSouce == null)
             {
-                Console.MainLog.Instance.Error("Unable to load configuration source! (WebServer Region Loader)");
+                Console.MainLog.Instance.Error("WEBLOADER", "Unable to load configuration source!");
                 return null;
             }
             else
@@ -56,7 +56,7 @@ namespace OpenSim.Framework.RegionLoader.Web
                 string url = startupConfig.GetString("regionload_webserver_url","").Trim();
                 if (url == "")
                 {
-                    Console.MainLog.Instance.Error("Unable to load webserver URL - URL was empty (WebServer Region Loader");
+                    Console.MainLog.Instance.Error("WEBLOADER", "Unable to load webserver URL - URL was empty.");
                     return null;
                 }
                 else
@@ -64,9 +64,9 @@ namespace OpenSim.Framework.RegionLoader.Web
                     
                     HttpWebRequest webRequest = (HttpWebRequest)WebRequest.Create(url);
                     webRequest.Timeout = 30000; //30 Second Timeout
-                    Console.MainLog.Instance.Debug("Sending Download Request...");
+                    Console.MainLog.Instance.Debug("WEBLOADER", "Sending Download Request...");
                     HttpWebResponse webResponse = (HttpWebResponse)webRequest.GetResponse();
-                    Console.MainLog.Instance.Debug("Downloading Region Information From Remote Server...");
+                    Console.MainLog.Instance.Debug("WEBLOADER", "Downloading Region Information From Remote Server...");
                     StreamReader reader = new StreamReader(webResponse.GetResponseStream());
                     string xmlSource = "";
                     string tempStr = reader.ReadLine();
@@ -75,7 +75,7 @@ namespace OpenSim.Framework.RegionLoader.Web
                         xmlSource = xmlSource + tempStr;
                         tempStr = reader.ReadLine();
                     }
-                    Console.MainLog.Instance.Debug("Done downloading region information from server. Total Bytes: " + xmlSource.Length);
+                    Console.MainLog.Instance.Debug("WEBLOADER", "Done downloading region information from server. Total Bytes: " + xmlSource.Length);
                     XmlDocument xmlDoc = new XmlDocument();
                     xmlDoc.LoadXml(xmlSource);
                     if (xmlDoc.FirstChild.Name == "Regions")
