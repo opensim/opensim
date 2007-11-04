@@ -235,7 +235,22 @@ namespace OpenSim.Region.Environment.Scenes
         /// <summary></summary>
         public LLVector3 Velocity
         {
-            get { return m_velocity; }
+            get {
+                //if (PhysActor.Velocity.x != 0 || PhysActor.Velocity.y != 0
+                //|| PhysActor.Velocity.z != 0)
+                //{
+                if (PhysActor != null)
+                {
+                    if (PhysActor.IsPhysical)
+                    {
+                        m_velocity.X = PhysActor.Velocity.X;
+                        m_velocity.Y = PhysActor.Velocity.Y;
+                        m_velocity.Z = PhysActor.Velocity.Z;
+                    }
+                }
+                
+                return m_velocity; 
+            }
             set { m_velocity = value; }
         }
 
@@ -995,13 +1010,28 @@ namespace OpenSim.Region.Environment.Scenes
             LLVector3 lPos;
             lPos = OffsetPosition;
             LLQuaternion mRot = RotationOffset;
-            remoteClient.SendPrimTerseUpdate(m_regionHandle, 64096, LocalID, lPos, mRot);
+            if ((ObjectFlags & (uint)LLObject.ObjectFlags.Physics) == 0)
+            {
+                remoteClient.SendPrimTerseUpdate(m_regionHandle, 64096, LocalID, lPos, mRot);
+            }
+            else
+            {
+                remoteClient.SendPrimTerseUpdate(m_regionHandle, 64096, LocalID, lPos, mRot, Velocity);
+            }
         }
 
         public void SendTerseUpdateToClient(IClientAPI remoteClient, LLVector3 lPos)
         {
             LLQuaternion mRot = RotationOffset;
-            remoteClient.SendPrimTerseUpdate(m_regionHandle, 64096, LocalID, lPos, mRot);
+            if ((ObjectFlags & (uint)LLObject.ObjectFlags.Physics) == 0)
+            {
+                remoteClient.SendPrimTerseUpdate(m_regionHandle, 64096, LocalID, lPos, mRot);
+            }
+            else
+            {
+                remoteClient.SendPrimTerseUpdate(m_regionHandle, 64096, LocalID, lPos, mRot, Velocity);
+                //System.Console.WriteLine("Vel:" + Velocity);
+            }
         }
 
         #endregion

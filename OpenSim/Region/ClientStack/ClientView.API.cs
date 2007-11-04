@@ -1049,14 +1049,28 @@ namespace OpenSim.Region.ClientStack
         public void SendPrimTerseUpdate(ulong regionHandle, ushort timeDilation, uint localID, LLVector3 position,
                                         LLQuaternion rotation)
         {
+            LLVector3 velocity = new LLVector3(0f,0f,0f);
             ImprovedTerseObjectUpdatePacket terse = new ImprovedTerseObjectUpdatePacket();
             terse.RegionData.RegionHandle = regionHandle;
             terse.RegionData.TimeDilation = timeDilation;
             terse.ObjectData = new ImprovedTerseObjectUpdatePacket.ObjectDataBlock[1];
-            terse.ObjectData[0] = CreatePrimImprovedBlock(localID, position, rotation);
+            terse.ObjectData[0] = CreatePrimImprovedBlock(localID, position, rotation, velocity);
 
             OutPacket(terse);
         }
+        public void SendPrimTerseUpdate(ulong regionHandle, ushort timeDilation, uint localID, LLVector3 position,
+                                        LLQuaternion rotation, LLVector3 velocity)
+        {
+            
+            ImprovedTerseObjectUpdatePacket terse = new ImprovedTerseObjectUpdatePacket();
+            terse.RegionData.RegionHandle = regionHandle;
+            terse.RegionData.TimeDilation = timeDilation;
+            terse.ObjectData = new ImprovedTerseObjectUpdatePacket.ObjectDataBlock[1];
+            terse.ObjectData[0] = CreatePrimImprovedBlock(localID, position, rotation, velocity);
+
+            OutPacket(terse);
+        }
+        
 
         #endregion
 
@@ -1158,7 +1172,7 @@ namespace OpenSim.Region.ClientStack
         /// <returns></returns>
         protected ImprovedTerseObjectUpdatePacket.ObjectDataBlock CreatePrimImprovedBlock(uint localID,
                                                                                           LLVector3 position,
-                                                                                          LLQuaternion rotation)
+                                                                                          LLQuaternion rotation, LLVector3 velocity)
         {
             uint ID = localID;
             byte[] bytes = new byte[60];
@@ -1178,13 +1192,24 @@ namespace OpenSim.Region.ClientStack
             i += 12;
             ushort ac = 32767;
 
+            ushort velx, vely, velz;
+            Vector3 vel = new Vector3(velocity.X, velocity.Y, velocity.Z);
+
+            vel = vel/128.0f;
+            vel.x += 1;
+            vel.y += 1;
+            vel.z += 1;
             //vel
-            bytes[i++] = (byte) (ac%256);
-            bytes[i++] = (byte) ((ac >> 8)%256);
-            bytes[i++] = (byte) (ac%256);
-            bytes[i++] = (byte) ((ac >> 8)%256);
-            bytes[i++] = (byte) (ac%256);
-            bytes[i++] = (byte) ((ac >> 8)%256);
+            velx = (ushort)(32768 * (vel.x));
+            vely = (ushort)(32768 * (vel.y));
+            velz = (ushort)(32768 * (vel.z));
+
+            bytes[i++] = (byte) (velx % 256);
+            bytes[i++] = (byte) ((velx >> 8) % 256);
+            bytes[i++] = (byte) (vely % 256);
+            bytes[i++] = (byte) ((vely >> 8) % 256);
+            bytes[i++] = (byte) (velz % 256);
+            bytes[i++] = (byte) ((velz >> 8) % 256);
 
             //accel
             bytes[i++] = (byte) (ac%256);
