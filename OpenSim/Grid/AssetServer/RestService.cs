@@ -96,6 +96,7 @@ namespace OpenSim.Grid.AssetServer
 
             MainLog.Instance.Verbose("REST", "StoreAndCommitAsset {0}", asset.FullID);
             m_assetProvider.CreateAsset(asset);
+            m_assetProvider.CommitAssets();
 
             return new byte[] {};
         }
