@@ -91,8 +91,6 @@ namespace OpenSim.Region.Environment.Scenes
             }
             else
             {
-                //newAvatar.OnSignificantClientMovement += m_LandManager.handleSignificantClientMovement;
-
                 MainLog.Instance.Verbose("SCENE", m_regInfo.RegionName + ": Creating new root agent.");
                 MainLog.Instance.Verbose("SCENE", m_regInfo.RegionName + ": Adding Physical agent.");
 

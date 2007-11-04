@@ -68,7 +68,13 @@ namespace OpenSim.Region.Environment.Scenes
 
         protected object m_syncRoot = new object();
         private uint m_nextLocalId = 8880000;
-        protected AssetCache assetCache;
+        private AssetCache m_assetCache;
+
+        public AssetCache AssetCache
+        {
+            get { return m_assetCache; }
+            set { m_assetCache = value; }
+        }
 
         #endregion
 

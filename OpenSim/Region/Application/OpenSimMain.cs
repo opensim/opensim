@@ -44,7 +44,8 @@ using OpenSim.Region.Environment;
 using OpenSim.Region.Environment.Interfaces;
 using OpenSim.Region.Environment.Scenes;
 using OpenSim.Region.Physics.Manager;
-
+using Mono.Addins;
+using Mono.Addins.Description;
 
 namespace OpenSim
 {
@@ -93,6 +94,8 @@ namespace OpenSim
             : base()
         {
             IConfig startupConfig = configSource.Configs["Startup"];
+			
+            AddinManager.Initialize(".");
 
             string iniFilePath = startupConfig.GetString("inifile", "OpenSim.ini");
 
@@ -273,6 +276,13 @@ namespace OpenSim
             {
                 m_commsManager = new CommunicationsOGS1(m_networkServersInfo, m_httpServer, m_assetCache);
                 m_httpServer.AddStreamHandler(new SimStatusHandler());
+            }
+
+            MainLog.Instance.Verbose("Plugins", "Loading OpenSim application plugins");
+            foreach (TypeExtensionNode node in AddinManager.GetExtensionNodes("/OpenSim/Startup"))
+            {
+                IApplicationPlugin plugin = (IApplicationPlugin)node.CreateInstance();
+                plugin.Initialise(this);
             }
 
             IRegionLoader regionLoader;

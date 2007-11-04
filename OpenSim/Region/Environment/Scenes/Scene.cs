@@ -70,13 +70,13 @@ namespace OpenSim.Region.Environment.Scenes
         private readonly Mutex updateLock;
 
         protected ModuleLoader m_moduleLoader;
-        protected StorageManager storageManager;
-        protected AgentCircuitManager authenticateHandler;
-        public CommunicationsManager commsManager;
+        protected StorageManager m_storageManager;
+        protected AgentCircuitManager m_authenticateHandler;
+        public CommunicationsManager CommsManager;
         // protected XferManager xferManager;
         protected SceneCommunicationService m_sceneGridService;
 
-        protected Dictionary<LLUUID, Caps> capsHandlers = new Dictionary<LLUUID, Caps>();
+        protected Dictionary<LLUUID, Caps> m_capsHandlers = new Dictionary<LLUUID, Caps>();
         protected BaseHttpServer httpListener;
 
         protected Dictionary<string, IRegionModule> Modules = new Dictionary<string, IRegionModule>();
@@ -116,7 +116,7 @@ namespace OpenSim.Region.Environment.Scenes
 
         public AgentCircuitManager AuthenticateHandler
         {
-            get { return authenticateHandler; }
+            get { return m_authenticateHandler; }
         }
 
         private readonly LandManager m_LandManager;
@@ -191,11 +191,11 @@ namespace OpenSim.Region.Environment.Scenes
             updateLock = new Mutex(false);
             
             m_moduleLoader = moduleLoader;
-            authenticateHandler = authen;
-            commsManager = commsMan;
+            m_authenticateHandler = authen;
+            CommsManager = commsMan;
             m_sceneGridService = sceneGridService;
-            storageManager = storeManager;
-            assetCache = assetCach;
+            m_storageManager = storeManager;
+            AssetCache = assetCach;
             m_regInfo = regInfo;
             m_regionHandle = m_regInfo.RegionHandle;
             m_regionName = m_regInfo.RegionName;
@@ -393,7 +393,7 @@ namespace OpenSim.Region.Environment.Scenes
                         phyScene.SetTerrain(Terrain.GetHeights1D());
                     }
 
-                    storageManager.DataStore.StoreTerrain(Terrain.GetHeights2DD(), RegionInfo.RegionID);
+                    m_storageManager.DataStore.StoreTerrain(Terrain.GetHeights2DD(), RegionInfo.RegionID);
 
                     float[] terData = Terrain.GetHeights1D();
 
@@ -470,7 +470,7 @@ namespace OpenSim.Region.Environment.Scenes
         /// <returns></returns>
         public bool Backup()
         {
-            EventManager.TriggerOnBackup(storageManager.DataStore);
+            EventManager.TriggerOnBackup(m_storageManager.DataStore);
             return true;
         }
 
@@ -486,7 +486,7 @@ namespace OpenSim.Region.Environment.Scenes
         {
             try
             {
-                double[,] map = storageManager.DataStore.LoadTerrain(RegionInfo.RegionID);
+                double[,] map = m_storageManager.DataStore.LoadTerrain(RegionInfo.RegionID);
                 if (map == null)
                 {
                     if (string.IsNullOrEmpty(m_regInfo.EstateSettings.terrainFile))
@@ -494,7 +494,7 @@ namespace OpenSim.Region.Environment.Scenes
                         MainLog.Instance.Verbose("TERRAIN", "No default terrain. Generating a new terrain.");
                         Terrain.HillsGenerator();
 
-                        storageManager.DataStore.StoreTerrain(Terrain.GetHeights2DD(), RegionInfo.RegionID);
+                        m_storageManager.DataStore.StoreTerrain(Terrain.GetHeights2DD(), RegionInfo.RegionID);
                     }
                     else
                     {
@@ -509,7 +509,7 @@ namespace OpenSim.Region.Environment.Scenes
                                                      "No terrain found in database or default. Generating a new terrain.");
                             Terrain.HillsGenerator();
                         }
-                        storageManager.DataStore.StoreTerrain(Terrain.GetHeights2DD(), RegionInfo.RegionID);
+                        m_storageManager.DataStore.StoreTerrain(Terrain.GetHeights2DD(), RegionInfo.RegionID);
                     }
                 }
                 else
@@ -539,7 +539,7 @@ namespace OpenSim.Region.Environment.Scenes
             asset.Name = "terrainImage";
             asset.Type = 0;
             asset.Temporary = true;
-            commsManager.AssetCache.AddAsset(asset);
+            AssetCache.AddAsset(asset);
         }
 
         #endregion
@@ -552,7 +552,7 @@ namespace OpenSim.Region.Environment.Scenes
         public virtual void LoadPrimsFromStorage()
         {
             MainLog.Instance.Verbose("Loading objects from datastore");
-            List<SceneObjectGroup> PrimsFromDB = storageManager.DataStore.LoadObjects(m_regInfo.RegionID);
+            List<SceneObjectGroup> PrimsFromDB = m_storageManager.DataStore.LoadObjects(m_regInfo.RegionID);
             foreach (SceneObjectGroup prim in PrimsFromDB)
             {
                 AddEntityFromStorage(prim);
@@ -790,8 +790,8 @@ namespace OpenSim.Region.Environment.Scenes
             CreateAndAddScenePresence(client, child);
 
             m_LandManager.sendParcelOverlay(client);
-            commsManager.UserProfileCache.AddNewUser(client.AgentId);
-            commsManager.TransactionsManager.AddUser(client.AgentId);
+            CommsManager.UserProfileCache.AddNewUser(client.AgentId);
+            CommsManager.TransactionsManager.AddUser(client.AgentId);
         }
 
         protected virtual void SubscribeToClientEvents(IClientAPI client)
@@ -818,7 +818,7 @@ namespace OpenSim.Region.Environment.Scenes
             client.OnGrabUpdate += m_innerScene.MoveObject;
             client.OnDeRezObject += DeRezObject;
             client.OnRezObject += RezObject;
-            client.OnNameFromUUIDRequest += commsManager.HandleUUIDNameRequest;
+            client.OnNameFromUUIDRequest += CommsManager.HandleUUIDNameRequest;
             client.OnObjectDescription += m_innerScene.PrimDescription;
             client.OnObjectName += m_innerScene.PrimName;
             client.OnLinkObjects += m_innerScene.LinkObjects;
@@ -837,13 +837,13 @@ namespace OpenSim.Region.Environment.Scenes
             client.OnEstateOwnerMessage += new EstateOwnerMessageRequest(m_estateManager.handleEstateOwnerMessage);
 
             client.OnCreateNewInventoryItem += CreateNewInventoryItem;
-            client.OnCreateNewInventoryFolder += commsManager.UserProfileCache.HandleCreateInventoryFolder;
-            client.OnFetchInventoryDescendents += commsManager.UserProfileCache.HandleFecthInventoryDescendents;
+            client.OnCreateNewInventoryFolder += CommsManager.UserProfileCache.HandleCreateInventoryFolder;
+            client.OnFetchInventoryDescendents += CommsManager.UserProfileCache.HandleFecthInventoryDescendents;
             client.OnRequestTaskInventory += RequestTaskInventory;
-            client.OnFetchInventory += commsManager.UserProfileCache.HandleFetchInventory;
+            client.OnFetchInventory += CommsManager.UserProfileCache.HandleFetchInventory;
             client.OnUpdateInventoryItem += UDPUpdateInventoryItemAsset;
-            client.OnAssetUploadRequest += commsManager.TransactionsManager.HandleUDPUploadRequest;
-            client.OnXferReceive += commsManager.TransactionsManager.HandleXfer;
+            client.OnAssetUploadRequest += CommsManager.TransactionsManager.HandleUDPUploadRequest;
+            client.OnXferReceive += CommsManager.TransactionsManager.HandleXfer;
             client.OnRezScript += RezScript;
             client.OnRemoveTaskItem += RemoveTaskInventory;
 
@@ -904,7 +904,7 @@ namespace OpenSim.Region.Environment.Scenes
             avatar.Close();
 
             // Remove client agent from profile, so new logins will work
-            commsManager.UserService.clearUserAgent(agentID);
+            CommsManager.UserService.clearUserAgent(agentID);
 
             return;
         }
@@ -926,7 +926,7 @@ namespace OpenSim.Region.Environment.Scenes
             if (Entities.ContainsKey(entID))
             {
                 Entities.Remove(entID);
-                storageManager.DataStore.RemoveObject(entID, m_regInfo.RegionID);
+                m_storageManager.DataStore.RemoveObject(entID, m_regInfo.RegionID);
                 return true;
             }
             return false;
@@ -963,7 +963,7 @@ namespace OpenSim.Region.Environment.Scenes
                 if (agent.CapsPath != "")
                 {
                     Caps cap =
-                        new Caps(commsManager.AssetCache, httpListener, m_regInfo.ExternalHostName, httpListener.Port,
+                        new Caps(AssetCache, httpListener, m_regInfo.ExternalHostName, httpListener.Port,
                                  agent.CapsPath, agent.AgentID, m_dumpAssetsToFile);
 
                     Util.SetCapsURL(agent.AgentID, "http://" + m_regInfo.ExternalHostName + ":" + httpListener.Port.ToString() +
@@ -971,18 +971,18 @@ namespace OpenSim.Region.Environment.Scenes
                     cap.RegisterHandlers();
                     cap.AddNewInventoryItem = AddInventoryItem;
                     cap.ItemUpdatedCall = CapsUpdateInventoryItemAsset;
-                    if (capsHandlers.ContainsKey(agent.AgentID))
+                    if (m_capsHandlers.ContainsKey(agent.AgentID))
                     {
                         //MainLog.Instance.Warn("client", "Adding duplicate CAPS entry for user " +
                                                     //    agent.AgentID.ToStringHyphenated());
-                        capsHandlers[agent.AgentID] = cap;
+                        m_capsHandlers[agent.AgentID] = cap;
                     }
                     else
                     {
-                        capsHandlers.Add(agent.AgentID, cap);
+                        m_capsHandlers.Add(agent.AgentID, cap);
                     }
                 }
-                authenticateHandler.AddNewCircuit(agent.circuitcode, agent);
+                m_authenticateHandler.AddNewCircuit(agent.circuitcode, agent);
             }
         }
 

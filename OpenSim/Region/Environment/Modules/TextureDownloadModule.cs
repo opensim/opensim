@@ -128,7 +128,7 @@ namespace OpenSim.Region.Environment.Modules
                     AssetRequest request = new AssetRequest(client, e.RequestedAssetID, e.DiscardLevel, e.PacketNumber);
                     ClientRequests[client.AgentId].Add(e.RequestedAssetID, request);
                 }
-                m_scene.commsManager.AssetCache.GetAsset(e.RequestedAssetID, TextureCallback);
+                m_scene.AssetCache.GetAsset(e.RequestedAssetID, TextureCallback);
             }
         }
 

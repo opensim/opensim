@@ -52,7 +52,7 @@ namespace OpenSim.Region.Environment.Scenes
 
         public void AddInventoryItem(IClientAPI remoteClient, InventoryItemBase item)
         {
-            CachedUserInfo userInfo = commsManager.UserProfileCache.GetUserDetails(remoteClient.AgentId);
+            CachedUserInfo userInfo = CommsManager.UserProfileCache.GetUserDetails(remoteClient.AgentId);
             if (userInfo != null)
             {
                 userInfo.AddItem(remoteClient.AgentId, item);
@@ -74,7 +74,7 @@ namespace OpenSim.Region.Environment.Scenes
 
         public LLUUID CapsUpdateInventoryItemAsset(IClientAPI remoteClient, LLUUID itemID, byte[] data)
         {
-            CachedUserInfo userInfo = commsManager.UserProfileCache.GetUserDetails(remoteClient.AgentId);
+            CachedUserInfo userInfo = CommsManager.UserProfileCache.GetUserDetails(remoteClient.AgentId);
             if (userInfo != null)
             {
                 if (userInfo.RootFolder != null)
@@ -89,7 +89,7 @@ namespace OpenSim.Region.Environment.Scenes
                         asset.InvType = (sbyte) item.invType;
                         asset.Name = item.inventoryName;
                         asset.Data = data;
-                        commsManager.AssetCache.AddAsset(asset);
+                        AssetCache.AddAsset(asset);
 
                         item.assetID = asset.FullID;
                         userInfo.UpdateItem(remoteClient.AgentId, item);
@@ -114,7 +114,7 @@ namespace OpenSim.Region.Environment.Scenes
         public void UDPUpdateInventoryItemAsset(IClientAPI remoteClient, LLUUID transactionID, LLUUID assetID,
                                                 LLUUID itemID)
         {
-            CachedUserInfo userInfo = commsManager.UserProfileCache.GetUserDetails(remoteClient.AgentId);
+            CachedUserInfo userInfo = CommsManager.UserProfileCache.GetUserDetails(remoteClient.AgentId);
             if (userInfo != null)
             {
                 if (userInfo.RootFolder != null)
@@ -123,13 +123,13 @@ namespace OpenSim.Region.Environment.Scenes
                     if (item != null)
                     {
                         AgentAssetTransactions transactions =
-                            commsManager.TransactionsManager.GetUserTransActions(remoteClient.AgentId);
+                            CommsManager.TransactionsManager.GetUserTransActions(remoteClient.AgentId);
                         if (transactions != null)
                         {
                             AssetBase asset = null;
                             bool addToCache = false;
 
-                            asset = commsManager.AssetCache.GetAsset(assetID);
+                            asset = AssetCache.GetAsset(assetID);
                             if (asset == null)
                             {
                                 asset = transactions.GetTransactionAsset(transactionID);
@@ -148,7 +148,7 @@ namespace OpenSim.Region.Environment.Scenes
 
                                     if (addToCache)
                                     {
-                                        commsManager.AssetCache.AddAsset(asset);
+                                        AssetCache.AddAsset(asset);
                                     }
 
                                     userInfo.UpdateItem(remoteClient.AgentId, item);
@@ -179,7 +179,7 @@ namespace OpenSim.Region.Environment.Scenes
         {
             if (transActionID == LLUUID.Zero)
             {
-                CachedUserInfo userInfo = commsManager.UserProfileCache.GetUserDetails(remoteClient.AgentId);
+                CachedUserInfo userInfo = CommsManager.UserProfileCache.GetUserDetails(remoteClient.AgentId);
                 if (userInfo != null)
                 {
                     AssetBase asset = new AssetBase();
@@ -189,7 +189,7 @@ namespace OpenSim.Region.Environment.Scenes
                     asset.Type = type;
                     asset.FullID = LLUUID.Random();
                     asset.Data = new byte[1];
-                    commsManager.AssetCache.AddAsset(asset);
+                    AssetCache.AddAsset(asset);
 
                     InventoryItemBase item = new InventoryItemBase();
                     item.avatarID = remoteClient.AgentId;
@@ -210,7 +210,7 @@ namespace OpenSim.Region.Environment.Scenes
             }
             else
             {
-                commsManager.TransactionsManager.HandleInventoryFromTransaction(remoteClient, transActionID, folderID,
+                CommsManager.TransactionsManager.HandleInventoryFromTransaction(remoteClient, transActionID, folderID,
                                                                                 callbackID, description, name, invType,
                                                                                 type, wearableType, nextOwnerMask);
                 //System.Console.WriteLine("request to create inventory item from transaction " + transActionID);
@@ -269,7 +269,7 @@ namespace OpenSim.Region.Environment.Scenes
 
         public void RezScript(IClientAPI remoteClient, LLUUID itemID, uint localID)
         {
-            CachedUserInfo userInfo = commsManager.UserProfileCache.GetUserDetails(remoteClient.AgentId);
+            CachedUserInfo userInfo = CommsManager.UserProfileCache.GetUserDetails(remoteClient.AgentId);
             LLUUID copyID = LLUUID.Random();
             if (userInfo != null)
             {
@@ -284,7 +284,7 @@ namespace OpenSim.Region.Environment.Scenes
                         {
                             isTexture = true;
                         }
-                        AssetBase rezAsset = commsManager.AssetCache.GetAsset(item.assetID, isTexture);
+                        AssetBase rezAsset = AssetCache.GetAsset(item.assetID, isTexture);
                         if (rezAsset != null)
                         {
                             string script = Util.FieldToString(rezAsset.Data);
@@ -295,7 +295,7 @@ namespace OpenSim.Region.Environment.Scenes
                         else
                         {
                             //lets try once more incase the asset cache is being slow getting the asset from server
-                            rezAsset = commsManager.AssetCache.GetAsset(item.assetID, isTexture);
+                            rezAsset = AssetCache.GetAsset(item.assetID, isTexture);
                             if (rezAsset != null)
                             {
                                 string script = Util.FieldToString(rezAsset.Data);
@@ -360,7 +360,7 @@ namespace OpenSim.Region.Environment.Scenes
                         if (PermissionsMngr.CanDeRezObject(remoteClient.AgentId, ((SceneObjectGroup) selectedEnt).UUID))
                         {
                             string sceneObjectXml = ((SceneObjectGroup) selectedEnt).ToXmlString();
-                            CachedUserInfo userInfo = commsManager.UserProfileCache.GetUserDetails(remoteClient.AgentId);
+                            CachedUserInfo userInfo = CommsManager.UserProfileCache.GetUserDetails(remoteClient.AgentId);
                             if (userInfo != null)
                             {
                                 AssetBase asset = new AssetBase();
@@ -371,7 +371,7 @@ namespace OpenSim.Region.Environment.Scenes
                                 asset.Type = 6;
                                 asset.FullID = LLUUID.Random();
                                 asset.Data = Helpers.StringToField(sceneObjectXml);
-                                commsManager.AssetCache.AddAsset(asset);
+                                AssetCache.AddAsset(asset);
 
 
                                 InventoryItemBase item = new InventoryItemBase();
@@ -407,7 +407,7 @@ namespace OpenSim.Region.Environment.Scenes
                 rootPart.PhysActor = null;
             }
 
-            storageManager.DataStore.RemoveObject(group.UUID, m_regInfo.RegionID);
+            m_storageManager.DataStore.RemoveObject(group.UUID, m_regInfo.RegionID);
             group.DeleteGroup();
 
             lock (Entities)
@@ -419,7 +419,7 @@ namespace OpenSim.Region.Environment.Scenes
 
         public void RezObject(IClientAPI remoteClient, LLUUID itemID, LLVector3 pos)
         {
-            CachedUserInfo userInfo = commsManager.UserProfileCache.GetUserDetails(remoteClient.AgentId);
+            CachedUserInfo userInfo = CommsManager.UserProfileCache.GetUserDetails(remoteClient.AgentId);
             if (userInfo != null)
             {
                 if (userInfo.RootFolder != null)
@@ -427,7 +427,7 @@ namespace OpenSim.Region.Environment.Scenes
                     InventoryItemBase item = userInfo.RootFolder.HasItem(itemID);
                     if (item != null)
                     {
-                        AssetBase rezAsset = commsManager.AssetCache.GetAsset(item.assetID, false);
+                        AssetBase rezAsset = AssetCache.GetAsset(item.assetID, false);
                         if (rezAsset != null)
                         {
                             AddRezObject(Util.FieldToString(rezAsset.Data), pos);
@@ -437,7 +437,7 @@ namespace OpenSim.Region.Environment.Scenes
                         else
                         {
                             //lets try once more incase the asset cache is being slow getting the asset from server
-                            rezAsset = commsManager.AssetCache.GetAsset(item.assetID, false);
+                            rezAsset = AssetCache.GetAsset(item.assetID, false);
                             if (rezAsset != null)
                             {
                                 AddRezObject(Util.FieldToString(rezAsset.Data), pos);
