@@ -665,6 +665,7 @@
       <ReferencePath>../../../bin/</ReferencePath>
       <Reference name="System" localCopy="false"/>
       <Reference name="System.Xml"/>
+      <Reference name="Mono.Addins.exe" />
       <Reference name="libsecondlife.dll"/>
       <Reference name="Axiom.MathLib.dll"/>
       <Reference name="Db4objects.Db4o.dll"/>
@@ -683,7 +684,6 @@
       <Reference name="XMLRPC.dll"/>
       <Reference name="OpenSim.Region.Communications.Local"/>
       <Reference name="Nini.dll" />
-      <Reference name="mono-addins.exe" />
       <Files>
         <Match pattern="*.cs" recurse="true"/>
       </Files>
@@ -702,13 +702,13 @@
       </Configuration>
 
       <ReferencePath>../../../bin/</ReferencePath>
+      <Reference name="Mono.Addins.exe" />
       <Reference name="System"/>
       <Reference name="System.Xml"/>
       <Reference name="libsecondlife.dll" />
       <Reference name="OpenSim"/>
       <Reference name="OpenSim.Region.ClientStack"/>
       <Reference name="OpenSim.Framework.Console"/>
-      <Reference name="mono-addins.exe" />
       <Files>
         <Match pattern="*.cs" recurse="true"/>
       </Files>
