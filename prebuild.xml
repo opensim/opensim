@@ -675,8 +675,6 @@
       <Reference name="OpenSim.Framework.Console"/>
       <Reference name="OpenSim.Region.Physics.Manager"/>
       <Reference name="OpenSim.Framework.Servers"/>
-      <Reference name="OpenSim.Framework.RegionLoader.Filesystem"/>
-      <Reference name="OpenSim.Framework.RegionLoader.Web"/>
       <Reference name="OpenSim.Region.Environment"/>
       <Reference name="OpenSim.Region.ClientStack"/>
       <Reference name="OpenSim.Framework.Communications"/>
@@ -689,7 +687,7 @@
       </Files>
     </Project>
 
-    <Project name="OpenSim.ApplicationPlugins.Example" path="OpenSim/ApplicationPlugins/Example" type="Library">
+    <Project name="OpenSim.ApplicationPlugins.LoadRegions" path="OpenSim/ApplicationPlugins/LoadRegions" type="Library">
       <Configuration name="Debug">
         <Options>
           <OutputPath>../../../bin/</OutputPath>
@@ -706,9 +704,14 @@
       <Reference name="System"/>
       <Reference name="System.Xml"/>
       <Reference name="libsecondlife.dll" />
+      <Reference name="Nini.dll" />
       <Reference name="OpenSim"/>
       <Reference name="OpenSim.Region.ClientStack"/>
+      <Reference name="OpenSim.Region.Environment"/>
+      <Reference name="OpenSim.Framework"/>
       <Reference name="OpenSim.Framework.Console"/>
+      <Reference name="OpenSim.Framework.RegionLoader.Filesystem"/>
+      <Reference name="OpenSim.Framework.RegionLoader.Web"/>
       <Files>
         <Match pattern="*.cs" recurse="true"/>
       </Files>

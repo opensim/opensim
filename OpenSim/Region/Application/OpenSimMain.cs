@@ -35,8 +35,6 @@ using OpenSim.Framework;
 using OpenSim.Framework.Communications.Cache;
 using OpenSim.Framework.Console;
 using OpenSim.Framework.Servers;
-using OpenSim.Framework.RegionLoader.Filesystem;
-using OpenSim.Framework.RegionLoader.Web;
 using OpenSim.Region.ClientStack;
 using OpenSim.Region.Communications.Local;
 using OpenSim.Region.Communications.OGS1;
@@ -63,9 +61,7 @@ namespace OpenSim
 
         private OpenSimController m_controller;
 
-        protected ModuleLoader m_moduleLoader;
         protected LocalLoginService m_loginService;
-        private IniConfigSource m_config;
 
         protected string m_storageDLL = "OpenSim.DataStore.NullStorage.dll";
 
@@ -89,6 +85,24 @@ namespace OpenSim
 
         public ConsoleCommand CreateAccount = null;
         private bool m_dumpAssetsToFile;
+
+        private List<IApplicationPlugin> m_plugins = new List<IApplicationPlugin>();
+
+        private IniConfigSource m_config;
+
+        public IniConfigSource ConfigSource
+        {
+            get { return m_config; }
+            set { m_config = value; }
+        }
+
+        private ModuleLoader m_moduleLoader;
+
+        public ModuleLoader ModuleLoader
+        {
+            get { return m_moduleLoader; }
+            set { m_moduleLoader = value; }
+        }
 
         public OpenSimMain(IConfigSource configSource)
             : base()
@@ -278,43 +292,15 @@ namespace OpenSim
                 m_httpServer.AddStreamHandler(new SimStatusHandler());
             }
 
+            m_moduleLoader = new ModuleLoader(m_log, m_config);
+
             MainLog.Instance.Verbose("Plugins", "Loading OpenSim application plugins");
             foreach (TypeExtensionNode node in AddinManager.GetExtensionNodes("/OpenSim/Startup"))
             {
                 IApplicationPlugin plugin = (IApplicationPlugin)node.CreateInstance();
                 plugin.Initialise(this);
+                m_plugins.Add(plugin);
             }
-
-            IRegionLoader regionLoader;
-            if (m_config.Configs["Startup"].GetString("region_info_source", "filesystem") == "filesystem")
-            {
-                MainLog.Instance.Notice("Loading Region Info from filesystem");
-                regionLoader = new RegionLoaderFileSystem();
-            }
-            else
-            {
-                MainLog.Instance.Notice("Loading Region Info from web");
-                regionLoader = new RegionLoaderWebServer();
-            }
-
-            regionLoader.SetIniConfigSource(m_config);
-            RegionInfo[] regionsToLoad = regionLoader.LoadRegions();
-
-            m_moduleLoader = new ModuleLoader(m_log, m_config);
-            MainLog.Instance.Verbose("Loading Shared Modules");
-            m_moduleLoader.LoadDefaultSharedModules();
-
-            // Load all script engines found (scripting engine is now a IRegionModule so loaded in the module loader
-            // OpenSim.Region.Environment.Scenes.Scripting.ScriptEngineLoader ScriptEngineLoader = new OpenSim.Region.Environment.Scenes.Scripting.ScriptEngineLoader(m_log);
-
-            for (int i = 0; i < regionsToLoad.Length; i++)
-            {
-                MainLog.Instance.Debug("Creating Region: " + regionsToLoad[i].RegionName);
-                CreateRegion(regionsToLoad[i]);
-            }
-
-            m_moduleLoader.PostInitialise();
-            m_moduleLoader.ClearCache();
 
             // Start UDP servers
             for (int i = 0; i < m_udpServers.Count; i++)
@@ -348,13 +334,6 @@ namespace OpenSim
             m_moduleLoader.PickupModules(scene, "ScriptEngines");
 
             scene.SetModuleInterfaces();
-
-            // Check if we have a script engine to load
-            //if (m_scriptEngine != null && m_scriptEngine != "")
-            //{
-            //  OpenSim.Region.Environment.Scenes.Scripting.ScriptEngineInterface ScriptEngine = ScriptEngineLoader.LoadScriptEngine(m_scriptEngine);
-            // scene.AddScriptEngine(ScriptEngine, m_log);
-            //}
 
             //Server side object editing permissions checking
             scene.PermissionsMngr.BypassPermissions = !m_permissions;
