@@ -71,6 +71,7 @@ using AxiomQuaternion = Axiom.Math.Quaternion;
 using BoxShape=XnaDevRu.BulletX.BoxShape;
 #endregion
 
+
 namespace OpenSim.Region.Physics.BulletXPlugin
 {
     /// <summary>
