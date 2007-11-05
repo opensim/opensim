@@ -53,7 +53,7 @@ namespace OpenSim.Region.Environment.Scenes
         private LLVector3 m_requestedSitOffset = new LLVector3();
         private float m_sitAvatarHeight = 2.0f;
 
-        private Quaternion bodyRot;
+        private Quaternion m_bodyRot;
         private byte[] m_visualParams;
         private AvatarWearable[] m_wearables;
         private LLObject.TextureEntry m_textureEntry;
@@ -71,7 +71,7 @@ namespace OpenSim.Region.Environment.Scenes
         private LLVector3 lastPhysPos = new LLVector3();
         private int m_wearablesSerial = 1;
 
-        private List<ulong> m_KnownChildRegions = new List<ulong>(); //neighbouring regions we have enabled a child agent in
+        private readonly List<ulong> m_knownChildRegions = new List<ulong>(); //neighbouring regions we have enabled a child agent in
 
         private enum Dir_ControlFlags
         {
@@ -234,7 +234,7 @@ namespace OpenSim.Region.Environment.Scenes
 
         public List<ulong> KnownChildRegions
         {
-            get { return m_KnownChildRegions; }
+            get { return m_knownChildRegions; }
         }
         #endregion
 
@@ -261,8 +261,8 @@ namespace OpenSim.Region.Environment.Scenes
             Animations.LoadAnims();
 
             //register for events
-            m_controllingClient.OnRequestWearables += SendOurAppearance;
-            m_controllingClient.OnSetAppearance += new SetAppearance(SetAppearance);
+            m_controllingClient.OnRequestWearables += SendOwnAppearance;
+            m_controllingClient.OnSetAppearance += SetAppearance;
             m_controllingClient.OnCompleteMovementToRegion += CompleteMovement;
             m_controllingClient.OnCompleteMovementToRegion += SendInitialData;
             m_controllingClient.OnAgentUpdate += HandleAgentUpdate;
@@ -409,17 +409,17 @@ namespace OpenSim.Region.Environment.Scenes
 
         public void AddNeighbourRegion(ulong regionHandle)
         {
-            if (!m_KnownChildRegions.Contains(regionHandle))
+            if (!m_knownChildRegions.Contains(regionHandle))
             {
-                m_KnownChildRegions.Add(regionHandle);
+                m_knownChildRegions.Add(regionHandle);
             }
         }
 
         public void RemoveNeighbourRegion(ulong regionHandle)
         {
-            if (!m_KnownChildRegions.Contains(regionHandle))
+            if (!m_knownChildRegions.Contains(regionHandle))
             {
-                m_KnownChildRegions.Remove(regionHandle);
+                m_knownChildRegions.Remove(regionHandle);
             }
         }
         #endregion
@@ -501,9 +501,9 @@ namespace OpenSim.Region.Environment.Scenes
                 update_movementflag = true;
             }
 
-            if (q != bodyRot)
+            if (q != m_bodyRot)
             {
-                bodyRot = q;
+                m_bodyRot = q;
                 update_rotation = true;
             }
 
@@ -765,10 +765,10 @@ namespace OpenSim.Region.Environment.Scenes
             LLVector3 pos = AbsolutePosition;
             LLVector3 vel = Velocity;
             LLQuaternion rot;
-            rot.X = bodyRot.x;
-            rot.Y = bodyRot.y;
-            rot.Z = bodyRot.z;
-            rot.W = bodyRot.w;
+            rot.X = m_bodyRot.x;
+            rot.Y = m_bodyRot.y;
+            rot.Z = m_bodyRot.z;
+            rot.W = m_bodyRot.w;
             RemoteClient.SendAvatarTerseUpdate(m_regionHandle, 64096, LocalId, new LLVector3(pos.X, pos.Y, pos.Z),
                                                new LLVector3(vel.X, vel.Y, vel.Z), rot);
         }
@@ -851,9 +851,9 @@ namespace OpenSim.Region.Environment.Scenes
         /// 
         /// </summary>
         /// <param name="client"></param>
-        public void SendOurAppearance(IClientAPI client)
+        public void SendOwnAppearance( )
         {
-            client.SendWearables(m_wearables, m_wearablesSerial++);
+            SendOwnWearables( );
             m_scene.SendAllSceneObjectsToClient(this);
             m_controllingClient.SendViewerTime(m_scene.TimePhase);
         }
@@ -1101,8 +1101,12 @@ namespace OpenSim.Region.Environment.Scenes
         public void SetWearable(int wearableId, AvatarWearable wearable)
         {
             m_wearables[wearableId] = wearable;
-            m_controllingClient.SendWearables(m_wearables, ++m_wearablesSerial);
-            //m_controllingClient.SendWearables(m_wearables, m_wearablesSerial++);        
+            SendOwnWearables();
+        }
+
+        private void SendOwnWearables()
+        {
+            m_controllingClient.SendWearables(m_wearables, m_wearablesSerial++);
         }
     }
 }

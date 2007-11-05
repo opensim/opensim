@@ -158,7 +158,7 @@ namespace OpenSim.Region.ClientStack
                     case PacketType.AgentWearablesRequest:
                         if (OnRequestWearables != null)
                         {
-                            OnRequestWearables(this);
+                            OnRequestWearables( );
                         }
                         if (OnRequestAvatarsData != null)
                         {

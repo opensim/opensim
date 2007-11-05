@@ -48,15 +48,15 @@ namespace OpenSim.Region.ClientStack
         public event RezObject OnRezObject;
         public event GenericCall4 OnDeRezObject;
         public event ModifyTerrain OnModifyTerrain;
-        public event GenericCall OnRegionHandShakeReply;
-        public event GenericCall OnRequestWearables;
+        public event Action<IClientAPI> OnRegionHandShakeReply;
+        public event GenericCall2 OnRequestWearables;
         public event SetAppearance OnSetAppearance;
         public event GenericCall2 OnCompleteMovementToRegion;
         public event UpdateAgent OnAgentUpdate;
         public event AgentRequestSit OnAgentRequestSit;
         public event AgentSit OnAgentSit;
         public event StartAnim OnStartAnim;
-        public event GenericCall OnRequestAvatarsData;
+        public event Action<IClientAPI> OnRequestAvatarsData;
         public event LinkObjects OnLinkObjects;
         public event UpdateVector OnGrabObject;
         public event ObjectSelect OnDeGrabObject;
@@ -79,7 +79,7 @@ namespace OpenSim.Region.ClientStack
         public event UpdateVector OnUpdatePrimScale;
         public event StatusChange OnChildAgentStatus;
         public event GenericCall2 OnStopMovement;
-        public event GenericCall6 OnRemoveAvatar;
+        public event Action<LLUUID> OnRemoveAvatar;
         public event RequestMapBlocks OnRequestMapBlocks;
         public event TeleportLocationRequest OnTeleportLocationRequest;
         public event DisconnectUser OnDisconnectUser;

@@ -183,18 +183,12 @@ namespace OpenSim.Framework
 
     public delegate void RequestAvatarProperties(IClientAPI remoteClient, LLUUID avatarID);
 
-    public delegate void GenericCall(IClientAPI remoteClient);
-
     public delegate void GenericCall2();
-
-    public delegate void GenericCall3(Packet packet);
 
     // really don't want to be passing packets in these events, so this is very temporary.
     public delegate void GenericCall4(Packet packet, IClientAPI remoteClient);
 
     public delegate void GenericCall5(IClientAPI remoteClient, bool status);
-
-    public delegate void GenericCall6(LLUUID uid);
 
     public delegate void GenericCall7(uint localID, string message);
 
@@ -299,13 +293,13 @@ namespace OpenSim.Framework
         event RequestAvatarProperties OnRequestAvatarProperties;
 
         event GenericCall4 OnDeRezObject;
-        event GenericCall OnRegionHandShakeReply;
-        event GenericCall OnRequestWearables;
+        event Action<IClientAPI> OnRegionHandShakeReply;
+        event GenericCall2 OnRequestWearables;
         event GenericCall2 OnCompleteMovementToRegion;
         event UpdateAgent OnAgentUpdate;
         event AgentRequestSit OnAgentRequestSit;
         event AgentSit OnAgentSit;
-        event GenericCall OnRequestAvatarsData;
+        event Action<IClientAPI> OnRequestAvatarsData;
         event AddNewPrim OnAddPrim;
         event ObjectDuplicate OnObjectDuplicate;
         event UpdateVector OnGrabObject;
@@ -328,7 +322,7 @@ namespace OpenSim.Framework
         event UpdateVector OnUpdatePrimScale;
         event StatusChange OnChildAgentStatus;
         event GenericCall2 OnStopMovement;
-        event GenericCall6 OnRemoveAvatar;
+        event Action<LLUUID> OnRemoveAvatar;
 
         event CreateNewInventoryItem OnCreateNewInventoryItem;
         event CreateInventoryFolder OnCreateNewInventoryFolder;
