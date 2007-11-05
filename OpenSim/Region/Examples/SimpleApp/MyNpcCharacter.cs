@@ -63,13 +63,13 @@ namespace SimpleApp
         public event RequestAvatarProperties OnRequestAvatarProperties;
 
         public event GenericCall4 OnDeRezObject;
-        public event GenericCall OnRegionHandShakeReply;
-        public event GenericCall OnRequestWearables;
+        public event Action<IClientAPI> OnRegionHandShakeReply;
+        public event GenericCall2 OnRequestWearables;
         public event GenericCall2 OnCompleteMovementToRegion;
         public event UpdateAgent OnAgentUpdate;
         public event AgentRequestSit OnAgentRequestSit;
         public event AgentSit OnAgentSit;
-        public event GenericCall OnRequestAvatarsData;
+        public event Action<IClientAPI> OnRequestAvatarsData;
         public event AddNewPrim OnAddPrim;
         public event ObjectDuplicate OnObjectDuplicate;
         public event UpdateVector OnGrabObject;
@@ -93,7 +93,7 @@ namespace SimpleApp
         public event UpdateVector OnUpdatePrimScale;
         public event StatusChange OnChildAgentStatus;
         public event GenericCall2 OnStopMovement;
-        public event GenericCall6 OnRemoveAvatar;
+        public event Action<LLUUID> OnRemoveAvatar;
 
         public event CreateNewInventoryItem OnCreateNewInventoryItem;
         public event CreateInventoryFolder OnCreateNewInventoryFolder;
