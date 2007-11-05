@@ -27,109 +27,70 @@
 */
 
 using System;
+using System.IO;
+using System.Globalization;
+using System.Diagnostics;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
 using OpenSim.Framework;
+using OpenSim.Framework.Console;
 using OpenSim.Region.Physics.Manager;
 
-namespace OpenSim.Region.Physics.OdePlugin
+namespace OpenSim.Region.Physics.OdePlugin.Meshing
 {
-    public class Mesh
-    {
-        public List<Vertex> vertices;
-        public List<Triangle> triangles;
-
-        public float[] normals;
-
-        public Mesh()
-        {
-            vertices = new List<Vertex>();
-            triangles = new List<Triangle>();
-        }
-
-        public void Add(Triangle triangle)
-        {
-            int i;
-            i = vertices.IndexOf(triangle.v1);
-            if (i < 0)
-                throw new ArgumentException("Vertex v1 not known to mesh");
-            i = vertices.IndexOf(triangle.v2);
-            if (i < 0)
-                throw new ArgumentException("Vertex v2 not known to mesh");
-            i = vertices.IndexOf(triangle.v3);
-            if (i < 0)
-                throw new ArgumentException("Vertex v3 not known to mesh");
-
-            triangles.Add(triangle);
-        }
-
-        public void Add(Vertex v)
-        {
-            vertices.Add(v);
-        }
-
-
-        public float[] getVertexListAsFloat()
-        {
-            float[] result = new float[vertices.Count*3];
-            for (int i = 0; i < vertices.Count; i++)
-            {
-                Vertex v = vertices[i];
-                PhysicsVector point = v.point;
-                result[3*i + 0] = point.X;
-                result[3*i + 1] = point.Y;
-                result[3*i + 2] = point.Z;
-            }
-            GCHandle.Alloc(result, GCHandleType.Pinned);
-            return result;
-        }
-
-        public int[] getIndexListAsInt()
-        {
-            int[] result = new int[triangles.Count*3];
-            for (int i = 0; i < triangles.Count; i++)
-            {
-                Triangle t = triangles[i];
-                result[3*i + 0] = vertices.IndexOf(t.v1);
-                result[3*i + 1] = vertices.IndexOf(t.v2);
-                result[3*i + 2] = vertices.IndexOf(t.v3);
-            }
-            GCHandle.Alloc(result, GCHandleType.Pinned);
-            return result;
-        }
-
-
-        public void Append(Mesh newMesh)
-        {
-            foreach (Vertex v in newMesh.vertices)
-                vertices.Add(v);
-
-            foreach (Triangle t in newMesh.triangles)
-                Add(t);
-        }
-    }
-
 
     public class Meshmerizer
     {
+        // Setting baseDir to a path will enable the dumping of raw files
+        // raw files can be imported by blender so a visual inspection of the results can be done
+        //        const string baseDir = "rawFiles";
+                const string baseDir = null;
+
+        static void IntersectionParameterPD(PhysicsVector p1, PhysicsVector r1, PhysicsVector p2, PhysicsVector r2, ref float lambda, ref float mu)
+        { 
+            // p1, p2, points on the straight
+            // r1, r2, directional vectors of the straight. Not necessarily of length 1!
+            // note, that l, m can be scaled such, that the range 0..1 is mapped to the area between two points,
+            // thus allowing to decide whether an intersection is between two points
+
+            float r1x = r1.X;
+            float r1y = r1.Y;
+            float r2x = r2.X;
+            float r2y = r2.Y;
+
+            float denom = r1y*r2x - r1x*r2y;
+
+            if (denom == 0.0)
+            {
+                lambda = Single.NaN;
+                mu = Single.NaN;
+                return;
+            }
+
+            float p1x = p1.X;
+            float p1y = p1.Y;
+            float p2x = p2.X;
+            float p2y = p2.Y;
+            lambda = (-p2x * r2y + p1x * r2y + (p2y - p1y) * r2x) / denom;
+            mu     = (-p2x * r1y + p1x * r1y + (p2y - p1y) * r1x) / denom;
+        
+        }
+
         private static List<Triangle> FindInfluencedTriangles(List<Triangle> triangles, Vertex v)
         {
             List<Triangle> influenced = new List<Triangle>();
             foreach (Triangle t in triangles)
             {
-                float dx, dy;
-
-                if (t.isInCircle(v.point.X, v.point.Y))
+                if (t.isInCircle(v.X, v.Y))
                 {
                     influenced.Add(t);
                 }
             }
             return influenced;
         }
-
-
-        private static void InsertVertices(List<Vertex> vertices, int usedForSeed, List<Triangle> triangles,
-                                           List<int> innerBorders)
+        
+        
+        private static void InsertVertices(List<Vertex> vertices, int usedForSeed, List<Triangle> triangles)
         {
             // This is a variant of the delaunay algorithm
             // each time a new vertex is inserted, all triangles that are influenced by it are deleted
@@ -148,8 +109,10 @@ namespace OpenSim.Region.Physics.OdePlugin
                 // do not fulfill this condition with respect to the new triangle
 
                 // Find the triangles that are influenced by the new vertex
-                Vertex v = vertices[iCurrentVertex];
-                List<Triangle> influencedTriangles = FindInfluencedTriangles(triangles, v);
+                Vertex v=vertices[iCurrentVertex];
+                if (v == null)
+                    continue;   // Null is polygon stop marker. Ignore it
+                List<Triangle> influencedTriangles=FindInfluencedTriangles(triangles, v);
 
                 List<Simplex> simplices = new List<Simplex>();
 
@@ -163,11 +126,12 @@ namespace OpenSim.Region.Physics.OdePlugin
                     simplices.AddRange(newSimplices);
                     triangles.Remove(t);
                 }
-                // Now sort the simplices. That will make identical ones side by side in the list
+                // Now sort the simplices. That will make identical ones reside side by side in the list
                 simplices.Sort();
 
                 // Look for duplicate simplices here. 
-                // Remember, they are directly side by side in the list right now
+                // Remember, they are directly side by side in the list right now, 
+                // So we only check directly neighbours
                 int iSimplex;
                 List<Simplex> innerSimplices = new List<Simplex>();
                 for (iSimplex = 1; iSimplex < simplices.Count; iSimplex++) // Startindex=1, so we can refer backwards
@@ -186,309 +150,144 @@ namespace OpenSim.Region.Physics.OdePlugin
 
                 // each simplex still in the list belongs to the hull of the region in question
                 // The new vertex (yes, we still deal with verices here :-) ) forms a triangle 
-                // With each of these simplices. Build the new triangles and add them to the list
+                // with each of these simplices. Build the new triangles and add them to the list
                 foreach (Simplex s in simplices)
                 {
                     Triangle t = new Triangle(s.v1, s.v2, vertices[iCurrentVertex]);
-                    triangles.Add(t);
+                    if (!t.isDegraded())
+                    {
+                        triangles.Add(t);
+                    }
                 }
             }
 
-            // At this point all vertices should be inserted into the mesh
-            // But the areas, that should be kept free still are filled with triangles
-            // We have to remove them. For this we have a list of indices to vertices.
-            // Each triangle that solemnly constists of vertices from the inner border
-            // are deleted
-
-            List<Triangle> innerTriangles = new List<Triangle>();
-            foreach (Triangle t in triangles)
-            {
-                if (
-                    innerBorders.Contains(vertices.IndexOf(t.v1))
-                    && innerBorders.Contains(vertices.IndexOf(t.v2))
-                    && innerBorders.Contains(vertices.IndexOf(t.v3))
-                    )
-                    innerTriangles.Add(t);
-            }
-            foreach (Triangle t in innerTriangles)
-            {
-                triangles.Remove(t);
-            }
         }
 
-
-        private static Mesh CreateBoxMeshX(PrimitiveBaseShape primShape, PhysicsVector size)
-            // Builds the x (+ and -) surfaces of a box shaped prim
+            
+        static Mesh CreateBoxMesh(String primName, PrimitiveBaseShape primShape, PhysicsVector size)
+        // Builds the z (+ and -) surfaces of a box shaped prim
         {
             UInt16 hollowFactor = primShape.ProfileHollow;
-            Mesh meshMX = new Mesh();
+            UInt16 profileBegin = primShape.ProfileBegin;
+            UInt16 profileEnd = primShape.ProfileEnd;
 
+            // Procedure: This is based on the fact that the upper (plus) and lower (minus) Z-surface
+            // of a block are basically the same
+            // They may be warped differently but the shape is identical
+            // So we only create one surface as a model and derive both plus and minus surface of the block from it
+            // This is done in a model space where the block spans from -.5 to +.5 in X and Y
+            // The mapping to Scene space is done later during the "extrusion" phase
 
-            // Surface 0, -X
-            meshMX.Add(new Vertex("-X-Y-Z", -size.X/2.0f, -size.Y/2.0f, -size.Z/2.0f));
-            meshMX.Add(new Vertex("-X+Y-Z", -size.X/2.0f, +size.Y/2.0f, -size.Z/2.0f));
-            meshMX.Add(new Vertex("-X-Y+Z", -size.X/2.0f, -size.Y/2.0f, +size.Z/2.0f));
-            meshMX.Add(new Vertex("-X+Y+Z", -size.X/2.0f, +size.Y/2.0f, +size.Z/2.0f));
+            // Base
+            Vertex MM = new Vertex(-0.5f, -0.5f, 0.0f);
+            Vertex PM = new Vertex(+0.5f, -0.5f, 0.0f);
+            Vertex MP = new Vertex(-0.5f, +0.5f, 0.0f);
+            Vertex PP = new Vertex(+0.5f, +0.5f, 0.0f);
 
-            meshMX.Add(new Triangle(meshMX.vertices[0], meshMX.vertices[2], meshMX.vertices[1]));
-            meshMX.Add(new Triangle(meshMX.vertices[1], meshMX.vertices[2], meshMX.vertices[3]));
+            Meshing.SimpleHull outerHull = new SimpleHull();
+            outerHull.AddVertex(MM);
+            outerHull.AddVertex(PM);
+            outerHull.AddVertex(PP);
+            outerHull.AddVertex(MP);
 
+            // Deal with cuts now
+            if ((profileBegin != 0) || (profileEnd != 0))
+            {
+                double fProfileBeginAngle = profileBegin / 50000.0 * 360.0; // In degree, for easier debugging and understanding
+                fProfileBeginAngle -= (90.0 + 45.0);   // for some reasons, the SL client counts from the corner -X/-Y
+                double fProfileEndAngle = 360.0 - profileEnd / 50000.0 * 360.0; // Pathend comes as complement to 1.0
+                fProfileEndAngle -= (90.0 + 45.0);
+                if (fProfileBeginAngle < fProfileEndAngle)
+                    fProfileEndAngle -= 360.0;
 
-            Mesh meshPX = new Mesh();
-            // Surface 1, +X
-            meshPX.Add(new Vertex("+X-Y-Z", +size.X/2.0f, -size.Y/2.0f, -size.Z/2.0f));
-            meshPX.Add(new Vertex("+X+Y-Z", +size.X/2.0f, +size.Y/2.0f, -size.Z/2.0f));
-            meshPX.Add(new Vertex("+X-Y+Z", +size.X/2.0f, -size.Y/2.0f, +size.Z/2.0f));
-            meshPX.Add(new Vertex("+X+Y+Z", +size.X/2.0f, +size.Y/2.0f, +size.Z/2.0f));
+                // Note, that we don't want to cut out a triangle, even if this is a 
+                // good approximation for small cuts. Indeed we want to cut out an arc
+                // and we approximate this arc by a polygon chain
+                // Also note, that these vectors are of length 1.0 and thus their endpoints lay outside the model space
+                // So it can easily be subtracted from the outer hull
+                int iSteps = (int)(((fProfileBeginAngle - fProfileEndAngle) / 45.0) + .5); // how many steps do we need with approximately 45 degree
+                double dStepWidth=(fProfileBeginAngle-fProfileEndAngle)/iSteps;
 
+                Vertex origin = new Vertex(0.0f, 0.0f, 0.0f);
 
-            meshPX.Add(new Triangle(meshPX.vertices[0], meshPX.vertices[1], meshPX.vertices[2]));
-            meshPX.Add(new Triangle(meshPX.vertices[2], meshPX.vertices[1], meshPX.vertices[3]));
+                // Note the sequence of vertices here. It's important to have the other rotational sense than in outerHull
+                SimpleHull cutHull = new SimpleHull();
+                cutHull.AddVertex(origin);
+                for (int i=0; i<iSteps; i++) {
+                    double angle=fProfileBeginAngle-i*dStepWidth; // we count against the angle orientation!!!!
+                    Vertex v = Vertex.FromAngle(angle * Math.PI / 180.0);
+                    cutHull.AddVertex(v);
+                }
+                Vertex legEnd = Vertex.FromAngle(fProfileEndAngle * Math.PI / 180.0); // Calculated separately to avoid errors
+                cutHull.AddVertex(legEnd);
 
+                MainLog.Instance.Debug("Starting cutting of the hollow shape from the prim {1}", 0, primName);
+                SimpleHull cuttedHull = SimpleHull.SubtractHull(outerHull, cutHull);
 
+                outerHull = cuttedHull;
+            }
+
+            // Deal with the hole here
             if (hollowFactor > 0)
             {
                 float hollowFactorF = (float) hollowFactor/(float) 50000;
+                Vertex IMM = new Vertex(-0.5f * hollowFactorF, -0.5f * hollowFactorF, 0.0f);
+                Vertex IPM = new Vertex(+0.5f * hollowFactorF, -0.5f * hollowFactorF, 0.0f);
+                Vertex IMP = new Vertex(-0.5f * hollowFactorF, +0.5f * hollowFactorF, 0.0f);
+                Vertex IPP = new Vertex(+0.5f * hollowFactorF, +0.5f * hollowFactorF, 0.0f);
 
-                Vertex IPP;
-                Vertex IPM;
-                Vertex IMP;
-                Vertex IMM;
+                SimpleHull holeHull = new SimpleHull();
 
-                IPP = new Vertex("Inner-X+Y+Z", -size.X*hollowFactorF/2.0f, +size.Y*hollowFactorF/2.0f, +size.Z/2.0f);
-                IPM = new Vertex("Inner-X+Y-Z", -size.X*hollowFactorF/2.0f, +size.Y*hollowFactorF/2.0f, -size.Z/2.0f);
-                IMP = new Vertex("Inner-X-Y+Z", -size.X*hollowFactorF/2.0f, -size.Y*hollowFactorF/2.0f, +size.Z/2.0f);
-                IMM = new Vertex("Inner-X-Y-Z", -size.X*hollowFactorF/2.0f, -size.Y*hollowFactorF/2.0f, -size.Z/2.0f);
+                holeHull.AddVertex(IMM);
+                holeHull.AddVertex(IMP);
+                holeHull.AddVertex(IPP);
+                holeHull.AddVertex(IPM);
 
-                meshMX.Add(IPP);
-                meshMX.Add(IPM);
-                meshMX.Add(IMP);
-                meshMX.Add(IMM);
+                SimpleHull hollowedHull = SimpleHull.SubtractHull(outerHull, holeHull);
 
-                meshMX.Add(new Triangle(IPP, IMP, IPM));
-                meshMX.Add(new Triangle(IPM, IMP, IMM));
+                outerHull = hollowedHull;
 
-                foreach (Triangle t in meshMX.triangles)
-                {
-                    PhysicsVector n = t.getNormal();
-                }
-
-
-                IPP = new Vertex("Inner+X+Y+Z", +size.X*hollowFactorF/2.0f, +size.Y*hollowFactorF/2.0f, +size.Z/2.0f);
-                IPM = new Vertex("Inner+X+Y-Z", +size.X*hollowFactorF/2.0f, +size.Y*hollowFactorF/2.0f, -size.Z/2.0f);
-                IMP = new Vertex("Inner+X-Y+Z", +size.X*hollowFactorF/2.0f, -size.Y*hollowFactorF/2.0f, +size.Z/2.0f);
-                IMM = new Vertex("Inner+X-Y-Z", +size.X*hollowFactorF/2.0f, -size.Y*hollowFactorF/2.0f, -size.Z/2.0f);
-
-                meshPX.Add(IPP);
-                meshPX.Add(IPM);
-                meshPX.Add(IMP);
-                meshPX.Add(IMM);
-
-                meshPX.Add(new Triangle(IPP, IPM, IMP));
-                meshPX.Add(new Triangle(IMP, IPM, IMM));
-
-                foreach (Triangle t in meshPX.triangles)
-                {
-                    PhysicsVector n = t.getNormal();
-                }
             }
 
-            Mesh result = new Mesh();
-            result.Append(meshMX);
-            result.Append(meshPX);
+            Mesh m = new Mesh();
 
-            return result;
-        }
+            Vertex Seed1 = new Vertex(0.0f, -10.0f, 0.0f);
+            Vertex Seed2 = new Vertex(-10.0f, 10.0f, 0.0f);
+            Vertex Seed3 = new Vertex(10.0f, 10.0f, 0.0f);
 
+            m.Add(Seed1);
+            m.Add(Seed2);
+            m.Add(Seed3);
 
-        private static Mesh CreateBoxMeshY(PrimitiveBaseShape primShape, PhysicsVector size)
-            // Builds the y (+ and -) surfaces of a box shaped prim
-        {
-            UInt16 hollowFactor = primShape.ProfileHollow;
+            m.Add(new Triangle(Seed1, Seed2, Seed3));
+            m.Add(outerHull.getVertices());
 
-            // (M)inus Y
-            Mesh MeshMY = new Mesh();
-            MeshMY.Add(new Vertex("-X-Y-Z", -size.X/2.0f, -size.Y/2.0f, -size.Z/2.0f));
-            MeshMY.Add(new Vertex("+X-Y-Z", +size.X/2.0f, -size.Y/2.0f, -size.Z/2.0f));
-            MeshMY.Add(new Vertex("-X-Y+Z", -size.X/2.0f, -size.Y/2.0f, +size.Z/2.0f));
-            MeshMY.Add(new Vertex("+X-Y+Z", +size.X/2.0f, -size.Y/2.0f, +size.Z/2.0f));
+            InsertVertices(m.vertices, 3, m.triangles);
+            m.DumpRaw(baseDir, primName, "Proto first Mesh");
 
-            MeshMY.Add(new Triangle(MeshMY.vertices[0], MeshMY.vertices[1], MeshMY.vertices[2]));
-            MeshMY.Add(new Triangle(MeshMY.vertices[2], MeshMY.vertices[1], MeshMY.vertices[3]));
+            m.Remove(Seed1);
+            m.Remove(Seed2);
+            m.Remove(Seed3);
+            m.DumpRaw(baseDir, primName, "Proto seeds removed");
+            
+            m.RemoveTrianglesOutside(outerHull);
+            m.DumpRaw(baseDir, primName, "Proto outsides removed");
 
-            // (P)lus Y
-            Mesh MeshPY = new Mesh();
-
-            MeshPY.Add(new Vertex("-X+Y-Z", -size.X/2.0f, +size.Y/2.0f, -size.Z/2.0f));
-            MeshPY.Add(new Vertex("+X+Y-Z", +size.X/2.0f, +size.Y/2.0f, -size.Z/2.0f));
-            MeshPY.Add(new Vertex("-X+Y+Z", -size.X/2.0f, +size.Y/2.0f, +size.Z/2.0f));
-            MeshPY.Add(new Vertex("+X+Y+Z", +size.X/2.0f, +size.Y/2.0f, +size.Z/2.0f));
-
-            MeshPY.Add(new Triangle(MeshPY.vertices[1], MeshPY.vertices[0], MeshPY.vertices[2]));
-            MeshPY.Add(new Triangle(MeshPY.vertices[1], MeshPY.vertices[2], MeshPY.vertices[3]));
-
-            if (hollowFactor > 0)
-            {
-                float hollowFactorF = (float) hollowFactor/(float) 50000;
-
-                Vertex IPP;
-                Vertex IPM;
-                Vertex IMP;
-                Vertex IMM;
-
-                IPP = new Vertex("Inner+X-Y+Z", +size.X*hollowFactorF/2.0f, -size.Y*hollowFactorF/2.0f, +size.Z/2.0f);
-                IPM = new Vertex("Inner+X-Y-Z", +size.X*hollowFactorF/2.0f, -size.Y*hollowFactorF/2.0f, -size.Z/2.0f);
-                IMP = new Vertex("Inner-X-Y+Z", -size.X*hollowFactorF/2.0f, -size.Y*hollowFactorF/2.0f, +size.Z/2.0f);
-                IMM = new Vertex("Inner-X-Y-Z", -size.X*hollowFactorF/2.0f, -size.Y*hollowFactorF/2.0f, -size.Z/2.0f);
-
-                MeshMY.Add(IPP);
-                MeshMY.Add(IPM);
-                MeshMY.Add(IMP);
-                MeshMY.Add(IMM);
-
-                MeshMY.Add(new Triangle(IPP, IPM, IMP));
-                MeshMY.Add(new Triangle(IMP, IPM, IMM));
-
-                foreach (Triangle t in MeshMY.triangles)
-                {
-                    PhysicsVector n = t.getNormal();
-                }
-
-
-                IPP = new Vertex("Inner+X+Y+Z", +size.X*hollowFactorF/2.0f, +size.Y*hollowFactorF/2.0f, +size.Z/2.0f);
-                IPM = new Vertex("Inner+X+Y-Z", +size.X*hollowFactorF/2.0f, +size.Y*hollowFactorF/2.0f, -size.Z/2.0f);
-                IMP = new Vertex("Inner-X+Y+Z", -size.X*hollowFactorF/2.0f, +size.Y*hollowFactorF/2.0f, +size.Z/2.0f);
-                IMM = new Vertex("Inner-X+Y-Z", -size.X*hollowFactorF/2.0f, +size.Y*hollowFactorF/2.0f, -size.Z/2.0f);
-
-                MeshPY.Add(IPP);
-                MeshPY.Add(IPM);
-                MeshPY.Add(IMP);
-                MeshPY.Add(IMM);
-
-                MeshPY.Add(new Triangle(IPM, IPP, IMP));
-                MeshPY.Add(new Triangle(IMP, IMM, IPM));
-
-                foreach (Triangle t in MeshPY.triangles)
-                {
-                    PhysicsVector n = t.getNormal();
-                }
-            }
-
-
-            Mesh result = new Mesh();
-            result.Append(MeshMY);
-            result.Append(MeshPY);
-
-            return result;
-        }
-
-        private static Mesh CreateBoxMeshZ(PrimitiveBaseShape primShape, PhysicsVector size)
-            // Builds the z (+ and -) surfaces of a box shaped prim
-        {
-            UInt16 hollowFactor = primShape.ProfileHollow;
-
-            // Base, i.e. outer shape
-            // (M)inus Z
-            Mesh MZ = new Mesh();
-
-            MZ.Add(new Vertex("-X-Y-Z", -size.X/2.0f, -size.Y/2.0f, -size.Z/2.0f));
-            MZ.Add(new Vertex("+X-Y-Z", +size.X/2.0f, -size.Y/2.0f, -size.Z/2.0f));
-            MZ.Add(new Vertex("-X+Y-Z", -size.X/2.0f, +size.Y/2.0f, -size.Z/2.0f));
-            MZ.Add(new Vertex("+X+Y-Z", +size.X/2.0f, +size.Y/2.0f, -size.Z/2.0f));
-
-
-            MZ.Add(new Triangle(MZ.vertices[1], MZ.vertices[0], MZ.vertices[2]));
-            MZ.Add(new Triangle(MZ.vertices[1], MZ.vertices[2], MZ.vertices[3]));
-
-            // (P)lus Z
-            Mesh PZ = new Mesh();
-
-            PZ.Add(new Vertex("-X-Y+Z", -size.X/2.0f, -size.Y/2.0f, 0.0f));
-            PZ.Add(new Vertex("+X-Y+Z", +size.X/2.0f, -size.Y/2.0f, 0.0f));
-            PZ.Add(new Vertex("-X+Y+Z", -size.X/2.0f, +size.Y/2.0f, 0.0f));
-            PZ.Add(new Vertex("+X+Y+Z", +size.X/2.0f, +size.Y/2.0f, 0.0f));
-
-            // Surface 5, +Z
-            PZ.Add(new Triangle(PZ.vertices[0], PZ.vertices[1], PZ.vertices[2]));
-            PZ.Add(new Triangle(PZ.vertices[2], PZ.vertices[1], PZ.vertices[3]));
-
-            if (hollowFactor > 0)
-            {
-                float hollowFactorF = (float) hollowFactor/(float) 50000;
-
-                MZ.Add(new Vertex("-X-Y-Z", -size.X*hollowFactorF/2.0f, -size.Y*hollowFactorF/2.0f, 0.0f));
-                MZ.Add(new Vertex("-X+Y-Z", +size.X*hollowFactorF/2.0f, -size.Y*hollowFactorF/2.0f, 0.0f));
-                MZ.Add(new Vertex("-X-Y+Z", -size.X*hollowFactorF/2.0f, +size.Y*hollowFactorF/2.0f, 0.0f));
-                MZ.Add(new Vertex("-X+Y+Z", +size.X*hollowFactorF/2.0f, +size.Y*hollowFactorF/2.0f, 0.0f));
-
-                List<int> innerBorders = new List<int>();
-                innerBorders.Add(4);
-                innerBorders.Add(5);
-                innerBorders.Add(6);
-                innerBorders.Add(7);
-
-                InsertVertices(MZ.vertices, 4, MZ.triangles, innerBorders);
-
-                PZ.Add(new Vertex("-X-Y-Z", -size.X*hollowFactorF/2.0f, -size.Y*hollowFactorF/2.0f, 0.0f));
-                PZ.Add(new Vertex("-X+Y-Z", +size.X*hollowFactorF/2.0f, -size.Y*hollowFactorF/2.0f, 0.0f));
-                PZ.Add(new Vertex("-X-Y+Z", -size.X*hollowFactorF/2.0f, +size.Y*hollowFactorF/2.0f, 0.0f));
-                PZ.Add(new Vertex("-X+Y+Z", +size.X*hollowFactorF/2.0f, +size.Y*hollowFactorF/2.0f, 0.0f));
-
-                innerBorders = new List<int>();
-                innerBorders.Add(4);
-                innerBorders.Add(5);
-                innerBorders.Add(6);
-                innerBorders.Add(7);
-
-                InsertVertices(PZ.vertices, 4, PZ.triangles, innerBorders);
-            }
-
-            foreach (Vertex v in PZ.vertices)
-            {
-                v.point.Z = size.Z/2.0f;
-            }
-            foreach (Vertex v in MZ.vertices)
-            {
-                v.point.Z = -size.Z/2.0f;
-            }
-
-            foreach (Triangle t in MZ.triangles)
-            {
-                PhysicsVector n = t.getNormal();
-                if (n.Z > 0.0)
-                    t.invertNormal();
-            }
-
-            foreach (Triangle t in PZ.triangles)
+            foreach (Triangle t in m.triangles)
             {
                 PhysicsVector n = t.getNormal();
                 if (n.Z < 0.0)
                     t.invertNormal();
             }
 
-            Mesh result = new Mesh();
-            result.Append(MZ);
-            result.Append(PZ);
+            Extruder extr = new Extruder();
 
+            extr.size = size;
+
+            Mesh result = extr.Extrude(m);
+            result.DumpRaw(baseDir, primName, "Z extruded");
             return result;
         }
-
-        private static Mesh CreateBoxMesh(PrimitiveBaseShape primShape, PhysicsVector size)
-        {
-            Mesh result = new Mesh();
-
-
-            Mesh MeshX = CreateBoxMeshX(primShape, size);
-            Mesh MeshY = CreateBoxMeshY(primShape, size);
-            Mesh MeshZ = CreateBoxMeshZ(primShape, size);
-
-            result.Append(MeshX);
-            result.Append(MeshY);
-            result.Append(MeshZ);
-
-            return result;
-        }
-
 
         public static void CalcNormals(Mesh mesh)
         {
@@ -503,17 +302,18 @@ namespace OpenSim.Region.Physics.OdePlugin
                 float vx, vy, vz;
                 float wx, wy, wz;
 
-                ux = t.v1.point.X;
-                uy = t.v1.point.Y;
-                uz = t.v1.point.Z;
+                ux = t.v1.X;
+                uy = t.v1.Y;
+                uz = t.v1.Z;
 
-                vx = t.v2.point.X;
-                vy = t.v2.point.Y;
-                vz = t.v2.point.Z;
+                vx = t.v2.X;
+                vy = t.v2.Y;
+                vz = t.v2.Z;
 
-                wx = t.v3.point.X;
-                wy = t.v3.point.Y;
-                wz = t.v3.point.Z;
+                wx = t.v3.X;
+                wy = t.v3.Y;
+                wz = t.v3.Z;
+
 
                 // Vectors for edges
                 float e1x, e1y, e1z;
@@ -550,14 +350,14 @@ namespace OpenSim.Region.Physics.OdePlugin
             }
         }
 
-        public static Mesh CreateMesh(PrimitiveBaseShape primShape, PhysicsVector size)
+        public static Mesh CreateMesh(String primName, PrimitiveBaseShape primShape, PhysicsVector size)
         {
             Mesh mesh = null;
 
             switch (primShape.ProfileShape)
             {
                 case ProfileShape.Square:
-                    mesh = CreateBoxMesh(primShape, size);
+                    mesh=CreateBoxMesh(primName, primShape, size);
                     CalcNormals(mesh);
                     break;
                 default:

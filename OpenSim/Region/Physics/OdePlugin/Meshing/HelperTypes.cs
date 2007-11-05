@@ -30,37 +30,63 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Globalization;
+using OpenSim.Framework.Console;
 using OpenSim.Region.Physics.Manager;
 
-public class Vertex : IComparable<Vertex>
-{
-    public String name;
-    public PhysicsVector point;
+using OpenSim.Region.Physics.OdePlugin.Meshing;
 
-    public Vertex(String name, float x, float y, float z)
+public class Vertex : PhysicsVector, IComparable<Vertex>
+{
+    public Vertex(float x, float y, float z)
+        : base(x, y, z)
     {
-        this.name = name;
-        point = new PhysicsVector(x, y, z);
     }
+
+    public Vertex(PhysicsVector v)
+        : base(v.X, v.Y, v.Z)
+    {
+    }
+
+    public Vertex Clone()
+    {
+        return new Vertex(X, Y, Z);
+    }
+
+    public static Vertex FromAngle(double angle)
+    {
+        return new Vertex((float)Math.Cos(angle), (float)Math.Sin(angle), 0.0f);
+    }
+
+
+    public virtual bool Equals(Vertex v, float tolerance)
+    {
+        PhysicsVector diff = this - v;
+        float d = diff.length();
+        if (d < tolerance)
+            return true;
+
+        return false;
+    }
+
 
     public int CompareTo(Vertex other)
     {
-        if (point.X < other.point.X)
+        if (X < other.X)
             return -1;
 
-        if (point.X > other.point.X)
+        if (X > other.X)
             return 1;
 
-        if (point.Y < other.point.Y)
+        if (Y < other.Y)
             return -1;
 
-        if (point.Y > other.point.Y)
+        if (Y > other.Y)
             return 1;
 
-        if (point.Z < other.point.Z)
+        if (Z < other.Z)
             return -1;
 
-        if (point.Z > other.point.Z)
+        if (Z > other.Z)
             return 1;
 
         return 0;
@@ -75,51 +101,24 @@ public class Vertex : IComparable<Vertex>
     {
         return me.CompareTo(other) < 0;
     }
+    public String ToRaw()
+    {
+        // Why this stuff with the number formatter?
+        // Well, the raw format uses the english/US notation of numbers
+        // where the "," separates groups of 1000 while the "." marks the border between 1 and 10E-1.
+        // The german notation uses these characters exactly vice versa!
+        // The Float.ToString() routine is a localized one, giving different results depending on the country
+        // settings your machine works with. Unusable for a machine readable file format :-(
+        NumberFormatInfo nfi = new NumberFormatInfo();
+        nfi.NumberDecimalSeparator = ".";
+        nfi.NumberDecimalDigits = 3;
+
+        String s1 = X.ToString("N2", nfi) + " " + Y.ToString("N2", nfi) + " " + Z.ToString("N2", nfi);
+
+        return s1;
+    }
+
 }
-
-public class Simplex : IComparable<Simplex>
-{
-    public Vertex v1;
-    public Vertex v2;
-
-    public Simplex(Vertex _v1, Vertex _v2)
-    {
-        // Presort indices to make sorting (comparing) easier
-        if (_v1 > _v2)
-        {
-            v1 = _v1;
-            v2 = _v2;
-        }
-        else
-        {
-            v1 = _v2;
-            v2 = _v1;
-        }
-    }
-
-    public int CompareTo(Simplex other)
-    {
-        if (v1 > other.v1)
-        {
-            return 1;
-        }
-        if (v1 < other.v1)
-        {
-            return -1;
-        }
-
-        if (v2 > other.v2)
-        {
-            return 1;
-        }
-        if (v2 < other.v2)
-        {
-            return -1;
-        }
-
-        return 0;
-    }
-} ;
 
 public class Triangle
 {
@@ -155,6 +154,12 @@ public class Triangle
             return false;
     }
 
+    public bool isDegraded()
+    {
+        // This means, the vertices of this triangle are somewhat strange.
+        // They either line up or at least two of them are identical
+        return (radius_square == 0.0);
+    }
 
     private void CalcCircle()
     {
@@ -184,14 +189,14 @@ public class Triangle
         double rx, ry;
 
         // Readout the three points, the triangle consists of
-        p1x = v1.point.X;
-        p1y = v1.point.Y;
+        p1x = v1.X;
+        p1y = v1.Y;
 
-        p2x = v2.point.X;
-        p2y = v2.point.Y;
+        p2x = v2.X;
+        p2y = v2.Y;
 
-        p3x = v3.point.X;
-        p3y = v3.point.Y;
+        p3x = v3.X;
+        p3y = v3.Y;
 
         /* calc helping values first */
         c1 = (p1x*p1x + p1y*p1y - p2x*p2x - p2y*p2y)/2;
@@ -253,12 +258,9 @@ public class Triangle
         nfi.CurrencyDecimalDigits = 2;
         nfi.CurrencyDecimalSeparator = ".";
 
-        String s1 = "<" + v1.point.X.ToString(nfi) + "," + v1.point.Y.ToString(nfi) + "," + v1.point.Z.ToString(nfi) +
-                    ">";
-        String s2 = "<" + v2.point.X.ToString(nfi) + "," + v2.point.Y.ToString(nfi) + "," + v2.point.Z.ToString(nfi) +
-                    ">";
-        String s3 = "<" + v3.point.X.ToString(nfi) + "," + v3.point.Y.ToString(nfi) + "," + v3.point.Z.ToString(nfi) +
-                    ">";
+        String s1 = "<" + v1.X.ToString(nfi) + "," + v1.Y.ToString(nfi) + "," + v1.Z.ToString(nfi) + ">";
+        String s2 = "<" + v2.X.ToString(nfi) + "," + v2.Y.ToString(nfi) + "," + v2.Z.ToString(nfi) + ">";
+        String s3 = "<" + v3.X.ToString(nfi) + "," + v3.Y.ToString(nfi) + "," + v3.Z.ToString(nfi) + ">";
 
         return s1 + ";" + s2 + ";" + s3;
     }
@@ -271,23 +273,17 @@ public class Triangle
         PhysicsVector e1;
         PhysicsVector e2;
 
-        e1 = new PhysicsVector(v1.point.X - v2.point.X, v1.point.Y - v2.point.Y, v1.point.Z - v2.point.Z);
-        e2 = new PhysicsVector(v1.point.X - v3.point.X, v1.point.Y - v3.point.Y, v1.point.Z - v3.point.Z);
+        e1 = new PhysicsVector(v1.X - v2.X, v1.Y - v2.Y, v1.Z - v2.Z);
+        e2 = new PhysicsVector(v1.X - v3.X, v1.Y - v3.Y, v1.Z - v3.Z);
 
         // Cross product for normal
-        PhysicsVector n = new PhysicsVector();
-        float nx, ny, nz;
-        n.X = e1.Y*e2.Z - e1.Z*e2.Y;
-        n.Y = e1.Z*e2.X - e1.X*e2.Z;
-        n.Z = e1.X*e2.Y - e1.Y*e2.X;
+        PhysicsVector n = PhysicsVector.cross(e1, e2);
 
         // Length
-        float l = (float) Math.Sqrt(n.X*n.X + n.Y*n.Y + n.Z*n.Z);
+        float l = n.length();
 
         // Normalized "normal"
-        n.X /= l;
-        n.Y /= l;
-        n.Z /= l;
+        n = n / l;
 
         return n;
     }
@@ -298,5 +294,13 @@ public class Triangle
         vt = v1;
         v1 = v2;
         v2 = vt;
+    }
+
+    // Dumps a triangle in the "raw faces" format, blender can import. This is for visualisation and 
+    // debugging purposes
+    public String ToStringRaw()
+    {
+        String output = v1.ToRaw() + " " + v2.ToRaw() + " " +v3.ToRaw();
+        return output;
     }
 }

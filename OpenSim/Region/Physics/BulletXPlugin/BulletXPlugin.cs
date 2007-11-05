@@ -686,6 +686,15 @@ namespace OpenSim.Region.Physics.BulletXPlugin
             get { return _size; }
             set { lock (BulletXScene.BulletXLock) { _size = value; } }
         }
+
+        public override PrimitiveBaseShape Shape
+        {
+            set
+            {
+                return;
+            }
+        }
+
         public override PhysicsVector Acceleration
         {
             get { return _acceleration; }

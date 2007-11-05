@@ -221,6 +221,14 @@ namespace OpenSim.Region.Physics.BasicPhysicsPlugin
             set { }
         }
 
+        public override PrimitiveBaseShape Shape
+        {
+            set
+            {
+                return;
+            }
+        }
+
         public override PhysicsVector Velocity
         {
             get { return _velocity; }

@@ -32,6 +32,8 @@ using Axiom.Math;
 using Ode.NET;
 using OpenSim.Framework;
 using OpenSim.Region.Physics.Manager;
+using OpenSim.Region.Physics.OdePlugin.Meshing;
+
 
 namespace OpenSim.Region.Physics.OdePlugin
 {
@@ -274,6 +276,7 @@ namespace OpenSim.Region.Physics.OdePlugin
 
         public int TriCallback(IntPtr trimesh, IntPtr refObject, int triangleIndex)
         {
+/*
             String name1 = null;
             String name2 = null;
 
@@ -294,44 +297,51 @@ namespace OpenSim.Region.Physics.OdePlugin
 
             d.GeomTriMeshGetTriangle(trimesh, 0, ref v0, ref v1, ref v2);
 //            MainLog.Instance.Debug("Triangle {0} is <{1},{2},{3}>, <{4},{5},{6}>, <{7},{8},{9}>", triangleIndex, v0.X, v0.Y, v0.Z, v1.X, v1.Y, v1.Z, v2.X, v2.Y, v2.Z);
-
+*/
             return 1;
         }
 
+        
+        public bool needsMeshing(PrimitiveBaseShape pbs)
+        {
+            if (pbs.ProfileHollow != 0)
+                return true;
+
+            if ((pbs.ProfileBegin != 0) || pbs.ProfileEnd != 0)
+                return true;
+
+            return false;
+        }
 
         public override PhysicsActor AddPrimShape(string primName, PrimitiveBaseShape pbs, PhysicsVector position,
                                                   PhysicsVector size, Quaternion rotation) //To be removed
         {
             return this.AddPrimShape(primName, pbs, position, size, rotation, false);
         }
+
         public override PhysicsActor AddPrimShape(string primName, PrimitiveBaseShape pbs, PhysicsVector position,
                                                   PhysicsVector size, Quaternion rotation, bool isPhysical)
         {
             PhysicsActor result;
+            Mesh mesh = null;
 
             switch (pbs.ProfileShape)
             {
                 case ProfileShape.Square:
                     /// support simple box & hollow box now; later, more shapes
-                    if (pbs.ProfileHollow == 0)
+                    if (needsMeshing(pbs))
                     {
-                        result = AddPrim(primName, position, size, rotation, null, null);
+                         mesh = Meshmerizer.CreateMesh(primName, pbs, size);
                     }
-                    else
-                    {
-                        Mesh mesh = Meshmerizer.CreateMesh(pbs, size);
-                        result = AddPrim(primName, position, size, rotation, mesh, pbs);
-                    }
-                    break;
-
-                default:
-                    result = AddPrim(primName, position, size, rotation, null, null);
+                   
                     break;
             }
+           
+            result = AddPrim(primName, position, size, rotation, mesh, pbs);
+
 
             return result;
         }
-
 
         public override void Simulate(float timeStep)
         {
@@ -551,6 +561,13 @@ namespace OpenSim.Region.Physics.OdePlugin
             set { }
         }
 
+        public override PrimitiveBaseShape Shape
+        {
+            set
+            {
+                return;
+            }
+        }
 
         public override PhysicsVector Velocity
         {
@@ -753,6 +770,12 @@ namespace OpenSim.Region.Physics.OdePlugin
             }
         }
 
+        public override bool IsPhysical
+        {
+            get { return false; }
+            set { return; }
+        }
+
         public void setMesh(OdeScene parent_scene, Mesh mesh)
         {
             float[] vertexList = mesh.getVertexListAsFloat(); // Note, that vertextList is pinned in memory
@@ -767,12 +790,6 @@ namespace OpenSim.Region.Physics.OdePlugin
             d.GeomTriMeshDataPreprocess(_triMeshData);
 
             prim_geom = d.CreateTriMesh(parent_scene.space, _triMeshData, parent_scene.triCallback, null, null);
-        }
-
-        public override bool IsPhysical
-        {
-            get { return false; }
-            set { return; }
         }
 
         public override bool Flying
@@ -810,18 +827,70 @@ namespace OpenSim.Region.Physics.OdePlugin
                 _size = value;
                 lock (OdeScene.OdeLock)
                 {
-                    if (_mesh != null) // We deal with a mesh here
+                    string oldname = _parent_scene.geom_name_map[prim_geom];
+
+                    // Cleanup of old prim geometry
+                    d.GeomDestroy(prim_geom);
+                    if (_mesh != null)
                     {
-                        string oldname = _parent_scene.geom_name_map[prim_geom];
-                        d.GeomDestroy(prim_geom);
-                        Mesh mesh = Meshmerizer.CreateMesh(_pbs, _size);
+                        // Cleanup meshing here
+                    }
+
+                    // Construction of new prim
+                    if (this._parent_scene.needsMeshing(_pbs))
+                    {
+                        Mesh mesh = Meshmerizer.CreateMesh(oldname, _pbs, _size);
                         setMesh(_parent_scene, mesh);
-                        _parent_scene.geom_name_map[prim_geom] = oldname;
+                    } else {
+                        prim_geom = d.CreateBox(_parent_scene.space, _size.X, _size.Y, _size.Z);
                     }
-                    else
+                    _parent_scene.geom_name_map[prim_geom] = oldname;
+
+                    d.GeomSetPosition(prim_geom, _position.X, _position.Y, _position.Z);
+                    d.Quaternion myrot = new d.Quaternion();
+                    myrot.W = _orientation.w;
+                    myrot.X = _orientation.x;
+                    myrot.Y = _orientation.y;
+                    myrot.Z = _orientation.z;
+                    d.GeomSetQuaternion(prim_geom, ref myrot);
+                }
+            }
+        }
+
+        public override PrimitiveBaseShape Shape
+        {
+            set
+            {
+                _pbs = value;
+                lock (OdeScene.OdeLock)
+                {
+                    string oldname = _parent_scene.geom_name_map[prim_geom];
+
+                    // Cleanup of old prim geometry
+                    d.GeomDestroy(prim_geom);
+                    if (_mesh != null)
                     {
-                        d.GeomBoxSetLengths(prim_geom, _size.X, _size.Y, _size.Z);
+                        // Cleanup meshing here
                     }
+
+                    // Construction of new prim
+                    if (this._parent_scene.needsMeshing(_pbs))
+                    {
+                        Mesh mesh = Meshmerizer.CreateMesh(oldname, _pbs, _size);
+                        setMesh(_parent_scene, mesh);
+                    } else {
+                        prim_geom = d.CreateBox(_parent_scene.space, _size.X, _size.Y, _size.Z);
+                    }
+                    _parent_scene.geom_name_map[prim_geom] = oldname;
+
+                    d.GeomSetPosition(prim_geom, _position.X, _position.Y, _position.Z);
+                    d.Quaternion myrot = new d.Quaternion();
+                    myrot.W = _orientation.w;
+                    myrot.X = _orientation.x;
+                    myrot.Y = _orientation.y;
+                    myrot.Z = _orientation.z;
+                    d.GeomSetQuaternion(prim_geom, ref myrot);
+
                 }
             }
         }

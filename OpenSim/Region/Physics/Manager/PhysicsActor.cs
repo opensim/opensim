@@ -26,6 +26,7 @@
 * 
 */
 using Axiom.Math;
+using OpenSim.Framework;
 
 namespace OpenSim.Region.Physics.Manager
 {
@@ -49,6 +50,11 @@ namespace OpenSim.Region.Physics.Manager
         }
 
         public abstract PhysicsVector Size { get; set; }
+
+        public abstract PrimitiveBaseShape Shape
+        {
+            set;
+        }
 
         public abstract PhysicsVector Position { get; set; }
 
@@ -83,6 +89,14 @@ namespace OpenSim.Region.Physics.Manager
         {
             get { return PhysicsVector.Zero; }
             set { return; }
+        }
+
+        public override PrimitiveBaseShape Shape
+        {
+            set
+            {
+                return;
+            }
         }
 
         public override PhysicsVector Velocity

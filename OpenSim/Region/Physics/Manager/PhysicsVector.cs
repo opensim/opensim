@@ -25,6 +25,10 @@
 * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 * 
 */
+
+using System;
+
+
 namespace OpenSim.Region.Physics.Manager
 {
     public class PhysicsVector
@@ -49,6 +53,52 @@ namespace OpenSim.Region.Physics.Manager
         public override string ToString()
         {
             return "<" + X + "," + Y + "," + Z + ">";
+        }
+
+        // Operations
+        public static PhysicsVector operator +(PhysicsVector a, PhysicsVector b)
+        {
+            return new PhysicsVector(a.X + b.X, a.Y + b.Y, a.Z + b.Z);
+        }
+
+        public static PhysicsVector operator -(PhysicsVector a, PhysicsVector b)
+        {
+            return new PhysicsVector(a.X - b.X, a.Y - b.Y, a.Z - b.Z);
+        }
+
+        public static PhysicsVector cross(PhysicsVector a, PhysicsVector b)
+        {
+            return new PhysicsVector(a.Y * b.Z - a.Z * b.Y, a.Z * b.X - a.X * b.Z, a.X * b.Y - a.Y * b.X);
+        }
+
+        public float length()
+        {
+            return (float)Math.Sqrt(X*X + Y*Y + Z*Z);
+        }
+
+        public static PhysicsVector operator / (PhysicsVector v, float f)
+        {
+            return new PhysicsVector(v.X / f, v.Y / f, v.Z / f);
+        }
+
+        public static PhysicsVector operator *(PhysicsVector v, float f)
+        {
+            return new PhysicsVector(v.X * f, v.Y * f, v.Z * f);
+        }
+
+        public static PhysicsVector operator *(float f, PhysicsVector v)
+        {
+            return v * f;
+        }
+
+        public virtual bool IsIdentical(PhysicsVector v, float tolerance)
+        {
+            PhysicsVector diff = this - v;
+            float d = diff.length();
+            if (d < tolerance)
+                return true;
+
+            return false;
         }
     }
 }

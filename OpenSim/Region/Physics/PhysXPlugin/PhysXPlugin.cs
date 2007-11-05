@@ -291,15 +291,23 @@ namespace OpenSim.Region.Physics.PhysXPlugin
                 gravityAccel = 0;
             }
         }
-
-        public void UpdatePosition()
+        public override PrimitiveBaseShape Shape
         {
-            Vec3 vec = _character.Position;
-            _position.X = vec.X;
-            _position.Y = vec.Y;
-            _position.Z = vec.Z;
+            set
+            {
+                return;
+            }
         }
-    }
+				
+		public void UpdatePosition()
+		{
+			Vec3 vec = this._character.Position;
+			this._position.X = vec.X;
+			this._position.Y = vec.Y;
+			this._position.Z = vec.Z;
+		}
+	}
+	
 
     public class PhysXPrim : PhysicsActor
     {
@@ -358,55 +366,84 @@ namespace OpenSim.Region.Physics.PhysXPlugin
             }
         }
 
+        public override PrimitiveBaseShape Shape
+        {
+            set
+            {
+                return;
+            }
+        }
+
+		public override PhysicsVector Velocity
+		{
+			get
+			{
+				return _velocity;
+			}
+			set
+			{
+				_velocity = value;
+			}
+		}
+		
+		public override bool Kinematic
+		{
+			get
+			{
+				return this._prim.Kinematic;
+			}
+			set
+			{
+				this._prim.Kinematic = value;
+			}
+		}
+		
+		public override Quaternion Orientation
+		{
+			get
+			{
+				Quaternion res = new Quaternion();
+				PhysXWrapper.Quaternion quat = this._prim.GetOrientation();
+				res.w = quat.W;
+				res.x = quat.X;
+				res.y = quat.Y;
+				res.z = quat.Z;
+				return res;
+			}
+			set
+			{
+				
+			}
+		}
+		
+		public override PhysicsVector Acceleration
+		{
+			get
+			{
+				return _acceleration;
+			}
+			
+		}
+		public void SetAcceleration (PhysicsVector accel)
+		{
+			this._acceleration = accel;
+		}
+		
+		public override void AddForce(PhysicsVector force)
+		{
+			
+		}
+		
+		public override void SetMomentum(PhysicsVector momentum)
+		{
+			
+		}
+
         public override PhysicsVector Size
         {
             get { return new PhysicsVector(0, 0, 0); }
             set { }
         }
 
-        public override PhysicsVector Velocity
-        {
-            get { return _velocity; }
-            set { _velocity = value; }
-        }
-
-        public override bool Kinematic
-        {
-            get { return _prim.Kinematic; }
-            set { _prim.Kinematic = value; }
-        }
-
-        public override Quaternion Orientation
-        {
-            get
-            {
-                Quaternion res = new Quaternion();
-                PhysXWrapper.Quaternion quat = _prim.GetOrientation();
-                res.w = quat.W;
-                res.x = quat.X;
-                res.y = quat.Y;
-                res.z = quat.Z;
-                return res;
-            }
-            set { }
-        }
-
-        public override PhysicsVector Acceleration
-        {
-            get { return _acceleration; }
-        }
-
-        public void SetAcceleration(PhysicsVector accel)
-        {
-            _acceleration = accel;
-        }
-
-        public override void AddForce(PhysicsVector force)
-        {
-        }
-
-        public override void SetMomentum(PhysicsVector momentum)
-        {
-        }
     }
 }
