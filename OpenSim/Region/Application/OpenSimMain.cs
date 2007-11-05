@@ -110,6 +110,7 @@ namespace OpenSim
             IConfig startupConfig = configSource.Configs["Startup"];
 			
             AddinManager.Initialize(".");
+            AddinManager.Registry.Update(null);
 
             string iniFilePath = startupConfig.GetString("inifile", "OpenSim.ini");
 
