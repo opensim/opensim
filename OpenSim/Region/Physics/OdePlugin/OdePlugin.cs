@@ -34,7 +34,6 @@ using OpenSim.Framework;
 using OpenSim.Region.Physics.Manager;
 using OpenSim.Region.Physics.OdePlugin.Meshing;
 
-
 namespace OpenSim.Region.Physics.OdePlugin
 {
     /// <summary>
@@ -84,13 +83,18 @@ namespace OpenSim.Region.Physics.OdePlugin
         public d.TriArrayCallback triArrayCallback;
         private List<OdeCharacter> _characters = new List<OdeCharacter>();
         private List<OdePrim> _prims = new List<OdePrim>();
+        private List<OdePrim> _activeprims = new List<OdePrim>();
         public Dictionary<IntPtr, String> geom_name_map = new Dictionary<IntPtr, String>();
         public Dictionary<IntPtr, PhysicsActor> actor_name_map = new Dictionary<IntPtr, PhysicsActor>();
         private d.ContactGeom[] contacts = new d.ContactGeom[30];
         private d.Contact contact;
+        private d.Contact TerrainContact;
+        private int m_physicsiterations = 10;
+        private float m_SkipFramesAtms = 0.40f; // Drop frames gracefully at a 400 ms lag
         private PhysicsActor PANull = new NullPhysicsActor();
         private float step_time = 0.0f;
         public IntPtr world;
+        
         public IntPtr space;
         public static Object OdeLock = new Object();
 
@@ -106,17 +110,25 @@ namespace OpenSim.Region.Physics.OdePlugin
             contact.surface.soft_erp = 0.005f;
             contact.surface.soft_cfm = 0.00003f;
             */
+            
             contact.surface.mu = 250.0f;
             contact.surface.bounce = 0.2f;
+            TerrainContact.surface.mode |= d.ContactFlags.SoftERP;
+            TerrainContact.surface.mu = 250.0f;
+            TerrainContact.surface.bounce = 0.1f;
+            TerrainContact.surface.soft_erp = 0.1025f;
+
             lock (OdeLock)
             {
                 world = d.WorldCreate();
                 space = d.HashSpaceCreate(IntPtr.Zero);
                 contactgroup = d.JointGroupCreate(0);
+                //contactgroup
+               
                 d.WorldSetGravity(world, 0.0f, 0.0f, -10.0f);
                 d.WorldSetAutoDisableFlag(world, false);
                 d.WorldSetContactSurfaceLayer(world, 0.001f);
-                d.WorldSetQuickStepNumIterations(world, 10);
+                d.WorldSetQuickStepNumIterations(world, m_physicsiterations);
                 d.WorldSetContactMaxCorrectingVel(world, 1000.0f);
             }
 
@@ -127,6 +139,7 @@ namespace OpenSim.Region.Physics.OdePlugin
         // This function blatantly ripped off from BoxStack.cs
         private void near(IntPtr space, IntPtr g1, IntPtr g2)
         {
+            
             //  no lock here!  It's invoked from within Simulate(), which is thread-locked
             IntPtr b1 = d.GeomGetBody(g1);
             IntPtr b2 = d.GeomGetBody(g2);
@@ -142,6 +155,19 @@ namespace OpenSim.Region.Physics.OdePlugin
 
 
             d.GeomClassID id = d.GeomGetClass(g1);
+            
+            String name1 = null;
+            String name2 = null;
+
+            if (!geom_name_map.TryGetValue(g1, out name1))
+            {
+                name1 = "null";
+            }
+            if (!geom_name_map.TryGetValue(g2, out name2))
+            {
+                name2 = "null";
+            }
+
             if (id == d.GeomClassID.TriMeshClass)
             {
                 
@@ -149,33 +175,47 @@ namespace OpenSim.Region.Physics.OdePlugin
 //               MainLog.Instance.Verbose("near: A collision was detected between {1} and {2}", 0, name1, name2);
                 //System.Console.WriteLine("near: A collision was detected between {1} and {2}", 0, name1, name2);
             }
-
-            int count = d.Collide(g1, g2, contacts.GetLength(0), contacts, d.ContactGeom.SizeOf);
+            
+            int count;
+            
+                count = d.Collide(g1, g2, contacts.GetLength(0), contacts, d.ContactGeom.SizeOf);
+         
             for (int i = 0; i < count; i++)
             {
-                contact.geom = contacts[i];
-                IntPtr joint = d.JointCreateContact(world, contactgroup, ref contact);
-                d.JointAttach(joint, b1, b2);
-                PhysicsActor p1;
+                IntPtr joint;
+                // If we're colliding with terrain, use 'TerrainContact' instead of contact.
+                // allows us to have different settings
+                if (name1 == "Terrain" || name2 == "Terrain")
+                {
+                    
+                        TerrainContact.geom = contacts[i];
+                        joint = d.JointCreateContact(world, contactgroup, ref TerrainContact);
+                    
+                }
+                else
+                { 
+                    contact.geom = contacts[i];
+                    joint = d.JointCreateContact(world, contactgroup, ref contact);
+                }
+                
+                
+                    d.JointAttach(joint, b1, b2);
+               
+                
                 PhysicsActor p2;
 
-
-                if (!actor_name_map.TryGetValue(g1, out p1))
-                {
-                    p1 = PANull;
-                }
                 if (!actor_name_map.TryGetValue(g2, out p2))
                 {
                     p2 = PANull;
                 }
 
-                p1.IsColliding = true;
+                // We only need to test p2 for 'jump crouch purposes'
                 p2.IsColliding = true;
                 //System.Console.WriteLine("near: A collision was detected between {1} and {2}", 0, name1, name2);
             }
         }
 
-        private void collision_optimized()
+        private void collision_optimized(float timeStep)
         {
             foreach (OdeCharacter chr in _characters)
             {
@@ -183,16 +223,44 @@ namespace OpenSim.Region.Physics.OdePlugin
             }
             foreach (OdeCharacter chr in _characters)
             {
+
                 
-                    
-               
+
                 d.SpaceCollide2(space, chr.Shell, IntPtr.Zero, nearCallback);
                 foreach (OdeCharacter ch2 in _characters)
-                    /// should be a separate space -- lots of avatars will be N**2 slow
-                {   
+                /// should be a separate space -- lots of avatars will be N**2 slow
+                {
 
-                    
+
                     d.SpaceCollide2(chr.Shell, ch2.Shell, IntPtr.Zero, nearCallback);
+                }
+               
+            }
+            // If the sim is running slow this frame, 
+            // don't process collision for prim!
+            if (timeStep < (m_SkipFramesAtms / 2))
+            {
+                foreach (OdePrim chr in _activeprims)
+                {
+                    // This if may not need to be there..    it might be skipped anyway.
+                    if (d.BodyIsEnabled(chr.Body))
+                    {
+                        d.SpaceCollide2(space, chr.prim_geom, IntPtr.Zero, nearCallback);
+                        foreach (OdePrim ch2 in _prims)
+                        /// should be a separate space -- lots of avatars will be N**2 slow
+                        {
+                            if (ch2.IsPhysical && d.BodyIsEnabled(ch2.Body))
+                            {
+                                // Only test prim that are 0.03 meters away in one direction.
+                                // This should be Optimized!
+
+                                if ((Math.Abs(ch2.Position.X - chr.Position.X) < 0.03) || (Math.Abs(ch2.Position.Y - chr.Position.Y) < 0.03) || (Math.Abs(ch2.Position.X - chr.Position.X) < 0.03))
+                                {
+                                    d.SpaceCollide2(chr.prim_geom, ch2.prim_geom, IntPtr.Zero, nearCallback);
+                                }
+                            }
+                        }
+                    }
                 }
             }
         }
@@ -223,14 +291,21 @@ namespace OpenSim.Region.Physics.OdePlugin
             {
                 lock (OdeLock)
                 {
-                    d.GeomDestroy(((OdePrim) prim).prim_geom);
-                    _prims.Remove((OdePrim) prim);
+                    if (prim.IsPhysical)
+                    {
+                        OdePrim p;
+                        p = (OdePrim) prim;
+                        p.disableBody();
+                    }
+                    d.GeomDestroy(((OdePrim)prim).prim_geom);
+                    _prims.Remove((OdePrim)prim);
+                    
                 }
             }
         }
 
         private PhysicsActor AddPrim(String name, PhysicsVector position, PhysicsVector size, Quaternion rotation,
-                                     Mesh mesh, PrimitiveBaseShape pbs)
+                                     Mesh mesh, PrimitiveBaseShape pbs, bool isphysical)
         {
             PhysicsVector pos = new PhysicsVector();
             pos.X = position.X;
@@ -248,13 +323,27 @@ namespace OpenSim.Region.Physics.OdePlugin
             OdePrim newPrim;
             lock (OdeLock)
             {
-                newPrim = new OdePrim(name, this, pos, siz, rot, mesh, pbs);
+                newPrim = new OdePrim(name, this, pos, siz, rot, mesh, pbs, isphysical);
             }
             _prims.Add(newPrim);
             return newPrim;
         }
 
-
+        public void addActivePrim(OdePrim activatePrim)
+         {
+            // adds active prim..   (ones that should be iterated over in collisions_optimized
+             lock (OdeLock)
+             {
+                 _activeprims.Add(activatePrim);
+             }
+        }
+        public void remActivePrim(OdePrim deactivatePrim)
+        {
+            lock (OdeLock)
+            {
+                _activeprims.Remove(deactivatePrim);
+            }
+        }
         public int TriArrayCallback(IntPtr trimesh, IntPtr refObject, int[] triangleIndex, int triCount)
         {
 /*            String name1 = null;
@@ -276,7 +365,6 @@ namespace OpenSim.Region.Physics.OdePlugin
 
         public int TriCallback(IntPtr trimesh, IntPtr refObject, int triangleIndex)
         {
-/*
             String name1 = null;
             String name2 = null;
 
@@ -297,7 +385,7 @@ namespace OpenSim.Region.Physics.OdePlugin
 
             d.GeomTriMeshGetTriangle(trimesh, 0, ref v0, ref v1, ref v2);
 //            MainLog.Instance.Debug("Triangle {0} is <{1},{2},{3}>, <{4},{5},{6}>, <{7},{8},{9}>", triangleIndex, v0.X, v0.Y, v0.Z, v1.X, v1.Y, v1.Z, v2.X, v2.Y, v2.Z);
-*/
+
             return 1;
         }
 
@@ -318,7 +406,6 @@ namespace OpenSim.Region.Physics.OdePlugin
         {
             return this.AddPrimShape(primName, pbs, position, size, rotation, false);
         }
-
         public override PhysicsActor AddPrimShape(string primName, PrimitiveBaseShape pbs, PhysicsVector position,
                                                   PhysicsVector size, Quaternion rotation, bool isPhysical)
         {
@@ -337,11 +424,12 @@ namespace OpenSim.Region.Physics.OdePlugin
                     break;
             }
            
-            result = AddPrim(primName, position, size, rotation, mesh, pbs);
+            result = AddPrim(primName, position, size, rotation, mesh, pbs, isPhysical);
 
 
             return result;
         }
+
 
         public override void Simulate(float timeStep)
         {
@@ -367,17 +455,45 @@ namespace OpenSim.Region.Physics.OdePlugin
                                           rx.z + "," + ry.z + "," + rz.z);
                     }
                 }
+                
+
+                // If We're loaded down by something else, 
+                // or debugging with the Visual Studio project on pause
+                // skip a few frames to catch up gracefully.
+                // without shooting the physicsactors all over the place
+                
+                if (step_time >= m_SkipFramesAtms)
+                {
+                    // Instead of trying to catch up, it'll do one physics frame only
+                    step_time = ODE_STEPSIZE;
+                    this.m_physicsiterations = 5;
+                }
+                else
+                {
+                    m_physicsiterations = 10;
+                }
+                // Process 10 frames if the sim is running normal..  
+                // process 5 frames if the sim is running slow
+                d.WorldSetQuickStepNumIterations(world, m_physicsiterations);
+
                 int i = 0;
                 while (step_time > 0.0f)
                 {
                     foreach (OdeCharacter actor in _characters)
                     {
                             actor.Move(timeStep);
+                            actor.collidelock = true;
                     }
 
-                    collision_optimized();
+                    
+                    collision_optimized(timeStep);
                     d.WorldQuickStep(world, ODE_STEPSIZE);
                     d.JointGroupEmpty(contactgroup);
+                    foreach (OdeCharacter actor in _characters)
+                    {
+                        actor.collidelock = false;
+                    }
+                    
                     step_time -= ODE_STEPSIZE;
                     i++;
                 }
@@ -412,6 +528,16 @@ namespace OpenSim.Region.Physics.OdePlugin
                                           (capfoot.X - 128.0f) + ", " + (capfoot.Y - 128.0f) + ", " + (capfoot.Z + Zoff) +
                                           ";  " + // position
                                           "1,0,0, 0,1,0, 0,0,1"); // rotation
+                    }
+                }
+                if (timeStep < 0.2f)
+                {
+                    foreach (OdePrim actor in _activeprims)
+                    {
+                        if (actor.IsPhysical && (d.BodyIsEnabled(actor.Body) || !actor._zeroFlag))
+                        {
+                            actor.UpdatePositionAndVelocity();
+                        }
                     }
                 }
             }
@@ -495,7 +621,7 @@ namespace OpenSim.Region.Physics.OdePlugin
         private static float PID_P = 7000.0f;
         private static float POSTURE_SERVO = 10000.0f;
         public static float CAPSULE_RADIUS = 0.5f;
-        public static float CAPSULE_LENGTH = 0.9f;
+        public static float CAPSULE_LENGTH = 0.79f;
         private bool flying = false;
         private bool iscolliding = false;
         private bool jumping = false;
@@ -504,6 +630,7 @@ namespace OpenSim.Region.Physics.OdePlugin
         private OdeScene _parent_scene;
         public IntPtr Shell;
         public d.Mass ShellMass;
+        public bool collidelock = false;
 
         public OdeCharacter(String avName, OdeScene parent_scene, PhysicsVector pos)
         {
@@ -514,6 +641,7 @@ namespace OpenSim.Region.Physics.OdePlugin
             _parent_scene = parent_scene;
             lock (OdeScene.OdeLock)
             {
+
                 Shell = d.CreateCapsule(parent_scene.space, CAPSULE_RADIUS, CAPSULE_LENGTH);
                 d.MassSetCapsule(out ShellMass, 50.0f, 3, 0.4f, 1.0f);
                 Body = d.BodyCreate(parent_scene.world);
@@ -608,19 +736,22 @@ namespace OpenSim.Region.Physics.OdePlugin
         }
         public void doForce(PhysicsVector force)
         {
-            d.BodyAddForce(Body, force.X, force.Y, force.Z);
+            if (!collidelock)
+            {
+                d.BodyAddForce(Body, force.X, force.Y, force.Z);
 
-            //  ok -- let's stand up straight!
-            d.Vector3 feet;
-            d.Vector3 head;
-            d.BodyGetRelPointPos(Body, 0.0f, 0.0f, -1.0f, out feet);
-            d.BodyGetRelPointPos(Body, 0.0f, 0.0f, 1.0f, out head);
-            float posture = head.Z - feet.Z;
+                //  ok -- let's stand up straight!
+                d.Vector3 feet;
+                d.Vector3 head;
+                d.BodyGetRelPointPos(Body, 0.0f, 0.0f, -1.0f, out feet);
+                d.BodyGetRelPointPos(Body, 0.0f, 0.0f, 1.0f, out head);
+                float posture = head.Z - feet.Z;
 
-            // restoring force proportional to lack of posture:
-            float servo = (2.5f - posture) * POSTURE_SERVO;
-            d.BodyAddForceAtRelPos(Body, 0.0f, 0.0f, servo, 0.0f, 0.0f, 1.0f);
-            d.BodyAddForceAtRelPos(Body, 0.0f, 0.0f, -servo, 0.0f, 0.0f, -1.0f);
+                // restoring force proportional to lack of posture:
+                float servo = (2.5f - posture) * POSTURE_SERVO;
+                d.BodyAddForceAtRelPos(Body, 0.0f, 0.0f, servo, 0.0f, 0.0f, 1.0f);
+                d.BodyAddForceAtRelPos(Body, 0.0f, 0.0f, -servo, 0.0f, 0.0f, -1.0f);
+            }
 
         }
         public override void SetMomentum(PhysicsVector momentum)
@@ -675,6 +806,8 @@ namespace OpenSim.Region.Physics.OdePlugin
             {
                 vec.Z += 10.0f;
             }
+            
+
             doForce(vec);
         }
 
@@ -702,9 +835,9 @@ namespace OpenSim.Region.Physics.OdePlugin
             else
             {
                 vec = d.BodyGetLinearVel(Body);
-                _velocity.X = vec.X;
-                _velocity.Y = vec.Y;
-                _velocity.Z = vec.Z;
+                _velocity.X = (vec.X);
+                _velocity.Y = (vec.Y);
+                _velocity.Z = (vec.Z);
             }
         }
 
@@ -723,19 +856,33 @@ namespace OpenSim.Region.Physics.OdePlugin
     {
         public PhysicsVector _position;
         private PhysicsVector _velocity;
+        private PhysicsVector m_lastVelocity = new PhysicsVector(0.0f,0.0f,0.0f);
+        private PhysicsVector m_lastposition = new PhysicsVector(0.0f, 0.0f, 0.0f);
         private PhysicsVector _size;
         private PhysicsVector _acceleration;
         public Quaternion _orientation;
+
         private Mesh _mesh;
         private PrimitiveBaseShape _pbs;
         private OdeScene _parent_scene;
         public IntPtr prim_geom;
         public IntPtr _triMeshData;
         private bool iscolliding = false;
+        private bool m_isphysical = false;
+        public bool _zeroFlag = false;
+        public IntPtr Body = (IntPtr) 0;
+        private String m_primName;
+        private PhysicsVector _target_velocity;
+        public d.Mass pMass;
+        private const float MassMultiplier = 500f; //  Ref: Water: 1000kg..  this iset to 500
+        private int debugcounter = 0;
+
 
         public OdePrim(String primName, OdeScene parent_scene, PhysicsVector pos, PhysicsVector size,
-                       Quaternion rotation, Mesh mesh, PrimitiveBaseShape pbs)
+                       Quaternion rotation, Mesh mesh, PrimitiveBaseShape pbs, bool pisPhysical)
         {
+            
+
             _velocity = new PhysicsVector();
             _position = pos;
             _size = size;
@@ -744,6 +891,9 @@ namespace OpenSim.Region.Physics.OdePlugin
             _mesh = mesh;
             _pbs = pbs;
             _parent_scene = parent_scene;
+            m_isphysical = pisPhysical;
+            m_primName = primName;
+            
             
 
             lock (OdeScene.OdeLock)
@@ -764,20 +914,60 @@ namespace OpenSim.Region.Physics.OdePlugin
                 myrot.Y = rotation.y;
                 myrot.Z = rotation.z;
                 d.GeomSetQuaternion(prim_geom, ref myrot);
+                
+
+                if (m_isphysical && Body == (IntPtr)0) {
+                    enableBody();
+                }
                 parent_scene.geom_name_map[prim_geom] = primName;
-                parent_scene.actor_name_map[prim_geom] = (PhysicsActor) this;
+                parent_scene.actor_name_map[prim_geom] = (PhysicsActor)this;
                     //  don't do .add() here; old geoms get recycled with the same hash
             }
         }
-
-        public override bool IsPhysical
+        public void enableBody()
         {
-            get { return false; }
-            set { return; }
-        }
+            // Sets the geom to a body
+            Body = d.BodyCreate(_parent_scene.world);
 
+            setMass();
+            d.BodySetPosition(Body, _position.X, _position.Y, _position.Z);
+            d.Quaternion myrot = new d.Quaternion();
+            myrot.W = _orientation.w;
+            myrot.X = _orientation.x;
+            myrot.Y = _orientation.y;
+            myrot.Z = _orientation.z;
+            d.BodySetQuaternion(Body, ref myrot);
+            d.GeomSetBody(prim_geom, Body);
+            d.BodySetAutoDisableFlag(Body, true);
+            d.BodySetAutoDisableSteps(Body,20);
+            _parent_scene.addActivePrim(this);
+        }
+        public void setMass()
+        {
+            //Sets Mass based on member MassMultiplier.   
+            if (Body != (IntPtr)0)
+            {
+                d.MassSetBox(out pMass, (_size.X * _size.Y * _size.Z * MassMultiplier), _size.X, _size.Y, _size.Z);
+                d.BodySetMass(Body, ref pMass);
+            }
+        }
+        public void disableBody()
+        {
+            //this kills the body so things like 'mesh' can re-create it.
+            if (Body != (IntPtr)0)
+            {
+                _parent_scene.remActivePrim(this);
+                d.BodyDestroy(Body);
+                Body = (IntPtr)0;
+            }
+        }
         public void setMesh(OdeScene parent_scene, Mesh mesh)
         {
+            //Kill Body so that mesh can re-make the geom
+            if (IsPhysical && Body != (IntPtr)0)
+            {
+                disableBody();
+            }
             float[] vertexList = mesh.getVertexListAsFloat(); // Note, that vertextList is pinned in memory
             int[] indexList = mesh.getIndexListAsInt(); // Also pinned, needs release after usage
             int VertexCount = vertexList.GetLength(0)/3;
@@ -790,6 +980,46 @@ namespace OpenSim.Region.Physics.OdePlugin
             d.GeomTriMeshDataPreprocess(_triMeshData);
 
             prim_geom = d.CreateTriMesh(parent_scene.space, _triMeshData, parent_scene.triCallback, null, null);
+            
+            if (IsPhysical && Body == (IntPtr)0)
+            {
+                // Recreate the body
+                enableBody();
+            }
+        }
+
+        public override bool IsPhysical
+        {
+            get { return m_isphysical; }
+            set {
+                
+                lock (OdeScene.OdeLock)
+                {
+                    if (m_isphysical == value)
+                    {
+                        // If the object is already what the user checked
+                        
+                        return;
+                    }
+                    if (value == true)
+                    {
+                        if (Body == (IntPtr)0)
+                        {
+                            enableBody();
+                        }
+
+                    }
+                    else if (value == false)
+                    {
+                        if (Body != (IntPtr)0)
+                        {
+                            disableBody();
+                        }
+                    }
+                    m_isphysical = value;
+                }
+
+            }
         }
 
         public override bool Flying
@@ -808,13 +1038,27 @@ namespace OpenSim.Region.Physics.OdePlugin
 
         public override PhysicsVector Position
         {
-            get { return _position; }
+            get { return _position;}
             set
             {
                 _position = value;
                 lock (OdeScene.OdeLock)
                 {
-                    d.GeomSetPosition(prim_geom, _position.X, _position.Y, _position.Z);
+                    if (m_isphysical)
+                    {
+                        // This is a fallback..   May no longer be necessary.
+                        if (Body == (IntPtr)0)
+                            enableBody();
+                        // Prim auto disable after 20 frames, 
+                        // if you move it, re-enable the prim manually.
+                        d.BodyEnable(Body);
+                        d.BodySetPosition(Body, _position.X, _position.Y, _position.Z); 
+                    }
+                    else
+                    {
+                        d.GeomSetPosition(prim_geom, _position.X, _position.Y, _position.Z);
+                       
+                    }
                 }
             }
         }
@@ -830,29 +1074,38 @@ namespace OpenSim.Region.Physics.OdePlugin
                     string oldname = _parent_scene.geom_name_map[prim_geom];
 
                     // Cleanup of old prim geometry
-                    d.GeomDestroy(prim_geom);
                     if (_mesh != null)
                     {
                         // Cleanup meshing here
                     }
-
+                    //kill body to rebuild 
+                    if (IsPhysical && Body != (IntPtr)0)
+                    {
+                        disableBody();
+                    }
                     // Construction of new prim
                     if (this._parent_scene.needsMeshing(_pbs))
                     {
+                      
+                        // Don't need to re-enable body..   it's done in SetMesh
                         Mesh mesh = Meshmerizer.CreateMesh(oldname, _pbs, _size);
                         setMesh(_parent_scene, mesh);
                     } else {
                         prim_geom = d.CreateBox(_parent_scene.space, _size.X, _size.Y, _size.Z);
+                        
+                        if (IsPhysical && Body == (IntPtr)0)
+                        {
+                            // Re creates body on size.
+                            // EnableBody also does setMass()
+                            enableBody();
+                            d.BodyEnable(Body);
+                        } 
+                        
                     }
+                  
+                    
                     _parent_scene.geom_name_map[prim_geom] = oldname;
 
-                    d.GeomSetPosition(prim_geom, _position.X, _position.Y, _position.Z);
-                    d.Quaternion myrot = new d.Quaternion();
-                    myrot.W = _orientation.w;
-                    myrot.X = _orientation.x;
-                    myrot.Y = _orientation.y;
-                    myrot.Z = _orientation.z;
-                    d.GeomSetQuaternion(prim_geom, ref myrot);
                 }
             }
         }
@@ -866,11 +1119,17 @@ namespace OpenSim.Region.Physics.OdePlugin
                 {
                     string oldname = _parent_scene.geom_name_map[prim_geom];
 
-                    // Cleanup of old prim geometry
+                    // Cleanup of old prim geometry and Bodies
+                    if (IsPhysical && Body != (IntPtr)0)
+                    {
+                        disableBody();
+                    }
                     d.GeomDestroy(prim_geom);
                     if (_mesh != null)
                     {
-                        // Cleanup meshing here
+                        
+                        d.GeomBoxSetLengths(prim_geom, _size.X, _size.Y, _size.Z);
+                    
                     }
 
                     // Construction of new prim
@@ -881,15 +1140,24 @@ namespace OpenSim.Region.Physics.OdePlugin
                     } else {
                         prim_geom = d.CreateBox(_parent_scene.space, _size.X, _size.Y, _size.Z);
                     }
+                    if (IsPhysical && Body == (IntPtr)0)
+                    {
+                        //re-create new body
+                        enableBody();
+                    }
+                    else
+                    {
+                        d.GeomSetPosition(prim_geom, _position.X, _position.Y, _position.Z);
+                        d.Quaternion myrot = new d.Quaternion();
+                        myrot.W = _orientation.w;
+                        myrot.X = _orientation.x;
+                        myrot.Y = _orientation.y;
+                        myrot.Z = _orientation.z;
+                        d.GeomSetQuaternion(prim_geom, ref myrot);
+                    }
                     _parent_scene.geom_name_map[prim_geom] = oldname;
 
-                    d.GeomSetPosition(prim_geom, _position.X, _position.Y, _position.Z);
-                    d.Quaternion myrot = new d.Quaternion();
-                    myrot.W = _orientation.w;
-                    myrot.X = _orientation.x;
-                    myrot.Y = _orientation.y;
-                    myrot.Z = _orientation.z;
-                    d.GeomSetQuaternion(prim_geom, ref myrot);
+                    
 
                 }
             }
@@ -897,7 +1165,15 @@ namespace OpenSim.Region.Physics.OdePlugin
 
         public override PhysicsVector Velocity
         {
-            get { return _velocity; }
+            get { 
+                // Averate previous velocity with the new one so 
+                // client object interpolation works a 'little' better
+                PhysicsVector returnVelocity = new PhysicsVector();
+                returnVelocity.X = (m_lastVelocity.X + _velocity.X) / 2;
+                returnVelocity.Y = (m_lastVelocity.Y + _velocity.Y) / 2;
+                returnVelocity.Z = (m_lastVelocity.Z + _velocity.Z) / 2;
+                return returnVelocity;
+            }
             set { _velocity = value; }
         }
 
@@ -921,6 +1197,10 @@ namespace OpenSim.Region.Physics.OdePlugin
                     myrot.Y = _orientation.y;
                     myrot.Z = _orientation.z;
                     d.GeomSetQuaternion(prim_geom, ref myrot);
+                    if (m_isphysical && Body != (IntPtr)0)
+                    {
+                        d.BodySetQuaternion(Body, ref myrot);
+                    }
                 }
             }
         }
@@ -930,6 +1210,7 @@ namespace OpenSim.Region.Physics.OdePlugin
             get { return _acceleration; }
         }
 
+
         public void SetAcceleration(PhysicsVector accel)
         {
             _acceleration = accel;
@@ -938,7 +1219,103 @@ namespace OpenSim.Region.Physics.OdePlugin
         public override void AddForce(PhysicsVector force)
         {
         }
+        public void Move(float timestep)
+        {
 
+        }
+
+        public void UpdatePositionAndVelocity() {
+         //  no lock; called from Simulate() -- if you call this from elsewhere, gotta lock or do Monitor.Enter/Exit!
+            if (Body != (IntPtr)0)
+            {
+                d.Vector3 vec = d.BodyGetPosition(Body);
+                d.Quaternion ori = d.BodyGetQuaternion(Body);
+                d.Vector3 vel = d.BodyGetLinearVel(Body);
+                PhysicsVector l_position = new PhysicsVector();
+                //  kluge to keep things in bounds.  ODE lets dead avatars drift away (they should be removed!)
+                if (vec.X < 0.0f) vec.X = 0.0f;
+                if (vec.Y < 0.0f) vec.Y = 0.0f;
+                if (vec.X > 255.95f) vec.X = 255.95f;
+                if (vec.Y > 255.95f) vec.Y = 255.95f;
+                m_lastposition = _position;
+
+                l_position.X = vec.X;
+                l_position.Y = vec.Y;
+                l_position.Z = vec.Z;
+                if (l_position.Z < 0)
+                {
+                    // This is so prim that get lost underground don't fall forever and suck up 
+                    // 
+                    // Sim resources and memory.
+                    // Disables the prim's movement physics....  
+                    // It's a hack and will generate a console message if it fails.
+
+                    try
+                    {
+                        disableBody();
+                        
+                    }
+                    catch (System.Exception e)
+                    {
+                        if (Body != (IntPtr)0)
+                        {
+                            d.BodyDestroy(Body);
+                            Body = (IntPtr)0;
+                            
+                        }
+                    }       
+                    IsPhysical = false;
+                    _velocity.X = 0;
+                    _velocity.Y = 0;
+                    _velocity.Z = 0;
+                    _zeroFlag = true;
+                }
+
+                if (m_lastposition == l_position)
+                {
+                    _zeroFlag = true;
+                }
+                else
+                {
+                    _zeroFlag = false;
+                }
+                m_lastposition = l_position;
+
+
+                if (_zeroFlag)
+                {
+                    // Supposedly this is supposed to tell SceneObjectGroup that 
+                    // no more updates need to be sent..  
+                    // but it seems broken.
+                    _velocity.X = 0.0f;
+                    _velocity.Y = 0.0f;
+                    _velocity.Z = 0.0f;
+                    _orientation.w = 0f;
+                    _orientation.x = 0f;
+                    _orientation.y = 0f;
+                    _orientation.z = 0f;
+
+
+                }
+                else
+                {
+                    m_lastVelocity = _velocity;
+
+                    _position = l_position;
+
+                    _velocity.X = vel.X;
+                    _velocity.Y = vel.Y;
+                    _velocity.Z = vel.Z;
+
+                    _orientation.w = ori.W;
+                    _orientation.x = ori.X;
+                    _orientation.y = ori.Y;
+                    _orientation.z = ori.Z;
+                }
+
+            }
+
+        }
         public override void SetMomentum(PhysicsVector momentum)
         {
         }
