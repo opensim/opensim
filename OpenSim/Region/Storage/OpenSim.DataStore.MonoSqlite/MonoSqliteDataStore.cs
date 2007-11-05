@@ -125,8 +125,15 @@ namespace OpenSim.DataStore.MonoSqlite
             {
                 foreach (SceneObjectPart prim in obj.Children.Values)
                 {
-                    MainLog.Instance.Verbose("DATASTORE", "Adding obj: " + obj.UUID + " to region: " + regionUUID);
-                    addPrim(prim, obj.UUID, regionUUID);
+                    if ((prim.ObjectFlags & (uint)LLObject.ObjectFlags.Physics) == 0)
+                    {
+                        MainLog.Instance.Verbose("DATASTORE", "Adding obj: " + obj.UUID + " to region: " + regionUUID);
+                        addPrim(prim, obj.UUID, regionUUID);
+                    }
+                    else
+                    {
+                        MainLog.Instance.Verbose("DATASTORE", "Ignoring Physical obj: " + obj.UUID + " in region: " + regionUUID);
+                    }
                 }
             }
 

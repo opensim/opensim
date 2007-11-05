@@ -579,7 +579,11 @@ namespace OpenSim.Region.Environment.Scenes
             {
                 AddTerseUpdateToAllAvatars();
                 ClearUpdateSchedule();
-                ScheduleTerseUpdate();
+                if ((ObjectFlags & (uint)LLObject.ObjectFlags.Physics) != 0)
+                {
+                    // Only send the constant terse updates on physical objects!   
+                    ScheduleTerseUpdate();
+                }
             }
             else
             {
