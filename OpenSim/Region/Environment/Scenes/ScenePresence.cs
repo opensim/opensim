@@ -1091,6 +1091,8 @@ namespace OpenSim.Region.Environment.Scenes
         {
             m_wearables[wearableId] = wearable;
             m_controllingClient.SendWearables(m_wearables, m_wearablesSerial++);
+            SendOurAppearance( m_controllingClient );
+            
         }
     }
 }
