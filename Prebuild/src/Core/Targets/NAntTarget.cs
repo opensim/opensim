@@ -47,301 +47,311 @@ using Prebuild.Core.Utilities;
 namespace Prebuild.Core.Targets
 {
     /// <summary>
-/// 
-/// </summary>
-[Target("nant")]
-public class NAntTarget : ITarget
-{
-#region Fields
-
-    private Kernel m_Kernel;
-
-#endregion
-
-#region Private Methods
-
-    private static string PrependPath(string path)
+    /// 
+    /// </summary>
+    [Target("nant")]
+    public class NAntTarget : ITarget
     {
-        string tmpPath = Helper.NormalizePath(path, '/');
-        Regex regex = new Regex(@"(\w):/(\w+)");
-        Match match = regex.Match(tmpPath);
-        //if(match.Success || tmpPath[0] == '.' || tmpPath[0] == '/')
-        //{
-        tmpPath = Helper.NormalizePath(tmpPath);
-        //}
-        //			else
-        //			{
-        //				tmpPath = Helper.NormalizePath("./" + tmpPath);
-        //			}
+        #region Fields
 
-        return tmpPath;
-    }
+        private Kernel m_Kernel;
 
-    private static string BuildReference(SolutionNode solution, ProjectNode currentProject, ReferenceNode refr)
-    {
-        string ret = "";
-        if(solution.ProjectsTable.ContainsKey(refr.Name))
+        #endregion
+
+        #region Private Methods
+
+        private static string PrependPath(string path)
+        {
+            string tmpPath = Helper.NormalizePath(path, '/');
+            Regex regex = new Regex(@"(\w):/(\w+)");
+            Match match = regex.Match(tmpPath);
+            //if(match.Success || tmpPath[0] == '.' || tmpPath[0] == '/')
+            //{
+            tmpPath = Helper.NormalizePath(tmpPath);
+            //}
+            //			else
+            //			{
+            //				tmpPath = Helper.NormalizePath("./" + tmpPath);
+            //			}
+
+            return tmpPath;
+        }
+
+        private static string BuildReference(SolutionNode solution, ProjectNode currentProject, ReferenceNode refr)
+        {
+            string ret = "";
+            if (solution.ProjectsTable.ContainsKey(refr.Name))
             {
                 ProjectNode project = (ProjectNode)solution.ProjectsTable[refr.Name];
 
-                string finalPath = Helper.NormalizePath(((ReferencePathNode)currentProject.ReferencePaths[0]).Path + refr.Name + ".dll", '/');
-				
+                string finalPath = Helper.NormalizePath(((ReferencePathNode)currentProject.ReferencePaths[0]).Path + refr.Name + GetProjectExtension(project), '/');
+
                 return finalPath;
             }
-        else
+            else
             {
                 ProjectNode project = (ProjectNode)refr.Parent;
                 string fileRef = FindFileReference(refr.Name, project);
 
-                if(refr.Path != null || fileRef != null)
-                    {
-                        string finalPath = (refr.Path != null) ? Helper.NormalizePath(refr.Path + "/" + refr.Name + ".dll", '/') : fileRef;
-                        ret += finalPath;
-                        return ret;
-                    }
+                if (refr.Path != null || fileRef != null)
+                {
+                    string finalPath = (refr.Path != null) ? Helper.NormalizePath(refr.Path + "/" + refr.Name + GetProjectExtension(project), '/') : fileRef;
+                    ret += finalPath;
+                    return ret;
+                }
 
                 try
-                    {
-                        //Assembly assem = Assembly.Load(refr.Name);
-                        //if (assem != null)
-                        //{
-                        //ret += (refr.Name + ".dll");
-                        //}
-                        //else
-                        //{
-                        ret += (refr.Name + ".dll");
-                        //}
-                    }
+                {
+                    //Assembly assem = Assembly.Load(refr.Name);
+                    //if (assem != null)
+                    //{
+                    //ret += (refr.Name + ".dll");
+                    //}
+                    //else
+                    //{
+                    ret += (refr.Name + GetProjectExtension(project));
+                    //}
+                }
                 catch (System.NullReferenceException e)
-                    {
-                        e.ToString();
-                        ret += refr.Name + ".dll";
-                    }
+                {
+                    e.ToString();
+                    ret += refr.Name + GetProjectExtension(project);
+                }
             }
-        return ret;
-    }
+            return ret;
+        }
 
-    private static string BuildReferencePath(SolutionNode solution, ReferenceNode refr)
-    {
-        string ret = "";
-        if(solution.ProjectsTable.ContainsKey(refr.Name))
+        private static string GetProjectExtension(ProjectNode project)
+        {
+            string extension = ".dll";
+            if (project.Type == ProjectType.Exe)
+            {
+                extension = ".exe";
+            }
+            return extension;
+        }
+
+        private static string BuildReferencePath(SolutionNode solution, ReferenceNode refr)
+        {
+            string ret = "";
+            if (solution.ProjectsTable.ContainsKey(refr.Name))
             {
                 ProjectNode project = (ProjectNode)solution.ProjectsTable[refr.Name];
                 string finalPath = Helper.NormalizePath(((ReferencePathNode)project.ReferencePaths[0]).Path, '/');
 
                 return finalPath;
             }
-        else
+            else
             {
                 ProjectNode project = (ProjectNode)refr.Parent;
                 string fileRef = FindFileReference(refr.Name, project);
 
-                if(refr.Path != null || fileRef != null)
-                    {
-                        string finalPath = (refr.Path != null) ? Helper.NormalizePath(refr.Path, '/') : fileRef;
-                        ret += finalPath;
-                        return ret;
-                    }
+                if (refr.Path != null || fileRef != null)
+                {
+                    string finalPath = (refr.Path != null) ? Helper.NormalizePath(refr.Path, '/') : fileRef;
+                    ret += finalPath;
+                    return ret;
+                }
 
                 try
+                {
+                    Assembly assem = Assembly.Load(refr.Name);
+                    if (assem != null)
                     {
-                        Assembly assem = Assembly.Load(refr.Name);
-                        if (assem != null)
-                            {
-                                ret += "";
-                            }
-                        else
-                            {
-                                ret += "";
-                            }
-                    }
-                catch (System.NullReferenceException e)
-                    {
-                        e.ToString();
                         ret += "";
                     }
+                    else
+                    {
+                        ret += "";
+                    }
+                }
+                catch (System.NullReferenceException e)
+                {
+                    e.ToString();
+                    ret += "";
+                }
             }
-        return ret;
-    }
+            return ret;
+        }
 
-    private static string FindFileReference(string refName, ProjectNode project) 
-    {
-        foreach(ReferencePathNode refPath in project.ReferencePaths) 
+        private static string FindFileReference(string refName, ProjectNode project)
+        {
+            foreach (ReferencePathNode refPath in project.ReferencePaths)
             {
                 string fullPath = Helper.MakeFilePath(refPath.Path, refName, "dll");
 
-                if(File.Exists(fullPath)) 
-                    {
-                        return fullPath;
-                    }
+                if (File.Exists(fullPath))
+                {
+                    return fullPath;
+                }
             }
 
-        return null;
-    }
+            return null;
+        }
 
-    /// <summary>
-    /// Gets the XML doc file.
-    /// </summary>
-    /// <param name="project">The project.</param>
-    /// <param name="conf">The conf.</param>
-    /// <returns></returns>
-    public static string GetXmlDocFile(ProjectNode project, ConfigurationNode conf) 
-    {
-        if( conf == null )
+        /// <summary>
+        /// Gets the XML doc file.
+        /// </summary>
+        /// <param name="project">The project.</param>
+        /// <param name="conf">The conf.</param>
+        /// <returns></returns>
+        public static string GetXmlDocFile(ProjectNode project, ConfigurationNode conf)
+        {
+            if (conf == null)
             {
                 throw new ArgumentNullException("conf");
             }
-        if( project == null )
+            if (project == null)
             {
                 throw new ArgumentNullException("project");
             }
-        string docFile = (string)conf.Options["XmlDocFile"];
-        //			if(docFile != null && docFile.Length == 0)//default to assembly name if not specified
-        //			{
-        //				return Path.GetFileNameWithoutExtension(project.AssemblyName) + ".xml";
-        //			}
-        return docFile;
-    }
+            string docFile = (string)conf.Options["XmlDocFile"];
+            //			if(docFile != null && docFile.Length == 0)//default to assembly name if not specified
+            //			{
+            //				return Path.GetFileNameWithoutExtension(project.AssemblyName) + ".xml";
+            //			}
+            return docFile;
+        }
 
-    private void WriteProject(SolutionNode solution, ProjectNode project)
-    {
-        string projFile = Helper.MakeFilePath(project.FullPath, project.Name + (project.Type == ProjectType.Library ? ".dll" : ".exe"), "build");
-        StreamWriter ss = new StreamWriter(projFile);
+        private void WriteProject(SolutionNode solution, ProjectNode project)
+        {
+            string projFile = Helper.MakeFilePath(project.FullPath, project.Name + GetProjectExtension(project), "build");
+            StreamWriter ss = new StreamWriter(projFile);
 
-        m_Kernel.CurrentWorkingDirectory.Push();
-        Helper.SetCurrentDir(Path.GetDirectoryName(projFile));
-        bool hasDoc = false;
+            m_Kernel.CurrentWorkingDirectory.Push();
+            Helper.SetCurrentDir(Path.GetDirectoryName(projFile));
+            bool hasDoc = false;
 
-        using(ss)
+            using (ss)
             {
                 ss.WriteLine("<?xml version=\"1.0\" ?>");
                 ss.WriteLine("<project name=\"{0}\" default=\"build\">", project.Name);
                 ss.WriteLine("    <target name=\"{0}\">", "build");
                 ss.WriteLine("        <echo message=\"Build Directory is ${project::get-base-directory()}/${build.dir}\" />");
-                ss.WriteLine("        <mkdir dir=\"${project::get-base-directory()}/${build.dir}\" />");				
+                ss.WriteLine("        <mkdir dir=\"${project::get-base-directory()}/${build.dir}\" />");
                 ss.WriteLine("        <copy todir=\"${project::get-base-directory()}/${build.dir}\">");
                 ss.WriteLine("            <fileset basedir=\"${project::get-base-directory()}\">");
-                foreach(ReferenceNode refr in project.References)
+                foreach (ReferenceNode refr in project.References)
+                {
+                    if (refr.LocalCopy)
                     {
-                        if (refr.LocalCopy)
-                            {
-                                ss.WriteLine("                <include name=\"{0}", Helper.NormalizePath(Helper.MakePathRelativeTo(project.FullPath, BuildReference(solution, project, refr))+"\" />", '/'));
-                            }
+                        ss.WriteLine("                <include name=\"{0}", Helper.NormalizePath(Helper.MakePathRelativeTo(project.FullPath, BuildReference(solution, project, refr)) + "\" />", '/'));
                     }
+                }
                 ss.WriteLine("            </fileset>");
                 ss.WriteLine("        </copy>");
                 ss.Write("        <csc");
                 ss.Write(" target=\"{0}\"", project.Type.ToString().ToLower());
                 ss.Write(" debug=\"{0}\"", "${build.debug}");
-                foreach(ConfigurationNode conf in project.Configurations)
+                foreach (ConfigurationNode conf in project.Configurations)
+                {
+                    if (conf.Options.KeyFile != "")
                     {
-                        if (conf.Options.KeyFile !="")
-                            {
-                                ss.Write(" keyfile=\"{0}\"", conf.Options.KeyFile);
-                                break;
-                            }
-                    }
-                foreach(ConfigurationNode conf in project.Configurations)
-                    {
-                        ss.Write(" unsafe=\"{0}\"", conf.Options.AllowUnsafe);
+                        ss.Write(" keyfile=\"{0}\"", conf.Options.KeyFile);
                         break;
                     }
-                foreach(ConfigurationNode conf in project.Configurations)
+                }
+                foreach (ConfigurationNode conf in project.Configurations)
+                {
+                    ss.Write(" unsafe=\"{0}\"", conf.Options.AllowUnsafe);
+                    break;
+                }
+                foreach (ConfigurationNode conf in project.Configurations)
+                {
+                    ss.Write(" define=\"{0}\"", conf.Options.CompilerDefines);
+                    break;
+                }
+                foreach (ConfigurationNode conf in project.Configurations)
+                {
+                    if (GetXmlDocFile(project, conf) != "")
                     {
-                        ss.Write(" define=\"{0}\"", conf.Options.CompilerDefines);
-                        break;
+                        ss.Write(" doc=\"{0}\"", "${project::get-base-directory()}/${build.dir}/" + GetXmlDocFile(project, conf));
+                        hasDoc = true;
                     }
-                foreach(ConfigurationNode conf in project.Configurations)
-                    {
-                        if (GetXmlDocFile(project, conf) !="")
-                            {
-                                ss.Write(" doc=\"{0}\"", "${project::get-base-directory()}/${build.dir}/" + GetXmlDocFile(project, conf));
-                                hasDoc = true;
-                            }
-                        break;
-                    }
+                    break;
+                }
                 ss.Write(" output=\"{0}", "${project::get-base-directory()}/${build.dir}/${project::get-name()}");
                 if (project.Type == ProjectType.Library)
-                    {
-                        ss.Write(".dll\"");
-                    }
+                {
+                    ss.Write(".dll\"");
+                }
                 else
-                    {
-                        ss.Write(".exe\"");
-                    }
-                if(project.AppIcon != null && project.AppIcon.Length != 0)
-                    {
-                        ss.Write(" win32icon=\"{0}\"", Helper.NormalizePath(project.AppIcon,'/'));
-                    }
+                {
+                    ss.Write(".exe\"");
+                }
+                if (project.AppIcon != null && project.AppIcon.Length != 0)
+                {
+                    ss.Write(" win32icon=\"{0}\"", Helper.NormalizePath(project.AppIcon, '/'));
+                }
                 ss.WriteLine(">");
                 ss.WriteLine("            <resources prefix=\"{0}\" dynamicprefix=\"true\" >", project.RootNamespace);
                 foreach (string file in project.Files)
+                {
+                    switch (project.Files.GetBuildAction(file))
                     {
-                        switch (project.Files.GetBuildAction(file))
+                        case BuildAction.EmbeddedResource:
+                            ss.WriteLine("                {0}", "<include name=\"" + Helper.NormalizePath(PrependPath(file), '/') + "\" />");
+                            break;
+                        default:
+                            if (project.Files.GetSubType(file) != SubType.Code && project.Files.GetSubType(file) != SubType.Settings)
                             {
-                            case BuildAction.EmbeddedResource:
-                                ss.WriteLine("                {0}", "<include name=\"" + Helper.NormalizePath(PrependPath(file), '/') + "\" />");
-                                break;
-                            default:
-                                if (project.Files.GetSubType(file) != SubType.Code && project.Files.GetSubType(file) != SubType.Settings)
-                                    {
-                                        ss.WriteLine("                <include name=\"{0}\" />", file.Substring(0, file.LastIndexOf('.')) + ".resx");
-                                    }
-                                break;
+                                ss.WriteLine("                <include name=\"{0}\" />", file.Substring(0, file.LastIndexOf('.')) + ".resx");
                             }
+                            break;
                     }
+                }
                 //if (project.Files.GetSubType(file).ToString() != "Code")
                 //{
                 //	ps.WriteLine("    <EmbeddedResource Include=\"{0}\">", file.Substring(0, file.LastIndexOf('.')) + ".resx");                 
 
                 ss.WriteLine("            </resources>");
                 ss.WriteLine("            <sources failonempty=\"true\">");
-                foreach(string file in project.Files)
+                foreach (string file in project.Files)
+                {
+                    switch (project.Files.GetBuildAction(file))
                     {
-                        switch(project.Files.GetBuildAction(file))
-                            {
-                            case BuildAction.Compile:
-                                ss.WriteLine("                <include name=\"" + Helper.NormalizePath(PrependPath(file), '/') + "\" />");
-                                break;
-                            default:
-                                break;
-                            }
+                        case BuildAction.Compile:
+                            ss.WriteLine("                <include name=\"" + Helper.NormalizePath(PrependPath(file), '/') + "\" />");
+                            break;
+                        default:
+                            break;
                     }
+                }
                 ss.WriteLine("            </sources>");
                 ss.WriteLine("            <references basedir=\"${project::get-base-directory()}\">");
                 ss.WriteLine("                <lib>");
                 ss.WriteLine("                    <include name=\"${project::get-base-directory()}\" />");
                 ss.WriteLine("                    <include name=\"${project::get-base-directory()}/${build.dir}\" />");
                 ss.WriteLine("                </lib>");
-                foreach(ReferenceNode refr in project.References)
-                    {
-                        string path = Helper.NormalizePath(Helper.MakePathRelativeTo(project.FullPath, BuildReference(solution, project, refr)), '/');
-                        ss.WriteLine("                <include name=\""+ path + "\" />" );
-                    }
+                foreach (ReferenceNode refr in project.References)
+                {
+                    string path = Helper.NormalizePath(Helper.MakePathRelativeTo(project.FullPath, BuildReference(solution, project, refr)), '/');
+                    ss.WriteLine("                <include name=\"" + path + "\" />");
+                }
                 ss.WriteLine("            </references>");
-                
+
                 ss.WriteLine("        </csc>");
 
                 foreach (ConfigurationNode conf in project.Configurations)
+                {
+                    if (!String.IsNullOrEmpty(conf.Options.OutputPath))
                     {
-                        if (!String.IsNullOrEmpty(conf.Options.OutputPath))
-                            {
-                                string targetDir = Helper.NormalizePath(conf.Options.OutputPath, '/');
-                        
-                                ss.WriteLine("        <echo message=\"Copying from [${project::get-base-directory()}/${build.dir}/] to [${project::get-base-directory()}/" + targetDir + "\" />");
+                        string targetDir = Helper.NormalizePath(conf.Options.OutputPath, '/');
 
-                                ss.WriteLine("        <mkdir dir=\"${project::get-base-directory()}/" + targetDir + "\"/>");
+                        ss.WriteLine("        <echo message=\"Copying from [${project::get-base-directory()}/${build.dir}/] to [${project::get-base-directory()}/" + targetDir + "\" />");
 
-                                ss.WriteLine("        <copy todir=\"${project::get-base-directory()}/" + targetDir + "\">");
-                                ss.WriteLine("            <fileset basedir=\"${project::get-base-directory()}/${build.dir}/\" >");
-                                ss.WriteLine("                <include name=\"*.dll\"/>");
-                                ss.WriteLine("                <include name=\"*.exe\"/>");
-                                ss.WriteLine("            </fileset>");
-                                ss.WriteLine("        </copy>");
-                                break;
-                            }
+                        ss.WriteLine("        <mkdir dir=\"${project::get-base-directory()}/" + targetDir + "\"/>");
+
+                        ss.WriteLine("        <copy todir=\"${project::get-base-directory()}/" + targetDir + "\">");
+                        ss.WriteLine("            <fileset basedir=\"${project::get-base-directory()}/${build.dir}/\" >");
+                        ss.WriteLine("                <include name=\"*.dll\"/>");
+                        ss.WriteLine("                <include name=\"*.exe\"/>");
+                        ss.WriteLine("            </fileset>");
+                        ss.WriteLine("        </copy>");
+                        break;
                     }
-			    
+                }
+
                 ss.WriteLine("    </target>");
 
                 ss.WriteLine("    <target name=\"clean\">");
@@ -351,89 +361,89 @@ public class NAntTarget : ITarget
 
                 ss.WriteLine("    <target name=\"doc\" description=\"Creates documentation.\">");
                 if (hasDoc)
+                {
+                    ss.WriteLine("        <property name=\"doc.target\" value=\"\" />");
+                    ss.WriteLine("        <if test=\"${platform::is-unix()}\">");
+                    ss.WriteLine("            <property name=\"doc.target\" value=\"Web\" />");
+                    ss.WriteLine("        </if>");
+                    ss.WriteLine("        <ndoc failonerror=\"false\" verbose=\"true\">");
+                    ss.WriteLine("            <assemblies basedir=\"${project::get-base-directory()}\">");
+                    ss.Write("                <include name=\"${build.dir}/${project::get-name()}");
+                    if (project.Type == ProjectType.Library)
                     {
-                        ss.WriteLine("        <property name=\"doc.target\" value=\"\" />");
-                        ss.WriteLine("        <if test=\"${platform::is-unix()}\">");
-                        ss.WriteLine("            <property name=\"doc.target\" value=\"Web\" />");
-                        ss.WriteLine("        </if>");
-                        ss.WriteLine("        <ndoc failonerror=\"false\" verbose=\"true\">");
-                        ss.WriteLine("            <assemblies basedir=\"${project::get-base-directory()}\">");
-                        ss.Write("                <include name=\"${build.dir}/${project::get-name()}");
-                        if (project.Type == ProjectType.Library)
-                            {
-                                ss.WriteLine(".dll\" />");
-                            }
-                        else
-                            {
-                                ss.WriteLine(".exe\" />");
-                            }
-
-                        ss.WriteLine("            </assemblies>");
-                        ss.WriteLine("            <summaries basedir=\"${project::get-base-directory()}\">");
-                        ss.WriteLine("                <include name=\"${build.dir}/${project::get-name()}.xml\"/>");
-                        ss.WriteLine("            </summaries>");
-                        ss.WriteLine("            <referencepaths basedir=\"${project::get-base-directory()}\">");
-                        ss.WriteLine("                <include name=\"${build.dir}\" />");
-                        //					foreach(ReferenceNode refr in project.References)
-                        //					{
-                        //						string path = Helper.NormalizePath(Helper.MakePathRelativeTo(project.FullPath, BuildReferencePath(solution, refr)), '/');
-                        //						if (path != "")
-                        //						{
-                        //							ss.WriteLine("                <include name=\"{0}\" />", path);
-                        //						}
-                        //					}
-                        ss.WriteLine("            </referencepaths>");
-                        ss.WriteLine("            <documenters>");
-                        ss.WriteLine("                <documenter name=\"MSDN\">");
-                        ss.WriteLine("                    <property name=\"OutputDirectory\" value=\"${project::get-base-directory()}/${build.dir}/doc/${project::get-name()}\" />");
-                        ss.WriteLine("                    <property name=\"OutputTarget\" value=\"${doc.target}\" />");
-                        ss.WriteLine("                    <property name=\"HtmlHelpName\" value=\"${project::get-name()}\" />");
-                        ss.WriteLine("                    <property name=\"IncludeFavorites\" value=\"False\" />");
-                        ss.WriteLine("                    <property name=\"Title\" value=\"${project::get-name()} SDK Documentation\" />");
-                        ss.WriteLine("                    <property name=\"SplitTOCs\" value=\"False\" />");
-                        ss.WriteLine("                    <property name=\"DefaulTOC\" value=\"\" />");
-                        ss.WriteLine("                    <property name=\"ShowVisualBasic\" value=\"True\" />");
-                        ss.WriteLine("                    <property name=\"AutoDocumentConstructors\" value=\"True\" />");
-                        ss.WriteLine("                    <property name=\"ShowMissingSummaries\" value=\"${build.debug}\" />");
-                        ss.WriteLine("                    <property name=\"ShowMissingRemarks\" value=\"${build.debug}\" />");
-                        ss.WriteLine("                    <property name=\"ShowMissingParams\" value=\"${build.debug}\" />");
-                        ss.WriteLine("                    <property name=\"ShowMissingReturns\" value=\"${build.debug}\" />");
-                        ss.WriteLine("                    <property name=\"ShowMissingValues\" value=\"${build.debug}\" />");
-                        ss.WriteLine("                    <property name=\"DocumentInternals\" value=\"False\" />");
-                        ss.WriteLine("                    <property name=\"DocumentPrivates\" value=\"False\" />");
-                        ss.WriteLine("                    <property name=\"DocumentProtected\" value=\"True\" />");
-                        ss.WriteLine("                    <property name=\"DocumentEmptyNamespaces\" value=\"${build.debug}\" />");
-                        ss.WriteLine("                    <property name=\"IncludeAssemblyVersion\" value=\"True\" />");
-                        ss.WriteLine("                </documenter>");
-                        ss.WriteLine("            </documenters>");
-                        ss.WriteLine("        </ndoc>");
+                        ss.WriteLine(".dll\" />");
                     }
+                    else
+                    {
+                        ss.WriteLine(".exe\" />");
+                    }
+
+                    ss.WriteLine("            </assemblies>");
+                    ss.WriteLine("            <summaries basedir=\"${project::get-base-directory()}\">");
+                    ss.WriteLine("                <include name=\"${build.dir}/${project::get-name()}.xml\"/>");
+                    ss.WriteLine("            </summaries>");
+                    ss.WriteLine("            <referencepaths basedir=\"${project::get-base-directory()}\">");
+                    ss.WriteLine("                <include name=\"${build.dir}\" />");
+                    //					foreach(ReferenceNode refr in project.References)
+                    //					{
+                    //						string path = Helper.NormalizePath(Helper.MakePathRelativeTo(project.FullPath, BuildReferencePath(solution, refr)), '/');
+                    //						if (path != "")
+                    //						{
+                    //							ss.WriteLine("                <include name=\"{0}\" />", path);
+                    //						}
+                    //					}
+                    ss.WriteLine("            </referencepaths>");
+                    ss.WriteLine("            <documenters>");
+                    ss.WriteLine("                <documenter name=\"MSDN\">");
+                    ss.WriteLine("                    <property name=\"OutputDirectory\" value=\"${project::get-base-directory()}/${build.dir}/doc/${project::get-name()}\" />");
+                    ss.WriteLine("                    <property name=\"OutputTarget\" value=\"${doc.target}\" />");
+                    ss.WriteLine("                    <property name=\"HtmlHelpName\" value=\"${project::get-name()}\" />");
+                    ss.WriteLine("                    <property name=\"IncludeFavorites\" value=\"False\" />");
+                    ss.WriteLine("                    <property name=\"Title\" value=\"${project::get-name()} SDK Documentation\" />");
+                    ss.WriteLine("                    <property name=\"SplitTOCs\" value=\"False\" />");
+                    ss.WriteLine("                    <property name=\"DefaulTOC\" value=\"\" />");
+                    ss.WriteLine("                    <property name=\"ShowVisualBasic\" value=\"True\" />");
+                    ss.WriteLine("                    <property name=\"AutoDocumentConstructors\" value=\"True\" />");
+                    ss.WriteLine("                    <property name=\"ShowMissingSummaries\" value=\"${build.debug}\" />");
+                    ss.WriteLine("                    <property name=\"ShowMissingRemarks\" value=\"${build.debug}\" />");
+                    ss.WriteLine("                    <property name=\"ShowMissingParams\" value=\"${build.debug}\" />");
+                    ss.WriteLine("                    <property name=\"ShowMissingReturns\" value=\"${build.debug}\" />");
+                    ss.WriteLine("                    <property name=\"ShowMissingValues\" value=\"${build.debug}\" />");
+                    ss.WriteLine("                    <property name=\"DocumentInternals\" value=\"False\" />");
+                    ss.WriteLine("                    <property name=\"DocumentPrivates\" value=\"False\" />");
+                    ss.WriteLine("                    <property name=\"DocumentProtected\" value=\"True\" />");
+                    ss.WriteLine("                    <property name=\"DocumentEmptyNamespaces\" value=\"${build.debug}\" />");
+                    ss.WriteLine("                    <property name=\"IncludeAssemblyVersion\" value=\"True\" />");
+                    ss.WriteLine("                </documenter>");
+                    ss.WriteLine("            </documenters>");
+                    ss.WriteLine("        </ndoc>");
+                }
                 ss.WriteLine("    </target>");
                 ss.WriteLine("</project>");
-            }                
-        m_Kernel.CurrentWorkingDirectory.Pop();
-    }
+            }
+            m_Kernel.CurrentWorkingDirectory.Pop();
+        }
 
-    private void WriteCombine(SolutionNode solution)
-    {
-        m_Kernel.Log.Write("Creating NAnt build files");
-        foreach(ProjectNode project in solution.Projects)
+        private void WriteCombine(SolutionNode solution)
+        {
+            m_Kernel.Log.Write("Creating NAnt build files");
+            foreach (ProjectNode project in solution.Projects)
             {
-                if(m_Kernel.AllowProject(project.FilterGroups)) 
-                    {
-                        m_Kernel.Log.Write("...Creating project: {0}", project.Name);
-                        WriteProject(solution, project);
-                    }
+                if (m_Kernel.AllowProject(project.FilterGroups))
+                {
+                    m_Kernel.Log.Write("...Creating project: {0}", project.Name);
+                    WriteProject(solution, project);
+                }
             }
 
-        m_Kernel.Log.Write("");
-        string combFile = Helper.MakeFilePath(solution.FullPath, solution.Name, "build");
-        StreamWriter ss = new StreamWriter(combFile);
+            m_Kernel.Log.Write("");
+            string combFile = Helper.MakeFilePath(solution.FullPath, solution.Name, "build");
+            StreamWriter ss = new StreamWriter(combFile);
 
-        m_Kernel.CurrentWorkingDirectory.Push();
-        Helper.SetCurrentDir(Path.GetDirectoryName(combFile));
-            
-        using(ss)
+            m_Kernel.CurrentWorkingDirectory.Push();
+            Helper.SetCurrentDir(Path.GetDirectoryName(combFile));
+
+            using (ss)
             {
                 ss.WriteLine("<?xml version=\"1.0\" ?>");
                 ss.WriteLine("<project name=\"{0}\" default=\"build\">", solution.Name);
@@ -447,26 +457,26 @@ public class NAntTarget : ITarget
                 ss.WriteLine("    <property name=\"doc.dir\" value=\"doc\" />");
                 ss.WriteLine("    <property name=\"project.main.dir\" value=\"${project::get-base-directory()}\" />");
 
-                foreach(ConfigurationNode conf in solution.Configurations)
+                foreach (ConfigurationNode conf in solution.Configurations)
+                {
+                    // Set the project.config to a non-debug configuration
+                    if (conf.Options["DebugInformation"].ToString().ToLower() != "true")
                     {
-                        // Set the project.config to a non-debug configuration
-                        if( conf.Options["DebugInformation"].ToString().ToLower() != "true" )
-                            {
-                                ss.WriteLine("    <property name=\"project.config\" value=\"{0}\" />", conf.Name);
-                            }
-                        ss.WriteLine();
-                        ss.WriteLine("    <target name=\"{0}\" description=\"\">", conf.Name);
-                        ss.WriteLine("        <property name=\"project.config\" value=\"{0}\" />", conf.Name);
-                        ss.WriteLine("        <property name=\"build.debug\" value=\"{0}\" />", conf.Options["DebugInformation"].ToString().ToLower());
-                        ss.WriteLine("    </target>");
-                        ss.WriteLine();
+                        ss.WriteLine("    <property name=\"project.config\" value=\"{0}\" />", conf.Name);
                     }
+                    ss.WriteLine();
+                    ss.WriteLine("    <target name=\"{0}\" description=\"\">", conf.Name);
+                    ss.WriteLine("        <property name=\"project.config\" value=\"{0}\" />", conf.Name);
+                    ss.WriteLine("        <property name=\"build.debug\" value=\"{0}\" />", conf.Options["DebugInformation"].ToString().ToLower());
+                    ss.WriteLine("    </target>");
+                    ss.WriteLine();
+                }
 
                 ss.WriteLine("    <target name=\"net-1.1\" description=\"Sets framework to .NET 1.1\">");
                 ss.WriteLine("        <property name=\"nant.settings.currentframework\" value=\"net-1.1\" />");
                 ss.WriteLine("    </target>");
                 ss.WriteLine();
-    
+
                 ss.WriteLine("    <target name=\"net-2.0\" description=\"Sets framework to .NET 2.0\">");
                 ss.WriteLine("        <property name=\"nant.settings.currentframework\" value=\"net-2.0\" />");
                 ss.WriteLine("    </target>");
@@ -497,28 +507,31 @@ public class NAntTarget : ITarget
                 // created files from all .nant/*include files.  This
                 // lets us keep using prebuild, but allows for
                 // extended nant targets to do build and the like.
-                
-                try {
+
+                try
+                {
                     Regex re = new Regex(".include$");
                     DirectoryInfo nantdir = new DirectoryInfo(".nant");
                     foreach (FileSystemInfo item in nantdir.GetFileSystemInfos())
                     {
-                        if (item is DirectoryInfo) {}
+                        if (item is DirectoryInfo) { }
                         else if (item is FileInfo)
                         {
-                            if (re.Match(((FileInfo)item).FullName) != 
-                                System.Text.RegularExpressions.Match.Empty) {
+                            if (re.Match(((FileInfo)item).FullName) !=
+                                System.Text.RegularExpressions.Match.Empty)
+                            {
                                 Console.WriteLine("Including file: " + ((FileInfo)item).FullName);
 
-                                using (FileStream fs = new FileStream(((FileInfo)item).FullName, 
+                                using (FileStream fs = new FileStream(((FileInfo)item).FullName,
                                                                       FileMode.Open,
                                                                       FileAccess.Read,
-                                                                      FileShare.None)) 
+                                                                      FileShare.None))
                                 {
-                                    using (StreamReader sr = new StreamReader(fs)) 
+                                    using (StreamReader sr = new StreamReader(fs))
                                     {
                                         ss.WriteLine("<!-- included from {0} -->", ((FileInfo)item).FullName);
-                                        while (sr.Peek() != -1) {
+                                        while (sr.Peek() != -1)
+                                        {
                                             ss.WriteLine(sr.ReadLine());
                                         }
                                         ss.WriteLine();
@@ -527,45 +540,46 @@ public class NAntTarget : ITarget
                             }
                         }
                     }
-                } catch {}
+                }
+                catch { }
                 // ss.WriteLine("   <include buildfile=\".nant/local.include\" />");
-//                 ss.WriteLine("    <target name=\"zip\" description=\"\">");
-//                 ss.WriteLine("       <zip zipfile=\"{0}-{1}.zip\">", solution.Name, solution.Version);
-//                 ss.WriteLine("       <fileset basedir=\"${project::get-base-directory()}\">");
-                
-//                 ss.WriteLine("       <include name=\"${project::get-base-directory()}/**/*.cs\" />");
-//                 // ss.WriteLine("       <include name=\"${project.main.dir}/**/*\" />");
-//                 ss.WriteLine("       </fileset>");
-//                 ss.WriteLine("       </zip>");
-//                 ss.WriteLine("        <echo message=\"Building zip target\" />");
-//                 ss.WriteLine("    </target>");
+                //                 ss.WriteLine("    <target name=\"zip\" description=\"\">");
+                //                 ss.WriteLine("       <zip zipfile=\"{0}-{1}.zip\">", solution.Name, solution.Version);
+                //                 ss.WriteLine("       <fileset basedir=\"${project::get-base-directory()}\">");
+
+                //                 ss.WriteLine("       <include name=\"${project::get-base-directory()}/**/*.cs\" />");
+                //                 // ss.WriteLine("       <include name=\"${project.main.dir}/**/*\" />");
+                //                 ss.WriteLine("       </fileset>");
+                //                 ss.WriteLine("       </zip>");
+                //                 ss.WriteLine("        <echo message=\"Building zip target\" />");
+                //                 ss.WriteLine("    </target>");
                 ss.WriteLine();
-                                
-				
+
+
                 ss.WriteLine("    <target name=\"clean\" description=\"\">");
                 ss.WriteLine("        <echo message=\"Deleting all builds from all configurations\" />");
                 //ss.WriteLine("        <delete dir=\"${dist.dir}\" failonerror=\"false\" />");
                 ss.WriteLine("        <delete dir=\"${bin.dir}\" failonerror=\"false\" />");
                 ss.WriteLine("        <delete dir=\"${obj.dir}\" failonerror=\"false\" />");
-                foreach(ProjectNode project in solution.Projects)
-                    {
-                        string path = Helper.MakePathRelativeTo(solution.FullPath, project.FullPath);
-                        ss.Write("        <nant buildfile=\"{0}\"",
-                                 Helper.NormalizePath(Helper.MakeFilePath(path, project.Name + (project.Type == ProjectType.Library ? ".dll" : ".exe"), "build"),'/'));
-                        ss.WriteLine(" target=\"clean\" />");
-                    }
+                foreach (ProjectNode project in solution.Projects)
+                {
+                    string path = Helper.MakePathRelativeTo(solution.FullPath, project.FullPath);
+                    ss.Write("        <nant buildfile=\"{0}\"",
+                             Helper.NormalizePath(Helper.MakeFilePath(path, project.Name + GetProjectExtension(project), "build"), '/'));
+                    ss.WriteLine(" target=\"clean\" />");
+                }
                 ss.WriteLine("    </target>");
                 ss.WriteLine();
 
                 ss.WriteLine("    <target name=\"build\" depends=\"init\" description=\"\">");
-				
-                foreach(ProjectNode project in solution.ProjectsTableOrder)
-                    {
-                        string path = Helper.MakePathRelativeTo(solution.FullPath, project.FullPath);
-                        ss.Write("        <nant buildfile=\"{0}\"",
-                                 Helper.NormalizePath(Helper.MakeFilePath(path, project.Name + (project.Type == ProjectType.Library ? ".dll" : ".exe"), "build"),'/'));
-                        ss.WriteLine(" target=\"build\" />");
-                    }
+
+                foreach (ProjectNode project in solution.ProjectsTableOrder)
+                {
+                    string path = Helper.MakePathRelativeTo(solution.FullPath, project.FullPath);
+                    ss.Write("        <nant buildfile=\"{0}\"",
+                             Helper.NormalizePath(Helper.MakeFilePath(path, project.Name + GetProjectExtension(project), "build"), '/'));
+                    ss.WriteLine(" target=\"build\" />");
+                }
                 ss.WriteLine("    </target>");
                 ss.WriteLine();
 
@@ -580,94 +594,94 @@ public class NAntTarget : ITarget
                 ss.WriteLine("    <target name=\"doc\" depends=\"build-release\">");
                 ss.WriteLine("        <echo message=\"Generating all documentation from all builds\" />");
                 foreach (ProjectNode project in solution.Projects)
-                    {
-                        string path = Helper.MakePathRelativeTo(solution.FullPath, project.FullPath);
-                        ss.Write("        <nant buildfile=\"{0}\"",
-                                 Helper.NormalizePath(Helper.MakeFilePath(path, project.Name + (project.Type == ProjectType.Library ? ".dll" : ".exe"), "build"), '/'));
-                        ss.WriteLine(" target=\"doc\" />");
-                    }
+                {
+                    string path = Helper.MakePathRelativeTo(solution.FullPath, project.FullPath);
+                    ss.Write("        <nant buildfile=\"{0}\"",
+                             Helper.NormalizePath(Helper.MakeFilePath(path, project.Name + GetProjectExtension(project), "build"), '/'));
+                    ss.WriteLine(" target=\"doc\" />");
+                }
                 ss.WriteLine("    </target>");
-                ss.WriteLine();    
+                ss.WriteLine();
                 ss.WriteLine("</project>");
             }
 
-        m_Kernel.CurrentWorkingDirectory.Pop();
-    }
+            m_Kernel.CurrentWorkingDirectory.Pop();
+        }
 
-    private void CleanProject(ProjectNode project)
-    {
-        m_Kernel.Log.Write("...Cleaning project: {0}", project.Name);
-        string projectFile = Helper.MakeFilePath(project.FullPath, project.Name + (project.Type == ProjectType.Library ? ".dll" : ".exe"), "build");
-        Helper.DeleteIfExists(projectFile);
-    }
+        private void CleanProject(ProjectNode project)
+        {
+            m_Kernel.Log.Write("...Cleaning project: {0}", project.Name);
+            string projectFile = Helper.MakeFilePath(project.FullPath, project.Name + GetProjectExtension(project), "build");
+            Helper.DeleteIfExists(projectFile);
+        }
 
-    private void CleanSolution(SolutionNode solution)
-    {
-        m_Kernel.Log.Write("Cleaning NAnt build files for", solution.Name);
+        private void CleanSolution(SolutionNode solution)
+        {
+            m_Kernel.Log.Write("Cleaning NAnt build files for", solution.Name);
 
-        string slnFile = Helper.MakeFilePath(solution.FullPath, solution.Name, "build");
-        Helper.DeleteIfExists(slnFile);
+            string slnFile = Helper.MakeFilePath(solution.FullPath, solution.Name, "build");
+            Helper.DeleteIfExists(slnFile);
 
-        foreach(ProjectNode project in solution.Projects)
+            foreach (ProjectNode project in solution.Projects)
             {
                 CleanProject(project);
             }
-            
-        m_Kernel.Log.Write("");
-    }
 
-#endregion
+            m_Kernel.Log.Write("");
+        }
 
-#region ITarget Members
+        #endregion
 
-    /// <summary>
-    /// Writes the specified kern.
-    /// </summary>
-    /// <param name="kern">The kern.</param>
-    public void Write(Kernel kern)
-    {
-        if( kern == null )
+        #region ITarget Members
+
+        /// <summary>
+        /// Writes the specified kern.
+        /// </summary>
+        /// <param name="kern">The kern.</param>
+        public void Write(Kernel kern)
+        {
+            if (kern == null)
             {
                 throw new ArgumentNullException("kern");
             }
-        m_Kernel = kern;
-        foreach(SolutionNode solution in kern.Solutions)
+            m_Kernel = kern;
+            foreach (SolutionNode solution in kern.Solutions)
             {
                 WriteCombine(solution);
             }
-        m_Kernel = null;
-    }
+            m_Kernel = null;
+        }
 
-    /// <summary>
-    /// Cleans the specified kern.
-    /// </summary>
-    /// <param name="kern">The kern.</param>
-    public virtual void Clean(Kernel kern)
-    {
-        if( kern == null )
+        /// <summary>
+        /// Cleans the specified kern.
+        /// </summary>
+        /// <param name="kern">The kern.</param>
+        public virtual void Clean(Kernel kern)
+        {
+            if (kern == null)
             {
                 throw new ArgumentNullException("kern");
             }
-        m_Kernel = kern;
-        foreach(SolutionNode sol in kern.Solutions)
+            m_Kernel = kern;
+            foreach (SolutionNode sol in kern.Solutions)
             {
                 CleanSolution(sol);
             }
-        m_Kernel = null;
-    }
+            m_Kernel = null;
+        }
 
-    /// <summary>
-    /// Gets the name.
-    /// </summary>
-    /// <value>The name.</value>
-    public string Name
-    {
-        get
+        /// <summary>
+        /// Gets the name.
+        /// </summary>
+        /// <value>The name.</value>
+        public string Name
+        {
+            get
             {
                 return "nant";
             }
-    }
+        }
 
-#endregion
-}
+        #endregion
+    }
 }
