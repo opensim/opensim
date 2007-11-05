@@ -232,6 +232,10 @@ namespace OpenSim.Region.Environment.Scenes
             set { m_parentID = value; }
         }
 
+        public List<ulong> KnownChildRegions
+        {
+            get { return m_KnownChildRegions; }
+        }
         #endregion
 
         #region Constructor(s)
@@ -411,6 +415,13 @@ namespace OpenSim.Region.Environment.Scenes
             }
         }
 
+        public void RemoveNeighbourRegion(ulong regionHandle)
+        {
+            if (!m_KnownChildRegions.Contains(regionHandle))
+            {
+                m_KnownChildRegions.Remove(regionHandle);
+            }
+        }
         #endregion
 
         #region Event Handlers
@@ -1090,9 +1101,8 @@ namespace OpenSim.Region.Environment.Scenes
         public void SetWearable(int wearableId, AvatarWearable wearable)
         {
             m_wearables[wearableId] = wearable;
-            m_controllingClient.SendWearables(m_wearables, m_wearablesSerial++);
-            SendOurAppearance( m_controllingClient );
-            
+            m_controllingClient.SendWearables(m_wearables, ++m_wearablesSerial);
+            //m_controllingClient.SendWearables(m_wearables, m_wearablesSerial++);        
         }
     }
 }

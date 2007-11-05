@@ -816,6 +816,7 @@ namespace OpenSim.Region.Environment.Scenes
             m_sceneGridService.RegisterRegion(m_regInfo);
             m_sceneGridService.OnExpectUser += NewUserConnection;
             m_sceneGridService.OnAvatarCrossingIntoRegion += AgentCrossing;
+            m_sceneGridService.OnCloseAgentConnection += CloseConnection;
         }
 
         /// <summary>
@@ -864,13 +865,26 @@ namespace OpenSim.Region.Environment.Scenes
             }
         }
 
+        public void CloseConnection(ulong regionHandle, LLUUID agentID)
+        {
+            if (regionHandle == m_regionHandle)
+            {
+                ScenePresence presence = m_innerScene.GetScenePresence(agentID);
+                if(presence != null)
+                {
+                    libsecondlife.Packets.DisableSimulatorPacket disable = new libsecondlife.Packets.DisableSimulatorPacket();
+                    presence.ControllingClient.OutPacket(disable);
+                }
+            }
+        }
+
       
         /// <summary>
         /// 
         /// </summary>
         public void InformClientOfNeighbours(ScenePresence presence)
         {
-            m_sceneGridService.InformClientOfNeighbours(presence);
+            m_sceneGridService.EnableNeighbourChildAgents(presence);
         }
 
         /// <summary>
@@ -908,7 +922,7 @@ namespace OpenSim.Region.Environment.Scenes
         {
             if (m_scenePresences.ContainsKey(remoteClient.AgentId))
             {
-                m_sceneGridService.RequestTeleportLocation(m_scenePresences[remoteClient.AgentId], regionHandle, position, lookAt, flags);
+                m_sceneGridService.RequestTeleportToLocation(m_scenePresences[remoteClient.AgentId], regionHandle, position, lookAt, flags);
             }
         }
 
@@ -920,7 +934,7 @@ namespace OpenSim.Region.Environment.Scenes
         /// <param name="position"></param>
         public bool InformNeighbourOfCrossing(ulong regionhandle, LLUUID agentID, LLVector3 position, bool isFlying)
         {
-            return m_sceneGridService.InformNeighbourOfCrossing(regionhandle, agentID, position, isFlying);
+            return m_sceneGridService.CrossToNeighbouringRegion(regionhandle, agentID, position, isFlying);
         }
 
         #endregion

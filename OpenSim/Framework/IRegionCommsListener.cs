@@ -38,6 +38,8 @@ namespace OpenSim.Framework
 
     public delegate void AcknowledgeAgentCross(ulong regionHandle, LLUUID agentID);
 
+    public delegate void CloseAgentConnection(ulong regionHandle, LLUUID agentID);
+
     public interface IRegionCommsListener
     {
         event ExpectUserDelegate OnExpectUser;
@@ -45,5 +47,6 @@ namespace OpenSim.Framework
         event AgentCrossing OnAvatarCrossingIntoRegion;
         event AcknowledgeAgentCross OnAcknowledgeAgentCrossed;
         event UpdateNeighbours OnNeighboursUpdate;
+        event CloseAgentConnection OnCloseAgentConnection;
     }
 }

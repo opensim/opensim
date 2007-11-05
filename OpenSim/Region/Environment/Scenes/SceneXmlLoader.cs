@@ -10,7 +10,7 @@ using OpenSim.Region.Physics.Manager;
 
 namespace OpenSim.Region.Environment.Scenes
 {
-    public class SceneXmlLoader  //Most likely can move to a module
+    public class SceneXmlLoader  // can move to a module?
     {
         protected InnerScene m_innerScene;
         protected RegionInfo m_regInfo;

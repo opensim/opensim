@@ -38,6 +38,7 @@ namespace OpenSim.Framework
         public event AgentCrossing OnAvatarCrossingIntoRegion;
         public event UpdateNeighbours OnNeighboursUpdate;
         public event AcknowledgeAgentCross OnAcknowledgeAgentCrossed;
+        public event CloseAgentConnection OnCloseAgentConnection;
 
         /// <summary>
         /// 
@@ -74,6 +75,14 @@ namespace OpenSim.Framework
                 return true;
             }
             return false;
+        }
+
+        public virtual void TriggerCloseAgentConnection(ulong regionHandle, LLUUID agentID)
+        {
+            if (OnCloseAgentConnection != null)
+            {
+                OnCloseAgentConnection(regionHandle, agentID);
+            }
         }
 
         /// <summary>

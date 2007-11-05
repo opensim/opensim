@@ -182,7 +182,7 @@ namespace OpenSim.Region.Communications.Local
         {
             if (m_regionListeners.ContainsKey(regionHandle))
             {
-              // m_regionListeners[regionHandle].TriggerExpectAvatarCrossing(regionHandle, agentID, position, isFlying);
+              m_regionListeners[regionHandle].TriggerCloseAgentConnection(regionHandle, agentID);
             }
         }
 

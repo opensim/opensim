@@ -19,7 +19,7 @@ namespace OpenSim.Region.Environment.Scenes
 
         public event AgentCrossing OnAvatarCrossingIntoRegion;
         public event ExpectUserDelegate OnExpectUser;
-
+        public event CloseAgentConnection OnCloseAgentConnection;
 
         public SceneCommunicationService(CommunicationsManager commsMan)
         {
@@ -34,6 +34,7 @@ namespace OpenSim.Region.Environment.Scenes
             {
                 regionCommsHost.OnExpectUser += NewUserConnection;
                 regionCommsHost.OnAvatarCrossingIntoRegion += AgentCrossing;
+                regionCommsHost.OnCloseAgentConnection += CloseConnection;
             }
         }
 
@@ -41,6 +42,7 @@ namespace OpenSim.Region.Environment.Scenes
         {
             regionCommsHost.OnExpectUser -= NewUserConnection;
             regionCommsHost.OnAvatarCrossingIntoRegion -= AgentCrossing;
+            regionCommsHost.OnCloseAgentConnection -= CloseConnection;
             //regionCommsHost.RemoveRegion(m_regionInfo); //TODO add to method to commsManager
             regionCommsHost = null;
         }
@@ -51,7 +53,7 @@ namespace OpenSim.Region.Environment.Scenes
         /// </summary>
         /// <param name="regionHandle"></param>
         /// <param name="agent"></param>
-        public void NewUserConnection(ulong regionHandle, AgentCircuitData agent)
+        protected void NewUserConnection(ulong regionHandle, AgentCircuitData agent)
         {
             if (OnExpectUser != null)
             {
@@ -59,11 +61,19 @@ namespace OpenSim.Region.Environment.Scenes
             }
         }
 
-        public void AgentCrossing(ulong regionHandle, LLUUID agentID, LLVector3 position, bool isFlying)
+        protected void AgentCrossing(ulong regionHandle, LLUUID agentID, LLVector3 position, bool isFlying)
         {
             if (OnAvatarCrossingIntoRegion != null)
             {
                 OnAvatarCrossingIntoRegion(regionHandle, agentID, position, isFlying);
+            }
+        }
+
+        protected void CloseConnection(ulong regionHandle, LLUUID agentID)
+        {
+            if (OnCloseAgentConnection != null)
+            {
+                OnCloseAgentConnection(regionHandle, agentID);
             }
         }
         #endregion
@@ -105,7 +115,7 @@ namespace OpenSim.Region.Environment.Scenes
         /// <summary>
         /// 
         /// </summary>
-        public void InformClientOfNeighbours(ScenePresence avatar)
+        public void EnableNeighbourChildAgents(ScenePresence avatar)
         {
             List<SimpleRegionInfo> neighbours =
                 m_commsProvider.GridService.RequestNeighbours(m_regionInfo.RegionLocX, m_regionInfo.RegionLocY);
@@ -160,7 +170,7 @@ namespace OpenSim.Region.Environment.Scenes
         /// <param name="position"></param>
         /// <param name="lookAt"></param>
         /// <param name="flags"></param>
-        public virtual void RequestTeleportLocation(ScenePresence avatar, ulong regionHandle, LLVector3 position,
+        public virtual void RequestTeleportToLocation(ScenePresence avatar, ulong regionHandle, LLVector3 position,
                                             LLVector3 lookAt, uint flags)
         {
             if (regionHandle == m_regionInfo.RegionHandle)
@@ -189,6 +199,14 @@ namespace OpenSim.Region.Environment.Scenes
                     string capsPath = Util.GetCapsURL(avatar.ControllingClient.AgentId);
                     avatar.ControllingClient.SendRegionTeleport(regionHandle, 13, reg.ExternalEndPoint, 4, (1 << 4), capsPath);
                     avatar.MakeChildAgent();
+                    uint newRegionX = (uint)(regionHandle >> 40);
+                    uint newRegionY = (((uint)(regionHandle)) >> 8);
+                    uint oldRegionX = (uint)(m_regionInfo.RegionHandle >> 40);
+                    uint oldRegionY = (((uint)(m_regionInfo.RegionHandle)) >> 8);
+                    if (Util.fast_distance2d((int)(newRegionX - oldRegionX), (int)(newRegionY - oldRegionY)) > 3)
+                    {
+                        CloseChildAgentConnections(avatar);
+                    }
                 }
             }
         }
@@ -199,14 +217,19 @@ namespace OpenSim.Region.Environment.Scenes
         /// <param name="regionhandle"></param>
         /// <param name="agentID"></param>
         /// <param name="position"></param>
-        public bool InformNeighbourOfCrossing(ulong regionhandle, LLUUID agentID, LLVector3 position, bool isFlying)
+        public bool CrossToNeighbouringRegion(ulong regionhandle, LLUUID agentID, LLVector3 position, bool isFlying)
         {
             return m_commsProvider.InterRegion.ExpectAvatarCrossing(regionhandle, agentID, position, isFlying);
         }
 
         public void CloseChildAgentConnections(ScenePresence presence)
         {
-
+            foreach (ulong regionHandle in presence.KnownChildRegions)
+            {
+                
+                m_commsProvider.InterRegion.TellRegionToCloseChildConnection(regionHandle, presence.ControllingClient.AgentId);
+                presence.RemoveNeighbourRegion(regionHandle);
+            }
         }
     }
 }
