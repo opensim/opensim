@@ -304,6 +304,7 @@
       </Files>
     </Project>
 
+<!--
     <Project name="OpenSim.Region.Physics.OdePlugin" path="OpenSim/Region/Physics/OdePlugin" type="Library">
       <Configuration name="Debug">
         <Options>
@@ -329,6 +330,7 @@
         <Match pattern="*.cs" recurse="true"/>
       </Files>
     </Project>
+-->
 
     <Project name="OpenSim.Region.Physics.BulletXPlugin" path="OpenSim/Region/Physics/BulletXPlugin" type="Library">
       <Configuration name="Debug">
