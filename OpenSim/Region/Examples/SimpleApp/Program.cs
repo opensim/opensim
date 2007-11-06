@@ -61,7 +61,7 @@ namespace SimpleApp
 
             LocalAssetServer assetServer = new LocalAssetServer();
 
-            m_assetCache = new AssetCache(assetServer);
+            m_assetCache = new AssetCache(assetServer, m_log);
         }
 
         public void Run()

@@ -58,37 +58,40 @@ namespace OpenSim.Framework.Communications.Cache
         //Textures requested from the asset server
 
         public Dictionary<LLUUID, TextureSender> SendingTextures = new Dictionary<LLUUID, TextureSender>();
-        private BlockingQueue<TextureSender> QueueTextures = new BlockingQueue<TextureSender>();
-
-        private Dictionary<LLUUID, List<LLUUID>> AvatarRecievedTextures = new Dictionary<LLUUID, List<LLUUID>>();
-
-        private Dictionary<LLUUID, Dictionary<LLUUID, int>> TimesTextureSent =
-            new Dictionary<LLUUID, Dictionary<LLUUID, int>>();
 
         public Dictionary<LLUUID, AssetRequestsList> RequestLists = new Dictionary<LLUUID, AssetRequestsList>();
 
-        private IAssetServer _assetServer;
-        private Thread _assetCacheThread;
+        private BlockingQueue<TextureSender> m_queueTextures = new BlockingQueue<TextureSender>();
+        private Dictionary<LLUUID, List<LLUUID>> m_avatarReceivedTextures = new Dictionary<LLUUID, List<LLUUID>>();
 
-        private Thread TextureSenderThread;
+        private Dictionary<LLUUID, Dictionary<LLUUID, int>> m_timesTextureSent =
+            new Dictionary<LLUUID, Dictionary<LLUUID, int>>();
+
+
+        private IAssetServer m_assetServer;
+
+        private Thread m_assetCacheThread;
+        private Thread m_textureSenderThread;
+        private LogBase m_log;
 
         /// <summary>
         /// 
         /// </summary>
-        public AssetCache(IAssetServer assetServer)
+        public AssetCache(IAssetServer assetServer, LogBase log)
         {
-            MainLog.Instance.Verbose("ASSETSTORAGE", "Creating Asset cache");
-            _assetServer = assetServer;
-            _assetServer.SetReceiver(this);
+            log.Verbose("ASSETSTORAGE", "Creating Asset cache");
+            m_assetServer = assetServer;
+            m_assetServer.SetReceiver(this);
             Assets = new Dictionary<LLUUID, AssetInfo>();
             Textures = new Dictionary<LLUUID, TextureImage>();
-            _assetCacheThread = new Thread(new ThreadStart(RunAssetManager));
-            _assetCacheThread.IsBackground = true;
-            _assetCacheThread.Start();
+            m_assetCacheThread = new Thread(new ThreadStart(RunAssetManager));
+            m_assetCacheThread.IsBackground = true;
+            m_assetCacheThread.Start();
 
-            TextureSenderThread = new Thread(new ThreadStart(ProcessTextureSenders));
-            TextureSenderThread.IsBackground = true;
-            TextureSenderThread.Start();
+            m_textureSenderThread = new Thread(new ThreadStart(ProcessTextureSenders));
+            m_textureSenderThread.IsBackground = true;
+            m_textureSenderThread.Start();
+            m_log = log;
         }
 
         /// <summary>
@@ -161,7 +164,7 @@ namespace OpenSim.Framework.Communications.Cache
                         RequestLists.Add(assetID, reqList);
                     }
                 }
-                _assetServer.RequestAsset(assetID, false);
+                m_assetServer.RequestAsset(assetID, false);
             }
         }
 
@@ -171,46 +174,67 @@ namespace OpenSim.Framework.Communications.Cache
             AssetBase asset = GetAsset(assetID);
             if (asset == null)
             {
-                _assetServer.RequestAsset(assetID, isTexture);
+                m_assetServer.RequestAsset(assetID, isTexture);
             }
             return asset;
         }
 
         public void AddAsset(AssetBase asset)
         {
-            //System.Console.WriteLine("adding asset " + asset.FullID.ToStringHyphenated());
+            string temporary = asset.Temporary ? "temporary" : "";
+            string type = asset.Type == 0 ? "texture" : "asset";
+
+            string result = "Ignored";
+
             if (asset.Type == 0)
             {
-                //Console.WriteLine("which is a texture");
-                if (!Textures.ContainsKey(asset.FullID))
+                if(Textures.ContainsKey(asset.FullID))
                 {
-                    //texture
-                    TextureImage textur = new TextureImage(asset);
-                    Textures.Add(textur.FullID, textur);
-                    if (!asset.Temporary)
-                        _assetServer.StoreAndCommitAsset(asset);
+                    result = "Duplicate ignored.";
                 }
                 else
                 {
                     TextureImage textur = new TextureImage(asset);
-                    Textures[asset.FullID] = textur;
+                    Textures.Add(textur.FullID, textur);
+                    if (asset.Temporary)
+                    {
+                        result = "Added to cache";
+                    }
+                    else
+                    {
+                        m_assetServer.StoreAndCommitAsset(asset);
+                        result = "Added to server";
+                    }
                 }
             }
             else
             {
-                if (!Assets.ContainsKey(asset.FullID))
+                if (Assets.ContainsKey(asset.FullID))
+                {
+                    result = "Duplicate ignored.";
+                }
+                else
                 {
                     AssetInfo assetInf = new AssetInfo(asset);
                     Assets.Add(assetInf.FullID, assetInf);
-                    if (!asset.Temporary)
-                        _assetServer.StoreAndCommitAsset(asset);
+                    if (asset.Temporary)
+                    {
+                        result = "Added to cache";
+                    }
+                    else
+                    {
+                        m_assetServer.StoreAndCommitAsset(asset);
+                        result = "Added to server";
+                    }
                 }
             }
+
+            m_log.Verbose("ASSETCACHE", "Adding {0} {1} [{2}]: {3}.", temporary, type, asset.FullID, result);
         }
 
         public void DeleteAsset(LLUUID assetID)
         {
-            //  this._assetServer.DeleteAsset(assetID);
+            //  this.m_assetServer.DeleteAsset(assetID);
 
             //Todo should delete it from memory too
         }
@@ -238,7 +262,7 @@ namespace OpenSim.Framework.Communications.Cache
                     TextureSender sender = new TextureSender(req);
                     //sender.OnComplete += this.TextureSent;
                     SendingTextures.Add(req.ImageInfo.FullID, sender);
-                    QueueTextures.Enqueue(sender);
+                    m_queueTextures.Enqueue(sender);
                 }
             }
 
@@ -249,7 +273,7 @@ namespace OpenSim.Framework.Communications.Cache
         {
             while (true)
             {
-                TextureSender sender = QueueTextures.Dequeue();
+                TextureSender sender = m_queueTextures.Dequeue();
 
                 bool finished = sender.SendTexture();
                 if (finished)
@@ -259,7 +283,7 @@ namespace OpenSim.Framework.Communications.Cache
                 else
                 {
                     // Console.WriteLine("readding texture");
-                    QueueTextures.Enqueue(sender);
+                    m_queueTextures.Enqueue(sender);
                 }
             }
         }
@@ -273,7 +297,7 @@ namespace OpenSim.Framework.Communications.Cache
             if (SendingTextures.ContainsKey(sender.request.ImageInfo.FullID))
             {
                 SendingTextures.Remove(sender.request.ImageInfo.FullID);
-                // this.AvatarRecievedTextures[sender.request.RequestUser.AgentId].Add(sender.request.ImageInfo.FullID);
+                // this.m_avatarReceivedTextures[sender.request.RequestUser.AgentId].Add(sender.request.ImageInfo.FullID);
             }
         }
 
@@ -409,7 +433,7 @@ namespace OpenSim.Framework.Communications.Cache
                     request.AssetRequestSource = source;
                     request.Params = transferRequest.TransferInfo.Params;
                     RequestedAssets.Add(requestID, request);
-                    _assetServer.RequestAsset(requestID, false);
+                    m_assetServer.RequestAsset(requestID, false);
                 }
                 return;
             }
@@ -555,11 +579,11 @@ namespace OpenSim.Framework.Communications.Cache
         {
             // System.Console.WriteLine("texture request for " + imageID.ToStringHyphenated() + " packetnumber= " + packetNumber);
             //check to see if texture is in local cache, if not request from asset server
-            if (!AvatarRecievedTextures.ContainsKey(userInfo.AgentId))
+            if (!m_avatarReceivedTextures.ContainsKey(userInfo.AgentId))
             {
-                AvatarRecievedTextures.Add(userInfo.AgentId, new List<LLUUID>());
+                m_avatarReceivedTextures.Add(userInfo.AgentId, new List<LLUUID>());
             }
-            /* if(this.AvatarRecievedTextures[userInfo.AgentId].Contains(imageID))
+            /* if(this.m_avatarReceivedTextures[userInfo.AgentId].Contains(imageID))
              {
                  //Console.WriteLine(userInfo.AgentId +" is requesting a image( "+ imageID+" that has already been sent to them");
                  return;
@@ -576,7 +600,7 @@ namespace OpenSim.Framework.Communications.Cache
                     request.IsTextureRequest = true;
                     request.DiscardLevel = discard;
                     RequestedTextures.Add(imageID, request);
-                    _assetServer.RequestAsset(imageID, true);
+                    m_assetServer.RequestAsset(imageID, true);
                 }
                 return;
             }

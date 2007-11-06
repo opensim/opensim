@@ -58,24 +58,25 @@ namespace OpenSim.Region.Capabilities
         //private string m_requestTexture = "0003/";
         private string m_notecardUpdatePath = "0004/";
         //private string eventQueue = "0100/";
-        private BaseHttpServer httpListener;
-        private LLUUID agentID;
-        private AssetCache assetCache;
-        private int eventQueueCount = 1;
-        private Queue<string> CapsEventQueue = new Queue<string>();
-        public NewInventoryItem AddNewInventoryItem = null;
-        public ItemUpdatedCallback ItemUpdatedCall = null;
+        private BaseHttpServer m_httpListener;
+        private LLUUID m_agentID;
+        private AssetCache m_assetCache;
+        private int m_eventQueueCount = 1;
+        private Queue<string> m_capsEventQueue = new Queue<string>();
         private bool m_dumpAssetsToFile;
 
-        public Caps(AssetCache assetCach, BaseHttpServer httpServer, string httpListen, int httpPort, string capsPath,
+        public NewInventoryItem AddNewInventoryItem = null;
+        public ItemUpdatedCallback ItemUpdatedCall = null;
+        
+        public Caps(AssetCache assetCache, BaseHttpServer httpServer, string httpListen, int httpPort, string capsPath,
                     LLUUID agent, bool dumpAssetsToFile)
         {
-            assetCache = assetCach;
+            m_assetCache = assetCache;
             m_capsObjectPath = capsPath;
-            httpListener = httpServer;
+            m_httpListener = httpServer;
             m_httpListenerHostName = httpListen;
             m_httpListenPort = httpPort;
-            agentID = agent;
+            m_agentID = agent;
             m_dumpAssetsToFile = dumpAssetsToFile;
         }
 
@@ -88,17 +89,17 @@ namespace OpenSim.Region.Capabilities
             string capsBase = "/CAPS/" + m_capsObjectPath;
             try
             {
-                httpListener.AddStreamHandler(
+                m_httpListener.AddStreamHandler(
                     new LLSDStreamhandler<LLSDMapRequest, LLSDMapLayerResponse>("POST", capsBase + m_mapLayerPath,
                                                                                 GetMapLayer));
-                httpListener.AddStreamHandler(
+                m_httpListener.AddStreamHandler(
                     new LLSDStreamhandler<LLSDAssetUploadRequest, LLSDAssetUploadResponse>("POST",
                                                                                            capsBase + m_newInventory,
                                                                                            NewAgentInventoryRequest));
 
-                AddLegacyCapsHandler(httpListener, m_requestPath, CapsRequest);
-                //AddLegacyCapsHandler(httpListener, m_requestTexture , RequestTexture);
-                AddLegacyCapsHandler(httpListener, m_notecardUpdatePath, NoteCardAgentInventory);
+                AddLegacyCapsHandler(m_httpListener, m_requestPath, CapsRequest);
+                //AddLegacyCapsHandler(m_httpListener, m_requestTexture , RequestTexture);
+                AddLegacyCapsHandler(m_httpListener, m_notecardUpdatePath, NoteCardAgentInventory);
             }
             catch
             {
@@ -198,11 +199,11 @@ namespace OpenSim.Region.Capabilities
         {
             string res = "";
 
-            if (CapsEventQueue.Count > 0)
+            if (m_capsEventQueue.Count > 0)
             {
-                lock (CapsEventQueue)
+                lock (m_capsEventQueue)
                 {
-                    string item = CapsEventQueue.Dequeue();
+                    string item = m_capsEventQueue.Dequeue();
                     res = item;
                 }
             }
@@ -222,13 +223,13 @@ namespace OpenSim.Region.Capabilities
         public string CreateEstablishAgentComms(string caps, string ipAddressPort)
         {
             LLSDCapEvent eventItem = new LLSDCapEvent();
-            eventItem.id = eventQueueCount;
+            eventItem.id = m_eventQueueCount;
             //should be creating a EstablishAgentComms item, but there isn't a class for it yet
             eventItem.events.Array.Add(new LLSDEmpty());
             string res = LLSDHelpers.SerialiseLLSDReply(eventItem);
-            eventQueueCount++;
+            m_eventQueueCount++;
 
-            CapsEventQueue.Enqueue(res);
+            m_capsEventQueue.Enqueue(res);
             return res;
         }
 
@@ -239,10 +240,10 @@ namespace OpenSim.Region.Capabilities
         public string CreateEmptyEventResponse()
         {
             LLSDCapEvent eventItem = new LLSDCapEvent();
-            eventItem.id = eventQueueCount;
+            eventItem.id = m_eventQueueCount;
             eventItem.events.Array.Add(new LLSDEmpty());
             string res = LLSDHelpers.SerialiseLLSDReply(eventItem);
-            eventQueueCount++;
+            m_eventQueueCount++;
             return res;
         }
 
@@ -266,10 +267,10 @@ namespace OpenSim.Region.Capabilities
             string uploaderPath = Util.RandomClass.Next(5000, 8000).ToString("0000");
 
             ItemUpdater uploader =
-                new ItemUpdater(newInvItem, capsBase + uploaderPath, httpListener, m_dumpAssetsToFile);
+                new ItemUpdater(newInvItem, capsBase + uploaderPath, m_httpListener, m_dumpAssetsToFile);
             uploader.OnUpLoad += ItemUpdated;
 
-            httpListener.AddStreamHandler(
+            m_httpListener.AddStreamHandler(
                 new BinaryStreamHandler("POST", capsBase + uploaderPath, uploader.uploaderCaps));
             string uploaderURL = "http://" + m_httpListenerHostName + ":" + m_httpListenPort.ToString() + capsBase +
                                  uploaderPath;
@@ -300,8 +301,8 @@ namespace OpenSim.Region.Capabilities
 
             AssetUploader uploader =
                 new AssetUploader(assetName, assetDes, newAsset, newInvItem, parentFolder, llsdRequest.inventory_type,
-                                  llsdRequest.asset_type, capsBase + uploaderPath, httpListener, m_dumpAssetsToFile);
-            httpListener.AddStreamHandler(
+                                  llsdRequest.asset_type, capsBase + uploaderPath, m_httpListener, m_dumpAssetsToFile);
+            m_httpListener.AddStreamHandler(
                 new BinaryStreamHandler("POST", capsBase + uploaderPath, uploader.uploaderCaps));
             string uploaderURL = "http://" + m_httpListenerHostName + ":" + m_httpListenPort.ToString() + capsBase +
                                  uploaderPath;
@@ -344,11 +345,11 @@ namespace OpenSim.Region.Capabilities
             asset.InvType = inType;
             asset.Name = assetName;
             asset.Data = data;
-            assetCache.AddAsset(asset);
+            m_assetCache.AddAsset(asset);
 
             InventoryItemBase item = new InventoryItemBase();
-            item.avatarID = agentID;
-            item.creatorsID = agentID;
+            item.avatarID = m_agentID;
+            item.creatorsID = m_agentID;
             item.inventoryID = inventoryItem;
             item.assetID = asset.FullID;
             item.inventoryDescription = assetDescription;
@@ -361,7 +362,7 @@ namespace OpenSim.Region.Capabilities
 
             if (AddNewInventoryItem != null)
             {
-                AddNewInventoryItem(agentID, item);
+                AddNewInventoryItem(m_agentID, item);
             }
         }
 
@@ -369,7 +370,7 @@ namespace OpenSim.Region.Capabilities
         {
             if (ItemUpdatedCall != null)
             {
-                return ItemUpdatedCall(agentID, itemID, data);
+                return ItemUpdatedCall(m_agentID, itemID, data);
             }
             return LLUUID.Zero;
         }

@@ -386,7 +386,7 @@ namespace OpenSim
                 assetServer = sqlAssetServer;
             }
 
-            m_assetCache = new AssetCache(assetServer);
+            m_assetCache = new AssetCache(assetServer, m_log);
             // m_assetCache = new assetCache("OpenSim.Region.GridInterfaces.Local.dll", m_networkServersInfo.AssetURL, m_networkServersInfo.AssetSendKey);
         }
 
