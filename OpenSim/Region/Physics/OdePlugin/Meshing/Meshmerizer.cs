@@ -361,7 +361,11 @@ namespace OpenSim.Region.Physics.OdePlugin.Meshing
                     CalcNormals(mesh);
                     break;
                 default:
-                    mesh = null;
+                    mesh = CreateBoxMesh(primName, primShape, size);
+                    CalcNormals(mesh);
+                    //Set default mesh to cube otherwise it'll return 
+                    // null and crash on the 'setMesh' method in the physics plugins.
+                    //mesh = null;
                     break;
             }
 

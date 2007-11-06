@@ -1086,9 +1086,12 @@ namespace OpenSim.Region.Physics.OdePlugin
                     // Construction of new prim
                     if (this._parent_scene.needsMeshing(_pbs))
                     {
-                      
+
+                        
                         // Don't need to re-enable body..   it's done in SetMesh
                         Mesh mesh = Meshmerizer.CreateMesh(oldname, _pbs, _size);
+                        // createmesh returns null when it's a shape that isn't a cube.
+                        if (mesh != null)
                         setMesh(_parent_scene, mesh);
                     } else {
                         prim_geom = d.CreateBox(_parent_scene.space, _size.X, _size.Y, _size.Z);
