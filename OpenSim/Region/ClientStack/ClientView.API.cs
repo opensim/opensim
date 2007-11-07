@@ -766,8 +766,18 @@ namespace OpenSim.Region.ClientStack
             OutPacket(sound);
         }
 
+        public void SendSunPos(LLVector3 sunPos, LLVector3 sunVel) 
+        {
+            SimulatorViewerTimeMessagePacket viewertime = new SimulatorViewerTimeMessagePacket();
+            viewertime.TimeInfo.SunDirection = sunPos;
+            viewertime.TimeInfo.SunAngVelocity = sunVel;
+            viewertime.TimeInfo.UsecSinceStart = (ulong) Util.UnixTimeSinceEpoch();
+            OutPacket(viewertime);
+        }
+
         public void SendViewerTime(int phase)
         {
+            Console.WriteLine("SunPhase: {0}", phase);
             SimulatorViewerTimeMessagePacket viewertime = new SimulatorViewerTimeMessagePacket();
             //viewertime.TimeInfo.SecPerDay = 86400;
             // viewertime.TimeInfo.SecPerYear = 31536000;
@@ -778,7 +788,7 @@ namespace OpenSim.Region.ClientStack
             if ((sunPhase < 6) || (sunPhase > 36))
             {
                 viewertime.TimeInfo.SunDirection = new LLVector3(0f, 0.8f, -0.8f);
-                //Console.WriteLine("sending night");
+                Console.WriteLine("sending night");
             }
             else
             {
@@ -787,7 +797,9 @@ namespace OpenSim.Region.ClientStack
                     sunPhase = 12;
                 }
                 sunPhase = sunPhase - 12;
+
                 float yValue = 0.1f*(sunPhase);
+                Console.WriteLine("Computed SunPhase: {0}, yValue: {1}", sunPhase, yValue);
                 if (yValue > 1.2f)
                 {
                     yValue = yValue - 1.2f;
@@ -809,7 +821,7 @@ namespace OpenSim.Region.ClientStack
                     yValue *= -1;
                 }
                 viewertime.TimeInfo.SunDirection = new LLVector3(0f, yValue, 0.3f);
-                //Console.WriteLine("sending sun update " + yValue);
+                Console.WriteLine("sending sun update " + yValue);
             }
             viewertime.TimeInfo.SunAngVelocity = new LLVector3(0, 0.0f, 10.0f);
             viewertime.TimeInfo.UsecSinceStart = (ulong) Util.UnixTimeSinceEpoch();

@@ -427,6 +427,7 @@ namespace OpenSim.Framework
         void SendLoadURL(string objectname, LLUUID objectID, LLUUID ownerID, bool groupOwned, string message, string url);
         bool AddMoney(int debit);
 
+        void SendSunPos(LLVector3 sunPos, LLVector3 sunVel);
         void SendViewerTime(int phase);
 
         void SendAvatarProperties(LLUUID avatarID, string aboutText, string bornOn, string charterMember, string flAbout,

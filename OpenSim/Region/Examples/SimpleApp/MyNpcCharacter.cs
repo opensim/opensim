@@ -400,6 +400,10 @@ namespace SimpleApp
             return false;
         }
 
+        public void SendSunPos(LLVector3 sunPos, LLVector3 sunVel)
+        {
+        }
+
         public void SendViewerTime(int phase)
         {
         }
