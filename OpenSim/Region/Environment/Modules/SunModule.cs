@@ -91,7 +91,7 @@ namespace OpenSim.Region.Environment.Modules
                 m_frame++;
                 return;
             }
-            m_log.Verbose("SUN","I've got an update {0} => {1}", m_scene.RegionsInfo.RegionName, HourOfTheDay());
+            // m_log.Verbose("SUN","I've got an update {0} => {1}", m_scene.RegionsInfo.RegionName, HourOfTheDay());
             List<ScenePresence> avatars = m_scene.GetAvatars();
             foreach (ScenePresence avatar in avatars)
             {
