@@ -324,8 +324,8 @@ namespace OpenSim.Region.Environment.Scenes
                 if (m_frame%m_update_land == 0)
                     UpdateLand();
 
-                if (m_frame%m_update_avatars == 0)
-                    UpdateInWorldTime();
+                // if (m_frame%m_update_avatars == 0)
+                //   UpdateInWorldTime();
             }
             catch (NotImplementedException)
             {

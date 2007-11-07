@@ -855,7 +855,8 @@ namespace OpenSim.Region.Environment.Scenes
         {
             SendOwnWearables( );
             m_scene.SendAllSceneObjectsToClient(this);
-            m_controllingClient.SendViewerTime(m_scene.TimePhase);
+            // TODO: remove this once the SunModule is slightly more tested
+            // m_controllingClient.SendViewerTime(m_scene.TimePhase);
         }
 
         /// <summary>
