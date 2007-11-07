@@ -217,6 +217,19 @@ namespace OpenSim.Region.Environment.Scenes
             }
         }
 
+        private SceneObjectGroup GetGroupByPrim(uint localID)
+        {
+            foreach (EntityBase ent in Entities.Values)
+            {
+                if (ent is SceneObjectGroup)
+                {
+                    if (((SceneObjectGroup)ent).HasChildPrim(localID))
+                        return (SceneObjectGroup)ent;
+                }
+            }
+            return null;
+        }
+
         /// <summary>
         /// 
         /// </summary>
@@ -224,23 +237,15 @@ namespace OpenSim.Region.Environment.Scenes
         /// <param name="primLocalID"></param>
         public void RequestTaskInventory(IClientAPI remoteClient, uint primLocalID)
         {
-            bool hasPrim = false;
-            foreach (EntityBase ent in Entities.Values)
+            SceneObjectGroup group = GetGroupByPrim(primLocalID);
+            if (group != null)
             {
-                if (ent is SceneObjectGroup)
+                bool fileChange = group.GetPartInventoryFileName(remoteClient, primLocalID);
+                if (fileChange)
                 {
-                    hasPrim = ((SceneObjectGroup) ent).HasChildPrim(primLocalID);
-                    if (hasPrim != false)
+                    if (XferManager != null)
                     {
-                        bool fileChange = ((SceneObjectGroup) ent).GetPartInventoryFileName(remoteClient, primLocalID);
-                        if (fileChange)
-                        {
-                            if (XferManager != null)
-                            {
-                                ((SceneObjectGroup) ent).RequestInventoryFile(primLocalID, XferManager);
-                            }
-                        }
-                        break;
+                        group.RequestInventoryFile(primLocalID, XferManager);
                     }
                 }
             }
@@ -248,21 +253,14 @@ namespace OpenSim.Region.Environment.Scenes
 
         public void RemoveTaskInventory(IClientAPI remoteClient, LLUUID itemID, uint localID)
         {
-            bool hasPrim = false;
-            foreach (EntityBase ent in Entities.Values)
+            SceneObjectGroup group = GetGroupByPrim(localID);
+            if (group != null)
             {
-                if (ent is SceneObjectGroup)
+                int type = group.RemoveInventoryItem(remoteClient, localID, itemID);
+                group.GetProperites(remoteClient);
+                if (type == 10)
                 {
-                    hasPrim = ((SceneObjectGroup) ent).HasChildPrim(localID);
-                    if (hasPrim != false)
-                    {
-                        int type = ((SceneObjectGroup) ent).RemoveInventoryItem(remoteClient, localID, itemID);
-                        ((SceneObjectGroup) ent).GetProperites(remoteClient);
-                        if (type == 10)
-                        {
-                            EventManager.TriggerRemoveScript(localID, itemID);
-                        }
-                    }
+                    EventManager.TriggerRemoveScript(localID, itemID);
                 }
             }
         }
@@ -307,20 +305,12 @@ namespace OpenSim.Region.Environment.Scenes
 
                         if (rezzed)
                         {
-                            bool hasPrim = false;
-                            foreach (EntityBase ent in Entities.Values)
+                            SceneObjectGroup group = GetGroupByPrim(localID);
+                            if (group != null)
                             {
-                                if (ent is SceneObjectGroup)
-                                {
-                                    hasPrim = ((SceneObjectGroup) ent).HasChildPrim(localID);
-                                    if (hasPrim != false)
-                                    {
-                                        bool added =
-                                            ((SceneObjectGroup) ent).AddInventoryItem(remoteClient, localID, item,
-                                                                                      copyID);
-                                        ((SceneObjectGroup) ent).GetProperites(remoteClient);
-                                    }
-                                }
+                                // TODO: do we care about the value of this bool?
+                                bool added = group.AddInventoryItem(remoteClient, localID, item, copyID);
+                                group.GetProperites(remoteClient);
                             }
                         }
                     }
