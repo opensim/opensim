@@ -132,7 +132,7 @@ namespace OpenSim.DataStore.MonoSqlite
                     }
                     else
                     {
-                        MainLog.Instance.Verbose("DATASTORE", "Ignoring Physical obj: " + obj.UUID + " in region: " + regionUUID);
+                      // MainLog.Instance.Verbose("DATASTORE", "Ignoring Physical obj: " + obj.UUID + " in region: " + regionUUID);
                     }
                 }
             }
