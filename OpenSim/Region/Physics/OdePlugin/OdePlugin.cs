@@ -1358,7 +1358,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                 }
                 else
                 {
-                    System.Console.WriteLine(Math.Abs(m_lastposition.X - l_position.X).ToString());
+                    //System.Console.WriteLine(Math.Abs(m_lastposition.X - l_position.X).ToString());
                     _zeroFlag = false;
                 }
                 m_lastposition = l_position;
