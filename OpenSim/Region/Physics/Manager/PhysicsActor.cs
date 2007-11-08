@@ -36,14 +36,19 @@ namespace OpenSim.Region.Physics.Manager
 
     public delegate void OrientationUpdate(Quaternion orientation);
 
+   
+
     
 
     public abstract class PhysicsActor
-    {
+    { 
+        public delegate void RequestTerseUpdate();
+
 #pragma warning disable 67
         public event PositionUpdate OnPositionUpdate;
         public event VelocityUpdate OnVelocityUpdate;
         public event OrientationUpdate OnOrientationUpdate;
+        public event RequestTerseUpdate OnRequestTerseUpdate;
 #pragma warning restore 67
 
         public static PhysicsActor Null
@@ -57,6 +62,19 @@ namespace OpenSim.Region.Physics.Manager
         {
             set;
         }
+        public virtual void RequestPhysicsterseUpdate()
+        {
+            // Make a temporary copy of the event to avoid possibility of
+            // a race condition if the last subscriber unsubscribes
+            // immediately after the null check and before the event is raised.
+            RequestTerseUpdate handler = OnRequestTerseUpdate;
+            if (handler != null)
+            {
+                OnRequestTerseUpdate();
+            }
+            
+        }
+
 
         public abstract PhysicsVector Position { get; set; }
 

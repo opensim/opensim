@@ -386,6 +386,7 @@ namespace OpenSim.Region.Environment.Scenes
             if (PhysicsActor != null)
             {
                 m_scene.PhysScene.RemoveAvatar(PhysicsActor);
+                m_physicsActor.OnRequestTerseUpdate -= SendTerseUpdateToAllClients;
                 PhysicsActor = null;
             }
         }
@@ -1092,6 +1093,7 @@ namespace OpenSim.Region.Environment.Scenes
                                   AbsolutePosition.Z);
 
             m_physicsActor = scene.AddAvatar(Firstname + "." + Lastname, pVec);
+            m_physicsActor.OnRequestTerseUpdate += SendTerseUpdateToAllClients;
         }
 
         internal void Close()

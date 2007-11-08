@@ -217,21 +217,18 @@ namespace OpenSim.Region.Physics.OdePlugin
 
         private void collision_optimized(float timeStep)
         {
-            foreach (OdeCharacter chr in _characters)
-            {
-                chr.IsColliding = false;
-            }
+
             foreach (OdeCharacter chr in _characters)
             {
 
                 
-
+                chr.IsColliding = false;
                 d.SpaceCollide2(space, chr.Shell, IntPtr.Zero, nearCallback);
                 foreach (OdeCharacter ch2 in _characters)
                 /// should be a separate space -- lots of avatars will be N**2 slow
                 {
 
-
+                    
                     d.SpaceCollide2(chr.Shell, ch2.Shell, IntPtr.Zero, nearCallback);
                 }
                
@@ -614,6 +611,7 @@ namespace OpenSim.Region.Physics.OdePlugin
         private PhysicsVector _position;
         private d.Vector3 _zeroPosition;
         private bool _zeroFlag = false;
+        private bool m_lastUpdateSent = false;
         private PhysicsVector _velocity;
         private PhysicsVector _target_velocity;
         private PhysicsVector _acceleration;
@@ -624,7 +622,10 @@ namespace OpenSim.Region.Physics.OdePlugin
         public static float CAPSULE_RADIUS = 0.5f;
         public static float CAPSULE_LENGTH = 0.79f;
         private bool flying = false;
-        private bool iscolliding = false;
+        private bool m_iscolliding = false;
+        
+        private bool[] m_colliderarr = new bool[10];
+
         private bool jumping = false;
         //private float gravityAccel;
         public IntPtr Body;
@@ -640,6 +641,12 @@ namespace OpenSim.Region.Physics.OdePlugin
             _position = pos;
             _acceleration = new PhysicsVector();
             _parent_scene = parent_scene;
+            
+            for (int i = 0; i < 10; i++)
+            {
+                m_colliderarr[i] = false;
+            }
+
             lock (OdeScene.OdeLock)
             {
 
@@ -667,11 +674,48 @@ namespace OpenSim.Region.Physics.OdePlugin
         }
         public override bool IsColliding
         {
-            get { return iscolliding; }
+            
+            get { return m_iscolliding; }
             set
-            {iscolliding = value;}
+            {
+                int i;
+                int truecount=0;
+                int falsecount=0;
+
+                if (m_colliderarr.Length >= 6)
+                {
+                    for (i = 0; i < 6; i++)
+                    {
+                        m_colliderarr[i] = m_colliderarr[i + 1];
+                    }
+                }
+                m_colliderarr[6] = value;
+
+                for (i = 0; i < 7; i++)
+                {
+                    if (m_colliderarr[i])
+                    {
+                        truecount++;
+                    }
+                    else
+                    {
+                        falsecount++;
+                    }
+                }
+                
+                // Equal truecounts and false counts means we're colliding with something.
+
+                if (falsecount > truecount)
+                {
+                    m_iscolliding = false;
+                }
+                else
+                {
+                    m_iscolliding = true;
+                }
+            }
         }
-        public override PhysicsVector Position
+            public override PhysicsVector Position
         {
             get { return _position; }
             set
@@ -737,7 +781,7 @@ namespace OpenSim.Region.Physics.OdePlugin
             _target_velocity.Y += force.Y;
             _target_velocity.Z += force.Z;
 
-
+            //m_lastUpdateSent = false;
         }
         public void doForce(PhysicsVector force)
         {
@@ -756,6 +800,8 @@ namespace OpenSim.Region.Physics.OdePlugin
                 float servo = (2.5f - posture) * POSTURE_SERVO;
                 d.BodyAddForceAtRelPos(Body, 0.0f, 0.0f, servo, 0.0f, 0.0f, 1.0f);
                 d.BodyAddForceAtRelPos(Body, 0.0f, 0.0f, -servo, 0.0f, 0.0f, -1.0f);
+                //m_lastUpdateSent = false;
+               
             }
 
         }
@@ -771,7 +817,7 @@ namespace OpenSim.Region.Physics.OdePlugin
             d.Vector3 vel = d.BodyGetLinearVel(Body);
 
             //  if velocity is zero, use position control; otherwise, velocity control
-            if (_target_velocity.X == 0.0f && _target_velocity.Y == 0.0f && _target_velocity.Z == 0.0f && iscolliding)
+            if (_target_velocity.X == 0.0f && _target_velocity.Y == 0.0f && _target_velocity.Z == 0.0f && m_iscolliding)
             {
                 //  keep track of where we stopped.  No more slippin' & slidin'
                 if (!_zeroFlag)
@@ -791,12 +837,12 @@ namespace OpenSim.Region.Physics.OdePlugin
             {
                 
                 _zeroFlag = false;
-                if (iscolliding || flying)
+                if (m_iscolliding || flying)
                 {
                     vec.X = (_target_velocity.X - vel.X) * PID_D;
                     vec.Y = (_target_velocity.Y - vel.Y) * PID_D;
                 }
-                if (iscolliding && !flying && _target_velocity.Z > 0.0f)
+                if (m_iscolliding && !flying && _target_velocity.Z > 0.0f)
                 {
                     d.Vector3 pos = d.BodyGetPosition(Body);
                     vec.Z = (_target_velocity.Z - vel.Z) * PID_D + (_zeroPosition.Z - pos.Z) * PID_P;
@@ -836,9 +882,16 @@ namespace OpenSim.Region.Physics.OdePlugin
                 _velocity.X = 0.0f;
                 _velocity.Y = 0.0f;
                 _velocity.Z = 0.0f;
+                if (!m_lastUpdateSent)
+                {
+                    m_lastUpdateSent = true;
+                    base.RequestPhysicsterseUpdate();
+                    
+                }
             }
             else
             {
+                m_lastUpdateSent = false;
                 vec = d.BodyGetLinearVel(Body);
                 _velocity.X = (vec.X);
                 _velocity.Y = (vec.Y);
@@ -875,7 +928,10 @@ namespace OpenSim.Region.Physics.OdePlugin
         public IntPtr _triMeshData;
         private bool iscolliding = false;
         private bool m_isphysical = false;
+        
         public bool _zeroFlag = false;
+        private bool m_lastUpdateSent = false;
+
         public IntPtr Body = (IntPtr) 0;
         private String m_primName;
         private PhysicsVector _target_velocity;
@@ -1281,6 +1337,7 @@ namespace OpenSim.Region.Physics.OdePlugin
 
                         }
                     }
+                    
                     IsPhysical = false;
                     _velocity.X = 0;
                     _velocity.Y = 0;
@@ -1288,15 +1345,20 @@ namespace OpenSim.Region.Physics.OdePlugin
                     m_rotationalVelocity.X = 0;
                     m_rotationalVelocity.Y = 0;
                     m_rotationalVelocity.Z = 0;
+                    base.RequestPhysicsterseUpdate();
                     _zeroFlag = true;
                 }
 
-                if (m_lastposition == l_position)
+                if ((Math.Abs(m_lastposition.X - l_position.X) < 0.02) 
+                    && (Math.Abs(m_lastposition.Y - l_position.Y) < 0.02) 
+                    && (Math.Abs(m_lastposition.Z - l_position.Z) < 0.02 ))
                 {
+                    
                     _zeroFlag = true;
                 }
                 else
                 {
+                    System.Console.WriteLine(Math.Abs(m_lastposition.X - l_position.X).ToString());
                     _zeroFlag = false;
                 }
                 m_lastposition = l_position;
@@ -1337,6 +1399,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                     _orientation.x = ori.X;
                     _orientation.y = ori.Y;
                     _orientation.z = ori.Z;
+                    base.RequestPhysicsterseUpdate();
                 }
 
             }

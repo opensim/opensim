@@ -782,10 +782,15 @@ namespace OpenSim.Region.Environment.Scenes
             if (UsePhysics)
             {
                 AddFlag(LLObject.ObjectFlags.Physics);
+                if (PhysActor != null)
+                    PhysActor.OnRequestTerseUpdate += PhysicsRequestingTerseUpdate;
+
             }
             else
             {
                 RemFlag(LLObject.ObjectFlags.Physics);
+                if (PhysActor != null)
+                    PhysActor.OnRequestTerseUpdate -= PhysicsRequestingTerseUpdate;
             }
 
             if (IsPhantom)
@@ -1067,6 +1072,13 @@ namespace OpenSim.Region.Environment.Scenes
         public virtual void UpdateMovement()
         {
         }
+        #region Events
+        public void PhysicsRequestingTerseUpdate()
+        {
+            SendTerseUpdateToAllClients();
+        }
+        #endregion
+
 
         public virtual void OnGrab(LLVector3 offsetPos, IClientAPI remoteClient)
         {
