@@ -282,7 +282,7 @@ namespace SimpleApp
         {
         }
         public virtual void SendPrimTerseUpdate(ulong regionHandle, ushort timeDilation, uint localID,
-                                        LLVector3 position, LLQuaternion rotation,LLVector3 velocity)
+                                        LLVector3 position, LLQuaternion rotation,LLVector3 velocity, LLVector3 rotationalvelocity)
         {
         }
 

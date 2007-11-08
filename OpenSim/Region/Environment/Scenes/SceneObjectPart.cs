@@ -231,6 +231,7 @@ namespace OpenSim.Region.Environment.Scenes
         }
 
         protected LLVector3 m_velocity;
+        protected LLVector3 m_rotationalvelocity;
 
         /// <summary></summary>
         public LLVector3 Velocity
@@ -253,6 +254,28 @@ namespace OpenSim.Region.Environment.Scenes
             }
             set { m_velocity = value; }
         }
+        public LLVector3 RotationalVelocity
+        {
+            get
+            {
+                //if (PhysActor.Velocity.x != 0 || PhysActor.Velocity.y != 0
+                //|| PhysActor.Velocity.z != 0)
+                //{
+                if (PhysActor != null)
+                {
+                    if (PhysActor.IsPhysical)
+                    {
+                        m_rotationalvelocity.X = PhysActor.RotationalVelocity.X;
+                        m_rotationalvelocity.Y = PhysActor.RotationalVelocity.Y;
+                        m_rotationalvelocity.Z = PhysActor.RotationalVelocity.Z;
+                    }
+                }
+
+                return m_rotationalvelocity;
+            }
+            set { m_rotationalvelocity = value; }
+        }
+
 
         protected LLVector3 m_angularVelocity;
 
@@ -384,6 +407,7 @@ namespace OpenSim.Region.Environment.Scenes
             OffsetPosition = offsetPosition;
             RotationOffset = rotationOffset;
             Velocity = new LLVector3(0, 0, 0);
+            m_rotationalvelocity = new LLVector3(0, 0, 0);
             AngularVelocity = new LLVector3(0, 0, 0);
             Acceleration = new LLVector3(0, 0, 0);
 
@@ -1020,7 +1044,7 @@ namespace OpenSim.Region.Environment.Scenes
             }
             else
             {
-                remoteClient.SendPrimTerseUpdate(m_regionHandle, 64096, LocalID, lPos, mRot, Velocity);
+                remoteClient.SendPrimTerseUpdate(m_regionHandle, 64096, LocalID, lPos, mRot, Velocity, RotationalVelocity);
             }
         }
 
@@ -1033,8 +1057,8 @@ namespace OpenSim.Region.Environment.Scenes
             }
             else
             {
-                remoteClient.SendPrimTerseUpdate(m_regionHandle, 64096, LocalID, lPos, mRot, Velocity);
-                //System.Console.WriteLine("Vel:" + Velocity);
+                remoteClient.SendPrimTerseUpdate(m_regionHandle, 64096, LocalID, lPos, mRot, Velocity, RotationalVelocity);
+                //System.Console.WriteLine("RVel:" + RotationalVelocity);
             }
         }
 

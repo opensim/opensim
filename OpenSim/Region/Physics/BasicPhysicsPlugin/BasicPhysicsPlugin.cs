@@ -181,6 +181,7 @@ namespace OpenSim.Region.Physics.BasicPhysicsPlugin
         private PhysicsVector _position;
         private PhysicsVector _velocity;
         private PhysicsVector _acceleration;
+        private PhysicsVector m_rotationalVelocity = PhysicsVector.Zero;
         private bool flying;
         private bool iscolliding;
 
@@ -190,7 +191,11 @@ namespace OpenSim.Region.Physics.BasicPhysicsPlugin
             _position = new PhysicsVector();
             _acceleration = new PhysicsVector();
         }
-
+        public override PhysicsVector RotationalVelocity
+        {
+            get { return m_rotationalVelocity; }
+            set { m_rotationalVelocity = value; }
+        }
         public override bool IsPhysical
         {
             get { return false; }

@@ -643,6 +643,7 @@ namespace OpenSim.Region.Physics.BulletXPlugin
         protected PhysicsVector _size;
         protected PhysicsVector _acceleration;
         protected AxiomQuaternion _orientation;
+        protected PhysicsVector m_rotationalVelocity = PhysicsVector.Zero;
         protected RigidBody rigidBody;
         private Boolean iscolliding = false;
 
@@ -661,6 +662,11 @@ namespace OpenSim.Region.Physics.BulletXPlugin
                     Translate();
                 }
             }
+        }
+        public override PhysicsVector RotationalVelocity
+        {
+            get { return m_rotationalVelocity; }
+            set { m_rotationalVelocity = value; }
         }
         public override PhysicsVector Velocity
         {

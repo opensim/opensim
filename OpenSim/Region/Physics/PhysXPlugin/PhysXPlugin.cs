@@ -184,6 +184,7 @@ namespace OpenSim.Region.Physics.PhysXPlugin
     {
         private PhysicsVector _position;
         private PhysicsVector _velocity;
+        private PhysicsVector m_rotationalVelocity = PhysicsVector.Zero;
         private PhysicsVector _acceleration;
         private NxCharacter _character;
         private bool flying;
@@ -214,7 +215,11 @@ namespace OpenSim.Region.Physics.PhysXPlugin
             get { return iscolliding; }
             set { iscolliding = value; }
         }
-
+        public override PhysicsVector RotationalVelocity
+        {
+            get { return m_rotationalVelocity; }
+            set { m_rotationalVelocity = value; }
+        }
         public override PhysicsVector Position
         {
             get { return _position; }
@@ -314,6 +319,7 @@ namespace OpenSim.Region.Physics.PhysXPlugin
         private PhysicsVector _position;
         private PhysicsVector _velocity;
         private PhysicsVector _acceleration;
+        private PhysicsVector m_rotationalVelocity;
         private NxActor _prim;
 
         public PhysXPrim(NxActor prim)
@@ -329,7 +335,11 @@ namespace OpenSim.Region.Physics.PhysXPlugin
             get { return false; }
             set { return; }
         }
-
+        public override PhysicsVector RotationalVelocity
+        {
+            get { return m_rotationalVelocity; }
+            set { m_rotationalVelocity = value; }
+        }
         public override bool Flying
         {
             get { return false; //no flying prims for you

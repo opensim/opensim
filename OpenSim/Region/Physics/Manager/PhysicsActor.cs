@@ -36,6 +36,8 @@ namespace OpenSim.Region.Physics.Manager
 
     public delegate void OrientationUpdate(Quaternion orientation);
 
+    
+
     public abstract class PhysicsActor
     {
 #pragma warning disable 67
@@ -69,6 +71,7 @@ namespace OpenSim.Region.Physics.Manager
         public abstract bool Flying { get; set; }
 
         public abstract bool IsColliding { get; set; }
+        public abstract PhysicsVector RotationalVelocity { get; set; }
 
         public abstract bool Kinematic { get; set; }
 
@@ -144,7 +147,11 @@ namespace OpenSim.Region.Physics.Manager
         {
             return;
         }
-
+        public override PhysicsVector RotationalVelocity
+        {
+            get { return PhysicsVector.Zero; }
+            set { return; }
+        }
         public override void SetMomentum(PhysicsVector momentum)
         {
             return;

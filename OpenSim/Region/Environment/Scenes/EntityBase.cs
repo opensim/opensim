@@ -69,6 +69,7 @@ namespace OpenSim.Region.Environment.Scenes
         }
 
         protected LLVector3 m_velocity;
+        protected LLVector3 m_rotationalvelocity;
 
         /// <summary>
         /// 
@@ -106,7 +107,7 @@ namespace OpenSim.Region.Environment.Scenes
             m_velocity = new LLVector3();
             Rotation = new Quaternion();
             m_name = "(basic entity)";
-
+            m_rotationalvelocity = new LLVector3(0, 0, 0);
             m_children = new List<EntityBase>();
         }
 

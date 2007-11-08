@@ -617,6 +617,7 @@ namespace OpenSim.Region.Physics.OdePlugin
         private PhysicsVector _velocity;
         private PhysicsVector _target_velocity;
         private PhysicsVector _acceleration;
+        private PhysicsVector m_rotationalVelocity;
         private static float PID_D = 4000.0f;
         private static float PID_P = 7000.0f;
         private static float POSTURE_SERVO = 10000.0f;
@@ -682,7 +683,11 @@ namespace OpenSim.Region.Physics.OdePlugin
                 }
             }
         }
-
+        public override PhysicsVector RotationalVelocity
+        {
+            get { return m_rotationalVelocity; }
+            set { m_rotationalVelocity = value; }
+        }
         public override PhysicsVector Size
         {
             get { return new PhysicsVector(CAPSULE_RADIUS*2, CAPSULE_RADIUS*2, CAPSULE_LENGTH); }
@@ -858,6 +863,7 @@ namespace OpenSim.Region.Physics.OdePlugin
         private PhysicsVector _velocity;
         private PhysicsVector m_lastVelocity = new PhysicsVector(0.0f,0.0f,0.0f);
         private PhysicsVector m_lastposition = new PhysicsVector(0.0f, 0.0f, 0.0f);
+        private PhysicsVector m_rotationalVelocity;
         private PhysicsVector _size;
         private PhysicsVector _acceleration;
         public Quaternion _orientation;
@@ -887,6 +893,7 @@ namespace OpenSim.Region.Physics.OdePlugin
             _position = pos;
             _size = size;
             _acceleration = new PhysicsVector();
+            m_rotationalVelocity = PhysicsVector.Zero;
             _orientation = rotation;
             _mesh = mesh;
             _pbs = pbs;
@@ -1224,7 +1231,12 @@ namespace OpenSim.Region.Physics.OdePlugin
         }
         public void Move(float timestep)
         {
-
+            
+        }
+        public override PhysicsVector RotationalVelocity
+        {
+            get{ return m_rotationalVelocity;}
+            set { m_rotationalVelocity = value; }
         }
 
         public void UpdatePositionAndVelocity() {
@@ -1234,6 +1246,8 @@ namespace OpenSim.Region.Physics.OdePlugin
                 d.Vector3 vec = d.BodyGetPosition(Body);
                 d.Quaternion ori = d.BodyGetQuaternion(Body);
                 d.Vector3 vel = d.BodyGetLinearVel(Body);
+                d.Vector3 rotvel = d.BodyGetAngularVel(Body);
+               
                 PhysicsVector l_position = new PhysicsVector();
                 //  kluge to keep things in bounds.  ODE lets dead avatars drift away (they should be removed!)
                 if (vec.X < 0.0f) vec.X = 0.0f;
@@ -1256,7 +1270,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                     try
                     {
                         disableBody();
-                        
+
                     }
                     catch (System.Exception e)
                     {
@@ -1264,13 +1278,16 @@ namespace OpenSim.Region.Physics.OdePlugin
                         {
                             d.BodyDestroy(Body);
                             Body = (IntPtr)0;
-                            
+
                         }
-                    }       
+                    }
                     IsPhysical = false;
                     _velocity.X = 0;
                     _velocity.Y = 0;
                     _velocity.Z = 0;
+                    m_rotationalVelocity.X = 0;
+                    m_rotationalVelocity.Y = 0;
+                    m_rotationalVelocity.Z = 0;
                     _zeroFlag = true;
                 }
 
@@ -1293,11 +1310,13 @@ namespace OpenSim.Region.Physics.OdePlugin
                     _velocity.X = 0.0f;
                     _velocity.Y = 0.0f;
                     _velocity.Z = 0.0f;
-                    _orientation.w = 0f;
-                    _orientation.x = 0f;
-                    _orientation.y = 0f;
-                    _orientation.z = 0f;
-
+                    //_orientation.w = 0f;
+                    //_orientation.x = 0f;
+                    //_orientation.y = 0f;
+                    //_orientation.z = 0f;
+                    m_rotationalVelocity.X = 0;
+                    m_rotationalVelocity.Y = 0;
+                    m_rotationalVelocity.Z = 0;
 
                 }
                 else
@@ -1310,12 +1329,27 @@ namespace OpenSim.Region.Physics.OdePlugin
                     _velocity.Y = vel.Y;
                     _velocity.Z = vel.Z;
 
+                    m_rotationalVelocity.X = rotvel.X;
+                    m_rotationalVelocity.Y = rotvel.Y;
+                    m_rotationalVelocity.Z = rotvel.Z;
+                    //System.Console.WriteLine("ODE: " + m_rotationalVelocity.ToString());
                     _orientation.w = ori.W;
                     _orientation.x = ori.X;
                     _orientation.y = ori.Y;
                     _orientation.z = ori.Z;
                 }
 
+            }
+            else
+            {
+                // Not a body..   so Make sure the client isn't interpolating
+                _velocity.X = 0;
+                _velocity.Y = 0;
+                _velocity.Z = 0;
+                m_rotationalVelocity.X = 0;
+                m_rotationalVelocity.Y = 0;
+                m_rotationalVelocity.Z = 0;
+                _zeroFlag = true;
             }
 
         }
