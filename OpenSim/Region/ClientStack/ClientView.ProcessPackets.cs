@@ -83,7 +83,7 @@ namespace OpenSim.Region.ClientStack
                         break;
                     case PacketType.ChatFromViewer:
                         ChatFromViewerPacket inchatpack = (ChatFromViewerPacket) Pack;
-                        if (Util.FieldToString(inchatpack.ChatData.Message) == "")
+                        if (Helpers.FieldToUTF8String(inchatpack.ChatData.Message) == "")
                         {
                             //empty message so don't bother with it
                             break;
@@ -101,7 +101,7 @@ namespace OpenSim.Region.ClientStack
                             ChatFromViewerArgs args = new ChatFromViewerArgs();
                             args.Channel = channel;
                             args.From = fromName;
-                            args.Message = Util.FieldToString(message);
+                            args.Message = Helpers.FieldToUTF8String(message);
                             args.Type = (ChatTypeEnum) type;
                             args.Position = fromPos;
 
@@ -114,7 +114,7 @@ namespace OpenSim.Region.ClientStack
                     case PacketType.ImprovedInstantMessage:
                         ImprovedInstantMessagePacket msgpack = (ImprovedInstantMessagePacket) Pack;
                         string IMfromName = Util.FieldToString(msgpack.MessageBlock.FromAgentName);
-                        string IMmessage = Util.FieldToString(msgpack.MessageBlock.Message);
+                        string IMmessage = Helpers.FieldToUTF8String(msgpack.MessageBlock.Message);
                         if (OnInstantMessage != null)
                         {
                             OnInstantMessage(msgpack.AgentData.AgentID, msgpack.AgentData.SessionID,

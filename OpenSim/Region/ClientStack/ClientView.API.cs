@@ -251,6 +251,7 @@ namespace OpenSim.Region.ClientStack
                                        LLUUID imSessionID, string fromName, byte dialog, uint timeStamp)
         {
             Encoding enc = Encoding.ASCII;
+            Encoding encUTF8 = Encoding.UTF8;
             ImprovedInstantMessagePacket msg = new ImprovedInstantMessagePacket();
             msg.AgentData.AgentID = fromAgent;
             msg.AgentData.SessionID = fromAgentSession;
@@ -264,7 +265,7 @@ namespace OpenSim.Region.ClientStack
             msg.MessageBlock.RegionID = LLUUID.Random();
             msg.MessageBlock.Timestamp = timeStamp;
             msg.MessageBlock.ToAgentID = toAgent;
-            msg.MessageBlock.Message = enc.GetBytes(message + "\0");
+            msg.MessageBlock.Message = encUTF8.GetBytes(message + "\0");
             msg.MessageBlock.BinaryBucket = new byte[0];
 
             OutPacket(msg);

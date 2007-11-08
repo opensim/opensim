@@ -72,7 +72,7 @@ namespace OpenSim.Region.Environment.Scenes
             {
                 ChatFromViewerArgs args = new ChatFromViewerArgs();
 
-                args.Message = Util.FieldToString(message);
+                args.Message = Helpers.FieldToUTF8String(message);
                 args.Channel = channel;
                 args.Type = type;
                 args.Position = fromPos;
