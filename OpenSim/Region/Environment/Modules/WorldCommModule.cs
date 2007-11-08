@@ -113,7 +113,7 @@ namespace OpenSim.Region.Environment.Modules
         private void DeliverClientMessage(Object sender, ChatFromViewerArgs e)
         {
             DeliverMessage(e.Sender.AgentId.ToString(),
-                           (int) e.Type, e.Channel,
+                           e.Type, e.Channel,
                            e.Sender.FirstName + " " + e.Sender.LastName,
                            e.Message);
         }
@@ -140,8 +140,8 @@ namespace OpenSim.Region.Environment.Modules
         // and if so if this message fits the filter.  If it does, then
         // enqueue the message for delivery to the objects listen event handler.
         // Objects that do an llSay have their messages delivered here, and for 
-        // nearby avatards, the SimChat function is used.
-        public void DeliverMessage(string sourceItemID, int type, int channel, string name, string msg)
+        // nearby avatars, the SimChat function is used.
+        public void DeliverMessage(string sourceItemID, ChatTypeEnum type, int channel, string name, string msg)
         {
             SceneObjectPart source = null;
             ScenePresence avatar = null;
@@ -177,7 +177,7 @@ namespace OpenSim.Region.Environment.Modules
 
                     switch (type)
                     {
-                        case 0: // Whisper
+                        case ChatTypeEnum.Whisper:
 
                             if ((dis < 10) && (dis > -10))
                             {
@@ -191,7 +191,7 @@ namespace OpenSim.Region.Environment.Modules
                             }
                             break;
 
-                        case 1: // Say
+                        case ChatTypeEnum.Say:
 
                             if ((dis < 30) && (dis > -30))
                             {
@@ -205,7 +205,7 @@ namespace OpenSim.Region.Environment.Modules
                             }
                             break;
 
-                        case 2: // Shout
+                        case ChatTypeEnum.Shout:
                             if ((dis < 100) && (dis > -100))
                             {
                                 ListenerInfo isListener = m_listenerManager.IsListenerMatch(
@@ -218,7 +218,7 @@ namespace OpenSim.Region.Environment.Modules
                             }
                             break;
 
-                        case 0xff: // Broadcast
+                        case ChatTypeEnum.Broadcast:
                             ListenerInfo isListen =
                                 m_listenerManager.IsListenerMatch(sourceItemID, eb, channel, name, msg);
                             if (isListen != null)

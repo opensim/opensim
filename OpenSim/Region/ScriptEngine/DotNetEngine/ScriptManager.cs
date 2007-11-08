@@ -33,6 +33,7 @@ using System.Reflection;
 using System.Runtime.Serialization.Formatters.Binary;
 using System.Threading;
 using libsecondlife;
+using OpenSim.Framework;
 using OpenSim.Region.Environment.Scenes;
 using OpenSim.Region.ScriptEngine.DotNetEngine.Compiler;
 using OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL;
@@ -323,7 +324,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
                         string text = "Error compiling script:\r\n" + e.Message.ToString();
                         if (text.Length > 1500)
                             text = text.Substring(0, 1500);
-                        World.SimChat(Helpers.StringToField(text), 1, 0, m_host.AbsolutePosition, m_host.Name, m_host.UUID);
+                        World.SimChat(Helpers.StringToField(text), ChatTypeEnum.Say, 0, m_host.AbsolutePosition, m_host.Name, m_host.UUID);
                     }
                     catch (Exception e2)
                     {

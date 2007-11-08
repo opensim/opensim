@@ -270,24 +270,20 @@ namespace OpenSim.Grid.ScriptEngine.DotNetEngine.Compiler
 
         public void llWhisper(int channelID, string text)
         {
-            //type for whisper is 0
             World.SimChat(Helpers.StringToField(text),
-                          0, channelID, m_host.AbsolutePosition, m_host.Name, m_host.UUID);
+                          ChatTypeEnum.Whisper, channelID, m_host.AbsolutePosition, m_host.Name, m_host.UUID);
         }
 
         public void llSay(int channelID, string text)
         {
-            //type for say is 1
-
             World.SimChat(Helpers.StringToField(text),
-                          1, channelID, m_host.AbsolutePosition, m_host.Name, m_host.UUID);
+                          ChatTypeEnum.Say, channelID, m_host.AbsolutePosition, m_host.Name, m_host.UUID);
         }
 
         public void llShout(int channelID, string text)
         {
-            //type for shout is 2
             World.SimChat(Helpers.StringToField(text),
-                          2, channelID, m_host.AbsolutePosition, m_host.Name, m_host.UUID);
+                          ChatTypeEnum.Shout, channelID, m_host.AbsolutePosition, m_host.Name, m_host.UUID);
         }
 
         public int llListen(int channelID, string name, string ID, string msg)

@@ -65,7 +65,7 @@ namespace OpenSim.Region.Environment.Scenes
         /// <param name="fromPos"></param>
         /// <param name="fromName"></param>
         /// <param name="fromAgentID"></param>
-        public void SimChat(byte[] message, byte type, int channel, LLVector3 fromPos, string fromName,
+        public void SimChat(byte[] message, ChatTypeEnum type, int channel, LLVector3 fromPos, string fromName,
                             LLUUID fromAgentID)
         {
             if (m_simChatModule != null)
@@ -74,7 +74,7 @@ namespace OpenSim.Region.Environment.Scenes
 
                 args.Message = Util.FieldToString(message);
                 args.Channel = channel;
-                args.Type = (ChatTypeEnum) type;
+                args.Type = type;
                 args.Position = fromPos;
 
                 ScenePresence user = GetScenePresence(fromAgentID);

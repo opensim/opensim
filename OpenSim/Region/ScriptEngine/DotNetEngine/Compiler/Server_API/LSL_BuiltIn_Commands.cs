@@ -270,32 +270,29 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler
 
         public void llWhisper(int channelID, string text)
         {
-            //type for whisper is 0
             World.SimChat(Helpers.StringToField(text),
-                          0, channelID, m_host.AbsolutePosition, m_host.Name, m_host.UUID);
+                          ChatTypeEnum.Whisper, channelID, m_host.AbsolutePosition, m_host.Name, m_host.UUID);
 
             IWorldComm wComm = m_ScriptEngine.World.RequestModuleInterface<IWorldComm>();
-            wComm.DeliverMessage(m_host.UUID.ToString(), 0, channelID, m_host.Name, text);
+            wComm.DeliverMessage(m_host.UUID.ToString(), ChatTypeEnum.Whisper, channelID, m_host.Name, text);
         }
 
         public void llSay(int channelID, string text)
         {
-            //type for say is 1
             World.SimChat(Helpers.StringToField(text),
-                          1, channelID, m_host.AbsolutePosition, m_host.Name, m_host.UUID);
+                          ChatTypeEnum.Say, channelID, m_host.AbsolutePosition, m_host.Name, m_host.UUID);
 
             IWorldComm wComm = m_ScriptEngine.World.RequestModuleInterface<IWorldComm>();
-            wComm.DeliverMessage(m_host.UUID.ToString(), 1, channelID, m_host.Name, text);
+            wComm.DeliverMessage(m_host.UUID.ToString(), ChatTypeEnum.Say, channelID, m_host.Name, text);
         }
 
         public void llShout(int channelID, string text)
         {
-            //type for shout is 2
             World.SimChat(Helpers.StringToField(text),
-                          2, channelID, m_host.AbsolutePosition, m_host.Name, m_host.UUID);
+                          ChatTypeEnum.Shout, channelID, m_host.AbsolutePosition, m_host.Name, m_host.UUID);
 
             IWorldComm wComm = m_ScriptEngine.World.RequestModuleInterface<IWorldComm>();
-            wComm.DeliverMessage(m_host.UUID.ToString(), 2, channelID, m_host.Name, text);
+            wComm.DeliverMessage(m_host.UUID.ToString(), ChatTypeEnum.Shout, channelID, m_host.Name, text);
         }
 
         public int llListen(int channelID, string name, string ID, string msg)

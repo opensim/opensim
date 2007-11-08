@@ -31,6 +31,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Threading;
 using libsecondlife;
+using OpenSim.Framework;
 using OpenSim.Grid.ScriptEngine.DotNetEngine.Compiler.LSL;
 using OpenSim.Region.Environment.Scenes.Scripting;
 
@@ -205,7 +206,7 @@ namespace OpenSim.Grid.ScriptEngine.DotNetEngine
                                         IScriptHost m_host = m_ScriptEngine.World.GetSceneObjectPart(QIS.localID);
                                         //if (m_host != null)
                                         //{
-                                        m_ScriptEngine.World.SimChat(Helpers.StringToField(text), 1, 0,
+                                        m_ScriptEngine.World.SimChat(Helpers.StringToField(text), ChatTypeEnum.Say, 0,
                                                                      m_host.AbsolutePosition, m_host.Name, m_host.UUID);
                                     }
                                     catch
