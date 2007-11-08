@@ -338,7 +338,7 @@
     <!-- Copied from hardcoded values -->
     <Section Name="Bricks">
       <Key Name="assetID" Value="00000000-0000-1111-9999-000000000001"/>
-      <Key Name="Name" Value="Bricks"/>
+      <Key Name="name" Value="Bricks"/>
       <Key Name="assetType" Value="0" />
       <Key Name="inventoryType" Value="0" />
       <Key Name="fileName" Value="bricks.jp2"/>
@@ -346,7 +346,7 @@
 
     <Section Name="Plywood">
       <Key Name="assetID" Value="00000000-0000-1111-9999-000000000002"/>
-      <Key Name="Name" Value="Plywood"/>
+      <Key Name="name" Value="Plywood"/>
       <Key Name="assetType" Value="0" />
       <Key Name="inventoryType" Value="0" />
       <Key Name="fileName" Value="plywood.jp2"/>
@@ -354,7 +354,7 @@
 
     <Section Name="Rocks">
       <Key Name="assetID" Value="00000000-0000-1111-9999-000000000003"/>
-      <Key Name="Name" Value="Rocks"/>
+      <Key Name="name" Value="Rocks"/>
       <Key Name="assetType" Value="0" />
       <Key Name="inventoryType" Value="0" />
       <Key Name="fileName" Value="rocks.jp2"/>
@@ -362,7 +362,7 @@
 
     <Section Name="Granite">
       <Key Name="assetID" Value="00000000-0000-1111-9999-000000000004"/>
-      <Key Name="Name" Value="Granite"/>
+      <Key Name="name" Value="Granite"/>
       <Key Name="assetType" Value="0" />
       <Key Name="inventoryType" Value="0" />
       <Key Name="fileName" Value="granite.jp2"/>
@@ -370,7 +370,7 @@
 
     <Section Name="Hardwood">
       <Key Name="assetID" Value="00000000-0000-1111-9999-000000000005"/>
-      <Key Name="Name" Value="Hardwood"/>
+      <Key Name="name" Value="Hardwood"/>
       <Key Name="assetType" Value="0" />
       <Key Name="inventoryType" Value="0" />
       <Key Name="fileName" Value="hardwood.jp2"/>
@@ -378,7 +378,7 @@
 
     <Section Name="Prim Base Texture">
       <Key Name="assetID" Value="00000000-0000-1111-5005-000000000005"/>
-      <Key Name="Name" Value="Prim Base Texture"/>
+      <Key Name="name" Value="Prim Base Texture"/>
       <Key Name="assetType" Value="0" />
       <Key Name="inventoryType" Value="0" />
       <Key Name="fileName" Value="plywood.jp2"/>
@@ -386,7 +386,7 @@
 
     <Section Name="Map Base Texture">
       <Key Name="assetID" Value="00000000-0000-1111-9999-000000000006"/>
-      <Key Name="Name" Value="Map Base Texture"/>
+      <Key Name="name" Value="Map Base Texture"/>
       <Key Name="assetType" Value="0" />
       <Key Name="inventoryType" Value="0" />
       <Key Name="fileName" Value="map_base.jp2"/>
@@ -394,7 +394,7 @@
 
     <Section Name="Map Texture">
       <Key Name="assetID" Value="00000000-0000-1111-9999-000000000007"/>
-      <Key Name="Name" Value="Map Texture"/>
+      <Key Name="name" Value="Map Texture"/>
       <Key Name="assetType" Value="0" />
       <Key Name="inventoryType" Value="0" />
       <Key Name="fileName" Value="map1.jp2"/>
@@ -402,7 +402,7 @@
 
     <Section Name="Female Body Texture">
       <Key Name="assetID" Value="00000000-0000-1111-9999-000000000010"/>
-      <Key Name="Name" Value="Female Body Texture"/>
+      <Key Name="name" Value="Female Body Texture"/>
       <Key Name="assetType" Value="0" />
       <Key Name="inventoryType" Value="0" />
       <Key Name="fileName" Value="femalebody.jp2"/>
@@ -410,7 +410,7 @@
 
     <Section Name="Female Bottom Texture">
       <Key Name="assetID" Value="00000000-0000-1111-9999-000000000011"/>
-      <Key Name="Name" Value="Female Bottom Texture"/>
+      <Key Name="name" Value="Female Bottom Texture"/>
       <Key Name="assetType" Value="0" />
       <Key Name="inventoryType" Value="0" />
       <Key Name="fileName" Value="femalebottom.jp2"/>
@@ -418,7 +418,7 @@
 
     <Section Name="Female Face Texture">
       <Key Name="assetID" Value="00000000-0000-1111-9999-000000000012"/>
-      <Key Name="Name" Value="Female Face Texture"/>
+      <Key Name="name" Value="Female Face Texture"/>
       <Key Name="assetType" Value="0" />
       <Key Name="inventoryType" Value="0" />
       <Key Name="fileName" Value="femaleface.jp2"/>
@@ -426,21 +426,21 @@
 
   <Section Name="Skin">
     <Key Name="assetID" Value="77c41e39-38f9-f75a-024e-585989bbabbb"/>
-    <Key Name="Name" Value="Skin"/>
+    <Key Name="name" Value="Skin"/>
     <Key Name="assetType" Value="0" />
     <Key Name="inventoryType" Value="0" />
     <Key Name="fileName" Value="base_skin.dat"/>
   </Section>
   <Section Name="Skin">
     <Key Name="assetID" Value="77c41e39-38f9-f75a-024e-585989bbabbc"/>
-    <Key Name="Name" Value="Jim Skin"/>
+    <Key Name="name" Value="Jim Skin"/>
     <Key Name="assetType" Value="0" />
     <Key Name="inventoryType" Value="0" />
     <Key Name="fileName" Value="jim_skin.dat"/>
   </Section>
   <Section Name="Skin">
     <Key Name="assetID" Value="77c41e39-38f9-f75a-024e-585989bbabbd"/>
-    <Key Name="Name" Value="Goblin Skin"/>
+    <Key Name="name" Value="Goblin Skin"/>
     <Key Name="assetType" Value="0" />
     <Key Name="inventoryType" Value="0" />
     <Key Name="fileName" Value="goblin_skin.dat"/>
@@ -448,35 +448,35 @@
 
   <Section Name="Shape">
     <Key Name="assetID" Value="66c41e39-38f9-f75a-024e-585989bfab73"/>
-    <Key Name="Name" Value="Shape"/>
+    <Key Name="name" Value="Shape"/>
     <Key Name="assetType" Value="0" />
     <Key Name="inventoryType" Value="0" />
     <Key Name="fileName" Value="base_shape.dat"/>
   </Section>
   <Section Name="Shape">
     <Key Name="assetID" Value="66c41e39-38f9-f75a-024e-585989bfab74"/>
-    <Key Name="Name" Value="Jim Shape"/>
+    <Key Name="name" Value="Jim Shape"/>
     <Key Name="assetType" Value="0" />
     <Key Name="inventoryType" Value="0" />
     <Key Name="fileName" Value="jim_shape.dat"/>
   </Section>
   <Section Name="Shape">
     <Key Name="assetID" Value="66c41e39-38f9-f75a-024e-585989bfab75"/>
-    <Key Name="Name" Value="Little Goblin Shape"/>
+    <Key Name="name" Value="Little Goblin Shape"/>
     <Key Name="assetType" Value="0" />
     <Key Name="inventoryType" Value="0" />
     <Key Name="fileName" Value="little_goblin_shape.dat"/>
   </Section>
   <Section Name="Shirt">
     <Key Name="assetID" Value="00000000-38f9-1111-024e-222222111110"/>
-    <Key Name="Name" Value="Shirt"/>
+    <Key Name="name" Value="Shirt"/>
     <Key Name="assetType" Value="0" />
     <Key Name="inventoryType" Value="0" />
     <Key Name="fileName" Value="newshirt.dat"/>
   </Section>
   <Section Name="Pants">
     <Key Name="assetID" Value="00000000-38f9-1111-024e-222222111120"/>
-    <Key Name="Name" Value="Pants"/>
+    <Key Name="name" Value="Pants"/>
     <Key Name="assetType" Value="0" />
     <Key Name="inventoryType" Value="0" />
     <Key Name="fileName" Value="newpants.dat"/>
