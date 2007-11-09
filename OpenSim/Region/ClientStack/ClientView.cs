@@ -246,6 +246,8 @@ namespace OpenSim.Region.ClientStack
 
         protected virtual void ClientLoop()
         {
+            QueItem lastPacket = null;
+
             MainLog.Instance.Verbose("CLIENT", "Entered loop");
             while (true)
             {
@@ -266,7 +268,13 @@ namespace OpenSim.Region.ClientStack
                     if (throttleSentPeriod > throttleOutbound)
                     {
                         PacketQueue.Enqueue(nextPacket);
-                        Thread.Sleep(100); // Wait a little while, should prevent a CPU spike during high transmission periods
+
+                        if (lastPacket == nextPacket)
+                        {
+                            Thread.Sleep(100); // Wait a little while if this was the last packet we saw
+                        }
+
+                        lastPacket = nextPacket;
                     }
                     else
                     {
