@@ -160,12 +160,13 @@ namespace OpenSim.Framework.UserManagement
                     }
                     //}
                 }
+                return response;
             }
             finally
             {
                 m_loginMutex.ReleaseMutex();
             }
-            return response;
+            return null;
         }
 
         /// <summary>
