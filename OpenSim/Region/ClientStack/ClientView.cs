@@ -87,6 +87,13 @@ namespace OpenSim.Region.ClientStack
         private int probesWithNoIngressPackets = 0;
         private int lastPacketsReceived = 0;
 
+
+        private int throttleOutbound = 32768; // Number of bytes allowed to go out per second. (256kbps per client) 
+                                              // TODO: Make this variable. Lower throttle on un-ack. Raise over time?
+        private int throttleSentPeriod = 0;   // Number of bytes sent this period
+
+        private Timer throttleTimer;
+
         public ClientView(EndPoint remoteEP, UseCircuitCodePacket initialcirpack, ClientManager clientManager,
                           IScene scene, AssetCache assetCache, PacketServer packServer,
                           AgentCircuitManager authenSessions)
@@ -110,15 +117,24 @@ namespace OpenSim.Region.ClientStack
             PacketQueue = new BlockingQueue<QueItem>();
 
             //this.UploadAssets = new AgentAssetUpload(this, m_assetCache, m_inventoryCache);
-            AckTimer = new Timer(500);
+            AckTimer = new Timer(750);
             AckTimer.Elapsed += new ElapsedEventHandler(AckTimer_Elapsed);
             AckTimer.Start();
+
+            throttleTimer = new Timer(1000);
+            throttleTimer.Elapsed += new ElapsedEventHandler(throttleTimer_Elapsed);
+            throttleTimer.Start();
 
             RegisterLocalPacketHandlers();
 
             ClientThread = new Thread(new ThreadStart(AuthUser));
             ClientThread.IsBackground = true;
             ClientThread.Start();
+        }
+
+        void throttleTimer_Elapsed(object sender, ElapsedEventArgs e)
+        {
+            throttleSentPeriod = 0;
         }
 
         public LLUUID SessionId
@@ -246,9 +262,20 @@ namespace OpenSim.Region.ClientStack
                 }
                 else
                 {
-                    //is a out going packet
-                    DebugPacket("OUT", nextPacket.Packet);
-                    ProcessOutPacket(nextPacket.Packet);
+                    // Throw it back on the queue if it's going to cause us to flood the client
+                    if (throttleSentPeriod > throttleOutbound)
+                    {
+                        PacketQueue.Enqueue(nextPacket);
+                        Thread.Sleep(100); // Wait a little while, should prevent a CPU spike during high transmission periods
+                    }
+                    else
+                    {
+                        throttleSentPeriod += 768; // Average large packet size for now.
+
+                        //is a out going packet
+                        DebugPacket("OUT", nextPacket.Packet);
+                        ProcessOutPacket(nextPacket.Packet);
+                    }
                 }
             }
         }
