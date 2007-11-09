@@ -275,8 +275,8 @@ namespace OpenSim.Region.ClientStack
                         {
                             Thread.Sleep(100); // Wait a little while if this was the last packet we saw
                         }
+
                         queuedLast = true;
-                        lastPacket = nextPacket;
                     }
                     else
                     {
