@@ -88,7 +88,7 @@ namespace OpenSim.Region.ClientStack
         private int lastPacketsReceived = 0;
 
 
-        private int throttleOutbound = 32768; // Number of bytes allowed to go out per second. (256kbps per client) 
+        private int throttleOutbound = 262144; // Number of bytes allowed to go out per second. (256kbps per client) 
                                               // TODO: Make this variable. Lower throttle on un-ack. Raise over time?
         private int throttleSentPeriod = 0;   // Number of bytes sent this period
 
@@ -270,7 +270,8 @@ namespace OpenSim.Region.ClientStack
                     }
                     else
                     {
-                        throttleSentPeriod += 768; // Average large packet size for now.
+                        // TODO: May be a bit expensive doing this twice.
+                        throttleSentPeriod += nextPacket.Packet.ToBytes().Length;
 
                         //is a out going packet
                         DebugPacket("OUT", nextPacket.Packet);
