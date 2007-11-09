@@ -54,8 +54,16 @@ namespace OpenSim.Region.Environment.Modules
         {
             m_start = DateTime.Now.Ticks;
             m_frame = 0;
-            m_day_length = config.Configs["Sun"].GetDouble("day_length", 0.5);
-            m_frame_mod = config.Configs["Sun"].GetInt("frame_rate", 100);
+            
+            // Just in case they don't have the stanzas
+            try {
+                m_day_length = config.Configs["Sun"].GetDouble("day_length", 0.5);
+                m_frame_mod = config.Configs["Sun"].GetInt("frame_rate", 100);
+            } catch (Exception e) {
+                m_day_length = 0.5;
+                m_frame_mod = 100;
+            }
+            
             m_dilation = (int)(m_real_day / m_day_length);
             m_scene = scene;
             m_log = MainLog.Instance;
