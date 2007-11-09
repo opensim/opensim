@@ -603,11 +603,14 @@ namespace OpenSim.Region.Environment.Scenes
             {
                 AddTerseUpdateToAllAvatars();
                 ClearUpdateSchedule();
-                if ((ObjectFlags & (uint)LLObject.ObjectFlags.Physics) != 0)
-                {
+
+                // This causes the Scene to 'poll' physical objects every couple of frames
+                // bad, so it's been replaced by an event driven method.
+                //if ((ObjectFlags & (uint)LLObject.ObjectFlags.Physics) != 0)
+                //{
                     // Only send the constant terse updates on physical objects!   
-                    ScheduleTerseUpdate();
-                }
+                    //ScheduleTerseUpdate();
+                //}
             }
             else
             {

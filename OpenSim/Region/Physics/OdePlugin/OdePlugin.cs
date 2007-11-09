@@ -124,7 +124,8 @@ namespace OpenSim.Region.Physics.OdePlugin
                 space = d.HashSpaceCreate(IntPtr.Zero);
                 contactgroup = d.JointGroupCreate(0);
                 //contactgroup
-               
+
+                            
                 d.WorldSetGravity(world, 0.0f, 0.0f, -10.0f);
                 d.WorldSetAutoDisableFlag(world, false);
                 d.WorldSetContactSurfaceLayer(world, 0.001f);
@@ -936,7 +937,7 @@ namespace OpenSim.Region.Physics.OdePlugin
         private String m_primName;
         private PhysicsVector _target_velocity;
         public d.Mass pMass;
-        private const float MassMultiplier = 500f; //  Ref: Water: 1000kg..  this iset to 500
+        private const float MassMultiplier = 150f; //  Ref: Water: 1000kg..  this iset to 500
         private int debugcounter = 0;
 
 
@@ -1361,7 +1362,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                     //System.Console.WriteLine(Math.Abs(m_lastposition.X - l_position.X).ToString());
                     _zeroFlag = false;
                 }
-                m_lastposition = l_position;
+                
 
 
                 if (_zeroFlag)
@@ -1379,6 +1380,11 @@ namespace OpenSim.Region.Physics.OdePlugin
                     m_rotationalVelocity.X = 0;
                     m_rotationalVelocity.Y = 0;
                     m_rotationalVelocity.Z = 0;
+                    if (!m_lastUpdateSent)
+                    {
+                        base.RequestPhysicsterseUpdate();
+                        m_lastUpdateSent = true;
+                    }
 
                 }
                 else
@@ -1399,9 +1405,10 @@ namespace OpenSim.Region.Physics.OdePlugin
                     _orientation.x = ori.X;
                     _orientation.y = ori.Y;
                     _orientation.z = ori.Z;
+                    m_lastUpdateSent = false;
                     base.RequestPhysicsterseUpdate();
                 }
-
+                m_lastposition = l_position;
             }
             else
             {

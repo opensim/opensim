@@ -819,6 +819,10 @@ namespace OpenSim.Region.Physics.BulletXPlugin
         internal protected virtual void ReSize(PhysicsVector _newSize)
         {
         }
+        public virtual void ScheduleTerseUpdate()
+        {
+            base.RequestPhysicsterseUpdate();
+        }
         #endregion
     }
 
@@ -1003,6 +1007,8 @@ namespace OpenSim.Region.Physics.BulletXPlugin
         //For now all prims have the same density, all prims are made of water. Be water my friend! :D
         private const float _density = 1000.0f;
         private BulletXScene _parent_scene;
+        private PhysicsVector m_prev_position = new PhysicsVector(0, 0, 0);
+        private bool m_lastUpdateSent = false;
 
         public BulletXPrim(String primName, BulletXScene parent_scene, PhysicsVector pos, PhysicsVector size,
                            AxiomQuaternion rotation, Mesh mesh, PrimitiveBaseShape pbs, bool isPhysical)
@@ -1148,8 +1154,28 @@ namespace OpenSim.Region.Physics.BulletXPlugin
             if (_physical) //Updates properties. Prim updates its properties physically
             {
                 _position = BulletXMaths.XnaVector3ToPhysicsVector(rigidBody.CenterOfMassPosition);
+
                 _velocity = BulletXMaths.XnaVector3ToPhysicsVector(rigidBody.LinearVelocity);
                 _orientation = BulletXMaths.XnaQuaternionToAxiomQuaternion(rigidBody.Orientation);
+
+                if ((Math.Abs(m_prev_position.X - _position.X) < 0.03)
+                    && (Math.Abs(m_prev_position.Y - _position.Y) < 0.03)
+                    && (Math.Abs(m_prev_position.Z - _position.Z) < 0.03))
+                {
+                    if (!m_lastUpdateSent)
+                    {
+                        _velocity = new PhysicsVector(0, 0, 0);
+                        base.ScheduleTerseUpdate();
+                        m_lastUpdateSent = true;
+                    }
+                }
+                else
+                {
+                    m_lastUpdateSent = false;
+                    base.ScheduleTerseUpdate();
+                    
+                }
+                m_prev_position = _position;
             }
             else //Doesn't updates properties. That's a cancel
             {
