@@ -88,6 +88,8 @@ namespace OpenSim.Region.Physics.Manager
 
         public abstract bool Flying { get; set; }
 
+        public abstract bool ThrottleUpdates { get; set; }
+
         public abstract bool IsColliding { get; set; }
         public abstract PhysicsVector RotationalVelocity { get; set; }
 
@@ -144,6 +146,11 @@ namespace OpenSim.Region.Physics.Manager
         }
 
         public override bool Flying
+        {
+            get { return false; }
+            set { return; }
+        }
+        public override bool ThrottleUpdates
         {
             get { return false; }
             set { return; }

@@ -201,7 +201,11 @@ namespace OpenSim.Region.Physics.BasicPhysicsPlugin
             get { return false; }
             set { return; }
         }
-
+        public override bool ThrottleUpdates
+        {
+            get { return false; }
+            set { return; }
+        }
         public override bool Flying
         {
             get { return flying; }

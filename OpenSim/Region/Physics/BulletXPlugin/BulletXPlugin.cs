@@ -742,6 +742,11 @@ namespace OpenSim.Region.Physics.BulletXPlugin
             get { return flying; }
             set { flying = value; }
         }
+        public override bool ThrottleUpdates
+        {
+            get { return false; }
+            set { return; }
+        }
         public override bool IsColliding
         {
             get { return iscolliding; }

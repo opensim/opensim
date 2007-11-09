@@ -212,6 +212,11 @@ namespace OpenSim.Region.Physics.OdePlugin
 
                 // We only need to test p2 for 'jump crouch purposes'
                 p2.IsColliding = true;
+                if (count > 3)
+                {
+                    p2.ThrottleUpdates = true;
+                }
+                //System.Console.WriteLine(count.ToString());
                 //System.Console.WriteLine("near: A collision was detected between {1} and {2}", 0, name1, name2);
             }
         }
@@ -667,7 +672,11 @@ namespace OpenSim.Region.Physics.OdePlugin
             get { return false; }
             set { return; }
         }
-
+        public override bool ThrottleUpdates
+        {
+            get { return false; }
+            set { return; }
+        }
         public override bool Flying
         {
             get { return flying; }
@@ -929,6 +938,8 @@ namespace OpenSim.Region.Physics.OdePlugin
         public IntPtr _triMeshData;
         private bool iscolliding = false;
         private bool m_isphysical = false;
+        private bool m_throttleUpdates = false;
+        private int throttleCounter = 0;
         
         public bool _zeroFlag = false;
         private bool m_lastUpdateSent = false;
@@ -1098,7 +1109,11 @@ namespace OpenSim.Region.Physics.OdePlugin
             get { return iscolliding; }
             set { iscolliding = value; }
         }
-
+        public override bool ThrottleUpdates
+        {
+            get { return m_throttleUpdates; }
+            set { m_throttleUpdates=value; }
+        }
 
         public override PhysicsVector Position
         {
@@ -1347,6 +1362,8 @@ namespace OpenSim.Region.Physics.OdePlugin
                     m_rotationalVelocity.Y = 0;
                     m_rotationalVelocity.Z = 0;
                     base.RequestPhysicsterseUpdate();
+                    m_throttleUpdates = false;
+                    throttleCounter = 0;
                     _zeroFlag = true;
                 }
 
@@ -1382,6 +1399,8 @@ namespace OpenSim.Region.Physics.OdePlugin
                     m_rotationalVelocity.Z = 0;
                     if (!m_lastUpdateSent)
                     {
+                        m_throttleUpdates = false;
+                        throttleCounter = 0;
                         base.RequestPhysicsterseUpdate();
                         m_lastUpdateSent = true;
                     }
@@ -1406,7 +1425,14 @@ namespace OpenSim.Region.Physics.OdePlugin
                     _orientation.y = ori.Y;
                     _orientation.z = ori.Z;
                     m_lastUpdateSent = false;
-                    base.RequestPhysicsterseUpdate();
+                    if (!m_throttleUpdates || throttleCounter > 15)
+                    {
+                        base.RequestPhysicsterseUpdate();
+                    }
+                    else
+                    {
+                        throttleCounter++;
+                    }
                 }
                 m_lastposition = l_position;
             }
