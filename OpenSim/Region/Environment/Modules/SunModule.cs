@@ -41,7 +41,7 @@ namespace OpenSim.Region.Environment.Modules
     public class SunModule : IRegionModule
     {
         private static double m_real_day = 24.0;
-        private static int m_frame_mod = 100;
+        private int m_frame_mod = 100;
         private double m_day_length;
         private int m_dilation;
         private int m_frame;
@@ -54,7 +54,8 @@ namespace OpenSim.Region.Environment.Modules
         {
             m_start = DateTime.Now.Ticks;
             m_frame = 0;
-            m_day_length = 0.5;
+            m_day_length = config.Configs["Sun"].GetDouble("day_length", 0.5);
+            m_frame_mod = config.Configs["Sun"].GetInt("frame_rate", 100);
             m_dilation = (int)(m_real_day / m_day_length);
             m_scene = scene;
             m_log = MainLog.Instance;

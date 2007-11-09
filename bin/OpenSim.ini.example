@@ -52,3 +52,12 @@ shout_distance = 100
 ;nick    = OpenSimBotNameProbablyMakeThisShorter
 ;channel = #the_irc_channel_you_want_to_connect_to
 
+; Uncomment the following to control the progression of daytime
+; in the Sim.  The defaults are what is shown below
+;[Sun]
+; number of wall clock hours for an opensim day.  24.0 would mean realtime
+;day_length = 0.5
+
+; send a Sun update ever frame_rate # of frames.  A lower number will
+; make for smoother sun transition at the cost of network
+;frame_rate = 100
