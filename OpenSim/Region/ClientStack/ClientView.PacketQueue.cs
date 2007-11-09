@@ -251,8 +251,8 @@ namespace OpenSim.Region.ClientStack
                 {
                     if ((now - packet.TickCount > RESEND_TIMEOUT) && (!packet.Header.Resent))
                     {
-                        //MainLog.Instance.Verbose("Resending " + packet.Type.ToString() + " packet, " +
-                                                 //(now - packet.TickCount) + "ms have passed");
+                        MainLog.Instance.Verbose("Resending " + packet.Type.ToString() + " packet, " +
+                                                 (now - packet.TickCount) + "ms have passed");
 
                         packet.Header.Resent = true;
                         OutPacket(packet);
