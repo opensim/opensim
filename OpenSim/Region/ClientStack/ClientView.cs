@@ -270,9 +270,11 @@ namespace OpenSim.Region.ClientStack
                     if (throttleSentPeriod > throttleOutbound)
                     {
                         PacketQueue.Enqueue(nextPacket);
+                        MainLog.Instance.Verbose("Client over throttle limit, requeuing packet");
 
                         if (queuedLast)
                         {
+                            MainLog.Instance.Verbose("No more sendable packets, need to sleep now");
                             Thread.Sleep(100); // Wait a little while if this was the last packet we saw
                         }
 
