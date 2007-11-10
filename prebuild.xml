@@ -251,7 +251,8 @@
       <Reference name="Axiom.MathLib.dll" localCopy="false"/>
       <Reference name="OpenSim.Framework" localCopy="false"/>
       <Reference name="OpenSim.Framework.Console" localCopy="false"/>
-      <Files>
+	  <Reference name="Nini.dll" />
+	  <Files>
         <Match pattern="*.cs" recurse="false"/>
       </Files>
     </Project>
@@ -346,12 +347,37 @@
       <Reference name="System" localCopy="false"/>
       <Reference name="libsecondlife.dll"/>
       <Reference name="Axiom.MathLib.dll" localCopy="false"/>
-      <Reference name="OpenSim.Framework"/>
-      <Reference name="OpenSim.Region.Physics.Manager" localCopy="false"/>
+	  <Reference name="OpenSim.Framework"/>
+	  <Reference name="OpenSim.Framework.Console" localCopy="false"/>
+	  <Reference name="OpenSim.Region.Physics.Manager" localCopy="false"/>
       <Reference name="Modified.XnaDevRu.BulletX.dll" localCopy="false" />
       <Reference name="MonoXnaCompactMaths.dll" localCopy="false" />
 
       <Files>
+        <Match pattern="*.cs" recurse="true"/>
+      </Files>
+    </Project>
+
+    <Project name="OpenSim.Region.Physics.Meshing" path="OpenSim/Region/Physics/Meshing" type="Library">
+      <Configuration name="Debug">
+        <Options>
+          <OutputPath>../../../../bin/Physics/</OutputPath>
+        </Options>
+      </Configuration>
+      <Configuration name="Release">
+        <Options>
+          <OutputPath>../../../../bin/Physics/</OutputPath>
+        </Options>
+      </Configuration>
+
+      <ReferencePath>../../../../bin/</ReferencePath>
+      <Reference name="System" localCopy="false"/>
+      <Reference name="libsecondlife.dll"/>
+      <Reference name="OpenSim.Framework"/>
+      <Reference name="OpenSim.Framework.Console"/>
+	  <Reference name="OpenSim.Region.Physics.Manager" localCopy="false"/>
+
+	  <Files>
         <Match pattern="*.cs" recurse="true"/>
       </Files>
     </Project>
@@ -564,8 +590,10 @@
       <Reference name="OpenSim.Region.Communications.Local"/>      
       <Reference name="OpenSim.Region.Physics.Manager"/>
       <Reference name="XMLRPC.dll"/>
+      <Reference name="Nini.dll" />
 
-      <Files>
+
+	  <Files>
         <Match pattern="*.cs" recurse="true"/>
       </Files>
     </Project>
@@ -1102,6 +1130,7 @@
     </Project>
   </Solution>
 </Prebuild>
+
 
 
 

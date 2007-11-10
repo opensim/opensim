@@ -29,6 +29,7 @@ using System;
 using System.Collections.Generic;
 using System.Net;
 using libsecondlife;
+using Nini.Config;
 using OpenSim.Framework;
 using OpenSim.Framework.Communications;
 using OpenSim.Framework.Communications.Cache;
@@ -89,12 +90,12 @@ namespace OpenSim.Region.ClientStack
         protected abstract PhysicsScene GetPhysicsScene();
         protected abstract StorageManager CreateStorageManager(RegionInfo regionInfo);
 
-        protected PhysicsScene GetPhysicsScene(string engine)
+        protected PhysicsScene GetPhysicsScene(string engine, string meshEngine)
         {
             PhysicsPluginManager physicsPluginManager;
             physicsPluginManager = new PhysicsPluginManager();
             physicsPluginManager.LoadPlugins();
-            return physicsPluginManager.GetPhysicsScene(engine);
+            return physicsPluginManager.GetPhysicsScene(engine, meshEngine);
         }
 
         protected Scene SetupScene(RegionInfo regionInfo, out UDPServer udpServer)

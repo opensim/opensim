@@ -70,6 +70,11 @@ namespace OpenSim.Region.Physics.BasicPhysicsPlugin
         {
         }
 
+        public override void Initialise(IMesher meshmerizer)
+        {
+            // Does nothing right now
+        }
+
         public override PhysicsActor AddAvatar(string avName, PhysicsVector position)
         {
             BasicActor act = new BasicActor();

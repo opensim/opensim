@@ -32,7 +32,7 @@ using Axiom.Math;
 using Ode.NET;
 using OpenSim.Framework;
 using OpenSim.Region.Physics.Manager;
-using OpenSim.Region.Physics.OdePlugin.Meshing;
+//using OpenSim.Region.Physics.OdePlugin.Meshing;
 
 namespace OpenSim.Region.Physics.OdePlugin
 {
@@ -98,6 +98,8 @@ namespace OpenSim.Region.Physics.OdePlugin
         public IntPtr space;
         public static Object OdeLock = new Object();
 
+        public IMesher mesher;
+
         public OdeScene()
         {
             nearCallback = near;
@@ -136,6 +138,12 @@ namespace OpenSim.Region.Physics.OdePlugin
             _heightmap = new double[258*258];
             
         }
+
+        public override void Initialise(IMesher meshmerizer)
+        {
+            mesher = meshmerizer;
+        }
+
 
         // This function blatantly ripped off from BoxStack.cs
         private void near(IntPtr space, IntPtr g1, IntPtr g2)
@@ -308,7 +316,7 @@ namespace OpenSim.Region.Physics.OdePlugin
         }
 
         private PhysicsActor AddPrim(String name, PhysicsVector position, PhysicsVector size, Quaternion rotation,
-                                     Mesh mesh, PrimitiveBaseShape pbs, bool isphysical)
+                                     IMesh mesh, PrimitiveBaseShape pbs, bool isphysical)
         {
             PhysicsVector pos = new PhysicsVector();
             pos.X = position.X;
@@ -409,11 +417,12 @@ namespace OpenSim.Region.Physics.OdePlugin
         {
             return this.AddPrimShape(primName, pbs, position, size, rotation, false);
         }
+
         public override PhysicsActor AddPrimShape(string primName, PrimitiveBaseShape pbs, PhysicsVector position,
                                                   PhysicsVector size, Quaternion rotation, bool isPhysical)
         {
             PhysicsActor result;
-            Mesh mesh = null;
+            IMesh mesh = null;
 
             switch (pbs.ProfileShape)
             {
@@ -421,7 +430,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                     /// support simple box & hollow box now; later, more shapes
                     if (needsMeshing(pbs))
                     {
-                         mesh = Meshmerizer.CreateMesh(primName, pbs, size);
+                         mesh = mesher.CreateMesh(primName, pbs, size);
                     }
                    
                     break;
@@ -931,7 +940,7 @@ namespace OpenSim.Region.Physics.OdePlugin
         private PhysicsVector _acceleration;
         public Quaternion _orientation;
 
-        private Mesh _mesh;
+        private IMesh _mesh;
         private PrimitiveBaseShape _pbs;
         private OdeScene _parent_scene;
         public IntPtr prim_geom;
@@ -953,7 +962,7 @@ namespace OpenSim.Region.Physics.OdePlugin
 
 
         public OdePrim(String primName, OdeScene parent_scene, PhysicsVector pos, PhysicsVector size,
-                       Quaternion rotation, Mesh mesh, PrimitiveBaseShape pbs, bool pisPhysical)
+                       Quaternion rotation, IMesh mesh, PrimitiveBaseShape pbs, bool pisPhysical)
         {
             
 
@@ -1036,15 +1045,15 @@ namespace OpenSim.Region.Physics.OdePlugin
                 Body = (IntPtr)0;
             }
         }
-        public void setMesh(OdeScene parent_scene, Mesh mesh)
+        public void setMesh(OdeScene parent_scene, IMesh mesh)
         {
             //Kill Body so that mesh can re-make the geom
             if (IsPhysical && Body != (IntPtr)0)
             {
                 disableBody();
             }
-            float[] vertexList = mesh.getVertexListAsFloat(); // Note, that vertextList is pinned in memory
-            int[] indexList = mesh.getIndexListAsInt(); // Also pinned, needs release after usage
+            float[] vertexList = mesh.getVertexListAsFloatLocked(); // Note, that vertextList is pinned in memory
+            int[] indexList = mesh.getIndexListAsIntLocked(); // Also pinned, needs release after usage
             int VertexCount = vertexList.GetLength(0)/3;
             int IndexCount = indexList.GetLength(0);
 
@@ -1169,7 +1178,7 @@ namespace OpenSim.Region.Physics.OdePlugin
 
                         
                         // Don't need to re-enable body..   it's done in SetMesh
-                        Mesh mesh = Meshmerizer.CreateMesh(oldname, _pbs, _size);
+                        IMesh mesh = _parent_scene.mesher.CreateMesh(oldname, _pbs, _size);
                         // createmesh returns null when it's a shape that isn't a cube.
                         if (mesh != null)
                         setMesh(_parent_scene, mesh);
@@ -1218,7 +1227,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                     // Construction of new prim
                     if (this._parent_scene.needsMeshing(_pbs))
                     {
-                        Mesh mesh = Meshmerizer.CreateMesh(oldname, _pbs, _size);
+                        IMesh mesh = _parent_scene.mesher.CreateMesh(oldname, _pbs, _size);
                         setMesh(_parent_scene, mesh);
                     } else {
                         prim_geom = d.CreateBox(_parent_scene.space, _size.X, _size.Y, _size.Z);

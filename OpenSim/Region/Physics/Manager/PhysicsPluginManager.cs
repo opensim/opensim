@@ -30,6 +30,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
 using OpenSim.Framework.Console;
+using Nini.Config;
 
 namespace OpenSim.Region.Physics.Manager
 {
@@ -38,28 +39,50 @@ namespace OpenSim.Region.Physics.Manager
     /// </summary>
     public class PhysicsPluginManager
     {
-        private Dictionary<string, IPhysicsPlugin> _plugins = new Dictionary<string, IPhysicsPlugin>();
+        private Dictionary<string, IPhysicsPlugin> _PhysPlugins = new Dictionary<string, IPhysicsPlugin>();
+        private Dictionary<string, IMeshingPlugin> _MeshPlugins = new Dictionary<string, IMeshingPlugin>();
 
         public PhysicsPluginManager()
         {
         }
 
-        public PhysicsScene GetPhysicsScene(string engineName)
+        public PhysicsScene GetPhysicsScene(string physEngineName, string meshEngineName)
         {
-            if (String.IsNullOrEmpty(engineName))
+
+            if (String.IsNullOrEmpty(physEngineName))
             {
                 return PhysicsScene.Null;
             }
 
-            if (_plugins.ContainsKey(engineName))
+            if (String.IsNullOrEmpty(meshEngineName))
             {
-                MainLog.Instance.Verbose("PHYSICS", "creating " + engineName);
-                return _plugins[engineName].GetScene();
+                return PhysicsScene.Null;
+            }
+
+
+            IMesher meshEngine = null;
+            if (_MeshPlugins.ContainsKey(meshEngineName))
+            {
+                MainLog.Instance.Verbose("PHYSICS", "creating meshing engine " + meshEngineName);
+                meshEngine = _MeshPlugins[meshEngineName].GetMesher();
             }
             else
             {
-                MainLog.Instance.Warn("PHYSICS", "couldn't find physicsEngine: {0}", engineName);
-                throw new ArgumentException(String.Format("couldn't find physicsEngine: {0}", engineName));
+                MainLog.Instance.Warn("PHYSICS", "couldn't find meshingEngine: {0}", meshEngineName);
+                throw new ArgumentException(String.Format("couldn't find meshingEngine: {0}", meshEngineName));
+            }
+
+            if (_PhysPlugins.ContainsKey(physEngineName))
+            {
+                MainLog.Instance.Verbose("PHYSICS", "creating " + physEngineName);
+                PhysicsScene result = _PhysPlugins[physEngineName].GetScene();
+                result.Initialise(meshEngine);
+                return result;
+            }
+            else
+            {
+                MainLog.Instance.Warn("PHYSICS", "couldn't find physicsEngine: {0}", physEngineName);
+                throw new ArgumentException(String.Format("couldn't find physicsEngine: {0}", physEngineName));
             }
         }
 
@@ -85,18 +108,29 @@ namespace OpenSim.Region.Physics.Manager
                 {
                     if (!pluginType.IsAbstract)
                     {
-                        Type typeInterface = pluginType.GetInterface("IPhysicsPlugin", true);
+                        Type physTypeInterface = pluginType.GetInterface("IPhysicsPlugin", true);
 
-                        if (typeInterface != null)
+                        if (physTypeInterface != null)
                         {
                             IPhysicsPlugin plug =
                                 (IPhysicsPlugin) Activator.CreateInstance(pluginAssembly.GetType(pluginType.ToString()));
                             plug.Init();
-                            _plugins.Add(plug.GetName(), plug);
+                            _PhysPlugins.Add(plug.GetName(), plug);
                             MainLog.Instance.Verbose("PHYSICS", "Added physics engine: " + plug.GetName());
                         }
 
-                        typeInterface = null;
+                        Type meshTypeInterface = pluginType.GetInterface("IMeshingPlugin", true);
+
+                        if (meshTypeInterface != null)
+                        {
+                            IMeshingPlugin plug =
+                                (IMeshingPlugin)Activator.CreateInstance(pluginAssembly.GetType(pluginType.ToString()));
+                            _MeshPlugins.Add(plug.GetName(), plug);
+                            MainLog.Instance.Verbose("PHYSICS", "Added meshing engine: " + plug.GetName());
+                        }
+
+                        physTypeInterface = null;
+                        meshTypeInterface = null;
                     }
                 }
             }
@@ -127,4 +161,11 @@ namespace OpenSim.Region.Physics.Manager
         string GetName();
         void Dispose();
     }
+
+    public interface IMeshingPlugin
+    {
+        string GetName();
+        IMesher GetMesher();
+    }
+
 }

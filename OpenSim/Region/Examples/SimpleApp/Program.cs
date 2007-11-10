@@ -182,7 +182,7 @@ namespace SimpleApp
 
         protected override PhysicsScene GetPhysicsScene()
         {
-            return GetPhysicsScene("basicphysics");
+            return GetPhysicsScene("basicphysics", "Meshmerizer");
         }
 
         #region conscmd_callback Members

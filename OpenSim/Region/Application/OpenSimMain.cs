@@ -54,6 +54,7 @@ namespace OpenSim
         private const string DEFAULT_PRIM_BACKUP_FILENAME = "prim-backup.xml";
 
         public string m_physicsEngine;
+        public string m_meshEngineName;
         public string m_scriptEngine;
         public bool m_sandbox;
         public bool user_accounts;
@@ -210,6 +211,7 @@ namespace OpenSim
             {
                 m_sandbox = !startupConfig.GetBoolean("gridmode", false);
                 m_physicsEngine = startupConfig.GetString("physics", "basicphysics");
+                m_meshEngineName = startupConfig.GetString("meshing", "Meshmerizer");
                 m_verbose = startupConfig.GetBoolean("verbose", true);
                 m_permissions = startupConfig.GetBoolean("serverside_object_permissions", false);
 
@@ -404,7 +406,7 @@ namespace OpenSim
 
         protected override PhysicsScene GetPhysicsScene()
         {
-            return GetPhysicsScene(m_physicsEngine);
+            return GetPhysicsScene(m_physicsEngine, m_meshEngineName);
         }
 
         private class SimStatusHandler : IStreamedRequestHandler

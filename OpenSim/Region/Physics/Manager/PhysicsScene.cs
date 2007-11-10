@@ -28,6 +28,7 @@
 using Axiom.Math;
 using OpenSim.Framework;
 using OpenSim.Framework.Console;
+using OpenSim.Region.Physics.Manager;
 
 namespace OpenSim.Region.Physics.Manager
 {
@@ -37,6 +38,8 @@ namespace OpenSim.Region.Physics.Manager
         {
             get { return new NullPhysicsScene(); }
         }
+
+        public abstract void Initialise(IMesher meshmerizer);
 
         public abstract PhysicsActor AddAvatar(string avName, PhysicsVector position);
 
@@ -62,6 +65,12 @@ namespace OpenSim.Region.Physics.Manager
         private class NullPhysicsScene : PhysicsScene
         {
             private static int m_workIndicator;
+
+
+            public override void Initialise(IMesher meshmerizer)
+            {
+                // Does nothing right now
+            }
 
             public override PhysicsActor AddAvatar(string avName, PhysicsVector position)
             {

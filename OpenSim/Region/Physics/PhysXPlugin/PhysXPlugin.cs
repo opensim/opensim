@@ -84,6 +84,12 @@ namespace OpenSim.Region.Physics.PhysXPlugin
             scene = mySdk.CreateScene();
         }
 
+        public override void Initialise(IMesher meshmerizer)
+        {
+            // Does nothing right now
+        }
+
+
         public override PhysicsActor AddAvatar(string avName, PhysicsVector position)
         {
             Vec3 pos = new Vec3();
