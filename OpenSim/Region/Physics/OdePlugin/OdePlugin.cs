@@ -1151,7 +1151,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                 lock (OdeScene.OdeLock)
                 {
                     string oldname = _parent_scene.geom_name_map[prim_geom];
-
+                    
                     // Cleanup of old prim geometry
                     if (_mesh != null)
                     {
@@ -1162,6 +1162,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                     {
                         disableBody();
                     }
+                    d.GeomDestroy(prim_geom);
                     // Construction of new prim
                     if (this._parent_scene.needsMeshing(_pbs))
                     {
