@@ -546,11 +546,12 @@ namespace OpenSim.Region.Environment.Scenes
             if (m_parentID != 0)
             {
                 SceneObjectPart part = m_scene.GetSceneObjectPart(m_parentID);
-                LLVector3 pos = new LLVector3();
                 if (part != null)
-                    pos = part.AbsolutePosition + m_requestedSitOffset +
-                          new LLVector3(0.0f, 0.0f, 2.0f*m_sitAvatarHeight);
-                MakeRootAgent(pos, false);
+                    AbsolutePosition = part.AbsolutePosition + m_requestedSitOffset +
+                        new LLVector3(0.0f, 0.0f, 2.0f*m_sitAvatarHeight);
+
+                AddToPhysicalScene();
+
                 m_parentID = 0;
                 SendFullUpdateToAllClients();
             }
@@ -623,7 +624,10 @@ namespace OpenSim.Region.Environment.Scenes
             AbsolutePosition = m_requestedSitOffset +
                                new LLVector3(m_physicsActor.Size.X/2.7f, 0f, m_physicsActor.Size.Z/1.45f);
             m_parentID = m_requestedSitTargetID;
-            MakeChildAgent();
+
+            Velocity = new LLVector3(0, 0, 0);
+            RemoveFromPhysicalScene();
+
             SendAnimPack(Animations.AnimsLLUUID["SIT"], 1);
             SendFullUpdateToAllClients();
         }
