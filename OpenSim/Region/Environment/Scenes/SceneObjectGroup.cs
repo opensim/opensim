@@ -37,6 +37,7 @@ using libsecondlife.Packets;
 using OpenSim.Framework;
 using OpenSim.Region.Environment.Interfaces;
 using OpenSim.Region.Physics.Manager;
+using System.Drawing;
 
 namespace OpenSim.Region.Environment.Scenes
 {
@@ -164,6 +165,12 @@ namespace OpenSim.Region.Environment.Scenes
         public LLUUID OwnerID
         {
             get { return m_rootPart.OwnerID; }
+        }
+
+        public Color Color 
+        {
+            get { return m_rootPart.Color; }
+            set { m_rootPart.Color = value; }
         }
 
         public string Text
@@ -1417,6 +1424,10 @@ namespace OpenSim.Region.Environment.Scenes
 
         public override void SetText(string text, Vector3 color, double alpha)
         {
+            Color = Color.FromArgb (0xff - (int)(alpha * 0xff), 
+                                    (int)(color.x * 0xff), 
+                                    (int)(color.y * 0xff), 
+                                    (int)(color.z * 0xff));
             Text = text;
         }
     }

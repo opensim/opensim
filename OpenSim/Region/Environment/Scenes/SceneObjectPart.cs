@@ -37,6 +37,7 @@ using OpenSim.Framework;
 using OpenSim.Region.Environment.Interfaces;
 using OpenSim.Region.Environment.Scenes.Scripting;
 using OpenSim.Region.Physics.Manager;
+using System.Drawing;
 
 namespace OpenSim.Region.Environment.Scenes
 {
@@ -301,6 +302,21 @@ namespace OpenSim.Region.Environment.Scenes
         {
             get { return m_description; }
             set { m_description = value; }
+        }
+
+        private Color m_color = Color.Black;
+
+        public Color Color 
+        {
+            get { return m_color; }
+            set 
+            {
+                m_color = value;
+                /* ScheduleFullUpdate() need not be called b/c after
+                 * setting the color, the text will be set, so then
+                 * ScheduleFullUpdate() will be called. */
+                //ScheduleFullUpdate();
+            }
         }
 
         private string m_text = "";
@@ -1003,9 +1019,10 @@ namespace OpenSim.Region.Environment.Scenes
                 }
             }
 
+            byte[] color = new byte[] { m_color.R, m_color.G, m_color.B, m_color.A };
             remoteClient.SendPrimitiveToClient(m_regionHandle, 64096, LocalID, m_shape, lPos, clientFlags, m_uuid,
                                                OwnerID,
-                                               m_text, ParentID, m_particleSystem, lRot);
+                                               m_text, color, ParentID, m_particleSystem, lRot);
         }
 
         /// Terse updates
@@ -1092,6 +1109,10 @@ namespace OpenSim.Region.Environment.Scenes
 
         public void SetText(string text, Vector3 color, double alpha)
         {
+            Color = Color.FromArgb (0xff - (int)(alpha * 0xff),
+                                    (int)(color.x * 0xff),
+                                    (int)(color.y * 0xff),
+                                    (int)(color.z * 0xff));
             Text = text;
         }
 

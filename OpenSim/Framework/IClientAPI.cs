@@ -403,7 +403,7 @@ namespace OpenSim.Framework
         void AttachObject(uint localID, LLQuaternion rotation, byte attachPoint);
 
         void SendPrimitiveToClient(ulong regionHandle, ushort timeDilation, uint localID, PrimitiveBaseShape primShape,
-                                   LLVector3 pos, uint flags, LLUUID objectID, LLUUID ownerID, string text,
+                                   LLVector3 pos, uint flags, LLUUID objectID, LLUUID ownerID, string text, byte[] color,
                                    uint parentID, byte[] particleSystem, LLQuaternion rotation);
 
         void SendPrimTerseUpdate(ulong regionHandle, ushort timeDilation, uint localID, LLVector3 position,

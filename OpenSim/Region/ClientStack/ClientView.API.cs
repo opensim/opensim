@@ -1023,7 +1023,7 @@ namespace OpenSim.Region.ClientStack
         public void SendPrimitiveToClient(
             ulong regionHandle, ushort timeDilation, uint localID, PrimitiveBaseShape primShape, LLVector3 pos,
             uint flags,
-            LLUUID objectID, LLUUID ownerID, string text, uint parentID, byte[] particleSystem, LLQuaternion rotation)
+            LLUUID objectID, LLUUID ownerID, string text, byte[] color, uint parentID, byte[] particleSystem, LLQuaternion rotation)
         {
             ObjectUpdatePacket outPacket = new ObjectUpdatePacket();
             outPacket.RegionData.RegionHandle = regionHandle;
@@ -1036,6 +1036,10 @@ namespace OpenSim.Region.ClientStack
             outPacket.ObjectData[0].FullID = objectID;
             outPacket.ObjectData[0].OwnerID = ownerID;
             outPacket.ObjectData[0].Text = Helpers.StringToField(text);
+            outPacket.ObjectData[0].TextColor[0] = color[0];
+            outPacket.ObjectData[0].TextColor[1] = color[1];
+            outPacket.ObjectData[0].TextColor[2] = color[2];
+            outPacket.ObjectData[0].TextColor[3] = color[3];
             outPacket.ObjectData[0].ParentID = parentID;
             outPacket.ObjectData[0].PSBlock = particleSystem;
             outPacket.ObjectData[0].ClickAction = 0;
