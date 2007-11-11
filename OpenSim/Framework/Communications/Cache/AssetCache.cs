@@ -325,7 +325,7 @@ namespace OpenSim.Framework.Communications.Cache
                             if (image.Data.LongLength > 600)
                             {
                                 //over 600 bytes so split up file
-                                req.NumPackets = 1 + (int) (image.Data.Length - 600)/1000;
+                                req.NumPackets = 2 + (int) (image.Data.Length - 601)/1000;
                             }
                             else
                             {
