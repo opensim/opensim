@@ -44,8 +44,8 @@ namespace SimpleApp
 
         public MyWorld(RegionInfo regionInfo, AgentCircuitManager authen, CommunicationsManager commsMan, SceneCommunicationService sceneGridService,
                        AssetCache assetCach, StorageManager storeMan, BaseHttpServer httpServer,
-                       ModuleLoader moduleLoader)
-            : base(regionInfo, authen, commsMan, sceneGridService, assetCach, storeMan, httpServer, moduleLoader, false)
+                       ModuleLoader moduleLoader, bool physicalPrim)
+            : base(regionInfo, authen, commsMan, sceneGridService, assetCach, storeMan, httpServer, moduleLoader, false, true)
         {
             m_avatars = new List<Avatar>();
         }

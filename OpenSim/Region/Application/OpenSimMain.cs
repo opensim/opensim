@@ -73,6 +73,7 @@ namespace OpenSim
         protected List<RegionInfo> m_regionData = new List<RegionInfo>();
 
         private bool m_verbose;
+        private bool m_physicalPrim;
         private readonly string m_logFilename = ("region-console.log");
         private bool m_permissions = false;
 
@@ -154,6 +155,7 @@ namespace OpenSim
                 config.Set("gridmode", false);
                 config.Set("physics", "basicphysics");
                 config.Set("verbose", true);
+                config.Set("physical_prim", true);
                 config.Set("serverside_object_permissions", false);
 
                 config.Set("storage_plugin", "OpenSim.DataStore.NullStorage.dll");
@@ -213,6 +215,7 @@ namespace OpenSim
                 m_physicsEngine = startupConfig.GetString("physics", "basicphysics");
                 m_meshEngineName = startupConfig.GetString("meshing", "Meshmerizer");
                 m_verbose = startupConfig.GetBoolean("verbose", true);
+                m_physicalPrim = startupConfig.GetBoolean("physical_prim", true);
                 m_permissions = startupConfig.GetBoolean("serverside_object_permissions", false);
 
                 m_storageDLL = startupConfig.GetString("storage_plugin", "OpenSim.DataStore.NullStorage.dll");
@@ -365,7 +368,7 @@ namespace OpenSim
             SceneCommunicationService sceneGridService = new SceneCommunicationService(m_commsManager);
             return
                 new Scene(regionInfo, circuitManager, m_commsManager, sceneGridService, m_assetCache, storageManager, m_httpServer,
-                          m_moduleLoader, m_dumpAssetsToFile);
+                          m_moduleLoader, m_dumpAssetsToFile, m_physicalPrim);
         }
 
         protected override void Initialize()

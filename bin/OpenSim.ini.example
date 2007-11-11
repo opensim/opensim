@@ -14,6 +14,7 @@ serverside_object_permissions = false
 ; to try sqlite as the asset database , comment out the above line, and uncomment following one
 asset_database = "sqlite"
 verbose = true
+physical_prim = true
 
 [StandAlone]
 accounts_authenticate = true

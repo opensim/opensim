@@ -446,7 +446,7 @@ namespace OpenSim.Region.Environment.Scenes
             AddEntity(group);
             group.AbsolutePosition = pos;
             SceneObjectPart rootPart = group.GetChildPart(group.UUID);
-            bool UsePhysics = ((rootPart.ObjectFlags & (uint)LLObject.ObjectFlags.Physics) > 0);
+            bool UsePhysics = (((rootPart.ObjectFlags & (uint)LLObject.ObjectFlags.Physics) > 0)&& m_physicalPrim);
             if ((rootPart.ObjectFlags & (uint) LLObject.ObjectFlags.Phantom) == 0)
             {
                 PrimitiveBaseShape pbs = rootPart.Shape;

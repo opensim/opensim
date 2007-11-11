@@ -770,7 +770,7 @@ namespace OpenSim.Region.Environment.Scenes
             {
                 i += 46;
                 //IsLocked = (data[i++] != 0) ? true : false;
-                UsePhysics = (data[i++] != 0) ? true : false;
+                UsePhysics = ((data[i++] != 0) && m_parentGroup.m_scene.m_physicalPrim) ? true : false;
                 //System.Console.WriteLine("U" + packet.ToBytes().Length.ToString());
                 IsTemporary = (data[i++] != 0) ? true : false;
                 IsPhantom = (data[i++] != 0) ? true : false;
@@ -782,7 +782,7 @@ namespace OpenSim.Region.Environment.Scenes
                 //Silently ignore it - TODO: FIXME Quick
             }
 
-            if (UsePhysics)
+            if (UsePhysics )
             {
                 AddFlag(LLObject.ObjectFlags.Physics);
                 if (PhysActor != null)
@@ -791,9 +791,12 @@ namespace OpenSim.Region.Environment.Scenes
             }
             else
             {
-                RemFlag(LLObject.ObjectFlags.Physics);
-                if (PhysActor != null)
-                    PhysActor.OnRequestTerseUpdate -= PhysicsRequestingTerseUpdate;
+                if (m_parentGroup.m_scene.m_physicalPrim)
+                {
+                    RemFlag(LLObject.ObjectFlags.Physics);
+                    if (PhysActor != null)
+                        PhysActor.OnRequestTerseUpdate -= PhysicsRequestingTerseUpdate;
+                }
             }
 
             if (IsPhantom)

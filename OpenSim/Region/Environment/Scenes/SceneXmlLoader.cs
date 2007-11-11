@@ -44,7 +44,7 @@ namespace OpenSim.Region.Environment.Scenes
                     m_innerScene.AddEntity(obj);
 
                     SceneObjectPart rootPart = obj.GetChildPart(obj.UUID);
-                    bool UsePhysics = ((rootPart.ObjectFlags & (uint)LLObject.ObjectFlags.Physics) > 0);
+                    bool UsePhysics = (((rootPart.ObjectFlags & (uint)LLObject.ObjectFlags.Physics) > 0) && m_parentScene.m_physicalPrim);
                     if ((rootPart.ObjectFlags & (uint)LLObject.ObjectFlags.Phantom) == 0)
                         rootPart.PhysActor = m_innerScene.PhyScene.AddPrimShape(
                             rootPart.Name,
@@ -110,7 +110,7 @@ namespace OpenSim.Region.Environment.Scenes
             m_innerScene.AddEntityFromStorage(obj);
 
             SceneObjectPart rootPart = obj.GetChildPart(obj.UUID);
-            bool UsePhysics = ((rootPart.ObjectFlags & (uint)LLObject.ObjectFlags.Physics) > 0);
+            bool UsePhysics = (((rootPart.ObjectFlags & (uint)LLObject.ObjectFlags.Physics) > 0) && m_parentScene.m_physicalPrim);
             if ((rootPart.ObjectFlags & (uint)LLObject.ObjectFlags.Phantom) == 0)
                 rootPart.PhysActor = m_innerScene.PhyScene.AddPrimShape(
                     rootPart.Name,

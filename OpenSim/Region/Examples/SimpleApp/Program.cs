@@ -172,7 +172,7 @@ namespace SimpleApp
             SceneCommunicationService sceneGridService = new SceneCommunicationService(m_commsManager);
             return
                 new MyWorld(regionInfo, circuitManager, m_commsManager, sceneGridService, m_assetCache, storageManager, m_httpServer,
-                            new ModuleLoader(m_log, m_config));
+                            new ModuleLoader(m_log, m_config), true);
         }
 
         protected override StorageManager CreateStorageManager(RegionInfo regionInfo)

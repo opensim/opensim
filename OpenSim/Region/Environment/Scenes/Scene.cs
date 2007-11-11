@@ -68,7 +68,7 @@ namespace OpenSim.Region.Environment.Scenes
         private int m_timeUpdateCount;
 
         private readonly Mutex updateLock;
-
+        public bool m_physicalPrim;
         protected ModuleLoader m_moduleLoader;
         protected StorageManager m_storageManager;
         protected AgentCircuitManager m_authenticateHandler;
@@ -192,7 +192,7 @@ namespace OpenSim.Region.Environment.Scenes
 
         public Scene(RegionInfo regInfo, AgentCircuitManager authen, CommunicationsManager commsMan, SceneCommunicationService sceneGridService,
                      AssetCache assetCach, StorageManager storeManager, BaseHttpServer httpServer,
-                     ModuleLoader moduleLoader, bool dumpAssetsToFile)
+                     ModuleLoader moduleLoader, bool dumpAssetsToFile, bool physicalPrim)
         {
             updateLock = new Mutex(false);
             
@@ -207,6 +207,7 @@ namespace OpenSim.Region.Environment.Scenes
             m_regionName = m_regInfo.RegionName;
             m_datastore = m_regInfo.DataStore;
             RegisterRegionWithComms();
+            m_physicalPrim = physicalPrim;
 
             m_LandManager = new LandManager(this, m_regInfo);
             m_estateManager = new EstateManager(this, m_regInfo);
@@ -522,7 +523,7 @@ namespace OpenSim.Region.Environment.Scenes
             {
                 AddEntityFromStorage(prim);
                 SceneObjectPart rootPart = prim.GetChildPart(prim.UUID);
-                bool UsePhysics = ((rootPart.ObjectFlags & (uint)LLObject.ObjectFlags.Physics) > 0);
+                bool UsePhysics = (((rootPart.ObjectFlags & (uint)LLObject.ObjectFlags.Physics) > 0) && m_physicalPrim);
                 if ((rootPart.ObjectFlags & (uint) LLObject.ObjectFlags.Phantom) == 0)
                     rootPart.PhysActor = phyScene.AddPrimShape(
                         rootPart.Name,
@@ -572,7 +573,7 @@ namespace OpenSim.Region.Environment.Scenes
                     rootPart.ObjectFlags += (uint) LLObject.ObjectFlags.Phantom;
                 }
                 // if not phantom, add to physics
-                bool UsePhysics = ((rootPart.ObjectFlags & (uint)LLObject.ObjectFlags.Physics) > 0);
+                bool UsePhysics = (((rootPart.ObjectFlags & (uint)LLObject.ObjectFlags.Physics) > 0) && m_physicalPrim);
                 if ((rootPart.ObjectFlags & (uint) LLObject.ObjectFlags.Phantom) == 0)
                     rootPart.PhysActor =
                         phyScene.AddPrimShape(
