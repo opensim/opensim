@@ -124,7 +124,7 @@ namespace OpenSim.Region.Environment.Modules
             // Filled in since it's easier than rewriting right now.
             LLVector3 fromPos = e.Position;
             LLVector3 fromRegionPos = e.Position +
-                                      new LLVector3(e.Scene.RegionInfo.RegionLocX*256, e.Scene.RegionInfo.RegionLocY*256,
+                                      new LLVector3(scene.RegionInfo.RegionLocX*256, scene.RegionInfo.RegionLocY*256,
                                                     0);
             string fromName = e.From;
             string message = e.Message;
@@ -140,7 +140,7 @@ namespace OpenSim.Region.Environment.Modules
             {
                 fromPos = avatar.AbsolutePosition;
                 fromRegionPos = fromPos +
-                                new LLVector3(e.Scene.RegionInfo.RegionLocX*256, e.Scene.RegionInfo.RegionLocY*256, 0);
+                                new LLVector3(scene.RegionInfo.RegionLocX*256, scene.RegionInfo.RegionLocY*256, 0);
                 fromName = avatar.Firstname + " " + avatar.Lastname;
                 fromAgentID = e.Sender.AgentId;
                 avatar = null;
