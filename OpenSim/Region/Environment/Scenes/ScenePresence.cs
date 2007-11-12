@@ -55,6 +55,7 @@ namespace OpenSim.Region.Environment.Scenes
         private bool m_oldColliding = true;
 
         private bool m_isTyping = false;
+        private bool m_setAlwaysRun = false;
 
         private Quaternion m_bodyRot;
         private byte[] m_visualParams;
@@ -271,6 +272,7 @@ namespace OpenSim.Region.Environment.Scenes
             m_controllingClient.OnAgentUpdate += HandleAgentUpdate;
             m_controllingClient.OnAgentRequestSit += HandleAgentRequestSit;
             m_controllingClient.OnAgentSit += HandleAgentSit;
+            m_controllingClient.OnSetAlwaysRun += HandleSetAlwaysRun;
             // ControllingClient.OnStartAnim += new StartAnim(this.SendAnimPack);
             // ControllingClient.OnChildAgentStatus += new StatusChange(this.ChildStatusChange);
             //ControllingClient.OnStopMovement += new GenericCall2(this.StopMovement);
@@ -637,7 +639,15 @@ namespace OpenSim.Region.Environment.Scenes
             SendAnimPack(Animations.AnimsLLUUID["SIT"], 1);
             SendFullUpdateToAllClients();
         }
+        public void HandleSetAlwaysRun(IClientAPI remoteClient, bool SetAlwaysRun)
+        {
+            m_setAlwaysRun = SetAlwaysRun;
+            if (PhysicsActor != null)
+            {
+                PhysicsActor.SetAlwaysRun = SetAlwaysRun;
+            }
 
+        }
         protected void UpdateMovementAnimations(bool update_movementflag)
         {
             if (update_movementflag)
@@ -667,7 +677,14 @@ namespace OpenSim.Region.Environment.Scenes
                             }
                             else
                             {
-                                SendAnimPack(Animations.AnimsLLUUID["WALK"], 1);
+                                if (!m_setAlwaysRun)
+                                {
+                                    SendAnimPack(Animations.AnimsLLUUID["WALK"], 1);
+                                }
+                                else
+                                {
+                                    SendAnimPack(Animations.AnimsLLUUID["RUN"], 1);
+                                }
                             }
                         }
                     }

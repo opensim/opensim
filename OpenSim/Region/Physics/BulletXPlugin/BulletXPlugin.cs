@@ -764,7 +764,11 @@ namespace OpenSim.Region.Physics.BulletXPlugin
                 return;
             }
         }
-
+        public override bool SetAlwaysRun
+        {
+            get { return false; }
+            set { return; }
+        }
         public override PhysicsVector Acceleration
         {
             get { return _acceleration; }

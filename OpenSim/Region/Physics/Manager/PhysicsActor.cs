@@ -153,7 +153,7 @@ namespace OpenSim.Region.Physics.Manager
         public abstract bool IsPhysical {get; set;}
 
         public abstract bool Flying { get; set; }
-
+        public abstract bool SetAlwaysRun { get; set; }
         public abstract bool ThrottleUpdates { get; set; }
 
         public abstract bool IsColliding { get; set; }
@@ -174,6 +174,11 @@ namespace OpenSim.Region.Physics.Manager
         public override PhysicsVector Position
         {
             get { return PhysicsVector.Zero; }
+            set { return; }
+        }
+        public override bool SetAlwaysRun
+        {
+            get { return false; }
             set { return; }
         }
         public override bool CollidingGround

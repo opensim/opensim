@@ -169,6 +169,13 @@ namespace OpenSim.Region.ClientStack
                             OnSetAppearance(appear.ObjectData.TextureEntry, appear.VisualParam);
                         }
                         break;
+                    case PacketType.SetAlwaysRun:
+                        SetAlwaysRunPacket run = (SetAlwaysRunPacket)Pack;
+
+                        if (OnSetAlwaysRun != null)
+                            OnSetAlwaysRun(this,run.AgentData.AlwaysRun);
+
+                        break;
                     case PacketType.CompleteAgentMovement:
                         if (OnCompleteMovementToRegion != null)
                         {

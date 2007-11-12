@@ -184,6 +184,7 @@ namespace OpenSim.Framework
     public delegate void DisconnectUser();
 
     public delegate void RequestAvatarProperties(IClientAPI remoteClient, LLUUID avatarID);
+    public delegate void SetAlwaysRun (IClientAPI remoteClient, bool SetAlwaysRun);
 
     public delegate void GenericCall2();
 
@@ -293,7 +294,7 @@ namespace OpenSim.Framework
         event TeleportLocationRequest OnTeleportLocationRequest;
         event DisconnectUser OnDisconnectUser;
         event RequestAvatarProperties OnRequestAvatarProperties;
-
+        event SetAlwaysRun OnSetAlwaysRun;
         event GenericCall4 OnDeRezObject;
         event Action<IClientAPI> OnRegionHandShakeReply;
         event GenericCall2 OnRequestWearables;

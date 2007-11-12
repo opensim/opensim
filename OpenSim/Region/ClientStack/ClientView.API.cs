@@ -84,6 +84,7 @@ namespace OpenSim.Region.ClientStack
         public event TeleportLocationRequest OnTeleportLocationRequest;
         public event DisconnectUser OnDisconnectUser;
         public event RequestAvatarProperties OnRequestAvatarProperties;
+        public event SetAlwaysRun OnSetAlwaysRun;
 
         public event CreateNewInventoryItem OnCreateNewInventoryItem;
         public event CreateInventoryFolder OnCreateNewInventoryFolder;

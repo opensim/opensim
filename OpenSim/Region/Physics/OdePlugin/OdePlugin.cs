@@ -660,6 +660,7 @@ namespace OpenSim.Region.Physics.OdePlugin
         private bool flying = false;
         private bool m_iscolliding = false;
         private bool m_wascolliding = false;
+        private bool m_alwaysRun = false;
         
         private bool[] m_colliderarr = new bool[11];
 
@@ -701,6 +702,11 @@ namespace OpenSim.Region.Physics.OdePlugin
         {
             get { return (int)ActorTypes.Agent; }
             set { return; }
+        }
+        public override bool SetAlwaysRun
+        {
+            get { return m_alwaysRun; }
+            set { m_alwaysRun = value;}
         }
         public override bool IsPhysical
         {
@@ -876,6 +882,17 @@ namespace OpenSim.Region.Physics.OdePlugin
             //  no lock; for now it's only called from within Simulate()
             PhysicsVector vec = new PhysicsVector();
             d.Vector3 vel = d.BodyGetLinearVel(Body);
+            float movementdivisor = 1f;
+
+            if (!m_alwaysRun)
+            {
+                movementdivisor = 10.5f;
+            }
+            else
+            {
+                movementdivisor = 0.2079f;
+                
+            }
 
             //  if velocity is zero, use position control; otherwise, velocity control
             if (_target_velocity.X == 0.0f && _target_velocity.Y == 0.0f && _target_velocity.Z == 0.0f && m_iscolliding)
@@ -900,8 +917,9 @@ namespace OpenSim.Region.Physics.OdePlugin
                 _zeroFlag = false;
                 if (m_iscolliding || flying)
                 {
-                    vec.X = (_target_velocity.X - vel.X) * PID_D;
-                    vec.Y = (_target_velocity.Y - vel.Y) * PID_D;
+
+                    vec.X = ((_target_velocity.X - vel.X)/movementdivisor) * PID_D;
+                    vec.Y = ((_target_velocity.Y - vel.Y)/movementdivisor) * PID_D;
                 }
                 if (m_iscolliding && !flying && _target_velocity.Z > 0.0f)
                 {
@@ -1075,6 +1093,11 @@ namespace OpenSim.Region.Physics.OdePlugin
         public override int PhysicsActorType
         {
             get { return (int)ActorTypes.Prim; }
+            set { return; }
+        }
+        public override bool SetAlwaysRun
+        {
+            get { return false; }
             set { return; }
         }
         public void enableBody()

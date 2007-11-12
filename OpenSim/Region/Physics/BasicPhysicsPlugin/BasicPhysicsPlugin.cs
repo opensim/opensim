@@ -206,6 +206,11 @@ namespace OpenSim.Region.Physics.BasicPhysicsPlugin
             get { return m_rotationalVelocity; }
             set { m_rotationalVelocity = value; }
         }
+        public override bool SetAlwaysRun
+        {
+            get { return false; }
+            set { return; }
+        }
         public override bool IsPhysical
         {
             get { return false; }

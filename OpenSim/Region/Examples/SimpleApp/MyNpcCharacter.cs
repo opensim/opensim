@@ -61,6 +61,7 @@ namespace SimpleApp
         public event TeleportLocationRequest OnTeleportLocationRequest;
         public event DisconnectUser OnDisconnectUser;
         public event RequestAvatarProperties OnRequestAvatarProperties;
+        public event SetAlwaysRun OnSetAlwaysRun;
 
         public event GenericCall4 OnDeRezObject;
         public event Action<IClientAPI> OnRegionHandShakeReply;

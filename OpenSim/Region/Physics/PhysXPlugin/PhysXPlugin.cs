@@ -209,6 +209,11 @@ namespace OpenSim.Region.Physics.PhysXPlugin
             get { return (int)ActorTypes.Agent; }
             set { return; }
         }
+        public override bool SetAlwaysRun
+        {
+            get { return false; }
+            set { return; }
+        }
         public override bool IsPhysical
         {
             get { return false; }
@@ -359,6 +364,11 @@ namespace OpenSim.Region.Physics.PhysXPlugin
             set { return; }
         }
         public override bool IsPhysical
+        {
+            get { return false; }
+            set { return; }
+        }
+        public override bool SetAlwaysRun
         {
             get { return false; }
             set { return; }
