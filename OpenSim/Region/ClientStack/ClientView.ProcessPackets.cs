@@ -359,7 +359,7 @@ namespace OpenSim.Region.ClientStack
                         }
                         break;
                     case PacketType.ObjectPermissions:
-                        //Console.WriteLine("permissions set " + Pack.ToString());
+                        OpenSim.Framework.Console.MainLog.Instance.Verbose("CLIENT", "unhandled packet " + Pack.ToString());
                         break;
 
                         #endregion
@@ -541,7 +541,7 @@ namespace OpenSim.Region.ClientStack
                         }
                         break;
                     case PacketType.MoveTaskInventory:
-                        //Console.WriteLine(Pack.ToString());
+                        OpenSim.Framework.Console.MainLog.Instance.Verbose("CLIENT", "unhandled packet " + Pack.ToString());
                         break;
                     case PacketType.RezScript:
                         //Console.WriteLine(Pack.ToString());
@@ -691,7 +691,6 @@ namespace OpenSim.Region.ClientStack
                                                   Convert.ToInt32(selectPacket.ParcelData.ReturnType), this);
                         }
                         break;
-
                     case PacketType.ParcelObjectOwnersRequest:
                         ParcelObjectOwnersRequestPacket reqPacket = (ParcelObjectOwnersRequestPacket) Pack;
                         if (OnParcelObjectOwnerRequest != null)
@@ -718,12 +717,15 @@ namespace OpenSim.Region.ClientStack
 
                     case PacketType.AgentIsNowWearing:
                         // AgentIsNowWearingPacket wear = (AgentIsNowWearingPacket)Pack;
-                        //Console.WriteLine(Pack.ToString());
+                        OpenSim.Framework.Console.MainLog.Instance.Verbose("CLIENT", "unhandled packet " + Pack.ToString());
                         break;
                     case PacketType.ObjectScale:
-                        //OpenSim.Framework.Console.MainLog.Instance.Verbose( Pack.ToString());
+                        OpenSim.Framework.Console.MainLog.Instance.Verbose("CLIENT", "unhandled packet " + Pack.ToString());
                         break;
-
+                    default:
+                        OpenSim.Framework.Console.MainLog.Instance.Verbose("CLIENT", "unhandled packet " + Pack.ToString());
+                        break;
+                    
                         #endregion
                 }
             }
