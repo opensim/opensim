@@ -53,6 +53,8 @@ namespace OpenSim.Region.Environment.Scenes
         private LLVector3 m_requestedSitOffset = new LLVector3();
         private float m_sitAvatarHeight = 2.0f;
 
+        private bool m_isTyping = false;
+
         private Quaternion m_bodyRot;
         private byte[] m_visualParams;
         private AvatarWearable[] m_wearables;
@@ -367,7 +369,6 @@ namespace OpenSim.Region.Environment.Scenes
             AddToPhysicalScene();
             m_physicsActor.Flying = isFlying;
 
-
             m_scene.SendAllSceneObjectsToClient(this);
         }
 
@@ -662,6 +663,10 @@ namespace OpenSim.Region.Environment.Scenes
                     {
                         SendAnimPack(Animations.AnimsLLUUID["CROUCH"], 1);
                     }
+                    else if (m_isTyping)
+                    {
+                        SendAnimPack(Animations.AnimsLLUUID["TYPE"], 1);
+                    }
                     else
                     {
                         SendAnimPack(Animations.AnimsLLUUID["STAND"], 1);
@@ -669,7 +674,6 @@ namespace OpenSim.Region.Environment.Scenes
                 }
             }
         }
-
 
         protected void AddNewMovement(Vector3 vec, Quaternion rotation)
         {
@@ -706,6 +710,19 @@ namespace OpenSim.Region.Environment.Scenes
             newVelocity.Y = direc.y;
             newVelocity.Z = direc.z;
             m_forcesList.Add(newVelocity);
+        }
+
+        public void setTyping(bool typing)
+        {
+            if (m_isChildAgent)
+            {
+                MainLog.Instance.Warn("setTyping called on child agent");
+                return;
+            }
+
+            m_isTyping = typing;
+
+            UpdateMovementAnimations(true);
         }
 
         #endregion

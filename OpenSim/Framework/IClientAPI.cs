@@ -50,6 +50,8 @@ namespace OpenSim.Framework
         Whisper = 0,
         Say = 1,
         Shout = 2,
+        StartTyping = 4,
+        StopTyping = 5,
         Broadcast = 0xFF
     } ;
 

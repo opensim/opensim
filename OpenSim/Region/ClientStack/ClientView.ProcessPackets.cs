@@ -83,11 +83,7 @@ namespace OpenSim.Region.ClientStack
                         break;
                     case PacketType.ChatFromViewer:
                         ChatFromViewerPacket inchatpack = (ChatFromViewerPacket) Pack;
-                        if (Helpers.FieldToUTF8String(inchatpack.ChatData.Message) == "")
-                        {
-                            //empty message so don't bother with it
-                            break;
-                        }
+
                         string fromName = ""; //ClientAvatar.firstname + " " + ClientAvatar.lastname;
                         byte[] message = inchatpack.ChatData.Message;
                         byte type = inchatpack.ChatData.Type;
