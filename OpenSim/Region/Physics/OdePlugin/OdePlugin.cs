@@ -308,7 +308,11 @@ namespace OpenSim.Region.Physics.OdePlugin
                         p = (OdePrim) prim;
                         p.disableBody();
                     }
-                    d.GeomDestroy(((OdePrim)prim).prim_geom);
+                    if (((OdePrim)prim).prim_geom != null)
+                    {
+                        if (((OdePrim)prim).prim_geom != (IntPtr) 0)
+                            d.GeomDestroy(((OdePrim)prim).prim_geom);
+                    }
                     _prims.Remove((OdePrim)prim);
                     
                 }
@@ -1181,7 +1185,13 @@ namespace OpenSim.Region.Physics.OdePlugin
                         IMesh mesh = _parent_scene.mesher.CreateMesh(oldname, _pbs, _size);
                         // createmesh returns null when it's a shape that isn't a cube.
                         if (mesh != null)
-                        setMesh(_parent_scene, mesh);
+                        {
+                            setMesh(_parent_scene, mesh);
+                        }
+                        else
+                        {
+                            prim_geom = d.CreateBox(_parent_scene.space, _size.X, _size.Y, _size.Z);
+                        }
                     } else {
                         prim_geom = d.CreateBox(_parent_scene.space, _size.X, _size.Y, _size.Z);
                         
@@ -1228,7 +1238,14 @@ namespace OpenSim.Region.Physics.OdePlugin
                     if (this._parent_scene.needsMeshing(_pbs))
                     {
                         IMesh mesh = _parent_scene.mesher.CreateMesh(oldname, _pbs, _size);
-                        setMesh(_parent_scene, mesh);
+                        if (mesh != null)
+                        {
+                            setMesh(_parent_scene, mesh);
+                        }
+                        else
+                        {
+                            prim_geom = d.CreateBox(_parent_scene.space, _size.X, _size.Y, _size.Z);
+                        }
                     } else {
                         prim_geom = d.CreateBox(_parent_scene.space, _size.X, _size.Y, _size.Z);
                     }

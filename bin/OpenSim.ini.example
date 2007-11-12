@@ -6,11 +6,15 @@ gridmode = false
 ; sticking to the basic shapes the engine does support. Usually this is only a box.
 ; Meshmerizer gives a better handling of complex prims by using triangle meshes.
 ; Note, that only ODE physics currently deals with meshed prims in a satisfactoring way
-; ZeroMesher currently has a memory locking issue.
-; meshing = ZeroMesher
-meshing = Meshmerizer
+; 
+meshing = ZeroMesher
+;meshing = Meshmerizer
 
+; Choose one of the physics engines below
 physics = basicphysics
+;physics = OpenDynamicsEngine
+;physics = modified_BulletX
+
 ; Prim Storage
 ; if you would like to use sqlite uncomment the following line (and 
 ; comment the NullStorage line)
@@ -24,6 +28,8 @@ serverside_object_permissions = false
 ; to try sqlite as the asset database , comment out the above line, and uncomment following one
 asset_database = "sqlite"
 verbose = true
+
+; if you would like to allow prim to be physical and move by physics with the physical checkbox in the client set this to true.
 physical_prim = true
 
 [StandAlone]

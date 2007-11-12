@@ -213,7 +213,7 @@ namespace OpenSim
             {
                 m_sandbox = !startupConfig.GetBoolean("gridmode", false);
                 m_physicsEngine = startupConfig.GetString("physics", "basicphysics");
-                m_meshEngineName = startupConfig.GetString("meshing", "Meshmerizer");
+                m_meshEngineName = startupConfig.GetString("meshing", "ZeroMesher");
                 m_verbose = startupConfig.GetBoolean("verbose", true);
                 m_physicalPrim = startupConfig.GetBoolean("physical_prim", true);
                 m_permissions = startupConfig.GetBoolean("serverside_object_permissions", false);
