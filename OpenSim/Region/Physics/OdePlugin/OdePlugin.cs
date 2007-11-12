@@ -308,7 +308,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                         p = (OdePrim) prim;
                         p.disableBody();
                     }
-                    if (((OdePrim)prim).prim_geom != null)
+                    if (!((OdePrim)prim).prim_geom.Equals(null))
                     {
                         if (((OdePrim)prim).prim_geom != (IntPtr) 0)
                             d.GeomDestroy(((OdePrim)prim).prim_geom);
