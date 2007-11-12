@@ -204,7 +204,11 @@ namespace OpenSim.Region.Physics.PhysXPlugin
             _acceleration = new PhysicsVector();
             _character = character;
         }
-
+        public override int PhysicsActorType
+        {
+            get { return (int)ActorTypes.Agent; }
+            set { return; }
+        }
         public override bool IsPhysical
         {
             get { return false; }
@@ -224,6 +228,16 @@ namespace OpenSim.Region.Physics.PhysXPlugin
         {
             get { return iscolliding; }
             set { iscolliding = value; }
+        }
+        public override bool CollidingGround
+        {
+            get { return false; }
+            set { return; }
+        }
+        public override bool CollidingObj
+        {
+            get { return false; }
+            set { return; }
         }
         public override PhysicsVector RotationalVelocity
         {
@@ -339,7 +353,11 @@ namespace OpenSim.Region.Physics.PhysXPlugin
             _acceleration = new PhysicsVector();
             _prim = prim;
         }
-
+        public override int PhysicsActorType
+        {
+            get { return (int)ActorTypes.Prim; }
+            set { return; }
+        }
         public override bool IsPhysical
         {
             get { return false; }
@@ -365,9 +383,19 @@ namespace OpenSim.Region.Physics.PhysXPlugin
         {
             get
             {
-                return false; //no flying prims for you
+                return false; 
             }
             set { }
+        }
+        public override bool CollidingGround
+        {
+            get { return false; }
+            set { return; }
+        }
+        public override bool CollidingObj
+        {
+            get { return false; }
+            set { return; }
         }
         public override PhysicsVector Position
         {

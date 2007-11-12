@@ -196,6 +196,11 @@ namespace OpenSim.Region.Physics.BasicPhysicsPlugin
             _position = new PhysicsVector();
             _acceleration = new PhysicsVector();
         }
+        public override int PhysicsActorType
+        {
+            get { return (int)ActorTypes.Agent; }
+            set { return; }
+        }
         public override PhysicsVector RotationalVelocity
         {
             get { return m_rotationalVelocity; }
@@ -222,7 +227,16 @@ namespace OpenSim.Region.Physics.BasicPhysicsPlugin
             get { return iscolliding; }
             set { iscolliding = value; }
         }
-
+        public override bool CollidingGround
+        {
+            get { return false; }
+            set { return; }
+        }
+        public override bool CollidingObj
+        {
+            get { return false; }
+            set { return; }
+        }
         public override PhysicsVector Position
         {
             get { return _position; }

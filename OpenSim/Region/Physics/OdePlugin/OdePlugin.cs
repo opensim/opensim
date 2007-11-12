@@ -89,6 +89,7 @@ namespace OpenSim.Region.Physics.OdePlugin
         private d.ContactGeom[] contacts = new d.ContactGeom[30];
         private d.Contact contact;
         private d.Contact TerrainContact;
+        
         private int m_physicsiterations = 10;
         private float m_SkipFramesAtms = 0.40f; // Drop frames gracefully at a 400 ms lag
         private PhysicsActor PANull = new NullPhysicsActor();
@@ -208,11 +209,16 @@ namespace OpenSim.Region.Physics.OdePlugin
                 }
                 
                 
-                    d.JointAttach(joint, b1, b2);
-               
-                
+                d.JointAttach(joint, b1, b2);
+
+
+                PhysicsActor p1;
                 PhysicsActor p2;
 
+                if (!actor_name_map.TryGetValue(g2, out p1))
+                {
+                    p1 = PANull;
+                }
                 if (!actor_name_map.TryGetValue(g2, out p2))
                 {
                     p2 = PANull;
@@ -220,6 +226,17 @@ namespace OpenSim.Region.Physics.OdePlugin
 
                 // We only need to test p2 for 'jump crouch purposes'
                 p2.IsColliding = true;
+                switch(p1.PhysicsActorType) {
+                    case (int)ActorTypes.Agent:
+                        p2.CollidingObj = true;
+                        break;
+                    case (int)ActorTypes.Prim:
+                        p2.CollidingObj = true;
+                        break;
+                    case (int)ActorTypes.Unknown:
+                        p2.CollidingGround = true;
+                        break;
+                }
                 if (count > 3)
                 {
                     p2.ThrottleUpdates = true;
@@ -237,6 +254,8 @@ namespace OpenSim.Region.Physics.OdePlugin
 
                 
                 chr.IsColliding = false;
+                chr.CollidingGround = false;
+                chr.CollidingObj = false;
                 d.SpaceCollide2(space, chr.Shell, IntPtr.Zero, nearCallback);
                 foreach (OdeCharacter ch2 in _characters)
                 /// should be a separate space -- lots of avatars will be N**2 slow
@@ -308,11 +327,9 @@ namespace OpenSim.Region.Physics.OdePlugin
                         p = (OdePrim) prim;
                         p.disableBody();
                     }
-                    if (!((OdePrim)prim).prim_geom.Equals(null))
-                    {
-                        if (((OdePrim)prim).prim_geom != (IntPtr) 0)
-                            d.GeomDestroy(((OdePrim)prim).prim_geom);
-                    }
+                    
+                    d.GeomDestroy(((OdePrim)prim).prim_geom);
+                    
                     _prims.Remove((OdePrim)prim);
                     
                 }
@@ -642,8 +659,9 @@ namespace OpenSim.Region.Physics.OdePlugin
         public static float CAPSULE_LENGTH = 0.79f;
         private bool flying = false;
         private bool m_iscolliding = false;
+        private bool m_wascolliding = false;
         
-        private bool[] m_colliderarr = new bool[10];
+        private bool[] m_colliderarr = new bool[11];
 
         private bool jumping = false;
         //private float gravityAccel;
@@ -661,7 +679,7 @@ namespace OpenSim.Region.Physics.OdePlugin
             _acceleration = new PhysicsVector();
             _parent_scene = parent_scene;
             
-            for (int i = 0; i < 10; i++)
+            for (int i = 0; i < 11; i++)
             {
                 m_colliderarr[i] = false;
             }
@@ -679,7 +697,11 @@ namespace OpenSim.Region.Physics.OdePlugin
             parent_scene.geom_name_map[Shell] = avName;
             parent_scene.actor_name_map[Shell] = (PhysicsActor)this;
         }
-
+        public override int PhysicsActorType
+        {
+            get { return (int)ActorTypes.Agent; }
+            set { return; }
+        }
         public override bool IsPhysical
         {
             get { return false; }
@@ -705,16 +727,16 @@ namespace OpenSim.Region.Physics.OdePlugin
                 int truecount=0;
                 int falsecount=0;
 
-                if (m_colliderarr.Length >= 6)
+                if (m_colliderarr.Length >= 10)
                 {
-                    for (i = 0; i < 6; i++)
+                    for (i = 0; i < 10; i++)
                     {
                         m_colliderarr[i] = m_colliderarr[i + 1];
                     }
                 }
-                m_colliderarr[6] = value;
+                m_colliderarr[10] = value;
 
-                for (i = 0; i < 7; i++)
+                for (i = 0; i < 11; i++)
                 {
                     if (m_colliderarr[i])
                     {
@@ -728,7 +750,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                 
                 // Equal truecounts and false counts means we're colliding with something.
 
-                if (falsecount > truecount)
+                if (falsecount > 1.2 * truecount)
                 {
                     m_iscolliding = false;
                 }
@@ -736,9 +758,25 @@ namespace OpenSim.Region.Physics.OdePlugin
                 {
                     m_iscolliding = true;
                 }
+                if (m_wascolliding != m_iscolliding)
+                {
+                    base.SendCollisionUpdate(new CollisionEventUpdate());
+                }
+                m_wascolliding = m_iscolliding;
             }
         }
-            public override PhysicsVector Position
+        public override bool CollidingGround
+        {
+            get { return false; }
+            set { return; }
+        }
+        public override bool CollidingObj
+        {
+            get { return false; }
+            set { return; }
+        }
+
+        public override PhysicsVector Position
         {
             get { return _position; }
             set
@@ -869,7 +907,29 @@ namespace OpenSim.Region.Physics.OdePlugin
                 {
                     d.Vector3 pos = d.BodyGetPosition(Body);
                     vec.Z = (_target_velocity.Z - vel.Z) * PID_D + (_zeroPosition.Z - pos.Z) * PID_P;
+                    if (_target_velocity.X > 0)
+                    {
+                        vec.X = ((_target_velocity.X - vel.X) / 1.2f) * PID_D;
+                    }
+                    if (_target_velocity.Y > 0)
+                    {
+                        vec.Y = ((_target_velocity.Y - vel.Y) / 1.2f) * PID_D;
+                    }
                 }
+                else if (!m_iscolliding && !flying)
+                {
+                    d.Vector3 pos = d.BodyGetPosition(Body);
+                    if (_target_velocity.X > 0)
+                    {
+                        vec.X = ((_target_velocity.X - vel.X)/1.2f) * PID_D;
+                    }
+                    if (_target_velocity.Y > 0)
+                    {
+                        vec.Y = ((_target_velocity.Y - vel.Y)/1.2f) * PID_D;
+                    }
+
+                }
+
 
                 if (flying)
                 {
@@ -1012,6 +1072,11 @@ namespace OpenSim.Region.Physics.OdePlugin
                     //  don't do .add() here; old geoms get recycled with the same hash
             }
         }
+        public override int PhysicsActorType
+        {
+            get { return (int)ActorTypes.Prim; }
+            set { return; }
+        }
         public void enableBody()
         {
             // Sets the geom to a body
@@ -1028,6 +1093,7 @@ namespace OpenSim.Region.Physics.OdePlugin
             d.GeomSetBody(prim_geom, Body);
             d.BodySetAutoDisableFlag(Body, true);
             d.BodySetAutoDisableSteps(Body,20);
+            
             _parent_scene.addActivePrim(this);
         }
         public void setMass()
@@ -1121,6 +1187,16 @@ namespace OpenSim.Region.Physics.OdePlugin
         {
             get { return iscolliding; }
             set { iscolliding = value; }
+        }
+        public override bool CollidingGround
+        {
+            get { return false; }
+            set { return; }
+        }
+        public override bool CollidingObj
+        {
+            get { return false; }
+            set { return; }
         }
         public override bool ThrottleUpdates
         {

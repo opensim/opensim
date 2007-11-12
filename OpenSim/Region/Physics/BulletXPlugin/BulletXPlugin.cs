@@ -705,6 +705,7 @@ namespace OpenSim.Region.Physics.BulletXPlugin
         protected AxiomQuaternion _orientation;
         protected PhysicsVector m_rotationalVelocity = PhysicsVector.Zero;
         protected RigidBody rigidBody;
+        protected int m_PhysicsActorType;
         private Boolean iscolliding = false;
         internal string _name;
 
@@ -784,6 +785,12 @@ namespace OpenSim.Region.Physics.BulletXPlugin
         { 
             get { return 0; } 
         }
+        public override int PhysicsActorType
+        {
+            get { return (int) m_PhysicsActorType; }
+            set { m_PhysicsActorType = value; }
+        }
+
         public RigidBody RigidBody
         {
             get { return rigidBody; }
@@ -813,6 +820,16 @@ namespace OpenSim.Region.Physics.BulletXPlugin
         {
             get { return iscolliding; }
             set { iscolliding = value; }
+        }
+        public override bool CollidingGround
+        {
+            get { return false; }
+            set { return; }
+        }
+        public override bool CollidingObj
+        {
+            get { return false; }
+            set { return; }
         }
         public virtual void SetAcceleration(PhysicsVector accel)
         {
@@ -956,7 +973,11 @@ namespace OpenSim.Region.Physics.BulletXPlugin
                 parent_scene.ddWorld.AddRigidBody(rigidBody);
             }
         }
-
+        public override int PhysicsActorType
+        {
+            get { return (int)ActorTypes.Agent; }
+            set { return; }
+        }
         public override PhysicsVector Position
         {
             get { return base.Position; }
@@ -1103,7 +1124,11 @@ namespace OpenSim.Region.Physics.BulletXPlugin
 
             CreateRigidBody(parent_scene, mesh, pos, size);
         }
-
+        public override int PhysicsActorType
+        {
+            get { return (int)ActorTypes.Prim; }
+            set { return; }
+        }
         public override PhysicsVector Position
         {
             get { return base.Position; }

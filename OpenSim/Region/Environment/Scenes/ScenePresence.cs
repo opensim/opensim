@@ -52,6 +52,7 @@ namespace OpenSim.Region.Environment.Scenes
         private uint m_requestedSitTargetID = 0;
         private LLVector3 m_requestedSitOffset = new LLVector3();
         private float m_sitAvatarHeight = 2.0f;
+        private bool m_oldColliding = true;
 
         private bool m_isTyping = false;
 
@@ -388,6 +389,7 @@ namespace OpenSim.Region.Environment.Scenes
             {
                 m_scene.PhysScene.RemoveAvatar(PhysicsActor);
                 m_physicsActor.OnRequestTerseUpdate -= SendTerseUpdateToAllClients;
+                m_physicsActor.OnCollisionUpdate -= PhysicsCollisionUpdate;
                 PhysicsActor = null;
             }
         }
@@ -407,6 +409,7 @@ namespace OpenSim.Region.Environment.Scenes
         /// </summary>
         public void StopMovement()
         {
+            int x = 0;
         }
 
         public void AddNeighbourRegion(ulong regionHandle)
@@ -489,7 +492,7 @@ namespace OpenSim.Region.Environment.Scenes
                 // Console.WriteLine("DEBUG: HandleAgentUpdate: null PhysicsActor!");
                 return;
             }
-
+            
             int i = 0;
             bool update_movementflag = false;
             bool update_rotation = false;
@@ -497,6 +500,8 @@ namespace OpenSim.Region.Environment.Scenes
             Vector3 agent_control_v3 = new Vector3(0, 0, 0);
             Quaternion q = new Quaternion(bodyRotation.W, bodyRotation.X, bodyRotation.Y, bodyRotation.Z);
             bool oldflying = PhysicsActor.Flying;
+            
+
             PhysicsActor.Flying = ((flags & (uint) MainAvatar.ControlFlags.AGENT_CONTROL_FLY) != 0);
             if (PhysicsActor.Flying != oldflying)
             {
@@ -652,7 +657,18 @@ namespace OpenSim.Region.Environment.Scenes
                         }
                         else
                         {
-                            SendAnimPack(Animations.AnimsLLUUID["WALK"], 1);
+                            if (!PhysicsActor.IsColliding && m_physicsActor.Velocity.Z > 6)
+                            {
+                                SendAnimPack(Animations.AnimsLLUUID["FALLDOWN"], 1);
+                            }
+                            else if (!PhysicsActor.IsColliding && Velocity.Z > 0)
+                            {
+                                SendAnimPack(Animations.AnimsLLUUID["JUMP"], 1);
+                            }
+                            else
+                            {
+                                SendAnimPack(Animations.AnimsLLUUID["WALK"], 1);
+                            }
                         }
                     }
                 }
@@ -669,7 +685,22 @@ namespace OpenSim.Region.Environment.Scenes
                     }
                     else
                     {
-                        SendAnimPack(Animations.AnimsLLUUID["STAND"], 1);
+                        if (!PhysicsActor.IsColliding && m_physicsActor.Velocity.Z > 6 && !m_physicsActor.Flying)
+                        {
+                            SendAnimPack(Animations.AnimsLLUUID["FALLDOWN"], 1);
+                        }
+                        else if (!PhysicsActor.IsColliding && Velocity.Z > 0 && !m_physicsActor.Flying)
+                        {
+                            SendAnimPack(Animations.AnimsLLUUID["JUMP"], 1);
+                        }
+                        else
+                        {
+                            if (!m_physicsActor.Flying)
+                            {
+                                SendAnimPack(Animations.AnimsLLUUID["STAND"], 1);
+                            }
+                        }
+                        
                     }
                 }
             }
@@ -702,6 +733,7 @@ namespace OpenSim.Region.Environment.Scenes
                         direc.z *= 3;
                         //System.Console.WriteLine("Jump");
                         SendAnimPack(Animations.AnimsLLUUID["PRE_JUMP"], 1);
+                        SendAnimPack(Animations.AnimsLLUUID["JUMP"], 1);
                     }
                 }
             }
@@ -1115,8 +1147,16 @@ namespace OpenSim.Region.Environment.Scenes
 
             m_physicsActor = scene.AddAvatar(Firstname + "." + Lastname, pVec);
             m_physicsActor.OnRequestTerseUpdate += SendTerseUpdateToAllClients;
+            m_physicsActor.OnCollisionUpdate += PhysicsCollisionUpdate;
         }
+        private void PhysicsCollisionUpdate(EventArgs e)
+        {
+            bool isUserMoving = false;
+            if (Velocity.X > 0 || Velocity.Y > 0)
+                isUserMoving = true;
+            UpdateMovementAnimations(isUserMoving);
 
+        }
         internal void Close()
         {
             RemoveFromPhysicalScene();

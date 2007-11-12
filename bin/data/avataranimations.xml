@@ -12,4 +12,6 @@
 	<animation name="CROUCH">201f3fdf-cb1f-dbec-201f-7333e328ae7c</animation>
 	<animation name="CROUCHWALK">47f5f6fb-22e5-ae44-f871-73aaaf4a6022</animation>
 	<animation name="TYPE">c541c47f-e0c0-058b-ad1a-d6ae3a4584d9</animation>
+	<animation name="FALLDOWN">666307d9-a860-572d-6fd4-c3ab8865c094</animation>
+	<animation name="JUMP">2305bd75-1ca9-b03b-1faa-b176b8a8c49e</animation>
 </animations>
