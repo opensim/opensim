@@ -1,5 +1,15 @@
 [Startup]
 gridmode = false
+
+; Select a mesher here. ZeroMesher is save and fast.
+; ZeroMesher also means that the physics engine models the physics of prims
+; sticking to the basic shapes the engine does support. Usually this is only a box.
+; Meshmerizer gives a better handling of complex prims by using triangle meshes.
+; Note, that only ODE physics currently deals with meshed prims in a satisfactoring way
+; ZeroMesher currently has a memory locking issue.
+; meshing = ZeroMesher
+meshing = Meshmerizer
+
 physics = basicphysics
 ; Prim Storage
 ; if you would like to use sqlite uncomment the following line (and 

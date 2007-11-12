@@ -88,6 +88,15 @@ namespace OpenSim.Region.Physics.Manager
 
         public void LoadPlugins()
         {
+
+            // Load "plugins", that are hard coded and not existing in form of an external lib
+            IMeshingPlugin plugHard;
+            plugHard = new ZeroMesherPlugin();
+            _MeshPlugins.Add(plugHard.GetName(), plugHard);
+            MainLog.Instance.Verbose("PHYSICS", "Added meshing engine: " + plugHard.GetName());
+            
+            // And now walk all assemblies (DLLs effectively) and see if they are home 
+            // of a plugin that is of interest for us
             string path = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Physics");
             string[] pluginFiles = Directory.GetFiles(path, "*.dll");
 
@@ -100,6 +109,7 @@ namespace OpenSim.Region.Physics.Manager
 
         private void AddPlugin(string FileName)
         {
+
             Assembly pluginAssembly = Assembly.LoadFrom(FileName);
 
             foreach (Type pluginType in pluginAssembly.GetTypes())
