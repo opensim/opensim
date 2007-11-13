@@ -638,6 +638,22 @@ namespace OpenSim
                     CreateRegion(new RegionInfo(cmdparams[0], "Regions/" + cmdparams[1])).ServerListener();
                     break;
 
+                case "remove-region":
+                    string regName = CombineParams(cmdparams, 0);
+
+                    Scene killScene;
+                    if(m_sceneManager.TryGetScene(regName, out killScene))
+                    {
+                        if (m_sceneManager.CurrentScene.RegionInfo.RegionID == killScene.RegionInfo.RegionID)
+                        {
+                            m_sceneManager.TrySetCurrentScene("..");
+                        }
+                        m_regionData.Remove(killScene.RegionInfo);
+                        m_sceneManager.CloseScene(killScene);
+                        
+                    }
+                    break;
+
                 case "quit":
                 case "shutdown":
                     Shutdown();
