@@ -131,6 +131,10 @@ namespace OpenSim.Region.Communications.Local
                 // response.SeedCapability = "http://" + reg.ExternalHostName + ":" + this.serversInfo.HttpListenerPort.ToString() + "/CapsSeed/" + capsPath + "0000/";
                 theUser.currentAgent.currentRegion = reg.RegionID;
                 theUser.currentAgent.currentHandle = reg.RegionHandle;
+                
+                LoginResponse.BuddyList buddyList = new LoginResponse.BuddyList();
+                buddyList.AddNewBuddy(new LoginResponse.BuddyList.BuddyInfo("11111111-1111-0000-0000-000100bba000"));
+                response.BuddList = buddyList;
 
                 Login _login = new Login();
                 //copy data to login object

@@ -28,6 +28,7 @@
 
 using System;
 using System.Collections;
+using System.Collections.Generic;
 using libsecondlife;
 using Nwc.XmlRpc;
 using OpenSim.Framework.Console;
@@ -98,6 +99,8 @@ namespace OpenSim.Framework.UserManagement
         private string home;
         private string seedCapability;
         private string lookAt;
+
+        private BuddyList m_buddyList = null;
 
         public LoginResponse()
         {
@@ -291,7 +294,11 @@ namespace OpenSim.Framework.UserManagement
                 responseData["region_y"] = (Int32) RegionY*256;
 
                 //responseData["inventory-lib-root"] = new ArrayList(); // todo
-                //responseData["buddy-list"] = new ArrayList(); // todo
+
+                if (m_buddyList != null)
+                {
+                    responseData["buddy-list"] = m_buddyList.ToArray();
+                }
 
                 responseData["login"] = "true";
                 xmlRpcResponse.Value = responseData;
@@ -510,6 +517,12 @@ namespace OpenSim.Framework.UserManagement
             set { welcomeMessage = value; }
         }
 
+       public BuddyList BuddList
+        {
+            get{return m_buddyList;}
+            set { m_buddyList = value; }
+        }
+
         #endregion
 
         public class UserInfo
@@ -519,6 +532,55 @@ namespace OpenSim.Framework.UserManagement
             public ulong homeregionhandle;
             public LLVector3 homepos;
             public LLVector3 homelookat;
+        }
+
+        public class BuddyList
+        {
+            public List<BuddyInfo> Buddies = new List<BuddyInfo>();
+
+            public void AddNewBuddy(BuddyInfo buddy)
+            {
+                if (!Buddies.Contains(buddy))
+                {
+                    Buddies.Add(buddy);
+                }
+            }
+
+            public ArrayList ToArray()
+            {
+                ArrayList buddyArray = new ArrayList();
+                foreach (BuddyInfo buddy in Buddies)
+                {
+                    buddyArray.Add(buddy.ToHashTable());
+                }
+                return buddyArray;
+            }
+
+            public class BuddyInfo
+            {
+                public int BuddyRightsHave = 1;
+                public int BuddyRightsGiven = 1;
+                public LLUUID BuddyID;
+
+                public BuddyInfo(string buddyID)
+                {
+                    BuddyID = new LLUUID(buddyID);
+                }
+
+                public BuddyInfo(LLUUID buddyID)
+                {
+                    BuddyID = buddyID;
+                }
+
+                public Hashtable ToHashTable()
+                {
+                    Hashtable hTable = new Hashtable();
+                    hTable["buddy_rights_has"] = BuddyRightsHave;
+                    hTable["buddy_rights_given"] = BuddyRightsGiven;
+                    hTable["buddy_id"] = BuddyID.ToStringHyphenated();
+                    return hTable;
+                }
+            }
         }
     }
 }
