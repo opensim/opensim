@@ -659,11 +659,17 @@ namespace OpenSim.Region.Physics.OdePlugin
         public float CAPSULE_LENGTH = 0.79f;
         private bool flying = false;
         private bool m_iscolliding = false;
+        private bool m_iscollidingGround = false;
         private bool m_wascolliding = false;
+        private bool m_wascollidingGround = false;
         private bool m_alwaysRun = false;
+        private bool m_hackSentFall = false;
+        private bool m_hackSentFly = false;
         private string m_name = "";
         
         private bool[] m_colliderarr = new bool[11];
+        private bool[] m_colliderGroundarr = new bool[11];
+
 
         private bool jumping = false;
         //private float gravityAccel;
@@ -775,8 +781,50 @@ namespace OpenSim.Region.Physics.OdePlugin
         }
         public override bool CollidingGround
         {
-            get { return false; }
-            set { return; }
+            get { return m_iscollidingGround; }
+            set
+            {
+                int i;
+                int truecount = 0;
+                int falsecount = 0;
+
+                if (m_colliderGroundarr.Length >= 10)
+                {
+                    for (i = 0; i < 10; i++)
+                    {
+                        m_colliderGroundarr[i] = m_colliderGroundarr[i + 1];
+                    }
+                }
+                m_colliderGroundarr[10] = value;
+
+                for (i = 0; i < 11; i++)
+                {
+                    if (m_colliderGroundarr[i])
+                    {
+                        truecount++;
+                    }
+                    else
+                    {
+                        falsecount++;
+                    }
+                }
+
+                // Equal truecounts and false counts means we're colliding with something.
+
+                if (falsecount > 1.2 * truecount)
+                {
+                    m_iscollidingGround = false;
+                }
+                else
+                {
+                    m_iscollidingGround = true;
+                }
+                if (m_wascollidingGround != m_iscollidingGround)
+                {
+                    //base.SendCollisionUpdate(new CollisionEventUpdate());
+                }
+                m_wascollidingGround = m_iscollidingGround;
+            }
         }
         public override bool CollidingObj
         {
@@ -1017,7 +1065,23 @@ namespace OpenSim.Region.Physics.OdePlugin
                 vec = d.BodyGetLinearVel(Body);
                 _velocity.X = (vec.X);
                 _velocity.Y = (vec.Y);
+                
                 _velocity.Z = (vec.Z);
+                if (_velocity.Z < -6 && !m_hackSentFall)
+                {
+                    m_hackSentFall = true;
+                    base.SendCollisionUpdate(new CollisionEventUpdate());
+                }
+                else if (flying && !m_hackSentFly)
+                {
+                    //m_hackSentFly = true;
+                    //base.SendCollisionUpdate(new CollisionEventUpdate());
+                }
+                else
+                {
+                    m_hackSentFly = false;
+                    m_hackSentFall = false;
+                }
             }
         }
 

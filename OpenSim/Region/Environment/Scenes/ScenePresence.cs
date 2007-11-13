@@ -458,7 +458,7 @@ namespace OpenSim.Region.Environment.Scenes
                 + (((float)m_visualParams[125] / 255.0f) / 1.5f);
             if (PhysicsActor != null)
             {
-                PhysicsVector SetSize = new PhysicsVector(0, 0, m_avHeight);
+                PhysicsVector SetSize = new PhysicsVector(0.45f, 0.6f, m_avHeight);
                 PhysicsActor.Size = SetSize;
             }
             //OpenSim.Framework.Console.MainLog.Instance.Verbose("CLIENT", "Set Avatar Height to: " + (1.50856f + (((float)m_visualParams[25] / 255.0f) * (2.525506f - 1.50856f))).ToString() + "m" + " Leglength: " + ((float)m_visualParams[125]).ToString() + ":" + (((float)m_visualParams[125] / 255.0f)).ToString() + "m");
@@ -681,11 +681,11 @@ namespace OpenSim.Region.Environment.Scenes
                         }
                         else
                         {
-                            if (!PhysicsActor.IsColliding && m_physicsActor.Velocity.Z > 6)
+                            if (!PhysicsActor.IsColliding && m_physicsActor.Velocity.Z < -6)
                             {
                                 SendAnimPack(Animations.AnimsLLUUID["FALLDOWN"], 1);
                             }
-                            else if (!PhysicsActor.IsColliding && Velocity.Z > 0)
+                            else if (!PhysicsActor.IsColliding && Velocity.Z > 0 && (m_movementflag & (uint) MainAvatar.ControlFlags.AGENT_CONTROL_UP_POS) != 0)
                             {
                                 SendAnimPack(Animations.AnimsLLUUID["JUMP"], 1);
                             }
@@ -716,11 +716,11 @@ namespace OpenSim.Region.Environment.Scenes
                     }
                     else
                     {
-                        if (!PhysicsActor.IsColliding && m_physicsActor.Velocity.Z > 6 && !m_physicsActor.Flying)
+                        if (!PhysicsActor.IsColliding && m_physicsActor.Velocity.Z < -6 && !m_physicsActor.Flying)
                         {
                             SendAnimPack(Animations.AnimsLLUUID["FALLDOWN"], 1);
                         }
-                        else if (!PhysicsActor.IsColliding && Velocity.Z > 0 && !m_physicsActor.Flying)
+                        else if (!PhysicsActor.IsColliding && Velocity.Z > 0 && !m_physicsActor.Flying && (m_movementflag & (uint) MainAvatar.ControlFlags.AGENT_CONTROL_UP_POS) != 0)
                         {
                             SendAnimPack(Animations.AnimsLLUUID["JUMP"], 1);
                         }
