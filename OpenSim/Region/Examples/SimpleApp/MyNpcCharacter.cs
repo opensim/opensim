@@ -427,6 +427,11 @@ namespace SimpleApp
         {
         }
 
+        public void Stop()
+        {
+
+        }
+
         private uint m_circuitCode;
 
         public uint CircuitCode

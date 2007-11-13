@@ -435,10 +435,6 @@ namespace OpenSim
             }
         }
 
-        protected void ConnectToRemoteGridServer()
-        {
-        }
-
         #endregion
 
         /// <summary>

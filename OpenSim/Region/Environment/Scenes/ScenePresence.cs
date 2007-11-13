@@ -1197,6 +1197,7 @@ namespace OpenSim.Region.Environment.Scenes
         {
             m_wearables[wearableId] = wearable;
             SendOwnWearables();
+            
         }
 
         private void SendOwnWearables()

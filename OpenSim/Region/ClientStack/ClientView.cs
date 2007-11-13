@@ -158,6 +158,16 @@ namespace OpenSim.Region.ClientStack
             ClientThread.Abort();
         }
 
+        public void Stop()
+        {
+            clientPingTimer.Stop();
+
+            libsecondlife.Packets.DisableSimulatorPacket disable = new libsecondlife.Packets.DisableSimulatorPacket();
+            OutPacket(disable);
+
+            ClientThread.Abort();
+        }
+
         #endregion
 
         # region Packet Handling

@@ -47,7 +47,7 @@ using OpenSim.Region.Environment.Scenes.Scripting;
 using OpenSim.Region.Environment.Types;
 using OpenSim.Region.Physics.Manager;
 using OpenSim.Region.Terrain;
-using Timer=System.Timers.Timer;
+using Timer = System.Timers.Timer;
 
 namespace OpenSim.Region.Environment.Scenes
 {
@@ -195,7 +195,7 @@ namespace OpenSim.Region.Environment.Scenes
                      ModuleLoader moduleLoader, bool dumpAssetsToFile, bool physicalPrim)
         {
             updateLock = new Mutex(false);
-            
+
             m_moduleLoader = moduleLoader;
             m_authenticateHandler = authen;
             CommsManager = commsMan;
@@ -228,7 +228,7 @@ namespace OpenSim.Region.Environment.Scenes
             m_sceneObjects = new Dictionary<LLUUID, SceneObjectGroup>();
 
             MainLog.Instance.Verbose("Creating LandMap");
-            Terrain = new TerrainEngine((int) RegionInfo.RegionLocX, (int) RegionInfo.RegionLocY);
+            Terrain = new TerrainEngine((int)RegionInfo.RegionLocX, (int)RegionInfo.RegionLocY);
 
             ScenePresence.LoadAnims();
 
@@ -241,11 +241,26 @@ namespace OpenSim.Region.Environment.Scenes
         #region Startup / Close Methods
         public override void Close()
         {
+            ForEachScenePresence(delegate(ScenePresence avatar)
+                                {
+                                    avatar.ControllingClient.Stop();
+                                });
+
             m_heartbeatTimer.Close();
             m_innerScene.Close();
             m_sceneGridService.Close();
 
+            foreach (IRegionModule module in this.Modules.Values)
+            {
+                if (!module.IsSharedModule)
+                {
+                    module.Close();
+                }
+            }
+            Modules.Clear();
+
             base.Close();
+
         }
 
         /// <summary>
@@ -299,30 +314,30 @@ namespace OpenSim.Region.Environment.Scenes
                 if (m_frame == Int32.MaxValue)
                     m_frame = 0;
 
-                if (m_frame%m_update_physics == 0)
+                if (m_frame % m_update_physics == 0)
                     m_innerScene.UpdatePreparePhysics();
 
-                if (m_frame%m_update_entitymovement == 0)
+                if (m_frame % m_update_entitymovement == 0)
                     m_innerScene.UpdateEntityMovement();
 
-                if (m_frame%m_update_physics == 0)
+                if (m_frame % m_update_physics == 0)
                     m_innerScene.UpdatePhysics(
                         Math.Max(SinceLastFrame.TotalSeconds, m_timespan)
                         );
 
-                if (m_frame%m_update_entities == 0)
+                if (m_frame % m_update_entities == 0)
                     m_innerScene.UpdateEntities();
 
-                if (m_frame%m_update_events == 0)
+                if (m_frame % m_update_events == 0)
                     UpdateEvents();
 
-                if (m_frame%m_update_backup == 0)
+                if (m_frame % m_update_backup == 0)
                     UpdateStorageBackup();
 
-                if (m_frame%m_update_terrain == 0)
+                if (m_frame % m_update_terrain == 0)
                     UpdateTerrain();
 
-                if (m_frame%m_update_land == 0)
+                if (m_frame % m_update_land == 0)
                     UpdateLand();
 
                 // if (m_frame%m_update_avatars == 0)
@@ -340,7 +355,7 @@ namespace OpenSim.Region.Environment.Scenes
             {
                 updateLock.ReleaseMutex();
 
-                m_timedilation = m_timespan/(float) SinceLastFrame.TotalSeconds;
+                m_timedilation = m_timespan / (float)SinceLastFrame.TotalSeconds;
                 m_lastupdate = DateTime.Now;
             }
         }
@@ -397,7 +412,7 @@ namespace OpenSim.Region.Environment.Scenes
                                       {
                                           for (int y = 0; y < 16; y++)
                                           {
-                                              if (Terrain.Tainted(x*16, y*16))
+                                              if (Terrain.Tainted(x * 16, y * 16))
                                               {
                                                   client.SendLayerData(x, y, terData);
                                               }
@@ -524,7 +539,7 @@ namespace OpenSim.Region.Environment.Scenes
                 AddEntityFromStorage(prim);
                 SceneObjectPart rootPart = prim.GetChildPart(prim.UUID);
                 bool UsePhysics = (((rootPart.ObjectFlags & (uint)LLObject.ObjectFlags.Physics) > 0) && m_physicalPrim);
-                if ((rootPart.ObjectFlags & (uint) LLObject.ObjectFlags.Phantom) == 0)
+                if ((rootPart.ObjectFlags & (uint)LLObject.ObjectFlags.Phantom) == 0)
                     rootPart.PhysActor = phyScene.AddPrimShape(
                         rootPart.Name,
                         rootPart.Shape,
@@ -570,11 +585,11 @@ namespace OpenSim.Region.Environment.Scenes
                 // if grass or tree, make phantom
                 if ((rootPart.Shape.PCode == 95) || (rootPart.Shape.PCode == 255))
                 {
-                    rootPart.ObjectFlags += (uint) LLObject.ObjectFlags.Phantom;
+                    rootPart.ObjectFlags += (uint)LLObject.ObjectFlags.Phantom;
                 }
                 // if not phantom, add to physics
                 bool UsePhysics = (((rootPart.ObjectFlags & (uint)LLObject.ObjectFlags.Physics) > 0) && m_physicalPrim);
-                if ((rootPart.ObjectFlags & (uint) LLObject.ObjectFlags.Phantom) == 0)
+                if ((rootPart.ObjectFlags & (uint)LLObject.ObjectFlags.Phantom) == 0)
                     rootPart.PhysActor =
                         phyScene.AddPrimShape(
                             rootPart.Name,
@@ -668,7 +683,7 @@ namespace OpenSim.Region.Environment.Scenes
             client.OnRegionHandShakeReply += SendLayerData;
             //remoteClient.OnRequestWearables += new GenericCall(this.GetInitialPrims);
             client.OnModifyTerrain += ModifyTerrain;
-           // client.OnRequestWearables += InformClientOfNeighbours;
+            // client.OnRequestWearables += InformClientOfNeighbours;
             client.OnAddPrim += AddNewPrim;
             client.OnUpdatePrimGroupPosition += m_innerScene.UpdatePrimPosition;
             client.OnUpdatePrimSinglePosition += m_innerScene.UpdatePrimSinglePosition;
@@ -843,7 +858,7 @@ namespace OpenSim.Region.Environment.Scenes
                     if (m_capsHandlers.ContainsKey(agent.AgentID))
                     {
                         //MainLog.Instance.Warn("client", "Adding duplicate CAPS entry for user " +
-                                                    //    agent.AgentID.ToStringHyphenated());
+                        //    agent.AgentID.ToStringHyphenated());
                         m_capsHandlers[agent.AgentID] = cap;
                     }
                     else
@@ -871,7 +886,7 @@ namespace OpenSim.Region.Environment.Scenes
             if (regionHandle == m_regionHandle)
             {
                 ScenePresence presence = m_innerScene.GetScenePresence(agentID);
-                if(presence != null)
+                if (presence != null)
                 {
                     libsecondlife.Packets.DisableSimulatorPacket disable = new libsecondlife.Packets.DisableSimulatorPacket();
                     presence.ControllingClient.OutPacket(disable);
@@ -879,7 +894,7 @@ namespace OpenSim.Region.Environment.Scenes
             }
         }
 
-      
+
         /// <summary>
         /// 
         /// </summary>
@@ -951,17 +966,17 @@ namespace OpenSim.Region.Environment.Scenes
 
         public void RegisterModuleInterface<M>(M mod)
         {
-            if (!ModuleInterfaces.ContainsKey(typeof (M)))
+            if (!ModuleInterfaces.ContainsKey(typeof(M)))
             {
-                ModuleInterfaces.Add(typeof (M), mod);
+                ModuleInterfaces.Add(typeof(M), mod);
             }
         }
 
         public T RequestModuleInterface<T>()
         {
-            if (ModuleInterfaces.ContainsKey(typeof (T)))
+            if (ModuleInterfaces.ContainsKey(typeof(T)))
             {
-                return (T) ModuleInterfaces[typeof (T)];
+                return (T)ModuleInterfaces[typeof(T)];
             }
             else
             {
@@ -1073,7 +1088,7 @@ namespace OpenSim.Region.Environment.Scenes
             {
                 if (ent is SceneObjectGroup)
                 {
-                    ((SceneObjectGroup) ent).ScheduleGroupForFullUpdate();
+                    ((SceneObjectGroup)ent).ScheduleGroupForFullUpdate();
                 }
             }
         }
@@ -1085,7 +1100,7 @@ namespace OpenSim.Region.Environment.Scenes
             {
                 if (ent is SceneObjectGroup)
                 {
-                    SceneObjectPart part = ((SceneObjectGroup) ent).GetChildPart(((SceneObjectGroup) ent).UUID);
+                    SceneObjectPart part = ((SceneObjectGroup)ent).GetChildPart(((SceneObjectGroup)ent).UUID);
                     if (part != null)
                     {
                         if (part.Name == cmmdparams[0])

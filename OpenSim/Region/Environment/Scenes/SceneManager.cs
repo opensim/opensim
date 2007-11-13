@@ -179,6 +179,35 @@ namespace OpenSim.Region.Environment.Scenes
             }
         }
 
+        public bool TryGetScene(string regionName, out Scene scene)
+        {
+            foreach (Scene mscene in m_localScenes)
+            {
+                if (String.Compare(mscene.RegionInfo.RegionName, regionName, true) == 0)
+                {
+                    scene = mscene;
+                    return true;
+                }
+            }
+            scene = null;
+            return false;
+        }
+
+        public bool TryGetScene(LLUUID regionID, out Scene scene)
+        {
+            foreach (Scene mscene in m_localScenes)
+            {
+                if (mscene.RegionInfo.RegionID == regionID)
+                {
+                    scene = mscene;
+                    return true;
+                }
+            }
+            scene = null;
+            return false;
+        }
+
+
         public void SetDebugPacketOnCurrentScene(LogBase log, int newDebug)
         {
             ForEachCurrentScene(delegate(Scene scene)

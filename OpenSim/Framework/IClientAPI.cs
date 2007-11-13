@@ -439,6 +439,7 @@ namespace OpenSim.Framework
         void SetDebug(int newDebug);
         void InPacket(Packet NewPack);
         void Close();
+        void Stop();
         event ViewerEffectEventHandler OnViewerEffect;
         event Action<IClientAPI> OnLogout;
         event Action<IClientAPI> OnConnectionClosed;
