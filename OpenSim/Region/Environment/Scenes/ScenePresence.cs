@@ -703,6 +703,18 @@ namespace OpenSim.Region.Environment.Scenes
                         }
                     }
                 }
+                else if (m_parentID != 0)
+                {
+                    if (m_isTyping)
+                    {
+                        SendAnimPack(Animations.AnimsLLUUID["TYPE"], 1);
+                    }
+                    else
+                    {
+                        // TODO: stop the typing animation, continue sitting
+                        SendAnimPack(Animations.AnimsLLUUID["SIT"], 1);
+                    }
+                }
                 else
                 {
                     if (((m_movementflag & (uint) MainAvatar.ControlFlags.AGENT_CONTROL_UP_NEG) != 0) &&
