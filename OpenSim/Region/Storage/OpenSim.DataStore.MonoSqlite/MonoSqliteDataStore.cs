@@ -252,12 +252,13 @@ namespace OpenSim.DataStore.MonoSqlite
             lock (ds)
             {
                 SqliteCommand cmd = new SqliteCommand("insert into terrain(RegionUUID, Revision, Heightfield)" +
-                                                      "values(:RegionUUID, :Revision, :Heightfield)", conn);
+                                                      " values(:RegionUUID, :Revision, :Heightfield)", conn);
                 using(cmd) 
                 {
-                    cmd.Parameters.Add(":RegionUUID", regionID);
-                    cmd.Parameters.Add(":Revision", revision);
-                    cmd.Parameters.Add(":Heightfield", serializeTerrain(ter));
+                    
+                    cmd.Parameters.Add(new SqliteParameter(":RegionUUID", regionID.ToString()));
+                    cmd.Parameters.Add(new SqliteParameter(":Revision", revision));
+                    cmd.Parameters.Add(new SqliteParameter(":Heightfield", serializeTerrain(ter)));
                     cmd.ExecuteNonQuery();
                 }
             }
@@ -269,10 +270,11 @@ namespace OpenSim.DataStore.MonoSqlite
             terret.Initialize();
 
             SqliteCommand cmd = new SqliteCommand("select RegionUUID, Revision, Heightfield from terrain" + 
-                                                  "where RegionUUID=:RegionUUID order by Revision desc limit 1", conn);
-            cmd.Parameters.Add(":RegionUUID", regionID);
+                                                  " where RegionUUID=:RegionUUID order by Revision desc limit 1", conn);
+            SqliteParameter param = new SqliteParameter();
+            cmd.Parameters.Add(new SqliteParameter(":RegionUUID", regionID.ToString()));
 
-            using (SqliteDataReader row = cmd.ExecuteReader(CommandBehavior.SingleRow))
+            using (SqliteDataReader row = cmd.ExecuteReader())
             {
                 int rev = 0;
                 if (row.Read())
@@ -850,6 +852,13 @@ namespace OpenSim.DataStore.MonoSqlite
             param.DbType = dbtypeFromType(type);
             param.SourceColumn = name;
             param.SourceVersion = DataRowVersion.Current;
+            return param;
+        }
+      
+        private SqliteParameter createParamWithValue(string name, Type type, Object o)
+        {
+            SqliteParameter param = createSqliteParameter(name, type);
+            param.Value = o;
             return param;
         }
 
