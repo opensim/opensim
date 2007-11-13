@@ -32,8 +32,10 @@ using libsecondlife;
 using libsecondlife.Packets;
 using OpenSim.Framework;
 using OpenSim.Framework.Console;
+using OpenSim.Framework.Communications;
 using OpenSim.Region.Environment.Types;
 using OpenSim.Region.Physics.Manager;
+
 
 namespace OpenSim.Region.Environment.Scenes
 {
@@ -274,6 +276,7 @@ namespace OpenSim.Region.Environment.Scenes
             m_controllingClient.OnAgentRequestSit += HandleAgentRequestSit;
             m_controllingClient.OnAgentSit += HandleAgentSit;
             m_controllingClient.OnSetAlwaysRun += HandleSetAlwaysRun;
+            
             // ControllingClient.OnStartAnim += new StartAnim(this.SendAnimPack);
             // ControllingClient.OnChildAgentStatus += new StatusChange(this.ChildStatusChange);
             //ControllingClient.OnStopMovement += new GenericCall2(this.StopMovement);
@@ -1227,5 +1230,6 @@ namespace OpenSim.Region.Environment.Scenes
         {
             m_controllingClient.SendWearables(m_wearables, m_wearablesSerial++);
         }
+       
     }
 }

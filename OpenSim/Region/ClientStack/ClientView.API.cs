@@ -55,6 +55,7 @@ namespace OpenSim.Region.ClientStack
         public event UpdateAgent OnAgentUpdate;
         public event AgentRequestSit OnAgentRequestSit;
         public event AgentSit OnAgentSit;
+        public event AvatarPickerRequest OnAvatarPickerRequest;
         public event StartAnim OnStartAnim;
         public event Action<IClientAPI> OnRequestAvatarsData;
         public event LinkObjects OnLinkObjects;
@@ -704,6 +705,10 @@ namespace OpenSim.Region.ClientStack
             sendXfer.XferID.Packet = packet;
             sendXfer.DataPacket.Data = data;
             OutPacket(sendXfer);
+        }
+        public void SendAvatarPickerReply(AvatarPickerReplyPacket replyPacket)
+        {
+            OutPacket(replyPacket);
         }
 
         /// <summary>

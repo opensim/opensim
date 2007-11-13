@@ -38,10 +38,10 @@ using OpenSim.Framework;
 using OpenSim.Framework.Communications;
 using OpenSim.Framework.Communications.Cache;
 using OpenSim.Framework.Console;
+using OpenSim.Region.Environment.LandManagement;
 using OpenSim.Framework.Servers;
 using OpenSim.Region.Capabilities;
 using OpenSim.Region.Environment.Interfaces;
-using OpenSim.Region.Environment.LandManagement;
 using OpenSim.Region.Environment.Modules;
 using OpenSim.Region.Environment.Scenes.Scripting;
 using OpenSim.Region.Environment.Types;
@@ -732,7 +732,8 @@ namespace OpenSim.Region.Environment.Scenes
             client.OnRemoveTaskItem += RemoveTaskInventory;
 
             client.OnGrabObject += ProcessObjectGrab;
-
+            client.OnAvatarPickerRequest += ProcessAvatarPickerRequest;
+            
             EventManager.TriggerOnNewClient(client);
         }
 

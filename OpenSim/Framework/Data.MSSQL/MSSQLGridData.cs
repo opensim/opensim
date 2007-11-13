@@ -28,9 +28,11 @@
 using System;
 using System.Collections.Generic;
 using System.Data;
+using OpenSim.Framework;
 using System.Security.Cryptography;
 using System.Text;
 using libsecondlife;
+
 
 namespace OpenSim.Framework.Data.MSSQL
 {
@@ -130,7 +132,16 @@ namespace OpenSim.Framework.Data.MSSQL
 
             return row;
         }
+        /// <summary>
+        /// // Returns a list of avatar and UUIDs that match the query
+        /// </summary>
 
+        public List<OpenSim.Framework.Data.AvatarPickerAvatar> GeneratePickerResults(LLUUID queryID, string query)
+        {
+            //Do nothing yet
+            List<AvatarPickerAvatar> returnlist = new List<AvatarPickerAvatar>();
+            return returnlist;
+        }
         /// <summary>
         /// Adds a new specified region to the database
         /// </summary>
@@ -190,5 +201,7 @@ namespace OpenSim.Framework.Data.MSSQL
         {
             return null;
         }
+        // This is here because MSSQL GridData only seems to know about itself o.O
+        
     }
 }

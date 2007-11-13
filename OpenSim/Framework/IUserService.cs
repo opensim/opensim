@@ -26,6 +26,7 @@
 * 
 */
 using libsecondlife;
+using System.Collections.Generic;
 
 namespace OpenSim.Framework.Interfaces
 {
@@ -35,6 +36,7 @@ namespace OpenSim.Framework.Interfaces
         UserProfileData GetUserProfile(string name);
         UserProfileData GetUserProfile(LLUUID userId);
         void clearUserAgent(LLUUID avatarID);
+        List<AvatarPickerAvatar> GenerateAgentPickerRequestResponse(LLUUID QueryID, string Query);
 
         UserProfileData SetupMasterUser(string firstName, string lastName);
         UserProfileData SetupMasterUser(string firstName, string lastName, string password);

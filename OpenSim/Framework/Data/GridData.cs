@@ -26,9 +26,19 @@
 * 
 */
 using libsecondlife;
+using System.Collections.Generic;
 
 namespace OpenSim.Framework.Data
 {
+    public class AvatarPickerAvatar
+    {
+        public LLUUID AvatarID;
+        public string firstName;
+        public string lastName;
+        public AvatarPickerAvatar()
+        {
+        }
+    }
     public enum DataResponse
     {
         RESPONSE_OK,
@@ -66,6 +76,8 @@ namespace OpenSim.Framework.Data
         /// <returns>An array containing all the sim profiles in the specified range</returns>
         RegionProfileData[] GetProfilesInRange(uint Xmin, uint Ymin, uint Xmax, uint Ymax);
 
+
+        List<AvatarPickerAvatar> GeneratePickerResults(LLUUID queryID, string query);
         /// <summary>
         /// Authenticates a sim by use of it's recv key. 
         /// WARNING: Insecure

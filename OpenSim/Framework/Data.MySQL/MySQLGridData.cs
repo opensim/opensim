@@ -169,6 +169,91 @@ namespace OpenSim.Framework.Data.MySQL
                 return null;
             }
         }
+        /// <summary>
+        /// // Returns a list of avatar and UUIDs that match the query
+        /// </summary>
+        
+        public List<AvatarPickerAvatar> GeneratePickerResults(LLUUID queryID, string query)
+        {
+            List<AvatarPickerAvatar> returnlist = new List<AvatarPickerAvatar>();
+            string[] querysplit;
+            querysplit = query.Split(' ');
+            if (querysplit.Length == 2)
+            {
+                try
+                {
+                    lock (database)
+                    {
+                        Dictionary<string, string> param = new Dictionary<string, string>();
+                        param["?first"] = querysplit[0];
+                        param["?second"] = querysplit[1];
+
+                        IDbCommand result =
+                            database.Query("SELECT UUID,username,surname FROM users WHERE username = ?first AND lastname = ?second", param);
+                        IDataReader reader = result.ExecuteReader();
+
+
+                        while (reader.Read())
+                        {
+                            AvatarPickerAvatar user = new AvatarPickerAvatar();
+                            user.AvatarID = new LLUUID((string)reader["UUID"]);
+                            user.firstName = (string)reader["username"];
+                            user.lastName = (string)reader["surname"];
+                            returnlist.Add(user);
+
+                        }
+                        reader.Close();
+                        result.Dispose();
+                    }
+                }
+                catch (Exception e)
+                {
+                    database.Reconnect();
+                    MainLog.Instance.Error(e.ToString());
+                    return returnlist;
+                }
+
+
+
+            }
+            else if (querysplit.Length == 1)
+            {
+
+                try
+                {
+                    lock (database)
+                    {
+                        Dictionary<string, string> param = new Dictionary<string, string>();
+                        param["?first"] = querysplit[0];
+                        param["?second"] = querysplit[1];
+
+                        IDbCommand result =
+                            database.Query("SELECT UUID,username,surname FROM users WHERE username = ?first OR lastname = ?second", param);
+                        IDataReader reader = result.ExecuteReader();
+
+
+                        while (reader.Read())
+                        {
+                            AvatarPickerAvatar user = new AvatarPickerAvatar();
+                            user.AvatarID = new LLUUID((string)reader["UUID"]);
+                            user.firstName = (string)reader["username"];
+                            user.lastName = (string)reader["surname"];
+                            returnlist.Add(user);
+
+                        }
+                        reader.Close();
+                        result.Dispose();
+                    }
+                }
+                catch (Exception e)
+                {
+                    database.Reconnect();
+                    MainLog.Instance.Error(e.ToString());
+                    return returnlist;
+                }
+            }
+            return returnlist;
+        }
 
         /// <summary>
         /// Returns a sim profile from it's UUID

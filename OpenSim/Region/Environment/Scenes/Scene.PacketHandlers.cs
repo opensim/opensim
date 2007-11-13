@@ -29,6 +29,7 @@ using System.Collections.Generic;
 using libsecondlife;
 using libsecondlife.Packets;
 using OpenSim.Framework;
+using OpenSim.Framework.UserManagement;
 using OpenSim.Framework.Console;
 
 namespace OpenSim.Region.Environment.Scenes
@@ -155,5 +156,43 @@ namespace OpenSim.Region.Environment.Scenes
                 }
             }
         }
+        public void ProcessAvatarPickerRequest(IClientAPI client, LLUUID avatarID, LLUUID RequestID, string query)
+        {
+            //EventManager.TriggerAvatarPickerRequest();
+          
+
+            List<AvatarPickerAvatar> AvatarResponses = new List<AvatarPickerAvatar>();
+            AvatarResponses = CommsManager.GenerateAgentPickerRequestResponse(RequestID, query);
+
+            AvatarPickerReplyPacket replyPacket = new AvatarPickerReplyPacket();
+            AvatarPickerReplyPacket.DataBlock[] searchData = new AvatarPickerReplyPacket.DataBlock[AvatarResponses.Count];
+            AvatarPickerReplyPacket.AgentDataBlock agentData = new AvatarPickerReplyPacket.AgentDataBlock();
+            
+            agentData.AgentID = avatarID;
+            agentData.QueryID = RequestID;
+            replyPacket.AgentData = agentData;
+            byte[] bytes = new byte[AvatarResponses.Count * 32];
+
+            int i = 0;
+            foreach (AvatarPickerAvatar item in AvatarResponses)
+            {
+                LLUUID translatedIDtem = item.AvatarID;
+                searchData[i] = new AvatarPickerReplyPacket.DataBlock();
+                searchData[i].AvatarID = translatedIDtem;
+                searchData[i].FirstName = Helpers.StringToField((string)item.firstName);
+                searchData[i].LastName = Helpers.StringToField((string)item.lastName);
+                i++;
+                
+            }
+            if (AvatarResponses.Count == 0)
+            {
+                searchData = new AvatarPickerReplyPacket.DataBlock[0];
+            }
+            replyPacket.Data = searchData;
+            client.SendAvatarPickerReply(replyPacket);
+            
+            
+        }
+        
     }
 }

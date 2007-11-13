@@ -295,11 +295,16 @@ namespace OpenSim.Region.ClientStack
                         queuedLast = false;
 
                         // TODO: May be a bit expensive doing this twice.
-                        throttleSentPeriod += nextPacket.Packet.ToBytes().Length;
+                        
+                            //Don't throttle AvatarPickerReplies!, they return a null .ToBytes()!
+                            if (nextPacket.Packet.Type != PacketType.AvatarPickerReply)
+                                throttleSentPeriod += nextPacket.Packet.ToBytes().Length;
+                        
 
-                        //is a out going packet
-                        DebugPacket("OUT", nextPacket.Packet);
-                        ProcessOutPacket(nextPacket.Packet);
+                            //is a out going packet
+                            DebugPacket("OUT", nextPacket.Packet);
+                            ProcessOutPacket(nextPacket.Packet);
+                        
                     }
                 }
             }

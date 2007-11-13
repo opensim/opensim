@@ -228,6 +228,7 @@ namespace OpenSim.Framework
     public delegate void AgentRequestSit(IClientAPI remoteClient, LLUUID agentID, LLUUID targetID, LLVector3 offset);
 
     public delegate void AgentSit(IClientAPI remoteClient, LLUUID agentID);
+    public delegate void AvatarPickerRequest(IClientAPI remoteClient, LLUUID agentdata, LLUUID queryID, string UserQuery);
 
     public delegate void MoveObject(LLUUID objectID, LLVector3 offset, LLVector3 grapPos, IClientAPI remoteClient);
 
@@ -305,6 +306,7 @@ namespace OpenSim.Framework
         event UpdateAgent OnAgentUpdate;
         event AgentRequestSit OnAgentRequestSit;
         event AgentSit OnAgentSit;
+        event AvatarPickerRequest OnAvatarPickerRequest;
         event Action<IClientAPI> OnRequestAvatarsData;
         event AddNewPrim OnAddPrim;
         event ObjectDuplicate OnObjectDuplicate;
@@ -423,6 +425,7 @@ namespace OpenSim.Framework
         void SendRemoveInventoryItem(LLUUID itemID);
         void SendTaskInventory(LLUUID taskID, short serial, byte[] fileName);
         void SendXferPacket(ulong xferID, uint packet, byte[] data);
+        void SendAvatarPickerReply(AvatarPickerReplyPacket Pack);
 
         void SendPreLoadSound(LLUUID objectID, LLUUID ownerID, LLUUID soundID);
         void SendPlayAttachedSound(LLUUID soundID, LLUUID objectID, LLUUID ownerID, float gain, byte flags);

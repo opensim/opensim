@@ -36,5 +36,6 @@ namespace OpenSim.Framework.Communications
         List<SimpleRegionInfo> RequestNeighbours(uint x, uint y);
         RegionInfo RequestNeighbourInfo(ulong regionHandle);
         List<MapBlockData> RequestNeighbourMapBlocks(int minX, int minY, int maxX, int maxY);
+        
     }
 }

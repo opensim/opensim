@@ -97,7 +97,6 @@ namespace OpenSim.Framework.Data.MySQL
 
                     reader.Close();
                     result.Dispose();
-
                     return row;
                 }
             }
@@ -108,7 +107,87 @@ namespace OpenSim.Framework.Data.MySQL
                 return null;
             }
         }
+        public List<OpenSim.Framework.AvatarPickerAvatar> GeneratePickerResults(LLUUID queryID, string query)
+        {
+            List<OpenSim.Framework.AvatarPickerAvatar> returnlist = new List<OpenSim.Framework.AvatarPickerAvatar>();
+            string[] querysplit;
+            querysplit = query.Split(' ');
+            if (querysplit.Length == 2)
+            {
+                try
+                {
+                    lock (database)
+                    {
+                        Dictionary<string, string> param = new Dictionary<string, string>();
+                        param["?first"] = querysplit[0];
+                        param["?second"] = querysplit[1];
 
+                        IDbCommand result =
+                            database.Query("SELECT UUID,username,surname FROM users WHERE username = ?first AND lastname = ?second", param);
+                        IDataReader reader = result.ExecuteReader();
+
+                        
+                        while (reader.Read())
+                        {
+                            OpenSim.Framework.AvatarPickerAvatar user = new OpenSim.Framework.AvatarPickerAvatar();
+                            user.AvatarID = new LLUUID((string)reader["UUID"]);
+                            user.firstName = (string)reader["username"];
+                            user.lastName = (string)reader["surname"];
+                            returnlist.Add(user);
+                            
+                        }
+                        reader.Close();
+                        result.Dispose();
+                    }
+                }
+                catch (Exception e)
+                {
+                    database.Reconnect();
+                    MainLog.Instance.Error(e.ToString());
+                    return returnlist;
+                }
+
+
+                
+            }
+            else if (querysplit.Length == 1)
+            {
+
+                try
+                {
+                    lock (database)
+                    {
+                        Dictionary<string, string> param = new Dictionary<string, string>();
+                        param["?first"] = querysplit[0];
+                        param["?second"] = querysplit[1];
+
+                        IDbCommand result =
+                            database.Query("SELECT UUID,username,surname FROM users WHERE username = ?first OR lastname = ?second", param);
+                        IDataReader reader = result.ExecuteReader();
+
+
+                        while (reader.Read())
+                        {
+                            OpenSim.Framework.AvatarPickerAvatar user = new OpenSim.Framework.AvatarPickerAvatar();
+                            user.AvatarID = new LLUUID((string)reader["UUID"]);
+                            user.firstName = (string)reader["username"];
+                            user.lastName = (string)reader["surname"];
+                            returnlist.Add(user);
+
+                        }
+                        reader.Close();
+                        result.Dispose();
+                    }
+                }
+                catch (Exception e)
+                {
+                    database.Reconnect();
+                    MainLog.Instance.Error(e.ToString());
+                    return returnlist;
+                }
+            }
+            return returnlist;
+        }
         /// <summary>
         /// Searches the database for a specified user profile by UUID
         /// </summary>

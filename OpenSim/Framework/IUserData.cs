@@ -26,6 +26,7 @@
 * 
 */
 using libsecondlife;
+using System.Collections.Generic;
 
 namespace OpenSim.Framework
 {
@@ -55,6 +56,8 @@ namespace OpenSim.Framework
         /// <param name="lname">Account lastname</param>
         /// <returns>The user data profile</returns>
         UserProfileData GetUserByName(string fname, string lname);
+
+        List<OpenSim.Framework.AvatarPickerAvatar> GeneratePickerResults(LLUUID queryID, string query);
 
         /// <summary>
         /// Returns the current agent for a user searching by it's UUID
@@ -130,5 +133,14 @@ namespace OpenSim.Framework
         /// Initialises the plugin (artificial constructor)
         /// </summary>
         void Initialise();
+    }
+    public class AvatarPickerAvatar
+    {
+        public LLUUID AvatarID;
+        public string firstName;
+        public string lastName;
+        public AvatarPickerAvatar()
+        {
+        }
     }
 }

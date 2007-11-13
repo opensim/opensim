@@ -71,6 +71,7 @@ namespace SimpleApp
         public event UpdateAgent OnAgentUpdate;
         public event AgentRequestSit OnAgentRequestSit;
         public event AgentSit OnAgentSit;
+        public event AvatarPickerRequest OnAvatarPickerRequest;
         public event Action<IClientAPI> OnRequestAvatarsData;
         public event AddNewPrim OnAddPrim;
         public event ObjectDuplicate OnObjectDuplicate;
@@ -179,7 +180,10 @@ namespace SimpleApp
         public virtual void SendStartPingCheck(byte seq)
         {
         }
+        public virtual void SendAvatarPickerReply(AvatarPickerReplyPacket response)
+        {
 
+        }
         public virtual void SendKillObject(ulong regionHandle, uint localID)
         {
         }

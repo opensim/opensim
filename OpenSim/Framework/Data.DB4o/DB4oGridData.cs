@@ -27,6 +27,7 @@
 */
 
 using System;
+using System.Collections.Generic;
 using libsecondlife;
 
 namespace OpenSim.Framework.Data.DB4o
@@ -139,7 +140,16 @@ namespace OpenSim.Framework.Data.DB4o
         {
             manager = null;
         }
+        /// <summary>
+        /// // Returns a list of avatar and UUIDs that match the query
+        /// </summary>
 
+        public List<AvatarPickerAvatar> GeneratePickerResults(LLUUID queryID, string query)
+        {
+            //Do nothing yet
+            List<AvatarPickerAvatar> returnlist = new List<AvatarPickerAvatar>();
+            return returnlist;
+        }
         /// <summary>
         /// Returns the providers name
         /// </summary>

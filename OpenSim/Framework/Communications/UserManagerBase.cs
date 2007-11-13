@@ -105,6 +105,25 @@ namespace OpenSim.Framework.UserManagement
             return null;
         }
 
+        public List<AvatarPickerAvatar> GenerateAgentPickerRequestResponse(LLUUID queryID, string query)
+        {
+            List<AvatarPickerAvatar> pickerlist = new List<AvatarPickerAvatar>();
+            foreach (KeyValuePair<string, IUserData> plugin in _plugins)
+            {
+                try
+                {
+                    pickerlist = plugin.Value.GeneratePickerResults(queryID, query);
+
+                }
+                catch (Exception e)
+                {
+                    MainLog.Instance.Verbose("Unable to generate AgentPickerData via  " + plugin.Key + "(" + query + ")");
+                    return new List<AvatarPickerAvatar>();
+                }
+            }
+            return pickerlist;
+        }
+
 
         /// <summary>
         /// Loads a user profile by name

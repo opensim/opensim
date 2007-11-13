@@ -28,6 +28,7 @@
 using System;
 using libsecondlife;
 using OpenSim.Framework.Communications.Cache;
+using System.Collections.Generic;
 using OpenSim.Framework.Console;
 using OpenSim.Framework.Interfaces;
 using OpenSim.Framework.Servers;
@@ -172,6 +173,15 @@ namespace OpenSim.Framework.Communications
                     remote_client.SendNameReply(profileId, firstname, lastname);
                 }
             }
+        }
+        public List<AvatarPickerAvatar> GenerateAgentPickerRequestResponse(LLUUID queryID, string query)
+        {
+
+
+            List<AvatarPickerAvatar> pickerlist = m_userService.GenerateAgentPickerRequestResponse(queryID, query);
+
+               
+            return pickerlist;
         }
 
         #endregion

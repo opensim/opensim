@@ -217,7 +217,16 @@ namespace OpenSim.Region.ClientStack
                             OnAgentSit(this, agentSit.AgentData.AgentID);
                         }
                         break;
-
+                    case PacketType.AvatarPickerRequest:
+                            AvatarPickerRequestPacket avRequestQuery = (AvatarPickerRequestPacket)Pack;
+                            AvatarPickerRequestPacket.AgentDataBlock Requestdata = avRequestQuery.AgentData;
+                            AvatarPickerRequestPacket.DataBlock querydata = avRequestQuery.Data;
+                            //System.Console.WriteLine("Agent Sends:" + Helpers.FieldToUTF8String(querydata.Name));
+                        if (OnAvatarPickerRequest != null)
+                        {
+                            OnAvatarPickerRequest(this, Requestdata.AgentID, Requestdata.QueryID, Helpers.FieldToUTF8String(querydata.Name));
+                        }
+                        break;
                         #endregion
 
                         #region Objects/m_sceneObjects

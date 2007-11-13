@@ -28,6 +28,7 @@
 
 using System;
 using System.Collections;
+using System.Collections.Generic;
 using System.Net;
 using libsecondlife;
 using Nwc.XmlRpc;
@@ -85,6 +86,13 @@ namespace OpenSim.Region.Communications.OGS1
             return GetUserProfile(firstName + " " + lastName);
         }
 
+
+        public List<AvatarPickerAvatar> GenerateAgentPickerRequestResponse(LLUUID queryID, string query)
+        {
+            List<AvatarPickerAvatar> pickerlist = new List<AvatarPickerAvatar>();
+            
+            return pickerlist;
+        }
         public UserProfileData GetUserProfile(string name)
         {
             try
