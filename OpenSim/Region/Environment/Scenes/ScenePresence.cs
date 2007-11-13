@@ -749,7 +749,7 @@ namespace OpenSim.Region.Environment.Scenes
                     {
                         direc.z *= 3;
                         //System.Console.WriteLine("Jump");
-                        SendAnimPack(Animations.AnimsLLUUID["PRE_JUMP"], 1);
+                        SendAnimPack(Animations.AnimsLLUUID["PREJUMP"], 1);
                         SendAnimPack(Animations.AnimsLLUUID["JUMP"], 1);
                     }
                 }
