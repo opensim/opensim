@@ -57,6 +57,7 @@ namespace SimpleApp
         public event SetAppearance OnSetAppearance;
         public event StartAnim OnStartAnim;
         public event LinkObjects OnLinkObjects;
+        public event DelinkObjects OnDelinkObjects;
         public event RequestMapBlocks OnRequestMapBlocks;
         public event TeleportLocationRequest OnTeleportLocationRequest;
         public event DisconnectUser OnDisconnectUser;

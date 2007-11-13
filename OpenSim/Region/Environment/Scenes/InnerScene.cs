@@ -536,6 +536,56 @@ namespace OpenSim.Region.Environment.Scenes
                 parenPrim.LinkToGroup(sceneObj);
             }
         }
+        
+        /// <summary>
+        /// Delink a linkset
+        /// </summary>
+        /// <param name="prims"></param>    
+        public void DelinkObjects(List<uint> primIds)
+        {
+            //OpenSim.Framework.Console.MainLog.Instance.Verbose("DelinkObjects()");
+
+            SceneObjectGroup parenPrim = null;
+
+            // Need a list of the SceneObjectGroup local ids
+            // XXX I'm anticipating that building this dictionary once is more efficient than
+            // repeated scanning of the Entity.Values for a large number of primIds.  However, it might
+            // be more efficient yet to keep this dictionary permanently on hand.
+            Dictionary<uint, SceneObjectGroup> sceneObjects = new Dictionary<uint, SceneObjectGroup>();            
+            foreach (EntityBase ent in Entities.Values)
+            {
+                if (ent is SceneObjectGroup)
+                {
+                    SceneObjectGroup obj = (SceneObjectGroup)ent;
+                    sceneObjects.Add(obj.LocalId, obj);
+                }
+            }             
+            
+            // Find the root prim among the prim ids we've been given
+            for (int i = 0; i < primIds.Count; i++)
+            {          
+                if (sceneObjects.ContainsKey(primIds[i]))
+                {
+                    parenPrim = sceneObjects[primIds[i]];
+                    primIds.RemoveAt(i);
+                    break;
+                } 
+            }
+
+            if (parenPrim != null)
+            {
+                foreach (uint childPrimId in primIds)
+                {
+                    parenPrim.DelinkFromGroup(childPrimId);
+                }   
+            }
+            else
+            {
+                OpenSim.Framework.Console.MainLog.Instance.Verbose(
+                    "DelinkObjects(): Could not find a root prim out of {0} as given to a delink request!",
+                    primIds);
+            }
+        }
 
         /// <summary>
         /// 

@@ -328,17 +328,28 @@ namespace OpenSim.Region.Environment.Scenes
                     if (m_updateTimes.ContainsKey(part.UUID))
                     {
                         ScenePartUpdate update = m_updateTimes[part.UUID];
-                        if (update.LastFullUpdateTime < part.TimeStampFull)
+                        
+                        // Two updates can occur with the same timestamp (especially
+                        // since our timestamp resolution is to the nearest second).  The first
+                        // could have been sent in the last update - we still need to send the 
+                        // second here.
+                        if (update.LastFullUpdateTime <= part.TimeStampFull)
                         {
                             //need to do a full update
                             part.SendFullUpdate(ControllingClient);
-                            update.LastFullUpdateTime = (uint) Util.UnixTimeSinceEpoch();
+                            
+                            // We'll update to the part's timestamp rather than the current to 
+                            // avoid the race condition whereby the next tick occurs while we are
+                            // doing this update.  If this happened, then subsequent updates which occurred
+                            // on the same tick or the next tick of the last update would be ignored.
+                            update.LastFullUpdateTime = part.TimeStampFull;                            
+                            
                             updateCount++;
                         }
-                        else if (update.LastTerseUpdateTime < part.TimeStampTerse)
+                        else if (update.LastTerseUpdateTime <= part.TimeStampTerse)
                         {
                             part.SendTerseUpdate(ControllingClient);
-                            update.LastTerseUpdateTime = (uint) Util.UnixTimeSinceEpoch();
+                            update.LastTerseUpdateTime = part.TimeStampTerse;
                             updateCount++;
                         }
                     }
@@ -348,7 +359,7 @@ namespace OpenSim.Region.Environment.Scenes
                         part.SendFullUpdate(ControllingClient);
                         ScenePartUpdate update = new ScenePartUpdate();
                         update.FullID = part.UUID;
-                        update.LastFullUpdateTime = (uint) Util.UnixTimeSinceEpoch();
+                        update.LastFullUpdateTime = part.TimeStampFull;
                         m_updateTimes.Add(part.UUID, update);
                         updateCount++;
                     }

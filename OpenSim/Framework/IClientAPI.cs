@@ -175,6 +175,8 @@ namespace OpenSim.Framework
     public delegate void StartAnim(IClientAPI remoteClient, LLUUID animID, int seq);
 
     public delegate void LinkObjects(uint parent, List<uint> children);
+    
+    public delegate void DelinkObjects(List<uint> primIds);
 
     public delegate void RequestMapBlocks(IClientAPI remoteClient, int minX, int minY, int maxX, int maxY);
 
@@ -290,6 +292,7 @@ namespace OpenSim.Framework
         event SetAppearance OnSetAppearance;
         event StartAnim OnStartAnim;
         event LinkObjects OnLinkObjects;
+        event DelinkObjects OnDelinkObjects;
         event RequestMapBlocks OnRequestMapBlocks;
         event TeleportLocationRequest OnTeleportLocationRequest;
         event DisconnectUser OnDisconnectUser;

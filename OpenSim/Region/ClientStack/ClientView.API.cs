@@ -58,6 +58,7 @@ namespace OpenSim.Region.ClientStack
         public event StartAnim OnStartAnim;
         public event Action<IClientAPI> OnRequestAvatarsData;
         public event LinkObjects OnLinkObjects;
+        public event DelinkObjects OnDelinkObjects;
         public event UpdateVector OnGrabObject;
         public event ObjectSelect OnDeGrabObject;
         public event ObjectDuplicate OnObjectDuplicate;

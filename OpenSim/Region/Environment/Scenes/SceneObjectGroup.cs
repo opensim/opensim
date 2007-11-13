@@ -222,6 +222,27 @@ namespace OpenSim.Region.Environment.Scenes
         public SceneObjectGroup()
         {
         }
+        
+        /// <summary>
+        /// This constructor creates a SceneObjectGroup using a pre-existing SceneObjectPart. 
+        /// The original SceneObjectPart will be used rather than a copy, preserving 
+        /// its existing localID and UUID.
+        /// </summary>        
+        public SceneObjectGroup(Scene scene, ulong regionHandle, SceneObjectPart part)
+        {          
+            m_scene = scene;
+            m_regionHandle = regionHandle;
+            
+            part.SetParent(this);
+            part.ParentID = 0;
+            
+            m_parts.Add(part.UUID, part);
+            SetPartAsRoot(part);            
+
+            AttachToBackup();
+
+            ScheduleGroupForFullUpdate();            
+        }
 
         /// <summary>
         /// 
@@ -594,10 +615,10 @@ namespace OpenSim.Region.Environment.Scenes
         #region SceneGroupPart Methods
 
         /// <summary>
-        /// 
+        /// Get a child part with a given UUID
         /// </summary>
         /// <param name="primID"></param>
-        /// <returns></returns>
+        /// <returns>null if a child part with the primID was not found</returns>
         public SceneObjectPart GetChildPart(LLUUID primID)
         {
             SceneObjectPart childPart = null;
@@ -609,10 +630,10 @@ namespace OpenSim.Region.Environment.Scenes
         }
 
         /// <summary>
-        /// 
+        /// Get a child part with a given local ID
         /// </summary>
         /// <param name="localID"></param>
-        /// <returns></returns>
+        /// <returns>null if a child part with the local ID was not found</returns>
         public SceneObjectPart GetChildPart(uint localID)
         {
             foreach (SceneObjectPart part in m_parts.Values)
@@ -717,12 +738,84 @@ namespace OpenSim.Region.Environment.Scenes
             objectGroup.DeleteParts();
             ScheduleGroupForFullUpdate();
         }
+        
+        /// <summary>
+        /// Delink the given prim from this group.  The delinked prim is established as 
+        /// an independent SceneObjectGroup.
+        /// </summary>
+        /// <param name="partID"></param>
+        public void DelinkFromGroup(uint partID)
+        {      
+            SceneObjectPart linkPart = GetChildPart(partID);
+            
+            if (null != linkPart)
+            {
+                // Remove the part from this object
+                m_parts.Remove(linkPart.UUID);
+                
+                // We need to reset the child part's position 
+                // ready for life as a separate object after being a part of another object
+                Quaternion parentRot 
+                    = new Quaternion(
+                        m_rootPart.RotationOffset.W, 
+                        m_rootPart.RotationOffset.X, 
+                        m_rootPart.RotationOffset.Y,
+                        m_rootPart.RotationOffset.Z);                
+                
+                Vector3 axPos 
+                    = new Vector3(
+                        linkPart.OffsetPosition.X, 
+                        linkPart.OffsetPosition.Y, 
+                        linkPart.OffsetPosition.Z);
+                
+                axPos = parentRot * axPos;
+                linkPart.OffsetPosition = new LLVector3(axPos.x, axPos.y, axPos.z);            
+                linkPart.GroupPosition = AbsolutePosition + linkPart.OffsetPosition;
+                linkPart.OffsetPosition = new LLVector3(0, 0, 0);            
+                            
+                Quaternion oldRot 
+                    = new Quaternion(
+                        linkPart.RotationOffset.W, 
+                        linkPart.RotationOffset.X, 
+                        linkPart.RotationOffset.Y,
+                        linkPart.RotationOffset.Z);
+                Quaternion newRot = parentRot * oldRot;
+                linkPart.RotationOffset = new LLQuaternion(newRot.x, newRot.y, newRot.z, newRot.w);                
+                                
+                // Add physics information back to delinked part if appropriate
+                // XXX This is messy and should be refactorable with the similar section in
+                // SceneObjectPart.UpdatePrimFlags()
+                if (m_rootPart.PhysActor != null)
+                {
+                    linkPart.PhysActor = m_scene.PhysScene.AddPrimShape(
+                        linkPart.Name,
+                        linkPart.Shape,
+                        new PhysicsVector(linkPart.AbsolutePosition.X, linkPart.AbsolutePosition.Y,
+                                          linkPart.AbsolutePosition.Z),
+                        new PhysicsVector(linkPart.Scale.X, linkPart.Scale.Y, linkPart.Scale.Z),
+                        new Quaternion(linkPart.RotationOffset.W, linkPart.RotationOffset.X,
+                                       linkPart.RotationOffset.Y, linkPart.RotationOffset.Z),
+                        m_rootPart.PhysActor.IsPhysical);
+                }                
+                
+                SceneObjectGroup objectGroup = new SceneObjectGroup(m_scene, m_regionHandle, linkPart);                
+                
+                m_scene.AddEntity(objectGroup);   
+            
+                ScheduleGroupForFullUpdate();
+            }
+            else
+            {
+                OpenSim.Framework.Console.MainLog.Instance.Verbose(
+                    "DelinkFromGroup(): Child prim local id {0} not found in object with root prim id {1}",
+                    partID, LocalId);
+            }            
+        }
 
         private void DetachFromBackup(SceneObjectGroup objectGroup)
         {
             m_scene.EventManager.OnBackup -= objectGroup.ProcessBackup;
         }
-
 
         private void LinkNonRootPart(SceneObjectPart part, Vector3 oldGroupPosition, Quaternion oldGroupRotation)
         {

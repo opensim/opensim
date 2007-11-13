@@ -223,7 +223,7 @@ namespace OpenSim.Region.ClientStack
                         #region Objects/m_sceneObjects
 
                     case PacketType.ObjectLink:
-                        // OpenSim.Framework.Console.MainLog.Instance.Verbose( Pack.ToString());
+                        //OpenSim.Framework.Console.MainLog.Instance.Verbose( Pack.ToString());
                         ObjectLinkPacket link = (ObjectLinkPacket) Pack;
                         uint parentprimid = 0;
                         List<uint> childrenprims = new List<uint>();
@@ -240,6 +240,26 @@ namespace OpenSim.Region.ClientStack
                         {
                             OnLinkObjects(parentprimid, childrenprims);
                         }
+                        break;
+                    case PacketType.ObjectDelink:
+                        //OpenSim.Framework.Console.MainLog.Instance.Verbose( Pack.ToString());
+                        ObjectDelinkPacket delink = (ObjectDelinkPacket) Pack;
+                        
+                        // It appears the prim at index 0 is not always the root prim (for
+                        // instance, when one prim of a link set has been edited independently
+                        // of the others).  Therefore, we'll pass all the ids onto the delink
+                        // method for it to decide which is the root.
+                        List<uint> prims = new List<uint>();
+                        for (int i = 0; i < delink.ObjectData.Length; i++)
+                        {
+                            prims.Add(delink.ObjectData[i].ObjectLocalID);                        
+                        }
+                        
+                        if (OnDelinkObjects != null)
+                        {                        
+                            OnDelinkObjects(prims);
+                        }
+
                         break;
                     case PacketType.ObjectAdd:
                         if (OnAddPrim != null)
