@@ -44,11 +44,12 @@ namespace OpenSim.DataStore.MonoSqlite
     {
         private const string primSelect = "select * from prims";
         private const string shapeSelect = "select * from primshapes";
-        private const string terrainSelect = "select * from terrain";
+        private const string terrainSelect = "select * from terrain limit 1";
 
         private DataSet ds;
         private SqliteDataAdapter primDa;
         private SqliteDataAdapter shapeDa;
+        private SqliteConnection conn;
         private SqliteDataAdapter terrainDa;
 
         /***********************************************************************
@@ -64,7 +65,7 @@ namespace OpenSim.DataStore.MonoSqlite
             ds = new DataSet();
 
             MainLog.Instance.Verbose("DATASTORE", "Sqlite - connecting: " + dbfile);
-            SqliteConnection conn = new SqliteConnection(connectionString);
+            conn = new SqliteConnection(connectionString);
 
             SqliteCommand primSelectCmd = new SqliteCommand(primSelect, conn);
             primDa = new SqliteDataAdapter(primSelectCmd);
@@ -245,17 +246,20 @@ namespace OpenSim.DataStore.MonoSqlite
         public void StoreTerrain(double[,] ter, LLUUID regionID)
         {
             int revision = Util.UnixTimeSinceEpoch();
-
             MainLog.Instance.Verbose("DATASTORE", "Storing terrain revision r" + revision.ToString());
 
             DataTable terrain = ds.Tables["terrain"];
             lock (ds)
             {
-                DataRow newrow = terrain.NewRow();
-                fillTerrainRow(newrow, regionID, revision, ter);
-                terrain.Rows.Add(newrow);
-
-                Commit();
+                SqliteCommand cmd = new SqliteCommand("insert into terrain(RegionUUID, Revision, Heightfield)" +
+                                                      "values(:RegionUUID, :Revision, :Heightfield)", conn);
+                using(cmd) 
+                {
+                    cmd.Parameters.Add(":RegionUUID", regionID);
+                    cmd.Parameters.Add(":Revision", revision);
+                    cmd.Parameters.Add(":Heightfield", serializeTerrain(ter));
+                    cmd.ExecuteNonQuery();
+                }
             }
         }
 
@@ -264,18 +268,15 @@ namespace OpenSim.DataStore.MonoSqlite
             double[,] terret = new double[256,256];
             terret.Initialize();
 
-            DataTable terrain = ds.Tables["terrain"];
+            SqliteCommand cmd = new SqliteCommand("select RegionUUID, Revision, Heightfield from terrain" + 
+                                                  "where RegionUUID=:RegionUUID order by Revision desc limit 1", conn);
+            cmd.Parameters.Add(":RegionUUID", regionID);
 
-            lock (ds)
+            using (SqliteDataReader row = cmd.ExecuteReader(CommandBehavior.SingleRow))
             {
-                DataRow[] rows = terrain.Select("RegionUUID = '" + regionID.ToString() + "'", "Revision DESC");
-
                 int rev = 0;
-
-                if (rows.Length > 0)
+                if (row.Read())
                 {
-                    DataRow row = rows[0];
-
                     byte[] heightmap = (byte[]) row["Heightfield"];
                     for (int x = 0; x < 256; x++)
                     {
@@ -284,15 +285,13 @@ namespace OpenSim.DataStore.MonoSqlite
                             terret[x, y] = BitConverter.ToDouble(heightmap, ((x*256) + y)*8);
                         }
                     }
-
-                    rev = (int) row["Revision"];
+                    rev = (int)row["Revision"];
                 }
                 else
                 {
                     MainLog.Instance.Verbose("DATASTORE", "No terrain found for region");
                     return null;
                 }
-
 
                 MainLog.Instance.Verbose("DATASTORE", "Loaded terrain revision r" + rev.ToString());
             }
@@ -522,11 +521,8 @@ namespace OpenSim.DataStore.MonoSqlite
             return prim;
         }
 
-        private void fillTerrainRow(DataRow row, LLUUID regionUUID, int rev, double[,] val)
+        private Array serializeTerrain(double[,] val) 
         {
-            row["RegionUUID"] = regionUUID;
-            row["Revision"] = rev;
-
             MemoryStream str = new MemoryStream(65536*sizeof (double));
             BinaryWriter bw = new BinaryWriter(str);
 
@@ -535,8 +531,24 @@ namespace OpenSim.DataStore.MonoSqlite
                 for (int y = 0; y < 256; y++)
                     bw.Write(val[x, y]);
 
-            row["Heightfield"] = str.ToArray();
+            return str.ToArray();
         }
+
+//         private void fillTerrainRow(DataRow row, LLUUID regionUUID, int rev, double[,] val)
+//         {
+//             row["RegionUUID"] = regionUUID;
+//             row["Revision"] = rev;
+
+//             MemoryStream str = new MemoryStream(65536*sizeof (double));
+//             BinaryWriter bw = new BinaryWriter(str);
+
+//             // TODO: COMPATIBILITY - Add byte-order conversions
+//             for (int x = 0; x < 256; x++)
+//                 for (int y = 0; y < 256; y++)
+//                     bw.Write(val[x, y]);
+
+//             row["Heightfield"] = str.ToArray();
+//         }
 
         private void fillPrimRow(DataRow row, SceneObjectPart prim, LLUUID sceneGroupID, LLUUID regionUUID)
         {
