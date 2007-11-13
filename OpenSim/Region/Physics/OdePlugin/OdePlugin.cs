@@ -539,28 +539,28 @@ namespace OpenSim.Region.Physics.OdePlugin
                         /// debugging code
                         float Zoff = -33.0f;
                         d.Matrix3 temp = d.BodyGetRotation(actor.Body);
-                        Console.WriteLine("RENDER: cylinder; " + // shape
-                                          OdeCharacter.CAPSULE_RADIUS + ", " + OdeCharacter.CAPSULE_LENGTH + //size
-                                          "; 0, 1, 0;  " + // color
-                                          (actor.Position.X - 128.0f) + ", " + (actor.Position.Y - 128.0f) + ", " +
-                                          (actor.Position.Z + Zoff) + ";  " + // position
-                                          temp.M00 + "," + temp.M10 + "," + temp.M20 + ", " + // rotation
-                                          temp.M01 + "," + temp.M11 + "," + temp.M21 + ", " +
-                                          temp.M02 + "," + temp.M12 + "," + temp.M22);
+                        //Console.WriteLine("RENDER: cylinder; " + // shape
+                                          //OdeCharacter.CAPSULE_RADIUS + ", " + OdeCharacter.CAPSULE_LENGTH + //size
+                                          //"; 0, 1, 0;  " + // color
+                                          //(actor.Position.X - 128.0f) + ", " + (actor.Position.Y - 128.0f) + ", " +
+                                          //(actor.Position.Z + Zoff) + ";  " + // position
+                                          //temp.M00 + "," + temp.M10 + "," + temp.M20 + ", " + // rotation
+                                          //temp.M01 + "," + temp.M11 + "," + temp.M21 + ", " +
+                                          //temp.M02 + "," + temp.M12 + "," + temp.M22);
                         d.Vector3 caphead;
-                        d.BodyGetRelPointPos(actor.Body, 0, 0, OdeCharacter.CAPSULE_LENGTH*.5f, out caphead);
+                        //d.BodyGetRelPointPos(actor.Body, 0, 0, OdeCharacter.CAPSULE_LENGTH*.5f, out caphead);
                         d.Vector3 capfoot;
-                        d.BodyGetRelPointPos(actor.Body, 0, 0, -OdeCharacter.CAPSULE_LENGTH*.5f, out capfoot);
-                        Console.WriteLine("RENDER: sphere;  " + OdeCharacter.CAPSULE_RADIUS + // shape, size
-                                          "; 1, 0, 1;  " + //color
-                                          (caphead.X - 128.0f) + ", " + (caphead.Y - 128.0f) + ", " + (caphead.Z + Zoff) +
-                                          ";  " + // position
-                                          "1,0,0, 0,1,0, 0,0,1"); // rotation
-                        Console.WriteLine("RENDER: sphere;  " + OdeCharacter.CAPSULE_RADIUS + // shape, size
-                                          "; 1, 0, 0;  " + //color
-                                          (capfoot.X - 128.0f) + ", " + (capfoot.Y - 128.0f) + ", " + (capfoot.Z + Zoff) +
-                                          ";  " + // position
-                                          "1,0,0, 0,1,0, 0,0,1"); // rotation
+                        //d.BodyGetRelPointPos(actor.Body, 0, 0, -OdeCharacter.CAPSULE_LENGTH*.5f, out capfoot);
+                        //Console.WriteLine("RENDER: sphere;  " + OdeCharacter.CAPSULE_RADIUS + // shape, size
+                                          //"; 1, 0, 1;  " + //color
+                                          //(caphead.X - 128.0f) + ", " + (caphead.Y - 128.0f) + ", " + (caphead.Z + Zoff) +
+                                          //";  " + // position
+                                          ///"1,0,0, 0,1,0, 0,0,1"); // rotation
+                       // Console.WriteLine("RENDER: sphere;  " + OdeCharacter.CAPSULE_RADIUS + // shape, size
+                                          //"; 1, 0, 0;  " + //color
+                                          //(capfoot.X - 128.0f) + ", " + (capfoot.Y - 128.0f) + ", " + (capfoot.Z + Zoff) +
+                                          //";  " + // position
+                                          //"1,0,0, 0,1,0, 0,0,1"); // rotation
                     }
                 }
                 if (timeStep < 0.2f)
@@ -656,11 +656,12 @@ namespace OpenSim.Region.Physics.OdePlugin
         private static float PID_P = 7000.0f;
         private static float POSTURE_SERVO = 10000.0f;
         public static float CAPSULE_RADIUS = 0.5f;
-        public static float CAPSULE_LENGTH = 0.79f;
+        public float CAPSULE_LENGTH = 0.79f;
         private bool flying = false;
         private bool m_iscolliding = false;
         private bool m_wascolliding = false;
         private bool m_alwaysRun = false;
+        private string m_name = "";
         
         private bool[] m_colliderarr = new bool[11];
 
@@ -695,6 +696,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                 d.BodySetPosition(Body, pos.X, pos.Y, pos.Z);
                 d.GeomSetBody(Shell, Body);
             }
+            m_name = avName;
             parent_scene.geom_name_map[Shell] = avName;
             parent_scene.actor_name_map[Shell] = (PhysicsActor)this;
         }
@@ -802,7 +804,26 @@ namespace OpenSim.Region.Physics.OdePlugin
         public override PhysicsVector Size
         {
             get { return new PhysicsVector(CAPSULE_RADIUS*2, CAPSULE_RADIUS*2, CAPSULE_LENGTH); }
-            set { }
+            set {
+                lock (OdeScene.OdeLock)
+                {
+                    PhysicsVector SetSize = value;
+                    float prevCapsule = CAPSULE_LENGTH;
+
+                    CAPSULE_LENGTH = (SetSize.Z - (CAPSULE_RADIUS * 2))/ 1.75f; //;
+                    d.BodyDestroy(Body);
+                    d.GeomDestroy(Shell);
+                    //OpenSim.Framework.Console.MainLog.Instance.Verbose("PHYSICS", "Set Avatar Height To: " + (CAPSULE_RADIUS + CAPSULE_LENGTH));
+                    Shell = d.CreateCapsule(_parent_scene.space, CAPSULE_RADIUS, CAPSULE_LENGTH);
+                    d.MassSetCapsule(out ShellMass, 50.0f, 3, CAPSULE_RADIUS, CAPSULE_LENGTH);
+                    Body = d.BodyCreate(_parent_scene.world);
+                    d.BodySetMass(Body, ref ShellMass);
+                    d.BodySetPosition(Body, _position.X, _position.Y, _position.Z + Math.Abs(CAPSULE_LENGTH-prevCapsule));
+                    d.GeomSetBody(Shell, Body);
+                }
+                _parent_scene.geom_name_map[Shell] = m_name;
+                _parent_scene.actor_name_map[Shell] = (PhysicsActor)this;
+            }
         }
 
         public override PrimitiveBaseShape Shape

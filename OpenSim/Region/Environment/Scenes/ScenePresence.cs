@@ -67,6 +67,7 @@ namespace OpenSim.Region.Environment.Scenes
         private bool m_newForce = false;
         private bool m_newAvatar = false;
         private bool m_newCoarseLocations = true;
+        private float m_avHeight = 127.0f;
 
         protected RegionInfo m_regionInfo;
         protected ulong crossingFromRegion = 0;
@@ -442,12 +443,25 @@ namespace OpenSim.Region.Environment.Scenes
         {
             LLObject.TextureEntry textureEnt = new LLObject.TextureEntry(texture, 0, texture.Length);
             m_textureEntry = textureEnt;
-
+            
             for (int i = 0; i < visualParam.Length; i++)
             {
                 m_visualParams[i] = visualParam[i].ParamValue;
+                //OpenSim.Framework.Console.MainLog.Instance.Verbose("CLIENT", "VisualData[" + i.ToString() + "]: " + visualParam[i].ParamValue.ToString() + "m");
+                
             }
-
+            
+            // Teravus : Nifty AV Height Getting Maaaaagical formula.  Oh how we love turning 0-255 into meters.
+            // (float)m_visualParams[25] = Height
+            // (float)m_visualParams[125] = LegLength
+            m_avHeight = (1.50856f + (((float)m_visualParams[25] / 255.0f) * (2.525506f - 1.50856f)))
+                + (((float)m_visualParams[125] / 255.0f) / 1.5f);
+            if (PhysicsActor != null)
+            {
+                PhysicsVector SetSize = new PhysicsVector(0, 0, m_avHeight);
+                PhysicsActor.Size = SetSize;
+            }
+            //OpenSim.Framework.Console.MainLog.Instance.Verbose("CLIENT", "Set Avatar Height to: " + (1.50856f + (((float)m_visualParams[25] / 255.0f) * (2.525506f - 1.50856f))).ToString() + "m" + " Leglength: " + ((float)m_visualParams[125]).ToString() + ":" + (((float)m_visualParams[125] / 255.0f)).ToString() + "m");
             SendAppearanceToAllOtherAgents();
         }
 
