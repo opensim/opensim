@@ -246,49 +246,47 @@ namespace OpenSim.DataStore.MonoSqlite
         public void StoreTerrain(double[,] ter, LLUUID regionID)
         {
             int revision = Util.UnixTimeSinceEpoch();
+
+            // the following is an work around for .NET.  The perf
+            // issues associated with it aren't as bad as you think.
             SqliteConnection conn = new SqliteConnection(connectionString);
             conn.Open();
             MainLog.Instance.Verbose("DATASTORE", "Storing terrain revision r" + revision.ToString());
+            String sql = "insert into terrain(RegionUUID, Revision, Heightfield)" +
+                " values(:RegionUUID, :Revision, :Heightfield)";
 
-            DataTable terrain = ds.Tables["terrain"];
-            lock (ds)
+            using(SqliteCommand cmd = new SqliteCommand(sql, conn))
             {
-                SqliteCommand cmd = new SqliteCommand("insert into terrain(RegionUUID, Revision, Heightfield)" +
-                                                      " values(:RegionUUID, :Revision, :Heightfield)", conn);
-                using(cmd) 
-                {
-                    
-                    cmd.Parameters.Add(new SqliteParameter(":RegionUUID", regionID.ToString()));
-                    cmd.Parameters.Add(new SqliteParameter(":Revision", revision));
-                    cmd.Parameters.Add(new SqliteParameter(":Heightfield", serializeTerrain(ter)));
-                    cmd.ExecuteNonQuery();
-                }
+                cmd.Parameters.Add(new SqliteParameter(":RegionUUID", regionID.ToString()));
+                cmd.Parameters.Add(new SqliteParameter(":Revision", revision));
+                cmd.Parameters.Add(new SqliteParameter(":Heightfield", serializeTerrain(ter)));
+                cmd.ExecuteNonQuery();
             }
             conn.Close();
         }
 
         public double[,] LoadTerrain(LLUUID regionID)
         {
-            SqliteConnection conn = new SqliteConnection(connectionString);
-            conn.Open();
             double[,] terret = new double[256,256];
             terret.Initialize();
+            // the following is an work around for .NET.  The perf
+            // issues associated with it aren't as bad as you think.
+            SqliteConnection conn = new SqliteConnection(connectionString);
+            conn.Open();
             String sql = "select RegionUUID, Revision, Heightfield from terrain" + 
-              " where RegionUUID='" + regionID.ToString() + "' order by Revision desc";
+              " where RegionUUID=:RegionUUID order by Revision desc";
 
-            using (IDbCommand cmd = conn.CreateCommand())
+            
+            using (SqliteCommand cmd = new SqliteCommand(sql, conn))
             {
-                cmd.CommandText = sql;
-                // SqliteParameter param = new SqliteParameter(":RegionUUID", regionID.ToString());
-//                 param.SourceColumn = "RegionUUID";
-//                 param.SourceVersion = DataRowVersion.Current;
-//                 cmd.Parameters.Add(param);
+                cmd.Parameters.Add(new SqliteParameter(":RegionUUID", regionID.ToString()));
 
                 using (IDataReader row = cmd.ExecuteReader())
                 {
                     int rev = 0;
                     if (row.Read())
                     {
+                        // TODO: put this into a function
                         byte[] heightmap = (byte[]) row["Heightfield"];
                         for (int x = 0; x < 256; x++)
                         {
