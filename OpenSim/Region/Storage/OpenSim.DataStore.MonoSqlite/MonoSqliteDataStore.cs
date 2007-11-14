@@ -247,6 +247,7 @@ namespace OpenSim.DataStore.MonoSqlite
         {
             int revision = Util.UnixTimeSinceEpoch();
             SqliteConnection conn = new SqliteConnection(connectionString);
+            conn.Open();
             MainLog.Instance.Verbose("DATASTORE", "Storing terrain revision r" + revision.ToString());
 
             DataTable terrain = ds.Tables["terrain"];
@@ -263,11 +264,13 @@ namespace OpenSim.DataStore.MonoSqlite
                     cmd.ExecuteNonQuery();
                 }
             }
+            conn.Close();
         }
 
         public double[,] LoadTerrain(LLUUID regionID)
         {
             SqliteConnection conn = new SqliteConnection(connectionString);
+            conn.Open();
             double[,] terret = new double[256,256];
             terret.Initialize();
             String sql = "select RegionUUID, Revision, Heightfield from terrain" + 
@@ -299,12 +302,14 @@ namespace OpenSim.DataStore.MonoSqlite
                     else
                     {
                         MainLog.Instance.Verbose("DATASTORE", "No terrain found for region");
+                        conn.Close();
                         return null;
                     }
                     
                     MainLog.Instance.Verbose("DATASTORE", "Loaded terrain revision r" + rev.ToString());
                 }
             }
+            conn.Close();
             return terret;
         }
 
