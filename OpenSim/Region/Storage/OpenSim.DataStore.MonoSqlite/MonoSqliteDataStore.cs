@@ -269,15 +269,15 @@ namespace OpenSim.DataStore.MonoSqlite
             double[,] terret = new double[256,256];
             terret.Initialize();
             String sql = "select RegionUUID, Revision, Heightfield from terrain" + 
-                " where RegionUUID=:RegionUUID order by Revision desc limit 1";
+              " where RegionUUID='" + regionID.ToString() + "' order by Revision desc limit 1";
 
             using (IDbCommand cmd = conn.CreateCommand())
             {
                 cmd.CommandText = sql;
-                SqliteParameter param = new SqliteParameter(":RegionUUID", regionID.ToString());
-                param.SourceColumn = "RegionUUID";
-                param.SourceVersion = DataRowVersion.Current;
-                cmd.Parameters.Add(param);
+                // SqliteParameter param = new SqliteParameter(":RegionUUID", regionID.ToString());
+//                 param.SourceColumn = "RegionUUID";
+//                 param.SourceVersion = DataRowVersion.Current;
+//                 cmd.Parameters.Add(param);
 
                 using (IDataReader row = cmd.ExecuteReader())
                 {
