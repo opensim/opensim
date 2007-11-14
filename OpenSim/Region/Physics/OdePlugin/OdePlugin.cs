@@ -89,6 +89,8 @@ namespace OpenSim.Region.Physics.OdePlugin
         private d.ContactGeom[] contacts = new d.ContactGeom[30];
         private d.Contact contact;
         private d.Contact TerrainContact;
+        private d.Contact AvatarMovementprimContact;
+        private d.Contact AvatarMovementTerrainContact;
         
         private int m_physicsiterations = 10;
         private float m_SkipFramesAtms = 0.40f; // Drop frames gracefully at a 400 ms lag
@@ -116,10 +118,19 @@ namespace OpenSim.Region.Physics.OdePlugin
             
             contact.surface.mu = 250.0f;
             contact.surface.bounce = 0.2f;
+
             TerrainContact.surface.mode |= d.ContactFlags.SoftERP;
             TerrainContact.surface.mu = 250.0f;
             TerrainContact.surface.bounce = 0.1f;
             TerrainContact.surface.soft_erp = 0.1025f;
+
+            AvatarMovementprimContact.surface.mu = 150.0f;
+            AvatarMovementprimContact.surface.bounce = 0.2f;
+
+            AvatarMovementTerrainContact.surface.mode |= d.ContactFlags.SoftERP;
+            AvatarMovementTerrainContact.surface.mu = 150.0f;
+            AvatarMovementTerrainContact.surface.bounce = 0.1f;
+            AvatarMovementTerrainContact.surface.soft_erp = 0.1025f;
 
             lock (OdeLock)
             {
@@ -195,23 +206,6 @@ namespace OpenSim.Region.Physics.OdePlugin
                 IntPtr joint;
                 // If we're colliding with terrain, use 'TerrainContact' instead of contact.
                 // allows us to have different settings
-                if (name1 == "Terrain" || name2 == "Terrain")
-                {
-                    
-                        TerrainContact.geom = contacts[i];
-                        joint = d.JointCreateContact(world, contactgroup, ref TerrainContact);
-                    
-                }
-                else
-                { 
-                    contact.geom = contacts[i];
-                    joint = d.JointCreateContact(world, contactgroup, ref contact);
-                }
-                
-                
-                d.JointAttach(joint, b1, b2);
-
-
                 PhysicsActor p1;
                 PhysicsActor p2;
 
@@ -226,6 +220,7 @@ namespace OpenSim.Region.Physics.OdePlugin
 
                 // We only need to test p2 for 'jump crouch purposes'
                 p2.IsColliding = true;
+
                 switch(p1.PhysicsActorType) {
                     case (int)ActorTypes.Agent:
                         p2.CollidingObj = true;
@@ -237,6 +232,43 @@ namespace OpenSim.Region.Physics.OdePlugin
                         p2.CollidingGround = true;
                         break;
                 }
+
+                if (name1 == "Terrain" || name2 == "Terrain")
+                {
+                    if ((p2.PhysicsActorType == (int)ActorTypes.Agent) && (Math.Abs(p2.Velocity.X) > 0.01f || Math.Abs(p2.Velocity.Y) > 0.01f))
+                    {
+                        AvatarMovementTerrainContact.geom = contacts[i];
+                        joint = d.JointCreateContact(world, contactgroup, ref AvatarMovementTerrainContact);
+                    }
+                    else
+                    {
+                        TerrainContact.geom = contacts[i];
+                        joint = d.JointCreateContact(world, contactgroup, ref TerrainContact);
+                    }
+                        
+                    
+                }
+                else
+                {
+                    if ((p2.PhysicsActorType == (int)ActorTypes.Agent) && (Math.Abs(p2.Velocity.X) > 0.01f || Math.Abs(p2.Velocity.Y) > 0.01f))
+                    {
+                        AvatarMovementprimContact.geom = contacts[i];
+                        joint = d.JointCreateContact(world, contactgroup, ref AvatarMovementprimContact);
+                    }
+                    else
+                    {
+                        contact.geom = contacts[i];
+                        joint = d.JointCreateContact(world, contactgroup, ref contact);
+                        
+                    }
+                    
+                }
+                
+                
+                d.JointAttach(joint, b1, b2);
+
+
+                
                 if (count > 3)
                 {
                     p2.ThrottleUpdates = true;
@@ -652,7 +684,7 @@ namespace OpenSim.Region.Physics.OdePlugin
         private PhysicsVector _target_velocity;
         private PhysicsVector _acceleration;
         private PhysicsVector m_rotationalVelocity;
-        private static float PID_D = 4000.0f;
+        private static float PID_D = 3020.0f;
         private static float PID_P = 7000.0f;
         private static float POSTURE_SERVO = 10000.0f;
         public static float CAPSULE_RADIUS = 0.5f;
@@ -955,11 +987,11 @@ namespace OpenSim.Region.Physics.OdePlugin
 
             if (!m_alwaysRun)
             {
-                movementdivisor = 10.5f;
+                movementdivisor = 1.3f;
             }
             else
             {
-                movementdivisor = 0.2079f;
+                movementdivisor = 0.8f;
                 
             }
 
@@ -987,8 +1019,8 @@ namespace OpenSim.Region.Physics.OdePlugin
                 if (m_iscolliding || flying)
                 {
 
-                    vec.X = ((_target_velocity.X - vel.X)/movementdivisor) * PID_D;
-                    vec.Y = ((_target_velocity.Y - vel.Y)/movementdivisor) * PID_D;
+                    vec.X = ((_target_velocity.X/movementdivisor) - vel.X) * PID_D;
+                    vec.Y = ((_target_velocity.Y/movementdivisor) - vel.Y) * PID_D;
                 }
                 if (m_iscolliding && !flying && _target_velocity.Z > 0.0f)
                 {
