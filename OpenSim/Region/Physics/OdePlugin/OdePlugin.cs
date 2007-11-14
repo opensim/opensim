@@ -405,7 +405,10 @@ namespace OpenSim.Region.Physics.OdePlugin
         {
             lock (OdeLock)
             {
-                _activeprims.Remove(deactivatePrim);
+                lock (_activeprims)
+                {
+                    _activeprims.Remove(deactivatePrim);
+                }
             }
         }
         public int TriArrayCallback(IntPtr trimesh, IntPtr refObject, int[] triangleIndex, int triCount)
@@ -1174,7 +1177,12 @@ namespace OpenSim.Region.Physics.OdePlugin
             _mesh = mesh;
             _pbs = pbs;
             _parent_scene = parent_scene;
+            
+            if (pos.Z < 0)
+                m_isphysical = false;
+            else 
             m_isphysical = pisPhysical;
+
             m_primName = primName;
             
             
@@ -1581,19 +1589,21 @@ namespace OpenSim.Region.Physics.OdePlugin
                     // Sim resources and memory.
                     // Disables the prim's movement physics....  
                     // It's a hack and will generate a console message if it fails.
-
-                    try
+                    lock (OdeScene.OdeLock)
                     {
-                        disableBody();
-
-                    }
-                    catch (System.Exception e)
-                    {
-                        if (Body != (IntPtr)0)
+                        try
                         {
-                            d.BodyDestroy(Body);
-                            Body = (IntPtr)0;
+                            disableBody();
 
+                        }
+                        catch (System.Exception e)
+                        {
+                            if (Body != (IntPtr)0)
+                            {
+                                d.BodyDestroy(Body);
+                                Body = (IntPtr)0;
+
+                            }
                         }
                     }
                     
