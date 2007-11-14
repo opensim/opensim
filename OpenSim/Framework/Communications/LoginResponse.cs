@@ -141,8 +141,8 @@ namespace OpenSim.Framework.UserManagement
             allowFirstLife = "Y";
 
             SunTexture = "cce0f112-878f-4586-a2e2-a8f104bba271";
-            CloudTexture = "fc4b9f0b-d008-45c6-96a4-01dd947ac621";
-            MoonTexture = "fc4b9f0b-d008-45c6-96a4-01dd947ac621";
+            CloudTexture = "dc4b9f0b-d008-45c6-96a4-01dd947ac621";
+            MoonTexture = "ec4b9f0b-d008-45c6-96a4-01dd947ac621";
 
             ErrorMessage = "You have entered an invalid name/password combination.  Check Caps/lock.";
             ErrorReason = "key";

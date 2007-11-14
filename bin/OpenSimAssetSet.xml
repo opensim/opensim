@@ -470,10 +470,17 @@
     <Key Name="fileName" Value="newpants.dat"/>
   </Section>
   <Section Name="Moon">
-    <Key Name="assetID" Value="fc4b9f0b-d008-45c6-96a4-01dd947ac621"/>
+    <Key Name="assetID" Value="ec4b9f0b-d008-45c6-96a4-01dd947ac621"/>
     <Key Name="name" Value="Moon"/>
     <Key Name="assetType" Value="0" />
     <Key Name="inventoryType" Value="0" />
     <Key Name="fileName" Value="moon.jp2"/>
+  </Section>
+  <Section Name="Cloud">
+    <Key Name="assetID" Value="dc4b9f0b-d008-45c6-96a4-01dd947ac621"/>
+    <Key Name="name" Value="Cloud"/>
+    <Key Name="assetType" Value="0" />
+    <Key Name="inventoryType" Value="0" />
+    <Key Name="fileName" Value="cloud.jp2"/>
   </Section>
 </Nini>
