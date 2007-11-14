@@ -298,12 +298,13 @@ namespace OpenSim.Region.ClientStack
                         break;
                     case PacketType.ObjectDuplicate:
                         ObjectDuplicatePacket dupe = (ObjectDuplicatePacket) Pack;
+                        ObjectDuplicatePacket.AgentDataBlock AgentandGroupData = dupe.AgentData;
                         for (int i = 0; i < dupe.ObjectData.Length; i++)
                         {
                             if (OnObjectDuplicate != null)
                             {
                                 OnObjectDuplicate(dupe.ObjectData[i].ObjectLocalID, dupe.SharedData.Offset,
-                                                  dupe.SharedData.DuplicateFlags);
+                                                  dupe.SharedData.DuplicateFlags, AgentandGroupData.AgentID, AgentandGroupData.GroupID);
                             }
                         }
 

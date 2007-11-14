@@ -520,13 +520,15 @@ namespace OpenSim.Region.Environment.Scenes
         /// 
         /// </summary>
         /// <returns></returns>
-        public SceneObjectPart Copy(uint localID)
+        public SceneObjectPart Copy(uint localID, LLUUID AgentID, LLUUID GroupID)
         {
             SceneObjectPart dupe = (SceneObjectPart) MemberwiseClone();
             dupe.m_shape = m_shape.Copy();
             dupe.m_regionHandle = m_regionHandle;
             dupe.UUID = LLUUID.Random();
             dupe.LocalID = localID;
+            dupe.OwnerID = AgentID;
+            dupe.GroupID = GroupID;
             dupe.GroupPosition = new LLVector3(GroupPosition.X, GroupPosition.Y, GroupPosition.Z);
             dupe.OffsetPosition = new LLVector3(OffsetPosition.X, OffsetPosition.Y, OffsetPosition.Z);
             dupe.RotationOffset =

@@ -593,7 +593,7 @@ namespace OpenSim.Region.Environment.Scenes
         /// <param name="originalPrim"></param>
         /// <param name="offset"></param>
         /// <param name="flags"></param>
-        public void DuplicateObject(uint originalPrim, LLVector3 offset, uint flags)
+        public void DuplicateObject(uint originalPrim, LLVector3 offset, uint flags, LLUUID AgentID, LLUUID GroupID)
         {
             SceneObjectGroup originPrim = null;
             foreach (EntityBase ent in Entities.Values)
@@ -610,7 +610,7 @@ namespace OpenSim.Region.Environment.Scenes
 
             if (originPrim != null)
             {
-                SceneObjectGroup copy = originPrim.Copy();
+                SceneObjectGroup copy = originPrim.Copy(AgentID, GroupID);
                 copy.AbsolutePosition = copy.AbsolutePosition + offset;
                 Entities.Add(copy.UUID, copy);
 

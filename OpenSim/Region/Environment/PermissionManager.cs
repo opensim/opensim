@@ -139,9 +139,12 @@ namespace OpenSim.Region.Environment
 
             SceneObjectGroup task = (SceneObjectGroup) m_scene.Entities[objId];
             LLUUID taskOwner = null;
+            // Added this because at this point in time it wouldn't be wise for 
+            // the administrator object permissions to take effect.
+            LLUUID objectOwner = task.OwnerID;
 
             // Object owners should be able to edit their own content
-            if (user == taskOwner)
+            if (user == objectOwner)
                 permission = true;
 
             // Users should be able to edit what is over their land.

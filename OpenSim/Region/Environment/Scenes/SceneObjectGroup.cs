@@ -73,7 +73,11 @@ namespace OpenSim.Region.Environment.Scenes
         {
             get { return m_rootPart.RotationOffset; }
         }
-
+        public LLUUID GroupID
+        {
+            get { return m_rootPart.GroupID; }
+            set { m_rootPart.GroupID = value; }
+        }
         /// <summary>
         /// 
         /// </summary>
@@ -165,6 +169,7 @@ namespace OpenSim.Region.Environment.Scenes
         public LLUUID OwnerID
         {
             get { return m_rootPart.OwnerID; }
+            set { m_rootPart.OwnerID = value; }
         }
 
         public Color Color 
@@ -447,15 +452,18 @@ namespace OpenSim.Region.Environment.Scenes
         /// 
         /// </summary>
         /// <returns></returns>
-        public new SceneObjectGroup Copy()
+        public new SceneObjectGroup Copy(LLUUID cAgentID, LLUUID cGroupID)
         {
             SceneObjectGroup dupe = (SceneObjectGroup) MemberwiseClone();
             dupe.m_parts = new Dictionary<LLUUID, SceneObjectPart>();
             dupe.m_parts.Clear();
+            //dupe.OwnerID = AgentID;
+            //dupe.GroupID = GroupID;
             dupe.AbsolutePosition = new LLVector3(AbsolutePosition.X, AbsolutePosition.Y, AbsolutePosition.Z);
             dupe.m_scene = m_scene;
             dupe.m_regionHandle = m_regionHandle;
-            dupe.CopyRootPart(m_rootPart);
+            dupe.CopyRootPart(m_rootPart, OwnerID, GroupID);
+
 
             /// may need to create a new Physics actor.
             if (dupe.RootPart.PhysActor != null)
@@ -472,18 +480,29 @@ namespace OpenSim.Region.Environment.Scenes
                                    dupe.RootPart.RotationOffset.Y, dupe.RootPart.RotationOffset.Z),
                                    dupe.RootPart.PhysActor.IsPhysical);
             }
+            // Now we've made a copy that replaces this one, we need to 
+            // switch the owner to the person who did the copying
+            // Second Life copies an object and duplicates the first one in it's place
+            // So, we have to make a copy of this one, set it in it's place then set the owner on this one
+
+            SetRootPartOwner(m_rootPart, cAgentID, cGroupID);
+            m_rootPart.ScheduleFullUpdate();
 
             List<SceneObjectPart> partList = new List<SceneObjectPart>(m_parts.Values);
             foreach (SceneObjectPart part in partList)
             {
                 if (part.UUID != m_rootPart.UUID)
                 {
-                    dupe.CopyPart(part);
+                    dupe.CopyPart(part,OwnerID, GroupID);
+                    SetPartOwner(part, cAgentID, cGroupID);
+                    part.ScheduleFullUpdate();
+
                 }
             }
             dupe.UpdateParentIDs();
 
             dupe.AttachToBackup();
+            ScheduleGroupForFullUpdate();
 
             return dupe;
         }
@@ -492,24 +511,34 @@ namespace OpenSim.Region.Environment.Scenes
         /// 
         /// </summary>
         /// <param name="part"></param>
-        public void CopyRootPart(SceneObjectPart part)
+        public void CopyRootPart(SceneObjectPart part, LLUUID cAgentID, LLUUID cGroupID)
         {
-            SceneObjectPart newPart = part.Copy(m_scene.PrimIDAllocate());
+            SceneObjectPart newPart = part.Copy(m_scene.PrimIDAllocate(), OwnerID, GroupID);
             newPart.SetParent(this);
             m_parts.Add(newPart.UUID, newPart);
             SetPartAsRoot(newPart);
+        }
+        public void SetRootPartOwner(SceneObjectPart part, LLUUID cAgentID, LLUUID cGroupID) {
+            part.OwnerID = cAgentID;
+            part.GroupID = cGroupID;
+            part.ScheduleFullUpdate();
         }
 
         /// <summary>
         /// 
         /// </summary>
         /// <param name="part"></param>
-        public void CopyPart(SceneObjectPart part)
+        public void CopyPart(SceneObjectPart part, LLUUID cAgentID, LLUUID cGroupID)
         {
-            SceneObjectPart newPart = part.Copy(m_scene.PrimIDAllocate());
+            SceneObjectPart newPart = part.Copy(m_scene.PrimIDAllocate(), OwnerID, GroupID);
             newPart.SetParent(this);
             m_parts.Add(newPart.UUID, newPart);
             SetPartAsNonRoot(newPart);
+        }
+        public void SetPartOwner(SceneObjectPart part, LLUUID cAgentID, LLUUID cGroupID)
+        {
+            part.OwnerID = cAgentID;
+            part.GroupID = cGroupID;
         }
 
         #endregion

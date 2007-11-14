@@ -217,7 +217,7 @@ namespace OpenSim.Framework
 
     public delegate void UpdatePrimGroupRotation(uint localID, LLVector3 pos, LLQuaternion rot, IClientAPI remoteClient);
 
-    public delegate void ObjectDuplicate(uint localID, LLVector3 offset, uint dupeFlags);
+    public delegate void ObjectDuplicate(uint localID, LLVector3 offset, uint dupeFlags, LLUUID AgentID, LLUUID GroupID);
 
     public delegate void StatusChange(bool status);
 
