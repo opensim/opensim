@@ -49,8 +49,8 @@ namespace OpenSim.DataStore.MonoSqlite
         private DataSet ds;
         private SqliteDataAdapter primDa;
         private SqliteDataAdapter shapeDa;
-        private SqliteConnection conn;
         private SqliteDataAdapter terrainDa;
+        private String connectionString;
 
         /***********************************************************************
          *
@@ -60,12 +60,12 @@ namespace OpenSim.DataStore.MonoSqlite
 
         public void Initialise(string dbfile, string dbname)
         {
-            string connectionString = "URI=file:" + dbfile + ",version=3";
+            connectionString = "URI=file:" + dbfile + ",version=3";
 
             ds = new DataSet();
 
             MainLog.Instance.Verbose("DATASTORE", "Sqlite - connecting: " + dbfile);
-            conn = new SqliteConnection(connectionString);
+            SqliteConnection conn = new SqliteConnection(connectionString);
 
             SqliteCommand primSelectCmd = new SqliteCommand(primSelect, conn);
             primDa = new SqliteDataAdapter(primSelectCmd);
@@ -266,6 +266,7 @@ namespace OpenSim.DataStore.MonoSqlite
 
         public double[,] LoadTerrain(LLUUID regionID)
         {
+            SqliteConnection conn = new SqliteConnection(connectionString);
             double[,] terret = new double[256,256];
             terret.Initialize();
             String sql = "select RegionUUID, Revision, Heightfield from terrain" + 
