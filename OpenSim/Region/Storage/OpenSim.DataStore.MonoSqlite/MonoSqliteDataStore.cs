@@ -120,6 +120,16 @@ namespace OpenSim.DataStore.MonoSqlite
             }
         }
 
+        private bool Stopped(SceneObjectPart prim)
+        {
+            return (prim.Velocity.X == 0.0 &&
+                    prim.Velocity.Y == 0.0 &&
+                    prim.Velocity.Z == 0.0 &&
+                    prim.AngularVelocity.X == 0.0 &&
+                    prim.AngularVelocity.Y == 0.0 &&
+                    prim.AngularVelocity.Z == 0.0);
+        }
+
         public void StoreObject(SceneObjectGroup obj, LLUUID regionUUID)
         {
             lock (ds)
@@ -131,9 +141,15 @@ namespace OpenSim.DataStore.MonoSqlite
                         MainLog.Instance.Verbose("DATASTORE", "Adding obj: " + obj.UUID + " to region: " + regionUUID);
                         addPrim(prim, obj.UUID, regionUUID);
                     }
+                    else if (Stopped(prim))
+                    {
+                        MainLog.Instance.Verbose("DATASTORE", "Adding stopped obj: " + obj.UUID + " to region: " + regionUUID);
+                        addPrim(prim, obj.UUID, regionUUID);
+                    }
                     else
                     {
-                      // MainLog.Instance.Verbose("DATASTORE", "Ignoring Physical obj: " + obj.UUID + " in region: " + regionUUID);
+                        // MainLog.Instance.Verbose("DATASTORE", "Ignoring Physical obj: " + obj.UUID + " in region: " + regionUUID);
+                  
                     }
                 }
             }
