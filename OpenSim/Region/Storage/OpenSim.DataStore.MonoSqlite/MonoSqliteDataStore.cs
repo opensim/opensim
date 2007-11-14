@@ -274,7 +274,10 @@ namespace OpenSim.DataStore.MonoSqlite
             using (IDbCommand cmd = conn.CreateCommand())
             {
                 cmd.CommandText = sql;
-                cmd.Parameters.Add(new SqliteParameter(":RegionUUID", regionID.ToString()));
+                SqliteParameter param = new SqliteParameter(":RegionUUID", regionID.ToString());
+                param.SourceColumn = "RegionUUID";
+                param.SourceVersion = DataRowVersion.Current;
+                cmd.Parameters.Add(param);
 
                 using (IDataReader row = cmd.ExecuteReader())
                 {
