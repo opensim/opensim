@@ -110,7 +110,7 @@ namespace OpenSim
             : base()
         {
             IConfig startupConfig = configSource.Configs["Startup"];
-			
+
             AddinManager.Initialize(".");
             AddinManager.Registry.Update(null);
 
@@ -642,7 +642,7 @@ namespace OpenSim
                     string regName = CombineParams(cmdparams, 0);
 
                     Scene killScene;
-                    if(m_sceneManager.TryGetScene(regName, out killScene))
+                    if (m_sceneManager.TryGetScene(regName, out killScene))
                     {
                         if (m_sceneManager.CurrentScene.RegionInfo.RegionID == killScene.RegionInfo.RegionID)
                         {
@@ -650,7 +650,7 @@ namespace OpenSim
                         }
                         m_regionData.Remove(killScene.RegionInfo);
                         m_sceneManager.CloseScene(killScene);
-                        
+
                     }
                     break;
 
@@ -767,6 +767,13 @@ namespace OpenSim
                     {
                         m_log.Error("Shared Module: " + module.Name);
                     }
+                    break;
+
+                case "regions":
+                    m_sceneManager.ForEachScene(delegate(Scene scene)
+                    {
+                        Console.WriteLine("Region Name: " + scene.RegionInfo.RegionName + " , Region XLoc: " + scene.RegionInfo.RegionLocX + " , Region YLoc: " + scene.RegionInfo.RegionLocY);  
+                    });
                     break;
             }
         }
