@@ -271,12 +271,12 @@ namespace OpenSim.DataStore.MonoSqlite
             String sql = "select RegionUUID, Revision, Heightfield from terrain" + 
                 " where RegionUUID=:RegionUUID order by Revision desc limit 1";
 
-            using (SqliteCommand cmd = (SqliteCommand)conn.CreateCommand())
+            using (IDbCommand cmd = conn.CreateCommand())
             {
                 cmd.CommandText = sql;
                 cmd.Parameters.Add(new SqliteParameter(":RegionUUID", regionID.ToString()));
 
-                using (SqliteDataReader row = cmd.ExecuteReader())
+                using (IDataReader row = cmd.ExecuteReader())
                 {
                     int rev = 0;
                     if (row.Read())
