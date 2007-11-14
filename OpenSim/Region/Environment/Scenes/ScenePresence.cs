@@ -573,8 +573,9 @@ namespace OpenSim.Region.Environment.Scenes
             if ((update_movementflag) || (update_rotation && DCFlagKeyPressed))
             {
                 AddNewMovement(agent_control_v3, q);
+                UpdateMovementAnimations(update_movementflag);
             }
-            UpdateMovementAnimations(update_movementflag);
+            
         }
 
         protected void StandUp()
