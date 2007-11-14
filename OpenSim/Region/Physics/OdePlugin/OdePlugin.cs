@@ -1589,8 +1589,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                     // Sim resources and memory.
                     // Disables the prim's movement physics....  
                     // It's a hack and will generate a console message if it fails.
-                    lock (OdeScene.OdeLock)
-                    {
+                    
                         try
                         {
                             disableBody();
@@ -1605,7 +1604,7 @@ namespace OpenSim.Region.Physics.OdePlugin
 
                             }
                         }
-                    }
+                    
                     
                     IsPhysical = false;
                     _velocity.X = 0;
