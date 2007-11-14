@@ -246,6 +246,7 @@ namespace OpenSim.DataStore.MonoSqlite
         public void StoreTerrain(double[,] ter, LLUUID regionID)
         {
             int revision = Util.UnixTimeSinceEpoch();
+            SqliteConnection conn = new SqliteConnection(connectionString);
             MainLog.Instance.Verbose("DATASTORE", "Storing terrain revision r" + revision.ToString());
 
             DataTable terrain = ds.Tables["terrain"];
