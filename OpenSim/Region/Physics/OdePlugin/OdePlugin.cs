@@ -99,6 +99,9 @@ namespace OpenSim.Region.Physics.OdePlugin
         public IntPtr world;
         
         public IntPtr space;
+        // split static geometry collision handling into spaces of 64 meters
+        public IntPtr[] staticPrimspace = new IntPtr[64]; 
+        
         public static Object OdeLock = new Object();
 
         public IMesher mesher;
@@ -157,124 +160,144 @@ namespace OpenSim.Region.Physics.OdePlugin
         }
 
 
-        // This function blatantly ripped off from BoxStack.cs
+        
         private void near(IntPtr space, IntPtr g1, IntPtr g2)
         {
-            
             //  no lock here!  It's invoked from within Simulate(), which is thread-locked
-            IntPtr b1 = d.GeomGetBody(g1);
-            IntPtr b2 = d.GeomGetBody(g2);
-
-
-            if (g1 == g2)
-                return; // Can't collide with yourself
-  
-
-
-            if (b1 != IntPtr.Zero && b2 != IntPtr.Zero && d.AreConnectedExcluding(b1, b2, d.JointType.Contact))
-                return;
-
-
-            d.GeomClassID id = d.GeomGetClass(g1);
-            
-            String name1 = null;
-            String name2 = null;
-
-            if (!geom_name_map.TryGetValue(g1, out name1))
+            if (d.GeomIsSpace(g1) || d.GeomIsSpace(g2) )
             {
-                name1 = "null";
-            }
-            if (!geom_name_map.TryGetValue(g2, out name2))
-            {
-                name2 = "null";
-            }
+                // Separating static prim geometry spaces.   
+                // We'll be calling near recursivly if one 
+                // of them is a space to find all of the 
+                // contact points in the space
 
-            if (id == d.GeomClassID.TriMeshClass)
+                d.SpaceCollide2(g1, g2, IntPtr.Zero, nearCallback);
+                //Colliding a space or a geom with a space or a geom.
+
+                //Collide all geoms in each space..   
+                if (d.GeomIsSpace(g1)) d.SpaceCollide(g1, IntPtr.Zero, nearCallback);
+                if (d.GeomIsSpace(g2)) d.SpaceCollide(g2, IntPtr.Zero, nearCallback);
+
+            } 
+            else 
             {
+                // Colliding Geom To Geom
+                // This portion of the function 'was' blatantly ripped off from BoxStack.cs
                 
+                IntPtr b1 = d.GeomGetBody(g1);
+                IntPtr b2 = d.GeomGetBody(g2);
 
-//               MainLog.Instance.Verbose("near: A collision was detected between {1} and {2}", 0, name1, name2);
-                //System.Console.WriteLine("near: A collision was detected between {1} and {2}", 0, name1, name2);
-            }
-            
-            int count;
-            
-                count = d.Collide(g1, g2, contacts.GetLength(0), contacts, d.ContactGeom.SizeOf);
-         
-            for (int i = 0; i < count; i++)
-            {
-                IntPtr joint;
-                // If we're colliding with terrain, use 'TerrainContact' instead of contact.
-                // allows us to have different settings
-                PhysicsActor p1;
-                PhysicsActor p2;
 
-                if (!actor_name_map.TryGetValue(g2, out p1))
+                if (g1 == g2)
+                    return; // Can't collide with yourself
+      
+
+
+                if (b1 != IntPtr.Zero && b2 != IntPtr.Zero && d.AreConnectedExcluding(b1, b2, d.JointType.Contact))
+                    return;
+
+
+                d.GeomClassID id = d.GeomGetClass(g1);
+                
+                String name1 = null;
+                String name2 = null;
+
+                if (!geom_name_map.TryGetValue(g1, out name1))
                 {
-                    p1 = PANull;
+                    name1 = "null";
                 }
-                if (!actor_name_map.TryGetValue(g2, out p2))
+                if (!geom_name_map.TryGetValue(g2, out name2))
                 {
-                    p2 = PANull;
-                }
-
-                // We only need to test p2 for 'jump crouch purposes'
-                p2.IsColliding = true;
-
-                switch(p1.PhysicsActorType) {
-                    case (int)ActorTypes.Agent:
-                        p2.CollidingObj = true;
-                        break;
-                    case (int)ActorTypes.Prim:
-                        p2.CollidingObj = true;
-                        break;
-                    case (int)ActorTypes.Unknown:
-                        p2.CollidingGround = true;
-                        break;
+                    name2 = "null";
                 }
 
-                if (name1 == "Terrain" || name2 == "Terrain")
+                if (id == d.GeomClassID.TriMeshClass)
                 {
-                    if ((p2.PhysicsActorType == (int)ActorTypes.Agent) && (Math.Abs(p2.Velocity.X) > 0.01f || Math.Abs(p2.Velocity.Y) > 0.01f))
+                    
+
+    //               MainLog.Instance.Verbose("near: A collision was detected between {1} and {2}", 0, name1, name2);
+                    //System.Console.WriteLine("near: A collision was detected between {1} and {2}", 0, name1, name2);
+                }
+                
+                int count;
+                
+                    count = d.Collide(g1, g2, contacts.GetLength(0), contacts, d.ContactGeom.SizeOf);
+             
+                for (int i = 0; i < count; i++)
+                {
+                    IntPtr joint;
+                    // If we're colliding with terrain, use 'TerrainContact' instead of contact.
+                    // allows us to have different settings
+                    PhysicsActor p1;
+                    PhysicsActor p2;
+
+                    if (!actor_name_map.TryGetValue(g2, out p1))
                     {
-                        AvatarMovementTerrainContact.geom = contacts[i];
-                        joint = d.JointCreateContact(world, contactgroup, ref AvatarMovementTerrainContact);
+                        p1 = PANull;
+                    }
+                    if (!actor_name_map.TryGetValue(g2, out p2))
+                    {
+                        p2 = PANull;
+                    }
+
+                    // We only need to test p2 for 'jump crouch purposes'
+                    p2.IsColliding = true;
+
+                    switch(p1.PhysicsActorType) {
+                        case (int)ActorTypes.Agent:
+                            p2.CollidingObj = true;
+                            break;
+                        case (int)ActorTypes.Prim:
+                            p2.CollidingObj = true;
+                            break;
+                        case (int)ActorTypes.Unknown:
+                            p2.CollidingGround = true;
+                            break;
+                    }
+
+                    if (name1 == "Terrain" || name2 == "Terrain")
+                    {
+                        if ((p2.PhysicsActorType == (int)ActorTypes.Agent) && (Math.Abs(p2.Velocity.X) > 0.01f || Math.Abs(p2.Velocity.Y) > 0.01f))
+                        {
+                            AvatarMovementTerrainContact.geom = contacts[i];
+                            joint = d.JointCreateContact(world, contactgroup, ref AvatarMovementTerrainContact);
+                        }
+                        else
+                        {
+                            TerrainContact.geom = contacts[i];
+                            joint = d.JointCreateContact(world, contactgroup, ref TerrainContact);
+                        }
+                            
+                        
                     }
                     else
                     {
-                        TerrainContact.geom = contacts[i];
-                        joint = d.JointCreateContact(world, contactgroup, ref TerrainContact);
-                    }
-                        
-                    
-                }
-                else
-                {
-                    if ((p2.PhysicsActorType == (int)ActorTypes.Agent) && (Math.Abs(p2.Velocity.X) > 0.01f || Math.Abs(p2.Velocity.Y) > 0.01f))
-                    {
-                        AvatarMovementprimContact.geom = contacts[i];
-                        joint = d.JointCreateContact(world, contactgroup, ref AvatarMovementprimContact);
-                    }
-                    else
-                    {
-                        contact.geom = contacts[i];
-                        joint = d.JointCreateContact(world, contactgroup, ref contact);
+                        if ((p2.PhysicsActorType == (int)ActorTypes.Agent) && (Math.Abs(p2.Velocity.X) > 0.01f || Math.Abs(p2.Velocity.Y) > 0.01f))
+                        {
+                            AvatarMovementprimContact.geom = contacts[i];
+                            joint = d.JointCreateContact(world, contactgroup, ref AvatarMovementprimContact);
+                        }
+                        else
+                        {
+                            contact.geom = contacts[i];
+                            joint = d.JointCreateContact(world, contactgroup, ref contact);
+                            
+                        }
                         
                     }
                     
-                }
-                
-                
-                d.JointAttach(joint, b1, b2);
+                    
+                    d.JointAttach(joint, b1, b2);
 
 
-                
-                if (count > 3)
-                {
-                    p2.ThrottleUpdates = true;
+                    
+                    if (count > 3)
+                    {
+                        p2.ThrottleUpdates = true;
+                    }
+                    //System.Console.WriteLine(count.ToString());
+                    //System.Console.WriteLine("near: A collision was detected between {1} and {2}", 0, name1, name2);
                 }
-                //System.Console.WriteLine(count.ToString());
-                //System.Console.WriteLine("near: A collision was detected between {1} and {2}", 0, name1, name2);
             }
         }
 
@@ -368,9 +391,24 @@ namespace OpenSim.Region.Physics.OdePlugin
             }
         }
 
+        public IntPtr recalculateSpaceForGeom(IntPtr geom, PhysicsVector pos)
+        {
+            //Todo recalculate space the prim is in.
+
+
+            return space;
+        }
+
+        public IntPtr calculateSpaceForNewGeom(PhysicsVector pos)
+        {
+
+            return space;
+        }
+
         private PhysicsActor AddPrim(String name, PhysicsVector position, PhysicsVector size, Quaternion rotation,
                                      IMesh mesh, PrimitiveBaseShape pbs, bool isphysical)
         {
+
             PhysicsVector pos = new PhysicsVector();
             pos.X = position.X;
             pos.Y = position.Y;
@@ -384,10 +422,12 @@ namespace OpenSim.Region.Physics.OdePlugin
             rot.x = rotation.x;
             rot.y = rotation.y;
             rot.z = rotation.z;
+
+            IntPtr targetspace = calculateSpaceForNewGeom(pos);
             OdePrim newPrim;
             lock (OdeLock)
             {
-                newPrim = new OdePrim(name, this, pos, siz, rot, mesh, pbs, isphysical);
+                newPrim = new OdePrim(name, this, targetspace, pos, siz, rot, mesh, pbs, isphysical);
             }
             _prims.Add(newPrim);
             return newPrim;
@@ -1145,6 +1185,7 @@ namespace OpenSim.Region.Physics.OdePlugin
         private IMesh _mesh;
         private PrimitiveBaseShape _pbs;
         private OdeScene _parent_scene;
+        private IntPtr m_targetSpace = (IntPtr)0;
         public IntPtr prim_geom;
         public IntPtr _triMeshData;
         private bool iscolliding = false;
@@ -1163,7 +1204,7 @@ namespace OpenSim.Region.Physics.OdePlugin
         private int debugcounter = 0;
 
 
-        public OdePrim(String primName, OdeScene parent_scene, PhysicsVector pos, PhysicsVector size,
+        public OdePrim(String primName, OdeScene parent_scene, IntPtr targetSpace, PhysicsVector pos, PhysicsVector size,
                        Quaternion rotation, IMesh mesh, PrimitiveBaseShape pbs, bool pisPhysical)
         {
             
@@ -1177,12 +1218,19 @@ namespace OpenSim.Region.Physics.OdePlugin
             _mesh = mesh;
             _pbs = pbs;
             _parent_scene = parent_scene;
-            
+            m_targetSpace = targetSpace;
+
             if (pos.Z < 0)
                 m_isphysical = false;
-            else 
-            m_isphysical = pisPhysical;
+            else
+            {
+                m_isphysical = pisPhysical;
+                // If we're physical, we need to be in the master space for now.
+                // linksets *should* be in a space together..  but are not currently
+                if (m_isphysical)
+                    m_targetSpace = _parent_scene.space;
 
+            }
             m_primName = primName;
             
             
@@ -1195,7 +1243,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                 }
                 else
                 {
-                    prim_geom = d.CreateBox(parent_scene.space, _size.X, _size.Y, _size.Z);
+                    prim_geom = d.CreateBox(m_targetSpace, _size.X, _size.Y, _size.Z);
                 }
 
                 d.GeomSetPosition(prim_geom, _position.X, _position.Y, _position.Z);
@@ -1281,7 +1329,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                                          3*sizeof (int));
             d.GeomTriMeshDataPreprocess(_triMeshData);
 
-            prim_geom = d.CreateTriMesh(parent_scene.space, _triMeshData, parent_scene.triCallback, null, null);
+            prim_geom = d.CreateTriMesh(m_targetSpace, _triMeshData, parent_scene.triCallback, null, null);
             
             if (IsPhysical && Body == (IntPtr)0)
             {
@@ -1375,6 +1423,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                         d.GeomSetPosition(prim_geom, _position.X, _position.Y, _position.Z);
                        
                     }
+                    m_targetSpace = _parent_scene.recalculateSpaceForGeom(prim_geom, _position);
                 }
             }
         }
@@ -1414,10 +1463,10 @@ namespace OpenSim.Region.Physics.OdePlugin
                         }
                         else
                         {
-                            prim_geom = d.CreateBox(_parent_scene.space, _size.X, _size.Y, _size.Z);
+                            prim_geom = d.CreateBox(m_targetSpace, _size.X, _size.Y, _size.Z);
                         }
                     } else {
-                        prim_geom = d.CreateBox(_parent_scene.space, _size.X, _size.Y, _size.Z);
+                        prim_geom = d.CreateBox(m_targetSpace, _size.X, _size.Y, _size.Z);
                         
                         if (IsPhysical && Body == (IntPtr)0)
                         {
@@ -1428,8 +1477,8 @@ namespace OpenSim.Region.Physics.OdePlugin
                         } 
                         
                     }
-                  
-                    
+
+                    m_targetSpace = _parent_scene.recalculateSpaceForGeom(prim_geom, _position);
                     _parent_scene.geom_name_map[prim_geom] = oldname;
 
                 }
@@ -1468,10 +1517,10 @@ namespace OpenSim.Region.Physics.OdePlugin
                         }
                         else
                         {
-                            prim_geom = d.CreateBox(_parent_scene.space, _size.X, _size.Y, _size.Z);
+                            prim_geom = d.CreateBox(m_targetSpace, _size.X, _size.Y, _size.Z);
                         }
                     } else {
-                        prim_geom = d.CreateBox(_parent_scene.space, _size.X, _size.Y, _size.Z);
+                        prim_geom = d.CreateBox(m_targetSpace, _size.X, _size.Y, _size.Z);
                     }
                     if (IsPhysical && Body == (IntPtr)0)
                     {
