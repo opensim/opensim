@@ -36,7 +36,7 @@ namespace OpenSim.Framework.Data.MySQL
          *
          **********************************************************************/
 
-        public void Initialise(string connectionstring, string dbname)
+        public void Initialise(string connectionstring)
         {
             m_dataSet = new DataSet();
 
@@ -307,23 +307,6 @@ namespace OpenSim.Framework.Data.MySQL
             }
         }
 
-        //private void DisplayTableMappings( MySqlDataAdapter adapter )
-        //{
-        //    DataTableMappingCollection mappings = adapter.TableMappings;
-
-        //    foreach( DataTableMapping mapping in mappings )
-        //    {
-        //        Debug.WriteLine( String.Format( "Source Table: ", mapping.SourceTable ));
-
-        //        DataColumnMappingCollection columnMappings = mapping.ColumnMappings;
-
-        //        foreach (DataColumnMapping columnMapping in columnMappings)
-        //        {
-        //            Debug.WriteLine( String.Format( "DataSet [{0}] <-> Source [{1}]", columnMapping.DataSetColumn, columnMapping.SourceColumn ));                 
-        //        }
-        //    }
-        //}
-
         public void Commit()
         {
             if (m_connection.State != ConnectionState.Open)
@@ -333,10 +316,7 @@ namespace OpenSim.Framework.Data.MySQL
 
             lock (m_dataSet)
             {
-                DisplayDataSet(m_dataSet, "Region DataSet");
-                //DisplayTableMappings(m_primDataAdapter);
-
-                // m_primDataAdapter.MissingMappingAction = MissingMappingAction.Error;
+                // DisplayDataSet(m_dataSet, "Region DataSet");
 
                 m_primDataAdapter.Update(m_primTable);
                 m_shapeDataAdapter.Update(m_shapeTable);

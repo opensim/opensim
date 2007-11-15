@@ -175,9 +175,9 @@ namespace SimpleApp
                             new ModuleLoader(m_log, m_config), true);
         }
 
-        protected override StorageManager CreateStorageManager(RegionInfo regionInfo)
+        protected override StorageManager CreateStorageManager(string connectionstring)
         {
-            return new StorageManager("OpenSim.DataStore.NullStorage.dll", "simpleapp.yap", "simpleapp");
+            return new StorageManager("OpenSim.DataStore.NullStorage.dll", "simpleapp.yap");
         }
 
         protected override PhysicsScene GetPhysicsScene()

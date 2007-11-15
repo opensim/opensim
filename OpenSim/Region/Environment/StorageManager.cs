@@ -47,7 +47,7 @@ namespace OpenSim.Region.Environment
             m_dataStore = storage;
         }
 
-        public StorageManager(string dllName, string dataStoreFile, string dataStoreDB)
+        public StorageManager(string dllName, string connectionstring)
         {
             MainLog.Instance.Verbose("DATASTORE", "Attempting to load " + dllName);
             Assembly pluginAssembly = Assembly.LoadFrom(dllName);
@@ -62,18 +62,14 @@ namespace OpenSim.Region.Environment
                     {
                         IRegionDataStore plug =
                             (IRegionDataStore) Activator.CreateInstance(pluginAssembly.GetType(pluginType.ToString()));
-                        plug.Initialise(dataStoreFile, dataStoreDB);
+                        plug.Initialise(connectionstring);
 
                         m_dataStore = plug;
 
                         MainLog.Instance.Verbose("DATASTORE", "Added IRegionDataStore Interface");
                     }
-
-                    typeInterface = null;
                 }
             }
-
-            pluginAssembly = null;
 
             //TODO: Add checking and warning to make sure it initialised.
         }

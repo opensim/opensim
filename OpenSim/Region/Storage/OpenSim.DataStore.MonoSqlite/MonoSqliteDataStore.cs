@@ -50,7 +50,7 @@ namespace OpenSim.DataStore.MonoSqlite
         private SqliteDataAdapter primDa;
         private SqliteDataAdapter shapeDa;
         private SqliteDataAdapter terrainDa;
-        private String connectionString;
+        private String m_connectionString;
 
         /***********************************************************************
          *
@@ -58,14 +58,14 @@ namespace OpenSim.DataStore.MonoSqlite
          *
          **********************************************************************/
 
-        public void Initialise(string dbfile, string dbname)
+        public void Initialise(string connectionString)
         {
-            connectionString = "URI=file:" + dbfile + ",version=3";
+            m_connectionString = connectionString;
 
             ds = new DataSet();
 
-            MainLog.Instance.Verbose("DATASTORE", "Sqlite - connecting: " + dbfile);
-            SqliteConnection conn = new SqliteConnection(connectionString);
+            MainLog.Instance.Verbose("DATASTORE", "Sqlite - connecting: " + connectionString);
+            SqliteConnection conn = new SqliteConnection(m_connectionString);
 
             SqliteCommand primSelectCmd = new SqliteCommand(primSelect, conn);
             primDa = new SqliteDataAdapter(primSelectCmd);
@@ -266,7 +266,7 @@ namespace OpenSim.DataStore.MonoSqlite
 
             // the following is an work around for .NET.  The perf
             // issues associated with it aren't as bad as you think.
-            SqliteConnection conn = new SqliteConnection(connectionString);
+            SqliteConnection conn = new SqliteConnection(m_connectionString);
             conn.Open();
             MainLog.Instance.Verbose("DATASTORE", "Storing terrain revision r" + revision.ToString());
             String sql = "insert into terrain(RegionUUID, Revision, Heightfield)" +
@@ -288,7 +288,7 @@ namespace OpenSim.DataStore.MonoSqlite
             terret.Initialize();
             // the following is an work around for .NET.  The perf
             // issues associated with it aren't as bad as you think.
-            SqliteConnection conn = new SqliteConnection(connectionString);
+            SqliteConnection conn = new SqliteConnection(m_connectionString);
             conn.Open();
             String sql = "select RegionUUID, Revision, Heightfield from terrain" + 
               " where RegionUUID=:RegionUUID order by Revision desc";

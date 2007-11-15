@@ -55,6 +55,9 @@ namespace OpenSim.Region.ClientStack
         protected CommunicationsManager m_commsManager;
 
         protected SceneManager m_sceneManager = new SceneManager();
+        
+        protected StorageManager m_storageManager;
+        protected string m_storageConnectionString;
 
         public SceneManager SceneManager
         {
@@ -69,6 +72,8 @@ namespace OpenSim.Region.ClientStack
         public virtual void StartUp()
         {
             ClientView.TerrainManager = new TerrainManager(new SecondLife());
+
+            m_storageManager = CreateStorageManager(m_storageConnectionString );
 
             Initialize();
 
@@ -88,7 +93,7 @@ namespace OpenSim.Region.ClientStack
 
         protected abstract LogBase CreateLog();
         protected abstract PhysicsScene GetPhysicsScene();
-        protected abstract StorageManager CreateStorageManager(RegionInfo regionInfo);
+        protected abstract StorageManager CreateStorageManager(string connectionstring);
 
         protected PhysicsScene GetPhysicsScene(string engine, string meshEngine)
         {
@@ -103,8 +108,7 @@ namespace OpenSim.Region.ClientStack
             AgentCircuitManager circuitManager = new AgentCircuitManager();
             udpServer = new UDPServer(regionInfo.InternalEndPoint.Port, m_assetCache, m_log, circuitManager);
 
-            StorageManager storageManager = CreateStorageManager(regionInfo);
-            Scene scene = CreateScene(regionInfo, storageManager, circuitManager);
+            Scene scene = CreateScene(regionInfo, m_storageManager, circuitManager);
 
             udpServer.LocalScene = scene;
 

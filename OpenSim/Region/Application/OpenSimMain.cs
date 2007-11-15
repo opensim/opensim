@@ -64,24 +64,24 @@ namespace OpenSim
 
         protected LocalLoginService m_loginService;
 
-        protected string m_storageDll = "OpenSim.DataStore.NullStorage.dll";
+        protected string m_storageDll;
 
-        protected string m_startupCommandsFile = "";
-        protected string m_shutdownCommandsFile = "";
+        protected string m_startupCommandsFile;
+        protected string m_shutdownCommandsFile;
 
         protected List<UDPServer> m_udpServers = new List<UDPServer>();
         protected List<RegionInfo> m_regionData = new List<RegionInfo>();
 
         private bool m_verbose;
         private bool m_physicalPrim;
-        private readonly string m_logFilename = ("region-console.log");
+        private readonly string m_logFilename = "region-console.log";
         private bool m_permissions = false;
 
         private bool m_standaloneAuthenticate = false;
         private string m_standaloneWelcomeMessage = null;
-        private string m_standaloneInventoryPlugin = "OpenSim.Framework.Data.SQLite.dll";
-        private string m_standaloneAssetPlugin = "OpenSim.Framework.Data.SQLite.dll";
-        private string m_standaloneUserPlugin = "OpenSim.Framework.Data.SQLite.dll";
+        private string m_standaloneInventoryPlugin;
+        private string m_standaloneAssetPlugin;
+        private string m_standaloneUserPlugin;
 
         private string m_assetStorage = "sqlite";
 
@@ -219,6 +219,7 @@ namespace OpenSim
                 m_permissions = startupConfig.GetBoolean("serverside_object_permissions", false);
 
                 m_storageDll = startupConfig.GetString("storage_plugin", "OpenSim.DataStore.NullStorage.dll");
+                m_storageConnectionString = startupConfig.GetString("storage_connection_string","");
 
                 m_startupCommandsFile = startupConfig.GetString("startup_console_commands_file", "");
                 m_shutdownCommandsFile = startupConfig.GetString("shutdown_console_commands_file", "");
@@ -357,9 +358,9 @@ namespace OpenSim
             new RegionInfo("DEFAULT REGION CONFIG", fileName);
         }
 
-        protected override StorageManager CreateStorageManager(RegionInfo regionInfo)
+        protected override StorageManager CreateStorageManager(string connectionstring)
         {
-            return new StorageManager(m_storageDll, regionInfo.DataStore, regionInfo.RegionName);
+            return new StorageManager(m_storageDll, connectionstring);
         }
 
         protected override Scene CreateScene(RegionInfo regionInfo, StorageManager storageManager,

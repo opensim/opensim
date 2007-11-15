@@ -40,7 +40,7 @@ namespace OpenSim.Region.Environment.Interfaces
         /// </summary>
         /// <param name="filename">The file to save the database to (may not be applicable)</param>
         /// <param name="dbname">The name of the database to store to (may not be applicable)</param>
-        void Initialise(string filename, string dbname);
+        void Initialise(string filename);
 
         void StoreObject(SceneObjectGroup obj, LLUUID regionUUID);
         void RemoveObject(LLUUID uuid, LLUUID regionUUID);

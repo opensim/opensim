@@ -249,7 +249,7 @@ namespace OpenSim.Framework
             this.RegionName = source.Configs[sectionName].GetString("sim_name", "OpenSim Test");
             this.m_regionLocX = Convert.ToUInt32(source.Configs[sectionName].GetString("sim_location_x", "1000"));
             this.m_regionLocY = Convert.ToUInt32(source.Configs[sectionName].GetString("sim_location_y", "1000"));
-            this.DataStore = source.Configs[sectionName].GetString("datastore", "OpenSim.db");
+            // this.DataStore = source.Configs[sectionName].GetString("datastore", "OpenSim.db");
 
             string ipAddress = source.Configs[sectionName].GetString("internal_ip_address", "0.0.0.0");
             IPAddress ipAddressResult;
@@ -289,7 +289,7 @@ namespace OpenSim.Framework
             configMember.addConfigurationOption("sim_name", ConfigurationOption.ConfigurationTypes.TYPE_STRING_NOT_EMPTY, "Region Name", "OpenSim Test", false);
             configMember.addConfigurationOption("sim_location_x", ConfigurationOption.ConfigurationTypes.TYPE_UINT32, "Grid Location (X Axis)", "1000", false);
             configMember.addConfigurationOption("sim_location_y", ConfigurationOption.ConfigurationTypes.TYPE_UINT32, "Grid Location (Y Axis)", "1000", false);
-            configMember.addConfigurationOption("datastore", ConfigurationOption.ConfigurationTypes.TYPE_STRING_NOT_EMPTY, "Filename for local storage", "OpenSim.db", false);
+            //configMember.addConfigurationOption("datastore", ConfigurationOption.ConfigurationTypes.TYPE_STRING_NOT_EMPTY, "Filename for local storage", "OpenSim.db", false);
             configMember.addConfigurationOption("internal_ip_address", ConfigurationOption.ConfigurationTypes.TYPE_IP_ADDRESS, "Internal IP Address for incoming UDP client connections", "0.0.0.0", false);
             configMember.addConfigurationOption("internal_ip_port", ConfigurationOption.ConfigurationTypes.TYPE_INT32, "Internal IP Port for incoming UDP client connections", NetworkServersInfo.DefaultHttpListenerPort.ToString(), false);
             configMember.addConfigurationOption("external_host_name", ConfigurationOption.ConfigurationTypes.TYPE_STRING_NOT_EMPTY, "External Host Name", "127.0.0.1", false);
