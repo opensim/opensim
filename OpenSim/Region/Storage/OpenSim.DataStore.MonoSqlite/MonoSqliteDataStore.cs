@@ -122,12 +122,13 @@ namespace OpenSim.DataStore.MonoSqlite
 
         private bool Stopped(SceneObjectPart prim)
         {
-            return (prim.Velocity.X == 0.0 &&
-                    prim.Velocity.Y == 0.0 &&
-                    prim.Velocity.Z == 0.0 &&
-                    prim.AngularVelocity.X == 0.0 &&
-                    prim.AngularVelocity.Y == 0.0 &&
-                    prim.AngularVelocity.Z == 0.0);
+            double threshold = 0.02;
+            return (Math.Abs(prim.Velocity.X) < threshold &&
+                    Math.Abs(prim.Velocity.Y) < threshold &&
+                    Math.Abs(prim.Velocity.Z) < threshold &&
+                    Math.Abs(prim.AngularVelocity.X) < threshold &&
+                    Math.Abs(prim.AngularVelocity.Y) < threshold &&
+                    Math.Abs(prim.AngularVelocity.Z) < threshold);
         }
 
         public void StoreObject(SceneObjectGroup obj, LLUUID regionUUID)
