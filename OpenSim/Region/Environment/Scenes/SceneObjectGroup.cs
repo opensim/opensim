@@ -462,6 +462,7 @@ namespace OpenSim.Region.Environment.Scenes
             dupe.AbsolutePosition = new LLVector3(AbsolutePosition.X, AbsolutePosition.Y, AbsolutePosition.Z);
             dupe.m_scene = m_scene;
             dupe.m_regionHandle = m_regionHandle;
+            
             dupe.CopyRootPart(m_rootPart, OwnerID, GroupID);
 
 
@@ -519,6 +520,7 @@ namespace OpenSim.Region.Environment.Scenes
             SetPartAsRoot(newPart);
         }
         public void SetRootPartOwner(SceneObjectPart part, LLUUID cAgentID, LLUUID cGroupID) {
+            part.LastOwnerID = part.OwnerID;
             part.OwnerID = cAgentID;
             part.GroupID = cGroupID;
             part.ScheduleFullUpdate();
@@ -534,6 +536,38 @@ namespace OpenSim.Region.Environment.Scenes
             newPart.SetParent(this);
             m_parts.Add(newPart.UUID, newPart);
             SetPartAsNonRoot(newPart);
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="part"></param>
+        public void ServiceObjectPropertiesFamilyRequest(IClientAPI remoteClient,LLUUID AgentID, uint RequestFlags) 
+        {
+            //RootPart.ServiceObjectPropertiesFamilyRequest(remoteClient, AgentID, RequestFlags);
+            ObjectPropertiesFamilyPacket objPropFamilyPack = new ObjectPropertiesFamilyPacket();
+            ObjectPropertiesFamilyPacket.ObjectDataBlock objPropDB = new ObjectPropertiesFamilyPacket.ObjectDataBlock();
+            objPropDB.RequestFlags = RequestFlags;
+            objPropDB.ObjectID = RootPart.UUID;
+            objPropDB.OwnerID = RootPart.ObjectOwner;
+            objPropDB.GroupID = RootPart.GroupID;
+            objPropDB.BaseMask = RootPart.BaseMask;
+            objPropDB.OwnerMask = RootPart.OwnerMask;
+            objPropDB.GroupMask = RootPart.GroupMask;
+            objPropDB.EveryoneMask = RootPart.EveryoneMask;
+            objPropDB.NextOwnerMask = RootPart.NextOwnerMask;
+            
+            // TODO: More properties are needed in SceneObjectPart!
+            objPropDB.OwnershipCost = RootPart.OwnershipCost;
+            objPropDB.SaleType = RootPart.ObjectSaleType;
+            objPropDB.SalePrice = RootPart.SalePrice;
+            objPropDB.Category = RootPart.Category;
+            objPropDB.LastOwnerID = RootPart.CreatorID;
+            objPropDB.Name = Helpers.StringToField(RootPart.Name);
+            objPropDB.Description = Helpers.StringToField(RootPart.Description);
+            objPropFamilyPack.ObjectData = objPropDB;
+            remoteClient.OutPacket(objPropFamilyPack);
+
         }
         public void SetPartOwner(SceneObjectPart part, LLUUID cAgentID, LLUUID cGroupID)
         {

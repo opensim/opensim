@@ -203,6 +203,8 @@ namespace OpenSim.Framework
 
     public delegate void ObjectSelect(uint localID, IClientAPI remoteClient);
 
+    public delegate void RequestObjectPropertiesFamily(IClientAPI remoteClient,LLUUID AgentID, uint RequestFlags, LLUUID TaskID);
+
     public delegate void ObjectDeselect(uint localID, IClientAPI remoteClient);
 
     public delegate void UpdatePrimFlags(uint localID, Packet packet, IClientAPI remoteClient);
@@ -320,6 +322,7 @@ namespace OpenSim.Framework
         event ObjectDeselect OnObjectDeselect;
         event GenericCall7 OnObjectDescription;
         event GenericCall7 OnObjectName;
+        event RequestObjectPropertiesFamily OnRequestObjectPropertiesFamily;
         event UpdatePrimFlags OnUpdatePrimFlags;
         event UpdatePrimTexture OnUpdatePrimTexture;
         event UpdateVector OnUpdatePrimGroupPosition;

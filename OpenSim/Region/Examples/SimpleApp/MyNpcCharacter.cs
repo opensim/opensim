@@ -83,6 +83,7 @@ namespace SimpleApp
 
         public event UpdateShape OnUpdatePrimShape;
         public event ObjectExtraParams OnUpdateExtraParams;
+        public event RequestObjectPropertiesFamily OnRequestObjectPropertiesFamily;
         public event ObjectSelect OnObjectSelect;
         public event GenericCall7 OnObjectDescription;
         public event GenericCall7 OnObjectName;

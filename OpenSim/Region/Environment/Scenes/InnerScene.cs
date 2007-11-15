@@ -354,6 +354,23 @@ namespace OpenSim.Region.Environment.Scenes
         }
 
         /// <summary>
+        /// This handles the nifty little tool tip that you get when you drag your mouse over an object 
+        /// Send to the Object Group to process.  We don't know enough to service the request
+        /// </summary>
+        /// <param name="remoteClient"></param>
+        /// <param name="AgentID"></param>
+        /// <param name="RequestFlags"></param>
+        /// <param name="ObjectID"></param>
+        public void RequestObjectPropertiesFamily(IClientAPI remoteClient, LLUUID AgentID, uint RequestFlags, LLUUID ObjectID)
+        {
+            SceneObjectGroup group = GetGroupByPrim(ObjectID);
+            if (group != null)
+                group.ServiceObjectPropertiesFamilyRequest(remoteClient, AgentID, RequestFlags);
+
+
+        }
+
+        /// <summary>
         /// 
         /// </summary>
         /// <param name="localID"></param>

@@ -708,7 +708,7 @@ namespace OpenSim.Region.Environment.Scenes
             client.OnDelinkObjects += m_innerScene.DelinkObjects;
             client.OnObjectDuplicate += m_innerScene.DuplicateObject;
             client.OnUpdatePrimFlags += m_innerScene.UpdatePrimFlags;
-
+            client.OnRequestObjectPropertiesFamily += m_innerScene.RequestObjectPropertiesFamily;
             client.OnParcelPropertiesRequest += new ParcelPropertiesRequest(m_LandManager.handleParcelPropertiesRequest);
             client.OnParcelDivideRequest += new ParcelDivideRequest(m_LandManager.handleParcelDivideRequest);
             client.OnParcelJoinRequest += new ParcelJoinRequest(m_LandManager.handleParcelJoinRequest);

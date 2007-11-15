@@ -395,6 +395,22 @@ namespace OpenSim.Region.ClientStack
                         OpenSim.Framework.Console.MainLog.Instance.Verbose("CLIENT", "unhandled packet " + Pack.ToString());
                         break;
 
+                    case PacketType.RequestObjectPropertiesFamily:
+                        //This powers the little tooltip that appears when you move your mouse over an object
+                        RequestObjectPropertiesFamilyPacket packToolTip = (RequestObjectPropertiesFamilyPacket)Pack;
+                        
+
+                        RequestObjectPropertiesFamilyPacket.ObjectDataBlock packObjBlock = packToolTip.ObjectData;
+
+                        if (OnRequestObjectPropertiesFamily != null)
+                        {
+                            OnRequestObjectPropertiesFamily(this, this.m_agentId, packObjBlock.RequestFlags, packObjBlock.ObjectID);
+
+
+                        }
+
+                        break;
+
                         #endregion
 
                         #region Inventory/Asset/Other related packets
@@ -725,6 +741,7 @@ namespace OpenSim.Region.ClientStack
                         }
                         break;
                     case PacketType.ParcelObjectOwnersRequest:
+                        //System.Console.WriteLine(Pack.ToString());
                         ParcelObjectOwnersRequestPacket reqPacket = (ParcelObjectOwnersRequestPacket) Pack;
                         if (OnParcelObjectOwnerRequest != null)
                         {
@@ -747,7 +764,18 @@ namespace OpenSim.Region.ClientStack
                         #endregion
 
                         #region unimplemented handlers
+                    case PacketType.StartPingCheck:
+                        // Send the client the ping response back
+                        // Pass the same PingID in the matching packet
+                        // Handled In the packet processing
+                        OpenSim.Framework.Console.MainLog.Instance.Debug("CLIENT", "possibly unhandled packet " + Pack.ToString());
+                        break;
+                    case PacketType.CompletePingCheck:
+                        // Parhaps this should be processed on the Sim to determine whether or not to drop a dead client
+                        // Dumping it to the verbose console until it's handled properly.
 
+                        OpenSim.Framework.Console.MainLog.Instance.Verbose("CLIENT", "unhandled packet " + Pack.ToString());
+                        break;
                     case PacketType.AgentIsNowWearing:
                         // AgentIsNowWearingPacket wear = (AgentIsNowWearingPacket)Pack;
                         OpenSim.Framework.Console.MainLog.Instance.Verbose("CLIENT", "unhandled packet " + Pack.ToString());

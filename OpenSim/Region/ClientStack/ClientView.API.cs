@@ -71,6 +71,7 @@ namespace OpenSim.Region.ClientStack
         public event ObjectDeselect OnObjectDeselect;
         public event GenericCall7 OnObjectDescription;
         public event GenericCall7 OnObjectName;
+        public event RequestObjectPropertiesFamily OnRequestObjectPropertiesFamily;
         public event UpdatePrimFlags OnUpdatePrimFlags;
         public event UpdatePrimTexture OnUpdatePrimTexture;
         public event UpdateVector OnUpdatePrimGroupPosition;

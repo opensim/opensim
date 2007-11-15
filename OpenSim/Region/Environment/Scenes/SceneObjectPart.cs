@@ -51,12 +51,17 @@ namespace OpenSim.Region.Environment.Scenes
         [XmlIgnore] public PhysicsActor PhysActor = null;
 
         protected Dictionary<LLUUID, TaskInventoryItem> TaskInventory = new Dictionary<LLUUID, TaskInventoryItem>();
-
+        public LLUUID LastOwnerID;
         public LLUUID OwnerID;
         public LLUUID GroupID;
-        public LLUUID LastOwnerID;
+        public int OwnershipCost;
+        public byte ObjectSaleType;
+        public int SalePrice;
+        public uint Category;
+
         public Int32 CreationDate;
         public uint ParentID = 0;
+
 
         public uint OwnerMask = FULL_MASK_PERMISSIONS;
         public uint NextOwnerMask = FULL_MASK_PERMISSIONS;
@@ -68,6 +73,7 @@ namespace OpenSim.Region.Environment.Scenes
 
         [XmlIgnore] public uint TimeStampFull = 0;
         [XmlIgnore] public uint TimeStampTerse = 0;
+        [XmlIgnore] public uint TimeStampLastActivity = 0; // Will be used for AutoReturn
 
         protected SceneObjectGroup m_parentGroup;
 
@@ -418,7 +424,13 @@ namespace OpenSim.Region.Environment.Scenes
             UUID = LLUUID.Random();
             LocalID = (uint) (localID);
             Shape = shape;
-
+            // Todo: Add More Object Parameter from above!
+            OwnershipCost = 0;
+            ObjectSaleType = (byte)0;
+            SalePrice = 0;
+            Category = (uint)0;
+            LastOwnerID = CreatorID;
+            // End Todo: ///
             GroupPosition = groupPosition;
             OffsetPosition = offsetPosition;
             RotationOffset = rotationOffset;
@@ -467,8 +479,14 @@ namespace OpenSim.Region.Environment.Scenes
             LastOwnerID = lastOwnerID;
             UUID = LLUUID.Random();
             LocalID = (uint) (localID);
+            // Todo:  Add More parameters from above
             Shape = shape;
-
+            OwnershipCost = 0;
+            ObjectSaleType = (byte)0;
+            SalePrice = 0;
+            Category = (uint)0;
+            // End Todo:  ///
+            LastOwnerID = CreatorID;
             OffsetPosition = position;
             RotationOffset = rotation;
             ObjectFlags = flags;
@@ -538,6 +556,14 @@ namespace OpenSim.Region.Environment.Scenes
             dupe.AngularVelocity = new LLVector3(0, 0, 0);
             dupe.ObjectFlags = ObjectFlags;
 
+            dupe.OwnershipCost = OwnershipCost;
+            dupe.ObjectSaleType = ObjectSaleType;
+            dupe.SalePrice = SalePrice;
+            dupe.Category = Category;
+
+            // This may be wrong...    it might have to be applied in SceneObjectGroup to the object that's being duplicated.
+            dupe.LastOwnerID = ObjectOwner;
+            
             byte[] extraP = new byte[Shape.ExtraParams.Length];
             Array.Copy(Shape.ExtraParams, extraP, extraP.Length);
             dupe.Shape.ExtraParams = extraP;
