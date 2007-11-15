@@ -64,7 +64,7 @@ namespace OpenSim
 
         protected LocalLoginService m_loginService;
 
-        protected string m_storageDLL = "OpenSim.DataStore.NullStorage.dll";
+        protected string m_storageDll = "OpenSim.DataStore.NullStorage.dll";
 
         protected string m_startupCommandsFile = "";
         protected string m_shutdownCommandsFile = "";
@@ -218,7 +218,7 @@ namespace OpenSim
                 m_physicalPrim = startupConfig.GetBoolean("physical_prim", true);
                 m_permissions = startupConfig.GetBoolean("serverside_object_permissions", false);
 
-                m_storageDLL = startupConfig.GetString("storage_plugin", "OpenSim.DataStore.NullStorage.dll");
+                m_storageDll = startupConfig.GetString("storage_plugin", "OpenSim.DataStore.NullStorage.dll");
 
                 m_startupCommandsFile = startupConfig.GetString("startup_console_commands_file", "");
                 m_shutdownCommandsFile = startupConfig.GetString("shutdown_console_commands_file", "");
@@ -359,7 +359,7 @@ namespace OpenSim
 
         protected override StorageManager CreateStorageManager(RegionInfo regionInfo)
         {
-            return new StorageManager(m_storageDLL, regionInfo.DataStore, regionInfo.RegionName);
+            return new StorageManager(m_storageDll, regionInfo.DataStore, regionInfo.RegionName);
         }
 
         protected override Scene CreateScene(RegionInfo regionInfo, StorageManager storageManager,

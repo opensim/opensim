@@ -807,6 +807,8 @@
       <Reference name="libsecondlife.dll"/>
       <Reference name="MySql.Data.dll"/>
       <Reference name="OpenSim.Framework.Console"/>
+      <Reference name="OpenSim.Region.Environment"/>
+
       <Files>
         <Match pattern="*.cs" recurse="true"/>
         <Match path="Resources" pattern="*.sql" buildAction="EmbeddedResource"/>

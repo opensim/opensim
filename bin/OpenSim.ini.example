@@ -15,11 +15,18 @@ physics = basicphysics
 ;physics = OpenDynamicsEngine
 ;physics = modified_BulletX
 
-; Prim Storage
-; if you would like to use sqlite uncomment the following line (and 
-; comment the NullStorage line)
+; *** Prim Storage - only leave one storage_plugin uncommented ***
+; --- The NullStorage stores nothing - effectively disabling persistence.
+; storage_plugin = "OpenSim.DataStore.NullStorage.dll"
+
+; --- To use sqlite as region storage - don't forget to add datastore="MonoSqliteFilename.db"
+; to region config xml (ie /Regions/default.xml) as the storages are (currently supposed to be) per region.
 storage_plugin = "OpenSim.DataStore.MonoSqlite.dll"
-;storage_plugin = "OpenSim.DataStore.NullStorage.dll"
+
+; --- This is to use MySQL storage - don't forget to add datastore="<MySql Connection String>"
+; to region config xml (ie /Regions/default.xml) as the storages are (currently supposed to be) per region.
+; storage_plugin="OpenSim.Framework.Data.MySQL.dll"
+
 startup_console_commands_file = "startup_commands.txt"
 shutdown_console_commands_file = "shutdown_commands.txt"
 serverside_object_permissions = false

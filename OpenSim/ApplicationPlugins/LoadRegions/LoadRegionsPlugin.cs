@@ -14,7 +14,7 @@ using Nini.Config;
 [assembly:Addin]
 [assembly:AddinDependency ("OpenSim", "0.4")]
 
-namespace OpenSim.ApplicationPlugins.Example
+namespace OpenSim.ApplicationPlugins.LoadRegions
 {
     [Extension("/OpenSim/Startup")]
     public class LoadRegionsPlugin : IApplicationPlugin

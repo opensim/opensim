@@ -194,18 +194,25 @@ namespace OpenSim.Region.Environment
 
             if (pluginAssembly != null)
             {
-                foreach (Type pluginType in pluginAssembly.GetTypes())
+                try
                 {
-                    if (pluginType.IsPublic)
+                    foreach (Type pluginType in pluginAssembly.GetTypes())
                     {
-                        if (!pluginType.IsAbstract)
+                        if (pluginType.IsPublic)
                         {
-                            if (pluginType.GetInterface("IRegionModule") != null)
+                            if (!pluginType.IsAbstract)
                             {
-                                modules.Add((IRegionModule) Activator.CreateInstance(pluginType));
+                                if (pluginType.GetInterface("IRegionModule") != null)
+                                {
+                                    modules.Add((IRegionModule)Activator.CreateInstance(pluginType));
+                                }
                             }
                         }
                     }
+                }
+                catch( ReflectionTypeLoadException )
+                {
+                    m_log.Verbose("MODULES", "Could not load types for [{0}].", pluginAssembly.FullName );
                 }
             }
 
