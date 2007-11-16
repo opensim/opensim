@@ -130,8 +130,8 @@ namespace OpenSim.Region.Environment.Scenes
 
         public uint ObjectFlags
         {
-            get { return (uint) m_flags; }
-            set { m_flags = (LLObject.ObjectFlags) value; }
+            get { return (uint) m_flags;}
+            set {m_flags = (LLObject.ObjectFlags) value;}
         }
 
         protected LLObject.MaterialType m_material = 0;
@@ -416,7 +416,7 @@ namespace OpenSim.Region.Environment.Scenes
             m_name = "Primitive";
             m_regionHandle = regionHandle;
             m_parentGroup = parent;
-
+            
             CreationDate = (Int32) (DateTime.UtcNow - new DateTime(1970, 1, 1)).TotalSeconds;
             OwnerID = ownerID;
             CreatorID = OwnerID;
@@ -472,7 +472,7 @@ namespace OpenSim.Region.Environment.Scenes
         {
             m_regionHandle = regionHandle;
             m_parentGroup = parent;
-
+            TimeStampTerse = (uint)Util.UnixTimeSinceEpoch();
             CreationDate = creationDate;
             OwnerID = ownerID;
             CreatorID = creatorID;
@@ -490,6 +490,9 @@ namespace OpenSim.Region.Environment.Scenes
             OffsetPosition = position;
             RotationOffset = rotation;
             ObjectFlags = flags;
+            bool UsePhysics = ((ObjectFlags & (uint)LLObject.ObjectFlags.Physics) != 0);
+            doPhysicsPropertyUpdate(UsePhysics);
+            ScheduleFullUpdate();
         }
 
         #endregion
@@ -502,7 +505,11 @@ namespace OpenSim.Region.Environment.Scenes
         public static SceneObjectPart FromXml(XmlReader xmlReader)
         {
             XmlSerializer serializer = new XmlSerializer(typeof (SceneObjectPart));
-            return (SceneObjectPart) serializer.Deserialize(xmlReader);
+            SceneObjectPart newobject = (SceneObjectPart) serializer.Deserialize(xmlReader);
+            bool UsePhysics = ((newobject.ObjectFlags & (uint)LLObject.ObjectFlags.Physics) != 0);
+            newobject.doPhysicsPropertyUpdate(UsePhysics);
+            
+            return newobject;
         }
 
         /// <summary>
@@ -567,6 +574,8 @@ namespace OpenSim.Region.Environment.Scenes
             byte[] extraP = new byte[Shape.ExtraParams.Length];
             Array.Copy(Shape.ExtraParams, extraP, extraP.Length);
             dupe.Shape.ExtraParams = extraP;
+            bool UsePhysics = ((dupe.ObjectFlags & (uint)LLObject.ObjectFlags.Physics) != 0);
+            dupe.doPhysicsPropertyUpdate(UsePhysics);
 
             return dupe;
         }
@@ -890,8 +899,9 @@ namespace OpenSim.Region.Environment.Scenes
 //            System.Console.WriteLine("Update:  PHY:" + UsePhysics.ToString() + ", T:" + IsTemporary.ToString() + ", PHA:" + IsPhantom.ToString() + " S:" + CastsShadows.ToString());
             ScheduleFullUpdate();
         }
-        private void doPhysicsPropertyUpdate(bool UsePhysics)
+        public void doPhysicsPropertyUpdate(bool UsePhysics)
         {
+           
             if (PhysActor != null)
             {
                 if (PhysActor.IsPhysical)
@@ -903,20 +913,30 @@ namespace OpenSim.Region.Environment.Scenes
                 /// that's not wholesome.  Had to make m_scene public
                 PhysActor = null;
 
-                PhysActor = m_parentGroup.m_scene.PhysScene.AddPrimShape(
-                Name,
-                Shape,
-                new PhysicsVector(AbsolutePosition.X, AbsolutePosition.Y,
-                                  AbsolutePosition.Z),
-                new PhysicsVector(Scale.X, Scale.Y, Scale.Z),
-                new Quaternion(RotationOffset.W, RotationOffset.X,
-                               RotationOffset.Y, RotationOffset.Z), UsePhysics);
-                if (UsePhysics)
+                if (!((ObjectFlags & (uint)LLObject.ObjectFlags.Phantom) != 0))
                 {
-                    PhysActor.OnRequestTerseUpdate += PhysicsRequestingTerseUpdate;
-                    PhysActor.OnOutOfBounds += PhysicsOutOfBounds;
+                    PhysActor = m_parentGroup.m_scene.PhysScene.AddPrimShape(
+                    Name,
+                    Shape,
+                    new PhysicsVector(AbsolutePosition.X, AbsolutePosition.Y,
+                                      AbsolutePosition.Z),
+                    new PhysicsVector(Scale.X, Scale.Y, Scale.Z),
+                    new Quaternion(RotationOffset.W, RotationOffset.X,
+                                   RotationOffset.Y, RotationOffset.Z), UsePhysics);
+                    if (UsePhysics)
+                    {
+                        PhysActor.OnRequestTerseUpdate += PhysicsRequestingTerseUpdate;
+                        PhysActor.OnOutOfBounds += PhysicsOutOfBounds;
+                    }
                 }
+
+            
+               
             }
+
+
+
+            
 
         }
 
@@ -1162,6 +1182,7 @@ namespace OpenSim.Region.Environment.Scenes
         public void PhysicsRequestingTerseUpdate()
         {
             ScheduleTerseUpdate();
+
             //SendTerseUpdateToAllClients();
         }
         #endregion

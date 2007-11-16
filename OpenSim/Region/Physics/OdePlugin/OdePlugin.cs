@@ -524,7 +524,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                 newPrim = new OdePrim(name, this, targetspace, pos, siz, rot, mesh, pbs, isphysical);
             }
             _prims.Add(newPrim);
-            OpenSim.Framework.Console.MainLog.Instance.Verbose("PHYSICS", "Added Object");
+            
             return newPrim;
         }
 
