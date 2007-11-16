@@ -33,6 +33,7 @@ namespace OpenSim.Framework.Communications
     public interface IGridServices
     {
         RegionCommsListener RegisterRegion(RegionInfo regionInfos);
+        bool DeregisterRegion(RegionInfo regionInfo);
         List<SimpleRegionInfo> RequestNeighbours(uint x, uint y);
         RegionInfo RequestNeighbourInfo(ulong regionHandle);
         List<MapBlockData> RequestNeighbourMapBlocks(int minX, int minY, int maxX, int maxY);

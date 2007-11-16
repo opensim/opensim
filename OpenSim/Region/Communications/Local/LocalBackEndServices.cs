@@ -54,7 +54,7 @@ namespace OpenSim.Region.Communications.Local
         public RegionCommsListener RegisterRegion(RegionInfo regionInfo)
         {
             //Console.WriteLine("CommsManager - Region " + regionInfo.RegionHandle + " , " + regionInfo.RegionLocX + " , "+ regionInfo.RegionLocY +" is registering");
-            if (!m_regions.ContainsKey((uint) regionInfo.RegionHandle))
+            if (!m_regions.ContainsKey( regionInfo.RegionHandle))
             {
                 //Console.WriteLine("CommsManager - Adding Region " + regionInfo.RegionHandle );
                 m_regions.Add(regionInfo.RegionHandle, regionInfo);
@@ -67,6 +67,20 @@ namespace OpenSim.Region.Communications.Local
 
             //already in our list of regions so for now lets return null
             return null;
+        }
+
+        public bool DeregisterRegion(RegionInfo regionInfo)
+        {
+            if (m_regions.ContainsKey(regionInfo.RegionHandle))
+            {
+                m_regions.Remove(regionInfo.RegionHandle);
+                if (m_regionListeners.ContainsKey(regionInfo.RegionHandle))
+                {
+                    m_regionListeners.Remove(regionInfo.RegionHandle);
+                }
+                return true;
+            }
+            return false;
         }
 
         /// <summary>
@@ -132,7 +146,6 @@ namespace OpenSim.Region.Communications.Local
                     map.Y = (ushort) regInfo.RegionLocY;
                     map.WaterHeight = (byte) regInfo.EstateSettings.waterHeight;
                     map.MapImageId = regInfo.EstateSettings.terrainImageID;
-                    //new LLUUID("00000000-0000-0000-9999-000000000007");
                     map.Agents = 1;
                     map.RegionFlags = 72458694;
                     map.Access = 13;

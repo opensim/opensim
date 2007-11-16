@@ -709,22 +709,9 @@ namespace OpenSim.DataStore.MonoSqlite
             row["ProfileEnd"] = s.ProfileEnd;
             row["ProfileCurve"] = s.ProfileCurve;
             row["ProfileHollow"] = s.ProfileHollow;
-            // text TODO: this isn't right] = but I'm not sure the right
-            // way to specify this as a blob atm
 
-            // And I couldn't work out how to save binary data either
-            // seems that the texture colum is being treated as a string in the Datarow 
-            // if you do a .getType() on it, it returns string, while the other columns return correct type
-            // MW[10-08-07]
-            // Added following xml hack but not really ideal , also ExtraParams isn't currently part of the database
-            // am a bit worried about adding it now as some people will have old format databases, so for now including that data in this xml data
-            // MW[17-08-07]
             row["Texture"] = s.TextureEntry;
             row["ExtraParams"] = s.ExtraParams;
-            // TextureBlock textureBlock = new TextureBlock(s.TextureEntry);
-            //             textureBlock.ExtraParams = s.ExtraParams;
-            //             System.Text.ASCIIEncoding encoding = new System.Text.ASCIIEncoding();
-            // row["Texture"] = encoding.GetBytes(textureBlock.ToXMLString());
         }
 
         private void addPrim(SceneObjectPart prim, LLUUID sceneGroupID, LLUUID regionUUID)

@@ -674,6 +674,7 @@ namespace OpenSim.Region.Environment.Scenes
             SendAnimPack(Animations.AnimsLLUUID["SIT"], 1);
             SendFullUpdateToAllClients();
         }
+
         public void HandleSetAlwaysRun(IClientAPI remoteClient, bool SetAlwaysRun)
         {
             m_setAlwaysRun = SetAlwaysRun;
@@ -683,6 +684,7 @@ namespace OpenSim.Region.Environment.Scenes
             }
 
         }
+
         protected void UpdateMovementAnimations(bool update_movementflag)
         {
             if (update_movementflag)

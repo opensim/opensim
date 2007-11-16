@@ -112,6 +112,11 @@ namespace OpenSim.Region.Communications.OGS1
             return m_localBackend.RegisterRegion(regionInfo);
         }
 
+        public bool DeregisterRegion(RegionInfo regionInfo)
+        {
+            return false;
+        }
+
         /// <summary>
         /// 
         /// </summary>

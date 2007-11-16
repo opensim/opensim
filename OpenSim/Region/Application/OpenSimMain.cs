@@ -773,7 +773,7 @@ namespace OpenSim
                 case "regions":
                     m_sceneManager.ForEachScene(delegate(Scene scene)
                     {
-                        Console.WriteLine("Region Name: " + scene.RegionInfo.RegionName + " , Region XLoc: " + scene.RegionInfo.RegionLocX + " , Region YLoc: " + scene.RegionInfo.RegionLocY);  
+                            m_log.Error("Region Name: " + scene.RegionInfo.RegionName + " , Region XLoc: " + scene.RegionInfo.RegionLocX + " , Region YLoc: " + scene.RegionInfo.RegionLocY);  
                     });
                     break;
             }

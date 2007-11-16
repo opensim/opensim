@@ -43,7 +43,7 @@ namespace OpenSim.Region.Environment.Scenes
             regionCommsHost.OnExpectUser -= NewUserConnection;
             regionCommsHost.OnAvatarCrossingIntoRegion -= AgentCrossing;
             regionCommsHost.OnCloseAgentConnection -= CloseConnection;
-            //regionCommsHost.RemoveRegion(m_regionInfo); //TODO add to method to commsManager
+            m_commsProvider.GridService.DeregisterRegion(m_regionInfo);
             regionCommsHost = null;
         }
 
