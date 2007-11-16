@@ -151,6 +151,11 @@ namespace OpenSim.Region.Environment.Scenes
             get { return m_estateManager; }
         }
 
+        public float TimeDilation
+        {
+            get { return m_timedilation; }
+        }
+
         private readonly PermissionManager m_permissionManager;
 
         public PermissionManager PermissionsMngr
