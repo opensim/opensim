@@ -99,6 +99,7 @@ namespace OpenSim.Region.Physics.Manager
     { 
         public delegate void RequestTerseUpdate();
         public delegate void CollisionUpdate(EventArgs e);
+        public delegate void OutOfBounds(PhysicsVector pos);
 
 #pragma warning disable 67
         public event PositionUpdate OnPositionUpdate;
@@ -106,6 +107,7 @@ namespace OpenSim.Region.Physics.Manager
         public event OrientationUpdate OnOrientationUpdate;
         public event RequestTerseUpdate OnRequestTerseUpdate;
         public event CollisionUpdate OnCollisionUpdate;
+        public event OutOfBounds OnOutOfBounds;
 #pragma warning restore 67
 
         public static PhysicsActor Null
@@ -130,6 +132,18 @@ namespace OpenSim.Region.Physics.Manager
                 OnRequestTerseUpdate();
             }
             
+        }
+        public virtual void RaiseOutOfBounds(PhysicsVector pos)
+        {
+            // Make a temporary copy of the event to avoid possibility of
+            // a race condition if the last subscriber unsubscribes
+            // immediately after the null check and before the event is raised.
+            OutOfBounds handler = OnOutOfBounds;
+            if (handler != null)
+            {
+                OnOutOfBounds(pos);
+            }
+
         }
         public virtual void SendCollisionUpdate(EventArgs e)
         {

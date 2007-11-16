@@ -382,7 +382,25 @@ namespace OpenSim.Region.Physics.OdePlugin
                         p = (OdePrim) prim;
                         p.disableBody();
                     }
-                    
+                    // we don't want to remove the main space
+                    if (((OdePrim)prim).m_targetSpace != space && ((OdePrim)prim).IsPhysical == false)
+                    {
+                        // If the geometry is in the targetspace, remove it from the target space
+                        if (d.SpaceQuery(((OdePrim)prim).m_targetSpace, ((OdePrim)prim).prim_geom))
+                        {
+                            d.SpaceRemove(space, ((OdePrim)prim).prim_geom);
+                        }
+
+                        //If there are no more geometries in the sub-space, we don't need it in the main space anymore
+                        if (d.SpaceGetNumGeoms(((OdePrim)prim).m_targetSpace) == 0)
+                        {
+                            d.SpaceRemove(space, ((OdePrim)prim).m_targetSpace);
+                            // free up memory used by the space.
+                            d.SpaceDestroy(((OdePrim)prim).m_targetSpace);
+                            resetSpaceArrayItemToZero(calculateSpaceArrayItemFromPos(((OdePrim)prim).Position));
+                        }
+                    }
+
                     d.GeomDestroy(((OdePrim)prim).prim_geom);
                     
                     _prims.Remove((OdePrim)prim);
@@ -390,19 +408,73 @@ namespace OpenSim.Region.Physics.OdePlugin
                 }
             }
         }
+        public void resetSpaceArrayItemToZero(IntPtr space)
+        {
+            for (int i = 0; i < staticPrimspace.Length; i++)
+            {
+                if (staticPrimspace[i] == space)
+                    staticPrimspace[i] = IntPtr.Zero;
+            }
+        }
+        public void resetSpaceArrayItemToZero(int arrayitem)
+        {
+            staticPrimspace[arrayitem] = IntPtr.Zero;
+        }
 
-        public IntPtr recalculateSpaceForGeom(IntPtr geom, PhysicsVector pos)
+        public IntPtr recalculateSpaceForGeom(IntPtr geom, PhysicsVector pos, IntPtr currentspace)
         {
             //Todo recalculate space the prim is in.
+            // Called from setting the Position and Size of an ODEPrim so 
+            // it's already in locked space.
 
+            // we don't want to remove the main space
+            // we don't need to test physical here because this function should 
+            // never be called if the prim is physical(active)
+            if (currentspace != space)
+            {
+                if (d.SpaceQuery(currentspace, geom))
+                {
+                    d.SpaceRemove(space, geom);
+                }
+
+                //If there are no more geometries in the sub-space, we don't need it in the main space anymore
+                if (d.SpaceGetNumGeoms(currentspace) == 0)
+                {
+                    d.SpaceRemove(space, currentspace);
+                    // free up memory used by the space.
+                    d.SpaceDestroy(currentspace);
+                    resetSpaceArrayItemToZero(currentspace);
+                }
+            }
+
+                
+            // The routines in the Position and Size sections do the 'inserting' into the space, 
+            // so all we have to do is make sure that the space that we're putting the prim into 
+            // is in the 'main' space.
+            int iprimspaceArrItem = calculateSpaceArrayItemFromPos(pos);
+            IntPtr newspace = calculateSpaceForGeom(pos);
+
+            if (newspace == IntPtr.Zero) 
+                newspace = createprimspace(iprimspaceArrItem);
+                    
+            return newspace;
+        }
+
+        public IntPtr createprimspace(int iprimspaceArrItem) {
+            // creating a new space for prim and inserting it into main space.
+            staticPrimspace[iprimspaceArrItem] = d.HashSpaceCreate(IntPtr.Zero);
+            d.SpaceAdd(space, staticPrimspace[iprimspaceArrItem]);
+            return staticPrimspace[iprimspaceArrItem];
+        }
+
+        public IntPtr calculateSpaceForGeom(PhysicsVector pos)
+        {
 
             return space;
         }
-
-        public IntPtr calculateSpaceForNewGeom(PhysicsVector pos)
+        public int calculateSpaceArrayItemFromPos(PhysicsVector pos)
         {
-
-            return space;
+            return 0;
         }
 
         private PhysicsActor AddPrim(String name, PhysicsVector position, PhysicsVector size, Quaternion rotation,
@@ -423,33 +495,36 @@ namespace OpenSim.Region.Physics.OdePlugin
             rot.y = rotation.y;
             rot.z = rotation.z;
 
-            IntPtr targetspace = calculateSpaceForNewGeom(pos);
+            
+            int iprimspaceArrItem = calculateSpaceArrayItemFromPos(pos);
+            IntPtr targetspace = calculateSpaceForGeom(pos);
+
+            if (targetspace == IntPtr.Zero)
+                targetspace = createprimspace(iprimspaceArrItem);
+
             OdePrim newPrim;
             lock (OdeLock)
             {
                 newPrim = new OdePrim(name, this, targetspace, pos, siz, rot, mesh, pbs, isphysical);
             }
             _prims.Add(newPrim);
+            OpenSim.Framework.Console.MainLog.Instance.Verbose("PHYSICS", "Added Object");
             return newPrim;
         }
 
         public void addActivePrim(OdePrim activatePrim)
          {
             // adds active prim..   (ones that should be iterated over in collisions_optimized
-             lock (OdeLock)
-             {
+
                  _activeprims.Add(activatePrim);
-             }
+
         }
         public void remActivePrim(OdePrim deactivatePrim)
         {
-            lock (OdeLock)
-            {
-                lock (_activeprims)
-                {
-                    _activeprims.Remove(deactivatePrim);
-                }
-            }
+
+                  _activeprims.Remove(deactivatePrim);
+               
+
         }
         public int TriArrayCallback(IntPtr trimesh, IntPtr refObject, int[] triangleIndex, int triCount)
         {
@@ -541,6 +616,7 @@ namespace OpenSim.Region.Physics.OdePlugin
 
         public override void Simulate(float timeStep)
         {
+            
             step_time += timeStep;
             lock (OdeLock)
             {
@@ -548,21 +624,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                 {
                     Console.WriteLine("RENDER: frame");
                 }
-                foreach (OdePrim p in _prims)
-                {
-                    if (_characters.Count > 0 && RENDER_FLAG)
-                    {
-                        Vector3 rx, ry, rz;
-                        p.Orientation.ToAxes(out rx, out ry, out rz);
-                        Console.WriteLine("RENDER: block; " + p.Size.X + ", " + p.Size.Y + ", " + p.Size.Z + "; " +
-                                          "  0, 0, 1;  " + //shape, size, color
-                                          (p.Position.X - 128.0f) + ", " + (p.Position.Y - 128.0f) + ", " +
-                                          (p.Position.Z - 33.0f) + ";  " + // position
-                                          rx.x + "," + ry.x + "," + rz.x + ", " + // rotation
-                                          rx.y + "," + ry.y + "," + rz.y + ", " +
-                                          rx.z + "," + ry.z + "," + rz.z);
-                    }
-                }
+                
                 
 
                 // If We're loaded down by something else, 
@@ -570,6 +632,8 @@ namespace OpenSim.Region.Physics.OdePlugin
                 // skip a few frames to catch up gracefully.
                 // without shooting the physicsactors all over the place
                 
+
+
                 if (step_time >= m_SkipFramesAtms)
                 {
                     // Instead of trying to catch up, it'll do one physics frame only
@@ -580,9 +644,11 @@ namespace OpenSim.Region.Physics.OdePlugin
                 {
                     m_physicsiterations = 10;
                 }
+                
                 // Process 10 frames if the sim is running normal..  
                 // process 5 frames if the sim is running slow
                 d.WorldSetQuickStepNumIterations(world, m_physicsiterations);
+
 
                 int i = 0;
                 while (step_time > 0.0f)
@@ -640,11 +706,13 @@ namespace OpenSim.Region.Physics.OdePlugin
                 }
                 if (timeStep < 0.2f)
                 {
+                    OdePrim outofBoundsPrim = null;
                     foreach (OdePrim actor in _activeprims)
                     {
                         if (actor.IsPhysical && (d.BodyIsEnabled(actor.Body) || !actor._zeroFlag))
                         {
                             actor.UpdatePositionAndVelocity();
+                            
                         }
                     }
                 }
@@ -716,6 +784,7 @@ namespace OpenSim.Region.Physics.OdePlugin
         {
         }
     }
+    # region ODE Actors
 
     public class OdeCharacter : PhysicsActor
     {
@@ -1185,13 +1254,14 @@ namespace OpenSim.Region.Physics.OdePlugin
         private IMesh _mesh;
         private PrimitiveBaseShape _pbs;
         private OdeScene _parent_scene;
-        private IntPtr m_targetSpace = (IntPtr)0;
+        public IntPtr m_targetSpace = (IntPtr)0;
         public IntPtr prim_geom;
         public IntPtr _triMeshData;
         private bool iscolliding = false;
         private bool m_isphysical = false;
         private bool m_throttleUpdates = false;
         private int throttleCounter = 0;
+        public bool outofBounds = false;
         
         public bool _zeroFlag = false;
         private bool m_lastUpdateSent = false;
@@ -1402,7 +1472,9 @@ namespace OpenSim.Region.Physics.OdePlugin
 
         public override PhysicsVector Position
         {
-            get { return _position;}
+            get {return _position; }
+                
+           
             set
             {
                 _position = value;
@@ -1421,9 +1493,9 @@ namespace OpenSim.Region.Physics.OdePlugin
                     else
                     {
                         d.GeomSetPosition(prim_geom, _position.X, _position.Y, _position.Z);
-                       
+                        m_targetSpace = _parent_scene.recalculateSpaceForGeom(prim_geom, _position, m_targetSpace);
                     }
-                    m_targetSpace = _parent_scene.recalculateSpaceForGeom(prim_geom, _position);
+                   
                 }
             }
         }
@@ -1449,6 +1521,9 @@ namespace OpenSim.Region.Physics.OdePlugin
                         disableBody();
                     }
                     d.GeomDestroy(prim_geom);
+
+                    // Recalculate which space this geometry should be in.
+                    m_targetSpace = _parent_scene.recalculateSpaceForGeom(prim_geom, _position, m_targetSpace);
                     // Construction of new prim
                     if (this._parent_scene.needsMeshing(_pbs))
                     {
@@ -1478,7 +1553,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                         
                     }
 
-                    m_targetSpace = _parent_scene.recalculateSpaceForGeom(prim_geom, _position);
+                    
                     _parent_scene.geom_name_map[prim_geom] = oldname;
 
                 }
@@ -1639,20 +1714,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                     // Disables the prim's movement physics....  
                     // It's a hack and will generate a console message if it fails.
                     
-                        try
-                        {
-                            disableBody();
-
-                        }
-                        catch (System.Exception e)
-                        {
-                            if (Body != (IntPtr)0)
-                            {
-                                d.BodyDestroy(Body);
-                                Body = (IntPtr)0;
-
-                            }
-                        }
+                       
                     
                     
                     IsPhysical = false;
@@ -1662,10 +1724,11 @@ namespace OpenSim.Region.Physics.OdePlugin
                     m_rotationalVelocity.X = 0;
                     m_rotationalVelocity.Y = 0;
                     m_rotationalVelocity.Z = 0;
-                    base.RequestPhysicsterseUpdate();
+                    //base.RequestPhysicsterseUpdate();
                     m_throttleUpdates = false;
                     throttleCounter = 0;
                     _zeroFlag = true;
+                    outofBounds = true;
                 }
 
                 if ((Math.Abs(m_lastposition.X - l_position.X) < 0.02) 
@@ -1755,3 +1818,4 @@ namespace OpenSim.Region.Physics.OdePlugin
         }
     }
 }
+    #endregion

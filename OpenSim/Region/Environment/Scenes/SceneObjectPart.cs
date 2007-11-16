@@ -806,6 +806,7 @@ namespace OpenSim.Region.Environment.Scenes
             bool IsTemporary = false;
             bool IsPhantom = false;
             bool CastsShadows = false;
+            bool wasUsingPhysics = ((ObjectFlags & (uint)LLObject.ObjectFlags.Physics) != 0);
             //bool IsLocked = false;
             int i = 0;
 
@@ -829,19 +830,24 @@ namespace OpenSim.Region.Environment.Scenes
             if (UsePhysics )
             {
                 AddFlag(LLObject.ObjectFlags.Physics);
-                if (PhysActor != null)
-                    PhysActor.OnRequestTerseUpdate += PhysicsRequestingTerseUpdate;
+                if (!wasUsingPhysics)
+                {
+                    doPhysicsPropertyUpdate(UsePhysics);
+                }
 
             }
             else
             {
-                if (m_parentGroup.m_scene.m_physicalPrim)
+                RemFlag(LLObject.ObjectFlags.Physics);
+                if (wasUsingPhysics)
                 {
-                    RemFlag(LLObject.ObjectFlags.Physics);
-                    if (PhysActor != null)
-                        PhysActor.OnRequestTerseUpdate -= PhysicsRequestingTerseUpdate;
+                    doPhysicsPropertyUpdate(UsePhysics);
                 }
             }
+                
+
+                
+            
 
             if (IsPhantom)
             {
@@ -883,6 +889,35 @@ namespace OpenSim.Region.Environment.Scenes
             }
 //            System.Console.WriteLine("Update:  PHY:" + UsePhysics.ToString() + ", T:" + IsTemporary.ToString() + ", PHA:" + IsPhantom.ToString() + " S:" + CastsShadows.ToString());
             ScheduleFullUpdate();
+        }
+        private void doPhysicsPropertyUpdate(bool UsePhysics)
+        {
+            if (PhysActor != null)
+            {
+                if (PhysActor.IsPhysical)
+                {
+                    PhysActor.OnRequestTerseUpdate -= PhysicsRequestingTerseUpdate;
+                    PhysActor.OnOutOfBounds -= PhysicsOutOfBounds;
+                }
+                m_parentGroup.m_scene.PhysScene.RemovePrim(PhysActor);
+                /// that's not wholesome.  Had to make m_scene public
+                PhysActor = null;
+
+                PhysActor = m_parentGroup.m_scene.PhysScene.AddPrimShape(
+                Name,
+                Shape,
+                new PhysicsVector(AbsolutePosition.X, AbsolutePosition.Y,
+                                  AbsolutePosition.Z),
+                new PhysicsVector(Scale.X, Scale.Y, Scale.Z),
+                new Quaternion(RotationOffset.W, RotationOffset.X,
+                               RotationOffset.Y, RotationOffset.Z), UsePhysics);
+                if (UsePhysics)
+                {
+                    PhysActor.OnRequestTerseUpdate += PhysicsRequestingTerseUpdate;
+                    PhysActor.OnOutOfBounds += PhysicsOutOfBounds;
+                }
+            }
+
         }
 
         public void UpdateExtraParam(ushort type, bool inUse, byte[] data)
@@ -1129,6 +1164,13 @@ namespace OpenSim.Region.Environment.Scenes
             SendTerseUpdateToAllClients();
         }
         #endregion
+
+        public void PhysicsOutOfBounds(PhysicsVector pos)
+        {
+            OpenSim.Framework.Console.MainLog.Instance.Verbose("PHYSICS", "Physical Object went out of bounds.");
+            doPhysicsPropertyUpdate(false);
+            ScheduleFullUpdate();
+        }
 
 
         public virtual void OnGrab(LLVector3 offsetPos, IClientAPI remoteClient)
