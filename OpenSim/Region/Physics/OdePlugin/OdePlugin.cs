@@ -100,7 +100,7 @@ namespace OpenSim.Region.Physics.OdePlugin
         
         public IntPtr space;
         // split static geometry collision handling into spaces of 64 meters
-        public IntPtr[] staticPrimspace = new IntPtr[64]; 
+        public IntPtr[] staticPrimspace = new IntPtr[74]; 
         
         public static Object OdeLock = new Object();
 
@@ -139,6 +139,7 @@ namespace OpenSim.Region.Physics.OdePlugin
             {
                 world = d.WorldCreate();
                 space = d.HashSpaceCreate(IntPtr.Zero);
+                d.HashSpaceSetLevels(space, -4, 128);
                 contactgroup = d.JointGroupCreate(0);
                 //contactgroup
 
@@ -151,16 +152,24 @@ namespace OpenSim.Region.Physics.OdePlugin
             }
 
             _heightmap = new double[258*258];
+
+            for (int i = 0; i < staticPrimspace.Length; i++)
+            {
+                staticPrimspace[i] = IntPtr.Zero;
+            }
             
         }
+
+        
 
         public override void Initialise(IMesher meshmerizer)
         {
             mesher = meshmerizer;
+
         }
 
 
-        
+
         private void near(IntPtr space, IntPtr g1, IntPtr g2)
         {
             //  no lock here!  It's invoked from within Simulate(), which is thread-locked
@@ -175,8 +184,8 @@ namespace OpenSim.Region.Physics.OdePlugin
                 //Colliding a space or a geom with a space or a geom.
 
                 //Collide all geoms in each space..   
-                if (d.GeomIsSpace(g1)) d.SpaceCollide(g1, IntPtr.Zero, nearCallback);
-                if (d.GeomIsSpace(g2)) d.SpaceCollide(g2, IntPtr.Zero, nearCallback);
+                //if (d.GeomIsSpace(g1)) d.SpaceCollide(g1, IntPtr.Zero, nearCallback);
+                //if (d.GeomIsSpace(g2)) d.SpaceCollide(g2, IntPtr.Zero, nearCallback);
 
             } 
             else 
@@ -317,7 +326,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                 {
 
                     
-                    d.SpaceCollide2(chr.Shell, ch2.Shell, IntPtr.Zero, nearCallback);
+                    //d.SpaceCollide2(chr.Shell, ch2.Shell, IntPtr.Zero, nearCallback);
                 }
                
             }
@@ -388,8 +397,10 @@ namespace OpenSim.Region.Physics.OdePlugin
                         // If the geometry is in the targetspace, remove it from the target space
                         if (d.SpaceQuery(((OdePrim)prim).m_targetSpace, ((OdePrim)prim).prim_geom))
                         {
-                            d.SpaceRemove(space, ((OdePrim)prim).prim_geom);
+                            d.SpaceRemove(((OdePrim)prim).m_targetSpace, ((OdePrim)prim).prim_geom);
                         }
+
+                      
 
                         //If there are no more geometries in the sub-space, we don't need it in the main space anymore
                         if (d.SpaceGetNumGeoms(((OdePrim)prim).m_targetSpace) == 0)
@@ -400,8 +411,8 @@ namespace OpenSim.Region.Physics.OdePlugin
                             resetSpaceArrayItemToZero(calculateSpaceArrayItemFromPos(((OdePrim)prim).Position));
                         }
                     }
-
-                    d.GeomDestroy(((OdePrim)prim).prim_geom);
+                  
+                        d.GeomDestroy(((OdePrim)prim).prim_geom);
                     
                     _prims.Remove((OdePrim)prim);
                     
@@ -434,7 +445,7 @@ namespace OpenSim.Region.Physics.OdePlugin
             {
                 if (d.SpaceQuery(currentspace, geom))
                 {
-                    d.SpaceRemove(space, geom);
+                    d.SpaceRemove(currentspace, geom);
                 }
 
                 //If there are no more geometries in the sub-space, we don't need it in the main space anymore
@@ -454,8 +465,11 @@ namespace OpenSim.Region.Physics.OdePlugin
             int iprimspaceArrItem = calculateSpaceArrayItemFromPos(pos);
             IntPtr newspace = calculateSpaceForGeom(pos);
 
-            if (newspace == IntPtr.Zero) 
+            if (newspace == IntPtr.Zero)
+            {
                 newspace = createprimspace(iprimspaceArrItem);
+                d.HashSpaceSetLevels(newspace, -4, 66);
+            }
                     
             return newspace;
         }
@@ -469,12 +483,14 @@ namespace OpenSim.Region.Physics.OdePlugin
 
         public IntPtr calculateSpaceForGeom(PhysicsVector pos)
         {
-
-            return space;
+            IntPtr locationbasedspace = staticPrimspace[calculateSpaceArrayItemFromPos(pos)];
+            //locationbasedspace = space;
+            return locationbasedspace;
         }
         public int calculateSpaceArrayItemFromPos(PhysicsVector pos)
         {
-            return 0;
+            int returnint = ((int)((pos.X + pos.Y)/8.6f));
+            return returnint;
         }
 
         private PhysicsActor AddPrim(String name, PhysicsVector position, PhysicsVector size, Quaternion rotation,
@@ -1494,6 +1510,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                     {
                         d.GeomSetPosition(prim_geom, _position.X, _position.Y, _position.Z);
                         m_targetSpace = _parent_scene.recalculateSpaceForGeom(prim_geom, _position, m_targetSpace);
+                        d.SpaceAdd(m_targetSpace, prim_geom);
                     }
                    
                 }
@@ -1520,11 +1537,14 @@ namespace OpenSim.Region.Physics.OdePlugin
                     {
                         disableBody();
                     }
+                    if (d.SpaceQuery(m_targetSpace,prim_geom)) {
+                        d.SpaceRemove(m_targetSpace,prim_geom);
+                    }
                     d.GeomDestroy(prim_geom);
+                      
+                      // we don't need to do space calculation because the client sends a position update also.
 
-                    // Recalculate which space this geometry should be in.
-                    m_targetSpace = _parent_scene.recalculateSpaceForGeom(prim_geom, _position, m_targetSpace);
-                    // Construction of new prim
+                      // Construction of new prim
                     if (this._parent_scene.needsMeshing(_pbs))
                     {
 
@@ -1543,6 +1563,8 @@ namespace OpenSim.Region.Physics.OdePlugin
                     } else {
                         prim_geom = d.CreateBox(m_targetSpace, _size.X, _size.Y, _size.Z);
                         
+                        
+                        //d.GeomBoxSetLengths(prim_geom, _size.X, _size.Y, _size.Z);
                         if (IsPhysical && Body == (IntPtr)0)
                         {
                             // Re creates body on size.
@@ -1688,6 +1710,7 @@ namespace OpenSim.Region.Physics.OdePlugin
 
         public void UpdatePositionAndVelocity() {
          //  no lock; called from Simulate() -- if you call this from elsewhere, gotta lock or do Monitor.Enter/Exit!
+            
             if (Body != (IntPtr)0)
             {
                 d.Vector3 vec = d.BodyGetPosition(Body);

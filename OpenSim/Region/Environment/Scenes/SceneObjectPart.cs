@@ -1161,7 +1161,8 @@ namespace OpenSim.Region.Environment.Scenes
         #region Events
         public void PhysicsRequestingTerseUpdate()
         {
-            SendTerseUpdateToAllClients();
+            ScheduleTerseUpdate();
+            //SendTerseUpdateToAllClients();
         }
         #endregion
 
