@@ -336,7 +336,13 @@ namespace OpenSim.Region.Environment.Scenes
                         // since our timestamp resolution is to the nearest second).  The first
                         // could have been sent in the last update - we still need to send the 
                         // second here.
-                        if (update.LastFullUpdateTime <= part.TimeStampFull)
+
+                        // after object un-linking was introduced, this broke and needs fixing
+                        // *all* object movements create a fullobjectupdate (which is bad)
+                        // Physical objects do not need this bit of code, so lets make sure that they don't 
+                        // get updated and make matters worse until this gets fixed.
+
+                        if (update.LastFullUpdateTime < part.TimeStampFull && !((part.ObjectFlags & (uint) LLObject.ObjectFlags.Physics) !=0 ))
                         {
                             //need to do a full update
                             part.SendFullUpdate(ControllingClient);
