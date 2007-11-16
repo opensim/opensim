@@ -12,6 +12,7 @@ meshing = ZeroMesher
 
 ; Choose one of the physics engines below
 physics = basicphysics
+;physics = POS
 ;physics = OpenDynamicsEngine
 ;physics = modified_BulletX
 

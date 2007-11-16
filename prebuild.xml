@@ -281,6 +281,28 @@
       </Files>
     </Project>
 
+    <Project name="OpenSim.Region.Physics.POSPlugin" path="OpenSim/Region/Physics/POSPlugin" type="Library">
+      <Configuration name="Debug">
+        <Options>
+          <OutputPath>../../../../bin/Physics/</OutputPath>
+        </Options>
+      </Configuration>
+      <Configuration name="Release">
+        <Options>
+          <OutputPath>../../../../bin/Physics/</OutputPath>
+        </Options>
+      </Configuration>
+
+      <ReferencePath>../../../../bin/</ReferencePath>
+      <Reference name="System" localCopy="false"/>
+      <Reference name="Axiom.MathLib.dll" localCopy="false"/>
+      <Reference name="OpenSim.Framework"/>
+      <Reference name="OpenSim.Region.Physics.Manager" localCopy="false"/>
+      <Files>
+        <Match pattern="*.cs" recurse="true"/>
+      </Files>
+    </Project>
+
     <Project name="OpenSim.Region.Physics.PhysXPlugin" path="OpenSim/Region/Physics/PhysXPlugin" type="Library">
       <Configuration name="Debug">
         <Options>
