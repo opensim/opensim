@@ -166,8 +166,16 @@ namespace OpenSim.Framework
             if (configurationFilename.Trim() != "")
             {
                 configurationPlugin.SetFileName(configurationFilename);
-                configurationPlugin.LoadData();
-                useFile = true;
+                try
+                {
+                    configurationPlugin.LoadData();
+                    useFile = true;
+                }
+                catch (XmlException e)
+                {
+                    MainLog.Instance.Error("Error loading " + configurationFilename + ": " + e.ToString());
+                    useFile = false;
+                }
             }
             else
             {
@@ -189,7 +197,6 @@ namespace OpenSim.Framework
                 bool ignoreNextFromConfig = false;
                 while (convertSuccess == false)
                 {
-                    
                     string console_result = "";
                     string attribute = null;
                     if (useFile || (!useFile && configurationFromXMLNode != null))
@@ -228,7 +235,6 @@ namespace OpenSim.Framework
                                 //Dont Ask! Just use default
                                 console_result = configOption.configurationDefault;
                             }
-
                         }                        
                     }
                     else
@@ -292,7 +298,6 @@ namespace OpenSim.Framework
                             {
                                 convertSuccess = true;
                                 return_result = intResult;
-
                             }
                             errorMessage = "a signed 32 bit integer (int)";
                             break;
@@ -347,7 +352,6 @@ namespace OpenSim.Framework
                             {
                                 convertSuccess = true;
                                 return_result = uintResult;
-                                
                             }
                             errorMessage = "an unsigned 32 bit integer (uint)";
                             break;
@@ -386,7 +390,6 @@ namespace OpenSim.Framework
                         {
                             configurationPlugin.SetAttribute(configOption.configurationKey, console_result);
                         }
-
 
                         if (!this.resultFunction(configOption.configurationKey, return_result))
                         {

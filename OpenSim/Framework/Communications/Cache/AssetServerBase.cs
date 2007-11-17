@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Threading;
+using System.Xml;
 using libsecondlife;
 using Nini.Config;
 using OpenSim.Framework.Console;
@@ -148,22 +149,29 @@ namespace OpenSim.Framework.Communications.Cache
             string filePath = Path.Combine(Util.configDir(), "OpenSimAssetSet.xml");
             if (File.Exists(filePath))
             {
-                XmlConfigSource source = new XmlConfigSource(filePath);
-
-                for (int i = 0; i < source.Configs.Count; i++)
+                try
                 {
-                    // System.Console.WriteLine("loading asset into database");
-                    string assetIdStr = source.Configs[i].GetString("assetID", LLUUID.Random().ToStringHyphenated());
-                    string name = source.Configs[i].GetString("name", "");
-                    sbyte type = (sbyte) source.Configs[i].GetInt("assetType", 0);
-                    sbyte invType = (sbyte) source.Configs[i].GetInt("inventoryType", 0);
-                    string fileName = source.Configs[i].GetString("fileName", "");
+                    XmlConfigSource source = new XmlConfigSource(filePath);
 
-                    AssetBase newAsset = CreateAsset(assetIdStr, name, fileName, false);
+                    for (int i = 0; i < source.Configs.Count; i++)
+                    {
+                        // System.Console.WriteLine("loading asset into database");
+                        string assetIdStr = source.Configs[i].GetString("assetID", LLUUID.Random().ToStringHyphenated());
+                        string name = source.Configs[i].GetString("name", "");
+                        sbyte type = (sbyte) source.Configs[i].GetInt("assetType", 0);
+                        sbyte invType = (sbyte) source.Configs[i].GetInt("inventoryType", 0);
+                        string fileName = source.Configs[i].GetString("fileName", "");
 
-                    newAsset.Type = type;
-                    newAsset.InvType = invType;
-                    assets.Add(newAsset);
+                        AssetBase newAsset = CreateAsset(assetIdStr, name, fileName, false);
+
+                        newAsset.Type = type;
+                        newAsset.InvType = invType;
+                        assets.Add(newAsset);
+                    }
+                }
+                catch (XmlException e)
+                {
+                    MainLog.Instance.Error("ASSETS", "Error loading " + filePath + ": " + e.ToString());
                 }
             }
             assets.ForEach(action);

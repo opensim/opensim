@@ -27,8 +27,10 @@
 */
 
 using System.IO;
+using System.Xml;
 using libsecondlife;
 using Nini.Config;
+using OpenSim.Framework.Console;
 
 namespace OpenSim.Framework.Communications.Cache
 {
@@ -65,8 +67,15 @@ namespace OpenSim.Framework.Communications.Cache
             string filePath = Path.Combine(Util.configDir(), "OpenSimLibrary.xml");
             if (File.Exists(filePath))
             {
-                XmlConfigSource source = new XmlConfigSource(filePath);
-                ReadItemsFromFile(source);
+                try 
+                {
+                    XmlConfigSource source = new XmlConfigSource(filePath);
+                    ReadItemsFromFile(source);
+                }
+                catch (XmlException e)
+                {
+                    MainLog.Instance.Error("INVENTORY", "Error loading " + filePath + ": " + e.ToString());
+                }
             }
         }
 
