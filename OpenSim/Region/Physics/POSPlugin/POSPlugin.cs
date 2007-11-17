@@ -65,6 +65,7 @@ namespace OpenSim.Region.Physics.POSPlugin
     {
         private List<POSActor> _actors = new List<POSActor>();
         private float[] _heightMap;
+        private const float gravity = -1.0f;
 
         public POSScene()
         {
@@ -119,15 +120,13 @@ namespace OpenSim.Region.Physics.POSPlugin
         {
             foreach (POSActor actor in _actors)
             {
-                actor.Position.X = actor.Position.X + (actor.Velocity.X*timeStep);
-                actor.Position.Y = actor.Position.Y + (actor.Velocity.Y*timeStep);
-                if (actor.Position.Y < 0)
+                actor.Position.X += actor.Velocity.X * timeStep;
+                actor.Position.Y += actor.Velocity.Y * timeStep;
+                actor.Position.Z += actor.Velocity.Z * timeStep;
+
+                if (!actor.Flying)
                 {
-                    actor.Position.Y = 0.1F;
-                }
-                else if (actor.Position.Y >= 256)
-                {
-                    actor.Position.Y = 255.9F;
+                    actor.Velocity.Z += gravity;
                 }
 
                 if (actor.Position.X < 0)
@@ -139,23 +138,19 @@ namespace OpenSim.Region.Physics.POSPlugin
                     actor.Position.X = 255.9F;
                 }
 
-                float height = _heightMap[(int) actor.Position.Y*256 + (int) actor.Position.X] + 1.0f;
-                if (actor.Flying)
+                if (actor.Position.Y < 0)
                 {
-                    if (actor.Position.Z + (actor.Velocity.Z*timeStep) <
-                        _heightMap[(int) actor.Position.Y*256 + (int) actor.Position.X] + 2)
-                    {
-                        actor.Position.Z = height;
-                        actor.Velocity.Z = 0;
-                    }
-                    else
-                    {
-                        actor.Position.Z = actor.Position.Z + (actor.Velocity.Z*timeStep);
-                    }
+                    actor.Position.Y = 0.1F;
                 }
-                else
+                else if (actor.Position.Y >= 256)
                 {
-                    actor.Position.Z = height;
+                    actor.Position.Y = 255.9F;
+                }
+
+                float terrainheight = _heightMap[(int) actor.Position.Y * 256 + (int) actor.Position.X];
+                if (actor.Position.Z + (actor.Velocity.Z * timeStep) < terrainheight + 2)
+                {
+                    actor.Position.Z = terrainheight + 1.0f;
                     actor.Velocity.Z = 0;
                 }
             }
