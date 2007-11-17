@@ -357,6 +357,20 @@ namespace OpenSim.Region.Physics.OdePlugin
                     }
                 }
             }
+            else
+            {
+                // Everything is going slow, so we're skipping object to object collisions
+                // At least collide test against the ground.
+                foreach (OdePrim chr in _activeprims)
+                {
+                    // This if may not need to be there..    it might be skipped anyway.
+                    if (d.BodyIsEnabled(chr.Body))
+                    {
+                        d.SpaceCollide2(LandGeom, chr.prim_geom, IntPtr.Zero, nearCallback);
+                        
+                    }
+                }
+            }
         }
 
         public override PhysicsActor AddAvatar(string avName, PhysicsVector position)
@@ -445,8 +459,16 @@ namespace OpenSim.Region.Physics.OdePlugin
             {
                 if (d.SpaceQuery(currentspace, geom))
                 {
+
                     d.SpaceRemove(currentspace, geom);
                 }
+                else
+                {
+                    IntPtr sGeomIsIn = d.GeomGetSpace(geom);
+                    if (sGeomIsIn != null)
+                        d.SpaceRemove(sGeomIsIn, geom);
+                }
+
 
                 //If there are no more geometries in the sub-space, we don't need it in the main space anymore
                 if (d.SpaceGetNumGeoms(currentspace) == 0)
@@ -455,6 +477,21 @@ namespace OpenSim.Region.Physics.OdePlugin
                     // free up memory used by the space.
                     d.SpaceDestroy(currentspace);
                     resetSpaceArrayItemToZero(currentspace);
+                }
+            }
+            else
+            {
+                // this is a physical object that got disabled. ;.;
+                if (d.SpaceQuery(currentspace, geom))
+                {
+
+                    d.SpaceRemove(currentspace, geom);
+                }
+                else
+                {
+                    IntPtr sGeomIsIn = d.GeomGetSpace(geom);
+                    if (sGeomIsIn != null)
+                        d.SpaceRemove(sGeomIsIn, geom);
                 }
             }
 
