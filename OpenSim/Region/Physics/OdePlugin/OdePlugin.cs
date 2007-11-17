@@ -465,7 +465,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                 else
                 {
                     IntPtr sGeomIsIn = d.GeomGetSpace(geom);
-                    if (sGeomIsIn != null)
+                    if (!(sGeomIsIn.Equals(null)))
                         d.SpaceRemove(sGeomIsIn, geom);
                 }
 
@@ -490,7 +490,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                 else
                 {
                     IntPtr sGeomIsIn = d.GeomGetSpace(geom);
-                    if (sGeomIsIn != null)
+                    if (!(sGeomIsIn.Equals(null)))
                         d.SpaceRemove(sGeomIsIn, geom);
                 }
             }
