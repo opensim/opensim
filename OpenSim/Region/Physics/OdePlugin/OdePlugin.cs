@@ -1501,8 +1501,8 @@ namespace OpenSim.Region.Physics.OdePlugin
                         // This is a fallback..   May no longer be necessary.
                         if (Body == (IntPtr)0)
                             enableBody();
-                        // Prim auto disable after 20 frames, 
-                        // if you move it, re-enable the prim manually.
+                         //Prim auto disable after 20 frames, 
+                         ///if you move it, re-enable the prim manually.
                         d.BodyEnable(Body);
                         d.BodySetPosition(Body, _position.X, _position.Y, _position.Z); 
                     }
@@ -1559,9 +1559,25 @@ namespace OpenSim.Region.Physics.OdePlugin
                         else
                         {
                             prim_geom = d.CreateBox(m_targetSpace, _size.X, _size.Y, _size.Z);
+                            d.GeomSetPosition(prim_geom, _position.X, _position.Y, _position.Z);
+                            d.Quaternion myrot = new d.Quaternion();
+                            myrot.W = _orientation.w;
+                            myrot.X = _orientation.x;
+                            myrot.Y = _orientation.y;
+                            myrot.Z = _orientation.z;
+                            d.GeomSetQuaternion(prim_geom, ref myrot);
+
+
                         }
                     } else {
                         prim_geom = d.CreateBox(m_targetSpace, _size.X, _size.Y, _size.Z);
+                        d.GeomSetPosition(prim_geom, _position.X, _position.Y, _position.Z);
+                        d.Quaternion myrot = new d.Quaternion();
+                        myrot.W = _orientation.w;
+                        myrot.X = _orientation.x;
+                        myrot.Y = _orientation.y;
+                        myrot.Z = _orientation.z;
+                        d.GeomSetQuaternion(prim_geom, ref myrot);
                         
                         
                         //d.GeomBoxSetLengths(prim_geom, _size.X, _size.Y, _size.Z);
