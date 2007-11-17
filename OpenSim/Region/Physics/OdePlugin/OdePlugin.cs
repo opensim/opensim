@@ -1017,12 +1017,14 @@ namespace OpenSim.Region.Physics.OdePlugin
                 {
                     PhysicsVector SetSize = value;
                     float prevCapsule = CAPSULE_LENGTH;
+                    float capsuleradius = CAPSULE_RADIUS;
+                    capsuleradius = 0.2f;
 
-                    CAPSULE_LENGTH = (SetSize.Z - (CAPSULE_RADIUS * 2))/ 1.75f; //;
+                    CAPSULE_LENGTH = (SetSize.Z - ((SetSize.Z * 0.43f))); // subtract 43% of the size
                     d.BodyDestroy(Body);
                     d.GeomDestroy(Shell);
                     //OpenSim.Framework.Console.MainLog.Instance.Verbose("PHYSICS", "Set Avatar Height To: " + (CAPSULE_RADIUS + CAPSULE_LENGTH));
-                    Shell = d.CreateCapsule(_parent_scene.space, CAPSULE_RADIUS, CAPSULE_LENGTH);
+                    Shell = d.CreateCapsule(_parent_scene.space, capsuleradius, CAPSULE_LENGTH);
                     d.MassSetCapsule(out ShellMass, 50.0f, 3, CAPSULE_RADIUS, CAPSULE_LENGTH);
                     Body = d.BodyCreate(_parent_scene.world);
                     d.BodySetMass(Body, ref ShellMass);
