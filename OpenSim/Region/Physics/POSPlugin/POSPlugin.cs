@@ -26,6 +26,7 @@
 * 
 */
 using System.Collections.Generic;
+using System;
 using Axiom.Math;
 using OpenSim.Framework;
 using OpenSim.Region.Physics.Manager;
@@ -63,9 +64,10 @@ namespace OpenSim.Region.Physics.POSPlugin
 
     public class POSScene : PhysicsScene
     {
-        private List<POSActor> _actors = new List<POSActor>();
+        private List<POSCharacter> _characters = new List<POSCharacter>();
+        private List<POSPrim> _prims = new List<POSPrim>();
         private float[] _heightMap;
-        private const float gravity = -1.0f;
+        private const float gravity = -9.8f;
 
         public POSScene()
         {
@@ -78,22 +80,27 @@ namespace OpenSim.Region.Physics.POSPlugin
 
         public override PhysicsActor AddAvatar(string avName, PhysicsVector position)
         {
-            POSActor act = new POSActor();
+            POSCharacter act = new POSCharacter();
             act.Position = position;
-            _actors.Add(act);
+            _characters.Add(act);
             return act;
         }
 
         public override void RemovePrim(PhysicsActor prim)
         {
+            POSPrim p = (POSPrim) prim;
+            if (_prims.Contains(p))
+            {
+                _prims.Remove(p);
+            }
         }
 
-        public override void RemoveAvatar(PhysicsActor actor)
+        public override void RemoveAvatar(PhysicsActor character)
         {
-            POSActor act = (POSActor) actor;
-            if (_actors.Contains(act))
+            POSCharacter act = (POSCharacter) character;
+            if (_characters.Contains(act))
             {
-                _actors.Remove(act);
+                _characters.Remove(act);
             }
         }
 
@@ -113,46 +120,105 @@ namespace OpenSim.Region.Physics.POSPlugin
         public override PhysicsActor AddPrimShape(string primName, PrimitiveBaseShape pbs, PhysicsVector position, 
                                                   PhysicsVector size, Quaternion rotation, bool isPhysical)
         {
-            return null;
+            POSPrim prim = new POSPrim();
+            prim.Position = position;
+            prim.Orientation = rotation;
+            prim.Size = size;
+            _prims.Add(prim);
+            return prim;
+        }
+
+        private bool check_collision(POSCharacter c, POSPrim p)
+        {
+            /*
+            Console.WriteLine("checking whether " + c + " collides with " + p +
+                " absX: " + Math.Abs(p.Position.X - c.Position.X) +
+                " sizeX: " + p.Size.X * 0.5 + 0.5);
+             */
+            bool collides = true;
+            if (Math.Abs(p.Position.X - c.Position.X) >= (p.Size.X * 0.5 + 0.5))
+            {
+                collides = false;
+            }
+            if (Math.Abs(p.Position.Y - c.Position.Y) >= (p.Size.Y * 0.5 + 0.5))
+            {
+                collides = false;
+            }
+            if (Math.Abs(p.Position.Z - c.Position.Z) >= (p.Size.Z * 0.5 + 1.0))
+            {
+                collides = false;
+            }
+            return collides;
         }
 
         public override void Simulate(float timeStep)
         {
-            foreach (POSActor actor in _actors)
+            foreach (POSCharacter character in _characters)
             {
-                actor.Position.X += actor.Velocity.X * timeStep;
-                actor.Position.Y += actor.Velocity.Y * timeStep;
-                actor.Position.Z += actor.Velocity.Z * timeStep;
+                float oldposX = character.Position.X;
+                float oldposY = character.Position.Y;
+                float oldposZ = character.Position.Z;
 
-                if (!actor.Flying)
+                if (!character.Flying)
                 {
-                    actor.Velocity.Z += gravity;
-                }
-
-                if (actor.Position.X < 0)
-                {
-                    actor.Position.X = 0.1F;
-                }
-                else if (actor.Position.X > 256)
-                {
-                    actor.Position.X = 255.9F;
+                    character._target_velocity.Z += gravity * timeStep;
                 }
 
-                if (actor.Position.Y < 0)
+                character.Position.X = character.Position.X + (character._target_velocity.X * timeStep);
+                character.Position.Y = character.Position.Y + (character._target_velocity.Y * timeStep);
+                float terrainheight = _heightMap[(int)character.Position.Y * 256 + (int)character.Position.X];
+                if (character.Position.Z + (character._target_velocity.Z * timeStep) < terrainheight + 2)
                 {
-                    actor.Position.Y = 0.1F;
+                    character.Position.Z = terrainheight + 1.0f;
+                    character._target_velocity.Z = 0;
+                    character._velocity.Z = 0;
                 }
-                else if (actor.Position.Y >= 256)
+                else
                 {
-                    actor.Position.Y = 255.9F;
+                    character.Position.Z = character.Position.Z + (character._target_velocity.Z * timeStep);
                 }
 
-                float terrainheight = _heightMap[(int) actor.Position.Y * 256 + (int) actor.Position.X];
-                if (actor.Position.Z + (actor.Velocity.Z * timeStep) < terrainheight + 2)
+                /// this is it -- the magic you've all been waiting for!  Ladies and gentlemen -- 
+                /// Completely Bogus Collision Detection!!!
+                /// better known as the CBCD algorithm
+
+                foreach (POSPrim p in _prims)
                 {
-                    actor.Position.Z = terrainheight + 1.0f;
-                    actor.Velocity.Z = 0;
+                    if (check_collision(character, p))
+                    {
+                        character.Position.Z = oldposZ;                 //  first try Z axis
+                        if (check_collision(character, p))
+                        {
+                            character.Position.X = oldposX;
+                            character.Position.Y = oldposY;
+                        }
+                        else
+                        {
+                            character._target_velocity.Z = 0;
+                        }
+                    }
                 }
+
+                if (character.Position.Y < 0)
+                {
+                    character.Position.Y = 0.1F;
+                }
+                else if (character.Position.Y >= 256)
+                {
+                    character.Position.Y = 255.9F;
+                }
+
+                if (character.Position.X < 0)
+                {
+                    character.Position.X = 0.1F;
+                }
+                else if (character.Position.X > 256)
+                {
+                    character.Position.X = 255.9F;
+                }
+
+                character._velocity.X = (character.Position.X - oldposX) / timeStep;
+                character._velocity.Y = (character.Position.Y - oldposY) / timeStep;
             }
         }
 
@@ -176,16 +242,17 @@ namespace OpenSim.Region.Physics.POSPlugin
         }
     }
 
-    public class POSActor : PhysicsActor
+    public class POSCharacter : PhysicsActor
     {
         private PhysicsVector _position;
-        private PhysicsVector _velocity;
+        public PhysicsVector _velocity;
+        public PhysicsVector _target_velocity = PhysicsVector.Zero;
         private PhysicsVector _acceleration;
         private PhysicsVector m_rotationalVelocity = PhysicsVector.Zero;
         private bool flying;
         private bool iscolliding;
 
-        public POSActor()
+        public POSCharacter()
         {
             _velocity = new PhysicsVector();
             _position = new PhysicsVector();
@@ -260,7 +327,7 @@ namespace OpenSim.Region.Physics.POSPlugin
         public override PhysicsVector Velocity
         {
             get { return _velocity; }
-            set { _velocity = value; }
+            set { _target_velocity = value; }
         }
 
         public override Quaternion Orientation
@@ -291,6 +358,126 @@ namespace OpenSim.Region.Physics.POSPlugin
 
         public override void SetMomentum(PhysicsVector momentum)
         {
+        }
+    }
+
+    public class POSPrim : PhysicsActor
+    {
+        private PhysicsVector _position;
+        private PhysicsVector _velocity;
+        private PhysicsVector _acceleration;
+        private PhysicsVector _size;
+        private PhysicsVector m_rotationalVelocity = PhysicsVector.Zero;
+        private Quaternion _orientation;
+        private bool flying;
+        private bool iscolliding;
+
+        public POSPrim()
+        {
+            _velocity = new PhysicsVector();
+            _position = new PhysicsVector();
+            _acceleration = new PhysicsVector();
+        }
+        public override int PhysicsActorType
+        {
+            get { return (int)ActorTypes.Prim; }
+            set { return; }
+        }
+        public override PhysicsVector RotationalVelocity
+        {
+            get { return m_rotationalVelocity; }
+            set { m_rotationalVelocity = value; }
+        }
+        public override bool IsPhysical
+        {
+            get { return false; }
+            set { return; }
+        }
+        public override bool ThrottleUpdates
+        {
+            get { return false; }
+            set { return; }
+        }
+        public override bool IsColliding
+        {
+            get { return iscolliding; }
+            set { iscolliding = value; }
+        }
+        public override bool CollidingGround
+        {
+            get { return false; }
+            set { return; }
+        }
+        public override bool CollidingObj
+        {
+            get { return false; }
+            set { return; }
+        }
+        public override PhysicsVector Position
+        {
+            get { return _position; }
+            set { _position = value; }
+        }
+
+        public override PhysicsVector Size
+        {
+            get { return _size; }
+            set { _size = value; }
+        }
+
+        public override PrimitiveBaseShape Shape
+        {
+            set
+            {
+                return;
+            }
+        }
+
+        public override PhysicsVector Velocity
+        {
+            get { return _velocity; }
+            set { _velocity = value; }
+        }
+
+        public override Quaternion Orientation
+        {
+            get { return _orientation; }
+            set { _orientation = value; }
+        }
+
+        public override PhysicsVector Acceleration
+        {
+            get { return _acceleration; }
+        }
+
+        public override bool Kinematic
+        {
+            get { return true; }
+            set { }
+        }
+
+        public void SetAcceleration(PhysicsVector accel)
+        {
+            _acceleration = accel;
+        }
+
+        public override void AddForce(PhysicsVector force)
+        {
+        }
+
+        public override void SetMomentum(PhysicsVector momentum)
+        {
+        }
+        public override bool Flying
+        {
+            get { return false; }
+            set { }
+        }
+
+        public override bool SetAlwaysRun
+        {
+            get { return false; }
+            set { return; }
         }
     }
 }

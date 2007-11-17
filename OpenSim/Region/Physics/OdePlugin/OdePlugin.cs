@@ -1267,7 +1267,7 @@ namespace OpenSim.Region.Physics.OdePlugin
         private PhysicsVector m_rotationalVelocity;
         private PhysicsVector _size;
         private PhysicsVector _acceleration;
-        public Quaternion _orientation;
+        private Quaternion _orientation;
 
         private IMesh _mesh;
         private PrimitiveBaseShape _pbs;
