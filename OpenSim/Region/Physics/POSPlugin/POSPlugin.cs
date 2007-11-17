@@ -150,6 +150,16 @@ namespace OpenSim.Region.Physics.POSPlugin
             return true;
         }
 
+        private bool check_all_prims(POSCharacter c)
+        {
+            foreach (POSPrim p in _prims)
+            {
+                if (check_collision(c, p))
+                    return true;
+            }
+            return false;
+        }
+
         public override void Simulate(float timeStep)
         {
             foreach (POSCharacter character in _characters)
@@ -181,22 +191,28 @@ namespace OpenSim.Region.Physics.POSPlugin
                 /// Completely Bogus Collision Detection!!!
                 /// better known as the CBCD algorithm
 
-                foreach (POSPrim p in _prims)
+                if (check_all_prims(character))
                 {
-                    if (check_collision(character, p))
+                    character.Position.Z = oldposZ;                 //  first try Z axis
+                    if (check_all_prims(character))
                     {
-                        character.Position.Z = oldposZ;                 //  first try Z axis
-                        if (check_collision(character, p))
+                        character.Position.Z = oldposZ + 0.4f;                 // try harder
+                        if (check_all_prims(character))
                         {
                             character.Position.X = oldposX;
                             character.Position.Y = oldposY;
+                            character.Position.Z = oldposZ;
                         }
                         else
                         {
                             character._target_velocity.Z = 0;
                         }
                     }
-                }
+                    else
+                    {
+                        character._target_velocity.Z = 0;
+                    }
+                }            
 
                 if (character.Position.Y < 0)
                 {
