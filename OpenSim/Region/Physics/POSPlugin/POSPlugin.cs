@@ -135,20 +135,19 @@ namespace OpenSim.Region.Physics.POSPlugin
                 " absX: " + Math.Abs(p.Position.X - c.Position.X) +
                 " sizeX: " + p.Size.X * 0.5 + 0.5);
              */
-            bool collides = true;
             if (Math.Abs(p.Position.X - c.Position.X) >= (p.Size.X * 0.5 + 0.5))
             {
-                collides = false;
+                return false;
             }
             if (Math.Abs(p.Position.Y - c.Position.Y) >= (p.Size.Y * 0.5 + 0.5))
             {
-                collides = false;
+                return false;
             }
             if (Math.Abs(p.Position.Z - c.Position.Z) >= (p.Size.Z * 0.5 + 1.0))
             {
-                collides = false;
+                return false;
             }
-            return collides;
+            return true;
         }
 
         public override void Simulate(float timeStep)
