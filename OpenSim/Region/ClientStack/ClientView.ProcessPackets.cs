@@ -764,6 +764,61 @@ namespace OpenSim.Region.ClientStack
                         #endregion
 
                         #region unimplemented handlers
+                    case PacketType.AgentThrottle:
+                       
+                        //OpenSim.Framework.Console.MainLog.Instance.Verbose("CLIENT", "unhandled packet " + Pack.ToString());
+
+                        AgentThrottlePacket atpack = (AgentThrottlePacket)Pack;
+
+                        byte[] throttle = atpack.Throttle.Throttles;
+                        int tResend = -1;
+                        int tLand = -1;
+                        int tWind = -1;
+                        int tCloud = -1;
+                        int tTask = -1;
+                        int tTexture = -1;
+                        int tAsset = -1;
+                        int tall = -1;
+                        int singlefloat = 4;
+
+                        //Agent Throttle Block contains 6 single floatingpoint values.
+                        int j = 0;
+                        
+                        // Some Systems may be big endian...  
+                        // it might be smart to do this check more often... 
+                        if (!BitConverter.IsLittleEndian)
+                            for (int i = 0; i < 7; i++)
+                                Array.Reverse(throttle, j + i * singlefloat, singlefloat);
+
+                        // values gotten from libsecondlife.org/wiki/Throttle.  Thanks MW_
+                        // bytes
+                        // Convert to integer, since..   the full fp space isn't used.
+                        tResend = (int)BitConverter.ToSingle(throttle, j); 
+                        j += singlefloat;
+                        tLand = (int)BitConverter.ToSingle(throttle, j); 
+                        j += singlefloat;
+                        tWind = (int)BitConverter.ToSingle(throttle, j); 
+                        j += singlefloat;
+                        tCloud = (int)BitConverter.ToSingle(throttle, j); 
+                        j += singlefloat;
+                        tTask = (int)BitConverter.ToSingle(throttle, j); 
+                        j += singlefloat;
+                        tTexture = (int)BitConverter.ToSingle(throttle, j); 
+                        j += singlefloat;
+                        tAsset = (int)BitConverter.ToSingle(throttle, j);
+
+                        tall = tResend + tLand + tWind + tCloud + tTask + tTexture + tAsset;
+                        OpenSim.Framework.Console.MainLog.Instance.Verbose("CLIENT", "unhandled packet AgentThrottle - Got throttle:resendbytes=" + tResend +
+                            " landbytes=" + tLand +
+                            " windbytes=" + tWind +
+                            " cloudbytes=" + tCloud +
+                            " taskbytes=" + tTask +
+                            " texturebytes=" + tTexture +
+                            " Assetbytes=" + tAsset +
+                            " Allbytes=" + tall);
+                   
+
+                        break;
                     case PacketType.StartPingCheck:
                         // Send the client the ping response back
                         // Pass the same PingID in the matching packet
