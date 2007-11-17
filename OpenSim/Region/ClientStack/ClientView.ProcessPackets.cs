@@ -781,7 +781,7 @@ namespace OpenSim.Region.ClientStack
                         int tall = -1;
                         int singlefloat = 4;
 
-                        //Agent Throttle Block contains 6 single floatingpoint values.
+                        //Agent Throttle Block contains 7 single floatingpoint values.
                         int j = 0;
                         
                         // Some Systems may be big endian...  
