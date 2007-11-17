@@ -415,7 +415,7 @@ namespace OpenSim.Framework
 
         void SendPrimitiveToClient(ulong regionHandle, ushort timeDilation, uint localID, PrimitiveBaseShape primShape,
                                    LLVector3 pos, uint flags, LLUUID objectID, LLUUID ownerID, string text, byte[] color,
-                                   uint parentID, byte[] particleSystem, LLQuaternion rotation);
+                                   uint parentID, byte[] particleSystem, LLQuaternion rotation, byte clickAction);
 
         void SendPrimTerseUpdate(ulong regionHandle, ushort timeDilation, uint localID, LLVector3 position,
                                  LLQuaternion rotation);

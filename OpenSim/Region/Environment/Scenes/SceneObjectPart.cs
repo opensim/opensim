@@ -352,6 +352,17 @@ namespace OpenSim.Region.Environment.Scenes
             set { m_touchName = value; }
         }
 
+        private byte m_clickAction = 0;
+        public byte ClickAction
+        {
+            get { return m_clickAction; }
+            set
+            {
+                m_clickAction = value;
+                this.ScheduleFullUpdate();
+            }
+        }
+
         protected PrimitiveBaseShape m_shape;
 
         public PrimitiveBaseShape Shape
@@ -383,6 +394,7 @@ namespace OpenSim.Region.Environment.Scenes
             get { return m_updateFlag; }
             set { m_updateFlag = value; }
         }
+
 
         #region Constructors
 
@@ -1096,7 +1108,7 @@ namespace OpenSim.Region.Environment.Scenes
             byte[] color = new byte[] { m_color.R, m_color.G, m_color.B, m_color.A };
             remoteClient.SendPrimitiveToClient(m_regionHandle, 64096, LocalID, m_shape, lPos, clientFlags, m_uuid,
                                                OwnerID,
-                                               m_text, color, ParentID, m_particleSystem, lRot);
+                                               m_text, color, ParentID, m_particleSystem, lRot, m_clickAction);
         }
 
         /// Terse updates
