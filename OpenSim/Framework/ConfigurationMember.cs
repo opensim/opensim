@@ -199,7 +199,7 @@ namespace OpenSim.Framework
                 {
                     string console_result = "";
                     string attribute = null;
-                    if (useFile || (!useFile && configurationFromXMLNode != null))
+                    if (useFile || configurationFromXMLNode != null)
                     {
                         if (!ignoreNextFromConfig)
                         {

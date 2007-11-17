@@ -283,24 +283,19 @@ namespace OpenSim.Region.Environment.Scenes
                             isTexture = true;
                         }
                         AssetBase rezAsset = AssetCache.GetAsset(item.assetID, isTexture);
+
+                        if (rezAsset == null)
+                        {
+                            // lets try once more in case the asset cache is being slow getting the asset from server
+                            rezAsset = AssetCache.GetAsset(item.assetID, isTexture);
+                        }
+
                         if (rezAsset != null)
                         {
                             string script = Util.FieldToString(rezAsset.Data);
                             //Console.WriteLine("rez script "+script);
                             EventManager.TriggerRezScript(localID, copyID, script);
                             rezzed = true;
-                        }
-                        else
-                        {
-                            //lets try once more incase the asset cache is being slow getting the asset from server
-                            rezAsset = AssetCache.GetAsset(item.assetID, isTexture);
-                            if (rezAsset != null)
-                            {
-                                string script = Util.FieldToString(rezAsset.Data);
-                                // Console.WriteLine("rez script " + script);
-                                EventManager.TriggerRezScript(localID, copyID, script);
-                                rezzed = true;
-                            }
                         }
 
                         if (rezzed)
@@ -418,22 +413,18 @@ namespace OpenSim.Region.Environment.Scenes
                     if (item != null)
                     {
                         AssetBase rezAsset = AssetCache.GetAsset(item.assetID, false);
+
+                        if (rezAsset == null)
+                        {
+                            // lets try once more in case the asset cache is being slow getting the asset from server
+                            rezAsset = AssetCache.GetAsset(item.assetID, false);
+                        }
+
                         if (rezAsset != null)
                         {
                             AddRezObject(Util.FieldToString(rezAsset.Data), pos);
                             userInfo.DeleteItem(remoteClient.AgentId, item);
                             remoteClient.SendRemoveInventoryItem(itemID);
-                        }
-                        else
-                        {
-                            //lets try once more incase the asset cache is being slow getting the asset from server
-                            rezAsset = AssetCache.GetAsset(item.assetID, false);
-                            if (rezAsset != null)
-                            {
-                                AddRezObject(Util.FieldToString(rezAsset.Data), pos);
-                                userInfo.DeleteItem(remoteClient.AgentId, item);
-                                remoteClient.SendRemoveInventoryItem(itemID);
-                            }
                         }
                     }
                 }

@@ -62,7 +62,6 @@ namespace OpenSim.Region.Environment.Scenes
         public Int32 CreationDate;
         public uint ParentID = 0;
 
-
         public uint OwnerMask = FULL_MASK_PERMISSIONS;
         public uint NextOwnerMask = FULL_MASK_PERMISSIONS;
         public uint GroupMask = FULL_MASK_PERMISSIONS;
@@ -913,7 +912,7 @@ namespace OpenSim.Region.Environment.Scenes
                 /// that's not wholesome.  Had to make m_scene public
                 PhysActor = null;
 
-                if (!((ObjectFlags & (uint)LLObject.ObjectFlags.Phantom) != 0))
+                if ((ObjectFlags & (uint)LLObject.ObjectFlags.Phantom) == 0)
                 {
                     PhysActor = m_parentGroup.m_scene.PhysScene.AddPrimShape(
                     Name,
@@ -929,15 +928,7 @@ namespace OpenSim.Region.Environment.Scenes
                         PhysActor.OnOutOfBounds += PhysicsOutOfBounds;
                     }
                 }
-
-            
-               
             }
-
-
-
-            
-
         }
 
         public void UpdateExtraParam(ushort type, bool inUse, byte[] data)
