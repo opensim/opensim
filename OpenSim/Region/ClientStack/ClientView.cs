@@ -152,14 +152,8 @@ namespace OpenSim.Region.ClientStack
         public void Close()
         {
             clientPingTimer.Stop();
-            try
-            {
-                m_scene.RemoveClient(AgentId);
-            }
-            catch (Exception e)
-            {
-                MainLog.Instance.Error("ClientView.cs:Close, exception: " + e.ToString());
-            }
+
+            m_scene.RemoveClient(AgentId);
 
             ClientThread.Abort();
         }
