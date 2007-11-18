@@ -502,6 +502,8 @@ namespace OpenSim.Region.Environment.Scenes
 
             System.Drawing.Bitmap mapTexture = new System.Drawing.Bitmap(2560, 2560);
             System.Drawing.Graphics g = System.Drawing.Graphics.FromImage(mapTexture);
+            System.Drawing.SolidBrush sea = new System.Drawing.SolidBrush(System.Drawing.Color.DarkBlue);
+            g.FillRectangle(sea, 0, 0, 2560, 2560);
 
             for(int i =0; i<mapBlocks.Count; i++)
             {
