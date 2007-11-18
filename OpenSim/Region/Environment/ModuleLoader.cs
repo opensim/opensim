@@ -185,9 +185,9 @@ namespace OpenSim.Region.Environment
                     pluginAssembly = Assembly.LoadFrom(dllName);
                     LoadedAssemblys.Add(dllName, pluginAssembly);
                 }
-                catch (BadImageFormatException e)
+                catch (BadImageFormatException)
                 {
-                    m_log.Verbose("MODULES", "The file [{0}] is not a module assembly.", e.FileName);
+                    //m_log.Verbose("MODULES", "The file [{0}] is not a module assembly.", e.FileName);
                 }
             }
 
