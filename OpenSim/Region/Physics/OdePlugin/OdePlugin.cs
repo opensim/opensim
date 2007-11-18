@@ -421,10 +421,16 @@ namespace OpenSim.Region.Physics.OdePlugin
                         //If there are no more geometries in the sub-space, we don't need it in the main space anymore
                         if (d.SpaceGetNumGeoms(((OdePrim)prim).m_targetSpace) == 0)
                         {
-                            d.SpaceRemove(space, ((OdePrim)prim).m_targetSpace);
-                            // free up memory used by the space.
-                            d.SpaceDestroy(((OdePrim)prim).m_targetSpace);
-                            resetSpaceArrayItemToZero(calculateSpaceArrayItemFromPos(((OdePrim)prim).Position));
+                            if (!(((OdePrim)prim).m_targetSpace.Equals(null)))
+                            {
+                                if (d.GeomIsSpace(((OdePrim)prim).m_targetSpace))
+                                {
+                                    d.SpaceRemove(space, ((OdePrim)prim).m_targetSpace);
+                                    // free up memory used by the space.
+                                    d.SpaceDestroy(((OdePrim)prim).m_targetSpace);
+                                    resetSpaceArrayItemToZero(calculateSpaceArrayItemFromPos(((OdePrim)prim).Position));
+                                }
+                            }
                         }
                     }
                   
@@ -461,8 +467,8 @@ namespace OpenSim.Region.Physics.OdePlugin
             {
                 if (d.SpaceQuery(currentspace, geom) && currentspace != (IntPtr)0)
                 {
-
-                    d.SpaceRemove(currentspace, geom);
+                    if (d.GeomIsSpace(currentspace))
+                        d.SpaceRemove(currentspace, geom);
                 }
                 else
                 {
@@ -481,10 +487,13 @@ namespace OpenSim.Region.Physics.OdePlugin
                 {
                     if (currentspace != (IntPtr)0)
                     {
-                        d.SpaceRemove(space, currentspace);
-                        // free up memory used by the space.
-                        d.SpaceDestroy(currentspace);
-                        resetSpaceArrayItemToZero(currentspace);
+                        if (d.GeomIsSpace(currentspace)) 
+                        {
+                            d.SpaceRemove(space, currentspace);
+                            // free up memory used by the space.
+                            d.SpaceDestroy(currentspace);
+                            resetSpaceArrayItemToZero(currentspace);
+                        }
                     }
                 }
             }
@@ -503,7 +512,8 @@ namespace OpenSim.Region.Physics.OdePlugin
                     {
                         if (sGeomIsIn != (IntPtr)0)
                         {
-                            d.SpaceRemove(sGeomIsIn, geom);
+                            if (d.GeomIsSpace(sGeomIsIn)) 
+                                   d.SpaceRemove(sGeomIsIn, geom);
                         }
                     }
                 }
