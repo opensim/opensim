@@ -169,9 +169,10 @@ namespace SimpleApp
         protected override Scene CreateScene(RegionInfo regionInfo, StorageManager storageManager,
                                              AgentCircuitManager circuitManager)
         {
+            PermissionManager permissionManager = new PermissionManager();
             SceneCommunicationService sceneGridService = new SceneCommunicationService(m_commsManager);
             return
-                new MyWorld(regionInfo, circuitManager, m_commsManager, sceneGridService, m_assetCache, storageManager, m_httpServer,
+                new MyWorld(regionInfo, circuitManager, permissionManager, m_commsManager, sceneGridService, m_assetCache, storageManager, m_httpServer,
                             new ModuleLoader(m_log, m_config), true);
         }
 

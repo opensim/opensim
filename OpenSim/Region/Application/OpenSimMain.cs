@@ -366,9 +366,10 @@ namespace OpenSim
         protected override Scene CreateScene(RegionInfo regionInfo, StorageManager storageManager,
                                              AgentCircuitManager circuitManager)
         {
+            PermissionManager permissionManager = new PermissionManager();
             SceneCommunicationService sceneGridService = new SceneCommunicationService(m_commsManager);
             return
-                new Scene(regionInfo, circuitManager, m_commsManager, sceneGridService, m_assetCache, storageManager, m_httpServer,
+                new Scene(regionInfo, circuitManager, permissionManager, m_commsManager, sceneGridService, m_assetCache, storageManager, m_httpServer,
                           m_moduleLoader, m_dumpAssetsToFile, m_physicalPrim);
         }
 

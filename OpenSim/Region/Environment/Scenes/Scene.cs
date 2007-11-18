@@ -195,7 +195,7 @@ namespace OpenSim.Region.Environment.Scenes
 
         #region Constructors
 
-        public Scene(RegionInfo regInfo, AgentCircuitManager authen, CommunicationsManager commsMan, SceneCommunicationService sceneGridService,
+        public Scene(RegionInfo regInfo, AgentCircuitManager authen, PermissionManager permissionManager, CommunicationsManager commsMan, SceneCommunicationService sceneGridService,
                      AssetCache assetCach, StorageManager storeManager, BaseHttpServer httpServer,
                      ModuleLoader moduleLoader, bool dumpAssetsToFile, bool physicalPrim)
         {
@@ -217,15 +217,14 @@ namespace OpenSim.Region.Environment.Scenes
             m_LandManager = new LandManager(this, m_regInfo);
             m_estateManager = new EstateManager(this, m_regInfo);
             m_eventManager = new EventManager();
-            m_permissionManager = new PermissionManager(this);
+
+            m_permissionManager = permissionManager;
+            m_permissionManager.Initialise(this);
 
             m_innerScene = new InnerScene(this, m_regInfo, m_permissionManager);
             m_sceneXmlLoader = new SceneXmlLoader(this, m_innerScene, m_regInfo);
 
-            m_eventManager.OnParcelPrimCountAdd +=
-                m_LandManager.addPrimToLandPrimCounts;
-
-            m_eventManager.OnPermissionError += SendPermissionAlert;
+            RegisterDefaultSceneEvents();
 
             MainLog.Instance.Verbose("Creating new entitities instance");
             Entities = new Dictionary<LLUUID, EntityBase>();
@@ -244,6 +243,13 @@ namespace OpenSim.Region.Environment.Scenes
         #endregion
 
         #region Startup / Close Methods
+
+        protected virtual void RegisterDefaultSceneEvents()
+        {
+            m_eventManager.OnParcelPrimCountAdd += m_LandManager.addPrimToLandPrimCounts;
+            m_eventManager.OnPermissionError += SendPermissionAlert;
+        }
+
         public override void Close()
         {
             ForEachScenePresence(delegate(ScenePresence avatar)
@@ -504,6 +510,7 @@ namespace OpenSim.Region.Environment.Scenes
                 }
 
                 CreateTerrainTexture();
+                CommsManager.GridService.RegisterRegion(RegionInfo); //hack to update the terrain texture in grid mode so it shows on world map
             }
             catch (Exception e)
             {

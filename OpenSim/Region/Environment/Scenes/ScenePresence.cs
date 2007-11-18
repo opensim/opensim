@@ -147,6 +147,13 @@ namespace OpenSim.Region.Environment.Scenes
             get { return m_lastname; }
         }
 
+        protected bool m_allowMovement = true;
+        public bool AllowMovement
+        {
+            get { return m_allowMovement; }
+            set { m_allowMovement = value; }
+        }
+
         private readonly IClientAPI m_controllingClient;
         protected PhysicsActor m_physicsActor;
 
@@ -528,58 +535,61 @@ namespace OpenSim.Region.Environment.Scenes
                 // Console.WriteLine("DEBUG: HandleAgentUpdate: null PhysicsActor!");
                 return;
             }
-            
-            int i = 0;
-            bool update_movementflag = false;
-            bool update_rotation = false;
-            bool DCFlagKeyPressed = false;
-            Vector3 agent_control_v3 = new Vector3(0, 0, 0);
-            Quaternion q = new Quaternion(bodyRotation.W, bodyRotation.X, bodyRotation.Y, bodyRotation.Z);
-            bool oldflying = PhysicsActor.Flying;
-            
 
-            PhysicsActor.Flying = ((flags & (uint) MainAvatar.ControlFlags.AGENT_CONTROL_FLY) != 0);
-            if (PhysicsActor.Flying != oldflying)
+            if (m_allowMovement)
             {
-                update_movementflag = true;
-            }
+                int i = 0;
+                bool update_movementflag = false;
+                bool update_rotation = false;
+                bool DCFlagKeyPressed = false;
+                Vector3 agent_control_v3 = new Vector3(0, 0, 0);
+                Quaternion q = new Quaternion(bodyRotation.W, bodyRotation.X, bodyRotation.Y, bodyRotation.Z);
+                bool oldflying = PhysicsActor.Flying;
 
-            if (q != m_bodyRot)
-            {
-                m_bodyRot = q;
-                update_rotation = true;
-            }
 
-            if (m_parentID == 0)
-            {
-                foreach (Dir_ControlFlags DCF in Enum.GetValues(typeof (Dir_ControlFlags)))
+                PhysicsActor.Flying = ((flags & (uint)MainAvatar.ControlFlags.AGENT_CONTROL_FLY) != 0);
+                if (PhysicsActor.Flying != oldflying)
                 {
-                    if ((flags & (uint) DCF) != 0)
-                    {
-                        DCFlagKeyPressed = true;
-                        agent_control_v3 += Dir_Vectors[i];
-                        if ((m_movementflag & (uint) DCF) == 0)
-                        {
-                            m_movementflag += (byte) (uint) DCF;
-                            update_movementflag = true;
-                        }
-                    }
-                    else
-                    {
-                        if ((m_movementflag & (uint) DCF) != 0)
-                        {
-                            m_movementflag -= (byte) (uint) DCF;
-                            update_movementflag = true;
-                        }
-                    }
-                    i++;
+                    update_movementflag = true;
                 }
-            }
 
-            if ((update_movementflag) || (update_rotation && DCFlagKeyPressed))
-            {
-                AddNewMovement(agent_control_v3, q);
-                UpdateMovementAnimations(update_movementflag);
+                if (q != m_bodyRot)
+                {
+                    m_bodyRot = q;
+                    update_rotation = true;
+                }
+
+                if (m_parentID == 0)
+                {
+                    foreach (Dir_ControlFlags DCF in Enum.GetValues(typeof(Dir_ControlFlags)))
+                    {
+                        if ((flags & (uint)DCF) != 0)
+                        {
+                            DCFlagKeyPressed = true;
+                            agent_control_v3 += Dir_Vectors[i];
+                            if ((m_movementflag & (uint)DCF) == 0)
+                            {
+                                m_movementflag += (byte)(uint)DCF;
+                                update_movementflag = true;
+                            }
+                        }
+                        else
+                        {
+                            if ((m_movementflag & (uint)DCF) != 0)
+                            {
+                                m_movementflag -= (byte)(uint)DCF;
+                                update_movementflag = true;
+                            }
+                        }
+                        i++;
+                    }
+                }
+
+                if ((update_movementflag) || (update_rotation && DCFlagKeyPressed))
+                {
+                    AddNewMovement(agent_control_v3, q);
+                    UpdateMovementAnimations(update_movementflag);
+                }
             }
             
         }

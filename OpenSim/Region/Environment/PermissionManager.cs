@@ -48,8 +48,16 @@ namespace OpenSim.Region.Environment
             set { m_bypassPermissions = value; }
         }
 
+        public PermissionManager()
+        {
+        }
 
         public PermissionManager(Scene scene)
+        {
+            m_scene = scene;
+        }
+
+        public void Initialise(Scene scene)
         {
             m_scene = scene;
         }
@@ -186,6 +194,12 @@ namespace OpenSim.Region.Environment
         public virtual bool CanReturnObject(LLUUID user, LLUUID obj)
         {
             return GenericObjectPermission(user, obj);
+        }
+
+        public virtual bool CanCopyObject(LLUUID user, LLUUID obj)
+        {
+            return true;
+           // return GenericObjectPermission(user, obj);
         }
 
         #endregion

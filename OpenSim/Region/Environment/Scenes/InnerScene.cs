@@ -119,7 +119,7 @@ namespace OpenSim.Region.Environment.Scenes
                 {
                     if (((SceneObjectGroup)obj).LocalId == localID)
                     {
-                      m_parentScene.RemoveEntity((SceneObjectGroup)obj);
+                        m_parentScene.RemoveEntity((SceneObjectGroup)obj);
                         return;
                     }
                 }
@@ -553,7 +553,7 @@ namespace OpenSim.Region.Environment.Scenes
                 parenPrim.LinkToGroup(sceneObj);
             }
         }
-        
+
         /// <summary>
         /// Delink a linkset
         /// </summary>
@@ -568,7 +568,7 @@ namespace OpenSim.Region.Environment.Scenes
             // XXX I'm anticipating that building this dictionary once is more efficient than
             // repeated scanning of the Entity.Values for a large number of primIds.  However, it might
             // be more efficient yet to keep this dictionary permanently on hand.
-            Dictionary<uint, SceneObjectGroup> sceneObjects = new Dictionary<uint, SceneObjectGroup>();            
+            Dictionary<uint, SceneObjectGroup> sceneObjects = new Dictionary<uint, SceneObjectGroup>();
             foreach (EntityBase ent in Entities.Values)
             {
                 if (ent is SceneObjectGroup)
@@ -576,17 +576,17 @@ namespace OpenSim.Region.Environment.Scenes
                     SceneObjectGroup obj = (SceneObjectGroup)ent;
                     sceneObjects.Add(obj.LocalId, obj);
                 }
-            }             
-            
+            }
+
             // Find the root prim among the prim ids we've been given
             for (int i = 0; i < primIds.Count; i++)
-            {          
+            {
                 if (sceneObjects.ContainsKey(primIds[i]))
                 {
                     parenPrim = sceneObjects[primIds[i]];
                     primIds.RemoveAt(i);
                     break;
-                } 
+                }
             }
 
             if (parenPrim != null)
@@ -594,7 +594,7 @@ namespace OpenSim.Region.Environment.Scenes
                 foreach (uint childPrimId in primIds)
                 {
                     parenPrim.DelinkFromGroup(childPrimId);
-                }   
+                }
             }
             else
             {
@@ -627,19 +627,21 @@ namespace OpenSim.Region.Environment.Scenes
 
             if (originPrim != null)
             {
-                SceneObjectGroup copy = originPrim.Copy(AgentID, GroupID);
-                copy.AbsolutePosition = copy.AbsolutePosition + offset;
-                Entities.Add(copy.UUID, copy);
+                if (PermissionsMngr.CanCopyObject(AgentID, originPrim.UUID))
+                {
+                    SceneObjectGroup copy = originPrim.Copy(AgentID, GroupID);
+                    copy.AbsolutePosition = copy.AbsolutePosition + offset;
+                    Entities.Add(copy.UUID, copy);
 
-                copy.ScheduleGroupForFullUpdate();
-
+                    copy.ScheduleGroupForFullUpdate();
+                }
             }
             else
             {
                 MainLog.Instance.Warn("client", "Attempted to duplicate nonexistant prim");
             }
-        }
 
+        }
 
         #endregion
     }
