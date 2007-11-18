@@ -792,7 +792,14 @@ namespace OpenSim.Region.Environment.Scenes
                 Entities.Remove(agentID);
             }
 
-            avatar.Close();
+            try
+            {
+                avatar.Close();
+            }
+            catch (Exception e)
+            {
+                MainLog.Instance.Error("Scene.cs:RemoveClient exception: " + e.ToString());
+            }
 
             // Remove client agent from profile, so new logins will work
             CommsManager.UserService.clearUserAgent(agentID);
