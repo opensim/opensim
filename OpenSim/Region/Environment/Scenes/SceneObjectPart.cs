@@ -892,10 +892,12 @@ namespace OpenSim.Region.Environment.Scenes
                         new PhysicsVector(Scale.X, Scale.Y, Scale.Z),
                         new Quaternion(RotationOffset.W, RotationOffset.X,
                                        RotationOffset.Y, RotationOffset.Z), UsePhysics);
+                    doPhysicsPropertyUpdate(UsePhysics);
                 }
                 else
                 {
                     PhysActor.IsPhysical = UsePhysics;
+                    doPhysicsPropertyUpdate(UsePhysics);
                 }
             }
 

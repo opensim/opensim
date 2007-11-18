@@ -480,6 +480,8 @@ namespace OpenSim.Region.Environment.Scenes
                     new Quaternion(dupe.RootPart.RotationOffset.W, dupe.RootPart.RotationOffset.X,
                                    dupe.RootPart.RotationOffset.Y, dupe.RootPart.RotationOffset.Z),
                                    dupe.RootPart.PhysActor.IsPhysical);
+                dupe.RootPart.doPhysicsPropertyUpdate(dupe.RootPart.PhysActor.IsPhysical);
+                
             }
             // Now we've made a copy that replaces this one, we need to 
             // switch the owner to the person who did the copying
@@ -859,6 +861,8 @@ namespace OpenSim.Region.Environment.Scenes
                         new Quaternion(linkPart.RotationOffset.W, linkPart.RotationOffset.X,
                                        linkPart.RotationOffset.Y, linkPart.RotationOffset.Z),
                         m_rootPart.PhysActor.IsPhysical);
+                    m_rootPart.doPhysicsPropertyUpdate(m_rootPart.PhysActor.IsPhysical);
+                    
                 }                
                 
                 SceneObjectGroup objectGroup = new SceneObjectGroup(m_scene, m_regionHandle, linkPart);                
@@ -1165,6 +1169,9 @@ namespace OpenSim.Region.Environment.Scenes
                     new Quaternion(m_rootPart.RotationOffset.W, m_rootPart.RotationOffset.X,
                                    m_rootPart.RotationOffset.Y, m_rootPart.RotationOffset.Z),
                     m_rootPart.PhysActor.IsPhysical);
+                bool UsePhysics = ((m_rootPart.ObjectFlags & (uint)LLObject.ObjectFlags.Physics) != 0);
+                m_rootPart.doPhysicsPropertyUpdate(UsePhysics);
+                
             }
         }
 

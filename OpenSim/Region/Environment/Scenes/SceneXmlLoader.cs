@@ -46,6 +46,7 @@ namespace OpenSim.Region.Environment.Scenes
                     SceneObjectPart rootPart = obj.GetChildPart(obj.UUID);
                     bool UsePhysics = (((rootPart.ObjectFlags & (uint)LLObject.ObjectFlags.Physics) > 0) && m_parentScene.m_physicalPrim);
                     if ((rootPart.ObjectFlags & (uint)LLObject.ObjectFlags.Phantom) == 0)
+                    {
                         rootPart.PhysActor = m_innerScene.PhyScene.AddPrimShape(
                             rootPart.Name,
                             rootPart.Shape,
@@ -54,6 +55,9 @@ namespace OpenSim.Region.Environment.Scenes
                             new PhysicsVector(rootPart.Scale.X, rootPart.Scale.Y, rootPart.Scale.Z),
                             new Quaternion(rootPart.RotationOffset.W, rootPart.RotationOffset.X,
                                            rootPart.RotationOffset.Y, rootPart.RotationOffset.Z), UsePhysics);
+                        rootPart.doPhysicsPropertyUpdate(UsePhysics);
+                        
+                    }
                     primCount++;
                 }
             }
@@ -112,6 +116,7 @@ namespace OpenSim.Region.Environment.Scenes
             SceneObjectPart rootPart = obj.GetChildPart(obj.UUID);
             bool UsePhysics = (((rootPart.ObjectFlags & (uint)LLObject.ObjectFlags.Physics) > 0) && m_parentScene.m_physicalPrim);
             if ((rootPart.ObjectFlags & (uint)LLObject.ObjectFlags.Phantom) == 0)
+            {
                 rootPart.PhysActor = m_innerScene.PhyScene.AddPrimShape(
                     rootPart.Name,
                     rootPart.Shape,
@@ -120,6 +125,8 @@ namespace OpenSim.Region.Environment.Scenes
                     new PhysicsVector(rootPart.Scale.X, rootPart.Scale.Y, rootPart.Scale.Z),
                     new Quaternion(rootPart.RotationOffset.W, rootPart.RotationOffset.X,
                                    rootPart.RotationOffset.Y, rootPart.RotationOffset.Z), UsePhysics);
+                rootPart.doPhysicsPropertyUpdate(UsePhysics);
+            }
         }
 
         public void SavePrimsToXml2(string fileName)

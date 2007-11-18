@@ -647,6 +647,8 @@ namespace OpenSim.Region.Environment.Scenes
                 // if not phantom, add to physics
                 bool UsePhysics = (((rootPart.ObjectFlags & (uint)LLObject.ObjectFlags.Physics) > 0) && m_physicalPrim);
                 if ((rootPart.ObjectFlags & (uint)LLObject.ObjectFlags.Phantom) == 0)
+                {
+
                     rootPart.PhysActor =
                         phyScene.AddPrimShape(
                             rootPart.Name,
@@ -654,6 +656,10 @@ namespace OpenSim.Region.Environment.Scenes
                             new PhysicsVector(pos.X, pos.Y, pos.Z),
                             new PhysicsVector(shape.Scale.X, shape.Scale.Y, shape.Scale.Z),
                             new Quaternion(), UsePhysics);
+                    // subscribe to physics events.
+                    rootPart.doPhysicsPropertyUpdate(UsePhysics);
+                    
+                }
             }
         }
 
