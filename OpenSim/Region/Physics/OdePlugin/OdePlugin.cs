@@ -179,7 +179,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                 // We'll be calling near recursivly if one 
                 // of them is a space to find all of the 
                 // contact points in the space
-
+                
                 d.SpaceCollide2(g1, g2, IntPtr.Zero, nearCallback);
                 //Colliding a space or a geom with a space or a geom.
 
@@ -199,8 +199,6 @@ namespace OpenSim.Region.Physics.OdePlugin
 
                 if (g1 == g2)
                     return; // Can't collide with yourself
-      
-
 
                 if (b1 != IntPtr.Zero && b2 != IntPtr.Zero && d.AreConnectedExcluding(b1, b2, d.JointType.Contact))
                     return;
@@ -457,7 +455,7 @@ namespace OpenSim.Region.Physics.OdePlugin
             // never be called if the prim is physical(active)
             if (currentspace != space)
             {
-                if (d.SpaceQuery(currentspace, geom))
+                if (d.SpaceQuery(currentspace, geom) && currentspace != (IntPtr)0)
                 {
 
                     d.SpaceRemove(currentspace, geom);
@@ -466,17 +464,23 @@ namespace OpenSim.Region.Physics.OdePlugin
                 {
                     IntPtr sGeomIsIn = d.GeomGetSpace(geom);
                     if (!(sGeomIsIn.Equals(null)))
-                        d.SpaceRemove(sGeomIsIn, geom);
+                    {
+                        if (sGeomIsIn != (IntPtr)0)
+                               d.SpaceRemove(sGeomIsIn, geom);
+                    }
                 }
 
 
                 //If there are no more geometries in the sub-space, we don't need it in the main space anymore
                 if (d.SpaceGetNumGeoms(currentspace) == 0)
                 {
-                    d.SpaceRemove(space, currentspace);
-                    // free up memory used by the space.
-                    d.SpaceDestroy(currentspace);
-                    resetSpaceArrayItemToZero(currentspace);
+                    if (currentspace != (IntPtr)0)
+                    {
+                        d.SpaceRemove(space, currentspace);
+                        // free up memory used by the space.
+                        d.SpaceDestroy(currentspace);
+                        resetSpaceArrayItemToZero(currentspace);
+                    }
                 }
             }
             else
@@ -484,14 +488,19 @@ namespace OpenSim.Region.Physics.OdePlugin
                 // this is a physical object that got disabled. ;.;
                 if (d.SpaceQuery(currentspace, geom))
                 {
-
-                    d.SpaceRemove(currentspace, geom);
+                    if (currentspace != (IntPtr)0)
+                        d.SpaceRemove(currentspace, geom);
                 }
                 else
                 {
                     IntPtr sGeomIsIn = d.GeomGetSpace(geom);
                     if (!(sGeomIsIn.Equals(null)))
-                        d.SpaceRemove(sGeomIsIn, geom);
+                    {
+                        if (sGeomIsIn != (IntPtr)0)
+                        {
+                            d.SpaceRemove(sGeomIsIn, geom);
+                        }
+                    }
                 }
             }
 
@@ -1547,8 +1556,9 @@ namespace OpenSim.Region.Physics.OdePlugin
                     }
                     else
                     {
-                        d.GeomSetPosition(prim_geom, _position.X, _position.Y, _position.Z);
+                        
                         m_targetSpace = _parent_scene.recalculateSpaceForGeom(prim_geom, _position, m_targetSpace);
+                        d.GeomSetPosition(prim_geom, _position.X, _position.Y, _position.Z);
                         d.SpaceAdd(m_targetSpace, prim_geom);
                     }
                    
