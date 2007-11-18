@@ -466,6 +466,7 @@ namespace OpenSim.Grid.GridServer
             {
                 ymax = (Int32) requestData["ymax"];
             }
+            MainLog.Instance.Verbose("World map request for range (" + xmin + "," + ymin + ")..(" + xmax + "," + ymax + ")");
 
             XmlRpcResponse response = new XmlRpcResponse();
             Hashtable responseData = new Hashtable();
