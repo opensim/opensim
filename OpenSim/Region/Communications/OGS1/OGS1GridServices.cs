@@ -266,10 +266,18 @@ namespace OpenSim.Region.Communications.OGS1
             param["ymax"] = maxY;
             IList parameters = new ArrayList();
             parameters.Add(param);
-            XmlRpcRequest req = new XmlRpcRequest("map_block", parameters);
-            XmlRpcResponse resp = req.Send(serversInfo.GridURL, 10000);
-            Hashtable respData = (Hashtable) resp.Value;
-            return respData;
+            try
+            {
+                XmlRpcRequest req = new XmlRpcRequest("map_block", parameters);
+                XmlRpcResponse resp = req.Send(serversInfo.GridURL, 10000);
+                Hashtable respData = (Hashtable) resp.Value;
+                return respData;
+            }
+            catch (Exception e)
+            {
+                MainLog.Instance.Error("MapBlockQuery XMLRPC failure: " + e.ToString());
+                return new Hashtable();
+            }
         }
 
         /// <summary>
