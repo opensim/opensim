@@ -189,7 +189,7 @@ namespace OpenSim.Region.ClientStack
             handshake.RegionInfo.TerrainDetail3 = regionInfo.EstateSettings.terrainDetail3;
             handshake.RegionInfo.CacheID = LLUUID.Random(); //I guess this is for the client to remember an old setting?
 
-            OutPacket(handshake);
+            OutPacket(handshake, ThrottleOutPacketType.Task);
         }
 
         /// <summary>
@@ -214,7 +214,7 @@ namespace OpenSim.Region.ClientStack
             }
             mov.Data.LookAt = look;
 
-            OutPacket(mov);
+            OutPacket(mov, ThrottleOutPacketType.Task);
         }
 
         /// <summary>
@@ -244,7 +244,7 @@ namespace OpenSim.Region.ClientStack
             reply.ChatData.OwnerID = fromAgentID;
             reply.ChatData.SourceID = fromAgentID;
 
-            OutPacket(reply);
+            OutPacket(reply, ThrottleOutPacketType.Task);
         }
 
         /// <summary>
@@ -274,7 +274,7 @@ namespace OpenSim.Region.ClientStack
             msg.MessageBlock.Message = encUTF8.GetBytes(message + "\0");
             msg.MessageBlock.BinaryBucket = new byte[0];
 
-            OutPacket(msg);
+            OutPacket(msg, ThrottleOutPacketType.Task);
         }
 
         /// <summary>
@@ -297,7 +297,7 @@ namespace OpenSim.Region.ClientStack
                         patches[3] = x + 3 + y*16;
 
                         Packet layerpack = TerrainManager.CreateLandPacket(map, patches);
-                        OutPacket(layerpack);
+                        OutPacket(layerpack, ThrottleOutPacketType.Land);
                     }
                 }
             }
@@ -326,7 +326,7 @@ namespace OpenSim.Region.ClientStack
                 patches[0] = patchx + 0 + patchy*16;
 
                 Packet layerpack = TerrainManager.CreateLandPacket(map, patches);
-                OutPacket(layerpack);
+                OutPacket(layerpack, ThrottleOutPacketType.Land);
             }
             catch (Exception e)
             {
@@ -356,7 +356,7 @@ namespace OpenSim.Region.ClientStack
             enablesimpacket.SimulatorInfo.IP += (uint) byteIP[1] << 8;
             enablesimpacket.SimulatorInfo.IP += (uint) byteIP[0];
             enablesimpacket.SimulatorInfo.Port = neighbourPort;
-            OutPacket(enablesimpacket);
+            OutPacket(enablesimpacket, ThrottleOutPacketType.Task);
         }
 
         /// <summary>
@@ -401,7 +401,7 @@ namespace OpenSim.Region.ClientStack
             //newSimPack.RegionData.SeedCapability = new byte[0];
             newSimPack.RegionData.SeedCapability = Helpers.StringToField(capsURL);
 
-            OutPacket(newSimPack);
+            OutPacket(newSimPack, ThrottleOutPacketType.Task);
         }
 
         public void SendMapBlock(List<MapBlockData> mapBlocks)
@@ -423,7 +423,7 @@ namespace OpenSim.Region.ClientStack
                 mapReply.Data[i].Access = mapBlocks[i].Access;
                 mapReply.Data[i].Agents = mapBlocks[i].Agents;
             }
-            OutPacket(mapReply);
+            OutPacket(mapReply, ThrottleOutPacketType.Land);
         }
 
         public void SendLocalTeleport(LLVector3 position, LLVector3 lookAt, uint flags)
@@ -434,7 +434,7 @@ namespace OpenSim.Region.ClientStack
             tpLocal.Info.LocationID = 2;
             tpLocal.Info.LookAt = lookAt;
             tpLocal.Info.Position = position;
-            OutPacket(tpLocal);
+            OutPacket(tpLocal, ThrottleOutPacketType.Task);
         }
 
         public void SendRegionTeleport(ulong regionHandle, byte simAccess, IPEndPoint newRegionEndPoint, uint locationID,
@@ -459,7 +459,7 @@ namespace OpenSim.Region.ClientStack
             teleport.Info.SimPort = (ushort) newRegionEndPoint.Port;
             teleport.Info.LocationID = 4;
             teleport.Info.TeleportFlags = 1 << 4;
-            OutPacket(teleport);
+            OutPacket(teleport, ThrottleOutPacketType.Task);
         }
 
         /// <summary>
@@ -471,7 +471,7 @@ namespace OpenSim.Region.ClientStack
             tpCancel.Info.SessionID = m_sessionId;
             tpCancel.Info.AgentID = AgentId;
 
-            OutPacket(tpCancel);
+            OutPacket(tpCancel, ThrottleOutPacketType.Task);
         }
 
         /// <summary>
@@ -481,7 +481,7 @@ namespace OpenSim.Region.ClientStack
         {
             TeleportStartPacket tpStart = new TeleportStartPacket();
             tpStart.Info.TeleportFlags = 16; // Teleport via location
-            OutPacket(tpStart);
+            OutPacket(tpStart, ThrottleOutPacketType.Task);
         }
 
         public void SendMoneyBalance(LLUUID transaction, bool success, byte[] description, int balance)
@@ -492,7 +492,7 @@ namespace OpenSim.Region.ClientStack
             money.MoneyData.TransactionSuccess = success;
             money.MoneyData.Description = description;
             money.MoneyData.MoneyBalance = balance;
-            OutPacket(money);
+            OutPacket(money, ThrottleOutPacketType.Task);
         }
 
         public void SendStartPingCheck(byte seq)
@@ -500,7 +500,7 @@ namespace OpenSim.Region.ClientStack
             StartPingCheckPacket pc = new StartPingCheckPacket();
             pc.PingID.PingID = seq;
             pc.Header.Reliable = false;
-            OutPacket(pc);
+            OutPacket(pc, ThrottleOutPacketType.Task);
         }
 
         public void SendKillObject(ulong regionHandle, uint localID)
@@ -509,7 +509,7 @@ namespace OpenSim.Region.ClientStack
             kill.ObjectData = new KillObjectPacket.ObjectDataBlock[1];
             kill.ObjectData[0] = new KillObjectPacket.ObjectDataBlock();
             kill.ObjectData[0].ID = localID;
-            OutPacket(kill);
+            OutPacket(kill, ThrottleOutPacketType.Task);
         }
 
         public void SendInventoryFolderDetails(LLUUID ownerID, LLUUID folderID, List<InventoryItemBase> items)
@@ -563,7 +563,7 @@ namespace OpenSim.Region.ClientStack
                 count++;
                 if (i == 40)
                 {
-                    OutPacket(descend);
+                    OutPacket(descend, ThrottleOutPacketType.Asset);
 
                     if ((items.Count - count) > 0)
                     {
@@ -585,7 +585,7 @@ namespace OpenSim.Region.ClientStack
 
             if (i < 40)
             {
-                OutPacket(descend);
+                OutPacket(descend, ThrottleOutPacketType.Asset);
             }
         }
 
@@ -637,7 +637,7 @@ namespace OpenSim.Region.ClientStack
                                      FULL_MASK_PERMISSIONS, 1, FULL_MASK_PERMISSIONS, FULL_MASK_PERMISSIONS,
                                      FULL_MASK_PERMISSIONS);
 
-            OutPacket(inventoryReply);
+            OutPacket(inventoryReply, ThrottleOutPacketType.Asset);
         }
 
         public void SendInventoryItemUpdate(InventoryItemBase Item)
@@ -677,7 +677,7 @@ namespace OpenSim.Region.ClientStack
                                      FULL_MASK_PERMISSIONS, 1, FULL_MASK_PERMISSIONS, FULL_MASK_PERMISSIONS,
                                      FULL_MASK_PERMISSIONS);
 
-            OutPacket(InventoryReply);
+            OutPacket(InventoryReply, ThrottleOutPacketType.Asset);
         }
 
         public void SendRemoveInventoryItem(LLUUID itemID)
@@ -689,7 +689,7 @@ namespace OpenSim.Region.ClientStack
             remove.InventoryData[0] = new RemoveInventoryItemPacket.InventoryDataBlock();
             remove.InventoryData[0].ItemID = itemID;
 
-            OutPacket(remove);
+            OutPacket(remove, ThrottleOutPacketType.Asset);
         }
 
         public void SendTaskInventory(LLUUID taskID, short serial, byte[] fileName)
@@ -698,7 +698,7 @@ namespace OpenSim.Region.ClientStack
             replytask.InventoryData.TaskID = taskID;
             replytask.InventoryData.Serial = serial;
             replytask.InventoryData.Filename = fileName;
-            OutPacket(replytask);
+            OutPacket(replytask, ThrottleOutPacketType.Asset);
         }
 
         public void SendXferPacket(ulong xferID, uint packet, byte[] data)
@@ -707,11 +707,11 @@ namespace OpenSim.Region.ClientStack
             sendXfer.XferID.ID = xferID;
             sendXfer.XferID.Packet = packet;
             sendXfer.DataPacket.Data = data;
-            OutPacket(sendXfer);
+            OutPacket(sendXfer, ThrottleOutPacketType.Task);
         }
         public void SendAvatarPickerReply(AvatarPickerReplyPacket replyPacket)
         {
-            OutPacket(replyPacket);
+            OutPacket(replyPacket, ThrottleOutPacketType.Task);
         }
 
         /// <summary>
@@ -722,7 +722,7 @@ namespace OpenSim.Region.ClientStack
         {
             AlertMessagePacket alertPack = new AlertMessagePacket();
             alertPack.AlertData.Message = Helpers.StringToField(message);
-            OutPacket(alertPack);
+            OutPacket(alertPack, ThrottleOutPacketType.Task);
         }
 
         /// <summary>
@@ -736,7 +736,7 @@ namespace OpenSim.Region.ClientStack
             alertPack.AgentData.AgentID = AgentId;
             alertPack.AlertData.Message = Helpers.StringToField(message);
             alertPack.AlertData.Modal = modal;
-            OutPacket(alertPack);
+            OutPacket(alertPack, ThrottleOutPacketType.Task);
         }
 
         public void SendLoadURL(string objectname, LLUUID objectID, LLUUID ownerID, bool groupOwned, string message,
@@ -750,7 +750,7 @@ namespace OpenSim.Region.ClientStack
             loadURL.Data.Message = Helpers.StringToField(message);
             loadURL.Data.URL = Helpers.StringToField(url);
 
-            OutPacket(loadURL);
+            OutPacket(loadURL, ThrottleOutPacketType.Task);
         }
 
 
@@ -762,7 +762,7 @@ namespace OpenSim.Region.ClientStack
             preSound.DataBlock[0].ObjectID = objectID;
             preSound.DataBlock[0].OwnerID = ownerID;
             preSound.DataBlock[0].SoundID = soundID;
-            OutPacket(preSound);
+            OutPacket(preSound, ThrottleOutPacketType.Task);
         }
 
         public void SendPlayAttachedSound(LLUUID soundID, LLUUID objectID, LLUUID ownerID, float gain, byte flags)
@@ -774,7 +774,7 @@ namespace OpenSim.Region.ClientStack
             sound.DataBlock.Gain = gain;
             sound.DataBlock.Flags = flags;
 
-            OutPacket(sound);
+            OutPacket(sound, ThrottleOutPacketType.Task);
         }
 
         public void SendSunPos(LLVector3 sunPos, LLVector3 sunVel) 
@@ -783,7 +783,7 @@ namespace OpenSim.Region.ClientStack
             viewertime.TimeInfo.SunDirection = sunPos;
             viewertime.TimeInfo.SunAngVelocity = sunVel;
             viewertime.TimeInfo.UsecSinceStart = (ulong) Util.UnixTimeSinceEpoch();
-            OutPacket(viewertime);
+            OutPacket(viewertime, ThrottleOutPacketType.Task);
         }
 
         public void SendViewerTime(int phase)
@@ -836,7 +836,7 @@ namespace OpenSim.Region.ClientStack
             }
             viewertime.TimeInfo.SunAngVelocity = new LLVector3(0, 0.0f, 10.0f);
             viewertime.TimeInfo.UsecSinceStart = (ulong) Util.UnixTimeSinceEpoch();
-            OutPacket(viewertime);
+            OutPacket(viewertime, ThrottleOutPacketType.Task);
         }
 
         public void SendAvatarProperties(LLUUID avatarID, string aboutText, string bornOn, string charterMember,
@@ -855,7 +855,7 @@ namespace OpenSim.Region.ClientStack
             avatarReply.PropertiesData.ImageID = imageID;
             avatarReply.PropertiesData.ProfileURL = Helpers.StringToField(profileURL);
             avatarReply.PropertiesData.PartnerID = partnerID;
-            OutPacket(avatarReply);
+            OutPacket(avatarReply, ThrottleOutPacketType.Task);
         }
 
         #endregion
@@ -884,7 +884,7 @@ namespace OpenSim.Region.ClientStack
                 aw.WearableData[i] = awb;
             }
 
-            OutPacket(aw);
+            OutPacket(aw, ThrottleOutPacketType.Task);
         }
 
         /// <summary>
@@ -909,7 +909,7 @@ namespace OpenSim.Region.ClientStack
 
             avp.Sender.IsTrial = false;
             avp.Sender.ID = agentID;
-            OutPacket(avp);
+            OutPacket(avp, ThrottleOutPacketType.Task);
         }
 
         public void SendAnimation(LLUUID animID, int seq, LLUUID sourceAgentId)
@@ -924,7 +924,7 @@ namespace OpenSim.Region.ClientStack
             ani.AnimationList[0] = new AvatarAnimationPacket.AnimationListBlock();
             ani.AnimationList[0].AnimID = animID;
             ani.AnimationList[0].AnimSequenceID = seq;
-            OutPacket(ani);
+            OutPacket(ani, ThrottleOutPacketType.Task);
         }
 
         #endregion
@@ -959,7 +959,7 @@ namespace OpenSim.Region.ClientStack
             byte[] pb = pos2.GetBytes();
             Array.Copy(pb, 0, objupdate.ObjectData[0].ObjectData, 16, pb.Length);
 
-            OutPacket(objupdate);
+            OutPacket(objupdate, ThrottleOutPacketType.Task);
         }
 
         /// <summary>
@@ -981,7 +981,7 @@ namespace OpenSim.Region.ClientStack
             terse.ObjectData = new ImprovedTerseObjectUpdatePacket.ObjectDataBlock[1];
             terse.ObjectData[0] = terseBlock;
 
-            OutPacket(terse);
+            OutPacket(terse, ThrottleOutPacketType.Task);
         }
 
         public void SendCoarseLocationUpdate(List<LLVector3> CoarseLocations)
@@ -1003,7 +1003,7 @@ namespace OpenSim.Region.ClientStack
             ib.You = -1;
             ib.Prey = -1;
             loc.Index = ib;
-            OutPacket(loc);
+            OutPacket(loc, ThrottleOutPacketType.Task);
         }
 
         #endregion
@@ -1027,7 +1027,7 @@ namespace OpenSim.Region.ClientStack
             attach.ObjectData[0].ObjectLocalID = localID;
             attach.ObjectData[0].Rotation = rotation;
 
-            OutPacket(attach);
+            OutPacket(attach, ThrottleOutPacketType.Task);
         }
 
         public void SendPrimitiveToClient(
@@ -1062,7 +1062,7 @@ namespace OpenSim.Region.ClientStack
             byte[] rot = rotation.GetBytes();
             Array.Copy(rot, 0, outPacket.ObjectData[0].ObjectData, 36, rot.Length);
 
-            OutPacket(outPacket);
+            OutPacket(outPacket, ThrottleOutPacketType.Task);
         }
 
         /// <summary>
@@ -1084,7 +1084,7 @@ namespace OpenSim.Region.ClientStack
             terse.ObjectData = new ImprovedTerseObjectUpdatePacket.ObjectDataBlock[1];
             terse.ObjectData[0] = CreatePrimImprovedBlock(localID, position, rotation, velocity, rotationalvelocity);
 
-            OutPacket(terse);
+            OutPacket(terse, ThrottleOutPacketType.Task);
         }
         public void SendPrimTerseUpdate(ulong regionHandle, ushort timeDilation, uint localID, LLVector3 position,
                                         LLQuaternion rotation, LLVector3 velocity, LLVector3 rotationalvelocity)
@@ -1096,7 +1096,7 @@ namespace OpenSim.Region.ClientStack
             terse.ObjectData = new ImprovedTerseObjectUpdatePacket.ObjectDataBlock[1];
             terse.ObjectData[0] = CreatePrimImprovedBlock(localID, position, rotation, velocity, rotationalvelocity);
 
-            OutPacket(terse);
+            OutPacket(terse, ThrottleOutPacketType.Task);
         }
         
 
@@ -1432,7 +1432,7 @@ namespace OpenSim.Region.ClientStack
             packet.UUIDNameBlock[0].FirstName = Helpers.StringToField(firstname);
             packet.UUIDNameBlock[0].LastName = Helpers.StringToField(lastname);
 
-            OutPacket(packet);
+            OutPacket(packet, ThrottleOutPacketType.Task);
         }
 
         #endregion

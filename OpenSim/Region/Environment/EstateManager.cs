@@ -370,7 +370,7 @@ namespace OpenSim.Region.Environment
             regionInfoPacket.RegionInfo.UseEstateSun = !m_regInfo.EstateSettings.useFixedSun;
             regionInfoPacket.RegionInfo.WaterHeight = m_regInfo.EstateSettings.waterHeight;
 
-            remote_client.OutPacket(regionInfoPacket);
+            remote_client.OutPacket(regionInfoPacket, ThrottleOutPacketType.Task);
         }
 
         public void sendRegionHandshake(IClientAPI remoteClient)

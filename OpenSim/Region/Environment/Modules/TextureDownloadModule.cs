@@ -212,7 +212,7 @@ namespace OpenSim.Region.Environment.Modules
                         im.ImageID.Size = (uint) m_asset.Data.Length;
                         im.ImageData.Data = m_asset.Data;
                         im.ImageID.Codec = 2;
-                        req.RequestUser.OutPacket(im);
+                        req.RequestUser.OutPacket(im, ThrottleOutPacketType.Texture);
                         PacketCounter++;
                     }
                     else
@@ -225,7 +225,7 @@ namespace OpenSim.Region.Environment.Modules
                         im.ImageData.Data = new byte[600];
                         Array.Copy(m_asset.Data, 0, im.ImageData.Data, 0, 600);
                         im.ImageID.Codec = 2;
-                        req.RequestUser.OutPacket(im);
+                        req.RequestUser.OutPacket(im, ThrottleOutPacketType.Texture);
                         PacketCounter++;
                     }
                 }
@@ -239,7 +239,7 @@ namespace OpenSim.Region.Environment.Modules
                     if (size > 1000) size = 1000;
                     im.ImageData.Data = new byte[size];
                     Array.Copy(m_asset.Data, 600 + (1000*(PacketCounter - 1)), im.ImageData.Data, 0, size);
-                    req.RequestUser.OutPacket(im);
+                    req.RequestUser.OutPacket(im, ThrottleOutPacketType.Texture);
                     PacketCounter++;
                 }
             }

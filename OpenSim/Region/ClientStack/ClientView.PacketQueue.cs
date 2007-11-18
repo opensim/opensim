@@ -197,7 +197,7 @@ namespace OpenSim.Region.ClientStack
                 StartPingCheckPacket startPing = (StartPingCheckPacket) NewPack;
                 CompletePingCheckPacket endPing = new CompletePingCheckPacket();
                 endPing.PingID.PingID = startPing.PingID.PingID;
-                OutPacket(endPing);
+                OutPacket(endPing, ThrottleOutPacketType.Task);
             }
             else
             {
@@ -208,7 +208,7 @@ namespace OpenSim.Region.ClientStack
             }
         }
 
-        public virtual void OutPacket(Packet NewPack)
+        public virtual void OutPacket(Packet NewPack, ThrottleOutPacketType throttlePacketType)
         {
             QueItem item = new QueItem();
             item.Packet = NewPack;
@@ -228,7 +228,7 @@ namespace OpenSim.Region.ClientStack
                 ack_it.Packets[0].ID = Pack.Header.Sequence;
                 ack_it.Header.Reliable = false;
 
-                OutPacket(ack_it);
+                OutPacket(ack_it, ThrottleOutPacketType.Task);
             }
             /*
             if (Pack.Header.Reliable)
@@ -255,7 +255,7 @@ namespace OpenSim.Region.ClientStack
                                                  (now - packet.TickCount) + "ms have passed");
 
                         packet.Header.Resent = true;
-                        OutPacket(packet);
+                        OutPacket(packet, ThrottleOutPacketType.Resend);
                     }
                 }
             }
@@ -289,7 +289,7 @@ namespace OpenSim.Region.ClientStack
                     }
 
                     acks.Header.Reliable = false;
-                    OutPacket(acks);
+                    OutPacket(acks, ThrottleOutPacketType.Task);
 
                     PendingAcks.Clear();
                 }

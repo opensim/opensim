@@ -54,6 +54,16 @@ namespace OpenSim.Framework
         StopTyping = 5,
         Broadcast = 0xFF
     } ;
+    public enum ThrottleOutPacketType : int
+    {
+        Resend = 0,
+        Land = 1, 
+        Wind = 2,
+        Cloud = 3,
+        Task = 4,
+        Texture = 5,
+        Asset = 6
+    }
 
     /// <summary>
     /// ChatFromViewer Arguments
@@ -378,7 +388,7 @@ namespace OpenSim.Framework
 
         uint CircuitCode { get; set; }
 
-        void OutPacket(Packet newPack);
+        void OutPacket(Packet newPack, ThrottleOutPacketType packType);
         void SendWearables(AvatarWearable[] wearables, int serial);
         void SendAppearance(LLUUID agentID, byte[] visualParams, byte[] textureEntry);
         void SendStartPingCheck(byte seq);

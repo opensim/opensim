@@ -122,7 +122,7 @@ namespace OpenSim.Framework
                 {
                     packet.AgentData.AgentID = client.AgentId;
                     packet.AgentData.SessionID = client.SessionId;
-                    client.OutPacket(packet);
+                    client.OutPacket(packet,ThrottleOutPacketType.Task);
                 }
             }
         }

@@ -962,7 +962,7 @@ namespace OpenSim.Region.Environment.Scenes
                 if (presence != null)
                 {
                     libsecondlife.Packets.DisableSimulatorPacket disable = new libsecondlife.Packets.DisableSimulatorPacket();
-                    presence.ControllingClient.OutPacket(disable);
+                    presence.ControllingClient.OutPacket(disable, ThrottleOutPacketType.Task);
                 }
             }
         }

@@ -191,7 +191,7 @@ namespace OpenSim.Region.Environment.LandManagement
                                                  landData.selectedPrims;
             updatePacket.ParcelData.UserLocation = landData.userLocation;
             updatePacket.ParcelData.UserLookAt = landData.userLookAt;
-            remote_client.OutPacket((Packet) updatePacket);
+            remote_client.OutPacket((Packet) updatePacket, ThrottleOutPacketType.Task);
         }
 
         public void updateLandProperties(ParcelPropertiesUpdatePacket packet, IClientAPI remote_client)
@@ -534,13 +534,14 @@ namespace OpenSim.Region.Environment.LandManagement
                     resultLocalIDs.RemoveAt(0);
                 }
                 pack.Data = data;
-                remote_client.OutPacket((Packet) pack);
+                remote_client.OutPacket((Packet) pack, ThrottleOutPacketType.Task);
             }
         }
 
         public void sendLandObjectOwners(IClientAPI remote_client)
         {
             Dictionary<LLUUID, int> ownersAndCount = new Dictionary<LLUUID, int>();
+            ParcelObjectOwnersReplyPacket pack = new ParcelObjectOwnersReplyPacket();
             foreach (SceneObjectGroup obj in primsOverMe)
             {
                 if (!ownersAndCount.ContainsKey(obj.OwnerID))
@@ -570,11 +571,12 @@ namespace OpenSim.Region.Environment.LandManagement
 
                     num++;
                 }
-
-                ParcelObjectOwnersReplyPacket pack = new ParcelObjectOwnersReplyPacket();
+                
                 pack.Data = dataBlock;
-                remote_client.OutPacket(pack);
+                
+                
             }
+            remote_client.OutPacket(pack, ThrottleOutPacketType.Task);
         }
 
         #endregion

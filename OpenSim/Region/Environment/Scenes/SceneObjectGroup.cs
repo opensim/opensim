@@ -568,7 +568,7 @@ namespace OpenSim.Region.Environment.Scenes
             objPropDB.Name = Helpers.StringToField(RootPart.Name);
             objPropDB.Description = Helpers.StringToField(RootPart.Description);
             objPropFamilyPack.ObjectData = objPropDB;
-            remoteClient.OutPacket(objPropFamilyPack);
+            remoteClient.OutPacket(objPropFamilyPack, ThrottleOutPacketType.Task);
 
         }
         public void SetPartOwner(SceneObjectPart part, LLUUID cAgentID, LLUUID cGroupID)
@@ -956,7 +956,7 @@ namespace OpenSim.Region.Environment.Scenes
             proper.ObjectData[0].EveryoneMask = m_rootPart.EveryoneMask;
             proper.ObjectData[0].BaseMask = m_rootPart.BaseMask;
 
-            client.OutPacket(proper);
+            client.OutPacket(proper, ThrottleOutPacketType.Task);
         }
 
         /// <summary>

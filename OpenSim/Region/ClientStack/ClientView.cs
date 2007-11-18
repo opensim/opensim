@@ -163,7 +163,7 @@ namespace OpenSim.Region.ClientStack
             clientPingTimer.Stop();
 
             libsecondlife.Packets.DisableSimulatorPacket disable = new libsecondlife.Packets.DisableSimulatorPacket();
-            OutPacket(disable);
+            OutPacket(disable, ThrottleOutPacketType.Task);
 
             ClientThread.Abort();
         }

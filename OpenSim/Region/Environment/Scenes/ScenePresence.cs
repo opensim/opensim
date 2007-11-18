@@ -641,7 +641,7 @@ namespace OpenSim.Region.Environment.Scenes
             avatarSitResponse.SitTransform.SitPosition = offset;
             avatarSitResponse.SitTransform.SitRotation = new LLQuaternion(0.0f, 0.0f, 0.0f, 1.0f);
 
-            remoteClient.OutPacket(avatarSitResponse);
+            remoteClient.OutPacket(avatarSitResponse, ThrottleOutPacketType.Task);
         }
 
         public void HandleAgentRequestSit(IClientAPI remoteClient, LLUUID agentID, LLUUID targetID, LLVector3 offset)

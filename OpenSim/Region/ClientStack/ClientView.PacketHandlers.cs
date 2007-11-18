@@ -84,7 +84,7 @@ namespace OpenSim.Region.ClientStack
                 cachedresp.WearableData[i].TextureID = LLUUID.Zero;
                 cachedresp.WearableData[i].HostName = new byte[0];
             }
-            OutPacket(cachedresp);
+            OutPacket(cachedresp, ThrottleOutPacketType.Texture);
             return true;
         }
 
@@ -220,7 +220,7 @@ namespace OpenSim.Region.ClientStack
             mapReply.LayerData[0].Top = 30000;
             mapReply.LayerData[0].Right = 30000;
             mapReply.LayerData[0].ImageID = new LLUUID("00000000-0000-0000-9999-000000000006");
-            OutPacket(mapReply);
+            OutPacket(mapReply, ThrottleOutPacketType.Land);
         }
 
         public void RequestMapBlocks(int minX, int minY, int maxX, int maxY)
@@ -250,7 +250,7 @@ namespace OpenSim.Region.ClientStack
                 mbReply.Data[iii].X = System.Convert.ToUInt16(mp["x"]);
                 mbReply.Data[iii].Y = System.Convert.ToUInt16(mp["y"]);
             }
-            this.OutPacket(mbReply);
+            this.OutPacket(mbReply, ThrottleOutPacketType.Land);
              */
         }
     }

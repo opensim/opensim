@@ -168,7 +168,7 @@ namespace SimpleApp
         }
 
 
-        public virtual void OutPacket(Packet newPack)
+        public virtual void OutPacket(Packet newPack, ThrottleOutPacketType packType)
         {
         }
 

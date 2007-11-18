@@ -635,13 +635,13 @@ namespace OpenSim.Region.ClientStack
 
                         TeleportStartPacket tpStart = new TeleportStartPacket();
                         tpStart.Info.TeleportFlags = 8; // tp via lm
-                        OutPacket(tpStart);
+                        OutPacket(tpStart, ThrottleOutPacketType.Task);
 
                         TeleportProgressPacket tpProgress = new TeleportProgressPacket();
                         tpProgress.Info.Message = (new ASCIIEncoding()).GetBytes("sending_landmark");
                         tpProgress.Info.TeleportFlags = 8;
                         tpProgress.AgentData.AgentID = tpReq.Info.AgentID;
-                        OutPacket(tpProgress);
+                        OutPacket(tpProgress, ThrottleOutPacketType.Task);
 
                         // Fetch landmark
                         LLUUID lmid = tpReq.Info.LandmarkID;
@@ -658,14 +658,14 @@ namespace OpenSim.Region.ClientStack
                                 tpLocal.Info.TeleportFlags = 8; // Teleport via landmark
                                 tpLocal.Info.LocationID = 2;
                                 tpLocal.Info.Position = lm.Position;
-                                OutPacket(tpLocal);
+                                OutPacket(tpLocal, ThrottleOutPacketType.Task);
                             }
                             else
                             {
                                 TeleportCancelPacket tpCancel = new TeleportCancelPacket();
                                 tpCancel.Info.AgentID = tpReq.Info.AgentID;
                                 tpCancel.Info.SessionID = tpReq.Info.SessionID;
-                                OutPacket(tpCancel);
+                                OutPacket(tpCancel, ThrottleOutPacketType.Task);
                             }
                         }
                         else
@@ -675,7 +675,7 @@ namespace OpenSim.Region.ClientStack
                             TeleportCancelPacket tpCancel = new TeleportCancelPacket();
                             tpCancel.Info.AgentID = tpReq.Info.AgentID;
                             tpCancel.Info.SessionID = tpReq.Info.SessionID;
-                            OutPacket(tpCancel);
+                            OutPacket(tpCancel, ThrottleOutPacketType.Task);
                         }
                         break;
                     case PacketType.TeleportLocationRequest:
@@ -693,7 +693,7 @@ namespace OpenSim.Region.ClientStack
                             TeleportCancelPacket tpCancel = new TeleportCancelPacket();
                             tpCancel.Info.SessionID = tpLocReq.AgentData.SessionID;
                             tpCancel.Info.AgentID = tpLocReq.AgentData.AgentID;
-                            OutPacket(tpCancel);
+                            OutPacket(tpCancel, ThrottleOutPacketType.Task);
                         }
                         break;
 
@@ -904,7 +904,7 @@ namespace OpenSim.Region.ClientStack
             logReply.InventoryData[0] = new LogoutReplyPacket.InventoryDataBlock();
             logReply.InventoryData[0].ItemID = LLUUID.Zero;
 
-            OutPacket(logReply);
+            OutPacket(logReply, ThrottleOutPacketType.Task);
         }
     }
 }

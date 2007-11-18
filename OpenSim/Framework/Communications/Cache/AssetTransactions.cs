@@ -221,7 +221,7 @@ namespace OpenSim.Framework.Communications.Cache
                     ConfirmXferPacketPacket newPack = new ConfirmXferPacketPacket();
                     newPack.XferID.ID = xferID;
                     newPack.XferID.Packet = packetID;
-                    ourClient.OutPacket(newPack);
+                    ourClient.OutPacket(newPack, ThrottleOutPacketType.Asset);
                     if ((packetID & 0x80000000) != 0)
                     {
                         SendCompleteMessage();
@@ -262,7 +262,7 @@ namespace OpenSim.Framework.Communications.Cache
                 newPack.XferID.VFileID = Asset.FullID;
                 newPack.XferID.FilePath = 0;
                 newPack.XferID.Filename = new byte[0];
-                ourClient.OutPacket(newPack);
+                ourClient.OutPacket(newPack, ThrottleOutPacketType.Asset);
             }
 
             protected void SendCompleteMessage()
@@ -272,7 +272,7 @@ namespace OpenSim.Framework.Communications.Cache
                 newPack.AssetBlock.Type = Asset.Type;
                 newPack.AssetBlock.Success = true;
                 newPack.AssetBlock.UUID = Asset.FullID;
-                ourClient.OutPacket(newPack);
+                ourClient.OutPacket(newPack, ThrottleOutPacketType.Asset);
                 m_finished = true;
                 if (m_createItem)
                 {

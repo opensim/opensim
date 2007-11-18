@@ -520,7 +520,7 @@ namespace OpenSim.Framework.Communications.Cache
                 }
                 Transfer.TransferInfo.Size = (int) req.AssetInf.Data.Length;
                 Transfer.TransferInfo.TransferID = req.TransferRequestID;
-                req.RequestUser.OutPacket(Transfer);
+                req.RequestUser.OutPacket(Transfer,ThrottleOutPacketType.Asset);
 
                 if (req.NumPackets == 1)
                 {
@@ -530,7 +530,7 @@ namespace OpenSim.Framework.Communications.Cache
                     TransferPacket.TransferData.TransferID = req.TransferRequestID;
                     TransferPacket.TransferData.Data = req.AssetInf.Data;
                     TransferPacket.TransferData.Status = 1;
-                    req.RequestUser.OutPacket(TransferPacket);
+                    req.RequestUser.OutPacket(TransferPacket, ThrottleOutPacketType.Asset);
                 }
                 else
                 {
@@ -546,7 +546,7 @@ namespace OpenSim.Framework.Communications.Cache
                         Array.Copy(req.AssetInf.Data, chunk, req.AssetInf.Data.Length);
                         TransferPacket.TransferData.Data = chunk;
                         TransferPacket.TransferData.Status = 1;
-                        req.RequestUser.OutPacket(TransferPacket);
+                        req.RequestUser.OutPacket(TransferPacket, ThrottleOutPacketType.Asset);
                     }
                     else
                     {
@@ -555,7 +555,7 @@ namespace OpenSim.Framework.Communications.Cache
 
                         TransferPacket.TransferData.Data = chunk;
                         TransferPacket.TransferData.Status = 0;
-                        req.RequestUser.OutPacket(TransferPacket);
+                        req.RequestUser.OutPacket(TransferPacket, ThrottleOutPacketType.Asset);
 
                         TransferPacket = new TransferPacketPacket();
                         TransferPacket.TransferData.Packet = 1;
@@ -565,7 +565,7 @@ namespace OpenSim.Framework.Communications.Cache
                         Array.Copy(req.AssetInf.Data, 1000, chunk1, 0, chunk1.Length);
                         TransferPacket.TransferData.Data = chunk1;
                         TransferPacket.TransferData.Status = 1;
-                        req.RequestUser.OutPacket(TransferPacket);
+                        req.RequestUser.OutPacket(TransferPacket, ThrottleOutPacketType.Asset);
                     }
                 }
             }
@@ -741,7 +741,7 @@ namespace OpenSim.Framework.Communications.Cache
                         im.ImageID.Size = (uint) req.ImageInfo.Data.Length;
                         im.ImageData.Data = req.ImageInfo.Data;
                         im.ImageID.Codec = 2;
-                        req.RequestUser.OutPacket(im);
+                        req.RequestUser.OutPacket(im, ThrottleOutPacketType.Texture);
                         req.PacketCounter++;
                         //req.ImageInfo.l= time;
                         //System.Console.WriteLine("sent texture: " + req.ImageInfo.FullID);
@@ -758,7 +758,7 @@ namespace OpenSim.Framework.Communications.Cache
                         im.ImageData.Data = new byte[600];
                         Array.Copy(req.ImageInfo.Data, 0, im.ImageData.Data, 0, 600);
                         im.ImageID.Codec = 2;
-                        req.RequestUser.OutPacket(im);
+                        req.RequestUser.OutPacket(im, ThrottleOutPacketType.Texture);
 
                         req.PacketCounter++;
                         //req.ImageInfo.last_used = time;
@@ -780,7 +780,7 @@ namespace OpenSim.Framework.Communications.Cache
                     //Console.WriteLine("length= {0} counter= {1} size= {2}",req.ImageInfo.Data.Length, req.PacketCounter, size);
                     im.ImageData.Data = new byte[size];
                     Array.Copy(req.ImageInfo.Data, 600 + (1000*(req.PacketCounter - 1)), im.ImageData.Data, 0, size);
-                    req.RequestUser.OutPacket(im);
+                    req.RequestUser.OutPacket(im, ThrottleOutPacketType.Texture);
                     req.PacketCounter++;
                     //req.ImageInfo.last_used = time;
                     //System.Console.WriteLine("sent a packet of texture: "+req.ImageInfo.FullID);
