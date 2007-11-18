@@ -1382,7 +1382,7 @@ namespace OpenSim.Region.ClientStack
             pos.X = 100f;
             objdata.ID = 8880000;
             objdata.NameValue = enc.GetBytes("FirstName STRING RW SV Test \nLastName STRING RW SV User \0");
-            LLVector3 pos2 = new LLVector3(100f, 100f, 23f);
+            //LLVector3 pos2 = new LLVector3(100f, 100f, 23f);
             //objdata.FullID=user.AgentId;
             byte[] pb = pos.GetBytes();
             Array.Copy(pb, 0, objdata.ObjectData, 16, pb.Length);

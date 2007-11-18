@@ -153,7 +153,7 @@ namespace OpenSim.Region.Environment.Modules
                 }
             }
 
-            if ((channel == null) || (channel.Equals(LLUUID.Zero)))
+            if ((channel.Equals(null)) || (channel.Equals(LLUUID.Zero)))
             {
                 channel = LLUUID.Random();
                 RPCChannelInfo rpcChanInfo = new RPCChannelInfo(localID, itemID, channel);

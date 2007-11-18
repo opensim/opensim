@@ -67,7 +67,7 @@ namespace OpenSim.Region.Environment.Modules
                 m_saydistance = config.Configs["Chat"].GetInt("say_distance", m_saydistance);
                 m_shoutdistance = config.Configs["Chat"].GetInt("shout_distance", m_shoutdistance);
             }
-            catch (Exception e)
+            catch (Exception)
             {
             }
 
@@ -304,7 +304,7 @@ namespace OpenSim.Region.Environment.Modules
                     m_enabled = true;
                 }
             }
-            catch (Exception e)
+            catch (Exception)
             {
                 Console.WriteLine("No IRC config information, skipping IRC bridge configuration");
             }

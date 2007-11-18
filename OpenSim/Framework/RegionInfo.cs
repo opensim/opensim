@@ -301,7 +301,7 @@ namespace OpenSim.Framework
 
         public bool shouldMasterAvatarDetailsBeAsked(string configuration_key)
         {
-            if (MasterAvatarAssignedUUID == null || MasterAvatarAssignedUUID.ToStringHyphenated() == LLUUID.Zero.ToStringHyphenated())
+            if (MasterAvatarAssignedUUID.Equals(null) || MasterAvatarAssignedUUID.ToStringHyphenated() == LLUUID.Zero.ToStringHyphenated())
             {
                 return true;
             }

@@ -56,8 +56,8 @@ namespace SimpleApp
 
             for (int i = 0; i < 65536; i++)
             {
-                int x = i%256;
-                int y = i/256;
+                //int x = i%256;
+                //int y = i/256;
 
                 map[i] = 25f;
             }

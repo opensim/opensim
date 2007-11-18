@@ -33,8 +33,6 @@ namespace libTerrain
 {
     internal class Raster
     {
-        private int w;
-        private int h;
         private Bitmap bmp;
 
         /// <summary>
@@ -44,8 +42,6 @@ namespace libTerrain
         /// <param name="height">Height in pixels</param>
         public Raster(int width, int height)
         {
-            w = width;
-            h = height;
             bmp = new Bitmap(width, height, PixelFormat.Format24bppRgb);
         }
 

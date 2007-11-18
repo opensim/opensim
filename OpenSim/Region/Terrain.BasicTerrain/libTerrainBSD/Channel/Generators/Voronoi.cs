@@ -106,7 +106,6 @@ namespace libTerrain
         {
             SetDiff();
 
-            Random generator = new Random(seed);
             int x, y, i;
             double[] distances = new double[points.Count];
 

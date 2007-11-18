@@ -439,7 +439,6 @@ namespace OpenSim.Region.Environment.Scenes
         /// </summary>
         public void StopMovement()
         {
-            int x = 0;
         }
 
         public void AddNeighbourRegion(ulong regionHandle)
@@ -624,8 +623,6 @@ namespace OpenSim.Region.Environment.Scenes
             {
                 pos = part.AbsolutePosition + offset;
 
-                double dist = AbsolutePosition.GetDistanceTo(pos);
-
                 if (m_physicsActor != null)
                 {
                     m_sitAvatarHeight = m_physicsActor.Size.Z;
@@ -633,7 +630,7 @@ namespace OpenSim.Region.Environment.Scenes
 
 // this doesn't seem to quite work yet....
 //                 // if we're close, set the avatar position to the target position and forgo autopilot
-//                 if (dist < 2.5)
+//                 if (AbsolutePosition.GetDistanceTo(pos) < 2.5)
 //                 {
 //                     autopilot = false;
 //                     AbsolutePosition = pos + new LLVector3(0.0f, 0.0f, m_sitAvatarHeight);

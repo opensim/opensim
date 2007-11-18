@@ -115,7 +115,7 @@ namespace OpenSim.Framework.UserManagement
                     pickerlist = plugin.Value.GeneratePickerResults(queryID, query);
 
                 }
-                catch (Exception e)
+                catch (Exception)
                 {
                     MainLog.Instance.Verbose("Unable to generate AgentPickerData via  " + plugin.Key + "(" + query + ")");
                     return new List<AvatarPickerAvatar>();
@@ -326,7 +326,7 @@ namespace OpenSim.Framework.UserManagement
                     try
                     {
                         string[] parts = startLoc.Remove(0, 4).Split('&');
-                        string region = parts[0];
+                        //string region = parts[0];
 
                         ////////////////////////////////////////////////////
                         //SimProfile SimInfo = new SimProfile();

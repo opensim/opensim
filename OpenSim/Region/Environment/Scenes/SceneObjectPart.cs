@@ -841,7 +841,7 @@ namespace OpenSim.Region.Environment.Scenes
                 IsPhantom = (data[i++] != 0) ? true : false;
                 CastsShadows = (data[i++] != 0) ? true : false;
             }
-            catch (Exception e)
+            catch (Exception)
             {
                 Console.WriteLine("Ignoring invalid Packet:");
                 //Silently ignore it - TODO: FIXME Quick

@@ -384,7 +384,6 @@ namespace OpenSim.Region.Physics.POSPlugin
         private PhysicsVector _size;
         private PhysicsVector m_rotationalVelocity = PhysicsVector.Zero;
         private Quaternion _orientation;
-        private bool flying;
         private bool iscolliding;
 
         public POSPrim()
