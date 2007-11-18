@@ -409,7 +409,11 @@ namespace OpenSim.Region.Physics.OdePlugin
                         // If the geometry is in the targetspace, remove it from the target space
                         if (d.SpaceQuery(((OdePrim)prim).m_targetSpace, ((OdePrim)prim).prim_geom))
                         {
-                            d.SpaceRemove(((OdePrim)prim).m_targetSpace, ((OdePrim)prim).prim_geom);
+                            if (!(((OdePrim)prim).m_targetSpace.Equals(null)))
+                            {
+                                if (d.GeomIsSpace(((OdePrim)prim).m_targetSpace))
+                                    d.SpaceRemove(((OdePrim)prim).m_targetSpace, ((OdePrim)prim).prim_geom);
+                            }
                         }
 
                       
@@ -466,6 +470,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                     if (!(sGeomIsIn.Equals(null)))
                     {
                         if (sGeomIsIn != (IntPtr)0)
+                            if (d.GeomIsSpace(currentspace))
                                d.SpaceRemove(sGeomIsIn, geom);
                     }
                 }
