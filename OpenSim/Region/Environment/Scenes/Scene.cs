@@ -937,7 +937,10 @@ namespace OpenSim.Region.Environment.Scenes
         /// <param name="maxY"></param>
         public void RequestMapBlocks(IClientAPI remoteClient, int minX, int minY, int maxX, int maxY)
         {
-            m_sceneGridService.RequestMapBlocks(remoteClient, minX, minY, maxX, maxX);
+            if(!m_scenePresences[remoteClient.AgentId].IsChildAgent)
+            {
+                m_sceneGridService.RequestMapBlocks(remoteClient, minX, minY, maxX, maxX);
+            }
         }
 
         /// <summary>
