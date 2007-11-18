@@ -180,6 +180,8 @@ namespace OpenSim.Framework
 
     public delegate void RequestMapBlocks(IClientAPI remoteClient, int minX, int minY, int maxX, int maxY);
 
+    public delegate void RequestMapName(IClientAPI remoteClient, string mapName);
+
     public delegate void TeleportLocationRequest(
         IClientAPI remoteClient, ulong regionHandle, LLVector3 position, LLVector3 lookAt, uint flags);
 
@@ -297,6 +299,7 @@ namespace OpenSim.Framework
         event LinkObjects OnLinkObjects;
         event DelinkObjects OnDelinkObjects;
         event RequestMapBlocks OnRequestMapBlocks;
+        event RequestMapName OnMapNameRequest;
         event TeleportLocationRequest OnTeleportLocationRequest;
         event DisconnectUser OnDisconnectUser;
         event RequestAvatarProperties OnRequestAvatarProperties;

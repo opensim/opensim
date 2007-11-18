@@ -84,6 +84,7 @@ namespace OpenSim.Region.ClientStack
         public event GenericCall2 OnStopMovement;
         public event Action<LLUUID> OnRemoveAvatar;
         public event RequestMapBlocks OnRequestMapBlocks;
+        public event RequestMapName OnMapNameRequest;
         public event TeleportLocationRequest OnTeleportLocationRequest;
         public event DisconnectUser OnDisconnectUser;
         public event RequestAvatarProperties OnRequestAvatarProperties;

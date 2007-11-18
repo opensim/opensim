@@ -611,6 +611,15 @@ namespace OpenSim.Region.ClientStack
                                                MapRequest.PositionData.MaxX, MapRequest.PositionData.MaxY);
                         }
                         break;
+                    case PacketType.MapNameRequest:
+                        MapNameRequestPacket map = (MapNameRequestPacket) Pack;
+                        string mapName = UTF8Encoding.UTF8.GetString(map.NameData.Name, 0,
+                                                map.NameData.Name.Length - 1);
+                        if (OnMapNameRequest != null)
+                        {
+                            OnMapNameRequest(this, mapName);
+                        }
+                        break;
                     case PacketType.TeleportLandmarkRequest:
                         TeleportLandmarkRequestPacket tpReq = (TeleportLandmarkRequestPacket) Pack;
 
