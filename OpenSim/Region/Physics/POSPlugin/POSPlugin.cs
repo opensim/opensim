@@ -173,14 +173,14 @@ namespace OpenSim.Region.Physics.POSPlugin
                     character._target_velocity.Z += gravity * timeStep;
                 }
 
+                bool forcedZ = false;
                 character.Position.X = character.Position.X + (character._target_velocity.X * timeStep);
                 character.Position.Y = character.Position.Y + (character._target_velocity.Y * timeStep);
                 float terrainheight = _heightMap[(int)character.Position.Y * 256 + (int)character.Position.X];
                 if (character.Position.Z + (character._target_velocity.Z * timeStep) < terrainheight + 2)
                 {
                     character.Position.Z = terrainheight + 1.0f;
-                    character._target_velocity.Z = 0;
-                    character._velocity.Z = 0;
+                    forcedZ = true;
                 }
                 else
                 {
@@ -205,12 +205,12 @@ namespace OpenSim.Region.Physics.POSPlugin
                         }
                         else
                         {
-                            character._target_velocity.Z = 0;
+                            forcedZ = true;
                         }
                     }
                     else
                     {
-                        character._target_velocity.Z = 0;
+                        forcedZ = true;
                     }
                 }            
 
@@ -234,6 +234,17 @@ namespace OpenSim.Region.Physics.POSPlugin
 
                 character._velocity.X = (character.Position.X - oldposX) / timeStep;
                 character._velocity.Y = (character.Position.Y - oldposY) / timeStep;
+
+                if (forcedZ)
+                {
+                    character._velocity.Z = 0;
+                    character._target_velocity.Z = 0;
+                    character.RequestPhysicsterseUpdate();
+                }
+                else
+                {
+                    character._velocity.Z = (character.Position.Z - oldposZ) / timeStep;
+                }
             }
         }
 
