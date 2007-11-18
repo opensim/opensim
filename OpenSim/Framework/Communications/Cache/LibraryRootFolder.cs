@@ -88,7 +88,8 @@ namespace OpenSim.Framework.Communications.Cache
             item.assetID = new LLUUID("00000000-0000-0000-9999-000000000002");
             item.inventoryDescription = "Plywood texture";
             item.inventoryName = "Plywood";
-            item.assetType = 0;
+            item.assetType = (int) AssetType.Texture;
+            item.invType = (int) InventoryType.Texture;
             item.parentFolderID = m_textureFolder.folderID;
             item.inventoryBasePermissions = 0x7FFFFFFF;
             item.inventoryEveryOnePermissions = 0x7FFFFFFF;
@@ -103,7 +104,8 @@ namespace OpenSim.Framework.Communications.Cache
             item.assetID = new LLUUID("00000000-0000-0000-9999-000000000003");
             item.inventoryDescription = "Rocks texture";
             item.inventoryName = "Rocks";
-            item.assetType = 0;
+            item.assetType = (int) AssetType.Texture;
+            item.invType = (int) InventoryType.Texture;
             item.parentFolderID = m_textureFolder.folderID;
             item.inventoryBasePermissions = 0x7FFFFFFF;
             item.inventoryEveryOnePermissions = 0x7FFFFFFF;
@@ -118,7 +120,8 @@ namespace OpenSim.Framework.Communications.Cache
             item.assetID = new LLUUID("00000000-0000-0000-9999-000000000001");
             item.inventoryDescription = "Bricks texture";
             item.inventoryName = "Bricks";
-            item.assetType = 0;
+            item.assetType = (int) AssetType.Texture;
+            item.invType = (int) InventoryType.Texture;
             item.parentFolderID = m_textureFolder.folderID;
             item.inventoryBasePermissions = 0x7FFFFFFF;
             item.inventoryEveryOnePermissions = 0x7FFFFFFF;
@@ -133,7 +136,8 @@ namespace OpenSim.Framework.Communications.Cache
             item.assetID = new LLUUID("00000000-0000-0000-9999-000000000004");
             item.inventoryDescription = "Granite texture";
             item.inventoryName = "Granite";
-            item.assetType = 0;
+            item.assetType = (int) AssetType.Texture;
+            item.invType = (int) InventoryType.Texture;
             item.parentFolderID = m_textureFolder.folderID;
             item.inventoryBasePermissions = 0x7FFFFFFF;
             item.inventoryEveryOnePermissions = 0x7FFFFFFF;
@@ -148,7 +152,8 @@ namespace OpenSim.Framework.Communications.Cache
             item.assetID = new LLUUID("00000000-0000-0000-9999-000000000005");
             item.inventoryDescription = "Hardwood texture";
             item.inventoryName = "Hardwood";
-            item.assetType = 0;
+            item.assetType = (int) AssetType.Texture;
+            item.invType = (int) InventoryType.Texture;
             item.parentFolderID = m_textureFolder.folderID;
             item.inventoryBasePermissions = 0x7FFFFFFF;
             item.inventoryEveryOnePermissions = 0x7FFFFFFF;
@@ -163,8 +168,8 @@ namespace OpenSim.Framework.Communications.Cache
             item.assetID = new LLUUID("66c41e39-38f9-f75a-024e-585989bfab73");
             item.inventoryDescription = "Default Shape";
             item.inventoryName = "Default Shape";
-            item.assetType = 13;
-            item.invType = 18;
+            item.assetType = (int) AssetType.Bodypart;
+            item.invType = (int) InventoryType.Wearable;
             item.parentFolderID = folderID;
             item.inventoryCurrentPermissions = 0;
             item.inventoryNextPermissions = 0;
@@ -177,8 +182,8 @@ namespace OpenSim.Framework.Communications.Cache
             item.assetID = new LLUUID("77c41e39-38f9-f75a-024e-585989bbabbb");
             item.inventoryDescription = "Default Skin";
             item.inventoryName = "Default Skin";
-            item.assetType = 13;
-            item.invType = 18;
+            item.assetType = (int) AssetType.Bodypart;
+            item.invType = (int) InventoryType.Wearable;
             item.parentFolderID = folderID;
             item.inventoryCurrentPermissions = 0;
             item.inventoryNextPermissions = 0;
@@ -191,8 +196,8 @@ namespace OpenSim.Framework.Communications.Cache
             item.assetID = new LLUUID("00000000-38f9-1111-024e-222222111110");
             item.inventoryDescription = "Default Shirt";
             item.inventoryName = "Default Shirt";
-            item.assetType = 5;
-            item.invType = 18;
+            item.assetType = (int) AssetType.Clothing;
+            item.invType = (int) InventoryType.Wearable;
             item.parentFolderID = folderID;
             item.inventoryCurrentPermissions = 0;
             item.inventoryNextPermissions = 0;
@@ -205,8 +210,8 @@ namespace OpenSim.Framework.Communications.Cache
             item.assetID = new LLUUID("00000000-38f9-1111-024e-222222111120");
             item.inventoryDescription = "Default Pants";
             item.inventoryName = "Default Pants";
-            item.assetType = 5;
-            item.invType = 18;
+            item.assetType = (int) AssetType.Clothing;
+            item.invType = (int) InventoryType.Wearable;
             item.parentFolderID = folderID;
             item.inventoryCurrentPermissions = 0;
             item.inventoryNextPermissions = 0;

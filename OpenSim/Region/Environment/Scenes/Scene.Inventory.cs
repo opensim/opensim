@@ -31,6 +31,7 @@ using libsecondlife;
 using libsecondlife.Packets;
 using OpenSim.Framework;
 using OpenSim.Framework.Communications.Cache;
+using OpenSim.Framework.Console;
 using OpenSim.Region.Physics.Manager;
 
 namespace OpenSim.Region.Environment.Scenes
@@ -82,24 +83,18 @@ namespace OpenSim.Region.Environment.Scenes
                     InventoryItemBase item = userInfo.RootFolder.HasItem(itemID);
                     if (item != null)
                     {
-                        AssetBase asset;
-                        asset = new AssetBase();
-                        asset.FullID = LLUUID.Random();
-                        asset.Type = (sbyte) item.assetType;
-                        asset.InvType = (sbyte) item.invType;
-                        asset.Name = item.inventoryName;
-                        asset.Data = data;
+                        AssetBase asset = CreateAsset(item.inventoryName, item.inventoryDescription, (sbyte) item.invType, (sbyte) item.assetType, data);
                         AssetCache.AddAsset(asset);
 
                         item.assetID = asset.FullID;
                         userInfo.UpdateItem(remoteClient.AgentId, item);
 
                         // remoteClient.SendInventoryItemUpdate(item);
-                        if (item.invType == 7)
+                        if ((InventoryType) item.invType == InventoryType.Notecard)
                         {
                             //do we want to know about updated note cards?
                         }
-                        else if (item.invType == 10)
+                        else if ((InventoryType) item.invType == InventoryType.LSL)
                         {
                             // do we want to know about updated scripts
                         }
@@ -160,6 +155,75 @@ namespace OpenSim.Region.Environment.Scenes
             }
         }
 
+        public void CopyInventoryItem(IClientAPI remoteClient, uint callbackID, LLUUID oldAgentID, LLUUID oldItemID, LLUUID newFolderID, string newName)
+        {
+            InventoryItemBase item = CommsManager.UserProfileCache.libraryRoot.HasItem(oldItemID);
+            if (item == null)
+            {
+                CachedUserInfo userInfo = CommsManager.UserProfileCache.GetUserDetails(oldAgentID);
+                if (userInfo == null)
+                {
+                    MainLog.Instance.Warn("INVENTORY", "Failed to find user " + oldAgentID.ToString());
+                    return;
+                }
+
+                item = userInfo.RootFolder.HasItem(oldItemID);
+                if (item == null)
+                {
+                    MainLog.Instance.Warn("INVENTORY", "Failed to find item " + oldItemID.ToString());
+                    return;
+                }
+            }
+
+            AssetBase asset = AssetCache.CopyAsset(item.assetID);
+            if (asset == null)
+            {
+                MainLog.Instance.Warn("INVENTORY", "Failed to find asset " + item.assetID.ToString());
+                return;
+            }
+
+            asset.Name = (newName.Length == 0) ? item.inventoryName : newName;
+            
+            // TODO: preserve current permissions?
+            CreateNewInventoryItem(remoteClient, newFolderID, callbackID, asset, item.inventoryNextPermissions);
+        }
+
+        private AssetBase CreateAsset(string name, string description, sbyte invType, sbyte assetType, byte[] data)
+        {
+            AssetBase asset = new AssetBase();
+            asset.Name = name;
+            asset.Description = description;
+            asset.InvType = invType;
+            asset.Type = assetType;
+            asset.FullID = LLUUID.Random(); // TODO: check for conflicts
+            asset.Data = (data == null) ? new byte[1] : data;
+            return asset;
+        }
+
+        private void CreateNewInventoryItem(IClientAPI remoteClient, LLUUID folderID, uint callbackID,
+                                            AssetBase asset, uint nextOwnerMask)
+        {
+            CachedUserInfo userInfo = CommsManager.UserProfileCache.GetUserDetails(remoteClient.AgentId);
+            if (userInfo != null)
+            {
+                InventoryItemBase item = new InventoryItemBase();
+                item.avatarID = remoteClient.AgentId;
+                item.creatorsID = remoteClient.AgentId;
+                item.inventoryID = LLUUID.Random();
+                item.assetID = asset.FullID;
+                item.inventoryDescription = asset.Description;
+                item.inventoryName = asset.Name;
+                item.assetType = asset.Type;
+                item.invType = asset.InvType;
+                item.parentFolderID = folderID;
+                item.inventoryCurrentPermissions = 2147483647;
+                item.inventoryNextPermissions = nextOwnerMask;
+
+                userInfo.AddItem(remoteClient.AgentId, item);
+                remoteClient.SendInventoryItemUpdate(item);
+            }
+        }
+
         /// <summary>
         /// temporary method to test out creating new inventory items
         /// </summary>
@@ -174,7 +238,7 @@ namespace OpenSim.Region.Environment.Scenes
         /// <param name="wearableType"></param>
         /// <param name="nextOwnerMask"></param>
         public void CreateNewInventoryItem(IClientAPI remoteClient, LLUUID transActionID, LLUUID folderID,
-                                           uint callbackID, string description, string name, sbyte invType, sbyte type,
+                                           uint callbackID, string description, string name, sbyte invType, sbyte assetType,
                                            byte wearableType, uint nextOwnerMask)
         {
             if (transActionID == LLUUID.Zero)
@@ -182,37 +246,17 @@ namespace OpenSim.Region.Environment.Scenes
                 CachedUserInfo userInfo = CommsManager.UserProfileCache.GetUserDetails(remoteClient.AgentId);
                 if (userInfo != null)
                 {
-                    AssetBase asset = new AssetBase();
-                    asset.Name = name;
-                    asset.Description = description;
-                    asset.InvType = invType;
-                    asset.Type = type;
-                    asset.FullID = LLUUID.Random();
-                    asset.Data = new byte[1];
+                    AssetBase asset = CreateAsset(name, description, invType, assetType, null);
                     AssetCache.AddAsset(asset);
 
-                    InventoryItemBase item = new InventoryItemBase();
-                    item.avatarID = remoteClient.AgentId;
-                    item.creatorsID = remoteClient.AgentId;
-                    item.inventoryID = LLUUID.Random();
-                    item.assetID = asset.FullID;
-                    item.inventoryDescription = description;
-                    item.inventoryName = name;
-                    item.assetType = invType;
-                    item.invType = invType;
-                    item.parentFolderID = folderID;
-                    item.inventoryCurrentPermissions = 2147483647;
-                    item.inventoryNextPermissions = nextOwnerMask;
-
-                    userInfo.AddItem(remoteClient.AgentId, item);
-                    remoteClient.SendInventoryItemUpdate(item);
+                    CreateNewInventoryItem(remoteClient, folderID, callbackID, asset, nextOwnerMask);
                 }
             }
             else
             {
                 CommsManager.TransactionsManager.HandleInventoryFromTransaction(remoteClient, transActionID, folderID,
                                                                                 callbackID, description, name, invType,
-                                                                                type, wearableType, nextOwnerMask);
+                                                                                assetType, wearableType, nextOwnerMask);
                 //System.Console.WriteLine("request to create inventory item from transaction " + transActionID);
             }
         }
@@ -348,21 +392,18 @@ namespace OpenSim.Region.Environment.Scenes
                             CachedUserInfo userInfo = CommsManager.UserProfileCache.GetUserDetails(remoteClient.AgentId);
                             if (userInfo != null)
                             {
-                                AssetBase asset = new AssetBase();
-                                asset.Name = ((SceneObjectGroup) selectedEnt).GetPartName(selectedEnt.LocalId);
-                                asset.Description =
-                                    ((SceneObjectGroup) selectedEnt).GetPartDescription(selectedEnt.LocalId);
-                                asset.InvType = 6;
-                                asset.Type = 6;
-                                asset.FullID = LLUUID.Random();
-                                asset.Data = Helpers.StringToField(sceneObjectXml);
+                                AssetBase asset = CreateAsset(
+                                    ((SceneObjectGroup) selectedEnt).GetPartName(selectedEnt.LocalId),
+                                    ((SceneObjectGroup) selectedEnt).GetPartDescription(selectedEnt.LocalId),
+                                    (sbyte) InventoryType.Object,
+                                    (sbyte) AssetType.Object, // TODO: after libSL r1357, this becomes AssetType.Primitive
+                                    Helpers.StringToField(sceneObjectXml));
                                 AssetCache.AddAsset(asset);
-
 
                                 InventoryItemBase item = new InventoryItemBase();
                                 item.avatarID = remoteClient.AgentId;
                                 item.creatorsID = remoteClient.AgentId;
-                                item.inventoryID = LLUUID.Random();
+                                item.inventoryID = LLUUID.Random(); // TODO: check for conflicts
                                 item.assetID = asset.FullID;
                                 item.inventoryDescription = asset.Description;
                                 item.inventoryName = asset.Name;

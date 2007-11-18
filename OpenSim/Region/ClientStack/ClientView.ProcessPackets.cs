@@ -563,6 +563,16 @@ namespace OpenSim.Region.ClientStack
                             }
                         }*/
                         break;
+                    case PacketType.CopyInventoryItem:
+                        CopyInventoryItemPacket copyitem = (CopyInventoryItemPacket) Pack;
+                        if (OnCopyInventoryItem != null)
+                        {
+                            foreach (CopyInventoryItemPacket.InventoryDataBlock datablock in copyitem.InventoryData)
+                            {
+                                OnCopyInventoryItem(this, datablock.CallbackID, datablock.OldAgentID, datablock.OldItemID, datablock.NewFolderID, Util.FieldToString(datablock.NewName));
+                            }
+                        }
+                        break;
                     case PacketType.RequestTaskInventory:
                         RequestTaskInventoryPacket requesttask = (RequestTaskInventoryPacket) Pack;
                         if (OnRequestTaskInventory != null)

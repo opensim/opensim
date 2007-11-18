@@ -239,6 +239,17 @@ namespace OpenSim.Framework.Communications.Cache
             //Todo should delete it from memory too
         }
 
+        public AssetBase CopyAsset(LLUUID assetID)
+        {
+            AssetBase asset = GetAsset(assetID);
+            if (asset == null)
+                return null;
+
+            asset.FullID = LLUUID.Random(); // TODO: check for conflicts
+            AddAsset(asset);
+            return asset;
+        }
+
         /// <summary>
         /// 
         /// </summary>

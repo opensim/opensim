@@ -74,7 +74,10 @@ namespace OpenSim.Framework.Communications.Cache
 
         public CachedUserInfo GetUserDetails(LLUUID userID)
         {
-            return m_userProfiles[userID];
+            if (m_userProfiles.ContainsKey(userID))
+                return m_userProfiles[userID];
+            else
+                return null;
         }
 
         public void HandleCreateInventoryFolder(IClientAPI remoteClient, LLUUID folderID, ushort folderType,

@@ -96,6 +96,7 @@ namespace OpenSim.Region.ClientStack
         public event FetchInventory OnFetchInventory;
         public event RequestTaskInventory OnRequestTaskInventory;
         public event UpdateInventoryItemTransaction OnUpdateInventoryItem;
+        public event CopyInventoryItem OnCopyInventoryItem;
         public event UDPAssetUploadRequest OnAssetUploadRequest;
         public event XferReceive OnXferReceive;
         public event RequestXfer OnRequestXfer;
