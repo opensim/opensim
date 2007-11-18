@@ -470,6 +470,48 @@ namespace OpenSim.Region.Environment.Scenes
 
         #region Load Terrain
 
+        public void ExportWorldMap(string fileName)
+        {
+            List<MapBlockData> mapBlocks = this.CommsManager.GridService.RequestNeighbourMapBlocks((int)(this.RegionInfo.RegionLocX - 9), (int)(this.RegionInfo.RegionLocY - 9), (int)(this.RegionInfo.RegionLocX + 9), (int)(this.RegionInfo.RegionLocY + 9));
+            List<AssetBase> textures = new List<AssetBase>();
+            List<System.Drawing.Image> bitImages = new List<System.Drawing.Image>();
+
+            foreach (MapBlockData mapBlock in mapBlocks)
+            {
+                AssetBase texAsset = this.AssetCache.GetAsset(mapBlock.MapImageId, true);
+
+                if (texAsset != null)
+                {
+                    textures.Add(texAsset);
+                }
+                else
+                {
+                    texAsset = this.AssetCache.GetAsset(mapBlock.MapImageId, true);
+                    if (texAsset != null)
+                    {
+                        textures.Add(texAsset);
+                    }
+                }
+            }
+
+            foreach(AssetBase asset in textures)
+            {
+               System.Drawing.Image image= OpenJPEGNet.OpenJPEG.DecodeToImage(asset.Data);
+               bitImages.Add(image);
+            }
+
+            System.Drawing.Bitmap mapTexture = new System.Drawing.Bitmap(2560, 2560);
+            System.Drawing.Graphics g = System.Drawing.Graphics.FromImage(mapTexture);
+
+            for(int i =0; i<mapBlocks.Count; i++)
+            {
+                ushort x = (ushort) ((mapBlocks[i].X - this.RegionInfo.RegionLocX) + 10);
+                ushort y = (ushort) ((mapBlocks[i].Y - this.RegionInfo.RegionLocY) + 10);
+                g.DrawImage(bitImages[i], (x*128), (y*128), 128, 128);
+            }
+            mapTexture.Save(fileName, System.Drawing.Imaging.ImageFormat.Jpeg);
+        }
+
         /// <summary>
         /// Loads the World heightmap
         /// </summary>
