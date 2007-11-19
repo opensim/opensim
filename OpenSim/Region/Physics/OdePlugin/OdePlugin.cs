@@ -75,6 +75,7 @@ namespace OpenSim.Region.Physics.OdePlugin
     {
         private static float ODE_STEPSIZE = 0.004f;
         private static bool RENDER_FLAG = false;
+        private static float metersInSpace = 29.9f;
         private IntPtr contactgroup;
         private IntPtr LandGeom = (IntPtr) 0;
         private double[] _heightmap;
@@ -99,8 +100,8 @@ namespace OpenSim.Region.Physics.OdePlugin
         public IntPtr world;
         
         public IntPtr space;
-        // split static geometry collision handling into spaces of 64 meters
-        public IntPtr[] staticPrimspace = new IntPtr[74]; 
+        // split static geometry collision handling into spaces of 30 meters
+        public IntPtr[,] staticPrimspace = new IntPtr[(int)(257/metersInSpace),(int)(257/metersInSpace)]; 
         
         public static Object OdeLock = new Object();
 
@@ -153,9 +154,12 @@ namespace OpenSim.Region.Physics.OdePlugin
 
             _heightmap = new double[258*258];
 
-            for (int i = 0; i < staticPrimspace.Length; i++)
+            for (int i = 0; i < staticPrimspace.GetLength(0); i++)
             {
-                staticPrimspace[i] = IntPtr.Zero;
+                for (int j = 0; j < staticPrimspace.GetLength(1); j++)
+                {
+                    staticPrimspace[i,j] = IntPtr.Zero;
+                }
             }
             
         }
@@ -437,7 +441,8 @@ namespace OpenSim.Region.Physics.OdePlugin
                                     d.SpaceRemove(space, ((OdePrim)prim).m_targetSpace);
                                     // free up memory used by the space.
                                     d.SpaceDestroy(((OdePrim)prim).m_targetSpace);
-                                    resetSpaceArrayItemToZero(calculateSpaceArrayItemFromPos(((OdePrim)prim).Position));
+                                    int[] xyspace = calculateSpaceArrayItemFromPos(((OdePrim)prim).Position);
+                                    resetSpaceArrayItemToZero(xyspace[0],xyspace[1]);
                                 }
                                 else
                                 {
@@ -456,15 +461,18 @@ namespace OpenSim.Region.Physics.OdePlugin
         }
         public void resetSpaceArrayItemToZero(IntPtr space)
         {
-            for (int i = 0; i < staticPrimspace.Length; i++)
+            for (int x = 0; x < staticPrimspace.GetLength(0); x++)
             {
-                if (staticPrimspace[i] == space)
-                    staticPrimspace[i] = IntPtr.Zero;
+                for (int y = 0; y < staticPrimspace.GetLength(1); y++)
+                {
+                    if (staticPrimspace[x, y] == space)
+                        staticPrimspace[x, y] = IntPtr.Zero;
+                }
             }
         }
-        public void resetSpaceArrayItemToZero(int arrayitem)
+        public void resetSpaceArrayItemToZero(int arrayitemX,int arrayitemY)
         {
-            staticPrimspace[arrayitem] = IntPtr.Zero;
+            staticPrimspace[arrayitemX, arrayitemY] = IntPtr.Zero;
         }
 
         public IntPtr recalculateSpaceForGeom(IntPtr geom, PhysicsVector pos, IntPtr currentspace)
@@ -569,34 +577,37 @@ namespace OpenSim.Region.Physics.OdePlugin
             // The routines in the Position and Size sections do the 'inserting' into the space, 
             // so all we have to do is make sure that the space that we're putting the prim into 
             // is in the 'main' space.
-            int iprimspaceArrItem = calculateSpaceArrayItemFromPos(pos);
+            int[] iprimspaceArrItem = calculateSpaceArrayItemFromPos(pos);
             IntPtr newspace = calculateSpaceForGeom(pos);
 
             if (newspace == IntPtr.Zero)
             {
-                newspace = createprimspace(iprimspaceArrItem);
+                newspace = createprimspace(iprimspaceArrItem[0],iprimspaceArrItem[1]);
                 d.HashSpaceSetLevels(newspace, -4, 66);
             }
                     
             return newspace;
         }
 
-        public IntPtr createprimspace(int iprimspaceArrItem) {
+        public IntPtr createprimspace(int iprimspaceArrItemX, int iprimspaceArrItemY) {
             // creating a new space for prim and inserting it into main space.
-            staticPrimspace[iprimspaceArrItem] = d.HashSpaceCreate(IntPtr.Zero);
-            d.SpaceAdd(space, staticPrimspace[iprimspaceArrItem]);
-            return staticPrimspace[iprimspaceArrItem];
+            staticPrimspace[iprimspaceArrItemX, iprimspaceArrItemY] = d.HashSpaceCreate(IntPtr.Zero);
+            d.SpaceAdd(space, staticPrimspace[iprimspaceArrItemX,iprimspaceArrItemY]);
+            return staticPrimspace[iprimspaceArrItemX, iprimspaceArrItemY];
         }
 
         public IntPtr calculateSpaceForGeom(PhysicsVector pos)
         {
-            IntPtr locationbasedspace = staticPrimspace[calculateSpaceArrayItemFromPos(pos)];
+            int[] xyspace = calculateSpaceArrayItemFromPos(pos);
+            IntPtr locationbasedspace = staticPrimspace[xyspace[0],xyspace[1]];
             //locationbasedspace = space;
             return locationbasedspace;
         }
-        public int calculateSpaceArrayItemFromPos(PhysicsVector pos)
+        public int[] calculateSpaceArrayItemFromPos(PhysicsVector pos)
         {
-            int returnint = ((int)((pos.X + pos.Y)/8.6f));
+            int[] returnint = new int[2];
+            returnint[0] = (int)(pos.X / metersInSpace);
+            returnint[1] = (int)(pos.Y / metersInSpace);
             return returnint;
         }
 
@@ -619,11 +630,11 @@ namespace OpenSim.Region.Physics.OdePlugin
             rot.z = rotation.z;
 
             
-            int iprimspaceArrItem = calculateSpaceArrayItemFromPos(pos);
+            int[] iprimspaceArrItem = calculateSpaceArrayItemFromPos(pos);
             IntPtr targetspace = calculateSpaceForGeom(pos);
 
             if (targetspace == IntPtr.Zero)
-                targetspace = createprimspace(iprimspaceArrItem);
+                targetspace = createprimspace(iprimspaceArrItem[0],iprimspaceArrItem[1]);
 
             OdePrim newPrim;
             lock (OdeLock)
@@ -1326,14 +1337,14 @@ namespace OpenSim.Region.Physics.OdePlugin
                     m_lastUpdateSent = true;
                     base.RequestPhysicsterseUpdate();
                     string primScenAvatarIn = _parent_scene.whichspaceamIin(_position);
-                    int arrayitem = _parent_scene.calculateSpaceArrayItemFromPos(_position);
+                    int[] arrayitem = _parent_scene.calculateSpaceArrayItemFromPos(_position);
                     if (primScenAvatarIn == "0")
                     {
-                        OpenSim.Framework.Console.MainLog.Instance.Verbose("Physics", "Avatar " + m_name + " in space with no prim. Arr:':" + arrayitem.ToString());
+                        OpenSim.Framework.Console.MainLog.Instance.Verbose("Physics", "Avatar " + m_name + " in space with no prim. Arr:':" + arrayitem[0].ToString() + "," + arrayitem[1].ToString());
                     }
                     else
                     {
-                        OpenSim.Framework.Console.MainLog.Instance.Verbose("Physics", "Avatar " + m_name + " in Prim space':" + primScenAvatarIn + ". Arr:" + arrayitem.ToString());
+                        OpenSim.Framework.Console.MainLog.Instance.Verbose("Physics", "Avatar " + m_name + " in Prim space':" + primScenAvatarIn + ". Arr:" + arrayitem[0].ToString() + "," + arrayitem[1].ToString());
                     }
                     
                 }
@@ -1628,14 +1639,14 @@ namespace OpenSim.Region.Physics.OdePlugin
                     else
                     {
                         string primScenAvatarIn = _parent_scene.whichspaceamIin(_position);
-                        int arrayitem = _parent_scene.calculateSpaceArrayItemFromPos(_position);
+                        int[] arrayitem = _parent_scene.calculateSpaceArrayItemFromPos(_position);
                         if (primScenAvatarIn == "0")
                         {
-                            OpenSim.Framework.Console.MainLog.Instance.Verbose("Physics", "Prim " + m_primName + " in space with no prim: " + primScenAvatarIn + ". Expected to be at: " + m_targetSpace.ToString() + " . Arr:': " + arrayitem.ToString());
+                            OpenSim.Framework.Console.MainLog.Instance.Verbose("Physics", "Prim " + m_primName + " in space with no prim: " + primScenAvatarIn + ". Expected to be at: " + m_targetSpace.ToString() + " . Arr:': " + arrayitem[0].ToString() + "," + arrayitem[1].ToString());
                         }
                         else
                         {
-                            OpenSim.Framework.Console.MainLog.Instance.Verbose("Physics", "Prim " + m_primName + " in Prim space with prim: " + primScenAvatarIn + ". Expected to be at: " + m_targetSpace.ToString() + ".  Arr:" + arrayitem.ToString());
+                            OpenSim.Framework.Console.MainLog.Instance.Verbose("Physics", "Prim " + m_primName + " in Prim space with prim: " + primScenAvatarIn + ". Expected to be at: " + m_targetSpace.ToString() + ".  Arr:" + arrayitem[0].ToString() + "," + arrayitem[1].ToString());
                         }
                         m_targetSpace = _parent_scene.recalculateSpaceForGeom(prim_geom, _position, m_targetSpace);
                         d.GeomSetPosition(prim_geom, _position.X, _position.Y, _position.Z);
