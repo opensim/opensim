@@ -606,8 +606,20 @@ namespace OpenSim.Region.Physics.OdePlugin
         public int[] calculateSpaceArrayItemFromPos(PhysicsVector pos)
         {
             int[] returnint = new int[2];
+            
             returnint[0] = (int)(pos.X / metersInSpace);
+            
+            if (returnint[0] > ((int)(259f / metersInSpace)))
+                returnint[0] = ((int)(259f / metersInSpace));
+            if (returnint[0] < 0)
+                returnint[0] = 0;
+
             returnint[1] = (int)(pos.Y / metersInSpace);
+            if (returnint[0] > ((int)(259f / metersInSpace)))
+                returnint[0] = ((int)(259f / metersInSpace));
+            if (returnint[0] < 0)
+                returnint[0] = 0;
+
             return returnint;
         }
 
