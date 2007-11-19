@@ -168,7 +168,10 @@ namespace OpenSim.Region.Physics.OdePlugin
 
         }
 
-
+        public string whichspaceamIin(PhysicsVector pos)
+        {
+            return calculateSpaceForGeom(pos).ToString();
+        }
 
         private void near(IntPtr space, IntPtr g1, IntPtr g2)
         {
@@ -412,7 +415,13 @@ namespace OpenSim.Region.Physics.OdePlugin
                             if (!(((OdePrim)prim).m_targetSpace.Equals(null)))
                             {
                                 if (d.GeomIsSpace(((OdePrim)prim).m_targetSpace))
+                                {
                                     d.SpaceRemove(((OdePrim)prim).m_targetSpace, ((OdePrim)prim).prim_geom);
+                                }
+                                else
+                                {
+                                    OpenSim.Framework.Console.MainLog.Instance.Verbose("Physics", "Invalid Scene passed to 'removeprim from scene':" + ((OdePrim)prim).m_targetSpace.ToString());
+                                }
                             }
                         }
 
@@ -429,6 +438,10 @@ namespace OpenSim.Region.Physics.OdePlugin
                                     // free up memory used by the space.
                                     d.SpaceDestroy(((OdePrim)prim).m_targetSpace);
                                     resetSpaceArrayItemToZero(calculateSpaceArrayItemFromPos(((OdePrim)prim).Position));
+                                }
+                                else
+                                {
+                                    OpenSim.Framework.Console.MainLog.Instance.Verbose("Physics", "Invalid Scene passed to 'removeprim from scene':" + ((OdePrim)prim).m_targetSpace.ToString());
                                 }
                             }
                         }
@@ -468,7 +481,14 @@ namespace OpenSim.Region.Physics.OdePlugin
                 if (d.SpaceQuery(currentspace, geom) && currentspace != (IntPtr)0)
                 {
                     if (d.GeomIsSpace(currentspace))
+                    {
+
                         d.SpaceRemove(currentspace, geom);
+                    }
+                    else
+                    {
+                        OpenSim.Framework.Console.MainLog.Instance.Verbose("Physics", "Invalid Scene passed to 'recalculatespace':" + currentspace.ToString() + " Geom:" + geom.ToString());
+                    }
                 }
                 else
                 {
@@ -477,7 +497,13 @@ namespace OpenSim.Region.Physics.OdePlugin
                     {
                         if (sGeomIsIn != (IntPtr)0)
                             if (d.GeomIsSpace(currentspace))
-                               d.SpaceRemove(sGeomIsIn, geom);
+                            {
+                                d.SpaceRemove(sGeomIsIn, geom);
+                            }
+                            else
+                            {
+                                OpenSim.Framework.Console.MainLog.Instance.Verbose("Physics", "Invalid Scene passed to 'recalculatespace':" + sGeomIsIn.ToString() + " Geom:" + geom.ToString());
+                            }
                     }
                 }
 
@@ -487,13 +513,18 @@ namespace OpenSim.Region.Physics.OdePlugin
                 {
                     if (currentspace != (IntPtr)0)
                     {
-                        if (d.GeomIsSpace(currentspace)) 
+                        if (d.GeomIsSpace(currentspace))
                         {
                             d.SpaceRemove(space, currentspace);
                             // free up memory used by the space.
                             d.SpaceDestroy(currentspace);
                             resetSpaceArrayItemToZero(currentspace);
                         }
+                        else
+                        {
+                            OpenSim.Framework.Console.MainLog.Instance.Verbose("Physics", "Invalid Scene passed to 'recalculatespace':" + currentspace.ToString() + " Geom:" + geom.ToString());
+                        }
+
                     }
                 }
             }
@@ -503,7 +534,15 @@ namespace OpenSim.Region.Physics.OdePlugin
                 if (d.SpaceQuery(currentspace, geom))
                 {
                     if (currentspace != (IntPtr)0)
-                        d.SpaceRemove(currentspace, geom);
+                        if (d.GeomIsSpace(currentspace))
+                        {
+                            d.SpaceRemove(currentspace, geom);
+                        }
+                        else
+                        {
+                            OpenSim.Framework.Console.MainLog.Instance.Verbose("Physics", "Invalid Scene passed to 'recalculatespace':" + currentspace.ToString() + " Geom:" + geom.ToString());
+
+                        }
                 }
                 else
                 {
@@ -512,8 +551,15 @@ namespace OpenSim.Region.Physics.OdePlugin
                     {
                         if (sGeomIsIn != (IntPtr)0)
                         {
-                            if (d.GeomIsSpace(sGeomIsIn)) 
-                                   d.SpaceRemove(sGeomIsIn, geom);
+                            if (d.GeomIsSpace(sGeomIsIn))
+                            {
+                                d.SpaceRemove(sGeomIsIn, geom);
+                            }
+                            else
+                            {
+                                OpenSim.Framework.Console.MainLog.Instance.Verbose("Physics", "Invalid Scene passed to 'recalculatespace':" + sGeomIsIn.ToString() + " Geom:" + geom.ToString());
+
+                            }
                         }
                     }
                 }
@@ -1279,6 +1325,16 @@ namespace OpenSim.Region.Physics.OdePlugin
                 {
                     m_lastUpdateSent = true;
                     base.RequestPhysicsterseUpdate();
+                    string primScenAvatarIn = _parent_scene.whichspaceamIin(_position);
+                    int arrayitem = _parent_scene.calculateSpaceArrayItemFromPos(_position);
+                    if (primScenAvatarIn == "0")
+                    {
+                        OpenSim.Framework.Console.MainLog.Instance.Verbose("Physics", "Avatar " + m_name + " in space with no prim. Arr:':" + arrayitem.ToString());
+                    }
+                    else
+                    {
+                        OpenSim.Framework.Console.MainLog.Instance.Verbose("Physics", "Avatar " + m_name + " in Prim space':" + primScenAvatarIn + ". Arr:" + arrayitem.ToString());
+                    }
                     
                 }
             }
@@ -1571,7 +1627,16 @@ namespace OpenSim.Region.Physics.OdePlugin
                     }
                     else
                     {
-                        
+                        string primScenAvatarIn = _parent_scene.whichspaceamIin(_position);
+                        int arrayitem = _parent_scene.calculateSpaceArrayItemFromPos(_position);
+                        if (primScenAvatarIn == "0")
+                        {
+                            OpenSim.Framework.Console.MainLog.Instance.Verbose("Physics", "Prim " + m_primName + " in space with no prim: " + primScenAvatarIn + ". Expected to be at: " + m_targetSpace.ToString() + " . Arr:': " + arrayitem.ToString());
+                        }
+                        else
+                        {
+                            OpenSim.Framework.Console.MainLog.Instance.Verbose("Physics", "Prim " + m_primName + " in Prim space with prim: " + primScenAvatarIn + ". Expected to be at: " + m_targetSpace.ToString() + ".  Arr:" + arrayitem.ToString());
+                        }
                         m_targetSpace = _parent_scene.recalculateSpaceForGeom(prim_geom, _position, m_targetSpace);
                         d.GeomSetPosition(prim_geom, _position.X, _position.Y, _position.Z);
                         d.SpaceAdd(m_targetSpace, prim_geom);
