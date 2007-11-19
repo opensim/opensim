@@ -135,15 +135,19 @@ namespace OpenSim.Region.Physics.POSPlugin
                 " absX: " + Math.Abs(p.Position.X - c.Position.X) +
                 " sizeX: " + p.Size.X * 0.5 + 0.5);
              */
-            if (Math.Abs(p.Position.X - c.Position.X) >= (p.Size.X * 0.5 + 0.5))
+
+            Vector3 rotatedPos = p.Orientation.Inverse() * new Vector3(c.Position.X - p.Position.X, c.Position.Y - p.Position.Y, c.Position.Z - p.Position.Z);;
+            Vector3 avatarSize = p.Orientation.Inverse() * new Vector3(c.Size.X, c.Size.Y, c.Size.Z);
+
+            if (Math.Abs(rotatedPos.x) >= (p.Size.X * 0.5 + avatarSize.x))
             {
                 return false;
             }
-            if (Math.Abs(p.Position.Y - c.Position.Y) >= (p.Size.Y * 0.5 + 0.5))
+            if (Math.Abs(rotatedPos.y) >= (p.Size.Y * 0.5 + avatarSize.y))
             {
                 return false;
             }
-            if (Math.Abs(p.Position.Z - c.Position.Z) >= (p.Size.Z * 0.5 + 1.0))
+            if (Math.Abs(rotatedPos.z) >= (p.Size.Z * 0.5 + avatarSize.z))
             {
                 return false;
             }
@@ -338,7 +342,7 @@ namespace OpenSim.Region.Physics.POSPlugin
 
         public override PhysicsVector Size
         {
-            get { return new PhysicsVector(0, 0, 0); }
+            get { return new PhysicsVector(0.5f, 0.5f, 1.0f); }
             set { }
         }
 
