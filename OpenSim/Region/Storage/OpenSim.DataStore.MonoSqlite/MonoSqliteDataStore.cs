@@ -262,70 +262,74 @@ namespace OpenSim.DataStore.MonoSqlite
 
         public void StoreTerrain(double[,] ter, LLUUID regionID)
         {
-            int revision = Util.UnixTimeSinceEpoch();
+            lock (ds) {
+                int revision = Util.UnixTimeSinceEpoch();
+                
+                // the following is an work around for .NET.  The perf
+                // issues associated with it aren't as bad as you think.
+                SqliteConnection conn = new SqliteConnection(m_connectionString);
+                conn.Open();
+                MainLog.Instance.Verbose("DATASTORE", "Storing terrain revision r" + revision.ToString());
+                String sql = "insert into terrain(RegionUUID, Revision, Heightfield)" +
+                    " values(:RegionUUID, :Revision, :Heightfield)";
 
-            // the following is an work around for .NET.  The perf
-            // issues associated with it aren't as bad as you think.
-            SqliteConnection conn = new SqliteConnection(m_connectionString);
-            conn.Open();
-            MainLog.Instance.Verbose("DATASTORE", "Storing terrain revision r" + revision.ToString());
-            String sql = "insert into terrain(RegionUUID, Revision, Heightfield)" +
-                " values(:RegionUUID, :Revision, :Heightfield)";
-
-            using(SqliteCommand cmd = new SqliteCommand(sql, conn))
-            {
-                cmd.Parameters.Add(new SqliteParameter(":RegionUUID", regionID.ToString()));
-                cmd.Parameters.Add(new SqliteParameter(":Revision", revision));
-                cmd.Parameters.Add(new SqliteParameter(":Heightfield", serializeTerrain(ter)));
-                cmd.ExecuteNonQuery();
+                using(SqliteCommand cmd = new SqliteCommand(sql, conn))
+                {
+                    cmd.Parameters.Add(new SqliteParameter(":RegionUUID", regionID.ToString()));
+                    cmd.Parameters.Add(new SqliteParameter(":Revision", revision));
+                    cmd.Parameters.Add(new SqliteParameter(":Heightfield", serializeTerrain(ter)));
+                    cmd.ExecuteNonQuery();
+                }
+                conn.Close();
             }
-            conn.Close();
         }
 
         public double[,] LoadTerrain(LLUUID regionID)
         {
-            double[,] terret = new double[256,256];
-            terret.Initialize();
-            // the following is an work around for .NET.  The perf
-            // issues associated with it aren't as bad as you think.
-            SqliteConnection conn = new SqliteConnection(m_connectionString);
-            conn.Open();
-            String sql = "select RegionUUID, Revision, Heightfield from terrain" + 
-              " where RegionUUID=:RegionUUID order by Revision desc";
-
-            
-            using (SqliteCommand cmd = new SqliteCommand(sql, conn))
-            {
-                cmd.Parameters.Add(new SqliteParameter(":RegionUUID", regionID.ToString()));
-
-                using (IDataReader row = cmd.ExecuteReader())
+            lock (ds) {
+                double[,] terret = new double[256,256];
+                terret.Initialize();
+                // the following is an work around for .NET.  The perf
+                // issues associated with it aren't as bad as you think.
+                SqliteConnection conn = new SqliteConnection(m_connectionString);
+                conn.Open();
+                String sql = "select RegionUUID, Revision, Heightfield from terrain" + 
+                    " where RegionUUID=:RegionUUID order by Revision desc";
+                
+                
+                using (SqliteCommand cmd = new SqliteCommand(sql, conn))
                 {
-                    int rev = 0;
-                    if (row.Read())
-                    {
-                        // TODO: put this into a function
-                        byte[] heightmap = (byte[]) row["Heightfield"];
-                        for (int x = 0; x < 256; x++)
-                        {
-                            for (int y = 0; y < 256; y++)
-                            {
-                                terret[x, y] = BitConverter.ToDouble(heightmap, ((x*256) + y)*8);
-                            }
-                        }
-                        rev = (int)row["Revision"];
-                    }
-                    else
-                    {
-                        MainLog.Instance.Verbose("DATASTORE", "No terrain found for region");
-                        conn.Close();
-                        return null;
-                    }
+                    cmd.Parameters.Add(new SqliteParameter(":RegionUUID", regionID.ToString()));
                     
-                    MainLog.Instance.Verbose("DATASTORE", "Loaded terrain revision r" + rev.ToString());
+                    using (IDataReader row = cmd.ExecuteReader())
+                    {
+                        int rev = 0;
+                        if (row.Read())
+                        {
+                            // TODO: put this into a function
+                            byte[] heightmap = (byte[]) row["Heightfield"];
+                            for (int x = 0; x < 256; x++)
+                            {
+                                for (int y = 0; y < 256; y++)
+                                {
+                                    terret[x, y] = BitConverter.ToDouble(heightmap, ((x*256) + y)*8);
+                                }
+                            }
+                            rev = (int)row["Revision"];
+                        }
+                        else
+                        {
+                            MainLog.Instance.Verbose("DATASTORE", "No terrain found for region");
+                            conn.Close();
+                            return null;
+                        }
+                        
+                        MainLog.Instance.Verbose("DATASTORE", "Loaded terrain revision r" + rev.ToString());
+                    }
                 }
+                conn.Close();
+                return terret;
             }
-            conn.Close();
-            return terret;
         }
 
         public void RemoveLandObject(uint id)
