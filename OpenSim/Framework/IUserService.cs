@@ -28,7 +28,7 @@
 using libsecondlife;
 using System.Collections.Generic;
 
-namespace OpenSim.Framework.Interfaces
+namespace OpenSim.Framework
 {
     public interface IUserService
     {

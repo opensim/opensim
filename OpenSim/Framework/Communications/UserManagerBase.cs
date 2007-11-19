@@ -34,7 +34,6 @@ using System.Security.Cryptography;
 using libsecondlife;
 using Nwc.XmlRpc;
 using OpenSim.Framework.Console;
-using OpenSim.Framework.Interfaces;
 
 namespace OpenSim.Framework.UserManagement
 {
