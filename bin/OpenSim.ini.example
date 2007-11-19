@@ -24,9 +24,9 @@ physics = basicphysics
 storage_plugin = "OpenSim.DataStore.MonoSqlite.dll"
 storage_connection_string="URI=file:OpenSim.db,version=3";
 
-; --- To use MySQL storage, supply your own connectionstring:
+; --- To use MySQL storage, supply your own connectionstring (this is only an example):
 ; storage_plugin="OpenSim.Framework.Data.MySQL.dll"
-; storage_connection_string="<MySql Connection String>";
+; storage_connection_string="Data Source=localhost;Database=opensim;User ID=opensim;Password=*****;";
 
 startup_console_commands_file = "startup_commands.txt"
 shutdown_console_commands_file = "shutdown_commands.txt"
