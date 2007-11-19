@@ -136,18 +136,18 @@ namespace OpenSim.Region.Physics.POSPlugin
                 " sizeX: " + p.Size.X * 0.5 + 0.5);
              */
 
-            Vector3 rotatedPos = p.Orientation.Inverse() * new Vector3(c.Position.X - p.Position.X, c.Position.Y - p.Position.Y, c.Position.Z - p.Position.Z);;
+            Vector3 rotatedPos = p.Orientation.Inverse() * new Vector3(c.Position.X - p.Position.X, c.Position.Y - p.Position.Y, c.Position.Z - p.Position.Z);
             Vector3 avatarSize = p.Orientation.Inverse() * new Vector3(c.Size.X, c.Size.Y, c.Size.Z);
 
-            if (Math.Abs(rotatedPos.x) >= (p.Size.X * 0.5 + avatarSize.x))
+            if (Math.Abs(rotatedPos.x) >= (p.Size.X * 0.5 + Math.Abs(avatarSize.x)))
             {
                 return false;
             }
-            if (Math.Abs(rotatedPos.y) >= (p.Size.Y * 0.5 + avatarSize.y))
+            if (Math.Abs(rotatedPos.y) >= (p.Size.Y * 0.5 + Math.Abs(avatarSize.y)))
             {
                 return false;
             }
-            if (Math.Abs(rotatedPos.z) >= (p.Size.Z * 0.5 + avatarSize.z))
+            if (Math.Abs(rotatedPos.z) >= (p.Size.Z * 0.5 + Math.Abs(avatarSize.z)))
             {
                 return false;
             }
