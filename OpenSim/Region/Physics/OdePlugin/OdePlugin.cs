@@ -599,7 +599,9 @@ namespace OpenSim.Region.Physics.OdePlugin
         public IntPtr calculateSpaceForGeom(PhysicsVector pos)
         {
             int[] xyspace = calculateSpaceArrayItemFromPos(pos);
+            OpenSim.Framework.Console.MainLog.Instance.Verbose("Physics", "Attempting to use arrayItem: " + xyspace[0].ToString() + "," + xyspace[1].ToString());
             IntPtr locationbasedspace = staticPrimspace[xyspace[0],xyspace[1]];
+
             //locationbasedspace = space;
             return locationbasedspace;
         }
@@ -1439,6 +1441,24 @@ namespace OpenSim.Region.Physics.OdePlugin
 
             _velocity = new PhysicsVector();
             _position = pos;
+
+            //if (_position.X > 257)
+            //{
+            //    _position.X = 257;
+            //}
+            //if (_position.X < 0)
+            //{
+            //    _position.X = 0;
+            //}
+            //if (_position.Y > 257)
+            //{
+            //    _position.Y = 257;
+           // }
+            //if (_position.Y < 0)
+            //{
+            //    _position.Y = 0;
+            //}
+
             _size = size;
             _acceleration = new PhysicsVector();
             m_rotationalVelocity = PhysicsVector.Zero;
