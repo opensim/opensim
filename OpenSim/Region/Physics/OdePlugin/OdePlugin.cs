@@ -101,7 +101,7 @@ namespace OpenSim.Region.Physics.OdePlugin
         
         public IntPtr space;
         // split static geometry collision handling into spaces of 30 meters
-        public IntPtr[,] staticPrimspace = new IntPtr[(int)(275/metersInSpace),(int)(275/metersInSpace)]; 
+        public IntPtr[,] staticPrimspace = new IntPtr[(int)(300/metersInSpace),(int)(300/metersInSpace)]; 
         
         public static Object OdeLock = new Object();
 
