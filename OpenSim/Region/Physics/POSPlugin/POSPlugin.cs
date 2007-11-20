@@ -232,6 +232,16 @@ namespace OpenSim.Region.Physics.POSPlugin
                             character.Position.X = oldposX;
                             character.Position.Y = oldposY;
                             character.Position.Z = oldposZ;
+                            character.Position.X = character.Position.X + (character._target_velocity.X * timeStep);
+                            if (check_all_prims(character))
+                            {
+                                character.Position.X = oldposX;
+                            }
+                            character.Position.Y = character.Position.Y + (character._target_velocity.Y * timeStep);
+                            if (check_all_prims(character))
+                            {
+                                character.Position.Y = oldposY;
+                            }
                         }
                         else
                         {
