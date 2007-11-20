@@ -254,6 +254,24 @@ namespace OpenSim.Region.Physics.POSPlugin
                     }
                 }            
 
+                if (character.Position.Y < 0)
+                {
+                    character.Position.Y = 0.1F;
+                }
+                else if (character.Position.Y >= 256)
+                {
+                    character.Position.Y = 255.9F;
+                }
+
+                if (character.Position.X < 0)
+                {
+                    character.Position.X = 0.1F;
+                }
+                else if (character.Position.X >= 256)
+                {
+                    character.Position.X = 255.9F;
+                }
+
                 character._velocity.X = (character.Position.X - oldposX) / timeStep;
                 character._velocity.Y = (character.Position.Y - oldposY) / timeStep;
 
