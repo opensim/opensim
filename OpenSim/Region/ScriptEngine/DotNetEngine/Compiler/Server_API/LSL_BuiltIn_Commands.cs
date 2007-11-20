@@ -393,7 +393,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler
 
         public void llDie()
         {
-            NotImplemented("llDie");
+            World.DeleteSceneObjectGroup(m_host.ParentGroup);
             return;
         }
 
