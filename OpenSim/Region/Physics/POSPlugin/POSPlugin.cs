@@ -156,21 +156,25 @@ namespace OpenSim.Region.Physics.POSPlugin
 
         private bool check_all_prims(POSCharacter c)
         {
-            foreach (POSPrim p in _prims)
+            for (int i = 0; i < _prims.Count; ++i)
             {
-                if (check_collision(c, p))
+                if (check_collision(c, _prims[i]))
                     return true;
             }
             return false;
         }
+
         public override void AddPhysicsActorTaint(PhysicsActor prim)
         {
 
         }
+
         public override void Simulate(float timeStep)
         {
-            foreach (POSCharacter character in _characters)
+            for (int i = 0; i < _characters.Count; ++i)
             {
+                POSCharacter character = _characters[i];
+
                 float oldposX = character.Position.X;
                 float oldposY = character.Position.Y;
                 float oldposZ = character.Position.Z;
@@ -183,6 +187,25 @@ namespace OpenSim.Region.Physics.POSPlugin
                 bool forcedZ = false;
                 character.Position.X = character.Position.X + (character._target_velocity.X * timeStep);
                 character.Position.Y = character.Position.Y + (character._target_velocity.Y * timeStep);
+
+                if (character.Position.Y < 0)
+                {
+                    character.Position.Y = 0.1F;
+                }
+                else if (character.Position.Y >= 256)
+                {
+                    character.Position.Y = 255.9F;
+                }
+
+                if (character.Position.X < 0)
+                {
+                    character.Position.X = 0.1F;
+                }
+                else if (character.Position.X >= 256)
+                {
+                    character.Position.X = 255.9F;
+                }
+
                 float terrainheight = _heightMap[(int)character.Position.Y * 256 + (int)character.Position.X];
                 if (character.Position.Z + (character._target_velocity.Z * timeStep) < terrainheight + 2)
                 {
@@ -220,24 +243,6 @@ namespace OpenSim.Region.Physics.POSPlugin
                         forcedZ = true;
                     }
                 }            
-
-                if (character.Position.Y < 0)
-                {
-                    character.Position.Y = 0.1F;
-                }
-                else if (character.Position.Y >= 256)
-                {
-                    character.Position.Y = 255.9F;
-                }
-
-                if (character.Position.X < 0)
-                {
-                    character.Position.X = 0.1F;
-                }
-                else if (character.Position.X > 256)
-                {
-                    character.Position.X = 255.9F;
-                }
 
                 character._velocity.X = (character.Position.X - oldposX) / timeStep;
                 character._velocity.Y = (character.Position.Y - oldposY) / timeStep;
