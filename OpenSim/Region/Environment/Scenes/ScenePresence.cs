@@ -526,7 +526,6 @@ namespace OpenSim.Region.Environment.Scenes
             if ((flags & (uint) MainAvatar.ControlFlags.AGENT_CONTROL_STAND_UP) != 0)
             {
                 StandUp();
-                UpdateMovementAnimations(true);
             }
 
             if (PhysicsActor == null)
@@ -593,7 +592,11 @@ namespace OpenSim.Region.Environment.Scenes
             
         }
 
-        protected void StandUp()
+        /// <summary>
+        /// Perform the logic necessary to stand the client up.  This method also executes
+        /// the stand animation.
+        /// </summary>
+        public void StandUp()
         {
             if (m_parentID != 0)
             {
@@ -607,6 +610,8 @@ namespace OpenSim.Region.Environment.Scenes
                 m_parentID = 0;
                 SendFullUpdateToAllClients();
             }
+            
+            UpdateMovementAnimations(true);
         }
 
         private void SendSitResponse(IClientAPI remoteClient, LLUUID targetID, LLVector3 offset)
@@ -651,7 +656,6 @@ namespace OpenSim.Region.Environment.Scenes
             if (m_parentID != 0)
             {
                 StandUp();
-                UpdateMovementAnimations(true);
             }
 
             SceneObjectPart part = m_scene.GetSceneObjectPart(targetID);

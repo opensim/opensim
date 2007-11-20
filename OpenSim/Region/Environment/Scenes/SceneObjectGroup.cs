@@ -1580,6 +1580,11 @@ namespace OpenSim.Region.Environment.Scenes
                 List<ScenePresence> avatars = GetScenePresences();
                 for (int i = 0; i < avatars.Count; i++)
                 {
+                    if (avatars[i].ParentID == LocalId)
+                    {
+                        avatars[i].StandUp();
+                    }
+                	
                     avatars[i].ControllingClient.SendKillObject(m_regionHandle, part.LocalID);
                 }
             }
