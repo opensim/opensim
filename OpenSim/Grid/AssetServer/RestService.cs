@@ -35,11 +35,11 @@ namespace OpenSim.Grid.AssetServer
                             isTexture = true;
                     }
 
-
+                    MainLog.Instance.Verbose("REST", "GET:/asset fetch param={0} UUID={1}", param, assetID);
                     AssetBase asset = m_assetProvider.FetchAsset(assetID);
                     if (asset != null)
                     {
-                        MainLog.Instance.Debug("REST", "GET:/asset found {0}, {1}", assetID, asset.Name);
+                        MainLog.Instance.Verbose("REST", "GET:/asset found {0}, {1}", assetID, asset.Name);
 
                         XmlSerializer xs = new XmlSerializer(typeof (AssetBase));
                         MemoryStream ms = new MemoryStream();
