@@ -135,7 +135,10 @@ namespace OpenSim.Region.Physics.PhysXPlugin
         {
             return AddPrim(position, size, rotation);
         }
+        public override void AddPhysicsActorTaint(PhysicsActor prim)
+        {
 
+        }
         public override void Simulate(float timeStep)
         {
             try

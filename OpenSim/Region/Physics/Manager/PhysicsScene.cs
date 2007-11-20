@@ -51,6 +51,7 @@ namespace OpenSim.Region.Physics.Manager
                                                   PhysicsVector size, Quaternion rotation); //To be removed
         public abstract PhysicsActor AddPrimShape(string primName, PrimitiveBaseShape pbs, PhysicsVector position,
                                                   PhysicsVector size, Quaternion rotation, bool isPhysical);
+        public abstract void AddPhysicsActorTaint(PhysicsActor prim);
 
         public abstract void Simulate(float timeStep);
 
@@ -104,7 +105,10 @@ namespace OpenSim.Region.Physics.Manager
                 MainLog.Instance.Verbose("NullPhysicsScene : AddPrim({0},{1})", position, size);
                 return PhysicsActor.Null;
             }
+            public override void AddPhysicsActorTaint(PhysicsActor prim)
+            {
 
+            }
             public override void Simulate(float timeStep)
             {
                 m_workIndicator = (m_workIndicator + 1)%10;

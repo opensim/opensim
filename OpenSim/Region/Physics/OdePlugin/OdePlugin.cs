@@ -85,6 +85,7 @@ namespace OpenSim.Region.Physics.OdePlugin
         private List<OdeCharacter> _characters = new List<OdeCharacter>();
         private List<OdePrim> _prims = new List<OdePrim>();
         private List<OdePrim> _activeprims = new List<OdePrim>();
+        private List<OdePrim> _taintedPrim = new List<OdePrim>();
         public Dictionary<IntPtr, String> geom_name_map = new Dictionary<IntPtr, String>();
         public Dictionary<IntPtr, PhysicsActor> actor_name_map = new Dictionary<IntPtr, PhysicsActor>();
         private d.ContactGeom[] contacts = new d.ContactGeom[30];
@@ -326,13 +327,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                 chr.CollidingGround = false;
                 chr.CollidingObj = false;
                 d.SpaceCollide2(space, chr.Shell, IntPtr.Zero, nearCallback);
-                foreach (OdeCharacter ch2 in _characters)
-                /// should be a separate space -- lots of avatars will be N**2 slow
-                {
-
-                    
-                    //d.SpaceCollide2(chr.Shell, ch2.Shell, IntPtr.Zero, nearCallback);
-                }
+                
                
             }
             // If the sim is running slow this frame, 
@@ -345,20 +340,20 @@ namespace OpenSim.Region.Physics.OdePlugin
                     if (d.BodyIsEnabled(chr.Body))
                     {
                         d.SpaceCollide2(space, chr.prim_geom, IntPtr.Zero, nearCallback);
-                        foreach (OdePrim ch2 in _prims)
+                        //foreach (OdePrim ch2 in _prims)
                         /// should be a separate space -- lots of avatars will be N**2 slow
-                        {
-                            if (ch2.IsPhysical && d.BodyIsEnabled(ch2.Body))
-                            {
+                        //{
+                            //if (ch2.IsPhysical && d.BodyIsEnabled(ch2.Body))
+                            //{
                                 // Only test prim that are 0.03 meters away in one direction.
                                 // This should be Optimized!
 
-                                if ((Math.Abs(ch2.Position.X - chr.Position.X) < 0.03) || (Math.Abs(ch2.Position.Y - chr.Position.Y) < 0.03) || (Math.Abs(ch2.Position.X - chr.Position.X) < 0.03))
-                                {
-                                    d.SpaceCollide2(chr.prim_geom, ch2.prim_geom, IntPtr.Zero, nearCallback);
-                                }
-                            }
-                        }
+                                //if ((Math.Abs(ch2.Position.X - chr.Position.X) < 0.03) || (Math.Abs(ch2.Position.Y - chr.Position.Y) < 0.03) || (Math.Abs(ch2.Position.X - chr.Position.X) < 0.03))
+                                //{
+                                    //d.SpaceCollide2(chr.prim_geom, ch2.prim_geom, IntPtr.Zero, nearCallback);
+                                //}
+                            //}
+                        //}
                     }
                 }
             }
@@ -404,60 +399,70 @@ namespace OpenSim.Region.Physics.OdePlugin
             {
                 lock (OdeLock)
                 {
-                    if (prim.IsPhysical)
-                    {
-                        OdePrim p;
-                        p = (OdePrim) prim;
-                        p.disableBody();
-                    }
-                    // we don't want to remove the main space
-                    if (((OdePrim)prim).m_targetSpace != space && ((OdePrim)prim).IsPhysical == false)
-                    {
-                        // If the geometry is in the targetspace, remove it from the target space
-                        if (d.SpaceQuery(((OdePrim)prim).m_targetSpace, ((OdePrim)prim).prim_geom))
-                        {
-                            if (!(((OdePrim)prim).m_targetSpace.Equals(null)))
-                            {
-                                if (d.GeomIsSpace(((OdePrim)prim).m_targetSpace))
-                                {
-                                    d.SpaceRemove(((OdePrim)prim).m_targetSpace, ((OdePrim)prim).prim_geom);
-                                }
-                                else
-                                {
-                                    OpenSim.Framework.Console.MainLog.Instance.Verbose("Physics", "Invalid Scene passed to 'removeprim from scene':" + ((OdePrim)prim).m_targetSpace.ToString());
-                                }
-                            }
-                        }
+                    OdePrim p = (OdePrim) prim;
 
-                      
+                    p.setPrimForRemoval();
+                    AddPhysicsActorTaint(prim);
 
-                        //If there are no more geometries in the sub-space, we don't need it in the main space anymore
-                        if (d.SpaceGetNumGeoms(((OdePrim)prim).m_targetSpace) == 0)
-                        {
-                            if (!(((OdePrim)prim).m_targetSpace.Equals(null)))
-                            {
-                                if (d.GeomIsSpace(((OdePrim)prim).m_targetSpace))
-                                {
-                                    d.SpaceRemove(space, ((OdePrim)prim).m_targetSpace);
-                                    // free up memory used by the space.
-                                    d.SpaceDestroy(((OdePrim)prim).m_targetSpace);
-                                    int[] xyspace = calculateSpaceArrayItemFromPos(((OdePrim)prim).Position);
-                                    resetSpaceArrayItemToZero(xyspace[0],xyspace[1]);
-                                }
-                                else
-                                {
-                                    OpenSim.Framework.Console.MainLog.Instance.Verbose("Physics", "Invalid Scene passed to 'removeprim from scene':" + ((OdePrim)prim).m_targetSpace.ToString());
-                                }
-                            }
-                        }
-                    }
-                  
-                        d.GeomDestroy(((OdePrim)prim).prim_geom);
-                    
-                    _prims.Remove((OdePrim)prim);
-                    
                 }
             }
+        }
+        public void RemovePrimThreadLocked(OdePrim prim)
+        {
+            lock (OdeLock)
+            {
+                
+                if (prim.IsPhysical)
+                {
+                    prim.disableBody();
+                }
+                // we don't want to remove the main space
+                if (prim.m_targetSpace != space && prim.IsPhysical == false)
+                {
+                    // If the geometry is in the targetspace, remove it from the target space
+                    if (d.SpaceQuery(prim.m_targetSpace, prim.prim_geom))
+                    {
+                        if (!(prim.m_targetSpace.Equals(null)))
+                        {
+                            if (d.GeomIsSpace(prim.m_targetSpace))
+                            {
+                                d.SpaceRemove(prim.m_targetSpace, prim.prim_geom);
+                            }
+                            else
+                            {
+                                OpenSim.Framework.Console.MainLog.Instance.Verbose("Physics", "Invalid Scene passed to 'removeprim from scene':" + ((OdePrim)prim).m_targetSpace.ToString());
+                            }
+                        }
+                    }
+
+
+
+                    //If there are no more geometries in the sub-space, we don't need it in the main space anymore
+                    if (d.SpaceGetNumGeoms(prim.m_targetSpace) == 0)
+                    {
+                        if (!(prim.m_targetSpace.Equals(null)))
+                        {
+                            if (d.GeomIsSpace(prim.m_targetSpace))
+                            {
+                                d.SpaceRemove(space, prim.m_targetSpace);
+                                // free up memory used by the space.
+                                d.SpaceDestroy(prim.m_targetSpace);
+                                int[] xyspace = calculateSpaceArrayItemFromPos(prim.Position);
+                                resetSpaceArrayItemToZero(xyspace[0], xyspace[1]);
+                            }
+                            else
+                            {
+                                OpenSim.Framework.Console.MainLog.Instance.Verbose("Physics", "Invalid Scene passed to 'removeprim from scene':" + ((OdePrim)prim).m_targetSpace.ToString());
+                            }
+                        }
+                    }   
+                }
+
+                d.GeomDestroy(prim.prim_geom);
+
+                _prims.Remove(prim);
+            }
+                    
         }
         public void resetSpaceArrayItemToZero(IntPtr space)
         {
@@ -654,8 +659,9 @@ namespace OpenSim.Region.Physics.OdePlugin
             lock (OdeLock)
             {
                 newPrim = new OdePrim(name, this, targetspace, pos, siz, rot, mesh, pbs, isphysical);
+            
+                _prims.Add(newPrim);
             }
-            _prims.Add(newPrim);
             
             return newPrim;
         }
@@ -761,20 +767,23 @@ namespace OpenSim.Region.Physics.OdePlugin
             return result;
         }
 
+        public override void AddPhysicsActorTaint(PhysicsActor prim)
+        {
+            if (prim is OdePrim)
+            {
+                OdePrim taintedprim = ((OdePrim)prim);
+                if (!(_taintedPrim.Contains(taintedprim)))
+                    _taintedPrim.Add(taintedprim);
+
+            }
+        }
 
         public override void Simulate(float timeStep)
         {
             
             step_time += timeStep;
-            lock (OdeLock)
-            {
-                if (_characters.Count > 0 && RENDER_FLAG)
-                {
-                    Console.WriteLine("RENDER: frame");
-                }
-                
-                
 
+                
                 // If We're loaded down by something else, 
                 // or debugging with the Visual Studio project on pause
                 // skip a few frames to catch up gracefully.
@@ -792,7 +801,8 @@ namespace OpenSim.Region.Physics.OdePlugin
                 {
                     m_physicsiterations = 10;
                 }
-                
+                lock (OdeLock)
+                {
                 // Process 10 frames if the sim is running normal..  
                 // process 5 frames if the sim is running slow
                 d.WorldSetQuickStepNumIterations(world, m_physicsiterations);
@@ -823,38 +833,23 @@ namespace OpenSim.Region.Physics.OdePlugin
                 foreach (OdeCharacter actor in _characters)
                 {
                     actor.UpdatePositionAndVelocity();
-                    if (RENDER_FLAG)
-                    {
-                        /// debugging code
-                        float Zoff = -33.0f;
-                        d.Matrix3 temp = d.BodyGetRotation(actor.Body);
-                        //Console.WriteLine("RENDER: cylinder; " + // shape
-                                          //OdeCharacter.CAPSULE_RADIUS + ", " + OdeCharacter.CAPSULE_LENGTH + //size
-                                          //"; 0, 1, 0;  " + // color
-                                          //(actor.Position.X - 128.0f) + ", " + (actor.Position.Y - 128.0f) + ", " +
-                                          //(actor.Position.Z + Zoff) + ";  " + // position
-                                          //temp.M00 + "," + temp.M10 + "," + temp.M20 + ", " + // rotation
-                                          //temp.M01 + "," + temp.M11 + "," + temp.M21 + ", " +
-                                          //temp.M02 + "," + temp.M12 + "," + temp.M22);
-                        d.Vector3 caphead;
-                        //d.BodyGetRelPointPos(actor.Body, 0, 0, OdeCharacter.CAPSULE_LENGTH*.5f, out caphead);
-                        d.Vector3 capfoot;
-                        //d.BodyGetRelPointPos(actor.Body, 0, 0, -OdeCharacter.CAPSULE_LENGTH*.5f, out capfoot);
-                        //Console.WriteLine("RENDER: sphere;  " + OdeCharacter.CAPSULE_RADIUS + // shape, size
-                                          //"; 1, 0, 1;  " + //color
-                                          //(caphead.X - 128.0f) + ", " + (caphead.Y - 128.0f) + ", " + (caphead.Z + Zoff) +
-                                          //";  " + // position
-                                          ///"1,0,0, 0,1,0, 0,0,1"); // rotation
-                       // Console.WriteLine("RENDER: sphere;  " + OdeCharacter.CAPSULE_RADIUS + // shape, size
-                                          //"; 1, 0, 0;  " + //color
-                                          //(capfoot.X - 128.0f) + ", " + (capfoot.Y - 128.0f) + ", " + (capfoot.Z + Zoff) +
-                                          //";  " + // position
-                                          //"1,0,0, 0,1,0, 0,0,1"); // rotation
-                    }
+                    
                 }
+                bool processedtaints = false;
+                foreach (OdePrim prim in _taintedPrim)
+                {
+                    prim.ProcessTaints(timeStep);
+                    if (prim.m_taintremove)
+                    {
+                        RemovePrimThreadLocked(prim);
+                    }
+                    processedtaints = true;
+                }
+                if (processedtaints)
+                    _taintedPrim = new List<OdePrim>();
+
                 if (timeStep < 0.2f)
                 {
-                    OdePrim outofBoundsPrim = null;
                     foreach (OdePrim actor in _activeprims)
                     {
                         if (actor.IsPhysical && (d.BodyIsEnabled(actor.Body) || !actor._zeroFlag))
@@ -1410,6 +1405,12 @@ namespace OpenSim.Region.Physics.OdePlugin
         private PhysicsVector _size;
         private PhysicsVector _acceleration;
         private Quaternion _orientation;
+        private PhysicsVector m_taintposition;
+        private PhysicsVector m_taintsize;
+        private Quaternion m_taintrot;
+        private bool m_taintshape = false;
+        private bool m_taintPhysics = false;
+        public bool m_taintremove = false;
 
         private IMesh _mesh;
         private PrimitiveBaseShape _pbs;
@@ -1441,30 +1442,33 @@ namespace OpenSim.Region.Physics.OdePlugin
 
             _velocity = new PhysicsVector();
             _position = pos;
-
-            //if (_position.X > 257)
-            //{
-            //    _position.X = 257;
-            //}
-            //if (_position.X < 0)
-            //{
-            //    _position.X = 0;
-            //}
-            //if (_position.Y > 257)
-            //{
-            //    _position.Y = 257;
-           // }
-            //if (_position.Y < 0)
-            //{
-            //    _position.Y = 0;
-            //}
+            m_taintposition = pos;
+            if (_position.X > 257)
+            {
+                _position.X = 257;
+            }
+            if (_position.X < 0)
+            {
+                _position.X = 0;
+            }
+            if (_position.Y > 257)
+            {
+                _position.Y = 257;
+            }
+            if (_position.Y < 0)
+            {
+                _position.Y = 0;
+            }
 
             _size = size;
+            m_taintsize = _size;
             _acceleration = new PhysicsVector();
             m_rotationalVelocity = PhysicsVector.Zero;
             _orientation = rotation;
+            m_taintrot = _orientation;
             _mesh = mesh;
             _pbs = pbs;
+
             _parent_scene = parent_scene;
             m_targetSpace = targetSpace;
 
@@ -1585,39 +1589,237 @@ namespace OpenSim.Region.Physics.OdePlugin
                 enableBody();
             }
         }
-
-        public override bool IsPhysical
+        public void ProcessTaints(float timestep)
         {
-            get { return m_isphysical; }
-            set {
-                
-                lock (OdeScene.OdeLock)
-                {
-                    if (m_isphysical == value)
-                    {
-                        // If the object is already what the user checked
-                        
-                        return;
-                    }
-                    if (value == true)
-                    {
-                        if (Body == (IntPtr)0)
-                        {
-                            enableBody();
-                        }
+            if (m_taintposition != _position)
+                Move(timestep);
 
-                    }
-                    else if (value == false)
-                    {
-                        if (Body != (IntPtr)0)
-                        {
-                            disableBody();
-                        }
-                    }
-                    m_isphysical = value;
+            if (m_taintrot != _orientation)
+                rotate(timestep);
+            //
+
+            if (m_taintPhysics != m_isphysical)
+                changePhysicsStatus(timestep);
+            //
+
+            if (m_taintsize != _size)
+                changesize(timestep);
+            //
+
+            if (m_taintshape)
+                changeshape(timestep);
+            //
+
+        }
+        public void Move(float timestep)
+        {
+            if (m_isphysical)
+            {
+                // This is a fallback..   May no longer be necessary.
+                if (Body == (IntPtr)0)
+                    enableBody();
+                //Prim auto disable after 20 frames, 
+                ///if you move it, re-enable the prim manually.
+                d.BodyEnable(Body);
+                d.BodySetPosition(Body, _position.X, _position.Y, _position.Z);
+            }
+            else
+            {
+                string primScenAvatarIn = _parent_scene.whichspaceamIin(_position);
+                int[] arrayitem = _parent_scene.calculateSpaceArrayItemFromPos(_position);
+                if (primScenAvatarIn == "0")
+                {
+                    OpenSim.Framework.Console.MainLog.Instance.Verbose("Physics", "Prim " + m_primName + " in space with no prim: " + primScenAvatarIn + ". Expected to be at: " + m_targetSpace.ToString() + " . Arr:': " + arrayitem[0].ToString() + "," + arrayitem[1].ToString());
+                }
+                else
+                {
+                    OpenSim.Framework.Console.MainLog.Instance.Verbose("Physics", "Prim " + m_primName + " in Prim space with prim: " + primScenAvatarIn + ". Expected to be at: " + m_targetSpace.ToString() + ".  Arr:" + arrayitem[0].ToString() + "," + arrayitem[1].ToString());
+                }
+                m_targetSpace = _parent_scene.recalculateSpaceForGeom(prim_geom, _position, m_targetSpace);
+                d.GeomSetPosition(prim_geom, _position.X, _position.Y, _position.Z);
+                d.SpaceAdd(m_targetSpace, prim_geom);
+            }
+
+            m_taintposition = _position;
+        }
+        public void rotate(float timestep)
+        {
+            
+            d.Quaternion myrot = new d.Quaternion();
+            myrot.W = _orientation.w;
+            myrot.X = _orientation.x;
+            myrot.Y = _orientation.y;
+            myrot.Z = _orientation.z;
+            d.GeomSetQuaternion(prim_geom, ref myrot);
+            if (m_isphysical && Body != (IntPtr)0)
+            {
+                d.BodySetQuaternion(Body, ref myrot);
+            }
+            
+            m_taintrot = _orientation;
+        }
+        public void changePhysicsStatus(float timestap)
+        {
+            if (m_isphysical == true)
+            {
+                if (Body == (IntPtr)0)
+                {
+                    enableBody();
                 }
 
             }
+            else
+            {
+                if (Body != (IntPtr)0)
+                {
+                    disableBody();
+                }
+            }
+            
+            
+            m_taintPhysics = m_isphysical;
+        }
+        public void changesize(float timestamp)
+        {
+            string oldname = _parent_scene.geom_name_map[prim_geom];
+
+            // Cleanup of old prim geometry
+            if (_mesh != null)
+            {
+                // Cleanup meshing here
+            }
+            //kill body to rebuild 
+            if (IsPhysical && Body != (IntPtr)0)
+            {
+                disableBody();
+            }
+            if (d.SpaceQuery(m_targetSpace, prim_geom))
+            {
+                d.SpaceRemove(m_targetSpace, prim_geom);
+            }
+            d.GeomDestroy(prim_geom);
+
+            // we don't need to do space calculation because the client sends a position update also.
+
+            // Construction of new prim
+            if (this._parent_scene.needsMeshing(_pbs))
+            {
+
+
+                // Don't need to re-enable body..   it's done in SetMesh
+                IMesh mesh = _parent_scene.mesher.CreateMesh(oldname, _pbs, _size);
+                // createmesh returns null when it's a shape that isn't a cube.
+                if (mesh != null)
+                {
+                    setMesh(_parent_scene, mesh);
+                }
+                else
+                {
+                    prim_geom = d.CreateBox(m_targetSpace, _size.X, _size.Y, _size.Z);
+                    d.GeomSetPosition(prim_geom, _position.X, _position.Y, _position.Z);
+                    d.Quaternion myrot = new d.Quaternion();
+                    myrot.W = _orientation.w;
+                    myrot.X = _orientation.x;
+                    myrot.Y = _orientation.y;
+                    myrot.Z = _orientation.z;
+                    d.GeomSetQuaternion(prim_geom, ref myrot);
+
+
+                }
+            }
+            else
+            {
+                prim_geom = d.CreateBox(m_targetSpace, _size.X, _size.Y, _size.Z);
+                d.GeomSetPosition(prim_geom, _position.X, _position.Y, _position.Z);
+                d.Quaternion myrot = new d.Quaternion();
+                myrot.W = _orientation.w;
+                myrot.X = _orientation.x;
+                myrot.Y = _orientation.y;
+                myrot.Z = _orientation.z;
+                d.GeomSetQuaternion(prim_geom, ref myrot);
+
+
+                //d.GeomBoxSetLengths(prim_geom, _size.X, _size.Y, _size.Z);
+                if (IsPhysical && Body == (IntPtr)0)
+                {
+                    // Re creates body on size.
+                    // EnableBody also does setMass()
+                    enableBody();
+                    d.BodyEnable(Body);
+                }
+
+            }
+
+
+            _parent_scene.geom_name_map[prim_geom] = oldname;
+
+            
+            m_taintsize = _size;
+        }
+        public void changeshape(float timestamp)
+        {
+            string oldname = _parent_scene.geom_name_map[prim_geom];
+
+            // Cleanup of old prim geometry and Bodies
+            if (IsPhysical && Body != (IntPtr)0)
+            {
+                disableBody();
+            }
+            d.GeomDestroy(prim_geom);
+            if (_mesh != null)
+            {
+
+                d.GeomBoxSetLengths(prim_geom, _size.X, _size.Y, _size.Z);
+
+            }
+
+            // Construction of new prim
+            if (this._parent_scene.needsMeshing(_pbs))
+            {
+                IMesh mesh = _parent_scene.mesher.CreateMesh(oldname, _pbs, _size);
+                if (mesh != null)
+                {
+                    setMesh(_parent_scene, mesh);
+                }
+                else
+                {
+                    prim_geom = d.CreateBox(m_targetSpace, _size.X, _size.Y, _size.Z);
+                }
+            }
+            else
+            {
+                prim_geom = d.CreateBox(m_targetSpace, _size.X, _size.Y, _size.Z);
+            }
+            if (IsPhysical && Body == (IntPtr)0)
+            {
+                //re-create new body
+                enableBody();
+            }
+            else
+            {
+                d.GeomSetPosition(prim_geom, _position.X, _position.Y, _position.Z);
+                d.Quaternion myrot = new d.Quaternion();
+                myrot.W = _orientation.w;
+                myrot.X = _orientation.x;
+                myrot.Y = _orientation.y;
+                myrot.Z = _orientation.z;
+                d.GeomSetQuaternion(prim_geom, ref myrot);
+            }
+            _parent_scene.geom_name_map[prim_geom] = oldname;
+
+
+
+            
+            m_taintshape = false;
+        }
+        public override bool IsPhysical
+        {
+            get { return m_isphysical; }
+            set{ m_isphysical = value;}
+        }
+        public void setPrimForRemoval()
+        {
+            m_taintremove = true;
         }
 
         public override bool Flying
@@ -1656,36 +1858,7 @@ namespace OpenSim.Region.Physics.OdePlugin
             set
             {
                 _position = value;
-                lock (OdeScene.OdeLock)
-                {
-                    if (m_isphysical)
-                    {
-                        // This is a fallback..   May no longer be necessary.
-                        if (Body == (IntPtr)0)
-                            enableBody();
-                         //Prim auto disable after 20 frames, 
-                         ///if you move it, re-enable the prim manually.
-                        d.BodyEnable(Body);
-                        d.BodySetPosition(Body, _position.X, _position.Y, _position.Z); 
-                    }
-                    else
-                    {
-                        string primScenAvatarIn = _parent_scene.whichspaceamIin(_position);
-                        int[] arrayitem = _parent_scene.calculateSpaceArrayItemFromPos(_position);
-                        if (primScenAvatarIn == "0")
-                        {
-                            OpenSim.Framework.Console.MainLog.Instance.Verbose("Physics", "Prim " + m_primName + " in space with no prim: " + primScenAvatarIn + ". Expected to be at: " + m_targetSpace.ToString() + " . Arr:': " + arrayitem[0].ToString() + "," + arrayitem[1].ToString());
-                        }
-                        else
-                        {
-                            OpenSim.Framework.Console.MainLog.Instance.Verbose("Physics", "Prim " + m_primName + " in Prim space with prim: " + primScenAvatarIn + ". Expected to be at: " + m_targetSpace.ToString() + ".  Arr:" + arrayitem[0].ToString() + "," + arrayitem[1].ToString());
-                        }
-                        m_targetSpace = _parent_scene.recalculateSpaceForGeom(prim_geom, _position, m_targetSpace);
-                        d.GeomSetPosition(prim_geom, _position.X, _position.Y, _position.Z);
-                        d.SpaceAdd(m_targetSpace, prim_geom);
-                    }
-                   
-                }
+                
             }
         }
 
@@ -1695,78 +1868,7 @@ namespace OpenSim.Region.Physics.OdePlugin
             set
             {
                 _size = value;
-                lock (OdeScene.OdeLock)
-                {
-                    string oldname = _parent_scene.geom_name_map[prim_geom];
-                    
-                    // Cleanup of old prim geometry
-                    if (_mesh != null)
-                    {
-                        // Cleanup meshing here
-                    }
-                    //kill body to rebuild 
-                    if (IsPhysical && Body != (IntPtr)0)
-                    {
-                        disableBody();
-                    }
-                    if (d.SpaceQuery(m_targetSpace,prim_geom)) {
-                        d.SpaceRemove(m_targetSpace,prim_geom);
-                    }
-                    d.GeomDestroy(prim_geom);
-                      
-                      // we don't need to do space calculation because the client sends a position update also.
-
-                      // Construction of new prim
-                    if (this._parent_scene.needsMeshing(_pbs))
-                    {
-
-                        
-                        // Don't need to re-enable body..   it's done in SetMesh
-                        IMesh mesh = _parent_scene.mesher.CreateMesh(oldname, _pbs, _size);
-                        // createmesh returns null when it's a shape that isn't a cube.
-                        if (mesh != null)
-                        {
-                            setMesh(_parent_scene, mesh);
-                        }
-                        else
-                        {
-                            prim_geom = d.CreateBox(m_targetSpace, _size.X, _size.Y, _size.Z);
-                            d.GeomSetPosition(prim_geom, _position.X, _position.Y, _position.Z);
-                            d.Quaternion myrot = new d.Quaternion();
-                            myrot.W = _orientation.w;
-                            myrot.X = _orientation.x;
-                            myrot.Y = _orientation.y;
-                            myrot.Z = _orientation.z;
-                            d.GeomSetQuaternion(prim_geom, ref myrot);
-
-
-                        }
-                    } else {
-                        prim_geom = d.CreateBox(m_targetSpace, _size.X, _size.Y, _size.Z);
-                        d.GeomSetPosition(prim_geom, _position.X, _position.Y, _position.Z);
-                        d.Quaternion myrot = new d.Quaternion();
-                        myrot.W = _orientation.w;
-                        myrot.X = _orientation.x;
-                        myrot.Y = _orientation.y;
-                        myrot.Z = _orientation.z;
-                        d.GeomSetQuaternion(prim_geom, ref myrot);
-                        
-                        
-                        //d.GeomBoxSetLengths(prim_geom, _size.X, _size.Y, _size.Z);
-                        if (IsPhysical && Body == (IntPtr)0)
-                        {
-                            // Re creates body on size.
-                            // EnableBody also does setMass()
-                            enableBody();
-                            d.BodyEnable(Body);
-                        } 
-                        
-                    }
-
-                    
-                    _parent_scene.geom_name_map[prim_geom] = oldname;
-
-                }
+                
             }
         }
 
@@ -1775,58 +1877,7 @@ namespace OpenSim.Region.Physics.OdePlugin
             set
             {
                 _pbs = value;
-                lock (OdeScene.OdeLock)
-                {
-                    string oldname = _parent_scene.geom_name_map[prim_geom];
-
-                    // Cleanup of old prim geometry and Bodies
-                    if (IsPhysical && Body != (IntPtr)0)
-                    {
-                        disableBody();
-                    }
-                    d.GeomDestroy(prim_geom);
-                    if (_mesh != null)
-                    {
-                        
-                        d.GeomBoxSetLengths(prim_geom, _size.X, _size.Y, _size.Z);
-                    
-                    }
-
-                    // Construction of new prim
-                    if (this._parent_scene.needsMeshing(_pbs))
-                    {
-                        IMesh mesh = _parent_scene.mesher.CreateMesh(oldname, _pbs, _size);
-                        if (mesh != null)
-                        {
-                            setMesh(_parent_scene, mesh);
-                        }
-                        else
-                        {
-                            prim_geom = d.CreateBox(m_targetSpace, _size.X, _size.Y, _size.Z);
-                        }
-                    } else {
-                        prim_geom = d.CreateBox(m_targetSpace, _size.X, _size.Y, _size.Z);
-                    }
-                    if (IsPhysical && Body == (IntPtr)0)
-                    {
-                        //re-create new body
-                        enableBody();
-                    }
-                    else
-                    {
-                        d.GeomSetPosition(prim_geom, _position.X, _position.Y, _position.Z);
-                        d.Quaternion myrot = new d.Quaternion();
-                        myrot.W = _orientation.w;
-                        myrot.X = _orientation.x;
-                        myrot.Y = _orientation.y;
-                        myrot.Z = _orientation.z;
-                        d.GeomSetQuaternion(prim_geom, ref myrot);
-                    }
-                    _parent_scene.geom_name_map[prim_geom] = oldname;
-
-                    
-
-                }
+                
             }
         }
 
@@ -1856,19 +1907,7 @@ namespace OpenSim.Region.Physics.OdePlugin
             set
             {
                 _orientation = value;
-                lock (OdeScene.OdeLock)
-                {
-                    d.Quaternion myrot = new d.Quaternion();
-                    myrot.W = _orientation.w;
-                    myrot.X = _orientation.x;
-                    myrot.Y = _orientation.y;
-                    myrot.Z = _orientation.z;
-                    d.GeomSetQuaternion(prim_geom, ref myrot);
-                    if (m_isphysical && Body != (IntPtr)0)
-                    {
-                        d.BodySetQuaternion(Body, ref myrot);
-                    }
-                }
+                
             }
         }
 
@@ -1886,10 +1925,7 @@ namespace OpenSim.Region.Physics.OdePlugin
         public override void AddForce(PhysicsVector force)
         {
         }
-        public void Move(float timestep)
-        {
-            
-        }
+
         public override PhysicsVector RotationalVelocity
         {
             get{ return m_rotationalVelocity;}
@@ -1928,18 +1964,19 @@ namespace OpenSim.Region.Physics.OdePlugin
                        
                     
                     
-                    IsPhysical = false;
+                    //IsPhysical = false;
+                    base.RaiseOutOfBounds(_position);
                     _velocity.X = 0;
                     _velocity.Y = 0;
                     _velocity.Z = 0;
                     m_rotationalVelocity.X = 0;
                     m_rotationalVelocity.Y = 0;
                     m_rotationalVelocity.Z = 0;
-                    //base.RequestPhysicsterseUpdate();
+                    base.RequestPhysicsterseUpdate();
                     m_throttleUpdates = false;
                     throttleCounter = 0;
                     _zeroFlag = true;
-                    outofBounds = true;
+                    //outofBounds = true;
                 }
 
                 if ((Math.Abs(m_lastposition.X - l_position.X) < 0.02) 

@@ -170,9 +170,10 @@ namespace OpenSim.Region.Environment.Scenes
                 {
                     try
                     {
-                        //lock (m_scene.SyncRoot)
+                        //lock (m_parentGroup.m_scene.SyncRoot)
                         //{
                         PhysActor.Position = new PhysicsVector(value.X, value.Y, value.Z);
+                        m_parentGroup.m_scene.PhysScene.AddPhysicsActorTaint(PhysActor);
                         //}
                     }
                     catch (Exception e)
@@ -225,6 +226,7 @@ namespace OpenSim.Region.Environment.Scenes
                         //lock (m_scene.SyncRoot)
                         //{
                         PhysActor.Orientation = new Quaternion(value.W, value.X, value.Y, value.Z);
+                        m_parentGroup.m_scene.PhysScene.AddPhysicsActorTaint(PhysActor);
                         //}
                     }
                     catch (Exception ex)
@@ -502,7 +504,7 @@ namespace OpenSim.Region.Environment.Scenes
             RotationOffset = rotation;
             ObjectFlags = flags;
             bool UsePhysics = ((ObjectFlags & (uint)LLObject.ObjectFlags.Physics) != 0);
-            doPhysicsPropertyUpdate(UsePhysics);
+            doPhysicsPropertyUpdate(UsePhysics, true);
             ScheduleFullUpdate();
         }
 
@@ -518,7 +520,7 @@ namespace OpenSim.Region.Environment.Scenes
             XmlSerializer serializer = new XmlSerializer(typeof (SceneObjectPart));
             SceneObjectPart newobject = (SceneObjectPart) serializer.Deserialize(xmlReader);
             bool UsePhysics = ((newobject.ObjectFlags & (uint)LLObject.ObjectFlags.Physics) != 0);
-            newobject.doPhysicsPropertyUpdate(UsePhysics);
+            newobject.doPhysicsPropertyUpdate(UsePhysics, true);
             
             return newobject;
         }
@@ -586,7 +588,7 @@ namespace OpenSim.Region.Environment.Scenes
             Array.Copy(Shape.ExtraParams, extraP, extraP.Length);
             dupe.Shape.ExtraParams = extraP;
             bool UsePhysics = ((dupe.ObjectFlags & (uint)LLObject.ObjectFlags.Physics) != 0);
-            dupe.doPhysicsPropertyUpdate(UsePhysics);
+            dupe.doPhysicsPropertyUpdate(UsePhysics, true);
 
             return dupe;
         }
@@ -852,7 +854,7 @@ namespace OpenSim.Region.Environment.Scenes
                 AddFlag(LLObject.ObjectFlags.Physics);
                 if (!wasUsingPhysics)
                 {
-                    doPhysicsPropertyUpdate(UsePhysics);
+                    doPhysicsPropertyUpdate(UsePhysics,false);
                 }
 
             }
@@ -861,7 +863,7 @@ namespace OpenSim.Region.Environment.Scenes
                 RemFlag(LLObject.ObjectFlags.Physics);
                 if (wasUsingPhysics)
                 {
-                    doPhysicsPropertyUpdate(UsePhysics);
+                    doPhysicsPropertyUpdate(UsePhysics, false);
                 }
             }
                 
@@ -892,12 +894,12 @@ namespace OpenSim.Region.Environment.Scenes
                         new PhysicsVector(Scale.X, Scale.Y, Scale.Z),
                         new Quaternion(RotationOffset.W, RotationOffset.X,
                                        RotationOffset.Y, RotationOffset.Z), UsePhysics);
-                    doPhysicsPropertyUpdate(UsePhysics);
+                    doPhysicsPropertyUpdate(UsePhysics, true);
                 }
                 else
                 {
                     PhysActor.IsPhysical = UsePhysics;
-                    doPhysicsPropertyUpdate(UsePhysics);
+                    doPhysicsPropertyUpdate(UsePhysics,false);
                 }
             }
 
@@ -912,36 +914,45 @@ namespace OpenSim.Region.Environment.Scenes
 //            System.Console.WriteLine("Update:  PHY:" + UsePhysics.ToString() + ", T:" + IsTemporary.ToString() + ", PHA:" + IsPhantom.ToString() + " S:" + CastsShadows.ToString());
             ScheduleFullUpdate();
         }
-        public void doPhysicsPropertyUpdate(bool UsePhysics)
+        public void doPhysicsPropertyUpdate(bool UsePhysics, bool isNew)
         {
            
             if (PhysActor != null)
-            {
-                if (PhysActor.IsPhysical)
+            {                
+                if (UsePhysics != PhysActor.IsPhysical || isNew)
                 {
-                    PhysActor.OnRequestTerseUpdate -= PhysicsRequestingTerseUpdate;
-                    PhysActor.OnOutOfBounds -= PhysicsOutOfBounds;
-                }
-                m_parentGroup.m_scene.PhysScene.RemovePrim(PhysActor);
-                /// that's not wholesome.  Had to make m_scene public
-                PhysActor = null;
-
-                if ((ObjectFlags & (uint)LLObject.ObjectFlags.Phantom) == 0)
-                {
-                    PhysActor = m_parentGroup.m_scene.PhysScene.AddPrimShape(
-                    Name,
-                    Shape,
-                    new PhysicsVector(AbsolutePosition.X, AbsolutePosition.Y,
-                                      AbsolutePosition.Z),
-                    new PhysicsVector(Scale.X, Scale.Y, Scale.Z),
-                    new Quaternion(RotationOffset.W, RotationOffset.X,
-                                   RotationOffset.Y, RotationOffset.Z), UsePhysics);
-                    if (UsePhysics)
+                    
+                    if (PhysActor.IsPhysical)
                     {
-                        PhysActor.OnRequestTerseUpdate += PhysicsRequestingTerseUpdate;
-                        PhysActor.OnOutOfBounds += PhysicsOutOfBounds;
+                        PhysActor.OnRequestTerseUpdate -= PhysicsRequestingTerseUpdate;
+                        PhysActor.OnOutOfBounds -= PhysicsOutOfBounds;
+                    }
+
+                    PhysActor.IsPhysical = UsePhysics;
+                    // If we're not what we're supposed to be in the physics scene, recreate ourselves.
+                    //m_parentGroup.m_scene.PhysScene.RemovePrim(PhysActor);
+                    /// that's not wholesome.  Had to make m_scene public
+                    //PhysActor = null;
+                
+
+                    if ((ObjectFlags & (uint)LLObject.ObjectFlags.Phantom) == 0)
+                    {
+                        //PhysActor = m_parentGroup.m_scene.PhysScene.AddPrimShape(
+                        //Name,
+                        //Shape,
+                        //new PhysicsVector(AbsolutePosition.X, AbsolutePosition.Y,
+                                          //AbsolutePosition.Z),
+                        //new PhysicsVector(Scale.X, Scale.Y, Scale.Z),
+                        //new Quaternion(RotationOffset.W, RotationOffset.X,
+                                       //RotationOffset.Y, RotationOffset.Z), UsePhysics);
+                        if (UsePhysics)
+                        {
+                            PhysActor.OnRequestTerseUpdate += PhysicsRequestingTerseUpdate;
+                            PhysActor.OnOutOfBounds += PhysicsOutOfBounds;
+                        }
                     }
                 }
+                m_parentGroup.m_scene.PhysScene.AddPhysicsActorTaint(PhysActor);
             }
         }
 
@@ -1195,8 +1206,11 @@ namespace OpenSim.Region.Environment.Scenes
         public void PhysicsOutOfBounds(PhysicsVector pos)
         {
             OpenSim.Framework.Console.MainLog.Instance.Verbose("PHYSICS", "Physical Object went out of bounds.");
-            doPhysicsPropertyUpdate(false);
-            ScheduleFullUpdate();
+            RemFlag(LLObject.ObjectFlags.Physics);
+            doPhysicsPropertyUpdate(false,true);
+            m_parentGroup.m_scene.PhysScene.AddPhysicsActorTaint(PhysActor);
+            
+            
         }
 
 

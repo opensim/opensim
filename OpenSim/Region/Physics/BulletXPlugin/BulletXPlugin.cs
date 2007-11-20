@@ -511,7 +511,10 @@ namespace OpenSim.Region.Physics.BulletXPlugin
                 GC.Collect();
             }
         }
+        public override void AddPhysicsActorTaint(PhysicsActor prim)
+        {
 
+        }
         public override void Simulate(float timeStep)
         {
             lock (BulletXLock)

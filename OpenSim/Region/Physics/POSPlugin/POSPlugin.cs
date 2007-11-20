@@ -163,7 +163,10 @@ namespace OpenSim.Region.Physics.POSPlugin
             }
             return false;
         }
+        public override void AddPhysicsActorTaint(PhysicsActor prim)
+        {
 
+        }
         public override void Simulate(float timeStep)
         {
             foreach (POSCharacter character in _characters)

@@ -150,6 +150,7 @@ namespace OpenSim.Region.Environment.Scenes
                     m_rootPart.PhysActor.Position =
                         new PhysicsVector(m_rootPart.GroupPosition.X, m_rootPart.GroupPosition.Y,
                                           m_rootPart.GroupPosition.Z);
+                    m_scene.PhysScene.AddPhysicsActorTaint(m_rootPart.PhysActor);
                 }
             }
         }
@@ -480,7 +481,7 @@ namespace OpenSim.Region.Environment.Scenes
                     new Quaternion(dupe.RootPart.RotationOffset.W, dupe.RootPart.RotationOffset.X,
                                    dupe.RootPart.RotationOffset.Y, dupe.RootPart.RotationOffset.Z),
                                    dupe.RootPart.PhysActor.IsPhysical);
-                dupe.RootPart.doPhysicsPropertyUpdate(dupe.RootPart.PhysActor.IsPhysical);
+                dupe.RootPart.doPhysicsPropertyUpdate(dupe.RootPart.PhysActor.IsPhysical, true);
                 
             }
             // Now we've made a copy that replaces this one, we need to 
@@ -784,6 +785,7 @@ namespace OpenSim.Region.Environment.Scenes
             if (linkPart.PhysActor != null)
             {
                 m_scene.PhysScene.RemovePrim(linkPart.PhysActor);
+
                 linkPart.PhysActor = null;
             }
 
@@ -861,7 +863,7 @@ namespace OpenSim.Region.Environment.Scenes
                         new Quaternion(linkPart.RotationOffset.W, linkPart.RotationOffset.X,
                                        linkPart.RotationOffset.Y, linkPart.RotationOffset.Z),
                         m_rootPart.PhysActor.IsPhysical);
-                    m_rootPart.doPhysicsPropertyUpdate(m_rootPart.PhysActor.IsPhysical);
+                    m_rootPart.doPhysicsPropertyUpdate(m_rootPart.PhysActor.IsPhysical, true);
                     
                 }                
                 
@@ -1170,7 +1172,7 @@ namespace OpenSim.Region.Environment.Scenes
                                    m_rootPart.RotationOffset.Y, m_rootPart.RotationOffset.Z),
                     m_rootPart.PhysActor.IsPhysical);
                 bool UsePhysics = ((m_rootPart.ObjectFlags & (uint)LLObject.ObjectFlags.Physics) != 0);
-                m_rootPart.doPhysicsPropertyUpdate(UsePhysics);
+                m_rootPart.doPhysicsPropertyUpdate(UsePhysics, true);
                 
             }
         }
@@ -1196,6 +1198,7 @@ namespace OpenSim.Region.Environment.Scenes
                     {
                         m_rootPart.PhysActor.Size =
                             new PhysicsVector(m_rootPart.Scale.X, m_rootPart.Scale.Y, m_rootPart.Scale.Z);
+                        m_scene.PhysScene.AddPhysicsActorTaint(m_rootPart.PhysActor);
                     }
                 }
             }
@@ -1286,6 +1289,7 @@ namespace OpenSim.Region.Environment.Scenes
                 m_rootPart.PhysActor.Orientation =
                     new Quaternion(m_rootPart.RotationOffset.W, m_rootPart.RotationOffset.X, m_rootPart.RotationOffset.Y,
                                    m_rootPart.RotationOffset.Z);
+                m_scene.PhysScene.AddPhysicsActorTaint(m_rootPart.PhysActor);
             }
             ScheduleGroupForTerseUpdate();
         }
@@ -1303,6 +1307,7 @@ namespace OpenSim.Region.Environment.Scenes
                 m_rootPart.PhysActor.Orientation =
                     new Quaternion(m_rootPart.RotationOffset.W, m_rootPart.RotationOffset.X, m_rootPart.RotationOffset.Y,
                                    m_rootPart.RotationOffset.Z);
+                m_scene.PhysScene.AddPhysicsActorTaint(m_rootPart.PhysActor);
             }
             AbsolutePosition = pos;
             ScheduleGroupForTerseUpdate();
@@ -1346,6 +1351,7 @@ namespace OpenSim.Region.Environment.Scenes
                 m_rootPart.PhysActor.Orientation =
                     new Quaternion(m_rootPart.RotationOffset.W, m_rootPart.RotationOffset.X, m_rootPart.RotationOffset.Y,
                                    m_rootPart.RotationOffset.Z);
+                m_scene.PhysScene.AddPhysicsActorTaint(m_rootPart.PhysActor);
             }
 
             foreach (SceneObjectPart prim in m_parts.Values)
