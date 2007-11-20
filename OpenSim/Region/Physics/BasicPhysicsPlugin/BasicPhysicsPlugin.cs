@@ -120,8 +120,10 @@ namespace OpenSim.Region.Physics.BasicPhysicsPlugin
         }
         public override void Simulate(float timeStep)
         {
-            foreach (BasicActor actor in _actors)
+            for (int i = 0; i < _actors.Count; ++i)
             {
+                BasicActor actor = _actors[i];
+
                 actor.Position.X = actor.Position.X + (actor.Velocity.X*timeStep);
                 actor.Position.Y = actor.Position.Y + (actor.Velocity.Y*timeStep);
                 if (actor.Position.Y < 0)
@@ -137,7 +139,7 @@ namespace OpenSim.Region.Physics.BasicPhysicsPlugin
                 {
                     actor.Position.X = 0.1F;
                 }
-                else if (actor.Position.X > 256)
+                else if (actor.Position.X >= 256)
                 {
                     actor.Position.X = 255.9F;
                 }
