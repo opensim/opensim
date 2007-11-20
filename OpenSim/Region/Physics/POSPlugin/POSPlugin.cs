@@ -181,8 +181,9 @@ namespace OpenSim.Region.Physics.POSPlugin
                 }
 
                 bool forcedZ = false;
-
-                float terrainheight = _heightMap[(int)(character.Position.Y + (character._target_velocity.Y * timeStep)) * 256 + (int)(character.Position.X + (character._target_velocity.X * timeStep))];
+                character.Position.X = character.Position.X + (character._target_velocity.X * timeStep);
+                character.Position.Y = character.Position.Y + (character._target_velocity.Y * timeStep);
+                float terrainheight = _heightMap[(int)character.Position.Y * 256 + (int)character.Position.X];
                 if (character.Position.Z + (character._target_velocity.Z * timeStep) < terrainheight + 2)
                 {
                     character.Position.Z = terrainheight + 1.0f;
@@ -202,24 +203,23 @@ namespace OpenSim.Region.Physics.POSPlugin
                     character.Position.Z = oldposZ;                 //  first try Z axis
                     if (check_all_prims(character))
                     {
-                        character.Position.Z = oldposZ + 0.5f;                 // try harder
+                        character.Position.Z = oldposZ + 0.4f;                 // try harder
+                        if (check_all_prims(character))
+                        {
+                            character.Position.X = oldposX;
+                            character.Position.Y = oldposY;
+                            character.Position.Z = oldposZ;
+                        }
+                        else
+                        {
+                            forcedZ = true;
+                        }
                     }
                     else
                     {
                         forcedZ = true;
                     }
                 }            
-                character.Position.X = character.Position.X + (character._target_velocity.X * timeStep);
-                if (check_all_prims(character))
-                {
-                    character.Position.X = oldposX;
-                }
-                character.Position.Y = character.Position.Y + (character._target_velocity.Y * timeStep);
-                if (check_all_prims(character))
-                {
-                    character.Position.Y = oldposY;
-                }
-                
 
                 if (character.Position.Y < 0)
                 {
