@@ -59,6 +59,7 @@ namespace OpenSim
         public bool m_sandbox;
         public bool user_accounts;
         public bool m_gridLocalAsset;
+        public bool m_SendChildAgentTaskData;
 
         private OpenSimController m_controller;
 
@@ -156,6 +157,9 @@ namespace OpenSim
                 config.Set("physics", "basicphysics");
                 config.Set("verbose", true);
                 config.Set("physical_prim", true);
+                
+                config.Set("child_get_tasks", false);
+
                 config.Set("serverside_object_permissions", false);
 
                 config.Set("storage_plugin", "OpenSim.DataStore.NullStorage.dll");
@@ -166,6 +170,7 @@ namespace OpenSim
                 config.Set("script_engine", "DotNetEngine");
 
                 config.Set("asset_database", "sqlite");
+                
             }
 
             if (m_config.Configs["StandAlone"] == null)
@@ -215,7 +220,11 @@ namespace OpenSim
                 m_physicsEngine = startupConfig.GetString("physics", "basicphysics");
                 m_meshEngineName = startupConfig.GetString("meshing", "ZeroMesher");
                 m_verbose = startupConfig.GetBoolean("verbose", true);
+
                 m_physicalPrim = startupConfig.GetBoolean("physical_prim", true);
+
+                m_SendChildAgentTaskData = startupConfig.GetBoolean("child_get_tasks", false);
+
                 m_permissions = startupConfig.GetBoolean("serverside_object_permissions", false);
 
                 m_storageDll = startupConfig.GetString("storage_plugin", "OpenSim.DataStore.NullStorage.dll");
@@ -243,7 +252,10 @@ namespace OpenSim
 
                 m_dumpAssetsToFile = standaloneConfig.GetBoolean("dump_assets_to_file", false);
             }
+            if (!m_sandbox)
+                m_SendChildAgentTaskData = false;
 
+            
             m_networkServersInfo.loadFromConfiguration(m_config);
         }
 
@@ -368,9 +380,14 @@ namespace OpenSim
         {
             PermissionManager permissionManager = new PermissionManager();
             SceneCommunicationService sceneGridService = new SceneCommunicationService(m_commsManager);
+            if (m_SendChildAgentTaskData)
+            {
+                MainLog.Instance.Error("WARNING", "Send Child Agent Task Updates is enabled. This is for testing only.  It doesn't work on grid mode!");
+                System.Threading.Thread.Sleep(12000);
+            }
             return
                 new Scene(regionInfo, circuitManager, permissionManager, m_commsManager, sceneGridService, m_assetCache, storageManager, m_httpServer,
-                          m_moduleLoader, m_dumpAssetsToFile, m_physicalPrim);
+                          m_moduleLoader, m_dumpAssetsToFile, m_physicalPrim, m_SendChildAgentTaskData);
         }
 
         protected override void Initialize()

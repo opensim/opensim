@@ -69,6 +69,7 @@ namespace OpenSim.Region.Environment.Scenes
 
         private readonly Mutex updateLock;
         public bool m_physicalPrim;
+        public bool m_sendTasksToChild;
         protected ModuleLoader m_moduleLoader;
         protected StorageManager m_storageManager;
         protected AgentCircuitManager m_authenticateHandler;
@@ -197,7 +198,7 @@ namespace OpenSim.Region.Environment.Scenes
 
         public Scene(RegionInfo regInfo, AgentCircuitManager authen, PermissionManager permissionManager, CommunicationsManager commsMan, SceneCommunicationService sceneGridService,
                      AssetCache assetCach, StorageManager storeManager, BaseHttpServer httpServer,
-                     ModuleLoader moduleLoader, bool dumpAssetsToFile, bool physicalPrim)
+                     ModuleLoader moduleLoader, bool dumpAssetsToFile, bool physicalPrim, bool SendTasksToChild)
         {
             updateLock = new Mutex(false);
 
@@ -213,6 +214,7 @@ namespace OpenSim.Region.Environment.Scenes
             m_datastore = m_regInfo.DataStore;
             RegisterRegionWithComms();
             m_physicalPrim = physicalPrim;
+            m_sendTasksToChild = SendTasksToChild;
 
             m_LandManager = new LandManager(this, m_regInfo);
             m_estateManager = new EstateManager(this, m_regInfo);

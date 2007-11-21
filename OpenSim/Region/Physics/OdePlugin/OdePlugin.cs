@@ -604,7 +604,7 @@ namespace OpenSim.Region.Physics.OdePlugin
         public IntPtr calculateSpaceForGeom(PhysicsVector pos)
         {
             int[] xyspace = calculateSpaceArrayItemFromPos(pos);
-            OpenSim.Framework.Console.MainLog.Instance.Verbose("Physics", "Attempting to use arrayItem: " + xyspace[0].ToString() + "," + xyspace[1].ToString());
+            //OpenSim.Framework.Console.MainLog.Instance.Verbose("Physics", "Attempting to use arrayItem: " + xyspace[0].ToString() + "," + xyspace[1].ToString());
             IntPtr locationbasedspace = staticPrimspace[xyspace[0],xyspace[1]];
 
             //locationbasedspace = space;

@@ -34,10 +34,13 @@ namespace OpenSim.Framework
     public class RegionCommsListener : IRegionCommsListener
     {
         public event ExpectUserDelegate OnExpectUser;
+        public event ExpectPrimDelegate OnExpectPrim;
         public event GenericCall2 OnExpectChildAgent;
         public event AgentCrossing OnAvatarCrossingIntoRegion;
+        public event PrimCrossing OnPrimCrossingIntoRegion;
         public event UpdateNeighbours OnNeighboursUpdate;
         public event AcknowledgeAgentCross OnAcknowledgeAgentCrossed;
+        public event AcknowledgePrimCross OnAcknowledgePrimCrossed;
         public event CloseAgentConnection OnCloseAgentConnection;
 
         /// <summary>
@@ -55,6 +58,15 @@ namespace OpenSim.Framework
 
             return false;
         }
+        public virtual bool TriggerExpectPrim(ulong regionHandle, LLUUID primID, string objData)
+        {
+            if (OnExpectUser != null)
+            {
+                OnExpectPrim(regionHandle, primID, objData);
+                return true;
+            }
+            return false;
+        }
 
         public virtual bool TriggerExpectAvatarCrossing(ulong regionHandle, LLUUID agentID, LLVector3 position,
                                                         bool isFlying)
@@ -66,12 +78,31 @@ namespace OpenSim.Framework
             }
             return false;
         }
+        public virtual bool TriggerExpectPrimCrossing(ulong regionHandle, LLUUID primID, LLVector3 position, bool isPhysical)
+        {
+            if (OnPrimCrossingIntoRegion != null)
+            {
+                OnPrimCrossingIntoRegion(regionHandle, primID, position, isPhysical);
+                return true;
+            }
+            return false;
+        }
 
         public virtual bool TriggerAcknowledgeAgentCrossed(ulong regionHandle, LLUUID agentID)
         {
             if (OnAcknowledgeAgentCrossed != null)
             {
                 OnAcknowledgeAgentCrossed(regionHandle, agentID);
+                return true;
+            }
+            return false;
+        }
+
+        public virtual bool TriggerAcknowledgePrimCrossed(ulong regionHandle, LLUUID primID)
+        {
+            if (OnAcknowledgePrimCrossed != null)
+            {
+                OnAcknowledgePrimCrossed(regionHandle, primID);
                 return true;
             }
             return false;

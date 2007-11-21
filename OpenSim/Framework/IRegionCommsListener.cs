@@ -32,20 +32,31 @@ namespace OpenSim.Framework
 {
     public delegate void ExpectUserDelegate(ulong regionHandle, AgentCircuitData agent);
 
+    public delegate void ExpectPrimDelegate(ulong regionHandle, LLUUID primID, string objData);
+
     public delegate void UpdateNeighbours(List<RegionInfo> neighbours);
 
     public delegate void AgentCrossing(ulong regionHandle, LLUUID agentID, LLVector3 position, bool isFlying);
 
+    public delegate void PrimCrossing(ulong regionHandle, LLUUID primID, LLVector3 position, bool isPhysical);
+
     public delegate void AcknowledgeAgentCross(ulong regionHandle, LLUUID agentID);
 
+    public delegate void AcknowledgePrimCross(ulong regionHandle, LLUUID PrimID);
+
     public delegate void CloseAgentConnection(ulong regionHandle, LLUUID agentID);
+
+    
 
     public interface IRegionCommsListener
     {
         event ExpectUserDelegate OnExpectUser;
+        event ExpectPrimDelegate OnExpectPrim;
         event GenericCall2 OnExpectChildAgent;
         event AgentCrossing OnAvatarCrossingIntoRegion;
+        event PrimCrossing OnPrimCrossingIntoRegion;
         event AcknowledgeAgentCross OnAcknowledgeAgentCrossed;
+        event AcknowledgePrimCross OnAcknowledgePrimCrossed;
         event UpdateNeighbours OnNeighboursUpdate;
         event CloseAgentConnection OnCloseAgentConnection;
     }

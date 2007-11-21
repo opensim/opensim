@@ -32,8 +32,15 @@ namespace OpenSim.Framework.Communications
     public interface IInterRegionCommunications
     {
         bool InformRegionOfChildAgent(ulong regionHandle, AgentCircuitData agentData);
+        bool InformRegionOfPrimCrossing(ulong regionHandle, LLUUID primID, string objData);
+
         bool ExpectAvatarCrossing(ulong regionHandle, LLUUID agentID, LLVector3 position, bool isFlying);
+        bool ExpectPrimCrossing(ulong regionHandle, LLUUID primID, LLVector3 position, bool isFlying);
+
         bool AcknowledgeAgentCrossed(ulong regionHandle, LLUUID agentId);
+        bool AcknowledgePrimCrossed(ulong regionHandle, LLUUID primID);
+
         void TellRegionToCloseChildConnection(ulong regionHandle, LLUUID agentID);
+
     }
 }

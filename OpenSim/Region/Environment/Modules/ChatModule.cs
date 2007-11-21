@@ -181,7 +181,7 @@ namespace OpenSim.Region.Environment.Modules
                     foreach (Scene m_scene in m_scenes)
                     {
                         m_scene.ForEachScenePresence(delegate(ScenePresence presence)
-                                                     {
+                                                     { 
                                                          if (!presence.IsChildAgent)
                                                          {
                                                              int dis = -100000;

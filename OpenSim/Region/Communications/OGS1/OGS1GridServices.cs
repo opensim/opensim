@@ -63,6 +63,7 @@ namespace OpenSim.Region.Communications.OGS1
         {
             serversInfo = servers_info;
             httpServer = httpServe;
+            //Respond to Grid Services requests
             httpServer.AddXmlRPCHandler("expect_user", ExpectUser);
             httpServer.AddXmlRPCHandler("check", PingCheckReply);
 
@@ -340,7 +341,12 @@ namespace OpenSim.Region.Communications.OGS1
 
             return new XmlRpcResponse();
         }
+        
 
+
+
+
+        
         #region m_interRegion Comms
 
         /// <summary>
@@ -357,9 +363,14 @@ namespace OpenSim.Region.Communications.OGS1
             RemotingConfiguration.RegisterWellKnownServiceType(wellType);
             InterRegionSingleton.Instance.OnArrival += TriggerExpectAvatarCrossing;
             InterRegionSingleton.Instance.OnChildAgent += IncomingChildAgent;
+            InterRegionSingleton.Instance.OnPrimGroupArrival += IncomingPrim;
+            InterRegionSingleton.Instance.OnPrimGroupNear += TriggerExpectPrimCrossing;
+
         }
 
         #region Methods called by regions in this instance
+
+
 
         /// <summary>
         /// 
@@ -367,6 +378,7 @@ namespace OpenSim.Region.Communications.OGS1
         /// <param name="regionHandle"></param>
         /// <param name="agentData"></param>
         /// <returns></returns>
+        
         public bool InformRegionOfChildAgent(ulong regionHandle, AgentCircuitData agentData)
         {
             try
@@ -432,7 +444,78 @@ namespace OpenSim.Region.Communications.OGS1
             }
             return true;
         }
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="regionHandle"></param>
+        /// <param name="agentData"></param>
+        /// <returns></returns>
+        
+        public bool InformRegionOfPrimCrossing(ulong regionHandle, LLUUID primID, string objData)
+        {
+            try
+            {
+                if (m_localBackend.InformRegionOfPrimCrossing(regionHandle,primID, objData))
+                {
+                    return true;
+                }
 
+                RegionInfo regInfo = RequestNeighbourInfo(regionHandle);
+                if (regInfo != null)
+                {
+                    //don't want to be creating a new link to the remote instance every time like we are here
+                    bool retValue = false;
+
+
+                    OGS1InterRegionRemoting remObject = (OGS1InterRegionRemoting) Activator.GetObject(
+                                                                                      typeof (OGS1InterRegionRemoting),
+                                                                                      "tcp://" + regInfo.RemotingAddress +
+                                                                                      ":" + regInfo.RemotingPort +
+                                                                                      "/InterRegions");
+
+                    if (remObject != null)
+                    {
+                        retValue = remObject.InformRegionOfPrimCrossing(regionHandle,primID, objData);
+                    }
+                    else
+                    {
+                        Console.WriteLine("remoting object not found");
+                    }
+                    remObject = null;
+
+
+                    return retValue;
+                }
+
+                return false;
+            }
+            catch (RemotingException e)
+            {
+                MainLog.Instance.Error("Remoting Error: Unable to connect to remote region.\n" + e.ToString());
+                return false;
+            }
+            catch (SocketException e)
+            {
+                MainLog.Instance.Error("Socket Error: Unable to connect to remote region.\n" + e.ToString());
+                return false;
+            }
+            catch (InvalidCredentialException e)
+            {
+                MainLog.Instance.Error("Invalid Credentials: Unable to connect to remote region.\n" + e.ToString());
+                return false;
+            }
+            catch (AuthenticationException e)
+            {
+                MainLog.Instance.Error("Authentication exception: Unable to connect to remote region.\n" + e.ToString());
+                return false;
+            }
+            catch (Exception e)
+            {
+                MainLog.Instance.Error("Unknown exception: Unable to connect to remote region.\n" + e.ToString());
+                return false;
+            }
+            return true;
+        }
         /// <summary>
         /// 
         /// </summary>
@@ -484,6 +567,50 @@ namespace OpenSim.Region.Communications.OGS1
                 return false;
             }
         }
+        public bool ExpectPrimCrossing(ulong regionHandle, LLUUID agentID, LLVector3 position, bool isPhysical)
+        {
+            try
+            {
+                if (m_localBackend.TriggerExpectPrimCrossing(regionHandle, agentID, position, isPhysical))
+                {
+                    return true;
+                }
+
+                RegionInfo regInfo = RequestNeighbourInfo(regionHandle);
+                if (regInfo != null)
+                {
+                    bool retValue = false;
+                    OGS1InterRegionRemoting remObject = (OGS1InterRegionRemoting)Activator.GetObject(
+                                                                                      typeof(OGS1InterRegionRemoting),
+                                                                                      "tcp://" + regInfo.RemotingAddress +
+                                                                                      ":" + regInfo.RemotingPort +
+                                                                                      "/InterRegions");
+                    if (remObject != null)
+                    {
+                        retValue = remObject.ExpectAvatarCrossing(regionHandle, agentID, position, isPhysical);
+                    }
+                    else
+                    {
+                        Console.WriteLine("remoting object not found");
+                    }
+                    remObject = null;
+
+                    return retValue;
+                }
+                //TODO need to see if we know about where this region is and use .net remoting 
+                // to inform it. 
+                return false;
+            }
+            catch (RemotingException e)
+            {
+                MainLog.Instance.Error("Remoting Error: Unable to connect to remote region.\n" + e.ToString());
+                return false;
+            }
+            catch
+            {
+                return false;
+            }
+        }
 
         public void TellRegionToCloseChildConnection(ulong regionHandle, LLUUID agentID)
         {
@@ -495,6 +622,10 @@ namespace OpenSim.Region.Communications.OGS1
             return m_localBackend.AcknowledgeAgentCrossed(regionHandle, agentId);
         }
 
+        public bool AcknowledgePrimCrossed(ulong regionHandle, LLUUID primId)
+        {
+            return m_localBackend.AcknowledgePrimCrossed(regionHandle, primId);
+        }
         #endregion
 
         #region Methods triggered by calls from external instances
@@ -522,6 +653,27 @@ namespace OpenSim.Region.Communications.OGS1
         /// 
         /// </summary>
         /// <param name="regionHandle"></param>
+        /// <param name="agentData"></param>
+        /// <returns></returns>
+        public bool IncomingPrim(ulong regionHandle, LLUUID primID, string objData)
+        {
+            // Is this necessary?   
+            try
+            {
+                //return m_localBackend.TriggerExpectPrim(regionHandle,primID, objData);
+                //m_localBackend.
+                return false;
+            }
+            catch (RemotingException e)
+            {
+                MainLog.Instance.Error("Remoting Error: Unable to connect to remote region.\n" + e.ToString());
+                return false;
+            }
+        }
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="regionHandle"></param>
         /// <param name="agentID"></param>
         /// <param name="position"></param>
         /// <returns></returns>
@@ -530,6 +682,18 @@ namespace OpenSim.Region.Communications.OGS1
             try
             {
                 return m_localBackend.TriggerExpectAvatarCrossing(regionHandle, agentID, position, isFlying);
+            }
+            catch (RemotingException e)
+            {
+                MainLog.Instance.Error("Remoting Error: Unable to connect to remote region.\n" + e.ToString());
+                return false;
+            }
+        }
+        public bool TriggerExpectPrimCrossing(ulong regionHandle, LLUUID agentID, LLVector3 position, bool isPhysical)
+        {
+            try
+            {
+                return m_localBackend.TriggerExpectPrimCrossing(regionHandle, agentID, position, isPhysical);
             }
             catch (RemotingException e)
             {

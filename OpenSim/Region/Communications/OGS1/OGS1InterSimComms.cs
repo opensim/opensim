@@ -37,12 +37,18 @@ namespace OpenSim.Region.Communications.OGS1
 
     public delegate bool ExpectArrival(ulong regionHandle, LLUUID agentID, LLVector3 position, bool isFlying);
 
+    public delegate bool InformRegionPrimGroup(ulong regionHandle, LLUUID primID, LLVector3 Positon, bool isPhysical);
+
+    public delegate bool PrimGroupArrival(ulong regionHandle, LLUUID primID, string objData);
+
     public sealed class InterRegionSingleton
     {
         private static readonly InterRegionSingleton instance = new InterRegionSingleton();
 
         public event InformRegionChild OnChildAgent;
         public event ExpectArrival OnArrival;
+        public event InformRegionPrimGroup OnPrimGroupNear;
+        public event PrimGroupArrival OnPrimGroupArrival;
 
         static InterRegionSingleton()
         {
@@ -71,6 +77,22 @@ namespace OpenSim.Region.Communications.OGS1
             if (OnArrival != null)
             {
                 return OnArrival(regionHandle, agentID, position, isFlying);
+            }
+            return false;
+        }
+        public bool InformRegionPrim(ulong regionHandle, LLUUID primID, LLVector3 position, bool isPhysical)
+        {
+            if (OnPrimGroupNear != null)
+            {
+                return OnPrimGroupNear(regionHandle, primID, position, isPhysical);
+            }
+            return false;
+        }
+        public bool ExpectPrimCrossing(ulong regionHandle, LLUUID primID, string objData)
+        {
+            if (OnPrimGroupArrival != null)
+            {
+                return OnPrimGroupArrival(regionHandle, primID, objData);
             }
             return false;
         }
@@ -107,5 +129,31 @@ namespace OpenSim.Region.Communications.OGS1
                 return false;
             }
         }
+        public bool InformRegionPrim(ulong regionHandle, LLUUID SceneObjectGroupID, LLVector3 position, bool isPhysical)
+        {
+            try
+            {
+                return InterRegionSingleton.Instance.InformRegionPrim(regionHandle, SceneObjectGroupID, position, isPhysical);
+            }
+            catch (RemotingException e)
+            {
+                Console.WriteLine("Remoting Error: Unable to connect to remote region.\n" + e.ToString());
+                return false;
+            }
+            
+        }
+        public bool InformRegionOfPrimCrossing(ulong regionHandle,LLUUID primID, string objData)
+        {
+            try
+            {
+                return InterRegionSingleton.Instance.ExpectPrimCrossing(regionHandle, primID, objData);
+            }
+            catch (RemotingException e)
+            {
+                Console.WriteLine("Remoting Error: Unable to connect to remote region.\n" + e.ToString());
+                return false;
+            }
+        }
+
     }
 }

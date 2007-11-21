@@ -173,6 +173,15 @@ namespace OpenSim.Region.Communications.Local
             return false;
         }
 
+        public bool InformRegionOfPrimCrossing(ulong regionHandle, LLUUID primID, string objData) 
+        {
+            if (m_regionListeners.ContainsKey(regionHandle))
+            {
+                m_regionListeners[regionHandle].TriggerExpectPrim(regionHandle, primID, objData);
+                return true;
+            }
+            return false;
+        }
         /// <summary>
         /// 
         /// </summary>
@@ -190,6 +199,15 @@ namespace OpenSim.Region.Communications.Local
             }
             return false;
         }
+        public bool ExpectPrimCrossing(ulong regionHandle, LLUUID primID, LLVector3 position, bool isPhysical)
+        {
+            if (m_regionListeners.ContainsKey(regionHandle))
+            {
+                m_regionListeners[regionHandle].TriggerExpectPrimCrossing(regionHandle, primID, position, isPhysical);
+                return true;
+            }
+            return false;
+        }
 
         public void TellRegionToCloseChildConnection(ulong regionHandle, LLUUID agentID)
         {
@@ -200,6 +218,14 @@ namespace OpenSim.Region.Communications.Local
         }
 
         public bool AcknowledgeAgentCrossed(ulong regionHandle, LLUUID agentId)
+        {
+            if (m_regionListeners.ContainsKey(regionHandle))
+            {
+                return true;
+            }
+            return false;
+        }
+        public bool AcknowledgePrimCrossed(ulong regionHandle, LLUUID primID)
         {
             if (m_regionListeners.ContainsKey(regionHandle))
             {
@@ -240,6 +266,15 @@ namespace OpenSim.Region.Communications.Local
             }
         }
 
+        public void TriggerExpectPrim(ulong regionHandle, LLUUID primID, string objData)
+        {
+            if (m_regionListeners.ContainsKey(regionHandle))
+            {
+                m_regionListeners[regionHandle].TriggerExpectPrim(regionHandle, primID, objData);
+            }
+
+        }
+
         public void PingCheckReply(Hashtable respData)
         {
             foreach (ulong region in m_regions.Keys)
@@ -261,6 +296,15 @@ namespace OpenSim.Region.Communications.Local
                                                                                    isFlying);
             }
 
+            return false;
+        }
+
+        public bool TriggerExpectPrimCrossing(ulong regionHandle, LLUUID primID, LLVector3 position, bool isPhysical)
+        {
+            if (m_regionListeners.ContainsKey(regionHandle))
+            {
+                return m_regionListeners[regionHandle].TriggerExpectPrimCrossing(regionHandle, primID, position, isPhysical);
+            }
             return false;
         }
 

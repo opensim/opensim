@@ -69,6 +69,7 @@ namespace OpenSim.Region.Environment.Scenes
         private bool m_newForce = false;
         private bool m_newAvatar = false;
         private bool m_newCoarseLocations = true;
+        private bool m_gotAllObjectsInScene = false;
         private float m_avHeight = 127.0f;
 
         protected RegionInfo m_regionInfo;
@@ -327,7 +328,14 @@ namespace OpenSim.Region.Environment.Scenes
             //  this.UpdateQuadTreeNode();
             //this.RefreshQuadObject();
             //}
-
+            if (!m_gotAllObjectsInScene)
+            {
+                if (!m_isChildAgent || m_scene.m_sendTasksToChild)
+                {
+                    m_scene.SendAllSceneObjectsToClient(this);
+                    m_gotAllObjectsInScene = true;
+                }
+            }
             if (m_partsUpdateQueue.Count > 0)
             {
                 bool runUpdate = true;
@@ -400,7 +408,12 @@ namespace OpenSim.Region.Environment.Scenes
             AddToPhysicalScene();
             m_physicsActor.Flying = isFlying;
 
-            m_scene.SendAllSceneObjectsToClient(this);
+            if (!m_gotAllObjectsInScene)
+            {
+                m_scene.SendAllSceneObjectsToClient(this);
+                m_gotAllObjectsInScene = true;
+            }
+
         }
 
         public void MakeChildAgent()
@@ -409,7 +422,7 @@ namespace OpenSim.Region.Environment.Scenes
             m_isChildAgent = true;
 
             RemoveFromPhysicalScene();
-
+            
             //this.Pos = new LLVector3(128, 128, 70);  
         }
 
@@ -952,7 +965,7 @@ namespace OpenSim.Region.Environment.Scenes
                 SendFullUpdateToOtherClient(avatar);
                 if (avatar.LocalId != LocalId)
                 {
-                    if (!avatar.m_isChildAgent)
+                    if (!avatar.m_isChildAgent || m_scene.m_sendTasksToChild)
                     {
                         avatar.SendFullUpdateToOtherClient(this);
                         avatar.SendAppearanceToOtherAgent(this);
@@ -985,7 +998,11 @@ namespace OpenSim.Region.Environment.Scenes
         public void SendOwnAppearance( )
         {
             SendOwnWearables( );
+
+            //Ugly hack x.x - Trap set appearence to send all objects in this scene!
+
             m_scene.SendAllSceneObjectsToClient(this);
+            m_gotAllObjectsInScene = true;
             // TODO: remove this once the SunModule is slightly more tested
             // m_controllingClient.SendViewerTime(m_scene.TimePhase);
         }

@@ -20,6 +20,8 @@ namespace OpenSim.Region.Environment.Scenes
         public event AgentCrossing OnAvatarCrossingIntoRegion;
         public event ExpectUserDelegate OnExpectUser;
         public event CloseAgentConnection OnCloseAgentConnection;
+        public event PrimCrossing OnPrimCrossingIntoRegion;
+        
 
         public SceneCommunicationService(CommunicationsManager commsMan)
         {
@@ -34,7 +36,10 @@ namespace OpenSim.Region.Environment.Scenes
             {
                 regionCommsHost.OnExpectUser += NewUserConnection;
                 regionCommsHost.OnAvatarCrossingIntoRegion += AgentCrossing;
+                regionCommsHost.OnPrimCrossingIntoRegion += PrimCrossing;
                 regionCommsHost.OnCloseAgentConnection += CloseConnection;
+                
+
             }
         }
 
@@ -42,6 +47,7 @@ namespace OpenSim.Region.Environment.Scenes
         {
             regionCommsHost.OnExpectUser -= NewUserConnection;
             regionCommsHost.OnAvatarCrossingIntoRegion -= AgentCrossing;
+            regionCommsHost.OnPrimCrossingIntoRegion -= PrimCrossing;
             regionCommsHost.OnCloseAgentConnection -= CloseConnection;
             m_commsProvider.GridService.DeregisterRegion(m_regionInfo);
             regionCommsHost = null;
@@ -66,6 +72,13 @@ namespace OpenSim.Region.Environment.Scenes
             if (OnAvatarCrossingIntoRegion != null)
             {
                 OnAvatarCrossingIntoRegion(regionHandle, agentID, position, isFlying);
+            }
+        }
+        protected void PrimCrossing(ulong regionHandle, LLUUID primID, LLVector3 position, bool isPhysical)
+        {
+            if (OnPrimCrossingIntoRegion != null)
+            {
+                OnPrimCrossingIntoRegion(regionHandle, primID, position, isPhysical);
             }
         }
 
@@ -220,6 +233,11 @@ namespace OpenSim.Region.Environment.Scenes
         public bool CrossToNeighbouringRegion(ulong regionhandle, LLUUID agentID, LLVector3 position, bool isFlying)
         {
             return m_commsProvider.InterRegion.ExpectAvatarCrossing(regionhandle, agentID, position, isFlying);
+        }
+
+        public bool PrimCrossToNeighboringRegion(ulong regionhandle, LLUUID primID, LLVector3 position, bool isPhysical)
+        {
+            return m_commsProvider.InterRegion.ExpectPrimCrossing(regionhandle, primID, position, isPhysical);
         }
 
         public void CloseChildAgentConnections(ScenePresence presence)
