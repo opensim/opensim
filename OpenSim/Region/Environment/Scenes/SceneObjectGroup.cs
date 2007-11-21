@@ -323,6 +323,11 @@ namespace OpenSim.Region.Environment.Scenes
                             SceneObjectPart Part = SceneObjectPart.FromXml(reader);
                             AddPart(Part);
                         }
+                        else
+                        {
+                            Console.WriteLine("found unexpected element: " + reader.Name);
+                            reader.Read();
+                        }
                         break;
                     case XmlNodeType.EndElement:
                         reader.Read();
@@ -926,6 +931,7 @@ namespace OpenSim.Region.Environment.Scenes
         {
             AbsolutePosition = pos;
             m_rootPart.SendTerseUpdateToAllClients();
+            m_scene.EventManager.TriggerGroupMove(UUID, pos);
         }
 
         /// <summary>
