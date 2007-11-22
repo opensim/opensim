@@ -237,7 +237,7 @@ namespace OpenSim.Framework
 
     public delegate void NewAvatar(IClientAPI remoteClient, LLUUID agentID, bool status);
 
-    public delegate void UpdateAgent(IClientAPI remoteClient, uint flags, LLQuaternion bodyRotation);
+    public delegate void UpdateAgent(IClientAPI remoteClient, AgentUpdatePacket agentData);
 
     public delegate void AgentRequestSit(IClientAPI remoteClient, LLUUID agentID, LLUUID targetID, LLVector3 offset);
 

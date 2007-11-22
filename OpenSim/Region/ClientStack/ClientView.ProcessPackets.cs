@@ -186,7 +186,8 @@ namespace OpenSim.Region.ClientStack
                         if (OnAgentUpdate != null)
                         {
                             AgentUpdatePacket agenUpdate = (AgentUpdatePacket) Pack;
-                            OnAgentUpdate(this, agenUpdate.AgentData.ControlFlags, agenUpdate.AgentData.BodyRotation);
+
+                            OnAgentUpdate(this, agenUpdate); //agenUpdate.AgentData.ControlFlags, agenUpdate.AgentData.BodyRotationa);
                         }
                         break;
                     case PacketType.AgentAnimation:

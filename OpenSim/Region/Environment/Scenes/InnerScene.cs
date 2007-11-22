@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
+using Axiom.Math;
 using libsecondlife;
 using libsecondlife.Packets;
 using OpenSim.Framework;
@@ -325,7 +326,32 @@ namespace OpenSim.Region.Environment.Scenes
             {
                 if (ent is SceneObjectGroup)
                 {
-                    ((SceneObjectGroup)ent).ScheduleFullUpdateToAvatar(presence);
+                    // Only send child agents stuff in their draw distance.
+                    // This will need to be done for every agent once we figure out
+                    // what we're going to use to store prim that agents already got 
+                    // the initial update for and what we'll use to limit the 
+                    // space we check for new objects on movement.
+
+                    if (presence.IsChildAgent)
+                    {
+                        //Vector3 avPosition = new Vector3(presence.AbsolutePosition.X,presence.AbsolutePosition.Y,presence.AbsolutePosition.Z);
+                        //LLVector3 oLoc = ((SceneObjectGroup)ent).AbsolutePosition;
+                        //Vector3 objPosition = new Vector3(oLoc.X,oLoc.Y,oLoc.Z);
+                        //float distResult = Vector3Distance(avPosition, objPosition);
+                        //if (distResult > 512)
+                        //{
+                            //int x = 0;
+                        //}
+                        //if (distResult < presence.DrawDistance)
+                        //{
+                            ((SceneObjectGroup)ent).ScheduleFullUpdateToAvatar(presence);
+                        //}
+                        
+                    }
+                    else 
+                    {
+                        ((SceneObjectGroup)ent).ScheduleFullUpdateToAvatar(presence);
+                    }
                 }
             }
         }
@@ -642,7 +668,15 @@ namespace OpenSim.Region.Environment.Scenes
             }
 
         }
+        public float Vector3Distance(Vector3 v1, Vector3 v2)
+        {
+            // Calculates the distance between two Vector3s
+            // We don't really need the double floating point precision...   
+            // so casting it to a single
 
+            return (float)Math.Sqrt((v1.x - v2.x) * (v1.x - v2.x) + (v1.y - v2.y) * (v1.y - v2.y) + (v1.z - v2.z) * (v1.z - v2.z));
+
+        }
         #endregion
     }
 }

@@ -364,7 +364,10 @@ namespace SimpleApp
 
             if (OnAgentUpdate != null)
             {
-                OnAgentUpdate(this, movementFlag, bodyDirection);
+                AgentUpdatePacket pack = new AgentUpdatePacket();
+                pack.AgentData.ControlFlags = movementFlag;
+                pack.AgentData.BodyRotation = bodyDirection;
+                OnAgentUpdate(this, pack);
             }
             if (flyState == 0)
             {

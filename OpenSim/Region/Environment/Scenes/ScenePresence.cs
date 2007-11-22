@@ -79,6 +79,19 @@ namespace OpenSim.Region.Environment.Scenes
         private LLVector3 lastPhysPos = new LLVector3();
         private int m_wearablesSerial = 1;
 
+
+        // Position of agent's camera in world
+        protected Vector3 m_CameraCenter = new Vector3(0, 0, 0);
+
+        // Use these three vectors to figure out what the agent is looking at
+        // Convert it to a Matrix and/or Quaternion
+        protected Vector3 m_CameraAtAxis = new Vector3(0, 0, 0);
+        protected Vector3 m_CameraLeftAxis = new Vector3(0, 0, 0);
+        protected Vector3 m_CameraUpAxis = new Vector3(0, 0, 0);
+
+        // Agent's Draw distance.
+        protected float m_DrawDistance = 0f;
+
         private readonly List<ulong> m_knownChildRegions = new List<ulong>(); //neighbouring regions we have enabled a child agent in
 
         private enum Dir_ControlFlags
@@ -146,6 +159,11 @@ namespace OpenSim.Region.Environment.Scenes
         public string Lastname
         {
             get { return m_lastname; }
+        }
+
+        public float DrawDistance
+        {
+            get { return m_DrawDistance; }
         }
 
         protected bool m_allowMovement = true;
@@ -408,11 +426,11 @@ namespace OpenSim.Region.Environment.Scenes
             AddToPhysicalScene();
             m_physicsActor.Flying = isFlying;
 
-            if (!m_gotAllObjectsInScene)
-            {
-                m_scene.SendAllSceneObjectsToClient(this);
-                m_gotAllObjectsInScene = true;
-            }
+            //if (!m_gotAllObjectsInScene)
+            //{
+                //m_scene.SendAllSceneObjectsToClient(this);
+                //m_gotAllObjectsInScene = true;
+            //}
 
         }
 
@@ -526,7 +544,7 @@ namespace OpenSim.Region.Environment.Scenes
             }
         }
 
-        public void HandleAgentUpdate(IClientAPI remoteClient, uint flags, LLQuaternion bodyRotation)
+        public void HandleAgentUpdate(IClientAPI remoteClient,AgentUpdatePacket agentData )
         {
             //if (m_isChildAgent)
             //{
@@ -536,6 +554,54 @@ namespace OpenSim.Region.Environment.Scenes
 
             // Must check for standing up even when PhysicsActor is null,
             // since sitting currently removes avatar from physical scene
+
+            uint flags = agentData.AgentData.ControlFlags;
+            LLQuaternion bodyRotation = agentData.AgentData.BodyRotation;
+
+            // Camera location in world.  We'll need to raytrace 
+            // from this location from time to time.
+            m_CameraCenter.x = agentData.AgentData.CameraCenter.X;
+            m_CameraCenter.y = agentData.AgentData.CameraCenter.Y;
+            m_CameraCenter.z = agentData.AgentData.CameraCenter.Z;
+ 
+            
+            // Use these three vectors to figure out what the agent is looking at
+            // Convert it to a Matrix and/or Quaternion
+            m_CameraAtAxis.x = agentData.AgentData.CameraAtAxis.X;
+            m_CameraAtAxis.y = agentData.AgentData.CameraAtAxis.Y;
+            m_CameraAtAxis.z = agentData.AgentData.CameraAtAxis.Z;
+
+            m_CameraLeftAxis.x = agentData.AgentData.CameraLeftAxis.X;
+            m_CameraLeftAxis.y = agentData.AgentData.CameraLeftAxis.Y;
+            m_CameraLeftAxis.z = agentData.AgentData.CameraLeftAxis.Z;
+
+            m_CameraUpAxis.x = agentData.AgentData.CameraUpAxis.X;
+            m_CameraUpAxis.y = agentData.AgentData.CameraUpAxis.Y;
+            m_CameraUpAxis.z = agentData.AgentData.CameraUpAxis.Z;
+
+            // The Agent's Draw distance setting
+            m_DrawDistance = agentData.AgentData.Far;
+
+            // We don't know the agent's draw distance until the first agentUpdate packet
+            //if (m_DrawDistance > 0)
+            //{
+                //if (!m_gotAllObjectsInScene && m_DrawDistance > 0)
+                //{
+                    // This will need to end up being a space based invalidator
+                    // where we send object updates on spaces in 3d space (possibily a cube)
+                    // that the avatar hasn't been surrounding it's draw distance.
+                    // It would be better if the distance increased incrementally 
+                    // until there was no space to update because either the avatar's draw
+                    // distance is smaller then the space they've been or the avatar has explored
+                    // all the space in the sim.
+
+                    //m_scene.SendAllSceneObjectsToClient(this);
+                    //m_gotAllObjectsInScene = true;
+                //}
+            //}
+            //MainLog.Instance.Verbose("CAMERA", "AtAxis:" + m_CameraAtAxis.ToString() + " Center:" + m_CameraCenter.ToString() + " LeftAxis:" + m_CameraLeftAxis.ToString() + " UpAxis:" + m_CameraUpAxis.ToString() + " Far:" + m_CameraFar);
+           
+
             if ((flags & (uint) MainAvatar.ControlFlags.AGENT_CONTROL_STAND_UP) != 0)
             {
                 StandUp();
@@ -999,10 +1065,6 @@ namespace OpenSim.Region.Environment.Scenes
         {
             SendOwnWearables( );
 
-            //Ugly hack x.x - Trap set appearence to send all objects in this scene!
-
-            m_scene.SendAllSceneObjectsToClient(this);
-            m_gotAllObjectsInScene = true;
             // TODO: remove this once the SunModule is slightly more tested
             // m_controllingClient.SendViewerTime(m_scene.TimePhase);
         }
