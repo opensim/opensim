@@ -40,6 +40,17 @@ namespace OpenSim.Region.ClientStack
     public partial class ClientView
     {
         protected BlockingQueue<QueItem> PacketQueue;
+
+        protected Queue<QueItem> IncomingPacketQueue;
+        protected Queue<QueItem> OutgoingPacketQueue;
+        protected Queue<QueItem> ResendOutgoingPacketQueue;
+        protected Queue<QueItem> LandOutgoingPacketQueue;
+        protected Queue<QueItem> WindOutgoingPacketQueue;
+        protected Queue<QueItem> CloudOutgoingPacketQueue;
+        protected Queue<QueItem> TaskOutgoingPacketQueue;
+        protected Queue<QueItem> TextureOutgoingPacketQueue;
+        protected Queue<QueItem> AssetOutgoingPacketQueue;
+
         protected Dictionary<uint, uint> PendingAcks = new Dictionary<uint, uint>();
         protected Dictionary<uint, Packet> NeedAck = new Dictionary<uint, Packet>();
 
@@ -213,7 +224,39 @@ namespace OpenSim.Region.ClientStack
             QueItem item = new QueItem();
             item.Packet = NewPack;
             item.Incoming = false;
-            PacketQueue.Enqueue(item);
+            item.throttleType = throttlePacketType; // Packet throttle type
+            switch (throttlePacketType)
+            {
+                case ThrottleOutPacketType.Resend:
+                    ResendOutgoingPacketQueue.Enqueue(item);
+                    break;
+                case ThrottleOutPacketType.Texture:
+                    TextureOutgoingPacketQueue.Enqueue(item);
+                    break;
+                case ThrottleOutPacketType.Task:
+                    TaskOutgoingPacketQueue.Enqueue(item);
+                    break;
+                case ThrottleOutPacketType.Land:
+                    LandOutgoingPacketQueue.Enqueue(item);
+                    break;
+                case ThrottleOutPacketType.Asset:
+                    AssetOutgoingPacketQueue.Enqueue(item);
+                    break;
+                case ThrottleOutPacketType.Cloud:
+                    CloudOutgoingPacketQueue.Enqueue(item);
+                    break;
+                case ThrottleOutPacketType.Wind:
+                    WindOutgoingPacketQueue.Enqueue(item);
+                    break;
+
+                default:
+                    
+                    // Acknowledgements and other such stuff should go directly to the blocking Queue
+                    // Throttling them may and likely 'will' be problematic
+                    PacketQueue.Enqueue(item); 
+                    break;
+            }
+            //OutgoingPacketQueue.Enqueue(item);
         }
 
         # region Low Level Packet Methods
@@ -228,7 +271,7 @@ namespace OpenSim.Region.ClientStack
                 ack_it.Packets[0].ID = Pack.Header.Sequence;
                 ack_it.Header.Reliable = false;
 
-                OutPacket(ack_it, ThrottleOutPacketType.Task);
+                OutPacket(ack_it, ThrottleOutPacketType.Unknown);
             }
             /*
             if (Pack.Header.Reliable)
@@ -289,7 +332,7 @@ namespace OpenSim.Region.ClientStack
                     }
 
                     acks.Header.Reliable = false;
-                    OutPacket(acks, ThrottleOutPacketType.Task);
+                    OutPacket(acks, ThrottleOutPacketType.Unknown);
 
                     PendingAcks.Clear();
                 }
@@ -314,6 +357,7 @@ namespace OpenSim.Region.ClientStack
 
             public Packet Packet;
             public bool Incoming;
+            public ThrottleOutPacketType throttleType;
         }
 
         #endregion

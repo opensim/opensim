@@ -87,10 +87,52 @@ namespace OpenSim.Region.ClientStack
         private int probesWithNoIngressPackets = 0;
         private int lastPacketsReceived = 0;
 
-
-        private int throttleOutbound = 262144; // Number of bytes allowed to go out per second. (256kbps per client) 
+        // 1536000
+        private int throttleOutboundMax = 1536000; // Number of bytes allowed to go out per second. (256kbps per client) 
                                               // TODO: Make this variable. Lower throttle on un-ack. Raise over time?
         private int throttleSentPeriod = 0;   // Number of bytes sent this period
+
+        private int throttleOutbound = 162144; // Number of bytes allowed to go out per second. (256kbps per client) 
+        // TODO: Make this variable. Lower throttle on un-ack. Raise over time
+
+        // All throttle times and number of bytes are calculated by dividing by this value
+        private int throttleTimeDivisor = 5;
+
+        private int throttletimems = 1000;
+
+        // Maximum -per type- throttle
+        private int ResendthrottleMAX = 100000;
+        private int LandthrottleMax = 100000;
+        private int WindthrottleMax = 100000;
+        private int CloudthrottleMax = 100000;
+        private int TaskthrottleMax = 800000;
+        private int AssetthrottleMax = 800000;
+        private int TexturethrottleMax = 800000;
+
+        // Minimum -per type- throttle
+        private int ResendthrottleMin = 5000; // setting resendmin to 0 results in mostly dropped packets
+        private int LandthrottleMin = 1000;
+        private int WindthrottleMin = 1000;
+        private int CloudthrottleMin = 1000;
+        private int TaskthrottleMin = 1000;
+        private int AssetthrottleMin = 1000;
+        private int TexturethrottleMin = 1000;
+
+        // Sim default per-client settings.
+        private int ResendthrottleOutbound = 50000;
+        private int ResendthrottleSentPeriod = 0;
+        private int LandthrottleOutbound = 100000;
+        private int LandthrottleSentPeriod = 0;
+        private int WindthrottleOutbound = 10000;
+        private int WindthrottleSentPeriod = 0;
+        private int CloudthrottleOutbound = 5000;
+        private int CloudthrottleSentPeriod = 0;
+        private int TaskthrottleOutbound = 100000;
+        private int TaskthrottleSentPeriod = 0;
+        private int AssetthrottleOutbound = 80000;
+        private int AssetthrottleSentPeriod = 0;
+        private int TexturethrottleOutbound = 100000;
+        private int TexturethrottleSentPeriod = 0;
 
         private Timer throttleTimer;
 
@@ -114,14 +156,31 @@ namespace OpenSim.Region.ClientStack
 
             startpos = m_authenticateSessionsHandler.GetPosition(initialcirpack.CircuitCode.Code);
 
+
+            // While working on this, the BlockingQueue had me fooled for a bit.
+            // The Blocking queue causes the thread to stop until there's something 
+            // in it to process.  it's an on-purpose threadlock though because 
+            // without it, the clientloop will suck up all sim resources.
+
             PacketQueue = new BlockingQueue<QueItem>();
+
+            IncomingPacketQueue = new Queue<QueItem>();
+            OutgoingPacketQueue = new Queue<QueItem>();
+            ResendOutgoingPacketQueue = new Queue<QueItem>();
+            LandOutgoingPacketQueue = new Queue<QueItem>();
+            WindOutgoingPacketQueue = new Queue<QueItem>();
+            CloudOutgoingPacketQueue = new Queue<QueItem>();
+            TaskOutgoingPacketQueue = new Queue<QueItem>();
+            TextureOutgoingPacketQueue = new Queue<QueItem>();
+            AssetOutgoingPacketQueue = new Queue<QueItem>();
+
 
             //this.UploadAssets = new AgentAssetUpload(this, m_assetCache, m_inventoryCache);
             AckTimer = new Timer(750);
             AckTimer.Elapsed += new ElapsedEventHandler(AckTimer_Elapsed);
             AckTimer.Start();
 
-            throttleTimer = new Timer(1000);
+            throttleTimer = new Timer((int)(throttletimems/throttleTimeDivisor));
             throttleTimer.Elapsed += new ElapsedEventHandler(throttleTimer_Elapsed);
             throttleTimer.Start();
 
@@ -133,8 +192,97 @@ namespace OpenSim.Region.ClientStack
         }
 
         void throttleTimer_Elapsed(object sender, ElapsedEventArgs e)
-        {
+        {   
             throttleSentPeriod = 0;
+            ResendthrottleSentPeriod = 0;
+            LandthrottleSentPeriod = 0;
+            WindthrottleSentPeriod = 0;
+            CloudthrottleSentPeriod = 0;
+            TaskthrottleSentPeriod = 0;
+            AssetthrottleSentPeriod = 0;
+            TexturethrottleSentPeriod = 0;
+            
+            // I was considering this..   Will an event fire if the thread it's on is blocked?
+
+            // Then I figured out..  it doesn't really matter..  because this thread won't be blocked for long
+            // The General overhead of the UDP protocol gets sent to the queue un-throttled by this
+            // so This'll pick up about around the right time.
+
+            int MaxThrottleLoops = 5550; // 50*7 packets can be dequeued at once.
+            int throttleLoops = 0;
+
+            // We're going to dequeue all of the saved up packets until 
+            // we've hit the throttle limit or there's no more packets to send
+            while ((throttleSentPeriod <= ((int)(throttleOutbound/throttleTimeDivisor)) &&
+                (ResendOutgoingPacketQueue.Count > 0 ||
+                 LandOutgoingPacketQueue.Count > 0 ||
+                 WindOutgoingPacketQueue.Count > 0 ||
+                 CloudOutgoingPacketQueue.Count > 0 ||
+                 TaskOutgoingPacketQueue.Count > 0 ||
+                 AssetOutgoingPacketQueue.Count > 0 ||
+                 TextureOutgoingPacketQueue.Count > 0)) && throttleLoops <= MaxThrottleLoops)
+            {
+                throttleLoops++;
+                //Now comes the fun part..   we dump all our elements into PacketQueue that we've saved up.
+                if (ResendthrottleSentPeriod <= ((int)(ResendthrottleOutbound/throttleTimeDivisor)) && ResendOutgoingPacketQueue.Count > 0)
+                {
+                    QueItem qpack = ResendOutgoingPacketQueue.Dequeue();
+
+                    PacketQueue.Enqueue(qpack);
+                    throttleSentPeriod += qpack.Packet.ToBytes().Length;
+                    ResendthrottleSentPeriod += qpack.Packet.ToBytes().Length;
+                }
+                if (LandthrottleSentPeriod <= ((int)(LandthrottleOutbound/throttleTimeDivisor)) && LandOutgoingPacketQueue.Count > 0)
+                {
+                    QueItem qpack = LandOutgoingPacketQueue.Dequeue();
+
+                    PacketQueue.Enqueue(qpack);
+                    throttleSentPeriod += qpack.Packet.ToBytes().Length;
+                    LandthrottleSentPeriod += qpack.Packet.ToBytes().Length;
+                }
+                if (WindthrottleSentPeriod <= ((int)(WindthrottleOutbound/throttleTimeDivisor)) && WindOutgoingPacketQueue.Count > 0)
+                {
+                    QueItem qpack = WindOutgoingPacketQueue.Dequeue();
+
+                    PacketQueue.Enqueue(qpack);
+                    throttleSentPeriod += qpack.Packet.ToBytes().Length;
+                    WindthrottleSentPeriod += qpack.Packet.ToBytes().Length;
+                }
+                if (CloudthrottleSentPeriod <= ((int)(CloudthrottleOutbound/throttleTimeDivisor)) && CloudOutgoingPacketQueue.Count > 0)
+                {
+                    QueItem qpack = CloudOutgoingPacketQueue.Dequeue();
+
+                    PacketQueue.Enqueue(qpack);
+                    throttleSentPeriod += qpack.Packet.ToBytes().Length;
+                    CloudthrottleSentPeriod += qpack.Packet.ToBytes().Length;
+                }
+                if (TaskthrottleSentPeriod <= ((int)(TaskthrottleOutbound/throttleTimeDivisor)) && TaskOutgoingPacketQueue.Count > 0)
+                {
+                    QueItem qpack = TaskOutgoingPacketQueue.Dequeue();
+
+                    PacketQueue.Enqueue(qpack);
+                    throttleSentPeriod += qpack.Packet.ToBytes().Length;
+                    TaskthrottleSentPeriod += qpack.Packet.ToBytes().Length;
+                }
+                if (TexturethrottleSentPeriod <= ((int)(TexturethrottleOutbound/throttleTimeDivisor)) && TextureOutgoingPacketQueue.Count > 0)
+                {
+                    QueItem qpack = TextureOutgoingPacketQueue.Dequeue();
+
+                    PacketQueue.Enqueue(qpack);
+                    throttleSentPeriod += qpack.Packet.ToBytes().Length;
+                    TexturethrottleSentPeriod += qpack.Packet.ToBytes().Length;
+                }
+                if (AssetthrottleSentPeriod <= ((int)(AssetthrottleOutbound/throttleTimeDivisor)) && AssetOutgoingPacketQueue.Count > 0)
+                {
+                    QueItem qpack = AssetOutgoingPacketQueue.Dequeue();
+
+                    PacketQueue.Enqueue(qpack);
+                    throttleSentPeriod += qpack.Packet.ToBytes().Length;
+                    AssetthrottleSentPeriod += qpack.Packet.ToBytes().Length;
+                }
+
+            }
+
         }
 
         public LLUUID SessionId
@@ -277,7 +425,7 @@ namespace OpenSim.Region.ClientStack
                 else
                 {
                     // Throw it back on the queue if it's going to cause us to flood the client
-                    if (throttleSentPeriod > throttleOutbound)
+                    if (throttleSentPeriod > throttleOutboundMax)
                     {
                         PacketQueue.Enqueue(nextPacket);
                         MainLog.Instance.Verbose("Client over throttle limit, requeuing packet");

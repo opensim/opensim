@@ -781,12 +781,9 @@ namespace OpenSim.Region.ClientStack
                         }
                         break;
 
-                        #endregion
-
-                        #region unimplemented handlers
                     case PacketType.AgentThrottle:
-                       
-                        //OpenSim.Framework.Console.MainLog.Instance.Verbose("CLIENT", "unhandled packet " + Pack.ToString());
+
+                        OpenSim.Framework.Console.MainLog.Instance.Verbose("CLIENT", "unhandled packet " + Pack.ToString());
 
                         AgentThrottlePacket atpack = (AgentThrottlePacket)Pack;
 
@@ -803,7 +800,7 @@ namespace OpenSim.Region.ClientStack
 
                         //Agent Throttle Block contains 7 single floatingpoint values.
                         int j = 0;
-                        
+
                         // Some Systems may be big endian...  
                         // it might be smart to do this check more often... 
                         if (!BitConverter.IsLittleEndian)
@@ -813,22 +810,22 @@ namespace OpenSim.Region.ClientStack
                         // values gotten from libsecondlife.org/wiki/Throttle.  Thanks MW_
                         // bytes
                         // Convert to integer, since..   the full fp space isn't used.
-                        tResend = (int)BitConverter.ToSingle(throttle, j); 
+                        tResend = (int)BitConverter.ToSingle(throttle, j);
                         j += singlefloat;
-                        tLand = (int)BitConverter.ToSingle(throttle, j); 
+                        tLand = (int)BitConverter.ToSingle(throttle, j);
                         j += singlefloat;
-                        tWind = (int)BitConverter.ToSingle(throttle, j); 
+                        tWind = (int)BitConverter.ToSingle(throttle, j);
                         j += singlefloat;
-                        tCloud = (int)BitConverter.ToSingle(throttle, j); 
+                        tCloud = (int)BitConverter.ToSingle(throttle, j);
                         j += singlefloat;
-                        tTask = (int)BitConverter.ToSingle(throttle, j); 
+                        tTask = (int)BitConverter.ToSingle(throttle, j);
                         j += singlefloat;
-                        tTexture = (int)BitConverter.ToSingle(throttle, j); 
+                        tTexture = (int)BitConverter.ToSingle(throttle, j);
                         j += singlefloat;
                         tAsset = (int)BitConverter.ToSingle(throttle, j);
 
                         tall = tResend + tLand + tWind + tCloud + tTask + tTexture + tAsset;
-                        OpenSim.Framework.Console.MainLog.Instance.Verbose("CLIENT", "unhandled packet AgentThrottle - Got throttle:resendbytes=" + tResend +
+                        OpenSim.Framework.Console.MainLog.Instance.Verbose("CLIENT", "Client AgentThrottle - Got throttle:resendbytes=" + tResend +
                             " landbytes=" + tLand +
                             " windbytes=" + tWind +
                             " cloudbytes=" + tCloud +
@@ -836,9 +833,233 @@ namespace OpenSim.Region.ClientStack
                             " texturebytes=" + tTexture +
                             " Assetbytes=" + tAsset +
                             " Allbytes=" + tall);
+                        // Total Sanity
+                        // Make sure that the client sent sane total values.
+
+                        // If the client didn't send acceptable values....
+                        // Scale the clients values down until they are acceptable.
+
+                        if (tall <= throttleOutboundMax)
+                        {
+                            // Sanity
+                            // Making sure the client sends sane values
+                            // This gives us a measure of control of the comms
+                            // Check Max of Type
+                            // Then Check Min of type
+
+                            // Resend throttle
+                            if (tResend <= ResendthrottleMAX)
+                                ResendthrottleOutbound = tResend;
+
+                            if (tResend < ResendthrottleMin)
+                                ResendthrottleOutbound = ResendthrottleMin;
+
+                            // Land throttle
+                            if (tLand <= LandthrottleMax)
+                                LandthrottleOutbound = tLand;
+
+                            if (tLand < LandthrottleMin)
+                                LandthrottleOutbound = LandthrottleMin;
+
+                            // Wind throttle 
+                            if (tWind <= WindthrottleMax)
+                                WindthrottleOutbound = tWind;
+
+                            if (tWind < WindthrottleMin)
+                                WindthrottleOutbound = WindthrottleMin;
+
+                            // Cloud throttle 
+                            if (tCloud <= CloudthrottleMax)
+                                CloudthrottleOutbound = tCloud;
+
+                            if (tCloud < CloudthrottleMin)
+                                CloudthrottleOutbound = CloudthrottleMin;
+
+                            // Task throttle 
+                            if (tTask <= TaskthrottleMax)
+                                TaskthrottleOutbound = tTask;
+
+                            if (tTask < TaskthrottleMin)
+                                TaskthrottleOutbound = TaskthrottleMin;
+
+                            // Texture throttle 
+                            if (tTexture <= TexturethrottleMax)
+                                TexturethrottleOutbound = tTexture;
+
+                            if (tTexture < TexturethrottleMin)
+                                TexturethrottleOutbound = TexturethrottleMin;
+
+                            //Asset throttle
+                            if (tAsset <= AssetthrottleMax)
+                                AssetthrottleOutbound = tAsset;
+
+                            if (tAsset < AssetthrottleMin)
+                                AssetthrottleOutbound = AssetthrottleMin;
+
+                            OpenSim.Framework.Console.MainLog.Instance.Verbose("THROTTLE", "Using:resendbytes=" + ResendthrottleOutbound +
+                            " landbytes=" + LandthrottleOutbound +
+                            " windbytes=" + WindthrottleOutbound +
+                            " cloudbytes=" + CloudthrottleOutbound +
+                            " taskbytes=" + TaskthrottleOutbound +
+                            " texturebytes=" + TexturethrottleOutbound +
+                            " Assetbytes=" + AssetthrottleOutbound +
+                            " Allbytes=" + tall);
+                        }
+                        else
+                        {
+                            // The client didn't send acceptable values..  
+                            // so it's our job now to turn them into acceptable values
+                            // We're going to first scale the values down
+                            // After that we're going to check if the scaled values are sane
+
+                            // We're going to be dividing by a user value..   so make sure
+                            // we don't get a divide by zero error.
+                            if (tall > 0)
+                            {
+                                // Find out the percentage of all communications 
+                                // the client requests for each type.  We'll keep resend at 
+                                // it's client recommended level (won't scale it down)
+                                // unless it's beyond sane values itself.
+
+                                if (tResend <= ResendthrottleMAX)
+                                {
+                                    // This is nexted because we only want to re-set the values
+                                    // the packet throttler uses once.
+
+                                    if (tResend >= ResendthrottleMin)
+                                    {
+                                        ResendthrottleOutbound = tResend;
+                                    }
+                                    else
+                                    {
+                                        ResendthrottleOutbound = ResendthrottleMin;
+                                    }
+                                }
+                                else
+                                {
+                                    ResendthrottleOutbound = ResendthrottleMAX;
+                                }
+
+
+                                // Getting Percentages of communication for each type of data
+                                float LandPercent = (float)(tLand / tall);
+                                float WindPercent = (float)(tWind / tall);
+                                float CloudPercent = (float)(tCloud / tall);
+                                float TaskPercent = (float)(tTask / tall);
+                                float TexturePercent = (float)(tTexture / tall);
+                                float AssetPercent = (float)(tAsset / tall);
+
+                                // Okay..  now we've got the percentages of total communication.
+                                // Apply them to a new max total
+
+                                int tLandResult = (int)(LandPercent * throttleOutboundMax);
+                                int tWindResult = (int)(WindPercent * throttleOutboundMax);
+                                int tCloudResult = (int)(CloudPercent * throttleOutboundMax);
+                                int tTaskResult = (int)(TaskPercent * throttleOutboundMax);
+                                int tTextureResult = (int)(TexturePercent * throttleOutboundMax);
+                                int tAssetResult = (int)(AssetPercent * throttleOutboundMax);
+
+                                // Now we have to check our scaled values for sanity
+
+                                // Check Max of Type
+                                // Then Check Min of type
+
+                                // Land throttle
+                                if (tLandResult <= LandthrottleMax)
+                                    LandthrottleOutbound = tLandResult;
+
+                                if (tLandResult < LandthrottleMin)
+                                    LandthrottleOutbound = LandthrottleMin;
+
+                                // Wind throttle 
+                                if (tWindResult <= WindthrottleMax)
+                                    WindthrottleOutbound = tWindResult;
+
+                                if (tWindResult < WindthrottleMin)
+                                    WindthrottleOutbound = WindthrottleMin;
+
+                                // Cloud throttle 
+                                if (tCloudResult <= CloudthrottleMax)
+                                    CloudthrottleOutbound = tCloudResult;
+
+                                if (tCloudResult < CloudthrottleMin)
+                                    CloudthrottleOutbound = CloudthrottleMin;
+
+                                // Task throttle 
+                                if (tTaskResult <= TaskthrottleMax)
+                                    TaskthrottleOutbound = tTaskResult;
+
+                                if (tTaskResult < TaskthrottleMin)
+                                    TaskthrottleOutbound = TaskthrottleMin;
+
+                                // Texture throttle 
+                                if (tTextureResult <= TexturethrottleMax)
+                                    TexturethrottleOutbound = tTextureResult;
+
+                                if (tTextureResult < TexturethrottleMin)
+                                    TexturethrottleOutbound = TexturethrottleMin;
+
+                                //Asset throttle
+                                if (tAssetResult <= AssetthrottleMax)
+                                    AssetthrottleOutbound = tAssetResult;
+
+                                if (tAssetResult < AssetthrottleMin)
+                                    AssetthrottleOutbound = AssetthrottleMin;
+
+                                OpenSim.Framework.Console.MainLog.Instance.Verbose("THROTTLE", "Using:resendbytes=" + ResendthrottleOutbound +
+                                    " landbytes=" + LandthrottleOutbound +
+                                    " windbytes=" + WindthrottleOutbound +
+                                    " cloudbytes=" + CloudthrottleOutbound +
+                                    " taskbytes=" + TaskthrottleOutbound +
+                                    " texturebytes=" + TexturethrottleOutbound +
+                                    " Assetbytes=" + AssetthrottleOutbound +
+                                    " Allbytes=" + tall);
+
+                            }
+                            else
+                            {
+
+                                // The client sent a stupid value..   
+                                // We're going to set the throttles to the minimum possible
+                                ResendthrottleOutbound = ResendthrottleMin;
+                                LandthrottleOutbound = LandthrottleMin;
+                                WindthrottleOutbound = WindthrottleMin;
+                                CloudthrottleOutbound = CloudthrottleMin;
+                                TaskthrottleOutbound = TaskthrottleMin;
+                                TexturethrottleOutbound = TexturethrottleMin;
+                                AssetthrottleOutbound = AssetthrottleMin;
+                                OpenSim.Framework.Console.MainLog.Instance.Verbose("THROTTLE", "ClientSentBadThrottle Using:resendbytes=" + ResendthrottleOutbound +
+                                    " landbytes=" + LandthrottleOutbound +
+                                    " windbytes=" + WindthrottleOutbound +
+                                    " cloudbytes=" + CloudthrottleOutbound +
+                                    " taskbytes=" + TaskthrottleOutbound +
+                                    " texturebytes=" + TexturethrottleOutbound +
+                                    " Assetbytes=" + AssetthrottleOutbound +
+                                    " Allbytes=" + tall);
+                            }
+
+                        }
+                        // Reset Client Throttles
+                        // This has the effect of 'wiggling the slider 
+                        // causes prim and stuck textures that didn't download to download
+
+                        ResendthrottleSentPeriod = 0;
+                        LandthrottleSentPeriod = 0;
+                        WindthrottleSentPeriod = 0;
+                        CloudthrottleSentPeriod = 0;
+                        TaskthrottleSentPeriod = 0;
+                        AssetthrottleSentPeriod = 0;
+                        TexturethrottleSentPeriod = 0;
+
+                        //Yay, we've finally handled the agent Throttle packet!
                    
 
+
                         break;
+
+                        #endregion
+
+                        #region unimplemented handlers
                     case PacketType.StartPingCheck:
                         // Send the client the ping response back
                         // Pass the same PingID in the matching packet
