@@ -225,28 +225,94 @@ namespace OpenSim.Region.ClientStack
             item.Packet = NewPack;
             item.Incoming = false;
             item.throttleType = throttlePacketType; // Packet throttle type
+
+            // The idea..  is if the packet throttle queues are empty and the client is under throttle for the type.
+            // Queue it up directly.
             switch (throttlePacketType)
             {
                 case ThrottleOutPacketType.Resend:
-                    ResendOutgoingPacketQueue.Enqueue(item);
+                    if (ResendthrottleSentPeriod <= ResendthrottleOutbound && ResendOutgoingPacketQueue.Count == 0)
+                    {
+                        throttleSentPeriod += item.Packet.ToBytes().Length;
+                        ResendthrottleSentPeriod += item.Packet.ToBytes().Length;
+                        PacketQueue.Enqueue(item);
+                    }
+                    else
+                    {
+                        ResendOutgoingPacketQueue.Enqueue(item);
+                    }
                     break;
                 case ThrottleOutPacketType.Texture:
-                    TextureOutgoingPacketQueue.Enqueue(item);
+                    if (TexturethrottleSentPeriod <= TexturethrottleOutbound && TextureOutgoingPacketQueue.Count == 0)
+                    {
+                        throttleSentPeriod += item.Packet.ToBytes().Length;
+                        TexturethrottleSentPeriod += item.Packet.ToBytes().Length;
+                        PacketQueue.Enqueue(item);
+                    }
+                    else
+                    {
+                        TextureOutgoingPacketQueue.Enqueue(item);
+                    }
                     break;
                 case ThrottleOutPacketType.Task:
-                    TaskOutgoingPacketQueue.Enqueue(item);
+                    if (TaskthrottleSentPeriod <= TaskthrottleOutbound && TaskOutgoingPacketQueue.Count == 0)
+                    {
+                        throttleSentPeriod += item.Packet.ToBytes().Length;
+                        TaskthrottleSentPeriod += item.Packet.ToBytes().Length;
+                        PacketQueue.Enqueue(item);
+                    }
+                    else
+                    {
+                        TaskOutgoingPacketQueue.Enqueue(item);
+                    }
                     break;
                 case ThrottleOutPacketType.Land:
-                    LandOutgoingPacketQueue.Enqueue(item);
+                    if (LandthrottleSentPeriod <= LandthrottleOutbound && LandOutgoingPacketQueue.Count == 0)
+                    {
+                        throttleSentPeriod += item.Packet.ToBytes().Length;
+                        LandthrottleSentPeriod += item.Packet.ToBytes().Length;
+                        PacketQueue.Enqueue(item);
+                    }
+                    else
+                    {
+                        LandOutgoingPacketQueue.Enqueue(item);
+                    }
                     break;
                 case ThrottleOutPacketType.Asset:
-                    AssetOutgoingPacketQueue.Enqueue(item);
+                    if (AssetthrottleSentPeriod <= AssetthrottleOutbound && AssetOutgoingPacketQueue.Count == 0)
+                    {
+                        throttleSentPeriod += item.Packet.ToBytes().Length;
+                        AssetthrottleSentPeriod += item.Packet.ToBytes().Length;
+                        PacketQueue.Enqueue(item);
+                    }
+                    else
+                    {
+                        AssetOutgoingPacketQueue.Enqueue(item);
+                    }
                     break;
                 case ThrottleOutPacketType.Cloud:
-                    CloudOutgoingPacketQueue.Enqueue(item);
+                    if (CloudthrottleSentPeriod <= CloudthrottleOutbound && CloudOutgoingPacketQueue.Count == 0)
+                    {
+                        throttleSentPeriod += item.Packet.ToBytes().Length;
+                        CloudthrottleSentPeriod += item.Packet.ToBytes().Length;
+                        PacketQueue.Enqueue(item);
+                    }
+                    else
+                    {
+                        CloudOutgoingPacketQueue.Enqueue(item);
+                    }
                     break;
                 case ThrottleOutPacketType.Wind:
-                    WindOutgoingPacketQueue.Enqueue(item);
+                    if (WindthrottleSentPeriod <= WindthrottleOutbound && WindOutgoingPacketQueue.Count == 0)
+                    {
+                        throttleSentPeriod += item.Packet.ToBytes().Length;
+                        WindthrottleSentPeriod += item.Packet.ToBytes().Length;
+                        PacketQueue.Enqueue(item);
+                    }
+                    else
+                    {
+                        WindOutgoingPacketQueue.Enqueue(item);
+                    }
                     break;
 
                 default:
