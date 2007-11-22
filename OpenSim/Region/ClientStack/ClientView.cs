@@ -96,6 +96,9 @@ namespace OpenSim.Region.ClientStack
         // TODO: Make this variable. Lower throttle on un-ack. Raise over time
 
         // All throttle times and number of bytes are calculated by dividing by this value
+        // This value also determines how many times per throttletimems the timer will run
+        // If throttleimems is 1000 ms, then the timer will fire every 1000/7 milliseconds
+
         private int throttleTimeDivisor = 7;
 
         private int throttletimems = 1000;

@@ -231,7 +231,7 @@ namespace OpenSim.Region.ClientStack
             switch (throttlePacketType)
             {
                 case ThrottleOutPacketType.Resend:
-                    if (ResendthrottleSentPeriod <= ResendthrottleOutbound && ResendOutgoingPacketQueue.Count == 0)
+                    if (ResendthrottleSentPeriod <= ((int)(ResendthrottleOutbound / throttleTimeDivisor)) && ResendOutgoingPacketQueue.Count == 0)
                     {
                         throttleSentPeriod += item.Packet.ToBytes().Length;
                         ResendthrottleSentPeriod += item.Packet.ToBytes().Length;
@@ -243,7 +243,7 @@ namespace OpenSim.Region.ClientStack
                     }
                     break;
                 case ThrottleOutPacketType.Texture:
-                    if (TexturethrottleSentPeriod <= TexturethrottleOutbound && TextureOutgoingPacketQueue.Count == 0)
+                    if (TexturethrottleSentPeriod <= ((int)(TexturethrottleOutbound / throttleTimeDivisor)) && TextureOutgoingPacketQueue.Count == 0)
                     {
                         throttleSentPeriod += item.Packet.ToBytes().Length;
                         TexturethrottleSentPeriod += item.Packet.ToBytes().Length;
@@ -255,7 +255,7 @@ namespace OpenSim.Region.ClientStack
                     }
                     break;
                 case ThrottleOutPacketType.Task:
-                    if (TaskthrottleSentPeriod <= TaskthrottleOutbound && TaskOutgoingPacketQueue.Count == 0)
+                    if (TaskthrottleSentPeriod <= ((int)(TexturethrottleOutbound / throttleTimeDivisor)) && TaskOutgoingPacketQueue.Count == 0)
                     {
                         throttleSentPeriod += item.Packet.ToBytes().Length;
                         TaskthrottleSentPeriod += item.Packet.ToBytes().Length;
@@ -267,7 +267,7 @@ namespace OpenSim.Region.ClientStack
                     }
                     break;
                 case ThrottleOutPacketType.Land:
-                    if (LandthrottleSentPeriod <= LandthrottleOutbound && LandOutgoingPacketQueue.Count == 0)
+                    if (LandthrottleSentPeriod <= ((int)(LandthrottleOutbound / throttleTimeDivisor)) && LandOutgoingPacketQueue.Count == 0)
                     {
                         throttleSentPeriod += item.Packet.ToBytes().Length;
                         LandthrottleSentPeriod += item.Packet.ToBytes().Length;
@@ -279,7 +279,7 @@ namespace OpenSim.Region.ClientStack
                     }
                     break;
                 case ThrottleOutPacketType.Asset:
-                    if (AssetthrottleSentPeriod <= AssetthrottleOutbound && AssetOutgoingPacketQueue.Count == 0)
+                    if (AssetthrottleSentPeriod <= ((int)(AssetthrottleOutbound / throttleTimeDivisor)) && AssetOutgoingPacketQueue.Count == 0)
                     {
                         throttleSentPeriod += item.Packet.ToBytes().Length;
                         AssetthrottleSentPeriod += item.Packet.ToBytes().Length;
@@ -291,7 +291,7 @@ namespace OpenSim.Region.ClientStack
                     }
                     break;
                 case ThrottleOutPacketType.Cloud:
-                    if (CloudthrottleSentPeriod <= CloudthrottleOutbound && CloudOutgoingPacketQueue.Count == 0)
+                    if (CloudthrottleSentPeriod <= ((int)(CloudthrottleOutbound / throttleTimeDivisor)) && CloudOutgoingPacketQueue.Count == 0)
                     {
                         throttleSentPeriod += item.Packet.ToBytes().Length;
                         CloudthrottleSentPeriod += item.Packet.ToBytes().Length;
@@ -303,7 +303,7 @@ namespace OpenSim.Region.ClientStack
                     }
                     break;
                 case ThrottleOutPacketType.Wind:
-                    if (WindthrottleSentPeriod <= WindthrottleOutbound && WindOutgoingPacketQueue.Count == 0)
+                    if (WindthrottleSentPeriod <= ((int)(WindthrottleOutbound / throttleTimeDivisor)) && WindOutgoingPacketQueue.Count == 0)
                     {
                         throttleSentPeriod += item.Packet.ToBytes().Length;
                         WindthrottleSentPeriod += item.Packet.ToBytes().Length;
