@@ -783,7 +783,7 @@ namespace OpenSim.Region.ClientStack
 
                     case PacketType.AgentThrottle:
 
-                        OpenSim.Framework.Console.MainLog.Instance.Verbose("CLIENT", "unhandled packet " + Pack.ToString());
+                        //OpenSim.Framework.Console.MainLog.Instance.Verbose("CLIENT", "unhandled packet " + Pack.ToString());
 
                         AgentThrottlePacket atpack = (AgentThrottlePacket)Pack;
 
@@ -825,6 +825,7 @@ namespace OpenSim.Region.ClientStack
                         tAsset = (int)BitConverter.ToSingle(throttle, j);
 
                         tall = tResend + tLand + tWind + tCloud + tTask + tTexture + tAsset;
+                        /*
                         OpenSim.Framework.Console.MainLog.Instance.Verbose("CLIENT", "Client AgentThrottle - Got throttle:resendbytes=" + tResend +
                             " landbytes=" + tLand +
                             " windbytes=" + tWind +
@@ -833,6 +834,8 @@ namespace OpenSim.Region.ClientStack
                             " texturebytes=" + tTexture +
                             " Assetbytes=" + tAsset +
                             " Allbytes=" + tall);
+                         */
+
                         // Total Sanity
                         // Make sure that the client sent sane total values.
 
@@ -896,7 +899,7 @@ namespace OpenSim.Region.ClientStack
                             if (tAsset < AssetthrottleMin)
                                 AssetthrottleOutbound = AssetthrottleMin;
 
-                            OpenSim.Framework.Console.MainLog.Instance.Verbose("THROTTLE", "Using:resendbytes=" + ResendthrottleOutbound +
+                          /*  OpenSim.Framework.Console.MainLog.Instance.Verbose("THROTTLE", "Using:resendbytes=" + ResendthrottleOutbound +
                             " landbytes=" + LandthrottleOutbound +
                             " windbytes=" + WindthrottleOutbound +
                             " cloudbytes=" + CloudthrottleOutbound +
@@ -904,6 +907,7 @@ namespace OpenSim.Region.ClientStack
                             " texturebytes=" + TexturethrottleOutbound +
                             " Assetbytes=" + AssetthrottleOutbound +
                             " Allbytes=" + tall);
+                           */
                         }
                         else
                         {
@@ -1006,7 +1010,7 @@ namespace OpenSim.Region.ClientStack
                                 if (tAssetResult < AssetthrottleMin)
                                     AssetthrottleOutbound = AssetthrottleMin;
 
-                                OpenSim.Framework.Console.MainLog.Instance.Verbose("THROTTLE", "Using:resendbytes=" + ResendthrottleOutbound +
+                                /* OpenSim.Framework.Console.MainLog.Instance.Verbose("THROTTLE", "Using:resendbytes=" + ResendthrottleOutbound +
                                     " landbytes=" + LandthrottleOutbound +
                                     " windbytes=" + WindthrottleOutbound +
                                     " cloudbytes=" + CloudthrottleOutbound +
@@ -1014,6 +1018,7 @@ namespace OpenSim.Region.ClientStack
                                     " texturebytes=" + TexturethrottleOutbound +
                                     " Assetbytes=" + AssetthrottleOutbound +
                                     " Allbytes=" + tall);
+                                  */
 
                             }
                             else

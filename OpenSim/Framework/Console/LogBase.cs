@@ -238,9 +238,16 @@ namespace OpenSim.Framework.Console
             {
                 string now = DateTime.Now.ToString("[MM-dd hh:mm:ss] ");
                 Log.Write(now);
-                Log.WriteLine(format, args);
-                Log.Flush();
+                try
+                {
+                    Log.WriteLine(format, args);
+                    Log.Flush();
+                }
 
+                catch (FormatException FE)
+                {
+                    System.Console.WriteLine(args);
+                }
                 System.Console.Write(now);
                 try
                 {
@@ -255,6 +262,12 @@ namespace OpenSim.Framework.Console
                     // Some older systems dont support coloured text.
                     System.Console.WriteLine(format, args);
                 }
+                 catch (System.FormatException)
+                {
+                    // Some older systems dont support coloured text.
+                    System.Console.WriteLine(args);
+                }
+                
                 return;
             }
         }

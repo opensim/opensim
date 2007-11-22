@@ -96,7 +96,7 @@ namespace OpenSim.Region.ClientStack
         // TODO: Make this variable. Lower throttle on un-ack. Raise over time
 
         // All throttle times and number of bytes are calculated by dividing by this value
-        private int throttleTimeDivisor = 5;
+        private int throttleTimeDivisor = 7;
 
         private int throttletimems = 1000;
 
@@ -208,7 +208,7 @@ namespace OpenSim.Region.ClientStack
             // The General overhead of the UDP protocol gets sent to the queue un-throttled by this
             // so This'll pick up about around the right time.
 
-            int MaxThrottleLoops = 5550; // 50*7 packets can be dequeued at once.
+            int MaxThrottleLoops = 4550; // 50*7 packets can be dequeued at once.
             int throttleLoops = 0;
 
             // We're going to dequeue all of the saved up packets until 
