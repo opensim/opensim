@@ -459,9 +459,6 @@ namespace OpenSim.Framework.Data.MySQL
 
         private SceneObjectPart buildPrim(DataRow row)
         {
-            // TODO: this doesn't work yet because something more
-            // interesting has to be done to actually get these values
-            // back out.  Not enough time to figure it out yet.
             SceneObjectPart prim = new SceneObjectPart();
             prim.UUID = new LLUUID((String)row["UUID"]);
             // explicit conversion of integers is required, which sort
