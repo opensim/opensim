@@ -80,7 +80,7 @@ namespace libTerrain
                 {
                     if (min != max)
                     {
-                        double val = (map[x, y] - min)*(1.0/max - min);
+                        double val = (map[x, y] - min)*(1.0/(max - min));
                         val *= maxv - minv;
                         val += minv;
 
