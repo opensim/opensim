@@ -862,7 +862,7 @@ namespace OpenSim.Region.Environment.Scenes
 
             newAvatar = m_innerScene.CreateAndAddScenePresence(client, child, wearables, visualParams);
 
-            if (!newAvatar.IsChildAgent)
+            if (newAvatar.IsChildAgent)
             {
                 newAvatar.OnSignificantClientMovement += m_LandManager.handleSignificantClientMovement;
             }
