@@ -249,6 +249,7 @@ namespace OpenSim.Region.Environment.Scenes
         protected virtual void RegisterDefaultSceneEvents()
         {
             m_eventManager.OnParcelPrimCountAdd += m_LandManager.addPrimToLandPrimCounts;
+            m_eventManager.OnParcelPrimCountUpdate += this.addPrimsToParcelCounts;
             m_eventManager.OnPermissionError += SendPermissionAlert;
         }
 
@@ -1135,6 +1136,18 @@ namespace OpenSim.Region.Environment.Scenes
             m_eventManager.TriggerParcelPrimCountUpdate();
             m_LandManager.finalizeLandPrimCountUpdate();
             m_LandManager.landPrimCountTainted = false;
+        }
+
+
+        public void addPrimsToParcelCounts()
+        {
+            foreach (EntityBase obj in Entities.Values)
+            {
+                if (obj is SceneObjectGroup)
+                {
+                    m_eventManager.TriggerParcelPrimCountAdd((SceneObjectGroup)obj);
+                }
+            }
         }
 
         #endregion
