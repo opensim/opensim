@@ -333,15 +333,9 @@ namespace OpenSim.Framework.Communications.Cache
                         {
                             AssetRequest req = RequestedTextures[image.FullID];
                             req.ImageInfo = image;
-                            if (image.Data.LongLength > 600)
-                            {
-                                //over 600 bytes so split up file
-                                req.NumPackets = 2 + (int) (image.Data.Length - 601)/1000;
-                            }
-                            else
-                            {
-                                req.NumPackets = 1;
-                            }
+
+                            req.NumPackets = CalculateNumPackets(image.Data.Length);
+
                             RequestedTextures.Remove(image.FullID);
                             TextureRequests.Add(req);
                         }
@@ -625,22 +619,29 @@ namespace OpenSim.Framework.Communications.Cache
             req.ImageInfo = imag;
             req.DiscardLevel = discard;
 
-            if (imag.Data.LongLength > 600)
-            {
-                //Console.WriteLine("{0}", imag.Data.LongLength);
-                //over 600 bytes so split up file
-                req.NumPackets = 2 + (int) (imag.Data.Length - 601)/1000;
-                //Console.WriteLine("texture is " + imag.Data.Length + " which we will send in " +req.NumPackets +" packets");
-            }
-            else
-            {
-                req.NumPackets = 1;
-            }
+            req.NumPackets = CalculateNumPackets(imag.Data.Length);
+
             if (packetNumber != 0)
             {
                 req.PacketCounter = (int) packetNumber;
             }
+
             TextureRequests.Add(req);
+        }
+
+        private int CalculateNumPackets(int length)
+        {
+            int numPackets = 1;
+            
+            if (length > 600)
+            {
+                //over 600 bytes so split up file
+                int restData = (length - 600);
+                int restPackets = ((restData+999)/1000);
+                numPackets = 1 + restPackets;
+            }
+
+            return numPackets;
         }
 
         #endregion
