@@ -535,6 +535,91 @@ namespace OpenSim.Region.Environment.Scenes
             serializer.Serialize(xmlWriter, this);
         }
 
+        public EntityIntersection testIntersection(Ray iray, Quaternion parentrot)
+        {
+
+            //Sphere dummysphere = new Sphere();
+
+            EntityIntersection returnresult = new EntityIntersection();
+            Vector3 vAbsolutePosition = new Vector3(AbsolutePosition.X, AbsolutePosition.Y, AbsolutePosition.Z);
+            Vector3 vScale = new Vector3(Scale.X, Scale.Y, Scale.Z);
+            Quaternion qRotation = new Quaternion(RotationOffset.W, RotationOffset.X, RotationOffset.Y, RotationOffset.Z);
+
+
+
+            Quaternion worldRotation = (qRotation * parentrot);
+            Matrix3 worldRotM = worldRotation.ToRotationMatrix();
+
+            
+            
+            Vector3 rOrigin = iray.Origin;
+            Vector3 rDirection = iray.Direction;
+
+           
+
+            Vector3 r2ndDirection = rDirection * rDirection;
+
+            float itestPart1 = r2ndDirection.x + r2ndDirection.y + r2ndDirection.z;
+
+            Vector3 tmVal2 = rOrigin - vAbsolutePosition;
+
+            Vector3 r2Direction = rDirection * 2.0f;
+            Vector3 tmVal3 = r2Direction * tmVal2;
+
+            float itestPart2 = tmVal3.x + tmVal3.y + tmVal3.z;
+
+            Vector3 tmVal4 = rOrigin * rOrigin;
+            Vector3 tmVal5 = vAbsolutePosition * vAbsolutePosition;
+
+            Vector3 tmVal6 = vAbsolutePosition * rOrigin;
+
+            float radius = 0f;
+            if (vScale.x > radius) 
+                radius = vScale.x;
+            if (vScale.y > radius)
+                radius = vScale.y;
+            if (vScale.z > radius)
+                radius = vScale.z;
+
+            //radius = radius;
+
+            float itestPart3 = tmVal4.x + tmVal4.y + tmVal4.z + tmVal5.x + tmVal5.y + tmVal5.z -(2.0f * (tmVal6.x + tmVal6.y + tmVal6.z + (radius * radius)));
+            
+            // Yuk Quadradrics
+            float rootsqr = (itestPart2 * itestPart2) - (4.0f * itestPart1 * itestPart3);
+            if (rootsqr < 0.0f)
+            {
+
+                return returnresult;
+            }
+            float root = ((-itestPart2) - (float)Math.Sqrt((double)rootsqr)) / (itestPart1 * 2.0f);
+
+            if (root < 0.0f)
+            {
+                // perform second quadratic root solution
+                root = ((-itestPart2) + (float)Math.Sqrt((double)rootsqr)) / (itestPart1 * 2.0f);
+
+                // is there any intersection?
+                if (root < 0.0f)
+                {
+
+                    return returnresult;
+                }
+            }
+
+            Vector3 ipoint = new Vector3(iray.Origin.x + (iray.Direction.x * root),iray.Origin.y + (iray.Direction.y * root),iray.Origin.z + (iray.Direction.z * root));
+
+            returnresult.HitTF = true;
+            returnresult.ipoint = ipoint;
+            Vector3 normalpart = ipoint-vAbsolutePosition;
+            returnresult.normal = normalpart.Normalize();
+            returnresult.distance = ParentGroup.m_scene.m_innerScene.Vector3Distance(iray.Origin, ipoint);
+
+            return returnresult;
+        }
+
+
+
         /// <summary>
         /// 
         /// </summary>

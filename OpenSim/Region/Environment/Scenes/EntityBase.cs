@@ -145,6 +145,31 @@ namespace OpenSim.Region.Environment.Scenes
             return (EntityBase) MemberwiseClone();
         }
 
+        
+
         public abstract void SetText(string text, Vector3 color, double alpha);
+    }
+
+    //Nested Classes
+    public class EntityIntersection
+    {
+        public Vector3 ipoint = new Vector3(0, 0, 0);
+        public float normal = 0;
+        public bool HitTF = false;
+        public SceneObjectPart obj;
+        public float distance = 0;
+
+        public EntityIntersection()
+        {
+
+            
+        }
+        public EntityIntersection(Vector3 _ipoint, float _normal, bool _HitTF)
+        {
+            ipoint = _ipoint;
+            normal = _normal;
+            HitTF = _HitTF;
+        }
+
     }
 }

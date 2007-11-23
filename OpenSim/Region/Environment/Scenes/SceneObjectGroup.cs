@@ -353,6 +353,44 @@ namespace OpenSim.Region.Environment.Scenes
             }
         }
 
+        public EntityIntersection testIntersection(Ray hRay)
+        {
+            EntityIntersection returnresult = new EntityIntersection();
+            bool gothit = false;
+            foreach (SceneObjectPart part in m_parts.Values)
+            {
+                SceneObjectPart returnThisPart = null;
+                Vector3 partPosition = new Vector3(part.AbsolutePosition.X,part.AbsolutePosition.Y,part.AbsolutePosition.Z);
+                Quaternion parentrotation = new Quaternion(GroupRotation.W,GroupRotation.X,GroupRotation.Y,GroupRotation.Z);
+                EntityIntersection inter = part.testIntersection(hRay,parentrotation);
+                                
+                float idist = 256f;
+                
+
+
+
+                if (inter.HitTF) {
+                    // We need to find the closest prim to return to the testcaller along the ray
+                    if (inter.distance < idist) {
+                        
+                        idist = inter.distance;
+                        returnresult.HitTF = true;
+                        returnresult.ipoint = inter.ipoint;
+                        returnresult.obj = part;
+                        returnresult.normal = inter.normal;
+                        returnresult.distance = inter.distance;
+                        gothit = true;
+                    }
+                }
+                
+                
+            }
+            return returnresult;
+
+        }
+        
+
+
         /// <summary>
         /// 
         /// </summary>

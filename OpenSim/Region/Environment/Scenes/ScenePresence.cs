@@ -147,6 +147,11 @@ namespace OpenSim.Region.Environment.Scenes
             get { return m_regionHandle; }
         }
 
+        public Vector3 CameraPosition
+        {
+            get { return m_CameraCenter; }
+        }
+
         private readonly string m_firstname;
 
         public string Firstname

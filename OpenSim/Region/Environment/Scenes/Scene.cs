@@ -635,8 +635,52 @@ namespace OpenSim.Region.Environment.Scenes
         /// <param name="ownerID"></param>
         public void AddNewPrim(LLUUID ownerID, LLVector3 pos, LLQuaternion rot, PrimitiveBaseShape shape)
         {
+
+            // What we're *supposed* to do is raytrace from the camera position given by the client to the nearest collision
+            // in the direction the client supplies (the ground level that we clicked)
+            // This function is pretty crappy right now..  so we're not affecting where the newly rezzed objects go
+            // Test it if you like.  The console will write where it guesses a collision took place. if it thinks one did.
+            // It's wrong many times though.
+
             if (PermissionsMngr.CanRezObject(ownerID, pos))
             {
+                Vector3 CameraPosition = ((ScenePresence)GetScenePresence(ownerID)).CameraPosition;
+                Vector3 rayEnd = new Vector3(pos.X, pos.Y, pos.Z);
+
+                float raydistance = m_innerScene.Vector3Distance(CameraPosition, rayEnd);
+
+                Vector3 rayDirection = new Vector3(rayEnd.x / raydistance, rayEnd.y / raydistance, rayEnd.z / raydistance);
+
+                Ray rezRay = new Ray(CameraPosition, rayDirection);
+
+
+                Vector3 RezDirectionFromCamera = rezRay.Direction;
+
+                EntityIntersection rayTracing = m_innerScene.GetClosestIntersectingPrim(rezRay);
+
+                if (rayTracing.HitTF)
+                {
+                    // We raytraced and found a prim in the way of the ground..  so 
+                    // We will rez the object somewhere close to the prim.  Better math needed. This is a Stub
+                    //Vector3 Newpos = new Vector3(rayTracing.obj.AbsolutePosition.X,rayTracing.obj.AbsolutePosition.Y,rayTracing.obj.AbsolutePosition.Z);
+                    Vector3 Newpos = rayTracing.ipoint;
+                    Vector3 NewScale = new Vector3(rayTracing.obj.Scale.X,rayTracing.obj.Scale.Y,rayTracing.obj.Scale.Z);
+                    
+                    Quaternion ParentRot = rayTracing.obj.ParentGroup.Rotation;
+                    //Quaternion ParentRot = new Quaternion(primParentRot.W,primParentRot.X,primParentRot.Y,primParentRot.Z);
+
+                    LLQuaternion primLocalRot = rayTracing.obj.RotationOffset;
+                    Quaternion LocalRot = new Quaternion(primLocalRot.W,primLocalRot.X,primLocalRot.Y,primLocalRot.Z);
+
+                    Quaternion NewRot = LocalRot * ParentRot;
+
+                    Vector3 RezPoint = Newpos;
+
+                    MainLog.Instance.Verbose("REZINFO","Possible Rez Point:" + RezPoint.ToString());
+                    //pos = new LLVector3(RezPoint.x, RezPoint.y, RezPoint.z);
+
+                }
+                
                 SceneObjectGroup sceneOb =
                     new SceneObjectGroup(this, m_regionHandle, ownerID, PrimIDAllocate(), pos, rot, shape);
                 AddEntity(sceneOb);

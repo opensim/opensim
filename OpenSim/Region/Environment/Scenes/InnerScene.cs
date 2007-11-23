@@ -253,6 +253,33 @@ namespace OpenSim.Region.Environment.Scenes
             return null;
         }
 
+        public EntityIntersection GetClosestIntersectingPrim(Ray hray)
+        {
+            // Primitive Ray Tracing
+            bool gothit = false;
+            float closestDistance = 280f;
+            EntityIntersection returnResult = new EntityIntersection();
+            foreach (EntityBase ent in Entities.Values)
+            {
+                if (ent is SceneObjectGroup)
+                {
+                    SceneObjectGroup reportingG = (SceneObjectGroup)ent;
+                    EntityIntersection result = reportingG.testIntersection(hray);
+                    if (result.HitTF)
+                    {
+                        if (result.distance < closestDistance)
+                        {
+                            gothit = true;
+                            closestDistance = result.distance;
+                            returnResult = result;
+                        }
+                    }
+                }
+
+            }
+            return returnResult;
+        }
+
         public SceneObjectPart GetSceneObjectPart(uint localID)
         {
             SceneObjectGroup group = GetGroupByPrim(localID);
