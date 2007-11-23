@@ -706,17 +706,16 @@ namespace OpenSim
                     break;
 
                 case "export-map":
-                    if (m_sceneManager.CurrentScene != null)
-                    {
+                   
                         if (cmdparams.Length > 0)
                         {
-                            m_sceneManager.CurrentScene.ExportWorldMap(cmdparams[0]);
+                            m_sceneManager.CurrentOrFirstScene.ExportWorldMap(cmdparams[0]);
                         }
                         else
                         {
-                            m_sceneManager.CurrentScene.ExportWorldMap("exportmap.jpg");
+                            m_sceneManager.CurrentOrFirstScene.ExportWorldMap("exportmap.jpg");
                         }
-                    }
+                   
                     break;
 
                 default:
