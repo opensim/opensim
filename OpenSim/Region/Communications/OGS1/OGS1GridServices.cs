@@ -381,6 +381,7 @@ namespace OpenSim.Region.Communications.OGS1
         
         public bool InformRegionOfChildAgent(ulong regionHandle, AgentCircuitData agentData)
         {
+            RegionInfo regInfo = null;
             try
             {
                 if (m_localBackend.InformRegionOfChildAgent(regionHandle, agentData))
@@ -388,7 +389,7 @@ namespace OpenSim.Region.Communications.OGS1
                     return true;
                 }
 
-                RegionInfo regInfo = RequestNeighbourInfo(regionHandle);
+                regInfo = RequestNeighbourInfo(regionHandle);
                 if (regInfo != null)
                 {
                     //don't want to be creating a new link to the remote instance every time like we are here
@@ -419,27 +420,32 @@ namespace OpenSim.Region.Communications.OGS1
             }
             catch (RemotingException e)
             {
-                MainLog.Instance.Error("Remoting Error: Unable to connect to remote region.\n" + e.ToString());
+                MainLog.Instance.Warn("Remoting Error: Unable to connect to adjacent region: " + regInfo.RegionName + " " + regInfo.RegionLocX + "," + regInfo.RegionLocY);
+                MainLog.Instance.Debug(e.ToString());
                 return false;
             }
             catch (SocketException e)
             {
-                MainLog.Instance.Error("Socket Error: Unable to connect to remote region.\n" + e.ToString());
+                MainLog.Instance.Warn("Socket Error: Unable to connect to adjacent region: " + regInfo.RegionName + " " + regInfo.RegionLocX + "," + regInfo.RegionLocY);
+                MainLog.Instance.Debug(e.ToString());
                 return false;
             }
             catch (InvalidCredentialException e)
             {
-                MainLog.Instance.Error("Invalid Credentials: Unable to connect to remote region.\n" + e.ToString());
+                MainLog.Instance.Warn("Invalid Credentials: Unable to connect to adjacent region: " + regInfo.RegionName + " " + regInfo.RegionLocX + "," + regInfo.RegionLocY);
+                MainLog.Instance.Debug(e.ToString());
                 return false;
             }
             catch (AuthenticationException e)
             {
-                MainLog.Instance.Error("Authentication exception: Unable to connect to remote region.\n" + e.ToString());
+                MainLog.Instance.Warn("Authentication exception: Unable to connect to adjacent region: " + regInfo.RegionName + " " + regInfo.RegionLocX + "," + regInfo.RegionLocY);
+                MainLog.Instance.Debug(e.ToString());
                 return false;
             }
             catch (Exception e)
             {
-                MainLog.Instance.Error("Unknown exception: Unable to connect to remote region.\n" + e.ToString());
+                MainLog.Instance.Warn("Unknown exception: Unable to connect to adjacent region: " + regInfo.RegionName + " " + regInfo.RegionLocX + "," + regInfo.RegionLocY);
+                MainLog.Instance.Debug(e.ToString());
                 return false;
             }
             return true;
@@ -453,6 +459,7 @@ namespace OpenSim.Region.Communications.OGS1
         
         public bool InformRegionOfPrimCrossing(ulong regionHandle, LLUUID primID, string objData)
         {
+            RegionInfo regInfo = null;
             try
             {
                 if (m_localBackend.InformRegionOfPrimCrossing(regionHandle,primID, objData))
@@ -460,7 +467,7 @@ namespace OpenSim.Region.Communications.OGS1
                     return true;
                 }
 
-                RegionInfo regInfo = RequestNeighbourInfo(regionHandle);
+                regInfo = RequestNeighbourInfo(regionHandle);
                 if (regInfo != null)
                 {
                     //don't want to be creating a new link to the remote instance every time like we are here
@@ -491,27 +498,32 @@ namespace OpenSim.Region.Communications.OGS1
             }
             catch (RemotingException e)
             {
-                MainLog.Instance.Error("Remoting Error: Unable to connect to remote region.\n" + e.ToString());
+                MainLog.Instance.Warn("Remoting Error: Unable to connect to adjacent region: " + regInfo.RegionName + " " + regInfo.RegionLocX + "," + regInfo.RegionLocY);
+                MainLog.Instance.Debug(e.ToString());
                 return false;
             }
             catch (SocketException e)
             {
-                MainLog.Instance.Error("Socket Error: Unable to connect to remote region.\n" + e.ToString());
+                MainLog.Instance.Warn("Socket Error: Unable to connect to adjacent region: " + regInfo.RegionName + " " + regInfo.RegionLocX + "," + regInfo.RegionLocY);
+                MainLog.Instance.Debug(e.ToString());
                 return false;
             }
             catch (InvalidCredentialException e)
             {
-                MainLog.Instance.Error("Invalid Credentials: Unable to connect to remote region.\n" + e.ToString());
+                MainLog.Instance.Warn("Invalid Credentials: Unable to connect to adjacent region: " + regInfo.RegionName + " " + regInfo.RegionLocX + "," + regInfo.RegionLocY);
+                MainLog.Instance.Debug(e.ToString());
                 return false;
             }
             catch (AuthenticationException e)
             {
-                MainLog.Instance.Error("Authentication exception: Unable to connect to remote region.\n" + e.ToString());
+                MainLog.Instance.Warn("Authentication exception: Unable to connect to adjacent region: " + regInfo.RegionName + " " + regInfo.RegionLocX + "," + regInfo.RegionLocY);
+                MainLog.Instance.Debug(e.ToString());
                 return false;
             }
             catch (Exception e)
             {
-                MainLog.Instance.Error("Unknown exception: Unable to connect to remote region.\n" + e.ToString());
+                MainLog.Instance.Warn("Unknown exception: Unable to connect to adjacent region: " + regInfo.RegionName + " " + regInfo.RegionLocX + "," + regInfo.RegionLocY);
+                MainLog.Instance.Debug(e.ToString());
                 return false;
             }
             return true;
@@ -525,6 +537,7 @@ namespace OpenSim.Region.Communications.OGS1
         /// <returns></returns>
         public bool ExpectAvatarCrossing(ulong regionHandle, LLUUID agentID, LLVector3 position, bool isFlying)
         {
+            RegionInfo regInfo = null;
             try
             {
                 if (m_localBackend.TriggerExpectAvatarCrossing(regionHandle, agentID, position, isFlying))
@@ -532,7 +545,7 @@ namespace OpenSim.Region.Communications.OGS1
                     return true;
                 }
 
-                RegionInfo regInfo = RequestNeighbourInfo(regionHandle);
+                regInfo = RequestNeighbourInfo(regionHandle);
                 if (regInfo != null)
                 {
                     bool retValue = false;
@@ -559,7 +572,8 @@ namespace OpenSim.Region.Communications.OGS1
             }
             catch (RemotingException e)
             {
-                MainLog.Instance.Error("Remoting Error: Unable to connect to remote region.\n" + e.ToString());
+                MainLog.Instance.Warn("Remoting Error: Unable to connect to adjacent region: " + regInfo.RegionName + " " + regInfo.RegionLocX + "," + regInfo.RegionLocY);
+                MainLog.Instance.Debug(e.ToString());
                 return false;
             }
             catch
@@ -569,6 +583,7 @@ namespace OpenSim.Region.Communications.OGS1
         }
         public bool ExpectPrimCrossing(ulong regionHandle, LLUUID agentID, LLVector3 position, bool isPhysical)
         {
+            RegionInfo regInfo = null;
             try
             {
                 if (m_localBackend.TriggerExpectPrimCrossing(regionHandle, agentID, position, isPhysical))
@@ -576,7 +591,7 @@ namespace OpenSim.Region.Communications.OGS1
                     return true;
                 }
 
-                RegionInfo regInfo = RequestNeighbourInfo(regionHandle);
+                regInfo = RequestNeighbourInfo(regionHandle);
                 if (regInfo != null)
                 {
                     bool retValue = false;
@@ -603,7 +618,8 @@ namespace OpenSim.Region.Communications.OGS1
             }
             catch (RemotingException e)
             {
-                MainLog.Instance.Error("Remoting Error: Unable to connect to remote region.\n" + e.ToString());
+                MainLog.Instance.Warn("Remoting Error: Unable to connect to adjacent region: " + regInfo.RegionName + " " + regInfo.RegionLocX + "," + regInfo.RegionLocY);
+                MainLog.Instance.Debug(e.ToString());
                 return false;
             }
             catch
@@ -644,7 +660,7 @@ namespace OpenSim.Region.Communications.OGS1
             }
             catch (RemotingException e)
             {
-                MainLog.Instance.Error("Remoting Error: Unable to connect to remote region.\n" + e.ToString());
+                MainLog.Instance.Error("Remoting Error: Unable to connect to adjacent region.\n" + e.ToString());
                 return false;
             }
         }
@@ -666,7 +682,7 @@ namespace OpenSim.Region.Communications.OGS1
             }
             catch (RemotingException e)
             {
-                MainLog.Instance.Error("Remoting Error: Unable to connect to remote region.\n" + e.ToString());
+                MainLog.Instance.Error("Remoting Error: Unable to connect to adjacent region.\n" + e.ToString());
                 return false;
             }
         }
@@ -685,7 +701,7 @@ namespace OpenSim.Region.Communications.OGS1
             }
             catch (RemotingException e)
             {
-                MainLog.Instance.Error("Remoting Error: Unable to connect to remote region.\n" + e.ToString());
+                MainLog.Instance.Error("Remoting Error: Unable to connect to adjacent region.\n" + e.ToString());
                 return false;
             }
         }
@@ -697,7 +713,7 @@ namespace OpenSim.Region.Communications.OGS1
             }
             catch (RemotingException e)
             {
-                MainLog.Instance.Error("Remoting Error: Unable to connect to remote region.\n" + e.ToString());
+                MainLog.Instance.Error("Remoting Error: Unable to connect to adjacent region.\n" + e.ToString());
                 return false;
             }
         }
