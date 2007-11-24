@@ -830,6 +830,7 @@ namespace OpenSim.Region.Environment.Scenes
                 new ParcelObjectOwnerRequest(m_LandManager.handleParcelObjectOwnersRequest);
 
             client.OnEstateOwnerMessage += new EstateOwnerMessageRequest(m_estateManager.handleEstateOwnerMessage);
+            client.OnRequestGodlikePowers += handleRequestGodlikePowers;
 
             client.OnCreateNewInventoryItem += CreateNewInventoryItem;
             client.OnCreateNewInventoryFolder += CommsManager.UserProfileCache.HandleCreateInventoryFolder;
@@ -1175,6 +1176,37 @@ namespace OpenSim.Region.Environment.Scenes
             {
                 m_scenePresences[agentID].ControllingClient.SendAgentAlertMessage(message, modal);
             }
+        }
+
+        public void handleRequestGodlikePowers(LLUUID agentID, LLUUID sessionID, LLUUID token, IClientAPI controllingclient)
+        {
+            // First check that this is the sim owner
+
+            if (agentID == RegionInfo.MasterAvatarAssignedUUID)
+            {
+
+                // User needs to be logged into this sim
+                if (m_scenePresences.ContainsKey(agentID))
+                {
+                    // Next we check for spoofing.....
+                    LLUUID testSessionID = m_scenePresences[agentID].ControllingClient.SessionId;
+                    if (sessionID == testSessionID)
+                    {
+                        if (sessionID == controllingclient.SessionId)
+                        {
+                            m_scenePresences[agentID].GrantGodlikePowers(agentID, testSessionID, token);
+
+                        }
+
+                    }
+
+                }
+            }
+            else
+            {
+                m_scenePresences[agentID].ControllingClient.SendAgentAlertMessage("Request for god powers denied", false);
+            }
+
         }
 
         public void SendAlertToUser(string firstName, string lastName, string message, bool modal)

@@ -267,6 +267,8 @@ namespace OpenSim.Framework
 
     public delegate void AddNewPrim(LLUUID ownerID, LLVector3 pos, LLQuaternion rot, PrimitiveBaseShape shape);
 
+    public delegate void RequestGodlikePowers(LLUUID AgentID, LLUUID SessionID, LLUUID token, IClientAPI remote_client);
+
     public delegate void CreateInventoryFolder(
         IClientAPI remoteClient, LLUUID folderID, ushort folderType, string folderName, LLUUID parentID);
 
@@ -329,6 +331,9 @@ namespace OpenSim.Framework
         event AvatarPickerRequest OnAvatarPickerRequest;
         event Action<IClientAPI> OnRequestAvatarsData;
         event AddNewPrim OnAddPrim;
+
+        event RequestGodlikePowers OnRequestGodlikePowers;
+
         event ObjectDuplicate OnObjectDuplicate;
         event UpdateVector OnGrabObject;
         event ObjectSelect OnDeGrabObject;

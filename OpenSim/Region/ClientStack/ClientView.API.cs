@@ -65,6 +65,7 @@ namespace OpenSim.Region.ClientStack
         public event ObjectDuplicate OnObjectDuplicate;
         public event MoveObject OnGrabUpdate;
         public event AddNewPrim OnAddPrim;
+        public event RequestGodlikePowers OnRequestGodlikePowers;
         public event ObjectExtraParams OnUpdateExtraParams;
         public event UpdateShape OnUpdatePrimShape;
         public event ObjectSelect OnObjectSelect;
@@ -246,7 +247,7 @@ namespace OpenSim.Region.ClientStack
 
             OutPacket(reply, ThrottleOutPacketType.Task);
         }
-
+        
         /// <summary>
         /// 
         /// </summary>

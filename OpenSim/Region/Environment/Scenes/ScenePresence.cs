@@ -1233,6 +1233,25 @@ namespace OpenSim.Region.Environment.Scenes
             ControllingClient.OutPacket(kupack, ThrottleOutPacketType.Task);
 
         }
+        public void GrantGodlikePowers(LLUUID agentID, LLUUID sessionID, LLUUID token)
+        {
+            GrantGodlikePowersPacket respondPacket = new GrantGodlikePowersPacket();
+            GrantGodlikePowersPacket.GrantDataBlock gdb = new GrantGodlikePowersPacket.GrantDataBlock();
+            GrantGodlikePowersPacket.AgentDataBlock adb = new GrantGodlikePowersPacket.AgentDataBlock();
+
+            adb.AgentID = agentID;
+            adb.SessionID = sessionID; // More security
+
+            gdb.GodLevel = (byte)100;
+            gdb.Token = token;
+            //respondPacket.AgentData = (GrantGodlikePowersPacket.AgentDataBlock)ablock;
+            respondPacket.GrantData = gdb;
+            respondPacket.AgentData = adb;
+            ControllingClient.OutPacket(respondPacket, ThrottleOutPacketType.Task);
+
+
+
+        }
         /// <summary>
         /// 
         /// </summary>

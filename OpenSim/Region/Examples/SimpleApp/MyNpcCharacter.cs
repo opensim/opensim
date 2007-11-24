@@ -75,6 +75,7 @@ namespace SimpleApp
         public event AvatarPickerRequest OnAvatarPickerRequest;
         public event Action<IClientAPI> OnRequestAvatarsData;
         public event AddNewPrim OnAddPrim;
+        public event RequestGodlikePowers OnRequestGodlikePowers;
         public event ObjectDuplicate OnObjectDuplicate;
         public event UpdateVector OnGrabObject;
         public event ObjectSelect OnDeGrabObject;

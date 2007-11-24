@@ -1066,25 +1066,13 @@ namespace OpenSim.Region.ClientStack
 
                         #region unimplemented handlers
                     case PacketType.RequestGodlikePowers:
-                        //RequestGodlikePowersPacket rglpPack = (RequestGodlikePowersPacket) Pack;
-                        //RequestGodlikePowersPacket.RequestBlockBlock rblock = rglpPack.RequestBlock;
-                        //LLUUID token = rblock.Token;
-                        //RequestGodlikePowersPacket.AgentDataBlock ablock = rglpPack.AgentData;
+                        RequestGodlikePowersPacket rglpPack = (RequestGodlikePowersPacket) Pack;
+                        RequestGodlikePowersPacket.RequestBlockBlock rblock = rglpPack.RequestBlock;
+                        LLUUID token = rblock.Token;
+                        RequestGodlikePowersPacket.AgentDataBlock ablock = rglpPack.AgentData;
 
+                        OnRequestGodlikePowers(ablock.AgentID, ablock.SessionID, token, this);
                         
-                        //GrantGodlikePowersPacket respondPacket = new GrantGodlikePowersPacket();
-                        //GrantGodlikePowersPacket.GrantDataBlock gdb = new GrantGodlikePowersPacket.GrantDataBlock();
-                        //GrantGodlikePowersPacket.AgentDataBlock adb = new GrantGodlikePowersPacket.AgentDataBlock();
-
-                        //adb.AgentID = ablock.AgentID;
-                        //adb.SessionID = ablock.SessionID;
-
-                        //gdb.GodLevel = (byte)100;
-                        //gdb.Token = token;
-                        //respondPacket.AgentData = (GrantGodlikePowersPacket.AgentDataBlock)ablock;
-                        //respondPacket.GrantData = gdb;
-                        //respondPacket.AgentData = adb;
-                        //OutPacket(respondPacket, ThrottleOutPacketType.Task);
                         break;
                     case PacketType.GodKickUser:
                         //GodKickUserPacket gkupack = (GodKickUserPacket) Pack;
