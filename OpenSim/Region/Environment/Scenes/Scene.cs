@@ -563,7 +563,7 @@ namespace OpenSim.Region.Environment.Scenes
                     Terrain.SetHeights2D(map);
                 }
 
-                CreateTerrainTexture();
+                CreateTerrainTextureInitial();
                 CommsManager.GridService.RegisterRegion(RegionInfo); //hack to update the terrain texture in grid mode so it shows on world map
             }
             catch (Exception e)
@@ -589,6 +589,19 @@ namespace OpenSim.Region.Environment.Scenes
             AssetCache.AddAsset(asset);
         }
 
+        public void CreateTerrainTextureInitial()
+        {
+            //create a texture asset of the terrain 
+            byte[] data = Terrain.ExportJpegImage("defaultstripe.png");
+            m_regInfo.EstateSettings.terrainImageID = LLUUID.Random();
+            AssetBase asset = new AssetBase();
+            asset.FullID = m_regInfo.EstateSettings.terrainImageID;
+            asset.Data = data;
+            asset.Name = "terrainImage";
+            asset.Type = 0;
+            asset.Temporary = false;
+            AssetCache.AddAsset(asset);
+        }
         #endregion
 
         #region Primitives Methods
