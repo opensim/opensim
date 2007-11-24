@@ -909,7 +909,7 @@ namespace OpenSim.Region.Environment.Scenes
                     {
                         client.SendKillObject(avatar.RegionHandle, avatar.LocalId); 
                     }
-                    catch (NullReferenceException NE)
+                    catch (System.NullReferenceException NE)
                     {
                         //We can safely ignore null reference exceptions.  It means the avatar are dead and cleaned up anyway.
 
