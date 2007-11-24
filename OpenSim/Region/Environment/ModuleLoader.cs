@@ -121,7 +121,10 @@ namespace OpenSim.Region.Environment
             IRegionModule module = LoadModule(dllName, moduleName);
             if (module != null)
             {
-                m_loadedSharedModules.Add(module.Name, module);
+                if (!m_loadedSharedModules.ContainsKey(module.Name))
+                {
+                    m_loadedSharedModules.Add(module.Name, module);
+                }
             }
         }
 
@@ -138,6 +141,11 @@ namespace OpenSim.Region.Environment
                     {
                         m_log.Verbose("MODULES", "   [{0}]: Initializing.", module.Name);
                         InitializeModule(module, scene);
+                    }
+                    else
+                    {
+                        m_log.Verbose("MODULES", "   [{0}]: Loading Shared Module.", module.Name);
+                        LoadSharedModule(dllName, module.Name);
                     }
                 }
             }
