@@ -209,7 +209,7 @@ namespace OpenSim.Region.Environment.LandManagement
             int x = Convert.ToInt32(Math.Floor(Convert.ToDouble(x_float)/Convert.ToDouble(4.0)));
             int y = Convert.ToInt32(Math.Floor(Convert.ToDouble(y_float)/Convert.ToDouble(4.0)));
 
-            if (x > 63 || y > 63 || x < 0 || y < 0)
+            if (x >= 64 || y >= 64 || x < 0 || y < 0)
             {
                 throw new Exception("Error: Parcel not found at point " + x + ", " + y);
             }
@@ -222,7 +222,7 @@ namespace OpenSim.Region.Environment.LandManagement
 
         public Land getLandObject(int x, int y)
         {
-            if (x > 256 || y > 256 || x < 0 || y < 0)
+            if (x >= 256 || y >= 256 || x < 0 || y < 0)
             {
                 throw new Exception("Error: Parcel not found at point " + x + ", " + y);
             }
@@ -535,8 +535,8 @@ namespace OpenSim.Region.Environment.LandManagement
 
         public void sendLandUpdate(ScenePresence avatar)
         {
-            Land over = getLandObject((int) Math.Round(avatar.AbsolutePosition.X),
-                                      (int) Math.Round(avatar.AbsolutePosition.Y));
+            Land over = getLandObject((int)Math.Min(255, Math.Max(0, Math.Round(avatar.AbsolutePosition.X))),
+                                      (int)Math.Min(255, Math.Max(0, Math.Round(avatar.AbsolutePosition.Y))));
 
             if (over != null)
             {
