@@ -329,7 +329,7 @@ namespace OpenSim.Framework.Data.MySQL
                 }
                 else
                 {
-                    retval.regionMapTextureID = new LLUUID();
+                    retval.regionMapTextureID = LLUUID.Zero;
                 }
             }
             else

@@ -34,17 +34,17 @@ namespace OpenSim.Framework
         public byte[] landBitmapByteArray = new byte[512];
         public string landName = "Your Parcel";
         public string landDesc = "";
-        public LLUUID ownerID = new LLUUID();
+        public LLUUID ownerID = LLUUID.Zero;
         public bool isGroupOwned = false;
         public LLVector3 AABBMin = new LLVector3();
         public LLVector3 AABBMax = new LLVector3();
         public int area = 0;
         public uint auctionID = 0; //Unemplemented. If set to 0, not being auctioned
-        public LLUUID authBuyerID = new LLUUID(); //Unemplemented. Authorized Buyer's UUID
+        public LLUUID authBuyerID = LLUUID.Zero; //Unemplemented. Authorized Buyer's UUID
         public Parcel.ParcelCategory category = new Parcel.ParcelCategory(); //Unemplemented. Parcel's chosen category
         public int claimDate = 0; //Unemplemented
         public int claimPrice = 0; //Unemplemented
-        public LLUUID groupID = new LLUUID(); //Unemplemented
+        public LLUUID groupID = LLUUID.Zero; //Unemplemented
         public int groupPrims = 0;
         public int otherPrims = 0;
         public int ownerPrims = 0;
@@ -64,7 +64,7 @@ namespace OpenSim.Framework
         public byte mediaAutoScale = 0;
         public LLUUID mediaID = LLUUID.Zero;
         public int localID = 0;
-        public LLUUID globalID = new LLUUID();
+        public LLUUID globalID = LLUUID.Zero;
 
         public string mediaURL = "";
         public string musicURL = "";

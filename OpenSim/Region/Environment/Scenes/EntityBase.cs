@@ -101,7 +101,7 @@ namespace OpenSim.Region.Environment.Scenes
         /// </summary>
         public EntityBase()
         {
-            m_uuid = new LLUUID();
+            m_uuid = LLUUID.Zero;
 
             m_pos = new LLVector3();
             m_velocity = new LLVector3();

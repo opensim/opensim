@@ -66,7 +66,7 @@ namespace OpenSim.Framework
             m_internalEndPoint = new IPEndPoint(IPAddress.Parse("0.0.0.0"), port);
         }
 
-        public LLUUID RegionID = new LLUUID();
+        public LLUUID RegionID = LLUUID.Zero;
 
         private uint m_remotingPort;
         public uint RemotingPort
@@ -191,7 +191,7 @@ namespace OpenSim.Framework
         public string DataStore = "";
         public bool isSandbox = false;
 
-        public LLUUID MasterAvatarAssignedUUID = new LLUUID();
+        public LLUUID MasterAvatarAssignedUUID = LLUUID.Zero;
         public string MasterAvatarFirstName = "";
         public string MasterAvatarLastName = "";
         public string MasterAvatarSandboxPassword = "";

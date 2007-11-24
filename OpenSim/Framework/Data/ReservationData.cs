@@ -31,7 +31,7 @@ namespace OpenSim.Framework.Data
 {
     public class ReservationData
     {
-        public LLUUID userUUID = new LLUUID();
+        public LLUUID userUUID = LLUUID.Zero;
         public int reservationMinX = 0;
         public int reservationMinY = 0;
         public int reservationMaxX = 65536;

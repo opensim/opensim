@@ -129,7 +129,7 @@ namespace OpenSim.Region.Environment.LandManagement
         /// <returns></returns>
         public Land createBaseLand()
         {
-            return new Land(new LLUUID(), false, m_scene);
+            return new Land(LLUUID.Zero, false, m_scene);
         }
 
         /// <summary>

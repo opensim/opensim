@@ -72,7 +72,7 @@ namespace OpenSim.Framework
             AgentID = newAgentID;
             InventoryRoot = new InventoryFolder();
             InventoryRoot.FolderID = LLUUID.Random();
-            InventoryRoot.ParentID = new LLUUID();
+            InventoryRoot.ParentID = LLUUID.Zero;
             InventoryRoot.Version = 1;
             InventoryRoot.DefaultType = 8;
             InventoryRoot.OwnerID = AgentID;

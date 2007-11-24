@@ -342,8 +342,8 @@ namespace OpenSim.Framework.UserManagement
             agent.logoutTime = 0;
 
             // Current location
-            agent.regionID = new LLUUID(); // Fill in later
-            agent.currentRegion = new LLUUID(); // Fill in later
+            agent.regionID = LLUUID.Zero; // Fill in later
+            agent.currentRegion = LLUUID.Zero; // Fill in later
 
             profile.currentAgent = agent;
         }
