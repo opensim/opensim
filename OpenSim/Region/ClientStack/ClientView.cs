@@ -308,7 +308,20 @@ namespace OpenSim.Region.ClientStack
 
             ClientThread.Abort();
         }
+        public void Kick(string message)
+        {
+            KickUserPacket kupack = new KickUserPacket();
 
+            kupack.UserInfo.AgentID = AgentId;
+            kupack.UserInfo.SessionID = SessionId;
+
+            kupack.TargetBlock.TargetIP = (uint)0;
+            kupack.TargetBlock.TargetPort = (ushort)0;
+            kupack.UserInfo.Reason = Helpers.StringToField(message);
+            OutPacket(kupack, ThrottleOutPacketType.Task);
+
+
+        }
         public void Stop()
         {
             clientPingTimer.Stop();

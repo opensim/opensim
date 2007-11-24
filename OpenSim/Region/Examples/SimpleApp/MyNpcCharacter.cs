@@ -76,6 +76,7 @@ namespace SimpleApp
         public event Action<IClientAPI> OnRequestAvatarsData;
         public event AddNewPrim OnAddPrim;
         public event RequestGodlikePowers OnRequestGodlikePowers;
+        public event GodKickUser OnGodKickUser;
         public event ObjectDuplicate OnObjectDuplicate;
         public event UpdateVector OnGrabObject;
         public event ObjectSelect OnDeGrabObject;
@@ -178,6 +179,10 @@ namespace SimpleApp
         }
 
         public virtual void SendAppearance(LLUUID agentID, byte[] visualParams, byte[] textureEntry)
+        {
+        }
+
+        public virtual void Kick(string message)
         {
         }
 

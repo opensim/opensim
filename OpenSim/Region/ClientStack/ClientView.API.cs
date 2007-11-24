@@ -66,6 +66,7 @@ namespace OpenSim.Region.ClientStack
         public event MoveObject OnGrabUpdate;
         public event AddNewPrim OnAddPrim;
         public event RequestGodlikePowers OnRequestGodlikePowers;
+        public event GodKickUser OnGodKickUser;
         public event ObjectExtraParams OnUpdateExtraParams;
         public event UpdateShape OnUpdatePrimShape;
         public event ObjectSelect OnObjectSelect;

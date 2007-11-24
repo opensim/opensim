@@ -257,9 +257,15 @@ namespace OpenSim.Region.Environment.Scenes
         {
             ForEachScenePresence(delegate(ScenePresence avatar)
                                 {
-                                    avatar.Kick("The region is going down.");
-                                    avatar.ControllingClient.Stop();
+                                    avatar.ControllingClient.Kick("The region is going down.");
+                                    
                                 });
+            ForEachScenePresence(delegate(ScenePresence avatar)
+                    {
+                        avatar.ControllingClient.Stop();
+
+                    });
+            
 
             m_heartbeatTimer.Close();
             m_innerScene.Close();
@@ -831,6 +837,7 @@ namespace OpenSim.Region.Environment.Scenes
 
             client.OnEstateOwnerMessage += new EstateOwnerMessageRequest(m_estateManager.handleEstateOwnerMessage);
             client.OnRequestGodlikePowers += handleRequestGodlikePowers;
+            client.OnGodKickUser += handleGodlikeKickUser;
 
             client.OnCreateNewInventoryItem += CreateNewInventoryItem;
             client.OnCreateNewInventoryFolder += CommsManager.UserProfileCache.HandleCreateInventoryFolder;
@@ -883,8 +890,19 @@ namespace OpenSim.Region.Environment.Scenes
             m_eventManager.TriggerOnRemovePresence(agentID);
 
             ScenePresence avatar = GetScenePresence(agentID);
+            
+                Broadcast(delegate(IClientAPI client) { 
+                    try
+                    {
+                        client.SendKillObject(avatar.RegionHandle, avatar.LocalId); 
+                    }
+                    catch (NullReferenceException NE)
+                    {
+                        //We can safely ignore null reference exceptions.  It means the avatar are dead and cleaned up anyway.
 
-            Broadcast(delegate(IClientAPI client) { client.SendKillObject(avatar.RegionHandle, avatar.LocalId); });
+                    }                    
+                });
+
 
             ForEachScenePresence(
                 delegate(ScenePresence presence) { presence.CoarseLocationChange(); });
@@ -1207,6 +1225,51 @@ namespace OpenSim.Region.Environment.Scenes
                 m_scenePresences[agentID].ControllingClient.SendAgentAlertMessage("Request for god powers denied", false);
             }
 
+        }
+
+        public void handleGodlikeKickUser(LLUUID godid, LLUUID sessionid, LLUUID agentid, uint kickflags, byte[] reason)
+        {
+            // For some reason the client sends the seemingly hard coded, 44e87126e7944ded05b37c42da3d5cdb
+            // for kicking everyone.   Dun-know.
+            if (m_scenePresences.ContainsKey(agentid) || agentid == new LLUUID("44e87126e7944ded05b37c42da3d5cdb"))
+            {
+                if (godid == RegionInfo.MasterAvatarAssignedUUID)
+                {
+                    if (agentid == new LLUUID("44e87126e7944ded05b37c42da3d5cdb")) 
+                    {
+                        
+                        ClientManager.ForEachClient(delegate (IClientAPI controller)
+                                            {
+                                                if (controller.AgentId != godid) // Do we really want to kick the initiator of this madness?
+                                                {
+                                                    controller.Kick(Helpers.FieldToUTF8String(reason));
+                                                }
+                                            }
+                        );
+                        // This is a bit crude.   It seems the client will be null before it actually stops the thread
+                        // The thread will kill itself eventually :/
+                        // Is there another way to make sure *all* clients get this 'inter region' message?
+                        ClientManager.ForEachClient(delegate (IClientAPI controller)
+                                            {
+                                                if (controller.AgentId != godid) // Do we really want to kick the initiator of this madness?
+                                                {
+                                                    controller.Close();
+                                                }
+                                            }
+                        );
+                    }
+                    else 
+                    {
+                        m_scenePresences[agentid].ControllingClient.Kick(Helpers.FieldToUTF8String(reason));
+                        m_scenePresences[agentid].ControllingClient.Close();
+                    }
+                }
+                else
+                {
+                    if (m_scenePresences.ContainsKey(godid))
+                        m_scenePresences[godid].ControllingClient.SendAgentAlertMessage("Kick request denied", false);
+                }
+            }
         }
 
         public void SendAlertToUser(string firstName, string lastName, string message, bool modal)

@@ -1075,11 +1075,18 @@ namespace OpenSim.Region.ClientStack
                         
                         break;
                     case PacketType.GodKickUser:
-                        //GodKickUserPacket gkupack = (GodKickUserPacket) Pack;
-                        //gkupack.UserInfo.GodID;
-                        //gkupack.UserInfo.AgentID;
-                        //gkupack.UserInfo.KickFlags;
-                        //gkupack.UserInfo.Reason;
+                        OpenSim.Framework.Console.MainLog.Instance.Verbose("CLIENT", "unhandled packet " + Pack.ToString());
+                        
+                        GodKickUserPacket gkupack = (GodKickUserPacket) Pack;
+                        
+                        if (gkupack.UserInfo.GodSessionID == SessionId && this.AgentId == gkupack.UserInfo.GodID)
+                        {
+                            OnGodKickUser(gkupack.UserInfo.GodID, gkupack.UserInfo.GodSessionID, gkupack.UserInfo.AgentID, (uint) 0, gkupack.UserInfo.Reason);
+                        }
+                        else
+                        {
+                            SendAgentAlertMessage("Kick request denied", false);
+                        }
                         //KickUserPacket kupack = new KickUserPacket();
                         //KickUserPacket.UserInfoBlock kupackib = kupack.UserInfo;
 

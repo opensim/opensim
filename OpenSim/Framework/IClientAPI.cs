@@ -268,6 +268,8 @@ namespace OpenSim.Framework
     public delegate void AddNewPrim(LLUUID ownerID, LLVector3 pos, LLQuaternion rot, PrimitiveBaseShape shape);
 
     public delegate void RequestGodlikePowers(LLUUID AgentID, LLUUID SessionID, LLUUID token, IClientAPI remote_client);
+    
+    public delegate void GodKickUser(LLUUID GodAgentID, LLUUID GodSessionID, LLUUID AgentID, uint kickflags, byte[] reason);
 
     public delegate void CreateInventoryFolder(
         IClientAPI remoteClient, LLUUID folderID, ushort folderType, string folderName, LLUUID parentID);
@@ -333,6 +335,7 @@ namespace OpenSim.Framework
         event AddNewPrim OnAddPrim;
 
         event RequestGodlikePowers OnRequestGodlikePowers;
+        event GodKickUser OnGodKickUser;
 
         event ObjectDuplicate OnObjectDuplicate;
         event UpdateVector OnGrabObject;
@@ -472,6 +475,7 @@ namespace OpenSim.Framework
         void SetDebug(int newDebug);
         void InPacket(Packet NewPack);
         void Close();
+        void Kick(string message);
         void Stop();
         event ViewerEffectEventHandler OnViewerEffect;
         event Action<IClientAPI> OnLogout;

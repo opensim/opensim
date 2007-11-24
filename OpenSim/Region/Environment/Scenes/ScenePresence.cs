@@ -1219,20 +1219,7 @@ namespace OpenSim.Region.Environment.Scenes
 
         #endregion
 
-        public void Kick(string message)
-        {
-            KickUserPacket kupack = new KickUserPacket();
-            KickUserPacket.UserInfoBlock kupackib = kupack.UserInfo;
 
-            kupack.UserInfo.AgentID = UUID;
-            kupack.UserInfo.SessionID = this.ControllingClient.SessionId;
-
-            kupack.TargetBlock.TargetIP = (uint)0;
-            kupack.TargetBlock.TargetPort = (ushort)0;
-            kupack.UserInfo.Reason = Helpers.StringToField(message);
-            ControllingClient.OutPacket(kupack, ThrottleOutPacketType.Task);
-
-        }
         public void GrantGodlikePowers(LLUUID agentID, LLUUID sessionID, LLUUID token)
         {
             GrantGodlikePowersPacket respondPacket = new GrantGodlikePowersPacket();
