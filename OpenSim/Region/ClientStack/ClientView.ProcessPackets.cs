@@ -1065,6 +1065,47 @@ namespace OpenSim.Region.ClientStack
                         #endregion
 
                         #region unimplemented handlers
+                    case PacketType.RequestGodlikePowers:
+                        //RequestGodlikePowersPacket rglpPack = (RequestGodlikePowersPacket) Pack;
+                        //RequestGodlikePowersPacket.RequestBlockBlock rblock = rglpPack.RequestBlock;
+                        //LLUUID token = rblock.Token;
+                        //RequestGodlikePowersPacket.AgentDataBlock ablock = rglpPack.AgentData;
+
+                        
+                        //GrantGodlikePowersPacket respondPacket = new GrantGodlikePowersPacket();
+                        //GrantGodlikePowersPacket.GrantDataBlock gdb = new GrantGodlikePowersPacket.GrantDataBlock();
+                        //GrantGodlikePowersPacket.AgentDataBlock adb = new GrantGodlikePowersPacket.AgentDataBlock();
+
+                        //adb.AgentID = ablock.AgentID;
+                        //adb.SessionID = ablock.SessionID;
+
+                        //gdb.GodLevel = (byte)100;
+                        //gdb.Token = token;
+                        //respondPacket.AgentData = (GrantGodlikePowersPacket.AgentDataBlock)ablock;
+                        //respondPacket.GrantData = gdb;
+                        //respondPacket.AgentData = adb;
+                        //OutPacket(respondPacket, ThrottleOutPacketType.Task);
+                        break;
+                    case PacketType.GodKickUser:
+                        //GodKickUserPacket gkupack = (GodKickUserPacket) Pack;
+                        //gkupack.UserInfo.GodID;
+                        //gkupack.UserInfo.AgentID;
+                        //gkupack.UserInfo.KickFlags;
+                        //gkupack.UserInfo.Reason;
+                        //KickUserPacket kupack = new KickUserPacket();
+                        //KickUserPacket.UserInfoBlock kupackib = kupack.UserInfo;
+
+                        //kupack.UserInfo.AgentID = gkupack.UserInfo.AgentID;
+                        //kupack.UserInfo.SessionID = gkupack.UserInfo.GodSessionID;
+
+                        //kupack.TargetBlock.TargetIP = (uint)0;
+                        //kupack.TargetBlock.TargetPort = (ushort)0;
+                        //kupack.UserInfo.Reason = gkupack.UserInfo.Reason;
+
+
+                        //OutPacket(kupack, ThrottleOutPacketType.Task);
+                        break;
+
                     case PacketType.StartPingCheck:
                         // Send the client the ping response back
                         // Pass the same PingID in the matching packet

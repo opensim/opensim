@@ -144,7 +144,7 @@ namespace OpenSim.Region.Environment.Scenes
         {
             ForEachCurrentScene(delegate(Scene scene) { scene.Backup(); });
         }
-
+        
         public void HandleAlertCommandOnCurrentScene(string[] cmdparams)
         {
             ForEachCurrentScene(delegate(Scene scene) { scene.HandleAlertCommand(cmdparams); });

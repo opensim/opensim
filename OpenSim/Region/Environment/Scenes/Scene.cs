@@ -257,6 +257,7 @@ namespace OpenSim.Region.Environment.Scenes
         {
             ForEachScenePresence(delegate(ScenePresence avatar)
                                 {
+                                    avatar.Kick("The region is going down.");
                                     avatar.ControllingClient.Stop();
                                 });
 
@@ -638,7 +639,7 @@ namespace OpenSim.Region.Environment.Scenes
         {
 
             // What we're *supposed* to do is raytrace from the camera position given by the client to the nearest collision
-            // in the direction the client supplies (the ground level that we clicked)
+            // in the direction the client supplies (the ground level that we clicked)  
             // This function is pretty crappy right now..  so we're not affecting where the newly rezzed objects go
             // Test it if you like.  The console will write where it guesses a collision took place. if it thinks one did.
             // It's wrong many times though.

@@ -461,11 +461,12 @@ namespace OpenSim
         /// </summary>
         public virtual void Shutdown()
         {
+            
             if (m_startupCommandsFile != "")
             {
                 RunCommandScript(m_shutdownCommandsFile);
             }
-
+            
             m_log.Verbose("SHUTDOWN", "Closing all threads");
             m_log.Verbose("SHUTDOWN", "Killing listener thread");
             m_log.Verbose("SHUTDOWN", "Killing clients");
