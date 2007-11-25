@@ -223,6 +223,21 @@ namespace OpenSim.Region.Communications.OGS1
         /// <returns></returns>
         public List<MapBlockData> RequestNeighbourMapBlocks(int minX, int minY, int maxX, int maxY)
         {
+            int temp = 0;
+
+            if (minX > maxX)
+            {
+                temp = minX;
+                minX = maxX;
+                maxX = temp;
+            }
+            if (minY > maxY)
+            {
+                temp = minY;
+                minY = maxY;
+                maxY = temp;
+            }
+
             Hashtable respData = MapBlockQuery(minX, minY, maxX, maxY);
 
             List<MapBlockData> neighbours = new List<MapBlockData>();
