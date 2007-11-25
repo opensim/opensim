@@ -653,6 +653,7 @@ namespace OpenSim.Region.Environment.Scenes
             asset.FullID = m_regInfo.EstateSettings.terrainImageID;
             asset.Data = data;
             asset.Name = "terrainImage";
+            asset.Description = RegionInfo.RegionName;
             asset.Type = 0;
             asset.Temporary = true;
             AssetCache.AddAsset(asset);
@@ -667,6 +668,7 @@ namespace OpenSim.Region.Environment.Scenes
             asset.FullID = m_regInfo.EstateSettings.terrainImageID;
             asset.Data = data;
             asset.Name = "terrainImage";
+            asset.Description = RegionInfo.RegionName;
             asset.Type = 0;
             asset.Temporary = false;
             AssetCache.AddAsset(asset);
