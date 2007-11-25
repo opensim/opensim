@@ -754,22 +754,28 @@ namespace OpenSim.Region.Environment.Scenes
                     // We will rez the object somewhere close to the prim.  Better math needed. This is a Stub
                     //Vector3 Newpos = new Vector3(rayTracing.obj.AbsolutePosition.X,rayTracing.obj.AbsolutePosition.Y,rayTracing.obj.AbsolutePosition.Z);
                     Vector3 Newpos = rayTracing.ipoint;
-                    Vector3 NewScale = new Vector3(rayTracing.obj.Scale.X,rayTracing.obj.Scale.Y,rayTracing.obj.Scale.Z);
-                    
+                    Vector3 NewScale = new Vector3(rayTracing.obj.Scale.X, rayTracing.obj.Scale.Y, rayTracing.obj.Scale.Z);
+
                     Quaternion ParentRot = rayTracing.obj.ParentGroup.Rotation;
                     //Quaternion ParentRot = new Quaternion(primParentRot.W,primParentRot.X,primParentRot.Y,primParentRot.Z);
 
                     LLQuaternion primLocalRot = rayTracing.obj.RotationOffset;
-                    Quaternion LocalRot = new Quaternion(primLocalRot.W,primLocalRot.X,primLocalRot.Y,primLocalRot.Z);
+                    Quaternion LocalRot = new Quaternion(primLocalRot.W, primLocalRot.X, primLocalRot.Y, primLocalRot.Z);
 
                     Quaternion NewRot = LocalRot * ParentRot;
 
                     Vector3 RezPoint = Newpos;
 
-                    MainLog.Instance.Verbose("REZINFO","Possible Rez Point:" + RezPoint.ToString());
+                    MainLog.Instance.Verbose("REZINFO", "Possible Rez Point:" + RezPoint.ToString());
                     //pos = new LLVector3(RezPoint.x, RezPoint.y, RezPoint.z);
 
                 }
+                else
+                {
+                    // rez ON the ground, not IN the ground
+                    pos.Z += 0.25F;
+                }
+
                 
                 SceneObjectGroup sceneOb =
                     new SceneObjectGroup(this, m_regionHandle, ownerID, PrimIDAllocate(), pos, rot, shape);
