@@ -37,7 +37,7 @@ namespace OpenSim.ApplicationPlugins.LoadRegions
 
             regionLoader.SetIniConfigSource(openSim.ConfigSource);
             RegionInfo[] regionsToLoad = regionLoader.LoadRegions();
-
+            
             openSim.ModuleLoader.LoadDefaultSharedModules();
 
             for (int i = 0; i < regionsToLoad.Length; i++)
@@ -49,7 +49,34 @@ namespace OpenSim.ApplicationPlugins.LoadRegions
             openSim.ModuleLoader.PostInitialise();
             openSim.ModuleLoader.ClearCache();
         }
+        public void LoadRegionFromConfig(OpenSimMain openSim, ulong regionhandle)
+        {
+            System.Console.WriteLine("Load Regions addin being initialised");
 
+            IRegionLoader regionLoader;
+            if (openSim.ConfigSource.Configs["Startup"].GetString("region_info_source", "filesystem") == "filesystem")
+            {
+                MainLog.Instance.Notice("Loading Region Info from filesystem");
+                regionLoader = new RegionLoaderFileSystem();
+            }
+            else
+            {
+                MainLog.Instance.Notice("Loading Region Info from web");
+                regionLoader = new RegionLoaderWebServer();
+            }
+
+            regionLoader.SetIniConfigSource(openSim.ConfigSource);
+            RegionInfo[] regionsToLoad = regionLoader.LoadRegions();
+            for (int i = 0; i < regionsToLoad.Length; i++)
+            {
+                if (regionhandle == regionsToLoad[i].RegionHandle)
+                {
+                    MainLog.Instance.Debug("Creating Region: " + regionsToLoad[i].RegionName);
+                    openSim.CreateRegion(regionsToLoad[i]);
+                }
+            }
+
+        }
         public void Close()
         {
 

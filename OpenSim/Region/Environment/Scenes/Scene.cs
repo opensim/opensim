@@ -70,6 +70,10 @@ namespace OpenSim.Region.Environment.Scenes
         private readonly Mutex updateLock;
         public bool m_physicalPrim;
         public bool m_sendTasksToChild;
+        private int m_RestartTimerCounter;
+        private Timer t_restartTimer = new Timer(15000); // Wait before firing
+        private int m_incrementsof15seconds = 0;
+
         protected ModuleLoader m_moduleLoader;
         protected StorageManager m_storageManager;
         protected AgentCircuitManager m_authenticateHandler;
@@ -253,15 +257,80 @@ namespace OpenSim.Region.Environment.Scenes
             m_eventManager.OnPermissionError += SendPermissionAlert;
         }
 
+        public override void OtherRegionUp(RegionInfo otherRegion)
+        {
+            // Another region is up.   We have to tell all our ScenePresences about it
+            // This fails to get the desired effect and needs further work.
+
+            ForEachScenePresence(delegate(ScenePresence agent)
+            {
+                if (!(agent.IsChildAgent))
+                {   
+                    InformClientOfNeighbor(agent, otherRegion);
+                    this.CommsManager.InterRegion.InformRegionOfChildAgent(otherRegion.RegionHandle, agent.ControllingClient.RequestClientInfo());
+                    
+                }
+            }
+         );
+        }
+        public virtual void Restart(float seconds)
+        {
+            if (seconds < 100)
+            {
+                t_restartTimer.Stop();
+                SendGeneralAlert("Restart Aborted");
+            }
+            else
+            {
+                t_restartTimer.Interval = 15000;
+                m_incrementsof15seconds = (int) seconds/15;
+                m_RestartTimerCounter = 0;
+                t_restartTimer.AutoReset = true;
+                t_restartTimer.Elapsed += new ElapsedEventHandler(restartTimer_Elapsed);
+                MainLog.Instance.Error("REGION", "Restarting Region in " + (seconds / 60) + " minutes");
+                t_restartTimer.Start();
+                SendGeneralAlert("Restarting in 2 Minutes");
+            }
+
+            
+        }
+        public void restartTimer_Elapsed(object sender, ElapsedEventArgs e)
+        {
+            m_RestartTimerCounter++;
+            if (m_RestartTimerCounter <= m_incrementsof15seconds)
+            {
+                if (m_RestartTimerCounter == 4 || m_RestartTimerCounter == 6 || m_RestartTimerCounter == 7)
+                    SendGeneralAlert("Restarting in " + ((8-m_RestartTimerCounter) * 15) + " seconds");
+            }
+            else
+            {
+                t_restartTimer.Stop();
+                MainLog.Instance.Error("REGION", "Closing");
+                Close();
+                MainLog.Instance.Error("REGION", "Firing Region Restart Message");
+                base.Restart(0);
+            }
+            
+        }
         public override void Close()
         {
             ForEachScenePresence(delegate(ScenePresence avatar)
                                 {
-                                    avatar.ControllingClient.Kick("The region is going down.");
+                                    if (avatar.KnownChildRegions.Contains(RegionInfo.RegionHandle))
+                                        avatar.KnownChildRegions.Remove(RegionInfo.RegionHandle);
+
+                                    if (!avatar.IsChildAgent)
+                                        avatar.ControllingClient.Kick("The simulator is going down.");
+
+                                        avatar.ControllingClient.OutPacket(new libsecondlife.Packets.DisableSimulatorPacket(), ThrottleOutPacketType.Task);
                                     
                                 });
+            
+            Thread.Sleep(500);
+
             ForEachScenePresence(delegate(ScenePresence avatar)
                     {
+                        
                         avatar.ControllingClient.Stop();
 
                     });
@@ -269,7 +338,7 @@ namespace OpenSim.Region.Environment.Scenes
 
             m_heartbeatTimer.Close();
             m_innerScene.Close();
-            m_sceneGridService.Close();
+            UnRegisterReginWithComms();
 
             foreach (IRegionModule module in this.Modules.Values)
             {
@@ -992,6 +1061,14 @@ namespace OpenSim.Region.Environment.Scenes
             m_sceneGridService.OnAvatarCrossingIntoRegion += AgentCrossing;
             m_sceneGridService.OnCloseAgentConnection += CloseConnection;
         }
+        public void UnRegisterReginWithComms()
+        {
+            m_sceneGridService.OnExpectUser -= NewUserConnection;
+            m_sceneGridService.OnAvatarCrossingIntoRegion -= AgentCrossing;
+            m_sceneGridService.OnCloseAgentConnection -= CloseConnection;
+
+            m_sceneGridService.Close();
+        }
 
         /// <summary>
         /// 
@@ -1059,6 +1136,10 @@ namespace OpenSim.Region.Environment.Scenes
         public void InformClientOfNeighbours(ScenePresence presence)
         {
             m_sceneGridService.EnableNeighbourChildAgents(presence);
+        }
+        public void InformClientOfNeighbor(ScenePresence presence, RegionInfo region)
+        {
+            m_sceneGridService.InformNeighborChildAgent(presence, region);
         }
 
         /// <summary>
@@ -1258,9 +1339,15 @@ namespace OpenSim.Region.Environment.Scenes
                         
                         ClientManager.ForEachClient(delegate (IClientAPI controller)
                                             {
-                                                if (controller.AgentId != godid) // Do we really want to kick the initiator of this madness?
+                                                ScenePresence p = GetScenePresence(controller.AgentId);
+                                                bool childagent = false;
+                                                if (!p.Equals(null))
+                                                    if (p.IsChildAgent)
+                                                        childagent=true;
+                                                if (controller.AgentId != godid && !childagent) // Do we really want to kick the initiator of this madness?
                                                 {
                                                     controller.Kick(Helpers.FieldToUTF8String(reason));
+
                                                 }
                                             }
                         );
@@ -1269,7 +1356,13 @@ namespace OpenSim.Region.Environment.Scenes
                         // Is there another way to make sure *all* clients get this 'inter region' message?
                         ClientManager.ForEachClient(delegate (IClientAPI controller)
                                             {
-                                                if (controller.AgentId != godid) // Do we really want to kick the initiator of this madness?
+                                                ScenePresence p = GetScenePresence(controller.AgentId);
+                                                bool childagent = false;
+                                                if (!p.Equals(null))
+                                                    if (p.IsChildAgent)
+                                                        childagent = true;
+
+                                                if (controller.AgentId != godid && !childagent) // Do we really want to kick the initiator of this madness?
                                                 {
                                                     controller.Close();
                                                 }

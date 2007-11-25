@@ -34,8 +34,12 @@ using OpenSim.Framework.Console;
 
 namespace OpenSim.Region.Environment.Scenes
 {
+    public delegate void ReStartSim(RegionInfo thisregion);
+
     public class SceneManager
     {
+        public event ReStartSim OnReStartSim;
+
         private readonly List<Scene> m_localScenes;
         private Scene m_currentScene = null;
 
@@ -72,11 +76,63 @@ namespace OpenSim.Region.Environment.Scenes
             }
         }
 
-        public void Add(Scene scene)
+        public void Close(Scene cscene)
         {
-            m_localScenes.Add(scene);
+            if (m_localScenes.Contains(cscene))
+            {
+                for (int i = 0; i < m_localScenes.Count; i++)
+                {
+                    if (m_localScenes[i].Equals(cscene))
+                    {
+
+                        m_localScenes[i].Close();
+                    }
+                }
+            }
         }
 
+        public void Add(Scene scene)
+        {
+            scene.OnRestart += handleRestart;
+            m_localScenes.Add(scene);
+
+        }
+
+        public void handleRestart(RegionInfo rdata)
+        {
+            MainLog.Instance.Error("SCENEMANAGER", "Got Restart message for region:" + rdata.RegionName +" Sending up to main");
+            int RegionSceneElement = -1;
+            for (int i = 0; i < m_localScenes.Count; i++)
+            {
+
+                if (rdata.RegionName == m_localScenes[i].RegionInfo.RegionName)
+                    RegionSceneElement = i;
+            }
+
+            // Now we make sure the region is no longer known about by the SceneManager
+            // Prevents Duplicates.
+
+            if (RegionSceneElement >= 0)
+                m_localScenes.RemoveAt(RegionSceneElement);
+
+            // Send signal to main that we're restarting this sim.
+            OnReStartSim(rdata);
+        }
+
+        public void SendSimOnlineNotification(ulong regionHandle)
+        {
+
+            for (int i = 0; i < m_localScenes.Count; i++)
+            {
+                if (m_localScenes[i].RegionInfo.RegionHandle != regionHandle)
+                {
+                    // Inform other regions to tell their avatar about me
+                    m_localScenes[i].OtherRegionUp(m_localScenes[i].RegionInfo);
+                }
+            }
+
+
+        }
         public void SaveCurrentSceneToXml(string filename)
         {
             CurrentOrFirstScene.SavePrimsToXml(filename);

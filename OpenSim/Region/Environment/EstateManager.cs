@@ -171,6 +171,12 @@ namespace OpenSim.Region.Environment
                     if (m_scene.PermissionsMngr.CanEditEstateTerrain(remote_client.AgentId))
                         estateSetRegionTerrainHandler(packet);
                     break;
+                case "restart":
+                    if (m_scene.PermissionsMngr.CanRestartSim(remote_client.AgentId))
+                    {
+                        estateRestartSim(packet);
+                    }
+                    break;
                 default:
                     MainLog.Instance.Error("EstateOwnerMessage: Unknown method requested\n" + packet.ToString());
                     break;
@@ -322,6 +328,19 @@ namespace OpenSim.Region.Environment
                 }
             }
         }
+        private void estateRestartSim(EstateOwnerMessagePacket packet)
+        {
+            // There's only 1 block in the estateResetSim..   and that's the number of seconds till restart.
+            foreach (EstateOwnerMessagePacket.ParamListBlock block in packet.ParamList)
+            {
+                float timeSeconds = 0;
+                timeSeconds = BitConverter.ToInt16(block.Parameter, 1);
+                timeSeconds = (int)((timeSeconds / 100) - 3);
+                m_scene.Restart(timeSeconds);
+
+            }
+        }
+
 
         #endregion
 

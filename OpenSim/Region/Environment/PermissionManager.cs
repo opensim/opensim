@@ -306,6 +306,14 @@ namespace OpenSim.Region.Environment
             return GenericEstatePermission(user);
         }
 
+        public virtual bool CanRestartSim(LLUUID user)
+        {
+            // Since this is potentially going on a grid...    
+
+            //return GenericEstatePermission(AgentId);
+            return m_scene.RegionInfo.MasterAvatarAssignedUUID == user;
+        }
+
         #endregion
 
         #region Parcel Permissions

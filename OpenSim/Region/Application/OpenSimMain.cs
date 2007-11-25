@@ -320,7 +320,7 @@ namespace OpenSim
                 plugin.Initialise(this);
                 m_plugins.Add(plugin);
             }
-
+            
             // Start UDP servers
             for (int i = 0; i < m_udpServers.Count; i++)
             {
@@ -412,6 +412,50 @@ namespace OpenSim
 
             m_assetCache = new AssetCache(assetServer, m_log);
             // m_assetCache = new assetCache("OpenSim.Region.GridInterfaces.Local.dll", m_networkServersInfo.AssetURL, m_networkServersInfo.AssetSendKey);
+            m_sceneManager.OnReStartSim += handleReStartRegion;
+
+        }
+        public void handleReStartRegion(RegionInfo whichRegion) 
+        {
+            MainLog.Instance.Error("MAIN", "Got Restart Singlal from SceneManager");
+            // Shutting down the UDP server
+            bool foundUDPServer = false;
+            int UDPServerElement = 0;
+            
+            for (int i = 0; i < m_udpServers.Count; i++)
+            {
+                 
+                if (m_udpServers[i].RegionHandle == whichRegion.RegionHandle)
+                {
+                    UDPServerElement = i;
+                    foundUDPServer = true;
+                    break;
+                }
+            }
+            if (foundUDPServer) 
+            {
+               // m_udpServers[UDPServerElement].Server.End
+                m_udpServers[UDPServerElement].Server.Close();
+                m_udpServers.RemoveAt(UDPServerElement);
+            }
+
+            //Removing the region from the sim's database of regions..   
+            int RegionHandleElement = -1;
+            for (int i = 0; i < m_regionData.Count; i++)
+            {
+                if (whichRegion.RegionHandle == m_regionData[i].RegionHandle)
+                {
+                    RegionHandleElement = i;
+                }
+            }
+            if (RegionHandleElement >= 0)
+            {
+                m_regionData.RemoveAt(RegionHandleElement);
+            }
+            UDPServer restartingRegion = CreateRegion(whichRegion);
+            restartingRegion.ServerListener();
+            m_sceneManager.SendSimOnlineNotification(restartingRegion.RegionHandle);
+
         }
 
         protected override LogBase CreateLog()

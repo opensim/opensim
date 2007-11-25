@@ -47,6 +47,7 @@ namespace OpenSim.Region.ClientStack
         protected EndPoint epSender;
         protected AsyncCallback ReceivedData;
         protected PacketServer m_packetServer;
+        protected ulong m_regionHandle;
 
         protected int listenPort;
         protected IScene m_localScene;
@@ -66,6 +67,15 @@ namespace OpenSim.Region.ClientStack
             {
                 m_localScene = value;
                 m_packetServer.LocalScene = m_localScene;
+                m_regionHandle = m_localScene.RegionInfo.RegionHandle;
+            }
+            
+        }
+        public ulong RegionHandle
+        {
+            get
+            {
+                return m_regionHandle;
             }
         }
 
@@ -113,6 +123,10 @@ namespace OpenSim.Region.ClientStack
                         break;
                 }
 
+                return;
+            }
+            catch (System.ObjectDisposedException od)
+            {
                 return;
             }
 

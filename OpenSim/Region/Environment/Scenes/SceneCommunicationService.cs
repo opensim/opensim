@@ -149,6 +149,20 @@ namespace OpenSim.Region.Environment.Scenes
                 }
             }
         }
+        public void InformNeighborChildAgent(ScenePresence avatar, RegionInfo region)
+        {
+            AgentCircuitData agent = avatar.ControllingClient.RequestClientInfo();
+            agent.BaseFolder = LLUUID.Zero;
+            agent.InventoryFolder = LLUUID.Zero;
+            agent.startpos = new LLVector3(128, 128, 70);
+            agent.child = true;
+
+            InformClientOfNeighbourDelegate d = InformClientOfNeighbourAsync;
+            d.BeginInvoke(avatar, agent, region.RegionHandle, region.ExternalEndPoint,
+                          InformClientOfNeighbourCompleted,
+                          d);
+        }
+
         #endregion
 
         /// <summary>

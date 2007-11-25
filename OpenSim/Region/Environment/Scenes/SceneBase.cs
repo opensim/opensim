@@ -27,6 +27,7 @@
 */
 using System;
 using System.Collections.Generic;
+using System.Timers;
 using libsecondlife;
 using OpenSim.Framework;
 using OpenSim.Framework.Communications.Cache;
@@ -37,6 +38,13 @@ namespace OpenSim.Region.Environment.Scenes
 {
     public abstract class SceneBase : IScene
     {
+        #region Events
+
+        public event restart OnRestart;
+        public event regionup OnRegionUp;
+
+        #endregion
+        
         #region Fields
         private readonly ClientManager m_clientManager = new ClientManager();
 
@@ -48,6 +56,7 @@ namespace OpenSim.Region.Environment.Scenes
         protected ulong m_regionHandle;
         protected string m_regionName;
         protected RegionInfo m_regInfo;
+        protected RegionStatus m_regStatus;
 
         public TerrainEngine Terrain;
 
@@ -69,6 +78,12 @@ namespace OpenSim.Region.Environment.Scenes
             set { m_assetCache = value; }
         }
 
+        public RegionStatus Region_Status
+        {
+            get { return m_regStatus; }
+            set { m_regStatus = value; }
+        }
+
         #endregion
 
         #region Update Methods
@@ -77,6 +92,8 @@ namespace OpenSim.Region.Environment.Scenes
         /// Normally called once every frame/tick to let the world preform anything required (like running the physics simulation)
         /// </summary>
         public abstract void Update();
+
+
 
         #endregion
 
@@ -130,6 +147,23 @@ namespace OpenSim.Region.Environment.Scenes
             get { return m_nextLocalId++; }
         }
 
+        #region admin stuff
+
+        /// <summary>
+        /// Region Restart - Seconds till restart.
+        /// </summary>
+        /// <param name="seconds"></param>
+        public virtual void Restart(int seconds)
+        {
+            MainLog.Instance.Error("REGION", "passing Restart Message up the namespace");
+            OnRestart(RegionInfo);
+        }
+
+
+        public abstract void OtherRegionUp(RegionInfo thisRegion);
+
+
+        #endregion
         #region Shutdown
 
         /// <summary>

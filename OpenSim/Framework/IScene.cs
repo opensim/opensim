@@ -29,13 +29,32 @@ using libsecondlife;
 
 namespace OpenSim.Framework
 {
+    public delegate void restart( RegionInfo thisRegion );
+    public delegate void regionup ( RegionInfo thisRegion );
+
+    public enum RegionStatus : int
+    {
+        Down = 0,
+        Up = 1,
+        Crashed = 2,
+        Starting = 3
+    };
+
     public interface IScene
     {
+        event restart OnRestart;
+        event regionup OnRegionUp;
+
         void AddNewClient(IClientAPI client, bool child);
         void RemoveClient(LLUUID agentID);
 
+        void Restart(int seconds);
+        void OtherRegionUp(RegionInfo thisRegion);
+
         RegionInfo RegionInfo { get; }
         uint NextLocalId { get; }
+
+        RegionStatus Region_Status { get; set; }
 
         ClientManager ClientManager { get; }
     }
