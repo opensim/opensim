@@ -42,6 +42,8 @@ namespace OpenSim.Framework
 
         public static uint DefaultHttpPort = 8002;
         public uint HttpPort = DefaultHttpPort;
+        public uint DefaultX = 1000;
+        public uint DefaultY = 1000;
 
         private ConfigurationMember configMember;
 
@@ -71,6 +73,10 @@ namespace OpenSim.Framework
 
             configMember.addConfigurationOption("http_port", ConfigurationOption.ConfigurationTypes.TYPE_UINT32,
                                                 "Http Listener port", DefaultHttpPort.ToString(), false);
+            configMember.addConfigurationOption("default_X", ConfigurationOption.ConfigurationTypes.TYPE_UINT32,
+                                                "Known good region X", "1000", false);
+            configMember.addConfigurationOption("default_Y", ConfigurationOption.ConfigurationTypes.TYPE_UINT32,
+                                                "Known good region Y", "1000", false);
         }
 
         public bool handleIncomingConfiguration(string configuration_key, object configuration_result)
@@ -94,6 +100,12 @@ namespace OpenSim.Framework
                     break;
                 case "http_port":
                     HttpPort = (uint) configuration_result;
+                    break;
+                case "default_X":
+                    DefaultX = (uint)configuration_result;
+                    break;
+                case "default_Y":
+                    DefaultY = (uint)configuration_result;
                     break;
             }
 

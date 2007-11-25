@@ -166,11 +166,12 @@ namespace OpenSim.Region.ClientStack
                     //userEP);
                 }
             }
-            catch (Exception)
+            catch (Exception e)
             {
                 MainLog.Instance.Warn("client",
                                       "ClientView.PacketQueue.cs:ProcessOutPacket() - WARNING: Socket exception occurred on connection " +
                                       userEP.ToString() + " - killing thread");
+                MainLog.Instance.Error(e.ToString());
                 KillThread();
             }
         }
