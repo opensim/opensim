@@ -42,6 +42,8 @@ namespace OpenSim.Framework
         public event AcknowledgeAgentCross OnAcknowledgeAgentCrossed;
         public event AcknowledgePrimCross OnAcknowledgePrimCrossed;
         public event CloseAgentConnection OnCloseAgentConnection;
+        public event RegionUp OnRegionUp;
+        
 
         /// <summary>
         /// 
@@ -63,6 +65,16 @@ namespace OpenSim.Framework
             if (OnExpectUser != null)
             {
                 OnExpectPrim(regionHandle, primID, objData);
+                return true;
+            }
+            return false;
+        }
+
+        public virtual bool TriggerRegionUp(RegionInfo region)
+        {
+            if (OnRegionUp != null)
+            {
+                OnRegionUp(region);
                 return true;
             }
             return false;

@@ -41,6 +41,8 @@ namespace OpenSim.Region.Communications.OGS1
 
     public delegate bool PrimGroupArrival(ulong regionHandle, LLUUID primID, string objData);
 
+    public delegate bool RegionUP (RegionInfo region);
+
     public sealed class InterRegionSingleton
     {
         private static readonly InterRegionSingleton instance = new InterRegionSingleton();
@@ -49,6 +51,8 @@ namespace OpenSim.Region.Communications.OGS1
         public event ExpectArrival OnArrival;
         public event InformRegionPrimGroup OnPrimGroupNear;
         public event PrimGroupArrival OnPrimGroupArrival;
+        public event RegionUp OnRegionUp;
+
 
         static InterRegionSingleton()
         {
@@ -68,6 +72,15 @@ namespace OpenSim.Region.Communications.OGS1
             if (OnChildAgent != null)
             {
                 return OnChildAgent(regionHandle, agentData);
+            }
+            return false;
+        }
+
+        public bool RegionUp(RegionInfo region)
+        {
+            if (OnRegionUp != null)
+            {
+                return OnRegionUp(region);
             }
             return false;
         }
@@ -116,7 +129,18 @@ namespace OpenSim.Region.Communications.OGS1
                 return false;
             }
         }
-
+        public bool RegionUp(RegionInfo region)
+        {
+            try
+            {
+                return InterRegionSingleton.Instance.RegionUp(region);
+            }
+            catch (RemotingException e)
+            {
+                Console.WriteLine("Remoting Error: Unable to connect to remote region.\n" + e.ToString());
+                return false;
+            }
+        }
         public bool ExpectAvatarCrossing(ulong regionHandle, LLUUID agentID, LLVector3 position, bool isFlying)
         {
             try

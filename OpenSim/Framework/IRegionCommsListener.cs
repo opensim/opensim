@@ -46,6 +46,8 @@ namespace OpenSim.Framework
 
     public delegate void CloseAgentConnection(ulong regionHandle, LLUUID agentID);
 
+    public delegate bool RegionUp(RegionInfo region);
+
     
 
     public interface IRegionCommsListener
@@ -59,5 +61,7 @@ namespace OpenSim.Framework
         event AcknowledgePrimCross OnAcknowledgePrimCrossed;
         event UpdateNeighbours OnNeighboursUpdate;
         event CloseAgentConnection OnCloseAgentConnection;
+        event RegionUp OnRegionUp;
+
     }
 }

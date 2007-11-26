@@ -121,17 +121,35 @@ namespace OpenSim.Region.Environment.Scenes
 
         public void SendSimOnlineNotification(ulong regionHandle)
         {
+            RegionInfo Result = null;
 
             for (int i = 0; i < m_localScenes.Count; i++)
             {
-                if (m_localScenes[i].RegionInfo.RegionHandle != regionHandle)
+
+                if (m_localScenes[i].RegionInfo.RegionHandle == regionHandle)
                 {
+
                     // Inform other regions to tell their avatar about me
-                    m_localScenes[i].OtherRegionUp(m_localScenes[i].RegionInfo);
+                    Result = m_localScenes[i].RegionInfo;
                 }
             }
+            if (!(Result.Equals(null)))
+            {
+                for (int i = 0; i < m_localScenes.Count; i++)
+                {
 
+                    if (m_localScenes[i].RegionInfo.RegionHandle != regionHandle)
+                    {
 
+                        // Inform other regions to tell their avatar about me
+                        //m_localScenes[i].OtherRegionUp(Result);
+                    }
+                }
+            }
+            else
+            {
+                MainLog.Instance.Error("REGION", "Unable to notify Other regions of this Region coming up");
+            }
         }
         public void SaveCurrentSceneToXml(string filename)
         {

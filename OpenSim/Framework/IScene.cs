@@ -30,7 +30,7 @@ using libsecondlife;
 namespace OpenSim.Framework
 {
     public delegate void restart( RegionInfo thisRegion );
-    public delegate void regionup ( RegionInfo thisRegion );
+    //public delegate void regionup ( RegionInfo thisRegion );
 
     public enum RegionStatus : int
     {
@@ -43,13 +43,12 @@ namespace OpenSim.Framework
     public interface IScene
     {
         event restart OnRestart;
-        event regionup OnRegionUp;
 
         void AddNewClient(IClientAPI client, bool child);
         void RemoveClient(LLUUID agentID);
 
         void Restart(int seconds);
-        void OtherRegionUp(RegionInfo thisRegion);
+        bool OtherRegionUp(RegionInfo thisRegion);
 
         RegionInfo RegionInfo { get; }
         uint NextLocalId { get; }

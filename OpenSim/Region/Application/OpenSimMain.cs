@@ -454,7 +454,7 @@ namespace OpenSim
             }
             UDPServer restartingRegion = CreateRegion(whichRegion);
             restartingRegion.ServerListener();
-            m_sceneManager.SendSimOnlineNotification(restartingRegion.RegionHandle);
+            //m_sceneManager.SendSimOnlineNotification(restartingRegion.RegionHandle);
 
         }
 

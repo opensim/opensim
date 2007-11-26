@@ -155,11 +155,28 @@ namespace OpenSim.Region.Communications.Local
             return mapBlocks;
         }
 
-        /// <summary>
+        /// <summary> 
         /// </summary>
         /// <param name="regionHandle"></param>
         /// <param name="agentData"></param>
         /// <returns></returns>
+        /// 
+        public bool RegionUp(RegionInfo region)
+        {
+            foreach (RegionCommsListener listener in m_regionListeners.Values)
+            {
+                listener.TriggerRegionUp(region);
+            }
+           
+            return true;
+        }
+
+        public bool TriggerRegionUp(RegionInfo region)
+        {
+
+            return false;
+        }
+
         public bool InformRegionOfChildAgent(ulong regionHandle, AgentCircuitData agentData)
             //should change from agentCircuitData
         {

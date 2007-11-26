@@ -41,7 +41,6 @@ namespace OpenSim.Region.Environment.Scenes
         #region Events
 
         public event restart OnRestart;
-        public event regionup OnRegionUp;
 
         #endregion
         
@@ -160,7 +159,7 @@ namespace OpenSim.Region.Environment.Scenes
         }
 
 
-        public abstract void OtherRegionUp(RegionInfo thisRegion);
+        public abstract bool OtherRegionUp(RegionInfo thisRegion);
 
 
         #endregion

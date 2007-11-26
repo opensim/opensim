@@ -33,6 +33,7 @@ namespace OpenSim.Framework.Communications
     {
         bool InformRegionOfChildAgent(ulong regionHandle, AgentCircuitData agentData);
         bool InformRegionOfPrimCrossing(ulong regionHandle, LLUUID primID, string objData);
+        bool RegionUp(RegionInfo region);
 
         bool ExpectAvatarCrossing(ulong regionHandle, LLUUID agentID, LLVector3 position, bool isFlying);
         bool ExpectPrimCrossing(ulong regionHandle, LLUUID primID, LLVector3 position, bool isFlying);

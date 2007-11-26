@@ -216,7 +216,7 @@ namespace OpenSim.Region.Environment.Scenes
             m_regionHandle = m_regInfo.RegionHandle;
             m_regionName = m_regInfo.RegionName;
             m_datastore = m_regInfo.DataStore;
-            RegisterRegionWithComms();
+            
             m_physicalPrim = physicalPrim;
             m_sendTasksToChild = SendTasksToChild;
 
@@ -244,6 +244,7 @@ namespace OpenSim.Region.Environment.Scenes
 
             httpListener = httpServer;
             m_dumpAssetsToFile = dumpAssetsToFile;
+            RegisterRegionWithComms();
         }
 
         #endregion
@@ -257,21 +258,29 @@ namespace OpenSim.Region.Environment.Scenes
             m_eventManager.OnPermissionError += SendPermissionAlert;
         }
 
-        public override void OtherRegionUp(RegionInfo otherRegion)
+        public override bool OtherRegionUp(RegionInfo otherRegion)
         {
             // Another region is up.   We have to tell all our ScenePresences about it
             // This fails to get the desired effect and needs further work.
-
-            ForEachScenePresence(delegate(ScenePresence agent)
+            try
             {
-                if (!(agent.IsChildAgent))
-                {   
-                    InformClientOfNeighbor(agent, otherRegion);
-                    this.CommsManager.InterRegion.InformRegionOfChildAgent(otherRegion.RegionHandle, agent.ControllingClient.RequestClientInfo());
-                    
+
+                ForEachScenePresence(delegate(ScenePresence agent)
+                {
+                    if (!(agent.IsChildAgent))
+                    {
+                        this.CommsManager.InterRegion.InformRegionOfChildAgent(otherRegion.RegionHandle, agent.ControllingClient.RequestClientInfo());
+                        InformClientOfNeighbor(agent, otherRegion);
+                    }
                 }
+
+                ); 
             }
-         );
+            catch (System.NullReferenceException)
+            {
+                // This means that we're not booted up completely yet.
+            }
+            return true;
         }
         public virtual void Restart(float seconds)
         {
@@ -1068,9 +1077,13 @@ namespace OpenSim.Region.Environment.Scenes
             m_sceneGridService.OnExpectUser += NewUserConnection;
             m_sceneGridService.OnAvatarCrossingIntoRegion += AgentCrossing;
             m_sceneGridService.OnCloseAgentConnection += CloseConnection;
+            m_sceneGridService.OnRegionUp += OtherRegionUp;
+            // Tell Other regions that I'm here.
+            m_sceneGridService.InformNeighborsThatRegionisUp(RegionInfo);
         }
         public void UnRegisterReginWithComms()
         {
+            m_sceneGridService.OnRegionUp -= OtherRegionUp;
             m_sceneGridService.OnExpectUser -= NewUserConnection;
             m_sceneGridService.OnAvatarCrossingIntoRegion -= AgentCrossing;
             m_sceneGridService.OnCloseAgentConnection -= CloseConnection;
@@ -1578,9 +1591,13 @@ namespace OpenSim.Region.Environment.Scenes
         /// <param name="action"></param>
         public void ForEachScenePresence(Action<ScenePresence> action)
         {
-            foreach (ScenePresence presence in m_scenePresences.Values)
+            // We don't want to try to send messages if there are no avatar.
+            if (!(m_scenePresences.Equals(null)))
             {
-                action(presence);
+                foreach (ScenePresence presence in m_scenePresences.Values)
+                {
+                    action(presence);
+                }
             }
         }
 
