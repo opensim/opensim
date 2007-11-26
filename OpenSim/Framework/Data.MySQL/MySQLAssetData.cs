@@ -76,20 +76,27 @@ namespace OpenSim.Framework.Data.MySQL
                         _dbConnection.Connection);
                 MySqlParameter p = cmd.Parameters.Add("?id", MySqlDbType.Binary, 16);
                 p.Value = assetID.GetBytes();
-                using (MySqlDataReader dbReader = cmd.ExecuteReader(CommandBehavior.SingleRow))
+                try
                 {
-                    if (dbReader.Read())
+                    using (MySqlDataReader dbReader = cmd.ExecuteReader(CommandBehavior.SingleRow))
                     {
-                        asset = new AssetBase();
-                        asset.Data = (byte[]) dbReader["data"];
-                        asset.Description = (string) dbReader["description"];
-                        asset.FullID = assetID;
-                        asset.InvType = (sbyte) dbReader["invType"];
-                        asset.Local = ((sbyte) dbReader["local"]) != 0 ? true : false;
-                        asset.Name = (string) dbReader["name"];
-                        asset.Type = (sbyte) dbReader["assetType"];
+                        if (dbReader.Read())
+                        {
+                            asset = new AssetBase();
+                            asset.Data = (byte[])dbReader["data"];
+                            asset.Description = (string)dbReader["description"];
+                            asset.FullID = assetID;
+                            asset.InvType = (sbyte)dbReader["invType"];
+                            asset.Local = ((sbyte)dbReader["local"]) != 0 ? true : false;
+                            asset.Name = (string)dbReader["name"];
+                            asset.Type = (sbyte)dbReader["assetType"];
+                        }
                     }
                 }
+                catch (Exception)
+                {
+                    MainLog.Instance.Warn("ASSETS", "MySql failure fetching asset");
+                }   
             }
             return asset;
         }
