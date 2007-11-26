@@ -146,10 +146,14 @@ namespace OpenSim.Region.Environment.Scenes
 
         public void TriggerParcelPrimCountUpdate()
         {
+            /*
+             * Removed by Adam to prevent some exceptions, temporary.
+             * 
             if (OnParcelPrimCountUpdate != null)
             {
                 OnParcelPrimCountUpdate();
             }
+            */
         }
 
         public void TriggerParcelPrimCountAdd(SceneObjectGroup obj)
