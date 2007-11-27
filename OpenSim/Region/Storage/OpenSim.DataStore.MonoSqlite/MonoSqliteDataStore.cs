@@ -886,13 +886,6 @@ namespace OpenSim.DataStore.MonoSqlite
             param.SourceVersion = DataRowVersion.Current;
             return param;
         }
-      
-        private SqliteParameter createParamWithValue(string name, Type type, Object o)
-        {
-            SqliteParameter param = createSqliteParameter(name, type);
-            param.Value = o;
-            return param;
-        }
 
         private void setupPrimCommands(SqliteDataAdapter da, SqliteConnection conn)
         {
