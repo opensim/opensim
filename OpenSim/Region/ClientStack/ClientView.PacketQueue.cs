@@ -413,20 +413,5 @@ namespace OpenSim.Region.ClientStack
         }
 
         #endregion
-
-        #region Nested Classes
-
-        public class QueItem
-        {
-            public QueItem()
-            {
-            }
-
-            public Packet Packet;
-            public bool Incoming;
-            public ThrottleOutPacketType throttleType;
-        }
-
-        #endregion
     }
 }
