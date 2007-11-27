@@ -787,7 +787,7 @@
       <Reference name="libsecondlife.dll"/>
       <Reference name="Axiom.MathLib.dll" localCopy="false"/>
       <Reference name="System" localCopy="false"/>
-      <Reference name="System.Data.dll"/>
+      <Reference name="System.Data"/>
       <Reference name="System.Xml"/>
 
       <Reference name="OpenSim.Framework.Console"/>
