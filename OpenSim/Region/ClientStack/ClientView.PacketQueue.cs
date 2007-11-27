@@ -220,6 +220,26 @@ namespace OpenSim.Region.ClientStack
             }
         }
 
+        private void ThrottleCheck(ref int TypeBytesSent, int Throttle, Queue<QueItem> q, QueItem item)
+        {
+            // The idea..  is if the packet throttle queues are empty
+            // and the client is under throttle for the type.  Queue
+            // it up directly.  This basically short cuts having to
+            // wait for the timer to fire to put things into the
+            // output queue
+
+            if(q.Count == 0 && TypeBytesSent <= ((int)(Throttle / throttleTimeDivisor)))
+            {
+                bytesSent += item.Packet.ToBytes().Length;
+                TypeBytesSent += item.Packet.ToBytes().Length;
+                PacketQueue.Enqueue(item);
+            }
+            else
+            {
+                q.Enqueue(item);
+            }
+        }
+
         public virtual void OutPacket(Packet NewPack, ThrottleOutPacketType throttlePacketType)
         {
             QueItem item = new QueItem();
@@ -232,92 +252,28 @@ namespace OpenSim.Region.ClientStack
             switch (throttlePacketType)
             {
                 case ThrottleOutPacketType.Resend:
-                    if (ResendBytesSent <= ((int)(ResendthrottleOutbound / throttleTimeDivisor)) && ResendOutgoingPacketQueue.Count == 0)
-                    {
-                        bytesSent += item.Packet.ToBytes().Length;
-                        ResendBytesSent += item.Packet.ToBytes().Length;
-                        PacketQueue.Enqueue(item);
-                    }
-                    else
-                    {
-                        ResendOutgoingPacketQueue.Enqueue(item);
-                    }
+                    ThrottleCheck(ref ResendBytesSent, ResendthrottleOutbound, ResendOutgoingPacketQueue, item);
                     break;
                 case ThrottleOutPacketType.Texture:
-                    if (TextureBytesSent <= ((int)(TexturethrottleOutbound / throttleTimeDivisor)) && TextureOutgoingPacketQueue.Count == 0)
-                    {
-                        bytesSent += item.Packet.ToBytes().Length;
-                        TextureBytesSent += item.Packet.ToBytes().Length;
-                        PacketQueue.Enqueue(item);
-                    }
-                    else
-                    {
-                        TextureOutgoingPacketQueue.Enqueue(item);
-                    }
+                    ThrottleCheck(ref TextureBytesSent, TexturethrottleOutbound, TextureOutgoingPacketQueue, item);
                     break;
                 case ThrottleOutPacketType.Task:
-                    if (TaskBytesSent <= ((int)(TexturethrottleOutbound / throttleTimeDivisor)) && TaskOutgoingPacketQueue.Count == 0)
-                    {
-                        bytesSent += item.Packet.ToBytes().Length;
-                        TaskBytesSent += item.Packet.ToBytes().Length;
-                        PacketQueue.Enqueue(item);
-                    }
-                    else
-                    {
-                        TaskOutgoingPacketQueue.Enqueue(item);
-                    }
+                    ThrottleCheck(ref TaskBytesSent, TaskthrottleOutbound, TaskOutgoingPacketQueue, item);
                     break;
                 case ThrottleOutPacketType.Land:
-                    if (LandBytesSent <= ((int)(LandthrottleOutbound / throttleTimeDivisor)) && LandOutgoingPacketQueue.Count == 0)
-                    {
-                        bytesSent += item.Packet.ToBytes().Length;
-                        LandBytesSent += item.Packet.ToBytes().Length;
-                        PacketQueue.Enqueue(item);
-                    }
-                    else
-                    {
-                        LandOutgoingPacketQueue.Enqueue(item);
-                    }
+                    ThrottleCheck(ref LandBytesSent, LandthrottleOutbound, LandOutgoingPacketQueue, item);
                     break;
                 case ThrottleOutPacketType.Asset:
-                    if (AssetBytesSent <= ((int)(AssetthrottleOutbound / throttleTimeDivisor)) && AssetOutgoingPacketQueue.Count == 0)
-                    {
-                        bytesSent += item.Packet.ToBytes().Length;
-                        AssetBytesSent += item.Packet.ToBytes().Length;
-                        PacketQueue.Enqueue(item);
-                    }
-                    else
-                    {
-                        AssetOutgoingPacketQueue.Enqueue(item);
-                    }
+                    ThrottleCheck(ref AssetBytesSent, AssetthrottleOutbound, AssetOutgoingPacketQueue, item);
                     break;
                 case ThrottleOutPacketType.Cloud:
-                    if (CloudBytesSent <= ((int)(CloudthrottleOutbound / throttleTimeDivisor)) && CloudOutgoingPacketQueue.Count == 0)
-                    {
-                        bytesSent += item.Packet.ToBytes().Length;
-                        CloudBytesSent += item.Packet.ToBytes().Length;
-                        PacketQueue.Enqueue(item);
-                    }
-                    else
-                    {
-                        CloudOutgoingPacketQueue.Enqueue(item);
-                    }
+                    ThrottleCheck(ref CloudBytesSent, CloudthrottleOutbound, CloudOutgoingPacketQueue, item);
                     break;
                 case ThrottleOutPacketType.Wind:
-                    if (WindBytesSent <= ((int)(WindthrottleOutbound / throttleTimeDivisor)) && WindOutgoingPacketQueue.Count == 0)
-                    {
-                        bytesSent += item.Packet.ToBytes().Length;
-                        WindBytesSent += item.Packet.ToBytes().Length;
-                        PacketQueue.Enqueue(item);
-                    }
-                    else
-                    {
-                        WindOutgoingPacketQueue.Enqueue(item);
-                    }
+                    ThrottleCheck(ref WindBytesSent, WindthrottleOutbound, WindOutgoingPacketQueue, item);
                     break;
 
                 default:
-                    
                     // Acknowledgements and other such stuff should go directly to the blocking Queue
                     // Throttling them may and likely 'will' be problematic
                     PacketQueue.Enqueue(item); 
