@@ -232,10 +232,10 @@ namespace OpenSim.Region.ClientStack
             switch (throttlePacketType)
             {
                 case ThrottleOutPacketType.Resend:
-                    if (ResendthrottleSentPeriod <= ((int)(ResendthrottleOutbound / throttleTimeDivisor)) && ResendOutgoingPacketQueue.Count == 0)
+                    if (ResendBytesSent <= ((int)(ResendthrottleOutbound / throttleTimeDivisor)) && ResendOutgoingPacketQueue.Count == 0)
                     {
-                        throttleSentPeriod += item.Packet.ToBytes().Length;
-                        ResendthrottleSentPeriod += item.Packet.ToBytes().Length;
+                        bytesSent += item.Packet.ToBytes().Length;
+                        ResendBytesSent += item.Packet.ToBytes().Length;
                         PacketQueue.Enqueue(item);
                     }
                     else
@@ -244,10 +244,10 @@ namespace OpenSim.Region.ClientStack
                     }
                     break;
                 case ThrottleOutPacketType.Texture:
-                    if (TexturethrottleSentPeriod <= ((int)(TexturethrottleOutbound / throttleTimeDivisor)) && TextureOutgoingPacketQueue.Count == 0)
+                    if (TextureBytesSent <= ((int)(TexturethrottleOutbound / throttleTimeDivisor)) && TextureOutgoingPacketQueue.Count == 0)
                     {
-                        throttleSentPeriod += item.Packet.ToBytes().Length;
-                        TexturethrottleSentPeriod += item.Packet.ToBytes().Length;
+                        bytesSent += item.Packet.ToBytes().Length;
+                        TextureBytesSent += item.Packet.ToBytes().Length;
                         PacketQueue.Enqueue(item);
                     }
                     else
@@ -256,10 +256,10 @@ namespace OpenSim.Region.ClientStack
                     }
                     break;
                 case ThrottleOutPacketType.Task:
-                    if (TaskthrottleSentPeriod <= ((int)(TexturethrottleOutbound / throttleTimeDivisor)) && TaskOutgoingPacketQueue.Count == 0)
+                    if (TaskBytesSent <= ((int)(TexturethrottleOutbound / throttleTimeDivisor)) && TaskOutgoingPacketQueue.Count == 0)
                     {
-                        throttleSentPeriod += item.Packet.ToBytes().Length;
-                        TaskthrottleSentPeriod += item.Packet.ToBytes().Length;
+                        bytesSent += item.Packet.ToBytes().Length;
+                        TaskBytesSent += item.Packet.ToBytes().Length;
                         PacketQueue.Enqueue(item);
                     }
                     else
@@ -268,10 +268,10 @@ namespace OpenSim.Region.ClientStack
                     }
                     break;
                 case ThrottleOutPacketType.Land:
-                    if (LandthrottleSentPeriod <= ((int)(LandthrottleOutbound / throttleTimeDivisor)) && LandOutgoingPacketQueue.Count == 0)
+                    if (LandBytesSent <= ((int)(LandthrottleOutbound / throttleTimeDivisor)) && LandOutgoingPacketQueue.Count == 0)
                     {
-                        throttleSentPeriod += item.Packet.ToBytes().Length;
-                        LandthrottleSentPeriod += item.Packet.ToBytes().Length;
+                        bytesSent += item.Packet.ToBytes().Length;
+                        LandBytesSent += item.Packet.ToBytes().Length;
                         PacketQueue.Enqueue(item);
                     }
                     else
@@ -280,10 +280,10 @@ namespace OpenSim.Region.ClientStack
                     }
                     break;
                 case ThrottleOutPacketType.Asset:
-                    if (AssetthrottleSentPeriod <= ((int)(AssetthrottleOutbound / throttleTimeDivisor)) && AssetOutgoingPacketQueue.Count == 0)
+                    if (AssetBytesSent <= ((int)(AssetthrottleOutbound / throttleTimeDivisor)) && AssetOutgoingPacketQueue.Count == 0)
                     {
-                        throttleSentPeriod += item.Packet.ToBytes().Length;
-                        AssetthrottleSentPeriod += item.Packet.ToBytes().Length;
+                        bytesSent += item.Packet.ToBytes().Length;
+                        AssetBytesSent += item.Packet.ToBytes().Length;
                         PacketQueue.Enqueue(item);
                     }
                     else
@@ -292,10 +292,10 @@ namespace OpenSim.Region.ClientStack
                     }
                     break;
                 case ThrottleOutPacketType.Cloud:
-                    if (CloudthrottleSentPeriod <= ((int)(CloudthrottleOutbound / throttleTimeDivisor)) && CloudOutgoingPacketQueue.Count == 0)
+                    if (CloudBytesSent <= ((int)(CloudthrottleOutbound / throttleTimeDivisor)) && CloudOutgoingPacketQueue.Count == 0)
                     {
-                        throttleSentPeriod += item.Packet.ToBytes().Length;
-                        CloudthrottleSentPeriod += item.Packet.ToBytes().Length;
+                        bytesSent += item.Packet.ToBytes().Length;
+                        CloudBytesSent += item.Packet.ToBytes().Length;
                         PacketQueue.Enqueue(item);
                     }
                     else
@@ -304,10 +304,10 @@ namespace OpenSim.Region.ClientStack
                     }
                     break;
                 case ThrottleOutPacketType.Wind:
-                    if (WindthrottleSentPeriod <= ((int)(WindthrottleOutbound / throttleTimeDivisor)) && WindOutgoingPacketQueue.Count == 0)
+                    if (WindBytesSent <= ((int)(WindthrottleOutbound / throttleTimeDivisor)) && WindOutgoingPacketQueue.Count == 0)
                     {
-                        throttleSentPeriod += item.Packet.ToBytes().Length;
-                        WindthrottleSentPeriod += item.Packet.ToBytes().Length;
+                        bytesSent += item.Packet.ToBytes().Length;
+                        WindBytesSent += item.Packet.ToBytes().Length;
                         PacketQueue.Enqueue(item);
                     }
                     else

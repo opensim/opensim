@@ -1048,13 +1048,13 @@ namespace OpenSim.Region.ClientStack
                         // This has the effect of 'wiggling the slider 
                         // causes prim and stuck textures that didn't download to download
 
-                        ResendthrottleSentPeriod = 0;
-                        LandthrottleSentPeriod = 0;
-                        WindthrottleSentPeriod = 0;
-                        CloudthrottleSentPeriod = 0;
-                        TaskthrottleSentPeriod = 0;
-                        AssetthrottleSentPeriod = 0;
-                        TexturethrottleSentPeriod = 0;
+                        ResendBytesSent = 0;
+                        LandBytesSent = 0;
+                        WindBytesSent = 0;
+                        CloudBytesSent = 0;
+                        TaskBytesSent = 0;
+                        AssetBytesSent = 0;
+                        TextureBytesSent = 0;
 
                         //Yay, we've finally handled the agent Throttle packet!
                    

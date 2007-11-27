@@ -90,7 +90,7 @@ namespace OpenSim.Region.ClientStack
         // 1536000
         private int throttleOutboundMax = 1536000; // Number of bytes allowed to go out per second. (256kbps per client) 
                                               // TODO: Make this variable. Lower throttle on un-ack. Raise over time?
-        private int throttleSentPeriod = 0;   // Number of bytes sent this period
+        private int bytesSent = 0;   // Number of bytes sent this period
 
         private int throttleOutbound = 162144; // Number of bytes allowed to go out per second. (256kbps per client) 
         // TODO: Make this variable. Lower throttle on un-ack. Raise over time
@@ -123,19 +123,19 @@ namespace OpenSim.Region.ClientStack
 
         // Sim default per-client settings.
         private int ResendthrottleOutbound = 50000;
-        private int ResendthrottleSentPeriod = 0;
+        private int ResendBytesSent = 0;
         private int LandthrottleOutbound = 100000;
-        private int LandthrottleSentPeriod = 0;
+        private int LandBytesSent = 0;
         private int WindthrottleOutbound = 10000;
-        private int WindthrottleSentPeriod = 0;
+        private int WindBytesSent = 0;
         private int CloudthrottleOutbound = 5000;
-        private int CloudthrottleSentPeriod = 0;
+        private int CloudBytesSent = 0;
         private int TaskthrottleOutbound = 100000;
-        private int TaskthrottleSentPeriod = 0;
+        private int TaskBytesSent = 0;
         private int AssetthrottleOutbound = 80000;
-        private int AssetthrottleSentPeriod = 0;
+        private int AssetBytesSent = 0;
         private int TexturethrottleOutbound = 100000;
-        private int TexturethrottleSentPeriod = 0;
+        private int TextureBytesSent = 0;
 
         private Timer throttleTimer;
 
@@ -196,14 +196,14 @@ namespace OpenSim.Region.ClientStack
 
         void throttleTimer_Elapsed(object sender, ElapsedEventArgs e)
         {   
-            throttleSentPeriod = 0;
-            ResendthrottleSentPeriod = 0;
-            LandthrottleSentPeriod = 0;
-            WindthrottleSentPeriod = 0;
-            CloudthrottleSentPeriod = 0;
-            TaskthrottleSentPeriod = 0;
-            AssetthrottleSentPeriod = 0;
-            TexturethrottleSentPeriod = 0;
+            bytesSent = 0;
+            ResendBytesSent = 0;
+            LandBytesSent = 0;
+            WindBytesSent = 0;
+            CloudBytesSent = 0;
+            TaskBytesSent = 0;
+            AssetBytesSent = 0;
+            TextureBytesSent = 0;
             
             // I was considering this..   Will an event fire if the thread it's on is blocked?
 
@@ -216,7 +216,7 @@ namespace OpenSim.Region.ClientStack
 
             // We're going to dequeue all of the saved up packets until 
             // we've hit the throttle limit or there's no more packets to send
-            while ((throttleSentPeriod <= ((int)(throttleOutbound/throttleTimeDivisor)) &&
+            while ((bytesSent <= ((int)(throttleOutbound/throttleTimeDivisor)) &&
                 (ResendOutgoingPacketQueue.Count > 0 ||
                  LandOutgoingPacketQueue.Count > 0 ||
                  WindOutgoingPacketQueue.Count > 0 ||
@@ -227,61 +227,61 @@ namespace OpenSim.Region.ClientStack
             {
                 throttleLoops++;
                 //Now comes the fun part..   we dump all our elements into PacketQueue that we've saved up.
-                if (ResendthrottleSentPeriod <= ((int)(ResendthrottleOutbound/throttleTimeDivisor)) && ResendOutgoingPacketQueue.Count > 0)
+                if (ResendBytesSent <= ((int)(ResendthrottleOutbound/throttleTimeDivisor)) && ResendOutgoingPacketQueue.Count > 0)
                 {
                     QueItem qpack = ResendOutgoingPacketQueue.Dequeue();
 
                     PacketQueue.Enqueue(qpack);
-                    throttleSentPeriod += qpack.Packet.ToBytes().Length;
-                    ResendthrottleSentPeriod += qpack.Packet.ToBytes().Length;
+                    bytesSent += qpack.Packet.ToBytes().Length;
+                    ResendBytesSent += qpack.Packet.ToBytes().Length;
                 }
-                if (LandthrottleSentPeriod <= ((int)(LandthrottleOutbound/throttleTimeDivisor)) && LandOutgoingPacketQueue.Count > 0)
+                if (LandBytesSent <= ((int)(LandthrottleOutbound/throttleTimeDivisor)) && LandOutgoingPacketQueue.Count > 0)
                 {
                     QueItem qpack = LandOutgoingPacketQueue.Dequeue();
 
                     PacketQueue.Enqueue(qpack);
-                    throttleSentPeriod += qpack.Packet.ToBytes().Length;
-                    LandthrottleSentPeriod += qpack.Packet.ToBytes().Length;
+                    bytesSent += qpack.Packet.ToBytes().Length;
+                    LandBytesSent += qpack.Packet.ToBytes().Length;
                 }
-                if (WindthrottleSentPeriod <= ((int)(WindthrottleOutbound/throttleTimeDivisor)) && WindOutgoingPacketQueue.Count > 0)
+                if (WindBytesSent <= ((int)(WindthrottleOutbound/throttleTimeDivisor)) && WindOutgoingPacketQueue.Count > 0)
                 {
                     QueItem qpack = WindOutgoingPacketQueue.Dequeue();
 
                     PacketQueue.Enqueue(qpack);
-                    throttleSentPeriod += qpack.Packet.ToBytes().Length;
-                    WindthrottleSentPeriod += qpack.Packet.ToBytes().Length;
+                    bytesSent += qpack.Packet.ToBytes().Length;
+                    WindBytesSent += qpack.Packet.ToBytes().Length;
                 }
-                if (CloudthrottleSentPeriod <= ((int)(CloudthrottleOutbound/throttleTimeDivisor)) && CloudOutgoingPacketQueue.Count > 0)
+                if (CloudBytesSent <= ((int)(CloudthrottleOutbound/throttleTimeDivisor)) && CloudOutgoingPacketQueue.Count > 0)
                 {
                     QueItem qpack = CloudOutgoingPacketQueue.Dequeue();
 
                     PacketQueue.Enqueue(qpack);
-                    throttleSentPeriod += qpack.Packet.ToBytes().Length;
-                    CloudthrottleSentPeriod += qpack.Packet.ToBytes().Length;
+                    bytesSent += qpack.Packet.ToBytes().Length;
+                    CloudBytesSent += qpack.Packet.ToBytes().Length;
                 }
-                if (TaskthrottleSentPeriod <= ((int)(TaskthrottleOutbound/throttleTimeDivisor)) && TaskOutgoingPacketQueue.Count > 0)
+                if (TaskBytesSent <= ((int)(TaskthrottleOutbound/throttleTimeDivisor)) && TaskOutgoingPacketQueue.Count > 0)
                 {
                     QueItem qpack = TaskOutgoingPacketQueue.Dequeue();
 
                     PacketQueue.Enqueue(qpack);
-                    throttleSentPeriod += qpack.Packet.ToBytes().Length;
-                    TaskthrottleSentPeriod += qpack.Packet.ToBytes().Length;
+                    bytesSent += qpack.Packet.ToBytes().Length;
+                    TaskBytesSent += qpack.Packet.ToBytes().Length;
                 }
-                if (TexturethrottleSentPeriod <= ((int)(TexturethrottleOutbound/throttleTimeDivisor)) && TextureOutgoingPacketQueue.Count > 0)
+                if (TextureBytesSent <= ((int)(TexturethrottleOutbound/throttleTimeDivisor)) && TextureOutgoingPacketQueue.Count > 0)
                 {
                     QueItem qpack = TextureOutgoingPacketQueue.Dequeue();
 
                     PacketQueue.Enqueue(qpack);
-                    throttleSentPeriod += qpack.Packet.ToBytes().Length;
-                    TexturethrottleSentPeriod += qpack.Packet.ToBytes().Length;
+                    bytesSent += qpack.Packet.ToBytes().Length;
+                    TextureBytesSent += qpack.Packet.ToBytes().Length;
                 }
-                if (AssetthrottleSentPeriod <= ((int)(AssetthrottleOutbound/throttleTimeDivisor)) && AssetOutgoingPacketQueue.Count > 0)
+                if (AssetBytesSent <= ((int)(AssetthrottleOutbound/throttleTimeDivisor)) && AssetOutgoingPacketQueue.Count > 0)
                 {
                     QueItem qpack = AssetOutgoingPacketQueue.Dequeue();
 
                     PacketQueue.Enqueue(qpack);
-                    throttleSentPeriod += qpack.Packet.ToBytes().Length;
-                    AssetthrottleSentPeriod += qpack.Packet.ToBytes().Length;
+                    bytesSent += qpack.Packet.ToBytes().Length;
+                    AssetBytesSent += qpack.Packet.ToBytes().Length;
                 }
 
             }
@@ -441,7 +441,7 @@ namespace OpenSim.Region.ClientStack
                 else
                 {
                     // Throw it back on the queue if it's going to cause us to flood the client
-                    if (throttleSentPeriod > throttleOutboundMax)
+                    if (bytesSent > throttleOutboundMax)
                     {
                         PacketQueue.Enqueue(nextPacket);
                         MainLog.Instance.Verbose("Client over throttle limit, requeuing packet");
@@ -462,7 +462,7 @@ namespace OpenSim.Region.ClientStack
                         
                             //Don't throttle AvatarPickerReplies!, they return a null .ToBytes()!
                             if (nextPacket.Packet.Type != PacketType.AvatarPickerReply)
-                                throttleSentPeriod += nextPacket.Packet.ToBytes().Length;
+                                bytesSent += nextPacket.Packet.ToBytes().Length;
                         
 
                             //is a out going packet
