@@ -57,6 +57,9 @@ namespace OpenSim.Region.Environment.Scenes
     {
         #region Fields
         protected Timer m_heartbeatTimer = new Timer();
+        protected Timer m_restartWaitTimer = new Timer();
+
+        protected List<RegionInfo> m_regionRestartNotifyList = new List<RegionInfo>();
 
         public InnerScene m_innerScene;
 
@@ -210,6 +213,7 @@ namespace OpenSim.Region.Environment.Scenes
             m_authenticateHandler = authen;
             CommsManager = commsMan;
             m_sceneGridService = sceneGridService;
+            m_sceneGridService.debugRegionName = regInfo.RegionName;
             m_storageManager = storeManager;
             AssetCache = assetCach;
             m_regInfo = regInfo;
@@ -244,6 +248,8 @@ namespace OpenSim.Region.Environment.Scenes
 
             httpListener = httpServer;
             m_dumpAssetsToFile = dumpAssetsToFile;
+
+            // This function was moved to terrain for some kind of map hack by babble
             RegisterRegionWithComms();
         }
 
@@ -262,29 +268,23 @@ namespace OpenSim.Region.Environment.Scenes
         {
             // Another region is up.   We have to tell all our ScenePresences about it
             // This fails to get the desired effect and needs further work.
-            try
+            if (RegionInfo.RegionHandle != otherRegion.RegionHandle)
             {
-
-                ForEachScenePresence(delegate(ScenePresence agent)
+                if (!(m_regionRestartNotifyList.Contains(otherRegion)))
                 {
-                    if (!(agent.IsChildAgent))
-                    {
-                        this.CommsManager.InterRegion.InformRegionOfChildAgent(otherRegion.RegionHandle, agent.ControllingClient.RequestClientInfo());
-                        InformClientOfNeighbor(agent, otherRegion);
-                    }
+                    m_regionRestartNotifyList.Add(otherRegion);
+                    
+                    m_restartWaitTimer = new Timer(20000);
+                    m_restartWaitTimer.AutoReset = false;
+                    m_restartWaitTimer.Elapsed += new ElapsedEventHandler(restart_Notify_Wait_Elapsed);
+                    m_restartWaitTimer.Start();
                 }
-
-                ); 
-            }
-            catch (System.NullReferenceException)
-            {
-                // This means that we're not booted up completely yet.
             }
             return true;
         }
         public virtual void Restart(float seconds)
         {
-            if (seconds < 100)
+            if (seconds < 15)
             {
                 t_restartTimer.Stop();
                 SendGeneralAlert("Restart Aborted");
@@ -314,12 +314,41 @@ namespace OpenSim.Region.Environment.Scenes
             else
             {
                 t_restartTimer.Stop();
+                t_restartTimer.AutoReset = false;
                 MainLog.Instance.Error("REGION", "Closing");
                 Close();
                 MainLog.Instance.Error("REGION", "Firing Region Restart Message");
                 base.Restart(0);
             }
             
+        }
+        public void restart_Notify_Wait_Elapsed(object sender, ElapsedEventArgs e)
+        { 
+            m_restartWaitTimer.Stop();
+            foreach (RegionInfo region in m_regionRestartNotifyList)
+            {
+                try
+                {
+
+                    ForEachScenePresence(delegate(ScenePresence agent)
+                    {
+                        if (!(agent.IsChildAgent))
+                        {
+                            //agent.ControllingClient.new
+                            //this.CommsManager.InterRegion.InformRegionOfChildAgent(otherRegion.RegionHandle, agent.ControllingClient.RequestClientInfo());
+                            InformClientOfNeighbor(agent, region);
+                        }
+                    }
+
+                    );
+                }
+                catch (System.NullReferenceException)
+                {
+                    // This means that we're not booted up completely yet.
+                }
+            }
+            // Reset list to nothing.
+            m_regionRestartNotifyList = new List<RegionInfo>();
         }
         public override void Close()
         {
@@ -642,7 +671,11 @@ namespace OpenSim.Region.Environment.Scenes
                 }
 
                 CreateTerrainTextureInitial();
-                CommsManager.GridService.RegisterRegion(RegionInfo); //hack to update the terrain texture in grid mode so it shows on world map
+                //CommsManager.GridService.RegisterRegion(RegionInfo); //hack to update the terrain texture in grid mode so it shows on world map
+                
+                // These two 'commands' *must be* next to each other or sim rebooting fails.
+                m_sceneGridService.RegisterRegion(RegionInfo);
+                m_sceneGridService.InformNeighborsThatRegionisUp(RegionInfo);
             }
             catch (Exception e)
             {
@@ -1073,13 +1106,17 @@ namespace OpenSim.Region.Environment.Scenes
         /// </summary>
         public void RegisterRegionWithComms()
         {
-            m_sceneGridService.RegisterRegion(m_regInfo);
+            // Don't register here.  babblefro moved registration to *after *the map
+            // functions on line 675 so that a proper map will generate and get sent to grid services
+            // Double registrations will cause inter region communication issues
+
+            //m_sceneGridService.RegisterRegion(m_regInfo);
             m_sceneGridService.OnExpectUser += NewUserConnection;
             m_sceneGridService.OnAvatarCrossingIntoRegion += AgentCrossing;
             m_sceneGridService.OnCloseAgentConnection += CloseConnection;
             m_sceneGridService.OnRegionUp += OtherRegionUp;
             // Tell Other regions that I'm here.
-            m_sceneGridService.InformNeighborsThatRegionisUp(RegionInfo);
+            
         }
         public void UnRegisterReginWithComms()
         {

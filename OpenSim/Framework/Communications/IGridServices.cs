@@ -32,6 +32,7 @@ namespace OpenSim.Framework.Communications
 {
     public interface IGridServices
     {
+        string gdebugRegionName { get; set; }
         RegionCommsListener RegisterRegion(RegionInfo regionInfos);
         bool DeregisterRegion(RegionInfo regionInfo);
         List<SimpleRegionInfo> RequestNeighbours(uint x, uint y);

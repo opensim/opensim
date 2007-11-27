@@ -350,6 +350,7 @@ namespace OpenSim.Grid.GridServer
                     NeighbourBlock["region_locx"] = aSim.Value.regionLocX.ToString();
                     NeighbourBlock["region_locy"] = aSim.Value.regionLocY.ToString();
                     NeighbourBlock["UUID"] = aSim.Value.UUID.ToString();
+                    NeighbourBlock["regionHandle"] = aSim.Value.regionHandle.ToString();
 
                     if (aSim.Value.UUID != TheSim.UUID)
                         SimNeighboursData.Add(NeighbourBlock);
@@ -376,6 +377,7 @@ namespace OpenSim.Grid.GridServer
                             NeighbourBlock["region_locx"] = neighbour.regionLocX.ToString();
                             NeighbourBlock["region_locy"] = neighbour.regionLocY.ToString();
                             NeighbourBlock["UUID"] = neighbour.UUID.ToString();
+                            NeighbourBlock["regionHandle"] = neighbour.regionHandle.ToString();
 
                             if (neighbour.UUID != TheSim.UUID) SimNeighboursData.Add(NeighbourBlock);
                         }
@@ -438,6 +440,7 @@ namespace OpenSim.Grid.GridServer
                 responseData["region_locy"] = simData.regionLocY.ToString();
                 responseData["region_UUID"] = simData.UUID.UUID.ToString();
                 responseData["region_name"] = simData.regionName;
+                responseData["regionHandle"] = simData.regionHandle.ToString();
             }
 
             XmlRpcResponse response = new XmlRpcResponse();

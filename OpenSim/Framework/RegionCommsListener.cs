@@ -43,6 +43,7 @@ namespace OpenSim.Framework
         public event AcknowledgePrimCross OnAcknowledgePrimCrossed;
         public event CloseAgentConnection OnCloseAgentConnection;
         public event RegionUp OnRegionUp;
+        public string debugRegionName="";
         
 
         /// <summary>

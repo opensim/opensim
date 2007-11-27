@@ -722,6 +722,9 @@ namespace OpenSim
                 case "shutdown":
                     Shutdown();
                     break;
+                case "restart":
+                    m_sceneManager.RestartCurrentScene();
+                    break;
 
                 case "change-region":
                     if (cmdparams.Length > 0)

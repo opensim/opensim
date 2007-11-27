@@ -214,6 +214,12 @@ namespace OpenSim.Region.Environment.Scenes
             }
         }
 
+        public void RestartCurrentScene()
+        {
+            ForEachCurrentScene(delegate(Scene scene) { scene.Restart(15); });
+
+        }
+
         public void BackupCurrentScene()
         {
             ForEachCurrentScene(delegate(Scene scene) { scene.Backup(); });

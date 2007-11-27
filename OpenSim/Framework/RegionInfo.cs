@@ -39,6 +39,7 @@ using OpenSim.Framework;
 
 namespace OpenSim.Framework
 {
+    [Serializable]
     public class SimpleRegionInfo
     {
         public SimpleRegionInfo()
@@ -183,7 +184,7 @@ namespace OpenSim.Framework
             }
         }
     }
-
+    [Serializable]
     public class RegionInfo : SimpleRegionInfo
     {
         public string RegionName = "";

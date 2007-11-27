@@ -22,25 +22,48 @@ namespace OpenSim.Region.Environment.Scenes
         public event CloseAgentConnection OnCloseAgentConnection;
         public event PrimCrossing OnPrimCrossingIntoRegion;
         public event RegionUp OnRegionUp;
-        
+        public string _debugRegionName = "";
+
+        public string debugRegionName
+        {
+            get { return _debugRegionName; }
+            set
+            {
+                _debugRegionName = value;
+               
+                
+
+            }
+        }
 
         public SceneCommunicationService(CommunicationsManager commsMan)
         {
             m_commsProvider = commsMan;
+            m_commsProvider.GridService.gdebugRegionName = _debugRegionName;
+            m_commsProvider.InterRegion.rdebugRegionName = _debugRegionName;
         }
 
         public void RegisterRegion(RegionInfo regionInfos)
         {
             m_regionInfo = regionInfos;
             regionCommsHost = m_commsProvider.GridService.RegisterRegion(m_regionInfo);
+
             if (regionCommsHost != null)
             {
+                //MainLog.Instance.Verbose("INTER", debugRegionName + ": SceneCommunicationService: registered with gridservice and got" + regionCommsHost.ToString());
+
+                regionCommsHost.debugRegionName = _debugRegionName;
                 regionCommsHost.OnExpectUser += NewUserConnection;
                 regionCommsHost.OnAvatarCrossingIntoRegion += AgentCrossing;
                 regionCommsHost.OnPrimCrossingIntoRegion += PrimCrossing;
                 regionCommsHost.OnCloseAgentConnection += CloseConnection;
                 regionCommsHost.OnRegionUp += newRegionUp;
-                
+
+
+            }
+            else
+            {
+                //MainLog.Instance.Verbose("INTER", debugRegionName + ": SceneCommunicationService: registered with gridservice and got null");
 
             }
         }
@@ -70,6 +93,7 @@ namespace OpenSim.Region.Environment.Scenes
         {
             if (OnExpectUser != null)
             {
+                //MainLog.Instance.Verbose("INTER", debugRegionName + ": SceneCommunicationService: OnExpectUser Fired for User:" + agent.firstname + " " + agent.lastname);
                 OnExpectUser(regionHandle, agent);
             }
         }
@@ -78,6 +102,7 @@ namespace OpenSim.Region.Environment.Scenes
         {
             if (OnRegionUp != null)
             {
+                //MainLog.Instance.Verbose("INTER", debugRegionName + ": SceneCommunicationService: newRegionUp Fired for User:" + region.RegionName);
                 OnRegionUp(region);
             }
             return true;
@@ -188,6 +213,7 @@ namespace OpenSim.Region.Environment.Scenes
         /// <returns></returns>
         public virtual RegionInfo RequestNeighbouringRegionInfo(ulong regionHandle)
         {
+            //MainLog.Instance.Verbose("INTER", debugRegionName + ": SceneCommunicationService: Sending Grid Services Request about neighbor " + regionHandle.ToString());
             return m_commsProvider.GridService.RequestNeighbourInfo(regionHandle);
         }
 
@@ -275,6 +301,7 @@ namespace OpenSim.Region.Environment.Scenes
 
         public void InformNeighborsThatRegionisUp(RegionInfo region)
         {
+            //MainLog.Instance.Verbose("INTER", debugRegionName + ": SceneCommunicationService: Sending InterRegion Notification that region is up " + region.RegionName);
             bool val = m_commsProvider.InterRegion.RegionUp(region);
         }
 
