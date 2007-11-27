@@ -1115,6 +1115,9 @@ namespace OpenSim.Region.Environment.Scenes
             m_sceneGridService.OnAvatarCrossingIntoRegion += AgentCrossing;
             m_sceneGridService.OnCloseAgentConnection += CloseConnection;
             m_sceneGridService.OnRegionUp += OtherRegionUp;
+
+            m_sceneGridService.KillObject = SendKillObject;
+
             // Tell Other regions that I'm here.
             
         }

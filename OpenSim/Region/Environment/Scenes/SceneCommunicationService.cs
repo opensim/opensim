@@ -10,6 +10,8 @@ using OpenSim.Framework.Communications;
 
 namespace OpenSim.Region.Environment.Scenes
 {
+    public delegate void KillObjectDelegate(uint localID);
+
     public class SceneCommunicationService //one instance per region
     {
         protected CommunicationsManager m_commsProvider;
@@ -22,7 +24,10 @@ namespace OpenSim.Region.Environment.Scenes
         public event CloseAgentConnection OnCloseAgentConnection;
         public event PrimCrossing OnPrimCrossingIntoRegion;
         public event RegionUp OnRegionUp;
+
+        public KillObjectDelegate KillObject;
         public string _debugRegionName = "";
+
 
         public string debugRegionName
         {
@@ -276,6 +281,10 @@ namespace OpenSim.Region.Environment.Scenes
                     string capsPath = Util.GetCapsURL(avatar.ControllingClient.AgentId);
                     avatar.ControllingClient.SendRegionTeleport(regionHandle, 13, reg.ExternalEndPoint, 4, (1 << 4), capsPath);
                     avatar.MakeChildAgent();
+                    if (KillObject != null)
+                    {
+                        KillObject(avatar.LocalId);
+                    }
                     uint newRegionX = (uint)(regionHandle >> 40);
                     uint newRegionY = (((uint)(regionHandle)) >> 8);
                     uint oldRegionX = (uint)(m_regionInfo.RegionHandle >> 40);
