@@ -307,7 +307,7 @@ namespace OpenSim.Region.Environment.Scenes
                 t_restartTimer.Elapsed += new ElapsedEventHandler(restartTimer_Elapsed);
                 MainLog.Instance.Error("REGION", "Restarting Region in " + (seconds / 60) + " minutes");
                 t_restartTimer.Start();
-                SendGeneralAlert("Restarting in 2 Minutes");
+                SendGeneralAlert(RegionInfo.RegionName + ": Restarting in 2 Minutes");
             }
 
             
@@ -318,7 +318,7 @@ namespace OpenSim.Region.Environment.Scenes
             if (m_RestartTimerCounter <= m_incrementsof15seconds)
             {
                 if (m_RestartTimerCounter == 4 || m_RestartTimerCounter == 6 || m_RestartTimerCounter == 7)
-                    SendGeneralAlert("Restarting in " + ((8-m_RestartTimerCounter) * 15) + " seconds");
+                    SendGeneralAlert(RegionInfo.RegionName + ": Restarting in " + ((8 - m_RestartTimerCounter) * 15) + " seconds");
             }
             else
             {
