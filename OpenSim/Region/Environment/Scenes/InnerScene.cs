@@ -11,8 +11,14 @@ using OpenSim.Region.Physics.Manager;
 
 namespace OpenSim.Region.Environment.Scenes
 {
+    public delegate void PhysicsCrash();
+
     public class InnerScene
     {
+        #region Events
+        public event PhysicsCrash UnRecoverableError;
+        #endregion
+
         #region Fields
         public Dictionary<LLUUID, ScenePresence> ScenePresences;
         public Dictionary<LLUUID, SceneObjectGroup> SceneObjects;
@@ -26,17 +32,47 @@ namespace OpenSim.Region.Environment.Scenes
 
         internal object m_syncRoot = new object();
 
-        public PhysicsScene PhyScene;
+        public PhysicsScene _PhyScene;
         #endregion
 
         public InnerScene(Scene parent, RegionInfo regInfo, PermissionManager permissionsMngr)
         {
+
             m_parentScene = parent;
             m_regInfo = regInfo;
             PermissionsMngr = permissionsMngr;
             QuadTree = new BasicQuadTreeNode(null, "/0/", 0, 0, 256, 256);
             QuadTree.Subdivide();
             QuadTree.Subdivide();
+            
+
+        }
+        public PhysicsScene PhyScene
+        {
+            get
+            { return _PhyScene; }
+            set
+            {
+                // If we're not doing the initial set
+                // Then we've got to remove the previous 
+                // event handler
+                    try
+                    {
+                        _PhyScene.OnPhysicsCrash -= physicsBasedCrash;
+                    }
+                    catch (System.NullReferenceException)
+                    {
+                        // This occurs when storing to _PhyScene the first time.
+                        // Is there a better way to check the event handler before
+                        // getting here
+                        // This can be safely ignored.  We're setting the first inital 
+                        // there are no event handler's registered.
+                    }
+                
+                _PhyScene = value;
+                
+                _PhyScene.OnPhysicsCrash += physicsBasedCrash;
+            }
         }
 
         public void Close()
@@ -55,9 +91,9 @@ namespace OpenSim.Region.Environment.Scenes
 
             // PhysX does this (runs in the background).
 
-            if (PhyScene.IsThreaded)
+            if (_PhyScene.IsThreaded)
             {
-                PhyScene.GetResults();
+                _PhyScene.GetResults();
             }
         }
 
@@ -75,7 +111,7 @@ namespace OpenSim.Region.Environment.Scenes
         {
             lock (m_syncRoot)
             {
-                PhyScene.Simulate((float)elapsed);
+                _PhyScene.Simulate((float)elapsed);
             }
         }
 
@@ -337,6 +373,15 @@ namespace OpenSim.Region.Environment.Scenes
         #endregion
 
         #region Other Methods
+
+
+        public void physicsBasedCrash()
+        {
+            if (UnRecoverableError != null)
+            {
+                UnRecoverableError();
+            }
+        }
 
         public LLUUID ConvertLocalIDToFullID(uint localID)
         {

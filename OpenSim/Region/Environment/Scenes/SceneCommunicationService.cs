@@ -171,6 +171,18 @@ namespace OpenSim.Region.Environment.Scenes
             }
         }
 
+        public void RequestNeighbors(RegionInfo region)
+        {
+            List<SimpleRegionInfo> neighbours =
+                m_commsProvider.GridService.RequestNeighbours(m_regionInfo.RegionLocX, m_regionInfo.RegionLocY);
+            //IPEndPoint blah = new IPEndPoint();
+            
+            //blah.Address = region.RemotingAddress;
+            //blah.Port = region.RemotingPort;
+           
+
+        }
+
         /// <summary>
         /// 
         /// </summary>
@@ -311,7 +323,7 @@ namespace OpenSim.Region.Environment.Scenes
         public void InformNeighborsThatRegionisUp(RegionInfo region)
         {
             //MainLog.Instance.Verbose("INTER", debugRegionName + ": SceneCommunicationService: Sending InterRegion Notification that region is up " + region.RegionName);
-            bool val = m_commsProvider.InterRegion.RegionUp(region);
+            bool val = m_commsProvider.InterRegion.RegionUp(new SearializableRegionInfo(region));
         }
 
         public bool PrimCrossToNeighboringRegion(ulong regionhandle, LLUUID primID, LLVector3 position, bool isPhysical)

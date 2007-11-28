@@ -69,7 +69,7 @@ namespace OpenSim.Framework
 
         public LLUUID RegionID = LLUUID.Zero;
 
-        private uint m_remotingPort;
+        public uint m_remotingPort;
         public uint RemotingPort
         {
             get
@@ -184,7 +184,7 @@ namespace OpenSim.Framework
             }
         }
     }
-    [Serializable]
+    
     public class RegionInfo : SimpleRegionInfo
     {
         public string RegionName = "";
@@ -235,7 +235,15 @@ namespace OpenSim.Framework
         {
 
         }
-
+        public RegionInfo(SearializableRegionInfo ConvertFrom)
+        {
+            m_regionLocX = ConvertFrom.RegionLocX;
+            m_regionLocY = ConvertFrom.RegionLocY;
+            m_internalEndPoint = ConvertFrom.InternalEndPoint;
+            m_externalHostName = ConvertFrom.ExternalHostName;
+            m_remotingPort = ConvertFrom.RemotingPort;
+            RemotingAddress = ConvertFrom.RemotingAddress;
+        }
         //not in use, should swap to nini though.
         public void LoadFromNiniSource(IConfigSource source)
         {

@@ -106,7 +106,6 @@ namespace OpenSim.Region.Communications.Local
 
                 return regionHost;
             }
-            return null;
         }
 
         public bool DeregisterRegion(RegionInfo regionInfo)
@@ -201,8 +200,9 @@ namespace OpenSim.Region.Communications.Local
         /// <param name="agentData"></param>
         /// <returns></returns>
         /// 
-        public bool RegionUp(RegionInfo region)
+        public bool RegionUp(SearializableRegionInfo sregion)
         {
+            RegionInfo region = new RegionInfo(sregion);
             foreach (RegionCommsListener listener in m_regionListeners.Values)
             {
                 listener.TriggerRegionUp(region);
@@ -213,8 +213,13 @@ namespace OpenSim.Region.Communications.Local
 
         public bool TriggerRegionUp(RegionInfo region)
         {
+            
+            foreach (RegionCommsListener listener in m_regionListeners.Values)
+            {
+                listener.TriggerRegionUp(region);
+            }
 
-            return false;
+            return true;
         }
 
         public bool InformRegionOfChildAgent(ulong regionHandle, AgentCircuitData agentData)

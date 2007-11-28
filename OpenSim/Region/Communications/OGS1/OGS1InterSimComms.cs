@@ -41,7 +41,7 @@ namespace OpenSim.Region.Communications.OGS1
 
     public delegate bool PrimGroupArrival(ulong regionHandle, LLUUID primID, string objData);
 
-    public delegate bool RegionUP (RegionInfo region);
+    public delegate bool RegionUp (SearializableRegionInfo region);
 
     public sealed class InterRegionSingleton
     {
@@ -76,11 +76,12 @@ namespace OpenSim.Region.Communications.OGS1
             return false;
         }
 
-        public bool RegionUp(RegionInfo region)
+        public bool RegionUp(SearializableRegionInfo sregion)
         {
+            
             if (OnRegionUp != null)
             {
-                return OnRegionUp(region);
+                return OnRegionUp(sregion);
             }
             return false;
         }
@@ -129,7 +130,7 @@ namespace OpenSim.Region.Communications.OGS1
                 return false;
             }
         }
-        public bool RegionUp(RegionInfo region)
+        public bool RegionUp(SearializableRegionInfo  region)
         {
             try
             {
@@ -141,6 +142,7 @@ namespace OpenSim.Region.Communications.OGS1
                 return false;
             }
         }
+
         public bool ExpectAvatarCrossing(ulong regionHandle, LLUUID agentID, LLVector3 position, bool isFlying)
         {
             try

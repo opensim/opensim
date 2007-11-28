@@ -32,12 +32,29 @@ using OpenSim.Region.Physics.Manager;
 
 namespace OpenSim.Region.Physics.Manager
 {
+    public delegate void physicsCrash();
+
     public abstract class PhysicsScene
     {
+        // The only thing that should register for this event is the InnerScene
+        // Anything else could cause problems.
+
+        public event physicsCrash OnPhysicsCrash;
+
         public static PhysicsScene Null
         {
             get { return new NullPhysicsScene(); }
         }
+        public virtual void TriggerPhysicsBasedRestart()
+        {
+            physicsCrash handler = OnPhysicsCrash;
+            if (handler != null)
+            {
+                OnPhysicsCrash();
+            }
+            
+        }
+        
 
         public abstract void Initialise(IMesher meshmerizer);
 

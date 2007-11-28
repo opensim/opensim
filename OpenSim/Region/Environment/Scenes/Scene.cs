@@ -232,6 +232,15 @@ namespace OpenSim.Region.Environment.Scenes
             m_permissionManager.Initialise(this);
 
             m_innerScene = new InnerScene(this, m_regInfo, m_permissionManager);
+            
+            // If the Inner scene has an Unrecoverable error, restart this sim.
+            // Currently the only thing that causes it to happen is two kinds of specific
+            // Physics based crashes.
+            //
+            // Out of memory
+            // Operating system has killed the plugin
+            m_innerScene.UnRecoverableError += restartNOW;
+
             m_sceneXmlLoader = new SceneXmlLoader(this, m_innerScene, m_regInfo);
 
             RegisterDefaultSceneEvents();
@@ -315,12 +324,16 @@ namespace OpenSim.Region.Environment.Scenes
             {
                 t_restartTimer.Stop();
                 t_restartTimer.AutoReset = false;
-                MainLog.Instance.Error("REGION", "Closing");
-                Close();
-                MainLog.Instance.Error("REGION", "Firing Region Restart Message");
-                base.Restart(0);
+                restartNOW();
             }
             
+        }
+        public void restartNOW()
+        {
+            MainLog.Instance.Error("REGION", "Closing");
+            Close();
+            MainLog.Instance.Error("REGION", "Firing Region Restart Message");
+            base.Restart(0);
         }
         public void restart_Notify_Wait_Elapsed(object sender, ElapsedEventArgs e)
         { 

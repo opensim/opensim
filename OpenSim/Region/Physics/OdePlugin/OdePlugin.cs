@@ -32,6 +32,7 @@ using Axiom.Math;
 using Ode.NET;
 using OpenSim.Framework;
 using OpenSim.Region.Physics.Manager;
+
 //using OpenSim.Region.Physics.OdePlugin.Meshing;
 
 namespace OpenSim.Region.Physics.OdePlugin
@@ -234,9 +235,16 @@ namespace OpenSim.Region.Physics.OdePlugin
                     //System.Console.WriteLine("near: A collision was detected between {1} and {2}", 0, name1, name2);
                 }
                 
-                int count;
-                
+                int count = 0;
+                try
+                {
                     count = d.Collide(g1, g2, contacts.GetLength(0), contacts, d.ContactGeom.SizeOf);
+                }
+                catch (System.Runtime.InteropServices.SEHException)
+                {
+                    OpenSim.Framework.Console.MainLog.Instance.Error("PHYSICS", "The Operating system shut down ODE because of corrupt memory.  This could be a result of really irregular terrain.  If this repeats continuously, restart using Basic Physics and terrain fill your terrain.  Restarting the sim.");
+                    base.TriggerPhysicsBasedRestart();
+                }
              
                 for (int i = 0; i < count; i++)
                 {
@@ -805,8 +813,14 @@ namespace OpenSim.Region.Physics.OdePlugin
                 {
                 // Process 10 frames if the sim is running normal..  
                 // process 5 frames if the sim is running slow
-                d.WorldSetQuickStepNumIterations(world, m_physicsiterations);
-
+                    try{
+                        d.WorldSetQuickStepNumIterations(world, m_physicsiterations);
+                    }
+                    catch (System.StackOverflowException)
+                    {
+                        OpenSim.Framework.Console.MainLog.Instance.Error("PHYSICS", "The operating system wasn't able to allocate enough memory for the simulation.  Restarting the sim.");
+                        base.TriggerPhysicsBasedRestart();
+                    }
 
                 int i = 0;
                 while (step_time > 0.0f)

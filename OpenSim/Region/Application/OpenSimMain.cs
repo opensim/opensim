@@ -601,6 +601,8 @@ namespace OpenSim
                     m_log.Error("show uptime - show simulator startup and uptime.");
                     m_log.Error("show users - show info about connected users.");
                     m_log.Error("show modules - shows info aboutloaded modules.");
+                    m_log.Error("change-region - sets the region that many of these commands affect.");
+                    m_log.Error("restart - disconnects all clients and restarts the sims in the instance.");
                     m_log.Error("shutdown - disconnect all clients and shutdown.");
                     m_log.Error("terrain help - show help for terrain commands.");
                     m_log.Error("quit - equivalent to shutdown.");
