@@ -426,7 +426,7 @@ namespace OpenSim.Framework
         void SendRegionTeleport(ulong regionHandle, byte simAccess, IPEndPoint regionExternalEndPoint, uint locationID,
                                 uint flags, string capsURL);
 
-        void SendTeleportCancel();
+        void SendTeleportFailed();
         void SendTeleportLocationStart();
         void SendMoneyBalance(LLUUID transaction, bool success, byte[] description, int balance);
 

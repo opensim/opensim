@@ -255,7 +255,7 @@ namespace SimpleApp
         {
         }
 
-        public virtual void SendTeleportCancel()
+        public virtual void SendTeleportFailed()
         {
         }
 

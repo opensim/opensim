@@ -63,7 +63,7 @@ namespace SimpleApp
             }
 
             Terrain.GetHeights1D(map);
-            CreateTerrainTexture();
+            CreateTerrainTexture(true);
         }
 
         public override void AddNewClient(IClientAPI client, bool child)

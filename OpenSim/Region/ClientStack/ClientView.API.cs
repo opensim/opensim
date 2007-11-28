@@ -467,13 +467,13 @@ namespace OpenSim.Region.ClientStack
         /// <summary>
         /// 
         /// </summary>
-        public void SendTeleportCancel()
+        public void SendTeleportFailed()
         {
-            TeleportCancelPacket tpCancel = new TeleportCancelPacket();
-            tpCancel.Info.SessionID = m_sessionId;
-            tpCancel.Info.AgentID = AgentId;
+            TeleportFailedPacket tpFailed = new TeleportFailedPacket();
+            tpFailed.Info.AgentID = this.AgentId;
+            tpFailed.Info.Reason = Helpers.StringToField("unknown failure of teleport");
 
-            OutPacket(tpCancel, ThrottleOutPacketType.Task);
+            OutPacket(tpFailed, ThrottleOutPacketType.Task);
         }
 
         /// <summary>

@@ -258,8 +258,6 @@ namespace OpenSim.Region.Environment.Scenes
             httpListener = httpServer;
             m_dumpAssetsToFile = dumpAssetsToFile;
 
-            // This function was moved to terrain for some kind of map hack by babble
-            RegisterRegionWithComms();
         }
 
         #endregion
@@ -291,6 +289,7 @@ namespace OpenSim.Region.Environment.Scenes
             }
             return true;
         }
+
         public virtual void Restart(float seconds)
         {
             if (seconds < 15)
@@ -312,6 +311,7 @@ namespace OpenSim.Region.Environment.Scenes
 
             
         }
+
         public void restartTimer_Elapsed(object sender, ElapsedEventArgs e)
         {
             m_RestartTimerCounter++;
@@ -328,6 +328,7 @@ namespace OpenSim.Region.Environment.Scenes
             }
             
         }
+
         public void restartNOW()
         {
             MainLog.Instance.Error("REGION", "Closing");
@@ -335,6 +336,7 @@ namespace OpenSim.Region.Environment.Scenes
             MainLog.Instance.Error("REGION", "Firing Region Restart Message");
             base.Restart(0);
         }
+
         public void restart_Notify_Wait_Elapsed(object sender, ElapsedEventArgs e)
         { 
             m_restartWaitTimer.Stop();
@@ -363,6 +365,7 @@ namespace OpenSim.Region.Environment.Scenes
             // Reset list to nothing.
             m_regionRestartNotifyList = new List<RegionInfo>();
         }
+
         public override void Close()
         {
             ForEachScenePresence(delegate(ScenePresence avatar)
@@ -534,7 +537,7 @@ namespace OpenSim.Region.Environment.Scenes
         {
             if (Terrain.Tainted() && !Terrain.StillEditing())
             {
-                CreateTerrainTexture();
+                CreateTerrainTexture(true);
 
                 lock (Terrain.heightmap)
                 {
@@ -683,12 +686,9 @@ namespace OpenSim.Region.Environment.Scenes
                     Terrain.SetHeights2D(map);
                 }
 
-                CreateTerrainTextureInitial();
+                CreateTerrainTexture(false);
                 //CommsManager.GridService.RegisterRegion(RegionInfo); //hack to update the terrain texture in grid mode so it shows on world map
-                
-                // These two 'commands' *must be* next to each other or sim rebooting fails.
-                m_sceneGridService.RegisterRegion(RegionInfo);
-                m_sceneGridService.InformNeighborsThatRegionisUp(RegionInfo);
+
             }
             catch (Exception e)
             {
@@ -696,10 +696,18 @@ namespace OpenSim.Region.Environment.Scenes
             }
         }
 
+        public void RegisterRegionWithGrid()
+        {
+            RegisterCommsEvents();
+            // These two 'commands' *must be* next to each other or sim rebooting fails.
+            m_sceneGridService.RegisterRegion(RegionInfo);
+            m_sceneGridService.InformNeighborsThatRegionisUp(RegionInfo);
+        }
+
         /// <summary>
         /// 
         /// </summary>
-        public void CreateTerrainTexture()
+        public void CreateTerrainTexture(bool temporary)
         {
             //create a texture asset of the terrain 
             byte[] data = Terrain.ExportJpegImage("defaultstripe.png");
@@ -710,24 +718,11 @@ namespace OpenSim.Region.Environment.Scenes
             asset.Name = "terrainImage";
             asset.Description = RegionInfo.RegionName;
             asset.Type = 0;
-            asset.Temporary = true;
+            asset.Temporary = temporary;
             AssetCache.AddAsset(asset);
         }
 
-        public void CreateTerrainTextureInitial()
-        {
-            //create a texture asset of the terrain 
-            byte[] data = Terrain.ExportJpegImage("defaultstripe.png");
-            m_regInfo.EstateSettings.terrainImageID = LLUUID.Random();
-            AssetBase asset = new AssetBase();
-            asset.FullID = m_regInfo.EstateSettings.terrainImageID;
-            asset.Data = data;
-            asset.Name = "terrainImage";
-            asset.Description = RegionInfo.RegionName;
-            asset.Type = 0;
-            asset.Temporary = false;
-            AssetCache.AddAsset(asset);
-        }
+        
         #endregion
 
         #region Primitives Methods
@@ -1117,7 +1112,7 @@ namespace OpenSim.Region.Environment.Scenes
         /// <summary>
         /// 
         /// </summary>
-        public void RegisterRegionWithComms()
+        public void RegisterCommsEvents()
         {
             // Don't register here.  babblefro moved registration to *after *the map
             // functions on line 675 so that a proper map will generate and get sent to grid services
@@ -1129,11 +1124,9 @@ namespace OpenSim.Region.Environment.Scenes
             m_sceneGridService.OnCloseAgentConnection += CloseConnection;
             m_sceneGridService.OnRegionUp += OtherRegionUp;
 
-            m_sceneGridService.KillObject = SendKillObject;
-
-            // Tell Other regions that I'm here.
-            
+            m_sceneGridService.KillObject = SendKillObject;            
         }
+
         public void UnRegisterReginWithComms()
         {
             m_sceneGridService.OnRegionUp -= OtherRegionUp;

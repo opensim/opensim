@@ -113,6 +113,7 @@ namespace OpenSim.Region.ClientStack
             udpServer.LocalScene = scene;
 
             scene.LoadWorldMap();
+            scene.RegisterRegionWithGrid();
 
             scene.PhysScene = GetPhysicsScene();
             scene.PhysScene.SetTerrain(scene.Terrain.GetHeights1D());
