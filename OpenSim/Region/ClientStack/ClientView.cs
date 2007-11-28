@@ -2358,7 +2358,7 @@ namespace OpenSim.Region.ClientStack
             }
         }
 
-        private void ThrottleCheck(ref int TypeBytesSent, int Throttle, Queue<QueItem> q, QueItem item)
+        private void ThrottleCheck(ref int TypeBytesSent, int Throttle, ref Queue<QueItem> q, QueItem item)
         {
             // The idea..  is if the packet throttle queues are empty
             // and the client is under throttle for the type.  Queue
@@ -2390,25 +2390,25 @@ namespace OpenSim.Region.ClientStack
             switch (throttlePacketType)
             {
                 case ThrottleOutPacketType.Resend:
-                    ThrottleCheck(ref ResendBytesSent, ResendthrottleOutbound, ResendOutgoingPacketQueue, item);
+                    ThrottleCheck(ref ResendBytesSent, ResendthrottleOutbound, ref ResendOutgoingPacketQueue, item);
                     break;
                 case ThrottleOutPacketType.Texture:
-                    ThrottleCheck(ref TextureBytesSent, TexturethrottleOutbound, TextureOutgoingPacketQueue, item);
+                    ThrottleCheck(ref TextureBytesSent, TexturethrottleOutbound, ref TextureOutgoingPacketQueue, item);
                     break;
                 case ThrottleOutPacketType.Task:
-                    ThrottleCheck(ref TaskBytesSent, TaskthrottleOutbound, TaskOutgoingPacketQueue, item);
+                    ThrottleCheck(ref TaskBytesSent, TaskthrottleOutbound, ref TaskOutgoingPacketQueue, item);
                     break;
                 case ThrottleOutPacketType.Land:
-                    ThrottleCheck(ref LandBytesSent, LandthrottleOutbound, LandOutgoingPacketQueue, item);
+                    ThrottleCheck(ref LandBytesSent, LandthrottleOutbound, ref LandOutgoingPacketQueue, item);
                     break;
                 case ThrottleOutPacketType.Asset:
-                    ThrottleCheck(ref AssetBytesSent, AssetthrottleOutbound, AssetOutgoingPacketQueue, item);
+                    ThrottleCheck(ref AssetBytesSent, AssetthrottleOutbound, ref AssetOutgoingPacketQueue, item);
                     break;
                 case ThrottleOutPacketType.Cloud:
-                    ThrottleCheck(ref CloudBytesSent, CloudthrottleOutbound, CloudOutgoingPacketQueue, item);
+                    ThrottleCheck(ref CloudBytesSent, CloudthrottleOutbound, ref CloudOutgoingPacketQueue, item);
                     break;
                 case ThrottleOutPacketType.Wind:
-                    ThrottleCheck(ref WindBytesSent, WindthrottleOutbound, WindOutgoingPacketQueue, item);
+                    ThrottleCheck(ref WindBytesSent, WindthrottleOutbound, ref WindOutgoingPacketQueue, item);
                     break;
 
                 default:
