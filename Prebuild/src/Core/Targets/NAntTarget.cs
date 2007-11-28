@@ -355,8 +355,8 @@ namespace Prebuild.Core.Targets
                 ss.WriteLine("    </target>");
 
                 ss.WriteLine("    <target name=\"clean\">");
-                ss.WriteLine("        <delete dir=\"${bin.dir}\" failonerror=\"false\" />");
                 ss.WriteLine("        <delete dir=\"${obj.dir}\" failonerror=\"false\" />");
+                ss.WriteLine("        <delete dir=\"${bin.dir}\" failonerror=\"false\" />");
                 ss.WriteLine("    </target>");
 
                 ss.WriteLine("    <target name=\"doc\" description=\"Creates documentation.\">");
@@ -457,13 +457,11 @@ namespace Prebuild.Core.Targets
                 ss.WriteLine("    <property name=\"doc.dir\" value=\"doc\" />");
                 ss.WriteLine("    <property name=\"project.main.dir\" value=\"${project::get-base-directory()}\" />");
 
+                // actually use active config out of prebuild.xml
+                ss.WriteLine("    <property name=\"project.config\" value=\"{0}\" />", solution.ActiveConfig);
+
                 foreach (ConfigurationNode conf in solution.Configurations)
                 {
-                    // Set the project.config to a non-debug configuration
-                    if (conf.Options["DebugInformation"].ToString().ToLower() != "true")
-                    {
-                        ss.WriteLine("    <property name=\"project.config\" value=\"{0}\" />", conf.Name);
-                    }
                     ss.WriteLine();
                     ss.WriteLine("    <target name=\"{0}\" description=\"\">", conf.Name);
                     ss.WriteLine("        <property name=\"project.config\" value=\"{0}\" />", conf.Name);
@@ -559,7 +557,14 @@ namespace Prebuild.Core.Targets
                 ss.WriteLine("    <target name=\"clean\" description=\"\">");
                 ss.WriteLine("        <echo message=\"Deleting all builds from all configurations\" />");
                 //ss.WriteLine("        <delete dir=\"${dist.dir}\" failonerror=\"false\" />");
-                ss.WriteLine("        <delete dir=\"${bin.dir}\" failonerror=\"false\" />");
+                ss.WriteLine("        <delete failonerror=\"false\">");
+                ss.WriteLine("        <fileset basedir=\"${bin.dir}\">");
+                ss.WriteLine("            <include name=\"OpenSim*.dll\"/>");
+                ss.WriteLine("            <include name=\"OpenSim*.exe\"/>");
+                ss.WriteLine("            <include name=\"ScriptEngines/*\"/>");
+                ss.WriteLine("            <include name=\"Physics/*\"/>");
+                ss.WriteLine("        </fileset>");
+                ss.WriteLine("        </delete>");
                 ss.WriteLine("        <delete dir=\"${obj.dir}\" failonerror=\"false\" />");
                 foreach (ProjectNode project in solution.Projects)
                 {
