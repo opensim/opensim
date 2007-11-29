@@ -607,31 +607,41 @@ namespace OpenSim.Region.Communications.OGS1
             }
             catch (RemotingException e)
             {
-                MainLog.Instance.Warn("Remoting Error: Unable to connect to adjacent region: " + regInfo.RegionLocX + "," + regInfo.RegionLocY);
+                MainLog.Instance.Warn("Remoting Error: Unable to connect to adjacent region using tcp://" + regInfo.RemotingAddress +
+                                                                                          ":" + regInfo.RemotingPort +
+                                                                                          "/InterRegions - @ " + regInfo.RegionLocX + "," + regInfo.RegionLocY + " - Is this neighbor up?");
                 MainLog.Instance.Debug(e.ToString());
                 return false;
             }
             catch (SocketException e)
             {
-                MainLog.Instance.Warn("Socket Error: Unable to connect to adjacent region:  " + regInfo.RegionLocX + "," + regInfo.RegionLocY);
+                MainLog.Instance.Warn("Socket Error: Unable to connect to adjacent region using tcp://" + regInfo.RemotingAddress +
+                                                                                          ":" + regInfo.RemotingPort +
+                                                                                          "/InterRegions - @ " + regInfo.RegionLocX + "," + regInfo.RegionLocY + " - Is this neighbor up?");
                 MainLog.Instance.Debug(e.ToString());
                 return false;
             }
             catch (InvalidCredentialException e)
             {
-                MainLog.Instance.Warn("Invalid Credentials: Unable to connect to adjacent region:  " + regInfo.RegionLocX + "," + regInfo.RegionLocY);
+                MainLog.Instance.Warn("Invalid Credentials: Unable to connect to adjacent region using tcp://" + regInfo.RemotingAddress +
+                                                                                          ":" + regInfo.RemotingPort +
+                                                                                          "/InterRegions - @ " + regInfo.RegionLocX + "," + regInfo.RegionLocY);
                 MainLog.Instance.Debug(e.ToString());
                 return false;
             }
             catch (AuthenticationException e)
             {
-                MainLog.Instance.Warn("Authentication exception: Unable to connect to adjacent region:  " + regInfo.RegionLocX + "," + regInfo.RegionLocY);
+                MainLog.Instance.Warn("Authentication exception: Unable to connect to adjacent region using tcp://" + regInfo.RemotingAddress +
+                                                                                          ":" + regInfo.RemotingPort +
+                                                                                          "/InterRegions - @ " + regInfo.RegionLocX + "," + regInfo.RegionLocY);
                 MainLog.Instance.Debug(e.ToString());
                 return false;
             }
             catch (Exception e)
             {
-                MainLog.Instance.Warn("Unknown exception: Unable to connect to adjacent region:  " + regInfo.RegionLocX + "," + regInfo.RegionLocY);
+                MainLog.Instance.Warn("Unknown exception: Unable to connect to adjacent region using tcp://" + regInfo.RemotingAddress +
+                                                                                          ":" + regInfo.RemotingPort +
+                                                                                          "/InterRegions - @ " + regInfo.RegionLocX + "," + regInfo.RegionLocY + " - This is likely caused by an incompatibility in the protocol between this sim and that one");
                 MainLog.Instance.Debug(e.ToString());
                 return false;
             }
