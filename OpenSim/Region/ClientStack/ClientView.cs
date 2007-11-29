@@ -2371,7 +2371,7 @@ namespace OpenSim.Region.ClientStack
             // wait for the timer to fire to put things into the
             // output queue
 
-            if(q.Count == 0 && TypeBytesSent <= ((int)(Throttle / throttleTimeDivisor)))
+            if((q.Count == 0) && (TypeBytesSent <= ((int)(Throttle / throttleTimeDivisor))))
             {
                 bytesSent += item.Packet.ToBytes().Length;
                 TypeBytesSent += item.Packet.ToBytes().Length;
