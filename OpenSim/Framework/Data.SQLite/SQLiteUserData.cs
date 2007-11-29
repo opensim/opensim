@@ -407,7 +407,7 @@ namespace OpenSim.Framework.Data.SQLite
             createCol(ua, "loginTime", typeof (Int32));
             createCol(ua, "logoutTime", typeof (Int32));
             createCol(ua, "currentRegion", typeof (String));
-            createCol(ua, "currentHandle", typeof (Int32));
+            createCol(ua, "currentHandle", typeof (String));
             // vectors
             createCol(ua, "currentPosX", typeof (Double));
             createCol(ua, "currentPosY", typeof (Double));
@@ -518,7 +518,7 @@ namespace OpenSim.Framework.Data.SQLite
             ua.loginTime = Convert.ToInt32(row["loginTime"]);
             ua.logoutTime = Convert.ToInt32(row["logoutTime"]);
             ua.currentRegion = new LLUUID((String) row["currentRegion"]);
-            ua.currentHandle = Convert.ToUInt32(row["currentHandle"]);
+            ua.currentHandle = Convert.ToUInt64(row["currentHandle"]);
             ua.currentPos = new LLVector3(
                 Convert.ToSingle(row["currentPosX"]),
                 Convert.ToSingle(row["currentPosY"]),
@@ -539,7 +539,7 @@ namespace OpenSim.Framework.Data.SQLite
             row["loginTime"] = ua.loginTime;
             row["logoutTime"] = ua.logoutTime;
             row["currentRegion"] = ua.currentRegion;
-            row["currentHandle"] = ua.currentHandle;
+            row["currentHandle"] = ua.currentHandle.ToString();
             // vectors
             row["currentPosX"] = ua.currentPos.X;
             row["currentPosY"] = ua.currentPos.Y;

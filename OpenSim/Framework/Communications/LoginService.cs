@@ -185,8 +185,7 @@ namespace OpenSim.Framework.UserManagement
         /// <returns>Successful?</returns>
         public bool CommitAgent(ref UserProfileData profile)
         {
-            // Saves the agent to database
-            return true;
+            return m_userManager.CommitAgent(ref profile);
         }
 
 
