@@ -130,6 +130,13 @@ namespace OpenSim.Framework.UserManagement
                         logResponse.InventoryRoot = InventoryRoot;
                         logResponse.InventorySkeleton = AgentInventoryArray;
                         logResponse.InventoryLibrary = GetInventoryLibrary();
+
+                        Hashtable InventoryLibRootHash = new Hashtable();
+                        InventoryLibRootHash["folder_id"] = "00000112-000f-0000-0000-000100bba000";
+                        ArrayList InventoryLibRoot = new ArrayList();
+                        InventoryLibRoot.Add(InventoryLibRootHash);
+                        logResponse.InventoryLibRoot = InventoryLibRoot;
+
                         logResponse.InventoryLibraryOwner = GetLibraryOwner();
                         logResponse.CircuitCode = (Int32)circode;
                         //logResponse.RegionX = 0; //overwritten

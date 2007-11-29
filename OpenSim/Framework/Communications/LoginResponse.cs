@@ -55,6 +55,7 @@ namespace OpenSim.Framework.UserManagement
         private ArrayList initialOutfit;
         private ArrayList agentInventory;
         private ArrayList inventoryLibraryOwner;
+        private ArrayList inventoryLibRoot;
         private ArrayList inventoryLibrary;
 
         private UserInfo userProfile;
@@ -282,6 +283,7 @@ namespace OpenSim.Framework.UserManagement
                 responseData["inventory-skeleton"] = agentInventory;
                 responseData["inventory-skel-lib"] = inventoryLibrary;
                 responseData["inventory-root"] = inventoryRoot;
+                responseData["inventory-lib-root"] = inventoryLibRoot;
                 responseData["gestures"] = new ArrayList(); // todo
                 responseData["inventory-lib-owner"] = inventoryLibraryOwner;
                 responseData["initial-outfit"] = initialOutfit;
@@ -503,6 +505,12 @@ namespace OpenSim.Framework.UserManagement
         {
             get { return inventoryLibraryOwner; }
             set { inventoryLibraryOwner = value; }
+        }
+
+        public ArrayList InventoryLibRoot
+        {
+            get { return inventoryLibRoot; }
+            set { inventoryLibRoot = value; }
         }
 
         public string Home
