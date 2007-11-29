@@ -496,7 +496,7 @@ namespace OpenSim.Region.Environment.Scenes
         /// 
         /// </summary>
         /// <returns></returns>
-        public new SceneObjectGroup Copy(LLUUID cAgentID, LLUUID cGroupID)
+        public SceneObjectGroup Copy(LLUUID cAgentID, LLUUID cGroupID)
         {
             SceneObjectGroup dupe = (SceneObjectGroup) MemberwiseClone();
             dupe.m_parts = new Dictionary<LLUUID, SceneObjectPart>();

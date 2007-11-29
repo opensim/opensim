@@ -1007,7 +1007,7 @@ namespace OpenSim.Region.Environment.Scenes
 
         protected ScenePresence CreateAndAddScenePresence(IClientAPI client, bool child)
         {
-            ScenePresence newAvatar = null;
+            ScenePresence avatar = null;
 
             byte[] visualParams;
             AvatarWearable[] wearables;
@@ -1018,14 +1018,14 @@ namespace OpenSim.Region.Environment.Scenes
                 AvatarFactoryModule.GetDefaultAvatarAppearance(out wearables, out visualParams);
             }
 
-            newAvatar = m_innerScene.CreateAndAddScenePresence(client, child, wearables, visualParams);
+            avatar = m_innerScene.CreateAndAddScenePresence(client, child, wearables, visualParams);
 
-            if (newAvatar.IsChildAgent)
+            if (avatar.IsChildAgent)
             {
-                newAvatar.OnSignificantClientMovement += m_LandManager.handleSignificantClientMovement;
+                avatar.OnSignificantClientMovement += m_LandManager.handleSignificantClientMovement;
             }
 
-            return newAvatar;
+            return avatar;
         }
 
 
@@ -1044,7 +1044,7 @@ namespace OpenSim.Region.Environment.Scenes
                     {
                         client.SendKillObject(avatar.RegionHandle, avatar.LocalId); 
                     }
-                    catch (System.NullReferenceException NE)
+                    catch (System.NullReferenceException)
                     {
                         //We can safely ignore null reference exceptions.  It means the avatar are dead and cleaned up anyway.
 
