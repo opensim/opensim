@@ -429,7 +429,7 @@ namespace OpenSim.Region.Environment.Scenes
             SceneObjectPart rootPart = (group).GetChildPart(group.UUID);
             if (rootPart.PhysActor != null)
             {
-                phyScene.RemovePrim(rootPart.PhysActor);
+                PhysicsScene.RemovePrim(rootPart.PhysActor);
                 rootPart.PhysActor = null;
             }
 
@@ -482,7 +482,7 @@ namespace OpenSim.Region.Environment.Scenes
             if ((rootPart.ObjectFlags & (uint) LLObject.ObjectFlags.Phantom) == 0)
             {
                 PrimitiveBaseShape pbs = rootPart.Shape;
-                rootPart.PhysActor = phyScene.AddPrimShape(
+                rootPart.PhysActor = PhysicsScene.AddPrimShape(
                     rootPart.Name,
                     pbs,
                     new PhysicsVector(rootPart.AbsolutePosition.X, rootPart.AbsolutePosition.Y,

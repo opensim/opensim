@@ -173,7 +173,7 @@ namespace OpenSim.Region.Environment.Scenes
                         //lock (m_parentGroup.m_scene.SyncRoot)
                         //{
                         PhysActor.Position = new PhysicsVector(value.X, value.Y, value.Z);
-                        m_parentGroup.m_scene.PhysScene.AddPhysicsActorTaint(PhysActor);
+                        m_parentGroup.m_scene.PhysicsScene.AddPhysicsActorTaint(PhysActor);
                         //}
                     }
                     catch (Exception e)
@@ -226,7 +226,7 @@ namespace OpenSim.Region.Environment.Scenes
                         //lock (m_scene.SyncRoot)
                         //{
                         PhysActor.Orientation = new Quaternion(value.W, value.X, value.Y, value.Z);
-                        m_parentGroup.m_scene.PhysScene.AddPhysicsActorTaint(PhysActor);
+                        m_parentGroup.m_scene.PhysicsScene.AddPhysicsActorTaint(PhysActor);
                         //}
                     }
                     catch (Exception ex)
@@ -961,7 +961,7 @@ namespace OpenSim.Region.Environment.Scenes
                 AddFlag(LLObject.ObjectFlags.Phantom);
                 if (PhysActor != null)
                 {
-                    m_parentGroup.m_scene.PhysScene.RemovePrim(PhysActor);
+                    m_parentGroup.m_scene.PhysicsScene.RemovePrim(PhysActor);
                         /// that's not wholesome.  Had to make m_scene public
                     PhysActor = null;
                 }
@@ -971,7 +971,7 @@ namespace OpenSim.Region.Environment.Scenes
                 RemFlag(LLObject.ObjectFlags.Phantom);
                 if (PhysActor == null)
                 {
-                    PhysActor = m_parentGroup.m_scene.PhysScene.AddPrimShape(
+                    PhysActor = m_parentGroup.m_scene.PhysicsScene.AddPrimShape(
                         Name,
                         Shape,
                         new PhysicsVector(AbsolutePosition.X, AbsolutePosition.Y,
@@ -1015,14 +1015,14 @@ namespace OpenSim.Region.Environment.Scenes
 
                     PhysActor.IsPhysical = UsePhysics;
                     // If we're not what we're supposed to be in the physics scene, recreate ourselves.
-                    //m_parentGroup.m_scene.PhysScene.RemovePrim(PhysActor);
+                    //m_parentGroup.m_scene.PhysicsScene.RemovePrim(PhysActor);
                     /// that's not wholesome.  Had to make m_scene public
                     //PhysActor = null;
                 
 
                     if ((ObjectFlags & (uint)LLObject.ObjectFlags.Phantom) == 0)
                     {
-                        //PhysActor = m_parentGroup.m_scene.PhysScene.AddPrimShape(
+                        //PhysActor = m_parentGroup.m_scene.PhysicsScene.AddPrimShape(
                         //Name,
                         //Shape,
                         //new PhysicsVector(AbsolutePosition.X, AbsolutePosition.Y,
@@ -1037,7 +1037,7 @@ namespace OpenSim.Region.Environment.Scenes
                         }
                     }
                 }
-                m_parentGroup.m_scene.PhysScene.AddPhysicsActorTaint(PhysActor);
+                m_parentGroup.m_scene.PhysicsScene.AddPhysicsActorTaint(PhysActor);
             }
         }
 
@@ -1293,7 +1293,7 @@ namespace OpenSim.Region.Environment.Scenes
             OpenSim.Framework.Console.MainLog.Instance.Verbose("PHYSICS", "Physical Object went out of bounds.");
             RemFlag(LLObject.ObjectFlags.Physics);
             doPhysicsPropertyUpdate(false,true);
-            m_parentGroup.m_scene.PhysScene.AddPhysicsActorTaint(PhysActor);
+            m_parentGroup.m_scene.PhysicsScene.AddPhysicsActorTaint(PhysActor);
             
             
         }

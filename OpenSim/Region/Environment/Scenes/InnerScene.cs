@@ -47,7 +47,7 @@ namespace OpenSim.Region.Environment.Scenes
             
 
         }
-        public PhysicsScene PhyScene
+        public PhysicsScene PhysicsScene
         {
             get
             { return _PhyScene; }

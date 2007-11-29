@@ -74,7 +74,7 @@ namespace OpenSim.Region.Environment.Scenes
         public bool m_physicalPrim;
         public bool m_sendTasksToChild;
         private int m_RestartTimerCounter;
-        private Timer t_restartTimer = new Timer(15000); // Wait before firing
+        private readonly Timer m_restartTimer = new Timer(15000); // Wait before firing
         private int m_incrementsof15seconds = 0;
 
         protected ModuleLoader m_moduleLoader;
@@ -137,16 +137,10 @@ namespace OpenSim.Region.Environment.Scenes
 
         private readonly EstateManager m_estateManager;
 
-        private PhysicsScene phyScene
+        public PhysicsScene PhysicsScene
         {
-            set { m_innerScene.PhyScene = value; }
-            get { return (m_innerScene.PhyScene); }
-        }
-
-        public PhysicsScene PhysScene
-        {
-            set { m_innerScene.PhyScene = value; }
-            get { return (m_innerScene.PhyScene); }
+            set { m_innerScene.PhysicsScene = value; }
+            get { return (m_innerScene.PhysicsScene); }
         }
 
         public object SyncRoot
@@ -239,7 +233,7 @@ namespace OpenSim.Region.Environment.Scenes
             //
             // Out of memory
             // Operating system has killed the plugin
-            m_innerScene.UnRecoverableError += restartNOW;
+            m_innerScene.UnRecoverableError += RestartNow;
 
             m_sceneXmlLoader = new SceneXmlLoader(this, m_innerScene, m_regInfo);
 
@@ -275,9 +269,10 @@ namespace OpenSim.Region.Environment.Scenes
         {
             // Another region is up.   We have to tell all our ScenePresences about it
             // This fails to get the desired effect and needs further work.
+
             if (RegionInfo.RegionHandle != otherRegion.RegionHandle)
             {
-                if (Math.Abs(otherRegion.RegionLocX - RegionInfo.RegionLocX) <= 1 || Math.Abs(otherRegion.RegionLocY - RegionInfo.RegionLocY) <= 1)
+                if ((Math.Abs(otherRegion.RegionLocX - RegionInfo.RegionLocX) <= 1) && (Math.Abs(otherRegion.RegionLocY - RegionInfo.RegionLocY) <= 1))
                 {
                     if (!(m_regionRestartNotifyList.Contains(otherRegion)))
                     {
@@ -285,7 +280,7 @@ namespace OpenSim.Region.Environment.Scenes
                     
                         m_restartWaitTimer.Interval= 50000;
                         m_restartWaitTimer.AutoReset = false;
-                        m_restartWaitTimer.Elapsed += new ElapsedEventHandler(restart_Notify_Wait_Elapsed);
+                        m_restartWaitTimer.Elapsed += new ElapsedEventHandler(RestartNotifyWaitElapsed);
                         m_restartWaitTimer.Start();
                     }
                 }
@@ -302,25 +297,25 @@ namespace OpenSim.Region.Environment.Scenes
         {
             if (seconds < 15)
             {
-                t_restartTimer.Stop();
+                m_restartTimer.Stop();
                 SendGeneralAlert("Restart Aborted");
             }
             else
             {
-                t_restartTimer.Interval = 15000;
+                m_restartTimer.Interval = 15000;
                 m_incrementsof15seconds = (int) seconds/15;
                 m_RestartTimerCounter = 0;
-                t_restartTimer.AutoReset = true;
-                t_restartTimer.Elapsed += new ElapsedEventHandler(restartTimer_Elapsed);
+                m_restartTimer.AutoReset = true;
+                m_restartTimer.Elapsed += new ElapsedEventHandler(RestartTimer_Elapsed);
                 MainLog.Instance.Error("REGION", "Restarting Region in " + (seconds / 60) + " minutes");
-                t_restartTimer.Start();
+                m_restartTimer.Start();
                 SendGeneralAlert(RegionInfo.RegionName + ": Restarting in 2 Minutes");
             }
 
             
         }
 
-        public void restartTimer_Elapsed(object sender, ElapsedEventArgs e)
+        public void RestartTimer_Elapsed(object sender, ElapsedEventArgs e)
         {
             m_RestartTimerCounter++;
             if (m_RestartTimerCounter <= m_incrementsof15seconds)
@@ -330,14 +325,14 @@ namespace OpenSim.Region.Environment.Scenes
             }
             else
             {
-                t_restartTimer.Stop();
-                t_restartTimer.AutoReset = false;
-                restartNOW();
+                m_restartTimer.Stop();
+                m_restartTimer.AutoReset = false;
+                RestartNow();
             }
             
         }
 
-        public void restartNOW()
+        public void RestartNow()
         {
             MainLog.Instance.Error("REGION", "Closing");
             Close();
@@ -345,7 +340,7 @@ namespace OpenSim.Region.Environment.Scenes
             base.Restart(0);
         }
 
-        public void restart_Notify_Wait_Elapsed(object sender, ElapsedEventArgs e)
+        public void RestartNotifyWaitElapsed(object sender, ElapsedEventArgs e)
         { 
             m_restartWaitTimer.Stop();
             foreach (RegionInfo region in m_regionRestartNotifyList)
@@ -551,7 +546,7 @@ namespace OpenSim.Region.Environment.Scenes
                 {
                     lock (SyncRoot)
                     {
-                        phyScene.SetTerrain(Terrain.GetHeights1D());
+                        PhysicsScene.SetTerrain(Terrain.GetHeights1D());
                     }
 
                     m_storageManager.DataStore.StoreTerrain(Terrain.GetHeights2DD(), RegionInfo.RegionID);
@@ -748,7 +743,7 @@ namespace OpenSim.Region.Environment.Scenes
                 SceneObjectPart rootPart = prim.GetChildPart(prim.UUID);
                 bool UsePhysics = (((rootPart.ObjectFlags & (uint)LLObject.ObjectFlags.Physics) > 0) && m_physicalPrim);
                 if ((rootPart.ObjectFlags & (uint)LLObject.ObjectFlags.Phantom) == 0)
-                    rootPart.PhysActor = phyScene.AddPrimShape(
+                    rootPart.PhysActor = PhysicsScene.AddPrimShape(
                         rootPart.Name,
                         rootPart.Shape,
                         new PhysicsVector(rootPart.AbsolutePosition.X, rootPart.AbsolutePosition.Y,
@@ -852,7 +847,7 @@ namespace OpenSim.Region.Environment.Scenes
                 {
 
                     rootPart.PhysActor =
-                        phyScene.AddPrimShape(
+                        PhysicsScene.AddPrimShape(
                             rootPart.Name,
                             rootPart.Shape,
                             new PhysicsVector(pos.X, pos.Y, pos.Z),

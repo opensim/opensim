@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Text;
 using System.Xml;
@@ -47,7 +47,7 @@ namespace OpenSim.Region.Environment.Scenes
                     bool UsePhysics = (((rootPart.ObjectFlags & (uint)LLObject.ObjectFlags.Physics) > 0) && m_parentScene.m_physicalPrim);
                     if ((rootPart.ObjectFlags & (uint)LLObject.ObjectFlags.Phantom) == 0)
                     {
-                        rootPart.PhysActor = m_innerScene.PhyScene.AddPrimShape(
+                        rootPart.PhysActor = m_innerScene.PhysicsScene.AddPrimShape(
                             rootPart.Name,
                             rootPart.Shape,
                             new PhysicsVector(rootPart.AbsolutePosition.X, rootPart.AbsolutePosition.Y,
@@ -117,7 +117,7 @@ namespace OpenSim.Region.Environment.Scenes
             bool UsePhysics = (((rootPart.ObjectFlags & (uint)LLObject.ObjectFlags.Physics) > 0) && m_parentScene.m_physicalPrim);
             if ((rootPart.ObjectFlags & (uint)LLObject.ObjectFlags.Phantom) == 0)
             {
-                rootPart.PhysActor = m_innerScene.PhyScene.AddPrimShape(
+                rootPart.PhysActor = m_innerScene.PhysicsScene.AddPrimShape(
                     rootPart.Name,
                     rootPart.Shape,
                     new PhysicsVector(rootPart.AbsolutePosition.X, rootPart.AbsolutePosition.Y,

@@ -93,12 +93,12 @@ namespace OpenSim.Region.Environment.Scenes
 
         public void Add(Scene scene)
         {
-            scene.OnRestart += handleRestart;
+            scene.OnRestart += HandleRestart;
             m_localScenes.Add(scene);
 
         }
 
-        public void handleRestart(RegionInfo rdata)
+        public void HandleRestart(RegionInfo rdata)
         {
             MainLog.Instance.Error("SCENEMANAGER", "Got Restart message for region:" + rdata.RegionName +" Sending up to main");
             int RegionSceneElement = -1;
@@ -106,14 +106,18 @@ namespace OpenSim.Region.Environment.Scenes
             {
 
                 if (rdata.RegionName == m_localScenes[i].RegionInfo.RegionName)
+                {
                     RegionSceneElement = i;
+                }
             }
 
             // Now we make sure the region is no longer known about by the SceneManager
             // Prevents Duplicates.
 
             if (RegionSceneElement >= 0)
+            {
                 m_localScenes.RemoveAt(RegionSceneElement);
+            }
 
             // Send signal to main that we're restarting this sim.
             OnReStartSim(rdata);
@@ -216,7 +220,7 @@ namespace OpenSim.Region.Environment.Scenes
 
         public void RestartCurrentScene()
         {
-            ForEachCurrentScene(delegate(Scene scene) { scene.restartNOW(); });
+            ForEachCurrentScene(delegate(Scene scene) { scene.RestartNow(); });
 
         }
 

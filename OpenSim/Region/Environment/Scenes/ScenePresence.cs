@@ -453,7 +453,7 @@ namespace OpenSim.Region.Environment.Scenes
         {
             if (PhysicsActor != null)
             {
-                m_scene.PhysScene.RemoveAvatar(PhysicsActor);
+                m_scene.PhysicsScene.RemoveAvatar(PhysicsActor);
                 m_physicsActor.OnRequestTerseUpdate -= SendTerseUpdateToAllClients;
                 m_physicsActor.OnCollisionUpdate -= PhysicsCollisionUpdate;
                 PhysicsActor = null;
@@ -1320,7 +1320,7 @@ namespace OpenSim.Region.Environment.Scenes
 
         public void AddToPhysicalScene()
         {
-            PhysicsScene scene = m_scene.PhysScene;
+            PhysicsScene scene = m_scene.PhysicsScene;
 
             PhysicsVector pVec =
                 new PhysicsVector(AbsolutePosition.X, AbsolutePosition.Y,

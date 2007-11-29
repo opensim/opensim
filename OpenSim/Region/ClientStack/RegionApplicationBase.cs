@@ -115,8 +115,8 @@ namespace OpenSim.Region.ClientStack
             scene.LoadWorldMap();
             scene.RegisterRegionWithGrid();
 
-            scene.PhysScene = GetPhysicsScene();
-            scene.PhysScene.SetTerrain(scene.Terrain.GetHeights1D());
+            scene.PhysicsScene = GetPhysicsScene();
+            scene.PhysicsScene.SetTerrain(scene.Terrain.GetHeights1D());
 
             //Master Avatar Setup
             UserProfileData masterAvatar;
