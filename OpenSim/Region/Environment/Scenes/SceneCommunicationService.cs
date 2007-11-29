@@ -294,15 +294,7 @@ namespace OpenSim.Region.Environment.Scenes
         public virtual void RequestMapBlocks(IClientAPI remoteClient, int minX, int minY, int maxX, int maxY)
         {
             List<MapBlockData> mapBlocks;
-            mapBlocks = m_commsProvider.GridService.RequestNeighbourMapBlocks(minX-2, minY-2, minX+2, minY+2);
-            remoteClient.SendMapBlock(mapBlocks);
-            mapBlocks = m_commsProvider.GridService.RequestNeighbourMapBlocks(minX - 2, minY +3, minX +5, minY +5);
-            remoteClient.SendMapBlock(mapBlocks);
-            mapBlocks = m_commsProvider.GridService.RequestNeighbourMapBlocks(minX +3, minY -5, minX + 5, minY + 2);
-            remoteClient.SendMapBlock(mapBlocks);
-            mapBlocks = m_commsProvider.GridService.RequestNeighbourMapBlocks(minX -5, minY - 5, minX + 2, minY -3);
-            remoteClient.SendMapBlock(mapBlocks);
-            mapBlocks = m_commsProvider.GridService.RequestNeighbourMapBlocks(minX - 5, minY - 2, minX -3, minY + 5);
+            mapBlocks = m_commsProvider.GridService.RequestNeighbourMapBlocks(minX-4, minY-4, minX+4, minY+4);
             remoteClient.SendMapBlock(mapBlocks);
         }
 
