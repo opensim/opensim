@@ -589,11 +589,14 @@ namespace OpenSim.Region.Environment.Scenes
                 group.SetPartDescription(description, primLocalID);
         }
 
-        public void UpdateExtraParam(uint primLocalID, ushort type, bool inUse, byte[] data)
+        public void UpdateExtraParam(LLUUID agentID, uint primLocalID, ushort type, bool inUse, byte[] data)
         {
             SceneObjectGroup group = GetGroupByPrim(primLocalID);
-            if (group != null)
-                group.UpdateExtraParam(primLocalID, type, inUse, data);
+            if (this.m_parentScene.PermissionsMngr.CanEditObject(agentID, group.GetPartsFullID(primLocalID)))
+            {
+                if (group != null)
+                    group.UpdateExtraParam(primLocalID, type, inUse, data);
+            }
         }
 
         /// <summary>
@@ -601,11 +604,14 @@ namespace OpenSim.Region.Environment.Scenes
         /// </summary>
         /// <param name="primLocalID"></param>
         /// <param name="shapeBlock"></param>
-        public void UpdatePrimShape(uint primLocalID, ObjectShapePacket.ObjectDataBlock shapeBlock)
+        public void UpdatePrimShape(LLUUID agentID, uint primLocalID, ObjectShapePacket.ObjectDataBlock shapeBlock)
         {
             SceneObjectGroup group = GetGroupByPrim(primLocalID);
-            if (group != null)
-                group.UpdateShape(shapeBlock, primLocalID);
+            if (this.m_parentScene.PermissionsMngr.CanEditObject(agentID, group.GetPartsFullID(primLocalID)))
+            {
+                if (group != null)
+                    group.UpdateShape(shapeBlock, primLocalID);
+            }
         }
 
         /// <summary>
@@ -752,4 +758,5 @@ namespace OpenSim.Region.Environment.Scenes
         #endregion
     }
 }
+
 

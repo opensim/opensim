@@ -2014,116 +2014,121 @@ namespace OpenSim.Region.ClientStack
         {
             MultipleObjectUpdatePacket multipleupdate = (MultipleObjectUpdatePacket) packet;
             // System.Console.WriteLine("new multi update packet " + multipleupdate.ToString());
+            OpenSim.Region.Environment.Scenes.Scene tScene = (OpenSim.Region.Environment.Scenes.Scene)this.m_scene;
+
             for (int i = 0; i < multipleupdate.ObjectData.Length; i++)
             {
-                #region position
+                if (tScene.PermissionsMngr.CanEditObject(simClient.AgentId, tScene.GetSceneObjectPart(multipleupdate.ObjectData[i].ObjectLocalID).UUID))
+                {
+                    #region position
 
-                if (multipleupdate.ObjectData[i].Type == 9) //change position
-                {
-                    if (OnUpdatePrimGroupPosition != null)
+                    if (multipleupdate.ObjectData[i].Type == 9) //change position
                     {
-                        LLVector3 pos = new LLVector3(multipleupdate.ObjectData[i].Data, 0);
-                        OnUpdatePrimGroupPosition(multipleupdate.ObjectData[i].ObjectLocalID, pos, this);
+                        if (OnUpdatePrimGroupPosition != null)
+                        {
+                            LLVector3 pos = new LLVector3(multipleupdate.ObjectData[i].Data, 0);
+                            OnUpdatePrimGroupPosition(multipleupdate.ObjectData[i].ObjectLocalID, pos, this);
+                        }
                     }
-                }
-                else if (multipleupdate.ObjectData[i].Type == 1) //single item of group change position
-                {
-                    if (OnUpdatePrimSinglePosition != null)
+                    else if (multipleupdate.ObjectData[i].Type == 1) //single item of group change position
                     {
-                        LLVector3 pos = new LLVector3(multipleupdate.ObjectData[i].Data, 0);
-                        // System.Console.WriteLine("new movement position is " + pos.X + " , " + pos.Y + " , " + pos.Z);
-                        OnUpdatePrimSinglePosition(multipleupdate.ObjectData[i].ObjectLocalID, pos, this);
+                        if (OnUpdatePrimSinglePosition != null)
+                        {
+                            LLVector3 pos = new LLVector3(multipleupdate.ObjectData[i].Data, 0);
+                            // System.Console.WriteLine("new movement position is " + pos.X + " , " + pos.Y + " , " + pos.Z);
+                            OnUpdatePrimSinglePosition(multipleupdate.ObjectData[i].ObjectLocalID, pos, this);
+                        }
                     }
-                }
                     #endregion position
                     #region rotation
 
-                else if (multipleupdate.ObjectData[i].Type == 2) // single item of group rotation from tab
-                {
-                    if (OnUpdatePrimSingleRotation != null)
+                    else if (multipleupdate.ObjectData[i].Type == 2) // single item of group rotation from tab
                     {
-                        LLQuaternion rot = new LLQuaternion(multipleupdate.ObjectData[i].Data, 0, true);
-                        //System.Console.WriteLine("new tab rotation is " + rot.X + " , " + rot.Y + " , " + rot.Z + " , " + rot.W);
-                        OnUpdatePrimSingleRotation(multipleupdate.ObjectData[i].ObjectLocalID, rot, this);
+                        if (OnUpdatePrimSingleRotation != null)
+                        {
+                            LLQuaternion rot = new LLQuaternion(multipleupdate.ObjectData[i].Data, 0, true);
+                            //System.Console.WriteLine("new tab rotation is " + rot.X + " , " + rot.Y + " , " + rot.Z + " , " + rot.W);
+                            OnUpdatePrimSingleRotation(multipleupdate.ObjectData[i].ObjectLocalID, rot, this);
+                        }
                     }
-                }
-                else if (multipleupdate.ObjectData[i].Type == 3) // single item of group rotation from mouse
-                {
-                    if (OnUpdatePrimSingleRotation != null)
+                    else if (multipleupdate.ObjectData[i].Type == 3) // single item of group rotation from mouse
                     {
-                        LLQuaternion rot = new LLQuaternion(multipleupdate.ObjectData[i].Data, 12, true);
-                        //System.Console.WriteLine("new mouse rotation is " + rot.X + " , " + rot.Y + " , " + rot.Z + " , " + rot.W);
-                        OnUpdatePrimSingleRotation(multipleupdate.ObjectData[i].ObjectLocalID, rot, this);
+                        if (OnUpdatePrimSingleRotation != null)
+                        {
+                            LLQuaternion rot = new LLQuaternion(multipleupdate.ObjectData[i].Data, 12, true);
+                            //System.Console.WriteLine("new mouse rotation is " + rot.X + " , " + rot.Y + " , " + rot.Z + " , " + rot.W);
+                            OnUpdatePrimSingleRotation(multipleupdate.ObjectData[i].ObjectLocalID, rot, this);
+                        }
                     }
-                }
-                else if (multipleupdate.ObjectData[i].Type == 10) //group rotation from object tab
-                {
-                    if (OnUpdatePrimGroupRotation != null)
+                    else if (multipleupdate.ObjectData[i].Type == 10) //group rotation from object tab
                     {
-                        LLQuaternion rot = new LLQuaternion(multipleupdate.ObjectData[i].Data, 0, true);
-                        //  Console.WriteLine("new rotation is " + rot.X + " , " + rot.Y + " , " + rot.Z + " , " + rot.W);
-                        OnUpdatePrimGroupRotation(multipleupdate.ObjectData[i].ObjectLocalID, rot, this);
+                        if (OnUpdatePrimGroupRotation != null)
+                        {
+                            LLQuaternion rot = new LLQuaternion(multipleupdate.ObjectData[i].Data, 0, true);
+                            //  Console.WriteLine("new rotation is " + rot.X + " , " + rot.Y + " , " + rot.Z + " , " + rot.W);
+                            OnUpdatePrimGroupRotation(multipleupdate.ObjectData[i].ObjectLocalID, rot, this);
+                        }
                     }
-                }
-                else if (multipleupdate.ObjectData[i].Type == 11) //group rotation from mouse
-                {
-                    if (OnUpdatePrimGroupMouseRotation != null)
+                    else if (multipleupdate.ObjectData[i].Type == 11) //group rotation from mouse
                     {
-                        LLVector3 pos = new LLVector3(multipleupdate.ObjectData[i].Data, 0);
-                        LLQuaternion rot = new LLQuaternion(multipleupdate.ObjectData[i].Data, 12, true);
-                        //Console.WriteLine("new rotation position is " + pos.X + " , " + pos.Y + " , " + pos.Z);
-                        // Console.WriteLine("new rotation is " + rot.X + " , " + rot.Y + " , " + rot.Z + " , " + rot.W);
-                        OnUpdatePrimGroupMouseRotation(multipleupdate.ObjectData[i].ObjectLocalID, pos, rot, this);
+                        if (OnUpdatePrimGroupMouseRotation != null)
+                        {
+                            LLVector3 pos = new LLVector3(multipleupdate.ObjectData[i].Data, 0);
+                            LLQuaternion rot = new LLQuaternion(multipleupdate.ObjectData[i].Data, 12, true);
+                            //Console.WriteLine("new rotation position is " + pos.X + " , " + pos.Y + " , " + pos.Z);
+                            // Console.WriteLine("new rotation is " + rot.X + " , " + rot.Y + " , " + rot.Z + " , " + rot.W);
+                            OnUpdatePrimGroupMouseRotation(multipleupdate.ObjectData[i].ObjectLocalID, pos, rot, this);
+                        }
                     }
-                }
                     #endregion
                     #region scale
 
-                else if (multipleupdate.ObjectData[i].Type == 13) //group scale from object tab
-                {
-                    if (OnUpdatePrimScale != null)
+                    else if (multipleupdate.ObjectData[i].Type == 13) //group scale from object tab
                     {
-                        LLVector3 scale = new LLVector3(multipleupdate.ObjectData[i].Data, 12);
-                        //Console.WriteLine("new scale is " + scale.X + " , " + scale.Y + " , " + scale.Z);
-                        OnUpdatePrimScale(multipleupdate.ObjectData[i].ObjectLocalID, scale, this);
+                        if (OnUpdatePrimScale != null)
+                        {
+                            LLVector3 scale = new LLVector3(multipleupdate.ObjectData[i].Data, 12);
+                            //Console.WriteLine("new scale is " + scale.X + " , " + scale.Y + " , " + scale.Z);
+                            OnUpdatePrimScale(multipleupdate.ObjectData[i].ObjectLocalID, scale, this);
 
-                        // Change the position based on scale (for bug number 246)
-                        LLVector3 pos = new LLVector3(multipleupdate.ObjectData[i].Data, 0);
-                        // System.Console.WriteLine("new movement position is " + pos.X + " , " + pos.Y + " , " + pos.Z);
-                        OnUpdatePrimSinglePosition(multipleupdate.ObjectData[i].ObjectLocalID, pos, this);
+                            // Change the position based on scale (for bug number 246)
+                            LLVector3 pos = new LLVector3(multipleupdate.ObjectData[i].Data, 0);
+                            // System.Console.WriteLine("new movement position is " + pos.X + " , " + pos.Y + " , " + pos.Z);
+                            OnUpdatePrimSinglePosition(multipleupdate.ObjectData[i].ObjectLocalID, pos, this);
+                        }
                     }
-                }
-                else if (multipleupdate.ObjectData[i].Type == 29) //group scale from mouse
-                {
-                    if (OnUpdatePrimScale != null)
+                    else if (multipleupdate.ObjectData[i].Type == 29) //group scale from mouse
                     {
-                        LLVector3 scale = new LLVector3(multipleupdate.ObjectData[i].Data, 12);
-                        // Console.WriteLine("new scale is " + scale.X + " , " + scale.Y + " , " + scale.Z );
-                        OnUpdatePrimScale(multipleupdate.ObjectData[i].ObjectLocalID, scale, this);
-                        LLVector3 pos = new LLVector3(multipleupdate.ObjectData[i].Data, 0);
-                        OnUpdatePrimSinglePosition(multipleupdate.ObjectData[i].ObjectLocalID, pos, this);
+                        if (OnUpdatePrimScale != null)
+                        {
+                            LLVector3 scale = new LLVector3(multipleupdate.ObjectData[i].Data, 12);
+                            // Console.WriteLine("new scale is " + scale.X + " , " + scale.Y + " , " + scale.Z );
+                            OnUpdatePrimScale(multipleupdate.ObjectData[i].ObjectLocalID, scale, this);
+                            LLVector3 pos = new LLVector3(multipleupdate.ObjectData[i].Data, 0);
+                            OnUpdatePrimSinglePosition(multipleupdate.ObjectData[i].ObjectLocalID, pos, this);
+                        }
                     }
-                }
-                else if (multipleupdate.ObjectData[i].Type == 5) //single prim scale from object tab
-                {
-                    if (OnUpdatePrimScale != null)
+                    else if (multipleupdate.ObjectData[i].Type == 5) //single prim scale from object tab
                     {
-                        LLVector3 scale = new LLVector3(multipleupdate.ObjectData[i].Data, 12);
-                        // Console.WriteLine("new scale is " + scale.X + " , " + scale.Y + " , " + scale.Z);
-                        OnUpdatePrimScale(multipleupdate.ObjectData[i].ObjectLocalID, scale, this);
+                        if (OnUpdatePrimScale != null)
+                        {
+                            LLVector3 scale = new LLVector3(multipleupdate.ObjectData[i].Data, 12);
+                            // Console.WriteLine("new scale is " + scale.X + " , " + scale.Y + " , " + scale.Z);
+                            OnUpdatePrimScale(multipleupdate.ObjectData[i].ObjectLocalID, scale, this);
+                        }
                     }
-                }
-                else if (multipleupdate.ObjectData[i].Type == 21) //single prim scale from mouse
-                {
-                    if (OnUpdatePrimScale != null)
+                    else if (multipleupdate.ObjectData[i].Type == 21) //single prim scale from mouse
                     {
-                        LLVector3 scale = new LLVector3(multipleupdate.ObjectData[i].Data, 12);
-                        // Console.WriteLine("new scale is " + scale.X + " , " + scale.Y + " , " + scale.Z);
-                        OnUpdatePrimScale(multipleupdate.ObjectData[i].ObjectLocalID, scale, this);
+                        if (OnUpdatePrimScale != null)
+                        {
+                            LLVector3 scale = new LLVector3(multipleupdate.ObjectData[i].Data, 12);
+                            // Console.WriteLine("new scale is " + scale.X + " , " + scale.Y + " , " + scale.Z);
+                            OnUpdatePrimScale(multipleupdate.ObjectData[i].ObjectLocalID, scale, this);
+                        }
                     }
-                }
 
-                #endregion
+                    #endregion
+                }
             }
             return true;
         }
@@ -2757,7 +2762,7 @@ namespace OpenSim.Region.ClientStack
                         {
                             if (OnUpdatePrimShape != null)
                             {
-                                OnUpdatePrimShape(shapePacket.ObjectData[i].ObjectLocalID, shapePacket.ObjectData[i]);
+                                OnUpdatePrimShape(this.m_agentId, shapePacket.ObjectData[i].ObjectLocalID, shapePacket.ObjectData[i]);
                             }
                         }
                         break;
@@ -2765,7 +2770,7 @@ namespace OpenSim.Region.ClientStack
                         ObjectExtraParamsPacket extraPar = (ObjectExtraParamsPacket) Pack;
                         if (OnUpdateExtraParams != null)
                         {
-                            OnUpdateExtraParams(extraPar.ObjectData[0].ObjectLocalID, extraPar.ObjectData[0].ParamType,
+                            OnUpdateExtraParams(this.m_agentId, extraPar.ObjectData[0].ObjectLocalID, extraPar.ObjectData[0].ParamType,
                                                 extraPar.ObjectData[0].ParamInUse, extraPar.ObjectData[0].ParamData);
                         }
                         break;

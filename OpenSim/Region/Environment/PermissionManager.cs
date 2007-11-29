@@ -103,6 +103,12 @@ namespace OpenSim.Region.Environment
 
             string reason = "Insufficient permission";
 
+            Land land = this.m_scene.LandManager.getLandObject(position.X, position.Y);
+            if ((land.landData.landFlags & ((int)Parcel.ParcelFlags.CreateObjects)) == (int)Parcel.ParcelFlags.CreateObjects)
+                permission = true;
+
+            //TODO: check for group rights
+
             if (IsAdministrator(user))
             {
                 permission = true;
