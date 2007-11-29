@@ -58,6 +58,7 @@ namespace OpenSim.Region.Environment.Scenes
                 //MainLog.Instance.Verbose("INTER", debugRegionName + ": SceneCommunicationService: registered with gridservice and got" + regionCommsHost.ToString());
 
                 regionCommsHost.debugRegionName = _debugRegionName;
+
                 regionCommsHost.OnExpectUser += NewUserConnection;
                 regionCommsHost.OnAvatarCrossingIntoRegion += AgentCrossing;
                 regionCommsHost.OnPrimCrossingIntoRegion += PrimCrossing;
@@ -222,7 +223,56 @@ namespace OpenSim.Region.Environment.Scenes
         }
 
         #endregion
+        public delegate void InformNeighbourThatRegionUpDelegate(RegionInfo region, ulong regionhandle);
 
+        private void InformNeighborsThatRegionisUpCompleted(IAsyncResult iar)
+        {
+            InformNeighbourThatRegionUpDelegate icon = (InformNeighbourThatRegionUpDelegate)iar.AsyncState;
+            icon.EndInvoke(iar);
+        }
+
+
+         private void InformNeighboursThatRegionIsUpAsync(RegionInfo region, ulong regionhandle)
+        {
+            MainLog.Instance.Notice("INTERGRID", "Starting to inform neighbors that I'm here");
+            bool regionAccepted = m_commsProvider.InterRegion.RegionUp((new SearializableRegionInfo(region)), regionhandle);
+
+            if (regionAccepted)
+            {
+                MainLog.Instance.Notice("INTERGRID", "Completed informing neighbors that I'm here");
+            }
+            else
+            {
+                MainLog.Instance.Notice("INTERGRID", "Failed to inform neighbors that I'm here");
+            }
+        }
+
+        public void InformNeighborsThatRegionisUp(RegionInfo region)
+        {
+            //MainLog.Instance.Verbose("INTER", debugRegionName + ": SceneCommunicationService: Sending InterRegion Notification that region is up " + region.RegionName);
+            List<SimpleRegionInfo> neighbours = new List<SimpleRegionInfo>();
+                
+             lock (neighbours)
+             {
+                 neighbours = m_commsProvider.GridService.RequestNeighbours(m_regionInfo.RegionLocX, m_regionInfo.RegionLocY);
+                 if (neighbours != null)
+                 {
+                     for (int i = 0; i < neighbours.Count; i++)
+                     {
+
+                         InformNeighbourThatRegionUpDelegate d = InformNeighboursThatRegionIsUpAsync;
+                         // race condition!  Arg!  I hate race conditions.
+                         lock (d)
+                         {
+                             d.BeginInvoke(region, neighbours[i].RegionHandle,
+                                           InformNeighborsThatRegionisUpCompleted,
+                                           d);
+                         }
+                     }
+                 }
+             }
+            //bool val = m_commsProvider.InterRegion.RegionUp(new SearializableRegionInfo(region));
+        }
         /// <summary>
         /// 
         /// </summary>
@@ -320,11 +370,7 @@ namespace OpenSim.Region.Environment.Scenes
             return m_commsProvider.InterRegion.ExpectAvatarCrossing(regionhandle, agentID, position, isFlying);
         }
 
-        public void InformNeighborsThatRegionisUp(RegionInfo region)
-        {
-            //MainLog.Instance.Verbose("INTER", debugRegionName + ": SceneCommunicationService: Sending InterRegion Notification that region is up " + region.RegionName);
-            bool val = m_commsProvider.InterRegion.RegionUp(new SearializableRegionInfo(region));
-        }
+
 
         public bool PrimCrossToNeighboringRegion(ulong regionhandle, LLUUID primID, LLVector3 position, bool isPhysical)
         {

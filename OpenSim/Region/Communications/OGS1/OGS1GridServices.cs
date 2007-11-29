@@ -248,39 +248,47 @@ namespace OpenSim.Region.Communications.OGS1
             }
             else
             {
-                Hashtable requestData = new Hashtable();
-                requestData["region_handle"] = regionHandle.ToString();
-                requestData["authkey"] = serversInfo.GridSendKey;
-                ArrayList SendParams = new ArrayList();
-                SendParams.Add(requestData);
-                XmlRpcRequest GridReq = new XmlRpcRequest("simulator_data_request", SendParams);
-                XmlRpcResponse GridResp = GridReq.Send(serversInfo.GridURL, 3000);
-
-                Hashtable responseData = (Hashtable) GridResp.Value;
-
-                if (responseData.ContainsKey("error"))
+                try
                 {
-                    Console.WriteLine("error received from grid server" + responseData["error"]);
+                    Hashtable requestData = new Hashtable();
+                    requestData["region_handle"] = regionHandle.ToString();
+                    requestData["authkey"] = serversInfo.GridSendKey;
+                    ArrayList SendParams = new ArrayList();
+                    SendParams.Add(requestData);
+                    XmlRpcRequest GridReq = new XmlRpcRequest("simulator_data_request", SendParams);
+                    XmlRpcResponse GridResp = GridReq.Send(serversInfo.GridURL, 3000);
+
+                    Hashtable responseData = (Hashtable)GridResp.Value;
+
+                    if (responseData.ContainsKey("error"))
+                    {
+                        Console.WriteLine("error received from grid server" + responseData["error"]);
+                        return null;
+                    }
+
+                    uint regX = Convert.ToUInt32((string)responseData["region_locx"]);
+                    uint regY = Convert.ToUInt32((string)responseData["region_locy"]);
+                    string internalIpStr = (string)responseData["sim_ip"];
+                    uint port = Convert.ToUInt32(responseData["sim_port"]);
+                    string externalUri = (string)responseData["sim_uri"];
+
+                    IPEndPoint neighbourInternalEndPoint = new IPEndPoint(IPAddress.Parse(internalIpStr), (int)port);
+                    string neighbourExternalUri = externalUri;
+                    regionInfo = new RegionInfo(regX, regY, neighbourInternalEndPoint, internalIpStr);
+
+                    regionInfo.RemotingPort = Convert.ToUInt32((string)responseData["remoting_port"]);
+                    regionInfo.RemotingAddress = internalIpStr;
+
+                    regionInfo.RegionID = new LLUUID((string)responseData["region_UUID"]);
+                    regionInfo.RegionName = (string)responseData["region_name"];
+
+                    m_remoteRegionInfoCache.Add(regionHandle, regionInfo);
+                }
+                catch (System.Net.WebException)
+                {
+                    MainLog.Instance.Error("GRID", "Region lookup failed for: " + regionHandle.ToString() + " - Is the GridServer down?");
                     return null;
                 }
-
-                uint regX = Convert.ToUInt32((string) responseData["region_locx"]);
-                uint regY = Convert.ToUInt32((string) responseData["region_locy"]);
-                string internalIpStr = (string) responseData["sim_ip"];
-                uint port = Convert.ToUInt32(responseData["sim_port"]);
-                string externalUri = (string) responseData["sim_uri"];
-
-                IPEndPoint neighbourInternalEndPoint = new IPEndPoint(IPAddress.Parse(internalIpStr), (int) port);
-                string neighbourExternalUri = externalUri;
-                regionInfo = new RegionInfo(regX, regY, neighbourInternalEndPoint, internalIpStr);
-
-                regionInfo.RemotingPort = Convert.ToUInt32((string) responseData["remoting_port"]);
-                regionInfo.RemotingAddress = internalIpStr;
-
-                regionInfo.RegionID = new LLUUID((string) responseData["region_UUID"]);
-                regionInfo.RegionName = (string) responseData["region_name"];
-
-                m_remoteRegionInfoCache.Add(regionHandle, regionInfo);
             }
 
             return regionInfo;
@@ -540,34 +548,33 @@ namespace OpenSim.Region.Communications.OGS1
         }
 
         // UGLY!
-        public bool RegionUp(SearializableRegionInfo region)
+        public bool RegionUp(SearializableRegionInfo region, ulong regionhandle)
         {
-            
-            // This is stupid.  For this to work, when the region registers it must request nearby map blocks.
-            // In addition to filling the map blocks, it fills a 'known regions' list.
-
-            // This known regions list then gets queried on here to get the remoting data from the neighbors.
-            // *Pull yourself up by your bootstraps?*
-            
-            if (m_localBackend.RegionUp(region))
+            SearializableRegionInfo regInfo = null;
+            try
             {
-                return true;
-            }
-            
-            foreach (SimpleRegionInfo knownregion in m_knownRegions)
-             {
-                 
-                 SearializableRegionInfo regInfo = new SearializableRegionInfo(RequestNeighbourInfo(knownregion.RegionID));
+                // You may ask why this is in here...   
+                // The region asking the grid services about itself..  
+                // And, surprisingly, the reason is..  it doesn't know 
+                // it's own remoting port!  How special.
+                region = new SearializableRegionInfo(RequestNeighbourInfo(region.RegionHandle));
+                region.RemotingAddress = region.ExternalHostName;
+                region.RemotingPort = (uint) NetworkServersInfo.RemotingListenerPort;
+                if (m_localBackend.RegionUp(region,regionhandle))
+                {
+                    return true;
+                }
 
-                  try
-                  {
-                 
-                    if ((!(regInfo.Equals(null)) && regInfo.RemotingAddress.Length > 0))
+                regInfo = new SearializableRegionInfo(RequestNeighbourInfo(regionhandle));
+                if (regInfo != null)
+                {
+                    // If we're not trying to remote to ourselves.
+                    if (regInfo.RemotingAddress != region.RemotingAddress && region.RemotingAddress != null)
                     {
                         //don't want to be creating a new link to the remote instance every time like we are here
                         bool retValue = false;
 
-                        
+
                         OGS1InterRegionRemoting remObject = (OGS1InterRegionRemoting)Activator.GetObject(
                                                                                           typeof(OGS1InterRegionRemoting),
                                                                                           "tcp://" + regInfo.RemotingAddress +
@@ -576,49 +583,59 @@ namespace OpenSim.Region.Communications.OGS1
 
                         if (remObject != null)
                         {
-                            retValue = remObject.RegionUp(region);
+                            retValue = remObject.RegionUp(region, regionhandle);
                         }
                         else
                         {
                             Console.WriteLine("remoting object not found");
                         }
                         remObject = null;
-                        MainLog.Instance.Verbose("INTER", gdebugRegionName + ": OGS1 tried to NotifyRegionUp for " + regInfo.RegionLocX + "," + regInfo.RegionLocY);
+                        MainLog.Instance.Verbose("INTER", gdebugRegionName + ": OGS1 tried to inform region I'm up");
 
+                        return retValue;
                     }
+                    else
+                    {
+                        // We're trying to inform ourselves via remoting. 
+                        // This is here because we're looping over the listeners before we get here.
+                        // Odd but it should work.
+                        return true;
+                    }
+                }
 
-                }
-                catch (RemotingException e)
-                {
-                    MainLog.Instance.Warn("Remoting Error: Unable to connect to adjacent region:  " + regInfo.RegionLocX + "," + regInfo.RegionLocY);
-                    MainLog.Instance.Debug(e.ToString());
-                    //return false;
-                }
-                catch (SocketException e)
-                {
-                    MainLog.Instance.Warn("Socket Error: Unable to connect to adjacent region:  " + regInfo.RegionLocX + "," + regInfo.RegionLocY);
-                    MainLog.Instance.Debug(e.ToString());
-                    //return false;
-                }
-                catch (InvalidCredentialException e)
-                {
-                    MainLog.Instance.Warn("Invalid Credentials: Unable to connect to adjacent region:  " + regInfo.RegionLocX + "," + regInfo.RegionLocY);
-                    MainLog.Instance.Debug(e.ToString());
-                    //return false;
-                }
-                catch (AuthenticationException e)
-                {
-                    MainLog.Instance.Warn("Authentication exception: Unable to connect to adjacent region:  " + regInfo.RegionLocX + "," + regInfo.RegionLocY);
-                    MainLog.Instance.Debug(e.ToString());
-                    //return false;
-                }
-                catch (Exception e)
-                {
-                    MainLog.Instance.Warn("Unknown exception: Unable to connect to adjacent region:  " + regInfo.RegionLocX + "," + regInfo.RegionLocY);
-                    MainLog.Instance.Debug(e.ToString());
-                    //return false;
-                }
+                return false;
             }
+            catch (RemotingException e)
+            {
+                MainLog.Instance.Warn("Remoting Error: Unable to connect to adjacent region: " + regInfo.RegionLocX + "," + regInfo.RegionLocY);
+                MainLog.Instance.Debug(e.ToString());
+                return false;
+            }
+            catch (SocketException e)
+            {
+                MainLog.Instance.Warn("Socket Error: Unable to connect to adjacent region:  " + regInfo.RegionLocX + "," + regInfo.RegionLocY);
+                MainLog.Instance.Debug(e.ToString());
+                return false;
+            }
+            catch (InvalidCredentialException e)
+            {
+                MainLog.Instance.Warn("Invalid Credentials: Unable to connect to adjacent region:  " + regInfo.RegionLocX + "," + regInfo.RegionLocY);
+                MainLog.Instance.Debug(e.ToString());
+                return false;
+            }
+            catch (AuthenticationException e)
+            {
+                MainLog.Instance.Warn("Authentication exception: Unable to connect to adjacent region:  " + regInfo.RegionLocX + "," + regInfo.RegionLocY);
+                MainLog.Instance.Debug(e.ToString());
+                return false;
+            }
+            catch (Exception e)
+            {
+                MainLog.Instance.Warn("Unknown exception: Unable to connect to adjacent region:  " + regInfo.RegionLocX + "," + regInfo.RegionLocY);
+                MainLog.Instance.Debug(e.ToString());
+                return false;
+            }
+            
             return true;
         }
         /// <summary>
@@ -837,13 +854,13 @@ namespace OpenSim.Region.Communications.OGS1
             }
         }
 
-        public bool TriggerRegionUp(SearializableRegionInfo regionData)
+        public bool TriggerRegionUp(SearializableRegionInfo regionData, ulong regionhandle)
         {
             MainLog.Instance.Verbose("INTER", gdebugRegionName + ": Incoming OGS1 RegionUpReport:  " + regionData.RegionLocX + "," + regionData.RegionLocY);
 
             try
             {
-                return m_localBackend.TriggerRegionUp(new RegionInfo(regionData));
+                return m_localBackend.TriggerRegionUp(new RegionInfo(regionData), regionhandle);
             }
 
             catch (RemotingException e)

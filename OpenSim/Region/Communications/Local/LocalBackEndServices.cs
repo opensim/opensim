@@ -194,34 +194,35 @@ namespace OpenSim.Region.Communications.Local
             return mapBlocks;
         }
 
+        
+        public bool RegionUp(SearializableRegionInfo sregion, ulong regionhandle)
+        {
+            RegionInfo region = new RegionInfo(sregion);
+            if (m_regionListeners.ContainsKey(regionhandle))
+            {
+                return m_regionListeners[regionhandle].TriggerRegionUp(region);
+            }
+           
+            return false;
+        }
+
+        public bool TriggerRegionUp(RegionInfo region, ulong regionhandle)
+        {
+
+            if (m_regionListeners.ContainsKey(regionhandle))
+            {
+                return m_regionListeners[regionhandle].TriggerRegionUp(region);
+            }
+
+            return false;
+        }
+
         /// <summary> 
         /// </summary>
         /// <param name="regionHandle"></param>
         /// <param name="agentData"></param>
         /// <returns></returns>
         /// 
-        public bool RegionUp(SearializableRegionInfo sregion)
-        {
-            RegionInfo region = new RegionInfo(sregion);
-            foreach (RegionCommsListener listener in m_regionListeners.Values)
-            {
-                listener.TriggerRegionUp(region);
-            }
-           
-            return false;
-        }
-
-        public bool TriggerRegionUp(RegionInfo region)
-        {
-            
-            foreach (RegionCommsListener listener in m_regionListeners.Values)
-            {
-                listener.TriggerRegionUp(region);
-            }
-
-            return true;
-        }
-
         public bool InformRegionOfChildAgent(ulong regionHandle, AgentCircuitData agentData)
             //should change from agentCircuitData
         {

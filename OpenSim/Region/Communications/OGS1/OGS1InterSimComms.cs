@@ -41,7 +41,7 @@ namespace OpenSim.Region.Communications.OGS1
 
     public delegate bool PrimGroupArrival(ulong regionHandle, LLUUID primID, string objData);
 
-    public delegate bool RegionUp (SearializableRegionInfo region);
+    public delegate bool RegionUp (SearializableRegionInfo region, ulong regionhandle);
 
     public sealed class InterRegionSingleton
     {
@@ -76,12 +76,12 @@ namespace OpenSim.Region.Communications.OGS1
             return false;
         }
 
-        public bool RegionUp(SearializableRegionInfo sregion)
+        public bool RegionUp(SearializableRegionInfo sregion, ulong regionhandle)
         {
             
             if (OnRegionUp != null)
             {
-                return OnRegionUp(sregion);
+                return OnRegionUp(sregion, regionhandle);
             }
             return false;
         }
@@ -130,11 +130,11 @@ namespace OpenSim.Region.Communications.OGS1
                 return false;
             }
         }
-        public bool RegionUp(SearializableRegionInfo  region)
+        public bool RegionUp(SearializableRegionInfo  region, ulong regionhandle)
         {
             try
             {
-                return InterRegionSingleton.Instance.RegionUp(region);
+                return InterRegionSingleton.Instance.RegionUp(region, regionhandle);
             }
             catch (RemotingException e)
             {
