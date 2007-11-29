@@ -251,7 +251,10 @@ namespace OpenSim.Region.Environment.Scenes
         {
             //MainLog.Instance.Verbose("INTER", debugRegionName + ": SceneCommunicationService: Sending InterRegion Notification that region is up " + region.RegionName);
 
-            List<SimpleRegionInfo> neighbours = m_commsProvider.GridService.RequestNeighbours(m_regionInfo.RegionLocX, m_regionInfo.RegionLocY);
+
+            List<SimpleRegionInfo> neighbours = new List<SimpleRegionInfo>();
+            
+            neighbours = m_commsProvider.GridService.RequestNeighbours(m_regionInfo.RegionLocX, m_regionInfo.RegionLocY);
             if (neighbours != null)
             {
                 for (int i = 0; i < neighbours.Count; i++)
@@ -264,6 +267,7 @@ namespace OpenSim.Region.Environment.Scenes
                                   d);
                 }
             }
+           
             //bool val = m_commsProvider.InterRegion.RegionUp(new SearializableRegionInfo(region));
         }
 

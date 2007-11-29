@@ -279,39 +279,21 @@ namespace OpenSim.Region.Environment.Scenes
             {
                 if (Math.Abs(otherRegion.RegionLocX - RegionInfo.RegionLocX) <= 1 || Math.Abs(otherRegion.RegionLocY - RegionInfo.RegionLocY) <= 1)
                 {
-                    try
+                    if (!(m_regionRestartNotifyList.Contains(otherRegion)))
                     {
-
-                        ForEachScenePresence(delegate(ScenePresence agent)
-                        {
-                            if (!(agent.IsChildAgent))
-                            {
-                                //agent.ControllingClient.new
-                                //this.CommsManager.InterRegion.InformRegionOfChildAgent(otherRegion.RegionHandle, agent.ControllingClient.RequestClientInfo());
-                                InformClientOfNeighbor(agent, otherRegion);
-                            }
-                        }
-
-                        );
-                    }
-                    catch (System.NullReferenceException)
-                    {
-                        // This means that we're not booted up completely yet.
+                        m_regionRestartNotifyList.Add(otherRegion);
+                    
+                        m_restartWaitTimer.Interval= 50000;
+                        m_restartWaitTimer.AutoReset = false;
+                        m_restartWaitTimer.Elapsed += new ElapsedEventHandler(restart_Notify_Wait_Elapsed);
+                        m_restartWaitTimer.Start();
                     }
                 }
                 else
                 {
                     MainLog.Instance.Verbose("INTERGRID", "Got notice about Region at X:" + otherRegion.RegionLocX.ToString() + " Y:" + otherRegion.RegionLocY.ToString() + " but it was too far away to send to the client");
                 }
-                //if (!(m_regionRestartNotifyList.Contains(otherRegion)))
-                //{
-                    //m_regionRestartNotifyList.Add(otherRegion);
-                    
-                    //m_restartWaitTimer = new Timer(20000);
-                    //m_restartWaitTimer.AutoReset = false;
-                   // m_restartWaitTimer.Elapsed += new ElapsedEventHandler(restart_Notify_Wait_Elapsed);
-                    //m_restartWaitTimer.Start();
-                //}
+                
             }
             return true;
         }
@@ -368,7 +350,25 @@ namespace OpenSim.Region.Environment.Scenes
             m_restartWaitTimer.Stop();
             foreach (RegionInfo region in m_regionRestartNotifyList)
             {
-                
+                try
+                {
+
+                    ForEachScenePresence(delegate(ScenePresence agent)
+                    {
+                        if (!(agent.IsChildAgent))
+                        {
+                            //agent.ControllingClient.new
+                            //this.CommsManager.InterRegion.InformRegionOfChildAgent(otherRegion.RegionHandle, agent.ControllingClient.RequestClientInfo());
+                            InformClientOfNeighbor(agent, region);
+                        }
+                    }
+
+                    );
+                }
+                catch (System.NullReferenceException)
+                {
+                    // This means that we're not booted up completely yet.
+                }
             }
             // Reset list to nothing.
             m_regionRestartNotifyList = new List<RegionInfo>();
