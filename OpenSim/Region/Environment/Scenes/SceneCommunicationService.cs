@@ -35,8 +35,8 @@ namespace OpenSim.Region.Environment.Scenes
             set
             {
                 _debugRegionName = value;
-               
-                
+
+
 
             }
         }
@@ -177,10 +177,10 @@ namespace OpenSim.Region.Environment.Scenes
             List<SimpleRegionInfo> neighbours =
                 m_commsProvider.GridService.RequestNeighbours(m_regionInfo.RegionLocX, m_regionInfo.RegionLocY);
             //IPEndPoint blah = new IPEndPoint();
-            
+
             //blah.Address = region.RemotingAddress;
             //blah.Port = region.RemotingPort;
-           
+
 
         }
 
@@ -232,7 +232,7 @@ namespace OpenSim.Region.Environment.Scenes
         }
 
 
-         private void InformNeighboursThatRegionIsUpAsync(RegionInfo region, ulong regionhandle)
+        private void InformNeighboursThatRegionIsUpAsync(RegionInfo region, ulong regionhandle)
         {
             MainLog.Instance.Notice("INTERGRID", "Starting to inform neighbors that I'm here");
             bool regionAccepted = m_commsProvider.InterRegion.RegionUp((new SearializableRegionInfo(region)), regionhandle);
@@ -250,29 +250,23 @@ namespace OpenSim.Region.Environment.Scenes
         public void InformNeighborsThatRegionisUp(RegionInfo region)
         {
             //MainLog.Instance.Verbose("INTER", debugRegionName + ": SceneCommunicationService: Sending InterRegion Notification that region is up " + region.RegionName);
-            List<SimpleRegionInfo> neighbours = new List<SimpleRegionInfo>();
-                
-             lock (neighbours)
-             {
-                 neighbours = m_commsProvider.GridService.RequestNeighbours(m_regionInfo.RegionLocX, m_regionInfo.RegionLocY);
-                 if (neighbours != null)
-                 {
-                     for (int i = 0; i < neighbours.Count; i++)
-                     {
 
-                         InformNeighbourThatRegionUpDelegate d = InformNeighboursThatRegionIsUpAsync;
-                         // race condition!  Arg!  I hate race conditions.
-                         lock (d)
-                         {
-                             d.BeginInvoke(region, neighbours[i].RegionHandle,
-                                           InformNeighborsThatRegionisUpCompleted,
-                                           d);
-                         }
-                     }
-                 }
-             }
+            List<SimpleRegionInfo> neighbours = m_commsProvider.GridService.RequestNeighbours(m_regionInfo.RegionLocX, m_regionInfo.RegionLocY);
+            if (neighbours != null)
+            {
+                for (int i = 0; i < neighbours.Count; i++)
+                {
+
+                    InformNeighbourThatRegionUpDelegate d = InformNeighboursThatRegionIsUpAsync;
+
+                    d.BeginInvoke(region, neighbours[i].RegionHandle,
+                                  InformNeighborsThatRegionisUpCompleted,
+                                  d);
+                }
+            }
             //bool val = m_commsProvider.InterRegion.RegionUp(new SearializableRegionInfo(region));
         }
+
         /// <summary>
         /// 
         /// </summary>
@@ -294,7 +288,7 @@ namespace OpenSim.Region.Environment.Scenes
         public virtual void RequestMapBlocks(IClientAPI remoteClient, int minX, int minY, int maxX, int maxY)
         {
             List<MapBlockData> mapBlocks;
-            mapBlocks = m_commsProvider.GridService.RequestNeighbourMapBlocks(minX-4, minY-4, minX+4, minY+4);
+            mapBlocks = m_commsProvider.GridService.RequestNeighbourMapBlocks(minX - 4, minY - 4, minX + 4, minY + 4);
             remoteClient.SendMapBlock(mapBlocks);
         }
 
@@ -373,7 +367,7 @@ namespace OpenSim.Region.Environment.Scenes
         {
             foreach (ulong regionHandle in presence.KnownChildRegions)
             {
-                
+
                 m_commsProvider.InterRegion.TellRegionToCloseChildConnection(regionHandle, presence.ControllingClient.AgentId);
                 presence.RemoveNeighbourRegion(regionHandle);
             }
