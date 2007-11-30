@@ -253,7 +253,10 @@ namespace OpenSim.Framework.Data.SQLite
                 {
                     fillUserRow(row, user);
                 }
-
+                // This is why we're getting the 'logins never log-off'..    because It isn't clearing the 
+                // useragents table once the useragent is null
+                //
+                // A database guy should look at this and figure out the best way to clear the useragents table.
                 if (user.currentAgent != null)
                 {
                     DataTable ua = ds.Tables["useragents"];
@@ -269,6 +272,23 @@ namespace OpenSim.Framework.Data.SQLite
                         fillUserAgentRow(row, user.currentAgent);
                     }
                 }
+                else
+                {
+                    // I just added this to help the standalone login situation.  
+                    //It still needs to be looked at by a Database guy
+                    if (row == null)
+                    {
+                        // do nothing
+                    }
+                    else
+                    {
+                        DataTable ua = ds.Tables["useragents"];
+                        row = ua.Rows.Find(user.UUID);
+                        row.Delete();
+                        ua.AcceptChanges();
+                    }
+                }
+
                 MainLog.Instance.Verbose("SQLITE",
                                          "Syncing user database: " + ds.Tables["users"].Rows.Count + " users stored");
                 // save changes off to disk

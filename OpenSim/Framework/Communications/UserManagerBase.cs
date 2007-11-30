@@ -253,6 +253,7 @@ namespace OpenSim.Framework.UserManagement
         {
             UserProfileData profile = GetUserProfile(agentID);
             profile.currentAgent = null;
+            
             setUserProfile(profile);
         }
 
