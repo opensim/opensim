@@ -88,7 +88,7 @@ namespace OpenSim.Region.Environment.Scenes
 
         public event RemoveScript OnRemoveScript;
 
-        public delegate void SceneGroupMoved(LLUUID groupID, LLVector3 delta);
+        public delegate bool SceneGroupMoved(LLUUID groupID, LLVector3 delta);
 
         public event SceneGroupMoved OnSceneGroupMove;
 
@@ -194,12 +194,13 @@ namespace OpenSim.Region.Environment.Scenes
             }
         }
 
-        public void TriggerGroupMove(LLUUID groupID, LLVector3 delta)
+        public bool TriggerGroupMove(LLUUID groupID, LLVector3 delta)
         {
             if (OnSceneGroupMove != null)
             {
-                OnSceneGroupMove(groupID, delta);
+               return OnSceneGroupMove(groupID, delta);
             }
+            return true;
         }
 
         public void TriggerGroupGrab(LLUUID groupID, LLVector3 offset, LLUUID userID)

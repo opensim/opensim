@@ -972,9 +972,11 @@ namespace OpenSim.Region.Environment.Scenes
         /// <param name="remoteClient"></param>
         public void GrabMovement(LLVector3 offset, LLVector3 pos, IClientAPI remoteClient)
         {
-            AbsolutePosition = pos;
-            m_rootPart.SendTerseUpdateToAllClients();
-            m_scene.EventManager.TriggerGroupMove(UUID, pos);
+            if (m_scene.EventManager.TriggerGroupMove(UUID, pos))
+            {
+                AbsolutePosition = pos;
+                m_rootPart.SendTerseUpdateToAllClients();
+            } 
         }
 
         /// <summary>
@@ -1263,10 +1265,11 @@ namespace OpenSim.Region.Environment.Scenes
         /// <param name="pos"></param>
         public void UpdateGroupPosition(LLVector3 pos)
         {
-            AbsolutePosition = pos;
-            ScheduleGroupForTerseUpdate();
-
-            m_scene.EventManager.TriggerGroupMove(UUID, pos);
+            if (m_scene.EventManager.TriggerGroupMove(UUID, pos))
+            {
+                AbsolutePosition = pos;
+                ScheduleGroupForTerseUpdate();
+            }
         }
 
         /// <summary>
