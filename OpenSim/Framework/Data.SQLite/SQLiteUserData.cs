@@ -276,14 +276,16 @@ namespace OpenSim.Framework.Data.SQLite
                 {
                     // I just added this to help the standalone login situation.  
                     //It still needs to be looked at by a Database guy
+                    DataTable ua = ds.Tables["useragents"];
+                    row = ua.Rows.Find(user.UUID);
+
                     if (row == null)
                     {
                         // do nothing
                     }
                     else
                     {
-                        DataTable ua = ds.Tables["useragents"];
-                        row = ua.Rows.Find(user.UUID);
+                       
                         row.Delete();
                         ua.AcceptChanges();
                     }
