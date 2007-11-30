@@ -358,17 +358,27 @@ namespace OpenSim.Region.Environment.Scenes
             }
         }
 
-        public EntityIntersection testIntersection(Ray hRay)
+        public EntityIntersection TestIntersection(Ray hRay)
         {
+            // We got a request from the inner_scene to raytrace along the Ray hRay
+            // We're going to check all of the prim in this group for intersection with the ray
+            // If we get a result, we're going to find the closest result to the origin of the ray
+            // and send back the intersection information back to the innerscene.
+
             EntityIntersection returnresult = new EntityIntersection();
-            bool gothit = false;
+
             foreach (SceneObjectPart part in m_parts.Values)
             {
-                SceneObjectPart returnThisPart = null;
+                
                 Vector3 partPosition = new Vector3(part.AbsolutePosition.X,part.AbsolutePosition.Y,part.AbsolutePosition.Z);
                 Quaternion parentrotation = new Quaternion(GroupRotation.W,GroupRotation.X,GroupRotation.Y,GroupRotation.Z);
-                EntityIntersection inter = part.testIntersection(hRay,parentrotation);
+                
+                // Telling the prim to raytrace.
+                EntityIntersection inter = part.TestIntersection(hRay,parentrotation);
                                 
+                // This may need to be updated to the maximum draw distance possible..  
+                // We might (and probably will) be checking for prim creation from other sims
+                // when the camera crosses the border.
                 float idist = 256f;
                 
 
@@ -384,7 +394,6 @@ namespace OpenSim.Region.Environment.Scenes
                         returnresult.obj = part;
                         returnresult.normal = inter.normal;
                         returnresult.distance = inter.distance;
-                        gothit = true;
                     }
                 }
                 

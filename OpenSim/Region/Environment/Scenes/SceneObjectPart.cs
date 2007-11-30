@@ -561,10 +561,12 @@ namespace OpenSim.Region.Environment.Scenes
             serializer.Serialize(xmlWriter, this);
         }
 
-        public EntityIntersection testIntersection(Ray iray, Quaternion parentrot)
+        public EntityIntersection TestIntersection(Ray iray, Quaternion parentrot)
         {
 
-            //Sphere dummysphere = new Sphere();
+            // In this case we're using a sphere with a radius of the largest dimention of the prim
+            // TODO: Change to take shape into account
+            
 
             EntityIntersection returnresult = new EntityIntersection();
             Vector3 vAbsolutePosition = new Vector3(AbsolutePosition.X, AbsolutePosition.Y, AbsolutePosition.Z);
@@ -582,23 +584,25 @@ namespace OpenSim.Region.Environment.Scenes
             Vector3 rDirection = iray.Direction;
 
            
-
+            // Buidling the first part of the Quadratic equation
             Vector3 r2ndDirection = rDirection * rDirection;
-
             float itestPart1 = r2ndDirection.x + r2ndDirection.y + r2ndDirection.z;
 
+            // Buidling the second part of the Quadratic equation
             Vector3 tmVal2 = rOrigin - vAbsolutePosition;
-
             Vector3 r2Direction = rDirection * 2.0f;
             Vector3 tmVal3 = r2Direction * tmVal2;
 
             float itestPart2 = tmVal3.x + tmVal3.y + tmVal3.z;
 
+            // Buidling the third part of the Quadratic equation
             Vector3 tmVal4 = rOrigin * rOrigin;
             Vector3 tmVal5 = vAbsolutePosition * vAbsolutePosition;
 
             Vector3 tmVal6 = vAbsolutePosition * rOrigin;
 
+
+            // Set Radius to the largest dimention of the prim
             float radius = 0f;
             if (vScale.x > radius) 
                 radius = vScale.x;
@@ -611,11 +615,11 @@ namespace OpenSim.Region.Environment.Scenes
 
             float itestPart3 = tmVal4.x + tmVal4.y + tmVal4.z + tmVal5.x + tmVal5.y + tmVal5.z -(2.0f * (tmVal6.x + tmVal6.y + tmVal6.z + (radius * radius)));
             
-            // Yuk Quadradrics
+            // Yuk Quadradrics..    Solve first
             float rootsqr = (itestPart2 * itestPart2) - (4.0f * itestPart1 * itestPart3);
             if (rootsqr < 0.0f)
             {
-
+                // No intersection
                 return returnresult;
             }
             float root = ((-itestPart2) - (float)Math.Sqrt((double)rootsqr)) / (itestPart1 * 2.0f);
@@ -628,18 +632,30 @@ namespace OpenSim.Region.Environment.Scenes
                 // is there any intersection?
                 if (root < 0.0f)
                 {
-
+                    // nope, no intersection
                     return returnresult;
                 }
             }
 
+            // We got an intersection.  putting together an EntityIntersection object with the 
+            // intersection information
             Vector3 ipoint = new Vector3(iray.Origin.x + (iray.Direction.x * root),iray.Origin.y + (iray.Direction.y * root),iray.Origin.z + (iray.Direction.z * root));
 
             returnresult.HitTF = true;
             returnresult.ipoint = ipoint;
+
+            // Normal is calculated by the difference and then normalizing the result
             Vector3 normalpart = ipoint-vAbsolutePosition;
             returnresult.normal = normalpart.Normalize();
-            returnresult.distance = ParentGroup.m_scene.m_innerScene.Vector3Distance(iray.Origin, ipoint);
+
+            // It's funny how the LLVector3 object has a Distance function, but the Axiom.Math object doesnt.
+            // I can write a function to do it..    but I like the fact that this one is Static.
+
+            LLVector3 distanceConvert1 = new LLVector3(iray.Origin.x,iray.Origin.y,iray.Origin.z);
+            LLVector3 distanceConvert2 = new LLVector3(ipoint.x, ipoint.y, ipoint.z);
+            float distance = (float)distanceConvert1.GetDistanceTo(distanceConvert2);
+
+            returnresult.distance = distance;
 
             return returnresult;
         }
@@ -1235,15 +1251,15 @@ namespace OpenSim.Region.Environment.Scenes
                 }
             }
             // If you can't edit it, send the base permissions minus the flag to edit
+            
+
+            // We're going to be moving this into ScenePresence and the PermissionsManager itself.
             if (!ParentGroup.m_scene.PermissionsMngr.BypassPermissions)
             {
                 if (ParentGroup.m_scene.PermissionsMngr.CanEditObject(remoteClient.AgentId, this.ParentGroup.UUID))
                 {
-                    //clientFlags = ObjectFlags &= ~(uint)LLObject.ObjectFlags.ObjectModify;
-                    //clientFlags = clientFlags &= ~(uint)LLObject.ObjectFlags.ObjectMove;
-                    //clientFlags = clientFlags &= ~(uint)LLObject.ObjectFlags.AllowInventoryDrop;
-                    //clientFlags = clientFlags &= ~(uint)LLObject.ObjectFlags.ObjectTransfer;
-                    // Send EveryoneMask
+                    // we should be merging the objectflags with the ownermask here.   
+                    // TODO: Future refactoring here.
                     clientFlags = ObjectFlags;
 
                 }
@@ -1259,13 +1275,13 @@ namespace OpenSim.Region.Environment.Scenes
                     {
                         clientFlags = clientFlags &= ~(uint) LLObject.ObjectFlags.ObjectMove;
                     }
-
+                    clientFlags = EveryoneMask;
                     clientFlags = clientFlags &= ~(uint)LLObject.ObjectFlags.ObjectModify;
                     clientFlags = clientFlags &= ~(uint)LLObject.ObjectFlags.AllowInventoryDrop;
                     clientFlags = clientFlags &= ~(uint)LLObject.ObjectFlags.ObjectTransfer;
 
-                    // TODO, FIXME, ERROR : This whole block amounts to moot because of this.
-                    clientFlags = EveryoneMask;
+                   
+                    
                 }
             }
 

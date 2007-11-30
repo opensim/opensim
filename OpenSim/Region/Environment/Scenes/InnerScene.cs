@@ -300,7 +300,7 @@ namespace OpenSim.Region.Environment.Scenes
                 if (ent is SceneObjectGroup)
                 {
                     SceneObjectGroup reportingG = (SceneObjectGroup)ent;
-                    EntityIntersection result = reportingG.testIntersection(hray);
+                    EntityIntersection result = reportingG.TestIntersection(hray);
                     if (result.HitTF)
                     {
                         if (result.distance < closestDistance)
