@@ -1487,7 +1487,7 @@ namespace OpenSim.Region.Environment.Scenes
                 }
             }
         }
-
+        
         /// <summary>
         /// 
         /// </summary>

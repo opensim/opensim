@@ -1201,6 +1201,17 @@ namespace OpenSim.Region.Environment.Scenes
                     }
                     break;
                 }
+                else
+                {
+                    // If you can't edit it, send the base permissions minus the flag to edit
+                    if (!ParentGroup.m_scene.PermissionsMngr.CanEditObject(remoteClient.AgentId, this.ParentGroup.UUID))
+                    {
+                        clientFlags = ObjectFlags &= ~(uint)LLObject.ObjectFlags.ObjectModify;
+                        clientFlags = clientFlags &= ~(uint)LLObject.ObjectFlags.ObjectMove;
+                        clientFlags = clientFlags &= ~(uint)LLObject.ObjectFlags.AllowInventoryDrop;
+                        clientFlags = clientFlags &= ~(uint)LLObject.ObjectFlags.ObjectTransfer;
+                    }
+                }
             }
 
             byte[] color = new byte[] { m_color.R, m_color.G, m_color.B, m_color.A };

@@ -96,10 +96,15 @@ namespace OpenSim.Framework.UserManagement
                 else
                 {
                     // If we already have a session...
+                    
                     if (userProfile.currentAgent != null && userProfile.currentAgent.agentOnline)
                     {
+                        userProfile.currentAgent.agentOnline = false;
+                        m_userManager.CommitAgent(ref userProfile);
+                        
                         // Reject the login
                         return logResponse.CreateAlreadyLoggedInResponse();
+                        
                     }
                     // Otherwise...
                     // Create a new agent session
