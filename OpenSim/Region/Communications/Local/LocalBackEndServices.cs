@@ -195,7 +195,7 @@ namespace OpenSim.Region.Communications.Local
         }
 
         
-        public bool RegionUp(SearializableRegionInfo sregion, ulong regionhandle)
+        public virtual bool RegionUp(SearializableRegionInfo sregion, ulong regionhandle)
         {
             RegionInfo region = new RegionInfo(sregion);
             if (m_regionListeners.ContainsKey(regionhandle))
