@@ -467,17 +467,8 @@ namespace OpenSim.Region.Environment.Scenes
                        LLObject.ObjectFlags.CreateSelected |
                        LLObject.ObjectFlags.ObjectOwnerModify;
 
-            if (!ParentGroup.m_scene.PermissionsMngr.BypassPermissions)
-            {
-                EveryoneMask = (uint)m_flags;
-                EveryoneMask &= ~(uint)LLObject.ObjectFlags.ObjectYouOwner;
-                EveryoneMask &= ~(uint)LLObject.ObjectFlags.ObjectTransfer;
-                EveryoneMask &= ~(uint)LLObject.ObjectFlags.ObjectCopy;
-                EveryoneMask &= ~(uint)LLObject.ObjectFlags.ObjectModify;
-                EveryoneMask &= ~(uint)LLObject.ObjectFlags.ObjectMove;
-                EveryoneMask &= ~(uint)LLObject.ObjectFlags.ObjectAnyOwner;
-                EveryoneMask &= ~(uint)LLObject.ObjectFlags.ObjectYouOfficer;
-            }
+            ApplyPermissions();
+            ApplyPhysics();
 
             ScheduleFullUpdate();
         }
@@ -505,36 +496,19 @@ namespace OpenSim.Region.Environment.Scenes
             LastOwnerID = lastOwnerID;
             UUID = LLUUID.Random();
             LocalID = (uint) (localID);
-            // Todo:  Add More parameters from above
             Shape = shape;
             OwnershipCost = 0;
             ObjectSaleType = (byte)0;
             SalePrice = 0;
             Category = (uint)0;
-            // End Todo:  ///
             LastOwnerID = CreatorID;
             OffsetPosition = position;
             RotationOffset = rotation;
             ObjectFlags = flags;
 
-            if (!ParentGroup.m_scene.PermissionsMngr.BypassPermissions)
-            {
-                EveryoneMask = (uint)m_flags;
-                EveryoneMask &= ~(uint)LLObject.ObjectFlags.ObjectYouOwner;
-                EveryoneMask &= ~(uint)LLObject.ObjectFlags.ObjectTransfer;
-                EveryoneMask &= ~(uint)LLObject.ObjectFlags.ObjectCopy;
-                EveryoneMask &= ~(uint)LLObject.ObjectFlags.ObjectModify;
-                EveryoneMask &= ~(uint)LLObject.ObjectFlags.ObjectMove;
-                EveryoneMask &= ~(uint)LLObject.ObjectFlags.ObjectAnyOwner;
-                EveryoneMask &= ~(uint)LLObject.ObjectFlags.ObjectYouOfficer;
-            }
-            else
-            {
-                EveryoneMask = ObjectFlags;
-            }
-            
-            bool UsePhysics = ((ObjectFlags & (uint)LLObject.ObjectFlags.Physics) != 0);
-            DoPhysicsPropertyUpdate(UsePhysics, true);
+            ApplyPermissions();
+            ApplyPhysics();
+
             ScheduleFullUpdate();
         }
 
