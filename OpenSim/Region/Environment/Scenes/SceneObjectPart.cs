@@ -466,6 +466,18 @@ namespace OpenSim.Region.Environment.Scenes
                        LLObject.ObjectFlags.CreateSelected |
                        LLObject.ObjectFlags.ObjectOwnerModify;
 
+            if (!ParentGroup.m_scene.PermissionsMngr.BypassPermissions)
+            {
+                EveryoneMask = (uint)m_flags;
+                EveryoneMask &= ~(uint)LLObject.ObjectFlags.ObjectYouOwner;
+                EveryoneMask &= ~(uint)LLObject.ObjectFlags.ObjectTransfer;
+                EveryoneMask &= ~(uint)LLObject.ObjectFlags.ObjectCopy;
+                EveryoneMask &= ~(uint)LLObject.ObjectFlags.ObjectModify;
+                EveryoneMask &= ~(uint)LLObject.ObjectFlags.ObjectMove;
+                EveryoneMask &= ~(uint)LLObject.ObjectFlags.ObjectAnyOwner;
+                EveryoneMask &= ~(uint)LLObject.ObjectFlags.ObjectYouOfficer;
+            }
+
             ScheduleFullUpdate();
         }
 
@@ -503,6 +515,23 @@ namespace OpenSim.Region.Environment.Scenes
             OffsetPosition = position;
             RotationOffset = rotation;
             ObjectFlags = flags;
+
+            if (!ParentGroup.m_scene.PermissionsMngr.BypassPermissions)
+            {
+                EveryoneMask = (uint)m_flags;
+                EveryoneMask &= ~(uint)LLObject.ObjectFlags.ObjectYouOwner;
+                EveryoneMask &= ~(uint)LLObject.ObjectFlags.ObjectTransfer;
+                EveryoneMask &= ~(uint)LLObject.ObjectFlags.ObjectCopy;
+                EveryoneMask &= ~(uint)LLObject.ObjectFlags.ObjectModify;
+                EveryoneMask &= ~(uint)LLObject.ObjectFlags.ObjectMove;
+                EveryoneMask &= ~(uint)LLObject.ObjectFlags.ObjectAnyOwner;
+                EveryoneMask &= ~(uint)LLObject.ObjectFlags.ObjectYouOfficer;
+            }
+            else
+            {
+                EveryoneMask = ObjectFlags;
+            }
+            
             bool UsePhysics = ((ObjectFlags & (uint)LLObject.ObjectFlags.Physics) != 0);
             doPhysicsPropertyUpdate(UsePhysics, true);
             ScheduleFullUpdate();
@@ -519,6 +548,23 @@ namespace OpenSim.Region.Environment.Scenes
         {
             XmlSerializer serializer = new XmlSerializer(typeof (SceneObjectPart));
             SceneObjectPart newobject = (SceneObjectPart) serializer.Deserialize(xmlReader);
+
+            if (!newobject.ParentGroup.m_scene.PermissionsMngr.BypassPermissions)
+            {
+                newobject.EveryoneMask = newobject.ObjectFlags;
+                newobject.EveryoneMask &= ~(uint)LLObject.ObjectFlags.ObjectYouOwner;
+                newobject.EveryoneMask &= ~(uint)LLObject.ObjectFlags.ObjectTransfer;
+                newobject.EveryoneMask &= ~(uint)LLObject.ObjectFlags.ObjectCopy;
+                newobject.EveryoneMask &= ~(uint)LLObject.ObjectFlags.ObjectModify;
+                newobject.EveryoneMask &= ~(uint)LLObject.ObjectFlags.ObjectMove;
+                newobject.EveryoneMask &= ~(uint)LLObject.ObjectFlags.ObjectAnyOwner;
+                newobject.EveryoneMask &= ~(uint)LLObject.ObjectFlags.ObjectYouOfficer;
+            }
+            else
+            {
+                newobject.EveryoneMask = newobject.ObjectFlags;
+            }
+
             bool UsePhysics = ((newobject.ObjectFlags & (uint)LLObject.ObjectFlags.Physics) != 0);
             newobject.doPhysicsPropertyUpdate(UsePhysics, true);
             
@@ -711,6 +757,9 @@ namespace OpenSim.Region.Environment.Scenes
             {
                 //Console.WriteLine("Adding flag: " + ((LLObject.ObjectFlags) flag).ToString());
                 m_flags |= flag;
+                BaseMask |= (uint)flag;
+                GroupMask |= (uint)flag;
+                EveryoneMask |= (uint)flag;
             }
             uint currflag = (uint) m_flags;
             //System.Console.WriteLine("Aprev: " + prevflag.ToString() + " curr: " + m_flags.ToString());
@@ -724,6 +773,9 @@ namespace OpenSim.Region.Environment.Scenes
             {
                 //Console.WriteLine("Removing flag: " + ((LLObject.ObjectFlags)flag).ToString());
                 m_flags &= ~flag;
+                BaseMask &= ~(uint)flag;
+                GroupMask &= ~(uint)flag;
+                EveryoneMask &= ~(uint)flag;
             }
             //System.Console.WriteLine("prev: " + prevflag.ToString() + " curr: " + m_flags.ToString());
             //ScheduleFullUpdate();
@@ -1201,18 +1253,35 @@ namespace OpenSim.Region.Environment.Scenes
                     }
                     break;
                 }
+            }
+            // If you can't edit it, send the base permissions minus the flag to edit
+            if (!ParentGroup.m_scene.PermissionsMngr.BypassPermissions)
+            {
+                if (ParentGroup.m_scene.PermissionsMngr.CanEditObject(remoteClient.AgentId, this.ParentGroup.UUID))
+                {
+                    //clientFlags = ObjectFlags &= ~(uint)LLObject.ObjectFlags.ObjectModify;
+                    //clientFlags = clientFlags &= ~(uint)LLObject.ObjectFlags.ObjectMove;
+                    //clientFlags = clientFlags &= ~(uint)LLObject.ObjectFlags.AllowInventoryDrop;
+                    //clientFlags = clientFlags &= ~(uint)LLObject.ObjectFlags.ObjectTransfer;
+                    // Send EveryoneMask
+                    clientFlags = ObjectFlags;
+
+                }
                 else
                 {
-                    // If you can't edit it, send the base permissions minus the flag to edit
-                    if (!ParentGroup.m_scene.PermissionsMngr.CanEditObject(remoteClient.AgentId, this.ParentGroup.UUID))
-                    {
-                        clientFlags = ObjectFlags &= ~(uint)LLObject.ObjectFlags.ObjectModify;
+                    clientFlags = ObjectFlags;
+                    if (!ParentGroup.m_scene.PermissionsMngr.AnyoneCanCopyPermission(remoteClient.AgentId, this.ParentGroup.UUID))
+                        clientFlags = clientFlags &= ~(uint)LLObject.ObjectFlags.ObjectCopy;
+                    if (!ParentGroup.m_scene.PermissionsMngr.AnyoneCanMovePermission(remoteClient.AgentId, this.ParentGroup.UUID))
                         clientFlags = clientFlags &= ~(uint)LLObject.ObjectFlags.ObjectMove;
-                        clientFlags = clientFlags &= ~(uint)LLObject.ObjectFlags.AllowInventoryDrop;
-                        clientFlags = clientFlags &= ~(uint)LLObject.ObjectFlags.ObjectTransfer;
-                    }
+
+                    clientFlags = clientFlags &= ~(uint)LLObject.ObjectFlags.ObjectModify;
+                    clientFlags = clientFlags &= ~(uint)LLObject.ObjectFlags.AllowInventoryDrop;
+                    clientFlags = clientFlags &= ~(uint)LLObject.ObjectFlags.ObjectTransfer;
+                    clientFlags = EveryoneMask;
                 }
             }
+
 
             byte[] color = new byte[] { m_color.R, m_color.G, m_color.B, m_color.A };
             remoteClient.SendPrimitiveToClient(m_regionHandle, 64096, LocalID, m_shape, lPos, clientFlags, m_uuid,

@@ -135,6 +135,114 @@ namespace OpenSim.Region.Environment
 
         #region Object Permissions
 
+
+        public virtual bool AnyoneCanCopyPermission(LLUUID user, LLUUID objId)
+        {
+
+            // Default: deny
+            bool permission = false;
+
+            if (!m_scene.Entities.ContainsKey(objId))
+            {
+                return false;
+            }
+
+            // If it's not an object, we cant edit it.
+            if (!(m_scene.Entities[objId] is SceneObjectGroup))
+            {
+                return false;
+            }
+
+            SceneObjectGroup task = (SceneObjectGroup)m_scene.Entities[objId];
+            LLUUID taskOwner = null;
+            // Added this because at this point in time it wouldn't be wise for 
+            // the administrator object permissions to take effect.
+            LLUUID objectOwner = task.OwnerID;
+            uint objectflags = task.RootPart.EveryoneMask;
+
+            // Object owners should be able to edit their own content
+            if (user == objectOwner)
+                permission = true;
+
+            // If the 'anybody can move' flag is set then allow anyone to move it
+            if ((objectflags & (uint)LLObject.ObjectFlags.ObjectCopy ) != 0)
+                permission = true;
+
+            // Users should be able to edit what is over their land.
+            if (m_scene.LandManager.getLandObject(task.AbsolutePosition.X, task.AbsolutePosition.Y).landData.ownerID ==
+                user)
+                permission = true;
+
+            // Estate users should be able to edit anything in the sim
+            if (IsEstateManager(user))
+                permission = true;
+
+            // Admin objects should not be editable by the above
+            if (IsAdministrator(taskOwner))
+                permission = false;
+
+            // Admin should be able to edit anything in the sim (including admin objects)
+            if (IsAdministrator(user))
+                permission = true;
+
+            return permission;
+
+        }
+
+
+        public virtual bool AnyoneCanMovePermission(LLUUID user, LLUUID objId)
+        {
+
+            // Default: deny
+            bool permission = false;
+
+            if (!m_scene.Entities.ContainsKey(objId))
+            {
+                return false;
+            }
+
+            // If it's not an object, we cant edit it.
+            if (!(m_scene.Entities[objId] is SceneObjectGroup))
+            {
+                return false;
+            }
+
+            SceneObjectGroup task = (SceneObjectGroup)m_scene.Entities[objId];
+            LLUUID taskOwner = null;
+            // Added this because at this point in time it wouldn't be wise for 
+            // the administrator object permissions to take effect.
+            LLUUID objectOwner = task.OwnerID;
+            uint objectflags = task.RootPart.ObjectFlags;
+
+            // Object owners should be able to edit their own content
+            if (user == objectOwner)
+                permission = true;
+
+            // If the 'anybody can move' flag is set then allow anyone to move it
+            if ((objectflags & (uint)LLObject.ObjectFlags.ObjectMove) != 0)
+                permission = true;
+
+            // Users should be able to edit what is over their land.
+            if (m_scene.LandManager.getLandObject(task.AbsolutePosition.X, task.AbsolutePosition.Y).landData.ownerID ==
+                user)
+                permission = true;
+
+            // Estate users should be able to edit anything in the sim
+            if (IsEstateManager(user))
+                permission = true;
+
+            // Admin objects should not be editable by the above
+            if (IsAdministrator(taskOwner))
+                permission = false;
+
+            // Admin should be able to edit anything in the sim (including admin objects)
+            if (IsAdministrator(user))
+                permission = true;
+
+            return permission;
+
+        }
+
         protected virtual bool GenericObjectPermission(LLUUID user, LLUUID objId)
         {
             // Default: deny

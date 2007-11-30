@@ -103,7 +103,7 @@ namespace OpenSim.Region.ClientStack
             return physicsPluginManager.GetPhysicsScene(engine, meshEngine);
         }
 
-        protected Scene SetupScene(RegionInfo regionInfo, out UDPServer udpServer)
+        protected Scene SetupScene(RegionInfo regionInfo, out UDPServer udpServer, bool m_permissions)
         {
             AgentCircuitManager circuitManager = new AgentCircuitManager();
             udpServer = new UDPServer(regionInfo.InternalEndPoint.Port, m_assetCache, m_log, circuitManager);
@@ -146,7 +146,8 @@ namespace OpenSim.Region.ClientStack
             }
 
             scene.LandManager.resetSimLandObjects();
-            scene.LoadPrimsFromStorage();
+            
+            scene.LoadPrimsFromStorage(m_permissions);
 
             scene.performParcelPrimCountUpdate();
             scene.StartTimer();

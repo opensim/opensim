@@ -344,7 +344,7 @@ namespace OpenSim
         public UDPServer CreateRegion(RegionInfo regionInfo)
         {
             UDPServer udpServer;
-            Scene scene = SetupScene(regionInfo, out udpServer);
+            Scene scene = SetupScene(regionInfo, out udpServer, m_permissions);
 
             MainLog.Instance.Verbose("MODULES", "Loading Region's Modules");
 

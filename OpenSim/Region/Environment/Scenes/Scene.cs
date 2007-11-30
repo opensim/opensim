@@ -733,7 +733,7 @@ namespace OpenSim.Region.Environment.Scenes
         /// <summary>
         /// Loads the World's objects
         /// </summary>
-        public virtual void LoadPrimsFromStorage()
+        public virtual void LoadPrimsFromStorage(bool m_permissions)
         {
             MainLog.Instance.Verbose("Loading objects from datastore");
             List<SceneObjectGroup> PrimsFromDB = m_storageManager.DataStore.LoadObjects(m_regInfo.RegionID);
@@ -741,6 +741,20 @@ namespace OpenSim.Region.Environment.Scenes
             {
                 AddEntityFromStorage(prim);
                 SceneObjectPart rootPart = prim.GetChildPart(prim.UUID);
+                if (m_permissions)
+                {
+                    rootPart.EveryoneMask = rootPart.ObjectFlags;
+                    rootPart.EveryoneMask &= ~(uint)LLObject.ObjectFlags.ObjectYouOwner;
+                    rootPart.EveryoneMask &= ~(uint)LLObject.ObjectFlags.ObjectTransfer;
+                    rootPart.EveryoneMask &= ~(uint)LLObject.ObjectFlags.ObjectModify;
+                    rootPart.EveryoneMask &= ~(uint)LLObject.ObjectFlags.ObjectMove;
+                    rootPart.EveryoneMask &= ~(uint)LLObject.ObjectFlags.ObjectAnyOwner;
+                    rootPart.EveryoneMask &= ~(uint)LLObject.ObjectFlags.ObjectYouOfficer;
+                }
+                else
+                {
+                    rootPart.EveryoneMask = rootPart.ObjectFlags;
+                }
                 bool UsePhysics = (((rootPart.ObjectFlags & (uint)LLObject.ObjectFlags.Physics) > 0) && m_physicalPrim);
                 if ((rootPart.ObjectFlags & (uint)LLObject.ObjectFlags.Phantom) == 0)
                     rootPart.PhysActor = PhysicsScene.AddPrimShape(
@@ -839,7 +853,8 @@ namespace OpenSim.Region.Environment.Scenes
                 // if grass or tree, make phantom
                 if ((rootPart.Shape.PCode == 95) || (rootPart.Shape.PCode == 255))
                 {
-                    rootPart.ObjectFlags += (uint)LLObject.ObjectFlags.Phantom;
+                    rootPart.AddFlag(LLObject.ObjectFlags.Phantom);
+                    //rootPart.ObjectFlags += (uint)LLObject.ObjectFlags.Phantom;
                 }
                 // if not phantom, add to physics
                 bool UsePhysics = (((rootPart.ObjectFlags & (uint)LLObject.ObjectFlags.Physics) > 0) && m_physicalPrim);

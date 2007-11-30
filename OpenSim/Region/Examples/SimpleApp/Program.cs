@@ -98,7 +98,7 @@ namespace SimpleApp
             m_moduleLoader = new ModuleLoader(m_log, m_config);
             m_moduleLoader.LoadDefaultSharedModules();
 
-            Scene scene = SetupScene(regionInfo, out udpServer);
+            Scene scene = SetupScene(regionInfo, out udpServer, false);
 
             m_moduleLoader.InitialiseSharedModules(scene);
 
