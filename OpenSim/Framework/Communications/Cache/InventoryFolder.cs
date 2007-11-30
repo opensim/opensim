@@ -36,6 +36,13 @@ namespace OpenSim.Framework.Communications.Cache
         public Dictionary<LLUUID, InventoryItemBase> Items = new Dictionary<LLUUID, InventoryItemBase>();
         public Dictionary<LLUUID, InventoryFolderImpl> SubFolders = new Dictionary<LLUUID, InventoryFolderImpl>();
 
+        // Accessors
+        public int SubFoldersCount
+        {
+            get { return SubFolders.Count; }
+        }
+
+        // Constructors
         public InventoryFolderImpl(InventoryFolderBase folderbase)
         {
             agentID = folderbase.agentID;

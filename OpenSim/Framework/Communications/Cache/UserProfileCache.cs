@@ -111,6 +111,15 @@ namespace OpenSim.Framework.Communications.Cache
             }
         }
 
+        /// <summary>
+        /// Tell the client about the various child items and folders contained in the requested folder.
+        /// </summary>
+        /// <param name="remoteClient"></param>
+        /// <param name="folderID"></param>
+        /// <param name="ownerID"></param>
+        /// <param name="fetchFolders"></param>
+        /// <param name="fetchItems"></param>
+        /// <param name="sortOrder"></param>
         public void HandleFecthInventoryDescendents(IClientAPI remoteClient, LLUUID folderID, LLUUID ownerID,
                                                     bool fetchFolders, bool fetchItems, int sortOrder)
         {
@@ -118,14 +127,14 @@ namespace OpenSim.Framework.Communications.Cache
             if (folderID == libraryRoot.folderID)
             {
                 remoteClient.SendInventoryFolderDetails(libraryRoot.agentID, libraryRoot.folderID,
-                                                        libraryRoot.RequestListOfItems());
+                                                        libraryRoot.RequestListOfItems(), libraryRoot.SubFoldersCount);
 
                 return;
             }
 
             if ((fold = libraryRoot.HasSubFolder(folderID)) != null)
             {
-                remoteClient.SendInventoryFolderDetails(libraryRoot.agentID, folderID, fold.RequestListOfItems());
+                remoteClient.SendInventoryFolderDetails(libraryRoot.agentID, folderID, fold.RequestListOfItems(), fold.SubFoldersCount);
 
                 return;
             }
@@ -140,16 +149,16 @@ namespace OpenSim.Framework.Communications.Cache
                         if (fetchItems)
                         {
                             remoteClient.SendInventoryFolderDetails(remoteClient.AgentId, folderID,
-                                                                    userProfile.RootFolder.RequestListOfItems());
+                                                                    userProfile.RootFolder.RequestListOfItems(), userProfile.RootFolder.SubFoldersCount);
                         }
                     }
                     else
                     {
                         InventoryFolderImpl folder = userProfile.RootFolder.HasSubFolder(folderID);
-                        if ((folder != null) && fetchItems)
+                        
+                        if (fetchItems && folder != null)
                         {
-                            remoteClient.SendInventoryFolderDetails(remoteClient.AgentId, folderID,
-                                                                    folder.RequestListOfItems());
+                            remoteClient.SendInventoryFolderDetails(remoteClient.AgentId, folderID, folder.RequestListOfItems(), folder.SubFoldersCount);
                         }
                     }
                 }

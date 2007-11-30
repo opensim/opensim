@@ -1031,7 +1031,16 @@ namespace OpenSim.Region.ClientStack
             OutPacket(kill, ThrottleOutPacketType.Task);
         }
 
-        public void SendInventoryFolderDetails(LLUUID ownerID, LLUUID folderID, List<InventoryItemBase> items)
+        /// <summary>
+        /// Send information about the items contained in a folder to the client.
+        /// </summary>
+        /// <param name="ownerID">The owner of the folder</param>
+        /// <param name="folderID">The id of the folder</param>
+        /// <param name="items">The items contained in the folder identified by folderID</param>
+        /// <param name="subFoldersCount">The number of subfolders contained in the given folder.  This is necessary since
+        ///   the client is expecting inventory packets which incorporate this number into the descendents field, even though
+        ///   we send back no details of the folders themselves (only the items).</param>
+        public void SendInventoryFolderDetails(LLUUID ownerID, LLUUID folderID, List<InventoryItemBase> items, int subFoldersCount)
         {
             Encoding enc = Encoding.ASCII;
             uint FULL_MASK_PERMISSIONS = 2147483647;
@@ -1041,13 +1050,20 @@ namespace OpenSim.Region.ClientStack
             if (items.Count < 40)
             {
                 descend.ItemData = new InventoryDescendentsPacket.ItemDataBlock[items.Count];
-                descend.AgentData.Descendents = items.Count;
+                // In the very first packet, also include the sub folders count so that the total descendents the 
+                // client receives matches its expectations.  Subsequent inventory packets need contain only the count
+                // of the number of items actually in them.
+                descend.AgentData.Descendents = items.Count + subFoldersCount;
             }
             else
             {
                 descend.ItemData = new InventoryDescendentsPacket.ItemDataBlock[40];
-                descend.AgentData.Descendents = 40;
+                // In the very first packet, also include the sub folders count so that the total descendents the 
+                // client receives matches its expectations.  Subsequent inventory packets need contain only the count
+                // of the number of items actually in them.
+                descend.AgentData.Descendents = 40 + subFoldersCount;
             }
+
             int i = 0;
             foreach (InventoryItemBase item in items)
             {

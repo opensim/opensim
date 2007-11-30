@@ -301,7 +301,7 @@ namespace SimpleApp
         {
         }
 
-        public virtual void SendInventoryFolderDetails(LLUUID ownerID, LLUUID folderID, List<InventoryItemBase> items)
+        public virtual void SendInventoryFolderDetails(LLUUID ownerID, LLUUID folderID, List<InventoryItemBase> items, int subFoldersCount)
         {
         }
 
