@@ -264,6 +264,7 @@ namespace OpenSim.Region.Environment.Scenes
             reader.ReadStartElement("SceneObjectGroup");
             reader.ReadStartElement("RootPart");
             m_rootPart = SceneObjectPart.FromXml(reader);
+
             reader.ReadEndElement();
 
             while (reader.Read())
@@ -274,10 +275,13 @@ namespace OpenSim.Region.Environment.Scenes
                         if (reader.Name == "Part")
                         {
                             reader.Read();
-                            SceneObjectPart Part = SceneObjectPart.FromXml(reader);
-                            Part.LocalID = m_scene.PrimIDAllocate();
-                            AddPart(Part);
-                            Part.RegionHandle = m_regionHandle;
+                            SceneObjectPart part = SceneObjectPart.FromXml(reader);
+                            part.LocalID = m_scene.PrimIDAllocate();
+                            AddPart(part);
+                            part.RegionHandle = m_regionHandle;
+
+                            part.ApplyPermissions();
+                            part.ApplyPhysics();
                         }
                         break;
                     case XmlNodeType.EndElement:
@@ -286,8 +290,9 @@ namespace OpenSim.Region.Environment.Scenes
             }
             reader.Close();
             sr.Close();
-            m_rootPart.SetParent(this);
-            m_parts.Add(m_rootPart.UUID, m_rootPart);
+
+            AddPart( m_rootPart );
+
             m_rootPart.LocalID = m_scene.PrimIDAllocate();
             m_rootPart.ParentID = 0;
             m_rootPart.RegionHandle = m_regionHandle;
@@ -524,7 +529,7 @@ namespace OpenSim.Region.Environment.Scenes
                     new Quaternion(dupe.RootPart.RotationOffset.W, dupe.RootPart.RotationOffset.X,
                                    dupe.RootPart.RotationOffset.Y, dupe.RootPart.RotationOffset.Z),
                                    dupe.RootPart.PhysActor.IsPhysical);
-                dupe.RootPart.doPhysicsPropertyUpdate(dupe.RootPart.PhysActor.IsPhysical, true);
+                dupe.RootPart.DoPhysicsPropertyUpdate(dupe.RootPart.PhysActor.IsPhysical, true);
                 
             }
             // Now we've made a copy that replaces this one, we need to 
@@ -906,7 +911,7 @@ namespace OpenSim.Region.Environment.Scenes
                         new Quaternion(linkPart.RotationOffset.W, linkPart.RotationOffset.X,
                                        linkPart.RotationOffset.Y, linkPart.RotationOffset.Z),
                         m_rootPart.PhysActor.IsPhysical);
-                    m_rootPart.doPhysicsPropertyUpdate(m_rootPart.PhysActor.IsPhysical, true);
+                    m_rootPart.DoPhysicsPropertyUpdate(m_rootPart.PhysActor.IsPhysical, true);
                     
                 }                
                 
@@ -1216,7 +1221,7 @@ namespace OpenSim.Region.Environment.Scenes
                                    m_rootPart.RotationOffset.Y, m_rootPart.RotationOffset.Z),
                     m_rootPart.PhysActor.IsPhysical);
                 bool UsePhysics = ((m_rootPart.ObjectFlags & (uint)LLObject.ObjectFlags.Physics) != 0);
-                m_rootPart.doPhysicsPropertyUpdate(UsePhysics, true);
+                m_rootPart.DoPhysicsPropertyUpdate(UsePhysics, true);
                 
             }
         }

@@ -765,7 +765,7 @@ namespace OpenSim.Region.Environment.Scenes
                         new PhysicsVector(rootPart.Scale.X, rootPart.Scale.Y, rootPart.Scale.Z),
                         new Quaternion(rootPart.RotationOffset.W, rootPart.RotationOffset.X,
                                        rootPart.RotationOffset.Y, rootPart.RotationOffset.Z), UsePhysics);
-                rootPart.doPhysicsPropertyUpdate(UsePhysics, true);
+                rootPart.DoPhysicsPropertyUpdate(UsePhysics, true);
             }
             MainLog.Instance.Verbose("Loaded " + PrimsFromDB.Count.ToString() + " SceneObject(s)");
         }
@@ -869,7 +869,7 @@ namespace OpenSim.Region.Environment.Scenes
                             new PhysicsVector(shape.Scale.X, shape.Scale.Y, shape.Scale.Z),
                             new Quaternion(), UsePhysics);
                     // subscribe to physics events.
-                    rootPart.doPhysicsPropertyUpdate(UsePhysics, true);
+                    rootPart.DoPhysicsPropertyUpdate(UsePhysics, true);
                     
                 }
             }

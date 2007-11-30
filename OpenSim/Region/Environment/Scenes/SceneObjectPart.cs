@@ -74,7 +74,6 @@ namespace OpenSim.Region.Environment.Scenes
         [XmlIgnore] public uint TimeStampTerse = 0;
         [XmlIgnore] public uint TimeStampLastActivity = 0; // Will be used for AutoReturn
 
-        protected SceneObjectGroup m_parentGroup;
 
         /// <summary>
         /// Only used internally to schedule client updates
@@ -386,6 +385,8 @@ namespace OpenSim.Region.Environment.Scenes
             get { return OwnerID; }
         }
 
+        // FIXME, TODO, ERROR: 'ParentGroup' can't be in here, move it out.
+        protected SceneObjectGroup m_parentGroup;
         public SceneObjectGroup ParentGroup
         {
             get { return m_parentGroup; }
@@ -533,7 +534,7 @@ namespace OpenSim.Region.Environment.Scenes
             }
             
             bool UsePhysics = ((ObjectFlags & (uint)LLObject.ObjectFlags.Physics) != 0);
-            doPhysicsPropertyUpdate(UsePhysics, true);
+            DoPhysicsPropertyUpdate(UsePhysics, true);
             ScheduleFullUpdate();
         }
 
@@ -547,28 +548,33 @@ namespace OpenSim.Region.Environment.Scenes
         public static SceneObjectPart FromXml(XmlReader xmlReader)
         {
             XmlSerializer serializer = new XmlSerializer(typeof (SceneObjectPart));
-            SceneObjectPart newobject = (SceneObjectPart) serializer.Deserialize(xmlReader);
+            SceneObjectPart newobject = (SceneObjectPart) serializer.Deserialize(xmlReader);           
+            return newobject;
+        }
 
-            if (!newobject.ParentGroup.m_scene.PermissionsMngr.BypassPermissions)
+        public void ApplyPhysics()
+        {
+            bool UsePhysics = ((ObjectFlags & (uint)LLObject.ObjectFlags.Physics) != 0);
+            DoPhysicsPropertyUpdate(UsePhysics, true);
+        }
+
+        public void ApplyPermissions()
+        {
+            if (!ParentGroup.m_scene.PermissionsMngr.BypassPermissions)
             {
-                newobject.EveryoneMask = newobject.ObjectFlags;
-                newobject.EveryoneMask &= ~(uint)LLObject.ObjectFlags.ObjectYouOwner;
-                newobject.EveryoneMask &= ~(uint)LLObject.ObjectFlags.ObjectTransfer;
-                newobject.EveryoneMask &= ~(uint)LLObject.ObjectFlags.ObjectCopy;
-                newobject.EveryoneMask &= ~(uint)LLObject.ObjectFlags.ObjectModify;
-                newobject.EveryoneMask &= ~(uint)LLObject.ObjectFlags.ObjectMove;
-                newobject.EveryoneMask &= ~(uint)LLObject.ObjectFlags.ObjectAnyOwner;
-                newobject.EveryoneMask &= ~(uint)LLObject.ObjectFlags.ObjectYouOfficer;
+                EveryoneMask = ObjectFlags;
+                EveryoneMask &= ~(uint)LLObject.ObjectFlags.ObjectYouOwner;
+                EveryoneMask &= ~(uint)LLObject.ObjectFlags.ObjectTransfer;
+                EveryoneMask &= ~(uint)LLObject.ObjectFlags.ObjectCopy;
+                EveryoneMask &= ~(uint)LLObject.ObjectFlags.ObjectModify;
+                EveryoneMask &= ~(uint)LLObject.ObjectFlags.ObjectMove;
+                EveryoneMask &= ~(uint)LLObject.ObjectFlags.ObjectAnyOwner;
+                EveryoneMask &= ~(uint)LLObject.ObjectFlags.ObjectYouOfficer;
             }
             else
             {
-                newobject.EveryoneMask = newobject.ObjectFlags;
+                EveryoneMask = ObjectFlags;
             }
-
-            bool UsePhysics = ((newobject.ObjectFlags & (uint)LLObject.ObjectFlags.Physics) != 0);
-            newobject.doPhysicsPropertyUpdate(UsePhysics, true);
-            
-            return newobject;
         }
 
         /// <summary>
@@ -719,7 +725,7 @@ namespace OpenSim.Region.Environment.Scenes
             Array.Copy(Shape.ExtraParams, extraP, extraP.Length);
             dupe.Shape.ExtraParams = extraP;
             bool UsePhysics = ((dupe.ObjectFlags & (uint)LLObject.ObjectFlags.Physics) != 0);
-            dupe.doPhysicsPropertyUpdate(UsePhysics, true);
+            dupe.DoPhysicsPropertyUpdate(UsePhysics, true);
 
             return dupe;
         }
@@ -961,10 +967,10 @@ namespace OpenSim.Region.Environment.Scenes
         public void UpdatePrimFlags(ushort type, bool inUse, byte[] data)
         {
             bool hasPrim = false;
-            bool UsePhysics = false;
+            bool usePhysics = false;
             bool IsTemporary = false;
             bool IsPhantom = false;
-            bool CastsShadows = false;
+            bool castsShadows = false;
             bool wasUsingPhysics = ((ObjectFlags & (uint)LLObject.ObjectFlags.Physics) != 0);
             //bool IsLocked = false;
             int i = 0;
@@ -974,11 +980,11 @@ namespace OpenSim.Region.Environment.Scenes
             {
                 i += 46;
                 //IsLocked = (data[i++] != 0) ? true : false;
-                UsePhysics = ((data[i++] != 0) && m_parentGroup.m_scene.m_physicalPrim) ? true : false;
+                usePhysics = ((data[i++] != 0) && m_parentGroup.m_scene.m_physicalPrim) ? true : false;
                 //System.Console.WriteLine("U" + packet.ToBytes().Length.ToString());
                 IsTemporary = (data[i++] != 0) ? true : false;
                 IsPhantom = (data[i++] != 0) ? true : false;
-                CastsShadows = (data[i++] != 0) ? true : false;
+                castsShadows = (data[i++] != 0) ? true : false;
             }
             catch (Exception)
             {
@@ -986,12 +992,12 @@ namespace OpenSim.Region.Environment.Scenes
                 //Silently ignore it - TODO: FIXME Quick
             }
 
-            if (UsePhysics )
+            if (usePhysics )
             {
                 AddFlag(LLObject.ObjectFlags.Physics);
                 if (!wasUsingPhysics)
                 {
-                    doPhysicsPropertyUpdate(UsePhysics,false);
+                    DoPhysicsPropertyUpdate(usePhysics,false);
                 }
 
             }
@@ -1000,7 +1006,7 @@ namespace OpenSim.Region.Environment.Scenes
                 RemFlag(LLObject.ObjectFlags.Physics);
                 if (wasUsingPhysics)
                 {
-                    doPhysicsPropertyUpdate(UsePhysics, false);
+                    DoPhysicsPropertyUpdate(usePhysics, false);
                 }
             }
                 
@@ -1030,13 +1036,13 @@ namespace OpenSim.Region.Environment.Scenes
                                           AbsolutePosition.Z),
                         new PhysicsVector(Scale.X, Scale.Y, Scale.Z),
                         new Quaternion(RotationOffset.W, RotationOffset.X,
-                                       RotationOffset.Y, RotationOffset.Z), UsePhysics);
-                    doPhysicsPropertyUpdate(UsePhysics, true);
+                                       RotationOffset.Y, RotationOffset.Z), usePhysics);
+                    DoPhysicsPropertyUpdate(usePhysics, true);
                 }
                 else
                 {
-                    PhysActor.IsPhysical = UsePhysics;
-                    doPhysicsPropertyUpdate(UsePhysics,false);
+                    PhysActor.IsPhysical = usePhysics;
+                    DoPhysicsPropertyUpdate(usePhysics,false);
                 }
             }
 
@@ -1051,7 +1057,7 @@ namespace OpenSim.Region.Environment.Scenes
 //            System.Console.WriteLine("Update:  PHY:" + UsePhysics.ToString() + ", T:" + IsTemporary.ToString() + ", PHA:" + IsPhantom.ToString() + " S:" + CastsShadows.ToString());
             ScheduleFullUpdate();
         }
-        public void doPhysicsPropertyUpdate(bool UsePhysics, bool isNew)
+        public void DoPhysicsPropertyUpdate(bool UsePhysics, bool isNew)
         {
            
             if (PhysActor != null)
@@ -1271,13 +1277,20 @@ namespace OpenSim.Region.Environment.Scenes
                 {
                     clientFlags = ObjectFlags;
                     if (!ParentGroup.m_scene.PermissionsMngr.AnyoneCanCopyPermission(remoteClient.AgentId, this.ParentGroup.UUID))
-                        clientFlags = clientFlags &= ~(uint)LLObject.ObjectFlags.ObjectCopy;
+                    {
+                        clientFlags = (clientFlags &= ~(uint) LLObject.ObjectFlags.ObjectCopy);
+                    }
+
                     if (!ParentGroup.m_scene.PermissionsMngr.AnyoneCanMovePermission(remoteClient.AgentId, this.ParentGroup.UUID))
-                        clientFlags = clientFlags &= ~(uint)LLObject.ObjectFlags.ObjectMove;
+                    {
+                        clientFlags = clientFlags &= ~(uint) LLObject.ObjectFlags.ObjectMove;
+                    }
 
                     clientFlags = clientFlags &= ~(uint)LLObject.ObjectFlags.ObjectModify;
                     clientFlags = clientFlags &= ~(uint)LLObject.ObjectFlags.AllowInventoryDrop;
                     clientFlags = clientFlags &= ~(uint)LLObject.ObjectFlags.ObjectTransfer;
+
+                    // TODO, FIXME, ERROR : This whole block amounts to moot because of this.
                     clientFlags = EveryoneMask;
                 }
             }
@@ -1372,7 +1385,7 @@ namespace OpenSim.Region.Environment.Scenes
         {
             OpenSim.Framework.Console.MainLog.Instance.Verbose("PHYSICS", "Physical Object went out of bounds.");
             RemFlag(LLObject.ObjectFlags.Physics);
-            doPhysicsPropertyUpdate(false,true);
+            DoPhysicsPropertyUpdate(false,true);
             m_parentGroup.m_scene.PhysicsScene.AddPhysicsActorTaint(PhysActor);
             
             
