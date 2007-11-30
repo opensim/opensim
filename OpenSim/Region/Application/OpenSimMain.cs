@@ -86,6 +86,9 @@ namespace OpenSim
 
         private string m_assetStorage = "sqlite";
 
+        private string m_timedScript = "disabled";
+        private System.Timers.Timer m_scriptTimer;
+
         public ConsoleCommand CreateAccount = null;
         private bool m_dumpAssetsToFile;
 
@@ -236,6 +239,8 @@ namespace OpenSim
                 m_scriptEngine = startupConfig.GetString("script_engine", "DotNetEngine");
 
                 m_assetStorage = startupConfig.GetString("asset_database", "sqlite");
+
+                m_timedScript = startupConfig.GetString("timer_Script", "disabled");
             }
 
             IConfig standaloneConfig = m_config.Configs["StandAlone"];
@@ -339,6 +344,14 @@ namespace OpenSim
 
             MainLog.Instance.Status("STARTUP",
                                     "Startup complete, serving " + m_udpServers.Count.ToString() + " region(s)");
+
+            if (m_timedScript != "disabled")
+            {
+                m_scriptTimer = new System.Timers.Timer();
+                m_scriptTimer.Enabled = true;
+                m_scriptTimer.Interval = (int)(1200 * 1000);
+                m_scriptTimer.Elapsed += new System.Timers.ElapsedEventHandler(RunAutoTimerScript);
+            }
         }
 
         public UDPServer CreateRegion(RegionInfo regionInfo)
@@ -523,6 +536,13 @@ namespace OpenSim
             Environment.Exit(0);
         }
 
+        private void RunAutoTimerScript(object sender, EventArgs e)
+        {
+            if (m_timedScript != "disabled")
+            {
+                RunCommandScript(m_timedScript);
+            }
+        }
         #region Console Commands
 
         /// <summary>
