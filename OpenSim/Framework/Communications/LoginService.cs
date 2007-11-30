@@ -99,7 +99,7 @@ namespace OpenSim.Framework.UserManagement
                     
                     if (userProfile.currentAgent != null && userProfile.currentAgent.agentOnline)
                     {
-                        userProfile.currentAgent.agentOnline = false;
+                        userProfile.currentAgent = null;
                         m_userManager.CommitAgent(ref userProfile);
                         
                         // Reject the login
