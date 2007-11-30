@@ -59,14 +59,6 @@ namespace OpenSim.Region.ClientStack
         private Dictionary<uint, uint> PendingAcks = new Dictionary<uint, uint>();
         private Dictionary<uint, Packet> NeedAck = new Dictionary<uint, Packet>();
 
-        // 1536000
-        private int throttleOutboundMax = 1536000; // Number of bytes allowed to go out per second. (256kbps per client) 
-                                              // TODO: Make this variable. Lower throttle on un-ack. Raise over time?
-        private int bytesSent = 0;   // Number of bytes sent this period
-
-        private int throttleOutbound = 162144; // Number of bytes allowed to go out per second. (256kbps per client) 
-        // TODO: Make this variable. Lower throttle on un-ack. Raise over time
-
         // All throttle times and number of bytes are calculated by dividing by this value
         // This value also determines how many times per throttletimems the timer will run
         // If throttleimems is 1000 ms, then the timer will fire every 1000/7 milliseconds
@@ -75,42 +67,16 @@ namespace OpenSim.Region.ClientStack
 
         private int throttletimems = 1000;
 
-        // Maximum -per type- throttle
-        private int ResendthrottleMAX = 100000;
-        private int LandthrottleMax = 100000;
-        private int WindthrottleMax = 100000;
-        private int CloudthrottleMax = 100000;
-        private int TaskthrottleMax = 800000;
-        private int AssetthrottleMax = 800000;
-        private int TexturethrottleMax = 800000;
-
-        // Minimum -per type- throttle
-        private int ResendthrottleMin = 5000; // setting resendmin to 0 results in mostly dropped packets
-        private int LandthrottleMin = 1000;
-        private int WindthrottleMin = 1000;
-        private int CloudthrottleMin = 1000;
-        private int TaskthrottleMin = 1000;
-        private int AssetthrottleMin = 1000;
-        private int TexturethrottleMin = 1000;
-
-        // Sim default per-client settings.
-        private int ResendthrottleOutbound = 50000;
-        private int ResendBytesSent = 0;
-        private int LandthrottleOutbound = 100000;
-        private int LandBytesSent = 0;
-        private int WindthrottleOutbound = 10000;
-        private int WindBytesSent = 0;
-        private int CloudthrottleOutbound = 5000;
-        private int CloudBytesSent = 0;
-        private int TaskthrottleOutbound = 100000;
-        private int TaskBytesSent = 0;
-        private int AssetthrottleOutbound = 80000;
-        private int AssetBytesSent = 0;
-        private int TexturethrottleOutbound = 100000;
-        private int TextureBytesSent = 0;
+        private PacketThrottle ResendThrottle;
+        private PacketThrottle LandThrottle;
+        private PacketThrottle WindThrottle;
+        private PacketThrottle CloudThrottle;
+        private PacketThrottle TaskThrottle;
+        private PacketThrottle AssetThrottle;
+        private PacketThrottle TextureThrottle;
+        private PacketThrottle TotalThrottle;
 
         private Timer throttleTimer;
-
 
         public PacketQueue() 
         {
@@ -131,9 +97,20 @@ namespace OpenSim.Region.ClientStack
             TextureOutgoingPacketQueue = new Queue<QueItem>();
             AssetOutgoingPacketQueue = new Queue<QueItem>();
         
-            // TIMERS needed for this
-            ResetCounters();
+
+            // Set up the throttle classes (min, max, current) in bytes
+            ResendThrottle = new PacketThrottle(5000, 100000, 50000);
+            LandThrottle = new PacketThrottle(1000, 100000, 100000);
+            WindThrottle = new PacketThrottle(1000, 100000, 10000);
+            CloudThrottle = new PacketThrottle(1000, 100000, 50000);
+            TaskThrottle = new PacketThrottle(1000, 800000, 100000);
+            AssetThrottle = new PacketThrottle(1000, 800000, 80000);
+            TextureThrottle = new PacketThrottle(1000, 800000, 100000);
+            // Total Throttle trumps all
+            // Number of bytes allowed to go out per second. (256kbps per client) 
+            TotalThrottle = new PacketThrottle(0, 162144, 1536000);
             
+            // TIMERS needed for this
             throttleTimer = new Timer((int)(throttletimems/throttleTimeDivisor));
             throttleTimer.Elapsed += new ElapsedEventHandler(throttleTimer_Elapsed);
             throttleTimer.Start();
@@ -141,14 +118,14 @@ namespace OpenSim.Region.ClientStack
 
         private void ResetCounters()
         {
-            bytesSent = 0;
-            ResendBytesSent = 0;
-            LandBytesSent = 0;
-            WindBytesSent = 0;
-            CloudBytesSent = 0;
-            TaskBytesSent = 0;
-            AssetBytesSent = 0;
-            TextureBytesSent = 0; 
+            ResendThrottle.Reset();
+            LandThrottle.Reset();
+            WindThrottle.Reset();
+            CloudThrottle.Reset();
+            TaskThrottle.Reset();
+            AssetThrottle.Reset();
+            TextureThrottle.Reset();
+            TotalThrottle.Reset();
         }
 
         private bool PacketsWaiting()
@@ -178,66 +155,66 @@ namespace OpenSim.Region.ClientStack
 
             // We're going to dequeue all of the saved up packets until 
             // we've hit the throttle limit or there's no more packets to send
-            while ((bytesSent <= (int)(throttleOutbound/throttleTimeDivisor)) &&
-                   PacketsWaiting() && (throttleLoops <= MaxThrottleLoops))
+            while (TotalThrottle.UnderLimit() && PacketsWaiting() && 
+                   (throttleLoops <= MaxThrottleLoops))
             {
                 throttleLoops++;
                 //Now comes the fun part..   we dump all our elements into PacketQueue that we've saved up.
-                if (ResendBytesSent <= ((int)(ResendthrottleOutbound/throttleTimeDivisor)) && ResendOutgoingPacketQueue.Count > 0)
+                if (ResendThrottle.UnderLimit() && ResendOutgoingPacketQueue.Count > 0)
                 {
                     QueItem qpack = ResendOutgoingPacketQueue.Dequeue();
 
                     SendQueue.Enqueue(qpack);
-                    bytesSent += qpack.Packet.ToBytes().Length;
-                    ResendBytesSent += qpack.Packet.ToBytes().Length;
+                    TotalThrottle.Add(qpack.Packet.ToBytes().Length);
+                    ResendThrottle.Add(qpack.Packet.ToBytes().Length);
                 }
-                if (LandBytesSent <= ((int)(LandthrottleOutbound/throttleTimeDivisor)) && LandOutgoingPacketQueue.Count > 0)
+                if (LandThrottle.UnderLimit() && LandOutgoingPacketQueue.Count > 0)
                 {
                     QueItem qpack = LandOutgoingPacketQueue.Dequeue();
 
                     SendQueue.Enqueue(qpack);
-                    bytesSent += qpack.Packet.ToBytes().Length;
-                    LandBytesSent += qpack.Packet.ToBytes().Length;
+                    TotalThrottle.Add(qpack.Packet.ToBytes().Length);
+                    LandThrottle.Add(qpack.Packet.ToBytes().Length);
                 }
-                if (WindBytesSent <= ((int)(WindthrottleOutbound/throttleTimeDivisor)) && WindOutgoingPacketQueue.Count > 0)
+                if (WindThrottle.UnderLimit() && WindOutgoingPacketQueue.Count > 0)
                 {
                     QueItem qpack = WindOutgoingPacketQueue.Dequeue();
 
                     SendQueue.Enqueue(qpack);
-                    bytesSent += qpack.Packet.ToBytes().Length;
-                    WindBytesSent += qpack.Packet.ToBytes().Length;
+                    TotalThrottle.Add(qpack.Packet.ToBytes().Length);
+                    WindThrottle.Add(qpack.Packet.ToBytes().Length);
                 }
-                if (CloudBytesSent <= ((int)(CloudthrottleOutbound/throttleTimeDivisor)) && CloudOutgoingPacketQueue.Count > 0)
+                if (CloudThrottle.UnderLimit() && CloudOutgoingPacketQueue.Count > 0)
                 {
                     QueItem qpack = CloudOutgoingPacketQueue.Dequeue();
 
                     SendQueue.Enqueue(qpack);
-                    bytesSent += qpack.Packet.ToBytes().Length;
-                    CloudBytesSent += qpack.Packet.ToBytes().Length;
+                    TotalThrottle.Add(qpack.Packet.ToBytes().Length);
+                    CloudThrottle.Add(qpack.Packet.ToBytes().Length);
                 }
-                if (TaskBytesSent <= ((int)(TaskthrottleOutbound/throttleTimeDivisor)) && TaskOutgoingPacketQueue.Count > 0)
+                if (TaskThrottle.UnderLimit() && TaskOutgoingPacketQueue.Count > 0)
                 {
                     QueItem qpack = TaskOutgoingPacketQueue.Dequeue();
 
                     SendQueue.Enqueue(qpack);
-                    bytesSent += qpack.Packet.ToBytes().Length;
-                    TaskBytesSent += qpack.Packet.ToBytes().Length;
+                    TotalThrottle.Add(qpack.Packet.ToBytes().Length);
+                    TaskThrottle.Add(qpack.Packet.ToBytes().Length);
                 }
-                if (TextureBytesSent <= ((int)(TexturethrottleOutbound/throttleTimeDivisor)) && TextureOutgoingPacketQueue.Count > 0)
+                if (TextureThrottle.UnderLimit() && TextureOutgoingPacketQueue.Count > 0)
                 {
                     QueItem qpack = TextureOutgoingPacketQueue.Dequeue();
 
                     SendQueue.Enqueue(qpack);
-                    bytesSent += qpack.Packet.ToBytes().Length;
-                    TextureBytesSent += qpack.Packet.ToBytes().Length;
+                    TotalThrottle.Add(qpack.Packet.ToBytes().Length);
+                    TextureThrottle.Add(qpack.Packet.ToBytes().Length);
                 }
-                if (AssetBytesSent <= ((int)(AssetthrottleOutbound/throttleTimeDivisor)) && AssetOutgoingPacketQueue.Count > 0)
+                if (AssetThrottle.UnderLimit() && AssetOutgoingPacketQueue.Count > 0)
                 {
                     QueItem qpack = AssetOutgoingPacketQueue.Dequeue();
 
                     SendQueue.Enqueue(qpack);
-                    bytesSent += qpack.Packet.ToBytes().Length;
-                    AssetBytesSent += qpack.Packet.ToBytes().Length;
+                    TotalThrottle.Add(qpack.Packet.ToBytes().Length);
+                    AssetThrottle.Add(qpack.Packet.ToBytes().Length);
                 }
 
             }
