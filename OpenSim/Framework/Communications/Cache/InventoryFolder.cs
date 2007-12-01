@@ -60,14 +60,18 @@ namespace OpenSim.Framework.Communications.Cache
         // Methods
         public InventoryFolderImpl CreateNewSubFolder(LLUUID folderID, string folderName, ushort type)
         {
-            InventoryFolderImpl subFold = new InventoryFolderImpl();
-            subFold.name = folderName;
-            subFold.folderID = folderID;
-            subFold.type = (short) type;
-            subFold.parentID = this.folderID;
-            subFold.agentID = agentID;
-            SubFolders.Add(subFold.folderID, subFold);
-            return subFold;
+            if (!SubFolders.ContainsKey(folderID))
+            {
+                InventoryFolderImpl subFold = new InventoryFolderImpl();
+                subFold.name = folderName;
+                subFold.folderID = folderID;
+                subFold.type = (short)type;
+                subFold.parentID = this.folderID;
+                subFold.agentID = agentID;
+                SubFolders.Add(subFold.folderID, subFold);
+                return subFold;
+            }
+            return null;
         }
 
         public InventoryItemBase HasItem(LLUUID itemID)
