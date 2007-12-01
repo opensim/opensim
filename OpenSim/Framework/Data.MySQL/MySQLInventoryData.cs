@@ -59,7 +59,7 @@ namespace OpenSim.Framework.Data.MySQL
             database =
                 new MySQLManager(settingHostname, settingDatabase, settingUsername, settingPassword, settingPooling,
                                  settingPort);
-            TestTables(database.Connection);
+          //  TestTables(database.Connection);
         }
 
         #region Test and initialization code
