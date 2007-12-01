@@ -568,6 +568,7 @@ namespace OpenSim.Region.ClientStack
         public event Action<IClientAPI> OnRegionHandShakeReply;
         public event GenericCall2 OnRequestWearables;
         public event SetAppearance OnSetAppearance;
+        public event AvatarNowWearing OnAvatarNowWearing;
         public event GenericCall2 OnCompleteMovementToRegion;
         public event UpdateAgent OnAgentUpdate;
         public event AgentRequestSit OnAgentRequestSit;
@@ -2662,6 +2663,19 @@ namespace OpenSim.Region.ClientStack
                             OnSetAppearance(appear.ObjectData.TextureEntry, appear.VisualParam);
                         }
                         break;
+                    case PacketType.AgentIsNowWearing:
+                        if (OnAvatarNowWearing != null)
+                        {
+                            AgentIsNowWearingPacket nowWearing = (AgentIsNowWearingPacket)Pack;
+                            AvatarWearingArgs wearingArgs = new AvatarWearingArgs();
+                            for (int i = 0; i < nowWearing.WearableData.Length; i++)
+                            {
+                                AvatarWearingArgs.Wearable wearable = new AvatarWearingArgs.Wearable(nowWearing.WearableData[i].ItemID, nowWearing.WearableData[i].WearableType);
+                                wearingArgs.NowWearing.Add(wearable);
+                            }
+                            OnAvatarNowWearing(this, wearingArgs);
+                        }
+                        break;
                     case PacketType.SetAlwaysRun:
                         SetAlwaysRunPacket run = (SetAlwaysRunPacket)Pack;
 
@@ -3604,10 +3618,6 @@ namespace OpenSim.Region.ClientStack
                         // Parhaps this should be processed on the Sim to determine whether or not to drop a dead client
                         // Dumping it to the verbose console until it's handled properly.
 
-                        OpenSim.Framework.Console.MainLog.Instance.Verbose("CLIENT", "unhandled packet " + Pack.ToString());
-                        break;
-                    case PacketType.AgentIsNowWearing:
-                        // AgentIsNowWearingPacket wear = (AgentIsNowWearingPacket)Pack;
                         OpenSim.Framework.Console.MainLog.Instance.Verbose("CLIENT", "unhandled packet " + Pack.ToString());
                         break;
                     case PacketType.ObjectScale:

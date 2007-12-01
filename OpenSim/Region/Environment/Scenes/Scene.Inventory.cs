@@ -362,7 +362,7 @@ namespace OpenSim.Region.Environment.Scenes
         /// </summary>
         /// <param name="packet"></param>
         /// <param name="simClient"></param>
-        public void DeRezObject(Packet packet, IClientAPI remoteClient)
+        public virtual void DeRezObject(Packet packet, IClientAPI remoteClient)
         {
             DeRezObjectPacket DeRezPacket = (DeRezObjectPacket) packet;
 
@@ -443,7 +443,7 @@ namespace OpenSim.Region.Environment.Scenes
             group.DeleteParts();
         }
 
-        public void RezObject(IClientAPI remoteClient, LLUUID itemID, LLVector3 pos)
+        public virtual void RezObject(IClientAPI remoteClient, LLUUID itemID, LLVector3 pos)
         {
             CachedUserInfo userInfo = CommsManager.UserProfileCache.GetUserDetails(remoteClient.AgentId);
             if (userInfo != null)

@@ -57,7 +57,7 @@ namespace OpenSim.Framework
     public enum ThrottleOutPacketType : int
     {
         Resend = 0,
-        Land = 1, 
+        Land = 1,
         Wind = 2,
         Cloud = 3,
         Task = 4,
@@ -172,7 +172,32 @@ namespace OpenSim.Framework
         }
     }
 
+    public class AvatarWearingArgs : EventArgs
+    {
+        private List<Wearable> m_nowWearing = new List<Wearable>();
+
+        public List<Wearable> NowWearing
+        {
+            get { return m_nowWearing; }
+            set { m_nowWearing = value; }
+        }
+
+        public class Wearable
+        {
+            public LLUUID ItemID = new LLUUID("00000000-0000-0000-0000-000000000000");
+            public byte Type = 0;
+
+            public Wearable(LLUUID itemId, byte type)
+            {
+                ItemID = itemId;
+                Type = type;
+            }
+        }
+    }
+
     public delegate void TextureRequest(Object sender, TextureRequestArgs e);
+
+    public delegate void AvatarNowWearing(Object sender, AvatarWearingArgs e);
 
     public delegate void ImprovedInstantMessage(
         LLUUID fromAgentID, LLUUID fromAgentSession, LLUUID toAgentID, LLUUID imSessionID, uint timestamp,
@@ -187,7 +212,7 @@ namespace OpenSim.Framework
     public delegate void StartAnim(IClientAPI remoteClient, LLUUID animID, int seq);
 
     public delegate void LinkObjects(uint parent, List<uint> children);
-    
+
     public delegate void DelinkObjects(List<uint> primIds);
 
     public delegate void RequestMapBlocks(IClientAPI remoteClient, int minX, int minY, int maxX, int maxY);
@@ -200,7 +225,7 @@ namespace OpenSim.Framework
     public delegate void DisconnectUser();
 
     public delegate void RequestAvatarProperties(IClientAPI remoteClient, LLUUID avatarID);
-    public delegate void SetAlwaysRun (IClientAPI remoteClient, bool SetAlwaysRun);
+    public delegate void SetAlwaysRun(IClientAPI remoteClient, bool SetAlwaysRun);
 
     public delegate void GenericCall2();
 
@@ -217,7 +242,7 @@ namespace OpenSim.Framework
 
     public delegate void ObjectSelect(uint localID, IClientAPI remoteClient);
 
-    public delegate void RequestObjectPropertiesFamily(IClientAPI remoteClient,LLUUID AgentID, uint RequestFlags, LLUUID TaskID);
+    public delegate void RequestObjectPropertiesFamily(IClientAPI remoteClient, LLUUID AgentID, uint RequestFlags, LLUUID TaskID);
 
     public delegate void ObjectDeselect(uint localID, IClientAPI remoteClient);
 
@@ -268,7 +293,7 @@ namespace OpenSim.Framework
     public delegate void AddNewPrim(LLUUID ownerID, LLVector3 pos, LLQuaternion rot, PrimitiveBaseShape shape);
 
     public delegate void RequestGodlikePowers(LLUUID AgentID, LLUUID SessionID, LLUUID token, IClientAPI remote_client);
-    
+
     public delegate void GodKickUser(LLUUID GodAgentID, LLUUID GodSessionID, LLUUID AgentID, uint kickflags, byte[] reason);
 
     public delegate void CreateInventoryFolder(
@@ -314,6 +339,7 @@ namespace OpenSim.Framework
         event RezObject OnRezObject;
         event ModifyTerrain OnModifyTerrain;
         event SetAppearance OnSetAppearance;
+        event AvatarNowWearing OnAvatarNowWearing;
         event StartAnim OnStartAnim;
         event LinkObjects OnLinkObjects;
         event DelinkObjects OnDelinkObjects;
@@ -447,7 +473,7 @@ namespace OpenSim.Framework
         void SendPrimTerseUpdate(ulong regionHandle, ushort timeDilation, uint localID, LLVector3 position,
                                  LLQuaternion rotation);
         void SendPrimTerseUpdate(ulong regionHandle, ushort timeDilation, uint localID, LLVector3 position,
-                                 LLQuaternion rotation,LLVector3 velocity, LLVector3 rotationalvelocity);
+                                 LLQuaternion rotation, LLVector3 velocity, LLVector3 rotationalvelocity);
 
         void SendInventoryFolderDetails(LLUUID ownerID, LLUUID folderID, List<InventoryItemBase> items, int subFoldersCount);
         void SendInventoryItemDetails(LLUUID ownerID, InventoryItemBase item);

@@ -96,11 +96,11 @@ namespace OpenSim.Region.Environment.Scenes
 
         public IXfer XferManager;
 
-        private IHttpRequests m_httpRequestModule;
-        private ISimChat m_simChatModule;
-        private IXMLRPC m_xmlrpcModule;
-        private IWorldComm m_worldCommModule;
-        private IAvatarFactory m_AvatarFactory;
+        protected IHttpRequests m_httpRequestModule;
+        protected ISimChat m_simChatModule;
+        protected IXMLRPC m_xmlrpcModule;
+        protected IWorldComm m_worldCommModule;
+        protected IAvatarFactory m_AvatarFactory;
 
         // Central Update Loop
 
@@ -128,14 +128,14 @@ namespace OpenSim.Region.Environment.Scenes
             get { return m_authenticateHandler; }
         }
 
-        private readonly LandManager m_LandManager;
+        protected readonly LandManager m_LandManager;
 
         public LandManager LandManager
         {
             get { return m_LandManager; }
         }
 
-        private readonly EstateManager m_estateManager;
+        protected readonly EstateManager m_estateManager;
 
         public PhysicsScene PhysicsScene
         {
@@ -158,7 +158,7 @@ namespace OpenSim.Region.Environment.Scenes
             get { return m_timedilation; }
         }
 
-        private readonly PermissionManager m_permissionManager;
+        protected readonly PermissionManager m_permissionManager;
 
         public PermissionManager PermissionsMngr
         {
@@ -267,7 +267,7 @@ namespace OpenSim.Region.Environment.Scenes
 
         public override bool OtherRegionUp(RegionInfo otherRegion)
         {
-            // Another region is up.   We have to tell all our ScenePresences about it
+         /*   // Another region is up.   We have to tell all our ScenePresences about it
             // This fails to get the desired effect and needs further work.
 
             if (RegionInfo.RegionHandle != otherRegion.RegionHandle)
@@ -289,7 +289,7 @@ namespace OpenSim.Region.Environment.Scenes
                     MainLog.Instance.Verbose("INTERGRID", "Got notice about Region at X:" + otherRegion.RegionLocX.ToString() + " Y:" + otherRegion.RegionLocY.ToString() + " but it was too far away to send to the client");
                 }
                 
-            }
+            }*/
             return true;
         }
 
@@ -366,7 +366,7 @@ namespace OpenSim.Region.Environment.Scenes
                 }
             }
             // Reset list to nothing.
-            m_regionRestartNotifyList = new List<RegionInfo>();
+            m_regionRestartNotifyList.Clear();
         }
 
         public override void Close()
@@ -397,7 +397,7 @@ namespace OpenSim.Region.Environment.Scenes
             m_innerScene.Close();
             UnRegisterReginWithComms();
 
-            foreach (IRegionModule module in this.Modules.Values)
+            foreach (IRegionModule module in Modules.Values)
             {
                 if (!module.IsSharedModule)
                 {
@@ -427,6 +427,7 @@ namespace OpenSim.Region.Environment.Scenes
             m_xmlrpcModule = RequestModuleInterface<IXMLRPC>();
             m_worldCommModule = RequestModuleInterface<IWorldComm>();
             XferManager = RequestModuleInterface<IXfer>();
+            m_AvatarFactory = RequestModuleInterface<IAvatarFactory>();
         }
 
         #endregion
@@ -792,7 +793,7 @@ namespace OpenSim.Region.Environment.Scenes
         /// </summary>
         /// <param name="addPacket"></param>
         /// <param name="ownerID"></param>
-        public void AddNewPrim(LLUUID ownerID, LLVector3 pos, LLQuaternion rot, PrimitiveBaseShape shape)
+        public virtual void AddNewPrim(LLUUID ownerID, LLVector3 pos, LLQuaternion rot, PrimitiveBaseShape shape)
         {
 
             // What we're *supposed* to do is raytrace from the camera position given by the client to the nearest collision
@@ -1015,18 +1016,13 @@ namespace OpenSim.Region.Environment.Scenes
             EventManager.TriggerOnNewClient(client);
         }
 
-        protected ScenePresence CreateAndAddScenePresence(IClientAPI client, bool child)
+        protected virtual ScenePresence CreateAndAddScenePresence(IClientAPI client, bool child)
         {
             ScenePresence avatar = null;
 
             byte[] visualParams;
             AvatarWearable[] wearables;
-
-            if (m_AvatarFactory == null ||
-                !m_AvatarFactory.TryGetIntialAvatarAppearance(client.AgentId, out wearables, out visualParams))
-            {
-                AvatarFactoryModule.GetDefaultAvatarAppearance(out wearables, out visualParams);
-            }
+            LoadAvatarAppearance(client, out visualParams, out wearables);
 
             avatar = m_innerScene.CreateAndAddScenePresence(client, child, wearables, visualParams);
 
@@ -1036,6 +1032,15 @@ namespace OpenSim.Region.Environment.Scenes
             }
 
             return avatar;
+        }
+
+        protected void LoadAvatarAppearance(IClientAPI client, out byte[] visualParams, out AvatarWearable[] wearables)
+        {
+            if (m_AvatarFactory == null ||
+                !m_AvatarFactory.TryGetIntialAvatarAppearance(client.AgentId, out wearables, out visualParams))
+            {
+                AvatarFactoryModule.GetDefaultAvatarAppearance(out wearables, out visualParams);
+            }
         }
 
 
@@ -1144,6 +1149,7 @@ namespace OpenSim.Region.Environment.Scenes
 
             m_sceneGridService.KillObject = SendKillObject;            
         }
+
 
         public void UnRegisterReginWithComms()
         {
