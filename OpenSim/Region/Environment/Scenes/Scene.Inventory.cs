@@ -167,13 +167,22 @@ namespace OpenSim.Region.Environment.Scenes
                     return;
                 }
 
-                item = userInfo.RootFolder.HasItem(oldItemID);
-                if (item == null)
+                if (userInfo.RootFolder != null)
+                {
+                    item = userInfo.RootFolder.HasItem(oldItemID);
+                    if (item == null)
+                    {
+                        MainLog.Instance.Warn("INVENTORY", "Failed to find item " + oldItemID.ToString());
+                        return;
+                    }
+                }
+                else
                 {
                     MainLog.Instance.Warn("INVENTORY", "Failed to find item " + oldItemID.ToString());
                     return;
                 }
             }
+
 
             AssetBase asset = AssetCache.CopyAsset(item.assetID);
             if (asset == null)
