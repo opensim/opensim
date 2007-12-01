@@ -49,11 +49,14 @@ namespace OpenSim.Framework.Communications.Cache
         // Methods
         public AgentAssetTransactions AddUser(LLUUID userID)
         {
-            if (!AgentTransactions.ContainsKey(userID))
+            lock (AgentTransactions)
             {
-                AgentAssetTransactions transactions = new AgentAssetTransactions(userID, this, m_dumpAssetsToFile);
-                AgentTransactions.Add(userID, transactions);
-                return transactions;
+                if (!AgentTransactions.ContainsKey(userID))
+                {
+                    AgentAssetTransactions transactions = new AgentAssetTransactions(userID, this, m_dumpAssetsToFile);
+                    AgentTransactions.Add(userID, transactions);
+                    return transactions;
+                }
             }
             return null;
         }
