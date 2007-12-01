@@ -473,8 +473,8 @@ namespace OpenSim.Region.Environment.Scenes
                         if (rezAsset != null)
                         {
                             AddRezObject(Util.FieldToString(rezAsset.Data), pos);
-                            userInfo.DeleteItem(remoteClient.AgentId, item);
-                            remoteClient.SendRemoveInventoryItem(itemID);
+                            //userInfo.DeleteItem(remoteClient.AgentId, item);
+                            //remoteClient.SendRemoveInventoryItem(itemID);
                         }
                     }
                 }
