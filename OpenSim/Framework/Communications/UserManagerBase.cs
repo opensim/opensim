@@ -366,7 +366,7 @@ namespace OpenSim.Framework.UserManagement
         /// 
         /// </summary>
         /// <param name="user"></param>
-        public void AddUserProfile(string firstName, string lastName, string pass, uint regX, uint regY)
+        public LLUUID AddUserProfile(string firstName, string lastName, string pass, uint regX, uint regY)
         {
             UserProfileData user = new UserProfileData();
             user.homeLocation = new LLVector3(128, 128, 100);
@@ -391,6 +391,8 @@ namespace OpenSim.Framework.UserManagement
                     MainLog.Instance.Verbose("Unable to add user via " + plugin.Key + "(" + e.ToString() + ")");
                 }
             }
+
+            return user.UUID;
         }
 
         public abstract UserProfileData SetupMasterUser(string firstName, string lastName);

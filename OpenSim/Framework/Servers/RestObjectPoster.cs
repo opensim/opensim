@@ -8,8 +8,11 @@ using System.Xml.Serialization;
 
 namespace OpenSim.Framework.Servers
 {
+    public delegate void ReturnResponse<T>(T reponse);
+
     public class RestObjectPoster
     {
+
         public static void BeginPostObject<TRequest>(string requestUrl, TRequest obj)
         {
             Type type = typeof(TRequest);
@@ -45,5 +48,94 @@ namespace OpenSim.Framework.Servers
             {
             }
         }
+    }
+
+    public class RestObjectPosterResponse<TResponse>
+    {
+        public ReturnResponse<TResponse> ReturnResponseVal;
+    
+        public  void BeginPostObject<TRequest>(string requestUrl, TRequest obj)
+        {
+            Type type = typeof(TRequest);
+
+            WebRequest request = WebRequest.Create(requestUrl);
+            request.Method = "POST";
+            request.ContentType = "text/xml";
+
+            MemoryStream buffer = new MemoryStream();
+
+            XmlWriterSettings settings = new XmlWriterSettings();
+            settings.Encoding = Encoding.UTF8;
+
+            using (XmlWriter writer = XmlWriter.Create(buffer, settings))
+            {
+                XmlSerializer serializer = new XmlSerializer(type);
+                serializer.Serialize(writer, obj);
+                writer.Flush();
+            }
+
+            int length = (int)buffer.Length;
+            request.ContentLength = length;
+
+            Stream requestStream = request.GetRequestStream();
+            requestStream.Write(buffer.ToArray(), 0, length);
+            IAsyncResult result = request.BeginGetResponse(AsyncCallback, request);
+        }
+
+        private void AsyncCallback(IAsyncResult result)
+        {
+            WebRequest request = (WebRequest)result.AsyncState;
+            using (WebResponse resp = request.EndGetResponse(result))
+            {
+                TResponse deserial;
+                XmlSerializer deserializer = new XmlSerializer(typeof(TResponse));
+                deserial = (TResponse)deserializer.Deserialize(resp.GetResponseStream());
+
+                if (deserial != null && ReturnResponseVal != null)
+                {
+                    ReturnResponseVal(deserial);
+                }
+            }
+        }
+    }
+
+    public class SyncRestObjectPoster
+    {
+
+        public static TResponse BeginPostObject<TRequest, TResponse>(string requestUrl, TRequest obj)
+        {
+            Type type = typeof(TRequest);
+
+            WebRequest request = WebRequest.Create(requestUrl);
+            request.Method = "POST";
+            request.ContentType = "text/xml";
+
+            MemoryStream buffer = new MemoryStream();
+
+            XmlWriterSettings settings = new XmlWriterSettings();
+            settings.Encoding = Encoding.UTF8;
+
+            using (XmlWriter writer = XmlWriter.Create(buffer, settings))
+            {
+                XmlSerializer serializer = new XmlSerializer(type);
+                serializer.Serialize(writer, obj);
+                writer.Flush();
+            }
+
+            int length = (int)buffer.Length;
+            request.ContentLength = length;
+
+            Stream requestStream = request.GetRequestStream();
+            requestStream.Write(buffer.ToArray(), 0, length);
+            TResponse deserial = default(TResponse);
+            using (WebResponse resp = request.GetResponse())
+            {
+               
+                XmlSerializer deserializer = new XmlSerializer(typeof(TResponse));
+                deserial = (TResponse)deserializer.Deserialize(resp.GetResponseStream());
+            }
+            return deserial;
+        }
+
     }
 }

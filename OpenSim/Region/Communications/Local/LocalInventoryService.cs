@@ -76,7 +76,7 @@ namespace OpenSim.Region.Communications.Local
             }
         }
 
-        public override void AddNewInventoryFolder(LLUUID userID, InventoryFolderImpl folder)
+        public override void AddNewInventoryFolder(LLUUID userID, InventoryFolderBase folder)
         {
             AddFolder(folder);
         }
@@ -88,7 +88,7 @@ namespace OpenSim.Region.Communications.Local
 
         public override void DeleteInventoryItem(LLUUID userID, InventoryItemBase item)
         {
-            deleteItem(item);
+            DeleteItem(item);
         }
     }
 }

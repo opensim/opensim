@@ -46,6 +46,6 @@ namespace OpenSim.Framework
         /// 
         /// </summary>
         /// <param name="user"></param>
-        void AddUserProfile(string firstName, string lastName, string pass, uint regX, uint regY);
+        LLUUID AddUserProfile(string firstName, string lastName, string pass, uint regX, uint regY);
     }
 }

@@ -38,6 +38,8 @@ namespace OpenSim.Framework
         public string GridSendKey = "";
         public string GridRecvKey = "";
 
+        public string InventoryUrl = "";
+
         public string DatabaseProvider = "";
 
         public static uint DefaultHttpPort = 8002;
@@ -68,6 +70,11 @@ namespace OpenSim.Framework
                                                 "Key to send to grid server", "null", false);
             configMember.addConfigurationOption("grid_recv_key", ConfigurationOption.ConfigurationTypes.TYPE_STRING,
                                                 "Key to expect from grid server", "null", false);
+
+            configMember.addConfigurationOption("default_inventory_server",
+                                                ConfigurationOption.ConfigurationTypes.TYPE_STRING_NOT_EMPTY,
+                                                "Default Inventory Server URI",
+                                                "http://127.0.0.1:8004/", false);
             configMember.addConfigurationOption("database_provider", ConfigurationOption.ConfigurationTypes.TYPE_STRING,
                                                 "DLL for database provider", "OpenSim.Framework.Data.MySQL.dll", false);
 
@@ -94,6 +101,9 @@ namespace OpenSim.Framework
                     break;
                 case "grid_recv_key":
                     GridRecvKey = (string) configuration_result;
+                    break;
+                case "default_inventory_server":
+                    InventoryUrl = (string)configuration_result;
                     break;
                 case "database_provider":
                     DatabaseProvider = (string) configuration_result;

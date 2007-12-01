@@ -150,7 +150,7 @@ namespace OpenSim.Framework.Communications
             }
         }
 
-        public void deleteItem(InventoryItemBase item)
+        public void DeleteItem(InventoryItemBase item)
         {
             foreach (KeyValuePair<string, IInventoryData> plugin in m_plugins)
             {
@@ -231,7 +231,7 @@ namespace OpenSim.Framework.Communications
         public abstract void RequestInventoryForUser(LLUUID userID, InventoryFolderInfo folderCallBack,
                                                      InventoryItemInfo itemCallBack);
 
-        public abstract void AddNewInventoryFolder(LLUUID userID, InventoryFolderImpl folder);
+        public abstract void AddNewInventoryFolder(LLUUID userID, InventoryFolderBase folder);
         public abstract void AddNewInventoryItem(LLUUID userID, InventoryItemBase item);
         public abstract void DeleteInventoryItem(LLUUID userID, InventoryItemBase item);
     }

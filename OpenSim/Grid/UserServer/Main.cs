@@ -27,7 +27,9 @@
 */
 
 using System;
+using System.Collections.Generic;
 using System.IO;
+using libsecondlife;
 using OpenSim.Framework;
 using OpenSim.Framework.Console;
 using OpenSim.Framework.Servers;
@@ -44,6 +46,7 @@ namespace OpenSim.Grid.UserServer
         public UserLoginService m_loginService;
 
         private LogBase m_console;
+        private LLUUID m_lastCreatedUser = LLUUID.Random();
 
         [STAThread]
         public static void Main(string[] args)
@@ -123,7 +126,9 @@ namespace OpenSim.Grid.UserServer
 
                     tempMD5Passwd = Util.Md5Hash(Util.Md5Hash(tempMD5Passwd) + ":" + "");
 
-                    m_userManager.AddUserProfile(tempfirstname, templastname, tempMD5Passwd, regX, regY);
+                    LLUUID userID = m_userManager.AddUserProfile(tempfirstname, templastname, tempMD5Passwd, regX, regY);
+                    RestObjectPoster.BeginPostObject<LLUUID>(m_userManager._config.InventoryUrl + "CreateInventory/", userID);
+                    m_lastCreatedUser = userID;
                     break;
             }
         }
@@ -145,7 +150,19 @@ namespace OpenSim.Grid.UserServer
                     m_console.Close();
                     Environment.Exit(0);
                     break;
+
+                case "test-inventory":
+                  //  RestObjectPosterResponse<List<InventoryFolderBase>> requester = new RestObjectPosterResponse<List<InventoryFolderBase>>();
+                   // requester.ReturnResponseVal = TestResponse;
+                   // requester.BeginPostObject<LLUUID>(m_userManager._config.InventoryUrl + "RootFolders/", m_lastCreatedUser);
+                    List<InventoryFolderBase> folders = SyncRestObjectPoster.BeginPostObject<LLUUID, List<InventoryFolderBase>>(m_userManager._config.InventoryUrl + "RootFolders/", m_lastCreatedUser);
+                    break;
             }
+        }
+
+        public void TestResponse(List<InventoryFolderBase> resp)
+        {
+            System.Console.WriteLine("response got");
         }
 
         /*private void ConfigDB(IGenericConfig configData)

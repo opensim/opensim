@@ -245,6 +245,25 @@ namespace OpenSim.Framework
         void deleteInventoryFolder(LLUUID folder);
     }
 
+    public class InventoryCollection
+    {
+        public List<InventoryFolderBase> Folders;
+        public List<InventoryItemBase> AllItems;
+        public LLUUID UserID;
+
+        public InventoryCollection()
+        {
+            Folders = new List<InventoryFolderBase>();
+            AllItems = new List<InventoryItemBase>();
+        }
+
+        public InventoryCollection(List<InventoryFolderBase> folders, List<InventoryItemBase> allItems)
+        {
+            Folders = folders;
+            AllItems = allItems;
+        }
+    }
+
     /* 
      * .Net has some issues, serializing a dictionary, so we cannot reuse the InventoryFolder
      * class defined in Communications.Framework.Communications.Caches. So we serialize/deserialize

@@ -47,6 +47,7 @@ namespace OpenSim.Grid.InventoryServer
         LogBase m_console;
         InventoryManager m_inventoryManager;
         InventoryConfig m_config;
+        GridInventoryService m_inventoryService;
 
         public const string LogName = "INVENTORY";
 
@@ -69,13 +70,35 @@ namespace OpenSim.Grid.InventoryServer
         {
             MainLog.Instance.Notice("Initialising inventory manager...");
             m_config = new InventoryConfig(LogName, (Path.Combine(Util.configDir(), "InventoryServer_Config.xml")));
-            
-            m_inventoryManager = new InventoryManager();
-            m_inventoryManager.AddDatabasePlugin(m_config.DatabaseProvider);
+
+            m_inventoryService = new GridInventoryService();
+           // m_inventoryManager = new InventoryManager();
+            m_inventoryService.AddPlugin(m_config.DatabaseProvider);
+
             MainLog.Instance.Notice(LogName, "Starting HTTP server ...");
             BaseHttpServer httpServer = new BaseHttpServer(m_config.HttpPort);
+            httpServer.AddStreamHandler(
+                new RestDeserialisehandler<LLUUID, InventoryCollection>("POST", "/GetInventory/",
+                                                                                  m_inventoryService.GetUserInventory));
+            httpServer.AddStreamHandler(
+                new RestDeserialisehandler<LLUUID, bool>("POST", "/CreateInventory/",
+                                                                                  m_inventoryService.CreateUsersInventory));
+            httpServer.AddStreamHandler(
+                new RestDeserialisehandler<InventoryFolderBase, bool>("POST", "/NewFolder/",
+                                                                                  m_inventoryService.AddInventoryFolder));
 
-            httpServer.AddStreamHandler(new InventoryManager.GetInventory(m_inventoryManager));
+            httpServer.AddStreamHandler(
+                new RestDeserialisehandler<InventoryItemBase, bool>("POST", "/NewItem/",
+                                                                                  m_inventoryService.AddInventoryItem));
+            httpServer.AddStreamHandler(
+                new RestDeserialisehandler<InventoryItemBase, bool>("POST", "/DeleteItem/",
+                                                                                  m_inventoryService.DeleteInvItem));
+
+            httpServer.AddStreamHandler(
+                new RestDeserialisehandler<LLUUID, List<InventoryFolderBase>>("POST", "/RootFolders/",
+                                                                                  m_inventoryService.RequestFirstLevelFolders));
+
+          //  httpServer.AddStreamHandler(new InventoryManager.GetInventory(m_inventoryManager));
 
             httpServer.Start();
             MainLog.Instance.Notice(LogName, "Started HTTP server");
@@ -96,6 +119,9 @@ namespace OpenSim.Grid.InventoryServer
             switch (cmd)
             {
                 case "quit":
+                case "add-user":
+                    m_inventoryService.CreateUsersInventory(LLUUID.Random());
+                    break;
                 case "shutdown":
                     m_console.Close();
                     Environment.Exit(0);

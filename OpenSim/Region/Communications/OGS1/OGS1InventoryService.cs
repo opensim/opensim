@@ -25,9 +25,11 @@
 * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 * 
 */
+using System;
 using System.Collections.Generic;
 using libsecondlife;
 using OpenSim.Framework;
+using OpenSim.Framework.Servers;
 using OpenSim.Framework.Communications;
 using OpenSim.Framework.Communications.Cache;
 
@@ -36,6 +38,7 @@ namespace OpenSim.Region.Communications.OGS1
     public class OGS1InventoryService : IInventoryServices
     {
         private string _inventoryServerUrl;
+        private Dictionary<LLUUID, InventoryRequest> m_RequestingInventory = new Dictionary<LLUUID, InventoryRequest>();
 
         public OGS1InventoryService(string inventoryServerUrl)
         {
@@ -47,31 +50,96 @@ namespace OpenSim.Region.Communications.OGS1
         public void RequestInventoryForUser(LLUUID userID, InventoryFolderInfo folderCallBack,
                                             InventoryItemInfo itemCallBack)
         {
-            //TODO! Uncomment when all is done
-            //SerializableInventory userInventory = null;
 
-            //RestClient inventoryServer = new RestClient(_inventoryServerUrl);
-            //inventoryServer.AddResourcePath("inventory");
-            //inventoryServer.AddResourcePath("user");
-            //inventoryServer.AddResourcePath(userID.ToStringHyphenated());
-
-            //using (Stream userInventoryStream = inventoryServer.Request())
-            //{
-            //    XmlSerializer x = new XmlSerializer(typeof(SerializableInventory));
-            //    userInventory = (SerializableInventory)x.Deserialize(userInventoryStream);
-            //}
+            if (!m_RequestingInventory.ContainsKey(userID))
+            {
+                InventoryRequest request = new InventoryRequest(userID, folderCallBack, itemCallBack);
+                m_RequestingInventory.Add(userID, request);
+                RequestInventory(userID);
+            }
         }
 
-        public void AddNewInventoryFolder(LLUUID userID, InventoryFolderImpl folder)
+        private void RequestInventory(LLUUID userID)
         {
+            try
+            {
+            RestObjectPosterResponse<InventoryCollection> requester = new RestObjectPosterResponse<InventoryCollection>();
+            requester.ReturnResponseVal = InventoryResponse;
+            requester.BeginPostObject<LLUUID>(_inventoryServerUrl + "/GetInventory/", userID);
+            }
+            catch (Exception)
+            {
+            }
+        }
+
+        private void InventoryResponse(InventoryCollection response)
+        {
+            LLUUID userID = response.UserID;
+            if (m_RequestingInventory.ContainsKey(userID))
+            {
+                
+                InventoryFolderImpl rootFolder = null;
+                InventoryRequest request = m_RequestingInventory[userID];
+                foreach (InventoryFolderBase folder in response.Folders)
+                {
+                    if (folder.parentID == LLUUID.Zero)
+                    {
+                        InventoryFolderImpl newfolder = new InventoryFolderImpl(folder);
+                        rootFolder = newfolder;
+                        request.FolderCallBack(userID, newfolder);
+                    }
+                }
+
+                if (rootFolder != null)
+                {
+                    foreach (InventoryFolderBase folder in response.Folders)
+                    {
+                        if (folder.folderID != rootFolder.folderID)
+                        {
+                            InventoryFolderImpl newfolder = new InventoryFolderImpl(folder);
+                            request.FolderCallBack(userID, newfolder);
+                        }
+                    }
+
+                    foreach (InventoryItemBase item in response.AllItems)
+                    {
+                        request.ItemCallBack(userID, item);
+                    }
+                }
+            }
+        }
+
+        public void AddNewInventoryFolder(LLUUID userID, InventoryFolderBase folder)
+        {
+            try
+            {
+                RestObjectPoster.BeginPostObject<InventoryFolderBase>(_inventoryServerUrl + "/NewFolder/", folder);
+            }
+            catch (Exception)
+            {
+            }
         }
 
         public void AddNewInventoryItem(LLUUID userID, InventoryItemBase item)
         {
+            try
+            {
+            RestObjectPoster.BeginPostObject<InventoryItemBase>(_inventoryServerUrl + "/NewItem/", item);
+            }
+            catch (Exception)
+            {
+            }
         }
 
         public void DeleteInventoryItem(LLUUID userID, InventoryItemBase item)
         {
+            try
+            { 
+            RestObjectPoster.BeginPostObject<InventoryItemBase>(_inventoryServerUrl + "/DeleteItem/", item);
+            }
+            catch (Exception)
+            {
+            }
         }
 
         public void CreateNewUserInventory(LLUUID user)
@@ -84,5 +152,19 @@ namespace OpenSim.Region.Communications.OGS1
         }
 
         #endregion
+
+        public class InventoryRequest
+        {
+            public LLUUID UserID;
+            public InventoryFolderInfo FolderCallBack;
+            public InventoryItemInfo ItemCallBack;
+
+            public InventoryRequest(LLUUID userId, InventoryFolderInfo folderCall, InventoryItemInfo itemCall)
+            {
+                UserID = userId;
+                FolderCallBack = folderCall;
+                ItemCallBack = itemCall;
+            }
+        }
     }
 }
