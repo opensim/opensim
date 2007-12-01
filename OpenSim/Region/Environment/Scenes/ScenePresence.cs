@@ -186,6 +186,8 @@ namespace OpenSim.Region.Environment.Scenes
             get { return m_controllingClient; }
         }
 
+        protected LLVector3 m_parentPosition = new LLVector3();
+
         public override LLVector3 AbsolutePosition
         {
             get
@@ -197,7 +199,7 @@ namespace OpenSim.Region.Environment.Scenes
                     m_pos.Z = m_physicsActor.Position.Z;
                 }
 
-                return m_pos;
+                return m_parentPosition + m_pos;
             }
             set
             {
@@ -684,10 +686,8 @@ namespace OpenSim.Region.Environment.Scenes
         {
             if (m_parentID != 0)
             {
-                SceneObjectPart part = m_scene.GetSceneObjectPart(m_parentID);
-                if (part != null)
-                    AbsolutePosition = part.AbsolutePosition + m_requestedSitOffset +
-                        new LLVector3(0.0f, 0.0f, 2.0f*m_sitAvatarHeight);
+                m_pos += m_parentPosition + new LLVector3(0.0f, 0.0f, 2.0f*m_sitAvatarHeight);
+                m_parentPosition = new LLVector3();
 
                 AddToPhysicalScene();
 
@@ -757,10 +757,14 @@ namespace OpenSim.Region.Environment.Scenes
 
         public void HandleAgentSit(IClientAPI remoteClient, LLUUID agentID)
         {
-            // these magic numbers come mostly from experimenting with ODE,
-            // and seeing what looks right
-            AbsolutePosition = m_requestedSitOffset +
-                               new LLVector3(m_physicsActor.Size.X/2.7f, 0f, m_physicsActor.Size.Z/1.45f);
+            SceneObjectPart part = m_scene.GetSceneObjectPart(m_requestedSitTargetID);
+
+            if (part != null)
+            {
+                m_pos -= part.AbsolutePosition;
+                m_parentPosition = part.AbsolutePosition;
+            }
+
             m_parentID = m_requestedSitTargetID;
 
             Velocity = new LLVector3(0, 0, 0);
@@ -977,7 +981,7 @@ namespace OpenSim.Region.Environment.Scenes
         /// <param name="RemoteClient"></param>
         public void SendTerseUpdateToClient(IClientAPI RemoteClient)
         {
-            LLVector3 pos = AbsolutePosition;
+            LLVector3 pos = m_pos;
             LLVector3 vel = Velocity;
             LLQuaternion rot;
             rot.X = m_bodyRot.x;
@@ -1004,7 +1008,7 @@ namespace OpenSim.Region.Environment.Scenes
             {
                 if (avatars[i] != this)
                 {
-                    CoarseLocations.Add(avatars[i].AbsolutePosition);
+                    CoarseLocations.Add(avatars[i].m_pos);
                 }
             }
 
@@ -1024,8 +1028,7 @@ namespace OpenSim.Region.Environment.Scenes
         public void SendFullUpdateToOtherClient(ScenePresence remoteAvatar)
         {
             remoteAvatar.m_controllingClient.SendAvatarData(m_regionInfo.RegionHandle, m_firstname, m_lastname, m_uuid,
-                                                            LocalId, AbsolutePosition, m_textureEntry.ToBytes(),
-                                                            m_parentID);
+                                                            LocalId, m_pos, m_textureEntry.ToBytes(), m_parentID);
         }
 
         public void SendFullUpdateToAllClients()
@@ -1051,7 +1054,7 @@ namespace OpenSim.Region.Environment.Scenes
         public void SendInitialData()
         {
             m_controllingClient.SendAvatarData(m_regionInfo.RegionHandle, m_firstname, m_lastname, m_uuid, LocalId,
-                                               AbsolutePosition, m_textureEntry.ToBytes(), m_parentID);
+                                               m_pos, m_textureEntry.ToBytes(), m_parentID);
             if (!m_isChildAgent)
             {
                 m_scene.InformClientOfNeighbours(this);
