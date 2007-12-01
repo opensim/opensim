@@ -1137,11 +1137,6 @@ namespace OpenSim.Region.Environment.Scenes
         /// </summary>
         public void RegisterCommsEvents()
         {
-            // Don't register here.  babblefro moved registration to *after *the map
-            // functions on line 675 so that a proper map will generate and get sent to grid services
-            // Double registrations will cause inter region communication issues
-
-            //m_sceneGridService.RegisterRegion(m_regInfo);
             m_sceneGridService.OnExpectUser += NewUserConnection;
             m_sceneGridService.OnAvatarCrossingIntoRegion += AgentCrossing;
             m_sceneGridService.OnCloseAgentConnection += CloseConnection;
