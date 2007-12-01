@@ -2,6 +2,7 @@ using System;
 using libsecondlife;
 using Nini.Config;
 using OpenSim.Framework;
+using OpenSim.Framework.Communications.Cache;
 using OpenSim.Region.Environment.Interfaces;
 using OpenSim.Region.Environment.Scenes;
 
@@ -64,7 +65,16 @@ namespace OpenSim.Region.Environment.Modules
             // then store assetid and itemId and wearable type in a database
             foreach (AvatarWearingArgs.Wearable wear in e.NowWearing)
             {
-                LLUUID assetID = m_scene.CommsManager.UserProfileCache.GetUserDetails(clientView.AgentId).RootFolder.HasItem(wear.ItemID).assetID;
+                LLUUID assetId;
+                CachedUserInfo profile = m_scene.CommsManager.UserProfileCache.GetUserDetails(clientView.AgentId);
+                if (profile != null)
+                {
+                    InventoryItemBase baseItem = profile.RootFolder.HasItem(wear.ItemID);
+                    if (baseItem != null)
+                    {
+                        assetId = baseItem.assetID;
+                    }
+                }
             }
         }
 
