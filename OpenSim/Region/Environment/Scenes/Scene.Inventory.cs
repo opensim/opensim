@@ -484,6 +484,7 @@ namespace OpenSim.Region.Environment.Scenes
         private void AddRezObject(string xmlData, LLVector3 pos)
         {
             SceneObjectGroup group = new SceneObjectGroup(this, m_regionHandle, xmlData);
+            group.GenerateNewIDs();
             AddEntity(group);
             group.AbsolutePosition = pos;
             SceneObjectPart rootPart = group.GetChildPart(group.UUID);

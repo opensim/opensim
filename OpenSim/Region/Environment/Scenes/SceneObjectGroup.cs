@@ -598,6 +598,17 @@ namespace OpenSim.Region.Environment.Scenes
             SetPartAsNonRoot(newPart);
         }
 
+
+        public void GenerateNewIDs()
+        {
+            List<SceneObjectPart> partsList = new List<SceneObjectPart>(m_parts.Values);
+            m_parts.Clear();
+            foreach (SceneObjectPart part in partsList)
+            {
+                part.UUID = LLUUID.Random();
+                m_parts.Add(part.UUID, part);
+            }
+        }
         /// <summary>
         /// 
         /// </summary>
