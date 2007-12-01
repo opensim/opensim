@@ -30,6 +30,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Net;
+using System.Threading;
 using Nwc.XmlRpc;
 using libsecondlife;
 using OpenSim.Framework;
@@ -197,7 +198,14 @@ namespace OpenSim.Grid.UserServer
         protected override InventoryData CreateInventoryData(LLUUID userID)
         {
             List<InventoryFolderBase> folders = SyncRestObjectPoster.BeginPostObject<LLUUID, List<InventoryFolderBase>>(m_config.InventoryUrl + "RootFolders/", userID);
-            if (folders.Count > 0)
+            if (folders ==null | folders.Count == 0)
+            {
+                RestObjectPoster.BeginPostObject<LLUUID>(m_config.InventoryUrl + "CreateInventory/", userID);
+                Thread.Sleep(1000);
+                folders = SyncRestObjectPoster.BeginPostObject<LLUUID, List<InventoryFolderBase>>(m_config.InventoryUrl + "RootFolders/", userID);
+            }
+
+            if(folders.Count >0)
             {
                 LLUUID rootID = LLUUID.Zero;
                 ArrayList AgentInventoryArray = new ArrayList();

@@ -63,6 +63,7 @@ namespace OpenSim.Grid.InventoryServer
 
         public bool CreateUsersInventory(LLUUID user)
         {
+            Console.WriteLine("Creating New Set of Inventory Folders for " + user.ToStringHyphenated());
             CreateNewUserInventory(user);
             return true;
         }
