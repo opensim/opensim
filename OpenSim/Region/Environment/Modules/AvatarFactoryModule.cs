@@ -88,7 +88,7 @@ namespace OpenSim.Region.Environment.Modules
                             if (baseItem != null)
                             {
                                 assetId = baseItem.assetID;
-                                //Tempoaray dictionary storage. This is be storing to a database
+                                //temporary dictionary storage. This should be storing to a database
                                 if (m_avatarsClothes.ContainsKey(clientView.AgentId))
                                 {
                                     AvatarAppearance avWearing = m_avatarsClothes[clientView.AgentId];
