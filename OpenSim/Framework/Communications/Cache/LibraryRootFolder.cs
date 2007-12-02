@@ -122,7 +122,7 @@ namespace OpenSim.Framework.Communications.Cache
             InventoryItemBase item = new InventoryItemBase();
             item.avatarID = libOwner;
             item.creatorsID = libOwner;
-            item.inventoryID = LLUUID.Random();
+            item.inventoryID = inventoryID;
             item.assetID = assetID;
             item.inventoryDescription = description;
             item.inventoryName = name;
