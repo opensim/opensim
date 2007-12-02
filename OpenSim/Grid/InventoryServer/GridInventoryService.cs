@@ -81,6 +81,7 @@ namespace OpenSim.Grid.InventoryServer
 
         public bool AddInventoryFolder( InventoryFolderBase folder)
         {
+            Console.WriteLine("creating new folder for " + folder.agentID.ToString());
             AddNewInventoryFolder(folder.agentID, folder);
             return true;
         }

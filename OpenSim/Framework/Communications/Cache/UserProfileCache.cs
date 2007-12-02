@@ -96,7 +96,14 @@ namespace OpenSim.Framework.Communications.Cache
 
                         if (createdFolder != null)
                         {
-                            m_parent.InventoryService.AddNewInventoryFolder(remoteClient.AgentId, createdFolder);
+                            InventoryFolderBase createdBaseFolder = new InventoryFolderBase();
+                            createdBaseFolder.agentID = createdFolder.agentID;
+                            createdBaseFolder.folderID = createdFolder.folderID;
+                            createdBaseFolder.name = createdFolder.name;
+                            createdBaseFolder.parentID = createdFolder.parentID;
+                            createdBaseFolder.type = createdFolder.type;
+                            createdBaseFolder.version = createdFolder.version;
+                            m_parent.InventoryService.AddNewInventoryFolder(remoteClient.AgentId, createdBaseFolder);
                         }
                     }
                     else
