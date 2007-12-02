@@ -190,9 +190,6 @@ namespace OpenSim.Region.Environment.Scenes
             }
             replyPacket.Data = searchData;
             client.SendAvatarPickerReply(replyPacket);
-            
-            
         }
-        
     }
 }

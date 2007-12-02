@@ -511,8 +511,7 @@ namespace OpenSim.Region.Environment.Scenes
             for (int i = 0; i < visualParam.Length; i++)
             {
                 m_visualParams[i] = visualParam[i].ParamValue;
-                //OpenSim.Framework.Console.MainLog.Instance.Verbose("CLIENT", "VisualData[" + i.ToString() + "]: " + visualParam[i].ParamValue.ToString() + "m");
-                
+                //OpenSim.Framework.Console.MainLog.Instance.Verbose("CLIENT", "VisualData[" + i.ToString() + "]: " + visualParam[i].ParamValue.ToString() + "m");  
             }
             
             // Teravus : Nifty AV Height Getting Maaaaagical formula.  Oh how we love turning 0-255 into meters.

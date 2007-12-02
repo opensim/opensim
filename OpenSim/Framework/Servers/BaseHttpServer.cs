@@ -185,26 +185,34 @@ namespace OpenSim.Framework.Servers
             if (xmlRprcRequest != null)
             {
                 string methodName = xmlRprcRequest.MethodName;
-
-                XmlRpcResponse xmlRpcResponse;
-
-                XmlRpcMethod method;
-                if (m_rpcHandlers.TryGetValue(methodName, out method))
+                if (methodName != null)
                 {
-                    xmlRpcResponse = method(xmlRprcRequest);
+
+                    XmlRpcResponse xmlRpcResponse;
+
+                    XmlRpcMethod method;
+                    if (m_rpcHandlers.TryGetValue(methodName, out method))
+                    {
+                        xmlRpcResponse = method(xmlRprcRequest);
+                    }
+                    else
+                    {
+                        xmlRpcResponse = new XmlRpcResponse();
+                        Hashtable unknownMethodError = new Hashtable();
+                        unknownMethodError["reason"] = "XmlRequest";
+                        ;
+                        unknownMethodError["message"] = "Unknown Rpc Request [" + methodName + "]";
+                        unknownMethodError["login"] = "false";
+                        xmlRpcResponse.Value = unknownMethodError;
+                    }
+
+                    responseString = XmlRpcResponseSerializer.Singleton.Serialize(xmlRpcResponse);
                 }
                 else
                 {
-                    xmlRpcResponse = new XmlRpcResponse();
-                    Hashtable unknownMethodError = new Hashtable();
-                    unknownMethodError["reason"] = "XmlRequest";
-                    ;
-                    unknownMethodError["message"] = "Unknown Rpc Request [" + methodName + "]";
-                    unknownMethodError["login"] = "false";
-                    xmlRpcResponse.Value = unknownMethodError;
+                    System.Console.WriteLine("Handler not found for http request " +request.RawUrl);
+                         responseString =  "Error";
                 }
-
-                responseString = XmlRpcResponseSerializer.Singleton.Serialize(xmlRpcResponse);
             }
 
             response.AddHeader("Content-type", "text/xml");

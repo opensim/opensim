@@ -12,7 +12,7 @@ namespace OpenSim.Region.Environment.Modules
     public class AvatarFactoryModule : IAvatarFactory
     {
         private Scene m_scene = null;
-        private Dictionary<LLUUID, AvatarWearing> m_avatarsClothes = new Dictionary<LLUUID, AvatarWearing>();
+        private Dictionary<LLUUID, AvatarAppearance> m_avatarsClothes = new Dictionary<LLUUID, AvatarAppearance>();
 
         public bool TryGetIntialAvatarAppearance(LLUUID avatarId, out AvatarWearable[] wearables,
                                                  out byte[] visualParams)
@@ -20,13 +20,13 @@ namespace OpenSim.Region.Environment.Modules
             if (!m_avatarsClothes.ContainsKey(avatarId))
             {
                 GetDefaultAvatarAppearance(out wearables, out visualParams);
-                AvatarWearing wearing = new AvatarWearing(wearables);
+                AvatarAppearance wearing = new AvatarAppearance(wearables);
                 m_avatarsClothes[avatarId] = wearing;
                 return true;
             }
             else
             {
-                visualParams = SetDefaultVisualParams();
+                visualParams = GetDefaultVisualParams();
                 wearables = m_avatarsClothes[avatarId].IsWearing;
                 return true;
             }
@@ -91,7 +91,7 @@ namespace OpenSim.Region.Environment.Modules
                                 //Tempoaray dictionary storage. This is be storing to a database
                                 if (m_avatarsClothes.ContainsKey(clientView.AgentId))
                                 {
-                                    AvatarWearing avWearing = m_avatarsClothes[clientView.AgentId];
+                                    AvatarAppearance avWearing = m_avatarsClothes[clientView.AgentId];
                                     avWearing.IsWearing[wear.Type].AssetID = assetId;
                                     avWearing.IsWearing[wear.Type].ItemID = wear.ItemID;
                                 }
@@ -103,12 +103,11 @@ namespace OpenSim.Region.Environment.Modules
 
         public static void GetDefaultAvatarAppearance(out AvatarWearable[] wearables, out byte[] visualParams)
         {
-            visualParams = SetDefaultVisualParams();
-
+            visualParams = GetDefaultVisualParams();
             wearables = AvatarWearable.DefaultWearables;
         }
 
-        private static byte[] SetDefaultVisualParams()
+        private static byte[] GetDefaultVisualParams()
         {
             byte[] visualParams;
             visualParams = new byte[218];
@@ -119,11 +118,12 @@ namespace OpenSim.Region.Environment.Modules
             return visualParams;
         }
 
-        public class AvatarWearing
+        public class AvatarAppearance
         {
             public AvatarWearable[] IsWearing;
+            public byte[] VisualParams;
 
-            public AvatarWearing()
+            public AvatarAppearance()
             {
                 IsWearing = new AvatarWearable[13];
                 for (int i = 0; i < 13; i++)
@@ -132,7 +132,7 @@ namespace OpenSim.Region.Environment.Modules
                 }
             }
 
-            public AvatarWearing(AvatarWearable[] wearing)
+            public AvatarAppearance(AvatarWearable[] wearing)
             {
                 if (wearing.Length == 13)
                 {
