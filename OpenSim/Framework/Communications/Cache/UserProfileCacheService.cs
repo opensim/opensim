@@ -30,7 +30,7 @@ using libsecondlife;
 
 namespace OpenSim.Framework.Communications.Cache
 {
-    public class UserProfileCache
+    public class UserProfileCacheService
     {
         // Fields
         private readonly CommunicationsManager m_parent;
@@ -39,7 +39,7 @@ namespace OpenSim.Framework.Communications.Cache
         public LibraryRootFolder libraryRoot = new LibraryRootFolder();
 
         // Methods
-        public UserProfileCache(CommunicationsManager parent)
+        public UserProfileCacheService(CommunicationsManager parent)
         {
             m_parent = parent;
         }

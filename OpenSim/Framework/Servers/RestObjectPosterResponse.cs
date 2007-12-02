@@ -7,9 +7,13 @@ using System.Xml.Serialization;
 
 namespace OpenSim.Framework.Servers
 {
-    public class RestObjectPoster
+    public delegate void ReturnResponse<T>(T reponse);
+
+    public class RestObjectPosterResponse<TResponse>
     {
-        public static void BeginPostObject<TRequest>(string requestUrl, TRequest obj)
+        public ReturnResponse<TResponse> ResponseCallback;
+
+        public void BeginPostObject<TRequest>(string requestUrl, TRequest obj)
         {
             Type type = typeof(TRequest);
 
@@ -37,11 +41,19 @@ namespace OpenSim.Framework.Servers
             IAsyncResult result = request.BeginGetResponse(AsyncCallback, request);
         }
 
-        private static void AsyncCallback(IAsyncResult result)
+        private void AsyncCallback(IAsyncResult result)
         {
             WebRequest request = (WebRequest)result.AsyncState;
             using (WebResponse resp = request.EndGetResponse(result))
             {
+                TResponse deserial;
+                XmlSerializer deserializer = new XmlSerializer(typeof(TResponse));
+                deserial = (TResponse)deserializer.Deserialize(resp.GetResponseStream());
+
+                if (deserial != null && ResponseCallback != null)
+                {
+                    ResponseCallback(deserial);
+                }
             }
         }
     }

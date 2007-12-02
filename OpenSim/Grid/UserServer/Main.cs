@@ -155,7 +155,7 @@ namespace OpenSim.Grid.UserServer
                   //  RestObjectPosterResponse<List<InventoryFolderBase>> requester = new RestObjectPosterResponse<List<InventoryFolderBase>>();
                    // requester.ReturnResponseVal = TestResponse;
                    // requester.BeginPostObject<LLUUID>(m_userManager._config.InventoryUrl + "RootFolders/", m_lastCreatedUser);
-                    List<InventoryFolderBase> folders = SyncRestObjectPoster.BeginPostObject<LLUUID, List<InventoryFolderBase>>(m_userManager._config.InventoryUrl + "RootFolders/", m_lastCreatedUser);
+                    List<InventoryFolderBase> folders = SynchronousRestObjectPoster.BeginPostObject<LLUUID, List<InventoryFolderBase>>(m_userManager._config.InventoryUrl + "RootFolders/", m_lastCreatedUser);
                     break;
             }
         }

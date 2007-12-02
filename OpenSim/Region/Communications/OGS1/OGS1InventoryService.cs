@@ -64,7 +64,7 @@ namespace OpenSim.Region.Communications.OGS1
             try
             {
             RestObjectPosterResponse<InventoryCollection> requester = new RestObjectPosterResponse<InventoryCollection>();
-            requester.ReturnResponseVal = InventoryResponse;
+            requester.ResponseCallback = InventoryResponse;
             requester.BeginPostObject<LLUUID>(_inventoryServerUrl + "/GetInventory/", userID);
             }
             catch (Exception)

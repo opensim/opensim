@@ -49,8 +49,8 @@ namespace OpenSim.Framework.Communications.Cache
             folderID = new LLUUID("00000112-000f-0000-0000-000100bba000");
             name = "OpenSim Library";
             parentID = LLUUID.Zero;
-            type = (short) -1;
-            version = (ushort) 1;
+            type = (short)-1;
+            version = (ushort)1;
 
             InventoryFolderImpl folderInfo = new InventoryFolderImpl();
             folderInfo.agentID = libOwner;
@@ -67,7 +67,7 @@ namespace OpenSim.Framework.Communications.Cache
             string filePath = Path.Combine(Util.configDir(), "OpenSimLibrary.xml");
             if (File.Exists(filePath))
             {
-                try 
+                try
                 {
                     XmlConfigSource source = new XmlConfigSource(filePath);
                     ReadItemsFromFile(source);
@@ -81,141 +81,59 @@ namespace OpenSim.Framework.Communications.Cache
 
         private void CreateLibraryItems()
         {
+            InventoryItemBase item = CreateItem(LLUUID.Random(), new LLUUID("00000000-0000-0000-9999-000000000002"), "Plywood", "Plywood texture", (int)AssetType.Texture, (int)InventoryType.Texture, m_textureFolder.folderID);
+            m_textureFolder.Items.Add(item.inventoryID, item);
+
+            item = CreateItem(LLUUID.Random(), new LLUUID("00000000-0000-0000-9999-000000000003"), "Rocks", "Rocks texture", (int)AssetType.Texture, (int)InventoryType.Texture, m_textureFolder.folderID);
+            m_textureFolder.Items.Add(item.inventoryID, item);
+
+            item = CreateItem(LLUUID.Random(), new LLUUID("00000000-0000-0000-9999-000000000001"), "Bricks", "Bricks texture", (int)AssetType.Texture, (int)InventoryType.Texture, m_textureFolder.folderID);
+            m_textureFolder.Items.Add(item.inventoryID, item);
+
+            item = CreateItem(LLUUID.Random(), new LLUUID("00000000-0000-0000-9999-000000000004"), "Granite", "Granite texture", (int)AssetType.Texture, (int)InventoryType.Texture, m_textureFolder.folderID);
+            m_textureFolder.Items.Add(item.inventoryID, item);
+
+            item = CreateItem(LLUUID.Random(), new LLUUID("00000000-0000-0000-9999-000000000005"), "Hardwood", "Hardwood texture", (int)AssetType.Texture, (int)InventoryType.Texture, m_textureFolder.folderID);
+            m_textureFolder.Items.Add(item.inventoryID, item);
+
+            item = CreateItem(new LLUUID("66c41e39-38f9-f75a-024e-585989bfaba9"), new LLUUID("66c41e39-38f9-f75a-024e-585989bfab73"), "Default Shape", "Default Shape", (int)AssetType.Bodypart, (int)InventoryType.Wearable, folderID);
+            item.inventoryCurrentPermissions = 0;
+            item.inventoryNextPermissions = 0;
+            Items.Add(item.inventoryID, item);
+
+            item = CreateItem(new LLUUID("77c41e39-38f9-f75a-024e-585989bfabc9"), new LLUUID("77c41e39-38f9-f75a-024e-585989bbabbb"), "Default Skin", "Default Skin", (int)AssetType.Bodypart, (int)InventoryType.Wearable, folderID);
+            item.inventoryCurrentPermissions = 0;
+            item.inventoryNextPermissions = 0;
+            Items.Add(item.inventoryID, item);
+
+            item = CreateItem(new LLUUID("77c41e39-38f9-f75a-0000-585989bf0000"), new LLUUID("00000000-38f9-1111-024e-222222111110"), "Default Shirt", "Default Shirt", (int)AssetType.Clothing, (int)InventoryType.Wearable, folderID);
+            item.inventoryCurrentPermissions = 0;
+            item.inventoryNextPermissions = 0;
+            Items.Add(item.inventoryID, item);
+
+            item = CreateItem(new LLUUID("77c41e39-38f9-f75a-0000-5859892f1111"), new LLUUID("00000000-38f9-1111-024e-222222111120"), "Default Pants", "Default Pants", (int)AssetType.Clothing, (int)InventoryType.Wearable, folderID);
+            item.inventoryCurrentPermissions = 0;
+            item.inventoryNextPermissions = 0;
+            Items.Add(item.inventoryID, item);
+        }
+
+        private InventoryItemBase CreateItem(LLUUID inventoryID, LLUUID assetID, string name, string description, int assetType, int invType, LLUUID parentFolderID)
+        {
             InventoryItemBase item = new InventoryItemBase();
             item.avatarID = libOwner;
             item.creatorsID = libOwner;
             item.inventoryID = LLUUID.Random();
-            item.assetID = new LLUUID("00000000-0000-0000-9999-000000000002");
-            item.inventoryDescription = "Plywood texture";
-            item.inventoryName = "Plywood";
-            item.assetType = (int) AssetType.Texture;
-            item.invType = (int) InventoryType.Texture;
-            item.parentFolderID = m_textureFolder.folderID;
+            item.assetID = assetID;
+            item.inventoryDescription = description;
+            item.inventoryName = name;
+            item.assetType = assetType;
+            item.invType = invType;
+            item.parentFolderID = parentFolderID;
             item.inventoryBasePermissions = 0x7FFFFFFF;
             item.inventoryEveryOnePermissions = 0x7FFFFFFF;
             item.inventoryCurrentPermissions = 0x7FFFFFFF;
             item.inventoryNextPermissions = 0x7FFFFFFF;
-            m_textureFolder.Items.Add(item.inventoryID, item);
-
-            item = new InventoryItemBase();
-            item.avatarID = libOwner;
-            item.creatorsID = libOwner;
-            item.inventoryID = LLUUID.Random();
-            item.assetID = new LLUUID("00000000-0000-0000-9999-000000000003");
-            item.inventoryDescription = "Rocks texture";
-            item.inventoryName = "Rocks";
-            item.assetType = (int) AssetType.Texture;
-            item.invType = (int) InventoryType.Texture;
-            item.parentFolderID = m_textureFolder.folderID;
-            item.inventoryBasePermissions = 0x7FFFFFFF;
-            item.inventoryEveryOnePermissions = 0x7FFFFFFF;
-            item.inventoryCurrentPermissions = 0x7FFFFFFF;
-            item.inventoryNextPermissions = 0x7FFFFFFF;
-            m_textureFolder.Items.Add(item.inventoryID, item);
-
-            item = new InventoryItemBase();
-            item.avatarID = libOwner;
-            item.creatorsID = libOwner;
-            item.inventoryID = LLUUID.Random();
-            item.assetID = new LLUUID("00000000-0000-0000-9999-000000000001");
-            item.inventoryDescription = "Bricks texture";
-            item.inventoryName = "Bricks";
-            item.assetType = (int) AssetType.Texture;
-            item.invType = (int) InventoryType.Texture;
-            item.parentFolderID = m_textureFolder.folderID;
-            item.inventoryBasePermissions = 0x7FFFFFFF;
-            item.inventoryEveryOnePermissions = 0x7FFFFFFF;
-            item.inventoryCurrentPermissions = 0x7FFFFFFF;
-            item.inventoryNextPermissions = 0x7FFFFFFF;
-            m_textureFolder.Items.Add(item.inventoryID, item);
-
-            item = new InventoryItemBase();
-            item.avatarID = libOwner;
-            item.creatorsID = libOwner;
-            item.inventoryID = LLUUID.Random();
-            item.assetID = new LLUUID("00000000-0000-0000-9999-000000000004");
-            item.inventoryDescription = "Granite texture";
-            item.inventoryName = "Granite";
-            item.assetType = (int) AssetType.Texture;
-            item.invType = (int) InventoryType.Texture;
-            item.parentFolderID = m_textureFolder.folderID;
-            item.inventoryBasePermissions = 0x7FFFFFFF;
-            item.inventoryEveryOnePermissions = 0x7FFFFFFF;
-            item.inventoryCurrentPermissions = 0x7FFFFFFF;
-            item.inventoryNextPermissions = 0x7FFFFFFF;
-            m_textureFolder.Items.Add(item.inventoryID, item);
-
-            item = new InventoryItemBase();
-            item.avatarID = libOwner;
-            item.creatorsID = libOwner;
-            item.inventoryID = LLUUID.Random();
-            item.assetID = new LLUUID("00000000-0000-0000-9999-000000000005");
-            item.inventoryDescription = "Hardwood texture";
-            item.inventoryName = "Hardwood";
-            item.assetType = (int) AssetType.Texture;
-            item.invType = (int) InventoryType.Texture;
-            item.parentFolderID = m_textureFolder.folderID;
-            item.inventoryBasePermissions = 0x7FFFFFFF;
-            item.inventoryEveryOnePermissions = 0x7FFFFFFF;
-            item.inventoryCurrentPermissions = 0x7FFFFFFF;
-            item.inventoryNextPermissions = 0x7FFFFFFF;
-            m_textureFolder.Items.Add(item.inventoryID, item);
-
-            item = new InventoryItemBase();
-            item.avatarID = libOwner;
-            item.creatorsID = libOwner;
-            item.inventoryID = new LLUUID("66c41e39-38f9-f75a-024e-585989bfaba9");
-            item.assetID = new LLUUID("66c41e39-38f9-f75a-024e-585989bfab73");
-            item.inventoryDescription = "Default Shape";
-            item.inventoryName = "Default Shape";
-            item.assetType = (int) AssetType.Bodypart;
-            item.invType = (int) InventoryType.Wearable;
-            item.parentFolderID = folderID;
-            item.inventoryCurrentPermissions = 0;
-            item.inventoryNextPermissions = 0;
-            Items.Add(item.inventoryID, item);
-
-            item = new InventoryItemBase();
-            item.avatarID = libOwner;
-            item.creatorsID = libOwner;
-            item.inventoryID = new LLUUID("77c41e39-38f9-f75a-024e-585989bfabc9");
-            item.assetID = new LLUUID("77c41e39-38f9-f75a-024e-585989bbabbb");
-            item.inventoryDescription = "Default Skin";
-            item.inventoryName = "Default Skin";
-            item.assetType = (int) AssetType.Bodypart;
-            item.invType = (int) InventoryType.Wearable;
-            item.parentFolderID = folderID;
-            item.inventoryCurrentPermissions = 0;
-            item.inventoryNextPermissions = 0;
-            Items.Add(item.inventoryID, item);
-
-            item = new InventoryItemBase();
-            item.avatarID = libOwner;
-            item.creatorsID = libOwner;
-            item.inventoryID = new LLUUID("77c41e39-38f9-f75a-0000-585989bf0000");
-            item.assetID = new LLUUID("00000000-38f9-1111-024e-222222111110");
-            item.inventoryDescription = "Default Shirt";
-            item.inventoryName = "Default Shirt";
-            item.assetType = (int) AssetType.Clothing;
-            item.invType = (int) InventoryType.Wearable;
-            item.parentFolderID = folderID;
-            item.inventoryCurrentPermissions = 0;
-            item.inventoryNextPermissions = 0;
-            Items.Add(item.inventoryID, item);
-
-            item = new InventoryItemBase();
-            item.avatarID = libOwner;
-            item.creatorsID = libOwner;
-            item.inventoryID = new LLUUID("77c41e39-38f9-f75a-0000-5859892f1111");
-            item.assetID = new LLUUID("00000000-38f9-1111-024e-222222111120");
-            item.inventoryDescription = "Default Pants";
-            item.inventoryName = "Default Pants";
-            item.assetType = (int) AssetType.Clothing;
-            item.invType = (int) InventoryType.Wearable;
-            item.parentFolderID = folderID;
-            item.inventoryCurrentPermissions = 0;
-            item.inventoryNextPermissions = 0;
-            Items.Add(item.inventoryID, item);
+            return item;
         }
 
         private void ReadItemsFromFile(IConfigSource source)
@@ -232,10 +150,10 @@ namespace OpenSim.Framework.Communications.Cache
                 item.inventoryName = source.Configs[i].GetString("name", "");
                 item.assetType = source.Configs[i].GetInt("assetType", 0);
                 item.invType = source.Configs[i].GetInt("inventoryType", 0);
-                item.inventoryCurrentPermissions = (uint) source.Configs[i].GetLong("currentPermissions", 0x7FFFFFFF);
-                item.inventoryNextPermissions = (uint) source.Configs[i].GetLong("nextPermissions", 0x7FFFFFFF);
-                item.inventoryEveryOnePermissions = (uint) source.Configs[i].GetLong("everyonePermissions", 0x7FFFFFFF);
-                item.inventoryBasePermissions = (uint) source.Configs[i].GetLong("basePermissions", 0x7FFFFFFF);
+                item.inventoryCurrentPermissions = (uint)source.Configs[i].GetLong("currentPermissions", 0x7FFFFFFF);
+                item.inventoryNextPermissions = (uint)source.Configs[i].GetLong("nextPermissions", 0x7FFFFFFF);
+                item.inventoryEveryOnePermissions = (uint)source.Configs[i].GetLong("everyonePermissions", 0x7FFFFFFF);
+                item.inventoryBasePermissions = (uint)source.Configs[i].GetLong("basePermissions", 0x7FFFFFFF);
                 if (item.assetType == 0)
                 {
                     item.parentFolderID = m_textureFolder.folderID;

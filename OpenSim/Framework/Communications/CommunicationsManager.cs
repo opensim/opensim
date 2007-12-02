@@ -64,9 +64,9 @@ namespace OpenSim.Framework.Communications
             get { return m_interRegion; }
         }
 
-        protected UserProfileCache m_userProfileCache;
+        protected UserProfileCacheService m_userProfileCache;
 
-        public UserProfileCache UserProfileCache
+        public UserProfileCacheService UserProfileCache
         {
             get { return m_userProfileCache; }
         }
@@ -97,7 +97,7 @@ namespace OpenSim.Framework.Communications
         {
             m_networkServersInfo = serversInfo;
             m_assetCache = assetCache;
-            m_userProfileCache = new UserProfileCache(this);
+            m_userProfileCache = new UserProfileCacheService(this);
             m_transactionsManager = new AssetTransactionManager(this, dumpAssetsToFile);
         }
 
