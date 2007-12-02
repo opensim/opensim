@@ -949,7 +949,7 @@ namespace OpenSim.Region.Environment.Scenes
             CreateAndAddScenePresence(client, child);
 
             m_LandManager.sendParcelOverlay(client);
-            CommsManager.UserProfileCache.AddNewUser(client.AgentId);
+            CommsManager.UserProfileCacheService.AddNewUser(client.AgentId);
             CommsManager.TransactionsManager.AddUser(client.AgentId);
         }
 
@@ -999,10 +999,10 @@ namespace OpenSim.Region.Environment.Scenes
             client.OnGodKickUser += handleGodlikeKickUser;
 
             client.OnCreateNewInventoryItem += CreateNewInventoryItem;
-            client.OnCreateNewInventoryFolder += CommsManager.UserProfileCache.HandleCreateInventoryFolder;
-            client.OnFetchInventoryDescendents += CommsManager.UserProfileCache.HandleFecthInventoryDescendents;
+            client.OnCreateNewInventoryFolder += CommsManager.UserProfileCacheService.HandleCreateInventoryFolder;
+            client.OnFetchInventoryDescendents += CommsManager.UserProfileCacheService.HandleFecthInventoryDescendents;
             client.OnRequestTaskInventory += RequestTaskInventory;
-            client.OnFetchInventory += CommsManager.UserProfileCache.HandleFetchInventory;
+            client.OnFetchInventory += CommsManager.UserProfileCacheService.HandleFetchInventory;
             client.OnUpdateInventoryItem += UDPUpdateInventoryItemAsset;
             client.OnCopyInventoryItem += CopyInventoryItem;
             client.OnAssetUploadRequest += CommsManager.TransactionsManager.HandleUDPUploadRequest;

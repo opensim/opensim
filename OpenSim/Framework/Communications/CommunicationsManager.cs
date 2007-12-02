@@ -64,11 +64,11 @@ namespace OpenSim.Framework.Communications
             get { return m_interRegion; }
         }
 
-        protected UserProfileCacheService m_userProfileCache;
+        protected UserProfileCacheService m_userProfileCacheService;
 
-        public UserProfileCacheService UserProfileCache
+        public UserProfileCacheService UserProfileCacheService
         {
-            get { return m_userProfileCache; }
+            get { return m_userProfileCacheService; }
         }
 
         protected AssetTransactionManager m_transactionsManager;
@@ -97,7 +97,7 @@ namespace OpenSim.Framework.Communications
         {
             m_networkServersInfo = serversInfo;
             m_assetCache = assetCache;
-            m_userProfileCache = new UserProfileCacheService(this);
+            m_userProfileCacheService = new UserProfileCacheService(this);
             m_transactionsManager = new AssetTransactionManager(this, dumpAssetsToFile);
         }
 
@@ -156,7 +156,7 @@ namespace OpenSim.Framework.Communications
 
         public void HandleUUIDNameRequest(LLUUID uuid, IClientAPI remote_client)
         {
-            if (uuid == m_userProfileCache.libraryRoot.agentID)
+            if (uuid == m_userProfileCacheService.libraryRoot.agentID)
             {
                 remote_client.SendNameReply(uuid, "Mr", "OpenSim");
             }
@@ -175,11 +175,7 @@ namespace OpenSim.Framework.Communications
         }
         public List<AvatarPickerAvatar> GenerateAgentPickerRequestResponse(LLUUID queryID, string query)
         {
-
-
-            List<AvatarPickerAvatar> pickerlist = m_userService.GenerateAgentPickerRequestResponse(queryID, query);
-
-               
+            List<AvatarPickerAvatar> pickerlist = m_userService.GenerateAgentPickerRequestResponse(queryID, query);  
             return pickerlist;
         }
 

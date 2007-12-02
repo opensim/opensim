@@ -1,5 +1,6 @@
 using System;
 using libsecondlife;
+using System.Collections.Generic;
 using Nini.Config;
 using OpenSim.Framework;
 using OpenSim.Framework.Communications.Cache;
@@ -11,18 +12,30 @@ namespace OpenSim.Region.Environment.Modules
     public class AvatarFactoryModule : IAvatarFactory
     {
         private Scene m_scene = null;
+        private Dictionary<LLUUID, AvatarWearing> m_avatarsClothes = new Dictionary<LLUUID, AvatarWearing>();
 
         public bool TryGetIntialAvatarAppearance(LLUUID avatarId, out AvatarWearable[] wearables,
                                                  out byte[] visualParams)
         {
-            GetDefaultAvatarAppearance(out wearables, out visualParams);
-            return true;
+            if (!m_avatarsClothes.ContainsKey(avatarId))
+            {
+                GetDefaultAvatarAppearance(out wearables, out visualParams);
+                AvatarWearing wearing = new AvatarWearing(wearables);
+                m_avatarsClothes[avatarId] = wearing;
+                return true;
+            }
+            else
+            {
+                visualParams = SetDefaultVisualParams();
+                wearables = m_avatarsClothes[avatarId].IsWearing;
+                return true;
+            }
         }
 
         public void Initialise(Scene scene, IConfigSource source)
         {
             scene.RegisterModuleInterface<IAvatarFactory>(this);
-           // scene.EventManager.OnNewClient += NewClient;
+            scene.EventManager.OnNewClient += NewClient;
 
             if (m_scene == null)
             {
@@ -50,43 +63,97 @@ namespace OpenSim.Region.Environment.Modules
 
         public void NewClient(IClientAPI client)
         {
-         //  client.OnAvatarNowWearing += AvatarIsWearing;
+           client.OnAvatarNowWearing += AvatarIsWearing;
         }
 
         public void RemoveClient(IClientAPI client)
         {
-           // client.OnAvatarNowWearing -= AvatarIsWearing;
+         // client.OnAvatarNowWearing -= AvatarIsWearing;
         }
 
         public void AvatarIsWearing(Object sender, AvatarWearingArgs e)
         {
-            IClientAPI clientView = (IClientAPI) sender;
+            IClientAPI clientView = (IClientAPI)sender;
             //Todo look up the assetid from the inventory cache (or something) for each itemId that is in AvatarWearingArgs
             // then store assetid and itemId and wearable type in a database
-            foreach (AvatarWearingArgs.Wearable wear in e.NowWearing)
-            {
-                LLUUID assetId;
-                CachedUserInfo profile = m_scene.CommsManager.UserProfileCache.GetUserDetails(clientView.AgentId);
-                if (profile != null)
+                foreach (AvatarWearingArgs.Wearable wear in e.NowWearing)
                 {
-                    InventoryItemBase baseItem = profile.RootFolder.HasItem(wear.ItemID);
-                    if (baseItem != null)
+                    if (wear.Type < 13)
                     {
-                        assetId = baseItem.assetID;
+                        LLUUID assetId;
+                        CachedUserInfo profile = m_scene.CommsManager.UserProfileCacheService.GetUserDetails(clientView.AgentId);
+                        if (profile != null)
+                        {
+                            InventoryItemBase baseItem = profile.RootFolder.HasItem(wear.ItemID);
+                            if (baseItem != null)
+                            {
+                                assetId = baseItem.assetID;
+                                //Tempoaray dictionary storage. This is be storing to a database
+                                if (m_avatarsClothes.ContainsKey(clientView.AgentId))
+                                {
+                                    AvatarWearing avWearing = m_avatarsClothes[clientView.AgentId];
+                                    avWearing.IsWearing[wear.Type].AssetID = assetId;
+                                    avWearing.IsWearing[wear.Type].ItemID = wear.ItemID;
+                                }
+                            }
+                        }
                     }
                 }
-            }
         }
 
         public static void GetDefaultAvatarAppearance(out AvatarWearable[] wearables, out byte[] visualParams)
         {
+            visualParams = SetDefaultVisualParams();
+
+            wearables = AvatarWearable.DefaultWearables;
+        }
+
+        private static byte[] SetDefaultVisualParams()
+        {
+            byte[] visualParams;
             visualParams = new byte[218];
             for (int i = 0; i < 218; i++)
             {
                 visualParams[i] = 100;
             }
+            return visualParams;
+        }
 
-            wearables = AvatarWearable.DefaultWearables;
+        public class AvatarWearing
+        {
+            public AvatarWearable[] IsWearing;
+
+            public AvatarWearing()
+            {
+                IsWearing = new AvatarWearable[13];
+                for (int i = 0; i < 13; i++)
+                {
+                    IsWearing[i] = new AvatarWearable();
+                }
+            }
+
+            public AvatarWearing(AvatarWearable[] wearing)
+            {
+                if (wearing.Length == 13)
+                {
+                    IsWearing = new AvatarWearable[13];
+                    for (int i = 0; i < 13; i++)
+                    {
+                        IsWearing[i] = new AvatarWearable();
+                        IsWearing[i].AssetID = wearing[i].AssetID;
+                        IsWearing[i].ItemID = wearing[i].ItemID;
+                    }
+                }
+                else
+                {
+                    IsWearing = new AvatarWearable[13];
+                    for (int i = 0; i < 13; i++)
+                    {
+                        IsWearing[i] = new AvatarWearable();
+                    }
+                }
+            }
         }
     }
+
 }
