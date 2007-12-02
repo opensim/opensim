@@ -211,7 +211,7 @@ namespace OpenSim.Framework.Servers
                 else
                 {
                     System.Console.WriteLine("Handler not found for http request " +request.RawUrl);
-                         responseString =  "Error";
+                    responseString =  "Error";
                 }
             }
 

@@ -106,6 +106,7 @@ namespace OpenSim.Region.Communications.OGS1
                         request.ItemCallBack(userID, item);
                     }
                 }
+                m_RequestingInventory.Remove(userID);
             }
         }
 

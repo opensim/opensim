@@ -72,6 +72,15 @@ namespace OpenSim.Framework.Communications.Cache
             }
         }
 
+        public void UpdateUserInventory(LLUUID userID)
+        {
+            CachedUserInfo userInfo = GetUserDetails(userID);
+            if (userInfo != null)
+            {
+                RequestInventoryForUser(userID, userInfo);
+            }
+        }
+
         public CachedUserInfo GetUserDetails(LLUUID userID)
         {
             if (m_userProfiles.ContainsKey(userID))

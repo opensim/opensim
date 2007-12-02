@@ -55,14 +55,20 @@ namespace OpenSim.Framework.Communications.Cache
                 }
                 else if (RootFolder.folderID == folderInfo.parentID)
                 {
-                    RootFolder.SubFolders.Add(folderInfo.folderID, folderInfo);
+                    if (!RootFolder.SubFolders.ContainsKey(folderInfo.folderID))
+                    {
+                        RootFolder.SubFolders.Add(folderInfo.folderID, folderInfo);
+                    }
                 }
                 else
                 {
                     InventoryFolderImpl folder = RootFolder.HasSubFolder(folderInfo.parentID);
                     if (folder != null)
                     {
-                        folder.SubFolders.Add(folderInfo.folderID, folderInfo);
+                        if (!folder.SubFolders.ContainsKey(folderInfo.folderID))
+                        {
+                            folder.SubFolders.Add(folderInfo.folderID, folderInfo);
+                        }
                     }
                 }
             }
@@ -74,14 +80,20 @@ namespace OpenSim.Framework.Communications.Cache
             {
                 if (itemInfo.parentFolderID == RootFolder.folderID)
                 {
-                    RootFolder.Items.Add(itemInfo.inventoryID, itemInfo);
+                    if (!RootFolder.Items.ContainsKey(itemInfo.inventoryID))
+                    {
+                        RootFolder.Items.Add(itemInfo.inventoryID, itemInfo);
+                    }
                 }
                 else
                 {
                     InventoryFolderImpl folder = RootFolder.HasSubFolder(itemInfo.parentFolderID);
                     if (folder != null)
                     {
-                        folder.Items.Add(itemInfo.inventoryID, itemInfo);
+                        if (!folder.Items.ContainsKey(itemInfo.inventoryID))
+                        {
+                            folder.Items.Add(itemInfo.inventoryID, itemInfo);
+                        }
                     }
                 }
             }

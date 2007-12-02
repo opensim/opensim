@@ -425,6 +425,7 @@ namespace OpenSim.Region.Environment.Scenes
 
         public void MakeRootAgent(LLVector3 pos, bool isFlying)
         {
+
             m_newAvatar = true;
             m_isChildAgent = false;
 
@@ -433,6 +434,7 @@ namespace OpenSim.Region.Environment.Scenes
             AddToPhysicalScene();
             m_physicsActor.Flying = isFlying;
 
+            m_scene.CommsManager.UserProfileCacheService.UpdateUserInventory(m_uuid);
             //if (!m_gotAllObjectsInScene)
             //{
                 //m_scene.SendAllSceneObjectsToClient(this);
