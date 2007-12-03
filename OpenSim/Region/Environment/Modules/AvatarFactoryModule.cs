@@ -77,27 +77,30 @@ namespace OpenSim.Region.Environment.Modules
             CachedUserInfo profile = m_scene.CommsManager.UserProfileCacheService.GetUserDetails(clientView.AgentId);
             if (profile != null)
             {
-                //Todo look up the assetid from the inventory cache (or something) for each itemId that is in AvatarWearingArgs
-                // then store assetid and itemId and wearable type in a database
-                foreach (AvatarWearingArgs.Wearable wear in e.NowWearing)
+                if (profile.RootFolder != null)
                 {
-                    if (wear.Type < 13)
+                    //Todo look up the assetid from the inventory cache (or something) for each itemId that is in AvatarWearingArgs
+                    // then store assetid and itemId and wearable type in a database
+                    foreach (AvatarWearingArgs.Wearable wear in e.NowWearing)
                     {
-                        LLUUID assetId;
-
-                        InventoryItemBase baseItem = profile.RootFolder.HasItem(wear.ItemID);
-                        if (baseItem != null)
+                        if (wear.Type < 13)
                         {
-                            assetId = baseItem.assetID;
-                            //temporary dictionary storage. This should be storing to a database
-                            if (m_avatarsClothes.ContainsKey(clientView.AgentId))
-                            {
-                                AvatarAppearance avWearing = m_avatarsClothes[clientView.AgentId];
-                                avWearing.IsWearing[wear.Type].AssetID = assetId;
-                                avWearing.IsWearing[wear.Type].ItemID = wear.ItemID;
-                            }
-                        }
+                            LLUUID assetId;
 
+                            InventoryItemBase baseItem = profile.RootFolder.HasItem(wear.ItemID);
+                            if (baseItem != null)
+                            {
+                                assetId = baseItem.assetID;
+                                //temporary dictionary storage. This should be storing to a database
+                                if (m_avatarsClothes.ContainsKey(clientView.AgentId))
+                                {
+                                    AvatarAppearance avWearing = m_avatarsClothes[clientView.AgentId];
+                                    avWearing.IsWearing[wear.Type].AssetID = assetId;
+                                    avWearing.IsWearing[wear.Type].ItemID = wear.ItemID;
+                                }
+                            }
+
+                        }
                     }
                 }
             }
