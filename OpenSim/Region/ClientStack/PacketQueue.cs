@@ -221,9 +221,168 @@ namespace OpenSim.Region.ClientStack
 
         }
 
+        private void ThrottleCheck(ref PacketThrottle throttle, ref Queue<QueItem> q, QueItem item)
+        {
+            // The idea..  is if the packet throttle queues are empty
+            // and the client is under throttle for the type.  Queue
+            // it up directly.  This basically short cuts having to
+            // wait for the timer to fire to put things into the
+            // output queue
+
+            if((q.Count == 0) && (throttle.UnderLimit()))
+            {
+                throttle.Add(item.Packet.ToBytes().Length);
+                TotalThrottle.Add(item.Packet.ToBytes().Length);
+                SendQueue.Enqueue(item);
+            }
+            else
+            {
+                q.Enqueue(item);
+            }
+        }
+
+        public void Add(QueItem item)
+        {
+            switch (item.throttleType)
+            {
+                case ThrottleOutPacketType.Resend:
+                    ThrottleCheck(ref ResendThrottle, ref ResendOutgoingPacketQueue, item);
+                    break;
+                case ThrottleOutPacketType.Texture:
+                    ThrottleCheck(ref TextureThrottle, ref TextureOutgoingPacketQueue, item);
+                    break;
+                case ThrottleOutPacketType.Task:
+                    ThrottleCheck(ref TaskThrottle, ref TaskOutgoingPacketQueue, item);
+                    break;
+                case ThrottleOutPacketType.Land:
+                    ThrottleCheck(ref LandThrottle, ref LandOutgoingPacketQueue, item);
+                    break;
+                case ThrottleOutPacketType.Asset:
+                    ThrottleCheck(ref AssetThrottle, ref AssetOutgoingPacketQueue, item);
+                    break;
+                case ThrottleOutPacketType.Cloud:
+                    ThrottleCheck(ref CloudThrottle, ref CloudOutgoingPacketQueue, item);
+                    break;
+                case ThrottleOutPacketType.Wind:
+                    ThrottleCheck(ref WindThrottle, ref WindOutgoingPacketQueue, item);
+                    break;
+
+                default:
+                    // Acknowledgements and other such stuff should go directly to the blocking Queue
+                    // Throttling them may and likely 'will' be problematic
+                    SendQueue.Enqueue(item); 
+                    break;
+            }
+
+        }
+
+        private int ScaleThrottle(int value, int curmax, int newmax)
+        {
+            return (int)(((float)value/(float)curmax) * newmax);
+        }
+
+        public void SetThrottleFromClient(Packet Pack)
+        {
+            
+            //OpenSim.Framework.Console.MainLog.Instance.Verbose("CLIENT", "unhandled packet " + Pack.ToString());
+            
+            AgentThrottlePacket atpack = (AgentThrottlePacket)Pack;
+            
+            byte[] throttle = atpack.Throttle.Throttles;
+            int tResend = -1;
+            int tLand = -1;
+            int tWind = -1;
+            int tCloud = -1;
+            int tTask = -1;
+            int tTexture = -1;
+            int tAsset = -1;
+            int tall = -1;
+            int singlefloat = 4;
+
+            //Agent Throttle Block contains 7 single floatingpoint values.
+            int j = 0;
+
+            // Some Systems may be big endian...  
+            // it might be smart to do this check more often... 
+            if (!BitConverter.IsLittleEndian)
+                for (int i = 0; i < 7; i++)
+                    Array.Reverse(throttle, j + i * singlefloat, singlefloat);
+            
+            // values gotten from libsecondlife.org/wiki/Throttle.  Thanks MW_
+            // bytes
+            // Convert to integer, since..   the full fp space isn't used.
+            tResend = (int)BitConverter.ToSingle(throttle, j);
+            j += singlefloat;
+            tLand = (int)BitConverter.ToSingle(throttle, j);
+            j += singlefloat;
+            tWind = (int)BitConverter.ToSingle(throttle, j);
+            j += singlefloat;
+            tCloud = (int)BitConverter.ToSingle(throttle, j);
+            j += singlefloat;
+            tTask = (int)BitConverter.ToSingle(throttle, j);
+            j += singlefloat;
+            tTexture = (int)BitConverter.ToSingle(throttle, j);
+            j += singlefloat;
+            tAsset = (int)BitConverter.ToSingle(throttle, j);
+            
+            tall = tResend + tLand + tWind + tCloud + tTask + tTexture + tAsset;
+            /*
+              OpenSim.Framework.Console.MainLog.Instance.Verbose("CLIENT", "Client AgentThrottle - Got throttle:resendbytes=" + tResend +
+              " landbytes=" + tLand +
+              " windbytes=" + tWind +
+              " cloudbytes=" + tCloud +
+              " taskbytes=" + tTask +
+              " texturebytes=" + tTexture +
+              " Assetbytes=" + tAsset +
+              " Allbytes=" + tall);
+            */
+            
+            // Total Sanity
+            // Make sure that the client sent sane total values.
+            
+            // If the client didn't send acceptable values....
+            // Scale the clients values down until they are acceptable.
+            
+            if (tall <= TotalThrottle.Max)
+            {
+                ResendThrottle.Throttle = tResend;
+                LandThrottle.Throttle = tLand;
+                WindThrottle.Throttle = tWind;
+                CloudThrottle.Throttle = tCloud;
+                TaskThrottle.Throttle = tTask;
+                TextureThrottle.Throttle = tTexture;
+                AssetThrottle.Throttle = tAsset;
+                TotalThrottle.Throttle = tall;
+            } 
+            else if (tall < 1)
+            {
+                // client is stupid, penalize him by minning everything
+                ResendThrottle.Throttle = ResendThrottle.Min;
+                LandThrottle.Throttle = LandThrottle.Min;
+                WindThrottle.Throttle = WindThrottle.Min;
+                CloudThrottle.Throttle = CloudThrottle.Min;
+                TaskThrottle.Throttle = TaskThrottle.Min;
+                TextureThrottle.Throttle = TextureThrottle.Min;
+                AssetThrottle.Throttle = AssetThrottle.Min;
+                TotalThrottle.Throttle = TotalThrottle.Min;
+            }
+            else
+            {
+                // we're over so figure out percentages and use those
+                ResendThrottle.Throttle = tResend;
+
+                LandThrottle.Throttle = ScaleThrottle(tLand, tall, TotalThrottle.Max);
+                WindThrottle.Throttle = ScaleThrottle(tWind, tall, TotalThrottle.Max);
+                CloudThrottle.Throttle = ScaleThrottle(tCloud, tall, TotalThrottle.Max);
+                TaskThrottle.Throttle = ScaleThrottle(tTask, tall, TotalThrottle.Max);
+                TextureThrottle.Throttle = ScaleThrottle(tTexture, tall, TotalThrottle.Max);
+                AssetThrottle.Throttle = ScaleThrottle(tAsset, tall, TotalThrottle.Max);
+                TotalThrottle.Throttle = TotalThrottle.Max;
+            }
+            // effectively wiggling the slider causes things reset
+            ResetCounters();
+            
+        }
 
     }
-
-    
-    
 }

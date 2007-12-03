@@ -89,7 +89,16 @@ namespace OpenSim.Region.ClientStack
         public int Throttle
         {
             get {return throttle;}
-            set {throttle = value;}
+            set 
+            {
+                if (value > max) {
+                    throttle = max;
+                } else if (value < min) {
+                    throttle = min;
+                } else {
+                    throttle = value;
+                }
+            }
         }
     }
 }
