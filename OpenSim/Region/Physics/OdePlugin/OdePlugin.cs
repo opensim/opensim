@@ -899,10 +899,64 @@ namespace OpenSim.Region.Physics.OdePlugin
                 }
             }
 
-            // Resize using the nearest neighbor method
-            // Going to be doing interpolation here soon
-            
+            // Resize using interpolation
+                       
             // This particular way is quick but it only works on a multiple of the original
+
+            // The idea behind this method can be described with the following diagrams
+            // second pass and third pass happen in the same loop really..  just separated 
+            // them to show what this does.
+            
+            // First Pass
+            // ResultArr:
+            // 1,1,1,1,1,1
+            // 1,1,1,1,1,1
+            // 1,1,1,1,1,1
+            // 1,1,1,1,1,1
+            // 1,1,1,1,1,1
+            // 1,1,1,1,1,1
+
+            // Second Pass
+            // ResultArr2:
+            // 1,,1,,1,,1,,1,,1,
+            // ,,,,,,,,,,
+            // 1,,1,,1,,1,,1,,1,
+            // ,,,,,,,,,,
+            // 1,,1,,1,,1,,1,,1,
+            // ,,,,,,,,,,
+            // 1,,1,,1,,1,,1,,1,
+            // ,,,,,,,,,,
+            // 1,,1,,1,,1,,1,,1,
+            // ,,,,,,,,,,
+            // 1,,1,,1,,1,,1,,1,
+
+            // Third pass fills in the blanks
+            // ResultArr2:
+            // 1,1,1,1,1,1,1,1,1,1,1,1
+            // 1,1,1,1,1,1,1,1,1,1,1,1
+            // 1,1,1,1,1,1,1,1,1,1,1,1
+            // 1,1,1,1,1,1,1,1,1,1,1,1
+            // 1,1,1,1,1,1,1,1,1,1,1,1
+            // 1,1,1,1,1,1,1,1,1,1,1,1
+            // 1,1,1,1,1,1,1,1,1,1,1,1
+            // 1,1,1,1,1,1,1,1,1,1,1,1
+            // 1,1,1,1,1,1,1,1,1,1,1,1
+            // 1,1,1,1,1,1,1,1,1,1,1,1
+            // 1,1,1,1,1,1,1,1,1,1,1,1
+
+            // X,Y = .
+            // X+1,y = ^
+            // X,Y+1 = *
+            // X+1,Y+1 = #
+
+            // Filling in like this;
+            // .*
+            // ^#
+            // 1st .
+            // 2nd *
+            // 3rd ^
+            // 4th #
+            // on single loop.
 
             float[,] resultarr2 = new float[512, 512];
             for (int y = 0; y < 256; y++)
@@ -912,12 +966,52 @@ namespace OpenSim.Region.Physics.OdePlugin
                     resultarr2[y*2,x*2] = resultarr[y,x];
 
                     if (y < 256)
-                        resultarr2[(y*2)+1,x*2] = resultarr[y,x];
+                    {
+                        if (y + 1 < 256)
+                        {
+                            if (x + 1 < 256)
+                            {
+                                resultarr2[(y * 2) + 1, x * 2] = ((resultarr[y, x] + resultarr[y + 1, x] + resultarr[y, x+1] + resultarr[y+1, x+1])/4);
+                            }
+                            else
+                            {
+                                resultarr2[(y * 2) + 1, x * 2] = ((resultarr[y, x] + resultarr[y + 1, x]) / 2);
+                            }
+                        }
+                        else
+                        {
+                            resultarr2[(y * 2) + 1, x * 2] = resultarr[y, x];
+                        }
+                    }
                     if (x < 256)
-                        resultarr2[y*2,(x*2)+1] = resultarr[y,x];
-
-                    if (x<256 && y < 256)
-                        resultarr2[(y*2)+1,(x*2)+1] = resultarr[y,x];
+                    {
+                        if (x + 1 < 256)
+                        {
+                            if (y + 1 < 256)
+                            {
+                                resultarr2[y * 2, (x * 2) + 1] = ((resultarr[y, x] + resultarr[y + 1, x] + resultarr[y, x + 1] + resultarr[y + 1, x + 1]) / 4);
+                            }
+                            else
+                            {
+                                resultarr2[y * 2, (x * 2) + 1] = ((resultarr[y, x] + resultarr[y, x + 1]) / 2);
+                            }
+                        }
+                        else
+                        {
+                            resultarr2[y * 2, (x * 2) + 1] = resultarr[y, x];
+                        }
+                    }
+                    if (x < 256 && y < 256)
+                    {
+                        if ((x + 1 < 256) && (y + 1 < 256))
+                        {
+                            resultarr2[(y * 2) + 1, (x * 2) + 1] = ((resultarr[y, x] + resultarr[y + 1, x] + resultarr[y, x + 1] + resultarr[y + 1, x + 1]) / 4);
+                        }
+                        else
+                        {
+                            resultarr2[(y * 2) + 1, (x * 2) + 1] = resultarr[y, x];
+                        }
+                    }
                 }
 
             }
