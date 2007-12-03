@@ -13,6 +13,7 @@ using Nini.Config;
 using Nwc.XmlRpc;
 using System.Collections;
 using System.Timers;
+using libsecondlife;
 
 [assembly: Addin]
 [assembly: AddinDependency("OpenSim", "0.4")]
@@ -37,7 +38,34 @@ namespace OpenSim.ApplicationPlugins.LoadRegions
                 m_httpd.AddXmlRPCHandler("admin_create_region", XmlRpcCreateRegionMethod);
                 m_httpd.AddXmlRPCHandler("admin_shutdown", XmlRpcShutdownMethod);
                 m_httpd.AddXmlRPCHandler("admin_broadcast", XmlRpcAlertMethod);
+                m_httpd.AddXmlRPCHandler("admin_restart", XmlRpcRestartMethod);
             }
+        }
+
+        public XmlRpcResponse XmlRpcRestartMethod(XmlRpcRequest request)
+        {
+            XmlRpcResponse response = new XmlRpcResponse();
+            Hashtable requestData = (Hashtable)request.Params[0];
+
+            LLUUID regionID = new LLUUID((string)requestData["regionID"]);
+
+            Hashtable responseData = new Hashtable();
+            responseData["accepted"] = "true";
+            response.Value = responseData;
+
+            OpenSim.Region.Environment.Scenes.Scene RebootedScene;
+
+            if (m_app.SceneManager.TryGetScene(regionID, out RebootedScene))
+            {
+                responseData["rebooting"] = "true";
+                RebootedScene.Restart(30);
+            }
+            else
+            {
+                responseData["rebooting"] = "false";
+            }
+
+            return response;
         }
 
         public XmlRpcResponse XmlRpcAlertMethod(XmlRpcRequest request)
