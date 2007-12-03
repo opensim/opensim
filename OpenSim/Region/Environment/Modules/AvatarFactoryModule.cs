@@ -14,20 +14,20 @@ namespace OpenSim.Region.Environment.Modules
         private Scene m_scene = null;
         private Dictionary<LLUUID, AvatarAppearance> m_avatarsClothes = new Dictionary<LLUUID, AvatarAppearance>();
 
-        public bool TryGetIntialAvatarAppearance(LLUUID avatarId, out AvatarWearable[] wearables,
-                                                 out byte[] visualParams)
+        public bool TryGetInitialAvatarAppearance(LLUUID avatarId, out AvatarWearable[] wearables,
+                                                  out byte[] visualParams)
         {
-            if (!m_avatarsClothes.ContainsKey(avatarId))
+            if (m_avatarsClothes.ContainsKey(avatarId))
             {
-                GetDefaultAvatarAppearance(out wearables, out visualParams);
-                AvatarAppearance wearing = new AvatarAppearance(wearables);
-                m_avatarsClothes[avatarId] = wearing;
+                visualParams = GetDefaultVisualParams();
+                wearables = m_avatarsClothes[avatarId].IsWearing;
                 return true;
             }
             else
             {
-                visualParams = GetDefaultVisualParams();
-                wearables = m_avatarsClothes[avatarId].IsWearing;
+                GetDefaultAvatarAppearance(out wearables, out visualParams);
+                AvatarAppearance wearing = new AvatarAppearance(wearables);
+                m_avatarsClothes[avatarId] = wearing;
                 return true;
             }
         }
@@ -76,29 +76,29 @@ namespace OpenSim.Region.Environment.Modules
             IClientAPI clientView = (IClientAPI)sender;
             //Todo look up the assetid from the inventory cache (or something) for each itemId that is in AvatarWearingArgs
             // then store assetid and itemId and wearable type in a database
-                foreach (AvatarWearingArgs.Wearable wear in e.NowWearing)
+            foreach (AvatarWearingArgs.Wearable wear in e.NowWearing)
+            {
+                if (wear.Type < 13)
                 {
-                    if (wear.Type < 13)
+                    LLUUID assetId;
+                    CachedUserInfo profile = m_scene.CommsManager.UserProfileCacheService.GetUserDetails(clientView.AgentId);
+                    if (profile != null)
                     {
-                        LLUUID assetId;
-                        CachedUserInfo profile = m_scene.CommsManager.UserProfileCacheService.GetUserDetails(clientView.AgentId);
-                        if (profile != null)
+                        InventoryItemBase baseItem = profile.RootFolder.HasItem(wear.ItemID);
+                        if (baseItem != null)
                         {
-                            InventoryItemBase baseItem = profile.RootFolder.HasItem(wear.ItemID);
-                            if (baseItem != null)
+                            assetId = baseItem.assetID;
+                            //temporary dictionary storage. This should be storing to a database
+                            if (m_avatarsClothes.ContainsKey(clientView.AgentId))
                             {
-                                assetId = baseItem.assetID;
-                                //temporary dictionary storage. This should be storing to a database
-                                if (m_avatarsClothes.ContainsKey(clientView.AgentId))
-                                {
-                                    AvatarAppearance avWearing = m_avatarsClothes[clientView.AgentId];
-                                    avWearing.IsWearing[wear.Type].AssetID = assetId;
-                                    avWearing.IsWearing[wear.Type].ItemID = wear.ItemID;
-                                }
+                                AvatarAppearance avWearing = m_avatarsClothes[clientView.AgentId];
+                                avWearing.IsWearing[wear.Type].AssetID = assetId;
+                                avWearing.IsWearing[wear.Type].ItemID = wear.ItemID;
                             }
                         }
                     }
                 }
+            }
         }
 
         public static void GetDefaultAvatarAppearance(out AvatarWearable[] wearables, out byte[] visualParams)
@@ -155,5 +155,4 @@ namespace OpenSim.Region.Environment.Modules
             }
         }
     }
-
 }

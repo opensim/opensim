@@ -177,7 +177,7 @@ namespace OpenSim.Framework.Communications
         }
 
         /// <summary>
-        /// Build a Uri based on the intial Url, path elements and parameters
+        /// Build a Uri based on the initial Url, path elements and parameters
         /// </summary>
         /// <returns>fully constructed Uri</returns>
         private Uri buildUri()
@@ -250,7 +250,7 @@ namespace OpenSim.Framework.Communications
         }
 
         /// <summary>
-        /// Async method, invoked when the intial response if received from the server
+        /// Async method, invoked when the initial response if received from the server
         /// </summary>
         /// <param name="ar"></param>
         private void ResponseIsReadyDelegate(IAsyncResult ar)

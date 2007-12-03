@@ -251,7 +251,6 @@ namespace OpenSim.Region.Environment.Scenes
 
             httpListener = httpServer;
             m_dumpAssetsToFile = dumpAssetsToFile;
-
         }
 
         #endregion
@@ -311,8 +310,6 @@ namespace OpenSim.Region.Environment.Scenes
                 m_restartTimer.Start();
                 SendGeneralAlert(RegionInfo.RegionName + ": Restarting in 2 Minutes");
             }
-
-            
         }
 
         public void RestartTimer_Elapsed(object sender, ElapsedEventArgs e)
@@ -329,7 +326,6 @@ namespace OpenSim.Region.Environment.Scenes
                 m_restartTimer.AutoReset = false;
                 RestartNow();
             }
-            
         }
 
         public void RestartNow()
@@ -391,7 +387,6 @@ namespace OpenSim.Region.Environment.Scenes
                         avatar.ControllingClient.Stop();
 
                     });
-            
 
             m_heartbeatTimer.Close();
             m_innerScene.Close();
@@ -407,7 +402,6 @@ namespace OpenSim.Region.Environment.Scenes
             Modules.Clear();
 
             base.Close();
-
         }
 
         /// <summary>
@@ -568,7 +562,6 @@ namespace OpenSim.Region.Environment.Scenes
                                       }
                                   });
 
-
                     Terrain.ResetTaint();
                 }
             }
@@ -631,7 +624,7 @@ namespace OpenSim.Region.Environment.Scenes
                 }
             }
 
-            foreach(AssetBase asset in textures)
+            foreach (AssetBase asset in textures)
             {
                System.Drawing.Image image= OpenJPEGNet.OpenJPEG.DecodeToImage(asset.Data);
                bitImages.Add(image);
@@ -642,7 +635,7 @@ namespace OpenSim.Region.Environment.Scenes
             System.Drawing.SolidBrush sea = new System.Drawing.SolidBrush(System.Drawing.Color.DarkBlue);
             g.FillRectangle(sea, 0, 0, 2560, 2560);
 
-            for(int i =0; i<mapBlocks.Count; i++)
+            for (int i = 0; i < mapBlocks.Count; i++)
             {
                 ushort x = (ushort) ((mapBlocks[i].X - this.RegionInfo.RegionLocX) + 10);
                 ushort y = (ushort) ((mapBlocks[i].Y - this.RegionInfo.RegionLocY) + 10);
@@ -692,7 +685,6 @@ namespace OpenSim.Region.Environment.Scenes
 
                 CreateTerrainTexture(false);
                 //CommsManager.GridService.RegisterRegion(RegionInfo); //hack to update the terrain texture in grid mode so it shows on world map
-
             }
             catch (Exception e)
             {
@@ -725,7 +717,6 @@ namespace OpenSim.Region.Environment.Scenes
             asset.Temporary = temporary;
             AssetCache.AddAsset(asset);
         }
-
         
         #endregion
 
@@ -795,7 +786,6 @@ namespace OpenSim.Region.Environment.Scenes
         /// <param name="ownerID"></param>
         public virtual void AddNewPrim(LLUUID ownerID, LLVector3 pos, LLQuaternion rot, PrimitiveBaseShape shape)
         {
-
             // What we're *supposed* to do is raytrace from the camera position given by the client to the nearest collision
             // in the direction the client supplies (the ground level that we clicked)  
             // This function is pretty crappy right now..  so we're not affecting where the newly rezzed objects go
@@ -812,7 +802,6 @@ namespace OpenSim.Region.Environment.Scenes
                 Vector3 rayDirection = new Vector3(rayEnd.x / raydistance, rayEnd.y / raydistance, rayEnd.z / raydistance);
 
                 Ray rezRay = new Ray(CameraPosition, rayDirection);
-
 
                 Vector3 RezDirectionFromCamera = rezRay.Direction;
 
@@ -838,14 +827,12 @@ namespace OpenSim.Region.Environment.Scenes
 
                     MainLog.Instance.Verbose("REZINFO", "Possible Rez Point:" + RezPoint.ToString());
                     //pos = new LLVector3(RezPoint.x, RezPoint.y, RezPoint.z);
-
                 }
                 else
                 {
                     // rez ON the ground, not IN the ground
                     pos.Z += 0.25F;
                 }
-
                 
                 SceneObjectGroup sceneOb =
                     new SceneObjectGroup(this, m_regionHandle, ownerID, PrimIDAllocate(), pos, rot, shape);
@@ -871,7 +858,6 @@ namespace OpenSim.Region.Environment.Scenes
                             new Quaternion(), UsePhysics);
                     // subscribe to physics events.
                     rootPart.DoPhysicsPropertyUpdate(UsePhysics, true);
-                    
                 }
             }
         }
@@ -1037,12 +1023,11 @@ namespace OpenSim.Region.Environment.Scenes
         protected void LoadAvatarAppearance(IClientAPI client, out byte[] visualParams, out AvatarWearable[] wearables)
         {
             if (m_AvatarFactory == null ||
-                !m_AvatarFactory.TryGetIntialAvatarAppearance(client.AgentId, out wearables, out visualParams))
+                !m_AvatarFactory.TryGetInitialAvatarAppearance(client.AgentId, out wearables, out visualParams))
             {
                 AvatarFactoryModule.GetDefaultAvatarAppearance(out wearables, out visualParams);
             }
         }
-
 
         /// <summary>
         /// 
@@ -1065,7 +1050,6 @@ namespace OpenSim.Region.Environment.Scenes
 
                     }                    
                 });
-
 
             ForEachScenePresence(
                 delegate(ScenePresence presence) { presence.CoarseLocationChange(); });
@@ -1096,8 +1080,6 @@ namespace OpenSim.Region.Environment.Scenes
 
             // Remove client agent from profile, so new logins will work
             CommsManager.UserService.clearUserAgent(agentID);
-
-            return;
         }
 
         public void NotifyMyCoarseLocationChange()
@@ -1223,6 +1205,7 @@ namespace OpenSim.Region.Environment.Scenes
         {
             m_sceneGridService.EnableNeighbourChildAgents(presence);
         }
+
         public void InformClientOfNeighbor(ScenePresence presence, RegionInfo region)
         {
             m_sceneGridService.InformNeighborChildAgent(presence, region);
@@ -1281,6 +1264,7 @@ namespace OpenSim.Region.Environment.Scenes
         #endregion
 
         #region Module Methods
+
         public void AddModule(string name, IRegionModule module)
         {
             if (!Modules.ContainsKey(name))
@@ -1308,9 +1292,11 @@ namespace OpenSim.Region.Environment.Scenes
                 return default(T);
             }
         }
+
         #endregion
 
         #region Other Methods
+
         public void SetTimePhase(int phase)
         {
             m_timePhase = phase;
@@ -1342,7 +1328,6 @@ namespace OpenSim.Region.Environment.Scenes
             m_LandManager.finalizeLandPrimCountUpdate();
             m_LandManager.landPrimCountTainted = false;
         }
-
 
         public void addPrimsToParcelCounts()
         {
@@ -1409,7 +1394,6 @@ namespace OpenSim.Region.Environment.Scenes
             {
                 m_scenePresences[agentID].ControllingClient.SendAgentAlertMessage("Request for god powers denied", false);
             }
-
         }
 
         public void handleGodlikeKickUser(LLUUID godid, LLUUID sessionid, LLUUID agentid, uint kickflags, byte[] reason)
