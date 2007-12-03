@@ -154,7 +154,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                 d.WorldSetContactMaxCorrectingVel(world, 1000.0f);
             }
 
-            _heightmap = new double[258*258];
+            _heightmap = new double[514*514];
 
             for (int i = 0; i < staticPrimspace.GetLength(0); i++)
             {
@@ -885,25 +885,77 @@ namespace OpenSim.Region.Physics.OdePlugin
             get { return (false); // for now we won't be multithreaded
             }
         }
+        public float[] ResizeTerrain512(float[] heightMap)
+        {
+            float[] returnarr = new float[262144];
+            float[,] resultarr = new float[256, 256];
 
+            // Filling out the array into it's multi-dimentional components
+            for (int y = 0; y < 256; y++)
+            {
+                for (int x = 0; x < 256; x++)
+                {
+                    resultarr[y,x] = heightMap[y * 256 + x];
+                }
+            }
+
+            // Resize using the nearest neighbor method
+            // Going to be doing interpolation here soon
+            
+            // This particular way is quick but it only works on a multiple of the original
+
+            float[,] resultarr2 = new float[512, 512];
+            for (int y = 0; y < 256; y++)
+            {
+                for (int x = 0; x < 256; x++)
+                {
+                    resultarr2[y*2,x*2] = resultarr[y,x];
+
+                    if (y < 256)
+                        resultarr2[(y*2)+1,x*2] = resultarr[y,x];
+                    if (x < 256)
+                        resultarr2[y*2,(x*2)+1] = resultarr[y,x];
+
+                    if (x<256 && y < 256)
+                        resultarr2[(y*2)+1,(x*2)+1] = resultarr[y,x];
+                }
+
+            }
+            //Flatten out the array
+            int i = 0;
+            for (int y = 0; y < 512; y++)
+            {
+                for (int x = 0; x < 512; x++)
+                {
+                    returnarr[i] = resultarr2[y, x];
+                    i++;
+                }
+            }
+
+            return returnarr;
+
+        }
         public override void SetTerrain(float[] heightMap)
         {
             // this._heightmap[i] = (double)heightMap[i];
             // dbm (danx0r) -- heightmap x,y must be swapped for Ode (should fix ODE, but for now...)
             // also, creating a buffer zone of one extra sample all around
-            for (int x = 0; x < 258; x++)
+
+            //Double resolution
+            heightMap = ResizeTerrain512(heightMap);
+            for (int x = 0; x < 514; x++)
             {
-                for (int y = 0; y < 258; y++)
+                for (int y = 0; y < 514; y++)
                 {
                     int xx = x - 1;
                     if (xx < 0) xx = 0;
-                    if (xx > 255) xx = 255;
+                    if (xx > 511) xx = 511;
                     int yy = y - 1;
                     if (yy < 0) yy = 0;
-                    if (yy > 255) yy = 255;
+                    if (yy > 511) yy = 511;
 
-                    double val = (double) heightMap[yy*256 + xx];
-                    _heightmap[x*258 + y] = val;
+                    double val = (double) heightMap[yy*512 + xx];
+                    _heightmap[x*514 + y] = val;
                 }
             }
 
@@ -914,7 +966,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                     d.SpaceRemove(space, LandGeom);
                 }
                 IntPtr HeightmapData = d.GeomHeightfieldDataCreate();
-                d.GeomHeightfieldDataBuildDouble(HeightmapData, _heightmap, 0, 258, 258, 258, 258, 1.0f, 0.0f, 2.0f, 0);
+                d.GeomHeightfieldDataBuildDouble(HeightmapData, _heightmap, 0, 258, 258, 514, 514, 1.0f, 0.0f, 2.0f, 0);
                 d.GeomHeightfieldDataSetBounds(HeightmapData, 256, 256);
                 LandGeom = d.CreateHeightfield(space, HeightmapData, 1);
                 geom_name_map[LandGeom] = "Terrain";
