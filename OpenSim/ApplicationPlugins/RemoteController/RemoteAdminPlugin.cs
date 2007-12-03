@@ -36,12 +36,30 @@ namespace OpenSim.ApplicationPlugins.LoadRegions
 
                 m_httpd.AddXmlRPCHandler("admin_create_region", XmlRpcCreateRegionMethod);
                 m_httpd.AddXmlRPCHandler("admin_shutdown", XmlRpcShutdownMethod);
+                m_httpd.AddXmlRPCHandler("admin_broadcast", XmlRpcAlertMethod);
             }
+        }
+
+        public XmlRpcResponse XmlRpcAlertMethod(XmlRpcRequest request)
+        {
+            XmlRpcResponse response = new XmlRpcResponse();
+            Hashtable requestData = (Hashtable)request.Params[0];
+
+            string message = (string)requestData["message"];
+            MainLog.Instance.Verbose("RADMIN", "Broadcasting: " + message);
+
+            Hashtable responseData = new Hashtable();
+            responseData["accepted"] = "true";
+            response.Value = responseData;
+
+            m_app.SceneManager.SendGeneralMessage(message);
+
+            return response;
         }
 
         public XmlRpcResponse XmlRpcShutdownMethod(XmlRpcRequest request)
         {
-            MainLog.Instance.Verbose("CONTROLLER", "Recieved Shutdown Administrator Request");
+            MainLog.Instance.Verbose("RADMIN", "Recieved Shutdown Administrator Request");
             XmlRpcResponse response = new XmlRpcResponse();
             Hashtable requestData = (Hashtable)request.Params[0];
 
@@ -89,7 +107,7 @@ namespace OpenSim.ApplicationPlugins.LoadRegions
 
         public XmlRpcResponse XmlRpcCreateRegionMethod(XmlRpcRequest request)
         {
-            MainLog.Instance.Verbose("CONTROLLER", "Recieved Create Region Administrator Request");
+            MainLog.Instance.Verbose("RADMIN", "Recieved Create Region Administrator Request");
             XmlRpcResponse response = new XmlRpcResponse();
             Hashtable requestData = (Hashtable)request.Params[0];
 
