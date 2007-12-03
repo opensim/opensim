@@ -74,16 +74,17 @@ namespace OpenSim.Region.Environment.Modules
         public void AvatarIsWearing(Object sender, AvatarWearingArgs e)
         {
             IClientAPI clientView = (IClientAPI)sender;
-            //Todo look up the assetid from the inventory cache (or something) for each itemId that is in AvatarWearingArgs
-            // then store assetid and itemId and wearable type in a database
-            foreach (AvatarWearingArgs.Wearable wear in e.NowWearing)
+            CachedUserInfo profile = m_scene.CommsManager.UserProfileCacheService.GetUserDetails(clientView.AgentId);
+            if (profile != null)
             {
-                if (wear.Type < 13)
+                //Todo look up the assetid from the inventory cache (or something) for each itemId that is in AvatarWearingArgs
+                // then store assetid and itemId and wearable type in a database
+                foreach (AvatarWearingArgs.Wearable wear in e.NowWearing)
                 {
-                    LLUUID assetId;
-                    CachedUserInfo profile = m_scene.CommsManager.UserProfileCacheService.GetUserDetails(clientView.AgentId);
-                    if (profile != null)
+                    if (wear.Type < 13)
                     {
+                        LLUUID assetId;
+
                         InventoryItemBase baseItem = profile.RootFolder.HasItem(wear.ItemID);
                         if (baseItem != null)
                         {
@@ -96,6 +97,7 @@ namespace OpenSim.Region.Environment.Modules
                                 avWearing.IsWearing[wear.Type].ItemID = wear.ItemID;
                             }
                         }
+
                     }
                 }
             }
