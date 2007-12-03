@@ -57,7 +57,7 @@ namespace OpenSim.Region.Environment.Scenes
             if (userInfo != null)
             {
                 userInfo.AddItem(remoteClient.AgentId, item);
-                remoteClient.SendInventoryItemUpdate(item);
+                remoteClient.SendInventoryItemCreateUpdate(item);
             }
         }
 
@@ -89,7 +89,7 @@ namespace OpenSim.Region.Environment.Scenes
                         item.assetID = asset.FullID;
                         userInfo.UpdateItem(remoteClient.AgentId, item);
 
-                        // remoteClient.SendInventoryItemUpdate(item);
+                        // remoteClient.SendInventoryItemCreateUpdate(item);
                         if ((InventoryType) item.invType == InventoryType.Notecard)
                         {
                             //do we want to know about updated note cards?
@@ -229,7 +229,7 @@ namespace OpenSim.Region.Environment.Scenes
                 item.inventoryNextPermissions = nextOwnerMask;
 
                 userInfo.AddItem(remoteClient.AgentId, item);
-                remoteClient.SendInventoryItemUpdate(item);
+                remoteClient.SendInventoryItemCreateUpdate(item);
             }
         }
 
@@ -423,7 +423,7 @@ namespace OpenSim.Region.Environment.Scenes
                                 item.inventoryNextPermissions = 2147483647;
 
                                 userInfo.AddItem(remoteClient.AgentId, item);
-                                remoteClient.SendInventoryItemUpdate(item);
+                                remoteClient.SendInventoryItemCreateUpdate(item);
                             }
 
                             DeleteSceneObjectGroup((SceneObjectGroup) selectedEnt);

@@ -1176,7 +1176,8 @@ namespace OpenSim.Region.ClientStack
             OutPacket(inventoryReply, ThrottleOutPacketType.Asset);
         }
 
-        public void SendInventoryItemUpdate(InventoryItemBase Item)
+        /// <see>IClientAPI.SendInventoryItemCreateUpdate(InventoryItemBase)</see>
+        public void SendInventoryItemCreateUpdate(InventoryItemBase Item)
         {
             Encoding enc = Encoding.ASCII;
             uint FULL_MASK_PERMISSIONS = 2147483647;

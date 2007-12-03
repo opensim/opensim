@@ -310,7 +310,7 @@ namespace SimpleApp
         {
         }
 
-        public virtual void SendInventoryItemUpdate(InventoryItemBase Item)
+        public virtual void SendInventoryItemCreateUpdate(InventoryItemBase Item)
         {
         }
 

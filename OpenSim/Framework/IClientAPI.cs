@@ -477,7 +477,13 @@ namespace OpenSim.Framework
 
         void SendInventoryFolderDetails(LLUUID ownerID, LLUUID folderID, List<InventoryItemBase> items, int subFoldersCount);
         void SendInventoryItemDetails(LLUUID ownerID, InventoryItemBase item);
-        void SendInventoryItemUpdate(InventoryItemBase Item);
+        
+        /// <summary>
+        /// Tell the client that we have created the item it requested.
+        /// </summary>
+        /// <param name="Item"></param>        
+        void SendInventoryItemCreateUpdate(InventoryItemBase Item);
+        
         void SendRemoveInventoryItem(LLUUID itemID);
         void SendTaskInventory(LLUUID taskID, short serial, byte[] fileName);
         void SendXferPacket(ulong xferID, uint packet, byte[] data);

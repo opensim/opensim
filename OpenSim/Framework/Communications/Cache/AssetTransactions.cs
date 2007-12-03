@@ -350,7 +350,7 @@ namespace OpenSim.Framework.Communications.Cache
                     item.inventoryNextPermissions = nextPerm;
 
                     userInfo.AddItem(ourClient.AgentId, item);
-                    ourClient.SendInventoryItemUpdate(item);
+                    ourClient.SendInventoryItemCreateUpdate(item);
                 }
             }
 
