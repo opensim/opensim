@@ -212,6 +212,15 @@ namespace OpenSim
                 config.Set("asset_server_url", "http://127.0.0.1:" + AssetConfig.DefaultHttpPort.ToString());
                 config.Set("inventory_server_url", "http://127.0.0.1:" + InventoryConfig.DefaultHttpPort.ToString());
             }
+
+
+            if (m_config.Configs["RemoteAdmin"] == null)
+                m_config.AddConfig("RemoteAdmin");
+            config = m_config.Configs["RemoteAdmin"];
+            if (config != null)
+            {
+                config.Set("enabled", "false");
+            }
         }
 
         protected void ReadConfigSettings()
