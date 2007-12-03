@@ -767,6 +767,36 @@
       </Files>
     </Project>
 
+    <Project name="OpenSim.ApplicationPlugins.RemoteController" path="OpenSim/ApplicationPlugins/RemoteController" type="Library">
+      <Configuration name="Debug">
+        <Options>
+          <OutputPath>../../../bin/</OutputPath>
+        </Options>
+      </Configuration>
+      <Configuration name="Release">
+        <Options>
+          <OutputPath>../../../bin/</OutputPath>
+        </Options>
+      </Configuration>
+
+      <ReferencePath>../../../bin/</ReferencePath>
+      <Reference name="Mono.Addins.dll" />
+      <Reference name="System"/>
+      <Reference name="System.Xml"/>
+      <Reference name="libsecondlife.dll" />
+      <Reference name="Nini.dll" />
+      <Reference name="XMLRPC.dll" />
+      <Reference name="OpenSim"/>
+      <Reference name="OpenSim.Region.ClientStack"/>
+      <Reference name="OpenSim.Region.Environment"/>
+      <Reference name="OpenSim.Framework"/>
+      <Reference name="OpenSim.Framework.Servers"/>
+      <Reference name="OpenSim.Framework.Console"/>
+      <Files>
+        <Match pattern="*.cs" recurse="true"/>
+      </Files>
+    </Project>
+
     <!-- Scene Server API Example Apps -->
 
     <Project name="SimpleApp" path="OpenSim/Region/Examples/SimpleApp" type="Exe">

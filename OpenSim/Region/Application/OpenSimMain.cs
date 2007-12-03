@@ -61,8 +61,6 @@ namespace OpenSim
         public bool m_gridLocalAsset;
         public bool m_SendChildAgentTaskData;
 
-        private OpenSimController m_controller;
-
         protected LocalLoginService m_loginService;
 
         protected string m_storageDll;
@@ -100,6 +98,11 @@ namespace OpenSim
         {
             get { return m_config; }
             set { m_config = value; }
+        }
+
+        public BaseHttpServer HttpServer
+        {
+            get { return m_httpServer; }
         }
 
         private ModuleLoader m_moduleLoader;
@@ -278,8 +281,6 @@ namespace OpenSim
             MainLog.Instance = m_log;
 
             base.StartUp();
-
-            m_controller = new OpenSimController(this, m_httpServer);
 
             if (m_sandbox)
             {
