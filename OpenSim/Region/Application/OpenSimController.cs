@@ -13,7 +13,7 @@ namespace OpenSim
     {
         private OpenSimMain m_app;
         private BaseHttpServer m_httpServer;
-        private const bool m_enablexmlrpc = false;
+        private const bool m_enablexmlrpc = true;
 
         public OpenSimController(OpenSimMain core, BaseHttpServer httpd)
         {
@@ -35,7 +35,7 @@ namespace OpenSim
 
             if ((string) requestData["shutdown"] == "delayed")
             {
-                int timeout = Convert.ToInt32((string) requestData["milliseconds"]);
+                int timeout = (Int32)requestData["milliseconds"];
 
                 Hashtable responseData = new Hashtable();
                 responseData["accepted"] = "true";
@@ -48,6 +48,7 @@ namespace OpenSim
                 Timer shutdownTimer = new Timer(timeout); // Wait before firing
                 shutdownTimer.AutoReset = false;
                 shutdownTimer.Elapsed += new ElapsedEventHandler(shutdownTimer_Elapsed);
+                shutdownTimer.Start();
 
                 return response;
             }
@@ -63,6 +64,7 @@ namespace OpenSim
                 Timer shutdownTimer = new Timer(2000); // Wait 2 seconds before firing
                 shutdownTimer.AutoReset = false;
                 shutdownTimer.Elapsed += new ElapsedEventHandler(shutdownTimer_Elapsed);
+                shutdownTimer.Start();
 
                 return response;
             }
@@ -83,10 +85,10 @@ namespace OpenSim
 
             try
             {
-                newRegionData.RegionID = (string) requestData["region_id"];
-                newRegionData.RegionName = (string) requestData["region_name"];
-                newRegionData.RegionLocX = Convert.ToUInt32((string) requestData["region_x"]);
-                newRegionData.RegionLocY = Convert.ToUInt32((string) requestData["region_y"]);
+                newRegionData.RegionID = (string)requestData["region_id"];
+                newRegionData.RegionName = (string)requestData["region_name"];
+                newRegionData.RegionLocX = Convert.ToUInt32((Int32)requestData["region_x"]);
+                newRegionData.RegionLocY = Convert.ToUInt32((Int32)requestData["region_y"]);
 
                 // Security risk
                 newRegionData.DataStore = (string) requestData["datastore"];
@@ -94,8 +96,8 @@ namespace OpenSim
                 newRegionData.InternalEndPoint = new IPEndPoint(
                     IPAddress.Parse((string) requestData["listen_ip"]), 0);
 
-                newRegionData.InternalEndPoint.Port = Convert.ToInt32((string) requestData["listen_port"]);
-                newRegionData.ExternalHostName = (string) requestData["external_address"];
+                newRegionData.InternalEndPoint.Port = (Int32)requestData["listen_port"];
+                newRegionData.ExternalHostName = (string)requestData["external_address"];
 
                 newRegionData.MasterAvatarFirstName = (string) requestData["region_master_first"];
                 newRegionData.MasterAvatarLastName = (string) requestData["region_master_last"];
