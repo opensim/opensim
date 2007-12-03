@@ -310,8 +310,9 @@ namespace OpenSim.Framework
 
     public delegate void RequestTaskInventory(IClientAPI remoteClient, uint localID);
 
-    public delegate void UpdateInventoryItemTransaction(
-        IClientAPI remoteClient, LLUUID transactionID, LLUUID assetID, LLUUID itemID);
+    public delegate void UpdateInventoryItem(
+        IClientAPI remoteClient, LLUUID transactionID, LLUUID itemID, string name, string description,
+        uint nextOwnerMask);
 
     public delegate void CopyInventoryItem(
         IClientAPI remoteClient, uint callbackID, LLUUID oldAgentID, LLUUID oldItemID, LLUUID newFolderID, string newName);
@@ -392,7 +393,7 @@ namespace OpenSim.Framework
         event FetchInventoryDescendents OnFetchInventoryDescendents;
         event FetchInventory OnFetchInventory;
         event RequestTaskInventory OnRequestTaskInventory;
-        event UpdateInventoryItemTransaction OnUpdateInventoryItem;
+        event UpdateInventoryItem OnUpdateInventoryItem;
         event CopyInventoryItem OnCopyInventoryItem;
         event UDPAssetUploadRequest OnAssetUploadRequest;
         event XferReceive OnXferReceive;
@@ -417,6 +418,8 @@ namespace OpenSim.Framework
         LLUUID AgentId { get; }
 
         LLUUID SessionId { get; }
+        
+        LLUUID SecureSessionId { get; }
 
         string FirstName { get; }
 
@@ -481,7 +484,7 @@ namespace OpenSim.Framework
         /// <summary>
         /// Tell the client that we have created the item it requested.
         /// </summary>
-        /// <param name="Item"></param>        
+        /// <param name="Item"></param>
         void SendInventoryItemCreateUpdate(InventoryItemBase Item);
         
         void SendRemoveInventoryItem(LLUUID itemID);

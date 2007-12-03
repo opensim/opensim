@@ -106,52 +106,107 @@ namespace OpenSim.Region.Environment.Scenes
             return LLUUID.Zero;
         }
 
-        public void UDPUpdateInventoryItemAsset(IClientAPI remoteClient, LLUUID transactionID, LLUUID assetID,
-                                                LLUUID itemID)
-        {
-            CachedUserInfo userInfo = CommsManager.UserProfileCacheService.GetUserDetails(remoteClient.AgentId);
-            if (userInfo != null)
+        /// <summary>
+        /// Update an item which is either already in the client's inventory or is within
+        /// a transaction
+        /// </summary>
+        /// <param name="remoteClient"></param>
+        /// <param name="transactionID">The transaction ID.  If this is LLUUID.Zero we will
+        /// assume that we are not in a transaction</param>
+        /// <param name="itemID">The ID of the updated item</param>
+        /// <param name="name">The name of the updated item</param>
+        /// <param name="description">The description of the updated item</param>
+        /// <param name="nextOwnerMask">The permissions of the updated item</param>
+        public void UpdateInventoryItemAsset(IClientAPI remoteClient, LLUUID transactionID, 
+                                             LLUUID itemID, string name, string description,
+                                             uint nextOwnerMask)
+        {            
+            CachedUserInfo userInfo 
+                = CommsManager.UserProfileCacheService.GetUserDetails(remoteClient.AgentId);
+            
+            if (userInfo != null && userInfo.RootFolder != null)
             {
-                if (userInfo.RootFolder != null)
+                InventoryItemBase item = userInfo.RootFolder.HasItem(itemID);
+                if (item != null)
                 {
-                    InventoryItemBase item = userInfo.RootFolder.HasItem(itemID);
-                    if (item != null)
+                    AssetBase asset = null;
+                    bool addAsset = false;
+                    
+                    // If we're not inside a transaction and an existing asset is attached
+                    // to the update item, then we need to create a new asset for the new details                     
+                    if (LLUUID.Zero == transactionID)
                     {
-                        AgentAssetTransactions transactions =
-                            CommsManager.TransactionsManager.GetUserTransActions(remoteClient.AgentId);
+                        asset = AssetCache.GetAsset(item.assetID);
+                        
+                        if (asset != null)
+                        {
+                            // to update an item we need to create a new asset
+                            // it's possible that this could be optimized to an update if we knew
+                            // that the owner's inventory had the only copy of the item (I believe
+                            // we're using copy on write semantics).
+                            item.inventoryName = asset.Name = name;
+                            item.inventoryDescription = asset.Description = description;
+                            item.inventoryNextPermissions = nextOwnerMask;
+                            item.assetID = asset.FullID = LLUUID.Random();
+                                                                    
+                            addAsset = true;                            
+                        }
+                        else
+                        {
+                            OpenSim.Framework.Console.MainLog.Instance.Warn(
+                                "Asset ID " + item.assetID + " not found for item ID " + itemID
+                                + " named " + item.inventoryName + " for an inventory item update.");
+                            return;
+                        }
+                    }
+                    else                       
+                    {
+                        AgentAssetTransactions transactions 
+                            = CommsManager.TransactionsManager.GetUserTransActions(remoteClient.AgentId);
+                        
                         if (transactions != null)
                         {
-                            AssetBase asset = null;
-                            bool addToCache = false;
-
+                            LLUUID assetID = transactionID.Combine(remoteClient.SecureSessionId);                            
                             asset = AssetCache.GetAsset(assetID);
+                            
                             if (asset == null)
                             {
                                 asset = transactions.GetTransactionAsset(transactionID);
-                                addToCache = true;
                             }
-
-                            if (asset != null)
+                            
+                            if (asset != null && asset.FullID == assetID)
                             {
-                                if (asset.FullID == assetID)
-                                {
-                                    asset.Name = item.inventoryName;
-                                    asset.Description = item.inventoryDescription;
-                                    asset.InvType = (sbyte) item.invType;
-                                    asset.Type = (sbyte) item.assetType;
-                                    item.assetID = asset.FullID;
-
-                                    if (addToCache)
-                                    {
-                                        AssetCache.AddAsset(asset);
-                                    }
-
-                                    userInfo.UpdateItem(remoteClient.AgentId, item);
-                                }
+                                asset.Name = item.inventoryName;
+                                asset.Description = item.inventoryDescription;
+                                asset.InvType = (sbyte) item.invType;
+                                asset.Type = (sbyte) item.assetType;    
+                                item.assetID = asset.FullID;
+                                
+                                addAsset = true;
                             }
                         }
                     }
+                        
+                    if (asset != null)
+                    {
+                        if (addAsset)
+                        {
+                            AssetCache.AddAsset(asset);
+                        }
+
+                        userInfo.UpdateItem(remoteClient.AgentId, item);
+                    }
                 }
+                else
+                { 
+                    OpenSim.Framework.Console.MainLog.Instance.Warn(
+                        "Item ID " + itemID + " not found for an inventory item update.");                    
+                }
+            }
+            else
+            {
+                OpenSim.Framework.Console.MainLog.Instance.Warn(
+                    "Agent ID " + remoteClient.AgentId + " not found for an inventory item update."); 
             }
         }
 

@@ -989,7 +989,7 @@ namespace OpenSim.Region.Environment.Scenes
             client.OnFetchInventoryDescendents += CommsManager.UserProfileCacheService.HandleFecthInventoryDescendents;
             client.OnRequestTaskInventory += RequestTaskInventory;
             client.OnFetchInventory += CommsManager.UserProfileCacheService.HandleFetchInventory;
-            client.OnUpdateInventoryItem += UDPUpdateInventoryItemAsset;
+            client.OnUpdateInventoryItem += UpdateInventoryItemAsset;
             client.OnCopyInventoryItem += CopyInventoryItem;
             client.OnAssetUploadRequest += CommsManager.TransactionsManager.HandleUDPUploadRequest;
             client.OnXferReceive += CommsManager.TransactionsManager.HandleXfer;

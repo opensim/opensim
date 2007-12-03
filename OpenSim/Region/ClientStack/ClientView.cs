@@ -59,7 +59,14 @@ namespace OpenSim.Region.ClientStack
         //local handlers for this instance 
 
         private LLUUID m_sessionId;
-        public LLUUID SecureSessionID = LLUUID.Zero;
+        
+        private LLUUID m_secureSessionId = LLUUID.Zero;
+        
+        public LLUUID SecureSessionId
+        {
+            get { return m_secureSessionId; }
+        }
+        
         public string firstName;
         public string lastName;
         private UseCircuitCodePacket cirpack;
@@ -540,7 +547,7 @@ namespace OpenSim.Region.ClientStack
 
                 if (sessionInfo.LoginInfo.SecureSession != LLUUID.Zero)
                 {
-                    SecureSessionID = sessionInfo.LoginInfo.SecureSession;
+                    m_secureSessionId = sessionInfo.LoginInfo.SecureSession;
                 }
                 InitNewClient();
 
@@ -615,7 +622,7 @@ namespace OpenSim.Region.ClientStack
         public event FetchInventoryDescendents OnFetchInventoryDescendents;
         public event FetchInventory OnFetchInventory;
         public event RequestTaskInventory OnRequestTaskInventory;
-        public event UpdateInventoryItemTransaction OnUpdateInventoryItem;
+        public event UpdateInventoryItem OnUpdateInventoryItem;
         public event CopyInventoryItem OnCopyInventoryItem;
         public event UDPAssetUploadRequest OnAssetUploadRequest;
         public event XferReceive OnXferReceive;
@@ -888,7 +895,7 @@ namespace OpenSim.Region.ClientStack
             AgentCircuitData agentData = new AgentCircuitData();
             agentData.AgentID = AgentId;
             agentData.SessionID = m_sessionId;
-            agentData.SecureSessionID = SecureSessionID;
+            agentData.SecureSessionID = SecureSessionId;
             agentData.circuitcode = m_circuitCode;
             agentData.child = false;
             agentData.firstname = firstName;
@@ -2953,10 +2960,10 @@ namespace OpenSim.Region.ClientStack
                     case PacketType.AssetUploadRequest:
                         AssetUploadRequestPacket request = (AssetUploadRequestPacket) Pack;
                         // Console.WriteLine("upload request " + Pack.ToString());
-                        // Console.WriteLine("upload request was for assetid: " + request.AssetBlock.TransactionID.Combine(this.SecureSessionID).ToStringHyphenated());
+                        // Console.WriteLine("upload request was for assetid: " + request.AssetBlock.TransactionID.Combine(this.SecureSessionId).ToStringHyphenated());
                         if (OnAssetUploadRequest != null)
                         {
-                            OnAssetUploadRequest(this, request.AssetBlock.TransactionID.Combine(SecureSessionID),
+                            OnAssetUploadRequest(this, request.AssetBlock.TransactionID.Combine(SecureSessionId),
                                                  request.AssetBlock.TransactionID, request.AssetBlock.Type,
                                                  request.AssetBlock.AssetData, request.AssetBlock.StoreLocal);
                         }
@@ -3033,12 +3040,11 @@ namespace OpenSim.Region.ClientStack
                         {
                             for (int i = 0; i < update.InventoryData.Length; i++)
                             {
-                                if (update.InventoryData[i].TransactionID != LLUUID.Zero)
-                                {
-                                    OnUpdateInventoryItem(this, update.InventoryData[i].TransactionID,
-                                                          update.InventoryData[i].TransactionID.Combine(SecureSessionID),
-                                                          update.InventoryData[i].ItemID);
-                                }
+                                OnUpdateInventoryItem(this, update.InventoryData[i].TransactionID,                                                          
+                                                      update.InventoryData[i].ItemID,
+                                                      Util.FieldToString(update.InventoryData[i].Name),                                                          
+                                                      Util.FieldToString(update.InventoryData[i].Description),
+                                                      update.InventoryData[i].NextOwnerMask);                                                          
                             }
                         }
                         //Console.WriteLine(Pack.ToString());
@@ -3046,7 +3052,7 @@ namespace OpenSim.Region.ClientStack
                         {
                             if (update.InventoryData[i].TransactionID != LLUUID.Zero)
                             {
-                                AssetBase asset = m_assetCache.GetAsset(update.InventoryData[i].TransactionID.Combine(this.SecureSessionID));
+                                AssetBase asset = m_assetCache.GetAsset(update.InventoryData[i].TransactionID.Combine(this.SecureSessionId));
                                 if (asset != null)
                                 {
                                     // Console.WriteLine("updating inventory item, found asset" + asset.FullID.ToStringHyphenated() + " already in cache");

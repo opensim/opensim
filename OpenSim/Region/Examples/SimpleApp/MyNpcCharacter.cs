@@ -108,7 +108,7 @@ namespace SimpleApp
         public event FetchInventoryDescendents OnFetchInventoryDescendents;
         public event FetchInventory OnFetchInventory;
         public event RequestTaskInventory OnRequestTaskInventory;
-        public event UpdateInventoryItemTransaction OnUpdateInventoryItem;
+        public event UpdateInventoryItem OnUpdateInventoryItem;
         public event CopyInventoryItem OnCopyInventoryItem;
         public event UDPAssetUploadRequest OnAssetUploadRequest;
         public event XferReceive OnXferReceive;
@@ -154,6 +154,11 @@ namespace SimpleApp
         }
 
         public LLUUID SessionId
+        {
+            get { return LLUUID.Zero; }
+        }
+        
+        public LLUUID SecureSessionId
         {
             get { return LLUUID.Zero; }
         }
