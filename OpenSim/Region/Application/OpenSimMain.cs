@@ -659,11 +659,19 @@ namespace OpenSim
                 case "load-xml":
                     if (cmdparams.Length > 0)
                     {
-                        m_sceneManager.LoadCurrentSceneFromXml(cmdparams[0]);
+                        bool generateNewIDS = false;
+                        if (cmdparams.Length > 1)
+                        {
+                            if (cmdparams[1] == "-newUID")
+                            {
+                                generateNewIDS = true;
+                            } 
+                        }
+                        m_sceneManager.LoadCurrentSceneFromXml(cmdparams[0], generateNewIDS);
                     }
                     else
                     {
-                        m_sceneManager.LoadCurrentSceneFromXml(DEFAULT_PRIM_BACKUP_FILENAME);
+                        m_sceneManager.LoadCurrentSceneFromXml(DEFAULT_PRIM_BACKUP_FILENAME, false);
                     }
                     break;
 

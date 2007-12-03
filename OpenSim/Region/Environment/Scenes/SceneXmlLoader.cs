@@ -23,7 +23,7 @@ namespace OpenSim.Region.Environment.Scenes
             m_regInfo = regionInfo;
         }
 
-        public void LoadPrimsFromXml(string fileName)
+        public void LoadPrimsFromXml(string fileName, bool newIDS)
         {
             XmlDocument doc = new XmlDocument();
             XmlNode rootNode;
@@ -39,6 +39,10 @@ namespace OpenSim.Region.Environment.Scenes
                 {
                     SceneObjectGroup obj = new SceneObjectGroup(m_parentScene,
                                                                 m_regInfo.RegionHandle, aPrimNode.OuterXml);
+                    if (newIDS)
+                    {
+                        obj.GenerateNewIDs();
+                    }
                     //if we want this to be a import method then we need new uuids for the object to avoid any clashes
                     //obj.RegenerateFullIDs(); 
                     m_innerScene.AddEntity(obj);
