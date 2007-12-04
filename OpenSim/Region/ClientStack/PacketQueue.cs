@@ -216,9 +216,7 @@ namespace OpenSim.Region.ClientStack
                     TotalThrottle.Add(qpack.Packet.ToBytes().Length);
                     AssetThrottle.Add(qpack.Packet.ToBytes().Length);
                 }
-
             }
-
         }
 
         private void ThrottleCheck(ref PacketThrottle throttle, ref Queue<QueItem> q, QueItem item)
@@ -273,7 +271,6 @@ namespace OpenSim.Region.ClientStack
                     SendQueue.Enqueue(item); 
                     break;
             }
-
         }
 
         private int ScaleThrottle(int value, int curmax, int newmax)
@@ -283,9 +280,6 @@ namespace OpenSim.Region.ClientStack
 
         public void SetThrottleFromClient(Packet Pack)
         {
-            
-            //OpenSim.Framework.Console.MainLog.Instance.Verbose("CLIENT", "unhandled packet " + Pack.ToString());
-            
             AgentThrottlePacket atpack = (AgentThrottlePacket)Pack;
             
             byte[] throttle = atpack.Throttle.Throttles;
@@ -381,8 +375,6 @@ namespace OpenSim.Region.ClientStack
             }
             // effectively wiggling the slider causes things reset
             ResetCounters();
-            
         }
-
     }
 }

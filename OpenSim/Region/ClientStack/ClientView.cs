@@ -2520,8 +2520,7 @@ namespace OpenSim.Region.ClientStack
                         return;
                     }
 
-                    //OpenSim.Framework.Console.MainLog.Instance.WriteLine("Sending PacketAck");
-
+                    //MainLog.Instance.Verbose("Sending PacketAck");
 
                     int i = 0;
                     PacketAckPacket acks = new PacketAckPacket();
@@ -2676,7 +2675,7 @@ namespace OpenSim.Region.ClientStack
                         }
                         break;
                     case PacketType.AgentSetAppearance:
-                        //OpenSim.Framework.Console.MainLog.Instance.Verbose("set appear", Pack.ToString());
+                        //MainLog.Instance.Verbose("set appear", Pack.ToString());
                         AgentSetAppearancePacket appear = (AgentSetAppearancePacket) Pack;
                         if (OnSetAppearance != null)
                         {
@@ -2760,7 +2759,7 @@ namespace OpenSim.Region.ClientStack
                         #region Objects/m_sceneObjects
 
                     case PacketType.ObjectLink:
-                        //OpenSim.Framework.Console.MainLog.Instance.Verbose( Pack.ToString());
+                        //MainLog.Instance.Verbose(Pack.ToString());
                         ObjectLinkPacket link = (ObjectLinkPacket) Pack;
                         uint parentprimid = 0;
                         List<uint> childrenprims = new List<uint>();
@@ -2779,7 +2778,7 @@ namespace OpenSim.Region.ClientStack
                         }
                         break;
                     case PacketType.ObjectDelink:
-                        //OpenSim.Framework.Console.MainLog.Instance.Verbose( Pack.ToString());
+                        //MainLog.Instance.Verbose(Pack.ToString());
                         ObjectDelinkPacket delink = (ObjectDelinkPacket) Pack;
                         
                         // It appears the prim at index 0 is not always the root prim (for
@@ -2920,7 +2919,7 @@ namespace OpenSim.Region.ClientStack
                         }
                         break;
                     case PacketType.ObjectPermissions:
-                        OpenSim.Framework.Console.MainLog.Instance.Verbose("CLIENT", "unhandled packet " + Pack.ToString());
+                        // MainLog.Instance.Warn("CLIENT", "unhandled packet " + Pack.ToString());
                         break;
 
                     case PacketType.RequestObjectPropertiesFamily:
@@ -3127,7 +3126,7 @@ namespace OpenSim.Region.ClientStack
                         }
                         break;
                     case PacketType.MoveTaskInventory:
-                        OpenSim.Framework.Console.MainLog.Instance.Verbose("CLIENT", "unhandled packet " + Pack.ToString());
+                        MainLog.Instance.Warn("CLIENT", "unhandled MoveTaskInventory packet");
                         break;
                     case PacketType.RezScript:
                         //Console.WriteLine(Pack.ToString());
@@ -3308,9 +3307,6 @@ namespace OpenSim.Region.ClientStack
                         break;
 
                     case PacketType.AgentThrottle:
-
-                        //OpenSim.Framework.Console.MainLog.Instance.Verbose("CLIENT", "unhandled packet " + Pack.ToString());
-
                         AgentThrottlePacket atpack = (AgentThrottlePacket)Pack;
 
                         byte[] throttle = atpack.Throttle.Throttles;
@@ -3352,7 +3348,7 @@ namespace OpenSim.Region.ClientStack
 
                         tall = tResend + tLand + tWind + tCloud + tTask + tTexture + tAsset;
                         /*
-                        OpenSim.Framework.Console.MainLog.Instance.Verbose("CLIENT", "Client AgentThrottle - Got throttle:resendbytes=" + tResend +
+                        MainLog.Instance.Verbose("CLIENT", "Client AgentThrottle - Got throttle:resendbytes=" + tResend +
                             " landbytes=" + tLand +
                             " windbytes=" + tWind +
                             " cloudbytes=" + tCloud +
@@ -3425,7 +3421,7 @@ namespace OpenSim.Region.ClientStack
                             if (tAsset < AssetthrottleMin)
                                 AssetthrottleOutbound = AssetthrottleMin;
 
-                          /*  OpenSim.Framework.Console.MainLog.Instance.Verbose("THROTTLE", "Using:resendbytes=" + ResendthrottleOutbound +
+                          /*  MainLog.Instance.Verbose("THROTTLE", "Using:resendbytes=" + ResendthrottleOutbound +
                             " landbytes=" + LandthrottleOutbound +
                             " windbytes=" + WindthrottleOutbound +
                             " cloudbytes=" + CloudthrottleOutbound +
@@ -3536,7 +3532,7 @@ namespace OpenSim.Region.ClientStack
                                 if (tAssetResult < AssetthrottleMin)
                                     AssetthrottleOutbound = AssetthrottleMin;
 
-                                /* OpenSim.Framework.Console.MainLog.Instance.Verbose("THROTTLE", "Using:resendbytes=" + ResendthrottleOutbound +
+                                /* MainLog.Instance.Verbose("THROTTLE", "Using:resendbytes=" + ResendthrottleOutbound +
                                     " landbytes=" + LandthrottleOutbound +
                                     " windbytes=" + WindthrottleOutbound +
                                     " cloudbytes=" + CloudthrottleOutbound +
@@ -3545,11 +3541,9 @@ namespace OpenSim.Region.ClientStack
                                     " Assetbytes=" + AssetthrottleOutbound +
                                     " Allbytes=" + tall);
                                   */
-
                             }
                             else
                             {
-
                                 // The client sent a stupid value..   
                                 // We're going to set the throttles to the minimum possible
                                 ResendthrottleOutbound = ResendthrottleMin;
@@ -3559,7 +3553,7 @@ namespace OpenSim.Region.ClientStack
                                 TaskthrottleOutbound = TaskthrottleMin;
                                 TexturethrottleOutbound = TexturethrottleMin;
                                 AssetthrottleOutbound = AssetthrottleMin;
-                                OpenSim.Framework.Console.MainLog.Instance.Verbose("THROTTLE", "ClientSentBadThrottle Using:resendbytes=" + ResendthrottleOutbound +
+                                MainLog.Instance.Verbose("THROTTLE", "ClientSentBadThrottle Using:resendbytes=" + ResendthrottleOutbound +
                                     " landbytes=" + LandthrottleOutbound +
                                     " windbytes=" + WindthrottleOutbound +
                                     " cloudbytes=" + CloudthrottleOutbound +
@@ -3568,7 +3562,6 @@ namespace OpenSim.Region.ClientStack
                                     " Assetbytes=" + AssetthrottleOutbound +
                                     " Allbytes=" + tall);
                             }
-
                         }
                         // Reset Client Throttles
                         // This has the effect of 'wiggling the slider 
@@ -3583,9 +3576,6 @@ namespace OpenSim.Region.ClientStack
                         TextureBytesSent = 0;
 
                         //Yay, we've finally handled the agent Throttle packet!
-                   
-
-
                         break;
 
                         #endregion
@@ -3601,7 +3591,7 @@ namespace OpenSim.Region.ClientStack
                         
                         break;
                     case PacketType.GodKickUser:
-                        OpenSim.Framework.Console.MainLog.Instance.Verbose("CLIENT", "unhandled packet " + Pack.ToString());
+                        MainLog.Instance.Warn("CLIENT", "unhandled GodKickUser packet");
                         
                         GodKickUserPacket gkupack = (GodKickUserPacket) Pack;
                         
@@ -3623,7 +3613,6 @@ namespace OpenSim.Region.ClientStack
                         //kupack.TargetBlock.TargetPort = (ushort)0;
                         //kupack.UserInfo.Reason = gkupack.UserInfo.Reason;
 
-
                         //OutPacket(kupack, ThrottleOutPacketType.Task);
                         break;
 
@@ -3631,19 +3620,83 @@ namespace OpenSim.Region.ClientStack
                         // Send the client the ping response back
                         // Pass the same PingID in the matching packet
                         // Handled In the packet processing
-                        OpenSim.Framework.Console.MainLog.Instance.Debug("CLIENT", "possibly unhandled packet " + Pack.ToString());
+                        MainLog.Instance.Debug("CLIENT", "possibly unhandled StartPingCheck packet");
                         break;
                     case PacketType.CompletePingCheck:
                         // Parhaps this should be processed on the Sim to determine whether or not to drop a dead client
                         // Dumping it to the verbose console until it's handled properly.
-
-                        OpenSim.Framework.Console.MainLog.Instance.Verbose("CLIENT", "unhandled packet " + Pack.ToString());
+                        MainLog.Instance.Warn("CLIENT", "unhandled CompletePingCheck packet");
                         break;
                     case PacketType.ObjectScale:
-                        OpenSim.Framework.Console.MainLog.Instance.Verbose("CLIENT", "unhandled packet " + Pack.ToString());
+                        // TODO: handle this packet
+                        MainLog.Instance.Warn("CLIENT", "unhandled ObjectScale packet");
+                        break;
+                    case PacketType.ViewerStats:
+                        // TODO: handle this packet
+                        MainLog.Instance.Warn("CLIENT", "unhandled ViewerStats packet");
+                        break;
+                    case PacketType.EstateCovenantRequest:
+                        // TODO: handle this packet
+                        MainLog.Instance.Warn("CLIENT", "unhandled EstateCovenantRequest packet");
+                        break;
+                    case PacketType.CreateGroupRequest:
+                        // TODO: handle this packet
+                        MainLog.Instance.Warn("CLIENT", "unhandled CreateGroupRequest packet");
+                        break;
+                    case PacketType.GenericMessage:
+                        // TODO: handle this packet
+                        MainLog.Instance.Warn("CLIENT", "unhandled GenericMessage packet");
+                        break;
+                    case PacketType.MapItemRequest:
+                        // TODO: handle this packet
+                        MainLog.Instance.Warn("CLIENT", "unhandled MapItemRequest packet");
+                        break;
+                    case PacketType.AgentResume:
+                        // TODO: handle this packet
+                        MainLog.Instance.Warn("CLIENT", "unhandled AgentResume packet");
+                        break;
+                    case PacketType.AgentPause:
+                        // TODO: handle this packet
+                        MainLog.Instance.Warn("CLIENT", "unhandled AgentPause packet");
+                        break;
+                    case PacketType.TransferAbort:
+                        // TODO: handle this packet
+                        MainLog.Instance.Warn("CLIENT", "unhandled TransferAbort packet");
+                        break;
+                    case PacketType.MuteListRequest:
+                        // TODO: handle this packet
+                        MainLog.Instance.Warn("CLIENT", "unhandled MuteListRequest packet");
+                        break;
+                    case PacketType.AgentDataUpdateRequest:
+                        // TODO: handle this packet
+                        MainLog.Instance.Warn("CLIENT", "unhandled AgentDataUpdateRequest packet");
+                        break;
+                    case PacketType.ParcelAccessListRequest:
+                        // TODO: handle this packet
+                        MainLog.Instance.Warn("CLIENT", "unhandled ParcelAccessListRequest packet");
+                        break;
+                    case PacketType.ParcelDwellRequest:
+                        // TODO: handle this packet
+                        MainLog.Instance.Warn("CLIENT", "unhandled ParcelDwellRequest packet");
+                        break;
+                    case PacketType.UseCircuitCode:
+                        // TODO: handle this packet
+                        MainLog.Instance.Warn("CLIENT", "unhandled UseCircuitCode packet");
+                        break;
+                    case PacketType.EconomyDataRequest:
+                        // TODO: handle this packet
+                        MainLog.Instance.Warn("CLIENT", "unhandled EconomyDataRequest packet");
+                        break;
+                    case PacketType.AgentHeightWidth:
+                        // TODO: handle this packet
+                        MainLog.Instance.Warn("CLIENT", "unhandled AgentHeightWidth packet");
+                        break;
+                    case PacketType.ObjectSpinStop:
+                        // TODO: handle this packet
+                        MainLog.Instance.Warn("CLIENT", "unhandled ObjectSpinStop packet");
                         break;
                     default:
-                        OpenSim.Framework.Console.MainLog.Instance.Verbose("CLIENT", "unhandled packet " + Pack.ToString());
+                        MainLog.Instance.Warn("CLIENT", "unhandled packet " + Pack.ToString());
                         break;
                     
                         #endregion
