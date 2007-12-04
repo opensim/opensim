@@ -45,6 +45,7 @@ namespace OpenSim.Framework.Servers
         protected Dictionary<string, XmlRpcMethod> m_rpcHandlers = new Dictionary<string, XmlRpcMethod>();
         protected Dictionary<string, IRequestHandler> m_streamHandlers = new Dictionary<string, IRequestHandler>();
         protected int m_port;
+        protected bool m_ssl = false;
         protected bool m_firstcaps = true;
 
         public int Port
@@ -55,6 +56,12 @@ namespace OpenSim.Framework.Servers
         public BaseHttpServer(int port)
         {
             m_port = port;
+        }
+
+        public BaseHttpServer(int port, bool ssl)
+        {
+            m_ssl = ssl;
+            BaseHttpServer(port);
         }
 
         public void AddStreamHandler(IRequestHandler handler)
@@ -252,7 +259,14 @@ namespace OpenSim.Framework.Servers
                 MainLog.Instance.Verbose("HTTPD", "Spawned main thread OK");
                 m_httpListener = new HttpListener();
 
-                m_httpListener.Prefixes.Add("http://+:" + m_port + "/");
+                if (!m_ssl)
+                {
+                    m_httpListener.Prefixes.Add("http://+:" + m_port + "/");
+                }
+                else
+                {
+                    m_httpListener.Prefixes.Add("https://+:" + m_port + "/");
+                }
                 m_httpListener.Start();
 
                 HttpListenerContext context;

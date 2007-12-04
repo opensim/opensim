@@ -28,22 +28,25 @@ namespace OpenSim.ApplicationPlugins.LoadRegions
 
         public void Initialise(OpenSimMain openSim)
         {
-             IConfig remoteConfig = openSim.ConfigSource.Configs["RemoteAdmin"];
-             if (remoteConfig != null)
-             {
-                 if (remoteConfig.GetBoolean("enabled", false))
-                 {
-                     System.Console.WriteLine("RADMIN", "Remote Admin Plugin Enabled");
+            try
+            {
+                if (openSim.ConfigSource.Configs["RemoteAdmin"].GetBoolean("enabled", false))
+                {
+                    OpenSim.Framework.Console.MainLog.Instance.Verbose("RADMIN", "Remote Admin Plugin Enabled");
 
-                     m_app = openSim;
-                     m_httpd = openSim.HttpServer;
+                    m_app = openSim;
+                    m_httpd = openSim.HttpServer;
 
-                     m_httpd.AddXmlRPCHandler("admin_create_region", XmlRpcCreateRegionMethod);
-                     m_httpd.AddXmlRPCHandler("admin_shutdown", XmlRpcShutdownMethod);
-                     m_httpd.AddXmlRPCHandler("admin_broadcast", XmlRpcAlertMethod);
-                     m_httpd.AddXmlRPCHandler("admin_restart", XmlRpcRestartMethod);
-                 }
-             }
+                    m_httpd.AddXmlRPCHandler("admin_create_region", XmlRpcCreateRegionMethod);
+                    m_httpd.AddXmlRPCHandler("admin_shutdown", XmlRpcShutdownMethod);
+                    m_httpd.AddXmlRPCHandler("admin_broadcast", XmlRpcAlertMethod);
+                    m_httpd.AddXmlRPCHandler("admin_restart", XmlRpcRestartMethod);
+                }
+            }
+            catch (NullReferenceException)
+            {
+                // Ignore.
+            }
         }
 
         public XmlRpcResponse XmlRpcRestartMethod(XmlRpcRequest request)

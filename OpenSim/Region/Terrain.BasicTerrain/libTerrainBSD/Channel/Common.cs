@@ -143,15 +143,22 @@ namespace libTerrain
 
         public double Get(int x, int y)
         {
-            if (x >= w)
-                x = w - 1;
-            if (y >= h)
-                y = h - 1;
-            if (x < 0)
-                x = 0;
-            if (y < 0)
-                y = 0;
-            return map[x, y];
+            try
+            {
+                return map[x, y];
+            }
+            catch (IndexOutOfRangeException)
+            {
+                if (x >= w)
+                    x = w - 1;
+                if (y >= h)
+                    y = h - 1;
+                if (x < 0)
+                    x = 0;
+                if (y < 0)
+                    y = 0;
+                return map[x, y];
+            }
         }
 
         public void SetWrap(int x, int y, double val)
