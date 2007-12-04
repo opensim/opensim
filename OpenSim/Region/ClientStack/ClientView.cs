@@ -2240,6 +2240,77 @@ namespace OpenSim.Region.ClientStack
             set { m_circuitCode = value; }
         }
 
+        // A thread safe sequence number allocator.  
+        protected uint NextSeqNum()
+        {
+            // Set the sequence number
+            uint seq = 1;
+            lock (SequenceLock)
+            {
+                if (Sequence >= MAX_SEQUENCE)
+                {
+                    Sequence = 1;
+                }
+                else
+                {
+                    Sequence++;
+                }
+                seq = Sequence;
+            }
+            return seq;
+        }
+            
+        protected void AddAck(Packet Pack)
+        {
+            lock (NeedAck)
+            {
+                if (!NeedAck.ContainsKey(Pack.Header.Sequence))
+                {
+                    try
+                    {
+                        NeedAck.Add(Pack.Header.Sequence, Pack);
+                    }
+                    catch (Exception e) // HACKY
+                    {
+                        e.ToString();
+                        // Ignore
+                        // Seems to throw a exception here occasionally
+                        // of 'duplicate key' despite being locked.
+                        // !?!?!?
+                    }
+                }
+                else
+                {
+                    //  Client.Log("Attempted to add a duplicate sequence number (" +
+                    //     packet.Header.Sequence + ") to the NeedAck dictionary for packet type " +
+                    //      packet.Type.ToString(), Helpers.LogLevel.Warning);
+                }
+            }
+        }
+
+        protected virtual void SetPendingAcks(ref Packet Pack)
+        {
+            // Append any ACKs that need to be sent out to this packet
+            lock (PendingAcks)
+            {
+                // TODO: If we are over MAX_APPENDED_ACKS we should drain off some of these
+                if (PendingAcks.Count > 0 && PendingAcks.Count < MAX_APPENDED_ACKS)
+                {
+                    Pack.Header.AckList = new uint[PendingAcks.Count];
+                    int i = 0;
+                    
+                    foreach (uint ack in PendingAcks.Values)
+                    {
+                        Pack.Header.AckList[i] = ack;
+                        i++;
+                    }
+                    
+                    PendingAcks.Clear();
+                    Pack.Header.AppendedAcks = true;
+                }
+            }
+        }
+
         protected virtual void ProcessOutPacket(Packet Pack)
         {
             // Keep track of when this packet was sent out
@@ -2247,92 +2318,33 @@ namespace OpenSim.Region.ClientStack
 
             if (!Pack.Header.Resent)
             {
-                // Set the sequence number
-                lock (SequenceLock)
-                {
-                    if (Sequence >= MAX_SEQUENCE)
-                    {
-                        Sequence = 1;
-                    }
-                    else
-                    {
-                        Sequence++;
-                    }
-
-                    Pack.Header.Sequence = Sequence;
-                }
+                Pack.Header.Sequence = NextSeqNum();
 
                 if (Pack.Header.Reliable) //DIRTY HACK
                 {
-                    lock (NeedAck)
+                    AddAck(Pack); // this adds the need to ack this packet later
+
+                    if (Pack.Type != PacketType.PacketAck && Pack.Type != PacketType.LogoutRequest)
                     {
-                        if (!NeedAck.ContainsKey(Pack.Header.Sequence))
-                        {
-                            try
-                            {
-                                NeedAck.Add(Pack.Header.Sequence, Pack);
-                            }
-                            catch (Exception e) // HACKY
-                            {
-                                e.ToString();
-                                // Ignore
-                                // Seems to throw a exception here occasionally
-                                // of 'duplicate key' despite being locked.
-                                // !?!?!?
-                            }
-                        }
-                        else
-                        {
-                            //  Client.Log("Attempted to add a duplicate sequence number (" +
-                            //     packet.Header.Sequence + ") to the NeedAck dictionary for packet type " +
-                            //      packet.Type.ToString(), Helpers.LogLevel.Warning);
-                        }
-                    }
-
-                    // Don't append ACKs to resent packets, in case that's what was causing the
-                    // delivery to fail
-                    if (!Pack.Header.Resent)
-                    {
-                        // Append any ACKs that need to be sent out to this packet
-                        lock (PendingAcks)
-                        {
-                            if (PendingAcks.Count > 0 && PendingAcks.Count < MAX_APPENDED_ACKS &&
-                                Pack.Type != PacketType.PacketAck &&
-                                Pack.Type != PacketType.LogoutRequest)
-                            {
-                                Pack.Header.AckList = new uint[PendingAcks.Count];
-                                int i = 0;
-
-                                foreach (uint ack in PendingAcks.Values)
-                                {
-                                    Pack.Header.AckList[i] = ack;
-                                    i++;
-                                }
-
-                                PendingAcks.Clear();
-                                Pack.Header.AppendedAcks = true;
-                            }
-                        }
+                        SetPendingAcks(ref Pack);
                     }
                 }
             }
 
-            byte[] ZeroOutBuffer = new byte[4096];
-            byte[] sendbuffer;
-            sendbuffer = Pack.ToBytes();
-
+            // Actually make the byte array and send it
             try
             {
-                if (Pack.Header.Zerocoded)
-                {
-                    int packetsize = Helpers.ZeroEncode(sendbuffer, sendbuffer.Length, ZeroOutBuffer);
-                    m_networkServer.SendPacketTo(ZeroOutBuffer, packetsize, SocketFlags.None, m_circuitCode); //userEP);
-                }
-                else
-                {
-                    m_networkServer.SendPacketTo(sendbuffer, sendbuffer.Length, SocketFlags.None, m_circuitCode);
-                    //userEP);
-                }
+              byte[] sendbuffer = Pack.ToBytes();
+              if (Pack.Header.Zerocoded)
+              {
+                  byte[] ZeroOutBuffer = new byte[4096];
+                  int packetsize = Helpers.ZeroEncode(sendbuffer, sendbuffer.Length, ZeroOutBuffer);
+                  m_networkServer.SendPacketTo(ZeroOutBuffer, packetsize, SocketFlags.None, m_circuitCode);
+              }
+              else
+              {
+                  m_networkServer.SendPacketTo(sendbuffer, sendbuffer.Length, SocketFlags.None, m_circuitCode);
+              }
             }
             catch (Exception e)
             {
@@ -2343,7 +2355,7 @@ namespace OpenSim.Region.ClientStack
                 KillThread();
             }
         }
-
+        
         public virtual void InPacket(Packet NewPack)
         {
             // Handle appended ACKs
