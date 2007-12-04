@@ -55,9 +55,9 @@ namespace SimpleApp
 
         protected override void Initialize()
         {
-            StartLog();
-
             m_networkServersInfo = new NetworkServersInfo(1000, 1000);
+
+            m_httpServerPort = m_networkServersInfo.HttpListenerPort;
 
             LocalAssetServer assetServer = new LocalAssetServer();
 
@@ -66,13 +66,15 @@ namespace SimpleApp
 
         public void Run()
         {
-            base.StartUp();
+            StartLog();
+            StartUp();
 
             LocalInventoryService inventoryService = new LocalInventoryService();
             LocalUserServices userService =
                 new LocalUserServices(m_networkServersInfo, m_networkServersInfo.DefaultHomeLocX,
                                       m_networkServersInfo.DefaultHomeLocY, inventoryService);
             LocalBackEndServices backendService = new LocalBackEndServices();
+            userService.AddPlugin("OpenSim.Framework.Data.SQLite.dll");
 
             CommunicationsLocal localComms =
                 new CommunicationsLocal(m_networkServersInfo, m_httpServer, m_assetCache, userService, inventoryService,
@@ -141,7 +143,6 @@ namespace SimpleApp
                 avatar.AbsolutePosition =
                     new LLVector3((float) Util.RandomClass.Next(100, 200), (float) Util.RandomClass.Next(30, 200), 2);
             }
-
 
             DirectoryInfo dirInfo = new DirectoryInfo(".");
 
