@@ -1676,5 +1676,13 @@ namespace OpenSim.Region.Environment.Scenes
                                     (int)(color.z * 0xff));
             Text = text;
         }
+
+        public void ApplyPhysics()
+        {
+            foreach(SceneObjectPart part in m_parts.Values )
+            {
+                part.ApplyPhysics();   
+            }            
+        }
     }
 }
