@@ -168,6 +168,7 @@ namespace OpenSim.Framework.Console
         /// </summary>
         /// <param name="format">The message to send</param>
         /// <param name="args">WriteLine-style message arguments</param>
+        [Obsolete("Please tag your console messages with the location your calling from")]
         public void Verbose(string format, params object[] args)
         {
             if (m_verbose)

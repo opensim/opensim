@@ -158,7 +158,7 @@ namespace OpenSim.Framework.UserManagement
                         }
                         catch (Exception e)
                         {
-                            MainLog.Instance.Verbose(e.ToString());
+                            MainLog.Instance.Verbose("LOGIN", e.ToString());
                             return logResponse.CreateDeadRegionResponse();
                             //return logResponse.ToXmlRpcResponse();
                         }
@@ -168,7 +168,7 @@ namespace OpenSim.Framework.UserManagement
 
                     catch (Exception E)
                     {
-                        MainLog.Instance.Verbose(E.ToString());
+                        MainLog.Instance.Verbose("LOGIN", E.ToString());
                     }
                     //}
                 }

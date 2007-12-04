@@ -50,10 +50,10 @@ namespace OpenSim.Framework.UserManagement
         {
             if (!String.IsNullOrEmpty(FileName))
             {
-                MainLog.Instance.Verbose("Userstorage: Attempting to load " + FileName);
+                MainLog.Instance.Verbose("USERSTORAGE", "Attempting to load " + FileName);
                 Assembly pluginAssembly = Assembly.LoadFrom(FileName);
 
-                MainLog.Instance.Verbose("Userstorage: Found " + pluginAssembly.GetTypes().Length + " interfaces.");
+                MainLog.Instance.Verbose("USERSTORAGE", "Found " + pluginAssembly.GetTypes().Length + " interfaces.");
                 foreach (Type pluginType in pluginAssembly.GetTypes())
                 {
                     if (!pluginType.IsAbstract)
@@ -75,7 +75,7 @@ namespace OpenSim.Framework.UserManagement
         {
             plug.Initialise();
             _plugins.Add(plug.getName(), plug);
-            MainLog.Instance.Verbose("Userstorage: Added IUserData Interface");
+            MainLog.Instance.Verbose("USERSTORAGE", "Added IUserData Interface");
         }
 
         #region Get UserProfile 
@@ -97,7 +97,7 @@ namespace OpenSim.Framework.UserManagement
                 }
                 catch (Exception e)
                 {
-                    MainLog.Instance.Verbose("Unable to find user via " + plugin.Key + "(" + e.ToString() + ")");
+                    MainLog.Instance.Verbose("USERSTORAGE", "Unable to find user via " + plugin.Key + "(" + e.ToString() + ")");
                 }
             }
 
@@ -116,7 +116,7 @@ namespace OpenSim.Framework.UserManagement
                 }
                 catch (Exception)
                 {
-                    MainLog.Instance.Verbose("Unable to generate AgentPickerData via  " + plugin.Key + "(" + query + ")");
+                    MainLog.Instance.Verbose("USERSTORAGE", "Unable to generate AgentPickerData via  " + plugin.Key + "(" + query + ")");
                     return new List<AvatarPickerAvatar>();
                 }
             }
@@ -141,8 +141,7 @@ namespace OpenSim.Framework.UserManagement
                 }
                 catch (Exception e)
                 {
-                    System.Console.WriteLine("EEK!");
-                    MainLog.Instance.Verbose("Unable to find user via " + plugin.Key + "(" + e.ToString() + ")");
+                    MainLog.Instance.Verbose("USERSTORAGE", "Unable to find user via " + plugin.Key + "(" + e.ToString() + ")");
                 }
             }
 
@@ -169,7 +168,7 @@ namespace OpenSim.Framework.UserManagement
                 }
                 catch (Exception e)
                 {
-                    MainLog.Instance.Verbose("Unable to find user via " + plugin.Key + "(" + e.ToString() + ")");
+                    MainLog.Instance.Verbose("USERSTORAGE", "Unable to find user via " + plugin.Key + "(" + e.ToString() + ")");
                 }
             }
 
@@ -193,7 +192,7 @@ namespace OpenSim.Framework.UserManagement
                 }
                 catch (Exception e)
                 {
-                    MainLog.Instance.Verbose("Unable to set user via " + plugin.Key + "(" + e.ToString() + ")");
+                    MainLog.Instance.Verbose("USERSTORAGE", "Unable to set user via " + plugin.Key + "(" + e.ToString() + ")");
                 }
             }
 
@@ -219,7 +218,7 @@ namespace OpenSim.Framework.UserManagement
                 }
                 catch (Exception e)
                 {
-                    MainLog.Instance.Verbose("Unable to find user via " + plugin.Key + "(" + e.ToString() + ")");
+                    MainLog.Instance.Verbose("USERSTORAGE", "Unable to find user via " + plugin.Key + "(" + e.ToString() + ")");
                 }
             }
 
@@ -241,7 +240,7 @@ namespace OpenSim.Framework.UserManagement
                 }
                 catch (Exception e)
                 {
-                    MainLog.Instance.Verbose("Unable to find user via " + plugin.Key + "(" + e.ToString() + ")");
+                    MainLog.Instance.Verbose("USERSTORAGE", "Unable to find user via " + plugin.Key + "(" + e.ToString() + ")");
                 }
             }
 
@@ -274,7 +273,7 @@ namespace OpenSim.Framework.UserManagement
                 }
                 catch (Exception e)
                 {
-                    MainLog.Instance.Verbose("Unable to find user via " + plugin.Key + "(" + e.ToString() + ")");
+                    MainLog.Instance.Verbose("USERSTORAGE", "Unable to find user via " + plugin.Key + "(" + e.ToString() + ")");
                 }
             }
 
@@ -388,7 +387,7 @@ namespace OpenSim.Framework.UserManagement
                 }
                 catch (Exception e)
                 {
-                    MainLog.Instance.Verbose("Unable to add user via " + plugin.Key + "(" + e.ToString() + ")");
+                    MainLog.Instance.Verbose("USERSTORAGE", "Unable to add user via " + plugin.Key + "(" + e.ToString() + ")");
                 }
             }
 
