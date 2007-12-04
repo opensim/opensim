@@ -1681,7 +1681,7 @@ namespace OpenSim.Region.Environment.Scenes
         {
             foreach(SceneObjectPart part in m_parts.Values )
             {
-                part.ApplyPhysics();   
+                part.ApplyPhysics();
             }            
         }
     }
