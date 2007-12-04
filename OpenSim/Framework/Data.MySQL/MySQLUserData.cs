@@ -110,31 +110,35 @@ namespace OpenSim.Framework.Data.MySQL
         public List<OpenSim.Framework.AvatarPickerAvatar> GeneratePickerResults(LLUUID queryID, string query)
         {
             List<OpenSim.Framework.AvatarPickerAvatar> returnlist = new List<OpenSim.Framework.AvatarPickerAvatar>();
+
+            System.Text.RegularExpressions.Regex objAlphaNumericPattern = new System.Text.RegularExpressions.Regex("[^a-zA-Z0-9]");
+
             string[] querysplit;
             querysplit = query.Split(' ');
             if (querysplit.Length == 2)
             {
+                Dictionary<string, string> param = new Dictionary<string, string>();
+                param["?first"] = objAlphaNumericPattern.Replace(querysplit[0], "") + "%";
+                param["?second"] = objAlphaNumericPattern.Replace(querysplit[1], "") + "%";
                 try
                 {
                     lock (database)
                     {
-                        Dictionary<string, string> param = new Dictionary<string, string>();
-                        param["?first"] = querysplit[0];
-                        param["?second"] = querysplit[1];
+
 
                         IDbCommand result =
-                            database.Query("SELECT UUID,username,surname FROM users WHERE username = ?first AND lastname = ?second", param);
+                            database.Query("SELECT UUID,username,lastname FROM users WHERE username like ?first AND lastname like ?second LIMIT 100", param);
                         IDataReader reader = result.ExecuteReader();
 
-                        
+
                         while (reader.Read())
                         {
                             OpenSim.Framework.AvatarPickerAvatar user = new OpenSim.Framework.AvatarPickerAvatar();
                             user.AvatarID = new LLUUID((string)reader["UUID"]);
                             user.firstName = (string)reader["username"];
-                            user.lastName = (string)reader["surname"];
+                            user.lastName = (string)reader["lastname"];
                             returnlist.Add(user);
-                            
+
                         }
                         reader.Close();
                         result.Dispose();
@@ -148,7 +152,7 @@ namespace OpenSim.Framework.Data.MySQL
                 }
 
 
-                
+
             }
             else if (querysplit.Length == 1)
             {
@@ -158,11 +162,10 @@ namespace OpenSim.Framework.Data.MySQL
                     lock (database)
                     {
                         Dictionary<string, string> param = new Dictionary<string, string>();
-                        param["?first"] = querysplit[0];
-                        param["?second"] = querysplit[1];
+                        param["?first"] = objAlphaNumericPattern.Replace(querysplit[0], "") + "%";
 
                         IDbCommand result =
-                            database.Query("SELECT UUID,username,surname FROM users WHERE username = ?first OR lastname = ?second", param);
+                            database.Query("SELECT UUID,username,lastname FROM users WHERE username like ?first OR lastname like ?first LIMIT 100", param);
                         IDataReader reader = result.ExecuteReader();
 
 
@@ -171,7 +174,7 @@ namespace OpenSim.Framework.Data.MySQL
                             OpenSim.Framework.AvatarPickerAvatar user = new OpenSim.Framework.AvatarPickerAvatar();
                             user.AvatarID = new LLUUID((string)reader["UUID"]);
                             user.firstName = (string)reader["username"];
-                            user.lastName = (string)reader["surname"];
+                            user.lastName = (string)reader["lastname"];
                             returnlist.Add(user);
 
                         }

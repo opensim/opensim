@@ -27,6 +27,7 @@
 */
 using System;
 using System.Collections;
+using System.Collections.Generic;
 using libsecondlife;
 using Nwc.XmlRpc;
 using OpenSim.Framework;
@@ -70,6 +71,24 @@ namespace OpenSim.Grid.UserServer
             return response;
         }
 
+        public XmlRpcResponse AvatarPickerListtoXmlRPCResponse(LLUUID queryID, List<AvatarPickerAvatar> returnUsers)
+        {
+            XmlRpcResponse response = new XmlRpcResponse();
+            Hashtable responseData = new Hashtable();
+            // Query Result Information
+            responseData["queryid"] = (string)queryID.ToStringHyphenated();
+            responseData["avcount"] = (string)returnUsers.Count.ToString();
+
+            for (int i = 0; i < returnUsers.Count; i++)
+            {
+                responseData["avatarid" + i.ToString()] = returnUsers[i].AvatarID.ToStringHyphenated();
+                responseData["firstname" + i.ToString()] = returnUsers[i].firstName;
+                responseData["lastname" + i.ToString()] = returnUsers[i].lastName;
+            }
+            response.Value = responseData;
+            
+            return response;
+        }
         /// <summary>
         /// Converts a user profile to an XML element which can be returned
         /// </summary>
@@ -112,6 +131,23 @@ namespace OpenSim.Grid.UserServer
         }
 
         #region XMLRPC User Methods
+
+        public XmlRpcResponse XmlRPCGetAvatarPickerAvatar(XmlRpcRequest request)
+        {
+            XmlRpcResponse response = new XmlRpcResponse();
+            Hashtable requestData = (Hashtable)request.Params[0];
+            List<AvatarPickerAvatar> returnAvatar = new List<AvatarPickerAvatar>();
+            LLUUID queryID = new LLUUID(LLUUID.Zero.ToStringHyphenated());
+
+            if (requestData.Contains("avquery") && requestData.Contains("queryid"))
+            {
+                queryID = new LLUUID((string)requestData["queryid"]);
+                returnAvatar = GenerateAgentPickerRequestResponse(queryID,(string)requestData["avquery"]);
+            }
+
+            Console.WriteLine("[AVATARINFO]: Servicing Avatar Query: " + (string)requestData["avquery"]);
+            return AvatarPickerListtoXmlRPCResponse(queryID,returnAvatar);
+        }
 
         public XmlRpcResponse XmlRPCGetUserMethodName(XmlRpcRequest request)
         {

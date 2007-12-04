@@ -80,6 +80,34 @@ namespace OpenSim.Region.Communications.OGS1
             return userData;
         }
 
+        public List<AvatarPickerAvatar> ConvertXMLRPCDataToAvatarPickerList(LLUUID queryID,Hashtable data)
+        {
+            List<AvatarPickerAvatar> pickerlist = new List<AvatarPickerAvatar>();
+            int pickercount = Convert.ToInt32((string)data["avcount"]);
+            LLUUID respqueryID = new LLUUID((string)data["queryid"]);
+            if (queryID == respqueryID)
+            {
+                for (int i = 0; i < pickercount; i++)
+                {
+                    AvatarPickerAvatar apicker = new AvatarPickerAvatar();
+                    LLUUID avatarID = new LLUUID((string)data["avatarid" + i.ToString()]);
+                    string firstname = (string)data["firstname" + i.ToString()];
+                    string lastname = (string)data["lastname" + i.ToString()];
+                    apicker.AvatarID = avatarID;
+                    apicker.firstName = firstname;
+                    apicker.lastName = lastname;
+                    pickerlist.Add(apicker);
+                }
+            }
+            else
+            {
+                MainLog.Instance.Warn("INTERGRID", "Got invalid queryID from userServer");
+            }
+            return pickerlist;
+
+        }
+
+
         public UserProfileData GetUserProfile(string firstName, string lastName)
         {
             return GetUserProfile(firstName + " " + lastName);
@@ -89,7 +117,25 @@ namespace OpenSim.Region.Communications.OGS1
         public List<AvatarPickerAvatar> GenerateAgentPickerRequestResponse(LLUUID queryID, string query)
         {
             List<AvatarPickerAvatar> pickerlist = new List<AvatarPickerAvatar>();
-            
+            System.Text.RegularExpressions.Regex objAlphaNumericPattern = new System.Text.RegularExpressions.Regex("[^a-zA-Z0-9 ]");
+            try
+            {
+                Hashtable param = new Hashtable();
+                param["queryid"] = (string)queryID.ToStringHyphenated();
+                param["avquery"] = objAlphaNumericPattern.Replace(query, "");
+                IList parameters = new ArrayList();
+                parameters.Add(param);
+                XmlRpcRequest req = new XmlRpcRequest("get_avatar_picker_avatar", parameters);
+                XmlRpcResponse resp = req.Send(m_parent.NetworkServersInfo.UserURL, 3000);
+                Hashtable respData = (Hashtable)resp.Value;
+                pickerlist = ConvertXMLRPCDataToAvatarPickerList(queryID,respData);
+            }
+            catch (WebException e)
+            {
+                MainLog.Instance.Warn("Error when trying to fetch Avatar Picker Response: " +
+                                      e.Message);
+                // Return Empty picker list (no results)
+            }
             return pickerlist;
         }
         public UserProfileData GetUserProfile(string name)
