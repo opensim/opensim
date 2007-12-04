@@ -473,7 +473,6 @@ namespace OpenSim.Region.Environment.Scenes
                        LLObject.ObjectFlags.ObjectOwnerModify;
 
             ApplyPermissions();
-            ApplyPhysics();
 
             ScheduleFullUpdate();
         }
@@ -512,7 +511,7 @@ namespace OpenSim.Region.Environment.Scenes
             ObjectFlags = flags;
 
             ApplyPermissions();
-            ApplyPhysics();
+            // ApplyPhysics();
 
             ScheduleFullUpdate();
         }
