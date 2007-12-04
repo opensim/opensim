@@ -78,7 +78,7 @@ namespace OpenSim.Grid.UserServer
                                 theUser.homeLocation.Y.ToString() + ",r" + theUser.homeLocation.Z.ToString() + "]}";
 
                 // Destination
-                MainLog.Instance.Verbose("CUSTOMISERESPONSE: Region X: " + SimInfo.regionLocX + "; Region Y: " +
+                MainLog.Instance.Verbose("LOGIN", "CUSTOMISERESPONSE: Region X: " + SimInfo.regionLocX + "; Region Y: " +
                                          SimInfo.regionLocY);
                 response.SimAddress = Util.GetHostFromDNS(SimInfo.serverIP).ToString();
                 response.SimPort = (Int32)SimInfo.serverPort;
@@ -90,7 +90,7 @@ namespace OpenSim.Grid.UserServer
                 response.SeedCapability = SimInfo.httpServerURI + "CAPS/" + capsPath + "0000/";
 
                 // Notify the target of an incoming user
-                MainLog.Instance.Verbose("Notifying " + SimInfo.regionName + " (" + SimInfo.serverURI + ")");
+                MainLog.Instance.Verbose("LOGIN", "Notifying " + SimInfo.regionName + " (" + SimInfo.serverURI + ")");
 
                 // Prepare notification
                 Hashtable SimParams = new Hashtable();
@@ -112,7 +112,7 @@ namespace OpenSim.Grid.UserServer
                 theUser.currentAgent.currentRegion = SimInfo.UUID;
                 theUser.currentAgent.currentHandle = SimInfo.regionHandle;
 
-                MainLog.Instance.Verbose("Informing region --> " + SimInfo.httpServerURI);
+                MainLog.Instance.Verbose("LOGIN", "Informing region at " + SimInfo.httpServerURI);
                 // Send
 
                 XmlRpcRequest GridReq = new XmlRpcRequest("expect_user", SendParams);
@@ -146,7 +146,7 @@ namespace OpenSim.Grid.UserServer
                                     theUser.homeLocation.Y.ToString() + ",r" + theUser.homeLocation.Z.ToString() + "]}";
 
                     // Destination
-                    MainLog.Instance.Verbose("CUSTOMISERESPONSE: Region X: " + SimInfo.regionLocX + "; Region Y: " +
+                    MainLog.Instance.Verbose("LOGIN", "CUSTOMISERESPONSE: Region X: " + SimInfo.regionLocX + "; Region Y: " +
                                              SimInfo.regionLocY);
                     response.SimAddress = Util.GetHostFromDNS(SimInfo.serverIP).ToString();
                     response.SimPort = (Int32)SimInfo.serverPort;
@@ -158,7 +158,7 @@ namespace OpenSim.Grid.UserServer
                     response.SeedCapability = SimInfo.httpServerURI + "CAPS/" + capsPath + "0000/";
 
                     // Notify the target of an incoming user
-                    MainLog.Instance.Verbose("Notifying " + SimInfo.regionName + " (" + SimInfo.serverURI + ")");
+                    MainLog.Instance.Verbose("LOGIN", "Notifying " + SimInfo.regionName + " (" + SimInfo.serverURI + ")");
 
                     // Update agent with target sim
                     theUser.currentAgent.currentRegion = SimInfo.UUID;
@@ -180,7 +180,7 @@ namespace OpenSim.Grid.UserServer
                     ArrayList SendParams = new ArrayList();
                     SendParams.Add(SimParams);
 
-                    MainLog.Instance.Verbose("Informing region --> " + SimInfo.httpServerURI);
+                    MainLog.Instance.Verbose("LOGIN", "Informing region at " + SimInfo.httpServerURI);
                     // Send
                     XmlRpcRequest GridReq = new XmlRpcRequest("expect_user", SendParams);
                     XmlRpcResponse GridResp = GridReq.Send(SimInfo.httpServerURI, 6000);
@@ -188,8 +188,8 @@ namespace OpenSim.Grid.UserServer
 
                 catch (Exception e)
                 {
-                    MainLog.Instance.Warn("Default region also not available");
-                    MainLog.Instance.Verbose(e.ToString());
+                    MainLog.Instance.Warn("LOGIN", "Default region also not available");
+                    MainLog.Instance.Verbose("LOGIN", e.ToString());
                 }
 
             }

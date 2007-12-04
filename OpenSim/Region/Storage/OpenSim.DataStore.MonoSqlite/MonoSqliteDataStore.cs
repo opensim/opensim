@@ -248,10 +248,10 @@ namespace OpenSim.DataStore.MonoSqlite
                     catch (Exception e)
                     {
                         MainLog.Instance.Error("DATASTORE", "Failed create prim object, exception and data follows");
-                        MainLog.Instance.Verbose(e.ToString());
+                        MainLog.Instance.Verbose("DATASTORE", e.ToString());
                         foreach (DataColumn col in prims.Columns)
                         {
-                            MainLog.Instance.Verbose("Col: " + col.ColumnName + " => " + primRow[col]);
+                            MainLog.Instance.Verbose("DATASTORE", "Col: " + col.ColumnName + " => " + primRow[col]);
                         }
                     }
                 }

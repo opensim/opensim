@@ -71,7 +71,7 @@ namespace OpenSim.Framework.Data.MySQL
 
                 dbcon.Open();
 
-                MainLog.Instance.Verbose("MySQL connection established");
+                MainLog.Instance.Verbose("MYSQL", "Connection established");
             }
             catch (Exception e)
             {

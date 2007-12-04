@@ -943,7 +943,7 @@ namespace OpenSim.Region.Environment.Scenes
             }
             else
             {
-                OpenSim.Framework.Console.MainLog.Instance.Verbose(
+                OpenSim.Framework.Console.MainLog.Instance.Verbose("SCENE",
                     "DelinkFromGroup(): Child prim local id {0} not found in object with root prim id {1}",
                     partID, LocalId);
             }            

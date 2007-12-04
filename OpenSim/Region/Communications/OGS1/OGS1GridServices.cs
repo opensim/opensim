@@ -433,7 +433,7 @@ namespace OpenSim.Region.Communications.OGS1
 
             m_localBackend.TriggerExpectUser(regionHandle, agentData);
 
-            MainLog.Instance.Verbose("ExpectUser() - Welcoming new user...");
+            MainLog.Instance.Verbose("GRID", "Welcoming new user...");
 
             return new XmlRpcResponse();
         }

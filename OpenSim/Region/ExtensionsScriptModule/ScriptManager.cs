@@ -48,12 +48,12 @@ namespace OpenSim.Region.ExtensionsScriptModule
             {
                 ScriptInfo scriptInfo = new ScriptInfo(m_scene);
                 // Since each script could potentially corrupt their access with a stray assignment, making a new one for each script.
-                MainLog.Instance.Verbose("Loading " + script.Key);
+                MainLog.Instance.Verbose("SCRIPT", "Loading " + script.Key);
                 script.Value.Initialise(scriptInfo);
                 scripts.Add(script.Value);
             }
 
-            MainLog.Instance.Verbose(string.Format("Finished loading {0} script(s)", compiledscripts.Count));
+            MainLog.Instance.Verbose("SCRIPT", string.Format("Finished loading {0} script(s)", compiledscripts.Count));
         }
 
         public ScriptManager()
@@ -125,7 +125,7 @@ namespace OpenSim.Region.ExtensionsScriptModule
 
         public bool AddPreCompiledScript(IScript script)
         {
-            MainLog.Instance.Verbose("Loading script " + script.Name);
+            MainLog.Instance.Verbose("SCRIPT", "Loading script " + script.Name);
             ScriptInfo scriptInfo = new ScriptInfo(m_scene);
             // Since each script could potentially corrupt their access with a stray assignment, making a new one for each script.
             script.Initialise(scriptInfo);

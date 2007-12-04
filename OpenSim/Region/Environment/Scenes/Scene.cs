@@ -239,12 +239,12 @@ namespace OpenSim.Region.Environment.Scenes
 
             RegisterDefaultSceneEvents();
 
-            MainLog.Instance.Verbose("Creating new entitities instance");
+            MainLog.Instance.Verbose("SCENE", "Creating new entitities instance");
             Entities = new Dictionary<LLUUID, EntityBase>();
             m_scenePresences = new Dictionary<LLUUID, ScenePresence>();
             m_sceneObjects = new Dictionary<LLUUID, SceneObjectGroup>();
 
-            MainLog.Instance.Verbose("Creating LandMap");
+            MainLog.Instance.Verbose("SCENE", "Creating LandMap");
             Terrain = new TerrainEngine((int)RegionInfo.RegionLocX, (int)RegionInfo.RegionLocY);
 
             ScenePresence.LoadAnims();
@@ -727,7 +727,7 @@ namespace OpenSim.Region.Environment.Scenes
         /// </summary>
         public virtual void LoadPrimsFromStorage(bool m_permissions)
         {
-            MainLog.Instance.Verbose("Loading objects from datastore");
+            MainLog.Instance.Verbose("SCENE", "Loading objects from datastore");
             List<SceneObjectGroup> PrimsFromDB = m_storageManager.DataStore.LoadObjects(m_regInfo.RegionID);
             foreach (SceneObjectGroup prim in PrimsFromDB)
             {
@@ -759,7 +759,7 @@ namespace OpenSim.Region.Environment.Scenes
                                        rootPart.RotationOffset.Y, rootPart.RotationOffset.Z), UsePhysics);
                 rootPart.DoPhysicsPropertyUpdate(UsePhysics, true);
             }
-            MainLog.Instance.Verbose("Loaded " + PrimsFromDB.Count.ToString() + " SceneObject(s)");
+            MainLog.Instance.Verbose("SCENE", "Loaded " + PrimsFromDB.Count.ToString() + " SceneObject(s)");
         }
 
 

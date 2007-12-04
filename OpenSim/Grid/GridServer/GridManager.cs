@@ -52,10 +52,10 @@ namespace OpenSim.Grid.GridServer
         /// <param name="FileName">The filename to the grid server plugin DLL</param>
         public void AddPlugin(string FileName)
         {
-            MainLog.Instance.Verbose("Storage: Attempting to load " + FileName);
+            MainLog.Instance.Verbose("DATA", "Attempting to load " + FileName);
             Assembly pluginAssembly = Assembly.LoadFrom(FileName);
 
-            MainLog.Instance.Verbose("Storage: Found " + pluginAssembly.GetTypes().Length + " interfaces.");
+            MainLog.Instance.Verbose("DATA", "Found " + pluginAssembly.GetTypes().Length + " interfaces.");
             foreach (Type pluginType in pluginAssembly.GetTypes())
             {
                 if (!pluginType.IsAbstract)
@@ -69,7 +69,7 @@ namespace OpenSim.Grid.GridServer
                             (IGridData) Activator.CreateInstance(pluginAssembly.GetType(pluginType.ToString()));
                         plug.Initialise();
                         _plugins.Add(plug.getName(), plug);
-                        MainLog.Instance.Verbose("Storage: Added IGridData Interface");
+                        MainLog.Instance.Verbose("DATA", "Added IGridData Interface");
                     }
 
                     typeInterface = null;
@@ -83,7 +83,7 @@ namespace OpenSim.Grid.GridServer
                             (ILogData) Activator.CreateInstance(pluginAssembly.GetType(pluginType.ToString()));
                         plug.Initialise();
                         _logplugins.Add(plug.getName(), plug);
-                        MainLog.Instance.Verbose("Storage: Added ILogData Interface");
+                        MainLog.Instance.Verbose("DATA", "Added ILogData Interface");
                     }
 
                     typeInterface = null;
@@ -469,7 +469,7 @@ namespace OpenSim.Grid.GridServer
             {
                 ymax = (Int32) requestData["ymax"];
             }
-            MainLog.Instance.Verbose("World map request for range (" + xmin + "," + ymin + ")..(" + xmax + "," + ymax + ")");
+            MainLog.Instance.Verbose("MAP", "World map request for range (" + xmin + "," + ymin + ")..(" + xmax + "," + ymax + ")");
 
             XmlRpcResponse response = new XmlRpcResponse();
             Hashtable responseData = new Hashtable();
@@ -507,7 +507,7 @@ namespace OpenSim.Grid.GridServer
 
                     simProfileList.Add(simProfileBlock);
                 }
-                MainLog.Instance.Verbose("World map request processed, returned " + simProfileList.Count.ToString() +
+                MainLog.Instance.Verbose("MAP", "World map request processed, returned " + simProfileList.Count.ToString() +
                                          " region(s) in range via FastMode");
             }
             else
@@ -542,7 +542,7 @@ namespace OpenSim.Grid.GridServer
                         }
                     }
                 }
-                MainLog.Instance.Verbose("World map request processed, returned " + simProfileList.Count.ToString() +
+                MainLog.Instance.Verbose("MAP", "World map request processed, returned " + simProfileList.Count.ToString() +
                                          " region(s) in range via Standard Mode");
             }
 
@@ -708,7 +708,7 @@ namespace OpenSim.Grid.GridServer
 
             try
             {
-                MainLog.Instance.Verbose("Updating / adding via " + _plugins.Count + " storage provider(s) registered.");
+                MainLog.Instance.Verbose("DATA", "Updating / adding via " + _plugins.Count + " storage provider(s) registered.");
                 foreach (KeyValuePair<string, IGridData> kvp in _plugins)
                 {
                     try
@@ -734,7 +734,7 @@ namespace OpenSim.Grid.GridServer
                     }
                     catch (Exception e)
                     {
-                        MainLog.Instance.Verbose("getRegionPlugin Handle " + kvp.Key + " unable to add new sim: " +
+                        MainLog.Instance.Warn("GRID", "getRegionPlugin Handle " + kvp.Key + " unable to add new sim: " +
                                                  e.ToString());
                     }
                 }

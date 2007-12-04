@@ -306,7 +306,7 @@ namespace OpenSim.Region.Environment.Modules
             }
             catch (Exception)
             {
-                Console.WriteLine("No IRC config information, skipping IRC bridge configuration");
+                OpenSim.Framework.Console.MainLog.Instance.Verbose("CHAT", "No IRC config information, skipping IRC bridge configuration");
             }
             m_log = MainLog.Instance;
         }

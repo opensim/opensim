@@ -147,19 +147,19 @@ namespace OpenSim.Framework
                 return;
             }
 
-            MainLog.Instance.Verbose("Calling Configuration Load Function...");
+            MainLog.Instance.Verbose("CONFIG", "Calling Configuration Load Function...");
             this.loadFunction();
 
             if(configurationOptions.Count <= 0)
             {
-                MainLog.Instance.Error("No configuration options were specified for '" + this.configurationOptions + "'. Refusing to continue configuration.");
+                MainLog.Instance.Error("CONFIG", "No configuration options were specified for '" + this.configurationOptions + "'. Refusing to continue configuration.");
                 return;
             }
 
             bool useFile = true;
             if (configurationPlugin == null)
             {
-                MainLog.Instance.Error("Configuration Plugin NOT LOADED!");
+                MainLog.Instance.Error("CONFIG", "Configuration Plugin NOT LOADED!");
                 return;
             }
 

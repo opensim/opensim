@@ -92,7 +92,7 @@ namespace OpenSim.Region.Physics.Manager
 
             public override PhysicsActor AddAvatar(string avName, PhysicsVector position)
             {
-                MainLog.Instance.Verbose("NullPhysicsScene : AddAvatar({0})", position);
+                MainLog.Instance.Verbose("PHYSICS", "NullPhysicsScene : AddAvatar({0})", position);
                 return PhysicsActor.Null;
             }
 
@@ -119,7 +119,7 @@ namespace OpenSim.Region.Physics.Manager
             public override PhysicsActor AddPrimShape(string primName, PrimitiveBaseShape pbs, PhysicsVector position,
                                                       PhysicsVector size, Quaternion rotation, bool isPhysical)
             {
-                MainLog.Instance.Verbose("NullPhysicsScene : AddPrim({0},{1})", position, size);
+                MainLog.Instance.Verbose("PHYSICS", "NullPhysicsScene : AddPrim({0},{1})", position, size);
                 return PhysicsActor.Null;
             }
             public override void AddPhysicsActorTaint(PhysicsActor prim)
@@ -135,12 +135,12 @@ namespace OpenSim.Region.Physics.Manager
 
             public override void GetResults()
             {
-                MainLog.Instance.Verbose("NullPhysicsScene : GetResults()");
+                MainLog.Instance.Verbose("PHYSICS", "NullPhysicsScene : GetResults()");
             }
 
             public override void SetTerrain(float[] heightMap)
             {
-                MainLog.Instance.Verbose("NullPhysicsScene : SetTerrain({0} items)", heightMap.Length);
+                MainLog.Instance.Verbose("PHYSICS", "NullPhysicsScene : SetTerrain({0} items)", heightMap.Length);
             }
 
             public override void DeleteTerrain()

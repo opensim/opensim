@@ -84,14 +84,14 @@ namespace OpenSim.Grid.UserServer
         {
             Cfg = new UserConfig("USER SERVER", (Path.Combine(Util.configDir(), "UserServer_Config.xml")));
 
-            MainLog.Instance.Verbose("Main.cs:Startup() - Establishing data connection");
+            MainLog.Instance.Verbose("REGION", "Establishing data connection");
             m_userManager = new UserManager();
             m_userManager._config = Cfg;
             m_userManager.AddPlugin(Cfg.DatabaseProvider);
 
             m_loginService = new UserLoginService(m_userManager, Cfg, Cfg.DefaultStartupMsg);
 
-            MainLog.Instance.Verbose("Main.cs:Startup() - Starting HTTP process");
+            MainLog.Instance.Verbose("REGION", "Starting HTTP process");
             BaseHttpServer httpServer = new BaseHttpServer((int) Cfg.HttpPort);
 
             httpServer.AddXmlRPCHandler("login_to_simulator", m_loginService.XmlRpcLoginMethod);

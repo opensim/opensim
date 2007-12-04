@@ -453,11 +453,11 @@ namespace OpenSim.Region.ClientStack
                     if (bytesSent > throttleOutboundMax)
                     {
                         PacketQueue.Enqueue(nextPacket);
-                        MainLog.Instance.Verbose("Client over throttle limit, requeuing packet");
+                        MainLog.Instance.Verbose("THROTTLE", "Client over throttle limit, requeuing packet");
 
                         if (queuedLast)
                         {
-                            MainLog.Instance.Verbose("No more sendable packets, need to sleep now");
+                            MainLog.Instance.Verbose("THROTTLE", "No more sendable packets, need to sleep now");
                             Thread.Sleep(100); // Wait a little while if this was the last packet we saw
                         }
 
@@ -2485,7 +2485,7 @@ namespace OpenSim.Region.ClientStack
                 {
                     if ((now - packet.TickCount > RESEND_TIMEOUT) && (!packet.Header.Resent))
                     {
-                        MainLog.Instance.Verbose("Resending " + packet.Type.ToString() + " packet, " +
+                        MainLog.Instance.Verbose("NETWORK", "Resending " + packet.Type.ToString() + " packet, " +
                                                  (now - packet.TickCount) + "ms have passed");
 
                         packet.Header.Resent = true;
@@ -2504,7 +2504,7 @@ namespace OpenSim.Region.ClientStack
                     if (PendingAcks.Count > 250)
                     {
                         // FIXME: Handle the odd case where we have too many pending ACKs queued up
-                        MainLog.Instance.Verbose("Too many ACKs queued up!");
+                        MainLog.Instance.Verbose("NETWORK", "Too many ACKs queued up!");
                         return;
                     }
 

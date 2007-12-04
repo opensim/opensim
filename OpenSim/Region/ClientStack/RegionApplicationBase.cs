@@ -79,7 +79,7 @@ namespace OpenSim.Region.ClientStack
 
             m_httpServer = new BaseHttpServer(m_httpServerPort);
 
-            m_log.Verbose("Starting HTTP server");
+            m_log.Status("REGION", "Starting HTTP server");
             m_httpServer.Start();
         }
 

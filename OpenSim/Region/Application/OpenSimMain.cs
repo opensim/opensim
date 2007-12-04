@@ -782,12 +782,12 @@ namespace OpenSim
 
                     if (m_sceneManager.CurrentScene == null)
                     {
-                        MainLog.Instance.Verbose(
+                        MainLog.Instance.Verbose("CONSOLE", 
                             "Currently at Root level. To change region please use 'change-region <regioname>'");
                     }
                     else
                     {
-                        MainLog.Instance.Verbose("Current Region: " + m_sceneManager.CurrentScene.RegionInfo.RegionName +
+                        MainLog.Instance.Verbose("CONSOLE", "Current Region: " + m_sceneManager.CurrentScene.RegionInfo.RegionName +
                                                  ". To change region please use 'change-region <regioname>'");
                     }
 

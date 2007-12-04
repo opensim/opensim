@@ -106,12 +106,12 @@ namespace OpenSim.Grid.GridServer
                 //Yeah srsly, that's it.
             if (setuponly) Environment.Exit(0);
 
-            m_console.Verbose("Main.cs:Startup() - Connecting to Storage Server");
+            m_console.Verbose("GRID", "Connecting to Storage Server");
             m_gridManager = new GridManager();
             m_gridManager.AddPlugin(Cfg.DatabaseProvider); // Made of win
             m_gridManager.config = Cfg;
 
-            m_console.Verbose("Main.cs:Startup() - Starting HTTP process");
+            m_console.Verbose("GRID", "Starting HTTP process");
             BaseHttpServer httpServer = new BaseHttpServer((int) Cfg.HttpPort);
             //GridManagementAgent GridManagerAgent = new GridManagementAgent(httpServer, "gridserver", Cfg.SimSendKey, Cfg.SimRecvKey, managercallback);
 
@@ -132,7 +132,7 @@ namespace OpenSim.Grid.GridServer
 
             httpServer.Start();
 
-            m_console.Verbose("Main.cs:Startup() - Starting sim status checker");
+            m_console.Verbose("GRID", "Starting sim status checker");
 
             Timer simCheckTimer = new Timer(3600000*3); // 3 Hours between updates.
             simCheckTimer.Elapsed += new ElapsedEventHandler(CheckSims);

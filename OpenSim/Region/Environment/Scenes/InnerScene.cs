@@ -700,7 +700,7 @@ namespace OpenSim.Region.Environment.Scenes
             }
             else
             {
-                OpenSim.Framework.Console.MainLog.Instance.Verbose(
+                OpenSim.Framework.Console.MainLog.Instance.Verbose("SCENE", 
                     "DelinkObjects(): Could not find a root prim out of {0} as given to a delink request!",
                     primIds);
             }

@@ -50,7 +50,7 @@ namespace OpenSim.Region.Communications.OGS1
         {
             if (data.Contains("error_type"))
             {
-                Console.WriteLine("Error sent by user server when trying to get user profile: (" + data["error_type"] +
+                OpenSim.Framework.Console.MainLog.Instance.Warn("GRID", "Error sent by user server when trying to get user profile: (" + data["error_type"] +
                                   "): " + data["error_desc"]);
                 return null;
             }
