@@ -345,7 +345,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                 vec.Y = (_target_velocity.Y - vel.Y) * PID_D + (_zeroPosition.Y - pos.Y) * PID_P;
                 if (flying)
                 {
-                    vec.Z = (_target_velocity.Z - vel.Z) * PID_D + (_zeroPosition.Z - pos.Z) * PID_P;
+                    vec.Z = (_target_velocity.Z - vel.Z) * (PID_D + 5100) + (_zeroPosition.Z - pos.Z) * PID_P;
                 }
             }
             else
@@ -388,7 +388,7 @@ namespace OpenSim.Region.Physics.OdePlugin
 
                 if (flying)
                 {
-                    vec.Z = (_target_velocity.Z - vel.Z) * PID_D;
+                    vec.Z = (_target_velocity.Z - vel.Z) * (PID_D + 5100);
                 }
             }
             if (flying)
