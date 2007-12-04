@@ -100,23 +100,7 @@ namespace Prebuild.Core.Targets
                     return ret;
                 }
 
-                try
-                {
-                    //Assembly assem = Assembly.Load(refr.Name);
-                    //if (assem != null)
-                    //{
-                    //ret += (refr.Name + ".dll");
-                    //}
-                    //else
-                    //{
-                    ret += (refr.Name + GetProjectExtension(project));
-                    //}
-                }
-                catch (System.NullReferenceException e)
-                {
-                    e.ToString();
-                    ret += refr.Name + GetProjectExtension(project);
-                }
+                ret += (refr.Name + ".dll");
             }
             return ret;
         }
