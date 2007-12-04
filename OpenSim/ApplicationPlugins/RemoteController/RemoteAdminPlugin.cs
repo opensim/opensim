@@ -32,7 +32,7 @@ namespace OpenSim.ApplicationPlugins.LoadRegions
             {
                 if (openSim.ConfigSource.Configs["RemoteAdmin"].GetBoolean("enabled", false))
                 {
-                    OpenSim.Framework.Console.MainLog.Instance.Verbose("RADMIN", "Remote Admin Plugin Enabled");
+                    MainLog.Instance.Verbose("RADMIN", "Remote Admin Plugin Enabled");
 
                     m_app = openSim;
                     m_httpd = openSim.HttpServer;

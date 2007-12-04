@@ -321,7 +321,7 @@ namespace OpenSim.Region.ClientStack
             
             tall = tResend + tLand + tWind + tCloud + tTask + tTexture + tAsset;
             /*
-              OpenSim.Framework.Console.MainLog.Instance.Verbose("CLIENT", "Client AgentThrottle - Got throttle:resendbytes=" + tResend +
+              MainLog.Instance.Verbose("CLIENT", "Client AgentThrottle - Got throttle:resendbytes=" + tResend +
               " landbytes=" + tLand +
               " windbytes=" + tWind +
               " cloudbytes=" + tCloud +

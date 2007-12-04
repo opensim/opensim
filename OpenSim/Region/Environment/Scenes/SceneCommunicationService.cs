@@ -7,7 +7,6 @@ using OpenSim.Framework;
 using OpenSim.Framework.Console;
 using OpenSim.Framework.Communications;
 
-
 namespace OpenSim.Region.Environment.Scenes
 {
     public delegate void KillObjectDelegate(uint localID);
@@ -28,16 +27,12 @@ namespace OpenSim.Region.Environment.Scenes
         public KillObjectDelegate KillObject;
         public string _debugRegionName = "";
 
-
         public string debugRegionName
         {
             get { return _debugRegionName; }
             set
             {
                 _debugRegionName = value;
-
-
-
             }
         }
 
@@ -64,13 +59,10 @@ namespace OpenSim.Region.Environment.Scenes
                 regionCommsHost.OnPrimCrossingIntoRegion += PrimCrossing;
                 regionCommsHost.OnCloseAgentConnection += CloseConnection;
                 regionCommsHost.OnRegionUp += newRegionUp;
-
-
             }
             else
             {
                 //MainLog.Instance.Verbose("INTER", debugRegionName + ": SceneCommunicationService: registered with gridservice and got null");
-
             }
         }
 
@@ -360,8 +352,6 @@ namespace OpenSim.Region.Environment.Scenes
             return m_commsProvider.InterRegion.ExpectAvatarCrossing(regionhandle, agentID, position, isFlying);
         }
 
-
-
         public bool PrimCrossToNeighboringRegion(ulong regionhandle, LLUUID primID, LLVector3 position, bool isPhysical)
         {
             return m_commsProvider.InterRegion.ExpectPrimCrossing(regionhandle, primID, position, isPhysical);
@@ -371,11 +361,9 @@ namespace OpenSim.Region.Environment.Scenes
         {
             foreach (ulong regionHandle in presence.KnownChildRegions)
             {
-
                 m_commsProvider.InterRegion.TellRegionToCloseChildConnection(regionHandle, presence.ControllingClient.AgentId);
                 presence.RemoveNeighbourRegion(regionHandle);
             }
         }
     }
 }
-

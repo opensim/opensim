@@ -35,6 +35,7 @@ using Axiom.Math;
 using libsecondlife;
 using libsecondlife.Packets;
 using OpenSim.Framework;
+using OpenSim.Framework.Console;
 using OpenSim.Region.Environment.Interfaces;
 using OpenSim.Region.Physics.Manager;
 using System.Drawing;
@@ -951,7 +952,7 @@ namespace OpenSim.Region.Environment.Scenes
             }
             else
             {
-                OpenSim.Framework.Console.MainLog.Instance.Verbose("SCENE",
+                MainLog.Instance.Verbose("SCENE",
                     "DelinkFromGroup(): Child prim local id {0} not found in object with root prim id {1}",
                     partID, LocalId);
             }

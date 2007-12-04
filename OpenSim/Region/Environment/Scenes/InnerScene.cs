@@ -662,7 +662,7 @@ namespace OpenSim.Region.Environment.Scenes
         /// <param name="prims"></param>    
         public void DelinkObjects(List<uint> primIds)
         {
-            //OpenSim.Framework.Console.MainLog.Instance.Verbose("DelinkObjects()");
+            //MainLog.Instance.Verbose("DelinkObjects()");
 
             SceneObjectGroup parenPrim = null;
 
@@ -700,7 +700,7 @@ namespace OpenSim.Region.Environment.Scenes
             }
             else
             {
-                OpenSim.Framework.Console.MainLog.Instance.Verbose("SCENE", 
+                MainLog.Instance.Verbose("SCENE", 
                     "DelinkObjects(): Could not find a root prim out of {0} as given to a delink request!",
                     primIds);
             }

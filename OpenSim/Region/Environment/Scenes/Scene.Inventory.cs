@@ -153,7 +153,7 @@ namespace OpenSim.Region.Environment.Scenes
                         }
                         else
                         {
-                            OpenSim.Framework.Console.MainLog.Instance.Warn(
+                            MainLog.Instance.Warn(
                                 "Asset ID " + item.assetID + " not found for item ID " + itemID
                                 + " named " + item.inventoryName + " for an inventory item update.");
                             return;
@@ -199,13 +199,13 @@ namespace OpenSim.Region.Environment.Scenes
                 }
                 else
                 { 
-                    OpenSim.Framework.Console.MainLog.Instance.Warn(
+                    MainLog.Instance.Warn(
                         "Item ID " + itemID + " not found for an inventory item update.");                    
                 }
             }
             else
             {
-                OpenSim.Framework.Console.MainLog.Instance.Warn(
+                MainLog.Instance.Warn(
                     "Agent ID " + remoteClient.AgentId + " not found for an inventory item update."); 
             }
         }
@@ -439,7 +439,7 @@ namespace OpenSim.Region.Environment.Scenes
                 foreach (DeRezObjectPacket.ObjectDataBlock Data in DeRezPacket.ObjectData)
                 {
                     EntityBase selectedEnt = null;
-                    //OpenSim.Framework.Console.MainConsole.Instance.WriteLine("LocalID:" + Data.ObjectLocalID.ToString());
+                    //MainLog.Instance.Verbose("LocalID:" + Data.ObjectLocalID.ToString());
                     foreach (EntityBase ent in Entities.Values)
                     {
                         if (ent.LocalId == Data.ObjectLocalID)

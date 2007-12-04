@@ -36,7 +36,6 @@ using OpenSim.Framework.Communications;
 using OpenSim.Region.Environment.Types;
 using OpenSim.Region.Physics.Manager;
 
-
 namespace OpenSim.Region.Environment.Scenes
 {
     public partial class ScenePresence : EntityBase
@@ -512,7 +511,7 @@ namespace OpenSim.Region.Environment.Scenes
             for (int i = 0; i < visualParam.Length; i++)
             {
                 m_visualParams[i] = visualParam[i].ParamValue;
-                //OpenSim.Framework.Console.MainLog.Instance.Verbose("CLIENT", "VisualData[" + i.ToString() + "]: " + visualParam[i].ParamValue.ToString() + "m");  
+                //MainLog.Instance.Verbose("CLIENT", "VisualData[" + i.ToString() + "]: " + visualParam[i].ParamValue.ToString() + "m");  
             }
             
             // Teravus : Nifty AV Height Getting Maaaaagical formula.  Oh how we love turning 0-255 into meters.
@@ -525,7 +524,7 @@ namespace OpenSim.Region.Environment.Scenes
                 PhysicsVector SetSize = new PhysicsVector(0.45f, 0.6f, m_avHeight);
                 PhysicsActor.Size = SetSize;
             }
-            //OpenSim.Framework.Console.MainLog.Instance.Verbose("CLIENT", "Set Avatar Height to: " + (1.50856f + (((float)m_visualParams[25] / 255.0f) * (2.525506f - 1.50856f))).ToString() + "m" + " Leglength: " + ((float)m_visualParams[125]).ToString() + ":" + (((float)m_visualParams[125] / 255.0f)).ToString() + "m");
+            //MainLog.Instance.Verbose("CLIENT", "Set Avatar Height to: " + (1.50856f + (((float)m_visualParams[25] / 255.0f) * (2.525506f - 1.50856f))).ToString() + "m" + " Leglength: " + ((float)m_visualParams[125]).ToString() + ":" + (((float)m_visualParams[125] / 255.0f)).ToString() + "m");
             SendAppearanceToAllOtherAgents();
         }
 
@@ -675,7 +674,6 @@ namespace OpenSim.Region.Environment.Scenes
                     UpdateMovementAnimations(update_movementflag);
                 }
             }
-            
         }
 
         /// <summary>
@@ -781,7 +779,6 @@ namespace OpenSim.Region.Environment.Scenes
             {
                 PhysicsActor.SetAlwaysRun = SetAlwaysRun;
             }
-
         }
 
         protected void UpdateMovementAnimations(bool update_movementflag)
@@ -1019,7 +1016,6 @@ namespace OpenSim.Region.Environment.Scenes
         {
             m_newCoarseLocations = true;
         }
-
 
         /// <summary>
         /// 

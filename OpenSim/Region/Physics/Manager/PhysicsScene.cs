@@ -130,7 +130,7 @@ namespace OpenSim.Region.Physics.Manager
             {
                 m_workIndicator = (m_workIndicator + 1)%10;
 
-                //OpenSim.Framework.Console.MainLog.Instance.SetStatus(m_workIndicator.ToString());
+                //MainLog.Instance.SetStatus(m_workIndicator.ToString());
             }
 
             public override void GetResults()

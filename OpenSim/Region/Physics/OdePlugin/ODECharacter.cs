@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using Axiom.Math;
 using Ode.NET;
 using OpenSim.Framework;
+using OpenSim.Framework.Console;
 using OpenSim.Region.Physics.Manager;
 
 namespace OpenSim.Region.Physics.OdePlugin
@@ -229,7 +230,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                     CAPSULE_LENGTH = (SetSize.Z - ((SetSize.Z * 0.43f))); // subtract 43% of the size
                     d.BodyDestroy(Body);
                     d.GeomDestroy(Shell);
-                    //OpenSim.Framework.Console.MainLog.Instance.Verbose("PHYSICS", "Set Avatar Height To: " + (CAPSULE_RADIUS + CAPSULE_LENGTH));
+                    //MainLog.Instance.Verbose("PHYSICS", "Set Avatar Height To: " + (CAPSULE_RADIUS + CAPSULE_LENGTH));
                     Shell = d.CreateCapsule(_parent_scene.space, capsuleradius, CAPSULE_LENGTH);
                     d.MassSetCapsule(out ShellMass, 50.0f, 3, CAPSULE_RADIUS, CAPSULE_LENGTH);
                     Body = d.BodyCreate(_parent_scene.world);
@@ -428,13 +429,12 @@ namespace OpenSim.Region.Physics.OdePlugin
                     int[] arrayitem = _parent_scene.calculateSpaceArrayItemFromPos(_position);
                     if (primScenAvatarIn == "0")
                     {
-                        OpenSim.Framework.Console.MainLog.Instance.Verbose("Physics", "Avatar " + m_name + " in space with no prim. Arr:':" + arrayitem[0].ToString() + "," + arrayitem[1].ToString());
+                        MainLog.Instance.Verbose("Physics", "Avatar " + m_name + " in space with no prim. Arr:':" + arrayitem[0].ToString() + "," + arrayitem[1].ToString());
                     }
                     else
                     {
-                        OpenSim.Framework.Console.MainLog.Instance.Verbose("Physics", "Avatar " + m_name + " in Prim space':" + primScenAvatarIn + ". Arr:" + arrayitem[0].ToString() + "," + arrayitem[1].ToString());
+                        MainLog.Instance.Verbose("Physics", "Avatar " + m_name + " in Prim space':" + primScenAvatarIn + ". Arr:" + arrayitem[0].ToString() + "," + arrayitem[1].ToString());
                     }
-
                 }
             }
             else

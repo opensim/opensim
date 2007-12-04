@@ -95,7 +95,6 @@ namespace OpenSim.Region.Environment.Scenes
         {
             scene.OnRestart += HandleRestart;
             m_localScenes.Add(scene);
-
         }
 
         public void HandleRestart(RegionInfo rdata)
@@ -155,6 +154,7 @@ namespace OpenSim.Region.Environment.Scenes
                 MainLog.Instance.Error("REGION", "Unable to notify Other regions of this Region coming up");
             }
         }
+
         public void SaveCurrentSceneToXml(string filename)
         {
             CurrentOrFirstScene.SavePrimsToXml(filename);
@@ -291,7 +291,6 @@ namespace OpenSim.Region.Environment.Scenes
             return false;
         }
 
-
         public void SetDebugPacketOnCurrentScene(LogBase log, int newDebug)
         {
             ForEachCurrentScene(delegate(Scene scene)
@@ -360,7 +359,6 @@ namespace OpenSim.Region.Environment.Scenes
                                     });
         }
 
-
         public void ForceCurrentSceneClientUpdate()
         {
             ForEachCurrentScene(delegate(Scene scene) { scene.ForceClientUpdate(); });
@@ -400,7 +398,6 @@ namespace OpenSim.Region.Environment.Scenes
             scene = null;
             return false;
         }
-
 
         public void CloseScene(Scene scene)
         {

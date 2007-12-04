@@ -31,6 +31,7 @@ using System.Collections.Generic;
 using Axiom.Math;
 using Ode.NET;
 using OpenSim.Framework;
+using OpenSim.Framework.Console;
 using OpenSim.Region.Physics.Manager;
 
 //using OpenSim.Region.Physics.OdePlugin.Meshing;
@@ -242,7 +243,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                 }
                 catch (System.Runtime.InteropServices.SEHException)
                 {
-                    OpenSim.Framework.Console.MainLog.Instance.Error("PHYSICS", "The Operating system shut down ODE because of corrupt memory.  This could be a result of really irregular terrain.  If this repeats continuously, restart using Basic Physics and terrain fill your terrain.  Restarting the sim.");
+                    MainLog.Instance.Error("PHYSICS", "The Operating system shut down ODE because of corrupt memory.  This could be a result of really irregular terrain.  If this repeats continuously, restart using Basic Physics and terrain fill your terrain.  Restarting the sim.");
                     base.TriggerPhysicsBasedRestart();
                 }
              
@@ -438,7 +439,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                             }
                             else
                             {
-                                OpenSim.Framework.Console.MainLog.Instance.Verbose("Physics", "Invalid Scene passed to 'removeprim from scene':" + ((OdePrim)prim).m_targetSpace.ToString());
+                                MainLog.Instance.Verbose("Physics", "Invalid Scene passed to 'removeprim from scene':" + ((OdePrim)prim).m_targetSpace.ToString());
                             }
                         }
                     }
@@ -460,7 +461,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                             }
                             else
                             {
-                                OpenSim.Framework.Console.MainLog.Instance.Verbose("Physics", "Invalid Scene passed to 'removeprim from scene':" + ((OdePrim)prim).m_targetSpace.ToString());
+                                MainLog.Instance.Verbose("Physics", "Invalid Scene passed to 'removeprim from scene':" + ((OdePrim)prim).m_targetSpace.ToString());
                             }
                         }
                     }   
@@ -508,7 +509,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                     }
                     else
                     {
-                        OpenSim.Framework.Console.MainLog.Instance.Verbose("Physics", "Invalid Scene passed to 'recalculatespace':" + currentspace.ToString() + " Geom:" + geom.ToString());
+                        MainLog.Instance.Verbose("Physics", "Invalid Scene passed to 'recalculatespace':" + currentspace.ToString() + " Geom:" + geom.ToString());
                     }
                 }
                 else
@@ -523,7 +524,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                             }
                             else
                             {
-                                OpenSim.Framework.Console.MainLog.Instance.Verbose("Physics", "Invalid Scene passed to 'recalculatespace':" + sGeomIsIn.ToString() + " Geom:" + geom.ToString());
+                                MainLog.Instance.Verbose("Physics", "Invalid Scene passed to 'recalculatespace':" + sGeomIsIn.ToString() + " Geom:" + geom.ToString());
                             }
                     }
                 }
@@ -543,7 +544,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                         }
                         else
                         {
-                            OpenSim.Framework.Console.MainLog.Instance.Verbose("Physics", "Invalid Scene passed to 'recalculatespace':" + currentspace.ToString() + " Geom:" + geom.ToString());
+                            MainLog.Instance.Verbose("Physics", "Invalid Scene passed to 'recalculatespace':" + currentspace.ToString() + " Geom:" + geom.ToString());
                         }
 
                     }
@@ -561,7 +562,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                         }
                         else
                         {
-                            OpenSim.Framework.Console.MainLog.Instance.Verbose("Physics", "Invalid Scene passed to 'recalculatespace':" + currentspace.ToString() + " Geom:" + geom.ToString());
+                            MainLog.Instance.Verbose("Physics", "Invalid Scene passed to 'recalculatespace':" + currentspace.ToString() + " Geom:" + geom.ToString());
 
                         }
                 }
@@ -578,7 +579,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                             }
                             else
                             {
-                                OpenSim.Framework.Console.MainLog.Instance.Verbose("Physics", "Invalid Scene passed to 'recalculatespace':" + sGeomIsIn.ToString() + " Geom:" + geom.ToString());
+                                MainLog.Instance.Verbose("Physics", "Invalid Scene passed to 'recalculatespace':" + sGeomIsIn.ToString() + " Geom:" + geom.ToString());
 
                             }
                         }
@@ -612,7 +613,7 @@ namespace OpenSim.Region.Physics.OdePlugin
         public IntPtr calculateSpaceForGeom(PhysicsVector pos)
         {
             int[] xyspace = calculateSpaceArrayItemFromPos(pos);
-            //OpenSim.Framework.Console.MainLog.Instance.Verbose("Physics", "Attempting to use arrayItem: " + xyspace[0].ToString() + "," + xyspace[1].ToString());
+            //MainLog.Instance.Verbose("Physics", "Attempting to use arrayItem: " + xyspace[0].ToString() + "," + xyspace[1].ToString());
             IntPtr locationbasedspace = staticPrimspace[xyspace[0],xyspace[1]];
 
             //locationbasedspace = space;
@@ -818,7 +819,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                     }
                     catch (System.StackOverflowException)
                     {
-                        OpenSim.Framework.Console.MainLog.Instance.Error("PHYSICS", "The operating system wasn't able to allocate enough memory for the simulation.  Restarting the sim.");
+                        MainLog.Instance.Error("PHYSICS", "The operating system wasn't able to allocate enough memory for the simulation.  Restarting the sim.");
                         base.TriggerPhysicsBasedRestart();
                     }
 

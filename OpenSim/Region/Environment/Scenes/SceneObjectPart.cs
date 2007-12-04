@@ -34,6 +34,7 @@ using Axiom.Math;
 using libsecondlife;
 using libsecondlife.Packets;
 using OpenSim.Framework;
+using OpenSim.Framework.Console;
 using OpenSim.Region.Environment.Interfaces;
 using OpenSim.Region.Environment.Scenes.Scripting;
 using OpenSim.Region.Physics.Manager;
@@ -1392,14 +1393,11 @@ namespace OpenSim.Region.Environment.Scenes
 
         public void PhysicsOutOfBounds(PhysicsVector pos)
         {
-            OpenSim.Framework.Console.MainLog.Instance.Verbose("PHYSICS", "Physical Object went out of bounds.");
+            MainLog.Instance.Verbose("PHYSICS", "Physical Object went out of bounds.");
             RemFlag(LLObject.ObjectFlags.Physics);
             DoPhysicsPropertyUpdate(false, true);
             m_parentGroup.m_scene.PhysicsScene.AddPhysicsActorTaint(PhysActor);
-
-
         }
-
 
         public virtual void OnGrab(LLVector3 offsetPos, IClientAPI remoteClient)
         {

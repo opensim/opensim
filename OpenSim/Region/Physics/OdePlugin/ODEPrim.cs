@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using Axiom.Math;
 using Ode.NET;
 using OpenSim.Framework;
+using OpenSim.Framework.Console;
 using OpenSim.Region.Physics.Manager;
 
 namespace OpenSim.Region.Physics.OdePlugin
@@ -47,12 +48,9 @@ namespace OpenSim.Region.Physics.OdePlugin
         private const float MassMultiplier = 150f; //  Ref: Water: 1000kg..  this iset to 500
         private int debugcounter = 0;
 
-
         public OdePrim(String primName, OdeScene parent_scene, IntPtr targetSpace, PhysicsVector pos, PhysicsVector size,
                        Quaternion rotation, IMesh mesh, PrimitiveBaseShape pbs, bool pisPhysical)
         {
-
-
             _velocity = new PhysicsVector();
             _position = pos;
             m_taintposition = pos;
@@ -97,8 +95,6 @@ namespace OpenSim.Region.Physics.OdePlugin
 
             }
             m_primName = primName;
-
-
 
             lock (OdeScene.OdeLock)
             {
@@ -243,11 +239,11 @@ namespace OpenSim.Region.Physics.OdePlugin
                 int[] arrayitem = _parent_scene.calculateSpaceArrayItemFromPos(_position);
                 if (primScenAvatarIn == "0")
                 {
-                    OpenSim.Framework.Console.MainLog.Instance.Verbose("Physics", "Prim " + m_primName + " in space with no prim: " + primScenAvatarIn + ". Expected to be at: " + m_targetSpace.ToString() + " . Arr:': " + arrayitem[0].ToString() + "," + arrayitem[1].ToString());
+                    MainLog.Instance.Verbose("Physics", "Prim " + m_primName + " in space with no prim: " + primScenAvatarIn + ". Expected to be at: " + m_targetSpace.ToString() + " . Arr:': " + arrayitem[0].ToString() + "," + arrayitem[1].ToString());
                 }
                 else
                 {
-                    OpenSim.Framework.Console.MainLog.Instance.Verbose("Physics", "Prim " + m_primName + " in Prim space with prim: " + primScenAvatarIn + ". Expected to be at: " + m_targetSpace.ToString() + ".  Arr:" + arrayitem[0].ToString() + "," + arrayitem[1].ToString());
+                    MainLog.Instance.Verbose("Physics", "Prim " + m_primName + " in Prim space with prim: " + primScenAvatarIn + ". Expected to be at: " + m_targetSpace.ToString() + ".  Arr:" + arrayitem[0].ToString() + "," + arrayitem[1].ToString());
                 }
                 m_targetSpace = _parent_scene.recalculateSpaceForGeom(prim_geom, _position, m_targetSpace);
                 d.GeomSetPosition(prim_geom, _position.X, _position.Y, _position.Z);
@@ -361,12 +357,9 @@ namespace OpenSim.Region.Physics.OdePlugin
                     enableBody();
                     d.BodyEnable(Body);
                 }
-
             }
 
-
             _parent_scene.geom_name_map[prim_geom] = oldname;
-
 
             m_taintsize = _size;
         }
@@ -382,9 +375,7 @@ namespace OpenSim.Region.Physics.OdePlugin
             d.GeomDestroy(prim_geom);
             if (_mesh != null)
             {
-
                 d.GeomBoxSetLengths(prim_geom, _size.X, _size.Y, _size.Z);
-
             }
 
             // Construction of new prim
@@ -420,9 +411,6 @@ namespace OpenSim.Region.Physics.OdePlugin
                 d.GeomSetQuaternion(prim_geom, ref myrot);
             }
             _parent_scene.geom_name_map[prim_geom] = oldname;
-
-
-
 
             m_taintshape = false;
         }
@@ -470,7 +458,6 @@ namespace OpenSim.Region.Physics.OdePlugin
         {
             get { return _position; }
 
-
             set
             {
                 _position = value;
@@ -484,7 +471,6 @@ namespace OpenSim.Region.Physics.OdePlugin
             set
             {
                 _size = value;
-
             }
         }
 
@@ -493,7 +479,6 @@ namespace OpenSim.Region.Physics.OdePlugin
             set
             {
                 _pbs = value;
-
             }
         }
 
@@ -634,7 +619,6 @@ namespace OpenSim.Region.Physics.OdePlugin
                         base.RequestPhysicsterseUpdate();
                         m_lastUpdateSent = true;
                     }
-
                 }
                 else
                 {

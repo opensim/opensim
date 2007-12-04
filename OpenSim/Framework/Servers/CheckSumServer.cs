@@ -25,6 +25,7 @@
 * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 * 
 */
+
 namespace OpenSim.Framework.Servers
 {
     /*
@@ -113,8 +114,7 @@ namespace OpenSim.Framework.Servers
             }
             catch (Exception)
             {
-                OpenSim.Framework.Console.MainLog.Instance.Warn("CheckSumServer.cs:ProcessOutPacket() - WARNING: Socket exception occurred on connection ");
-
+                MainLog.Instance.Warn("CheckSumServer.cs:ProcessOutPacket() - WARNING: Socket exception occurred on connection ");
             }
         }
 
