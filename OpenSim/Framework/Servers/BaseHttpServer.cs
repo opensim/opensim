@@ -61,7 +61,7 @@ namespace OpenSim.Framework.Servers
         public BaseHttpServer(int port, bool ssl)
         {
             m_ssl = ssl;
-            BaseHttpServer(port);
+            m_port = port;
         }
 
         public void AddStreamHandler(IRequestHandler handler)
