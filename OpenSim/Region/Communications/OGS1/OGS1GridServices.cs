@@ -645,8 +645,6 @@ namespace OpenSim.Region.Communications.OGS1
                 MainLog.Instance.Debug(e.ToString());
                 return false;
             }
-            
-            return true;
         }
         /// <summary>
         /// 
@@ -857,7 +855,7 @@ namespace OpenSim.Region.Communications.OGS1
             {
                 return m_localBackend.IncomingChildAgent(regionHandle, agentData);
             }
-            catch (RemotingException e)
+            catch (RemotingException)
             {
                 //MainLog.Instance.Error("Remoting Error: Unable to connect to adjacent region.\n" + e.ToString());
                 return false;

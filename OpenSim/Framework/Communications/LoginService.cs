@@ -178,7 +178,6 @@ namespace OpenSim.Framework.UserManagement
             {
                 m_loginMutex.ReleaseMutex();
             }
-            return null;
         }
 
         /// <summary>

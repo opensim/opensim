@@ -222,7 +222,6 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler
             LSL_Types.Quaternion a1 = new LSL_Types.Quaternion(0.0, 0.0, cz, cw);
             LSL_Types.Quaternion a2 = new LSL_Types.Quaternion(0.0, by, 0.0, bw);
             LSL_Types.Quaternion a3 = new LSL_Types.Quaternion(ax, 0.0, 0.0, aw);
-            LSL_Types.Quaternion a = new LSL_Types.Quaternion();
             //This multiplication doesnt compile, yet.            a = a1 * a2 * a3;
             LSL_Types.Quaternion b = new LSL_Types.Quaternion(ax*bw*cw + aw*by*cz,
                                                               aw*by*cw - ax*bw*cz, aw*bw*cz + ax*by*cw,

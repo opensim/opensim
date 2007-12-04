@@ -1068,7 +1068,7 @@ namespace OpenSim.Region.Environment.Scenes
             {
                 avatar.Close();
             }
-            catch (System.NullReferenceException NE)
+            catch (System.NullReferenceException)
             {
                 //We can safely ignore null reference exceptions.  It means the avatar are dead and cleaned up anyway.
 

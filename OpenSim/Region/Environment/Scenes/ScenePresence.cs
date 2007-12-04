@@ -54,7 +54,6 @@ namespace OpenSim.Region.Environment.Scenes
         private uint m_requestedSitTargetID = 0;
         private LLVector3 m_requestedSitOffset = new LLVector3();
         private float m_sitAvatarHeight = 2.0f;
-        private bool m_oldColliding = true;
 
         private bool m_isTyping = false;
         private bool m_setAlwaysRun = false;

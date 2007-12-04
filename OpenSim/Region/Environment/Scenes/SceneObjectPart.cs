@@ -956,7 +956,6 @@ namespace OpenSim.Region.Environment.Scenes
 
         public void UpdatePrimFlags(ushort type, bool inUse, byte[] data)
         {
-            bool hasPrim = false;
             bool usePhysics = false;
             bool IsTemporary = false;
             bool IsPhantom = false;

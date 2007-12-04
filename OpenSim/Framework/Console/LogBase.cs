@@ -244,7 +244,7 @@ namespace OpenSim.Framework.Console
                     Log.Flush();
                 }
 
-                catch (FormatException FE)
+                catch (FormatException)
                 {
                     System.Console.WriteLine(args);
                 }

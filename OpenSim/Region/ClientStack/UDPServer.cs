@@ -125,7 +125,7 @@ namespace OpenSim.Region.ClientStack
 
                 return;
             }
-            catch (System.ObjectDisposedException od)
+            catch (System.ObjectDisposedException)
             {
                 return;
             }

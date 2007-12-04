@@ -165,7 +165,6 @@ namespace OpenSim.Region.Communications.OGS1
         public LLUUID AddUserProfile(string firstName, string lastName, string pass, uint regX, uint regY)
         {
             throw new Exception("The method or operation is not implemented.");
-            return LLUUID.Zero;
         }
     }
 }

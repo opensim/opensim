@@ -292,7 +292,6 @@ namespace OpenSim.Region.Environment.Scenes
         public EntityIntersection GetClosestIntersectingPrim(Ray hray)
         {
             // Primitive Ray Tracing
-            bool gothit = false;
             float closestDistance = 280f;
             EntityIntersection returnResult = new EntityIntersection();
             foreach (EntityBase ent in Entities.Values)
@@ -305,7 +304,6 @@ namespace OpenSim.Region.Environment.Scenes
                     {
                         if (result.distance < closestDistance)
                         {
-                            gothit = true;
                             closestDistance = result.distance;
                             returnResult = result;
                         }
