@@ -128,46 +128,24 @@ namespace OpenSim.Region.Environment.Scenes
             {
                 InventoryItemBase item = userInfo.RootFolder.HasItem(itemID);
                 if (item != null)
-                {
-                    AssetBase asset = null;
-                    bool addAsset = false;
-                    
-                    // If we're not inside a transaction and an existing asset is attached
-                    // to the update item, then we need to create a new asset for the new details                     
+                {         
                     if (LLUUID.Zero == transactionID)
                     {
-                        asset = AssetCache.GetAsset(item.assetID);
+                        item.inventoryName = name;
+                        item.inventoryDescription = description;
+                        item.inventoryNextPermissions = nextOwnerMask;
                         
-                        if (asset != null)
-                        {
-                            // to update an item we need to create a new asset
-                            // it's possible that this could be optimized to an update if we knew
-                            // that the owner's inventory had the only copy of the item (I believe
-                            // we're using copy on write semantics).
-                            item.inventoryName = asset.Name = name;
-                            item.inventoryDescription = asset.Description = description;
-                            item.inventoryNextPermissions = nextOwnerMask;
-                            item.assetID = asset.FullID = LLUUID.Random();
-                                                                    
-                            addAsset = true;                            
-                        }
-                        else
-                        {
-                            MainLog.Instance.Warn(
-                                "Asset ID " + item.assetID + " not found for item ID " + itemID
-                                + " named " + item.inventoryName + " for an inventory item update.");
-                            return;
-                        }
+                        userInfo.UpdateItem(remoteClient.AgentId, item);
                     }
                     else                       
-                    {
+                    {            
                         AgentAssetTransactions transactions 
                             = CommsManager.TransactionsManager.GetUserTransActions(remoteClient.AgentId);
                         
                         if (transactions != null)
                         {
                             LLUUID assetID = transactionID.Combine(remoteClient.SecureSessionId);                            
-                            asset = AssetCache.GetAsset(assetID);
+                            AssetBase asset = AssetCache.GetAsset(assetID);
                             
                             if (asset == null)
                             {
@@ -182,30 +160,24 @@ namespace OpenSim.Region.Environment.Scenes
                                 asset.Type = (sbyte) item.assetType;    
                                 item.assetID = asset.FullID;
                                 
-                                addAsset = true;
+                                AssetCache.AddAsset(asset);
                             }
+                            
+                            userInfo.UpdateItem(remoteClient.AgentId, item);
                         }
-                    }
-                        
-                    if (asset != null)
-                    {
-                        if (addAsset)
-                        {
-                            AssetCache.AddAsset(asset);
-                        }
-
-                        userInfo.UpdateItem(remoteClient.AgentId, item);
                     }
                 }
                 else
                 { 
                     MainLog.Instance.Warn(
+                        "INVENTORY", 
                         "Item ID " + itemID + " not found for an inventory item update.");                    
                 }
             }
             else
             {
                 MainLog.Instance.Warn(
+                    "INVENTORY",
                     "Agent ID " + remoteClient.AgentId + " not found for an inventory item update."); 
             }
         }
