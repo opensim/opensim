@@ -160,9 +160,9 @@ namespace OpenSim.Region.Environment.Scenes
             CurrentOrFirstScene.SavePrimsToXml(filename);
         }
 
-        public void LoadCurrentSceneFromXml(string filename, bool generateNewIDs)
+        public void LoadCurrentSceneFromXml(string filename, bool generateNewIDs, LLVector3 loadOffset)
         {
-            CurrentOrFirstScene.LoadPrimsFromXml(filename, generateNewIDs);
+            CurrentOrFirstScene.LoadPrimsFromXml(filename, generateNewIDs, loadOffset);
         }
 
         public void SaveCurrentSceneToXml2(string filename)

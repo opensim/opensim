@@ -42,6 +42,7 @@ using OpenSim.Region.Environment;
 using OpenSim.Region.Environment.Interfaces;
 using OpenSim.Region.Environment.Scenes;
 using OpenSim.Region.Physics.Manager;
+using libsecondlife;
 using Mono.Addins;
 using Mono.Addins.Description;
 
@@ -664,6 +665,7 @@ namespace OpenSim
                     break;
 
                 case "load-xml":
+                    LLVector3 loadOffset = new LLVector3(0, 0, 0);
                     if (cmdparams.Length > 0)
                     {
                         bool generateNewIDS = false;
@@ -672,13 +674,20 @@ namespace OpenSim
                             if (cmdparams[1] == "-newUID")
                             {
                                 generateNewIDS = true;
-                            } 
+                            }
+                            if (cmdparams.Length > 2)
+                            {
+                                loadOffset.X = (float)Convert.ToDecimal(cmdparams[2]);
+                                if (cmdparams.Length > 3) { loadOffset.Y = (float)Convert.ToDecimal(cmdparams[3]); }
+                                if (cmdparams.Length > 4) { loadOffset.Z = (float)Convert.ToDecimal(cmdparams[4]); }
+                                m_log.Error("loadOffsets <X,Y,Z> = <" + loadOffset.X + "," + loadOffset.Y + "," + loadOffset.Z + ">");
+                            }
                         }
-                        m_sceneManager.LoadCurrentSceneFromXml(cmdparams[0], generateNewIDS);
+                        m_sceneManager.LoadCurrentSceneFromXml(cmdparams[0], generateNewIDS, loadOffset);
                     }
                     else
                     {
-                        m_sceneManager.LoadCurrentSceneFromXml(DEFAULT_PRIM_BACKUP_FILENAME, false);
+                        m_sceneManager.LoadCurrentSceneFromXml(DEFAULT_PRIM_BACKUP_FILENAME, false, loadOffset);
                     }
                     break;
 

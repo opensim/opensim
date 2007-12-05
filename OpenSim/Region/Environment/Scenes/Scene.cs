@@ -885,9 +885,9 @@ namespace OpenSim.Region.Environment.Scenes
             prim.OnPrimCountTainted += m_LandManager.setPrimsTainted;
         }
 
-        public void LoadPrimsFromXml(string fileName, bool newIdsFlag)
+        public void LoadPrimsFromXml(string fileName, bool newIdsFlag, LLVector3 loadOffset)
         {
-            m_sceneXmlLoader.LoadPrimsFromXml(fileName, newIdsFlag);
+            m_sceneXmlLoader.LoadPrimsFromXml(fileName, newIdsFlag, loadOffset);
         }
 
         public void SavePrimsToXml(string fileName)

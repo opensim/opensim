@@ -23,7 +23,7 @@ namespace OpenSim.Region.Environment.Scenes
             m_regInfo = regionInfo;
         }
 
-        public void LoadPrimsFromXml(string fileName, bool newIDS)
+        public void LoadPrimsFromXml(string fileName, bool newIDS, LLVector3 loadOffset)
         {
             XmlDocument doc = new XmlDocument();
             XmlNode rootNode;
@@ -48,14 +48,17 @@ namespace OpenSim.Region.Environment.Scenes
                     m_innerScene.AddEntity(obj);
 
                     SceneObjectPart rootPart = obj.GetChildPart(obj.UUID);
+                    // Apply loadOffsets for load/import and move combinations
+                    rootPart.GroupPosition = rootPart.AbsolutePosition + loadOffset;
                     bool UsePhysics = (((rootPart.ObjectFlags & (uint)LLObject.ObjectFlags.Physics) > 0) && m_parentScene.m_physicalPrim);
                     if ((rootPart.ObjectFlags & (uint)LLObject.ObjectFlags.Phantom) == 0)
                     {
                         rootPart.PhysActor = m_innerScene.PhysicsScene.AddPrimShape(
                             rootPart.Name,
                             rootPart.Shape,
-                            new PhysicsVector(rootPart.AbsolutePosition.X, rootPart.AbsolutePosition.Y,
-                                              rootPart.AbsolutePosition.Z),
+                            new PhysicsVector(rootPart.AbsolutePosition.X + loadOffset.X,
+                                              rootPart.AbsolutePosition.Y + loadOffset.Y,
+                                              rootPart.AbsolutePosition.Z + loadOffset.Z),
                             new PhysicsVector(rootPart.Scale.X, rootPart.Scale.Y, rootPart.Scale.Z),
                             new Quaternion(rootPart.RotationOffset.W, rootPart.RotationOffset.X,
                                            rootPart.RotationOffset.Y, rootPart.RotationOffset.Z), UsePhysics);
