@@ -15,10 +15,15 @@ namespace OpenSim.Framework.Servers
 
         public void BeginPostObject<TRequest>(string requestUrl, TRequest obj)
         {
+            BeginPostObject("POST", requestUrl, obj);
+        }
+
+        public void BeginPostObject<TRequest>(string verb, string requestUrl, TRequest obj)
+        {
             Type type = typeof(TRequest);
 
             WebRequest request = WebRequest.Create(requestUrl);
-            request.Method = "POST";
+            request.Method = verb;
             request.ContentType = "text/xml";
 
             MemoryStream buffer = new MemoryStream();

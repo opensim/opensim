@@ -197,12 +197,12 @@ namespace OpenSim.Grid.UserServer
 
         protected override InventoryData CreateInventoryData(LLUUID userID)
         {
-            List<InventoryFolderBase> folders = SynchronousRestObjectPoster.BeginPostObject<LLUUID, List<InventoryFolderBase>>(m_config.InventoryUrl + "RootFolders/", userID);
+            List<InventoryFolderBase> folders = SynchronousRestObjectPoster.BeginPostObject<LLUUID, List<InventoryFolderBase>>("POST", m_config.InventoryUrl + "RootFolders/", userID);
             if (folders ==null | folders.Count == 0)
             {
                 RestObjectPoster.BeginPostObject<LLUUID>(m_config.InventoryUrl + "CreateInventory/", userID);
                 Thread.Sleep(1000);
-                folders = SynchronousRestObjectPoster.BeginPostObject<LLUUID, List<InventoryFolderBase>>(m_config.InventoryUrl + "RootFolders/", userID);
+                folders = SynchronousRestObjectPoster.BeginPostObject<LLUUID, List<InventoryFolderBase>>("POST", m_config.InventoryUrl + "RootFolders/", userID);
             }
 
             if(folders.Count >0)

@@ -9,12 +9,12 @@ namespace OpenSim.Framework.Servers
 {
     public class SynchronousRestObjectPoster
     {
-        public static TResponse BeginPostObject<TRequest, TResponse>(string requestUrl, TRequest obj)
+        public static TResponse BeginPostObject<TRequest, TResponse>(string verb, string requestUrl, TRequest obj)
         {
             Type type = typeof(TRequest);
 
             WebRequest request = WebRequest.Create(requestUrl);
-            request.Method = "POST";
+            request.Method = verb;
             request.ContentType = "text/xml";
 
             MemoryStream buffer = new MemoryStream();
