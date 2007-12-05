@@ -1163,7 +1163,7 @@ namespace OpenSim.Region.Environment.Scenes
             }
         }
 
-        public void AgentCrossing(ulong regionHandle, LLUUID agentID, LLVector3 position, bool isFlying)
+        public virtual void AgentCrossing(ulong regionHandle, LLUUID agentID, LLVector3 position, bool isFlying)
         {
             if (regionHandle == m_regInfo.RegionHandle)
             {
