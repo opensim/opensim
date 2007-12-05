@@ -488,10 +488,9 @@ namespace OpenSim.Region.Environment.LandManagement
                     {
                         resultLocalIDs.Add(obj.LocalId);
                     }
-                    else if (request_type == LandManager.LAND_SELECT_OBJECTS_GROUP && false)
-                        //TODO: change false to group support!
-                    {
-                    }
+                    // else if (request_type == LandManager.LAND_SELECT_OBJECTS_GROUP && ...) // TODO: group support
+                    // {
+                    // }
                     else if (request_type == LandManager.LAND_SELECT_OBJECTS_OTHER &&
                              obj.OwnerID != remote_client.AgentId)
                     {

@@ -1289,20 +1289,17 @@ namespace OpenSim.Region.Environment.Scenes
                     clientFlags = EveryoneMask;
                     if (!ParentGroup.m_scene.PermissionsMngr.AnyoneCanCopyPermission(remoteClient.AgentId, this.ParentGroup.UUID))
                     {
-                        clientFlags = (clientFlags &= ~(uint)LLObject.ObjectFlags.ObjectCopy);
+                        clientFlags &= ~(uint)LLObject.ObjectFlags.ObjectCopy;
                     }
 
                     if (!ParentGroup.m_scene.PermissionsMngr.AnyoneCanMovePermission(remoteClient.AgentId, this.ParentGroup.UUID))
                     {
-                        clientFlags = clientFlags &= ~(uint)LLObject.ObjectFlags.ObjectMove;
+                        clientFlags &= ~(uint)LLObject.ObjectFlags.ObjectMove;
                     }
                     
-                    clientFlags = clientFlags &= ~(uint)LLObject.ObjectFlags.ObjectModify;
-                    clientFlags = clientFlags &= ~(uint)LLObject.ObjectFlags.AllowInventoryDrop;
-                    clientFlags = clientFlags &= ~(uint)LLObject.ObjectFlags.ObjectTransfer;
-
-
-
+                    clientFlags &= ~(uint)LLObject.ObjectFlags.ObjectModify;
+                    clientFlags &= ~(uint)LLObject.ObjectFlags.AllowInventoryDrop;
+                    clientFlags &= ~(uint)LLObject.ObjectFlags.ObjectTransfer;
                 }
             }
 
