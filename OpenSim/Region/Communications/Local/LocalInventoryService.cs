@@ -36,10 +36,6 @@ namespace OpenSim.Region.Communications.Local
 {
     public class LocalInventoryService : InventoryServiceBase
     {
-        public LocalInventoryService()
-        {
-        }
-
         public override void RequestInventoryForUser(LLUUID userID, InventoryFolderInfo folderCallBack,
                                                      InventoryItemInfo itemCallBack)
         {
@@ -51,9 +47,7 @@ namespace OpenSim.Region.Communications.Local
             {
                 if (folder.parentID == LLUUID.Zero)
                 {
-                    InventoryFolderImpl newfolder = new InventoryFolderImpl(folder);
-                    rootFolder = newfolder;
-                    folderCallBack(userID, newfolder);
+                    rootFolder = RequestInventoryFolder(userID, folder, folderCallBack, itemCallBack);
                 }
             }
 
@@ -63,14 +57,7 @@ namespace OpenSim.Region.Communications.Local
                 {
                     if (folder.folderID != rootFolder.folderID)
                     {
-                        InventoryFolderImpl newfolder = new InventoryFolderImpl(folder);
-                        folderCallBack(userID, newfolder);
-
-                        List<InventoryItemBase> items = RequestFolderItems(newfolder.folderID);
-                        foreach (InventoryItemBase item in items)
-                        {
-                            itemCallBack(userID, item);
-                        }
+                        RequestInventoryFolder(userID, folder, folderCallBack, itemCallBack);
                     }
                 }
             }
@@ -89,6 +76,27 @@ namespace OpenSim.Region.Communications.Local
         public override void DeleteInventoryItem(LLUUID userID, InventoryItemBase item)
         {
             DeleteItem(item);
+        }
+        
+        /// <summary>
+        /// Send the given inventory folder and its item contents back to the requester.
+        /// </summary>
+        /// <param name="userID"></param>
+        /// <param name="folder"></param>
+        private InventoryFolderImpl RequestInventoryFolder(LLUUID userID, InventoryFolderBase folder,
+                                                           InventoryFolderInfo folderCallBack, 
+                                                           InventoryItemInfo itemCallBack)
+        {
+            InventoryFolderImpl newFolder = new InventoryFolderImpl(folder);
+            folderCallBack(userID, newFolder);
+
+            List<InventoryItemBase> items = RequestFolderItems(newFolder.folderID);
+            foreach (InventoryItemBase item in items)
+            {
+                itemCallBack(userID, item);
+            }   
+            
+            return newFolder;
         }
     }
 }
