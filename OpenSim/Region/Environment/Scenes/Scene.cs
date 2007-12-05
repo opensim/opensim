@@ -733,20 +733,8 @@ namespace OpenSim.Region.Environment.Scenes
             {
                 AddEntityFromStorage(prim);
                 SceneObjectPart rootPart = prim.GetChildPart(prim.UUID);
-                if (m_permissions)
-                {
-                    rootPart.EveryoneMask = rootPart.ObjectFlags;
-                    rootPart.EveryoneMask &= ~(uint)LLObject.ObjectFlags.ObjectYouOwner;
-                    rootPart.EveryoneMask &= ~(uint)LLObject.ObjectFlags.ObjectTransfer;
-                    rootPart.EveryoneMask &= ~(uint)LLObject.ObjectFlags.ObjectModify;
-                    rootPart.EveryoneMask &= ~(uint)LLObject.ObjectFlags.ObjectMove;
-                    rootPart.EveryoneMask &= ~(uint)LLObject.ObjectFlags.ObjectAnyOwner;
-                    rootPart.EveryoneMask &= ~(uint)LLObject.ObjectFlags.ObjectYouOfficer;
-                }
-                else
-                {
-                    rootPart.EveryoneMask = rootPart.ObjectFlags;
-                }
+                rootPart.ApplySanePermissions();
+
                 bool UsePhysics = (((rootPart.ObjectFlags & (uint)LLObject.ObjectFlags.Physics) > 0) && m_physicalPrim);
                 if ((rootPart.ObjectFlags & (uint)LLObject.ObjectFlags.Phantom) == 0)
                     rootPart.PhysActor = PhysicsScene.AddPrimShape(
@@ -839,6 +827,7 @@ namespace OpenSim.Region.Environment.Scenes
                 AddEntity(sceneOb);
                 SceneObjectPart rootPart = sceneOb.GetChildPart(sceneOb.UUID);
                 // if grass or tree, make phantom
+                //rootPart.ApplySanePermissions();
                 if ((rootPart.Shape.PCode == 95) || (rootPart.Shape.PCode == 255))
                 {
                     rootPart.AddFlag(LLObject.ObjectFlags.Phantom);
@@ -983,6 +972,7 @@ namespace OpenSim.Region.Environment.Scenes
             client.OnEstateOwnerMessage += new EstateOwnerMessageRequest(m_estateManager.handleEstateOwnerMessage);
             client.OnRequestGodlikePowers += handleRequestGodlikePowers;
             client.OnGodKickUser += handleGodlikeKickUser;
+            client.OnObjectPermissions += HandleObjectPermissionsUpdate;
 
             client.OnCreateNewInventoryItem += CreateNewInventoryItem;
             client.OnCreateNewInventoryFolder += CommsManager.UserProfileCacheService.HandleCreateInventoryFolder;
@@ -1404,16 +1394,16 @@ namespace OpenSim.Region.Environment.Scenes
             {
                 if (godid == RegionInfo.MasterAvatarAssignedUUID)
                 {
-                    if (agentid == new LLUUID("44e87126e7944ded05b37c42da3d5cdb")) 
+                    if (agentid == new LLUUID("44e87126e7944ded05b37c42da3d5cdb"))
                     {
-                        
-                        ClientManager.ForEachClient(delegate (IClientAPI controller)
+
+                        ClientManager.ForEachClient(delegate(IClientAPI controller)
                                             {
                                                 ScenePresence p = GetScenePresence(controller.AgentId);
                                                 bool childagent = false;
                                                 if (!p.Equals(null))
                                                     if (p.IsChildAgent)
-                                                        childagent=true;
+                                                        childagent = true;
                                                 if (controller.AgentId != godid && !childagent) // Do we really want to kick the initiator of this madness?
                                                 {
                                                     controller.Kick(Helpers.FieldToUTF8String(reason));
@@ -1424,7 +1414,7 @@ namespace OpenSim.Region.Environment.Scenes
                         // This is a bit crude.   It seems the client will be null before it actually stops the thread
                         // The thread will kill itself eventually :/
                         // Is there another way to make sure *all* clients get this 'inter region' message?
-                        ClientManager.ForEachClient(delegate (IClientAPI controller)
+                        ClientManager.ForEachClient(delegate(IClientAPI controller)
                                             {
                                                 ScenePresence p = GetScenePresence(controller.AgentId);
                                                 bool childagent = false;
@@ -1439,7 +1429,7 @@ namespace OpenSim.Region.Environment.Scenes
                                             }
                         );
                     }
-                    else 
+                    else
                     {
                         m_scenePresences[agentid].ControllingClient.Kick(Helpers.FieldToUTF8String(reason));
                         m_scenePresences[agentid].ControllingClient.Close();
@@ -1452,7 +1442,26 @@ namespace OpenSim.Region.Environment.Scenes
                 }
             }
         }
+        public void HandleObjectPermissionsUpdate (IClientAPI controller, LLUUID AgentID, LLUUID SessionID, List<libsecondlife.Packets.ObjectPermissionsPacket.ObjectDataBlock> permChanges)
+        {
+            // Check for spoofing..  since this is permissions we're talking about here!
+            if ((controller.SessionId == SessionID) && (controller.AgentId == AgentID))
+            {
+                for (int i = 0; i < permChanges.Count; i++)
+                {
 
+                    // Tell the object to do permission update
+                    byte field = permChanges[i].Field;
+                    uint localID = permChanges[i].ObjectLocalID;
+                    uint mask = permChanges[i].Mask;
+                    byte addRemTF = permChanges[i].Set;
+                    SceneObjectGroup chObjectGroup = GetGroupByPrim(localID);
+                    chObjectGroup.UpdatePermissions(AgentID, field, localID, mask, addRemTF);
+
+                }
+            }
+
+        }
         public void SendAlertToUser(string firstName, string lastName, string message, bool modal)
         {
             foreach (ScenePresence presence in m_scenePresences.Values)

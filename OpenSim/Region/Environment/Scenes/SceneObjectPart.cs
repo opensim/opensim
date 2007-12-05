@@ -44,8 +44,12 @@ namespace OpenSim.Region.Environment.Scenes
 {
     public class SceneObjectPart : IScriptHost
     {
-        private const uint FULL_MASK_PERMISSIONS = 2147483647;
-
+        private const LLObject.ObjectFlags OBJFULL_MASK_GENERAL = LLObject.ObjectFlags.ObjectCopy | LLObject.ObjectFlags.ObjectModify | LLObject.ObjectFlags.ObjectTransfer;
+        private const LLObject.ObjectFlags OBJFULL_MASK_OWNER = LLObject.ObjectFlags.ObjectCopy | LLObject.ObjectFlags.ObjectModify | LLObject.ObjectFlags.ObjectOwnerModify | LLObject.ObjectFlags.ObjectTransfer | LLObject.ObjectFlags.ObjectYouOwner;
+        private const uint OBJNEXT_OWNER = 2147483647;
+        
+        private const uint FULL_MASK_PERMISSIONS_GENERAL = 2147483647;
+        private const uint FULL_MASK_PERMISSIONS_OWNER = 2147483647;
         private string m_inventoryFileName = "";
         private LLUUID m_folderID = LLUUID.Zero;
 
@@ -64,11 +68,13 @@ namespace OpenSim.Region.Environment.Scenes
         public Int32 CreationDate;
         public uint ParentID = 0;
 
-        public uint OwnerMask = FULL_MASK_PERMISSIONS;
-        public uint NextOwnerMask = FULL_MASK_PERMISSIONS;
-        public uint GroupMask = FULL_MASK_PERMISSIONS;
-        public uint EveryoneMask = FULL_MASK_PERMISSIONS;
-        public uint BaseMask = FULL_MASK_PERMISSIONS;
+        // Main grid  has default permissions as follows
+        // 
+        public uint OwnerMask = FULL_MASK_PERMISSIONS_OWNER;
+        public uint NextOwnerMask =  OBJNEXT_OWNER;
+        public uint GroupMask = (uint) LLObject.ObjectFlags.None;
+        public uint EveryoneMask = (uint) LLObject.ObjectFlags.None;
+        public uint BaseMask = FULL_MASK_PERMISSIONS_OWNER;
 
         protected byte[] m_particleSystem = new byte[0];
 
@@ -463,17 +469,11 @@ namespace OpenSim.Region.Environment.Scenes
             m_folderID = LLUUID.Random();
 
             m_flags = 0;
-            m_flags |= LLObject.ObjectFlags.ObjectModify |
-                       LLObject.ObjectFlags.ObjectCopy |
-                       LLObject.ObjectFlags.ObjectYouOwner |
-                       LLObject.ObjectFlags.Touch |
-                       LLObject.ObjectFlags.ObjectMove |
-                       LLObject.ObjectFlags.AllowInventoryDrop |
-                       LLObject.ObjectFlags.ObjectTransfer |
-                       LLObject.ObjectFlags.CreateSelected |
-                       LLObject.ObjectFlags.ObjectOwnerModify;
+            m_flags |=  LLObject.ObjectFlags.Touch |
+                        LLObject.ObjectFlags.AllowInventoryDrop | 
+                        LLObject.ObjectFlags.CreateSelected;
 
-            ApplyPermissions();
+            ApplySanePermissions();
 
             ScheduleFullUpdate();
         }
@@ -511,7 +511,7 @@ namespace OpenSim.Region.Environment.Scenes
             RotationOffset = rotation;
             ObjectFlags = flags;
 
-            ApplyPermissions();
+            ApplySanePermissions();
             // ApplyPhysics();
 
             ScheduleFullUpdate();
@@ -552,24 +552,99 @@ namespace OpenSim.Region.Environment.Scenes
 
             DoPhysicsPropertyUpdate(usePhysics, true);           
         }
-
-        public void ApplyPermissions()
+        public void ApplyNextOwnerPermissions()
         {
-            if (!ParentGroup.m_scene.PermissionsMngr.BypassPermissions)
-            {
-                EveryoneMask = ObjectFlags;
-                EveryoneMask &= ~(uint)LLObject.ObjectFlags.ObjectYouOwner;
-                EveryoneMask &= ~(uint)LLObject.ObjectFlags.ObjectTransfer;
-                EveryoneMask &= ~(uint)LLObject.ObjectFlags.ObjectCopy;
-                EveryoneMask &= ~(uint)LLObject.ObjectFlags.ObjectModify;
-                EveryoneMask &= ~(uint)LLObject.ObjectFlags.ObjectMove;
-                EveryoneMask &= ~(uint)LLObject.ObjectFlags.ObjectAnyOwner;
-                EveryoneMask &= ~(uint)LLObject.ObjectFlags.ObjectYouOfficer;
-            }
-            else
-            {
-                EveryoneMask = ObjectFlags;
-            }
+            BaseMask = NextOwnerMask;
+            OwnerMask = NextOwnerMask;
+        }
+        public void ApplySanePermissions()
+        {
+            // These are some flags that The OwnerMask should never have
+            OwnerMask &= ~(uint)LLObject.ObjectFlags.ObjectGroupOwned;
+            OwnerMask &= ~(uint)LLObject.ObjectFlags.Physics;
+            OwnerMask &= ~(uint)LLObject.ObjectFlags.Phantom;
+            OwnerMask &= ~(uint)LLObject.ObjectFlags.Scripted;
+            OwnerMask &= ~(uint)LLObject.ObjectFlags.Touch;
+            OwnerMask &= ~(uint)LLObject.ObjectFlags.Temporary;
+            OwnerMask &= ~(uint)LLObject.ObjectFlags.TemporaryOnRez;
+            OwnerMask &= ~(uint)LLObject.ObjectFlags.ZlibCompressed;
+            OwnerMask &= ~(uint)LLObject.ObjectFlags.AllowInventoryDrop;
+            OwnerMask &= ~(uint)LLObject.ObjectFlags.AnimSource;
+            OwnerMask &= ~(uint)LLObject.ObjectFlags.Money;
+            OwnerMask &= ~(uint)LLObject.ObjectFlags.CastShadows;
+            OwnerMask &= ~(uint)LLObject.ObjectFlags.InventoryEmpty;
+            OwnerMask &= ~(uint)LLObject.ObjectFlags.CreateSelected;
+            
+            
+            // These are some flags that the next owner mask should never have
+            NextOwnerMask &= ~(uint)LLObject.ObjectFlags.ObjectYouOwner;
+            NextOwnerMask &= ~(uint)LLObject.ObjectFlags.ObjectTransfer;
+            NextOwnerMask &= ~(uint)LLObject.ObjectFlags.ObjectOwnerModify;
+            NextOwnerMask &= ~(uint)LLObject.ObjectFlags.ObjectGroupOwned;
+            NextOwnerMask &= ~(uint)LLObject.ObjectFlags.Physics;
+            NextOwnerMask &= ~(uint)LLObject.ObjectFlags.Phantom;
+            NextOwnerMask &= ~(uint)LLObject.ObjectFlags.Scripted;
+            NextOwnerMask &= ~(uint)LLObject.ObjectFlags.Touch;
+            NextOwnerMask &= ~(uint)LLObject.ObjectFlags.Temporary;
+            NextOwnerMask &= ~(uint)LLObject.ObjectFlags.TemporaryOnRez;
+            NextOwnerMask &= ~(uint)LLObject.ObjectFlags.ZlibCompressed;
+            NextOwnerMask &= ~(uint)LLObject.ObjectFlags.AllowInventoryDrop;
+            NextOwnerMask &= ~(uint)LLObject.ObjectFlags.AnimSource;
+            NextOwnerMask &= ~(uint)LLObject.ObjectFlags.Money;
+            NextOwnerMask &= ~(uint)LLObject.ObjectFlags.CastShadows;
+            NextOwnerMask &= ~(uint)LLObject.ObjectFlags.InventoryEmpty;
+            NextOwnerMask &= ~(uint)LLObject.ObjectFlags.CreateSelected;
+            
+
+            // These are some flags that the GroupMask should never have
+            GroupMask &= ~(uint)LLObject.ObjectFlags.ObjectYouOwner;
+            GroupMask &= ~(uint)LLObject.ObjectFlags.ObjectTransfer;
+            GroupMask &= ~(uint)LLObject.ObjectFlags.ObjectOwnerModify;
+            GroupMask &= ~(uint)LLObject.ObjectFlags.ObjectGroupOwned;
+            GroupMask &= ~(uint)LLObject.ObjectFlags.Physics;
+            GroupMask &= ~(uint)LLObject.ObjectFlags.Phantom;
+            GroupMask &= ~(uint)LLObject.ObjectFlags.Scripted;
+            GroupMask &= ~(uint)LLObject.ObjectFlags.Touch;
+            GroupMask &= ~(uint)LLObject.ObjectFlags.Temporary;
+            GroupMask &= ~(uint)LLObject.ObjectFlags.TemporaryOnRez;
+            GroupMask &= ~(uint)LLObject.ObjectFlags.ZlibCompressed;
+            GroupMask &= ~(uint)LLObject.ObjectFlags.AllowInventoryDrop;
+            GroupMask &= ~(uint)LLObject.ObjectFlags.AnimSource;
+            GroupMask &= ~(uint)LLObject.ObjectFlags.Money;
+            GroupMask &= ~(uint)LLObject.ObjectFlags.CastShadows;
+            GroupMask &= ~(uint)LLObject.ObjectFlags.InventoryEmpty;
+            GroupMask &= ~(uint)LLObject.ObjectFlags.CreateSelected;
+            
+
+            // These are some flags that EveryoneMask should never have
+            EveryoneMask &= ~(uint)LLObject.ObjectFlags.ObjectYouOwner;
+            EveryoneMask &= ~(uint)LLObject.ObjectFlags.ObjectTransfer;
+            EveryoneMask &= ~(uint)LLObject.ObjectFlags.ObjectOwnerModify;
+            EveryoneMask &= ~(uint)LLObject.ObjectFlags.ObjectGroupOwned;
+            EveryoneMask &= ~(uint)LLObject.ObjectFlags.Physics;
+            EveryoneMask &= ~(uint)LLObject.ObjectFlags.Phantom;
+            EveryoneMask &= ~(uint)LLObject.ObjectFlags.Scripted;
+            EveryoneMask &= ~(uint)LLObject.ObjectFlags.Touch;
+            EveryoneMask &= ~(uint)LLObject.ObjectFlags.Temporary;
+            EveryoneMask &= ~(uint)LLObject.ObjectFlags.TemporaryOnRez;
+            EveryoneMask &= ~(uint)LLObject.ObjectFlags.ZlibCompressed;
+            EveryoneMask &= ~(uint)LLObject.ObjectFlags.AllowInventoryDrop;
+            EveryoneMask &= ~(uint)LLObject.ObjectFlags.AnimSource;
+            EveryoneMask &= ~(uint)LLObject.ObjectFlags.Money;
+            EveryoneMask &= ~(uint)LLObject.ObjectFlags.CastShadows;
+            EveryoneMask &= ~(uint)LLObject.ObjectFlags.InventoryEmpty;
+            EveryoneMask &= ~(uint)LLObject.ObjectFlags.CreateSelected;
+            
+
+            // These are some flags that ObjectFlags (m_flags) should never have
+            ObjectFlags &= ~(uint)LLObject.ObjectFlags.ObjectYouOwner;
+            ObjectFlags &= ~(uint)LLObject.ObjectFlags.ObjectTransfer;
+            ObjectFlags &= ~(uint)LLObject.ObjectFlags.ObjectOwnerModify;
+            ObjectFlags &= ~(uint)LLObject.ObjectFlags.ObjectYouOfficer;
+            ObjectFlags &= ~(uint)LLObject.ObjectFlags.ObjectCopy;
+            ObjectFlags &= ~(uint)LLObject.ObjectFlags.ObjectModify;
+            ObjectFlags &= ~(uint)LLObject.ObjectFlags.ObjectMove;
+
         }
 
         /// <summary>
@@ -774,9 +849,7 @@ namespace OpenSim.Region.Environment.Scenes
             {
                 //Console.WriteLine("Adding flag: " + ((LLObject.ObjectFlags) flag).ToString());
                 m_flags |= flag;
-                BaseMask |= (uint)flag;
-                GroupMask |= (uint)flag;
-                EveryoneMask |= (uint)flag;
+                
             }
             uint currflag = (uint)m_flags;
             //System.Console.WriteLine("Aprev: " + prevflag.ToString() + " curr: " + m_flags.ToString());
@@ -790,9 +863,7 @@ namespace OpenSim.Region.Environment.Scenes
             {
                 //Console.WriteLine("Removing flag: " + ((LLObject.ObjectFlags)flag).ToString());
                 m_flags &= ~flag;
-                BaseMask &= ~(uint)flag;
-                GroupMask &= ~(uint)flag;
-                EveryoneMask &= ~(uint)flag;
+                
             }
             //System.Console.WriteLine("prev: " + prevflag.ToString() + " curr: " + m_flags.ToString());
             //ScheduleFullUpdate();
@@ -1198,6 +1269,51 @@ namespace OpenSim.Region.Environment.Scenes
 
         #endregion
 
+        public void UpdatePermissions(LLUUID AgentID, byte field, uint localID, uint mask, byte addRemTF)
+        {
+            // Are we the owner?
+            if (AgentID == OwnerID)
+            {
+                MainLog.Instance.Verbose("PERMISSIONS", "field: " + field.ToString() + ", mask: " + mask.ToString() + " addRemTF: " + addRemTF.ToString());
+                
+                //Field 8 = EveryoneMask
+                if (field == (byte)8)
+                {
+                    MainLog.Instance.Verbose("PERMISSIONS", "Left over: " + (OwnerMask - EveryoneMask));
+                    if (addRemTF == (byte)0)
+                    {
+                        //EveryoneMask = (uint)0;
+                        EveryoneMask &= ~mask;
+                        //EveryoneMask &= ~(uint)57344;
+
+
+                    }
+                    else
+                    {
+                        //EveryoneMask = (uint)0;
+                        EveryoneMask |= mask;
+                        //EveryoneMask |= (uint)57344;
+                        
+                    }
+                    ScheduleFullUpdate();
+                }
+                //Field 16 = NextownerMask
+                if (field == (byte)16)
+                {
+                    if (addRemTF == (byte)0)
+                    {
+                        NextOwnerMask &= ~mask;
+                    }
+                    else
+                    {
+                        NextOwnerMask |= mask;
+                    }
+                    ScheduleFullUpdate();
+                }
+
+            }
+        }
+
         #region Client Update Methods
 
         public void AddFullUpdateToAllAvatars()
@@ -1222,7 +1338,8 @@ namespace OpenSim.Region.Environment.Scenes
             List<ScenePresence> avatars = m_parentGroup.GetScenePresences();
             for (int i = 0; i < avatars.Count; i++)
             {
-                m_parentGroup.SendPartFullUpdate(avatars[i].ControllingClient, this);
+                // Ugly reference :(
+                m_parentGroup.SendPartFullUpdate(avatars[i].ControllingClient, this, avatars[i].GenerateClientFlags(this.UUID));
             }
         }
 
@@ -1230,20 +1347,20 @@ namespace OpenSim.Region.Environment.Scenes
         /// 
         /// </summary>
         /// <param name="remoteClient"></param>
-        public void SendFullUpdate(IClientAPI remoteClient)
+        public void SendFullUpdate(IClientAPI remoteClient, uint clientFlags)
         {
-            m_parentGroup.SendPartFullUpdate(remoteClient, this);
+            m_parentGroup.SendPartFullUpdate(remoteClient, this, clientFlags);
         }
 
         /// <summary>
         /// 
         /// </summary>
         /// <param name="remoteClient"></param>
-        public void SendFullUpdateToClient(IClientAPI remoteClient)
+        public void SendFullUpdateToClient(IClientAPI remoteClient, uint clientflags)
         {
             LLVector3 lPos;
             lPos = OffsetPosition;
-            SendFullUpdateToClient(remoteClient, lPos);
+            SendFullUpdateToClient(remoteClient, lPos, clientflags);
         }
 
         /// <summary>
@@ -1251,56 +1368,13 @@ namespace OpenSim.Region.Environment.Scenes
         /// </summary>
         /// <param name="remoteClient"></param>
         /// <param name="lPos"></param>
-        public void SendFullUpdateToClient(IClientAPI remoteClient, LLVector3 lPos)
+        public void SendFullUpdateToClient(IClientAPI remoteClient, LLVector3 lPos, uint clientFlags)
         {
             LLQuaternion lRot;
             lRot = RotationOffset;
-            uint clientFlags = ObjectFlags & ~(uint)LLObject.ObjectFlags.CreateSelected;
-
-            List<ScenePresence> avatars = m_parentGroup.GetScenePresences();
-            foreach (ScenePresence s in avatars)
+            if (remoteClient.AgentId == OwnerID) 
             {
-                if (s.m_uuid == OwnerID)
-                {
-                    if (s.ControllingClient == remoteClient)
-                    {
-                        clientFlags = ObjectFlags;
-                        m_flags &= ~LLObject.ObjectFlags.CreateSelected;
-                    }
-                    break;
-                }
-            }
-            // If you can't edit it, send the base permissions minus the flag to edit
-
-
-            // We're going to be moving this into ScenePresence and the PermissionsManager itself.
-            if (!ParentGroup.m_scene.PermissionsMngr.BypassPermissions)
-            {
-                if (ParentGroup.m_scene.PermissionsMngr.CanEditObject(remoteClient.AgentId, this.ParentGroup.UUID))
-                {
-                    // we should be merging the objectflags with the ownermask here.   
-                    // TODO: Future refactoring here.
-                    clientFlags = ObjectFlags;
-
-                }
-                else
-                {
-                    //clientFlags = ObjectFlags;
-                    clientFlags = EveryoneMask;
-                    if (!ParentGroup.m_scene.PermissionsMngr.AnyoneCanCopyPermission(remoteClient.AgentId, this.ParentGroup.UUID))
-                    {
-                        clientFlags &= ~(uint)LLObject.ObjectFlags.ObjectCopy;
-                    }
-
-                    if (!ParentGroup.m_scene.PermissionsMngr.AnyoneCanMovePermission(remoteClient.AgentId, this.ParentGroup.UUID))
-                    {
-                        clientFlags &= ~(uint)LLObject.ObjectFlags.ObjectMove;
-                    }
-                    
-                    clientFlags &= ~(uint)LLObject.ObjectFlags.ObjectModify;
-                    clientFlags &= ~(uint)LLObject.ObjectFlags.AllowInventoryDrop;
-                    clientFlags &= ~(uint)LLObject.ObjectFlags.ObjectTransfer;
-                }
+                clientFlags &= ~(uint)LLObject.ObjectFlags.CreateSelected;
             }
 
 
@@ -1479,11 +1553,11 @@ namespace OpenSim.Region.Environment.Scenes
             public LLUUID item_id = LLUUID.Zero;
             public LLUUID parent_id = LLUUID.Zero; //parent folder id 
 
-            public uint base_mask = FULL_MASK_PERMISSIONS;
-            public uint owner_mask = FULL_MASK_PERMISSIONS;
-            public uint group_mask = FULL_MASK_PERMISSIONS;
-            public uint everyone_mask = FULL_MASK_PERMISSIONS;
-            public uint next_owner_mask = FULL_MASK_PERMISSIONS;
+            public uint base_mask = FULL_MASK_PERMISSIONS_GENERAL;
+            public uint owner_mask = FULL_MASK_PERMISSIONS_GENERAL;
+            public uint group_mask = FULL_MASK_PERMISSIONS_GENERAL;
+            public uint everyone_mask = FULL_MASK_PERMISSIONS_GENERAL;
+            public uint next_owner_mask = FULL_MASK_PERMISSIONS_GENERAL;
             public LLUUID creator_id = LLUUID.Zero;
             public LLUUID owner_id = LLUUID.Zero;
             public LLUUID last_owner_id = LLUUID.Zero;

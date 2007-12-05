@@ -343,7 +343,10 @@ namespace OpenSim.Region.Environment.Scenes
             }
             // }
         }
-
+        public uint GenerateClientFlags(LLUUID ObjectID)
+        {
+            return m_scene.PermissionsMngr.GenerateClientFlags(this.m_uuid, ObjectID);
+        }
         public void SendPrimUpdates()
         {
             // if (m_scene.QuadTree.GetNodeID(this.AbsolutePosition.X, this.AbsolutePosition.Y) != m_currentQuadNode)
@@ -380,7 +383,7 @@ namespace OpenSim.Region.Environment.Scenes
                         if (update.LastFullUpdateTime < part.TimeStampFull)
                         {
                             //need to do a full update
-                            part.SendFullUpdate(ControllingClient);
+                            part.SendFullUpdate(ControllingClient, GenerateClientFlags(part.UUID));
                             
                             // We'll update to the part's timestamp rather than the current to 
                             // avoid the race condition whereby the next tick occurs while we are
@@ -403,7 +406,7 @@ namespace OpenSim.Region.Environment.Scenes
                     else
                     {
                         //never been sent to client before so do full update
-                        part.SendFullUpdate(ControllingClient);
+                        part.SendFullUpdate(ControllingClient, GenerateClientFlags(part.UUID));
                         ScenePartUpdate update = new ScenePartUpdate();
                         update.FullID = part.UUID;
                         update.LastFullUpdateTime = part.TimeStampFull;

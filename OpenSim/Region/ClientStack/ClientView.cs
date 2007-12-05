@@ -564,6 +564,8 @@ namespace OpenSim.Region.ClientStack
 
         // Previously ClientView.API partial class
         public event Action<IClientAPI> OnLogout;
+        public event ObjectPermissions OnObjectPermissions;
+
         public event Action<IClientAPI> OnConnectionClosed;
         public event ViewerEffectEventHandler OnViewerEffect;
         public event ImprovedInstantMessage OnInstantMessage;
@@ -2919,7 +2921,35 @@ namespace OpenSim.Region.ClientStack
                         }
                         break;
                     case PacketType.ObjectPermissions:
-                        // MainLog.Instance.Warn("CLIENT", "unhandled packet " + Pack.ToString());
+                        MainLog.Instance.Warn("CLIENT", "unhandled packet " + PacketType.ObjectPermissions.ToString());
+                        ObjectPermissionsPacket newobjPerms = (ObjectPermissionsPacket)Pack;
+
+                        List<ObjectPermissionsPacket.ObjectDataBlock> permChanges = new List<ObjectPermissionsPacket.ObjectDataBlock>();
+                        
+                        for (int i = 0; i < newobjPerms.ObjectData.Length; i++)
+                        {
+                            permChanges.Add(newobjPerms.ObjectData[i]);
+                        }
+                        
+                        // Here's our data,  
+                        // PermField contains the field the info goes into
+                        // PermField determines which mask we're changing
+                        // 
+                        // chmask is the mask of the change
+                        // setTF is whether we're adding it or taking it away
+                        //
+                        // objLocalID is the localID of the object.
+
+                        // Unfortunately, we have to pass the event the packet because objData is an array
+                        // That means multiple object perms may be updated in a single packet.
+
+                        LLUUID AgentID = newobjPerms.AgentData.AgentID;
+                        LLUUID SessionID = newobjPerms.AgentData.SessionID;
+                        if (OnObjectPermissions != null)
+                        {
+                            OnObjectPermissions(this, AgentID, SessionID, permChanges);
+                        }
+
                         break;
 
                     case PacketType.RequestObjectPropertiesFamily:

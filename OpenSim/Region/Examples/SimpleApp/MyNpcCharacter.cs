@@ -47,6 +47,7 @@ namespace SimpleApp
 #pragma warning disable 67
 
         public event Action<IClientAPI> OnLogout;
+        public event ObjectPermissions OnObjectPermissions;
         public event Action<IClientAPI> OnConnectionClosed;
 
         public event ImprovedInstantMessage OnInstantMessage;

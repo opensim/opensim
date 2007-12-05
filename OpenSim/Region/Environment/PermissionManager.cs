@@ -164,7 +164,7 @@ namespace OpenSim.Region.Environment
             if (user == objectOwner)
                 permission = true;
 
-            // If the 'anybody can move' flag is set then allow anyone to move it
+            // If the 'anybody can move' flag is set then allow anyone to copy it
             if ((objectflags & (uint)LLObject.ObjectFlags.ObjectCopy ) != 0)
                 permission = true;
 
@@ -212,7 +212,7 @@ namespace OpenSim.Region.Environment
             // Added this because at this point in time it wouldn't be wise for 
             // the administrator object permissions to take effect.
             LLUUID objectOwner = task.OwnerID;
-            uint objectflags = task.RootPart.ObjectFlags;
+            uint objectflags = task.RootPart.EveryoneMask;
 
             // Object owners should be able to edit their own content
             if (user == objectOwner)
@@ -241,6 +241,54 @@ namespace OpenSim.Region.Environment
 
             return permission;
 
+        }
+        public virtual uint GenerateClientFlags(LLUUID user, LLUUID objID)
+        {
+            if (!m_scene.Entities.ContainsKey(objID))
+            {
+                return 0;
+            }
+
+            // If it's not an object, we cant edit it.
+            if (!(m_scene.Entities[objID] is SceneObjectGroup))
+            {
+                return 0;
+            }
+
+            SceneObjectGroup task = (SceneObjectGroup)m_scene.Entities[objID];
+            LLUUID taskOwner = null;
+            // Added this because at this point in time it wouldn't be wise for 
+            // the administrator object permissions to take effect.
+            LLUUID objectOwner = task.OwnerID;
+            uint OwnerMask = task.RootPart.ObjectFlags | task.RootPart.OwnerMask;
+            uint GroupMask = task.RootPart.ObjectFlags | task.RootPart.GroupMask;
+            uint EveryoneMask = task.RootPart.ObjectFlags | task.RootPart.EveryoneMask;
+
+            if (m_bypassPermissions)
+                return OwnerMask;
+
+            // Object owners should be able to edit their own content
+            if (user == objectOwner)
+                return OwnerMask;
+
+            // Users should be able to edit what is over their land.
+            if (m_scene.LandManager.getLandObject(task.AbsolutePosition.X, task.AbsolutePosition.Y).landData.ownerID ==
+                user)
+                return OwnerMask;
+
+            // Estate users should be able to edit anything in the sim
+            if (IsEstateManager(user))
+                return OwnerMask;
+
+            // Admin objects should not be editable by the above
+            if (IsAdministrator(taskOwner))
+                return EveryoneMask;
+
+            // Admin should be able to edit anything in the sim (including admin objects)
+            if (IsAdministrator(user))
+                return OwnerMask;
+
+            return 0;
         }
 
         protected virtual bool GenericObjectPermission(LLUUID user, LLUUID objId)

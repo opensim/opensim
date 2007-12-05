@@ -283,7 +283,7 @@ namespace OpenSim.Region.Environment.Scenes
                             AddPart(part);
                             part.RegionHandle = m_regionHandle;
 
-                            part.ApplyPermissions();
+                            part.ApplySanePermissions();
                         }
                         break;
                     case XmlNodeType.EndElement:
@@ -530,7 +530,7 @@ namespace OpenSim.Region.Environment.Scenes
             dupe.m_regionHandle = m_regionHandle;
 
             dupe.CopyRootPart(m_rootPart, OwnerID, GroupID);
-
+            dupe.m_rootPart.ApplySanePermissions();
 
             /// may need to create a new Physics actor.
             if (dupe.RootPart.PhysActor != null)
@@ -555,6 +555,8 @@ namespace OpenSim.Region.Environment.Scenes
             // So, we have to make a copy of this one, set it in it's place then set the owner on this one
 
             SetRootPartOwner(m_rootPart, cAgentID, cGroupID);
+            
+            
             m_rootPart.ScheduleFullUpdate();
 
             List<SceneObjectPart> partList = new List<SceneObjectPart>(m_parts.Values);
@@ -592,6 +594,15 @@ namespace OpenSim.Region.Environment.Scenes
             part.LastOwnerID = part.OwnerID;
             part.OwnerID = cAgentID;
             part.GroupID = cGroupID;
+
+            
+            if (part.OwnerID != cAgentID)
+            {
+                // Apply Next Owner Permissions if we're not bypassing permissions
+                if (!m_scene.PermissionsMngr.BypassPermissions)
+                    m_rootPart.ApplyNextOwnerPermissions();
+            }
+
             part.ScheduleFullUpdate();
         }
 
@@ -1224,6 +1235,14 @@ namespace OpenSim.Region.Environment.Scenes
             }
         }
 
+        public void UpdatePermissions(LLUUID AgentID, byte field, uint localID, uint mask, byte addRemTF)
+        {
+            SceneObjectPart updatePart = GetChildPart(localID);
+            updatePart.UpdatePermissions(AgentID,field,localID,mask,addRemTF);
+        }
+                   
+
+
         #endregion
 
         #region Shape
@@ -1514,13 +1533,13 @@ namespace OpenSim.Region.Environment.Scenes
 
         #region Client Updating
 
-        public void SendFullUpdateToClient(IClientAPI remoteClient)
+        public void SendFullUpdateToClient(IClientAPI remoteClient, uint clientFlags)
         {
             lock (m_parts)
             {
                 foreach (SceneObjectPart part in m_parts.Values)
                 {
-                    SendPartFullUpdate(remoteClient, part);
+                    SendPartFullUpdate(remoteClient, part, clientFlags);
                 }
             }
         }
@@ -1530,15 +1549,15 @@ namespace OpenSim.Region.Environment.Scenes
         /// </summary>
         /// <param name="remoteClient"></param>
         /// <param name="part"></param>
-        internal void SendPartFullUpdate(IClientAPI remoteClient, SceneObjectPart part)
+        internal void SendPartFullUpdate(IClientAPI remoteClient, SceneObjectPart part, uint clientFlags)
         {
             if (m_rootPart.UUID == part.UUID)
             {
-                part.SendFullUpdateToClient(remoteClient, AbsolutePosition);
+                part.SendFullUpdateToClient(remoteClient, AbsolutePosition, clientFlags);
             }
             else
             {
-                part.SendFullUpdateToClient(remoteClient);
+                part.SendFullUpdateToClient(remoteClient, clientFlags);
             }
         }
 

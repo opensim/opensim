@@ -555,7 +555,7 @@ namespace OpenSim.Region.Environment.Scenes
 
         public void MoveObject(LLUUID objectID, LLVector3 offset, LLVector3 pos, IClientAPI remoteClient)
         {
-            if (PermissionsMngr.CanEditObject(remoteClient.AgentId, objectID))
+            if (PermissionsMngr.CanEditObject(remoteClient.AgentId, objectID) || PermissionsMngr.AnyoneCanMovePermission(remoteClient.AgentId, objectID))
             {
                 SceneObjectGroup group = GetGroupByPrim(objectID);
                 if (group != null)
@@ -729,7 +729,7 @@ namespace OpenSim.Region.Environment.Scenes
 
             if (originPrim != null)
             {
-                if (PermissionsMngr.CanCopyObject(AgentID, originPrim.UUID))
+                if (PermissionsMngr.CanCopyObject(AgentID, originPrim.UUID) || PermissionsMngr.AnyoneCanCopyPermission(AgentID, originPrim.UUID))
                 {
                     SceneObjectGroup copy = originPrim.Copy(AgentID, GroupID);
                     copy.AbsolutePosition = copy.AbsolutePosition + offset;

@@ -331,6 +331,9 @@ namespace OpenSim.Framework
     public delegate void RequestXfer(IClientAPI remoteClient, ulong xferID, string fileName);
 
     public delegate void ConfirmXfer(IClientAPI remoteClient, ulong xferID, uint packetID);
+    
+    public delegate void ObjectPermissions(IClientAPI remoteClinet, LLUUID AgentID, LLUUID SessionID, List<ObjectPermissionsPacket.ObjectDataBlock> permChanges);
+
 
     public interface IClientAPI
     {
@@ -387,6 +390,7 @@ namespace OpenSim.Framework
         event StatusChange OnChildAgentStatus;
         event GenericCall2 OnStopMovement;
         event Action<LLUUID> OnRemoveAvatar;
+        event ObjectPermissions OnObjectPermissions;
 
         event CreateNewInventoryItem OnCreateNewInventoryItem;
         event CreateInventoryFolder OnCreateNewInventoryFolder;

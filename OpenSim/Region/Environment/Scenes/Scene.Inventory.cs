@@ -543,6 +543,7 @@ namespace OpenSim.Region.Environment.Scenes
             AddEntity(group);
             group.AbsolutePosition = pos;
             SceneObjectPart rootPart = group.GetChildPart(group.UUID);
+            rootPart.ApplySanePermissions();
             bool UsePhysics = (((rootPart.ObjectFlags & (uint)LLObject.ObjectFlags.Physics) > 0)&& m_physicalPrim);
             if ((rootPart.ObjectFlags & (uint) LLObject.ObjectFlags.Phantom) == 0)
             {
