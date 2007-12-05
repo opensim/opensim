@@ -1,0 +1,227 @@
+/*
+* Copyright (c) Contributors, http://opensimulator.org/
+* See CONTRIBUTORS.TXT for a full list of copyright holders.
+*
+* Redistribution and use in source and binary forms, with or without
+* modification, are permitted provided that the following conditions are met:
+*     * Redistributions of source code must retain the above copyright
+*       notice, this list of conditions and the following disclaimer.
+*     * Redistributions in binary form must reproduce the above copyright
+*       notice, this list of conditions and the following disclaimer in the
+*       documentation and/or other materials provided with the distribution.
+*     * Neither the name of the OpenSim Project nor the
+*       names of its contributors may be used to endorse or promote products
+*       derived from this software without specific prior written permission.
+*
+* THIS SOFTWARE IS PROVIDED BY THE DEVELOPERS AS IS AND ANY
+* EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+* WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+* DISCLAIMED. IN NO EVENT SHALL THE CONTRIBUTORS BE LIABLE FOR ANY
+* DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+* (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+* LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
+* ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+* (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+* SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+* 
+*/
+
+using System;
+using System.Data;
+using System.Collections.Generic;
+using System.Data.SqlClient;
+
+using libsecondlife;
+using OpenSim.Framework.Console;
+
+namespace OpenSim.Framework.Data.MSSQL
+{
+    class MSSQLAssetData : IAssetProvider   
+    {
+        MSSQLManager database;
+        #region IAssetProvider Members
+
+        private void UpgradeAssetsTable(string tableName)
+        {
+            // null as the version, indicates that the table didn't exist
+            if (tableName == null)
+            {
+                MainLog.Instance.Notice("ASSETS", "Creating new database tables");                
+                database.ExecuteResourceSql("CreateAssetsTable.sql");
+                return;
+            }
+        }
+
+        /// <summary>
+        /// Ensure that the assets related tables exists and are at the latest version
+        /// </summary>
+        private void TestTables()
+        {
+            
+            Dictionary<string, string> tableList = new Dictionary<string, string>();
+
+            tableList["assets"] = null;
+            database.GetTableVersion(tableList);
+
+            UpgradeAssetsTable(tableList["assets"]);
+
+        }
+
+        public AssetBase FetchAsset(LLUUID assetID)
+        {
+            AssetBase asset = null;
+
+            Dictionary<string, string> param = new Dictionary<string, string>();
+            param["id"] = assetID.ToStringHyphenated();
+
+            IDbCommand result = database.Query("SELECT * FROM assets WHERE id = @id", param);
+            IDataReader reader = result.ExecuteReader();
+
+            asset = database.getAssetRow(reader);
+            reader.Close();
+            result.Dispose();
+            
+            return asset;
+        }
+
+        public void CreateAsset(AssetBase asset)
+        {
+
+            if (ExistsAsset((LLUUID)asset.FullID))
+            {
+                return;
+            }
+
+
+
+            SqlCommand cmd =
+                new SqlCommand(
+                    "INSERT INTO assets ([id], [name], [description], [assetType], [invType], [local], [temporary], [data])"+
+                    " VALUES "+
+                    "(@id, @name, @description, @assetType, @invType, @local, @temporary, @data)",
+                    database.getConnection());
+            
+            using (cmd)
+            {
+
+                //SqlParameter p = cmd.Parameters.Add("id", SqlDbType.NVarChar);
+                //p.Value = asset.FullID.ToStringHyphenated();
+                cmd.Parameters.AddWithValue("id", asset.FullID.ToStringHyphenated());
+                cmd.Parameters.AddWithValue("name", asset.Name);
+                cmd.Parameters.AddWithValue("description", asset.Description);
+                SqlParameter e = cmd.Parameters.Add("assetType", SqlDbType.TinyInt);
+                e.Value = asset.Type;
+                SqlParameter f = cmd.Parameters.Add("invType", SqlDbType.TinyInt);
+                f.Value = asset.InvType;
+                SqlParameter g = cmd.Parameters.Add("local", SqlDbType.TinyInt);
+                g.Value = asset.Local;
+                SqlParameter h = cmd.Parameters.Add("temporary", SqlDbType.TinyInt);
+                h.Value = asset.Temporary;
+                SqlParameter i = cmd.Parameters.Add("data", SqlDbType.Image);
+                i.Value = asset.Data;
+                try
+                {
+                    cmd.ExecuteNonQuery();
+                }
+                catch (Exception)
+                {
+                    throw;
+                }
+                
+                cmd.Dispose();
+            }
+
+        }
+
+
+        public void UpdateAsset(AssetBase asset)
+        {
+            SqlCommand command = new SqlCommand("UPDATE assets set id = @id, " +
+                                                           "name = @name, " +
+                                                           "description = @description," +
+                                                           "assetType = @assetType," +
+                                                           "invType = @invType," +
+                                                           "local = @local,"+
+                                                           "temporary = @temporary," +
+                                                           "data = @data where " +
+                                                           "id = @keyId;", database.getConnection());
+            SqlParameter param1 = new SqlParameter("@id", asset.FullID.ToStringHyphenated());
+            SqlParameter param2 = new SqlParameter("@name", asset.Name);
+            SqlParameter param3 = new SqlParameter("@description", asset.Description);
+            SqlParameter param4 = new SqlParameter("@assetType", asset.Type);
+            SqlParameter param5 = new SqlParameter("@invType", asset.InvType);
+            SqlParameter param6 = new SqlParameter("@local", asset.Local);
+            SqlParameter param7 = new SqlParameter("@temporary", asset.Temporary);
+            SqlParameter param8 = new SqlParameter("@data", asset.Data);
+            SqlParameter param9 = new SqlParameter("@keyId", asset.FullID.ToStringHyphenated());
+            command.Parameters.Add(param1);
+            command.Parameters.Add(param2);
+            command.Parameters.Add(param3);
+            command.Parameters.Add(param4);
+            command.Parameters.Add(param5);
+            command.Parameters.Add(param6);
+            command.Parameters.Add(param7);
+            command.Parameters.Add(param8);
+            command.Parameters.Add(param9);
+
+            try
+            {
+                command.ExecuteNonQuery();
+            }
+            catch (Exception e)
+            {
+                MainLog.Instance.Error(e.ToString());
+            }
+            
+        }
+
+        public bool ExistsAsset(LLUUID uuid)
+        {
+            if (FetchAsset(uuid) != null) {
+                return true;
+            }
+            return false;
+        }
+
+        /// <summary>
+        /// All writes are immediately commited to the database, so this is a no-op
+        /// </summary>
+        public void CommitAssets()
+        {
+        }
+
+        #endregion
+
+        #region IPlugin Members
+
+        
+
+        public void Initialise()
+        {
+            
+            IniFile GridDataMySqlFile = new IniFile("mssql_connection.ini");
+            string settingDataSource = GridDataMySqlFile.ParseFileReadValue("data_source");
+            string settingInitialCatalog = GridDataMySqlFile.ParseFileReadValue("initial_catalog");
+            string settingPersistSecurityInfo = GridDataMySqlFile.ParseFileReadValue("persist_security_info");
+            string settingUserId = GridDataMySqlFile.ParseFileReadValue("user_id");
+            string settingPassword = GridDataMySqlFile.ParseFileReadValue("password");
+
+            this.database = new MSSQLManager(settingDataSource, settingInitialCatalog, settingPersistSecurityInfo, settingUserId, settingPassword);
+
+            TestTables();
+        }
+
+        public string Version
+        {
+//            get { return database.getVersion(); } 
+            get { return database.getVersion(); } 
+        }
+
+        public string Name
+        {
+            get { return "MSSQL Asset storage engine"; }
+        }
+
+        #endregion
+    }
+}

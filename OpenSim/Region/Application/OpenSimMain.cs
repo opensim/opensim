@@ -426,6 +426,13 @@ namespace OpenSim
             {
                 assetServer = new GridAssetClient(m_networkServersInfo.AssetURL);
             }
+            else if (m_assetStorage == "mssql")
+            {
+                SQLAssetServer sqlAssetServer = new SQLAssetServer("OpenSim.Framework.Data.MSSQL.dll");
+                sqlAssetServer.LoadDefaultAssets();
+                assetServer = sqlAssetServer;
+                //assetServer = new GridAssetClient("");
+            }
             else
             {
                 SQLAssetServer sqlAssetServer = new SQLAssetServer(m_standaloneAssetPlugin);

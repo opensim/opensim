@@ -28,11 +28,10 @@
 using System;
 using System.Collections.Generic;
 using System.Data;
-using OpenSim.Framework;
 using System.Security.Cryptography;
 using System.Text;
 using libsecondlife;
-
+using OpenSim.Framework.Console;
 
 namespace OpenSim.Framework.Data.MSSQL
 {
@@ -44,14 +43,22 @@ namespace OpenSim.Framework.Data.MSSQL
         /// <summary>
         /// Database manager
         /// </summary>
-        private MSSqlManager database;
+        private MSSQLManager database;
 
         /// <summary>
         /// Initialises the Grid Interface
         /// </summary>
         public void Initialise()
         {
-            database = new MSSqlManager("localhost", "db", "user", "password", "false");
+            IniFile GridDataMySqlFile = new IniFile("mssql_connection.ini");
+            string settingDataSource = GridDataMySqlFile.ParseFileReadValue("data_source");
+            string settingInitialCatalog = GridDataMySqlFile.ParseFileReadValue("initial_catalog");
+            string settingPersistSecurityInfo = GridDataMySqlFile.ParseFileReadValue("persist_security_info");
+            string settingUserId = GridDataMySqlFile.ParseFileReadValue("user_id");
+            string settingPassword = GridDataMySqlFile.ParseFileReadValue("password");
+
+            database = new MSSQLManager(settingDataSource, settingInitialCatalog, settingPersistSecurityInfo, settingUserId, settingPassword);
+
         }
 
         /// <summary>
@@ -100,17 +107,115 @@ namespace OpenSim.Framework.Data.MSSQL
         /// <returns>Sim profile</returns>
         public RegionProfileData GetProfileByHandle(ulong handle)
         {
-            Dictionary<string, string> param = new Dictionary<string, string>();
-            param["handle"] = handle.ToString();
+            IDataReader reader = null;
+            try
+            {
+                Dictionary<string, string> param = new Dictionary<string, string>();
+                param["handle"] = handle.ToString();
+                IDbCommand result = database.Query("SELECT * FROM regions WHERE regionHandle = @handle", param);
+                reader = result.ExecuteReader();
 
-            IDbCommand result = database.Query("SELECT * FROM regions WHERE handle = @handle", param);
-            IDataReader reader = result.ExecuteReader();
+                RegionProfileData row = database.getRegionRow(reader);
+                reader.Close();
+                result.Dispose();
 
-            RegionProfileData row = database.getRow(reader);
-            reader.Close();
-            result.Dispose();
+                return row;
 
-            return row;
+            }
+            catch (Exception)
+            {                
+                if (reader != null) {
+                    reader.Close();
+                }
+                
+            }
+            return null;
+        }
+
+        /// <summary>
+        /// // Returns a list of avatar and UUIDs that match the query
+        /// </summary>
+
+        public List<AvatarPickerAvatar> GeneratePickerResults(LLUUID queryID, string query)
+        {
+            List<AvatarPickerAvatar> returnlist = new List<AvatarPickerAvatar>();
+            string[] querysplit;
+            querysplit = query.Split(' ');
+            if (querysplit.Length == 2)
+            {
+                try
+                {
+                    lock (database)
+                    {
+                        Dictionary<string, string> param = new Dictionary<string, string>();
+                        param["first"] = querysplit[0];
+                        param["second"] = querysplit[1];
+
+                        IDbCommand result =
+                            database.Query("SELECT UUID,username,surname FROM users WHERE username = @first AND lastname = @second", param);
+                        IDataReader reader = result.ExecuteReader();
+
+
+                        while (reader.Read())
+                        {
+                            AvatarPickerAvatar user = new AvatarPickerAvatar();
+                            user.AvatarID = new LLUUID((string)reader["UUID"]);
+                            user.firstName = (string)reader["username"];
+                            user.lastName = (string)reader["surname"];
+                            returnlist.Add(user);
+
+                        }
+                        reader.Close();
+                        result.Dispose();
+                    }
+                }
+                catch (Exception e)
+                {
+                    database.Reconnect();
+                    MainLog.Instance.Error(e.ToString());
+                    return returnlist;
+                }
+
+
+
+            }
+            else if (querysplit.Length == 1)
+            {
+
+                try
+                {
+                    lock (database)
+                    {
+                        Dictionary<string, string> param = new Dictionary<string, string>();
+                        param["first"] = querysplit[0];
+                        param["second"] = querysplit[1];
+
+                        IDbCommand result =
+                            database.Query("SELECT UUID,username,surname FROM users WHERE username = @first OR lastname = @second", param);
+                        IDataReader reader = result.ExecuteReader();
+
+
+                        while (reader.Read())
+                        {
+                            AvatarPickerAvatar user = new AvatarPickerAvatar();
+                            user.AvatarID = new LLUUID((string)reader["UUID"]);
+                            user.firstName = (string)reader["username"];
+                            user.lastName = (string)reader["surname"];
+                            returnlist.Add(user);
+
+                        }
+                        reader.Close();
+                        result.Dispose();
+                    }
+                }
+                catch (Exception e)
+                {
+                    database.Reconnect();
+                    MainLog.Instance.Error(e.ToString());
+                    return returnlist;
+                }
+            }
+            return returnlist;
         }
 
         /// <summary>
@@ -120,28 +225,18 @@ namespace OpenSim.Framework.Data.MSSQL
         /// <returns>The sim profile</returns>
         public RegionProfileData GetProfileByLLUUID(LLUUID uuid)
         {
-            Dictionary<string, string> param = new Dictionary<string, string>();
-            param["uuid"] = uuid.ToStringHyphenated();
-
+            Dictionary<string, string> param = new Dictionary<string, string>();                        
+            param["uuid"] = uuid.ToString();            
             IDbCommand result = database.Query("SELECT * FROM regions WHERE uuid = @uuid", param);
             IDataReader reader = result.ExecuteReader();
 
-            RegionProfileData row = database.getRow(reader);
+            RegionProfileData row = database.getRegionRow(reader);
             reader.Close();
             result.Dispose();
 
             return row;
         }
-        /// <summary>
-        /// // Returns a list of avatar and UUIDs that match the query
-        /// </summary>
 
-        public List<OpenSim.Framework.Data.AvatarPickerAvatar> GeneratePickerResults(LLUUID queryID, string query)
-        {
-            //Do nothing yet
-            List<AvatarPickerAvatar> returnlist = new List<AvatarPickerAvatar>();
-            return returnlist;
-        }
         /// <summary>
         /// Adds a new specified region to the database
         /// </summary>
@@ -149,7 +244,20 @@ namespace OpenSim.Framework.Data.MSSQL
         /// <returns>A dataresponse enum indicating success</returns>
         public DataResponse AddProfile(RegionProfileData profile)
         {
-            if (database.insertRow(profile))
+
+            try
+            {
+                if (GetProfileByLLUUID(profile.UUID) != null)
+                {
+                    return DataResponse.RESPONSE_OK;
+                }
+            }
+            catch (Exception)
+            {
+                System.Console.WriteLine("No regions found. Create new one.");
+            }
+
+            if (database.insertRegionRow(profile))
             {
                 return DataResponse.RESPONSE_OK;
             }
@@ -201,7 +309,5 @@ namespace OpenSim.Framework.Data.MSSQL
         {
             return null;
         }
-        // This is here because MSSQL GridData only seems to know about itself o.O
-        
     }
 }
