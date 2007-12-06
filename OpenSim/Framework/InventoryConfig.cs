@@ -39,7 +39,7 @@ namespace OpenSim.Framework
                                                 "Key to expect from user server", "null", false);
             configMember.addConfigurationOption("database_provider", ConfigurationOption.ConfigurationTypes.TYPE_STRING,
                                                 "DLL for database provider", "OpenSim.Framework.Data.SQLite.dll", false);
-            configMember.addConfigurationOption("http_port", ConfigurationOption.ConfigurationTypes.TYPE_INT32,
+            configMember.addConfigurationOption("http_port", ConfigurationOption.ConfigurationTypes.TYPE_UINT32,
                                                 "Http Listener port", DefaultHttpPort.ToString(), false);
         }
 
