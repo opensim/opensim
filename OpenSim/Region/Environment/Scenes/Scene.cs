@@ -396,6 +396,7 @@ namespace OpenSim.Region.Environment.Scenes
                     module.Close();
                 }
             }
+
             Modules.Clear();
 
             base.Close();
