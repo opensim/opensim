@@ -45,10 +45,10 @@ namespace OpenSim.Framework
 
         public string InventoryURL = "";
 
-        public static int DefaultHttpListenerPort = 9000;
-        public int HttpListenerPort = DefaultHttpListenerPort;
+        public static uint DefaultHttpListenerPort = 9000;
+        public uint HttpListenerPort = DefaultHttpListenerPort;
 
-        public static int RemotingListenerPort = 8895;
+        public static uint RemotingListenerPort = 8895;
 
 
         public NetworkServersInfo()
@@ -80,8 +80,8 @@ namespace OpenSim.Framework
             m_defaultHomeLocX = (uint) config.Configs["StandAlone"].GetInt("default_location_x", 1000);
             m_defaultHomeLocY = (uint) config.Configs["StandAlone"].GetInt("default_location_y", 1000);
 
-            HttpListenerPort = config.Configs["Network"].GetInt("http_listener_port", DefaultHttpListenerPort);
-            RemotingListenerPort = config.Configs["Network"].GetInt("remoting_listener_port", RemotingListenerPort);
+            HttpListenerPort = (uint) config.Configs["Network"].GetInt("http_listener_port", (int) DefaultHttpListenerPort);
+            RemotingListenerPort = (uint) config.Configs["Network"].GetInt("remoting_listener_port", (int) RemotingListenerPort);
             GridURL =
                 config.Configs["Network"].GetString("grid_server_url",
                                                     "http://127.0.0.1:" + GridConfig.DefaultHttpPort.ToString());

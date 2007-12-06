@@ -51,7 +51,6 @@ namespace OpenSim.Framework
             m_externalHostName = ConvertFrom.ExternalHostName;
             m_remotingPort = ConvertFrom.RemotingPort;
             RemotingAddress = ConvertFrom.RemotingAddress;
-
         }
         public SearializableRegionInfo(uint regionLocX, uint regionLocY, IPEndPoint internalEndPoint, string externalUri)
         {
@@ -63,15 +62,14 @@ namespace OpenSim.Framework
             m_externalHostName = externalUri;
         }
 
-        public SearializableRegionInfo(uint regionLocX, uint regionLocY, string externalUri, int port)
+        public SearializableRegionInfo(uint regionLocX, uint regionLocY, string externalUri, uint port)
         {
-
             m_regionLocX = regionLocX;
             m_regionLocY = regionLocY;
 
             m_externalHostName = externalUri;
 
-            m_internalEndPoint = new IPEndPoint(IPAddress.Parse("0.0.0.0"), port);
+            m_internalEndPoint = new IPEndPoint(IPAddress.Parse("0.0.0.0"), (int) port);
         }
 
         public LLUUID RegionID = LLUUID.Zero;

@@ -92,7 +92,7 @@ namespace OpenSim.Grid.AssetServer
             LoadDefaultAssets();
 
             m_console.Verbose("ASSET", "Starting HTTP process");
-            BaseHttpServer httpServer = new BaseHttpServer((int) m_config.HttpPort);
+            BaseHttpServer httpServer = new BaseHttpServer(m_config.HttpPort);
 
             httpServer.AddStreamHandler(new GetAssetStreamHandler(this, m_assetProvider));
             httpServer.AddStreamHandler(new PostAssetStreamHandler(this, m_assetProvider));

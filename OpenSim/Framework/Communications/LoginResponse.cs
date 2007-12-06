@@ -70,7 +70,7 @@ namespace OpenSim.Framework.UserManagement
         private string gendered;
         private string everLoggedIn;
         private string login;
-        private int simPort;
+        private uint simPort;
         private string simAddress;
         private string agentAccess;
         private Int32 circuitCode;
@@ -369,7 +369,7 @@ namespace OpenSim.Framework.UserManagement
             set { everLoggedIn = value; }
         } // EverLoggedIn
 
-        public int SimPort
+        public uint SimPort
         {
             get { return simPort; }
             set { simPort = value; }

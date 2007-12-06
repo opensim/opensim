@@ -49,7 +49,7 @@ namespace OpenSim.Region.ClientStack
         protected PacketServer m_packetServer;
         protected ulong m_regionHandle;
 
-        protected int listenPort;
+        protected uint listenPort;
         protected IScene m_localScene;
         protected AssetCache m_assetCache;
         protected LogBase m_log;
@@ -83,7 +83,7 @@ namespace OpenSim.Region.ClientStack
         {
         }
 
-        public UDPServer(int port, AssetCache assetCache, LogBase console, AgentCircuitManager authenticateClass)
+        public UDPServer(uint port, AssetCache assetCache, LogBase console, AgentCircuitManager authenticateClass)
         {
             listenPort = port;
             m_assetCache = assetCache;
@@ -180,9 +180,9 @@ namespace OpenSim.Region.ClientStack
 
         public void ServerListener()
         {
-            m_log.Verbose("SERVER", "Opening UDP socket on " + listenPort);
+            m_log.Verbose("SERVER", "Opening UDP socket on " + listenPort.ToString());
 
-            ServerIncoming = new IPEndPoint(IPAddress.Parse("0.0.0.0"), listenPort);
+            ServerIncoming = new IPEndPoint(IPAddress.Parse("0.0.0.0"), (int) listenPort);
             Server = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
             Server.Bind(ServerIncoming);
 

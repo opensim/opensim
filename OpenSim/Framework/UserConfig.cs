@@ -76,7 +76,7 @@ namespace OpenSim.Framework
             configMember.addConfigurationOption("default_inventory_server",
                                                 ConfigurationOption.ConfigurationTypes.TYPE_STRING_NOT_EMPTY,
                                                 "Default Inventory Server URI",
-                                                "http://127.0.0.1:8004/", false);
+                                                "http://127.0.0.1:" + InventoryConfig.DefaultHttpPort.ToString() + "/", false);
             configMember.addConfigurationOption("database_provider", ConfigurationOption.ConfigurationTypes.TYPE_STRING,
                                                 "DLL for database provider", "OpenSim.Framework.Data.MySQL.dll", false);
 

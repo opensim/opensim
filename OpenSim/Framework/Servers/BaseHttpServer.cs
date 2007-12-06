@@ -44,21 +44,21 @@ namespace OpenSim.Framework.Servers
         protected HttpListener m_httpListener;
         protected Dictionary<string, XmlRpcMethod> m_rpcHandlers = new Dictionary<string, XmlRpcMethod>();
         protected Dictionary<string, IRequestHandler> m_streamHandlers = new Dictionary<string, IRequestHandler>();
-        protected int m_port;
+        protected uint m_port;
         protected bool m_ssl = false;
         protected bool m_firstcaps = true;
 
-        public int Port
+        public uint Port
         {
             get { return m_port; }
         }
 
-        public BaseHttpServer(int port)
+        public BaseHttpServer(uint port)
         {
             m_port = port;
         }
 
-        public BaseHttpServer(int port, bool ssl)
+        public BaseHttpServer(uint port, bool ssl)
         {
             m_ssl = ssl;
             m_port = port;

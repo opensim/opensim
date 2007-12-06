@@ -56,15 +56,14 @@ namespace OpenSim.Framework
             m_externalHostName = externalUri;
         }
 
-        public SimpleRegionInfo(uint regionLocX, uint regionLocY, string externalUri, int port)
+        public SimpleRegionInfo(uint regionLocX, uint regionLocY, string externalUri, uint port)
         {
-
             m_regionLocX = regionLocX;
             m_regionLocY = regionLocY;
 
             m_externalHostName = externalUri;
 
-            m_internalEndPoint = new IPEndPoint(IPAddress.Parse("0.0.0.0"), port);
+            m_internalEndPoint = new IPEndPoint(IPAddress.Parse("0.0.0.0"), (int) port);
         }
 
         public LLUUID RegionID = LLUUID.Zero;
@@ -270,7 +269,7 @@ namespace OpenSim.Framework
             {
                 errorMessage = "needs an IP Address (IPAddress)";
             }
-            this.m_internalEndPoint.Port = source.Configs[sectionName].GetInt("internal_ip_port", NetworkServersInfo.DefaultHttpListenerPort);
+            this.m_internalEndPoint.Port = source.Configs[sectionName].GetInt("internal_ip_port", (int) NetworkServersInfo.DefaultHttpListenerPort);
 
             string externalHost = source.Configs[sectionName].GetString("external_host_name", "127.0.0.1");
             if (externalHost != "SYSTEMIP")

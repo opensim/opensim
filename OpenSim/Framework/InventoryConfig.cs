@@ -13,7 +13,7 @@ namespace OpenSim.Framework
         public string DatabaseProvider = "";
         public static uint DefaultHttpPort = 8004;
 
-        public int HttpPort = 8004;
+        public uint HttpPort = DefaultHttpPort;
 
         private ConfigurationMember configMember;
 
@@ -63,7 +63,7 @@ namespace OpenSim.Framework
                     DatabaseProvider = (string) configuration_result;
                     break;
                 case "http_port":
-                    HttpPort = (int) configuration_result;
+                    HttpPort = (uint) configuration_result;
                     break;
             }
 

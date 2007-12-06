@@ -49,7 +49,7 @@ namespace OpenSim.Region.ClientStack
         protected NetworkServersInfo m_networkServersInfo;
 
         protected BaseHttpServer m_httpServer;
-        protected int m_httpServerPort;
+        protected uint m_httpServerPort;
 
         protected LogBase m_log;
         protected CommunicationsManager m_commsManager;
@@ -106,7 +106,7 @@ namespace OpenSim.Region.ClientStack
         protected Scene SetupScene(RegionInfo regionInfo, out UDPServer udpServer, bool m_permissions)
         {
             AgentCircuitManager circuitManager = new AgentCircuitManager();
-            udpServer = new UDPServer(regionInfo.InternalEndPoint.Port, m_assetCache, m_log, circuitManager);
+            udpServer = new UDPServer((uint) regionInfo.InternalEndPoint.Port, m_assetCache, m_log, circuitManager);
 
             Scene scene = CreateScene(regionInfo, m_storageManager, circuitManager);
 

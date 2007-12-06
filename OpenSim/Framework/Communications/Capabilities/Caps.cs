@@ -50,7 +50,7 @@ namespace OpenSim.Region.Capabilities
     public class Caps
     {
         private string m_httpListenerHostName;
-        private int m_httpListenPort;
+        private uint m_httpListenPort;
         private string m_capsObjectPath = "00001-";
         private string m_requestPath = "0000/";
         private string m_mapLayerPath = "0001/";
@@ -68,7 +68,7 @@ namespace OpenSim.Region.Capabilities
         public NewInventoryItem AddNewInventoryItem = null;
         public ItemUpdatedCallback ItemUpdatedCall = null;
         
-        public Caps(AssetCache assetCache, BaseHttpServer httpServer, string httpListen, int httpPort, string capsPath,
+        public Caps(AssetCache assetCache, BaseHttpServer httpServer, string httpListen, uint httpPort, string capsPath,
                     LLUUID agent, bool dumpAssetsToFile)
         {
             m_assetCache = assetCache;

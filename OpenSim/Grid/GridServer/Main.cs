@@ -112,7 +112,7 @@ namespace OpenSim.Grid.GridServer
             m_gridManager.config = Cfg;
 
             m_console.Verbose("GRID", "Starting HTTP process");
-            BaseHttpServer httpServer = new BaseHttpServer((int) Cfg.HttpPort);
+            BaseHttpServer httpServer = new BaseHttpServer(Cfg.HttpPort);
             //GridManagementAgent GridManagerAgent = new GridManagementAgent(httpServer, "gridserver", Cfg.SimSendKey, Cfg.SimRecvKey, managercallback);
 
             httpServer.AddXmlRPCHandler("simulator_login", m_gridManager.XmlRpcSimulatorLoginMethod);

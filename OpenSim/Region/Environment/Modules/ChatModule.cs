@@ -265,7 +265,7 @@ namespace OpenSim.Region.Environment.Modules
     internal class IRCChatModule
     {
         private string m_server = null;
-        private int m_port = 6668;
+        private uint m_port = 6668;
         private string m_user = "USER OpenSimBot 8 * :I'm a OpenSim to irc bot";
         private string m_nick = null;
         private string m_channel = null;
@@ -296,7 +296,7 @@ namespace OpenSim.Region.Environment.Modules
                 m_server = config.Configs["IRC"].GetString("server");
                 m_nick = config.Configs["IRC"].GetString("nick");
                 m_channel = config.Configs["IRC"].GetString("channel");
-                m_port = config.Configs["IRC"].GetInt("port", m_port);
+                m_port = (uint) config.Configs["IRC"].GetInt("port", (int) m_port);
                 m_user = config.Configs["IRC"].GetString("username", m_user);
                 if (m_server != null && m_nick != null && m_channel != null)
                 {
@@ -316,7 +316,7 @@ namespace OpenSim.Region.Environment.Modules
             {
                 m_scenes = scenes;
 
-                m_tcp = new TcpClient(m_server, m_port);
+                m_tcp = new TcpClient(m_server, (int) m_port);
                 m_log.Verbose("IRC", "Connecting...");
                 m_stream = m_tcp.GetStream();
                 m_log.Verbose("IRC", "Connected to " + m_server);

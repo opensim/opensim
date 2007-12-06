@@ -81,7 +81,7 @@ namespace OpenSim.Grid.UserServer
                 MainLog.Instance.Verbose("LOGIN", "CUSTOMISERESPONSE: Region X: " + SimInfo.regionLocX + "; Region Y: " +
                                          SimInfo.regionLocY);
                 response.SimAddress = Util.GetHostFromDNS(SimInfo.serverIP).ToString();
-                response.SimPort = (Int32)SimInfo.serverPort;
+                response.SimPort = (uint) SimInfo.serverPort;
                 response.RegionX = SimInfo.regionLocX;
                 response.RegionY = SimInfo.regionLocY;
 
@@ -149,7 +149,7 @@ namespace OpenSim.Grid.UserServer
                     MainLog.Instance.Verbose("LOGIN", "CUSTOMISERESPONSE: Region X: " + SimInfo.regionLocX + "; Region Y: " +
                                              SimInfo.regionLocY);
                     response.SimAddress = Util.GetHostFromDNS(SimInfo.serverIP).ToString();
-                    response.SimPort = (Int32)SimInfo.serverPort;
+                    response.SimPort = (uint) SimInfo.serverPort;
                     response.RegionX = SimInfo.regionLocX;
                     response.RegionY = SimInfo.regionLocY;
 

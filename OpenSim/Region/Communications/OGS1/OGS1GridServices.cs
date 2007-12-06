@@ -166,7 +166,7 @@ namespace OpenSim.Region.Communications.OGS1
                     {
                         string simIp = (string) neighbourData["sim_ip"];
 
-                        int port = Convert.ToInt32(neighbourData["sim_port"]);
+                        uint port = Convert.ToUInt32(neighbourData["sim_port"]);
                         string externalUri = (string) neighbourData["sim_uri"];
 
                         string externalIpStr = Util.GetHostFromDNS(simIp).ToString();
@@ -450,7 +450,7 @@ namespace OpenSim.Region.Communications.OGS1
         /// </summary>
         private void StartRemoting()
         {
-            TcpChannel ch = new TcpChannel(NetworkServersInfo.RemotingListenerPort);
+            TcpChannel ch = new TcpChannel((int) NetworkServersInfo.RemotingListenerPort);
             ChannelServices.RegisterChannel(ch, false); // Disabled security as Mono doesnt support this.
 
             WellKnownServiceTypeEntry wellType =
@@ -559,7 +559,7 @@ namespace OpenSim.Region.Communications.OGS1
                 // it's own remoting port!  How special.
                 region = new SearializableRegionInfo(RequestNeighbourInfo(region.RegionHandle));
                 region.RemotingAddress = region.ExternalHostName;
-                region.RemotingPort = (uint) NetworkServersInfo.RemotingListenerPort;
+                region.RemotingPort = NetworkServersInfo.RemotingListenerPort;
                 if (m_localBackend.RegionUp(region,regionhandle))
                 {
                     return true;

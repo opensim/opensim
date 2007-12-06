@@ -345,15 +345,15 @@ namespace OpenSim.Framework.Console
             return address;
         }
 
-        public int CmdPromptIPPort(string prompt, string defaultvalue)
+        public uint CmdPromptIPPort(string prompt, string defaultvalue)
         {
-            int port;
+            uint port;
             string portStr;
 
             while (true)
             {
                 portStr = MainLog.Instance.CmdPrompt(prompt, defaultvalue);
-                if (int.TryParse(portStr, out port))
+                if (uint.TryParse(portStr, out port))
                 {
                     if (port >= IPEndPoint.MinPort && port <= IPEndPoint.MaxPort)
                     {

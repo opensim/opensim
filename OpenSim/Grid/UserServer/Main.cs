@@ -92,7 +92,7 @@ namespace OpenSim.Grid.UserServer
             m_loginService = new UserLoginService(m_userManager, Cfg, Cfg.DefaultStartupMsg);
 
             MainLog.Instance.Verbose("REGION", "Starting HTTP process");
-            BaseHttpServer httpServer = new BaseHttpServer((int) Cfg.HttpPort);
+            BaseHttpServer httpServer = new BaseHttpServer(Cfg.HttpPort);
 
             httpServer.AddXmlRPCHandler("login_to_simulator", m_loginService.XmlRpcLoginMethod);
 

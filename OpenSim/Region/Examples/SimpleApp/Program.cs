@@ -90,7 +90,7 @@ namespace SimpleApp
             m_log.Notice(m_log.LineInfo);
 
             IPEndPoint internalEndPoint =
-                new IPEndPoint(IPAddress.Parse("127.0.0.1"), m_networkServersInfo.HttpListenerPort);
+                new IPEndPoint(IPAddress.Parse("127.0.0.1"), (int) m_networkServersInfo.HttpListenerPort);
 
             RegionInfo regionInfo = new RegionInfo(1000, 1000, internalEndPoint, "localhost");
             regionInfo.DataStore = "simpleapp_datastore.yap";
