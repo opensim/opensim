@@ -687,7 +687,6 @@ namespace OpenSim.Region.ClientStack
         /// <param name="regionInfo"></param>
         public void SendRegionHandshake(RegionInfo regionInfo)
         {
-            Encoding _enc = Encoding.ASCII;
             RegionHandshakePacket handshake = new RegionHandshakePacket();
 
             handshake.RegionInfo.BillableFactor = regionInfo.EstateSettings.billableFactor;
@@ -703,10 +702,8 @@ namespace OpenSim.Region.ClientStack
             handshake.RegionInfo.SimAccess = (byte) regionInfo.EstateSettings.simAccess;
             handshake.RegionInfo.WaterHeight = regionInfo.EstateSettings.waterHeight;
 
-
             handshake.RegionInfo.RegionFlags = (uint) regionInfo.EstateSettings.regionFlags;
-
-            handshake.RegionInfo.SimName = _enc.GetBytes(regionInfo.RegionName + "\0");
+            handshake.RegionInfo.SimName = Helpers.StringToField(regionInfo.RegionName);
             handshake.RegionInfo.SimOwner = regionInfo.MasterAvatarAssignedUUID;
             handshake.RegionInfo.TerrainBase0 = regionInfo.EstateSettings.terrainBase0;
             handshake.RegionInfo.TerrainBase1 = regionInfo.EstateSettings.terrainBase1;
@@ -762,14 +759,13 @@ namespace OpenSim.Region.ClientStack
 
         public void SendChatMessage(byte[] message, byte type, LLVector3 fromPos, string fromName, LLUUID fromAgentID)
         {
-            Encoding enc = Encoding.ASCII;
             ChatFromSimulatorPacket reply = new ChatFromSimulatorPacket();
             reply.ChatData.Audible = 1;
             reply.ChatData.Message = message;
             reply.ChatData.ChatType = type;
             reply.ChatData.SourceType = 1;
             reply.ChatData.Position = fromPos;
-            reply.ChatData.FromName = enc.GetBytes(fromName + "\0");
+            reply.ChatData.FromName = Helpers.StringToField(fromName);
             reply.ChatData.OwnerID = fromAgentID;
             reply.ChatData.SourceID = fromAgentID;
 
@@ -785,12 +781,10 @@ namespace OpenSim.Region.ClientStack
         public void SendInstantMessage(LLUUID fromAgent, LLUUID fromAgentSession, string message, LLUUID toAgent,
                                        LLUUID imSessionID, string fromName, byte dialog, uint timeStamp)
         {
-            Encoding enc = Encoding.ASCII;
-            Encoding encUTF8 = Encoding.UTF8;
             ImprovedInstantMessagePacket msg = new ImprovedInstantMessagePacket();
             msg.AgentData.AgentID = fromAgent;
             msg.AgentData.SessionID = fromAgentSession;
-            msg.MessageBlock.FromAgentName = enc.GetBytes(fromName + " \0");
+            msg.MessageBlock.FromAgentName = Helpers.StringToField(fromName);
             msg.MessageBlock.Dialog = dialog;
             msg.MessageBlock.FromGroup = false;
             msg.MessageBlock.ID = imSessionID;
@@ -800,7 +794,7 @@ namespace OpenSim.Region.ClientStack
             msg.MessageBlock.RegionID = LLUUID.Random();
             msg.MessageBlock.Timestamp = timeStamp;
             msg.MessageBlock.ToAgentID = toAgent;
-            msg.MessageBlock.Message = encUTF8.GetBytes(message + "\0");
+            msg.MessageBlock.Message = Helpers.StringToField(message);
             msg.MessageBlock.BinaryBucket = new byte[0];
 
             OutPacket(msg, ThrottleOutPacketType.Task);
@@ -1083,14 +1077,14 @@ namespace OpenSim.Region.ClientStack
                 descend.ItemData[i].CreatorID = item.creatorsID;
                 descend.ItemData[i].BaseMask = item.inventoryBasePermissions;
                 descend.ItemData[i].CreationDate = 1000;
-                descend.ItemData[i].Description = enc.GetBytes(item.inventoryDescription + "\0");
+                descend.ItemData[i].Description = Helpers.StringToField(item.inventoryDescription);
                 descend.ItemData[i].EveryoneMask = item.inventoryEveryOnePermissions;
                 descend.ItemData[i].Flags = 1;
                 descend.ItemData[i].FolderID = item.parentFolderID;
                 descend.ItemData[i].GroupID = new LLUUID("00000000-0000-0000-0000-000000000000");
                 descend.ItemData[i].GroupMask = 0;
                 descend.ItemData[i].InvType = (sbyte) item.invType;
-                descend.ItemData[i].Name = enc.GetBytes(item.inventoryName + "\0");
+                descend.ItemData[i].Name = Helpers.StringToField(item.inventoryName);
                 descend.ItemData[i].NextOwnerMask = item.inventoryNextPermissions;
                 descend.ItemData[i].OwnerID = item.avatarID;
                 descend.ItemData[i].OwnerMask = item.inventoryCurrentPermissions;
@@ -1159,14 +1153,14 @@ namespace OpenSim.Region.ClientStack
             inventoryReply.InventoryData[0].BaseMask = item.inventoryBasePermissions;
             inventoryReply.InventoryData[0].CreationDate =
                 (int) (DateTime.UtcNow - new DateTime(1970, 1, 1)).TotalSeconds;
-            inventoryReply.InventoryData[0].Description = enc.GetBytes(item.inventoryDescription + "\0");
+            inventoryReply.InventoryData[0].Description = Helpers.StringToField(item.inventoryDescription);
             inventoryReply.InventoryData[0].EveryoneMask = item.inventoryEveryOnePermissions;
             inventoryReply.InventoryData[0].Flags = 0;
             inventoryReply.InventoryData[0].FolderID = item.parentFolderID;
             inventoryReply.InventoryData[0].GroupID = new LLUUID("00000000-0000-0000-0000-000000000000");
             inventoryReply.InventoryData[0].GroupMask = 0;
             inventoryReply.InventoryData[0].InvType = (sbyte) item.invType;
-            inventoryReply.InventoryData[0].Name = enc.GetBytes(item.inventoryName + "\0");
+            inventoryReply.InventoryData[0].Name = Helpers.StringToField(item.inventoryName);
             inventoryReply.InventoryData[0].NextOwnerMask = item.inventoryNextPermissions;
             inventoryReply.InventoryData[0].OwnerID = item.avatarID;
             inventoryReply.InventoryData[0].OwnerMask = item.inventoryCurrentPermissions;
@@ -1200,14 +1194,14 @@ namespace OpenSim.Region.ClientStack
             InventoryReply.InventoryData[0].CreatorID = Item.creatorsID;
             InventoryReply.InventoryData[0].BaseMask = Item.inventoryBasePermissions;
             InventoryReply.InventoryData[0].CreationDate = 1000;
-            InventoryReply.InventoryData[0].Description = enc.GetBytes(Item.inventoryDescription + "\0");
+            InventoryReply.InventoryData[0].Description = Helpers.StringToField(Item.inventoryDescription);
             InventoryReply.InventoryData[0].EveryoneMask = Item.inventoryEveryOnePermissions;
             InventoryReply.InventoryData[0].Flags = 0;
             InventoryReply.InventoryData[0].FolderID = Item.parentFolderID;
             InventoryReply.InventoryData[0].GroupID = new LLUUID("00000000-0000-0000-0000-000000000000");
             InventoryReply.InventoryData[0].GroupMask = 0;
             InventoryReply.InventoryData[0].InvType = (sbyte) Item.invType;
-            InventoryReply.InventoryData[0].Name = enc.GetBytes(Item.inventoryName + "\0");
+            InventoryReply.InventoryData[0].Name = Helpers.StringToField(Item.inventoryName);
             InventoryReply.InventoryData[0].NextOwnerMask = Item.inventoryNextPermissions;
             InventoryReply.InventoryData[0].OwnerID = Item.avatarID;
             InventoryReply.InventoryData[0].OwnerMask = Item.inventoryCurrentPermissions;

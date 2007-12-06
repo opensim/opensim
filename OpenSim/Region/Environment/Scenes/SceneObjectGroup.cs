@@ -1038,11 +1038,11 @@ namespace OpenSim.Region.Environment.Scenes
             proper.ObjectData[0].LastOwnerID = m_rootPart.LastOwnerID;
             proper.ObjectData[0].ObjectID = UUID;
             proper.ObjectData[0].OwnerID = m_rootPart.OwnerID;
-            proper.ObjectData[0].TouchName = enc.GetBytes(m_rootPart.TouchName + "\0");
+            proper.ObjectData[0].TouchName = Helpers.StringToField(m_rootPart.TouchName);
             proper.ObjectData[0].TextureID = new byte[0];
-            proper.ObjectData[0].SitName = enc.GetBytes(m_rootPart.SitName + "\0");
-            proper.ObjectData[0].Name = enc.GetBytes(m_rootPart.Name + "\0");
-            proper.ObjectData[0].Description = enc.GetBytes(m_rootPart.Description + "\0");
+            proper.ObjectData[0].SitName = Helpers.StringToField(m_rootPart.SitName);
+            proper.ObjectData[0].Name = Helpers.StringToField(m_rootPart.Name);
+            proper.ObjectData[0].Description = Helpers.StringToField(m_rootPart.Description);
             proper.ObjectData[0].OwnerMask = m_rootPart.OwnerMask;
             proper.ObjectData[0].NextOwnerMask = m_rootPart.NextOwnerMask;
             proper.ObjectData[0].GroupMask = m_rootPart.GroupMask;
