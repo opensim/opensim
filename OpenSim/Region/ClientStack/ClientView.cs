@@ -225,76 +225,76 @@ namespace OpenSim.Region.ClientStack
 
             // We're going to dequeue all of the saved up packets until 
             // we've hit the throttle limit or there's no more packets to send
-            while ((bytesSent <= ((int)(throttleOutbound/throttleTimeDivisor)) &&
-                (ResendOutgoingPacketQueue.Count > 0 ||
-                 LandOutgoingPacketQueue.Count > 0 ||
-                 WindOutgoingPacketQueue.Count > 0 ||
-                 CloudOutgoingPacketQueue.Count > 0 ||
-                 TaskOutgoingPacketQueue.Count > 0 ||
-                 AssetOutgoingPacketQueue.Count > 0 ||
-                 TextureOutgoingPacketQueue.Count > 0)) && throttleLoops <= MaxThrottleLoops)
-            {
-                throttleLoops++;
-                //Now comes the fun part..   we dump all our elements into PacketQueue that we've saved up.
-                if (ResendBytesSent <= ((int)(ResendthrottleOutbound/throttleTimeDivisor)) && ResendOutgoingPacketQueue.Count > 0)
+            lock (throttleTimer) {
+                while ((bytesSent <= ((int)(throttleOutbound/throttleTimeDivisor)) &&
+                        (ResendOutgoingPacketQueue.Count > 0 ||
+                         LandOutgoingPacketQueue.Count > 0 ||
+                         WindOutgoingPacketQueue.Count > 0 ||
+                         CloudOutgoingPacketQueue.Count > 0 ||
+                         TaskOutgoingPacketQueue.Count > 0 ||
+                         AssetOutgoingPacketQueue.Count > 0 ||
+                         TextureOutgoingPacketQueue.Count > 0)) && throttleLoops <= MaxThrottleLoops)
                 {
-                    QueItem qpack = ResendOutgoingPacketQueue.Dequeue();
-
-                    PacketQueue.Enqueue(qpack);
-                    bytesSent += qpack.Packet.ToBytes().Length;
-                    ResendBytesSent += qpack.Packet.ToBytes().Length;
+                    throttleLoops++;
+                    //Now comes the fun part..   we dump all our elements into PacketQueue that we've saved up.
+                    if (ResendBytesSent <= ((int)(ResendthrottleOutbound/throttleTimeDivisor)) && ResendOutgoingPacketQueue.Count > 0)
+                    {
+                        QueItem qpack = ResendOutgoingPacketQueue.Dequeue();
+                        
+                        PacketQueue.Enqueue(qpack);
+                        bytesSent += qpack.Packet.ToBytes().Length;
+                        ResendBytesSent += qpack.Packet.ToBytes().Length;
+                    }
+                    if (LandBytesSent <= ((int)(LandthrottleOutbound/throttleTimeDivisor)) && LandOutgoingPacketQueue.Count > 0)
+                    {
+                        QueItem qpack = LandOutgoingPacketQueue.Dequeue();
+                        
+                        PacketQueue.Enqueue(qpack);
+                        bytesSent += qpack.Packet.ToBytes().Length;
+                        LandBytesSent += qpack.Packet.ToBytes().Length;
+                    }
+                    if (WindBytesSent <= ((int)(WindthrottleOutbound/throttleTimeDivisor)) && WindOutgoingPacketQueue.Count > 0)
+                    {
+                        QueItem qpack = WindOutgoingPacketQueue.Dequeue();
+                        
+                        PacketQueue.Enqueue(qpack);
+                        bytesSent += qpack.Packet.ToBytes().Length;
+                        WindBytesSent += qpack.Packet.ToBytes().Length;
+                    }
+                    if (CloudBytesSent <= ((int)(CloudthrottleOutbound/throttleTimeDivisor)) && CloudOutgoingPacketQueue.Count > 0)
+                    {
+                        QueItem qpack = CloudOutgoingPacketQueue.Dequeue();
+                        
+                        PacketQueue.Enqueue(qpack);
+                        bytesSent += qpack.Packet.ToBytes().Length;
+                        CloudBytesSent += qpack.Packet.ToBytes().Length;
+                    }
+                    if (TaskBytesSent <= ((int)(TaskthrottleOutbound/throttleTimeDivisor)) && TaskOutgoingPacketQueue.Count > 0)
+                    {
+                        QueItem qpack = TaskOutgoingPacketQueue.Dequeue();
+                        
+                        PacketQueue.Enqueue(qpack);
+                        bytesSent += qpack.Packet.ToBytes().Length;
+                        TaskBytesSent += qpack.Packet.ToBytes().Length;
+                    }
+                    if (TextureBytesSent <= ((int)(TexturethrottleOutbound/throttleTimeDivisor)) && TextureOutgoingPacketQueue.Count > 0)
+                    {
+                        QueItem qpack = TextureOutgoingPacketQueue.Dequeue();
+                        
+                        PacketQueue.Enqueue(qpack);
+                        bytesSent += qpack.Packet.ToBytes().Length;
+                        TextureBytesSent += qpack.Packet.ToBytes().Length;
+                    }
+                    if (AssetBytesSent <= ((int)(AssetthrottleOutbound/throttleTimeDivisor)) && AssetOutgoingPacketQueue.Count > 0)
+                    {
+                        QueItem qpack = AssetOutgoingPacketQueue.Dequeue();
+                        
+                        PacketQueue.Enqueue(qpack);
+                        bytesSent += qpack.Packet.ToBytes().Length;
+                        AssetBytesSent += qpack.Packet.ToBytes().Length;
+                    }
                 }
-                if (LandBytesSent <= ((int)(LandthrottleOutbound/throttleTimeDivisor)) && LandOutgoingPacketQueue.Count > 0)
-                {
-                    QueItem qpack = LandOutgoingPacketQueue.Dequeue();
-
-                    PacketQueue.Enqueue(qpack);
-                    bytesSent += qpack.Packet.ToBytes().Length;
-                    LandBytesSent += qpack.Packet.ToBytes().Length;
-                }
-                if (WindBytesSent <= ((int)(WindthrottleOutbound/throttleTimeDivisor)) && WindOutgoingPacketQueue.Count > 0)
-                {
-                    QueItem qpack = WindOutgoingPacketQueue.Dequeue();
-
-                    PacketQueue.Enqueue(qpack);
-                    bytesSent += qpack.Packet.ToBytes().Length;
-                    WindBytesSent += qpack.Packet.ToBytes().Length;
-                }
-                if (CloudBytesSent <= ((int)(CloudthrottleOutbound/throttleTimeDivisor)) && CloudOutgoingPacketQueue.Count > 0)
-                {
-                    QueItem qpack = CloudOutgoingPacketQueue.Dequeue();
-
-                    PacketQueue.Enqueue(qpack);
-                    bytesSent += qpack.Packet.ToBytes().Length;
-                    CloudBytesSent += qpack.Packet.ToBytes().Length;
-                }
-                if (TaskBytesSent <= ((int)(TaskthrottleOutbound/throttleTimeDivisor)) && TaskOutgoingPacketQueue.Count > 0)
-                {
-                    QueItem qpack = TaskOutgoingPacketQueue.Dequeue();
-
-                    PacketQueue.Enqueue(qpack);
-                    bytesSent += qpack.Packet.ToBytes().Length;
-                    TaskBytesSent += qpack.Packet.ToBytes().Length;
-                }
-                if (TextureBytesSent <= ((int)(TexturethrottleOutbound/throttleTimeDivisor)) && TextureOutgoingPacketQueue.Count > 0)
-                {
-                    QueItem qpack = TextureOutgoingPacketQueue.Dequeue();
-
-                    PacketQueue.Enqueue(qpack);
-                    bytesSent += qpack.Packet.ToBytes().Length;
-                    TextureBytesSent += qpack.Packet.ToBytes().Length;
-                }
-                if (AssetBytesSent <= ((int)(AssetthrottleOutbound/throttleTimeDivisor)) && AssetOutgoingPacketQueue.Count > 0)
-                {
-                    QueItem qpack = AssetOutgoingPacketQueue.Dequeue();
-
-                    PacketQueue.Enqueue(qpack);
-                    bytesSent += qpack.Packet.ToBytes().Length;
-                    AssetBytesSent += qpack.Packet.ToBytes().Length;
-                }
-
             }
-
         }
 
         public LLUUID SessionId
