@@ -48,6 +48,9 @@ namespace SimpleApp
         private ModuleLoader m_moduleLoader;
         private IConfigSource m_config;
 
+        private string m_userPlugin = "OpenSim.Framework.Data.SQLite.dll";
+        private string m_inventoryPlugin = "OpenSim.Framework.Data.SQLite.dll";
+
         protected override LogBase CreateLog()
         {
             return new LogBase(null, "SimpleApp", this, true);
@@ -70,11 +73,14 @@ namespace SimpleApp
             StartUp();
 
             LocalInventoryService inventoryService = new LocalInventoryService();
+            inventoryService.AddPlugin(m_inventoryPlugin);
+
             LocalUserServices userService =
                 new LocalUserServices(m_networkServersInfo, m_networkServersInfo.DefaultHomeLocX,
                                       m_networkServersInfo.DefaultHomeLocY, inventoryService);
+            userService.AddPlugin(m_userPlugin);
+
             LocalBackEndServices backendService = new LocalBackEndServices();
-            userService.AddPlugin("OpenSim.Framework.Data.SQLite.dll");
 
             CommunicationsLocal localComms =
                 new CommunicationsLocal(m_networkServersInfo, m_httpServer, m_assetCache, userService, inventoryService,

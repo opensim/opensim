@@ -34,11 +34,11 @@ using OpenSim.Framework.Console;
 
 namespace OpenSim.Region.Environment.Scenes
 {
-    public delegate void ReStartSim(RegionInfo thisregion);
+    public delegate void RestartSim(RegionInfo thisregion);
 
     public class SceneManager
     {
-        public event ReStartSim OnReStartSim;
+        public event RestartSim OnRestartSim;
 
         private readonly List<Scene> m_localScenes;
         private Scene m_currentScene = null;
@@ -103,7 +103,6 @@ namespace OpenSim.Region.Environment.Scenes
             int RegionSceneElement = -1;
             for (int i = 0; i < m_localScenes.Count; i++)
             {
-
                 if (rdata.RegionName == m_localScenes[i].RegionInfo.RegionName)
                 {
                     RegionSceneElement = i;
@@ -111,7 +110,7 @@ namespace OpenSim.Region.Environment.Scenes
             }
 
             // Now we make sure the region is no longer known about by the SceneManager
-            // Prevents Duplicates.
+            // Prevents duplicates.
 
             if (RegionSceneElement >= 0)
             {
@@ -119,7 +118,7 @@ namespace OpenSim.Region.Environment.Scenes
             }
 
             // Send signal to main that we're restarting this sim.
-            OnReStartSim(rdata);
+            OnRestartSim(rdata);
         }
 
         public void SendSimOnlineNotification(ulong regionHandle)
@@ -131,7 +130,6 @@ namespace OpenSim.Region.Environment.Scenes
 
                 if (m_localScenes[i].RegionInfo.RegionHandle == regionHandle)
                 {
-
                     // Inform other regions to tell their avatar about me
                     Result = m_localScenes[i].RegionInfo;
                 }
@@ -140,10 +138,8 @@ namespace OpenSim.Region.Environment.Scenes
             {
                 for (int i = 0; i < m_localScenes.Count; i++)
                 {
-
                     if (m_localScenes[i].RegionInfo.RegionHandle != regionHandle)
                     {
-
                         // Inform other regions to tell their avatar about me
                         //m_localScenes[i].OtherRegionUp(Result);
                     }
@@ -221,7 +217,6 @@ namespace OpenSim.Region.Environment.Scenes
         public void RestartCurrentScene()
         {
             ForEachCurrentScene(delegate(Scene scene) { scene.RestartNow(); });
-
         }
 
         public void BackupCurrentScene()

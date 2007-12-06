@@ -443,10 +443,11 @@ namespace OpenSim
 
             m_assetCache = new AssetCache(assetServer, m_log);
             // m_assetCache = new assetCache("OpenSim.Region.GridInterfaces.Local.dll", m_networkServersInfo.AssetURL, m_networkServersInfo.AssetSendKey);
-            m_sceneManager.OnReStartSim += handleReStartRegion;
+            m_sceneManager.OnRestartSim += handleRestartRegion;
 
         }
-        public void handleReStartRegion(RegionInfo whichRegion) 
+
+        public void handleRestartRegion(RegionInfo whichRegion) 
         {
             MainLog.Instance.Error("MAIN", "Got Restart Singlal from SceneManager");
             // Shutting down the UDP server
@@ -455,7 +456,6 @@ namespace OpenSim
             
             for (int i = 0; i < m_udpServers.Count; i++)
             {
-                 
                 if (m_udpServers[i].RegionHandle == whichRegion.RegionHandle)
                 {
                     UDPServerElement = i;
@@ -486,7 +486,6 @@ namespace OpenSim
             UDPServer restartingRegion = CreateRegion(whichRegion);
             restartingRegion.ServerListener();
             //m_sceneManager.SendSimOnlineNotification(restartingRegion.RegionHandle);
-
         }
 
         protected override LogBase CreateLog()
@@ -536,7 +535,6 @@ namespace OpenSim
         /// </summary>
         public virtual void Shutdown()
         {
-            
             if (m_startupCommandsFile != "")
             {
                 RunCommandScript(m_shutdownCommandsFile);
@@ -609,7 +607,6 @@ namespace OpenSim
                     m_sceneManager.ForceCurrentSceneClientUpdate();
                     break;
 
-
                 case "edit-scale":
                     if (cmdparams.Length == 4)
                     {
@@ -629,21 +626,27 @@ namespace OpenSim
                     m_log.Error("  alert [First] [Last] [Message] - send an alert to a user. Case sensitive.");
                     m_log.Error("  alert general [Message] - send an alert to all users.");
                     m_log.Error("backup - trigger a simulator backup");
+                    m_log.Error("change-region - sets the region that many of these commands affect.");
                     m_log.Error("command-script [filename] - Execute command in a file.");
                     m_log.Error("debug - debugging commands");
                     m_log.Error("  packet 0..255 - print incoming/outgoing packets (0=off)");
+                    m_log.Error("edit-scale [prim name] [x] [y] [z] - resize given prim");
+                    m_log.Error("export-map [filename] - save image of world map");
                     m_log.Error("force-update - force an update of prims in the scene");
                     m_log.Error("load-xml [filename] - load prims from XML");
+                    m_log.Error("load-xml2 [filename] - load prims from XML using version 2 format");
+                    m_log.Error("permissions [true/false] - turn on/off permissions on the scene");
+                    m_log.Error("quit - equivalent to shutdown.");
+                    m_log.Error("restart - disconnects all clients and restarts the sims in the instance.");
                     m_log.Error("save-xml [filename] - save prims to XML");
+                    m_log.Error("save-xml2 [filename] - save prims to XML using version 2 format");
                     m_log.Error("script - manually trigger scripts? or script commands?");
+                    m_log.Error("set-time [x] - set the current scene time phase");
                     m_log.Error("show uptime - show simulator startup and uptime.");
                     m_log.Error("show users - show info about connected users.");
                     m_log.Error("show modules - shows info aboutloaded modules.");
-                    m_log.Error("change-region - sets the region that many of these commands affect.");
-                    m_log.Error("restart - disconnects all clients and restarts the sims in the instance.");
                     m_log.Error("shutdown - disconnect all clients and shutdown.");
                     m_log.Error("terrain help - show help for terrain commands.");
-                    m_log.Error("quit - equivalent to shutdown.");
                     break;
 
                 case "show":
@@ -734,9 +737,7 @@ namespace OpenSim
                 case "permissions":
                     // Treats each user as a super-admin when disabled
                     bool permissions = Convert.ToBoolean(cmdparams[0]);
-
                     m_sceneManager.SetBypassPermissionsOnCurrentScene(!permissions);
-
                     break;
 
                 case "backup":
@@ -778,6 +779,7 @@ namespace OpenSim
                 case "shutdown":
                     Shutdown();
                     break;
+
                 case "restart":
                     m_sceneManager.RestartCurrentScene();
                     break;
