@@ -711,6 +711,9 @@ namespace OpenSim.Region.Environment.Scenes
             SceneObjectPart part = m_scene.GetSceneObjectPart(targetID);
             if (part != null)
             {
+                // TODO: determine position to sit at based on scene geometry; don't trust offset from client
+                // see http://wiki.secondlife.com/wiki/User:Andrew_Linden/Office_Hours/2007_11_06 for details on how LL does it
+
                 pos = part.AbsolutePosition + offset;
 
                 if (m_physicsActor != null)

@@ -37,16 +37,14 @@ namespace OpenSim.Region.Environment.Scenes
 
         public InnerScene(Scene parent, RegionInfo regInfo, PermissionManager permissionsMngr)
         {
-
             m_parentScene = parent;
             m_regInfo = regInfo;
             PermissionsMngr = permissionsMngr;
             QuadTree = new BasicQuadTreeNode(null, "/0/", 0, 0, 256, 256);
             QuadTree.Subdivide();
             QuadTree.Subdivide();
-            
-
         }
+
         public PhysicsScene PhysicsScene
         {
             get
@@ -372,7 +370,6 @@ namespace OpenSim.Region.Environment.Scenes
 
         #region Other Methods
 
-
         public void physicsBasedCrash()
         {
             if (UnRecoverableError != null)
@@ -662,8 +659,6 @@ namespace OpenSim.Region.Environment.Scenes
         /// <param name="prims"></param>    
         public void DelinkObjects(List<uint> primIds)
         {
-            //MainLog.Instance.Verbose("DelinkObjects()");
-
             SceneObjectGroup parenPrim = null;
 
             // Need a list of the SceneObjectGroup local ids
@@ -744,17 +739,20 @@ namespace OpenSim.Region.Environment.Scenes
             }
 
         }
+
+        /// <summary>
+        /// Calculates the distance between two Vector3s
+        /// </summary>
+        /// <param name="v1"></param>
+        /// <param name="v2"></param>
+        /// <returns></returns>
         public float Vector3Distance(Vector3 v1, Vector3 v2)
         {
-            // Calculates the distance between two Vector3s
             // We don't really need the double floating point precision...   
             // so casting it to a single
 
             return (float)Math.Sqrt((v1.x - v2.x) * (v1.x - v2.x) + (v1.y - v2.y) * (v1.y - v2.y) + (v1.z - v2.z) * (v1.z - v2.z));
-
         }
         #endregion
     }
 }
-
-

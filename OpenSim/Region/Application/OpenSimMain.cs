@@ -449,7 +449,7 @@ namespace OpenSim
 
         public void handleRestartRegion(RegionInfo whichRegion) 
         {
-            MainLog.Instance.Error("MAIN", "Got Restart Singlal from SceneManager");
+            MainLog.Instance.Error("MAIN", "Got restart signal from SceneManager");
             // Shutting down the UDP server
             bool foundUDPServer = false;
             int UDPServerElement = 0;
@@ -543,7 +543,7 @@ namespace OpenSim
             m_log.Verbose("SHUTDOWN", "Closing all threads");
             m_log.Verbose("SHUTDOWN", "Killing listener thread");
             m_log.Verbose("SHUTDOWN", "Killing clients");
-            // IMPLEMENT THIS
+            // TODO: implement this
             m_log.Verbose("SHUTDOWN", "Closing console and terminating");
 
             m_sceneManager.Close();
@@ -789,10 +789,7 @@ namespace OpenSim
                     {
                         string regionName = CombineParams(cmdparams, 0);
 
-                        if (m_sceneManager.TrySetCurrentScene(regionName))
-                        {
-                        }
-                        else
+                        if (!m_sceneManager.TrySetCurrentScene(regionName))
                         {
                             MainLog.Instance.Error("Couldn't set current region to: " + regionName);
                         }
@@ -812,16 +809,14 @@ namespace OpenSim
                     break;
 
                 case "export-map":
-                   
-                        if (cmdparams.Length > 0)
-                        {
-                            m_sceneManager.CurrentOrFirstScene.ExportWorldMap(cmdparams[0]);
-                        }
-                        else
-                        {
-                            m_sceneManager.CurrentOrFirstScene.ExportWorldMap("exportmap.jpg");
-                        }
-                   
+                    if (cmdparams.Length > 0)
+                    {
+                        m_sceneManager.CurrentOrFirstScene.ExportWorldMap(cmdparams[0]);
+                    }
+                    else
+                    {
+                        m_sceneManager.CurrentOrFirstScene.ExportWorldMap("exportmap.jpg");
+                    }
                     break;
 
                 default:

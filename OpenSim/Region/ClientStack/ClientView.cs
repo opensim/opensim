@@ -2546,7 +2546,7 @@ namespace OpenSim.Region.ClientStack
                         return;
                     }
 
-                    //MainLog.Instance.Verbose("Sending PacketAck");
+                    //MainLog.Instance.Verbose("NETWORK", "Sending PacketAck");
 
                     int i = 0;
                     PacketAckPacket acks = new PacketAckPacket();
@@ -2701,7 +2701,6 @@ namespace OpenSim.Region.ClientStack
                         }
                         break;
                     case PacketType.AgentSetAppearance:
-                        //MainLog.Instance.Verbose("set appear", Pack.ToString());
                         AgentSetAppearancePacket appear = (AgentSetAppearancePacket) Pack;
                         if (OnSetAppearance != null)
                         {
@@ -2785,7 +2784,6 @@ namespace OpenSim.Region.ClientStack
                         #region Objects/m_sceneObjects
 
                     case PacketType.ObjectLink:
-                        //MainLog.Instance.Verbose(Pack.ToString());
                         ObjectLinkPacket link = (ObjectLinkPacket) Pack;
                         uint parentprimid = 0;
                         List<uint> childrenprims = new List<uint>();
@@ -2804,7 +2802,6 @@ namespace OpenSim.Region.ClientStack
                         }
                         break;
                     case PacketType.ObjectDelink:
-                        //MainLog.Instance.Verbose(Pack.ToString());
                         ObjectDelinkPacket delink = (ObjectDelinkPacket) Pack;
                         
                         // It appears the prim at index 0 is not always the root prim (for
@@ -3677,8 +3674,7 @@ namespace OpenSim.Region.ClientStack
                         MainLog.Instance.Debug("CLIENT", "possibly unhandled StartPingCheck packet");
                         break;
                     case PacketType.CompletePingCheck:
-                        // Parhaps this should be processed on the Sim to determine whether or not to drop a dead client
-                        // Dumping it to the verbose console until it's handled properly.
+                        // TODO: Perhaps this should be processed on the Sim to determine whether or not to drop a dead client
                         MainLog.Instance.Warn("CLIENT", "unhandled CompletePingCheck packet");
                         break;
                     case PacketType.ObjectScale:

@@ -58,7 +58,7 @@ namespace OpenSim.Region.ExtensionsScriptModule
 
         private void events_OnFrame()
         {
-            //script.logger.Verbose("Hello World!");
+            //script.logger.Verbose("TESTSCRIPT", "Hello World!");
         }
     }
 }

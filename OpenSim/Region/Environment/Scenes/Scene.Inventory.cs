@@ -411,7 +411,7 @@ namespace OpenSim.Region.Environment.Scenes
                 foreach (DeRezObjectPacket.ObjectDataBlock Data in DeRezPacket.ObjectData)
                 {
                     EntityBase selectedEnt = null;
-                    //MainLog.Instance.Verbose("LocalID:" + Data.ObjectLocalID.ToString());
+                    //MainLog.Instance.Verbose("CLIENT", "LocalID:" + Data.ObjectLocalID.ToString());
                     foreach (EntityBase ent in Entities.Values)
                     {
                         if (ent.LocalId == Data.ObjectLocalID)
