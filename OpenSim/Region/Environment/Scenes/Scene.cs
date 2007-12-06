@@ -346,7 +346,7 @@ namespace OpenSim.Region.Environment.Scenes
 
                     ForEachScenePresence(delegate(ScenePresence agent)
                     {
-                        if (!(agent.IsChildAgent))
+                        if (!agent.IsChildAgent)
                         {
                             //agent.ControllingClient.new
                             //this.CommsManager.InterRegion.InformRegionOfChildAgent(otherRegion.RegionHandle, agent.ControllingClient.RequestClientInfo());
@@ -368,24 +368,21 @@ namespace OpenSim.Region.Environment.Scenes
         public override void Close()
         {
             ForEachScenePresence(delegate(ScenePresence avatar)
-                                {
-                                    if (avatar.KnownChildRegions.Contains(RegionInfo.RegionHandle))
-                                        avatar.KnownChildRegions.Remove(RegionInfo.RegionHandle);
+                                 {
+                                     if (avatar.KnownChildRegions.Contains(RegionInfo.RegionHandle))
+                                         avatar.KnownChildRegions.Remove(RegionInfo.RegionHandle);
 
-                                    if (!avatar.IsChildAgent)
-                                        avatar.ControllingClient.Kick("The simulator is going down.");
+                                     if (!avatar.IsChildAgent)
+                                         avatar.ControllingClient.Kick("The simulator is going down.");
 
-                                        avatar.ControllingClient.OutPacket(new libsecondlife.Packets.DisableSimulatorPacket(), ThrottleOutPacketType.Task);
-                                    
+                                     avatar.ControllingClient.OutPacket(new libsecondlife.Packets.DisableSimulatorPacket(), ThrottleOutPacketType.Task);
                                 });
             
             Thread.Sleep(500);
 
             ForEachScenePresence(delegate(ScenePresence avatar)
                     {
-                        
                         avatar.ControllingClient.Stop();
-
                     });
 
             m_heartbeatTimer.Close();
@@ -837,7 +834,6 @@ namespace OpenSim.Region.Environment.Scenes
                 bool UsePhysics = (((rootPart.ObjectFlags & (uint)LLObject.ObjectFlags.Physics) > 0) && m_physicalPrim);
                 if ((rootPart.ObjectFlags & (uint)LLObject.ObjectFlags.Phantom) == 0)
                 {
-
                     rootPart.PhysActor =
                         PhysicsScene.AddPrimShape(
                             rootPart.Name,
@@ -912,8 +908,7 @@ namespace OpenSim.Region.Environment.Scenes
         /// <summary>
         /// 
         /// </summary>
-        /// <param name="remoteClient"></param          
-        /// <param name="agentID"></param>
+        /// <param name="client"></param          
         /// <param name="child"></param>
         public override void AddNewClient(IClientAPI client, bool child)
         {
@@ -1029,17 +1024,17 @@ namespace OpenSim.Region.Environment.Scenes
 
             ScenePresence avatar = GetScenePresence(agentID);
             
-                Broadcast(delegate(IClientAPI client) { 
-                    try
-                    {
-                        client.SendKillObject(avatar.RegionHandle, avatar.LocalId); 
-                    }
-                    catch (System.NullReferenceException)
-                    {
-                        //We can safely ignore null reference exceptions.  It means the avatar are dead and cleaned up anyway.
-
-                    }                    
-                });
+            Broadcast(delegate(IClientAPI client)
+                      { 
+                          try
+                          {
+                              client.SendKillObject(avatar.RegionHandle, avatar.LocalId); 
+                          }
+                          catch (System.NullReferenceException)
+                          {
+                              //We can safely ignore null reference exceptions.  It means the avatar are dead and cleaned up anyway.
+                          }                    
+                      });
 
             ForEachScenePresence(
                 delegate(ScenePresence presence) { presence.CoarseLocationChange(); });
@@ -1061,7 +1056,6 @@ namespace OpenSim.Region.Environment.Scenes
             catch (System.NullReferenceException)
             {
                 //We can safely ignore null reference exceptions.  It means the avatar are dead and cleaned up anyway.
-
             }     
             catch (Exception e)
             {
@@ -1117,7 +1111,9 @@ namespace OpenSim.Region.Environment.Scenes
             m_sceneGridService.KillObject = SendKillObject;            
         }
 
-
+        /// <summary>
+        /// 
+        /// </summary>
         public void UnRegisterReginWithComms()
         {
             m_sceneGridService.OnRegionUp -= OtherRegionUp;
@@ -1163,6 +1159,13 @@ namespace OpenSim.Region.Environment.Scenes
             }
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="regionHandle"></param>
+        /// <param name="agentID"></param>
+        /// <param name="position"></param>
+        /// <param name="isFlying"></param>
         public virtual void AgentCrossing(ulong regionHandle, LLUUID agentID, LLVector3 position, bool isFlying)
         {
             if (regionHandle == m_regInfo.RegionHandle)
@@ -1174,6 +1177,11 @@ namespace OpenSim.Region.Environment.Scenes
             }
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="regionHandle"></param>
+        /// <param name="agentID"></param>
         public void CloseConnection(ulong regionHandle, LLUUID agentID)
         {
             if (regionHandle == m_regionHandle)
@@ -1187,15 +1195,20 @@ namespace OpenSim.Region.Environment.Scenes
             }
         }
 
-
         /// <summary>
         /// 
         /// </summary>
+        /// <param name="presence"></param>
         public void InformClientOfNeighbours(ScenePresence presence)
         {
             m_sceneGridService.EnableNeighbourChildAgents(presence);
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="presence"></param>
+        /// <param name="region"></param>
         public void InformClientOfNeighbor(ScenePresence presence, RegionInfo region)
         {
             m_sceneGridService.InformNeighborChildAgent(presence, region);
@@ -1214,6 +1227,7 @@ namespace OpenSim.Region.Environment.Scenes
         /// <summary>
         /// 
         /// </summary>
+        /// <param name="remoteClient"></param>
         /// <param name="minX"></param>
         /// <param name="minY"></param>
         /// <param name="maxX"></param>
@@ -1227,7 +1241,7 @@ namespace OpenSim.Region.Environment.Scenes
         /// 
         /// </summary>
         /// <param name="remoteClient"></param>
-        /// <param name="RegionHandle"></param>
+        /// <param name="regionHandle"></param>
         /// <param name="position"></param>
         /// <param name="lookAt"></param>
         /// <param name="flags"></param>
@@ -1243,18 +1257,25 @@ namespace OpenSim.Region.Environment.Scenes
         /// <summary>
         /// 
         /// </summary>
-        /// <param name="regionhandle"></param>
+        /// <param name="regionHandle"></param>
         /// <param name="agentID"></param>
         /// <param name="position"></param>
-        public bool InformNeighbourOfCrossing(ulong regionhandle, LLUUID agentID, LLVector3 position, bool isFlying)
+        /// <param name="isFlying"></param>
+        /// <returns></returns>
+        public bool InformNeighbourOfCrossing(ulong regionHandle, LLUUID agentID, LLVector3 position, bool isFlying)
         {
-            return m_sceneGridService.CrossToNeighbouringRegion(regionhandle, agentID, position, isFlying);
+            return m_sceneGridService.CrossToNeighbouringRegion(regionHandle, agentID, position, isFlying);
         }
 
         #endregion
 
         #region Module Methods
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="name"></param>
+        /// <param name="module"></param>
         public void AddModule(string name, IRegionModule module)
         {
             if (!Modules.ContainsKey(name))
@@ -1263,6 +1284,10 @@ namespace OpenSim.Region.Environment.Scenes
             }
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="mod"></param>
         public void RegisterModuleInterface<M>(M mod)
         {
             if (!ModuleInterfaces.ContainsKey(typeof(M)))
@@ -1271,6 +1296,10 @@ namespace OpenSim.Region.Environment.Scenes
             }
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <returns></returns>
         public T RequestModuleInterface<T>()
         {
             if (ModuleInterfaces.ContainsKey(typeof(T)))
@@ -1287,21 +1316,42 @@ namespace OpenSim.Region.Environment.Scenes
 
         #region Other Methods
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="phase"></param>
         public void SetTimePhase(int phase)
         {
             m_timePhase = phase;
         }
 
-        public void SendUrlToUser(LLUUID avatarID, string objectname, LLUUID objectID, LLUUID ownerID, bool groupOwned,
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="avatarID"></param>
+        /// <param name="objectName"></param>
+        /// <param name="objectID"></param>
+        /// <param name="ownerID"></param>
+        /// <param name="groupOwned"></param>
+        /// <param name="message"></param>
+        /// <param name="url"></param>
+        public void SendUrlToUser(LLUUID avatarID, string objectName, LLUUID objectID, LLUUID ownerID, bool groupOwned,
                                   string message, string url)
         {
             if (m_scenePresences.ContainsKey(avatarID))
             {
-                m_scenePresences[avatarID].ControllingClient.SendLoadURL(objectname, objectID, ownerID, groupOwned,
+                m_scenePresences[avatarID].ControllingClient.SendLoadURL(objectName, objectID, ownerID, groupOwned,
                                                                          message, url);
             }
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="url"></param>
+        /// <param name="type"></param>
+        /// <param name="body"></param>
+        /// <returns></returns>
         public LLUUID MakeHttpRequest(string url, string type, string body)
         {
             if (m_httpRequestModule != null)
@@ -1311,6 +1361,9 @@ namespace OpenSim.Region.Environment.Scenes
             return LLUUID.Zero;
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
         public void performParcelPrimCountUpdate()
         {
             m_LandManager.resetAllLandPrimCounts();
@@ -1319,6 +1372,9 @@ namespace OpenSim.Region.Environment.Scenes
             m_LandManager.landPrimCountTainted = false;
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
         public void addPrimsToParcelCounts()
         {
             foreach (EntityBase obj in Entities.Values)
@@ -1340,6 +1396,10 @@ namespace OpenSim.Region.Environment.Scenes
             SendAlertToUser(user, reason, false);
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="message"></param>
         public void SendGeneralAlert(string message)
         {
             foreach (ScenePresence presence in m_scenePresences.Values)
@@ -1348,6 +1408,12 @@ namespace OpenSim.Region.Environment.Scenes
             }
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="agentID"></param>
+        /// <param name="message"></param>
+        /// <param name="modal"></param>
         public void SendAlertToUser(LLUUID agentID, string message, bool modal)
         {
             if (m_scenePresences.ContainsKey(agentID))
@@ -1356,13 +1422,18 @@ namespace OpenSim.Region.Environment.Scenes
             }
         }
 
-        public void handleRequestGodlikePowers(LLUUID agentID, LLUUID sessionID, LLUUID token, IClientAPI controllingclient)
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="agentID"></param>
+        /// <param name="sessionID"></param>
+        /// <param name="token"></param>
+        /// <param name="controllingClient"></param>
+        public void handleRequestGodlikePowers(LLUUID agentID, LLUUID sessionID, LLUUID token, IClientAPI controllingClient)
         {
             // First check that this is the sim owner
-
             if (agentID == RegionInfo.MasterAvatarAssignedUUID)
             {
-
                 // User needs to be logged into this sim
                 if (m_scenePresences.ContainsKey(agentID))
                 {
@@ -1370,14 +1441,11 @@ namespace OpenSim.Region.Environment.Scenes
                     LLUUID testSessionID = m_scenePresences[agentID].ControllingClient.SessionId;
                     if (sessionID == testSessionID)
                     {
-                        if (sessionID == controllingclient.SessionId)
+                        if (sessionID == controllingClient.SessionId)
                         {
                             m_scenePresences[agentID].GrantGodlikePowers(agentID, testSessionID, token);
-
                         }
-
                     }
-
                 }
             }
             else
@@ -1386,82 +1454,94 @@ namespace OpenSim.Region.Environment.Scenes
             }
         }
 
-        public void handleGodlikeKickUser(LLUUID godid, LLUUID sessionid, LLUUID agentid, uint kickflags, byte[] reason)
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="godID"></param>
+        /// <param name="sessionID"></param>
+        /// <param name="agentID"></param>
+        /// <param name="kickflags"></param>
+        /// <param name="reason"></param>
+        public void handleGodlikeKickUser(LLUUID godID, LLUUID sessionID, LLUUID agentID, uint kickflags, byte[] reason)
         {
-            // For some reason the client sends the seemingly hard coded, 44e87126e7944ded05b37c42da3d5cdb
-            // for kicking everyone.   Dun-know.
-            if (m_scenePresences.ContainsKey(agentid) || agentid == new LLUUID("44e87126e7944ded05b37c42da3d5cdb"))
+            // For some reason the client sends this seemingly hard coded UUID for kicking everyone.   Dun-know.
+            LLUUID kickUserID = new LLUUID("44e87126e7944ded05b37c42da3d5cdb");
+            if (m_scenePresences.ContainsKey(agentID) || agentID == kickUserID)
             {
-                if (godid == RegionInfo.MasterAvatarAssignedUUID)
+                if (godID == RegionInfo.MasterAvatarAssignedUUID)
                 {
-                    if (agentid == new LLUUID("44e87126e7944ded05b37c42da3d5cdb"))
+                    if (agentID == kickUserID)
                     {
-
                         ClientManager.ForEachClient(delegate(IClientAPI controller)
-                                            {
-                                                ScenePresence p = GetScenePresence(controller.AgentId);
-                                                bool childagent = false;
-                                                if (!p.Equals(null))
-                                                    if (p.IsChildAgent)
-                                                        childagent = true;
-                                                if (controller.AgentId != godid && !childagent) // Do we really want to kick the initiator of this madness?
-                                                {
-                                                    controller.Kick(Helpers.FieldToUTF8String(reason));
-
-                                                }
-                                            }
-                        );
+                                                    {
+                                                        ScenePresence p = GetScenePresence(controller.AgentId);
+                                                        bool childagent = !p.Equals(null) && p.IsChildAgent;
+                                                        if (controller.AgentId != godID && !childagent) // Do we really want to kick the initiator of this madness?
+                                                        {
+                                                            controller.Kick(Helpers.FieldToUTF8String(reason));
+                                                        }
+                                                    }
+                            );
                         // This is a bit crude.   It seems the client will be null before it actually stops the thread
                         // The thread will kill itself eventually :/
                         // Is there another way to make sure *all* clients get this 'inter region' message?
                         ClientManager.ForEachClient(delegate(IClientAPI controller)
-                                            {
-                                                ScenePresence p = GetScenePresence(controller.AgentId);
-                                                bool childagent = false;
-                                                if (!p.Equals(null))
-                                                    if (p.IsChildAgent)
-                                                        childagent = true;
-
-                                                if (controller.AgentId != godid && !childagent) // Do we really want to kick the initiator of this madness?
-                                                {
-                                                    controller.Close();
-                                                }
-                                            }
-                        );
+                                                    {
+                                                        ScenePresence p = GetScenePresence(controller.AgentId);
+                                                        bool childagent = !p.Equals(null) && p.IsChildAgent;
+                                                        if (controller.AgentId != godID && !childagent) // Do we really want to kick the initiator of this madness?
+                                                        {
+                                                            controller.Close();
+                                                        }
+                                                    }
+                            );
                     }
                     else
                     {
-                        m_scenePresences[agentid].ControllingClient.Kick(Helpers.FieldToUTF8String(reason));
-                        m_scenePresences[agentid].ControllingClient.Close();
+                        m_scenePresences[agentID].ControllingClient.Kick(Helpers.FieldToUTF8String(reason));
+                        m_scenePresences[agentID].ControllingClient.Close();
                     }
                 }
                 else
                 {
-                    if (m_scenePresences.ContainsKey(godid))
-                        m_scenePresences[godid].ControllingClient.SendAgentAlertMessage("Kick request denied", false);
+                    if (m_scenePresences.ContainsKey(godID))
+                        m_scenePresences[godID].ControllingClient.SendAgentAlertMessage("Kick request denied", false);
                 }
             }
         }
-        public void HandleObjectPermissionsUpdate (IClientAPI controller, LLUUID AgentID, LLUUID SessionID, List<libsecondlife.Packets.ObjectPermissionsPacket.ObjectDataBlock> permChanges)
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="controller"></param>
+        /// <param name="agentID"></param>
+        /// <param name="sessionID"></param>
+        /// <param name="permChanges"></param>
+        public void HandleObjectPermissionsUpdate (IClientAPI controller, LLUUID agentID, LLUUID sessionID, List<libsecondlife.Packets.ObjectPermissionsPacket.ObjectDataBlock> permChanges)
         {
             // Check for spoofing..  since this is permissions we're talking about here!
-            if ((controller.SessionId == SessionID) && (controller.AgentId == AgentID))
+            if ((controller.SessionId == sessionID) && (controller.AgentId == agentID))
             {
                 for (int i = 0; i < permChanges.Count; i++)
                 {
-
                     // Tell the object to do permission update
                     byte field = permChanges[i].Field;
                     uint localID = permChanges[i].ObjectLocalID;
                     uint mask = permChanges[i].Mask;
                     byte addRemTF = permChanges[i].Set;
                     SceneObjectGroup chObjectGroup = GetGroupByPrim(localID);
-                    chObjectGroup.UpdatePermissions(AgentID, field, localID, mask, addRemTF);
-
+                    chObjectGroup.UpdatePermissions(agentID, field, localID, mask, addRemTF);
                 }
             }
-
         }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="firstName"></param>
+        /// <param name="lastName"></param>
+        /// <param name="message"></param>
+        /// <param name="modal"></param>
         public void SendAlertToUser(string firstName, string lastName, string message, bool modal)
         {
             foreach (ScenePresence presence in m_scenePresences.Values)
@@ -1474,6 +1554,10 @@ namespace OpenSim.Region.Environment.Scenes
             }
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="commandParams"></param>
         public void HandleAlertCommand(string[] commandParams)
         {
             if (commandParams[0] == "general")
@@ -1500,6 +1584,9 @@ namespace OpenSim.Region.Environment.Scenes
 
         #endregion
 
+        /// <summary>
+        /// 
+        /// </summary>
         public void ForceClientUpdate()
         {
             foreach (EntityBase ent in Entities.Values)
@@ -1511,9 +1598,13 @@ namespace OpenSim.Region.Environment.Scenes
             }
         }
 
-        public void HandleEditCommand(string[] cmmdparams)
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="cmdparams"></param>
+        public void HandleEditCommand(string[] cmdparams)
         {
-            Console.WriteLine("Searching for Primitive: '" + cmmdparams[0] + "'");
+            Console.WriteLine("Searching for Primitive: '" + cmdparams[0] + "'");
             foreach (EntityBase ent in Entities.Values)
             {
                 if (ent is SceneObjectGroup)
@@ -1521,11 +1612,11 @@ namespace OpenSim.Region.Environment.Scenes
                     SceneObjectPart part = ((SceneObjectGroup)ent).GetChildPart(((SceneObjectGroup)ent).UUID);
                     if (part != null)
                     {
-                        if (part.Name == cmmdparams[0])
+                        if (part.Name == cmdparams[0])
                         {
                             part.Resize(
-                                new LLVector3(Convert.ToSingle(cmmdparams[1]), Convert.ToSingle(cmmdparams[2]),
-                                              Convert.ToSingle(cmmdparams[3])));
+                                new LLVector3(Convert.ToSingle(cmdparams[1]), Convert.ToSingle(cmdparams[2]),
+                                              Convert.ToSingle(cmdparams[3])));
 
                             Console.WriteLine("Edited scale of Primitive: " + part.Name);
                         }
@@ -1534,9 +1625,13 @@ namespace OpenSim.Region.Environment.Scenes
             }
         }
 
-        public void Show(string ShowWhat)
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="showWhat"></param>
+        public void Show(string showWhat)
         {
-            switch (ShowWhat)
+            switch (showWhat)
             {
                 case "users":
                     MainLog.Instance.Error("Current Region: " + RegionInfo.RegionName);
@@ -1574,6 +1669,10 @@ namespace OpenSim.Region.Environment.Scenes
 
         #region Script Handling Methods
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="args"></param>
         public void SendCommandToPlugins(string[] args)
         {
             m_eventManager.TriggerOnPluginConsole(args);
@@ -1586,22 +1685,35 @@ namespace OpenSim.Region.Environment.Scenes
         private List<ScriptEngineInterface> ScriptEngines = new List<ScriptEngineInterface>();
         private bool m_dumpAssetsToFile;
 
-        public void AddScriptEngine(ScriptEngineInterface ScriptEngine, LogBase m_logger)
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="scriptEngine"></param>
+        /// <param name="logger"></param>
+        public void AddScriptEngine(ScriptEngineInterface scriptEngine, LogBase logger)
         {
-            ScriptEngines.Add(ScriptEngine);
-
-            ScriptEngine.InitializeEngine(this, m_logger);
+            ScriptEngines.Add(scriptEngine);
+            scriptEngine.InitializeEngine(this, logger);
         }
 
         #endregion
 
         #region InnerScene wrapper methods
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="localID"></param>
+        /// <returns></returns>
         public LLUUID ConvertLocalIDToFullID(uint localID)
         {
             return m_innerScene.ConvertLocalIDToFullID(localID);
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="presence"></param>
         public void SendAllSceneObjectsToClient(ScenePresence presence)
         {
             m_innerScene.SendAllSceneObjectsToClient(presence);
@@ -1610,6 +1722,10 @@ namespace OpenSim.Region.Environment.Scenes
         //The idea is to have a group of method that return a list of avatars meeting some requirement
         // ie it could be all m_scenePresences within a certain range of the calling prim/avatar. 
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <returns></returns>
         public List<ScenePresence> GetAvatars()
         {
             return m_innerScene.GetAvatars();
@@ -1627,6 +1743,7 @@ namespace OpenSim.Region.Environment.Scenes
         /// <summary>
         /// Request a filtered list of m_scenePresences in this World
         /// </summary>
+        /// <param name="filter"></param>
         /// <returns></returns>
         public List<ScenePresence> GetScenePresences(FilterAvatarList filter)
         {
@@ -1659,6 +1776,10 @@ namespace OpenSim.Region.Environment.Scenes
             }
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="action"></param>
         public void ForEachObject(Action<SceneObjectGroup> action)
         {
             foreach (SceneObjectGroup presence in m_sceneObjects.Values)
@@ -1667,11 +1788,21 @@ namespace OpenSim.Region.Environment.Scenes
             }
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="localID"></param>
+        /// <returns></returns>
         public SceneObjectPart GetSceneObjectPart(uint localID)
         {
             return m_innerScene.GetSceneObjectPart(localID);
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="fullID"></param>
+        /// <returns></returns>
         public SceneObjectPart GetSceneObjectPart(LLUUID fullID)
         {
             return m_innerScene.GetSceneObjectPart(fullID);
@@ -1681,7 +1812,6 @@ namespace OpenSim.Region.Environment.Scenes
         {
             return m_innerScene.TryGetAvatar(avatarId, out avatar);
         }
-
 
         internal bool TryGetAvatarByName(string avatarName, out ScenePresence avatar)
         {
