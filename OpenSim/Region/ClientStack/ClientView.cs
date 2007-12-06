@@ -91,62 +91,62 @@ namespace OpenSim.Region.ClientStack
         protected AgentCircuitManager m_authenticateSessionsHandler;
         private Encoding enc = Encoding.ASCII;
         // Dead client detection vars
-        private Timer m_clientPingTimer;
-        private int m_packetsReceived = 0;
-        private int m_probesWithNoIngressPackets = 0;
-        private int m_lastPacketsReceived = 0;
+        private Timer clientPingTimer;
+        private int packetsReceived = 0;
+        private int probesWithNoIngressPackets = 0;
+        private int lastPacketsReceived = 0;
 
         // 1536000
-        private int m_throttleOutboundMax = 1536000; // Number of bytes allowed to go out per second. (256kbps per client) 
+        private int throttleOutboundMax = 1536000; // Number of bytes allowed to go out per second. (256kbps per client) 
                                               // TODO: Make this variable. Lower throttle on un-ack. Raise over time?
-        private int m_bytesSent = 0;   // Number of bytes sent this period
+        private int bytesSent = 0;   // Number of bytes sent this period
 
-        private int m_throttleOutbound = 162144; // Number of bytes allowed to go out per second. (256kbps per client) 
+        private int throttleOutbound = 162144; // Number of bytes allowed to go out per second. (256kbps per client) 
         // TODO: Make this variable. Lower throttle on un-ack. Raise over time
 
         // All throttle times and number of bytes are calculated by dividing by this value
         // This value also determines how many times per throttletimems the timer will run
         // If throttleimems is 1000 ms, then the timer will fire every 1000/7 milliseconds
 
-        private int m_throttleTimeDivisor = 7;
+        private int throttleTimeDivisor = 7;
 
-        private int m_throttletimems = 1000;
+        private int throttletimems = 1000;
 
         // Maximum -per type- throttle
-        private int m_resendthrottleMAX = 100000;
-        private int m_landthrottleMax = 100000;
-        private int m_windthrottleMax = 100000;
-        private int m_cloudthrottleMax = 100000;
-        private int m_taskthrottleMax = 800000;
-        private int m_assetthrottleMax = 800000;
-        private int m_texturethrottleMax = 800000;
+        private int ResendthrottleMAX = 100000;
+        private int LandthrottleMax = 100000;
+        private int WindthrottleMax = 100000;
+        private int CloudthrottleMax = 100000;
+        private int TaskthrottleMax = 800000;
+        private int AssetthrottleMax = 800000;
+        private int TexturethrottleMax = 800000;
 
         // Minimum -per type- throttle
-        private int m_resendthrottleMin = 5000; // setting resendmin to 0 results in mostly dropped packets
-        private int m_landthrottleMin = 1000;
-        private int m_windthrottleMin = 1000;
-        private int m_cloudthrottleMin = 1000;
-        private int m_taskthrottleMin = 1000;
-        private int m_assetthrottleMin = 1000;
-        private int m_texturethrottleMin = 1000;
+        private int ResendthrottleMin = 5000; // setting resendmin to 0 results in mostly dropped packets
+        private int LandthrottleMin = 1000;
+        private int WindthrottleMin = 1000;
+        private int CloudthrottleMin = 1000;
+        private int TaskthrottleMin = 1000;
+        private int AssetthrottleMin = 1000;
+        private int TexturethrottleMin = 1000;
 
         // Sim default per-client settings.
-        private int m_resendthrottleOutbound = 50000;
-        private int m_resendBytesSent = 0;
-        private int m_landthrottleOutbound = 100000;
-        private int m_landBytesSent = 0;
-        private int m_windthrottleOutbound = 10000;
-        private int m_windBytesSent = 0;
-        private int m_cloudthrottleOutbound = 5000;
-        private int m_cloudBytesSent = 0;
-        private int m_taskthrottleOutbound = 100000;
-        private int m_taskBytesSent = 0;
-        private int m_assetthrottleOutbound = 80000;
-        private int m_assetBytesSent = 0;
-        private int m_texturethrottleOutbound = 100000;
-        private int m_textureBytesSent = 0;
+        private int ResendthrottleOutbound = 50000;
+        private int ResendBytesSent = 0;
+        private int LandthrottleOutbound = 100000;
+        private int LandBytesSent = 0;
+        private int WindthrottleOutbound = 10000;
+        private int WindBytesSent = 0;
+        private int CloudthrottleOutbound = 5000;
+        private int CloudBytesSent = 0;
+        private int TaskthrottleOutbound = 100000;
+        private int TaskBytesSent = 0;
+        private int AssetthrottleOutbound = 80000;
+        private int AssetBytesSent = 0;
+        private int TexturethrottleOutbound = 100000;
+        private int TextureBytesSent = 0;
 
-        private Timer m_throttleTimer;
+        private Timer throttleTimer;
 
         public ClientView(EndPoint remoteEP, UseCircuitCodePacket initialcirpack, ClientManager clientManager,
                           IScene scene, AssetCache assetCache, PacketServer packServer,
@@ -174,17 +174,17 @@ namespace OpenSim.Region.ClientStack
             // in it to process.  it's an on-purpose threadlock though because 
             // without it, the clientloop will suck up all sim resources.
 
-            m_packetQueue = new BlockingQueue<QueItem>();
+            PacketQueue = new BlockingQueue<QueItem>();
 
-            m_incomingPacketQueue = new Queue<QueItem>();
-            m_outgoingPacketQueue = new Queue<QueItem>();
-            m_resendOutgoingPacketQueue = new Queue<QueItem>();
-            m_landOutgoingPacketQueue = new Queue<QueItem>();
-            m_windOutgoingPacketQueue = new Queue<QueItem>();
-            m_cloudOutgoingPacketQueue = new Queue<QueItem>();
-            m_taskOutgoingPacketQueue = new Queue<QueItem>();
-            m_textureOutgoingPacketQueue = new Queue<QueItem>();
-            m_assetOutgoingPacketQueue = new Queue<QueItem>();
+            IncomingPacketQueue = new Queue<QueItem>();
+            OutgoingPacketQueue = new Queue<QueItem>();
+            ResendOutgoingPacketQueue = new Queue<QueItem>();
+            LandOutgoingPacketQueue = new Queue<QueItem>();
+            WindOutgoingPacketQueue = new Queue<QueItem>();
+            CloudOutgoingPacketQueue = new Queue<QueItem>();
+            TaskOutgoingPacketQueue = new Queue<QueItem>();
+            TextureOutgoingPacketQueue = new Queue<QueItem>();
+            AssetOutgoingPacketQueue = new Queue<QueItem>();
 
 
             //this.UploadAssets = new AgentAssetUpload(this, m_assetCache, m_inventoryCache);
@@ -192,9 +192,9 @@ namespace OpenSim.Region.ClientStack
             AckTimer.Elapsed += new ElapsedEventHandler(AckTimer_Elapsed);
             AckTimer.Start();
 
-            m_throttleTimer = new Timer((int)(m_throttletimems/m_throttleTimeDivisor));
-            m_throttleTimer.Elapsed += throttleTimer_Elapsed;
-            m_throttleTimer.Start();
+            throttleTimer = new Timer((int)(throttletimems/throttleTimeDivisor));
+            throttleTimer.Elapsed += new ElapsedEventHandler(throttleTimer_Elapsed);
+            throttleTimer.Start();
 
             RegisterLocalPacketHandlers();
 
@@ -205,24 +205,14 @@ namespace OpenSim.Region.ClientStack
 
         void throttleTimer_Elapsed(object sender, ElapsedEventArgs e)
         {   
-            // We need to stop the timer so that another timer event won't cause queue races.
-            m_throttleTimer.Stop();
-
-            ProcessThrottleQueues();
-
-            m_throttleTimer.Start();
-        }
-
-        private void ProcessThrottleQueues()
-        {
-            m_bytesSent = 0;
-            m_resendBytesSent = 0;
-            m_landBytesSent = 0;
-            m_windBytesSent = 0;
-            m_cloudBytesSent = 0;
-            m_taskBytesSent = 0;
-            m_assetBytesSent = 0;
-            m_textureBytesSent = 0;
+            bytesSent = 0;
+            ResendBytesSent = 0;
+            LandBytesSent = 0;
+            WindBytesSent = 0;
+            CloudBytesSent = 0;
+            TaskBytesSent = 0;
+            AssetBytesSent = 0;
+            TextureBytesSent = 0;
             
             // I was considering this..   Will an event fire if the thread it's on is blocked?
 
@@ -235,96 +225,76 @@ namespace OpenSim.Region.ClientStack
 
             // We're going to dequeue all of the saved up packets until 
             // we've hit the throttle limit or there's no more packets to send
-
-            
-
-            while (TimeToDequeue( m_bytesSent, m_throttleOutbound ) &&
-                    (m_resendOutgoingPacketQueue.Count > 0 ||
-                     m_landOutgoingPacketQueue.Count > 0 ||
-                     m_windOutgoingPacketQueue.Count > 0 ||
-                     m_cloudOutgoingPacketQueue.Count > 0 ||
-                     m_taskOutgoingPacketQueue.Count > 0 ||
-                     m_assetOutgoingPacketQueue.Count > 0 ||
-                     m_textureOutgoingPacketQueue.Count > 0) && ( throttleLoops <= MaxThrottleLoops))
+            while ((bytesSent <= ((int)(throttleOutbound/throttleTimeDivisor)) &&
+                (ResendOutgoingPacketQueue.Count > 0 ||
+                 LandOutgoingPacketQueue.Count > 0 ||
+                 WindOutgoingPacketQueue.Count > 0 ||
+                 CloudOutgoingPacketQueue.Count > 0 ||
+                 TaskOutgoingPacketQueue.Count > 0 ||
+                 AssetOutgoingPacketQueue.Count > 0 ||
+                 TextureOutgoingPacketQueue.Count > 0)) && throttleLoops <= MaxThrottleLoops)
             {
                 throttleLoops++;
                 //Now comes the fun part..   we dump all our elements into PacketQueue that we've saved up.
-
-                if (TimeToDequeue(m_resendBytesSent, m_resendthrottleOutbound))
+                if (ResendBytesSent <= ((int)(ResendthrottleOutbound/throttleTimeDivisor)) && ResendOutgoingPacketQueue.Count > 0)
                 {
-                    m_resendBytesSent += ProcessQueue(m_resendOutgoingPacketQueue);
+                    QueItem qpack = ResendOutgoingPacketQueue.Dequeue();
+
+                    PacketQueue.Enqueue(qpack);
+                    bytesSent += qpack.Packet.ToBytes().Length;
+                    ResendBytesSent += qpack.Packet.ToBytes().Length;
                 }
-
-                if (TimeToDequeue(m_landBytesSent, m_landthrottleOutbound))
+                if (LandBytesSent <= ((int)(LandthrottleOutbound/throttleTimeDivisor)) && LandOutgoingPacketQueue.Count > 0)
                 {
-                    m_landBytesSent += ProcessQueue(m_landOutgoingPacketQueue);
+                    QueItem qpack = LandOutgoingPacketQueue.Dequeue();
+
+                    PacketQueue.Enqueue(qpack);
+                    bytesSent += qpack.Packet.ToBytes().Length;
+                    LandBytesSent += qpack.Packet.ToBytes().Length;
                 }
-
-                // -- TODO: Well, do the same for the rest of them
-
-                if (m_windBytesSent <= ((int)(m_windthrottleOutbound/m_throttleTimeDivisor)) && m_windOutgoingPacketQueue.Count > 0)
+                if (WindBytesSent <= ((int)(WindthrottleOutbound/throttleTimeDivisor)) && WindOutgoingPacketQueue.Count > 0)
                 {
-                    QueItem qpack = m_windOutgoingPacketQueue.Dequeue();
+                    QueItem qpack = WindOutgoingPacketQueue.Dequeue();
 
-                    m_packetQueue.Enqueue(qpack);
-                    m_bytesSent += qpack.Packet.ToBytes().Length;
-                    m_windBytesSent += qpack.Packet.ToBytes().Length;
+                    PacketQueue.Enqueue(qpack);
+                    bytesSent += qpack.Packet.ToBytes().Length;
+                    WindBytesSent += qpack.Packet.ToBytes().Length;
                 }
-                if (m_cloudBytesSent <= ((int)(m_cloudthrottleOutbound/m_throttleTimeDivisor)) && m_cloudOutgoingPacketQueue.Count > 0)
+                if (CloudBytesSent <= ((int)(CloudthrottleOutbound/throttleTimeDivisor)) && CloudOutgoingPacketQueue.Count > 0)
                 {
-                    QueItem qpack = m_cloudOutgoingPacketQueue.Dequeue();
+                    QueItem qpack = CloudOutgoingPacketQueue.Dequeue();
 
-                    m_packetQueue.Enqueue(qpack);
-                    m_bytesSent += qpack.Packet.ToBytes().Length;
-                    m_cloudBytesSent += qpack.Packet.ToBytes().Length;
+                    PacketQueue.Enqueue(qpack);
+                    bytesSent += qpack.Packet.ToBytes().Length;
+                    CloudBytesSent += qpack.Packet.ToBytes().Length;
                 }
-                if (m_taskBytesSent <= ((int)(m_taskthrottleOutbound/m_throttleTimeDivisor)) && m_taskOutgoingPacketQueue.Count > 0)
+                if (TaskBytesSent <= ((int)(TaskthrottleOutbound/throttleTimeDivisor)) && TaskOutgoingPacketQueue.Count > 0)
                 {
-                    QueItem qpack = m_taskOutgoingPacketQueue.Dequeue();
+                    QueItem qpack = TaskOutgoingPacketQueue.Dequeue();
 
-                    m_packetQueue.Enqueue(qpack);
-                    m_bytesSent += qpack.Packet.ToBytes().Length;
-                    m_taskBytesSent += qpack.Packet.ToBytes().Length;
+                    PacketQueue.Enqueue(qpack);
+                    bytesSent += qpack.Packet.ToBytes().Length;
+                    TaskBytesSent += qpack.Packet.ToBytes().Length;
                 }
-                if (m_textureBytesSent <= ((int)(m_texturethrottleOutbound/m_throttleTimeDivisor)) && m_textureOutgoingPacketQueue.Count > 0)
+                if (TextureBytesSent <= ((int)(TexturethrottleOutbound/throttleTimeDivisor)) && TextureOutgoingPacketQueue.Count > 0)
                 {
-                    QueItem qpack = m_textureOutgoingPacketQueue.Dequeue();
+                    QueItem qpack = TextureOutgoingPacketQueue.Dequeue();
 
-                    m_packetQueue.Enqueue(qpack);
-                    m_bytesSent += qpack.Packet.ToBytes().Length;
-                    m_textureBytesSent += qpack.Packet.ToBytes().Length;
+                    PacketQueue.Enqueue(qpack);
+                    bytesSent += qpack.Packet.ToBytes().Length;
+                    TextureBytesSent += qpack.Packet.ToBytes().Length;
                 }
-                if (m_assetBytesSent <= ((int)(m_assetthrottleOutbound/m_throttleTimeDivisor)) && m_assetOutgoingPacketQueue.Count > 0)
+                if (AssetBytesSent <= ((int)(AssetthrottleOutbound/throttleTimeDivisor)) && AssetOutgoingPacketQueue.Count > 0)
                 {
-                    QueItem qpack = m_assetOutgoingPacketQueue.Dequeue();
+                    QueItem qpack = AssetOutgoingPacketQueue.Dequeue();
 
-                    m_packetQueue.Enqueue(qpack);
-                    m_bytesSent += qpack.Packet.ToBytes().Length;
-                    m_assetBytesSent += qpack.Packet.ToBytes().Length;
+                    PacketQueue.Enqueue(qpack);
+                    bytesSent += qpack.Packet.ToBytes().Length;
+                    AssetBytesSent += qpack.Packet.ToBytes().Length;
                 }
 
             }
-        }
 
-        private int ProcessQueue(Queue<QueItem> queue)
-        {
-            if (queue.Count > 0)
-            {
-                QueItem qpack = queue.Dequeue();
-
-                m_packetQueue.Enqueue(qpack);
-                int packLength = qpack.Packet.ToBytes().Length;
-
-                m_bytesSent += packLength;
-                return packLength;
-            }
-
-            return 0;
-        }
-
-        private bool TimeToDequeue(int bytesSent, int outboundThrottle)
-        {
-            return bytesSent <= ((int)(outboundThrottle / m_throttleTimeDivisor));
         }
 
         public LLUUID SessionId
@@ -341,7 +311,7 @@ namespace OpenSim.Region.ClientStack
 
         public void Close()
         {
-            m_clientPingTimer.Stop();
+            clientPingTimer.Stop();
 
             m_scene.RemoveClient(AgentId);
 
@@ -363,7 +333,7 @@ namespace OpenSim.Region.ClientStack
         }
         public void Stop()
         {
-            m_clientPingTimer.Stop();
+            clientPingTimer.Stop();
 
             libsecondlife.Packets.DisableSimulatorPacket disable = new libsecondlife.Packets.DisableSimulatorPacket();
             OutPacket(disable, ThrottleOutPacketType.Task);
@@ -464,7 +434,7 @@ namespace OpenSim.Region.ClientStack
             MainLog.Instance.Verbose("CLIENT", "Entered loop");
             while (true)
             {
-                QueItem nextPacket = m_packetQueue.Dequeue();
+                QueItem nextPacket = PacketQueue.Dequeue();
                 if (nextPacket.Incoming)
                 {
                     queuedLast = false;
@@ -472,7 +442,7 @@ namespace OpenSim.Region.ClientStack
                     //is a incoming packet
                     if (nextPacket.Packet.Type != PacketType.AgentUpdate)
                     {
-                        m_packetsReceived++;
+                        packetsReceived++;
                     }
                     DebugPacket("IN", nextPacket.Packet);
                     ProcessInPacket(nextPacket.Packet);
@@ -480,9 +450,9 @@ namespace OpenSim.Region.ClientStack
                 else
                 {
                     // Throw it back on the queue if it's going to cause us to flood the client
-                    if (m_bytesSent > m_throttleOutboundMax)
+                    if (bytesSent > throttleOutboundMax)
                     {
-                        m_packetQueue.Enqueue(nextPacket);
+                        PacketQueue.Enqueue(nextPacket);
                         MainLog.Instance.Verbose("THROTTLE", "Client over throttle limit, requeuing packet");
 
                         if (queuedLast)
@@ -501,7 +471,7 @@ namespace OpenSim.Region.ClientStack
                         
                             //Don't throttle AvatarPickerReplies!, they return a null .ToBytes()!
                             if (nextPacket.Packet.Type != PacketType.AvatarPickerReply)
-                                m_bytesSent += nextPacket.Packet.ToBytes().Length;
+                                bytesSent += nextPacket.Packet.ToBytes().Length;
                         
 
                             //is a out going packet
@@ -517,10 +487,10 @@ namespace OpenSim.Region.ClientStack
 
         protected void CheckClientConnectivity(object sender, ElapsedEventArgs e)
         {
-            if (m_packetsReceived == m_lastPacketsReceived)
+            if (packetsReceived == lastPacketsReceived)
             {
-                m_probesWithNoIngressPackets++;
-                if (m_probesWithNoIngressPackets > 30)
+                probesWithNoIngressPackets++;
+                if (probesWithNoIngressPackets > 30)
                 {
                     if (OnConnectionClosed != null)
                     {
@@ -536,8 +506,8 @@ namespace OpenSim.Region.ClientStack
             else
             {
                 // Something received in the meantime - we can reset the counters
-                m_probesWithNoIngressPackets = 0;
-                m_lastPacketsReceived = m_packetsReceived;
+                probesWithNoIngressPackets = 0;
+                lastPacketsReceived = packetsReceived;
             }
         }
 
@@ -545,9 +515,9 @@ namespace OpenSim.Region.ClientStack
 
         protected virtual void InitNewClient()
         {
-            m_clientPingTimer = new Timer(5000);
-            m_clientPingTimer.Elapsed += new ElapsedEventHandler(CheckClientConnectivity);
-            m_clientPingTimer.Enabled = true;
+            clientPingTimer = new Timer(5000);
+            clientPingTimer.Elapsed += new ElapsedEventHandler(CheckClientConnectivity);
+            clientPingTimer.Enabled = true;
 
             MainLog.Instance.Verbose("CLIENT", "Adding viewer agent to scene");
             m_scene.AddNewClient(this, true);
@@ -2233,20 +2203,20 @@ namespace OpenSim.Region.ClientStack
         }
 
         // Previously ClientView.PacketQueue
-        protected BlockingQueue<QueItem> m_packetQueue;
+        protected BlockingQueue<QueItem> PacketQueue;
 
-        protected Queue<QueItem> m_incomingPacketQueue;
-        protected Queue<QueItem> m_outgoingPacketQueue;
-        protected Queue<QueItem> m_resendOutgoingPacketQueue;
-        protected Queue<QueItem> m_landOutgoingPacketQueue;
-        protected Queue<QueItem> m_windOutgoingPacketQueue;
-        protected Queue<QueItem> m_cloudOutgoingPacketQueue;
-        protected Queue<QueItem> m_taskOutgoingPacketQueue;
-        protected Queue<QueItem> m_textureOutgoingPacketQueue;
-        protected Queue<QueItem> m_assetOutgoingPacketQueue;
+        protected Queue<QueItem> IncomingPacketQueue;
+        protected Queue<QueItem> OutgoingPacketQueue;
+        protected Queue<QueItem> ResendOutgoingPacketQueue;
+        protected Queue<QueItem> LandOutgoingPacketQueue;
+        protected Queue<QueItem> WindOutgoingPacketQueue;
+        protected Queue<QueItem> CloudOutgoingPacketQueue;
+        protected Queue<QueItem> TaskOutgoingPacketQueue;
+        protected Queue<QueItem> TextureOutgoingPacketQueue;
+        protected Queue<QueItem> AssetOutgoingPacketQueue;
 
-        protected Dictionary<uint, uint> m_pendingAcks = new Dictionary<uint, uint>();
-        protected Dictionary<uint, Packet> m_needAck = new Dictionary<uint, Packet>();
+        protected Dictionary<uint, uint> PendingAcks = new Dictionary<uint, uint>();
+        protected Dictionary<uint, Packet> NeedAck = new Dictionary<uint, Packet>();
 
         protected Timer AckTimer;
         protected uint Sequence = 0;
@@ -2288,13 +2258,13 @@ namespace OpenSim.Region.ClientStack
             
         protected void AddAck(Packet Pack)
         {
-            lock (m_needAck)
+            lock (NeedAck)
             {
-                if (!m_needAck.ContainsKey(Pack.Header.Sequence))
+                if (!NeedAck.ContainsKey(Pack.Header.Sequence))
                 {
                     try
                     {
-                        m_needAck.Add(Pack.Header.Sequence, Pack);
+                        NeedAck.Add(Pack.Header.Sequence, Pack);
                     }
                     catch (Exception e) // HACKY
                     {
@@ -2308,7 +2278,7 @@ namespace OpenSim.Region.ClientStack
                 else
                 {
                     //  Client.Log("Attempted to add a duplicate sequence number (" +
-                    //     packet.Header.Sequence + ") to the m_needAck dictionary for packet type " +
+                    //     packet.Header.Sequence + ") to the NeedAck dictionary for packet type " +
                     //      packet.Type.ToString(), Helpers.LogLevel.Warning);
                 }
             }
@@ -2317,21 +2287,21 @@ namespace OpenSim.Region.ClientStack
         protected virtual void SetPendingAcks(ref Packet Pack)
         {
             // Append any ACKs that need to be sent out to this packet
-            lock (m_pendingAcks)
+            lock (PendingAcks)
             {
                 // TODO: If we are over MAX_APPENDED_ACKS we should drain off some of these
-                if (m_pendingAcks.Count > 0 && m_pendingAcks.Count < MAX_APPENDED_ACKS)
+                if (PendingAcks.Count > 0 && PendingAcks.Count < MAX_APPENDED_ACKS)
                 {
-                    Pack.Header.AckList = new uint[m_pendingAcks.Count];
+                    Pack.Header.AckList = new uint[PendingAcks.Count];
                     int i = 0;
                     
-                    foreach (uint ack in m_pendingAcks.Values)
+                    foreach (uint ack in PendingAcks.Values)
                     {
                         Pack.Header.AckList[i] = ack;
                         i++;
                     }
                     
-                    m_pendingAcks.Clear();
+                    PendingAcks.Clear();
                     Pack.Header.AppendedAcks = true;
                 }
             }
@@ -2387,11 +2357,11 @@ namespace OpenSim.Region.ClientStack
             // Handle appended ACKs
             if (NewPack.Header.AppendedAcks)
             {
-                lock (m_needAck)
+                lock (NeedAck)
                 {
                     foreach (uint ack in NewPack.Header.AckList)
                     {
-                        m_needAck.Remove(ack);
+                        NeedAck.Remove(ack);
                     }
                 }
             }
@@ -2401,11 +2371,11 @@ namespace OpenSim.Region.ClientStack
             {
                 PacketAckPacket ackPacket = (PacketAckPacket) NewPack;
 
-                lock (m_needAck)
+                lock (NeedAck)
                 {
                     foreach (PacketAckPacket.PacketsBlock block in ackPacket.Packets)
                     {
-                        m_needAck.Remove(block.ID);
+                        NeedAck.Remove(block.ID);
                     }
                 }
             }
@@ -2422,7 +2392,7 @@ namespace OpenSim.Region.ClientStack
                 QueItem item = new QueItem();
                 item.Packet = NewPack;
                 item.Incoming = true;
-                m_packetQueue.Enqueue(item);
+                PacketQueue.Enqueue(item);
             }
         }
 
@@ -2434,11 +2404,11 @@ namespace OpenSim.Region.ClientStack
             // wait for the timer to fire to put things into the
             // output queue
 
-            if((q.Count == 0) && (TypeBytesSent <= ((int)(Throttle / m_throttleTimeDivisor))))
+            if((q.Count == 0) && (TypeBytesSent <= ((int)(Throttle / throttleTimeDivisor))))
             {
-                m_bytesSent += item.Packet.ToBytes().Length;
+                bytesSent += item.Packet.ToBytes().Length;
                 TypeBytesSent += item.Packet.ToBytes().Length;
-                m_packetQueue.Enqueue(item);
+                PacketQueue.Enqueue(item);
             }
             else
             {
@@ -2458,34 +2428,34 @@ namespace OpenSim.Region.ClientStack
             switch (throttlePacketType)
             {
                 case ThrottleOutPacketType.Resend:
-                    ThrottleCheck(ref m_resendBytesSent, m_resendthrottleOutbound, ref m_resendOutgoingPacketQueue, item);
+                    ThrottleCheck(ref ResendBytesSent, ResendthrottleOutbound, ref ResendOutgoingPacketQueue, item);
                     break;
                 case ThrottleOutPacketType.Texture:
-                    ThrottleCheck(ref m_textureBytesSent, m_texturethrottleOutbound, ref m_textureOutgoingPacketQueue, item);
+                    ThrottleCheck(ref TextureBytesSent, TexturethrottleOutbound, ref TextureOutgoingPacketQueue, item);
                     break;
                 case ThrottleOutPacketType.Task:
-                    ThrottleCheck(ref m_taskBytesSent, m_taskthrottleOutbound, ref m_taskOutgoingPacketQueue, item);
+                    ThrottleCheck(ref TaskBytesSent, TaskthrottleOutbound, ref TaskOutgoingPacketQueue, item);
                     break;
                 case ThrottleOutPacketType.Land:
-                    ThrottleCheck(ref m_landBytesSent, m_landthrottleOutbound, ref m_landOutgoingPacketQueue, item);
+                    ThrottleCheck(ref LandBytesSent, LandthrottleOutbound, ref LandOutgoingPacketQueue, item);
                     break;
                 case ThrottleOutPacketType.Asset:
-                    ThrottleCheck(ref m_assetBytesSent, m_assetthrottleOutbound, ref m_assetOutgoingPacketQueue, item);
+                    ThrottleCheck(ref AssetBytesSent, AssetthrottleOutbound, ref AssetOutgoingPacketQueue, item);
                     break;
                 case ThrottleOutPacketType.Cloud:
-                    ThrottleCheck(ref m_cloudBytesSent, m_cloudthrottleOutbound, ref m_cloudOutgoingPacketQueue, item);
+                    ThrottleCheck(ref CloudBytesSent, CloudthrottleOutbound, ref CloudOutgoingPacketQueue, item);
                     break;
                 case ThrottleOutPacketType.Wind:
-                    ThrottleCheck(ref m_windBytesSent, m_windthrottleOutbound, ref m_windOutgoingPacketQueue, item);
+                    ThrottleCheck(ref WindBytesSent, WindthrottleOutbound, ref WindOutgoingPacketQueue, item);
                     break;
 
                 default:
                     // Acknowledgements and other such stuff should go directly to the blocking Queue
                     // Throttling them may and likely 'will' be problematic
-                    m_packetQueue.Enqueue(item); 
+                    PacketQueue.Enqueue(item); 
                     break;
             }
-            //m_outgoingPacketQueue.Enqueue(item);
+            //OutgoingPacketQueue.Enqueue(item);
         }
 
         # region Low Level Packet Methods
@@ -2505,10 +2475,10 @@ namespace OpenSim.Region.ClientStack
             /*
             if (Pack.Header.Reliable)
             {
-                lock (m_pendingAcks)
+                lock (PendingAcks)
                 {
                     uint sequence = (uint)Pack.Header.Sequence;
-                    if (!m_pendingAcks.ContainsKey(sequence)) { m_pendingAcks[sequence] = sequence; }
+                    if (!PendingAcks.ContainsKey(sequence)) { PendingAcks[sequence] = sequence; }
                 }
             }*/
         }
@@ -2517,9 +2487,9 @@ namespace OpenSim.Region.ClientStack
         {
             int now = System.Environment.TickCount;
 
-            lock (m_needAck)
+            lock (NeedAck)
             {
-                foreach (Packet packet in m_needAck.Values)
+                foreach (Packet packet in NeedAck.Values)
                 {
                     if ((now - packet.TickCount > RESEND_TIMEOUT) && (!packet.Header.Resent))
                     {
@@ -2535,11 +2505,11 @@ namespace OpenSim.Region.ClientStack
 
         protected void SendAcks()
         {
-            lock (m_pendingAcks)
+            lock (PendingAcks)
             {
-                if (m_pendingAcks.Count > 0)
+                if (PendingAcks.Count > 0)
                 {
-                    if (m_pendingAcks.Count > 250)
+                    if (PendingAcks.Count > 250)
                     {
                         // FIXME: Handle the odd case where we have too many pending ACKs queued up
                         MainLog.Instance.Verbose("NETWORK", "Too many ACKs queued up!");
@@ -2550,9 +2520,9 @@ namespace OpenSim.Region.ClientStack
 
                     int i = 0;
                     PacketAckPacket acks = new PacketAckPacket();
-                    acks.Packets = new PacketAckPacket.PacketsBlock[m_pendingAcks.Count];
+                    acks.Packets = new PacketAckPacket.PacketsBlock[PendingAcks.Count];
 
-                    foreach (uint ack in m_pendingAcks.Values)
+                    foreach (uint ack in PendingAcks.Values)
                     {
                         acks.Packets[i] = new PacketAckPacket.PacketsBlock();
                         acks.Packets[i].ID = ack;
@@ -2562,7 +2532,7 @@ namespace OpenSim.Region.ClientStack
                     acks.Header.Reliable = false;
                     OutPacket(acks, ThrottleOutPacketType.Unknown);
 
-                    m_pendingAcks.Clear();
+                    PendingAcks.Clear();
                 }
             }
         }
@@ -3415,7 +3385,7 @@ namespace OpenSim.Region.ClientStack
                         // If the client didn't send acceptable values....
                         // Scale the clients values down until they are acceptable.
 
-                        if (tall <= m_throttleOutboundMax)
+                        if (tall <= throttleOutboundMax)
                         {
                             // Sanity
                             // Making sure the client sends sane values
@@ -3424,61 +3394,61 @@ namespace OpenSim.Region.ClientStack
                             // Then Check Min of type
 
                             // Resend throttle
-                            if (tResend <= m_resendthrottleMAX)
-                                m_resendthrottleOutbound = tResend;
+                            if (tResend <= ResendthrottleMAX)
+                                ResendthrottleOutbound = tResend;
 
-                            if (tResend < m_resendthrottleMin)
-                                m_resendthrottleOutbound = m_resendthrottleMin;
+                            if (tResend < ResendthrottleMin)
+                                ResendthrottleOutbound = ResendthrottleMin;
 
                             // Land throttle
-                            if (tLand <= m_landthrottleMax)
-                                m_landthrottleOutbound = tLand;
+                            if (tLand <= LandthrottleMax)
+                                LandthrottleOutbound = tLand;
 
-                            if (tLand < m_landthrottleMin)
-                                m_landthrottleOutbound = m_landthrottleMin;
+                            if (tLand < LandthrottleMin)
+                                LandthrottleOutbound = LandthrottleMin;
 
                             // Wind throttle 
-                            if (tWind <= m_windthrottleMax)
-                                m_windthrottleOutbound = tWind;
+                            if (tWind <= WindthrottleMax)
+                                WindthrottleOutbound = tWind;
 
-                            if (tWind < m_windthrottleMin)
-                                m_windthrottleOutbound = m_windthrottleMin;
+                            if (tWind < WindthrottleMin)
+                                WindthrottleOutbound = WindthrottleMin;
 
                             // Cloud throttle 
-                            if (tCloud <= m_cloudthrottleMax)
-                                m_cloudthrottleOutbound = tCloud;
+                            if (tCloud <= CloudthrottleMax)
+                                CloudthrottleOutbound = tCloud;
 
-                            if (tCloud < m_cloudthrottleMin)
-                                m_cloudthrottleOutbound = m_cloudthrottleMin;
+                            if (tCloud < CloudthrottleMin)
+                                CloudthrottleOutbound = CloudthrottleMin;
 
                             // Task throttle 
-                            if (tTask <= m_taskthrottleMax)
-                                m_taskthrottleOutbound = tTask;
+                            if (tTask <= TaskthrottleMax)
+                                TaskthrottleOutbound = tTask;
 
-                            if (tTask < m_taskthrottleMin)
-                                m_taskthrottleOutbound = m_taskthrottleMin;
+                            if (tTask < TaskthrottleMin)
+                                TaskthrottleOutbound = TaskthrottleMin;
 
                             // Texture throttle 
-                            if (tTexture <= m_texturethrottleMax)
-                                m_texturethrottleOutbound = tTexture;
+                            if (tTexture <= TexturethrottleMax)
+                                TexturethrottleOutbound = tTexture;
 
-                            if (tTexture < m_texturethrottleMin)
-                                m_texturethrottleOutbound = m_texturethrottleMin;
+                            if (tTexture < TexturethrottleMin)
+                                TexturethrottleOutbound = TexturethrottleMin;
 
                             //Asset throttle
-                            if (tAsset <= m_assetthrottleMax)
-                                m_assetthrottleOutbound = tAsset;
+                            if (tAsset <= AssetthrottleMax)
+                                AssetthrottleOutbound = tAsset;
 
-                            if (tAsset < m_assetthrottleMin)
-                                m_assetthrottleOutbound = m_assetthrottleMin;
+                            if (tAsset < AssetthrottleMin)
+                                AssetthrottleOutbound = AssetthrottleMin;
 
-                          /*  MainLog.Instance.Verbose("THROTTLE", "Using:resendbytes=" + m_resendthrottleOutbound +
-                            " landbytes=" + m_landthrottleOutbound +
-                            " windbytes=" + m_windthrottleOutbound +
-                            " cloudbytes=" + m_cloudthrottleOutbound +
-                            " taskbytes=" + m_taskthrottleOutbound +
-                            " texturebytes=" + m_texturethrottleOutbound +
-                            " Assetbytes=" + m_assetthrottleOutbound +
+                          /*  MainLog.Instance.Verbose("THROTTLE", "Using:resendbytes=" + ResendthrottleOutbound +
+                            " landbytes=" + LandthrottleOutbound +
+                            " windbytes=" + WindthrottleOutbound +
+                            " cloudbytes=" + CloudthrottleOutbound +
+                            " taskbytes=" + TaskthrottleOutbound +
+                            " texturebytes=" + TexturethrottleOutbound +
+                            " Assetbytes=" + AssetthrottleOutbound +
                             " Allbytes=" + tall);
                            */
                         }
@@ -3498,23 +3468,23 @@ namespace OpenSim.Region.ClientStack
                                 // it's client recommended level (won't scale it down)
                                 // unless it's beyond sane values itself.
 
-                                if (tResend <= m_resendthrottleMAX)
+                                if (tResend <= ResendthrottleMAX)
                                 {
                                     // This is nexted because we only want to re-set the values
                                     // the packet throttler uses once.
 
-                                    if (tResend >= m_resendthrottleMin)
+                                    if (tResend >= ResendthrottleMin)
                                     {
-                                        m_resendthrottleOutbound = tResend;
+                                        ResendthrottleOutbound = tResend;
                                     }
                                     else
                                     {
-                                        m_resendthrottleOutbound = m_resendthrottleMin;
+                                        ResendthrottleOutbound = ResendthrottleMin;
                                     }
                                 }
                                 else
                                 {
-                                    m_resendthrottleOutbound = m_resendthrottleMAX;
+                                    ResendthrottleOutbound = ResendthrottleMAX;
                                 }
 
 
@@ -3529,12 +3499,12 @@ namespace OpenSim.Region.ClientStack
                                 // Okay..  now we've got the percentages of total communication.
                                 // Apply them to a new max total
 
-                                int tLandResult = (int)(LandPercent * m_throttleOutboundMax);
-                                int tWindResult = (int)(WindPercent * m_throttleOutboundMax);
-                                int tCloudResult = (int)(CloudPercent * m_throttleOutboundMax);
-                                int tTaskResult = (int)(TaskPercent * m_throttleOutboundMax);
-                                int tTextureResult = (int)(TexturePercent * m_throttleOutboundMax);
-                                int tAssetResult = (int)(AssetPercent * m_throttleOutboundMax);
+                                int tLandResult = (int)(LandPercent * throttleOutboundMax);
+                                int tWindResult = (int)(WindPercent * throttleOutboundMax);
+                                int tCloudResult = (int)(CloudPercent * throttleOutboundMax);
+                                int tTaskResult = (int)(TaskPercent * throttleOutboundMax);
+                                int tTextureResult = (int)(TexturePercent * throttleOutboundMax);
+                                int tAssetResult = (int)(AssetPercent * throttleOutboundMax);
 
                                 // Now we have to check our scaled values for sanity
 
@@ -3542,54 +3512,54 @@ namespace OpenSim.Region.ClientStack
                                 // Then Check Min of type
 
                                 // Land throttle
-                                if (tLandResult <= m_landthrottleMax)
-                                    m_landthrottleOutbound = tLandResult;
+                                if (tLandResult <= LandthrottleMax)
+                                    LandthrottleOutbound = tLandResult;
 
-                                if (tLandResult < m_landthrottleMin)
-                                    m_landthrottleOutbound = m_landthrottleMin;
+                                if (tLandResult < LandthrottleMin)
+                                    LandthrottleOutbound = LandthrottleMin;
 
                                 // Wind throttle 
-                                if (tWindResult <= m_windthrottleMax)
-                                    m_windthrottleOutbound = tWindResult;
+                                if (tWindResult <= WindthrottleMax)
+                                    WindthrottleOutbound = tWindResult;
 
-                                if (tWindResult < m_windthrottleMin)
-                                    m_windthrottleOutbound = m_windthrottleMin;
+                                if (tWindResult < WindthrottleMin)
+                                    WindthrottleOutbound = WindthrottleMin;
 
                                 // Cloud throttle 
-                                if (tCloudResult <= m_cloudthrottleMax)
-                                    m_cloudthrottleOutbound = tCloudResult;
+                                if (tCloudResult <= CloudthrottleMax)
+                                    CloudthrottleOutbound = tCloudResult;
 
-                                if (tCloudResult < m_cloudthrottleMin)
-                                    m_cloudthrottleOutbound = m_cloudthrottleMin;
+                                if (tCloudResult < CloudthrottleMin)
+                                    CloudthrottleOutbound = CloudthrottleMin;
 
                                 // Task throttle 
-                                if (tTaskResult <= m_taskthrottleMax)
-                                    m_taskthrottleOutbound = tTaskResult;
+                                if (tTaskResult <= TaskthrottleMax)
+                                    TaskthrottleOutbound = tTaskResult;
 
-                                if (tTaskResult < m_taskthrottleMin)
-                                    m_taskthrottleOutbound = m_taskthrottleMin;
+                                if (tTaskResult < TaskthrottleMin)
+                                    TaskthrottleOutbound = TaskthrottleMin;
 
                                 // Texture throttle 
-                                if (tTextureResult <= m_texturethrottleMax)
-                                    m_texturethrottleOutbound = tTextureResult;
+                                if (tTextureResult <= TexturethrottleMax)
+                                    TexturethrottleOutbound = tTextureResult;
 
-                                if (tTextureResult < m_texturethrottleMin)
-                                    m_texturethrottleOutbound = m_texturethrottleMin;
+                                if (tTextureResult < TexturethrottleMin)
+                                    TexturethrottleOutbound = TexturethrottleMin;
 
                                 //Asset throttle
-                                if (tAssetResult <= m_assetthrottleMax)
-                                    m_assetthrottleOutbound = tAssetResult;
+                                if (tAssetResult <= AssetthrottleMax)
+                                    AssetthrottleOutbound = tAssetResult;
 
-                                if (tAssetResult < m_assetthrottleMin)
-                                    m_assetthrottleOutbound = m_assetthrottleMin;
+                                if (tAssetResult < AssetthrottleMin)
+                                    AssetthrottleOutbound = AssetthrottleMin;
 
-                                /* MainLog.Instance.Verbose("THROTTLE", "Using:resendbytes=" + m_resendthrottleOutbound +
-                                    " landbytes=" + m_landthrottleOutbound +
-                                    " windbytes=" + m_windthrottleOutbound +
-                                    " cloudbytes=" + m_cloudthrottleOutbound +
-                                    " taskbytes=" + m_taskthrottleOutbound +
-                                    " texturebytes=" + m_texturethrottleOutbound +
-                                    " Assetbytes=" + m_assetthrottleOutbound +
+                                /* MainLog.Instance.Verbose("THROTTLE", "Using:resendbytes=" + ResendthrottleOutbound +
+                                    " landbytes=" + LandthrottleOutbound +
+                                    " windbytes=" + WindthrottleOutbound +
+                                    " cloudbytes=" + CloudthrottleOutbound +
+                                    " taskbytes=" + TaskthrottleOutbound +
+                                    " texturebytes=" + TexturethrottleOutbound +
+                                    " Assetbytes=" + AssetthrottleOutbound +
                                     " Allbytes=" + tall);
                                   */
                             }
@@ -3597,20 +3567,20 @@ namespace OpenSim.Region.ClientStack
                             {
                                 // The client sent a stupid value..   
                                 // We're going to set the throttles to the minimum possible
-                                m_resendthrottleOutbound = m_resendthrottleMin;
-                                m_landthrottleOutbound = m_landthrottleMin;
-                                m_windthrottleOutbound = m_windthrottleMin;
-                                m_cloudthrottleOutbound = m_cloudthrottleMin;
-                                m_taskthrottleOutbound = m_taskthrottleMin;
-                                m_texturethrottleOutbound = m_texturethrottleMin;
-                                m_assetthrottleOutbound = m_assetthrottleMin;
-                                MainLog.Instance.Verbose("THROTTLE", "ClientSentBadThrottle Using:resendbytes=" + m_resendthrottleOutbound +
-                                    " landbytes=" + m_landthrottleOutbound +
-                                    " windbytes=" + m_windthrottleOutbound +
-                                    " cloudbytes=" + m_cloudthrottleOutbound +
-                                    " taskbytes=" + m_taskthrottleOutbound +
-                                    " texturebytes=" + m_texturethrottleOutbound +
-                                    " Assetbytes=" + m_assetthrottleOutbound +
+                                ResendthrottleOutbound = ResendthrottleMin;
+                                LandthrottleOutbound = LandthrottleMin;
+                                WindthrottleOutbound = WindthrottleMin;
+                                CloudthrottleOutbound = CloudthrottleMin;
+                                TaskthrottleOutbound = TaskthrottleMin;
+                                TexturethrottleOutbound = TexturethrottleMin;
+                                AssetthrottleOutbound = AssetthrottleMin;
+                                MainLog.Instance.Verbose("THROTTLE", "ClientSentBadThrottle Using:resendbytes=" + ResendthrottleOutbound +
+                                    " landbytes=" + LandthrottleOutbound +
+                                    " windbytes=" + WindthrottleOutbound +
+                                    " cloudbytes=" + CloudthrottleOutbound +
+                                    " taskbytes=" + TaskthrottleOutbound +
+                                    " texturebytes=" + TexturethrottleOutbound +
+                                    " Assetbytes=" + AssetthrottleOutbound +
                                     " Allbytes=" + tall);
                             }
                         }
@@ -3618,13 +3588,13 @@ namespace OpenSim.Region.ClientStack
                         // This has the effect of 'wiggling the slider 
                         // causes prim and stuck textures that didn't download to download
 
-                        m_resendBytesSent = 0;
-                        m_landBytesSent = 0;
-                        m_windBytesSent = 0;
-                        m_cloudBytesSent = 0;
-                        m_taskBytesSent = 0;
-                        m_assetBytesSent = 0;
-                        m_textureBytesSent = 0;
+                        ResendBytesSent = 0;
+                        LandBytesSent = 0;
+                        WindBytesSent = 0;
+                        CloudBytesSent = 0;
+                        TaskBytesSent = 0;
+                        AssetBytesSent = 0;
+                        TextureBytesSent = 0;
 
                         //Yay, we've finally handled the agent Throttle packet!
                         break;

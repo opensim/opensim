@@ -776,13 +776,8 @@ namespace OpenSim.Framework.Communications.Cache
                     im.Header.Reliable = false;
                     im.ImageID.Packet = (ushort) (req.PacketCounter);
                     im.ImageID.ID = req.ImageInfo.FullID;
-
                     int size = req.ImageInfo.Data.Length - 600 - (1000*(req.PacketCounter - 1));
-                    if (size > 1000)
-                    {
-                        size = 1000;
-                    }
-
+                    if (size > 1000) size = 1000;
                     //Console.WriteLine("length= {0} counter= {1} size= {2}",req.ImageInfo.Data.Length, req.PacketCounter, size);
                     im.ImageData.Data = new byte[size];
                     Array.Copy(req.ImageInfo.Data, 600 + (1000*(req.PacketCounter - 1)), im.ImageData.Data, 0, size);
