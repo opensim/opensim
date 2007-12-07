@@ -40,7 +40,7 @@ namespace OpenSim.Framework
             AgentID = new LLUUID(cAgent.AgentID);
             SessionID = new LLUUID(cAgent.SessionID);
             SecureSessionID = new LLUUID(cAgent.SecureSessionID);
-            startpos = cAgent.startpos;
+            startpos = new LLVector3(cAgent.startposx,cAgent.startposy,cAgent.startposz);
             firstname = cAgent.firstname;
             lastname = cAgent.lastname;
             circuitcode = cAgent.circuitcode;
@@ -74,7 +74,9 @@ namespace OpenSim.Framework
             AgentID = cAgent.AgentID.UUID;
             SessionID = cAgent.SessionID.UUID;
             SecureSessionID = cAgent.SecureSessionID.UUID;
-            startpos = cAgent.startpos;
+            startposx = cAgent.startpos.X;
+            startposy = cAgent.startpos.Y;
+            startposz = cAgent.startpos.Z;
             firstname = cAgent.firstname;
             lastname = cAgent.lastname;
             circuitcode = cAgent.circuitcode;
@@ -86,7 +88,9 @@ namespace OpenSim.Framework
         public Guid AgentID;
         public Guid SessionID;
         public Guid SecureSessionID;
-        public LLVector3 startpos;
+        public float startposx;
+        public float startposy;
+        public float startposz;
         public string firstname;
         public string lastname;
         public uint circuitcode;

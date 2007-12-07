@@ -501,7 +501,7 @@ namespace OpenSim.Region.Communications.OGS1
 
                     if (remObject != null)
                     {
-                        retValue = remObject.InformRegionOfChildAgent(regionHandle, agentData);
+                        retValue = remObject.InformRegionOfChildAgent(regionHandle, new sAgentCircuitData(agentData));
                     }
                     else
                     {

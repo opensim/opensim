@@ -118,11 +118,11 @@ namespace OpenSim.Region.Communications.OGS1
         {
         }
 
-        public bool InformRegionOfChildAgent(ulong regionHandle, AgentCircuitData agentData)
+        public bool InformRegionOfChildAgent(ulong regionHandle, sAgentCircuitData agentData)
         {
             try
             {
-                return InterRegionSingleton.Instance.InformRegionOfChildAgent(regionHandle, agentData);
+                return InterRegionSingleton.Instance.InformRegionOfChildAgent(regionHandle, new AgentCircuitData(agentData));
             }
             catch (RemotingException e)
             {
