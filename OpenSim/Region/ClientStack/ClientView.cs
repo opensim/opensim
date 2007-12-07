@@ -1092,11 +1092,13 @@ namespace OpenSim.Region.ClientStack
                 descend.ItemData[i].SaleType = 0;
                 descend.ItemData[i].Type = (sbyte) item.assetType;
                 descend.ItemData[i].CRC =
-                    Helpers.InventoryCRC(1000, 0, descend.ItemData[i].InvType, descend.ItemData[i].Type,
-                                         descend.ItemData[i].AssetID, descend.ItemData[i].GroupID, 100,
+
+                    Helpers.InventoryCRC(descend.ItemData[i].CreationDate, descend.ItemData[i].SaleType,
+                                         descend.ItemData[i].InvType, descend.ItemData[i].Type,
+                                         descend.ItemData[i].AssetID, descend.ItemData[i].GroupID, descend.ItemData[i].SalePrice,
                                          descend.ItemData[i].OwnerID, descend.ItemData[i].CreatorID,
-                                         descend.ItemData[i].ItemID, descend.ItemData[i].FolderID, FULL_MASK_PERMISSIONS,
-                                         1, FULL_MASK_PERMISSIONS, FULL_MASK_PERMISSIONS, FULL_MASK_PERMISSIONS);
+                                         descend.ItemData[i].ItemID, descend.ItemData[i].FolderID, descend.ItemData[i].EveryoneMask,
+                                         descend.ItemData[i].Flags, descend.ItemData[i].OwnerMask, descend.ItemData[i].GroupMask, item.inventoryCurrentPermissions);
 
                 i++;
                 count++;
@@ -1168,13 +1170,15 @@ namespace OpenSim.Region.ClientStack
             inventoryReply.InventoryData[0].SaleType = 0;
             inventoryReply.InventoryData[0].Type = (sbyte) item.assetType;
             inventoryReply.InventoryData[0].CRC =
-                Helpers.InventoryCRC(1000, 0, inventoryReply.InventoryData[0].InvType,
+                Helpers.InventoryCRC(inventoryReply.InventoryData[0].CreationDate, inventoryReply.InventoryData[0].SaleType, 
+                                     inventoryReply.InventoryData[0].InvType,
                                      inventoryReply.InventoryData[0].Type, inventoryReply.InventoryData[0].AssetID,
-                                     inventoryReply.InventoryData[0].GroupID, 100,
+                                     inventoryReply.InventoryData[0].GroupID, inventoryReply.InventoryData[0].SalePrice,
                                      inventoryReply.InventoryData[0].OwnerID, inventoryReply.InventoryData[0].CreatorID,
                                      inventoryReply.InventoryData[0].ItemID, inventoryReply.InventoryData[0].FolderID,
-                                     FULL_MASK_PERMISSIONS, 1, FULL_MASK_PERMISSIONS, FULL_MASK_PERMISSIONS,
-                                     FULL_MASK_PERMISSIONS);
+                                     inventoryReply.InventoryData[0].EveryoneMask, inventoryReply.InventoryData[0].Flags, 
+                                     inventoryReply.InventoryData[0].NextOwnerMask, inventoryReply.InventoryData[0].GroupMask,
+                                     inventoryReply.InventoryData[0].OwnerMask);
 
             OutPacket(inventoryReply, ThrottleOutPacketType.Asset);
         }
@@ -1209,13 +1213,16 @@ namespace OpenSim.Region.ClientStack
             InventoryReply.InventoryData[0].SaleType = 0;
             InventoryReply.InventoryData[0].Type = (sbyte) Item.assetType;
             InventoryReply.InventoryData[0].CRC =
-                Helpers.InventoryCRC(1000, 0, InventoryReply.InventoryData[0].InvType,
+                Helpers.InventoryCRC(InventoryReply.InventoryData[0].CreationDate, InventoryReply.InventoryData[0].SaleType,
+                                     InventoryReply.InventoryData[0].InvType,
                                      InventoryReply.InventoryData[0].Type, InventoryReply.InventoryData[0].AssetID,
-                                     InventoryReply.InventoryData[0].GroupID, 100,
+                                     InventoryReply.InventoryData[0].GroupID, InventoryReply.InventoryData[0].SalePrice,
                                      InventoryReply.InventoryData[0].OwnerID, InventoryReply.InventoryData[0].CreatorID,
                                      InventoryReply.InventoryData[0].ItemID, InventoryReply.InventoryData[0].FolderID,
-                                     FULL_MASK_PERMISSIONS, 1, FULL_MASK_PERMISSIONS, FULL_MASK_PERMISSIONS,
-                                     FULL_MASK_PERMISSIONS);
+                                     InventoryReply.InventoryData[0].EveryoneMask, InventoryReply.InventoryData[0].Flags,
+                                     InventoryReply.InventoryData[0].NextOwnerMask, InventoryReply.InventoryData[0].GroupMask,
+                                     InventoryReply.InventoryData[0].OwnerMask);
+            
 
             OutPacket(InventoryReply, ThrottleOutPacketType.Asset);
         }
@@ -1595,6 +1602,7 @@ namespace OpenSim.Region.ClientStack
             outPacket.ObjectData[0].ClickAction = clickAction;
             //outPacket.ObjectData[0].Flags = 0;
             outPacket.ObjectData[0].Radius = 20;
+            
 
             byte[] pb = pos.GetBytes();
             Array.Copy(pb, 0, outPacket.ObjectData[0].ObjectData, 0, pb.Length);
@@ -2039,7 +2047,7 @@ namespace OpenSim.Region.ClientStack
 
             for (int i = 0; i < multipleupdate.ObjectData.Length; i++)
             {
-                if (tScene.PermissionsMngr.CanEditObject(simClient.AgentId, tScene.GetSceneObjectPart(multipleupdate.ObjectData[i].ObjectLocalID).UUID))
+                if (tScene.PermissionsMngr.CanEditObjectPosition(simClient.AgentId, tScene.GetSceneObjectPart(multipleupdate.ObjectData[i].ObjectLocalID).UUID))
                 {
                     #region position
 
@@ -2896,7 +2904,7 @@ namespace OpenSim.Region.ClientStack
                         {
                             if (OnObjectDescription != null)
                             {
-                                OnObjectDescription(objDes.ObjectData[i].LocalID,
+                                OnObjectDescription(this,objDes.ObjectData[i].LocalID,
                                                     enc.GetString(objDes.ObjectData[i].Description));
                             }
                         }
@@ -2907,7 +2915,7 @@ namespace OpenSim.Region.ClientStack
                         {
                             if (OnObjectName != null)
                             {
-                                OnObjectName(objName.ObjectData[i].LocalID, enc.GetString(objName.ObjectData[i].Name));
+                                OnObjectName(this,objName.ObjectData[i].LocalID, enc.GetString(objName.ObjectData[i].Name));
                             }
                         }
                         break;

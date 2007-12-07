@@ -234,7 +234,7 @@ namespace OpenSim.Framework
 
     public delegate void GenericCall5(IClientAPI remoteClient, bool status);
 
-    public delegate void GenericCall7(uint localID, string message);
+    public delegate void GenericCall7(IClientAPI remoteClient, uint localID, string message);
 
     public delegate void UpdateShape(LLUUID agentID, uint localID, ObjectShapePacket.ObjectDataBlock shapeBlock);
 

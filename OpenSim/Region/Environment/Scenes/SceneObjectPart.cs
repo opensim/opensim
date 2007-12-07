@@ -851,7 +851,7 @@ namespace OpenSim.Region.Environment.Scenes
                 m_flags |= flag;
                 
             }
-            uint currflag = (uint)m_flags;
+            //uint currflag = (uint)m_flags;
             //System.Console.WriteLine("Aprev: " + prevflag.ToString() + " curr: " + m_flags.ToString());
             //ScheduleFullUpdate();
         }
@@ -1295,7 +1295,8 @@ namespace OpenSim.Region.Environment.Scenes
                         //EveryoneMask |= (uint)57344;
                         
                     }
-                    ScheduleFullUpdate();
+                    //ScheduleFullUpdate();
+                    SendFullUpdateToAllClients();
                 }
                 //Field 16 = NextownerMask
                 if (field == (byte)16)
@@ -1308,7 +1309,7 @@ namespace OpenSim.Region.Environment.Scenes
                     {
                         NextOwnerMask |= mask;
                     }
-                    ScheduleFullUpdate();
+                    SendFullUpdateToAllClients();
                 }
 
             }

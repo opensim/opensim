@@ -448,6 +448,9 @@ namespace OpenSim.Region.Environment.Scenes
                                 item.parentFolderID = DeRezPacket.AgentBlock.DestinationID;
                                 item.inventoryCurrentPermissions = 2147483647;
                                 item.inventoryNextPermissions = 2147483647;
+                                item.inventoryEveryOnePermissions = ((SceneObjectGroup)selectedEnt).RootPart.EveryoneMask;
+                                item.inventoryBasePermissions = ((SceneObjectGroup)selectedEnt).RootPart.BaseMask;
+                                item.inventoryCurrentPermissions = ((SceneObjectGroup)selectedEnt).RootPart.OwnerMask;
 
                                 userInfo.AddItem(remoteClient.AgentId, item);
                                 remoteClient.SendInventoryItemCreateUpdate(item);
