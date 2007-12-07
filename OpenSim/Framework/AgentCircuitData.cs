@@ -30,11 +30,24 @@ using libsecondlife;
 
 namespace OpenSim.Framework
 {
-    [Serializable]
     public class AgentCircuitData
     {
         public AgentCircuitData()
         {
+        }
+        public AgentCircuitData(sAgentCircuitData cAgent)
+        {
+            AgentID = new LLUUID(cAgent.AgentID);
+            SessionID = new LLUUID(cAgent.SessionID);
+            SecureSessionID = new LLUUID(cAgent.SecureSessionID);
+            startpos = cAgent.startpos;
+            firstname = cAgent.firstname;
+            lastname = cAgent.lastname;
+            circuitcode = cAgent.circuitcode;
+            child = cAgent.child;
+            InventoryFolder = new LLUUID(cAgent.InventoryFolder);
+            BaseFolder = new LLUUID(cAgent.BaseFolder);
+            CapsPath = cAgent.CapsPath;
         }
 
         public LLUUID AgentID;
@@ -48,5 +61,41 @@ namespace OpenSim.Framework
         public LLUUID InventoryFolder;
         public LLUUID BaseFolder;
         public string CapsPath = "";
+    }
+
+    [Serializable]
+    public class sAgentCircuitData
+    {
+        public sAgentCircuitData()
+        {
+        }
+        public sAgentCircuitData(AgentCircuitData cAgent)
+        {
+            AgentID = cAgent.AgentID.UUID;
+            SessionID = cAgent.SessionID.UUID;
+            SecureSessionID = cAgent.SecureSessionID.UUID;
+            startpos = cAgent.startpos;
+            firstname = cAgent.firstname;
+            lastname = cAgent.lastname;
+            circuitcode = cAgent.circuitcode;
+            child = cAgent.child;
+            InventoryFolder = cAgent.InventoryFolder.UUID;
+            BaseFolder = cAgent.BaseFolder.UUID;
+            CapsPath = cAgent.CapsPath;
+        }
+        public Guid AgentID;
+        public Guid SessionID;
+        public Guid SecureSessionID;
+        public LLVector3 startpos;
+        public string firstname;
+        public string lastname;
+        public uint circuitcode;
+        public bool child;
+        public Guid InventoryFolder;
+        public Guid BaseFolder;
+        public string CapsPath = "";
+       
+
+
     }
 }
