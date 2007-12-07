@@ -2025,7 +2025,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL
         public const int REMOTE_DATA_CHANNEL = 1;
         public const int REMOTE_DATA_REQUEST = 2;
         public const int REMOTE_DATA_REPLY = 3;
-        //public const int PRIM_TYPE = 1;
+        
         public const int PRIM_MATERIAL = 2;
         public const int PRIM_PHYSICS = 3;
         public const int PRIM_TEMP_ON_REZ = 4;
@@ -2049,6 +2049,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL
         public const int PRIM_TYPE_TORUS = 4;
         public const int PRIM_TYPE_TUBE = 5;
         public const int PRIM_TYPE_RING = 6;
+        public const int PRIM_TYPE_SCULPT = 7;
         public const int PRIM_HOLE_DEFAULT = 0;
         public const int PRIM_HOLE_CIRCLE = 16;
         public const int PRIM_HOLE_SQUARE = 32;
@@ -2083,6 +2084,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL
         public const int PRIM_BUMP_STUCCO = 15;
         public const int PRIM_BUMP_SUCTION = 16;
         public const int PRIM_BUMP_WEAVE = 17;
+
         public const int MASK_BASE = 0;
         public const int MASK_OWNER = 1;
         public const int MASK_GROUP = 2;

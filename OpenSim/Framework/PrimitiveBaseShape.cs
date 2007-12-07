@@ -65,7 +65,7 @@ namespace OpenSim.Framework
 
     public class PrimitiveBaseShape
     {
-        private static byte[] m_defaultTextureEntry;
+        private static readonly byte[] m_defaultTextureEntry;
 
         public byte PCode;
         public ushort PathBegin;
