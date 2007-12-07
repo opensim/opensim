@@ -626,7 +626,7 @@ namespace OpenSim
                     m_log.Error("  alert [First] [Last] [Message] - send an alert to a user. Case sensitive.");
                     m_log.Error("  alert general [Message] - send an alert to all users.");
                     m_log.Error("backup - trigger a simulator backup");
-                    m_log.Error("change-region - sets the region that many of these commands affect.");
+                    m_log.Error("change-region [name] - sets the region that many of these commands affect.");
                     m_log.Error("command-script [filename] - Execute command in a file.");
                     m_log.Error("debug - debugging commands");
                     m_log.Error("  packet 0..255 - print incoming/outgoing packets (0=off)");
@@ -638,6 +638,7 @@ namespace OpenSim
                     m_log.Error("permissions [true/false] - turn on/off permissions on the scene");
                     m_log.Error("quit - equivalent to shutdown.");
                     m_log.Error("restart - disconnects all clients and restarts the sims in the instance.");
+                    m_log.Error("remove-region [name] - remove a region");
                     m_log.Error("save-xml [filename] - save prims to XML");
                     m_log.Error("save-xml2 [filename] - save prims to XML using version 2 format");
                     m_log.Error("script - manually trigger scripts? or script commands?");
@@ -771,7 +772,6 @@ namespace OpenSim
                         }
                         m_regionData.Remove(killScene.RegionInfo);
                         m_sceneManager.CloseScene(killScene);
-
                     }
                     break;
 

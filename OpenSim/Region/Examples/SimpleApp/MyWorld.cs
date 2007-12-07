@@ -34,7 +34,6 @@ using OpenSim.Framework.Communications.Cache;
 using OpenSim.Framework.Servers;
 using OpenSim.Region.Environment;
 using OpenSim.Region.Environment.Scenes;
-using Avatar=OpenSim.Region.Environment.Scenes.ScenePresence;
 
 namespace SimpleApp
 {
@@ -47,7 +46,7 @@ namespace SimpleApp
                        ModuleLoader moduleLoader, bool physicalPrim, bool ChildGetTasks)
             : base(regionInfo, authen, permissionManager, commsMan, sceneGridService, assetCach, storeMan, httpServer, moduleLoader, false, true, false)
         {
-            m_avatars = new List<Avatar>();
+            m_avatars = new List<ScenePresence>();
         }
 
         public override void LoadWorldMap()
@@ -56,9 +55,6 @@ namespace SimpleApp
 
             for (int i = 0; i < 65536; i++)
             {
-                //int x = i%256;
-                //int y = i/256;
-
                 map[i] = 25f;
             }
 
@@ -77,8 +73,7 @@ namespace SimpleApp
 
             client.OnCompleteMovementToRegion +=
                 delegate() { client.SendChatMessage("Welcome to My World.", 1, pos, "System", LLUUID.Zero); };
-
-
+ 
             client.SendRegionHandshake(m_regInfo);
         }
     }

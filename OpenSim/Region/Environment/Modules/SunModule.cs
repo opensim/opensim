@@ -152,7 +152,7 @@ namespace OpenSim.Region.Environment.Modules
         //                     sunPhase = 12;
         //                 }
         //                 sunPhase = sunPhase - 12;
-        
+        //
         //                 float yValue = 0.1f*(sunPhase);
         //                 Console.WriteLine("Computed SunPhase: {0}, yValue: {1}", sunPhase, yValue);
         //                 if (yValue > 1.2f)
@@ -182,6 +182,5 @@ namespace OpenSim.Region.Environment.Modules
         //             viewertime.TimeInfo.UsecSinceStart = (ulong) Util.UnixTimeSinceEpoch();
         //             // OutPacket(viewertime);
         // }
-
     }
 }

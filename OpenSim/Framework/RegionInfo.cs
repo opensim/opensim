@@ -48,7 +48,6 @@ namespace OpenSim.Framework
 
         public SimpleRegionInfo(uint regionLocX, uint regionLocY, IPEndPoint internalEndPoint, string externalUri)
         {
-
             m_regionLocX = regionLocX;
             m_regionLocY = regionLocY;
 
@@ -83,7 +82,6 @@ namespace OpenSim.Framework
 
         public string RemotingAddress;
 
-
         public IPEndPoint ExternalEndPoint
         {
             get
@@ -99,7 +97,6 @@ namespace OpenSim.Framework
                 // Reset for next check
                 ia = null;
 
-
                 // New method favors IPv4
                 foreach (IPAddress Adr in Dns.GetHostAddresses(m_externalHostName))
                 {
@@ -111,7 +108,6 @@ namespace OpenSim.Framework
                         ia = Adr;
                         break;
                     }
-
                 }
 
                 return new IPEndPoint(ia, m_internalEndPoint.Port);
@@ -209,10 +205,10 @@ namespace OpenSim.Framework
 
                 return m_estateSettings;
             }
-            
         }
 
         public ConfigurationMember configMember;
+
         public RegionInfo(string description, string filename)
         {
             configMember = new ConfigurationMember(filename, description, loadConfigurationOptions, handleIncomingConfiguration);
@@ -226,13 +222,10 @@ namespace OpenSim.Framework
         public RegionInfo(uint regionLocX, uint regionLocY, IPEndPoint internalEndPoint, string externalUri) :
             base(regionLocX, regionLocY, internalEndPoint, externalUri)
         {
-
-
         }
 
         public RegionInfo()
         {
-
         }
         public RegionInfo(SearializableRegionInfo ConvertFrom)
         {

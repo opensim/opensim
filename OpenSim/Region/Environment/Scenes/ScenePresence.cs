@@ -77,7 +77,6 @@ namespace OpenSim.Region.Environment.Scenes
         private LLVector3 lastPhysPos = new LLVector3();
         private int m_wearablesSerial = 1;
 
-
         // Position of agent's camera in world
         protected Vector3 m_CameraCenter = new Vector3(0, 0, 0);
 
@@ -553,7 +552,7 @@ namespace OpenSim.Region.Environment.Scenes
             }
         }
 
-        public void HandleAgentUpdate(IClientAPI remoteClient,AgentUpdatePacket agentData )
+        public void HandleAgentUpdate(IClientAPI remoteClient, AgentUpdatePacket agentData)
         {
             //if (m_isChildAgent)
             //{
@@ -573,7 +572,6 @@ namespace OpenSim.Region.Environment.Scenes
             m_CameraCenter.y = agentData.AgentData.CameraCenter.Y;
             m_CameraCenter.z = agentData.AgentData.CameraCenter.Z;
  
-            
             // Use these three vectors to figure out what the agent is looking at
             // Convert it to a Matrix and/or Quaternion
             m_CameraAtAxis.x = agentData.AgentData.CameraAtAxis.X;
@@ -631,7 +629,6 @@ namespace OpenSim.Region.Environment.Scenes
                 Vector3 agent_control_v3 = new Vector3(0, 0, 0);
                 Quaternion q = new Quaternion(bodyRotation.W, bodyRotation.X, bodyRotation.Y, bodyRotation.Z);
                 bool oldflying = PhysicsActor.Flying;
-
 
                 PhysicsActor.Flying = ((flags & (uint)MainAvatar.ControlFlags.AGENT_CONTROL_FLY) != 0);
                 if (PhysicsActor.Flying != oldflying)
@@ -883,10 +880,10 @@ namespace OpenSim.Region.Environment.Scenes
             }
 
             NewForce newVelocity = new NewForce();
-            Vector3 direc = rotation*vec;
+            Vector3 direc = rotation * vec;
             direc.Normalize();
 
-            direc = direc*((0.03f)*128f);
+            direc *= 0.03f * 128f;
             if (m_physicsActor.Flying)
             {
                 direc *= 4;
@@ -944,15 +941,12 @@ namespace OpenSim.Region.Environment.Scenes
 
             if (m_isChildAgent == false)
             {
-                /// check for user movement 'forces' (ie commands to move)
-                if (m_newForce)
+                if (m_newForce) // user movement 'forces' (ie commands to move)
                 {
                     SendTerseUpdateToAllClients();
                     m_updateCount = 0;
                 }
-
-                    /// check for scripted movement (?)
-                else if (m_movementflag != 0)
+                else if (m_movementflag != 0) // scripted movement (?)
                 {
                     m_updateCount++;
                     if (m_updateCount > 3)
@@ -961,9 +955,7 @@ namespace OpenSim.Region.Environment.Scenes
                         m_updateCount = 0;
                     }
                 }
-
-                    /// check for physics-related movement
-                else if (lastPhysPos.GetDistanceTo(AbsolutePosition) > 0.02)
+                else if (lastPhysPos.GetDistanceTo(AbsolutePosition) > 0.02) // physics-related movement
                 {
                     SendTerseUpdateToAllClients();
                     m_updateCount = 0;
@@ -1071,9 +1063,9 @@ namespace OpenSim.Region.Environment.Scenes
         /// 
         /// </summary>
         /// <param name="client"></param>
-        public void SendOwnAppearance( )
+        public void SendOwnAppearance()
         {
-            SendOwnWearables( );
+            SendOwnWearables();
 
             // TODO: remove this once the SunModule is slightly more tested
             // m_controllingClient.SendViewerTime(m_scene.TimePhase);
@@ -1224,7 +1216,6 @@ namespace OpenSim.Region.Environment.Scenes
 
         #endregion
 
-
         public void GrantGodlikePowers(LLUUID agentID, LLUUID sessionID, LLUUID token)
         {
             GrantGodlikePowersPacket respondPacket = new GrantGodlikePowersPacket();
@@ -1240,10 +1231,8 @@ namespace OpenSim.Region.Environment.Scenes
             respondPacket.GrantData = gdb;
             respondPacket.AgentData = adb;
             ControllingClient.OutPacket(respondPacket, ThrottleOutPacketType.Task);
-
-
-
         }
+
         /// <summary>
         /// 
         /// </summary>
@@ -1266,7 +1255,6 @@ namespace OpenSim.Region.Environment.Scenes
                         NewForce force = m_forcesList[i];
 
                         m_updateflag = true;
-
 
                         Velocity = new LLVector3(force.X, force.Y, force.Z);
                         m_newForce = true;
@@ -1317,7 +1305,6 @@ namespace OpenSim.Region.Environment.Scenes
             }
         }
 
-
         public override void SetText(string text, Vector3 color, double alpha)
         {
             throw new Exception("Can't set Text on avatar.");
@@ -1335,14 +1322,13 @@ namespace OpenSim.Region.Environment.Scenes
             m_physicsActor.OnRequestTerseUpdate += SendTerseUpdateToAllClients;
             m_physicsActor.OnCollisionUpdate += PhysicsCollisionUpdate;
         }
+
         private void PhysicsCollisionUpdate(EventArgs e)
         {
-            bool isUserMoving = false;
-            if (Velocity.X > 0 || Velocity.Y > 0)
-                isUserMoving = true;
+            bool isUserMoving = Velocity.X > 0 || Velocity.Y > 0;
             UpdateMovementAnimations(isUserMoving);
-
         }
+
         internal void Close()
         {
             RemoveFromPhysicalScene();
@@ -1352,13 +1338,11 @@ namespace OpenSim.Region.Environment.Scenes
         {
             m_wearables[wearableId] = wearable;
             SendOwnWearables();
-            
         }
 
         private void SendOwnWearables()
         {
             m_controllingClient.SendWearables(m_wearables, m_wearablesSerial++);
         }
-       
     }
 }
