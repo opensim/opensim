@@ -34,10 +34,11 @@ namespace OpenSim.Region.Capabilities
         public string MapLayer = "";
         public string NewFileAgentInventory = "";
         //public string EventQueueGet = "";
-        // public string RequestTextureDownload = "";
+       // public string RequestTextureDownload = "";
         // public string ChatSessionRequest = "";
         public string UpdateNotecardAgentInventory = "";
         public string UpdateScriptAgentInventory = "";
+      //  public string UpdateScriptTaskInventory = "";
         // public string ParcelVoiceInfoRequest = "";
 
         public LLSDCapsDetails()

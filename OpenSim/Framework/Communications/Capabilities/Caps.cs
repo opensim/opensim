@@ -55,7 +55,7 @@ namespace OpenSim.Region.Capabilities
         private string m_requestPath = "0000/";
         private string m_mapLayerPath = "0001/";
         private string m_newInventory = "0002/";
-        //private string m_requestTexture = "0003/";
+       //private string m_requestTexture = "0003/";
         private string m_notecardUpdatePath = "0004/";
         //private string eventQueue = "0100/";
         private BaseHttpServer m_httpListener;
@@ -125,7 +125,7 @@ namespace OpenSim.Region.Capabilities
         /// <returns></returns>
         public string CapsRequest(string request, string path, string param)
         {
-            // Console.WriteLine("caps request " + request);
+             //Console.WriteLine("caps request " + request);
             string result = LLSDHelpers.SerialiseLLSDReply(GetCapabilities());
             return result;
         }
@@ -140,10 +140,11 @@ namespace OpenSim.Region.Capabilities
             string capsBaseUrl = "http://" + m_httpListenerHostName + ":" + m_httpListenPort.ToString() + "/CAPS/" +
                                  m_capsObjectPath;
             caps.MapLayer = capsBaseUrl + m_mapLayerPath;
-            // caps.RequestTextureDownload = capsBaseUrl + m_requestTexture;
+           // caps.RequestTextureDownload = capsBaseUrl + m_requestTexture;
             caps.NewFileAgentInventory = capsBaseUrl + m_newInventory;
             caps.UpdateNotecardAgentInventory = capsBaseUrl + m_notecardUpdatePath;
             caps.UpdateScriptAgentInventory = capsBaseUrl + m_notecardUpdatePath;
+          //  caps.UpdateScriptTaskInventory = capsBaseUrl + m_requestTexture;
             return caps;
         }
 
@@ -258,7 +259,8 @@ namespace OpenSim.Region.Capabilities
         /// <returns></returns>
         public string NoteCardAgentInventory(string request, string path, string param)
         {
-            libsecondlife.StructuredData.LLSDMap hash = (libsecondlife.StructuredData.LLSDMap)libsecondlife.StructuredData.LLSDParser.DeserializeBinary(Helpers.StringToField(request));
+            //libsecondlife.StructuredData.LLSDMap hash = (libsecondlife.StructuredData.LLSDMap)libsecondlife.StructuredData.LLSDParser.DeserializeBinary(Helpers.StringToField(request));
+            Hashtable hash = (Hashtable)LLSD.LLSDDeserialize(Helpers.StringToField(request));
             LLSDItemUpdate llsdRequest = new LLSDItemUpdate();
             LLSDHelpers.DeserialiseLLSDMap(hash, llsdRequest);
 

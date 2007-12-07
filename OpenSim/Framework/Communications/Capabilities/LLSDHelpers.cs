@@ -76,8 +76,9 @@ namespace OpenSim.Region.Capabilities
                                 writer.WriteStartElement(String.Empty, "key", String.Empty);
                                 writer.WriteString(fields[i].Name);
                                 writer.WriteEndElement();
-                                libsecondlife.StructuredData.LLSDParser.SerializeXmlElement(
-                                    writer, libsecondlife.StructuredData.LLSD.FromObject(fieldValue));
+                                LLSD.LLSDWriteOne(writer, fieldValue);
+                               // libsecondlife.StructuredData.LLSDParser.SerializeXmlElement(
+                                //    writer, libsecondlife.StructuredData.LLSD.FromObject(fieldValue));
                             }
                         }
                         writer.WriteEndElement();
@@ -100,12 +101,13 @@ namespace OpenSim.Region.Capabilities
             }
             else
             {
-               libsecondlife.StructuredData.LLSDParser.SerializeXmlElement(
-                   writer, libsecondlife.StructuredData.LLSD.FromObject(obj));
+                LLSD.LLSDWriteOne(writer, obj);
+               //libsecondlife.StructuredData.LLSDParser.SerializeXmlElement(
+               //    writer, libsecondlife.StructuredData.LLSD.FromObject(obj));
             }
         }
-		
-        public static object DeserialiseLLSDMap(libsecondlife.StructuredData.LLSDMap llsd, object obj)
+
+        public static object DeserialiseLLSDMap(Hashtable llsd, object obj)
         {
             Type myType = obj.GetType();
             LLSDType[] llsdattributes = (LLSDType[]) myType.GetCustomAttributes(typeof (LLSDType), false);
@@ -120,10 +122,12 @@ namespace OpenSim.Region.Capabilities
                             FieldInfo field = myType.GetField((string) enumerator.Key);
                             if (field != null)
                             {
-                                if (enumerator.Value is libsecondlife.StructuredData.LLSDMap)
+                               // if (enumerator.Value is libsecondlife.StructuredData.LLSDMap)
+                                if (enumerator.Value is Hashtable)
                                 {
                                     object fieldValue = field.GetValue(obj);
-                                    DeserialiseLLSDMap((libsecondlife.StructuredData.LLSDMap) enumerator.Value, fieldValue);
+                                    DeserialiseLLSDMap((Hashtable)enumerator.Value, fieldValue);
+                                  //  DeserialiseLLSDMap((libsecondlife.StructuredData.LLSDMap) enumerator.Value, fieldValue);
                                 }
                                 else if (enumerator.Value is ArrayList)
                                 {

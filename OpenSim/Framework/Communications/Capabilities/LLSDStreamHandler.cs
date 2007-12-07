@@ -54,8 +54,10 @@ namespace OpenSim.Region.Capabilities
             //string requestBody = streamReader.ReadToEnd();
             //streamReader.Close();
 
-            libsecondlife.StructuredData.LLSDMap hash = (libsecondlife.StructuredData.LLSDMap) 
-                libsecondlife.StructuredData.LLSDParser.DeserializeXml(new XmlTextReader(request));
+           // libsecondlife.StructuredData.LLSDMap hash = (libsecondlife.StructuredData.LLSDMap) 
+            //    libsecondlife.StructuredData.LLSDParser.DeserializeXml(new XmlTextReader(request));
+
+            Hashtable hash = (Hashtable)LLSD.LLSDDeserialize(request);
             TRequest llsdRequest = new TRequest();
             LLSDHelpers.DeserialiseLLSDMap(hash, llsdRequest);
 
