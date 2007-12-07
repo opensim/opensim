@@ -72,7 +72,7 @@ namespace OpenSim.Framework
             m_internalEndPoint = new IPEndPoint(IPAddress.Parse("0.0.0.0"), (int) port);
         }
 
-        public LLUUID RegionID = LLUUID.Zero;
+        public Guid RegionID = LLUUID.Zero.UUID;
 
         public uint m_remotingPort;
         public uint RemotingPort

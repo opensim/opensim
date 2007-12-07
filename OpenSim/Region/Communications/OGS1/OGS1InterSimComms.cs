@@ -143,11 +143,11 @@ namespace OpenSim.Region.Communications.OGS1
             }
         }
 
-        public bool ExpectAvatarCrossing(ulong regionHandle, LLUUID agentID, LLVector3 position, bool isFlying)
+        public bool ExpectAvatarCrossing(ulong regionHandle, Guid agentID, sLLVector3 position, bool isFlying)
         {
             try
             {
-                return InterRegionSingleton.Instance.ExpectAvatarCrossing(regionHandle, agentID, position, isFlying);
+                return InterRegionSingleton.Instance.ExpectAvatarCrossing(regionHandle, new LLUUID(agentID), new LLVector3(position.x,position.y,position.z), isFlying);
             }
             catch (RemotingException e)
             {
@@ -155,11 +155,11 @@ namespace OpenSim.Region.Communications.OGS1
                 return false;
             }
         }
-        public bool InformRegionPrim(ulong regionHandle, LLUUID SceneObjectGroupID, LLVector3 position, bool isPhysical)
+        public bool InformRegionPrim(ulong regionHandle, Guid SceneObjectGroupID, sLLVector3 position, bool isPhysical)
         {
             try
             {
-                return InterRegionSingleton.Instance.InformRegionPrim(regionHandle, SceneObjectGroupID, position, isPhysical);
+                return InterRegionSingleton.Instance.InformRegionPrim(regionHandle, new LLUUID(SceneObjectGroupID), new LLVector3(position.x,position.y,position.z), isPhysical);
             }
             catch (RemotingException e)
             {
@@ -168,11 +168,11 @@ namespace OpenSim.Region.Communications.OGS1
             }
             
         }
-        public bool InformRegionOfPrimCrossing(ulong regionHandle,LLUUID primID, string objData)
+        public bool InformRegionOfPrimCrossing(ulong regionHandle,Guid primID, string objData)
         {
             try
             {
-                return InterRegionSingleton.Instance.ExpectPrimCrossing(regionHandle, primID, objData);
+                return InterRegionSingleton.Instance.ExpectPrimCrossing(regionHandle, new LLUUID(primID), objData);
             }
             catch (RemotingException e)
             {

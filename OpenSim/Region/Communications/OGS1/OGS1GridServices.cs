@@ -678,7 +678,7 @@ namespace OpenSim.Region.Communications.OGS1
 
                     if (remObject != null)
                     {
-                        retValue = remObject.InformRegionOfPrimCrossing(regionHandle,primID, objData);
+                        retValue = remObject.InformRegionOfPrimCrossing(regionHandle,primID.UUID, objData);
                     }
                     else
                     {
@@ -751,7 +751,7 @@ namespace OpenSim.Region.Communications.OGS1
                                                                                       "/InterRegions");
                     if (remObject != null)
                     {
-                        retValue = remObject.ExpectAvatarCrossing(regionHandle, agentID, position, isFlying);
+                        retValue = remObject.ExpectAvatarCrossing(regionHandle, agentID.UUID, new sLLVector3(position), isFlying);
                     }
                     else
                     {
@@ -797,7 +797,7 @@ namespace OpenSim.Region.Communications.OGS1
                                                                                       "/InterRegions");
                     if (remObject != null)
                     {
-                        retValue = remObject.ExpectAvatarCrossing(regionHandle, agentID, position, isPhysical);
+                        retValue = remObject.ExpectAvatarCrossing(regionHandle, agentID.UUID, new sLLVector3(position), isPhysical);
                     }
                     else
                     {

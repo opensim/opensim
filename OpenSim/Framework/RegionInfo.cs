@@ -235,6 +235,7 @@ namespace OpenSim.Framework
             m_externalHostName = ConvertFrom.ExternalHostName;
             m_remotingPort = ConvertFrom.RemotingPort;
             RemotingAddress = ConvertFrom.RemotingAddress;
+            RegionID = LLUUID.Zero;
         }
         //not in use, should swap to nini though.
         public void LoadFromNiniSource(IConfigSource source)
