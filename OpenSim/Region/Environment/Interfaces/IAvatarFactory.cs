@@ -1,10 +1,11 @@
 using libsecondlife;
 using OpenSim.Framework;
+using OpenSim.Region.Environment.Scenes;
 
 namespace OpenSim.Region.Environment.Interfaces
 {
     public interface IAvatarFactory : IRegionModule
     {
-        bool TryGetInitialAvatarAppearance(LLUUID avatarId, out AvatarWearable[] wearables, out byte[] visualParams);
+        bool TryGetAvatarAppearance(LLUUID avatarId, out AvatarAppearance appearance);
     }
 }

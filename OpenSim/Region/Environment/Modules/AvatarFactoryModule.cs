@@ -12,25 +12,26 @@ namespace OpenSim.Region.Environment.Modules
     public class AvatarFactoryModule : IAvatarFactory
     {
         private Scene m_scene = null;
-        private Dictionary<LLUUID, AvatarAppearance> m_avatarsClothes = new Dictionary<LLUUID, AvatarAppearance>();
+        private Dictionary<LLUUID, AvatarAppearance> m_avatarsAppearance = new Dictionary<LLUUID, AvatarAppearance>();
 
-        public bool TryGetInitialAvatarAppearance(LLUUID avatarId, out AvatarWearable[] wearables,
-                                                  out byte[] visualParams)
+        public bool TryGetAvatarAppearance(LLUUID avatarId, out AvatarAppearance appearance)
         {
-            if (m_avatarsClothes.ContainsKey(avatarId))
+            if (m_avatarsAppearance.ContainsKey(avatarId))
             {
-                visualParams = GetDefaultVisualParams();
-                wearables = m_avatarsClothes[avatarId].IsWearing;
+                appearance = m_avatarsAppearance[avatarId];
                 return true;
             }
             else
             {
+                AvatarWearable[] wearables;
+                byte[] visualParams;
                 GetDefaultAvatarAppearance(out wearables, out visualParams);
-                AvatarAppearance wearing = new AvatarAppearance(wearables);
-                m_avatarsClothes[avatarId] = wearing;
+                appearance = new AvatarAppearance(avatarId, wearables, visualParams);
+                m_avatarsAppearance[avatarId] = appearance;
                 return true;
             }
         }
+
 
         public void Initialise(Scene scene, IConfigSource source)
         {
@@ -92,11 +93,12 @@ namespace OpenSim.Region.Environment.Modules
                             {
                                 assetId = baseItem.assetID;
                                 //temporary dictionary storage. This should be storing to a database
-                                if (m_avatarsClothes.ContainsKey(clientView.AgentId))
+                               
+                                if (m_avatarsAppearance.ContainsKey(clientView.AgentId))
                                 {
-                                    AvatarAppearance avWearing = m_avatarsClothes[clientView.AgentId];
-                                    avWearing.IsWearing[wear.Type].AssetID = assetId;
-                                    avWearing.IsWearing[wear.Type].ItemID = wear.ItemID;
+                                    AvatarAppearance avatAppearance = m_avatarsAppearance[clientView.AgentId];
+                                    avatAppearance.Wearables[wear.Type].AssetID = assetId;
+                                    avatAppearance.Wearables[wear.Type].ItemID = wear.ItemID;
                                 }
                             }
 
@@ -123,41 +125,6 @@ namespace OpenSim.Region.Environment.Modules
             return visualParams;
         }
 
-        public class AvatarAppearance
-        {
-            public AvatarWearable[] IsWearing;
-            public byte[] VisualParams;
-
-            public AvatarAppearance()
-            {
-                IsWearing = new AvatarWearable[13];
-                for (int i = 0; i < 13; i++)
-                {
-                    IsWearing[i] = new AvatarWearable();
-                }
-            }
-
-            public AvatarAppearance(AvatarWearable[] wearing)
-            {
-                if (wearing.Length == 13)
-                {
-                    IsWearing = new AvatarWearable[13];
-                    for (int i = 0; i < 13; i++)
-                    {
-                        IsWearing[i] = new AvatarWearable();
-                        IsWearing[i].AssetID = wearing[i].AssetID;
-                        IsWearing[i].ItemID = wearing[i].ItemID;
-                    }
-                }
-                else
-                {
-                    IsWearing = new AvatarWearable[13];
-                    for (int i = 0; i < 13; i++)
-                    {
-                        IsWearing[i] = new AvatarWearable();
-                    }
-                }
-            }
-        }
+      
     }
 }

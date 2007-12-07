@@ -991,11 +991,10 @@ namespace OpenSim.Region.Environment.Scenes
         {
             ScenePresence avatar = null;
 
-            byte[] visualParams;
-            AvatarWearable[] wearables;
-            LoadAvatarAppearance(client, out visualParams, out wearables);
+            AvatarAppearance appearance;
+            LoadAvatarAppearance(client, out appearance);
 
-            avatar = m_innerScene.CreateAndAddScenePresence(client, child, wearables, visualParams);
+            avatar = m_innerScene.CreateAndAddScenePresence(client, child, appearance);
 
             if (avatar.IsChildAgent)
             {
@@ -1005,12 +1004,16 @@ namespace OpenSim.Region.Environment.Scenes
             return avatar;
         }
 
-        protected void LoadAvatarAppearance(IClientAPI client, out byte[] visualParams, out AvatarWearable[] wearables)
+        protected void LoadAvatarAppearance(IClientAPI client,  out AvatarAppearance appearance)
         {
             if (m_AvatarFactory == null ||
-                !m_AvatarFactory.TryGetInitialAvatarAppearance(client.AgentId, out wearables, out visualParams))
+                !m_AvatarFactory.TryGetAvatarAppearance(client.AgentId, out appearance))
             {
+                //not found Appearance
+                byte[] visualParams;
+                AvatarWearable[] wearables;
                 AvatarFactoryModule.GetDefaultAvatarAppearance(out wearables, out visualParams);
+                appearance = new AvatarAppearance(client.AgentId, wearables, visualParams);
             }
         }
 

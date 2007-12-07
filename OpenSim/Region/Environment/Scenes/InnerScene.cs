@@ -161,11 +161,11 @@ namespace OpenSim.Region.Environment.Scenes
             }
         }
 
-        public ScenePresence CreateAndAddScenePresence(IClientAPI client, bool child, AvatarWearable[] wearables, byte[] visualParams)
+        public ScenePresence CreateAndAddScenePresence(IClientAPI client, bool child, AvatarAppearance appearance)
         {
             ScenePresence newAvatar = null;
 
-            newAvatar = new ScenePresence(client, m_parentScene, m_regInfo, visualParams, wearables);
+            newAvatar = new ScenePresence(client, m_parentScene, m_regInfo, appearance);
             newAvatar.IsChildAgent = child;
 
             if (child)

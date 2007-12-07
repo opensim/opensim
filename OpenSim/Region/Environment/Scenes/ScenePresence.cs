@@ -58,10 +58,7 @@ namespace OpenSim.Region.Environment.Scenes
         private bool m_setAlwaysRun = false;
 
         private Quaternion m_bodyRot;
-        private byte[] m_visualParams;
-        private AvatarWearable[] m_wearables;
-        private LLObject.TextureEntry m_textureEntry;
-
+ 
         public bool IsRestrictedToRegion = false;
 
         private bool m_newForce = false;
@@ -75,7 +72,7 @@ namespace OpenSim.Region.Environment.Scenes
 
         private readonly Vector3[] Dir_Vectors = new Vector3[6];
         private LLVector3 lastPhysPos = new LLVector3();
-        private int m_wearablesSerial = 1;
+      
 
         // Position of agent's camera in world
         protected Vector3 m_CameraCenter = new Vector3(0, 0, 0);
@@ -88,6 +85,8 @@ namespace OpenSim.Region.Environment.Scenes
 
         // Agent's Draw distance.
         protected float m_DrawDistance = 0f;
+
+        protected AvatarAppearance m_appearance;
 
         private readonly List<ulong> m_knownChildRegions = new List<ulong>(); //neighbouring regions we have enabled a child agent in
 
@@ -109,13 +108,6 @@ namespace OpenSim.Region.Environment.Scenes
         public delegate void SignificantClientMovement(IClientAPI remote_client);
 
         public event SignificantClientMovement OnSignificantClientMovement;
-
-        //public List<SceneObjectGroup> InterestList = new List<SceneObjectGroup>();
-
-        // private string m_currentQuadNode = " ";
-
-        // private Queue<SceneObjectPart> m_fullPartUpdates = new Queue<SceneObjectPart>();
-        //private Queue<SceneObjectPart> m_tersePartUpdates = new Queue<SceneObjectPart>();
 
         private UpdateQueue m_partsUpdateQueue = new UpdateQueue();
         private Dictionary<LLUUID, ScenePartUpdate> m_updateTimes = new Dictionary<LLUUID, ScenePartUpdate>();
@@ -280,46 +272,26 @@ namespace OpenSim.Region.Environment.Scenes
         public ScenePresence(IClientAPI client, Scene world, RegionInfo reginfo, byte[] visualParams,
                              AvatarWearable[] wearables)
         {
-            m_scene = world;
-            m_uuid = client.AgentId;
-
-            m_regionInfo = reginfo;
+            //couldn't move the following into SetInitialValues as they are readonly
             m_regionHandle = reginfo.RegionHandle;
             m_controllingClient = client;
             m_firstname = m_controllingClient.FirstName;
             m_lastname = m_controllingClient.LastName;
-            m_localId = m_scene.NextLocalId;
-            AbsolutePosition = m_controllingClient.StartPos;
 
-            m_visualParams = visualParams;
-            m_wearables = wearables;
+            SetInitialValues(client, world, reginfo);
+
+            m_appearance = new AvatarAppearance(m_uuid, wearables, visualParams);
 
             Animations = new AvatarAnimations();
             Animations.LoadAnims();
 
-            //register for events
-            m_controllingClient.OnRequestWearables += SendOwnAppearance;
-            m_controllingClient.OnSetAppearance += SetAppearance;
-            m_controllingClient.OnCompleteMovementToRegion += CompleteMovement;
-            m_controllingClient.OnCompleteMovementToRegion += SendInitialData;
-            m_controllingClient.OnAgentUpdate += HandleAgentUpdate;
-            m_controllingClient.OnAgentRequestSit += HandleAgentRequestSit;
-            m_controllingClient.OnAgentSit += HandleAgentSit;
-            m_controllingClient.OnSetAlwaysRun += HandleSetAlwaysRun;
-            
-            // ControllingClient.OnStartAnim += new StartAnim(this.SendAnimPack);
-            // ControllingClient.OnChildAgentStatus += new StatusChange(this.ChildStatusChange);
-            //ControllingClient.OnStopMovement += new GenericCall2(this.StopMovement);
+            RegisterToEvents();
 
-            Dir_Vectors[0] = new Vector3(1, 0, 0); //FOWARD
-            Dir_Vectors[1] = new Vector3(-1, 0, 0); //BACK
-            Dir_Vectors[2] = new Vector3(0, 1, 0); //LEFT
-            Dir_Vectors[3] = new Vector3(0, -1, 0); //RIGHT
-            Dir_Vectors[4] = new Vector3(0, 0, 1); //UP
-            Dir_Vectors[5] = new Vector3(0, 0, -1); //DOWN
+            SetDirectionVectors();
 
-            m_textureEntry = new LLObject.TextureEntry(DefaultTexture, 0, DefaultTexture.Length);
+             //m_textureEntry = new LLObject.TextureEntry(DefaultTexture, 0, DefaultTexture.Length);
 
+            // m_textureEntry = GetDefaultTextureEntry();
             //temporary until we move some code into the body classes
 
             if (m_newAvatar)
@@ -330,6 +302,68 @@ namespace OpenSim.Region.Environment.Scenes
             m_scene.LandManager.sendLandUpdate(this);
         }
 
+
+        public ScenePresence(IClientAPI client, Scene world, RegionInfo reginfo, AvatarAppearance appearance)
+        {
+            //couldn't move the following into SetInitialValues as they are readonly
+            m_regionHandle = reginfo.RegionHandle;
+            m_controllingClient = client;
+            m_firstname = m_controllingClient.FirstName;
+            m_lastname = m_controllingClient.LastName;
+
+            SetInitialValues(client, world, reginfo);
+
+            m_appearance = appearance;     
+
+            Animations = new AvatarAnimations();
+            Animations.LoadAnims();
+
+            RegisterToEvents();
+            SetDirectionVectors();
+
+            if (m_newAvatar)
+            {
+                //do we need to use newAvatar? not sure so have added this to kill the compile warning
+            }
+
+            m_scene.LandManager.sendLandUpdate(this);
+        }
+
+        private void SetInitialValues(IClientAPI client, Scene world, RegionInfo reginfo)
+        {
+            m_scene = world;
+            m_uuid = client.AgentId;
+            m_regionInfo = reginfo;
+            m_localId = m_scene.NextLocalId;
+            AbsolutePosition = m_controllingClient.StartPos;
+        }
+
+        private void RegisterToEvents()
+        {
+            //register for events
+            m_controllingClient.OnRequestWearables += SendOwnAppearance;
+            m_controllingClient.OnSetAppearance += SetAppearance;
+            m_controllingClient.OnCompleteMovementToRegion += CompleteMovement;
+            m_controllingClient.OnCompleteMovementToRegion += SendInitialData;
+            m_controllingClient.OnAgentUpdate += HandleAgentUpdate;
+            m_controllingClient.OnAgentRequestSit += HandleAgentRequestSit;
+            m_controllingClient.OnAgentSit += HandleAgentSit;
+            m_controllingClient.OnSetAlwaysRun += HandleSetAlwaysRun;
+
+            // ControllingClient.OnStartAnim += new StartAnim(this.SendAnimPack);
+            // ControllingClient.OnChildAgentStatus += new StatusChange(this.ChildStatusChange);
+            //ControllingClient.OnStopMovement += new GenericCall2(this.StopMovement);
+        }
+
+        private void SetDirectionVectors()
+        {
+            Dir_Vectors[0] = new Vector3(1, 0, 0); //FOWARD
+            Dir_Vectors[1] = new Vector3(-1, 0, 0); //BACK
+            Dir_Vectors[2] = new Vector3(0, 1, 0); //LEFT
+            Dir_Vectors[3] = new Vector3(0, -1, 0); //RIGHT
+            Dir_Vectors[4] = new Vector3(0, 0, 1); //UP
+            Dir_Vectors[5] = new Vector3(0, 0, -1); //DOWN
+        }
         #endregion
 
         public void QueuePartForUpdate(SceneObjectPart part)
@@ -371,33 +405,33 @@ namespace OpenSim.Region.Environment.Scenes
                     if (m_updateTimes.ContainsKey(part.UUID))
                     {
                         ScenePartUpdate update = m_updateTimes[part.UUID];
-                        
+
                         // Two updates can occur with the same timestamp (especially
                         // since our timestamp resolution is to the nearest second).  The first
                         // could have been sent in the last update - we still need to send the 
                         // second here.
 
-                        
+
 
                         if (update.LastFullUpdateTime < part.TimeStampFull)
                         {
                             //need to do a full update
                             part.SendFullUpdate(ControllingClient, GenerateClientFlags(part.UUID));
-                            
+
                             // We'll update to the part's timestamp rather than the current to 
                             // avoid the race condition whereby the next tick occurs while we are
                             // doing this update.  If this happened, then subsequent updates which occurred
                             // on the same tick or the next tick of the last update would be ignored.
-                            update.LastFullUpdateTime = part.TimeStampFull;                            
-                            
+                            update.LastFullUpdateTime = part.TimeStampFull;
+
                             updateCount++;
                         }
                         else if (update.LastTerseUpdateTime <= part.TimeStampTerse)
                         {
-                           
- 
+
+
                             part.SendTerseUpdate(ControllingClient);
-                            
+
                             update.LastTerseUpdateTime = part.TimeStampTerse;
                             updateCount++;
                         }
@@ -437,8 +471,8 @@ namespace OpenSim.Region.Environment.Scenes
             m_scene.CommsManager.UserProfileCacheService.UpdateUserInventory(m_uuid);
             //if (!m_gotAllObjectsInScene)
             //{
-                //m_scene.SendAllSceneObjectsToClient(this);
-                //m_gotAllObjectsInScene = true;
+            //m_scene.SendAllSceneObjectsToClient(this);
+            //m_gotAllObjectsInScene = true;
             //}
 
         }
@@ -449,7 +483,7 @@ namespace OpenSim.Region.Environment.Scenes
             m_isChildAgent = true;
 
             RemoveFromPhysicalScene();
-            
+
             //this.Pos = new LLVector3(128, 128, 70);  
         }
 
@@ -500,34 +534,14 @@ namespace OpenSim.Region.Environment.Scenes
 
         #region Event Handlers
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="texture"></param>
-        /// <param name="visualParam"></param>
-        public void SetAppearance(byte[] texture, AgentSetAppearancePacket.VisualParamBlock[] visualParam)
+        internal void SetHeight(float height)
         {
-            LLObject.TextureEntry textureEnt = new LLObject.TextureEntry(texture, 0, texture.Length);
-            m_textureEntry = textureEnt;
-            
-            for (int i = 0; i < visualParam.Length; i++)
-            {
-                m_visualParams[i] = visualParam[i].ParamValue;
-                //MainLog.Instance.Verbose("CLIENT", "VisualData[" + i.ToString() + "]: " + visualParam[i].ParamValue.ToString() + "m");  
-            }
-            
-            // Teravus : Nifty AV Height Getting Maaaaagical formula.  Oh how we love turning 0-255 into meters.
-            // (float)m_visualParams[25] = Height
-            // (float)m_visualParams[125] = LegLength
-            m_avHeight = (1.50856f + (((float)m_visualParams[25] / 255.0f) * (2.525506f - 1.50856f)))
-                + (((float)m_visualParams[125] / 255.0f) / 1.5f);
+            m_avHeight = height;
             if (PhysicsActor != null)
             {
                 PhysicsVector SetSize = new PhysicsVector(0.45f, 0.6f, m_avHeight);
                 PhysicsActor.Size = SetSize;
             }
-            //MainLog.Instance.Verbose("CLIENT", "Set Avatar Height to: " + (1.50856f + (((float)m_visualParams[25] / 255.0f) * (2.525506f - 1.50856f))).ToString() + "m" + " Leglength: " + ((float)m_visualParams[125]).ToString() + ":" + (((float)m_visualParams[125] / 255.0f)).ToString() + "m");
-            SendAppearanceToAllOtherAgents();
         }
 
         /// <summary>
@@ -571,7 +585,7 @@ namespace OpenSim.Region.Environment.Scenes
             m_CameraCenter.x = agentData.AgentData.CameraCenter.X;
             m_CameraCenter.y = agentData.AgentData.CameraCenter.Y;
             m_CameraCenter.z = agentData.AgentData.CameraCenter.Z;
- 
+
             // Use these three vectors to figure out what the agent is looking at
             // Convert it to a Matrix and/or Quaternion
             m_CameraAtAxis.x = agentData.AgentData.CameraAtAxis.X;
@@ -592,24 +606,24 @@ namespace OpenSim.Region.Environment.Scenes
             // We don't know the agent's draw distance until the first agentUpdate packet
             //if (m_DrawDistance > 0)
             //{
-                //if (!m_gotAllObjectsInScene && m_DrawDistance > 0)
-                //{
-                    // This will need to end up being a space based invalidator
-                    // where we send object updates on spaces in 3d space (possibily a cube)
-                    // that the avatar hasn't been surrounding it's draw distance.
-                    // It would be better if the distance increased incrementally 
-                    // until there was no space to update because either the avatar's draw
-                    // distance is smaller then the space they've been or the avatar has explored
-                    // all the space in the sim.
+            //if (!m_gotAllObjectsInScene && m_DrawDistance > 0)
+            //{
+            // This will need to end up being a space based invalidator
+            // where we send object updates on spaces in 3d space (possibily a cube)
+            // that the avatar hasn't been surrounding it's draw distance.
+            // It would be better if the distance increased incrementally 
+            // until there was no space to update because either the avatar's draw
+            // distance is smaller then the space they've been or the avatar has explored
+            // all the space in the sim.
 
-                    //m_scene.SendAllSceneObjectsToClient(this);
-                    //m_gotAllObjectsInScene = true;
-                //}
+            //m_scene.SendAllSceneObjectsToClient(this);
+            //m_gotAllObjectsInScene = true;
+            //}
             //}
             //MainLog.Instance.Verbose("CAMERA", "AtAxis:" + m_CameraAtAxis.ToString() + " Center:" + m_CameraCenter.ToString() + " LeftAxis:" + m_CameraLeftAxis.ToString() + " UpAxis:" + m_CameraUpAxis.ToString() + " Far:" + m_CameraFar);
-           
 
-            if ((flags & (uint) AgentManager.ControlFlags.AGENT_CONTROL_STAND_UP) != 0)
+
+            if ((flags & (uint)AgentManager.ControlFlags.AGENT_CONTROL_STAND_UP) != 0)
             {
                 StandUp();
             }
@@ -684,7 +698,7 @@ namespace OpenSim.Region.Environment.Scenes
         {
             if (m_parentID != 0)
             {
-                m_pos += m_parentPosition + new LLVector3(0.0f, 0.0f, 2.0f*m_sitAvatarHeight);
+                m_pos += m_parentPosition + new LLVector3(0.0f, 0.0f, 2.0f * m_sitAvatarHeight);
                 m_parentPosition = new LLVector3();
 
                 AddToPhysicalScene();
@@ -692,7 +706,7 @@ namespace OpenSim.Region.Environment.Scenes
                 m_parentID = 0;
                 SendFullUpdateToAllClients();
             }
-            
+
             UpdateMovementAnimations(true);
         }
 
@@ -718,13 +732,13 @@ namespace OpenSim.Region.Environment.Scenes
                     m_sitAvatarHeight = m_physicsActor.Size.Z;
                 }
 
-// this doesn't seem to quite work yet....
-//                 // if we're close, set the avatar position to the target position and forgo autopilot
-//                 if (AbsolutePosition.GetDistanceTo(pos) < 2.5)
-//                 {
-//                     autopilot = false;
-//                     AbsolutePosition = pos + new LLVector3(0.0f, 0.0f, m_sitAvatarHeight);
-//                 }
+                // this doesn't seem to quite work yet....
+                //                 // if we're close, set the avatar position to the target position and forgo autopilot
+                //                 if (AbsolutePosition.GetDistanceTo(pos) < 2.5)
+                //                 {
+                //                     autopilot = false;
+                //                     AbsolutePosition = pos + new LLVector3(0.0f, 0.0f, m_sitAvatarHeight);
+                //                 }
             }
 
             avatarSitResponse.SitTransform.AutoPilot = autopilot;
@@ -796,7 +810,7 @@ namespace OpenSim.Region.Environment.Scenes
                     }
                     else
                     {
-                        if (((m_movementflag & (uint) AgentManager.ControlFlags.AGENT_CONTROL_UP_NEG) != 0) &&
+                        if (((m_movementflag & (uint)AgentManager.ControlFlags.AGENT_CONTROL_UP_NEG) != 0) &&
                             PhysicsActor.IsColliding)
                         {
                             SendAnimPack(Animations.AnimsLLUUID["CROUCHWALK"], 1);
@@ -807,7 +821,7 @@ namespace OpenSim.Region.Environment.Scenes
                             {
                                 SendAnimPack(Animations.AnimsLLUUID["FALLDOWN"], 1);
                             }
-                            else if (!PhysicsActor.IsColliding && Velocity.Z > 0 && (m_movementflag & (uint) AgentManager.ControlFlags.AGENT_CONTROL_UP_POS) != 0)
+                            else if (!PhysicsActor.IsColliding && Velocity.Z > 0 && (m_movementflag & (uint)AgentManager.ControlFlags.AGENT_CONTROL_UP_POS) != 0)
                             {
                                 SendAnimPack(Animations.AnimsLLUUID["JUMP"], 1);
                             }
@@ -839,7 +853,7 @@ namespace OpenSim.Region.Environment.Scenes
                 }
                 else
                 {
-                    if (((m_movementflag & (uint) AgentManager.ControlFlags.AGENT_CONTROL_UP_NEG) != 0) &&
+                    if (((m_movementflag & (uint)AgentManager.ControlFlags.AGENT_CONTROL_UP_NEG) != 0) &&
                         PhysicsActor.IsColliding)
                     {
                         SendAnimPack(Animations.AnimsLLUUID["CROUCH"], 1);
@@ -854,7 +868,7 @@ namespace OpenSim.Region.Environment.Scenes
                         {
                             SendAnimPack(Animations.AnimsLLUUID["FALLDOWN"], 1);
                         }
-                        else if (!PhysicsActor.IsColliding && Velocity.Z > 0 && !m_physicsActor.Flying && (m_movementflag & (uint) AgentManager.ControlFlags.AGENT_CONTROL_UP_POS) != 0)
+                        else if (!PhysicsActor.IsColliding && Velocity.Z > 0 && !m_physicsActor.Flying && (m_movementflag & (uint)AgentManager.ControlFlags.AGENT_CONTROL_UP_POS) != 0)
                         {
                             SendAnimPack(Animations.AnimsLLUUID["JUMP"], 1);
                         }
@@ -865,7 +879,7 @@ namespace OpenSim.Region.Environment.Scenes
                                 SendAnimPack(Animations.AnimsLLUUID["STAND"], 1);
                             }
                         }
-                        
+
                     }
                 }
             }
@@ -1022,7 +1036,7 @@ namespace OpenSim.Region.Environment.Scenes
         public void SendFullUpdateToOtherClient(ScenePresence remoteAvatar)
         {
             remoteAvatar.m_controllingClient.SendAvatarData(m_regionInfo.RegionHandle, m_firstname, m_lastname, m_uuid,
-                                                            LocalId, m_pos, m_textureEntry.ToBytes(), m_parentID);
+                                                            LocalId, m_pos, m_appearance.TextureEntry.ToBytes(), m_parentID);
         }
 
         public void SendFullUpdateToAllClients()
@@ -1048,7 +1062,7 @@ namespace OpenSim.Region.Environment.Scenes
         public void SendInitialData()
         {
             m_controllingClient.SendAvatarData(m_regionInfo.RegionHandle, m_firstname, m_lastname, m_uuid, LocalId,
-                                               m_pos, m_textureEntry.ToBytes(), m_parentID);
+                                               m_pos, m_appearance.TextureEntry.ToBytes(), m_parentID);
             if (!m_isChildAgent)
             {
                 m_scene.InformClientOfNeighbours(this);
@@ -1065,7 +1079,7 @@ namespace OpenSim.Region.Environment.Scenes
         /// <param name="client"></param>
         public void SendOwnAppearance()
         {
-            SendOwnWearables();
+            m_appearance.SendOwnWearables(ControllingClient);
 
             // TODO: remove this once the SunModule is slightly more tested
             // m_controllingClient.SendViewerTime(m_scene.TimePhase);
@@ -1078,22 +1092,31 @@ namespace OpenSim.Region.Environment.Scenes
         {
             m_scene.ForEachScenePresence(delegate(ScenePresence scenePresence)
                                              {
-                                                 // if (scenePresence != this)
-                                                 // {
-                                                 SendAppearanceToOtherAgent(scenePresence);
-                                                 // }
+                                                 if (scenePresence.UUID != UUID)
+                                                 {
+                                                     m_appearance.SendAppearanceToOtherAgent(scenePresence);
+                                                 }
                                              });
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="avatarInfo"></param>
-        public void SendAppearanceToOtherAgent(ScenePresence avatarInfo)
+        public void SendAppearanceToOtherAgent(ScenePresence avatar)
         {
-            avatarInfo.m_controllingClient.SendAppearance(m_controllingClient.AgentId, m_visualParams,
-                                                          m_textureEntry.ToBytes());
+            m_appearance.SendAppearanceToOtherAgent(avatar);
         }
+
+        public void SetAppearance(byte[] texture, AgentSetAppearancePacket.VisualParamBlock[] visualParam)
+        {
+            m_appearance.SetAppearance(texture, visualParam);
+            SetHeight(m_appearance.AvatarHeight);
+
+            SendAppearanceToAllOtherAgents();
+        }
+
+        public void SetWearable(int wearableId, AvatarWearable wearable)
+        {
+            m_appearance.SetWearable(ControllingClient, wearableId, wearable);
+        }
+
 
         /// <summary>
         /// 
@@ -1147,9 +1170,9 @@ namespace OpenSim.Region.Environment.Scenes
             LLVector3 vel = Velocity;
 
             float timeStep = 0.1f;
-            pos2.X = pos2.X + (vel.X*timeStep);
-            pos2.Y = pos2.Y + (vel.Y*timeStep);
-            pos2.Z = pos2.Z + (vel.Z*timeStep);
+            pos2.X = pos2.X + (vel.X * timeStep);
+            pos2.Y = pos2.Y + (vel.Y * timeStep);
+            pos2.Z = pos2.Z + (vel.Z * timeStep);
 
             if ((pos2.X < 0) || (pos2.X > 256))
             {
@@ -1194,7 +1217,7 @@ namespace OpenSim.Region.Environment.Scenes
             }
 
             LLVector3 vel = m_velocity;
-            ulong neighbourHandle = Helpers.UIntsToLong((uint) (neighbourx*256), (uint) (neighboury*256));
+            ulong neighbourHandle = Helpers.UIntsToLong((uint)(neighbourx * 256), (uint)(neighboury * 256));
             SimpleRegionInfo neighbourRegion = m_scene.RequestNeighbouringRegionInfo(neighbourHandle);
             if (neighbourRegion != null)
             {
@@ -1269,14 +1292,7 @@ namespace OpenSim.Region.Environment.Scenes
 
         static ScenePresence()
         {
-            LLObject.TextureEntry textu = new LLObject.TextureEntry(new LLUUID("C228D1CF-4B5D-4BA8-84F4-899A0796AA97"));
-            textu.CreateFace(0).TextureID = new LLUUID("00000000-0000-1111-9999-000000000012");
-            textu.CreateFace(1).TextureID = new LLUUID("5748decc-f629-461c-9a36-a35a221fe21f");
-            textu.CreateFace(2).TextureID = new LLUUID("5748decc-f629-461c-9a36-a35a221fe21f");
-            textu.CreateFace(3).TextureID = new LLUUID("6522E74D-1660-4E7F-B601-6F48C1659A77");
-            textu.CreateFace(4).TextureID = new LLUUID("7CA39B4C-BD19-4699-AFF7-F93FD03D3E7B");
-            textu.CreateFace(5).TextureID = new LLUUID("00000000-0000-1111-9999-000000000010");
-            textu.CreateFace(6).TextureID = new LLUUID("00000000-0000-1111-9999-000000000011");
+            LLObject.TextureEntry textu = AvatarAppearance.GetDefaultTextureEntry();
             DefaultTexture = textu.ToBytes();
         }
 
@@ -1334,15 +1350,5 @@ namespace OpenSim.Region.Environment.Scenes
             RemoveFromPhysicalScene();
         }
 
-        public void SetWearable(int wearableId, AvatarWearable wearable)
-        {
-            m_wearables[wearableId] = wearable;
-            SendOwnWearables();
-        }
-
-        private void SendOwnWearables()
-        {
-            m_controllingClient.SendWearables(m_wearables, m_wearablesSerial++);
-        }
     }
 }
