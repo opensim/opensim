@@ -24,13 +24,10 @@ namespace OpenSim.Grid.InventoryServer
             {
                 foreach (InventoryFolderBase folder in folders)
                 {
-                    if (folder.parentID != LLUUID.Zero)
+                    List<InventoryItemBase> items = RequestFolderItems(folder.folderID);
+                    if (items != null)
                     {
-                        List<InventoryItemBase> items = RequestFolderItems(folder.folderID);
-                        if (items != null)
-                        {
-                            allItems.InsertRange(0, items);
-                        }
+                        allItems.InsertRange(0, items);
                     }
                 }
             }
