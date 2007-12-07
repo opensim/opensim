@@ -61,11 +61,6 @@ namespace OpenSim.Region.Environment.Scenes
         }
 
 
-        public void SetID(LLUUID avatarID)
-        {
-            m_scenePresenceID = avatarID;
-        }
-
         /// <summary>
         /// 
         /// </summary>

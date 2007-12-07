@@ -2728,19 +2728,19 @@ namespace OpenSim.Region.ClientStack
                         for (int i = 0; i < imageRequest.RequestImage.Length; i++)
                         {
                             // still working on the Texture download module so for now using old method
-                            //  TextureRequestArgs args = new TextureRequestArgs();
-                            //  args.RequestedAssetID = imageRequest.RequestImage[i].Image;
-                            //  args.DiscardLevel = imageRequest.RequestImage[i].DiscardLevel;
-                            //  args.PacketNumber = imageRequest.RequestImage[i].Packet;
+                            if (OnRequestTexture != null)
+                            {
+                                TextureRequestArgs args = new TextureRequestArgs();
+                                args.RequestedAssetID = imageRequest.RequestImage[i].Image;
+                                args.DiscardLevel = imageRequest.RequestImage[i].DiscardLevel;
+                                args.PacketNumber = imageRequest.RequestImage[i].Packet;
 
-                            //  if (OnRequestTexture != null)
-                            //  {
-                            //      OnRequestTexture(this, args);
-                            //  }
+                                OnRequestTexture(this, args);
+                            }
 
-                            m_assetCache.AddTextureRequest(this, imageRequest.RequestImage[i].Image,
-                                                           imageRequest.RequestImage[i].Packet,
-                                                           imageRequest.RequestImage[i].DiscardLevel);
+                           // m_assetCache.AddTextureRequest(this, imageRequest.RequestImage[i].Image,
+                            //                               imageRequest.RequestImage[i].Packet,
+                            //                               imageRequest.RequestImage[i].DiscardLevel);
                         }
                         break;
                     case PacketType.TransferRequest:

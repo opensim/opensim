@@ -80,7 +80,7 @@ namespace OpenSim.Region.Environment.Modules
             {
                 if (profile.RootFolder != null)
                 {
-                    //Todo look up the assetid from the inventory cache (or something) for each itemId that is in AvatarWearingArgs
+                    //Todo look up the assetid from the inventory cache for each itemId that is in AvatarWearingArgs
                     // then store assetid and itemId and wearable type in a database
                     foreach (AvatarWearingArgs.Wearable wear in e.NowWearing)
                     {

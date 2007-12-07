@@ -27,6 +27,7 @@
 */
 using System;
 using System.Collections.Generic;
+using System.Threading;
 using libsecondlife;
 using libsecondlife.Packets;
 using Nini.Config;
@@ -50,13 +51,13 @@ namespace OpenSim.Region.Environment.Modules
 
         private BlockingQueue<TextureSender> QueueSenders = new BlockingQueue<TextureSender>();
         private Dictionary<LLUUID, List<LLUUID>> InProcess = new Dictionary<LLUUID, List<LLUUID>>();
-        // private Thread m_thread;
+        private Thread m_thread;
 
         public TextureDownloadModule()
         {
-            //  m_thread = new Thread(new ThreadStart(ProcessTextureSenders));
-            //  m_thread.IsBackground = true;
-            //  m_thread.Start();
+            m_thread = new Thread(new ThreadStart(ProcessTextureSenders));
+            m_thread.IsBackground = true;
+            m_thread.Start();
         }
 
         public void Initialise(Scene scene, IConfigSource config)
@@ -89,7 +90,7 @@ namespace OpenSim.Region.Environment.Modules
 
         public void NewClient(IClientAPI client)
         {
-            /* lock (ClientRequests)
+            lock (ClientRequests)
             {
                 if (!ClientRequests.ContainsKey(client.AgentId))
                 {
@@ -98,7 +99,7 @@ namespace OpenSim.Region.Environment.Modules
                 }
             }
             client.OnRequestTexture += TextureRequest;
-            */
+
         }
 
         public void TextureCallback(LLUUID textureID, AssetBase asset)
@@ -124,7 +125,7 @@ namespace OpenSim.Region.Environment.Modules
 
         public void TextureRequest(Object sender, TextureRequestArgs e)
         {
-            IClientAPI client = (IClientAPI) sender;
+            IClientAPI client = (IClientAPI)sender;
             if (!ClientRequests[client.AgentId].ContainsKey(e.RequestedAssetID))
             {
                 lock (ClientRequests)
@@ -177,14 +178,14 @@ namespace OpenSim.Region.Environment.Modules
 
                 if (asset.Data.LongLength > 600)
                 {
-                    NumPackets = 2 + (int) (asset.Data.Length - 601)/1000;
+                    NumPackets = 2 + (int)(asset.Data.Length - 601) / 1000;
                 }
                 else
                 {
                     NumPackets = 1;
                 }
 
-                PacketCounter = (int) req.PacketNumber;
+                PacketCounter = (int)req.PacketNumber;
             }
 
             public bool SendTexture()
@@ -209,7 +210,7 @@ namespace OpenSim.Region.Environment.Modules
                         im.Header.Reliable = false;
                         im.ImageID.Packets = 1;
                         im.ImageID.ID = m_asset.FullID;
-                        im.ImageID.Size = (uint) m_asset.Data.Length;
+                        im.ImageID.Size = (uint)m_asset.Data.Length;
                         im.ImageData.Data = m_asset.Data;
                         im.ImageID.Codec = 2;
                         req.RequestUser.OutPacket(im, ThrottleOutPacketType.Texture);
@@ -219,9 +220,9 @@ namespace OpenSim.Region.Environment.Modules
                     {
                         ImageDataPacket im = new ImageDataPacket();
                         im.Header.Reliable = false;
-                        im.ImageID.Packets = (ushort) (NumPackets);
+                        im.ImageID.Packets = (ushort)(NumPackets);
                         im.ImageID.ID = m_asset.FullID;
-                        im.ImageID.Size = (uint) m_asset.Data.Length;
+                        im.ImageID.Size = (uint)m_asset.Data.Length;
                         im.ImageData.Data = new byte[600];
                         Array.Copy(m_asset.Data, 0, im.ImageData.Data, 0, 600);
                         im.ImageID.Codec = 2;
@@ -233,12 +234,12 @@ namespace OpenSim.Region.Environment.Modules
                 {
                     ImagePacketPacket im = new ImagePacketPacket();
                     im.Header.Reliable = false;
-                    im.ImageID.Packet = (ushort) (PacketCounter);
+                    im.ImageID.Packet = (ushort)(PacketCounter);
                     im.ImageID.ID = m_asset.FullID;
-                    int size = m_asset.Data.Length - 600 - (1000*(PacketCounter - 1));
+                    int size = m_asset.Data.Length - 600 - (1000 * (PacketCounter - 1));
                     if (size > 1000) size = 1000;
                     im.ImageData.Data = new byte[size];
-                    Array.Copy(m_asset.Data, 600 + (1000*(PacketCounter - 1)), im.ImageData.Data, 0, size);
+                    Array.Copy(m_asset.Data, 600 + (1000 * (PacketCounter - 1)), im.ImageData.Data, 0, size);
                     req.RequestUser.OutPacket(im, ThrottleOutPacketType.Texture);
                     PacketCounter++;
                 }
