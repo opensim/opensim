@@ -192,7 +192,7 @@ namespace OpenSim.Region.Environment.Modules
                                                                      scene.RegionInfo.RegionLocY * 256,
                                                                      0);
                                                              dis =
-                                                                 Math.Abs((int)avatarRegionPos.GetDistanceTo(fromRegionPos));
+                                                                 Math.Abs((int) Util.GetDistanceTo(avatarRegionPos, fromRegionPos));
 
                                                              switch (e.Type)
                                                              {

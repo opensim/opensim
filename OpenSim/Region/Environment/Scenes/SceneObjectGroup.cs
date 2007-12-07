@@ -675,7 +675,7 @@ namespace OpenSim.Region.Environment.Scenes
         /// </summary>
         public override void Update()
         {
-            if (lastPhysGroupPos.GetDistanceTo(AbsolutePosition) > 0.02)
+            if (Util.GetDistanceTo(lastPhysGroupPos, AbsolutePosition) > 0.02)
             {
                 foreach (SceneObjectPart part in m_parts.Values)
                 {

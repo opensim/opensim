@@ -384,19 +384,19 @@ namespace SimpleApp
             }
             if (flyState == 0)
             {
-                movementFlag = (uint) MainAvatar.ControlFlags.AGENT_CONTROL_FLY |
-                               (uint) MainAvatar.ControlFlags.AGENT_CONTROL_UP_NEG;
+                movementFlag = (uint) AgentManager.ControlFlags.AGENT_CONTROL_FLY |
+                               (uint) AgentManager.ControlFlags.AGENT_CONTROL_UP_NEG;
                 flyState = 1;
             }
             else if (flyState == 1)
             {
-                movementFlag = (uint) MainAvatar.ControlFlags.AGENT_CONTROL_FLY |
-                               (uint) MainAvatar.ControlFlags.AGENT_CONTROL_UP_POS;
+                movementFlag = (uint) AgentManager.ControlFlags.AGENT_CONTROL_FLY |
+                               (uint) AgentManager.ControlFlags.AGENT_CONTROL_UP_POS;
                 flyState = 2;
             }
             else
             {
-                movementFlag = (uint) MainAvatar.ControlFlags.AGENT_CONTROL_FLY;
+                movementFlag = (uint) AgentManager.ControlFlags.AGENT_CONTROL_FLY;
                 flyState = 0;
             }
 

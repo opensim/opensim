@@ -722,9 +722,11 @@ namespace OpenSim.Region.ClientStack
         /// 
         /// </summary>
         /// <param name="regInfo"></param>
+        private byte[] m_channelVersion=new byte[] { 0x00} ; // Dummy value needed by libSL
         public void MoveAgentIntoRegion(RegionInfo regInfo, LLVector3 pos, LLVector3 look)
         {
             AgentMovementCompletePacket mov = new AgentMovementCompletePacket();
+            mov.SimData.ChannelVersion = m_channelVersion;
             mov.AgentData.SessionID = m_sessionId;
             mov.AgentData.AgentID = AgentId;
             mov.Data.RegionHandle = regInfo.RegionHandle;
@@ -1170,15 +1172,13 @@ namespace OpenSim.Region.ClientStack
             inventoryReply.InventoryData[0].SaleType = 0;
             inventoryReply.InventoryData[0].Type = (sbyte) item.assetType;
             inventoryReply.InventoryData[0].CRC =
-                Helpers.InventoryCRC(inventoryReply.InventoryData[0].CreationDate, inventoryReply.InventoryData[0].SaleType, 
-                                     inventoryReply.InventoryData[0].InvType,
+                Helpers.InventoryCRC(1000, 0, inventoryReply.InventoryData[0].InvType,
                                      inventoryReply.InventoryData[0].Type, inventoryReply.InventoryData[0].AssetID,
-                                     inventoryReply.InventoryData[0].GroupID, inventoryReply.InventoryData[0].SalePrice,
+                                     inventoryReply.InventoryData[0].GroupID, 100,
                                      inventoryReply.InventoryData[0].OwnerID, inventoryReply.InventoryData[0].CreatorID,
                                      inventoryReply.InventoryData[0].ItemID, inventoryReply.InventoryData[0].FolderID,
-                                     inventoryReply.InventoryData[0].EveryoneMask, inventoryReply.InventoryData[0].Flags, 
-                                     inventoryReply.InventoryData[0].NextOwnerMask, inventoryReply.InventoryData[0].GroupMask,
-                                     inventoryReply.InventoryData[0].OwnerMask);
+                                     FULL_MASK_PERMISSIONS, 1, FULL_MASK_PERMISSIONS, FULL_MASK_PERMISSIONS,
+                                     FULL_MASK_PERMISSIONS);
 
             OutPacket(inventoryReply, ThrottleOutPacketType.Asset);
         }
@@ -1213,16 +1213,13 @@ namespace OpenSim.Region.ClientStack
             InventoryReply.InventoryData[0].SaleType = 0;
             InventoryReply.InventoryData[0].Type = (sbyte) Item.assetType;
             InventoryReply.InventoryData[0].CRC =
-                Helpers.InventoryCRC(InventoryReply.InventoryData[0].CreationDate, InventoryReply.InventoryData[0].SaleType,
-                                     InventoryReply.InventoryData[0].InvType,
+                Helpers.InventoryCRC(1000, 0, InventoryReply.InventoryData[0].InvType,
                                      InventoryReply.InventoryData[0].Type, InventoryReply.InventoryData[0].AssetID,
-                                     InventoryReply.InventoryData[0].GroupID, InventoryReply.InventoryData[0].SalePrice,
+                                     InventoryReply.InventoryData[0].GroupID, 100,
                                      InventoryReply.InventoryData[0].OwnerID, InventoryReply.InventoryData[0].CreatorID,
                                      InventoryReply.InventoryData[0].ItemID, InventoryReply.InventoryData[0].FolderID,
-                                     InventoryReply.InventoryData[0].EveryoneMask, InventoryReply.InventoryData[0].Flags,
-                                     InventoryReply.InventoryData[0].NextOwnerMask, InventoryReply.InventoryData[0].GroupMask,
-                                     InventoryReply.InventoryData[0].OwnerMask);
-            
+                                     FULL_MASK_PERMISSIONS, 1, FULL_MASK_PERMISSIONS, FULL_MASK_PERMISSIONS,
+                                     FULL_MASK_PERMISSIONS);
 
             OutPacket(InventoryReply, ThrottleOutPacketType.Asset);
         }
@@ -1602,7 +1599,6 @@ namespace OpenSim.Region.ClientStack
             outPacket.ObjectData[0].ClickAction = clickAction;
             //outPacket.ObjectData[0].Flags = 0;
             outPacket.ObjectData[0].Radius = 20;
-            
 
             byte[] pb = pos.GetBytes();
             Array.Copy(pb, 0, outPacket.ObjectData[0].ObjectData, 0, pb.Length);
@@ -2904,7 +2900,7 @@ namespace OpenSim.Region.ClientStack
                         {
                             if (OnObjectDescription != null)
                             {
-                                OnObjectDescription(this,objDes.ObjectData[i].LocalID,
+                                OnObjectDescription(this, objDes.ObjectData[i].LocalID,
                                                     enc.GetString(objDes.ObjectData[i].Description));
                             }
                         }
@@ -2915,7 +2911,7 @@ namespace OpenSim.Region.ClientStack
                         {
                             if (OnObjectName != null)
                             {
-                                OnObjectName(this,objName.ObjectData[i].LocalID, enc.GetString(objName.ObjectData[i].Name));
+                                OnObjectName(this, objName.ObjectData[i].LocalID, enc.GetString(objName.ObjectData[i].Name));
                             }
                         }
                         break;
@@ -3003,7 +2999,8 @@ namespace OpenSim.Region.ClientStack
                         // Console.WriteLine("upload request was for assetid: " + request.AssetBlock.TransactionID.Combine(this.SecureSessionId).ToStringHyphenated());
                         if (OnAssetUploadRequest != null)
                         {
-                            OnAssetUploadRequest(this, request.AssetBlock.TransactionID.Combine(SecureSessionId),
+                            LLUUID temp=libsecondlife.LLUUID.Combine(request.AssetBlock.TransactionID, SecureSessionId);
+                            OnAssetUploadRequest(this, temp,
                                                  request.AssetBlock.TransactionID, request.AssetBlock.Type,
                                                  request.AssetBlock.AssetData, request.AssetBlock.StoreLocal);
                         }

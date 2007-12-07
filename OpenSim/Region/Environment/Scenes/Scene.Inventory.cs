@@ -144,7 +144,7 @@ namespace OpenSim.Region.Environment.Scenes
                         
                         if (transactions != null)
                         {
-                            LLUUID assetID = transactionID.Combine(remoteClient.SecureSessionId);                            
+                            LLUUID assetID = libsecondlife.LLUUID.Combine(transactionID, remoteClient.SecureSessionId);                            
                             AssetBase asset = AssetCache.GetAsset(assetID);
                             
                             if (asset == null)
@@ -432,7 +432,7 @@ namespace OpenSim.Region.Environment.Scenes
                                     ((SceneObjectGroup) selectedEnt).GetPartName(selectedEnt.LocalId),
                                     ((SceneObjectGroup) selectedEnt).GetPartDescription(selectedEnt.LocalId),
                                     (sbyte) InventoryType.Object,
-                                    (sbyte) AssetType.Object, // TODO: after libSL r1357, this becomes AssetType.Primitive
+                                    (sbyte) AssetType.Primitive,
                                     Helpers.StringToField(sceneObjectXml));
                                 AssetCache.AddAsset(asset);
 

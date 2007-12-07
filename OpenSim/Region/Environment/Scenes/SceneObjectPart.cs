@@ -749,7 +749,7 @@ namespace OpenSim.Region.Environment.Scenes
 
             LLVector3 distanceConvert1 = new LLVector3(iray.Origin.x, iray.Origin.y, iray.Origin.z);
             LLVector3 distanceConvert2 = new LLVector3(ipoint.x, ipoint.y, ipoint.z);
-            float distance = (float)distanceConvert1.GetDistanceTo(distanceConvert2);
+            float distance = (float)Util.GetDistanceTo(distanceConvert1, distanceConvert2);
 
             returnresult.distance = distance;
 

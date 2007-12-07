@@ -258,7 +258,7 @@ namespace OpenSim.Region.Capabilities
         /// <returns></returns>
         public string NoteCardAgentInventory(string request, string path, string param)
         {
-            Hashtable hash = (Hashtable) LLSD.LLSDDeserialize(Helpers.StringToField(request));
+            libsecondlife.StructuredData.LLSDMap hash = (libsecondlife.StructuredData.LLSDMap)libsecondlife.StructuredData.LLSDParser.DeserializeBinary(Helpers.StringToField(request));
             LLSDItemUpdate llsdRequest = new LLSDItemUpdate();
             LLSDHelpers.DeserialiseLLSDMap(hash, llsdRequest);
 

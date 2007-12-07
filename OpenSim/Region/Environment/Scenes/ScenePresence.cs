@@ -93,12 +93,12 @@ namespace OpenSim.Region.Environment.Scenes
 
         private enum Dir_ControlFlags
         {
-            DIR_CONTROL_FLAG_FOWARD = MainAvatar.ControlFlags.AGENT_CONTROL_AT_POS,
-            DIR_CONTROL_FLAG_BACK = MainAvatar.ControlFlags.AGENT_CONTROL_AT_NEG,
-            DIR_CONTROL_FLAG_LEFT = MainAvatar.ControlFlags.AGENT_CONTROL_LEFT_POS,
-            DIR_CONTROL_FLAG_RIGHT = MainAvatar.ControlFlags.AGENT_CONTROL_LEFT_NEG,
-            DIR_CONTROL_FLAG_UP = MainAvatar.ControlFlags.AGENT_CONTROL_UP_POS,
-            DIR_CONTROL_FLAG_DOWN = MainAvatar.ControlFlags.AGENT_CONTROL_UP_NEG
+            DIR_CONTROL_FLAG_FOWARD = AgentManager.ControlFlags.AGENT_CONTROL_AT_POS,
+            DIR_CONTROL_FLAG_BACK = AgentManager.ControlFlags.AGENT_CONTROL_AT_NEG,
+            DIR_CONTROL_FLAG_LEFT = AgentManager.ControlFlags.AGENT_CONTROL_LEFT_POS,
+            DIR_CONTROL_FLAG_RIGHT = AgentManager.ControlFlags.AGENT_CONTROL_LEFT_NEG,
+            DIR_CONTROL_FLAG_UP = AgentManager.ControlFlags.AGENT_CONTROL_UP_POS,
+            DIR_CONTROL_FLAG_DOWN = AgentManager.ControlFlags.AGENT_CONTROL_UP_NEG
         }
 
         /// <summary>
@@ -609,7 +609,7 @@ namespace OpenSim.Region.Environment.Scenes
             //MainLog.Instance.Verbose("CAMERA", "AtAxis:" + m_CameraAtAxis.ToString() + " Center:" + m_CameraCenter.ToString() + " LeftAxis:" + m_CameraLeftAxis.ToString() + " UpAxis:" + m_CameraUpAxis.ToString() + " Far:" + m_CameraFar);
            
 
-            if ((flags & (uint) MainAvatar.ControlFlags.AGENT_CONTROL_STAND_UP) != 0)
+            if ((flags & (uint) AgentManager.ControlFlags.AGENT_CONTROL_STAND_UP) != 0)
             {
                 StandUp();
             }
@@ -630,7 +630,7 @@ namespace OpenSim.Region.Environment.Scenes
                 Quaternion q = new Quaternion(bodyRotation.W, bodyRotation.X, bodyRotation.Y, bodyRotation.Z);
                 bool oldflying = PhysicsActor.Flying;
 
-                PhysicsActor.Flying = ((flags & (uint)MainAvatar.ControlFlags.AGENT_CONTROL_FLY) != 0);
+                PhysicsActor.Flying = ((flags & (uint)AgentManager.ControlFlags.AGENT_CONTROL_FLY) != 0);
                 if (PhysicsActor.Flying != oldflying)
                 {
                     update_movementflag = true;
@@ -796,7 +796,7 @@ namespace OpenSim.Region.Environment.Scenes
                     }
                     else
                     {
-                        if (((m_movementflag & (uint) MainAvatar.ControlFlags.AGENT_CONTROL_UP_NEG) != 0) &&
+                        if (((m_movementflag & (uint) AgentManager.ControlFlags.AGENT_CONTROL_UP_NEG) != 0) &&
                             PhysicsActor.IsColliding)
                         {
                             SendAnimPack(Animations.AnimsLLUUID["CROUCHWALK"], 1);
@@ -807,7 +807,7 @@ namespace OpenSim.Region.Environment.Scenes
                             {
                                 SendAnimPack(Animations.AnimsLLUUID["FALLDOWN"], 1);
                             }
-                            else if (!PhysicsActor.IsColliding && Velocity.Z > 0 && (m_movementflag & (uint) MainAvatar.ControlFlags.AGENT_CONTROL_UP_POS) != 0)
+                            else if (!PhysicsActor.IsColliding && Velocity.Z > 0 && (m_movementflag & (uint) AgentManager.ControlFlags.AGENT_CONTROL_UP_POS) != 0)
                             {
                                 SendAnimPack(Animations.AnimsLLUUID["JUMP"], 1);
                             }
@@ -839,7 +839,7 @@ namespace OpenSim.Region.Environment.Scenes
                 }
                 else
                 {
-                    if (((m_movementflag & (uint) MainAvatar.ControlFlags.AGENT_CONTROL_UP_NEG) != 0) &&
+                    if (((m_movementflag & (uint) AgentManager.ControlFlags.AGENT_CONTROL_UP_NEG) != 0) &&
                         PhysicsActor.IsColliding)
                     {
                         SendAnimPack(Animations.AnimsLLUUID["CROUCH"], 1);
@@ -854,7 +854,7 @@ namespace OpenSim.Region.Environment.Scenes
                         {
                             SendAnimPack(Animations.AnimsLLUUID["FALLDOWN"], 1);
                         }
-                        else if (!PhysicsActor.IsColliding && Velocity.Z > 0 && !m_physicsActor.Flying && (m_movementflag & (uint) MainAvatar.ControlFlags.AGENT_CONTROL_UP_POS) != 0)
+                        else if (!PhysicsActor.IsColliding && Velocity.Z > 0 && !m_physicsActor.Flying && (m_movementflag & (uint) AgentManager.ControlFlags.AGENT_CONTROL_UP_POS) != 0)
                         {
                             SendAnimPack(Animations.AnimsLLUUID["JUMP"], 1);
                         }
@@ -955,7 +955,7 @@ namespace OpenSim.Region.Environment.Scenes
                         m_updateCount = 0;
                     }
                 }
-                else if (lastPhysPos.GetDistanceTo(AbsolutePosition) > 0.02) // physics-related movement
+                else if (Util.GetDistanceTo(lastPhysPos, AbsolutePosition) > 0.02) // physics-related movement
                 {
                     SendTerseUpdateToAllClients();
                     m_updateCount = 0;
@@ -1123,7 +1123,7 @@ namespace OpenSim.Region.Environment.Scenes
 
         protected void CheckForSignificantMovement()
         {
-            if (AbsolutePosition.GetDistanceTo(posLastSignificantMove) > 0.02)
+            if (Util.GetDistanceTo(AbsolutePosition, posLastSignificantMove) > 0.02)
             {
                 posLastSignificantMove = AbsolutePosition;
                 if (OnSignificantClientMovement != null)

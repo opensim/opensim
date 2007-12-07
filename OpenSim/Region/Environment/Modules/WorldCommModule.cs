@@ -135,7 +135,7 @@ namespace OpenSim.Region.Environment.Modules
         {
             m_listenerManager.Remove(handle);
         }
-
+		
         // This method scans nearby objects and determines if they are listeners,
         // and if so if this message fits the filter.  If it does, then
         // enqueue the message for delivery to the objects listen event handler.
@@ -171,9 +171,9 @@ namespace OpenSim.Region.Environment.Modules
                     double dis = 0;
 
                     if (source != null)
-                        dis = sPart.AbsolutePosition.GetDistanceTo(source.AbsolutePosition);
+                        dis = Util.GetDistanceTo(sPart.AbsolutePosition, source.AbsolutePosition);
                     else
-                        dis = sPart.AbsolutePosition.GetDistanceTo(avatar.AbsolutePosition);
+                        dis = Util.GetDistanceTo(sPart.AbsolutePosition, avatar.AbsolutePosition);
 
                     switch (type)
                     {
