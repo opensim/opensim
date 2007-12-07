@@ -41,6 +41,9 @@ verbose = true
 ; if you would like to allow prim to be physical and move by physics with the physical checkbox in the client set this to true.
 physical_prim = true
 
+; To run a script every few minutes, set the script filename here
+; timer_Script = "filename"
+
 [StandAlone]
 accounts_authenticate = true
 welcome_message = "Welcome to OpenSim"
