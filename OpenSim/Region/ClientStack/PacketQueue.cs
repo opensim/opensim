@@ -44,7 +44,7 @@ namespace OpenSim.Region.ClientStack
 {
     public class PacketQueue
     {
-        private Queue<QueItem> SendQueue;
+        private BlockingQueue<QueItem> SendQueue;
         
         private Queue<QueItem> IncomingPacketQueue;
         private Queue<QueItem> OutgoingPacketQueue;
@@ -76,8 +76,9 @@ namespace OpenSim.Region.ClientStack
         private PacketThrottle TextureThrottle;
         private PacketThrottle TotalThrottle;
 
-        private long LastThrottle;
-        private long ThrottleInterval;
+        // private long LastThrottle;
+        // private long ThrottleInterval;
+        private Timer throttleTimer;
 
         public PacketQueue() 
         {
@@ -86,7 +87,7 @@ namespace OpenSim.Region.ClientStack
             // in it to process.  it's an on-purpose threadlock though because 
             // without it, the clientloop will suck up all sim resources.
             
-            SendQueue = new Queue<QueItem>();
+            SendQueue = new BlockingQueue<QueItem>();
             
             IncomingPacketQueue = new Queue<QueItem>();
             OutgoingPacketQueue = new Queue<QueItem>();
@@ -110,10 +111,15 @@ namespace OpenSim.Region.ClientStack
             // Total Throttle trumps all
             // Number of bytes allowed to go out per second. (256kbps per client) 
             TotalThrottle = new PacketThrottle(0, 162144, 1536000);
+
+            throttleTimer = new Timer((int)(throttletimems/throttleTimeDivisor));
+            throttleTimer.Elapsed += new ElapsedEventHandler(ThrottleTimerElapsed);
+            throttleTimer.Start();
             
             // TIMERS needed for this
-            LastThrottle = DateTime.Now.Ticks;
-            ThrottleInterval = (long)(throttletimems/throttleTimeDivisor);
+            // LastThrottle = DateTime.Now.Ticks;
+            // ThrottleInterval = (long)(throttletimems/throttleTimeDivisor);
+            
         }
 
         /* STANDARD QUEUE MANIPULATION INTERFACES */
@@ -123,7 +129,7 @@ namespace OpenSim.Region.ClientStack
         {
             // We could micro lock, but that will tend to actually
             // probably be worse than just synchronizing on SendQueue
-            lock (SendQueue) {
+            lock (this) {
                 switch (item.throttleType)
                 {
                 case ThrottleOutPacketType.Resend:
@@ -159,12 +165,14 @@ namespace OpenSim.Region.ClientStack
         
         public QueItem Dequeue()
         {
-            if (ThrottlingTime()) {
-                ProcessThrottle();
-            }
-            lock (SendQueue) {
-                return SendQueue.Dequeue();
-            }
+            return SendQueue.Dequeue();
+        }
+
+        public void Close() 
+        {
+            // one last push
+            ProcessThrottle();
+            throttleTimer.Stop();
         }
 
         private void ResetCounters()
@@ -192,15 +200,15 @@ namespace OpenSim.Region.ClientStack
 
         // Run through our wait queues and flush out allotted numbers of bytes into the process queue
 
-        private bool ThrottlingTime()
-        {
-            if(DateTime.Now.Ticks < (LastThrottle + ThrottleInterval)) {
-                LastThrottle = DateTime.Now.Ticks;
-                return true;
-            } else {
-                return false;
-            }
-        }
+//         private bool ThrottlingTime()
+//         {
+//             if(DateTime.Now.Ticks > (LastThrottle + ThrottleInterval)) {
+//                 LastThrottle = DateTime.Now.Ticks;
+//                 return true;
+//             } else {
+//                 return false;
+//             }
+//         }
         
         public void ProcessThrottle()
         {
@@ -216,8 +224,9 @@ namespace OpenSim.Region.ClientStack
             
             // We're going to dequeue all of the saved up packets until 
             // we've hit the throttle limit or there's no more packets to send
-            lock (SendQueue) {
-                ResetCounters(); 
+            lock (this) {
+                ResetCounters();
+                // MainLog.Instance.Verbose("THROTTLE", "Entering Throttle");
                 while (TotalThrottle.UnderLimit() && PacketsWaiting() && 
                        (throttleLoops <= MaxThrottleLoops))
                 {
@@ -280,86 +289,16 @@ namespace OpenSim.Region.ClientStack
                         AssetThrottle.Add(qpack.Packet.ToBytes().Length);
                     }
                 }
+                // MainLog.Instance.Verbose("THROTTLE", "Processed " + throttleLoops + " packets");
+                                
             }
         }
        
-        private void throttleTimer_Elapsed(object sender, ElapsedEventArgs e)
+        private void ThrottleTimerElapsed(object sender, ElapsedEventArgs e)
         {   
-            ResetCounters();
-            
-            // I was considering this..   Will an event fire if the thread it's on is blocked?
-
-            // Then I figured out..  it doesn't really matter..  because this thread won't be blocked for long
-            // The General overhead of the UDP protocol gets sent to the queue un-throttled by this
-            // so This'll pick up about around the right time.
-
-            int MaxThrottleLoops = 4550; // 50*7 packets can be dequeued at once.
-            int throttleLoops = 0;
-
-            // We're going to dequeue all of the saved up packets until 
-            // we've hit the throttle limit or there's no more packets to send
-            while (TotalThrottle.UnderLimit() && PacketsWaiting() && 
-                   (throttleLoops <= MaxThrottleLoops))
-            {
-                throttleLoops++;
-                //Now comes the fun part..   we dump all our elements into PacketQueue that we've saved up.
-                if (ResendThrottle.UnderLimit() && ResendOutgoingPacketQueue.Count > 0)
-                {
-                    QueItem qpack = ResendOutgoingPacketQueue.Dequeue();
-
-                    SendQueue.Enqueue(qpack);
-                    TotalThrottle.Add(qpack.Packet.ToBytes().Length);
-                    ResendThrottle.Add(qpack.Packet.ToBytes().Length);
-                }
-                if (LandThrottle.UnderLimit() && LandOutgoingPacketQueue.Count > 0)
-                {
-                    QueItem qpack = LandOutgoingPacketQueue.Dequeue();
-
-                    SendQueue.Enqueue(qpack);
-                    TotalThrottle.Add(qpack.Packet.ToBytes().Length);
-                    LandThrottle.Add(qpack.Packet.ToBytes().Length);
-                }
-                if (WindThrottle.UnderLimit() && WindOutgoingPacketQueue.Count > 0)
-                {
-                    QueItem qpack = WindOutgoingPacketQueue.Dequeue();
-
-                    SendQueue.Enqueue(qpack);
-                    TotalThrottle.Add(qpack.Packet.ToBytes().Length);
-                    WindThrottle.Add(qpack.Packet.ToBytes().Length);
-                }
-                if (CloudThrottle.UnderLimit() && CloudOutgoingPacketQueue.Count > 0)
-                {
-                    QueItem qpack = CloudOutgoingPacketQueue.Dequeue();
-
-                    SendQueue.Enqueue(qpack);
-                    TotalThrottle.Add(qpack.Packet.ToBytes().Length);
-                    CloudThrottle.Add(qpack.Packet.ToBytes().Length);
-                }
-                if (TaskThrottle.UnderLimit() && TaskOutgoingPacketQueue.Count > 0)
-                {
-                    QueItem qpack = TaskOutgoingPacketQueue.Dequeue();
-
-                    SendQueue.Enqueue(qpack);
-                    TotalThrottle.Add(qpack.Packet.ToBytes().Length);
-                    TaskThrottle.Add(qpack.Packet.ToBytes().Length);
-                }
-                if (TextureThrottle.UnderLimit() && TextureOutgoingPacketQueue.Count > 0)
-                {
-                    QueItem qpack = TextureOutgoingPacketQueue.Dequeue();
-
-                    SendQueue.Enqueue(qpack);
-                    TotalThrottle.Add(qpack.Packet.ToBytes().Length);
-                    TextureThrottle.Add(qpack.Packet.ToBytes().Length);
-                }
-                if (AssetThrottle.UnderLimit() && AssetOutgoingPacketQueue.Count > 0)
-                {
-                    QueItem qpack = AssetOutgoingPacketQueue.Dequeue();
-
-                    SendQueue.Enqueue(qpack);
-                    TotalThrottle.Add(qpack.Packet.ToBytes().Length);
-                    AssetThrottle.Add(qpack.Packet.ToBytes().Length);
-                }
-            }
+            // just to change the signature, and that ProcessThrottle
+            // will be used elsewhere possibly
+            ProcessThrottle();
         }
 
         private void ThrottleCheck(ref PacketThrottle throttle, ref Queue<QueItem> q, QueItem item)
@@ -372,9 +311,12 @@ namespace OpenSim.Region.ClientStack
 
             if((q.Count == 0) && (throttle.UnderLimit()))
             {
+                Monitor.Enter(this);
                 throttle.Add(item.Packet.ToBytes().Length);
                 TotalThrottle.Add(item.Packet.ToBytes().Length);
                 SendQueue.Enqueue(item);
+                Monitor.Pulse(this);
+                Monitor.Exit(this);
             }
             else
             {
