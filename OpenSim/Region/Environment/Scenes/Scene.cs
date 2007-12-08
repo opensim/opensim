@@ -971,7 +971,8 @@ namespace OpenSim.Region.Environment.Scenes
 
             client.OnCreateNewInventoryItem += CreateNewInventoryItem;
             client.OnCreateNewInventoryFolder += CommsManager.UserProfileCacheService.HandleCreateInventoryFolder;
-            client.OnFetchInventoryDescendents += CommsManager.UserProfileCacheService.HandleFecthInventoryDescendents;
+            client.OnFetchInventoryDescendents += CommsManager.UserProfileCacheService.HandleFetchInventoryDescendents;
+            client.OnPurgeInventoryDescendents += CommsManager.UserProfileCacheService.HandlePurgeInventoryDescendents;
             client.OnRequestTaskInventory += RequestTaskInventory;
             client.OnFetchInventory += CommsManager.UserProfileCacheService.HandleFetchInventory;
             client.OnUpdateInventoryItem += UpdateInventoryItemAsset;

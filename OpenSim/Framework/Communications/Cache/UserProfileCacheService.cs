@@ -136,7 +136,7 @@ namespace OpenSim.Framework.Communications.Cache
         /// <param name="fetchFolders"></param>
         /// <param name="fetchItems"></param>
         /// <param name="sortOrder"></param>
-        public void HandleFecthInventoryDescendents(IClientAPI remoteClient, LLUUID folderID, LLUUID ownerID,
+        public void HandleFetchInventoryDescendents(IClientAPI remoteClient, LLUUID folderID, LLUUID ownerID,
                                                     bool fetchFolders, bool fetchItems, int sortOrder)
         {
             InventoryFolderImpl fold = null;
@@ -175,6 +175,26 @@ namespace OpenSim.Framework.Communications.Cache
                         if (fetchItems && folder != null)
                         {
                             remoteClient.SendInventoryFolderDetails(remoteClient.AgentId, folderID, folder.RequestListOfItems(), folder.SubFoldersCount);
+                        }
+                    }
+                }
+            }
+        }
+
+        public void HandlePurgeInventoryDescendents(IClientAPI remoteClient, LLUUID folderID)
+        {
+            CachedUserInfo userProfile;
+            if (m_userProfiles.TryGetValue(remoteClient.AgentId, out userProfile))
+            {
+                if (userProfile.RootFolder != null)
+                {
+                    InventoryFolderImpl subFolder = userProfile.RootFolder.HasSubFolder(folderID);
+                    if (subFolder != null)
+                    {
+                        List<InventoryItemBase> items=subFolder.RequestListOfItems();
+                        foreach(InventoryItemBase item in items)
+                        {
+                            userProfile.DeleteItem(remoteClient.AgentId, item);
                         }
                     }
                 }
