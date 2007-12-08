@@ -91,6 +91,8 @@ namespace OpenSim.Framework.Data.MySQL
                             asset.Name = (string)dbReader["name"];
                             asset.Type = (sbyte)dbReader["assetType"];
                         }
+                        dbReader.Close();
+                        cmd.Dispose();
                     }
                 }
                 catch (Exception)
@@ -122,6 +124,7 @@ namespace OpenSim.Framework.Data.MySQL
                 cmd.Parameters.AddWithValue("?temporary", asset.Temporary);
                 cmd.Parameters.AddWithValue("?data", asset.Data);
                 cmd.ExecuteNonQuery();
+                cmd.Dispose();
             }
         }
 
