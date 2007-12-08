@@ -317,6 +317,9 @@ namespace OpenSim.Framework
     public delegate void CopyInventoryItem(
         IClientAPI remoteClient, uint callbackID, LLUUID oldAgentID, LLUUID oldItemID, LLUUID newFolderID, string newName);
 
+    public delegate void MoveInventoryItem(
+        IClientAPI remoteClient, LLUUID folderID, LLUUID itemID, int length, string newName);
+
     public delegate void RezScript(IClientAPI remoteClient, LLUUID itemID, uint localID);
 
     public delegate void UpdateTaskInventory(IClientAPI remoteClient, LLUUID itemID, LLUUID folderID, uint localID);
@@ -399,6 +402,7 @@ namespace OpenSim.Framework
         event RequestTaskInventory OnRequestTaskInventory;
         event UpdateInventoryItem OnUpdateInventoryItem;
         event CopyInventoryItem OnCopyInventoryItem;
+        event MoveInventoryItem OnMoveInventoryItem;
         event UDPAssetUploadRequest OnAssetUploadRequest;
         event XferReceive OnXferReceive;
         event RequestXfer OnRequestXfer;

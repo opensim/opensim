@@ -434,6 +434,7 @@ namespace OpenSim.Region.ClientStack
         public event RequestTaskInventory OnRequestTaskInventory;
         public event UpdateInventoryItem OnUpdateInventoryItem;
         public event CopyInventoryItem OnCopyInventoryItem;
+        public event MoveInventoryItem OnMoveInventoryItem;
         public event UDPAssetUploadRequest OnAssetUploadRequest;
         public event XferReceive OnXferReceive;
         public event RequestXfer OnRequestXfer;
@@ -2877,6 +2878,16 @@ namespace OpenSim.Region.ClientStack
                             foreach (CopyInventoryItemPacket.InventoryDataBlock datablock in copyitem.InventoryData)
                             {
                                 OnCopyInventoryItem(this, datablock.CallbackID, datablock.OldAgentID, datablock.OldItemID, datablock.NewFolderID, Util.FieldToString(datablock.NewName));
+                            }
+                        }
+                        break;
+                    case PacketType.MoveInventoryItem:
+                        MoveInventoryItemPacket moveitem = (MoveInventoryItemPacket)Pack;
+                        if (OnMoveInventoryItem != null)
+                        {
+                            foreach (MoveInventoryItemPacket.InventoryDataBlock datablock in moveitem.InventoryData)
+                            {
+                                OnMoveInventoryItem(this, datablock.FolderID, datablock.ItemID, datablock.Length, Util.FieldToString(datablock.NewName));
                             }
                         }
                         break;

@@ -236,6 +236,46 @@ namespace OpenSim.Region.Environment.Scenes
             return asset;
         }
 
+        public void MoveInventoryItem(IClientAPI remoteClient,LLUUID folderID, LLUUID itemID, int length, string newName)
+        {
+            MainLog.Instance.Verbose("INVENTORY", "Moving item for " + remoteClient.AgentId.ToStringHyphenated());
+            CachedUserInfo userInfo = CommsManager.UserProfileCacheService.GetUserDetails(remoteClient.AgentId);
+            if (userInfo == null)
+            {
+                MainLog.Instance.Warn("INVENTORY", "Failed to find user " + remoteClient.AgentId.ToString());
+                return;
+            }
+
+            if (userInfo.RootFolder != null)
+            {
+                InventoryItemBase item = userInfo.RootFolder.HasItem(itemID);
+                if (item != null)
+                {
+                    if (newName != "")
+                    {
+                        item.inventoryName = newName;
+                    }
+                    item.parentFolderID = folderID;
+                    userInfo.DeleteItem(remoteClient.AgentId, item);
+
+                    // TODO: preserve current permissions?
+                    AddInventoryItem(remoteClient, item);
+                }
+                else
+                {
+                    MainLog.Instance.Warn("INVENTORY", "Failed to find item " + itemID.ToString());
+                    return;
+                }
+            }
+            else
+            {
+                MainLog.Instance.Warn("INVENTORY", "Failed to find item " + itemID.ToString() + ", no root folder");
+                return;
+            }
+
+           
+        }
+
         private void CreateNewInventoryItem(IClientAPI remoteClient, LLUUID folderID, uint callbackID,
                                             AssetBase asset, uint nextOwnerMask)
         {
