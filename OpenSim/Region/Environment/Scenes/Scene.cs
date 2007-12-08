@@ -266,8 +266,8 @@ namespace OpenSim.Region.Environment.Scenes
 
         public override bool OtherRegionUp(RegionInfo otherRegion)
         {
-         /*   // Another region is up.   We have to tell all our ScenePresences about it
-            // This fails to get the desired effect and needs further work.
+           // Another region is up.   We have to tell all our ScenePresences about it
+           
 
             if (RegionInfo.RegionHandle != otherRegion.RegionHandle)
             {
@@ -288,7 +288,7 @@ namespace OpenSim.Region.Environment.Scenes
                     MainLog.Instance.Verbose("INTERGRID", "Got notice about Region at X:" + otherRegion.RegionLocX.ToString() + " Y:" + otherRegion.RegionLocY.ToString() + " but it was too far away to send to the client");
                 }
                 
-            }*/
+            }
             return true;
         }
 
