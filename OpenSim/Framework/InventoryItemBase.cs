@@ -184,7 +184,7 @@ namespace OpenSim.Framework
         /// Returns the users inventory root folder.
         /// </summary>
         /// <param name="user">The UUID of the user who is having inventory being returned</param>
-        /// <returns>Root inventory folder</returns>
+        /// <returns>Root inventory folder, null if no root inventory folder was found</returns>
         InventoryFolderBase getUserRootFolder(LLUUID user);
 
         /// <summary>

@@ -201,11 +201,7 @@ namespace OpenSim.Framework.Data.MSSQL
             }
         }
 
-        /// <summary>
-        /// Returns the users inventory root folder.
-        /// </summary>
-        /// <param name="user"></param>
-        /// <returns></returns>
+        // see InventoryItemBase.getUserRootFolder
         public InventoryFolderBase getUserRootFolder(LLUUID user)
         {
             try
@@ -224,8 +220,14 @@ namespace OpenSim.Framework.Data.MSSQL
                         items.Add(readInventoryFolder(reader));
 
                     InventoryFolderBase rootFolder = null;
+                    
+                    // There should only ever be one root folder for a user.  However, if there's more
+                    // than one we'll simply use the first one rather than failing.  It would be even
+                    // nicer to print some message to this effect, but this feels like it's too low a 
+                    // to put such a message out, and it's too minor right now to spare the time to
+                    // suitably refactor.                    
                     if (items.Count > 0) {
-                        rootFolder = items[0]; //should only be one folder with parent set to zero (the root one).
+                        rootFolder = items[0];
                     }
                     
                     reader.Close();

@@ -226,11 +226,7 @@ namespace OpenSim.Framework.Data.SQLite
             return new List<InventoryFolderBase>();
         }
 
-        /// <summary>
-        /// Returns the users inventory root folder.
-        /// </summary>
-        /// <param name="user">The UUID of the user who is having inventory being returned</param>
-        /// <returns>Root inventory folder</returns>
+        // see InventoryItemBase.getUserRootFolder
         public InventoryFolderBase getUserRootFolder(LLUUID user)
         {
             List<InventoryFolderBase> folders = new List<InventoryFolderBase>();
@@ -242,21 +238,14 @@ namespace OpenSim.Framework.Data.SQLite
                 folders.Add(buildFolder(row));
             }
 
-            if (folders.Count == 1)
+            // There should only ever be one root folder for a user.  However, if there's more
+            // than one we'll simply use the first one rather than failing.  It would be even
+            // nicer to print some message to this effect, but this feels like it's too low a 
+            // to put such a message out, and it's too minor right now to spare the time to
+            // suitably refactor.            
+            if (folders.Count > 1)
             {
-                //we found the root
-                //System.Console.WriteLine("found root inventory folder");
                 return folders[0];
-            }
-            else if (folders.Count > 1)
-            {
-                //err shouldn't be more than one root
-                //System.Console.WriteLine("found more than one root inventory folder");
-            }
-            else if (folders.Count == 0)
-            {
-                // no root?
-                //System.Console.WriteLine("couldn't find root inventory folder");
             }
 
             return null;

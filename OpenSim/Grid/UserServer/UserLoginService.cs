@@ -197,15 +197,32 @@ namespace OpenSim.Grid.UserServer
 
         protected override InventoryData CreateInventoryData(LLUUID userID)
         {
-            List<InventoryFolderBase> folders = SynchronousRestObjectPoster.BeginPostObject<LLUUID, List<InventoryFolderBase>>("POST", m_config.InventoryUrl + "RootFolders/", userID);
-            if (folders ==null | folders.Count == 0)
+            List<InventoryFolderBase> folders 
+                = SynchronousRestObjectPoster.BeginPostObject<LLUUID, List<InventoryFolderBase>>(
+                    "POST", m_config.InventoryUrl + "RootFolders/", userID);
+            
+            // In theory, the user will only ever be missing a root folder in situations where a grid
+            // which didn't previously run a grid wide inventory server is being transitioned to one 
+            // which does.
+            if (null == folders | folders.Count == 0)
             {
-                RestObjectPoster.BeginPostObject<LLUUID>(m_config.InventoryUrl + "CreateInventory/", userID);
-                Thread.Sleep(1000);
-                folders = SynchronousRestObjectPoster.BeginPostObject<LLUUID, List<InventoryFolderBase>>("POST", m_config.InventoryUrl + "RootFolders/", userID);
+                MainLog.Instance.Warn(
+                    "LOGIN", 
+                    "A root inventory folder for user ID " + userID + " was not found.  A new set"
+                    + " of empty inventory folders is being created.");
+                    
+                RestObjectPoster.BeginPostObject<LLUUID>(
+                    m_config.InventoryUrl + "CreateInventory/", userID);
+                
+                // A big delay should be okay here since the recreation of the user's root folders should
+                // only ever happen once.  We need to sleep to let the inventory server do its work - 
+                // previously 1000ms has been found to be too short.
+                Thread.Sleep(10000);
+                folders = SynchronousRestObjectPoster.BeginPostObject<LLUUID, List<InventoryFolderBase>>(
+                    "POST", m_config.InventoryUrl + "RootFolders/", userID);                                         
             }
 
-            if(folders.Count >0)
+            if (folders.Count > 0)
             {
                 LLUUID rootID = LLUUID.Zero;
                 ArrayList AgentInventoryArray = new ArrayList();
@@ -228,6 +245,9 @@ namespace OpenSim.Grid.UserServer
             }
             else
             {
+                MainLog.Instance.Warn("LOGIN", "The root inventory folder could still not be retrieved" +
+                                      " for user ID " + userID);
+                                      
                 AgentInventory userInventory = new AgentInventory();
                 userInventory.CreateRootFolder(userID, false);
 

@@ -82,10 +82,12 @@ namespace OpenSim.Framework.Communications
         /// <returns></returns>
         public List<InventoryFolderBase> RequestFirstLevelFolders(LLUUID userID)
         {
-            List<InventoryFolderBase> inventoryList = new List<InventoryFolderBase>();
+            List<InventoryFolderBase> inventoryList = new List<InventoryFolderBase>();            
+            InventoryFolderBase rootFolder = null;
+            
             foreach (KeyValuePair<string, IInventoryData> plugin in m_plugins)
             {
-                InventoryFolderBase rootFolder = plugin.Value.getUserRootFolder(userID);
+                rootFolder = plugin.Value.getUserRootFolder(userID);
                 if (rootFolder != null)
                 {
                     inventoryList = plugin.Value.getInventoryFolders(rootFolder.folderID);
@@ -93,6 +95,13 @@ namespace OpenSim.Framework.Communications
                     return inventoryList;
                 }
             }
+            
+            if (null == rootFolder)
+            {
+                MainLog.Instance.Warn(
+                    "INVENTORY", "Could not find a root folder belonging to user with ID " + userID);
+            }
+            
             return inventoryList;
         }
 
