@@ -3226,6 +3226,18 @@ namespace OpenSim.Region.ClientStack
                         // TODO: handle this packet
                         MainLog.Instance.Warn("CLIENT", "unhandled ObjectSpinStop packet");
                         break;
+                    case PacketType.SoundTrigger:
+                        // TODO: handle this packet
+                        MainLog.Instance.Warn("CLIENT", "unhandled SoundTrigger packet");
+                        break;
+                    case PacketType.UserInfoRequest:
+                        // TODO: handle this packet
+                        MainLog.Instance.Warn("CLIENT", "unhandled UserInfoRequest packet");
+                        break;
+                    case PacketType.RequestRegionInfo:
+                        // TODO: handle this packet
+                        MainLog.Instance.Warn("CLIENT", "unhandled RequestRegionInfo packet");
+                        break;
                     default:
                         MainLog.Instance.Warn("CLIENT", "unhandled packet " + Pack.ToString());
                         break;
