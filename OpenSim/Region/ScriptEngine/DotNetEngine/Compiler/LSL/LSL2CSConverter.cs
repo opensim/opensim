@@ -47,7 +47,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL
             dataTypes.Add("key", "string");
             dataTypes.Add("vector", "LSL_Types.Vector3");
             dataTypes.Add("rotation", "LSL_Types.Quaternion");
-            dataTypes.Add("list", "list");
+            dataTypes.Add("list", "List");
             dataTypes.Add("null", "null");
         }
 

@@ -163,7 +163,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler
 
         public int llRound(double f)
         {
-            return (int) Math.Round(f, 3);
+            return (int) Math.Round(f, 0);
         }
 
         //This next group are vector operations involving squaring and square root. ckrinke
