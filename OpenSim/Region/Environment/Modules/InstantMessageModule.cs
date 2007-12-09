@@ -65,9 +65,6 @@ namespace OpenSim.Region.Environment.Modules
                                       LLUUID imSessionID, uint timestamp, string fromAgentName,
                                       string message, byte dialog)
         {
-            // TODO: Remove after debugging. Privacy implications.
-            m_log.Verbose("IM", fromAgentName + ": " + message);
-
             foreach (Scene m_scene in m_scenes)
             {
                 if (m_scene.Entities.ContainsKey(toAgentID) && m_scene.Entities[toAgentID] is ScenePresence)

@@ -167,10 +167,6 @@ namespace OpenSim.Region.Environment.Modules
 
             if (e.Message.Length > 0)
             {
-                m_log.Verbose("CHAT",
-                              fromName + " (" + e.Channel + " @ " + scene.RegionInfo.RegionName + ") " + typeName + ": " +
-                              e.Message);
-
                 if (m_irc.Connected)
                 {
                     m_irc.PrivMsg(fromName, scene.RegionInfo.RegionName, e.Message);
