@@ -330,11 +330,8 @@ namespace OpenSim.Region.ClientStack
             return (int)(((float)value/(float)curmax) * newmax);
         }
 
-        public void SetThrottleFromClient(Packet Pack)
+        public void SetThrottleFromClient(byte[] throttle)
         {
-            AgentThrottlePacket atpack = (AgentThrottlePacket)Pack;
-            
-            byte[] throttle = atpack.Throttle.Throttles;
             int tResend = -1;
             int tLand = -1;
             int tWind = -1;

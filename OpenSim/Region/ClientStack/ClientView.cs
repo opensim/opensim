@@ -3107,7 +3107,8 @@ namespace OpenSim.Region.ClientStack
                         break;
 
                     case PacketType.AgentThrottle:
-                        PacketQueue.SetThrottleFromClient(Pack);
+                        AgentThrottlePacket atpack = (AgentThrottlePacket)Pack;
+                        PacketQueue.SetThrottleFromClient(atpack.Throttle.Throttles);
                         break;
 
                         #endregion
