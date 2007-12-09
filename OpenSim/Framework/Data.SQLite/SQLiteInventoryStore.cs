@@ -243,7 +243,7 @@ namespace OpenSim.Framework.Data.SQLite
             // nicer to print some message to this effect, but this feels like it's too low a 
             // to put such a message out, and it's too minor right now to spare the time to
             // suitably refactor.            
-            if (folders.Count > 1)
+            if (folders.Count > 0)
             {
                 return folders[0];
             }
