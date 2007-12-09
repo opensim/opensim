@@ -329,7 +329,29 @@ namespace OpenSim.Region.ClientStack
         {
             return (int)(((float)value/(float)curmax) * newmax);
         }
+        private byte[] GetThrottlesPacked(float multiplier)
+        {
+            int singlefloat = 4;
+            float tResend = ResendThrottle.Throttle * multiplier;
+            float tLand = LandThrottle.Throttle * multiplier;
+            float tWind = WindThrottle.Throttle * multiplier;
+            float tCloud = CloudThrottle.Throttle * multiplier;
+            float tTask = TaskThrottle.Throttle * multiplier;
+            float tTexture = TextureThrottle.Throttle * multiplier;
+            float tAsset = AssetThrottle.Throttle * multiplier;
 
+            byte[] throttles = new byte[singlefloat * 7];
+            int i = 0;
+            Buffer.BlockCopy(BitConverter.GetBytes(tResend), 0, throttles, singlefloat * i, singlefloat); i++;
+            Buffer.BlockCopy(BitConverter.GetBytes(tLand), 0, throttles, singlefloat * i, singlefloat); i++;
+            Buffer.BlockCopy(BitConverter.GetBytes(tWind), 0, throttles, singlefloat * i, singlefloat); i++;
+            Buffer.BlockCopy(BitConverter.GetBytes(tCloud), 0, throttles, singlefloat * i, singlefloat); i++;
+            Buffer.BlockCopy(BitConverter.GetBytes(tTask), 0, throttles, singlefloat * i, singlefloat); i++;
+            Buffer.BlockCopy(BitConverter.GetBytes(tTexture), 0, throttles, singlefloat * i, singlefloat); i++;
+            Buffer.BlockCopy(BitConverter.GetBytes(tAsset), 0, throttles, singlefloat * i, singlefloat);
+
+            return throttles;
+        }
         public void SetThrottleFromClient(byte[] throttle)
         {
             int tResend = -1;

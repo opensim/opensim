@@ -19,5 +19,6 @@ namespace OpenSim.Framework
         public float AVHeight;
         public Guid AgentID;
         public float godlevel;
+        public byte[] throttles; 
     }
 }
