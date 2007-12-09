@@ -1609,7 +1609,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler
                         break;
 
                     case (int) PrimitiveRule.PSYS_PART_START_ALPHA:
-                        //what is the cast?                    prules.PartStartColor = (LLColor)rules[i + 1];
+                        prules.PartStartColor = (libsecondlife.LLColor)rules[i + 1];
                         break;
 
                     case (int) PrimitiveRule.PSYS_PART_END_COLOR:
@@ -1617,15 +1617,15 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler
                         break;
 
                     case (int) PrimitiveRule.PSYS_PART_END_ALPHA:
-                        //what is the cast?                    prules.PartStartColor = (LLColor)rules[i + 1];
+                        prules.PartStartColor = (libsecondlife.LLColor)rules[i + 1];
                         break;
 
                     case (int) PrimitiveRule.PSYS_PART_START_SCALE:
-                        //what is the cast?                    prules.PartStartColor = (LLColor)rules[i + 1];
+                        prules.PartStartColor = (libsecondlife.LLColor)rules[i + 1];
                         break;
 
                     case (int) PrimitiveRule.PSYS_PART_END_SCALE:
-                        //what is the cast?                    prules.PartStartColor = (LLColor)rules[i + 1];
+                        prules.PartStartColor = (libsecondlife.LLColor)rules[i + 1];
                         break;
 
                     case (int) PrimitiveRule.PSYS_PART_MAX_AGE:
