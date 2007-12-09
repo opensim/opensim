@@ -434,6 +434,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler
             tmp.Y = (float) scale.Y;
             tmp.Z = (float) scale.Z;
             m_host.Scale = tmp;
+            m_host.SendFullUpdateToAllClients();
             return;
         }
 
@@ -1609,7 +1610,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler
                         break;
 
                     case (int) PrimitiveRule.PSYS_PART_START_ALPHA:
-                        prules.PartStartColor = (libsecondlife.LLColor)rules[i + 1];
+                        //what is the cast?                    prules.PartStartColor = (LSL_Types.Vec)rules[i + 1];
                         break;
 
                     case (int) PrimitiveRule.PSYS_PART_END_COLOR:
@@ -1617,15 +1618,15 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler
                         break;
 
                     case (int) PrimitiveRule.PSYS_PART_END_ALPHA:
-                        prules.PartStartColor = (libsecondlife.LLColor)rules[i + 1];
+                        //what is the cast?                    prules.PartStartColor = (LLColor)rules[i + 1];
                         break;
 
                     case (int) PrimitiveRule.PSYS_PART_START_SCALE:
-                        prules.PartStartColor = (libsecondlife.LLColor)rules[i + 1];
+                        //what is the cast?                    prules.PartStartColor = (LLColor)rules[i + 1];
                         break;
 
                     case (int) PrimitiveRule.PSYS_PART_END_SCALE:
-                        prules.PartStartColor = (libsecondlife.LLColor)rules[i + 1];
+                        //what is the cast?                    prules.PartStartColor = (LLColor)rules[i + 1];
                         break;
 
                     case (int) PrimitiveRule.PSYS_PART_MAX_AGE:
