@@ -43,6 +43,7 @@ namespace OpenSim.Framework
         public event AcknowledgePrimCross OnAcknowledgePrimCrossed;
         public event CloseAgentConnection OnCloseAgentConnection;
         public event RegionUp OnRegionUp;
+        public event ChildAgentUpdate OnChildAgentUpdate;
         public string debugRegionName="";
         
 
@@ -76,6 +77,16 @@ namespace OpenSim.Framework
             if (OnRegionUp != null)
             {
                 OnRegionUp(region);
+                return true;
+            }
+            return false;
+        }
+
+        public virtual bool TriggerChildAgentUpdate(ulong regionHandle, ChildAgentDataUpdate cAgentData)
+        {
+            if (OnChildAgentUpdate != null)
+            {
+                OnChildAgentUpdate(regionHandle, cAgentData);
                 return true;
             }
             return false;

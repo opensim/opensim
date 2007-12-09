@@ -205,6 +205,19 @@ namespace OpenSim.Region.Communications.Local
             return false;
         }
 
+        public virtual bool ChildAgentUpdate(ulong regionHandle, ChildAgentDataUpdate cAgentData)
+        {
+            if (m_regionListeners.ContainsKey(regionHandle))
+            {
+                // Console.WriteLine("CommsManager- Informing a region to expect child agent");
+                m_regionListeners[regionHandle].TriggerChildAgentUpdate(regionHandle, cAgentData);
+                //MainLog.Instance.Verbose("INTER", rdebugRegionName + ":Local BackEnd: Got Listener trigginering local event: " + agentData.firstname + " " + agentData.lastname);
+
+                return true;
+            }
+            return false;
+        }
+
         public bool TriggerRegionUp(RegionInfo region, ulong regionhandle)
         {
             if (m_regionListeners.ContainsKey(regionhandle))
@@ -212,6 +225,15 @@ namespace OpenSim.Region.Communications.Local
                 return m_regionListeners[regionhandle].TriggerRegionUp(region);
             }
 
+            return false;
+        }
+
+        public bool TriggerChildAgentUpdate(ulong regionHandle, ChildAgentDataUpdate cAgentData)
+        {
+            if (m_regionListeners.ContainsKey(regionHandle))
+            {
+                return m_regionListeners[regionHandle].TriggerChildAgentUpdate(regionHandle,cAgentData);
+            }
             return false;
         }
 

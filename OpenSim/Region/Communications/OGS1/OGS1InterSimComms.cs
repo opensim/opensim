@@ -43,6 +43,8 @@ namespace OpenSim.Region.Communications.OGS1
 
     public delegate bool RegionUp (SearializableRegionInfo region, ulong regionhandle);
 
+    public delegate bool ChildAgentUpdate(ulong regionHandle, ChildAgentDataUpdate childUpdate);
+
     public sealed class InterRegionSingleton
     {
         private static readonly InterRegionSingleton instance = new InterRegionSingleton();
@@ -52,6 +54,7 @@ namespace OpenSim.Region.Communications.OGS1
         public event InformRegionPrimGroup OnPrimGroupNear;
         public event PrimGroupArrival OnPrimGroupArrival;
         public event RegionUp OnRegionUp;
+        public event ChildAgentUpdate OnChildAgentUpdate;
 
 
         static InterRegionSingleton()
@@ -82,6 +85,15 @@ namespace OpenSim.Region.Communications.OGS1
             if (OnRegionUp != null)
             {
                 return OnRegionUp(sregion, regionhandle);
+            }
+            return false;
+        }
+
+        public bool ChildAgentUpdate(ulong regionHandle, ChildAgentDataUpdate cAgentUpdate)
+        {
+            if (OnChildAgentUpdate != null)
+            {
+                return OnChildAgentUpdate(regionHandle, cAgentUpdate);
             }
             return false;
         }
@@ -141,6 +153,20 @@ namespace OpenSim.Region.Communications.OGS1
                 Console.WriteLine("Remoting Error: Unable to connect to remote region.\n" + e.ToString());
                 return false;
             }
+        }
+
+        public bool ChildAgentUpdate(ulong regionHandle, ChildAgentDataUpdate cAgentData) 
+        {
+            try
+            {
+                return InterRegionSingleton.Instance.ChildAgentUpdate(regionHandle,cAgentData);
+            }
+            catch (RemotingException e)
+            {
+                Console.WriteLine("Remoting Error: Unable to send Child agent update to remote region.\n" + e.ToString());
+                return false;
+            }
+
         }
 
         public bool ExpectAvatarCrossing(ulong regionHandle, Guid agentID, sLLVector3 position, bool isFlying)

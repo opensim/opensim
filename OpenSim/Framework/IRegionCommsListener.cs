@@ -48,6 +48,8 @@ namespace OpenSim.Framework
 
     public delegate bool RegionUp(RegionInfo region);
 
+    public delegate bool ChildAgentUpdate(ulong regionHandle, ChildAgentDataUpdate cAgentData);
+
     
 
     public interface IRegionCommsListener
@@ -62,6 +64,7 @@ namespace OpenSim.Framework
         event UpdateNeighbours OnNeighboursUpdate;
         event CloseAgentConnection OnCloseAgentConnection;
         event RegionUp OnRegionUp;
+        event ChildAgentUpdate OnChildAgentUpdate;
 
     }
 }
