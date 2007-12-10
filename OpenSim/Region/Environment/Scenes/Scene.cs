@@ -269,7 +269,12 @@ namespace OpenSim.Region.Environment.Scenes
         {
            // Another region is up.   
            // We have to tell all our ScenePresences about it.. 
-           //and add it to the neighbor list.
+           // and add it to the neighbor list.
+
+            // We only add it to the neighbor list if it's within 1 region from here.
+            // Agents may have draw distance values that cross two regions though, so 
+            // we add it to the notify list regardless of distance.  
+            // We'll check the agent's draw distance before notifying them though.
            
 
             if (RegionInfo.RegionHandle != otherRegion.RegionHandle)
@@ -297,12 +302,11 @@ namespace OpenSim.Region.Environment.Scenes
                     {
                         m_neighbours.Add(otherRegion);
                     }
-
                     if (!(m_regionRestartNotifyList.Contains(otherRegion)))
                     {
                         m_regionRestartNotifyList.Add(otherRegion);
-                    
-                        m_restartWaitTimer.Interval= 50000;
+
+                        m_restartWaitTimer.Interval = 50000;
                         m_restartWaitTimer.AutoReset = false;
                         m_restartWaitTimer.Elapsed += new ElapsedEventHandler(RestartNotifyWaitElapsed);
                         m_restartWaitTimer.Start();
@@ -312,6 +316,9 @@ namespace OpenSim.Region.Environment.Scenes
                 {
                     MainLog.Instance.Verbose("INTERGRID", "Got notice about Region at X:" + otherRegion.RegionLocX.ToString() + " Y:" + otherRegion.RegionLocY.ToString() + " but it was too far away to send to the client");
                 }
+
+                
+               
                 
             }
             return true;
@@ -1250,7 +1257,7 @@ namespace OpenSim.Region.Environment.Scenes
         /// <param name="presence"></param>
         public void InformClientOfNeighbours(ScenePresence presence)
         {
-            m_sceneGridService.EnableNeighbourChildAgents(presence);
+            m_sceneGridService.EnableNeighbourChildAgents(presence, m_neighbours);
         }
 
         /// <summary>
@@ -1260,7 +1267,7 @@ namespace OpenSim.Region.Environment.Scenes
         /// <param name="region"></param>
         public void InformClientOfNeighbor(ScenePresence presence, RegionInfo region)
         {
-            m_sceneGridService.InformNeighborChildAgent(presence, region);
+            m_sceneGridService.InformNeighborChildAgent(presence, region, m_neighbours);
         }
 
         /// <summary>

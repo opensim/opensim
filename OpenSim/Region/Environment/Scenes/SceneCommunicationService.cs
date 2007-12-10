@@ -191,14 +191,24 @@ namespace OpenSim.Region.Environment.Scenes
         /// <summary>
         /// 
         /// </summary>
-        public void EnableNeighbourChildAgents(ScenePresence avatar)
+        public void EnableNeighbourChildAgents(ScenePresence avatar, List<RegionInfo> lstneighbours)
         {
-            List<SimpleRegionInfo> neighbours =
-                m_commsProvider.GridService.RequestNeighbours(m_regionInfo.RegionLocX, m_regionInfo.RegionLocY);
+            List<SimpleRegionInfo> neighbours = new List<SimpleRegionInfo>();
+
+                //m_commsProvider.GridService.RequestNeighbours(m_regionInfo.RegionLocX, m_regionInfo.RegionLocY);
+            for (int i = 0; i < lstneighbours.Count; i++)
+            {
+                // We don't want to keep sending to regions that consistently fail on comms.
+                if (!(lstneighbours[i].commFailTF))
+                {
+                    neighbours.Add(new SimpleRegionInfo(lstneighbours[i]));
+                }
+            }
             if (neighbours != null)
             {
                 for (int i = 0; i < neighbours.Count; i++)
                 {
+                    
                     AgentCircuitData agent = avatar.ControllingClient.RequestClientInfo();
                     agent.BaseFolder = LLUUID.Zero;
                     agent.InventoryFolder = LLUUID.Zero;
@@ -212,7 +222,7 @@ namespace OpenSim.Region.Environment.Scenes
                 }
             }
         }
-        public void InformNeighborChildAgent(ScenePresence avatar, RegionInfo region)
+        public void InformNeighborChildAgent(ScenePresence avatar, RegionInfo region, List<RegionInfo> neighbours)
         {
             AgentCircuitData agent = avatar.ControllingClient.RequestClientInfo();
             agent.BaseFolder = LLUUID.Zero;
@@ -257,7 +267,7 @@ namespace OpenSim.Region.Environment.Scenes
 
 
             List<SimpleRegionInfo> neighbours = new List<SimpleRegionInfo>();
-            
+            // This stays uncached because we don't already know about our neighbors at this point.
             neighbours = m_commsProvider.GridService.RequestNeighbours(m_regionInfo.RegionLocX, m_regionInfo.RegionLocY);
             if (neighbours != null)
             {

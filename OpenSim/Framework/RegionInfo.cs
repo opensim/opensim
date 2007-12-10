@@ -64,6 +64,16 @@ namespace OpenSim.Framework
 
             m_internalEndPoint = new IPEndPoint(IPAddress.Parse("0.0.0.0"), (int) port);
         }
+        public SimpleRegionInfo(RegionInfo ConvertFrom)
+        {
+            m_regionLocX = ConvertFrom.RegionLocX;
+            m_regionLocY = ConvertFrom.RegionLocY;
+            m_internalEndPoint = ConvertFrom.InternalEndPoint;
+            m_externalHostName = ConvertFrom.ExternalHostName;
+            m_remotingPort = ConvertFrom.RemotingPort;
+            RemotingAddress = ConvertFrom.RemotingAddress;
+            RegionID = LLUUID.Zero;
+        }
 
         public LLUUID RegionID = LLUUID.Zero;
 
@@ -229,6 +239,16 @@ namespace OpenSim.Framework
         {
         }
         public RegionInfo(SearializableRegionInfo ConvertFrom)
+        {
+            m_regionLocX = ConvertFrom.RegionLocX;
+            m_regionLocY = ConvertFrom.RegionLocY;
+            m_internalEndPoint = ConvertFrom.InternalEndPoint;
+            m_externalHostName = ConvertFrom.ExternalHostName;
+            m_remotingPort = ConvertFrom.RemotingPort;
+            RemotingAddress = ConvertFrom.RemotingAddress;
+            RegionID = LLUUID.Zero;
+        }
+        public RegionInfo(SimpleRegionInfo ConvertFrom)
         {
             m_regionLocX = ConvertFrom.RegionLocX;
             m_regionLocY = ConvertFrom.RegionLocY;
