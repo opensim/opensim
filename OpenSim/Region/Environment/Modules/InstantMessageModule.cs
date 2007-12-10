@@ -65,12 +65,12 @@ namespace OpenSim.Region.Environment.Modules
                                       LLUUID imSessionID, uint timestamp, string fromAgentName,
                                       string message, byte dialog)
         {
-            foreach (Scene m_scene in m_scenes)
+            foreach (Scene scene in m_scenes)
             {
-                if (m_scene.Entities.ContainsKey(toAgentID) && m_scene.Entities[toAgentID] is ScenePresence)
+                if (scene.Entities.ContainsKey(toAgentID) && scene.Entities[toAgentID] is ScenePresence)
                 {
-                    // Local Message
-                    ScenePresence user = (ScenePresence) m_scene.Entities[toAgentID];
+                    // Local message
+                    ScenePresence user = (ScenePresence) scene.Entities[toAgentID];
                     if (!user.IsChildAgent)
                     {
                         user.ControllingClient.SendInstantMessage(fromAgentID, fromAgentSession, message,
@@ -83,6 +83,7 @@ namespace OpenSim.Region.Environment.Modules
             }
 
             // Still here, try send via Grid
+            // TODO
         }
 
         public void PostInitialise()

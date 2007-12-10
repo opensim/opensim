@@ -59,7 +59,6 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler
         private LLUUID m_itemID;
         private bool throwErrorOnNotImplemented = true;
 
-
         public LSL_BuiltIn_Commands(ScriptEngine ScriptEngine, SceneObjectPart host, uint localID, LLUUID itemID)
         {
             m_ScriptEngine = ScriptEngine;
@@ -67,10 +66,8 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler
             m_localID = localID;
             m_itemID = itemID;
 
-
             //MainLog.Instance.Notice("ScriptEngine", "LSL_BaseClass.Start() called. Hosted by [" + m_host.Name + ":" + m_host.UUID + "@" + m_host.AbsolutePosition + "]");
         }
-
 
         private string m_state = "default";
 
@@ -94,7 +91,6 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler
             }
             return lease;
         }
-
 
         public Scene World
         {
@@ -1021,7 +1017,6 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler
             Vector3 av3 = new Vector3((float) color.X, (float) color.Y, (float) color.Z);
             m_host.SetText(text, av3, alpha);
         }
-
 
         public double llWater(LSL_Types.Vector3 offset)
         {

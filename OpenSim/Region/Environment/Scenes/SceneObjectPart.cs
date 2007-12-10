@@ -68,7 +68,7 @@ namespace OpenSim.Region.Environment.Scenes
         public Int32 CreationDate;
         public uint ParentID = 0;
 
-        // Main grid  has default permissions as follows
+        // Main grid has default permissions as follows
         // 
         public uint OwnerMask = FULL_MASK_PERMISSIONS_OWNER;
         public uint NextOwnerMask =  OBJNEXT_OWNER;
@@ -84,7 +84,6 @@ namespace OpenSim.Region.Environment.Scenes
         public uint TimeStampTerse = 0;
         [XmlIgnore]
         public uint TimeStampLastActivity = 0; // Will be used for AutoReturn
-
 
         /// <summary>
         /// Only used internally to schedule client updates

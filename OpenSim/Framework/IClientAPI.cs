@@ -50,10 +50,12 @@ namespace OpenSim.Framework
         Whisper = 0,
         Say = 1,
         Shout = 2,
+        // 3 is an obsolete version of Say
         StartTyping = 4,
         StopTyping = 5,
         Broadcast = 0xFF
-    } ;
+    }
+
     public enum ThrottleOutPacketType : int
     {
         Resend = 0,
@@ -135,6 +137,9 @@ namespace OpenSim.Framework
             set { m_sender = value; }
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
         public IScene Scene
         {
             get { return m_scene; }
@@ -153,18 +158,27 @@ namespace OpenSim.Framework
         private sbyte m_discardLevel;
         private uint m_packetNumber;
 
+        /// <summary>
+        /// 
+        /// </summary>
         public uint PacketNumber
         {
             get { return m_packetNumber; }
             set { m_packetNumber = value; }
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
         public sbyte DiscardLevel
         {
             get { return m_discardLevel; }
             set { m_discardLevel = value; }
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
         public LLUUID RequestedAssetID
         {
             get { return m_requestedAssetID; }
@@ -176,6 +190,9 @@ namespace OpenSim.Framework
     {
         private List<Wearable> m_nowWearing = new List<Wearable>();
 
+        /// <summary>
+        /// 
+        /// </summary>
         public List<Wearable> NowWearing
         {
             get { return m_nowWearing; }
@@ -269,6 +286,7 @@ namespace OpenSim.Framework
     public delegate void AgentRequestSit(IClientAPI remoteClient, LLUUID agentID, LLUUID targetID, LLVector3 offset);
 
     public delegate void AgentSit(IClientAPI remoteClient, LLUUID agentID);
+
     public delegate void AvatarPickerRequest(IClientAPI remoteClient, LLUUID agentdata, LLUUID queryID, string UserQuery);
 
     public delegate void MoveObject(LLUUID objectID, LLVector3 offset, LLVector3 grapPos, IClientAPI remoteClient);
@@ -339,7 +357,6 @@ namespace OpenSim.Framework
     public delegate void ConfirmXfer(IClientAPI remoteClient, ulong xferID, uint packetID);
     
     public delegate void ObjectPermissions(IClientAPI remoteClinet, LLUUID AgentID, LLUUID SessionID, List<ObjectPermissionsPacket.ObjectDataBlock> permChanges);
-
 
     public interface IClientAPI
     {

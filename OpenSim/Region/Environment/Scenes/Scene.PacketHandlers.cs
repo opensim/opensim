@@ -156,10 +156,10 @@ namespace OpenSim.Region.Environment.Scenes
                 }
             }
         }
+ 
         public void ProcessAvatarPickerRequest(IClientAPI client, LLUUID avatarID, LLUUID RequestID, string query)
         {
             //EventManager.TriggerAvatarPickerRequest();
-          
 
             List<AvatarPickerAvatar> AvatarResponses = new List<AvatarPickerAvatar>();
             AvatarResponses = CommsManager.GenerateAgentPickerRequestResponse(RequestID, query);
@@ -167,7 +167,7 @@ namespace OpenSim.Region.Environment.Scenes
             AvatarPickerReplyPacket replyPacket = new AvatarPickerReplyPacket();
             AvatarPickerReplyPacket.DataBlock[] searchData = new AvatarPickerReplyPacket.DataBlock[AvatarResponses.Count];
             AvatarPickerReplyPacket.AgentDataBlock agentData = new AvatarPickerReplyPacket.AgentDataBlock();
-            
+
             agentData.AgentID = avatarID;
             agentData.QueryID = RequestID;
             replyPacket.AgentData = agentData;

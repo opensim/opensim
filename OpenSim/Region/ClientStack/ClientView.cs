@@ -587,7 +587,6 @@ namespace OpenSim.Region.ClientStack
         /// <summary>
         /// 
         /// </summary>
-        /// <remarks>TODO</remarks>
         /// <param name="message"></param>
         /// <param name="target"></param>
         public void SendInstantMessage(LLUUID fromAgent, LLUUID fromAgentSession, string message, LLUUID toAgent,
