@@ -143,7 +143,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler
         {
             lock (Util.RandomClass)
             {
-                return Util.RandomClass.Next((int) mag);
+                return Util.RandomClass.NextDouble() * mag;
             }
         }
 
@@ -441,54 +441,248 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler
 
         public void llSetColor(LSL_Types.Vector3 color, int face)
         {
+            LLObject.TextureEntry tex = new LLObject.TextureEntry(m_host.Shape.TextureEntry, 0, m_host.Shape.TextureEntry.Length);
+            LLColor texcolor;
+            if (face > -1)
+            {
+                texcolor = tex.CreateFace((uint)face).RGBA;
+                texcolor.R = (float)Math.Abs(color.X - 1);
+                texcolor.G = (float)Math.Abs(color.Y - 1);
+                texcolor.B = (float)Math.Abs(color.Z - 1);
+                tex.FaceTextures[face].RGBA = texcolor;
+                m_host.UpdateTexture(tex);
+                return;
+            }
+            else if (face == -1)
+            {
+                texcolor = tex.DefaultTexture.RGBA;
+                texcolor.R = (float)Math.Abs(color.X - 1);
+                texcolor.G = (float)Math.Abs(color.Y - 1);
+                texcolor.B = (float)Math.Abs(color.Z - 1);
+                tex.DefaultTexture.RGBA = texcolor;
+                for (uint i = 0; i < 32; i++)
+                {
+                    if (tex.FaceTextures[i] != null)
+                    {
+                        texcolor = tex.FaceTextures[i].RGBA;
+                        texcolor.R = (float)Math.Abs(color.X - 1);
+                        texcolor.G = (float)Math.Abs(color.Y - 1);
+                        texcolor.B = (float)Math.Abs(color.Z - 1);
+                        tex.FaceTextures[i].RGBA = texcolor;
+                    }
+                }
+                m_host.UpdateTexture(tex);
+                return;
+            }
             NotImplemented("llSetColor");
             return;
         }
 
         public double llGetAlpha(int face)
         {
-            NotImplemented("llGetAlpha");
+            LLObject.TextureEntry tex = new LLObject.TextureEntry(m_host.Shape.TextureEntry, 0, m_host.Shape.TextureEntry.Length);
+            if (face == -1) // TMP: Until we can determine number of sides, ALL_SIDES (-1) will return default color
+            {
+                return (double)((tex.DefaultTexture.RGBA.A * 255) / 255);
+            }
+            if (face > -1)
+            {
+                return (double)((tex.GetFace((uint)face).RGBA.A * 255) / 255);
+            }
             return 0;
         }
 
         public void llSetAlpha(double alpha, int face)
         {
+            LLObject.TextureEntry tex = new LLObject.TextureEntry(m_host.Shape.TextureEntry, 0, m_host.Shape.TextureEntry.Length);
+            LLColor texcolor;
+            if (face > -1)
+            {
+                texcolor = tex.CreateFace((uint)face).RGBA;
+                texcolor.A = (float)Math.Abs(alpha - 1);
+                tex.FaceTextures[face].RGBA = texcolor;
+                m_host.UpdateTexture(tex);
+                return;
+            }
+            else if (face == -1)
+            {
+                texcolor = tex.DefaultTexture.RGBA;
+                texcolor.A = (float)Math.Abs(alpha - 1);
+                tex.DefaultTexture.RGBA = texcolor;
+                for (int i = 0; i < 32; i++)
+                {
+                    if (tex.FaceTextures[i] != null)
+                    {
+                        texcolor = tex.FaceTextures[i].RGBA;
+                        texcolor.A = (float)Math.Abs(alpha - 1);
+                        tex.FaceTextures[i].RGBA = texcolor;
+                    }
+                }
+                m_host.UpdateTexture(tex);
+                return;
+            }
             NotImplemented("llSetAlpha");
             return;
         }
 
         public LSL_Types.Vector3 llGetColor(int face)
         {
+            LLObject.TextureEntry tex = new LLObject.TextureEntry(m_host.Shape.TextureEntry, 0, m_host.Shape.TextureEntry.Length);
+            LLColor texcolor;
+            LSL_Types.Vector3 rgb;
+            if (face == -1) // TMP: Until we can determine number of sides, ALL_SIDES (-1) will return default color
+            {
+                texcolor = tex.DefaultTexture.RGBA;
+                rgb.X = (255 - (texcolor.R * 255)) / 255;
+                rgb.Y = (255 - (texcolor.G * 255)) / 255;
+                rgb.Z = (255 - (texcolor.B * 255)) / 255;
+                return rgb;
+            }
+            if (face > -1)
+            {
+                texcolor = tex.GetFace((uint)face).RGBA;
+                rgb.X = (255 - (texcolor.R * 255)) / 255;
+                rgb.Y = (255 - (texcolor.G * 255)) / 255;
+                rgb.Z = (255 - (texcolor.B * 255)) / 255;
+                return rgb;
+            }
             NotImplemented("llGetColor");
             return new LSL_Types.Vector3();
         }
 
         public void llSetTexture(string texture, int face)
         {
+            LLObject.TextureEntry tex = new LLObject.TextureEntry(m_host.Shape.TextureEntry, 0, m_host.Shape.TextureEntry.Length);
+            if (face > -1)
+            {
+                LLObject.TextureEntryFace texface = tex.CreateFace((uint)face);
+                texface.TextureID = new LLUUID(texture);
+                tex.FaceTextures[face] = texface;
+                m_host.UpdateTexture(tex);
+                return;
+            }
+            else if (face == -1)
+            {
+                for (uint i = 0; i < 32; i++)
+                {
+                    if (tex.FaceTextures[i] != null)
+                    {
+                        tex.FaceTextures[i].TextureID = new LLUUID(texture);
+                    }
+                }
+                tex.DefaultTexture.TextureID = new LLUUID(texture);
+                m_host.UpdateTexture(tex);
+                return;
+            }
             NotImplemented("llSetTexture");
             return;
         }
 
         public void llScaleTexture(double u, double v, int face)
         {
+            LLObject.TextureEntry tex = new LLObject.TextureEntry(m_host.Shape.TextureEntry, 0, m_host.Shape.TextureEntry.Length);
+            if (face > -1)
+            {
+                LLObject.TextureEntryFace texface = tex.CreateFace((uint)face);
+                texface.RepeatU = (float)u;
+                texface.RepeatV = (float)v;
+                tex.FaceTextures[face] = texface;
+                m_host.UpdateTexture(tex);
+                return;
+            }
+            if (face == -1)
+            {
+                for (int i = 0; i < 32; i++)
+                {
+                    if (tex.FaceTextures[i] != null)
+                    {
+                        tex.FaceTextures[i].RepeatU = (float)u;
+                        tex.FaceTextures[i].RepeatV = (float)v;
+
+                    }
+                }
+                tex.DefaultTexture.RepeatU = (float)u;
+                tex.DefaultTexture.RepeatV = (float)v;
+                m_host.UpdateTexture(tex);
+                return;
+            }
             NotImplemented("llScaleTexture");
             return;
         }
 
         public void llOffsetTexture(double u, double v, int face)
         {
+            LLObject.TextureEntry tex = new LLObject.TextureEntry(m_host.Shape.TextureEntry, 0, m_host.Shape.TextureEntry.Length);
+            if (face > -1)
+            {
+                LLObject.TextureEntryFace texface = tex.CreateFace((uint)face);
+                texface.OffsetU = (float)u;
+                texface.OffsetV = (float)v;
+                tex.FaceTextures[face] = texface;
+                m_host.UpdateTexture(tex);
+                return;
+            }
+            if (face == -1)
+            {
+                LLObject.TextureEntryFace texface;
+                for (int i = 0; i < 32; i++)
+                {
+                    if (tex.FaceTextures[i] != null)
+                    {
+                        tex.FaceTextures[i].OffsetU = (float)u;
+                        tex.FaceTextures[i].OffsetV = (float)v;
+                    }
+                }
+                tex.DefaultTexture.OffsetU = (float)u;
+                tex.DefaultTexture.OffsetV = (float)v;
+                m_host.UpdateTexture(tex);
+                return;
+            }
             NotImplemented("llOffsetTexture");
             return;
         }
 
         public void llRotateTexture(double rotation, int face)
         {
+            LLObject.TextureEntry tex = new LLObject.TextureEntry(m_host.Shape.TextureEntry, 0, m_host.Shape.TextureEntry.Length);
+            if (face > -1)
+            {
+                LLObject.TextureEntryFace texface = tex.CreateFace((uint)face);
+                texface.Rotation = (float)rotation;
+                tex.FaceTextures[face] = texface;
+                m_host.UpdateTexture(tex);
+                return;
+            }
+            if (face == -1)
+            {
+                for (int i = 0; i < 32; i++)
+                {
+                    if (tex.FaceTextures[i] != null)
+                    {
+                        tex.FaceTextures[i].Rotation = (float)rotation;
+                    }
+                }
+                tex.DefaultTexture.Rotation = (float)rotation;
+                m_host.UpdateTexture(tex);
+                return;
+            }
             NotImplemented("llRotateTexture");
             return;
         }
 
         public string llGetTexture(int face)
         {
+            LLObject.TextureEntry tex = new LLObject.TextureEntry(m_host.Shape.TextureEntry, 0, m_host.Shape.TextureEntry.Length);
+            if (face == -1)
+            {
+                face = 0;
+            }
+            if (face > -1)
+            {
+                LLObject.TextureEntryFace texface;
+                texface = tex.GetFace((uint)face);
+                return texface.TextureID.ToStringHyphenated();
+            }
             NotImplemented("llGetTexture");
             return "";
         }
@@ -1151,17 +1345,40 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler
 
         public LSL_Types.Vector3 llGetTextureOffset(int face)
         {
-            return new LSL_Types.Vector3();
+            LLObject.TextureEntry tex = new LLObject.TextureEntry(m_host.Shape.TextureEntry, 0, m_host.Shape.TextureEntry.Length);
+            LSL_Types.Vector3 offset;
+            if (face == -1)
+            {
+                face = 0;
+            }
+            offset.X = tex.GetFace((uint)face).OffsetU;
+            offset.Y = tex.GetFace((uint)face).OffsetV;
+            offset.Z = 0.0;
+            return offset;
         }
 
         public LSL_Types.Vector3 llGetTextureScale(int side)
         {
-            return new LSL_Types.Vector3();
+            LLObject.TextureEntry tex = new LLObject.TextureEntry(m_host.Shape.TextureEntry, 0, m_host.Shape.TextureEntry.Length);
+            LSL_Types.Vector3 scale;
+            if (side == -1)
+            {
+                side = 0;
+            }
+            scale.X = tex.GetFace((uint)side).RepeatU;
+            scale.Y = tex.GetFace((uint)side).RepeatV;
+            scale.Z = 0.0;
+            return scale;
         }
 
-        public double llGetTextureRot(int side)
+        public double llGetTextureRot(int face)
         {
-            return 0;
+            LLObject.TextureEntry tex = new LLObject.TextureEntry(m_host.Shape.TextureEntry, 0, m_host.Shape.TextureEntry.Length);
+            if (face == -1)
+            {
+                face = 0;
+            }
+            return tex.GetFace((uint)face).Rotation;
         }
 
         public int llSubStringIndex(string source, string pattern)
@@ -1604,87 +1821,87 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler
             {
                 switch ((int) rules[i])
                 {
-                    case (int) PrimitiveRule.PSYS_PART_FLAGS:
+                    case (int) LSL_BaseClass.PSYS_PART_FLAGS:
                         prules.PartFlags = (uint) rules[i + 1];
                         break;
 
-                    case (int) PrimitiveRule.PSYS_PART_START_COLOR:
+                    case (int)LSL_BaseClass.PSYS_PART_START_COLOR:
                         prules.PartStartColor = (LLColor) rules[i + 1];
                         break;
 
-                    case (int) PrimitiveRule.PSYS_PART_START_ALPHA:
+                    case (int)LSL_BaseClass.PSYS_PART_START_ALPHA:
                         //what is the cast?                    prules.PartStartColor = (LSL_Types.Vec)rules[i + 1];
                         break;
 
-                    case (int) PrimitiveRule.PSYS_PART_END_COLOR:
+                    case (int)LSL_BaseClass.PSYS_PART_END_COLOR:
                         prules.PartEndColor = (LLColor) rules[i + 1];
                         break;
 
-                    case (int) PrimitiveRule.PSYS_PART_END_ALPHA:
+                    case (int)LSL_BaseClass.PSYS_PART_END_ALPHA:
                         //what is the cast?                    prules.PartStartColor = (LLColor)rules[i + 1];
                         break;
 
-                    case (int) PrimitiveRule.PSYS_PART_START_SCALE:
+                    case (int)LSL_BaseClass.PSYS_PART_START_SCALE:
                         //what is the cast?                    prules.PartStartColor = (LLColor)rules[i + 1];
                         break;
 
-                    case (int) PrimitiveRule.PSYS_PART_END_SCALE:
+                    case (int)LSL_BaseClass.PSYS_PART_END_SCALE:
                         //what is the cast?                    prules.PartStartColor = (LLColor)rules[i + 1];
                         break;
 
-                    case (int) PrimitiveRule.PSYS_PART_MAX_AGE:
+                    case (int)LSL_BaseClass.PSYS_PART_MAX_AGE:
                         prules.MaxAge = (float) rules[i + 1];
                         break;
 
-                    case (int) PrimitiveRule.PSYS_SRC_ACCEL:
+                    case (int)LSL_BaseClass.PSYS_SRC_ACCEL:
                         //what is the cast?                    prules.PartStartColor = (LLColor)rules[i + 1];
                         break;
 
-                    case (int) PrimitiveRule.PSYS_SRC_PATTERN:
+                    case (int)LSL_BaseClass.PSYS_SRC_PATTERN:
                         //what is the cast?                    prules.PartStartColor = (LLColor)rules[i + 1];
                         break;
 
-                    case (int) PrimitiveRule.PSYS_SRC_TEXTURE:
+                    case (int)LSL_BaseClass.PSYS_SRC_TEXTURE:
                         prules.Texture = (LLUUID) rules[i + 1];
                         break;
 
-                    case (int) PrimitiveRule.PSYS_SRC_BURST_RATE:
+                    case (int)LSL_BaseClass.PSYS_SRC_BURST_RATE:
                         prules.BurstRate = (float) rules[i + 1];
                         break;
 
-                    case (int) PrimitiveRule.PSYS_SRC_BURST_PART_COUNT:
+                    case (int)LSL_BaseClass.PSYS_SRC_BURST_PART_COUNT:
                         prules.BurstPartCount = (byte) rules[i + 1];
                         break;
 
-                    case (int) PrimitiveRule.PSYS_SRC_BURST_RADIUS:
+                    case (int)LSL_BaseClass.PSYS_SRC_BURST_RADIUS:
                         prules.BurstRadius = (float) rules[i + 1];
                         break;
 
-                    case (int) PrimitiveRule.PSYS_SRC_BURST_SPEED_MIN:
+                    case (int)LSL_BaseClass.PSYS_SRC_BURST_SPEED_MIN:
                         prules.BurstSpeedMin = (float) rules[i + 1];
                         break;
 
-                    case (int) PrimitiveRule.PSYS_SRC_BURST_SPEED_MAX:
+                    case (int)LSL_BaseClass.PSYS_SRC_BURST_SPEED_MAX:
                         prules.BurstSpeedMax = (float) rules[i + 1];
                         break;
 
-                    case (int) PrimitiveRule.PSYS_SRC_MAX_AGE:
+                    case (int)LSL_BaseClass.PSYS_SRC_MAX_AGE:
                         prules.MaxAge = (float) rules[i + 1];
                         break;
 
-                    case (int) PrimitiveRule.PSYS_SRC_TARGET_KEY:
+                    case (int)LSL_BaseClass.PSYS_SRC_TARGET_KEY:
                         prules.Target = (LLUUID) rules[i + 1];
                         break;
 
-                    case (int) PrimitiveRule.PSYS_SRC_OMEGA:
+                    case (int)LSL_BaseClass.PSYS_SRC_OMEGA:
                         //cast??                    prules.MaxAge = (float)rules[i + 1];
                         break;
 
-                    case (int) PrimitiveRule.PSYS_SRC_ANGLE_BEGIN:
+                    case (int)LSL_BaseClass.PSYS_SRC_ANGLE_BEGIN:
                         prules.InnerAngle = (float) rules[i + 1];
                         break;
 
-                    case (int) PrimitiveRule.PSYS_SRC_ANGLE_END:
+                    case (int)LSL_BaseClass.PSYS_SRC_ANGLE_END:
                         prules.OuterAngle = (float) rules[i + 1];
                         break;
                 }
