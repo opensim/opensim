@@ -113,66 +113,6 @@ namespace OpenSim.Framework.Communications.Cache
         }
 
         // Nested Types
-        public class AssetCapsUploader
-        {
-            // Fields
-            private BaseHttpServer httpListener;
-            private LLUUID inventoryItemID;
-            private string m_assetDescription = "";
-            private string m_assetName = "";
-            private LLUUID m_folderID;
-            private LLUUID newAssetID;
-            private bool m_dumpImageToFile;
-            private string uploaderPath = "";
-
-            // Events
-            public event UpLoadedAsset OnUpLoad;
-
-            // Methods
-            public void Initialise(string assetName, string assetDescription, LLUUID assetID, LLUUID inventoryItem,
-                                   LLUUID folderID, string path, BaseHttpServer httpServer, bool dumpImageToFile)
-            {
-                m_assetName = assetName;
-                m_assetDescription = assetDescription;
-                m_folderID = folderID;
-                newAssetID = assetID;
-                inventoryItemID = inventoryItem;
-                uploaderPath = path;
-                httpListener = httpServer;
-                m_dumpImageToFile = dumpImageToFile;
-            }
-
-            private void SaveImageToFile(string filename, byte[] data)
-            {
-                FileStream output = File.Create(filename);
-                BinaryWriter writer = new BinaryWriter(output);
-                writer.Write(data);
-                writer.Close();
-                output.Close();
-            }
-
-            public string uploaderCaps(byte[] data, string path, string param)
-            {
-                LLUUID inventoryItemID = this.inventoryItemID;
-                string text = "";
-                LLSDAssetUploadComplete complete = new LLSDAssetUploadComplete();
-                complete.new_asset = newAssetID.ToStringHyphenated();
-                complete.new_inventory_item = inventoryItemID;
-                complete.state = "complete";
-                text = LLSDHelpers.SerialiseLLSDReply(complete);
-                httpListener.RemoveStreamHandler("POST", uploaderPath);
-                if (m_dumpImageToFile)
-                {
-                    SaveImageToFile(m_assetName + ".jp2", data);
-                }
-                if (OnUpLoad != null)
-                {
-                    OnUpLoad(m_assetName, "description", newAssetID, inventoryItemID, LLUUID.Zero, data, "", "");
-                }
-                return text;
-            }
-        }
-
         public class AssetXferUploader
         {
             // Fields
@@ -230,7 +170,7 @@ namespace OpenSim.Framework.Communications.Cache
             }
 
             public void Initialise(IClientAPI remoteClient, LLUUID assetID, LLUUID transaction, sbyte type, byte[] data,
-                                   bool storeLocal)
+                                   bool storeLocal, bool tempFile)
             {
                 ourClient = remoteClient;
                 Asset = new AssetBase();
@@ -240,6 +180,9 @@ namespace OpenSim.Framework.Communications.Cache
                 Asset.Data = data;
                 Asset.Name = "blank";
                 Asset.Description = "empty";
+                Asset.Local = storeLocal;
+                Asset.Temporary = tempFile;
+               
                 TransactionID = transaction;
                 m_storeLocal = storeLocal;
                 if (Asset.Data.Length > 2)
@@ -368,6 +311,67 @@ namespace OpenSim.Framework.Communications.Cache
             }
         }
 
+        #region Nested Classes currently not in use (waiting for them to be enabled)
+        public class AssetCapsUploader
+        {
+            // Fields
+            private BaseHttpServer httpListener;
+            private LLUUID inventoryItemID;
+            private string m_assetDescription = "";
+            private string m_assetName = "";
+            private LLUUID m_folderID;
+            private LLUUID newAssetID;
+            private bool m_dumpImageToFile;
+            private string uploaderPath = "";
+
+            // Events
+            public event UpLoadedAsset OnUpLoad;
+
+            // Methods
+            public void Initialise(string assetName, string assetDescription, LLUUID assetID, LLUUID inventoryItem,
+                                   LLUUID folderID, string path, BaseHttpServer httpServer, bool dumpImageToFile)
+            {
+                m_assetName = assetName;
+                m_assetDescription = assetDescription;
+                m_folderID = folderID;
+                newAssetID = assetID;
+                inventoryItemID = inventoryItem;
+                uploaderPath = path;
+                httpListener = httpServer;
+                m_dumpImageToFile = dumpImageToFile;
+            }
+
+            private void SaveImageToFile(string filename, byte[] data)
+            {
+                FileStream output = File.Create(filename);
+                BinaryWriter writer = new BinaryWriter(output);
+                writer.Write(data);
+                writer.Close();
+                output.Close();
+            }
+
+            public string uploaderCaps(byte[] data, string path, string param)
+            {
+                LLUUID inventoryItemID = this.inventoryItemID;
+                string text = "";
+                LLSDAssetUploadComplete complete = new LLSDAssetUploadComplete();
+                complete.new_asset = newAssetID.ToStringHyphenated();
+                complete.new_inventory_item = inventoryItemID;
+                complete.state = "complete";
+                text = LLSDHelpers.SerialiseLLSDReply(complete);
+                httpListener.RemoveStreamHandler("POST", uploaderPath);
+                if (m_dumpImageToFile)
+                {
+                    SaveImageToFile(m_assetName + ".jp2", data);
+                }
+                if (OnUpLoad != null)
+                {
+                    OnUpLoad(m_assetName, "description", newAssetID, inventoryItemID, LLUUID.Zero, data, "", "");
+                }
+                return text;
+            }
+        }
+
         public class NoteCardCapsUpdate
         {
             // Fields
@@ -420,5 +424,6 @@ namespace OpenSim.Framework.Communications.Cache
                 return text;
             }
         }
+        #endregion
     }
 }

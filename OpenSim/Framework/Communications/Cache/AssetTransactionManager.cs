@@ -83,7 +83,7 @@ namespace OpenSim.Framework.Communications.Cache
         }
 
         public void HandleUDPUploadRequest(IClientAPI remoteClient, LLUUID assetID, LLUUID transaction, sbyte type,
-                                           byte[] data, bool storeLocal)
+                                           byte[] data, bool storeLocal, bool tempFile)
         {
             // Console.WriteLine("asset upload of " + assetID);
             AgentAssetTransactions transactions = GetUserTransActions(remoteClient.AgentId);
@@ -92,7 +92,7 @@ namespace OpenSim.Framework.Communications.Cache
                 AgentAssetTransactions.AssetXferUploader uploader = transactions.RequestXferUploader(transaction);
                 if (uploader != null)
                 {
-                    uploader.Initialise(remoteClient, assetID, transaction, type, data, storeLocal);
+                    uploader.Initialise(remoteClient, assetID, transaction, type, data, storeLocal, tempFile);
                 }
             }
         }

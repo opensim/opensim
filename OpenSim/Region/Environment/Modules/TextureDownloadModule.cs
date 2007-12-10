@@ -46,11 +46,10 @@ namespace OpenSim.Region.Environment.Modules
         private Scene m_scene;
         private List<Scene> m_scenes = new List<Scene>();
 
-        private Dictionary<LLUUID, Dictionary<LLUUID, AssetRequest>> ClientRequests =
-            new Dictionary<LLUUID, Dictionary<LLUUID, AssetRequest>>();
-
         private BlockingQueue<TextureSender> QueueSenders = new BlockingQueue<TextureSender>();
-        private Dictionary<LLUUID, List<LLUUID>> InProcess = new Dictionary<LLUUID, List<LLUUID>>();
+
+        private Dictionary<LLUUID, UserTextureDownloadService> m_userTextureServices = new Dictionary<LLUUID, UserTextureDownloadService>();
+
         private Thread m_thread;
 
         public TextureDownloadModule()
@@ -85,55 +84,36 @@ namespace OpenSim.Region.Environment.Modules
 
         public bool IsSharedModule
         {
-            get { return true; }
+            get { return false; }
         }
 
         public void NewClient(IClientAPI client)
         {
-            lock (ClientRequests)
-            {
-                if (!ClientRequests.ContainsKey(client.AgentId))
-                {
-                    ClientRequests.Add(client.AgentId, new Dictionary<LLUUID, AssetRequest>());
-                    InProcess.Add(client.AgentId, new List<LLUUID>());
-                }
-            }
             client.OnRequestTexture += TextureRequest;
-
         }
 
-        public void TextureCallback(LLUUID textureID, AssetBase asset)
+        private bool TryGetUserTextureService(LLUUID userID, out UserTextureDownloadService textureService)
         {
-            lock (ClientRequests)
+            lock (m_userTextureServices)
             {
-                foreach (Dictionary<LLUUID, AssetRequest> reqList in ClientRequests.Values)
+                if (m_userTextureServices.TryGetValue(userID, out textureService))
                 {
-                    if (reqList.ContainsKey(textureID))
-                    {
-                        //check the texture isn't already in the process of being sent to the client.
-                        if (!InProcess[reqList[textureID].RequestUser.AgentId].Contains(textureID))
-                        {
-                            TextureSender sender = new TextureSender(reqList[textureID], asset);
-                            QueueSenders.Enqueue(sender);
-                            InProcess[reqList[textureID].RequestUser.AgentId].Add(textureID);
-                            reqList.Remove(textureID);
-                        }
-                    }
+                    return true;
                 }
+
+                textureService = new UserTextureDownloadService(m_scene, QueueSenders);
+                m_userTextureServices.Add(userID, textureService);
+                return true;
             }
         }
 
         public void TextureRequest(Object sender, TextureRequestArgs e)
         {
             IClientAPI client = (IClientAPI)sender;
-            if (!ClientRequests[client.AgentId].ContainsKey(e.RequestedAssetID))
+            UserTextureDownloadService textureService;
+            if (TryGetUserTextureService(client.AgentId, out textureService))
             {
-                lock (ClientRequests)
-                {
-                    AssetRequest request = new AssetRequest(client, e.RequestedAssetID, e.DiscardLevel, e.PacketNumber);
-                    ClientRequests[client.AgentId].Add(e.RequestedAssetID, request);
-                }
-                m_scene.AssetCache.GetAsset(e.RequestedAssetID, TextureCallback);
+                textureService.HandleTextureRequest(client, e);
             }
         }
 
@@ -142,57 +122,150 @@ namespace OpenSim.Region.Environment.Modules
             while (true)
             {
                 TextureSender sender = QueueSenders.Dequeue();
-                bool finished = sender.SendTexture();
-                if (finished)
+                if (sender.Cancel)
                 {
                     TextureSent(sender);
                 }
                 else
                 {
-                    QueueSenders.Enqueue(sender);
+                    bool finished = sender.SendTexturePacket();
+                    if (finished)
+                    {
+                        TextureSent(sender);
+                    }
+                    else
+                    {
+                        QueueSenders.Enqueue(sender);
+                    }
                 }
             }
         }
 
         private void TextureSent(TextureSender sender)
         {
-            if (InProcess[sender.request.RequestUser.AgentId].Contains(sender.request.RequestAssetID))
+            sender.Sending = false;
+        }
+
+        public class UserTextureDownloadService
+        {
+            private Dictionary<LLUUID, TextureSender> m_textureSenders = new Dictionary<LLUUID, TextureSender>();
+
+            private BlockingQueue<TextureSender> m_sharedSendersQueue;
+
+            private Scene m_scene;
+
+            public UserTextureDownloadService(Scene scene, BlockingQueue<TextureSender> sharedQueue)
             {
-                InProcess[sender.request.RequestUser.AgentId].Remove(sender.request.RequestAssetID);
+                m_scene = scene;
+                m_sharedSendersQueue = sharedQueue;
+            }
+
+            public void HandleTextureRequest(IClientAPI client, TextureRequestArgs e)
+            {
+                //TODO: should be working out the data size/ number of packets to be sent for each discard level
+                if ((e.DiscardLevel >= 0) || (e.Priority != 0))
+                {
+                    lock (m_textureSenders)
+                    {
+                        if (!m_textureSenders.ContainsKey(e.RequestedAssetID))
+                        {
+                            TextureSender requestHandler = new TextureSender(client, e.RequestedAssetID, e.DiscardLevel, e.PacketNumber);
+                            m_textureSenders.Add(e.RequestedAssetID, requestHandler);
+                            m_scene.AssetCache.GetAsset(e.RequestedAssetID, TextureCallback);
+                        }
+                        else
+                        {
+                            m_textureSenders[e.RequestedAssetID].UpdateRequest(e.DiscardLevel, e.PacketNumber);
+                            m_textureSenders[e.RequestedAssetID].counter = 0;
+                            if ((m_textureSenders[e.RequestedAssetID].ImageLoaded) && (m_textureSenders[e.RequestedAssetID].Sending ==false))
+                            {
+                                m_textureSenders[e.RequestedAssetID].Sending = true;
+                                m_sharedSendersQueue.Enqueue(m_textureSenders[e.RequestedAssetID]);
+                            }
+                        }
+                    }
+                }
+                else
+                {
+                    lock (m_textureSenders)
+                    {
+                        if (m_textureSenders.ContainsKey(e.RequestedAssetID))
+                        {
+                            m_textureSenders[e.RequestedAssetID].Cancel = true;
+                        }
+                    }
+                }
+            }
+
+            public void TextureCallback(LLUUID textureID, AssetBase asset)
+            {
+                lock (m_textureSenders)
+                {
+                    if (m_textureSenders.ContainsKey(textureID))
+                    {
+                        if (!m_textureSenders[textureID].ImageLoaded)
+                        {
+                            m_textureSenders[textureID].TextureReceived(asset);
+                            m_textureSenders[textureID].Sending = true;
+                            m_textureSenders[textureID].counter = 0;
+                            m_sharedSendersQueue.Enqueue(m_textureSenders[textureID]);
+                        }
+                    }
+                    else
+                    {
+                        // Got a texture with no sender object to handle it, this shouldn't happen
+                    }
+                }
             }
         }
 
         public class TextureSender
         {
-            public AssetRequest request;
-            private int counter = 0;
+            public int counter = 0;
             private AssetBase m_asset;
             public long DataPointer = 0;
             public int NumPackets = 0;
             public int PacketCounter = 0;
+            public bool Cancel = false;
+            public bool ImageLoaded = false;
 
-            public TextureSender(AssetRequest req, AssetBase asset)
+            public bool Sending = false;
+
+            public IClientAPI RequestUser;
+            public LLUUID RequestedAssetID;
+            public int RequestedDiscardLevel = -1;
+            public uint StartPacketNumber = 0;
+
+            // private int m_sentDiscardLevel = -1;
+
+            public TextureSender(IClientAPI client, LLUUID textureID, int discardLevel, uint packetNumber)
             {
-                request = req;
-                m_asset = asset;
-
-                if (asset.Data.LongLength > 600)
-                {
-                    NumPackets = 2 + (int)(asset.Data.Length - 601) / 1000;
-                }
-                else
-                {
-                    NumPackets = 1;
-                }
-
-                PacketCounter = (int)req.PacketNumber;
+                RequestUser = client;
+                RequestedAssetID = textureID;
+                RequestedDiscardLevel = discardLevel;
+                StartPacketNumber = packetNumber;
             }
 
-            public bool SendTexture()
+            public void TextureReceived(AssetBase asset)
+            {
+                m_asset = asset;
+                NumPackets = CalculateNumPackets(asset.Data.Length);
+                PacketCounter = (int)StartPacketNumber;
+                ImageLoaded = true;
+            }
+
+            public void UpdateRequest(int discardLevel, uint packetNumber)
+            {
+                RequestedDiscardLevel = discardLevel;
+                StartPacketNumber = packetNumber;
+                PacketCounter = (int)StartPacketNumber;
+            }
+
+            public bool SendTexturePacket()
             {
                 SendPacket();
                 counter++;
-                if ((PacketCounter >= NumPackets) || counter > 100 || (NumPackets == 1) || (request.DiscardLevel == -1))
+                if ((NumPackets == 0) || (RequestedDiscardLevel == -1) || (PacketCounter > NumPackets) || ((RequestedDiscardLevel > 0) && (counter > 50 + (NumPackets / (RequestedDiscardLevel + 1)))) )
                 {
                     return true;
                 }
@@ -201,65 +274,68 @@ namespace OpenSim.Region.Environment.Modules
 
             public void SendPacket()
             {
-                AssetRequest req = request;
-                if (PacketCounter == 0)
+                if (PacketCounter <= NumPackets)
                 {
-                    if (NumPackets == 1)
+                    if (PacketCounter == 0)
                     {
-                        ImageDataPacket im = new ImageDataPacket();
-                        im.Header.Reliable = false;
-                        im.ImageID.Packets = 1;
-                        im.ImageID.ID = m_asset.FullID;
-                        im.ImageID.Size = (uint)m_asset.Data.Length;
-                        im.ImageData.Data = m_asset.Data;
-                        im.ImageID.Codec = 2;
-                        req.RequestUser.OutPacket(im, ThrottleOutPacketType.Texture);
-                        PacketCounter++;
+                        if (NumPackets == 0)
+                        {
+                            ImageDataPacket im = new ImageDataPacket();
+                            im.Header.Reliable = false;
+                            im.ImageID.Packets = 0;
+                            im.ImageID.ID = m_asset.FullID;
+                            im.ImageID.Size = (uint)m_asset.Data.Length;
+                            im.ImageData.Data = m_asset.Data;
+                            im.ImageID.Codec = 2;
+                            RequestUser.OutPacket(im, ThrottleOutPacketType.Texture);
+                            PacketCounter++;
+                        }
+                        else
+                        {
+                            ImageDataPacket im = new ImageDataPacket();
+                            im.Header.Reliable = false;
+                            im.ImageID.Packets = (ushort)(NumPackets);
+                            im.ImageID.ID = m_asset.FullID;
+                            im.ImageID.Size = (uint)m_asset.Data.Length;
+                            im.ImageData.Data = new byte[600];
+                            Array.Copy(m_asset.Data, 0, im.ImageData.Data, 0, 600);
+                            im.ImageID.Codec = 2;
+                            RequestUser.OutPacket(im, ThrottleOutPacketType.Texture);
+                            PacketCounter++;
+                        }
                     }
                     else
                     {
-                        ImageDataPacket im = new ImageDataPacket();
+                        ImagePacketPacket im = new ImagePacketPacket();
                         im.Header.Reliable = false;
-                        im.ImageID.Packets = (ushort)(NumPackets);
+                        im.ImageID.Packet = (ushort)(PacketCounter);
                         im.ImageID.ID = m_asset.FullID;
-                        im.ImageID.Size = (uint)m_asset.Data.Length;
-                        im.ImageData.Data = new byte[600];
-                        Array.Copy(m_asset.Data, 0, im.ImageData.Data, 0, 600);
-                        im.ImageID.Codec = 2;
-                        req.RequestUser.OutPacket(im, ThrottleOutPacketType.Texture);
+                        int size = m_asset.Data.Length - 600 - (1000 * (PacketCounter - 1));
+                        if (size > 1000) size = 1000;
+                        im.ImageData.Data = new byte[size];
+                        Array.Copy(m_asset.Data, 600 + (1000 * (PacketCounter - 1)), im.ImageData.Data, 0, size);
+                        RequestUser.OutPacket(im, ThrottleOutPacketType.Texture);
                         PacketCounter++;
                     }
                 }
-                else
-                {
-                    ImagePacketPacket im = new ImagePacketPacket();
-                    im.Header.Reliable = false;
-                    im.ImageID.Packet = (ushort)(PacketCounter);
-                    im.ImageID.ID = m_asset.FullID;
-                    int size = m_asset.Data.Length - 600 - (1000 * (PacketCounter - 1));
-                    if (size > 1000) size = 1000;
-                    im.ImageData.Data = new byte[size];
-                    Array.Copy(m_asset.Data, 600 + (1000 * (PacketCounter - 1)), im.ImageData.Data, 0, size);
-                    req.RequestUser.OutPacket(im, ThrottleOutPacketType.Texture);
-                    PacketCounter++;
-                }
             }
-        }
 
-        public class AssetRequest
-        {
-            public IClientAPI RequestUser;
-            public LLUUID RequestAssetID;
-            public int DiscardLevel = -1;
-            public uint PacketNumber = 0;
-
-            public AssetRequest(IClientAPI client, LLUUID textureID, int discardLevel, uint packetNumber)
+            private int CalculateNumPackets(int length)
             {
-                RequestUser = client;
-                RequestAssetID = textureID;
-                DiscardLevel = discardLevel;
-                PacketNumber = packetNumber;
+                int numPackets = 0;
+
+                if (length > 600)
+                {
+                    //over 600 bytes so split up file
+                    int restData = (length - 600);
+                    int restPackets = ((restData + 999) / 1000);
+                    numPackets = restPackets;
+                }
+
+                return numPackets;
             }
         }
+
+
     }
 }

@@ -2738,6 +2738,7 @@ namespace OpenSim.Region.ClientStack
                                 args.RequestedAssetID = imageRequest.RequestImage[i].Image;
                                 args.DiscardLevel = imageRequest.RequestImage[i].DiscardLevel;
                                 args.PacketNumber = imageRequest.RequestImage[i].Packet;
+                                args.Priority = imageRequest.RequestImage[i].DownloadPriority;
 
                                 OnRequestTexture(this, args);
                             }
@@ -2761,7 +2762,7 @@ namespace OpenSim.Region.ClientStack
                             LLUUID temp=libsecondlife.LLUUID.Combine(request.AssetBlock.TransactionID, SecureSessionId);
                             OnAssetUploadRequest(this, temp,
                                                  request.AssetBlock.TransactionID, request.AssetBlock.Type,
-                                                 request.AssetBlock.AssetData, request.AssetBlock.StoreLocal);
+                                                 request.AssetBlock.AssetData, request.AssetBlock.StoreLocal, request.AssetBlock.Tempfile);
                         }
                         break;
                     case PacketType.RequestXfer:

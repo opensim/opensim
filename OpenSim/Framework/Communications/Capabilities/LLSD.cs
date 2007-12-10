@@ -10,7 +10,7 @@ using System.Text;
 namespace OpenSim.Region.Capabilities
 {
     /// <summary>
-    /// 
+    /// Borrowed from (a older version of ) libsl for now, as their new llsd code doesn't work we our decoding code. 
     /// </summary>
     public static class LLSD
     {

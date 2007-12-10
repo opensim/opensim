@@ -157,6 +157,13 @@ namespace OpenSim.Framework
         protected LLUUID m_requestedAssetID;
         private sbyte m_discardLevel;
         private uint m_packetNumber;
+        private float m_priority;
+
+        public float Priority
+        {
+            get { return m_priority; }
+            set { m_priority = value; }
+        }
 
         /// <summary>
         /// 
@@ -348,7 +355,7 @@ namespace OpenSim.Framework
     public delegate void RemoveTaskInventory(IClientAPI remoteClient, LLUUID itemID, uint localID);
 
     public delegate void UDPAssetUploadRequest(
-        IClientAPI remoteClient, LLUUID assetID, LLUUID transaction, sbyte type, byte[] data, bool storeLocal);
+        IClientAPI remoteClient, LLUUID assetID, LLUUID transaction, sbyte type, byte[] data, bool storeLocal, bool tempFile);
 
     public delegate void XferReceive(IClientAPI remoteClient, ulong xferID, uint packetID, byte[] data);
 

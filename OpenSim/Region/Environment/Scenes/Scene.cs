@@ -1019,7 +1019,7 @@ namespace OpenSim.Region.Environment.Scenes
             ScenePresence avatar = null;
 
             AvatarAppearance appearance;
-            LoadAvatarAppearance(client, out appearance);
+            GetAvatarAppearance(client, out appearance);
 
             avatar = m_innerScene.CreateAndAddScenePresence(client, child, appearance);
 
@@ -1031,7 +1031,7 @@ namespace OpenSim.Region.Environment.Scenes
             return avatar;
         }
 
-        protected void LoadAvatarAppearance(IClientAPI client,  out AvatarAppearance appearance)
+        protected void GetAvatarAppearance(IClientAPI client,  out AvatarAppearance appearance)
         {
             if (m_AvatarFactory == null ||
                 !m_AvatarFactory.TryGetAvatarAppearance(client.AgentId, out appearance))
