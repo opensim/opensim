@@ -54,19 +54,25 @@ namespace OpenSim.Region.Environment.Modules
 
         public TextureDownloadModule()
         {
-            m_thread = new Thread(new ThreadStart(ProcessTextureSenders));
-            m_thread.IsBackground = true;
-            m_thread.Start();
         }
 
         public void Initialise(Scene scene, IConfigSource config)
         {
+            if (m_scene == null)
+            {
+                Console.WriteLine("Creating Texture download module");
+                m_thread = new Thread(new ThreadStart(ProcessTextureSenders));
+                m_thread.IsBackground = true;
+                m_thread.Start();
+            }
+
             if (!m_scenes.Contains(scene))
             {
                 m_scenes.Add(scene);
                 m_scene = scene;
                 m_scene.EventManager.OnNewClient += NewClient;
             }
+
         }
 
         public void PostInitialise()
@@ -272,7 +278,7 @@ namespace OpenSim.Region.Environment.Modules
                 return false;
             }
 
-            public void SendPacket()
+            private void SendPacket()
             {
                 if (PacketCounter <= NumPackets)
                 {
