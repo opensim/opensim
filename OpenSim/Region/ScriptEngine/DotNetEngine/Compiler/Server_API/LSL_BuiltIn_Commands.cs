@@ -831,6 +831,14 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler
         public void llInstantMessage(string user, string message)
         {
             NotImplemented("llInstantMessage");
+
+            // We may be able to use ClientView.SendInstantMessage here, but we need a client instance.
+            // InstantMessageModule.OnInstantMessage searches through a list of scenes for a client matching the toAgent,
+            // but I don't think we have a list of scenes available from here.
+            // (We also don't want to duplicate the code in OnInstantMessage if we can avoid it.)
+
+            // TODO: figure out values for client, fromSession, and imSessionID
+            // client.SendInstantMessage(m_host.UUID, fromSession, message, user, imSessionID, m_host.Name, AgentManager.InstantMessageDialog.MessageFromAgent, (uint)Util.UnixTimeSinceEpoch());
         }
 
         public void llEmail(string address, string subject, string message)
