@@ -23,6 +23,7 @@ namespace OpenSim.Region.Environment.Scenes
         public event CloseAgentConnection OnCloseAgentConnection;
         public event PrimCrossing OnPrimCrossingIntoRegion;
         public event RegionUp OnRegionUp;
+        public event ChildAgentUpdate OnChildAgentUpdate;
 
         public KillObjectDelegate KillObject;
         public string _debugRegionName = "";
@@ -59,6 +60,8 @@ namespace OpenSim.Region.Environment.Scenes
                 regionCommsHost.OnPrimCrossingIntoRegion += PrimCrossing;
                 regionCommsHost.OnCloseAgentConnection += CloseConnection;
                 regionCommsHost.OnRegionUp += newRegionUp;
+                regionCommsHost.OnChildAgentUpdate += ChildAgentUpdate;
+
             }
             else
             {
@@ -70,6 +73,7 @@ namespace OpenSim.Region.Environment.Scenes
         {
             if (regionCommsHost != null)
             {
+                regionCommsHost.OnChildAgentUpdate -= ChildAgentUpdate;
                 regionCommsHost.OnRegionUp -= newRegionUp;
                 regionCommsHost.OnExpectUser -= NewUserConnection;
                 regionCommsHost.OnAvatarCrossingIntoRegion -= AgentCrossing;
@@ -103,6 +107,14 @@ namespace OpenSim.Region.Environment.Scenes
                 //MainLog.Instance.Verbose("INTER", debugRegionName + ": SceneCommunicationService: newRegionUp Fired for User:" + region.RegionName);
                 OnRegionUp(region);
             }
+            return true;
+        }
+        protected bool ChildAgentUpdate(ulong regionHandle, ChildAgentDataUpdate cAgentData)
+        {
+            if (OnChildAgentUpdate != null)
+                OnChildAgentUpdate(regionHandle, cAgentData);
+
+
             return true;
         }
 
@@ -262,6 +274,37 @@ namespace OpenSim.Region.Environment.Scenes
            
             //bool val = m_commsProvider.InterRegion.RegionUp(new SearializableRegionInfo(region));
         }
+        public delegate void SendChildAgentDataUpdateDelegate(ulong regionHandle, ChildAgentDataUpdate cAgentData);
+
+        private void SendChildAgentDataUpdateAsync(ulong regionHandle, ChildAgentDataUpdate cAgentData)
+        {
+            MainLog.Instance.Notice("INTERGRID", "Informing a neighbor about my agent.");
+            bool regionAccepted = m_commsProvider.InterRegion.ChildAgentUpdate(regionHandle,cAgentData);
+
+            if (regionAccepted)
+            {
+                MainLog.Instance.Notice("INTERGRID", "Completed sending a neighbor an update about my agent");
+            }
+            else
+            {
+                MainLog.Instance.Notice("INTERGRID", "Failed sending a neighbor an update about my agent");
+            }
+        }
+        private void SendChildAgentDataUpdateCompleted(IAsyncResult iar)
+        {
+            SendChildAgentDataUpdateDelegate icon = (SendChildAgentDataUpdateDelegate)iar.AsyncState;
+            icon.EndInvoke(iar);
+        }
+        public void SendChildAgentDataUpdate(ulong regionHandle, ChildAgentDataUpdate cAgentData)
+        {
+            // This assumes that we know what our neighbors are.
+            SendChildAgentDataUpdateDelegate d = SendChildAgentDataUpdateAsync;
+            d.BeginInvoke(regionHandle, cAgentData,
+                          SendChildAgentDataUpdateCompleted,
+                          d);
+
+        }
+        
 
         /// <summary>
         /// 

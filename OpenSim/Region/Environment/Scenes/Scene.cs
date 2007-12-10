@@ -60,6 +60,7 @@ namespace OpenSim.Region.Environment.Scenes
         protected Timer m_restartWaitTimer = new Timer();
 
         protected List<RegionInfo> m_regionRestartNotifyList = new List<RegionInfo>();
+        protected List<RegionInfo> m_neighbours = new List<RegionInfo>();
 
         public InnerScene m_innerScene;
 
@@ -266,13 +267,37 @@ namespace OpenSim.Region.Environment.Scenes
 
         public override bool OtherRegionUp(RegionInfo otherRegion)
         {
-           // Another region is up.   We have to tell all our ScenePresences about it
+           // Another region is up.   
+           // We have to tell all our ScenePresences about it.. 
+           //and add it to the neighbor list.
            
 
             if (RegionInfo.RegionHandle != otherRegion.RegionHandle)
             {
                 if ((Math.Abs(otherRegion.RegionLocX - RegionInfo.RegionLocX) <= 1) && (Math.Abs(otherRegion.RegionLocY - RegionInfo.RegionLocY) <= 1))
                 {
+                    for (int i = 0; i < m_neighbours.Count; i++)
+                    {
+                        // The purpose of this loop is to re-update the known neighbors 
+                        // when another region comes up on top of another one.
+                        // The latest region in that location ends up in the 
+                        // 'known neighbors list'
+                        // Additionally, the commFailTF property gets reset to false.
+                        if (m_neighbours[i].RegionHandle == otherRegion.RegionHandle)
+                        {
+                            m_neighbours[i] = otherRegion;
+                        }
+                    }
+
+                    // If the value isn't in the neighbours, add it.
+                    // If the RegionInfo isn't exact but is for the same XY World location, 
+                    // then the above loop will fix that.
+
+                    if (!(m_neighbours.Contains(otherRegion)))
+                    {
+                        m_neighbours.Add(otherRegion);
+                    }
+
                     if (!(m_regionRestartNotifyList.Contains(otherRegion)))
                     {
                         m_regionRestartNotifyList.Add(otherRegion);
@@ -1112,6 +1137,7 @@ namespace OpenSim.Region.Environment.Scenes
             m_sceneGridService.OnAvatarCrossingIntoRegion += AgentCrossing;
             m_sceneGridService.OnCloseAgentConnection += CloseConnection;
             m_sceneGridService.OnRegionUp += OtherRegionUp;
+            m_sceneGridService.OnChildAgentUpdate += IncomingChildAgentDataUpdate;
 
             m_sceneGridService.KillObject = SendKillObject;            
         }
@@ -1121,6 +1147,7 @@ namespace OpenSim.Region.Environment.Scenes
         /// </summary>
         public void UnRegisterReginWithComms()
         {
+            m_sceneGridService.OnChildAgentUpdate -= IncomingChildAgentDataUpdate;
             m_sceneGridService.OnRegionUp -= OtherRegionUp;
             m_sceneGridService.OnExpectUser -= NewUserConnection;
             m_sceneGridService.OnAvatarCrossingIntoRegion -= AgentCrossing;
@@ -1182,6 +1209,24 @@ namespace OpenSim.Region.Environment.Scenes
             }
         }
 
+        public virtual bool IncomingChildAgentDataUpdate(ulong regionHandle, ChildAgentDataUpdate cAgentData)
+        {
+            ScenePresence childAgentUpdate = GetScenePresence(new LLUUID(cAgentData.AgentID));
+            if (!(childAgentUpdate.Equals(null)))
+            {
+                // I can't imagine *yet* why we would get an update if the agent is a root agent..    
+                // however to avoid a race condition crossing borders..   
+                if (childAgentUpdate.IsChildAgent)
+                {
+                    //Send Data to ScenePresence
+                    childAgentUpdate.ChildAgentDataUpdate(cAgentData);
+                    // Not Implemented:
+                    //TODO: Do we need to pass the message on to one of our neighbors?
+
+                }
+            }
+            return true;
+        }
         /// <summary>
         /// 
         /// </summary>

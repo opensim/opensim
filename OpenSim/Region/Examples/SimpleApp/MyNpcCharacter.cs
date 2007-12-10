@@ -202,10 +202,13 @@ namespace SimpleApp
         {
 
         }
+
         public virtual void SendKillObject(ulong regionHandle, uint localID)
         {
         }
-
+        public virtual void SetChildAgentThrottle(byte[] throttle)
+        {
+        }
         public virtual void SendAnimation(LLUUID animID, int seq, LLUUID sourceAgentId)
         {
         }

@@ -2015,7 +2015,10 @@ namespace OpenSim.Region.ClientStack
             this.OutPacket(mbReply, ThrottleOutPacketType.Land);
              */
         }
-
+        public void SetChildAgentThrottle(byte[] throttles)
+        {
+            PacketQueue.SetThrottleFromClient(throttles);
+        }
         // Previously ClientView.PacketQueue
         protected PacketQueue PacketQueue;
 

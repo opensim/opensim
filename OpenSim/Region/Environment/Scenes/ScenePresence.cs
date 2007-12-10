@@ -53,6 +53,7 @@ namespace OpenSim.Region.Environment.Scenes
         private uint m_requestedSitTargetID = 0;
         private LLVector3 m_requestedSitOffset = new LLVector3();
         private float m_sitAvatarHeight = 2.0f;
+        private float m_godlevel = 0;
 
         private bool m_isTyping = false;
         private bool m_setAlwaysRun = false;
@@ -1255,7 +1256,20 @@ namespace OpenSim.Region.Environment.Scenes
             respondPacket.AgentData = adb;
             ControllingClient.OutPacket(respondPacket, ThrottleOutPacketType.Task);
         }
+        public void ChildAgentDataUpdate(ChildAgentDataUpdate cAgentData)
+        {
+            // 
+            m_DrawDistance = cAgentData.drawdistance;
+            m_pos = new LLVector3(cAgentData.Position.x, cAgentData.Position.y, cAgentData.Position.z);
+            m_CameraCenter = new Vector3(cAgentData.cameraPosition.x, cAgentData.cameraPosition.y, cAgentData.cameraPosition.z);
+            m_godlevel = cAgentData.godlevel;
+            ControllingClient.SetChildAgentThrottle(cAgentData.throttles);
+            //cAgentData.AVHeight;
+            //cAgentData.regionHandle;
+            //m_velocity = cAgentData.Velocity;
 
+
+        }
         /// <summary>
         /// 
         /// </summary>

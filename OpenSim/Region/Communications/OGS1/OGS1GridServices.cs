@@ -710,9 +710,10 @@ namespace OpenSim.Region.Communications.OGS1
             }
             catch (Exception e)
             {
-                MainLog.Instance.Warn("Unknown exception: Unable to connect to adjacent region using tcp://" + regInfo.RemotingAddress +
-                                                                                          ":" + regInfo.RemotingPort +
-                                                                                          "/InterRegions - @ " + regInfo.RegionLocX + "," + regInfo.RegionLocY + " - This is likely caused by an incompatibility in the protocol between this sim and that one");
+                // This line errors with a Null Reference Exception..    Why?  @.@
+                //MainLog.Instance.Warn("Unknown exception: Unable to connect to adjacent region using tcp://" + regInfo.RemotingAddress +
+                                                                                         // ":" + regInfo.RemotingPort +
+                                                                                          //"/InterRegions - @ " + regInfo.RegionLocX + "," + regInfo.RegionLocY + " - This is likely caused by an incompatibility in the protocol between this sim and that one");
                 MainLog.Instance.Debug(e.ToString());
                 return false;
             }

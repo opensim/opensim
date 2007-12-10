@@ -480,7 +480,7 @@ namespace OpenSim.Framework
         void SendCoarseLocationUpdate(List<LLVector3> CoarseLocations);
 
         void AttachObject(uint localID, LLQuaternion rotation, byte attachPoint);
-
+        void SetChildAgentThrottle(byte[] throttle);
         void SendPrimitiveToClient(ulong regionHandle, ushort timeDilation, uint localID, PrimitiveBaseShape primShape,
                                    LLVector3 pos, uint flags, LLUUID objectID, LLUUID ownerID, string text, byte[] color,
                                    uint parentID, byte[] particleSystem, LLQuaternion rotation, byte clickAction);

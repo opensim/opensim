@@ -186,6 +186,7 @@ namespace OpenSim.Framework
 
         public string DataStore = "";
         public bool isSandbox = false;
+        public bool commFailTF = false;
 
         public LLUUID MasterAvatarAssignedUUID = LLUUID.Zero;
         public string MasterAvatarFirstName = "";
