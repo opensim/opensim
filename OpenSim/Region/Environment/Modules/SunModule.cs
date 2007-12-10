@@ -57,7 +57,7 @@ namespace OpenSim.Region.Environment.Modules
             
             // Just in case they don't have the stanzas
             try {
-                m_day_length = config.Configs["Sun"].GetDouble("day_length", 0.5);
+                m_day_length = config.Configs["Sun"].GetDouble("day_length", 24.0);
                 m_frame_mod = config.Configs["Sun"].GetInt("frame_rate", 100);
             } catch (Exception) {
                 m_day_length = 0.5;
