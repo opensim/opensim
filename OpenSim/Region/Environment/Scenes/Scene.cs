@@ -130,20 +130,20 @@ namespace OpenSim.Region.Environment.Scenes
         }
 
         protected readonly LandManager m_LandManager;
-
+        // LandManager object instance that manages land related things.  Parcel, primcounts etc..  
         public LandManager LandManager
         {
             get { return m_LandManager; }
         }
 
         protected readonly EstateManager m_estateManager;
-
+        // an instance to the physics plugin's Scene object.
         public PhysicsScene PhysicsScene
         {
             set { m_innerScene.PhysicsScene = value; }
             get { return (m_innerScene.PhysicsScene); }
         }
-
+        // This gets locked so things stay thread safe.
         public object SyncRoot
         {
             get { return m_innerScene.m_syncRoot; }
@@ -160,6 +160,8 @@ namespace OpenSim.Region.Environment.Scenes
         }
 
         protected readonly PermissionManager m_permissionManager;
+        // This is the instance to the permissions manager.  
+        // This manages permissions to clients on in world objects
 
         public PermissionManager PermissionsMngr
         {
@@ -171,11 +173,13 @@ namespace OpenSim.Region.Environment.Scenes
             get { return m_timePhase; }
         }
 
+        // Local reference to the objects in the scene (which are held in innerScene)
         public Dictionary<LLUUID, SceneObjectGroup> Objects
         {
             get { return m_innerScene.SceneObjects; }
         }
 
+        // Reference to all of the agents in the scene (root and child)
         protected Dictionary<LLUUID, ScenePresence> m_scenePresences
         {
             get { return m_innerScene.ScenePresences; }
@@ -267,9 +271,10 @@ namespace OpenSim.Region.Environment.Scenes
 
         public override bool OtherRegionUp(RegionInfo otherRegion)
         {
-           // Another region is up.   
-           // We have to tell all our ScenePresences about it.. 
-           // and add it to the neighbor list.
+            // Another region is up.  
+            // Gets called from Grid Comms (SceneCommunicationService<---RegionListener<----LocalBackEnd<----OGS1)
+            // We have to tell all our ScenePresences about it.. 
+            // and add it to the neighbor list.
 
             // We only add it to the neighbor list if it's within 1 region from here.
             // Agents may have draw distance values that cross two regions though, so 
@@ -324,8 +329,15 @@ namespace OpenSim.Region.Environment.Scenes
             return true;
         }
 
+        // Given float seconds, this will restart the region.
+
         public virtual void Restart(float seconds)
         {
+            // notifications are done in 15 second increments
+            // so ..   if the number of seconds is less then 15 seconds, it's not really a restart request
+            // It's a 'Cancel restart' request.
+
+            // RestartNow() does immediate restarting.
             if (seconds < 15)
             {
                 m_restartTimer.Stop();
@@ -333,6 +345,7 @@ namespace OpenSim.Region.Environment.Scenes
             }
             else
             {
+                // Now we figure out what to set the timer to that does the notifications and calls, RestartNow()
                 m_restartTimer.Interval = 15000;
                 m_incrementsof15seconds = (int) seconds/15;
                 m_RestartTimerCounter = 0;
@@ -344,6 +357,10 @@ namespace OpenSim.Region.Environment.Scenes
             }
         }
 
+        // The Restart timer has occured.  
+        // We have to figure out if this is a notification or if the number of seconds specified in Restart 
+        // have elapsed.
+        // If they have elapsed, call RestartNow()
         public void RestartTimer_Elapsed(object sender, ElapsedEventArgs e)
         {
             m_RestartTimerCounter++;
@@ -360,6 +377,7 @@ namespace OpenSim.Region.Environment.Scenes
             }
         }
 
+        // This causes the region to restart immediatley.
         public void RestartNow()
         {
             MainLog.Instance.Error("REGION", "Closing");
@@ -368,6 +386,11 @@ namespace OpenSim.Region.Environment.Scenes
             base.Restart(0);
         }
 
+        // This is a helper function that notifies root agents in this region that a new sim near them has come up
+        // This is in the form of a timer because when an instance of OpenSim.exe is started, 
+        // Even though the sims initialize, they don't listen until 'all of the sims are initialized'
+        // If we tell an agent about a sim that's not listening yet, the agent will not be able to connect to it.
+        // subsequently the agent will never see the region come back online.
         public void RestartNotifyWaitElapsed(object sender, ElapsedEventArgs e)
         { 
             m_restartWaitTimer.Stop();
@@ -378,6 +401,7 @@ namespace OpenSim.Region.Environment.Scenes
 
                     ForEachScenePresence(delegate(ScenePresence agent)
                     {
+                        // If agent is a root agent.
                         if (!agent.IsChildAgent)
                         {
                             //agent.ControllingClient.new
@@ -391,14 +415,18 @@ namespace OpenSim.Region.Environment.Scenes
                 catch (System.NullReferenceException)
                 {
                     // This means that we're not booted up completely yet.
+                    // This shouldn't happen too often anymore.
                 }
             }
+
             // Reset list to nothing.
             m_regionRestartNotifyList.Clear();
         }
 
+        // This is the method that shuts down the scene.
         public override void Close()
         {
+            // Kick all ROOT agents with the message, 'The simulator is going down'
             ForEachScenePresence(delegate(ScenePresence avatar)
                                  {
                                      if (avatar.KnownChildRegions.Contains(RegionInfo.RegionHandle))
@@ -409,18 +437,23 @@ namespace OpenSim.Region.Environment.Scenes
 
                                      avatar.ControllingClient.OutPacket(new libsecondlife.Packets.DisableSimulatorPacket(), ThrottleOutPacketType.Task);
                                 });
-            
+
+            // Wait here, or the kick messages won't actually get to the agents before the scene terminates.
             Thread.Sleep(500);
 
+            // Stop all client threads.
             ForEachScenePresence(delegate(ScenePresence avatar)
                     {
                         avatar.ControllingClient.Stop();
                     });
-
+            // Stop updating the scene objects and agents.
             m_heartbeatTimer.Close();
+            // close the inner scene
             m_innerScene.Close();
+            // De-register with region communications (events cleanup)
             UnRegisterReginWithComms();
 
+            // Shut down all non shared modules.
             foreach (IRegionModule module in Modules.Values)
             {
                 if (!module.IsSharedModule)
@@ -430,6 +463,7 @@ namespace OpenSim.Region.Environment.Scenes
             }
             Modules.Clear();
 
+            // call the base class Close method.
             base.Close();
         }
 
@@ -530,7 +564,7 @@ namespace OpenSim.Region.Environment.Scenes
                 m_lastupdate = DateTime.Now;
             }
         }
-
+        //Updates the time in the viewer.
         private void UpdateInWorldTime()
         {
             m_timeUpdateCount++;
@@ -1234,7 +1268,7 @@ namespace OpenSim.Region.Environment.Scenes
             return true;
         }
         /// <summary>
-        /// 
+        /// Tell a single agent to disconnect from the region.
         /// </summary>
         /// <param name="regionHandle"></param>
         /// <param name="agentID"></param>
@@ -1245,6 +1279,7 @@ namespace OpenSim.Region.Environment.Scenes
                 ScenePresence presence = m_innerScene.GetScenePresence(agentID);
                 if (presence != null)
                 {
+                    // Tell a single agent to disconnect from the region.
                     libsecondlife.Packets.DisableSimulatorPacket disable = new libsecondlife.Packets.DisableSimulatorPacket();
                     presence.ControllingClient.OutPacket(disable, ThrottleOutPacketType.Task);
                 }
@@ -1252,6 +1287,11 @@ namespace OpenSim.Region.Environment.Scenes
         }
 
         /// <summary>
+        /// Tell neighboring regions about this agent
+        /// When the regions respond with a true value, 
+        /// tell the agents about the region.
+        /// 
+        /// We have to tell the regions about the agents first otherwise it'll deny them access
         /// 
         /// </summary>
         /// <param name="presence"></param>
@@ -1261,7 +1301,7 @@ namespace OpenSim.Region.Environment.Scenes
         }
 
         /// <summary>
-        /// 
+        /// Tell a neighboring region about this agent
         /// </summary>
         /// <param name="presence"></param>
         /// <param name="region"></param>
@@ -1271,7 +1311,7 @@ namespace OpenSim.Region.Environment.Scenes
         }
 
         /// <summary>
-        /// 
+        /// Requests information about this region from gridcomms
         /// </summary>
         /// <param name="regionHandle"></param>
         /// <returns></returns>
@@ -1281,7 +1321,7 @@ namespace OpenSim.Region.Environment.Scenes
         }
 
         /// <summary>
-        /// 
+        /// Requests textures for map from minimum region to maximum region in world cordinates
         /// </summary>
         /// <param name="remoteClient"></param>
         /// <param name="minX"></param>
@@ -1294,7 +1334,7 @@ namespace OpenSim.Region.Environment.Scenes
         }
 
         /// <summary>
-        /// 
+        /// Tries to teleport agent to other region.
         /// </summary>
         /// <param name="remoteClient"></param>
         /// <param name="regionHandle"></param>
@@ -1311,7 +1351,7 @@ namespace OpenSim.Region.Environment.Scenes
         }
 
         /// <summary>
-        /// 
+        /// Agent is crossing the border into a neighbouring region.  Tell the neighbour about it!
         /// </summary>
         /// <param name="regionHandle"></param>
         /// <param name="agentID"></param>
@@ -1641,7 +1681,7 @@ namespace OpenSim.Region.Environment.Scenes
         #endregion
 
         /// <summary>
-        /// 
+        /// Causes all clients to get a full object update on all of the objects in the scene.
         /// </summary>
         public void ForceClientUpdate()
         {
@@ -1655,7 +1695,8 @@ namespace OpenSim.Region.Environment.Scenes
         }
 
         /// <summary>
-        /// 
+        /// This is currently only used for scale (to scale to MegaPrim size)
+        /// There is a console command that calls this in OpenSimMain
         /// </summary>
         /// <param name="cmdparams"></param>
         public void HandleEditCommand(string[] cmdparams)
@@ -1682,7 +1723,7 @@ namespace OpenSim.Region.Environment.Scenes
         }
 
         /// <summary>
-        /// 
+        /// Shows various details about the sim based on the parameters supplied by the console command in openSimMain.
         /// </summary>
         /// <param name="showWhat"></param>
         public void Show(string showWhat)
@@ -1726,7 +1767,7 @@ namespace OpenSim.Region.Environment.Scenes
         #region Script Handling Methods
 
         /// <summary>
-        /// 
+        /// Console command handler to send script command to script engine.
         /// </summary>
         /// <param name="args"></param>
         public void SendCommandToPlugins(string[] args)

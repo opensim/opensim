@@ -189,7 +189,8 @@ namespace OpenSim.Region.Environment.Scenes
         }
 
         /// <summary>
-        /// 
+        /// This informs all neighboring regions about agent "avatar".
+        /// Calls an asynchronous method to do so..  so it doesn't lag the sim.
         /// </summary>
         public void EnableNeighbourChildAgents(ScenePresence avatar, List<RegionInfo> lstneighbours)
         {
@@ -222,6 +223,10 @@ namespace OpenSim.Region.Environment.Scenes
                 }
             }
         }
+        /// <summary>
+        /// This informs a single neighboring region about agent "avatar".
+        /// Calls an asynchronous method to do so..  so it doesn't lag the sim.
+        /// </summary>
         public void InformNeighborChildAgent(ScenePresence avatar, RegionInfo region, List<RegionInfo> neighbours)
         {
             AgentCircuitData agent = avatar.ControllingClient.RequestClientInfo();
@@ -260,7 +265,10 @@ namespace OpenSim.Region.Environment.Scenes
                 MainLog.Instance.Notice("INTERGRID", "Failed to inform neighbors that I'm here");
             }
         }
-
+        /// <summary>
+        /// Called by scene when region is initialized (not always when it's listening for agents)
+        /// This is an inter-region message that informs the surrounding neighbors that the sim is up.
+        /// </summary>
         public void InformNeighborsThatRegionisUp(RegionInfo region)
         {
             //MainLog.Instance.Verbose("INTER", debugRegionName + ": SceneCommunicationService: Sending InterRegion Notification that region is up " + region.RegionName);
@@ -286,6 +294,13 @@ namespace OpenSim.Region.Environment.Scenes
         }
         public delegate void SendChildAgentDataUpdateDelegate(ulong regionHandle, ChildAgentDataUpdate cAgentData);
 
+        /// <summary>
+        /// This informs all neighboring regions about the settings of it's child agent.
+        /// Calls an asynchronous method to do so..  so it doesn't lag the sim.
+        /// 
+        /// This contains information, such as, Draw Distance, Camera location, Current Position, Current throttle settings, etc.
+        /// 
+        /// </summary>
         private void SendChildAgentDataUpdateAsync(ulong regionHandle, ChildAgentDataUpdate cAgentData)
         {
             MainLog.Instance.Notice("INTERGRID", "Informing a neighbor about my agent.");
@@ -317,7 +332,7 @@ namespace OpenSim.Region.Environment.Scenes
         
 
         /// <summary>
-        /// 
+        /// Helper function to request neighbors from grid-comms
         /// </summary>
         /// <param name="regionHandle"></param>
         /// <returns></returns>
@@ -328,7 +343,7 @@ namespace OpenSim.Region.Environment.Scenes
         }
 
         /// <summary>
-        /// 
+        /// Requests map blocks in area of minX, maxX, minY, MaxY in world cordinates
         /// </summary>
         /// <param name="minX"></param>
         /// <param name="minY"></param>

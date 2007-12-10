@@ -40,6 +40,9 @@ namespace OpenSim.Framework
     [Serializable]
     public class SearializableRegionInfo
     {
+        /// <summary>
+        /// This is a serializable version of RegionInfo
+        /// </summary>
         public SearializableRegionInfo()
         {
         }
