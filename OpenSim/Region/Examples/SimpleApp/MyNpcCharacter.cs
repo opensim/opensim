@@ -58,6 +58,7 @@ namespace SimpleApp
         public event SetAppearance OnSetAppearance;
         public event AvatarNowWearing OnAvatarNowWearing;
         public event StartAnim OnStartAnim;
+        public event StopAnim OnStopAnim;
         public event LinkObjects OnLinkObjects;
         public event DelinkObjects OnDelinkObjects;
         public event RequestMapBlocks OnRequestMapBlocks;
@@ -198,18 +199,20 @@ namespace SimpleApp
         public virtual void SendStartPingCheck(byte seq)
         {
         }
+
         public virtual void SendAvatarPickerReply(AvatarPickerReplyPacket response)
         {
-
         }
 
         public virtual void SendKillObject(ulong regionHandle, uint localID)
         {
         }
+
         public virtual void SetChildAgentThrottle(byte[] throttle)
         {
         }
-        public virtual void SendAnimation(LLUUID animID, int seq, LLUUID sourceAgentId)
+
+        public virtual void SendAnimations(LLUUID[] animations, int[] seqs, LLUUID sourceAgentId)
         {
         }
 

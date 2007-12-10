@@ -950,7 +950,6 @@ namespace OpenSim.Region.Environment.Scenes
 
         protected virtual void SubscribeToClientEvents(IClientAPI client)
         {
-            // client.OnStartAnim += StartAnimation;
             client.OnRegionHandShakeReply += SendLayerData;
             //remoteClient.OnRequestWearables += new GenericCall(this.GetInitialPrims);
             client.OnModifyTerrain += ModifyTerrain;

@@ -235,6 +235,8 @@ namespace OpenSim.Framework
 
     public delegate void StartAnim(IClientAPI remoteClient, LLUUID animID, int seq);
 
+    public delegate void StopAnim(IClientAPI remoteClient, LLUUID animID);
+
     public delegate void LinkObjects(uint parent, List<uint> children);
 
     public delegate void DelinkObjects(List<uint> primIds);
@@ -249,6 +251,7 @@ namespace OpenSim.Framework
     public delegate void DisconnectUser();
 
     public delegate void RequestAvatarProperties(IClientAPI remoteClient, LLUUID avatarID);
+
     public delegate void SetAlwaysRun(IClientAPI remoteClient, bool SetAlwaysRun);
 
     public delegate void GenericCall2();
@@ -375,6 +378,7 @@ namespace OpenSim.Framework
         event SetAppearance OnSetAppearance;
         event AvatarNowWearing OnAvatarNowWearing;
         event StartAnim OnStartAnim;
+        event StopAnim OnStopAnim;
         event LinkObjects OnLinkObjects;
         event DelinkObjects OnDelinkObjects;
         event RequestMapBlocks OnRequestMapBlocks;
@@ -468,7 +472,7 @@ namespace OpenSim.Framework
         void SendAppearance(LLUUID agentID, byte[] visualParams, byte[] textureEntry);
         void SendStartPingCheck(byte seq);
         void SendKillObject(ulong regionHandle, uint localID);
-        void SendAnimation(LLUUID animID, int seq, LLUUID sourceAgentId);
+        void SendAnimations(LLUUID[] animID, int[] seqs, LLUUID sourceAgentId);
         void SendRegionHandshake(RegionInfo regionInfo);
         void SendChatMessage(string message, byte type, LLVector3 fromPos, string fromName, LLUUID fromAgentID);
         void SendChatMessage(byte[] message, byte type, LLVector3 fromPos, string fromName, LLUUID fromAgentID);

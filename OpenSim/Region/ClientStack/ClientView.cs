@@ -392,6 +392,7 @@ namespace OpenSim.Region.ClientStack
         public event AgentSit OnAgentSit;
         public event AvatarPickerRequest OnAvatarPickerRequest;
         public event StartAnim OnStartAnim;
+        public event StopAnim OnStopAnim;
         public event Action<IClientAPI> OnRequestAvatarsData;
         public event LinkObjects OnLinkObjects;
         public event DelinkObjects OnDelinkObjects;
@@ -1265,7 +1266,7 @@ namespace OpenSim.Region.ClientStack
             OutPacket(avp, ThrottleOutPacketType.Task);
         }
 
-        public void SendAnimation(LLUUID animID, int seq, LLUUID sourceAgentId)
+        public void SendAnimations(LLUUID[] animations, int[] seqs, LLUUID sourceAgentId)
         {
             AvatarAnimationPacket ani = new AvatarAnimationPacket();
             ani.AnimationSourceList = new AvatarAnimationPacket.AnimationSourceListBlock[1];
@@ -1273,10 +1274,15 @@ namespace OpenSim.Region.ClientStack
             ani.AnimationSourceList[0].ObjectID = sourceAgentId;
             ani.Sender = new AvatarAnimationPacket.SenderBlock();
             ani.Sender.ID = sourceAgentId;
-            ani.AnimationList = new AvatarAnimationPacket.AnimationListBlock[1];
-            ani.AnimationList[0] = new AvatarAnimationPacket.AnimationListBlock();
-            ani.AnimationList[0].AnimID = animID;
-            ani.AnimationList[0].AnimSequenceID = seq;
+            ani.AnimationList = new AvatarAnimationPacket.AnimationListBlock[animations.Length];
+
+            for (int i = 0; i < animations.Length; ++i)
+            {
+                ani.AnimationList[i] = new AvatarAnimationPacket.AnimationListBlock();
+                ani.AnimationList[i].AnimID = animations[i];
+                ani.AnimationList[i].AnimSequenceID = seqs[i];
+            }
+
             OutPacket(ani, ThrottleOutPacketType.Task);
         }
 
@@ -2483,6 +2489,13 @@ namespace OpenSim.Region.ClientStack
                                 if (OnStartAnim != null)
                                 {
                                     OnStartAnim(this, AgentAni.AnimationList[i].AnimID, 1);
+                                }
+                            }
+                            else
+                            {
+                                if (OnStopAnim != null)
+                                {
+                                    OnStopAnim(this, AgentAni.AnimationList[i].AnimID);
                                 }
                             }
                         }

@@ -43,8 +43,8 @@ namespace OpenSim.Region.Environment.Scenes
         public static AvatarAnimations Animations;
         public static byte[] DefaultTexture;
 
-        public LLUUID CurrentAnimation;
-        public int AnimationSeq;
+        private List<LLUUID> m_animations = new List<LLUUID>();
+        private List<int> m_animationSeqs = new List<int>();
 
         private bool m_updateflag = false;
         private byte m_movementflag = 0;
@@ -55,7 +55,6 @@ namespace OpenSim.Region.Environment.Scenes
         private float m_sitAvatarHeight = 2.0f;
         private float m_godlevel = 0;
 
-        private bool m_isTyping = false;
         private bool m_setAlwaysRun = false;
 
         private Quaternion m_bodyRot;
@@ -74,7 +73,6 @@ namespace OpenSim.Region.Environment.Scenes
         private readonly Vector3[] Dir_Vectors = new Vector3[6];
         private LLVector3 lastPhysPos = new LLVector3();
       
-
         // Position of agent's camera in world
         protected Vector3 m_CameraCenter = new Vector3(0, 0, 0);
 
@@ -286,6 +284,9 @@ namespace OpenSim.Region.Environment.Scenes
             Animations = new AvatarAnimations();
             Animations.LoadAnims();
 
+            m_animations.Add(Animations.AnimsLLUUID["STAND"]);
+            m_animationSeqs.Add(1);
+
             RegisterToEvents();
 
             SetDirectionVectors();
@@ -303,7 +304,6 @@ namespace OpenSim.Region.Environment.Scenes
             m_scene.LandManager.sendLandUpdate(this);
         }
 
-
         public ScenePresence(IClientAPI client, Scene world, RegionInfo reginfo, AvatarAppearance appearance)
         {
             //couldn't move the following into SetInitialValues as they are readonly
@@ -318,6 +318,9 @@ namespace OpenSim.Region.Environment.Scenes
 
             Animations = new AvatarAnimations();
             Animations.LoadAnims();
+
+            m_animations.Add(Animations.AnimsLLUUID["STAND"]);
+            m_animationSeqs.Add(1);
 
             RegisterToEvents();
             SetDirectionVectors();
@@ -350,8 +353,9 @@ namespace OpenSim.Region.Environment.Scenes
             m_controllingClient.OnAgentRequestSit += HandleAgentRequestSit;
             m_controllingClient.OnAgentSit += HandleAgentSit;
             m_controllingClient.OnSetAlwaysRun += HandleSetAlwaysRun;
+            m_controllingClient.OnStartAnim += HandleStartAnim;
+            m_controllingClient.OnStopAnim += HandleStopAnim;
 
-            // ControllingClient.OnStartAnim += new StartAnim(this.SendAnimPack);
             // ControllingClient.OnChildAgentStatus += new StatusChange(this.ChildStatusChange);
             //ControllingClient.OnStopMovement += new GenericCall2(this.StopMovement);
         }
@@ -786,7 +790,7 @@ namespace OpenSim.Region.Environment.Scenes
             Velocity = new LLVector3(0, 0, 0);
             RemoveFromPhysicalScene();
 
-            SendAnimPack(Animations.AnimsLLUUID["SIT"], 1);
+            SetMovementAnimation(Animations.AnimsLLUUID["SIT"], 1);
             SendFullUpdateToAllClients();
         }
 
@@ -799,6 +803,57 @@ namespace OpenSim.Region.Environment.Scenes
             }
         }
 
+        public void AddAnimation(LLUUID animID, int seq)
+        {
+            if (!m_animations.Contains(animID))
+            {
+                m_animations.Add(animID);
+                m_animationSeqs.Add(seq);
+                SendAnimPack();
+            }
+        }
+
+        public void RemoveAnimation(LLUUID animID)
+        {
+            if (m_animations.Contains(animID))
+            {
+                if (m_animations[0] == animID)
+                {
+                    SetMovementAnimation(Animations.AnimsLLUUID["STAND"], 1);
+                }
+                else
+                {
+                    m_animations.Remove(animID);
+                    SendAnimPack();
+                }
+            }
+        }
+
+        public void HandleStartAnim(IClientAPI remoteClient, LLUUID animID, int seq)
+        {
+            AddAnimation(animID, seq);
+        }
+
+        public void HandleStopAnim(IClientAPI remoteClient, LLUUID animID)
+        {
+            RemoveAnimation(animID);
+        }
+
+        /// <summary>
+        /// The movement animation is the first element of the animation list,
+        /// reserved for "main" animations that are mutually exclusive,
+        /// like flying and sitting, for example.
+        /// </summary>
+        protected void SetMovementAnimation(LLUUID anim, int seq)
+        {
+            if (m_animations[0] != anim)
+            {
+                m_animations[0] = anim;
+                m_animationSeqs[0] = seq;
+                SendAnimPack();
+            }
+        }
+
         protected void UpdateMovementAnimations(bool update_movementflag)
         {
             if (update_movementflag)
@@ -807,81 +862,49 @@ namespace OpenSim.Region.Environment.Scenes
                 {
                     if (m_physicsActor.Flying)
                     {
-                        SendAnimPack(Animations.AnimsLLUUID["FLY"], 1);
+                        SetMovementAnimation(Animations.AnimsLLUUID["FLY"], 1);
+                    }
+                    else if (((m_movementflag & (uint)AgentManager.ControlFlags.AGENT_CONTROL_UP_NEG) != 0) &&
+                             PhysicsActor.IsColliding)
+                    {
+                        SetMovementAnimation(Animations.AnimsLLUUID["CROUCHWALK"], 1);
+                    }
+                    else if (!PhysicsActor.IsColliding && m_physicsActor.Velocity.Z < -6)
+                    {
+                        SetMovementAnimation(Animations.AnimsLLUUID["FALLDOWN"], 1);
+                    }
+                    else if (!PhysicsActor.IsColliding && Velocity.Z > 0 && (m_movementflag & (uint)AgentManager.ControlFlags.AGENT_CONTROL_UP_POS) != 0)
+                    {
+                        SetMovementAnimation(Animations.AnimsLLUUID["JUMP"], 1);
+                    }
+                    else if (m_setAlwaysRun)
+                    {
+                        SetMovementAnimation(Animations.AnimsLLUUID["RUN"], 1);
                     }
                     else
-                    {
-                        if (((m_movementflag & (uint)AgentManager.ControlFlags.AGENT_CONTROL_UP_NEG) != 0) &&
-                            PhysicsActor.IsColliding)
-                        {
-                            SendAnimPack(Animations.AnimsLLUUID["CROUCHWALK"], 1);
-                        }
-                        else
-                        {
-                            if (!PhysicsActor.IsColliding && m_physicsActor.Velocity.Z < -6)
-                            {
-                                SendAnimPack(Animations.AnimsLLUUID["FALLDOWN"], 1);
-                            }
-                            else if (!PhysicsActor.IsColliding && Velocity.Z > 0 && (m_movementflag & (uint)AgentManager.ControlFlags.AGENT_CONTROL_UP_POS) != 0)
-                            {
-                                SendAnimPack(Animations.AnimsLLUUID["JUMP"], 1);
-                            }
-                            else
-                            {
-                                if (!m_setAlwaysRun)
-                                {
-                                    SendAnimPack(Animations.AnimsLLUUID["WALK"], 1);
-                                }
-                                else
-                                {
-                                    SendAnimPack(Animations.AnimsLLUUID["RUN"], 1);
-                                }
-                            }
-                        }
-                    }
-                }
-                else if (m_parentID != 0)
-                {
-                    if (m_isTyping)
-                    {
-                        SendAnimPack(Animations.AnimsLLUUID["TYPE"], 1);
-                    }
-                    else
-                    {
-                        // TODO: stop the typing animation, continue sitting
-                        SendAnimPack(Animations.AnimsLLUUID["SIT"], 1);
-                    }
+                        SetMovementAnimation(Animations.AnimsLLUUID["WALK"], 1);
                 }
                 else
                 {
                     if (((m_movementflag & (uint)AgentManager.ControlFlags.AGENT_CONTROL_UP_NEG) != 0) &&
                         PhysicsActor.IsColliding)
                     {
-                        SendAnimPack(Animations.AnimsLLUUID["CROUCH"], 1);
+                        SetMovementAnimation(Animations.AnimsLLUUID["CROUCH"], 1);
                     }
-                    else if (m_isTyping)
+                    else if (!PhysicsActor.IsColliding && m_physicsActor.Velocity.Z < -6 && !m_physicsActor.Flying)
                     {
-                        SendAnimPack(Animations.AnimsLLUUID["TYPE"], 1);
+                        SetMovementAnimation(Animations.AnimsLLUUID["FALLDOWN"], 1);
+                    }
+                    else if (!PhysicsActor.IsColliding && Velocity.Z > 0 && !m_physicsActor.Flying && (m_movementflag & (uint)AgentManager.ControlFlags.AGENT_CONTROL_UP_POS) != 0)
+                    {
+                        SetMovementAnimation(Animations.AnimsLLUUID["JUMP"], 1);
+                    }
+                    else if (m_physicsActor.Flying)
+                    {
+                        SetMovementAnimation(Animations.AnimsLLUUID["FLY"], 1);
                     }
                     else
-                    {
-                        if (!PhysicsActor.IsColliding && m_physicsActor.Velocity.Z < -6 && !m_physicsActor.Flying)
-                        {
-                            SendAnimPack(Animations.AnimsLLUUID["FALLDOWN"], 1);
-                        }
-                        else if (!PhysicsActor.IsColliding && Velocity.Z > 0 && !m_physicsActor.Flying && (m_movementflag & (uint)AgentManager.ControlFlags.AGENT_CONTROL_UP_POS) != 0)
-                        {
-                            SendAnimPack(Animations.AnimsLLUUID["JUMP"], 1);
-                        }
-                        else
-                        {
-                            if (!m_physicsActor.Flying)
-                            {
-                                SendAnimPack(Animations.AnimsLLUUID["STAND"], 1);
-                            }
-                        }
-
-                    }
+                        SetMovementAnimation(Animations.AnimsLLUUID["STAND"], 1);
                 }
             }
         }
@@ -912,8 +935,8 @@ namespace OpenSim.Region.Environment.Scenes
                     {
                         direc.z *= 3;
                         //System.Console.WriteLine("Jump");
-                        SendAnimPack(Animations.AnimsLLUUID["PREJUMP"], 1);
-                        SendAnimPack(Animations.AnimsLLUUID["JUMP"], 1);
+                        SetMovementAnimation(Animations.AnimsLLUUID["PREJUMP"], 1);
+                        SetMovementAnimation(Animations.AnimsLLUUID["JUMP"], 1);
                     }
                 }
             }
@@ -932,9 +955,10 @@ namespace OpenSim.Region.Environment.Scenes
                 return;
             }
 
-            m_isTyping = typing;
-
-            UpdateMovementAnimations(true);
+            if (typing)
+                AddAnimation(Animations.AnimsLLUUID["TYPE"], 1);
+            else
+                RemoveAnimation(Animations.AnimsLLUUID["TYPE"]);
         }
 
         #endregion
@@ -1122,15 +1146,14 @@ namespace OpenSim.Region.Environment.Scenes
         /// <summary>
         /// 
         /// </summary>
-        /// <param name="animID"></param>
-        /// <param name="seq"></param>
-        public void SendAnimPack(LLUUID animID, int seq)
+        /// <param name="animations"></param>
+        /// <param name="seqs"></param>
+        public void SendAnimPack(LLUUID[] animations, int[] seqs)
         {
-            CurrentAnimation = animID;
-            AnimationSeq = seq;
-            LLUUID sourceAgentId = m_controllingClient.AgentId;
-
-            m_scene.Broadcast(delegate(IClientAPI client) { client.SendAnimation(animID, seq, sourceAgentId); });
+            m_scene.Broadcast(delegate(IClientAPI client)
+                              {
+                                  client.SendAnimations(animations, seqs, m_controllingClient.AgentId);
+                              });
         }
 
         /// <summary>
@@ -1138,7 +1161,7 @@ namespace OpenSim.Region.Environment.Scenes
         /// </summary>
         public void SendAnimPack()
         {
-            SendAnimPack(CurrentAnimation, AnimationSeq);
+            SendAnimPack(m_animations.ToArray(), m_animationSeqs.ToArray());
         }
 
         #endregion

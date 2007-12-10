@@ -133,11 +133,6 @@ namespace OpenSim.Region.Environment.Scenes
             }
         }
 
-        public void StartAnimation(LLUUID animID, int seq, LLUUID agentId)
-        {
-            Broadcast(delegate(IClientAPI client) { client.SendAnimation(animID, seq, agentId); });
-        }
-
         public virtual void ProcessObjectGrab(uint localID, LLVector3 offsetPos, IClientAPI remoteClient)
         {
             EventManager.TriggerObjectGrab(localID, offsetPos, remoteClient);
