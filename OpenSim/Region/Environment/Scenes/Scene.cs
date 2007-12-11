@@ -284,8 +284,6 @@ namespace OpenSim.Region.Environment.Scenes
 
             if (RegionInfo.RegionHandle != otherRegion.RegionHandle)
             {
-                if ((Math.Abs(otherRegion.RegionLocX - RegionInfo.RegionLocX) <= 1) && (Math.Abs(otherRegion.RegionLocY - RegionInfo.RegionLocY) <= 1))
-                {
                     for (int i = 0; i < m_neighbours.Count; i++)
                     {
                         // The purpose of this loop is to re-update the known neighbors 
@@ -295,7 +293,10 @@ namespace OpenSim.Region.Environment.Scenes
                         // Additionally, the commFailTF property gets reset to false.
                         if (m_neighbours[i].RegionHandle == otherRegion.RegionHandle)
                         {
-                            m_neighbours[i] = otherRegion;
+                            lock (m_neighbours)
+                            {
+                                m_neighbours[i] = otherRegion;
+                            }
                         }
                     }
 
@@ -305,16 +306,24 @@ namespace OpenSim.Region.Environment.Scenes
 
                     if (!(m_neighbours.Contains(otherRegion)))
                     {
-                        m_neighbours.Add(otherRegion);
+                        lock (m_neighbours)
+                        {
+                            m_neighbours.Add(otherRegion);
+                        }
                     }
-                    if (!(m_regionRestartNotifyList.Contains(otherRegion)))
+                if ((Math.Abs(otherRegion.RegionLocX - RegionInfo.RegionLocX) <= 1) && (Math.Abs(otherRegion.RegionLocY - RegionInfo.RegionLocY) <= 1))
+                {
+                    lock (m_regionRestartNotifyList)
                     {
-                        m_regionRestartNotifyList.Add(otherRegion);
+                        if (!(m_regionRestartNotifyList.Contains(otherRegion)))
+                        {
+                            m_regionRestartNotifyList.Add(otherRegion);
 
-                        m_restartWaitTimer.Interval = 50000;
-                        m_restartWaitTimer.AutoReset = false;
-                        m_restartWaitTimer.Elapsed += new ElapsedEventHandler(RestartNotifyWaitElapsed);
-                        m_restartWaitTimer.Start();
+                            m_restartWaitTimer.Interval = 50000;
+                            m_restartWaitTimer.AutoReset = false;
+                            m_restartWaitTimer.Elapsed += new ElapsedEventHandler(RestartNotifyWaitElapsed);
+                            m_restartWaitTimer.Start();
+                        }
                     }
                 }
                 else
@@ -394,33 +403,36 @@ namespace OpenSim.Region.Environment.Scenes
         public void RestartNotifyWaitElapsed(object sender, ElapsedEventArgs e)
         { 
             m_restartWaitTimer.Stop();
-            foreach (RegionInfo region in m_regionRestartNotifyList)
+            lock (m_regionRestartNotifyList)
             {
-                try
+                foreach (RegionInfo region in m_regionRestartNotifyList)
                 {
-
-                    ForEachScenePresence(delegate(ScenePresence agent)
+                    try
                     {
-                        // If agent is a root agent.
-                        if (!agent.IsChildAgent)
+
+                        ForEachScenePresence(delegate(ScenePresence agent)
                         {
-                            //agent.ControllingClient.new
-                            //this.CommsManager.InterRegion.InformRegionOfChildAgent(otherRegion.RegionHandle, agent.ControllingClient.RequestClientInfo());
-                            InformClientOfNeighbor(agent, region);
+                            // If agent is a root agent.
+                            if (!agent.IsChildAgent)
+                            {
+                                //agent.ControllingClient.new
+                                //this.CommsManager.InterRegion.InformRegionOfChildAgent(otherRegion.RegionHandle, agent.ControllingClient.RequestClientInfo());
+                                InformClientOfNeighbor(agent, region);
+                            }
                         }
+
+                        );
                     }
+                    catch (System.NullReferenceException)
+                    {
+                        // This means that we're not booted up completely yet.
+                        // This shouldn't happen too often anymore.
+                    }
+                }
 
-                    );
-                }
-                catch (System.NullReferenceException)
-                {
-                    // This means that we're not booted up completely yet.
-                    // This shouldn't happen too often anymore.
-                }
+                // Reset list to nothing.
+                m_regionRestartNotifyList.Clear();
             }
-
-            // Reset list to nothing.
-            m_regionRestartNotifyList.Clear();
         }
 
         // This is the method that shuts down the scene.
@@ -444,7 +456,7 @@ namespace OpenSim.Region.Environment.Scenes
             // Stop all client threads.
             ForEachScenePresence(delegate(ScenePresence avatar)
                     {
-                        avatar.ControllingClient.Stop();
+                        avatar.ControllingClient.Close();
                     });
             // Stop updating the scene objects and agents.
             m_heartbeatTimer.Close();
