@@ -60,7 +60,7 @@ namespace OpenSim.Region.Environment.Modules
         {
             if (m_scene == null)
             {
-                Console.WriteLine("Creating Texture download module");
+                //Console.WriteLine("Creating Texture download module");
                 m_thread = new Thread(new ThreadStart(ProcessTextureSenders));
                 m_thread.IsBackground = true;
                 m_thread.Start();

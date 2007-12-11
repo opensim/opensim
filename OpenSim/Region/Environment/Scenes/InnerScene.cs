@@ -147,7 +147,7 @@ namespace OpenSim.Region.Environment.Scenes
 
             foreach (EntityBase entity in moveEntities)
             {
-                entity.UpdateMovement();
+                    entity.UpdateMovement();
             }
         }
         #endregion

@@ -891,7 +891,7 @@ namespace OpenSim.Region.Environment.Scenes
                 SceneObjectPart rootPart = sceneOb.GetChildPart(sceneOb.UUID);
                 // if grass or tree, make phantom
                 //rootPart.ApplySanePermissions();
-                if ((rootPart.Shape.PCode == 95) || (rootPart.Shape.PCode == 255))
+                if ((rootPart.Shape.PCode == 95) || (rootPart.Shape.PCode == 255) || (rootPart.Shape.PCode == 111))
                 {
                     rootPart.AddFlag(LLObject.ObjectFlags.Phantom);
                     //rootPart.ObjectFlags += (uint)LLObject.ObjectFlags.Phantom;
@@ -911,6 +911,17 @@ namespace OpenSim.Region.Environment.Scenes
                     rootPart.DoPhysicsPropertyUpdate(UsePhysics, true);
                 }
             }
+        }
+
+        public void AddTree(LLVector3 scale, LLQuaternion rotation, LLVector3 position,
+           libsecondlife.ObjectManager.Tree treeType, bool newTree)
+        {
+            PrimitiveBaseShape treeShape = new PrimitiveBaseShape();
+            treeShape.PathCurve = 16;
+            treeShape.PCode = newTree ? (byte)libsecondlife.ObjectManager.PCode.NewTree : (byte)libsecondlife.ObjectManager.PCode.Tree;
+            treeShape.Scale = scale;
+            treeShape.State = (byte)treeType;
+            AddNewPrim(LLUUID.Random(), position, rotation, treeShape);
         }
 
         public void RemovePrim(uint localID, LLUUID avatar_deleter)

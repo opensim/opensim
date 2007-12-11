@@ -1389,6 +1389,7 @@ namespace OpenSim.Region.ClientStack
 
             OutPacket(attach, ThrottleOutPacketType.Task);
         }
+        
 
         public void SendPrimitiveToClient(
             ulong regionHandle, ushort timeDilation, uint localID, PrimitiveBaseShape primShape, LLVector3 pos,
@@ -1666,6 +1667,7 @@ namespace OpenSim.Region.ClientStack
         {
             objectData.TextureEntry = primData.TextureEntry;
             objectData.PCode = primData.PCode;
+            objectData.State = primData.State;
             objectData.PathBegin = primData.PathBegin;
             objectData.PathEnd = primData.PathEnd;
             objectData.PathScaleX = primData.PathScaleX;
@@ -3283,6 +3285,7 @@ namespace OpenSim.Region.ClientStack
             PrimitiveBaseShape shape = new PrimitiveBaseShape();
 
             shape.PCode = addPacket.ObjectData.PCode;
+            shape.State = addPacket.ObjectData.State;
             shape.PathBegin = addPacket.ObjectData.PathBegin;
             shape.PathEnd = addPacket.ObjectData.PathEnd;
             shape.PathScaleX = addPacket.ObjectData.PathScaleX;

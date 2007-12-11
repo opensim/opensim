@@ -67,6 +67,7 @@ namespace OpenSim.Framework
     {
         private static readonly byte[] m_defaultTextureEntry;
 
+        public byte State;
         public byte PCode;
         public ushort PathBegin;
         public ushort PathEnd;
