@@ -60,7 +60,6 @@ namespace OpenSim.Region.ClientStack
         //private AgentAssetUpload UploadAssets;
         private LLUUID newAssetFolder = LLUUID.Zero;
         private int debug = 0;
-        private ClientManager m_clientManager;
         private AssetCache m_assetCache;
         // private InventoryCache m_inventoryCache;
         private int cachedtextureserial = 0;
@@ -162,6 +161,7 @@ namespace OpenSim.Region.ClientStack
         
         /* METHODS */
 
+        /* TODO: pull out clientManager param */
         public ClientView(EndPoint remoteEP, UseCircuitCodePacket initialcirpack, ClientManager clientManager,
                           IScene scene, AssetCache assetCache, PacketServer packServer,
                           AgentCircuitManager authenSessions)
@@ -169,7 +169,6 @@ namespace OpenSim.Region.ClientStack
             m_moneyBalance = 1000;
 
             m_scene = scene;
-            m_clientManager = clientManager;
             m_assetCache = assetCache;
 
             m_networkServer = packServer;
@@ -209,13 +208,18 @@ namespace OpenSim.Region.ClientStack
 
         # region Client Methods
 
+
         public void Close()
         {
-            clientPingTimer.Stop();
-
-            m_scene.RemoveClient(AgentId);
-
+            // FLUSH Packets
+            PacketQueue.Flush();
             PacketQueue.Close();
+
+            // Pull Client out of Region
+            m_scene.RemoveClient(AgentId);
+ 
+           // Shut down timers
+            clientPingTimer.Stop();
 
             ClientThread.Abort();
         }

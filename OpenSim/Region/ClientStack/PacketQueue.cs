@@ -168,10 +168,47 @@ namespace OpenSim.Region.ClientStack
             return SendQueue.Dequeue();
         }
 
+        public void Flush()
+        {
+            lock(this) {
+                while (PacketsWaiting())
+                {
+                    //Now comes the fun part..   we dump all our elements into PacketQueue that we've saved up.
+                    if (ResendOutgoingPacketQueue.Count > 0)
+                    {
+                        SendQueue.Enqueue(ResendOutgoingPacketQueue.Dequeue());
+                    }
+                    if (LandOutgoingPacketQueue.Count > 0)
+                    {
+                        SendQueue.Enqueue(LandOutgoingPacketQueue.Dequeue());
+                    }
+                    if (WindOutgoingPacketQueue.Count > 0)
+                    {
+                        SendQueue.Enqueue(WindOutgoingPacketQueue.Dequeue());
+                    }
+                    if (CloudOutgoingPacketQueue.Count > 0)
+                    {
+                        SendQueue.Enqueue(CloudOutgoingPacketQueue.Dequeue());
+                    }
+                    if (TaskOutgoingPacketQueue.Count > 0)
+                    {
+                        SendQueue.Enqueue(TaskOutgoingPacketQueue.Dequeue());
+                    }
+                    if (TextureOutgoingPacketQueue.Count > 0)
+                    {
+                        SendQueue.Enqueue(TextureOutgoingPacketQueue.Dequeue());
+                    }
+                    if (AssetOutgoingPacketQueue.Count > 0)
+                    {
+                        SendQueue.Enqueue(AssetOutgoingPacketQueue.Dequeue());
+                    }
+                }
+                // MainLog.Instance.Verbose("THROTTLE", "Processed " + throttleLoops + " packets");
+            }
+        }
+
         public void Close() 
         {
-            // one last push
-            ProcessThrottle();
             throttleTimer.Stop();
         }
 
