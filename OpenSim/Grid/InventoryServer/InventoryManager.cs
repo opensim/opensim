@@ -182,11 +182,10 @@ namespace OpenSim.Grid.InventoryServer
                 byte[] result = new byte[] { };
 
                 string[] parms = path.Split(new char[] { '/' }, StringSplitOptions.RemoveEmptyEntries);
-                if (parms.Length >= 1)
+                if (parms.Length > 1)
                 {
                     if (string.Compare(parms[1], "library", true) == 0)
                     {
-
                         MemoryStream ms = new MemoryStream();
                         saveInventoryToStream(_inventory, ms);
 
@@ -195,7 +194,7 @@ namespace OpenSim.Grid.InventoryServer
                     }
                     else if (string.Compare(parms[1], "user", true) == 0)
                     {
-                        if (parms.Length >= 2)
+                        if (parms.Length > 2)
                         {
                             result = GetUserInventory(new LLUUID(parms[2]));
                         }
@@ -204,6 +203,5 @@ namespace OpenSim.Grid.InventoryServer
                 return result;
             }
         }
-    
     }
 }
