@@ -243,7 +243,7 @@ namespace OpenSim.Region.ClientStack
 
         public void Stop()
         {
-            Close();
+            MainLog.Instance.Verbose("BUG", "Stop called, please find out where and remove it");
         }
 
         #endregion
