@@ -44,6 +44,8 @@ namespace OpenSim.Region.ClientStack
 {
     public class PacketQueue
     {
+        private bool m_enabled = true;
+
         private BlockingQueue<QueItem> SendQueue;
         
         private Queue<QueItem> IncomingPacketQueue;
@@ -127,8 +129,10 @@ namespace OpenSim.Region.ClientStack
 
         public void Enqueue(QueItem item)
         {
+            if (!m_enabled) {return;}
             // We could micro lock, but that will tend to actually
             // probably be worse than just synchronizing on SendQueue
+
             lock (this) {
                 switch (item.throttleType)
                 {
@@ -209,6 +213,7 @@ namespace OpenSim.Region.ClientStack
 
         public void Close() 
         {
+            m_enabled = false;
             throttleTimer.Stop();
         }
 
@@ -235,18 +240,6 @@ namespace OpenSim.Region.ClientStack
                     TextureOutgoingPacketQueue.Count > 0);
         }
 
-        // Run through our wait queues and flush out allotted numbers of bytes into the process queue
-
-//         private bool ThrottlingTime()
-//         {
-//             if(DateTime.Now.Ticks > (LastThrottle + ThrottleInterval)) {
-//                 LastThrottle = DateTime.Now.Ticks;
-//                 return true;
-//             } else {
-//                 return false;
-//             }
-//         }
-        
         public void ProcessThrottle()
         {
             

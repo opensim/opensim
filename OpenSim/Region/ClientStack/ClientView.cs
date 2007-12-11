@@ -73,7 +73,6 @@ namespace OpenSim.Region.ClientStack
         private uint m_circuitCode;
         private int m_moneyBalance;
 
-
         private byte[] m_channelVersion=new byte[] { 0x00} ; // Dummy value needed by libSL
 
         /* protected variables */
@@ -188,11 +187,6 @@ namespace OpenSim.Region.ClientStack
 
             PacketQueue = new PacketQueue();
 
-            //this.UploadAssets = new AgentAssetUpload(this, m_assetCache, m_inventoryCache);
-            AckTimer = new Timer(750);
-            AckTimer.Elapsed += new ElapsedEventHandler(AckTimer_Elapsed);
-            AckTimer.Start();
-
             RegisterLocalPacketHandlers();
 
             ClientThread = new Thread(new ThreadStart(AuthUser));
@@ -211,18 +205,29 @@ namespace OpenSim.Region.ClientStack
 
         public void Close()
         {
-            // FLUSH Packets
-            PacketQueue.Flush();
-            PacketQueue.Close();
-
             // Pull Client out of Region
             m_scene.RemoveClient(AgentId);
+
+            // Send the STOP packet 
+            libsecondlife.Packets.DisableSimulatorPacket disable = new libsecondlife.Packets.DisableSimulatorPacket();
+            OutPacket(disable, ThrottleOutPacketType.Task);
+
+            // FLUSH Packets
+            PacketQueue.Close();
+            PacketQueue.Flush();
  
-           // Shut down timers
+            // Shut down timers
+            AckTimer.Stop();
             clientPingTimer.Stop();
+            
+            // This is just to give the client a reasonable chance of
+            // flushing out all it's packets.  There should probably
+            // be a better mechanism here
+            Thread.Sleep(2000);
 
             ClientThread.Abort();
         }
+
         public void Kick(string message)
         {
             KickUserPacket kupack = new KickUserPacket();
@@ -234,17 +239,11 @@ namespace OpenSim.Region.ClientStack
             kupack.TargetBlock.TargetPort = (ushort)0;
             kupack.UserInfo.Reason = Helpers.StringToField(message);
             OutPacket(kupack, ThrottleOutPacketType.Task);
-
-
         }
+
         public void Stop()
         {
-            clientPingTimer.Stop();
-
-            libsecondlife.Packets.DisableSimulatorPacket disable = new libsecondlife.Packets.DisableSimulatorPacket();
-            OutPacket(disable, ThrottleOutPacketType.Task);
-
-            ClientThread.Abort();
+            Close();
         }
 
         #endregion
@@ -389,6 +388,13 @@ namespace OpenSim.Region.ClientStack
 
         protected virtual void InitNewClient()
         {
+            //this.UploadAssets = new AgentAssetUpload(this, m_assetCache, m_inventoryCache);
+
+            // Establish our two timers.  We could probably get this down to one 
+            AckTimer = new Timer(750);
+            AckTimer.Elapsed += new ElapsedEventHandler(AckTimer_Elapsed);
+            AckTimer.Start();
+
             clientPingTimer = new Timer(5000);
             clientPingTimer.Elapsed += new ElapsedEventHandler(CheckClientConnectivity);
             clientPingTimer.Enabled = true;
@@ -407,6 +413,7 @@ namespace OpenSim.Region.ClientStack
             {
                 //session/circuit not authorised
                 MainLog.Instance.Notice("CLIENT", "New user request denied to " + userEP.ToString());
+                PacketQueue.Close();
                 ClientThread.Abort();
             }
             else
@@ -423,6 +430,7 @@ namespace OpenSim.Region.ClientStack
                 {
                     m_secureSessionId = sessionInfo.LoginInfo.SecureSession;
                 }
+                // This sets up all the timers
                 InitNewClient();
 
                 ClientLoop();
@@ -430,11 +438,6 @@ namespace OpenSim.Region.ClientStack
         }
 
         # endregion
-
-        protected void KillThread()
-        {
-            ClientThread.Abort();
-        }
 
         // Previously ClientView.API partial class
         public event Action<IClientAPI> OnLogout;
@@ -2171,7 +2174,7 @@ namespace OpenSim.Region.ClientStack
                                       "ClientView.PacketQueue.cs:ProcessOutPacket() - WARNING: Socket exception occurred on connection " +
                                       userEP.ToString() + " - killing thread");
                 MainLog.Instance.Error(e.ToString());
-                KillThread();
+                Close();
             }
         }
         
