@@ -845,20 +845,27 @@ namespace OpenSim.Region.Environment.Scenes
 
             if (PermissionsMngr.CanRezObject(ownerID, pos))
             {
-                Vector3 CameraPosition = ((ScenePresence)GetScenePresence(ownerID)).CameraPosition;
-                Vector3 rayEnd = new Vector3(pos.X, pos.Y, pos.Z);
 
-                float raydistance = m_innerScene.Vector3Distance(CameraPosition, rayEnd);
+                EntityIntersection rayTracing = null;
+                 ScenePresence presence =   ((ScenePresence)GetScenePresence(ownerID));
+                 if (presence != null)
+                 {
+                     Vector3 CameraPosition = presence.CameraPosition;
+                     Vector3 rayEnd = new Vector3(pos.X, pos.Y, pos.Z);
 
-                Vector3 rayDirection = new Vector3(rayEnd.x / raydistance, rayEnd.y / raydistance, rayEnd.z / raydistance);
+                     float raydistance = m_innerScene.Vector3Distance(CameraPosition, rayEnd);
 
-                Ray rezRay = new Ray(CameraPosition, rayDirection);
+                     Vector3 rayDirection = new Vector3(rayEnd.x / raydistance, rayEnd.y / raydistance, rayEnd.z / raydistance);
 
-                Vector3 RezDirectionFromCamera = rezRay.Direction;
+                     Ray rezRay = new Ray(CameraPosition, rayDirection);
 
-                EntityIntersection rayTracing = m_innerScene.GetClosestIntersectingPrim(rezRay);
+                     Vector3 RezDirectionFromCamera = rezRay.Direction;
 
-                if (rayTracing.HitTF)
+                      rayTracing = m_innerScene.GetClosestIntersectingPrim(rezRay);
+
+                 }
+
+                if ((rayTracing != null) && ( rayTracing.HitTF))
                 {
                     // We raytraced and found a prim in the way of the ground..  so 
                     // We will rez the object somewhere close to the prim.  Better math needed. This is a Stub
@@ -918,6 +925,7 @@ namespace OpenSim.Region.Environment.Scenes
         {
             PrimitiveBaseShape treeShape = new PrimitiveBaseShape();
             treeShape.PathCurve = 16;
+            treeShape.PathEnd = 49900;
             treeShape.PCode = newTree ? (byte)libsecondlife.ObjectManager.PCode.NewTree : (byte)libsecondlife.ObjectManager.PCode.Tree;
             treeShape.Scale = scale;
             treeShape.State = (byte)treeType;
