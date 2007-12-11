@@ -40,8 +40,9 @@ namespace OpenSim.Region.Environment.Modules
 {
     public class SunModule : IRegionModule
     {
-        private static double m_real_day = 24.0;
-        private int m_frame_mod = 100;
+        private const double m_real_day = 24.0;
+        private const int m_default_frame = 100;
+        private int m_frame_mod;
         private double m_day_length;
         private int m_dilation;
         private int m_frame;
@@ -57,11 +58,11 @@ namespace OpenSim.Region.Environment.Modules
             
             // Just in case they don't have the stanzas
             try {
-                m_day_length = config.Configs["Sun"].GetDouble("day_length", 24.0);
-                m_frame_mod = config.Configs["Sun"].GetInt("frame_rate", 100);
+                m_day_length = config.Configs["Sun"].GetDouble("day_length", m_real_day);
+                m_frame_mod = config.Configs["Sun"].GetInt("frame_rate", m_default_frame);
             } catch (Exception) {
-                m_day_length = 0.5;
-                m_frame_mod = 100;
+                m_day_length = m_real_day;
+                m_frame_mod = m_default_frame;
             }
             
             m_dilation = (int)(m_real_day / m_day_length);
@@ -109,7 +110,11 @@ namespace OpenSim.Region.Environment.Modules
             m_frame = 0;
         }
 
-        // Hour of the Day figures out the hour of the day as a float.  The intent here is that we seed hour of the day with real time when the simulator starts, then run time forward faster based on time dilation factor.  This means that ticks don't get out of hand 
+        // Hour of the Day figures out the hour of the day as a float.
+        // The intent here is that we seed hour of the day with real
+        // time when the simulator starts, then run time forward
+        // faster based on time dilation factor.  This means that
+        // ticks don't get out of hand
         private double HourOfTheDay() 
         {
             long m_addticks = (DateTime.Now.Ticks - m_start) * m_dilation;
