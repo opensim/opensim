@@ -50,51 +50,117 @@ namespace OpenSim.Region.ClientStack
     /// </summary>
     public class ClientView : IClientAPI
     {
+        /* static variables */
         public static TerrainManager TerrainManager;
 
+        /* private variables */
+        private LLUUID m_sessionId;
+        private LLUUID m_secureSessionId = LLUUID.Zero;
+        private UseCircuitCodePacket cirpack;
+        //private AgentAssetUpload UploadAssets;
+        private LLUUID newAssetFolder = LLUUID.Zero;
+        private int debug = 0;
+        private ClientManager m_clientManager;
+        private AssetCache m_assetCache;
+        // private InventoryCache m_inventoryCache;
+        private int cachedtextureserial = 0;
+        private Timer clientPingTimer;
+        private int packetsReceived = 0;
+        private int probesWithNoIngressPackets = 0;
+        private int lastPacketsReceived = 0;
+
+        private Encoding enc = Encoding.ASCII;
+        private LLUUID m_agentId;
+        private uint m_circuitCode;
+        private int m_moneyBalance;
+
+
+        private byte[] m_channelVersion=new byte[] { 0x00} ; // Dummy value needed by libSL
+
+        /* protected variables */
         protected static Dictionary<PacketType, PacketMethod> PacketHandlers =
             new Dictionary<PacketType, PacketMethod>(); //Global/static handlers for all clients
-
         protected Dictionary<PacketType, PacketMethod> m_packetHandlers = new Dictionary<PacketType, PacketMethod>();
-        //local handlers for this instance 
 
-        private LLUUID m_sessionId;
+        protected IScene m_scene;
+        protected AgentCircuitManager m_authenticateSessionsHandler;
+
+        protected PacketQueue PacketQueue;
+
+        protected Dictionary<uint, uint> PendingAcks = new Dictionary<uint, uint>();
+        protected Dictionary<uint, Packet> NeedAck = new Dictionary<uint, Packet>();
+
+        protected Timer AckTimer;
+        protected uint Sequence = 0;
+        protected object SequenceLock = new object();
+        protected const int MAX_APPENDED_ACKS = 10;
+        protected const int RESEND_TIMEOUT = 4000;
+        protected const int MAX_SEQUENCE = 0xFFFFFF;
+        protected PacketServer m_networkServer;
         
-        private LLUUID m_secureSessionId = LLUUID.Zero;
-        
+        /* public variables */
+        public string firstName;
+        public string lastName;
+        public Thread ClientThread;
+        public LLVector3 startpos;
+        public EndPoint userEP;
+
+
+        /* Properties */
         public LLUUID SecureSessionId
         {
             get { return m_secureSessionId; }
         }
         
-        public string firstName;
-        public string lastName;
-        private UseCircuitCodePacket cirpack;
-        public Thread ClientThread;
-        public LLVector3 startpos;
-
-        //private AgentAssetUpload UploadAssets;
-        private LLUUID newAssetFolder = LLUUID.Zero;
-        private int debug = 0;
-
-        protected IScene m_scene;
-
         public IScene Scene
         {
             get { return m_scene; }
         }
 
-        private ClientManager m_clientManager;
-        private AssetCache m_assetCache;
-        // private InventoryCache m_inventoryCache;
-        private int cachedtextureserial = 0;
-        protected AgentCircuitManager m_authenticateSessionsHandler;
-        private Encoding enc = Encoding.ASCII;
-        // Dead client detection vars
-        private Timer clientPingTimer;
-        private int packetsReceived = 0;
-        private int probesWithNoIngressPackets = 0;
-        private int lastPacketsReceived = 0;
+        public LLUUID SessionId
+        {
+            get { return m_sessionId; }
+        }
+
+        public LLVector3 StartPos
+        {
+            get { return startpos; }
+            set { startpos = value; }
+        }
+
+        public LLUUID AgentId
+        {
+            get { return m_agentId; }
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        public string FirstName
+        {
+            get { return firstName; }
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        public string LastName
+        {
+            get { return lastName; }
+        }
+
+        public uint CircuitCode
+        {
+            get { return m_circuitCode; }
+            set { m_circuitCode = value; }
+        }
+
+        public int MoneyBalance
+        {
+            get { return m_moneyBalance; }
+        }
+        
+        /* METHODS */
 
         public ClientView(EndPoint remoteEP, UseCircuitCodePacket initialcirpack, ClientManager clientManager,
                           IScene scene, AssetCache assetCache, PacketServer packServer,
@@ -135,10 +201,6 @@ namespace OpenSim.Region.ClientStack
             ClientThread.Start();
         }
 
-        public LLUUID SessionId
-        {
-            get { return m_sessionId; }
-        }
 
         public void SetDebug(int newDebug)
         {
@@ -456,41 +518,6 @@ namespace OpenSim.Region.ClientStack
         public event ParcelObjectOwnerRequest OnParcelObjectOwnerRequest;
         public event EstateOwnerMessageRequest OnEstateOwnerMessage;
 
-        /// <summary>
-        /// 
-        /// </summary>
-        public LLVector3 StartPos
-        {
-            get { return startpos; }
-            set { startpos = value; }
-        }
-
-        /// <summary>
-        /// 
-        /// </summary>
-        private LLUUID m_agentId;
-
-        public LLUUID AgentId
-        {
-            get { return m_agentId; }
-        }
-
-        /// <summary>
-        /// 
-        /// </summary>
-        public string FirstName
-        {
-            get { return firstName; }
-        }
-
-        /// <summary>
-        /// 
-        /// </summary>
-        public string LastName
-        {
-            get { return lastName; }
-        }
-
         #region Scene/Avatar to Client
 
         /// <summary>
@@ -534,7 +561,6 @@ namespace OpenSim.Region.ClientStack
         /// 
         /// </summary>
         /// <param name="regInfo"></param>
-        private byte[] m_channelVersion=new byte[] { 0x00} ; // Dummy value needed by libSL
         public void MoveAgentIntoRegion(RegionInfo regInfo, LLVector3 pos, LLVector3 look)
         {
             AgentMovementCompletePacket mov = new AgentMovementCompletePacket();
@@ -2028,38 +2054,6 @@ namespace OpenSim.Region.ClientStack
             PacketQueue.SetThrottleFromClient(throttles);
         }
         // Previously ClientView.PacketQueue
-        protected PacketQueue PacketQueue;
-
-        protected Queue<QueItem> IncomingPacketQueue;
-        protected Queue<QueItem> OutgoingPacketQueue;
-        protected Queue<QueItem> ResendOutgoingPacketQueue;
-        protected Queue<QueItem> LandOutgoingPacketQueue;
-        protected Queue<QueItem> WindOutgoingPacketQueue;
-        protected Queue<QueItem> CloudOutgoingPacketQueue;
-        protected Queue<QueItem> TaskOutgoingPacketQueue;
-        protected Queue<QueItem> TextureOutgoingPacketQueue;
-        protected Queue<QueItem> AssetOutgoingPacketQueue;
-
-        protected Dictionary<uint, uint> PendingAcks = new Dictionary<uint, uint>();
-        protected Dictionary<uint, Packet> NeedAck = new Dictionary<uint, Packet>();
-
-        protected Timer AckTimer;
-        protected uint Sequence = 0;
-        protected object SequenceLock = new object();
-        protected const int MAX_APPENDED_ACKS = 10;
-        protected const int RESEND_TIMEOUT = 4000;
-        protected const int MAX_SEQUENCE = 0xFFFFFF;
-
-        private uint m_circuitCode;
-        public EndPoint userEP;
-
-        protected PacketServer m_networkServer;
-
-        public uint CircuitCode
-        {
-            get { return m_circuitCode; }
-            set { m_circuitCode = value; }
-        }
 
         // A thread safe sequence number allocator.  
         protected uint NextSeqNum()
@@ -2317,12 +2311,6 @@ namespace OpenSim.Region.ClientStack
 
         #endregion
         // Previously ClientView.ProcessPackets
-        private int m_moneyBalance;
-
-        public int MoneyBalance
-        {
-            get { return m_moneyBalance; }
-        }
 
         public bool AddMoney(int debit)
         {
