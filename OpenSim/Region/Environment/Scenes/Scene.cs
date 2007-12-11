@@ -1898,9 +1898,13 @@ namespace OpenSim.Region.Environment.Scenes
             // We don't want to try to send messages if there are no avatar.
             if (!(m_scenePresences.Equals(null)))
             {
-                foreach (ScenePresence presence in m_scenePresences.Values)
-                {
-                    action(presence);
+                try {
+                    foreach (ScenePresence presence in m_scenePresences.Values)
+                    {
+                        action(presence);
+                    }
+                } catch (Exception e) {
+                    MainLog.Instance.Verbose("BUG", e.ToString());
                 }
             }
         }

@@ -206,6 +206,8 @@ namespace OpenSim.Region.ClientStack
         public void Close()
         {
             // Pull Client out of Region
+            MainLog.Instance.Verbose("CLIENT", "Close has been called");
+
             m_scene.RemoveClient(AgentId);
 
             // Send the STOP packet 
@@ -215,6 +217,8 @@ namespace OpenSim.Region.ClientStack
             // FLUSH Packets
             PacketQueue.Close();
             PacketQueue.Flush();
+
+            Thread.Sleep(2000);
  
             // Shut down timers
             AckTimer.Stop();
@@ -223,7 +227,6 @@ namespace OpenSim.Region.ClientStack
             // This is just to give the client a reasonable chance of
             // flushing out all it's packets.  There should probably
             // be a better mechanism here
-            Thread.Sleep(2000);
 
             ClientThread.Abort();
         }
