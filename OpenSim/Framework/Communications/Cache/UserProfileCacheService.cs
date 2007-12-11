@@ -127,6 +127,26 @@ namespace OpenSim.Framework.Communications.Cache
             }
         }
 
+        public void HandleUpdateInventoryFolder(IClientAPI remoteClient, LLUUID folderID, ushort type, string name, LLUUID parentID)
+        {
+            CachedUserInfo userProfile;
+
+            if (m_userProfiles.TryGetValue(remoteClient.AgentId, out userProfile))
+            {
+                if (userProfile.RootFolder != null)
+                {
+                    InventoryFolderBase baseFolder = new InventoryFolderBase();
+                    baseFolder.agentID = remoteClient.AgentId;
+                    baseFolder.folderID = folderID;
+                    baseFolder.name = name;
+                    baseFolder.parentID = parentID;
+                    baseFolder.type = (short)type;
+                    baseFolder.version = userProfile.RootFolder.version;
+                    m_parent.InventoryService.AddNewInventoryFolder(remoteClient.AgentId, baseFolder);
+                }
+            }
+        }
+
         /// <summary>
         /// Tell the client about the various child items and folders contained in the requested folder.
         /// </summary>

@@ -430,6 +430,7 @@ namespace OpenSim.Region.ClientStack
 
         public event CreateNewInventoryItem OnCreateNewInventoryItem;
         public event CreateInventoryFolder OnCreateNewInventoryFolder;
+        public event UpdateInventoryFolder OnUpdateInventoryFolder;
         public event FetchInventoryDescendents OnFetchInventoryDescendents;
         public event PurgeInventoryDescendents OnPurgeInventoryDescendents;
         public event FetchInventory OnFetchInventory;
@@ -2807,6 +2808,19 @@ namespace OpenSim.Region.ClientStack
                                                        (ushort) invFolder.FolderData.Type,
                                                        Util.FieldToString(invFolder.FolderData.Name),
                                                        invFolder.FolderData.ParentID);
+                        }
+                        break;
+                    case PacketType.UpdateInventoryFolder:
+                        if (OnUpdateInventoryFolder != null)
+                        {
+                            UpdateInventoryFolderPacket invFolder = (UpdateInventoryFolderPacket)Pack;
+                            for (int i = 0; i < invFolder.FolderData.Length; i++)
+                            {
+                                OnUpdateInventoryFolder(this, invFolder.FolderData[i].FolderID,
+                                                       (ushort)invFolder.FolderData[i].Type,
+                                                       Util.FieldToString(invFolder.FolderData[i].Name),
+                                                       invFolder.FolderData[i].ParentID);
+                            }
                         }
                         break;
                     case PacketType.CreateInventoryItem:

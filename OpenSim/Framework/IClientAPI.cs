@@ -327,6 +327,9 @@ namespace OpenSim.Framework
     public delegate void CreateInventoryFolder(
         IClientAPI remoteClient, LLUUID folderID, ushort folderType, string folderName, LLUUID parentID);
 
+    public delegate void UpdateInventoryFolder(
+        IClientAPI remoteClient, LLUUID folderID, ushort type, string name,  LLUUID parentID);
+
     public delegate void CreateNewInventoryItem(
         IClientAPI remoteClient, LLUUID transActionID, LLUUID folderID, uint callbackID, string description, string name,
         sbyte invType, sbyte type, byte wearableType, uint nextOwnerMask);
@@ -428,6 +431,7 @@ namespace OpenSim.Framework
 
         event CreateNewInventoryItem OnCreateNewInventoryItem;
         event CreateInventoryFolder OnCreateNewInventoryFolder;
+        event UpdateInventoryFolder OnUpdateInventoryFolder;
         event FetchInventoryDescendents OnFetchInventoryDescendents;
         event PurgeInventoryDescendents OnPurgeInventoryDescendents;
         event FetchInventory OnFetchInventory;
