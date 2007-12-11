@@ -774,6 +774,17 @@ namespace OpenSim.Region.Environment.Scenes
             return LLUUID.Zero;
         }
 
+        public static SceneObjectPart Create()
+        {
+            SceneObjectPart part = new SceneObjectPart();
+            part.UUID = LLUUID.Random();
+
+            PrimitiveBaseShape shape = PrimitiveBaseShape.Create();
+            part.Shape = shape;
+
+            return part;
+        }
+
         #region Copying
 
         /// <summary>
@@ -1603,6 +1614,7 @@ namespace OpenSim.Region.Environment.Scenes
             public TaskInventoryItem()
             {
             }
+
         }
     }
 }

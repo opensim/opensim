@@ -129,6 +129,12 @@ namespace OpenSim.Framework
             TextureEntry = m_defaultTextureEntry;
         }
 
+        public static PrimitiveBaseShape Create()
+        {
+            PrimitiveBaseShape shape = new PrimitiveBaseShape();
+            return shape;
+        }
+
         //void returns need to change of course
         public virtual void GetMesh()
         {
