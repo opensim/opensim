@@ -518,6 +518,7 @@ namespace OpenSim.Region.Environment.Scenes
             lock (Entities)
             {
                 Entities.Remove(group.UUID);
+                m_innerScene.RemoveAPrimCount();
             }
             group.DeleteParts();
         }

@@ -966,7 +966,6 @@ namespace OpenSim.Region.Environment.Scenes
                     // subscribe to physics events.
                     rootPart.DoPhysicsPropertyUpdate(UsePhysics, true);
                 }
-                m_innerScene.AddAPrimCount();
             }
         }
 
@@ -1162,19 +1161,24 @@ namespace OpenSim.Region.Environment.Scenes
         /// <param name="agentID"></param>
         public override void RemoveClient(LLUUID agentID)
         {
-            m_eventManager.TriggerOnRemovePresence(agentID);
-
             ScenePresence avatar = GetScenePresence(agentID);
-
-            if (avatar.IsChildAgent)
+            try
             {
-                m_innerScene.removeUserCount(false);
+                if (avatar.IsChildAgent)
+                {
+                    m_innerScene.removeUserCount(false);
+                }
+                else
+                {
+                    m_innerScene.removeUserCount(true);
+                }
             }
-            else
+            catch (System.NullReferenceException)
             {
-                m_innerScene.removeUserCount(true);
+                // We don't know which count to remove it from
+                // Avatar is already disposed :/
             }
-
+            m_eventManager.TriggerOnRemovePresence(agentID);
             Broadcast(delegate(IClientAPI client)
                       {
                           try

@@ -870,7 +870,7 @@ namespace OpenSim.Region.Environment.Scenes
                     SceneObjectGroup copy = originPrim.Copy(AgentID, GroupID);
                     copy.AbsolutePosition = copy.AbsolutePosition + offset;
                     Entities.Add(copy.UUID, copy);
-
+                    m_numPrim++;
                     copy.ScheduleGroupForFullUpdate();
                 }
             }
