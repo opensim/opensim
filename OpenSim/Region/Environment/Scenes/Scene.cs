@@ -1326,7 +1326,7 @@ namespace OpenSim.Region.Environment.Scenes
                 if (m_scenePresences.ContainsKey(agentID))
                 {
                     m_scenePresences[agentID].MakeRootAgent(position, isFlying);
-                    m_innerScene.SwapRootChildAgent(false);
+                    //m_innerScene.SwapRootChildAgent(false);
                 }
             }
         }
