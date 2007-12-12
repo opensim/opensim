@@ -59,7 +59,14 @@ namespace OpenSim.Region.Environment.Scenes
             statpack.Region = new SimStatsPacket.RegionBlock();
             statpack.Region.RegionX = ReportingRegion.RegionLocX;
             statpack.Region.RegionY = ReportingRegion.RegionLocY;
-            statpack.Region.RegionFlags = (uint)21;
+            try
+            {
+                statpack.Region.RegionFlags = (uint)ReportingRegion.EstateSettings.regionFlags;
+            }
+            catch
+            {
+                statpack.Region.RegionFlags = (uint)0;
+            }
             statpack.Region.ObjectCapacity = (uint)15000;
 
             sb[0] = new SimStatsPacket.StatBlock();
@@ -68,7 +75,7 @@ namespace OpenSim.Region.Environment.Scenes
 
             sb[1] = new SimStatsPacket.StatBlock();
             sb[1].StatID = (uint)Stats.SimFPS;
-            sb[1].StatValue = (int)(m_fps);
+            sb[1].StatValue = (int)(m_fps * 5);
 
             sb[2] = new SimStatsPacket.StatBlock();
             sb[2].StatID = (uint)Stats.PhysicsFPS;

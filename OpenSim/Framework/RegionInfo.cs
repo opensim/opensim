@@ -213,7 +213,7 @@ namespace OpenSim.Framework
                 {
                     m_estateSettings = new EstateSettings();
                 }
-
+                
                 return m_estateSettings;
             }
         }
