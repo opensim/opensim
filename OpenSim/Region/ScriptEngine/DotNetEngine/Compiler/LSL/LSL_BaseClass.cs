@@ -1759,9 +1759,9 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL
             return m_LSL_Functions.llXorBase64StringsCorrect(str1, str2);
         }
 
-        public void llHTTPRequest(string url, List<string> parameters, string body)
+        public string llHTTPRequest(string url, List<string> parameters, string body)
         {
-            m_LSL_Functions.llHTTPRequest(url, parameters, body);
+            return m_LSL_Functions.llHTTPRequest(url, parameters, body);
         }
 
         public void llResetLandBanList()

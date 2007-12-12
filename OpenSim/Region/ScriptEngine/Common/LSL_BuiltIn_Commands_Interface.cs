@@ -614,7 +614,7 @@ namespace OpenSim.Region.ScriptEngine.Common
         int llGetRegionFlags();
         //wiki: string llXorBase64StringsCorrect(string str1, string str2)
         string llXorBase64StringsCorrect(string str1, string str2);
-        void llHTTPRequest(string url, List<string> parameters, string body);
+        string llHTTPRequest(string url, List<string> parameters, string body);
         //wiki: llResetLandBanList()
         void llResetLandBanList();
         //wiki: llResetLandPassList()

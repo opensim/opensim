@@ -2451,9 +2451,18 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler
             return llStringToBase64(ret);
         }
 
-        public void llHTTPRequest(string url, List<string> parameters, string body)
+        public string llHTTPRequest(string url, List<string> parameters, string body)
         {
-            m_ScriptEngine.m_LSLLongCmdHandler.StartHttpRequest(m_localID, m_itemID, url, parameters, body);
+            IHttpRequests httpScriptMod =
+                m_ScriptEngine.World.RequestModuleInterface<IHttpRequests>();
+
+            LLUUID reqID = httpScriptMod.
+                    StartHttpRequest(m_localID, m_itemID, url, parameters, body);
+
+            if( reqID != null )
+                return reqID.ToString();
+            else
+                return null;
         }
 
         public void llResetLandBanList()

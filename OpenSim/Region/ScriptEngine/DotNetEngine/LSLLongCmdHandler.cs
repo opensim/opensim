@@ -110,7 +110,9 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
             // Remove from: Timers
             UnSetTimerEvents(localID, itemID);
             // Remove from: HttpRequest
-            StopHttpRequest(localID, itemID);
+            IHttpRequests iHttpReq =
+                m_ScriptEngine.World.RequestModuleInterface<IHttpRequests>();
+            iHttpReq.StopHttpRequest(localID, itemID);
         }
 
         #region TIMER
@@ -198,114 +200,42 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
 
         #region HTTP REQUEST
 
-        //
-        // HTTP REAQUEST
-        //
-        private class HttpClass
-        {
-            public uint localID;
-            public LLUUID itemID;
-            public string url;
-            public List<string> parameters;
-            public string body;
-            public DateTime next;
-
-            public string response_request_id;
-            public int response_status;
-            public List<string> response_metadata;
-            public string response_body;
-
-            public void SendRequest()
-            {
-                // TODO: SEND REQUEST!!!
-            }
-
-            public void Stop()
-            {
-                // TODO: Cancel any ongoing request
-            }
-
-            public bool CheckResponse()
-            {
-                // TODO: Check if we got a response yet, return true if so -- false if not
-                return true;
-
-                // TODO: If we got a response, set the following then return true
-                //response_request_id
-                //response_status
-                //response_metadata
-                //response_body
-            }
-        }
-
-        private List<HttpClass> HttpRequests = new List<HttpClass>();
-        private object HttpListLock = new object();
-
-        public void StartHttpRequest(uint localID, LLUUID itemID, string url, List<string> parameters, string body)
-        {
-            Console.WriteLine("StartHttpRequest");
-
-            HttpClass htc = new HttpClass();
-            htc.localID = localID;
-            htc.itemID = itemID;
-            htc.url = url;
-            htc.parameters = parameters;
-            htc.body = body;
-            lock (HttpListLock)
-            {
-                //ADD REQUEST
-                HttpRequests.Add(htc);
-            }
-        }
-
-        public void StopHttpRequest(uint m_localID, LLUUID m_itemID)
-        {
-            // Remove from list
-            lock (HttpListLock)
-            {
-                List<HttpClass> NewHttpList = new List<HttpClass>();
-                foreach (HttpClass ts in HttpRequests)
-                {
-                    if (ts.localID != m_localID && ts.itemID != m_itemID)
-                    {
-                        // Keeping this one
-                        NewHttpList.Add(ts);
-                    }
-                    else
-                    {
-                        // Shutting this one down
-                        ts.Stop();
-                    }
-                }
-                HttpRequests.Clear();
-                HttpRequests = NewHttpList;
-            }
-        }
-
         public void CheckHttpRequests()
         {
-            // Nothing to do here?
-            if (HttpRequests.Count == 0)
-                return;
+            IHttpRequests iHttpReq = 
+                m_ScriptEngine.World.RequestModuleInterface<IHttpRequests>();
 
-            lock (HttpListLock)
+            HttpRequestClass httpInfo = null;
+
+            if( iHttpReq != null )
+                httpInfo = iHttpReq.GetNextCompletedRequest();
+
+            while ( httpInfo != null )
             {
-                foreach (HttpClass ts in HttpRequests)
-                {
-                    if (ts.CheckResponse() == true)
+                
+                Console.WriteLine("PICKED HTTP REQ:" + httpInfo.response_body + httpInfo.status);
+
+                // Deliver data to prim's remote_data handler
+                //
+                // TODO: Returning null for metadata, since the lsl function
+                // only returns the byte for HTTP_BODY_TRUNCATED, which is not
+                // implemented here yet anyway.  Should be fixed if/when maxsize
+                // is supported
+                
+                object[] resobj = new object[]
                     {
-                        // Add it to event queue
-                        //key request_id, integer status, list metadata, string body
-                        object[] resobj =
-                            new object[]
-                                {ts.response_request_id, ts.response_status, ts.response_metadata, ts.response_body};
-                        m_ScriptEngine.m_EventQueueManager.AddToScriptQueue(ts.localID, ts.itemID, "http_response",
-                                                                            resobj);
-                        // Now stop it
-                        StopHttpRequest(ts.localID, ts.itemID);
-                    }
-                }
-            } // lock
+                        httpInfo.reqID.ToString(), httpInfo.status, null, httpInfo.response_body
+                    };
+
+                m_ScriptEngine.m_EventQueueManager.AddToScriptQueue(
+                    httpInfo.localID, httpInfo.itemID, "http_response", resobj
+                    );
+
+                httpInfo.Stop();
+                httpInfo = null;
+
+                httpInfo = iHttpReq.GetNextCompletedRequest();
+            }
         }
 
         #endregion
@@ -314,20 +244,23 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
         {
             IXMLRPC xmlrpc = m_ScriptEngine.World.RequestModuleInterface<IXMLRPC>();
 
-            while (xmlrpc.hasRequests())
+            if (xmlrpc != null)
             {
-                RPCRequestInfo rInfo = xmlrpc.GetNextRequest();
-                Console.WriteLine("PICKED REQUEST");
+                while (xmlrpc.hasRequests())
+                {
+                    RPCRequestInfo rInfo = xmlrpc.GetNextRequest();
+                    Console.WriteLine("PICKED REQUEST");
 
-                //Deliver data to prim's remote_data handler
-                object[] resobj = new object[]
-                    {
-                        2, rInfo.GetChannelKey().ToString(), rInfo.GetMessageID().ToString(), "", rInfo.GetIntValue(),
-                        rInfo.GetStrVal()
-                    };
-                m_ScriptEngine.m_EventQueueManager.AddToScriptQueue(
-                    rInfo.GetLocalID(), rInfo.GetItemID(), "remote_data", resobj
-                    );
+                    //Deliver data to prim's remote_data handler
+                    object[] resobj = new object[]
+                        {
+                            2, rInfo.GetChannelKey().ToString(), rInfo.GetMessageID().ToString(), "", rInfo.GetIntValue(),
+                            rInfo.GetStrVal()
+                        };
+                    m_ScriptEngine.m_EventQueueManager.AddToScriptQueue(
+                        rInfo.GetLocalID(), rInfo.GetItemID(), "remote_data", resobj
+                        );
+                }
             }
         }
 
@@ -338,7 +271,6 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
             while (comms.HasMessages())
             {
                 ListenerInfo lInfo = comms.GetNextMessage();
-                Console.WriteLine("PICKED LISTENER");
 
                 //Deliver data to prim's listen handler
                 object[] resobj = new object[]

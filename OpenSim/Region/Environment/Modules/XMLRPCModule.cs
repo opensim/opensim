@@ -121,7 +121,7 @@ namespace OpenSim.Region.Environment.Modules
 
         public bool IsSharedModule
         {
-            get { return false; }
+            get { return true; }
         }
 
         /**********************************************
