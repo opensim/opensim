@@ -581,6 +581,7 @@ namespace OpenSim.Region.Environment.Scenes
                 m_statsReporter.AddInPackets(0);
                 m_statsReporter.SetRootAgents(m_innerScene.GetRootAgentCount());
                 m_statsReporter.SetChildAgents(m_innerScene.GetChildAgentCount());
+                m_statsReporter.SetObjects(m_innerScene.GetTotalObjects());
                 
             }
             catch (NotImplementedException)

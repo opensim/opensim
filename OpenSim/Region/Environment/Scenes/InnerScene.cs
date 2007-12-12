@@ -281,6 +281,12 @@ namespace OpenSim.Region.Environment.Scenes
         {
             return m_numRootAgents;
         }
+
+        public int GetTotalObjects()
+        {
+            return m_numPrim;
+        }
+
         #endregion
 
         #region Get Methods

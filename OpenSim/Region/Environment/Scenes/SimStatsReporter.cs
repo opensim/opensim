@@ -20,6 +20,7 @@ namespace OpenSim.Region.Environment.Scenes
             SimFPS = 1,
             PhysicsFPS = 2,
             AgentUpdates = 3,
+            TotalPrim = 11,
             Agents = 13,
             ChildAgents = 14,
             InPacketsPerSecond = 17,
@@ -34,6 +35,7 @@ namespace OpenSim.Region.Environment.Scenes
         private float m_agentUpdates = 0;
         private int m_rootAgents = 0;
         private int m_childAgents = 0;
+        private int m_numPrim = 0;
         private int m_inPacketsPerSecond = 0;
         private int m_outPacketsPerSecond = 0;
         private int m_unAckedBytes = 0;
@@ -55,7 +57,7 @@ namespace OpenSim.Region.Environment.Scenes
         {
             m_report.Enabled = false;
             SimStatsPacket statpack = new SimStatsPacket();
-            SimStatsPacket.StatBlock[] sb = new SimStatsPacket.StatBlock[9];
+            SimStatsPacket.StatBlock[] sb = new SimStatsPacket.StatBlock[10];
             statpack.Region = new SimStatsPacket.RegionBlock();
             statpack.Region.RegionX = ReportingRegion.RegionLocX;
             statpack.Region.RegionY = ReportingRegion.RegionLocY;
@@ -94,16 +96,20 @@ namespace OpenSim.Region.Environment.Scenes
             sb[5].StatValue = m_childAgents;
 
             sb[6] = new SimStatsPacket.StatBlock();
-            sb[6].StatID = (uint)Stats.InPacketsPerSecond;
-            sb[6].StatValue = (int)(m_inPacketsPerSecond / statsUpdatesEveryMS);
+            sb[6].StatID = (uint)Stats.TotalPrim;
+            sb[6].StatValue = m_numPrim;
 
             sb[7] = new SimStatsPacket.StatBlock();
-            sb[7].StatID = (uint)Stats.OutPacketsPerSecond;
-            sb[7].StatValue = (int)(m_outPacketsPerSecond / statsUpdatesEveryMS);
+            sb[7].StatID = (uint)Stats.InPacketsPerSecond;
+            sb[7].StatValue = (int)(m_inPacketsPerSecond / statsUpdatesEveryMS);
 
             sb[8] = new SimStatsPacket.StatBlock();
-            sb[8].StatID = (uint)Stats.UnAckedBytes;
-            sb[8].StatValue = (int) (m_unAckedBytes / statsUpdatesEveryMS);
+            sb[8].StatID = (uint)Stats.OutPacketsPerSecond;
+            sb[8].StatValue = (int)(m_outPacketsPerSecond / statsUpdatesEveryMS);
+
+            sb[9] = new SimStatsPacket.StatBlock();
+            sb[9].StatID = (uint)Stats.UnAckedBytes;
+            sb[9].StatValue = (int) (m_unAckedBytes / statsUpdatesEveryMS);
             
             statpack.Stat = sb;
 
@@ -136,6 +142,10 @@ namespace OpenSim.Region.Environment.Scenes
         public void SetChildAgents(int childAgents)
         {
             m_childAgents = childAgents;
+        }
+        public void SetObjects(int objects)
+        {
+            m_numPrim = objects;
         }
         public void AddFPS(int frames)
         {
