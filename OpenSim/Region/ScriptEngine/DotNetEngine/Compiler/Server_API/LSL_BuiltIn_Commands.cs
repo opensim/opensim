@@ -165,24 +165,24 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler
         //This next group are vector operations involving squaring and square root. ckrinke
         public double llVecMag(LSL_Types.Vector3 v)
         {
-            return (v.X*v.X + v.Y*v.Y + v.Z*v.Z);
+            return (v.x*v.x + v.y*v.y + v.z*v.z);
         }
 
         public LSL_Types.Vector3 llVecNorm(LSL_Types.Vector3 v)
         {
-            double mag = v.X*v.X + v.Y*v.Y + v.Z*v.Z;
+            double mag = v.x*v.x + v.y*v.y + v.z*v.z;
             LSL_Types.Vector3 nor = new LSL_Types.Vector3();
-            nor.X = v.X/mag;
-            nor.Y = v.Y/mag;
-            nor.Z = v.Z/mag;
+            nor.x = v.x/mag;
+            nor.y = v.y/mag;
+            nor.z = v.z/mag;
             return nor;
         }
 
         public double llVecDist(LSL_Types.Vector3 a, LSL_Types.Vector3 b)
         {
-            double dx = a.X - b.X;
-            double dy = a.Y - b.Y;
-            double dz = a.Z - b.Z;
+            double dx = a.x - b.x;
+            double dy = a.y - b.y;
+            double dz = a.z - b.z;
             return Math.Sqrt(dx*dx + dy*dy + dz*dz);
         }
 
@@ -190,31 +190,31 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler
         public LSL_Types.Vector3 llRot2Euler(LSL_Types.Quaternion r)
         {
             //This implementation is from http://lslwiki.net/lslwiki/wakka.php?wakka=LibraryRotationFunctions. ckrinke
-            LSL_Types.Quaternion t = new LSL_Types.Quaternion(r.X*r.X, r.Y*r.Y, r.Z*r.Z, r.R*r.R);
-            double m = (t.X + t.Y + t.Z + t.R);
+            LSL_Types.Quaternion t = new LSL_Types.Quaternion(r.x*r.x, r.y*r.y, r.z*r.z, r.r*r.r);
+            double m = (t.x + t.y + t.z + t.r);
             if (m == 0) return new LSL_Types.Vector3();
-            double n = 2*(r.Y*r.R + r.X*r.Z);
+            double n = 2*(r.y*r.r + r.x*r.z);
             double p = m*m - n*n;
             if (p > 0)
-                return new LSL_Types.Vector3(Math.Atan2(2.0*(r.X*r.R - r.Y*r.Z), (-t.X - t.Y + t.Z + t.R)),
+                return new LSL_Types.Vector3(Math.Atan2(2.0*(r.x*r.r - r.y*r.z), (-t.x - t.y + t.z + t.r)),
                                              Math.Atan2(n, Math.Sqrt(p)),
-                                             Math.Atan2(2.0*(r.Z*r.R - r.X*r.Y), (t.X - t.Y - t.Z + t.R)));
+                                             Math.Atan2(2.0*(r.z*r.r - r.x*r.y), (t.x - t.y - t.z + t.r)));
             else if (n > 0)
-                return new LSL_Types.Vector3(0.0, Math.PI/2, Math.Atan2((r.Z*r.R + r.X*r.Y), 0.5 - t.X - t.Z));
+                return new LSL_Types.Vector3(0.0, Math.PI/2, Math.Atan2((r.z*r.r + r.x*r.y), 0.5 - t.x - t.z));
             else
-                return new LSL_Types.Vector3(0.0, -Math.PI/2, Math.Atan2((r.Z*r.R + r.X*r.Y), 0.5 - t.X - t.Z));
+                return new LSL_Types.Vector3(0.0, -Math.PI/2, Math.Atan2((r.z*r.r + r.x*r.y), 0.5 - t.x - t.z));
         }
 
         public LSL_Types.Quaternion llEuler2Rot(LSL_Types.Vector3 v)
         {
             //this comes from from http://lslwiki.net/lslwiki/wakka.php?wakka=LibraryRotationFunctions but is incomplete as of 8/19/07
             float err = 0.00001f;
-            double ax = Math.Sin(v.X/2);
-            double aw = Math.Cos(v.X/2);
-            double by = Math.Sin(v.Y/2);
-            double bw = Math.Cos(v.Y/2);
-            double cz = Math.Sin(v.Z/2);
-            double cw = Math.Cos(v.Z/2);
+            double ax = Math.Sin(v.x/2);
+            double aw = Math.Cos(v.x/2);
+            double by = Math.Sin(v.y/2);
+            double bw = Math.Cos(v.y/2);
+            double cz = Math.Sin(v.z/2);
+            double cw = Math.Cos(v.z/2);
             LSL_Types.Quaternion a1 = new LSL_Types.Quaternion(0.0, 0.0, cz, cw);
             LSL_Types.Quaternion a2 = new LSL_Types.Quaternion(0.0, by, 0.0, bw);
             LSL_Types.Quaternion a3 = new LSL_Types.Quaternion(ax, 0.0, 0.0, aw);
@@ -226,10 +226,10 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler
             //This addition doesnt compile yet c = a + b;
             LSL_Types.Quaternion d = new LSL_Types.Quaternion();
             //This addition doesnt compile yet d = a - b;
-            if ((Math.Abs(c.X) > err && Math.Abs(d.X) > err) ||
-                (Math.Abs(c.Y) > err && Math.Abs(d.Y) > err) ||
-                (Math.Abs(c.Z) > err && Math.Abs(d.Z) > err) ||
-                (Math.Abs(c.R) > err && Math.Abs(d.R) > err))
+            if ((Math.Abs(c.x) > err && Math.Abs(d.x) > err) ||
+                (Math.Abs(c.y) > err && Math.Abs(d.y) > err) ||
+                (Math.Abs(c.z) > err && Math.Abs(d.z) > err) ||
+                (Math.Abs(c.r) > err && Math.Abs(d.r) > err))
             {
                 //return a new Quaternion that is null until I figure this out
                 //                return b;
@@ -426,9 +426,9 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler
         {
             // TODO: this needs to trigger a persistance save as well
             LLVector3 tmp = m_host.Scale;
-            tmp.X = (float) scale.X;
-            tmp.Y = (float) scale.Y;
-            tmp.Z = (float) scale.Z;
+            tmp.X = (float) scale.x;
+            tmp.Y = (float) scale.y;
+            tmp.Z = (float) scale.z;
             m_host.Scale = tmp;
             m_host.SendFullUpdateToAllClients();
             return;
@@ -446,9 +446,9 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler
             if (face > -1)
             {
                 texcolor = tex.CreateFace((uint)face).RGBA;
-                texcolor.R = (float)Math.Abs(color.X - 1);
-                texcolor.G = (float)Math.Abs(color.Y - 1);
-                texcolor.B = (float)Math.Abs(color.Z - 1);
+                texcolor.R = (float)Math.Abs(color.x - 1);
+                texcolor.G = (float)Math.Abs(color.y - 1);
+                texcolor.B = (float)Math.Abs(color.z - 1);
                 tex.FaceTextures[face].RGBA = texcolor;
                 m_host.UpdateTexture(tex);
                 return;
@@ -456,18 +456,18 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler
             else if (face == -1)
             {
                 texcolor = tex.DefaultTexture.RGBA;
-                texcolor.R = (float)Math.Abs(color.X - 1);
-                texcolor.G = (float)Math.Abs(color.Y - 1);
-                texcolor.B = (float)Math.Abs(color.Z - 1);
+                texcolor.R = (float)Math.Abs(color.x - 1);
+                texcolor.G = (float)Math.Abs(color.y - 1);
+                texcolor.B = (float)Math.Abs(color.z - 1);
                 tex.DefaultTexture.RGBA = texcolor;
                 for (uint i = 0; i < 32; i++)
                 {
                     if (tex.FaceTextures[i] != null)
                     {
                         texcolor = tex.FaceTextures[i].RGBA;
-                        texcolor.R = (float)Math.Abs(color.X - 1);
-                        texcolor.G = (float)Math.Abs(color.Y - 1);
-                        texcolor.B = (float)Math.Abs(color.Z - 1);
+                        texcolor.R = (float)Math.Abs(color.x - 1);
+                        texcolor.G = (float)Math.Abs(color.y - 1);
+                        texcolor.B = (float)Math.Abs(color.z - 1);
                         tex.FaceTextures[i].RGBA = texcolor;
                     }
                 }
@@ -533,17 +533,17 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler
             if (face == -1) // TMP: Until we can determine number of sides, ALL_SIDES (-1) will return default color
             {
                 texcolor = tex.DefaultTexture.RGBA;
-                rgb.X = (255 - (texcolor.R * 255)) / 255;
-                rgb.Y = (255 - (texcolor.G * 255)) / 255;
-                rgb.Z = (255 - (texcolor.B * 255)) / 255;
+                rgb.x = (255 - (texcolor.R * 255)) / 255;
+                rgb.y = (255 - (texcolor.G * 255)) / 255;
+                rgb.z = (255 - (texcolor.B * 255)) / 255;
                 return rgb;
             }
             if (face > -1)
             {
                 texcolor = tex.GetFace((uint)face).RGBA;
-                rgb.X = (255 - (texcolor.R * 255)) / 255;
-                rgb.Y = (255 - (texcolor.G * 255)) / 255;
-                rgb.Z = (255 - (texcolor.B * 255)) / 255;
+                rgb.x = (255 - (texcolor.R * 255)) / 255;
+                rgb.y = (255 - (texcolor.G * 255)) / 255;
+                rgb.z = (255 - (texcolor.B * 255)) / 255;
                 return rgb;
             }
             NotImplemented("llGetColor");
@@ -691,11 +691,11 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler
         {
             if (m_host.ParentID != 0)
             {
-                m_host.UpdateOffSet(new LLVector3((float) pos.X, (float) pos.Y, (float) pos.Z));
+                m_host.UpdateOffSet(new LLVector3((float) pos.x, (float) pos.y, (float) pos.z));
             }
             else
             {
-                m_host.UpdateGroupPosition(new LLVector3((float) pos.X, (float) pos.Y, (float) pos.Z));
+                m_host.UpdateGroupPosition(new LLVector3((float) pos.x, (float) pos.y, (float) pos.z));
             }
         }
 
@@ -724,7 +724,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler
 
         public void llSetRot(LSL_Types.Quaternion rot)
         {
-            m_host.UpdateRotation(new LLQuaternion((float) rot.X, (float) rot.Y, (float) rot.Z, (float) rot.R));
+            m_host.UpdateRotation(new LLQuaternion((float) rot.x, (float) rot.y, (float) rot.z, (float) rot.r));
         }
 
         public LSL_Types.Quaternion llGetRot()
@@ -1216,7 +1216,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler
 
         public void llSetText(string text, LSL_Types.Vector3 color, double alpha)
         {
-            Vector3 av3 = new Vector3((float) color.X, (float) color.Y, (float) color.Z);
+            Vector3 av3 = new Vector3((float) color.x, (float) color.y, (float) color.z);
             m_host.SetText(text, av3, alpha);
         }
 
@@ -1351,9 +1351,9 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler
             {
                 face = 0;
             }
-            offset.X = tex.GetFace((uint)face).OffsetU;
-            offset.Y = tex.GetFace((uint)face).OffsetV;
-            offset.Z = 0.0;
+            offset.x = tex.GetFace((uint)face).OffsetU;
+            offset.y = tex.GetFace((uint)face).OffsetV;
+            offset.z = 0.0;
             return offset;
         }
 
@@ -1365,9 +1365,9 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler
             {
                 side = 0;
             }
-            scale.X = tex.GetFace((uint)side).RepeatU;
-            scale.Y = tex.GetFace((uint)side).RepeatV;
-            scale.Z = 0.0;
+            scale.x = tex.GetFace((uint)side).RepeatU;
+            scale.y = tex.GetFace((uint)side).RepeatV;
+            scale.z = 0.0;
             return scale;
         }
 

@@ -36,47 +36,113 @@ namespace OpenSim.Region.ScriptEngine.Common
         [Serializable]
         public struct Vector3
         {
-            public double X;
-            public double Y;
-            public double Z;
+            public double x;
+            public double y;
+            public double z;
 
             public Vector3(Vector3 vector)
             {
-                X = (float) vector.X;
-                Y = (float) vector.Y;
-                Z = (float) vector.Z;
+                x = (float) vector.x;
+                y = (float) vector.y;
+                z = (float) vector.z;
             }
 
-            public Vector3(double x, double y, double z)
+            public Vector3(double X, double Y, double Z)
             {
-                X = x;
-                Y = y;
-                Z = z;
+                x = X;
+                y = Y;
+                z = Z;
+            }
+            public string ToString()
+            {
+                return "<" + x.ToString() + ", " + y.ToString() + ", " + z.ToString() + ">";
+            }
+            public static Vector3 operator *(Vector3 v, float f)
+            {
+                v.x = v.x * f;
+                v.y = v.y * f;
+                v.z = v.z * f;
+                return v;
+            }
+            public static Vector3 operator /(Vector3 v, float f)
+            {
+                v.x = v.x / f;
+                v.y = v.y / f;
+                v.z = v.z / f;
+                return v;
+            }
+            public static Vector3 operator /(float f, Vector3 v)
+            {
+                v.x = v.x / f;
+                v.y = v.y / f;
+                v.z = v.z / f;
+                return v;
+            }
+            public static Vector3 operator *(float f, Vector3 v)
+            {
+                v.x = v.x * f;
+                v.y = v.y * f;
+                v.z = v.z * f;
+                return v;
+            }
+            public static Vector3 operator *(Vector3 v1, Vector3 v2)
+            {
+                v1.x = v1.x * v2.x;
+                v1.y = v1.y * v2.y;
+                v1.z = v1.z * v2.z;
+                return v1;
+            }
+            public static Vector3 operator +(Vector3 v1, Vector3 v2)
+            {
+                v1.x = v1.x + v2.x;
+                v1.y = v1.y + v2.y;
+                v1.z = v1.z + v2.z;
+                return v1;
+            }
+            public static Vector3 operator -(Vector3 v1, Vector3 v2)
+            {
+                v1.x = v1.x - v2.x;
+                v1.y = v1.y - v2.y;
+                v1.z = v1.z - v2.z;
+                return v1;
+            }
+            public static Vector3 operator %(Vector3 v1, Vector3 v2)
+            {
+                //Cross product
+                Vector3 tv;
+                tv.x = (v1.y * v2.z) - (v1.z * v2.y);
+                tv.y = (v1.z * v2.x) - (v1.x * v2.z);
+                tv.z = (v1.x * v2.y) - (v1.y * v2.x);
+                return tv;
             }
         }
 
         [Serializable]
         public struct Quaternion
         {
-            public double X;
-            public double Y;
-            public double Z;
-            public double R;
+            public double x;
+            public double y;
+            public double z;
+            public double r;
 
             public Quaternion(Quaternion Quat)
             {
-                X = (float) Quat.X;
-                Y = (float) Quat.Y;
-                Z = (float) Quat.Z;
-                R = (float) Quat.R;
+                x = (float) Quat.x;
+                y = (float) Quat.y;
+                z = (float) Quat.z;
+                r = (float) Quat.r;
             }
 
-            public Quaternion(double x, double y, double z, double r)
+            public Quaternion(double X, double Y, double Z, double R)
             {
-                X = x;
-                Y = y;
-                Z = z;
-                R = r;
+                x = X;
+                y = Y;
+                z = Z;
+                r = R;
+            }
+            public string ToString()
+            {
+                return "<" + x.ToString() + ", " + y.ToString() + ", " + z.ToString() + ", " + r.ToString() + ">";
             }
         }
     }
