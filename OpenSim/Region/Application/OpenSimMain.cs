@@ -338,10 +338,10 @@ namespace OpenSim
             }
             
             // Start UDP servers
-            for (int i = 0; i < m_udpServers.Count; i++)
-            {
-                m_udpServers[i].ServerListener();
-            }
+            //for (int i = 0; i < m_udpServers.Count; i++)
+            //{
+               // m_udpServers[i].ServerListener();
+           // }
 
             //Run Startup Commands
             if (m_startupCommandsFile != "")
@@ -385,6 +385,7 @@ namespace OpenSim
 
             m_udpServers.Add(udpServer);
             m_regionData.Add(regionInfo);
+            udpServer.ServerListener();
 
             return udpServer;
         }
@@ -484,7 +485,7 @@ namespace OpenSim
                 m_regionData.RemoveAt(RegionHandleElement);
             }
             UDPServer restartingRegion = CreateRegion(whichRegion);
-            restartingRegion.ServerListener();
+            //restartingRegion.ServerListener();
             //m_sceneManager.SendSimOnlineNotification(restartingRegion.RegionHandle);
         }
 
@@ -757,7 +758,7 @@ namespace OpenSim
                     break;
 
                 case "create-region":
-                    CreateRegion(new RegionInfo(cmdparams[0], "Regions/" + cmdparams[1])).ServerListener();
+                    CreateRegion(new RegionInfo(cmdparams[0], "Regions/" + cmdparams[1]));
                     break;
 
                 case "remove-region":

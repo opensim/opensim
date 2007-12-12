@@ -313,17 +313,27 @@ namespace OpenSim.Region.Environment.Scenes
                     }
                 if ((Math.Abs(otherRegion.RegionLocX - RegionInfo.RegionLocX) <= 1) && (Math.Abs(otherRegion.RegionLocY - RegionInfo.RegionLocY) <= 1))
                 {
-                    lock (m_regionRestartNotifyList)
+                    try
                     {
-                        if (!(m_regionRestartNotifyList.Contains(otherRegion)))
-                        {
-                            m_regionRestartNotifyList.Add(otherRegion);
 
-                            m_restartWaitTimer.Interval = 50000;
-                            m_restartWaitTimer.AutoReset = false;
-                            m_restartWaitTimer.Elapsed += new ElapsedEventHandler(RestartNotifyWaitElapsed);
-                            m_restartWaitTimer.Start();
+                        ForEachScenePresence(delegate(ScenePresence agent)
+                        {
+                            // If agent is a root agent.
+                            if (!agent.IsChildAgent)
+                            {
+                                //agent.ControllingClient.new
+                                //this.CommsManager.InterRegion.InformRegionOfChildAgent(otherRegion.RegionHandle, agent.ControllingClient.RequestClientInfo());
+                                InformClientOfNeighbor(agent, otherRegion);
+                            }
                         }
+
+                        );
+                    }
+                    catch (System.NullReferenceException)
+                    {
+                        // This means that we're not booted up completely yet.
+                        // This shouldn't happen too often anymore.
+                        MainLog.Instance.Error("SCENE", "Couldn't inform client of regionup because we got a null reference exception");                       
                     }
                 }
                 else

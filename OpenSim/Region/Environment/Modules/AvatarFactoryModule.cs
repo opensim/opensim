@@ -55,7 +55,14 @@ namespace OpenSim.Region.Environment.Modules
                 byte[] visualParams;
                 GetDefaultAvatarAppearance(out wearables, out visualParams);
                 appearance = new AvatarAppearance(avatarId, wearables, visualParams);
-                m_avatarsAppearance[avatarId] = appearance;
+                try
+                {
+                    m_avatarsAppearance[avatarId] = appearance;
+                }
+                catch (System.NullReferenceException)
+                {
+                    OpenSim.Framework.Console.MainLog.Instance.Error("AVATAR", "Unable to load appearance for uninitialized avatar");
+                }
                 return true;
             }
         }
