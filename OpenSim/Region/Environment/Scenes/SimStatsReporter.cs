@@ -65,7 +65,7 @@ namespace OpenSim.Region.Environment.Scenes
             {
                 statpack.Region.RegionFlags = (uint)ReportingRegion.EstateSettings.regionFlags;
             }
-            catch
+            catch(System.Exception)
             {
                 statpack.Region.RegionFlags = (uint)0;
             }
