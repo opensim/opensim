@@ -59,6 +59,8 @@ namespace OpenSim.Region.Environment.Scenes
         protected Timer m_heartbeatTimer = new Timer();
         protected Timer m_restartWaitTimer = new Timer();
 
+        protected SimStatsReporter m_statsReporter;
+
         protected List<RegionInfo> m_regionRestartNotifyList = new List<RegionInfo>();
         protected List<RegionInfo> m_neighbours = new List<RegionInfo>();
 
@@ -256,6 +258,9 @@ namespace OpenSim.Region.Environment.Scenes
 
             httpListener = httpServer;
             m_dumpAssetsToFile = dumpAssetsToFile;
+
+            m_statsReporter = new SimStatsReporter(regInfo);
+            m_statsReporter.OnSendStatsResult += SendSimStatsPackets;
         }
 
         #endregion
@@ -531,7 +536,7 @@ namespace OpenSim.Region.Environment.Scenes
             TimeSpan SinceLastFrame = DateTime.Now - m_lastupdate;
             // Aquire a lock so only one update call happens at once
             updateLock.WaitOne();
-
+            float physicsFPS = 0;
             try
             {
                 // Increment the frame counter
@@ -548,7 +553,7 @@ namespace OpenSim.Region.Environment.Scenes
                     m_innerScene.UpdateEntityMovement();
 
                 if (m_frame % m_update_physics == 0)
-                    m_innerScene.UpdatePhysics(
+                    physicsFPS = m_innerScene.UpdatePhysics(
                         Math.Max(SinceLastFrame.TotalSeconds, m_timespan)
                         );
 
@@ -569,6 +574,14 @@ namespace OpenSim.Region.Environment.Scenes
 
                 // if (m_frame%m_update_avatars == 0)
                 //   UpdateInWorldTime();
+                m_statsReporter.AddPhysicsFPS(physicsFPS);
+                m_statsReporter.SetTimeDilation(m_timedilation);
+                m_statsReporter.AddFPS(1);
+                m_statsReporter.AddAgentUpdates(1);
+                m_statsReporter.AddInPackets(0);
+                m_statsReporter.SetRootAgents(m_innerScene.GetRootAgentCount());
+                m_statsReporter.SetChildAgents(m_innerScene.GetChildAgentCount());
+                
             }
             catch (NotImplementedException)
             {
@@ -607,6 +620,19 @@ namespace OpenSim.Region.Environment.Scenes
             }
         }
 
+        private void SendSimStatsPackets(libsecondlife.Packets.SimStatsPacket pack)
+        {
+            List<ScenePresence> StatSendAgents = GetScenePresences();
+            foreach (ScenePresence agent in StatSendAgents)
+            {
+                if (!agent.IsChildAgent)
+                {
+                    agent.ControllingClient.OutPacket(pack, ThrottleOutPacketType.Task);
+
+                }
+            }
+
+        }
         private void UpdateLand()
         {
             if (m_LandManager.landPrimCountTainted)
@@ -939,6 +965,7 @@ namespace OpenSim.Region.Environment.Scenes
                     // subscribe to physics events.
                     rootPart.DoPhysicsPropertyUpdate(UsePhysics, true);
                 }
+                m_innerScene.AddAPrimCount();
             }
         }
 
@@ -967,6 +994,7 @@ namespace OpenSim.Region.Environment.Scenes
         public void AddEntity(SceneObjectGroup sceneObject)
         {
             m_innerScene.AddEntity(sceneObject);
+
         }
 
         public void RemoveEntity(SceneObjectGroup sceneObject)
@@ -976,6 +1004,7 @@ namespace OpenSim.Region.Environment.Scenes
                 m_LandManager.removePrimFromLandPrimCounts(sceneObject);
                 Entities.Remove(sceneObject.UUID);
                 m_LandManager.setPrimsTainted();
+                m_innerScene.RemoveAPrimCount();
             }
         }
 
@@ -1135,7 +1164,16 @@ namespace OpenSim.Region.Environment.Scenes
             m_eventManager.TriggerOnRemovePresence(agentID);
 
             ScenePresence avatar = GetScenePresence(agentID);
-            
+
+            if (avatar.IsChildAgent)
+            {
+                m_innerScene.removeUserCount(false);
+            }
+            else
+            {
+                m_innerScene.removeUserCount(true);
+            }
+
             Broadcast(delegate(IClientAPI client)
                       { 
                           try
@@ -1196,6 +1234,7 @@ namespace OpenSim.Region.Environment.Scenes
             {
                 Entities.Remove(entID);
                 m_storageManager.DataStore.RemoveObject(entID, m_regInfo.RegionID);
+                m_innerScene.RemoveAPrimCount();
                 return true;
             }
             return false;
@@ -1287,6 +1326,7 @@ namespace OpenSim.Region.Environment.Scenes
                 if (m_scenePresences.ContainsKey(agentID))
                 {
                     m_scenePresences[agentID].MakeRootAgent(position, isFlying);
+                    m_innerScene.SwapRootChildAgent(false);
                 }
             }
         }
@@ -1321,6 +1361,14 @@ namespace OpenSim.Region.Environment.Scenes
                 ScenePresence presence = m_innerScene.GetScenePresence(agentID);
                 if (presence != null)
                 {
+                    if (presence.IsChildAgent)
+                    {
+                        m_innerScene.removeUserCount(false);
+                    }
+                    else
+                    {
+                        m_innerScene.removeUserCount(true);
+                    }
                     // Tell a single agent to disconnect from the region.
                     libsecondlife.Packets.DisableSimulatorPacket disable = new libsecondlife.Packets.DisableSimulatorPacket();
                     presence.ControllingClient.OutPacket(disable, ThrottleOutPacketType.Task);
@@ -1617,6 +1665,16 @@ namespace OpenSim.Region.Environment.Scenes
                                                         if (controller.AgentId != godID && !childagent) // Do we really want to kick the initiator of this madness?
                                                         {
                                                             controller.Kick(Helpers.FieldToUTF8String(reason));
+                                                            
+                                                            if (childagent)
+                                                            {
+                                                                m_innerScene.removeUserCount(false);
+                                                            }
+                                                            else
+                                                            {
+                                                                m_innerScene.removeUserCount(true);
+                                                            }
+
                                                         }
                                                     }
                             );
@@ -1636,6 +1694,15 @@ namespace OpenSim.Region.Environment.Scenes
                     }
                     else
                     {
+                        if (m_scenePresences[agentID].IsChildAgent)
+                        {
+                            m_innerScene.removeUserCount(false);
+                        }
+                        else
+                        {
+                            m_innerScene.removeUserCount(true);
+                        }
+
                         m_scenePresences[agentID].ControllingClient.Kick(Helpers.FieldToUTF8String(reason));
                         m_scenePresences[agentID].ControllingClient.Close();
                     }
@@ -1848,7 +1915,10 @@ namespace OpenSim.Region.Environment.Scenes
         {
             return m_innerScene.ConvertLocalIDToFullID(localID);
         }
-
+        public void SwapRootAgentCount(bool rootChildChildRootTF)
+        {
+            m_innerScene.SwapRootChildAgent(rootChildChildRootTF);
+        }
         /// <summary>
         /// 
         /// </summary>

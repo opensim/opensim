@@ -169,10 +169,12 @@ namespace OpenSim.Region.Physics.POSPlugin
 
         }
 
-        public override void Simulate(float timeStep)
+        public override float Simulate(float timeStep)
         {
+            float fps = 0;
             for (int i = 0; i < _characters.Count; ++i)
             {
+                fps++;
                 POSCharacter character = _characters[i];
 
                 float oldposX = character.Position.X;
@@ -286,6 +288,7 @@ namespace OpenSim.Region.Physics.POSPlugin
                     character._velocity.Z = (character.Position.Z - oldposZ) / timeStep;
                 }
             }
+            return fps;
         }
 
         public override void GetResults()

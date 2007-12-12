@@ -70,7 +70,7 @@ namespace OpenSim.Region.Physics.Manager
                                                   PhysicsVector size, Quaternion rotation, bool isPhysical);
         public abstract void AddPhysicsActorTaint(PhysicsActor prim);
 
-        public abstract void Simulate(float timeStep);
+        public abstract float Simulate(float timeStep);
 
         public abstract void GetResults();
 
@@ -126,11 +126,12 @@ namespace OpenSim.Region.Physics.Manager
             {
 
             }
-            public override void Simulate(float timeStep)
+            public override float Simulate(float timeStep)
             {
                 m_workIndicator = (m_workIndicator + 1)%10;
 
                 //MainLog.Instance.SetStatus(m_workIndicator.ToString());
+                return 0f;
             }
 
             public override void GetResults()

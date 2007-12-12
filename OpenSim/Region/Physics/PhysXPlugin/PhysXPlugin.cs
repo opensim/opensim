@@ -139,8 +139,9 @@ namespace OpenSim.Region.Physics.PhysXPlugin
         {
 
         }
-        public override void Simulate(float timeStep)
+        public override float Simulate(float timeStep)
         {
+            float fps = 0f;
             try
             {
                 foreach (PhysXCharacter actor in _characters)
@@ -160,6 +161,7 @@ namespace OpenSim.Region.Physics.PhysXPlugin
             {
                 Console.WriteLine(e.Message);
             }
+            return fps;
         }
 
         public override void GetResults()

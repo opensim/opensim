@@ -118,8 +118,9 @@ namespace OpenSim.Region.Physics.BasicPhysicsPlugin
         {
 
         }
-        public override void Simulate(float timeStep)
+        public override float Simulate(float timeStep)
         {
+            float fps = 0;
             for (int i = 0; i < _actors.Count; ++i)
             {
                 BasicActor actor = _actors[i];
@@ -164,6 +165,7 @@ namespace OpenSim.Region.Physics.BasicPhysicsPlugin
                     actor.Velocity.Z = 0;
                 }
             }
+            return fps;
         }
 
         public override void GetResults()

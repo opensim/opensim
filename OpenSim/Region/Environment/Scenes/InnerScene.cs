@@ -57,6 +57,9 @@ namespace OpenSim.Region.Environment.Scenes
         protected RegionInfo m_regInfo;
         protected Scene m_parentScene;
         protected PermissionManager PermissionsMngr;
+        protected int m_numRootAgents = 0;
+        protected int m_numPrim = 0;
+        protected int m_numChildAgents = 0;
 
         internal object m_syncRoot = new object();
 
@@ -133,11 +136,11 @@ namespace OpenSim.Region.Environment.Scenes
             }
         }
 
-        internal void UpdatePhysics(double elapsed)
+        internal float UpdatePhysics(double elapsed)
         {
             lock (m_syncRoot)
             {
-                _PhyScene.Simulate((float)elapsed);
+               return _PhyScene.Simulate((float)elapsed);
             }
         }
 
@@ -171,6 +174,7 @@ namespace OpenSim.Region.Environment.Scenes
             {
                 //  QuadTree.AddObject(sceneObject);
                 Entities.Add(sceneObject.UUID, sceneObject);
+                m_numPrim++;
             }
         }
 
@@ -183,6 +187,7 @@ namespace OpenSim.Region.Environment.Scenes
                     if (((SceneObjectGroup)obj).LocalId == localID)
                     {
                         m_parentScene.RemoveEntity((SceneObjectGroup)obj);
+                        m_numPrim--;
                         return;
                     }
                 }
@@ -198,10 +203,12 @@ namespace OpenSim.Region.Environment.Scenes
 
             if (child)
             {
+                m_numChildAgents++;
                 MainLog.Instance.Verbose("SCENE", m_regInfo.RegionName + ": Creating new child agent.");
             }
             else
             {
+                m_numRootAgents++;
                 MainLog.Instance.Verbose("SCENE", m_regInfo.RegionName + ": Creating new root agent.");
                 MainLog.Instance.Verbose("SCENE", m_regInfo.RegionName + ": Adding Physical agent.");
 
@@ -232,6 +239,47 @@ namespace OpenSim.Region.Environment.Scenes
             }
 
             return newAvatar;
+        }
+        public void SwapRootChildAgent(bool direction_RC_CR_T_F) 
+        {
+            if (direction_RC_CR_T_F)
+            {
+                m_numRootAgents--;
+                m_numChildAgents++;
+            }
+            else
+            {
+                m_numChildAgents--;
+                m_numRootAgents++;
+            }
+        }
+        public void removeUserCount(bool TypeRCTF)
+        {
+            if (TypeRCTF)
+            {
+                m_numRootAgents--;
+            }
+            else 
+            {
+                m_numChildAgents--;
+            }
+        }
+        public void RemoveAPrimCount()
+        {
+            m_numPrim--;
+        }
+        public void AddAPrimCount()
+        {
+            m_numPrim++;
+        }
+        public int GetChildAgentCount()
+        {
+            return m_numChildAgents;
+        }
+
+        public int GetRootAgentCount()
+        {
+            return m_numRootAgents;
         }
         #endregion
 

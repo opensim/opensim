@@ -465,6 +465,7 @@ namespace OpenSim.Region.Environment.Scenes
             AddToPhysicalScene();
             m_physicsActor.Flying = isFlying;
 
+            m_scene.SwapRootAgentCount(false);
             m_scene.CommsManager.UserProfileCacheService.UpdateUserInventory(m_uuid);
             //if (!m_gotAllObjectsInScene)
             //{
@@ -484,7 +485,7 @@ namespace OpenSim.Region.Environment.Scenes
         {
             Velocity = new LLVector3(0, 0, 0);
             m_isChildAgent = true;
-
+            m_scene.SwapRootAgentCount(true);
             RemoveFromPhysicalScene();
 
             //this.Pos = new LLVector3(128, 128, 70);  

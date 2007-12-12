@@ -515,20 +515,26 @@ namespace OpenSim.Region.Physics.BulletXPlugin
         {
 
         }
-        public override void Simulate(float timeStep)
+        public override float Simulate(float timeStep)
         {
+            float fps = 0;
             lock (BulletXLock)
             {
                 //Try to remove garbage
                 RemoveForgottenRigidBodies();
                 //End of remove
                 MoveAllObjects(timeStep);
+               
+                
+                fps = (timeStep * simulationSubSteps);
+                
                 ddWorld.StepSimulation(timeStep, simulationSubSteps, timeStep);
                 //Extra Heightmap Validation: BulletX's HeightFieldTerrain somestimes doesn't work so fine.
                 ValidateHeightForAll();
                 //End heightmap validation.
                 UpdateKineticsForAll();
             }
+            return fps;
         }
 
         private void MoveAllObjects(float timeStep)

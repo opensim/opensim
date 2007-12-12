@@ -787,9 +787,10 @@ namespace OpenSim.Region.Physics.OdePlugin
             }
         }
 
-        public override void Simulate(float timeStep)
+        public override float Simulate(float timeStep)
         {
-            
+            float fps = 0;
+
             step_time += timeStep;
 
                 
@@ -800,32 +801,40 @@ namespace OpenSim.Region.Physics.OdePlugin
                 
 
 
-                if (step_time >= m_SkipFramesAtms)
-                {
-                    // Instead of trying to catch up, it'll do one physics frame only
-                    step_time = ODE_STEPSIZE;
-                    this.m_physicsiterations = 5;
+            if (step_time >= m_SkipFramesAtms)
+            {
+                // Instead of trying to catch up, it'll do one physics frame only
+                step_time = ODE_STEPSIZE;
+                this.m_physicsiterations = 5;
+            }
+            else
+            {
+                m_physicsiterations = 10;
+            }
+            lock (OdeLock)
+            {
+            // Process 10 frames if the sim is running normal..  
+            // process 5 frames if the sim is running slow
+                try{
+                    d.WorldSetQuickStepNumIterations(world, m_physicsiterations);
                 }
-                else
+                catch (System.StackOverflowException)
                 {
-                    m_physicsiterations = 10;
+                    MainLog.Instance.Error("PHYSICS", "The operating system wasn't able to allocate enough memory for the simulation.  Restarting the sim.");
+                    base.TriggerPhysicsBasedRestart();
                 }
-                lock (OdeLock)
-                {
-                // Process 10 frames if the sim is running normal..  
-                // process 5 frames if the sim is running slow
-                    try{
-                        d.WorldSetQuickStepNumIterations(world, m_physicsiterations);
-                    }
-                    catch (System.StackOverflowException)
-                    {
-                        MainLog.Instance.Error("PHYSICS", "The operating system wasn't able to allocate enough memory for the simulation.  Restarting the sim.");
-                        base.TriggerPhysicsBasedRestart();
-                    }
 
                 int i = 0;
+               
+                
+                // Figure out the Frames Per Second we're going at.
+                
+                    fps = (((step_time / ODE_STEPSIZE * m_physicsiterations)*2)* 10);
+               
+
                 while (step_time > 0.0f)
                 {
+
                     foreach (OdeCharacter actor in _characters)
                     {
                             actor.Move(timeStep);
@@ -875,6 +884,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                     }
                 }
             }
+            return fps;
         }
 
         public override void GetResults()
