@@ -233,6 +233,11 @@ namespace OpenSim.Region.Environment.Scenes
                     neighbours.Add(new SimpleRegionInfo(lstneighbours[i]));
                 }
             }
+            // we're going to be using the above code once neighbour cache is correct.  Currently it doesn't appear to be
+            // So we're temporarily going back to the old method of grabbing it from the Grid Server Every time :/
+            neighbours =
+                m_commsProvider.GridService.RequestNeighbours(m_regionInfo.RegionLocX, m_regionInfo.RegionLocY);
+
             if (neighbours != null)
             {
                 for (int i = 0; i < neighbours.Count; i++)
