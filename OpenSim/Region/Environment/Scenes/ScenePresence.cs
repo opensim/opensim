@@ -38,7 +38,7 @@ using OpenSim.Region.Physics.Manager;
 
 namespace OpenSim.Region.Environment.Scenes
 {
-    public partial class ScenePresence : EntityBase
+    public class ScenePresence : EntityBase
     {
         public static AvatarAnimations Animations;
         public static byte[] DefaultTexture;

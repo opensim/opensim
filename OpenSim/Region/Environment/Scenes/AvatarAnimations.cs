@@ -28,42 +28,41 @@
 using System.Collections.Generic;
 using System.Xml;
 using libsecondlife;
+using libsecondlife.Packets;
+
 
 namespace OpenSim.Region.Environment.Scenes
 {
-    partial class ScenePresence
+    public class AvatarAnimations
     {
-        public class AvatarAnimations
+        public Dictionary<string, LLUUID> AnimsLLUUID = new Dictionary<string, LLUUID>();
+        public Dictionary<LLUUID, string> AnimsNames = new Dictionary<LLUUID, string>();
+        
+        public AvatarAnimations()
         {
-            public Dictionary<string, LLUUID> AnimsLLUUID = new Dictionary<string, LLUUID>();
-            public Dictionary<LLUUID, string> AnimsNames = new Dictionary<LLUUID, string>();
-
-            public AvatarAnimations()
+        }
+        
+        public void LoadAnims()
+        {
+            //MainLog.Instance.Verbose("CLIENT", "Loading avatar animations");
+            using (XmlTextReader reader = new XmlTextReader("data/avataranimations.xml"))
             {
-            }
-
-            public void LoadAnims()
-            {
-                //MainLog.Instance.Verbose("CLIENT", "Loading avatar animations");
-                using (XmlTextReader reader = new XmlTextReader("data/avataranimations.xml"))
+                XmlDocument doc = new XmlDocument();
+                doc.Load(reader);
+                foreach (XmlNode nod in doc.DocumentElement.ChildNodes)
                 {
-                    XmlDocument doc = new XmlDocument();
-                    doc.Load(reader);
-                    foreach (XmlNode nod in doc.DocumentElement.ChildNodes)
+                    if (nod.Attributes["name"] != null)
                     {
-                        if (nod.Attributes["name"] != null)
-                        {
-                            AnimsLLUUID.Add(nod.Attributes["name"].Value, nod.InnerText);
-                        }
+                        AnimsLLUUID.Add(nod.Attributes["name"].Value, nod.InnerText);
                     }
                 }
-
-                // MainLog.Instance.Verbose("CLIENT", "Loaded " + AnimsLLUUID.Count.ToString() + " animation(s)");
-
-                foreach (KeyValuePair<string, LLUUID> kp in Animations.AnimsLLUUID)
-                {
-                    AnimsNames.Add(kp.Value, kp.Key);
-                }
+            }
+            
+            // MainLog.Instance.Verbose("CLIENT", "Loaded " + AnimsLLUUID.Count.ToString() + " animation(s)");
+            
+            foreach (KeyValuePair<string, LLUUID> kp in ScenePresence.Animations.AnimsLLUUID)
+            {
+                AnimsNames.Add(kp.Value, kp.Key);
             }
         }
     }
