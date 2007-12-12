@@ -127,17 +127,15 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
                 {
                     if (loadQueue.Count == 0 && unloadQueue.Count == 0)
                         Thread.Sleep(scriptLoadUnloadThread_IdleSleepms);
-
-                    if (loadQueue.Count > 0)
-                    {
-                        LoadStruct item = loadQueue.Dequeue();
-                        _StartScript(item.localID, item.itemID, item.script);
-                    }
-
                     if (unloadQueue.Count > 0)
                     {
                         UnloadStruct item = unloadQueue.Dequeue();
                         _StopScript(item.localID, item.itemID);
+                    }
+                    if (loadQueue.Count > 0)
+                    {
+                        LoadStruct item = loadQueue.Dequeue();
+                        _StartScript(item.localID, item.itemID, item.script);
                     }
                 }
             }
@@ -279,13 +277,18 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
 
                 try
                 {
-                    
-                    // Compile (We assume LSL)
-                    ScriptSource = LSLCompiler.CompileFromLSLText(Script);
-                    //Console.WriteLine("Compilation of " + FileName + " done");
-                    // * Insert yield into code
-                    ScriptSource = ProcessYield(ScriptSource);
-
+                    if (!Script.EndsWith("dll"))
+                    {
+                        // Compile (We assume LSL)
+                        ScriptSource = LSLCompiler.CompileFromLSLText(Script);
+                        //Console.WriteLine("Compilation of " + FileName + " done");
+                        // * Insert yield into code
+                        ScriptSource = ProcessYield(ScriptSource);
+                    }
+                    else
+                    {
+                        ScriptSource = Script;
+                    }
 
 #if DEBUG
                     long before;

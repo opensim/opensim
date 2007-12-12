@@ -292,6 +292,10 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler
 
         public int llListen(int channelID, string name, string ID, string msg)
         {
+            if (ID == "")
+            {
+                ID = LLUUID.Zero.ToString();
+            }
             IWorldComm wComm = m_ScriptEngine.World.RequestModuleInterface<IWorldComm>();
             return wComm.Listen(m_localID, m_itemID, m_host.UUID, channelID, name, ID, msg);
         }
