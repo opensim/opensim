@@ -238,13 +238,13 @@ namespace OpenSim.Region.Environment.Scenes
         public SceneObjectGroup(Scene scene, ulong regionHandle, SceneObjectPart part)
         {
             m_scene = scene;
-            m_regionHandle = regionHandle;
-
             part.SetParent(this);
             part.ParentID = 0;
 
             m_parts.Add(part.UUID, part);
             SetPartAsRoot(part);
+
+            RegionHandle = regionHandle;
 
             AttachToBackup();
 

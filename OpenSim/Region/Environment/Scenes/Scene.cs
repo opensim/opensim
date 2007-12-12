@@ -221,7 +221,7 @@ namespace OpenSim.Region.Environment.Scenes
             m_regionHandle = m_regInfo.RegionHandle;
             m_regionName = m_regInfo.RegionName;
             m_datastore = m_regInfo.DataStore;
-            
+
             m_physicalPrim = physicalPrim;
             m_sendTasksToChild = SendTasksToChild;
 
@@ -233,7 +233,7 @@ namespace OpenSim.Region.Environment.Scenes
             m_permissionManager.Initialise(this);
 
             m_innerScene = new InnerScene(this, m_regInfo, m_permissionManager);
-            
+
             // If the Inner scene has an Unrecoverable error, restart this sim.
             // Currently the only thing that causes it to happen is two kinds of specific
             // Physics based crashes.
@@ -285,7 +285,7 @@ namespace OpenSim.Region.Environment.Scenes
             // Agents may have draw distance values that cross two regions though, so 
             // we add it to the notify list regardless of distance.  
             // We'll check the agent's draw distance before notifying them though.
-           
+
 
             if (RegionInfo.RegionHandle != otherRegion.RegionHandle)
             {
@@ -346,9 +346,9 @@ namespace OpenSim.Region.Environment.Scenes
                     MainLog.Instance.Verbose("INTERGRID", "Got notice about Region at X:" + otherRegion.RegionLocX.ToString() + " Y:" + otherRegion.RegionLocY.ToString() + " but it was too far away to send to the client");
                 }
 
-                
-               
-                
+
+
+
             }
             return true;
         }
@@ -371,7 +371,7 @@ namespace OpenSim.Region.Environment.Scenes
             {
                 // Now we figure out what to set the timer to that does the notifications and calls, RestartNow()
                 m_restartTimer.Interval = 15000;
-                m_incrementsof15seconds = (int) seconds/15;
+                m_incrementsof15seconds = (int)seconds / 15;
                 m_RestartTimerCounter = 0;
                 m_restartTimer.AutoReset = true;
                 m_restartTimer.Elapsed += new ElapsedEventHandler(RestartTimer_Elapsed);
@@ -416,7 +416,7 @@ namespace OpenSim.Region.Environment.Scenes
         // If we tell an agent about a sim that's not listening yet, the agent will not be able to connect to it.
         // subsequently the agent will never see the region come back online.
         public void RestartNotifyWaitElapsed(object sender, ElapsedEventArgs e)
-        { 
+        {
             m_restartWaitTimer.Stop();
             lock (m_regionRestartNotifyList)
             {
@@ -463,7 +463,7 @@ namespace OpenSim.Region.Environment.Scenes
                                          avatar.ControllingClient.Kick("The simulator is going down.");
 
                                      avatar.ControllingClient.OutPacket(new libsecondlife.Packets.DisableSimulatorPacket(), ThrottleOutPacketType.Task);
-                                });
+                                 });
 
             // Wait here, or the kick messages won't actually get to the agents before the scene terminates.
             Thread.Sleep(500);
@@ -738,8 +738,8 @@ namespace OpenSim.Region.Environment.Scenes
 
             foreach (AssetBase asset in textures)
             {
-               System.Drawing.Image image= OpenJPEGNet.OpenJPEG.DecodeToImage(asset.Data);
-               bitImages.Add(image);
+                System.Drawing.Image image = OpenJPEGNet.OpenJPEG.DecodeToImage(asset.Data);
+                bitImages.Add(image);
             }
 
             System.Drawing.Bitmap mapTexture = new System.Drawing.Bitmap(2560, 2560);
@@ -749,9 +749,9 @@ namespace OpenSim.Region.Environment.Scenes
 
             for (int i = 0; i < mapBlocks.Count; i++)
             {
-                ushort x = (ushort) ((mapBlocks[i].X - this.RegionInfo.RegionLocX) + 10);
-                ushort y = (ushort) ((mapBlocks[i].Y - this.RegionInfo.RegionLocY) + 10);
-                g.DrawImage(bitImages[i], (x*128), (y*128), 128, 128);
+                ushort x = (ushort)((mapBlocks[i].X - this.RegionInfo.RegionLocX) + 10);
+                ushort y = (ushort)((mapBlocks[i].Y - this.RegionInfo.RegionLocY) + 10);
+                g.DrawImage(bitImages[i], (x * 128), (y * 128), 128, 128);
             }
             mapTexture.Save(fileName, System.Drawing.Imaging.ImageFormat.Jpeg);
         }
@@ -829,7 +829,7 @@ namespace OpenSim.Region.Environment.Scenes
             asset.Temporary = temporary;
             AssetCache.AddAsset(asset);
         }
-        
+
         #endregion
 
         #region Primitives Methods
@@ -896,25 +896,25 @@ namespace OpenSim.Region.Environment.Scenes
             {
 
                 EntityIntersection rayTracing = null;
-                 ScenePresence presence =   ((ScenePresence)GetScenePresence(ownerID));
-                 if (presence != null)
-                 {
-                     Vector3 CameraPosition = presence.CameraPosition;
-                     Vector3 rayEnd = new Vector3(pos.X, pos.Y, pos.Z);
+                ScenePresence presence = ((ScenePresence)GetScenePresence(ownerID));
+                if (presence != null)
+                {
+                    Vector3 CameraPosition = presence.CameraPosition;
+                    Vector3 rayEnd = new Vector3(pos.X, pos.Y, pos.Z);
 
-                     float raydistance = m_innerScene.Vector3Distance(CameraPosition, rayEnd);
+                    float raydistance = m_innerScene.Vector3Distance(CameraPosition, rayEnd);
 
-                     Vector3 rayDirection = new Vector3(rayEnd.x / raydistance, rayEnd.y / raydistance, rayEnd.z / raydistance);
+                    Vector3 rayDirection = new Vector3(rayEnd.x / raydistance, rayEnd.y / raydistance, rayEnd.z / raydistance);
 
-                     Ray rezRay = new Ray(CameraPosition, rayDirection);
+                    Ray rezRay = new Ray(CameraPosition, rayDirection);
 
-                     Vector3 RezDirectionFromCamera = rezRay.Direction;
+                    Vector3 RezDirectionFromCamera = rezRay.Direction;
 
-                      rayTracing = m_innerScene.GetClosestIntersectingPrim(rezRay);
+                    rayTracing = m_innerScene.GetClosestIntersectingPrim(rezRay);
 
-                 }
+                }
 
-                if ((rayTracing != null) && ( rayTracing.HitTF))
+                if ((rayTracing != null) && (rayTracing.HitTF))
                 {
                     // We raytraced and found a prim in the way of the ground..  so 
                     // We will rez the object somewhere close to the prim.  Better math needed. This is a Stub
@@ -940,7 +940,7 @@ namespace OpenSim.Region.Environment.Scenes
                     // rez ON the ground, not IN the ground
                     pos.Z += 0.25F;
                 }
-                
+
                 SceneObjectGroup sceneOb =
                     new SceneObjectGroup(this, m_regionHandle, ownerID, PrimIDAllocate(), pos, rot, shape);
                 AddEntity(sceneOb);
@@ -1122,7 +1122,7 @@ namespace OpenSim.Region.Environment.Scenes
 
             client.OnGrabObject += ProcessObjectGrab;
             client.OnAvatarPickerRequest += ProcessAvatarPickerRequest;
-            
+
             EventManager.TriggerOnNewClient(client);
         }
 
@@ -1143,7 +1143,7 @@ namespace OpenSim.Region.Environment.Scenes
             return avatar;
         }
 
-        protected void GetAvatarAppearance(IClientAPI client,  out AvatarAppearance appearance)
+        protected void GetAvatarAppearance(IClientAPI client, out AvatarAppearance appearance)
         {
             if (m_AvatarFactory == null ||
                 !m_AvatarFactory.TryGetAvatarAppearance(client.AgentId, out appearance))
@@ -1176,15 +1176,15 @@ namespace OpenSim.Region.Environment.Scenes
             }
 
             Broadcast(delegate(IClientAPI client)
-                      { 
+                      {
                           try
                           {
-                              client.SendKillObject(avatar.RegionHandle, avatar.LocalId); 
+                              client.SendKillObject(avatar.RegionHandle, avatar.LocalId);
                           }
                           catch (System.NullReferenceException)
                           {
                               //We can safely ignore null reference exceptions.  It means the avatar are dead and cleaned up anyway.
-                          }                    
+                          }
                       });
 
             ForEachScenePresence(
@@ -1207,7 +1207,7 @@ namespace OpenSim.Region.Environment.Scenes
             catch (System.NullReferenceException)
             {
                 //We can safely ignore null reference exceptions.  It means the avatar are dead and cleaned up anyway.
-            }     
+            }
             catch (Exception e)
             {
                 MainLog.Instance.Error("Scene.cs:RemoveClient exception: " + e.ToString());
@@ -1261,7 +1261,7 @@ namespace OpenSim.Region.Environment.Scenes
             m_sceneGridService.OnRegionUp += OtherRegionUp;
             m_sceneGridService.OnChildAgentUpdate += IncomingChildAgentDataUpdate;
 
-            m_sceneGridService.KillObject = SendKillObject;            
+            m_sceneGridService.KillObject = SendKillObject;
         }
 
         /// <summary>
@@ -1723,7 +1723,7 @@ namespace OpenSim.Region.Environment.Scenes
         /// <param name="agentID"></param>
         /// <param name="sessionID"></param>
         /// <param name="permChanges"></param>
-        public void HandleObjectPermissionsUpdate (IClientAPI controller, LLUUID agentID, LLUUID sessionID, List<libsecondlife.Packets.ObjectPermissionsPacket.ObjectDataBlock> permChanges)
+        public void HandleObjectPermissionsUpdate(IClientAPI controller, LLUUID agentID, LLUUID sessionID, List<libsecondlife.Packets.ObjectPermissionsPacket.ObjectDataBlock> permChanges)
         {
             // Check for spoofing..  since this is permissions we're talking about here!
             if ((controller.SessionId == sessionID) && (controller.AgentId == agentID))
