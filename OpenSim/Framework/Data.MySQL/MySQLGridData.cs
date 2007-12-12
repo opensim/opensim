@@ -62,8 +62,42 @@ namespace OpenSim.Framework.Data.MySQL
             database =
                 new MySQLManager(settingHostname, settingDatabase, settingUsername, settingPassword, settingPooling,
                                  settingPort);
+            
+            TestTables();
         }
 
+        #region Test and initialization code
+
+        /// <summary>
+        /// Ensure that the user related tables exists and are at the latest version
+        /// </summary>
+        private void TestTables()
+        {
+            Dictionary<string, string> tableList = new Dictionary<string, string>();
+
+            tableList["regions"] = null;
+            database.GetTableVersion(tableList);
+
+            UpgradeRegionsTable(tableList["regions"]);
+        }
+        
+        /// <summary>
+        /// Create or upgrade the table if necessary
+        /// </summary>
+        /// <param name="oldVersion">A null indicates that the table does not
+        /// currently exist</param>
+        private void UpgradeRegionsTable(string oldVersion)
+        {
+            // null as the version, indicates that the table didn't exist
+            if (oldVersion == null)
+            {
+                database.ExecuteResourceSql("CreateRegionsTable.sql");
+                return;
+            }
+        }           
+        
+        #endregion
+        
         /// <summary>
         /// Shuts down the grid interface
         /// </summary>

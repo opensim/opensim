@@ -61,8 +61,59 @@ namespace OpenSim.Framework.Data.MySQL
             database =
                 new MySQLManager(settingHostname, settingDatabase, settingUsername, settingPassword, settingPooling,
                                  settingPort);
+            
+            TestTables();
         }
 
+        #region Test and initialization code
+
+        /// <summary>
+        /// Ensure that the user related tables exists and are at the latest version
+        /// </summary>
+        private void TestTables()
+        {
+            Dictionary<string, string> tableList = new Dictionary<string, string>();
+
+            tableList["agents"] = null;
+            tableList["users"] = null;
+            database.GetTableVersion(tableList);
+
+            UpgradeAgentsTable(tableList["agents"]);
+            UpgradeUsersTable(tableList["users"]);
+        }
+        
+        /// <summary>
+        /// Create or upgrade the table if necessary
+        /// </summary>
+        /// <param name="oldVersion">A null indicates that the table does not
+        /// currently exist</param>
+        private void UpgradeAgentsTable(string oldVersion)
+        {
+            // null as the version, indicates that the table didn't exist
+            if (oldVersion == null)
+            {
+                database.ExecuteResourceSql("CreateAgentsTable.sql");
+                return;
+            }
+        }           
+        
+        /// <summary>
+        /// Create or upgrade the table if necessary
+        /// </summary>
+        /// <param name="oldVersion">A null indicates that the table does not
+        /// currently exist</param>
+        private void UpgradeUsersTable(string oldVersion)
+        {
+            // null as the version, indicates that the table didn't exist
+            if (oldVersion == null)
+            {
+                database.ExecuteResourceSql("CreateUsersTable.sql");
+                return;
+            }
+        }   
+        
+        #endregion
+        
         /// <summary>
         /// Searches the database for a specified user profile
         /// </summary>
