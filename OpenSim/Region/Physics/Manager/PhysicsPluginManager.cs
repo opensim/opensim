@@ -48,7 +48,6 @@ namespace OpenSim.Region.Physics.Manager
 
         public PhysicsScene GetPhysicsScene(string physEngineName, string meshEngineName)
         {
-
             if (String.IsNullOrEmpty(physEngineName))
             {
                 return PhysicsScene.Null;
@@ -58,7 +57,6 @@ namespace OpenSim.Region.Physics.Manager
             {
                 return PhysicsScene.Null;
             }
-
 
             IMesher meshEngine = null;
             if (_MeshPlugins.ContainsKey(meshEngineName))
@@ -88,7 +86,6 @@ namespace OpenSim.Region.Physics.Manager
 
         public void LoadPlugins()
         {
-
             // Load "plugins", that are hard coded and not existing in form of an external lib
             IMeshingPlugin plugHard;
             plugHard = new ZeroMesherPlugin();
@@ -100,7 +97,6 @@ namespace OpenSim.Region.Physics.Manager
             string path = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Physics");
             string[] pluginFiles = Directory.GetFiles(path, "*.dll");
 
-
             for (int i = 0; i < pluginFiles.Length; i++)
             {
                 AddPlugin(pluginFiles[i]);
@@ -109,7 +105,6 @@ namespace OpenSim.Region.Physics.Manager
 
         private void AddPlugin(string FileName)
         {
-
             Assembly pluginAssembly = Assembly.LoadFrom(FileName);
 
             foreach (Type pluginType in pluginAssembly.GetTypes())
@@ -160,7 +155,6 @@ namespace OpenSim.Region.Physics.Manager
                 MainLog.Instance.Verbose("PHYSICS", message);
             }
         }
-
         //---
     }
 
@@ -177,5 +171,4 @@ namespace OpenSim.Region.Physics.Manager
         string GetName();
         IMesher GetMesher();
     }
-
 }

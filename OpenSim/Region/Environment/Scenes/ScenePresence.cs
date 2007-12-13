@@ -629,7 +629,7 @@ namespace OpenSim.Region.Environment.Scenes
             {
                 // TODO: This doesn't quite work yet -- probably a parent ID problem
                 // m_parentID = (what should this be?)
-                // SetMovementAnimation(Animations.AnimsLLUUID["SIT_GROUND"], 1);
+                SetMovementAnimation(Animations.AnimsLLUUID["SIT_GROUND"], 1);
             }
 
             if (m_allowMovement)
