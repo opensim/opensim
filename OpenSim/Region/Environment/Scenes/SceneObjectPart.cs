@@ -782,6 +782,9 @@ namespace OpenSim.Region.Environment.Scenes
             PrimitiveBaseShape shape = PrimitiveBaseShape.Create();
             part.Shape = shape;
 
+            part.Name = "Primitive";
+            part.OwnerID = LLUUID.Random();
+
             return part;
         }
 

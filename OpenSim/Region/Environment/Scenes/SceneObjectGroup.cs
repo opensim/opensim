@@ -589,6 +589,7 @@ namespace OpenSim.Region.Environment.Scenes
             m_parts.Add(newPart.UUID, newPart);
             SetPartAsRoot(newPart);
         }
+
         public void SetRootPartOwner(SceneObjectPart part, LLUUID cAgentID, LLUUID cGroupID)
         {
             part.LastOwnerID = part.OwnerID;

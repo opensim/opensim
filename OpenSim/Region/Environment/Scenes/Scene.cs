@@ -879,11 +879,6 @@ namespace OpenSim.Region.Environment.Scenes
             return myID;
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="addPacket"></param>
-        /// <param name="ownerID"></param>
         public virtual void AddNewPrim(LLUUID ownerID, LLVector3 pos, LLQuaternion rot, PrimitiveBaseShape shape)
         {
             // What we're *supposed* to do is raytrace from the camera position given by the client to the nearest collision
@@ -994,7 +989,6 @@ namespace OpenSim.Region.Environment.Scenes
         public void AddEntity(SceneObjectGroup sceneObject)
         {
             m_innerScene.AddEntity(sceneObject);
-
         }
 
         public void RemoveEntity(SceneObjectGroup sceneObject)

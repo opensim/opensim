@@ -104,11 +104,11 @@ namespace OpenSim.Framework
         [XmlIgnore]
         public HollowShape HollowShape
         {
-            get { return (HollowShape) (ProfileHollow & 0xf0); }
+            get { return (HollowShape)(ProfileCurve & 0xf0); }
             set
             {
-                byte oldValueMasked = (byte) (ProfileHollow & 0xf0);
-                ProfileHollow = (byte) (oldValueMasked | (byte) value);
+                byte oldValueMasked = (byte)(ProfileCurve & 0x0f);
+                ProfileCurve = (byte)(oldValueMasked | (byte)value);
             }
         }
 
