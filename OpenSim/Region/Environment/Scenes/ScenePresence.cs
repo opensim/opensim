@@ -622,8 +622,14 @@ namespace OpenSim.Region.Environment.Scenes
 
             if (PhysicsActor == null)
             {
-                // Console.WriteLine("DEBUG: HandleAgentUpdate: null PhysicsActor!");
                 return;
+            }
+
+            if ((flags & (uint)AgentManager.ControlFlags.AGENT_CONTROL_SIT_ON_GROUND) != 0)
+            {
+                // TODO: This doesn't quite work yet -- probably a parent ID problem
+                // m_parentID = (what should this be?)
+                // SetMovementAnimation(Animations.AnimsLLUUID["SIT_GROUND"], 1);
             }
 
             if (m_allowMovement)
@@ -693,7 +699,8 @@ namespace OpenSim.Region.Environment.Scenes
                 m_pos += m_parentPosition + new LLVector3(0.0f, 0.0f, 2.0f * m_sitAvatarHeight);
                 m_parentPosition = new LLVector3();
 
-                AddToPhysicalScene();
+                if (m_physicsActor == null)
+                    AddToPhysicalScene();
 
                 m_parentID = 0;
                 SendFullUpdateToAllClients();
