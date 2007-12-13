@@ -964,23 +964,6 @@ namespace OpenSim.Region.Environment.Scenes
             m_forcesList.Add(newVelocity);
         }
 
-        /// <summary>
-        /// Sets whether or not the agent is typing.
-        /// </summary>
-        public void setTyping(bool typing)
-        {
-            if (m_isChildAgent)
-            {
-                MainLog.Instance.Warn("setTyping called on child agent");
-                return;
-            }
-
-            if (typing)
-                AddAnimation(Animations.AnimsLLUUID["TYPE"], 1);
-            else
-                RemoveAnimation(Animations.AnimsLLUUID["TYPE"]);
-        }
-
         #endregion
 
         #region Overridden Methods

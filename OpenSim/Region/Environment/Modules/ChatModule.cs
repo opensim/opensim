@@ -119,31 +119,15 @@ namespace OpenSim.Region.Environment.Modules
                 LLVector3 toRegionPos = presence.AbsolutePosition + regionPos;
                 int dis = Math.Abs((int) Util.GetDistanceTo(toRegionPos, fromRegionPos));
 
-                switch (type)
+                if (type == ChatTypeEnum.Whisper && dis > m_whisperdistance ||
+                    type == ChatTypeEnum.Say && dis > m_saydistance ||
+                    type == ChatTypeEnum.Shout && dis > m_shoutdistance)
                 {
-                case ChatTypeEnum.Whisper:
-                    if (dis < m_whisperdistance)
-                    {
-                        // TODO: should change so the message is sent through the avatar rather than direct to the ClientView
-                        presence.ControllingClient.SendChatMessage(message, (byte) type, fromPos, fromName, fromAgentID);
-                    }
-                    break;
-                case ChatTypeEnum.Say:
-                    if (dis < m_saydistance)
-                    {
-                        presence.ControllingClient.SendChatMessage(message, (byte) type, fromPos, fromName, fromAgentID);
-                    }
-                    break;
-                case ChatTypeEnum.Shout:
-                    if (dis < m_shoutdistance)
-                    {
-                        presence.ControllingClient.SendChatMessage(message, (byte) type, fromPos, fromName, fromAgentID);
-                    }
-                    break;
-                case ChatTypeEnum.Broadcast:
-                    presence.ControllingClient.SendChatMessage(message, (byte) type, fromPos, fromName, fromAgentID);
-                    break;
+                    return;
                 }
+
+                // TODO: should change so the message is sent through the avatar rather than direct to the ClientView
+                presence.ControllingClient.SendChatMessage(message, (byte) type, fromPos, fromName, fromAgentID);
             }
         }
 
@@ -185,32 +169,17 @@ namespace OpenSim.Region.Environment.Modules
                 {
                     m_irc.PrivMsg(fromName, scene.RegionInfo.RegionName, e.Message);
                 }
-
-                if (e.Channel == 0)
-                {
-                    foreach (Scene s in m_scenes)
-                    {
-                        s.ForEachScenePresence(delegate(ScenePresence presence)
-                                               {
-                                                   TrySendChatMessage(presence, fromPos, regionPos,
-                                                                      fromAgentID, fromName, e.Type, message);
-                                               });
-                    }
-                }
             }
-            else
+
+            if (e.Channel == 0)
             {
-                if (avatar != null)
+                foreach (Scene s in m_scenes)
                 {
-                    switch (e.Type)
-                    {
-                        case ChatTypeEnum.StartTyping:
-                            avatar.setTyping(true);
-                            break;
-                        case ChatTypeEnum.StopTyping:
-                            avatar.setTyping(false);
-                            break;
-                    }
+                    s.ForEachScenePresence(delegate(ScenePresence presence)
+                                           {
+                                               TrySendChatMessage(presence, fromPos, regionPos,
+                                                                  fromAgentID, fromName, e.Type, message);
+                                           });
                 }
             }
         }

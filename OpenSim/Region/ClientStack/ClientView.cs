@@ -2095,9 +2095,8 @@ namespace OpenSim.Region.ClientStack
                     {
                         NeedAck.Add(Pack.Header.Sequence, Pack);
                     }
-                    catch (Exception e) // HACKY
+                    catch (Exception) // HACKY
                     {
-                        e.ToString();
                         // Ignore
                         // Seems to throw a exception here occasionally
                         // of 'duplicate key' despite being locked.
@@ -2159,17 +2158,17 @@ namespace OpenSim.Region.ClientStack
             // Actually make the byte array and send it
             try
             {
-              byte[] sendbuffer = Pack.ToBytes();
-              if (Pack.Header.Zerocoded)
-              {
-                  byte[] ZeroOutBuffer = new byte[4096];
-                  int packetsize = Helpers.ZeroEncode(sendbuffer, sendbuffer.Length, ZeroOutBuffer);
-                  m_networkServer.SendPacketTo(ZeroOutBuffer, packetsize, SocketFlags.None, m_circuitCode);
-              }
-              else
-              {
-                  m_networkServer.SendPacketTo(sendbuffer, sendbuffer.Length, SocketFlags.None, m_circuitCode);
-              }
+                byte[] sendbuffer = Pack.ToBytes();
+                if (Pack.Header.Zerocoded)
+                {
+                    byte[] ZeroOutBuffer = new byte[4096];
+                    int packetsize = Helpers.ZeroEncode(sendbuffer, sendbuffer.Length, ZeroOutBuffer);
+                    m_networkServer.SendPacketTo(ZeroOutBuffer, packetsize, SocketFlags.None, m_circuitCode);
+                }
+                else
+                {
+                    m_networkServer.SendPacketTo(sendbuffer, sendbuffer.Length, SocketFlags.None, m_circuitCode);
+                }
             }
             catch (Exception e)
             {
