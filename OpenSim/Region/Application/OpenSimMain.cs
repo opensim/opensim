@@ -164,20 +164,13 @@ namespace OpenSim
                 config.Set("physics", "basicphysics");
                 config.Set("verbose", true);
                 config.Set("physical_prim", true);
-                
                 config.Set("child_get_tasks", false);
-
                 config.Set("serverside_object_permissions", false);
-
                 config.Set("storage_plugin", "OpenSim.DataStore.NullStorage.dll");
-
                 config.Set("startup_console_commands_file", "");
                 config.Set("shutdown_console_commands_file", "");
-
                 config.Set("script_engine", "DotNetEngine");
-
                 config.Set("asset_database", "sqlite");
-                
             }
 
             if (m_config.Configs["StandAlone"] == null)
@@ -201,7 +194,6 @@ namespace OpenSim
             {
                 config.Set("default_location_x", 1000);
                 config.Set("default_location_y", 1000);
-
                 config.Set("http_listener_port", NetworkServersInfo.DefaultHttpListenerPort);
                 config.Set("remoting_listener_port", NetworkServersInfo.RemotingListenerPort);
                 config.Set("grid_server_url", "http://127.0.0.1:" + GridConfig.DefaultHttpPort.ToString());
@@ -213,7 +205,6 @@ namespace OpenSim
                 config.Set("asset_server_url", "http://127.0.0.1:" + AssetConfig.DefaultHttpPort.ToString());
                 config.Set("inventory_server_url", "http://127.0.0.1:" + InventoryConfig.DefaultHttpPort.ToString());
             }
-
 
             if (m_config.Configs["RemoteAdmin"] == null)
                 m_config.AddConfig("RemoteAdmin");

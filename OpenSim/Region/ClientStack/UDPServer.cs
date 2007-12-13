@@ -71,6 +71,7 @@ namespace OpenSim.Region.ClientStack
             }
             
         }
+
         public ulong RegionHandle
         {
             get

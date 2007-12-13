@@ -202,7 +202,6 @@ namespace OpenSim.Region.ClientStack
 
         # region Client Methods
 
-
         public void Close()
         {
             // Pull Client out of Region

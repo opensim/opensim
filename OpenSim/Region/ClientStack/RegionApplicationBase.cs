@@ -128,8 +128,8 @@ namespace OpenSim.Region.ClientStack
             {
                 masterAvatar =
                     m_commsManager.UserService.SetupMasterUser(scene.RegionInfo.MasterAvatarFirstName,
-                                                           scene.RegionInfo.MasterAvatarLastName,
-                                                           scene.RegionInfo.MasterAvatarSandboxPassword);
+                                                               scene.RegionInfo.MasterAvatarLastName,
+                                                               scene.RegionInfo.MasterAvatarSandboxPassword);
             }
 
             if (masterAvatar != null)

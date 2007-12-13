@@ -33,14 +33,11 @@ using Mono.Data.SqliteClient;
 using OpenSim.Framework;
 using OpenSim.Framework.Console;
 
-
 namespace OpenSim.Framework.Data.SQLite
 {
     /// <summary>
-    /// A User storage interface for the DB4o database system
+    /// A User storage interface for the SQLite database system
     /// </summary>
-    /// 
-   
 
     public class SQLiteUserData : SQLiteBase, IUserData
     {
@@ -78,7 +75,7 @@ namespace OpenSim.Framework.Data.SQLite
         /// <summary>
         /// Loads a specified user profile from a UUID
         /// </summary>
-        /// <param name="uuid">The users UUID</param>
+        /// <param name="uuid">The user's UUID</param>
         /// <returns>A user profile</returns>
         public UserProfileData GetUserByUUID(LLUUID uuid)
         {
@@ -105,8 +102,8 @@ namespace OpenSim.Framework.Data.SQLite
         /// <summary>
         /// Returns a user by searching for its name
         /// </summary>
-        /// <param name="name">The users account name</param>
-        /// <returns>A matching users profile</returns>
+        /// <param name="name">The user's account name</param>
+        /// <returns>A matching user profile</returns>
         public UserProfileData GetUserByName(string name)
         {
             return GetUserByName(name.Split(' ')[0], name.Split(' ')[1]);
@@ -115,9 +112,9 @@ namespace OpenSim.Framework.Data.SQLite
         /// <summary>
         /// Returns a user by searching for its name
         /// </summary>
-        /// <param name="fname">The first part of the users account name</param>
-        /// <param name="lname">The second part of the users account name</param>
-        /// <returns>A matching users profile</returns>
+        /// <param name="fname">The first part of the user's account name</param>
+        /// <param name="lname">The second part of the user's account name</param>
+        /// <returns>A matching user profile</returns>
         public UserProfileData GetUserByName(string fname, string lname)
         {
             string select = "surname = '" + lname + "' and username = '" + fname + "'";
@@ -191,8 +188,8 @@ namespace OpenSim.Framework.Data.SQLite
         /// <summary>
         /// Returns a user by UUID direct
         /// </summary>
-        /// <param name="uuid">The users account ID</param>
-        /// <returns>A matching users profile</returns>
+        /// <param name="uuid">The user's account ID</param>
+        /// <returns>A matching user profile</returns>
         public UserAgentData GetAgentByUUID(LLUUID uuid)
         {
             try
@@ -209,7 +206,7 @@ namespace OpenSim.Framework.Data.SQLite
         /// Returns a session by account name
         /// </summary>
         /// <param name="name">The account name</param>
-        /// <returns>The users session agent</returns>
+        /// <returns>The user's session agent</returns>
         public UserAgentData GetAgentByName(string name)
         {
             return GetAgentByName(name.Split(' ')[0], name.Split(' ')[1]);
@@ -218,8 +215,8 @@ namespace OpenSim.Framework.Data.SQLite
         /// <summary>
         /// Returns a session by account name
         /// </summary>
-        /// <param name="fname">The first part of the users account name</param>
-        /// <param name="lname">The second part of the users account name</param>
+        /// <param name="fname">The first part of the user's account name</param>
+        /// <param name="lname">The second part of the user's account name</param>
         /// <returns>A user agent</returns>
         public UserAgentData GetAgentByName(string fname, string lname)
         {

@@ -104,7 +104,6 @@ namespace OpenSim.Region.ClientStack
             CloseClient(client);
         }
 
-
         /// <summary>
         /// 
         /// </summary>

@@ -158,6 +158,7 @@ namespace OpenSim.Framework.Data.MySQL
                 return null;
             }
         }
+
         public List<OpenSim.Framework.AvatarPickerAvatar> GeneratePickerResults(LLUUID queryID, string query)
         {
             List<OpenSim.Framework.AvatarPickerAvatar> returnlist = new List<OpenSim.Framework.AvatarPickerAvatar>();
@@ -242,6 +243,7 @@ namespace OpenSim.Framework.Data.MySQL
             }
             return returnlist;
         }
+
         /// <summary>
         /// Searches the database for a specified user profile by UUID
         /// </summary>
@@ -366,11 +368,14 @@ namespace OpenSim.Framework.Data.MySQL
             // Do nothing.
         }
 
-
+        /// <summary>
+        /// Updates a user profile stored in the DB
+        /// </summary>
+        /// <param name="user">The profile data to use to update the DB</param>
         public bool UpdateUserProfile(UserProfileData user)
         {
-            return true;
             // TODO: implement
+            return true;
         }
 
         /// <summary>

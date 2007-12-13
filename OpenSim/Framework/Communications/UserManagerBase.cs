@@ -206,7 +206,7 @@ namespace OpenSim.Framework.UserManagement
         /// <summary>
         /// Loads a user agent by uuid (not called directly)
         /// </summary>
-        /// <param name="uuid">The agents UUID</param>
+        /// <param name="uuid">The agent's UUID</param>
         /// <returns>Agent profiles</returns>
         public UserAgentData getUserAgent(LLUUID uuid)
         {
@@ -228,7 +228,7 @@ namespace OpenSim.Framework.UserManagement
         /// <summary>
         /// Loads a user agent by name (not called directly)
         /// </summary>
-        /// <param name="name">The agents name</param>
+        /// <param name="name">The agent's name</param>
         /// <returns>A user agent</returns>
         public UserAgentData getUserAgent(string name)
         {
@@ -256,12 +256,11 @@ namespace OpenSim.Framework.UserManagement
             setUserProfile(profile);
         }
 
-
         /// <summary>
         /// Loads a user agent by name (not called directly)
         /// </summary>
-        /// <param name="fname">The agents firstname</param>
-        /// <param name="lname">The agents lastname</param>
+        /// <param name="fname">The agent's firstname</param>
+        /// <param name="lname">The agent's lastname</param>
         /// <returns>A user agent</returns>
         public UserAgentData getUserAgent(string fname, string lname)
         {

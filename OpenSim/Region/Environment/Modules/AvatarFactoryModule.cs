@@ -67,7 +67,6 @@ namespace OpenSim.Region.Environment.Modules
             }
         }
 
-
         public void Initialise(Scene scene, IConfigSource source)
         {
             scene.RegisterModuleInterface<IAvatarFactory>(this);
@@ -136,7 +135,6 @@ namespace OpenSim.Region.Environment.Modules
                                     avatAppearance.Wearables[wear.Type].ItemID = wear.ItemID;
                                 }
                             }
-
                         }
                     }
                 }
@@ -159,7 +157,5 @@ namespace OpenSim.Region.Environment.Modules
             }
             return visualParams;
         }
-
-      
     }
 }

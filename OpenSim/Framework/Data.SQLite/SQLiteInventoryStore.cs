@@ -82,7 +82,6 @@ namespace OpenSim.Framework.Data.SQLite
             MainLog.Instance.Verbose("DATASTORE", "Populated Intentory Items Definitions");
 
             ds.AcceptChanges();
-            return;
         }
 
         public InventoryItemBase buildItem(DataRow row)
@@ -377,7 +376,7 @@ namespace OpenSim.Framework.Data.SQLite
         /// Delete all items in the specified folder
         /// </summary>
         /// <param name="folderId">id of the folder, whose item content should be deleted</param>
-        //!TODO, this is horribly inefficient, but I don't want to ruin the overall structure of this implementatio
+        //!TODO, this is horribly inefficient, but I don't want to ruin the overall structure of this implementation
         private void deleteItemsInFolder(LLUUID folderId)
         {
             List<InventoryItemBase> items = getInventoryInFolder(folderId);
@@ -403,7 +402,6 @@ namespace OpenSim.Framework.Data.SQLite
         {
             addFolder(folder);
         }
-
 
         /// <summary>
         /// Delete a folder
