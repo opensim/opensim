@@ -38,5 +38,6 @@ namespace OpenSim.Region.Environment.Interfaces
         bool hasRequests();
         RPCRequestInfo GetNextRequest();
         void RemoteDataReply(string channel, string message_id, string sdata, int idata);
+        bool IsEnabled();
     }
 }

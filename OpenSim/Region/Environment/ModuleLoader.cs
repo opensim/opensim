@@ -90,6 +90,9 @@ namespace OpenSim.Region.Environment
             AvatarFactoryModule avatarFactory = new AvatarFactoryModule();
             m_loadedSharedModules.Add(avatarFactory.Name, avatarFactory);
 
+            XMLRPCModule xmlRpcMod = new XMLRPCModule();
+            m_loadedSharedModules.Add(xmlRpcMod.Name, xmlRpcMod);
+
             //TextureDownloadModule textureModule = new TextureDownloadModule();
             //LoadedSharedModules.Add(textureModule.Name, textureModule);
         }

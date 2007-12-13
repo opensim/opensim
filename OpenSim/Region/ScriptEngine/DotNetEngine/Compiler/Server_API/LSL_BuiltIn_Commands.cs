@@ -2044,9 +2044,12 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler
         public void llOpenRemoteDataChannel()
         {
             IXMLRPC xmlrpcMod = m_ScriptEngine.World.RequestModuleInterface<IXMLRPC>();
-            LLUUID channelID = xmlrpcMod.OpenXMLRPCChannel(m_localID, m_itemID);
-            object[] resobj = new object[] {1, channelID.ToString(), LLUUID.Zero.ToString(), "", 0, ""};
-            m_ScriptEngine.m_EventQueueManager.AddToScriptQueue(m_localID, m_itemID, "remote_data", resobj);
+            if (xmlrpcMod.IsEnabled())
+            {
+                LLUUID channelID = xmlrpcMod.OpenXMLRPCChannel(m_localID, m_itemID);
+                object[] resobj = new object[] { 1, channelID.ToString(), LLUUID.Zero.ToString(), "", 0, "" };
+                m_ScriptEngine.m_EventQueueManager.AddToScriptQueue(m_localID, m_itemID, "remote_data", resobj);
+            }
         }
 
         public string llSendRemoteData(string channel, string dest, int idata, string sdata)

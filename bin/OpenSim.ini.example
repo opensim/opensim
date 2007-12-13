@@ -58,6 +58,9 @@ dump_assets_to_file = false
 http_listener_port = 9000
 remoting_listener_port = 8895
 
+; Uncomment below to enable llRemoteData/remote channels
+; remoteDataPort = 20800
+
 grid_server_url = "http://127.0.0.1:8001"
 grid_send_key = "null"
 grid_recv_key = "null"

@@ -213,7 +213,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
             while ( httpInfo != null )
             {
                 
-                Console.WriteLine("PICKED HTTP REQ:" + httpInfo.response_body + httpInfo.status);
+                //Console.WriteLine("PICKED HTTP REQ:" + httpInfo.response_body + httpInfo.status);
 
                 // Deliver data to prim's remote_data handler
                 //
@@ -249,7 +249,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
                 while (xmlrpc.hasRequests())
                 {
                     RPCRequestInfo rInfo = xmlrpc.GetNextRequest();
-                    Console.WriteLine("PICKED REQUEST");
+                    //Console.WriteLine("PICKED REQUEST");
 
                     //Deliver data to prim's remote_data handler
                     object[] resobj = new object[]

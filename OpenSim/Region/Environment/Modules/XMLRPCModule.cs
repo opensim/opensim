@@ -26,6 +26,7 @@
 * 
 */
 
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Threading;
@@ -35,6 +36,7 @@ using Nwc.XmlRpc;
 using OpenSim.Framework.Servers;
 using OpenSim.Region.Environment.Interfaces;
 using OpenSim.Region.Environment.Scenes;
+using OpenSim.Framework.Console;
 
 /*****************************************************
  *
@@ -77,8 +79,11 @@ namespace OpenSim.Region.Environment.Modules
         private Queue<RPCRequestInfo> rpcQueue = new Queue<RPCRequestInfo>();
         private object XMLRPCListLock = new object();
         private string m_name = "XMLRPCModule";
-        private int RemoteReplyScriptWait = 100;
-        private int RemoteReplyScriptTimeout = 300;
+        private int RemoteReplyScriptWait = 300;
+        private int RemoteReplyScriptTimeout = 900;
+        private int m_remoteDataPort = 0;
+        private List<Scene> m_scenes = new List<Scene>();
+        private LogBase m_log;
 
         // <channel id, RPCChannelInfo>
         private Dictionary<LLUUID, RPCChannelInfo> m_openChannels;
@@ -88,26 +93,43 @@ namespace OpenSim.Region.Environment.Modules
 
         public XMLRPCModule()
         {
+            m_log = MainLog.Instance;
         }
 
         public void Initialise(Scene scene, IConfigSource config)
         {
-            m_scene = scene;
+            try
+            {
 
-            m_scene.RegisterModuleInterface<IXMLRPC>(this);
+                m_remoteDataPort = config.Configs["Network"].GetInt("remoteDataPort", m_remoteDataPort);
 
-            m_openChannels = new Dictionary<LLUUID, RPCChannelInfo>();
-            m_pendingResponse = new Dictionary<LLUUID, RPCRequestInfo>();
+            }
+            catch (Exception e)
+            {
+            }
 
-            // Start http server
-            // Attach xmlrpc handlers
-            BaseHttpServer httpServer = new BaseHttpServer(20800);
-            httpServer.AddXmlRPCHandler("llRemoteData", XmlRpcRemoteData);
-            httpServer.Start();
+            if (!m_scenes.Contains(scene))
+            {
+                m_scenes.Add(scene);
+
+                scene.RegisterModuleInterface<IXMLRPC>(this);
+            }
         }
 
         public void PostInitialise()
         {
+            if ( IsEnabled() )
+            {
+                m_openChannels = new Dictionary<LLUUID, RPCChannelInfo>();
+                m_pendingResponse = new Dictionary<LLUUID, RPCRequestInfo>();
+
+                // Start http server
+                // Attach xmlrpc handlers
+                m_log.Verbose("REMOTE_DATA", "Starting XMLRPC Server on port " + m_remoteDataPort + " for llRemoteData commands.");
+                BaseHttpServer httpServer = new BaseHttpServer((uint)m_remoteDataPort);
+                httpServer.AddXmlRPCHandler("llRemoteData", XmlRpcRemoteData);
+                httpServer.Start();
+            }
         }
 
         public void Close()
@@ -122,6 +144,11 @@ namespace OpenSim.Region.Environment.Modules
         public bool IsSharedModule
         {
             get { return true; }
+        }
+
+        public bool IsEnabled()
+        {
+            return (m_remoteDataPort > 0);
         }
 
         /**********************************************
