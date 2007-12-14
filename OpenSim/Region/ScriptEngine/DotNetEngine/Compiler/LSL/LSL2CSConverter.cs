@@ -248,10 +248,10 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL
 
             // Replace <x,y,z> and <x,y,z,r>
             Script =
-                Regex.Replace(Script, @"<([^,>]*,[^,>]*,[^,>]*,[^,>]*)>", @"new LSL_Types.Quaternion($1)",
+                Regex.Replace(Script, @"<([^,>;\)]*,[^,>;\)]*,[^,>;\)]*,[^,>;\)]*)>", @"new LSL_Types.Quaternion($1)",
                               RegexOptions.Compiled | RegexOptions.Multiline | RegexOptions.Singleline);
             Script =
-                Regex.Replace(Script, @"<([^,>]*,[^,>]*,[^,>]*)>", @"new LSL_Types.Vector3($1)",
+                Regex.Replace(Script, @"<([^,>;\)]*,[^,>;\)]*,[^,>;\)]*)>", @"new LSL_Types.Vector3($1)",
                               RegexOptions.Compiled | RegexOptions.Multiline | RegexOptions.Singleline);
 
             // Replace List []'s

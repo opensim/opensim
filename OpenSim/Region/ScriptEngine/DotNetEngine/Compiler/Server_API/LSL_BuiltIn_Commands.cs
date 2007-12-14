@@ -69,6 +69,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler
             //MainLog.Instance.Notice("ScriptEngine", "LSL_BaseClass.Start() called. Hosted by [" + m_host.Name + ":" + m_host.UUID + "@" + m_host.AbsolutePosition + "]");
         }
 
+        private DateTime m_timer = DateTime.Now;
         private string m_state = "default";
 
         public string State()
@@ -843,19 +844,20 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler
 
         public double llGetTime()
         {
-            NotImplemented("llGetTime");
-            return 0;
+            TimeSpan ScriptTime = DateTime.Now - m_timer;
+            return (double)(ScriptTime.TotalMilliseconds / 1000);
         }
 
         public void llResetTime()
         {
-            NotImplemented("llResetTime");
+            m_timer = DateTime.Now;
         }
 
         public double llGetAndResetTime()
         {
-            NotImplemented("llGetAndResetTime");
-            return 0;
+            TimeSpan ScriptTime = DateTime.Now - m_timer;
+            m_timer = DateTime.Now;
+            return (double)(ScriptTime.TotalMilliseconds / 1000);
         }
 
         public void llSound()
