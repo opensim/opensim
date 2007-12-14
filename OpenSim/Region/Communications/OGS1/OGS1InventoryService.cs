@@ -70,8 +70,10 @@ namespace OpenSim.Region.Communications.OGS1
                 requester.BeginPostObject<Guid>(_inventoryServerUrl + "/GetInventory/", userID.UUID);
                 Console.WriteLine("Request for Inventory sent");
             }
-            catch (Exception)
+            catch (Exception e)
             {
+                Console.WriteLine(e.Message);
+                Console.WriteLine(e.StackTrace);
             }
         }
 
