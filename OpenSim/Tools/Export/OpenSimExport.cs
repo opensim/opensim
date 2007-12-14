@@ -27,6 +27,7 @@
 */
 using System;
 using System.IO;
+using System.Reflection;
 using Nini.Config;
 using OpenSim;
 using OpenSim.Framework;
@@ -39,27 +40,44 @@ namespace OpenSim.Tools.Export
 {
     public class OpenSimExport
     {
-        private IniConfigSource config;
+        public IniConfigSource config;
         private StorageManager sman;
         
         public OpenSimExport(IniConfigSource config)
         {
             this.config = config;
             IConfig startup = config.Configs["Startup"];
-            sman = new StorageManager(
+            // AddinManager.Initialize(".");
+            // AddinManager.Registry.Update(null);
+
+            // TODO: this really sucks, but given the way we do
+            // logging in OpenSim, we need to establish a log up front
+            
+            MainLog.Instance = CreateLog();
+
+            this.sman = new StorageManager(
                                       startup.GetString("storage_plugin", "OpenSim.DataStore.NullStorage.dll"),
                                       startup.GetString("storage_connection_string","")
                                       );
-            
         }
 
         public static void Main(string[] args)
         {
             OpenSimExport export = new OpenSimExport(InitConfig(args));
+            RegionInfo reg = new RegionInfo("Sara Jane", "Regions/1000-1000.xml");
 
-            System.Console.WriteLine("This application does nothing useful yet");
+            System.Console.WriteLine("This application does nothing useful yet: " + reg.RegionID);
         }
 
+        protected LogBase CreateLog()
+        {
+            if (!Directory.Exists(Util.logDir()))
+            {
+                Directory.CreateDirectory(Util.logDir());
+            }
+
+            return new LogBase((Path.Combine(Util.logDir(), "export.log")), "Export", null, true);
+        }
         
 
         private static IniConfigSource InitConfig(string[] args)
@@ -67,9 +85,6 @@ namespace OpenSim.Tools.Export
             System.Console.WriteLine("Good");
             ArgvConfigSource configSource = new ArgvConfigSource(args);
             configSource.AddSwitch("Startup", "inifile");
-
-//             AddinManager.Initialize(".");
-//             AddinManager.Registry.Update(null);
 
             IConfig startupConfig = configSource.Configs["Startup"];
             string iniFilePath = startupConfig.GetString("inifile", "OpenSim.ini");
