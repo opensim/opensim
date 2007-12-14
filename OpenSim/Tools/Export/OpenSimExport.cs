@@ -31,6 +31,7 @@ using Nini.Config;
 using OpenSim;
 using OpenSim.Framework;
 using OpenSim.Framework.Console;
+using OpenSim.Region.Environment;
 using Mono.Addins;
 using Mono.Addins.Description;
 
@@ -39,10 +40,17 @@ namespace OpenSim.Tools.Export
     public class OpenSimExport
     {
         private IniConfigSource config;
+        private StorageManager sman;
         
         public OpenSimExport(IniConfigSource config)
         {
             this.config = config;
+            IConfig startup = config.Configs["Startup"];
+            sman = new StorageManager(
+                                      startup.GetString("storage_plugin", "OpenSim.DataStore.NullStorage.dll"),
+                                      startup.GetString("storage_connection_string","")
+                                      );
+            
         }
 
         public static void Main(string[] args)
@@ -51,6 +59,8 @@ namespace OpenSim.Tools.Export
 
             System.Console.WriteLine("This application does nothing useful yet");
         }
+
+        
 
         private static IniConfigSource InitConfig(string[] args)
         {
