@@ -40,7 +40,7 @@ namespace OpenSim.Framework.Communications.Cache
     public abstract class AssetServerBase : IAssetServer
     {
         protected IAssetReceiver _receiver;
-        protected BlockingQueue<ARequest> _assetRequests;
+        protected BlockingQueue<AssetRequest> _assetRequests;
         protected Thread _localAssetServerThread;
         protected IAssetProvider m_assetProviderPlugin;
         protected object syncLock = new object();
@@ -48,7 +48,7 @@ namespace OpenSim.Framework.Communications.Cache
         protected abstract void StoreAsset(AssetBase asset);
         protected abstract void CommitAssets();
 
-        protected abstract void RunRequests();
+        protected abstract void ProcessRequest(AssetRequest req);
 
         public void LoadDefaultAssets()
         {
@@ -64,11 +64,28 @@ namespace OpenSim.Framework.Communications.Cache
         public AssetServerBase()
         {
             MainLog.Instance.Verbose("ASSETSERVER", "Starting asset storage system");
-            _assetRequests = new BlockingQueue<ARequest>();
+            _assetRequests = new BlockingQueue<AssetRequest>();
 
             _localAssetServerThread = new Thread(RunRequests);
             _localAssetServerThread.IsBackground = true;
             _localAssetServerThread.Start();
+        }
+
+        private void RunRequests()
+        {
+            while (true) // Since it's a 'blocking queue'
+            {
+                try
+                {
+                    AssetRequest req = _assetRequests.Dequeue();
+
+                    ProcessRequest(req);
+                }
+                catch(Exception e)
+                {
+                    MainLog.Instance.Error("ASSETSERVER", e.Message );
+                }
+            }
         }
 
         public void LoadAsset(AssetBase info, bool image, string filename)
@@ -97,7 +114,7 @@ namespace OpenSim.Framework.Communications.Cache
 
         public void RequestAsset(LLUUID assetID, bool isTexture)
         {
-            ARequest req = new ARequest();
+            AssetRequest req = new AssetRequest();
             req.AssetID = assetID;
             req.IsTexture = isTexture;
 	    MainLog.Instance.Verbose("ASSET","Adding {0} to request queue", assetID);

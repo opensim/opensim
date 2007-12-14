@@ -36,7 +36,7 @@ using OpenSim.Framework.Servers;
 
 namespace OpenSim.Framework.Communications.Cache
 {
-    public class GridAssetClient : AssetServerBase 
+    public class GridAssetClient : AssetServerBase
     {
         private string _assetServerUrl;
 
@@ -47,53 +47,44 @@ namespace OpenSim.Framework.Communications.Cache
 
         #region IAssetServer Members
 
-        protected override void RunRequests()
+        protected override void ProcessRequest(AssetRequest req)
         {
-            while (true)
+            Stream s = null;
+            try
             {
-                ARequest req = _assetRequests.Dequeue();
+                MainLog.Instance.Debug("ASSETCACHE", "Querying for {0}", req.AssetID.ToString());
 
-                //MainLog.Instance.Verbose("AssetStorage","Requesting asset: " + req.AssetID);
+                RestClient rc = new RestClient(_assetServerUrl);
+                rc.AddResourcePath("assets");
+                rc.AddResourcePath(req.AssetID.ToString());
+                if (req.IsTexture)
+                    rc.AddQueryParameter("texture");
 
+                rc.RequestMethod = "GET";
+                s = rc.Request();
 
-                Stream s = null;
-                try
+                if (s.Length > 0)
                 {
-                    MainLog.Instance.Debug("ASSETCACHE", "Querying for {0}", req.AssetID.ToString());
+                    XmlSerializer xs = new XmlSerializer(typeof(AssetBase));
+                    AssetBase newAsset = (AssetBase)xs.Deserialize(s);
 
-                    RestClient rc = new RestClient(_assetServerUrl);
-                    rc.AddResourcePath("assets");
-                    rc.AddResourcePath(req.AssetID.ToString());
-                    if (req.IsTexture)
-                        rc.AddQueryParameter("texture");
-
-                    rc.RequestMethod = "GET";
-                    s = rc.Request();
-
-                    if (s.Length > 0)
-                    {
-                        XmlSerializer xs = new XmlSerializer(typeof(AssetBase));
-                        AssetBase newAsset = (AssetBase)xs.Deserialize(s);
-
-                        _receiver.AssetReceived(newAsset, req.IsTexture);
-                    }
-                    else
-                    {
-                        MainLog.Instance.Debug("ASSETCACHE", "Asset not found {0}", req.AssetID.ToString());
-                        _receiver.AssetNotFound(req.AssetID);
-                    }
+                    _receiver.AssetReceived(newAsset, req.IsTexture);
                 }
-                catch (Exception e)
+                else
                 {
-                    MainLog.Instance.Error("ASSETCACHE", e.Message);
-                    MainLog.Instance.Debug("ASSETCACHE", "Getting asset {0}", req.AssetID.ToString());
-                    MainLog.Instance.Error("ASSETCACHE", e.StackTrace);
+                    MainLog.Instance.Debug("ASSETCACHE", "Asset not found {0}", req.AssetID.ToString());
+                    _receiver.AssetNotFound(req.AssetID);
                 }
-               
+            }
+            catch (Exception e)
+            {
+                MainLog.Instance.Error("ASSETCACHE", e.Message);
+                MainLog.Instance.Debug("ASSETCACHE", "Getting asset {0}", req.AssetID.ToString());
+                MainLog.Instance.Error("ASSETCACHE", e.StackTrace);
             }
         }
 
-       
+
 
         public override void UpdateAsset(AssetBase asset)
         {
@@ -104,18 +95,18 @@ namespace OpenSim.Framework.Communications.Cache
         {
             try
             {
-              //  MemoryStream s = new MemoryStream();
+                //  MemoryStream s = new MemoryStream();
 
-               // XmlSerializer xs = new XmlSerializer(typeof(AssetBase));
-             //   xs.Serialize(s, asset);
-              //  RestClient rc = new RestClient(_assetServerUrl);
-		MainLog.Instance.Verbose("ASSET", "Storing asset");
+                // XmlSerializer xs = new XmlSerializer(typeof(AssetBase));
+                //   xs.Serialize(s, asset);
+                //  RestClient rc = new RestClient(_assetServerUrl);
+                MainLog.Instance.Verbose("ASSET", "Storing asset");
                 //rc.AddResourcePath("assets");
-               // rc.RequestMethod = "POST";
-              //  rc.Request(s);
-		//MainLog.Instance.Verbose("ASSET", "Stored {0}", rc);
-        MainLog.Instance.Verbose("ASSET", "Sending to " + _assetServerUrl + "/assets/");
-        RestObjectPoster.BeginPostObject<AssetBase>(_assetServerUrl + "/assets/", asset);
+                // rc.RequestMethod = "POST";
+                //  rc.Request(s);
+                //MainLog.Instance.Verbose("ASSET", "Stored {0}", rc);
+                MainLog.Instance.Verbose("ASSET", "Sending to " + _assetServerUrl + "/assets/");
+                RestObjectPoster.BeginPostObject<AssetBase>(_assetServerUrl + "/assets/", asset);
             }
             catch (Exception e)
             {
@@ -132,7 +123,7 @@ namespace OpenSim.Framework.Communications.Cache
             throw new Exception("The method or operation is not implemented.");
         }
 
-       
+
 
         #endregion
     }

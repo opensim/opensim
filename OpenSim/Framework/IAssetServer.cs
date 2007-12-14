@@ -60,10 +60,4 @@ namespace OpenSim.Framework
     {
         IAssetServer GetAssetServer();
     }
-
-    public struct ARequest
-    {
-        public LLUUID AssetID;
-        public bool IsTexture;
-    }
 }

@@ -57,7 +57,7 @@ namespace OpenSim.Framework.Communications.Cache
                     if (typeInterface != null)
                     {
                         IAssetProvider plug =
-                            (IAssetProvider) Activator.CreateInstance(pluginAssembly.GetType(pluginType.ToString()));
+                            (IAssetProvider)Activator.CreateInstance(pluginAssembly.GetType(pluginType.ToString()));
                         m_assetProviderPlugin = plug;
                         m_assetProviderPlugin.Initialise();
 
@@ -65,12 +65,8 @@ namespace OpenSim.Framework.Communications.Cache
                                                  "Added " + m_assetProviderPlugin.Name + " " +
                                                  m_assetProviderPlugin.Version);
                     }
-
-                    typeInterface = null;
                 }
             }
-
-            pluginAssembly = null;
         }
 
 
@@ -81,27 +77,20 @@ namespace OpenSim.Framework.Communications.Cache
             m_assetProviderPlugin.CommitAssets();
         }
 
-        protected override void RunRequests()
+        protected override void ProcessRequest(AssetRequest req)
         {
-            while (true)
+            AssetBase asset;
+            lock (syncLock)
             {
-                ARequest req = _assetRequests.Dequeue();
-
-                //MainLog.Instance.Verbose("AssetStorage","Requesting asset: " + req.AssetID);
-
-                AssetBase asset = null;
-                lock (syncLock)
-                {
-                    asset = m_assetProviderPlugin.FetchAsset(req.AssetID);
-                }
-                if (asset != null)
-                {
-                    _receiver.AssetReceived(asset, req.IsTexture);
-                }
-                else
-                {
-                    _receiver.AssetNotFound(req.AssetID);
-                }
+                asset = m_assetProviderPlugin.FetchAsset(req.AssetID);
+            }
+            if (asset != null)
+            {
+                _receiver.AssetReceived(asset, req.IsTexture);
+            }
+            else
+            {
+                _receiver.AssetNotFound(req.AssetID);
             }
         }
 

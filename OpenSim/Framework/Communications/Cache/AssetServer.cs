@@ -72,37 +72,33 @@ namespace OpenSim.Framework.Communications.Cache
             }
         }
 
-        protected override void RunRequests()
+        protected override void ProcessRequest(AssetRequest req)
         {
-            while (true)
+            byte[] idata = null;
+            bool found = false;
+            AssetStorage foundAsset = null;
+            IObjectSet result = db.Query(new AssetUUIDQuery(req.AssetID));
+            if (result.Count > 0)
             {
-                byte[] idata = null;
-                bool found = false;
-                AssetStorage foundAsset = null;
-                ARequest req = _assetRequests.Dequeue();
-                IObjectSet result = db.Query(new AssetUUIDQuery(req.AssetID));
-                if (result.Count > 0)
-                {
-                    foundAsset = (AssetStorage) result.Next();
-                    found = true;
-                }
+                foundAsset = (AssetStorage)result.Next();
+                found = true;
+            }
 
-                AssetBase asset = new AssetBase();
-                if (found)
-                {
-                    asset.FullID = foundAsset.UUID;
-                    asset.Type = foundAsset.Type;
-                    asset.InvType = foundAsset.Type;
-                    asset.Name = foundAsset.Name;
-                    idata = foundAsset.Data;
-                    asset.Data = idata;
-                    _receiver.AssetReceived(asset, req.IsTexture);
-                }
-                else
-                {
-                    //asset.FullID = ;
-                    _receiver.AssetNotFound(req.AssetID);
-                }
+            AssetBase asset = new AssetBase();
+            if (found)
+            {
+                asset.FullID = foundAsset.UUID;
+                asset.Type = foundAsset.Type;
+                asset.InvType = foundAsset.Type;
+                asset.Name = foundAsset.Name;
+                idata = foundAsset.Data;
+                asset.Data = idata;
+                _receiver.AssetReceived(asset, req.IsTexture);
+            }
+            else
+            {
+                //asset.FullID = ;
+                _receiver.AssetNotFound(req.AssetID);
             }
         }
 
