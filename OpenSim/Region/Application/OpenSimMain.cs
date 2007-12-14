@@ -142,7 +142,7 @@ namespace OpenSim
                 else
                 {
                     // no default config files, so set default values, and save it
-                    SetDefaultConfig();
+                    m_config.Merge(DefaultConfig());
 
                     m_config.Merge(configSource);
 
@@ -153,11 +153,12 @@ namespace OpenSim
             ReadConfigSettings();
         }
 
-        protected void SetDefaultConfig()
+        public static IConfigSource DefaultConfig()
         {
-            if (m_config.Configs["Startup"] == null)
-                m_config.AddConfig("Startup");
-            IConfig config = m_config.Configs["Startup"];
+            IConfigSource DefaultConfig = new IniConfigSource();
+            if (DefaultConfig.Configs["Startup"] == null)
+                DefaultConfig.AddConfig("Startup");
+            IConfig config = DefaultConfig.Configs["Startup"];
             if (config != null)
             {
                 config.Set("gridmode", false);
@@ -173,10 +174,10 @@ namespace OpenSim
                 config.Set("asset_database", "sqlite");
             }
 
-            if (m_config.Configs["StandAlone"] == null)
-                m_config.AddConfig("StandAlone");
+            if (DefaultConfig.Configs["StandAlone"] == null)
+                DefaultConfig.AddConfig("StandAlone");
 
-            config = m_config.Configs["StandAlone"];
+            config = DefaultConfig.Configs["StandAlone"];
             if (config != null)
             {
                 config.Set("accounts_authenticate", false);
@@ -187,9 +188,9 @@ namespace OpenSim
                 config.Set("dump_assets_to_file", false);
             }
 
-            if (m_config.Configs["Network"] == null)
-                m_config.AddConfig("Network");
-            config = m_config.Configs["Network"];
+            if (DefaultConfig.Configs["Network"] == null)
+                DefaultConfig.AddConfig("Network");
+            config = DefaultConfig.Configs["Network"];
             if (config != null)
             {
                 config.Set("default_location_x", 1000);
@@ -206,13 +207,14 @@ namespace OpenSim
                 config.Set("inventory_server_url", "http://127.0.0.1:" + InventoryConfig.DefaultHttpPort.ToString());
             }
 
-            if (m_config.Configs["RemoteAdmin"] == null)
-                m_config.AddConfig("RemoteAdmin");
-            config = m_config.Configs["RemoteAdmin"];
+            if (DefaultConfig.Configs["RemoteAdmin"] == null)
+                DefaultConfig.AddConfig("RemoteAdmin");
+            config = DefaultConfig.Configs["RemoteAdmin"];
             if (config != null)
             {
                 config.Set("enabled", "false");
             }
+            return DefaultConfig;
         }
 
         protected void ReadConfigSettings()
