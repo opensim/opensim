@@ -117,7 +117,7 @@ namespace OpenSim.Framework.Communications.Cache
             Items.Add(item.inventoryID, item);
         }
 
-        private InventoryItemBase CreateItem(LLUUID inventoryID, LLUUID assetID, string name, string description, int assetType, int invType, LLUUID parentFolderID)
+        public InventoryItemBase CreateItem(LLUUID inventoryID, LLUUID assetID, string name, string description, int assetType, int invType, LLUUID parentFolderID)
         {
             InventoryItemBase item = new InventoryItemBase();
             item.avatarID = libOwner;
