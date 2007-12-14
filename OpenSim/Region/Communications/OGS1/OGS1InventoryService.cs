@@ -63,7 +63,7 @@ namespace OpenSim.Region.Communications.OGS1
         {
             try
             {
-                Console.WriteLine("Requesting Inventory from Inventory server for " + userID.ToStringHyphenated());
+                Console.WriteLine("Requesting Inventory from Inventory server ( " + _inventoryServerUrl + "/GetInventory/" +" ) for " + userID.ToStringHyphenated());
                 RestObjectPosterResponse<InventoryCollection> requester = new RestObjectPosterResponse<InventoryCollection>();
                 requester.ResponseCallback = InventoryResponse;
 
