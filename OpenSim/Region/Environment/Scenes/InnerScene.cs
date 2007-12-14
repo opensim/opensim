@@ -60,6 +60,7 @@ namespace OpenSim.Region.Environment.Scenes
         protected int m_numRootAgents = 0;
         protected int m_numPrim = 0;
         protected int m_numChildAgents = 0;
+        protected int m_physicalPrim = 0;
 
         internal object m_syncRoot = new object();
 
@@ -177,7 +178,14 @@ namespace OpenSim.Region.Environment.Scenes
                 m_numPrim++;
             }
         }
-
+        public void AddPhysicalPrim(int number)
+        {
+            m_physicalPrim++;
+        }
+        public void RemovePhysicalPrim(int number)
+        {
+            m_physicalPrim--;
+        }
         public void RemovePrim(uint localID, LLUUID avatar_deleter)
         {
             foreach (EntityBase obj in Entities.Values)
@@ -285,6 +293,11 @@ namespace OpenSim.Region.Environment.Scenes
         public int GetTotalObjects()
         {
             return m_numPrim;
+        }
+
+        public int GetActiveObjects()
+        {
+            return m_physicalPrim;
         }
 
         #endregion

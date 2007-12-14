@@ -582,6 +582,7 @@ namespace OpenSim.Region.Environment.Scenes
                 m_statsReporter.SetRootAgents(m_innerScene.GetRootAgentCount());
                 m_statsReporter.SetChildAgents(m_innerScene.GetChildAgentCount());
                 m_statsReporter.SetObjects(m_innerScene.GetTotalObjects());
+                m_statsReporter.SetActiveObjects(m_innerScene.GetActiveObjects());
                 
             }
             catch (NotImplementedException)
@@ -1918,6 +1919,17 @@ namespace OpenSim.Region.Environment.Scenes
         {
             m_innerScene.SwapRootChildAgent(rootChildChildRootTF);
         }
+
+        public void AddPhysicalPrim(int num)
+        {
+            m_innerScene.AddPhysicalPrim(num);
+        }
+
+        public void RemovePhysicalPrim(int num)
+        {
+            m_innerScene.RemovePhysicalPrim(num);
+        }
+
         /// <summary>
         /// 
         /// </summary>

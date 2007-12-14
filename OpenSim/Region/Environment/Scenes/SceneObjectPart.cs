@@ -1161,6 +1161,9 @@ namespace OpenSim.Region.Environment.Scenes
 
                     if (PhysActor.IsPhysical)
                     {
+                        if (!isNew)
+                            this.ParentGroup.m_scene.RemovePhysicalPrim(1);
+                        
                         PhysActor.OnRequestTerseUpdate -= PhysicsRequestingTerseUpdate;
                         PhysActor.OnOutOfBounds -= PhysicsOutOfBounds;
                     }
@@ -1184,6 +1187,8 @@ namespace OpenSim.Region.Environment.Scenes
                         //RotationOffset.Y, RotationOffset.Z), UsePhysics);
                         if (UsePhysics)
                         {
+                            this.ParentGroup.m_scene.AddPhysicalPrim(1);
+                            
                             PhysActor.OnRequestTerseUpdate += PhysicsRequestingTerseUpdate;
                             PhysActor.OnOutOfBounds += PhysicsOutOfBounds;
                         }
