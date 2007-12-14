@@ -94,8 +94,8 @@ namespace OpenSim.Framework.Communications.Cache
                     Thread.Sleep(500);
                 }
                 catch (Exception e)
-                {
-                    System.Console.WriteLine(e.Message + " : " + e.StackTrace);
+                {                    
+                    m_log.Error("ASSETCACHE", e.ToString());
                 }
             }
         }
@@ -492,15 +492,40 @@ namespace OpenSim.Framework.Communications.Cache
                         TransferPacket.TransferData.Status = 0;
                         req.RequestUser.OutPacket(TransferPacket, ThrottleOutPacketType.Asset);
 
-                        TransferPacket = new TransferPacketPacket();
-                        TransferPacket.TransferData.Packet = 1;
-                        TransferPacket.TransferData.ChannelType = 2;
-                        TransferPacket.TransferData.TransferID = req.TransferRequestID;
-                        byte[] chunk1 = new byte[(req.AssetInf.Data.Length - 1000)];
-                        Array.Copy(req.AssetInf.Data, 1000, chunk1, 0, chunk1.Length);
-                        TransferPacket.TransferData.Data = chunk1;
-                        TransferPacket.TransferData.Status = 1;
-                        req.RequestUser.OutPacket(TransferPacket, ThrottleOutPacketType.Asset);
+                        int processedLength = 1000;
+                        // libsecondlife tells us that the largest allowable chunk is 1500 bytes
+                        // XXX Fix up this magic number (and others)!
+                        int maxChunkSize = 1500;
+                        int packetNumber = 1;
+                        
+                        while (processedLength < req.AssetInf.Data.Length)
+                        {
+                            TransferPacket = new TransferPacketPacket();
+                            TransferPacket.TransferData.Packet = packetNumber;
+                            TransferPacket.TransferData.ChannelType = 2;
+                            TransferPacket.TransferData.TransferID = req.TransferRequestID;
+                            
+                            int chunkSize = Math.Min(req.AssetInf.Data.Length - processedLength, maxChunkSize);                            
+                            byte[] chunk1 = new byte[chunkSize];
+                            Array.Copy(req.AssetInf.Data, processedLength, chunk1, 0, chunk1.Length);  
+                            
+                            TransferPacket.TransferData.Data = chunk1;
+                            
+                            // 0 indicates more packets to come, 1 indicates last packet
+                            if (req.AssetInf.Data.Length - processedLength > maxChunkSize)
+                            {
+                                TransferPacket.TransferData.Status = 0;
+                            }
+                            else
+                            {
+                                TransferPacket.TransferData.Status = 1;
+                            }                                                        
+                            
+                            req.RequestUser.OutPacket(TransferPacket, ThrottleOutPacketType.Asset);
+                            
+                            processedLength += chunkSize;
+                            packetNumber++;
+                        }
                     }
                 }
             }
