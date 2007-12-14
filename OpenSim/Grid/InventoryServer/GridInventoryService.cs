@@ -72,8 +72,10 @@ namespace OpenSim.Grid.InventoryServer
             }
         }
 
-        public InventoryCollection GetUserInventory(LLUUID userID)
+        public InventoryCollection GetUserInventory(Guid rawUserID)
         {
+            LLUUID userID = new LLUUID(rawUserID);
+            
             InventoryCollection invCollection = new InventoryCollection();
             List<InventoryFolderBase> folders;
             List<InventoryItemBase> allItems;
@@ -86,10 +88,12 @@ namespace OpenSim.Grid.InventoryServer
             return invCollection;
         }
 
-        public bool CreateUsersInventory(LLUUID user)
+        public bool CreateUsersInventory(Guid rawUserID)
         {
-            Console.WriteLine("Creating New Set of Inventory Folders for " + user.ToStringHyphenated());
-            CreateNewUserInventory(user);
+            LLUUID userID = new LLUUID(rawUserID);
+            
+            Console.WriteLine("Creating New Set of Inventory Folders for " + userID.ToStringHyphenated());
+            CreateNewUserInventory(userID);
             return true;
         }
         

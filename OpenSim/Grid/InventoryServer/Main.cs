@@ -78,10 +78,10 @@ namespace OpenSim.Grid.InventoryServer
             MainLog.Instance.Notice(LogName, "Starting HTTP server ...");
             BaseHttpServer httpServer = new BaseHttpServer(m_config.HttpPort);
             httpServer.AddStreamHandler(
-                new RestDeserialisehandler<LLUUID, InventoryCollection>("POST", "/GetInventory/",
+                new RestDeserialisehandler<Guid, InventoryCollection>("POST", "/GetInventory/",
                                                                                   m_inventoryService.GetUserInventory));
             httpServer.AddStreamHandler(
-                new RestDeserialisehandler<LLUUID, bool>("POST", "/CreateInventory/",
+                new RestDeserialisehandler<Guid, bool>("POST", "/CreateInventory/",
                                                                                   m_inventoryService.CreateUsersInventory));
             httpServer.AddStreamHandler(
                 new RestDeserialisehandler<InventoryFolderBase, bool>("POST", "/NewFolder/",
@@ -95,7 +95,7 @@ namespace OpenSim.Grid.InventoryServer
                                                                                   m_inventoryService.DeleteInvItem));
 
             httpServer.AddStreamHandler(
-                new RestDeserialisehandler<LLUUID, List<InventoryFolderBase>>("POST", "/RootFolders/",
+                new RestDeserialisehandler<Guid, List<InventoryFolderBase>>("POST", "/RootFolders/",
                                                                                   m_inventoryService.RequestFirstLevelFolders));
 
           //  httpServer.AddStreamHandler(new InventoryManager.GetInventory(m_inventoryManager));
@@ -120,7 +120,7 @@ namespace OpenSim.Grid.InventoryServer
             {
                 case "quit":
                 case "add-user":
-                    m_inventoryService.CreateUsersInventory(LLUUID.Random());
+                    m_inventoryService.CreateUsersInventory(LLUUID.Random().UUID);
                     break;
                 case "shutdown":
                     m_console.Close();

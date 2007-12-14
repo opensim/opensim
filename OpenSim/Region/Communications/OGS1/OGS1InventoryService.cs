@@ -65,8 +65,8 @@ namespace OpenSim.Region.Communications.OGS1
             {
             RestObjectPosterResponse<InventoryCollection> requester = new RestObjectPosterResponse<InventoryCollection>();
             requester.ResponseCallback = InventoryResponse;
-            // THIS SHOULD BE A Guid, NOT A LLUUID!   No longer Serializable!  This will fail EVERY TIME.
-            requester.BeginPostObject<LLUUID>(_inventoryServerUrl + "/GetInventory/", userID);
+            
+            requester.BeginPostObject<Guid>(_inventoryServerUrl + "/GetInventory/", userID.UUID);
             }
             catch (Exception)
             {

@@ -129,7 +129,7 @@ namespace OpenSim.Grid.UserServer
                     tempMD5Passwd = Util.Md5Hash(Util.Md5Hash(tempMD5Passwd) + ":" + "");
 
                     LLUUID userID = m_userManager.AddUserProfile(tempfirstname, templastname, tempMD5Passwd, regX, regY);
-                    RestObjectPoster.BeginPostObject<LLUUID>(m_userManager._config.InventoryUrl + "CreateInventory/", userID);
+                    RestObjectPoster.BeginPostObject<Guid>(m_userManager._config.InventoryUrl + "CreateInventory/", userID.UUID);
                     m_lastCreatedUser = userID;
                     break;
             }

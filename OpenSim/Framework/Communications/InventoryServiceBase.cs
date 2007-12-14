@@ -74,14 +74,20 @@ namespace OpenSim.Framework.Communications
                 }
             }
         }
-
+                    
+        public List<InventoryFolderBase> RequestFirstLevelFolders(Guid rawUserID)
+        {
+            LLUUID userID = new LLUUID(rawUserID);
+            return RequestFirstLevelFolders(userID);
+        }
+        
         /// <summary>
         /// Returns the root folder plus any folders in root (so down one level in the Inventory folders tree)
         /// </summary>
         /// <param name="userID"></param>
         /// <returns></returns>
         public List<InventoryFolderBase> RequestFirstLevelFolders(LLUUID userID)
-        {
+        {            
             List<InventoryFolderBase> inventoryList = new List<InventoryFolderBase>();            
             InventoryFolderBase rootFolder = null;
             

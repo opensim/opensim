@@ -198,8 +198,8 @@ namespace OpenSim.Grid.UserServer
         protected override InventoryData CreateInventoryData(LLUUID userID)
         {
             List<InventoryFolderBase> folders 
-                = SynchronousRestObjectPoster.BeginPostObject<LLUUID, List<InventoryFolderBase>>(
-                    "POST", m_config.InventoryUrl + "RootFolders/", userID);
+                = SynchronousRestObjectPoster.BeginPostObject<Guid, List<InventoryFolderBase>>(
+                    "POST", m_config.InventoryUrl + "RootFolders/", userID.UUID);
             
             // In theory, the user will only ever be missing a root folder in situations where a grid
             // which didn't previously run a grid wide inventory server is being transitioned to one 
@@ -211,15 +211,15 @@ namespace OpenSim.Grid.UserServer
                     "A root inventory folder for user ID " + userID + " was not found.  A new set"
                     + " of empty inventory folders is being created.");
                     
-                RestObjectPoster.BeginPostObject<LLUUID>(
-                    m_config.InventoryUrl + "CreateInventory/", userID);
+                RestObjectPoster.BeginPostObject<Guid>(
+                    m_config.InventoryUrl + "CreateInventory/", userID.UUID);
                 
                 // A big delay should be okay here since the recreation of the user's root folders should
                 // only ever happen once.  We need to sleep to let the inventory server do its work - 
                 // previously 1000ms has been found to be too short.
                 Thread.Sleep(10000);
-                folders = SynchronousRestObjectPoster.BeginPostObject<LLUUID, List<InventoryFolderBase>>(
-                    "POST", m_config.InventoryUrl + "RootFolders/", userID);                                         
+                folders = SynchronousRestObjectPoster.BeginPostObject<Guid, List<InventoryFolderBase>>(
+                    "POST", m_config.InventoryUrl + "RootFolders/", userID.UUID);                                         
             }
 
             if (folders.Count > 0)
