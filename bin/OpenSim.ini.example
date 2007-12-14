@@ -71,6 +71,8 @@ user_recv_key = "null"
 
 asset_server_url = "http://127.0.0.1:8003"
 
+inventory_server_url = "http://127.0.0.1:8004"
+
 [Chat]
 whisper_distance = 10
 say_distance = 30
