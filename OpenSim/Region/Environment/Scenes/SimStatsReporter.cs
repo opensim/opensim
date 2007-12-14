@@ -101,17 +101,35 @@ namespace OpenSim.Region.Environment.Scenes
             }
             statpack.Region.ObjectCapacity = (uint)15000;
 
+            #region various statistic googly moogly
+            float simfps = (int)(m_fps * 5);
+
+            if (simfps > 45)
+                simfps = simfps - (simfps - 45);
+            if (simfps < 0)
+                simfps = 0;
+
+            float physfps = (m_pfps / statsUpdatesEveryMS);
+
+            if (physfps > 50)
+                physfps = physfps - (physfps - 50);
+
+            if (physfps < 0)
+                physfps = 0;
+
+            #endregion
+
             sb[0] = new SimStatsPacket.StatBlock();
             sb[0].StatID = (uint)Stats.TimeDilation;
             sb[0].StatValue = (m_timeDilation);
 
             sb[1] = new SimStatsPacket.StatBlock();
             sb[1].StatID = (uint)Stats.SimFPS;
-            sb[1].StatValue = (int)(m_fps * 5);
+            sb[1].StatValue = simfps;
 
             sb[2] = new SimStatsPacket.StatBlock();
             sb[2].StatID = (uint)Stats.PhysicsFPS;
-            sb[2].StatValue = (m_pfps / statsUpdatesEveryMS);
+            sb[2].StatValue = physfps;
 
             sb[3] = new SimStatsPacket.StatBlock();
             sb[3].StatID = (uint)Stats.AgentUpdates;
@@ -168,6 +186,12 @@ namespace OpenSim.Region.Environment.Scenes
         public void SetTimeDilation(float td)
         {
             m_timeDilation = td;
+            if (m_timeDilation > 1.0f)
+                m_timeDilation = (m_timeDilation - (m_timeDilation - 0.91f));
+
+            if (m_timeDilation < 0)
+                m_timeDilation = 0.0f;
+
         }
         public void SetRootAgents(int rootAgents)
         {
