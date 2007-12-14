@@ -96,6 +96,10 @@ namespace OpenSim.Framework.Communications
                 rootFolder = plugin.Value.getUserRootFolder(userID);
                 if (rootFolder != null)
                 {
+                    MainLog.Instance.Verbose(
+                        "INVENTORY", 
+                        "Found root folder for user with ID " + userID + ".  Retrieving inventory contents.");
+                    
                     inventoryList = plugin.Value.getInventoryFolders(rootFolder.folderID);
                     inventoryList.Insert(0, rootFolder);
                     return inventoryList;
