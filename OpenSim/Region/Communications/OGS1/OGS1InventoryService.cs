@@ -63,10 +63,12 @@ namespace OpenSim.Region.Communications.OGS1
         {
             try
             {
-            RestObjectPosterResponse<InventoryCollection> requester = new RestObjectPosterResponse<InventoryCollection>();
-            requester.ResponseCallback = InventoryResponse;
-            
-            requester.BeginPostObject<Guid>(_inventoryServerUrl + "/GetInventory/", userID.UUID);
+                Console.WriteLine("Requesting Inventory from Inventory server for " + userID.ToStringHyphenated());
+                RestObjectPosterResponse<InventoryCollection> requester = new RestObjectPosterResponse<InventoryCollection>();
+                requester.ResponseCallback = InventoryResponse;
+
+                requester.BeginPostObject<Guid>(_inventoryServerUrl + "/GetInventory/", userID.UUID);
+                Console.WriteLine("Request for Inventory sent");
             }
             catch (Exception)
             {
@@ -78,7 +80,7 @@ namespace OpenSim.Region.Communications.OGS1
             LLUUID userID = response.UserID;
             if (m_RequestingInventory.ContainsKey(userID))
             {
-                
+
                 InventoryFolderImpl rootFolder = null;
                 InventoryRequest request = m_RequestingInventory[userID];
                 foreach (InventoryFolderBase folder in response.Folders)
@@ -126,7 +128,7 @@ namespace OpenSim.Region.Communications.OGS1
         {
             try
             {
-            RestObjectPoster.BeginPostObject<InventoryItemBase>(_inventoryServerUrl + "/NewItem/", item);
+                RestObjectPoster.BeginPostObject<InventoryItemBase>(_inventoryServerUrl + "/NewItem/", item);
             }
             catch (Exception)
             {
@@ -136,8 +138,8 @@ namespace OpenSim.Region.Communications.OGS1
         public void DeleteInventoryItem(LLUUID userID, InventoryItemBase item)
         {
             try
-            { 
-            RestObjectPoster.BeginPostObject<InventoryItemBase>(_inventoryServerUrl + "/DeleteItem/", item);
+            {
+                RestObjectPoster.BeginPostObject<InventoryItemBase>(_inventoryServerUrl + "/DeleteItem/", item);
             }
             catch (Exception)
             {

@@ -74,6 +74,7 @@ namespace OpenSim.Grid.InventoryServer
 
         public InventoryCollection GetUserInventory(Guid rawUserID)
         {
+            Console.WriteLine("Request for Inventory for " + rawUserID.ToString());
             LLUUID userID = new LLUUID(rawUserID);
             
             InventoryCollection invCollection = new InventoryCollection();
@@ -117,6 +118,7 @@ namespace OpenSim.Grid.InventoryServer
 
         public bool AddInventoryItem( InventoryItemBase item)
         {
+            Console.WriteLine("creating new item for " + item.avatarID.ToString());
             AddNewInventoryItem(item.avatarID, item);
             return true;
         }
