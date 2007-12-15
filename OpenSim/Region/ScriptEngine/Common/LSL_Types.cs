@@ -53,59 +53,53 @@ namespace OpenSim.Region.ScriptEngine.Common
                 y = Y;
                 z = Z;
             }
-            public string ToString()
+
+            #region Overriders 
+
+            public override string ToString()
             {
                 return "<" + x.ToString() + ", " + y.ToString() + ", " + z.ToString() + ">";
             }
-            public static Vector3 operator *(Vector3 v, float f)
+            public static bool operator ==(Vector3 lhs, Vector3 rhs)
             {
-                v.x = v.x * f;
-                v.y = v.y * f;
-                v.z = v.z * f;
-                return v;
+                return (lhs.x == rhs.x && lhs.y == rhs.y && lhs.z == rhs.z);
             }
-            public static Vector3 operator /(Vector3 v, float f)
+            public static bool operator !=(Vector3 lhs, Vector3 rhs)
             {
-                v.x = v.x / f;
-                v.y = v.y / f;
-                v.z = v.z / f;
-                return v;
+                return !(lhs == rhs);
             }
-            public static Vector3 operator /(float f, Vector3 v)
+            public override int GetHashCode()
             {
-                v.x = v.x / f;
-                v.y = v.y / f;
-                v.z = v.z / f;
-                return v;
+                return (x.GetHashCode() ^ y.GetHashCode() ^ z.GetHashCode());
             }
-            public static Vector3 operator *(float f, Vector3 v)
+
+
+            public override bool Equals(object o)
             {
-                v.x = v.x * f;
-                v.y = v.y * f;
-                v.z = v.z * f;
-                return v;
+                if (!(o is Vector3)) return false;
+
+                Vector3 vector = (Vector3)o;
+
+                return (x == vector.x && x == vector.x && z == vector.z);
             }
-            public static Vector3 operator *(Vector3 v1, Vector3 v2)
+
+            #endregion
+
+            #region Vector & Vector Math
+            // Vector-Vector Math
+            public static Vector3 operator +(Vector3 lhs, Vector3 rhs)
             {
-                v1.x = v1.x * v2.x;
-                v1.y = v1.y * v2.y;
-                v1.z = v1.z * v2.z;
-                return v1;
-            }
-            public static Vector3 operator +(Vector3 v1, Vector3 v2)
+                return new Vector3(lhs.x + rhs.x, lhs.y + rhs.y, lhs.z + rhs.z);
+            } 
+            public static Vector3 operator -(Vector3 lhs, Vector3 rhs)
             {
-                v1.x = v1.x + v2.x;
-                v1.y = v1.y + v2.y;
-                v1.z = v1.z + v2.z;
-                return v1;
+                return new Vector3(lhs.x - rhs.x, lhs.y - rhs.y, lhs.z - rhs.z);
             }
-            public static Vector3 operator -(Vector3 v1, Vector3 v2)
+            public static Vector3 operator *(Vector3 lhs, Vector3 rhs)
             {
-                v1.x = v1.x - v2.x;
-                v1.y = v1.y - v2.y;
-                v1.z = v1.z - v2.z;
-                return v1;
+                return new Vector3(lhs.x * rhs.x, lhs.y * rhs.y, lhs.z * rhs.z);
             }
+
             public static Vector3 operator %(Vector3 v1, Vector3 v2)
             {
                 //Cross product
@@ -115,6 +109,79 @@ namespace OpenSim.Region.ScriptEngine.Common
                 tv.z = (v1.x * v2.y) - (v1.y * v2.x);
                 return tv;
             }
+
+            #endregion
+            
+            #region Vector & Float Math
+            // Vector-Float and Float-Vector Math
+            public static Vector3 operator *(Vector3 vec, float val)
+            {
+                return new Vector3(vec.x * val, vec.y * val, vec.z * val);
+            }
+
+            public static Vector3 operator *(float val, Vector3 vec)
+            {
+                return new Vector3(vec.x * val, vec.y * val, vec.z * val);
+            }
+
+            public static Vector3 operator /(Vector3 v, float f)
+            {
+                v.x = v.x / f;
+                v.y = v.y / f;
+                v.z = v.z / f;
+                return v;
+            }
+
+            #endregion
+
+            #region Vector & Rotation Math
+            // Vector-Rotation Math
+            public static Vector3 operator *(Vector3 v, Quaternion r)
+            {
+                Quaternion vq = new Quaternion(v.x, v.y, v.z, 0);
+                Quaternion nq = new Quaternion(-r.x, -r.y, -r.z, r.s);
+
+                Quaternion result = (r * vq) * nq;
+
+                return new Vector3(result.x, result.y, result.z);
+            }
+            // I *think* this is how it works....
+            public static Vector3 operator /(Vector3 vec, Quaternion quat)
+            {
+                quat.s = -quat.s;
+                Quaternion vq = new Quaternion(vec.x, vec.y, vec.z, 0);
+                Quaternion nq = new Quaternion(-quat.x, -quat.y, -quat.z, quat.s);
+
+                Quaternion result = (quat * vq) * nq;
+
+                return new Vector3(result.x, result.y, result.z);
+            }
+            #endregion
+
+            #region Static Helper Functions
+            public static double Dot(Vector3 v1, Vector3 v2)
+            {
+                return (v1.x * v2.x) + (v1.y * v2.y) + (v1.z * v2.z);
+            }
+            public static Vector3 Cross(Vector3 v1, Vector3 v2)
+            {
+                return new Vector3
+                (
+                    v1.y * v2.z - v1.z * v2.y,
+                    v1.z * v2.x - v1.x * v2.z,
+                    v1.x * v2.y - v1.y * v2.x
+                );
+            }
+            public static float Mag(Vector3 v)
+            {
+                return (float)Math.Sqrt(v.x * v.y + v.y * v.y + v.z * v.z);
+            }
+            public static Vector3 Norm(Vector3 vector)
+            {
+                float mag = Mag(vector);
+                return new Vector3(vector.x / mag, vector.y / mag, vector.z / mag);
+            }
+            #endregion
         }
 
         [Serializable]
@@ -123,26 +190,66 @@ namespace OpenSim.Region.ScriptEngine.Common
             public double x;
             public double y;
             public double z;
-            public double r;
+            public double s;
 
             public Quaternion(Quaternion Quat)
             {
                 x = (float) Quat.x;
                 y = (float) Quat.y;
                 z = (float) Quat.z;
-                r = (float) Quat.r;
+                s = (float) Quat.s;
             }
 
-            public Quaternion(double X, double Y, double Z, double R)
+            public Quaternion(double X, double Y, double Z, double S)
             {
                 x = X;
                 y = Y;
                 z = Z;
-                r = R;
+                s = S;
             }
-            public string ToString()
+
+            #region Overriders
+
+            public override int GetHashCode()
             {
-                return "<" + x.ToString() + ", " + y.ToString() + ", " + z.ToString() + ", " + r.ToString() + ">";
+                return (x.GetHashCode() ^ y.GetHashCode() ^ z.GetHashCode() ^ s.GetHashCode());
+            }
+
+
+            public override bool Equals(object o)
+            {
+                if (!(o is Quaternion)) return false;
+
+                Quaternion quaternion = (Quaternion)o;
+
+                return x == quaternion.x && y == quaternion.y && z == quaternion.z && s == quaternion.s;
+            }
+            public override string ToString()
+            {
+                return "<" + x.ToString() + ", " + y.ToString() + ", " + z.ToString() + ", " + s.ToString() + ">";
+            }
+
+            public static bool operator ==(Quaternion lhs, Quaternion rhs)
+            {
+                // Return true if the fields match:
+                return lhs.x == rhs.x && lhs.y == rhs.y && lhs.z == rhs.z && lhs.s == rhs.s;
+            }
+
+            public static bool operator !=(Quaternion lhs, Quaternion rhs)
+            {
+                return !(lhs == rhs);
+            }
+
+            #endregion
+
+            public static Quaternion operator *(Quaternion a, Quaternion b)
+            {
+                Quaternion c;
+                c.x = a.s * b.x + a.x * b.s + a.y * b.z - a.z * b.y;
+                c.y = a.s * b.y + a.y * b.s + a.z * b.x - a.x * b.z;
+                c.z = a.s * b.z + a.z * b.s + a.x * b.y - a.y * b.x;
+                c.s = a.s * b.s - a.x * b.x - a.y * b.y - a.z * b.z;
+                return c;
             }
         }
     }

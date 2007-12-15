@@ -47,7 +47,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL
             dataTypes.Add("key", "string");
             dataTypes.Add("vector", "LSL_Types.Vector3");
             dataTypes.Add("rotation", "LSL_Types.Quaternion");
-            dataTypes.Add("list", "List");
+            dataTypes.Add("list", "List<string>");
             dataTypes.Add("null", "null");
         }
 
@@ -203,7 +203,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL
                             //Console.WriteLine("Replacing using statename: " + current_statename);
                             cache =
                                 Regex.Replace(cache,
-                                              @"^(\s*)((?!(if|switch|for)[^a-zA-Z0-9_])[a-zA-Z0-9_]*\s*\([^\)]*\)[^;]*\{)",
+                                              @"^(\s*)((?!(if|switch|for|while)[^a-zA-Z0-9_])[a-zA-Z0-9_]*\s*\([^\)]*\)[^;]*\{)",
                                               @"$1public " + current_statename + "_event_$2",
                                               RegexOptions.Compiled | RegexOptions.Multiline | RegexOptions.Singleline);
                         }
@@ -236,7 +236,10 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL
                                   RegexOptions.Compiled | RegexOptions.Multiline);
                 // Replace return types and function variables - integer a() and f(integer a, integer a)
                 Script =
-                    Regex.Replace(Script, @"(^|;|}|[\(,])(\s*)" + key + @"(\s*)", @"$1$2" + val + "$3",
+                    Regex.Replace(Script, @"(^|;|}|[\(,])(\s*)" + key + @"(\s+)", @"$1$2" + val + "$3",
+                                  RegexOptions.Compiled | RegexOptions.Multiline);
+                Script =
+                    Regex.Replace(Script, @"(^|;|}|[\(,])(\s*)" + key + @"(\s*)[,]", @"$1$2" + val + "$3,",
                                   RegexOptions.Compiled | RegexOptions.Multiline);
             }
 
@@ -281,7 +284,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL
             // Add namespace, class name and inheritance
 
             Return = "" +
-                     "using OpenSim.Region.ScriptEngine.Common;";
+                     "using OpenSim.Region.ScriptEngine.Common; using System.Collections.Generic;";
             //"using System; " +
             //"using System.Collections.Generic; " +
             //"using System.Text; " +

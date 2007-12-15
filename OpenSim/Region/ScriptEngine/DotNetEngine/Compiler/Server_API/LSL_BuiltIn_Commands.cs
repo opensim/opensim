@@ -191,19 +191,19 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler
         public LSL_Types.Vector3 llRot2Euler(LSL_Types.Quaternion r)
         {
             //This implementation is from http://lslwiki.net/lslwiki/wakka.php?wakka=LibraryRotationFunctions. ckrinke
-            LSL_Types.Quaternion t = new LSL_Types.Quaternion(r.x*r.x, r.y*r.y, r.z*r.z, r.r*r.r);
-            double m = (t.x + t.y + t.z + t.r);
+            LSL_Types.Quaternion t = new LSL_Types.Quaternion(r.x*r.x, r.y*r.y, r.z*r.z, r.s*r.s);
+            double m = (t.x + t.y + t.z + t.s);
             if (m == 0) return new LSL_Types.Vector3();
-            double n = 2*(r.y*r.r + r.x*r.z);
+            double n = 2*(r.y*r.s + r.x*r.z);
             double p = m*m - n*n;
             if (p > 0)
-                return new LSL_Types.Vector3(Math.Atan2(2.0*(r.x*r.r - r.y*r.z), (-t.x - t.y + t.z + t.r)),
+                return new LSL_Types.Vector3(Math.Atan2(2.0*(r.x*r.s - r.y*r.z), (-t.x - t.y + t.z + t.s)),
                                              Math.Atan2(n, Math.Sqrt(p)),
-                                             Math.Atan2(2.0*(r.z*r.r - r.x*r.y), (t.x - t.y - t.z + t.r)));
+                                             Math.Atan2(2.0*(r.z*r.s - r.x*r.y), (t.x - t.y - t.z + t.s)));
             else if (n > 0)
-                return new LSL_Types.Vector3(0.0, Math.PI/2, Math.Atan2((r.z*r.r + r.x*r.y), 0.5 - t.x - t.z));
+                return new LSL_Types.Vector3(0.0, Math.PI/2, Math.Atan2((r.z*r.s + r.x*r.y), 0.5 - t.x - t.z));
             else
-                return new LSL_Types.Vector3(0.0, -Math.PI/2, Math.Atan2((r.z*r.r + r.x*r.y), 0.5 - t.x - t.z));
+                return new LSL_Types.Vector3(0.0, -Math.PI/2, Math.Atan2((r.z*r.s + r.x*r.y), 0.5 - t.x - t.z));
         }
 
         public LSL_Types.Quaternion llEuler2Rot(LSL_Types.Vector3 v)
@@ -219,6 +219,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler
             LSL_Types.Quaternion a1 = new LSL_Types.Quaternion(0.0, 0.0, cz, cw);
             LSL_Types.Quaternion a2 = new LSL_Types.Quaternion(0.0, by, 0.0, bw);
             LSL_Types.Quaternion a3 = new LSL_Types.Quaternion(ax, 0.0, 0.0, aw);
+            LSL_Types.Quaternion a = (a1 * a2) * a3;
             //This multiplication doesnt compile, yet.            a = a1 * a2 * a3;
             LSL_Types.Quaternion b = new LSL_Types.Quaternion(ax*bw*cw + aw*by*cz,
                                                               aw*by*cw - ax*bw*cz, aw*bw*cz + ax*by*cw,
@@ -230,13 +231,14 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler
             if ((Math.Abs(c.x) > err && Math.Abs(d.x) > err) ||
                 (Math.Abs(c.y) > err && Math.Abs(d.y) > err) ||
                 (Math.Abs(c.z) > err && Math.Abs(d.z) > err) ||
-                (Math.Abs(c.r) > err && Math.Abs(d.r) > err))
+                (Math.Abs(c.s) > err && Math.Abs(d.s) > err))
             {
+                return b;
                 //return a new Quaternion that is null until I figure this out
                 //                return b;
                 //            return a;
             }
-            return new LSL_Types.Quaternion();
+            return a;
         }
 
         public LSL_Types.Quaternion llAxes2Rot(LSL_Types.Vector3 fwd, LSL_Types.Vector3 left, LSL_Types.Vector3 up)
@@ -258,12 +260,19 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler
         {
             return new LSL_Types.Vector3();
         }
-
-        public LSL_Types.Quaternion llRotBetween(LSL_Types.Vector3 start, LSL_Types.Vector3 end)
+        public LSL_Types.Quaternion llRotBetween(LSL_Types.Vector3 a, LSL_Types.Vector3 b)
         {
-            return new LSL_Types.Quaternion();
-        }
+            //A and B should both be normalized
 
+            double dotProduct = LSL_Types.Vector3.Dot(a, b);
+            LSL_Types.Vector3 crossProduct = LSL_Types.Vector3.Cross(a, b);
+            double magProduct = LSL_Types.Vector3.Mag(a) * LSL_Types.Vector3.Mag(b);
+            double angle = Math.Acos(dotProduct / magProduct);
+            LSL_Types.Vector3 axis = LSL_Types.Vector3.Norm(crossProduct);
+            double s = Math.Sin(angle / 2);
+
+            return new LSL_Types.Quaternion(axis.x * s, axis.y * s, axis.z * s, (float)Math.Cos(angle / 2));
+        }
         public void llWhisper(int channelID, string text)
         {
             World.SimChat(Helpers.StringToField(text),
@@ -629,7 +638,6 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler
             }
             if (face == -1)
             {
-                LLObject.TextureEntryFace texface;
                 for (int i = 0; i < 32; i++)
                 {
                     if (tex.FaceTextures[i] != null)
@@ -729,7 +737,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler
 
         public void llSetRot(LSL_Types.Quaternion rot)
         {
-            m_host.UpdateRotation(new LLQuaternion((float) rot.x, (float) rot.y, (float) rot.z, (float) rot.r));
+            m_host.UpdateRotation(new LLQuaternion((float) rot.x, (float) rot.y, (float) rot.z, (float) rot.s));
         }
 
         public LSL_Types.Quaternion llGetRot()
@@ -1778,7 +1786,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler
 
         public double llGetRegionTimeDilation()
         {
-            return 1.0f;
+            return (double)World.TimeDilation;
         }
 
         public double llGetRegionFPS()
