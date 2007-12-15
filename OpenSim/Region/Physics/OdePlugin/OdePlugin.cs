@@ -127,7 +127,7 @@ namespace OpenSim.Region.Physics.OdePlugin
             contact.surface.bounce = 0.2f;
 
             TerrainContact.surface.mode |= d.ContactFlags.SoftERP;
-            TerrainContact.surface.mu = 250.0f;
+            TerrainContact.surface.mu = 550.0f;
             TerrainContact.surface.bounce = 0.1f;
             TerrainContact.surface.soft_erp = 0.1025f;
 
@@ -255,7 +255,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                     PhysicsActor p1;
                     PhysicsActor p2;
 
-                    if (!actor_name_map.TryGetValue(g2, out p1))
+                    if (!actor_name_map.TryGetValue(g1, out p1))
                     {
                         p1 = PANull;
                     }
@@ -267,14 +267,20 @@ namespace OpenSim.Region.Physics.OdePlugin
                     // We only need to test p2 for 'jump crouch purposes'
                     p2.IsColliding = true;
 
+                   
+
                     switch(p1.PhysicsActorType) {
                         case (int)ActorTypes.Agent:
                             p2.CollidingObj = true;
                             break;
                         case (int)ActorTypes.Prim:
-                            p2.CollidingObj = true;
+                            if (p2.Velocity.X >0 || p2.Velocity.Y > 0 || p2.Velocity.Z > 0)
+                                p2.CollidingObj = true;
                             break;
                         case (int)ActorTypes.Unknown:
+                            p2.CollidingGround = true;
+                            break;
+                        default:
                             p2.CollidingGround = true;
                             break;
                     }

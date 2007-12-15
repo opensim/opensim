@@ -46,6 +46,7 @@ namespace OpenSim.Region.Physics.OdePlugin
         private PhysicsVector _target_velocity;
         private PhysicsVector _acceleration;
         private PhysicsVector m_rotationalVelocity;
+        private bool m_pidControllerActive = true;
         private static float PID_D = 3020.0f;
         private static float PID_P = 7000.0f;
         private static float POSTURE_SERVO = 10000.0f;
@@ -56,6 +57,8 @@ namespace OpenSim.Region.Physics.OdePlugin
         private bool m_iscollidingGround = false;
         private bool m_wascolliding = false;
         private bool m_wascollidingGround = false;
+        private bool m_iscollidingObj = false;
+        private bool m_wascollidingObj = false;
         private bool m_alwaysRun = false;
         private bool m_hackSentFall = false;
         private bool m_hackSentFly = false;
@@ -165,10 +168,13 @@ namespace OpenSim.Region.Physics.OdePlugin
                 else
                 {
                     m_iscolliding = true;
+
+
                 }
                 if (m_wascolliding != m_iscolliding)
                 {
                     base.SendCollisionUpdate(new CollisionEventUpdate());
+                    
                 }
                 m_wascolliding = m_iscolliding;
             }
@@ -222,8 +228,14 @@ namespace OpenSim.Region.Physics.OdePlugin
         }
         public override bool CollidingObj
         {
-            get { return false; }
-            set { return; }
+            get { return m_iscollidingObj; }
+            set { 
+                m_iscollidingObj = value;
+                if (value)
+                    m_pidControllerActive = false;
+                else
+                    m_pidControllerActive = true;
+            }
         }
 
         public override PhysicsVector Position
@@ -248,6 +260,7 @@ namespace OpenSim.Region.Physics.OdePlugin
             get { return new PhysicsVector(CAPSULE_RADIUS * 2, CAPSULE_RADIUS * 2, CAPSULE_LENGTH); }
             set
             {
+                m_pidControllerActive = true;
                 lock (OdeScene.OdeLock)
                 {
                     PhysicsVector SetSize = value;
@@ -282,7 +295,9 @@ namespace OpenSim.Region.Physics.OdePlugin
         public override PhysicsVector Velocity
         {
             get { return _velocity; }
-            set { _target_velocity = value; }
+            set {
+                m_pidControllerActive = true;
+                _target_velocity = value; }
         }
 
         public override bool Kinematic
@@ -304,12 +319,13 @@ namespace OpenSim.Region.Physics.OdePlugin
 
         public void SetAcceleration(PhysicsVector accel)
         {
+            m_pidControllerActive = true;
             _acceleration = accel;
         }
 
         public override void AddForce(PhysicsVector force)
         {
-
+            m_pidControllerActive = true;
             _target_velocity.X += force.X;
             _target_velocity.Y += force.Y;
             _target_velocity.Z += force.Z;
@@ -346,6 +362,12 @@ namespace OpenSim.Region.Physics.OdePlugin
         public void Move(float timeStep)
         {
             //  no lock; for now it's only called from within Simulate()
+            if (m_pidControllerActive == false)
+            {
+                _zeroPosition = d.BodyGetPosition(Body);
+            }
+            //PidStatus = true;
+
             PhysicsVector vec = new PhysicsVector();
             d.Vector3 vel = d.BodyGetLinearVel(Body);
             float movementdivisor = 1f;
@@ -369,17 +391,21 @@ namespace OpenSim.Region.Physics.OdePlugin
                     _zeroFlag = true;
                     _zeroPosition = d.BodyGetPosition(Body);
                 }
-                d.Vector3 pos = d.BodyGetPosition(Body);
-                vec.X = (_target_velocity.X - vel.X) * PID_D + (_zeroPosition.X - pos.X) * PID_P;
-                vec.Y = (_target_velocity.Y - vel.Y) * PID_D + (_zeroPosition.Y - pos.Y) * PID_P;
-                if (flying)
+                if (m_pidControllerActive)
                 {
-                    vec.Z = (_target_velocity.Z - vel.Z) * (PID_D + 5100) + (_zeroPosition.Z - pos.Z) * PID_P;
+                    d.Vector3 pos = d.BodyGetPosition(Body);
+                    vec.X = (_target_velocity.X - vel.X) * PID_D + (_zeroPosition.X - pos.X) * PID_P;
+                    vec.Y = (_target_velocity.Y - vel.Y) * PID_D + (_zeroPosition.Y - pos.Y) * PID_P;
+                    if (flying)
+                    {
+                        vec.Z = (_target_velocity.Z - vel.Z) * (PID_D + 5100) + (_zeroPosition.Z - pos.Z) * PID_P;
+                    }
                 }
+                //PidStatus = true;
             }
             else
             {
-
+                m_pidControllerActive = true;
                 _zeroFlag = false;
                 if (m_iscolliding || flying)
                 {
@@ -455,14 +481,15 @@ namespace OpenSim.Region.Physics.OdePlugin
                     base.RequestPhysicsterseUpdate();
                     string primScenAvatarIn = _parent_scene.whichspaceamIin(_position);
                     int[] arrayitem = _parent_scene.calculateSpaceArrayItemFromPos(_position);
-                    if (primScenAvatarIn == "0")
-                    {
-                        MainLog.Instance.Verbose("Physics", "Avatar " + m_name + " in space with no prim. Arr:':" + arrayitem[0].ToString() + "," + arrayitem[1].ToString());
-                    }
-                    else
-                    {
-                        MainLog.Instance.Verbose("Physics", "Avatar " + m_name + " in Prim space':" + primScenAvatarIn + ". Arr:" + arrayitem[0].ToString() + "," + arrayitem[1].ToString());
-                    }
+                    //if (primScenAvatarIn == "0")
+                    //{
+                        //MainLog.Instance.Verbose("Physics", "Avatar " + m_name + " in space with no prim. Arr:':" + arrayitem[0].ToString() + "," + arrayitem[1].ToString());
+                    //}
+                    //else
+                    //{
+                    //    MainLog.Instance.Verbose("Physics", "Avatar " + m_name + " in Prim space':" + primScenAvatarIn + ". Arr:" + arrayitem[0].ToString() + "," + arrayitem[1].ToString());
+                    //}
+                    
                 }
             }
             else
@@ -477,6 +504,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                 {
                     m_hackSentFall = true;
                     base.SendCollisionUpdate(new CollisionEventUpdate());
+                    m_pidControllerActive = false;
                 }
                 else if (flying && !m_hackSentFly)
                 {
