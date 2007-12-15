@@ -132,7 +132,7 @@ namespace OpenSim.Region.Terrain
         {
             TimeSpan gap = DateTime.Now - lastEdit;
 
-            if (gap.TotalSeconds <= 2.0)
+            if (gap.TotalSeconds <= 4.0)
                 return true;
 
             return false;
@@ -159,37 +159,107 @@ namespace OpenSim.Region.Terrain
         /// <param name="action">The action to be performed</param>
         /// <param name="north">Distance from the north border where the cursor is located</param>
         /// <param name="west">Distance from the west border where the cursor is located</param>
-        public void ModifyTerrain(float height, float seconds, byte brushsize, byte action, float north, float west,
+        public void ModifyTerrain(float height, float seconds, byte brushsize, byte action, float north, float west, float south, float east,
                                   IClientAPI remoteUser)
         {
             // Shiny.
             double size = (double) (1 << brushsize);
-
+           
+            /*  Okay, so here's the deal
+             * This has to handle both when a user draws on the terrain *and* when a user selects 
+             * a selection of AABB on terrain and applies whatever routine the client requests
+             * There's something currently wrong with the brushsize --> size conversion..   however
+             * it's workable..  just unpredictable.
+             * 
+             * North is always higher and East is always higher
+             * in the AABB representation
+             * 
+             * Therefore what we're doing is looping from south to north and west to east
+             * and applying the associated algorithm with the brush.
+             * 
+             * This works good on the fast ones, but things like smooth take 12 seconds a single click..  
+             * for now, smooth won't be 'selectionated'
+             * 
+             * If the user draws instead of selects, north will = south, and east will = west.
+             * if the user selects, then the selection is inclusive
+             * it'll always affect at least one point on the heightmap.
+             * 
+             *  that means we use the <= operator
+             * 
+             * Again, libTerrain is yx instead of xy..  so, it's reflected in the function calls
+             * 
+             */
+             
+            
             switch (action)
             {
                 case 0:
                     // flatten terrain
-                    FlattenTerrain(west, north, size, (double) seconds/5.0);
+                    for (float x = south; x <= north; x++)
+                    {
+                        for (float y = west; y <= east; y++)
+                        {
+                            FlattenTerrain(y, x, size, (double)seconds / 5.0);
+                        }
+                    }
                     break;
                 case 1:
                     // raise terrain
-                    RaiseTerrain(west, north, size, (double) seconds/5.0);
+                    for (float x = south; x <= north; x++)
+                    {
+                        for (float y = west; y <= east; y++)
+                        {
+                            RaiseTerrain(y, x, size, (double)seconds / 5.0);
+                        }
+                    }
                     break;
                 case 2:
                     //lower terrain
-                    LowerTerrain(west, north, size, (double) seconds/5.0);
+                    for (float x = south; x <= north; x++)
+                    {
+                        for (float y = west; y <= east; y++)
+                        {
+                            LowerTerrain(y, x, size, (double)seconds / 5.0);
+                        }
+                    }
                     break;
                 case 3:
                     // smooth terrain
-                    SmoothTerrain(west, north, size, (double) seconds/5.0);
+                    // 
+                    // We're leaving this out of the parcel calculations for now
+                    // because just a single one of these will stall your sim for 
+                    // 12 seconds.   Looping over the parcel on this one is just stupid
+                    //
+                    //for (float x = south; x <= north; x++)
+                    //{
+                        //for (float y = west; y <= east; y++)
+                        //{
+                            //SmoothTerrain(y, x , size, (double)seconds / 5.0);
+                        //}
+                    //}
+
+                    SmoothTerrain(west, north, size, (double)seconds / 5.0);
+
                     break;
                 case 4:
                     // noise
-                    NoiseTerrain(west, north, size, (double) seconds/5.0);
+                    for (float x = south; x <= north; x++)
+                    {
+                        for (float y = west; y <= east; y++)
+                        {
+                            NoiseTerrain(y, x, size, (double)seconds / 5.0);
+                        }
+                    }
                     break;
                 case 5:
                     // revert
-                    RevertTerrain(west, north, size, (double) seconds/5.0);
+                    for (float x = south; x <= north; x++)
+                    {
+                        for (float y = west; y <= east; y++)
+                        {
+                            RevertTerrain(y, x, size, (double)seconds / 5.0);
+                        }
+                    }
                     break;
 
                     // CLIENT EXTENSIONS GO HERE

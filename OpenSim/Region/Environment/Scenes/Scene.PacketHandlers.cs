@@ -55,7 +55,7 @@ namespace OpenSim.Region.Environment.Scenes
                 return;
 
             //if it wasn't for the permission checking we could have the terrain module directly subscribe to the OnModifyTerrain event
-            Terrain.ModifyTerrain(height, seconds, brushsize, action, north, west, remoteUser);
+            Terrain.ModifyTerrain(height, seconds, brushsize, action, north, west, south, east, remoteUser);
         }
 
         /// <summary>
