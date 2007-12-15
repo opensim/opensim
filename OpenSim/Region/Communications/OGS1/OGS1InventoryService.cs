@@ -117,45 +117,26 @@ namespace OpenSim.Region.Communications.OGS1
 
         public void AddNewInventoryFolder(LLUUID userID, InventoryFolderBase folder)
         {
-            try
-            {
-                RestObjectPoster.BeginPostObject<InventoryFolderBase>(_inventoryServerUrl + "/NewFolder/", folder);
-            }
-            catch (Exception)
-            {
-            }
+            SynchronousRestObjectPoster.BeginPostObject<InventoryFolderBase, bool>(
+                "POST", _inventoryServerUrl + "/NewFolder/", folder);
         }
 
         public void MoveInventoryFolder(LLUUID userID, InventoryFolderBase folder)
         {
-            try
-            {
-                RestObjectPoster.BeginPostObject<InventoryFolderBase>(_inventoryServerUrl + "/MoveFolder/", folder);
-            }
-            catch (Exception)
-            {
-            }
+            SynchronousRestObjectPoster.BeginPostObject<InventoryFolderBase, bool>(
+                "POST", _inventoryServerUrl + "/MoveFolder/", folder);
         }
+        
         public void AddNewInventoryItem(LLUUID userID, InventoryItemBase item)
         {
-            try
-            {
-                RestObjectPoster.BeginPostObject<InventoryItemBase>(_inventoryServerUrl + "/NewItem/", item);
-            }
-            catch (Exception)
-            {
-            }
+            SynchronousRestObjectPoster.BeginPostObject<InventoryItemBase, bool>(
+                "POST", _inventoryServerUrl + "/NewItem/", item);
         }
 
         public void DeleteInventoryItem(LLUUID userID, InventoryItemBase item)
         {
-            try
-            {
-                RestObjectPoster.BeginPostObject<InventoryItemBase>(_inventoryServerUrl + "/DeleteItem/", item);
-            }
-            catch (Exception)
-            {
-            }
+            SynchronousRestObjectPoster.BeginPostObject<InventoryItemBase, bool>(
+                "POST", _inventoryServerUrl + "/DeleteItem/", item);
         }
 
         public void CreateNewUserInventory(LLUUID user)

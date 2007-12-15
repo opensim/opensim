@@ -31,6 +31,7 @@ using System.Collections.Generic;
 using System.Text;
 using OpenSim.Framework;
 using OpenSim.Framework.Communications;
+using OpenSim.Framework.Console;
 using libsecondlife;
 
 namespace OpenSim.Grid.InventoryServer
@@ -105,8 +106,9 @@ namespace OpenSim.Grid.InventoryServer
 
         public InventoryCollection GetUserInventory(Guid rawUserID)
         {
-            Console.WriteLine("Request for Inventory for " + rawUserID.ToString());
             LLUUID userID = new LLUUID(rawUserID);
+            
+            MainLog.Instance.Verbose("INVENTORY", "Request for inventory for " + userID.ToStringHyphenated());            
             
             InventoryCollection invCollection = new InventoryCollection();
             List<InventoryFolderBase> folders;
@@ -124,7 +126,9 @@ namespace OpenSim.Grid.InventoryServer
         {
             LLUUID userID = new LLUUID(rawUserID);
             
-            Console.WriteLine("Creating New Set of Inventory Folders for " + userID.ToStringHyphenated());
+            MainLog.Instance.Verbose(
+                "INVENTORY", "Creating new set of inventory folders for " + userID.ToStringHyphenated());
+            
             CreateNewUserInventory(userID);
             return true;
         }
@@ -145,27 +149,49 @@ namespace OpenSim.Grid.InventoryServer
             AddItem(item);
         }
 
-        public bool AddInventoryFolder( InventoryFolderBase folder)
+        public bool AddInventoryFolder(InventoryFolderBase folder)
         {
+            // Right now, this actions act more like an update/insert combination than a simple create.
+            MainLog.Instance.Verbose(
+                "INVENTORY",
+                "Updating in   " + folder.parentID.ToStringHyphenated()
+                    + ", folder " + folder.name);
+            
             AddNewInventoryFolder(folder.agentID, folder);
             return true;
         }
 
         public bool MoveInventoryFolder(InventoryFolderBase folder)
-        {
+        {            
+            MainLog.Instance.Verbose(
+                "INVENTORY",
+                "Moving folder " + folder.folderID
+                    + " to " + folder.parentID.ToStringHyphenated());
+            
             MoveExistingInventoryFolder(folder);
             return true;
         }
 
         public bool AddInventoryItem( InventoryItemBase item)
         {
-            Console.WriteLine("creating new item for " + item.avatarID.ToString());
+            // Right now, this actions act more like an update/insert combination than a simple create.
+            MainLog.Instance.Verbose(
+                "INVENTORY", 
+                "Updating in   " + item.parentFolderID.ToStringHyphenated()
+                    + ", item " + item.inventoryName);
+
             AddNewInventoryItem(item.avatarID, item);
             return true;
         }
 
         public override void DeleteInventoryItem(LLUUID userID, InventoryItemBase item)
         {
+            // extra spaces to align with other inventory messages
+            MainLog.Instance.Verbose(
+                "INVENTORY",
+                "Deleting in   " + item.parentFolderID.ToStringHyphenated()
+                    + ", item " + item.inventoryName);
+            
             DeleteItem(item);
         }
 

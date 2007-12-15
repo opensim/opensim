@@ -60,7 +60,7 @@ namespace OpenSim.Grid.UserServer
         public override void CustomiseResponse(LoginResponse response, UserProfileData theUser)
         {
             bool tryDefault = false;
-            System.Console.WriteLine("Load information from the gridserver");
+            MainLog.Instance.Verbose("LOGIN", "Load information from the gridserver");
             RegionProfileData SimInfo = new RegionProfileData();
             try
             {
@@ -69,7 +69,7 @@ namespace OpenSim.Grid.UserServer
                                                   m_config.GridSendKey, m_config.GridRecvKey);
 
                 // Customise the response
-                System.Console.WriteLine("Home Location");
+                MainLog.Instance.Verbose("LOGIN", "Home Location");
                 response.Home = "{'region_handle':[r" + (SimInfo.regionLocX * 256).ToString() + ",r" +
                                 (SimInfo.regionLocY * 256).ToString() + "], " +
                                 "'position':[r" + theUser.homeLocation.X.ToString() + ",r" +
@@ -128,7 +128,11 @@ namespace OpenSim.Grid.UserServer
                 // Load information from the gridserver
 
                 ulong defaultHandle = (((ulong)m_config.DefaultX * 256) << 32) | ((ulong) m_config.DefaultY * 256);
-                MainLog.Instance.Warn("Home region not available: sending to default region " + defaultHandle.ToString());
+                
+                MainLog.Instance.Warn(
+                    "LOGIN", 
+                    "Home region not available: sending to default region " + defaultHandle.ToString());
+                
                 SimInfo = new RegionProfileData();
                 try
                 {
@@ -137,7 +141,7 @@ namespace OpenSim.Grid.UserServer
                                                       m_config.GridSendKey, m_config.GridRecvKey);
 
                     // Customise the response
-                    System.Console.WriteLine("Home Location");
+                    MainLog.Instance.Verbose("LOGIN", "Home Location");
                     response.Home = "{'region_handle':[r" + (SimInfo.regionLocX * 256).ToString() + ",r" +
                                     (SimInfo.regionLocY * 256).ToString() + "], " +
                                     "'position':[r" + theUser.homeLocation.X.ToString() + ",r" +
@@ -189,7 +193,7 @@ namespace OpenSim.Grid.UserServer
                 catch (Exception e)
                 {
                     MainLog.Instance.Warn("LOGIN", "Default region also not available");
-                    MainLog.Instance.Verbose("LOGIN", e.ToString());
+                    MainLog.Instance.Warn("LOGIN", e.ToString());
                 }
 
             }

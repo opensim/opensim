@@ -238,7 +238,10 @@ namespace OpenSim.Region.Environment.Scenes
 
         public void MoveInventoryItem(IClientAPI remoteClient,LLUUID folderID, LLUUID itemID, int length, string newName)
         {
-            MainLog.Instance.Verbose("INVENTORY", "Moving item for " + remoteClient.AgentId.ToStringHyphenated());
+            MainLog.Instance.Verbose(
+                "INVENTORY", 
+                "Moving item for " + remoteClient.AgentId.ToStringHyphenated());
+            
             CachedUserInfo userInfo = CommsManager.UserProfileCacheService.GetUserDetails(remoteClient.AgentId);
             if (userInfo == null)
             {
