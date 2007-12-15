@@ -31,6 +31,7 @@ using System.Collections;
 using System.Collections.Generic;
 using libsecondlife;
 using OpenSim.Framework;
+using OpenSim.Framework.Console;
 using OpenSim.Framework.UserManagement;
 using InventoryFolder=OpenSim.Framework.InventoryFolder;
 
@@ -72,7 +73,8 @@ namespace OpenSim.Region.Communications.Local
             if (!authUsers)
             {
                 //no current user account so make one
-                Console.WriteLine("No User account found so creating a new one ");
+                MainLog.Instance.Notice("LOGIN", "No user account found so creating a new one.");                
+
                 m_userManager.AddUserProfile(firstname, lastname, "test", defaultHomeX, defaultHomeY);
 
                 profile = m_userManager.GetUserProfile(firstname, lastname);
@@ -91,12 +93,14 @@ namespace OpenSim.Region.Communications.Local
             if (!authUsers)
             {
                 //for now we will accept any password in sandbox mode
-                Console.WriteLine("authorising user");
+                MainLog.Instance.Notice("LOGIN", "Authorising user (no actual password check)"); 
+                
                 return true;
             }
             else
             {
-                Console.WriteLine("Authenticating " + profile.username + " " + profile.surname);
+                MainLog.Instance.Notice(
+                    "LOGIN", "Authenticating " + profile.username + " " + profile.surname);                 
 
                 password = password.Remove(0, 3); //remove $1$
 
@@ -153,7 +157,7 @@ namespace OpenSim.Region.Communications.Local
             }
             else
             {
-                Console.WriteLine("not found region " + currentRegion);
+                MainLog.Instance.Warn("LOGIN", "Not found region " + currentRegion);              
             }
         }
 

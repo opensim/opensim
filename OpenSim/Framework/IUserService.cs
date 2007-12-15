@@ -33,7 +33,7 @@ namespace OpenSim.Framework
     public interface IUserService
     {
         UserProfileData GetUserProfile(string firstName, string lastName);
-        UserProfileData GetUserProfile(string name);
+        //UserProfileData GetUserProfile(string name);
         UserProfileData GetUserProfile(LLUUID userId);
         void clearUserAgent(LLUUID avatarID);
         List<AvatarPickerAvatar> GenerateAgentPickerRequestResponse(LLUUID QueryID, string Query);

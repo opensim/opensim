@@ -113,23 +113,8 @@ namespace OpenSim.Framework.Data.MySQL
         }   
         
         #endregion
-        
-        /// <summary>
-        /// Searches the database for a specified user profile
-        /// </summary>
-        /// <param name="name">The account name of the user</param>
-        /// <returns>A user profile</returns>
-        public UserProfileData GetUserByName(string name)
-        {
-            return GetUserByName(name.Split(' ')[0], name.Split(' ')[1]);
-        }
 
-        /// <summary>
-        /// Searches the database for a specified user profile by name components
-        /// </summary>
-        /// <param name="user">The first part of the account name</param>
-        /// <param name="last">The second part of the account name</param>
-        /// <returns>A user profile</returns>
+        // see IUserData
         public UserProfileData GetUserByName(string user, string last)
         {
             try
@@ -244,11 +229,7 @@ namespace OpenSim.Framework.Data.MySQL
             return returnlist;
         }
 
-        /// <summary>
-        /// Searches the database for a specified user profile by UUID
-        /// </summary>
-        /// <param name="uuid">The account ID</param>
-        /// <returns>The users profile</returns>
+        // see IUserData
         public UserProfileData GetUserByUUID(LLUUID uuid)
         {
             try

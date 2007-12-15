@@ -37,6 +37,9 @@ using OpenSim.Framework.Console;
 
 namespace OpenSim.Framework.UserManagement
 {
+    /// <summary>
+    /// Base class for user management (create, read, etc)
+    /// </summary>
     public abstract class UserManagerBase : IUserService
     {
         public UserConfig _config;
@@ -84,22 +87,23 @@ namespace OpenSim.Framework.UserManagement
         /// Loads a user profile from a database by UUID
         /// </summary>
         /// <param name="uuid">The target UUID</param>
-        /// <returns>A user profile</returns>
+        /// <returns>A user profile.  Returns null if no user profile is found.</returns>
         public UserProfileData GetUserProfile(LLUUID uuid)
         {
             foreach (KeyValuePair<string, IUserData> plugin in _plugins)
             {
-                try
+                UserProfileData profile = plugin.Value.GetUserByUUID(uuid);
+                
+                if (null != profile)
                 {
-                    UserProfileData profile = plugin.Value.GetUserByUUID(uuid);
                     profile.currentAgent = getUserAgent(profile.UUID);
                     return profile;
-                }
-                catch (Exception e)
-                {
-                    MainLog.Instance.Verbose("USERSTORAGE", "Unable to find user via " + plugin.Key + "(" + e.ToString() + ")");
-                }
+                }                                              
             }
+            
+            MainLog.Instance.Notice(
+                "USERSTORAGE", 
+                "Could not find user " + uuid.ToStringHyphenated() + " in persistent storage.");             
 
             return null;
         }
@@ -123,55 +127,28 @@ namespace OpenSim.Framework.UserManagement
             return pickerlist;
         }
 
-
-        /// <summary>
-        /// Loads a user profile by name
-        /// </summary>
-        /// <param name="name">The target name</param>
-        /// <returns>A user profile</returns>
-        public UserProfileData GetUserProfile(string name)
-        {
-            foreach (KeyValuePair<string, IUserData> plugin in _plugins)
-            {
-                try
-                {
-                    UserProfileData profile = plugin.Value.GetUserByName(name);
-                    profile.currentAgent = getUserAgent(profile.UUID);
-                    return profile;
-                }
-                catch (Exception e)
-                {
-                    MainLog.Instance.Verbose("USERSTORAGE", "Unable to find user via " + plugin.Key + "(" + e.ToString() + ")");
-                }
-            }
-
-            return null;
-        }
-
         /// <summary>
         /// Loads a user profile by name
         /// </summary>
         /// <param name="fname">First name</param>
         /// <param name="lname">Last name</param>
-        /// <returns>A user profile</returns>
+        /// <returns>A user profile.  Returns null if no profile is found</returns>
         public UserProfileData GetUserProfile(string fname, string lname)
         {
             foreach (KeyValuePair<string, IUserData> plugin in _plugins)
             {
-                try
+                UserProfileData profile = plugin.Value.GetUserByName(fname, lname);
+
+                if (profile != null)
                 {
-                    UserProfileData profile = plugin.Value.GetUserByName(fname, lname);
-
                     profile.currentAgent = getUserAgent(profile.UUID);
-
                     return profile;
                 }
-                catch (Exception e)
-                {
-                    MainLog.Instance.Verbose("USERSTORAGE", "Unable to find user via " + plugin.Key + "(" + e.ToString() + ")");
-                }
             }
-
+                           
+            MainLog.Instance.Notice(
+                "USERSTORAGE", "Could not find user " + fname + " " + lname + " in persistent storage.");
+            
             return null;
         }
 

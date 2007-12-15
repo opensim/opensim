@@ -72,11 +72,7 @@ namespace OpenSim.Framework.Data.SQLite
             return;
         }
 
-        /// <summary>
-        /// Loads a specified user profile from a UUID
-        /// </summary>
-        /// <param name="uuid">The user's UUID</param>
-        /// <returns>A user profile</returns>
+        // see IUserData
         public UserProfileData GetUserByUUID(LLUUID uuid)
         {
             lock (ds)
@@ -99,22 +95,7 @@ namespace OpenSim.Framework.Data.SQLite
             }
         }
 
-        /// <summary>
-        /// Returns a user by searching for its name
-        /// </summary>
-        /// <param name="name">The user's account name</param>
-        /// <returns>A matching user profile</returns>
-        public UserProfileData GetUserByName(string name)
-        {
-            return GetUserByName(name.Split(' ')[0], name.Split(' ')[1]);
-        }
-
-        /// <summary>
-        /// Returns a user by searching for its name
-        /// </summary>
-        /// <param name="fname">The first part of the user's account name</param>
-        /// <param name="lname">The second part of the user's account name</param>
-        /// <returns>A matching user profile</returns>
+        // see IUserData
         public UserProfileData GetUserByName(string fname, string lname)
         {
             string select = "surname = '" + lname + "' and username = '" + fname + "'";

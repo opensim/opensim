@@ -38,16 +38,9 @@ namespace OpenSim.Framework
         /// <summary>
         /// Returns a user profile from a database via their UUID
         /// </summary>
-        /// <param name="user">The accounts UUID</param>
-        /// <returns>The user data profile</returns>
+        /// <param name="user">The user's UUID</param>
+        /// <returns>The user data profile.  Returns null if no user is found</returns>
         UserProfileData GetUserByUUID(LLUUID user);
-
-        /// <summary>
-        /// Returns a users profile by searching their username
-        /// </summary>
-        /// <param name="name">The users username</param>
-        /// <returns>The user data profile</returns>
-        UserProfileData GetUserByName(string name);
 
         /// <summary>
         /// Returns a users profile by searching their username parts
