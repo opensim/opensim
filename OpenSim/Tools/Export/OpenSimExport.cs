@@ -33,6 +33,7 @@ using OpenSim;
 using OpenSim.Framework;
 using OpenSim.Framework.Console;
 using OpenSim.Region.Environment;
+using OpenSim.Region.Environment.Scenes;
 using Mono.Addins;
 using Mono.Addins.Description;
 
@@ -41,7 +42,7 @@ namespace OpenSim.Tools.Export
     public class OpenSimExport
     {
         public IniConfigSource config;
-        private StorageManager sman;
+        public StorageManager sman;
         
         public OpenSimExport(IniConfigSource config)
         {
@@ -67,6 +68,10 @@ namespace OpenSim.Tools.Export
             RegionInfo reg = new RegionInfo("Sara Jane", "Regions/1000-1000.xml");
 
             System.Console.WriteLine("This application does nothing useful yet: " + reg.RegionID);
+            foreach (SceneObjectGroup group in export.sman.DataStore.LoadObjects(reg.RegionID))
+            {
+                System.Console.WriteLine("{0} -> {1}", reg.RegionID, group.UUID);
+            }
         }
 
         protected LogBase CreateLog()
@@ -88,33 +93,27 @@ namespace OpenSim.Tools.Export
 
             IConfig startupConfig = configSource.Configs["Startup"];
             string iniFilePath = startupConfig.GetString("inifile", "OpenSim.ini");
-            
+            System.Console.WriteLine(iniFilePath);
             IniConfigSource config = new IniConfigSource();
             //check for .INI file (either default or name passed in command line)
-            if (File.Exists(iniFilePath))
+            if(! File.Exists(iniFilePath)) 
+            {
+                iniFilePath = Path.Combine(Util.configDir(), iniFilePath);
+            }
+            
+            if(File.Exists(iniFilePath))
             {
                 config.Merge(new IniConfigSource(iniFilePath));
                 config.Merge(configSource);
             }
             else
             {
-                iniFilePath = Path.Combine(Util.configDir(), iniFilePath);
-                if (File.Exists(iniFilePath))
-                {
-                    config.Merge(new IniConfigSource(iniFilePath));
-                    config.Merge(configSource);
-                }
-                else
-                {
-                    // no default config files, so set default values, and save it
-                    // SetDefaultConfig();
-                    config.Merge(OpenSim.OpenSimMain.DefaultConfig());
-                    config.Merge(configSource);
-                }
+                // no default config files, so set default values, and save it
+                System.Console.WriteLine("We didn't find a config!");
+                config.Merge(OpenSim.OpenSimMain.DefaultConfig());
+                config.Merge(configSource);
             }
-            
-            // ReadConfigSettings();
-            
+
             return config;
         }
     }
