@@ -45,7 +45,7 @@ namespace OpenSim.Region.Environment.Scenes
         /// <param name="action">The action to be performed</param>
         /// <param name="north">Distance from the north border where the cursor is located</param>
         /// <param name="west">Distance from the west border where the cursor is located</param>
-        public void ModifyTerrain(float height, float seconds, byte brushsize, byte action, float north, float west,
+        public void ModifyTerrain(float height, float seconds, byte brushsize, byte action, float north, float west, float south, float east,
                                   IClientAPI remoteUser)
         {
             // Do a permissions check before allowing terraforming.

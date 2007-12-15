@@ -229,7 +229,7 @@ namespace OpenSim.Framework
     public delegate void RezObject(IClientAPI remoteClient, LLUUID itemID, LLVector3 pos);
 
     public delegate void ModifyTerrain(
-        float height, float seconds, byte size, byte action, float north, float west, IClientAPI remoteClient);
+        float height, float seconds, byte size, byte action, float north, float west, float south, float east, IClientAPI remoteClient);
 
     public delegate void SetAppearance(byte[] texture, AgentSetAppearancePacket.VisualParamBlock[] visualParam);
 

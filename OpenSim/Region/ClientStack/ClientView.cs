@@ -2453,10 +2453,13 @@ namespace OpenSim.Region.ClientStack
                         {
                             if (OnModifyTerrain != null)
                             {
-                                OnModifyTerrain(modify.ModifyBlock.Height, modify.ModifyBlock.Seconds,
-                                                modify.ModifyBlock.BrushSize,
-                                                modify.ModifyBlock.Action, modify.ParcelData[0].North,
-                                                modify.ParcelData[0].West, this);
+                                for (int i=0; i < modify.ParcelData.Length; i++)
+                                {
+                                    OnModifyTerrain(modify.ModifyBlock.Height, modify.ModifyBlock.Seconds,
+                                                    modify.ModifyBlock.BrushSize,
+                                                    modify.ModifyBlock.Action, modify.ParcelData[i].North,
+                                                    modify.ParcelData[i].West, modify.ParcelData[i].South, modify.ParcelData[i].East, this);
+                                }
                             }
                         }
                         break;
