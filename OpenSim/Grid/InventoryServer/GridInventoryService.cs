@@ -45,22 +45,33 @@ namespace OpenSim.Grid.InventoryServer
 
         private bool TryGetUsersInventory(LLUUID userID, out List<InventoryFolderBase> folderList, out List<InventoryItemBase> itemsList)
         {
-            List<InventoryFolderBase> folders = RequestFirstLevelFolders(userID);
+            List<InventoryFolderBase> rootFolders = RequestFirstLevelFolders(userID);
             List<InventoryItemBase> allItems = new List<InventoryItemBase>();
+            List<InventoryFolderBase> allFolders = new List<InventoryFolderBase>();
 
-            if (folders != null)
+            if (rootFolders != null)
             {
-                foreach (InventoryFolderBase folder in folders)
+                allFolders.InsertRange(0, rootFolders);
+                foreach (InventoryFolderBase subfolder in rootFolders)
                 {
-                    List<InventoryItemBase> items = RequestFolderItems(folder.folderID);
-                    if (items != null)
+                    List<InventoryFolderBase> subFolders = GetAllFolders(subfolder.folderID);
+                    if (subFolders != null)
                     {
-                        allItems.InsertRange(0, items);
+                        allFolders.InsertRange(0, subFolders);
                     }
                 }
             }
-            
-            folderList = folders;
+
+            foreach (InventoryFolderBase folder in allFolders)
+            {
+                List<InventoryItemBase> items = RequestFolderItems(folder.folderID);
+                if (items != null)
+                {
+                    allItems.InsertRange(0, items);
+                }
+            }
+
+            folderList = allFolders;
             itemsList = allItems;
             if (folderList != null)
             {
@@ -71,6 +82,26 @@ namespace OpenSim.Grid.InventoryServer
                 return false;
             }
         }
+
+        private List<InventoryFolderBase> GetAllFolders(LLUUID folder)
+        {
+            List<InventoryFolderBase> allFolders = new List<InventoryFolderBase>();
+            List<InventoryFolderBase> folders = RequestSubFolders(folder);
+            if (folders != null)
+            {
+                allFolders.InsertRange(0, folders);
+                foreach (InventoryFolderBase subfolder in folders)
+                {
+                    List<InventoryFolderBase> subFolders = GetAllFolders(subfolder.folderID);
+                    if (subFolders != null)
+                    {
+                        allFolders.InsertRange(0, subFolders);
+                    }
+                }
+            }
+            return allFolders;
+        }
+
 
         public InventoryCollection GetUserInventory(Guid rawUserID)
         {
@@ -104,6 +135,11 @@ namespace OpenSim.Grid.InventoryServer
             AddFolder(folder);
         }
 
+        public override void MoveExistingInventoryFolder(InventoryFolderBase folder)
+        {
+            MoveFolder(folder);
+        }
+
         public override void AddNewInventoryItem(LLUUID userID, InventoryItemBase item)
         {
             AddItem(item);
@@ -111,8 +147,13 @@ namespace OpenSim.Grid.InventoryServer
 
         public bool AddInventoryFolder( InventoryFolderBase folder)
         {
-            Console.WriteLine("creating new folder for " + folder.agentID.ToString());
             AddNewInventoryFolder(folder.agentID, folder);
+            return true;
+        }
+
+        public bool MoveInventoryFolder(InventoryFolderBase folder)
+        {
+            MoveExistingInventoryFolder(folder);
             return true;
         }
 

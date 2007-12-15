@@ -68,6 +68,11 @@ namespace OpenSim.Region.Communications.Local
             AddFolder(folder);
         }
 
+        public override void MoveExistingInventoryFolder(InventoryFolderBase folder)
+        {
+            MoveFolder(folder);
+        }
+
         public override void AddNewInventoryItem(LLUUID userID, InventoryItemBase item)
         {
             AddItem(item);

@@ -108,6 +108,7 @@ namespace SimpleApp
         public event CreateNewInventoryItem OnCreateNewInventoryItem;
         public event CreateInventoryFolder OnCreateNewInventoryFolder;
         public event UpdateInventoryFolder OnUpdateInventoryFolder;
+        public event MoveInventoryFolder OnMoveInventoryFolder;
         public event FetchInventoryDescendents OnFetchInventoryDescendents;
         public event PurgeInventoryDescendents OnPurgeInventoryDescendents;
         public event FetchInventory OnFetchInventory;
@@ -317,7 +318,7 @@ namespace SimpleApp
         {
         }
 
-        public virtual void SendInventoryFolderDetails(LLUUID ownerID, LLUUID folderID, List<InventoryItemBase> items, int subFoldersCount)
+        public virtual void SendInventoryFolderDetails(LLUUID ownerID, LLUUID folderID, List<InventoryItemBase> items, List<InventoryFolderBase> folders, int subFoldersCount)
         {
         }
 

@@ -141,6 +141,24 @@ namespace OpenSim.Framework.Data.SQLite
             invFoldersDa.Update(ds, "inventoryfolders");
         }
 
+        private void moveFolder(InventoryFolderBase folder)
+        {
+            DataTable inventoryFolderTable = ds.Tables["inventoryfolders"];
+
+            DataRow inventoryRow = inventoryFolderTable.Rows.Find(folder.folderID);
+            if (inventoryRow == null)
+            {
+                inventoryRow = inventoryFolderTable.NewRow();
+                fillFolderRow(inventoryRow, folder);
+                inventoryFolderTable.Rows.Add(inventoryRow);
+            }
+            else
+            {
+                moveFolderRow(inventoryRow, folder);
+            }
+
+            invFoldersDa.Update(ds, "inventoryfolders");
+        }
         private void addItem(InventoryItemBase item)
         {
             DataTable inventoryItemTable = ds.Tables["inventoryitems"];
@@ -404,6 +422,15 @@ namespace OpenSim.Framework.Data.SQLite
         }
 
         /// <summary>
+        /// Moves a folder based on its ID with folder
+        /// </summary>
+        /// <param name="folder">The inventory folder</param>
+        public void moveInventoryFolder(InventoryFolderBase folder)
+        {
+            moveFolder(folder);
+        }
+
+        /// <summary>
         /// Delete a folder
         /// </summary>
         /// <remarks>
@@ -534,6 +561,11 @@ namespace OpenSim.Framework.Data.SQLite
             row["version"] = folder.version;
         }
 
+        private void moveFolderRow(DataRow row, InventoryFolderBase folder)
+        {
+            row["UUID"] = folder.folderID;
+            row["parentID"] = folder.parentID;
+        }
 
         /***********************************************************************
          *

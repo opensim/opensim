@@ -126,6 +126,16 @@ namespace OpenSim.Region.Communications.OGS1
             }
         }
 
+        public void MoveInventoryFolder(LLUUID userID, InventoryFolderBase folder)
+        {
+            try
+            {
+                RestObjectPoster.BeginPostObject<InventoryFolderBase>(_inventoryServerUrl + "/MoveFolder/", folder);
+            }
+            catch (Exception)
+            {
+            }
+        }
         public void AddNewInventoryItem(LLUUID userID, InventoryItemBase item)
         {
             try

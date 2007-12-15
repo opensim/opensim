@@ -239,6 +239,12 @@ namespace OpenSim.Framework
         void updateInventoryFolder(InventoryFolderBase folder);
 
         /// <summary>
+        /// Updates a folder based on its ID with folder
+        /// </summary>
+        /// <param name="folder">The inventory folder</param>
+        void moveInventoryFolder(InventoryFolderBase folder);
+
+        /// <summary>
         /// Deletes a folder based on its ID with folder
         /// </summary>
         /// <param name="folder">The id of the folder</param>

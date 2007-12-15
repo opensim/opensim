@@ -130,6 +130,17 @@ namespace OpenSim.Framework.Communications
         /// <summary>
         /// 
         /// </summary>
+        public void MoveInventoryFolder(LLUUID userID, InventoryFolderBase folder)
+        {
+            foreach (KeyValuePair<string, IInventoryData> plugin in m_plugins)
+            {
+                plugin.Value.moveInventoryFolder(folder);
+            }
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
         /// <param name="parentFolderID"></param>
         /// <returns></returns>
         public List<InventoryFolderBase> RequestSubFolders(LLUUID parentFolderID)
@@ -158,6 +169,14 @@ namespace OpenSim.Framework.Communications
             foreach (KeyValuePair<string, IInventoryData> plugin in m_plugins)
             {
                 plugin.Value.addInventoryFolder(folder);
+            }
+        }
+
+        public void MoveFolder(InventoryFolderBase folder)
+        {
+            foreach (KeyValuePair<string, IInventoryData> plugin in m_plugins)
+            {
+                plugin.Value.moveInventoryFolder(folder);
             }
         }
 
@@ -251,6 +270,7 @@ namespace OpenSim.Framework.Communications
                                                      InventoryItemInfo itemCallBack);
 
         public abstract void AddNewInventoryFolder(LLUUID userID, InventoryFolderBase folder);
+        public abstract void MoveExistingInventoryFolder(InventoryFolderBase folder);
         public abstract void AddNewInventoryItem(LLUUID userID, InventoryItemBase item);
         public abstract void DeleteInventoryItem(LLUUID userID, InventoryItemBase item);
     }

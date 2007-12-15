@@ -502,6 +502,7 @@ namespace OpenSim.Region.ClientStack
         public event CreateNewInventoryItem OnCreateNewInventoryItem;
         public event CreateInventoryFolder OnCreateNewInventoryFolder;
         public event UpdateInventoryFolder OnUpdateInventoryFolder;
+        public event MoveInventoryFolder OnMoveInventoryFolder;
         public event FetchInventoryDescendents OnFetchInventoryDescendents;
         public event PurgeInventoryDescendents OnPurgeInventoryDescendents;
         public event FetchInventory OnFetchInventory;
@@ -892,7 +893,7 @@ namespace OpenSim.Region.ClientStack
         /// <param name="subFoldersCount">The number of subfolders contained in the given folder.  This is necessary since
         ///   the client is expecting inventory packets which incorporate this number into the descendents field, even though
         ///   we send back no details of the folders themselves (only the items).</param>
-        public void SendInventoryFolderDetails(LLUUID ownerID, LLUUID folderID, List<InventoryItemBase> items, int subFoldersCount)
+        public void SendInventoryFolderDetails(LLUUID ownerID, LLUUID folderID, List<InventoryItemBase> items, List<InventoryFolderBase> folders, int subFoldersCount)
         {
             Encoding enc = Encoding.ASCII;
             uint FULL_MASK_PERMISSIONS = 2147483647;
@@ -931,14 +932,14 @@ namespace OpenSim.Region.ClientStack
                 descend.ItemData[i].FolderID = item.parentFolderID;
                 descend.ItemData[i].GroupID = new LLUUID("00000000-0000-0000-0000-000000000000");
                 descend.ItemData[i].GroupMask = 0;
-                descend.ItemData[i].InvType = (sbyte) item.invType;
+                descend.ItemData[i].InvType = (sbyte)item.invType;
                 descend.ItemData[i].Name = Helpers.StringToField(item.inventoryName);
                 descend.ItemData[i].NextOwnerMask = item.inventoryNextPermissions;
                 descend.ItemData[i].OwnerID = item.avatarID;
                 descend.ItemData[i].OwnerMask = item.inventoryCurrentPermissions;
                 descend.ItemData[i].SalePrice = 0;
                 descend.ItemData[i].SaleType = 0;
-                descend.ItemData[i].Type = (sbyte) item.assetType;
+                descend.ItemData[i].Type = (sbyte)item.assetType;
                 descend.ItemData[i].CRC =
 
                     Helpers.InventoryCRC(descend.ItemData[i].CreationDate, descend.ItemData[i].SaleType,
@@ -965,6 +966,47 @@ namespace OpenSim.Region.ClientStack
                         else
                         {
                             descend.ItemData = new InventoryDescendentsPacket.ItemDataBlock[40];
+                            descend.AgentData.Descendents = 40;
+                        }
+                        i = 0;
+                    }
+                }
+            }
+
+            if (i < 40)
+            {
+                OutPacket(descend, ThrottleOutPacketType.Asset);
+            }
+
+            //send subfolders
+            descend = CreateInventoryDescendentsPacket(ownerID, folderID);
+            descend.FolderData = new InventoryDescendentsPacket.FolderDataBlock[folders.Count];
+            i = 0;
+            count = 0;
+            foreach (InventoryFolderBase folder in folders)
+            {
+                descend.FolderData[i] = new InventoryDescendentsPacket.FolderDataBlock();
+                descend.FolderData[i].FolderID = folder.folderID;
+                descend.FolderData[i].Name = Helpers.StringToField(folder.name);
+                descend.FolderData[i].ParentID = folder.parentID;
+                descend.FolderData[i].Type = (sbyte)folder.type;
+                i++;
+                count++;
+                if (i == 40)
+                {
+                    OutPacket(descend, ThrottleOutPacketType.Asset);
+
+                    if ((folders.Count - count) > 0)
+                    {
+                        descend = CreateInventoryDescendentsPacket(ownerID, folderID);
+                        if ((folders.Count - count) < 40)
+                        {
+                            descend.FolderData = new InventoryDescendentsPacket.FolderDataBlock[items.Count - count];
+                            descend.AgentData.Descendents = folders.Count - count;
+                        }
+                        else
+                        {
+                            descend.FolderData = new InventoryDescendentsPacket.FolderDataBlock[40];
                             descend.AgentData.Descendents = 40;
                         }
                         i = 0;
@@ -2821,6 +2863,17 @@ namespace OpenSim.Region.ClientStack
                             }
                         }
                         break;
+                    case PacketType.MoveInventoryFolder:
+                        if (OnMoveInventoryFolder != null)
+                        {
+                            MoveInventoryFolderPacket invFolder = (MoveInventoryFolderPacket)Pack;
+                            for (int i = 0; i < invFolder.InventoryData.Length; i++)
+                            {
+                                OnMoveInventoryFolder(this, invFolder.InventoryData[i].FolderID,
+                                                       invFolder.InventoryData[i].ParentID);
+                            }
+                        }
+                        break;
                     case PacketType.CreateInventoryItem:
                         CreateInventoryItemPacket createItem = (CreateInventoryItemPacket) Pack;
                         if (OnCreateNewInventoryItem != null)
@@ -3266,6 +3319,10 @@ namespace OpenSim.Region.ClientStack
                     case PacketType.RequestRegionInfo:
                         // TODO: handle this packet
                         MainLog.Instance.Warn("CLIENT", "unhandled RequestRegionInfo packet");
+                        break;
+                    case PacketType.InventoryDescendents:
+                        // TODO: handle this packet
+                        MainLog.Instance.Warn("CLIENT", "unhandled InventoryDescent packet");
                         break;
                     default:
                         MainLog.Instance.Warn("CLIENT", "unhandled packet " + Pack.ToString());

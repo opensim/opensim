@@ -330,6 +330,9 @@ namespace OpenSim.Framework
     public delegate void UpdateInventoryFolder(
         IClientAPI remoteClient, LLUUID folderID, ushort type, string name,  LLUUID parentID);
 
+    public delegate void MoveInventoryFolder(
+        IClientAPI remoteClient, LLUUID folderID, LLUUID parentID);
+
     public delegate void CreateNewInventoryItem(
         IClientAPI remoteClient, LLUUID transActionID, LLUUID folderID, uint callbackID, string description, string name,
         sbyte invType, sbyte type, byte wearableType, uint nextOwnerMask);
@@ -432,6 +435,7 @@ namespace OpenSim.Framework
         event CreateNewInventoryItem OnCreateNewInventoryItem;
         event CreateInventoryFolder OnCreateNewInventoryFolder;
         event UpdateInventoryFolder OnUpdateInventoryFolder;
+        event MoveInventoryFolder OnMoveInventoryFolder;
         event FetchInventoryDescendents OnFetchInventoryDescendents;
         event PurgeInventoryDescendents OnPurgeInventoryDescendents;
         event FetchInventory OnFetchInventory;
@@ -522,7 +526,7 @@ namespace OpenSim.Framework
         void SendPrimTerseUpdate(ulong regionHandle, ushort timeDilation, uint localID, LLVector3 position,
                                  LLQuaternion rotation, LLVector3 velocity, LLVector3 rotationalvelocity);
 
-        void SendInventoryFolderDetails(LLUUID ownerID, LLUUID folderID, List<InventoryItemBase> items, int subFoldersCount);
+        void SendInventoryFolderDetails(LLUUID ownerID, LLUUID folderID, List<InventoryItemBase> items, List<InventoryFolderBase> folders, int subFoldersCount);
         void SendInventoryItemDetails(LLUUID ownerID, InventoryItemBase item);
         
         /// <summary>

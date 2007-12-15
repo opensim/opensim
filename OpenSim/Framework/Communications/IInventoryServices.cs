@@ -40,6 +40,7 @@ namespace OpenSim.Framework.Communications
     {
         void RequestInventoryForUser(LLUUID userID, InventoryFolderInfo folderCallBack, InventoryItemInfo itemCallBack);
         void AddNewInventoryFolder(LLUUID userID, InventoryFolderBase folder);
+        void MoveInventoryFolder(LLUUID userID, InventoryFolderBase folder);
         void AddNewInventoryItem(LLUUID userID, InventoryItemBase item);
         void DeleteInventoryItem(LLUUID userID, InventoryItemBase item);
         void CreateNewUserInventory(LLUUID user);

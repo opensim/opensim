@@ -529,6 +529,28 @@ namespace OpenSim.Framework.Data.MySQL
             addInventoryFolder(folder);
         }
 
+        /// Creates a new inventory folder
+        /// </summary>
+        /// <param name="folder">Folder to create</param>
+        public void moveInventoryFolder(InventoryFolderBase folder)
+        {
+            string sql =
+                "UPDATE inventoryfolders SET parentFolderID=?parentFolderID WHERE folderID=?folderID";
+
+            MySqlCommand cmd = new MySqlCommand(sql, database.Connection);
+            cmd.Parameters.AddWithValue("?folderID", folder.folderID.ToStringHyphenated());
+            cmd.Parameters.AddWithValue("?parentFolderID", folder.parentID.ToStringHyphenated());
+
+
+            try
+            {
+                cmd.ExecuteNonQuery();
+            }
+            catch (Exception e)
+            {
+                MainLog.Instance.Error(e.ToString());
+            }
+        }
 
         /// <summary>
         /// Append a list of all the child folders of a parent folder 

@@ -604,6 +604,34 @@ namespace OpenSim.Framework.Data.MSSQL
             
         }
 
+        /// <summary>
+        /// Updates an inventory folder
+        /// </summary>
+        /// <param name="folder">Folder to update</param>
+
+        public void moveInventoryFolder(InventoryFolderBase folder)
+        {
+            SqlCommand command = new SqlCommand("UPDATE inventoryfolders set folderID = @folderID, " +
+                                                           "parentFolderID = @parentFolderID," +
+                                                           "folderID = @keyFolderID;", database.getConnection());
+            SqlParameter param1 = new SqlParameter("@folderID", folder.folderID.ToStringHyphenated());
+            SqlParameter param2 = new SqlParameter("@parentFolderID", folder.parentID.ToStringHyphenated());
+            SqlParameter param3 = new SqlParameter("@keyFolderID", folder.folderID.ToStringHyphenated());
+            command.Parameters.Add(param1);
+            command.Parameters.Add(param2);
+            command.Parameters.Add(param3);
+
+            try
+            {
+                command.ExecuteNonQuery();
+            }
+            catch (Exception e)
+            {
+                MainLog.Instance.Error(e.ToString());
+            }
+
+
+        }
 
         /// <summary>
         /// Append a list of all the child folders of a parent folder 

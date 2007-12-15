@@ -147,6 +147,23 @@ namespace OpenSim.Framework.Communications.Cache
             }
         }
 
+        public void HandleMoveInventoryFolder(IClientAPI remoteClient, LLUUID folderID, LLUUID parentID)
+        {
+            CachedUserInfo userProfile;
+
+            if (m_userProfiles.TryGetValue(remoteClient.AgentId, out userProfile))
+            {
+                if (userProfile.RootFolder != null)
+                {
+                    InventoryFolderBase baseFolder = new InventoryFolderBase();
+                    baseFolder.agentID = remoteClient.AgentId;
+                    baseFolder.folderID = folderID;
+                    baseFolder.parentID = parentID;
+                    m_parent.InventoryService.MoveInventoryFolder(remoteClient.AgentId, baseFolder);
+                }
+            }
+        }
+
         /// <summary>
         /// Tell the client about the various child items and folders contained in the requested folder.
         /// </summary>
@@ -163,14 +180,15 @@ namespace OpenSim.Framework.Communications.Cache
             if (folderID == libraryRoot.folderID)
             {
                 remoteClient.SendInventoryFolderDetails(libraryRoot.agentID, libraryRoot.folderID,
-                                                        libraryRoot.RequestListOfItems(), libraryRoot.SubFoldersCount);
+                                                        libraryRoot.RequestListOfItems(), libraryRoot.RequestListOfFolders(), libraryRoot.SubFoldersCount);
 
                 return;
             }
 
             if ((fold = libraryRoot.HasSubFolder(folderID)) != null)
             {
-                remoteClient.SendInventoryFolderDetails(libraryRoot.agentID, folderID, fold.RequestListOfItems(), fold.SubFoldersCount);
+                System.Console.WriteLine("fetching librarysubfolder");
+                remoteClient.SendInventoryFolderDetails(libraryRoot.agentID, folderID, fold.RequestListOfItems(), fold.RequestListOfFolders(), fold.SubFoldersCount);
 
                 return;
             }
@@ -182,19 +200,19 @@ namespace OpenSim.Framework.Communications.Cache
                 {
                     if (userProfile.RootFolder.folderID == folderID)
                     {
+                        System.Console.Write("fetching root folder");
                         if (fetchItems)
                         {
                             remoteClient.SendInventoryFolderDetails(remoteClient.AgentId, folderID,
-                                                                    userProfile.RootFolder.RequestListOfItems(), userProfile.RootFolder.SubFoldersCount);
+                                                                    userProfile.RootFolder.RequestListOfItems(), userProfile.RootFolder.RequestListOfFolders(), userProfile.RootFolder.SubFoldersCount);
                         }
                     }
                     else
                     {
-                        InventoryFolderImpl folder = userProfile.RootFolder.HasSubFolder(folderID);
-                        
-                        if (fetchItems && folder != null)
+                        if ((fold = userProfile.RootFolder.HasSubFolder(folderID)) != null)
                         {
-                            remoteClient.SendInventoryFolderDetails(remoteClient.AgentId, folderID, folder.RequestListOfItems(), folder.SubFoldersCount);
+                            remoteClient.SendInventoryFolderDetails(remoteClient.AgentId, folderID, fold.RequestListOfItems(), fold.RequestListOfFolders(), fold.SubFoldersCount);
+                            return;
                         }
                     }
                 }

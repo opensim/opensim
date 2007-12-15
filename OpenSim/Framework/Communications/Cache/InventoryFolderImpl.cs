@@ -142,5 +142,15 @@ namespace OpenSim.Framework.Communications.Cache
             }
             return itemList;
         }
+
+        public List<InventoryFolderBase> RequestListOfFolders()
+        {
+            List<InventoryFolderBase> folderList = new List<InventoryFolderBase>();
+            foreach (InventoryFolderBase folder in SubFolders.Values)
+            {
+                folderList.Add(folder);
+            }
+            return folderList;
+        }
     }
 }
