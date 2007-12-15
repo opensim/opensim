@@ -27,6 +27,7 @@
 */
 using System.Net;
 using System.Net.Sockets;
+using libsecondlife;
 using libsecondlife.Packets;
 using OpenSim.Framework;
 using OpenSim.Framework.Communications.Cache;
@@ -67,10 +68,10 @@ namespace OpenSim.Region.ClientStack
 
         protected virtual IClientAPI CreateNewClient(EndPoint remoteEP, UseCircuitCodePacket initialcirpack,
                                                      ClientManager clientManager, IScene scene, AssetCache assetCache,
-                                                     PacketServer packServer, AgentCircuitManager authenSessions)
+                                                     PacketServer packServer, AgentCircuitManager authenSessions, LLUUID agentId, LLUUID sessionId, uint circuitCode)
         {
             return
-                new ClientView(remoteEP, initialcirpack, clientManager, scene, assetCache, packServer, authenSessions);
+                new ClientView(remoteEP, scene, assetCache, packServer, authenSessions, agentId, sessionId, circuitCode );
         }
 
         public virtual bool AddNewClient(EndPoint epSender, UseCircuitCodePacket useCircuit, AssetCache assetCache,
@@ -85,7 +86,7 @@ namespace OpenSim.Region.ClientStack
             else
             {
                 newuser = CreateNewClient(epSender, useCircuit, m_scene.ClientManager, m_scene, assetCache, this,
-                                          authenticateSessionsClass);
+                                          authenticateSessionsClass, useCircuit.CircuitCode.ID, useCircuit.CircuitCode.SessionID, useCircuit.CircuitCode.Code);
 
                 m_scene.ClientManager.Add(useCircuit.CircuitCode.Code, newuser);
 

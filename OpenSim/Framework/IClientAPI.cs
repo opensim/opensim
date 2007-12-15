@@ -473,7 +473,7 @@ namespace OpenSim.Framework
 
         string LastName { get; }
 
-        uint CircuitCode { get; set; }
+        uint CircuitCode { get; }
 
         void OutPacket(Packet newPack, ThrottleOutPacketType packType);
         void SendWearables(AvatarWearable[] wearables, int serial);

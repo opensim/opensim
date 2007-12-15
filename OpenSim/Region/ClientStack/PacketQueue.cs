@@ -177,7 +177,7 @@ namespace OpenSim.Region.ClientStack
             lock(this) {
                 while (PacketsWaiting())
                 {
-                    //Now comes the fun part..   we dump all our elements into PacketQueue that we've saved up.
+                    //Now comes the fun part..   we dump all our elements into m_packetQueue that we've saved up.
                     if (ResendOutgoingPacketQueue.Count > 0)
                     {
                         SendQueue.Enqueue(ResendOutgoingPacketQueue.Dequeue());
@@ -261,7 +261,7 @@ namespace OpenSim.Region.ClientStack
                        (throttleLoops <= MaxThrottleLoops))
                 {
                     throttleLoops++;
-                    //Now comes the fun part..   we dump all our elements into PacketQueue that we've saved up.
+                    //Now comes the fun part..   we dump all our elements into m_packetQueue that we've saved up.
                     if (ResendThrottle.UnderLimit() && ResendOutgoingPacketQueue.Count > 0)
                     {
                         QueItem qpack = ResendOutgoingPacketQueue.Dequeue();
