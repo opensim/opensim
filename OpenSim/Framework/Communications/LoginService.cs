@@ -80,7 +80,13 @@ namespace OpenSim.Framework.UserManagement
 
                     userProfile = GetTheUser(firstname, lastname);
                     if (userProfile == null)
+                    {
+                        MainLog.Instance.Verbose(
+                            "LOGIN", 
+                            "Could not find a profile for " + firstname + " " + lastname);
+                        
                         return logResponse.CreateLoginFailedResponse();
+                    }
 
                     GoodLogin = AuthenticateUser(userProfile, passwd);
                 }

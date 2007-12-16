@@ -99,11 +99,7 @@ namespace OpenSim.Framework.UserManagement
                     profile.currentAgent = getUserAgent(profile.UUID);
                     return profile;
                 }                                              
-            }
-            
-            MainLog.Instance.Notice(
-                "USERSTORAGE", 
-                "Could not find user " + uuid.ToStringHyphenated() + " in persistent storage.");             
+            }          
 
             return null;
         }
@@ -145,10 +141,7 @@ namespace OpenSim.Framework.UserManagement
                     return profile;
                 }
             }
-                           
-            MainLog.Instance.Notice(
-                "USERSTORAGE", "Could not find user " + fname + " " + lname + " in persistent storage.");
-            
+
             return null;
         }
 
@@ -292,26 +285,26 @@ namespace OpenSim.Framework.UserManagement
             agent.currentPos = profile.homeLocation;
 
             // If user specified additional start, use that
-            if (requestData.ContainsKey("start"))
-            {
-                string startLoc = ((string) requestData["start"]).Trim();
-                if (!(startLoc == "last" || startLoc == "home"))
-                {
-                    // Format: uri:Ahern&162&213&34
-                    try
-                    {
-                        string[] parts = startLoc.Remove(0, 4).Split('&');
-                        //string region = parts[0];
-
-                        ////////////////////////////////////////////////////
-                        //SimProfile SimInfo = new SimProfile();
-                        //SimInfo = SimInfo.LoadFromGrid(theUser.currentAgent.currentHandle, _config.GridServerURL, _config.GridSendKey, _config.GridRecvKey);
-                    }
-                    catch (Exception)
-                    {
-                    }
-                }
-            }
+//            if (requestData.ContainsKey("start"))
+//            {
+//                string startLoc = ((string) requestData["start"]).Trim();
+//                if (!(startLoc == "last" || startLoc == "home"))
+//                {
+//                    // Format: uri:Ahern&162&213&34
+//                    try
+//                    {
+//                        string[] parts = startLoc.Remove(0, 4).Split('&');
+//                        //string region = parts[0];
+//
+//                        ////////////////////////////////////////////////////
+//                        //SimProfile SimInfo = new SimProfile();
+//                        //SimInfo = SimInfo.LoadFromGrid(theUser.currentAgent.currentHandle, _config.GridServerURL, _config.GridSendKey, _config.GridRecvKey);
+//                    }
+//                    catch (Exception)
+//                    {
+//                    }
+//                }
+//            }
 
             // What time did the user login?
             agent.loginTime = Util.UnixTimeSinceEpoch();
