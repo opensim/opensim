@@ -61,7 +61,8 @@ namespace OpenSim.Framework.UserManagement
             m_loginMutex.WaitOne();
             try
             {
-                MainLog.Instance.Verbose("LOGIN", "Attempting login now...");
+                //CFK: CustomizeResponse contains sufficient strings to alleviate the need for this.
+                //CKF: MainLog.Instance.Verbose("LOGIN", "Attempting login now...");
                 XmlRpcResponse response = new XmlRpcResponse();
                 Hashtable requestData = (Hashtable)request.Params[0];
 
