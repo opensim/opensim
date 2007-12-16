@@ -60,7 +60,8 @@ namespace OpenSim.Grid.UserServer
         public override void CustomiseResponse(LoginResponse response, UserProfileData theUser)
         {
             bool tryDefault = false;
-            MainLog.Instance.Verbose("LOGIN", "Load information from the gridserver");
+            //CFK: Since the try is always "tried", the "Home Location" message should always appear, so comment this one.
+            //CFK: MainLog.Instance.Verbose("LOGIN", "Load information from the gridserver");
             RegionProfileData SimInfo = new RegionProfileData();
             try
             {
@@ -78,8 +79,10 @@ namespace OpenSim.Grid.UserServer
                                 theUser.homeLocation.Y.ToString() + ",r" + theUser.homeLocation.Z.ToString() + "]}";
 
                 // Destination
-                MainLog.Instance.Verbose("LOGIN", "CUSTOMISERESPONSE: Region X: " + SimInfo.regionLocX + "; Region Y: " +
-                                         SimInfo.regionLocY);
+                //CFK: The "Notifying" message always seems to appear, so subsume the data from this message into 
+                //CFK: the next one for X & Y and comment this one.
+                //CFK: MainLog.Instance.Verbose("LOGIN", "CUSTOMISERESPONSE: Region X: " + SimInfo.regionLocX + 
+                //CFK: "; Region Y: " + SimInfo.regionLocY);
                 response.SimAddress = Util.GetHostFromDNS(SimInfo.serverIP).ToString();
                 response.SimPort = (uint) SimInfo.serverPort;
                 response.RegionX = SimInfo.regionLocX;
@@ -90,7 +93,8 @@ namespace OpenSim.Grid.UserServer
                 response.SeedCapability = SimInfo.httpServerURI + "CAPS/" + capsPath + "0000/";
 
                 // Notify the target of an incoming user
-                MainLog.Instance.Verbose("LOGIN", "Notifying " + SimInfo.regionName + " (" + SimInfo.serverURI + ")");
+                MainLog.Instance.Verbose("LOGIN", SimInfo.regionName + " (" + SimInfo.serverURI + ")  " + 
+                    SimInfo.regionLocX + "," + SimInfo.regionLocY);
 
                 // Prepare notification
                 Hashtable SimParams = new Hashtable();
