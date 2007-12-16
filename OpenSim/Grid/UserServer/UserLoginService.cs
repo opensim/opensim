@@ -119,7 +119,7 @@ namespace OpenSim.Grid.UserServer
                 theUser.currentAgent.currentRegion = SimInfo.UUID;
                 theUser.currentAgent.currentHandle = SimInfo.regionHandle;
 
-                MainLog.Instance.Verbose("LOGIN", "Informing " + SimInfo.httpServerURI + " @ " + 
+                MainLog.Instance.Verbose("LOGIN", SimInfo.regionName + " @ " + SimInfo.httpServerURI + "  " + 
                     SimInfo.regionLocX + "," + SimInfo.regionLocY);
                 
                 XmlRpcRequest GridReq = new XmlRpcRequest("expect_user", SendParams);
