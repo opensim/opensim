@@ -1093,6 +1093,8 @@ namespace OpenSim.Region.Environment.Scenes
             client.OnParcelSelectObjects += new ParcelSelectObjects(m_LandManager.handleParcelSelectObjectsRequest);
             client.OnParcelObjectOwnerRequest +=
                 new ParcelObjectOwnerRequest(m_LandManager.handleParcelObjectOwnersRequest);
+            client.OnParcelAccessListRequest += new ParcelAccessListRequest(m_LandManager.handleParcelAccessRequest);
+            client.OnParcelAccessListUpdateRequest += new ParcelAccessListUpdateRequest(m_LandManager.handleParcelAccessUpdateRequest);
 
             client.OnEstateOwnerMessage += new EstateOwnerMessageRequest(m_estateManager.handleEstateOwnerMessage);
             client.OnRequestGodlikePowers += handleRequestGodlikePowers;

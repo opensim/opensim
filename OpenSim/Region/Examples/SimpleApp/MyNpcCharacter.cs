@@ -131,6 +131,8 @@ namespace SimpleApp
         public event ParcelJoinRequest OnParcelJoinRequest;
         public event ParcelPropertiesUpdateRequest OnParcelPropertiesUpdateRequest;
 
+        public event ParcelAccessListRequest OnParcelAccessListRequest;
+        public event ParcelAccessListUpdateRequest OnParcelAccessListUpdateRequest;
         public event ParcelSelectObjects OnParcelSelectObjects;
         public event ParcelObjectOwnerRequest OnParcelObjectOwnerRequest;
         public event ObjectDeselect OnObjectDeselect;

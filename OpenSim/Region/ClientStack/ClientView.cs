@@ -516,6 +516,8 @@ namespace OpenSim.Region.ClientStack
 
         public event UUIDNameRequest OnNameFromUUIDRequest;
 
+        public event ParcelAccessListRequest OnParcelAccessListRequest;
+        public event ParcelAccessListUpdateRequest OnParcelAccessListUpdateRequest;
         public event ParcelPropertiesRequest OnParcelPropertiesRequest;
         public event ParcelDivideRequest OnParcelDivideRequest;
         public event ParcelJoinRequest OnParcelJoinRequest;
@@ -3117,8 +3119,33 @@ namespace OpenSim.Region.ClientStack
                         break;
 
                         #region Parcel related packets
+                    case PacketType.ParcelAccessListRequest:
+                        ParcelAccessListRequestPacket requestPacket = (ParcelAccessListRequestPacket)Pack;
+                        if (OnParcelAccessListRequest != null)
+                        {
+                            OnParcelAccessListRequest(requestPacket.AgentData.AgentID, requestPacket.AgentData.SessionID, requestPacket.Data.Flags, requestPacket.Data.SequenceID, requestPacket.Data.LocalID,this);
+                        }
+                            break;
 
+                    case PacketType.ParcelAccessListUpdate:
+                        ParcelAccessListUpdatePacket updatePacket = (ParcelAccessListUpdatePacket)Pack;
+                        List<ParcelManager.ParcelAccessEntry> entries = new List<ParcelManager.ParcelAccessEntry>();
+                        foreach (ParcelAccessListUpdatePacket.ListBlock block in updatePacket.List)
+                        {
+                            ParcelManager.ParcelAccessEntry entry = new ParcelManager.ParcelAccessEntry();
+                            entry.AgentID = block.ID;
+                            entry.Flags = (ParcelManager.AccessList)block.Flags;
+                            entry.Time = new DateTime();
+                            entries.Add(entry);
+                        }
+
+                        if (OnParcelAccessListUpdateRequest != null)
+                        {
+                            OnParcelAccessListUpdateRequest(updatePacket.AgentData.AgentID, updatePacket.AgentData.SessionID, updatePacket.Data.Flags, updatePacket.Data.LocalID, entries, this);
+                        }
+                        break;
                     case PacketType.ParcelPropertiesRequest:
+
                         ParcelPropertiesRequestPacket propertiesRequest = (ParcelPropertiesRequestPacket) Pack;
                         if (OnParcelPropertiesRequest != null)
                         {
@@ -3151,10 +3178,10 @@ namespace OpenSim.Region.ClientStack
                         }
                         break;
                     case PacketType.ParcelPropertiesUpdate:
-                        ParcelPropertiesUpdatePacket updatePacket = (ParcelPropertiesUpdatePacket) Pack;
+                        ParcelPropertiesUpdatePacket parcelPropertiesPacket = (ParcelPropertiesUpdatePacket) Pack;
                         if (OnParcelPropertiesUpdateRequest != null)
                         {
-                            OnParcelPropertiesUpdateRequest(updatePacket, this);
+                            OnParcelPropertiesUpdateRequest(parcelPropertiesPacket, this);
                         }
                         break;
                     case PacketType.ParcelSelectObjects:
@@ -3283,10 +3310,7 @@ namespace OpenSim.Region.ClientStack
                         // TODO: handle this packet
                         MainLog.Instance.Warn("CLIENT", "unhandled AgentDataUpdateRequest packet");
                         break;
-                    case PacketType.ParcelAccessListRequest:
-                        // TODO: handle this packet
-                        MainLog.Instance.Warn("CLIENT", "unhandled ParcelAccessListRequest packet");
-                        break;
+                    
                     case PacketType.ParcelDwellRequest:
                         // TODO: handle this packet
                         MainLog.Instance.Warn("CLIENT", "unhandled ParcelDwellRequest packet");

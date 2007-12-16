@@ -301,6 +301,10 @@ namespace OpenSim.Framework
 
     public delegate void MoveObject(LLUUID objectID, LLVector3 offset, LLVector3 grapPos, IClientAPI remoteClient);
 
+    public delegate void ParcelAccessListRequest(LLUUID agentID, LLUUID sessionID, uint flags, int sequenceID, int landLocalID,IClientAPI remote_client);
+    
+    public delegate void ParcelAccessListUpdateRequest(LLUUID agentID, LLUUID sessionID,uint flags, int landLocalID, List<libsecondlife.ParcelManager.ParcelAccessEntry> entries, IClientAPI remote_client);
+
     public delegate void ParcelPropertiesRequest(
         int start_x, int start_y, int end_x, int end_y, int sequence_id, bool snap_selection, IClientAPI remote_client);
 
@@ -453,6 +457,8 @@ namespace OpenSim.Framework
 
         event UUIDNameRequest OnNameFromUUIDRequest;
 
+        event ParcelAccessListRequest OnParcelAccessListRequest;
+        event ParcelAccessListUpdateRequest OnParcelAccessListUpdateRequest;
         event ParcelPropertiesRequest OnParcelPropertiesRequest;
         event ParcelDivideRequest OnParcelDivideRequest;
         event ParcelJoinRequest OnParcelJoinRequest;

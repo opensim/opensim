@@ -47,7 +47,7 @@ namespace OpenSim.Region.Environment.LandManagement
 
         public LandData landData = new LandData();
         public List<SceneObjectGroup> primsOverMe = new List<SceneObjectGroup>();
-
+        public List<libsecondlife.ParcelManager.ParcelAccessEntry> parcelAccessList = new List<ParcelManager.ParcelAccessEntry>();
         public Scene m_scene;
 
         private bool[,] landBitmap = new bool[64,64];
@@ -236,6 +236,105 @@ namespace OpenSim.Region.Environment.LandManagement
                 if (over.landData.localID == landData.localID)
                 {
                     sendLandUpdateToClient(avatars[i].ControllingClient);
+                }
+            }
+        }
+
+        #endregion
+
+        #region AccessList Functions
+
+        public ParcelAccessListReplyPacket.ListBlock[] createAccessListArrayByFlag(ParcelManager.AccessList flag)
+        {
+            List<ParcelAccessListReplyPacket.ListBlock> list = new List<ParcelAccessListReplyPacket.ListBlock>();
+            foreach (ParcelManager.ParcelAccessEntry entry in parcelAccessList)
+            {
+                if (entry.Flags == flag)
+                {
+                    ParcelAccessListReplyPacket.ListBlock listBlock = new ParcelAccessListReplyPacket.ListBlock();
+
+                    listBlock.Flags = (uint)0;
+                    listBlock.ID = entry.AgentID;
+                    listBlock.Time = 0;
+
+                    list.Add(listBlock);
+                }
+            }
+
+            if (list.Count == 0)
+            {
+                ParcelAccessListReplyPacket.ListBlock listBlock = new ParcelAccessListReplyPacket.ListBlock();
+
+                listBlock.Flags = (uint)0;
+                listBlock.ID = LLUUID.Zero;
+                listBlock.Time = 0;
+
+                list.Add(listBlock);
+            }
+            return list.ToArray();
+        }
+
+        public void sendAccessList(LLUUID agentID, LLUUID sessionID, uint flags, int sequenceID, IClientAPI remote_client)
+        {
+                
+            ParcelAccessListReplyPacket replyPacket;
+
+            if (flags == (uint)ParcelManager.AccessList.Access || flags == (uint)ParcelManager.AccessList.Both)
+            {
+                replyPacket = new ParcelAccessListReplyPacket();
+                replyPacket.Data.AgentID = agentID;
+                replyPacket.Data.Flags = (uint)ParcelManager.AccessList.Access;
+                replyPacket.Data.LocalID = this.landData.localID;
+                replyPacket.Data.SequenceID = 0;
+
+                replyPacket.List = createAccessListArrayByFlag(ParcelManager.AccessList.Access);
+                remote_client.OutPacket((Packet)replyPacket, ThrottleOutPacketType.Task);
+            }
+
+            if (flags == (uint)ParcelManager.AccessList.Ban || flags == (uint)ParcelManager.AccessList.Both)
+            {
+                replyPacket = new ParcelAccessListReplyPacket();
+                replyPacket.Data.AgentID = agentID;
+                replyPacket.Data.Flags = (uint)ParcelManager.AccessList.Ban;
+                replyPacket.Data.LocalID = this.landData.localID;
+                replyPacket.Data.SequenceID = 0;
+
+                replyPacket.List = createAccessListArrayByFlag(ParcelManager.AccessList.Ban);
+                remote_client.OutPacket((Packet)replyPacket, ThrottleOutPacketType.Task);
+            }
+            
+        }
+
+        public void updateAccessList(uint flags,  List<ParcelManager.ParcelAccessEntry> entries, IClientAPI remote_client)
+        {
+            if (entries.Count == 1 && entries[0].AgentID == LLUUID.Zero)
+            {
+                entries.Clear();
+            }
+            
+            List<ParcelManager.ParcelAccessEntry> toRemove = new List<ParcelManager.ParcelAccessEntry>();
+            foreach (ParcelManager.ParcelAccessEntry entry in parcelAccessList)
+            {
+                if (entry.Flags == (ParcelManager.AccessList)flags)
+                {
+                    toRemove.Add(entry);
+                }
+            }
+
+            foreach (ParcelManager.ParcelAccessEntry entry in toRemove)
+            {
+                parcelAccessList.Remove(entry);
+            }
+            foreach (ParcelManager.ParcelAccessEntry entry in entries)
+            {
+                ParcelManager.ParcelAccessEntry temp = new ParcelManager.ParcelAccessEntry();
+                temp.AgentID = entry.AgentID;
+                temp.Time = new DateTime() ; //Pointless? Yes.
+                temp.Flags = (ParcelManager.AccessList)flags;
+
+                if (!this.parcelAccessList.Contains(temp))
+                {
+                    this.parcelAccessList.Add(temp);
                 }
             }
         }

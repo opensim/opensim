@@ -554,6 +554,30 @@ namespace OpenSim.Region.Environment.LandManagement
             }
         }
 
+
+        public void handleParcelAccessRequest(LLUUID agentID, LLUUID sessionID, uint flags, int sequenceID, int landLocalID, IClientAPI remote_client)
+        {
+            if (landList.ContainsKey(landLocalID))
+            {
+                landList[landLocalID].sendAccessList(agentID, sessionID, flags, sequenceID,remote_client);
+            }
+        }
+
+        public void handleParcelAccessUpdateRequest(LLUUID agentID, LLUUID sessionID,uint flags, int landLocalID, List<libsecondlife.ParcelManager.ParcelAccessEntry> entries, IClientAPI remote_client)
+        {
+            if (landList.ContainsKey(landLocalID))
+            {
+                if (agentID == landList[landLocalID].landData.ownerID)
+                {
+                    landList[landLocalID].updateAccessList(flags, entries, remote_client);
+                }
+            }
+            else
+            {
+                Console.WriteLine("INVALID LOCAL LAND ID");
+            }
+        }
+
         public void resetAllLandPrimCounts()
         {
             foreach (Land p in landList.Values)
