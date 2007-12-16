@@ -70,7 +70,8 @@ namespace OpenSim.Grid.UserServer
                                                   m_config.GridSendKey, m_config.GridRecvKey);
 
                 // Customise the response
-                MainLog.Instance.Verbose("LOGIN", "Home Location");
+                //CFK: This is redundant and the next message should always appear.
+                //CFK: MainLog.Instance.Verbose("LOGIN", "Home Location");
                 response.Home = "{'region_handle':[r" + (SimInfo.regionLocX * 256).ToString() + ",r" +
                                 (SimInfo.regionLocY * 256).ToString() + "], " +
                                 "'position':[r" + theUser.homeLocation.X.ToString() + ",r" +
