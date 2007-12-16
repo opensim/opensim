@@ -94,8 +94,10 @@ namespace OpenSim.Grid.UserServer
                 response.SeedCapability = SimInfo.httpServerURI + "CAPS/" + capsPath + "0000/";
 
                 // Notify the target of an incoming user
-                MainLog.Instance.Verbose("LOGIN", SimInfo.regionName + " (" + SimInfo.serverURI + ")  " + 
-                    SimInfo.regionLocX + "," + SimInfo.regionLocY);
+                //CFK: The "Notifying" message always seems to appear, so subsume the data from this message into 
+                //CFK: the next one for X & Y and comment this one.
+                //CFK: MainLog.Instance.Verbose("LOGIN", SimInfo.regionName + " (" + SimInfo.serverURI + ")  " + 
+                //CFK:    SimInfo.regionLocX + "," + SimInfo.regionLocY);
 
                 // Prepare notification
                 Hashtable SimParams = new Hashtable();
@@ -117,9 +119,9 @@ namespace OpenSim.Grid.UserServer
                 theUser.currentAgent.currentRegion = SimInfo.UUID;
                 theUser.currentAgent.currentHandle = SimInfo.regionHandle;
 
-                MainLog.Instance.Verbose("LOGIN", "Informing region at " + SimInfo.httpServerURI);
-                // Send
-
+                MainLog.Instance.Verbose("LOGIN", "Informing " + SimInfo.httpServerURI + " @ " + 
+                    SimInfo.regionLocX + "," + SimInfo.regionLocY);
+                
                 XmlRpcRequest GridReq = new XmlRpcRequest("expect_user", SendParams);
                 XmlRpcResponse GridResp = GridReq.Send(SimInfo.httpServerURI, 6000);
             }
@@ -136,7 +138,7 @@ namespace OpenSim.Grid.UserServer
                 
                 MainLog.Instance.Warn(
                     "LOGIN", 
-                    "Home region not available: sending to default region " + defaultHandle.ToString());
+                    "Home region not available: sending to default " + defaultHandle.ToString());
                 
                 SimInfo = new RegionProfileData();
                 try
