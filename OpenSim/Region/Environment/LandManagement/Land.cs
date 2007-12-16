@@ -93,6 +93,16 @@ namespace OpenSim.Region.Environment.LandManagement
 
             //Place all new variables here!
             newLand.landBitmap = (bool[,]) (landBitmap.Clone());
+            newLand.parcelAccessList.Clear();
+            foreach (ParcelManager.ParcelAccessEntry entry in parcelAccessList)
+            {
+                ParcelManager.ParcelAccessEntry newEntry = new ParcelManager.ParcelAccessEntry();
+                newEntry.AgentID = entry.AgentID;
+                newEntry.Flags = entry.Flags;
+                newEntry.Time = entry.Time;
+
+                newLand.parcelAccessList.Add(newEntry);
+            }
             newLand.landData = landData.Copy();
 
             return newLand;
