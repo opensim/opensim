@@ -67,7 +67,7 @@ namespace OpenSim.Region.Environment.Scenes
         /// </summary>
         public int PrimCount
         {
-            get { return 1; }
+            get { return m_parts.Count; }
         }
 
         public LLQuaternion GroupRotation
@@ -240,8 +240,9 @@ namespace OpenSim.Region.Environment.Scenes
             m_scene = scene;
             part.SetParent(this);
             part.ParentID = 0;
-
+            part.LinkNum = 0;
             m_parts.Add(part.UUID, part);
+            
             SetPartAsRoot(part);
 
             RegionHandle = regionHandle;
@@ -267,7 +268,7 @@ namespace OpenSim.Region.Environment.Scenes
             reader.ReadStartElement("SceneObjectGroup");
             reader.ReadStartElement("RootPart");
             m_rootPart = SceneObjectPart.FromXml(reader);
-
+            AddPart(m_rootPart);
             reader.ReadEndElement();
 
             while (reader.Read())
@@ -293,7 +294,7 @@ namespace OpenSim.Region.Environment.Scenes
             reader.Close();
             sr.Close();
 
-            AddPart(m_rootPart);
+
 
             m_rootPart.LocalID = m_scene.PrimIDAllocate();
             m_rootPart.ParentID = 0;
@@ -318,6 +319,10 @@ namespace OpenSim.Region.Environment.Scenes
 
             reader.ReadStartElement("SceneObjectGroup");
             m_rootPart = SceneObjectPart.FromXml(reader);
+            m_rootPart.SetParent(this);
+            m_parts.Add(m_rootPart.UUID, m_rootPart);
+            m_rootPart.ParentID = 0;
+            m_rootPart.LinkNum = 0;
 
             reader.Read();
             bool more = true;
@@ -346,9 +351,7 @@ namespace OpenSim.Region.Environment.Scenes
             }
             reader.Close();
             sr.Close();
-            m_rootPart.SetParent(this);
-            m_parts.Add(m_rootPart.UUID, m_rootPart);
-            m_rootPart.ParentID = 0;
+
             UpdateParentIDs();
 
             ScheduleGroupForFullUpdate();
@@ -431,6 +434,7 @@ namespace OpenSim.Region.Environment.Scenes
             LLVector3 rootOffset = new LLVector3(0, 0, 0);
             SceneObjectPart newPart =
                 new SceneObjectPart(m_regionHandle, this, ownerID, localID, shape, pos, rot, rootOffset);
+            newPart.LinkNum = m_parts.Count;
             m_parts.Add(newPart.UUID, newPart);
             SetPartAsRoot(newPart);
 
@@ -586,6 +590,7 @@ namespace OpenSim.Region.Environment.Scenes
         {
             SceneObjectPart newPart = part.Copy(m_scene.PrimIDAllocate(), OwnerID, GroupID);
             newPart.SetParent(this);
+            newPart.LinkNum = m_parts.Count;
             m_parts.Add(newPart.UUID, newPart);
             SetPartAsRoot(newPart);
         }
@@ -615,6 +620,7 @@ namespace OpenSim.Region.Environment.Scenes
         {
             SceneObjectPart newPart = part.Copy(m_scene.PrimIDAllocate(), OwnerID, GroupID);
             newPart.SetParent(this);
+            newPart.LinkNum = m_parts.Count;
             m_parts.Add(newPart.UUID, newPart);
             SetPartAsNonRoot(newPart);
         }
@@ -627,6 +633,7 @@ namespace OpenSim.Region.Environment.Scenes
             foreach (SceneObjectPart part in partsList)
             {
                 part.UUID = LLUUID.Random();
+                part.LinkNum = m_parts.Count;
                 m_parts.Add(part.UUID, part);
             }
         }
@@ -770,6 +777,23 @@ namespace OpenSim.Region.Environment.Scenes
         #region SceneGroupPart Methods
 
         /// <summary>
+        /// Get the child part by LinkNum
+        /// </summary>
+        /// <param name="linknum"></param>
+        /// <returns>null if no child part with that linknum or child part</returns>
+        public SceneObjectPart GetLinkNumPart(int linknum)
+        {
+            foreach (SceneObjectPart part in m_parts.Values)
+            {
+                if (part.LinkNum == linknum)
+                {
+                    return part;
+                }
+            }
+            return null;
+        }
+
+        /// <summary>
         /// Get a child part with a given UUID
         /// </summary>
         /// <param name="primID"></param>
@@ -868,6 +892,7 @@ namespace OpenSim.Region.Environment.Scenes
             Quaternion newRot = parentRot.Inverse() * oldRot;
             linkPart.RotationOffset = new LLQuaternion(newRot.x, newRot.y, newRot.z, newRot.w);
             linkPart.ParentID = m_rootPart.LocalID;
+            linkPart.LinkNum = m_parts.Count;
             m_parts.Add(linkPart.UUID, linkPart);
             linkPart.SetParent(this);
 
@@ -979,6 +1004,7 @@ namespace OpenSim.Region.Environment.Scenes
         {
             part.SetParent(this);
             part.ParentID = m_rootPart.LocalID;
+            part.LinkNum = m_parts.Count;
             m_parts.Add(part.UUID, part);
 
             Vector3 axiomOldPos = new Vector3(part.OffsetPosition.X, part.OffsetPosition.Y, part.OffsetPosition.Z);
@@ -1612,6 +1638,7 @@ namespace OpenSim.Region.Environment.Scenes
         public void AddPart(SceneObjectPart part)
         {
             part.SetParent(this);
+            part.LinkNum = m_parts.Count;
             m_parts.Add(part.UUID, part);
         }
 

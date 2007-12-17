@@ -364,6 +364,13 @@ namespace OpenSim.Region.Environment.Scenes
             set { m_touchName = value; }
         }
 
+        private int m_linkNum = 0;
+        public int LinkNum
+        {
+            get { return m_linkNum; }
+            set { m_linkNum = value; }
+        }
+
         private byte m_clickAction = 0;
         public byte ClickAction
         {

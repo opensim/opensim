@@ -860,9 +860,9 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL
             return m_LSL_Functions.llGetLinkKey(linknum);
         }
 
-        public void llGetLinkName(int linknum)
+        public string llGetLinkName(int linknum)
         {
-            m_LSL_Functions.llGetLinkName(linknum);
+            return m_LSL_Functions.llGetLinkName(linknum);
         }
 
         public int llGetInventoryNumber(int type)

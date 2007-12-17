@@ -1128,7 +1128,11 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler
 
         public void llTargetOmega(LSL_Types.Vector3 axis, double spinrate, double gain)
         {
-            NotImplemented("llTargetOmega");
+            m_host.RotationalVelocity = new LLVector3((float)(axis.x * spinrate), (float)(axis.y * spinrate), (float)(axis.z * spinrate));
+            m_host.AngularVelocity = new LLVector3((float)(axis.x * spinrate), (float)(axis.y * spinrate), (float)(axis.z * spinrate));
+            m_host.ScheduleTerseUpdate();
+            m_host.SendTerseUpdateToAllClients();
+            //NotImplemented("llTargetOmega");
         }
 
         public int llGetStartParameter()
@@ -1161,8 +1165,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler
 
         public int llGetLinkNumber()
         {
-            NotImplemented("llGetLinkNumber");
-            return 0;
+            return m_host.LinkNum;
         }
 
         public void llSetLinkColor(int linknumber, LSL_Types.Vector3 color, int face)
@@ -1187,13 +1190,28 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler
 
         public string llGetLinkKey(int linknum)
         {
-            NotImplemented("llGetLinkKey");
-            return "";
+            SceneObjectPart part = m_host.ParentGroup.GetLinkNumPart(linknum);
+            if (part != null)
+            {
+                return part.UUID.ToStringHyphenated();
+            }
+            else
+            {
+                return "00000000-0000-0000-0000-000000000000";
+            }
         }
 
-        public void llGetLinkName(int linknum)
+        public string llGetLinkName(int linknum)
         {
-            NotImplemented("llGetLinkName");
+            SceneObjectPart part = m_host.ParentGroup.GetLinkNumPart(linknum);
+            if (part != null)
+            {
+                return part.Name;
+            }
+            else
+            {
+                return "00000000-0000-0000-0000-000000000000";
+            }
         }
 
         public int llGetInventoryNumber(int type)
@@ -2194,8 +2212,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler
 
         public int llGetNumberOfPrims()
         {
-            NotImplemented("llGetNumberOfPrims");
-            return 0;
+            return m_host.ParentGroup.PrimCount;
         }
 
         public string llGetNumberOfNotecardLines(string name)

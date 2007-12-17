@@ -268,7 +268,7 @@ namespace OpenSim.Region.ScriptEngine.Common
         //wiki: key llGetLinkKey(integer linknum)
         string llGetLinkKey(int linknum);
         //wiki: llGetLinkName(integer linknum)
-        void llGetLinkName(int linknum);
+        string llGetLinkName(int linknum);
         //wiki: integer llGetInventoryNumber(integer type)
         int llGetInventoryNumber(int type);
         //wiki: string llGetInventoryName(integer type, integer number)
