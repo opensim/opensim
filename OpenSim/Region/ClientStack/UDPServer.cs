@@ -156,7 +156,8 @@ namespace OpenSim.Region.ClientStack
             else
             {
                 // invalid client
-                m_log.Warn("client", "Got a packet from an invalid client - " + epSender.ToString());
+                //CFK: This message seems to have served its usefullness as of 12-15 so I am commenting it out for now
+                //CFK: m_log.Warn("client", "Got a packet from an invalid client - " + epSender.ToString());
             }
 
             Server.BeginReceiveFrom(RecvBuffer, 0, RecvBuffer.Length, SocketFlags.None, ref epSender, ReceivedData, null);
