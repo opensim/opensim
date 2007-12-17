@@ -1615,7 +1615,9 @@ namespace OpenSim.Region.Environment.Scenes
         /// <param name="message"></param>
         public void SendGeneralAlert(string message)
         {
-            foreach (ScenePresence presence in m_scenePresences.Values)
+            List<ScenePresence> presenceList = GetScenePresences();
+
+            foreach (ScenePresence presence in presenceList)
             {
                 presence.ControllingClient.SendAlertMessage(message);
             }
@@ -1776,7 +1778,9 @@ namespace OpenSim.Region.Environment.Scenes
         /// <param name="modal"></param>
         public void SendAlertToUser(string firstName, string lastName, string message, bool modal)
         {
-            foreach (ScenePresence presence in m_scenePresences.Values)
+            List<ScenePresence> presenceList = GetScenePresences();
+
+            foreach (ScenePresence presence in presenceList)
             {
                 if ((presence.Firstname == firstName) && (presence.Lastname == lastName))
                 {
@@ -1821,7 +1825,9 @@ namespace OpenSim.Region.Environment.Scenes
         /// </summary>
         public void ForceClientUpdate()
         {
-            foreach (EntityBase ent in Entities.Values)
+            List<EntityBase> EntitieList = GetEntities();
+
+            foreach (EntityBase ent in EntitieList)
             {
                 if (ent is SceneObjectGroup)
                 {
@@ -1838,7 +1844,10 @@ namespace OpenSim.Region.Environment.Scenes
         public void HandleEditCommand(string[] cmdparams)
         {
             Console.WriteLine("Searching for Primitive: '" + cmdparams[0] + "'");
-            foreach (EntityBase ent in Entities.Values)
+
+            List<EntityBase> EntitieList = GetEntities();
+
+            foreach (EntityBase ent in EntitieList)
             {
                 if (ent is SceneObjectGroup)
                 {
@@ -2017,7 +2026,8 @@ namespace OpenSim.Region.Environment.Scenes
             if (!(m_scenePresences.Equals(null)))
             {
                 try {
-                    foreach (ScenePresence presence in m_scenePresences.Values)
+		            List<ScenePresence> presenceList = GetScenePresences();
+                    foreach (ScenePresence presence in presenceList)
                     {
                         action(presence);
                     }
@@ -2033,7 +2043,14 @@ namespace OpenSim.Region.Environment.Scenes
         /// <param name="action"></param>
         public void ForEachObject(Action<SceneObjectGroup> action)
         {
-            foreach (SceneObjectGroup presence in m_sceneObjects.Values)
+            List<SceneObjectGroup> presenceList;
+
+            lock (m_sceneObjects)
+            {
+                presenceList = new List<SceneObjectGroup>(m_sceneObjects.Values);
+            }
+
+            foreach (SceneObjectGroup presence in presenceList)
             {
                 action(presence);
             }
@@ -2072,6 +2089,11 @@ namespace OpenSim.Region.Environment.Scenes
         internal void ForEachClient(Action<IClientAPI> action)
         {
             m_innerScene.ForEachClient(action);
+        }
+
+        public List<EntityBase> GetEntities()
+        {
+            return m_innerScene.GetEntities();
         }
 
         #endregion

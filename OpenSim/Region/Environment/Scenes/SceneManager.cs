@@ -290,7 +290,9 @@ namespace OpenSim.Region.Environment.Scenes
         {
             ForEachCurrentScene(delegate(Scene scene)
                                     {
-                                        foreach (EntityBase entity in scene.Entities.Values)
+                                        List<EntityBase> EntitieList = scene.GetEntities();
+
+                                        foreach (EntityBase entity in EntitieList)
                                         {
                                             if (entity is ScenePresence)
                                             {
@@ -315,7 +317,9 @@ namespace OpenSim.Region.Environment.Scenes
 
             ForEachCurrentScene(delegate(Scene scene)
                                     {
-                                        foreach (EntityBase entity in scene.Entities.Values)
+                                        List<EntityBase> EntitieList = scene.GetEntities();
+
+                                        foreach (EntityBase entity in EntitieList)
                                         {
                                             if (entity is ScenePresence)
                                             {

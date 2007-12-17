@@ -33,6 +33,7 @@ using OpenSim.Framework;
 using OpenSim.Framework.Communications.Cache;
 using OpenSim.Framework.Console;
 using OpenSim.Region.Physics.Manager;
+using System.Collections.Generic;
 
 namespace OpenSim.Region.Environment.Scenes
 {
@@ -342,7 +343,9 @@ namespace OpenSim.Region.Environment.Scenes
 
         private SceneObjectGroup GetGroupByPrim(uint localID)
         {
-            foreach (EntityBase ent in Entities.Values)
+            List<EntityBase> EntitieList = GetEntities();
+
+            foreach (EntityBase ent in EntitieList)
             {
                 if (ent is SceneObjectGroup)
                 {
@@ -455,7 +458,10 @@ namespace OpenSim.Region.Environment.Scenes
                 {
                     EntityBase selectedEnt = null;
                     //MainLog.Instance.Verbose("CLIENT", "LocalID:" + Data.ObjectLocalID.ToString());
-                    foreach (EntityBase ent in Entities.Values)
+
+                    List<EntityBase> EntitieList = GetEntities();
+
+                    foreach (EntityBase ent in EntitieList)
                     {
                         if (ent.LocalId == Data.ObjectLocalID)
                         {

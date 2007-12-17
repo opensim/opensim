@@ -97,7 +97,9 @@ namespace OpenSim.Region.Environment.Scenes
         /// <param name="remoteClient"></param>
         public void SelectPrim(uint primLocalID, IClientAPI remoteClient)
         {
-            foreach (EntityBase ent in Entities.Values)
+            List<EntityBase> EntitieList = GetEntities();
+
+            foreach (EntityBase ent in EntitieList)
             {
                 if (ent is SceneObjectGroup)
                 {
@@ -119,7 +121,9 @@ namespace OpenSim.Region.Environment.Scenes
         /// <param name="remoteClient"></param>
         public void DeselectPrim(uint primLocalID, IClientAPI remoteClient)
         {
-            foreach (EntityBase ent in Entities.Values)
+            List<EntityBase> EntitieList = GetEntities();
+
+            foreach (EntityBase ent in EntitieList)
             {
                 if (ent is SceneObjectGroup)
                 {
@@ -137,7 +141,9 @@ namespace OpenSim.Region.Environment.Scenes
         {
             EventManager.TriggerObjectGrab(localID, offsetPos, remoteClient);
 
-            foreach (EntityBase ent in Entities.Values)
+            List<EntityBase> EntitieList = GetEntities();
+
+            foreach (EntityBase ent in EntitieList)
             {
                 if (ent is SceneObjectGroup)
                 {

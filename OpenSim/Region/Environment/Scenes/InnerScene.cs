@@ -129,7 +129,7 @@ namespace OpenSim.Region.Environment.Scenes
 
         internal void UpdateEntities()
         {
-            List<EntityBase> updateEntities = new List<EntityBase>(Entities.Values);
+            List<EntityBase> updateEntities = GetEntities();
 
             foreach (EntityBase entity in updateEntities)
             {
@@ -147,7 +147,7 @@ namespace OpenSim.Region.Environment.Scenes
 
         internal void UpdateEntityMovement()
         {
-            List<EntityBase> moveEntities = new List<EntityBase>(Entities.Values);
+            List<EntityBase> moveEntities = GetEntities();
 
             foreach (EntityBase entity in moveEntities)
             {
@@ -174,7 +174,10 @@ namespace OpenSim.Region.Environment.Scenes
             if (!Entities.ContainsKey(sceneObject.UUID))
             {
                 //  QuadTree.AddObject(sceneObject);
-                Entities.Add(sceneObject.UUID, sceneObject);
+                lock (Entities)
+                {
+                    Entities.Add(sceneObject.UUID, sceneObject);
+                }
                 m_numPrim++;
             }
         }
@@ -188,7 +191,9 @@ namespace OpenSim.Region.Environment.Scenes
         }
         public void RemovePrim(uint localID, LLUUID avatar_deleter)
         {
-            foreach (EntityBase obj in Entities.Values)
+            List<EntityBase> EntityList = GetEntities();
+
+            foreach (EntityBase obj in EntityList)
             {
                 if (obj is SceneObjectGroup)
                 {
@@ -310,7 +315,12 @@ namespace OpenSim.Region.Environment.Scenes
         /// <returns></returns>
         public List<ScenePresence> GetScenePresences()
         {
-            List<ScenePresence> result = new List<ScenePresence>(ScenePresences.Values);
+            List<ScenePresence> result;
+
+            lock (ScenePresences)
+            {
+                result = new List<ScenePresence>(ScenePresences.Values);
+            }
 
             return result;
         }
@@ -330,8 +340,9 @@ namespace OpenSim.Region.Environment.Scenes
         public List<ScenePresence> GetScenePresences(FilterAvatarList filter)
         {
             List<ScenePresence> result = new List<ScenePresence>();
+            List<ScenePresence> ScenePresencesList = GetScenePresences();
 
-            foreach (ScenePresence avatar in ScenePresences.Values)
+            foreach (ScenePresence avatar in ScenePresencesList)
             {
                 if (filter(avatar))
                 {
@@ -358,7 +369,9 @@ namespace OpenSim.Region.Environment.Scenes
 
         private SceneObjectGroup GetGroupByPrim(uint localID)
         {
-            foreach (EntityBase ent in Entities.Values)
+            List<EntityBase> EntityList = GetEntities();
+
+            foreach (EntityBase ent in EntityList)
             {
                 if (ent is SceneObjectGroup)
                 {
@@ -371,7 +384,9 @@ namespace OpenSim.Region.Environment.Scenes
 
         private SceneObjectGroup GetGroupByPrim(LLUUID fullID)
         {
-            foreach (EntityBase ent in Entities.Values)
+            List<EntityBase> EntityList = GetEntities();
+
+            foreach (EntityBase ent in EntityList)
             {
                 if (ent is SceneObjectGroup)
                 {
@@ -461,6 +476,18 @@ namespace OpenSim.Region.Environment.Scenes
             return false;
         }
 
+        public List<EntityBase> GetEntities()
+        {
+            List<EntityBase> result;
+
+            lock (Entities)
+            {
+                result = new List<EntityBase>(Entities.Values);
+            }
+
+            return result;
+        }
+
         #endregion
 
         #region Other Methods
@@ -484,7 +511,9 @@ namespace OpenSim.Region.Environment.Scenes
 
         public void SendAllSceneObjectsToClient(ScenePresence presence)
         {
-            foreach (EntityBase ent in Entities.Values)
+            List<EntityBase> EntityList = GetEntities();
+
+            foreach (EntityBase ent in EntityList)
             {
                 if (ent is SceneObjectGroup)
                 {
@@ -770,8 +799,10 @@ namespace OpenSim.Region.Environment.Scenes
         /// <param name="childPrims"></param>
         public void LinkObjects(uint parentPrim, List<uint> childPrims)
         {
+            List<EntityBase> EntityList = GetEntities();
+
             SceneObjectGroup parenPrim = null;
-            foreach (EntityBase ent in Entities.Values)
+            foreach (EntityBase ent in EntityList)
             {
                 if (ent is SceneObjectGroup)
                 {
@@ -788,7 +819,7 @@ namespace OpenSim.Region.Environment.Scenes
             {
                 for (int i = 0; i < childPrims.Count; i++)
                 {
-                    foreach (EntityBase ent in Entities.Values)
+                    foreach (EntityBase ent in EntityList)
                     {
                         if (ent is SceneObjectGroup)
                         {
@@ -819,8 +850,10 @@ namespace OpenSim.Region.Environment.Scenes
             // XXX I'm anticipating that building this dictionary once is more efficient than
             // repeated scanning of the Entity.Values for a large number of primIds.  However, it might
             // be more efficient yet to keep this dictionary permanently on hand.
+
             Dictionary<uint, SceneObjectGroup> sceneObjects = new Dictionary<uint, SceneObjectGroup>();
-            foreach (EntityBase ent in Entities.Values)
+            List<EntityBase> EntitieList = GetEntities();
+            foreach (EntityBase ent in EntitieList)
             {
                 if (ent is SceneObjectGroup)
                 {
@@ -863,8 +896,10 @@ namespace OpenSim.Region.Environment.Scenes
         /// <param name="flags"></param>
         public void DuplicateObject(uint originalPrim, LLVector3 offset, uint flags, LLUUID AgentID, LLUUID GroupID)
         {
+            List<EntityBase> EntityList = GetEntities();
+
             SceneObjectGroup originPrim = null;
-            foreach (EntityBase ent in Entities.Values)
+            foreach (EntityBase ent in EntityList)
             {
                 if (ent is SceneObjectGroup)
                 {
@@ -882,7 +917,10 @@ namespace OpenSim.Region.Environment.Scenes
                 {
                     SceneObjectGroup copy = originPrim.Copy(AgentID, GroupID);
                     copy.AbsolutePosition = copy.AbsolutePosition + offset;
-                    Entities.Add(copy.UUID, copy);
+                    lock (Entities)
+                    {
+                        Entities.Add(copy.UUID, copy);
+                    }
                     m_numPrim++;
                     copy.ScheduleGroupForFullUpdate();
                 }

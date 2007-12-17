@@ -108,7 +108,10 @@ namespace OpenSim.Region.Environment.Scenes
             StreamWriter stream = new StreamWriter(file);
             int primCount = 0;
             stream.WriteLine("<scene>\n");
-            foreach (EntityBase ent in m_innerScene.Entities.Values)
+
+            List<EntityBase> EntityList = m_innerScene.GetEntities();
+
+            foreach (EntityBase ent in EntityList)
             {
                 if (ent is SceneObjectGroup)
                 {
@@ -170,7 +173,10 @@ namespace OpenSim.Region.Environment.Scenes
             StreamWriter stream = new StreamWriter(file);
             int primCount = 0;
             stream.WriteLine("<scene>\n");
-            foreach (EntityBase ent in m_innerScene.Entities.Values)
+
+            List<EntityBase> EntityList = m_innerScene.GetEntities();
+
+            foreach (EntityBase ent in EntityList)
             {
                 if (ent is SceneObjectGroup)
                 {
