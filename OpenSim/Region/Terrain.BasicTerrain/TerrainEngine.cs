@@ -200,6 +200,7 @@ namespace OpenSim.Region.Terrain
                         for (float y = west; y <= east; y++)
                         {
                             FlattenTerrain(y, x, size, (double)seconds / 5.0);
+                            lastEdit = DateTime.Now;
                         }
                     }
                     break;
@@ -210,6 +211,7 @@ namespace OpenSim.Region.Terrain
                         for (float y = west; y <= east; y++)
                         {
                             RaiseTerrain(y, x, size, (double)seconds / 5.0);
+                            lastEdit = DateTime.Now;
                         }
                     }
                     break;
@@ -220,6 +222,7 @@ namespace OpenSim.Region.Terrain
                         for (float y = west; y <= east; y++)
                         {
                             LowerTerrain(y, x, size, (double)seconds / 5.0);
+                            lastEdit = DateTime.Now;
                         }
                     }
                     break;
@@ -248,6 +251,7 @@ namespace OpenSim.Region.Terrain
                         for (float y = west; y <= east; y++)
                         {
                             NoiseTerrain(y, x, size, (double)seconds / 5.0);
+                            lastEdit = DateTime.Now;
                         }
                     }
                     break;
@@ -258,6 +262,7 @@ namespace OpenSim.Region.Terrain
                         for (float y = west; y <= east; y++)
                         {
                             RevertTerrain(y, x, size, (double)seconds / 5.0);
+                            lastEdit = DateTime.Now;
                         }
                     }
                     break;
