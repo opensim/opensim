@@ -63,17 +63,17 @@ namespace OpenSim.DataStore.NullStorage
             return null;
         }
 
-        public void RemoveLandObject(uint id)
+        public void RemoveLandObject(uint id, LLUUID regionUUID)
         {
         }
 
-        public void StoreParcel(Land land)
+        public void StoreLandObject(Land land, LLUUID regionUUID)
         {
         }
 
-        public List<Land> LoadLandObjects()
+        public List<Framework.LandData> LoadLandObjects(LLUUID regionUUID)
         {
-            return new List<Land>();
+            return new List<Framework.LandData>();
         }
 
         public void Shutdown()

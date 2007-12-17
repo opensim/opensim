@@ -26,7 +26,7 @@
 * 
 */
 using libsecondlife;
-
+using System.Collections.Generic;
 namespace OpenSim.Framework
 {
     public class LandData
@@ -74,6 +74,8 @@ namespace OpenSim.Framework
         public LLVector3 userLocation = new LLVector3();
         public LLVector3 userLookAt = new LLVector3();
 
+        public List<ParcelManager.ParcelAccessEntry> parcelAccessList = new List<ParcelManager.ParcelAccessEntry>();
+
         public LandData()
         {
             globalID = LLUUID.Random();
@@ -116,6 +118,17 @@ namespace OpenSim.Framework
             landData.snapshotID = snapshotID;
             landData.userLocation = userLocation;
             landData.userLookAt = userLookAt;
+
+            landData.parcelAccessList.Clear();
+            foreach (ParcelManager.ParcelAccessEntry entry in parcelAccessList)
+            {
+                ParcelManager.ParcelAccessEntry newEntry = new ParcelManager.ParcelAccessEntry();
+                newEntry.AgentID = entry.AgentID;
+                newEntry.Flags = entry.Flags;
+                newEntry.Time = entry.Time;
+
+                landData.parcelAccessList.Add(newEntry);
+            }
 
             return landData;
         }

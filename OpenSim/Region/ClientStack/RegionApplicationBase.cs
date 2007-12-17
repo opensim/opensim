@@ -136,19 +136,17 @@ namespace OpenSim.Region.ClientStack
             {
                 m_log.Verbose("PARCEL", "Found master avatar [" + masterAvatar.UUID.ToStringHyphenated() + "]");
                 scene.RegionInfo.MasterAvatarAssignedUUID = masterAvatar.UUID;
-                //TODO: Load parcels from storageManager
             }
             else
             {
                 m_log.Verbose("PARCEL", "No master avatar found, using null.");
                 scene.RegionInfo.MasterAvatarAssignedUUID = LLUUID.Zero;
-                //TODO: Load parcels from storageManager
             }
 
             scene.LandManager.resetSimLandObjects();
             
             scene.LoadPrimsFromStorage(m_permissions);
-
+            scene.loadAllLandObjectsFromStorage();
             scene.performParcelPrimCountUpdate();
             scene.StartTimer();
             return scene;

@@ -31,6 +31,7 @@ using libsecondlife;
 using libsecondlife.Packets;
 using OpenSim.Framework;
 using OpenSim.Region.Environment.Scenes;
+using OpenSim.Region.Environment.Interfaces;
 
 namespace OpenSim.Region.Environment.LandManagement
 {
@@ -75,6 +76,34 @@ namespace OpenSim.Region.Environment.LandManagement
 
         #endregion
 
+        #region Events and Triggers
+        public delegate void LandObjectAdded(Land newParcel, LLUUID regionUUID);
+        public delegate void LandObjectRemoved(uint localParcelID, LLUUID regionUUID);
+
+        public event LandObjectAdded OnLandObjectAdded;
+        public event LandObjectRemoved OnLandObjectRemoved;
+
+        public void triggerLandObjectAdded(Land newParcel)
+        {
+            if (OnLandObjectAdded != null)
+            {
+                OnLandObjectAdded(newParcel, m_scene.RegionInfo.RegionID);
+            }
+        }
+        public void triggerLandObjectRemoved(uint localParcelID)
+        {
+            if (OnLandObjectRemoved != null)
+            {
+                OnLandObjectRemoved(localParcelID, m_scene.RegionInfo.RegionID);
+            }
+        }
+        public void triggerLandObjectUpdated(uint localParcelID, Land newParcel)
+        {
+            triggerLandObjectRemoved(localParcelID);
+            triggerLandObjectAdded(newParcel);
+        }
+
+        #endregion
         #region Member Variables
 
         public Dictionary<int, Land> landList = new Dictionary<int, Land>();
@@ -100,13 +129,23 @@ namespace OpenSim.Region.Environment.LandManagement
             landIDList.Initialize();
         }
 
-        #endregion
 
+
+        #endregion
+        
         #region Member Functions
 
-        #region Parcel From Storage Functions
+        #region Land Object From Storage Functions
 
-        public void LandFromStorage(LandData data)
+        public void IncomingLandObjectsFromStorage(List<LandData> data)
+        {
+            foreach (LandData parcel in data)
+            {
+                IncomingLandObjectFromStorage(parcel);
+            }
+        }
+
+        public void IncomingLandObjectFromStorage(LandData data)
         {
             Land new_land = new Land(data.ownerID, data.isGroupOwned, m_scene);
             new_land.landData = data.Copy();
@@ -116,6 +155,7 @@ namespace OpenSim.Region.Environment.LandManagement
 
         public void NoLandDataFromStorage()
         {
+            Console.WriteLine("No LandData in storage! Loading a single, flat parcel instead");
             resetSimLandObjects();
         }
 
@@ -156,7 +196,7 @@ namespace OpenSim.Region.Environment.LandManagement
                 }
             }
             landList[lastLandLocalID].forceUpdateLandInfo();
-
+            triggerLandObjectAdded(new_land);
             return new_land;
         }
 
@@ -177,8 +217,21 @@ namespace OpenSim.Region.Environment.LandManagement
                     }
                 }
             }
-            // TODO: Put event here for storage manager to bind to.
             landList.Remove(local_id);
+            triggerLandObjectRemoved((uint)local_id);
+        }
+
+        public void updateLandObject(int local_id, LandData newData)
+        {
+            if (landList.ContainsKey(local_id))
+            {
+                landList[local_id].landData = newData.Copy();
+                triggerLandObjectUpdated((uint)local_id, landList[local_id]);
+            }
+            else
+            {
+                throw new Exception("Could not update land object. Local ID '" + local_id + "' does not exist");
+            }
         }
 
         private void performFinalLandJoin(Land master, Land slave)
@@ -195,6 +248,7 @@ namespace OpenSim.Region.Environment.LandManagement
                     }
                 }
             }
+
             removeLandObject(slave.landData.localID);
         }
 
@@ -292,7 +346,6 @@ namespace OpenSim.Region.Environment.LandManagement
             landList[startLandObjectIndex].setLandBitmap(
                 Land.modifyLandBitmapSquare(startLandObject.getLandBitmap(), start_x, start_y, end_x, end_y, false));
             landList[startLandObjectIndex].forceUpdateLandInfo();
-
 
             setPrimsTainted();
 

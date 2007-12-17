@@ -225,9 +225,15 @@ namespace OpenSim.Region.Environment.Scenes
             m_physicalPrim = physicalPrim;
             m_sendTasksToChild = SendTasksToChild;
 
-            m_LandManager = new LandManager(this, m_regInfo);
-            m_estateManager = new EstateManager(this, m_regInfo);
             m_eventManager = new EventManager();
+
+            m_LandManager = new LandManager(this, m_regInfo);
+
+            //Bind Storage Manager functions to some land manager functions for this scene
+            m_LandManager.OnLandObjectAdded += new LandManager.LandObjectAdded(m_storageManager.DataStore.StoreLandObject);
+            m_LandManager.OnLandObjectRemoved += new LandManager.LandObjectRemoved(m_storageManager.DataStore.RemoveLandObject);
+            
+            m_estateManager = new EstateManager(this, m_regInfo);
 
             m_permissionManager = permissionManager;
             m_permissionManager.Initialise(this);
@@ -831,6 +837,24 @@ namespace OpenSim.Region.Environment.Scenes
             AssetCache.AddAsset(asset);
         }
 
+        #endregion
+
+        #region Load Land
+
+        public void loadAllLandObjectsFromStorage()
+        {
+            MainLog.Instance.Verbose("SCENE", "Loading land objects from storage");
+            List<Framework.LandData> landData = m_storageManager.DataStore.LoadLandObjects(RegionInfo.RegionID);
+            if (landData.Count == 0)
+            {
+                m_LandManager.NoLandDataFromStorage();
+            }
+            else
+            {
+                m_LandManager.IncomingLandObjectsFromStorage(landData);
+            }
+        }
+        
         #endregion
 
         #region Primitives Methods

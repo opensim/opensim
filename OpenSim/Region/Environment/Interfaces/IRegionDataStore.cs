@@ -50,9 +50,9 @@ namespace OpenSim.Region.Environment.Interfaces
         void StoreTerrain(double[,] terrain, LLUUID regionID);
         double[,] LoadTerrain(LLUUID regionID);
 
-        void StoreParcel(Land Parcel);
-        void RemoveLandObject(uint ID);
-        List<Land> LoadLandObjects();
+        void StoreLandObject(Land Parcel,LLUUID regionUUID);
+        void RemoveLandObject(uint ID, LLUUID regionUUID);
+        List<Framework.LandData> LoadLandObjects(LLUUID regionUUID);
 
         void Shutdown();
     }

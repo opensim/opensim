@@ -32,6 +32,7 @@ using libsecondlife;
 using libsecondlife.Packets;
 using OpenSim.Framework;
 using OpenSim.Region.Environment.Scenes;
+using OpenSim.Region.Environment.Interfaces;
 
 namespace OpenSim.Region.Environment.LandManagement
 {
@@ -47,7 +48,6 @@ namespace OpenSim.Region.Environment.LandManagement
 
         public LandData landData = new LandData();
         public List<SceneObjectGroup> primsOverMe = new List<SceneObjectGroup>();
-        public List<libsecondlife.ParcelManager.ParcelAccessEntry> parcelAccessList = new List<ParcelManager.ParcelAccessEntry>();
         public Scene m_scene;
 
         private bool[,] landBitmap = new bool[64,64];
@@ -93,20 +93,11 @@ namespace OpenSim.Region.Environment.LandManagement
 
             //Place all new variables here!
             newLand.landBitmap = (bool[,]) (landBitmap.Clone());
-            newLand.parcelAccessList.Clear();
-            foreach (ParcelManager.ParcelAccessEntry entry in parcelAccessList)
-            {
-                ParcelManager.ParcelAccessEntry newEntry = new ParcelManager.ParcelAccessEntry();
-                newEntry.AgentID = entry.AgentID;
-                newEntry.Flags = entry.Flags;
-                newEntry.Time = entry.Time;
-
-                newLand.parcelAccessList.Add(newEntry);
-            }
             newLand.landData = landData.Copy();
 
             return newLand;
         }
+
 
         #endregion
 
@@ -209,24 +200,30 @@ namespace OpenSim.Region.Environment.LandManagement
             if (remote_client.AgentId == landData.ownerID)
             {
                 //Needs later group support
-                landData.authBuyerID = packet.ParcelData.AuthBuyerID;
-                landData.category = (Parcel.ParcelCategory) packet.ParcelData.Category;
-                landData.landDesc = Helpers.FieldToUTF8String(packet.ParcelData.Desc);
-                landData.groupID = packet.ParcelData.GroupID;
-                landData.landingType = packet.ParcelData.LandingType;
-                landData.mediaAutoScale = packet.ParcelData.MediaAutoScale;
-                landData.mediaID = packet.ParcelData.MediaID;
-                landData.mediaURL = Helpers.FieldToUTF8String(packet.ParcelData.MediaURL);
-                landData.musicURL = Helpers.FieldToUTF8String(packet.ParcelData.MusicURL);
-                landData.landName = Helpers.FieldToUTF8String(packet.ParcelData.Name);
-                landData.landFlags = packet.ParcelData.ParcelFlags;
-                landData.passHours = packet.ParcelData.PassHours;
-                landData.passPrice = packet.ParcelData.PassPrice;
-                landData.salePrice = packet.ParcelData.SalePrice;
-                landData.snapshotID = packet.ParcelData.SnapshotID;
-                landData.userLocation = packet.ParcelData.UserLocation;
-                landData.userLookAt = packet.ParcelData.UserLookAt;
+                LandData newData = landData.Copy();
+                newData.authBuyerID = packet.ParcelData.AuthBuyerID;
+                newData.category = (Parcel.ParcelCategory)packet.ParcelData.Category;
+                newData.landDesc = Helpers.FieldToUTF8String(packet.ParcelData.Desc);
+                newData.groupID = packet.ParcelData.GroupID;
+                newData.landingType = packet.ParcelData.LandingType;
+                newData.mediaAutoScale = packet.ParcelData.MediaAutoScale;
+                newData.mediaID = packet.ParcelData.MediaID;
+                newData.mediaURL = Helpers.FieldToUTF8String(packet.ParcelData.MediaURL);
+                newData.musicURL = Helpers.FieldToUTF8String(packet.ParcelData.MusicURL);
+                newData.landName = Helpers.FieldToUTF8String(packet.ParcelData.Name);
+                newData.landFlags = packet.ParcelData.ParcelFlags;
+                newData.passHours = packet.ParcelData.PassHours;
+                newData.passPrice = packet.ParcelData.PassPrice;
+                newData.salePrice = packet.ParcelData.SalePrice;
+                newData.snapshotID = packet.ParcelData.SnapshotID;
+                newData.userLocation = packet.ParcelData.UserLocation;
+                newData.userLookAt = packet.ParcelData.UserLookAt;
+
+                m_scene.LandManager.updateLandObject(landData.localID, newData);
+
                 sendLandUpdateToAvatarsOverMe();
+
+                
             }
         }
 
@@ -257,7 +254,7 @@ namespace OpenSim.Region.Environment.LandManagement
         public ParcelAccessListReplyPacket.ListBlock[] createAccessListArrayByFlag(ParcelManager.AccessList flag)
         {
             List<ParcelAccessListReplyPacket.ListBlock> list = new List<ParcelAccessListReplyPacket.ListBlock>();
-            foreach (ParcelManager.ParcelAccessEntry entry in parcelAccessList)
+            foreach (ParcelManager.ParcelAccessEntry entry in landData.parcelAccessList)
             {
                 if (entry.Flags == flag)
                 {
@@ -317,13 +314,15 @@ namespace OpenSim.Region.Environment.LandManagement
 
         public void updateAccessList(uint flags,  List<ParcelManager.ParcelAccessEntry> entries, IClientAPI remote_client)
         {
+            LandData newData = landData.Copy();
+
             if (entries.Count == 1 && entries[0].AgentID == LLUUID.Zero)
             {
                 entries.Clear();
             }
             
             List<ParcelManager.ParcelAccessEntry> toRemove = new List<ParcelManager.ParcelAccessEntry>();
-            foreach (ParcelManager.ParcelAccessEntry entry in parcelAccessList)
+            foreach (ParcelManager.ParcelAccessEntry entry in newData.parcelAccessList)
             {
                 if (entry.Flags == (ParcelManager.AccessList)flags)
                 {
@@ -333,7 +332,7 @@ namespace OpenSim.Region.Environment.LandManagement
 
             foreach (ParcelManager.ParcelAccessEntry entry in toRemove)
             {
-                parcelAccessList.Remove(entry);
+                newData.parcelAccessList.Remove(entry);
             }
             foreach (ParcelManager.ParcelAccessEntry entry in entries)
             {
@@ -342,11 +341,14 @@ namespace OpenSim.Region.Environment.LandManagement
                 temp.Time = new DateTime() ; //Pointless? Yes.
                 temp.Flags = (ParcelManager.AccessList)flags;
 
-                if (!this.parcelAccessList.Contains(temp))
+                if (!newData.parcelAccessList.Contains(temp))
                 {
-                    this.parcelAccessList.Add(temp);
+                    newData.parcelAccessList.Add(temp);
                 }
             }
+
+            m_scene.LandManager.updateLandObject(landData.localID, newData);
+
         }
 
         #endregion
@@ -385,6 +387,7 @@ namespace OpenSim.Region.Environment.LandManagement
                 new LLVector3((float) (max_x*4), (float) (max_y*4),
                               (float) m_scene.Terrain.GetHeight((max_x*4), (max_y*4)));
             landData.area = tempArea;
+
         }
 
         public void updateLandBitmapByteArray()

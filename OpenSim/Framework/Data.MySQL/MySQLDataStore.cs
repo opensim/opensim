@@ -289,17 +289,17 @@ namespace OpenSim.Framework.Data.MySQL
             return terret;
         }
 
-        public void RemoveLandObject(uint id)
+        public void RemoveLandObject(uint id, LLUUID regionUUID)
         {
         }
 
-        public void StoreParcel(Land parcel)
+        public void StoreLandObject(Land parcel, LLUUID regionUUID)
         {
         }
 
-        public List<Land> LoadLandObjects()
+        public List<Framework.LandData> LoadLandObjects(LLUUID regionUUID)
         {
-            return new List<Land>();
+            return new List<LandData>();
         }
 
         private void DisplayDataSet(DataSet ds, string title)
