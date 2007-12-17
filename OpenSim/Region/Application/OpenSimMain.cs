@@ -167,7 +167,8 @@ namespace OpenSim
                 config.Set("physical_prim", true);
                 config.Set("child_get_tasks", false);
                 config.Set("serverside_object_permissions", false);
-                config.Set("storage_plugin", "OpenSim.DataStore.NullStorage.dll");
+                config.Set("storage_plugin", "OpenSim.DataStore.MonoSqlite.dll");
+                config.Set("storage_connection_string", "URI=file:OpenSim.db,version=3");
                 config.Set("startup_console_commands_file", "");
                 config.Set("shutdown_console_commands_file", "");
                 config.Set("script_engine", "DotNetEngine");
@@ -236,8 +237,9 @@ namespace OpenSim
 
                 m_permissions = startupConfig.GetBoolean("serverside_object_permissions", false);
 
-                m_storageDll = startupConfig.GetString("storage_plugin", "OpenSim.DataStore.NullStorage.dll");
-                m_storageConnectionString = startupConfig.GetString("storage_connection_string","");
+                m_storageDll = startupConfig.GetString("storage_plugin", "OpenSim.DataStore.MonoSqlite.dll");
+                m_storageConnectionString 
+                    = startupConfig.GetString("storage_connection_string", "URI=file:OpenSim.db,version=3");
 
                 m_startupCommandsFile = startupConfig.GetString("startup_console_commands_file", "");
                 m_shutdownCommandsFile = startupConfig.GetString("shutdown_console_commands_file", "");
@@ -477,7 +479,9 @@ namespace OpenSim
             {
                 m_regionData.RemoveAt(RegionHandleElement);
             }
-            UDPServer restartingRegion = CreateRegion(whichRegion);
+            
+            CreateRegion(whichRegion);
+            //UDPServer restartingRegion = CreateRegion(whichRegion);
             //restartingRegion.ServerListener();
             //m_sceneManager.SendSimOnlineNotification(restartingRegion.RegionHandle);
         }
