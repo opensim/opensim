@@ -165,7 +165,7 @@ namespace OpenSim.Region.Environment.Modules
 
             if (e.Message.Length > 0)
             {
-                if (m_irc.Connected)
+                if (m_irc.Connected && (avatar != null)) // this is to keep objects from talking to IRC
                 {
                     m_irc.PrivMsg(fromName, scene.RegionInfo.RegionName, e.Message);
                 }
@@ -301,9 +301,7 @@ namespace OpenSim.Region.Environment.Modules
             Regex RE = new Regex(regex, RegexOptions.Multiline);
             MatchCollection matches = RE.Matches(input);
             // Get some direct matches $1 $4 is a 
-            if ((matches.Count == 1) && (matches[0].Groups.Count == 5) &&
-                (matches[0].Groups[2].Value != "Primitive")
-                )
+            if ((matches.Count == 1) && (matches[0].Groups.Count == 5))
             {
                 result = new Dictionary<string, string>();
                 result.Add("nick", matches[0].Groups[1].Value);
