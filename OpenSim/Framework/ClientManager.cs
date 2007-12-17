@@ -40,9 +40,25 @@ namespace OpenSim.Framework
 
         public void ForEachClient(ForEachClientDelegate whatToDo)
         {
-            foreach (IClientAPI client in m_clients.Values)
+
+            // Wasteful, I know
+            IClientAPI[] LocalClients = new IClientAPI[0];
+            lock (m_clients)
             {
-                whatToDo(client);
+                LocalClients = new IClientAPI[m_clients.Count];
+                m_clients.Values.CopyTo(LocalClients, 0);
+            }
+
+            for (int i = 0; i < LocalClients.Length; i++)
+            {
+                try
+                {
+                    whatToDo(LocalClients[i]);
+                }
+                catch (System.Exception e)
+                {
+                    OpenSim.Framework.Console.MainLog.Instance.Warn("CLIENT", "Unable to do ForEachClient for one of the clients" + "\n Reason: " + e.ToString());
+                }
             }
         }
 
@@ -84,29 +100,48 @@ namespace OpenSim.Framework
         public void CloseAllCircuits(LLUUID agentId)
         {
             uint[] circuits = GetAllCircuits(agentId);
-            foreach (uint circuit in circuits)
+            // We're using a for loop here so changes to the circuits don't cause it to completely fail.
+
+            for (int i = 0; i < circuits.Length; i++)
             {
                 IClientAPI client;
-                if (m_clients.TryGetValue(circuit, out client))
+                try
                 {
-                    Remove(circuit);
-                    client.Close();
+
+                    if (m_clients.TryGetValue(circuits[i], out client))
+                    {
+                        Remove(client.CircuitCode);
+                        client.Close();
+                    }
+                }
+                catch (System.Exception e)
+                {
+                    OpenSim.Framework.Console.MainLog.Instance.Error("CLIENT", "Unable to shutdown circuit for: " + agentId.ToString() + "\n Reason: " + e.ToString());
                 }
             }
+
+            
         }
 
         private uint[] GetAllCircuits(LLUUID agentId)
         {
             List<uint> circuits = new List<uint>();
-
-            foreach (KeyValuePair<uint, IClientAPI> pair in m_clients)
+            // Wasteful, I know
+            IClientAPI[] LocalClients = new IClientAPI[0];
+            lock (m_clients)
             {
-                if (pair.Value.AgentId == agentId)
-                {
-                    circuits.Add(pair.Key);
-                }
+                LocalClients = new IClientAPI[m_clients.Count];
+                m_clients.Values.CopyTo(LocalClients, 0);
             }
 
+
+            for (int i = 0; i < LocalClients.Length; i++ )
+            {
+                if (LocalClients[i].AgentId == agentId)
+                {
+                    circuits.Add(LocalClients[i].CircuitCode);
+                }
+            }
             return circuits.ToArray();
         }
 
@@ -116,14 +151,24 @@ namespace OpenSim.Framework
             ViewerEffectPacket packet = new ViewerEffectPacket();
             packet.Effect = effectBlock;
 
-            foreach (IClientAPI client in m_clients.Values)
+            // Wasteful, I know
+            IClientAPI[] LocalClients = new IClientAPI[0];
+            lock (m_clients)
             {
-                if (client.AgentId != sender.AgentId)
+                LocalClients = new IClientAPI[m_clients.Count];
+                m_clients.Values.CopyTo(LocalClients, 0);
+            }
+
+
+            for (int i = 0; i < LocalClients.Length; i++)
+            {
+                if (LocalClients[i].AgentId != sender.AgentId)
                 {
-                    packet.AgentData.AgentID = client.AgentId;
-                    packet.AgentData.SessionID = client.SessionId;
-                    client.OutPacket(packet,ThrottleOutPacketType.Task);
+                    packet.AgentData.AgentID = LocalClients[i].AgentId;
+                    packet.AgentData.SessionID = LocalClients[i].SessionId;
+                    LocalClients[i].OutPacket(packet, ThrottleOutPacketType.Task);
                 }
+
             }
         }
 

@@ -459,6 +459,7 @@ namespace OpenSim.Region.Environment.Scenes
         // This is the method that shuts down the scene.
         public override void Close()
         {
+            MainLog.Instance.Warn("SCENE", "Closing down the single simulator: " + RegionInfo.RegionName);
             // Kick all ROOT agents with the message, 'The simulator is going down'
             ForEachScenePresence(delegate(ScenePresence avatar)
                                  {

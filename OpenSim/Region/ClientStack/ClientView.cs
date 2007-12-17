@@ -209,8 +209,8 @@ namespace OpenSim.Region.ClientStack
             m_scene.RemoveClient(AgentId);
 
             // Send the STOP packet 
-            libsecondlife.Packets.DisableSimulatorPacket disable = new libsecondlife.Packets.DisableSimulatorPacket();
-            OutPacket(disable, ThrottleOutPacketType.Task);
+            //libsecondlife.Packets.DisableSimulatorPacket disable = new libsecondlife.Packets.DisableSimulatorPacket();
+            //OutPacket(disable, ThrottleOutPacketType.Task);
 
             // FLUSH Packets
             m_packetQueue.Close();
