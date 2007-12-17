@@ -301,7 +301,9 @@ namespace OpenSim.Region.Environment.Modules
             Regex RE = new Regex(regex, RegexOptions.Multiline);
             MatchCollection matches = RE.Matches(input);
             // Get some direct matches $1 $4 is a 
-            if ((matches.Count == 1) && (matches[0].Groups.Count == 5))
+            if ((matches.Count == 1) && (matches[0].Groups.Count == 5) &&
+                (matches[0].Groups[2].Value != "Primitive")
+                )
             {
                 result = new Dictionary<string, string>();
                 result.Add("nick", matches[0].Groups[1].Value);
