@@ -39,6 +39,7 @@ namespace OpenSim.Region.ClientStack
     public class UDPServer : ClientStackNetworkHandler
     {
         protected Dictionary<EndPoint, uint> clientCircuits = new Dictionary<EndPoint, uint>();
+        protected Dictionary<uint, EndPoint> clientCircuits_reverse = new Dictionary<uint, EndPoint>();
         public Socket Server;
         protected IPEndPoint ServerIncoming;
         protected byte[] RecvBuffer = new byte[4096];
@@ -176,6 +177,7 @@ namespace OpenSim.Region.ClientStack
         {
             UseCircuitCodePacket useCircuit = (UseCircuitCodePacket) packet;
             clientCircuits.Add(epSender, useCircuit.CircuitCode.Code);
+            clientCircuits_reverse.Add(useCircuit.CircuitCode.Code, epSender);
 
             PacketServer.AddNewClient(epSender, useCircuit, m_assetCache, m_authenticateSessionsClass);
         }
@@ -208,15 +210,7 @@ namespace OpenSim.Region.ClientStack
         {
             // find the endpoint for this circuit
             EndPoint sendto = null;
-            foreach (KeyValuePair<EndPoint, uint> p in clientCircuits)
-            {
-                if (p.Value == circuitcode)
-                {
-                    sendto = p.Key;
-                    break;
-                }
-            }
-            if (sendto != null)
+            if (clientCircuits_reverse.TryGetValue(circuitcode, out sendto))
             {
                 //we found the endpoint so send the packet to it
                 Server.SendTo(buffer, size, flags, sendto);
@@ -225,13 +219,11 @@ namespace OpenSim.Region.ClientStack
 
         public virtual void RemoveClientCircuit(uint circuitcode)
         {
-            foreach (KeyValuePair<EndPoint, uint> p in clientCircuits)
+            EndPoint sendto = null;
+            if (clientCircuits_reverse.TryGetValue(circuitcode, out sendto))
             {
-                if (p.Value == circuitcode)
-                {
-                    clientCircuits.Remove(p.Key);
-                    break;
-                }
+                clientCircuits.Remove(sendto);
+                clientCircuits_reverse.Remove(circuitcode);
             }
         }
     }
