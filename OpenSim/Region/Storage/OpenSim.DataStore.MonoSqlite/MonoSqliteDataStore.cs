@@ -621,7 +621,7 @@ namespace OpenSim.DataStore.MonoSqlite
             createCol(land, "OwnerUUID", typeof(String));
             createCol(land, "IsGroupOwned", typeof(Boolean));
             createCol(land, "Area", typeof(Int32));
-            createCol(land, "AutionID", typeof(Int32)); //Unemplemented
+            createCol(land, "AuctionID", typeof(Int32)); //Unemplemented
             createCol(land, "Category", typeof(Int32)); //Enum libsecondlife.Parcel.ParcelCategory
             createCol(land, "ClaimDate", typeof(Int32));
             createCol(land, "ClaimPrice", typeof(Int32));
@@ -747,7 +747,7 @@ namespace OpenSim.DataStore.MonoSqlite
             newData.ownerID= (String) row["OwnerUUID"];
             newData.isGroupOwned= (Boolean) row["IsGroupOwned"];
             newData.area= Convert.ToInt32(row["Area"]);
-            newData.auctionID = Convert.ToUInt32(row["AutionID"]); //Unemplemented
+            newData.auctionID = Convert.ToUInt32(row["AuctionID"]); //Unemplemented
             newData.category= (Parcel.ParcelCategory) Convert.ToInt32(row["Category"]); //Enum libsecondlife.Parcel.ParcelCategory
             newData.claimDate= Convert.ToInt32(row["ClaimDate"]);
             newData.claimPrice= Convert.ToInt32(row["ClaimPrice"]);
@@ -870,7 +870,7 @@ namespace OpenSim.DataStore.MonoSqlite
             row["OwnerUUID"] = land.ownerID.ToString();
             row["IsGroupOwned"] = land.isGroupOwned;
             row["Area"] = land.area;
-            row["AutionID"] = land.auctionID; //Unemplemented
+            row["AuctionID"] = land.auctionID; //Unemplemented
             row["Category"] = land.category; //Enum libsecondlife.Parcel.ParcelCategory
             row["ClaimDate"] = land.claimDate;
             row["ClaimPrice"] = land.claimPrice;
