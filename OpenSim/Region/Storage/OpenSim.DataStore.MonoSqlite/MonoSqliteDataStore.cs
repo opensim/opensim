@@ -388,7 +388,6 @@ namespace OpenSim.DataStore.MonoSqlite
                 SqliteConnection conn = new SqliteConnection(m_connectionString);
                 conn.Open();
 
-                Console.WriteLine("REMOVING LAND WITH ID " + globalID);
                 using (SqliteCommand cmd = new SqliteCommand("delete from land where UUID=:UUID", conn))
                 {
                     cmd.Parameters.Add(new SqliteParameter(":UUID", globalID.ToString()));
@@ -410,8 +409,6 @@ namespace OpenSim.DataStore.MonoSqlite
             {
                 SqliteConnection conn = new SqliteConnection(m_connectionString);
                 conn.Open();
-
-                Console.WriteLine("STORING LAND TO SQLITE: " + parcel.landData.landName + " (" + parcel.landData.globalID + ")");
                 DataTable land = ds.Tables["land"];
                 DataTable landaccesslist = ds.Tables["landaccesslist"];
 
@@ -458,7 +455,6 @@ namespace OpenSim.DataStore.MonoSqlite
                 foreach (DataRow rawDataLand in rawDataForRegion)
                 {
                     LandData newLand = buildLandData(rawDataLand);
-                    Console.WriteLine("LOADED NEW LAND FROM SQLITE: " + newLand.landName + " (" + newLand.globalID + ")");
                     string accessListSearchExp = "LandUUID = '" + newLand.globalID.ToString() + "'";
                     DataRow[] rawDataForLandAccessList = landaccesslist.Select(accessListSearchExp);
                     foreach (DataRow rawDataLandAccess in rawDataForLandAccessList)
@@ -778,7 +774,7 @@ namespace OpenSim.DataStore.MonoSqlite
         private ParcelManager.ParcelAccessEntry buildLandAccessData(DataRow row)
         {
             ParcelManager.ParcelAccessEntry entry = new ParcelManager.ParcelAccessEntry();
-            entry.AgentID = new LLUUID((string)row["LandUUID"]);
+            entry.AgentID = new LLUUID((string)row["AccessUUID"]);
             entry.Flags = (ParcelManager.AccessList)row["Flags"];
             entry.Time = new DateTime();
             return entry;
