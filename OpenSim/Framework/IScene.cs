@@ -46,6 +46,7 @@ namespace OpenSim.Framework
 
         void AddNewClient(IClientAPI client, bool child);
         void RemoveClient(LLUUID agentID);
+        void CloseAllAgents(uint circuitcode);
 
         void Restart(int seconds);
         bool OtherRegionUp(RegionInfo thisRegion);

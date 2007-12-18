@@ -209,8 +209,8 @@ namespace OpenSim.Region.ClientStack
             m_scene.RemoveClient(AgentId);
 
             // Send the STOP packet 
-            //libsecondlife.Packets.DisableSimulatorPacket disable = new libsecondlife.Packets.DisableSimulatorPacket();
-            //OutPacket(disable, ThrottleOutPacketType.Task);
+            DisableSimulatorPacket disable = new DisableSimulatorPacket();
+            OutPacket(disable, ThrottleOutPacketType.Task);
 
             // FLUSH Packets
             m_packetQueue.Close();
@@ -225,6 +225,10 @@ namespace OpenSim.Region.ClientStack
             // This is just to give the client a reasonable chance of
             // flushing out all it's packets.  There should probably
             // be a better mechanism here
+            
+            // We can't reach into other scenes and close the connection 
+            // We need to do this over grid communications
+            m_scene.CloseAllAgents(CircuitCode);
 
             m_clientThread.Abort();
         }

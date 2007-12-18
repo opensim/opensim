@@ -119,16 +119,48 @@ namespace OpenSim.Region.ClientStack
                 {
                     case SocketError.AlreadyInProgress:
                     case SocketError.NetworkReset:
+                    case SocketError.ConnectionReset:
+                        try
+                        {
+                            CloseEndPoint(epSender);
+                        }
+                        catch (System.Exception a)
+                        {
+                            MainLog.Instance.Verbose("UDPSERVER", a.ToString());
+                        }
+                        try
+                        {
+                            Server.BeginReceiveFrom(RecvBuffer, 0, RecvBuffer.Length, SocketFlags.None, ref epSender, ReceivedData, null);
+                            
+                            // Ter: For some stupid reason ConnectionReset basically kills our async event structure..  
+                            // so therefore..  we've got to tell the server to BeginReceiveFrom again.
+                            // This will happen over and over until we've gone through all packets 
+                            // sent to and from this particular user.
+                            // Stupid I know..  
+                            // but Flusing the buffer would be even more stupid...  so, we're stuck with this ugly method.
+                        
+                        }
+                        catch (SocketException)
+                        {
+                            
+                        }
+                        break;
                     default:
-                        Console.WriteLine("Remote host Closed connection");
-                        CloseEndPoint(epSender);
+                        // Here's some reference code!   :D  
+                        // Shutdown and restart the UDP listener!  hehe
+                        // Shiny
+                        
+                        //Server.Shutdown(SocketShutdown.Both);
+                        //CloseEndPoint(epSender);
+                        //ServerListener();
                         break;
                 }
 
                 return;
             }
-            catch (System.ObjectDisposedException)
+            catch (System.ObjectDisposedException e)
             {
+                MainLog.Instance.Debug("UDPSERVER", e.ToString());
                 return;
             }
 
@@ -138,8 +170,9 @@ namespace OpenSim.Region.ClientStack
             {
                 packet = Packet.BuildPacket(RecvBuffer, ref packetEnd, ZeroBuffer);
             }
-            catch(Exception)
+            catch(Exception e)
             {
+                MainLog.Instance.Debug("UDPSERVER", e.ToString());
             }
 
             // do we already have a circuit for this endpoint
@@ -147,18 +180,21 @@ namespace OpenSim.Region.ClientStack
             if (clientCircuits.TryGetValue(epSender, out circuit))
             {
                 //if so then send packet to the packetserver
+                //MainLog.Instance.Warn("UDPSERVER", "ALREADY HAVE Circuit!");
                 m_packetServer.InPacket(circuit, packet);
             }
             else if (packet.Type == PacketType.UseCircuitCode)
             {
                 // new client
+                MainLog.Instance.Debug("UDPSERVER", "Adding New Client");
                 AddNewClient(packet);
             }
             else
             {
+
                 // invalid client
                 //CFK: This message seems to have served its usefullness as of 12-15 so I am commenting it out for now
-                //CFK: m_log.Warn("client", "Got a packet from an invalid client - " + epSender.ToString());
+                //m_log.Warn("client", "Got a packet from an invalid client - " + epSender.ToString());
             }
 
             Server.BeginReceiveFrom(RecvBuffer, 0, RecvBuffer.Length, SocketFlags.None, ref epSender, ReceivedData, null);
@@ -169,7 +205,9 @@ namespace OpenSim.Region.ClientStack
             uint circuit;
             if (clientCircuits.TryGetValue(sender, out circuit))
             {
+                MainLog.Instance.Debug("UDPSERVER", "CloseEndPoint:ClosingCircuit");
                 m_packetServer.CloseCircuit(circuit);
+                MainLog.Instance.Debug("UDPSERVER", "CloseEndPoint:ClosedCircuit");
             }
         }
 
@@ -222,8 +260,13 @@ namespace OpenSim.Region.ClientStack
             EndPoint sendto = null;
             if (clientCircuits_reverse.TryGetValue(circuitcode, out sendto))
             {
+                MainLog.Instance.Debug("UDPSERVER", "RemovingClientCircuit");
                 clientCircuits.Remove(sendto);
+                MainLog.Instance.Debug("UDPSERVER", "Removed Client Circuit");
+
+                MainLog.Instance.Debug("UDPSERVER", "Removing Reverse ClientCircuit");
                 clientCircuits_reverse.Remove(circuitcode);
+                MainLog.Instance.Debug("UDPSERVER", "Removed Reverse ClientCircuit");
             }
         }
     }

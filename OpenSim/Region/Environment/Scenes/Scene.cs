@@ -1243,7 +1243,12 @@ namespace OpenSim.Region.Environment.Scenes
             // Remove client agent from profile, so new logins will work
             CommsManager.UserService.clearUserAgent(agentID);
         }
+        public override void CloseAllAgents(uint circuitcode) 
+        {
+            // Called by ClientView to kill all circuit codes
+            ClientManager.CloseAllAgents(circuitcode);
 
+        }
         public void NotifyMyCoarseLocationChange()
         {
             ForEachScenePresence(delegate(ScenePresence presence) { presence.CoarseLocationChange(); });

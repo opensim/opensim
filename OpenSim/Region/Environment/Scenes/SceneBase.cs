@@ -130,6 +130,8 @@ namespace OpenSim.Region.Environment.Scenes
         /// <param name="agentID"></param>
         public abstract void RemoveClient(LLUUID agentID);
 
+        public abstract void CloseAllAgents(uint circuitcode);
+
         #endregion
 
         /// <summary>
