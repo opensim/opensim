@@ -46,7 +46,7 @@ namespace SimpleApp
     internal class Program : RegionApplicationBase, conscmd_callback
     {
         private ModuleLoader m_moduleLoader;
-        private IConfigSource m_config;
+        private IConfigSource m_config = null;
 
         private string m_userPlugin = "OpenSim.Framework.Data.SQLite.dll";
         private string m_inventoryPlugin = "OpenSim.Framework.Data.SQLite.dll";

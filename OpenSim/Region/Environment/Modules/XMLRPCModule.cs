@@ -100,11 +100,9 @@ namespace OpenSim.Region.Environment.Modules
         {
             try
             {
-
                 m_remoteDataPort = config.Configs["Network"].GetInt("remoteDataPort", m_remoteDataPort);
-
             }
-            catch (Exception e)
+            catch (Exception)
             {
             }
 

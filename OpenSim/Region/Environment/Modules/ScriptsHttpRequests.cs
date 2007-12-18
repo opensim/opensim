@@ -342,7 +342,7 @@ namespace OpenSim.Region.Environment.Modules
             {
                 httpThread.Abort();
             }
-            catch (Exception e) { }
+            catch (Exception) { }
         }
     }
 

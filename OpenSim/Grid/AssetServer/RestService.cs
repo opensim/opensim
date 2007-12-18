@@ -54,14 +54,7 @@ namespace OpenSim.Grid.AssetServer
 
                 if (p.Length > 0)
                 {
-                    LLUUID assetID;
-                    bool isTexture = false;
-                    LLUUID.TryParse(p[0], out assetID);
-                    if (p.Length > 1)
-                    {
-                        if (string.Compare(p[1], "texture", true) == 0)
-                            isTexture = true;
-                    }
+                    LLUUID assetID = LLUUID.Parse(p[0]);
 
                     MainLog.Instance.Verbose("REST", "GET:/asset fetch param={0} UUID={1}", param, assetID);
                     AssetBase asset = m_assetProvider.FetchAsset(assetID);

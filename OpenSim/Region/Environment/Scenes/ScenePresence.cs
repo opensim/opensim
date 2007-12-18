@@ -63,7 +63,6 @@ namespace OpenSim.Region.Environment.Scenes
 
         // Agent moves with a PID controller causing a force to be exerted.
         private bool m_newForce = false;
-        private bool m_newAvatar = false;
         private bool m_newCoarseLocations = true;
         private bool m_gotAllObjectsInScene = false;
         
@@ -457,7 +456,6 @@ namespace OpenSim.Region.Environment.Scenes
         /// </summary>
         public void MakeRootAgent(LLVector3 pos, bool isFlying)
         {
-            m_newAvatar = true;
             m_isChildAgent = false;
 
             AbsolutePosition = pos;
@@ -1104,7 +1102,6 @@ namespace OpenSim.Region.Environment.Scenes
             if (!m_isChildAgent)
             {
                 m_scene.InformClientOfNeighbours(this);
-                m_newAvatar = false;
             }
 
             SendFullUpdateToAllClients();
