@@ -142,8 +142,6 @@ namespace OpenSim.Region.ClientStack
                 m_log.Verbose("PARCEL", "No master avatar found, using null.");
                 scene.RegionInfo.MasterAvatarAssignedUUID = LLUUID.Zero;
             }
-
-            scene.LandManager.resetSimLandObjects();
             
             scene.LoadPrimsFromStorage(m_permissions);
             scene.loadAllLandObjectsFromStorage();

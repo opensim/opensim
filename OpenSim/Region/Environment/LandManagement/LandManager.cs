@@ -78,7 +78,7 @@ namespace OpenSim.Region.Environment.LandManagement
 
         #region Events and Triggers
         public delegate void LandObjectAdded(Land newParcel, LLUUID regionUUID);
-        public delegate void LandObjectRemoved(uint localParcelID, LLUUID regionUUID);
+        public delegate void LandObjectRemoved(LLUUID globalID);
 
         public event LandObjectAdded OnLandObjectAdded;
         public event LandObjectRemoved OnLandObjectRemoved;
@@ -90,16 +90,16 @@ namespace OpenSim.Region.Environment.LandManagement
                 OnLandObjectAdded(newParcel, m_scene.RegionInfo.RegionID);
             }
         }
-        public void triggerLandObjectRemoved(uint localParcelID)
+        public void triggerLandObjectRemoved(LLUUID globalID)
         {
             if (OnLandObjectRemoved != null)
             {
-                OnLandObjectRemoved(localParcelID, m_scene.RegionInfo.RegionID);
+                OnLandObjectRemoved(globalID);
             }
         }
         public void triggerLandObjectUpdated(uint localParcelID, Land newParcel)
         {
-            triggerLandObjectRemoved(localParcelID);
+            //triggerLandObjectRemoved(localParcelID);
             triggerLandObjectAdded(newParcel);
         }
 
@@ -217,8 +217,9 @@ namespace OpenSim.Region.Environment.LandManagement
                     }
                 }
             }
+
+            triggerLandObjectRemoved(landList[local_id].landData.globalID);
             landList.Remove(local_id);
-            triggerLandObjectRemoved((uint)local_id);
         }
 
         public void updateLandObject(int local_id, LandData newData)
@@ -250,6 +251,7 @@ namespace OpenSim.Region.Environment.LandManagement
             }
 
             removeLandObject(slave.landData.localID);
+            updateLandObject(master.landData.localID, master.landData);
         }
 
         /// <summary>
@@ -351,6 +353,7 @@ namespace OpenSim.Region.Environment.LandManagement
 
             //Now add the new land object
             Land result = addLandObject(newLand);
+            updateLandObject(startLandObject.landData.localID,startLandObject.landData);
             result.sendLandUpdateToAvatarsOverMe();
 
 

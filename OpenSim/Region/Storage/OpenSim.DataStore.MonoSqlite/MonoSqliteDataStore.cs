@@ -45,11 +45,16 @@ namespace OpenSim.DataStore.MonoSqlite
         private const string primSelect = "select * from prims";
         private const string shapeSelect = "select * from primshapes";
         private const string terrainSelect = "select * from terrain limit 1";
+        private const string landSelect = "select * from land";
+        private const string landAccessListSelect = "select * from landaccesslist";
 
         private DataSet ds;
         private SqliteDataAdapter primDa;
         private SqliteDataAdapter shapeDa;
         private SqliteDataAdapter terrainDa;
+        private SqliteDataAdapter landDa;
+        private SqliteDataAdapter landAccessListDa;
+
         private String m_connectionString;
 
         /***********************************************************************
@@ -78,6 +83,12 @@ namespace OpenSim.DataStore.MonoSqlite
             SqliteCommand terrainSelectCmd = new SqliteCommand(terrainSelect, conn);
             terrainDa = new SqliteDataAdapter(terrainSelectCmd);
 
+            SqliteCommand landSelectCmd = new SqliteCommand(landSelect, conn);
+            landDa = new SqliteDataAdapter(landSelectCmd);
+
+            SqliteCommand landAccessListSelectCmd = new SqliteCommand(landAccessListSelect, conn);
+            landAccessListDa = new SqliteDataAdapter(landAccessListSelectCmd);
+
             // We fill the data set, now we've got copies in memory for the information
             // TODO: see if the linkage actually holds.
             // primDa.FillSchema(ds, SchemaType.Source, "PrimSchema");
@@ -94,6 +105,12 @@ namespace OpenSim.DataStore.MonoSqlite
 
                 ds.Tables.Add(createTerrainTable());
                 setupTerrainCommands(terrainDa, conn);
+
+                ds.Tables.Add(createLandTable());
+                setupLandCommands(landDa, conn);
+
+                ds.Tables.Add(createLandAccessListTable());
+                setupLandAccessCommands(landAccessListDa, conn);
 
                 // WORKAROUND: This is a work around for sqlite on
                 // windows, which gets really unhappy with blob columns
@@ -115,6 +132,24 @@ namespace OpenSim.DataStore.MonoSqlite
                 catch (Exception)
                 {
                     MainLog.Instance.Verbose("DATASTORE", "Caught fill error on terrain table");
+                }
+
+                try
+                {
+                    landDa.Fill(ds.Tables["land"]);
+                }
+                catch (Exception)
+                {
+                    MainLog.Instance.Verbose("DATASTORE", "Caught fill error on land table");
+                }
+
+                try
+                {
+                    landAccessListDa.Fill(ds.Tables["landaccesslist"]);
+                }
+                catch (Exception)
+                {
+                    MainLog.Instance.Verbose("DATASTORE", "Caught fill error on landaccesslist table");
                 }
                 return;
             }
@@ -346,17 +381,95 @@ namespace OpenSim.DataStore.MonoSqlite
             }
         }
 
-        public void RemoveLandObject(uint id, LLUUID regionUUID)
+        public void RemoveLandObject(LLUUID globalID)
         {
+            lock (ds)
+            {
+                SqliteConnection conn = new SqliteConnection(m_connectionString);
+                conn.Open();
+
+                Console.WriteLine("REMOVING LAND WITH ID " + globalID);
+                using (SqliteCommand cmd = new SqliteCommand("delete from land where UUID=:UUID", conn))
+                {
+                    cmd.Parameters.Add(new SqliteParameter(":UUID", globalID.ToString()));
+                    cmd.ExecuteNonQuery();
+                }
+
+                using (SqliteCommand cmd = new SqliteCommand("delete from landaccesslist where LandUUID=:UUID", conn))
+                {
+                    cmd.Parameters.Add(new SqliteParameter(":UUID", globalID.ToString()));
+                    cmd.ExecuteNonQuery();
+                }
+                conn.Close();
+            }
         }
 
         public void StoreLandObject(Land parcel, LLUUID regionUUID)
         {
+            lock (ds)
+            {
+                SqliteConnection conn = new SqliteConnection(m_connectionString);
+                conn.Open();
+
+                Console.WriteLine("STORING LAND TO SQLITE: " + parcel.landData.landName + " (" + parcel.landData.globalID + ")");
+                DataTable land = ds.Tables["land"];
+                DataTable landaccesslist = ds.Tables["landaccesslist"];
+
+                DataRow landRow = land.Rows.Find(parcel.landData.globalID.ToString());
+                if (landRow == null)
+                {
+                    landRow = land.NewRow();
+                    fillLandRow(landRow, parcel.landData, regionUUID);
+                    land.Rows.Add(landRow);
+                }
+                else
+                {
+                    fillLandRow(landRow, parcel.landData, regionUUID);
+                }
+
+                using (SqliteCommand cmd = new SqliteCommand("delete from landaccesslist where LandUUID=:LandUUID", conn))
+                {
+                    cmd.Parameters.Add(new SqliteParameter(":LandUUID", parcel.landData.globalID.ToString()));
+                    cmd.ExecuteNonQuery();
+                }
+
+                foreach (ParcelManager.ParcelAccessEntry entry in parcel.landData.parcelAccessList)
+                {
+                    DataRow newAccessRow = landaccesslist.NewRow();
+                    fillLandAccessRow(newAccessRow, entry, parcel.landData.globalID);
+                    landaccesslist.Rows.Add(newAccessRow);
+                }
+                conn.Close();
+
+            }
+
+            Commit();
         }
 
         public List<Framework.LandData> LoadLandObjects(LLUUID regionUUID)
         {
-            return new List<LandData>();
+            List<LandData> landDataForRegion = new List<LandData>();
+            lock(ds)
+            {
+                DataTable land = ds.Tables["land"];
+                DataTable landaccesslist = ds.Tables["landaccesslist"];
+                string searchExp = "RegionUUID = '" + regionUUID.ToString() + "'";
+                DataRow[] rawDataForRegion = land.Select(searchExp);
+                foreach (DataRow rawDataLand in rawDataForRegion)
+                {
+                    LandData newLand = buildLandData(rawDataLand);
+                    Console.WriteLine("LOADED NEW LAND FROM SQLITE: " + newLand.landName + " (" + newLand.globalID + ")");
+                    string accessListSearchExp = "LandUUID = '" + newLand.globalID.ToString() + "'";
+                    DataRow[] rawDataForLandAccessList = landaccesslist.Select(accessListSearchExp);
+                    foreach (DataRow rawDataLandAccess in rawDataForLandAccessList)
+                    {
+                        newLand.parcelAccessList.Add(buildLandAccessData(rawDataLandAccess));
+                    }
+
+                    landDataForRegion.Add(newLand);
+                }
+            }
+            return landDataForRegion;
         }
 
         public void Commit()
@@ -366,6 +479,8 @@ namespace OpenSim.DataStore.MonoSqlite
                 primDa.Update(ds, "prims");
                 shapeDa.Update(ds, "primshapes");
                 terrainDa.Update(ds, "terrain");
+                landDa.Update(ds, "land");
+                landAccessListDa.Update(ds, "landaccesslist");
                 ds.AcceptChanges();
             }
         }
@@ -495,6 +610,59 @@ namespace OpenSim.DataStore.MonoSqlite
             return shapes;
         }
 
+        private DataTable createLandTable()
+        {
+            DataTable land = new DataTable("land");
+            createCol(land, "UUID", typeof(String));
+            createCol(land, "RegionUUID", typeof(String));
+            createCol(land, "LocalLandID", typeof(UInt32));
+
+            // Bitmap is a byte[512]
+            createCol(land, "Bitmap", typeof(Byte[]));
+
+            createCol(land, "Name", typeof(String));
+            createCol(land, "Desc", typeof(String));
+            createCol(land, "OwnerUUID", typeof(String));
+            createCol(land, "IsGroupOwned", typeof(Boolean));
+            createCol(land, "Area", typeof(Int32));
+            createCol(land, "AutionID", typeof(Int32)); //Unemplemented
+            createCol(land, "Category", typeof(Int32)); //Enum libsecondlife.Parcel.ParcelCategory
+            createCol(land, "ClaimDate", typeof(Int32));
+            createCol(land, "ClaimPrice", typeof(Int32));
+            createCol(land, "GroupUUID", typeof(string));
+            createCol(land, "SalePrice", typeof(Int32));
+            createCol(land, "LandStatus", typeof(Int32)); //Enum. libsecondlife.Parcel.ParcelStatus
+            createCol(land, "LandFlags", typeof(UInt32));
+            createCol(land, "LandingType", typeof(Byte));
+            createCol(land, "MediaAutoScale", typeof(Byte));
+            createCol(land, "MediaTextureUUID", typeof(String));
+            createCol(land, "MediaURL", typeof(String));
+            createCol(land, "MusicURL", typeof(String));
+            createCol(land, "PassHours", typeof(Double));
+            createCol(land, "PassPrice", typeof(UInt32));
+            createCol(land, "SnapshotUUID", typeof(String));
+            createCol(land, "UserLocationX", typeof(Double));
+            createCol(land, "UserLocationY", typeof(Double));
+            createCol(land, "UserLocationZ", typeof(Double));
+            createCol(land, "UserLookAtX", typeof(Double));
+            createCol(land, "UserLookAtY", typeof(Double));
+            createCol(land, "UserLookAtZ", typeof(Double));
+
+            land.PrimaryKey = new DataColumn[] { land.Columns["UUID"] };
+
+            return land;
+        }
+
+        private DataTable createLandAccessListTable()
+        {
+            DataTable landaccess = new DataTable("landaccesslist");
+            createCol(landaccess, "LandUUID", typeof(String));
+            createCol(landaccess, "AccessUUID", typeof(String));
+            createCol(landaccess, "Flags", typeof(UInt32));
+
+            return landaccess;
+        }
+
         /***********************************************************************
          *  
          *  Convert between ADO.NET <=> OpenSim Objects
@@ -566,6 +734,54 @@ namespace OpenSim.DataStore.MonoSqlite
                 );
 
             return prim;
+        }
+
+        private LandData buildLandData(DataRow row)
+        {
+            LandData newData = new LandData();
+
+            newData.globalID = new LLUUID((String)row["UUID"]);  
+            newData.localID= Convert.ToInt32(row["LocalLandID"]);
+
+            // Bitmap is a byte[512]
+            newData.landBitmapByteArray = (Byte[]) row["Bitmap"];
+
+            newData.landName= (String) row["Name"];
+            newData.landDesc= (String) row["Desc"];
+            newData.ownerID= (String) row["OwnerUUID"];
+            newData.isGroupOwned= (Boolean) row["IsGroupOwned"];
+            newData.area= Convert.ToInt32(row["Area"]);
+            newData.auctionID = Convert.ToUInt32(row["AutionID"]); //Unemplemented
+            newData.category= (Parcel.ParcelCategory) Convert.ToInt32(row["Category"]); //Enum libsecondlife.Parcel.ParcelCategory
+            newData.claimDate= Convert.ToInt32(row["ClaimDate"]);
+            newData.claimPrice= Convert.ToInt32(row["ClaimPrice"]);
+            newData.groupID= new LLUUID((String)row["GroupUUID"]);
+            newData.salePrice = Convert.ToInt32(row["SalePrice"]);
+            newData.landStatus= (Parcel.ParcelStatus) Convert.ToInt32(row["LandStatus"]); //Enum. libsecondlife.Parcel.ParcelStatus
+            newData.landFlags= Convert.ToUInt32(row["LandFlags"]);
+            newData.landingType= (Byte) row["LandingType"];
+            newData.mediaAutoScale= (Byte) row["MediaAutoScale"];
+            newData.mediaID= new LLUUID((String)row["MediaTextureUUID"]);
+            newData.mediaURL= (String) row["MediaURL"];
+            newData.musicURL= (String) row["MusicURL"];
+            newData.passHours= Convert.ToSingle(row["PassHours"]);
+            newData.passPrice= Convert.ToInt32(row["PassPrice"]);
+            newData.snapshotID= (String) row["SnapshotUUID"];
+
+            newData.userLocation = new LLVector3(Convert.ToSingle(row["UserLocationX"]),Convert.ToSingle(row["UserLocationY"]), Convert.ToSingle(row["UserLocationZ"]));
+            newData.userLookAt = new LLVector3(Convert.ToSingle(row["UserLookAtX"]),Convert.ToSingle(row["UserLookAtY"]), Convert.ToSingle(row["UserLookAtZ"]));
+            newData.parcelAccessList = new List<ParcelManager.ParcelAccessEntry>();
+
+            return newData;
+        }
+
+        private ParcelManager.ParcelAccessEntry buildLandAccessData(DataRow row)
+        {
+            ParcelManager.ParcelAccessEntry entry = new ParcelManager.ParcelAccessEntry();
+            entry.AgentID = new LLUUID((string)row["LandUUID"]);
+            entry.Flags = (ParcelManager.AccessList)row["Flags"];
+            entry.Time = new DateTime();
+            return entry;
         }
 
         private Array serializeTerrain(double[,] val) 
@@ -642,6 +858,51 @@ namespace OpenSim.DataStore.MonoSqlite
             row["RotationY"] = prim.RotationOffset.Y;
             row["RotationZ"] = prim.RotationOffset.Z;
             row["RotationW"] = prim.RotationOffset.W;
+        }
+
+        private void fillLandRow(DataRow row, LandData land, LLUUID regionUUID)
+        {
+            row["UUID"] = land.globalID.ToString();
+            row["RegionUUID"] = regionUUID.ToString();
+            row["LocalLandID"] = land.localID;
+
+            // Bitmap is a byte[512]
+            row["Bitmap"] = land.landBitmapByteArray;
+
+            row["Name"] = land.landName;
+            row["Desc"] = land.landDesc;
+            row["OwnerUUID"] = land.ownerID.ToString();
+            row["IsGroupOwned"] = land.isGroupOwned;
+            row["Area"] = land.area;
+            row["AutionID"] = land.auctionID; //Unemplemented
+            row["Category"] = land.category; //Enum libsecondlife.Parcel.ParcelCategory
+            row["ClaimDate"] = land.claimDate;
+            row["ClaimPrice"] = land.claimPrice;
+            row["GroupUUID"] = land.groupID.ToString();
+            row["SalePrice"] = land.salePrice;
+            row["LandStatus"] = land.landStatus; //Enum. libsecondlife.Parcel.ParcelStatus
+            row["LandFlags"] = land.landFlags;
+            row["LandingType"] = land.landingType;
+            row["MediaAutoScale"] = land.mediaAutoScale;
+            row["MediaTextureUUID"] = land.mediaID.ToString();
+            row["MediaURL"] = land.mediaURL;
+            row["MusicURL"] = land.musicURL;
+            row["PassHours"] = land.passHours;
+            row["PassPrice"] = land.passPrice;
+            row["SnapshotUUID"] = land.snapshotID.ToString();
+            row["UserLocationX"] = land.userLocation.X;
+            row["UserLocationY"] = land.userLocation.Y;
+            row["UserLocationZ"] = land.userLocation.Z;
+            row["UserLookAtX"] = land.userLookAt.X;
+            row["UserLookAtY"] = land.userLookAt.Y;
+            row["UserLookAtZ"] = land.userLookAt.Z;
+        }
+
+        private void fillLandAccessRow(DataRow row, ParcelManager.ParcelAccessEntry entry, LLUUID parcelID)
+        {
+            row["LandUUID"] = parcelID.ToString();
+            row["AccessUUID"] = entry.AgentID.ToString();
+            row["Flags"] = entry.Flags;
         }
 
         private PrimitiveBaseShape buildShape(DataRow row)
@@ -907,6 +1168,20 @@ namespace OpenSim.DataStore.MonoSqlite
             da.InsertCommand.Connection = conn;
         }
 
+        private void setupLandCommands(SqliteDataAdapter da, SqliteConnection conn)
+        {
+            da.InsertCommand = createInsertCommand("land", ds.Tables["land"]);
+            da.InsertCommand.Connection = conn;
+
+            da.UpdateCommand = createUpdateCommand("land", "UUID=:UUID", ds.Tables["land"]);
+            da.UpdateCommand.Connection = conn;
+        }
+
+        private void setupLandAccessCommands(SqliteDataAdapter da, SqliteConnection conn)
+        {
+            da.InsertCommand = createInsertCommand("landaccesslist", ds.Tables["landaccesslist"]);
+            da.InsertCommand.Connection = conn;
+        }
         private void setupShapeCommands(SqliteDataAdapter da, SqliteConnection conn)
         {
             da.InsertCommand = createInsertCommand("primshapes", ds.Tables["primshapes"]);
@@ -926,10 +1201,15 @@ namespace OpenSim.DataStore.MonoSqlite
             string createPrims = defineTable(createPrimTable());
             string createShapes = defineTable(createShapeTable());
             string createTerrain = defineTable(createTerrainTable());
+            string createLand = defineTable(createLandTable());
+            string createLandAccessList = defineTable(createLandAccessListTable());
 
             SqliteCommand pcmd = new SqliteCommand(createPrims, conn);
             SqliteCommand scmd = new SqliteCommand(createShapes, conn);
             SqliteCommand tcmd = new SqliteCommand(createTerrain, conn);
+            SqliteCommand lcmd = new SqliteCommand(createLand, conn);
+            SqliteCommand lalcmd = new SqliteCommand(createLandAccessList, conn);
+
             conn.Open();
 
             try
@@ -959,6 +1239,23 @@ namespace OpenSim.DataStore.MonoSqlite
                 MainLog.Instance.Warn("SQLITE", "Terrain Table Already Exists");
             }
 
+            try
+            {
+                lcmd.ExecuteNonQuery();
+            }
+            catch (SqliteSyntaxException)
+            {
+                MainLog.Instance.Warn("SQLITE", "Land Table Already Exists");
+            }
+
+            try
+            {
+                lalcmd.ExecuteNonQuery();
+            }
+            catch (SqliteSyntaxException)
+            {
+                MainLog.Instance.Warn("SQLITE", "LandAccessList Table Already Exists");
+            }
             conn.Close();
         }
 
@@ -970,6 +1267,10 @@ namespace OpenSim.DataStore.MonoSqlite
             SqliteDataAdapter sDa = new SqliteDataAdapter(shapeSelectCmd);
             SqliteCommand terrainSelectCmd = new SqliteCommand(terrainSelect, conn);
             SqliteDataAdapter tDa = new SqliteDataAdapter(terrainSelectCmd);
+            SqliteCommand landSelectCmd = new SqliteCommand(landSelect, conn);
+            SqliteDataAdapter lDa = new SqliteDataAdapter(landSelectCmd);
+            SqliteCommand landAccessListSelectCmd = new SqliteCommand(landAccessListSelect, conn);
+            SqliteDataAdapter lalDa = new SqliteDataAdapter(landAccessListSelectCmd);
 
             DataSet tmpDS = new DataSet();
             try
@@ -977,6 +1278,8 @@ namespace OpenSim.DataStore.MonoSqlite
                 pDa.Fill(tmpDS, "prims");
                 sDa.Fill(tmpDS, "primshapes");
                 tDa.Fill(tmpDS, "terrain");
+                lDa.Fill(tmpDS, "land");
+                lalDa.Fill(tmpDS, "landaccesslist");
             }
             catch (SqliteSyntaxException)
             {
@@ -987,6 +1290,8 @@ namespace OpenSim.DataStore.MonoSqlite
             pDa.Fill(tmpDS, "prims");
             sDa.Fill(tmpDS, "primshapes");
             tDa.Fill(tmpDS, "terrain");
+            lDa.Fill(tmpDS, "land");
+            lalDa.Fill(tmpDS,"landaccesslist");
 
             foreach (DataColumn col in createPrimTable().Columns)
             {
@@ -1007,6 +1312,22 @@ namespace OpenSim.DataStore.MonoSqlite
             foreach (DataColumn col in createTerrainTable().Columns)
             {
                 if (!tmpDS.Tables["terrain"].Columns.Contains(col.ColumnName))
+                {
+                    MainLog.Instance.Verbose("DATASTORE", "Missing require column:" + col.ColumnName);
+                    return false;
+                }
+            }
+            foreach (DataColumn col in createLandTable().Columns)
+            {
+                if (!tmpDS.Tables["land"].Columns.Contains(col.ColumnName))
+                {
+                    MainLog.Instance.Verbose("DATASTORE", "Missing require column:" + col.ColumnName);
+                    return false;
+                }
+            }
+            foreach (DataColumn col in createLandAccessListTable().Columns)
+            {
+                if (!tmpDS.Tables["landaccesslist"].Columns.Contains(col.ColumnName))
                 {
                     MainLog.Instance.Verbose("DATASTORE", "Missing require column:" + col.ColumnName);
                     return false;

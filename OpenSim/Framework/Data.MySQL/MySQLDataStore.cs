@@ -289,7 +289,7 @@ namespace OpenSim.Framework.Data.MySQL
             return terret;
         }
 
-        public void RemoveLandObject(uint id, LLUUID regionUUID)
+        public void RemoveLandObject(LLUUID globalID)
         {
         }
 
