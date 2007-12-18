@@ -288,7 +288,7 @@ namespace OpenSim.Region.Environment.Modules
                         {
                             ImageDataPacket im = new ImageDataPacket();
                             im.Header.Reliable = false;
-                            im.ImageID.Packets = 0;
+                            im.ImageID.Packets = 1;
                             im.ImageID.ID = m_asset.FullID;
                             im.ImageID.Size = (uint)m_asset.Data.Length;
                             im.ImageData.Data = m_asset.Data;
