@@ -118,7 +118,7 @@ namespace OpenSim.Framework.Data.MySQL
 
                 m_landAccessListTable = createLandAccessListTable();
                 m_dataSet.Tables.Add(m_landAccessListTable);
-                setupLandCommands(m_landAccessListDataAdapter, m_connection);
+                setupLandAccessCommands(m_landAccessListDataAdapter, m_connection);
                 m_landAccessListDataAdapter.Fill(m_landAccessListTable);
             }
         }
@@ -313,15 +313,82 @@ namespace OpenSim.Framework.Data.MySQL
 
         public void RemoveLandObject(LLUUID globalID)
         {
+            lock (m_dataSet)
+            {
+                using (MySqlCommand cmd = new MySqlCommand("delete from land where UUID=?UUID", m_connection))
+                {
+                    cmd.Parameters.Add(new MySqlParameter("?UUID", globalID.ToString()));
+                    cmd.ExecuteNonQuery();
+                }
+
+                using (MySqlCommand cmd = new MySqlCommand("delete from landaccesslist where LandUUID=?UUID", m_connection))
+                {
+                    cmd.Parameters.Add(new MySqlParameter("?UUID", globalID.ToString()));
+                    cmd.ExecuteNonQuery();
+                }
+            }
         }
 
         public void StoreLandObject(Land parcel, LLUUID regionUUID)
         {
+            lock (m_dataSet)
+            {
+                DataTable land = m_landTable;
+                DataTable landaccesslist = m_landAccessListTable;
+                
+                DataRow landRow = land.Rows.Find(parcel.landData.globalID.ToString());
+                if (landRow == null)
+                {
+                    landRow = land.NewRow();
+                    fillLandRow(landRow, parcel.landData, regionUUID);
+                    land.Rows.Add(landRow);
+                }
+                else
+                {
+                    fillLandRow(landRow, parcel.landData, regionUUID);
+                }
+
+                using (MySqlCommand cmd = new MySqlCommand("delete from landaccesslist where LandUUID=?LandUUID", m_connection))
+                {
+                    cmd.Parameters.Add(new MySqlParameter("?LandUUID", parcel.landData.globalID.ToString()));
+                    cmd.ExecuteNonQuery();
+                }
+
+                foreach (ParcelManager.ParcelAccessEntry entry in parcel.landData.parcelAccessList)
+                {
+                    DataRow newAccessRow = landaccesslist.NewRow();
+                    fillLandAccessRow(newAccessRow, entry, parcel.landData.globalID);
+                    landaccesslist.Rows.Add(newAccessRow);
+                }
+
+            }
+
+            Commit();
         }
 
         public List<Framework.LandData> LoadLandObjects(LLUUID regionUUID)
         {
-            return new List<LandData>();
+            List<LandData> landDataForRegion = new List<LandData>();
+            lock (m_dataSet)
+            {
+                DataTable land = m_landTable;
+                DataTable landaccesslist = m_landAccessListTable;
+                string searchExp = "RegionUUID = '" + regionUUID.ToString() + "'";
+                DataRow[] rawDataForRegion = land.Select(searchExp);
+                foreach (DataRow rawDataLand in rawDataForRegion)
+                {
+                    LandData newLand = buildLandData(rawDataLand);
+                    string accessListSearchExp = "LandUUID = '" + newLand.globalID.ToString() + "'";
+                    DataRow[] rawDataForLandAccessList = landaccesslist.Select(accessListSearchExp);
+                    foreach (DataRow rawDataLandAccess in rawDataForLandAccessList)
+                    {
+                        newLand.parcelAccessList.Add(buildLandAccessData(rawDataLandAccess));
+                    }
+
+                    landDataForRegion.Add(newLand);
+                }
+            }
+            return landDataForRegion;
         }
 
         private void DisplayDataSet(DataSet ds, string title)
@@ -371,6 +438,8 @@ namespace OpenSim.Framework.Data.MySQL
                 m_primDataAdapter.Update(m_primTable);
                 m_shapeDataAdapter.Update(m_shapeTable);
                 m_terrainDataAdapter.Update(m_terrainTable);
+                m_landDataAdapter.Update(m_landTable);
+                m_landAccessListDataAdapter.Update(m_landAccessListTable);
 
                 m_dataSet.AcceptChanges();
             }
@@ -635,7 +704,7 @@ namespace OpenSim.Framework.Data.MySQL
             newData.landName = (String)row["Name"];
             newData.landDesc = (String)row["Description"];
             newData.ownerID = (String)row["OwnerUUID"];
-            newData.isGroupOwned = (Boolean)row["IsGroupOwned"];
+            newData.isGroupOwned = Convert.ToBoolean(row["IsGroupOwned"]);
             newData.area = Convert.ToInt32(row["Area"]);
             newData.auctionID = Convert.ToUInt32(row["AuctionID"]); //Unemplemented
             newData.category = (Parcel.ParcelCategory)Convert.ToInt32(row["Category"]); //Enum libsecondlife.Parcel.ParcelCategory
@@ -645,8 +714,8 @@ namespace OpenSim.Framework.Data.MySQL
             newData.salePrice = Convert.ToInt32(row["SalePrice"]);
             newData.landStatus = (Parcel.ParcelStatus)Convert.ToInt32(row["LandStatus"]); //Enum. libsecondlife.Parcel.ParcelStatus
             newData.landFlags = Convert.ToUInt32(row["LandFlags"]);
-            newData.landingType = (Byte)row["LandingType"];
-            newData.mediaAutoScale = (Byte)row["MediaAutoScale"];
+            newData.landingType = Convert.ToByte(row["LandingType"]);
+            newData.mediaAutoScale = Convert.ToByte(row["MediaAutoScale"]);
             newData.mediaID = new LLUUID((String)row["MediaTextureUUID"]);
             newData.mediaURL = (String)row["MediaURL"];
             newData.musicURL = (String)row["MusicURL"];
@@ -665,7 +734,7 @@ namespace OpenSim.Framework.Data.MySQL
         {
             ParcelManager.ParcelAccessEntry entry = new ParcelManager.ParcelAccessEntry();
             entry.AgentID = new LLUUID((string)row["AccessUUID"]);
-            entry.Flags = (ParcelManager.AccessList)row["Flags"];
+            entry.Flags = (ParcelManager.AccessList) Convert.ToInt32(row["Flags"]);
             entry.Time = new DateTime();
             return entry;
         }
