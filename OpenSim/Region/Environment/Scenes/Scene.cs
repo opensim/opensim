@@ -1334,7 +1334,15 @@ namespace OpenSim.Region.Environment.Scenes
                     {
                         //MainLog.Instance.Warn("client", "Adding duplicate CAPS entry for user " +
                         //    agent.AgentID.ToStringHyphenated());
-                        m_capsHandlers[agent.AgentID] = cap;
+                        try
+                        {
+                            m_capsHandlers[agent.AgentID] = cap;
+                        }
+                        catch (System.Collections.Generic.KeyNotFoundException)
+                        {
+                            // Fix for a potential race condition.
+                            m_capsHandlers.Add(agent.AgentID, cap);
+                        }
                     }
                     else
                     {
