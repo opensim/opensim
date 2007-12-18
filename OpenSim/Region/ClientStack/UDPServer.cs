@@ -120,6 +120,7 @@ namespace OpenSim.Region.ClientStack
                     case SocketError.AlreadyInProgress:
                     case SocketError.NetworkReset:
                     case SocketError.ConnectionReset:
+                    
                         try
                         {
                             CloseEndPoint(epSender);
@@ -154,6 +155,23 @@ namespace OpenSim.Region.ClientStack
                         {
                             //MainLog.Instance.Verbose("UDPSERVER", a.ToString());
                         }
+                        try
+                        {
+                            Server.BeginReceiveFrom(RecvBuffer, 0, RecvBuffer.Length, SocketFlags.None, ref epSender, ReceivedData, null);
+
+                            // Ter: For some stupid reason ConnectionReset basically kills our async event structure..  
+                            // so therefore..  we've got to tell the server to BeginReceiveFrom again.
+                            // This will happen over and over until we've gone through all packets 
+                            // sent to and from this particular user.
+                            // Stupid I know..  
+                            // but Flusing the buffer would be even more stupid...  so, we're stuck with this ugly method.
+
+                        }
+                        catch (SocketException)
+                        {
+
+                        }
+                       
                         // Here's some reference code!   :D  
                         // Shutdown and restart the UDP listener!  hehe
                         // Shiny
