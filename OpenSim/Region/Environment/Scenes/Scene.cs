@@ -803,7 +803,7 @@ namespace OpenSim.Region.Environment.Scenes
                     Terrain.SetHeights2D(map);
                 }
 
-                CreateTerrainTexture(false);
+                CreateTerrainTexture(true);
                 //CommsManager.GridService.RegisterRegion(RegionInfo); //hack to update the terrain texture in grid mode so it shows on world map
             }
             catch (Exception e)
