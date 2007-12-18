@@ -1358,7 +1358,15 @@ namespace OpenSim.Region.Environment.Scenes
             {
                 if (m_scenePresences.ContainsKey(agentID))
                 {
-                    m_scenePresences[agentID].MakeRootAgent(position, isFlying);
+                    try
+                    {
+                        m_scenePresences[agentID].MakeRootAgent(position, isFlying);
+                    }
+                    catch (System.Exception e)
+                    {
+                        MainLog.Instance.Verbose("SCENE", "Unable to do Agent Crossing.");
+                        MainLog.Instance.Debug("SCENE",e.ToString());
+                    }
                     //m_innerScene.SwapRootChildAgent(false);
                 }
             }
