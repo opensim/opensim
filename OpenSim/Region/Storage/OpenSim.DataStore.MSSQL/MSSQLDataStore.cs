@@ -515,6 +515,7 @@ namespace OpenSim.DataStore.MSSQL
             return prim;
         }
 
+
         private void fillPrimRow(DataRow row, SceneObjectPart prim, LLUUID sceneGroupID, LLUUID regionUUID)
         {
             row["UUID"] = prim.UUID;

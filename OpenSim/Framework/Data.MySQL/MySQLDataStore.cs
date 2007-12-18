@@ -465,31 +465,31 @@ namespace OpenSim.Framework.Data.MySQL
             DataTable land = new DataTable("land");
             createCol(land, "UUID", typeof(String));
             createCol(land, "RegionUUID", typeof(String));
-            createCol(land, "LocalLandID", typeof(UInt32));
+            createCol(land, "LocalLandID", typeof(Int32));
 
             // Bitmap is a byte[512]
             createCol(land, "Bitmap", typeof(Byte[]));
 
             createCol(land, "Name", typeof(String));
-            createCol(land, "Desc", typeof(String));
+            createCol(land, "Description", typeof(String));
             createCol(land, "OwnerUUID", typeof(String));
-            createCol(land, "IsGroupOwned", typeof(Boolean));
+            createCol(land, "IsGroupOwned", typeof(Int32));
             createCol(land, "Area", typeof(Int32));
             createCol(land, "AuctionID", typeof(Int32)); //Unemplemented
             createCol(land, "Category", typeof(Int32)); //Enum libsecondlife.Parcel.ParcelCategory
             createCol(land, "ClaimDate", typeof(Int32));
             createCol(land, "ClaimPrice", typeof(Int32));
-            createCol(land, "GroupUUID", typeof(string));
+            createCol(land, "GroupUUID", typeof(String));
             createCol(land, "SalePrice", typeof(Int32));
             createCol(land, "LandStatus", typeof(Int32)); //Enum. libsecondlife.Parcel.ParcelStatus
-            createCol(land, "LandFlags", typeof(UInt32));
-            createCol(land, "LandingType", typeof(Byte));
-            createCol(land, "MediaAutoScale", typeof(Byte));
+            createCol(land, "LandFlags", typeof(Int32));
+            createCol(land, "LandingType", typeof(Int32));
+            createCol(land, "MediaAutoScale", typeof(Int32));
             createCol(land, "MediaTextureUUID", typeof(String));
             createCol(land, "MediaURL", typeof(String));
             createCol(land, "MusicURL", typeof(String));
             createCol(land, "PassHours", typeof(Double));
-            createCol(land, "PassPrice", typeof(UInt32));
+            createCol(land, "PassPrice", typeof(Int32));
             createCol(land, "SnapshotUUID", typeof(String));
             createCol(land, "UserLocationX", typeof(Double));
             createCol(land, "UserLocationY", typeof(Double));
@@ -508,7 +508,7 @@ namespace OpenSim.Framework.Data.MySQL
             DataTable landaccess = new DataTable("landaccesslist");
             createCol(landaccess, "LandUUID", typeof(String));
             createCol(landaccess, "AccessUUID", typeof(String));
-            createCol(landaccess, "Flags", typeof(UInt32));
+            createCol(landaccess, "Flags", typeof(Int32));
 
             return landaccess;
         }
@@ -633,7 +633,7 @@ namespace OpenSim.Framework.Data.MySQL
             newData.landBitmapByteArray = (Byte[])row["Bitmap"];
 
             newData.landName = (String)row["Name"];
-            newData.landDesc = (String)row["Desc"];
+            newData.landDesc = (String)row["Description"];
             newData.ownerID = (String)row["OwnerUUID"];
             newData.isGroupOwned = (Boolean)row["IsGroupOwned"];
             newData.area = Convert.ToInt32(row["Area"]);
@@ -740,7 +740,7 @@ namespace OpenSim.Framework.Data.MySQL
             row["Bitmap"] = land.landBitmapByteArray;
 
             row["Name"] = land.landName;
-            row["Desc"] = land.landDesc;
+            row["Description"] = land.landDesc;
             row["OwnerUUID"] = land.ownerID.ToString();
             row["IsGroupOwned"] = land.isGroupOwned;
             row["Area"] = land.area;
@@ -1064,7 +1064,7 @@ namespace OpenSim.Framework.Data.MySQL
             string createShapes = defineTable(createShapeTable());
             string createTerrain = defineTable(createTerrainTable());
             string createLand = defineTable(createLandTable());
-            string createLandAccessList = defineTable(createLandTable());
+            string createLandAccessList = defineTable(createLandAccessListTable());
 
             MySqlCommand pcmd = new MySqlCommand(createPrims, conn);
             MySqlCommand scmd = new MySqlCommand(createShapes, conn);
