@@ -137,6 +137,9 @@ namespace SimpleApp
         public event ParcelObjectOwnerRequest OnParcelObjectOwnerRequest;
         public event ObjectDeselect OnObjectDeselect;
         public event EstateOwnerMessageRequest OnEstateOwnerMessage;
+        public event RegionInfoRequest OnRegionInfoRequest;
+        public event EstateCovenantRequest OnEstateCovenantRequest;
+        
 
 #pragma warning restore 67
 
@@ -364,7 +367,9 @@ namespace SimpleApp
         public void SendAgentAlertMessage(string message, bool modal)
         {
         }
-
+        public void SendSystemAlertMessage(string message)
+        {
+        }
         public void SendLoadURL(string objectname, LLUUID objectID, LLUUID ownerID, bool groupOwned, string message,
                                 string url)
         {

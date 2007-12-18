@@ -529,6 +529,9 @@ namespace OpenSim.Region.ClientStack
         public event ParcelSelectObjects OnParcelSelectObjects;
         public event ParcelObjectOwnerRequest OnParcelObjectOwnerRequest;
         public event EstateOwnerMessageRequest OnEstateOwnerMessage;
+        public event RegionInfoRequest OnRegionInfoRequest;
+        public event EstateCovenantRequest OnEstateCovenantRequest;
+        
 
         #region Scene/Avatar to Client
 
@@ -3216,7 +3219,21 @@ namespace OpenSim.Region.ClientStack
                             OnEstateOwnerMessage(messagePacket, this);
                         }
                         break;
-
+                    case PacketType.RequestRegionInfo:
+                        RequestRegionInfoPacket.AgentDataBlock mPacket = ((RequestRegionInfoPacket)Pack).AgentData;
+                        if (OnRegionInfoRequest != null) 
+                        {
+                            OnRegionInfoRequest(this, mPacket.SessionID);
+                        }
+                        break;
+                    case PacketType.EstateCovenantRequest:
+                        // TODO: handle this packet
+                        EstateCovenantRequestPacket.AgentDataBlock epack = ((EstateCovenantRequestPacket)Pack).AgentData;
+                        if (OnEstateCovenantRequest != null)
+                        {
+                            OnEstateCovenantRequest(this, epack.SessionID);
+                        }
+                        break;
                     case PacketType.AgentThrottle:
                         AgentThrottlePacket atpack = (AgentThrottlePacket)Pack;
                         m_packetQueue.SetThrottleFromClient(atpack.Throttle.Throttles);
@@ -3278,10 +3295,7 @@ namespace OpenSim.Region.ClientStack
                         // TODO: handle this packet
                         MainLog.Instance.Warn("CLIENT", "unhandled ViewerStats packet");
                         break;
-                    case PacketType.EstateCovenantRequest:
-                        // TODO: handle this packet
-                        MainLog.Instance.Warn("CLIENT", "unhandled EstateCovenantRequest packet");
-                        break;
+
                     case PacketType.CreateGroupRequest:
                         // TODO: handle this packet
                         MainLog.Instance.Warn("CLIENT", "unhandled CreateGroupRequest packet");
@@ -3342,10 +3356,6 @@ namespace OpenSim.Region.ClientStack
                     case PacketType.UserInfoRequest:
                         // TODO: handle this packet
                         MainLog.Instance.Warn("CLIENT", "unhandled UserInfoRequest packet");
-                        break;
-                    case PacketType.RequestRegionInfo:
-                        // TODO: handle this packet
-                        MainLog.Instance.Warn("CLIENT", "unhandled RequestRegionInfo packet");
                         break;
                     case PacketType.InventoryDescendents:
                         // TODO: handle this packet

@@ -1122,6 +1122,8 @@ namespace OpenSim.Region.Environment.Scenes
             client.OnParcelAccessListUpdateRequest += new ParcelAccessListUpdateRequest(m_LandManager.handleParcelAccessUpdateRequest);
 
             client.OnEstateOwnerMessage += new EstateOwnerMessageRequest(m_estateManager.handleEstateOwnerMessage);
+            client.OnRegionInfoRequest += m_estateManager.HandleRegionInfoRequest;
+            client.OnEstateCovenantRequest += m_estateManager.HandleEstateCovenantRequest;
             client.OnRequestGodlikePowers += handleRequestGodlikePowers;
             client.OnGodKickUser += handleGodlikeKickUser;
             client.OnObjectPermissions += HandleObjectPermissionsUpdate;

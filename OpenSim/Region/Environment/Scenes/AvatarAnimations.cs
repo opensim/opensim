@@ -59,10 +59,13 @@ namespace OpenSim.Region.Environment.Scenes
             }
             
             // MainLog.Instance.Verbose("CLIENT", "Loaded " + AnimsLLUUID.Count.ToString() + " animation(s)");
-            
-            foreach (KeyValuePair<string, LLUUID> kp in ScenePresence.Animations.AnimsLLUUID)
+
+            lock (ScenePresence.Animations.AnimsLLUUID)
             {
-                AnimsNames.Add(kp.Value, kp.Key);
+                foreach (KeyValuePair<string, LLUUID> kp in ScenePresence.Animations.AnimsLLUUID)
+                {
+                    AnimsNames.Add(kp.Value, kp.Key);
+                }
             }
         }
     }

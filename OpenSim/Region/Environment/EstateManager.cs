@@ -177,6 +177,12 @@ namespace OpenSim.Region.Environment
                         estateRestartSim(packet);
                     }
                     break;
+                case "estatechangecovenantid":
+                    if (m_scene.PermissionsMngr.CanEditEstateTerrain(remote_client.AgentId))
+                    {
+                        EstateChangeCovenant(packet);
+                    }
+                    break;
                 default:
                     MainLog.Instance.Error("EstateOwnerMessage: Unknown method requested\n" + packet.ToString());
                     break;
@@ -340,8 +346,54 @@ namespace OpenSim.Region.Environment
 
             }
         }
+        private void EstateChangeCovenant(EstateOwnerMessagePacket packet)
+        {
+            foreach (EstateOwnerMessagePacket.ParamListBlock block in packet.ParamList)
+            {
+                LLUUID newCovenantID = new LLUUID(Helpers.FieldToUTF8String(block.Parameter));
+                m_regInfo.CovenantID = newCovenantID;
 
+            }
 
+        }
+        public void HandleRegionInfoRequest(IClientAPI client, LLUUID sessionID)
+        {
+            RegionInfoPacket rinfopack = new RegionInfoPacket();
+            RegionInfoPacket.RegionInfoBlock rinfoblk = new RegionInfoPacket.RegionInfoBlock();
+            
+            rinfoblk.BillableFactor = 0;
+            rinfoblk.EstateID = 02;
+            rinfoblk.MaxAgents = 100;
+            rinfoblk.ObjectBonusFactor = 1.0f;
+            rinfoblk.ParentEstateID = 0;
+            rinfoblk.PricePerMeter = 0;
+            rinfoblk.RedirectGridX = 0;
+            rinfoblk.RedirectGridY = 0;
+            rinfoblk.RegionFlags = (uint)m_regInfo.EstateSettings.regionFlags;
+            rinfoblk.SimAccess = (byte)m_regInfo.EstateSettings.simAccess;
+            rinfoblk.SunHour = m_regInfo.EstateSettings.sunHour;
+            rinfoblk.TerrainLowerLimit = 20;
+            rinfoblk.TerrainRaiseLimit = 20;
+            rinfoblk.UseEstateSun = true;
+            rinfoblk.WaterHeight = m_regInfo.EstateSettings.waterHeight;
+            rinfoblk.SimName = Helpers.StringToField(m_regInfo.RegionName);
+            
+            rinfopack.RegionInfo = rinfoblk;
+
+            client.OutPacket(rinfopack, ThrottleOutPacketType.Task);
+
+        }
+        public void HandleEstateCovenantRequest(IClientAPI client, LLUUID sessionID)
+        {
+            EstateCovenantReplyPacket einfopack = new EstateCovenantReplyPacket();
+            EstateCovenantReplyPacket.DataBlock edata = new EstateCovenantReplyPacket.DataBlock();
+            edata.CovenantID = m_regInfo.CovenantID;
+            edata.CovenantTimestamp = 0;
+            edata.EstateOwnerID = m_regInfo.MasterAvatarAssignedUUID;
+            edata.EstateName = Helpers.StringToField(m_regInfo.MasterAvatarFirstName + " " + m_regInfo.MasterAvatarLastName);
+            einfopack.Data = edata;
+            client.OutPacket(einfopack, ThrottleOutPacketType.Task);
+        }
         #endregion
 
         #region Outgoing Packets

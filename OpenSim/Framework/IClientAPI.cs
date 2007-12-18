@@ -320,6 +320,10 @@ namespace OpenSim.Framework
 
     public delegate void EstateOwnerMessageRequest(EstateOwnerMessagePacket packet, IClientAPI remote_client);
 
+    public delegate void RegionInfoRequest(IClientAPI remote_client, LLUUID sessionID);
+
+    public delegate void EstateCovenantRequest(IClientAPI remote_client, LLUUID sessionID);
+
     public delegate void UUIDNameRequest(LLUUID id, IClientAPI remote_client);
 
     public delegate void AddNewPrim(LLUUID ownerID, LLVector3 pos, LLQuaternion rot, PrimitiveBaseShape shape);
@@ -466,6 +470,10 @@ namespace OpenSim.Framework
         event ParcelSelectObjects OnParcelSelectObjects;
         event ParcelObjectOwnerRequest OnParcelObjectOwnerRequest;
         event EstateOwnerMessageRequest OnEstateOwnerMessage;
+        event RegionInfoRequest OnRegionInfoRequest;
+        event EstateCovenantRequest OnEstateCovenantRequest;
+        
+
 
         LLVector3 StartPos { get; set; }
 
@@ -551,6 +559,7 @@ namespace OpenSim.Framework
 
         void SendNameReply(LLUUID profileId, string firstname, string lastname);
         void SendAlertMessage(string message);
+        
         void SendAgentAlertMessage(string message, bool modal);
         void SendLoadURL(string objectname, LLUUID objectID, LLUUID ownerID, bool groupOwned, string message, string url);
         bool AddMoney(int debit);
