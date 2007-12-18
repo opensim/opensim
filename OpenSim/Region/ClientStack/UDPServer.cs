@@ -146,6 +146,14 @@ namespace OpenSim.Region.ClientStack
                         }
                         break;
                     default:
+                        try
+                        {
+                            CloseEndPoint(epSender);
+                        }
+                        catch (System.Exception)
+                        {
+                            //MainLog.Instance.Verbose("UDPSERVER", a.ToString());
+                        }
                         // Here's some reference code!   :D  
                         // Shutdown and restart the UDP listener!  hehe
                         // Shiny
@@ -158,9 +166,9 @@ namespace OpenSim.Region.ClientStack
 
                 return;
             }
-            catch (System.ObjectDisposedException e)
+            catch (System.ObjectDisposedException)
             {
-                MainLog.Instance.Debug("UDPSERVER", e.ToString());
+                //MainLog.Instance.Debug("UDPSERVER", e.ToString());
                 return;
             }
 
@@ -170,9 +178,9 @@ namespace OpenSim.Region.ClientStack
             {
                 packet = Packet.BuildPacket(RecvBuffer, ref packetEnd, ZeroBuffer);
             }
-            catch(Exception e)
+            catch(Exception)
             {
-                MainLog.Instance.Debug("UDPSERVER", e.ToString());
+                //MainLog.Instance.Debug("UDPSERVER", e.ToString());
             }
 
             // do we already have a circuit for this endpoint
