@@ -47,7 +47,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL
             dataTypes.Add("key", "string");
             dataTypes.Add("vector", "LSL_Types.Vector3");
             dataTypes.Add("rotation", "LSL_Types.Quaternion");
-            dataTypes.Add("list", "List<string>");
+            dataTypes.Add("list", "LSL_Types.list");
             dataTypes.Add("null", "null");
         }
 
@@ -259,7 +259,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL
 
             // Replace List []'s
             Script =
-                Regex.Replace(Script, @"\[([^\]]*)\]", @"List.Parse($1)",
+                Regex.Replace(Script, @"\[([^\]]*)\]", @"new LSL_Types.list($1)",
                               RegexOptions.Compiled | RegexOptions.Multiline | RegexOptions.Singleline);
 
 

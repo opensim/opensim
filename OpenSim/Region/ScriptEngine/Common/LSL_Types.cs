@@ -252,5 +252,119 @@ namespace OpenSim.Region.ScriptEngine.Common
                 return c;
             }
         }
+
+        [Serializable]
+        public class list
+        {
+            private object[] m_data;
+            public list(params object[] args)
+            {
+                m_data = new object[args.Length];
+                m_data = args;
+            }
+            public int Length
+            {
+                get { return m_data.Length; }
+            }
+            public object[] Data
+            {
+                get { return m_data; }
+            }
+            public static list operator +(list a, list b)
+            {
+                object[] tmp;
+                tmp = new object[a.Length + b.Length];
+                a.Data.CopyTo(tmp, 0);
+                b.Data.CopyTo(tmp, a.Length);
+                return new list(tmp);
+            }
+            public list GetSublist(int start, int end)
+            {
+                Console.WriteLine("GetSublist(" + start.ToString() + "," + end.ToString() + ")");
+                object[] ret;
+                // Take care of neg start or end's
+                if (start < 0)
+                {
+                    start = m_data.Length + start;
+                }
+                if (end < 0)
+                {
+                    end = m_data.Length + end;
+                }
+
+                // Case start < end
+
+                if (start <= end)
+                {
+                    if (start >= m_data.Length)
+                    {
+                        return new list();
+                    }
+                    if (end >= m_data.Length)
+                    {
+                        end = m_data.Length - 1;
+                    }
+                    ret = new object[end - start + 1];
+                    Array.Copy(m_data, start, ret, 0, end - start + 1);
+                    return new list(ret);
+                }
+                else
+                {
+                    if (start >= m_data.Length)
+                    {
+                        return this.GetSublist(0, end);
+                    }
+                    if (end >= m_data.Length)
+                    {
+                        return new list();
+                    }
+                    // end < start
+                    //ret = new object[m_data.Length - Math.Abs(end - start + 1)];
+                    //Array.Copy(m_data, 0, ret, m_data.Length - start, end + 1);
+                    //Array.Copy(m_data, start, ret, 0, m_data.Length - start);
+                    return this.GetSublist(0, end) + this.GetSublist(start, this.Data.Length - 1);
+                    //return new list(ret);
+                }
+            }
+
+            public string ToPrettyString()
+            {
+                string output;
+                if (m_data.Length == 0)
+                {
+                    return "[]";
+                }
+                output = "[";
+                foreach (object o in m_data)
+                {
+                    if (o.GetType().ToString() == "System.String")
+                    {
+                        output = output + "\"" + o + "\", ";
+                    }
+                    else
+                    {
+                        output = output + o.ToString() + ", ";
+                    }
+                }
+                output = output.Substring(0, output.Length - 2);
+                output = output + "]";
+                return output;
+            }
+            public override string ToString()
+            {
+                string output;
+                output = "";
+                if (m_data.Length == 0)
+                {
+                    return "";
+                }
+                foreach (object o in m_data)
+                {
+                    output = output + o.ToString();
+                }
+                return output;
+            }
+        }
     }
+
 }

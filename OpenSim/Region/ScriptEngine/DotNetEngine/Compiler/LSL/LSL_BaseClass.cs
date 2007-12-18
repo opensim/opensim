@@ -1061,12 +1061,12 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL
             return m_LSL_Functions.llGetCenterOfMass();
         }
 
-        public List<string> llListSort(List<string> src, int stride, int ascending)
+        public LSL_Types.list llListSort(LSL_Types.list src, int stride, int ascending)
         {
             return m_LSL_Functions.llListSort(src, stride, ascending);
         }
 
-        public int llGetListLength(List<string> src)
+        public int llGetListLength(LSL_Types.list src)
         {
             return m_LSL_Functions.llGetListLength(src);
         }
@@ -1074,67 +1074,67 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL
         //
         // DO NOT MODIFY HERE: MODIFY IN LSL_BuiltIn_Commands.cs
         //
-        public int llList2Integer(List<string> src, int index)
+        public int llList2Integer(LSL_Types.list src, int index)
         {
             return m_LSL_Functions.llList2Integer(src, index);
         }
 
-        public double llList2double(List<string> src, int index)
+        public double osList2Double(LSL_Types.list src, int index)
         {
-            return m_LSL_Functions.llList2double(src, index);
+            return m_LSL_Functions.osList2Double(src, index);
         }
 
-        public string llList2String(List<string> src, int index)
+        public string llList2String(LSL_Types.list src, int index)
         {
             return m_LSL_Functions.llList2String(src, index);
         }
 
-        public string llList2Key(List<string> src, int index)
+        public string llList2Key(LSL_Types.list src, int index)
         {
             return m_LSL_Functions.llList2Key(src, index);
         }
 
-        public vector llList2Vector(List<string> src, int index)
+        public vector llList2Vector(LSL_Types.list src, int index)
         {
             return m_LSL_Functions.llList2Vector(src, index);
         }
 
-        public rotation llList2Rot(List<string> src, int index)
+        public rotation llList2Rot(LSL_Types.list src, int index)
         {
             return m_LSL_Functions.llList2Rot(src, index);
         }
 
-        public List<string> llList2List(List<string> src, int start, int end)
+        public LSL_Types.list llList2List(LSL_Types.list src, int start, int end)
         {
             return m_LSL_Functions.llList2List(src, start, end);
         }
 
-        public List<string> llDeleteSubList(List<string> src, int start, int end)
+        public LSL_Types.list llDeleteSubList(LSL_Types.list src, int start, int end)
         {
             return m_LSL_Functions.llDeleteSubList(src, start, end);
         }
 
-        public int llGetListEntryType(List<string> src, int index)
+        public int llGetListEntryType(LSL_Types.list src, int index)
         {
             return m_LSL_Functions.llGetListEntryType(src, index);
         }
 
-        public string llList2CSV(List<string> src)
+        public string llList2CSV(LSL_Types.list src)
         {
             return m_LSL_Functions.llList2CSV(src);
         }
 
-        public List<string> llCSV2List(string src)
+        public LSL_Types.list llCSV2List(string src)
         {
             return m_LSL_Functions.llCSV2List(src);
         }
 
-        public List<string> llListRandomize(List<string> src, int stride)
+        public LSL_Types.list llListRandomize(LSL_Types.list src, int stride)
         {
             return m_LSL_Functions.llListRandomize(src, stride);
         }
 
-        public List<string> llList2ListStrided(List<string> src, int start, int end, int stride)
+        public LSL_Types.list llList2ListStrided(LSL_Types.list src, int start, int end, int stride)
         {
             return m_LSL_Functions.llList2ListStrided(src, start, end, stride);
         }
@@ -1144,12 +1144,12 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL
             return m_LSL_Functions.llGetRegionCorner();
         }
 
-        public List<string> llListInsertList(List<string> dest, List<string> src, int start)
+        public LSL_Types.list llListInsertList(LSL_Types.list dest, LSL_Types.list src, int start)
         {
             return m_LSL_Functions.llListInsertList(dest, src, start);
         }
 
-        public int llListFindList(List<string> src, List<string> test)
+        public int llListFindList(LSL_Types.list src, LSL_Types.list test)
         {
             return m_LSL_Functions.llListFindList(src, test);
         }
@@ -1375,9 +1375,9 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL
             m_LSL_Functions.llSetCameraAtOffset(offset);
         }
 
-        public void llDumpList2String()
+        public string llDumpList2String(LSL_Types.list src, string seperator)
         {
-            m_LSL_Functions.llDumpList2String();
+            return m_LSL_Functions.llDumpList2String(src, seperator);
         }
 
         public void llScriptDanger(vector pos)
@@ -1385,7 +1385,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL
             m_LSL_Functions.llScriptDanger(pos);
         }
 
-        public void llDialog(string avatar, string message, List<string> buttons, int chat_channel)
+        public void llDialog(string avatar, string message, LSL_Types.list buttons, int chat_channel)
         {
             m_LSL_Functions.llDialog(avatar, message, buttons, chat_channel);
         }
@@ -1448,7 +1448,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL
             return m_LSL_Functions.llMD5String(src, nonce);
         }
 
-        public void llSetPrimitiveParams(List<string> rules)
+        public void llSetPrimitiveParams(LSL_Types.list rules)
         {
             m_LSL_Functions.llSetPrimitiveParams(rules);
         }
@@ -1483,7 +1483,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL
             return m_LSL_Functions.llLog(val);
         }
 
-        public List<string> llGetAnimationList(string id)
+        public LSL_Types.list llGetAnimationList(string id)
         {
             return m_LSL_Functions.llGetAnimationList(id);
         }
@@ -1538,7 +1538,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL
             return m_LSL_Functions.llGetNumberOfNotecardLines(name);
         }
 
-        public List<string> llGetBoundingBox(string obj)
+        public LSL_Types.list llGetBoundingBox(string obj)
         {
             return m_LSL_Functions.llGetBoundingBox(obj);
         }
@@ -1581,7 +1581,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL
             m_LSL_Functions.llSetLocalRot(rot);
         }
 
-        public List<string> llParseStringKeepNulls(string src, List<string> seperators, List<string> spacers)
+        public LSL_Types.list llParseStringKeepNulls(string src, LSL_Types.list seperators, LSL_Types.list spacers)
         {
             return m_LSL_Functions.llParseStringKeepNulls(src, seperators, spacers);
         }
@@ -1646,7 +1646,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL
             m_LSL_Functions.llLoadURL(avatar_id, message, url);
         }
 
-        public void llParcelMediaCommandList(List<string> commandList)
+        public void llParcelMediaCommandList(LSL_Types.list commandList)
         {
             m_LSL_Functions.llParcelMediaCommandList(commandList);
         }
@@ -1669,7 +1669,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL
             return m_LSL_Functions.llGetInventoryType(name);
         }
 
-        public void llSetPayPrice(int price, List<string> quick_pay_buttons)
+        public void llSetPayPrice(int price, LSL_Types.list quick_pay_buttons)
         {
             m_LSL_Functions.llSetPayPrice(price, quick_pay_buttons);
         }
@@ -1724,7 +1724,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL
             m_LSL_Functions.llRemoveFromLandBanList(avatar);
         }
 
-        public void llSetCameraParams(List<string> rules)
+        public void llSetCameraParams(LSL_Types.list rules)
         {
             m_LSL_Functions.llSetCameraParams(rules);
         }
@@ -1734,7 +1734,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL
             m_LSL_Functions.llClearCameraParams();
         }
 
-        public double llListStatistics(int operation, List<string> src)
+        public double llListStatistics(int operation, LSL_Types.list src)
         {
             return m_LSL_Functions.llListStatistics(operation, src);
         }
@@ -1759,7 +1759,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL
             return m_LSL_Functions.llXorBase64StringsCorrect(str1, str2);
         }
 
-        public string llHTTPRequest(string url, List<string> parameters, string body)
+        public string llHTTPRequest(string url, LSL_Types.list parameters, string body)
         {
             return m_LSL_Functions.llHTTPRequest(url, parameters, body);
         }
@@ -1779,7 +1779,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL
             return m_LSL_Functions.llGetParcelPrimCount(pos, category, sim_wide);
         }
 
-        public List<string> llGetParcelPrimOwners(vector pos)
+        public LSL_Types.list llGetParcelPrimOwners(vector pos)
         {
             return m_LSL_Functions.llGetParcelPrimOwners(pos);
         }
@@ -1797,7 +1797,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL
             return m_LSL_Functions.llGetParcelMaxPrims(pos, sim_wide);
         }
 
-        public List<string> llGetParcelDetails(vector pos, List<string> param)
+        public LSL_Types.list llGetParcelDetails(vector pos, LSL_Types.list param)
         {
             return m_LSL_Functions.llGetParcelDetails(pos, param);
         }

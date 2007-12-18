@@ -28,6 +28,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections;
 using System.Runtime.Remoting.Lifetime;
 using System.Text;
 using System.Threading;
@@ -102,6 +103,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler
         //starting out, we use the System.Math library for trig functions. - ckrinke 8-14-07
         public double llSin(double f)
         {
+            
             return (double) Math.Sin(f);
         }
 
@@ -1430,205 +1432,299 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler
             return new LSL_Types.Vector3();
         }
 
-        public List<string> llListSort(List<string> src, int stride, int ascending)
+        public LSL_Types.list llListSort(LSL_Types.list src, int stride, int ascending)
         {
-            SortedList<string, List<string>> sorted = new SortedList<string, List<string>>();
+           // SortedList<string, LSL_Types.list> sorted = new SortedList<string, LSL_Types.list>();
             // Add chunks to an array
-            int s = stride;
-            if (s < 1)
-                s = 1;
-            int c = 0;
-            List<string> chunk = new List<string>();
-            string chunkString = "";
-            foreach (string element in src)
+            //int s = stride;
+            //if (s < 1)
+            //    s = 1;
+            //int c = 0;
+            //LSL_Types.list chunk = new LSL_Types.list();
+            //string chunkString = "";
+            //foreach (string element in src)
+            //{
+            //    c++;
+            //    if (c > s)
+            //    {
+            //        sorted.Add(chunkString, chunk);
+            //        chunkString = "";
+            //        chunk = new LSL_Types.list();
+            //        c = 0;
+            //    }
+            //    chunk.Add(element);
+            //    chunkString += element.ToString();
+            //}
+            //if (chunk.Count > 0)
+            //    sorted.Add(chunkString, chunk);
+
+            //LSL_Types.list ret = new LSL_Types.list();
+            //foreach (LSL_Types.list ls in sorted.Values)
+            //{
+            //    ret.AddRange(ls);
+            //}
+
+            //if (ascending == LSL_BaseClass.TRUE)
+            //    return ret;
+            //ret.Reverse();
+            //return ret;
+            NotImplemented("llListSort");
+            return new LSL_Types.list();
+        }
+
+        public int llGetListLength(LSL_Types.list src)
+        {
+            return src.Length;
+        }
+
+        public int llList2Integer(LSL_Types.list src, int index)
+        {
+            if (index < 0)
             {
-                c++;
-                if (c > s)
-                {
-                    sorted.Add(chunkString, chunk);
-                    chunkString = "";
-                    chunk = new List<string>();
-                    c = 0;
-                }
-                chunk.Add(element);
-                chunkString += element.ToString();
+                index = src.Length + index;
             }
-            if (chunk.Count > 0)
-                sorted.Add(chunkString, chunk);
-
-            List<string> ret = new List<string>();
-            foreach (List<string> ls in sorted.Values)
+            if (index >= src.Length)
             {
-                ret.AddRange(ls);
+                return 0;
             }
-
-            if (ascending == LSL_BaseClass.TRUE)
-                return ret;
-            ret.Reverse();
-            return ret;
+            return Convert.ToInt32(src.Data[index]);
         }
 
-        public int llGetListLength(List<string> src)
+        public double osList2Double(LSL_Types.list src, int index)
         {
-            return src.Count;
+            if (index < 0)
+            {
+                index = src.Length + index;
+            }
+            if (index >= src.Length)
+            {
+                return 0.0;
+            }
+            return Convert.ToDouble(src.Data[index]);
         }
 
-        public int llList2Integer(List<string> src, int index)
+        public double llList2Float(LSL_Types.list src, int index)
         {
-            return Convert.ToInt32(src[index]);
+            if (index < 0)
+            {
+                index = src.Length + index;
+            }
+            if (index >= src.Length)
+            {
+                return 0.0;
+            }
+            return Convert.ToSingle(src.Data[index]);
         }
 
-        public double llList2double(List<string> src, int index)
+        public string llList2String(LSL_Types.list src, int index)
         {
-            return Convert.ToDouble(src[index]);
+            if (index < 0)
+            {
+                index = src.Length + index;
+            }
+            if (index >= src.Length)
+            {
+                return "";
+            }
+            return src.Data[index].ToString();
         }
 
-        public float llList2Float(List<string> src, int index)
+        public string llList2Key(LSL_Types.list src, int index)
         {
-            return Convert.ToSingle(src[index]);
-        }
-
-        public string llList2String(List<string> src, int index)
-        {
-            return src[index];
-        }
-
-        public string llList2Key(List<string> src, int index)
-        {
+            if (index < 0)
+            {
+                index = src.Length + index;
+            }
+            if (index >= src.Length)
+            {
+                return "00000000-0000-0000-0000-000000000000";
+            }
             //return OpenSim.Framework.ToStringHyphenated(src[index]);
-            return src[index].ToString();
-        }
-
-        public LSL_Types.Vector3 llList2Vector(List<string> src, int index)
-        {
-            return
-                new LSL_Types.Vector3(double.Parse(src[index]), double.Parse(src[index + 1]),
-                                      double.Parse(src[index + 2]));
-        }
-
-        public LSL_Types.Quaternion llList2Rot(List<string> src, int index)
-        {
-            return
-                new LSL_Types.Quaternion(double.Parse(src[index]), double.Parse(src[index + 1]),
-                                         double.Parse(src[index + 2]), double.Parse(src[index + 3]));
-        }
-
-        public List<string> llList2List(List<string> src, int start, int end)
-        {
-            if (end > start)
+            LLUUID tmpkey;
+            if (LLUUID.TryParse(src.Data[index].ToString(), out tmpkey))
             {
-                // Simple straight forward chunk
-                return src.GetRange(start, end - start);
+                return tmpkey.ToStringHyphenated();
             }
             else
             {
-                // Some of the end + some of the beginning
-                // First chunk
-                List<string> ret = new List<string>();
-                ret.AddRange(src.GetRange(start, src.Count - start));
-                ret.AddRange(src.GetRange(0, end));
-                return ret;
+                return "00000000-0000-0000-0000-000000000000";
             }
         }
 
-        public List<string> llDeleteSubList(List<string> src, int start, int end)
+        public LSL_Types.Vector3 llList2Vector(LSL_Types.list src, int index)
         {
-            List<string> ret = new List<string>(src);
-            ret.RemoveRange(start, end - start);
-            return ret;
+            if (index < 0)
+            {
+                index = src.Length + index;
+            }
+            if (index >= src.Length)
+            {
+                return new LSL_Types.Vector3(0, 0, 0);
+            }
+            if (src.Data[index].GetType().ToString() == "OpenSim.Region.ScriptEngine.Common.LSL_Types+Vector3")
+            {
+                return (LSL_Types.Vector3)src.Data[index];
+            }
+            else
+            {
+                return new LSL_Types.Vector3(0,0,0);
+            }
         }
 
-        public int llGetListEntryType(List<string> src, int index)
+        public LSL_Types.Quaternion llList2Rot(LSL_Types.list src, int index)
         {
-            NotImplemented("llGetListEntryType");
-            return 0;
+            if (index < 0)
+            {
+                index = src.Length + index;
+            }
+            if (index >= src.Length)
+            {
+                return new LSL_Types.Quaternion(0, 0, 0, 1);
+            }
+            if (src.Data[index].GetType().ToString() == "OpenSim.Region.ScriptEngine.Common.LSL_Types+Quaternion")
+            {
+                return (LSL_Types.Quaternion)src.Data[index];
+            }
+            else
+            {
+                return new LSL_Types.Quaternion(0, 0, 0, 1);
+            }
         }
 
-        public string llList2CSV(List<string> src)
+        public LSL_Types.list llList2List(LSL_Types.list src, int start, int end)
+        {
+            return src.GetSublist(start, end);
+        }
+
+        public LSL_Types.list llDeleteSubList(LSL_Types.list src, int start, int end)
+        {
+            //LSL_Types.list ret = new LSL_Types.list(src);
+            //ret.RemoveRange(start, end - start);
+            //return ret;
+
+            // Just a hunch - needs testing
+            return src.GetSublist(end, start);
+        }
+
+        public int llGetListEntryType(LSL_Types.list src, int index)
+        {
+            if (index < 0)
+            {
+                index = src.Length + index;
+            }
+            if (index >= src.Length)
+            {
+                return 0;
+            }
+            switch (src.Data[index].GetType().ToString())
+            {
+                case "System.Int32":
+                    return 1;
+                case "System.Double":
+                    return 2;
+                case "System.String":
+                    LLUUID tuuid;
+                    if (LLUUID.TryParse(src.Data[index].ToString(),out tuuid))
+                    {
+                        return 3;
+                    }
+                    else
+                    {
+                        return 4;
+                    }
+                case "OpenSim.Region.ScriptEngine.Common.LSL_Types+Vector3":
+                    return 5;
+                case "OpenSim.Region.ScriptEngine.Common.LSL_Types+Quaternion":
+                    return 6;
+                case "OpenSim.Region.ScriptEngine.Common.LSL_Types+list":
+                    return 7;
+                default:
+                    return 0;
+            }
+        }
+
+        public string llList2CSV(LSL_Types.list src)
         {
             string ret = "";
-            foreach (string s in src)
+            foreach (object o in src.Data)
             {
-                if (s.Length > 0)
-                    ret += ",";
-                ret += s;
+                ret = ret + o.ToString() + ",";
             }
+            ret = ret.Substring(0, ret.Length - 2);
             return ret;
         }
 
-        public List<string> llCSV2List(string src)
+        public LSL_Types.list llCSV2List(string src)
         {
-            List<string> ret = new List<string>();
-            foreach (string s in src.Split(",".ToCharArray()))
-            {
-                ret.Add(s);
-            }
-            return ret;
+            return new LSL_Types.list(src.Split(",".ToCharArray()));
         }
 
-        public List<string> llListRandomize(List<string> src, int stride)
+        public LSL_Types.list llListRandomize(LSL_Types.list src, int stride)
         {
-            int s = stride;
-            if (s < 1)
-                s = 1;
+            //int s = stride;
+            //if (s < 1)
+            //    s = 1;
 
             // This is a cowardly way of doing it ;)
             // TODO: Instead, randomize and check if random is mod stride or if it can not be, then array.removerange
-            List<List<string>> tmp = new List<List<string>>();
+            //List<LSL_Types.list> tmp = new List<LSL_Types.list>();
 
             // Add chunks to an array
-            int c = 0;
-            List<string> chunk = new List<string>();
-            foreach (string element in src)
-            {
-                c++;
-                if (c > s)
-                {
-                    tmp.Add(chunk);
-                    chunk = new List<string>();
-                    c = 0;
-                }
-                chunk.Add(element);
-            }
-            if (chunk.Count > 0)
-                tmp.Add(chunk);
+            //int c = 0;
+            //LSL_Types.list chunk = new LSL_Types.list();
+            //foreach (string element in src)
+            //{
+            //    c++;
+            //    if (c > s)
+            //    {
+            //        tmp.Add(chunk);
+            //        chunk = new LSL_Types.list();
+            //        c = 0;
+            //    }
+            //    chunk.Add(element);
+            //}
+            //if (chunk.Count > 0)
+            //    tmp.Add(chunk);
 
             // Decreate (<- what kind of word is that? :D ) array back into a list
-            int rnd;
-            List<string> ret = new List<string>();
-            while (tmp.Count > 0)
-            {
-                rnd = Util.RandomClass.Next(tmp.Count);
-                foreach (string str in tmp[rnd])
-                {
-                    ret.Add(str);
-                }
-                tmp.RemoveAt(rnd);
-            }
+            //int rnd;
+            //LSL_Types.list ret = new LSL_Types.list();
+            //while (tmp.Count > 0)
+            //{
+            //    rnd = Util.RandomClass.Next(tmp.Count);
+            //    foreach (string str in tmp[rnd])
+            //    {
+            //       ret.Add(str);
+            //    }
+            //    tmp.RemoveAt(rnd);
+            //}
 
-            return ret;
+            //return ret;
+            NotImplemented("llListRandomize");
+            return new LSL_Types.list();
         }
 
-        public List<string> llList2ListStrided(List<string> src, int start, int end, int stride)
+        public LSL_Types.list llList2ListStrided(LSL_Types.list src, int start, int end, int stride)
         {
-            List<string> ret = new List<string>();
-            int s = stride;
-            if (s < 1)
-                s = 1;
+            LSL_Types.list ret = new LSL_Types.list();
+            //int s = stride;
+            //if (s < 1)
+            //    s = 1;
 
-            int sc = s;
-            for (int i = start; i < src.Count; i++)
-            {
-                sc--;
-                if (sc == 0)
-                {
-                    sc = s;
-                    // Addthis
-                    ret.Add(src[i]);
-                }
-                if (i == end)
-                    break;
-            }
+            //int sc = s;
+            //for (int i = start; i < src.Count; i++)
+            //{
+            //    sc--;
+            //    if (sc == 0)
+            //    {
+            //        sc = s;
+            //       // Addthis
+            //        ret.Add(src[i]);
+            //    }
+            //    if (i == end)
+            //        break;
+            //}
+            NotImplemented("llList2ListStrided");
             return ret;
         }
 
@@ -1637,27 +1733,22 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler
             return new LSL_Types.Vector3(World.RegionInfo.RegionLocX*256, World.RegionInfo.RegionLocY*256, 0);
         }
 
-        public List<string> llListInsertList(List<string> dest, List<string> src, int start)
+        public LSL_Types.list llListInsertList(LSL_Types.list dest, LSL_Types.list src, int start)
         {
-            List<string> ret = new List<string>(dest);
-            //foreach (string s in src.Reverse())
-            for (int ci = src.Count - 1; ci > -1; ci--)
-            {
-                ret.Insert(start, src[ci]);
-            }
-            return ret;
+            return dest.GetSublist(0, start - 1) + src + dest.GetSublist(start, -1);
         }
 
-        public int llListFindList(List<string> src, List<string> test)
+        public int llListFindList(LSL_Types.list src, LSL_Types.list test)
         {
-            foreach (string s in test)
-            {
-                for (int ci = 0; ci < src.Count; ci++)
-                {
-                    if (s == src[ci])
-                        return ci;
-                }
-            }
+            //foreach (string s in test)
+            //{
+            //    for (int ci = 0; ci < src.Count; ci++)
+            //    {
+            //        if (s == src[ci])
+            //            return ci;
+            //    }
+            //}
+            NotImplemented("llListFindList");
             return -1;
         }
 
@@ -2018,9 +2109,19 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler
             NotImplemented("llSetCameraAtOffset");
         }
 
-        public void llDumpList2String()
+        public string llDumpList2String(LSL_Types.list src, string seperator)
         {
-            NotImplemented("llDumpList2String");
+            if (src.Length == 0)
+            {
+                return "";
+            }
+            string ret = "";
+            foreach (object o in src.Data)
+            {
+                ret = ret + o.ToString() + seperator;
+            }
+            ret = ret.Substring(0, ret.Length - seperator.Length);
+            return ret;
         }
 
         public void llScriptDanger(LSL_Types.Vector3 pos)
@@ -2028,7 +2129,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler
             NotImplemented("llScriptDanger");
         }
 
-        public void llDialog(string avatar, string message, List<string> buttons, int chat_channel)
+        public void llDialog(string avatar, string message, LSL_Types.list buttons, int chat_channel)
         {
             NotImplemented("llDialog");
         }
@@ -2103,7 +2204,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler
             return Util.Md5Hash(src + ":" + nonce.ToString());
         }
 
-        public void llSetPrimitiveParams(List<string> rules)
+        public void llSetPrimitiveParams(LSL_Types.list rules)
         {
             NotImplemented("llSetPrimitiveParams");
         }
@@ -2162,10 +2263,10 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler
             return (double) Math.Log(val);
         }
 
-        public List<string> llGetAnimationList(string id)
+        public LSL_Types.list llGetAnimationList(string id)
         {
             NotImplemented("llGetAnimationList");
-            return new List<string>();
+            return new LSL_Types.list();
         }
 
         public void llSetParcelMusicURL(string url)
@@ -2221,10 +2322,10 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler
             return "";
         }
 
-        public List<string> llGetBoundingBox(string obj)
+        public LSL_Types.list llGetBoundingBox(string obj)
         {
             NotImplemented("llGetBoundingBox");
-            return new List<string>();
+            return new LSL_Types.list();
         }
 
         public LSL_Types.Vector3 llGetGeometricCenter()
@@ -2265,10 +2366,10 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler
             NotImplemented("llSetLocalRot");
         }
 
-        public List<string> llParseStringKeepNulls(string src, List<string> seperators, List<string> spacers)
+        public LSL_Types.list llParseStringKeepNulls(string src, LSL_Types.list seperators, LSL_Types.list spacers)
         {
             NotImplemented("llParseStringKeepNulls");
-            return new List<string>();
+            return new LSL_Types.list();
         }
 
         public void llRezAtRoot(string inventory, LSL_Types.Vector3 position, LSL_Types.Vector3 velocity,
@@ -2337,7 +2438,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler
                                                url);
         }
 
-        public void llParcelMediaCommandList(List<string> commandList)
+        public void llParcelMediaCommandList(LSL_Types.list commandList)
         {
             NotImplemented("llParcelMediaCommandList");
         }
@@ -2360,7 +2461,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler
             return 0;
         }
 
-        public void llSetPayPrice(int price, List<string> quick_pay_buttons)
+        public void llSetPayPrice(int price, LSL_Types.list quick_pay_buttons)
         {
             NotImplemented("llSetPayPrice");
         }
@@ -2431,7 +2532,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler
             NotImplemented("llRemoveFromLandBanList");
         }
 
-        public void llSetCameraParams(List<string> rules)
+        public void llSetCameraParams(LSL_Types.list rules)
         {
             NotImplemented("llSetCameraParams");
         }
@@ -2441,7 +2542,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler
             NotImplemented("llClearCameraParams");
         }
 
-        public double llListStatistics(int operation, List<string> src)
+        public double llListStatistics(int operation, LSL_Types.list src)
         {
             NotImplemented("llListStatistics");
             return 0;
@@ -2481,13 +2582,17 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler
             return llStringToBase64(ret);
         }
 
-        public string llHTTPRequest(string url, List<string> parameters, string body)
+        public string llHTTPRequest(string url, LSL_Types.list parameters, string body)
         {
             IHttpRequests httpScriptMod =
                 m_ScriptEngine.World.RequestModuleInterface<IHttpRequests>();
-
+            List<string> param = new List<string>();
+            foreach (object o in parameters.Data)
+            {
+                param.Add(o.ToString());
+            }
             LLUUID reqID = httpScriptMod.
-                    StartHttpRequest(m_localID, m_itemID, url, parameters, body);
+                    StartHttpRequest(m_localID, m_itemID, url, param, body);
 
             if( reqID != null )
                 return reqID.ToString();
@@ -2511,10 +2616,10 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler
             return 0;
         }
 
-        public List<string> llGetParcelPrimOwners(LSL_Types.Vector3 pos)
+        public LSL_Types.list llGetParcelPrimOwners(LSL_Types.Vector3 pos)
         {
             NotImplemented("llGetParcelPrimOwners");
-            return new List<string>();
+            return new LSL_Types.list();
         }
 
         public int llGetObjectPrimCount(string object_id)
@@ -2529,10 +2634,10 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler
             return 0;
         }
 
-        public List<string> llGetParcelDetails(LSL_Types.Vector3 pos, List<string> param)
+        public LSL_Types.list llGetParcelDetails(LSL_Types.Vector3 pos, LSL_Types.list param)
         {
             NotImplemented("llGetParcelDetails");
-            return new List<string>();
+            return new LSL_Types.list();
         }
 
         //
