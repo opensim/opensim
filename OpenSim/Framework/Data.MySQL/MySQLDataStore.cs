@@ -48,15 +48,21 @@ namespace OpenSim.Framework.Data.MySQL
         private const string m_primSelect = "select * from prims";
         private const string m_shapeSelect = "select * from primshapes";
         private const string m_terrainSelect = "select * from terrain limit 1";
+        private const string m_landSelect = "select * from land";
+        private const string m_landAccessListSelect = "select * from landaccesslist";
 
         private DataSet m_dataSet;
         private MySqlDataAdapter m_primDataAdapter;
         private MySqlDataAdapter m_shapeDataAdapter;
         private MySqlConnection m_connection;
         private MySqlDataAdapter m_terrainDataAdapter;
+        private MySqlDataAdapter m_landDataAdapter;
+        private MySqlDataAdapter m_landAccessListDataAdapter;
         private DataTable m_primTable;
         private DataTable m_shapeTable;
         private DataTable m_terrainTable;
+        private DataTable m_landTable;
+        private DataTable m_landAccessListTable;
 
         /***********************************************************************
          *
@@ -80,6 +86,12 @@ namespace OpenSim.Framework.Data.MySQL
             MySqlCommand terrainSelectCmd = new MySqlCommand(m_terrainSelect, m_connection);
             m_terrainDataAdapter = new MySqlDataAdapter(terrainSelectCmd);
 
+            MySqlCommand landSelectCmd = new MySqlCommand(m_landSelect, m_connection);
+            m_landDataAdapter = new MySqlDataAdapter(landSelectCmd);
+
+            MySqlCommand landAccessListSelectCmd = new MySqlCommand(m_landAccessListSelect, m_connection);
+            m_landAccessListDataAdapter = new MySqlDataAdapter(landAccessListSelectCmd);
+
             TestTables(m_connection);
 
             lock (m_dataSet)
@@ -98,6 +110,16 @@ namespace OpenSim.Framework.Data.MySQL
                 m_dataSet.Tables.Add(m_terrainTable);
                 SetupTerrainCommands(m_terrainDataAdapter, m_connection);
                 m_terrainDataAdapter.Fill(m_terrainTable);
+
+                m_landTable = createLandTable();
+                m_dataSet.Tables.Add(m_landTable);
+                setupLandCommands(m_landDataAdapter, m_connection);
+                m_landDataAdapter.Fill(m_landTable);
+
+                m_landAccessListTable = createLandAccessListTable();
+                m_dataSet.Tables.Add(m_landAccessListTable);
+                setupLandCommands(m_landAccessListDataAdapter, m_connection);
+                m_landAccessListDataAdapter.Fill(m_landAccessListTable);
             }
         }
 
@@ -438,6 +460,59 @@ namespace OpenSim.Framework.Data.MySQL
             return prims;
         }
 
+        private DataTable createLandTable()
+        {
+            DataTable land = new DataTable("land");
+            createCol(land, "UUID", typeof(String));
+            createCol(land, "RegionUUID", typeof(String));
+            createCol(land, "LocalLandID", typeof(UInt32));
+
+            // Bitmap is a byte[512]
+            createCol(land, "Bitmap", typeof(Byte[]));
+
+            createCol(land, "Name", typeof(String));
+            createCol(land, "Desc", typeof(String));
+            createCol(land, "OwnerUUID", typeof(String));
+            createCol(land, "IsGroupOwned", typeof(Boolean));
+            createCol(land, "Area", typeof(Int32));
+            createCol(land, "AuctionID", typeof(Int32)); //Unemplemented
+            createCol(land, "Category", typeof(Int32)); //Enum libsecondlife.Parcel.ParcelCategory
+            createCol(land, "ClaimDate", typeof(Int32));
+            createCol(land, "ClaimPrice", typeof(Int32));
+            createCol(land, "GroupUUID", typeof(string));
+            createCol(land, "SalePrice", typeof(Int32));
+            createCol(land, "LandStatus", typeof(Int32)); //Enum. libsecondlife.Parcel.ParcelStatus
+            createCol(land, "LandFlags", typeof(UInt32));
+            createCol(land, "LandingType", typeof(Byte));
+            createCol(land, "MediaAutoScale", typeof(Byte));
+            createCol(land, "MediaTextureUUID", typeof(String));
+            createCol(land, "MediaURL", typeof(String));
+            createCol(land, "MusicURL", typeof(String));
+            createCol(land, "PassHours", typeof(Double));
+            createCol(land, "PassPrice", typeof(UInt32));
+            createCol(land, "SnapshotUUID", typeof(String));
+            createCol(land, "UserLocationX", typeof(Double));
+            createCol(land, "UserLocationY", typeof(Double));
+            createCol(land, "UserLocationZ", typeof(Double));
+            createCol(land, "UserLookAtX", typeof(Double));
+            createCol(land, "UserLookAtY", typeof(Double));
+            createCol(land, "UserLookAtZ", typeof(Double));
+
+            land.PrimaryKey = new DataColumn[] { land.Columns["UUID"] };
+
+            return land;
+        }
+
+        private DataTable createLandAccessListTable()
+        {
+            DataTable landaccess = new DataTable("landaccesslist");
+            createCol(landaccess, "LandUUID", typeof(String));
+            createCol(landaccess, "AccessUUID", typeof(String));
+            createCol(landaccess, "Flags", typeof(UInt32));
+
+            return landaccess;
+        }
+
         private DataTable createShapeTable()
         {
             DataTable shapes = new DataTable("primshapes");
@@ -547,6 +622,54 @@ namespace OpenSim.Framework.Data.MySQL
             return prim;
         }
 
+        private LandData buildLandData(DataRow row)
+        {
+            LandData newData = new LandData();
+
+            newData.globalID = new LLUUID((String)row["UUID"]);
+            newData.localID = Convert.ToInt32(row["LocalLandID"]);
+
+            // Bitmap is a byte[512]
+            newData.landBitmapByteArray = (Byte[])row["Bitmap"];
+
+            newData.landName = (String)row["Name"];
+            newData.landDesc = (String)row["Desc"];
+            newData.ownerID = (String)row["OwnerUUID"];
+            newData.isGroupOwned = (Boolean)row["IsGroupOwned"];
+            newData.area = Convert.ToInt32(row["Area"]);
+            newData.auctionID = Convert.ToUInt32(row["AuctionID"]); //Unemplemented
+            newData.category = (Parcel.ParcelCategory)Convert.ToInt32(row["Category"]); //Enum libsecondlife.Parcel.ParcelCategory
+            newData.claimDate = Convert.ToInt32(row["ClaimDate"]);
+            newData.claimPrice = Convert.ToInt32(row["ClaimPrice"]);
+            newData.groupID = new LLUUID((String)row["GroupUUID"]);
+            newData.salePrice = Convert.ToInt32(row["SalePrice"]);
+            newData.landStatus = (Parcel.ParcelStatus)Convert.ToInt32(row["LandStatus"]); //Enum. libsecondlife.Parcel.ParcelStatus
+            newData.landFlags = Convert.ToUInt32(row["LandFlags"]);
+            newData.landingType = (Byte)row["LandingType"];
+            newData.mediaAutoScale = (Byte)row["MediaAutoScale"];
+            newData.mediaID = new LLUUID((String)row["MediaTextureUUID"]);
+            newData.mediaURL = (String)row["MediaURL"];
+            newData.musicURL = (String)row["MusicURL"];
+            newData.passHours = Convert.ToSingle(row["PassHours"]);
+            newData.passPrice = Convert.ToInt32(row["PassPrice"]);
+            newData.snapshotID = (String)row["SnapshotUUID"];
+
+            newData.userLocation = new LLVector3(Convert.ToSingle(row["UserLocationX"]), Convert.ToSingle(row["UserLocationY"]), Convert.ToSingle(row["UserLocationZ"]));
+            newData.userLookAt = new LLVector3(Convert.ToSingle(row["UserLookAtX"]), Convert.ToSingle(row["UserLookAtY"]), Convert.ToSingle(row["UserLookAtZ"]));
+            newData.parcelAccessList = new List<ParcelManager.ParcelAccessEntry>();
+
+            return newData;
+        }
+
+        private ParcelManager.ParcelAccessEntry buildLandAccessData(DataRow row)
+        {
+            ParcelManager.ParcelAccessEntry entry = new ParcelManager.ParcelAccessEntry();
+            entry.AgentID = new LLUUID((string)row["AccessUUID"]);
+            entry.Flags = (ParcelManager.AccessList)row["Flags"];
+            entry.Time = new DateTime();
+            return entry;
+        }
+
         private Array serializeTerrain(double[,] val)
         {
             MemoryStream str = new MemoryStream(65536 * sizeof(double));
@@ -605,6 +728,51 @@ namespace OpenSim.Framework.Data.MySQL
             row["RotationY"] = prim.RotationOffset.Y;
             row["RotationZ"] = prim.RotationOffset.Z;
             row["RotationW"] = prim.RotationOffset.W;
+        }
+
+        private void fillLandRow(DataRow row, LandData land, LLUUID regionUUID)
+        {
+            row["UUID"] = land.globalID.ToString();
+            row["RegionUUID"] = regionUUID.ToString();
+            row["LocalLandID"] = land.localID;
+
+            // Bitmap is a byte[512]
+            row["Bitmap"] = land.landBitmapByteArray;
+
+            row["Name"] = land.landName;
+            row["Desc"] = land.landDesc;
+            row["OwnerUUID"] = land.ownerID.ToString();
+            row["IsGroupOwned"] = land.isGroupOwned;
+            row["Area"] = land.area;
+            row["AuctionID"] = land.auctionID; //Unemplemented
+            row["Category"] = land.category; //Enum libsecondlife.Parcel.ParcelCategory
+            row["ClaimDate"] = land.claimDate;
+            row["ClaimPrice"] = land.claimPrice;
+            row["GroupUUID"] = land.groupID.ToString();
+            row["SalePrice"] = land.salePrice;
+            row["LandStatus"] = land.landStatus; //Enum. libsecondlife.Parcel.ParcelStatus
+            row["LandFlags"] = land.landFlags;
+            row["LandingType"] = land.landingType;
+            row["MediaAutoScale"] = land.mediaAutoScale;
+            row["MediaTextureUUID"] = land.mediaID.ToString();
+            row["MediaURL"] = land.mediaURL;
+            row["MusicURL"] = land.musicURL;
+            row["PassHours"] = land.passHours;
+            row["PassPrice"] = land.passPrice;
+            row["SnapshotUUID"] = land.snapshotID.ToString();
+            row["UserLocationX"] = land.userLocation.X;
+            row["UserLocationY"] = land.userLocation.Y;
+            row["UserLocationZ"] = land.userLocation.Z;
+            row["UserLookAtX"] = land.userLookAt.X;
+            row["UserLookAtY"] = land.userLookAt.Y;
+            row["UserLookAtZ"] = land.userLookAt.Z;
+        }
+
+        private void fillLandAccessRow(DataRow row, ParcelManager.ParcelAccessEntry entry, LLUUID parcelID)
+        {
+            row["LandUUID"] = parcelID.ToString();
+            row["AccessUUID"] = entry.AgentID.ToString();
+            row["Flags"] = entry.Flags;
         }
 
         private PrimitiveBaseShape buildShape(DataRow row)
@@ -861,6 +1029,21 @@ namespace OpenSim.Framework.Data.MySQL
             da.InsertCommand.Connection = conn;
         }
 
+        private void setupLandCommands(MySqlDataAdapter da, MySqlConnection conn)
+        {
+            da.InsertCommand = createInsertCommand("land", m_dataSet.Tables["land"]);
+            da.InsertCommand.Connection = conn;
+
+            da.UpdateCommand = createUpdateCommand("land", "UUID=?UUID", m_dataSet.Tables["land"]);
+            da.UpdateCommand.Connection = conn;
+        }
+
+        private void setupLandAccessCommands(MySqlDataAdapter da, MySqlConnection conn)
+        {
+            da.InsertCommand = createInsertCommand("landaccesslist", m_dataSet.Tables["landaccesslist"]);
+            da.InsertCommand.Connection = conn;
+        }
+
         private void SetupShapeCommands(MySqlDataAdapter da, MySqlConnection conn)
         {
             da.InsertCommand = createInsertCommand("primshapes", m_dataSet.Tables["primshapes"]);
@@ -880,10 +1063,14 @@ namespace OpenSim.Framework.Data.MySQL
             string createPrims = defineTable(createPrimTable());
             string createShapes = defineTable(createShapeTable());
             string createTerrain = defineTable(createTerrainTable());
+            string createLand = defineTable(createLandTable());
+            string createLandAccessList = defineTable(createLandTable());
 
             MySqlCommand pcmd = new MySqlCommand(createPrims, conn);
             MySqlCommand scmd = new MySqlCommand(createShapes, conn);
             MySqlCommand tcmd = new MySqlCommand(createTerrain, conn);
+            MySqlCommand lcmd = new MySqlCommand(createLand, conn);
+            MySqlCommand lalcmd = new MySqlCommand(createLandAccessList, conn);
 
             if (conn.State != ConnectionState.Open)
             {
@@ -917,6 +1104,23 @@ namespace OpenSim.Framework.Data.MySQL
                 MainLog.Instance.Warn("MySql", "Terrain Table Already Exists");
             }
 
+            try
+            {
+                lcmd.ExecuteNonQuery();
+            }
+            catch (MySqlException)
+            {
+                MainLog.Instance.Warn("MySql", "Land Table Already Exists");
+            }
+
+            try
+            {
+                lalcmd.ExecuteNonQuery();
+            }
+            catch (MySqlException)
+            {
+                MainLog.Instance.Warn("MySql", "LandAccessList Table Already Exists");
+            }
             conn.Close();
         }
 
@@ -928,6 +1132,10 @@ namespace OpenSim.Framework.Data.MySQL
             MySqlDataAdapter sDa = new MySqlDataAdapter(shapeSelectCmd);
             MySqlCommand terrainSelectCmd = new MySqlCommand(m_terrainSelect, conn);
             MySqlDataAdapter tDa = new MySqlDataAdapter(terrainSelectCmd);
+            MySqlCommand landSelectCmd = new MySqlCommand(m_landSelect, conn);
+            MySqlDataAdapter lDa = new MySqlDataAdapter(landSelectCmd);
+            MySqlCommand landAccessListSelectCmd = new MySqlCommand(m_landAccessListSelect, conn);
+            MySqlDataAdapter lalDa = new MySqlDataAdapter(landAccessListSelectCmd);
 
             DataSet tmpDS = new DataSet();
             try
@@ -935,6 +1143,8 @@ namespace OpenSim.Framework.Data.MySQL
                 pDa.Fill(tmpDS, "prims");
                 sDa.Fill(tmpDS, "primshapes");
                 tDa.Fill(tmpDS, "terrain");
+                lDa.Fill(tmpDS, "land");
+                lalDa.Fill(tmpDS, "landaccesslist");
             }
             catch (MySqlException)
             {
@@ -945,6 +1155,8 @@ namespace OpenSim.Framework.Data.MySQL
             pDa.Fill(tmpDS, "prims");
             sDa.Fill(tmpDS, "primshapes");
             tDa.Fill(tmpDS, "terrain");
+            lDa.Fill(tmpDS, "land");
+            lalDa.Fill(tmpDS, "landaccesslist");
 
             foreach (DataColumn col in createPrimTable().Columns)
             {
@@ -965,6 +1177,22 @@ namespace OpenSim.Framework.Data.MySQL
             foreach (DataColumn col in createTerrainTable().Columns)
             {
                 if (!tmpDS.Tables["terrain"].Columns.Contains(col.ColumnName))
+                {
+                    MainLog.Instance.Verbose("DATASTORE", "Missing require column:" + col.ColumnName);
+                    return false;
+                }
+            }
+            foreach (DataColumn col in createLandTable().Columns)
+            {
+                if (!tmpDS.Tables["land"].Columns.Contains(col.ColumnName))
+                {
+                    MainLog.Instance.Verbose("DATASTORE", "Missing require column:" + col.ColumnName);
+                    return false;
+                }
+            }
+            foreach (DataColumn col in createLandAccessListTable().Columns)
+            {
+                if (!tmpDS.Tables["landaccesslist"].Columns.Contains(col.ColumnName))
                 {
                     MainLog.Instance.Verbose("DATASTORE", "Missing require column:" + col.ColumnName);
                     return false;
