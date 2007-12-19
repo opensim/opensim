@@ -511,10 +511,12 @@ namespace OpenSim.Region.Physics.BulletXPlugin
                 GC.Collect();
             }
         }
+
         public override void AddPhysicsActorTaint(PhysicsActor prim)
         {
 
         }
+
         public override float Simulate(float timeStep)
         {
             float fps = 0;
@@ -735,11 +737,13 @@ namespace OpenSim.Region.Physics.BulletXPlugin
                 }
             }
         }
+
         public override PhysicsVector RotationalVelocity
         {
             get { return m_rotationalVelocity; }
             set { m_rotationalVelocity = value; }
         }
+
         public override PhysicsVector Velocity
         {
             get { return _velocity; }
@@ -760,10 +764,26 @@ namespace OpenSim.Region.Physics.BulletXPlugin
                 }
             }
         }
+
         public override PhysicsVector Size
         {
             get { return _size; }
             set { lock (BulletXScene.BulletXLock) { _size = value; } }
+        }
+
+        public override PhysicsVector Force
+        {
+            get { return PhysicsVector.Zero; }
+        }
+
+        public override PhysicsVector CenterOfMass
+        {
+            get { return PhysicsVector.Zero; }
+        }
+
+        public override PhysicsVector GeometricCenter
+        {
+            get { return PhysicsVector.Zero; }
         }
 
         public override PrimitiveBaseShape Shape
@@ -773,15 +793,18 @@ namespace OpenSim.Region.Physics.BulletXPlugin
                 return;
             }
         }
+
         public override bool SetAlwaysRun
         {
             get { return false; }
             set { return; }
         }
+
         public override PhysicsVector Acceleration
         {
             get { return _acceleration; }
         }
+
         public override AxiomQuaternion Orientation
         {
             get { return _orientation; }
@@ -794,10 +817,17 @@ namespace OpenSim.Region.Physics.BulletXPlugin
                 }
             }
         }
-        public virtual float Mass 
+
+        public override float Mass 
         { 
-            get { return 0; } 
+            get { return ActorMass; } 
         }
+
+        public virtual float ActorMass
+        {
+            get { return 0; }
+        }
+
         public override int PhysicsActorType
         {
             get { return (int) m_PhysicsActorType; }
@@ -808,6 +838,7 @@ namespace OpenSim.Region.Physics.BulletXPlugin
         {
             get { return rigidBody; }
         }
+
         public Vector3 RigidBodyPosition
         {
             get { return this.rigidBody.CenterOfMassPosition; }
@@ -829,21 +860,25 @@ namespace OpenSim.Region.Physics.BulletXPlugin
             get { return false; }
             set { return; }
         }
+
         public override bool IsColliding
         {
             get { return iscolliding; }
             set { iscolliding = value; }
         }
+
         public override bool CollidingGround
         {
             get { return false; }
             set { return; }
         }
+
         public override bool CollidingObj
         {
             get { return false; }
             set { return; }
         }
+
         public virtual void SetAcceleration(PhysicsVector accel)
         {
             lock (BulletXScene.BulletXLock)
@@ -851,6 +886,7 @@ namespace OpenSim.Region.Physics.BulletXPlugin
                 _acceleration = accel;
             }
         }
+
         public override bool Kinematic
         {
             get
@@ -862,16 +898,20 @@ namespace OpenSim.Region.Physics.BulletXPlugin
 
             }
         }
+
         public override void AddForce(PhysicsVector force)
         {
 
         }
+
         public override void SetMomentum(PhysicsVector momentum)
         {
         }
+
         internal virtual void ValidateHeight(float heighmapPositionValue)
         {
         }
+
         internal virtual void UpdateKinetics()
         {
         }
@@ -1176,7 +1216,7 @@ namespace OpenSim.Region.Physics.BulletXPlugin
             get { return base.Orientation; }
             set { base.Orientation = value; }
         }
-        public override float Mass
+        public override float ActorMass
         {
             get
             {

@@ -258,7 +258,7 @@ namespace OpenSim.Region.Physics.BasicPhysicsPlugin
 
         public override PhysicsVector Size
         {
-            get { return new PhysicsVector(0, 0, 0); }
+            get { return PhysicsVector.Zero; }
             set { }
         }
 
@@ -269,7 +269,22 @@ namespace OpenSim.Region.Physics.BasicPhysicsPlugin
                 return;
             }
         }
-
+        public override float Mass
+        {
+            get { return 0f; }
+        }
+        public override PhysicsVector Force
+        {
+            get { return PhysicsVector.Zero; }
+        }
+        public override PhysicsVector CenterOfMass
+        {
+            get { return PhysicsVector.Zero; }
+        }
+        public override PhysicsVector GeometricCenter
+        {
+            get { return PhysicsVector.Zero; }
+        }
         public override PhysicsVector Velocity
         {
             get { return _velocity; }

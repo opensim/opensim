@@ -157,6 +157,14 @@ namespace OpenSim.Region.Physics.Manager
 
         public abstract PhysicsVector Position { get; set; }
 
+        public abstract float Mass { get; }
+
+        public abstract PhysicsVector Force { get;}
+
+        public abstract PhysicsVector GeometricCenter { get; }
+
+        public abstract PhysicsVector CenterOfMass { get; }
+
         public abstract PhysicsVector Velocity { get; set; }
 
         public abstract PhysicsVector Acceleration { get; }
@@ -210,7 +218,22 @@ namespace OpenSim.Region.Physics.Manager
             get { return PhysicsVector.Zero; }
             set { return; }
         }
-
+        public override float Mass
+        {
+            get { return 0f; }
+        }
+        public override PhysicsVector Force
+        {
+            get { return PhysicsVector.Zero; }
+        }
+        public override PhysicsVector CenterOfMass
+        {
+            get { return PhysicsVector.Zero; }
+        }
+        public override PhysicsVector GeometricCenter
+        {
+            get { return PhysicsVector.Zero; }
+        }
         public override PrimitiveBaseShape Shape
         {
             set

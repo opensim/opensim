@@ -65,6 +65,9 @@ namespace OpenSim.Region.Physics.OdePlugin
         private bool m_throttleUpdates = false;
         private int throttleCounter = 0;
         public bool outofBounds = false;
+        private float m_density = 0f;
+        
+        
 
         public bool _zeroFlag = false;
         private bool m_lastUpdateSent = false;
@@ -73,7 +76,7 @@ namespace OpenSim.Region.Physics.OdePlugin
         private String m_primName;
         private PhysicsVector _target_velocity;
         public d.Mass pMass;
-        private const float MassMultiplier = 150f; //  Ref: Water: 1000kg..  this iset to 500
+        private const float MassMultiplier = 150f;
         private int debugcounter = 0;
 
         public OdePrim(String primName, OdeScene parent_scene, IntPtr targetSpace, PhysicsVector pos, PhysicsVector size,
@@ -182,15 +185,104 @@ namespace OpenSim.Region.Physics.OdePlugin
 
             _parent_scene.addActivePrim(this);
         }
-        public void setMass()
+        private float CalculateMass()
         {
-            //Sets Mass based on member MassMultiplier.   
+            float volume = 0;
+            
+            // No material is passed to the physics engines yet..  soo..   
+            float density = 2.7f; // Aluminum g/cm3;
+
+            float returnMass = 0;
+
+            switch (_pbs.ProfileShape)
+            {
+                case ProfileShape.Square:
+                    // Profile Volume
+                    
+                    volume = _size.X * _size.Y * _size.Z;
+
+                    // If the user has 'hollowed out' 
+                    if (((float)_pbs.ProfileHollow / 50000f) > 0.0)
+                    {
+                        float hollowAmount = (float)_pbs.ProfileHollow / 50000f;
+                        //break;
+                        float hollowVolume = 0;
+                        switch (_pbs.HollowShape)
+                        {
+                            case HollowShape.Square:
+                            case HollowShape.Same:
+                                // Cube Hollow
+                                float hollowsizex = _size.X * hollowAmount;
+                                float hollowsizey = _size.Y * hollowAmount;
+                                float hollowsizez = _size.Z * hollowAmount;
+                                hollowVolume = hollowsizex * hollowsizey * hollowsizez;
+                                break;
+
+                            case HollowShape.Circle:
+                                // Hollow shape is a perfect cyllinder in respect to the cube's scale
+                                float hRadius = _size.X / 2;
+                                float hLength = _size.Z;
+
+                                // pi * r2 * h
+                                hollowVolume = ((float)(Math.PI * Math.Pow(hRadius, 2) * hLength) * hollowAmount);
+                                break;
+
+                            case HollowShape.Triangle:
+                                float aLength = _size.Y; // Triangle is an Equilateral Triangular Prism with aLength = to _size.Y
+                                // 1/2 abh
+                                hollowVolume = (float)((0.5 * aLength * _size.X * _size.Z) * hollowAmount);
+                                break;
+
+                            default:
+                                hollowVolume = 0;
+                                break;
+                        }
+                        volume = volume - hollowVolume;
+                        
+                    }
+                    
+                    break;
+
+                default:
+                    volume = _size.X * _size.Y * _size.Z;
+                    break;
+            }
+
+            // Calculate Path cut effect on volume
+            // Not exact, in the triangle hollow example
+            // They should ever be less then zero..   
+            // we'll ignore it if it's less then zero
+            float PathCutEndAmount = _pbs.ProfileEnd;
+            float PathCutStartAmount = _pbs.ProfileBegin;
+            if (((PathCutStartAmount + PathCutEndAmount)/50000f) > 0.0f)
+            {
+
+                float pathCutAmount = ((PathCutStartAmount + PathCutEndAmount) / 50000f);
+                
+                if (pathCutAmount >= 0.99f) 
+                    pathCutAmount=0.99f;
+
+                volume = volume - (volume * pathCutAmount);
+            }
+            
+            returnMass = density * volume;
+
+            return returnMass;
+        }
+
+        public void setMass()
+        {    
             if (Body != (IntPtr)0)
             {
-                d.MassSetBox(out pMass, (_size.X * _size.Y * _size.Z * MassMultiplier), _size.X, _size.Y, _size.Z);
+               //if (_pbs.ProfileShape = ProfileShape.Square) {
+
+                d.MassSetBoxTotal(out pMass, CalculateMass(), _size.X, _size.Y, _size.Z);
                 d.BodySetMass(Body, ref pMass);
             }
         }
+
+       
+
         public void disableBody()
         {
             //this kills the body so things like 'mesh' can re-create it.
@@ -212,7 +304,7 @@ namespace OpenSim.Region.Physics.OdePlugin
             int[] indexList = mesh.getIndexListAsIntLocked(); // Also pinned, needs release after usage
             int VertexCount = vertexList.GetLength(0) / 3;
             int IndexCount = indexList.GetLength(0);
-
+            
             _triMeshData = d.GeomTriMeshDataCreate();
 
             d.GeomTriMeshDataBuildSimple(_triMeshData, vertexList, 3 * sizeof(float), VertexCount, indexList, IndexCount,
@@ -220,7 +312,7 @@ namespace OpenSim.Region.Physics.OdePlugin
             d.GeomTriMeshDataPreprocess(_triMeshData);
 
             prim_geom = d.CreateTriMesh(m_targetSpace, _triMeshData, parent_scene.triCallback, null, null);
-
+            
             if (IsPhysical && Body == (IntPtr)0)
             {
                 // Recreate the body
@@ -500,6 +592,26 @@ namespace OpenSim.Region.Physics.OdePlugin
             {
                 _size = value;
             }
+        }
+
+        public override float Mass
+        {
+            get { return CalculateMass(); }
+        }
+
+        public override PhysicsVector Force
+        {
+            get { return PhysicsVector.Zero; }
+        }
+
+        public override PhysicsVector CenterOfMass
+        {
+            get { return PhysicsVector.Zero; }
+        }
+
+        public override PhysicsVector GeometricCenter
+        {
+            get { return PhysicsVector.Zero; }
         }
 
         public override PrimitiveBaseShape Shape

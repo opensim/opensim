@@ -383,6 +383,22 @@ namespace OpenSim.Region.Physics.POSPlugin
             get { return new PhysicsVector(0.5f, 0.5f, 1.0f); }
             set { }
         }
+        public override float Mass
+        {
+            get { return 0f; }
+        }
+        public override PhysicsVector Force
+        {
+            get { return PhysicsVector.Zero; }
+        }
+        public override PhysicsVector CenterOfMass
+        {
+            get { return PhysicsVector.Zero; }
+        }
+        public override PhysicsVector GeometricCenter
+        {
+            get { return PhysicsVector.Zero; }
+        }
 
         public override PrimitiveBaseShape Shape
         {
@@ -490,6 +506,26 @@ namespace OpenSim.Region.Physics.POSPlugin
         {
             get { return _size; }
             set { _size = value; }
+        }
+
+        public override float Mass
+        {
+            get { return 0f; }
+        }
+
+        public override PhysicsVector Force
+        {
+            get { return PhysicsVector.Zero; }
+        }
+
+        public override PhysicsVector CenterOfMass
+        {
+            get { return PhysicsVector.Zero; }
+        }
+
+        public override PhysicsVector GeometricCenter
+        {
+            get { return PhysicsVector.Zero; }
         }
 
         public override PrimitiveBaseShape Shape

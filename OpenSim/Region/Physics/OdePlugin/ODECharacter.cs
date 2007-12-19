@@ -46,6 +46,7 @@ namespace OpenSim.Region.Physics.OdePlugin
         private PhysicsVector _target_velocity;
         private PhysicsVector _acceleration;
         private PhysicsVector m_rotationalVelocity;
+        private float m_density = 50f;
         private bool m_pidControllerActive = true;
         private static float PID_D = 3020.0f;
         private static float PID_P = 7000.0f;
@@ -93,7 +94,7 @@ namespace OpenSim.Region.Physics.OdePlugin
             {
 
                 Shell = d.CreateCapsule(parent_scene.space, CAPSULE_RADIUS, CAPSULE_LENGTH);
-                d.MassSetCapsule(out ShellMass, 50.0f, 3, 0.4f, 1.0f);
+                d.MassSetCapsule(out ShellMass, m_density, 3, CAPSULE_RADIUS, CAPSULE_LENGTH);
                 Body = d.BodyCreate(parent_scene.world);
                 d.BodySetMass(Body, ref ShellMass);
                 d.BodySetPosition(Body, pos.X, pos.Y, pos.Z);
@@ -273,7 +274,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                     d.GeomDestroy(Shell);
                     //MainLog.Instance.Verbose("PHYSICS", "Set Avatar Height To: " + (CAPSULE_RADIUS + CAPSULE_LENGTH));
                     Shell = d.CreateCapsule(_parent_scene.space, capsuleradius, CAPSULE_LENGTH);
-                    d.MassSetCapsule(out ShellMass, 50.0f, 3, CAPSULE_RADIUS, CAPSULE_LENGTH);
+                    d.MassSetCapsule(out ShellMass, m_density, 3, CAPSULE_RADIUS, CAPSULE_LENGTH);
                     Body = d.BodyCreate(_parent_scene.world);
                     d.BodySetMass(Body, ref ShellMass);
                     d.BodySetPosition(Body, _position.X, _position.Y, _position.Z + Math.Abs(CAPSULE_LENGTH - prevCapsule));
@@ -282,6 +283,29 @@ namespace OpenSim.Region.Physics.OdePlugin
                 _parent_scene.geom_name_map[Shell] = m_name;
                 _parent_scene.actor_name_map[Shell] = (PhysicsActor)this;
             }
+        }
+        public override float Mass
+        {
+            get {
+
+                float AVvolume = (float)(Math.PI * Math.Pow(CAPSULE_RADIUS, 2) * CAPSULE_LENGTH);
+                return m_density * AVvolume;
+            }
+        }
+
+        public override PhysicsVector Force
+        {
+            get { return new PhysicsVector(_target_velocity.X,_target_velocity.Y,_target_velocity.Z); }
+        }
+
+        public override PhysicsVector CenterOfMass
+        {
+            get { return PhysicsVector.Zero; }
+        }
+
+        public override PhysicsVector GeometricCenter
+        {
+            get { return PhysicsVector.Zero; }
         }
 
         public override PrimitiveBaseShape Shape
