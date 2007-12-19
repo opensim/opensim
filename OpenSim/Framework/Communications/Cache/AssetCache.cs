@@ -36,7 +36,6 @@ using OpenSim.Framework.Console;
 
 namespace OpenSim.Framework.Communications.Cache
 {
-   
     public delegate void AssetRequestCallback(LLUUID assetID, AssetBase asset);
 
     /// <summary>
@@ -77,7 +76,6 @@ namespace OpenSim.Framework.Communications.Cache
             m_assetCacheThread.IsBackground = true;
             m_assetCacheThread.Start();
 
-
             m_log = log;
         }
 
@@ -99,7 +97,6 @@ namespace OpenSim.Framework.Communications.Cache
                 }
             }
         }
-
 
         public AssetBase GetAsset(LLUUID assetID)
         {
@@ -153,7 +150,6 @@ namespace OpenSim.Framework.Communications.Cache
                 m_assetServer.RequestAsset(assetID, false);
             }
         }
-
 
         public AssetBase GetAsset(LLUUID assetID, bool isTexture)
         {
@@ -236,8 +232,6 @@ namespace OpenSim.Framework.Communications.Cache
             return asset;
         }
 
-
-
         public void AssetReceived(AssetBase asset, bool IsTexture)
         {
             if (asset.FullID != LLUUID.Zero) // if it is set to zero then the asset wasn't found by the server
@@ -249,7 +243,7 @@ namespace OpenSim.Framework.Communications.Cache
 
                 if (IsTexture)
                 {
-                    //Console.WriteLine("asset  recieved from asset server");
+                    //Console.WriteLine("asset received from asset server");
 
                     TextureImage image = new TextureImage(asset);
                     if (!Textures.ContainsKey(image.FullID))
@@ -260,7 +254,7 @@ namespace OpenSim.Framework.Communications.Cache
                             AssetRequest req = RequestedTextures[image.FullID];
                             req.ImageInfo = image;
 
-                            req.NumPackets = CalculateNumPackets(image.Data.Length);
+                            req.NumPackets = CalculateNumPackets(image.Data);
 
                             RequestedTextures.Remove(image.FullID);
                             TextureRequests.Add(req);
@@ -277,15 +271,7 @@ namespace OpenSim.Framework.Communications.Cache
                         {
                             AssetRequest req = RequestedAssets[assetInf.FullID];
                             req.AssetInf = assetInf;
-                            if (assetInf.Data.LongLength > 600)
-                            {
-                                //over 600 bytes so split up file
-                                req.NumPackets = 1 + (int)(assetInf.Data.Length - 600 + 999) / 1000;
-                            }
-                            else
-                            {
-                                req.NumPackets = 1;
-                            }
+                            req.NumPackets = CalculateNumPackets(assetInf.Data);
                             RequestedAssets.Remove(assetInf.FullID);
                             AssetRequests.Add(req);
                         }
@@ -326,16 +312,17 @@ namespace OpenSim.Framework.Communications.Cache
             //}
         }
 
-        private int CalculateNumPackets(int length)
+        private int CalculateNumPackets(byte[] data)
         {
+            const uint m_maxPacketSize = 600;
             int numPackets = 1;
 
-            if (length > 600)
+            if (data.LongLength > m_maxPacketSize)
             {
-                //over 600 bytes so split up file
-                int restData = (length - 600);
-                int restPackets = ((restData + 999) / 1000);
-                numPackets = 1 + restPackets;
+                // over max number of bytes so split up file
+                long restData = data.LongLength - m_maxPacketSize;
+                int restPackets = (int) ((restData + m_maxPacketSize - 1) / m_maxPacketSize);
+                numPackets += restPackets;
             }
 
             return numPackets;
@@ -385,8 +372,7 @@ namespace OpenSim.Framework.Communications.Cache
             //it is in our cache 
             AssetInfo asset = Assets[requestID];
 
-            //work out how many packets it  should be sent in 
-            // and add to the AssetRequests list
+            // add to the AssetRequests list
             AssetRequest req = new AssetRequest();
             req.RequestUser = userInfo;
             req.RequestAssetID = requestID;
@@ -394,17 +380,7 @@ namespace OpenSim.Framework.Communications.Cache
             req.AssetRequestSource = source;
             req.Params = transferRequest.TransferInfo.Params;
             req.AssetInf = asset;
-
-            if (asset.Data.LongLength > 600)
-            {
-                //over 600 bytes so split up file
-                req.NumPackets = 1 + (int)(asset.Data.Length - 600 + 999) / 1000;
-            }
-            else
-            {
-                req.NumPackets = 1;
-            }
-
+            req.NumPackets = CalculateNumPackets(asset.Data);
             AssetRequests.Add(req);
         }
 
@@ -419,17 +395,9 @@ namespace OpenSim.Framework.Communications.Cache
                 //no requests waiting
                 return;
             }
-            int num;
+            // if less than 5, do all of them
+            int num = Math.Min(5, AssetRequests.Count);
 
-            if (AssetRequests.Count < 5)
-            {
-                //lower than 5 so do all of them
-                num = AssetRequests.Count;
-            }
-            else
-            {
-                num = 5;
-            }
             AssetRequest req;
             for (int i = 0; i < num; i++)
             {

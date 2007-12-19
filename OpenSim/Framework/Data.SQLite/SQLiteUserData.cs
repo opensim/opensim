@@ -320,7 +320,7 @@ namespace OpenSim.Framework.Data.SQLite
         /// </summary>
         /// <remarks>Move to inventory server</remarks>
         /// <param name="from">Senders account</param>
-        /// <param name="to">Recievers account</param>
+        /// <param name="to">Receivers account</param>
         /// <param name="item">Inventory item</param>
         /// <returns>Success?</returns>
         public bool InventoryTransferRequest(LLUUID from, LLUUID to, LLUUID item)

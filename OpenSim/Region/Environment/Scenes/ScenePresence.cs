@@ -1233,25 +1233,37 @@ namespace OpenSim.Region.Environment.Scenes
             uint neighbourx = m_regionInfo.RegionLocX;
             uint neighboury = m_regionInfo.RegionLocY;
 
-            if (pos.X < 1.7F)
+            // distance to edge that will trigger crossing
+            const float boundaryDistance = 1.7f;
+
+            // distance into new region to place avatar
+            const float enterDistance = 0.1f;
+
+            // region size
+            // TODO: this should be hard-coded in some common place
+            const float regionWidth = 256;
+            const float regionHeight = 256;
+
+            if (pos.X < boundaryDistance)
             {
-                neighbourx -= 1;
-                newpos.X = 255.9F;
+                neighbourx--;
+                newpos.X = regionWidth - enterDistance;
             }
-            if (pos.X > 254.3F)
+            else if (pos.X > regionWidth - boundaryDistance)
             {
-                neighbourx += 1;
-                newpos.X = 0.1F;
+                neighbourx++;
+                newpos.X = enterDistance;
             }
-            if (pos.Y < 1.7F)
+
+            if (pos.Y < boundaryDistance)
             {
-                neighboury -= 1;
-                newpos.Y = 255.9F;
+                neighboury--;
+                newpos.Y = regionHeight - enterDistance;
             }
-            if (pos.Y > 254.3F)
+            else if (pos.Y > regionHeight - boundaryDistance)
             {
-                neighboury += 1;
-                newpos.Y = 0.1F;
+                neighboury++;
+                newpos.Y = enterDistance;
             }
 
             LLVector3 vel = m_velocity;

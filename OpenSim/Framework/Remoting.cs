@@ -38,7 +38,7 @@ namespace OpenSim.Framework
     /// Suggested implementation
     /// <para>Store two digests for each foreign host. A local copy of the local hash using the local challenge (when issued), and a local copy of the remote hash using the remote challenge.</para>
     /// <para>When sending data to the foreign host - run 'Sign' on the data and affix the returned byte[] to the message.</para>
-    /// <para>When recieving data from the foreign host - run 'Authenticate' against the data and the attached byte[].</para>
+    /// <para>When receiving data from the foreign host - run 'Authenticate' against the data and the attached byte[].</para>
     /// <para>Both hosts should be performing these operations for this to be effective.</para>
     /// </remarks>
     internal class RemoteDigest

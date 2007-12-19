@@ -122,7 +122,7 @@ namespace OpenSim.ApplicationPlugins.LoadRegions
 
         public XmlRpcResponse XmlRpcShutdownMethod(XmlRpcRequest request)
         {
-            MainLog.Instance.Verbose("RADMIN", "Recieved Shutdown Administrator Request");
+            MainLog.Instance.Verbose("RADMIN", "Received Shutdown Administrator Request");
             XmlRpcResponse response = new XmlRpcResponse();
             Hashtable requestData = (Hashtable)request.Params[0];
 
@@ -170,7 +170,7 @@ namespace OpenSim.ApplicationPlugins.LoadRegions
 
         public XmlRpcResponse XmlRpcCreateRegionMethod(XmlRpcRequest request)
         {
-            MainLog.Instance.Verbose("RADMIN", "Recieved Create Region Administrator Request");
+            MainLog.Instance.Verbose("RADMIN", "Received Create Region Administrator Request");
             XmlRpcResponse response = new XmlRpcResponse();
             Hashtable requestData = (Hashtable)request.Params[0];
 

@@ -79,12 +79,12 @@ namespace OpenSim.Framework.Data
 
         List<AvatarPickerAvatar> GeneratePickerResults(LLUUID queryID, string query);
         /// <summary>
-        /// Authenticates a sim by use of it's recv key. 
+        /// Authenticates a sim by use of its recv key. 
         /// WARNING: Insecure
         /// </summary>
         /// <param name="UUID">The UUID sent by the sim</param>
         /// <param name="regionHandle">The regionhandle sent by the sim</param>
-        /// <param name="simrecvkey">The recieving key sent by the sim</param>
+        /// <param name="simrecvkey">The receiving key sent by the sim</param>
         /// <returns>Whether the sim has been authenticated</returns>
         bool AuthenticateSim(LLUUID UUID, ulong regionHandle, string simrecvkey);
 

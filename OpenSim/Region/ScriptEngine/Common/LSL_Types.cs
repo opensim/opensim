@@ -60,19 +60,21 @@ namespace OpenSim.Region.ScriptEngine.Common
             {
                 return "<" + x.ToString() + ", " + y.ToString() + ", " + z.ToString() + ">";
             }
+
             public static bool operator ==(Vector3 lhs, Vector3 rhs)
             {
                 return (lhs.x == rhs.x && lhs.y == rhs.y && lhs.z == rhs.z);
             }
+
             public static bool operator !=(Vector3 lhs, Vector3 rhs)
             {
                 return !(lhs == rhs);
             }
+
             public override int GetHashCode()
             {
                 return (x.GetHashCode() ^ y.GetHashCode() ^ z.GetHashCode());
             }
-
 
             public override bool Equals(object o)
             {
@@ -91,10 +93,12 @@ namespace OpenSim.Region.ScriptEngine.Common
             {
                 return new Vector3(lhs.x + rhs.x, lhs.y + rhs.y, lhs.z + rhs.z);
             } 
+
             public static Vector3 operator -(Vector3 lhs, Vector3 rhs)
             {
                 return new Vector3(lhs.x - rhs.x, lhs.y - rhs.y, lhs.z - rhs.z);
             }
+
             public static Vector3 operator *(Vector3 lhs, Vector3 rhs)
             {
                 return new Vector3(lhs.x * rhs.x, lhs.y * rhs.y, lhs.z * rhs.z);
@@ -145,6 +149,7 @@ namespace OpenSim.Region.ScriptEngine.Common
 
                 return new Vector3(result.x, result.y, result.z);
             }
+
             // I *think* this is how it works....
             public static Vector3 operator /(Vector3 vec, Quaternion quat)
             {
@@ -163,6 +168,7 @@ namespace OpenSim.Region.ScriptEngine.Common
             {
                 return (v1.x * v2.x) + (v1.y * v2.y) + (v1.z * v2.z);
             }
+
             public static Vector3 Cross(Vector3 v1, Vector3 v2)
             {
                 return new Vector3
@@ -172,10 +178,12 @@ namespace OpenSim.Region.ScriptEngine.Common
                     v1.x * v2.y - v1.y * v2.x
                 );
             }
+
             public static float Mag(Vector3 v)
             {
                 return (float)Math.Sqrt(v.x * v.y + v.y * v.y + v.z * v.z);
             }
+
             public static Vector3 Norm(Vector3 vector)
             {
                 float mag = Mag(vector);
@@ -215,7 +223,6 @@ namespace OpenSim.Region.ScriptEngine.Common
                 return (x.GetHashCode() ^ y.GetHashCode() ^ z.GetHashCode() ^ s.GetHashCode());
             }
 
-
             public override bool Equals(object o)
             {
                 if (!(o is Quaternion)) return false;
@@ -224,6 +231,7 @@ namespace OpenSim.Region.ScriptEngine.Common
 
                 return x == quaternion.x && y == quaternion.y && z == quaternion.z && s == quaternion.s;
             }
+
             public override string ToString()
             {
                 return "<" + x.ToString() + ", " + y.ToString() + ", " + z.ToString() + ", " + s.ToString() + ">";
@@ -257,19 +265,23 @@ namespace OpenSim.Region.ScriptEngine.Common
         public class list
         {
             private object[] m_data;
+
             public list(params object[] args)
             {
                 m_data = new object[args.Length];
                 m_data = args;
             }
+
             public int Length
             {
                 get { return m_data.Length; }
             }
+
             public object[] Data
             {
                 get { return m_data; }
             }
+
             public static list operator +(list a, list b)
             {
                 object[] tmp;
@@ -278,6 +290,7 @@ namespace OpenSim.Region.ScriptEngine.Common
                 b.Data.CopyTo(tmp, a.Length);
                 return new list(tmp);
             }
+
             public list GetSublist(int start, int end)
             {
                 Console.WriteLine("GetSublist(" + start.ToString() + "," + end.ToString() + ")");
@@ -292,8 +305,7 @@ namespace OpenSim.Region.ScriptEngine.Common
                     end = m_data.Length + end;
                 }
 
-                // Case start < end
-
+                // Case start <= end
                 if (start <= end)
                 {
                     if (start >= m_data.Length)
@@ -350,6 +362,7 @@ namespace OpenSim.Region.ScriptEngine.Common
                 output = output + "]";
                 return output;
             }
+
             public override string ToString()
             {
                 string output;
@@ -366,5 +379,4 @@ namespace OpenSim.Region.ScriptEngine.Common
             }
         }
     }
-
 }

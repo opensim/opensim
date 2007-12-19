@@ -387,7 +387,7 @@ namespace OpenSim.Framework.Data.MSSQL
         /// Performs a money transfer request between two accounts
         /// </summary>
         /// <param name="from">The senders account ID</param>
-        /// <param name="to">The recievers account ID</param>
+        /// <param name="to">The receivers account ID</param>
         /// <param name="amount">The amount to transfer</param>
         /// <returns>Success?</returns>
         public bool MoneyTransferRequest(LLUUID from, LLUUID to, uint amount)
@@ -400,7 +400,7 @@ namespace OpenSim.Framework.Data.MSSQL
         /// </summary>
         /// <remarks>TODO: Move to inventory server</remarks>
         /// <param name="from">The senders account ID</param>
-        /// <param name="to">The recievers account ID</param>
+        /// <param name="to">The receivers account ID</param>
         /// <param name="item">The item to transfer</param>
         /// <returns>Success?</returns>
         public bool InventoryTransferRequest(LLUUID from, LLUUID to, LLUUID item)

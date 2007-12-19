@@ -166,7 +166,6 @@ namespace OpenSim.Region.Physics.POSPlugin
 
         public override void AddPhysicsActorTaint(PhysicsActor prim)
         {
-
         }
 
         public override float Simulate(float timeStep)
@@ -187,8 +186,8 @@ namespace OpenSim.Region.Physics.POSPlugin
                 }
 
                 bool forcedZ = false;
-                character.Position.X = character.Position.X + (character._target_velocity.X * timeStep);
-                character.Position.Y = character.Position.Y + (character._target_velocity.Y * timeStep);
+                character.Position.X += character._target_velocity.X * timeStep;
+                character.Position.Y += character._target_velocity.Y * timeStep;
 
                 if (character.Position.Y < 0)
                 {
@@ -216,7 +215,7 @@ namespace OpenSim.Region.Physics.POSPlugin
                 }
                 else
                 {
-                    character.Position.Z = character.Position.Z + (character._target_velocity.Z * timeStep);
+                    character.Position.Z += character._target_velocity.Z * timeStep;
                 }
 
                 /// this is it -- the magic you've all been waiting for!  Ladies and gentlemen -- 

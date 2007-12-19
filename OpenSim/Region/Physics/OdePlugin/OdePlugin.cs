@@ -75,6 +75,10 @@ namespace OpenSim.Region.Physics.OdePlugin
 
     public class OdeScene : PhysicsScene
     {
+        // TODO: this should be hard-coded in some common place
+        private const uint m_regionWidth = 256;
+        private const uint m_regionHeight = 256;
+
         private static float ODE_STEPSIZE = 0.004f;
         private static bool RENDER_FLAG = false;
         private static float metersInSpace = 29.9f;
@@ -167,12 +171,9 @@ namespace OpenSim.Region.Physics.OdePlugin
             
         }
 
-        
-
         public override void Initialise(IMesher meshmerizer)
         {
             mesher = meshmerizer;
-
         }
 
         public string whichspaceamIin(PhysicsVector pos)
@@ -196,7 +197,6 @@ namespace OpenSim.Region.Physics.OdePlugin
                 //Collide all geoms in each space..   
                 //if (d.GeomIsSpace(g1)) d.SpaceCollide(g1, IntPtr.Zero, nearCallback);
                 //if (d.GeomIsSpace(g2)) d.SpaceCollide(g2, IntPtr.Zero, nearCallback);
-
             } 
             else 
             {
@@ -206,13 +206,11 @@ namespace OpenSim.Region.Physics.OdePlugin
                 IntPtr b1 = d.GeomGetBody(g1);
                 IntPtr b2 = d.GeomGetBody(g2);
 
-
                 if (g1 == g2)
                     return; // Can't collide with yourself
 
                 if (b1 != IntPtr.Zero && b2 != IntPtr.Zero && d.AreConnectedExcluding(b1, b2, d.JointType.Contact))
                     return;
-
 
                 d.GeomClassID id = d.GeomGetClass(g1);
                 
@@ -230,8 +228,6 @@ namespace OpenSim.Region.Physics.OdePlugin
 
                 if (id == d.GeomClassID.TriMeshClass)
                 {
-                    
-
     //               MainLog.Instance.Verbose("near: A collision was detected between {1} and {2}", 0, name1, name2);
                     //System.Console.WriteLine("near: A collision was detected between {1} and {2}", 0, name1, name2);
                 }
@@ -297,8 +293,6 @@ namespace OpenSim.Region.Physics.OdePlugin
                             TerrainContact.geom = contacts[i];
                             joint = d.JointCreateContact(world, contactgroup, ref TerrainContact);
                         }
-                            
-                        
                     }
                     else
                     {
@@ -311,9 +305,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                         {
                             contact.geom = contacts[i];
                             joint = d.JointCreateContact(world, contactgroup, ref contact);
-                            
                         }
-                        
                     }
                     
                     
@@ -333,17 +325,12 @@ namespace OpenSim.Region.Physics.OdePlugin
 
         private void collision_optimized(float timeStep)
         {
-
             foreach (OdeCharacter chr in _characters)
             {
-
-                
                 chr.IsColliding = false;
                 chr.CollidingGround = false;
                 chr.CollidingObj = false;
                 d.SpaceCollide2(space, chr.Shell, IntPtr.Zero, nearCallback);
-                
-               
             }
             // If the sim is running slow this frame, 
             // don't process collision for prim!
@@ -422,11 +409,11 @@ namespace OpenSim.Region.Physics.OdePlugin
                 }
             }
         }
+
         public void RemovePrimThreadLocked(OdePrim prim)
         {
             lock (OdeLock)
             {
-                
                 if (prim.IsPhysical)
                 {
                     prim.disableBody();
@@ -479,6 +466,7 @@ namespace OpenSim.Region.Physics.OdePlugin
             }
                     
         }
+
         public void resetSpaceArrayItemToZero(IntPtr space)
         {
             for (int x = 0; x < staticPrimspace.GetLength(0); x++)
@@ -490,6 +478,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                 }
             }
         }
+
         public void resetSpaceArrayItemToZero(int arrayitemX,int arrayitemY)
         {
             staticPrimspace[arrayitemX, arrayitemY] = IntPtr.Zero;
@@ -524,6 +513,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                     if (!(sGeomIsIn.Equals(null)))
                     {
                         if (sGeomIsIn != (IntPtr)0)
+                        {
                             if (d.GeomIsSpace(currentspace))
                             {
                                 d.SpaceRemove(sGeomIsIn, geom);
@@ -532,6 +522,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                             {
                                 MainLog.Instance.Verbose("Physics", "Invalid Scene passed to 'recalculatespace':" + sGeomIsIn.ToString() + " Geom:" + geom.ToString());
                             }
+                        }
                     }
                 }
 
@@ -586,7 +577,6 @@ namespace OpenSim.Region.Physics.OdePlugin
                             else
                             {
                                 MainLog.Instance.Verbose("Physics", "Invalid Scene passed to 'recalculatespace':" + sGeomIsIn.ToString() + " Geom:" + geom.ToString());
-
                             }
                         }
                     }
@@ -625,6 +615,7 @@ namespace OpenSim.Region.Physics.OdePlugin
             //locationbasedspace = space;
             return locationbasedspace;
         }
+
         public int[] calculateSpaceArrayItemFromPos(PhysicsVector pos)
         {
             int[] returnint = new int[2];
@@ -682,7 +673,7 @@ namespace OpenSim.Region.Physics.OdePlugin
         }
 
         public void addActivePrim(OdePrim activatePrim)
-         {
+        {
             // adds active prim..   (ones that should be iterated over in collisions_optimized
 
                  _activeprims.Add(activatePrim);
@@ -902,17 +893,18 @@ namespace OpenSim.Region.Physics.OdePlugin
             get { return (false); // for now we won't be multithreaded
             }
         }
+
         public float[] ResizeTerrain512(float[] heightMap)
         {
             float[] returnarr = new float[262144];
-            float[,] resultarr = new float[256, 256];
+            float[,] resultarr = new float[m_regionWidth, m_regionHeight];
 
             // Filling out the array into it's multi-dimentional components
-            for (int y = 0; y < 256; y++)
+            for (int y = 0; y < m_regionHeight; y++)
             {
-                for (int x = 0; x < 256; x++)
+                for (int x = 0; x < m_regionWidth; x++)
                 {
-                    resultarr[y,x] = heightMap[y * 256 + x];
+                    resultarr[y,x] = heightMap[y * m_regionWidth + x];
                 }
             }
 
@@ -976,17 +968,17 @@ namespace OpenSim.Region.Physics.OdePlugin
             // on single loop.
 
             float[,] resultarr2 = new float[512, 512];
-            for (int y = 0; y < 256; y++)
+            for (int y = 0; y < m_regionHeight; y++)
             {
-                for (int x = 0; x < 256; x++)
+                for (int x = 0; x < m_regionWidth; x++)
                 {
                     resultarr2[y*2,x*2] = resultarr[y,x];
 
-                    if (y < 256)
+                    if (y < m_regionHeight)
                     {
-                        if (y + 1 < 256)
+                        if (y + 1 < m_regionHeight)
                         {
-                            if (x + 1 < 256)
+                            if (x + 1 < m_regionWidth)
                             {
                                 resultarr2[(y * 2) + 1, x * 2] = ((resultarr[y, x] + resultarr[y + 1, x] + resultarr[y, x+1] + resultarr[y+1, x+1])/4);
                             }
@@ -1000,11 +992,11 @@ namespace OpenSim.Region.Physics.OdePlugin
                             resultarr2[(y * 2) + 1, x * 2] = resultarr[y, x];
                         }
                     }
-                    if (x < 256)
+                    if (x < m_regionWidth)
                     {
-                        if (x + 1 < 256)
+                        if (x + 1 < m_regionWidth)
                         {
-                            if (y + 1 < 256)
+                            if (y + 1 < m_regionHeight)
                             {
                                 resultarr2[y * 2, (x * 2) + 1] = ((resultarr[y, x] + resultarr[y + 1, x] + resultarr[y, x + 1] + resultarr[y + 1, x + 1]) / 4);
                             }
@@ -1018,9 +1010,9 @@ namespace OpenSim.Region.Physics.OdePlugin
                             resultarr2[y * 2, (x * 2) + 1] = resultarr[y, x];
                         }
                     }
-                    if (x < 256 && y < 256)
+                    if (x < m_regionWidth && y < m_regionHeight)
                     {
-                        if ((x + 1 < 256) && (y + 1 < 256))
+                        if ((x + 1 < m_regionWidth) && (y + 1 < m_regionHeight))
                         {
                             resultarr2[(y * 2) + 1, (x * 2) + 1] = ((resultarr[y, x] + resultarr[y + 1, x] + resultarr[y, x + 1] + resultarr[y + 1, x + 1]) / 4);
                         }
@@ -1052,21 +1044,26 @@ namespace OpenSim.Region.Physics.OdePlugin
             // dbm (danx0r) -- heightmap x,y must be swapped for Ode (should fix ODE, but for now...)
             // also, creating a buffer zone of one extra sample all around
 
+            const uint heightmapWidth = m_regionWidth + 2;
+            const uint heightmapHeight = m_regionHeight + 2;
+            const uint heightmapWidthSamples = 2 * m_regionWidth + 2;
+            const uint heightmapHeightSamples = 2 * m_regionHeight + 2;
+            const float scale = 1.0f;
+            const float offset = 0.0f;
+            const float thickness = 2.0f;
+            const int wrap = 0;
+
             //Double resolution
             heightMap = ResizeTerrain512(heightMap);
-            for (int x = 0; x < 514; x++)
+            for (int x = 0; x < heightmapWidthSamples; x++)
             {
-                for (int y = 0; y < 514; y++)
+                for (int y = 0; y < heightmapHeightSamples; y++)
                 {
-                    int xx = x - 1;
-                    if (xx < 0) xx = 0;
-                    if (xx > 511) xx = 511;
-                    int yy = y - 1;
-                    if (yy < 0) yy = 0;
-                    if (yy > 511) yy = 511;
+                    int xx = Util.Clip(x - 1, 0, 511);
+                    int yy = Util.Clip(y - 1, 0, 511);
 
                     double val = (double) heightMap[yy*512 + xx];
-                    _heightmap[x*514 + y] = val;
+                    _heightmap[x*heightmapHeightSamples + y] = val;
                 }
             }
 
@@ -1077,8 +1074,9 @@ namespace OpenSim.Region.Physics.OdePlugin
                     d.SpaceRemove(space, LandGeom);
                 }
                 IntPtr HeightmapData = d.GeomHeightfieldDataCreate();
-                d.GeomHeightfieldDataBuildDouble(HeightmapData, _heightmap, 0, 258, 258, 514, 514, 1.0f, 0.0f, 2.0f, 0);
-                d.GeomHeightfieldDataSetBounds(HeightmapData, 256, 256);
+                d.GeomHeightfieldDataBuildDouble(HeightmapData, _heightmap, 0, heightmapWidth, heightmapHeight,
+                                                 (int) heightmapWidthSamples, (int) heightmapHeightSamples, scale, offset, thickness, wrap);
+                d.GeomHeightfieldDataSetBounds(HeightmapData, m_regionWidth, m_regionHeight);
                 LandGeom = d.CreateHeightfield(space, HeightmapData, 1);
                 geom_name_map[LandGeom] = "Terrain";
 

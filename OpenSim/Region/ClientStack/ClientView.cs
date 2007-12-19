@@ -102,7 +102,6 @@ namespace OpenSim.Region.ClientStack
         protected LLVector3 m_startpos;
         protected EndPoint m_userEndPoint;
 
-
         /* Properties */
         public LLUUID SecureSessionId
         {
@@ -181,7 +180,7 @@ namespace OpenSim.Region.ClientStack
 
             // While working on this, the BlockingQueue had me fooled for a bit.
             // The Blocking queue causes the thread to stop until there's something 
-            // in it to process.  it's an on-purpose threadlock though because 
+            // in it to process.  It's an on-purpose threadlock though because 
             // without it, the clientloop will suck up all sim resources.
 
             m_packetQueue = new PacketQueue();
@@ -192,7 +191,6 @@ namespace OpenSim.Region.ClientStack
             m_clientThread.IsBackground = true;
             m_clientThread.Start();
         }
-
 
         public void SetDebug(int newDebug)
         {
@@ -236,10 +234,8 @@ namespace OpenSim.Region.ClientStack
         public void Kick(string message)
         {
             KickUserPacket kupack = new KickUserPacket();
-
             kupack.UserInfo.AgentID = AgentId;
             kupack.UserInfo.SessionID = SessionId;
-
             kupack.TargetBlock.TargetIP = (uint)0;
             kupack.TargetBlock.TargetPort = (ushort)0;
             kupack.UserInfo.Reason = Helpers.StringToField(message);
@@ -345,7 +341,6 @@ namespace OpenSim.Region.ClientStack
                 QueItem nextPacket = m_packetQueue.Dequeue();
                 if (nextPacket.Incoming)
                 {
-                    //is a incoming packet
                     if (nextPacket.Packet.Type != PacketType.AgentUpdate)
                     {
                         m_packetsReceived++;
@@ -532,7 +527,6 @@ namespace OpenSim.Region.ClientStack
         public event RegionInfoRequest OnRegionInfoRequest;
         public event EstateCovenantRequest OnEstateCovenantRequest;
         
-
         #region Scene/Avatar to Client
 
         /// <summary>
@@ -611,7 +605,6 @@ namespace OpenSim.Region.ClientStack
             SendChatMessage(Helpers.StringToField(message), type, fromPos, fromName, fromAgentID);
         }
 
-
         public void SendChatMessage(byte[] message, byte type, LLVector3 fromPos, string fromName, LLUUID fromAgentID)
         {
             ChatFromSimulatorPacket reply = new ChatFromSimulatorPacket();
@@ -666,7 +659,7 @@ namespace OpenSim.Region.ClientStack
 
                 for (int y = 0; y < 16; y++)
                 {
-                    for (int x = 0; x < 16; x = x + 4)
+                    for (int x = 0; x < 16; x += 4)
                     {
                         patches[0] = x + 0 + y*16;
                         patches[1] = x + 1 + y*16;
@@ -766,7 +759,6 @@ namespace OpenSim.Region.ClientStack
             newSimPack.Info = new CrossedRegionPacket.InfoBlock();
             newSimPack.Info.Position = pos;
             newSimPack.Info.LookAt = look;
-            // new LLVector3(0.0f, 0.0f, 0.0f);	// copied from Avatar.cs - SHOULD BE DYNAMIC!!!!!!!!!!
             newSimPack.RegionData = new CrossedRegionPacket.RegionDataBlock();
             newSimPack.RegionData.RegionHandle = newRegionHandle;
             byte[] byteIP = externalIPEndPoint.Address.GetAddressBytes();
@@ -775,7 +767,6 @@ namespace OpenSim.Region.ClientStack
             newSimPack.RegionData.SimIP += (uint) byteIP[1] << 8;
             newSimPack.RegionData.SimIP += (uint) byteIP[0];
             newSimPack.RegionData.SimPort = (ushort) externalIPEndPoint.Port;
-            //newSimPack.RegionData.SeedCapability = new byte[0];
             newSimPack.RegionData.SeedCapability = Helpers.StringToField(capsURL);
 
             OutPacket(newSimPack, ThrottleOutPacketType.Task);
@@ -823,7 +814,6 @@ namespace OpenSim.Region.ClientStack
             teleport.Info.SimAccess = simAccess;
 
             teleport.Info.SeedCapability = Helpers.StringToField(capsURL);
-            //teleport.Info.SeedCapability = new byte[0];
 
             IPAddress oIP = newRegionEndPoint.Address;
             byte[] byteIP = oIP.GetAddressBytes();
@@ -847,7 +837,6 @@ namespace OpenSim.Region.ClientStack
             TeleportFailedPacket tpFailed = new TeleportFailedPacket();
             tpFailed.Info.AgentID = this.AgentId;
             tpFailed.Info.Reason = Helpers.StringToField("unknown failure of teleport");
-
             OutPacket(tpFailed, ThrottleOutPacketType.Task);
         }
 
@@ -946,7 +935,6 @@ namespace OpenSim.Region.ClientStack
                 descend.ItemData[i].SaleType = 0;
                 descend.ItemData[i].Type = (sbyte)item.assetType;
                 descend.ItemData[i].CRC =
-
                     Helpers.InventoryCRC(descend.ItemData[i].CreationDate, descend.ItemData[i].SaleType,
                                          descend.ItemData[i].InvType, descend.ItemData[i].Type,
                                          descend.ItemData[i].AssetID, descend.ItemData[i].GroupID, descend.ItemData[i].SalePrice,
@@ -1228,7 +1216,7 @@ namespace OpenSim.Region.ClientStack
             Console.WriteLine("SunPhase: {0}", phase);
             SimulatorViewerTimeMessagePacket viewertime = new SimulatorViewerTimeMessagePacket();
             //viewertime.TimeInfo.SecPerDay = 86400;
-            // viewertime.TimeInfo.SecPerYear = 31536000;
+            //viewertime.TimeInfo.SecPerYear = 31536000;
             viewertime.TimeInfo.SecPerDay = 1000;
             viewertime.TimeInfo.SecPerYear = 365000;
             viewertime.TimeInfo.SunPhase = 1;
@@ -1252,14 +1240,9 @@ namespace OpenSim.Region.ClientStack
                 {
                     yValue = yValue - 1.2f;
                 }
-                if (yValue > 1)
-                {
-                    yValue = 1;
-                }
-                if (yValue < 0)
-                {
-                    yValue = 0;
-                }
+
+                yValue = Util.Clip(yValue, 0, 1);
+
                 if (sunPhase < 14)
                 {
                     yValue = 1 - yValue;

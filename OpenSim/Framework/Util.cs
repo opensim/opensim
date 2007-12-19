@@ -373,5 +373,15 @@ namespace OpenSim.Framework
                 config.Configs[(string) row[0]].Set(row.Table.Columns[i].ColumnName, row[i]);
             }
         }
+
+        public static float Clip(float x, float min, float max)
+        {
+            return Math.Min(Math.Max(x, min), max);
+        }
+
+        public static int Clip(int x, int min, int max)
+        {
+            return Math.Min(Math.Max(x, min), max);
+        }
     }
 }
