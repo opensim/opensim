@@ -114,20 +114,26 @@ namespace OpenSim.Region.Environment
         }
 
         /// <summary>
-        ///  Loads/initialises a Module instance that can be used by mutliple Regions
+        ///  Loads/initialises a Module instance that can be used by multiple Regions
         /// </summary>
         /// <param name="dllName"></param>
         /// <param name="moduleName"></param>
-        /// <param name="scene"></param>
         public void LoadSharedModule(string dllName, string moduleName)
         {
             IRegionModule module = LoadModule(dllName, moduleName);
-            if (module != null)
+
+            LoadSharedModule(module);
+        }
+
+        /// <summary>
+        ///  Loads/initialises a Module instance that can be used by multiple Regions
+        /// </summary>
+        /// <param name="module"></param>
+        public void LoadSharedModule(IRegionModule module)
+        {
+            if (!m_loadedSharedModules.ContainsKey(module.Name))
             {
-                if (!m_loadedSharedModules.ContainsKey(module.Name))
-                {
-                    m_loadedSharedModules.Add(module.Name, module);
-                }
+                m_loadedSharedModules.Add(module.Name, module);
             }
         }
 
@@ -148,7 +154,7 @@ namespace OpenSim.Region.Environment
                     else
                     {
                         m_log.Verbose("MODULES", "   [{0}]: Loading Shared Module.", module.Name);
-                        LoadSharedModule(dllName, module.Name);
+                        LoadSharedModule(module);
                     }
                 }
             }
@@ -168,7 +174,6 @@ namespace OpenSim.Region.Environment
         /// </summary>
         /// <param name="dllName"></param>
         /// <param name="moduleName"></param>
-        /// <param name="scene"></param>
         public IRegionModule LoadModule(string dllName, string moduleName)
         {
             IRegionModule[] modules = LoadModules(dllName);
@@ -202,7 +207,6 @@ namespace OpenSim.Region.Environment
                 }
             }
 
-
             if (pluginAssembly != null)
             {
                 try
@@ -221,9 +225,9 @@ namespace OpenSim.Region.Environment
                         }
                     }
                 }
-                catch( ReflectionTypeLoadException )
+                catch (ReflectionTypeLoadException)
                 {
-                    m_log.Verbose("MODULES", "Could not load types for [{0}].", pluginAssembly.FullName );
+                    m_log.Verbose("MODULES", "Could not load types for [{0}].", pluginAssembly.FullName);
                 }
             }
 
