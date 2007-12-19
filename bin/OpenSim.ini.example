@@ -33,9 +33,12 @@ startup_console_commands_file = "startup_commands.txt"
 shutdown_console_commands_file = "shutdown_commands.txt"
 serverside_object_permissions = false
 
-; asset_database = "db4o"
-; to try sqlite as the asset database , comment out the above line, and uncomment following one
+; Select the type of database to use for asset storage
+;asset_database = "db4o"
 asset_database = "sqlite"
+;asset_database = "grid"
+;asset_database = "mssql"
+
 verbose = true
 
 ; if you would like to allow prim to be physical and move by physics with the physical checkbox in the client set this to true.
