@@ -1172,7 +1172,49 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler
 
         public void llSetLinkColor(int linknumber, LSL_Types.Vector3 color, int face)
         {
-            NotImplemented("llSetLinkColor");
+            // still needs to be adjusted for compatability with link constants
+            SceneObjectPart part = m_host.ParentGroup.GetLinkNumPart(linknumber);
+            if (part != null)
+            {
+                LLObject.TextureEntry tex = new LLObject.TextureEntry(part.Shape.TextureEntry, 0, part.Shape.TextureEntry.Length);
+                LLColor texcolor;
+                if (face > -1)
+                {
+                    texcolor = tex.CreateFace((uint)face).RGBA;
+                    texcolor.R = (float)Math.Abs(color.x - 1);
+                    texcolor.G = (float)Math.Abs(color.y - 1);
+                    texcolor.B = (float)Math.Abs(color.z - 1);
+                    tex.FaceTextures[face].RGBA = texcolor;
+                    part.UpdateTexture(tex);
+                    return;
+                }
+                else if (face == -1)
+                {
+                    texcolor = tex.DefaultTexture.RGBA;
+                    texcolor.R = (float)Math.Abs(color.x - 1);
+                    texcolor.G = (float)Math.Abs(color.y - 1);
+                    texcolor.B = (float)Math.Abs(color.z - 1);
+                    tex.DefaultTexture.RGBA = texcolor;
+                    for (uint i = 0; i < 32; i++)
+                    {
+                        if (tex.FaceTextures[i] != null)
+                        {
+                            texcolor = tex.FaceTextures[i].RGBA;
+                            texcolor.R = (float)Math.Abs(color.x - 1);
+                            texcolor.G = (float)Math.Abs(color.y - 1);
+                            texcolor.B = (float)Math.Abs(color.z - 1);
+                            tex.FaceTextures[i].RGBA = texcolor;
+                        }
+                    }
+                    part.UpdateTexture(tex);
+                    return;
+                }
+                return;
+            }
+            else
+            {
+                throw new Exception("Link does not contain enough prims for the given linknumber setting");
+            }
         }
 
         public void llCreateLink(string target, int parent)
@@ -2407,7 +2449,10 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler
 
         public void llOwnerSay(string msg)
         {
-            NotImplemented("llOwnerSay");
+            //temp fix so that lsl wiki examples aren't annoying to use to test other functions
+            World.SimChat(Helpers.StringToField(msg),ChatTypeEnum.Say, 0, m_host.AbsolutePosition, m_host.Name, m_host.UUID);
+            IWorldComm wComm = m_ScriptEngine.World.RequestModuleInterface<IWorldComm>();
+            wComm.DeliverMessage(m_host.UUID.ToString(), ChatTypeEnum.Say, 0, m_host.Name, msg);
         }
 
         public void llRequestSimulatorData(string simulator, int data)
