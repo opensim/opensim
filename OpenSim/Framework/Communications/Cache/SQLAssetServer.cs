@@ -77,21 +77,15 @@ namespace OpenSim.Framework.Communications.Cache
             m_assetProviderPlugin.CommitAssets();
         }
 
-        protected override void ProcessRequest(AssetRequest req)
+        protected override AssetBase _ProcessRequest(AssetRequest req)
         {
             AssetBase asset;
             lock (syncLock)
             {
                 asset = m_assetProviderPlugin.FetchAsset(req.AssetID);
             }
-            if (asset != null)
-            {
-                _receiver.AssetReceived(asset, req.IsTexture);
-            }
-            else
-            {
-                _receiver.AssetNotFound(req.AssetID);
-            }
+            
+            return asset;            
         }
 
         protected override void StoreAsset(AssetBase asset)

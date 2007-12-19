@@ -47,7 +47,7 @@ namespace OpenSim.Framework.Communications.Cache
 
         #region IAssetServer Members
 
-        protected override void ProcessRequest(AssetRequest req)
+        protected override AssetBase _ProcessRequest(AssetRequest req)
         {
             Stream s = null;
             try
@@ -66,14 +66,8 @@ namespace OpenSim.Framework.Communications.Cache
                 if (s.Length > 0)
                 {
                     XmlSerializer xs = new XmlSerializer(typeof(AssetBase));
-                    AssetBase newAsset = (AssetBase)xs.Deserialize(s);
-
-                    _receiver.AssetReceived(newAsset, req.IsTexture);
-                }
-                else
-                {
-                    MainLog.Instance.Debug("ASSETCACHE", "Asset not found {0}", req.AssetID.ToString());
-                    _receiver.AssetNotFound(req.AssetID);
+                    
+                    return (AssetBase)xs.Deserialize(s);
                 }
             }
             catch (Exception e)
@@ -82,6 +76,8 @@ namespace OpenSim.Framework.Communications.Cache
                 MainLog.Instance.Debug("ASSETCACHE", "Getting asset {0}", req.AssetID.ToString());
                 MainLog.Instance.Error("ASSETCACHE", e.StackTrace);
             }
+            
+            return null;
         }
 
 

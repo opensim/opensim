@@ -72,7 +72,7 @@ namespace OpenSim.Framework.Communications.Cache
             }
         }
 
-        protected override void ProcessRequest(AssetRequest req)
+        protected override AssetBase _ProcessRequest(AssetRequest req)
         {
             byte[] idata = null;
             bool found = false;
@@ -93,12 +93,12 @@ namespace OpenSim.Framework.Communications.Cache
                 asset.Name = foundAsset.Name;
                 idata = foundAsset.Data;
                 asset.Data = idata;
-                _receiver.AssetReceived(asset, req.IsTexture);
+                
+                return asset;
             }
             else
             {
-                //asset.FullID = ;
-                _receiver.AssetNotFound(req.AssetID);
+                return null;
             }
         }
 

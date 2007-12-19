@@ -48,7 +48,38 @@ namespace OpenSim.Framework.Communications.Cache
         protected abstract void StoreAsset(AssetBase asset);
         protected abstract void CommitAssets();
 
-        protected abstract void ProcessRequest(AssetRequest req);
+        /// <summary>
+        /// This method must be implemented by a subclass to retrieve the asset named in the 
+        /// AssetRequest.  If the asset is not found, null should be returned.
+        /// </summary>
+        /// <param name="req"></param>
+        /// <returns></returns>
+        protected abstract AssetBase _ProcessRequest(AssetRequest req);
+
+        /// <summary>
+        /// Process an asset request.  This method will call _ProcessRequest(AssetRequest req) 
+        /// on the subclass.
+        /// </summary>
+        /// <param name="req"></param>
+        protected void ProcessRequest(AssetRequest req)
+        {
+            AssetBase asset = _ProcessRequest(req);
+
+            if (asset != null)
+            {
+                MainLog.Instance.Verbose(
+                    "ASSET", "Asset {0} received from asset server", req.AssetID);
+                
+                _receiver.AssetReceived(asset, req.IsTexture);
+            }
+            else
+            {
+                MainLog.Instance.Error(
+                    "ASSET", "Asset {0} not found by asset server", req.AssetID);
+
+                _receiver.AssetNotFound(req.AssetID);
+            }
+        }
 
         public void LoadDefaultAssets()
         {
@@ -117,9 +148,9 @@ namespace OpenSim.Framework.Communications.Cache
             AssetRequest req = new AssetRequest();
             req.AssetID = assetID;
             req.IsTexture = isTexture;
-	    MainLog.Instance.Verbose("ASSET","Adding {0} to request queue", assetID);
             _assetRequests.Enqueue(req);
-	    MainLog.Instance.Verbose("ASSET","Added {0} to request queue", assetID);
+            
+            MainLog.Instance.Verbose("ASSET", "Added {0} to request queue", assetID);
         }
 
         public virtual void UpdateAsset(AssetBase asset)
