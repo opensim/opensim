@@ -590,6 +590,22 @@ namespace OpenSim.Region.Environment.LandManagement
             addLandObject(fullSimParcel);
         }
 
+        public void sendOutBannedNotices(IClientAPI avatar)
+        {
+            ParcelManager.ParcelAccessEntry entry = new ParcelManager.ParcelAccessEntry();
+            entry.AgentID = avatar.AgentId;
+            entry.Flags = ParcelManager.AccessList.Ban;
+            entry.Time = new DateTime();
+
+            foreach (Land checkBan in landList.Values)
+            {
+                if (checkBan.isBannedFromLand(entry, avatar))
+                {
+                    checkBan.sendLandProperties(-30000, false, (int)ParcelManager.ParcelResult.Single, avatar);
+                }
+            }
+        }
+
         public void sendLandUpdate(ScenePresence avatar)
         {
             Land over = getLandObject((int)Math.Min(255, Math.Max(0, Math.Round(avatar.AbsolutePosition.X))),
@@ -599,6 +615,7 @@ namespace OpenSim.Region.Environment.LandManagement
             {
                 over.sendLandUpdateToClient(avatar.ControllingClient);
             }
+
         }
 
         public void handleSignificantClientMovement(IClientAPI remote_client)
@@ -608,6 +625,7 @@ namespace OpenSim.Region.Environment.LandManagement
             if (clientAvatar != null)
             {
                 sendLandUpdate(clientAvatar);
+                sendOutBannedNotices(remote_client);
             }
         }
 

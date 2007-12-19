@@ -1181,7 +1181,7 @@ namespace OpenSim.Region.Environment.Scenes
         /// </summary>
         protected void CheckForSignificantMovement()
         {
-            if (Util.GetDistanceTo(AbsolutePosition, posLastSignificantMove) > 0.02)
+            if (Util.GetDistanceTo(AbsolutePosition, posLastSignificantMove) > 0.5)
             {
                 posLastSignificantMove = AbsolutePosition;
                 if (OnSignificantClientMovement != null)

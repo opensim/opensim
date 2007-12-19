@@ -227,6 +227,18 @@ namespace OpenSim.Region.Environment.LandManagement
             }
         }
 
+        public bool isBannedFromLand(ParcelManager.ParcelAccessEntry entry, IClientAPI remote_client)
+        {
+            if ((this.landData.landFlags & (uint)Parcel.ParcelFlags.UseBanList) > 0)
+            {
+                if (this.landData.parcelAccessList.Contains(entry))
+                {
+                    //They are banned, so lets send them a notice about this parcel
+                    return true;
+                }
+            }
+            return false;
+        }
         public void sendLandUpdateToClient(IClientAPI remote_client)
         {
             sendLandProperties(0, false, 0, remote_client);

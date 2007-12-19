@@ -53,7 +53,7 @@ namespace OpenSim.Framework
         public int simwideArea = 0;
         public int salePrice = 0; //Unemeplemented. Parcels price.
         public Parcel.ParcelStatus landStatus = Parcel.ParcelStatus.Leased;
-
+        
         public uint landFlags = (uint) Parcel.ParcelFlags.AllowFly | (uint) Parcel.ParcelFlags.AllowLandmark |
                                 (uint) Parcel.ParcelFlags.AllowAllObjectEntry |
                                 (uint) Parcel.ParcelFlags.AllowDeedToGroup | (uint) Parcel.ParcelFlags.AllowTerraform |
