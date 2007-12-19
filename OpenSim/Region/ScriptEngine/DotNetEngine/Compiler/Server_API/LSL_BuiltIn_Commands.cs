@@ -1172,9 +1172,8 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler
 
         public void llSetLinkColor(int linknumber, LSL_Types.Vector3 color, int face)
         {
-            // still needs to be adjusted for compatability with link constants
             SceneObjectPart part = m_host.ParentGroup.GetLinkNumPart(linknumber);
-            if (part != null)
+            if (linknumber > -1)
             {
                 LLObject.TextureEntry tex = new LLObject.TextureEntry(part.Shape.TextureEntry, 0, part.Shape.TextureEntry.Length);
                 LLColor texcolor;
@@ -1211,9 +1210,50 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler
                 }
                 return;
             }
+            else if (linknumber == -1)
+            {
+                int num = m_host.ParentGroup.PrimCount;
+                for (int w = 0; w < num; w++)
+                {
+                    linknumber = w;
+                    part = m_host.ParentGroup.GetLinkNumPart(linknumber);
+                    LLObject.TextureEntry tex = new LLObject.TextureEntry(part.Shape.TextureEntry, 0, part.Shape.TextureEntry.Length);
+                    LLColor texcolor;
+                    if (face > -1)
+                    {
+                        texcolor = tex.CreateFace((uint)face).RGBA;
+                        texcolor.R = (float)Math.Abs(color.x - 1);
+                        texcolor.G = (float)Math.Abs(color.y - 1);
+                        texcolor.B = (float)Math.Abs(color.z - 1);
+                        tex.FaceTextures[face].RGBA = texcolor;
+                        part.UpdateTexture(tex);
+                    }
+                    else if (face == -1)
+                    {
+                        texcolor = tex.DefaultTexture.RGBA;
+                        texcolor.R = (float)Math.Abs(color.x - 1);
+                        texcolor.G = (float)Math.Abs(color.y - 1);
+                        texcolor.B = (float)Math.Abs(color.z - 1);
+                        tex.DefaultTexture.RGBA = texcolor;
+                        for (uint i = 0; i < 32; i++)
+                        {
+                            if (tex.FaceTextures[i] != null)
+                            {
+                                texcolor = tex.FaceTextures[i].RGBA;
+                                texcolor.R = (float)Math.Abs(color.x - 1);
+                                texcolor.G = (float)Math.Abs(color.y - 1);
+                                texcolor.B = (float)Math.Abs(color.z - 1);
+                                tex.FaceTextures[i].RGBA = texcolor;
+                            }
+                        }
+                        part.UpdateTexture(tex);
+                    }
+                }
+                return;
+            }
             else
             {
-                throw new Exception("Link does not contain enough prims for the given linknumber setting");
+                NotImplemented("llSetLinkColor");
             }
         }
 
@@ -2350,7 +2390,77 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler
 
         public void llSetLinkAlpha(int linknumber, double alpha, int face)
         {
-            NotImplemented("llSetLinkAlpha");
+            SceneObjectPart part = m_host.ParentGroup.GetLinkNumPart(linknumber);
+            if (linknumber > -1)
+            {
+                LLObject.TextureEntry tex = new LLObject.TextureEntry(part.Shape.TextureEntry, 0, part.Shape.TextureEntry.Length);
+                LLColor texcolor;
+                if (face > -1)
+                {
+                    texcolor = tex.CreateFace((uint)face).RGBA;
+                    texcolor.A = (float)Math.Abs(alpha - 1);
+                    tex.FaceTextures[face].RGBA = texcolor;
+                    part.UpdateTexture(tex);
+                    return;
+                }
+                else if (face == -1)
+                {
+                    texcolor = tex.DefaultTexture.RGBA;
+                    texcolor.A = (float)Math.Abs(alpha - 1);
+                    tex.DefaultTexture.RGBA = texcolor;
+                    for (uint i = 0; i < 32; i++)
+                    {
+                        if (tex.FaceTextures[i] != null)
+                        {
+                            texcolor = tex.FaceTextures[i].RGBA;
+                            texcolor.A = (float)Math.Abs(alpha - 1);
+                            tex.FaceTextures[i].RGBA = texcolor;
+                        }
+                    }
+                    part.UpdateTexture(tex);
+                    return;
+                }
+                return;
+            }
+            else if (linknumber == -1)
+            {
+                int num = m_host.ParentGroup.PrimCount;
+                for (int w = 0; w < num; w++)
+                {
+                    linknumber = w;
+                    part = m_host.ParentGroup.GetLinkNumPart(linknumber);
+                    LLObject.TextureEntry tex = new LLObject.TextureEntry(part.Shape.TextureEntry, 0, part.Shape.TextureEntry.Length);
+                    LLColor texcolor;
+                    if (face > -1)
+                    {
+                        texcolor = tex.CreateFace((uint)face).RGBA;
+                        texcolor.A = (float)Math.Abs(alpha - 1);
+                        tex.FaceTextures[face].RGBA = texcolor;
+                        part.UpdateTexture(tex);
+                    }
+                    else if (face == -1)
+                    {
+                        texcolor = tex.DefaultTexture.RGBA;
+                        texcolor.A = (float)Math.Abs(alpha - 1);
+                        tex.DefaultTexture.RGBA = texcolor;
+                        for (uint i = 0; i < 32; i++)
+                        {
+                            if (tex.FaceTextures[i] != null)
+                            {
+                                texcolor = tex.FaceTextures[i].RGBA;
+                                texcolor.A = (float)Math.Abs(alpha - 1);
+                                tex.FaceTextures[i].RGBA = texcolor;
+                            }
+                        }
+                        part.UpdateTexture(tex);
+                    }
+                }
+                return;
+            }
+            else
+            {
+                NotImplemented("llSetLinkAlpha");
+            }
         }
 
         public int llGetNumberOfPrims()
