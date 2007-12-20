@@ -553,18 +553,18 @@ namespace OpenSim.Framework.Data.SQLite
 
         private void fillFolderRow(DataRow row, InventoryFolderBase folder)
         {
-            row["UUID"] = folder.folderID;
+            row["UUID"] = Util.ToRawUuidString(folder.folderID);
             row["name"] = folder.name;
-            row["agentID"] = folder.agentID;
-            row["parentID"] = folder.parentID;
+            row["agentID"] = Util.ToRawUuidString(folder.agentID);
+            row["parentID"] = Util.ToRawUuidString(folder.parentID);
             row["type"] = folder.type;
             row["version"] = folder.version;
         }
 
         private void moveFolderRow(DataRow row, InventoryFolderBase folder)
         {
-            row["UUID"] = folder.folderID;
-            row["parentID"] = folder.parentID;
+            row["UUID"] = Util.ToRawUuidString(folder.folderID);
+            row["parentID"] = Util.ToRawUuidString(folder.parentID);
         }
 
         /***********************************************************************
