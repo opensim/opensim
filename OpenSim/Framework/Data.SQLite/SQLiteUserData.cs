@@ -77,11 +77,11 @@ namespace OpenSim.Framework.Data.SQLite
         {
             lock (ds)
             {
-                DataRow row = ds.Tables["users"].Rows.Find(uuid);
+                DataRow row = ds.Tables["users"].Rows.Find(Util.ToRawUuidString(uuid));
                 if (row != null)
                 {
                     UserProfileData user = buildUserProfile(row);
-                    row = ds.Tables["useragents"].Rows.Find(uuid);
+                    row = ds.Tables["useragents"].Rows.Find(Util.ToRawUuidString(uuid));
                     if (row != null)
                     {
                         user.currentAgent = buildUserAgent(row);
@@ -105,7 +105,7 @@ namespace OpenSim.Framework.Data.SQLite
                 if (rows.Length > 0)
                 {
                     UserProfileData user = buildUserProfile(rows[0]);
-                    DataRow row = ds.Tables["useragents"].Rows.Find(user.UUID);
+                    DataRow row = ds.Tables["useragents"].Rows.Find(Util.ToRawUuidString(user.UUID));
                     if (row != null)
                     {
                         user.currentAgent = buildUserAgent(row);
@@ -220,7 +220,7 @@ namespace OpenSim.Framework.Data.SQLite
             DataTable users = ds.Tables["users"];
             lock (ds)
             {
-                DataRow row = users.Rows.Find(user.UUID);
+                DataRow row = users.Rows.Find(Util.ToRawUuidString(user.UUID));
                 if (row == null)
                 {
                     row = users.NewRow();
@@ -238,7 +238,7 @@ namespace OpenSim.Framework.Data.SQLite
                 if (user.currentAgent != null)
                 {
                     DataTable ua = ds.Tables["useragents"];
-                    row = ua.Rows.Find(user.UUID);
+                    row = ua.Rows.Find(Util.ToRawUuidString(user.UUID));
                     if (row == null)
                     {
                         row = ua.NewRow();
@@ -255,7 +255,7 @@ namespace OpenSim.Framework.Data.SQLite
                     // I just added this to help the standalone login situation.  
                     //It still needs to be looked at by a Database guy
                     DataTable ua = ds.Tables["useragents"];
-                    row = ua.Rows.Find(user.UUID);
+                    row = ua.Rows.Find(Util.ToRawUuidString(user.UUID));
 
                     if (row == null)
                     {

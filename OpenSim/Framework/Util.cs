@@ -385,7 +385,7 @@ namespace OpenSim.Framework
         }
         
         /// <summary>
-        /// Convert an LLUUID to a raw uuid string.  This is a string without hyphens.
+        /// Convert an LLUUID to a raw uuid string.  Right now this is a string without hyphens.
         /// </summary>
         /// <param name="lluuid"></param>
         /// <returns></returns>

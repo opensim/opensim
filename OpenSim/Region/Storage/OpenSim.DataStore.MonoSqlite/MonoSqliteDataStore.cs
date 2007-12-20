@@ -175,12 +175,12 @@ namespace OpenSim.DataStore.MonoSqlite
                     if ((prim.ObjectFlags & (uint)LLObject.ObjectFlags.Physics) == 0)
                     {
                         MainLog.Instance.Verbose("DATASTORE", "Adding obj: " + obj.UUID + " to region: " + regionUUID);
-                        addPrim(prim, obj.UUID, regionUUID);
+                        addPrim(prim, Util.ToRawUuidString(obj.UUID), Util.ToRawUuidString(regionUUID));
                     }
                     else if (Stopped(prim))
                     {
                         MainLog.Instance.Verbose("DATASTORE", "Adding stopped obj: " + obj.UUID + " to region: " + regionUUID);
-                        addPrim(prim, obj.UUID, regionUUID);
+                        addPrim(prim, Util.ToRawUuidString(obj.UUID), Util.ToRawUuidString(regionUUID));
                     }
                     else
                     {
@@ -199,7 +199,7 @@ namespace OpenSim.DataStore.MonoSqlite
             DataTable prims = ds.Tables["prims"];
             DataTable shapes = ds.Tables["primshapes"];
 
-            string selectExp = "SceneGroupID = '" + obj.ToString() + "'";
+            string selectExp = "SceneGroupID = '" + Util.ToRawUuidString(obj) + "'";
             lock (ds)
             {
                 DataRow[] primRows = prims.Select(selectExp);
@@ -227,7 +227,7 @@ namespace OpenSim.DataStore.MonoSqlite
             DataTable prims = ds.Tables["prims"];
             DataTable shapes = ds.Tables["primshapes"];
 
-            string byRegion = "RegionUUID = '" + regionUUID.ToString() + "'";
+            string byRegion = "RegionUUID = '" + Util.ToRawUuidString(regionUUID) + "'";
             string orderByParent = "ParentID ASC";
 
             lock (ds)
@@ -246,7 +246,7 @@ namespace OpenSim.DataStore.MonoSqlite
                         {
                             SceneObjectGroup group = new SceneObjectGroup();
                             SceneObjectPart prim = buildPrim(primRow);
-                            DataRow shapeRow = shapes.Rows.Find(prim.UUID);
+                            DataRow shapeRow = shapes.Rows.Find(Util.ToRawUuidString(prim.UUID));
                             if (shapeRow != null)
                             {
                                 prim.Shape = buildShape(shapeRow);
@@ -260,13 +260,13 @@ namespace OpenSim.DataStore.MonoSqlite
                             group.AddPart(prim);
                             group.RootPart = prim;
 
-                            createdObjects.Add(group.UUID, group);
+                            createdObjects.Add(Util.ToRawUuidString(group.UUID), group);
                             retvals.Add(group);
                         }
                         else
                         {
                             SceneObjectPart prim = buildPrim(primRow);
-                            DataRow shapeRow = shapes.Rows.Find(prim.UUID);
+                            DataRow shapeRow = shapes.Rows.Find(Util.ToRawUuidString(prim.UUID));
                             if (shapeRow != null)
                             {
                                 prim.Shape = buildShape(shapeRow);
@@ -310,7 +310,7 @@ namespace OpenSim.DataStore.MonoSqlite
 
                 using(SqliteCommand cmd = new SqliteCommand(sql, conn))
                 {
-                    cmd.Parameters.Add(new SqliteParameter(":RegionUUID", regionID.ToString()));
+                    cmd.Parameters.Add(new SqliteParameter(":RegionUUID", Util.ToRawUuidString(regionID)));
                     cmd.Parameters.Add(new SqliteParameter(":Revision", revision));
                     cmd.Parameters.Add(new SqliteParameter(":Heightfield", serializeTerrain(ter)));
                     cmd.ExecuteNonQuery();
@@ -325,7 +325,7 @@ namespace OpenSim.DataStore.MonoSqlite
 
                 using(SqliteCommand cmd = new SqliteCommand("delete from terrain where RegionUUID=:RegionUUID and Revision < :Revision", conn))
                 {
-                    cmd.Parameters.Add(new SqliteParameter(":RegionUUID", regionID.ToString()));
+                    cmd.Parameters.Add(new SqliteParameter(":RegionUUID", Util.ToRawUuidString(regionID)));
                     cmd.Parameters.Add(new SqliteParameter(":Revision", revision));
                     cmd.ExecuteNonQuery();
                 }
@@ -348,7 +348,7 @@ namespace OpenSim.DataStore.MonoSqlite
                 
                 using (SqliteCommand cmd = new SqliteCommand(sql, conn))
                 {
-                    cmd.Parameters.Add(new SqliteParameter(":RegionUUID", regionID.ToString()));
+                    cmd.Parameters.Add(new SqliteParameter(":RegionUUID", Util.ToRawUuidString(regionID)));
                     
                     using (IDataReader row = cmd.ExecuteReader())
                     {
@@ -390,13 +390,13 @@ namespace OpenSim.DataStore.MonoSqlite
 
                 using (SqliteCommand cmd = new SqliteCommand("delete from land where UUID=:UUID", conn))
                 {
-                    cmd.Parameters.Add(new SqliteParameter(":UUID", globalID.ToString()));
+                    cmd.Parameters.Add(new SqliteParameter(":UUID", Util.ToRawUuidString(globalID)));
                     cmd.ExecuteNonQuery();
                 }
 
                 using (SqliteCommand cmd = new SqliteCommand("delete from landaccesslist where LandUUID=:UUID", conn))
                 {
-                    cmd.Parameters.Add(new SqliteParameter(":UUID", globalID.ToString()));
+                    cmd.Parameters.Add(new SqliteParameter(":UUID", Util.ToRawUuidString(globalID)));
                     cmd.ExecuteNonQuery();
                 }
                 conn.Close();
@@ -412,7 +412,7 @@ namespace OpenSim.DataStore.MonoSqlite
                 DataTable land = ds.Tables["land"];
                 DataTable landaccesslist = ds.Tables["landaccesslist"];
 
-                DataRow landRow = land.Rows.Find(parcel.landData.globalID.ToString());
+                DataRow landRow = land.Rows.Find(Util.ToRawUuidString(parcel.landData.globalID));
                 if (landRow == null)
                 {
                     landRow = land.NewRow();
@@ -426,7 +426,7 @@ namespace OpenSim.DataStore.MonoSqlite
 
                 using (SqliteCommand cmd = new SqliteCommand("delete from landaccesslist where LandUUID=:LandUUID", conn))
                 {
-                    cmd.Parameters.Add(new SqliteParameter(":LandUUID", parcel.landData.globalID.ToString()));
+                    cmd.Parameters.Add(new SqliteParameter(":LandUUID", Util.ToRawUuidString(parcel.landData.globalID)));
                     cmd.ExecuteNonQuery();
                 }
 
@@ -450,12 +450,12 @@ namespace OpenSim.DataStore.MonoSqlite
             {
                 DataTable land = ds.Tables["land"];
                 DataTable landaccesslist = ds.Tables["landaccesslist"];
-                string searchExp = "RegionUUID = '" + regionUUID.ToString() + "'";
+                string searchExp = "RegionUUID = '" + Util.ToRawUuidString(regionUUID) + "'";
                 DataRow[] rawDataForRegion = land.Select(searchExp);
                 foreach (DataRow rawDataLand in rawDataForRegion)
                 {
                     LandData newLand = buildLandData(rawDataLand);
-                    string accessListSearchExp = "LandUUID = '" + newLand.globalID.ToString() + "'";
+                    string accessListSearchExp = "LandUUID = '" + Util.ToRawUuidString(newLand.globalID) + "'";
                     DataRow[] rawDataForLandAccessList = landaccesslist.Select(accessListSearchExp);
                     foreach (DataRow rawDataLandAccess in rawDataForLandAccessList)
                     {
@@ -811,12 +811,12 @@ namespace OpenSim.DataStore.MonoSqlite
 
         private void fillPrimRow(DataRow row, SceneObjectPart prim, LLUUID sceneGroupID, LLUUID regionUUID)
         {
-            row["UUID"] = prim.UUID;
-            row["RegionUUID"] = regionUUID;
+            row["UUID"] = Util.ToRawUuidString(prim.UUID);
+            row["RegionUUID"] = Util.ToRawUuidString(regionUUID);
             row["ParentID"] = prim.ParentID;
             row["CreationDate"] = prim.CreationDate;
             row["Name"] = prim.Name;
-            row["SceneGroupID"] = sceneGroupID; // the UUID of the root part for this SceneObjectGroup
+            row["SceneGroupID"] = Util.ToRawUuidString(sceneGroupID); // the UUID of the root part for this SceneObjectGroup
             // various text fields
             row["Text"] = prim.Text;
             row["Description"] = prim.Description;
@@ -824,10 +824,10 @@ namespace OpenSim.DataStore.MonoSqlite
             row["TouchName"] = prim.TouchName;
             // permissions
             row["ObjectFlags"] = prim.ObjectFlags;
-            row["CreatorID"] = prim.CreatorID;
-            row["OwnerID"] = prim.OwnerID;
-            row["GroupID"] = prim.GroupID;
-            row["LastOwnerID"] = prim.LastOwnerID;
+            row["CreatorID"] = Util.ToRawUuidString(prim.CreatorID);
+            row["OwnerID"] = Util.ToRawUuidString(prim.OwnerID);
+            row["GroupID"] = Util.ToRawUuidString(prim.GroupID);
+            row["LastOwnerID"] = Util.ToRawUuidString(prim.LastOwnerID);
             row["OwnerMask"] = prim.OwnerMask;
             row["NextOwnerMask"] = prim.NextOwnerMask;
             row["GroupMask"] = prim.GroupMask;
@@ -858,8 +858,8 @@ namespace OpenSim.DataStore.MonoSqlite
 
         private void fillLandRow(DataRow row, LandData land, LLUUID regionUUID)
         {
-            row["UUID"] = land.globalID.ToString();
-            row["RegionUUID"] = regionUUID.ToString();
+            row["UUID"] = Util.ToRawUuidString(land.globalID);
+            row["RegionUUID"] = Util.ToRawUuidString(regionUUID);
             row["LocalLandID"] = land.localID;
 
             // Bitmap is a byte[512]
@@ -867,25 +867,25 @@ namespace OpenSim.DataStore.MonoSqlite
 
             row["Name"] = land.landName;
             row["Desc"] = land.landDesc;
-            row["OwnerUUID"] = land.ownerID.ToString();
+            row["OwnerUUID"] = Util.ToRawUuidString(land.ownerID);
             row["IsGroupOwned"] = land.isGroupOwned;
             row["Area"] = land.area;
             row["AuctionID"] = land.auctionID; //Unemplemented
             row["Category"] = land.category; //Enum libsecondlife.Parcel.ParcelCategory
             row["ClaimDate"] = land.claimDate;
             row["ClaimPrice"] = land.claimPrice;
-            row["GroupUUID"] = land.groupID.ToString();
+            row["GroupUUID"] = Util.ToRawUuidString(land.groupID);
             row["SalePrice"] = land.salePrice;
             row["LandStatus"] = land.landStatus; //Enum. libsecondlife.Parcel.ParcelStatus
             row["LandFlags"] = land.landFlags;
             row["LandingType"] = land.landingType;
             row["MediaAutoScale"] = land.mediaAutoScale;
-            row["MediaTextureUUID"] = land.mediaID.ToString();
+            row["MediaTextureUUID"] = Util.ToRawUuidString(land.mediaID);
             row["MediaURL"] = land.mediaURL;
             row["MusicURL"] = land.musicURL;
             row["PassHours"] = land.passHours;
             row["PassPrice"] = land.passPrice;
-            row["SnapshotUUID"] = land.snapshotID.ToString();
+            row["SnapshotUUID"] = Util.ToRawUuidString(land.snapshotID);
             row["UserLocationX"] = land.userLocation.X;
             row["UserLocationY"] = land.userLocation.Y;
             row["UserLocationZ"] = land.userLocation.Z;
@@ -896,8 +896,8 @@ namespace OpenSim.DataStore.MonoSqlite
 
         private void fillLandAccessRow(DataRow row, ParcelManager.ParcelAccessEntry entry, LLUUID parcelID)
         {
-            row["LandUUID"] = parcelID.ToString();
-            row["AccessUUID"] = entry.AgentID.ToString();
+            row["LandUUID"] = Util.ToRawUuidString(parcelID);
+            row["AccessUUID"] = Util.ToRawUuidString(entry.AgentID);
             row["Flags"] = entry.Flags;
         }
 
@@ -956,7 +956,7 @@ namespace OpenSim.DataStore.MonoSqlite
         private void fillShapeRow(DataRow row, SceneObjectPart prim)
         {
             PrimitiveBaseShape s = prim.Shape;
-            row["UUID"] = prim.UUID;
+            row["UUID"] = Util.ToRawUuidString(prim.UUID);
             // shape is an enum
             row["Shape"] = 0;
             // vectors
@@ -994,7 +994,7 @@ namespace OpenSim.DataStore.MonoSqlite
             DataTable prims = ds.Tables["prims"];
             DataTable shapes = ds.Tables["primshapes"];
 
-            DataRow primRow = prims.Rows.Find(prim.UUID);
+            DataRow primRow = prims.Rows.Find(Util.ToRawUuidString(prim.UUID));
             if (primRow == null)
             {
                 primRow = prims.NewRow();
@@ -1006,7 +1006,7 @@ namespace OpenSim.DataStore.MonoSqlite
                 fillPrimRow(primRow, prim, sceneGroupID, regionUUID);
             }
 
-            DataRow shapeRow = shapes.Rows.Find(prim.UUID);
+            DataRow shapeRow = shapes.Rows.Find(Util.ToRawUuidString(prim.UUID));
             if (shapeRow == null)
             {
                 shapeRow = shapes.NewRow();

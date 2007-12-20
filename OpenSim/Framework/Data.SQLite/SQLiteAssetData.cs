@@ -79,7 +79,7 @@ namespace OpenSim.Framework.Data.SQLite
         public AssetBase FetchAsset(LLUUID uuid)
         {
             AssetBase asset = new AssetBase();
-            DataRow row = ds.Tables["assets"].Rows.Find(uuid);
+            DataRow row = ds.Tables["assets"].Rows.Find(Util.ToRawUuidString(uuid));
             if (row != null)
             {
                 return buildAsset(row);
@@ -103,7 +103,7 @@ namespace OpenSim.Framework.Data.SQLite
             DataTable assets = ds.Tables["assets"];
             lock (ds)
             {
-                DataRow row = assets.Rows.Find(asset.FullID);
+                DataRow row = assets.Rows.Find(Util.ToRawUuidString(asset.FullID));
                 if (row == null)
                 {
                     row = assets.NewRow();
@@ -130,7 +130,7 @@ namespace OpenSim.Framework.Data.SQLite
 
         public bool ExistsAsset(LLUUID uuid)
         {
-            DataRow row = ds.Tables["assets"].Rows.Find(uuid);
+            DataRow row = ds.Tables["assets"].Rows.Find(Util.ToRawUuidString(uuid));
             return (row != null);
         }
 
@@ -138,7 +138,7 @@ namespace OpenSim.Framework.Data.SQLite
         {
             lock (ds)
             {
-                DataRow row = ds.Tables["assets"].Rows.Find(uuid);
+                DataRow row = ds.Tables["assets"].Rows.Find(Util.ToRawUuidString(uuid));
                 if (row != null)
                 {
                     row.Delete();
@@ -210,7 +210,7 @@ namespace OpenSim.Framework.Data.SQLite
 
         private void fillAssetRow(DataRow row, AssetBase asset)
         {
-            row["UUID"] = asset.FullID;
+            row["UUID"] = Util.ToRawUuidString(asset.FullID);
             row["Name"] = asset.Name;
             if (asset.Description != null)
             {
