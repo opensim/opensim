@@ -122,7 +122,8 @@ namespace OpenSim.Region.Environment
         {
             IRegionModule module = LoadModule(dllName, moduleName);
 
-            LoadSharedModule(module);
+            if (module != null)
+                LoadSharedModule(module);
         }
 
         /// <summary>
