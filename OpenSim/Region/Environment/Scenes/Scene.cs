@@ -821,8 +821,16 @@ namespace OpenSim.Region.Environment.Scenes
             Dictionary<string, string> dGridSettings = m_sceneGridService.GetGridSettings();
             if (dGridSettings.ContainsKey("allow_forceful_banlines"))
             {
-                if (dGridSettings["allow_forceful_banlines"] != "TRUE") 
-                    MainLog.Instance.Verbose("GRID","Grid is disabling forceful parcel banlists");
+                if (dGridSettings["allow_forceful_banlines"] != "TRUE")
+                {
+                    MainLog.Instance.Verbose("GRID", "Grid is disabling forceful parcel banlists");
+                    m_LandManager.allowedForcefulBans = false;
+                }
+                else
+                {
+                    MainLog.Instance.Verbose("GRID", "Grid is allowing forceful parcel banlists");
+                    m_LandManager.allowedForcefulBans = true;
+                }
             }
         }
 

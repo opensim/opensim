@@ -74,6 +74,8 @@ namespace OpenSim.Region.Environment.LandManagement
         //These are other constants. Yay!
         public const int START_LAND_LOCAL_ID = 1;
 
+        public const float BAN_LINE_SAFETY_HIEGHT = 100;
+
         #endregion
 
         #region Member Variables
@@ -90,6 +92,8 @@ namespace OpenSim.Region.Environment.LandManagement
         private readonly Scene m_scene;
         private readonly RegionInfo m_regInfo;
 
+        public bool allowedForcefulBans = true;
+        
         #endregion
 
         #region Constructors
@@ -590,6 +594,21 @@ namespace OpenSim.Region.Environment.LandManagement
 
         }
 
+        public void sendYouAreBannedNotice(ScenePresence avatar)
+        {
+            if (allowedForcefulBans)
+            {
+                avatar.ControllingClient.SendAlertMessage("You are not allowed on this parcel because you are banned. Please go away. <3 OpenSim Developers");
+
+                avatar.PhysicsActor.Position = new OpenSim.Region.Physics.Manager.PhysicsVector(avatar.lastKnownAllowedPosition.x, avatar.lastKnownAllowedPosition.y, avatar.lastKnownAllowedPosition.z);
+                avatar.PhysicsActor.Velocity = new OpenSim.Region.Physics.Manager.PhysicsVector(0, 0, 0);
+            }
+            else
+            {
+                avatar.ControllingClient.SendAlertMessage("You are not allowed on this parcel because you are banned; however, the grid administrator has disabled ban lines globally. Please obey the land owner's requests or you can be banned from the entire sim! <3 OpenSim Developers");
+            }
+        }
+
         public void handleAvatarChangingParcel(ScenePresence avatar, int localLandID, LLUUID regionID)
         {
             if (m_scene.RegionInfo.RegionID == regionID)
@@ -597,20 +616,30 @@ namespace OpenSim.Region.Environment.LandManagement
                 if (landList[localLandID] != null)
                 {
                     Land parcelAvatarIsEntering = landList[localLandID];
-                    if (parcelAvatarIsEntering.isBannedFromLand(avatar.UUID))
+                    if (avatar.AbsolutePosition.Z < BAN_LINE_SAFETY_HIEGHT)
                     {
-                        avatar.ControllingClient.SendAlertMessage("You are not allowed on this parcel because you are banned. Please go away. <3 OpenSim Developers");
-                        
+                        if (parcelAvatarIsEntering.isBannedFromLand(avatar.UUID))
+                        {
+                            sendYouAreBannedNotice(avatar);
+                        }
+                        else if (parcelAvatarIsEntering.isRestrictedFromLand(avatar.UUID))
+                        {
+                            avatar.ControllingClient.SendAlertMessage("You are not allowed on this parcel because the land owner has restricted access. For now, you can enter, but please respect the land owner's decisions (or he can ban you!). <3 OpenSim Developers");
+                        }
+                        else
+                        {
+                            avatar.sentMessageAboutRestrictedParcelFlyingDown = true;
+                        }
                     }
-                    else if (parcelAvatarIsEntering.isRestrictedFromLand(avatar.UUID))
+                    else
                     {
-                        avatar.ControllingClient.SendAlertMessage("You are not allowed on this parcel because the land owner has restricted access. Please go away. <3 OpenSim Developers");
+                        avatar.sentMessageAboutRestrictedParcelFlyingDown = true;
                     }
                 }
             }
         }
 
-        public void sendOutBannedNotices(IClientAPI avatar)
+        public void sendOutNearestBanLine(IClientAPI avatar)
         {
             
             List<ScenePresence> avatars = m_scene.GetAvatars();
@@ -631,6 +660,7 @@ namespace OpenSim.Region.Environment.LandManagement
                             checkBan.sendLandProperties(-40000, false, (int)ParcelManager.ParcelResult.Single, avatar);
                             return; //Only send one
                         }
+
                     }
                     return;
                 }
@@ -661,13 +691,33 @@ namespace OpenSim.Region.Environment.LandManagement
             if (clientAvatar != null)
             {
                 sendLandUpdate(clientAvatar);
-                sendOutBannedNotices(remote_client);
+                sendOutNearestBanLine(remote_client);
+                Land parcel = getLandObject(clientAvatar.AbsolutePosition.X, clientAvatar.AbsolutePosition.Y);
+                if (clientAvatar.AbsolutePosition.Z < BAN_LINE_SAFETY_HIEGHT && clientAvatar.sentMessageAboutRestrictedParcelFlyingDown)
+                {
+                    
+                    handleAvatarChangingParcel(clientAvatar, parcel.landData.localID, m_scene.RegionInfo.RegionID); //They are going below the safety line!
+                    if (!parcel.isBannedFromLand(clientAvatar.UUID))
+                    {
+                        clientAvatar.sentMessageAboutRestrictedParcelFlyingDown = false;
+                    }
+                }
+                else if (clientAvatar.AbsolutePosition.Z < BAN_LINE_SAFETY_HIEGHT && parcel.isBannedFromLand(clientAvatar.UUID))
+                {
+                    sendYouAreBannedNotice(clientAvatar);
+                }
             }
         }
 
         public void handleAnyClientMovement(ScenePresence avatar) //Like handleSignificantClientMovement, but called with an AgentUpdate regardless of distance. 
         {
+            Land over = getLandObject(avatar.AbsolutePosition.X, avatar.AbsolutePosition.Y);
+            if (!over.isBannedFromLand(avatar.UUID) || avatar.AbsolutePosition.Z >= BAN_LINE_SAFETY_HIEGHT)
+            {
+                avatar.lastKnownAllowedPosition = new Axiom.Math.Vector3(avatar.AbsolutePosition.X, avatar.AbsolutePosition.Y, avatar.AbsolutePosition.Z);
+                
 
+            }
         }
 
 

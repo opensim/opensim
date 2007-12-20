@@ -45,6 +45,8 @@ namespace OpenSim.Region.Environment.Scenes
         public LLUUID currentParcelUUID = LLUUID.Zero;
         private List<LLUUID> m_animations = new List<LLUUID>();
         private List<int> m_animationSeqs = new List<int>();
+        public Vector3 lastKnownAllowedPosition = new Vector3();
+        public bool sentMessageAboutRestrictedParcelFlyingDown = false;
 
         private bool m_updateflag = false;
         private byte m_movementflag = 0;
