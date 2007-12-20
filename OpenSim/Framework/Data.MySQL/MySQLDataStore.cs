@@ -149,7 +149,7 @@ namespace OpenSim.Framework.Data.MySQL
             DataTable prims = m_primTable;
             DataTable shapes = m_shapeTable;
 
-            string selectExp = "SceneGroupID = '" + obj.ToString() + "'";
+            string selectExp = "SceneGroupID = '" + Util.ToRawUuidString(obj) + "'";
             lock (m_dataSet)
             {
                 DataRow[] primRows = prims.Select(selectExp);
@@ -177,7 +177,7 @@ namespace OpenSim.Framework.Data.MySQL
             DataTable prims = m_primTable;
             DataTable shapes = m_shapeTable;
 
-            string byRegion = "RegionUUID = '" + regionUUID.ToString() + "'";
+            string byRegion = "RegionUUID = '" + Util.ToRawUuidString(regionUUID) + "'";
             string orderByParent = "ParentID ASC";
 
             lock (m_dataSet)
@@ -258,7 +258,7 @@ namespace OpenSim.Framework.Data.MySQL
                 using (cmd)
                 {
 
-                    cmd.Parameters.Add(new MySqlParameter("?RegionUUID", regionID.ToString()));
+                    cmd.Parameters.Add(new MySqlParameter("?RegionUUID", Util.ToRawUuidString(regionID)));
                     cmd.Parameters.Add(new MySqlParameter("?Revision", revision));
                     cmd.Parameters.Add(new MySqlParameter("?Heightfield", serializeTerrain(ter)));
                     cmd.ExecuteNonQuery();
@@ -277,7 +277,7 @@ namespace OpenSim.Framework.Data.MySQL
                 , m_connection);
 
             MySqlParameter param = new MySqlParameter();
-            cmd.Parameters.Add(new MySqlParameter("?RegionUUID", regionID.ToString()));
+            cmd.Parameters.Add(new MySqlParameter("?RegionUUID",  Util.ToRawUuidString(regionID)));
 
             if (m_connection.State != ConnectionState.Open)
             {
@@ -317,13 +317,13 @@ namespace OpenSim.Framework.Data.MySQL
             {
                 using (MySqlCommand cmd = new MySqlCommand("delete from land where UUID=?UUID", m_connection))
                 {
-                    cmd.Parameters.Add(new MySqlParameter("?UUID", globalID.ToString()));
+                    cmd.Parameters.Add(new MySqlParameter("?UUID", Util.ToRawUuidString(globalID)));
                     cmd.ExecuteNonQuery();
                 }
 
                 using (MySqlCommand cmd = new MySqlCommand("delete from landaccesslist where LandUUID=?UUID", m_connection))
                 {
-                    cmd.Parameters.Add(new MySqlParameter("?UUID", globalID.ToString()));
+                    cmd.Parameters.Add(new MySqlParameter("?UUID", Util.ToRawUuidString(globalID)));
                     cmd.ExecuteNonQuery();
                 }
             }
@@ -336,7 +336,7 @@ namespace OpenSim.Framework.Data.MySQL
                 DataTable land = m_landTable;
                 DataTable landaccesslist = m_landAccessListTable;
                 
-                DataRow landRow = land.Rows.Find(parcel.landData.globalID.ToString());
+                DataRow landRow = land.Rows.Find(Util.ToRawUuidString(parcel.landData.globalID));
                 if (landRow == null)
                 {
                     landRow = land.NewRow();
@@ -350,7 +350,7 @@ namespace OpenSim.Framework.Data.MySQL
 
                 using (MySqlCommand cmd = new MySqlCommand("delete from landaccesslist where LandUUID=?LandUUID", m_connection))
                 {
-                    cmd.Parameters.Add(new MySqlParameter("?LandUUID", parcel.landData.globalID.ToString()));
+                    cmd.Parameters.Add(new MySqlParameter("?LandUUID", Util.ToRawUuidString(parcel.landData.globalID)));
                     cmd.ExecuteNonQuery();
                 }
 
@@ -373,12 +373,12 @@ namespace OpenSim.Framework.Data.MySQL
             {
                 DataTable land = m_landTable;
                 DataTable landaccesslist = m_landAccessListTable;
-                string searchExp = "RegionUUID = '" + regionUUID.ToString() + "'";
+                string searchExp = "RegionUUID = '" + Util.ToRawUuidString(regionUUID) + "'";
                 DataRow[] rawDataForRegion = land.Select(searchExp);
                 foreach (DataRow rawDataLand in rawDataForRegion)
                 {
                     LandData newLand = buildLandData(rawDataLand);
-                    string accessListSearchExp = "LandUUID = '" + newLand.globalID.ToString() + "'";
+                    string accessListSearchExp = "LandUUID = '" + Util.ToRawUuidString(newLand.globalID) + "'";
                     DataRow[] rawDataForLandAccessList = landaccesslist.Select(accessListSearchExp);
                     foreach (DataRow rawDataLandAccess in rawDataForLandAccessList)
                     {
@@ -801,8 +801,8 @@ namespace OpenSim.Framework.Data.MySQL
 
         private void fillLandRow(DataRow row, LandData land, LLUUID regionUUID)
         {
-            row["UUID"] = land.globalID.ToString();
-            row["RegionUUID"] = regionUUID.ToString();
+            row["UUID"] = Util.ToRawUuidString(land.globalID);
+            row["RegionUUID"] = Util.ToRawUuidString(regionUUID);
             row["LocalLandID"] = land.localID;
 
             // Bitmap is a byte[512]
@@ -810,25 +810,25 @@ namespace OpenSim.Framework.Data.MySQL
 
             row["Name"] = land.landName;
             row["Description"] = land.landDesc;
-            row["OwnerUUID"] = land.ownerID.ToString();
+            row["OwnerUUID"] = Util.ToRawUuidString(land.ownerID);
             row["IsGroupOwned"] = land.isGroupOwned;
             row["Area"] = land.area;
             row["AuctionID"] = land.auctionID; //Unemplemented
             row["Category"] = land.category; //Enum libsecondlife.Parcel.ParcelCategory
             row["ClaimDate"] = land.claimDate;
             row["ClaimPrice"] = land.claimPrice;
-            row["GroupUUID"] = land.groupID.ToString();
+            row["GroupUUID"] = Util.ToRawUuidString(land.groupID);
             row["SalePrice"] = land.salePrice;
             row["LandStatus"] = land.landStatus; //Enum. libsecondlife.Parcel.ParcelStatus
             row["LandFlags"] = land.landFlags;
             row["LandingType"] = land.landingType;
             row["MediaAutoScale"] = land.mediaAutoScale;
-            row["MediaTextureUUID"] = land.mediaID.ToString();
+            row["MediaTextureUUID"] = Util.ToRawUuidString(land.mediaID);
             row["MediaURL"] = land.mediaURL;
             row["MusicURL"] = land.musicURL;
             row["PassHours"] = land.passHours;
             row["PassPrice"] = land.passPrice;
-            row["SnapshotUUID"] = land.snapshotID.ToString();
+            row["SnapshotUUID"] = Util.ToRawUuidString(land.snapshotID);
             row["UserLocationX"] = land.userLocation.X;
             row["UserLocationY"] = land.userLocation.Y;
             row["UserLocationZ"] = land.userLocation.Z;
@@ -839,8 +839,8 @@ namespace OpenSim.Framework.Data.MySQL
 
         private void fillLandAccessRow(DataRow row, ParcelManager.ParcelAccessEntry entry, LLUUID parcelID)
         {
-            row["LandUUID"] = parcelID.ToString();
-            row["AccessUUID"] = entry.AgentID.ToString();
+            row["LandUUID"] = Util.ToRawUuidString(parcelID);
+            row["AccessUUID"] = Util.ToRawUuidString(entry.AgentID);
             row["Flags"] = entry.Flags;
         }
 
