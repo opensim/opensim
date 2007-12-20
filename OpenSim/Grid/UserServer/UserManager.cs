@@ -175,7 +175,8 @@ namespace OpenSim.Grid.UserServer
             XmlRpcResponse response = new XmlRpcResponse();
             Hashtable requestData = (Hashtable) request.Params[0];
             UserProfileData userProfile;
-            Console.WriteLine("METHOD BY UUID CALLED");
+            //CFK: this clogs the UserServer log and is not necessary at this time.
+            //CFK: Console.WriteLine("METHOD BY UUID CALLED");
             if (requestData.Contains("avatar_uuid"))
             {
                 userProfile = GetUserProfile((LLUUID) (string) requestData["avatar_uuid"]);
