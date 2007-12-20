@@ -1320,19 +1320,7 @@ namespace OpenSim.Region.Environment.Scenes
             
             m_sceneGridService.Close();
         }
-        public void NewIncomingGridSetting(ulong regionHandle, string key, string gvalue)
-        {
-            if (key == "allow_forceful_banlines")
-            {
-                if (gvalue == "FALSE")
-                {
-                    MainLog.Instance.Verbose("INTERGRID", "Grid is disallowing forcefull banlines");
-                    //Ming, Do stuff here
-                }
-            }
-
-
-        }
+        
 
         /// <summary>
         /// 
