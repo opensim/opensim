@@ -242,6 +242,9 @@ namespace OpenSim.Region.Environment.LandManagement
 
             if (x >= 64 || y >= 64 || x < 0 || y < 0)
             {
+                // These exceptions here will cause a lot of complaints from the users specifically because
+                // they happen every time at border crossings
+
                 throw new Exception("Error: Parcel not found at point " + x + ", " + y);
             }
             else
@@ -255,6 +258,8 @@ namespace OpenSim.Region.Environment.LandManagement
         {
             if (x >= 256 || y >= 256 || x < 0 || y < 0)
             {
+                // These exceptions here will cause a lot of complaints from the users specifically because
+                // they happen every time at border crossings
                 throw new Exception("Error: Parcel not found at point " + x + ", " + y);
             }
             else

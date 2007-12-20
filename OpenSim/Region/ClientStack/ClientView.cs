@@ -2217,44 +2217,48 @@ namespace OpenSim.Region.ClientStack
         public virtual void InPacket(Packet NewPack)
         {
             // Handle appended ACKs
-            if (NewPack.Header.AppendedAcks)
+            if (NewPack != null)
             {
-                lock (m_needAck)
+                if (NewPack.Header.AppendedAcks)
                 {
-                    foreach (uint ack in NewPack.Header.AckList)
+                    lock (m_needAck)
                     {
-                        m_needAck.Remove(ack);
+                        foreach (uint ack in NewPack.Header.AckList)
+                        {
+                            m_needAck.Remove(ack);
+                        }
                     }
                 }
-            }
+            
 
-            // Handle PacketAck packets
-            if (NewPack.Type == PacketType.PacketAck)
-            {
-                PacketAckPacket ackPacket = (PacketAckPacket) NewPack;
-
-                lock (m_needAck)
+                // Handle PacketAck packets
+                if (NewPack.Type == PacketType.PacketAck)
                 {
-                    foreach (PacketAckPacket.PacketsBlock block in ackPacket.Packets)
+                    PacketAckPacket ackPacket = (PacketAckPacket) NewPack;
+
+                    lock (m_needAck)
                     {
-                        m_needAck.Remove(block.ID);
+                        foreach (PacketAckPacket.PacketsBlock block in ackPacket.Packets)
+                        {
+                            m_needAck.Remove(block.ID);
+                        }
                     }
                 }
-            }
-            else if ((NewPack.Type == PacketType.StartPingCheck))
-            {
-                //reply to pingcheck
-                StartPingCheckPacket startPing = (StartPingCheckPacket) NewPack;
-                CompletePingCheckPacket endPing = new CompletePingCheckPacket();
-                endPing.PingID.PingID = startPing.PingID.PingID;
-                OutPacket(endPing, ThrottleOutPacketType.Task);
-            }
-            else
-            {
-                QueItem item = new QueItem();
-                item.Packet = NewPack;
-                item.Incoming = true;
-                m_packetQueue.Enqueue(item);
+                else if ((NewPack.Type == PacketType.StartPingCheck))
+                {
+                    //reply to pingcheck
+                    StartPingCheckPacket startPing = (StartPingCheckPacket) NewPack;
+                    CompletePingCheckPacket endPing = new CompletePingCheckPacket();
+                    endPing.PingID.PingID = startPing.PingID.PingID;
+                    OutPacket(endPing, ThrottleOutPacketType.Task);
+                }
+                else
+                {
+                    QueItem item = new QueItem();
+                    item.Packet = NewPack;
+                    item.Incoming = true;
+                    m_packetQueue.Enqueue(item);
+                }
             }
         }
 
