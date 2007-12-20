@@ -37,8 +37,6 @@ namespace Prebuild.Core.Targets
             }
         }
 
-
-        // TODO: This needs updating!
         protected override string ProductVersion
         {
             get
