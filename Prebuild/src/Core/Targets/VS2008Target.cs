@@ -43,7 +43,7 @@ namespace Prebuild.Core.Targets
         {
             get
             {
-                return "9.0.20706";
+                return "9.0.21022";
             }
         }
 
