@@ -42,7 +42,7 @@ namespace OpenSim.Region.Environment.Scenes
     {
         public static AvatarAnimations Animations;
         public static byte[] DefaultTexture;
-
+        public LLUUID currentParcelUUID = LLUUID.Zero;
         private List<LLUUID> m_animations = new List<LLUUID>();
         private List<int> m_animationSeqs = new List<int>();
 
@@ -446,6 +446,11 @@ namespace OpenSim.Region.Environment.Scenes
                     }
                 }
             }
+        }
+
+        public void forceAvatarMovement(Vector3 position, Quaternion rotation)
+        {
+            AddNewMovement(position, rotation);
         }
 
         #region Status Methods

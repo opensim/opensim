@@ -230,8 +230,8 @@ namespace OpenSim.Region.Environment.Scenes
             m_LandManager = new LandManager(this, m_regInfo);
 
             //Bind Storage Manager functions to some land manager functions for this scene
-            m_LandManager.OnLandObjectAdded += new LandManager.LandObjectAdded(m_storageManager.DataStore.StoreLandObject);
-            m_LandManager.OnLandObjectRemoved += new LandManager.LandObjectRemoved(m_storageManager.DataStore.RemoveLandObject);
+            EventManager.OnLandObjectAdded += new EventManager.LandObjectAdded(m_storageManager.DataStore.StoreLandObject);
+            EventManager.OnLandObjectRemoved += new EventManager.LandObjectRemoved(m_storageManager.DataStore.RemoveLandObject);
             
             m_estateManager = new EstateManager(this, m_regInfo);
 

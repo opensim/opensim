@@ -29,6 +29,7 @@
 using libsecondlife;
 using OpenSim.Framework;
 using OpenSim.Region.Environment.Interfaces;
+using OpenSim.Region.Environment.LandManagement;
 
 namespace OpenSim.Region.Environment.Scenes
 {
@@ -78,6 +79,7 @@ namespace OpenSim.Region.Environment.Scenes
         public delegate void OnPermissionErrorDelegate(LLUUID user, string reason);
 
         public event ObjectGrabDelegate OnObjectGrab;
+
         public event OnPermissionErrorDelegate OnPermissionError;
 
         public delegate void NewRezScript(uint localID, LLUUID itemID, string script);
@@ -95,6 +97,18 @@ namespace OpenSim.Region.Environment.Scenes
         public delegate void SceneGroupGrabed(LLUUID groupID, LLVector3 offset, LLUUID userID);
 
         public event SceneGroupGrabed OnSceneGroupGrab;
+
+        public delegate void LandObjectAdded(Land newParcel, LLUUID regionUUID);
+
+        public event LandObjectAdded OnLandObjectAdded;
+        
+        public delegate void LandObjectRemoved(LLUUID globalID);
+
+        public event LandObjectRemoved OnLandObjectRemoved;
+
+        public delegate void AvatarEnteringNewParcel(ScenePresence avatar, int localLandID, LLUUID regionID);
+
+        public event AvatarEnteringNewParcel OnAvatarEnteringNewParcel;
 
         public void TriggerPermissionError(LLUUID user, string reason)
         {
@@ -208,6 +222,34 @@ namespace OpenSim.Region.Environment.Scenes
             if (OnSceneGroupGrab != null)
             {
                 OnSceneGroupGrab(groupID, offset, userID);
+            }
+        }
+
+        public void TriggerLandObjectAdded(Land newParcel,LLUUID regionID)
+        {
+            if (OnLandObjectAdded != null)
+            {
+                OnLandObjectAdded(newParcel, regionID);
+            }
+        }
+        public void TriggerLandObjectRemoved(LLUUID globalID)
+        {
+            if (OnLandObjectRemoved != null)
+            {
+                OnLandObjectRemoved(globalID);
+            }
+        }
+        public void TriggerLandObjectUpdated(uint localParcelID, Land newParcel)
+        {
+            //triggerLandObjectRemoved(localParcelID);
+            TriggerLandObjectAdded(newParcel,newParcel.m_scene.RegionInfo.RegionID);
+        }
+
+        public void TriggerAvatarEnteringNewParcel(ScenePresence avatar, int localLandID, LLUUID regionID)
+        {
+            if (OnAvatarEnteringNewParcel != null)
+            {
+                OnAvatarEnteringNewParcel(avatar, localLandID, regionID);
             }
         }
     }

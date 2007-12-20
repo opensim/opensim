@@ -76,35 +76,6 @@ namespace OpenSim.Region.Environment.LandManagement
 
         #endregion
 
-        #region Events and Triggers
-        public delegate void LandObjectAdded(Land newParcel, LLUUID regionUUID);
-        public delegate void LandObjectRemoved(LLUUID globalID);
-
-        public event LandObjectAdded OnLandObjectAdded;
-        public event LandObjectRemoved OnLandObjectRemoved;
-
-        public void triggerLandObjectAdded(Land newParcel)
-        {
-            if (OnLandObjectAdded != null)
-            {
-                OnLandObjectAdded(newParcel, m_scene.RegionInfo.RegionID);
-            }
-        }
-        public void triggerLandObjectRemoved(LLUUID globalID)
-        {
-            if (OnLandObjectRemoved != null)
-            {
-                OnLandObjectRemoved(globalID);
-            }
-        }
-        public void triggerLandObjectUpdated(uint localParcelID, Land newParcel)
-        {
-            //triggerLandObjectRemoved(localParcelID);
-            triggerLandObjectAdded(newParcel);
-        }
-
-        #endregion
-
         #region Member Variables
 
         public Dictionary<int, Land> landList = new Dictionary<int, Land>();
@@ -128,6 +99,8 @@ namespace OpenSim.Region.Environment.LandManagement
             m_scene = scene;
             m_regInfo = reginfo;
             landIDList.Initialize();
+            scene.EventManager.OnAvatarEnteringNewParcel += new EventManager.AvatarEnteringNewParcel(handleAvatarChangingParcel);
+
         }
 
 
@@ -170,6 +143,7 @@ namespace OpenSim.Region.Environment.LandManagement
         /// <returns></returns>
         public Land createBaseLand()
         {
+            
             return new Land(LLUUID.Zero, false, m_scene);
         }
 
@@ -197,7 +171,7 @@ namespace OpenSim.Region.Environment.LandManagement
                 }
             }
             landList[lastLandLocalID].forceUpdateLandInfo();
-            triggerLandObjectAdded(new_land);
+            m_scene.EventManager.TriggerLandObjectAdded(new_land,m_scene.RegionInfo.RegionID);
             return new_land;
         }
 
@@ -219,7 +193,7 @@ namespace OpenSim.Region.Environment.LandManagement
                 }
             }
 
-            triggerLandObjectRemoved(landList[local_id].landData.globalID);
+            m_scene.EventManager.TriggerLandObjectRemoved(landList[local_id].landData.globalID);
             landList.Remove(local_id);
         }
 
@@ -228,7 +202,7 @@ namespace OpenSim.Region.Environment.LandManagement
             if (landList.ContainsKey(local_id))
             {
                 landList[local_id].landData = newData.Copy();
-                triggerLandObjectUpdated((uint)local_id, landList[local_id]);
+                m_scene.EventManager.TriggerLandObjectUpdated((uint)local_id, landList[local_id]);
             }
             else
             {
@@ -590,18 +564,70 @@ namespace OpenSim.Region.Environment.LandManagement
             addLandObject(fullSimParcel);
         }
 
+        public List<Land> parcelsNearPoint(LLVector3 position)
+        {
+            
+            List<Land> parcelsNear = new List<Land>();
+            int x, y;
+            for (x = -4; x <= 4; x += 4)
+            {
+                for (y = -4; y <= 4; y += 4)
+                {
+                    Land check = getLandObject(position.X + x, position.Y + y);
+                    if (!parcelsNear.Contains(check))
+                    {
+                        parcelsNear.Add(check);
+                    }
+                }
+            }
+
+            return parcelsNear;           
+
+        }
+
+        public void handleAvatarChangingParcel(ScenePresence avatar, int localLandID, LLUUID regionID)
+        {
+            if (m_scene.RegionInfo.RegionID == regionID)
+            {
+                if (landList[localLandID] != null)
+                {
+                    Land parcelAvatarIsEntering = landList[localLandID];
+                    if (parcelAvatarIsEntering.isBannedFromLand(avatar.UUID))
+                    {
+                        avatar.ControllingClient.SendAlertMessage("You are not allowed on this parcel because you are banned. Please go away. <3 OpenSim Developers");
+                        
+                    }
+                    else if (parcelAvatarIsEntering.isRestrictedFromLand(avatar.UUID))
+                    {
+                        avatar.ControllingClient.SendAlertMessage("You are not allowed on this parcel because the land owner has restricted access. Please go away. <3 OpenSim Developers");
+                    }
+                }
+            }
+        }
+
         public void sendOutBannedNotices(IClientAPI avatar)
         {
-            ParcelManager.ParcelAccessEntry entry = new ParcelManager.ParcelAccessEntry();
-            entry.AgentID = avatar.AgentId;
-            entry.Flags = ParcelManager.AccessList.Ban;
-            entry.Time = new DateTime();
-
-            foreach (Land checkBan in landList.Values)
+            
+            List<ScenePresence> avatars = m_scene.GetAvatars();
+            foreach (ScenePresence presence in avatars)
             {
-                if (checkBan.isBannedFromLand(entry, avatar))
+                if (presence.UUID == avatar.AgentId)
                 {
-                    checkBan.sendLandProperties(-30000, false, (int)ParcelManager.ParcelResult.Single, avatar);
+                    List<Land> checkLandParcels = parcelsNearPoint(presence.AbsolutePosition);
+                    foreach (Land checkBan in checkLandParcels)
+                    {
+                        if (checkBan.isBannedFromLand(avatar.AgentId))
+                        {
+                            checkBan.sendLandProperties(-30000, false, (int)ParcelManager.ParcelResult.Single, avatar);
+                            return; //Only send one
+                        }
+                        else if (checkBan.isRestrictedFromLand(avatar.AgentId))
+                        {
+                            checkBan.sendLandProperties(-40000, false, (int)ParcelManager.ParcelResult.Single, avatar);
+                            return; //Only send one
+                        }
+                    }
+                    return;
                 }
             }
         }
@@ -614,6 +640,11 @@ namespace OpenSim.Region.Environment.LandManagement
             if (over != null)
             {
                 over.sendLandUpdateToClient(avatar.ControllingClient);
+                if (avatar.currentParcelUUID != over.landData.globalID)
+                {
+                    avatar.currentParcelUUID = over.landData.globalID;
+                    m_scene.EventManager.TriggerAvatarEnteringNewParcel(avatar, over.landData.localID, this.m_scene.RegionInfo.RegionID);
+                }
             }
 
         }

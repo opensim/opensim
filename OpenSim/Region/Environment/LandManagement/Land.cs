@@ -227,10 +227,14 @@ namespace OpenSim.Region.Environment.LandManagement
             }
         }
 
-        public bool isBannedFromLand(ParcelManager.ParcelAccessEntry entry, IClientAPI remote_client)
+        public bool isBannedFromLand(LLUUID avatar)
         {
             if ((this.landData.landFlags & (uint)Parcel.ParcelFlags.UseBanList) > 0)
             {
+                ParcelManager.ParcelAccessEntry entry = new ParcelManager.ParcelAccessEntry();
+                entry.AgentID = avatar;
+                entry.Flags = ParcelManager.AccessList.Ban;
+                entry.Time = new DateTime();
                 if (this.landData.parcelAccessList.Contains(entry))
                 {
                     //They are banned, so lets send them a notice about this parcel
@@ -239,6 +243,24 @@ namespace OpenSim.Region.Environment.LandManagement
             }
             return false;
         }
+
+        public bool isRestrictedFromLand(LLUUID avatar)
+        {
+            if ((this.landData.landFlags & (uint)Parcel.ParcelFlags.UseAccessList) > 0)
+            {
+                ParcelManager.ParcelAccessEntry entry = new ParcelManager.ParcelAccessEntry();
+                entry.AgentID = avatar;
+                entry.Flags = ParcelManager.AccessList.Access;
+                entry.Time = new DateTime();
+                if (!this.landData.parcelAccessList.Contains(entry))
+                {
+                    //They are not allowed in this parcel, but not banned, so lets send them a notice about this parcel
+                    return true;
+                }
+            }
+            return false;
+        }
+
         public void sendLandUpdateToClient(IClientAPI remote_client)
         {
             sendLandProperties(0, false, 0, remote_client);
