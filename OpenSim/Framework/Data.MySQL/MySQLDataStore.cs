@@ -754,12 +754,12 @@ namespace OpenSim.Framework.Data.MySQL
 
         private void fillPrimRow(DataRow row, SceneObjectPart prim, LLUUID sceneGroupID, LLUUID regionUUID)
         {
-            row["UUID"] = prim.UUID;
-            row["RegionUUID"] = regionUUID;
+            row["UUID"] = Util.ToRawUuidString(prim.UUID);
+            row["RegionUUID"] = Util.ToRawUuidString(regionUUID);
             row["ParentID"] = prim.ParentID;
             row["CreationDate"] = prim.CreationDate;
             row["Name"] = prim.Name;
-            row["SceneGroupID"] = sceneGroupID; // the UUID of the root part for this SceneObjectGroup
+            row["SceneGroupID"] = Util.ToRawUuidString(sceneGroupID); // the UUID of the root part for this SceneObjectGroup
             // various text fields
             row["Text"] = prim.Text;
             row["Description"] = prim.Description;
@@ -767,10 +767,10 @@ namespace OpenSim.Framework.Data.MySQL
             row["TouchName"] = prim.TouchName;
             // permissions
             row["ObjectFlags"] = prim.ObjectFlags;
-            row["CreatorID"] = prim.CreatorID;
-            row["OwnerID"] = prim.OwnerID;
-            row["GroupID"] = prim.GroupID;
-            row["LastOwnerID"] = prim.LastOwnerID;
+            row["CreatorID"] = Util.ToRawUuidString(prim.CreatorID);
+            row["OwnerID"] = Util.ToRawUuidString(prim.OwnerID);
+            row["GroupID"] = Util.ToRawUuidString(prim.GroupID);
+            row["LastOwnerID"] = Util.ToRawUuidString(prim.LastOwnerID);
             row["OwnerMask"] = prim.OwnerMask;
             row["NextOwnerMask"] = prim.NextOwnerMask;
             row["GroupMask"] = prim.GroupMask;
@@ -882,7 +882,7 @@ namespace OpenSim.Framework.Data.MySQL
         private void fillShapeRow(DataRow row, SceneObjectPart prim)
         {
             PrimitiveBaseShape s = prim.Shape;
-            row["UUID"] = prim.UUID;
+            row["UUID"] = Util.ToRawUuidString(prim.UUID);
             // shape is an enum
             row["Shape"] = 0;
             // vectors
@@ -931,7 +931,7 @@ namespace OpenSim.Framework.Data.MySQL
                 fillPrimRow(primRow, prim, sceneGroupID, regionUUID);
             }
 
-            DataRow shapeRow = shapes.Rows.Find(prim.UUID);
+            DataRow shapeRow = shapes.Rows.Find(Util.ToRawUuidString(prim.UUID));
             if (shapeRow == null)
             {
                 shapeRow = shapes.NewRow();
