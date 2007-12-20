@@ -466,7 +466,7 @@ namespace OpenSim.Framework.Data.SQLite
 
         private void fillUserRow(DataRow row, UserProfileData user)
         {
-            row["UUID"] = user.UUID;
+            row["UUID"] = Util.ToRawUuidString(user.UUID);
             row["username"] = user.username;
             row["surname"] = user.surname;
             row["passwordHash"] = user.passwordHash;
