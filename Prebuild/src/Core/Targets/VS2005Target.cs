@@ -230,45 +230,48 @@ namespace Prebuild.Core.Targets
 
         #region Fields
 
-        string solutionVersion = "9.00";
-        string productVersion = "8.0.50727";
         string schemaVersion = "2.0";
-        string versionName = "Visual C# 2005";
         VSVersion version = VSVersion.VS80;
 
         Hashtable tools;
         Kernel kernel;
-
-        /// <summary>
-        /// Gets or sets the solution version.
-        /// </summary>
-        /// <value>The solution version.</value>
-        protected string SolutionVersion
+        
+        protected virtual string ToolsVersionXml
         {
             get
             {
-                return this.solutionVersion;
+                return String.Empty;
             }
-            set
+        }
+
+        protected virtual string SolutionTag
+        {
+            get { return "# Visual Studio 2005"; }
+        }
+
+            /// <summary>
+        /// Gets or sets the solution version.
+        /// </summary>
+        /// <value>The solution version.</value>
+        protected virtual string SolutionVersion
+        {
+            get
             {
-                this.solutionVersion = value;
+                return "9.00";
             }
         }
         /// <summary>
         /// Gets or sets the product version.
         /// </summary>
         /// <value>The product version.</value>
-        protected string ProductVersion
+        protected virtual string ProductVersion
         {
             get
             {
-                return this.productVersion;
-            }
-            set
-            {
-                this.productVersion = value;
+                return "8.0.50727";
             }
         }
+
         /// <summary>
         /// Gets or sets the schema version.
         /// </summary>
@@ -288,15 +291,11 @@ namespace Prebuild.Core.Targets
         /// Gets or sets the name of the version.
         /// </summary>
         /// <value>The name of the version.</value>
-        protected string VersionName
+        protected virtual string VersionName
         {
             get
             {
-                return this.versionName;
-            }
-            set
-            {
-                this.versionName = value;
+                return "Visual C# 2005";
             }
         }
         /// <summary>
@@ -378,7 +377,7 @@ namespace Prebuild.Core.Targets
             #region Project File
             using (ps)
             {
-                ps.WriteLine("<Project DefaultTargets=\"Build\" xmlns=\"http://schemas.microsoft.com/developer/msbuild/2003\">");
+                ps.WriteLine("<Project DefaultTargets=\"Build\" xmlns=\"http://schemas.microsoft.com/developer/msbuild/2003\"{0}>", ToolsVersionXml );
                 //ps.WriteLine("  <{0}", toolInfo.XMLTag);
                 ps.WriteLine("  <PropertyGroup>");
                 ps.WriteLine("    <ProjectType>Local</ProjectType>");
@@ -707,7 +706,7 @@ namespace Prebuild.Core.Targets
             using (ss)
             {
                 ss.WriteLine("Microsoft Visual Studio Solution File, Format Version {0}", this.SolutionVersion);
-                ss.WriteLine("# Visual Studio 2005");
+                ss.WriteLine(SolutionTag);
                 foreach (ProjectNode project in solution.Projects)
                 {
                     if (!tools.ContainsKey(project.Language))
