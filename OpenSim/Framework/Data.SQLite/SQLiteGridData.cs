@@ -119,7 +119,7 @@ namespace OpenSim.Framework.Data.SQLite
         public RegionProfileData GetProfileByLLUUID(LLUUID uuid)
         {
             Dictionary<string, string> param = new Dictionary<string, string>();
-            param["uuid"] = Util.ToRawUuidString(uuid);
+            param["uuid"] = uuid.ToString();
 
             IDbCommand result = database.Query("SELECT * FROM regions WHERE uuid = @uuid", param);
             IDataReader reader = result.ExecuteReader();
@@ -190,7 +190,7 @@ namespace OpenSim.Framework.Data.SQLite
             SHA512Managed HashProvider = new SHA512Managed();
             ASCIIEncoding TextProvider = new ASCIIEncoding();
 
-            byte[] stream = TextProvider.GetBytes(Util.ToRawUuidString(uuid) + ":" + handle.ToString() + ":" + challenge);
+            byte[] stream = TextProvider.GetBytes(uuid.ToString() + ":" + handle.ToString() + ":" + challenge);
             byte[] hash = HashProvider.ComputeHash(stream);
 
             return false;
