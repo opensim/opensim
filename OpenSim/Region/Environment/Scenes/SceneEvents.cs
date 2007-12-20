@@ -42,6 +42,10 @@ namespace OpenSim.Region.Environment.Scenes
 
         public event OnFrameDelegate OnFrame;
 
+        public delegate void ClientMovement(ScenePresence client);
+
+        public event ClientMovement OnClientMovement;
+
         public delegate void OnBackupDelegate(IRegionDataStore datastore);
 
         public event OnBackupDelegate OnBackup;
@@ -109,6 +113,13 @@ namespace OpenSim.Region.Environment.Scenes
         public delegate void AvatarEnteringNewParcel(ScenePresence avatar, int localLandID, LLUUID regionID);
 
         public event AvatarEnteringNewParcel OnAvatarEnteringNewParcel;
+
+
+        public void TriggerOnClientMovement(ScenePresence avatar)
+        {
+            if(OnClientMovement != null)
+                OnClientMovement(avatar);
+        }
 
         public void TriggerPermissionError(LLUUID user, string reason)
         {

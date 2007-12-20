@@ -100,7 +100,7 @@ namespace OpenSim.Region.Environment.LandManagement
             m_regInfo = reginfo;
             landIDList.Initialize();
             scene.EventManager.OnAvatarEnteringNewParcel += new EventManager.AvatarEnteringNewParcel(handleAvatarChangingParcel);
-
+            scene.EventManager.OnClientMovement += new EventManager.ClientMovement(this.handleAnyClientMovement);
         }
 
 
@@ -658,6 +658,11 @@ namespace OpenSim.Region.Environment.LandManagement
                 sendLandUpdate(clientAvatar);
                 sendOutBannedNotices(remote_client);
             }
+        }
+
+        public void handleAnyClientMovement(ScenePresence avatar) //Like handleSignificantClientMovement, but called with an AgentUpdate regardless of distance. 
+        {
+
         }
 
 

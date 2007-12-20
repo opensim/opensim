@@ -583,6 +583,7 @@ namespace OpenSim.Region.Environment.Scenes
         /// </summary>
         public void HandleAgentUpdate(IClientAPI remoteClient, AgentUpdatePacket agentData)
         {
+
             //if (m_isChildAgent)
             //{
             //    // Console.WriteLine("DEBUG: HandleAgentUpdate: child agent");
@@ -689,6 +690,8 @@ namespace OpenSim.Region.Environment.Scenes
                     UpdateMovementAnimations(update_movementflag);
                 }
             }
+
+            m_scene.EventManager.TriggerOnClientMovement(this);
         }
 
         /// <summary>
