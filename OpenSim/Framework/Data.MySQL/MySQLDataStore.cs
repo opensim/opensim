@@ -156,7 +156,7 @@ namespace OpenSim.Framework.Data.MySQL
                 foreach (DataRow row in primRows)
                 {
                     LLUUID uuid = new LLUUID((string)row["UUID"]);
-                    DataRow shapeRow = shapes.Rows.Find(uuid);
+                    DataRow shapeRow = shapes.Rows.Find(Util.ToRawUuidString(uuid));
                     if (shapeRow != null)
                     {
                         shapeRow.Delete();
@@ -919,7 +919,7 @@ namespace OpenSim.Framework.Data.MySQL
             DataTable prims = m_dataSet.Tables["prims"];
             DataTable shapes = m_dataSet.Tables["primshapes"];
 
-            DataRow primRow = prims.Rows.Find(prim.UUID);
+            DataRow primRow = prims.Rows.Find(Util.ToRawUuidString(prim.UUID));
             if (primRow == null)
             {
                 primRow = prims.NewRow();
