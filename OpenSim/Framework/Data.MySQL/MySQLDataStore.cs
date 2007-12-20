@@ -196,7 +196,7 @@ namespace OpenSim.Framework.Data.MySQL
                         {
                             SceneObjectGroup group = new SceneObjectGroup();
                             SceneObjectPart prim = buildPrim(primRow);
-                            DataRow shapeRow = shapes.Rows.Find(prim.UUID);
+                            DataRow shapeRow = shapes.Rows.Find(Util.ToRawUuidString(prim.UUID));
                             if (shapeRow != null)
                             {
                                 prim.Shape = buildShape(shapeRow);
@@ -216,7 +216,7 @@ namespace OpenSim.Framework.Data.MySQL
                         else
                         {
                             SceneObjectPart prim = buildPrim(primRow);
-                            DataRow shapeRow = shapes.Rows.Find(prim.UUID);
+                            DataRow shapeRow = shapes.Rows.Find(Util.ToRawUuidString(prim.UUID));
                             if (shapeRow != null)
                             {
                                 prim.Shape = buildShape(shapeRow);
