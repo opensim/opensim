@@ -383,5 +383,15 @@ namespace OpenSim.Framework
         {
             return Math.Min(Math.Max(x, min), max);
         }
+        
+        /// <summary>
+        /// Convert an LLUUID to a raw uuid string.  This is a string without hyphens.
+        /// </summary>
+        /// <param name="lluuid"></param>
+        /// <returns></returns>
+        public static String ToRawUuidString(LLUUID lluuid)
+        {
+            return lluuid.UUID.ToString("n");
+        }
     }
 }
