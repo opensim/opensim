@@ -44,8 +44,11 @@ namespace OpenSim.Framework
 
         public string DatabaseProvider = "";
 
+
         public static uint DefaultHttpPort = 8001;
         public uint HttpPort = DefaultHttpPort;
+
+        public string AllowForcefulBanlines = "TRUE";
 
         private ConfigurationMember configMember;
 
@@ -89,6 +92,9 @@ namespace OpenSim.Framework
 
             configMember.addConfigurationOption("http_port", ConfigurationOption.ConfigurationTypes.TYPE_UINT32,
                                                 "Http Listener port", DefaultHttpPort.ToString(), false);
+
+            configMember.addConfigurationOption("allow_forceful_banlines", ConfigurationOption.ConfigurationTypes.TYPE_STRING, 
+                                                "Allow Forceful Banlines", "TRUE", true);
         }
 
         public bool handleIncomingConfiguration(string configuration_key, object configuration_result)
@@ -127,6 +133,9 @@ namespace OpenSim.Framework
                     break;
                 case "http_port":
                     HttpPort = (uint) configuration_result;
+                    break;
+                case "allow_forceful_banlines":
+                    AllowForcefulBanlines = (string)configuration_result;
                     break;
             }
 

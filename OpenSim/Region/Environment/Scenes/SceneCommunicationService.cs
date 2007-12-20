@@ -52,6 +52,7 @@ namespace OpenSim.Region.Environment.Scenes
         public event PrimCrossing OnPrimCrossingIntoRegion;
         public event RegionUp OnRegionUp;
         public event ChildAgentUpdate OnChildAgentUpdate;
+        
 
         public KillObjectDelegate KillObject;
         public string _debugRegionName = "";
@@ -101,6 +102,7 @@ namespace OpenSim.Region.Environment.Scenes
         {
             if (regionCommsHost != null)
             {
+               
                 regionCommsHost.OnChildAgentUpdate -= ChildAgentUpdate;
                 regionCommsHost.OnRegionUp -= newRegionUp;
                 regionCommsHost.OnExpectUser -= NewUserConnection;
@@ -168,6 +170,7 @@ namespace OpenSim.Region.Environment.Scenes
                 OnCloseAgentConnection(regionHandle, agentID);
             }
         }
+
         #endregion
 
         #region Inform Client of Neighbours
@@ -466,5 +469,11 @@ namespace OpenSim.Region.Environment.Scenes
                 presence.RemoveNeighbourRegion(regionHandle);
             }
         }
+
+        public Dictionary<string, string> GetGridSettings()
+        {
+            return m_commsProvider.GridService.GetGridSettings();
+        }
+
     }
 }

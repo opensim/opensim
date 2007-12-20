@@ -50,6 +50,7 @@ namespace OpenSim.Region.Communications.OGS1
         private LocalBackEndServices m_localBackend = new LocalBackEndServices();
         private Dictionary<ulong, RegionInfo> m_remoteRegionInfoCache = new Dictionary<ulong, RegionInfo>();
         private List<SimpleRegionInfo> m_knownRegions = new List<SimpleRegionInfo>();
+        private Dictionary<string, string> m_queuedGridSettings = new Dictionary<string, string>();
 
         public BaseHttpServer httpListener;
         public NetworkServersInfo serversInfo;
@@ -134,7 +135,15 @@ namespace OpenSim.Region.Communications.OGS1
             else
             {
                 m_knownRegions = RequestNeighbours(regionInfo.RegionLocX, regionInfo.RegionLocY);
-                
+                if (GridRespData.ContainsKey("allow_forceful_banlines"))
+                {
+
+                    if ((string)GridRespData["allow_forceful_banlines"] != "TRUE")
+                    {
+                        //m_localBackend.SetForcefulBanlistsDisallowed(regionInfo.RegionHandle);
+                        m_queuedGridSettings.Add("allow_forceful_banlines", "FALSE");
+                    }
+                }
                 
             }
             return m_localBackend.RegisterRegion(regionInfo);
@@ -144,7 +153,23 @@ namespace OpenSim.Region.Communications.OGS1
         {
             return false;
         }
+        public virtual Dictionary<string, string> GetGridSettings()
+        {
+            Dictionary<string, string> returnGridSettings = new Dictionary<string, string>();
+            lock (m_queuedGridSettings)
+            {
+                foreach (string Dictkey in m_queuedGridSettings.Keys)
+                {
+                    returnGridSettings.Add(Dictkey, m_queuedGridSettings[Dictkey]);
 
+                }
+
+                
+                m_queuedGridSettings.Clear();
+            }
+
+            return returnGridSettings;
+        }
         /// <summary>
         /// 
         /// </summary>

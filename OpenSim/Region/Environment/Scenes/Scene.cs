@@ -818,6 +818,12 @@ namespace OpenSim.Region.Environment.Scenes
             // These two 'commands' *must be* next to each other or sim rebooting fails.
             m_sceneGridService.RegisterRegion(RegionInfo);
             m_sceneGridService.InformNeighborsThatRegionisUp(RegionInfo);
+            Dictionary<string, string> dGridSettings = m_sceneGridService.GetGridSettings();
+            if (dGridSettings.ContainsKey("allow_forceful_banlines"))
+            {
+                if (dGridSettings["allow_forceful_banlines"] != "TRUE") 
+                    MainLog.Instance.Verbose("GRID","Grid is disabling forceful parcel banlists");
+            }
         }
 
         /// <summary>
@@ -1295,6 +1301,7 @@ namespace OpenSim.Region.Environment.Scenes
             m_sceneGridService.OnCloseAgentConnection += CloseConnection;
             m_sceneGridService.OnRegionUp += OtherRegionUp;
             m_sceneGridService.OnChildAgentUpdate += IncomingChildAgentDataUpdate;
+            
 
             m_sceneGridService.KillObject = SendKillObject;
         }
@@ -1303,14 +1310,28 @@ namespace OpenSim.Region.Environment.Scenes
         /// 
         /// </summary>
         public void UnRegisterReginWithComms()
-        {
+        { 
+            
             m_sceneGridService.OnChildAgentUpdate -= IncomingChildAgentDataUpdate;
             m_sceneGridService.OnRegionUp -= OtherRegionUp;
             m_sceneGridService.OnExpectUser -= NewUserConnection;
             m_sceneGridService.OnAvatarCrossingIntoRegion -= AgentCrossing;
             m_sceneGridService.OnCloseAgentConnection -= CloseConnection;
-
+            
             m_sceneGridService.Close();
+        }
+        public void NewIncomingGridSetting(ulong regionHandle, string key, string gvalue)
+        {
+            if (key == "allow_forceful_banlines")
+            {
+                if (gvalue == "FALSE")
+                {
+                    MainLog.Instance.Verbose("INTERGRID", "Grid is disallowing forcefull banlines");
+                    //Ming, Do stuff here
+                }
+            }
+
+
         }
 
         /// <summary>

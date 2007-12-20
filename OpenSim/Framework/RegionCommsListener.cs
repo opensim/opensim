@@ -44,6 +44,8 @@ namespace OpenSim.Framework
         public event CloseAgentConnection OnCloseAgentConnection;
         public event RegionUp OnRegionUp;
         public event ChildAgentUpdate OnChildAgentUpdate;
+        
+
         public string debugRegionName="";
         
 
@@ -62,6 +64,9 @@ namespace OpenSim.Framework
 
             return false;
         }
+
+
+
         public virtual bool TriggerExpectPrim(ulong regionHandle, LLUUID primID, string objData)
         {
             if (OnExpectUser != null)

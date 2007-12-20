@@ -404,6 +404,8 @@ namespace OpenSim.Grid.GridServer
             // New! If set, use as URL to local sim storage (ie http://remotehost/region.yap)
             responseData["data_uri"] = TheSim.regionDataURI;
 
+            responseData["allow_forceful_banlines"] = config.AllowForcefulBanlines;
+
 
             return response;
         }

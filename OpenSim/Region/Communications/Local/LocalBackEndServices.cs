@@ -43,6 +43,8 @@ namespace OpenSim.Region.Communications.Local
 
         private Dictionary<ulong, RegionInfo> m_remoteRegionInfoCache = new Dictionary<ulong, RegionInfo>();
 
+        private Dictionary<string, string> m_queuedGridSettings = new Dictionary<string, string>();
+
         public string _gdebugRegionName = "";
 
         public string gdebugRegionName
@@ -216,6 +218,26 @@ namespace OpenSim.Region.Communications.Local
                 return true;
             }
             return false;
+        }
+
+        // This function Is only here to keep this class in line with the Grid Interface.
+        // It never gets called.
+        public virtual Dictionary<string, string> GetGridSettings()
+        {
+            Dictionary<string,string> returnGridSettings = new Dictionary<string,string>();
+            lock (m_queuedGridSettings)
+            {
+                returnGridSettings = m_queuedGridSettings;
+                m_queuedGridSettings.Clear();
+            }
+
+            return returnGridSettings;
+        }
+
+        public virtual void SetForcefulBanlistsDisallowed(ulong regionHandle)
+        {
+            m_queuedGridSettings.Add("allow_forceful_banlines", "FALSE");
+
         }
 
         public bool TriggerRegionUp(RegionInfo region, ulong regionhandle)
