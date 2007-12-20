@@ -144,8 +144,8 @@ namespace OpenSim.Framework.Communications.Cache
                 item.avatarID = libOwner;
                 item.creatorsID = libOwner;
                 item.inventoryID =
-                    new LLUUID(source.Configs[i].GetString("inventoryID", LLUUID.Random().ToStringHyphenated()));
-                item.assetID = new LLUUID(source.Configs[i].GetString("assetID", LLUUID.Random().ToStringHyphenated()));
+                    new LLUUID(source.Configs[i].GetString("inventoryID", LLUUID.Random().ToString()));
+                item.assetID = new LLUUID(source.Configs[i].GetString("assetID", LLUUID.Random().ToString()));
                 item.inventoryDescription = source.Configs[i].GetString("description", "");
                 item.inventoryName = source.Configs[i].GetString("name", "");
                 item.assetType = source.Configs[i].GetInt("assetType", 0);

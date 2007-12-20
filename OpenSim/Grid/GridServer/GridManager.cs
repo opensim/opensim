@@ -234,7 +234,7 @@ namespace OpenSim.Grid.GridServer
             {
                 TheSim = getRegion(new LLUUID((string) requestData["UUID"]));
 
-//                logToDB((new LLUUID((string)requestData["UUID"])).ToStringHyphenated(),"XmlRpcSimulatorLoginMethod","", 5,"Region attempting login with UUID.");
+//                logToDB((new LLUUID((string)requestData["UUID"])).ToString(),"XmlRpcSimulatorLoginMethod","", 5,"Region attempting login with UUID.");
             }
             else if (requestData.ContainsKey("region_handle"))
             {
@@ -316,7 +316,7 @@ namespace OpenSim.Grid.GridServer
                 catch (Exception e)
                 {
                     MainLog.Instance.Warn("storage",
-                                          "Unable to add region " + TheSim.UUID.ToStringHyphenated() + " via " + kvp.Key);
+                                          "Unable to add region " + TheSim.UUID.ToString() + " via " + kvp.Key);
                     MainLog.Instance.Warn("storage", e.ToString());
                 }
 
@@ -502,7 +502,7 @@ namespace OpenSim.Grid.GridServer
                     simProfileBlock["sim_ip"] = aSim.Value.serverIP.ToString();
                     simProfileBlock["sim_port"] = aSim.Value.serverPort.ToString();
                     simProfileBlock["sim_uri"] = aSim.Value.serverURI.ToString();
-                    simProfileBlock["uuid"] = aSim.Value.UUID.ToStringHyphenated();
+                    simProfileBlock["uuid"] = aSim.Value.UUID.ToString();
                     simProfileBlock["remoting_port"] = aSim.Value.remotingPort;
 
                     simProfileList.Add(simProfileBlock);
@@ -529,14 +529,14 @@ namespace OpenSim.Grid.GridServer
                             simProfileBlock["region-flags"] = 0;
                             simProfileBlock["water-height"] = 20;
                             simProfileBlock["agents"] = 1;
-                            simProfileBlock["map-image-id"] = simProfile.regionMapTextureID.ToStringHyphenated();
+                            simProfileBlock["map-image-id"] = simProfile.regionMapTextureID.ToString();
 
                             // For Sugilite compatibility
                             simProfileBlock["regionhandle"] = simProfile.regionHandle.ToString();
                             simProfileBlock["sim_ip"] = simProfile.serverIP.ToString();
                             simProfileBlock["sim_port"] = simProfile.serverPort.ToString();
                             simProfileBlock["sim_uri"] = simProfile.serverURI.ToString();
-                            simProfileBlock["uuid"] = simProfile.UUID.ToStringHyphenated();
+                            simProfileBlock["uuid"] = simProfile.UUID.ToString();
 
                             simProfileList.Add(simProfileBlock);
                         }
@@ -721,7 +721,7 @@ namespace OpenSim.Grid.GridServer
                         {
                             kvp.Value.AddProfile(TheSim);
                             MainLog.Instance.Verbose("grid", "New sim added to grid (" + TheSim.regionName + ")");
-                            logToDB(TheSim.UUID.ToStringHyphenated(), "RestSetSimMethod", "", 5,
+                            logToDB(TheSim.UUID.ToString(), "RestSetSimMethod", "", 5,
                                     "Region successfully updated and connected to grid.");
                         }
                         else

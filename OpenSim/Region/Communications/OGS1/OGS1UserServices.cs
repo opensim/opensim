@@ -118,7 +118,7 @@ namespace OpenSim.Region.Communications.OGS1
             try
             {
                 Hashtable param = new Hashtable();
-                param["queryid"] = (string)queryID.ToStringHyphenated();
+                param["queryid"] = (string)queryID.ToString();
                 param["avquery"] = objAlphaNumericPattern.Replace(query, "");
                 IList parameters = new ArrayList();
                 parameters.Add(param);

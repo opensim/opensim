@@ -535,7 +535,7 @@ namespace OpenSim.Region.ClientStack
         /// <param name="regionInfo"></param>
         public void SendRegionHandshake(RegionInfo regionInfo)
         {
-            RegionHandshakePacket handshake = new RegionHandshakePacket();
+            RegionHandshakePacket handshake = (RegionHandshakePacket) PacketPool.Instance.GetPacket(PacketType.RegionHandshake);
 
             handshake.RegionInfo.BillableFactor = regionInfo.EstateSettings.billableFactor;
             handshake.RegionInfo.IsEstateManager = false;
@@ -2187,17 +2187,22 @@ namespace OpenSim.Region.ClientStack
             // Actually make the byte array and send it
             try
             {
-                byte[] sendbuffer = Pack.ToBytes();
-                if (Pack.Header.Zerocoded)
-                {
-                    byte[] ZeroOutBuffer = new byte[4096];
-                    int packetsize = Helpers.ZeroEncode(sendbuffer, sendbuffer.Length, ZeroOutBuffer);
-                    m_networkServer.SendPacketTo(ZeroOutBuffer, packetsize, SocketFlags.None, m_circuitCode);
-                }
-                else
-                {
-                    m_networkServer.SendPacketTo(sendbuffer, sendbuffer.Length, SocketFlags.None, m_circuitCode);
-                }
+              byte[] sendbuffer = Pack.ToBytes();
+              if (Pack is RegionHandshakePacket) 
+              {
+                  PacketPool.Instance.ReturnPacket(Pack);
+              }
+
+              if (Pack.Header.Zerocoded)
+              {
+                  byte[] ZeroOutBuffer = new byte[4096];
+                  int packetsize = Helpers.ZeroEncode(sendbuffer, sendbuffer.Length, ZeroOutBuffer);
+                  m_networkServer.SendPacketTo(ZeroOutBuffer, packetsize, SocketFlags.None, m_circuitCode);
+              }
+              else
+              {
+                  m_networkServer.SendPacketTo(sendbuffer, sendbuffer.Length, SocketFlags.None, m_circuitCode);
+              }
             }
             catch (Exception e)
             {
@@ -2801,7 +2806,7 @@ namespace OpenSim.Region.ClientStack
                     case PacketType.AssetUploadRequest:
                         AssetUploadRequestPacket request = (AssetUploadRequestPacket) Pack;
                         // Console.WriteLine("upload request " + Pack.ToString());
-                        // Console.WriteLine("upload request was for assetid: " + request.AssetBlock.TransactionID.Combine(this.SecureSessionId).ToStringHyphenated());
+                        // Console.WriteLine("upload request was for assetid: " + request.AssetBlock.TransactionID.Combine(this.SecureSessionId).ToString());
                         if (OnAssetUploadRequest != null)
                         {
                             LLUUID temp=libsecondlife.LLUUID.Combine(request.AssetBlock.TransactionID, SecureSessionId);
@@ -2928,7 +2933,7 @@ namespace OpenSim.Region.ClientStack
                                 AssetBase asset = m_assetCache.GetAsset(update.InventoryData[i].TransactionID.Combine(this.SecureSessionId));
                                 if (asset != null)
                                 {
-                                    // Console.WriteLine("updating inventory item, found asset" + asset.FullID.ToStringHyphenated() + " already in cache");
+                                    // Console.WriteLine("updating inventory item, found asset" + asset.FullID.ToString() + " already in cache");
                                     m_inventoryCache.UpdateInventoryItemAsset(this, update.InventoryData[i].ItemID, asset);
                                 }
                                 else
@@ -2936,7 +2941,7 @@ namespace OpenSim.Region.ClientStack
                                     asset = this.UploadAssets.AddUploadToAssetCache(update.InventoryData[i].TransactionID);
                                     if (asset != null)
                                     {
-                                        //Console.WriteLine("updating inventory item, adding asset" + asset.FullID.ToStringHyphenated() + " to cache");
+                                        //Console.WriteLine("updating inventory item, adding asset" + asset.FullID.ToString() + " to cache");
                                         m_inventoryCache.UpdateInventoryItemAsset(this, update.InventoryData[i].ItemID, asset);
                                     }
                                     else
@@ -3351,6 +3356,8 @@ namespace OpenSim.Region.ClientStack
                         #endregion
                 }
             }
+
+            PacketPool.Instance.ReturnPacket(Pack);
         }
 
         private static PrimitiveBaseShape GetShapeFromAddPacket(ObjectAddPacket addPacket)

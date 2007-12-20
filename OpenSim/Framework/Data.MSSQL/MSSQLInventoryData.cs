@@ -141,7 +141,7 @@ namespace OpenSim.Framework.Data.MSSQL
                     List<InventoryItemBase> items = new List<InventoryItemBase>();
 
                     Dictionary<string, string> param = new Dictionary<string, string>();
-                    param["parentFolderID"] = folderID.ToStringHyphenated();
+                    param["parentFolderID"] = folderID.ToString();
 
                     IDbCommand result = database.Query("SELECT * FROM inventoryitems WHERE parentFolderID = @parentFolderID", param);
                     IDataReader reader = result.ExecuteReader();
@@ -176,8 +176,8 @@ namespace OpenSim.Framework.Data.MSSQL
                 {
 
                     Dictionary<string, string> param = new Dictionary<string, string>();
-                    param["uuid"] = user.ToStringHyphenated();
-                    param["zero"] = LLUUID.Zero.ToStringHyphenated();
+                    param["uuid"] = user.ToString();
+                    param["zero"] = LLUUID.Zero.ToString();
 
                     IDbCommand result = database.Query("SELECT * FROM inventoryfolders WHERE parentFolderID = @zero AND agentID = @uuid", param);
                     IDataReader reader = result.ExecuteReader();
@@ -209,8 +209,8 @@ namespace OpenSim.Framework.Data.MSSQL
                 lock (database)
                 {
                     Dictionary<string, string> param = new Dictionary<string, string>();
-                    param["uuid"] = user.ToStringHyphenated();
-                    param["zero"] = LLUUID.Zero.ToStringHyphenated();
+                    param["uuid"] = user.ToString();
+                    param["zero"] = LLUUID.Zero.ToString();
 
                     IDbCommand result = database.Query("SELECT * FROM inventoryfolders WHERE parentFolderID = @zero AND agentID = @uuid", param);
                     IDataReader reader = result.ExecuteReader();
@@ -256,7 +256,7 @@ namespace OpenSim.Framework.Data.MSSQL
                 lock (database)
                 {
                     Dictionary<string, string> param = new Dictionary<string, string>();
-                    param["parentFolderID"] = parentID.ToStringHyphenated();
+                    param["parentFolderID"] = parentID.ToString();
 
 
                     IDbCommand result = database.Query("SELECT * FROM inventoryfolders WHERE parentFolderID = @parentFolderID", param);
@@ -328,7 +328,7 @@ namespace OpenSim.Framework.Data.MSSQL
                 lock (database)
                 {
                     Dictionary<string, string> param = new Dictionary<string, string>();
-                    param["inventoryID"] = itemID.ToStringHyphenated();
+                    param["inventoryID"] = itemID.ToString();
 
                     IDbCommand result = database.Query("SELECT * FROM inventoryitems WHERE inventoryID = @inventoryID", param);
                     IDataReader reader = result.ExecuteReader();
@@ -390,7 +390,7 @@ namespace OpenSim.Framework.Data.MSSQL
                 lock (database)
                 {
                     Dictionary<string, string> param = new Dictionary<string,string>();
-                    param["uuid"] = folderID.ToStringHyphenated();
+                    param["uuid"] = folderID.ToString();
 
                     IDbCommand result = database.Query("SELECT * FROM inventoryfolders WHERE folderID = @uuid", param);
                     IDataReader reader = result.ExecuteReader();
@@ -424,17 +424,17 @@ namespace OpenSim.Framework.Data.MSSQL
             try
             {
                 Dictionary<string, string> param = new Dictionary<string, string>();
-                param["inventoryID"] = item.inventoryID.ToStringHyphenated();
-                param["assetID"] = item.assetID.ToStringHyphenated();
+                param["inventoryID"] = item.inventoryID.ToString();
+                param["assetID"] = item.assetID.ToString();
                 param["assetType"] = item.assetType.ToString();
-                param["parentFolderID"] = item.parentFolderID.ToStringHyphenated();
-                param["avatarID"] = item.avatarID.ToStringHyphenated();
+                param["parentFolderID"] = item.parentFolderID.ToString();
+                param["avatarID"] = item.avatarID.ToString();
                 param["inventoryName"] = item.inventoryName;
                 param["inventoryDescription"] = item.inventoryDescription;
                 param["inventoryNextPermissions"] = item.inventoryNextPermissions.ToString();
                 param["inventoryCurrentPermissions"] = item.inventoryCurrentPermissions.ToString();
                 param["invType"] = Convert.ToString(item.invType);
-                param["creatorID"] = item.creatorsID.ToStringHyphenated();
+                param["creatorID"] = item.creatorsID.ToString();
                 param["inventoryBasePermissions"] = Convert.ToString(item.inventoryBasePermissions);
                 param["inventoryEveryOnePermissions"] = Convert.ToString(item.inventoryEveryOnePermissions);
 
@@ -469,7 +469,7 @@ namespace OpenSim.Framework.Data.MSSQL
                                                                        "inventoryBasePermissions = @inventoryBasePermissions" +
                                                                        "inventoryEveryOnePermissions = @inventoryEveryOnePermissions) where " +
                                                                        "invenoryID = @keyInventoryID;", database.getConnection());
-            SqlParameter param1 = new SqlParameter("@inventoryID", item.inventoryID.ToStringHyphenated());
+            SqlParameter param1 = new SqlParameter("@inventoryID", item.inventoryID.ToString());
             SqlParameter param2 = new SqlParameter("@assetID", item.assetID);
             SqlParameter param3 = new SqlParameter("@assetType", item.assetType);
             SqlParameter param4 = new SqlParameter("@parentFolderID", item.parentFolderID);
@@ -482,7 +482,7 @@ namespace OpenSim.Framework.Data.MSSQL
             SqlParameter param11 = new SqlParameter("@creatorID", item.creatorsID);
             SqlParameter param12 = new SqlParameter("@inventoryBasePermissions", item.inventoryBasePermissions);
             SqlParameter param13 = new SqlParameter("@inventoryEveryOnePermissions", item.inventoryEveryOnePermissions);            
-            SqlParameter param14 = new SqlParameter("@keyInventoryID", item.inventoryID.ToStringHyphenated());
+            SqlParameter param14 = new SqlParameter("@keyInventoryID", item.inventoryID.ToString());
             command.Parameters.Add(param1);
             command.Parameters.Add(param2);
             command.Parameters.Add(param3);
@@ -518,7 +518,7 @@ namespace OpenSim.Framework.Data.MSSQL
             try
             {
                 Dictionary<string, string> param = new Dictionary<string, string>();
-                param["uuid"] = itemID.ToStringHyphenated();
+                param["uuid"] = itemID.ToString();
 
                 IDbCommand cmd = database.Query("DELETE FROM inventoryitems WHERE inventoryID=@uuid", param);
                 cmd.ExecuteNonQuery();
@@ -544,9 +544,9 @@ namespace OpenSim.Framework.Data.MSSQL
 
 
             Dictionary<string, string> param = new Dictionary<string, string>();
-            param["folderID"] = folder.folderID.ToStringHyphenated();
-            param["agentID"] = folder.agentID.ToStringHyphenated();
-            param["parentFolderID"] = folder.parentID.ToStringHyphenated();
+            param["folderID"] = folder.folderID.ToString();
+            param["agentID"] = folder.agentID.ToString();
+            param["parentFolderID"] = folder.parentID.ToString();
             param["folderName"] = folder.name;
             param["type"] = Convert.ToString(folder.type);
             param["version"] = Convert.ToString(folder.version);
@@ -577,13 +577,13 @@ namespace OpenSim.Framework.Data.MSSQL
                                                            "type = @type," +
                                                            "version = @version where " +
                                                            "folderID = @keyFolderID;", database.getConnection());
-            SqlParameter param1 = new SqlParameter("@folderID", folder.folderID.ToStringHyphenated());
-            SqlParameter param2 = new SqlParameter("@agentID", folder.agentID.ToStringHyphenated());
-            SqlParameter param3 = new SqlParameter("@parentFolderID", folder.parentID.ToStringHyphenated());
+            SqlParameter param1 = new SqlParameter("@folderID", folder.folderID.ToString());
+            SqlParameter param2 = new SqlParameter("@agentID", folder.agentID.ToString());
+            SqlParameter param3 = new SqlParameter("@parentFolderID", folder.parentID.ToString());
             SqlParameter param4 = new SqlParameter("@folderName", folder.name);
             SqlParameter param5 = new SqlParameter("@type", folder.type);
             SqlParameter param6 = new SqlParameter("@version", folder.version);
-            SqlParameter param7 = new SqlParameter("@keyFolderID", folder.folderID.ToStringHyphenated());
+            SqlParameter param7 = new SqlParameter("@keyFolderID", folder.folderID.ToString());
             command.Parameters.Add(param1);
             command.Parameters.Add(param2);
             command.Parameters.Add(param3);
@@ -614,9 +614,9 @@ namespace OpenSim.Framework.Data.MSSQL
             SqlCommand command = new SqlCommand("UPDATE inventoryfolders set folderID = @folderID, " +
                                                            "parentFolderID = @parentFolderID," +
                                                            "folderID = @keyFolderID;", database.getConnection());
-            SqlParameter param1 = new SqlParameter("@folderID", folder.folderID.ToStringHyphenated());
-            SqlParameter param2 = new SqlParameter("@parentFolderID", folder.parentID.ToStringHyphenated());
-            SqlParameter param3 = new SqlParameter("@keyFolderID", folder.folderID.ToStringHyphenated());
+            SqlParameter param1 = new SqlParameter("@folderID", folder.folderID.ToString());
+            SqlParameter param2 = new SqlParameter("@parentFolderID", folder.parentID.ToString());
+            SqlParameter param3 = new SqlParameter("@keyFolderID", folder.folderID.ToString());
             command.Parameters.Add(param1);
             command.Parameters.Add(param2);
             command.Parameters.Add(param3);
@@ -667,7 +667,7 @@ namespace OpenSim.Framework.Data.MSSQL
             try
             {
                 Dictionary<string, string> param = new Dictionary<string, string>();
-                param["folderID"] = folderID.ToStringHyphenated();
+                param["folderID"] = folderID.ToString();
 
                 IDbCommand cmd = database.Query("DELETE FROM inventoryfolders WHERE folderID=@folderID", param);
                 cmd.ExecuteNonQuery();
@@ -686,7 +686,7 @@ namespace OpenSim.Framework.Data.MSSQL
             try
             {
                 Dictionary<string, string> param = new Dictionary<string, string>();
-                param["parentFolderID"] = folderID.ToStringHyphenated();
+                param["parentFolderID"] = folderID.ToString();
 
 
                 IDbCommand cmd = database.Query("DELETE FROM inventoryitems WHERE parentFolderID=@parentFolderID", param);

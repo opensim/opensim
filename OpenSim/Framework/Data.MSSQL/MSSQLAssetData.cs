@@ -72,7 +72,7 @@ namespace OpenSim.Framework.Data.MSSQL
             AssetBase asset = null;
 
             Dictionary<string, string> param = new Dictionary<string, string>();
-            param["id"] = assetID.ToStringHyphenated();
+            param["id"] = assetID.ToString();
 
             IDbCommand result = database.Query("SELECT * FROM assets WHERE id = @id", param);
             IDataReader reader = result.ExecuteReader();
@@ -105,8 +105,8 @@ namespace OpenSim.Framework.Data.MSSQL
             {
 
                 //SqlParameter p = cmd.Parameters.Add("id", SqlDbType.NVarChar);
-                //p.Value = asset.FullID.ToStringHyphenated();
-                cmd.Parameters.AddWithValue("id", asset.FullID.ToStringHyphenated());
+                //p.Value = asset.FullID.ToString();
+                cmd.Parameters.AddWithValue("id", asset.FullID.ToString());
                 cmd.Parameters.AddWithValue("name", asset.Name);
                 cmd.Parameters.AddWithValue("description", asset.Description);
                 SqlParameter e = cmd.Parameters.Add("assetType", SqlDbType.TinyInt);
@@ -145,7 +145,7 @@ namespace OpenSim.Framework.Data.MSSQL
                                                            "temporary = @temporary," +
                                                            "data = @data where " +
                                                            "id = @keyId;", database.getConnection());
-            SqlParameter param1 = new SqlParameter("@id", asset.FullID.ToStringHyphenated());
+            SqlParameter param1 = new SqlParameter("@id", asset.FullID.ToString());
             SqlParameter param2 = new SqlParameter("@name", asset.Name);
             SqlParameter param3 = new SqlParameter("@description", asset.Description);
             SqlParameter param4 = new SqlParameter("@assetType", asset.Type);
@@ -153,7 +153,7 @@ namespace OpenSim.Framework.Data.MSSQL
             SqlParameter param6 = new SqlParameter("@local", asset.Local);
             SqlParameter param7 = new SqlParameter("@temporary", asset.Temporary);
             SqlParameter param8 = new SqlParameter("@data", asset.Data);
-            SqlParameter param9 = new SqlParameter("@keyId", asset.FullID.ToStringHyphenated());
+            SqlParameter param9 = new SqlParameter("@keyId", asset.FullID.ToString());
             command.Parameters.Add(param1);
             command.Parameters.Add(param2);
             command.Parameters.Add(param3);

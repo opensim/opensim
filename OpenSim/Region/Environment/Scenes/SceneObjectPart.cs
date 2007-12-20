@@ -1030,8 +1030,8 @@ namespace OpenSim.Region.Environment.Scenes
             foreach (TaskInventoryItem item in TaskInventory.Values)
             {
                 invString.AddItemStart();
-                invString.AddNameValueLine("item_id", item.item_id.ToStringHyphenated());
-                invString.AddNameValueLine("parent_id", item.parent_id.ToStringHyphenated());
+                invString.AddNameValueLine("item_id", item.item_id.ToString());
+                invString.AddNameValueLine("parent_id", item.parent_id.ToString());
 
                 invString.AddPermissionsStart();
                 invString.AddNameValueLine("base_mask", "0x7FFFFFFF");
@@ -1039,13 +1039,13 @@ namespace OpenSim.Region.Environment.Scenes
                 invString.AddNameValueLine("group_mask", "0x7FFFFFFF");
                 invString.AddNameValueLine("everyone_mask", "0x7FFFFFFF");
                 invString.AddNameValueLine("next_owner_mask", "0x7FFFFFFF");
-                invString.AddNameValueLine("creator_id", item.creator_id.ToStringHyphenated());
-                invString.AddNameValueLine("owner_id", item.owner_id.ToStringHyphenated());
-                invString.AddNameValueLine("last_owner_id", item.last_owner_id.ToStringHyphenated());
-                invString.AddNameValueLine("group_id", item.group_id.ToStringHyphenated());
+                invString.AddNameValueLine("creator_id", item.creator_id.ToString());
+                invString.AddNameValueLine("owner_id", item.owner_id.ToString());
+                invString.AddNameValueLine("last_owner_id", item.last_owner_id.ToString());
+                invString.AddNameValueLine("group_id", item.group_id.ToString());
                 invString.AddSectionEnd();
 
-                invString.AddNameValueLine("asset_id", item.asset_id.ToStringHyphenated());
+                invString.AddNameValueLine("asset_id", item.asset_id.ToString());
                 invString.AddNameValueLine("type", item.type);
                 invString.AddNameValueLine("inv_type", item.inv_type);
                 invString.AddNameValueLine("flags", "0x00");
@@ -1255,12 +1255,12 @@ namespace OpenSim.Region.Environment.Scenes
                     tex.FaceTextures[i].RGBA = tmpcolor;
                 }
             }
-            tmpcolor = tex.DefaultTexture.RGBA;
+            tmpcolor = tex.FaceTextures[0].RGBA;
             tmpcolor.A = tmpcolor.A * 255;
             tmpcolor.R = tmpcolor.R * 255;
             tmpcolor.G = tmpcolor.G * 255;
             tmpcolor.B = tmpcolor.B * 255;
-            tex.DefaultTexture.RGBA = tmpcolor; 
+            tex.FaceTextures[0].RGBA = tmpcolor; 
             UpdateTextureEntry(tex.ToBytes());
         }
 
@@ -1544,8 +1544,8 @@ namespace OpenSim.Region.Environment.Scenes
             public InventoryStringBuilder(LLUUID folderID, LLUUID parentID)
             {
                 BuildString += "\tinv_object\t0\n\t{\n";
-                AddNameValueLine("obj_id", folderID.ToStringHyphenated());
-                AddNameValueLine("parent_id", parentID.ToStringHyphenated());
+                AddNameValueLine("obj_id", folderID.ToString());
+                AddNameValueLine("parent_id", parentID.ToString());
                 AddNameValueLine("type", "category");
                 AddNameValueLine("name", "Contents");
                 AddSectionEnd();

@@ -26,6 +26,7 @@
 * 
 */
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Net;
 using System.Net.Sockets;
@@ -36,6 +37,68 @@ using OpenSim.Framework.Console;
 
 namespace OpenSim.Region.ClientStack
 {
+    public sealed class PacketPool
+    {
+        // Set up a thread-safe singleton pattern
+        static PacketPool()
+        {
+        }
+
+        static readonly PacketPool instance = new PacketPool();
+
+        public static PacketPool Instance
+        {
+            get
+            {
+                return instance;
+            }
+        }
+
+        private Hashtable pool = new Hashtable();
+
+        public Packet GetPacket(PacketType type) {
+            Packet packet = null;
+
+            lock(pool)
+            {
+                if(pool[type] == null || ((Stack) pool[type]).Count == 0)
+                {
+                    // Creating a new packet if we cannot reuse an old package
+                    packet = Packet.BuildPacket(type);
+                }
+                else
+                {
+                    // Recycle old packages
+                    packet=(Packet) ((Stack) pool[type]).Pop();
+                }
+            }
+
+            return packet;
+        }
+
+        public Packet GetPacket(byte[] bytes, ref int packetEnd, byte[] zeroBuffer) {
+            Packet packet = GetPacket(Packet.GetType(bytes, packetEnd, zeroBuffer));
+
+            int i = 0;
+            packet.FromBytes(bytes, ref i, ref packetEnd, zeroBuffer);
+            return packet;
+        }
+
+        public void ReturnPacket(Packet packet) {
+            lock(pool)
+            {
+                PacketType type=packet.Type;
+
+                if(pool[type] == null)
+                {
+                    pool[type] = new Stack();
+                }
+
+                ((Stack) pool[type]).Push(packet);
+            }
+        }
+    }
+
     public class UDPServer : ClientStackNetworkHandler
     {
         protected Dictionary<EndPoint, uint> clientCircuits = new Dictionary<EndPoint, uint>();
@@ -194,7 +257,7 @@ namespace OpenSim.Region.ClientStack
 
             try
             {
-                packet = Packet.BuildPacket(RecvBuffer, ref packetEnd, ZeroBuffer);
+                packet = PacketPool.Instance.GetPacket(RecvBuffer, ref packetEnd, ZeroBuffer);
             }
             catch(Exception)
             {

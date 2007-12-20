@@ -164,13 +164,13 @@ namespace OpenSim.Grid.InventoryServer
 
             private byte[] GetUserInventory(LLUUID userID)
             {
-                MainLog.Instance.Notice(OpenInventory_Main.LogName, "Getting Inventory for user {0}", userID.ToStringHyphenated());
+                MainLog.Instance.Notice(OpenInventory_Main.LogName, "Getting Inventory for user {0}", userID.ToString());
                 byte[] result = new byte[] { };
 
                 InventoryFolderBase fb = _manager._databasePlugin.getUserRootFolder(userID);
                 if (fb == null)
                 {
-                    MainLog.Instance.Notice(OpenInventory_Main.LogName, "Inventory not found for user {0}, creating new", userID.ToStringHyphenated());
+                    MainLog.Instance.Notice(OpenInventory_Main.LogName, "Inventory not found for user {0}, creating new", userID.ToString());
                     CreateDefaultInventory(userID);
                 }
 

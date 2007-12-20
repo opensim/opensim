@@ -549,7 +549,7 @@ namespace OpenSim.Framework.Data.MySQL
             sql += "?profileFirstText, ?profileImage, ?profileFirstImage)";
 
             Dictionary<string, string> parameters = new Dictionary<string, string>();
-            parameters["?UUID"] = uuid.ToStringHyphenated();
+            parameters["?UUID"] = uuid.ToString();
             parameters["?username"] = username.ToString();
             parameters["?lastname"] = lastname.ToString();
             parameters["?passwordHash"] = passwordHash.ToString();
@@ -569,8 +569,8 @@ namespace OpenSim.Framework.Data.MySQL
             parameters["?profileWantDoMask"] = "0";
             parameters["?profileAboutText"] = "";
             parameters["?profileFirstText"] = "";
-            parameters["?profileImage"] = LLUUID.Zero.ToStringHyphenated();
-            parameters["?profileFirstImage"] = LLUUID.Zero.ToStringHyphenated();
+            parameters["?profileImage"] = LLUUID.Zero.ToString();
+            parameters["?profileFirstImage"] = LLUUID.Zero.ToString();
 
             bool returnval = false;
 
@@ -618,7 +618,7 @@ namespace OpenSim.Framework.Data.MySQL
 
             parameters["?regionHandle"] = regiondata.regionHandle.ToString();
             parameters["?regionName"] = regiondata.regionName.ToString();
-            parameters["?uuid"] = regiondata.UUID.ToStringHyphenated();
+            parameters["?uuid"] = regiondata.UUID.ToString();
             parameters["?regionRecvKey"] = regiondata.regionRecvKey.ToString();
             parameters["?regionSecret"] = regiondata.regionSecret.ToString();
             parameters["?regionSendKey"] = regiondata.regionSendKey.ToString();
@@ -639,7 +639,7 @@ namespace OpenSim.Framework.Data.MySQL
             parameters["?regionUserURI"] = regiondata.regionUserURI.ToString();
             parameters["?regionUserRecvKey"] = regiondata.regionUserRecvKey.ToString();
             parameters["?regionUserSendKey"] = regiondata.regionUserSendKey.ToString();
-            parameters["?regionMapTexture"] = regiondata.regionMapTextureID.ToStringHyphenated();
+            parameters["?regionMapTexture"] = regiondata.regionMapTextureID.ToString();
             parameters["?serverHttpPort"] = regiondata.httpPort.ToString();
             parameters["?serverRemotingPort"] = regiondata.remotingPort.ToString();
 

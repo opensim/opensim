@@ -95,7 +95,7 @@ namespace OpenSim.Framework.Data.DB4o
                 if (manager.simProfiles.ContainsKey(uuid))
                     return manager.simProfiles[uuid];
             }
-            throw new Exception("Unable to find profile with UUID (" + uuid.ToStringHyphenated() +
+            throw new Exception("Unable to find profile with UUID (" + uuid.ToString() +
                                 "). Total Registered Regions: " + manager.simProfiles.Count);
         }
 

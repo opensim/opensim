@@ -76,12 +76,12 @@ namespace OpenSim.Grid.UserServer
             XmlRpcResponse response = new XmlRpcResponse();
             Hashtable responseData = new Hashtable();
             // Query Result Information
-            responseData["queryid"] = (string)queryID.ToStringHyphenated();
+            responseData["queryid"] = (string)queryID.ToString();
             responseData["avcount"] = (string)returnUsers.Count.ToString();
 
             for (int i = 0; i < returnUsers.Count; i++)
             {
-                responseData["avatarid" + i.ToString()] = returnUsers[i].AvatarID.ToStringHyphenated();
+                responseData["avatarid" + i.ToString()] = returnUsers[i].AvatarID.ToString();
                 responseData["firstname" + i.ToString()] = returnUsers[i].firstName;
                 responseData["lastname" + i.ToString()] = returnUsers[i].lastName;
             }
@@ -102,17 +102,17 @@ namespace OpenSim.Grid.UserServer
             // Account information
             responseData["firstname"] = profile.username;
             responseData["lastname"] = profile.surname;
-            responseData["uuid"] = profile.UUID.ToStringHyphenated();
+            responseData["uuid"] = profile.UUID.ToString();
             // Server Information
             responseData["server_inventory"] = profile.userInventoryURI;
             responseData["server_asset"] = profile.userAssetURI;
             // Profile Information
             responseData["profile_about"] = profile.profileAboutText;
             responseData["profile_firstlife_about"] = profile.profileFirstText;
-            responseData["profile_firstlife_image"] = profile.profileFirstImage.ToStringHyphenated();
+            responseData["profile_firstlife_image"] = profile.profileFirstImage.ToString();
             responseData["profile_can_do"] = profile.profileCanDoMask.ToString();
             responseData["profile_want_do"] = profile.profileWantDoMask.ToString();
-            responseData["profile_image"] = profile.profileImage.ToStringHyphenated();
+            responseData["profile_image"] = profile.profileImage.ToString();
             responseData["profile_created"] = profile.created.ToString();
             responseData["profile_lastlogin"] = profile.lastLogin.ToString();
             // Home region information
@@ -137,7 +137,7 @@ namespace OpenSim.Grid.UserServer
             XmlRpcResponse response = new XmlRpcResponse();
             Hashtable requestData = (Hashtable)request.Params[0];
             List<AvatarPickerAvatar> returnAvatar = new List<AvatarPickerAvatar>();
-            LLUUID queryID = new LLUUID(LLUUID.Zero.ToStringHyphenated());
+            LLUUID queryID = new LLUUID(LLUUID.Zero.ToString());
 
             if (requestData.Contains("avquery") && requestData.Contains("queryid"))
             {

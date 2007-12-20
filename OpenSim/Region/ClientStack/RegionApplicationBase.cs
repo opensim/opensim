@@ -134,7 +134,7 @@ namespace OpenSim.Region.ClientStack
 
             if (masterAvatar != null)
             {
-                m_log.Verbose("PARCEL", "Found master avatar [" + masterAvatar.UUID.ToStringHyphenated() + "]");
+                m_log.Verbose("PARCEL", "Found master avatar [" + masterAvatar.UUID.ToString() + "]");
                 scene.RegionInfo.MasterAvatarAssignedUUID = masterAvatar.UUID;
             }
             else

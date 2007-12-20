@@ -108,7 +108,7 @@ namespace OpenSim.Grid.InventoryServer
         {
             LLUUID userID = new LLUUID(rawUserID);
             
-            MainLog.Instance.Verbose("INVENTORY", "Request for inventory for " + userID.ToStringHyphenated());            
+            MainLog.Instance.Verbose("INVENTORY", "Request for inventory for " + userID.ToString());            
             
             InventoryCollection invCollection = new InventoryCollection();
             List<InventoryFolderBase> folders;
@@ -127,7 +127,7 @@ namespace OpenSim.Grid.InventoryServer
             LLUUID userID = new LLUUID(rawUserID);
             
             MainLog.Instance.Verbose(
-                "INVENTORY", "Creating new set of inventory folders for " + userID.ToStringHyphenated());
+                "INVENTORY", "Creating new set of inventory folders for " + userID.ToString());
             
             CreateNewUserInventory(userID);
             return true;
@@ -154,7 +154,7 @@ namespace OpenSim.Grid.InventoryServer
             // Right now, this actions act more like an update/insert combination than a simple create.
             MainLog.Instance.Verbose(
                 "INVENTORY",
-                "Updating in   " + folder.parentID.ToStringHyphenated()
+                "Updating in   " + folder.parentID.ToString()
                     + ", folder " + folder.name);
             
             AddNewInventoryFolder(folder.agentID, folder);
@@ -166,7 +166,7 @@ namespace OpenSim.Grid.InventoryServer
             MainLog.Instance.Verbose(
                 "INVENTORY",
                 "Moving folder " + folder.folderID
-                    + " to " + folder.parentID.ToStringHyphenated());
+                    + " to " + folder.parentID.ToString());
             
             MoveExistingInventoryFolder(folder);
             return true;
@@ -177,7 +177,7 @@ namespace OpenSim.Grid.InventoryServer
             // Right now, this actions act more like an update/insert combination than a simple create.
             MainLog.Instance.Verbose(
                 "INVENTORY", 
-                "Updating in   " + item.parentFolderID.ToStringHyphenated()
+                "Updating in   " + item.parentFolderID.ToString()
                     + ", item " + item.inventoryName);
 
             AddNewInventoryItem(item.avatarID, item);
@@ -189,7 +189,7 @@ namespace OpenSim.Grid.InventoryServer
             // extra spaces to align with other inventory messages
             MainLog.Instance.Verbose(
                 "INVENTORY",
-                "Deleting in   " + item.parentFolderID.ToStringHyphenated()
+                "Deleting in   " + item.parentFolderID.ToString()
                     + ", item " + item.inventoryName);
             
             DeleteItem(item);

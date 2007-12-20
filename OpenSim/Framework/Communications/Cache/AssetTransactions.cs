@@ -355,7 +355,7 @@ namespace OpenSim.Framework.Communications.Cache
                 LLUUID inventoryItemID = this.inventoryItemID;
                 string text = "";
                 LLSDAssetUploadComplete complete = new LLSDAssetUploadComplete();
-                complete.new_asset = newAssetID.ToStringHyphenated();
+                complete.new_asset = newAssetID.ToString();
                 complete.new_inventory_item = inventoryItemID;
                 complete.state = "complete";
                 text = LLSDHelpers.SerialiseLLSDReply(complete);
@@ -408,7 +408,7 @@ namespace OpenSim.Framework.Communications.Cache
                 LLUUID inventoryItemID = this.inventoryItemID;
                 string text = "";
                 LLSDAssetUploadComplete complete = new LLSDAssetUploadComplete();
-                complete.new_asset = newAssetID.ToStringHyphenated();
+                complete.new_asset = newAssetID.ToString();
                 complete.new_inventory_item = inventoryItemID;
                 complete.state = "complete";
                 text = LLSDHelpers.SerialiseLLSDReply(complete);

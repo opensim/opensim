@@ -490,7 +490,7 @@ namespace OpenSim.Framework.Data.MSSQL
             parameters["regionUserURI"] = profile.regionUserURI;
             parameters["regionUserRecvKey"] = profile.regionUserRecvKey;
             parameters["regionUserSendKey"] = profile.regionUserSendKey;
-            parameters["regionMapTexture"] = profile.regionMapTextureID.ToStringHyphenated();
+            parameters["regionMapTexture"] = profile.regionMapTextureID.ToString();
             parameters["serverHttpPort"] = profile.httpPort.ToString();
             parameters["serverRemotingPort"] = profile.remotingPort.ToString();
 
@@ -604,7 +604,7 @@ namespace OpenSim.Framework.Data.MSSQL
             sql += "@profileFirstText, @profileImage, @profileFirstImage);";
 
             Dictionary<string, string> parameters = new Dictionary<string, string>();
-            parameters["UUID"] = uuid.ToStringHyphenated();
+            parameters["UUID"] = uuid.ToString();
             parameters["username"] = username.ToString();
             parameters["lastname"] = lastname.ToString();
             parameters["passwordHash"] = passwordHash.ToString();
@@ -624,8 +624,8 @@ namespace OpenSim.Framework.Data.MSSQL
             parameters["profileWantDoMask"] = "0";
             parameters["profileAboutText"] = "";
             parameters["profileFirstText"] = "";
-            parameters["profileImage"] = libsecondlife.LLUUID.Zero.ToStringHyphenated();
-            parameters["profileFirstImage"] = libsecondlife.LLUUID.Zero.ToStringHyphenated();
+            parameters["profileImage"] = libsecondlife.LLUUID.Zero.ToString();
+            parameters["profileFirstImage"] = libsecondlife.LLUUID.Zero.ToString();
 
             bool returnval = false;
 

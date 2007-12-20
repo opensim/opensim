@@ -241,7 +241,7 @@ namespace OpenSim.Region.Environment.Scenes
         {
             MainLog.Instance.Verbose(
                 "INVENTORY", 
-                "Moving item for " + remoteClient.AgentId.ToStringHyphenated());
+                "Moving item for " + remoteClient.AgentId.ToString());
             
             CachedUserInfo userInfo = CommsManager.UserProfileCacheService.GetUserDetails(remoteClient.AgentId);
             if (userInfo == null)

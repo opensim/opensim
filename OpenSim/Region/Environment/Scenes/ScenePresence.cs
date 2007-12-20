@@ -1033,11 +1033,7 @@ namespace OpenSim.Region.Environment.Scenes
         {
             LLVector3 pos = m_pos;
             LLVector3 vel = Velocity;
-            LLQuaternion rot;
-            rot.X = m_bodyRot.x;
-            rot.Y = m_bodyRot.y;
-            rot.Z = m_bodyRot.z;
-            rot.W = m_bodyRot.w;
+            LLQuaternion rot=new LLQuaternion(m_bodyRot.x, m_bodyRot.y, m_bodyRot.z, m_bodyRot.w);
             remoteClient.SendAvatarTerseUpdate(m_regionHandle, 64096, LocalId, new LLVector3(pos.X, pos.Y, pos.Z),
                                                new LLVector3(vel.X, vel.Y, vel.Z), rot);
         }

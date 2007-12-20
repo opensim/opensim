@@ -159,7 +159,7 @@ namespace OpenSim.Region.Capabilities
             {
                 LLUUID u = (LLUUID)obj;
                 writer.WriteStartElement(String.Empty, "uuid", String.Empty);
-                writer.WriteString(u.ToStringHyphenated());
+                writer.WriteString(u.ToString());
                 writer.WriteEndElement();
             }
             else if (obj is Hashtable)
@@ -475,7 +475,7 @@ namespace OpenSim.Region.Capabilities
             }
             else if (obj is LLUUID)
             {
-                return GetSpaces(indent) + "- uuid " + ((LLUUID)obj).ToStringHyphenated() + Environment.NewLine;
+                return GetSpaces(indent) + "- uuid " + ((LLUUID)obj).ToString() + Environment.NewLine;
             }
             else if (obj is Hashtable)
             {

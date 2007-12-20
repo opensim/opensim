@@ -237,7 +237,7 @@ namespace OpenSim.Framework.Data.MySQL
                 lock (database)
                 {
                     Dictionary<string, string> param = new Dictionary<string, string>();
-                    param["?uuid"] = uuid.ToStringHyphenated();
+                    param["?uuid"] = uuid.ToString();
 
                     IDbCommand result = database.Query("SELECT * FROM users WHERE UUID = ?uuid", param);
                     IDataReader reader = result.ExecuteReader();
@@ -292,7 +292,7 @@ namespace OpenSim.Framework.Data.MySQL
                 lock (database)
                 {
                     Dictionary<string, string> param = new Dictionary<string, string>();
-                    param["?uuid"] = uuid.ToStringHyphenated();
+                    param["?uuid"] = uuid.ToString();
 
                     IDbCommand result = database.Query("SELECT * FROM agents WHERE UUID = ?uuid", param);
                     IDataReader reader = result.ExecuteReader();

@@ -177,10 +177,10 @@ namespace OpenSim.Region.Communications.Local
                     }
                     TempHash = new Hashtable();
                     TempHash["name"] = InvFolder.name;
-                    TempHash["parent_id"] = InvFolder.parentID.ToStringHyphenated();
+                    TempHash["parent_id"] = InvFolder.parentID.ToString();
                     TempHash["version"] = (Int32) InvFolder.version;
                     TempHash["type_default"] = (Int32) InvFolder.type;
-                    TempHash["folder_id"] = InvFolder.folderID.ToStringHyphenated();
+                    TempHash["folder_id"] = InvFolder.folderID.ToString();
                     AgentInventoryArray.Add(TempHash);
                 }
                 return new InventoryData(AgentInventoryArray, rootID);
@@ -196,10 +196,10 @@ namespace OpenSim.Region.Communications.Local
                 {
                     TempHash = new Hashtable();
                     TempHash["name"] = InvFolder.FolderName;
-                    TempHash["parent_id"] = InvFolder.ParentID.ToStringHyphenated();
+                    TempHash["parent_id"] = InvFolder.ParentID.ToString();
                     TempHash["version"] = (Int32) InvFolder.Version;
                     TempHash["type_default"] = (Int32) InvFolder.DefaultType;
-                    TempHash["folder_id"] = InvFolder.FolderID.ToStringHyphenated();
+                    TempHash["folder_id"] = InvFolder.FolderID.ToString();
                     AgentInventoryArray.Add(TempHash);
                 }
 

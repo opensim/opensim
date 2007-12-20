@@ -304,7 +304,7 @@ namespace OpenSim.Framework.Data.MySQL
                 lock (database)
                 {
                     Dictionary<string, string> param = new Dictionary<string, string>();
-                    param["?uuid"] = uuid.ToStringHyphenated();
+                    param["?uuid"] = uuid.ToString();
 
                     IDbCommand result = database.Query("SELECT * FROM regions WHERE uuid = ?uuid", param);
                     IDataReader reader = result.ExecuteReader();
@@ -377,7 +377,7 @@ namespace OpenSim.Framework.Data.MySQL
             SHA512Managed HashProvider = new SHA512Managed();
             ASCIIEncoding TextProvider = new ASCIIEncoding();
 
-            byte[] stream = TextProvider.GetBytes(uuid.ToStringHyphenated() + ":" + handle.ToString() + ":" + challenge);
+            byte[] stream = TextProvider.GetBytes(uuid.ToString() + ":" + handle.ToString() + ":" + challenge);
             byte[] hash = HashProvider.ComputeHash(stream);
 
             return false;

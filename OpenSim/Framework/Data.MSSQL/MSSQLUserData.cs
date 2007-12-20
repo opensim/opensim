@@ -186,7 +186,7 @@ namespace OpenSim.Framework.Data.MSSQL
                 lock (database)
                 {
                     Dictionary<string, string> param = new Dictionary<string, string>();
-                    param["uuid"] = uuid.ToStringHyphenated();
+                    param["uuid"] = uuid.ToString();
 
                     IDbCommand result = database.Query("SELECT * FROM users WHERE UUID = @uuid", param);
                     IDataReader reader = result.ExecuteReader();
@@ -241,7 +241,7 @@ namespace OpenSim.Framework.Data.MSSQL
                 lock (database)
                 {
                     Dictionary<string, string> param = new Dictionary<string, string>();
-                    param["uuid"] = uuid.ToStringHyphenated();
+                    param["uuid"] = uuid.ToString();
 
                     IDbCommand result = database.Query("SELECT * FROM agents WHERE UUID = @uuid", param);
                     IDataReader reader = result.ExecuteReader();
@@ -321,7 +321,7 @@ namespace OpenSim.Framework.Data.MSSQL
                                                            "profileImage = @profileImage," +
                                                            "profileFirstImage = @profileFirstImage where " +
                                                            "UUID = @keyUUUID;", database.getConnection());
-            SqlParameter param1 = new SqlParameter("@uuid", user.UUID.ToStringHyphenated());
+            SqlParameter param1 = new SqlParameter("@uuid", user.UUID.ToString());
             SqlParameter param2 = new SqlParameter("@username", user.username);
             SqlParameter param3 = new SqlParameter("@lastname", user.surname);
             SqlParameter param4 = new SqlParameter("@passwordHash", user.passwordHash);
@@ -341,9 +341,9 @@ namespace OpenSim.Framework.Data.MSSQL
             SqlParameter param18 = new SqlParameter("@profileWantDoMask", Convert.ToInt32(user.profileWantDoMask));
             SqlParameter param19 = new SqlParameter("@profileAboutText", user.profileAboutText);
             SqlParameter param20 = new SqlParameter("@profileFirstText", user.profileFirstText);
-            SqlParameter param21 = new SqlParameter("@profileImage", libsecondlife.LLUUID.Zero.ToStringHyphenated());
-            SqlParameter param22 = new SqlParameter("@profileFirstImage", libsecondlife.LLUUID.Zero.ToStringHyphenated());
-            SqlParameter param23 = new SqlParameter("@keyUUUID", user.UUID.ToStringHyphenated());
+            SqlParameter param21 = new SqlParameter("@profileImage", libsecondlife.LLUUID.Zero.ToString());
+            SqlParameter param22 = new SqlParameter("@profileFirstImage", libsecondlife.LLUUID.Zero.ToString());
+            SqlParameter param23 = new SqlParameter("@keyUUUID", user.UUID.ToString());
             command.Parameters.Add(param1);
             command.Parameters.Add(param2);
             command.Parameters.Add(param3);

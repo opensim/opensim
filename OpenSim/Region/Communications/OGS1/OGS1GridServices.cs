@@ -103,7 +103,7 @@ namespace OpenSim.Region.Communications.OGS1
             // Login / Authentication
 
             GridParams["authkey"] = serversInfo.GridSendKey;
-            GridParams["UUID"] = regionInfo.RegionID.ToStringHyphenated();
+            GridParams["UUID"] = regionInfo.RegionID.ToString();
             GridParams["sim_ip"] = regionInfo.ExternalHostName;
             GridParams["sim_port"] = regionInfo.InternalEndPoint.Port.ToString();
             GridParams["region_locx"] = regionInfo.RegionLocX.ToString();
@@ -111,7 +111,7 @@ namespace OpenSim.Region.Communications.OGS1
             GridParams["sim_name"] = regionInfo.RegionName;
             GridParams["http_port"] = serversInfo.HttpListenerPort.ToString();
             GridParams["remoting_port"] = NetworkServersInfo.RemotingListenerPort.ToString();
-            GridParams["map-image-id"] = regionInfo.EstateSettings.terrainImageID.ToStringHyphenated();
+            GridParams["map-image-id"] = regionInfo.EstateSettings.terrainImageID.ToString();
 
             // Package into an XMLRPC Request
             ArrayList SendParams = new ArrayList();
@@ -191,7 +191,7 @@ namespace OpenSim.Region.Communications.OGS1
         {
             RegionInfo regionInfo;
             Hashtable requestData = new Hashtable();
-            requestData["region_UUID"] = Region_UUID.ToStringHyphenated();
+            requestData["region_UUID"] = Region_UUID.ToString();
             requestData["authkey"] = serversInfo.GridSendKey;
             ArrayList SendParams = new ArrayList();
             SendParams.Add(requestData);

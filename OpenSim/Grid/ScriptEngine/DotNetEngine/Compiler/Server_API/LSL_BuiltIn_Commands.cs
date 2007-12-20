@@ -820,7 +820,7 @@ namespace OpenSim.Grid.ScriptEngine.DotNetEngine.Compiler
 
         public string llGetOwner()
         {
-            return m_host.ObjectOwner.ToStringHyphenated();
+            return m_host.ObjectOwner.ToString();
         }
 
         public void llInstantMessage(string user, string message)
@@ -840,7 +840,7 @@ namespace OpenSim.Grid.ScriptEngine.DotNetEngine.Compiler
 
         public string llGetKey()
         {
-            return m_host.UUID.ToStringHyphenated();
+            return m_host.UUID.ToString();
         }
 
         public void llSetBuoyancy(double buoyancy)
@@ -1234,7 +1234,7 @@ namespace OpenSim.Grid.ScriptEngine.DotNetEngine.Compiler
 
         public string llList2Key(List<string> src, int index)
         {
-            //return OpenSim.Framework.ToStringHyphenated(src[index]);
+            //return OpenSim.Framework.ToString(src[index]);
             return src[index].ToString();
         }
 
@@ -1923,7 +1923,7 @@ namespace OpenSim.Grid.ScriptEngine.DotNetEngine.Compiler
 
         public string llGetCreator()
         {
-            return m_host.ObjectCreator.ToStringHyphenated();
+            return m_host.ObjectCreator.ToString();
         }
 
         public string llGetTimestamp()
@@ -2265,14 +2265,14 @@ namespace OpenSim.Grid.ScriptEngine.DotNetEngine.Compiler
                 LLUUID createdTexture =
                     textureManager.AddDynamicTextureURL(World.RegionInfo.RegionID, m_host.UUID, contentType, url,
                                                         extraParams, timer);
-                return createdTexture.ToStringHyphenated();
+                return createdTexture.ToString();
             }
             else
             {
                 //TODO update existing dynamic textures
             }
 
-            return LLUUID.Zero.ToStringHyphenated();
+            return LLUUID.Zero.ToString();
         }
 
         private void NotImplemented(string Command)

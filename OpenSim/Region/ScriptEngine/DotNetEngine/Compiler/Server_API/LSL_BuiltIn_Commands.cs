@@ -471,11 +471,6 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler
             }
             else if (face == -1)
             {
-                texcolor = tex.DefaultTexture.RGBA;
-                texcolor.R = (float)Math.Abs(color.x - 1);
-                texcolor.G = (float)Math.Abs(color.y - 1);
-                texcolor.B = (float)Math.Abs(color.z - 1);
-                tex.DefaultTexture.RGBA = texcolor;
                 for (uint i = 0; i < 32; i++)
                 {
                     if (tex.FaceTextures[i] != null)
@@ -499,7 +494,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler
             LLObject.TextureEntry tex = new LLObject.TextureEntry(m_host.Shape.TextureEntry, 0, m_host.Shape.TextureEntry.Length);
             if (face == -1) // TMP: Until we can determine number of sides, ALL_SIDES (-1) will return default color
             {
-                return (double)((tex.DefaultTexture.RGBA.A * 255) / 255);
+                return (double)((tex.FaceTextures[0].RGBA.A * 255) / 255);
             }
             if (face > -1)
             {
@@ -522,9 +517,6 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler
             }
             else if (face == -1)
             {
-                texcolor = tex.DefaultTexture.RGBA;
-                texcolor.A = (float)Math.Abs(alpha - 1);
-                tex.DefaultTexture.RGBA = texcolor;
                 for (int i = 0; i < 32; i++)
                 {
                     if (tex.FaceTextures[i] != null)
@@ -548,7 +540,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler
             LSL_Types.Vector3 rgb;
             if (face == -1) // TMP: Until we can determine number of sides, ALL_SIDES (-1) will return default color
             {
-                texcolor = tex.DefaultTexture.RGBA;
+                texcolor = tex.FaceTextures[0].RGBA;
                 rgb.x = (255 - (texcolor.R * 255)) / 255;
                 rgb.y = (255 - (texcolor.G * 255)) / 255;
                 rgb.z = (255 - (texcolor.B * 255)) / 255;
@@ -586,7 +578,6 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler
                         tex.FaceTextures[i].TextureID = new LLUUID(texture);
                     }
                 }
-                tex.DefaultTexture.TextureID = new LLUUID(texture);
                 m_host.UpdateTexture(tex);
                 return;
             }
@@ -617,8 +608,6 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler
 
                     }
                 }
-                tex.DefaultTexture.RepeatU = (float)u;
-                tex.DefaultTexture.RepeatV = (float)v;
                 m_host.UpdateTexture(tex);
                 return;
             }
@@ -648,8 +637,6 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler
                         tex.FaceTextures[i].OffsetV = (float)v;
                     }
                 }
-                tex.DefaultTexture.OffsetU = (float)u;
-                tex.DefaultTexture.OffsetV = (float)v;
                 m_host.UpdateTexture(tex);
                 return;
             }
@@ -677,7 +664,6 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler
                         tex.FaceTextures[i].Rotation = (float)rotation;
                     }
                 }
-                tex.DefaultTexture.Rotation = (float)rotation;
                 m_host.UpdateTexture(tex);
                 return;
             }
@@ -696,7 +682,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler
             {
                 LLObject.TextureEntryFace texface;
                 texface = tex.GetFace((uint)face);
-                return texface.TextureID.ToStringHyphenated();
+                return texface.TextureID.ToString();
             }
             NotImplemented("llGetTexture");
             return "";
@@ -1035,7 +1021,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler
 
         public string llGetOwner()
         {
-            return m_host.ObjectOwner.ToStringHyphenated();
+            return m_host.ObjectOwner.ToString();
         }
 
         public void llInstantMessage(string user, string message)
@@ -1063,7 +1049,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler
 
         public string llGetKey()
         {
-            return m_host.UUID.ToStringHyphenated();
+            return m_host.UUID.ToString();
         }
 
         public void llSetBuoyancy(double buoyancy)
@@ -1277,7 +1263,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler
             SceneObjectPart part = m_host.ParentGroup.GetLinkNumPart(linknum);
             if (part != null)
             {
-                return part.UUID.ToStringHyphenated();
+                return part.UUID.ToString();
             }
             else
             {
@@ -1621,11 +1607,11 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler
             {
                 return "00000000-0000-0000-0000-000000000000";
             }
-            //return OpenSim.Framework.ToStringHyphenated(src[index]);
+            //return OpenSim.Framework.ToString(src[index]);
             LLUUID tmpkey;
             if (LLUUID.TryParse(src.Data[index].ToString(), out tmpkey))
             {
-                return tmpkey.ToStringHyphenated();
+                return tmpkey.ToString();
             }
             else
             {
@@ -2380,7 +2366,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler
 
         public string llGetCreator()
         {
-            return m_host.ObjectCreator.ToStringHyphenated();
+            return m_host.ObjectCreator.ToString();
         }
 
         public string llGetTimestamp()
@@ -2807,14 +2793,14 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler
                 LLUUID createdTexture =
                     textureManager.AddDynamicTextureURL(World.RegionInfo.RegionID, m_host.UUID, contentType, url,
                                                         extraParams, timer);
-                return createdTexture.ToStringHyphenated();
+                return createdTexture.ToString();
             }
             else
             {
                 //TODO update existing dynamic textures
             }
 
-            return LLUUID.Zero.ToStringHyphenated();
+            return LLUUID.Zero.ToString();
         }
 
         private void NotImplemented(string Command)

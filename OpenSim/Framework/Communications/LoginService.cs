@@ -126,7 +126,7 @@ namespace OpenSim.Framework.UserManagement
                         ArrayList AgentInventoryArray = inventData.InventoryArray;
 
                         Hashtable InventoryRootHash = new Hashtable();
-                        InventoryRootHash["folder_id"] = inventData.RootFolderID.ToStringHyphenated();
+                        InventoryRootHash["folder_id"] = inventData.RootFolderID.ToString();
                         ArrayList InventoryRoot = new ArrayList();
                         InventoryRoot.Add(InventoryRootHash);
                         userProfile.rootInventoryFolderID = inventData.RootFolderID;
@@ -136,9 +136,9 @@ namespace OpenSim.Framework.UserManagement
 
                         logResponse.Lastname = userProfile.surname;
                         logResponse.Firstname = userProfile.username;
-                        logResponse.AgentID = agentID.ToStringHyphenated();
-                        logResponse.SessionID = userProfile.currentAgent.sessionID.ToStringHyphenated();
-                        logResponse.SecureSessionID = userProfile.currentAgent.secureSessionID.ToStringHyphenated();
+                        logResponse.AgentID = agentID.ToString();
+                        logResponse.SessionID = userProfile.currentAgent.sessionID.ToString();
+                        logResponse.SecureSessionID = userProfile.currentAgent.secureSessionID.ToString();
                         logResponse.InventoryRoot = InventoryRoot;
                         logResponse.InventorySkeleton = AgentInventoryArray;
                         logResponse.InventoryLibrary = GetInventoryLibrary();
@@ -263,7 +263,7 @@ namespace OpenSim.Framework.UserManagement
             //return new ArrayList();
             Hashtable TempHash = new Hashtable();
             TempHash["name"] = "OpenSim Library";
-            TempHash["parent_id"] = LLUUID.Zero.ToStringHyphenated();
+            TempHash["parent_id"] = LLUUID.Zero.ToString();
             TempHash["version"] = 1;
             TempHash["type_default"] = -1;
             TempHash["folder_id"] = "00000112-000f-0000-0000-000100bba000";
@@ -305,10 +305,10 @@ namespace OpenSim.Framework.UserManagement
             {
                 TempHash = new Hashtable();
                 TempHash["name"] = InvFolder.FolderName;
-                TempHash["parent_id"] = InvFolder.ParentID.ToStringHyphenated();
+                TempHash["parent_id"] = InvFolder.ParentID.ToString();
                 TempHash["version"] = (Int32) InvFolder.Version;
                 TempHash["type_default"] = (Int32) InvFolder.DefaultType;
-                TempHash["folder_id"] = InvFolder.FolderID.ToStringHyphenated();
+                TempHash["folder_id"] = InvFolder.FolderID.ToString();
                 AgentInventoryArray.Add(TempHash);
             }
 

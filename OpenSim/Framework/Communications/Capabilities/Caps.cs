@@ -421,7 +421,7 @@ namespace OpenSim.Region.Capabilities
                 LLUUID inv = inventoryItemID;
                 string res = "";
                 LLSDAssetUploadComplete uploadComplete = new LLSDAssetUploadComplete();
-                uploadComplete.new_asset = newAssetID.ToStringHyphenated();
+                uploadComplete.new_asset = newAssetID.ToString();
                 uploadComplete.new_inventory_item = inv;
                 uploadComplete.state = "complete";
 
@@ -489,7 +489,7 @@ namespace OpenSim.Region.Capabilities
                     assetID = OnUpLoad(inv, data);
                 }
 
-                uploadComplete.new_asset = assetID.ToStringHyphenated();
+                uploadComplete.new_asset = assetID.ToString();
                 uploadComplete.new_inventory_item = inv;
                 uploadComplete.state = "complete";
 

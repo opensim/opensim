@@ -266,9 +266,9 @@ namespace OpenSim.Framework.UserManagement
                 responseData["sim_port"] = (Int32) SimPort;
                 responseData["sim_ip"] = SimAddress;
 
-                responseData["agent_id"] = AgentID.ToStringHyphenated();
-                responseData["session_id"] = SessionID.ToStringHyphenated();
-                responseData["secure_session_id"] = SecureSessionID.ToStringHyphenated();
+                responseData["agent_id"] = AgentID.ToString();
+                responseData["session_id"] = SessionID.ToString();
+                responseData["secure_session_id"] = SecureSessionID.ToString();
                 responseData["circuit_code"] = CircuitCode;
                 responseData["seconds_since_epoch"] = (Int32) (DateTime.UtcNow - new DateTime(1970, 1, 1)).TotalSeconds;
                 responseData["login-flags"] = loginFlags;
@@ -585,7 +585,7 @@ namespace OpenSim.Framework.UserManagement
                     Hashtable hTable = new Hashtable();
                     hTable["buddy_rights_has"] = BuddyRightsHave;
                     hTable["buddy_rights_given"] = BuddyRightsGiven;
-                    hTable["buddy_id"] = BuddyID.ToStringHyphenated();
+                    hTable["buddy_id"] = BuddyID.ToString();
                     return hTable;
                 }
             }

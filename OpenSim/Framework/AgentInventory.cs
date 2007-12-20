@@ -139,8 +139,8 @@ namespace OpenSim.Framework
             {
                 InventoryItem Item = InventoryItems[itemID];
                 Item.AssetID = asset.FullID;
-                System.Console.WriteLine("updated inventory item " + itemID.ToStringHyphenated() +
-                                         " so it now is set to asset " + asset.FullID.ToStringHyphenated());
+                System.Console.WriteLine("updated inventory item " + itemID.ToString() +
+                                         " so it now is set to asset " + asset.FullID.ToString());
                 //TODO need to update the rest of the info
             }
             return true;
@@ -154,7 +154,7 @@ namespace OpenSim.Framework
                 System.Console.WriteLine("changing name to " + Util.FieldToString(packet.Name));
                 InventoryItem Item = InventoryItems[itemID];
                 Item.Name = Util.FieldToString(packet.Name);
-                System.Console.WriteLine("updated inventory item " + itemID.ToStringHyphenated());
+                System.Console.WriteLine("updated inventory item " + itemID.ToString());
                 //TODO need to update the rest of the info
             }
             return true;

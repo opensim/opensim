@@ -152,7 +152,7 @@ namespace OpenSim.Framework
         public static string GetRandomCapsPath()
         {
             LLUUID caps = LLUUID.Random();
-            string capsPath = caps.ToStringHyphenated();
+            string capsPath = caps.ToString();
             capsPath = capsPath.Remove(capsPath.Length - 4, 4);
             return capsPath;
         }

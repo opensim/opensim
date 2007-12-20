@@ -300,7 +300,7 @@ namespace OpenSim.Framework.Data.MSSQL
             SHA512Managed HashProvider = new SHA512Managed();
             ASCIIEncoding TextProvider = new ASCIIEncoding();
 
-            byte[] stream = TextProvider.GetBytes(uuid.ToStringHyphenated() + ":" + handle.ToString() + ":" + challenge);
+            byte[] stream = TextProvider.GetBytes(uuid.ToString() + ":" + handle.ToString() + ":" + challenge);
             byte[] hash = HashProvider.ComputeHash(stream);
             return false;
         }

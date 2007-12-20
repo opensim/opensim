@@ -374,7 +374,7 @@ namespace OpenSim.Region.Communications.Local
                 regData["status"] = "active";
                 regData["handle"] = region.ToString();
 
-                respData[reg.RegionID.ToStringHyphenated()] = regData;
+                respData[reg.RegionID.ToString()] = regData;
             }
         }
 

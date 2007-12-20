@@ -206,7 +206,7 @@ namespace OpenSim.Grid.AssetServer
 
                 for (int i = 0; i < source.Configs.Count; i++)
                 {
-                    string assetIdStr = source.Configs[i].GetString("assetID", LLUUID.Random().ToStringHyphenated());
+                    string assetIdStr = source.Configs[i].GetString("assetID", LLUUID.Random().ToString());
                     string name = source.Configs[i].GetString("name", "");
                     sbyte type = (sbyte) source.Configs[i].GetInt("assetType", 0);
                     sbyte invType = (sbyte) source.Configs[i].GetInt("inventoryType", 0);

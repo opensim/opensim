@@ -56,7 +56,7 @@ namespace OpenSim.Region.ExtensionsScriptModule.CSharp.Examples
                 {
                     SceneObject root = obj.Value;
 
-                    sequence += "NEWOBJ::" + obj.Key.ToStringHyphenated() + "\n";
+                    sequence += "NEWOBJ::" + obj.Key.ToString() + "\n";
 
                     string rootPrim = processPrimitiveToString(root.rootPrimitive);
 

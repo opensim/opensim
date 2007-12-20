@@ -88,7 +88,7 @@ namespace OpenSim.Region.Environment.Scenes
         protected SceneCommunicationService m_sceneGridService;
         protected SceneXmlLoader m_sceneXmlLoader;
 
-        protected Dictionary<LLUUID, Caps> m_capsHandlers = new Dictionary<LLUUID, Caps>();
+        protected Dictionary<LLUUID, OpenSim.Region.Capabilities.Caps> m_capsHandlers = new Dictionary<LLUUID, OpenSim.Region.Capabilities.Caps>();
         protected BaseHttpServer httpListener;
 
         protected Dictionary<string, IRegionModule> Modules = new Dictionary<string, IRegionModule>();
@@ -990,6 +990,7 @@ namespace OpenSim.Region.Environment.Scenes
             }
         }
 
+/* Tree has been removed from libSL
         public void AddTree(LLVector3 scale, LLQuaternion rotation, LLVector3 position,
            libsecondlife.ObjectManager.Tree treeType, bool newTree)
         {
@@ -1001,7 +1002,7 @@ namespace OpenSim.Region.Environment.Scenes
             treeShape.State = (byte)treeType;
             AddNewPrim(LLUUID.Random(), position, rotation, treeShape);
         }
-
+*/
         public void RemovePrim(uint localID, LLUUID avatar_deleter)
         {
             m_innerScene.RemovePrim(localID, avatar_deleter);
@@ -1323,8 +1324,8 @@ namespace OpenSim.Region.Environment.Scenes
             {
                 if (agent.CapsPath != "")
                 {
-                    Caps cap =
-                        new Caps(AssetCache, httpListener, m_regInfo.ExternalHostName, httpListener.Port,
+                    OpenSim.Region.Capabilities.Caps cap =
+                        new OpenSim.Region.Capabilities.Caps(AssetCache, httpListener, m_regInfo.ExternalHostName, httpListener.Port,
                                  agent.CapsPath, agent.AgentID, m_dumpAssetsToFile);
 
                     Util.SetCapsURL(agent.AgentID, "http://" + m_regInfo.ExternalHostName + ":" + httpListener.Port.ToString() +
@@ -1335,7 +1336,7 @@ namespace OpenSim.Region.Environment.Scenes
                     if (m_capsHandlers.ContainsKey(agent.AgentID))
                     {
                         //MainLog.Instance.Warn("client", "Adding duplicate CAPS entry for user " +
-                        //    agent.AgentID.ToStringHyphenated());
+                        //    agent.AgentID.ToString());
                         try
                         {
                             m_capsHandlers[agent.AgentID] = cap;
