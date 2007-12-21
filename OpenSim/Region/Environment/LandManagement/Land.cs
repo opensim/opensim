@@ -227,6 +227,19 @@ namespace OpenSim.Region.Environment.LandManagement
             }
         }
 
+        public bool isEitherBannedOrRestricted(LLUUID avatar)
+        {
+            if (isBannedFromLand(avatar))
+            {
+                return true;
+            }
+            else if (isRestrictedFromLand(avatar))
+            {
+                return true;
+            }
+            return false;
+        }
+
         public bool isBannedFromLand(LLUUID avatar)
         {
             if ((this.landData.landFlags & (uint)Parcel.ParcelFlags.UseBanList) > 0)
@@ -274,9 +287,12 @@ namespace OpenSim.Region.Environment.LandManagement
                 Land over =
                     m_scene.LandManager.getLandObject((int) Math.Round(avatars[i].AbsolutePosition.X),
                                                       (int) Math.Round(avatars[i].AbsolutePosition.Y));
-                if (over.landData.localID == landData.localID)
+                if (over != null)
                 {
-                    sendLandUpdateToClient(avatars[i].ControllingClient);
+                    if (over.landData.localID == landData.localID)
+                    {
+                        sendLandUpdateToClient(avatars[i].ControllingClient);
+                    }
                 }
             }
         }

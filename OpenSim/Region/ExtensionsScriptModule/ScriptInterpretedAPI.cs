@@ -103,7 +103,10 @@ namespace OpenSim.Region.ExtensionsScriptModule
         {
             Vector myPosition = Task.AbsolutePosition;
             Land myParcel = Scene.LandManager.getLandObject(myPosition.X, myPosition.Y);
-
+            if (myParcel == null)
+            {
+                //Dont do anything!
+            }
             MainLog.Instance.Warn("script",
                                   "Unimplemented function called by script: osAddToLandPassList(Key avatar, float hours)");
             return;

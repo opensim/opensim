@@ -192,7 +192,8 @@ namespace OpenSim.Region.Environment.LandManagement
                 {
                     if (landIDList[x, y] == local_id)
                     {
-                        throw new Exception("Could not remove land object. Still being used at " + x + ", " + y);
+                        return;
+                        //throw new Exception("Could not remove land object. Still being used at " + x + ", " + y);
                     }
                 }
             }
@@ -210,7 +211,7 @@ namespace OpenSim.Region.Environment.LandManagement
             }
             else
             {
-                throw new Exception("Could not update land object. Local ID '" + local_id + "' does not exist");
+                //throw new Exception("Could not update land object. Local ID '" + local_id + "' does not exist");
             }
         }
 
@@ -246,10 +247,7 @@ namespace OpenSim.Region.Environment.LandManagement
 
             if (x >= 64 || y >= 64 || x < 0 || y < 0)
             {
-                // These exceptions here will cause a lot of complaints from the users specifically because
-                // they happen every time at border crossings
-
-                throw new Exception("Error: Parcel not found at point " + x + ", " + y);
+                return null;
             }
             else
             {
@@ -366,9 +364,12 @@ namespace OpenSim.Region.Environment.LandManagement
                 for (stepXSelected = start_x; stepXSelected <= end_x; stepXSelected += 4)
                 {
                     Land p = getLandObject(stepXSelected, stepYSelected);
-                    if (!selectedLandObjects.Contains(p))
+                    if (p != null)
                     {
-                        selectedLandObjects.Add(p);
+                        if (!selectedLandObjects.Contains(p))
+                        {
+                            selectedLandObjects.Add(p);
+                        }
                     }
                 }
             }
@@ -429,61 +430,66 @@ namespace OpenSim.Region.Environment.LandManagement
                 {
                     byte tempByte = (byte) 0; //This represents the byte for the current 4x4
                     Land currentParcelBlock = getLandObject(x*4, y*4);
+                    if (currentParcelBlock != null)
+                    {
+                        if (currentParcelBlock.landData.ownerID == remote_client.AgentId)
+                        {
+                            //Owner Flag
+                            tempByte = Convert.ToByte(tempByte | LAND_TYPE_OWNED_BY_REQUESTER);
+                        }
+                        else if (currentParcelBlock.landData.salePrice > 0 &&
+                                 (currentParcelBlock.landData.authBuyerID == LLUUID.Zero ||
+                                  currentParcelBlock.landData.authBuyerID == remote_client.AgentId))
+                        {
+                            //Sale Flag
+                            tempByte = Convert.ToByte(tempByte | LAND_TYPE_IS_FOR_SALE);
+                        }
+                        else if (currentParcelBlock.landData.ownerID == LLUUID.Zero)
+                        {
+                            //Public Flag
+                            tempByte = Convert.ToByte(tempByte | LAND_TYPE_PUBLIC);
+                        }
+                        else
+                        {
+                            //Other Flag
+                            tempByte = Convert.ToByte(tempByte | LAND_TYPE_OWNED_BY_OTHER);
+                        }
 
-                    if (currentParcelBlock.landData.ownerID == remote_client.AgentId)
-                    {
-                        //Owner Flag
-                        tempByte = Convert.ToByte(tempByte | LAND_TYPE_OWNED_BY_REQUESTER);
-                    }
-                    else if (currentParcelBlock.landData.salePrice > 0 &&
-                             (currentParcelBlock.landData.authBuyerID == LLUUID.Zero ||
-                              currentParcelBlock.landData.authBuyerID == remote_client.AgentId))
-                    {
-                        //Sale Flag
-                        tempByte = Convert.ToByte(tempByte | LAND_TYPE_IS_FOR_SALE);
-                    }
-                    else if (currentParcelBlock.landData.ownerID == LLUUID.Zero)
-                    {
-                        //Public Flag
-                        tempByte = Convert.ToByte(tempByte | LAND_TYPE_PUBLIC);
-                    }
-                    else
-                    {
-                        //Other Flag
-                        tempByte = Convert.ToByte(tempByte | LAND_TYPE_OWNED_BY_OTHER);
-                    }
 
+                        //Now for border control
 
-                    //Now for border control
-                    if (x == 0)
-                    {
-                        tempByte = Convert.ToByte(tempByte | LAND_FLAG_PROPERTY_BORDER_WEST);
-                    }
-                    else if (getLandObject((x - 1)*4, y*4) != currentParcelBlock)
-                    {
-                        tempByte = Convert.ToByte(tempByte | LAND_FLAG_PROPERTY_BORDER_WEST);
-                    }
+                        Land westParcel = getLandObject((x - 1) * 4, y * 4);
+                        Land southParcel = getLandObject(x * 4, (y - 1) * 4);
+                        if (x == 0)
+                        {
+                            tempByte = Convert.ToByte(tempByte | LAND_FLAG_PROPERTY_BORDER_WEST);
+                        }
+                        else if (westParcel != null && westParcel != currentParcelBlock)
+                        {
+                            tempByte = Convert.ToByte(tempByte | LAND_FLAG_PROPERTY_BORDER_WEST);
+                        }
 
-                    if (y == 0)
-                    {
-                        tempByte = Convert.ToByte(tempByte | LAND_FLAG_PROPERTY_BORDER_SOUTH);
-                    }
-                    else if (getLandObject(x*4, (y - 1)*4) != currentParcelBlock)
-                    {
-                        tempByte = Convert.ToByte(tempByte | LAND_FLAG_PROPERTY_BORDER_SOUTH);
-                    }
+                        if (y == 0)
+                        {
+                            tempByte = Convert.ToByte(tempByte | LAND_FLAG_PROPERTY_BORDER_SOUTH);
+                        }
+                        else if (southParcel != null && southParcel != currentParcelBlock)
+                        {
+                            tempByte = Convert.ToByte(tempByte | LAND_FLAG_PROPERTY_BORDER_SOUTH);
+                        }
 
-                    byteArray[byteArrayCount] = tempByte;
-                    byteArrayCount++;
-                    if (byteArrayCount >= LAND_BLOCKS_PER_PACKET)
-                    {
-                        byteArrayCount = 0;
-                        packet = new ParcelOverlayPacket();
-                        packet.ParcelData.Data = byteArray;
-                        packet.ParcelData.SequenceID = sequenceID;
-                        remote_client.OutPacket((Packet)packet, ThrottleOutPacketType.Task);
-                        sequenceID++;
-                        byteArray = new byte[LAND_BLOCKS_PER_PACKET];
+                        byteArray[byteArrayCount] = tempByte;
+                        byteArrayCount++;
+                        if (byteArrayCount >= LAND_BLOCKS_PER_PACKET)
+                        {
+                            byteArrayCount = 0;
+                            packet = new ParcelOverlayPacket();
+                            packet.ParcelData.Data = byteArray;
+                            packet.ParcelData.SequenceID = sequenceID;
+                            remote_client.OutPacket((Packet)packet, ThrottleOutPacketType.Task);
+                            sequenceID++;
+                            byteArray = new byte[LAND_BLOCKS_PER_PACKET];
+                        }
                     }
                 }
             }
@@ -502,10 +508,13 @@ namespace OpenSim.Region.Environment.LandManagement
                 for (y = 0; y < inc_y; y++)
                 {
                     Land currentParcel = getLandObject(start_x + x, start_y + y);
-                    if (!temp.Contains(currentParcel))
+                    if (currentParcel != null)
                     {
-                        currentParcel.forceUpdateLandInfo();
-                        temp.Add(currentParcel);
+                        if (!temp.Contains(currentParcel))
+                        {
+                            currentParcel.forceUpdateLandInfo();
+                            temp.Add(currentParcel);
+                        }
                     }
                 }
             }
@@ -583,9 +592,12 @@ namespace OpenSim.Region.Environment.LandManagement
                 for (y = -4; y <= 4; y += 4)
                 {
                     Land check = getLandObject(position.X + x, position.Y + y);
-                    if (!parcelsNear.Contains(check))
+                    if (check != null)
                     {
-                        parcelsNear.Add(check);
+                        if (!parcelsNear.Contains(check))
+                        {
+                            parcelsNear.Add(check);
+                        }
                     }
                 }
             }
@@ -693,18 +705,21 @@ namespace OpenSim.Region.Environment.LandManagement
                 sendLandUpdate(clientAvatar);
                 sendOutNearestBanLine(remote_client);
                 Land parcel = getLandObject(clientAvatar.AbsolutePosition.X, clientAvatar.AbsolutePosition.Y);
-                if (clientAvatar.AbsolutePosition.Z < BAN_LINE_SAFETY_HIEGHT && clientAvatar.sentMessageAboutRestrictedParcelFlyingDown)
+                if (parcel != null)
                 {
-                    
-                    handleAvatarChangingParcel(clientAvatar, parcel.landData.localID, m_scene.RegionInfo.RegionID); //They are going below the safety line!
-                    if (!parcel.isBannedFromLand(clientAvatar.UUID))
+                    if (clientAvatar.AbsolutePosition.Z < BAN_LINE_SAFETY_HIEGHT && clientAvatar.sentMessageAboutRestrictedParcelFlyingDown)
                     {
-                        clientAvatar.sentMessageAboutRestrictedParcelFlyingDown = false;
+
+                        handleAvatarChangingParcel(clientAvatar, parcel.landData.localID, m_scene.RegionInfo.RegionID); //They are going below the safety line!
+                        if (!parcel.isBannedFromLand(clientAvatar.UUID))
+                        {
+                            clientAvatar.sentMessageAboutRestrictedParcelFlyingDown = false;
+                        }
                     }
-                }
-                else if (clientAvatar.AbsolutePosition.Z < BAN_LINE_SAFETY_HIEGHT && parcel.isBannedFromLand(clientAvatar.UUID))
-                {
-                    sendYouAreBannedNotice(clientAvatar);
+                    else if (clientAvatar.AbsolutePosition.Z < BAN_LINE_SAFETY_HIEGHT && parcel.isBannedFromLand(clientAvatar.UUID))
+                    {
+                        sendYouAreBannedNotice(clientAvatar);
+                    }
                 }
             }
         }
@@ -712,11 +727,14 @@ namespace OpenSim.Region.Environment.LandManagement
         public void handleAnyClientMovement(ScenePresence avatar) //Like handleSignificantClientMovement, but called with an AgentUpdate regardless of distance. 
         {
             Land over = getLandObject(avatar.AbsolutePosition.X, avatar.AbsolutePosition.Y);
-            if (!over.isBannedFromLand(avatar.UUID) || avatar.AbsolutePosition.Z >= BAN_LINE_SAFETY_HIEGHT)
+            if (over != null)
             {
-                avatar.lastKnownAllowedPosition = new Axiom.Math.Vector3(avatar.AbsolutePosition.X, avatar.AbsolutePosition.Y, avatar.AbsolutePosition.Z);
-                
+                if (!over.isBannedFromLand(avatar.UUID) || avatar.AbsolutePosition.Z >= BAN_LINE_SAFETY_HIEGHT)
+                {
+                    avatar.lastKnownAllowedPosition = new Axiom.Math.Vector3(avatar.AbsolutePosition.X, avatar.AbsolutePosition.Y, avatar.AbsolutePosition.Z);
 
+
+                }
             }
         }
 
