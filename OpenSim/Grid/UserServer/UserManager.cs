@@ -156,8 +156,22 @@ namespace OpenSim.Grid.UserServer
             UserProfileData userProfile;
             if (requestData.Contains("avatar_name"))
             {
-                userProfile = GetUserProfile((string) requestData["avatar_name"]);
-                if (userProfile == null)
+                string query = (string)requestData["avatar_name"];
+
+                System.Text.RegularExpressions.Regex objAlphaNumericPattern = new System.Text.RegularExpressions.Regex("[^a-zA-Z0-9]");
+
+                string[] querysplit;
+                querysplit = query.Split(' ');
+
+                if (querysplit.Length == 2)
+                {
+                    userProfile = GetUserProfile(querysplit[0],querysplit[1]);
+                    if (userProfile == null)
+                    {
+                        return CreateUnknownUserErrorResponse();
+                    }
+                }
+                else
                 {
                     return CreateUnknownUserErrorResponse();
                 }
@@ -179,7 +193,18 @@ namespace OpenSim.Grid.UserServer
             //CFK: Console.WriteLine("METHOD BY UUID CALLED");
             if (requestData.Contains("avatar_uuid"))
             {
-                userProfile = GetUserProfile((LLUUID) (string) requestData["avatar_uuid"]);
+                LLUUID guess = new LLUUID();
+                try
+                {
+                    guess = new LLUUID((string)requestData["avatar_uuid"]);
+
+                    userProfile = GetUserProfile(guess);
+                }
+                catch (System.FormatException)
+                {
+                    return CreateUnknownUserErrorResponse();
+                }
+
                 if (userProfile == null)
                 {
                     return CreateUnknownUserErrorResponse();
