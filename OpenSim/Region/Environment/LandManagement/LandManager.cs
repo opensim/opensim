@@ -457,38 +457,44 @@ namespace OpenSim.Region.Environment.LandManagement
 
 
                         //Now for border control
+                        try
+                        {
+                            Land westParcel = getLandObject((x - 1) * 4, y * 4);
+                            Land southParcel = getLandObject(x * 4, (y - 1) * 4);
+                            if (x == 0)
+                            {
+                                tempByte = Convert.ToByte(tempByte | LAND_FLAG_PROPERTY_BORDER_WEST);
+                            }
+                            else if (westParcel != null && westParcel != currentParcelBlock)
+                            {
+                                tempByte = Convert.ToByte(tempByte | LAND_FLAG_PROPERTY_BORDER_WEST);
+                            }
 
-                        Land westParcel = getLandObject((x - 1) * 4, y * 4);
-                        Land southParcel = getLandObject(x * 4, (y - 1) * 4);
-                        if (x == 0)
-                        {
-                            tempByte = Convert.ToByte(tempByte | LAND_FLAG_PROPERTY_BORDER_WEST);
-                        }
-                        else if (westParcel != null && westParcel != currentParcelBlock)
-                        {
-                            tempByte = Convert.ToByte(tempByte | LAND_FLAG_PROPERTY_BORDER_WEST);
-                        }
+                            if (y == 0)
+                            {
+                                tempByte = Convert.ToByte(tempByte | LAND_FLAG_PROPERTY_BORDER_SOUTH);
+                            }
+                            else if (southParcel != null && southParcel != currentParcelBlock)
+                            {
+                                tempByte = Convert.ToByte(tempByte | LAND_FLAG_PROPERTY_BORDER_SOUTH);
+                            }
 
-                        if (y == 0)
-                        {
-                            tempByte = Convert.ToByte(tempByte | LAND_FLAG_PROPERTY_BORDER_SOUTH);
+                            byteArray[byteArrayCount] = tempByte;
+                            byteArrayCount++;
+                            if (byteArrayCount >= LAND_BLOCKS_PER_PACKET)
+                            {
+                                byteArrayCount = 0;
+                                packet = new ParcelOverlayPacket();
+                                packet.ParcelData.Data = byteArray;
+                                packet.ParcelData.SequenceID = sequenceID;
+                                remote_client.OutPacket((Packet)packet, ThrottleOutPacketType.Task);
+                                sequenceID++;
+                                byteArray = new byte[LAND_BLOCKS_PER_PACKET];
+                            }
                         }
-                        else if (southParcel != null && southParcel != currentParcelBlock)
+                        catch (System.Exception)
                         {
-                            tempByte = Convert.ToByte(tempByte | LAND_FLAG_PROPERTY_BORDER_SOUTH);
-                        }
-
-                        byteArray[byteArrayCount] = tempByte;
-                        byteArrayCount++;
-                        if (byteArrayCount >= LAND_BLOCKS_PER_PACKET)
-                        {
-                            byteArrayCount = 0;
-                            packet = new ParcelOverlayPacket();
-                            packet.ParcelData.Data = byteArray;
-                            packet.ParcelData.SequenceID = sequenceID;
-                            remote_client.OutPacket((Packet)packet, ThrottleOutPacketType.Task);
-                            sequenceID++;
-                            byteArray = new byte[LAND_BLOCKS_PER_PACKET];
+                            OpenSim.Framework.Console.MainLog.Instance.Debug("LAND", "Skipped Land checks because avatar is out of bounds");
                         }
                     }
                 }
