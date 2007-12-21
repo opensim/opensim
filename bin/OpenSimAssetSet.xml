@@ -13,6 +13,41 @@
     <Key Name="inventoryType" Value="0" />
     <Key Name="fileName" Value="femaleface.jp2" />
   </Section>
+  <Section Name="Plywood Texture">
+    <Key Name="assetID" Value="00000000-0000-0000-9999-000000000002" />
+    <Key Name="name" Value="Plywood" />
+    <Key Name="assetType" Value="0" />
+    <Key Name="inventoryType" Value="0" />
+    <Key Name="fileName" Value="Plywood.jp2" />
+  </Section>
+  <Section Name="Rocks Texture">
+    <Key Name="assetID" Value="00000000-0000-0000-9999-000000000003" />
+    <Key Name="name" Value="Rocks" />
+    <Key Name="assetType" Value="0" />
+    <Key Name="inventoryType" Value="0" />
+    <Key Name="fileName" Value="Rocks.jp2" />
+  </Section>
+  <Section Name="Bricks Texture">
+    <Key Name="assetID" Value="00000000-0000-0000-9999-000000000001" />
+    <Key Name="name" Value="Bricks" />
+    <Key Name="assetType" Value="0" />
+    <Key Name="inventoryType" Value="0" />
+    <Key Name="fileName" Value="Bricks.jp2" />
+  </Section>
+  <Section Name="Granite Texture">
+    <Key Name="assetID" Value="00000000-0000-0000-9999-000000000004" />
+    <Key Name="name" Value="Granite" />
+    <Key Name="assetType" Value="0" />
+    <Key Name="inventoryType" Value="0" />
+    <Key Name="fileName" Value="Granite.jp2" />
+  </Section>
+  <Section Name="Hardwood Texture">
+    <Key Name="assetID" Value="00000000-0000-0000-9999-000000000005" />
+    <Key Name="name" Value="Hardwood" />
+    <Key Name="assetType" Value="0" />
+    <Key Name="inventoryType" Value="0" />
+    <Key Name="fileName" Value="Hardwood.jp2" />
+  </Section>
   <Section Name="4-tile2 Texture">
     <Key Name="assetID" Value="00000000-0000-2222-3333-100000001000" />
     <Key Name="name" Value="4-tile2" />
