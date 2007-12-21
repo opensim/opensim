@@ -464,7 +464,7 @@ namespace SimpleApp
         {
         }
 
-        public void Close()
+        public void Close(bool ShutdownCircuit)
         {
         }
 

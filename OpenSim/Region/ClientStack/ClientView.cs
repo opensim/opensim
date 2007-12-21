@@ -199,36 +199,54 @@ namespace OpenSim.Region.ClientStack
 
         # region Client Methods
 
-        public void Close()
+        private void CloseCleanup()
         {
-            // Pull Client out of Region
-            MainLog.Instance.Verbose("CLIENT", "Close has been called");
 
             m_scene.RemoveClient(AgentId);
-
             // Send the STOP packet 
             DisableSimulatorPacket disable = new DisableSimulatorPacket();
             OutPacket(disable, ThrottleOutPacketType.Task);
+
 
             // FLUSH Packets
             m_packetQueue.Close();
             m_packetQueue.Flush();
 
             Thread.Sleep(2000);
- 
+
+            
+            
+
+
             // Shut down timers
             m_ackTimer.Stop();
             m_clientPingTimer.Stop();
-            
+
             // This is just to give the client a reasonable chance of
             // flushing out all it's packets.  There should probably
             // be a better mechanism here
-            
+
             // We can't reach into other scenes and close the connection 
             // We need to do this over grid communications
-            m_scene.CloseAllAgents(CircuitCode);
+            //m_scene.CloseAllAgents(CircuitCode);
 
             m_clientThread.Abort();
+        }
+
+        public void Close(bool ShutdownCircult)
+        {
+            
+            // Pull Client out of Region
+            MainLog.Instance.Verbose("CLIENT", "Close has been called");
+
+            //raiseevent on the packet server to Shutdown the circuit
+            if (ShutdownCircult)
+                OnConnectionClosed(this);
+            
+
+            CloseCleanup();
+
+            
         }
 
         public void Kick(string message)
@@ -2214,7 +2232,7 @@ namespace OpenSim.Region.ClientStack
                                       "ClientView.m_packetQueue.cs:ProcessOutPacket() - WARNING: Socket exception occurred on connection " +
                                       m_userEndPoint.ToString() + " - killing thread");
                 MainLog.Instance.Error(e.ToString());
-                Close();
+                Close(true);
             }
         }
         

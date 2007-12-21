@@ -132,7 +132,7 @@ namespace OpenSim.Region.ClientStack
         public virtual void CloseClient(IClientAPI client)
         {
             CloseCircuit(client.CircuitCode);
-            client.Close();
+            client.Close(false);
         }
     }
 }

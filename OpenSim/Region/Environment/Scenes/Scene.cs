@@ -478,7 +478,7 @@ namespace OpenSim.Region.Environment.Scenes
             // Stop all client threads.
             ForEachScenePresence(delegate(ScenePresence avatar)
                     {
-                        avatar.ControllingClient.Close();
+                        avatar.ControllingClient.Close(true);
                     });
             // Stop updating the scene objects and agents.
             m_heartbeatTimer.Close();
@@ -1758,7 +1758,7 @@ namespace OpenSim.Region.Environment.Scenes
                                                         bool childagent = !p.Equals(null) && p.IsChildAgent;
                                                         if (controller.AgentId != godID && !childagent) // Do we really want to kick the initiator of this madness?
                                                         {
-                                                            controller.Close();
+                                                            controller.Close(true);
                                                         }
                                                     }
                             );
@@ -1775,7 +1775,7 @@ namespace OpenSim.Region.Environment.Scenes
                         }
 
                         m_scenePresences[agentID].ControllingClient.Kick(Helpers.FieldToUTF8String(reason));
-                        m_scenePresences[agentID].ControllingClient.Close();
+                        m_scenePresences[agentID].ControllingClient.Close(true);
                     }
                 }
                 else

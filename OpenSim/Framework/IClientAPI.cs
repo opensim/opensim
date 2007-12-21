@@ -572,7 +572,7 @@ namespace OpenSim.Framework
 
         void SetDebug(int newDebug);
         void InPacket(Packet NewPack);
-        void Close();
+        void Close(bool ShutdownCircuit);
         void Kick(string message);
         void Stop();
         event ViewerEffectEventHandler OnViewerEffect;

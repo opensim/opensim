@@ -111,7 +111,7 @@ namespace OpenSim.Framework
                     if (m_clients.TryGetValue(circuits[i], out client))
                     {
                         Remove(client.CircuitCode);
-                        client.Close();
+                        client.Close(false);
                     }
                 }
                 catch (System.Exception e)
