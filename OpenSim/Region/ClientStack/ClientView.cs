@@ -1886,6 +1886,7 @@ namespace OpenSim.Region.ClientStack
             objdata.Sound = LLUUID.Zero;
             LLObject.TextureEntry ntex = new LLObject.TextureEntry(new LLUUID("00000000-0000-0000-5005-000000000005"));
             objdata.TextureEntry = ntex.ToBytes();
+ 
             objdata.State = 0;
             objdata.Data = new byte[0];
 

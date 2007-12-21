@@ -459,8 +459,17 @@ namespace OpenSim.Region.Environment.LandManagement
                         //Now for border control
                         try
                         {
-                            Land westParcel = getLandObject((x - 1) * 4, y * 4);
-                            Land southParcel = getLandObject(x * 4, (y - 1) * 4);
+                            Land westParcel = null;
+                            Land southParcel = null;
+                            if (x > 0)
+                            {
+                                westParcel = getLandObject((x - 1) * 4, y * 4);
+                            }
+                            if (y > 0)
+                            {
+                                southParcel = getLandObject(x * 4, (y - 1) * 4);
+                            }
+
                             if (x == 0)
                             {
                                 tempByte = Convert.ToByte(tempByte | LAND_FLAG_PROPERTY_BORDER_WEST);
@@ -492,9 +501,9 @@ namespace OpenSim.Region.Environment.LandManagement
                                 byteArray = new byte[LAND_BLOCKS_PER_PACKET];
                             }
                         }
-                        catch (System.Exception)
+                        catch (System.Exception e)
                         {
-                            OpenSim.Framework.Console.MainLog.Instance.Debug("LAND", "Skipped Land checks because avatar is out of bounds");
+                            OpenSim.Framework.Console.MainLog.Instance.Debug("LAND", "Skipped Land checks because avatar is out of bounds: " + e.Message);
                         }
                     }
                 }
