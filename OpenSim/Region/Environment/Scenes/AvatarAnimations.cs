@@ -60,13 +60,19 @@ namespace OpenSim.Region.Environment.Scenes
             
             // MainLog.Instance.Verbose("CLIENT", "Loaded " + AnimsLLUUID.Count.ToString() + " animation(s)");
 
-            lock (ScenePresence.Animations.AnimsLLUUID)
+            try
             {
+                //Mantis: 0000224: 2755 - Enumeration Operation may not execute [immediate crash] (ODE/2750/WIN2003) 
                 foreach (KeyValuePair<string, LLUUID> kp in ScenePresence.Animations.AnimsLLUUID)
                 {
                     AnimsNames.Add(kp.Value, kp.Key);
                 }
             }
+            catch (System.InvalidOperationException)
+            {
+                OpenSim.Framework.Console.MainLog.Instance.Warn("AVATAR", "Unable to load animation names for an Avatar");
+            }
+          
         }
     }
 }
