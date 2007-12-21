@@ -206,7 +206,7 @@ namespace OpenSim.DataStore.MonoSqlite
                 foreach (DataRow row in primRows)
                 {
                     LLUUID uuid = new LLUUID((string) row["UUID"]);
-                    DataRow shapeRow = shapes.Rows.Find(uuid);
+                    DataRow shapeRow = shapes.Rows.Find(Util.ToRawUuidString(uuid));
                     if (shapeRow != null)
                     {
                         shapeRow.Delete();
