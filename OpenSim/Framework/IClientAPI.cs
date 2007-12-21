@@ -540,7 +540,9 @@ namespace OpenSim.Framework
         void SendPrimTerseUpdate(ulong regionHandle, ushort timeDilation, uint localID, LLVector3 position,
                                  LLQuaternion rotation, LLVector3 velocity, LLVector3 rotationalvelocity);
 
-        void SendInventoryFolderDetails(LLUUID ownerID, LLUUID folderID, List<InventoryItemBase> items, List<InventoryFolderBase> folders, int subFoldersCount);
+        void SendInventoryFolderDetails(LLUUID ownerID, LLUUID folderID, List<InventoryItemBase> items, 
+                                        List<InventoryFolderBase> folders, bool fetchFolders, 
+                                        bool fetchItems);
         void SendInventoryItemDetails(LLUUID ownerID, InventoryItemBase item);
         
         /// <summary>

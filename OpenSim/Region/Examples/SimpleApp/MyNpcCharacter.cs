@@ -323,7 +323,11 @@ namespace SimpleApp
         {
         }
 
-        public virtual void SendInventoryFolderDetails(LLUUID ownerID, LLUUID folderID, List<InventoryItemBase> items, List<InventoryFolderBase> folders, int subFoldersCount)
+        public virtual void SendInventoryFolderDetails(LLUUID ownerID, LLUUID folderID, 
+                                                       List<InventoryItemBase> items, 
+                                                       List<InventoryFolderBase> folders, 
+                                                       bool fetchFolders,
+                                                       bool fetchItems)
         {
         }
 

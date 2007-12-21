@@ -176,11 +176,14 @@ namespace OpenSim.Framework.Communications.Cache
         public void HandleFetchInventoryDescendents(IClientAPI remoteClient, LLUUID folderID, LLUUID ownerID,
                                                     bool fetchFolders, bool fetchItems, int sortOrder)
         {
+            // XXX We're not handling sortOrder yet!
+            
             InventoryFolderImpl fold = null;
             if (folderID == libraryRoot.folderID)
             {
-                remoteClient.SendInventoryFolderDetails(libraryRoot.agentID, libraryRoot.folderID,
-                                                        libraryRoot.RequestListOfItems(), libraryRoot.RequestListOfFolders(), libraryRoot.SubFoldersCount);
+                remoteClient.SendInventoryFolderDetails(
+                    libraryRoot.agentID, libraryRoot.folderID, libraryRoot.RequestListOfItems(), 
+                    libraryRoot.RequestListOfFolders(), fetchFolders, fetchItems);
 
                 return;
             }
@@ -188,7 +191,9 @@ namespace OpenSim.Framework.Communications.Cache
             if ((fold = libraryRoot.HasSubFolder(folderID)) != null)
             {
                 System.Console.WriteLine("fetching librarysubfolder");
-                remoteClient.SendInventoryFolderDetails(libraryRoot.agentID, folderID, fold.RequestListOfItems(), fold.RequestListOfFolders(), fold.SubFoldersCount);
+                remoteClient.SendInventoryFolderDetails(
+                    libraryRoot.agentID, folderID, fold.RequestListOfItems(), 
+                    fold.RequestListOfFolders(), fetchFolders, fetchItems);
 
                 return;
             }
@@ -203,15 +208,19 @@ namespace OpenSim.Framework.Communications.Cache
                         System.Console.Write("fetching root folder");
                         if (fetchItems)
                         {
-                            remoteClient.SendInventoryFolderDetails(remoteClient.AgentId, folderID,
-                                                                    userProfile.RootFolder.RequestListOfItems(), userProfile.RootFolder.RequestListOfFolders(), userProfile.RootFolder.SubFoldersCount);
+                            remoteClient.SendInventoryFolderDetails(
+                                remoteClient.AgentId, folderID, userProfile.RootFolder.RequestListOfItems(),
+                                userProfile.RootFolder.RequestListOfFolders(), 
+                                fetchFolders, fetchItems);
                         }
                     }
                     else
                     {
                         if ((fold = userProfile.RootFolder.HasSubFolder(folderID)) != null)
                         {
-                            remoteClient.SendInventoryFolderDetails(remoteClient.AgentId, folderID, fold.RequestListOfItems(), fold.RequestListOfFolders(), fold.SubFoldersCount);
+                            remoteClient.SendInventoryFolderDetails(
+                                remoteClient.AgentId, folderID, fold.RequestListOfItems(), 
+                                fold.RequestListOfFolders(), fetchFolders, fetchItems);
                             return;
                         }
                     }
