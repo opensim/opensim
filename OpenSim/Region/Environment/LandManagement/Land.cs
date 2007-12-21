@@ -472,7 +472,7 @@ namespace OpenSim.Region.Environment.LandManagement
             if (bitmap.GetLength(0) != 64 || bitmap.GetLength(1) != 64 || bitmap.Rank != 2)
             {
                 //Throw an exception - The bitmap is not 64x64
-                throw new Exception("Error: Invalid Parcel Bitmap");
+                //throw new Exception("Error: Invalid Parcel Bitmap");
             }
             else
             {
@@ -584,7 +584,7 @@ namespace OpenSim.Region.Environment.LandManagement
             if (land_bitmap.GetLength(0) != 64 || land_bitmap.GetLength(1) != 64 || land_bitmap.Rank != 2)
             {
                 //Throw an exception - The bitmap is not 64x64
-                throw new Exception("Error: Invalid Parcel Bitmap in modifyLandBitmapSquare()");
+                //throw new Exception("Error: Invalid Parcel Bitmap in modifyLandBitmapSquare()");
             }
 
             int x, y;
