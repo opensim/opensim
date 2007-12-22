@@ -3043,7 +3043,6 @@ namespace OpenSim.Region.ClientStack
                         }
                         break;
                     case PacketType.UpdateTaskInventory:
-                        //Console.WriteLine(Pack.ToString());
                         UpdateTaskInventoryPacket updatetask = (UpdateTaskInventoryPacket) Pack;
                         if (OnUpdateTaskInventory != null)
                         {

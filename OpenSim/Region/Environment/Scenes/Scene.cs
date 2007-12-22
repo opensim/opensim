@@ -1149,7 +1149,6 @@ namespace OpenSim.Region.Environment.Scenes
             client.OnMoveInventoryFolder += CommsManager.UserProfileCacheService.HandleMoveInventoryFolder;
             client.OnFetchInventoryDescendents += CommsManager.UserProfileCacheService.HandleFetchInventoryDescendents;
             client.OnPurgeInventoryDescendents += CommsManager.UserProfileCacheService.HandlePurgeInventoryDescendents;
-            client.OnRequestTaskInventory += RequestTaskInventory;
             client.OnFetchInventory += CommsManager.UserProfileCacheService.HandleFetchInventory;
             client.OnUpdateInventoryItem += UpdateInventoryItemAsset;
             client.OnCopyInventoryItem += CopyInventoryItem;
@@ -1157,7 +1156,10 @@ namespace OpenSim.Region.Environment.Scenes
             client.OnAssetUploadRequest += CommsManager.TransactionsManager.HandleUDPUploadRequest;
             client.OnXferReceive += CommsManager.TransactionsManager.HandleXfer;
             client.OnRezScript += RezScript;
+            
+            client.OnRequestTaskInventory += RequestTaskInventory;            
             client.OnRemoveTaskItem += RemoveTaskInventory;
+            client.OnUpdateTaskInventory += UpdateTaskInventory;
 
             client.OnGrabObject += ProcessObjectGrab;
             client.OnAvatarPickerRequest += ProcessAvatarPickerRequest;

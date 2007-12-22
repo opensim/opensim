@@ -357,7 +357,7 @@ namespace OpenSim.Region.Environment.Scenes
         }
 
         /// <summary>
-        /// 
+        /// Request a prim (task) inventory
         /// </summary>
         /// <param name="remoteClient"></param>
         /// <param name="primLocalID"></param>
@@ -375,8 +375,19 @@ namespace OpenSim.Region.Environment.Scenes
                     }
                 }
             }
+            else
+            {
+                MainLog.Instance.Warn(
+                    "PRIMINVENTORY", "Inventory requested of prim {0} which doesn't exist", primLocalID);
+            }
         }
 
+        /// <summary>
+        /// Remove an item from a prim (task) inventory
+        /// </summary>
+        /// <param name="remoteClient"></param>
+        /// <param name="itemID"></param>
+        /// <param name="localID"></param>
         public void RemoveTaskInventory(IClientAPI remoteClient, LLUUID itemID, uint localID)
         {
             SceneObjectGroup group = GetGroupByPrim(localID);
@@ -389,6 +400,44 @@ namespace OpenSim.Region.Environment.Scenes
                     EventManager.TriggerRemoveScript(localID, itemID);
                 }
             }
+            else
+            {
+                MainLog.Instance.Warn(
+                    "PRIMINVENTORY", 
+                    "Removal of item {0} requested of prim {1} but this prim does not exist", 
+                    itemID,
+                    localID);
+            }            
+        }
+        
+        /// <summary>
+        /// Update an item in a prim (task) inventory
+        /// </summary>
+        /// <param name="remoteClient"></param>
+        /// <param name="itemID"></param>
+        /// <param name="folderID"></param>
+        /// <param name="primLocalID"></param>
+        public void UpdateTaskInventory(IClientAPI remoteClient, LLUUID itemID, LLUUID folderID, 
+                                        uint primLocalID)
+        {
+            SceneObjectGroup group = GetGroupByPrim(primLocalID);
+            if (group != null)
+            {
+                // TODO Retrieve itemID from client's inventory to pass on
+                //group.AddInventoryItem(rmoteClient, primLocalID, null);
+                MainLog.Instance.Verbose(
+                    "PRIMINVENTORY", 
+                    "UpdateTaskInventory called with item {0}, folder {1}, primLocalID {2}",
+                    itemID, folderID, primLocalID);
+            }   
+            else
+            {
+                MainLog.Instance.Warn(
+                    "PRIMINVENTORY", 
+                    "Update with item {0} requested of prim {1} but this prim does not exist", 
+                    itemID,
+                    primLocalID);
+            }              
         }
 
         public void RezScript(IClientAPI remoteClient, LLUUID itemID, uint localID)
@@ -430,7 +479,7 @@ namespace OpenSim.Region.Environment.Scenes
                             if (group != null)
                             {
                                 // TODO: do we care about the value of this bool?
-                                bool added = group.AddInventoryItem(remoteClient, localID, item, copyID);
+                                group.AddInventoryItem(remoteClient, localID, item, copyID);
                                 group.GetProperites(remoteClient);
                             }
                         }
