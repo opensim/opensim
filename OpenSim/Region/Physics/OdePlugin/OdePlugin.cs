@@ -281,37 +281,84 @@ namespace OpenSim.Region.Physics.OdePlugin
                             break;
                     }
 
-                    if (name1 == "Terrain" || name2 == "Terrain")
+                    // we don't want prim or avatar to explode
+                    #region InterPenetration Handling - Unintended physics explosions
+                    if (contacts[i].depth >= 0.08f)
                     {
-                        if ((p2.PhysicsActorType == (int)ActorTypes.Agent) && (Math.Abs(p2.Velocity.X) > 0.01f || Math.Abs(p2.Velocity.Y) > 0.01f))
+                        if (contacts[i].depth >= 1.00f)
                         {
-                            AvatarMovementTerrainContact.geom = contacts[i];
-                            joint = d.JointCreateContact(world, contactgroup, ref AvatarMovementTerrainContact);
+                            //MainLog.Instance.Debug("PHYSICS",contacts[i].depth.ToString());
+                        }
+                        // If you interpenetrate a prim with an agent
+                        if ((p2.PhysicsActorType == (int)ActorTypes.Agent && p1.PhysicsActorType == (int)ActorTypes.Prim) || (p1.PhysicsActorType == (int)ActorTypes.Agent && p2.PhysicsActorType == (int)ActorTypes.Prim))
+                        {
+                            
+                            if (p2.PhysicsActorType == (int)ActorTypes.Agent)
+                            {
+                                p2.CollidingObj = true;
+                                contacts[i].depth = 0.003f;
+                                p2.Velocity = p2.Velocity + new PhysicsVector(0, 0, 2.5f);
+                                contacts[i].pos = new d.Vector3(contacts[i].pos.X + (p1.Size.X / 2), contacts[i].pos.Y + (p1.Size.Y / 2), contacts[i].pos.Z + (p1.Size.Z / 2));
+
+                            }
+                            else
+                            {
+                                contacts[i].depth = 0.0000000f;
+                            }
+                            if (p1.PhysicsActorType == (int)ActorTypes.Agent)
+                            {
+                                p1.CollidingObj = true;
+                                contacts[i].depth = 0.003f;
+                                p1.Velocity = p1.Velocity + new PhysicsVector(0, 0, 2.5f);
+                                contacts[i].pos = new d.Vector3(contacts[i].pos.X + (p2.Size.X / 2), contacts[i].pos.Y + (p2.Size.Y / 2), contacts[i].pos.Z + (p2.Size.Z / 2));
+                            }
+                            else
+                            {
+                                contacts[i].depth = 0.0000000f;
+                            }
+                        }
+                        // If you interpenetrate a prim with another prim
+                        if (p1.PhysicsActorType == (int)ActorTypes.Prim && p2.PhysicsActorType == (int)ActorTypes.Prim)
+                        {
+                            // Don't collide, one or both prim will explode.
+                            contacts[i].depth = 0.0f;
+                        }
+                    }
+                    #endregion
+
+                    if (contacts[i].depth > 0f)
+                    {
+                        if (name1 == "Terrain" || name2 == "Terrain")
+                        {
+
+                            if ((p2.PhysicsActorType == (int)ActorTypes.Agent) && (Math.Abs(p2.Velocity.X) > 0.01f || Math.Abs(p2.Velocity.Y) > 0.01f))
+                            {
+                                AvatarMovementTerrainContact.geom = contacts[i];
+                                joint = d.JointCreateContact(world, contactgroup, ref AvatarMovementTerrainContact);
+
+                            }
+                            else
+                            {
+                                TerrainContact.geom = contacts[i];
+                                joint = d.JointCreateContact(world, contactgroup, ref TerrainContact);
+                            }
                         }
                         else
                         {
-                            TerrainContact.geom = contacts[i];
-                            joint = d.JointCreateContact(world, contactgroup, ref TerrainContact);
+                            if ((p2.PhysicsActorType == (int)ActorTypes.Agent) && (Math.Abs(p2.Velocity.X) > 0.01f || Math.Abs(p2.Velocity.Y) > 0.01f))
+                            {
+                                AvatarMovementprimContact.geom = contacts[i];
+                                joint = d.JointCreateContact(world, contactgroup, ref AvatarMovementprimContact);
+                                
+                            }
+                            else
+                            {
+                                contact.geom = contacts[i];
+                                joint = d.JointCreateContact(world, contactgroup, ref contact);
+                            }
                         }
+                        d.JointAttach(joint, b1, b2);
                     }
-                    else
-                    {
-                        if ((p2.PhysicsActorType == (int)ActorTypes.Agent) && (Math.Abs(p2.Velocity.X) > 0.01f || Math.Abs(p2.Velocity.Y) > 0.01f))
-                        {
-                            AvatarMovementprimContact.geom = contacts[i];
-                            joint = d.JointCreateContact(world, contactgroup, ref AvatarMovementprimContact);
-                        }
-                        else
-                        {
-                            contact.geom = contacts[i];
-                            joint = d.JointCreateContact(world, contactgroup, ref contact);
-                        }
-                    }
-                    
-                    
-                    d.JointAttach(joint, b1, b2);
-
-
                     
                     if (count > 3)
                     {
@@ -334,7 +381,7 @@ namespace OpenSim.Region.Physics.OdePlugin
             }
             // If the sim is running slow this frame, 
             // don't process collision for prim!
-            if (timeStep < (m_SkipFramesAtms / 2))
+            if (timeStep < (m_SkipFramesAtms / 3))
             {
                 foreach (OdePrim chr in _activeprims)
                 {

@@ -332,6 +332,7 @@ namespace OpenSim.Region.Environment.Scenes
                             // If agent is a root agent.
                             if (!agent.IsChildAgent)
                             {
+
                                 //agent.ControllingClient.new
                                 //this.CommsManager.InterRegion.InformRegionOfChildAgent(otherRegion.RegionHandle, agent.ControllingClient.RequestClientInfo());
                                 InformClientOfNeighbor(agent, otherRegion);

@@ -17,6 +17,7 @@ OpenSim Developers
 * Babblefrog
 * Tedd
 * justincc (International Business Machines Corp.)
+* Teravus (w3z)
 
 Patches
 

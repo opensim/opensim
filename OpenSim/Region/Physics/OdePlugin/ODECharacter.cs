@@ -174,7 +174,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                 }
                 if (m_wascolliding != m_iscolliding)
                 {
-                    base.SendCollisionUpdate(new CollisionEventUpdate());
+                    //base.SendCollisionUpdate(new CollisionEventUpdate());
                     
                 }
                 m_wascolliding = m_iscolliding;
@@ -527,7 +527,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                 if (_velocity.Z < -6 && !m_hackSentFall)
                 {
                     m_hackSentFall = true;
-                    base.SendCollisionUpdate(new CollisionEventUpdate());
+                    //base.SendCollisionUpdate(new CollisionEventUpdate());
                     m_pidControllerActive = false;
                 }
                 else if (flying && !m_hackSentFly)
