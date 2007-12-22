@@ -440,6 +440,12 @@ namespace OpenSim.Region.Environment.Scenes
             }              
         }
 
+        /// <summary>
+        /// Rez a script into a prim's inventory
+        /// </summary>
+        /// <param name="remoteClient"></param>
+        /// <param name="itemID"> </param>
+        /// <param name="localID"></param>
         public void RezScript(IClientAPI remoteClient, LLUUID itemID, uint localID)
         {
             CachedUserInfo userInfo = CommsManager.UserProfileCacheService.GetUserDetails(remoteClient.AgentId);
@@ -482,7 +488,31 @@ namespace OpenSim.Region.Environment.Scenes
                                 group.AddInventoryItem(remoteClient, localID, item, copyID);
                                 group.GetProperites(remoteClient);
                             }
+                            else
+                            {
+                                MainLog.Instance.Warn(
+                                    "PRIMINVENTORY",
+                                    "Could not rez item {0} into prim {1}"
+                                         + " because the prim could not be found in the region!",
+                                item.inventoryName,
+                                localID);
+                            }
                         }
+                        else
+                        {
+                            MainLog.Instance.Warn(
+                                "PRIMINVENTORY",
+                                "Could not rez item {0} into prim {1}"
+                                    + " because the item asset {2} could not be found!",
+                                item.inventoryName,
+                                localID,
+                                item.assetID);
+                        }
+                    }
+                    else
+                    {
+                        MainLog.Instance.Warn(
+                            "PRIMINVENTORY", "Could not find script inventory item {0} to rez!", itemID);
                     }
                 }
             }
