@@ -108,7 +108,8 @@ namespace OpenSim.Grid.InventoryServer
         {
             LLUUID userID = new LLUUID(rawUserID);
             
-            MainLog.Instance.Verbose("INVENTORY", "Request for inventory for " + userID.ToString());            
+            // We get enough verbose messages later on for diagnostics
+            //MainLog.Instance.Verbose("INVENTORY", "Request for inventory for " + userID.ToString());            
             
             InventoryCollection invCollection = new InventoryCollection();
             List<InventoryFolderBase> folders;
