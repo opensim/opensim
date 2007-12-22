@@ -21,7 +21,9 @@ OpenSim Developers
 
 Patches
 
+* Alondria
 * BigFootAg
+* CharlieO
 * Danx0r
 * Dalien
 * Darok

@@ -481,6 +481,11 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler
                         texcolor.B = (float)Math.Abs(color.z - 1);
                         tex.FaceTextures[i].RGBA = texcolor;
                     }
+                    texcolor = tex.DefaultTexture.RGBA;
+                    texcolor.R = (float)Math.Abs(color.x - 1);
+                    texcolor.G = (float)Math.Abs(color.y - 1);
+                    texcolor.B = (float)Math.Abs(color.z - 1);
+                    tex.DefaultTexture.RGBA = texcolor;
                 }
                 m_host.UpdateTexture(tex);
                 return;
@@ -494,7 +499,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler
             LLObject.TextureEntry tex = new LLObject.TextureEntry(m_host.Shape.TextureEntry, 0, m_host.Shape.TextureEntry.Length);
             if (face == -1) // TMP: Until we can determine number of sides, ALL_SIDES (-1) will return default color
             {
-                return (double)((tex.FaceTextures[0].RGBA.A * 255) / 255);
+                return (double)((tex.DefaultTexture.RGBA.A * 255) / 255);
             }
             if (face > -1)
             {
@@ -526,6 +531,9 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler
                         tex.FaceTextures[i].RGBA = texcolor;
                     }
                 }
+                texcolor = tex.DefaultTexture.RGBA;
+                texcolor.A = (float)Math.Abs(alpha - 1);
+                tex.DefaultTexture.RGBA = texcolor;
                 m_host.UpdateTexture(tex);
                 return;
             }
@@ -540,7 +548,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler
             LSL_Types.Vector3 rgb;
             if (face == -1) // TMP: Until we can determine number of sides, ALL_SIDES (-1) will return default color
             {
-                texcolor = tex.FaceTextures[0].RGBA;
+                texcolor = tex.DefaultTexture.RGBA;
                 rgb.x = (255 - (texcolor.R * 255)) / 255;
                 rgb.y = (255 - (texcolor.G * 255)) / 255;
                 rgb.z = (255 - (texcolor.B * 255)) / 255;
@@ -578,6 +586,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler
                         tex.FaceTextures[i].TextureID = new LLUUID(texture);
                     }
                 }
+                tex.DefaultTexture.TextureID = new LLUUID(texture);
                 m_host.UpdateTexture(tex);
                 return;
             }
@@ -605,9 +614,10 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler
                     {
                         tex.FaceTextures[i].RepeatU = (float)u;
                         tex.FaceTextures[i].RepeatV = (float)v;
-
                     }
                 }
+                tex.DefaultTexture.RepeatU = (float)u;
+                tex.DefaultTexture.RepeatV = (float)v;
                 m_host.UpdateTexture(tex);
                 return;
             }
@@ -637,6 +647,8 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler
                         tex.FaceTextures[i].OffsetV = (float)v;
                     }
                 }
+                tex.DefaultTexture.OffsetU = (float)u;
+                tex.DefaultTexture.OffsetV = (float)v;
                 m_host.UpdateTexture(tex);
                 return;
             }
@@ -664,6 +676,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler
                         tex.FaceTextures[i].Rotation = (float)rotation;
                     }
                 }
+                tex.DefaultTexture.Rotation = (float)rotation;
                 m_host.UpdateTexture(tex);
                 return;
             }
@@ -1191,6 +1204,11 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler
                             tex.FaceTextures[i].RGBA = texcolor;
                         }
                     }
+                    texcolor = tex.DefaultTexture.RGBA;
+                    texcolor.R = (float)Math.Abs(color.x - 1);
+                    texcolor.G = (float)Math.Abs(color.y - 1);
+                    texcolor.B = (float)Math.Abs(color.z - 1);
+                    tex.DefaultTexture.RGBA = texcolor;
                     part.UpdateTexture(tex);
                     return;
                 }
@@ -1232,6 +1250,11 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler
                                 tex.FaceTextures[i].RGBA = texcolor;
                             }
                         }
+                        texcolor = tex.DefaultTexture.RGBA;
+                        texcolor.R = (float)Math.Abs(color.x - 1);
+                        texcolor.G = (float)Math.Abs(color.y - 1);
+                        texcolor.B = (float)Math.Abs(color.z - 1);
+                        tex.DefaultTexture.RGBA = texcolor;
                         part.UpdateTexture(tex);
                     }
                 }
@@ -2403,6 +2426,9 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler
                             tex.FaceTextures[i].RGBA = texcolor;
                         }
                     }
+                    texcolor = tex.DefaultTexture.RGBA;
+                    texcolor.A = (float)Math.Abs(alpha - 1);
+                    tex.DefaultTexture.RGBA = texcolor;
                     part.UpdateTexture(tex);
                     return;
                 }
@@ -2438,6 +2464,9 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler
                                 tex.FaceTextures[i].RGBA = texcolor;
                             }
                         }
+                        texcolor = tex.DefaultTexture.RGBA;
+                        texcolor.A = (float)Math.Abs(alpha - 1);
+                        tex.DefaultTexture.RGBA = texcolor;
                         part.UpdateTexture(tex);
                     }
                 }

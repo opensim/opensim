@@ -1255,12 +1255,12 @@ namespace OpenSim.Region.Environment.Scenes
                     tex.FaceTextures[i].RGBA = tmpcolor;
                 }
             }
-            tmpcolor = tex.FaceTextures[0].RGBA;
+            tmpcolor = tex.DefaultTexture.RGBA;
             tmpcolor.A = tmpcolor.A * 255;
             tmpcolor.R = tmpcolor.R * 255;
             tmpcolor.G = tmpcolor.G * 255;
             tmpcolor.B = tmpcolor.B * 255;
-            tex.FaceTextures[0].RGBA = tmpcolor; 
+            tex.DefaultTexture.RGBA = tmpcolor; 
             UpdateTextureEntry(tex.ToBytes());
         }
 
