@@ -9,13 +9,14 @@ OpenSim Developers
 * Adam Frisby 	(DeepThink Pty Ltd)
 * MingChen 	(DeepThink Pty Ltd)
 * lbsa71
-* sdague	(International Business Machines Corp.)
+* sdague (International Business Machines Corp.)
 * Andy-	
 * Gareth
 * MorphW
 * CW
 * Babblefrog
 * Tedd
+* justincc (International Business Machines Corp.)
 
 Patches
 
