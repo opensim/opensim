@@ -74,6 +74,7 @@ namespace OpenSim.Region.Physics.OdePlugin
         public IntPtr Body;
         private OdeScene _parent_scene;
         public IntPtr Shell;
+        public IntPtr Amotor;
         public d.Mass ShellMass;
         public bool collidelock = false;
 
@@ -92,13 +93,30 @@ namespace OpenSim.Region.Physics.OdePlugin
 
             lock (OdeScene.OdeLock)
             {
-
+                int dAMotorEuler = 1;
                 Shell = d.CreateCapsule(parent_scene.space, CAPSULE_RADIUS, CAPSULE_LENGTH);
                 d.MassSetCapsule(out ShellMass, m_density, 3, CAPSULE_RADIUS, CAPSULE_LENGTH);
                 Body = d.BodyCreate(parent_scene.world);
                 d.BodySetMass(Body, ref ShellMass);
                 d.BodySetPosition(Body, pos.X, pos.Y, pos.Z);
                 d.GeomSetBody(Shell, Body);
+                Amotor = d.JointCreateAMotor(parent_scene.world, IntPtr.Zero);
+                d.JointAttach(Amotor, Body, IntPtr.Zero);
+                d.JointSetAMotorMode(Amotor, dAMotorEuler);
+                d.JointSetAMotorNumAxes(Amotor, 3);
+                d.JointSetAMotorAxis(Amotor, 0, 0, 1, 0, 0);
+                d.JointSetAMotorAxis(Amotor, 1, 0, 0, 1, 0);
+                d.JointSetAMotorAxis(Amotor, 2, 0, 0, 0, 1);
+                d.JointSetAMotorAngle(Amotor, 0, 0);
+                d.JointSetAMotorAngle(Amotor, 1, 0);
+                d.JointSetAMotorAngle(Amotor, 2, 0);
+                d.JointSetAMotorParam(Amotor, 0, -0);
+                d.JointSetAMotorParam(Amotor, 0x200, -0);
+                d.JointSetAMotorParam(Amotor, 0x100, -0);
+                d.JointSetAMotorParam(Amotor, 0, 0);
+                d.JointSetAMotorParam(Amotor, 3, 0);
+                d.JointSetAMotorParam(Amotor, 2, 0);
+                
             }
             m_name = avName;
             parent_scene.geom_name_map[Shell] = avName;
@@ -547,6 +565,7 @@ namespace OpenSim.Region.Physics.OdePlugin
         {
             lock (OdeScene.OdeLock)
             {
+                d.JointDestroy(Amotor);
                 d.GeomDestroy(Shell);
                 _parent_scene.geom_name_map.Remove(Shell);
                 d.BodyDestroy(Body);
