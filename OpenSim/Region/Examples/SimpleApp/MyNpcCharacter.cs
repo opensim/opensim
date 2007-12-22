@@ -185,6 +185,11 @@ namespace SimpleApp
         {
             get { return lastName; }
         }
+        
+        public virtual String Name
+        {
+            get { return FirstName + LastName; }
+        }
 
 
         public virtual void OutPacket(Packet newPack, ThrottleOutPacketType packType)
@@ -394,8 +399,6 @@ namespace SimpleApp
 
         private void Update()
         {
-            Encoding enc = Encoding.ASCII;
-
             if (OnAgentUpdate != null)
             {
                 AgentUpdatePacket pack = new AgentUpdatePacket();

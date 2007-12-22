@@ -473,8 +473,6 @@ namespace OpenSim.Framework
         event RegionInfoRequest OnRegionInfoRequest;
         event EstateCovenantRequest OnEstateCovenantRequest;
         
-
-
         LLVector3 StartPos { get; set; }
 
         LLUUID AgentId { get; }
@@ -486,6 +484,13 @@ namespace OpenSim.Framework
         string FirstName { get; }
 
         string LastName { get; }
+        
+        /// <summary>
+        /// Returns the full name of the agent/avatar represented by this client
+        /// </summary>
+        /// <param name="newPack"></param>
+        /// <param name="packType"></param>
+        string Name { get; }
 
         uint CircuitCode { get; }
 

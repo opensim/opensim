@@ -156,16 +156,58 @@ namespace OpenSim.Framework.Communications.Cache
             }
         }
 
+        /// <summary>
+        /// Get an asset.  If the asset isn't in the cache, a request will be made to the persistent store to
+        /// load it into the cache.  
+        /// 
+        /// XXX We'll keep polling the cache until we get the asset or we exceed
+        /// the allowed number of polls.  This isn't a very good way of doing things since a single thread
+        /// is processing inbound packets, so if the asset server is slow, we could block this for up to
+        /// the timeout period.  What we might want to do is register asynchronous callbacks on asset
+        /// receipt in the same manner as the nascent (but not yet active) TextureDownloadModule.  Of course,
+        /// a timeout before asset receipt usually isn't fatal, the operation will work on the retry when the
+        /// asset is much more likely to have made it into the cache.
+        /// </summary>
+        /// <param name="assetID"></param>
+        /// <param name="isTexture"></param>
+        /// <returns>null if the asset could not be retrieved</returns>
         public AssetBase GetAsset(LLUUID assetID, bool isTexture)
         {
+            // I'm not going over 3 seconds since this will be blocking processing of all the other inbound
+            // packets from the client.
+            int pollPeriod = 200;
+            int maxPolls = 15;
+            
             AssetBase asset = GetCachedAsset(assetID);
-            if (asset == null)
+            if (asset != null)
             {
-                m_assetServer.RequestAsset(assetID, isTexture);
+                return asset;
             }
-            return asset;
+            
+            m_assetServer.RequestAsset(assetID, isTexture);            
+            
+            do
+            {
+                Thread.Sleep(pollPeriod);
+                
+                asset = GetCachedAsset(assetID);
+                if (asset != null)
+                {
+                    return asset;
+                }
+            } 
+            while (--maxPolls > 0);
+            
+            MainLog.Instance.Warn(
+                "ASSETCACHE", "Asset {0} was not received before the retrieval timeout was reached");
+            
+            return null;
         }
 
+        /// <summary>
+        /// Add an asset to both the persistent store and the cache.
+        /// </summary>
+        /// <param name="asset"></param>
         public void AddAsset(AssetBase asset)
         {
             string temporary = asset.Temporary ? "temporary" : "";

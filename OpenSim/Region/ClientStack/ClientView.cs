@@ -130,7 +130,7 @@ namespace OpenSim.Region.ClientStack
         }
 
         /// <summary>
-        /// 
+        /// First name of the agent/avatar represented by the client
         /// </summary>
         public string FirstName
         {
@@ -138,11 +138,19 @@ namespace OpenSim.Region.ClientStack
         }
 
         /// <summary>
-        /// 
+        /// Last name of the agent/avatar represented by the client
         /// </summary>
         public string LastName
         {
             get { return m_lastName; }
+        }
+        
+        /// <summary>
+        /// Full name of the client (first name and last name)
+        /// </summary>
+        public string Name
+        {
+            get { return FirstName + " " + LastName; }
         }
 
         public uint CircuitCode
