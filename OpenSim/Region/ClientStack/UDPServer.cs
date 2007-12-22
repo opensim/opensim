@@ -77,13 +77,42 @@ namespace OpenSim.Region.ClientStack
         }
 
         public Packet GetPacket(byte[] bytes, ref int packetEnd, byte[] zeroBuffer) {
-            Packet packet = GetPacket(Packet.GetType(bytes, packetEnd, zeroBuffer));
+            Packet packet = GetPacket(GetType(bytes, packetEnd, zeroBuffer));
 
             int i = 0;
             packet.FromBytes(bytes, ref i, ref packetEnd, zeroBuffer);
             return packet;
         }
+        public PacketType GetType(byte[] bytes, int packetEnd, byte[] zeroBuffer)
+        {
+            //Function removed from LibSL revision 1540
+            // We're using it..    so Built it into UDP server for now..  
+            ushort id; libsecondlife.PacketFrequency freq;
+            int i = 0, end = packetEnd;
+            Header header = Header.BuildHeader(bytes, ref i, ref end);
+            if (header.Zerocoded)
+            {
+                end = libsecondlife.Helpers.ZeroDecode(bytes, end + 1, zeroBuffer) - 1;
+                bytes = zeroBuffer;
+            }
 
+            if (bytes[6] == 0xFF)
+            {
+                if (bytes[7] == 0xFF)
+                {
+                    id = (ushort)((bytes[8] << 8) + bytes[9]); freq = libsecondlife.PacketFrequency.Low;
+                }
+                else
+                {
+                    id = (ushort)bytes[7]; freq = libsecondlife.PacketFrequency.Medium;
+                }
+            }
+            else
+            {
+                id = (ushort)bytes[6]; freq = libsecondlife.PacketFrequency.High;
+            }
+            return Packet.GetType(id, freq);
+        }
         public void ReturnPacket(Packet packet) {
             lock(pool)
             {
