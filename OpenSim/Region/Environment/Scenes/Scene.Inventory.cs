@@ -146,7 +146,9 @@ namespace OpenSim.Region.Environment.Scenes
                         if (transactions != null)
                         {
                             LLUUID assetID = libsecondlife.LLUUID.Combine(transactionID, remoteClient.SecureSessionId);                            
-                            AssetBase asset = AssetCache.GetAsset(assetID);
+                            AssetBase asset 
+                                = AssetCache.GetAsset(
+                                    assetID, (item.assetType == (int)AssetType.Texture ? true : false));
                             
                             if (asset == null)
                             {

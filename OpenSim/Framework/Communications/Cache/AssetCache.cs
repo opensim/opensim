@@ -98,7 +98,12 @@ namespace OpenSim.Framework.Communications.Cache
             }
         }
 
-        public AssetBase GetAsset(LLUUID assetID)
+        /// <summary>
+        /// Only get an asset if we already have it in the cache.
+        /// </summary>
+        /// <param name="assetID"></param></param>
+        /// <returns></returns>
+        private AssetBase GetCachedAsset(LLUUID assetID)
         {
             AssetBase asset = null;
             if (Textures.ContainsKey(assetID))
@@ -153,7 +158,7 @@ namespace OpenSim.Framework.Communications.Cache
 
         public AssetBase GetAsset(LLUUID assetID, bool isTexture)
         {
-            AssetBase asset = GetAsset(assetID);
+            AssetBase asset = GetCachedAsset(assetID);
             if (asset == null)
             {
                 m_assetServer.RequestAsset(assetID, isTexture);
@@ -223,7 +228,7 @@ namespace OpenSim.Framework.Communications.Cache
 
         public AssetBase CopyAsset(LLUUID assetID)
         {
-            AssetBase asset = GetAsset(assetID);
+            AssetBase asset = GetCachedAsset(assetID);
             if (asset == null)
                 return null;
 

@@ -3106,7 +3106,7 @@ namespace OpenSim.Region.ClientStack
 
                         // Fetch landmark
                         LLUUID lmid = tpReq.Info.LandmarkID;
-                        AssetBase lma = m_assetCache.GetAsset(lmid);
+                        AssetBase lma = m_assetCache.GetAsset(lmid, false);
                         if (lma != null)
                         {
                             AssetLandmark lm = new AssetLandmark(lma);
