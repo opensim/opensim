@@ -193,7 +193,6 @@ namespace OpenSim.Framework.Communications.Cache
 
             if ((fold = libraryRoot.HasSubFolder(folderID)) != null)
             {
-                System.Console.WriteLine("fetching librarysubfolder");
                 remoteClient.SendInventoryFolderDetails(
                     libraryRoot.agentID, folderID, fold.RequestListOfItems(), 
                     fold.RequestListOfFolders(), fetchFolders, fetchItems);
@@ -208,14 +207,12 @@ namespace OpenSim.Framework.Communications.Cache
                 {
                     if (userProfile.RootFolder.folderID == folderID)
                     {
-                        System.Console.Write("fetching root folder");
-                        if (fetchItems)
-                        {
-                            remoteClient.SendInventoryFolderDetails(
-                                remoteClient.AgentId, folderID, userProfile.RootFolder.RequestListOfItems(),
-                                userProfile.RootFolder.RequestListOfFolders(), 
-                                fetchFolders, fetchItems);
-                        }
+                        remoteClient.SendInventoryFolderDetails(
+                            remoteClient.AgentId, folderID, userProfile.RootFolder.RequestListOfItems(),
+                            userProfile.RootFolder.RequestListOfFolders(), 
+                            fetchFolders, fetchItems);
+                        
+                        return;
                     }
                     else
                     {
@@ -224,11 +221,35 @@ namespace OpenSim.Framework.Communications.Cache
                             remoteClient.SendInventoryFolderDetails(
                                 remoteClient.AgentId, folderID, fold.RequestListOfItems(), 
                                 fold.RequestListOfFolders(), fetchFolders, fetchItems);
+                            
                             return;
                         }
                     }
                 }
+                else
+                {
+                    MainLog.Instance.Error(
+                        "INVENTORYCACHE", "Could not find root folder for user {0}", remoteClient.Name);
+                    
+                    return;
+                }
             }
+            else
+            {
+                MainLog.Instance.Error(
+                     "INVENTORYCACHE", 
+                     "Could not find user profile for {0} for folder {1}", 
+                     remoteClient.Name, folderID);
+                
+                return;
+            }
+            
+            // If we've reached this point then we couldn't find the folder, even though the client thinks
+            // it exists
+            MainLog.Instance.Error(
+                "INVENTORYCACHE",
+                "Could not find folder {0} for user {1}",
+                folderID, remoteClient.Name);
         }
 
         public void HandlePurgeInventoryDescendents(IClientAPI remoteClient, LLUUID folderID)
