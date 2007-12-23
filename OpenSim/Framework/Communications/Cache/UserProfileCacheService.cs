@@ -27,6 +27,7 @@
 */
 using System.Collections.Generic;
 using libsecondlife;
+using OpenSim.Framework.Console;
 
 namespace OpenSim.Framework.Communications.Cache
 {
@@ -61,12 +62,14 @@ namespace OpenSim.Framework.Communications.Cache
 
                     if (userInfo.UserProfile != null)
                     {
-                        RequestInventoryForUser(userID, userInfo);
+                        // The request itself will occur when the agent finishes logging on to the region
+                        // so there's no need to do it here.
+                        //RequestInventoryForUser(userID, userInfo);
                         m_userProfiles.Add(userID, userInfo);
                     }
                     else
                     {
-                        System.Console.WriteLine("CACHE", "User profile for user not found");
+                        MainLog.Instance.Error("USERCACHE", "User profile for user {0} not found", userID);
                     }
                 }
             }

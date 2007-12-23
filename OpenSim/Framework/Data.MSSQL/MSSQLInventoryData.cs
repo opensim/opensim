@@ -286,7 +286,7 @@ namespace OpenSim.Framework.Data.MSSQL
         /// </summary>
         /// <param name="reader">The SQL Result</param>
         /// <returns>the item read</returns>
-        public InventoryItemBase readInventoryItem(IDataReader reader)
+        private InventoryItemBase readInventoryItem(IDataReader reader)
         {
             try
             {

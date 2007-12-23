@@ -302,7 +302,7 @@ namespace OpenSim.Framework.Data.MySQL
         /// </summary>
         /// <param name="reader">The SQL Result</param>
         /// <returns>the item read</returns>
-        public InventoryItemBase readInventoryItem(MySqlDataReader reader)
+        private InventoryItemBase readInventoryItem(MySqlDataReader reader)
         {
             try
             {

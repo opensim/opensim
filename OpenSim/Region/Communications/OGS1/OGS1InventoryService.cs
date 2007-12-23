@@ -32,6 +32,7 @@ using OpenSim.Framework;
 using OpenSim.Framework.Servers;
 using OpenSim.Framework.Communications;
 using OpenSim.Framework.Communications.Cache;
+using OpenSim.Framework.Console;
 
 namespace OpenSim.Region.Communications.OGS1
 {
@@ -47,10 +48,10 @@ namespace OpenSim.Region.Communications.OGS1
 
         #region IInventoryServices Members
 
+        // See IInventoryServices
         public void RequestInventoryForUser(LLUUID userID, InventoryFolderInfo folderCallBack,
                                             InventoryItemInfo itemCallBack)
-        {
-
+        {          
             if (!m_RequestingInventory.ContainsKey(userID))
             {
                 InventoryRequest request = new InventoryRequest(userID, folderCallBack, itemCallBack);
@@ -59,30 +60,46 @@ namespace OpenSim.Region.Communications.OGS1
             }
         }
 
+        /// <summary>
+        /// Request the entire user's inventory (folders and items) from the inventory server.  
+        /// 
+        /// XXX May want to change this so that we don't end up shuffling over data which might prove
+        /// entirely unnecessary.
+        /// </summary>
+        /// <param name="userID"></param>
         private void RequestInventory(LLUUID userID)
         {
             try
             {
-                Console.WriteLine("Requesting Inventory from Inventory server ( " + _inventoryServerUrl + "/GetInventory/" +" ) for " + userID.ToString());
-                RestObjectPosterResponse<InventoryCollection> requester = new RestObjectPosterResponse<InventoryCollection>();
+                MainLog.Instance.Verbose(
+                    "INVENTORY", "Requesting inventory from {0}/GetInventory/ for user {1}", 
+                    _inventoryServerUrl, userID);
+                
+                RestObjectPosterResponse<InventoryCollection> requester 
+                    = new RestObjectPosterResponse<InventoryCollection>();
                 requester.ResponseCallback = InventoryResponse;
 
                 requester.BeginPostObject<Guid>(_inventoryServerUrl + "/GetInventory/", userID.UUID);
-                Console.WriteLine("Request for Inventory sent");
             }
             catch (Exception e)
             {
-                Console.WriteLine(e.Message);
-                Console.WriteLine(e.StackTrace);
+                MainLog.Instance.Error("INVENTORY", e.ToString());
             }
         }
 
+        /// <summary>
+        /// Callback used by the inventory server GetInventory request
+        /// </summary>
+        /// <param name="userID"></param>        
         private void InventoryResponse(InventoryCollection response)
         {
             LLUUID userID = response.UserID;
             if (m_RequestingInventory.ContainsKey(userID))
             {
-
+                MainLog.Instance.Verbose("INVENTORY", 
+                    "Received inventory response for user {0} containing {1} folders and {2} items",
+                                         userID, response.Folders.Count, response.AllItems.Count);
+                
                 InventoryFolderImpl rootFolder = null;
                 InventoryRequest request = m_RequestingInventory[userID];
                 foreach (InventoryFolderBase folder in response.Folders)
@@ -112,6 +129,13 @@ namespace OpenSim.Region.Communications.OGS1
                     }
                 }
                 m_RequestingInventory.Remove(userID);
+            }
+            else
+            {
+                MainLog.Instance.Warn(
+                    "INVENTORY", 
+                    "Received inventory response for {0} for which we do not have a record of requesting!", 
+                    userID);
             }
         }
 
