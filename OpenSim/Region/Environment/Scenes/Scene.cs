@@ -1964,7 +1964,23 @@ namespace OpenSim.Region.Environment.Scenes
         {
             m_eventManager.TriggerOnPluginConsole(args);
         }
-
+        public double GetLandHeight(int x, int y)
+        {
+            return Terrain.GetHeight(x, y);
+        }
+        public LLUUID GetLandOwner(float x, float y)
+        {
+            Land land = LandManager.getLandObject(x, y);
+            if (land == null)
+            {
+                return LLUUID.Zero;
+            }
+            else
+            {
+                return land.landData.ownerID;
+            }
+        }
+    
         #endregion
 
         #region Script Engine

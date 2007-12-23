@@ -410,8 +410,9 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler
 
         public double llGround(LSL_Types.Vector3 offset)
         {
-            NotImplemented("llGround");
-            return 0;
+            int x = (int)(m_host.AbsolutePosition.X + offset.x);
+            int y = (int)(m_host.AbsolutePosition.Y + offset.y);
+            return World.GetLandHeight(x, y);
         }
 
         public double llCloud(LSL_Types.Vector3 offset)
@@ -824,8 +825,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler
 
         public LSL_Types.Vector3 llGetVel()
         {
-            NotImplemented("llGetVel");
-            return new LSL_Types.Vector3();
+            return new LSL_Types.Vector3(m_host.Velocity.X, m_host.Velocity.Y, m_host.Velocity.Z);
         }
 
         public LSL_Types.Vector3 llGetAccel()
@@ -993,8 +993,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler
 
         public double llGetMass()
         {
-            NotImplemented("llGetMass");
-            return 0;
+            return m_host.GetMass();
         }
 
         public void llCollisionFilter(string name, string id, int accept)
@@ -1922,8 +1921,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler
 
         public string llGetLandOwnerAt(LSL_Types.Vector3 pos)
         {
-            NotImplemented("llGetLandOwnerAt");
-            return "";
+            return World.GetLandOwner((float)pos.x, (float)pos.y).ToString();
         }
 
         public string llGetNotecardLine(string name, int line)

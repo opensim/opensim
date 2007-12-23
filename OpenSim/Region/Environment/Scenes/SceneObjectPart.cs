@@ -1225,6 +1225,22 @@ namespace OpenSim.Region.Environment.Scenes
 
         #endregion
 
+        #region Physics
+
+        public float GetMass()
+        {
+            if (PhysActor != null)
+            {
+                return PhysActor.Mass;
+            }
+            else
+            {
+                return 0;
+            }
+        }
+
+        #endregion
+
         #region Texture
 
         /// <summary>
