@@ -421,7 +421,8 @@ namespace OpenSim.Grid.GridServer
             }
             else if (requestData.ContainsKey("region_handle"))
             {
-                Console.WriteLine("requesting data for region " + (string) requestData["region_handle"]);
+                //CFK: The if/else below this makes this message redundant.
+                //CFK: Console.WriteLine("requesting data for region " + (string) requestData["region_handle"]);
                 simData = getRegion(Convert.ToUInt64((string) requestData["region_handle"]));
             }
 
@@ -433,7 +434,8 @@ namespace OpenSim.Grid.GridServer
             }
             else
             {
-                Console.WriteLine("found region");
+                MainLog.Instance.Verbose("DATA", "found " + (string)simData.regionName + " regionHandle = " + 
+                    (string)requestData["region_handle"]);
                 responseData["sim_ip"] = Util.GetHostFromDNS(simData.serverIP).ToString();
                 responseData["sim_port"] = simData.serverPort.ToString();
                 responseData["http_port"] = simData.httpPort.ToString();
@@ -510,8 +512,8 @@ namespace OpenSim.Grid.GridServer
 
                     simProfileList.Add(simProfileBlock);
                 }
-                MainLog.Instance.Verbose("MAP", "Fast map" + simProfileList.Count.ToString() +
-                                         " @ (" + xmin + "," + ymin + ")..(" + xmax + "," + ymax + ")" );
+                MainLog.Instance.Verbose("MAP", "Fast map " + simProfileList.Count.ToString() +
+                                         " regions @ (" + xmin + "," + ymin + ")..(" + xmax + "," + ymax + ")" );
             }
             else
             {
@@ -545,8 +547,8 @@ namespace OpenSim.Grid.GridServer
                         }
                     }
                 }
-                MainLog.Instance.Verbose("MAP", "Std map" + simProfileList.Count.ToString() +
-                                         " @ (" + xmin + "," + ymin + ")..(" + xmax + "," + ymax + ")");
+                MainLog.Instance.Verbose("MAP", "Std map " + simProfileList.Count.ToString() +
+                                         " regions @ (" + xmin + "," + ymin + ")..(" + xmax + "," + ymax + ")");
             }
 
             responseData["sim-profiles"] = simProfileList;
