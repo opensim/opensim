@@ -471,7 +471,8 @@ namespace OpenSim.Grid.GridServer
             {
                 ymax = (Int32) requestData["ymax"];
             }
-            MainLog.Instance.Verbose("MAP", "World map request for range (" + xmin + "," + ymin + ")..(" + xmax + "," + ymax + ")");
+            //CFK: The second MainLog is more meaningful and either standard or fast generally occurs.
+            //CFK: MainLog.Instance.Verbose("MAP", "World map request for range (" + xmin + "," + ymin + ")..(" + xmax + "," + ymax + ")");
 
             XmlRpcResponse response = new XmlRpcResponse();
             Hashtable responseData = new Hashtable();
@@ -509,8 +510,8 @@ namespace OpenSim.Grid.GridServer
 
                     simProfileList.Add(simProfileBlock);
                 }
-                MainLog.Instance.Verbose("MAP", "World map request processed, returned " + simProfileList.Count.ToString() +
-                                         " region(s) in range via FastMode");
+                MainLog.Instance.Verbose("MAP", "Fast map" + simProfileList.Count.ToString() +
+                                         " @ (" + xmin + "," + ymin + ")..(" + xmax + "," + ymax + ")" );
             }
             else
             {
@@ -544,8 +545,8 @@ namespace OpenSim.Grid.GridServer
                         }
                     }
                 }
-                MainLog.Instance.Verbose("MAP", "World map request processed, returned " + simProfileList.Count.ToString() +
-                                         " region(s) in range via Standard Mode");
+                MainLog.Instance.Verbose("MAP", "Std map" + simProfileList.Count.ToString() +
+                                         " @ (" + xmin + "," + ymin + ")..(" + xmax + "," + ymax + ")");
             }
 
             responseData["sim-profiles"] = simProfileList;
