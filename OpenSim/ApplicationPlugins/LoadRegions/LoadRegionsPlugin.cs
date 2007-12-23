@@ -49,17 +49,17 @@ namespace OpenSim.ApplicationPlugins.LoadRegions
     {
         public void Initialise(OpenSimMain openSim)
         {
-            System.Console.WriteLine("Load Regions addin being initialised");
+            MainLog.Instance.Notice("LOADREGIONS", "Load Regions addin being initialised");
 
             IRegionLoader regionLoader;
             if (openSim.ConfigSource.Configs["Startup"].GetString("region_info_source", "filesystem") == "filesystem")
             {
-                MainLog.Instance.Notice("Loading Region Info from filesystem");
+                MainLog.Instance.Notice("LOADREGIONS", "Loading Region Info from filesystem");
                 regionLoader = new RegionLoaderFileSystem();
             }
             else
             {
-                MainLog.Instance.Notice("Loading Region Info from web");
+                MainLog.Instance.Notice("LOADREGIONSPLUGIN", "Loading Region Info from web");
                 regionLoader = new RegionLoaderWebServer();
             }
 
@@ -70,7 +70,7 @@ namespace OpenSim.ApplicationPlugins.LoadRegions
 
             for (int i = 0; i < regionsToLoad.Length; i++)
             {
-                MainLog.Instance.Debug("Creating Region: " + regionsToLoad[i].RegionName);
+                MainLog.Instance.Debug("LOADREGIONS", "Creating Region: " + regionsToLoad[i].RegionName);
                 openSim.CreateRegion(regionsToLoad[i]);
             }
 
@@ -79,17 +79,17 @@ namespace OpenSim.ApplicationPlugins.LoadRegions
         }
         public void LoadRegionFromConfig(OpenSimMain openSim, ulong regionhandle)
         {
-            System.Console.WriteLine("Load Regions addin being initialised");
+            MainLog.Instance.Notice("LOADREGIONS", "Load Regions addin being initialised");
 
             IRegionLoader regionLoader;
             if (openSim.ConfigSource.Configs["Startup"].GetString("region_info_source", "filesystem") == "filesystem")
             {
-                MainLog.Instance.Notice("Loading Region Info from filesystem");
+                MainLog.Instance.Notice("LOADREGIONS", "Loading Region Info from filesystem");
                 regionLoader = new RegionLoaderFileSystem();
             }
             else
             {
-                MainLog.Instance.Notice("Loading Region Info from web");
+                MainLog.Instance.Notice("LOADREGIONS", "Loading Region Info from web");
                 regionLoader = new RegionLoaderWebServer();
             }
 
@@ -99,7 +99,7 @@ namespace OpenSim.ApplicationPlugins.LoadRegions
             {
                 if (regionhandle == regionsToLoad[i].RegionHandle)
                 {
-                    MainLog.Instance.Debug("Creating Region: " + regionsToLoad[i].RegionName);
+                    MainLog.Instance.Debug("LOADREGIONS", "Creating Region: " + regionsToLoad[i].RegionName);
                     openSim.CreateRegion(regionsToLoad[i]);
                 }
             }
