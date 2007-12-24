@@ -961,8 +961,14 @@ namespace OpenSim.Region.Communications.OGS1
 
         public bool TriggerRegionUp(SearializableRegionInfo regionData, ulong regionhandle)
         {
-            MainLog.Instance.Verbose("INTER", gdebugRegionName + "Incoming OGS1 RegionUpReport:  " + 
-                regionData.regionName + "  (" + regionData.RegionLocX + "," + regionData.RegionLocY + ")" );
+            //CFK: I need a little help here as I would like to display the regionName along with the X,Y location
+            //CFL: but when run, I get an exception that m_regionName is not found in SearializableRegionInfo even
+            //CFK: though I believe I defined it correctly. I suspect that the class RegionInfo is perhaps biting
+            //CFK: me and hope someone can add clarity to my thoughts.
+            //CFK: MainLog.Instance.Verbose("INTER", gdebugRegionName + "Incoming OGS1 RegionUpReport:  " +
+            //CFK:     regionData.regionName + "  (" + regionData.RegionLocX + "," + regionData.RegionLocY + ")");
+
+            MainLog.Instance.Verbose("INTER", gdebugRegionName + "Incoming OGS1 RegionUpReport:  " +  "(" + regionData.RegionLocX + "," + regionData.RegionLocY + ")");
 
             try
             {
