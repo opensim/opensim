@@ -350,7 +350,8 @@ namespace OpenSim.Region.Environment.Scenes
                 }
                 else
                 {
-                    MainLog.Instance.Verbose("INTERGRID", "Got notice about Region at X:" + otherRegion.RegionLocX.ToString() + " Y:" + otherRegion.RegionLocY.ToString() + " but it was too far away to send to the client");
+                    MainLog.Instance.Verbose("INTERGRID", "Got notice about far away Region: " + otherRegion.RegionName.ToString() + 
+                        " at  (" + otherRegion.RegionLocX.ToString() + ", " + otherRegion.RegionLocY.ToString() + ")" );
                 }
 
 
