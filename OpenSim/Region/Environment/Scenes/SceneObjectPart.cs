@@ -543,7 +543,7 @@ namespace OpenSim.Region.Environment.Scenes
             bool isPhantom = ((ObjectFlags & (uint)LLObject.ObjectFlags.Phantom) != 0);
 
             bool usePhysics = isPhysical && !isPhantom;
-
+            
             if (usePhysics)
             {
                 PhysActor = m_parentGroup.m_scene.PhysicsScene.AddPrimShape(
@@ -1236,6 +1236,18 @@ namespace OpenSim.Region.Environment.Scenes
             else
             {
                 return 0;
+            }
+        }
+
+        public LLVector3 GetGeometricCenter()
+        {
+            if (PhysActor != null)
+            {
+                return new LLVector3(PhysActor.CenterOfMass.X,PhysActor.CenterOfMass.Y,PhysActor.CenterOfMass.Z);
+            }
+            else
+            {
+                return new LLVector3(0, 0, 0);
             }
         }
 

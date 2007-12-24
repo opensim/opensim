@@ -34,6 +34,7 @@ using System.Text;
 using System.Threading;
 using Axiom.Math;
 using libsecondlife;
+using libsecondlife.StructuredData;
 using OpenSim.Framework;
 using OpenSim.Region.Environment.Interfaces;
 using OpenSim.Region.Environment.Scenes;
@@ -750,8 +751,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler
 
         public LSL_Types.Quaternion llGetLocalRot()
         {
-            NotImplemented("llGetLocalRot");
-            return new LSL_Types.Quaternion();
+            return new LSL_Types.Quaternion(m_host.RotationOffset.X, m_host.RotationOffset.Y, m_host.RotationOffset.Z, m_host.RotationOffset.W);
         }
 
         public void llSetForce(LSL_Types.Vector3 force, int local)
@@ -830,8 +830,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler
 
         public LSL_Types.Vector3 llGetAccel()
         {
-            NotImplemented("llGetAccel");
-            return new LSL_Types.Vector3();
+            return new LSL_Types.Vector3(m_host.Acceleration.X, m_host.Acceleration.Y, m_host.Acceleration.Z);
         }
 
         public LSL_Types.Vector3 llGetOmega()
@@ -1346,8 +1345,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler
 
         public double llWater(LSL_Types.Vector3 offset)
         {
-            NotImplemented("llWater");
-            return 0;
+            return World.RegionInfo.EstateSettings.waterHeight;
         }
 
         public void llPassTouches(int pass)
@@ -2360,19 +2358,26 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler
 
         public void llSetParcelMusicURL(string url)
         {
-            NotImplemented("llSetParcelMusicURL");
+            LLUUID landowner = World.GetLandOwner(m_host.AbsolutePosition.X, m_host.AbsolutePosition.Y);
+            if (landowner == null)
+            {
+                return;
+            }
+            if (landowner != m_host.ObjectOwner)
+            {
+                return;
+            }
+            World.SetLandMusicURL(m_host.AbsolutePosition.X, m_host.AbsolutePosition.Y, url);
         }
 
         public LSL_Types.Vector3 llGetRootPosition()
         {
-            NotImplemented("llGetRootPosition");
-            return new LSL_Types.Vector3();
+            return new LSL_Types.Vector3(m_host.ParentGroup.AbsolutePosition.X, m_host.ParentGroup.AbsolutePosition.Y, m_host.ParentGroup.AbsolutePosition.Z);
         }
 
         public LSL_Types.Quaternion llGetRootRotation()
         {
-            NotImplemented("llGetRootRotation");
-            return new LSL_Types.Quaternion();
+            return new LSL_Types.Quaternion(m_host.ParentGroup.GroupRotation.X, m_host.ParentGroup.GroupRotation.Y, m_host.ParentGroup.GroupRotation.Z, m_host.ParentGroup.GroupRotation.W);
         }
 
         public string llGetObjectDesc()
@@ -2495,8 +2500,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler
 
         public LSL_Types.Vector3 llGetGeometricCenter()
         {
-            NotImplemented("llGetGeometricCenter");
-            return new LSL_Types.Vector3();
+            return new LSL_Types.Vector3(m_host.GetGeometricCenter().X, m_host.GetGeometricCenter().Y, m_host.GetGeometricCenter().Z);
         }
 
         public void llGetPrimitiveParams()
@@ -2528,7 +2532,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler
 
         public void llSetLocalRot(LSL_Types.Quaternion rot)
         {
-            NotImplemented("llSetLocalRot");
+            m_host.RotationOffset = new LLQuaternion((float)rot.x, (float)rot.y, (float)rot.z, (float)rot.s);
         }
 
         public LSL_Types.list llParseStringKeepNulls(string src, LSL_Types.list seperators, LSL_Types.list spacers)
@@ -2594,9 +2598,9 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler
             return 0;
         }
 
-        public void llListReplaceList()
+        public LSL_Types.list llListReplaceList(LSL_Types.list dest, LSL_Types.list src, int start, int end)
         {
-            NotImplemented("llListReplaceList");
+            return dest.GetSublist(0, start - 1) + src + dest.GetSublist(end + 1, -1); 
         }
 
         public void llLoadURL(string avatar_id, string message, string url)
@@ -2792,20 +2796,73 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler
 
         public int llGetObjectPrimCount(string object_id)
         {
-            NotImplemented("llGetObjectPrimCount");
-            return 0;
+            SceneObjectPart part = World.GetSceneObjectPart(new LLUUID(object_id));
+            if (part == null)
+            {
+                return 0;
+            }
+            else
+            {
+                return part.ParentGroup.Children.Count;
+            }
         }
 
         public int llGetParcelMaxPrims(LSL_Types.Vector3 pos, int sim_wide)
         {
-            NotImplemented("llGetParcelMaxPrims");
-            return 0;
+            // Alondria: This currently just is utilizing the normal grid's 0.22 prims/m2 calculation
+            // Which probably will be irrelevent in OpenSim....
+            LandData land = World.GetLandData((float)pos.x, (float)pos.y);
+            float bonusfactor = World.RegionInfo.EstateSettings.objectBonusFactor;
+            if (land == null)
+            {
+                return 0;
+            }
+            if (sim_wide == 1)
+            {
+                decimal v = land.simwideArea * (decimal)(0.22) * (decimal)bonusfactor;
+                return (int)v;
+            }
+            else
+            {
+                decimal v = land.area * (decimal)(0.22) * (decimal)bonusfactor;
+                return (int)v;
+            }
+            
         }
 
         public LSL_Types.list llGetParcelDetails(LSL_Types.Vector3 pos, LSL_Types.list param)
         {
-            NotImplemented("llGetParcelDetails");
-            return new LSL_Types.list();
+            LandData land = World.GetLandData((float)pos.x, (float)pos.y);
+            if (land == null)
+            {
+                return new LSL_Types.list(0);
+            }
+            LSL_Types.list ret = new LSL_Types.list();
+            foreach(object o in param.Data)
+            {
+                switch(o.ToString())
+                {
+                    case "0":
+                        ret = ret + new LSL_Types.list(land.landName);
+                        break;
+                    case "1":
+                        ret = ret + new LSL_Types.list(land.landDesc);
+                        break;
+                    case "2":
+                        ret = ret + new LSL_Types.list(land.ownerID.ToString());
+                        break;
+                    case "3":
+                        ret = ret + new LSL_Types.list(land.groupID.ToString());
+                        break;
+                    case "4":
+                        ret = ret + new LSL_Types.list(land.area);
+                        break;
+                    default:
+                        ret = ret + new LSL_Types.list(0);
+                        break;
+                }
+            }
+            return ret;
         }
 
         //

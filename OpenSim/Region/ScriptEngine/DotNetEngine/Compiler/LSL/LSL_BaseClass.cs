@@ -1636,9 +1636,9 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL
             return m_LSL_Functions.llGetObjectMass(id);
         }
 
-        public void llListReplaceList()
+        public LSL_Types.list llListReplaceList(LSL_Types.list dest, LSL_Types.list src, int start, int end)
         {
-            m_LSL_Functions.llListReplaceList();
+            return m_LSL_Functions.llListReplaceList(dest,src,start,end);
         }
 
         public void llLoadURL(string avatar_id, string message, string url)

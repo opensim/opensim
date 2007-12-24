@@ -1981,7 +1981,26 @@ namespace OpenSim.Region.Environment.Scenes
                 return land.landData.ownerID;
             }
         }
-    
+        
+        public LandData GetLandData(float x, float y)
+        {
+            return LandManager.getLandObject(x, y).landData;
+        }
+
+        public void SetLandMusicURL(float x, float y, string url)
+        {
+            Land land = LandManager.getLandObject(x, y);
+            if (land == null)
+            {
+                return;
+            }
+            else
+            {
+                land.landData.musicURL = url;
+                return;
+            }
+        }
+
         #endregion
 
         #region Script Engine

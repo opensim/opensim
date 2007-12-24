@@ -569,7 +569,7 @@ namespace OpenSim.Region.ScriptEngine.Common
         void llForceMouselook(int mouselook);
         //wiki: double llGetObjectMass(key id)
         double llGetObjectMass(string id);
-        void llListReplaceList();
+        LSL_Types.list llListReplaceList(LSL_Types.list dest, LSL_Types.list src, int start, int end);
         //wiki: llLoadURL(key avatar_id, string message, string url)
         void llLoadURL(string avatar_id, string message, string url);
         //wiki: llParcelMediaCommandList( list commandList )
