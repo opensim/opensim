@@ -961,7 +961,8 @@ namespace OpenSim.Region.Communications.OGS1
 
         public bool TriggerRegionUp(SearializableRegionInfo regionData, ulong regionhandle)
         {
-            MainLog.Instance.Verbose("INTER", gdebugRegionName + ": Incoming OGS1 RegionUpReport:  " + regionData.RegionLocX + "," + regionData.RegionLocY);
+            MainLog.Instance.Verbose("INTER", gdebugRegionName + "Incoming OGS1 RegionUpReport:  " + 
+                regionData.regionName + "  (" + regionData.RegionLocX + "," + regionData.RegionLocY + ")" );
 
             try
             {
