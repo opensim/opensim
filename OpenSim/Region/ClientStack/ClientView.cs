@@ -918,6 +918,18 @@ namespace OpenSim.Region.ClientStack
                                                List<InventoryFolderBase> folders, 
                                                bool fetchFolders, bool fetchItems)
         {
+            // An inventory descendents packet consists of a single agent section and an inventory details 
+            // section for each inventory item.  The size of each inventory item is approximately 550 bytes.
+            // In theory, UDP has a maximum packet size of 64k, so it should be possible to send descendent
+            // packets containing metadata for in excess of 100 items.  But in practice, there may be other
+            // factors (e.g. firewalls) restraining the maximum UDP packet size.  See,
+            //
+            // http://opensimulator.org/mantis/view.php?id=226
+            //
+            // for one example of this kind of thing.  So we'll go for a cautious max
+            // items of 20 which gives a packet size of about 11k
+            int MAX_ITEMS_PER_PACKET = 20;
+            
             Encoding enc = Encoding.ASCII;
             uint FULL_MASK_PERMISSIONS = 2147483647;
             
@@ -925,15 +937,15 @@ namespace OpenSim.Region.ClientStack
             {
                 InventoryDescendentsPacket descend = CreateInventoryDescendentsPacket(ownerID, folderID);                
                 
-                if (items.Count < 40)
+                if (items.Count < MAX_ITEMS_PER_PACKET)
                 {
                     descend.ItemData = new InventoryDescendentsPacket.ItemDataBlock[items.Count];
                     descend.AgentData.Descendents = items.Count;
                 }
                 else
                 {
-                    descend.ItemData = new InventoryDescendentsPacket.ItemDataBlock[40];
-                    descend.AgentData.Descendents = 40;
+                    descend.ItemData = new InventoryDescendentsPacket.ItemDataBlock[MAX_ITEMS_PER_PACKET];
+                    descend.AgentData.Descendents = MAX_ITEMS_PER_PACKET;
                 }
                 
                 // Even if we aren't fetching the folders, we still need to include the folder count
@@ -979,29 +991,29 @@ namespace OpenSim.Region.ClientStack
     
                     i++;
                     count++;
-                    if (i == 40)
+                    if (i == MAX_ITEMS_PER_PACKET)
                     {
                         OutPacket(descend, ThrottleOutPacketType.Asset);
     
                         if ((items.Count - count) > 0)
                         {
                             descend = CreateInventoryDescendentsPacket(ownerID, folderID);
-                            if ((items.Count - count) < 40)
+                            if ((items.Count - count) < MAX_ITEMS_PER_PACKET)
                             {
                                 descend.ItemData = new InventoryDescendentsPacket.ItemDataBlock[items.Count - count];
                                 descend.AgentData.Descendents = items.Count - count;
                             }
                             else
                             {
-                                descend.ItemData = new InventoryDescendentsPacket.ItemDataBlock[40];
-                                descend.AgentData.Descendents = 40;
+                                descend.ItemData = new InventoryDescendentsPacket.ItemDataBlock[MAX_ITEMS_PER_PACKET];
+                                descend.AgentData.Descendents = MAX_ITEMS_PER_PACKET;
                             }
                             i = 0;
                         }
                     }
                 }
     
-                if (i < 40)
+                if (i < MAX_ITEMS_PER_PACKET)
                 {
                     OutPacket(descend, ThrottleOutPacketType.Asset);
                 }
@@ -1012,15 +1024,15 @@ namespace OpenSim.Region.ClientStack
             {
                 InventoryDescendentsPacket descend = CreateInventoryDescendentsPacket(ownerID, folderID);
     
-                if (folders.Count < 40)
+                if (folders.Count < MAX_ITEMS_PER_PACKET)
                 {
                     descend.FolderData = new InventoryDescendentsPacket.FolderDataBlock[folders.Count];
                     descend.AgentData.Descendents = folders.Count;
                 }
                 else
                 {
-                    descend.FolderData = new InventoryDescendentsPacket.FolderDataBlock[40];
-                    descend.AgentData.Descendents = 40;
+                    descend.FolderData = new InventoryDescendentsPacket.FolderDataBlock[MAX_ITEMS_PER_PACKET];
+                    descend.AgentData.Descendents = MAX_ITEMS_PER_PACKET;
                 }
                 
                 // Not sure if this scenario ever actually occurs, but nonetheless we include the items
@@ -1042,29 +1054,29 @@ namespace OpenSim.Region.ClientStack
 
                     i++;
                     count++;
-                    if (i == 40)
+                    if (i == MAX_ITEMS_PER_PACKET)
                     {
                         OutPacket(descend, ThrottleOutPacketType.Asset);
     
                         if ((folders.Count - count) > 0)
                         {
                             descend = CreateInventoryDescendentsPacket(ownerID, folderID);
-                            if ((folders.Count - count) < 40)
+                            if ((folders.Count - count) < MAX_ITEMS_PER_PACKET)
                             {
                                 descend.FolderData = new InventoryDescendentsPacket.FolderDataBlock[folders.Count - count];
                                 descend.AgentData.Descendents = folders.Count - count;
                             }
                             else
                             {
-                                descend.FolderData = new InventoryDescendentsPacket.FolderDataBlock[40];
-                                descend.AgentData.Descendents = 40;
+                                descend.FolderData = new InventoryDescendentsPacket.FolderDataBlock[MAX_ITEMS_PER_PACKET];
+                                descend.AgentData.Descendents = MAX_ITEMS_PER_PACKET;
                             }
                             i = 0;
                         }
                     }
                 }
     
-                if (i < 40)
+                if (i < MAX_ITEMS_PER_PACKET)
                 {
                     OutPacket(descend, ThrottleOutPacketType.Asset);
                 }
