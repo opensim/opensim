@@ -260,7 +260,7 @@ namespace OpenSim.Framework.UserManagement
         /// <param name="request">The users loginrequest</param>
         public void CreateAgent(UserProfileData profile, XmlRpcRequest request)
         {
-            Hashtable requestData = (Hashtable) request.Params[0];
+            //Hashtable requestData = (Hashtable) request.Params[0];
 
             UserAgentData agent = new UserAgentData();
 

@@ -13,7 +13,7 @@
 *       names of its contributors may be used to endorse or promote products
 *       derived from this software without specific prior written permission.
 *
-* THIS SOFTWARE IS PROVIDED BY THE DEVELOPERS AS IS AND ANY
+* THIS SOFTWARE IS PROVIDED BY THE DEVELOPERS ``AS IS'' AND ANY
 * EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
 * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
 * DISCLAIMED. IN NO EVENT SHALL THE CONTRIBUTORS BE LIABLE FOR ANY
@@ -25,24 +25,26 @@
 * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 * 
 */
+using libsecondlife;
 
 namespace OpenSim.Region.Capabilities
-{
-    [LLSDType("MAP")]
-    public class LLSDCapsDetails
+{    
+    [LLSDMap]
+    public class LLSDTaskInventoryUploadComplete
     {
-        public string MapLayer = "";
-        public string NewFileAgentInventory = "";
-        //public string EventQueueGet = "";
-       // public string RequestTextureDownload = "";
-        // public string ChatSessionRequest = "";
-        public string UpdateNotecardAgentInventory = "";
-        public string UpdateScriptAgentInventory = "";
-        public string UpdateScriptTaskInventory = "";
-        // public string ParcelVoiceInfoRequest = "";
-
-        public LLSDCapsDetails()
-        {
-        }
+        /// <summary>
+        /// The task inventory item that was updated
+        /// </summary> 
+        public LLUUID item_id;
+        
+        /// <summary>
+        /// The task that was updated
+        /// </summary>
+        public LLUUID task_id;      
+                
+        /// <summary>
+        /// State of the upload.  So far have only even seen this set to "complete"
+        /// </summary>
+        public string state;
     }
 }

@@ -74,6 +74,13 @@ namespace OpenSim.Region.Environment.Scenes
             return LLUUID.Zero;
         }
 
+        /// <summary>
+        /// Capability originating call to update the asset of an item in an agent's inventory
+        /// </summary>
+        /// <param name="remoteClient"></param>
+        /// <param name="itemID"></param>
+        /// <param name="data"></param>
+        /// <returns></returns>
         public LLUUID CapsUpdateInventoryItemAsset(IClientAPI remoteClient, LLUUID itemID, byte[] data)
         {
             CachedUserInfo userInfo = CommsManager.UserProfileCacheService.GetUserDetails(remoteClient.AgentId);
@@ -105,6 +112,39 @@ namespace OpenSim.Region.Environment.Scenes
                 }
             }
             return LLUUID.Zero;
+        }
+        
+        /// <summary>
+        /// Capability originating call to update the asset of a script in a prim's (task's) inventory
+        /// </summary>
+        /// <param name="remoteClient"></param>
+        /// <param name="itemID"></param>
+        /// <param name="primID">The prim which contains the item to update</param>
+        /// <param name="isScriptRunning">Indicates whether the script to update is currently running</param>
+        /// <param name="data"></param>
+        /// <returns>Asset LLUID created</returns>        
+        public LLUUID CapsUpdateTaskInventoryScriptAsset(LLUUID avatarID, LLUUID itemID, 
+                                                         LLUUID primID, bool isScriptRunning, byte[] data)
+        {
+            // TODO Not currently doing anything with the isScriptRunning bool
+            
+            MainLog.Instance.Verbose(
+                "PRIMINVENTORY",
+                "Prim inventory script save functionality not yet implemented."
+                    + "  remoteClient: {0}, itemID: {1}, primID: {2}, isScriptRunning: {3}",
+                avatarID, itemID, primID, isScriptRunning);
+            
+            // TODO
+            // Retrieve client LLUID
+            // Retrieve sog containing primID
+            // Retrieve item
+            // Create new asset and add to cache
+            // Update item with new asset
+            // Trigger SOG update (see RezScript)
+            // Trigger rerunning of script (use TriggerRezScript event, see RezScript)
+            // return new asset id
+            
+            return null;
         }
 
         /// <summary>
@@ -470,7 +510,6 @@ namespace OpenSim.Region.Environment.Scenes
                         if (rezAsset != null)
                         {
                             string script = Util.FieldToString(rezAsset.Data);
-                            //Console.WriteLine("rez script "+script);
                             EventManager.TriggerRezScript(localID, copyID, script);
                             rezzed = true;
                         }

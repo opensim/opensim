@@ -26,23 +26,26 @@
 * 
 */
 
-namespace OpenSim.Region.Capabilities
-{
-    [LLSDType("MAP")]
-    public class LLSDCapsDetails
-    {
-        public string MapLayer = "";
-        public string NewFileAgentInventory = "";
-        //public string EventQueueGet = "";
-       // public string RequestTextureDownload = "";
-        // public string ChatSessionRequest = "";
-        public string UpdateNotecardAgentInventory = "";
-        public string UpdateScriptAgentInventory = "";
-        public string UpdateScriptTaskInventory = "";
-        // public string ParcelVoiceInfoRequest = "";
+using libsecondlife;
 
-        public LLSDCapsDetails()
-        {
-        }
+namespace OpenSim.Region.Capabilities
+{ 
+    [LLSDMap]
+    public class LLSDTaskScriptUpdate
+    {
+        /// <summary>
+        /// The item containing the script to update
+        /// </summary> 
+        public LLUUID item_id;
+        
+        /// <summary>
+        /// The task containing the script
+        /// </summary> 
+        public LLUUID task_id;
+        
+        /// <summary>
+        /// Signals whether the script is currently active
+        /// </summary> 
+        public int is_script_running;
     }
 }

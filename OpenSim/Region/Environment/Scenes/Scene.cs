@@ -1350,10 +1350,13 @@ namespace OpenSim.Region.Environment.Scenes
                                  agent.CapsPath, agent.AgentID, m_dumpAssetsToFile);
 
                     Util.SetCapsURL(agent.AgentID, "http://" + m_regInfo.ExternalHostName + ":" + httpListener.Port.ToString() +
-                                    "/CAPS/" + agent.CapsPath + "0000/");
+                                    "/CAPS/" + agent.CapsPath + "0000/");                    
                     cap.RegisterHandlers();
+                    
                     cap.AddNewInventoryItem = AddInventoryItem;
                     cap.ItemUpdatedCall = CapsUpdateInventoryItemAsset;
+                    cap.TaskScriptUpdatedCall = CapsUpdateTaskInventoryScriptAsset;
+                    
                     if (m_capsHandlers.ContainsKey(agent.AgentID))
                     {
                         //MainLog.Instance.Warn("client", "Adding duplicate CAPS entry for user " +

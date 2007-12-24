@@ -42,21 +42,29 @@ namespace OpenSim.Region.Capabilities
         string inventoryType, string assetType);
 
     public delegate LLUUID UpdateItem(LLUUID itemID, byte[] data);
+    
+    public delegate LLUUID UpdateTaskScript(LLUUID itemID, LLUUID primID, bool isScriptRunning, byte[] data);
 
     public delegate void NewInventoryItem(LLUUID userID, InventoryItemBase item);
 
     public delegate LLUUID ItemUpdatedCallback(LLUUID userID, LLUUID itemID, byte[] data);
+    
+    public delegate LLUUID TaskScriptUpdatedCallback(LLUUID userID, LLUUID itemID, LLUUID primID, 
+                                                     bool isScriptRunning, byte[] data);
 
     public class Caps
     {
         private string m_httpListenerHostName;
         private uint m_httpListenPort;
+        
         private string m_capsObjectPath = "00001-";
         private string m_requestPath = "0000/";
         private string m_mapLayerPath = "0001/";
         private string m_newInventory = "0002/";
        //private string m_requestTexture = "0003/";
         private string m_notecardUpdatePath = "0004/";
+        private string m_notecardTaskUpdatePath = "0005/";
+        
         //private string eventQueue = "0100/";
         private BaseHttpServer m_httpListener;
         private LLUUID m_agentID;
@@ -65,8 +73,11 @@ namespace OpenSim.Region.Capabilities
         private Queue<string> m_capsEventQueue = new Queue<string>();
         private bool m_dumpAssetsToFile;
 
+        // These are callbacks which will be setup by the scene so that we can update scene data when we 
+        // receive capability calls
         public NewInventoryItem AddNewInventoryItem = null;
         public ItemUpdatedCallback ItemUpdatedCall = null;
+        public TaskScriptUpdatedCallback TaskScriptUpdatedCall = null;
         
         public Caps(AssetCache assetCache, BaseHttpServer httpServer, string httpListen, uint httpPort, string capsPath,
                     LLUUID agent, bool dumpAssetsToFile)
@@ -100,9 +111,11 @@ namespace OpenSim.Region.Capabilities
                 AddLegacyCapsHandler(m_httpListener, m_requestPath, CapsRequest);
                 //AddLegacyCapsHandler(m_httpListener, m_requestTexture , RequestTexture);
                 AddLegacyCapsHandler(m_httpListener, m_notecardUpdatePath, NoteCardAgentInventory);
+                AddLegacyCapsHandler(m_httpListener, m_notecardTaskUpdatePath, ScriptTaskInventory);
             }
-            catch
+            catch (Exception e)
             {
+                MainLog.Instance.Error("CAPS", e.ToString());
             }
         }
 
@@ -117,7 +130,7 @@ namespace OpenSim.Region.Capabilities
         }
 
         /// <summary>
-        /// 
+        /// Construct a client response detailing all the capabilities this server can provide.
         /// </summary>
         /// <param name="request"></param>
         /// <param name="path"></param>
@@ -131,7 +144,7 @@ namespace OpenSim.Region.Capabilities
         }
 
         /// <summary>
-        /// 
+        /// Return an LLSDCapsDetails listing all the capabilities this server can provide
         /// </summary>
         /// <returns></returns>
         protected LLSDCapsDetails GetCapabilities()
@@ -144,7 +157,7 @@ namespace OpenSim.Region.Capabilities
             caps.NewFileAgentInventory = capsBaseUrl + m_newInventory;
             caps.UpdateNotecardAgentInventory = capsBaseUrl + m_notecardUpdatePath;
             caps.UpdateScriptAgentInventory = capsBaseUrl + m_notecardUpdatePath;
-          //  caps.UpdateScriptTaskInventory = capsBaseUrl + m_requestTexture;
+            caps.UpdateScriptTaskInventory = capsBaseUrl + m_notecardTaskUpdatePath;
             return caps;
         }
 
@@ -249,9 +262,65 @@ namespace OpenSim.Region.Capabilities
         }
 
         #endregion
+        
+        /// <summary>
+        /// Callback for a client request for an upload url for a script task 
+        /// inventory update
+        /// </summary>
+        /// <param name="request"></param>
+        /// <param name="path"></param>
+        /// <param name="param"></param>
+        /// <returns></returns>
+        public string ScriptTaskInventory(string request, string path, string param)
+        {            
+            try
+            {
+//                MainLog.Instance.Debug("CAPS", "request: {0}, path: {1}, param: {2}", request, path, param);
+                
+                Hashtable hash = (Hashtable)LLSD.LLSDDeserialize(Helpers.StringToField(request));            
+                LLSDTaskScriptUpdate llsdUpdateRequest = new LLSDTaskScriptUpdate();
+                LLSDHelpers.DeserialiseLLSDMap(hash, llsdUpdateRequest);
+                
+                string capsBase = "/CAPS/" + m_capsObjectPath;
+                string uploaderPath = Util.RandomClass.Next(5000, 8000).ToString("0000");
+                
+                TaskInventoryScriptUpdater uploader =
+                    new TaskInventoryScriptUpdater(
+                        llsdUpdateRequest.item_id, 
+                        llsdUpdateRequest.task_id, 
+                        llsdUpdateRequest.is_script_running, 
+                        capsBase + uploaderPath, 
+                        m_httpListener, 
+                        m_dumpAssetsToFile); 
+                uploader.OnUpLoad += TaskScriptUpdated;
+                
+                m_httpListener.AddStreamHandler(
+                    new BinaryStreamHandler("POST", capsBase + uploaderPath, uploader.uploaderCaps));
+                string uploaderURL = "http://" + m_httpListenerHostName + ":" + m_httpListenPort.ToString() + capsBase +
+                                     uploaderPath;
+
+                LLSDAssetUploadResponse uploadResponse = new LLSDAssetUploadResponse();
+                uploadResponse.uploader = uploaderURL;
+                uploadResponse.state = "upload";
+                
+//                MainLog.Instance.Verbose(
+//                    "CAPS", 
+//                    "ScriptTaskInventory response: {0}", 
+//                    LLSDHelpers.SerialiseLLSDReply(uploadResponse));
+                    
+                return LLSDHelpers.SerialiseLLSDReply(uploadResponse);                
+            }
+            catch (Exception e)
+            {
+                MainLog.Instance.Error("CAPS", e.ToString());
+            }
+
+            return null;
+        }
 
         /// <summary>
-        /// 
+        /// Callback for a client request for an upload url for a notecard (or script) 
+        /// agent inventory update
         /// </summary>
         /// <param name="request"></param>
         /// <param name="path"></param>
@@ -265,11 +334,10 @@ namespace OpenSim.Region.Capabilities
             LLSDHelpers.DeserialiseLLSDMap(hash, llsdRequest);
 
             string capsBase = "/CAPS/" + m_capsObjectPath;
-            LLUUID newInvItem = llsdRequest.item_id;
             string uploaderPath = Util.RandomClass.Next(5000, 8000).ToString("0000");
 
             ItemUpdater uploader =
-                new ItemUpdater(newInvItem, capsBase + uploaderPath, m_httpListener, m_dumpAssetsToFile);
+                new ItemUpdater(llsdRequest.item_id, capsBase + uploaderPath, m_httpListener, m_dumpAssetsToFile);
             uploader.OnUpLoad += ItemUpdated;
 
             m_httpListener.AddStreamHandler(
@@ -281,6 +349,8 @@ namespace OpenSim.Region.Capabilities
             uploadResponse.uploader = uploaderURL;
             uploadResponse.state = "upload";
 
+            MainLog.Instance.Verbose("CAPS", "NoteCardAgentInventory response: {0}", LLSDHelpers.SerialiseLLSDReply(uploadResponse));
+            
             return LLSDHelpers.SerialiseLLSDReply(uploadResponse);
         }
 
@@ -368,12 +438,36 @@ namespace OpenSim.Region.Capabilities
             }
         }
 
+        /// <summary>
+        /// Called when new asset data for an agent inventory item update has been uploaded.
+        /// </summary>
+        /// <param name="itemID">Item to update</param>
+        /// <param name="data">New asset data</param>
+        /// <returns></returns>
         public LLUUID ItemUpdated(LLUUID itemID, byte[] data)
         {
             if (ItemUpdatedCall != null)
             {
                 return ItemUpdatedCall(m_agentID, itemID, data);
             }
+            
+            return LLUUID.Zero;
+        }
+
+        /// <summary>
+        /// Called when new asset data for an agent inventory item update has been uploaded.
+        /// </summary>
+        /// <param name="itemID">Item to update</param>
+        /// <param name="primID">Prim containing item to update</param>
+        /// <param name="isScriptRunning">Signals whether the script to update is currently running</param>
+        /// <param name="data">New asset data</param>        
+        public LLUUID TaskScriptUpdated(LLUUID itemID, LLUUID primID, bool isScriptRunning, byte[] data)
+        {
+            if (TaskScriptUpdatedCall != null)
+            {
+                return TaskScriptUpdatedCall(m_agentID, itemID, primID, isScriptRunning, data);
+            }
+            
             return LLUUID.Zero;
         }
 
@@ -452,6 +546,10 @@ namespace OpenSim.Region.Capabilities
             }
         }
 
+        /// <summary>
+        /// This class is a callback invoked when a client sends asset data to 
+        /// an agent inventory notecard update url
+        /// </summary>
         public class ItemUpdater
         {
             public event UpdateItem OnUpLoad;
@@ -514,5 +612,96 @@ namespace OpenSim.Region.Capabilities
                 fs.Close();
             }
         }
+        
+        /// <summary>
+        /// This class is a callback invoked when a client sends asset data to 
+        /// a task inventory script update url
+        /// </summary>
+        public class TaskInventoryScriptUpdater
+        {
+            public event UpdateTaskScript OnUpLoad;
+
+            private string uploaderPath = "";
+            private LLUUID inventoryItemID;
+            private LLUUID primID;
+            private bool isScriptRunning;
+            private BaseHttpServer httpListener;
+            private bool m_dumpAssetToFile;
+
+            public TaskInventoryScriptUpdater(LLUUID inventoryItemID, LLUUID primID, int isScriptRunning, 
+                                              string path, BaseHttpServer httpServer, bool dumpAssetToFile)
+            {
+                m_dumpAssetToFile = dumpAssetToFile;
+
+                this.inventoryItemID = inventoryItemID;
+                this.primID = primID;
+                
+                // This comes in over the packet as an integer, but actually appears to be treated as a bool
+                this.isScriptRunning = (0 == isScriptRunning ? false : true);
+                
+                uploaderPath = path;
+                httpListener = httpServer;
+            }
+
+            /// <summary>
+            /// 
+            /// </summary>
+            /// <param name="data"></param>
+            /// <param name="path"></param>
+            /// <param name="param"></param>
+            /// <returns></returns>
+            public string uploaderCaps(byte[] data, string path, string param)
+            {
+                try
+                {
+//                    MainLog.Instance.Verbose(
+//                        "CAPS", 
+//                        "TaskInventoryScriptUpdater received data: {0}, path: {1}, param: {2}", 
+//                        data, path, param);
+                    
+                    string res = "";
+                    LLSDTaskInventoryUploadComplete uploadComplete = new LLSDTaskInventoryUploadComplete();
+                    LLUUID assetID = LLUUID.Zero;
+
+                    if (OnUpLoad != null)
+                    {
+                        assetID = OnUpLoad(inventoryItemID, primID, isScriptRunning, data);
+                    }
+
+                    uploadComplete.item_id = inventoryItemID;                
+                    uploadComplete.task_id = primID;
+                    uploadComplete.state = "complete";
+
+                    res = LLSDHelpers.SerialiseLLSDReply(uploadComplete);
+
+                    httpListener.RemoveStreamHandler("POST", uploaderPath);
+
+                    if (m_dumpAssetToFile)
+                    {
+                        SaveAssetToFile("updatedtaskscript" + Util.RandomClass.Next(1, 1000) + ".dat", data);
+                    }
+                    
+//                    MainLog.Instance.Verbose("CAPS", "TaskInventoryScriptUpdater.uploaderCaps res: {0}", res);
+
+                    return res;
+                }
+                catch (Exception e)
+                {
+                    MainLog.Instance.Error("CAPS", e.ToString());
+                }
+                
+                // XXX Maybe this should be some meaningful error packet
+                return null;                    
+            }
+
+            private void SaveAssetToFile(string filename, byte[] data)
+            {
+                FileStream fs = File.Create(filename);
+                BinaryWriter bw = new BinaryWriter(fs);
+                bw.Write(data);
+                bw.Close();
+                fs.Close();
+            }
+        }        
     }
 }
