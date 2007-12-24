@@ -50,7 +50,6 @@ namespace OpenSim.Framework
         {
             m_regionLocX = ConvertFrom.RegionLocX;
             m_regionLocY = ConvertFrom.RegionLocY;
-            m_regionName = ConvertFrom.RegionName;
             m_internalEndPoint = ConvertFrom.InternalEndPoint;
             m_externalHostName = ConvertFrom.ExternalHostName;
             m_remotingPort = ConvertFrom.RemotingPort;
@@ -61,7 +60,6 @@ namespace OpenSim.Framework
 
             m_regionLocX = regionLocX;
             m_regionLocY = regionLocY;
-            m_regionName = regionName;
 
             m_internalEndPoint = internalEndPoint;
             m_externalHostName = externalUri;
@@ -71,7 +69,6 @@ namespace OpenSim.Framework
         {
             m_regionLocX = regionLocX;
             m_regionLocY = regionLocY;
-            m_regionName = regionName;
 
             m_externalHostName = externalUri;
 
@@ -132,15 +129,6 @@ namespace OpenSim.Framework
             set
             {
                 m_externalHostName = value.ToString();
-            }
-        }
-
-        protected string m_regionName;
-        public string regionName
-        {
-            get
-            {
-                return m_regionName;
             }
         }
 
