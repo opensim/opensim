@@ -65,9 +65,9 @@ namespace OpenSim.Region.Physics.OdePlugin
         private bool m_throttleUpdates = false;
         private int throttleCounter = 0;
         public bool outofBounds = false;
-        private float m_density = 0f;
-        
-        
+        private float m_density = 10.000006836f;// Aluminum g/cm3;
+
+         
 
         public bool _zeroFlag = false;
         private bool m_lastUpdateSent = false;
@@ -76,7 +76,7 @@ namespace OpenSim.Region.Physics.OdePlugin
         private String m_primName;
         private PhysicsVector _target_velocity;
         public d.Mass pMass;
-        private const float MassMultiplier = 150f;
+        
         private int debugcounter = 0;
 
         public OdePrim(String primName, OdeScene parent_scene, IntPtr targetSpace, PhysicsVector pos, PhysicsVector size,
@@ -190,7 +190,8 @@ namespace OpenSim.Region.Physics.OdePlugin
             float volume = 0;
             
             // No material is passed to the physics engines yet..  soo..   
-            float density = 2.7f; // Aluminum g/cm3;
+            // we're using the m_density constant in the class definition
+            
 
             float returnMass = 0;
 
@@ -202,16 +203,20 @@ namespace OpenSim.Region.Physics.OdePlugin
                     volume = _size.X * _size.Y * _size.Z;
 
                     // If the user has 'hollowed out' 
+                    // ProfileHollow is one of those 0 to 50000 values :P
+                    // we like percentages better..   so turning into a percentage
+
                     if (((float)_pbs.ProfileHollow / 50000f) > 0.0)
                     {
                         float hollowAmount = (float)_pbs.ProfileHollow / 50000f;
-                        //break;
+                        
+                        // calculate the hollow volume by it's shape compared to the prim shape
                         float hollowVolume = 0;
                         switch (_pbs.HollowShape)
                         {
                             case HollowShape.Square:
                             case HollowShape.Same:
-                                // Cube Hollow
+                                // Cube Hollow volume calculation
                                 float hollowsizex = _size.X * hollowAmount;
                                 float hollowsizey = _size.Y * hollowAmount;
                                 float hollowsizez = _size.Z * hollowAmount;
@@ -220,6 +225,7 @@ namespace OpenSim.Region.Physics.OdePlugin
 
                             case HollowShape.Circle:
                                 // Hollow shape is a perfect cyllinder in respect to the cube's scale
+                                // Cyllinder hollow volume calculation
                                 float hRadius = _size.X / 2;
                                 float hLength = _size.Z;
 
@@ -228,7 +234,10 @@ namespace OpenSim.Region.Physics.OdePlugin
                                 break;
 
                             case HollowShape.Triangle:
-                                float aLength = _size.Y; // Triangle is an Equilateral Triangular Prism with aLength = to _size.Y
+                                // Equilateral Triangular Prism volume hollow calculation
+                                // Triangle is an Equilateral Triangular Prism with aLength = to _size.Y
+
+                                float aLength = _size.Y; 
                                 // 1/2 abh
                                 hollowVolume = (float)((0.5 * aLength * _size.X * _size.Z) * hollowAmount);
                                 break;
@@ -244,14 +253,22 @@ namespace OpenSim.Region.Physics.OdePlugin
                     break;
 
                 default:
+                    // we don't have all of the volume formulas yet so 
+                    // use the common volume formula for all
                     volume = _size.X * _size.Y * _size.Z;
                     break;
             }
 
             // Calculate Path cut effect on volume
             // Not exact, in the triangle hollow example
-            // They should ever be less then zero..   
+            // They should never be zero or less then zero..   
             // we'll ignore it if it's less then zero
+
+            // ProfileEnd and ProfileBegin are values
+            // from 0 to 50000
+
+            // Turning them back into percentages so that I can cut that percentage off the volume
+
             float PathCutEndAmount = _pbs.ProfileEnd;
             float PathCutStartAmount = _pbs.ProfileBegin;
             if (((PathCutStartAmount + PathCutEndAmount)/50000f) > 0.0f)
@@ -259,13 +276,16 @@ namespace OpenSim.Region.Physics.OdePlugin
 
                 float pathCutAmount = ((PathCutStartAmount + PathCutEndAmount) / 50000f);
                 
+                // Check the return amount for sanity
                 if (pathCutAmount >= 0.99f) 
                     pathCutAmount=0.99f;
 
                 volume = volume - (volume * pathCutAmount);
             }
             
-            returnMass = density * volume;
+            // Mass = density * volume
+
+            returnMass = m_density * volume;
 
             return returnMass;
         }
@@ -274,8 +294,6 @@ namespace OpenSim.Region.Physics.OdePlugin
         {    
             if (Body != (IntPtr)0)
             {
-               //if (_pbs.ProfileShape = ProfileShape.Square) {
-
                 d.MassSetBoxTotal(out pMass, CalculateMass(), _size.X, _size.Y, _size.Z);
                 d.BodySetMass(Body, ref pMass);
             }
