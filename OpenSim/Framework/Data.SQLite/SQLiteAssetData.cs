@@ -67,9 +67,9 @@ namespace OpenSim.Framework.Data.SQLite
                 {
                     da.Fill(ds.Tables["assets"]);
                 }
-                catch (Exception)
+                catch (Exception e)
                 {
-                    MainLog.Instance.Verbose("AssetStorage", "Caught fill error on asset table");
+                    MainLog.Instance.Verbose("SQLITE", e.ToString());
                 }
             }
 
@@ -122,7 +122,7 @@ namespace OpenSim.Framework.Data.SQLite
             string temporary = asset.Temporary ? "Temporary" : "Stored";
             string local = asset.Local ? "Local" : "Remote";
 
-            MainLog.Instance.Verbose("ASSETSTORAGE",
+            MainLog.Instance.Verbose("SQLITE",
                                      string.Format("Loaded {6} {5} Asset: [{0}][{3}/{4}] \"{1}\":{2} ({7} bytes)",
                                                    asset.FullID, asset.Name, asset.Description, asset.Type,
                                                    asset.InvType, temporary, local, asset.Data.Length));
@@ -148,7 +148,7 @@ namespace OpenSim.Framework.Data.SQLite
 
         public void CommitAssets() // force a sync to the database
         {
-            MainLog.Instance.Verbose("AssetStorage", "Attempting commit");
+            MainLog.Instance.Verbose("SQLITE", "Attempting commit");
             lock (ds)
             {
                 da.Update(ds, "assets");
@@ -279,7 +279,7 @@ namespace OpenSim.Framework.Data.SQLite
             }
             catch (SqliteSyntaxException)
             {
-                MainLog.Instance.Verbose("DATASTORE", "SQLite Database doesn't exist... creating");
+                MainLog.Instance.Verbose("SQLITE", "SQLite Database doesn't exist... creating");
                 InitDB(conn);
             }
             return true;
