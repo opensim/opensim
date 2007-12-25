@@ -38,18 +38,18 @@ using OpenSim.Framework.Servers;
 namespace OpenSim.Region.Capabilities
 {
     public delegate void UpLoadedAsset(
-        string assetName, string description, LLUUID assetID, LLUUID inventoryItem, LLUUID parentFolder, byte[] data,
-        string inventoryType, string assetType);
+        string assetName, string description, LLUUID assetID, LLUUID inventoryItem, LLUUID parentFolder, 
+        byte[] data, string inventoryType, string assetType);
 
     public delegate LLUUID UpdateItem(LLUUID itemID, byte[] data);
     
-    public delegate LLUUID UpdateTaskScript(LLUUID itemID, LLUUID primID, bool isScriptRunning, byte[] data);
+    public delegate void UpdateTaskScript(LLUUID itemID, LLUUID primID, bool isScriptRunning, byte[] data);
 
     public delegate void NewInventoryItem(LLUUID userID, InventoryItemBase item);
 
     public delegate LLUUID ItemUpdatedCallback(LLUUID userID, LLUUID itemID, byte[] data);
     
-    public delegate LLUUID TaskScriptUpdatedCallback(LLUUID userID, LLUUID itemID, LLUUID primID, 
+    public delegate void TaskScriptUpdatedCallback(LLUUID userID, LLUUID itemID, LLUUID primID, 
                                                      bool isScriptRunning, byte[] data);
 
     public class Caps
@@ -349,7 +349,10 @@ namespace OpenSim.Region.Capabilities
             uploadResponse.uploader = uploaderURL;
             uploadResponse.state = "upload";
 
-            MainLog.Instance.Verbose("CAPS", "NoteCardAgentInventory response: {0}", LLSDHelpers.SerialiseLLSDReply(uploadResponse));
+//            MainLog.Instance.Verbose(
+//                "CAPS", 
+//                "NoteCardAgentInventory response: {0}", 
+//                LLSDHelpers.SerialiseLLSDReply(uploadResponse));
             
             return LLSDHelpers.SerialiseLLSDReply(uploadResponse);
         }
@@ -461,14 +464,12 @@ namespace OpenSim.Region.Capabilities
         /// <param name="primID">Prim containing item to update</param>
         /// <param name="isScriptRunning">Signals whether the script to update is currently running</param>
         /// <param name="data">New asset data</param>        
-        public LLUUID TaskScriptUpdated(LLUUID itemID, LLUUID primID, bool isScriptRunning, byte[] data)
+        public void TaskScriptUpdated(LLUUID itemID, LLUUID primID, bool isScriptRunning, byte[] data)
         {
             if (TaskScriptUpdatedCall != null)
             {
-                return TaskScriptUpdatedCall(m_agentID, itemID, primID, isScriptRunning, data);
+                TaskScriptUpdatedCall(m_agentID, itemID, primID, isScriptRunning, data);
             }
-            
-            return LLUUID.Zero;
         }
 
         public class AssetUploader
@@ -661,11 +662,10 @@ namespace OpenSim.Region.Capabilities
                     
                     string res = "";
                     LLSDTaskInventoryUploadComplete uploadComplete = new LLSDTaskInventoryUploadComplete();
-                    LLUUID assetID = LLUUID.Zero;
 
                     if (OnUpLoad != null)
                     {
-                        assetID = OnUpLoad(inventoryItemID, primID, isScriptRunning, data);
+                        OnUpLoad(inventoryItemID, primID, isScriptRunning, data);
                     }
 
                     uploadComplete.item_id = inventoryItemID;                

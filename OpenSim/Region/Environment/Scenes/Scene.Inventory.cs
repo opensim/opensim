@@ -41,17 +41,13 @@ namespace OpenSim.Region.Environment.Scenes
     {
         //split these method into this partial as a lot of these (hopefully) are only temporary and won't be needed once Caps is more complete
         // or at least some of they can be moved somewhere else
-
-        public void AddInventoryItem(LLUUID avatarId, InventoryItemBase item)
-        {
-            ScenePresence avatar;
-
-            if (TryGetAvatar(avatarId, out avatar))
-            {
-                AddInventoryItem(avatar.ControllingClient, item);
-            }
-        }
-
+        
+        /// <summary>
+        /// Add an inventory item to an avatar's inventory.
+        /// </summary>
+        /// <param name="remoteClient">The remote client controlling the avatar</param>
+        /// <param name="item">The item.  This structure contains all the item metadata, including the folder
+        /// in which the item is to be placed.</param>
         public void AddInventoryItem(IClientAPI remoteClient, InventoryItemBase item)
         {
             CachedUserInfo userInfo = CommsManager.UserProfileCacheService.GetUserDetails(remoteClient.AgentId);
@@ -61,17 +57,25 @@ namespace OpenSim.Region.Environment.Scenes
                 remoteClient.SendInventoryItemCreateUpdate(item);
             }
         }
-
-        public LLUUID CapsUpdateInventoryItemAsset(LLUUID avatarId, LLUUID itemID, byte[] data)
+        
+        /// <summary> 
+        /// <see>AddInventoryItem(LLUUID, InventoryItemBase)</see>
+        /// </summary>
+        /// <param name="avatarId">The ID of the avatar</param>
+        /// <param name="item">The item.  This structure contains all the item metadata, including the folder
+        /// in which the item is to be placed.</param>        
+        public void AddInventoryItem(LLUUID avatarId, InventoryItemBase item)
         {
             ScenePresence avatar;
 
-            if (TryGetAvatar(avatarId, out avatar))
+            if (!TryGetAvatar(avatarId, out avatar))
             {
-                return CapsUpdateInventoryItemAsset(avatar.ControllingClient, itemID, data);
+                MainLog.Instance.Error(
+                    "AGENTINVENTORY", "Could not find avatar {0} to add inventory item", avatarId);                
+                return;
             }
-
-            return LLUUID.Zero;
+            
+            AddInventoryItem(avatar.ControllingClient, item);
         }
 
         /// <summary>
@@ -115,6 +119,28 @@ namespace OpenSim.Region.Environment.Scenes
         }
         
         /// <summary>
+        /// <see>CapsUpdatedInventoryItemAsset(IClientAPI, LLUUID, byte[])</see>
+        /// </summary>
+        private LLUUID CapsUpdateInventoryItemAsset(LLUUID avatarId, LLUUID itemID, byte[] data)
+        {
+            ScenePresence avatar;
+
+            if (TryGetAvatar(avatarId, out avatar))
+            {
+                return CapsUpdateInventoryItemAsset(avatar.ControllingClient, itemID, data);
+            }
+            else
+            {
+                MainLog.Instance.Error(
+                     "AGENTINVENTORY", 
+                     "Avatar {0} cannot be found to update its inventory item asset",
+                     avatarId);
+            }
+
+            return LLUUID.Zero;
+        }        
+        
+        /// <summary>
         /// Capability originating call to update the asset of a script in a prim's (task's) inventory
         /// </summary>
         /// <param name="remoteClient"></param>
@@ -123,8 +149,8 @@ namespace OpenSim.Region.Environment.Scenes
         /// <param name="isScriptRunning">Indicates whether the script to update is currently running</param>
         /// <param name="data"></param>
         /// <returns>Asset LLUID created</returns>        
-        public LLUUID CapsUpdateTaskInventoryScriptAsset(LLUUID avatarID, LLUUID itemID, 
-                                                         LLUUID primID, bool isScriptRunning, byte[] data)
+        public void CapsUpdateTaskInventoryScriptAsset(IClientAPI remoteClient, LLUUID itemId, 
+                                                         LLUUID primId, bool isScriptRunning, byte[] data)
         {
             // TODO Not currently doing anything with the isScriptRunning bool
             
@@ -132,7 +158,7 @@ namespace OpenSim.Region.Environment.Scenes
                 "PRIMINVENTORY",
                 "Prim inventory script save functionality not yet implemented."
                     + "  remoteClient: {0}, itemID: {1}, primID: {2}, isScriptRunning: {3}",
-                avatarID, itemID, primID, isScriptRunning);
+                remoteClient, itemId, primId, isScriptRunning);
             
             // TODO
             // Retrieve client LLUID
@@ -143,8 +169,28 @@ namespace OpenSim.Region.Environment.Scenes
             // Trigger SOG update (see RezScript)
             // Trigger rerunning of script (use TriggerRezScript event, see RezScript)
             // return new asset id
-            
-            return null;
+        }
+        
+        /// <summary>
+        /// <see>CapsUpdateTaskInventoryScriptAsset(IClientAPI, LLUUID, LLUUID, bool, byte[])</see>
+        /// </summary>      
+        private void CapsUpdateTaskInventoryScriptAsset(LLUUID avatarId, LLUUID itemId, 
+                                                        LLUUID primId, bool isScriptRunning, byte[] data)
+        {        
+            ScenePresence avatar;
+
+            if (TryGetAvatar(avatarId, out avatar))
+            {
+                CapsUpdateTaskInventoryScriptAsset(
+                    avatar.ControllingClient, itemId, primId, isScriptRunning, data);
+            }
+            else
+            {
+                MainLog.Instance.Error(
+                     "PRIMINVENTORY", 
+                     "Avatar {0} cannot be found to update its prim item asset",
+                     avatarId);
+            }            
         }
 
         /// <summary>
@@ -213,14 +259,14 @@ namespace OpenSim.Region.Environment.Scenes
                 else
                 { 
                     MainLog.Instance.Warn(
-                        "INVENTORY", 
+                        "AGENTINVENTORY", 
                         "Item ID " + itemID + " not found for an inventory item update.");                    
                 }
             }
             else
             {
                 MainLog.Instance.Warn(
-                    "INVENTORY",
+                    "AGENTINVENTORY",
                     "Agent ID " + remoteClient.AgentId + " not found for an inventory item update."); 
             }
         }
@@ -233,7 +279,7 @@ namespace OpenSim.Region.Environment.Scenes
                 CachedUserInfo userInfo = CommsManager.UserProfileCacheService.GetUserDetails(oldAgentID);
                 if (userInfo == null)
                 {
-                    MainLog.Instance.Warn("INVENTORY", "Failed to find user " + oldAgentID.ToString());
+                    MainLog.Instance.Warn("AGENTINVENTORY", "Failed to find user " + oldAgentID.ToString());
                     return;
                 }
 
@@ -242,13 +288,13 @@ namespace OpenSim.Region.Environment.Scenes
                     item = userInfo.RootFolder.HasItem(oldItemID);
                     if (item == null)
                     {
-                        MainLog.Instance.Warn("INVENTORY", "Failed to find item " + oldItemID.ToString());
+                        MainLog.Instance.Warn("AGENTINVENTORY", "Failed to find item " + oldItemID.ToString());
                         return;
                     }
                 }
                 else
                 {
-                    MainLog.Instance.Warn("INVENTORY", "Failed to find item " + oldItemID.ToString());
+                    MainLog.Instance.Warn("AGENTINVENTORY", "Failed to find item " + oldItemID.ToString());
                     return;
                 }
             }
@@ -257,7 +303,7 @@ namespace OpenSim.Region.Environment.Scenes
             AssetBase asset = AssetCache.CopyAsset(item.assetID);
             if (asset == null)
             {
-                MainLog.Instance.Warn("INVENTORY", "Failed to find asset " + item.assetID.ToString());
+                MainLog.Instance.Warn("AGENTINVENTORY", "Failed to find asset " + item.assetID.ToString());
                 return;
             }
 
@@ -282,13 +328,13 @@ namespace OpenSim.Region.Environment.Scenes
         public void MoveInventoryItem(IClientAPI remoteClient,LLUUID folderID, LLUUID itemID, int length, string newName)
         {
             MainLog.Instance.Verbose(
-                "INVENTORY", 
+                "AGENTINVENTORY", 
                 "Moving item for " + remoteClient.AgentId.ToString());
             
             CachedUserInfo userInfo = CommsManager.UserProfileCacheService.GetUserDetails(remoteClient.AgentId);
             if (userInfo == null)
             {
-                MainLog.Instance.Warn("INVENTORY", "Failed to find user " + remoteClient.AgentId.ToString());
+                MainLog.Instance.Warn("AGENTINVENTORY", "Failed to find user " + remoteClient.AgentId.ToString());
                 return;
             }
 
@@ -309,13 +355,13 @@ namespace OpenSim.Region.Environment.Scenes
                 }
                 else
                 {
-                    MainLog.Instance.Warn("INVENTORY", "Failed to find item " + itemID.ToString());
+                    MainLog.Instance.Warn("AGENTINVENTORY", "Failed to find item " + itemID.ToString());
                     return;
                 }
             }
             else
             {
-                MainLog.Instance.Warn("INVENTORY", "Failed to find item " + itemID.ToString() + ", no root folder");
+                MainLog.Instance.Warn("AGENTINVENTORY", "Failed to find item " + itemID.ToString() + ", no root folder");
                 return;
             }
 
