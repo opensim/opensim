@@ -1453,9 +1453,15 @@ namespace OpenSim.Region.Environment.Scenes
         {
             LLQuaternion lRot;
             lRot = RotationOffset;
+            clientFlags &= ~(uint)LLObject.ObjectFlags.CreateSelected;
+
             if (remoteClient.AgentId == OwnerID) 
             {
-                clientFlags &= ~(uint)LLObject.ObjectFlags.CreateSelected;
+                if ((uint)(m_flags & LLObject.ObjectFlags.CreateSelected) != 0)
+                {
+                    clientFlags |= (uint)LLObject.ObjectFlags.CreateSelected;
+                    m_flags &= ~LLObject.ObjectFlags.CreateSelected;
+                }
             }
 
 
