@@ -85,6 +85,9 @@ namespace OpenSim.Region.Environment.Scenes
         protected Vector3 m_CameraAtAxis = new Vector3(0, 0, 0);
         protected Vector3 m_CameraLeftAxis = new Vector3(0, 0, 0);
         protected Vector3 m_CameraUpAxis = new Vector3(0, 0, 0);
+        private uint m_AgentControlFlags = (uint)0;
+        private LLQuaternion m_headrotation = new LLQuaternion();
+        private byte m_state = (byte)0;
 
         // Agent's Draw distance.
         protected float m_DrawDistance = 0f;
@@ -104,7 +107,8 @@ namespace OpenSim.Region.Environment.Scenes
             DIR_CONTROL_FLAG_LEFT = AgentManager.ControlFlags.AGENT_CONTROL_LEFT_POS,
             DIR_CONTROL_FLAG_RIGHT = AgentManager.ControlFlags.AGENT_CONTROL_LEFT_NEG,
             DIR_CONTROL_FLAG_UP = AgentManager.ControlFlags.AGENT_CONTROL_UP_POS,
-            DIR_CONTROL_FLAG_DOWN = AgentManager.ControlFlags.AGENT_CONTROL_UP_NEG
+            DIR_CONTROL_FLAG_DOWN = AgentManager.ControlFlags.AGENT_CONTROL_UP_NEG,
+            DIR_CONTROL_FLAG_DOWN_NUDGE = AgentManager.ControlFlags.AGENT_CONTROL_NUDGE_UP_NEG
         }
 
         /// <summary>
@@ -360,6 +364,7 @@ namespace OpenSim.Region.Environment.Scenes
             Dir_Vectors[3] = new Vector3(0, -1, 0); //RIGHT
             Dir_Vectors[4] = new Vector3(0, 0, 1); //UP
             Dir_Vectors[5] = new Vector3(0, 0, -1); //DOWN
+            Dir_Vectors[5] = new Vector3(0, 0, -0.5f); //DOWN_Nudge
         }
         #endregion
 
@@ -526,6 +531,12 @@ namespace OpenSim.Region.Environment.Scenes
         public void StopMovement()
         {
         }
+        public void StopFlying()
+        {
+            MainLog.Instance.Verbose("AGENT","VEL:" + Velocity.ToString());
+            AbsolutePosition = AbsolutePosition + new LLVector3(0, 0, (m_avHeight/2));
+            SendFullUpdateToAllClients();
+        }
 
         public void AddNeighbourRegion(ulong regionHandle)
         {
@@ -637,6 +648,12 @@ namespace OpenSim.Region.Environment.Scenes
                 // m_parentID = (what should this be?)
                 SetMovementAnimation(Animations.AnimsLLUUID["SIT_GROUND"], 1);
             }
+            // In the future, these values might need to go global.
+            // Here's where you get them.
+
+            // m_AgentControlFlags = flags;
+            // m_headrotation = agentData.AgentData.HeadRotation;
+            // m_state = agentData.AgentData.State;
 
             if (m_allowMovement)
             {
@@ -685,7 +702,27 @@ namespace OpenSim.Region.Environment.Scenes
                         i++;
                     }
                 }
+                // Cause the avatar to stop flying if it's colliding 
+                // with something with the down arrow pressed.
 
+                // Skip if there's no physicsactor
+                if (m_physicsActor != null)
+                {
+                    // Only do this if we're flying
+                    if (m_physicsActor.Flying)
+                    {
+                        // Are the landing controls requirements filled?
+                        bool controlland = (((flags & (uint)AgentManager.ControlFlags.AGENT_CONTROL_UP_NEG) != 0) || ((flags & (uint)AgentManager.ControlFlags.AGENT_CONTROL_NUDGE_UP_NEG) != 0));
+                        
+                        // Are the collision requirements fulfilled?
+                        bool colliding = (m_physicsActor.IsColliding == true);
+
+                        if (m_physicsActor.Flying && colliding && controlland)
+                        {
+                            StopFlying();
+                        }
+                    }
+                }
                 if ((update_movementflag) || (update_rotation && DCFlagKeyPressed))
                 {
                     AddNewMovement(agent_control_v3, q);
@@ -947,7 +984,7 @@ namespace OpenSim.Region.Environment.Scenes
                 Console.WriteLine("DEBUG: AddNewMovement: child agent");
                 return;
             }
-
+            m_rotation = rotation;
             NewForce newVelocity = new NewForce();
             Vector3 direc = rotation * vec;
             direc.Normalize();
@@ -956,6 +993,17 @@ namespace OpenSim.Region.Environment.Scenes
             if (m_physicsActor.Flying)
             {
                 direc *= 4;
+                bool controlland = (((m_AgentControlFlags & (uint)AgentManager.ControlFlags.AGENT_CONTROL_UP_NEG) != 0) || ((m_AgentControlFlags & (uint)AgentManager.ControlFlags.AGENT_CONTROL_NUDGE_UP_NEG) != 0));
+                bool colliding = (m_physicsActor.IsColliding==true);
+                if (controlland) 
+                    MainLog.Instance.Verbose("AGENT","landCommand");
+                if (colliding ) 
+                    MainLog.Instance.Verbose("AGENT","colliding");
+                if (m_physicsActor.Flying && colliding && controlland)
+                {
+                    StopFlying();
+                    MainLog.Instance.Verbose("AGENT", "Stop FLying");
+                }
             }
             else
             {
@@ -971,6 +1019,7 @@ namespace OpenSim.Region.Environment.Scenes
                         SetMovementAnimation(Animations.AnimsLLUUID["JUMP"], 1);
                     }
                 }
+                
             }
 
             newVelocity.X = direc.x;
