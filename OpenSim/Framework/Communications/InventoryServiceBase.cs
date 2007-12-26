@@ -241,8 +241,71 @@ namespace OpenSim.Framework.Communications
                 folder.parentID = rootFolder;
                 folder.agentID = user;
                 folder.folderID = LLUUID.Random();
-                folder.name = "Textures";
-                folder.type = 0;
+                folder.name = "Accessories";
+                folder.type = 8;
+                folder.version = 1;
+                Folders.Add(folder.folderID, folder);
+
+                folder = new InventoryFolderBase();
+                folder.parentID = rootFolder;
+                folder.agentID = user;
+                folder.folderID = LLUUID.Random();
+                folder.name = "Animations";
+                folder.type = 20;
+                folder.version = 1;
+                Folders.Add(folder.folderID, folder);
+
+                folder = new InventoryFolderBase();
+                folder.parentID = rootFolder;
+                folder.agentID = user;
+                folder.folderID = LLUUID.Random();
+                folder.name = "BodyParts";
+                folder.type = 13;
+                folder.version = 1;
+                Folders.Add(folder.folderID, folder);
+
+                folder = new InventoryFolderBase();
+                folder.parentID = rootFolder;
+                folder.agentID = user;
+                folder.folderID = LLUUID.Random();
+                folder.name = "Clothing";
+                folder.type = 5;
+                folder.version = 1;
+                Folders.Add(folder.folderID, folder);
+
+                folder = new InventoryFolderBase();
+                folder.parentID = rootFolder;
+                folder.agentID = user;
+                folder.folderID = LLUUID.Random();
+                folder.name = "Gestures";
+                folder.type = 21;
+                folder.version = 1;
+                Folders.Add(folder.folderID, folder);
+
+                folder = new InventoryFolderBase();
+                folder.parentID = rootFolder;
+                folder.agentID = user;
+                folder.folderID = LLUUID.Random();
+                folder.name = "Landmarks";
+                folder.type = 3;
+                folder.version = 1;
+                Folders.Add(folder.folderID, folder);
+
+                folder = new InventoryFolderBase();
+                folder.parentID = rootFolder;
+                folder.agentID = user;
+                folder.folderID = LLUUID.Random();
+                folder.name = "Lost And Found";
+                folder.type = 3;
+                folder.version = 1;
+                Folders.Add(folder.folderID, folder);
+
+                folder = new InventoryFolderBase();
+                folder.parentID = rootFolder;
+                folder.agentID = user;
+                folder.folderID = LLUUID.Random();
+                folder.name = "Notecards";
+                folder.type = 7;
                 folder.version = 1;
                 Folders.Add(folder.folderID, folder);
 
@@ -259,8 +322,44 @@ namespace OpenSim.Framework.Communications
                 folder.parentID = rootFolder;
                 folder.agentID = user;
                 folder.folderID = LLUUID.Random();
-                folder.name = "Clothes";
-                folder.type = 5;
+                folder.name = "Photo Album";
+                folder.type = 15;
+                folder.version = 1;
+                Folders.Add(folder.folderID, folder);
+
+                folder = new InventoryFolderBase();
+                folder.parentID = rootFolder;
+                folder.agentID = user;
+                folder.folderID = LLUUID.Random();
+                folder.name = "Scripts";
+                folder.type = 10;
+                folder.version = 1;
+                Folders.Add(folder.folderID, folder);
+
+                folder = new InventoryFolderBase();
+                folder.parentID = rootFolder;
+                folder.agentID = user;
+                folder.folderID = LLUUID.Random();
+                folder.name = "Sounds";
+                folder.type = 1;
+                folder.version = 1;
+                Folders.Add(folder.folderID, folder);
+
+                folder = new InventoryFolderBase();
+                folder.parentID = rootFolder;
+                folder.agentID = user;
+                folder.folderID = LLUUID.Random();
+                folder.name = "Textures";
+                folder.type = 0;
+                folder.version = 1;
+                Folders.Add(folder.folderID, folder);
+
+                folder = new InventoryFolderBase();
+                folder.parentID = rootFolder;
+                folder.agentID = user;
+                folder.folderID = LLUUID.Random();
+                folder.name = "Trash";
+                folder.type = 14;
                 folder.version = 1;
                 Folders.Add(folder.folderID, folder);
             }
