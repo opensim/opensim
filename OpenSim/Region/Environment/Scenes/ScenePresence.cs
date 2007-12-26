@@ -533,7 +533,13 @@ namespace OpenSim.Region.Environment.Scenes
         }
         public void StopFlying()
         {
-            MainLog.Instance.Verbose("AGENT","VEL:" + Velocity.ToString());
+            // It turns out to get the agent to stop flying, you have to feed it stop flying velocities
+            // and send a full object update.
+            // There's no message to send the client to tell it to stop flying
+
+            // Add 1/2 the avatar's height to it's position so it doesn't shoot into the air
+            // when the avatar stands up
+
             AbsolutePosition = AbsolutePosition + new LLVector3(0, 0, (m_avHeight/2));
             SendFullUpdateToAllClients();
         }
