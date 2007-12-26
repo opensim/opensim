@@ -40,6 +40,7 @@ namespace OpenSim.Region.Physics.OdePlugin
     {
         private PhysicsVector _position;
         private d.Vector3 _zeroPosition;
+        private d.Matrix3 m_StandUpRotation;
         private bool _zeroFlag = false;
         private bool m_lastUpdateSent = false;
         private PhysicsVector _velocity;
@@ -86,6 +87,8 @@ namespace OpenSim.Region.Physics.OdePlugin
             _acceleration = new PhysicsVector();
             _parent_scene = parent_scene;
 
+            m_StandUpRotation = new d.Matrix3(0.8184158f, -0.5744568f, -0.0139677f, 0.5744615f, 0.8185215f, -0.004074608f, 0.01377355f, -0.004689182f, 0.9998941f);
+
             for (int i = 0; i < 11; i++)
             {
                 m_colliderarr[i] = false;
@@ -100,7 +103,15 @@ namespace OpenSim.Region.Physics.OdePlugin
                 d.BodySetMass(Body, ref ShellMass);
                 d.BodySetPosition(Body, pos.X, pos.Y, pos.Z);
                 d.GeomSetBody(Shell, Body);
-                Amotor = d.JointCreateAMotor(parent_scene.world, IntPtr.Zero);
+
+
+
+                
+                d.BodySetRotation(Body, ref m_StandUpRotation);
+
+
+
+                Amotor = d.JointCreateAMotor(parent_scene.world, IntPtr.Zero); 
                 d.JointAttach(Amotor, Body, IntPtr.Zero);
                 d.JointSetAMotorMode(Amotor, dAMotorEuler);
                 d.JointSetAMotorNumAxes(Amotor, 3);
@@ -116,6 +127,8 @@ namespace OpenSim.Region.Physics.OdePlugin
                 d.JointSetAMotorParam(Amotor, 0, 0);
                 d.JointSetAMotorParam(Amotor, 3, 0);
                 d.JointSetAMotorParam(Amotor, 2, 0);
+                
+
                 
             }
             m_name = avName;
@@ -381,16 +394,21 @@ namespace OpenSim.Region.Physics.OdePlugin
                 d.BodyAddForce(Body, force.X, force.Y, force.Z);
 
                 //  ok -- let's stand up straight!
-                d.Vector3 feet;
-                d.Vector3 head;
-                d.BodyGetRelPointPos(Body, 0.0f, 0.0f, -1.0f, out feet);
-                d.BodyGetRelPointPos(Body, 0.0f, 0.0f, 1.0f, out head);
-                float posture = head.Z - feet.Z;
+                //d.Matrix3 StandUpRotationalMatrix = new d.Matrix3(0.8184158f, -0.5744568f, -0.0139677f, 0.5744615f, 0.8185215f, -0.004074608f, 0.01377355f, -0.004689182f, 0.9998941f);
+                //d.BodySetRotation(Body, ref StandUpRotationalMatrix);
+                d.BodySetRotation(Body, ref m_StandUpRotation);
+                // The above matrix was generated with the amazing standup routine below by danX0r *cheer*
+                //d.Vector3 feet;
+                //d.Vector3 head;
+                //d.BodyGetRelPointPos(Body, 0.0f, 0.0f, -1.0f, out feet);
+                //d.BodyGetRelPointPos(Body, 0.0f, 0.0f, 1.0f, out head);
+                //float posture = head.Z - feet.Z;
 
                 // restoring force proportional to lack of posture:
-                float servo = (2.5f - posture) * POSTURE_SERVO;
-                d.BodyAddForceAtRelPos(Body, 0.0f, 0.0f, servo, 0.0f, 0.0f, 1.0f);
-                d.BodyAddForceAtRelPos(Body, 0.0f, 0.0f, -servo, 0.0f, 0.0f, -1.0f);
+                //float servo = (2.5f - posture) * POSTURE_SERVO;
+                //d.BodyAddForceAtRelPos(Body, 0.0f, 0.0f, servo, 0.0f, 0.0f, 1.0f);
+                //d.BodyAddForceAtRelPos(Body, 0.0f, 0.0f, -servo, 0.0f, 0.0f, -1.0f);
+
                 //m_lastUpdateSent = false;
 
             }

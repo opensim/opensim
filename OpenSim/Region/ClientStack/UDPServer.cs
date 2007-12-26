@@ -293,26 +293,29 @@ namespace OpenSim.Region.ClientStack
                 //MainLog.Instance.Debug("UDPSERVER", e.ToString());
             }
 
-            // do we already have a circuit for this endpoint
-            uint circuit;
-            if (clientCircuits.TryGetValue(epSender, out circuit))
+            if (packet != null)
             {
-                //if so then send packet to the packetserver
-                //MainLog.Instance.Warn("UDPSERVER", "ALREADY HAVE Circuit!");
-                m_packetServer.InPacket(circuit, packet);
-            }
-            else if (packet.Type == PacketType.UseCircuitCode)
-            {
-                // new client
-                MainLog.Instance.Debug("UDPSERVER", "Adding New Client");
-                AddNewClient(packet);
-            }
-            else
-            {
+                // do we already have a circuit for this endpoint
+                uint circuit;
+                if (clientCircuits.TryGetValue(epSender, out circuit))
+                {
+                    //if so then send packet to the packetserver
+                    //MainLog.Instance.Warn("UDPSERVER", "ALREADY HAVE Circuit!");
+                    m_packetServer.InPacket(circuit, packet);
+                }
+                else if (packet.Type == PacketType.UseCircuitCode)
+                {
+                    // new client
+                    MainLog.Instance.Debug("UDPSERVER", "Adding New Client");
+                    AddNewClient(packet);
+                }
+                else
+                {
 
-                // invalid client
-                //CFK: This message seems to have served its usefullness as of 12-15 so I am commenting it out for now
-                //m_log.Warn("client", "Got a packet from an invalid client - " + epSender.ToString());
+                    // invalid client
+                    //CFK: This message seems to have served its usefullness as of 12-15 so I am commenting it out for now
+                    //m_log.Warn("client", "Got a packet from an invalid client - " + epSender.ToString());
+                }
             }
 
             Server.BeginReceiveFrom(RecvBuffer, 0, RecvBuffer.Length, SocketFlags.None, ref epSender, ReceivedData, null);
