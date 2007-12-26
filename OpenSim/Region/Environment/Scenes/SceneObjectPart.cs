@@ -420,10 +420,12 @@ namespace OpenSim.Region.Environment.Scenes
         #region Constructors
 
         /// <summary>
-        /// 
+        /// No arg constructor called by region restore db code
         /// </summary>
         public SceneObjectPart()
         {
+            // It's not necessary to persist this
+            m_inventoryFileName = "taskinventory" + LLUUID.Random().ToString();
         }
 
         public SceneObjectPart(ulong regionHandle, SceneObjectGroup parent, LLUUID ownerID, uint localID,
@@ -1006,8 +1008,8 @@ namespace OpenSim.Region.Environment.Scenes
         /// <param name="localID"></param>
         public bool GetInventoryFileName(IClientAPI client, uint localID)
         {
-            if (localID == m_localID)
-            {
+//            if (localID == m_localID)
+//            {
                 if (m_inventorySerial > 0)
                 {
                     client.SendTaskInventory(m_uuid, (short)m_inventorySerial,
@@ -1019,7 +1021,7 @@ namespace OpenSim.Region.Environment.Scenes
                     client.SendTaskInventory(m_uuid, 0, new byte[0]);
                     return false;
                 }
-            }
+//            }
             return false;
         }
 

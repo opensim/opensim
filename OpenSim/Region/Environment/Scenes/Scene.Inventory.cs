@@ -499,7 +499,8 @@ namespace OpenSim.Region.Environment.Scenes
         }
         
         /// <summary>
-        /// Update an item in a prim (task) inventory
+        /// Update an item in a prim (task) inventory.  
+        /// This method does not handle scripts, <see>RezScript(IClientAPI, LLUUID, unit)</see>
         /// </summary>
         /// <param name="remoteClient"></param>
         /// <param name="itemID"></param>

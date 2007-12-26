@@ -1152,6 +1152,13 @@ namespace OpenSim.Region.Environment.Scenes
             {
                 return part.GetInventoryFileName(remoteClient, localID);
             }
+            else
+            {
+                MainLog.Instance.Warn(
+                    "SCENE", 
+                    "Couldn't find part {0} in object group {1} ({2}) to retreive prim inventory",
+                    localID, LocalId, UUID);
+            }
             return false;
         }
 
