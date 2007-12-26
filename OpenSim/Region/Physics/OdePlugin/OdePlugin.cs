@@ -1077,7 +1077,11 @@ namespace OpenSim.Region.Physics.OdePlugin
             {
                 for (int x = 0; x < 512; x++)
                 {
-                    returnarr[i] = resultarr2[y, x];
+                    if (resultarr2[y, x] <= 0)
+                        returnarr[i] = 0.0000001f;
+                    else 
+                        returnarr[i] = resultarr2[y, x];
+
                     i++;
                 }
             }
