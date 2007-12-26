@@ -319,7 +319,15 @@ namespace OpenSim.Region.Environment.Modules
                         int size = m_asset.Data.Length - 600 - (1000 * (PacketCounter - 1));
                         if (size > 1000) size = 1000;
                         im.ImageData.Data = new byte[size];
-                        Array.Copy(m_asset.Data, 600 + (1000 * (PacketCounter - 1)), im.ImageData.Data, 0, size);
+                        try
+                        {
+                            Array.Copy(m_asset.Data, 600 + (1000 * (PacketCounter - 1)), im.ImageData.Data, 0, size);
+                        }
+                        catch (System.ArgumentOutOfRangeException)
+                        {
+                            OpenSim.Framework.Console.MainLog.Instance.Warn("TEXTURE", "Unable to separate texture into multiple packets: Array bounds failure on asset:" + m_asset.FullID.ToString() + "- TextureDownloadModule.cs. line:328");
+                            return;
+                        }
                         RequestUser.OutPacket(im, ThrottleOutPacketType.Texture);
                         PacketCounter++;
                     }

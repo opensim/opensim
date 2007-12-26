@@ -999,17 +999,17 @@ namespace OpenSim.Region.Environment.Scenes
             if (m_physicsActor.Flying)
             {
                 direc *= 4;
-                bool controlland = (((m_AgentControlFlags & (uint)AgentManager.ControlFlags.AGENT_CONTROL_UP_NEG) != 0) || ((m_AgentControlFlags & (uint)AgentManager.ControlFlags.AGENT_CONTROL_NUDGE_UP_NEG) != 0));
-                bool colliding = (m_physicsActor.IsColliding==true);
-                if (controlland) 
-                    MainLog.Instance.Verbose("AGENT","landCommand");
-                if (colliding ) 
-                    MainLog.Instance.Verbose("AGENT","colliding");
-                if (m_physicsActor.Flying && colliding && controlland)
-                {
-                    StopFlying();
-                    MainLog.Instance.Verbose("AGENT", "Stop FLying");
-                }
+                //bool controlland = (((m_AgentControlFlags & (uint)AgentManager.ControlFlags.AGENT_CONTROL_UP_NEG) != 0) || ((m_AgentControlFlags & (uint)AgentManager.ControlFlags.AGENT_CONTROL_NUDGE_UP_NEG) != 0));
+                //bool colliding = (m_physicsActor.IsColliding==true);
+                //if (controlland) 
+                //    MainLog.Instance.Verbose("AGENT","landCommand");
+                //if (colliding ) 
+                //    MainLog.Instance.Verbose("AGENT","colliding");
+                //if (m_physicsActor.Flying && colliding && controlland)
+                //{
+                //    StopFlying();
+                //    MainLog.Instance.Verbose("AGENT", "Stop FLying");
+                //}
             }
             else
             {

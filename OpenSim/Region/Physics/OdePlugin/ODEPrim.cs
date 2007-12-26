@@ -375,14 +375,6 @@ namespace OpenSim.Region.Physics.OdePlugin
             {
                 string primScenAvatarIn = _parent_scene.whichspaceamIin(_position);
                 int[] arrayitem = _parent_scene.calculateSpaceArrayItemFromPos(_position);
-                if (primScenAvatarIn == "0")
-                {
-                    MainLog.Instance.Verbose("Physics", "Prim " + m_primName + " in space with no prim: " + primScenAvatarIn + ". Expected to be at: " + m_targetSpace.ToString() + " . Arr:': " + arrayitem[0].ToString() + "," + arrayitem[1].ToString());
-                }
-                else
-                {
-                    MainLog.Instance.Verbose("Physics", "Prim " + m_primName + " in Prim space with prim: " + primScenAvatarIn + ". Expected to be at: " + m_targetSpace.ToString() + ".  Arr:" + arrayitem[0].ToString() + "," + arrayitem[1].ToString());
-                }
                 m_targetSpace = _parent_scene.recalculateSpaceForGeom(prim_geom, _position, m_targetSpace);
                 d.GeomSetPosition(prim_geom, _position.X, _position.Y, _position.Z);
                 d.SpaceAdd(m_targetSpace, prim_geom);

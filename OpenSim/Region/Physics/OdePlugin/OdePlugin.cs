@@ -136,7 +136,7 @@ namespace OpenSim.Region.Physics.OdePlugin
             TerrainContact.surface.soft_erp = 0.1025f;
 
             AvatarMovementprimContact.surface.mu = 150.0f;
-            AvatarMovementprimContact.surface.bounce = 0.2f;
+            AvatarMovementprimContact.surface.bounce = 0.1f;
 
             AvatarMovementTerrainContact.surface.mode |= d.ContactFlags.SoftERP;
             AvatarMovementTerrainContact.surface.mu = 150.0f;
@@ -297,7 +297,9 @@ namespace OpenSim.Region.Physics.OdePlugin
                             {
                                 p2.CollidingObj = true;
                                 //contacts[i].depth = 0.003f;
-                                //p2.Velocity = p2.Velocity + new PhysicsVector(0, 0, 2.5f);
+                                p2.Velocity = p2.Velocity + new PhysicsVector(0, 0, 2.5f);
+                                OdeCharacter character = (OdeCharacter)p2;
+                                character.SetPidStatus(true);
                                 //contacts[i].pos = new d.Vector3(contacts[i].pos.X + (p1.Size.X / 2), contacts[i].pos.Y + (p1.Size.Y / 2), contacts[i].pos.Z + (p1.Size.Z / 2));
 
                             }
@@ -309,8 +311,10 @@ namespace OpenSim.Region.Physics.OdePlugin
                             {
                                 p1.CollidingObj = true;
                                 //contacts[i].depth = 0.003f;
-                                //p1.Velocity = p1.Velocity + new PhysicsVector(0, 0, 2.5f);
+                                p1.Velocity = p1.Velocity + new PhysicsVector(0, 0, 2.5f);
                                 //contacts[i].pos = new d.Vector3(contacts[i].pos.X + (p2.Size.X / 2), contacts[i].pos.Y + (p2.Size.Y / 2), contacts[i].pos.Z + (p2.Size.Z / 2));
+                                OdeCharacter character = (OdeCharacter)p2;
+                                character.SetPidStatus(true);
                             }
                             else
                             {
@@ -321,12 +325,48 @@ namespace OpenSim.Region.Physics.OdePlugin
                         if (p1.PhysicsActorType == (int)ActorTypes.Prim && p2.PhysicsActorType == (int)ActorTypes.Prim)
                         {
                             // Don't collide, one or both prim will explode.
-                            contacts[i].depth = 0.0f;
+                            contacts[i].depth = -1f;
+                        }
+                        if (contacts[i].depth >= 1.00f)
+                        {
+                            if ((p2.PhysicsActorType == (int)ActorTypes.Agent && p1.PhysicsActorType == (int)ActorTypes.Unknown) || (p1.PhysicsActorType == (int)ActorTypes.Agent && p2.PhysicsActorType == (int)ActorTypes.Unknown))
+                            {
+                                
+                                if (p2.PhysicsActorType == (int)ActorTypes.Agent)
+                                {
+                                    OdeCharacter character = (OdeCharacter)p2;
+                                    
+                                    //p2.CollidingObj = true;
+                                    contacts[i].depth = 0.003f;
+                                    p2.Velocity = p2.Velocity + new PhysicsVector(0, 0, 0.5f);
+                                    contacts[i].pos = new d.Vector3(contacts[i].pos.X + (p1.Size.X / 2), contacts[i].pos.Y + (p1.Size.Y / 2), contacts[i].pos.Z + (p1.Size.Z / 2));
+                                    character.SetPidStatus(true);
+
+                                }
+                                else
+                                {
+                                    
+                                }
+                                if (p1.PhysicsActorType == (int)ActorTypes.Agent)
+                                {
+                                    OdeCharacter character = (OdeCharacter)p2;
+
+                                    //p2.CollidingObj = true;
+                                    contacts[i].depth = 0.003f;
+                                    p2.Velocity = p2.Velocity + new PhysicsVector(0, 0, 0.5f);
+                                    contacts[i].pos = new d.Vector3(contacts[i].pos.X + (p1.Size.X / 2), contacts[i].pos.Y + (p1.Size.Y / 2), contacts[i].pos.Z + (p1.Size.Z / 2));
+                                    character.SetPidStatus(true);
+                                }
+                                else
+                                {
+                                    //contacts[i].depth = 0.0000000f;
+                                }
+                            }
                         }
                     }
                     #endregion
 
-                    if (contacts[i].depth > 0f)
+                    if (contacts[i].depth >= 0f)
                     {
                         if (name1 == "Terrain" || name2 == "Terrain")
                         {
