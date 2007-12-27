@@ -81,22 +81,7 @@ namespace OpenSim.Framework.Communications.Cache
 
         private void CreateLibraryItems()
         {
-            InventoryItemBase item = CreateItem(LLUUID.Random(), new LLUUID("00000000-0000-0000-9999-000000000002"), "Plywood", "Plywood texture", (int)AssetType.Texture, (int)InventoryType.Texture, m_textureFolder.folderID);
-            m_textureFolder.Items.Add(item.inventoryID, item);
-
-            item = CreateItem(LLUUID.Random(), new LLUUID("00000000-0000-0000-9999-000000000003"), "Rocks", "Rocks texture", (int)AssetType.Texture, (int)InventoryType.Texture, m_textureFolder.folderID);
-            m_textureFolder.Items.Add(item.inventoryID, item);
-
-            item = CreateItem(LLUUID.Random(), new LLUUID("00000000-0000-0000-9999-000000000001"), "Bricks", "Bricks texture", (int)AssetType.Texture, (int)InventoryType.Texture, m_textureFolder.folderID);
-            m_textureFolder.Items.Add(item.inventoryID, item);
-
-            item = CreateItem(LLUUID.Random(), new LLUUID("00000000-0000-0000-9999-000000000004"), "Granite", "Granite texture", (int)AssetType.Texture, (int)InventoryType.Texture, m_textureFolder.folderID);
-            m_textureFolder.Items.Add(item.inventoryID, item);
-
-            item = CreateItem(LLUUID.Random(), new LLUUID("00000000-0000-0000-9999-000000000005"), "Hardwood", "Hardwood texture", (int)AssetType.Texture, (int)InventoryType.Texture, m_textureFolder.folderID);
-            m_textureFolder.Items.Add(item.inventoryID, item);
-
-            item = CreateItem(new LLUUID("66c41e39-38f9-f75a-024e-585989bfaba9"), new LLUUID("66c41e39-38f9-f75a-024e-585989bfab73"), "Default Shape", "Default Shape", (int)AssetType.Bodypart, (int)InventoryType.Wearable, folderID);
+            InventoryItemBase item = CreateItem(new LLUUID("66c41e39-38f9-f75a-024e-585989bfaba9"), new LLUUID("66c41e39-38f9-f75a-024e-585989bfab73"), "Default Shape", "Default Shape", (int)AssetType.Bodypart, (int)InventoryType.Wearable, folderID);
             item.inventoryCurrentPermissions = 0;
             item.inventoryNextPermissions = 0;
             Items.Add(item.inventoryID, item);

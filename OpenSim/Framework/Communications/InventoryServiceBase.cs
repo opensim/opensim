@@ -53,7 +53,7 @@ namespace OpenSim.Framework.Communications
         {
             if (!String.IsNullOrEmpty(FileName))
             {
-                MainLog.Instance.Verbose("Inventory", "Inventorystorage: Attempting to load " + FileName);
+                MainLog.Instance.Verbose("AGENTINVENTORY", "Inventorystorage: Attempting to load " + FileName);
                 Assembly pluginAssembly = Assembly.LoadFrom(FileName);
 
                 foreach (Type pluginType in pluginAssembly.GetTypes())
@@ -68,7 +68,7 @@ namespace OpenSim.Framework.Communications
                                 (IInventoryData) Activator.CreateInstance(pluginAssembly.GetType(pluginType.ToString()));
                             plug.Initialise();
                             m_plugins.Add(plug.getName(), plug);
-                            MainLog.Instance.Verbose("INVENTORY", "Added IInventoryData Interface");
+                            MainLog.Instance.Verbose("AGENTINVENTORY", "Added IInventoryData Interface");
                         }
                     }
                 }
