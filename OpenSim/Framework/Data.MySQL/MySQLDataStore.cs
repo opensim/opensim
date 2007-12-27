@@ -916,7 +916,10 @@ namespace OpenSim.Framework.Data.MySQL
             s.ProfileEnd = Convert.ToUInt16(row["ProfileEnd"]);
             s.ProfileCurve = Convert.ToByte(row["ProfileCurve"]);
             s.ProfileHollow = Convert.ToUInt16(row["ProfileHollow"]);
-            s.TextureEntry = (byte[])row["Texture"];
+            
+            byte[] textureEntry = (byte[])row["Texture"];
+            s.TextureEntry = textureEntry;
+            
             s.ExtraParams = (byte[])row["ExtraParams"];
 
             return s;

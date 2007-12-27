@@ -182,7 +182,7 @@ namespace OpenSim.Region.Environment.Modules
                 LastAssetID = asset.FullID;
 
                 SceneObjectPart part = scene.GetSceneObjectPart(PrimID);
-                part.Shape.TextureEntry = new LLObject.TextureEntry(asset.FullID).ToBytes();
+                part.Shape.Textures = new LLObject.TextureEntry(asset.FullID);
                 part.ScheduleFullUpdate();
             }
         }

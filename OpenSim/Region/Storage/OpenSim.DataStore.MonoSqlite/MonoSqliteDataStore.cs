@@ -1014,7 +1014,11 @@ namespace OpenSim.DataStore.MonoSqlite
             s.ProfileHollow = Convert.ToUInt16(row["ProfileHollow"]);
             // text TODO: this isn't right] = but I'm not sure the right
             // way to specify this as a blob atm
-            s.TextureEntry = (byte[]) row["Texture"];
+          
+            byte[] textureEntry = (byte[])row["Texture"];
+            s.TextureEntry = textureEntry;
+          
+
             s.ExtraParams = (byte[]) row["ExtraParams"];
             // System.Text.ASCIIEncoding encoding = new System.Text.ASCIIEncoding();
             //             string texture = encoding.GetString((Byte[])row["Texture"]);

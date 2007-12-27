@@ -47,7 +47,7 @@ namespace OpenSim.Framework.Communications.Cache
 
         #region IAssetServer Members
 
-        protected override AssetBase _ProcessRequest(AssetRequest req)
+        protected override AssetBase GetAsset(AssetRequest req)
         {
             Stream s = null;
             try

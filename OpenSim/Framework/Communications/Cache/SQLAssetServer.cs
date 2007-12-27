@@ -77,7 +77,7 @@ namespace OpenSim.Framework.Communications.Cache
             m_assetProviderPlugin.CommitAssets();
         }
 
-        protected override AssetBase _ProcessRequest(AssetRequest req)
+        protected override AssetBase GetAsset(AssetRequest req)
         {
             AssetBase asset;
             lock (syncLock)

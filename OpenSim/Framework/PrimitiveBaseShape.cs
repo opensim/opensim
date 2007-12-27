@@ -28,6 +28,7 @@
 
 using System.Xml.Serialization;
 using libsecondlife;
+using System;
 
 namespace OpenSim.Framework
 {
@@ -63,9 +64,10 @@ namespace OpenSim.Framework
         Flexible = 128
     }
 
+    [Serializable]
     public class PrimitiveBaseShape
     {
-        private static readonly byte[] m_defaultTextureEntry;
+        private static readonly LLObject.TextureEntry m_defaultTexture;
 
         public byte State;
         public byte PCode;
@@ -88,7 +90,35 @@ namespace OpenSim.Framework
         public sbyte PathTaperY;
         public sbyte PathTwist;
         public sbyte PathTwistBegin;
-        public byte[] TextureEntry; // a LL textureEntry in byte[] format
+
+        [XmlIgnore]        
+        public LLObject.TextureEntry Textures
+        {
+            get
+            {
+                return new LLObject.TextureEntry(m_textureEntry, 0, m_textureEntry.Length);
+            }
+
+            set
+            {
+                m_textureEntry = value.ToBytes();
+            }
+        }
+
+        private byte[] m_textureEntry;
+        public byte[] TextureEntry
+        {
+            get
+            {
+                return m_textureEntry;
+            }
+
+            set
+            {
+                m_textureEntry = value;
+            }
+        }
+
         public byte[] ExtraParams;
 
         public ProfileShape ProfileShape
@@ -117,17 +147,19 @@ namespace OpenSim.Framework
             get { return Scale; }
         }
 
+      
+
         static PrimitiveBaseShape()
         {
-            m_defaultTextureEntry =
-                new LLObject.TextureEntry(new LLUUID("00000000-0000-0000-9999-000000000005")).ToBytes();
+            m_defaultTexture =
+                new LLObject.TextureEntry(new LLUUID("00000000-0000-0000-9999-000000000005"));
         }
 
         public PrimitiveBaseShape()
         {
             PCode = (byte) PCodeEnum.Primitive;
             ExtraParams = new byte[1];
-            TextureEntry = m_defaultTextureEntry;
+            Textures = m_defaultTexture;
         }
 
         public static PrimitiveBaseShape Create()

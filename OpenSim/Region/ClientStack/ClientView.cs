@@ -3474,7 +3474,7 @@ namespace OpenSim.Region.ClientStack
             shape.PathTwist = addPacket.ObjectData.PathTwist;
             shape.PathTwistBegin = addPacket.ObjectData.PathTwistBegin;
             LLObject.TextureEntry ntex = new LLObject.TextureEntry(new LLUUID("00000000-0000-0000-9999-000000000005"));
-            shape.TextureEntry = ntex.ToBytes();
+            shape.Textures = ntex;
             return shape;
         }
 

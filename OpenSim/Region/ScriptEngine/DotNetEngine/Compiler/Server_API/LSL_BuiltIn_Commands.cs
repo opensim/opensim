@@ -459,7 +459,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler
 
         public void llSetColor(LSL_Types.Vector3 color, int face)
         {
-            LLObject.TextureEntry tex = new LLObject.TextureEntry(m_host.Shape.TextureEntry, 0, m_host.Shape.TextureEntry.Length);
+            LLObject.TextureEntry tex = m_host.Shape.Textures;
             LLColor texcolor;
             if (face > -1)
             {
@@ -498,7 +498,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler
 
         public double llGetAlpha(int face)
         {
-            LLObject.TextureEntry tex = new LLObject.TextureEntry(m_host.Shape.TextureEntry, 0, m_host.Shape.TextureEntry.Length);
+            LLObject.TextureEntry tex = m_host.Shape.Textures;
             if (face == -1) // TMP: Until we can determine number of sides, ALL_SIDES (-1) will return default color
             {
                 return (double)((tex.DefaultTexture.RGBA.A * 255) / 255);
@@ -512,7 +512,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler
 
         public void llSetAlpha(double alpha, int face)
         {
-            LLObject.TextureEntry tex = new LLObject.TextureEntry(m_host.Shape.TextureEntry, 0, m_host.Shape.TextureEntry.Length);
+            LLObject.TextureEntry tex = m_host.Shape.Textures;
             LLColor texcolor;
             if (face > -1)
             {
@@ -545,7 +545,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler
 
         public LSL_Types.Vector3 llGetColor(int face)
         {
-            LLObject.TextureEntry tex = new LLObject.TextureEntry(m_host.Shape.TextureEntry, 0, m_host.Shape.TextureEntry.Length);
+            LLObject.TextureEntry tex = m_host.Shape.Textures;
             LLColor texcolor;
             LSL_Types.Vector3 rgb;
             if (face == -1) // TMP: Until we can determine number of sides, ALL_SIDES (-1) will return default color
@@ -570,7 +570,8 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler
 
         public void llSetTexture(string texture, int face)
         {
-            LLObject.TextureEntry tex = new LLObject.TextureEntry(m_host.Shape.TextureEntry, 0, m_host.Shape.TextureEntry.Length);
+            LLObject.TextureEntry tex = m_host.Shape.Textures;
+
             if (face > -1)
             {
                 LLObject.TextureEntryFace texface = tex.CreateFace((uint)face);
@@ -598,7 +599,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler
 
         public void llScaleTexture(double u, double v, int face)
         {
-            LLObject.TextureEntry tex = new LLObject.TextureEntry(m_host.Shape.TextureEntry, 0, m_host.Shape.TextureEntry.Length);
+            LLObject.TextureEntry tex = m_host.Shape.Textures;
             if (face > -1)
             {
                 LLObject.TextureEntryFace texface = tex.CreateFace((uint)face);
@@ -629,7 +630,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler
 
         public void llOffsetTexture(double u, double v, int face)
         {
-            LLObject.TextureEntry tex = new LLObject.TextureEntry(m_host.Shape.TextureEntry, 0, m_host.Shape.TextureEntry.Length);
+            LLObject.TextureEntry tex = m_host.Shape.Textures;
             if (face > -1)
             {
                 LLObject.TextureEntryFace texface = tex.CreateFace((uint)face);
@@ -660,7 +661,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler
 
         public void llRotateTexture(double rotation, int face)
         {
-            LLObject.TextureEntry tex = new LLObject.TextureEntry(m_host.Shape.TextureEntry, 0, m_host.Shape.TextureEntry.Length);
+            LLObject.TextureEntry tex = m_host.Shape.Textures;
             if (face > -1)
             {
                 LLObject.TextureEntryFace texface = tex.CreateFace((uint)face);
@@ -688,7 +689,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler
 
         public string llGetTexture(int face)
         {
-            LLObject.TextureEntry tex = new LLObject.TextureEntry(m_host.Shape.TextureEntry, 0, m_host.Shape.TextureEntry.Length);
+            LLObject.TextureEntry tex = m_host.Shape.Textures;
             if (face == -1)
             {
                 face = 0;
@@ -1172,7 +1173,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler
             SceneObjectPart part = m_host.ParentGroup.GetLinkNumPart(linknumber);
             if (linknumber > -1)
             {
-                LLObject.TextureEntry tex = new LLObject.TextureEntry(part.Shape.TextureEntry, 0, part.Shape.TextureEntry.Length);
+                LLObject.TextureEntry tex = part.Shape.Textures;
                 LLColor texcolor;
                 if (face > -1)
                 {
@@ -1219,7 +1220,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler
                 {
                     linknumber = w;
                     part = m_host.ParentGroup.GetLinkNumPart(linknumber);
-                    LLObject.TextureEntry tex = new LLObject.TextureEntry(part.Shape.TextureEntry, 0, part.Shape.TextureEntry.Length);
+                    LLObject.TextureEntry tex = part.Shape.Textures;
                     LLColor texcolor;
                     if (face > -1)
                     {
@@ -1467,7 +1468,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler
 
         public LSL_Types.Vector3 llGetTextureOffset(int face)
         {
-            LLObject.TextureEntry tex = new LLObject.TextureEntry(m_host.Shape.TextureEntry, 0, m_host.Shape.TextureEntry.Length);
+            LLObject.TextureEntry tex = m_host.Shape.Textures;
             LSL_Types.Vector3 offset;
             if (face == -1)
             {
@@ -1481,7 +1482,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler
 
         public LSL_Types.Vector3 llGetTextureScale(int side)
         {
-            LLObject.TextureEntry tex = new LLObject.TextureEntry(m_host.Shape.TextureEntry, 0, m_host.Shape.TextureEntry.Length);
+            LLObject.TextureEntry tex = m_host.Shape.Textures;
             LSL_Types.Vector3 scale;
             if (side == -1)
             {
@@ -1495,7 +1496,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler
 
         public double llGetTextureRot(int face)
         {
-            LLObject.TextureEntry tex = new LLObject.TextureEntry(m_host.Shape.TextureEntry, 0, m_host.Shape.TextureEntry.Length);
+            LLObject.TextureEntry tex = m_host.Shape.Textures;
             if (face == -1)
             {
                 face = 0;
@@ -2413,7 +2414,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler
             SceneObjectPart part = m_host.ParentGroup.GetLinkNumPart(linknumber);
             if (linknumber > -1)
             {
-                LLObject.TextureEntry tex = new LLObject.TextureEntry(part.Shape.TextureEntry, 0, part.Shape.TextureEntry.Length);
+                LLObject.TextureEntry tex = part.Shape.Textures;
                 LLColor texcolor;
                 if (face > -1)
                 {
@@ -2452,7 +2453,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler
                 {
                     linknumber = w;
                     part = m_host.ParentGroup.GetLinkNumPart(linknumber);
-                    LLObject.TextureEntry tex = new LLObject.TextureEntry(part.Shape.TextureEntry, 0, part.Shape.TextureEntry.Length);
+                    LLObject.TextureEntry tex = part.Shape.Textures;
                     LLColor texcolor;
                     if (face > -1)
                     {

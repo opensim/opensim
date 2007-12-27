@@ -54,16 +54,16 @@ namespace OpenSim.Framework.Communications.Cache
         /// </summary>
         /// <param name="req"></param>
         /// <returns></returns>
-        protected abstract AssetBase _ProcessRequest(AssetRequest req);
+        protected abstract AssetBase GetAsset(AssetRequest req);
 
         /// <summary>
-        /// Process an asset request.  This method will call _ProcessRequest(AssetRequest req) 
+        /// Process an asset request.  This method will call GetAsset(AssetRequest req) 
         /// on the subclass.
         /// </summary>
         /// <param name="req"></param>
-        protected void ProcessRequest(AssetRequest req)
+        protected virtual void ProcessRequest(AssetRequest req)
         {
-            AssetBase asset = _ProcessRequest(req);
+            AssetBase asset = GetAsset(req);
 
             if (asset != null)
             {

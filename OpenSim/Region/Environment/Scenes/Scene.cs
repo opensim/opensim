@@ -1006,19 +1006,18 @@ namespace OpenSim.Region.Environment.Scenes
             }
         }
 
-/* Tree has been removed from libSL
         public void AddTree(LLVector3 scale, LLQuaternion rotation, LLVector3 position,
-           libsecondlife.ObjectManager.Tree treeType, bool newTree)
+           Tree treeType, bool newTree)
         {
             PrimitiveBaseShape treeShape = new PrimitiveBaseShape();
             treeShape.PathCurve = 16;
             treeShape.PathEnd = 49900;
-            treeShape.PCode = newTree ? (byte)libsecondlife.ObjectManager.PCode.NewTree : (byte)libsecondlife.ObjectManager.PCode.Tree;
+            treeShape.PCode = newTree ? (byte)PCode.NewTree : (byte)PCode.Tree;
             treeShape.Scale = scale;
             treeShape.State = (byte)treeType;
             AddNewPrim(LLUUID.Random(), position, rotation, treeShape);
         }
-*/
+
         public void RemovePrim(uint localID, LLUUID avatar_deleter)
         {
             m_innerScene.RemovePrim(localID, avatar_deleter);

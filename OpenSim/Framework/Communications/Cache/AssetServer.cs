@@ -72,7 +72,7 @@ namespace OpenSim.Framework.Communications.Cache
             }
         }
 
-        protected override AssetBase _ProcessRequest(AssetRequest req)
+        protected override AssetBase GetAsset(AssetRequest req)
         {
             byte[] idata = null;
             bool found = false;
