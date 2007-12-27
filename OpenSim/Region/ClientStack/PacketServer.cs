@@ -123,9 +123,9 @@ namespace OpenSim.Region.ClientStack
         /// <param name="circuitcode"></param>
         public virtual void CloseCircuit(uint circuitcode)
         {
-            OpenSim.Framework.Console.MainLog.Instance.Debug("PACKETSERVER", "Removing Circuit Code");
+            
             m_networkHandler.RemoveClientCircuit(circuitcode);
-            OpenSim.Framework.Console.MainLog.Instance.Debug("PACKETSERVER", "Removed Circuit Code");
+            
             //m_scene.ClientManager.CloseAllAgents(circuitcode);
         }
 

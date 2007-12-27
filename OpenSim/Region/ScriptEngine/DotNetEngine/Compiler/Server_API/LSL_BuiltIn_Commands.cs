@@ -2162,13 +2162,21 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler
 
         public void llSitTarget(LSL_Types.Vector3 offset, LSL_Types.Quaternion rot)
         {
-            NotImplemented("llSitTarget");
+            // LSL quaternions can normalize to 0, normal Quaternions can't.
+            if (rot.s == 0 && rot.x == 0 && rot.y == 0 && rot.z == 0)
+                rot.z = 1; // ZERO_ROTATION = 0,0,0,1
+
+            m_host.SetSitTarget(new Vector3((float)offset.x, (float)offset.y, (float)offset.z), new Quaternion((float)rot.s, (float)rot.x, (float)rot.y, (float)rot.z));
         }
 
         public string llAvatarOnSitTarget()
         {
-            NotImplemented("llAvatarOnSitTarget");
-            return "";
+            LLUUID AVID = m_host.GetAvatarOnSitTarget();
+
+            if (AVID != LLUUID.Zero)
+                return AVID.ToString();
+            else 
+                return "";
         }
 
         public void llAddToLandPassList(string avatar, double hours)

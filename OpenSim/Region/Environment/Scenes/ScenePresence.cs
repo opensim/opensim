@@ -537,7 +537,7 @@ namespace OpenSim.Region.Environment.Scenes
             // and send a full object update.
             // There's no message to send the client to tell it to stop flying
 
-            // Add 1/2 the avatar's height to it's position so it doesn't shoot into the air
+            // Add 1/6 the avatar's height to it's position so it doesn't shoot into the air
             // when the avatar stands up
 
             AbsolutePosition = AbsolutePosition + new LLVector3(0, 0, (m_avHeight/6));
@@ -748,6 +748,15 @@ namespace OpenSim.Region.Environment.Scenes
         {
             if (m_parentID != 0)
             {
+
+                SceneObjectPart part = m_scene.GetSceneObjectPart(m_parentID);
+                if (part != null)
+                {
+                    // Reset sit target.
+                    if (part.GetAvatarOnSitTarget() == UUID)
+                        part.SetAvatarOnSitTarget(LLUUID.Zero);
+                }
+
                 m_pos += m_parentPosition + new LLVector3(0.0f, 0.0f, 2.0f * m_sitAvatarHeight);
                 m_parentPosition = new LLVector3();
 
@@ -769,34 +778,82 @@ namespace OpenSim.Region.Environment.Scenes
 
             bool autopilot = true;
             LLVector3 pos = new LLVector3();
+            LLQuaternion sitOrientation = new LLQuaternion(0,0,0,1);
 
             SceneObjectPart part = m_scene.GetSceneObjectPart(targetID);
             if (part != null)
             {
                 // TODO: determine position to sit at based on scene geometry; don't trust offset from client
                 // see http://wiki.secondlife.com/wiki/User:Andrew_Linden/Office_Hours/2007_11_06 for details on how LL does it
+                
+
+                // Is a sit target available?
+                Vector3 avSitOffSet = part.GetSitTargetPosition();
+                Quaternion avSitOrientation = part.GetSitTargetOrientation();
+                LLUUID avOnTargetAlready = part.GetAvatarOnSitTarget();
+
+                bool SitTargetUnOccupied = (!(avOnTargetAlready != LLUUID.Zero));
+                bool SitTargetisSet = (!(avSitOffSet.x == 0 && avSitOffSet.y == 0 && avSitOffSet.z == 0 && avSitOrientation.w == 0 && avSitOrientation.x == 0 && avSitOrientation.y == 0 && avSitOrientation.z == 1));
+
+                if (SitTargetisSet && SitTargetUnOccupied)
+                {
+                    part.SetAvatarOnSitTarget(UUID);
+                    offset = new LLVector3(avSitOffSet.x,avSitOffSet.y,avSitOffSet.z);
+                    sitOrientation = new LLQuaternion(avSitOrientation.w,avSitOrientation.x,avSitOrientation.y,avSitOrientation.z);
+                    autopilot = false;
+
+                }
+
 
                 pos = part.AbsolutePosition + offset;
 
                 if (m_physicsActor != null)
                 {
+                    // 
+                    // If we're not using the client autopilot, we're immediately warping the avatar to the location
+                    // We can remove the physicsActor until they stand up.
+                    //
                     m_sitAvatarHeight = m_physicsActor.Size.Z;
-                }
 
-                // this doesn't seem to quite work yet....
-                //                 // if we're close, set the avatar position to the target position and forgo autopilot
-                //                 if (AbsolutePosition.GetDistanceTo(pos) < 2.5)
-                //                 {
-                //                     autopilot = false;
-                //                     AbsolutePosition = pos + new LLVector3(0.0f, 0.0f, m_sitAvatarHeight);
-                //                 }
-            }
+                    if (autopilot)
+                    {
+
+                        if (Util.GetDistanceTo(AbsolutePosition, pos) < 4.5)
+                        {
+                            autopilot = false;
+                            
+                            RemoveFromPhysicalScene();
+                            AbsolutePosition = pos + new LLVector3(0.0f, 0.0f, m_sitAvatarHeight);
+                            
+                        }
+                        else 
+                        {
+                            
+                        }
+                    }
+                    else
+                    {
+                        RemoveFromPhysicalScene();
+                        
+                       
+                    }
+                } // Physactor != null
+            } // part != null
+            
 
             avatarSitResponse.SitTransform.AutoPilot = autopilot;
             avatarSitResponse.SitTransform.SitPosition = offset;
-            avatarSitResponse.SitTransform.SitRotation = new LLQuaternion(0.0f, 0.0f, 0.0f, 1.0f);
+            avatarSitResponse.SitTransform.SitRotation = sitOrientation;
 
             remoteClient.OutPacket(avatarSitResponse, ThrottleOutPacketType.Task);
+            
+            // This calls HandleAgentSit twice, once from here, and the client calls 
+            // HandleAgentSit itself after it gets to the location
+            // It doesn't get to the location until we've moved them there though 
+            // which happens in HandleAgentSit :P
+            if (!autopilot)
+                HandleAgentSit(remoteClient, UUID);
+            
         }
 
         public void HandleAgentRequestSit(IClientAPI remoteClient, LLUUID agentID, LLUUID targetID, LLVector3 offset)
@@ -806,7 +863,7 @@ namespace OpenSim.Region.Environment.Scenes
                 StandUp();
             }
 
-            SendSitResponse(remoteClient, targetID, offset);
+            
 
             SceneObjectPart part = m_scene.GetSceneObjectPart(targetID);
 
@@ -819,6 +876,7 @@ namespace OpenSim.Region.Environment.Scenes
             {
                 MainLog.Instance.Warn("Sit requested on unknown object: " + targetID.ToString());
             }
+            SendSitResponse(remoteClient, targetID, offset);
         }
 
         public void HandleAgentSit(IClientAPI remoteClient, LLUUID agentID)
@@ -827,8 +885,28 @@ namespace OpenSim.Region.Environment.Scenes
 
             if (part != null)
             {
-                m_pos -= part.AbsolutePosition;
-                m_parentPosition = part.AbsolutePosition;
+                if (part.GetAvatarOnSitTarget() == UUID)
+                {
+                    Vector3 sitTargetPos = part.GetSitTargetPosition();
+                    Quaternion sitTargetOrient = part.GetSitTargetOrientation();
+
+                    //Quaternion vq = new Quaternion(sitTargetPos.x, sitTargetPos.y+0.2f, sitTargetPos.z+0.2f, 0);
+                    //Quaternion nq = new Quaternion(sitTargetOrient.w, -sitTargetOrient.x, -sitTargetOrient.y, -sitTargetOrient.z);
+
+                    //Quaternion result = (sitTargetOrient * vq) * nq;
+
+                    m_pos = new LLVector3(sitTargetPos.x, sitTargetPos.y, sitTargetPos.z);
+                    m_bodyRot = sitTargetOrient;
+                    //Rotation = sitTargetOrient;
+                    m_parentPosition = part.AbsolutePosition;
+
+                    //SendTerseUpdateToAllClients();
+                }
+                else
+                {
+                    m_pos -= part.AbsolutePosition;
+                    m_parentPosition = part.AbsolutePosition;
+                }
             }
 
             m_parentID = m_requestedSitTargetID;
@@ -838,6 +916,10 @@ namespace OpenSim.Region.Environment.Scenes
 
             SetMovementAnimation(Animations.AnimsLLUUID["SIT"], 1);
             SendFullUpdateToAllClients();
+            // This may seem stupid, but Our Full updates don't send avatar rotation :P
+            // So we're also sending a terse update (which has avatar rotation)
+            SendTerseUpdateToAllClients();
+            
         }
 
         /// <summary>

@@ -326,9 +326,9 @@ namespace OpenSim.Region.ClientStack
             uint circuit;
             if (clientCircuits.TryGetValue(sender, out circuit))
             {
-                MainLog.Instance.Debug("UDPSERVER", "CloseEndPoint:ClosingCircuit");
+                
                 m_packetServer.CloseCircuit(circuit);
-                MainLog.Instance.Debug("UDPSERVER", "CloseEndPoint:ClosedCircuit");
+                
             }
         }
 
@@ -381,13 +381,13 @@ namespace OpenSim.Region.ClientStack
             EndPoint sendto = null;
             if (clientCircuits_reverse.TryGetValue(circuitcode, out sendto))
             {
-                MainLog.Instance.Debug("UDPSERVER", "RemovingClientCircuit");
+                
                 clientCircuits.Remove(sendto);
-                MainLog.Instance.Debug("UDPSERVER", "Removed Client Circuit");
+                
 
-                MainLog.Instance.Debug("UDPSERVER", "Removing Reverse ClientCircuit");
+                
                 clientCircuits_reverse.Remove(circuitcode);
-                MainLog.Instance.Debug("UDPSERVER", "Removed Reverse ClientCircuit");
+                
             }
         }
     }

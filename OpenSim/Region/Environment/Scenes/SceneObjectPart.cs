@@ -68,6 +68,11 @@ namespace OpenSim.Region.Environment.Scenes
         public Int32 CreationDate;
         public uint ParentID = 0;
 
+        private Vector3 m_sitTargetPosition = new Vector3(0, 0, 0);
+        private Quaternion m_sitTargetOrientation = new Quaternion(0, 0, 0, 1);
+        private LLUUID m_SitTargetAvatar = LLUUID.Zero;
+
+
         // Main grid has default permissions as follows
         // 
         public uint OwnerMask = FULL_MASK_PERMISSIONS_OWNER;
@@ -160,6 +165,8 @@ namespace OpenSim.Region.Environment.Scenes
 
         //unkown if this will be kept, added as a way of removing the group position from the group class
         protected LLVector3 m_groupPosition;
+
+        
 
         public LLVector3 GroupPosition
         {
@@ -773,6 +780,33 @@ namespace OpenSim.Region.Environment.Scenes
         {
             m_parentGroup = parent;
         }
+
+        public void SetSitTarget(Vector3 offset, Quaternion orientation)
+        {
+            m_sitTargetPosition = offset;
+            m_sitTargetOrientation = orientation;
+        }
+
+        public Vector3 GetSitTargetPosition()
+        {
+            return m_sitTargetPosition;
+        }
+
+        public Quaternion GetSitTargetOrientation()
+        {
+            return m_sitTargetOrientation;
+        }
+
+        public void SetAvatarOnSitTarget(LLUUID avatarID)
+        {
+            m_SitTargetAvatar = avatarID;
+        }
+
+        public LLUUID GetAvatarOnSitTarget()
+        {
+            return m_SitTargetAvatar;
+        }
+
 
         public LLUUID GetRootPartUUID()
         {
