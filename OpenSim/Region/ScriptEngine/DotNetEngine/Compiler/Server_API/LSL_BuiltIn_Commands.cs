@@ -2878,6 +2878,9 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler
         //
         public int osTerrainSetHeight(int x, int y, double val)
         {
+            if (x > 255 || x < 0 || y > 255 || y < 0)
+                LSLError("osTerrainSetHeight: Coordinate out of bounds");
+
             if (World.PermissionsMngr.CanTerraform(m_host.OwnerID, new LLVector3(x, y, 0)))
             {
                 World.Terrain.Set(x, y, val);
@@ -2891,6 +2894,9 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler
 
         public double osTerrainGetHeight(int x, int y)
         {
+            if (x > 255 || x < 0 || y > 255 || y < 0)
+                LSLError("osTerrainGetHeight: Coordinate out of bounds");
+
             return World.Terrain.GetHeight(x, y);
         }
 
@@ -2898,7 +2904,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler
         {
             if (World.PermissionsMngr.CanRestartSim(m_host.OwnerID))
             {
-                World.Restart((float)ms);
+                World.Restart((float)seconds);
                 return 1;
             }
             else
@@ -2935,6 +2941,11 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler
         {
             if (throwErrorOnNotImplemented)
                 throw new NotImplementedException("Command not implemented: " + Command);
+        }
+
+        private void LSLError(string msg)
+        {
+            throw new Exception("LSL Runtime Error: " + msg);
         }
     }
 }
