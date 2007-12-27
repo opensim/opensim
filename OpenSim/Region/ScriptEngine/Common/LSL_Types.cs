@@ -40,6 +40,8 @@ namespace OpenSim.Region.ScriptEngine.Common
             public double y;
             public double z;
 
+            #region Constructors
+
             public Vector3(Vector3 vector)
             {
                 x = (float) vector.x;
@@ -54,7 +56,20 @@ namespace OpenSim.Region.ScriptEngine.Common
                 z = Z;
             }
 
-            #region Overriders 
+            public Vector3(string str)
+            {
+                str = str.Replace('<', ' ');
+                str = str.Replace('>', ' ');
+                string[] tmps = str.Split(new Char[] { ',', '<', '>' });
+                bool res;
+                res = Double.TryParse(tmps[0], out x);
+                res = res & Double.TryParse(tmps[1], out y);
+                res = res & Double.TryParse(tmps[2], out z);
+            }
+
+            #endregion
+
+            #region Overriders
 
             public override string ToString()
             {
@@ -140,6 +155,28 @@ namespace OpenSim.Region.ScriptEngine.Common
 
             #endregion
 
+            #region Vector & Double Math
+
+            public static Vector3 operator *(Vector3 vec, double val)
+            {
+                return new Vector3(vec.x * val, vec.y * val, vec.z * val);
+            }
+
+            public static Vector3 operator *(double val, Vector3 vec)
+            {
+                return new Vector3(vec.x * val, vec.y * val, vec.z * val);
+            }
+
+            public static Vector3 operator /(Vector3 v, double f)
+            {
+                v.x = v.x / f;
+                v.y = v.y / f;
+                v.z = v.z / f;
+                return v;
+            }
+
+            #endregion
+
             #region Vector & Rotation Math
 
             // Vector-Rotation Math
@@ -206,6 +243,8 @@ namespace OpenSim.Region.ScriptEngine.Common
             public double z;
             public double s;
 
+            #region Constructors
+
             public Quaternion(Quaternion Quat)
             {
                 x = (float) Quat.x;
@@ -221,6 +260,20 @@ namespace OpenSim.Region.ScriptEngine.Common
                 z = Z;
                 s = S;
             }
+
+            public Quaternion(string str)
+            {
+                str = str.Replace('<', ' ');
+                str = str.Replace('>', ' ');
+                string[] tmps = str.Split(new Char[] { ',', '<', '>' });
+                bool res;
+                res = Double.TryParse(tmps[0], out x);
+                res = res & Double.TryParse(tmps[1], out y);
+                res = res & Double.TryParse(tmps[2], out z);
+                res = res & Double.TryParse(tmps[3], out s);
+            }
+
+            #endregion 
 
             #region Overriders
 
