@@ -30,6 +30,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Net;
+using System.Text.RegularExpressions;
 using libsecondlife;
 using Nwc.XmlRpc;
 using OpenSim.Framework;
@@ -50,7 +51,9 @@ namespace OpenSim.Region.Communications.OGS1
         {
             if (data.Contains("error_type"))
             {
-                MainLog.Instance.Warn("GRID", "Error sent by user server when trying to get user profile: (" + data["error_type"] +
+                MainLog.Instance.Warn("GRID",
+                                      "Error sent by user server when trying to get user profile: (" +
+                                      data["error_type"] +
                                       "): " + data["error_desc"]);
                 return null;
             }
@@ -80,19 +83,19 @@ namespace OpenSim.Region.Communications.OGS1
             return userData;
         }
 
-        public List<AvatarPickerAvatar> ConvertXMLRPCDataToAvatarPickerList(LLUUID queryID,Hashtable data)
+        public List<AvatarPickerAvatar> ConvertXMLRPCDataToAvatarPickerList(LLUUID queryID, Hashtable data)
         {
             List<AvatarPickerAvatar> pickerlist = new List<AvatarPickerAvatar>();
-            int pickercount = Convert.ToInt32((string)data["avcount"]);
-            LLUUID respqueryID = new LLUUID((string)data["queryid"]);
+            int pickercount = Convert.ToInt32((string) data["avcount"]);
+            LLUUID respqueryID = new LLUUID((string) data["queryid"]);
             if (queryID == respqueryID)
             {
                 for (int i = 0; i < pickercount; i++)
                 {
                     AvatarPickerAvatar apicker = new AvatarPickerAvatar();
-                    LLUUID avatarID = new LLUUID((string)data["avatarid" + i.ToString()]);
-                    string firstname = (string)data["firstname" + i.ToString()];
-                    string lastname = (string)data["lastname" + i.ToString()];
+                    LLUUID avatarID = new LLUUID((string) data["avatarid" + i.ToString()]);
+                    string firstname = (string) data["firstname" + i.ToString()];
+                    string lastname = (string) data["lastname" + i.ToString()];
                     apicker.AvatarID = avatarID;
                     apicker.firstName = firstname;
                     apicker.lastName = lastname;
@@ -114,18 +117,18 @@ namespace OpenSim.Region.Communications.OGS1
         public List<AvatarPickerAvatar> GenerateAgentPickerRequestResponse(LLUUID queryID, string query)
         {
             List<AvatarPickerAvatar> pickerlist = new List<AvatarPickerAvatar>();
-            System.Text.RegularExpressions.Regex objAlphaNumericPattern = new System.Text.RegularExpressions.Regex("[^a-zA-Z0-9 ]");
+            Regex objAlphaNumericPattern = new Regex("[^a-zA-Z0-9 ]");
             try
             {
                 Hashtable param = new Hashtable();
-                param["queryid"] = (string)queryID.ToString();
+                param["queryid"] = (string) queryID.ToString();
                 param["avquery"] = objAlphaNumericPattern.Replace(query, "");
                 IList parameters = new ArrayList();
                 parameters.Add(param);
                 XmlRpcRequest req = new XmlRpcRequest("get_avatar_picker_avatar", parameters);
                 XmlRpcResponse resp = req.Send(m_parent.NetworkServersInfo.UserURL, 3000);
-                Hashtable respData = (Hashtable)resp.Value;
-                pickerlist = ConvertXMLRPCDataToAvatarPickerList(queryID,respData);
+                Hashtable respData = (Hashtable) resp.Value;
+                pickerlist = ConvertXMLRPCDataToAvatarPickerList(queryID, respData);
             }
             catch (WebException e)
             {
@@ -196,7 +199,7 @@ namespace OpenSim.Region.Communications.OGS1
             return profile;
         }
 
-        public UserProfileData SetupMasterUser(libsecondlife.LLUUID uuid)
+        public UserProfileData SetupMasterUser(LLUUID uuid)
         {
             UserProfileData data = GetUserProfile(uuid);
             if (data == null)

@@ -27,10 +27,7 @@
 */
 
 using System;
-using System.Collections.Generic;
-using System.Text;
 using OpenSim.Framework;
-
 
 /*
  * This is the zero mesher.
@@ -62,13 +59,11 @@ namespace OpenSim.Region.Physics.Manager
         }
     }
 
-    public class ZeroMesher: IMesher
+    public class ZeroMesher : IMesher
     {
-
         public IMesh CreateMesh(String primName, PrimitiveBaseShape primShape, PhysicsVector size)
         {
             return null;
         }
     }
-
 }

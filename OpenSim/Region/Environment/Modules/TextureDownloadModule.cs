@@ -32,6 +32,7 @@ using libsecondlife;
 using libsecondlife.Packets;
 using Nini.Config;
 using OpenSim.Framework;
+using OpenSim.Framework.Console;
 using OpenSim.Region.Environment.Interfaces;
 using OpenSim.Region.Environment.Scenes;
 
@@ -48,7 +49,8 @@ namespace OpenSim.Region.Environment.Modules
 
         private BlockingQueue<TextureSender> QueueSenders = new BlockingQueue<TextureSender>();
 
-        private Dictionary<LLUUID, UserTextureDownloadService> m_userTextureServices = new Dictionary<LLUUID, UserTextureDownloadService>();
+        private Dictionary<LLUUID, UserTextureDownloadService> m_userTextureServices =
+            new Dictionary<LLUUID, UserTextureDownloadService>();
 
         private Thread m_thread;
 
@@ -72,7 +74,6 @@ namespace OpenSim.Region.Environment.Modules
                 m_scene = scene;
                 m_scene.EventManager.OnNewClient += NewClient;
             }
-
         }
 
         public void PostInitialise()
@@ -115,7 +116,7 @@ namespace OpenSim.Region.Environment.Modules
 
         public void TextureRequest(Object sender, TextureRequestArgs e)
         {
-            IClientAPI client = (IClientAPI)sender;
+            IClientAPI client = (IClientAPI) sender;
             UserTextureDownloadService textureService;
             if (TryGetUserTextureService(client.AgentId, out textureService))
             {
@@ -175,7 +176,8 @@ namespace OpenSim.Region.Environment.Modules
                     {
                         if (!m_textureSenders.ContainsKey(e.RequestedAssetID))
                         {
-                            TextureSender requestHandler = new TextureSender(client, e.RequestedAssetID, e.DiscardLevel, e.PacketNumber);
+                            TextureSender requestHandler =
+                                new TextureSender(client, e.RequestedAssetID, e.DiscardLevel, e.PacketNumber);
                             m_textureSenders.Add(e.RequestedAssetID, requestHandler);
                             m_scene.AssetCache.GetAsset(e.RequestedAssetID, TextureCallback);
                         }
@@ -183,7 +185,8 @@ namespace OpenSim.Region.Environment.Modules
                         {
                             m_textureSenders[e.RequestedAssetID].UpdateRequest(e.DiscardLevel, e.PacketNumber);
                             m_textureSenders[e.RequestedAssetID].counter = 0;
-                            if ((m_textureSenders[e.RequestedAssetID].ImageLoaded) && (m_textureSenders[e.RequestedAssetID].Sending ==false))
+                            if ((m_textureSenders[e.RequestedAssetID].ImageLoaded) &&
+                                (m_textureSenders[e.RequestedAssetID].Sending == false))
                             {
                                 m_textureSenders[e.RequestedAssetID].Sending = true;
                                 m_sharedSendersQueue.Enqueue(m_textureSenders[e.RequestedAssetID]);
@@ -256,7 +259,7 @@ namespace OpenSim.Region.Environment.Modules
             {
                 m_asset = asset;
                 NumPackets = CalculateNumPackets(asset.Data.Length);
-                PacketCounter = (int)StartPacketNumber;
+                PacketCounter = (int) StartPacketNumber;
                 ImageLoaded = true;
             }
 
@@ -264,14 +267,15 @@ namespace OpenSim.Region.Environment.Modules
             {
                 RequestedDiscardLevel = discardLevel;
                 StartPacketNumber = packetNumber;
-                PacketCounter = (int)StartPacketNumber;
+                PacketCounter = (int) StartPacketNumber;
             }
 
             public bool SendTexturePacket()
             {
                 SendPacket();
                 counter++;
-                if ((NumPackets == 0) || (RequestedDiscardLevel == -1) || (PacketCounter > NumPackets) || ((RequestedDiscardLevel > 0) && (counter > 50 + (NumPackets / (RequestedDiscardLevel + 1)))) )
+                if ((NumPackets == 0) || (RequestedDiscardLevel == -1) || (PacketCounter > NumPackets) ||
+                    ((RequestedDiscardLevel > 0) && (counter > 50 + (NumPackets/(RequestedDiscardLevel + 1)))))
                 {
                     return true;
                 }
@@ -290,7 +294,7 @@ namespace OpenSim.Region.Environment.Modules
                             im.Header.Reliable = false;
                             im.ImageID.Packets = 1;
                             im.ImageID.ID = m_asset.FullID;
-                            im.ImageID.Size = (uint)m_asset.Data.Length;
+                            im.ImageID.Size = (uint) m_asset.Data.Length;
                             im.ImageData.Data = m_asset.Data;
                             im.ImageID.Codec = 2;
                             RequestUser.OutPacket(im, ThrottleOutPacketType.Texture);
@@ -300,9 +304,9 @@ namespace OpenSim.Region.Environment.Modules
                         {
                             ImageDataPacket im = new ImageDataPacket();
                             im.Header.Reliable = false;
-                            im.ImageID.Packets = (ushort)(NumPackets);
+                            im.ImageID.Packets = (ushort) (NumPackets);
                             im.ImageID.ID = m_asset.FullID;
-                            im.ImageID.Size = (uint)m_asset.Data.Length;
+                            im.ImageID.Size = (uint) m_asset.Data.Length;
                             im.ImageData.Data = new byte[600];
                             Array.Copy(m_asset.Data, 0, im.ImageData.Data, 0, 600);
                             im.ImageID.Codec = 2;
@@ -314,18 +318,20 @@ namespace OpenSim.Region.Environment.Modules
                     {
                         ImagePacketPacket im = new ImagePacketPacket();
                         im.Header.Reliable = false;
-                        im.ImageID.Packet = (ushort)(PacketCounter);
+                        im.ImageID.Packet = (ushort) (PacketCounter);
                         im.ImageID.ID = m_asset.FullID;
-                        int size = m_asset.Data.Length - 600 - (1000 * (PacketCounter - 1));
+                        int size = m_asset.Data.Length - 600 - (1000*(PacketCounter - 1));
                         if (size > 1000) size = 1000;
                         im.ImageData.Data = new byte[size];
                         try
                         {
-                            Array.Copy(m_asset.Data, 600 + (1000 * (PacketCounter - 1)), im.ImageData.Data, 0, size);
+                            Array.Copy(m_asset.Data, 600 + (1000*(PacketCounter - 1)), im.ImageData.Data, 0, size);
                         }
-                        catch (System.ArgumentOutOfRangeException)
+                        catch (ArgumentOutOfRangeException)
                         {
-                            OpenSim.Framework.Console.MainLog.Instance.Warn("TEXTURE", "Unable to separate texture into multiple packets: Array bounds failure on asset:" + m_asset.FullID.ToString() + "- TextureDownloadModule.cs. line:328");
+                            MainLog.Instance.Warn("TEXTURE",
+                                                  "Unable to separate texture into multiple packets: Array bounds failure on asset:" +
+                                                  m_asset.FullID.ToString() + "- TextureDownloadModule.cs. line:328");
                             return;
                         }
                         RequestUser.OutPacket(im, ThrottleOutPacketType.Texture);
@@ -342,14 +348,12 @@ namespace OpenSim.Region.Environment.Modules
                 {
                     //over 600 bytes so split up file
                     int restData = (length - 600);
-                    int restPackets = ((restData + 999) / 1000);
+                    int restPackets = ((restData + 999)/1000);
                     numPackets = restPackets;
                 }
 
                 return numPackets;
             }
         }
-
-
     }
 }

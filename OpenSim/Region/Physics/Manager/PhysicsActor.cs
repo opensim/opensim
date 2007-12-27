@@ -25,10 +25,10 @@
 * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 * 
 */
-using Axiom.Math;
-using OpenSim.Framework;
 using System;
 using System.Collections.Generic;
+using Axiom.Math;
+using OpenSim.Framework;
 
 namespace OpenSim.Region.Physics.Manager
 {
@@ -37,14 +37,16 @@ namespace OpenSim.Region.Physics.Manager
     public delegate void VelocityUpdate(PhysicsVector velocity);
 
     public delegate void OrientationUpdate(Quaternion orientation);
+
     public enum ActorTypes : int
     {
         Unknown = 0,
         Agent = 1,
-        Prim = 2, 
+        Prim = 2,
         Ground = 3
     }
-    public class CollisionEventUpdate : EventArgs 
+
+    public class CollisionEventUpdate : EventArgs
     {
         // Raising the event on the object, so don't need to provide location..  further up the tree knows that info.
 
@@ -53,52 +55,53 @@ namespace OpenSim.Region.Physics.Manager
         public bool m_startOrEnd;
         //public uint m_LocalID;
         public List<uint> m_objCollisionList;
+
         public CollisionEventUpdate(uint localID, int colliderType, bool startOrEnd, List<uint> objCollisionList)
         {
             m_colliderType = colliderType;
             m_startOrEnd = startOrEnd;
             m_objCollisionList = objCollisionList;
-
         }
-        public CollisionEventUpdate(bool startOrEnd){
-            m_colliderType = (int)ActorTypes.Unknown;
+
+        public CollisionEventUpdate(bool startOrEnd)
+        {
+            m_colliderType = (int) ActorTypes.Unknown;
             m_startOrEnd = startOrEnd;
             m_objCollisionList = null;
         }
-        public CollisionEventUpdate() {
-            m_colliderType = (int)ActorTypes.Unknown;
+
+        public CollisionEventUpdate()
+        {
+            m_colliderType = (int) ActorTypes.Unknown;
             m_startOrEnd = false;
             m_objCollisionList = null;
         }
-        public int collidertype{
-            get {
-                return m_colliderType;
-            }
-            set {
-                m_colliderType = value;
-            }
+
+        public int collidertype
+        {
+            get { return m_colliderType; }
+            set { m_colliderType = value; }
         }
-        public bool startOrEnd {
-            get {
-                return m_startOrEnd;
-            }
-            set {
-                m_startOrEnd = value;
-            }
+
+        public bool startOrEnd
+        {
+            get { return m_startOrEnd; }
+            set { m_startOrEnd = value; }
         }
-        public void addCollider(uint localID) {
+
+        public void addCollider(uint localID)
+        {
             m_objCollisionList.Add(localID);
         }
     }
-        
-        
 
-    
 
     public abstract class PhysicsActor
-    { 
+    {
         public delegate void RequestTerseUpdate();
+
         public delegate void CollisionUpdate(EventArgs e);
+
         public delegate void OutOfBounds(PhysicsVector pos);
 
 #pragma warning disable 67
@@ -117,10 +120,8 @@ namespace OpenSim.Region.Physics.Manager
 
         public abstract PhysicsVector Size { get; set; }
 
-        public abstract PrimitiveBaseShape Shape
-        {
-            set;
-        }
+        public abstract PrimitiveBaseShape Shape { set; }
+
         public virtual void RequestPhysicsterseUpdate()
         {
             // Make a temporary copy of the event to avoid possibility of
@@ -131,8 +132,8 @@ namespace OpenSim.Region.Physics.Manager
             {
                 OnRequestTerseUpdate();
             }
-            
         }
+
         public virtual void RaiseOutOfBounds(PhysicsVector pos)
         {
             // Make a temporary copy of the event to avoid possibility of
@@ -143,8 +144,8 @@ namespace OpenSim.Region.Physics.Manager
             {
                 OnOutOfBounds(pos);
             }
-
         }
+
         public virtual void SendCollisionUpdate(EventArgs e)
         {
             CollisionUpdate handler = OnCollisionUpdate;
@@ -159,7 +160,7 @@ namespace OpenSim.Region.Physics.Manager
 
         public abstract float Mass { get; }
 
-        public abstract PhysicsVector Force { get;}
+        public abstract PhysicsVector Force { get; }
 
         public abstract PhysicsVector GeometricCenter { get; }
 
@@ -172,7 +173,7 @@ namespace OpenSim.Region.Physics.Manager
         public abstract Quaternion Orientation { get; set; }
         public abstract int PhysicsActorType { get; set; }
 
-        public abstract bool IsPhysical {get; set;}
+        public abstract bool IsPhysical { get; set; }
 
         public abstract bool Flying { get; set; }
         public abstract bool SetAlwaysRun { get; set; }
@@ -198,48 +199,54 @@ namespace OpenSim.Region.Physics.Manager
             get { return PhysicsVector.Zero; }
             set { return; }
         }
+
         public override bool SetAlwaysRun
         {
             get { return false; }
             set { return; }
         }
+
         public override bool CollidingGround
-        {
-            get {return false;}
-            set {return;}
-        }
-        public override bool CollidingObj 
         {
             get { return false; }
             set { return; }
         }
+
+        public override bool CollidingObj
+        {
+            get { return false; }
+            set { return; }
+        }
+
         public override PhysicsVector Size
         {
             get { return PhysicsVector.Zero; }
             set { return; }
         }
+
         public override float Mass
         {
             get { return 0f; }
         }
+
         public override PhysicsVector Force
         {
             get { return PhysicsVector.Zero; }
         }
+
         public override PhysicsVector CenterOfMass
         {
             get { return PhysicsVector.Zero; }
         }
+
         public override PhysicsVector GeometricCenter
         {
             get { return PhysicsVector.Zero; }
         }
+
         public override PrimitiveBaseShape Shape
         {
-            set
-            {
-                return;
-            }
+            set { return; }
         }
 
         public override PhysicsVector Velocity
@@ -270,6 +277,7 @@ namespace OpenSim.Region.Physics.Manager
             get { return false; }
             set { return; }
         }
+
         public override bool ThrottleUpdates
         {
             get { return false; }
@@ -281,9 +289,10 @@ namespace OpenSim.Region.Physics.Manager
             get { return false; }
             set { return; }
         }
+
         public override int PhysicsActorType
         {
-            get { return (int)ActorTypes.Unknown; }
+            get { return (int) ActorTypes.Unknown; }
             set { return; }
         }
 
@@ -297,11 +306,13 @@ namespace OpenSim.Region.Physics.Manager
         {
             return;
         }
+
         public override PhysicsVector RotationalVelocity
         {
             get { return PhysicsVector.Zero; }
             set { return; }
         }
+
         public override void SetMomentum(PhysicsVector momentum)
         {
             return;

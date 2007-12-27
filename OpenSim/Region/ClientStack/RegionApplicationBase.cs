@@ -29,7 +29,6 @@ using System;
 using System.Collections.Generic;
 using System.Net;
 using libsecondlife;
-using Nini.Config;
 using OpenSim.Framework;
 using OpenSim.Framework.Communications;
 using OpenSim.Framework.Communications.Cache;
@@ -55,7 +54,7 @@ namespace OpenSim.Region.ClientStack
         protected CommunicationsManager m_commsManager;
 
         protected SceneManager m_sceneManager = new SceneManager();
-        
+
         protected StorageManager m_storageManager;
         protected string m_storageConnectionString;
 
@@ -73,7 +72,7 @@ namespace OpenSim.Region.ClientStack
         {
             ClientView.TerrainManager = new TerrainManager(new SecondLife());
 
-            m_storageManager = CreateStorageManager(m_storageConnectionString );
+            m_storageManager = CreateStorageManager(m_storageConnectionString);
 
             Initialize();
 
@@ -142,7 +141,7 @@ namespace OpenSim.Region.ClientStack
                 m_log.Verbose("PARCEL", "No master avatar found, using null.");
                 scene.RegionInfo.MasterAvatarAssignedUUID = LLUUID.Zero;
             }
-            
+
             scene.LoadPrimsFromStorage(m_permissions);
             scene.loadAllLandObjectsFromStorage();
             scene.performParcelPrimCountUpdate();

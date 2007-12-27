@@ -482,7 +482,7 @@ namespace OpenSim.Framework
                 // I don't think there is a reason that this actually
                 // needs to be written back to the estate settings
                 // file.
-                
+
                 // configMember.forceSetConfigurationOption("terrain_image_id", m_terrainImageID.ToString());
             }
         }

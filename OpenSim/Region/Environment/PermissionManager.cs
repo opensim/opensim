@@ -35,13 +35,13 @@ namespace OpenSim.Region.Environment
     public class PermissionManager
     {
         protected Scene m_scene;
-        
+
         // These are here for testing.  They will be taken out
-        private uint PERM_ALL = (uint)2147483647;
-        private uint PERM_COPY = (uint)32768;
-        private uint PERM_MODIFY = (uint)16384;
-        private uint PERM_MOVE = (uint)524288;
-        private uint PERM_TRANS = (uint)8192;
+        private uint PERM_ALL = (uint) 2147483647;
+        private uint PERM_COPY = (uint) 32768;
+        private uint PERM_MODIFY = (uint) 16384;
+        private uint PERM_MOVE = (uint) 524288;
+        private uint PERM_TRANS = (uint) 8192;
         // Bypasses the permissions engine (always returns OK)
         // disable in any production environment
         // TODO: Change this to false when permissions are a desired default
@@ -109,10 +109,11 @@ namespace OpenSim.Region.Environment
 
             string reason = "Insufficient permission";
 
-            Land land = this.m_scene.LandManager.getLandObject(position.X, position.Y);
+            Land land = m_scene.LandManager.getLandObject(position.X, position.Y);
             if (land == null) return false;
 
-            if ((land.landData.landFlags & ((int)Parcel.ParcelFlags.CreateObjects)) == (int)Parcel.ParcelFlags.CreateObjects)
+            if ((land.landData.landFlags & ((int) Parcel.ParcelFlags.CreateObjects)) ==
+                (int) Parcel.ParcelFlags.CreateObjects)
                 permission = true;
 
             //TODO: check for group rights
@@ -143,8 +144,6 @@ namespace OpenSim.Region.Environment
 
         #region Object Permissions
 
-
-       
         public virtual uint GenerateClientFlags(LLUUID user, LLUUID objID)
         {
             if (!m_scene.Entities.ContainsKey(objID))
@@ -158,7 +157,7 @@ namespace OpenSim.Region.Environment
                 return 0;
             }
 
-            SceneObjectGroup task = (SceneObjectGroup)m_scene.Entities[objID];
+            SceneObjectGroup task = (SceneObjectGroup) m_scene.Entities[objID];
             LLUUID taskOwner = null;
             // Added this because at this point in time it wouldn't be wise for 
             // the administrator object permissions to take effect.
@@ -274,7 +273,7 @@ namespace OpenSim.Region.Environment
 
         public virtual bool CanEditObjectPosition(LLUUID user, LLUUID obj)
         {
-            bool permission = GenericObjectPermission(user,obj);
+            bool permission = GenericObjectPermission(user, obj);
             if (!permission)
             {
                 if (!m_scene.Entities.ContainsKey(obj))
@@ -288,7 +287,7 @@ namespace OpenSim.Region.Environment
                     return false;
                 }
 
-                SceneObjectGroup task = (SceneObjectGroup)m_scene.Entities[obj];
+                SceneObjectGroup task = (SceneObjectGroup) m_scene.Entities[obj];
                 LLUUID taskOwner = null;
                 // Added this because at this point in time it wouldn't be wise for 
                 // the administrator object permissions to take effect.
@@ -298,6 +297,7 @@ namespace OpenSim.Region.Environment
             }
             return permission;
         }
+
         public virtual bool CanCopyObject(LLUUID user, LLUUID obj)
         {
             bool permission = GenericObjectPermission(user, obj);
@@ -314,7 +314,7 @@ namespace OpenSim.Region.Environment
                     return false;
                 }
 
-                SceneObjectGroup task = (SceneObjectGroup)m_scene.Entities[obj];
+                SceneObjectGroup task = (SceneObjectGroup) m_scene.Entities[obj];
                 LLUUID taskOwner = null;
                 // Added this because at this point in time it wouldn't be wise for 
                 // the administrator object permissions to take effect.
@@ -324,6 +324,7 @@ namespace OpenSim.Region.Environment
             }
             return permission;
         }
+
         public virtual bool CanReturnObject(LLUUID user, LLUUID obj)
         {
             return GenericObjectPermission(user, obj);

@@ -29,10 +29,10 @@ using System;
 using System.Collections.Generic;
 using libsecondlife;
 using OpenSim.Framework;
-using OpenSim.Framework.Servers;
 using OpenSim.Framework.Communications;
 using OpenSim.Framework.Communications.Cache;
 using OpenSim.Framework.Console;
+using OpenSim.Framework.Servers;
 
 namespace OpenSim.Region.Communications.OGS1
 {
@@ -51,7 +51,7 @@ namespace OpenSim.Region.Communications.OGS1
         // See IInventoryServices
         public void RequestInventoryForUser(LLUUID userID, InventoryFolderInfo folderCallBack,
                                             InventoryItemInfo itemCallBack)
-        {          
+        {
             if (!m_RequestingInventory.ContainsKey(userID))
             {
                 InventoryRequest request = new InventoryRequest(userID, folderCallBack, itemCallBack);
@@ -72,10 +72,10 @@ namespace OpenSim.Region.Communications.OGS1
             try
             {
                 MainLog.Instance.Verbose(
-                    "INVENTORY", "Requesting inventory from {0}/GetInventory/ for user {1}", 
+                    "INVENTORY", "Requesting inventory from {0}/GetInventory/ for user {1}",
                     _inventoryServerUrl, userID);
-                
-                RestObjectPosterResponse<InventoryCollection> requester 
+
+                RestObjectPosterResponse<InventoryCollection> requester
                     = new RestObjectPosterResponse<InventoryCollection>();
                 requester.ResponseCallback = InventoryResponse;
 
@@ -96,10 +96,10 @@ namespace OpenSim.Region.Communications.OGS1
             LLUUID userID = response.UserID;
             if (m_RequestingInventory.ContainsKey(userID))
             {
-                MainLog.Instance.Verbose("INVENTORY", 
-                    "Received inventory response for user {0} containing {1} folders and {2} items",
+                MainLog.Instance.Verbose("INVENTORY",
+                                         "Received inventory response for user {0} containing {1} folders and {2} items",
                                          userID, response.Folders.Count, response.AllItems.Count);
-                
+
                 InventoryFolderImpl rootFolder = null;
                 InventoryRequest request = m_RequestingInventory[userID];
                 foreach (InventoryFolderBase folder in response.Folders)
@@ -133,8 +133,8 @@ namespace OpenSim.Region.Communications.OGS1
             else
             {
                 MainLog.Instance.Warn(
-                    "INVENTORY", 
-                    "Received inventory response for {0} for which we do not have a record of requesting!", 
+                    "INVENTORY",
+                    "Received inventory response for {0} for which we do not have a record of requesting!",
                     userID);
             }
         }
@@ -150,7 +150,7 @@ namespace OpenSim.Region.Communications.OGS1
             SynchronousRestObjectPoster.BeginPostObject<InventoryFolderBase, bool>(
                 "POST", _inventoryServerUrl + "/MoveFolder/", folder);
         }
-        
+
         public void AddNewInventoryItem(LLUUID userID, InventoryItemBase item)
         {
             SynchronousRestObjectPoster.BeginPostObject<InventoryItemBase, bool>(

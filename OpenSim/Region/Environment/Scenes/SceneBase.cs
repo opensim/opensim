@@ -26,8 +26,6 @@
 * 
 */
 using System;
-using System.Collections.Generic;
-using System.Timers;
 using libsecondlife;
 using OpenSim.Framework;
 using OpenSim.Framework.Communications.Cache;
@@ -43,8 +41,9 @@ namespace OpenSim.Region.Environment.Scenes
         public event restart OnRestart;
 
         #endregion
-        
+
         #region Fields
+
         private readonly ClientManager m_clientManager = new ClientManager();
 
         public ClientManager ClientManager
@@ -91,8 +90,6 @@ namespace OpenSim.Region.Environment.Scenes
         /// Normally called once every frame/tick to let the world preform anything required (like running the physics simulation)
         /// </summary>
         public abstract void Update();
-
-
 
         #endregion
 
@@ -163,8 +160,8 @@ namespace OpenSim.Region.Environment.Scenes
 
         public abstract bool OtherRegionUp(RegionInfo thisRegion);
 
-
         #endregion
+
         #region Shutdown
 
         /// <summary>

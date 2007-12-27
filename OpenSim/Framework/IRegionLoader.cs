@@ -26,11 +26,8 @@
 * 
 */
 
-using System;
-using System.Collections.Generic;
-using System.Text;
-using OpenSim.Framework;
 using Nini.Config;
+
 namespace OpenSim.Framework
 {
     public interface IRegionLoader

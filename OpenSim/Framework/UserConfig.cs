@@ -76,7 +76,8 @@ namespace OpenSim.Framework
             configMember.addConfigurationOption("default_inventory_server",
                                                 ConfigurationOption.ConfigurationTypes.TYPE_STRING_NOT_EMPTY,
                                                 "Default Inventory Server URI",
-                                                "http://127.0.0.1:" + InventoryConfig.DefaultHttpPort.ToString() + "/", false);
+                                                "http://127.0.0.1:" + InventoryConfig.DefaultHttpPort.ToString() + "/",
+                                                false);
             configMember.addConfigurationOption("database_provider", ConfigurationOption.ConfigurationTypes.TYPE_STRING,
                                                 "DLL for database provider", "OpenSim.Framework.Data.MySQL.dll", false);
 
@@ -107,7 +108,7 @@ namespace OpenSim.Framework
                     GridRecvKey = (string) configuration_result;
                     break;
                 case "default_inventory_server":
-                    InventoryUrl = (string)configuration_result;
+                    InventoryUrl = (string) configuration_result;
                     break;
                 case "database_provider":
                     DatabaseProvider = (string) configuration_result;
@@ -116,13 +117,13 @@ namespace OpenSim.Framework
                     HttpPort = (uint) configuration_result;
                     break;
                 case "http_ssl":
-                    HttpSSL = (bool)configuration_result;
+                    HttpSSL = (bool) configuration_result;
                     break;
                 case "default_X":
-                    DefaultX = (uint)configuration_result;
+                    DefaultX = (uint) configuration_result;
                     break;
                 case "default_Y":
-                    DefaultY = (uint)configuration_result;
+                    DefaultY = (uint) configuration_result;
                     break;
             }
 

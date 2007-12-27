@@ -27,10 +27,8 @@
 */
 
 using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Xml.Serialization;
-using libsecondlife;
 using OpenSim.Framework.Console;
 using OpenSim.Framework.Servers;
 
@@ -65,9 +63,9 @@ namespace OpenSim.Framework.Communications.Cache
 
                 if (s.Length > 0)
                 {
-                    XmlSerializer xs = new XmlSerializer(typeof(AssetBase));
-                    
-                    return (AssetBase)xs.Deserialize(s);
+                    XmlSerializer xs = new XmlSerializer(typeof (AssetBase));
+
+                    return (AssetBase) xs.Deserialize(s);
                 }
             }
             catch (Exception e)
@@ -76,10 +74,9 @@ namespace OpenSim.Framework.Communications.Cache
                 MainLog.Instance.Debug("ASSETCACHE", "Getting asset {0}", req.AssetID.ToString());
                 MainLog.Instance.Error("ASSETCACHE", e.StackTrace);
             }
-            
+
             return null;
         }
-
 
 
         public override void UpdateAsset(AssetBase asset)
@@ -118,8 +115,6 @@ namespace OpenSim.Framework.Communications.Cache
         {
             throw new Exception("The method or operation is not implemented.");
         }
-
-
 
         #endregion
     }

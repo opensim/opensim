@@ -25,48 +25,46 @@
 * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 * 
 */
-using System;
-using System.Net;
 using System.IO;
+using System.Net;
 using System.Xml;
-using System.Collections.Generic;
-using System.Text;
 using Nini.Config;
-using OpenSim.Framework;
+using OpenSim.Framework.Console;
 
 namespace OpenSim.Framework.RegionLoader.Web
 {
     public class RegionLoaderWebServer : IRegionLoader
     {
         private IniConfigSource m_configSouce;
+
         public void SetIniConfigSource(IniConfigSource configSource)
         {
             m_configSouce = configSource;
         }
+
         public RegionInfo[] LoadRegions()
         {
             if (m_configSouce == null)
             {
-                Console.MainLog.Instance.Error("WEBLOADER", "Unable to load configuration source!");
+                MainLog.Instance.Error("WEBLOADER", "Unable to load configuration source!");
                 return null;
             }
             else
             {
-                IniConfig startupConfig = (IniConfig)m_configSouce.Configs["Startup"];
-                string url = startupConfig.GetString("regionload_webserver_url","").Trim();
+                IniConfig startupConfig = (IniConfig) m_configSouce.Configs["Startup"];
+                string url = startupConfig.GetString("regionload_webserver_url", "").Trim();
                 if (url == "")
                 {
-                    Console.MainLog.Instance.Error("WEBLOADER", "Unable to load webserver URL - URL was empty.");
+                    MainLog.Instance.Error("WEBLOADER", "Unable to load webserver URL - URL was empty.");
                     return null;
                 }
                 else
                 {
-                    
-                    HttpWebRequest webRequest = (HttpWebRequest)WebRequest.Create(url);
+                    HttpWebRequest webRequest = (HttpWebRequest) WebRequest.Create(url);
                     webRequest.Timeout = 30000; //30 Second Timeout
-                    Console.MainLog.Instance.Debug("WEBLOADER", "Sending Download Request...");
-                    HttpWebResponse webResponse = (HttpWebResponse)webRequest.GetResponse();
-                    Console.MainLog.Instance.Debug("WEBLOADER", "Downloading Region Information From Remote Server...");
+                    MainLog.Instance.Debug("WEBLOADER", "Sending Download Request...");
+                    HttpWebResponse webResponse = (HttpWebResponse) webRequest.GetResponse();
+                    MainLog.Instance.Debug("WEBLOADER", "Downloading Region Information From Remote Server...");
                     StreamReader reader = new StreamReader(webResponse.GetResponseStream());
                     string xmlSource = "";
                     string tempStr = reader.ReadLine();
@@ -75,7 +73,9 @@ namespace OpenSim.Framework.RegionLoader.Web
                         xmlSource = xmlSource + tempStr;
                         tempStr = reader.ReadLine();
                     }
-                    Console.MainLog.Instance.Debug("WEBLOADER", "Done downloading region information from server. Total Bytes: " + xmlSource.Length);
+                    MainLog.Instance.Debug("WEBLOADER",
+                                           "Done downloading region information from server. Total Bytes: " +
+                                           xmlSource.Length);
                     XmlDocument xmlDoc = new XmlDocument();
                     xmlDoc.LoadXml(xmlSource);
                     if (xmlDoc.FirstChild.Name == "Regions")
@@ -84,8 +84,9 @@ namespace OpenSim.Framework.RegionLoader.Web
                         int i;
                         for (i = 0; i < xmlDoc.FirstChild.ChildNodes.Count; i++)
                         {
-                            Console.MainLog.Instance.Debug(xmlDoc.FirstChild.ChildNodes[i].OuterXml);
-                            regionInfos[i] = new RegionInfo("REGION CONFIG #" + (i + 1), xmlDoc.FirstChild.ChildNodes[i]);
+                            MainLog.Instance.Debug(xmlDoc.FirstChild.ChildNodes[i].OuterXml);
+                            regionInfos[i] =
+                                new RegionInfo("REGION CONFIG #" + (i + 1), xmlDoc.FirstChild.ChildNodes[i]);
                         }
 
                         return regionInfos;

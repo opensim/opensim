@@ -27,18 +27,18 @@
 */
 
 using System;
-using System.Data;
 using System.Collections.Generic;
+using System.Data;
 using System.Data.SqlClient;
-
 using libsecondlife;
 using OpenSim.Framework.Console;
 
 namespace OpenSim.Framework.Data.MSSQL
 {
-    class MSSQLAssetData : IAssetProvider   
+    internal class MSSQLAssetData : IAssetProvider
     {
-        MSSQLManager database;
+        private MSSQLManager database;
+
         #region IAssetProvider Members
 
         private void UpgradeAssetsTable(string tableName)
@@ -46,7 +46,7 @@ namespace OpenSim.Framework.Data.MSSQL
             // null as the version, indicates that the table didn't exist
             if (tableName == null)
             {
-                MainLog.Instance.Notice("ASSETS", "Creating new database tables");                
+                MainLog.Instance.Notice("ASSETS", "Creating new database tables");
                 database.ExecuteResourceSql("CreateAssetsTable.sql");
                 return;
             }
@@ -57,14 +57,12 @@ namespace OpenSim.Framework.Data.MSSQL
         /// </summary>
         private void TestTables()
         {
-            
             Dictionary<string, string> tableList = new Dictionary<string, string>();
 
             tableList["assets"] = null;
             database.GetTableVersion(tableList);
 
             UpgradeAssetsTable(tableList["assets"]);
-
         }
 
         public AssetBase FetchAsset(LLUUID assetID)
@@ -80,30 +78,27 @@ namespace OpenSim.Framework.Data.MSSQL
             asset = database.getAssetRow(reader);
             reader.Close();
             result.Dispose();
-            
+
             return asset;
         }
 
         public void CreateAsset(AssetBase asset)
         {
-
-            if (ExistsAsset((LLUUID)asset.FullID))
+            if (ExistsAsset((LLUUID) asset.FullID))
             {
                 return;
             }
 
 
-
             SqlCommand cmd =
                 new SqlCommand(
-                    "INSERT INTO assets ([id], [name], [description], [assetType], [invType], [local], [temporary], [data])"+
-                    " VALUES "+
+                    "INSERT INTO assets ([id], [name], [description], [assetType], [invType], [local], [temporary], [data])" +
+                    " VALUES " +
                     "(@id, @name, @description, @assetType, @invType, @local, @temporary, @data)",
                     database.getConnection());
-            
+
             using (cmd)
             {
-
                 //SqlParameter p = cmd.Parameters.Add("id", SqlDbType.NVarChar);
                 //p.Value = asset.FullID.ToString();
                 cmd.Parameters.AddWithValue("id", asset.FullID.ToString());
@@ -127,24 +122,23 @@ namespace OpenSim.Framework.Data.MSSQL
                 {
                     throw;
                 }
-                
+
                 cmd.Dispose();
             }
-
         }
 
 
         public void UpdateAsset(AssetBase asset)
         {
             SqlCommand command = new SqlCommand("UPDATE assets set id = @id, " +
-                                                           "name = @name, " +
-                                                           "description = @description," +
-                                                           "assetType = @assetType," +
-                                                           "invType = @invType," +
-                                                           "local = @local,"+
-                                                           "temporary = @temporary," +
-                                                           "data = @data where " +
-                                                           "id = @keyId;", database.getConnection());
+                                                "name = @name, " +
+                                                "description = @description," +
+                                                "assetType = @assetType," +
+                                                "invType = @invType," +
+                                                "local = @local," +
+                                                "temporary = @temporary," +
+                                                "data = @data where " +
+                                                "id = @keyId;", database.getConnection());
             SqlParameter param1 = new SqlParameter("@id", asset.FullID.ToString());
             SqlParameter param2 = new SqlParameter("@name", asset.Name);
             SqlParameter param3 = new SqlParameter("@description", asset.Description);
@@ -172,12 +166,12 @@ namespace OpenSim.Framework.Data.MSSQL
             {
                 MainLog.Instance.Error(e.ToString());
             }
-            
         }
 
         public bool ExistsAsset(LLUUID uuid)
         {
-            if (FetchAsset(uuid) != null) {
+            if (FetchAsset(uuid) != null)
+            {
                 return true;
             }
             return false;
@@ -194,11 +188,8 @@ namespace OpenSim.Framework.Data.MSSQL
 
         #region IPlugin Members
 
-        
-
         public void Initialise()
         {
-            
             IniFile GridDataMySqlFile = new IniFile("mssql_connection.ini");
             string settingDataSource = GridDataMySqlFile.ParseFileReadValue("data_source");
             string settingInitialCatalog = GridDataMySqlFile.ParseFileReadValue("initial_catalog");
@@ -206,7 +197,9 @@ namespace OpenSim.Framework.Data.MSSQL
             string settingUserId = GridDataMySqlFile.ParseFileReadValue("user_id");
             string settingPassword = GridDataMySqlFile.ParseFileReadValue("password");
 
-            this.database = new MSSQLManager(settingDataSource, settingInitialCatalog, settingPersistSecurityInfo, settingUserId, settingPassword);
+            database =
+                new MSSQLManager(settingDataSource, settingInitialCatalog, settingPersistSecurityInfo, settingUserId,
+                                 settingPassword);
 
             TestTables();
         }
@@ -214,7 +207,7 @@ namespace OpenSim.Framework.Data.MSSQL
         public string Version
         {
 //            get { return database.getVersion(); } 
-            get { return database.getVersion(); } 
+            get { return database.getVersion(); }
         }
 
         public string Name

@@ -1,4 +1,4 @@
-﻿/*
+/*
 * Copyright (c) Contributors, http://opensimulator.org/
 * See CONTRIBUTORS.TXT for a full list of copyright holders.
 *
@@ -28,12 +28,12 @@
 
 using System;
 using System.Collections;
-using System.Collections.Generic;
-using System.Xml;
+using System.Globalization;
 using System.IO;
-using libsecondlife;
 using System.Security.Cryptography;
 using System.Text;
+using System.Xml;
+using libsecondlife;
 
 namespace OpenSim.Region.Capabilities
 {
@@ -47,7 +47,9 @@ namespace OpenSim.Region.Capabilities
         /// </summary>
         public class LLSDParseException : Exception
         {
-            public LLSDParseException(string message) : base(message) { }
+            public LLSDParseException(string message) : base(message)
+            {
+            }
         }
 
         /// <summary>
@@ -55,7 +57,9 @@ namespace OpenSim.Region.Capabilities
         /// </summary>
         public class LLSDSerializeException : Exception
         {
-            public LLSDSerializeException(string message) : base(message) { }
+            public LLSDSerializeException(string message) : base(message)
+            {
+            }
         }
 
         /// <summary>
@@ -129,7 +133,7 @@ namespace OpenSim.Region.Capabilities
             if (obj is string)
             {
                 writer.WriteStartElement(String.Empty, "string", String.Empty);
-                writer.WriteString((string)obj);
+                writer.WriteString((string) obj);
                 writer.WriteEndElement();
             }
             else if (obj is int)
@@ -146,7 +150,7 @@ namespace OpenSim.Region.Capabilities
             }
             else if (obj is bool)
             {
-                bool b = (bool)obj;
+                bool b = (bool) obj;
                 writer.WriteStartElement(String.Empty, "boolean", String.Empty);
                 writer.WriteString(b ? "1" : "0");
                 writer.WriteEndElement();
@@ -157,7 +161,7 @@ namespace OpenSim.Region.Capabilities
             }
             else if (obj is LLUUID)
             {
-                LLUUID u = (LLUUID)obj;
+                LLUUID u = (LLUUID) obj;
                 writer.WriteStartElement(String.Empty, "uuid", String.Empty);
                 writer.WriteString(u.ToString());
                 writer.WriteEndElement();
@@ -463,7 +467,7 @@ namespace OpenSim.Region.Capabilities
             }
             else if (obj is string)
             {
-                return GetSpaces(indent) + "- string \"" + (string)obj + "\"\n";
+                return GetSpaces(indent) + "- string \"" + (string) obj + "\"\n";
             }
             else if (obj is int)
             {
@@ -475,13 +479,13 @@ namespace OpenSim.Region.Capabilities
             }
             else if (obj is LLUUID)
             {
-                return GetSpaces(indent) + "- uuid " + ((LLUUID)obj).ToString() + Environment.NewLine;
+                return GetSpaces(indent) + "- uuid " + ((LLUUID) obj).ToString() + Environment.NewLine;
             }
             else if (obj is Hashtable)
             {
                 StringBuilder ret = new StringBuilder();
                 ret.Append(GetSpaces(indent) + "- map" + Environment.NewLine);
-                Hashtable map = (Hashtable)obj;
+                Hashtable map = (Hashtable) obj;
 
                 foreach (string key in map.Keys)
                 {
@@ -495,7 +499,7 @@ namespace OpenSim.Region.Capabilities
             {
                 StringBuilder ret = new StringBuilder();
                 ret.Append(GetSpaces(indent) + "- array\n");
-                ArrayList list = (ArrayList)obj;
+                ArrayList list = (ArrayList) obj;
 
                 foreach (object item in list)
                 {
@@ -506,8 +510,8 @@ namespace OpenSim.Region.Capabilities
             }
             else if (obj is byte[])
             {
-                return GetSpaces(indent) + "- binary\n" + Helpers.FieldToHexString((byte[])obj, GetSpaces(indent)) +
-                    Environment.NewLine;
+                return GetSpaces(indent) + "- binary\n" + Helpers.FieldToHexString((byte[]) obj, GetSpaces(indent)) +
+                       Environment.NewLine;
             }
             else
             {
@@ -557,8 +561,8 @@ namespace OpenSim.Region.Capabilities
                         double value;
                         endPos = FindEnd(llsd, 1);
 
-                        if (Double.TryParse(llsd.Substring(1, endPos - 1), System.Globalization.NumberStyles.Float,
-                            Helpers.EnUsCulture.NumberFormat, out value))
+                        if (Double.TryParse(llsd.Substring(1, endPos - 1), NumberStyles.Float,
+                                            Helpers.EnUsCulture.NumberFormat, out value))
                             return value;
                         else
                             throw new LLSDParseException("Failed to parse double value type");
@@ -652,7 +656,7 @@ namespace OpenSim.Region.Capabilities
 
         private static int FindEnd(string llsd, int start)
         {
-            int end = llsd.IndexOfAny(new char[] { ',', ']', '}' });
+            int end = llsd.IndexOfAny(new char[] {',', ']', '}'});
             if (end == -1) end = llsd.Length - 1;
             return end;
         }

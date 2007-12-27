@@ -31,15 +31,12 @@ using System.Collections.Generic;
 using System.Data;
 using System.Diagnostics;
 using System.IO;
-using System.Text;
 using libsecondlife;
 using MySql.Data.MySqlClient;
 using OpenSim.Framework.Console;
 using OpenSim.Region.Environment.Interfaces;
 using OpenSim.Region.Environment.LandManagement;
 using OpenSim.Region.Environment.Scenes;
-using System.Data.SqlClient;
-using System.Data.Common;
 
 namespace OpenSim.Framework.Data.MySQL
 {
@@ -130,7 +127,7 @@ namespace OpenSim.Framework.Data.MySQL
             {
                 foreach (SceneObjectPart prim in obj.Children.Values)
                 {
-                    if ((prim.ObjectFlags & (uint)LLObject.ObjectFlags.Physics) == 0)
+                    if ((prim.ObjectFlags & (uint) LLObject.ObjectFlags.Physics) == 0)
                     {
                         MainLog.Instance.Verbose("DATASTORE", "Adding obj: " + obj.UUID + " to region: " + regionUUID);
                         addPrim(prim, obj.UUID, regionUUID);
@@ -156,7 +153,7 @@ namespace OpenSim.Framework.Data.MySQL
                 DataRow[] primRows = prims.Select(selectExp);
                 foreach (DataRow row in primRows)
                 {
-                    LLUUID uuid = new LLUUID((string)row["UUID"]);
+                    LLUUID uuid = new LLUUID((string) row["UUID"]);
                     DataRow shapeRow = shapes.Rows.Find(Util.ToRawUuidString(uuid));
                     if (shapeRow != null)
                     {
@@ -191,8 +188,8 @@ namespace OpenSim.Framework.Data.MySQL
                 {
                     try
                     {
-                        string uuid = (string)primRow["UUID"];
-                        string objID = (string)primRow["SceneGroupID"];
+                        string uuid = (string) primRow["UUID"];
+                        string objID = (string) primRow["SceneGroupID"];
                         if (uuid == objID) //is new SceneObjectGroup ?
                         {
                             SceneObjectGroup group = new SceneObjectGroup();
@@ -255,10 +252,9 @@ namespace OpenSim.Framework.Data.MySQL
             lock (m_dataSet)
             {
                 MySqlCommand cmd = new MySqlCommand("insert into terrain(RegionUUID, Revision, Heightfield)" +
-                                                      " values(?RegionUUID, ?Revision, ?Heightfield)", m_connection);
+                                                    " values(?RegionUUID, ?Revision, ?Heightfield)", m_connection);
                 using (cmd)
                 {
-
                     cmd.Parameters.Add(new MySqlParameter("?RegionUUID", Util.ToRawUuidString(regionID)));
                     cmd.Parameters.Add(new MySqlParameter("?Revision", revision));
                     cmd.Parameters.Add(new MySqlParameter("?Heightfield", serializeTerrain(ter)));
@@ -269,7 +265,7 @@ namespace OpenSim.Framework.Data.MySQL
 
         public double[,] LoadTerrain(LLUUID regionID)
         {
-            double[,] terret = new double[256, 256];
+            double[,] terret = new double[256,256];
             terret.Initialize();
 
             MySqlCommand cmd = new MySqlCommand(
@@ -278,7 +274,7 @@ namespace OpenSim.Framework.Data.MySQL
                 , m_connection);
 
             MySqlParameter param = new MySqlParameter();
-            cmd.Parameters.Add(new MySqlParameter("?RegionUUID",  Util.ToRawUuidString(regionID)));
+            cmd.Parameters.Add(new MySqlParameter("?RegionUUID", Util.ToRawUuidString(regionID)));
 
             if (m_connection.State != ConnectionState.Open)
             {
@@ -290,15 +286,15 @@ namespace OpenSim.Framework.Data.MySQL
                 int rev = 0;
                 if (row.Read())
                 {
-                    byte[] heightmap = (byte[])row["Heightfield"];
+                    byte[] heightmap = (byte[]) row["Heightfield"];
                     for (int x = 0; x < 256; x++)
                     {
                         for (int y = 0; y < 256; y++)
                         {
-                            terret[x, y] = BitConverter.ToDouble(heightmap, ((x * 256) + y) * 8);
+                            terret[x, y] = BitConverter.ToDouble(heightmap, ((x*256) + y)*8);
                         }
                     }
-                    rev = (int)row["Revision"];
+                    rev = (int) row["Revision"];
                 }
                 else
                 {
@@ -322,7 +318,9 @@ namespace OpenSim.Framework.Data.MySQL
                     cmd.ExecuteNonQuery();
                 }
 
-                using (MySqlCommand cmd = new MySqlCommand("delete from landaccesslist where LandUUID=?UUID", m_connection))
+                using (
+                    MySqlCommand cmd = new MySqlCommand("delete from landaccesslist where LandUUID=?UUID", m_connection)
+                    )
                 {
                     cmd.Parameters.Add(new MySqlParameter("?UUID", Util.ToRawUuidString(globalID)));
                     cmd.ExecuteNonQuery();
@@ -336,7 +334,7 @@ namespace OpenSim.Framework.Data.MySQL
             {
                 DataTable land = m_landTable;
                 DataTable landaccesslist = m_landAccessListTable;
-                
+
                 DataRow landRow = land.Rows.Find(Util.ToRawUuidString(parcel.landData.globalID));
                 if (landRow == null)
                 {
@@ -349,7 +347,9 @@ namespace OpenSim.Framework.Data.MySQL
                     fillLandRow(landRow, parcel.landData, regionUUID);
                 }
 
-                using (MySqlCommand cmd = new MySqlCommand("delete from landaccesslist where LandUUID=?LandUUID", m_connection))
+                using (
+                    MySqlCommand cmd =
+                        new MySqlCommand("delete from landaccesslist where LandUUID=?LandUUID", m_connection))
                 {
                     cmd.Parameters.Add(new MySqlParameter("?LandUUID", Util.ToRawUuidString(parcel.landData.globalID)));
                     cmd.ExecuteNonQuery();
@@ -361,13 +361,12 @@ namespace OpenSim.Framework.Data.MySQL
                     fillLandAccessRow(newAccessRow, entry, parcel.landData.globalID);
                     landaccesslist.Rows.Add(newAccessRow);
                 }
-
             }
 
             Commit();
         }
 
-        public List<Framework.LandData> LoadLandObjects(LLUUID regionUUID)
+        public List<LandData> LoadLandObjects(LLUUID regionUUID)
         {
             List<LandData> landDataForRegion = new List<LandData>();
             lock (m_dataSet)
@@ -403,7 +402,7 @@ namespace OpenSim.Framework.Data.MySQL
                 foreach (DataRow row in table.Rows)
                 {
                     //--- Display the original values, if there are any.
-                    if (row.HasVersion(System.Data.DataRowVersion.Original))
+                    if (row.HasVersion(DataRowVersion.Original))
                     {
                         Debug.Write("Original Row Values ===> ");
                         foreach (DataColumn column in table.Columns)
@@ -412,7 +411,7 @@ namespace OpenSim.Framework.Data.MySQL
                         Debug.WriteLine("");
                     }
                     //--- Display the current values, if there are any.
-                    if (row.HasVersion(System.Data.DataRowVersion.Current))
+                    if (row.HasVersion(DataRowVersion.Current))
                     {
                         Debug.Write("Current Row Values ====> ");
                         foreach (DataColumn column in table.Columns)
@@ -470,9 +469,9 @@ namespace OpenSim.Framework.Data.MySQL
         {
             DataTable terrain = new DataTable("terrain");
 
-            createCol(terrain, "RegionUUID", typeof(String));
-            createCol(terrain, "Revision", typeof(Int32));
-            DataColumn heightField = createCol(terrain, "Heightfield", typeof(Byte[]));
+            createCol(terrain, "RegionUUID", typeof (String));
+            createCol(terrain, "Revision", typeof (Int32));
+            DataColumn heightField = createCol(terrain, "Heightfield", typeof (Byte[]));
             return terrain;
         }
 
@@ -480,62 +479,62 @@ namespace OpenSim.Framework.Data.MySQL
         {
             DataTable prims = new DataTable("prims");
 
-            createCol(prims, "UUID", typeof(String));
-            createCol(prims, "RegionUUID", typeof(String));
-            createCol(prims, "ParentID", typeof(Int32));
-            createCol(prims, "CreationDate", typeof(Int32));
-            createCol(prims, "Name", typeof(String));
-            createCol(prims, "SceneGroupID", typeof(String));
+            createCol(prims, "UUID", typeof (String));
+            createCol(prims, "RegionUUID", typeof (String));
+            createCol(prims, "ParentID", typeof (Int32));
+            createCol(prims, "CreationDate", typeof (Int32));
+            createCol(prims, "Name", typeof (String));
+            createCol(prims, "SceneGroupID", typeof (String));
             // various text fields
-            createCol(prims, "Text", typeof(String));
-            createCol(prims, "Description", typeof(String));
-            createCol(prims, "SitName", typeof(String));
-            createCol(prims, "TouchName", typeof(String));
+            createCol(prims, "Text", typeof (String));
+            createCol(prims, "Description", typeof (String));
+            createCol(prims, "SitName", typeof (String));
+            createCol(prims, "TouchName", typeof (String));
             // permissions
-            createCol(prims, "ObjectFlags", typeof(Int32));
-            createCol(prims, "CreatorID", typeof(String));
-            createCol(prims, "OwnerID", typeof(String));
-            createCol(prims, "GroupID", typeof(String));
-            createCol(prims, "LastOwnerID", typeof(String));
-            createCol(prims, "OwnerMask", typeof(Int32));
-            createCol(prims, "NextOwnerMask", typeof(Int32));
-            createCol(prims, "GroupMask", typeof(Int32));
-            createCol(prims, "EveryoneMask", typeof(Int32));
-            createCol(prims, "BaseMask", typeof(Int32));
+            createCol(prims, "ObjectFlags", typeof (Int32));
+            createCol(prims, "CreatorID", typeof (String));
+            createCol(prims, "OwnerID", typeof (String));
+            createCol(prims, "GroupID", typeof (String));
+            createCol(prims, "LastOwnerID", typeof (String));
+            createCol(prims, "OwnerMask", typeof (Int32));
+            createCol(prims, "NextOwnerMask", typeof (Int32));
+            createCol(prims, "GroupMask", typeof (Int32));
+            createCol(prims, "EveryoneMask", typeof (Int32));
+            createCol(prims, "BaseMask", typeof (Int32));
             // vectors
-            createCol(prims, "PositionX", typeof(Double));
-            createCol(prims, "PositionY", typeof(Double));
-            createCol(prims, "PositionZ", typeof(Double));
-            createCol(prims, "GroupPositionX", typeof(Double));
-            createCol(prims, "GroupPositionY", typeof(Double));
-            createCol(prims, "GroupPositionZ", typeof(Double));
-            createCol(prims, "VelocityX", typeof(Double));
-            createCol(prims, "VelocityY", typeof(Double));
-            createCol(prims, "VelocityZ", typeof(Double));
-            createCol(prims, "AngularVelocityX", typeof(Double));
-            createCol(prims, "AngularVelocityY", typeof(Double));
-            createCol(prims, "AngularVelocityZ", typeof(Double));
-            createCol(prims, "AccelerationX", typeof(Double));
-            createCol(prims, "AccelerationY", typeof(Double));
-            createCol(prims, "AccelerationZ", typeof(Double));
+            createCol(prims, "PositionX", typeof (Double));
+            createCol(prims, "PositionY", typeof (Double));
+            createCol(prims, "PositionZ", typeof (Double));
+            createCol(prims, "GroupPositionX", typeof (Double));
+            createCol(prims, "GroupPositionY", typeof (Double));
+            createCol(prims, "GroupPositionZ", typeof (Double));
+            createCol(prims, "VelocityX", typeof (Double));
+            createCol(prims, "VelocityY", typeof (Double));
+            createCol(prims, "VelocityZ", typeof (Double));
+            createCol(prims, "AngularVelocityX", typeof (Double));
+            createCol(prims, "AngularVelocityY", typeof (Double));
+            createCol(prims, "AngularVelocityZ", typeof (Double));
+            createCol(prims, "AccelerationX", typeof (Double));
+            createCol(prims, "AccelerationY", typeof (Double));
+            createCol(prims, "AccelerationZ", typeof (Double));
             // quaternions
-            createCol(prims, "RotationX", typeof(Double));
-            createCol(prims, "RotationY", typeof(Double));
-            createCol(prims, "RotationZ", typeof(Double));
-            createCol(prims, "RotationW", typeof(Double));
+            createCol(prims, "RotationX", typeof (Double));
+            createCol(prims, "RotationY", typeof (Double));
+            createCol(prims, "RotationZ", typeof (Double));
+            createCol(prims, "RotationW", typeof (Double));
             // sit target
-            createCol(prims, "SitTargetOffsetX", typeof(Double));
-            createCol(prims, "SitTargetOffsetY", typeof(Double));
-            createCol(prims, "SitTargetOffsetZ", typeof(Double));
+            createCol(prims, "SitTargetOffsetX", typeof (Double));
+            createCol(prims, "SitTargetOffsetY", typeof (Double));
+            createCol(prims, "SitTargetOffsetZ", typeof (Double));
 
-            createCol(prims, "SitTargetOrientW", typeof(Double));
-            createCol(prims, "SitTargetOrientX", typeof(Double));
-            createCol(prims, "SitTargetOrientY", typeof(Double));
-            createCol(prims, "SitTargetOrientZ", typeof(Double));
+            createCol(prims, "SitTargetOrientW", typeof (Double));
+            createCol(prims, "SitTargetOrientX", typeof (Double));
+            createCol(prims, "SitTargetOrientY", typeof (Double));
+            createCol(prims, "SitTargetOrientZ", typeof (Double));
 
 
             // Add in contraints
-            prims.PrimaryKey = new DataColumn[] { prims.Columns["UUID"] };
+            prims.PrimaryKey = new DataColumn[] {prims.Columns["UUID"]};
 
             return prims;
         }
@@ -543,42 +542,42 @@ namespace OpenSim.Framework.Data.MySQL
         private DataTable createLandTable()
         {
             DataTable land = new DataTable("land");
-            createCol(land, "UUID", typeof(String));
-            createCol(land, "RegionUUID", typeof(String));
-            createCol(land, "LocalLandID", typeof(Int32));
+            createCol(land, "UUID", typeof (String));
+            createCol(land, "RegionUUID", typeof (String));
+            createCol(land, "LocalLandID", typeof (Int32));
 
             // Bitmap is a byte[512]
-            createCol(land, "Bitmap", typeof(Byte[]));
+            createCol(land, "Bitmap", typeof (Byte[]));
 
-            createCol(land, "Name", typeof(String));
-            createCol(land, "Description", typeof(String));
-            createCol(land, "OwnerUUID", typeof(String));
-            createCol(land, "IsGroupOwned", typeof(Int32));
-            createCol(land, "Area", typeof(Int32));
-            createCol(land, "AuctionID", typeof(Int32)); //Unemplemented
-            createCol(land, "Category", typeof(Int32)); //Enum libsecondlife.Parcel.ParcelCategory
-            createCol(land, "ClaimDate", typeof(Int32));
-            createCol(land, "ClaimPrice", typeof(Int32));
-            createCol(land, "GroupUUID", typeof(String));
-            createCol(land, "SalePrice", typeof(Int32));
-            createCol(land, "LandStatus", typeof(Int32)); //Enum. libsecondlife.Parcel.ParcelStatus
-            createCol(land, "LandFlags", typeof(Int32));
-            createCol(land, "LandingType", typeof(Int32));
-            createCol(land, "MediaAutoScale", typeof(Int32));
-            createCol(land, "MediaTextureUUID", typeof(String));
-            createCol(land, "MediaURL", typeof(String));
-            createCol(land, "MusicURL", typeof(String));
-            createCol(land, "PassHours", typeof(Double));
-            createCol(land, "PassPrice", typeof(Int32));
-            createCol(land, "SnapshotUUID", typeof(String));
-            createCol(land, "UserLocationX", typeof(Double));
-            createCol(land, "UserLocationY", typeof(Double));
-            createCol(land, "UserLocationZ", typeof(Double));
-            createCol(land, "UserLookAtX", typeof(Double));
-            createCol(land, "UserLookAtY", typeof(Double));
-            createCol(land, "UserLookAtZ", typeof(Double));
+            createCol(land, "Name", typeof (String));
+            createCol(land, "Description", typeof (String));
+            createCol(land, "OwnerUUID", typeof (String));
+            createCol(land, "IsGroupOwned", typeof (Int32));
+            createCol(land, "Area", typeof (Int32));
+            createCol(land, "AuctionID", typeof (Int32)); //Unemplemented
+            createCol(land, "Category", typeof (Int32)); //Enum libsecondlife.Parcel.ParcelCategory
+            createCol(land, "ClaimDate", typeof (Int32));
+            createCol(land, "ClaimPrice", typeof (Int32));
+            createCol(land, "GroupUUID", typeof (String));
+            createCol(land, "SalePrice", typeof (Int32));
+            createCol(land, "LandStatus", typeof (Int32)); //Enum. libsecondlife.Parcel.ParcelStatus
+            createCol(land, "LandFlags", typeof (Int32));
+            createCol(land, "LandingType", typeof (Int32));
+            createCol(land, "MediaAutoScale", typeof (Int32));
+            createCol(land, "MediaTextureUUID", typeof (String));
+            createCol(land, "MediaURL", typeof (String));
+            createCol(land, "MusicURL", typeof (String));
+            createCol(land, "PassHours", typeof (Double));
+            createCol(land, "PassPrice", typeof (Int32));
+            createCol(land, "SnapshotUUID", typeof (String));
+            createCol(land, "UserLocationX", typeof (Double));
+            createCol(land, "UserLocationY", typeof (Double));
+            createCol(land, "UserLocationZ", typeof (Double));
+            createCol(land, "UserLookAtX", typeof (Double));
+            createCol(land, "UserLookAtY", typeof (Double));
+            createCol(land, "UserLookAtZ", typeof (Double));
 
-            land.PrimaryKey = new DataColumn[] { land.Columns["UUID"] };
+            land.PrimaryKey = new DataColumn[] {land.Columns["UUID"]};
 
             return land;
         }
@@ -586,9 +585,9 @@ namespace OpenSim.Framework.Data.MySQL
         private DataTable createLandAccessListTable()
         {
             DataTable landaccess = new DataTable("landaccesslist");
-            createCol(landaccess, "LandUUID", typeof(String));
-            createCol(landaccess, "AccessUUID", typeof(String));
-            createCol(landaccess, "Flags", typeof(Int32));
+            createCol(landaccess, "LandUUID", typeof (String));
+            createCol(landaccess, "AccessUUID", typeof (String));
+            createCol(landaccess, "Flags", typeof (Int32));
 
             return landaccess;
         }
@@ -596,38 +595,38 @@ namespace OpenSim.Framework.Data.MySQL
         private DataTable createShapeTable()
         {
             DataTable shapes = new DataTable("primshapes");
-            createCol(shapes, "UUID", typeof(String));
+            createCol(shapes, "UUID", typeof (String));
             // shape is an enum
-            createCol(shapes, "Shape", typeof(Int32));
+            createCol(shapes, "Shape", typeof (Int32));
             // vectors
-            createCol(shapes, "ScaleX", typeof(Double));
-            createCol(shapes, "ScaleY", typeof(Double));
-            createCol(shapes, "ScaleZ", typeof(Double));
+            createCol(shapes, "ScaleX", typeof (Double));
+            createCol(shapes, "ScaleY", typeof (Double));
+            createCol(shapes, "ScaleZ", typeof (Double));
             // paths
-            createCol(shapes, "PCode", typeof(Int32));
-            createCol(shapes, "PathBegin", typeof(Int32));
-            createCol(shapes, "PathEnd", typeof(Int32));
-            createCol(shapes, "PathScaleX", typeof(Int32));
-            createCol(shapes, "PathScaleY", typeof(Int32));
-            createCol(shapes, "PathShearX", typeof(Int32));
-            createCol(shapes, "PathShearY", typeof(Int32));
-            createCol(shapes, "PathSkew", typeof(Int32));
-            createCol(shapes, "PathCurve", typeof(Int32));
-            createCol(shapes, "PathRadiusOffset", typeof(Int32));
-            createCol(shapes, "PathRevolutions", typeof(Int32));
-            createCol(shapes, "PathTaperX", typeof(Int32));
-            createCol(shapes, "PathTaperY", typeof(Int32));
-            createCol(shapes, "PathTwist", typeof(Int32));
-            createCol(shapes, "PathTwistBegin", typeof(Int32));
+            createCol(shapes, "PCode", typeof (Int32));
+            createCol(shapes, "PathBegin", typeof (Int32));
+            createCol(shapes, "PathEnd", typeof (Int32));
+            createCol(shapes, "PathScaleX", typeof (Int32));
+            createCol(shapes, "PathScaleY", typeof (Int32));
+            createCol(shapes, "PathShearX", typeof (Int32));
+            createCol(shapes, "PathShearY", typeof (Int32));
+            createCol(shapes, "PathSkew", typeof (Int32));
+            createCol(shapes, "PathCurve", typeof (Int32));
+            createCol(shapes, "PathRadiusOffset", typeof (Int32));
+            createCol(shapes, "PathRevolutions", typeof (Int32));
+            createCol(shapes, "PathTaperX", typeof (Int32));
+            createCol(shapes, "PathTaperY", typeof (Int32));
+            createCol(shapes, "PathTwist", typeof (Int32));
+            createCol(shapes, "PathTwistBegin", typeof (Int32));
             // profile
-            createCol(shapes, "ProfileBegin", typeof(Int32));
-            createCol(shapes, "ProfileEnd", typeof(Int32));
-            createCol(shapes, "ProfileCurve", typeof(Int32));
-            createCol(shapes, "ProfileHollow", typeof(Int32));
-            createCol(shapes, "Texture", typeof(Byte[]));
-            createCol(shapes, "ExtraParams", typeof(Byte[]));
+            createCol(shapes, "ProfileBegin", typeof (Int32));
+            createCol(shapes, "ProfileEnd", typeof (Int32));
+            createCol(shapes, "ProfileCurve", typeof (Int32));
+            createCol(shapes, "ProfileHollow", typeof (Int32));
+            createCol(shapes, "Texture", typeof (Byte[]));
+            createCol(shapes, "ExtraParams", typeof (Byte[]));
 
-            shapes.PrimaryKey = new DataColumn[] { shapes.Columns["UUID"] };
+            shapes.PrimaryKey = new DataColumn[] {shapes.Columns["UUID"]};
 
             return shapes;
         }
@@ -643,23 +642,23 @@ namespace OpenSim.Framework.Data.MySQL
         private SceneObjectPart buildPrim(DataRow row)
         {
             SceneObjectPart prim = new SceneObjectPart();
-            prim.UUID = new LLUUID((String)row["UUID"]);
+            prim.UUID = new LLUUID((String) row["UUID"]);
             // explicit conversion of integers is required, which sort
             // of sucks.  No idea if there is a shortcut here or not.
             prim.ParentID = Convert.ToUInt32(row["ParentID"]);
             prim.CreationDate = Convert.ToInt32(row["CreationDate"]);
-            prim.Name = (String)row["Name"];
+            prim.Name = (String) row["Name"];
             // various text fields
-            prim.Text = (String)row["Text"];
-            prim.Description = (String)row["Description"];
-            prim.SitName = (String)row["SitName"];
-            prim.TouchName = (String)row["TouchName"];
+            prim.Text = (String) row["Text"];
+            prim.Description = (String) row["Description"];
+            prim.SitName = (String) row["SitName"];
+            prim.TouchName = (String) row["TouchName"];
             // permissions
             prim.ObjectFlags = Convert.ToUInt32(row["ObjectFlags"]);
-            prim.CreatorID = new LLUUID((String)row["CreatorID"]);
-            prim.OwnerID = new LLUUID((String)row["OwnerID"]);
-            prim.GroupID = new LLUUID((String)row["GroupID"]);
-            prim.LastOwnerID = new LLUUID((String)row["LastOwnerID"]);
+            prim.CreatorID = new LLUUID((String) row["CreatorID"]);
+            prim.OwnerID = new LLUUID((String) row["OwnerID"]);
+            prim.GroupID = new LLUUID((String) row["GroupID"]);
+            prim.LastOwnerID = new LLUUID((String) row["LastOwnerID"]);
             prim.OwnerMask = Convert.ToUInt32(row["OwnerMask"]);
             prim.NextOwnerMask = Convert.ToUInt32(row["NextOwnerMask"]);
             prim.GroupMask = Convert.ToUInt32(row["GroupMask"]);
@@ -701,19 +700,27 @@ namespace OpenSim.Framework.Data.MySQL
             try
             {
                 prim.SetSitTargetLL(new LLVector3(
-                    Convert.ToSingle(row["SitTargetOffsetX"]),
-                    Convert.ToSingle(row["SitTargetOffsetY"]),
-                    Convert.ToSingle(row["SitTargetOffsetZ"])), new LLQuaternion(
-                    Convert.ToSingle(row["SitTargetOrientX"]),
-                    Convert.ToSingle(row["SitTargetOrientY"]),
-                    Convert.ToSingle(row["SitTargetOrientZ"]),
-                    Convert.ToSingle(row["SitTargetOrientW"])));
+                                        Convert.ToSingle(row["SitTargetOffsetX"]),
+                                        Convert.ToSingle(row["SitTargetOffsetY"]),
+                                        Convert.ToSingle(row["SitTargetOffsetZ"])), new LLQuaternion(
+                                                                                        Convert.ToSingle(
+                                                                                            row["SitTargetOrientX"]),
+                                                                                        Convert.ToSingle(
+                                                                                            row["SitTargetOrientY"]),
+                                                                                        Convert.ToSingle(
+                                                                                            row["SitTargetOrientZ"]),
+                                                                                        Convert.ToSingle(
+                                                                                            row["SitTargetOrientW"])));
             }
-            catch (System.InvalidCastException)
+            catch (InvalidCastException)
             {
                 // Database table was created before we got here and needs to be created! :P
 
-                using (MySqlCommand cmd = new MySqlCommand("ALTER TABLE `prims` ADD COLUMN `SitTargetOffsetX` float NOT NULL default 0,  ADD COLUMN `SitTargetOffsetY` float NOT NULL default 0, ADD COLUMN `SitTargetOffsetZ` float NOT NULL default 0, ADD COLUMN `SitTargetOrientW` float NOT NULL default 0, ADD COLUMN `SitTargetOrientX` float NOT NULL default 0, ADD COLUMN `SitTargetOrientY` float NOT NULL default 0, ADD COLUMN `SitTargetOrientZ` float NOT NULL default 0;", m_connection))
+                using (
+                    MySqlCommand cmd =
+                        new MySqlCommand(
+                            "ALTER TABLE `prims` ADD COLUMN `SitTargetOffsetX` float NOT NULL default 0,  ADD COLUMN `SitTargetOffsetY` float NOT NULL default 0, ADD COLUMN `SitTargetOffsetZ` float NOT NULL default 0, ADD COLUMN `SitTargetOrientW` float NOT NULL default 0, ADD COLUMN `SitTargetOrientX` float NOT NULL default 0, ADD COLUMN `SitTargetOrientY` float NOT NULL default 0, ADD COLUMN `SitTargetOrientZ` float NOT NULL default 0;",
+                            m_connection))
                 {
                     cmd.ExecuteNonQuery();
                 }
@@ -725,36 +732,42 @@ namespace OpenSim.Framework.Data.MySQL
         {
             LandData newData = new LandData();
 
-            newData.globalID = new LLUUID((String)row["UUID"]);
+            newData.globalID = new LLUUID((String) row["UUID"]);
             newData.localID = Convert.ToInt32(row["LocalLandID"]);
 
             // Bitmap is a byte[512]
-            newData.landBitmapByteArray = (Byte[])row["Bitmap"];
+            newData.landBitmapByteArray = (Byte[]) row["Bitmap"];
 
-            newData.landName = (String)row["Name"];
-            newData.landDesc = (String)row["Description"];
-            newData.ownerID = (String)row["OwnerUUID"];
+            newData.landName = (String) row["Name"];
+            newData.landDesc = (String) row["Description"];
+            newData.ownerID = (String) row["OwnerUUID"];
             newData.isGroupOwned = Convert.ToBoolean(row["IsGroupOwned"]);
             newData.area = Convert.ToInt32(row["Area"]);
             newData.auctionID = Convert.ToUInt32(row["AuctionID"]); //Unemplemented
-            newData.category = (Parcel.ParcelCategory)Convert.ToInt32(row["Category"]); //Enum libsecondlife.Parcel.ParcelCategory
+            newData.category = (Parcel.ParcelCategory) Convert.ToInt32(row["Category"]);
+                //Enum libsecondlife.Parcel.ParcelCategory
             newData.claimDate = Convert.ToInt32(row["ClaimDate"]);
             newData.claimPrice = Convert.ToInt32(row["ClaimPrice"]);
-            newData.groupID = new LLUUID((String)row["GroupUUID"]);
+            newData.groupID = new LLUUID((String) row["GroupUUID"]);
             newData.salePrice = Convert.ToInt32(row["SalePrice"]);
-            newData.landStatus = (Parcel.ParcelStatus)Convert.ToInt32(row["LandStatus"]); //Enum. libsecondlife.Parcel.ParcelStatus
+            newData.landStatus = (Parcel.ParcelStatus) Convert.ToInt32(row["LandStatus"]);
+                //Enum. libsecondlife.Parcel.ParcelStatus
             newData.landFlags = Convert.ToUInt32(row["LandFlags"]);
             newData.landingType = Convert.ToByte(row["LandingType"]);
             newData.mediaAutoScale = Convert.ToByte(row["MediaAutoScale"]);
-            newData.mediaID = new LLUUID((String)row["MediaTextureUUID"]);
-            newData.mediaURL = (String)row["MediaURL"];
-            newData.musicURL = (String)row["MusicURL"];
+            newData.mediaID = new LLUUID((String) row["MediaTextureUUID"]);
+            newData.mediaURL = (String) row["MediaURL"];
+            newData.musicURL = (String) row["MusicURL"];
             newData.passHours = Convert.ToSingle(row["PassHours"]);
             newData.passPrice = Convert.ToInt32(row["PassPrice"]);
-            newData.snapshotID = (String)row["SnapshotUUID"];
+            newData.snapshotID = (String) row["SnapshotUUID"];
 
-            newData.userLocation = new LLVector3(Convert.ToSingle(row["UserLocationX"]), Convert.ToSingle(row["UserLocationY"]), Convert.ToSingle(row["UserLocationZ"]));
-            newData.userLookAt = new LLVector3(Convert.ToSingle(row["UserLookAtX"]), Convert.ToSingle(row["UserLookAtY"]), Convert.ToSingle(row["UserLookAtZ"]));
+            newData.userLocation =
+                new LLVector3(Convert.ToSingle(row["UserLocationX"]), Convert.ToSingle(row["UserLocationY"]),
+                              Convert.ToSingle(row["UserLocationZ"]));
+            newData.userLookAt =
+                new LLVector3(Convert.ToSingle(row["UserLookAtX"]), Convert.ToSingle(row["UserLookAtY"]),
+                              Convert.ToSingle(row["UserLookAtZ"]));
             newData.parcelAccessList = new List<ParcelManager.ParcelAccessEntry>();
 
             return newData;
@@ -763,7 +776,7 @@ namespace OpenSim.Framework.Data.MySQL
         private ParcelManager.ParcelAccessEntry buildLandAccessData(DataRow row)
         {
             ParcelManager.ParcelAccessEntry entry = new ParcelManager.ParcelAccessEntry();
-            entry.AgentID = new LLUUID((string)row["AccessUUID"]);
+            entry.AgentID = new LLUUID((string) row["AccessUUID"]);
             entry.Flags = (ParcelManager.AccessList) Convert.ToInt32(row["Flags"]);
             entry.Time = new DateTime();
             return entry;
@@ -771,7 +784,7 @@ namespace OpenSim.Framework.Data.MySQL
 
         private Array serializeTerrain(double[,] val)
         {
-            MemoryStream str = new MemoryStream(65536 * sizeof(double));
+            MemoryStream str = new MemoryStream(65536*sizeof (double));
             BinaryWriter bw = new BinaryWriter(str);
 
             // TODO: COMPATIBILITY - Add byte-order conversions
@@ -789,7 +802,8 @@ namespace OpenSim.Framework.Data.MySQL
             row["ParentID"] = prim.ParentID;
             row["CreationDate"] = prim.CreationDate;
             row["Name"] = prim.Name;
-            row["SceneGroupID"] = Util.ToRawUuidString(sceneGroupID); // the UUID of the root part for this SceneObjectGroup
+            row["SceneGroupID"] = Util.ToRawUuidString(sceneGroupID);
+                // the UUID of the root part for this SceneObjectGroup
             // various text fields
             row["Text"] = prim.Text;
             row["Description"] = prim.Description;
@@ -841,18 +855,20 @@ namespace OpenSim.Framework.Data.MySQL
                 row["SitTargetOrientX"] = sitTargetOrient.X;
                 row["SitTargetOrientY"] = sitTargetOrient.Y;
                 row["SitTargetOrientZ"] = sitTargetOrient.Z;
-            } 
-            catch (MySql.Data.MySqlClient.MySqlException) 
+            }
+            catch (MySqlException)
             {
                 // Database table was created before we got here and needs to be created! :P
 
-                using (MySqlCommand cmd = new MySqlCommand("ALTER TABLE `prims` ADD COLUMN `SitTargetOffsetX` float NOT NULL default 0,  ADD COLUMN `SitTargetOffsetY` float NOT NULL default 0, ADD COLUMN `SitTargetOffsetZ` float NOT NULL default 0, ADD COLUMN `SitTargetOrientW` float NOT NULL default 0, ADD COLUMN `SitTargetOrientX` float NOT NULL default 0, ADD COLUMN `SitTargetOrientY` float NOT NULL default 0, ADD COLUMN `SitTargetOrientZ` float NOT NULL default 0;", m_connection))
+                using (
+                    MySqlCommand cmd =
+                        new MySqlCommand(
+                            "ALTER TABLE `prims` ADD COLUMN `SitTargetOffsetX` float NOT NULL default 0,  ADD COLUMN `SitTargetOffsetY` float NOT NULL default 0, ADD COLUMN `SitTargetOffsetZ` float NOT NULL default 0, ADD COLUMN `SitTargetOrientW` float NOT NULL default 0, ADD COLUMN `SitTargetOrientX` float NOT NULL default 0, ADD COLUMN `SitTargetOrientY` float NOT NULL default 0, ADD COLUMN `SitTargetOrientZ` float NOT NULL default 0;",
+                            m_connection))
                 {
                     cmd.ExecuteNonQuery();
                 }
             }
-
-            
         }
 
         private void fillLandRow(DataRow row, LandData land, LLUUID regionUUID)
@@ -929,11 +945,11 @@ namespace OpenSim.Framework.Data.MySQL
             s.ProfileEnd = Convert.ToUInt16(row["ProfileEnd"]);
             s.ProfileCurve = Convert.ToByte(row["ProfileCurve"]);
             s.ProfileHollow = Convert.ToUInt16(row["ProfileHollow"]);
-            
-            byte[] textureEntry = (byte[])row["Texture"];
+
+            byte[] textureEntry = (byte[]) row["Texture"];
             s.TextureEntry = textureEntry;
-            
-            s.ExtraParams = (byte[])row["ExtraParams"];
+
+            s.ExtraParams = (byte[]) row["ExtraParams"];
 
             return s;
         }
@@ -1146,7 +1162,7 @@ namespace OpenSim.Framework.Data.MySQL
             da.UpdateCommand = updateCommand;
 
             MySqlCommand delete = new MySqlCommand("delete from prims where UUID=?UUID");
-            delete.Parameters.Add(createMySqlParameter("UUID", typeof(String)));
+            delete.Parameters.Add(createMySqlParameter("UUID", typeof (String)));
             delete.Connection = conn;
             da.DeleteCommand = delete;
         }
@@ -1181,7 +1197,7 @@ namespace OpenSim.Framework.Data.MySQL
             da.UpdateCommand.Connection = conn;
 
             MySqlCommand delete = new MySqlCommand("delete from primshapes where UUID = ?UUID");
-            delete.Parameters.Add(createMySqlParameter("UUID", typeof(String)));
+            delete.Parameters.Add(createMySqlParameter("UUID", typeof (String)));
             delete.Connection = conn;
             da.DeleteCommand = delete;
         }
@@ -1337,27 +1353,27 @@ namespace OpenSim.Framework.Data.MySQL
 
         private DbType dbtypeFromType(Type type)
         {
-            if (type == typeof(String))
+            if (type == typeof (String))
             {
                 return DbType.String;
             }
-            else if (type == typeof(Int32))
+            else if (type == typeof (Int32))
             {
                 return DbType.Int32;
             }
-            else if (type == typeof(Double))
+            else if (type == typeof (Double))
             {
                 return DbType.Double;
             }
-            else if (type == typeof(Byte))
+            else if (type == typeof (Byte))
             {
                 return DbType.Byte;
             }
-            else if (type == typeof(Double))
+            else if (type == typeof (Double))
             {
                 return DbType.Double;
             }
-            else if (type == typeof(Byte[]))
+            else if (type == typeof (Byte[]))
             {
                 return DbType.Binary;
             }
@@ -1371,19 +1387,19 @@ namespace OpenSim.Framework.Data.MySQL
         // slightly differently.
         private string MySqlType(Type type)
         {
-            if (type == typeof(String))
+            if (type == typeof (String))
             {
                 return "varchar(255)";
             }
-            else if (type == typeof(Int32))
+            else if (type == typeof (Int32))
             {
                 return "integer";
             }
-            else if (type == typeof(Double))
+            else if (type == typeof (Double))
             {
                 return "float";
             }
-            else if (type == typeof(Byte[]))
+            else if (type == typeof (Byte[]))
             {
                 return "longblob";
             }

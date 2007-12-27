@@ -130,16 +130,17 @@ namespace OpenSim.Framework.Data.SQLite
 
             return row;
         }
+
         /// <summary>
         /// // Returns a list of avatar and UUIDs that match the query
         /// </summary>
-        
         public List<AvatarPickerAvatar> GeneratePickerResults(LLUUID queryID, string query)
         {
             //Do nothing yet
             List<AvatarPickerAvatar> returnlist = new List<AvatarPickerAvatar>();
             return returnlist;
         }
+
         /// <summary>
         /// Adds a new specified region to the database
         /// </summary>

@@ -29,9 +29,7 @@
 using System.Collections;
 using System.IO;
 using System.Text;
-using libsecondlife;
 using OpenSim.Framework.Servers;
-using System.Xml;
 
 namespace OpenSim.Region.Capabilities
 {
@@ -54,10 +52,10 @@ namespace OpenSim.Region.Capabilities
             //string requestBody = streamReader.ReadToEnd();
             //streamReader.Close();
 
-           // libsecondlife.StructuredData.LLSDMap hash = (libsecondlife.StructuredData.LLSDMap) 
+            // libsecondlife.StructuredData.LLSDMap hash = (libsecondlife.StructuredData.LLSDMap) 
             //    libsecondlife.StructuredData.LLSDParser.DeserializeXml(new XmlTextReader(request));
 
-            Hashtable hash = (Hashtable)LLSD.LLSDDeserialize(request);
+            Hashtable hash = (Hashtable) LLSD.LLSDDeserialize(request);
             TRequest llsdRequest = new TRequest();
             LLSDHelpers.DeserialiseLLSDMap(hash, llsdRequest);
 

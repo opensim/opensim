@@ -220,7 +220,7 @@ namespace OpenSim.Region.Environment
                             {
                                 if (pluginType.GetInterface("IRegionModule") != null)
                                 {
-                                    modules.Add((IRegionModule)Activator.CreateInstance(pluginType));
+                                    modules.Add((IRegionModule) Activator.CreateInstance(pluginType));
                                 }
                             }
                         }

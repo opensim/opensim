@@ -26,9 +26,9 @@
 * 
 */
 
+using System.Collections.Generic;
 using libsecondlife;
 using OpenSim.Region.Environment.Modules;
-using System.Collections.Generic;
 
 namespace OpenSim.Region.Environment.Interfaces
 {

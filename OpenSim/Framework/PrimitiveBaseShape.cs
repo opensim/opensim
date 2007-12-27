@@ -26,9 +26,9 @@
 * 
 */
 
+using System;
 using System.Xml.Serialization;
 using libsecondlife;
-using System;
 
 namespace OpenSim.Framework
 {
@@ -91,32 +91,21 @@ namespace OpenSim.Framework
         public sbyte PathTwist;
         public sbyte PathTwistBegin;
 
-        [XmlIgnore]        
+        [XmlIgnore]
         public LLObject.TextureEntry Textures
         {
-            get
-            {
-                return new LLObject.TextureEntry(m_textureEntry, 0, m_textureEntry.Length);
-            }
+            get { return new LLObject.TextureEntry(m_textureEntry, 0, m_textureEntry.Length); }
 
-            set
-            {
-                m_textureEntry = value.ToBytes();
-            }
+            set { m_textureEntry = value.ToBytes(); }
         }
 
         private byte[] m_textureEntry;
+
         public byte[] TextureEntry
         {
-            get
-            {
-                return m_textureEntry;
-            }
+            get { return m_textureEntry; }
 
-            set
-            {
-                m_textureEntry = value;
-            }
+            set { m_textureEntry = value; }
         }
 
         public byte[] ExtraParams;
@@ -134,11 +123,11 @@ namespace OpenSim.Framework
         [XmlIgnore]
         public HollowShape HollowShape
         {
-            get { return (HollowShape)(ProfileCurve & 0xf0); }
+            get { return (HollowShape) (ProfileCurve & 0xf0); }
             set
             {
-                byte oldValueMasked = (byte)(ProfileCurve & 0x0f);
-                ProfileCurve = (byte)(oldValueMasked | (byte)value);
+                byte oldValueMasked = (byte) (ProfileCurve & 0x0f);
+                ProfileCurve = (byte) (oldValueMasked | (byte) value);
             }
         }
 
@@ -147,7 +136,6 @@ namespace OpenSim.Framework
             get { return Scale; }
         }
 
-      
 
         static PrimitiveBaseShape()
         {

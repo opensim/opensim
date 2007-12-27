@@ -34,8 +34,8 @@
  */
 using System;
 using System.Collections.Generic;
-using System.Text;
 using MonoXnaCompactMaths;
+using XnaDevRu.BulletX;
 
 namespace OpenSim.Region.Physics.BulletXPlugin
 {
@@ -52,7 +52,8 @@ namespace OpenSim.Region.Physics.BulletXPlugin
         private Vector3[] _vertexBase;
         private int _vertexStride;
 
-        public IndexedMesh(int numTriangleIndices, int[] triangleIndexBase, int triangleIndexStride, int numVertices, Vector3[] vertexBase, int vertexStride)
+        public IndexedMesh(int numTriangleIndices, int[] triangleIndexBase, int triangleIndexStride, int numVertices,
+                           Vector3[] vertexBase, int vertexStride)
         {
             _numTriangles = numTriangleIndices;
             _triangleIndexBase = triangleIndexBase;
@@ -72,25 +73,57 @@ namespace OpenSim.Region.Physics.BulletXPlugin
             _vertexStride = 24;
         }
 
-        public int TriangleCount { get { return _numTriangles; } set { _numTriangles = value; } }
-        public int[] TriangleIndexBase { get { return _triangleIndexBase; } set { _triangleIndexBase = value; } }
-        public int TriangleIndexStride { get { return _triangleIndexStride; } set { _triangleIndexStride = value; } }
-        public int VertexCount { get { return _numVertices; } set { _numVertices = value; } }
-        public Vector3[] VertexBase { get { return _vertexBase; } set { _vertexBase = value; } }
-        public int VertexStride { get { return _vertexStride; } set { _vertexStride = value; } }
+        public int TriangleCount
+        {
+            get { return _numTriangles; }
+            set { _numTriangles = value; }
+        }
+
+        public int[] TriangleIndexBase
+        {
+            get { return _triangleIndexBase; }
+            set { _triangleIndexBase = value; }
+        }
+
+        public int TriangleIndexStride
+        {
+            get { return _triangleIndexStride; }
+            set { _triangleIndexStride = value; }
+        }
+
+        public int VertexCount
+        {
+            get { return _numVertices; }
+            set { _numVertices = value; }
+        }
+
+        public Vector3[] VertexBase
+        {
+            get { return _vertexBase; }
+            set { _vertexBase = value; }
+        }
+
+        public int VertexStride
+        {
+            get { return _vertexStride; }
+            set { _vertexStride = value; }
+        }
     }
 
     /// <summary>
     /// TriangleIndexVertexArray allows to use multiple meshes, by indexing into existing triangle/index arrays.
     /// Additional meshes can be added using addIndexedMesh
     /// </summary>
-    public class TriangleIndexVertexArray : XnaDevRu.BulletX.StridingMeshInterface
+    public class TriangleIndexVertexArray : StridingMeshInterface
     {
-        List<IndexedMesh> _indexedMeshes = new List<IndexedMesh>();
+        private List<IndexedMesh> _indexedMeshes = new List<IndexedMesh>();
 
-        public TriangleIndexVertexArray() { }
+        public TriangleIndexVertexArray()
+        {
+        }
 
-        public TriangleIndexVertexArray(int numTriangleIndices, int[] triangleIndexBase, int triangleIndexStride, int numVertices, Vector3[] vertexBase, int vertexStride)
+        public TriangleIndexVertexArray(int numTriangleIndices, int[] triangleIndexBase, int triangleIndexStride,
+                                        int numVertices, Vector3[] vertexBase, int vertexStride)
         {
             IndexedMesh mesh = new IndexedMesh();
             mesh.TriangleCount = numTriangleIndices;
@@ -104,19 +137,23 @@ namespace OpenSim.Region.Physics.BulletXPlugin
         }
 
         public TriangleIndexVertexArray(int[] triangleIndexBase, Vector3[] vertexBase)
-            : this(triangleIndexBase.Length, triangleIndexBase, 32, vertexBase.Length, vertexBase, 24) { }
+            : this(triangleIndexBase.Length, triangleIndexBase, 32, vertexBase.Length, vertexBase, 24)
+        {
+        }
 
         public void AddIndexedMesh(IndexedMesh indexedMesh)
         {
             _indexedMeshes.Add(indexedMesh);
         }
 
-        public override void GetLockedVertexIndexBase(out List<Vector3> verts, out List<int> indicies, out int numfaces, int subpart)
+        public override void GetLockedVertexIndexBase(out List<Vector3> verts, out List<int> indicies, out int numfaces,
+                                                      int subpart)
         {
             throw new Exception("The method or operation is not implemented.");
         }
 
-        public override void GetLockedReadOnlyVertexIndexBase(out List<Vector3> verts, out List<int> indicies, out int numfaces, int subpart)
+        public override void GetLockedReadOnlyVertexIndexBase(out List<Vector3> verts, out List<int> indicies,
+                                                              out int numfaces, int subpart)
         {
             IndexedMesh m = _indexedMeshes[0];
             Vector3[] vertexBase = m.VertexBase;

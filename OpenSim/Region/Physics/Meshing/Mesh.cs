@@ -26,14 +26,11 @@
 * 
 */
 
+
 using System;
-using System.IO;
 using System.Collections.Generic;
-using System.Text;
-
+using System.IO;
 using System.Runtime.InteropServices;
-
-
 using OpenSim.Region.Physics.Manager;
 
 namespace OpenSim.Region.Physics.Meshing
@@ -66,9 +63,9 @@ namespace OpenSim.Region.Physics.Meshing
             foreach (Triangle t in triangles)
             {
                 int iV1, iV2, iV3;
-                iV1 = this.vertices.IndexOf(t.v1);
-                iV2 = this.vertices.IndexOf(t.v2);
-                iV3 = this.vertices.IndexOf(t.v3);
+                iV1 = vertices.IndexOf(t.v1);
+                iV2 = vertices.IndexOf(t.v2);
+                iV3 = vertices.IndexOf(t.v3);
 
                 Triangle newT = new Triangle(result.vertices[iV1], result.vertices[iV2], result.vertices[iV3]);
                 result.Add(newT);
@@ -77,8 +74,7 @@ namespace OpenSim.Region.Physics.Meshing
             return result;
         }
 
-        
-        
+
         public void Add(Triangle triangle)
         {
             int i;
@@ -160,15 +156,15 @@ namespace OpenSim.Region.Physics.Meshing
 
         public float[] getVertexListAsFloatLocked()
         {
-            float[] result = new float[vertices.Count * 3];
+            float[] result = new float[vertices.Count*3];
             for (int i = 0; i < vertices.Count; i++)
             {
                 Vertex v = vertices[i];
                 if (v == null)
                     continue;
-                result[3 * i + 0] = v.X;
-                result[3 * i + 1] = v.Y;
-                result[3 * i + 2] = v.Z;
+                result[3*i + 0] = v.X;
+                result[3*i + 1] = v.Y;
+                result[3*i + 2] = v.Z;
             }
             GCHandle.Alloc(result, GCHandleType.Pinned);
             return result;
@@ -176,13 +172,13 @@ namespace OpenSim.Region.Physics.Meshing
 
         public int[] getIndexListAsInt()
         {
-            int[] result = new int[triangles.Count * 3];
+            int[] result = new int[triangles.Count*3];
             for (int i = 0; i < triangles.Count; i++)
             {
                 Triangle t = triangles[i];
-                result[3 * i + 0] = vertices.IndexOf(t.v1);
-                result[3 * i + 1] = vertices.IndexOf(t.v2);
-                result[3 * i + 2] = vertices.IndexOf(t.v3);
+                result[3*i + 0] = vertices.IndexOf(t.v1);
+                result[3*i + 1] = vertices.IndexOf(t.v2);
+                result[3*i + 2] = vertices.IndexOf(t.v3);
             }
             return result;
         }
@@ -202,7 +198,6 @@ namespace OpenSim.Region.Physics.Meshing
 
             foreach (Triangle t in newMesh.triangles)
                 Add(t);
-
         }
 
         // Do a linear transformation of  mesh.
@@ -213,9 +208,9 @@ namespace OpenSim.Region.Physics.Meshing
                 if (v == null)
                     continue;
                 float x, y, z;
-                x = v.X * matrix[0, 0] + v.Y * matrix[1, 0] + v.Z * matrix[2, 0];
-                y = v.X * matrix[0, 1] + v.Y * matrix[1, 1] + v.Z * matrix[2, 1];
-                z = v.X * matrix[0, 2] + v.Y * matrix[1, 2] + v.Z * matrix[2, 2];
+                x = v.X*matrix[0, 0] + v.Y*matrix[1, 0] + v.Z*matrix[2, 0];
+                y = v.X*matrix[0, 1] + v.Y*matrix[1, 1] + v.Z*matrix[2, 1];
+                z = v.X*matrix[0, 2] + v.Y*matrix[1, 2] + v.Z*matrix[2, 2];
                 v.X = x + offset[0];
                 v.Y = y + offset[1];
                 v.Z = z + offset[2];
@@ -237,5 +232,4 @@ namespace OpenSim.Region.Physics.Meshing
             sw.Close();
         }
     }
-
 }

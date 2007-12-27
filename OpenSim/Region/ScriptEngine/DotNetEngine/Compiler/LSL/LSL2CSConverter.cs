@@ -316,7 +316,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL
 
 
             quotes.Clear();
-            
+
             return Return;
         }
     }

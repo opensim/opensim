@@ -28,6 +28,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Text.RegularExpressions;
 using libsecondlife;
 using Nwc.XmlRpc;
 using OpenSim.Framework;
@@ -76,8 +77,8 @@ namespace OpenSim.Grid.UserServer
             XmlRpcResponse response = new XmlRpcResponse();
             Hashtable responseData = new Hashtable();
             // Query Result Information
-            responseData["queryid"] = (string)queryID.ToString();
-            responseData["avcount"] = (string)returnUsers.Count.ToString();
+            responseData["queryid"] = (string) queryID.ToString();
+            responseData["avcount"] = (string) returnUsers.Count.ToString();
 
             for (int i = 0; i < returnUsers.Count; i++)
             {
@@ -86,9 +87,10 @@ namespace OpenSim.Grid.UserServer
                 responseData["lastname" + i.ToString()] = returnUsers[i].lastName;
             }
             response.Value = responseData;
-            
+
             return response;
         }
+
         /// <summary>
         /// Converts a user profile to an XML element which can be returned
         /// </summary>
@@ -135,18 +137,18 @@ namespace OpenSim.Grid.UserServer
         public XmlRpcResponse XmlRPCGetAvatarPickerAvatar(XmlRpcRequest request)
         {
             XmlRpcResponse response = new XmlRpcResponse();
-            Hashtable requestData = (Hashtable)request.Params[0];
+            Hashtable requestData = (Hashtable) request.Params[0];
             List<AvatarPickerAvatar> returnAvatar = new List<AvatarPickerAvatar>();
             LLUUID queryID = new LLUUID(LLUUID.Zero.ToString());
 
             if (requestData.Contains("avquery") && requestData.Contains("queryid"))
             {
-                queryID = new LLUUID((string)requestData["queryid"]);
-                returnAvatar = GenerateAgentPickerRequestResponse(queryID,(string)requestData["avquery"]);
+                queryID = new LLUUID((string) requestData["queryid"]);
+                returnAvatar = GenerateAgentPickerRequestResponse(queryID, (string) requestData["avquery"]);
             }
 
-            Console.WriteLine("[AVATARINFO]: Servicing Avatar Query: " + (string)requestData["avquery"]);
-            return AvatarPickerListtoXmlRPCResponse(queryID,returnAvatar);
+            Console.WriteLine("[AVATARINFO]: Servicing Avatar Query: " + (string) requestData["avquery"]);
+            return AvatarPickerListtoXmlRPCResponse(queryID, returnAvatar);
         }
 
         public XmlRpcResponse XmlRPCGetUserMethodName(XmlRpcRequest request)
@@ -156,16 +158,16 @@ namespace OpenSim.Grid.UserServer
             UserProfileData userProfile;
             if (requestData.Contains("avatar_name"))
             {
-                string query = (string)requestData["avatar_name"];
+                string query = (string) requestData["avatar_name"];
 
-                System.Text.RegularExpressions.Regex objAlphaNumericPattern = new System.Text.RegularExpressions.Regex("[^a-zA-Z0-9]");
+                Regex objAlphaNumericPattern = new Regex("[^a-zA-Z0-9]");
 
                 string[] querysplit;
                 querysplit = query.Split(' ');
 
                 if (querysplit.Length == 2)
                 {
-                    userProfile = GetUserProfile(querysplit[0],querysplit[1]);
+                    userProfile = GetUserProfile(querysplit[0], querysplit[1]);
                     if (userProfile == null)
                     {
                         return CreateUnknownUserErrorResponse();
@@ -196,11 +198,11 @@ namespace OpenSim.Grid.UserServer
                 LLUUID guess = new LLUUID();
                 try
                 {
-                    guess = new LLUUID((string)requestData["avatar_uuid"]);
+                    guess = new LLUUID((string) requestData["avatar_uuid"]);
 
                     userProfile = GetUserProfile(guess);
                 }
-                catch (System.FormatException)
+                catch (FormatException)
                 {
                     return CreateUnknownUserErrorResponse();
                 }
@@ -231,7 +233,7 @@ namespace OpenSim.Grid.UserServer
             throw new Exception("The method or operation is not implemented.");
         }
 
-        public override UserProfileData SetupMasterUser(libsecondlife.LLUUID uuid)
+        public override UserProfileData SetupMasterUser(LLUUID uuid)
         {
             throw new Exception("The method or operation is not implemented.");
         }

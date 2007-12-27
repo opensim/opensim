@@ -27,16 +27,13 @@
 */
 
 using System;
-using System.Collections.Generic;
 using Axiom.Math;
 using Ode.NET;
 using OpenSim.Framework;
-using OpenSim.Framework.Console;
 using OpenSim.Region.Physics.Manager;
 
 namespace OpenSim.Region.Physics.OdePlugin
 {
-
     public class OdePrim : PhysicsActor
     {
         public PhysicsVector _position;
@@ -57,7 +54,7 @@ namespace OpenSim.Region.Physics.OdePlugin
         private IMesh _mesh;
         private PrimitiveBaseShape _pbs;
         private OdeScene _parent_scene;
-        public IntPtr m_targetSpace = (IntPtr)0;
+        public IntPtr m_targetSpace = (IntPtr) 0;
         public IntPtr prim_geom;
         public IntPtr _triMeshData;
         private bool iscolliding = false;
@@ -65,18 +62,17 @@ namespace OpenSim.Region.Physics.OdePlugin
         private bool m_throttleUpdates = false;
         private int throttleCounter = 0;
         public bool outofBounds = false;
-        private float m_density = 10.000006836f;// Aluminum g/cm3;
+        private float m_density = 10.000006836f; // Aluminum g/cm3;
 
-         
 
         public bool _zeroFlag = false;
         private bool m_lastUpdateSent = false;
 
-        public IntPtr Body = (IntPtr)0;
+        public IntPtr Body = (IntPtr) 0;
         private String m_primName;
         private PhysicsVector _target_velocity;
         public d.Mass pMass;
-        
+
         private int debugcounter = 0;
 
         public OdePrim(String primName, OdeScene parent_scene, IntPtr targetSpace, PhysicsVector pos, PhysicsVector size,
@@ -123,7 +119,6 @@ namespace OpenSim.Region.Physics.OdePlugin
                 // linksets *should* be in a space together..  but are not currently
                 if (m_isphysical)
                     m_targetSpace = _parent_scene.space;
-
             }
             m_primName = primName;
 
@@ -147,25 +142,28 @@ namespace OpenSim.Region.Physics.OdePlugin
                 d.GeomSetQuaternion(prim_geom, ref myrot);
 
 
-                if (m_isphysical && Body == (IntPtr)0)
+                if (m_isphysical && Body == (IntPtr) 0)
                 {
                     enableBody();
                 }
                 parent_scene.geom_name_map[prim_geom] = primName;
-                parent_scene.actor_name_map[prim_geom] = (PhysicsActor)this;
+                parent_scene.actor_name_map[prim_geom] = (PhysicsActor) this;
                 //  don't do .add() here; old geoms get recycled with the same hash
             }
         }
+
         public override int PhysicsActorType
         {
-            get { return (int)ActorTypes.Prim; }
+            get { return (int) ActorTypes.Prim; }
             set { return; }
         }
+
         public override bool SetAlwaysRun
         {
             get { return false; }
             set { return; }
         }
+
         public void enableBody()
         {
             // Sets the geom to a body
@@ -185,13 +183,14 @@ namespace OpenSim.Region.Physics.OdePlugin
 
             _parent_scene.addActivePrim(this);
         }
+
         private float CalculateMass()
         {
             float volume = 0;
-            
+
             // No material is passed to the physics engines yet..  soo..   
             // we're using the m_density constant in the class definition
-            
+
 
             float returnMass = 0;
 
@@ -199,17 +198,17 @@ namespace OpenSim.Region.Physics.OdePlugin
             {
                 case ProfileShape.Square:
                     // Profile Volume
-                    
-                    volume = _size.X * _size.Y * _size.Z;
+
+                    volume = _size.X*_size.Y*_size.Z;
 
                     // If the user has 'hollowed out' 
                     // ProfileHollow is one of those 0 to 50000 values :P
                     // we like percentages better..   so turning into a percentage
 
-                    if (((float)_pbs.ProfileHollow / 50000f) > 0.0)
+                    if (((float) _pbs.ProfileHollow/50000f) > 0.0)
                     {
-                        float hollowAmount = (float)_pbs.ProfileHollow / 50000f;
-                        
+                        float hollowAmount = (float) _pbs.ProfileHollow/50000f;
+
                         // calculate the hollow volume by it's shape compared to the prim shape
                         float hollowVolume = 0;
                         switch (_pbs.HollowShape)
@@ -217,29 +216,29 @@ namespace OpenSim.Region.Physics.OdePlugin
                             case HollowShape.Square:
                             case HollowShape.Same:
                                 // Cube Hollow volume calculation
-                                float hollowsizex = _size.X * hollowAmount;
-                                float hollowsizey = _size.Y * hollowAmount;
-                                float hollowsizez = _size.Z * hollowAmount;
-                                hollowVolume = hollowsizex * hollowsizey * hollowsizez;
+                                float hollowsizex = _size.X*hollowAmount;
+                                float hollowsizey = _size.Y*hollowAmount;
+                                float hollowsizez = _size.Z*hollowAmount;
+                                hollowVolume = hollowsizex*hollowsizey*hollowsizez;
                                 break;
 
                             case HollowShape.Circle:
                                 // Hollow shape is a perfect cyllinder in respect to the cube's scale
                                 // Cyllinder hollow volume calculation
-                                float hRadius = _size.X / 2;
+                                float hRadius = _size.X/2;
                                 float hLength = _size.Z;
 
                                 // pi * r2 * h
-                                hollowVolume = ((float)(Math.PI * Math.Pow(hRadius, 2) * hLength) * hollowAmount);
+                                hollowVolume = ((float) (Math.PI*Math.Pow(hRadius, 2)*hLength)*hollowAmount);
                                 break;
 
                             case HollowShape.Triangle:
                                 // Equilateral Triangular Prism volume hollow calculation
                                 // Triangle is an Equilateral Triangular Prism with aLength = to _size.Y
 
-                                float aLength = _size.Y; 
+                                float aLength = _size.Y;
                                 // 1/2 abh
-                                hollowVolume = (float)((0.5 * aLength * _size.X * _size.Z) * hollowAmount);
+                                hollowVolume = (float) ((0.5*aLength*_size.X*_size.Z)*hollowAmount);
                                 break;
 
                             default:
@@ -247,15 +246,14 @@ namespace OpenSim.Region.Physics.OdePlugin
                                 break;
                         }
                         volume = volume - hollowVolume;
-                        
                     }
-                    
+
                     break;
 
                 default:
                     // we don't have all of the volume formulas yet so 
                     // use the common volume formula for all
-                    volume = _size.X * _size.Y * _size.Z;
+                    volume = _size.X*_size.Y*_size.Z;
                     break;
             }
 
@@ -273,70 +271,70 @@ namespace OpenSim.Region.Physics.OdePlugin
             float PathCutStartAmount = _pbs.ProfileBegin;
             if (((PathCutStartAmount + PathCutEndAmount)/50000f) > 0.0f)
             {
+                float pathCutAmount = ((PathCutStartAmount + PathCutEndAmount)/50000f);
 
-                float pathCutAmount = ((PathCutStartAmount + PathCutEndAmount) / 50000f);
-                
                 // Check the return amount for sanity
-                if (pathCutAmount >= 0.99f) 
-                    pathCutAmount=0.99f;
+                if (pathCutAmount >= 0.99f)
+                    pathCutAmount = 0.99f;
 
-                volume = volume - (volume * pathCutAmount);
+                volume = volume - (volume*pathCutAmount);
             }
-            
+
             // Mass = density * volume
 
-            returnMass = m_density * volume;
+            returnMass = m_density*volume;
 
             return returnMass;
         }
 
         public void setMass()
-        {    
-            if (Body != (IntPtr)0)
+        {
+            if (Body != (IntPtr) 0)
             {
                 d.MassSetBoxTotal(out pMass, CalculateMass(), _size.X, _size.Y, _size.Z);
                 d.BodySetMass(Body, ref pMass);
             }
         }
 
-       
 
         public void disableBody()
         {
             //this kills the body so things like 'mesh' can re-create it.
-            if (Body != (IntPtr)0)
+            if (Body != (IntPtr) 0)
             {
                 _parent_scene.remActivePrim(this);
                 d.BodyDestroy(Body);
-                Body = (IntPtr)0;
+                Body = (IntPtr) 0;
             }
         }
+
         public void setMesh(OdeScene parent_scene, IMesh mesh)
         {
             //Kill Body so that mesh can re-make the geom
-            if (IsPhysical && Body != (IntPtr)0)
+            if (IsPhysical && Body != (IntPtr) 0)
             {
                 disableBody();
             }
             float[] vertexList = mesh.getVertexListAsFloatLocked(); // Note, that vertextList is pinned in memory
             int[] indexList = mesh.getIndexListAsIntLocked(); // Also pinned, needs release after usage
-            int VertexCount = vertexList.GetLength(0) / 3;
+            int VertexCount = vertexList.GetLength(0)/3;
             int IndexCount = indexList.GetLength(0);
-            
+
             _triMeshData = d.GeomTriMeshDataCreate();
 
-            d.GeomTriMeshDataBuildSimple(_triMeshData, vertexList, 3 * sizeof(float), VertexCount, indexList, IndexCount,
-                                         3 * sizeof(int));
+            d.GeomTriMeshDataBuildSimple(_triMeshData, vertexList, 3*sizeof (float), VertexCount, indexList, IndexCount,
+                                         3*sizeof (int));
             d.GeomTriMeshDataPreprocess(_triMeshData);
 
             prim_geom = d.CreateTriMesh(m_targetSpace, _triMeshData, parent_scene.triCallback, null, null);
-            
-            if (IsPhysical && Body == (IntPtr)0)
+
+            if (IsPhysical && Body == (IntPtr) 0)
             {
                 // Recreate the body
                 enableBody();
             }
         }
+
         public void ProcessTaints(float timestep)
         {
             if (m_taintposition != _position)
@@ -357,14 +355,14 @@ namespace OpenSim.Region.Physics.OdePlugin
             if (m_taintshape)
                 changeshape(timestep);
             //
-
         }
+
         public void Move(float timestep)
         {
             if (m_isphysical)
             {
                 // This is a fallback..   May no longer be necessary.
-                if (Body == (IntPtr)0)
+                if (Body == (IntPtr) 0)
                     enableBody();
                 //Prim auto disable after 20 frames, 
                 ///if you move it, re-enable the prim manually.
@@ -382,35 +380,35 @@ namespace OpenSim.Region.Physics.OdePlugin
 
             m_taintposition = _position;
         }
+
         public void rotate(float timestep)
         {
-
             d.Quaternion myrot = new d.Quaternion();
             myrot.W = _orientation.w;
             myrot.X = _orientation.x;
             myrot.Y = _orientation.y;
             myrot.Z = _orientation.z;
             d.GeomSetQuaternion(prim_geom, ref myrot);
-            if (m_isphysical && Body != (IntPtr)0)
+            if (m_isphysical && Body != (IntPtr) 0)
             {
                 d.BodySetQuaternion(Body, ref myrot);
             }
 
             m_taintrot = _orientation;
         }
+
         public void changePhysicsStatus(float timestap)
         {
             if (m_isphysical == true)
             {
-                if (Body == (IntPtr)0)
+                if (Body == (IntPtr) 0)
                 {
                     enableBody();
                 }
-
             }
             else
             {
-                if (Body != (IntPtr)0)
+                if (Body != (IntPtr) 0)
                 {
                     disableBody();
                 }
@@ -419,6 +417,7 @@ namespace OpenSim.Region.Physics.OdePlugin
 
             m_taintPhysics = m_isphysical;
         }
+
         public void changesize(float timestamp)
         {
             string oldname = _parent_scene.geom_name_map[prim_geom];
@@ -429,7 +428,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                 // Cleanup meshing here
             }
             //kill body to rebuild 
-            if (IsPhysical && Body != (IntPtr)0)
+            if (IsPhysical && Body != (IntPtr) 0)
             {
                 disableBody();
             }
@@ -442,10 +441,8 @@ namespace OpenSim.Region.Physics.OdePlugin
             // we don't need to do space calculation because the client sends a position update also.
 
             // Construction of new prim
-            if (this._parent_scene.needsMeshing(_pbs))
+            if (_parent_scene.needsMeshing(_pbs))
             {
-
-
                 // Don't need to re-enable body..   it's done in SetMesh
                 IMesh mesh = _parent_scene.mesher.CreateMesh(oldname, _pbs, _size);
                 // createmesh returns null when it's a shape that isn't a cube.
@@ -463,8 +460,6 @@ namespace OpenSim.Region.Physics.OdePlugin
                     myrot.Y = _orientation.y;
                     myrot.Z = _orientation.z;
                     d.GeomSetQuaternion(prim_geom, ref myrot);
-
-
                 }
             }
             else
@@ -480,7 +475,7 @@ namespace OpenSim.Region.Physics.OdePlugin
 
 
                 //d.GeomBoxSetLengths(prim_geom, _size.X, _size.Y, _size.Z);
-                if (IsPhysical && Body == (IntPtr)0)
+                if (IsPhysical && Body == (IntPtr) 0)
                 {
                     // Re creates body on size.
                     // EnableBody also does setMass()
@@ -493,12 +488,13 @@ namespace OpenSim.Region.Physics.OdePlugin
 
             m_taintsize = _size;
         }
+
         public void changeshape(float timestamp)
         {
             string oldname = _parent_scene.geom_name_map[prim_geom];
 
             // Cleanup of old prim geometry and Bodies
-            if (IsPhysical && Body != (IntPtr)0)
+            if (IsPhysical && Body != (IntPtr) 0)
             {
                 disableBody();
             }
@@ -509,7 +505,7 @@ namespace OpenSim.Region.Physics.OdePlugin
             }
 
             // Construction of new prim
-            if (this._parent_scene.needsMeshing(_pbs))
+            if (_parent_scene.needsMeshing(_pbs))
             {
                 IMesh mesh = _parent_scene.mesher.CreateMesh(oldname, _pbs, _size);
                 if (mesh != null)
@@ -525,7 +521,7 @@ namespace OpenSim.Region.Physics.OdePlugin
             {
                 prim_geom = d.CreateBox(m_targetSpace, _size.X, _size.Y, _size.Z);
             }
-            if (IsPhysical && Body == (IntPtr)0)
+            if (IsPhysical && Body == (IntPtr) 0)
             {
                 //re-create new body
                 enableBody();
@@ -544,11 +540,13 @@ namespace OpenSim.Region.Physics.OdePlugin
 
             m_taintshape = false;
         }
+
         public override bool IsPhysical
         {
             get { return m_isphysical; }
             set { m_isphysical = value; }
         }
+
         public void setPrimForRemoval()
         {
             m_taintremove = true;
@@ -556,9 +554,7 @@ namespace OpenSim.Region.Physics.OdePlugin
 
         public override bool Flying
         {
-            get
-            {
-                return false; //no flying prims for you
+            get { return false; //no flying prims for you
             }
             set { }
         }
@@ -568,16 +564,19 @@ namespace OpenSim.Region.Physics.OdePlugin
             get { return iscolliding; }
             set { iscolliding = value; }
         }
+
         public override bool CollidingGround
         {
             get { return false; }
             set { return; }
         }
+
         public override bool CollidingObj
         {
             get { return false; }
             set { return; }
         }
+
         public override bool ThrottleUpdates
         {
             get { return m_throttleUpdates; }
@@ -588,20 +587,13 @@ namespace OpenSim.Region.Physics.OdePlugin
         {
             get { return _position; }
 
-            set
-            {
-                _position = value;
-
-            }
+            set { _position = value; }
         }
 
         public override PhysicsVector Size
         {
             get { return _size; }
-            set
-            {
-                _size = value;
-            }
+            set { _size = value; }
         }
 
         public override float Mass
@@ -626,10 +618,7 @@ namespace OpenSim.Region.Physics.OdePlugin
 
         public override PrimitiveBaseShape Shape
         {
-            set
-            {
-                _pbs = value;
-            }
+            set { _pbs = value; }
         }
 
         public override PhysicsVector Velocity
@@ -639,9 +628,9 @@ namespace OpenSim.Region.Physics.OdePlugin
                 // Averate previous velocity with the new one so 
                 // client object interpolation works a 'little' better
                 PhysicsVector returnVelocity = new PhysicsVector();
-                returnVelocity.X = (m_lastVelocity.X + _velocity.X) / 2;
-                returnVelocity.Y = (m_lastVelocity.Y + _velocity.Y) / 2;
-                returnVelocity.Z = (m_lastVelocity.Z + _velocity.Z) / 2;
+                returnVelocity.X = (m_lastVelocity.X + _velocity.X)/2;
+                returnVelocity.Y = (m_lastVelocity.Y + _velocity.Y)/2;
+                returnVelocity.Z = (m_lastVelocity.Z + _velocity.Z)/2;
                 return returnVelocity;
             }
             set { _velocity = value; }
@@ -656,11 +645,7 @@ namespace OpenSim.Region.Physics.OdePlugin
         public override Quaternion Orientation
         {
             get { return _orientation; }
-            set
-            {
-                _orientation = value;
-
-            }
+            set { _orientation = value; }
         }
 
         public override PhysicsVector Acceleration
@@ -688,7 +673,7 @@ namespace OpenSim.Region.Physics.OdePlugin
         {
             //  no lock; called from Simulate() -- if you call this from elsewhere, gotta lock or do Monitor.Enter/Exit!
 
-            if (Body != (IntPtr)0)
+            if (Body != (IntPtr) 0)
             {
                 d.Vector3 vec = d.BodyGetPosition(Body);
                 d.Quaternion ori = d.BodyGetQuaternion(Body);
@@ -715,8 +700,6 @@ namespace OpenSim.Region.Physics.OdePlugin
                     // It's a hack and will generate a console message if it fails.
 
 
-
-
                     //IsPhysical = false;
                     base.RaiseOutOfBounds(_position);
                     _velocity.X = 0;
@@ -736,7 +719,6 @@ namespace OpenSim.Region.Physics.OdePlugin
                     && (Math.Abs(m_lastposition.Y - l_position.Y) < 0.02)
                     && (Math.Abs(m_lastposition.Z - l_position.Z) < 0.02))
                 {
-
                     _zeroFlag = true;
                 }
                 else
@@ -744,7 +726,6 @@ namespace OpenSim.Region.Physics.OdePlugin
                     //System.Console.WriteLine(Math.Abs(m_lastposition.X - l_position.X).ToString());
                     _zeroFlag = false;
                 }
-
 
 
                 if (_zeroFlag)
@@ -811,8 +792,8 @@ namespace OpenSim.Region.Physics.OdePlugin
                 m_rotationalVelocity.Z = 0;
                 _zeroFlag = true;
             }
-
         }
+
         public override void SetMomentum(PhysicsVector momentum)
         {
         }

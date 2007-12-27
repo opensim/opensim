@@ -27,11 +27,12 @@
 */
 
 using System;
-using libsecondlife;
 using System.Collections.Generic;
+using libsecondlife;
 using Nini.Config;
 using OpenSim.Framework;
 using OpenSim.Framework.Communications.Cache;
+using OpenSim.Framework.Console;
 using OpenSim.Region.Environment.Interfaces;
 using OpenSim.Region.Environment.Scenes;
 
@@ -59,9 +60,9 @@ namespace OpenSim.Region.Environment.Modules
                 {
                     m_avatarsAppearance[avatarId] = appearance;
                 }
-                catch (System.NullReferenceException)
+                catch (NullReferenceException)
                 {
-                    OpenSim.Framework.Console.MainLog.Instance.Error("AVATAR", "Unable to load appearance for uninitialized avatar");
+                    MainLog.Instance.Error("AVATAR", "Unable to load appearance for uninitialized avatar");
                 }
                 return true;
             }
@@ -98,17 +99,17 @@ namespace OpenSim.Region.Environment.Modules
 
         public void NewClient(IClientAPI client)
         {
-           client.OnAvatarNowWearing += AvatarIsWearing;
+            client.OnAvatarNowWearing += AvatarIsWearing;
         }
 
         public void RemoveClient(IClientAPI client)
         {
-         // client.OnAvatarNowWearing -= AvatarIsWearing;
+            // client.OnAvatarNowWearing -= AvatarIsWearing;
         }
 
         public void AvatarIsWearing(Object sender, AvatarWearingArgs e)
         {
-            IClientAPI clientView = (IClientAPI)sender;
+            IClientAPI clientView = (IClientAPI) sender;
             CachedUserInfo profile = m_scene.CommsManager.UserProfileCacheService.GetUserDetails(clientView.AgentId);
             if (profile != null)
             {
@@ -127,7 +128,7 @@ namespace OpenSim.Region.Environment.Modules
                             {
                                 assetId = baseItem.assetID;
                                 //temporary dictionary storage. This should be storing to a database
-                               
+
                                 if (m_avatarsAppearance.ContainsKey(clientView.AgentId))
                                 {
                                     AvatarAppearance avatAppearance = m_avatarsAppearance[clientView.AgentId];

@@ -25,6 +25,7 @@
 * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 * 
 */
+
 using System;
 using System.Collections.Generic;
 using System.Data;
@@ -32,7 +33,6 @@ using System.Data.SqlClient;
 using System.IO;
 using System.Reflection;
 using libsecondlife;
-
 using OpenSim.Framework.Console;
 
 namespace OpenSim.Framework.Data.MSSQL
@@ -40,12 +40,12 @@ namespace OpenSim.Framework.Data.MSSQL
     /// <summary>
     /// A management class for the MS SQL Storage Engine
     /// </summary>
-    class MSSQLManager
+    internal class MSSQLManager
     {
         /// <summary>
         /// The database connection object
         /// </summary>
-        IDbConnection dbcon;
+        private IDbConnection dbcon;
 
         /// <summary>
         /// Connection string for ADO.net
@@ -60,12 +60,14 @@ namespace OpenSim.Framework.Data.MSSQL
         /// <param name="username">The username logging into the database</param>
         /// <param name="password">The password for the user logging in</param>
         /// <param name="cpooling">Whether to use connection pooling or not, can be one of the following: 'yes', 'true', 'no' or 'false', if unsure use 'false'.</param>
-        public MSSQLManager(string dataSource, string initialCatalog, string persistSecurityInfo, string userId, string password)
+        public MSSQLManager(string dataSource, string initialCatalog, string persistSecurityInfo, string userId,
+                            string password)
         {
             try
             {
-               
-                connectionString = "Data Source=" + dataSource + ";Initial Catalog=" + initialCatalog + ";Persist Security Info=" + persistSecurityInfo + ";User ID=" + userId + ";Password=" + password+";";
+                connectionString = "Data Source=" + dataSource + ";Initial Catalog=" + initialCatalog +
+                                   ";Persist Security Info=" + persistSecurityInfo + ";User ID=" + userId + ";Password=" +
+                                   password + ";";
                 dbcon = new SqlConnection(connectionString);
                 TestTables(dbcon);
                 dbcon.Open();
@@ -78,7 +80,7 @@ namespace OpenSim.Framework.Data.MSSQL
 
         private bool TestTables(IDbConnection conn)
         {
-            IDbCommand cmd = this.Query("SELECT * FROM regions", new Dictionary<string, string>());
+            IDbCommand cmd = Query("SELECT * FROM regions", new Dictionary<string, string>());
             //SqlCommand cmd = (SqlCommand)dbcon.CreateCommand();
             //cmd.CommandText = "SELECT * FROM regions";    
             try
@@ -90,7 +92,7 @@ namespace OpenSim.Framework.Data.MSSQL
             }
             catch (Exception)
             {
-                MainLog.Instance.Verbose("DATASTORE", "MSSQL Database doesn't exist... creating");                
+                MainLog.Instance.Verbose("DATASTORE", "MSSQL Database doesn't exist... creating");
                 InitDB(conn);
             }
             return true;
@@ -100,66 +102,66 @@ namespace OpenSim.Framework.Data.MSSQL
         {
             string createRegions = defineTable(createRegionsTable());
             Dictionary<string, string> param = new Dictionary<string, string>();
-            IDbCommand pcmd = this.Query(createRegions, param);
-            if (conn.State == ConnectionState.Closed) {
+            IDbCommand pcmd = Query(createRegions, param);
+            if (conn.State == ConnectionState.Closed)
+            {
                 conn.Open();
-            }            
+            }
             pcmd.ExecuteNonQuery();
             pcmd.Dispose();
 
-            this.ExecuteResourceSql("Mssql-users.sql");
-            this.ExecuteResourceSql("Mssql-agents.sql");
-            this.ExecuteResourceSql("Mssql-logs.sql");
+            ExecuteResourceSql("Mssql-users.sql");
+            ExecuteResourceSql("Mssql-agents.sql");
+            ExecuteResourceSql("Mssql-logs.sql");
 
             conn.Close();
-
         }
 
         private DataTable createRegionsTable()
         {
             DataTable regions = new DataTable("regions");
 
-            createCol(regions, "regionHandle", typeof(ulong));
-            createCol(regions, "regionName", typeof(System.String));
-            createCol(regions, "uuid", typeof(System.String));
+            createCol(regions, "regionHandle", typeof (ulong));
+            createCol(regions, "regionName", typeof (String));
+            createCol(regions, "uuid", typeof (String));
 
-            createCol(regions, "regionRecvKey", typeof(System.String));
-            createCol(regions, "regionSecret", typeof(System.String));
-            createCol(regions, "regionSendKey", typeof(System.String));
+            createCol(regions, "regionRecvKey", typeof (String));
+            createCol(regions, "regionSecret", typeof (String));
+            createCol(regions, "regionSendKey", typeof (String));
 
-            createCol(regions, "regionDataURI", typeof(System.String));
-            createCol(regions, "serverIP", typeof(System.String));
-            createCol(regions, "serverPort", typeof(System.String));
-            createCol(regions, "serverURI", typeof(System.String));
+            createCol(regions, "regionDataURI", typeof (String));
+            createCol(regions, "serverIP", typeof (String));
+            createCol(regions, "serverPort", typeof (String));
+            createCol(regions, "serverURI", typeof (String));
 
 
-            createCol(regions, "locX", typeof(uint));
-            createCol(regions, "locY", typeof(uint));
-            createCol(regions, "locZ", typeof(uint));
+            createCol(regions, "locX", typeof (uint));
+            createCol(regions, "locY", typeof (uint));
+            createCol(regions, "locZ", typeof (uint));
 
-            createCol(regions, "eastOverrideHandle", typeof(ulong));
-            createCol(regions, "westOverrideHandle", typeof(ulong));
-            createCol(regions, "southOverrideHandle", typeof(ulong));
-            createCol(regions, "northOverrideHandle", typeof(ulong));
+            createCol(regions, "eastOverrideHandle", typeof (ulong));
+            createCol(regions, "westOverrideHandle", typeof (ulong));
+            createCol(regions, "southOverrideHandle", typeof (ulong));
+            createCol(regions, "northOverrideHandle", typeof (ulong));
 
-            createCol(regions, "regionAssetURI", typeof(System.String));
-            createCol(regions, "regionAssetRecvKey", typeof(System.String));
-            createCol(regions, "regionAssetSendKey", typeof(System.String));
+            createCol(regions, "regionAssetURI", typeof (String));
+            createCol(regions, "regionAssetRecvKey", typeof (String));
+            createCol(regions, "regionAssetSendKey", typeof (String));
 
-            createCol(regions, "regionUserURI", typeof(System.String));
-            createCol(regions, "regionUserRecvKey", typeof(System.String));
-            createCol(regions, "regionUserSendKey", typeof(System.String));
+            createCol(regions, "regionUserURI", typeof (String));
+            createCol(regions, "regionUserRecvKey", typeof (String));
+            createCol(regions, "regionUserSendKey", typeof (String));
 
-            createCol(regions, "regionMapTexture", typeof(System.String));
-            createCol(regions, "serverHttpPort", typeof(System.String));
-            createCol(regions, "serverRemotingPort", typeof(uint));
+            createCol(regions, "regionMapTexture", typeof (String));
+            createCol(regions, "serverHttpPort", typeof (String));
+            createCol(regions, "serverRemotingPort", typeof (uint));
 
             // Add in contraints
-            regions.PrimaryKey = new DataColumn[] { regions.Columns["UUID"] };
+            regions.PrimaryKey = new DataColumn[] {regions.Columns["UUID"]};
             return regions;
         }
 
-        protected static void createCol(DataTable dt, string name, System.Type type)
+        protected static void createCol(DataTable dt, string name, Type type)
         {
             DataColumn col = new DataColumn(name, type);
             dt.Columns.Add(col);
@@ -172,10 +174,11 @@ namespace OpenSim.Framework.Data.MSSQL
             foreach (DataColumn col in dt.Columns)
             {
                 if (subsql.Length > 0)
-                { // a map function would rock so much here
+                {
+                    // a map function would rock so much here
                     subsql += ",\n";
                 }
-                
+
                 subsql += col.ColumnName + " " + SqlType(col.DataType);
                 if (col == dt.PrimaryKey[0])
                 {
@@ -192,19 +195,19 @@ namespace OpenSim.Framework.Data.MSSQL
         // slightly differently.
         private static string SqlType(Type type)
         {
-            if (type == typeof(System.String))
+            if (type == typeof (String))
             {
                 return "varchar(255)";
             }
-            else if (type == typeof(System.Int32))
+            else if (type == typeof (Int32))
             {
                 return "integer";
             }
-            else if (type == typeof(System.Double))
+            else if (type == typeof (Double))
             {
                 return "float";
             }
-            else if (type == typeof(System.Byte[]))
+            else if (type == typeof (Byte[]))
             {
                 return "image";
             }
@@ -254,14 +257,14 @@ namespace OpenSim.Framework.Data.MSSQL
         /// <returns>A Sql DB Command</returns>
         public IDbCommand Query(string sql, Dictionary<string, string> parameters)
         {
-            SqlCommand dbcommand = (SqlCommand)dbcon.CreateCommand();
-            dbcommand.CommandText = sql;            
+            SqlCommand dbcommand = (SqlCommand) dbcon.CreateCommand();
+            dbcommand.CommandText = sql;
             foreach (KeyValuePair<string, string> param in parameters)
             {
                 dbcommand.Parameters.AddWithValue(param.Key, param.Value);
             }
-            
-            return (IDbCommand)dbcommand;
+
+            return (IDbCommand) dbcommand;
         }
 
         /// <summary>
@@ -277,20 +280,20 @@ namespace OpenSim.Framework.Data.MSSQL
             {
                 // Region Main
                 regionprofile.regionHandle = Convert.ToUInt64(reader["regionHandle"]);
-                regionprofile.regionName = (string)reader["regionName"];
-                regionprofile.UUID = new LLUUID((string)reader["uuid"]);
+                regionprofile.regionName = (string) reader["regionName"];
+                regionprofile.UUID = new LLUUID((string) reader["uuid"]);
 
                 // Secrets
-                regionprofile.regionRecvKey = (string)reader["regionRecvKey"];
-                regionprofile.regionSecret = (string)reader["regionSecret"];
-                regionprofile.regionSendKey = (string)reader["regionSendKey"];
+                regionprofile.regionRecvKey = (string) reader["regionRecvKey"];
+                regionprofile.regionSecret = (string) reader["regionSecret"];
+                regionprofile.regionSendKey = (string) reader["regionSendKey"];
 
                 // Region Server
-                regionprofile.regionDataURI = (string)reader["regionDataURI"];
+                regionprofile.regionDataURI = (string) reader["regionDataURI"];
                 regionprofile.regionOnline = false; // Needs to be pinged before this can be set.
-                regionprofile.serverIP = (string)reader["serverIP"];
+                regionprofile.serverIP = (string) reader["serverIP"];
                 regionprofile.serverPort = Convert.ToUInt32(reader["serverPort"]);
-                regionprofile.serverURI = (string)reader["serverURI"];
+                regionprofile.serverURI = (string) reader["serverURI"];
                 regionprofile.httpPort = Convert.ToUInt32(reader["serverHttpPort"]);
                 regionprofile.remotingPort = Convert.ToUInt32(reader["serverRemotingPort"]);
 
@@ -307,14 +310,14 @@ namespace OpenSim.Framework.Data.MSSQL
                 regionprofile.regionNorthOverrideHandle = Convert.ToUInt64(reader["northOverrideHandle"]);
 
                 // Assets
-                regionprofile.regionAssetURI = (string)reader["regionAssetURI"];
-                regionprofile.regionAssetRecvKey = (string)reader["regionAssetRecvKey"];
-                regionprofile.regionAssetSendKey = (string)reader["regionAssetSendKey"];
+                regionprofile.regionAssetURI = (string) reader["regionAssetURI"];
+                regionprofile.regionAssetRecvKey = (string) reader["regionAssetRecvKey"];
+                regionprofile.regionAssetSendKey = (string) reader["regionAssetSendKey"];
 
                 // Userserver
-                regionprofile.regionUserURI = (string)reader["regionUserURI"];
-                regionprofile.regionUserRecvKey = (string)reader["regionUserRecvKey"];
-                regionprofile.regionUserSendKey = (string)reader["regionUserSendKey"];
+                regionprofile.regionUserURI = (string) reader["regionUserURI"];
+                regionprofile.regionUserRecvKey = (string) reader["regionUserRecvKey"];
+                regionprofile.regionUserSendKey = (string) reader["regionUserSendKey"];
 
                 // World Map Addition
                 string tempRegionMap = reader["regionMapTexture"].ToString();
@@ -331,7 +334,6 @@ namespace OpenSim.Framework.Data.MSSQL
             {
                 reader.Close();
                 throw new Exception("No rows to return");
-                
             }
             return regionprofile;
         }
@@ -347,12 +349,12 @@ namespace OpenSim.Framework.Data.MSSQL
 
             if (reader.Read())
             {
-                retval.UUID = new LLUUID((string)reader["UUID"]);
-                retval.username = (string)reader["username"];
-                retval.surname = (string)reader["lastname"];
+                retval.UUID = new LLUUID((string) reader["UUID"]);
+                retval.username = (string) reader["username"];
+                retval.surname = (string) reader["lastname"];
 
-                retval.passwordHash = (string)reader["passwordHash"];
-                retval.passwordSalt = (string)reader["passwordSalt"];
+                retval.passwordHash = (string) reader["passwordHash"];
+                retval.passwordSalt = (string) reader["passwordSalt"];
 
                 retval.homeRegion = Convert.ToUInt64(reader["homeRegion"].ToString());
                 retval.homeLocation = new LLVector3(
@@ -367,18 +369,17 @@ namespace OpenSim.Framework.Data.MSSQL
                 retval.created = Convert.ToInt32(reader["created"].ToString());
                 retval.lastLogin = Convert.ToInt32(reader["lastLogin"].ToString());
 
-                retval.userInventoryURI = (string)reader["userInventoryURI"];
-                retval.userAssetURI = (string)reader["userAssetURI"];
+                retval.userInventoryURI = (string) reader["userInventoryURI"];
+                retval.userAssetURI = (string) reader["userAssetURI"];
 
                 retval.profileCanDoMask = Convert.ToUInt32(reader["profileCanDoMask"].ToString());
                 retval.profileWantDoMask = Convert.ToUInt32(reader["profileWantDoMask"].ToString());
 
-                retval.profileAboutText = (string)reader["profileAboutText"];
-                retval.profileFirstText = (string)reader["profileFirstText"];
+                retval.profileAboutText = (string) reader["profileAboutText"];
+                retval.profileFirstText = (string) reader["profileFirstText"];
 
-                retval.profileImage = new LLUUID((string)reader["profileImage"]);
-                retval.profileFirstImage = new LLUUID((string)reader["profileFirstImage"]);
-
+                retval.profileImage = new LLUUID((string) reader["profileImage"]);
+                retval.profileFirstImage = new LLUUID((string) reader["profileFirstImage"]);
             }
             else
             {
@@ -399,12 +400,12 @@ namespace OpenSim.Framework.Data.MSSQL
             if (reader.Read())
             {
                 // Agent IDs
-                retval.UUID = new LLUUID((string)reader["UUID"]);
-                retval.sessionID = new LLUUID((string)reader["sessionID"]);
-                retval.secureSessionID = new LLUUID((string)reader["secureSessionID"]);
+                retval.UUID = new LLUUID((string) reader["UUID"]);
+                retval.sessionID = new LLUUID((string) reader["sessionID"]);
+                retval.secureSessionID = new LLUUID((string) reader["secureSessionID"]);
 
                 // Agent Who?
-                retval.agentIP = (string)reader["agentIP"];
+                retval.agentIP = (string) reader["agentIP"];
                 retval.agentPort = Convert.ToUInt32(reader["agentPort"].ToString());
                 retval.agentOnline = Convert.ToBoolean(reader["agentOnline"].ToString());
 
@@ -413,9 +414,9 @@ namespace OpenSim.Framework.Data.MSSQL
                 retval.logoutTime = Convert.ToInt32(reader["logoutTime"].ToString());
 
                 // Current position
-                retval.currentRegion = (string)reader["currentRegion"];
+                retval.currentRegion = (string) reader["currentRegion"];
                 retval.currentHandle = Convert.ToUInt64(reader["currentHandle"].ToString());
-                LLVector3.TryParse((string)reader["currentPos"], out retval.currentPos);
+                LLVector3.TryParse((string) reader["currentPos"], out retval.currentPos);
             }
             else
             {
@@ -426,20 +427,19 @@ namespace OpenSim.Framework.Data.MSSQL
 
         public AssetBase getAssetRow(IDataReader reader)
         {
-            AssetBase asset = new AssetBase();          
+            AssetBase asset = new AssetBase();
             if (reader.Read())
             {
                 // Region Main
 
                 asset = new AssetBase();
-                asset.Data = (byte[])reader["data"];
-                asset.Description = (string)reader["description"];
-                asset.FullID = new LLUUID((string)reader["id"]);
+                asset.Data = (byte[]) reader["data"];
+                asset.Description = (string) reader["description"];
+                asset.FullID = new LLUUID((string) reader["id"]);
                 asset.InvType = Convert.ToSByte(reader["invType"]);
                 asset.Local = Convert.ToBoolean(reader["local"]); // ((sbyte)reader["local"]) != 0 ? true : false;
-                asset.Name = (string)reader["name"];
+                asset.Name = (string) reader["name"];
                 asset.Type = Convert.ToSByte(reader["assetType"]);
-                
             }
             else
             {
@@ -455,15 +455,19 @@ namespace OpenSim.Framework.Data.MSSQL
         /// <returns>Successful?</returns>
         public bool insertRegionRow(RegionProfileData profile)
         {
-
             //Insert new region
-            string sql = "INSERT INTO regions ([regionHandle], [regionName], [uuid], [regionRecvKey], [regionSecret], [regionSendKey], [regionDataURI], ";
-            sql += "[serverIP], [serverPort], [serverURI], [locX], [locY], [locZ], [eastOverrideHandle], [westOverrideHandle], [southOverrideHandle], [northOverrideHandle], [regionAssetURI], [regionAssetRecvKey], ";
-            sql += "[regionAssetSendKey], [regionUserURI], [regionUserRecvKey], [regionUserSendKey], [regionMapTexture], [serverHttpPort], [serverRemotingPort]) VALUES ";
+            string sql =
+                "INSERT INTO regions ([regionHandle], [regionName], [uuid], [regionRecvKey], [regionSecret], [regionSendKey], [regionDataURI], ";
+            sql +=
+                "[serverIP], [serverPort], [serverURI], [locX], [locY], [locZ], [eastOverrideHandle], [westOverrideHandle], [southOverrideHandle], [northOverrideHandle], [regionAssetURI], [regionAssetRecvKey], ";
+            sql +=
+                "[regionAssetSendKey], [regionUserURI], [regionUserRecvKey], [regionUserSendKey], [regionMapTexture], [serverHttpPort], [serverRemotingPort]) VALUES ";
 
             sql += "(@regionHandle, @regionName, @uuid, @regionRecvKey, @regionSecret, @regionSendKey, @regionDataURI, ";
-            sql += "@serverIP, @serverPort, @serverURI, @locX, @locY, @locZ, @eastOverrideHandle, @westOverrideHandle, @southOverrideHandle, @northOverrideHandle, @regionAssetURI, @regionAssetRecvKey, ";
-            sql += "@regionAssetSendKey, @regionUserURI, @regionUserRecvKey, @regionUserSendKey, @regionMapTexture, @serverHttpPort, @serverRemotingPort);";
+            sql +=
+                "@serverIP, @serverPort, @serverURI, @locX, @locY, @locZ, @eastOverrideHandle, @westOverrideHandle, @southOverrideHandle, @northOverrideHandle, @regionAssetURI, @regionAssetRecvKey, ";
+            sql +=
+                "@regionAssetSendKey, @regionUserURI, @regionUserRecvKey, @regionUserSendKey, @regionMapTexture, @serverHttpPort, @serverRemotingPort);";
 
             Dictionary<string, string> parameters = new Dictionary<string, string>();
 
@@ -498,9 +502,9 @@ namespace OpenSim.Framework.Data.MSSQL
             bool returnval = false;
 
             try
-            {                
+            {
                 IDbCommand result = Query(sql, parameters);
-                
+
                 if (result.ExecuteNonQuery() == 1)
                     returnval = true;
 
@@ -509,13 +513,10 @@ namespace OpenSim.Framework.Data.MSSQL
             catch (Exception e)
             {
                 MainLog.Instance.Error("MSSQLManager : " + e.ToString());
-
             }
 
             return returnval;
-
         }
-
 
 
         /// <summary>
@@ -528,7 +529,8 @@ namespace OpenSim.Framework.Data.MSSQL
         /// <param name="priority">How critical is this?</param>
         /// <param name="logMessage">Extra message info</param>
         /// <returns>Saved successfully?</returns>
-        public bool insertLogRow(string serverDaemon, string target, string methodCall, string arguments, int priority, string logMessage)
+        public bool insertLogRow(string serverDaemon, string target, string methodCall, string arguments, int priority,
+                                 string logMessage)
         {
             string sql = "INSERT INTO logs ([target], [server], [method], [arguments], [priority], [message]) VALUES ";
             sql += "(@target, @server, @method, @arguments, @priority, @message);";
@@ -588,19 +590,26 @@ namespace OpenSim.Framework.Data.MSSQL
         /// <param name="profileImage">UUID for profile image</param>
         /// <param name="firstImage">UUID for firstlife image</param>
         /// <returns>Success?</returns>
-        public bool insertUserRow(libsecondlife.LLUUID uuid, string username, string lastname, string passwordHash, string passwordSalt, UInt64 homeRegion, float homeLocX, float homeLocY, float homeLocZ,
-            float homeLookAtX, float homeLookAtY, float homeLookAtZ, int created, int lastlogin, string inventoryURI, string assetURI, uint canDoMask, uint wantDoMask, string aboutText, string firstText,
-            libsecondlife.LLUUID profileImage, libsecondlife.LLUUID firstImage)
+        public bool insertUserRow(LLUUID uuid, string username, string lastname, string passwordHash,
+                                  string passwordSalt, UInt64 homeRegion, float homeLocX, float homeLocY, float homeLocZ,
+                                  float homeLookAtX, float homeLookAtY, float homeLookAtZ, int created, int lastlogin,
+                                  string inventoryURI, string assetURI, uint canDoMask, uint wantDoMask,
+                                  string aboutText, string firstText,
+                                  LLUUID profileImage, LLUUID firstImage)
         {
             string sql = "INSERT INTO users ";
             sql += "([UUID], [username], [lastname], [passwordHash], [passwordSalt], [homeRegion], ";
-            sql += "[homeLocationX], [homeLocationY], [homeLocationZ], [homeLookAtX], [homeLookAtY], [homeLookAtZ], [created], ";
-            sql += "[lastLogin], [userInventoryURI], [userAssetURI], [profileCanDoMask], [profileWantDoMask], [profileAboutText], ";
+            sql +=
+                "[homeLocationX], [homeLocationY], [homeLocationZ], [homeLookAtX], [homeLookAtY], [homeLookAtZ], [created], ";
+            sql +=
+                "[lastLogin], [userInventoryURI], [userAssetURI], [profileCanDoMask], [profileWantDoMask], [profileAboutText], ";
             sql += "[profileFirstText], [profileImage], [profileFirstImage]) VALUES ";
 
             sql += "(@UUID, @username, @lastname, @passwordHash, @passwordSalt, @homeRegion, ";
-            sql += "@homeLocationX, @homeLocationY, @homeLocationZ, @homeLookAtX, @homeLookAtY, @homeLookAtZ, @created, ";
-            sql += "@lastLogin, @userInventoryURI, @userAssetURI, @profileCanDoMask, @profileWantDoMask, @profileAboutText, ";
+            sql +=
+                "@homeLocationX, @homeLocationY, @homeLocationZ, @homeLookAtX, @homeLookAtY, @homeLookAtZ, @created, ";
+            sql +=
+                "@lastLogin, @userInventoryURI, @userAssetURI, @profileCanDoMask, @profileWantDoMask, @profileAboutText, ";
             sql += "@profileFirstText, @profileImage, @profileFirstImage);";
 
             Dictionary<string, string> parameters = new Dictionary<string, string>();
@@ -624,13 +633,13 @@ namespace OpenSim.Framework.Data.MSSQL
             parameters["profileWantDoMask"] = "0";
             parameters["profileAboutText"] = "";
             parameters["profileFirstText"] = "";
-            parameters["profileImage"] = libsecondlife.LLUUID.Zero.ToString();
-            parameters["profileFirstImage"] = libsecondlife.LLUUID.Zero.ToString();
+            parameters["profileImage"] = LLUUID.Zero.ToString();
+            parameters["profileFirstImage"] = LLUUID.Zero.ToString();
 
             bool returnval = false;
 
             try
-            {                
+            {
                 IDbCommand result = Query(sql, parameters);
 
                 if (result.ExecuteNonQuery() == 1)
@@ -655,8 +664,7 @@ namespace OpenSim.Framework.Data.MSSQL
         {
             try
             {
-
-                SqlCommand cmd = new SqlCommand(getResourceString(name), (SqlConnection)dbcon);
+                SqlCommand cmd = new SqlCommand(getResourceString(name), (SqlConnection) dbcon);
                 cmd.ExecuteNonQuery();
                 cmd.Dispose();
             }
@@ -668,7 +676,7 @@ namespace OpenSim.Framework.Data.MSSQL
 
         public SqlConnection getConnection()
         {
-            return (SqlConnection)dbcon;
+            return (SqlConnection) dbcon;
         }
 
         /// <summary>
@@ -681,14 +689,15 @@ namespace OpenSim.Framework.Data.MSSQL
             {
                 Dictionary<string, string> param = new Dictionary<string, string>();
                 param["dbname"] = dbcon.Database;
-                IDbCommand tablesCmd = this.Query("SELECT TABLE_NAME FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_CATALOG=@dbname", param);                
+                IDbCommand tablesCmd =
+                    Query("SELECT TABLE_NAME FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_CATALOG=@dbname", param);
                 using (IDataReader tables = tablesCmd.ExecuteReader())
                 {
                     while (tables.Read())
                     {
                         try
                         {
-                            string tableName = (string)tables["TABLE_NAME"];                            
+                            string tableName = (string) tables["TABLE_NAME"];
                             if (tableList.ContainsKey(tableName))
                                 tableList[tableName] = tableName;
                         }
@@ -704,7 +713,7 @@ namespace OpenSim.Framework.Data.MSSQL
 
         private string getResourceString(string name)
         {
-            Assembly assem = this.GetType().Assembly;
+            Assembly assem = GetType().Assembly;
             string[] names = assem.GetManifestResourceNames();
 
             foreach (string s in names)
@@ -726,16 +735,14 @@ namespace OpenSim.Framework.Data.MSSQL
         /// <returns>A string containing the DB provider</returns>
         public string getVersion()
         {
-            System.Reflection.Module module = this.GetType().Module;
+            Module module = GetType().Module;
             string dllName = module.Assembly.ManifestModule.Name;
             Version dllVersion = module.Assembly.GetName().Version;
 
 
-            return string.Format("{0}.{1}.{2}.{3}", dllVersion.Major, dllVersion.Minor, dllVersion.Build, dllVersion.Revision);
+            return
+                string.Format("{0}.{1}.{2}.{3}", dllVersion.Major, dllVersion.Minor, dllVersion.Build,
+                              dllVersion.Revision);
         }
-
     }
-
-
-
 }

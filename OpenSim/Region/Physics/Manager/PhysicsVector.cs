@@ -28,7 +28,6 @@
 
 using System;
 
-
 namespace OpenSim.Region.Physics.Manager
 {
     public class PhysicsVector
@@ -68,27 +67,27 @@ namespace OpenSim.Region.Physics.Manager
 
         public static PhysicsVector cross(PhysicsVector a, PhysicsVector b)
         {
-            return new PhysicsVector(a.Y * b.Z - a.Z * b.Y, a.Z * b.X - a.X * b.Z, a.X * b.Y - a.Y * b.X);
+            return new PhysicsVector(a.Y*b.Z - a.Z*b.Y, a.Z*b.X - a.X*b.Z, a.X*b.Y - a.Y*b.X);
         }
 
         public float length()
         {
-            return (float)Math.Sqrt(X*X + Y*Y + Z*Z);
+            return (float) Math.Sqrt(X*X + Y*Y + Z*Z);
         }
 
-        public static PhysicsVector operator / (PhysicsVector v, float f)
+        public static PhysicsVector operator /(PhysicsVector v, float f)
         {
-            return new PhysicsVector(v.X / f, v.Y / f, v.Z / f);
+            return new PhysicsVector(v.X/f, v.Y/f, v.Z/f);
         }
 
         public static PhysicsVector operator *(PhysicsVector v, float f)
         {
-            return new PhysicsVector(v.X * f, v.Y * f, v.Z * f);
+            return new PhysicsVector(v.X*f, v.Y*f, v.Z*f);
         }
 
         public static PhysicsVector operator *(float f, PhysicsVector v)
         {
-            return v * f;
+            return v*f;
         }
 
         public virtual bool IsIdentical(PhysicsVector v, float tolerance)

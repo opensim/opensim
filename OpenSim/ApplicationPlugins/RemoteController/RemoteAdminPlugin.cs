@@ -27,24 +27,19 @@
 */
 
 using System;
-using System.Collections.Generic;
-using System.Text;
-using System.Net;
-using OpenSim;
-using OpenSim.Framework.Console;
-using OpenSim.Framework;
-using OpenSim.Framework.Servers;
-using Mono.Addins;
-using Mono.Addins.Description;
-using Nini;
-using Nini.Config;
-using Nwc.XmlRpc;
 using System.Collections;
+using System.Net;
 using System.Timers;
 using libsecondlife;
+using Mono.Addins;
+using Nwc.XmlRpc;
+using OpenSim.Framework;
+using OpenSim.Framework.Console;
+using OpenSim.Framework.Servers;
+using OpenSim.Region.Environment.Scenes;
 
-[assembly: Addin]
-[assembly: AddinDependency("OpenSim", "0.4")]
+[assembly : Addin]
+[assembly : AddinDependency("OpenSim", "0.4")]
 
 namespace OpenSim.ApplicationPlugins.LoadRegions
 {
@@ -54,6 +49,7 @@ namespace OpenSim.ApplicationPlugins.LoadRegions
         private OpenSimMain m_app;
         private BaseHttpServer m_httpd;
         private string requiredPassword = "";
+
         public void Initialise(OpenSimMain openSim)
         {
             try
@@ -81,12 +77,13 @@ namespace OpenSim.ApplicationPlugins.LoadRegions
         public XmlRpcResponse XmlRpcRestartMethod(XmlRpcRequest request)
         {
             XmlRpcResponse response = new XmlRpcResponse();
-            Hashtable requestData = (Hashtable)request.Params[0];
+            Hashtable requestData = (Hashtable) request.Params[0];
 
-            LLUUID regionID = new LLUUID((string)requestData["regionID"]);
+            LLUUID regionID = new LLUUID((string) requestData["regionID"]);
 
             Hashtable responseData = new Hashtable();
-            if (requiredPassword != "" && (!requestData.Contains("password") || (string)requestData["password"] != requiredPassword))
+            if (requiredPassword != "" &&
+                (!requestData.Contains("password") || (string) requestData["password"] != requiredPassword))
             {
                 responseData["accepted"] = "false";
                 response.Value = responseData;
@@ -96,7 +93,7 @@ namespace OpenSim.ApplicationPlugins.LoadRegions
                 responseData["accepted"] = "true";
                 response.Value = responseData;
 
-                OpenSim.Region.Environment.Scenes.Scene RebootedScene;
+                Scene RebootedScene;
 
                 if (m_app.SceneManager.TryGetScene(regionID, out RebootedScene))
                 {
@@ -115,18 +112,18 @@ namespace OpenSim.ApplicationPlugins.LoadRegions
         public XmlRpcResponse XmlRpcAlertMethod(XmlRpcRequest request)
         {
             XmlRpcResponse response = new XmlRpcResponse();
-            Hashtable requestData = (Hashtable)request.Params[0];
+            Hashtable requestData = (Hashtable) request.Params[0];
 
             Hashtable responseData = new Hashtable();
-            if (requiredPassword != "" && (!requestData.Contains("password") || (string)requestData["password"] != requiredPassword))
+            if (requiredPassword != "" &&
+                (!requestData.Contains("password") || (string) requestData["password"] != requiredPassword))
             {
                 responseData["accepted"] = "false";
                 response.Value = responseData;
             }
             else
             {
-                
-                string message = (string)requestData["message"];
+                string message = (string) requestData["message"];
                 MainLog.Instance.Verbose("RADMIN", "Broadcasting: " + message);
 
                 responseData["accepted"] = "true";
@@ -142,23 +139,24 @@ namespace OpenSim.ApplicationPlugins.LoadRegions
         {
             MainLog.Instance.Verbose("RADMIN", "Received Shutdown Administrator Request");
             XmlRpcResponse response = new XmlRpcResponse();
-            Hashtable requestData = (Hashtable)request.Params[0];
+            Hashtable requestData = (Hashtable) request.Params[0];
             Hashtable responseData = new Hashtable();
-            if (requiredPassword != "" && (!requestData.Contains("password") || (string)requestData["password"] != requiredPassword))
+            if (requiredPassword != "" &&
+                (!requestData.Contains("password") || (string) requestData["password"] != requiredPassword))
             {
                 responseData["accepted"] = "false";
                 response.Value = responseData;
             }
             else
             {
-                if ((string)requestData["shutdown"] == "delayed")
+                if ((string) requestData["shutdown"] == "delayed")
                 {
-                    int timeout = (Int32)requestData["milliseconds"];
+                    int timeout = (Int32) requestData["milliseconds"];
 
                     responseData["accepted"] = "true";
                     response.Value = responseData;
 
-                    m_app.SceneManager.SendGeneralMessage("Region is going down in " + ((int)(timeout / 1000)).ToString() +
+                    m_app.SceneManager.SendGeneralMessage("Region is going down in " + ((int) (timeout/1000)).ToString() +
                                                           " second(s). Please save what you are doing and log out.");
 
                     // Perform shutdown
@@ -197,9 +195,10 @@ namespace OpenSim.ApplicationPlugins.LoadRegions
         {
             MainLog.Instance.Verbose("RADMIN", "Received Create Region Administrator Request");
             XmlRpcResponse response = new XmlRpcResponse();
-            Hashtable requestData = (Hashtable)request.Params[0];
+            Hashtable requestData = (Hashtable) request.Params[0];
             Hashtable responseData = new Hashtable();
-            if (requiredPassword != "" && (!requestData.Contains("password") || (string)requestData["password"] != requiredPassword))
+            if (requiredPassword != "" &&
+                (!requestData.Contains("password") || (string) requestData["password"] != requiredPassword))
             {
                 responseData["created"] = "false";
                 response.Value = responseData;
@@ -210,22 +209,22 @@ namespace OpenSim.ApplicationPlugins.LoadRegions
 
                 try
                 {
-                    newRegionData.RegionID = (string)requestData["region_id"];
-                    newRegionData.RegionName = (string)requestData["region_name"];
-                    newRegionData.RegionLocX = Convert.ToUInt32((Int32)requestData["region_x"]);
-                    newRegionData.RegionLocY = Convert.ToUInt32((Int32)requestData["region_y"]);
+                    newRegionData.RegionID = (string) requestData["region_id"];
+                    newRegionData.RegionName = (string) requestData["region_name"];
+                    newRegionData.RegionLocX = Convert.ToUInt32((Int32) requestData["region_x"]);
+                    newRegionData.RegionLocY = Convert.ToUInt32((Int32) requestData["region_y"]);
 
                     // Security risk
-                    newRegionData.DataStore = (string)requestData["datastore"];
+                    newRegionData.DataStore = (string) requestData["datastore"];
 
                     newRegionData.InternalEndPoint = new IPEndPoint(
-                        IPAddress.Parse((string)requestData["listen_ip"]), 0);
+                        IPAddress.Parse((string) requestData["listen_ip"]), 0);
 
-                    newRegionData.InternalEndPoint.Port = (Int32)requestData["listen_port"];
-                    newRegionData.ExternalHostName = (string)requestData["external_address"];
+                    newRegionData.InternalEndPoint.Port = (Int32) requestData["listen_port"];
+                    newRegionData.ExternalHostName = (string) requestData["external_address"];
 
-                    newRegionData.MasterAvatarFirstName = (string)requestData["region_master_first"];
-                    newRegionData.MasterAvatarLastName = (string)requestData["region_master_last"];
+                    newRegionData.MasterAvatarFirstName = (string) requestData["region_master_first"];
+                    newRegionData.MasterAvatarLastName = (string) requestData["region_master_last"];
 
                     m_app.CreateRegion(newRegionData);
 
@@ -245,7 +244,6 @@ namespace OpenSim.ApplicationPlugins.LoadRegions
 
         public void Close()
         {
-
         }
     }
 }

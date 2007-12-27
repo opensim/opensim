@@ -30,6 +30,10 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
+using System.Threading;
+using System.Timers;
+using libsecondlife;
+using Mono.Addins;
 using Nini.Config;
 using OpenSim.Framework;
 using OpenSim.Framework.Communications.Cache;
@@ -42,9 +46,7 @@ using OpenSim.Region.Environment;
 using OpenSim.Region.Environment.Interfaces;
 using OpenSim.Region.Environment.Scenes;
 using OpenSim.Region.Physics.Manager;
-using libsecondlife;
-using Mono.Addins;
-using Mono.Addins.Description;
+using Timer=System.Timers.Timer;
 
 namespace OpenSim
 {
@@ -86,7 +88,7 @@ namespace OpenSim
         private string m_assetStorage = "sqlite";
 
         private string m_timedScript = "disabled";
-        private System.Timers.Timer m_scriptTimer;
+        private Timer m_scriptTimer;
 
         public ConsoleCommand CreateAccount = null;
         private bool m_dumpAssetsToFile;
@@ -238,7 +240,7 @@ namespace OpenSim
                 m_permissions = startupConfig.GetBoolean("serverside_object_permissions", false);
 
                 m_storageDll = startupConfig.GetString("storage_plugin", "OpenSim.DataStore.MonoSqlite.dll");
-                m_storageConnectionString 
+                m_storageConnectionString
                     = startupConfig.GetString("storage_connection_string", "URI=file:OpenSim.db,version=3");
 
                 m_startupCommandsFile = startupConfig.GetString("startup_console_commands_file", "");
@@ -268,7 +270,7 @@ namespace OpenSim
             if (!m_sandbox)
                 m_SendChildAgentTaskData = false;
 
-            
+
             m_networkServersInfo.loadFromConfiguration(m_config);
         }
 
@@ -327,16 +329,16 @@ namespace OpenSim
             MainLog.Instance.Verbose("Plugins", "Loading OpenSim application plugins");
             foreach (TypeExtensionNode node in AddinManager.GetExtensionNodes("/OpenSim/Startup"))
             {
-                IApplicationPlugin plugin = (IApplicationPlugin)node.CreateInstance();
+                IApplicationPlugin plugin = (IApplicationPlugin) node.CreateInstance();
                 plugin.Initialise(this);
                 m_plugins.Add(plugin);
             }
-            
+
             // Start UDP servers
             //for (int i = 0; i < m_udpServers.Count; i++)
             //{
-               // m_udpServers[i].ServerListener();
-           // }
+            // m_udpServers[i].ServerListener();
+            // }
 
             //Run Startup Commands
             if (m_startupCommandsFile != "")
@@ -353,10 +355,10 @@ namespace OpenSim
 
             if (m_timedScript != "disabled")
             {
-                m_scriptTimer = new System.Timers.Timer();
+                m_scriptTimer = new Timer();
                 m_scriptTimer.Enabled = true;
-                m_scriptTimer.Interval = (int)(1200 * 1000);
-                m_scriptTimer.Elapsed += new System.Timers.ElapsedEventHandler(RunAutoTimerScript);
+                m_scriptTimer.Interval = (int) (1200*1000);
+                m_scriptTimer.Elapsed += new ElapsedEventHandler(RunAutoTimerScript);
             }
         }
 
@@ -402,11 +404,13 @@ namespace OpenSim
             SceneCommunicationService sceneGridService = new SceneCommunicationService(m_commsManager);
             if (m_SendChildAgentTaskData)
             {
-                MainLog.Instance.Error("WARNING", "Send Child Agent Task Updates is enabled. This is for testing only.  It doesn't work on grid mode!");
-                System.Threading.Thread.Sleep(12000);
+                MainLog.Instance.Error("WARNING",
+                                       "Send Child Agent Task Updates is enabled. This is for testing only.  It doesn't work on grid mode!");
+                Thread.Sleep(12000);
             }
             return
-                new Scene(regionInfo, circuitManager, permissionManager, m_commsManager, sceneGridService, m_assetCache, storageManager, m_httpServer,
+                new Scene(regionInfo, circuitManager, permissionManager, m_commsManager, sceneGridService, m_assetCache,
+                          storageManager, m_httpServer,
                           m_moduleLoader, m_dumpAssetsToFile, m_physicalPrim, m_SendChildAgentTaskData);
         }
 
@@ -440,16 +444,15 @@ namespace OpenSim
             m_assetCache = new AssetCache(assetServer, m_log);
             // m_assetCache = new assetCache("OpenSim.Region.GridInterfaces.Local.dll", m_networkServersInfo.AssetURL, m_networkServersInfo.AssetSendKey);
             m_sceneManager.OnRestartSim += handleRestartRegion;
-
         }
 
-        public void handleRestartRegion(RegionInfo whichRegion) 
+        public void handleRestartRegion(RegionInfo whichRegion)
         {
             MainLog.Instance.Error("MAIN", "Got restart signal from SceneManager");
             // Shutting down the UDP server
             bool foundUDPServer = false;
             int UDPServerElement = 0;
-            
+
             for (int i = 0; i < m_udpServers.Count; i++)
             {
                 if (m_udpServers[i].RegionHandle == whichRegion.RegionHandle)
@@ -459,9 +462,9 @@ namespace OpenSim
                     break;
                 }
             }
-            if (foundUDPServer) 
+            if (foundUDPServer)
             {
-               // m_udpServers[UDPServerElement].Server.End
+                // m_udpServers[UDPServerElement].Server.End
                 m_udpServers[UDPServerElement].Server.Close();
                 m_udpServers.RemoveAt(UDPServerElement);
             }
@@ -479,7 +482,7 @@ namespace OpenSim
             {
                 m_regionData.RemoveAt(RegionHandleElement);
             }
-            
+
             CreateRegion(whichRegion);
             //UDPServer restartingRegion = CreateRegion(whichRegion);
             //restartingRegion.ServerListener();
@@ -537,7 +540,7 @@ namespace OpenSim
             {
                 RunCommandScript(m_shutdownCommandsFile);
             }
-            
+
             m_log.Verbose("SHUTDOWN", "Closing all threads");
             m_log.Verbose("SHUTDOWN", "Killing listener thread");
             m_log.Verbose("SHUTDOWN", "Killing clients");
@@ -557,6 +560,7 @@ namespace OpenSim
                 RunCommandScript(m_timedScript);
             }
         }
+
         #region Console Commands
 
         /// <summary>
@@ -679,10 +683,17 @@ namespace OpenSim
                             }
                             if (cmdparams.Length > 2)
                             {
-                                loadOffset.X = (float)Convert.ToDecimal(cmdparams[2]);
-                                if (cmdparams.Length > 3) { loadOffset.Y = (float)Convert.ToDecimal(cmdparams[3]); }
-                                if (cmdparams.Length > 4) { loadOffset.Z = (float)Convert.ToDecimal(cmdparams[4]); }
-                                m_log.Error("loadOffsets <X,Y,Z> = <" + loadOffset.X + "," + loadOffset.Y + "," + loadOffset.Z + ">");
+                                loadOffset.X = (float) Convert.ToDecimal(cmdparams[2]);
+                                if (cmdparams.Length > 3)
+                                {
+                                    loadOffset.Y = (float) Convert.ToDecimal(cmdparams[3]);
+                                }
+                                if (cmdparams.Length > 4)
+                                {
+                                    loadOffset.Z = (float) Convert.ToDecimal(cmdparams[4]);
+                                }
+                                m_log.Error("loadOffsets <X,Y,Z> = <" + loadOffset.X + "," + loadOffset.Y + "," +
+                                            loadOffset.Z + ">");
                             }
                         }
                         m_sceneManager.LoadCurrentSceneFromXml(cmdparams[0], generateNewIDS, loadOffset);
@@ -795,12 +806,13 @@ namespace OpenSim
 
                     if (m_sceneManager.CurrentScene == null)
                     {
-                        MainLog.Instance.Verbose("CONSOLE", 
-                            "Currently at Root level. To change region please use 'change-region <regioname>'");
+                        MainLog.Instance.Verbose("CONSOLE",
+                                                 "Currently at Root level. To change region please use 'change-region <regioname>'");
                     }
                     else
                     {
-                        MainLog.Instance.Verbose("CONSOLE", "Current Region: " + m_sceneManager.CurrentScene.RegionInfo.RegionName +
+                        MainLog.Instance.Verbose("CONSOLE",
+                                                 "Current Region: " + m_sceneManager.CurrentScene.RegionInfo.RegionName +
                                                  ". To change region please use 'change-region <regioname>'");
                     }
 
@@ -901,10 +913,13 @@ namespace OpenSim
                     break;
 
                 case "regions":
-                    m_sceneManager.ForEachScene(delegate(Scene scene)
-                    {
-                            m_log.Error("Region Name: " + scene.RegionInfo.RegionName + " , Region XLoc: " + scene.RegionInfo.RegionLocX + " , Region YLoc: " + scene.RegionInfo.RegionLocY);  
-                    });
+                    m_sceneManager.ForEachScene(
+                        delegate(Scene scene)
+                            {
+                                m_log.Error("Region Name: " + scene.RegionInfo.RegionName + " , Region XLoc: " +
+                                            scene.RegionInfo.RegionLocX + " , Region YLoc: " +
+                                            scene.RegionInfo.RegionLocY);
+                            });
                     break;
             }
         }

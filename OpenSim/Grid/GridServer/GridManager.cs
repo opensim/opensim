@@ -434,8 +434,8 @@ namespace OpenSim.Grid.GridServer
             }
             else
             {
-                MainLog.Instance.Verbose("DATA", "found " + (string)simData.regionName + " regionHandle = " + 
-                    (string)requestData["region_handle"]);
+                MainLog.Instance.Verbose("DATA", "found " + (string) simData.regionName + " regionHandle = " +
+                                                 (string) requestData["region_handle"]);
                 responseData["sim_ip"] = Util.GetHostFromDNS(simData.serverIP).ToString();
                 responseData["sim_port"] = simData.serverPort.ToString();
                 responseData["http_port"] = simData.httpPort.ToString();
@@ -513,7 +513,7 @@ namespace OpenSim.Grid.GridServer
                     simProfileList.Add(simProfileBlock);
                 }
                 MainLog.Instance.Verbose("MAP", "Fast map " + simProfileList.Count.ToString() +
-                                         " regions @ (" + xmin + "," + ymin + ")..(" + xmax + "," + ymax + ")" );
+                                                " regions @ (" + xmin + "," + ymin + ")..(" + xmax + "," + ymax + ")");
             }
             else
             {
@@ -548,7 +548,7 @@ namespace OpenSim.Grid.GridServer
                     }
                 }
                 MainLog.Instance.Verbose("MAP", "Std map " + simProfileList.Count.ToString() +
-                                         " regions @ (" + xmin + "," + ymin + ")..(" + xmax + "," + ymax + ")");
+                                                " regions @ (" + xmin + "," + ymin + ")..(" + xmax + "," + ymax + ")");
             }
 
             responseData["sim-profiles"] = simProfileList;
@@ -713,7 +713,8 @@ namespace OpenSim.Grid.GridServer
 
             try
             {
-                MainLog.Instance.Verbose("DATA", "Updating / adding via " + _plugins.Count + " storage provider(s) registered.");
+                MainLog.Instance.Verbose("DATA",
+                                         "Updating / adding via " + _plugins.Count + " storage provider(s) registered.");
                 foreach (KeyValuePair<string, IGridData> kvp in _plugins)
                 {
                     try
@@ -733,14 +734,14 @@ namespace OpenSim.Grid.GridServer
                         {
                             MainLog.Instance.Warn("grid",
                                                   "Unable to update region (RestSetSimMethod): Incorrect reservation auth key.");
-                                // Wanted: " + reserveData.gridRecvKey + ", Got: " + TheSim.regionRecvKey + ".");
+                            // Wanted: " + reserveData.gridRecvKey + ", Got: " + TheSim.regionRecvKey + ".");
                             return "Unable to update region (RestSetSimMethod): Incorrect auth key.";
                         }
                     }
                     catch (Exception e)
                     {
                         MainLog.Instance.Warn("GRID", "getRegionPlugin Handle " + kvp.Key + " unable to add new sim: " +
-                                                 e.ToString());
+                                                      e.ToString());
                     }
                 }
                 return "OK";

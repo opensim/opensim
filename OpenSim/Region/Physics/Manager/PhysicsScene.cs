@@ -28,7 +28,6 @@
 using Axiom.Math;
 using OpenSim.Framework;
 using OpenSim.Framework.Console;
-using OpenSim.Region.Physics.Manager;
 
 namespace OpenSim.Region.Physics.Manager
 {
@@ -45,6 +44,7 @@ namespace OpenSim.Region.Physics.Manager
         {
             get { return new NullPhysicsScene(); }
         }
+
         public virtual void TriggerPhysicsBasedRestart()
         {
             physicsCrash handler = OnPhysicsCrash;
@@ -52,9 +52,8 @@ namespace OpenSim.Region.Physics.Manager
             {
                 OnPhysicsCrash();
             }
-            
         }
-        
+
 
         public abstract void Initialise(IMesher meshmerizer);
 
@@ -68,6 +67,7 @@ namespace OpenSim.Region.Physics.Manager
                                                   PhysicsVector size, Quaternion rotation); //To be removed
         public abstract PhysicsActor AddPrimShape(string primName, PrimitiveBaseShape pbs, PhysicsVector position,
                                                   PhysicsVector size, Quaternion rotation, bool isPhysical);
+
         public abstract void AddPhysicsActorTaint(PhysicsActor prim);
 
         public abstract float Simulate(float timeStep);
@@ -111,21 +111,24 @@ namespace OpenSim.Region.Physics.Manager
                 return PhysicsActor.Null;
             }
 */
+
             public override PhysicsActor AddPrimShape(string primName, PrimitiveBaseShape pbs, PhysicsVector position,
                                                       PhysicsVector size, Quaternion rotation) //To be removed
             {
-                return this.AddPrimShape(primName, pbs, position, size, rotation, false);
+                return AddPrimShape(primName, pbs, position, size, rotation, false);
             }
+
             public override PhysicsActor AddPrimShape(string primName, PrimitiveBaseShape pbs, PhysicsVector position,
                                                       PhysicsVector size, Quaternion rotation, bool isPhysical)
             {
                 MainLog.Instance.Verbose("PHYSICS", "NullPhysicsScene : AddPrim({0},{1})", position, size);
                 return PhysicsActor.Null;
             }
+
             public override void AddPhysicsActorTaint(PhysicsActor prim)
             {
-
             }
+
             public override float Simulate(float timeStep)
             {
                 m_workIndicator = (m_workIndicator + 1)%10;

@@ -37,7 +37,7 @@ namespace OpenSim.Framework.Data.MSSQL
     /// <summary>
     /// A database interface class to a user profile storage system
     /// </summary>
-    class MSSQLUserData : IUserData
+    internal class MSSQLUserData : IUserData
     {
         /// <summary>
         /// Database manager for MySQL
@@ -58,7 +58,9 @@ namespace OpenSim.Framework.Data.MSSQL
             string settingUserId = GridDataMySqlFile.ParseFileReadValue("user_id");
             string settingPassword = GridDataMySqlFile.ParseFileReadValue("password");
 
-            database = new MSSQLManager(settingDataSource, settingInitialCatalog, settingPersistSecurityInfo, settingUserId, settingPassword);
+            database =
+                new MSSQLManager(settingDataSource, settingInitialCatalog, settingPersistSecurityInfo, settingUserId,
+                                 settingPassword);
         }
 
         /// <summary>
@@ -77,11 +79,12 @@ namespace OpenSim.Framework.Data.MSSQL
                     param["first"] = user;
                     param["second"] = last;
 
-                    IDbCommand result = database.Query("SELECT * FROM users WHERE username = @first AND lastname = @second", param);
+                    IDbCommand result =
+                        database.Query("SELECT * FROM users WHERE username = @first AND lastname = @second", param);
                     IDataReader reader = result.ExecuteReader();
 
                     UserProfileData row = database.readUserRow(reader);
-                    
+
                     reader.Close();
                     result.Dispose();
 
@@ -96,9 +99,9 @@ namespace OpenSim.Framework.Data.MSSQL
             }
         }
 
-        public List<OpenSim.Framework.AvatarPickerAvatar> GeneratePickerResults(LLUUID queryID, string query)
+        public List<Framework.AvatarPickerAvatar> GeneratePickerResults(LLUUID queryID, string query)
         {
-            List<OpenSim.Framework.AvatarPickerAvatar> returnlist = new List<OpenSim.Framework.AvatarPickerAvatar>();
+            List<Framework.AvatarPickerAvatar> returnlist = new List<Framework.AvatarPickerAvatar>();
             string[] querysplit;
             querysplit = query.Split(' ');
             if (querysplit.Length == 2)
@@ -112,18 +115,19 @@ namespace OpenSim.Framework.Data.MSSQL
                         param["second"] = querysplit[1];
 
                         IDbCommand result =
-                            database.Query("SELECT UUID,username,surname FROM users WHERE username = @first AND lastname = @second", param);
+                            database.Query(
+                                "SELECT UUID,username,surname FROM users WHERE username = @first AND lastname = @second",
+                                param);
                         IDataReader reader = result.ExecuteReader();
 
 
                         while (reader.Read())
                         {
-                            OpenSim.Framework.AvatarPickerAvatar user = new OpenSim.Framework.AvatarPickerAvatar();
-                            user.AvatarID = new LLUUID((string)reader["UUID"]);
-                            user.firstName = (string)reader["username"];
-                            user.lastName = (string)reader["surname"];
+                            Framework.AvatarPickerAvatar user = new Framework.AvatarPickerAvatar();
+                            user.AvatarID = new LLUUID((string) reader["UUID"]);
+                            user.firstName = (string) reader["username"];
+                            user.lastName = (string) reader["surname"];
                             returnlist.Add(user);
-
                         }
                         reader.Close();
                         result.Dispose();
@@ -135,13 +139,9 @@ namespace OpenSim.Framework.Data.MSSQL
                     MainLog.Instance.Error(e.ToString());
                     return returnlist;
                 }
-
-
-
             }
             else if (querysplit.Length == 1)
             {
-
                 try
                 {
                     lock (database)
@@ -151,18 +151,19 @@ namespace OpenSim.Framework.Data.MSSQL
                         param["second"] = querysplit[1];
 
                         IDbCommand result =
-                            database.Query("SELECT UUID,username,surname FROM users WHERE username = @first OR lastname = @second", param);
+                            database.Query(
+                                "SELECT UUID,username,surname FROM users WHERE username = @first OR lastname = @second",
+                                param);
                         IDataReader reader = result.ExecuteReader();
 
 
                         while (reader.Read())
                         {
-                            OpenSim.Framework.AvatarPickerAvatar user = new OpenSim.Framework.AvatarPickerAvatar();
-                            user.AvatarID = new LLUUID((string)reader["UUID"]);
-                            user.firstName = (string)reader["username"];
-                            user.lastName = (string)reader["surname"];
+                            Framework.AvatarPickerAvatar user = new Framework.AvatarPickerAvatar();
+                            user.AvatarID = new LLUUID((string) reader["UUID"]);
+                            user.firstName = (string) reader["username"];
+                            user.lastName = (string) reader["surname"];
                             returnlist.Add(user);
-
                         }
                         reader.Close();
                         result.Dispose();
@@ -268,21 +269,25 @@ namespace OpenSim.Framework.Data.MSSQL
         /// <param name="user">The user profile to create</param>
         public void AddNewUserProfile(UserProfileData user)
         {
-               try
-               {
-                   lock (database)
-                   {
-                       database.insertUserRow(user.UUID, user.username, user.surname, user.passwordHash, user.passwordSalt, user.homeRegion, user.homeLocation.X, user.homeLocation.Y, user.homeLocation.Z,
-                           user.homeLookAt.X, user.homeLookAt.Y, user.homeLookAt.Z, user.created, user.lastLogin, user.userInventoryURI, user.userAssetURI, user.profileCanDoMask, user.profileWantDoMask,
-                           user.profileAboutText, user.profileFirstText, user.profileImage, user.profileFirstImage);
-                   }
-               }
-               catch (Exception e)
-               {
-                   database.Reconnect();
-                   MainLog.Instance.Error(e.ToString());
-               }
-
+            try
+            {
+                lock (database)
+                {
+                    database.insertUserRow(user.UUID, user.username, user.surname, user.passwordHash, user.passwordSalt,
+                                           user.homeRegion, user.homeLocation.X, user.homeLocation.Y,
+                                           user.homeLocation.Z,
+                                           user.homeLookAt.X, user.homeLookAt.Y, user.homeLookAt.Z, user.created,
+                                           user.lastLogin, user.userInventoryURI, user.userAssetURI,
+                                           user.profileCanDoMask, user.profileWantDoMask,
+                                           user.profileAboutText, user.profileFirstText, user.profileImage,
+                                           user.profileFirstImage);
+                }
+            }
+            catch (Exception e)
+            {
+                database.Reconnect();
+                MainLog.Instance.Error(e.ToString());
+            }
         }
 
         /// <summary>
@@ -293,34 +298,33 @@ namespace OpenSim.Framework.Data.MSSQL
         {
             // Do nothing.
         }
-        
-        
+
+
         public bool UpdateUserProfile(UserProfileData user)
         {
-
             SqlCommand command = new SqlCommand("UPDATE users set UUID = @uuid, " +
-                                                           "username = @username, " +
-                                                           "lastname = @lastname," +
-                                                           "passwordHash = @passwordHash," +
-                                                           "passwordSalt = @passwordSalt," +
-                                                           "homeRegion = @homeRegion," +
-                                                           "homeLocationX = @homeLocationX," +
-                                                           "homeLocationY = @homeLocationY," +
-                                                           "homeLocationZ = @homeLocationZ," +
-                                                           "homeLookAtX = @homeLookAtX," +
-                                                           "homeLookAtY = @homeLookAtY," +
-                                                           "homeLookAtZ = @homeLookAtZ," +
-                                                           "created = @created," +
-                                                           "lastLogin = @lastLogin," +
-                                                           "userInventoryURI = @userInventoryURI," +
-                                                           "userAssetURI = @userAssetURI," +
-                                                           "profileCanDoMask = @profileCanDoMask," +
-                                                           "profileWantDoMask = @profileWantDoMask," +
-                                                           "profileAboutText = @profileAboutText," +
-                                                           "profileFirstText = @profileFirstText," +
-                                                           "profileImage = @profileImage," +
-                                                           "profileFirstImage = @profileFirstImage where " +
-                                                           "UUID = @keyUUUID;", database.getConnection());
+                                                "username = @username, " +
+                                                "lastname = @lastname," +
+                                                "passwordHash = @passwordHash," +
+                                                "passwordSalt = @passwordSalt," +
+                                                "homeRegion = @homeRegion," +
+                                                "homeLocationX = @homeLocationX," +
+                                                "homeLocationY = @homeLocationY," +
+                                                "homeLocationZ = @homeLocationZ," +
+                                                "homeLookAtX = @homeLookAtX," +
+                                                "homeLookAtY = @homeLookAtY," +
+                                                "homeLookAtZ = @homeLookAtZ," +
+                                                "created = @created," +
+                                                "lastLogin = @lastLogin," +
+                                                "userInventoryURI = @userInventoryURI," +
+                                                "userAssetURI = @userAssetURI," +
+                                                "profileCanDoMask = @profileCanDoMask," +
+                                                "profileWantDoMask = @profileWantDoMask," +
+                                                "profileAboutText = @profileAboutText," +
+                                                "profileFirstText = @profileFirstText," +
+                                                "profileImage = @profileImage," +
+                                                "profileFirstImage = @profileFirstImage where " +
+                                                "UUID = @keyUUUID;", database.getConnection());
             SqlParameter param1 = new SqlParameter("@uuid", user.UUID.ToString());
             SqlParameter param2 = new SqlParameter("@username", user.username);
             SqlParameter param3 = new SqlParameter("@lastname", user.surname);
@@ -341,8 +345,8 @@ namespace OpenSim.Framework.Data.MSSQL
             SqlParameter param18 = new SqlParameter("@profileWantDoMask", Convert.ToInt32(user.profileWantDoMask));
             SqlParameter param19 = new SqlParameter("@profileAboutText", user.profileAboutText);
             SqlParameter param20 = new SqlParameter("@profileFirstText", user.profileFirstText);
-            SqlParameter param21 = new SqlParameter("@profileImage", libsecondlife.LLUUID.Zero.ToString());
-            SqlParameter param22 = new SqlParameter("@profileFirstImage", libsecondlife.LLUUID.Zero.ToString());
+            SqlParameter param21 = new SqlParameter("@profileImage", LLUUID.Zero.ToString());
+            SqlParameter param22 = new SqlParameter("@profileFirstImage", LLUUID.Zero.ToString());
             SqlParameter param23 = new SqlParameter("@keyUUUID", user.UUID.ToString());
             command.Parameters.Add(param1);
             command.Parameters.Add(param2);
@@ -370,9 +374,12 @@ namespace OpenSim.Framework.Data.MSSQL
             try
             {
                 int affected = command.ExecuteNonQuery();
-                if (affected != 0) {
+                if (affected != 0)
+                {
                     return true;
-                } else {
+                }
+                else
+                {
                     return false;
                 }
             }
@@ -433,6 +440,5 @@ namespace OpenSim.Framework.Data.MSSQL
         public void runQuery(string query)
         {
         }
-        
     }
 }

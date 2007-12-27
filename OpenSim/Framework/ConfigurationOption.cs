@@ -30,7 +30,6 @@ namespace OpenSim.Framework
 {
     public class ConfigurationOption
     {
-
         public delegate bool ConfigurationOptionShouldBeAsked(string configuration_key);
 
         public enum ConfigurationTypes

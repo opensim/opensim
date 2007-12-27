@@ -35,12 +35,13 @@ namespace OpenSim.Framework
         public AgentCircuitData()
         {
         }
+
         public AgentCircuitData(sAgentCircuitData cAgent)
         {
             AgentID = new LLUUID(cAgent.AgentID);
             SessionID = new LLUUID(cAgent.SessionID);
             SecureSessionID = new LLUUID(cAgent.SecureSessionID);
-            startpos = new LLVector3(cAgent.startposx,cAgent.startposy,cAgent.startposz);
+            startpos = new LLVector3(cAgent.startposx, cAgent.startposy, cAgent.startposz);
             firstname = cAgent.firstname;
             lastname = cAgent.lastname;
             circuitcode = cAgent.circuitcode;
@@ -69,6 +70,7 @@ namespace OpenSim.Framework
         public sAgentCircuitData()
         {
         }
+
         public sAgentCircuitData(AgentCircuitData cAgent)
         {
             AgentID = cAgent.AgentID.UUID;
@@ -85,6 +87,7 @@ namespace OpenSim.Framework
             BaseFolder = cAgent.BaseFolder.UUID;
             CapsPath = cAgent.CapsPath;
         }
+
         public Guid AgentID;
         public Guid SessionID;
         public Guid SecureSessionID;
@@ -98,8 +101,5 @@ namespace OpenSim.Framework
         public Guid InventoryFolder;
         public Guid BaseFolder;
         public string CapsPath = "";
-       
-
-
     }
 }

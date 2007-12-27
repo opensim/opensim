@@ -1,4 +1,4 @@
-﻿/*
+/*
 * Copyright (c) Contributors, http://opensimulator.org/
 * See CONTRIBUTORS.TXT for a full list of copyright holders.
 *
@@ -26,21 +26,14 @@
 * 
 */
 
-using System;
-using System.Collections.Generic;
-using System.Text;
-using OpenSim;
-using OpenSim.Framework.Console;
+using Mono.Addins;
 using OpenSim.Framework;
+using OpenSim.Framework.Console;
 using OpenSim.Framework.RegionLoader.Filesystem;
 using OpenSim.Framework.RegionLoader.Web;
-using Mono.Addins;
-using Mono.Addins.Description;
-using Nini;
-using Nini.Config;
 
-[assembly:Addin]
-[assembly:AddinDependency ("OpenSim", "0.4")]
+[assembly : Addin]
+[assembly : AddinDependency("OpenSim", "0.4")]
 
 namespace OpenSim.ApplicationPlugins.LoadRegions
 {
@@ -65,7 +58,7 @@ namespace OpenSim.ApplicationPlugins.LoadRegions
 
             regionLoader.SetIniConfigSource(openSim.ConfigSource);
             RegionInfo[] regionsToLoad = regionLoader.LoadRegions();
-            
+
             openSim.ModuleLoader.LoadDefaultSharedModules();
 
             for (int i = 0; i < regionsToLoad.Length; i++)
@@ -77,6 +70,7 @@ namespace OpenSim.ApplicationPlugins.LoadRegions
             openSim.ModuleLoader.PostInitialise();
             openSim.ModuleLoader.ClearCache();
         }
+
         public void LoadRegionFromConfig(OpenSimMain openSim, ulong regionhandle)
         {
             MainLog.Instance.Notice("LOADREGIONS", "Load Regions addin being initialised");
@@ -103,11 +97,10 @@ namespace OpenSim.ApplicationPlugins.LoadRegions
                     openSim.CreateRegion(regionsToLoad[i]);
                 }
             }
-
         }
+
         public void Close()
         {
-
         }
     }
 }

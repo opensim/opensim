@@ -25,8 +25,8 @@
 * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 * 
 */
-using libsecondlife;
 using System.Collections.Generic;
+using libsecondlife;
 
 namespace OpenSim.Framework
 {
@@ -50,7 +50,7 @@ namespace OpenSim.Framework
         /// <returns>The user data profile</returns>
         UserProfileData GetUserByName(string fname, string lname);
 
-        List<OpenSim.Framework.AvatarPickerAvatar> GeneratePickerResults(LLUUID queryID, string query);
+        List<AvatarPickerAvatar> GeneratePickerResults(LLUUID queryID, string query);
 
         /// <summary>
         /// Returns the current agent for a user searching by it's UUID
@@ -127,11 +127,13 @@ namespace OpenSim.Framework
         /// </summary>
         void Initialise();
     }
+
     public class AvatarPickerAvatar
     {
         public LLUUID AvatarID;
         public string firstName;
         public string lastName;
+
         public AvatarPickerAvatar()
         {
         }

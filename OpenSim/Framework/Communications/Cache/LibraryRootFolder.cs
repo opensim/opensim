@@ -49,8 +49,8 @@ namespace OpenSim.Framework.Communications.Cache
             folderID = new LLUUID("00000112-000f-0000-0000-000100bba000");
             name = "OpenSim Library";
             parentID = LLUUID.Zero;
-            type = (short)-1;
-            version = (ushort)1;
+            type = (short) -1;
+            version = (ushort) 1;
 
             InventoryFolderImpl folderInfo = new InventoryFolderImpl();
             folderInfo.agentID = libOwner;
@@ -81,28 +81,41 @@ namespace OpenSim.Framework.Communications.Cache
 
         private void CreateLibraryItems()
         {
-            InventoryItemBase item = CreateItem(new LLUUID("66c41e39-38f9-f75a-024e-585989bfaba9"), new LLUUID("66c41e39-38f9-f75a-024e-585989bfab73"), "Default Shape", "Default Shape", (int)AssetType.Bodypart, (int)InventoryType.Wearable, folderID);
+            InventoryItemBase item =
+                CreateItem(new LLUUID("66c41e39-38f9-f75a-024e-585989bfaba9"),
+                           new LLUUID("66c41e39-38f9-f75a-024e-585989bfab73"), "Default Shape", "Default Shape",
+                           (int) AssetType.Bodypart, (int) InventoryType.Wearable, folderID);
             item.inventoryCurrentPermissions = 0;
             item.inventoryNextPermissions = 0;
             Items.Add(item.inventoryID, item);
 
-            item = CreateItem(new LLUUID("77c41e39-38f9-f75a-024e-585989bfabc9"), new LLUUID("77c41e39-38f9-f75a-024e-585989bbabbb"), "Default Skin", "Default Skin", (int)AssetType.Bodypart, (int)InventoryType.Wearable, folderID);
+            item =
+                CreateItem(new LLUUID("77c41e39-38f9-f75a-024e-585989bfabc9"),
+                           new LLUUID("77c41e39-38f9-f75a-024e-585989bbabbb"), "Default Skin", "Default Skin",
+                           (int) AssetType.Bodypart, (int) InventoryType.Wearable, folderID);
             item.inventoryCurrentPermissions = 0;
             item.inventoryNextPermissions = 0;
             Items.Add(item.inventoryID, item);
 
-            item = CreateItem(new LLUUID("77c41e39-38f9-f75a-0000-585989bf0000"), new LLUUID("00000000-38f9-1111-024e-222222111110"), "Default Shirt", "Default Shirt", (int)AssetType.Clothing, (int)InventoryType.Wearable, folderID);
+            item =
+                CreateItem(new LLUUID("77c41e39-38f9-f75a-0000-585989bf0000"),
+                           new LLUUID("00000000-38f9-1111-024e-222222111110"), "Default Shirt", "Default Shirt",
+                           (int) AssetType.Clothing, (int) InventoryType.Wearable, folderID);
             item.inventoryCurrentPermissions = 0;
             item.inventoryNextPermissions = 0;
             Items.Add(item.inventoryID, item);
 
-            item = CreateItem(new LLUUID("77c41e39-38f9-f75a-0000-5859892f1111"), new LLUUID("00000000-38f9-1111-024e-222222111120"), "Default Pants", "Default Pants", (int)AssetType.Clothing, (int)InventoryType.Wearable, folderID);
+            item =
+                CreateItem(new LLUUID("77c41e39-38f9-f75a-0000-5859892f1111"),
+                           new LLUUID("00000000-38f9-1111-024e-222222111120"), "Default Pants", "Default Pants",
+                           (int) AssetType.Clothing, (int) InventoryType.Wearable, folderID);
             item.inventoryCurrentPermissions = 0;
             item.inventoryNextPermissions = 0;
             Items.Add(item.inventoryID, item);
         }
 
-        public InventoryItemBase CreateItem(LLUUID inventoryID, LLUUID assetID, string name, string description, int assetType, int invType, LLUUID parentFolderID)
+        public InventoryItemBase CreateItem(LLUUID inventoryID, LLUUID assetID, string name, string description,
+                                            int assetType, int invType, LLUUID parentFolderID)
         {
             InventoryItemBase item = new InventoryItemBase();
             item.avatarID = libOwner;
@@ -135,10 +148,10 @@ namespace OpenSim.Framework.Communications.Cache
                 item.inventoryName = source.Configs[i].GetString("name", "");
                 item.assetType = source.Configs[i].GetInt("assetType", 0);
                 item.invType = source.Configs[i].GetInt("inventoryType", 0);
-                item.inventoryCurrentPermissions = (uint)source.Configs[i].GetLong("currentPermissions", 0x7FFFFFFF);
-                item.inventoryNextPermissions = (uint)source.Configs[i].GetLong("nextPermissions", 0x7FFFFFFF);
-                item.inventoryEveryOnePermissions = (uint)source.Configs[i].GetLong("everyonePermissions", 0x7FFFFFFF);
-                item.inventoryBasePermissions = (uint)source.Configs[i].GetLong("basePermissions", 0x7FFFFFFF);
+                item.inventoryCurrentPermissions = (uint) source.Configs[i].GetLong("currentPermissions", 0x7FFFFFFF);
+                item.inventoryNextPermissions = (uint) source.Configs[i].GetLong("nextPermissions", 0x7FFFFFFF);
+                item.inventoryEveryOnePermissions = (uint) source.Configs[i].GetLong("everyonePermissions", 0x7FFFFFFF);
+                item.inventoryBasePermissions = (uint) source.Configs[i].GetLong("basePermissions", 0x7FFFFFFF);
                 if (item.assetType == 0)
                 {
                     item.parentFolderID = m_textureFolder.folderID;

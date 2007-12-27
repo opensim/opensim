@@ -30,6 +30,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Net;
 using System.Net.Sockets;
+using libsecondlife;
 using libsecondlife.Packets;
 using OpenSim.Framework;
 using OpenSim.Framework.Communications.Cache;
@@ -44,24 +45,22 @@ namespace OpenSim.Region.ClientStack
         {
         }
 
-        static readonly PacketPool instance = new PacketPool();
+        private static readonly PacketPool instance = new PacketPool();
 
         public static PacketPool Instance
         {
-            get
-            {
-                return instance;
-            }
+            get { return instance; }
         }
 
         private Hashtable pool = new Hashtable();
 
-        public Packet GetPacket(PacketType type) {
+        public Packet GetPacket(PacketType type)
+        {
             Packet packet = null;
 
-            lock(pool)
+            lock (pool)
             {
-                if(pool[type] == null || ((Stack) pool[type]).Count == 0)
+                if (pool[type] == null || ((Stack) pool[type]).Count == 0)
                 {
                     // Creating a new packet if we cannot reuse an old package
                     packet = Packet.BuildPacket(type);
@@ -69,30 +68,33 @@ namespace OpenSim.Region.ClientStack
                 else
                 {
                     // Recycle old packages
-                    packet=(Packet) ((Stack) pool[type]).Pop();
+                    packet = (Packet) ((Stack) pool[type]).Pop();
                 }
             }
 
             return packet;
         }
 
-        public Packet GetPacket(byte[] bytes, ref int packetEnd, byte[] zeroBuffer) {
+        public Packet GetPacket(byte[] bytes, ref int packetEnd, byte[] zeroBuffer)
+        {
             Packet packet = GetPacket(GetType(bytes, packetEnd, zeroBuffer));
 
             int i = 0;
             packet.FromBytes(bytes, ref i, ref packetEnd, zeroBuffer);
             return packet;
         }
+
         public PacketType GetType(byte[] bytes, int packetEnd, byte[] zeroBuffer)
         {
             //Function removed from LibSL revision 1540
             // We're using it..    so Built it into UDP server for now..  
-            ushort id; libsecondlife.PacketFrequency freq;
+            ushort id;
+            PacketFrequency freq;
             int i = 0, end = packetEnd;
             Header header = Header.BuildHeader(bytes, ref i, ref end);
             if (header.Zerocoded)
             {
-                end = libsecondlife.Helpers.ZeroDecode(bytes, end + 1, zeroBuffer) - 1;
+                end = Helpers.ZeroDecode(bytes, end + 1, zeroBuffer) - 1;
                 bytes = zeroBuffer;
             }
 
@@ -100,25 +102,30 @@ namespace OpenSim.Region.ClientStack
             {
                 if (bytes[7] == 0xFF)
                 {
-                    id = (ushort)((bytes[8] << 8) + bytes[9]); freq = libsecondlife.PacketFrequency.Low;
+                    id = (ushort) ((bytes[8] << 8) + bytes[9]);
+                    freq = PacketFrequency.Low;
                 }
                 else
                 {
-                    id = (ushort)bytes[7]; freq = libsecondlife.PacketFrequency.Medium;
+                    id = (ushort) bytes[7];
+                    freq = PacketFrequency.Medium;
                 }
             }
             else
             {
-                id = (ushort)bytes[6]; freq = libsecondlife.PacketFrequency.High;
+                id = (ushort) bytes[6];
+                freq = PacketFrequency.High;
             }
             return Packet.GetType(id, freq);
         }
-        public void ReturnPacket(Packet packet) {
-            lock(pool)
-            {
-                PacketType type=packet.Type;
 
-                if(pool[type] == null)
+        public void ReturnPacket(Packet packet)
+        {
+            lock (pool)
+            {
+                PacketType type = packet.Type;
+
+                if (pool[type] == null)
                 {
                     pool[type] = new Stack();
                 }
@@ -162,15 +169,11 @@ namespace OpenSim.Region.ClientStack
                 m_packetServer.LocalScene = m_localScene;
                 m_regionHandle = m_localScene.RegionInfo.RegionHandle;
             }
-            
         }
 
         public ulong RegionHandle
         {
-            get
-            {
-                return m_regionHandle;
-            }
+            get { return m_regionHandle; }
         }
 
         public UDPServer()
@@ -212,30 +215,29 @@ namespace OpenSim.Region.ClientStack
                     case SocketError.AlreadyInProgress:
                     case SocketError.NetworkReset:
                     case SocketError.ConnectionReset:
-                    
+
                         try
                         {
                             CloseEndPoint(epSender);
                         }
-                        catch (System.Exception a)
+                        catch (Exception a)
                         {
                             MainLog.Instance.Verbose("UDPSERVER", a.ToString());
                         }
                         try
                         {
-                            Server.BeginReceiveFrom(RecvBuffer, 0, RecvBuffer.Length, SocketFlags.None, ref epSender, ReceivedData, null);
-                            
+                            Server.BeginReceiveFrom(RecvBuffer, 0, RecvBuffer.Length, SocketFlags.None, ref epSender,
+                                                    ReceivedData, null);
+
                             // Ter: For some stupid reason ConnectionReset basically kills our async event structure..  
                             // so therefore..  we've got to tell the server to BeginReceiveFrom again.
                             // This will happen over and over until we've gone through all packets 
                             // sent to and from this particular user.
                             // Stupid I know..  
                             // but Flusing the buffer would be even more stupid...  so, we're stuck with this ugly method.
-                        
                         }
                         catch (SocketException)
                         {
-                            
                         }
                         break;
                     default:
@@ -243,13 +245,14 @@ namespace OpenSim.Region.ClientStack
                         {
                             CloseEndPoint(epSender);
                         }
-                        catch (System.Exception)
+                        catch (Exception)
                         {
                             //MainLog.Instance.Verbose("UDPSERVER", a.ToString());
                         }
                         try
                         {
-                            Server.BeginReceiveFrom(RecvBuffer, 0, RecvBuffer.Length, SocketFlags.None, ref epSender, ReceivedData, null);
+                            Server.BeginReceiveFrom(RecvBuffer, 0, RecvBuffer.Length, SocketFlags.None, ref epSender,
+                                                    ReceivedData, null);
 
                             // Ter: For some stupid reason ConnectionReset basically kills our async event structure..  
                             // so therefore..  we've got to tell the server to BeginReceiveFrom again.
@@ -257,17 +260,15 @@ namespace OpenSim.Region.ClientStack
                             // sent to and from this particular user.
                             // Stupid I know..  
                             // but Flusing the buffer would be even more stupid...  so, we're stuck with this ugly method.
-
                         }
                         catch (SocketException)
                         {
-
                         }
-                       
+
                         // Here's some reference code!   :D  
                         // Shutdown and restart the UDP listener!  hehe
                         // Shiny
-                        
+
                         //Server.Shutdown(SocketShutdown.Both);
                         //CloseEndPoint(epSender);
                         //ServerListener();
@@ -276,7 +277,7 @@ namespace OpenSim.Region.ClientStack
 
                 return;
             }
-            catch (System.ObjectDisposedException)
+            catch (ObjectDisposedException)
             {
                 //MainLog.Instance.Debug("UDPSERVER", e.ToString());
                 return;
@@ -288,7 +289,7 @@ namespace OpenSim.Region.ClientStack
             {
                 packet = PacketPool.Instance.GetPacket(RecvBuffer, ref packetEnd, ZeroBuffer);
             }
-            catch(Exception)
+            catch (Exception)
             {
                 //MainLog.Instance.Debug("UDPSERVER", e.ToString());
             }
@@ -311,7 +312,6 @@ namespace OpenSim.Region.ClientStack
                 }
                 else
                 {
-
                     // invalid client
                     //CFK: This message seems to have served its usefullness as of 12-15 so I am commenting it out for now
                     //m_log.Warn("client", "Got a packet from an invalid client - " + epSender.ToString());
@@ -326,9 +326,7 @@ namespace OpenSim.Region.ClientStack
             uint circuit;
             if (clientCircuits.TryGetValue(sender, out circuit))
             {
-                
                 m_packetServer.CloseCircuit(circuit);
-                
             }
         }
 
@@ -381,13 +379,10 @@ namespace OpenSim.Region.ClientStack
             EndPoint sendto = null;
             if (clientCircuits_reverse.TryGetValue(circuitcode, out sendto))
             {
-                
                 clientCircuits.Remove(sendto);
-                
 
-                
+
                 clientCircuits_reverse.Remove(circuitcode);
-                
             }
         }
     }

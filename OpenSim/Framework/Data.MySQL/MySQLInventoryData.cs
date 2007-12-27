@@ -232,7 +232,7 @@ namespace OpenSim.Framework.Data.MySQL
                     List<InventoryFolderBase> items = new List<InventoryFolderBase>();
                     while (reader.Read())
                         items.Add(readInventoryFolder(reader));
-                    
+
                     InventoryFolderBase rootFolder = null;
 
                     // There should only ever be one root folder for a user.  However, if there's more

@@ -26,14 +26,9 @@
 * 
 */
 using System;
-using System.Globalization;
 using System.Net;
-using System.Xml;
 using System.Net.Sockets;
 using libsecondlife;
-
-
-
 
 namespace OpenSim.Framework
 {
@@ -46,7 +41,8 @@ namespace OpenSim.Framework
         public SearializableRegionInfo()
         {
         }
-        public SearializableRegionInfo(RegionInfo ConvertFrom) 
+
+        public SearializableRegionInfo(RegionInfo ConvertFrom)
         {
             m_regionLocX = ConvertFrom.RegionLocX;
             m_regionLocY = ConvertFrom.RegionLocY;
@@ -55,9 +51,9 @@ namespace OpenSim.Framework
             m_remotingPort = ConvertFrom.RemotingPort;
             RemotingAddress = ConvertFrom.RemotingAddress;
         }
+
         public SearializableRegionInfo(uint regionLocX, uint regionLocY, IPEndPoint internalEndPoint, string externalUri)
         {
-
             m_regionLocX = regionLocX;
             m_regionLocY = regionLocY;
 
@@ -78,16 +74,11 @@ namespace OpenSim.Framework
         public Guid RegionID = LLUUID.Zero.UUID;
 
         public uint m_remotingPort;
+
         public uint RemotingPort
         {
-            get
-            {
-                return m_remotingPort;
-            }
-            set
-            {
-                m_remotingPort = value;
-            }
+            get { return m_remotingPort; }
+            set { m_remotingPort = value; }
         }
 
         public string RemotingAddress;
@@ -120,77 +111,49 @@ namespace OpenSim.Framework
                         ia = Adr;
                         break;
                     }
-
                 }
 
                 return new IPEndPoint(ia, m_internalEndPoint.Port);
             }
 
-            set
-            {
-                m_externalHostName = value.ToString();
-            }
+            set { m_externalHostName = value.ToString(); }
         }
 
         protected string m_externalHostName;
+
         public string ExternalHostName
         {
-            get
-            {
-                return m_externalHostName;
-            }
-            set
-            {
-                m_externalHostName = value;
-            }
+            get { return m_externalHostName; }
+            set { m_externalHostName = value; }
         }
 
         protected IPEndPoint m_internalEndPoint;
+
         public IPEndPoint InternalEndPoint
         {
-            get
-            {
-                return m_internalEndPoint;
-            }
-            set
-            {
-                m_internalEndPoint = value;
-            }
+            get { return m_internalEndPoint; }
+            set { m_internalEndPoint = value; }
         }
 
         protected uint? m_regionLocX;
+
         public uint RegionLocX
         {
-            get
-            {
-                return m_regionLocX.Value;
-            }
-            set
-            {
-                m_regionLocX = value;
-            }
+            get { return m_regionLocX.Value; }
+            set { m_regionLocX = value; }
         }
 
         protected uint? m_regionLocY;
+
         public uint RegionLocY
         {
-            get
-            {
-                return m_regionLocY.Value;
-            }
-            set
-            {
-                m_regionLocY = value;
-            }
+            get { return m_regionLocY.Value; }
+            set { m_regionLocY = value; }
         }
 
         public ulong RegionHandle
         {
-            get
-            {
-                return Util.UIntsToLong((RegionLocX * 256), (RegionLocY * 256));
-            }
+            get { return Util.UIntsToLong((RegionLocX*256), (RegionLocY*256)); }
         }
     }
-    
 }

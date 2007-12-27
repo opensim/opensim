@@ -27,8 +27,6 @@
 */
 
 using System;
-using System.Collections.Generic;
-using System.Text;
 using OpenSim.Region.Physics.Manager;
 
 namespace OpenSim.Region.Physics.Meshing
@@ -49,7 +47,6 @@ namespace OpenSim.Region.Physics.Meshing
 
         public int CompareTo(Simplex other)
         {
-
             Vertex lv1, lv2, ov1, ov2, temp;
 
             lv1 = v1;
@@ -92,8 +89,9 @@ namespace OpenSim.Region.Physics.Meshing
             return 0;
         }
 
-        private static void intersectParameter(PhysicsVector p1, PhysicsVector r1, PhysicsVector p2, PhysicsVector r2, ref float lambda, ref float mu)
-        { 
+        private static void intersectParameter(PhysicsVector p1, PhysicsVector r1, PhysicsVector p2, PhysicsVector r2,
+                                               ref float lambda, ref float mu)
+        {
             // Intersects two straights
             // p1, p2, points on the straight
             // r1, r2, directional vectors of the straight. Not necessarily of length 1!
@@ -112,27 +110,28 @@ namespace OpenSim.Region.Physics.Meshing
             float p2x = p2.X;
             float p2y = p2.Y;
 
-            float z1=-p2x * r2y + p1x * r2y + (p2y - p1y) * r2x;
-            float z2=-p2x * r1y + p1x * r1y + (p2y - p1y) * r1x;
+            float z1 = -p2x*r2y + p1x*r2y + (p2y - p1y)*r2x;
+            float z2 = -p2x*r1y + p1x*r1y + (p2y - p1y)*r1x;
 
             if (denom == 0.0f) // Means the straights are parallel. Either no intersection or an infinite number of them
             {
-                if (z1==0.0f) {// Means they are identical -> many, many intersections
+                if (z1 == 0.0f)
+                {
+// Means they are identical -> many, many intersections
                     lambda = Single.NaN;
                     mu = Single.NaN;
-                } else {
+                }
+                else
+                {
                     lambda = Single.PositiveInfinity;
                     mu = Single.PositiveInfinity;
                 }
                 return;
-
             }
 
 
-
-            lambda = z1 / denom;
-            mu     = z2 / denom;
-        
+            lambda = z1/denom;
+            mu = z2/denom;
         }
 
 
@@ -145,12 +144,12 @@ namespace OpenSim.Region.Physics.Meshing
         // upperBorder2 : 1.0
         // Set these to values near the given parameters (e.g. 0.001 instead of 1 to exclude simplex starts safely, or to -0.001 to include them safely)
         public static PhysicsVector Intersect(
-                                        Simplex s1, 
-                                        Simplex s2, 
-                                        float lowerBorder1, 
-                                        float lowerBorder2, 
-                                        float upperBorder1, 
-                                        float upperBorder2)
+            Simplex s1,
+            Simplex s2,
+            float lowerBorder1,
+            float lowerBorder2,
+            float upperBorder1,
+            float upperBorder2)
         {
             PhysicsVector firstSimplexDirection = s1.v2 - s1.v1;
             PhysicsVector secondSimplexDirection = s2.v2 - s2.v1;
@@ -181,8 +180,7 @@ namespace OpenSim.Region.Physics.Meshing
             if (mu > upperBorder2) // outside simplex 2
                 return null;
 
-            return s1.v1 + lambda * firstSimplexDirection;
-
+            return s1.v1 + lambda*firstSimplexDirection;
         }
 
         // Intersects the simplex with a ray. The ray is defined as all p=origin + lambda*direction
@@ -212,15 +210,12 @@ namespace OpenSim.Region.Physics.Meshing
                 return null;
 
             if (lambda == 1.0 && !bEndsIncluded)
-                return null;    // The end of the simplices are not included
+                return null; // The end of the simplices are not included
 
             if (lambda < 0.0f) // we're before v1;
                 return null;
 
-            return this.v1 + lambda * simplexDirection;
-
+            return v1 + lambda*simplexDirection;
         }
-
-
     }
 }

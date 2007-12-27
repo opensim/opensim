@@ -129,7 +129,8 @@ namespace OpenSim.Grid.UserServer
                     tempMD5Passwd = Util.Md5Hash(Util.Md5Hash(tempMD5Passwd) + ":" + "");
 
                     LLUUID userID = m_userManager.AddUserProfile(tempfirstname, templastname, tempMD5Passwd, regX, regY);
-                    RestObjectPoster.BeginPostObject<Guid>(m_userManager._config.InventoryUrl + "CreateInventory/", userID.UUID);
+                    RestObjectPoster.BeginPostObject<Guid>(m_userManager._config.InventoryUrl + "CreateInventory/",
+                                                           userID.UUID);
                     m_lastCreatedUser = userID;
                     break;
             }
@@ -154,17 +155,23 @@ namespace OpenSim.Grid.UserServer
                     break;
 
                 case "test-inventory":
-                  //  RestObjectPosterResponse<List<InventoryFolderBase>> requester = new RestObjectPosterResponse<List<InventoryFolderBase>>();
-                   // requester.ReturnResponseVal = TestResponse;
-                   // requester.BeginPostObject<LLUUID>(m_userManager._config.InventoryUrl + "RootFolders/", m_lastCreatedUser);
-                    List<InventoryFolderBase> folders = SynchronousRestObjectPoster.BeginPostObject< LLUUID, List<InventoryFolderBase>>("POST",m_userManager._config.InventoryUrl + "RootFolders/", m_lastCreatedUser);
+                    //  RestObjectPosterResponse<List<InventoryFolderBase>> requester = new RestObjectPosterResponse<List<InventoryFolderBase>>();
+                    // requester.ReturnResponseVal = TestResponse;
+                    // requester.BeginPostObject<LLUUID>(m_userManager._config.InventoryUrl + "RootFolders/", m_lastCreatedUser);
+                    List<InventoryFolderBase> folders =
+                        SynchronousRestObjectPoster.BeginPostObject<LLUUID, List<InventoryFolderBase>>("POST",
+                                                                                                       m_userManager.
+                                                                                                           _config.
+                                                                                                           InventoryUrl +
+                                                                                                       "RootFolders/",
+                                                                                                       m_lastCreatedUser);
                     break;
             }
         }
 
         public void TestResponse(List<InventoryFolderBase> resp)
         {
-            System.Console.WriteLine("response got");
+            Console.WriteLine("response got");
         }
 
         /*private void ConfigDB(IGenericConfig configData)

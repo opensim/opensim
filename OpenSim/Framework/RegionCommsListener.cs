@@ -44,10 +44,10 @@ namespace OpenSim.Framework
         public event CloseAgentConnection OnCloseAgentConnection;
         public event RegionUp OnRegionUp;
         public event ChildAgentUpdate OnChildAgentUpdate;
-        
 
-        public string debugRegionName="";
-        
+
+        public string debugRegionName = "";
+
 
         /// <summary>
         /// 
@@ -64,7 +64,6 @@ namespace OpenSim.Framework
 
             return false;
         }
-
 
 
         public virtual bool TriggerExpectPrim(ulong regionHandle, LLUUID primID, string objData)
@@ -107,7 +106,9 @@ namespace OpenSim.Framework
             }
             return false;
         }
-        public virtual bool TriggerExpectPrimCrossing(ulong regionHandle, LLUUID primID, LLVector3 position, bool isPhysical)
+
+        public virtual bool TriggerExpectPrimCrossing(ulong regionHandle, LLUUID primID, LLVector3 position,
+                                                      bool isPhysical)
         {
             if (OnPrimCrossingIntoRegion != null)
             {

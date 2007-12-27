@@ -31,6 +31,7 @@ using System.Collections.Generic;
 using System.Data;
 using System.Security.Cryptography;
 using System.Text;
+using System.Text.RegularExpressions;
 using libsecondlife;
 using OpenSim.Framework.Console;
 
@@ -62,7 +63,7 @@ namespace OpenSim.Framework.Data.MySQL
             database =
                 new MySQLManager(settingHostname, settingDatabase, settingUsername, settingPassword, settingPooling,
                                  settingPort);
-            
+
             TestTables();
         }
 
@@ -80,7 +81,7 @@ namespace OpenSim.Framework.Data.MySQL
 
             UpgradeRegionsTable(tableList["regions"]);
         }
-        
+
         /// <summary>
         /// Create or upgrade the table if necessary
         /// </summary>
@@ -94,10 +95,10 @@ namespace OpenSim.Framework.Data.MySQL
                 database.ExecuteResourceSql("CreateRegionsTable.sql");
                 return;
             }
-        }           
-        
+        }
+
         #endregion
-        
+
         /// <summary>
         /// Shuts down the grid interface
         /// </summary>
@@ -203,42 +204,41 @@ namespace OpenSim.Framework.Data.MySQL
                 return null;
             }
         }
+
         /// <summary>
         /// // Returns a list of avatar and UUIDs that match the query
         /// </summary>
-        
         public List<AvatarPickerAvatar> GeneratePickerResults(LLUUID queryID, string query)
         {
             List<AvatarPickerAvatar> returnlist = new List<AvatarPickerAvatar>();
 
-            System.Text.RegularExpressions.Regex objAlphaNumericPattern = new System.Text.RegularExpressions.Regex("[^a-zA-Z0-9]");
+            Regex objAlphaNumericPattern = new Regex("[^a-zA-Z0-9]");
 
             string[] querysplit;
             querysplit = query.Split(' ');
             if (querysplit.Length == 2)
             {
                 Dictionary<string, string> param = new Dictionary<string, string>();
-                param["?first"] = objAlphaNumericPattern.Replace(querysplit[0],"") + "%";
+                param["?first"] = objAlphaNumericPattern.Replace(querysplit[0], "") + "%";
                 param["?second"] = objAlphaNumericPattern.Replace(querysplit[1], "") + "%";
                 try
                 {
                     lock (database)
                     {
-                        
-
                         IDbCommand result =
-                            database.Query("SELECT UUID,username,surname FROM users WHERE username like ?first AND lastname like ?second LIMIT 100", param);
+                            database.Query(
+                                "SELECT UUID,username,surname FROM users WHERE username like ?first AND lastname like ?second LIMIT 100",
+                                param);
                         IDataReader reader = result.ExecuteReader();
 
 
                         while (reader.Read())
                         {
                             AvatarPickerAvatar user = new AvatarPickerAvatar();
-                            user.AvatarID = new LLUUID((string)reader["UUID"]);
-                            user.firstName = (string)reader["username"];
-                            user.lastName = (string)reader["surname"];
+                            user.AvatarID = new LLUUID((string) reader["UUID"]);
+                            user.firstName = (string) reader["username"];
+                            user.lastName = (string) reader["surname"];
                             returnlist.Add(user);
-
                         }
                         reader.Close();
                         result.Dispose();
@@ -250,33 +250,30 @@ namespace OpenSim.Framework.Data.MySQL
                     MainLog.Instance.Error(e.ToString());
                     return returnlist;
                 }
-
-
-
             }
             else if (querysplit.Length == 1)
             {
-
                 try
                 {
                     lock (database)
                     {
                         Dictionary<string, string> param = new Dictionary<string, string>();
-                        param["?first"] = objAlphaNumericPattern.Replace(querysplit[0],"") + "%";
+                        param["?first"] = objAlphaNumericPattern.Replace(querysplit[0], "") + "%";
 
                         IDbCommand result =
-                            database.Query("SELECT UUID,username,surname FROM users WHERE username like ?first OR lastname like ?second", param);
+                            database.Query(
+                                "SELECT UUID,username,surname FROM users WHERE username like ?first OR lastname like ?second",
+                                param);
                         IDataReader reader = result.ExecuteReader();
 
 
                         while (reader.Read())
                         {
                             AvatarPickerAvatar user = new AvatarPickerAvatar();
-                            user.AvatarID = new LLUUID((string)reader["UUID"]);
-                            user.firstName = (string)reader["username"];
-                            user.lastName = (string)reader["surname"];
+                            user.AvatarID = new LLUUID((string) reader["UUID"]);
+                            user.firstName = (string) reader["username"];
+                            user.lastName = (string) reader["surname"];
                             returnlist.Add(user);
-
                         }
                         reader.Close();
                         result.Dispose();

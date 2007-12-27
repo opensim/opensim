@@ -26,24 +26,22 @@
 * 
 */
 
-using System;
-using System.Collections.Generic;
-using System.Text;
+using OpenSim.Region.Physics.Manager;
 
 namespace OpenSim.Region.Physics.Meshing
 {
-    class Extruder
+    internal class Extruder
     {
         public float startParameter;
         public float stopParameter;
-        public Manager.PhysicsVector size;
+        public PhysicsVector size;
 
         public Mesh Extrude(Mesh m)
         {
             // Currently only works for iSteps=1;
             Mesh result = new Mesh();
 
-            Mesh workingPlus  = m.Clone();
+            Mesh workingPlus = m.Clone();
             Mesh workingMinus = m.Clone();
 
             foreach (Vertex v in workingPlus.vertices)
@@ -80,14 +78,14 @@ namespace OpenSim.Region.Physics.Meshing
             for (int i = 0; i < workingPlus.vertices.Count; i++)
             {
                 int iNext = (i + 1);
-                
+
                 if (workingPlus.vertices[i] == null) // Can't make a simplex here
                 {
-                    iLastNull = i+1;
+                    iLastNull = i + 1;
                     continue;
                 }
 
-                if (i == workingPlus.vertices.Count-1) // End of list
+                if (i == workingPlus.vertices.Count - 1) // End of list
                 {
                     iNext = iLastNull;
                 }
@@ -101,7 +99,8 @@ namespace OpenSim.Region.Physics.Meshing
                 tSide = new Triangle(workingPlus.vertices[i], workingMinus.vertices[i], workingPlus.vertices[iNext]);
                 result.Add(tSide);
 
-                tSide = new Triangle(workingPlus.vertices[iNext], workingMinus.vertices[i], workingMinus.vertices[iNext]);
+                tSide =
+                    new Triangle(workingPlus.vertices[iNext], workingMinus.vertices[i], workingMinus.vertices[iNext]);
                 result.Add(tSide);
             }
 

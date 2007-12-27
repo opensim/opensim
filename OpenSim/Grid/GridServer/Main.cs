@@ -103,7 +103,7 @@ namespace OpenSim.Grid.GridServer
         public void Startup()
         {
             Cfg = new GridConfig("GRID SERVER", (Path.Combine(Util.configDir(), "GridServer_Config.xml")));
-                //Yeah srsly, that's it.
+            //Yeah srsly, that's it.
             if (setuponly) Environment.Exit(0);
 
             m_console.Verbose("GRID", "Connecting to Storage Server");

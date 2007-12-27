@@ -30,9 +30,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Globalization;
-using OpenSim.Framework.Console;
 using OpenSim.Region.Physics.Manager;
-
 using OpenSim.Region.Physics.Meshing;
 
 public class Vertex : PhysicsVector, IComparable<Vertex>
@@ -54,7 +52,7 @@ public class Vertex : PhysicsVector, IComparable<Vertex>
 
     public static Vertex FromAngle(double angle)
     {
-        return new Vertex((float)Math.Cos(angle), (float)Math.Sin(angle), 0.0f);
+        return new Vertex((float) Math.Cos(angle), (float) Math.Sin(angle), 0.0f);
     }
 
 
@@ -101,6 +99,7 @@ public class Vertex : PhysicsVector, IComparable<Vertex>
     {
         return me.CompareTo(other) < 0;
     }
+
     public String ToRaw()
     {
         // Why this stuff with the number formatter?
@@ -117,7 +116,6 @@ public class Vertex : PhysicsVector, IComparable<Vertex>
 
         return s1;
     }
-
 }
 
 public class Triangle
@@ -283,7 +281,7 @@ public class Triangle
         float l = n.length();
 
         // Normalized "normal"
-        n = n / l;
+        n = n/l;
 
         return n;
     }
@@ -300,7 +298,7 @@ public class Triangle
     // debugging purposes
     public String ToStringRaw()
     {
-        String output = v1.ToRaw() + " " + v2.ToRaw() + " " +v3.ToRaw();
+        String output = v1.ToRaw() + " " + v2.ToRaw() + " " + v3.ToRaw();
         return output;
     }
 }

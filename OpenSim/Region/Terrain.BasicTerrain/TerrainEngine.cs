@@ -159,12 +159,13 @@ namespace OpenSim.Region.Terrain
         /// <param name="action">The action to be performed</param>
         /// <param name="north">Distance from the north border where the cursor is located</param>
         /// <param name="west">Distance from the west border where the cursor is located</param>
-        public void ModifyTerrain(float height, float seconds, byte brushsize, byte action, float north, float west, float south, float east,
+        public void ModifyTerrain(float height, float seconds, byte brushsize, byte action, float north, float west,
+                                  float south, float east,
                                   IClientAPI remoteUser)
         {
             // Shiny.
             double size = (double) (1 << brushsize);
-           
+
             /*  Okay, so here's the deal
              * This has to handle both when a user draws on the terrain *and* when a user selects 
              * a selection of AABB on terrain and applies whatever routine the client requests
@@ -189,8 +190,8 @@ namespace OpenSim.Region.Terrain
              * Again, libTerrain is yx instead of xy..  so, it's reflected in the function calls
              * 
              */
-             
-            
+
+
             switch (action)
             {
                 case 0:
@@ -199,7 +200,7 @@ namespace OpenSim.Region.Terrain
                     {
                         for (float y = west; y <= east; y++)
                         {
-                            FlattenTerrain(y, x, size, (double)seconds / 5.0);
+                            FlattenTerrain(y, x, size, (double) seconds/5.0);
                             lastEdit = DateTime.Now;
                         }
                     }
@@ -210,7 +211,7 @@ namespace OpenSim.Region.Terrain
                     {
                         for (float y = west; y <= east; y++)
                         {
-                            RaiseTerrain(y, x, size, (double)seconds / 5.0);
+                            RaiseTerrain(y, x, size, (double) seconds/5.0);
                             lastEdit = DateTime.Now;
                         }
                     }
@@ -221,7 +222,7 @@ namespace OpenSim.Region.Terrain
                     {
                         for (float y = west; y <= east; y++)
                         {
-                            LowerTerrain(y, x, size, (double)seconds / 5.0);
+                            LowerTerrain(y, x, size, (double) seconds/5.0);
                             lastEdit = DateTime.Now;
                         }
                     }
@@ -235,13 +236,13 @@ namespace OpenSim.Region.Terrain
                     //
                     //for (float x = south; x <= north; x++)
                     //{
-                        //for (float y = west; y <= east; y++)
-                        //{
-                            //SmoothTerrain(y, x , size, (double)seconds / 5.0);
-                        //}
+                    //for (float y = west; y <= east; y++)
+                    //{
+                    //SmoothTerrain(y, x , size, (double)seconds / 5.0);
+                    //}
                     //}
 
-                    SmoothTerrain(west, north, size, (double)seconds / 5.0);
+                    SmoothTerrain(west, north, size, (double) seconds/5.0);
 
                     break;
                 case 4:
@@ -250,7 +251,7 @@ namespace OpenSim.Region.Terrain
                     {
                         for (float y = west; y <= east; y++)
                         {
-                            NoiseTerrain(y, x, size, (double)seconds / 5.0);
+                            NoiseTerrain(y, x, size, (double) seconds/5.0);
                             lastEdit = DateTime.Now;
                         }
                     }
@@ -261,7 +262,7 @@ namespace OpenSim.Region.Terrain
                     {
                         for (float y = west; y <= east; y++)
                         {
-                            RevertTerrain(y, x, size, (double)seconds / 5.0);
+                            RevertTerrain(y, x, size, (double) seconds/5.0);
                             lastEdit = DateTime.Now;
                         }
                     }
@@ -1351,13 +1352,13 @@ namespace OpenSim.Region.Terrain
             }
 
             Channel copy = heightmap.Copy();
-            for (int y = 0; y <copy.h; y++)
+            for (int y = 0; y < copy.h; y++)
             {
                 for (int x = 0; x < copy.w; x++)
                 {
                     // 512 is the largest possible height before colours clamp
                     int colorindex = (int) (Math.Max(Math.Min(1.0, copy.Get(x, y)/512.0), 0.0)*(pallete - 1));
-                    bmp.SetPixel(x, copy.h-y-1, colours[colorindex]);
+                    bmp.SetPixel(x, copy.h - y - 1, colours[colorindex]);
                 }
             }
             return bmp;

@@ -25,8 +25,8 @@
 * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 * 
 */
-using libsecondlife;
 using System.Collections.Generic;
+using libsecondlife;
 
 namespace OpenSim.Framework
 {

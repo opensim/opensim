@@ -525,9 +525,9 @@ namespace OpenSim.Framework.UserManagement
             set { welcomeMessage = value; }
         }
 
-       public BuddyList BuddList
+        public BuddyList BuddList
         {
-            get{return m_buddyList;}
+            get { return m_buddyList; }
             set { m_buddyList = value; }
         }
 

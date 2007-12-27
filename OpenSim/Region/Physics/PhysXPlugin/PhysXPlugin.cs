@@ -128,17 +128,19 @@ namespace OpenSim.Region.Physics.PhysXPlugin
         public override PhysicsActor AddPrimShape(string primName, PrimitiveBaseShape pbs, PhysicsVector position,
                                                   PhysicsVector size, Quaternion rotation) //To be removed
         {
-            return this.AddPrimShape(primName, pbs, position, size, rotation, false);
+            return AddPrimShape(primName, pbs, position, size, rotation, false);
         }
+
         public override PhysicsActor AddPrimShape(string primName, PrimitiveBaseShape pbs, PhysicsVector position,
                                                   PhysicsVector size, Quaternion rotation, bool isPhysical)
         {
             return AddPrim(position, size, rotation);
         }
+
         public override void AddPhysicsActorTaint(PhysicsActor prim)
         {
-
         }
+
         public override float Simulate(float timeStep)
         {
             float fps = 0f;
@@ -209,51 +211,61 @@ namespace OpenSim.Region.Physics.PhysXPlugin
             _acceleration = new PhysicsVector();
             _character = character;
         }
+
         public override int PhysicsActorType
         {
-            get { return (int)ActorTypes.Agent; }
+            get { return (int) ActorTypes.Agent; }
             set { return; }
         }
+
         public override bool SetAlwaysRun
         {
             get { return false; }
             set { return; }
         }
+
         public override bool IsPhysical
         {
             get { return false; }
             set { return; }
         }
+
         public override bool ThrottleUpdates
         {
             get { return false; }
             set { return; }
         }
+
         public override bool Flying
         {
             get { return flying; }
             set { flying = value; }
         }
+
         public override bool IsColliding
         {
             get { return iscolliding; }
             set { iscolliding = value; }
         }
+
         public override bool CollidingGround
         {
             get { return false; }
             set { return; }
         }
+
         public override bool CollidingObj
         {
             get { return false; }
             set { return; }
         }
+
         public override PhysicsVector RotationalVelocity
         {
             get { return m_rotationalVelocity; }
             set { m_rotationalVelocity = value; }
         }
+
         public override PhysicsVector Position
         {
             get { return _position; }
@@ -273,22 +285,27 @@ namespace OpenSim.Region.Physics.PhysXPlugin
             get { return PhysicsVector.Zero; }
             set { }
         }
+
         public override float Mass
         {
             get { return 0f; }
         }
+
         public override PhysicsVector Force
         {
             get { return PhysicsVector.Zero; }
         }
+
         public override PhysicsVector CenterOfMass
         {
             get { return PhysicsVector.Zero; }
         }
+
         public override PhysicsVector GeometricCenter
         {
             get { return PhysicsVector.Zero; }
         }
+
         public override PhysicsVector Velocity
         {
             get { return _velocity; }
@@ -345,23 +362,21 @@ namespace OpenSim.Region.Physics.PhysXPlugin
                 gravityAccel = 0;
             }
         }
+
         public override PrimitiveBaseShape Shape
         {
-            set
-            {
-                return;
-            }
+            set { return; }
         }
-				
-		public void UpdatePosition()
-		{
-			Vec3 vec = this._character.Position;
-			this._position.X = vec.X;
-			this._position.Y = vec.Y;
-			this._position.Z = vec.Z;
-		}
-	}
-	
+
+        public void UpdatePosition()
+        {
+            Vec3 vec = _character.Position;
+            _position.X = vec.X;
+            _position.Y = vec.Y;
+            _position.Z = vec.Z;
+        }
+    }
+
 
     public class PhysXPrim : PhysicsActor
     {
@@ -376,55 +391,62 @@ namespace OpenSim.Region.Physics.PhysXPlugin
             _acceleration = new PhysicsVector();
             _prim = prim;
         }
+
         public override int PhysicsActorType
         {
-            get { return (int)ActorTypes.Prim; }
+            get { return (int) ActorTypes.Prim; }
             set { return; }
         }
+
         public override bool IsPhysical
         {
             get { return false; }
             set { return; }
         }
+
         public override bool SetAlwaysRun
         {
             get { return false; }
             set { return; }
         }
+
         public override bool ThrottleUpdates
         {
             get { return false; }
             set { return; }
         }
+
         public override PhysicsVector RotationalVelocity
         {
             get { return m_rotationalVelocity; }
             set { m_rotationalVelocity = value; }
         }
+
         public override bool Flying
         {
             get { return false; //no flying prims for you
             }
             set { }
         }
+
         public override bool IsColliding
         {
-            get
-            {
-                return false; 
-            }
+            get { return false; }
             set { }
         }
+
         public override bool CollidingGround
         {
             get { return false; }
             set { return; }
         }
+
         public override bool CollidingObj
         {
             get { return false; }
             set { return; }
         }
+
         public override PhysicsVector Position
         {
             get
@@ -449,75 +471,52 @@ namespace OpenSim.Region.Physics.PhysXPlugin
 
         public override PrimitiveBaseShape Shape
         {
-            set
-            {
-                return;
-            }
+            set { return; }
         }
 
         public override PhysicsVector Velocity
         {
-            get
-            {
-                return _velocity;
-            }
-            set
-            {
-                _velocity = value;
-            }
+            get { return _velocity; }
+            set { _velocity = value; }
         }
-		
+
         public override bool Kinematic
         {
-            get
-            {
-                return this._prim.Kinematic;
-            }
-            set
-            {
-                this._prim.Kinematic = value;
-            }
+            get { return _prim.Kinematic; }
+            set { _prim.Kinematic = value; }
         }
-		
+
         public override Quaternion Orientation
         {
             get
             {
                 Quaternion res = new Quaternion();
-                PhysXWrapper.Quaternion quat = this._prim.GetOrientation();
+                PhysXWrapper.Quaternion quat = _prim.GetOrientation();
                 res.w = quat.W;
                 res.x = quat.X;
                 res.y = quat.Y;
                 res.z = quat.Z;
                 return res;
             }
-            set
-            {
-				
-            }
+            set { }
         }
-		
+
         public override PhysicsVector Acceleration
         {
-            get
-            {
-                return _acceleration;
-            }
-			
+            get { return _acceleration; }
         }
-        public void SetAcceleration (PhysicsVector accel)
+
+        public void SetAcceleration(PhysicsVector accel)
         {
-            this._acceleration = accel;
+            _acceleration = accel;
         }
-		
+
         public override void AddForce(PhysicsVector force)
         {
-			
         }
-		
+
         public override void SetMomentum(PhysicsVector momentum)
         {
-			
         }
 
         public override PhysicsVector Size
@@ -545,6 +544,5 @@ namespace OpenSim.Region.Physics.PhysXPlugin
         {
             get { return PhysicsVector.Zero; }
         }
-
     }
 }

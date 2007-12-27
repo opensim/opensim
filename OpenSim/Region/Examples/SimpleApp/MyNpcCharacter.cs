@@ -29,7 +29,6 @@
 using System;
 using System.Collections.Generic;
 using System.Net;
-using System.Text;
 using libsecondlife;
 using libsecondlife.Packets;
 using OpenSim.Framework;
@@ -62,7 +61,7 @@ namespace SimpleApp
         public event LinkObjects OnLinkObjects;
         public event DelinkObjects OnDelinkObjects;
         public event RequestMapBlocks OnRequestMapBlocks;
-        public event RequestMapName   OnMapNameRequest;
+        public event RequestMapName OnMapNameRequest;
         public event TeleportLocationRequest OnTeleportLocationRequest;
         public event DisconnectUser OnDisconnectUser;
         public event RequestAvatarProperties OnRequestAvatarProperties;
@@ -139,7 +138,7 @@ namespace SimpleApp
         public event EstateOwnerMessageRequest OnEstateOwnerMessage;
         public event RegionInfoRequest OnRegionInfoRequest;
         public event EstateCovenantRequest OnEstateCovenantRequest;
-        
+
 
 #pragma warning restore 67
 
@@ -168,7 +167,7 @@ namespace SimpleApp
         {
             get { return LLUUID.Zero; }
         }
-        
+
         public LLUUID SecureSessionId
         {
             get { return LLUUID.Zero; }
@@ -185,7 +184,7 @@ namespace SimpleApp
         {
             get { return lastName; }
         }
-        
+
         public virtual String Name
         {
             get { return FirstName + LastName; }
@@ -314,7 +313,8 @@ namespace SimpleApp
 
         public virtual void SendPrimitiveToClient(ulong regionHandle, ushort timeDilation, uint localID,
                                                   PrimitiveBaseShape primShape, LLVector3 pos, uint flags,
-                                                  LLUUID objectID, LLUUID ownerID, string text, byte[] color, uint parentID,
+                                                  LLUUID objectID, LLUUID ownerID, string text, byte[] color,
+                                                  uint parentID,
                                                   byte[] particleSystem, LLQuaternion rotation, byte clickAction)
         {
         }
@@ -323,14 +323,16 @@ namespace SimpleApp
                                                 LLVector3 position, LLQuaternion rotation)
         {
         }
+
         public virtual void SendPrimTerseUpdate(ulong regionHandle, ushort timeDilation, uint localID,
-                                        LLVector3 position, LLQuaternion rotation,LLVector3 velocity, LLVector3 rotationalvelocity)
+                                                LLVector3 position, LLQuaternion rotation, LLVector3 velocity,
+                                                LLVector3 rotationalvelocity)
         {
         }
 
-        public virtual void SendInventoryFolderDetails(LLUUID ownerID, LLUUID folderID, 
-                                                       List<InventoryItemBase> items, 
-                                                       List<InventoryFolderBase> folders, 
+        public virtual void SendInventoryFolderDetails(LLUUID ownerID, LLUUID folderID,
+                                                       List<InventoryItemBase> items,
+                                                       List<InventoryFolderBase> folders,
                                                        bool fetchFolders,
                                                        bool fetchItems)
         {
@@ -376,9 +378,11 @@ namespace SimpleApp
         public void SendAgentAlertMessage(string message, bool modal)
         {
         }
+
         public void SendSystemAlertMessage(string message)
         {
         }
+
         public void SendLoadURL(string objectname, LLUUID objectID, LLUUID ownerID, bool groupOwned, string message,
                                 string url)
         {
@@ -477,7 +481,6 @@ namespace SimpleApp
 
         public void Stop()
         {
-
         }
 
         private uint m_circuitCode;

@@ -46,12 +46,13 @@ namespace OpenSim.Framework
         private static object XferLock = new object();
         private static Dictionary<LLUUID, string> capsURLS = new Dictionary<LLUUID, string>();
 
-		public static double GetDistanceTo(LLVector3 a, LLVector3 b) {
-			float dx = a.X - b.X;
-			float dy = a.Y - b.Y;
-			float dz = a.Z - b.Z;
-			return Math.Sqrt(dx * dx + dy * dy + dz * dz);
-		}
+        public static double GetDistanceTo(LLVector3 a, LLVector3 b)
+        {
+            float dx = a.X - b.X;
+            float dy = a.Y - b.Y;
+            float dz = a.Z - b.Z;
+            return Math.Sqrt(dx*dx + dy*dy + dz*dz);
+        }
 
         public static ulong UIntsToLong(uint X, uint Y)
         {
@@ -383,7 +384,7 @@ namespace OpenSim.Framework
         {
             return Math.Min(Math.Max(x, min), max);
         }
-        
+
         /// <summary>
         /// Convert an LLUUID to a raw uuid string.  Right now this is a string without hyphens.
         /// </summary>

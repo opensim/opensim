@@ -27,6 +27,7 @@
 */
 
 using System;
+using libsecondlife;
 using OpenSim.Framework;
 using OpenSim.Framework.Communications;
 using OpenSim.Framework.UserManagement;
@@ -82,7 +83,7 @@ namespace OpenSim.Region.Communications.Local
             return profile;
         }
 
-        public override UserProfileData SetupMasterUser(libsecondlife.LLUUID uuid)
+        public override UserProfileData SetupMasterUser(LLUUID uuid)
         {
             UserProfileData data = GetUserProfile(uuid);
             if (data == null)

@@ -59,7 +59,7 @@ namespace OpenSim.DataStore.MonoSqlite
         private SqliteConnection m_conn;
 
         private String m_connectionString;
-        
+
         private bool persistPrimInventories;
 
         /***********************************************************************
@@ -71,7 +71,7 @@ namespace OpenSim.DataStore.MonoSqlite
         // see IRegionDataStore
         public void Initialise(string connectionString, bool persistPrimInventories)
         {
-            m_connectionString = connectionString;           
+            m_connectionString = connectionString;
             this.persistPrimInventories = persistPrimInventories;
 
             ds = new DataSet();
@@ -182,20 +182,20 @@ namespace OpenSim.DataStore.MonoSqlite
             {
                 foreach (SceneObjectPart prim in obj.Children.Values)
                 {
-                    if ((prim.ObjectFlags & (uint)LLObject.ObjectFlags.Physics) == 0)
+                    if ((prim.ObjectFlags & (uint) LLObject.ObjectFlags.Physics) == 0)
                     {
                         MainLog.Instance.Verbose("DATASTORE", "Adding obj: " + obj.UUID + " to region: " + regionUUID);
                         addPrim(prim, Util.ToRawUuidString(obj.UUID), Util.ToRawUuidString(regionUUID));
                     }
                     else if (Stopped(prim))
                     {
-                        MainLog.Instance.Verbose("DATASTORE", "Adding stopped obj: " + obj.UUID + " to region: " + regionUUID);
+                        MainLog.Instance.Verbose("DATASTORE",
+                                                 "Adding stopped obj: " + obj.UUID + " to region: " + regionUUID);
                         addPrim(prim, Util.ToRawUuidString(obj.UUID), Util.ToRawUuidString(regionUUID));
                     }
                     else
                     {
                         // MainLog.Instance.Verbose("DATASTORE", "Ignoring Physical obj: " + obj.UUID + " in region: " + regionUUID);
-                  
                     }
                 }
             }
@@ -307,18 +307,19 @@ namespace OpenSim.DataStore.MonoSqlite
 
         public void StoreTerrain(double[,] ter, LLUUID regionID)
         {
-            lock (ds) {
+            lock (ds)
+            {
                 int revision = Util.UnixTimeSinceEpoch();
-                
+
                 // the following is an work around for .NET.  The perf
                 // issues associated with it aren't as bad as you think.
                 SqliteConnection conn = new SqliteConnection(m_connectionString);
                 conn.Open();
                 MainLog.Instance.Verbose("DATASTORE", "Storing terrain revision r" + revision.ToString());
                 String sql = "insert into terrain(RegionUUID, Revision, Heightfield)" +
-                    " values(:RegionUUID, :Revision, :Heightfield)";
+                             " values(:RegionUUID, :Revision, :Heightfield)";
 
-                using(SqliteCommand cmd = new SqliteCommand(sql, conn))
+                using (SqliteCommand cmd = new SqliteCommand(sql, conn))
                 {
                     cmd.Parameters.Add(new SqliteParameter(":RegionUUID", Util.ToRawUuidString(regionID)));
                     cmd.Parameters.Add(new SqliteParameter(":Revision", revision));
@@ -333,7 +334,10 @@ namespace OpenSim.DataStore.MonoSqlite
                 // revisions in the database, as this old
                 // implementation is a DOS attack waiting to happen.
 
-                using(SqliteCommand cmd = new SqliteCommand("delete from terrain where RegionUUID=:RegionUUID and Revision < :Revision", conn))
+                using (
+                    SqliteCommand cmd =
+                        new SqliteCommand("delete from terrain where RegionUUID=:RegionUUID and Revision < :Revision",
+                                          conn))
                 {
                     cmd.Parameters.Add(new SqliteParameter(":RegionUUID", Util.ToRawUuidString(regionID)));
                     cmd.Parameters.Add(new SqliteParameter(":Revision", revision));
@@ -345,21 +349,22 @@ namespace OpenSim.DataStore.MonoSqlite
 
         public double[,] LoadTerrain(LLUUID regionID)
         {
-            lock (ds) {
+            lock (ds)
+            {
                 double[,] terret = new double[256,256];
                 terret.Initialize();
                 // the following is an work around for .NET.  The perf
                 // issues associated with it aren't as bad as you think.
                 SqliteConnection conn = new SqliteConnection(m_connectionString);
                 conn.Open();
-                String sql = "select RegionUUID, Revision, Heightfield from terrain" + 
-                    " where RegionUUID=:RegionUUID order by Revision desc";
-                
-                
+                String sql = "select RegionUUID, Revision, Heightfield from terrain" +
+                             " where RegionUUID=:RegionUUID order by Revision desc";
+
+
                 using (SqliteCommand cmd = new SqliteCommand(sql, conn))
                 {
                     cmd.Parameters.Add(new SqliteParameter(":RegionUUID", Util.ToRawUuidString(regionID)));
-                    
+
                     using (IDataReader row = cmd.ExecuteReader())
                     {
                         int rev = 0;
@@ -374,7 +379,7 @@ namespace OpenSim.DataStore.MonoSqlite
                                     terret[x, y] = BitConverter.ToDouble(heightmap, ((x*256) + y)*8);
                                 }
                             }
-                            rev = (int)row["Revision"];
+                            rev = (int) row["Revision"];
                         }
                         else
                         {
@@ -382,7 +387,7 @@ namespace OpenSim.DataStore.MonoSqlite
                             conn.Close();
                             return null;
                         }
-                        
+
                         MainLog.Instance.Verbose("DATASTORE", "Loaded terrain revision r" + rev.ToString());
                     }
                 }
@@ -434,7 +439,8 @@ namespace OpenSim.DataStore.MonoSqlite
                     fillLandRow(landRow, parcel.landData, regionUUID);
                 }
 
-                using (SqliteCommand cmd = new SqliteCommand("delete from landaccesslist where LandUUID=:LandUUID", conn))
+                using (
+                    SqliteCommand cmd = new SqliteCommand("delete from landaccesslist where LandUUID=:LandUUID", conn))
                 {
                     cmd.Parameters.Add(new SqliteParameter(":LandUUID", Util.ToRawUuidString(parcel.landData.globalID)));
                     cmd.ExecuteNonQuery();
@@ -447,16 +453,15 @@ namespace OpenSim.DataStore.MonoSqlite
                     landaccesslist.Rows.Add(newAccessRow);
                 }
                 conn.Close();
-
             }
 
             Commit();
         }
 
-        public List<Framework.LandData> LoadLandObjects(LLUUID regionUUID)
+        public List<LandData> LoadLandObjects(LLUUID regionUUID)
         {
             List<LandData> landDataForRegion = new List<LandData>();
-            lock(ds)
+            lock (ds)
             {
                 DataTable land = ds.Tables["land"];
                 DataTable landaccesslist = ds.Tables["landaccesslist"];
@@ -570,14 +575,14 @@ namespace OpenSim.DataStore.MonoSqlite
             createCol(prims, "RotationW", typeof (Double));
 
             // sit target
-            createCol(prims, "SitTargetOffsetX", typeof(Double));
-            createCol(prims, "SitTargetOffsetY", typeof(Double));
-            createCol(prims, "SitTargetOffsetZ", typeof(Double));
+            createCol(prims, "SitTargetOffsetX", typeof (Double));
+            createCol(prims, "SitTargetOffsetY", typeof (Double));
+            createCol(prims, "SitTargetOffsetZ", typeof (Double));
 
-            createCol(prims, "SitTargetOrientW", typeof(Double));
-            createCol(prims, "SitTargetOrientX", typeof(Double));
-            createCol(prims, "SitTargetOrientY", typeof(Double));
-            createCol(prims, "SitTargetOrientZ", typeof(Double));
+            createCol(prims, "SitTargetOrientW", typeof (Double));
+            createCol(prims, "SitTargetOrientX", typeof (Double));
+            createCol(prims, "SitTargetOrientY", typeof (Double));
+            createCol(prims, "SitTargetOrientZ", typeof (Double));
 
             // Add in contraints
             prims.PrimaryKey = new DataColumn[] {prims.Columns["UUID"]};
@@ -621,11 +626,11 @@ namespace OpenSim.DataStore.MonoSqlite
             createCol(shapes, "Texture", typeof (Byte[]));
             createCol(shapes, "ExtraParams", typeof (Byte[]));
 
-            shapes.PrimaryKey = new DataColumn[] { shapes.Columns["UUID"] };
+            shapes.PrimaryKey = new DataColumn[] {shapes.Columns["UUID"]};
 
             return shapes;
         }
-        
+
         private DataTable createItemsTable()
         {
             DataTable items = new DataTable("primitems");
@@ -635,10 +640,10 @@ namespace OpenSim.DataStore.MonoSqlite
             createCol(items, "assetID", typeof (String));
             createCol(items, "assetType", typeof (Int32));
             createCol(items, "parentFolderID", typeof (String));
-            
+
             createCol(items, "name", typeof (String));
             createCol(items, "description", typeof (String));
-            
+
             createCol(items, "creationDate", typeof (Int64));
             createCol(items, "creatorID", typeof (String));
             createCol(items, "ownerID", typeof (String));
@@ -651,50 +656,50 @@ namespace OpenSim.DataStore.MonoSqlite
             createCol(items, "everyonePermissions", typeof (Int32));
             createCol(items, "groupPermissions", typeof (Int32));
 
-            items.PrimaryKey = new DataColumn[] { items.Columns["UUID"] };
-            
+            items.PrimaryKey = new DataColumn[] {items.Columns["UUID"]};
+
             return items;
-        }        
+        }
 
         private DataTable createLandTable()
         {
             DataTable land = new DataTable("land");
-            createCol(land, "UUID", typeof(String));
-            createCol(land, "RegionUUID", typeof(String));
-            createCol(land, "LocalLandID", typeof(UInt32));
+            createCol(land, "UUID", typeof (String));
+            createCol(land, "RegionUUID", typeof (String));
+            createCol(land, "LocalLandID", typeof (UInt32));
 
             // Bitmap is a byte[512]
-            createCol(land, "Bitmap", typeof(Byte[]));
+            createCol(land, "Bitmap", typeof (Byte[]));
 
-            createCol(land, "Name", typeof(String));
-            createCol(land, "Desc", typeof(String));
-            createCol(land, "OwnerUUID", typeof(String));
-            createCol(land, "IsGroupOwned", typeof(Boolean));
-            createCol(land, "Area", typeof(Int32));
-            createCol(land, "AuctionID", typeof(Int32)); //Unemplemented
-            createCol(land, "Category", typeof(Int32)); //Enum libsecondlife.Parcel.ParcelCategory
-            createCol(land, "ClaimDate", typeof(Int32));
-            createCol(land, "ClaimPrice", typeof(Int32));
-            createCol(land, "GroupUUID", typeof(string));
-            createCol(land, "SalePrice", typeof(Int32));
-            createCol(land, "LandStatus", typeof(Int32)); //Enum. libsecondlife.Parcel.ParcelStatus
-            createCol(land, "LandFlags", typeof(UInt32));
-            createCol(land, "LandingType", typeof(Byte));
-            createCol(land, "MediaAutoScale", typeof(Byte));
-            createCol(land, "MediaTextureUUID", typeof(String));
-            createCol(land, "MediaURL", typeof(String));
-            createCol(land, "MusicURL", typeof(String));
-            createCol(land, "PassHours", typeof(Double));
-            createCol(land, "PassPrice", typeof(UInt32));
-            createCol(land, "SnapshotUUID", typeof(String));
-            createCol(land, "UserLocationX", typeof(Double));
-            createCol(land, "UserLocationY", typeof(Double));
-            createCol(land, "UserLocationZ", typeof(Double));
-            createCol(land, "UserLookAtX", typeof(Double));
-            createCol(land, "UserLookAtY", typeof(Double));
-            createCol(land, "UserLookAtZ", typeof(Double));
+            createCol(land, "Name", typeof (String));
+            createCol(land, "Desc", typeof (String));
+            createCol(land, "OwnerUUID", typeof (String));
+            createCol(land, "IsGroupOwned", typeof (Boolean));
+            createCol(land, "Area", typeof (Int32));
+            createCol(land, "AuctionID", typeof (Int32)); //Unemplemented
+            createCol(land, "Category", typeof (Int32)); //Enum libsecondlife.Parcel.ParcelCategory
+            createCol(land, "ClaimDate", typeof (Int32));
+            createCol(land, "ClaimPrice", typeof (Int32));
+            createCol(land, "GroupUUID", typeof (string));
+            createCol(land, "SalePrice", typeof (Int32));
+            createCol(land, "LandStatus", typeof (Int32)); //Enum. libsecondlife.Parcel.ParcelStatus
+            createCol(land, "LandFlags", typeof (UInt32));
+            createCol(land, "LandingType", typeof (Byte));
+            createCol(land, "MediaAutoScale", typeof (Byte));
+            createCol(land, "MediaTextureUUID", typeof (String));
+            createCol(land, "MediaURL", typeof (String));
+            createCol(land, "MusicURL", typeof (String));
+            createCol(land, "PassHours", typeof (Double));
+            createCol(land, "PassPrice", typeof (UInt32));
+            createCol(land, "SnapshotUUID", typeof (String));
+            createCol(land, "UserLocationX", typeof (Double));
+            createCol(land, "UserLocationY", typeof (Double));
+            createCol(land, "UserLocationZ", typeof (Double));
+            createCol(land, "UserLookAtX", typeof (Double));
+            createCol(land, "UserLookAtY", typeof (Double));
+            createCol(land, "UserLookAtZ", typeof (Double));
 
-            land.PrimaryKey = new DataColumn[] { land.Columns["UUID"] };
+            land.PrimaryKey = new DataColumn[] {land.Columns["UUID"]};
 
             return land;
         }
@@ -702,9 +707,9 @@ namespace OpenSim.DataStore.MonoSqlite
         private DataTable createLandAccessListTable()
         {
             DataTable landaccess = new DataTable("landaccesslist");
-            createCol(landaccess, "LandUUID", typeof(String));
-            createCol(landaccess, "AccessUUID", typeof(String));
-            createCol(landaccess, "Flags", typeof(UInt32));
+            createCol(landaccess, "LandUUID", typeof (String));
+            createCol(landaccess, "AccessUUID", typeof (String));
+            createCol(landaccess, "Flags", typeof (UInt32));
 
             return landaccess;
         }
@@ -782,35 +787,43 @@ namespace OpenSim.DataStore.MonoSqlite
             try
             {
                 prim.SetSitTargetLL(new LLVector3(
-                    Convert.ToSingle(row["SitTargetOffsetX"]),
-                    Convert.ToSingle(row["SitTargetOffsetY"]),
-                    Convert.ToSingle(row["SitTargetOffsetZ"])), new LLQuaternion(
-                    Convert.ToSingle(row["SitTargetOrientX"]),
-                    Convert.ToSingle(row["SitTargetOrientY"]),
-                    Convert.ToSingle(row["SitTargetOrientZ"]),
-                    Convert.ToSingle(row["SitTargetOrientW"])));
+                                        Convert.ToSingle(row["SitTargetOffsetX"]),
+                                        Convert.ToSingle(row["SitTargetOffsetY"]),
+                                        Convert.ToSingle(row["SitTargetOffsetZ"])), new LLQuaternion(
+                                                                                        Convert.ToSingle(
+                                                                                            row["SitTargetOrientX"]),
+                                                                                        Convert.ToSingle(
+                                                                                            row["SitTargetOrientY"]),
+                                                                                        Convert.ToSingle(
+                                                                                            row["SitTargetOrientZ"]),
+                                                                                        Convert.ToSingle(
+                                                                                            row["SitTargetOrientW"])));
             }
-            catch (System.InvalidCastException)
+            catch (InvalidCastException)
             {
                 // Database table was created before we got here and now has null values :P
                 m_conn.Open();
-                SqliteCommand cmd = new SqliteCommand("ALTER TABLE prims ADD COLUMN SitTargetOffsetX float NOT NULL default 0;", m_conn);
+                SqliteCommand cmd =
+                    new SqliteCommand("ALTER TABLE prims ADD COLUMN SitTargetOffsetX float NOT NULL default 0;", m_conn);
                 cmd.ExecuteNonQuery();
-                cmd = new SqliteCommand("ALTER TABLE prims ADD COLUMN SitTargetOffsetY float NOT NULL default 0;", m_conn);
+                cmd =
+                    new SqliteCommand("ALTER TABLE prims ADD COLUMN SitTargetOffsetY float NOT NULL default 0;", m_conn);
                 cmd.ExecuteNonQuery();
-                cmd = new SqliteCommand("ALTER TABLE prims ADD COLUMN SitTargetOffsetZ float NOT NULL default 0;", m_conn);
+                cmd =
+                    new SqliteCommand("ALTER TABLE prims ADD COLUMN SitTargetOffsetZ float NOT NULL default 0;", m_conn);
                 cmd.ExecuteNonQuery();
-                cmd = new SqliteCommand("ALTER TABLE prims ADD COLUMN SitTargetOrientW float NOT NULL default 0;", m_conn);
+                cmd =
+                    new SqliteCommand("ALTER TABLE prims ADD COLUMN SitTargetOrientW float NOT NULL default 0;", m_conn);
                 cmd.ExecuteNonQuery();
-                cmd = new SqliteCommand("ALTER TABLE prims ADD COLUMN SitTargetOrientX float NOT NULL default 0;", m_conn);
+                cmd =
+                    new SqliteCommand("ALTER TABLE prims ADD COLUMN SitTargetOrientX float NOT NULL default 0;", m_conn);
                 cmd.ExecuteNonQuery();
-                cmd = new SqliteCommand("ALTER TABLE prims ADD COLUMN SitTargetOrientY float NOT NULL default 0;", m_conn);
+                cmd =
+                    new SqliteCommand("ALTER TABLE prims ADD COLUMN SitTargetOrientY float NOT NULL default 0;", m_conn);
                 cmd.ExecuteNonQuery();
-                cmd = new SqliteCommand("ALTER TABLE prims ADD COLUMN SitTargetOrientZ float NOT NULL default 0;", m_conn);
+                cmd =
+                    new SqliteCommand("ALTER TABLE prims ADD COLUMN SitTargetOrientZ float NOT NULL default 0;", m_conn);
                 cmd.ExecuteNonQuery();
-
-                    
-                
             }
 
             return prim;
@@ -820,36 +833,42 @@ namespace OpenSim.DataStore.MonoSqlite
         {
             LandData newData = new LandData();
 
-            newData.globalID = new LLUUID((String)row["UUID"]);  
-            newData.localID= Convert.ToInt32(row["LocalLandID"]);
+            newData.globalID = new LLUUID((String) row["UUID"]);
+            newData.localID = Convert.ToInt32(row["LocalLandID"]);
 
             // Bitmap is a byte[512]
             newData.landBitmapByteArray = (Byte[]) row["Bitmap"];
 
-            newData.landName= (String) row["Name"];
-            newData.landDesc= (String) row["Desc"];
-            newData.ownerID= (String) row["OwnerUUID"];
-            newData.isGroupOwned= (Boolean) row["IsGroupOwned"];
-            newData.area= Convert.ToInt32(row["Area"]);
+            newData.landName = (String) row["Name"];
+            newData.landDesc = (String) row["Desc"];
+            newData.ownerID = (String) row["OwnerUUID"];
+            newData.isGroupOwned = (Boolean) row["IsGroupOwned"];
+            newData.area = Convert.ToInt32(row["Area"]);
             newData.auctionID = Convert.ToUInt32(row["AuctionID"]); //Unemplemented
-            newData.category= (Parcel.ParcelCategory) Convert.ToInt32(row["Category"]); //Enum libsecondlife.Parcel.ParcelCategory
-            newData.claimDate= Convert.ToInt32(row["ClaimDate"]);
-            newData.claimPrice= Convert.ToInt32(row["ClaimPrice"]);
-            newData.groupID= new LLUUID((String)row["GroupUUID"]);
+            newData.category = (Parcel.ParcelCategory) Convert.ToInt32(row["Category"]);
+                //Enum libsecondlife.Parcel.ParcelCategory
+            newData.claimDate = Convert.ToInt32(row["ClaimDate"]);
+            newData.claimPrice = Convert.ToInt32(row["ClaimPrice"]);
+            newData.groupID = new LLUUID((String) row["GroupUUID"]);
             newData.salePrice = Convert.ToInt32(row["SalePrice"]);
-            newData.landStatus= (Parcel.ParcelStatus) Convert.ToInt32(row["LandStatus"]); //Enum. libsecondlife.Parcel.ParcelStatus
-            newData.landFlags= Convert.ToUInt32(row["LandFlags"]);
-            newData.landingType= (Byte) row["LandingType"];
-            newData.mediaAutoScale= (Byte) row["MediaAutoScale"];
-            newData.mediaID= new LLUUID((String)row["MediaTextureUUID"]);
-            newData.mediaURL= (String) row["MediaURL"];
-            newData.musicURL= (String) row["MusicURL"];
-            newData.passHours= Convert.ToSingle(row["PassHours"]);
-            newData.passPrice= Convert.ToInt32(row["PassPrice"]);
-            newData.snapshotID= (String) row["SnapshotUUID"];
+            newData.landStatus = (Parcel.ParcelStatus) Convert.ToInt32(row["LandStatus"]);
+                //Enum. libsecondlife.Parcel.ParcelStatus
+            newData.landFlags = Convert.ToUInt32(row["LandFlags"]);
+            newData.landingType = (Byte) row["LandingType"];
+            newData.mediaAutoScale = (Byte) row["MediaAutoScale"];
+            newData.mediaID = new LLUUID((String) row["MediaTextureUUID"]);
+            newData.mediaURL = (String) row["MediaURL"];
+            newData.musicURL = (String) row["MusicURL"];
+            newData.passHours = Convert.ToSingle(row["PassHours"]);
+            newData.passPrice = Convert.ToInt32(row["PassPrice"]);
+            newData.snapshotID = (String) row["SnapshotUUID"];
 
-            newData.userLocation = new LLVector3(Convert.ToSingle(row["UserLocationX"]),Convert.ToSingle(row["UserLocationY"]), Convert.ToSingle(row["UserLocationZ"]));
-            newData.userLookAt = new LLVector3(Convert.ToSingle(row["UserLookAtX"]),Convert.ToSingle(row["UserLookAtY"]), Convert.ToSingle(row["UserLookAtZ"]));
+            newData.userLocation =
+                new LLVector3(Convert.ToSingle(row["UserLocationX"]), Convert.ToSingle(row["UserLocationY"]),
+                              Convert.ToSingle(row["UserLocationZ"]));
+            newData.userLookAt =
+                new LLVector3(Convert.ToSingle(row["UserLookAtX"]), Convert.ToSingle(row["UserLookAtY"]),
+                              Convert.ToSingle(row["UserLookAtZ"]));
             newData.parcelAccessList = new List<ParcelManager.ParcelAccessEntry>();
 
             return newData;
@@ -858,13 +877,13 @@ namespace OpenSim.DataStore.MonoSqlite
         private ParcelManager.ParcelAccessEntry buildLandAccessData(DataRow row)
         {
             ParcelManager.ParcelAccessEntry entry = new ParcelManager.ParcelAccessEntry();
-            entry.AgentID = new LLUUID((string)row["AccessUUID"]);
-            entry.Flags = (ParcelManager.AccessList)row["Flags"];
+            entry.AgentID = new LLUUID((string) row["AccessUUID"]);
+            entry.Flags = (ParcelManager.AccessList) row["Flags"];
             entry.Time = new DateTime();
             return entry;
         }
 
-        private Array serializeTerrain(double[,] val) 
+        private Array serializeTerrain(double[,] val)
         {
             MemoryStream str = new MemoryStream(65536*sizeof (double));
             BinaryWriter bw = new BinaryWriter(str);
@@ -900,7 +919,8 @@ namespace OpenSim.DataStore.MonoSqlite
             row["ParentID"] = prim.ParentID;
             row["CreationDate"] = prim.CreationDate;
             row["Name"] = prim.Name;
-            row["SceneGroupID"] = Util.ToRawUuidString(sceneGroupID); // the UUID of the root part for this SceneObjectGroup
+            row["SceneGroupID"] = Util.ToRawUuidString(sceneGroupID);
+                // the UUID of the root part for this SceneObjectGroup
             // various text fields
             row["Text"] = prim.Text;
             row["Description"] = prim.Description;
@@ -1028,10 +1048,10 @@ namespace OpenSim.DataStore.MonoSqlite
             s.ProfileHollow = Convert.ToUInt16(row["ProfileHollow"]);
             // text TODO: this isn't right] = but I'm not sure the right
             // way to specify this as a blob atm
-          
-            byte[] textureEntry = (byte[])row["Texture"];
+
+            byte[] textureEntry = (byte[]) row["Texture"];
             s.TextureEntry = textureEntry;
-          
+
 
             s.ExtraParams = (byte[]) row["ExtraParams"];
             // System.Text.ASCIIEncoding encoding = new System.Text.ASCIIEncoding();
@@ -1278,6 +1298,7 @@ namespace OpenSim.DataStore.MonoSqlite
             da.InsertCommand = createInsertCommand("landaccesslist", ds.Tables["landaccesslist"]);
             da.InsertCommand.Connection = conn;
         }
+
         private void setupShapeCommands(SqliteDataAdapter da, SqliteConnection conn)
         {
             da.InsertCommand = createInsertCommand("primshapes", ds.Tables["primshapes"]);
@@ -1331,7 +1352,7 @@ namespace OpenSim.DataStore.MonoSqlite
             {
                 MainLog.Instance.Warn("SQLITE", "Shapes Table Already Exists");
             }
-            
+
             if (persistPrimInventories)
             {
                 try
@@ -1341,7 +1362,7 @@ namespace OpenSim.DataStore.MonoSqlite
                 catch (SqliteSyntaxException)
                 {
                     MainLog.Instance.Warn("SQLITE", "Primitives Inventory Table Already Exists");
-                }    
+                }
             }
 
             try
@@ -1377,32 +1398,31 @@ namespace OpenSim.DataStore.MonoSqlite
         {
             SqliteCommand primSelectCmd = new SqliteCommand(primSelect, conn);
             SqliteDataAdapter pDa = new SqliteDataAdapter(primSelectCmd);
-            
+
             SqliteCommand shapeSelectCmd = new SqliteCommand(shapeSelect, conn);
             SqliteDataAdapter sDa = new SqliteDataAdapter(shapeSelectCmd);
-            
+
             SqliteCommand itemsSelectCmd = new SqliteCommand(itemsSelect, conn);
             SqliteDataAdapter iDa = new SqliteDataAdapter(itemsSelectCmd);
-            
+
             SqliteCommand terrainSelectCmd = new SqliteCommand(terrainSelect, conn);
             SqliteDataAdapter tDa = new SqliteDataAdapter(terrainSelectCmd);
-            
+
             SqliteCommand landSelectCmd = new SqliteCommand(landSelect, conn);
             SqliteDataAdapter lDa = new SqliteDataAdapter(landSelectCmd);
-            
+
             SqliteCommand landAccessListSelectCmd = new SqliteCommand(landAccessListSelect, conn);
             SqliteDataAdapter lalDa = new SqliteDataAdapter(landAccessListSelectCmd);
 
             DataSet tmpDS = new DataSet();
             try
             {
-                
                 pDa.Fill(tmpDS, "prims");
                 sDa.Fill(tmpDS, "primshapes");
-                
+
                 if (persistPrimInventories)
                     iDa.Fill(tmpDS, "primitems");
-                
+
                 tDa.Fill(tmpDS, "terrain");
                 lDa.Fill(tmpDS, "land");
                 lalDa.Fill(tmpDS, "landaccesslist");
@@ -1415,13 +1435,13 @@ namespace OpenSim.DataStore.MonoSqlite
 
             pDa.Fill(tmpDS, "prims");
             sDa.Fill(tmpDS, "primshapes");
-            
+
             if (persistPrimInventories)
                 iDa.Fill(tmpDS, "primitems");
-            
+
             tDa.Fill(tmpDS, "terrain");
             lDa.Fill(tmpDS, "land");
-            lalDa.Fill(tmpDS,"landaccesslist");
+            lalDa.Fill(tmpDS, "landaccesslist");
 
             foreach (DataColumn col in createPrimTable().Columns)
             {
@@ -1431,7 +1451,7 @@ namespace OpenSim.DataStore.MonoSqlite
                     return false;
                 }
             }
-            
+
             foreach (DataColumn col in createShapeTable().Columns)
             {
                 if (!tmpDS.Tables["primshapes"].Columns.Contains(col.ColumnName))
@@ -1440,9 +1460,9 @@ namespace OpenSim.DataStore.MonoSqlite
                     return false;
                 }
             }
-            
+
             // TODO Not restoring prim inventories quite yet
-            
+
             foreach (DataColumn col in createTerrainTable().Columns)
             {
                 if (!tmpDS.Tables["terrain"].Columns.Contains(col.ColumnName))
@@ -1451,7 +1471,7 @@ namespace OpenSim.DataStore.MonoSqlite
                     return false;
                 }
             }
-            
+
             foreach (DataColumn col in createLandTable().Columns)
             {
                 if (!tmpDS.Tables["land"].Columns.Contains(col.ColumnName))
@@ -1460,7 +1480,7 @@ namespace OpenSim.DataStore.MonoSqlite
                     return false;
                 }
             }
-            
+
             foreach (DataColumn col in createLandAccessListTable().Columns)
             {
                 if (!tmpDS.Tables["landaccesslist"].Columns.Contains(col.ColumnName))
@@ -1469,7 +1489,7 @@ namespace OpenSim.DataStore.MonoSqlite
                     return false;
                 }
             }
-            
+
             return true;
         }
 
@@ -1526,7 +1546,7 @@ namespace OpenSim.DataStore.MonoSqlite
             else if (type == typeof (Int64))
             {
                 return "integer";
-            }            
+            }
             else if (type == typeof (Double))
             {
                 return "float";

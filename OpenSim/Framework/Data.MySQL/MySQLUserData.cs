@@ -28,6 +28,7 @@
 using System;
 using System.Collections.Generic;
 using System.Data;
+using System.Text.RegularExpressions;
 using libsecondlife;
 using OpenSim.Framework.Console;
 
@@ -61,7 +62,7 @@ namespace OpenSim.Framework.Data.MySQL
             database =
                 new MySQLManager(settingHostname, settingDatabase, settingUsername, settingPassword, settingPooling,
                                  settingPort);
-            
+
             TestTables();
         }
 
@@ -81,7 +82,7 @@ namespace OpenSim.Framework.Data.MySQL
             UpgradeAgentsTable(tableList["agents"]);
             UpgradeUsersTable(tableList["users"]);
         }
-        
+
         /// <summary>
         /// Create or upgrade the table if necessary
         /// </summary>
@@ -95,8 +96,8 @@ namespace OpenSim.Framework.Data.MySQL
                 database.ExecuteResourceSql("CreateAgentsTable.sql");
                 return;
             }
-        }           
-        
+        }
+
         /// <summary>
         /// Create or upgrade the table if necessary
         /// </summary>
@@ -110,8 +111,8 @@ namespace OpenSim.Framework.Data.MySQL
                 database.ExecuteResourceSql("CreateUsersTable.sql");
                 return;
             }
-        }   
-        
+        }
+
         #endregion
 
         // see IUserData
@@ -144,11 +145,11 @@ namespace OpenSim.Framework.Data.MySQL
             }
         }
 
-        public List<OpenSim.Framework.AvatarPickerAvatar> GeneratePickerResults(LLUUID queryID, string query)
+        public List<Framework.AvatarPickerAvatar> GeneratePickerResults(LLUUID queryID, string query)
         {
-            List<OpenSim.Framework.AvatarPickerAvatar> returnlist = new List<OpenSim.Framework.AvatarPickerAvatar>();
+            List<Framework.AvatarPickerAvatar> returnlist = new List<Framework.AvatarPickerAvatar>();
 
-            System.Text.RegularExpressions.Regex objAlphaNumericPattern = new System.Text.RegularExpressions.Regex("[^a-zA-Z0-9]");
+            Regex objAlphaNumericPattern = new Regex("[^a-zA-Z0-9]");
 
             string[] querysplit;
             querysplit = query.Split(' ');
@@ -161,21 +162,20 @@ namespace OpenSim.Framework.Data.MySQL
                 {
                     lock (database)
                     {
-
-
                         IDbCommand result =
-                            database.Query("SELECT UUID,username,lastname FROM users WHERE username like ?first AND lastname like ?second LIMIT 100", param);
+                            database.Query(
+                                "SELECT UUID,username,lastname FROM users WHERE username like ?first AND lastname like ?second LIMIT 100",
+                                param);
                         IDataReader reader = result.ExecuteReader();
 
 
                         while (reader.Read())
                         {
-                            OpenSim.Framework.AvatarPickerAvatar user = new OpenSim.Framework.AvatarPickerAvatar();
-                            user.AvatarID = new LLUUID((string)reader["UUID"]);
-                            user.firstName = (string)reader["username"];
-                            user.lastName = (string)reader["lastname"];
+                            Framework.AvatarPickerAvatar user = new Framework.AvatarPickerAvatar();
+                            user.AvatarID = new LLUUID((string) reader["UUID"]);
+                            user.firstName = (string) reader["username"];
+                            user.lastName = (string) reader["lastname"];
                             returnlist.Add(user);
-
                         }
                         reader.Close();
                         result.Dispose();
@@ -187,13 +187,9 @@ namespace OpenSim.Framework.Data.MySQL
                     MainLog.Instance.Error(e.ToString());
                     return returnlist;
                 }
-
-
-
             }
             else if (querysplit.Length == 1)
             {
-
                 try
                 {
                     lock (database)
@@ -202,18 +198,19 @@ namespace OpenSim.Framework.Data.MySQL
                         param["?first"] = objAlphaNumericPattern.Replace(querysplit[0], "") + "%";
 
                         IDbCommand result =
-                            database.Query("SELECT UUID,username,lastname FROM users WHERE username like ?first OR lastname like ?first LIMIT 100", param);
+                            database.Query(
+                                "SELECT UUID,username,lastname FROM users WHERE username like ?first OR lastname like ?first LIMIT 100",
+                                param);
                         IDataReader reader = result.ExecuteReader();
 
 
                         while (reader.Read())
                         {
-                            OpenSim.Framework.AvatarPickerAvatar user = new OpenSim.Framework.AvatarPickerAvatar();
-                            user.AvatarID = new LLUUID((string)reader["UUID"]);
-                            user.firstName = (string)reader["username"];
-                            user.lastName = (string)reader["lastname"];
+                            Framework.AvatarPickerAvatar user = new Framework.AvatarPickerAvatar();
+                            user.AvatarID = new LLUUID((string) reader["UUID"]);
+                            user.firstName = (string) reader["username"];
+                            user.lastName = (string) reader["lastname"];
                             returnlist.Add(user);
-
                         }
                         reader.Close();
                         result.Dispose();

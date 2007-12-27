@@ -28,7 +28,7 @@
 using libsecondlife;
 
 namespace OpenSim.Region.Capabilities
-{    
+{
     [LLSDMap]
     public class LLSDTaskInventoryUploadComplete
     {
@@ -36,12 +36,12 @@ namespace OpenSim.Region.Capabilities
         /// The task inventory item that was updated
         /// </summary> 
         public LLUUID item_id;
-        
+
         /// <summary>
         /// The task that was updated
         /// </summary>
-        public LLUUID task_id;      
-                
+        public LLUUID task_id;
+
         /// <summary>
         /// State of the upload.  So far have only even seen this set to "complete"
         /// </summary>

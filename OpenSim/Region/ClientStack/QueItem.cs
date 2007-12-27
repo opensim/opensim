@@ -31,14 +31,14 @@ using OpenSim.Framework;
 
 namespace OpenSim.Region.ClientStack
 {
-        public class QueItem
+    public class QueItem
+    {
+        public QueItem()
         {
-            public QueItem()
-            {
-            }
-
-            public Packet Packet;
-            public bool Incoming;
-            public ThrottleOutPacketType throttleType;
         }
+
+        public Packet Packet;
+        public bool Incoming;
+        public ThrottleOutPacketType throttleType;
+    }
 }

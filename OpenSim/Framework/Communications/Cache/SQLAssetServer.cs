@@ -57,7 +57,7 @@ namespace OpenSim.Framework.Communications.Cache
                     if (typeInterface != null)
                     {
                         IAssetProvider plug =
-                            (IAssetProvider)Activator.CreateInstance(pluginAssembly.GetType(pluginType.ToString()));
+                            (IAssetProvider) Activator.CreateInstance(pluginAssembly.GetType(pluginType.ToString()));
                         m_assetProviderPlugin = plug;
                         m_assetProviderPlugin.Initialise();
 
@@ -84,8 +84,8 @@ namespace OpenSim.Framework.Communications.Cache
             {
                 asset = m_assetProviderPlugin.FetchAsset(req.AssetID);
             }
-            
-            return asset;            
+
+            return asset;
         }
 
         protected override void StoreAsset(AssetBase asset)

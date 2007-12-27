@@ -80,7 +80,7 @@ namespace OpenSim.Framework.Communications.Cache
             IObjectSet result = db.Query(new AssetUUIDQuery(req.AssetID));
             if (result.Count > 0)
             {
-                foundAsset = (AssetStorage)result.Next();
+                foundAsset = (AssetStorage) result.Next();
                 found = true;
             }
 
@@ -93,7 +93,7 @@ namespace OpenSim.Framework.Communications.Cache
                 asset.Name = foundAsset.Name;
                 idata = foundAsset.Data;
                 asset.Data = idata;
-                
+
                 return asset;
             }
             else

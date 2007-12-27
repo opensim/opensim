@@ -39,7 +39,10 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL
         private LSL2CSConverter LSL_Converter = new LSL2CSConverter();
         private CSharpCodeProvider codeProvider = new CSharpCodeProvider();
         private static UInt64 scriptCompileCounter = 0;
-        private static int instanceID = new Random().Next(0, int.MaxValue);  // Implemented due to peer preassure --- will cause garbage in ScriptEngines folder ;)
+
+        private static int instanceID = new Random().Next(0, int.MaxValue);
+                           // Implemented due to peer preassure --- will cause garbage in ScriptEngines folder ;)
+
         //private ICodeCompiler icc = codeProvider.CreateCompiler();
         public string CompileFromFile(string LSOFileName)
         {
@@ -83,7 +86,9 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL
         {
             // Output assembly name
             scriptCompileCounter++;
-            string OutFile = Path.Combine("ScriptEngines", "DotNetScript_" + instanceID.ToString() + "_" + scriptCompileCounter.ToString() + ".dll");
+            string OutFile =
+                Path.Combine("ScriptEngines",
+                             "DotNetScript_" + instanceID.ToString() + "_" + scriptCompileCounter.ToString() + ".dll");
             try
             {
                 File.Delete(OutFile);

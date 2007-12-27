@@ -27,18 +27,15 @@
 */
 
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Net;
 using System.Text;
-using OpenSim.Region.Environment.Interfaces;
-using OpenSim.Region.Environment.Scenes;
-using System.Collections;
-using System.Collections.Generic;
 using System.Threading;
 using libsecondlife;
 using Nini.Config;
-using Nwc.XmlRpc;
-using OpenSim.Framework.Servers;
+using OpenSim.Region.Environment.Interfaces;
+using OpenSim.Region.Environment.Scenes;
 
 /*****************************************************
  *
@@ -85,120 +82,120 @@ using OpenSim.Framework.Servers;
 
 namespace OpenSim.Region.Environment.Modules
 {
-   public class ScriptHTTPRequests : IRegionModule, IHttpRequests
-   {
-       private Scene m_scene;
-       private Queue<HttpRequestClass> rpcQueue = new Queue<HttpRequestClass>();
-       private object HttpListLock = new object();
-       private string m_name = "HttpScriptRequests";
-       private int httpTimeout = 300;
+    public class ScriptHTTPRequests : IRegionModule, IHttpRequests
+    {
+        private Scene m_scene;
+        private Queue<HttpRequestClass> rpcQueue = new Queue<HttpRequestClass>();
+        private object HttpListLock = new object();
+        private string m_name = "HttpScriptRequests";
+        private int httpTimeout = 300;
 
-       // <request id, HttpRequestClass>
-       private Dictionary<LLUUID, HttpRequestClass> m_pendingRequests;
+        // <request id, HttpRequestClass>
+        private Dictionary<LLUUID, HttpRequestClass> m_pendingRequests;
 
-       public ScriptHTTPRequests()
-       {
-       }
+        public ScriptHTTPRequests()
+        {
+        }
 
-       public void Initialise(Scene scene, IConfigSource config)
-       {
-           m_scene = scene;
+        public void Initialise(Scene scene, IConfigSource config)
+        {
+            m_scene = scene;
 
-           m_scene.RegisterModuleInterface<IHttpRequests>(this);
+            m_scene.RegisterModuleInterface<IHttpRequests>(this);
 
-           m_pendingRequests = new Dictionary<LLUUID, HttpRequestClass>();
-       }
+            m_pendingRequests = new Dictionary<LLUUID, HttpRequestClass>();
+        }
 
-       public void PostInitialise()
-       {
-       }
+        public void PostInitialise()
+        {
+        }
 
-       public void Close()
-       {
-       }
+        public void Close()
+        {
+        }
 
-       public string Name
-       {
-           get { return m_name; }
-       }
+        public string Name
+        {
+            get { return m_name; }
+        }
 
-       public bool IsSharedModule
-       {
-           get { return true; }
-       }
+        public bool IsSharedModule
+        {
+            get { return true; }
+        }
 
-       public LLUUID MakeHttpRequest(string url, string parameters, string body) {
-           return LLUUID.Zero;
-       }
+        public LLUUID MakeHttpRequest(string url, string parameters, string body)
+        {
+            return LLUUID.Zero;
+        }
 
-       public LLUUID StartHttpRequest(uint localID, LLUUID itemID, string url, List<string> parameters, string body)
-       {
-           LLUUID reqID = LLUUID.Random();
-           HttpRequestClass htc = new HttpRequestClass();
+        public LLUUID StartHttpRequest(uint localID, LLUUID itemID, string url, List<string> parameters, string body)
+        {
+            LLUUID reqID = LLUUID.Random();
+            HttpRequestClass htc = new HttpRequestClass();
 
-           // Parameters are expected in {key, value, ... , key, value}
-           if( parameters != null )
-           {
-               string[] parms = parameters.ToArray();
-               for (int i = 0; i < parms.Length / 2; i += 2)
+            // Parameters are expected in {key, value, ... , key, value}
+            if (parameters != null)
+            {
+                string[] parms = parameters.ToArray();
+                for (int i = 0; i < parms.Length/2; i += 2)
                 {
-                    switch( Int32.Parse(parms[i]) )
+                    switch (Int32.Parse(parms[i]))
                     {
                         case HttpRequestClass.HTTP_METHOD:
 
-                           htc.httpMethod = parms[i + 1];
-                           break;
+                            htc.httpMethod = parms[i + 1];
+                            break;
 
                         case HttpRequestClass.HTTP_MIMETYPE:
-                           
-                           htc.httpMIMEType = parms[i + 1];
-                           break;
+
+                            htc.httpMIMEType = parms[i + 1];
+                            break;
 
                         case HttpRequestClass.HTTP_BODY_MAXLENGTH:
-                           
-                           // TODO implement me
-                           break;
+
+                            // TODO implement me
+                            break;
 
                         case HttpRequestClass.HTTP_VERIFY_CERT:
-                           
-                           // TODO implement me
-                           break;
+
+                            // TODO implement me
+                            break;
                     }
                 }
-           }
+            }
 
-           htc.localID = localID;
-           htc.itemID = itemID;
-           htc.url = url;
-           htc.reqID = reqID;
-           htc.httpTimeout = httpTimeout;
-           htc.outbound_body = body;
+            htc.localID = localID;
+            htc.itemID = itemID;
+            htc.url = url;
+            htc.reqID = reqID;
+            htc.httpTimeout = httpTimeout;
+            htc.outbound_body = body;
 
-           lock (HttpListLock)
-           {
-               m_pendingRequests.Add(reqID, htc);
-           }
+            lock (HttpListLock)
+            {
+                m_pendingRequests.Add(reqID, htc);
+            }
 
-           htc.process();
+            htc.process();
 
-           return reqID;
-       }
+            return reqID;
+        }
 
-       public void StopHttpRequest(uint m_localID, LLUUID m_itemID)
-       {
-           lock (HttpListLock)
-           {
+        public void StopHttpRequest(uint m_localID, LLUUID m_itemID)
+        {
+            lock (HttpListLock)
+            {
+                HttpRequestClass tmpReq;
+                if (m_pendingRequests.TryGetValue(m_itemID, out tmpReq))
+                {
+                    tmpReq.Stop();
+                    m_pendingRequests.Remove(m_itemID);
+                }
+            }
+        }
 
-               HttpRequestClass tmpReq;
-               if (m_pendingRequests.TryGetValue(m_itemID, out tmpReq))
-               {
-                   tmpReq.Stop();
-                   m_pendingRequests.Remove(m_itemID);
-               }
-           }
-       }
-
-       /*
+        /*
         * TODO
         * Not sure how important ordering is is here - the next first
         * one completed in the list is returned, based soley on its list
@@ -206,10 +203,11 @@ namespace OpenSim.Region.Environment.Modules
         * finsihed.  I thought about setting up a queue for this, but
         * it will need some refactoring and this works 'enough' right now
         */
-       public HttpRequestClass GetNextCompletedRequest()
-       {
-           lock (HttpListLock)
-           {
+
+        public HttpRequestClass GetNextCompletedRequest()
+        {
+            lock (HttpListLock)
+            {
                 foreach (LLUUID luid in m_pendingRequests.Keys)
                 {
                     HttpRequestClass tmpReq;
@@ -225,18 +223,16 @@ namespace OpenSim.Region.Environment.Modules
                 }
             }
             return null;
-       }
+        }
+    }
 
-
-   }
-
-   //
-   // HTTP REAQUEST
-   // This class was originally in LSLLongCmdHandler
-   //
-   // TODO: setter/getter methods, maybe pass some in
-   // constructor
-   //
+    //
+    // HTTP REAQUEST
+    // This class was originally in LSLLongCmdHandler
+    //
+    // TODO: setter/getter methods, maybe pass some in
+    // constructor
+    //
 
     public class HttpRequestClass
     {
@@ -280,9 +276,9 @@ namespace OpenSim.Region.Environment.Modules
          * TODO: More work on the response codes.  Right now
          * returning 200 for success or 499 for exception
          */
+
         public void SendRequest()
         {
-
             HttpWebResponse response = null;
             StringBuilder sb = new StringBuilder();
             byte[] buf = new byte[8192];
@@ -292,14 +288,14 @@ namespace OpenSim.Region.Environment.Modules
             try
             {
                 request = (HttpWebRequest)
-                    WebRequest.Create(url);
+                          WebRequest.Create(url);
                 request.Method = httpMethod;
                 request.ContentType = httpMIMEType;
 
                 request.Timeout = httpTimeout;
                 // execute the request
                 response = (HttpWebResponse)
-                    request.GetResponse();
+                           request.GetResponse();
 
                 Stream resStream = response.GetResponseStream();
 
@@ -317,11 +313,9 @@ namespace OpenSim.Region.Environment.Modules
                         // continue building the string
                         sb.Append(tempString);
                     }
-                }
-                while (count > 0); // any more data to read?
+                } while (count > 0); // any more data to read?
 
                 response_body = sb.ToString();
-
             }
             catch (Exception e)
             {
@@ -333,7 +327,6 @@ namespace OpenSim.Region.Environment.Modules
 
             status = 200;
             finished = true;
-
         }
 
         public void Stop()
@@ -342,8 +335,9 @@ namespace OpenSim.Region.Environment.Modules
             {
                 httpThread.Abort();
             }
-            catch (Exception) { }
+            catch (Exception)
+            {
+            }
         }
     }
-
- }
+}

@@ -28,17 +28,16 @@
 
 using System;
 using System.Collections.Generic;
-using System.Text;
-using System.Xml;
 using System.IO;
-using libsecondlife;
+using System.Xml;
 using Axiom.Math;
+using libsecondlife;
 using OpenSim.Framework;
 using OpenSim.Region.Physics.Manager;
 
 namespace OpenSim.Region.Environment.Scenes
 {
-    public class SceneXmlLoader  // can move to a module?
+    public class SceneXmlLoader // can move to a module?
     {
         protected InnerScene m_innerScene;
         protected RegionInfo m_regInfo;
@@ -78,8 +77,9 @@ namespace OpenSim.Region.Environment.Scenes
                     SceneObjectPart rootPart = obj.GetChildPart(obj.UUID);
                     // Apply loadOffsets for load/import and move combinations
                     rootPart.GroupPosition = rootPart.AbsolutePosition + loadOffset;
-                    bool UsePhysics = (((rootPart.ObjectFlags & (uint)LLObject.ObjectFlags.Physics) > 0) && m_parentScene.m_physicalPrim);
-                    if ((rootPart.ObjectFlags & (uint)LLObject.ObjectFlags.Phantom) == 0)
+                    bool UsePhysics = (((rootPart.ObjectFlags & (uint) LLObject.ObjectFlags.Physics) > 0) &&
+                                       m_parentScene.m_physicalPrim);
+                    if ((rootPart.ObjectFlags & (uint) LLObject.ObjectFlags.Phantom) == 0)
                     {
                         rootPart.PhysActor = m_innerScene.PhysicsScene.AddPrimShape(
                             rootPart.Name,
@@ -91,7 +91,6 @@ namespace OpenSim.Region.Environment.Scenes
                             new Quaternion(rootPart.RotationOffset.W, rootPart.RotationOffset.X,
                                            rootPart.RotationOffset.Y, rootPart.RotationOffset.Z), UsePhysics);
                         rootPart.DoPhysicsPropertyUpdate(UsePhysics, true);
-                        
                     }
                     primCount++;
                 }
@@ -115,7 +114,7 @@ namespace OpenSim.Region.Environment.Scenes
             {
                 if (ent is SceneObjectGroup)
                 {
-                    stream.WriteLine(((SceneObjectGroup)ent).ToXmlString());
+                    stream.WriteLine(((SceneObjectGroup) ent).ToXmlString());
                     primCount++;
                 }
             }
@@ -152,8 +151,9 @@ namespace OpenSim.Region.Environment.Scenes
             m_innerScene.AddEntityFromStorage(obj);
 
             SceneObjectPart rootPart = obj.GetChildPart(obj.UUID);
-            bool UsePhysics = (((rootPart.ObjectFlags & (uint)LLObject.ObjectFlags.Physics) > 0) && m_parentScene.m_physicalPrim);
-            if ((rootPart.ObjectFlags & (uint)LLObject.ObjectFlags.Phantom) == 0)
+            bool UsePhysics = (((rootPart.ObjectFlags & (uint) LLObject.ObjectFlags.Physics) > 0) &&
+                               m_parentScene.m_physicalPrim);
+            if ((rootPart.ObjectFlags & (uint) LLObject.ObjectFlags.Phantom) == 0)
             {
                 rootPart.PhysActor = m_innerScene.PhysicsScene.AddPrimShape(
                     rootPart.Name,
@@ -180,7 +180,7 @@ namespace OpenSim.Region.Environment.Scenes
             {
                 if (ent is SceneObjectGroup)
                 {
-                    stream.WriteLine(((SceneObjectGroup)ent).ToXmlString2());
+                    stream.WriteLine(((SceneObjectGroup) ent).ToXmlString2());
                     primCount++;
                 }
             }
@@ -188,6 +188,5 @@ namespace OpenSim.Region.Environment.Scenes
             stream.Close();
             file.Close();
         }
-
     }
 }

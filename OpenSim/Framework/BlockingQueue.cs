@@ -34,7 +34,7 @@ namespace OpenSim.Framework
     {
         private Queue<T> _queue = new Queue<T>();
         private object _queueSync = new object();
-        
+
         public void Enqueue(T value)
         {
             lock (_queueSync)

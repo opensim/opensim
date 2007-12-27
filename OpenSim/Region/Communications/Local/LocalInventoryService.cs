@@ -82,14 +82,14 @@ namespace OpenSim.Region.Communications.Local
         {
             DeleteItem(item);
         }
-        
+
         /// <summary>
         /// Send the given inventory folder and its item contents back to the requester.
         /// </summary>
         /// <param name="userID"></param>
         /// <param name="folder"></param>
         private InventoryFolderImpl RequestInventoryFolder(LLUUID userID, InventoryFolderBase folder,
-                                                           InventoryFolderInfo folderCallBack, 
+                                                           InventoryFolderInfo folderCallBack,
                                                            InventoryItemInfo itemCallBack)
         {
             InventoryFolderImpl newFolder = new InventoryFolderImpl(folder);
@@ -99,8 +99,8 @@ namespace OpenSim.Region.Communications.Local
             foreach (InventoryItemBase item in items)
             {
                 itemCallBack(userID, item);
-            }   
-            
+            }
+
             return newFolder;
         }
     }

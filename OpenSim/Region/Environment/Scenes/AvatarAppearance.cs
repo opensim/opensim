@@ -1,4 +1,4 @@
-﻿/*
+/*
 * Copyright (c) Contributors, http://opensimulator.org/
 * See CONTRIBUTORS.TXT for a full list of copyright holders.
 *
@@ -26,15 +26,9 @@
 * 
 */
 
-using System;
-using System.Collections.Generic;
-using System.Text;
 using libsecondlife;
 using libsecondlife.Packets;
 using OpenSim.Framework;
-using OpenSim.Framework.Console;
-using OpenSim.Framework.Communications;
-using OpenSim.Region.Environment.Types;
 
 namespace OpenSim.Region.Environment.Scenes
 {
@@ -106,8 +100,8 @@ namespace OpenSim.Region.Environment.Scenes
             // Teravus : Nifty AV Height Getting Maaaaagical formula.  Oh how we love turning 0-255 into meters.
             // (float)m_visualParams[25] = Height
             // (float)m_visualParams[125] = LegLength
-           m_avatarHeight = (1.50856f + (((float)m_visualParams[25] / 255.0f) * (2.525506f - 1.50856f)))
-               + (((float)m_visualParams[125] / 255.0f) / 1.5f);
+            m_avatarHeight = (1.50856f + (((float) m_visualParams[25]/255.0f)*(2.525506f - 1.50856f)))
+                             + (((float) m_visualParams[125]/255.0f)/1.5f);
         }
 
         /// <summary>

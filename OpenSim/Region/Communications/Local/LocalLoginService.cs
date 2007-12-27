@@ -73,7 +73,7 @@ namespace OpenSim.Region.Communications.Local
             if (!authUsers)
             {
                 //no current user account so make one
-                MainLog.Instance.Notice("LOGIN", "No user account found so creating a new one.");                
+                MainLog.Instance.Notice("LOGIN", "No user account found so creating a new one.");
 
                 m_userManager.AddUserProfile(firstname, lastname, "test", defaultHomeX, defaultHomeY);
 
@@ -93,14 +93,14 @@ namespace OpenSim.Region.Communications.Local
             if (!authUsers)
             {
                 //for now we will accept any password in sandbox mode
-                MainLog.Instance.Notice("LOGIN", "Authorising user (no actual password check)"); 
-                
+                MainLog.Instance.Notice("LOGIN", "Authorising user (no actual password check)");
+
                 return true;
             }
             else
             {
                 MainLog.Instance.Notice(
-                    "LOGIN", "Authenticating " + profile.username + " " + profile.surname);                 
+                    "LOGIN", "Authenticating " + profile.username + " " + profile.surname);
 
                 password = password.Remove(0, 3); //remove $1$
 
@@ -134,7 +134,7 @@ namespace OpenSim.Region.Communications.Local
                 // response.SeedCapability = "http://" + reg.ExternalHostName + ":" + this.serversInfo.HttpListenerPort.ToString() + "/CapsSeed/" + capsPath + "0000/";
                 theUser.currentAgent.currentRegion = reg.RegionID;
                 theUser.currentAgent.currentHandle = reg.RegionHandle;
-                
+
                 LoginResponse.BuddyList buddyList = new LoginResponse.BuddyList();
                 buddyList.AddNewBuddy(new LoginResponse.BuddyList.BuddyInfo("11111111-1111-0000-0000-000100bba000"));
                 response.BuddList = buddyList;
@@ -157,7 +157,7 @@ namespace OpenSim.Region.Communications.Local
             }
             else
             {
-                MainLog.Instance.Warn("LOGIN", "Not found region " + currentRegion);              
+                MainLog.Instance.Warn("LOGIN", "Not found region " + currentRegion);
             }
         }
 

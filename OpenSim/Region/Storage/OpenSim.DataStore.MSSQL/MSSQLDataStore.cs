@@ -33,8 +33,8 @@ using System.Data.SqlClient;
 using System.IO;
 using libsecondlife;
 using OpenSim.Framework;
-using OpenSim.Framework.Data;
 using OpenSim.Framework.Console;
+using OpenSim.Framework.Data;
 using OpenSim.Region.Environment.Interfaces;
 using OpenSim.Region.Environment.LandManagement;
 using OpenSim.Region.Environment.Scenes;
@@ -62,7 +62,9 @@ namespace OpenSim.DataStore.MSSQL
             string settingUserId = GridDataMySqlFile.ParseFileReadValue("user_id");
             string settingPassword = GridDataMySqlFile.ParseFileReadValue("password");
 
-            string connectionString = "Data Source=" + settingDataSource + ";Initial Catalog=" + settingInitialCatalog + ";Persist Security Info=" + settingPersistSecurityInfo + ";User ID=" + settingUserId + ";Password=" + settingPassword + ";"; 
+            string connectionString = "Data Source=" + settingDataSource + ";Initial Catalog=" + settingInitialCatalog +
+                                      ";Persist Security Info=" + settingPersistSecurityInfo + ";User ID=" +
+                                      settingUserId + ";Password=" + settingPassword + ";";
 
             ds = new DataSet();
 
@@ -85,11 +87,12 @@ namespace OpenSim.DataStore.MSSQL
             // primDa.FillSchema(ds, SchemaType.Source, "PrimSchema");
             TestTables(conn);
 
-            lock(ds) {
+            lock (ds)
+            {
                 ds.Tables.Add(createPrimTable());
                 setupPrimCommands(primDa, conn);
                 primDa.Fill(ds.Tables["prims"]);
-                
+
                 ds.Tables.Add(createShapeTable());
                 setupShapeCommands(shapeDa, conn);
 
@@ -122,7 +125,8 @@ namespace OpenSim.DataStore.MSSQL
 
         public void StoreObject(SceneObjectGroup obj, LLUUID regionUUID)
         {
-            lock (ds) {
+            lock (ds)
+            {
                 foreach (SceneObjectPart prim in obj.Children.Values)
                 {
                     MainLog.Instance.Verbose("DATASTORE", "Adding obj: " + obj.UUID + " to region: " + regionUUID);
@@ -140,11 +144,12 @@ namespace OpenSim.DataStore.MSSQL
             DataTable shapes = ds.Tables["primshapes"];
 
             string selectExp = "SceneGroupID = '" + obj.ToString() + "'";
-            lock (ds) {
+            lock (ds)
+            {
                 DataRow[] primRows = prims.Select(selectExp);
                 foreach (DataRow row in primRows)
                 {
-                    LLUUID uuid = new LLUUID((string)row["UUID"]);
+                    LLUUID uuid = new LLUUID((string) row["UUID"]);
                     DataRow shapeRow = shapes.Rows.Find(uuid);
                     if (shapeRow != null)
                     {
@@ -153,7 +158,7 @@ namespace OpenSim.DataStore.MSSQL
                     row.Delete();
                 }
             }
-            
+
             Commit();
         }
 
@@ -169,16 +174,18 @@ namespace OpenSim.DataStore.MSSQL
             string byRegion = "RegionUUID = '" + regionUUID.ToString() + "'";
             string orderByParent = "ParentID ASC";
 
-            lock (ds) {
+            lock (ds)
+            {
                 DataRow[] primsForRegion = prims.Select(byRegion, orderByParent);
-                MainLog.Instance.Verbose("DATASTORE", "Loaded " + primsForRegion.Length + " prims for region: " + regionUUID);
-                
+                MainLog.Instance.Verbose("DATASTORE",
+                                         "Loaded " + primsForRegion.Length + " prims for region: " + regionUUID);
+
                 foreach (DataRow primRow in primsForRegion)
                 {
                     try
                     {
-                        string uuid = (string)primRow["UUID"];
-                        string objID = (string)primRow["SceneGroupID"];
+                        string uuid = (string) primRow["UUID"];
+                        string objID = (string) primRow["SceneGroupID"];
                         if (uuid == objID) //is new SceneObjectGroup ?
                         {
                             SceneObjectGroup group = new SceneObjectGroup();
@@ -190,12 +197,13 @@ namespace OpenSim.DataStore.MSSQL
                             }
                             else
                             {
-                                MainLog.Instance.Notice("No shape found for prim in storage, so setting default box shape");
+                                MainLog.Instance.Notice(
+                                    "No shape found for prim in storage, so setting default box shape");
                                 prim.Shape = BoxShape.Default;
-                            } 
+                            }
                             group.AddPart(prim);
                             group.RootPart = prim;
-                            
+
                             createdObjects.Add(group.UUID, group);
                             retvals.Add(group);
                         }
@@ -209,7 +217,8 @@ namespace OpenSim.DataStore.MSSQL
                             }
                             else
                             {
-                                MainLog.Instance.Notice("No shape found for prim in storage, so setting default box shape");
+                                MainLog.Instance.Notice(
+                                    "No shape found for prim in storage, so setting default box shape");
                                 prim.Shape = BoxShape.Default;
                             }
                             createdObjects[new LLUUID(objID)].AddPart(prim);
@@ -249,7 +258,7 @@ namespace OpenSim.DataStore.MSSQL
 
         public double[,] LoadTerrain(LLUUID regionID)
         {
-            double[,] terret = new double[256, 256];
+            double[,] terret = new double[256,256];
             terret.Initialize();
 
             DataTable terrain = ds.Tables["terrain"];
@@ -264,16 +273,16 @@ namespace OpenSim.DataStore.MSSQL
                 {
                     DataRow row = rows[0];
 
-                    byte[] heightmap = (byte[])row["Heightfield"];
+                    byte[] heightmap = (byte[]) row["Heightfield"];
                     for (int x = 0; x < 256; x++)
                     {
                         for (int y = 0; y < 256; y++)
                         {
-                            terret[x, y] = BitConverter.ToDouble(heightmap, ((x * 256) + y) * 8);
+                            terret[x, y] = BitConverter.ToDouble(heightmap, ((x*256) + y)*8);
                         }
                     }
 
-                    rev = (int)row["Revision"];
+                    rev = (int) row["Revision"];
                 }
                 else
                 {
@@ -290,22 +299,21 @@ namespace OpenSim.DataStore.MSSQL
 
         public void RemoveLandObject(LLUUID globalID)
         {
-
         }
 
         public void StoreLandObject(Land parcel, LLUUID regionUUID)
         {
-
         }
 
-        public List<Framework.LandData> LoadLandObjects(LLUUID regionUUID)
+        public List<LandData> LoadLandObjects(LLUUID regionUUID)
         {
             return new List<LandData>();
         }
 
         public void Commit()
         {
-            lock (ds) {
+            lock (ds)
+            {
                 primDa.Update(ds, "prims");
                 shapeDa.Update(ds, "primshapes");
                 terrainDa.Update(ds, "terrain");
@@ -326,7 +334,7 @@ namespace OpenSim.DataStore.MSSQL
          *
          **********************************************************************/
 
-        private void createCol(DataTable dt, string name, System.Type type)
+        private void createCol(DataTable dt, string name, Type type)
         {
             DataColumn col = new DataColumn(name, type);
             dt.Columns.Add(col);
@@ -336,9 +344,9 @@ namespace OpenSim.DataStore.MSSQL
         {
             DataTable terrain = new DataTable("terrain");
 
-            createCol(terrain, "RegionUUID", typeof(String));
-            createCol(terrain, "Revision", typeof(Int32));
-            createCol(terrain, "Heightfield", typeof(Byte[]));
+            createCol(terrain, "RegionUUID", typeof (String));
+            createCol(terrain, "Revision", typeof (Int32));
+            createCol(terrain, "Heightfield", typeof (Byte[]));
 
             return terrain;
         }
@@ -347,62 +355,62 @@ namespace OpenSim.DataStore.MSSQL
         {
             DataTable prims = new DataTable("prims");
 
-            createCol(prims, "UUID", typeof(System.String));
-            createCol(prims, "RegionUUID", typeof(System.String));
-            createCol(prims, "ParentID", typeof(System.Int32));
-            createCol(prims, "CreationDate", typeof(System.Int32));
-            createCol(prims, "Name", typeof(System.String));
-            createCol(prims, "SceneGroupID", typeof(System.String));
+            createCol(prims, "UUID", typeof (String));
+            createCol(prims, "RegionUUID", typeof (String));
+            createCol(prims, "ParentID", typeof (Int32));
+            createCol(prims, "CreationDate", typeof (Int32));
+            createCol(prims, "Name", typeof (String));
+            createCol(prims, "SceneGroupID", typeof (String));
             // various text fields
-            createCol(prims, "Text", typeof(System.String));
-            createCol(prims, "Description", typeof(System.String));
-            createCol(prims, "SitName", typeof(System.String));
-            createCol(prims, "TouchName", typeof(System.String));
+            createCol(prims, "Text", typeof (String));
+            createCol(prims, "Description", typeof (String));
+            createCol(prims, "SitName", typeof (String));
+            createCol(prims, "TouchName", typeof (String));
             // permissions
-            createCol(prims, "ObjectFlags", typeof(System.Int32));
-            createCol(prims, "CreatorID", typeof(System.String));
-            createCol(prims, "OwnerID", typeof(System.String));
-            createCol(prims, "GroupID", typeof(System.String));
-            createCol(prims, "LastOwnerID", typeof(System.String));
-            createCol(prims, "OwnerMask", typeof(System.Int32));
-            createCol(prims, "NextOwnerMask", typeof(System.Int32));
-            createCol(prims, "GroupMask", typeof(System.Int32));
-            createCol(prims, "EveryoneMask", typeof(System.Int32));
-            createCol(prims, "BaseMask", typeof(System.Int32));
+            createCol(prims, "ObjectFlags", typeof (Int32));
+            createCol(prims, "CreatorID", typeof (String));
+            createCol(prims, "OwnerID", typeof (String));
+            createCol(prims, "GroupID", typeof (String));
+            createCol(prims, "LastOwnerID", typeof (String));
+            createCol(prims, "OwnerMask", typeof (Int32));
+            createCol(prims, "NextOwnerMask", typeof (Int32));
+            createCol(prims, "GroupMask", typeof (Int32));
+            createCol(prims, "EveryoneMask", typeof (Int32));
+            createCol(prims, "BaseMask", typeof (Int32));
             // vectors
-            createCol(prims, "PositionX", typeof(System.Double));
-            createCol(prims, "PositionY", typeof(System.Double));
-            createCol(prims, "PositionZ", typeof(System.Double));
-            createCol(prims, "GroupPositionX", typeof(System.Double));
-            createCol(prims, "GroupPositionY", typeof(System.Double));
-            createCol(prims, "GroupPositionZ", typeof(System.Double));
-            createCol(prims, "VelocityX", typeof(System.Double));
-            createCol(prims, "VelocityY", typeof(System.Double));
-            createCol(prims, "VelocityZ", typeof(System.Double));
-            createCol(prims, "AngularVelocityX", typeof(System.Double));
-            createCol(prims, "AngularVelocityY", typeof(System.Double));
-            createCol(prims, "AngularVelocityZ", typeof(System.Double));
-            createCol(prims, "AccelerationX", typeof(System.Double));
-            createCol(prims, "AccelerationY", typeof(System.Double));
-            createCol(prims, "AccelerationZ", typeof(System.Double));
+            createCol(prims, "PositionX", typeof (Double));
+            createCol(prims, "PositionY", typeof (Double));
+            createCol(prims, "PositionZ", typeof (Double));
+            createCol(prims, "GroupPositionX", typeof (Double));
+            createCol(prims, "GroupPositionY", typeof (Double));
+            createCol(prims, "GroupPositionZ", typeof (Double));
+            createCol(prims, "VelocityX", typeof (Double));
+            createCol(prims, "VelocityY", typeof (Double));
+            createCol(prims, "VelocityZ", typeof (Double));
+            createCol(prims, "AngularVelocityX", typeof (Double));
+            createCol(prims, "AngularVelocityY", typeof (Double));
+            createCol(prims, "AngularVelocityZ", typeof (Double));
+            createCol(prims, "AccelerationX", typeof (Double));
+            createCol(prims, "AccelerationY", typeof (Double));
+            createCol(prims, "AccelerationZ", typeof (Double));
             // quaternions
-            createCol(prims, "RotationX", typeof(System.Double));
-            createCol(prims, "RotationY", typeof(System.Double));
-            createCol(prims, "RotationZ", typeof(System.Double));
-            createCol(prims, "RotationW", typeof(System.Double));
+            createCol(prims, "RotationX", typeof (Double));
+            createCol(prims, "RotationY", typeof (Double));
+            createCol(prims, "RotationZ", typeof (Double));
+            createCol(prims, "RotationW", typeof (Double));
 
             // sit target
-            createCol(prims, "SitTargetOffsetX", typeof(System.Double));
-            createCol(prims, "SitTargetOffsetY", typeof(System.Double));
-            createCol(prims, "SitTargetOffsetZ", typeof(System.Double));
+            createCol(prims, "SitTargetOffsetX", typeof (Double));
+            createCol(prims, "SitTargetOffsetY", typeof (Double));
+            createCol(prims, "SitTargetOffsetZ", typeof (Double));
 
-            createCol(prims, "SitTargetOrientW", typeof(System.Double));
-            createCol(prims, "SitTargetOrientX", typeof(System.Double));
-            createCol(prims, "SitTargetOrientY", typeof(System.Double));
-            createCol(prims, "SitTargetOrientZ", typeof(System.Double));
+            createCol(prims, "SitTargetOrientW", typeof (Double));
+            createCol(prims, "SitTargetOrientX", typeof (Double));
+            createCol(prims, "SitTargetOrientY", typeof (Double));
+            createCol(prims, "SitTargetOrientZ", typeof (Double));
 
             // Add in contraints
-            prims.PrimaryKey = new DataColumn[] { prims.Columns["UUID"] };
+            prims.PrimaryKey = new DataColumn[] {prims.Columns["UUID"]};
 
             return prims;
         }
@@ -410,40 +418,40 @@ namespace OpenSim.DataStore.MSSQL
         private DataTable createShapeTable()
         {
             DataTable shapes = new DataTable("primshapes");
-            createCol(shapes, "UUID", typeof(System.String));
+            createCol(shapes, "UUID", typeof (String));
             // shape is an enum
-            createCol(shapes, "Shape", typeof(System.Int32));
+            createCol(shapes, "Shape", typeof (Int32));
             // vectors
-            createCol(shapes, "ScaleX", typeof(System.Double));
-            createCol(shapes, "ScaleY", typeof(System.Double));
-            createCol(shapes, "ScaleZ", typeof(System.Double));
+            createCol(shapes, "ScaleX", typeof (Double));
+            createCol(shapes, "ScaleY", typeof (Double));
+            createCol(shapes, "ScaleZ", typeof (Double));
             // paths
-            createCol(shapes, "PCode", typeof(System.Int32));
-            createCol(shapes, "PathBegin", typeof(System.Int32));
-            createCol(shapes, "PathEnd", typeof(System.Int32));
-            createCol(shapes, "PathScaleX", typeof(System.Int32));
-            createCol(shapes, "PathScaleY", typeof(System.Int32));
-            createCol(shapes, "PathShearX", typeof(System.Int32));
-            createCol(shapes, "PathShearY", typeof(System.Int32));
-            createCol(shapes, "PathSkew", typeof(System.Int32));
-            createCol(shapes, "PathCurve", typeof(System.Int32));
-            createCol(shapes, "PathRadiusOffset", typeof(System.Int32));
-            createCol(shapes, "PathRevolutions", typeof(System.Int32));
-            createCol(shapes, "PathTaperX", typeof(System.Int32));
-            createCol(shapes, "PathTaperY", typeof(System.Int32));
-            createCol(shapes, "PathTwist", typeof(System.Int32));
-            createCol(shapes, "PathTwistBegin", typeof(System.Int32));
+            createCol(shapes, "PCode", typeof (Int32));
+            createCol(shapes, "PathBegin", typeof (Int32));
+            createCol(shapes, "PathEnd", typeof (Int32));
+            createCol(shapes, "PathScaleX", typeof (Int32));
+            createCol(shapes, "PathScaleY", typeof (Int32));
+            createCol(shapes, "PathShearX", typeof (Int32));
+            createCol(shapes, "PathShearY", typeof (Int32));
+            createCol(shapes, "PathSkew", typeof (Int32));
+            createCol(shapes, "PathCurve", typeof (Int32));
+            createCol(shapes, "PathRadiusOffset", typeof (Int32));
+            createCol(shapes, "PathRevolutions", typeof (Int32));
+            createCol(shapes, "PathTaperX", typeof (Int32));
+            createCol(shapes, "PathTaperY", typeof (Int32));
+            createCol(shapes, "PathTwist", typeof (Int32));
+            createCol(shapes, "PathTwistBegin", typeof (Int32));
             // profile
-            createCol(shapes, "ProfileBegin", typeof(System.Int32));
-            createCol(shapes, "ProfileEnd", typeof(System.Int32));
-            createCol(shapes, "ProfileCurve", typeof(System.Int32));
-            createCol(shapes, "ProfileHollow", typeof(System.Int32));
+            createCol(shapes, "ProfileBegin", typeof (Int32));
+            createCol(shapes, "ProfileEnd", typeof (Int32));
+            createCol(shapes, "ProfileCurve", typeof (Int32));
+            createCol(shapes, "ProfileHollow", typeof (Int32));
             // text TODO: this isn't right, but I'm not sure the right
             // way to specify this as a blob atm
-            createCol(shapes, "Texture", typeof(System.Byte[]));
-            createCol(shapes, "ExtraParams", typeof(System.Byte[]));
+            createCol(shapes, "Texture", typeof (Byte[]));
+            createCol(shapes, "ExtraParams", typeof (Byte[]));
 
-            shapes.PrimaryKey = new DataColumn[] { shapes.Columns["UUID"] };
+            shapes.PrimaryKey = new DataColumn[] {shapes.Columns["UUID"]};
 
             return shapes;
         }
@@ -462,23 +470,23 @@ namespace OpenSim.DataStore.MSSQL
             // interesting has to be done to actually get these values
             // back out.  Not enough time to figure it out yet.
             SceneObjectPart prim = new SceneObjectPart();
-            prim.UUID = new LLUUID((String)row["UUID"]);
+            prim.UUID = new LLUUID((String) row["UUID"]);
             // explicit conversion of integers is required, which sort
             // of sucks.  No idea if there is a shortcut here or not.
             prim.ParentID = Convert.ToUInt32(row["ParentID"]);
             prim.CreationDate = Convert.ToInt32(row["CreationDate"]);
-            prim.Name = (String)row["Name"];
+            prim.Name = (String) row["Name"];
             // various text fields
-            prim.Text = (String)row["Text"];
-            prim.Description = (String)row["Description"];
-            prim.SitName = (String)row["SitName"];
-            prim.TouchName = (String)row["TouchName"];
+            prim.Text = (String) row["Text"];
+            prim.Description = (String) row["Description"];
+            prim.SitName = (String) row["SitName"];
+            prim.TouchName = (String) row["TouchName"];
             // permissions
             prim.ObjectFlags = Convert.ToUInt32(row["ObjectFlags"]);
-            prim.CreatorID = new LLUUID((String)row["CreatorID"]);
-            prim.OwnerID = new LLUUID((String)row["OwnerID"]);
-            prim.GroupID = new LLUUID((String)row["GroupID"]);
-            prim.LastOwnerID = new LLUUID((String)row["LastOwnerID"]);
+            prim.CreatorID = new LLUUID((String) row["CreatorID"]);
+            prim.OwnerID = new LLUUID((String) row["OwnerID"]);
+            prim.GroupID = new LLUUID((String) row["GroupID"]);
+            prim.LastOwnerID = new LLUUID((String) row["LastOwnerID"]);
             prim.OwnerMask = Convert.ToUInt32(row["OwnerMask"]);
             prim.NextOwnerMask = Convert.ToUInt32(row["NextOwnerMask"]);
             prim.GroupMask = Convert.ToUInt32(row["GroupMask"]);
@@ -521,15 +529,19 @@ namespace OpenSim.DataStore.MSSQL
             try
             {
                 prim.SetSitTargetLL(new LLVector3(
-                    Convert.ToSingle(row["SitTargetOffsetX"]),
-                    Convert.ToSingle(row["SitTargetOffsetY"]),
-                    Convert.ToSingle(row["SitTargetOffsetZ"])), new LLQuaternion(
-                    Convert.ToSingle(row["SitTargetOrientX"]),
-                    Convert.ToSingle(row["SitTargetOrientY"]),
-                    Convert.ToSingle(row["SitTargetOrientZ"]),
-                    Convert.ToSingle(row["SitTargetOrientW"])));
+                                        Convert.ToSingle(row["SitTargetOffsetX"]),
+                                        Convert.ToSingle(row["SitTargetOffsetY"]),
+                                        Convert.ToSingle(row["SitTargetOffsetZ"])), new LLQuaternion(
+                                                                                        Convert.ToSingle(
+                                                                                            row["SitTargetOrientX"]),
+                                                                                        Convert.ToSingle(
+                                                                                            row["SitTargetOrientY"]),
+                                                                                        Convert.ToSingle(
+                                                                                            row["SitTargetOrientZ"]),
+                                                                                        Convert.ToSingle(
+                                                                                            row["SitTargetOrientW"])));
             }
-            catch (System.InvalidCastException)
+            catch (InvalidCastException)
             {
                 // Database table was created before we got here and now has null values :P
             }
@@ -598,11 +610,10 @@ namespace OpenSim.DataStore.MSSQL
                 row["SitTargetOrientY"] = sitTargetOrient.Y;
                 row["SitTargetOrientZ"] = sitTargetOrient.Z;
             }
-            catch (System.Exception)
+            catch (Exception)
             {
                 // TODO: Add Sit Target Rows!
             }
-
         }
 
         private PrimitiveBaseShape buildShape(DataRow row)
@@ -634,14 +645,14 @@ namespace OpenSim.DataStore.MSSQL
             s.ProfileEnd = Convert.ToUInt16(row["ProfileEnd"]);
             s.ProfileCurve = Convert.ToByte(row["ProfileCurve"]);
             s.ProfileHollow = Convert.ToUInt16(row["ProfileHollow"]);
-          
+
             // text TODO: this isn't right] = but I'm not sure the right
             // way to specify this as a blob atm          
-            byte[] textureEntry = (byte[])row["Texture"];
+            byte[] textureEntry = (byte[]) row["Texture"];
             s.TextureEntry = textureEntry;
-          
 
-            s.ExtraParams = (byte[])row["ExtraParams"];
+
+            s.ExtraParams = (byte[]) row["ExtraParams"];
             // System.Text.ASCIIEncoding encoding = new System.Text.ASCIIEncoding();
             //             string texture = encoding.GetString((Byte[])row["Texture"]);
             //             if (!texture.StartsWith("<"))
@@ -774,7 +785,7 @@ namespace OpenSim.DataStore.MSSQL
             sql += ") values (@";
             sql += String.Join(", @", cols);
             sql += ")";
-            SqlCommand cmd = new SqlCommand(sql);            
+            SqlCommand cmd = new SqlCommand(sql);
             // this provides the binding for all our parameters, so
             // much less code than it used to be
             foreach (DataColumn col in dt.Columns)
@@ -791,14 +802,15 @@ namespace OpenSim.DataStore.MSSQL
             foreach (DataColumn col in dt.Columns)
             {
                 if (subsql.Length > 0)
-                { // a map function would rock so much here
+                {
+                    // a map function would rock so much here
                     subsql += ", ";
                 }
                 subsql += col.ColumnName + "= @" + col.ColumnName;
             }
             sql += subsql;
             sql += " where " + pk;
-            SqlCommand cmd = new SqlCommand(sql);            
+            SqlCommand cmd = new SqlCommand(sql);
             // this provides the binding for all our parameters, so
             // much less code than it used to be
 
@@ -817,7 +829,8 @@ namespace OpenSim.DataStore.MSSQL
             foreach (DataColumn col in dt.Columns)
             {
                 if (subsql.Length > 0)
-                { // a map function would rock so much here
+                {
+                    // a map function would rock so much here
                     subsql += ",\n";
                 }
                 subsql += col.ColumnName + " " + SqlType(col.DataType);
@@ -828,7 +841,7 @@ namespace OpenSim.DataStore.MSSQL
             }
             sql += subsql;
             sql += ")";
-            
+
             return sql;
         }
 
@@ -837,7 +850,7 @@ namespace OpenSim.DataStore.MSSQL
             row["RegionUUID"] = regionUUID;
             row["Revision"] = rev;
 
-            MemoryStream str = new MemoryStream(65536 * sizeof(double));
+            MemoryStream str = new MemoryStream(65536*sizeof (double));
             BinaryWriter bw = new BinaryWriter(str);
 
             // TODO: COMPATIBILITY - Add byte-order conversions
@@ -868,7 +881,7 @@ namespace OpenSim.DataStore.MSSQL
         /// for us.
         ///</summary>
         ///<returns>a built Sql parameter</returns>
-        private SqlParameter createSqlParameter(string name, System.Type type)
+        private SqlParameter createSqlParameter(string name, Type type)
         {
             SqlParameter param = new SqlParameter();
             param.ParameterName = "@" + name;
@@ -887,7 +900,7 @@ namespace OpenSim.DataStore.MSSQL
             da.UpdateCommand.Connection = conn;
 
             SqlCommand delete = new SqlCommand("delete from prims where UUID = @UUID");
-            delete.Parameters.Add(createSqlParameter("UUID", typeof(System.String)));
+            delete.Parameters.Add(createSqlParameter("UUID", typeof (String)));
             delete.Connection = conn;
             da.DeleteCommand = delete;
         }
@@ -901,7 +914,7 @@ namespace OpenSim.DataStore.MSSQL
             da.UpdateCommand.Connection = conn;
 
             SqlCommand delete = new SqlCommand("delete from primshapes where UUID = @UUID");
-            delete.Parameters.Add(createSqlParameter("UUID", typeof(System.String)));
+            delete.Parameters.Add(createSqlParameter("UUID", typeof (String)));
             delete.Connection = conn;
             da.DeleteCommand = delete;
         }
@@ -957,14 +970,13 @@ namespace OpenSim.DataStore.MSSQL
 
         private bool TestTables(SqlConnection conn)
         {
-            
             SqlCommand primSelectCmd = new SqlCommand(primSelect, conn);
             SqlDataAdapter pDa = new SqlDataAdapter(primSelectCmd);
             SqlCommand shapeSelectCmd = new SqlCommand(shapeSelect, conn);
             SqlDataAdapter sDa = new SqlDataAdapter(shapeSelectCmd);
             SqlCommand terrainSelectCmd = new SqlCommand(terrainSelect, conn);
             SqlDataAdapter tDa = new SqlDataAdapter(terrainSelectCmd);
-            
+
             DataSet tmpDS = new DataSet();
             try
             {
@@ -978,7 +990,7 @@ namespace OpenSim.DataStore.MSSQL
                 InitDB(conn);
             }
 
-             try
+            try
             {
                 if (tmpDS.Tables == null || tmpDS.Tables.Count == 0)
                 {
@@ -986,11 +998,10 @@ namespace OpenSim.DataStore.MSSQL
                     sDa.Fill(tmpDS, "primshapes");
                     tDa.Fill(tmpDS, "terrain");
                 }
-
             }
             catch (SqlException e)
             {
-                MainLog.Instance.Verbose("DATASTORE", e.ToString());               
+                MainLog.Instance.Verbose("DATASTORE", e.ToString());
             }
 
             foreach (DataColumn col in createPrimTable().Columns)
@@ -1028,19 +1039,19 @@ namespace OpenSim.DataStore.MSSQL
 
         private DbType dbtypeFromType(Type type)
         {
-            if (type == typeof(System.String))
+            if (type == typeof (String))
             {
                 return DbType.String;
             }
-            else if (type == typeof(System.Int32))
+            else if (type == typeof (Int32))
             {
                 return DbType.Int32;
             }
-            else if (type == typeof(System.Double))
+            else if (type == typeof (Double))
             {
                 return DbType.Double;
             }
-            else if (type == typeof(System.Byte[]))
+            else if (type == typeof (Byte[]))
             {
                 return DbType.Binary;
             }
@@ -1054,19 +1065,19 @@ namespace OpenSim.DataStore.MSSQL
         // slightly differently.
         private string SqlType(Type type)
         {
-            if (type == typeof(System.String))
+            if (type == typeof (String))
             {
                 return "varchar(255)";
             }
-            else if (type == typeof(System.Int32))
+            else if (type == typeof (Int32))
             {
                 return "integer";
             }
-            else if (type == typeof(System.Double))
+            else if (type == typeof (Double))
             {
                 return "float";
             }
-            else if (type == typeof(System.Byte[]))
+            else if (type == typeof (Byte[]))
             {
                 return "image";
             }

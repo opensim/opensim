@@ -27,7 +27,6 @@
 */
 
 using libsecondlife;
-using libsecondlife.Packets;
 using OpenSim.Framework;
 
 namespace OpenSim.Region.Environment.Scenes

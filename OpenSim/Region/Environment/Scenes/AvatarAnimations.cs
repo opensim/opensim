@@ -25,11 +25,11 @@
 * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 * 
 */
+using System;
 using System.Collections.Generic;
 using System.Xml;
 using libsecondlife;
-using libsecondlife.Packets;
-
+using OpenSim.Framework.Console;
 
 namespace OpenSim.Region.Environment.Scenes
 {
@@ -37,11 +37,11 @@ namespace OpenSim.Region.Environment.Scenes
     {
         public Dictionary<string, LLUUID> AnimsLLUUID = new Dictionary<string, LLUUID>();
         public Dictionary<LLUUID, string> AnimsNames = new Dictionary<LLUUID, string>();
-        
+
         public AvatarAnimations()
         {
         }
-        
+
         public void LoadAnims()
         {
             //MainLog.Instance.Verbose("CLIENT", "Loading avatar animations");
@@ -57,7 +57,7 @@ namespace OpenSim.Region.Environment.Scenes
                     }
                 }
             }
-            
+
             // MainLog.Instance.Verbose("CLIENT", "Loaded " + AnimsLLUUID.Count.ToString() + " animation(s)");
 
             try
@@ -68,11 +68,10 @@ namespace OpenSim.Region.Environment.Scenes
                     AnimsNames.Add(kp.Value, kp.Key);
                 }
             }
-            catch (System.InvalidOperationException)
+            catch (InvalidOperationException)
             {
-                OpenSim.Framework.Console.MainLog.Instance.Warn("AVATAR", "Unable to load animation names for an Avatar");
+                MainLog.Instance.Warn("AVATAR", "Unable to load animation names for an Avatar");
             }
-          
         }
     }
 }

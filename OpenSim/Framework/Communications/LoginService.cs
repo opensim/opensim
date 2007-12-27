@@ -64,7 +64,7 @@ namespace OpenSim.Framework.UserManagement
                 //CFK: CustomizeResponse contains sufficient strings to alleviate the need for this.
                 //CKF: MainLog.Instance.Verbose("LOGIN", "Attempting login now...");
                 XmlRpcResponse response = new XmlRpcResponse();
-                Hashtable requestData = (Hashtable)request.Params[0];
+                Hashtable requestData = (Hashtable) request.Params[0];
 
                 bool GoodXML = (requestData.Contains("first") && requestData.Contains("last") &&
                                 requestData.Contains("passwd"));
@@ -75,17 +75,17 @@ namespace OpenSim.Framework.UserManagement
 
                 if (GoodXML)
                 {
-                    string firstname = (string)requestData["first"];
-                    string lastname = (string)requestData["last"];
-                    string passwd = (string)requestData["passwd"];
+                    string firstname = (string) requestData["first"];
+                    string lastname = (string) requestData["last"];
+                    string passwd = (string) requestData["passwd"];
 
                     userProfile = GetTheUser(firstname, lastname);
                     if (userProfile == null)
                     {
                         MainLog.Instance.Verbose(
-                            "LOGIN", 
+                            "LOGIN",
                             "Could not find a profile for " + firstname + " " + lastname);
-                        
+
                         return logResponse.CreateLoginFailedResponse();
                     }
 
@@ -103,15 +103,14 @@ namespace OpenSim.Framework.UserManagement
                 else
                 {
                     // If we already have a session...
-                    
+
                     if (userProfile.currentAgent != null && userProfile.currentAgent.agentOnline)
                     {
                         userProfile.currentAgent = null;
                         m_userManager.CommitAgent(ref userProfile);
-                        
+
                         // Reject the login
                         return logResponse.CreateAlreadyLoggedInResponse();
-                        
                     }
                     // Otherwise...
                     // Create a new agent session
@@ -132,7 +131,7 @@ namespace OpenSim.Framework.UserManagement
                         userProfile.rootInventoryFolderID = inventData.RootFolderID;
 
                         // Circuit Code
-                        uint circode = (uint)(Util.RandomClass.Next());
+                        uint circode = (uint) (Util.RandomClass.Next());
 
                         logResponse.Lastname = userProfile.surname;
                         logResponse.Firstname = userProfile.username;
@@ -150,7 +149,7 @@ namespace OpenSim.Framework.UserManagement
                         logResponse.InventoryLibRoot = InventoryLibRoot;
 
                         logResponse.InventoryLibraryOwner = GetLibraryOwner();
-                        logResponse.CircuitCode = (Int32)circode;
+                        logResponse.CircuitCode = (Int32) circode;
                         //logResponse.RegionX = 0; //overwritten
                         //logResponse.RegionY = 0; //overwritten
                         logResponse.Home = "!!null temporary value {home}!!"; // Overwritten
@@ -277,7 +276,7 @@ namespace OpenSim.Framework.UserManagement
             TempHash["type_default"] = -1;
             TempHash["folder_id"] = "00000112-000f-0000-0000-000100bba001";
             temp.Add(TempHash);
-            
+
             return temp;
         }
 

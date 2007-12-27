@@ -26,14 +26,12 @@
 * 
 */
 
-using Axiom.Math;
+using System.Collections.Generic;
 using libsecondlife;
 using libsecondlife.Packets;
 using OpenSim.Framework;
 using OpenSim.Framework.Communications.Cache;
 using OpenSim.Framework.Console;
-using OpenSim.Region.Physics.Manager;
-using System.Collections.Generic;
 
 namespace OpenSim.Region.Environment.Scenes
 {
@@ -41,7 +39,7 @@ namespace OpenSim.Region.Environment.Scenes
     {
         //split these method into this partial as a lot of these (hopefully) are only temporary and won't be needed once Caps is more complete
         // or at least some of they can be moved somewhere else
-        
+
         /// <summary>
         /// Add an inventory item to an avatar's inventory.
         /// </summary>
@@ -57,7 +55,7 @@ namespace OpenSim.Region.Environment.Scenes
                 remoteClient.SendInventoryItemCreateUpdate(item);
             }
         }
-        
+
         /// <summary> 
         /// <see>AddInventoryItem(LLUUID, InventoryItemBase)</see>
         /// </summary>
@@ -71,10 +69,10 @@ namespace OpenSim.Region.Environment.Scenes
             if (!TryGetAvatar(avatarId, out avatar))
             {
                 MainLog.Instance.Error(
-                    "AGENTINVENTORY", "Could not find avatar {0} to add inventory item", avatarId);                
+                    "AGENTINVENTORY", "Could not find avatar {0} to add inventory item", avatarId);
                 return;
             }
-            
+
             AddInventoryItem(avatar.ControllingClient, item);
         }
 
@@ -95,7 +93,9 @@ namespace OpenSim.Region.Environment.Scenes
                     InventoryItemBase item = userInfo.RootFolder.HasItem(itemID);
                     if (item != null)
                     {
-                        AssetBase asset = CreateAsset(item.inventoryName, item.inventoryDescription, (sbyte) item.invType, (sbyte) item.assetType, data);
+                        AssetBase asset =
+                            CreateAsset(item.inventoryName, item.inventoryDescription, (sbyte) item.invType,
+                                        (sbyte) item.assetType, data);
                         AssetCache.AddAsset(asset);
 
                         item.assetID = asset.FullID;
@@ -117,7 +117,7 @@ namespace OpenSim.Region.Environment.Scenes
             }
             return LLUUID.Zero;
         }
-        
+
         /// <summary>
         /// <see>CapsUpdatedInventoryItemAsset(IClientAPI, LLUUID, byte[])</see>
         /// </summary>
@@ -132,14 +132,14 @@ namespace OpenSim.Region.Environment.Scenes
             else
             {
                 MainLog.Instance.Error(
-                     "AGENTINVENTORY", 
-                     "Avatar {0} cannot be found to update its inventory item asset",
-                     avatarId);
+                    "AGENTINVENTORY",
+                    "Avatar {0} cannot be found to update its inventory item asset",
+                    avatarId);
             }
 
             return LLUUID.Zero;
-        }        
-        
+        }
+
         /// <summary>
         /// Capability originating call to update the asset of a script in a prim's (task's) inventory
         /// </summary>
@@ -149,17 +149,17 @@ namespace OpenSim.Region.Environment.Scenes
         /// <param name="isScriptRunning">Indicates whether the script to update is currently running</param>
         /// <param name="data"></param>
         /// <returns>Asset LLUID created</returns>        
-        public void CapsUpdateTaskInventoryScriptAsset(IClientAPI remoteClient, LLUUID itemId, 
-                                                         LLUUID primId, bool isScriptRunning, byte[] data)
+        public void CapsUpdateTaskInventoryScriptAsset(IClientAPI remoteClient, LLUUID itemId,
+                                                       LLUUID primId, bool isScriptRunning, byte[] data)
         {
             // TODO Not currently doing anything with the isScriptRunning bool
-            
+
             MainLog.Instance.Verbose(
                 "PRIMINVENTORY",
                 "Prim inventory script save functionality not yet implemented."
-                    + "  remoteClient: {0}, itemID: {1}, primID: {2}, isScriptRunning: {3}",
+                + "  remoteClient: {0}, itemID: {1}, primID: {2}, isScriptRunning: {3}",
                 remoteClient, itemId, primId, isScriptRunning);
-            
+
             // TODO
             // Retrieve client LLUID
             // Retrieve sog containing primID
@@ -170,13 +170,13 @@ namespace OpenSim.Region.Environment.Scenes
             // Trigger rerunning of script (use TriggerRezScript event, see RezScript)
             // return new asset id
         }
-        
+
         /// <summary>
         /// <see>CapsUpdateTaskInventoryScriptAsset(IClientAPI, LLUUID, LLUUID, bool, byte[])</see>
         /// </summary>      
-        private void CapsUpdateTaskInventoryScriptAsset(LLUUID avatarId, LLUUID itemId, 
+        private void CapsUpdateTaskInventoryScriptAsset(LLUUID avatarId, LLUUID itemId,
                                                         LLUUID primId, bool isScriptRunning, byte[] data)
-        {        
+        {
             ScenePresence avatar;
 
             if (TryGetAvatar(avatarId, out avatar))
@@ -187,10 +187,10 @@ namespace OpenSim.Region.Environment.Scenes
             else
             {
                 MainLog.Instance.Error(
-                     "PRIMINVENTORY", 
-                     "Avatar {0} cannot be found to update its prim item asset",
-                     avatarId);
-            }            
+                    "PRIMINVENTORY",
+                    "Avatar {0} cannot be found to update its prim item asset",
+                    avatarId);
+            }
         }
 
         /// <summary>
@@ -204,74 +204,75 @@ namespace OpenSim.Region.Environment.Scenes
         /// <param name="name">The name of the updated item</param>
         /// <param name="description">The description of the updated item</param>
         /// <param name="nextOwnerMask">The permissions of the updated item</param>
-        public void UpdateInventoryItemAsset(IClientAPI remoteClient, LLUUID transactionID, 
+        public void UpdateInventoryItemAsset(IClientAPI remoteClient, LLUUID transactionID,
                                              LLUUID itemID, string name, string description,
                                              uint nextOwnerMask)
-        {            
-            CachedUserInfo userInfo 
+        {
+            CachedUserInfo userInfo
                 = CommsManager.UserProfileCacheService.GetUserDetails(remoteClient.AgentId);
-            
+
             if (userInfo != null && userInfo.RootFolder != null)
             {
                 InventoryItemBase item = userInfo.RootFolder.HasItem(itemID);
                 if (item != null)
-                {         
+                {
                     if (LLUUID.Zero == transactionID)
                     {
                         item.inventoryName = name;
                         item.inventoryDescription = description;
                         item.inventoryNextPermissions = nextOwnerMask;
-                        
+
                         userInfo.UpdateItem(remoteClient.AgentId, item);
                     }
-                    else                       
-                    {            
-                        AgentAssetTransactions transactions 
+                    else
+                    {
+                        AgentAssetTransactions transactions
                             = CommsManager.TransactionsManager.GetUserTransActions(remoteClient.AgentId);
-                        
+
                         if (transactions != null)
                         {
-                            LLUUID assetID = libsecondlife.LLUUID.Combine(transactionID, remoteClient.SecureSessionId);                            
-                            AssetBase asset 
+                            LLUUID assetID = LLUUID.Combine(transactionID, remoteClient.SecureSessionId);
+                            AssetBase asset
                                 = AssetCache.GetAsset(
-                                    assetID, (item.assetType == (int)AssetType.Texture ? true : false));
-                            
+                                    assetID, (item.assetType == (int) AssetType.Texture ? true : false));
+
                             if (asset == null)
                             {
                                 asset = transactions.GetTransactionAsset(transactionID);
                             }
-                            
+
                             if (asset != null && asset.FullID == assetID)
                             {
                                 asset.Name = item.inventoryName;
                                 asset.Description = item.inventoryDescription;
                                 asset.InvType = (sbyte) item.invType;
-                                asset.Type = (sbyte) item.assetType;    
+                                asset.Type = (sbyte) item.assetType;
                                 item.assetID = asset.FullID;
-                                
+
                                 AssetCache.AddAsset(asset);
                             }
-                            
+
                             userInfo.UpdateItem(remoteClient.AgentId, item);
                         }
                     }
                 }
                 else
-                { 
+                {
                     MainLog.Instance.Warn(
-                        "AGENTINVENTORY", 
-                        "Item ID " + itemID + " not found for an inventory item update.");                    
+                        "AGENTINVENTORY",
+                        "Item ID " + itemID + " not found for an inventory item update.");
                 }
             }
             else
             {
                 MainLog.Instance.Warn(
                     "AGENTINVENTORY",
-                    "Agent ID " + remoteClient.AgentId + " not found for an inventory item update."); 
+                    "Agent ID " + remoteClient.AgentId + " not found for an inventory item update.");
             }
         }
 
-        public void CopyInventoryItem(IClientAPI remoteClient, uint callbackID, LLUUID oldAgentID, LLUUID oldItemID, LLUUID newFolderID, string newName)
+        public void CopyInventoryItem(IClientAPI remoteClient, uint callbackID, LLUUID oldAgentID, LLUUID oldItemID,
+                                      LLUUID newFolderID, string newName)
         {
             InventoryItemBase item = CommsManager.UserProfileCacheService.libraryRoot.HasItem(oldItemID);
             if (item == null)
@@ -308,7 +309,7 @@ namespace OpenSim.Region.Environment.Scenes
             }
 
             asset.Name = (newName.Length == 0) ? item.inventoryName : newName;
-            
+
             // TODO: preserve current permissions?
             CreateNewInventoryItem(remoteClient, newFolderID, callbackID, asset, item.inventoryNextPermissions);
         }
@@ -325,12 +326,13 @@ namespace OpenSim.Region.Environment.Scenes
             return asset;
         }
 
-        public void MoveInventoryItem(IClientAPI remoteClient,LLUUID folderID, LLUUID itemID, int length, string newName)
+        public void MoveInventoryItem(IClientAPI remoteClient, LLUUID folderID, LLUUID itemID, int length,
+                                      string newName)
         {
             MainLog.Instance.Verbose(
-                "AGENTINVENTORY", 
+                "AGENTINVENTORY",
                 "Moving item for " + remoteClient.AgentId.ToString());
-            
+
             CachedUserInfo userInfo = CommsManager.UserProfileCacheService.GetUserDetails(remoteClient.AgentId);
             if (userInfo == null)
             {
@@ -364,8 +366,6 @@ namespace OpenSim.Region.Environment.Scenes
                 MainLog.Instance.Warn("AGENTINVENTORY", "Failed to find item " + itemID.ToString() + ", no root folder");
                 return;
             }
-
-           
         }
 
         private void CreateNewInventoryItem(IClientAPI remoteClient, LLUUID folderID, uint callbackID,
@@ -406,7 +406,8 @@ namespace OpenSim.Region.Environment.Scenes
         /// <param name="wearableType"></param>
         /// <param name="nextOwnerMask"></param>
         public void CreateNewInventoryItem(IClientAPI remoteClient, LLUUID transActionID, LLUUID folderID,
-                                           uint callbackID, string description, string name, sbyte invType, sbyte assetType,
+                                           uint callbackID, string description, string name, sbyte invType,
+                                           sbyte assetType,
                                            byte wearableType, uint nextOwnerMask)
         {
             if (transActionID == LLUUID.Zero)
@@ -437,8 +438,8 @@ namespace OpenSim.Region.Environment.Scenes
             {
                 if (ent is SceneObjectGroup)
                 {
-                    if (((SceneObjectGroup)ent).HasChildPrim(localID))
-                        return (SceneObjectGroup)ent;
+                    if (((SceneObjectGroup) ent).HasChildPrim(localID))
+                        return (SceneObjectGroup) ent;
                 }
             }
             return null;
@@ -491,13 +492,13 @@ namespace OpenSim.Region.Environment.Scenes
             else
             {
                 MainLog.Instance.Warn(
-                    "PRIMINVENTORY", 
-                    "Removal of item {0} requested of prim {1} but this prim does not exist", 
+                    "PRIMINVENTORY",
+                    "Removal of item {0} requested of prim {1} but this prim does not exist",
                     itemID,
                     localID);
-            }            
+            }
         }
-        
+
         /// <summary>
         /// Update an item in a prim (task) inventory.  
         /// This method does not handle scripts, <see>RezScript(IClientAPI, LLUUID, unit)</see>
@@ -506,7 +507,7 @@ namespace OpenSim.Region.Environment.Scenes
         /// <param name="itemID"></param>
         /// <param name="folderID"></param>
         /// <param name="primLocalID"></param>
-        public void UpdateTaskInventory(IClientAPI remoteClient, LLUUID itemID, LLUUID folderID, 
+        public void UpdateTaskInventory(IClientAPI remoteClient, LLUUID itemID, LLUUID folderID,
                                         uint primLocalID)
         {
             SceneObjectGroup group = GetGroupByPrim(primLocalID);
@@ -515,17 +516,17 @@ namespace OpenSim.Region.Environment.Scenes
                 // TODO Retrieve itemID from client's inventory to pass on
                 //group.AddInventoryItem(rmoteClient, primLocalID, null);
                 MainLog.Instance.Verbose(
-                    "PRIMINVENTORY", 
+                    "PRIMINVENTORY",
                     "UpdateTaskInventory called with script {0}, folder {1}, primLocalID {2}, user {3}",
                     itemID, folderID, primLocalID, remoteClient.Name);
-            }   
+            }
             else
             {
                 MainLog.Instance.Warn(
-                    "PRIMINVENTORY", 
-                    "Update with script {0} requested of prim {1} for {2} but this prim does not exist", 
+                    "PRIMINVENTORY",
+                    "Update with script {0} requested of prim {1} for {2} but this prim does not exist",
                     itemID, primLocalID, remoteClient.Name);
-            }              
+            }
         }
 
         /// <summary>
@@ -551,7 +552,7 @@ namespace OpenSim.Region.Environment.Scenes
                         {
                             isTexture = true;
                         }
-                        
+
                         AssetBase rezAsset = AssetCache.GetAsset(item.assetID, isTexture);
 
                         if (rezAsset != null)
@@ -569,18 +570,18 @@ namespace OpenSim.Region.Environment.Scenes
                                 // TODO: do we care about the value of this bool?
                                 group.AddInventoryItem(remoteClient, localID, item, copyID);
                                 group.GetProperites(remoteClient);
-                                
+
                                 MainLog.Instance.Verbose(
-                                    "PRIMINVENTORY", 
-                                    "Rezzed script {0} (asset {1}) into prim {2} for user {3}", 
-                                    item.inventoryName, rezAsset.FullID, localID, remoteClient.Name);                                
+                                    "PRIMINVENTORY",
+                                    "Rezzed script {0} (asset {1}) into prim {2} for user {3}",
+                                    item.inventoryName, rezAsset.FullID, localID, remoteClient.Name);
                             }
                             else
                             {
                                 MainLog.Instance.Warn(
                                     "PRIMINVENTORY",
                                     "Could not rez script {0} into prim {1} for user {2}"
-                                         + " because the prim could not be found in the region!",
+                                    + " because the prim could not be found in the region!",
                                     item.inventoryName, localID, remoteClient.Name);
                             }
                         }
@@ -589,7 +590,7 @@ namespace OpenSim.Region.Environment.Scenes
                             MainLog.Instance.Warn(
                                 "PRIMINVENTORY",
                                 "Could not rez script {0} into prim {1} for user {2}"
-                                    + " because the item asset {3} could not be found!",
+                                + " because the item asset {3} could not be found!",
                                 item.inventoryName, localID, item.assetID, remoteClient.Name);
                         }
                     }
@@ -638,7 +639,8 @@ namespace OpenSim.Region.Environment.Scenes
                         if (PermissionsMngr.CanDeRezObject(remoteClient.AgentId, ((SceneObjectGroup) selectedEnt).UUID))
                         {
                             string sceneObjectXml = ((SceneObjectGroup) selectedEnt).ToXmlString();
-                            CachedUserInfo userInfo = CommsManager.UserProfileCacheService.GetUserDetails(remoteClient.AgentId);
+                            CachedUserInfo userInfo =
+                                CommsManager.UserProfileCacheService.GetUserDetails(remoteClient.AgentId);
                             if (userInfo != null)
                             {
                                 AssetBase asset = CreateAsset(
@@ -661,9 +663,10 @@ namespace OpenSim.Region.Environment.Scenes
                                 item.parentFolderID = DeRezPacket.AgentBlock.DestinationID;
                                 item.inventoryCurrentPermissions = 2147483647;
                                 item.inventoryNextPermissions = 2147483647;
-                                item.inventoryEveryOnePermissions = ((SceneObjectGroup)selectedEnt).RootPart.EveryoneMask;
-                                item.inventoryBasePermissions = ((SceneObjectGroup)selectedEnt).RootPart.BaseMask;
-                                item.inventoryCurrentPermissions = ((SceneObjectGroup)selectedEnt).RootPart.OwnerMask;
+                                item.inventoryEveryOnePermissions =
+                                    ((SceneObjectGroup) selectedEnt).RootPart.EveryoneMask;
+                                item.inventoryBasePermissions = ((SceneObjectGroup) selectedEnt).RootPart.BaseMask;
+                                item.inventoryCurrentPermissions = ((SceneObjectGroup) selectedEnt).RootPart.OwnerMask;
 
                                 userInfo.AddItem(remoteClient.AgentId, item);
                                 remoteClient.SendInventoryItemCreateUpdate(item);
@@ -730,19 +733,19 @@ namespace OpenSim.Region.Environment.Scenes
             //bool UsePhysics = (((rootPart.ObjectFlags & (uint)LLObject.ObjectFlags.Physics) > 0)&& m_physicalPrim);
             //if ((rootPart.ObjectFlags & (uint) LLObject.ObjectFlags.Phantom) == 0)
             //{
-                //PrimitiveBaseShape pbs = rootPart.Shape;
-                //rootPart.PhysActor = PhysicsScene.AddPrimShape(
-                    //rootPart.Name,
-                    //pbs,
-                    //new PhysicsVector(rootPart.AbsolutePosition.X, rootPart.AbsolutePosition.Y,
-                    //                  rootPart.AbsolutePosition.Z),
-                    //new PhysicsVector(rootPart.Scale.X, rootPart.Scale.Y, rootPart.Scale.Z),
-                    //new Quaternion(rootPart.RotationOffset.W, rootPart.RotationOffset.X,
-                    //               rootPart.RotationOffset.Y, rootPart.RotationOffset.Z), UsePhysics);
+            //PrimitiveBaseShape pbs = rootPart.Shape;
+            //rootPart.PhysActor = PhysicsScene.AddPrimShape(
+            //rootPart.Name,
+            //pbs,
+            //new PhysicsVector(rootPart.AbsolutePosition.X, rootPart.AbsolutePosition.Y,
+            //                  rootPart.AbsolutePosition.Z),
+            //new PhysicsVector(rootPart.Scale.X, rootPart.Scale.Y, rootPart.Scale.Z),
+            //new Quaternion(rootPart.RotationOffset.W, rootPart.RotationOffset.X,
+            //               rootPart.RotationOffset.Y, rootPart.RotationOffset.Z), UsePhysics);
 
-               // rootPart.DoPhysicsPropertyUpdate(UsePhysics, true);
-                
-           // }
+            // rootPart.DoPhysicsPropertyUpdate(UsePhysics, true);
+
+            // }
             rootPart.ScheduleFullUpdate();
         }
     }

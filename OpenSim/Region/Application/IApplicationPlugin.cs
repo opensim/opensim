@@ -1,4 +1,4 @@
-﻿/*
+/*
 * Copyright (c) Contributors, http://opensimulator.org/
 * See CONTRIBUTORS.TXT for a full list of copyright holders.
 *
@@ -26,13 +26,10 @@
 * 
 */
 
-using System;
-using System.Collections.Generic;
-using System.Text;
 using Mono.Addins;
-using Mono.Addins.Description;
 
-[assembly: AddinRoot("OpenSim", "0.4")]
+[assembly : AddinRoot("OpenSim", "0.4")]
+
 namespace OpenSim
 {
     [TypeExtensionPoint("/OpenSim/Startup")]

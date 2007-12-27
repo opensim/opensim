@@ -145,7 +145,6 @@ namespace OpenSim.Region.Environment.Scenes
             return (EntityBase) MemberwiseClone();
         }
 
-        
 
         public abstract void SetText(string text, Vector3 color, double alpha);
     }
@@ -161,15 +160,13 @@ namespace OpenSim.Region.Environment.Scenes
 
         public EntityIntersection()
         {
-
-            
         }
+
         public EntityIntersection(Vector3 _ipoint, float _normal, bool _HitTF)
         {
             ipoint = _ipoint;
             normal = _normal;
             HitTF = _HitTF;
         }
-
     }
 }

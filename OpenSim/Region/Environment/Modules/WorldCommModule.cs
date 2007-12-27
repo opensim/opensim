@@ -135,7 +135,7 @@ namespace OpenSim.Region.Environment.Modules
         {
             m_listenerManager.Remove(handle);
         }
-		
+
         // This method scans nearby objects and determines if they are listeners,
         // and if so if this message fits the filter.  If it does, then
         // enqueue the message for delivery to the objects listen event handler.

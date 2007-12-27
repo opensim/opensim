@@ -202,17 +202,16 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
 
         public void CheckHttpRequests()
         {
-            IHttpRequests iHttpReq = 
+            IHttpRequests iHttpReq =
                 m_ScriptEngine.World.RequestModuleInterface<IHttpRequests>();
 
             HttpRequestClass httpInfo = null;
 
-            if( iHttpReq != null )
+            if (iHttpReq != null)
                 httpInfo = iHttpReq.GetNextCompletedRequest();
 
-            while ( httpInfo != null )
+            while (httpInfo != null)
             {
-                
                 //Console.WriteLine("PICKED HTTP REQ:" + httpInfo.response_body + httpInfo.status);
 
                 // Deliver data to prim's remote_data handler
@@ -221,7 +220,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
                 // only returns the byte for HTTP_BODY_TRUNCATED, which is not
                 // implemented here yet anyway.  Should be fixed if/when maxsize
                 // is supported
-                
+
                 object[] resobj = new object[]
                     {
                         httpInfo.reqID.ToString(), httpInfo.status, null, httpInfo.response_body
@@ -254,7 +253,8 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
                     //Deliver data to prim's remote_data handler
                     object[] resobj = new object[]
                         {
-                            2, rInfo.GetChannelKey().ToString(), rInfo.GetMessageID().ToString(), "", rInfo.GetIntValue(),
+                            2, rInfo.GetChannelKey().ToString(), rInfo.GetMessageID().ToString(), "",
+                            rInfo.GetIntValue(),
                             rInfo.GetStrVal()
                         };
                     m_ScriptEngine.m_EventQueueManager.AddToScriptQueue(

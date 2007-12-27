@@ -1,4 +1,4 @@
-﻿/*
+/*
 * Copyright (c) Contributors, http://opensimulator.org/
 * See CONTRIBUTORS.TXT for a full list of copyright holders.
 *
@@ -28,23 +28,22 @@
 
 using System;
 using System.Collections.Generic;
-using System.Text;
+using libsecondlife;
 using OpenSim.Framework;
 using OpenSim.Framework.Communications;
 using OpenSim.Framework.Console;
-using libsecondlife;
 
 namespace OpenSim.Grid.InventoryServer
 {
     public class GridInventoryService : InventoryServiceBase
     {
         public override void RequestInventoryForUser(LLUUID userID, InventoryFolderInfo folderCallBack,
-                                                    InventoryItemInfo itemCallBack)
+                                                     InventoryItemInfo itemCallBack)
         {
-
         }
 
-        private bool TryGetUsersInventory(LLUUID userID, out List<InventoryFolderBase> folderList, out List<InventoryItemBase> itemsList)
+        private bool TryGetUsersInventory(LLUUID userID, out List<InventoryFolderBase> folderList,
+                                          out List<InventoryItemBase> itemsList)
         {
             List<InventoryFolderBase> rootFolders = RequestFirstLevelFolders(userID);
             List<InventoryItemBase> allItems = new List<InventoryItemBase>();
@@ -107,10 +106,10 @@ namespace OpenSim.Grid.InventoryServer
         public InventoryCollection GetUserInventory(Guid rawUserID)
         {
             LLUUID userID = new LLUUID(rawUserID);
-            
+
             // We get enough verbose messages later on for diagnostics
             //MainLog.Instance.Verbose("INVENTORY", "Request for inventory for " + userID.ToString());            
-            
+
             InventoryCollection invCollection = new InventoryCollection();
             List<InventoryFolderBase> folders;
             List<InventoryItemBase> allItems;
@@ -126,14 +125,14 @@ namespace OpenSim.Grid.InventoryServer
         public bool CreateUsersInventory(Guid rawUserID)
         {
             LLUUID userID = new LLUUID(rawUserID);
-            
+
             MainLog.Instance.Verbose(
                 "INVENTORY", "Creating new set of inventory folders for " + userID.ToString());
-            
+
             CreateNewUserInventory(userID);
             return true;
         }
-        
+
 
         public override void AddNewInventoryFolder(LLUUID userID, InventoryFolderBase folder)
         {
@@ -156,30 +155,30 @@ namespace OpenSim.Grid.InventoryServer
             MainLog.Instance.Verbose(
                 "INVENTORY",
                 "Updating in   " + folder.parentID.ToString()
-                    + ", folder " + folder.name);
-            
+                + ", folder " + folder.name);
+
             AddNewInventoryFolder(folder.agentID, folder);
             return true;
         }
 
         public bool MoveInventoryFolder(InventoryFolderBase folder)
-        {            
+        {
             MainLog.Instance.Verbose(
                 "INVENTORY",
                 "Moving folder " + folder.folderID
-                    + " to " + folder.parentID.ToString());
-            
+                + " to " + folder.parentID.ToString());
+
             MoveExistingInventoryFolder(folder);
             return true;
         }
 
-        public bool AddInventoryItem( InventoryItemBase item)
+        public bool AddInventoryItem(InventoryItemBase item)
         {
             // Right now, this actions act more like an update/insert combination than a simple create.
             MainLog.Instance.Verbose(
-                "INVENTORY", 
+                "INVENTORY",
                 "Updating in   " + item.parentFolderID.ToString()
-                    + ", item " + item.inventoryName);
+                + ", item " + item.inventoryName);
 
             AddNewInventoryItem(item.avatarID, item);
             return true;
@@ -191,12 +190,12 @@ namespace OpenSim.Grid.InventoryServer
             MainLog.Instance.Verbose(
                 "INVENTORY",
                 "Deleting in   " + item.parentFolderID.ToString()
-                    + ", item " + item.inventoryName);
-            
+                + ", item " + item.inventoryName);
+
             DeleteItem(item);
         }
 
-        public bool DeleteInvItem( InventoryItemBase item)
+        public bool DeleteInvItem(InventoryItemBase item)
         {
             DeleteInventoryItem(item.avatarID, item);
             return true;

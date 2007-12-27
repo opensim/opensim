@@ -26,9 +26,9 @@
 * 
 */
 using System;
+using System.Collections.Generic;
 using libsecondlife;
 using OpenSim.Framework.Communications.Cache;
-using System.Collections.Generic;
 using OpenSim.Framework.Console;
 using OpenSim.Framework.Servers;
 
@@ -173,9 +173,10 @@ namespace OpenSim.Framework.Communications
                 }
             }
         }
+
         public List<AvatarPickerAvatar> GenerateAgentPickerRequestResponse(LLUUID queryID, string query)
         {
-            List<AvatarPickerAvatar> pickerlist = m_userService.GenerateAgentPickerRequestResponse(queryID, query);  
+            List<AvatarPickerAvatar> pickerlist = m_userService.GenerateAgentPickerRequestResponse(queryID, query);
             return pickerlist;
         }
 

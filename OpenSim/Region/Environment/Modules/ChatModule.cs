@@ -176,10 +176,10 @@ namespace OpenSim.Region.Environment.Modules
                 foreach (Scene s in m_scenes)
                 {
                     s.ForEachScenePresence(delegate(ScenePresence presence)
-                                           {
-                                               TrySendChatMessage(presence, fromPos, regionPos,
-                                                                  fromAgentID, fromName, e.Type, message);
-                                           });
+                                               {
+                                                   TrySendChatMessage(presence, fromPos, regionPos,
+                                                                      fromAgentID, fromName, e.Type, message);
+                                               });
                 }
             }
         }

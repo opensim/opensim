@@ -25,8 +25,8 @@
 * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 * 
 */
-using libsecondlife;
 using System.Collections.Generic;
+using libsecondlife;
 
 namespace OpenSim.Framework.Data
 {
@@ -35,10 +35,12 @@ namespace OpenSim.Framework.Data
         public LLUUID AvatarID;
         public string firstName;
         public string lastName;
+
         public AvatarPickerAvatar()
         {
         }
     }
+
     public enum DataResponse
     {
         RESPONSE_OK,
@@ -78,6 +80,7 @@ namespace OpenSim.Framework.Data
 
 
         List<AvatarPickerAvatar> GeneratePickerResults(LLUUID queryID, string query);
+
         /// <summary>
         /// Authenticates a sim by use of its recv key. 
         /// WARNING: Insecure

@@ -1,4 +1,4 @@
-﻿/*
+/*
 * Copyright (c) Contributors, http://opensimulator.org/
 * See CONTRIBUTORS.TXT for a full list of copyright holders.
 *
@@ -28,7 +28,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Text;
 using Axiom.Math;
 using libsecondlife;
 using libsecondlife.Packets;
@@ -44,10 +43,13 @@ namespace OpenSim.Region.Environment.Scenes
     public class InnerScene
     {
         #region Events
+
         public event PhysicsCrash UnRecoverableError;
+
         #endregion
 
         #region Fields
+
         public Dictionary<LLUUID, ScenePresence> ScenePresences;
         public Dictionary<LLUUID, SceneObjectGroup> SceneObjects;
         public Dictionary<LLUUID, EntityBase> Entities;
@@ -65,6 +67,7 @@ namespace OpenSim.Region.Environment.Scenes
         internal object m_syncRoot = new object();
 
         public PhysicsScene _PhyScene;
+
         #endregion
 
         public InnerScene(Scene parent, RegionInfo regInfo, PermissionManager permissionsMngr)
@@ -79,28 +82,27 @@ namespace OpenSim.Region.Environment.Scenes
 
         public PhysicsScene PhysicsScene
         {
-            get
-            { return _PhyScene; }
+            get { return _PhyScene; }
             set
             {
                 // If we're not doing the initial set
                 // Then we've got to remove the previous 
                 // event handler
-                    try
-                    {
-                        _PhyScene.OnPhysicsCrash -= physicsBasedCrash;
-                    }
-                    catch (System.NullReferenceException)
-                    {
-                        // This occurs when storing to _PhyScene the first time.
-                        // Is there a better way to check the event handler before
-                        // getting here
-                        // This can be safely ignored.  We're setting the first inital 
-                        // there are no event handler's registered.
-                    }
-                
+                try
+                {
+                    _PhyScene.OnPhysicsCrash -= physicsBasedCrash;
+                }
+                catch (NullReferenceException)
+                {
+                    // This occurs when storing to _PhyScene the first time.
+                    // Is there a better way to check the event handler before
+                    // getting here
+                    // This can be safely ignored.  We're setting the first inital 
+                    // there are no event handler's registered.
+                }
+
                 _PhyScene = value;
-                
+
                 _PhyScene.OnPhysicsCrash += physicsBasedCrash;
             }
         }
@@ -113,6 +115,7 @@ namespace OpenSim.Region.Environment.Scenes
         }
 
         #region Update Methods
+
         internal void UpdatePreparePhysics()
         {
             // If we are using a threaded physics engine
@@ -141,7 +144,7 @@ namespace OpenSim.Region.Environment.Scenes
         {
             lock (m_syncRoot)
             {
-               return _PhyScene.Simulate((float)elapsed);
+                return _PhyScene.Simulate((float) elapsed);
             }
         }
 
@@ -151,12 +154,14 @@ namespace OpenSim.Region.Environment.Scenes
 
             foreach (EntityBase entity in moveEntities)
             {
-                    entity.UpdateMovement();
+                entity.UpdateMovement();
             }
         }
+
         #endregion
 
         #region Entity Methods
+
         public void AddEntityFromStorage(SceneObjectGroup sceneObject)
         {
             sceneObject.RegionHandle = m_regInfo.RegionHandle;
@@ -181,14 +186,17 @@ namespace OpenSim.Region.Environment.Scenes
                 m_numPrim++;
             }
         }
+
         public void AddPhysicalPrim(int number)
         {
             m_physicalPrim++;
         }
+
         public void RemovePhysicalPrim(int number)
         {
             m_physicalPrim--;
         }
+
         public void RemovePrim(uint localID, LLUUID avatar_deleter)
         {
             List<EntityBase> EntityList = GetEntities();
@@ -197,9 +205,9 @@ namespace OpenSim.Region.Environment.Scenes
             {
                 if (obj is SceneObjectGroup)
                 {
-                    if (((SceneObjectGroup)obj).LocalId == localID)
+                    if (((SceneObjectGroup) obj).LocalId == localID)
                     {
-                        m_parentScene.RemoveEntity((SceneObjectGroup)obj);
+                        m_parentScene.RemoveEntity((SceneObjectGroup) obj);
                         m_numPrim--;
                         return;
                     }
@@ -253,7 +261,8 @@ namespace OpenSim.Region.Environment.Scenes
 
             return newAvatar;
         }
-        public void SwapRootChildAgent(bool direction_RC_CR_T_F) 
+
+        public void SwapRootChildAgent(bool direction_RC_CR_T_F)
         {
             if (direction_RC_CR_T_F)
             {
@@ -266,25 +275,29 @@ namespace OpenSim.Region.Environment.Scenes
                 m_numRootAgents++;
             }
         }
+
         public void removeUserCount(bool TypeRCTF)
         {
             if (TypeRCTF)
             {
                 m_numRootAgents--;
             }
-            else 
+            else
             {
                 m_numChildAgents--;
             }
         }
+
         public void RemoveAPrimCount()
         {
             m_numPrim--;
         }
+
         public void AddAPrimCount()
         {
             m_numPrim++;
         }
+
         public int GetChildAgentCount()
         {
             return m_numChildAgents;
@@ -375,8 +388,8 @@ namespace OpenSim.Region.Environment.Scenes
             {
                 if (ent is SceneObjectGroup)
                 {
-                    if (((SceneObjectGroup)ent).HasChildPrim(localID))
-                        return (SceneObjectGroup)ent;
+                    if (((SceneObjectGroup) ent).HasChildPrim(localID))
+                        return (SceneObjectGroup) ent;
                 }
             }
             return null;
@@ -390,8 +403,8 @@ namespace OpenSim.Region.Environment.Scenes
             {
                 if (ent is SceneObjectGroup)
                 {
-                    if (((SceneObjectGroup)ent).HasChildPrim(fullID))
-                        return (SceneObjectGroup)ent;
+                    if (((SceneObjectGroup) ent).HasChildPrim(fullID))
+                        return (SceneObjectGroup) ent;
                 }
             }
             return null;
@@ -406,7 +419,7 @@ namespace OpenSim.Region.Environment.Scenes
             {
                 if (ent is SceneObjectGroup)
                 {
-                    SceneObjectGroup reportingG = (SceneObjectGroup)ent;
+                    SceneObjectGroup reportingG = (SceneObjectGroup) ent;
                     EntityIntersection result = reportingG.TestIntersection(hray);
                     if (result.HitTF)
                     {
@@ -417,7 +430,6 @@ namespace OpenSim.Region.Environment.Scenes
                         }
                     }
                 }
-
             }
             return returnResult;
         }
@@ -531,17 +543,16 @@ namespace OpenSim.Region.Environment.Scenes
                         //float distResult = Vector3Distance(avPosition, objPosition);
                         //if (distResult > 512)
                         //{
-                            //int x = 0;
+                        //int x = 0;
                         //}
                         //if (distResult < presence.DrawDistance)
                         //{
-                            ((SceneObjectGroup)ent).ScheduleFullUpdateToAvatar(presence);
+                        ((SceneObjectGroup) ent).ScheduleFullUpdateToAvatar(presence);
                         //}
-                        
                     }
-                    else 
+                    else
                     {
-                        ((SceneObjectGroup)ent).ScheduleFullUpdateToAvatar(presence);
+                        ((SceneObjectGroup) ent).ScheduleFullUpdateToAvatar(presence);
                     }
                 }
             }
@@ -554,9 +565,11 @@ namespace OpenSim.Region.Environment.Scenes
                 action(presence.ControllingClient);
             }
         }
+
         #endregion
 
         #region Client Event handlers
+
         /// <summary>
         /// 
         /// </summary>
@@ -583,13 +596,12 @@ namespace OpenSim.Region.Environment.Scenes
         /// <param name="AgentID"></param>
         /// <param name="RequestFlags"></param>
         /// <param name="ObjectID"></param>
-        public void RequestObjectPropertiesFamily(IClientAPI remoteClient, LLUUID AgentID, uint RequestFlags, LLUUID ObjectID)
+        public void RequestObjectPropertiesFamily(IClientAPI remoteClient, LLUUID AgentID, uint RequestFlags,
+                                                  LLUUID ObjectID)
         {
             SceneObjectGroup group = GetGroupByPrim(ObjectID);
             if (group != null)
                 group.ServiceObjectPropertiesFamilyRequest(remoteClient, AgentID, RequestFlags);
-
-
         }
 
         /// <summary>
@@ -708,10 +720,9 @@ namespace OpenSim.Region.Environment.Scenes
             {
                 if (PermissionsMngr.CanEditObject(remoteClient.AgentId, group.UUID))
                 {
-                    group.UpdatePrimFlags(localID, (ushort)packet.Type, true, packet.ToBytes());
+                    group.UpdatePrimFlags(localID, (ushort) packet.Type, true, packet.ToBytes());
                 }
             }
-            
         }
 
         public void MoveObject(LLUUID objectID, LLVector3 offset, LLVector3 pos, IClientAPI remoteClient)
@@ -763,7 +774,7 @@ namespace OpenSim.Region.Environment.Scenes
         public void UpdateExtraParam(LLUUID agentID, uint primLocalID, ushort type, bool inUse, byte[] data)
         {
             SceneObjectGroup group = GetGroupByPrim(primLocalID);
-            
+
             if (group != null)
             {
                 if (PermissionsMngr.CanEditObject(agentID, group.UUID))
@@ -771,7 +782,6 @@ namespace OpenSim.Region.Environment.Scenes
                     group.UpdateExtraParam(primLocalID, type, inUse, data);
                 }
             }
-            
         }
 
         /// <summary>
@@ -786,7 +796,6 @@ namespace OpenSim.Region.Environment.Scenes
             {
                 if (PermissionsMngr.CanEditObjectPosition(agentID, group.GetPartsFullID(primLocalID)))
                 {
-
                     group.UpdateShape(shapeBlock, primLocalID);
                 }
             }
@@ -806,9 +815,9 @@ namespace OpenSim.Region.Environment.Scenes
             {
                 if (ent is SceneObjectGroup)
                 {
-                    if (((SceneObjectGroup)ent).LocalId == parentPrim)
+                    if (((SceneObjectGroup) ent).LocalId == parentPrim)
                     {
-                        parenPrim = (SceneObjectGroup)ent;
+                        parenPrim = (SceneObjectGroup) ent;
                         break;
                     }
                 }
@@ -823,9 +832,9 @@ namespace OpenSim.Region.Environment.Scenes
                     {
                         if (ent is SceneObjectGroup)
                         {
-                            if (((SceneObjectGroup)ent).LocalId == childPrims[i])
+                            if (((SceneObjectGroup) ent).LocalId == childPrims[i])
                             {
-                                children.Add((SceneObjectGroup)ent);
+                                children.Add((SceneObjectGroup) ent);
                             }
                         }
                     }
@@ -857,7 +866,7 @@ namespace OpenSim.Region.Environment.Scenes
             {
                 if (ent is SceneObjectGroup)
                 {
-                    SceneObjectGroup obj = (SceneObjectGroup)ent;
+                    SceneObjectGroup obj = (SceneObjectGroup) ent;
                     sceneObjects.Add(obj.LocalId, obj);
                 }
             }
@@ -882,9 +891,9 @@ namespace OpenSim.Region.Environment.Scenes
             }
             else
             {
-                MainLog.Instance.Verbose("SCENE", 
-                    "DelinkObjects(): Could not find a root prim out of {0} as given to a delink request!",
-                    primIds);
+                MainLog.Instance.Verbose("SCENE",
+                                         "DelinkObjects(): Could not find a root prim out of {0} as given to a delink request!",
+                                         primIds);
             }
         }
 
@@ -903,9 +912,9 @@ namespace OpenSim.Region.Environment.Scenes
             {
                 if (ent is SceneObjectGroup)
                 {
-                    if (((SceneObjectGroup)ent).LocalId == originalPrim)
+                    if (((SceneObjectGroup) ent).LocalId == originalPrim)
                     {
-                        originPrim = (SceneObjectGroup)ent;
+                        originPrim = (SceneObjectGroup) ent;
                         break;
                     }
                 }
@@ -929,7 +938,6 @@ namespace OpenSim.Region.Environment.Scenes
             {
                 MainLog.Instance.Warn("client", "Attempted to duplicate nonexistant prim");
             }
-
         }
 
         /// <summary>
@@ -943,8 +951,11 @@ namespace OpenSim.Region.Environment.Scenes
             // We don't really need the double floating point precision...   
             // so casting it to a single
 
-            return (float)Math.Sqrt((v1.x - v2.x) * (v1.x - v2.x) + (v1.y - v2.y) * (v1.y - v2.y) + (v1.z - v2.z) * (v1.z - v2.z));
+            return
+                (float)
+                Math.Sqrt((v1.x - v2.x)*(v1.x - v2.x) + (v1.y - v2.y)*(v1.y - v2.y) + (v1.z - v2.z)*(v1.z - v2.z));
         }
+
         #endregion
     }
 }

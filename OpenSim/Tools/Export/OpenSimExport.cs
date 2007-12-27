@@ -27,15 +27,11 @@
 */
 using System;
 using System.IO;
-using System.Reflection;
 using Nini.Config;
-using OpenSim;
 using OpenSim.Framework;
 using OpenSim.Framework.Console;
 using OpenSim.Region.Environment;
 using OpenSim.Region.Environment.Scenes;
-using Mono.Addins;
-using Mono.Addins.Description;
 
 namespace OpenSim.Tools.Export
 {
@@ -43,7 +39,7 @@ namespace OpenSim.Tools.Export
     {
         public IniConfigSource config;
         public StorageManager sman;
-        
+
         public OpenSimExport(IniConfigSource config)
         {
             this.config = config;
@@ -53,13 +49,13 @@ namespace OpenSim.Tools.Export
 
             // TODO: this really sucks, but given the way we do
             // logging in OpenSim, we need to establish a log up front
-            
+
             MainLog.Instance = CreateLog();
 
-            this.sman = new StorageManager(
-                                      startup.GetString("storage_plugin", "OpenSim.DataStore.NullStorage.dll"),
-                                      startup.GetString("storage_connection_string","")
-                                      );
+            sman = new StorageManager(
+                startup.GetString("storage_plugin", "OpenSim.DataStore.NullStorage.dll"),
+                startup.GetString("storage_connection_string", "")
+                );
         }
 
         public static void Main(string[] args)
@@ -67,10 +63,10 @@ namespace OpenSim.Tools.Export
             OpenSimExport export = new OpenSimExport(InitConfig(args));
             RegionInfo reg = new RegionInfo("Sara Jane", "Regions/1000-1000.xml");
 
-            System.Console.WriteLine("This application does nothing useful yet: " + reg.RegionID);
+            Console.WriteLine("This application does nothing useful yet: " + reg.RegionID);
             foreach (SceneObjectGroup group in export.sman.DataStore.LoadObjects(reg.RegionID))
             {
-                System.Console.WriteLine("{0} -> {1}", reg.RegionID, group.UUID);
+                Console.WriteLine("{0} -> {1}", reg.RegionID, group.UUID);
             }
         }
 
@@ -83,25 +79,25 @@ namespace OpenSim.Tools.Export
 
             return new LogBase((Path.Combine(Util.logDir(), "export.log")), "Export", null, true);
         }
-        
+
 
         private static IniConfigSource InitConfig(string[] args)
         {
-            System.Console.WriteLine("Good");
+            Console.WriteLine("Good");
             ArgvConfigSource configSource = new ArgvConfigSource(args);
             configSource.AddSwitch("Startup", "inifile");
 
             IConfig startupConfig = configSource.Configs["Startup"];
             string iniFilePath = startupConfig.GetString("inifile", "OpenSim.ini");
-            System.Console.WriteLine(iniFilePath);
+            Console.WriteLine(iniFilePath);
             IniConfigSource config = new IniConfigSource();
             //check for .INI file (either default or name passed in command line)
-            if(! File.Exists(iniFilePath)) 
+            if (! File.Exists(iniFilePath))
             {
                 iniFilePath = Path.Combine(Util.configDir(), iniFilePath);
             }
-            
-            if(File.Exists(iniFilePath))
+
+            if (File.Exists(iniFilePath))
             {
                 config.Merge(new IniConfigSource(iniFilePath));
                 config.Merge(configSource);
@@ -109,8 +105,8 @@ namespace OpenSim.Tools.Export
             else
             {
                 // no default config files, so set default values, and save it
-                System.Console.WriteLine("We didn't find a config!");
-                config.Merge(OpenSim.OpenSimMain.DefaultConfig());
+                Console.WriteLine("We didn't find a config!");
+                config.Merge(OpenSimMain.DefaultConfig());
                 config.Merge(configSource);
             }
 

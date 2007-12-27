@@ -30,7 +30,6 @@ using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
 using OpenSim.Framework.Console;
-using Nini.Config;
 
 namespace OpenSim.Region.Physics.Manager
 {
@@ -91,7 +90,7 @@ namespace OpenSim.Region.Physics.Manager
             plugHard = new ZeroMesherPlugin();
             _MeshPlugins.Add(plugHard.GetName(), plugHard);
             MainLog.Instance.Verbose("PHYSICS", "Added meshing engine: " + plugHard.GetName());
-            
+
             // And now walk all assemblies (DLLs effectively) and see if they are home 
             // of a plugin that is of interest for us
             string path = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Physics");
@@ -129,7 +128,7 @@ namespace OpenSim.Region.Physics.Manager
                         if (meshTypeInterface != null)
                         {
                             IMeshingPlugin plug =
-                                (IMeshingPlugin)Activator.CreateInstance(pluginAssembly.GetType(pluginType.ToString()));
+                                (IMeshingPlugin) Activator.CreateInstance(pluginAssembly.GetType(pluginType.ToString()));
                             _MeshPlugins.Add(plug.GetName(), plug);
                             MainLog.Instance.Verbose("PHYSICS", "Added meshing engine: " + plug.GetName());
                         }
@@ -155,6 +154,7 @@ namespace OpenSim.Region.Physics.Manager
                 MainLog.Instance.Verbose("PHYSICS", message);
             }
         }
+
         //---
     }
 

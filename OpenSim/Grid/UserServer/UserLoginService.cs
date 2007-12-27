@@ -29,16 +29,15 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Net;
 using System.Threading;
-using Nwc.XmlRpc;
 using libsecondlife;
+using Nwc.XmlRpc;
 using OpenSim.Framework;
 using OpenSim.Framework.Console;
-using OpenSim.Framework.Servers;
 using OpenSim.Framework.Data;
+using OpenSim.Framework.Servers;
 using OpenSim.Framework.UserManagement;
-using InventoryFolder = OpenSim.Framework.InventoryFolder;
+using InventoryFolder=OpenSim.Framework.InventoryFolder;
 
 namespace OpenSim.Grid.UserServer
 {
@@ -72,8 +71,8 @@ namespace OpenSim.Grid.UserServer
                 // Customise the response
                 //CFK: This is redundant and the next message should always appear.
                 //CFK: MainLog.Instance.Verbose("LOGIN", "Home Location");
-                response.Home = "{'region_handle':[r" + (SimInfo.regionLocX * 256).ToString() + ",r" +
-                                (SimInfo.regionLocY * 256).ToString() + "], " +
+                response.Home = "{'region_handle':[r" + (SimInfo.regionLocX*256).ToString() + ",r" +
+                                (SimInfo.regionLocY*256).ToString() + "], " +
                                 "'position':[r" + theUser.homeLocation.X.ToString() + ",r" +
                                 theUser.homeLocation.Y.ToString() + ",r" + theUser.homeLocation.Z.ToString() + "], " +
                                 "'look_at':[r" + theUser.homeLocation.X.ToString() + ",r" +
@@ -106,7 +105,7 @@ namespace OpenSim.Grid.UserServer
                 SimParams["firstname"] = theUser.username;
                 SimParams["lastname"] = theUser.surname;
                 SimParams["agent_id"] = theUser.UUID.ToString();
-                SimParams["circuit_code"] = (Int32)Convert.ToUInt32(response.CircuitCode);
+                SimParams["circuit_code"] = (Int32) Convert.ToUInt32(response.CircuitCode);
                 SimParams["startpos_x"] = theUser.currentAgent.currentPos.X.ToString();
                 SimParams["startpos_y"] = theUser.currentAgent.currentPos.Y.ToString();
                 SimParams["startpos_z"] = theUser.currentAgent.currentPos.Z.ToString();
@@ -119,9 +118,9 @@ namespace OpenSim.Grid.UserServer
                 theUser.currentAgent.currentRegion = SimInfo.UUID;
                 theUser.currentAgent.currentHandle = SimInfo.regionHandle;
 
-                MainLog.Instance.Verbose("LOGIN", SimInfo.regionName + " @ " + SimInfo.httpServerURI + "  " + 
-                    SimInfo.regionLocX + "," + SimInfo.regionLocY);
-                
+                MainLog.Instance.Verbose("LOGIN", SimInfo.regionName + " @ " + SimInfo.httpServerURI + "  " +
+                                                  SimInfo.regionLocX + "," + SimInfo.regionLocY);
+
                 XmlRpcRequest GridReq = new XmlRpcRequest("expect_user", SendParams);
                 XmlRpcResponse GridResp = GridReq.Send(SimInfo.httpServerURI, 6000);
             }
@@ -129,17 +128,17 @@ namespace OpenSim.Grid.UserServer
             {
                 tryDefault = true;
             }
-            if(tryDefault)
+            if (tryDefault)
             {
                 // Send him to default region instead
                 // Load information from the gridserver
 
-                ulong defaultHandle = (((ulong)m_config.DefaultX * 256) << 32) | ((ulong) m_config.DefaultY * 256);
-                
+                ulong defaultHandle = (((ulong) m_config.DefaultX*256) << 32) | ((ulong) m_config.DefaultY*256);
+
                 MainLog.Instance.Warn(
-                    "LOGIN", 
+                    "LOGIN",
                     "Home region not available: sending to default " + defaultHandle.ToString());
-                
+
                 SimInfo = new RegionProfileData();
                 try
                 {
@@ -149,15 +148,16 @@ namespace OpenSim.Grid.UserServer
 
                     // Customise the response
                     MainLog.Instance.Verbose("LOGIN", "Home Location");
-                    response.Home = "{'region_handle':[r" + (SimInfo.regionLocX * 256).ToString() + ",r" +
-                                    (SimInfo.regionLocY * 256).ToString() + "], " +
+                    response.Home = "{'region_handle':[r" + (SimInfo.regionLocX*256).ToString() + ",r" +
+                                    (SimInfo.regionLocY*256).ToString() + "], " +
                                     "'position':[r" + theUser.homeLocation.X.ToString() + ",r" +
                                     theUser.homeLocation.Y.ToString() + ",r" + theUser.homeLocation.Z.ToString() + "], " +
                                     "'look_at':[r" + theUser.homeLocation.X.ToString() + ",r" +
                                     theUser.homeLocation.Y.ToString() + ",r" + theUser.homeLocation.Z.ToString() + "]}";
 
                     // Destination
-                    MainLog.Instance.Verbose("LOGIN", "CUSTOMISERESPONSE: Region X: " + SimInfo.regionLocX + "; Region Y: " +
+                    MainLog.Instance.Verbose("LOGIN",
+                                             "CUSTOMISERESPONSE: Region X: " + SimInfo.regionLocX + "; Region Y: " +
                                              SimInfo.regionLocY);
                     response.SimAddress = Util.GetHostFromDNS(SimInfo.serverIP).ToString();
                     response.SimPort = (uint) SimInfo.serverPort;
@@ -182,7 +182,7 @@ namespace OpenSim.Grid.UserServer
                     SimParams["firstname"] = theUser.username;
                     SimParams["lastname"] = theUser.surname;
                     SimParams["agent_id"] = theUser.UUID.ToString();
-                    SimParams["circuit_code"] = (Int32)Convert.ToUInt32(response.CircuitCode);
+                    SimParams["circuit_code"] = (Int32) Convert.ToUInt32(response.CircuitCode);
                     SimParams["startpos_x"] = theUser.currentAgent.currentPos.X.ToString();
                     SimParams["startpos_y"] = theUser.currentAgent.currentPos.Y.ToString();
                     SimParams["startpos_z"] = theUser.currentAgent.currentPos.Z.ToString();
@@ -202,35 +202,34 @@ namespace OpenSim.Grid.UserServer
                     MainLog.Instance.Warn("LOGIN", "Default region also not available");
                     MainLog.Instance.Warn("LOGIN", e.ToString());
                 }
-
             }
         }
 
         protected override InventoryData CreateInventoryData(LLUUID userID)
         {
-            List<InventoryFolderBase> folders 
+            List<InventoryFolderBase> folders
                 = SynchronousRestObjectPoster.BeginPostObject<Guid, List<InventoryFolderBase>>(
                     "POST", m_config.InventoryUrl + "RootFolders/", userID.UUID);
-            
+
             // In theory, the user will only ever be missing a root folder in situations where a grid
             // which didn't previously run a grid wide inventory server is being transitioned to one 
             // which does.
             if (null == folders | folders.Count == 0)
             {
                 MainLog.Instance.Warn(
-                    "LOGIN", 
+                    "LOGIN",
                     "A root inventory folder for user ID " + userID + " was not found.  A new set"
                     + " of empty inventory folders is being created.");
-                    
+
                 RestObjectPoster.BeginPostObject<Guid>(
                     m_config.InventoryUrl + "CreateInventory/", userID.UUID);
-                
+
                 // A big delay should be okay here since the recreation of the user's root folders should
                 // only ever happen once.  We need to sleep to let the inventory server do its work - 
                 // previously 1000ms has been found to be too short.
                 Thread.Sleep(10000);
                 folders = SynchronousRestObjectPoster.BeginPostObject<Guid, List<InventoryFolderBase>>(
-                    "POST", m_config.InventoryUrl + "RootFolders/", userID.UUID);                                         
+                    "POST", m_config.InventoryUrl + "RootFolders/", userID.UUID);
             }
 
             if (folders.Count > 0)
@@ -247,8 +246,8 @@ namespace OpenSim.Grid.UserServer
                     TempHash = new Hashtable();
                     TempHash["name"] = InvFolder.name;
                     TempHash["parent_id"] = InvFolder.parentID.ToString();
-                    TempHash["version"] = (Int32)InvFolder.version;
-                    TempHash["type_default"] = (Int32)InvFolder.type;
+                    TempHash["version"] = (Int32) InvFolder.version;
+                    TempHash["type_default"] = (Int32) InvFolder.type;
                     TempHash["folder_id"] = InvFolder.folderID.ToString();
                     AgentInventoryArray.Add(TempHash);
                 }
@@ -257,8 +256,8 @@ namespace OpenSim.Grid.UserServer
             else
             {
                 MainLog.Instance.Warn("LOGIN", "The root inventory folder could still not be retrieved" +
-                                      " for user ID " + userID);
-                                      
+                                               " for user ID " + userID);
+
                 AgentInventory userInventory = new AgentInventory();
                 userInventory.CreateRootFolder(userID, false);
 
@@ -269,8 +268,8 @@ namespace OpenSim.Grid.UserServer
                     TempHash = new Hashtable();
                     TempHash["name"] = InvFolder.FolderName;
                     TempHash["parent_id"] = InvFolder.ParentID.ToString();
-                    TempHash["version"] = (Int32)InvFolder.Version;
-                    TempHash["type_default"] = (Int32)InvFolder.DefaultType;
+                    TempHash["version"] = (Int32) InvFolder.Version;
+                    TempHash["type_default"] = (Int32) InvFolder.DefaultType;
                     TempHash["folder_id"] = InvFolder.FolderID.ToString();
                     AgentInventoryArray.Add(TempHash);
                 }

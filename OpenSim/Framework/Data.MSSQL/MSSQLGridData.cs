@@ -57,8 +57,9 @@ namespace OpenSim.Framework.Data.MSSQL
             string settingUserId = GridDataMySqlFile.ParseFileReadValue("user_id");
             string settingPassword = GridDataMySqlFile.ParseFileReadValue("password");
 
-            database = new MSSQLManager(settingDataSource, settingInitialCatalog, settingPersistSecurityInfo, settingUserId, settingPassword);
-
+            database =
+                new MSSQLManager(settingDataSource, settingInitialCatalog, settingPersistSecurityInfo, settingUserId,
+                                 settingPassword);
         }
 
         /// <summary>
@@ -120,14 +121,13 @@ namespace OpenSim.Framework.Data.MSSQL
                 result.Dispose();
 
                 return row;
-
             }
             catch (Exception)
-            {                
-                if (reader != null) {
+            {
+                if (reader != null)
+                {
                     reader.Close();
                 }
-                
             }
             return null;
         }
@@ -135,7 +135,6 @@ namespace OpenSim.Framework.Data.MSSQL
         /// <summary>
         /// // Returns a list of avatar and UUIDs that match the query
         /// </summary>
-
         public List<AvatarPickerAvatar> GeneratePickerResults(LLUUID queryID, string query)
         {
             List<AvatarPickerAvatar> returnlist = new List<AvatarPickerAvatar>();
@@ -152,18 +151,19 @@ namespace OpenSim.Framework.Data.MSSQL
                         param["second"] = querysplit[1];
 
                         IDbCommand result =
-                            database.Query("SELECT UUID,username,surname FROM users WHERE username = @first AND lastname = @second", param);
+                            database.Query(
+                                "SELECT UUID,username,surname FROM users WHERE username = @first AND lastname = @second",
+                                param);
                         IDataReader reader = result.ExecuteReader();
 
 
                         while (reader.Read())
                         {
                             AvatarPickerAvatar user = new AvatarPickerAvatar();
-                            user.AvatarID = new LLUUID((string)reader["UUID"]);
-                            user.firstName = (string)reader["username"];
-                            user.lastName = (string)reader["surname"];
+                            user.AvatarID = new LLUUID((string) reader["UUID"]);
+                            user.firstName = (string) reader["username"];
+                            user.lastName = (string) reader["surname"];
                             returnlist.Add(user);
-
                         }
                         reader.Close();
                         result.Dispose();
@@ -175,13 +175,9 @@ namespace OpenSim.Framework.Data.MSSQL
                     MainLog.Instance.Error(e.ToString());
                     return returnlist;
                 }
-
-
-
             }
             else if (querysplit.Length == 1)
             {
-
                 try
                 {
                     lock (database)
@@ -191,18 +187,19 @@ namespace OpenSim.Framework.Data.MSSQL
                         param["second"] = querysplit[1];
 
                         IDbCommand result =
-                            database.Query("SELECT UUID,username,surname FROM users WHERE username = @first OR lastname = @second", param);
+                            database.Query(
+                                "SELECT UUID,username,surname FROM users WHERE username = @first OR lastname = @second",
+                                param);
                         IDataReader reader = result.ExecuteReader();
 
 
                         while (reader.Read())
                         {
                             AvatarPickerAvatar user = new AvatarPickerAvatar();
-                            user.AvatarID = new LLUUID((string)reader["UUID"]);
-                            user.firstName = (string)reader["username"];
-                            user.lastName = (string)reader["surname"];
+                            user.AvatarID = new LLUUID((string) reader["UUID"]);
+                            user.firstName = (string) reader["username"];
+                            user.lastName = (string) reader["surname"];
                             returnlist.Add(user);
-
                         }
                         reader.Close();
                         result.Dispose();
@@ -225,8 +222,8 @@ namespace OpenSim.Framework.Data.MSSQL
         /// <returns>The sim profile</returns>
         public RegionProfileData GetProfileByLLUUID(LLUUID uuid)
         {
-            Dictionary<string, string> param = new Dictionary<string, string>();                        
-            param["uuid"] = uuid.ToString();            
+            Dictionary<string, string> param = new Dictionary<string, string>();
+            param["uuid"] = uuid.ToString();
             IDbCommand result = database.Query("SELECT * FROM regions WHERE uuid = @uuid", param);
             IDataReader reader = result.ExecuteReader();
 
@@ -244,7 +241,6 @@ namespace OpenSim.Framework.Data.MSSQL
         /// <returns>A dataresponse enum indicating success</returns>
         public DataResponse AddProfile(RegionProfileData profile)
         {
-
             try
             {
                 if (GetProfileByLLUUID(profile.UUID) != null)

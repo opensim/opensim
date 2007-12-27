@@ -229,7 +229,8 @@ namespace OpenSim.Framework
     public delegate void RezObject(IClientAPI remoteClient, LLUUID itemID, LLVector3 pos);
 
     public delegate void ModifyTerrain(
-        float height, float seconds, byte size, byte action, float north, float west, float south, float east, IClientAPI remoteClient);
+        float height, float seconds, byte size, byte action, float north, float west, float south, float east,
+        IClientAPI remoteClient);
 
     public delegate void SetAppearance(byte[] texture, AgentSetAppearancePacket.VisualParamBlock[] visualParam);
 
@@ -269,7 +270,8 @@ namespace OpenSim.Framework
 
     public delegate void ObjectSelect(uint localID, IClientAPI remoteClient);
 
-    public delegate void RequestObjectPropertiesFamily(IClientAPI remoteClient, LLUUID AgentID, uint RequestFlags, LLUUID TaskID);
+    public delegate void RequestObjectPropertiesFamily(
+        IClientAPI remoteClient, LLUUID AgentID, uint RequestFlags, LLUUID TaskID);
 
     public delegate void ObjectDeselect(uint localID, IClientAPI remoteClient);
 
@@ -297,13 +299,17 @@ namespace OpenSim.Framework
 
     public delegate void AgentSit(IClientAPI remoteClient, LLUUID agentID);
 
-    public delegate void AvatarPickerRequest(IClientAPI remoteClient, LLUUID agentdata, LLUUID queryID, string UserQuery);
+    public delegate void AvatarPickerRequest(IClientAPI remoteClient, LLUUID agentdata, LLUUID queryID, string UserQuery
+        );
 
     public delegate void MoveObject(LLUUID objectID, LLVector3 offset, LLVector3 grapPos, IClientAPI remoteClient);
 
-    public delegate void ParcelAccessListRequest(LLUUID agentID, LLUUID sessionID, uint flags, int sequenceID, int landLocalID,IClientAPI remote_client);
-    
-    public delegate void ParcelAccessListUpdateRequest(LLUUID agentID, LLUUID sessionID,uint flags, int landLocalID, List<libsecondlife.ParcelManager.ParcelAccessEntry> entries, IClientAPI remote_client);
+    public delegate void ParcelAccessListRequest(
+        LLUUID agentID, LLUUID sessionID, uint flags, int sequenceID, int landLocalID, IClientAPI remote_client);
+
+    public delegate void ParcelAccessListUpdateRequest(
+        LLUUID agentID, LLUUID sessionID, uint flags, int landLocalID, List<ParcelManager.ParcelAccessEntry> entries,
+        IClientAPI remote_client);
 
     public delegate void ParcelPropertiesRequest(
         int start_x, int start_y, int end_x, int end_y, int sequence_id, bool snap_selection, IClientAPI remote_client);
@@ -330,13 +336,14 @@ namespace OpenSim.Framework
 
     public delegate void RequestGodlikePowers(LLUUID AgentID, LLUUID SessionID, LLUUID token, IClientAPI remote_client);
 
-    public delegate void GodKickUser(LLUUID GodAgentID, LLUUID GodSessionID, LLUUID AgentID, uint kickflags, byte[] reason);
+    public delegate void GodKickUser(
+        LLUUID GodAgentID, LLUUID GodSessionID, LLUUID AgentID, uint kickflags, byte[] reason);
 
     public delegate void CreateInventoryFolder(
         IClientAPI remoteClient, LLUUID folderID, ushort folderType, string folderName, LLUUID parentID);
 
     public delegate void UpdateInventoryFolder(
-        IClientAPI remoteClient, LLUUID folderID, ushort type, string name,  LLUUID parentID);
+        IClientAPI remoteClient, LLUUID folderID, ushort type, string name, LLUUID parentID);
 
     public delegate void MoveInventoryFolder(
         IClientAPI remoteClient, LLUUID folderID, LLUUID parentID);
@@ -360,7 +367,8 @@ namespace OpenSim.Framework
         uint nextOwnerMask);
 
     public delegate void CopyInventoryItem(
-        IClientAPI remoteClient, uint callbackID, LLUUID oldAgentID, LLUUID oldItemID, LLUUID newFolderID, string newName);
+        IClientAPI remoteClient, uint callbackID, LLUUID oldAgentID, LLUUID oldItemID, LLUUID newFolderID,
+        string newName);
 
     public delegate void MoveInventoryItem(
         IClientAPI remoteClient, LLUUID folderID, LLUUID itemID, int length, string newName);
@@ -372,15 +380,18 @@ namespace OpenSim.Framework
     public delegate void RemoveTaskInventory(IClientAPI remoteClient, LLUUID itemID, uint localID);
 
     public delegate void UDPAssetUploadRequest(
-        IClientAPI remoteClient, LLUUID assetID, LLUUID transaction, sbyte type, byte[] data, bool storeLocal, bool tempFile);
+        IClientAPI remoteClient, LLUUID assetID, LLUUID transaction, sbyte type, byte[] data, bool storeLocal,
+        bool tempFile);
 
     public delegate void XferReceive(IClientAPI remoteClient, ulong xferID, uint packetID, byte[] data);
 
     public delegate void RequestXfer(IClientAPI remoteClient, ulong xferID, string fileName);
 
     public delegate void ConfirmXfer(IClientAPI remoteClient, ulong xferID, uint packetID);
-    
-    public delegate void ObjectPermissions(IClientAPI remoteClinet, LLUUID AgentID, LLUUID SessionID, List<ObjectPermissionsPacket.ObjectDataBlock> permChanges);
+
+    public delegate void ObjectPermissions(
+        IClientAPI remoteClinet, LLUUID AgentID, LLUUID SessionID,
+        List<ObjectPermissionsPacket.ObjectDataBlock> permChanges);
 
     public interface IClientAPI
     {
@@ -472,19 +483,19 @@ namespace OpenSim.Framework
         event EstateOwnerMessageRequest OnEstateOwnerMessage;
         event RegionInfoRequest OnRegionInfoRequest;
         event EstateCovenantRequest OnEstateCovenantRequest;
-        
+
         LLVector3 StartPos { get; set; }
 
         LLUUID AgentId { get; }
 
         LLUUID SessionId { get; }
-        
+
         LLUUID SecureSessionId { get; }
 
         string FirstName { get; }
 
         string LastName { get; }
-        
+
         /// <summary>
         /// Returns the full name of the agent/avatar represented by this client
         /// </summary>
@@ -536,26 +547,29 @@ namespace OpenSim.Framework
 
         void AttachObject(uint localID, LLQuaternion rotation, byte attachPoint);
         void SetChildAgentThrottle(byte[] throttle);
+
         void SendPrimitiveToClient(ulong regionHandle, ushort timeDilation, uint localID, PrimitiveBaseShape primShape,
                                    LLVector3 pos, uint flags, LLUUID objectID, LLUUID ownerID, string text, byte[] color,
                                    uint parentID, byte[] particleSystem, LLQuaternion rotation, byte clickAction);
 
         void SendPrimTerseUpdate(ulong regionHandle, ushort timeDilation, uint localID, LLVector3 position,
                                  LLQuaternion rotation);
+
         void SendPrimTerseUpdate(ulong regionHandle, ushort timeDilation, uint localID, LLVector3 position,
                                  LLQuaternion rotation, LLVector3 velocity, LLVector3 rotationalvelocity);
 
-        void SendInventoryFolderDetails(LLUUID ownerID, LLUUID folderID, List<InventoryItemBase> items, 
-                                        List<InventoryFolderBase> folders, bool fetchFolders, 
+        void SendInventoryFolderDetails(LLUUID ownerID, LLUUID folderID, List<InventoryItemBase> items,
+                                        List<InventoryFolderBase> folders, bool fetchFolders,
                                         bool fetchItems);
+
         void SendInventoryItemDetails(LLUUID ownerID, InventoryItemBase item);
-        
+
         /// <summary>
         /// Tell the client that we have created the item it requested.
         /// </summary>
         /// <param name="Item"></param>
         void SendInventoryItemCreateUpdate(InventoryItemBase Item);
-        
+
         void SendRemoveInventoryItem(LLUUID itemID);
         void SendTaskInventory(LLUUID taskID, short serial, byte[] fileName);
         void SendXferPacket(ulong xferID, uint packet, byte[] data);
@@ -566,7 +580,7 @@ namespace OpenSim.Framework
 
         void SendNameReply(LLUUID profileId, string firstname, string lastname);
         void SendAlertMessage(string message);
-        
+
         void SendAgentAlertMessage(string message, bool modal);
         void SendLoadURL(string objectname, LLUUID objectID, LLUUID ownerID, bool groupOwned, string message, string url);
         bool AddMoney(int debit);

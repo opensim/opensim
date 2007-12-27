@@ -29,8 +29,6 @@ using System.Collections.Generic;
 using libsecondlife;
 using libsecondlife.Packets;
 using OpenSim.Framework;
-using OpenSim.Framework.UserManagement;
-using OpenSim.Framework.Console;
 
 namespace OpenSim.Region.Environment.Scenes
 {
@@ -45,7 +43,8 @@ namespace OpenSim.Region.Environment.Scenes
         /// <param name="action">The action to be performed</param>
         /// <param name="north">Distance from the north border where the cursor is located</param>
         /// <param name="west">Distance from the west border where the cursor is located</param>
-        public void ModifyTerrain(float height, float seconds, byte brushsize, byte action, float north, float west, float south, float east,
+        public void ModifyTerrain(float height, float seconds, byte brushsize, byte action, float north, float west,
+                                  float south, float east,
                                   IClientAPI remoteUser)
         {
             // Do a permissions check before allowing terraforming.
@@ -157,7 +156,7 @@ namespace OpenSim.Region.Environment.Scenes
                 }
             }
         }
- 
+
         public void ProcessAvatarPickerRequest(IClientAPI client, LLUUID avatarID, LLUUID RequestID, string query)
         {
             //EventManager.TriggerAvatarPickerRequest();
@@ -166,13 +165,14 @@ namespace OpenSim.Region.Environment.Scenes
             AvatarResponses = CommsManager.GenerateAgentPickerRequestResponse(RequestID, query);
 
             AvatarPickerReplyPacket replyPacket = new AvatarPickerReplyPacket();
-            AvatarPickerReplyPacket.DataBlock[] searchData = new AvatarPickerReplyPacket.DataBlock[AvatarResponses.Count];
+            AvatarPickerReplyPacket.DataBlock[] searchData =
+                new AvatarPickerReplyPacket.DataBlock[AvatarResponses.Count];
             AvatarPickerReplyPacket.AgentDataBlock agentData = new AvatarPickerReplyPacket.AgentDataBlock();
 
             agentData.AgentID = avatarID;
             agentData.QueryID = RequestID;
             replyPacket.AgentData = agentData;
-            byte[] bytes = new byte[AvatarResponses.Count * 32];
+            byte[] bytes = new byte[AvatarResponses.Count*32];
 
             int i = 0;
             foreach (AvatarPickerAvatar item in AvatarResponses)
@@ -180,10 +180,9 @@ namespace OpenSim.Region.Environment.Scenes
                 LLUUID translatedIDtem = item.AvatarID;
                 searchData[i] = new AvatarPickerReplyPacket.DataBlock();
                 searchData[i].AvatarID = translatedIDtem;
-                searchData[i].FirstName = Helpers.StringToField((string)item.firstName);
-                searchData[i].LastName = Helpers.StringToField((string)item.lastName);
+                searchData[i].FirstName = Helpers.StringToField((string) item.firstName);
+                searchData[i].LastName = Helpers.StringToField((string) item.lastName);
                 i++;
-                
             }
             if (AvatarResponses.Count == 0)
             {

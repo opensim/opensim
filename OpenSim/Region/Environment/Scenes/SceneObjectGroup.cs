@@ -28,6 +28,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Drawing;
 using System.IO;
 using System.Text;
 using System.Xml;
@@ -38,7 +39,6 @@ using OpenSim.Framework;
 using OpenSim.Framework.Console;
 using OpenSim.Region.Environment.Interfaces;
 using OpenSim.Region.Physics.Manager;
-using System.Drawing;
 
 namespace OpenSim.Region.Environment.Scenes
 {
@@ -74,11 +74,13 @@ namespace OpenSim.Region.Environment.Scenes
         {
             get { return m_rootPart.RotationOffset; }
         }
+
         public LLUUID GroupID
         {
             get { return m_rootPart.GroupID; }
             set { m_rootPart.GroupID = value; }
         }
+
         /// <summary>
         /// 
         /// </summary>
@@ -242,7 +244,7 @@ namespace OpenSim.Region.Environment.Scenes
             part.ParentID = 0;
             part.LinkNum = 0;
             m_parts.Add(part.UUID, part);
-            
+
             SetPartAsRoot(part);
 
             RegionHandle = regionHandle;
@@ -293,7 +295,6 @@ namespace OpenSim.Region.Environment.Scenes
             }
             reader.Close();
             sr.Close();
-
 
 
             m_rootPart.LocalID = m_scene.PrimIDAllocate();
@@ -376,9 +377,10 @@ namespace OpenSim.Region.Environment.Scenes
 
             foreach (SceneObjectPart part in m_parts.Values)
             {
-
-                Vector3 partPosition = new Vector3(part.AbsolutePosition.X, part.AbsolutePosition.Y, part.AbsolutePosition.Z);
-                Quaternion parentrotation = new Quaternion(GroupRotation.W, GroupRotation.X, GroupRotation.Y, GroupRotation.Z);
+                Vector3 partPosition =
+                    new Vector3(part.AbsolutePosition.X, part.AbsolutePosition.Y, part.AbsolutePosition.Z);
+                Quaternion parentrotation =
+                    new Quaternion(GroupRotation.W, GroupRotation.X, GroupRotation.Y, GroupRotation.Z);
 
                 // Telling the prim to raytrace.
                 EntityIntersection inter = part.TestIntersection(hRay, parentrotation);
@@ -389,14 +391,11 @@ namespace OpenSim.Region.Environment.Scenes
                 float idist = 256f;
 
 
-
-
                 if (inter.HitTF)
                 {
                     // We need to find the closest prim to return to the testcaller along the ray
                     if (inter.distance < idist)
                     {
-
                         idist = inter.distance;
                         returnresult.HitTF = true;
                         returnresult.ipoint = inter.ipoint;
@@ -405,13 +404,9 @@ namespace OpenSim.Region.Environment.Scenes
                         returnresult.distance = inter.distance;
                     }
                 }
-
-
             }
             return returnresult;
-
         }
-
 
 
         /// <summary>
@@ -524,7 +519,7 @@ namespace OpenSim.Region.Environment.Scenes
         /// <returns></returns>
         public SceneObjectGroup Copy(LLUUID cAgentID, LLUUID cGroupID)
         {
-            SceneObjectGroup dupe = (SceneObjectGroup)MemberwiseClone();
+            SceneObjectGroup dupe = (SceneObjectGroup) MemberwiseClone();
             dupe.m_parts = new Dictionary<LLUUID, SceneObjectPart>();
             dupe.m_parts.Clear();
             //dupe.OwnerID = AgentID;
@@ -549,9 +544,8 @@ namespace OpenSim.Region.Environment.Scenes
                     new PhysicsVector(dupe.RootPart.Scale.X, dupe.RootPart.Scale.Y, dupe.RootPart.Scale.Z),
                     new Quaternion(dupe.RootPart.RotationOffset.W, dupe.RootPart.RotationOffset.X,
                                    dupe.RootPart.RotationOffset.Y, dupe.RootPart.RotationOffset.Z),
-                                   dupe.RootPart.PhysActor.IsPhysical);
+                    dupe.RootPart.PhysActor.IsPhysical);
                 dupe.RootPart.DoPhysicsPropertyUpdate(dupe.RootPart.PhysActor.IsPhysical, true);
-
             }
             // Now we've made a copy that replaces this one, we need to 
             // switch the owner to the person who did the copying
@@ -559,8 +553,8 @@ namespace OpenSim.Region.Environment.Scenes
             // So, we have to make a copy of this one, set it in it's place then set the owner on this one
 
             SetRootPartOwner(m_rootPart, cAgentID, cGroupID);
-            
-            
+
+
             m_rootPart.ScheduleFullUpdate();
 
             List<SceneObjectPart> partList = new List<SceneObjectPart>(m_parts.Values);
@@ -571,7 +565,6 @@ namespace OpenSim.Region.Environment.Scenes
                     dupe.CopyPart(part, OwnerID, GroupID);
                     SetPartOwner(part, cAgentID, cGroupID);
                     part.ScheduleFullUpdate();
-
                 }
             }
             dupe.UpdateParentIDs();
@@ -601,7 +594,7 @@ namespace OpenSim.Region.Environment.Scenes
             part.OwnerID = cAgentID;
             part.GroupID = cGroupID;
 
-            
+
             if (part.OwnerID != cAgentID)
             {
                 // Apply Next Owner Permissions if we're not bypassing permissions
@@ -637,6 +630,7 @@ namespace OpenSim.Region.Environment.Scenes
                 m_parts.Add(part.UUID, part);
             }
         }
+
         /// <summary>
         /// 
         /// </summary>
@@ -666,8 +660,8 @@ namespace OpenSim.Region.Environment.Scenes
             objPropDB.Description = Helpers.StringToField(RootPart.Description);
             objPropFamilyPack.ObjectData = objPropDB;
             remoteClient.OutPacket(objPropFamilyPack, ThrottleOutPacketType.Task);
-
         }
+
         public void SetPartOwner(SceneObjectPart part, LLUUID cAgentID, LLUUID cGroupID)
         {
             part.OwnerID = cAgentID;
@@ -884,12 +878,12 @@ namespace OpenSim.Region.Environment.Scenes
             Quaternion parentRot =
                 new Quaternion(m_rootPart.RotationOffset.W, m_rootPart.RotationOffset.X, m_rootPart.RotationOffset.Y,
                                m_rootPart.RotationOffset.Z);
-            axPos = parentRot.Inverse() * axPos;
+            axPos = parentRot.Inverse()*axPos;
             linkPart.OffsetPosition = new LLVector3(axPos.x, axPos.y, axPos.z);
             Quaternion oldRot =
                 new Quaternion(linkPart.RotationOffset.W, linkPart.RotationOffset.X, linkPart.RotationOffset.Y,
                                linkPart.RotationOffset.Z);
-            Quaternion newRot = parentRot.Inverse() * oldRot;
+            Quaternion newRot = parentRot.Inverse()*oldRot;
             linkPart.RotationOffset = new LLQuaternion(newRot.x, newRot.y, newRot.z, newRot.w);
             linkPart.ParentID = m_rootPart.LocalID;
             linkPart.LinkNum = m_parts.Count;
@@ -949,7 +943,7 @@ namespace OpenSim.Region.Environment.Scenes
                         linkPart.OffsetPosition.Y,
                         linkPart.OffsetPosition.Z);
 
-                axPos = parentRot * axPos;
+                axPos = parentRot*axPos;
                 linkPart.OffsetPosition = new LLVector3(axPos.x, axPos.y, axPos.z);
                 linkPart.GroupPosition = AbsolutePosition + linkPart.OffsetPosition;
                 linkPart.OffsetPosition = new LLVector3(0, 0, 0);
@@ -960,7 +954,7 @@ namespace OpenSim.Region.Environment.Scenes
                         linkPart.RotationOffset.X,
                         linkPart.RotationOffset.Y,
                         linkPart.RotationOffset.Z);
-                Quaternion newRot = parentRot * oldRot;
+                Quaternion newRot = parentRot*oldRot;
                 linkPart.RotationOffset = new LLQuaternion(newRot.x, newRot.y, newRot.z, newRot.w);
 
                 // Add physics information back to delinked part if appropriate
@@ -978,7 +972,6 @@ namespace OpenSim.Region.Environment.Scenes
                                        linkPart.RotationOffset.Y, linkPart.RotationOffset.Z),
                         m_rootPart.PhysActor.IsPhysical);
                     m_rootPart.DoPhysicsPropertyUpdate(m_rootPart.PhysActor.IsPhysical, true);
-
                 }
 
                 SceneObjectGroup objectGroup = new SceneObjectGroup(m_scene, m_regionHandle, linkPart);
@@ -990,8 +983,8 @@ namespace OpenSim.Region.Environment.Scenes
             else
             {
                 MainLog.Instance.Verbose("SCENE",
-                    "DelinkFromGroup(): Child prim local id {0} not found in object with root prim id {1}",
-                    partID, LocalId);
+                                         "DelinkFromGroup(): Child prim local id {0} not found in object with root prim id {1}",
+                                         partID, LocalId);
             }
         }
 
@@ -1008,7 +1001,7 @@ namespace OpenSim.Region.Environment.Scenes
             m_parts.Add(part.UUID, part);
 
             Vector3 axiomOldPos = new Vector3(part.OffsetPosition.X, part.OffsetPosition.Y, part.OffsetPosition.Z);
-            axiomOldPos = oldGroupRotation * axiomOldPos;
+            axiomOldPos = oldGroupRotation*axiomOldPos;
             axiomOldPos += oldGroupPosition;
             LLVector3 oldAbsolutePosition = new LLVector3(axiomOldPos.x, axiomOldPos.y, axiomOldPos.z);
             part.OffsetPosition = oldAbsolutePosition - AbsolutePosition;
@@ -1018,15 +1011,15 @@ namespace OpenSim.Region.Environment.Scenes
                                m_rootPart.RotationOffset.Z);
 
             Vector3 axiomPos = new Vector3(part.OffsetPosition.X, part.OffsetPosition.Y, part.OffsetPosition.Z);
-            axiomPos = axiomRootRotation.Inverse() * axiomPos;
+            axiomPos = axiomRootRotation.Inverse()*axiomPos;
             part.OffsetPosition = new LLVector3(axiomPos.x, axiomPos.y, axiomPos.z);
 
             Quaternion axiomPartRotation =
                 new Quaternion(part.RotationOffset.W, part.RotationOffset.X, part.RotationOffset.Y,
                                part.RotationOffset.Z);
 
-            axiomPartRotation = oldGroupRotation * axiomPartRotation;
-            axiomPartRotation = axiomRootRotation.Inverse() * axiomPartRotation;
+            axiomPartRotation = oldGroupRotation*axiomPartRotation;
+            axiomPartRotation = axiomRootRotation.Inverse()*axiomPartRotation;
             part.RotationOffset =
                 new LLQuaternion(axiomPartRotation.x, axiomPartRotation.y, axiomPartRotation.z, axiomPartRotation.w);
         }
@@ -1056,12 +1049,12 @@ namespace OpenSim.Region.Environment.Scenes
             proper.ObjectData = new ObjectPropertiesPacket.ObjectDataBlock[1];
             proper.ObjectData[0] = new ObjectPropertiesPacket.ObjectDataBlock();
             proper.ObjectData[0].ItemID = LLUUID.Zero;
-            proper.ObjectData[0].CreationDate = (ulong)m_rootPart.CreationDate;
+            proper.ObjectData[0].CreationDate = (ulong) m_rootPart.CreationDate;
             proper.ObjectData[0].CreatorID = m_rootPart.CreatorID;
             proper.ObjectData[0].FolderID = LLUUID.Zero;
             proper.ObjectData[0].FromTaskID = LLUUID.Zero;
             proper.ObjectData[0].GroupID = LLUUID.Zero;
-            proper.ObjectData[0].InventorySerial = (short)m_rootPart.InventorySerial;
+            proper.ObjectData[0].InventorySerial = (short) m_rootPart.InventorySerial;
             proper.ObjectData[0].LastOwnerID = m_rootPart.LastOwnerID;
             proper.ObjectData[0].ObjectID = UUID;
             proper.ObjectData[0].OwnerID = m_rootPart.OwnerID;
@@ -1155,7 +1148,7 @@ namespace OpenSim.Region.Environment.Scenes
             else
             {
                 MainLog.Instance.Warn(
-                    "SCENE", 
+                    "SCENE",
                     "Couldn't find part {0} in object group {1} ({2}) to retreive prim inventory",
                     localID, LocalId, UUID);
             }
@@ -1272,10 +1265,8 @@ namespace OpenSim.Region.Environment.Scenes
         public void UpdatePermissions(LLUUID AgentID, byte field, uint localID, uint mask, byte addRemTF)
         {
             SceneObjectPart updatePart = GetChildPart(localID);
-            updatePart.UpdatePermissions(AgentID,field,localID,mask,addRemTF);
+            updatePart.UpdatePermissions(AgentID, field, localID, mask, addRemTF);
         }
-                   
-
 
         #endregion
 
@@ -1304,9 +1295,8 @@ namespace OpenSim.Region.Environment.Scenes
                     new Quaternion(m_rootPart.RotationOffset.W, m_rootPart.RotationOffset.X,
                                    m_rootPart.RotationOffset.Y, m_rootPart.RotationOffset.Z),
                     m_rootPart.PhysActor.IsPhysical);
-                bool UsePhysics = ((m_rootPart.ObjectFlags & (uint)LLObject.ObjectFlags.Physics) != 0);
+                bool UsePhysics = ((m_rootPart.ObjectFlags & (uint) LLObject.ObjectFlags.Physics) != 0);
                 m_rootPart.DoPhysicsPropertyUpdate(UsePhysics, true);
-
             }
         }
 
@@ -1350,11 +1340,10 @@ namespace OpenSim.Region.Environment.Scenes
             if (m_scene.EventManager.TriggerGroupMove(UUID, pos))
             {
                 AbsolutePosition = pos;
-                
             }
             //we need to do a terse update even if the move wasn't allowed
             // so that the position is reset in the client (the object snaps back)
-            ScheduleGroupForTerseUpdate(); 
+            ScheduleGroupForTerseUpdate();
         }
 
         /// <summary>
@@ -1394,7 +1383,7 @@ namespace OpenSim.Region.Environment.Scenes
             Quaternion partRotation =
                 new Quaternion(m_rootPart.RotationOffset.W, m_rootPart.RotationOffset.X, m_rootPart.RotationOffset.Y,
                                m_rootPart.RotationOffset.Z);
-            axDiff = partRotation.Inverse() * axDiff;
+            axDiff = partRotation.Inverse()*axDiff;
             diff.X = axDiff.x;
             diff.Y = axDiff.y;
             diff.Z = axDiff.z;
@@ -1496,14 +1485,14 @@ namespace OpenSim.Region.Environment.Scenes
                 if (prim.UUID != m_rootPart.UUID)
                 {
                     Vector3 axPos = new Vector3(prim.OffsetPosition.X, prim.OffsetPosition.Y, prim.OffsetPosition.Z);
-                    axPos = oldParentRot * axPos;
-                    axPos = axRot.Inverse() * axPos;
+                    axPos = oldParentRot*axPos;
+                    axPos = axRot.Inverse()*axPos;
                     prim.OffsetPosition = new LLVector3(axPos.x, axPos.y, axPos.z);
                     Quaternion primsRot =
                         new Quaternion(prim.RotationOffset.W, prim.RotationOffset.X, prim.RotationOffset.Y,
                                        prim.RotationOffset.Z);
-                    Quaternion newRot = oldParentRot * primsRot;
-                    newRot = axRot.Inverse() * newRot;
+                    Quaternion newRot = oldParentRot*primsRot;
+                    newRot = axRot.Inverse()*newRot;
                     prim.RotationOffset = new LLQuaternion(newRot.x, newRot.y, newRot.z, newRot.w);
                     prim.ScheduleTerseUpdate();
                 }
@@ -1736,10 +1725,10 @@ namespace OpenSim.Region.Environment.Scenes
 
         public override void SetText(string text, Vector3 color, double alpha)
         {
-            Color = Color.FromArgb(0xff - (int)(alpha * 0xff),
-                                    (int)(color.x * 0xff),
-                                    (int)(color.y * 0xff),
-                                    (int)(color.z * 0xff));
+            Color = Color.FromArgb(0xff - (int) (alpha*0xff),
+                                   (int) (color.x*0xff),
+                                   (int) (color.y*0xff),
+                                   (int) (color.z*0xff));
             Text = text;
         }
 

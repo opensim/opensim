@@ -248,12 +248,12 @@ namespace OpenSim.Framework.Console
                     // Some older systems dont support coloured text.
                     System.Console.WriteLine(format, args);
                 }
-                 catch (System.FormatException)
+                catch (FormatException)
                 {
                     // Some older systems dont support coloured text.
                     System.Console.WriteLine(args);
                 }
-                
+
                 return;
             }
         }

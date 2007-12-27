@@ -41,7 +41,7 @@ namespace OpenSim.Region.Communications.OGS1
 
     public delegate bool PrimGroupArrival(ulong regionHandle, LLUUID primID, string objData);
 
-    public delegate bool RegionUp (SearializableRegionInfo region, ulong regionhandle);
+    public delegate bool RegionUp(SearializableRegionInfo region, ulong regionhandle);
 
     public delegate bool ChildAgentUpdate(ulong regionHandle, ChildAgentDataUpdate childUpdate);
 
@@ -81,7 +81,6 @@ namespace OpenSim.Region.Communications.OGS1
 
         public bool RegionUp(SearializableRegionInfo sregion, ulong regionhandle)
         {
-            
             if (OnRegionUp != null)
             {
                 return OnRegionUp(sregion, regionhandle);
@@ -106,6 +105,7 @@ namespace OpenSim.Region.Communications.OGS1
             }
             return false;
         }
+
         public bool InformRegionPrim(ulong regionHandle, LLUUID primID, LLVector3 position, bool isPhysical)
         {
             if (OnPrimGroupNear != null)
@@ -114,6 +114,7 @@ namespace OpenSim.Region.Communications.OGS1
             }
             return false;
         }
+
         public bool ExpectPrimCrossing(ulong regionHandle, LLUUID primID, string objData)
         {
             if (OnPrimGroupArrival != null)
@@ -134,7 +135,8 @@ namespace OpenSim.Region.Communications.OGS1
         {
             try
             {
-                return InterRegionSingleton.Instance.InformRegionOfChildAgent(regionHandle, new AgentCircuitData(agentData));
+                return
+                    InterRegionSingleton.Instance.InformRegionOfChildAgent(regionHandle, new AgentCircuitData(agentData));
             }
             catch (RemotingException e)
             {
@@ -142,7 +144,8 @@ namespace OpenSim.Region.Communications.OGS1
                 return false;
             }
         }
-        public bool RegionUp(SearializableRegionInfo  region, ulong regionhandle)
+
+        public bool RegionUp(SearializableRegionInfo region, ulong regionhandle)
         {
             try
             {
@@ -155,25 +158,27 @@ namespace OpenSim.Region.Communications.OGS1
             }
         }
 
-        public bool ChildAgentUpdate(ulong regionHandle, ChildAgentDataUpdate cAgentData) 
+        public bool ChildAgentUpdate(ulong regionHandle, ChildAgentDataUpdate cAgentData)
         {
             try
             {
-                return InterRegionSingleton.Instance.ChildAgentUpdate(regionHandle,cAgentData);
+                return InterRegionSingleton.Instance.ChildAgentUpdate(regionHandle, cAgentData);
             }
             catch (RemotingException e)
             {
                 Console.WriteLine("Remoting Error: Unable to send Child agent update to remote region.\n" + e.ToString());
                 return false;
             }
-
         }
 
         public bool ExpectAvatarCrossing(ulong regionHandle, Guid agentID, sLLVector3 position, bool isFlying)
         {
             try
             {
-                return InterRegionSingleton.Instance.ExpectAvatarCrossing(regionHandle, new LLUUID(agentID), new LLVector3(position.x,position.y,position.z), isFlying);
+                return
+                    InterRegionSingleton.Instance.ExpectAvatarCrossing(regionHandle, new LLUUID(agentID),
+                                                                       new LLVector3(position.x, position.y, position.z),
+                                                                       isFlying);
             }
             catch (RemotingException e)
             {
@@ -181,20 +186,24 @@ namespace OpenSim.Region.Communications.OGS1
                 return false;
             }
         }
+
         public bool InformRegionPrim(ulong regionHandle, Guid SceneObjectGroupID, sLLVector3 position, bool isPhysical)
         {
             try
             {
-                return InterRegionSingleton.Instance.InformRegionPrim(regionHandle, new LLUUID(SceneObjectGroupID), new LLVector3(position.x,position.y,position.z), isPhysical);
+                return
+                    InterRegionSingleton.Instance.InformRegionPrim(regionHandle, new LLUUID(SceneObjectGroupID),
+                                                                   new LLVector3(position.x, position.y, position.z),
+                                                                   isPhysical);
             }
             catch (RemotingException e)
             {
                 Console.WriteLine("Remoting Error: Unable to connect to remote region.\n" + e.ToString());
                 return false;
             }
-            
         }
-        public bool InformRegionOfPrimCrossing(ulong regionHandle,Guid primID, string objData)
+
+        public bool InformRegionOfPrimCrossing(ulong regionHandle, Guid primID, string objData)
         {
             try
             {
@@ -206,6 +215,5 @@ namespace OpenSim.Region.Communications.OGS1
                 return false;
             }
         }
-
     }
 }

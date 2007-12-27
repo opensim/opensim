@@ -29,8 +29,8 @@ using System.Collections;
 using System.Collections.Generic;
 using libsecondlife;
 using OpenSim.Framework;
-using OpenSim.Framework.Console;
 using OpenSim.Framework.Communications;
+using OpenSim.Framework.Console;
 
 namespace OpenSim.Region.Communications.Local
 {
@@ -50,21 +50,17 @@ namespace OpenSim.Region.Communications.Local
         public string gdebugRegionName
         {
             get { return _gdebugRegionName; }
-            set
-            {
-                _gdebugRegionName = value;
-            }
+            set { _gdebugRegionName = value; }
         }
+
         public string _rdebugRegionName = "";
 
         public string rdebugRegionName
         {
             get { return _rdebugRegionName; }
-            set
-            {
-                _rdebugRegionName = value;
-            }
+            set { _rdebugRegionName = value; }
         }
+
         public LocalBackEndServices()
         {
         }
@@ -85,7 +81,8 @@ namespace OpenSim.Region.Communications.Local
                 RegionCommsListener regionHost = new RegionCommsListener();
                 if (m_regionListeners.ContainsKey(regionInfo.RegionHandle))
                 {
-                    MainLog.Instance.Error("INTERREGION", "Error:Region registered twice as an Events listener for Interregion Communications but not as a listed region.  In Standalone mode this will cause BIG issues.  In grid mode, it means a region went down and came back up.");
+                    MainLog.Instance.Error("INTERREGION",
+                                           "Error:Region registered twice as an Events listener for Interregion Communications but not as a listed region.  In Standalone mode this will cause BIG issues.  In grid mode, it means a region went down and came back up.");
                     m_regionListeners.Remove(regionInfo.RegionHandle);
                 }
                 m_regionListeners.Add(regionInfo.RegionHandle, regionHost);
@@ -195,7 +192,7 @@ namespace OpenSim.Region.Communications.Local
             return mapBlocks;
         }
 
-        
+
         public virtual bool RegionUp(SearializableRegionInfo sregion, ulong regionhandle)
         {
             RegionInfo region = new RegionInfo(sregion);
@@ -203,7 +200,7 @@ namespace OpenSim.Region.Communications.Local
             {
                 return m_regionListeners[regionhandle].TriggerRegionUp(region);
             }
-           
+
             return false;
         }
 
@@ -224,7 +221,7 @@ namespace OpenSim.Region.Communications.Local
         // It never gets called.
         public virtual Dictionary<string, string> GetGridSettings()
         {
-            Dictionary<string,string> returnGridSettings = new Dictionary<string,string>();
+            Dictionary<string, string> returnGridSettings = new Dictionary<string, string>();
             lock (m_queuedGridSettings)
             {
                 returnGridSettings = m_queuedGridSettings;
@@ -237,7 +234,6 @@ namespace OpenSim.Region.Communications.Local
         public virtual void SetForcefulBanlistsDisallowed(ulong regionHandle)
         {
             m_queuedGridSettings.Add("allow_forceful_banlines", "FALSE");
-
         }
 
         public bool TriggerRegionUp(RegionInfo region, ulong regionhandle)
@@ -254,7 +250,7 @@ namespace OpenSim.Region.Communications.Local
         {
             if (m_regionListeners.ContainsKey(regionHandle))
             {
-                return m_regionListeners[regionHandle].TriggerChildAgentUpdate(regionHandle,cAgentData);
+                return m_regionListeners[regionHandle].TriggerChildAgentUpdate(regionHandle, cAgentData);
             }
             return false;
         }
@@ -282,7 +278,7 @@ namespace OpenSim.Region.Communications.Local
             return false;
         }
 
-        public bool InformRegionOfPrimCrossing(ulong regionHandle, LLUUID primID, string objData) 
+        public bool InformRegionOfPrimCrossing(ulong regionHandle, LLUUID primID, string objData)
         {
             if (m_regionListeners.ContainsKey(regionHandle))
             {
@@ -291,6 +287,7 @@ namespace OpenSim.Region.Communications.Local
             }
             return false;
         }
+
         /// <summary>
         /// 
         /// </summary>
@@ -308,6 +305,7 @@ namespace OpenSim.Region.Communications.Local
             }
             return false;
         }
+
         public bool ExpectPrimCrossing(ulong regionHandle, LLUUID primID, LLVector3 position, bool isPhysical)
         {
             if (m_regionListeners.ContainsKey(regionHandle))
@@ -322,7 +320,7 @@ namespace OpenSim.Region.Communications.Local
         {
             if (m_regionListeners.ContainsKey(regionHandle))
             {
-              m_regionListeners[regionHandle].TriggerCloseAgentConnection(regionHandle, agentID);
+                m_regionListeners[regionHandle].TriggerCloseAgentConnection(regionHandle, agentID);
             }
         }
 
@@ -334,6 +332,7 @@ namespace OpenSim.Region.Communications.Local
             }
             return false;
         }
+
         public bool AcknowledgePrimCrossed(ulong regionHandle, LLUUID primID)
         {
             if (m_regionListeners.ContainsKey(regionHandle))
@@ -415,14 +414,15 @@ namespace OpenSim.Region.Communications.Local
         {
             if (m_regionListeners.ContainsKey(regionHandle))
             {
-                return m_regionListeners[regionHandle].TriggerExpectPrimCrossing(regionHandle, primID, position, isPhysical);
+                return
+                    m_regionListeners[regionHandle].TriggerExpectPrimCrossing(regionHandle, primID, position, isPhysical);
             }
             return false;
         }
 
         public bool IncomingChildAgent(ulong regionHandle, AgentCircuitData agentData)
         {
-           // MainLog.Instance.Verbose("INTER", rdebugRegionName + ":Local BackEnd: Other local region is sending child agent our way: " + agentData.firstname + " " + agentData.lastname);
+            // MainLog.Instance.Verbose("INTER", rdebugRegionName + ":Local BackEnd: Other local region is sending child agent our way: " + agentData.firstname + " " + agentData.lastname);
 
             if (m_regionListeners.ContainsKey(regionHandle))
             {

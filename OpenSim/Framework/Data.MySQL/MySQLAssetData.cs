@@ -83,13 +83,13 @@ namespace OpenSim.Framework.Data.MySQL
                         if (dbReader.Read())
                         {
                             asset = new AssetBase();
-                            asset.Data = (byte[])dbReader["data"];
-                            asset.Description = (string)dbReader["description"];
+                            asset.Data = (byte[]) dbReader["data"];
+                            asset.Description = (string) dbReader["description"];
                             asset.FullID = assetID;
-                            asset.InvType = (sbyte)dbReader["invType"];
-                            asset.Local = ((sbyte)dbReader["local"]) != 0 ? true : false;
-                            asset.Name = (string)dbReader["name"];
-                            asset.Type = (sbyte)dbReader["assetType"];
+                            asset.InvType = (sbyte) dbReader["invType"];
+                            asset.Local = ((sbyte) dbReader["local"]) != 0 ? true : false;
+                            asset.Name = (string) dbReader["name"];
+                            asset.Type = (sbyte) dbReader["assetType"];
                         }
                         dbReader.Close();
                         cmd.Dispose();
@@ -98,7 +98,7 @@ namespace OpenSim.Framework.Data.MySQL
                 catch (Exception)
                 {
                     MainLog.Instance.Warn("ASSETS", "MySql failure fetching asset");
-                }   
+                }
             }
             return asset;
         }

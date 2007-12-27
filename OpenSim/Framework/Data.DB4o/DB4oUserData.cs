@@ -26,8 +26,8 @@
 * 
 */
 using System;
-using System.IO;
 using System.Collections.Generic;
+using System.IO;
 using libsecondlife;
 
 namespace OpenSim.Framework.Data.DB4o
@@ -132,12 +132,14 @@ namespace OpenSim.Framework.Data.DB4o
                 return null;
             }
         }
-        public List<OpenSim.Framework.AvatarPickerAvatar> GeneratePickerResults(LLUUID queryID, string query)
+
+        public List<Framework.AvatarPickerAvatar> GeneratePickerResults(LLUUID queryID, string query)
         {
             //Do nothing yet
-            List<OpenSim.Framework.AvatarPickerAvatar> returnlist = new List<OpenSim.Framework.AvatarPickerAvatar>();
+            List<Framework.AvatarPickerAvatar> returnlist = new List<Framework.AvatarPickerAvatar>();
             return returnlist;
         }
+
         /// <summary>
         /// Creates a new user profile
         /// </summary>

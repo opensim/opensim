@@ -25,7 +25,6 @@
 * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 * 
 */
-using System.Collections;
 using System.Collections.Generic;
 
 namespace OpenSim.Framework.Communications
@@ -39,6 +38,5 @@ namespace OpenSim.Framework.Communications
         RegionInfo RequestNeighbourInfo(ulong regionHandle);
         Dictionary<string, string> GetGridSettings();
         List<MapBlockData> RequestNeighbourMapBlocks(int minX, int minY, int maxX, int maxY);
-        
     }
 }

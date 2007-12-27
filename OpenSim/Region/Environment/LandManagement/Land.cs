@@ -32,7 +32,6 @@ using libsecondlife;
 using libsecondlife.Packets;
 using OpenSim.Framework;
 using OpenSim.Region.Environment.Scenes;
-using OpenSim.Region.Environment.Interfaces;
 
 namespace OpenSim.Region.Environment.LandManagement
 {
@@ -97,7 +96,6 @@ namespace OpenSim.Region.Environment.LandManagement
 
             return newLand;
         }
-
 
         #endregion
 
@@ -202,7 +200,7 @@ namespace OpenSim.Region.Environment.LandManagement
                 //Needs later group support
                 LandData newData = landData.Copy();
                 newData.authBuyerID = packet.ParcelData.AuthBuyerID;
-                newData.category = (Parcel.ParcelCategory)packet.ParcelData.Category;
+                newData.category = (Parcel.ParcelCategory) packet.ParcelData.Category;
                 newData.landDesc = Helpers.FieldToUTF8String(packet.ParcelData.Desc);
                 newData.groupID = packet.ParcelData.GroupID;
                 newData.landingType = packet.ParcelData.LandingType;
@@ -222,8 +220,6 @@ namespace OpenSim.Region.Environment.LandManagement
                 m_scene.LandManager.updateLandObject(landData.localID, newData);
 
                 sendLandUpdateToAvatarsOverMe();
-
-                
             }
         }
 
@@ -242,13 +238,13 @@ namespace OpenSim.Region.Environment.LandManagement
 
         public bool isBannedFromLand(LLUUID avatar)
         {
-            if ((this.landData.landFlags & (uint)Parcel.ParcelFlags.UseBanList) > 0)
+            if ((landData.landFlags & (uint) Parcel.ParcelFlags.UseBanList) > 0)
             {
                 ParcelManager.ParcelAccessEntry entry = new ParcelManager.ParcelAccessEntry();
                 entry.AgentID = avatar;
                 entry.Flags = ParcelManager.AccessList.Ban;
                 entry.Time = new DateTime();
-                if (this.landData.parcelAccessList.Contains(entry))
+                if (landData.parcelAccessList.Contains(entry))
                 {
                     //They are banned, so lets send them a notice about this parcel
                     return true;
@@ -259,13 +255,13 @@ namespace OpenSim.Region.Environment.LandManagement
 
         public bool isRestrictedFromLand(LLUUID avatar)
         {
-            if ((this.landData.landFlags & (uint)Parcel.ParcelFlags.UseAccessList) > 0)
+            if ((landData.landFlags & (uint) Parcel.ParcelFlags.UseAccessList) > 0)
             {
                 ParcelManager.ParcelAccessEntry entry = new ParcelManager.ParcelAccessEntry();
                 entry.AgentID = avatar;
                 entry.Flags = ParcelManager.AccessList.Access;
                 entry.Time = new DateTime();
-                if (!this.landData.parcelAccessList.Contains(entry))
+                if (!landData.parcelAccessList.Contains(entry))
                 {
                     //They are not allowed in this parcel, but not banned, so lets send them a notice about this parcel
                     return true;
@@ -310,7 +306,7 @@ namespace OpenSim.Region.Environment.LandManagement
                 {
                     ParcelAccessListReplyPacket.ListBlock listBlock = new ParcelAccessListReplyPacket.ListBlock();
 
-                    listBlock.Flags = (uint)0;
+                    listBlock.Flags = (uint) 0;
                     listBlock.ID = entry.AgentID;
                     listBlock.Time = 0;
 
@@ -322,7 +318,7 @@ namespace OpenSim.Region.Environment.LandManagement
             {
                 ParcelAccessListReplyPacket.ListBlock listBlock = new ParcelAccessListReplyPacket.ListBlock();
 
-                listBlock.Flags = (uint)0;
+                listBlock.Flags = (uint) 0;
                 listBlock.ID = LLUUID.Zero;
                 listBlock.Time = 0;
 
@@ -331,38 +327,37 @@ namespace OpenSim.Region.Environment.LandManagement
             return list.ToArray();
         }
 
-        public void sendAccessList(LLUUID agentID, LLUUID sessionID, uint flags, int sequenceID, IClientAPI remote_client)
+        public void sendAccessList(LLUUID agentID, LLUUID sessionID, uint flags, int sequenceID,
+                                   IClientAPI remote_client)
         {
-                
             ParcelAccessListReplyPacket replyPacket;
 
-            if (flags == (uint)ParcelManager.AccessList.Access || flags == (uint)ParcelManager.AccessList.Both)
+            if (flags == (uint) ParcelManager.AccessList.Access || flags == (uint) ParcelManager.AccessList.Both)
             {
                 replyPacket = new ParcelAccessListReplyPacket();
                 replyPacket.Data.AgentID = agentID;
-                replyPacket.Data.Flags = (uint)ParcelManager.AccessList.Access;
-                replyPacket.Data.LocalID = this.landData.localID;
+                replyPacket.Data.Flags = (uint) ParcelManager.AccessList.Access;
+                replyPacket.Data.LocalID = landData.localID;
                 replyPacket.Data.SequenceID = 0;
 
                 replyPacket.List = createAccessListArrayByFlag(ParcelManager.AccessList.Access);
-                remote_client.OutPacket((Packet)replyPacket, ThrottleOutPacketType.Task);
+                remote_client.OutPacket((Packet) replyPacket, ThrottleOutPacketType.Task);
             }
 
-            if (flags == (uint)ParcelManager.AccessList.Ban || flags == (uint)ParcelManager.AccessList.Both)
+            if (flags == (uint) ParcelManager.AccessList.Ban || flags == (uint) ParcelManager.AccessList.Both)
             {
                 replyPacket = new ParcelAccessListReplyPacket();
                 replyPacket.Data.AgentID = agentID;
-                replyPacket.Data.Flags = (uint)ParcelManager.AccessList.Ban;
-                replyPacket.Data.LocalID = this.landData.localID;
+                replyPacket.Data.Flags = (uint) ParcelManager.AccessList.Ban;
+                replyPacket.Data.LocalID = landData.localID;
                 replyPacket.Data.SequenceID = 0;
 
                 replyPacket.List = createAccessListArrayByFlag(ParcelManager.AccessList.Ban);
-                remote_client.OutPacket((Packet)replyPacket, ThrottleOutPacketType.Task);
+                remote_client.OutPacket((Packet) replyPacket, ThrottleOutPacketType.Task);
             }
-            
         }
 
-        public void updateAccessList(uint flags,  List<ParcelManager.ParcelAccessEntry> entries, IClientAPI remote_client)
+        public void updateAccessList(uint flags, List<ParcelManager.ParcelAccessEntry> entries, IClientAPI remote_client)
         {
             LandData newData = landData.Copy();
 
@@ -370,11 +365,11 @@ namespace OpenSim.Region.Environment.LandManagement
             {
                 entries.Clear();
             }
-            
+
             List<ParcelManager.ParcelAccessEntry> toRemove = new List<ParcelManager.ParcelAccessEntry>();
             foreach (ParcelManager.ParcelAccessEntry entry in newData.parcelAccessList)
             {
-                if (entry.Flags == (ParcelManager.AccessList)flags)
+                if (entry.Flags == (ParcelManager.AccessList) flags)
                 {
                     toRemove.Add(entry);
                 }
@@ -388,8 +383,8 @@ namespace OpenSim.Region.Environment.LandManagement
             {
                 ParcelManager.ParcelAccessEntry temp = new ParcelManager.ParcelAccessEntry();
                 temp.AgentID = entry.AgentID;
-                temp.Time = new DateTime() ; //Pointless? Yes.
-                temp.Flags = (ParcelManager.AccessList)flags;
+                temp.Time = new DateTime(); //Pointless? Yes.
+                temp.Flags = (ParcelManager.AccessList) flags;
 
                 if (!newData.parcelAccessList.Contains(temp))
                 {
@@ -398,7 +393,6 @@ namespace OpenSim.Region.Environment.LandManagement
             }
 
             m_scene.LandManager.updateLandObject(landData.localID, newData);
-
         }
 
         #endregion
@@ -437,7 +431,6 @@ namespace OpenSim.Region.Environment.LandManagement
                 new LLVector3((float) (max_x*4), (float) (max_y*4),
                               (float) m_scene.Terrain.GetHeight((max_x*4), (max_y*4)));
             landData.area = tempArea;
-
         }
 
         public void updateLandBitmapByteArray()
@@ -650,9 +643,9 @@ namespace OpenSim.Region.Environment.LandManagement
                     {
                         resultLocalIDs.Add(obj.LocalId);
                     }
-                    // else if (request_type == LandManager.LAND_SELECT_OBJECTS_GROUP && ...) // TODO: group support
-                    // {
-                    // }
+                        // else if (request_type == LandManager.LAND_SELECT_OBJECTS_GROUP && ...) // TODO: group support
+                        // {
+                        // }
                     else if (request_type == LandManager.LAND_SELECT_OBJECTS_OTHER &&
                              obj.OwnerID != remote_client.AgentId)
                     {
@@ -732,10 +725,8 @@ namespace OpenSim.Region.Environment.LandManagement
 
                     num++;
                 }
-                
+
                 pack.Data = dataBlock;
-                
-                
             }
             remote_client.OutPacket(pack, ThrottleOutPacketType.Task);
         }

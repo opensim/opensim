@@ -28,9 +28,8 @@
 
 using System;
 using System.Collections.Generic;
-using System.Text;
-
 using OpenSim.Framework.Console;
+using OpenSim.Region.Physics.Manager;
 
 namespace OpenSim.Region.Physics.Meshing
 {
@@ -43,17 +42,18 @@ namespace OpenSim.Region.Physics.Meshing
     // is defined by the hull lies inside or outside the simplex chain
     public class SimpleHull
     {
-        List<Vertex> vertices = new List<Vertex>();
-        List<Vertex> holeVertices = new List<Vertex>(); // Only used, when the hull is hollow
+        private List<Vertex> vertices = new List<Vertex>();
+        private List<Vertex> holeVertices = new List<Vertex>(); // Only used, when the hull is hollow
 
         // Adds a vertex to the end of the list
-        public void AddVertex(Vertex v) {
+        public void AddVertex(Vertex v)
+        {
             vertices.Add(v);
         }
 
-        override public String ToString()
+        public override String ToString()
         {
-            String result="";
+            String result = "";
             foreach (Vertex v in vertices)
             {
                 result += "b:" + v.ToString() + "\n";
@@ -63,7 +63,8 @@ namespace OpenSim.Region.Physics.Meshing
         }
 
 
-        public List<Vertex> getVertices() {
+        public List<Vertex> getVertices()
+        {
             List<Vertex> newVertices = new List<Vertex>();
 
             newVertices.AddRange(vertices);
@@ -81,27 +82,27 @@ namespace OpenSim.Region.Physics.Meshing
                 result.AddVertex(v.Clone());
             }
 
-            foreach (Vertex v in this.holeVertices)
+            foreach (Vertex v in holeVertices)
             {
                 result.holeVertices.Add(v.Clone());
             }
-            
+
             return result;
         }
 
         public bool IsPointIn(Vertex v1)
         {
-            int iCounter=0;
-            List<Simplex> simplices=buildSimplexList();
+            int iCounter = 0;
+            List<Simplex> simplices = buildSimplexList();
             foreach (Simplex s in simplices)
             {
                 // Send a ray along the positive X-Direction
                 // Note, that this direction must correlate with the "below" interpretation
                 // of handling for the special cases below
-                Manager.PhysicsVector intersection = s.RayIntersect(v1, new Manager.PhysicsVector(1.0f, 0.0f, 0.0f), true);
+                PhysicsVector intersection = s.RayIntersect(v1, new PhysicsVector(1.0f, 0.0f, 0.0f), true);
 
                 if (intersection == null)
-                    continue;   // No intersection. Done. More tests to follow otherwise
+                    continue; // No intersection. Done. More tests to follow otherwise
 
                 // Did we hit the end of a simplex?
                 // Then this can be one of two special cases:
@@ -111,19 +112,21 @@ namespace OpenSim.Region.Physics.Meshing
                 // Solution: If the other vertex is "below" the ray, we don't count it
                 // Thus corners pointing down are counted twice, corners pointing up are not counted
                 // borders are counted once
-                if (intersection.IsIdentical(s.v1, 0.001f)) {
+                if (intersection.IsIdentical(s.v1, 0.001f))
+                {
                     if (s.v2.Y < v1.Y)
                         continue;
                 }
                 // Do this for the other vertex two
-                if (intersection.IsIdentical(s.v2, 0.001f)) {
-                    if (s.v1.Y<v1.Y)
+                if (intersection.IsIdentical(s.v2, 0.001f))
+                {
+                    if (s.v1.Y < v1.Y)
                         continue;
                 }
                 iCounter++;
             }
 
-            return iCounter % 2 == 1; // Point is inside if the number of intersections is odd
+            return iCounter%2 == 1; // Point is inside if the number of intersections is odd
         }
 
         public bool containsPointsFrom(SimpleHull otherHull)
@@ -138,19 +141,20 @@ namespace OpenSim.Region.Physics.Meshing
         }
 
 
-        List<Simplex> buildSimplexList() {
-
+        private List<Simplex> buildSimplexList()
+        {
             List<Simplex> result = new List<Simplex>();
 
             // Not asserted but assumed: at least three vertices
-            for (int i=0; i<vertices.Count-1; i++) {
-                Simplex s=new Simplex(vertices[i], vertices[i+1]);
+            for (int i = 0; i < vertices.Count - 1; i++)
+            {
+                Simplex s = new Simplex(vertices[i], vertices[i + 1]);
                 result.Add(s);
             }
-            Simplex s1=new Simplex(vertices[vertices.Count-1], vertices[0]);
+            Simplex s1 = new Simplex(vertices[vertices.Count - 1], vertices[0]);
             result.Add(s1);
 
-            if (holeVertices.Count==0)
+            if (holeVertices.Count == 0)
                 return result;
 
             // Same here. At least three vertices in hole assumed
@@ -159,19 +163,19 @@ namespace OpenSim.Region.Physics.Meshing
                 Simplex s = new Simplex(holeVertices[i], holeVertices[i + 1]);
                 result.Add(s);
             }
-            
+
             s1 = new Simplex(holeVertices[holeVertices.Count - 1], holeVertices[0]);
             result.Add(s1);
             return result;
         }
 
-        bool InsertVertex(Vertex v, int iAfter)
+        private bool InsertVertex(Vertex v, int iAfter)
         {
             vertices.Insert(iAfter + 1, v);
             return true;
         }
 
-        Vertex getNextVertex(Vertex currentVertex)
+        private Vertex getNextVertex(Vertex currentVertex)
         {
             int iCurrentIndex;
             iCurrentIndex = vertices.IndexOf(currentVertex);
@@ -185,8 +189,10 @@ namespace OpenSim.Region.Physics.Meshing
             return vertices[iCurrentIndex];
         }
 
-        public Vertex FindVertex(Vertex vBase, float tolerance) {
-            foreach (Vertex v in vertices) {
+        public Vertex FindVertex(Vertex vBase, float tolerance)
+        {
+            foreach (Vertex v in vertices)
+            {
                 if (v.IsIdentical(vBase, tolerance))
                     return v;
             }
@@ -196,32 +202,31 @@ namespace OpenSim.Region.Physics.Meshing
 
         public void FindIntersection(Simplex s, ref Vertex Intersection, ref Vertex nextVertex)
         {
-            Vertex bestIntersection=null;
-            float distToV1=Single.PositiveInfinity;
-            Simplex bestIntersectingSimplex=null;
+            Vertex bestIntersection = null;
+            float distToV1 = Single.PositiveInfinity;
+            Simplex bestIntersectingSimplex = null;
 
             List<Simplex> simple = buildSimplexList();
             foreach (Simplex sTest in simple)
             {
-                Manager.PhysicsVector vvTemp = Simplex.Intersect(sTest, s, -.001f, -.001f, 0.999f, .999f);
-                
-                Vertex vTemp=null;
+                PhysicsVector vvTemp = Simplex.Intersect(sTest, s, -.001f, -.001f, 0.999f, .999f);
+
+                Vertex vTemp = null;
                 if (vvTemp != null)
                     vTemp = new Vertex(vvTemp);
 
-                if (vTemp!=null) {
+                if (vTemp != null)
+                {
+                    PhysicsVector diff = (s.v1 - vTemp);
+                    float distTemp = diff.length();
 
-                    Manager.PhysicsVector diff=(s.v1-vTemp);
-                    float distTemp=diff.length();
-
-                    if (bestIntersection==null || distTemp<distToV1) {
-                        bestIntersection=vTemp;
-                        distToV1=distTemp;
+                    if (bestIntersection == null || distTemp < distToV1)
+                    {
+                        bestIntersection = vTemp;
+                        distToV1 = distTemp;
                         bestIntersectingSimplex = sTest;
                     }
-
                 } // end if vTemp
-
             } // end foreach
 
             Intersection = bestIntersection;
@@ -234,7 +239,6 @@ namespace OpenSim.Region.Physics.Meshing
 
         public static SimpleHull SubtractHull(SimpleHull baseHull, SimpleHull otherHull)
         {
-
             SimpleHull baseHullClone = baseHull.Clone();
             SimpleHull otherHullClone = otherHull.Clone();
             bool intersects = false;
@@ -249,15 +253,16 @@ namespace OpenSim.Region.Physics.Meshing
                 // Insert into baseHull
                 for (iBase = 0; iBase < baseHullClone.vertices.Count; iBase++)
                 {
-                    int iBaseNext = (iBase + 1) % baseHullClone.vertices.Count;
+                    int iBaseNext = (iBase + 1)%baseHullClone.vertices.Count;
                     Simplex sBase = new Simplex(baseHullClone.vertices[iBase], baseHullClone.vertices[iBaseNext]);
 
                     for (iOther = 0; iOther < otherHullClone.vertices.Count; iOther++)
                     {
-                        int iOtherNext = (iOther + 1) % otherHullClone.vertices.Count;
-                        Simplex sOther = new Simplex(otherHullClone.vertices[iOther], otherHullClone.vertices[iOtherNext]);
+                        int iOtherNext = (iOther + 1)%otherHullClone.vertices.Count;
+                        Simplex sOther =
+                            new Simplex(otherHullClone.vertices[iOther], otherHullClone.vertices[iOtherNext]);
 
-                        Manager.PhysicsVector intersect = Simplex.Intersect(sBase, sOther, 0.001f, -.001f, 0.999f, 1.001f);
+                        PhysicsVector intersect = Simplex.Intersect(sBase, sOther, 0.001f, -.001f, 0.999f, 1.001f);
                         if (intersect != null)
                         {
                             Vertex vIntersect = new Vertex(intersect);
@@ -278,15 +283,15 @@ namespace OpenSim.Region.Physics.Meshing
                 // Insert into otherHull
                 for (iOther = 0; iOther < otherHullClone.vertices.Count; iOther++)
                 {
-                    int iOtherNext = (iOther + 1) % otherHullClone.vertices.Count;
+                    int iOtherNext = (iOther + 1)%otherHullClone.vertices.Count;
                     Simplex sOther = new Simplex(otherHullClone.vertices[iOther], otherHullClone.vertices[iOtherNext]);
 
                     for (iBase = 0; iBase < baseHullClone.vertices.Count; iBase++)
                     {
-                        int iBaseNext = (iBase + 1) % baseHullClone.vertices.Count;
+                        int iBaseNext = (iBase + 1)%baseHullClone.vertices.Count;
                         Simplex sBase = new Simplex(baseHullClone.vertices[iBase], baseHullClone.vertices[iBaseNext]);
 
-                        Manager.PhysicsVector intersect = Simplex.Intersect(sBase, sOther, -.001f, 0.001f, 1.001f, 0.999f);
+                        PhysicsVector intersect = Simplex.Intersect(sBase, sOther, -.001f, 0.001f, 1.001f, 0.999f);
                         if (intersect != null)
                         {
                             Vertex vIntersect = new Vertex(intersect);
@@ -321,8 +326,8 @@ namespace OpenSim.Region.Physics.Meshing
                 int iBase;
                 for (iBase = 0; iBase < baseHullClone.vertices.Count; iBase++)
                 {
-                    int iBaseNext = (iBase + 1) % baseHullClone.vertices.Count;
-                    Vertex center = new Vertex((baseHullClone.vertices[iBase] + baseHullClone.vertices[iBaseNext]) / 2.0f);
+                    int iBaseNext = (iBase + 1)%baseHullClone.vertices.Count;
+                    Vertex center = new Vertex((baseHullClone.vertices[iBase] + baseHullClone.vertices[iBaseNext])/2.0f);
                     bool isOutside = !otherHullClone.IsPointIn(center);
                     if (isOutside)
                     {
@@ -334,7 +339,7 @@ namespace OpenSim.Region.Physics.Meshing
 
 
             if (baseStartVertex == null) // i.e. no simplex fulfilled the "outside" condition. 
-            // In otherwords, subtractHull completely embraces baseHull
+                // In otherwords, subtractHull completely embraces baseHull
             {
                 return result;
             }
@@ -369,7 +374,7 @@ namespace OpenSim.Region.Physics.Meshing
 
                 if (nextVertex != null) // A node that represents an intersection
                 {
-                    V1 = nextVertex;    // Needed to find the next vertex on the other hull
+                    V1 = nextVertex; // Needed to find the next vertex on the other hull
                     onBase = !onBase;
                 }
 
@@ -385,7 +390,6 @@ namespace OpenSim.Region.Physics.Meshing
             MainLog.Instance.Debug("The resulting Hull is:\n{1}", 0, result.ToString());
 
             return result;
-
         }
     }
 }

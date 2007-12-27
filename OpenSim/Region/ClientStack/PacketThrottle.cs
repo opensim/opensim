@@ -25,26 +25,10 @@
 * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 * 
 */
-using System;
-using System.Collections.Generic;
-using System.Net;
-using System.Net.Sockets;
-using System.Text;
-using System.Threading;
-using System.Timers;
-using Axiom.Math;
-using libsecondlife;
-using libsecondlife.Packets;
-using OpenSim.Framework;
-using OpenSim.Framework.Communications.Cache;
-using OpenSim.Framework.Console;
-using Timer=System.Timers.Timer;
-
 namespace OpenSim.Region.ClientStack
 {
     public class PacketThrottle
     {
-
         private int max; // max allowable throttle
         private int min; // min allowable throttle
         private int throttle; // current throttle setting
@@ -63,10 +47,10 @@ namespace OpenSim.Region.ClientStack
         {
             sent = 0;
         }
-        
+
         public bool UnderLimit()
         {
-            return (sent < (throttle / divisor));
+            return (sent < (throttle/divisor));
         }
 
         public int Add(int bytes)
@@ -78,24 +62,29 @@ namespace OpenSim.Region.ClientStack
         // Properties
         public int Max
         {
-            get {return max;}
+            get { return max; }
         }
 
         public int Min
         {
-            get {return min;}
+            get { return min; }
         }
-        
+
         public int Throttle
         {
-            get {return throttle;}
-            set 
+            get { return throttle; }
+            set
             {
-                if (value > max) {
+                if (value > max)
+                {
                     throttle = max;
-                } else if (value < min) {
+                }
+                else if (value < min)
+                {
                     throttle = min;
-                } else {
+                }
+                else
+                {
                     throttle = value;
                 }
             }

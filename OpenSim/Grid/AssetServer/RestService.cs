@@ -45,7 +45,7 @@ namespace OpenSim.Grid.AssetServer
 
         public override byte[] Handle(string path, Stream request)
         {
-	    MainLog.Instance.Verbose("REST", "In Handle");
+            MainLog.Instance.Verbose("REST", "In Handle");
             string param = GetParam(path);
             byte[] result = new byte[] {};
             try

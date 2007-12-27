@@ -27,8 +27,6 @@
 */
 
 using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace OpenSim.Framework
 {
@@ -37,8 +35,8 @@ namespace OpenSim.Framework
     {
         public ChildAgentDataUpdate()
         {
-
         }
+
         public sLLVector3 Position;
         public ulong regionHandle;
         public float drawdistance;
@@ -47,6 +45,6 @@ namespace OpenSim.Framework
         public float AVHeight;
         public Guid AgentID;
         public float godlevel;
-        public byte[] throttles; 
+        public byte[] throttles;
     }
 }

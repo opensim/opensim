@@ -28,8 +28,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Text;
-
 using OpenSim.Framework;
 
 namespace OpenSim.Region.Physics.Manager
@@ -39,7 +37,8 @@ namespace OpenSim.Region.Physics.Manager
         IMesh CreateMesh(String primName, PrimitiveBaseShape primShape, PhysicsVector size);
     }
 
-    public interface IVertex {
+    public interface IVertex
+    {
     }
 
     public interface IMesh
@@ -48,7 +47,5 @@ namespace OpenSim.Region.Physics.Manager
         int[] getIndexListAsInt();
         int[] getIndexListAsIntLocked();
         float[] getVertexListAsFloatLocked();
-
-
     }
 }

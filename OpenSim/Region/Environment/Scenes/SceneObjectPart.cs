@@ -28,6 +28,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Drawing;
 using System.Xml;
 using System.Xml.Serialization;
 using Axiom.Math;
@@ -38,23 +39,26 @@ using OpenSim.Framework.Console;
 using OpenSim.Region.Environment.Interfaces;
 using OpenSim.Region.Environment.Scenes.Scripting;
 using OpenSim.Region.Physics.Manager;
-using System.Drawing;
 
 namespace OpenSim.Region.Environment.Scenes
 {
     public class SceneObjectPart : IScriptHost
     {
-        private const LLObject.ObjectFlags OBJFULL_MASK_GENERAL = LLObject.ObjectFlags.ObjectCopy | LLObject.ObjectFlags.ObjectModify | LLObject.ObjectFlags.ObjectTransfer;
-        private const LLObject.ObjectFlags OBJFULL_MASK_OWNER = LLObject.ObjectFlags.ObjectCopy | LLObject.ObjectFlags.ObjectModify | LLObject.ObjectFlags.ObjectOwnerModify | LLObject.ObjectFlags.ObjectTransfer | LLObject.ObjectFlags.ObjectYouOwner;
+        private const LLObject.ObjectFlags OBJFULL_MASK_GENERAL =
+            LLObject.ObjectFlags.ObjectCopy | LLObject.ObjectFlags.ObjectModify | LLObject.ObjectFlags.ObjectTransfer;
+
+        private const LLObject.ObjectFlags OBJFULL_MASK_OWNER =
+            LLObject.ObjectFlags.ObjectCopy | LLObject.ObjectFlags.ObjectModify | LLObject.ObjectFlags.ObjectOwnerModify |
+            LLObject.ObjectFlags.ObjectTransfer | LLObject.ObjectFlags.ObjectYouOwner;
+
         private const uint OBJNEXT_OWNER = 2147483647;
-        
+
         private const uint FULL_MASK_PERMISSIONS_GENERAL = 2147483647;
         private const uint FULL_MASK_PERMISSIONS_OWNER = 2147483647;
         private string m_inventoryFileName = "";
         private LLUUID m_folderID = LLUUID.Zero;
 
-        [XmlIgnore]
-        public PhysicsActor PhysActor = null;
+        [XmlIgnore] public PhysicsActor PhysActor = null;
 
         protected Dictionary<LLUUID, TaskInventoryItem> TaskInventory = new Dictionary<LLUUID, TaskInventoryItem>();
         public LLUUID LastOwnerID;
@@ -72,25 +76,20 @@ namespace OpenSim.Region.Environment.Scenes
         private Quaternion m_sitTargetOrientation = new Quaternion(0, 0, 0, 1);
         private LLUUID m_SitTargetAvatar = LLUUID.Zero;
 
-        
-
 
         // Main grid has default permissions as follows
         // 
         public uint OwnerMask = FULL_MASK_PERMISSIONS_OWNER;
-        public uint NextOwnerMask =  OBJNEXT_OWNER;
+        public uint NextOwnerMask = OBJNEXT_OWNER;
         public uint GroupMask = (uint) LLObject.ObjectFlags.None;
         public uint EveryoneMask = (uint) LLObject.ObjectFlags.None;
         public uint BaseMask = FULL_MASK_PERMISSIONS_OWNER;
 
         protected byte[] m_particleSystem = new byte[0];
 
-        [XmlIgnore]
-        public uint TimeStampFull = 0;
-        [XmlIgnore]
-        public uint TimeStampTerse = 0;
-        [XmlIgnore]
-        public uint TimeStampLastActivity = 0; // Will be used for AutoReturn
+        [XmlIgnore] public uint TimeStampFull = 0;
+        [XmlIgnore] public uint TimeStampTerse = 0;
+        [XmlIgnore] public uint TimeStampLastActivity = 0; // Will be used for AutoReturn
 
         /// <summary>
         /// Only used internally to schedule client updates
@@ -145,16 +144,16 @@ namespace OpenSim.Region.Environment.Scenes
 
         public uint ObjectFlags
         {
-            get { return (uint)m_flags; }
-            set { m_flags = (LLObject.ObjectFlags)value; }
+            get { return (uint) m_flags; }
+            set { m_flags = (LLObject.ObjectFlags) value; }
         }
 
         protected LLObject.MaterialType m_material = 0;
 
         public byte Material
         {
-            get { return (byte)m_material; }
-            set { m_material = (LLObject.MaterialType)value; }
+            get { return (byte) m_material; }
+            set { m_material = (LLObject.MaterialType) value; }
         }
 
         protected ulong m_regionHandle;
@@ -168,7 +167,6 @@ namespace OpenSim.Region.Environment.Scenes
         //unkown if this will be kept, added as a way of removing the group position from the group class
         protected LLVector3 m_groupPosition;
 
-        
 
         public LLVector3 GroupPosition
         {
@@ -225,7 +223,7 @@ namespace OpenSim.Region.Environment.Scenes
                 if (PhysActor != null)
                 {
                     if (PhysActor.Orientation.x != 0 || PhysActor.Orientation.y != 0
-                    || PhysActor.Orientation.z != 0 || PhysActor.Orientation.w != 0)
+                        || PhysActor.Orientation.z != 0 || PhysActor.Orientation.w != 0)
                     {
                         m_rotationOffset.X = PhysActor.Orientation.x;
                         m_rotationOffset.Y = PhysActor.Orientation.y;
@@ -281,6 +279,7 @@ namespace OpenSim.Region.Environment.Scenes
             }
             set { m_velocity = value; }
         }
+
         public LLVector3 RotationalVelocity
         {
             get
@@ -351,6 +350,7 @@ namespace OpenSim.Region.Environment.Scenes
         {
             get { return m_sitTargetPosition; }
         }
+
         public Quaternion SitTargetOrientation
         {
             get { return m_sitTargetOrientation; }
@@ -383,6 +383,7 @@ namespace OpenSim.Region.Environment.Scenes
         }
 
         private int m_linkNum = 0;
+
         public int LinkNum
         {
             get { return m_linkNum; }
@@ -390,13 +391,14 @@ namespace OpenSim.Region.Environment.Scenes
         }
 
         private byte m_clickAction = 0;
+
         public byte ClickAction
         {
             get { return m_clickAction; }
             set
             {
                 m_clickAction = value;
-                this.ScheduleFullUpdate();
+                ScheduleFullUpdate();
             }
         }
 
@@ -423,6 +425,7 @@ namespace OpenSim.Region.Environment.Scenes
 
         // FIXME, TODO, ERROR: 'ParentGroup' can't be in here, move it out.
         protected SceneObjectGroup m_parentGroup;
+
         public SceneObjectGroup ParentGroup
         {
             get { return m_parentGroup; }
@@ -433,7 +436,6 @@ namespace OpenSim.Region.Environment.Scenes
             get { return m_updateFlag; }
             set { m_updateFlag = value; }
         }
-
 
         #region Constructors
 
@@ -469,18 +471,18 @@ namespace OpenSim.Region.Environment.Scenes
             m_regionHandle = regionHandle;
             m_parentGroup = parent;
 
-            CreationDate = (Int32)(DateTime.UtcNow - new DateTime(1970, 1, 1)).TotalSeconds;
+            CreationDate = (Int32) (DateTime.UtcNow - new DateTime(1970, 1, 1)).TotalSeconds;
             OwnerID = ownerID;
             CreatorID = OwnerID;
             LastOwnerID = LLUUID.Zero;
             UUID = LLUUID.Random();
-            LocalID = (uint)(localID);
+            LocalID = (uint) (localID);
             Shape = shape;
             // Todo: Add More Object Parameter from above!
             OwnershipCost = 0;
-            ObjectSaleType = (byte)0;
+            ObjectSaleType = (byte) 0;
             SalePrice = 0;
-            Category = (uint)0;
+            Category = (uint) 0;
             LastOwnerID = CreatorID;
             // End Todo: ///
             GroupPosition = groupPosition;
@@ -495,9 +497,9 @@ namespace OpenSim.Region.Environment.Scenes
             m_folderID = LLUUID.Random();
 
             m_flags = 0;
-            m_flags |=  LLObject.ObjectFlags.Touch |
-                        LLObject.ObjectFlags.AllowInventoryDrop | 
-                        LLObject.ObjectFlags.CreateSelected;
+            m_flags |= LLObject.ObjectFlags.Touch |
+                       LLObject.ObjectFlags.AllowInventoryDrop |
+                       LLObject.ObjectFlags.CreateSelected;
 
             ApplySanePermissions();
 
@@ -520,18 +522,18 @@ namespace OpenSim.Region.Environment.Scenes
         {
             m_regionHandle = regionHandle;
             m_parentGroup = parent;
-            TimeStampTerse = (uint)Util.UnixTimeSinceEpoch();
+            TimeStampTerse = (uint) Util.UnixTimeSinceEpoch();
             CreationDate = creationDate;
             OwnerID = ownerID;
             CreatorID = creatorID;
             LastOwnerID = lastOwnerID;
             UUID = LLUUID.Random();
-            LocalID = (uint)(localID);
+            LocalID = (uint) (localID);
             Shape = shape;
             OwnershipCost = 0;
-            ObjectSaleType = (byte)0;
+            ObjectSaleType = (byte) 0;
             SalePrice = 0;
-            Category = (uint)0;
+            Category = (uint) 0;
             LastOwnerID = CreatorID;
             OffsetPosition = position;
             RotationOffset = rotation;
@@ -552,18 +554,18 @@ namespace OpenSim.Region.Environment.Scenes
         /// <returns></returns>
         public static SceneObjectPart FromXml(XmlReader xmlReader)
         {
-            XmlSerializer serializer = new XmlSerializer(typeof(SceneObjectPart));
-            SceneObjectPart newobject = (SceneObjectPart)serializer.Deserialize(xmlReader);
+            XmlSerializer serializer = new XmlSerializer(typeof (SceneObjectPart));
+            SceneObjectPart newobject = (SceneObjectPart) serializer.Deserialize(xmlReader);
             return newobject;
         }
 
         public void ApplyPhysics()
         {
-            bool isPhysical = ((ObjectFlags & (uint)LLObject.ObjectFlags.Physics) != 0);
-            bool isPhantom = ((ObjectFlags & (uint)LLObject.ObjectFlags.Phantom) != 0);
+            bool isPhysical = ((ObjectFlags & (uint) LLObject.ObjectFlags.Physics) != 0);
+            bool isPhantom = ((ObjectFlags & (uint) LLObject.ObjectFlags.Phantom) != 0);
 
             bool usePhysics = isPhysical && !isPhantom;
-            
+
             if (usePhysics)
             {
                 PhysActor = m_parentGroup.m_scene.PhysicsScene.AddPrimShape(
@@ -576,101 +578,102 @@ namespace OpenSim.Region.Environment.Scenes
                                    RotationOffset.Y, RotationOffset.Z), usePhysics);
             }
 
-            DoPhysicsPropertyUpdate(usePhysics, true);           
+            DoPhysicsPropertyUpdate(usePhysics, true);
         }
+
         public void ApplyNextOwnerPermissions()
         {
             BaseMask = NextOwnerMask;
             OwnerMask = NextOwnerMask;
         }
+
         public void ApplySanePermissions()
         {
             // These are some flags that The OwnerMask should never have
-            OwnerMask &= ~(uint)LLObject.ObjectFlags.ObjectGroupOwned;
-            OwnerMask &= ~(uint)LLObject.ObjectFlags.Physics;
-            OwnerMask &= ~(uint)LLObject.ObjectFlags.Phantom;
-            OwnerMask &= ~(uint)LLObject.ObjectFlags.Scripted;
-            OwnerMask &= ~(uint)LLObject.ObjectFlags.Touch;
-            OwnerMask &= ~(uint)LLObject.ObjectFlags.Temporary;
-            OwnerMask &= ~(uint)LLObject.ObjectFlags.TemporaryOnRez;
-            OwnerMask &= ~(uint)LLObject.ObjectFlags.ZlibCompressed;
-            OwnerMask &= ~(uint)LLObject.ObjectFlags.AllowInventoryDrop;
-            OwnerMask &= ~(uint)LLObject.ObjectFlags.AnimSource;
-            OwnerMask &= ~(uint)LLObject.ObjectFlags.Money;
-            OwnerMask &= ~(uint)LLObject.ObjectFlags.CastShadows;
-            OwnerMask &= ~(uint)LLObject.ObjectFlags.InventoryEmpty;
-            OwnerMask &= ~(uint)LLObject.ObjectFlags.CreateSelected;
-            
-            
+            OwnerMask &= ~(uint) LLObject.ObjectFlags.ObjectGroupOwned;
+            OwnerMask &= ~(uint) LLObject.ObjectFlags.Physics;
+            OwnerMask &= ~(uint) LLObject.ObjectFlags.Phantom;
+            OwnerMask &= ~(uint) LLObject.ObjectFlags.Scripted;
+            OwnerMask &= ~(uint) LLObject.ObjectFlags.Touch;
+            OwnerMask &= ~(uint) LLObject.ObjectFlags.Temporary;
+            OwnerMask &= ~(uint) LLObject.ObjectFlags.TemporaryOnRez;
+            OwnerMask &= ~(uint) LLObject.ObjectFlags.ZlibCompressed;
+            OwnerMask &= ~(uint) LLObject.ObjectFlags.AllowInventoryDrop;
+            OwnerMask &= ~(uint) LLObject.ObjectFlags.AnimSource;
+            OwnerMask &= ~(uint) LLObject.ObjectFlags.Money;
+            OwnerMask &= ~(uint) LLObject.ObjectFlags.CastShadows;
+            OwnerMask &= ~(uint) LLObject.ObjectFlags.InventoryEmpty;
+            OwnerMask &= ~(uint) LLObject.ObjectFlags.CreateSelected;
+
+
             // These are some flags that the next owner mask should never have
-            NextOwnerMask &= ~(uint)LLObject.ObjectFlags.ObjectYouOwner;
-            NextOwnerMask &= ~(uint)LLObject.ObjectFlags.ObjectTransfer;
-            NextOwnerMask &= ~(uint)LLObject.ObjectFlags.ObjectOwnerModify;
-            NextOwnerMask &= ~(uint)LLObject.ObjectFlags.ObjectGroupOwned;
-            NextOwnerMask &= ~(uint)LLObject.ObjectFlags.Physics;
-            NextOwnerMask &= ~(uint)LLObject.ObjectFlags.Phantom;
-            NextOwnerMask &= ~(uint)LLObject.ObjectFlags.Scripted;
-            NextOwnerMask &= ~(uint)LLObject.ObjectFlags.Touch;
-            NextOwnerMask &= ~(uint)LLObject.ObjectFlags.Temporary;
-            NextOwnerMask &= ~(uint)LLObject.ObjectFlags.TemporaryOnRez;
-            NextOwnerMask &= ~(uint)LLObject.ObjectFlags.ZlibCompressed;
-            NextOwnerMask &= ~(uint)LLObject.ObjectFlags.AllowInventoryDrop;
-            NextOwnerMask &= ~(uint)LLObject.ObjectFlags.AnimSource;
-            NextOwnerMask &= ~(uint)LLObject.ObjectFlags.Money;
-            NextOwnerMask &= ~(uint)LLObject.ObjectFlags.CastShadows;
-            NextOwnerMask &= ~(uint)LLObject.ObjectFlags.InventoryEmpty;
-            NextOwnerMask &= ~(uint)LLObject.ObjectFlags.CreateSelected;
-            
+            NextOwnerMask &= ~(uint) LLObject.ObjectFlags.ObjectYouOwner;
+            NextOwnerMask &= ~(uint) LLObject.ObjectFlags.ObjectTransfer;
+            NextOwnerMask &= ~(uint) LLObject.ObjectFlags.ObjectOwnerModify;
+            NextOwnerMask &= ~(uint) LLObject.ObjectFlags.ObjectGroupOwned;
+            NextOwnerMask &= ~(uint) LLObject.ObjectFlags.Physics;
+            NextOwnerMask &= ~(uint) LLObject.ObjectFlags.Phantom;
+            NextOwnerMask &= ~(uint) LLObject.ObjectFlags.Scripted;
+            NextOwnerMask &= ~(uint) LLObject.ObjectFlags.Touch;
+            NextOwnerMask &= ~(uint) LLObject.ObjectFlags.Temporary;
+            NextOwnerMask &= ~(uint) LLObject.ObjectFlags.TemporaryOnRez;
+            NextOwnerMask &= ~(uint) LLObject.ObjectFlags.ZlibCompressed;
+            NextOwnerMask &= ~(uint) LLObject.ObjectFlags.AllowInventoryDrop;
+            NextOwnerMask &= ~(uint) LLObject.ObjectFlags.AnimSource;
+            NextOwnerMask &= ~(uint) LLObject.ObjectFlags.Money;
+            NextOwnerMask &= ~(uint) LLObject.ObjectFlags.CastShadows;
+            NextOwnerMask &= ~(uint) LLObject.ObjectFlags.InventoryEmpty;
+            NextOwnerMask &= ~(uint) LLObject.ObjectFlags.CreateSelected;
+
 
             // These are some flags that the GroupMask should never have
-            GroupMask &= ~(uint)LLObject.ObjectFlags.ObjectYouOwner;
-            GroupMask &= ~(uint)LLObject.ObjectFlags.ObjectTransfer;
-            GroupMask &= ~(uint)LLObject.ObjectFlags.ObjectOwnerModify;
-            GroupMask &= ~(uint)LLObject.ObjectFlags.ObjectGroupOwned;
-            GroupMask &= ~(uint)LLObject.ObjectFlags.Physics;
-            GroupMask &= ~(uint)LLObject.ObjectFlags.Phantom;
-            GroupMask &= ~(uint)LLObject.ObjectFlags.Scripted;
-            GroupMask &= ~(uint)LLObject.ObjectFlags.Touch;
-            GroupMask &= ~(uint)LLObject.ObjectFlags.Temporary;
-            GroupMask &= ~(uint)LLObject.ObjectFlags.TemporaryOnRez;
-            GroupMask &= ~(uint)LLObject.ObjectFlags.ZlibCompressed;
-            GroupMask &= ~(uint)LLObject.ObjectFlags.AllowInventoryDrop;
-            GroupMask &= ~(uint)LLObject.ObjectFlags.AnimSource;
-            GroupMask &= ~(uint)LLObject.ObjectFlags.Money;
-            GroupMask &= ~(uint)LLObject.ObjectFlags.CastShadows;
-            GroupMask &= ~(uint)LLObject.ObjectFlags.InventoryEmpty;
-            GroupMask &= ~(uint)LLObject.ObjectFlags.CreateSelected;
-            
+            GroupMask &= ~(uint) LLObject.ObjectFlags.ObjectYouOwner;
+            GroupMask &= ~(uint) LLObject.ObjectFlags.ObjectTransfer;
+            GroupMask &= ~(uint) LLObject.ObjectFlags.ObjectOwnerModify;
+            GroupMask &= ~(uint) LLObject.ObjectFlags.ObjectGroupOwned;
+            GroupMask &= ~(uint) LLObject.ObjectFlags.Physics;
+            GroupMask &= ~(uint) LLObject.ObjectFlags.Phantom;
+            GroupMask &= ~(uint) LLObject.ObjectFlags.Scripted;
+            GroupMask &= ~(uint) LLObject.ObjectFlags.Touch;
+            GroupMask &= ~(uint) LLObject.ObjectFlags.Temporary;
+            GroupMask &= ~(uint) LLObject.ObjectFlags.TemporaryOnRez;
+            GroupMask &= ~(uint) LLObject.ObjectFlags.ZlibCompressed;
+            GroupMask &= ~(uint) LLObject.ObjectFlags.AllowInventoryDrop;
+            GroupMask &= ~(uint) LLObject.ObjectFlags.AnimSource;
+            GroupMask &= ~(uint) LLObject.ObjectFlags.Money;
+            GroupMask &= ~(uint) LLObject.ObjectFlags.CastShadows;
+            GroupMask &= ~(uint) LLObject.ObjectFlags.InventoryEmpty;
+            GroupMask &= ~(uint) LLObject.ObjectFlags.CreateSelected;
+
 
             // These are some flags that EveryoneMask should never have
-            EveryoneMask &= ~(uint)LLObject.ObjectFlags.ObjectYouOwner;
-            EveryoneMask &= ~(uint)LLObject.ObjectFlags.ObjectTransfer;
-            EveryoneMask &= ~(uint)LLObject.ObjectFlags.ObjectOwnerModify;
-            EveryoneMask &= ~(uint)LLObject.ObjectFlags.ObjectGroupOwned;
-            EveryoneMask &= ~(uint)LLObject.ObjectFlags.Physics;
-            EveryoneMask &= ~(uint)LLObject.ObjectFlags.Phantom;
-            EveryoneMask &= ~(uint)LLObject.ObjectFlags.Scripted;
-            EveryoneMask &= ~(uint)LLObject.ObjectFlags.Touch;
-            EveryoneMask &= ~(uint)LLObject.ObjectFlags.Temporary;
-            EveryoneMask &= ~(uint)LLObject.ObjectFlags.TemporaryOnRez;
-            EveryoneMask &= ~(uint)LLObject.ObjectFlags.ZlibCompressed;
-            EveryoneMask &= ~(uint)LLObject.ObjectFlags.AllowInventoryDrop;
-            EveryoneMask &= ~(uint)LLObject.ObjectFlags.AnimSource;
-            EveryoneMask &= ~(uint)LLObject.ObjectFlags.Money;
-            EveryoneMask &= ~(uint)LLObject.ObjectFlags.CastShadows;
-            EveryoneMask &= ~(uint)LLObject.ObjectFlags.InventoryEmpty;
-            EveryoneMask &= ~(uint)LLObject.ObjectFlags.CreateSelected;
-            
+            EveryoneMask &= ~(uint) LLObject.ObjectFlags.ObjectYouOwner;
+            EveryoneMask &= ~(uint) LLObject.ObjectFlags.ObjectTransfer;
+            EveryoneMask &= ~(uint) LLObject.ObjectFlags.ObjectOwnerModify;
+            EveryoneMask &= ~(uint) LLObject.ObjectFlags.ObjectGroupOwned;
+            EveryoneMask &= ~(uint) LLObject.ObjectFlags.Physics;
+            EveryoneMask &= ~(uint) LLObject.ObjectFlags.Phantom;
+            EveryoneMask &= ~(uint) LLObject.ObjectFlags.Scripted;
+            EveryoneMask &= ~(uint) LLObject.ObjectFlags.Touch;
+            EveryoneMask &= ~(uint) LLObject.ObjectFlags.Temporary;
+            EveryoneMask &= ~(uint) LLObject.ObjectFlags.TemporaryOnRez;
+            EveryoneMask &= ~(uint) LLObject.ObjectFlags.ZlibCompressed;
+            EveryoneMask &= ~(uint) LLObject.ObjectFlags.AllowInventoryDrop;
+            EveryoneMask &= ~(uint) LLObject.ObjectFlags.AnimSource;
+            EveryoneMask &= ~(uint) LLObject.ObjectFlags.Money;
+            EveryoneMask &= ~(uint) LLObject.ObjectFlags.CastShadows;
+            EveryoneMask &= ~(uint) LLObject.ObjectFlags.InventoryEmpty;
+            EveryoneMask &= ~(uint) LLObject.ObjectFlags.CreateSelected;
+
 
             // These are some flags that ObjectFlags (m_flags) should never have
-            ObjectFlags &= ~(uint)LLObject.ObjectFlags.ObjectYouOwner;
-            ObjectFlags &= ~(uint)LLObject.ObjectFlags.ObjectTransfer;
-            ObjectFlags &= ~(uint)LLObject.ObjectFlags.ObjectOwnerModify;
-            ObjectFlags &= ~(uint)LLObject.ObjectFlags.ObjectYouOfficer;
-            ObjectFlags &= ~(uint)LLObject.ObjectFlags.ObjectCopy;
-            ObjectFlags &= ~(uint)LLObject.ObjectFlags.ObjectModify;
-            ObjectFlags &= ~(uint)LLObject.ObjectFlags.ObjectMove;
-
+            ObjectFlags &= ~(uint) LLObject.ObjectFlags.ObjectYouOwner;
+            ObjectFlags &= ~(uint) LLObject.ObjectFlags.ObjectTransfer;
+            ObjectFlags &= ~(uint) LLObject.ObjectFlags.ObjectOwnerModify;
+            ObjectFlags &= ~(uint) LLObject.ObjectFlags.ObjectYouOfficer;
+            ObjectFlags &= ~(uint) LLObject.ObjectFlags.ObjectCopy;
+            ObjectFlags &= ~(uint) LLObject.ObjectFlags.ObjectModify;
+            ObjectFlags &= ~(uint) LLObject.ObjectFlags.ObjectMove;
         }
 
         /// <summary>
@@ -679,13 +682,12 @@ namespace OpenSim.Region.Environment.Scenes
         /// <param name="xmlWriter"></param>
         public void ToXml(XmlWriter xmlWriter)
         {
-            XmlSerializer serializer = new XmlSerializer(typeof(SceneObjectPart));
+            XmlSerializer serializer = new XmlSerializer(typeof (SceneObjectPart));
             serializer.Serialize(xmlWriter, this);
         }
 
         public EntityIntersection TestIntersection(Ray iray, Quaternion parentrot)
         {
-
             // In this case we're using a sphere with a radius of the largest dimention of the prim
             // TODO: Change to take shape into account
 
@@ -693,13 +695,12 @@ namespace OpenSim.Region.Environment.Scenes
             EntityIntersection returnresult = new EntityIntersection();
             Vector3 vAbsolutePosition = new Vector3(AbsolutePosition.X, AbsolutePosition.Y, AbsolutePosition.Z);
             Vector3 vScale = new Vector3(Scale.X, Scale.Y, Scale.Z);
-            Quaternion qRotation = new Quaternion(RotationOffset.W, RotationOffset.X, RotationOffset.Y, RotationOffset.Z);
+            Quaternion qRotation =
+                new Quaternion(RotationOffset.W, RotationOffset.X, RotationOffset.Y, RotationOffset.Z);
 
 
-
-            Quaternion worldRotation = (qRotation * parentrot);
+            Quaternion worldRotation = (qRotation*parentrot);
             Matrix3 worldRotM = worldRotation.ToRotationMatrix();
-
 
 
             Vector3 rOrigin = iray.Origin;
@@ -707,21 +708,21 @@ namespace OpenSim.Region.Environment.Scenes
 
 
             // Buidling the first part of the Quadratic equation
-            Vector3 r2ndDirection = rDirection * rDirection;
+            Vector3 r2ndDirection = rDirection*rDirection;
             float itestPart1 = r2ndDirection.x + r2ndDirection.y + r2ndDirection.z;
 
             // Buidling the second part of the Quadratic equation
             Vector3 tmVal2 = rOrigin - vAbsolutePosition;
-            Vector3 r2Direction = rDirection * 2.0f;
-            Vector3 tmVal3 = r2Direction * tmVal2;
+            Vector3 r2Direction = rDirection*2.0f;
+            Vector3 tmVal3 = r2Direction*tmVal2;
 
             float itestPart2 = tmVal3.x + tmVal3.y + tmVal3.z;
 
             // Buidling the third part of the Quadratic equation
-            Vector3 tmVal4 = rOrigin * rOrigin;
-            Vector3 tmVal5 = vAbsolutePosition * vAbsolutePosition;
+            Vector3 tmVal4 = rOrigin*rOrigin;
+            Vector3 tmVal5 = vAbsolutePosition*vAbsolutePosition;
 
-            Vector3 tmVal6 = vAbsolutePosition * rOrigin;
+            Vector3 tmVal6 = vAbsolutePosition*rOrigin;
 
 
             // Set Radius to the largest dimention of the prim
@@ -735,21 +736,22 @@ namespace OpenSim.Region.Environment.Scenes
 
             //radius = radius;
 
-            float itestPart3 = tmVal4.x + tmVal4.y + tmVal4.z + tmVal5.x + tmVal5.y + tmVal5.z - (2.0f * (tmVal6.x + tmVal6.y + tmVal6.z + (radius * radius)));
+            float itestPart3 = tmVal4.x + tmVal4.y + tmVal4.z + tmVal5.x + tmVal5.y + tmVal5.z -
+                               (2.0f*(tmVal6.x + tmVal6.y + tmVal6.z + (radius*radius)));
 
             // Yuk Quadradrics..    Solve first
-            float rootsqr = (itestPart2 * itestPart2) - (4.0f * itestPart1 * itestPart3);
+            float rootsqr = (itestPart2*itestPart2) - (4.0f*itestPart1*itestPart3);
             if (rootsqr < 0.0f)
             {
                 // No intersection
                 return returnresult;
             }
-            float root = ((-itestPart2) - (float)Math.Sqrt((double)rootsqr)) / (itestPart1 * 2.0f);
+            float root = ((-itestPart2) - (float) Math.Sqrt((double) rootsqr))/(itestPart1*2.0f);
 
             if (root < 0.0f)
             {
                 // perform second quadratic root solution
-                root = ((-itestPart2) + (float)Math.Sqrt((double)rootsqr)) / (itestPart1 * 2.0f);
+                root = ((-itestPart2) + (float) Math.Sqrt((double) rootsqr))/(itestPart1*2.0f);
 
                 // is there any intersection?
                 if (root < 0.0f)
@@ -761,7 +763,9 @@ namespace OpenSim.Region.Environment.Scenes
 
             // We got an intersection.  putting together an EntityIntersection object with the 
             // intersection information
-            Vector3 ipoint = new Vector3(iray.Origin.x + (iray.Direction.x * root), iray.Origin.y + (iray.Direction.y * root), iray.Origin.z + (iray.Direction.z * root));
+            Vector3 ipoint =
+                new Vector3(iray.Origin.x + (iray.Direction.x*root), iray.Origin.y + (iray.Direction.y*root),
+                            iray.Origin.z + (iray.Direction.z*root));
 
             returnresult.HitTF = true;
             returnresult.ipoint = ipoint;
@@ -775,13 +779,12 @@ namespace OpenSim.Region.Environment.Scenes
 
             LLVector3 distanceConvert1 = new LLVector3(iray.Origin.x, iray.Origin.y, iray.Origin.z);
             LLVector3 distanceConvert2 = new LLVector3(ipoint.x, ipoint.y, ipoint.z);
-            float distance = (float)Util.GetDistanceTo(distanceConvert1, distanceConvert2);
+            float distance = (float) Util.GetDistanceTo(distanceConvert1, distanceConvert2);
 
             returnresult.distance = distance;
 
             return returnresult;
         }
-
 
 
         /// <summary>
@@ -797,6 +800,7 @@ namespace OpenSim.Region.Environment.Scenes
             m_sitTargetPosition = offset;
             m_sitTargetOrientation = orientation;
         }
+
         public LLVector3 GetSitTargetPositionLL()
         {
             return new LLVector3(m_sitTargetPosition.x, m_sitTargetPosition.y, m_sitTargetPosition.z);
@@ -804,13 +808,17 @@ namespace OpenSim.Region.Environment.Scenes
 
         public LLQuaternion GetSitTargetOrientationLL()
         {
-            return new LLQuaternion( m_sitTargetOrientation.x, m_sitTargetOrientation.y, m_sitTargetOrientation.z,m_sitTargetOrientation.w);
+            return
+                new LLQuaternion(m_sitTargetOrientation.x, m_sitTargetOrientation.y, m_sitTargetOrientation.z,
+                                 m_sitTargetOrientation.w);
         }
 
         // Utility function so the databases don't have to reference axiom.math
         public void SetSitTargetLL(LLVector3 offset, LLQuaternion orientation)
         {
-            if (!(offset.X == 0 && offset.Y == 0 && offset.Z == 0 && (orientation.W == 0 || orientation.W == 1) && orientation.X == 0 && orientation.Y == 0 && orientation.Z == 0))
+            if (
+                !(offset.X == 0 && offset.Y == 0 && offset.Z == 0 && (orientation.W == 0 || orientation.W == 1) &&
+                  orientation.X == 0 && orientation.Y == 0 && orientation.Z == 0))
             {
                 m_sitTargetPosition = new Vector3(offset.X, offset.Y, offset.Z);
                 m_sitTargetOrientation = new Quaternion(orientation.W, orientation.X, orientation.Y, orientation.Z);
@@ -869,7 +877,7 @@ namespace OpenSim.Region.Environment.Scenes
         /// <returns></returns>
         public SceneObjectPart Copy(uint localID, LLUUID AgentID, LLUUID GroupID)
         {
-            SceneObjectPart dupe = (SceneObjectPart)MemberwiseClone();
+            SceneObjectPart dupe = (SceneObjectPart) MemberwiseClone();
             dupe.m_shape = m_shape.Copy();
             dupe.m_regionHandle = m_regionHandle;
             dupe.UUID = LLUUID.Random();
@@ -896,7 +904,7 @@ namespace OpenSim.Region.Environment.Scenes
             byte[] extraP = new byte[Shape.ExtraParams.Length];
             Array.Copy(Shape.ExtraParams, extraP, extraP.Length);
             dupe.Shape.ExtraParams = extraP;
-            bool UsePhysics = ((dupe.ObjectFlags & (uint)LLObject.ObjectFlags.Physics) != 0);
+            bool UsePhysics = ((dupe.ObjectFlags & (uint) LLObject.ObjectFlags.Physics) != 0);
             dupe.DoPhysicsPropertyUpdate(UsePhysics, true);
 
             return dupe;
@@ -923,7 +931,7 @@ namespace OpenSim.Region.Environment.Scenes
             {
                 m_parentGroup.HasChanged = true;
             }
-            TimeStampFull = (uint)Util.UnixTimeSinceEpoch();
+            TimeStampFull = (uint) Util.UnixTimeSinceEpoch();
             m_updateFlag = 2;
         }
 
@@ -931,11 +939,10 @@ namespace OpenSim.Region.Environment.Scenes
         {
             LLObject.ObjectFlags prevflag = m_flags;
             //uint objflags = m_flags;
-            if ((ObjectFlags & (uint)flag) == 0)
+            if ((ObjectFlags & (uint) flag) == 0)
             {
                 //Console.WriteLine("Adding flag: " + ((LLObject.ObjectFlags) flag).ToString());
                 m_flags |= flag;
-                
             }
             //uint currflag = (uint)m_flags;
             //System.Console.WriteLine("Aprev: " + prevflag.ToString() + " curr: " + m_flags.ToString());
@@ -945,11 +952,10 @@ namespace OpenSim.Region.Environment.Scenes
         public void RemFlag(LLObject.ObjectFlags flag)
         {
             LLObject.ObjectFlags prevflag = m_flags;
-            if ((ObjectFlags & (uint)flag) != 0)
+            if ((ObjectFlags & (uint) flag) != 0)
             {
                 //Console.WriteLine("Removing flag: " + ((LLObject.ObjectFlags)flag).ToString());
                 m_flags &= ~flag;
-                
             }
             //System.Console.WriteLine("prev: " + prevflag.ToString() + " curr: " + m_flags.ToString());
             //ScheduleFullUpdate();
@@ -966,7 +972,7 @@ namespace OpenSim.Region.Environment.Scenes
                 {
                     m_parentGroup.HasChanged = true;
                 }
-                TimeStampTerse = (uint)Util.UnixTimeSinceEpoch();
+                TimeStampTerse = (uint) Util.UnixTimeSinceEpoch();
                 m_updateFlag = 1;
             }
         }
@@ -1074,7 +1080,7 @@ namespace OpenSim.Region.Environment.Scenes
         {
             if (m_inventorySerial > 0)
             {
-                client.SendTaskInventory(m_uuid, (short)m_inventorySerial,
+                client.SendTaskInventory(m_uuid, (short) m_inventorySerial,
                                          Helpers.StringToField(m_inventoryFileName));
                 return true;
             }
@@ -1134,7 +1140,7 @@ namespace OpenSim.Region.Environment.Scenes
             bool IsTemporary = false;
             bool IsPhantom = false;
             bool castsShadows = false;
-            bool wasUsingPhysics = ((ObjectFlags & (uint)LLObject.ObjectFlags.Physics) != 0);
+            bool wasUsingPhysics = ((ObjectFlags & (uint) LLObject.ObjectFlags.Physics) != 0);
             //bool IsLocked = false;
             int i = 0;
 
@@ -1162,7 +1168,6 @@ namespace OpenSim.Region.Environment.Scenes
                 {
                     DoPhysicsPropertyUpdate(usePhysics, false);
                 }
-
             }
             else
             {
@@ -1172,9 +1177,6 @@ namespace OpenSim.Region.Environment.Scenes
                     DoPhysicsPropertyUpdate(usePhysics, false);
                 }
             }
-
-
-
 
 
             if (IsPhantom)
@@ -1220,19 +1222,18 @@ namespace OpenSim.Region.Environment.Scenes
             //            System.Console.WriteLine("Update:  PHY:" + UsePhysics.ToString() + ", T:" + IsTemporary.ToString() + ", PHA:" + IsPhantom.ToString() + " S:" + CastsShadows.ToString());
             ScheduleFullUpdate();
         }
+
         public void DoPhysicsPropertyUpdate(bool UsePhysics, bool isNew)
         {
-
             if (PhysActor != null)
             {
                 if (UsePhysics != PhysActor.IsPhysical || isNew)
                 {
-
                     if (PhysActor.IsPhysical)
                     {
                         if (!isNew)
-                            this.ParentGroup.m_scene.RemovePhysicalPrim(1);
-                        
+                            ParentGroup.m_scene.RemovePhysicalPrim(1);
+
                         PhysActor.OnRequestTerseUpdate -= PhysicsRequestingTerseUpdate;
                         PhysActor.OnOutOfBounds -= PhysicsOutOfBounds;
                     }
@@ -1244,7 +1245,7 @@ namespace OpenSim.Region.Environment.Scenes
                     //PhysActor = null;
 
 
-                    if ((ObjectFlags & (uint)LLObject.ObjectFlags.Phantom) == 0)
+                    if ((ObjectFlags & (uint) LLObject.ObjectFlags.Phantom) == 0)
                     {
                         //PhysActor = m_parentGroup.m_scene.PhysicsScene.AddPrimShape(
                         //Name,
@@ -1256,8 +1257,8 @@ namespace OpenSim.Region.Environment.Scenes
                         //RotationOffset.Y, RotationOffset.Z), UsePhysics);
                         if (UsePhysics)
                         {
-                            this.ParentGroup.m_scene.AddPhysicalPrim(1);
-                            
+                            ParentGroup.m_scene.AddPhysicalPrim(1);
+
                             PhysActor.OnRequestTerseUpdate += PhysicsRequestingTerseUpdate;
                             PhysActor.OnOutOfBounds += PhysicsOutOfBounds;
                         }
@@ -1271,15 +1272,15 @@ namespace OpenSim.Region.Environment.Scenes
         {
             m_shape.ExtraParams = new byte[data.Length + 7];
             int i = 0;
-            uint length = (uint)data.Length;
+            uint length = (uint) data.Length;
             m_shape.ExtraParams[i++] = 1;
-            m_shape.ExtraParams[i++] = (byte)(type % 256);
-            m_shape.ExtraParams[i++] = (byte)((type >> 8) % 256);
+            m_shape.ExtraParams[i++] = (byte) (type%256);
+            m_shape.ExtraParams[i++] = (byte) ((type >> 8)%256);
 
-            m_shape.ExtraParams[i++] = (byte)(length % 256);
-            m_shape.ExtraParams[i++] = (byte)((length >> 8) % 256);
-            m_shape.ExtraParams[i++] = (byte)((length >> 16) % 256);
-            m_shape.ExtraParams[i++] = (byte)((length >> 24) % 256);
+            m_shape.ExtraParams[i++] = (byte) (length%256);
+            m_shape.ExtraParams[i++] = (byte) ((length >> 8)%256);
+            m_shape.ExtraParams[i++] = (byte) ((length >> 16)%256);
+            m_shape.ExtraParams[i++] = (byte) ((length >> 24)%256);
             Array.Copy(data, 0, m_shape.ExtraParams, i, data.Length);
 
             ScheduleFullUpdate();
@@ -1305,7 +1306,7 @@ namespace OpenSim.Region.Environment.Scenes
         {
             if (PhysActor != null)
             {
-                return new LLVector3(PhysActor.CenterOfMass.X,PhysActor.CenterOfMass.Y,PhysActor.CenterOfMass.Z);
+                return new LLVector3(PhysActor.CenterOfMass.X, PhysActor.CenterOfMass.Y, PhysActor.CenterOfMass.Z);
             }
             else
             {
@@ -1323,7 +1324,7 @@ namespace OpenSim.Region.Environment.Scenes
         /// <param name="textureEntry"></param>
         public void UpdateTextureEntry(byte[] textureEntry)
         {
-            m_shape.Textures = new LLObject.TextureEntry( textureEntry, 0, textureEntry.Length );
+            m_shape.Textures = new LLObject.TextureEntry(textureEntry, 0, textureEntry.Length);
             ScheduleFullUpdate();
         }
 
@@ -1337,20 +1338,20 @@ namespace OpenSim.Region.Environment.Scenes
             {
                 if (tex.FaceTextures[i] != null)
                 {
-                    tmpcolor = tex.GetFace((uint)i).RGBA;
-                    tmpcolor.A = tmpcolor.A * 255;
-                    tmpcolor.R = tmpcolor.R * 255;
-                    tmpcolor.G = tmpcolor.G * 255;
-                    tmpcolor.B = tmpcolor.B * 255;
+                    tmpcolor = tex.GetFace((uint) i).RGBA;
+                    tmpcolor.A = tmpcolor.A*255;
+                    tmpcolor.R = tmpcolor.R*255;
+                    tmpcolor.G = tmpcolor.G*255;
+                    tmpcolor.B = tmpcolor.B*255;
                     tex.FaceTextures[i].RGBA = tmpcolor;
                 }
             }
             tmpcolor = tex.DefaultTexture.RGBA;
-            tmpcolor.A = tmpcolor.A * 255;
-            tmpcolor.R = tmpcolor.R * 255;
-            tmpcolor.G = tmpcolor.G * 255;
-            tmpcolor.B = tmpcolor.B * 255;
-            tex.DefaultTexture.RGBA = tmpcolor; 
+            tmpcolor.A = tmpcolor.A*255;
+            tmpcolor.R = tmpcolor.R*255;
+            tmpcolor.G = tmpcolor.G*255;
+            tmpcolor.B = tmpcolor.B*255;
+            tex.DefaultTexture.RGBA = tmpcolor;
             UpdateTextureEntry(tex.ToBytes());
         }
 
@@ -1416,34 +1417,33 @@ namespace OpenSim.Region.Environment.Scenes
             // Are we the owner?
             if (AgentID == OwnerID)
             {
-                MainLog.Instance.Verbose("PERMISSIONS", "field: " + field.ToString() + ", mask: " + mask.ToString() + " addRemTF: " + addRemTF.ToString());
-                
+                MainLog.Instance.Verbose("PERMISSIONS",
+                                         "field: " + field.ToString() + ", mask: " + mask.ToString() + " addRemTF: " +
+                                         addRemTF.ToString());
+
                 //Field 8 = EveryoneMask
-                if (field == (byte)8)
+                if (field == (byte) 8)
                 {
                     MainLog.Instance.Verbose("PERMISSIONS", "Left over: " + (OwnerMask - EveryoneMask));
-                    if (addRemTF == (byte)0)
+                    if (addRemTF == (byte) 0)
                     {
                         //EveryoneMask = (uint)0;
                         EveryoneMask &= ~mask;
                         //EveryoneMask &= ~(uint)57344;
-
-
                     }
                     else
                     {
                         //EveryoneMask = (uint)0;
                         EveryoneMask |= mask;
                         //EveryoneMask |= (uint)57344;
-                        
                     }
                     //ScheduleFullUpdate();
                     SendFullUpdateToAllClients();
                 }
                 //Field 16 = NextownerMask
-                if (field == (byte)16)
+                if (field == (byte) 16)
                 {
-                    if (addRemTF == (byte)0)
+                    if (addRemTF == (byte) 0)
                     {
                         NextOwnerMask &= ~mask;
                     }
@@ -1453,7 +1453,6 @@ namespace OpenSim.Region.Environment.Scenes
                     }
                     SendFullUpdateToAllClients();
                 }
-
             }
         }
 
@@ -1482,7 +1481,8 @@ namespace OpenSim.Region.Environment.Scenes
             for (int i = 0; i < avatars.Count; i++)
             {
                 // Ugly reference :(
-                m_parentGroup.SendPartFullUpdate(avatars[i].ControllingClient, this, avatars[i].GenerateClientFlags(this.UUID));
+                m_parentGroup.SendPartFullUpdate(avatars[i].ControllingClient, this,
+                                                 avatars[i].GenerateClientFlags(UUID));
             }
         }
 
@@ -1515,19 +1515,19 @@ namespace OpenSim.Region.Environment.Scenes
         {
             LLQuaternion lRot;
             lRot = RotationOffset;
-            clientFlags &= ~(uint)LLObject.ObjectFlags.CreateSelected;
+            clientFlags &= ~(uint) LLObject.ObjectFlags.CreateSelected;
 
-            if (remoteClient.AgentId == OwnerID) 
+            if (remoteClient.AgentId == OwnerID)
             {
-                if ((uint)(m_flags & LLObject.ObjectFlags.CreateSelected) != 0)
+                if ((uint) (m_flags & LLObject.ObjectFlags.CreateSelected) != 0)
                 {
-                    clientFlags |= (uint)LLObject.ObjectFlags.CreateSelected;
+                    clientFlags |= (uint) LLObject.ObjectFlags.CreateSelected;
                     m_flags &= ~LLObject.ObjectFlags.CreateSelected;
                 }
             }
 
 
-            byte[] color = new byte[] { m_color.R, m_color.G, m_color.B, m_color.A };
+            byte[] color = new byte[] {m_color.R, m_color.G, m_color.B, m_color.A};
             remoteClient.SendPrimitiveToClient(m_regionHandle, 64096, LocalID, m_shape, lPos, clientFlags, m_uuid,
                                                OwnerID,
                                                m_text, color, ParentID, m_particleSystem, lRot, m_clickAction);
@@ -1574,26 +1574,28 @@ namespace OpenSim.Region.Environment.Scenes
             LLVector3 lPos;
             lPos = OffsetPosition;
             LLQuaternion mRot = RotationOffset;
-            if ((ObjectFlags & (uint)LLObject.ObjectFlags.Physics) == 0)
+            if ((ObjectFlags & (uint) LLObject.ObjectFlags.Physics) == 0)
             {
                 remoteClient.SendPrimTerseUpdate(m_regionHandle, 64096, LocalID, lPos, mRot);
             }
             else
             {
-                remoteClient.SendPrimTerseUpdate(m_regionHandle, 64096, LocalID, lPos, mRot, Velocity, RotationalVelocity);
+                remoteClient.SendPrimTerseUpdate(m_regionHandle, 64096, LocalID, lPos, mRot, Velocity,
+                                                 RotationalVelocity);
             }
         }
 
         public void SendTerseUpdateToClient(IClientAPI remoteClient, LLVector3 lPos)
         {
             LLQuaternion mRot = RotationOffset;
-            if ((ObjectFlags & (uint)LLObject.ObjectFlags.Physics) == 0)
+            if ((ObjectFlags & (uint) LLObject.ObjectFlags.Physics) == 0)
             {
                 remoteClient.SendPrimTerseUpdate(m_regionHandle, 64096, LocalID, lPos, mRot);
             }
             else
             {
-                remoteClient.SendPrimTerseUpdate(m_regionHandle, 64096, LocalID, lPos, mRot, Velocity, RotationalVelocity);
+                remoteClient.SendPrimTerseUpdate(m_regionHandle, 64096, LocalID, lPos, mRot, Velocity,
+                                                 RotationalVelocity);
                 //System.Console.WriteLine("RVel:" + RotationalVelocity);
             }
         }
@@ -1603,13 +1605,16 @@ namespace OpenSim.Region.Environment.Scenes
         public virtual void UpdateMovement()
         {
         }
+
         #region Events
+
         public void PhysicsRequestingTerseUpdate()
         {
             ScheduleTerseUpdate();
 
             //SendTerseUpdateToAllClients();
         }
+
         #endregion
 
         public void PhysicsOutOfBounds(PhysicsVector pos)
@@ -1626,10 +1631,10 @@ namespace OpenSim.Region.Environment.Scenes
 
         public void SetText(string text, Vector3 color, double alpha)
         {
-            Color = Color.FromArgb(0xff - (int)(alpha * 0xff),
-                                    (int)(color.x * 0xff),
-                                    (int)(color.y * 0xff),
-                                    (int)(color.z * 0xff));
+            Color = Color.FromArgb(0xff - (int) (alpha*0xff),
+                                   (int) (color.x*0xff),
+                                   (int) (color.y*0xff),
+                                   (int) (color.z*0xff));
             Text = text;
         }
 
@@ -1725,7 +1730,6 @@ namespace OpenSim.Region.Environment.Scenes
             public TaskInventoryItem()
             {
             }
-
         }
     }
 }

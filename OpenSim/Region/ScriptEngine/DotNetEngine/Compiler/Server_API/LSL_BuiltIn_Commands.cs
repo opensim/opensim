@@ -28,13 +28,11 @@
 
 using System;
 using System.Collections.Generic;
-using System.Collections;
 using System.Runtime.Remoting.Lifetime;
 using System.Text;
 using System.Threading;
 using Axiom.Math;
 using libsecondlife;
-using libsecondlife.StructuredData;
 using OpenSim.Framework;
 using OpenSim.Region.Environment.Interfaces;
 using OpenSim.Region.Environment.Scenes;

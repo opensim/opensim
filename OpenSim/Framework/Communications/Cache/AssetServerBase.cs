@@ -69,7 +69,7 @@ namespace OpenSim.Framework.Communications.Cache
             {
                 MainLog.Instance.Verbose(
                     "ASSET", "Asset {0} received from asset server", req.AssetID);
-                
+
                 _receiver.AssetReceived(asset, req.IsTexture);
             }
             else
@@ -112,9 +112,9 @@ namespace OpenSim.Framework.Communications.Cache
 
                     ProcessRequest(req);
                 }
-                catch(Exception e)
+                catch (Exception e)
                 {
-                    MainLog.Instance.Error("ASSETSERVER", e.Message );
+                    MainLog.Instance.Error("ASSETSERVER", e.Message);
                 }
             }
         }
@@ -149,7 +149,7 @@ namespace OpenSim.Framework.Communications.Cache
             req.AssetID = assetID;
             req.IsTexture = isTexture;
             _assetRequests.Enqueue(req);
-            
+
             MainLog.Instance.Verbose("ASSET", "Added {0} to request queue", assetID);
         }
 

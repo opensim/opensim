@@ -105,7 +105,7 @@ namespace OpenSim.Region.Environment.Scenes
         public delegate void LandObjectAdded(Land newParcel, LLUUID regionUUID);
 
         public event LandObjectAdded OnLandObjectAdded;
-        
+
         public delegate void LandObjectRemoved(LLUUID globalID);
 
         public event LandObjectRemoved OnLandObjectRemoved;
@@ -117,7 +117,7 @@ namespace OpenSim.Region.Environment.Scenes
 
         public void TriggerOnClientMovement(ScenePresence avatar)
         {
-            if(OnClientMovement != null)
+            if (OnClientMovement != null)
                 OnClientMovement(avatar);
         }
 
@@ -223,7 +223,7 @@ namespace OpenSim.Region.Environment.Scenes
         {
             if (OnSceneGroupMove != null)
             {
-               return OnSceneGroupMove(groupID, delta);
+                return OnSceneGroupMove(groupID, delta);
             }
             return true;
         }
@@ -236,13 +236,14 @@ namespace OpenSim.Region.Environment.Scenes
             }
         }
 
-        public void TriggerLandObjectAdded(Land newParcel,LLUUID regionID)
+        public void TriggerLandObjectAdded(Land newParcel, LLUUID regionID)
         {
             if (OnLandObjectAdded != null)
             {
                 OnLandObjectAdded(newParcel, regionID);
             }
         }
+
         public void TriggerLandObjectRemoved(LLUUID globalID)
         {
             if (OnLandObjectRemoved != null)
@@ -250,10 +251,11 @@ namespace OpenSim.Region.Environment.Scenes
                 OnLandObjectRemoved(globalID);
             }
         }
+
         public void TriggerLandObjectUpdated(uint localParcelID, Land newParcel)
         {
             //triggerLandObjectRemoved(localParcelID);
-            TriggerLandObjectAdded(newParcel,newParcel.m_scene.RegionInfo.RegionID);
+            TriggerLandObjectAdded(newParcel, newParcel.m_scene.RegionInfo.RegionID);
         }
 
         public void TriggerAvatarEnteringNewParcel(ScenePresence avatar, int localLandID, LLUUID regionID)

@@ -97,7 +97,7 @@ namespace OpenSim.Framework.Servers
 
             HttpListenerRequest request = context.Request;
             HttpListenerResponse response = context.Response;
-            
+
 
             response.KeepAlive = false;
             response.SendChunked = false;
@@ -192,15 +192,12 @@ namespace OpenSim.Framework.Servers
                 MainLog.Instance.Error("XML", responseString);
                 string[] querystringkeys = request.QueryString.AllKeys;
                 string[] rHeaders = request.Headers.AllKeys;
-                
-              
 
-               
+
                 foreach (string queryname in querystringkeys)
                 {
                     keysvals.Add(queryname, request.QueryString[queryname]);
                     MainLog.Instance.Warn("HTTP", queryname + "=" + request.QueryString[queryname]);
-                    
                 }
                 foreach (string headername in rHeaders)
                 {
@@ -218,7 +215,6 @@ namespace OpenSim.Framework.Servers
                 string methodName = xmlRprcRequest.MethodName;
                 if (methodName != null)
                 {
-
                     XmlRpcResponse xmlRpcResponse;
 
                     XmlRpcMethod method;
@@ -241,8 +237,8 @@ namespace OpenSim.Framework.Servers
                 }
                 else
                 {
-                    System.Console.WriteLine("Handler not found for http request " +request.RawUrl);
-                    responseString =  "Error";
+                    System.Console.WriteLine("Handler not found for http request " + request.RawUrl);
+                    responseString = "Error";
                 }
             }
 
@@ -266,7 +262,8 @@ namespace OpenSim.Framework.Servers
                 response.OutputStream.Close();
             }
         }
-        public void HandleHTTPRequest(Hashtable keysvals, HttpListenerRequest request, HttpListenerResponse response) 
+
+        public void HandleHTTPRequest(Hashtable keysvals, HttpListenerRequest request, HttpListenerResponse response)
         {
             // This is a test.  There's a workable alternative..  as this way sucks.
             // We'd like to put this into a text file parhaps that's easily editable.
@@ -280,12 +277,14 @@ namespace OpenSim.Framework.Servers
             // to display the form, or process it.
             // a better way would be nifty.
 
-            if ((string)keysvals["show_login_form"] == "TRUE")
+            if ((string) keysvals["show_login_form"] == "TRUE")
             {
-                string responseString = "<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.0 Transitional//EN\" \"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd\">";
+                string responseString =
+                    "<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.0 Transitional//EN\" \"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd\">";
                 responseString = responseString + "<html xmlns=\"http://www.w3.org/1999/xhtml\">";
                 responseString = responseString + "<head>";
-                responseString = responseString + "<meta http-equiv=\"Content-Type\" content=\"text/html; charset=utf-8\" />";
+                responseString = responseString +
+                                 "<meta http-equiv=\"Content-Type\" content=\"text/html; charset=utf-8\" />";
                 responseString = responseString + "<meta http-equiv=\"cache-control\" content=\"no-cache\">";
                 responseString = responseString + "<meta http-equiv=\"Pragma\" content=\"no-cache\">";
                 responseString = responseString + "<title>Second Life Login</title>";
@@ -299,37 +298,50 @@ namespace OpenSim.Framework.Servers
                 responseString = responseString + "</div>";
                 responseString = responseString + "<fieldset id=\"firstname\">";
                 responseString = responseString + "<legend>First Name:</legend>";
-                responseString = responseString + "<input type=\"text\" id=\"firstname_input\" size=\"15\" maxlength=\"100\" name=\"username\" value=\"" + keysvals["username"] + "\" />";
+                responseString = responseString +
+                                 "<input type=\"text\" id=\"firstname_input\" size=\"15\" maxlength=\"100\" name=\"username\" value=\"" +
+                                 keysvals["username"] + "\" />";
                 responseString = responseString + "</fieldset>";
                 responseString = responseString + "<fieldset id=\"lastname\">";
                 responseString = responseString + "<legend>Last Name:</legend>";
-                responseString = responseString + "<input type=\"text\" size=\"15\" maxlength=\"100\" name=\"lastname\" value=\"" + keysvals["lastname"] + "\" />";
+                responseString = responseString +
+                                 "<input type=\"text\" size=\"15\" maxlength=\"100\" name=\"lastname\" value=\"" +
+                                 keysvals["lastname"] + "\" />";
                 responseString = responseString + "</fieldset>";
                 responseString = responseString + "<fieldset id=\"password\">";
                 responseString = responseString + "<legend>Password:</legend>";
                 responseString = responseString + "<table cellspacing=\"0\" cellpadding=\"0\" border=\"0\">";
                 responseString = responseString + "<tr>";
-                responseString = responseString + "<td colspan=\"2\"><input type=\"password\" size=\"15\" maxlength=\"100\" name=\"password\" value=\"" + keysvals["password"] + "\" /></td>";
+                responseString = responseString +
+                                 "<td colspan=\"2\"><input type=\"password\" size=\"15\" maxlength=\"100\" name=\"password\" value=\"" +
+                                 keysvals["password"] + "\" /></td>";
                 responseString = responseString + "</tr>";
                 responseString = responseString + "<tr>";
-                responseString = responseString + "<td valign=\"middle\"><input type=\"checkbox\" name=\"remember_password\" id=\"remember_password\" value=\"" + keysvals["remember_password"] + "\" checked style=\"margin-left:0px;\"/></td>";
+                responseString = responseString +
+                                 "<td valign=\"middle\"><input type=\"checkbox\" name=\"remember_password\" id=\"remember_password\" value=\"" +
+                                 keysvals["remember_password"] + "\" checked style=\"margin-left:0px;\"/></td>";
                 responseString = responseString + "<td><label for=\"remember_password\">Remember password</label></td>";
                 responseString = responseString + "</tr>";
                 responseString = responseString + "</table>";
                 responseString = responseString + "</fieldset>";
                 responseString = responseString + "<input type=\"hidden\" name=\"show_login_form\" value=\"FALSE\" />";
-                responseString = responseString + "<input type=\"hidden\" id=\"grid\" name=\"grid\" value=\"" + keysvals["grid"] + "\" />";
+                responseString = responseString + "<input type=\"hidden\" id=\"grid\" name=\"grid\" value=\"" +
+                                 keysvals["grid"] + "\" />";
                 responseString = responseString + "<div id=\"submitbtn\">";
                 responseString = responseString + "<input class=\"input_over\" type=\"submit\" value=\"Connect\" />";
                 responseString = responseString + "</div>";
-                responseString = responseString + "<div id=\"connecting\" style=\"visibility:hidden\"><img src=\"/_img/sl_logo_rotate_black.gif\" align=\"absmiddle\"> Connecting...</div>";
+                responseString = responseString +
+                                 "<div id=\"connecting\" style=\"visibility:hidden\"><img src=\"/_img/sl_logo_rotate_black.gif\" align=\"absmiddle\"> Connecting...</div>";
 
                 responseString = responseString + "<div id=\"helplinks\">";
-                responseString = responseString + "<a href=\"http://www.secondlife.com/join/index.php\" target=\"_blank\">Create new account</a> | ";
-                responseString = responseString + "<a href=\"http://www.secondlife.com/account/request.php\" target=\"_blank\">Forgot password?</a>";
+                responseString = responseString +
+                                 "<a href=\"http://www.secondlife.com/join/index.php\" target=\"_blank\">Create new account</a> | ";
+                responseString = responseString +
+                                 "<a href=\"http://www.secondlife.com/account/request.php\" target=\"_blank\">Forgot password?</a>";
                 responseString = responseString + "</div>";
 
-                responseString = responseString + "<div id=\"channelinfo\"> " + keysvals["channel"] + " | " + keysvals["version"] + "=" + keysvals["lang"] + "</div>";
+                responseString = responseString + "<div id=\"channelinfo\"> " + keysvals["channel"] + " | " +
+                                 keysvals["version"] + "=" + keysvals["lang"] + "</div>";
                 responseString = responseString + "</form>";
                 responseString = responseString + "<script language=\"JavaScript\">";
                 responseString = responseString + "document.getElementById('firstname_input').focus();";
@@ -359,7 +371,7 @@ namespace OpenSim.Framework.Servers
                 }
             } // show_login_form == "TRUE"
             else
-            {   
+            {
                 // show_login_form is present but FALSE
                 //
                 // The idea here is that we're telling the client to log in immediately here using the following information
@@ -371,12 +383,14 @@ namespace OpenSim.Framework.Servers
                 // 
 
                 response.StatusCode = 301;
-                response.RedirectLocation = "secondlife:///app/login?first_name=" + keysvals["username"] + "&last_name=" + keysvals["lastname"] + "&location=home&grid=Other&web_login_key=796f2b2a-0131-41e4-af12-00f60c24c458";
-                
+                response.RedirectLocation = "secondlife:///app/login?first_name=" + keysvals["username"] + "&last_name=" +
+                                            keysvals["lastname"] +
+                                            "&location=home&grid=Other&web_login_key=796f2b2a-0131-41e4-af12-00f60c24c458";
+
                 response.OutputStream.Close();
             } // show_login_form == "FALSE"
-
         }
+
         public void Start()
         {
             MainLog.Instance.Verbose("HTTPD", "Starting up HTTP Server");

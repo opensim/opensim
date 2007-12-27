@@ -41,10 +41,13 @@ namespace SimpleApp
     {
         private List<ScenePresence> m_avatars;
 
-        public MyWorld(RegionInfo regionInfo, AgentCircuitManager authen, PermissionManager permissionManager, CommunicationsManager commsMan, SceneCommunicationService sceneGridService,
+        public MyWorld(RegionInfo regionInfo, AgentCircuitManager authen, PermissionManager permissionManager,
+                       CommunicationsManager commsMan, SceneCommunicationService sceneGridService,
                        AssetCache assetCach, StorageManager storeMan, BaseHttpServer httpServer,
                        ModuleLoader moduleLoader, bool physicalPrim, bool ChildGetTasks)
-            : base(regionInfo, authen, permissionManager, commsMan, sceneGridService, assetCach, storeMan, httpServer, moduleLoader, false, true, false)
+            : base(
+                regionInfo, authen, permissionManager, commsMan, sceneGridService, assetCach, storeMan, httpServer,
+                moduleLoader, false, true, false)
         {
             m_avatars = new List<ScenePresence>();
         }
@@ -73,7 +76,7 @@ namespace SimpleApp
 
             client.OnCompleteMovementToRegion +=
                 delegate() { client.SendChatMessage("Welcome to My World.", 1, pos, "System", LLUUID.Zero); };
- 
+
             client.SendRegionHandshake(m_regInfo);
         }
     }

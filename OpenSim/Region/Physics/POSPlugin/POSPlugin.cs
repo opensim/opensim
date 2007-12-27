@@ -25,8 +25,8 @@
 * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 * 
 */
-using System.Collections.Generic;
 using System;
+using System.Collections.Generic;
 using Axiom.Math;
 using OpenSim.Framework;
 using OpenSim.Region.Physics.Manager;
@@ -114,10 +114,10 @@ namespace OpenSim.Region.Physics.POSPlugin
         public override PhysicsActor AddPrimShape(string primName, PrimitiveBaseShape pbs, PhysicsVector position,
                                                   PhysicsVector size, Quaternion rotation)
         {
-            return this.AddPrimShape(primName, pbs, position, size, rotation, false);
+            return AddPrimShape(primName, pbs, position, size, rotation, false);
         }
 
-        public override PhysicsActor AddPrimShape(string primName, PrimitiveBaseShape pbs, PhysicsVector position, 
+        public override PhysicsActor AddPrimShape(string primName, PrimitiveBaseShape pbs, PhysicsVector position,
                                                   PhysicsVector size, Quaternion rotation, bool isPhysical)
         {
             POSPrim prim = new POSPrim();
@@ -136,18 +136,20 @@ namespace OpenSim.Region.Physics.POSPlugin
                 " sizeX: " + p.Size.X * 0.5 + 0.5);
              */
 
-            Vector3 rotatedPos = p.Orientation.Inverse() * new Vector3(c.Position.X - p.Position.X, c.Position.Y - p.Position.Y, c.Position.Z - p.Position.Z);
-            Vector3 avatarSize = p.Orientation.Inverse() * new Vector3(c.Size.X, c.Size.Y, c.Size.Z);
+            Vector3 rotatedPos = p.Orientation.Inverse()*
+                                 new Vector3(c.Position.X - p.Position.X, c.Position.Y - p.Position.Y,
+                                             c.Position.Z - p.Position.Z);
+            Vector3 avatarSize = p.Orientation.Inverse()*new Vector3(c.Size.X, c.Size.Y, c.Size.Z);
 
-            if (Math.Abs(rotatedPos.x) >= (p.Size.X * 0.5 + Math.Abs(avatarSize.x)))
+            if (Math.Abs(rotatedPos.x) >= (p.Size.X*0.5 + Math.Abs(avatarSize.x)))
             {
                 return false;
             }
-            if (Math.Abs(rotatedPos.y) >= (p.Size.Y * 0.5 + Math.Abs(avatarSize.y)))
+            if (Math.Abs(rotatedPos.y) >= (p.Size.Y*0.5 + Math.Abs(avatarSize.y)))
             {
                 return false;
             }
-            if (Math.Abs(rotatedPos.z) >= (p.Size.Z * 0.5 + Math.Abs(avatarSize.z)))
+            if (Math.Abs(rotatedPos.z) >= (p.Size.Z*0.5 + Math.Abs(avatarSize.z)))
             {
                 return false;
             }
@@ -182,12 +184,12 @@ namespace OpenSim.Region.Physics.POSPlugin
 
                 if (!character.Flying)
                 {
-                    character._target_velocity.Z += gravity * timeStep;
+                    character._target_velocity.Z += gravity*timeStep;
                 }
 
                 bool forcedZ = false;
-                character.Position.X += character._target_velocity.X * timeStep;
-                character.Position.Y += character._target_velocity.Y * timeStep;
+                character.Position.X += character._target_velocity.X*timeStep;
+                character.Position.Y += character._target_velocity.Y*timeStep;
 
                 if (character.Position.Y < 0)
                 {
@@ -207,15 +209,15 @@ namespace OpenSim.Region.Physics.POSPlugin
                     character.Position.X = 255.9F;
                 }
 
-                float terrainheight = _heightMap[(int)character.Position.Y * 256 + (int)character.Position.X];
-                if (character.Position.Z + (character._target_velocity.Z * timeStep) < terrainheight + 2)
+                float terrainheight = _heightMap[(int) character.Position.Y*256 + (int) character.Position.X];
+                if (character.Position.Z + (character._target_velocity.Z*timeStep) < terrainheight + 2)
                 {
                     character.Position.Z = terrainheight + 1.0f;
                     forcedZ = true;
                 }
                 else
                 {
-                    character.Position.Z += character._target_velocity.Z * timeStep;
+                    character.Position.Z += character._target_velocity.Z*timeStep;
                 }
 
                 /// this is it -- the magic you've all been waiting for!  Ladies and gentlemen -- 
@@ -224,21 +226,21 @@ namespace OpenSim.Region.Physics.POSPlugin
 
                 if (check_all_prims(character))
                 {
-                    character.Position.Z = oldposZ;                 //  first try Z axis
+                    character.Position.Z = oldposZ; //  first try Z axis
                     if (check_all_prims(character))
                     {
-                        character.Position.Z = oldposZ + 0.4f;                 // try harder
+                        character.Position.Z = oldposZ + 0.4f; // try harder
                         if (check_all_prims(character))
                         {
                             character.Position.X = oldposX;
                             character.Position.Y = oldposY;
                             character.Position.Z = oldposZ;
-                            character.Position.X = character.Position.X + (character._target_velocity.X * timeStep);
+                            character.Position.X = character.Position.X + (character._target_velocity.X*timeStep);
                             if (check_all_prims(character))
                             {
                                 character.Position.X = oldposX;
                             }
-                            character.Position.Y = character.Position.Y + (character._target_velocity.Y * timeStep);
+                            character.Position.Y = character.Position.Y + (character._target_velocity.Y*timeStep);
                             if (check_all_prims(character))
                             {
                                 character.Position.Y = oldposY;
@@ -253,7 +255,7 @@ namespace OpenSim.Region.Physics.POSPlugin
                     {
                         forcedZ = true;
                     }
-                }            
+                }
 
                 if (character.Position.Y < 0)
                 {
@@ -273,8 +275,8 @@ namespace OpenSim.Region.Physics.POSPlugin
                     character.Position.X = 255.9F;
                 }
 
-                character._velocity.X = (character.Position.X - oldposX) / timeStep;
-                character._velocity.Y = (character.Position.Y - oldposY) / timeStep;
+                character._velocity.X = (character.Position.X - oldposX)/timeStep;
+                character._velocity.Y = (character.Position.Y - oldposY)/timeStep;
 
                 if (forcedZ)
                 {
@@ -284,7 +286,7 @@ namespace OpenSim.Region.Physics.POSPlugin
                 }
                 else
                 {
-                    character._velocity.Z = (character.Position.Z - oldposZ) / timeStep;
+                    character._velocity.Z = (character.Position.Z - oldposZ)/timeStep;
                 }
             }
             return fps;
@@ -326,31 +328,37 @@ namespace OpenSim.Region.Physics.POSPlugin
             _position = new PhysicsVector();
             _acceleration = new PhysicsVector();
         }
+
         public override int PhysicsActorType
         {
-            get { return (int)ActorTypes.Agent; }
+            get { return (int) ActorTypes.Agent; }
             set { return; }
         }
+
         public override PhysicsVector RotationalVelocity
         {
             get { return m_rotationalVelocity; }
             set { m_rotationalVelocity = value; }
         }
+
         public override bool SetAlwaysRun
         {
             get { return false; }
             set { return; }
         }
+
         public override bool IsPhysical
         {
             get { return false; }
             set { return; }
         }
+
         public override bool ThrottleUpdates
         {
             get { return false; }
             set { return; }
         }
+
         public override bool Flying
         {
             get { return flying; }
@@ -362,16 +370,19 @@ namespace OpenSim.Region.Physics.POSPlugin
             get { return iscolliding; }
             set { iscolliding = value; }
         }
+
         public override bool CollidingGround
         {
             get { return false; }
             set { return; }
         }
+
         public override bool CollidingObj
         {
             get { return false; }
             set { return; }
         }
+
         public override PhysicsVector Position
         {
             get { return _position; }
@@ -383,18 +394,22 @@ namespace OpenSim.Region.Physics.POSPlugin
             get { return new PhysicsVector(0.5f, 0.5f, 1.0f); }
             set { }
         }
+
         public override float Mass
         {
             get { return 0f; }
         }
+
         public override PhysicsVector Force
         {
             get { return PhysicsVector.Zero; }
         }
+
         public override PhysicsVector CenterOfMass
         {
             get { return PhysicsVector.Zero; }
         }
+
         public override PhysicsVector GeometricCenter
         {
             get { return PhysicsVector.Zero; }
@@ -402,10 +417,7 @@ namespace OpenSim.Region.Physics.POSPlugin
 
         public override PrimitiveBaseShape Shape
         {
-            set
-            {
-                return;
-            }
+            set { return; }
         }
 
         public override PhysicsVector Velocity
@@ -461,41 +473,49 @@ namespace OpenSim.Region.Physics.POSPlugin
             _position = new PhysicsVector();
             _acceleration = new PhysicsVector();
         }
+
         public override int PhysicsActorType
         {
-            get { return (int)ActorTypes.Prim; }
+            get { return (int) ActorTypes.Prim; }
             set { return; }
         }
+
         public override PhysicsVector RotationalVelocity
         {
             get { return m_rotationalVelocity; }
             set { m_rotationalVelocity = value; }
         }
+
         public override bool IsPhysical
         {
             get { return false; }
             set { return; }
         }
+
         public override bool ThrottleUpdates
         {
             get { return false; }
             set { return; }
         }
+
         public override bool IsColliding
         {
             get { return iscolliding; }
             set { iscolliding = value; }
         }
+
         public override bool CollidingGround
         {
             get { return false; }
             set { return; }
         }
+
         public override bool CollidingObj
         {
             get { return false; }
             set { return; }
         }
+
         public override PhysicsVector Position
         {
             get { return _position; }
@@ -530,10 +550,7 @@ namespace OpenSim.Region.Physics.POSPlugin
 
         public override PrimitiveBaseShape Shape
         {
-            set
-            {
-                return;
-            }
+            set { return; }
         }
 
         public override PhysicsVector Velocity
@@ -571,6 +588,7 @@ namespace OpenSim.Region.Physics.POSPlugin
         public override void SetMomentum(PhysicsVector momentum)
         {
         }
+
         public override bool Flying
         {
             get { return false; }

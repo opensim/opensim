@@ -33,10 +33,10 @@ using System.Threading;
 using libsecondlife;
 using Nini.Config;
 using Nwc.XmlRpc;
+using OpenSim.Framework.Console;
 using OpenSim.Framework.Servers;
 using OpenSim.Region.Environment.Interfaces;
 using OpenSim.Region.Environment.Scenes;
-using OpenSim.Framework.Console;
 
 /*****************************************************
  *
@@ -116,15 +116,16 @@ namespace OpenSim.Region.Environment.Modules
 
         public void PostInitialise()
         {
-            if ( IsEnabled() )
+            if (IsEnabled())
             {
                 m_openChannels = new Dictionary<LLUUID, RPCChannelInfo>();
                 m_pendingResponse = new Dictionary<LLUUID, RPCRequestInfo>();
 
                 // Start http server
                 // Attach xmlrpc handlers
-                m_log.Verbose("REMOTE_DATA", "Starting XMLRPC Server on port " + m_remoteDataPort + " for llRemoteData commands.");
-                BaseHttpServer httpServer = new BaseHttpServer((uint)m_remoteDataPort);
+                m_log.Verbose("REMOTE_DATA",
+                              "Starting XMLRPC Server on port " + m_remoteDataPort + " for llRemoteData commands.");
+                BaseHttpServer httpServer = new BaseHttpServer((uint) m_remoteDataPort);
                 httpServer.AddXmlRPCHandler("llRemoteData", XmlRpcRemoteData);
                 httpServer.Start();
             }

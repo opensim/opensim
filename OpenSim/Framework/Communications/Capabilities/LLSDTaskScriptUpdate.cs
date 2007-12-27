@@ -29,7 +29,7 @@
 using libsecondlife;
 
 namespace OpenSim.Region.Capabilities
-{ 
+{
     [LLSDMap]
     public class LLSDTaskScriptUpdate
     {
@@ -37,12 +37,12 @@ namespace OpenSim.Region.Capabilities
         /// The item containing the script to update
         /// </summary> 
         public LLUUID item_id;
-        
+
         /// <summary>
         /// The task containing the script
         /// </summary> 
         public LLUUID task_id;
-        
+
         /// <summary>
         /// Signals whether the script is currently active
         /// </summary> 

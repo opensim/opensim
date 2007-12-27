@@ -150,14 +150,13 @@ namespace OpenSim.Framework
     /// </summary>
     //public class AvatarPickerAvatar
     //{
-        //public LLUUID AvatarID;
-        //public string firstName;
-        //public string lastName;
-        //public AvatarPickerAvatar()
-        //{
-        //}
+    //public LLUUID AvatarID;
+    //public string firstName;
+    //public string lastName;
+    //public AvatarPickerAvatar()
+    //{
     //}
-
+    //}
     /// <summary>
     /// Information about a users session
     /// </summary>

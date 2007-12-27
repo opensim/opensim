@@ -28,13 +28,12 @@
 
 using System;
 using System.Collections.Generic;
+using libsecondlife;
 using Nini.Config;
-using OpenSim.Region.Environment.Interfaces;
-using OpenSim.Region.Environment.Scenes;
 using OpenSim.Framework;
 using OpenSim.Framework.Console;
-using libsecondlife;
-
+using OpenSim.Region.Environment.Interfaces;
+using OpenSim.Region.Environment.Scenes;
 
 namespace OpenSim.Region.Environment.Modules
 {
@@ -55,17 +54,20 @@ namespace OpenSim.Region.Environment.Modules
         {
             m_start = DateTime.Now.Ticks;
             m_frame = 0;
-            
+
             // Just in case they don't have the stanzas
-            try {
+            try
+            {
                 m_day_length = config.Configs["Sun"].GetDouble("day_length", m_real_day);
                 m_frame_mod = config.Configs["Sun"].GetInt("frame_rate", m_default_frame);
-            } catch (Exception) {
+            }
+            catch (Exception)
+            {
                 m_day_length = m_real_day;
                 m_frame_mod = m_default_frame;
             }
-            
-            m_dilation = (int)(m_real_day / m_day_length);
+
+            m_dilation = (int) (m_real_day/m_day_length);
             m_scene = scene;
             m_log = MainLog.Instance;
             scene.EventManager.OnFrame += SunUpdate;
@@ -94,10 +96,11 @@ namespace OpenSim.Region.Environment.Modules
         {
             client.SendSunPos(SunPos(HourOfTheDay()), new LLVector3(0, 0.0f, 10.0f));
         }
-        
+
         public void SunUpdate()
         {
-            if (m_frame < m_frame_mod) {
+            if (m_frame < m_frame_mod)
+            {
                 m_frame++;
                 return;
             }
@@ -115,20 +118,20 @@ namespace OpenSim.Region.Environment.Modules
         // time when the simulator starts, then run time forward
         // faster based on time dilation factor.  This means that
         // ticks don't get out of hand
-        private double HourOfTheDay() 
+        private double HourOfTheDay()
         {
-            long m_addticks = (DateTime.Now.Ticks - m_start) * m_dilation;
+            long m_addticks = (DateTime.Now.Ticks - m_start)*m_dilation;
             DateTime dt = new DateTime(m_start + m_addticks);
-            return (double)dt.Hour + ((double)dt.Minute / 60.0);
+            return (double) dt.Hour + ((double) dt.Minute/60.0);
         }
 
-        private LLVector3 SunPos(double hour) 
+        private LLVector3 SunPos(double hour)
         {
             // now we have our radian position
-            double rad = (hour / m_real_day) * 2 * Math.PI - (Math.PI / 2.0);
+            double rad = (hour/m_real_day)*2*Math.PI - (Math.PI/2.0);
             double z = Math.Sin(rad);
             double x = Math.Cos(rad);
-            return new LLVector3((float)x, 0f, (float)z);
+            return new LLVector3((float) x, 0f, (float) z);
         }
 
         // TODO: clear this out.  This is here so that I remember to

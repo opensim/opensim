@@ -27,7 +27,6 @@
 */
 
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Reflection;
 using System.Security.Cryptography;
@@ -93,13 +92,13 @@ namespace OpenSim.Framework.UserManagement
             foreach (KeyValuePair<string, IUserData> plugin in _plugins)
             {
                 UserProfileData profile = plugin.Value.GetUserByUUID(uuid);
-                
+
                 if (null != profile)
                 {
                     profile.currentAgent = getUserAgent(profile.UUID);
                     return profile;
-                }                                              
-            }          
+                }
+            }
 
             return null;
         }
@@ -112,11 +111,11 @@ namespace OpenSim.Framework.UserManagement
                 try
                 {
                     pickerlist = plugin.Value.GeneratePickerResults(queryID, query);
-
                 }
                 catch (Exception)
                 {
-                    MainLog.Instance.Verbose("USERSTORAGE", "Unable to generate AgentPickerData via  " + plugin.Key + "(" + query + ")");
+                    MainLog.Instance.Verbose("USERSTORAGE",
+                                             "Unable to generate AgentPickerData via  " + plugin.Key + "(" + query + ")");
                     return new List<AvatarPickerAvatar>();
                 }
             }
@@ -162,7 +161,8 @@ namespace OpenSim.Framework.UserManagement
                 }
                 catch (Exception e)
                 {
-                    MainLog.Instance.Verbose("USERSTORAGE", "Unable to set user via " + plugin.Key + "(" + e.ToString() + ")");
+                    MainLog.Instance.Verbose("USERSTORAGE",
+                                             "Unable to set user via " + plugin.Key + "(" + e.ToString() + ")");
                 }
             }
 
@@ -188,7 +188,8 @@ namespace OpenSim.Framework.UserManagement
                 }
                 catch (Exception e)
                 {
-                    MainLog.Instance.Verbose("USERSTORAGE", "Unable to find user via " + plugin.Key + "(" + e.ToString() + ")");
+                    MainLog.Instance.Verbose("USERSTORAGE",
+                                             "Unable to find user via " + plugin.Key + "(" + e.ToString() + ")");
                 }
             }
 
@@ -210,7 +211,8 @@ namespace OpenSim.Framework.UserManagement
                 }
                 catch (Exception e)
                 {
-                    MainLog.Instance.Verbose("USERSTORAGE", "Unable to find user via " + plugin.Key + "(" + e.ToString() + ")");
+                    MainLog.Instance.Verbose("USERSTORAGE",
+                                             "Unable to find user via " + plugin.Key + "(" + e.ToString() + ")");
                 }
             }
 
@@ -222,7 +224,7 @@ namespace OpenSim.Framework.UserManagement
         {
             UserProfileData profile = GetUserProfile(agentID);
             profile.currentAgent = null;
-            
+
             setUserProfile(profile);
         }
 
@@ -242,7 +244,8 @@ namespace OpenSim.Framework.UserManagement
                 }
                 catch (Exception e)
                 {
-                    MainLog.Instance.Verbose("USERSTORAGE", "Unable to find user via " + plugin.Key + "(" + e.ToString() + ")");
+                    MainLog.Instance.Verbose("USERSTORAGE",
+                                             "Unable to find user via " + plugin.Key + "(" + e.ToString() + ")");
                 }
             }
 
@@ -356,7 +359,8 @@ namespace OpenSim.Framework.UserManagement
                 }
                 catch (Exception e)
                 {
-                    MainLog.Instance.Verbose("USERSTORAGE", "Unable to add user via " + plugin.Key + "(" + e.ToString() + ")");
+                    MainLog.Instance.Verbose("USERSTORAGE",
+                                             "Unable to add user via " + plugin.Key + "(" + e.ToString() + ")");
                 }
             }
 
@@ -365,6 +369,6 @@ namespace OpenSim.Framework.UserManagement
 
         public abstract UserProfileData SetupMasterUser(string firstName, string lastName);
         public abstract UserProfileData SetupMasterUser(string firstName, string lastName, string password);
-        public abstract UserProfileData SetupMasterUser(libsecondlife.LLUUID uuid);
+        public abstract UserProfileData SetupMasterUser(LLUUID uuid);
     }
 }

@@ -159,6 +159,7 @@ namespace OpenSim.Framework.Data.SQLite
 
             invFoldersDa.Update(ds, "inventoryfolders");
         }
+
         private void addItem(InventoryItemBase item)
         {
             DataTable inventoryItemTable = ds.Tables["inventoryitems"];
@@ -248,7 +249,8 @@ namespace OpenSim.Framework.Data.SQLite
         {
             List<InventoryFolderBase> folders = new List<InventoryFolderBase>();
             DataTable inventoryFolderTable = ds.Tables["inventoryfolders"];
-            string selectExp = "agentID = '" + Util.ToRawUuidString(user) + "' AND parentID = '" + Util.ToRawUuidString(LLUUID.Zero) + "'";
+            string selectExp = "agentID = '" + Util.ToRawUuidString(user) + "' AND parentID = '" +
+                               Util.ToRawUuidString(LLUUID.Zero) + "'";
             DataRow[] rows = inventoryFolderTable.Select(selectExp);
             foreach (DataRow row in rows)
             {

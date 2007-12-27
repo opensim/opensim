@@ -30,7 +30,6 @@ using System.Collections.Generic;
 using System.Data;
 using libsecondlife;
 using Mono.Data.SqliteClient;
-using OpenSim.Framework;
 using OpenSim.Framework.Console;
 
 namespace OpenSim.Framework.Data.SQLite
@@ -38,7 +37,6 @@ namespace OpenSim.Framework.Data.SQLite
     /// <summary>
     /// A User storage interface for the SQLite database system
     /// </summary>
-
     public class SQLiteUserData : SQLiteBase, IUserData
     {
         /// <summary>
@@ -119,46 +117,46 @@ namespace OpenSim.Framework.Data.SQLite
             }
         }
 
-        public List<OpenSim.Framework.AvatarPickerAvatar> GeneratePickerResults(LLUUID queryID, string query)
+        public List<Framework.AvatarPickerAvatar> GeneratePickerResults(LLUUID queryID, string query)
         {
-            List<OpenSim.Framework.AvatarPickerAvatar> returnlist = new List<OpenSim.Framework.AvatarPickerAvatar>();
+            List<Framework.AvatarPickerAvatar> returnlist = new List<Framework.AvatarPickerAvatar>();
             string[] querysplit;
             querysplit = query.Split(' ');
-            if (querysplit.Length == 2) 
+            if (querysplit.Length == 2)
             {
                 string select = "username like '" + querysplit[0] + "%' and surname like '" + querysplit[1] + "%'";
-                lock(ds)
+                lock (ds)
                 {
                     DataRow[] rows = ds.Tables["users"].Select(select);
-                    if (rows.Length > 0) 
+                    if (rows.Length > 0)
                     {
                         for (int i = 0; i < rows.Length; i++)
                         {
-                            OpenSim.Framework.AvatarPickerAvatar user = new OpenSim.Framework.AvatarPickerAvatar();
+                            Framework.AvatarPickerAvatar user = new Framework.AvatarPickerAvatar();
                             DataRow row = rows[i];
-                            user.AvatarID = new LLUUID((string)row["UUID"]);
-                            user.firstName = (string)row["username"];
-                            user.lastName = (string)row["surname"];
+                            user.AvatarID = new LLUUID((string) row["UUID"]);
+                            user.firstName = (string) row["username"];
+                            user.lastName = (string) row["surname"];
                             returnlist.Add(user);
                         }
                     }
                 }
-            } 
-            else if (querysplit.Length == 1)  
+            }
+            else if (querysplit.Length == 1)
             {
-
                 string select = "username like '" + querysplit[0] + "%' OR surname like '" + querysplit[0] + "%'";
-                lock(ds)
+                lock (ds)
                 {
                     DataRow[] rows = ds.Tables["users"].Select(select);
-                    if (rows.Length > 0) 
+                    if (rows.Length > 0)
                     {
-                        for (int i = 0;i<rows.Length;i++) {
-                            OpenSim.Framework.AvatarPickerAvatar user = new OpenSim.Framework.AvatarPickerAvatar();
+                        for (int i = 0; i < rows.Length; i++)
+                        {
+                            Framework.AvatarPickerAvatar user = new Framework.AvatarPickerAvatar();
                             DataRow row = rows[i];
-                            user.AvatarID = new LLUUID((string)row[0]);
-                            user.firstName = (string)row[1];
-                            user.lastName = (string)row[2];
+                            user.AvatarID = new LLUUID((string) row[0]);
+                            user.firstName = (string) row[1];
+                            user.lastName = (string) row[2];
                             returnlist.Add(user);
                         }
                     }
@@ -166,6 +164,7 @@ namespace OpenSim.Framework.Data.SQLite
             }
             return returnlist;
         }
+
         /// <summary>
         /// Returns a user by UUID direct
         /// </summary>
@@ -263,7 +262,6 @@ namespace OpenSim.Framework.Data.SQLite
                     }
                     else
                     {
-                       
                         row.Delete();
                         ua.AcceptChanges();
                     }

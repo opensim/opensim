@@ -27,18 +27,13 @@
 */
 
 using System;
-using System.IO;
-using System.Globalization;
-using System.Diagnostics;
 using System.Collections.Generic;
-using System.Runtime.InteropServices;
 using OpenSim.Framework;
 using OpenSim.Framework.Console;
 using OpenSim.Region.Physics.Manager;
 
 namespace OpenSim.Region.Physics.Meshing
 {
-
     public class MeshmerizerPlugin : IMeshingPlugin
     {
         public MeshmerizerPlugin()
@@ -61,10 +56,11 @@ namespace OpenSim.Region.Physics.Meshing
         // Setting baseDir to a path will enable the dumping of raw files
         // raw files can be imported by blender so a visual inspection of the results can be done
         //        const string baseDir = "rawFiles";
-                const string baseDir = null;
+        private const string baseDir = null;
 
-        static void IntersectionParameterPD(PhysicsVector p1, PhysicsVector r1, PhysicsVector p2, PhysicsVector r2, ref float lambda, ref float mu)
-        { 
+        private static void IntersectionParameterPD(PhysicsVector p1, PhysicsVector r1, PhysicsVector p2,
+                                                    PhysicsVector r2, ref float lambda, ref float mu)
+        {
             // p1, p2, points on the straight
             // r1, r2, directional vectors of the straight. Not necessarily of length 1!
             // note, that l, m can be scaled such, that the range 0..1 is mapped to the area between two points,
@@ -88,9 +84,8 @@ namespace OpenSim.Region.Physics.Meshing
             float p1y = p1.Y;
             float p2x = p2.X;
             float p2y = p2.Y;
-            lambda = (-p2x * r2y + p1x * r2y + (p2y - p1y) * r2x) / denom;
-            mu     = (-p2x * r1y + p1x * r1y + (p2y - p1y) * r1x) / denom;
-        
+            lambda = (-p2x*r2y + p1x*r2y + (p2y - p1y)*r2x)/denom;
+            mu = (-p2x*r1y + p1x*r1y + (p2y - p1y)*r1x)/denom;
         }
 
         private static List<Triangle> FindInfluencedTriangles(List<Triangle> triangles, Vertex v)
@@ -105,8 +100,8 @@ namespace OpenSim.Region.Physics.Meshing
             }
             return influenced;
         }
-        
-        
+
+
         private static void InsertVertices(List<Vertex> vertices, int usedForSeed, List<Triangle> triangles)
         {
             // This is a variant of the delaunay algorithm
@@ -126,10 +121,10 @@ namespace OpenSim.Region.Physics.Meshing
                 // do not fulfill this condition with respect to the new triangle
 
                 // Find the triangles that are influenced by the new vertex
-                Vertex v=vertices[iCurrentVertex];
+                Vertex v = vertices[iCurrentVertex];
                 if (v == null)
-                    continue;   // Null is polygon stop marker. Ignore it
-                List<Triangle> influencedTriangles=FindInfluencedTriangles(triangles, v);
+                    continue; // Null is polygon stop marker. Ignore it
+                List<Triangle> influencedTriangles = FindInfluencedTriangles(triangles, v);
 
                 List<Simplex> simplices = new List<Simplex>();
 
@@ -177,12 +172,11 @@ namespace OpenSim.Region.Physics.Meshing
                     }
                 }
             }
-
         }
 
-            
-        static Mesh CreateBoxMesh(String primName, PrimitiveBaseShape primShape, PhysicsVector size)
-        // Builds the z (+ and -) surfaces of a box shaped prim
+
+        private static Mesh CreateBoxMesh(String primName, PrimitiveBaseShape primShape, PhysicsVector size)
+            // Builds the z (+ and -) surfaces of a box shaped prim
         {
             UInt16 hollowFactor = primShape.ProfileHollow;
             UInt16 profileBegin = primShape.ProfileBegin;
@@ -201,7 +195,7 @@ namespace OpenSim.Region.Physics.Meshing
             Vertex MP = new Vertex(-0.5f, +0.5f, 0.0f);
             Vertex PP = new Vertex(+0.5f, +0.5f, 0.0f);
 
-            Meshing.SimpleHull outerHull = new SimpleHull();
+            SimpleHull outerHull = new SimpleHull();
             outerHull.AddVertex(MM);
             outerHull.AddVertex(PM);
             outerHull.AddVertex(PP);
@@ -210,9 +204,10 @@ namespace OpenSim.Region.Physics.Meshing
             // Deal with cuts now
             if ((profileBegin != 0) || (profileEnd != 0))
             {
-                double fProfileBeginAngle = profileBegin / 50000.0 * 360.0; // In degree, for easier debugging and understanding
-                fProfileBeginAngle -= (90.0 + 45.0);   // for some reasons, the SL client counts from the corner -X/-Y
-                double fProfileEndAngle = 360.0 - profileEnd / 50000.0 * 360.0; // Pathend comes as complement to 1.0
+                double fProfileBeginAngle = profileBegin/50000.0*360.0;
+                    // In degree, for easier debugging and understanding
+                fProfileBeginAngle -= (90.0 + 45.0); // for some reasons, the SL client counts from the corner -X/-Y
+                double fProfileEndAngle = 360.0 - profileEnd/50000.0*360.0; // Pathend comes as complement to 1.0
                 fProfileEndAngle -= (90.0 + 45.0);
                 if (fProfileBeginAngle < fProfileEndAngle)
                     fProfileEndAngle -= 360.0;
@@ -222,20 +217,23 @@ namespace OpenSim.Region.Physics.Meshing
                 // and we approximate this arc by a polygon chain
                 // Also note, that these vectors are of length 1.0 and thus their endpoints lay outside the model space
                 // So it can easily be subtracted from the outer hull
-                int iSteps = (int)(((fProfileBeginAngle - fProfileEndAngle) / 45.0) + .5); // how many steps do we need with approximately 45 degree
-                double dStepWidth=(fProfileBeginAngle-fProfileEndAngle)/iSteps;
+                int iSteps = (int) (((fProfileBeginAngle - fProfileEndAngle)/45.0) + .5);
+                    // how many steps do we need with approximately 45 degree
+                double dStepWidth = (fProfileBeginAngle - fProfileEndAngle)/iSteps;
 
                 Vertex origin = new Vertex(0.0f, 0.0f, 0.0f);
 
                 // Note the sequence of vertices here. It's important to have the other rotational sense than in outerHull
                 SimpleHull cutHull = new SimpleHull();
                 cutHull.AddVertex(origin);
-                for (int i=0; i<iSteps; i++) {
-                    double angle=fProfileBeginAngle-i*dStepWidth; // we count against the angle orientation!!!!
-                    Vertex v = Vertex.FromAngle(angle * Math.PI / 180.0);
+                for (int i = 0; i < iSteps; i++)
+                {
+                    double angle = fProfileBeginAngle - i*dStepWidth; // we count against the angle orientation!!!!
+                    Vertex v = Vertex.FromAngle(angle*Math.PI/180.0);
                     cutHull.AddVertex(v);
                 }
-                Vertex legEnd = Vertex.FromAngle(fProfileEndAngle * Math.PI / 180.0); // Calculated separately to avoid errors
+                Vertex legEnd = Vertex.FromAngle(fProfileEndAngle*Math.PI/180.0);
+                    // Calculated separately to avoid errors
                 cutHull.AddVertex(legEnd);
 
                 MainLog.Instance.Debug("Starting cutting of the hollow shape from the prim {1}", 0, primName);
@@ -248,10 +246,10 @@ namespace OpenSim.Region.Physics.Meshing
             if (hollowFactor > 0)
             {
                 float hollowFactorF = (float) hollowFactor/(float) 50000;
-                Vertex IMM = new Vertex(-0.5f * hollowFactorF, -0.5f * hollowFactorF, 0.0f);
-                Vertex IPM = new Vertex(+0.5f * hollowFactorF, -0.5f * hollowFactorF, 0.0f);
-                Vertex IMP = new Vertex(-0.5f * hollowFactorF, +0.5f * hollowFactorF, 0.0f);
-                Vertex IPP = new Vertex(+0.5f * hollowFactorF, +0.5f * hollowFactorF, 0.0f);
+                Vertex IMM = new Vertex(-0.5f*hollowFactorF, -0.5f*hollowFactorF, 0.0f);
+                Vertex IPM = new Vertex(+0.5f*hollowFactorF, -0.5f*hollowFactorF, 0.0f);
+                Vertex IMP = new Vertex(-0.5f*hollowFactorF, +0.5f*hollowFactorF, 0.0f);
+                Vertex IPP = new Vertex(+0.5f*hollowFactorF, +0.5f*hollowFactorF, 0.0f);
 
                 SimpleHull holeHull = new SimpleHull();
 
@@ -263,7 +261,6 @@ namespace OpenSim.Region.Physics.Meshing
                 SimpleHull hollowedHull = SimpleHull.SubtractHull(outerHull, holeHull);
 
                 outerHull = hollowedHull;
-
             }
 
             Mesh m = new Mesh();
@@ -286,7 +283,7 @@ namespace OpenSim.Region.Physics.Meshing
             m.Remove(Seed2);
             m.Remove(Seed3);
             m.DumpRaw(baseDir, primName, "Proto seeds removed");
-            
+
             m.RemoveTrianglesOutside(outerHull);
             m.DumpRaw(baseDir, primName, "Proto outsides removed");
 
@@ -374,7 +371,7 @@ namespace OpenSim.Region.Physics.Meshing
             switch (primShape.ProfileShape)
             {
                 case ProfileShape.Square:
-                    mesh=CreateBoxMesh(primName, primShape, size);
+                    mesh = CreateBoxMesh(primName, primShape, size);
                     CalcNormals(mesh);
                     break;
                 default:
@@ -389,5 +386,4 @@ namespace OpenSim.Region.Physics.Meshing
             return mesh;
         }
     }
-
 }

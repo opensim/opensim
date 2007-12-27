@@ -84,7 +84,6 @@ namespace OpenSim.Region.Environment.Scenes
                 {
                     if (m_localScenes[i].Equals(cscene))
                     {
-
                         m_localScenes[i].Close();
                     }
                 }
@@ -99,7 +98,8 @@ namespace OpenSim.Region.Environment.Scenes
 
         public void HandleRestart(RegionInfo rdata)
         {
-            MainLog.Instance.Error("SCENEMANAGER", "Got Restart message for region:" + rdata.RegionName +" Sending up to main");
+            MainLog.Instance.Error("SCENEMANAGER",
+                                   "Got Restart message for region:" + rdata.RegionName + " Sending up to main");
             int RegionSceneElement = -1;
             for (int i = 0; i < m_localScenes.Count; i++)
             {
@@ -127,7 +127,6 @@ namespace OpenSim.Region.Environment.Scenes
 
             for (int i = 0; i < m_localScenes.Count; i++)
             {
-
                 if (m_localScenes[i].RegionInfo.RegionHandle == regionHandle)
                 {
                     // Inform other regions to tell their avatar about me
@@ -223,7 +222,7 @@ namespace OpenSim.Region.Environment.Scenes
         {
             ForEachCurrentScene(delegate(Scene scene) { scene.Backup(); });
         }
-        
+
         public void HandleAlertCommandOnCurrentScene(string[] cmdparams)
         {
             ForEachCurrentScene(delegate(Scene scene) { scene.HandleAlertCommand(cmdparams); });

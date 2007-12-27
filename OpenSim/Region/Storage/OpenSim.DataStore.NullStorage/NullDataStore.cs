@@ -28,6 +28,7 @@
 
 using System.Collections.Generic;
 using libsecondlife;
+using OpenSim.Framework;
 using OpenSim.Region.Environment.Interfaces;
 using OpenSim.Region.Environment.LandManagement;
 using OpenSim.Region.Environment.Scenes;
@@ -71,9 +72,9 @@ namespace OpenSim.DataStore.NullStorage
         {
         }
 
-        public List<Framework.LandData> LoadLandObjects(LLUUID regionUUID)
+        public List<LandData> LoadLandObjects(LLUUID regionUUID)
         {
-            return new List<Framework.LandData>();
+            return new List<LandData>();
         }
 
         public void Shutdown()

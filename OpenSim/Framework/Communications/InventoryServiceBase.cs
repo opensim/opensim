@@ -30,7 +30,6 @@ using System;
 using System.Collections.Generic;
 using System.Reflection;
 using libsecondlife;
-using OpenSim.Framework.Communications.Cache;
 using OpenSim.Framework.Console;
 
 namespace OpenSim.Framework.Communications
@@ -65,7 +64,7 @@ namespace OpenSim.Framework.Communications
                         if (typeInterface != null)
                         {
                             IInventoryData plug =
-                                (IInventoryData)Activator.CreateInstance(pluginAssembly.GetType(pluginType.ToString()));
+                                (IInventoryData) Activator.CreateInstance(pluginAssembly.GetType(pluginType.ToString()));
                             plug.Initialise();
                             m_plugins.Add(plug.getName(), plug);
                             MainLog.Instance.Verbose("AGENTINVENTORY", "Added IInventoryData Interface");

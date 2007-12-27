@@ -184,9 +184,9 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
                                 {
 #if DEBUG
                                     m_ScriptEngine.Log.Debug("ScriptEngine", "Executing event:\r\n"
-                                        + "QIS.localID: " + QIS.localID
-                                        + ", QIS.itemID: " + QIS.itemID
-                                        + ", QIS.functionName: " + QIS.functionName);
+                                                                             + "QIS.localID: " + QIS.localID
+                                                                             + ", QIS.itemID: " + QIS.itemID
+                                                                             + ", QIS.functionName: " + QIS.functionName);
 #endif
                                     m_ScriptEngine.m_ScriptManager.ExecuteEvent(QIS.localID, QIS.itemID,
                                                                                 QIS.functionName, QIS.param);
@@ -197,14 +197,14 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
                                     string text = "Error executing script function \"" + QIS.functionName + "\":\r\n";
                                     //if (e.InnerException != null)
                                     //{
-                                        // Send inner exception
-                                        text += e.InnerException.Message.ToString();
+                                    // Send inner exception
+                                    text += e.InnerException.Message.ToString();
                                     //}
                                     //else
                                     //{
-                                        text += "\r\n";
-                                        // Send normal
-                                        text += e.Message.ToString();
+                                    text += "\r\n";
+                                    // Send normal
+                                    text += e.Message.ToString();
                                     //}
                                     try
                                     {
@@ -222,7 +222,8 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
                                         //else
                                         //{
                                         // T oconsole
-                                        m_ScriptEngine.Log.Error("ScriptEngine", "Unable to send text in-world:\r\n" + text);
+                                        m_ScriptEngine.Log.Error("ScriptEngine",
+                                                                 "Unable to send text in-world:\r\n" + text);
                                     }
                                 }
                                 finally

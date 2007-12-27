@@ -106,18 +106,19 @@ namespace OpenSim.Region.Physics.BasicPhysicsPlugin
         public override PhysicsActor AddPrimShape(string primName, PrimitiveBaseShape pbs, PhysicsVector position,
                                                   PhysicsVector size, Quaternion rotation)
         {
-            return this.AddPrimShape(primName, pbs, position, size, rotation, false);
+            return AddPrimShape(primName, pbs, position, size, rotation, false);
         }
 
-        public override PhysicsActor AddPrimShape(string primName, PrimitiveBaseShape pbs, PhysicsVector position, 
+        public override PhysicsActor AddPrimShape(string primName, PrimitiveBaseShape pbs, PhysicsVector position,
                                                   PhysicsVector size, Quaternion rotation, bool isPhysical)
         {
             return null;
         }
+
         public override void AddPhysicsActorTaint(PhysicsActor prim)
         {
-
         }
+
         public override float Simulate(float timeStep)
         {
             float fps = 0;
@@ -125,8 +126,8 @@ namespace OpenSim.Region.Physics.BasicPhysicsPlugin
             {
                 BasicActor actor = _actors[i];
 
-                actor.Position.X += actor.Velocity.X * timeStep;
-                actor.Position.Y += actor.Velocity.Y * timeStep;
+                actor.Position.X += actor.Velocity.X*timeStep;
+                actor.Position.Y += actor.Velocity.Y*timeStep;
 
                 if (actor.Position.Y < 0)
                 {
@@ -146,18 +147,18 @@ namespace OpenSim.Region.Physics.BasicPhysicsPlugin
                     actor.Position.X = 255.9F;
                 }
 
-                float height = _heightMap[(int) actor.Position.Y * 256 + (int) actor.Position.X] + 1.0f;
+                float height = _heightMap[(int) actor.Position.Y*256 + (int) actor.Position.X] + 1.0f;
                 if (actor.Flying)
                 {
-                    if (actor.Position.Z + (actor.Velocity.Z * timeStep) <
-                        _heightMap[(int) actor.Position.Y * 256 + (int) actor.Position.X] + 2)
+                    if (actor.Position.Z + (actor.Velocity.Z*timeStep) <
+                        _heightMap[(int) actor.Position.Y*256 + (int) actor.Position.X] + 2)
                     {
                         actor.Position.Z = height;
                         actor.Velocity.Z = 0;
                     }
                     else
                     {
-                        actor.Position.Z += actor.Velocity.Z * timeStep;
+                        actor.Position.Z += actor.Velocity.Z*timeStep;
                     }
                 }
                 else
@@ -204,31 +205,37 @@ namespace OpenSim.Region.Physics.BasicPhysicsPlugin
             _position = new PhysicsVector();
             _acceleration = new PhysicsVector();
         }
+
         public override int PhysicsActorType
         {
-            get { return (int)ActorTypes.Agent; }
+            get { return (int) ActorTypes.Agent; }
             set { return; }
         }
+
         public override PhysicsVector RotationalVelocity
         {
             get { return m_rotationalVelocity; }
             set { m_rotationalVelocity = value; }
         }
+
         public override bool SetAlwaysRun
         {
             get { return false; }
             set { return; }
         }
+
         public override bool IsPhysical
         {
             get { return false; }
             set { return; }
         }
+
         public override bool ThrottleUpdates
         {
             get { return false; }
             set { return; }
         }
+
         public override bool Flying
         {
             get { return flying; }
@@ -240,16 +247,19 @@ namespace OpenSim.Region.Physics.BasicPhysicsPlugin
             get { return iscolliding; }
             set { iscolliding = value; }
         }
+
         public override bool CollidingGround
         {
             get { return false; }
             set { return; }
         }
+
         public override bool CollidingObj
         {
             get { return false; }
             set { return; }
         }
+
         public override PhysicsVector Position
         {
             get { return _position; }
@@ -264,27 +274,29 @@ namespace OpenSim.Region.Physics.BasicPhysicsPlugin
 
         public override PrimitiveBaseShape Shape
         {
-            set
-            {
-                return;
-            }
+            set { return; }
         }
+
         public override float Mass
         {
             get { return 0f; }
         }
+
         public override PhysicsVector Force
         {
             get { return PhysicsVector.Zero; }
         }
+
         public override PhysicsVector CenterOfMass
         {
             get { return PhysicsVector.Zero; }
         }
+
         public override PhysicsVector GeometricCenter
         {
             get { return PhysicsVector.Zero; }
         }
+
         public override PhysicsVector Velocity
         {
             get { return _velocity; }

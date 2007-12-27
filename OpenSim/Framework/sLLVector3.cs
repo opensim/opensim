@@ -29,7 +29,6 @@
 using System;
 using libsecondlife;
 
-
 namespace OpenSim.Framework
 {
     [Serializable]
@@ -37,17 +36,17 @@ namespace OpenSim.Framework
     {
         public sLLVector3()
         {
-
         }
+
         public sLLVector3(LLVector3 v)
         {
             x = v.X;
             y = v.Y;
             z = v.Z;
         }
+
         public float x;
         public float y;
         public float z;
     }
-
 }

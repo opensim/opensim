@@ -1,4 +1,4 @@
-﻿/*
+/*
 * Copyright (c) Contributors, http://opensimulator.org/
 * See CONTRIBUTORS.TXT for a full list of copyright holders.
 *
@@ -44,7 +44,7 @@ namespace OpenSim.Framework.Servers
 
         public static void BeginPostObject<TRequest>(string verb, string requestUrl, TRequest obj)
         {
-            Type type = typeof(TRequest);
+            Type type = typeof (TRequest);
 
             WebRequest request = WebRequest.Create(requestUrl);
             request.Method = verb;
@@ -62,7 +62,7 @@ namespace OpenSim.Framework.Servers
                 writer.Flush();
             }
 
-            int length = (int)buffer.Length;
+            int length = (int) buffer.Length;
             request.ContentLength = length;
 
             Stream requestStream = request.GetRequestStream();
@@ -72,7 +72,7 @@ namespace OpenSim.Framework.Servers
 
         private static void AsyncCallback(IAsyncResult result)
         {
-            WebRequest request = (WebRequest)result.AsyncState;
+            WebRequest request = (WebRequest) result.AsyncState;
             using (WebResponse resp = request.EndGetResponse(result))
             {
             }

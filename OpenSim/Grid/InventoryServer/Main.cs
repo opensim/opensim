@@ -25,29 +25,23 @@
 * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 * 
 */
+
 using System;
-using System.Collections;
 using System.Collections.Generic;
-using System.Reflection;
 using System.IO;
-using System.Text;
-
 using libsecondlife;
-
 using OpenSim.Framework;
 using OpenSim.Framework.Console;
 using OpenSim.Framework.Servers;
-
-using InventoryManager = OpenSim.Grid.InventoryServer.InventoryManager;
 
 namespace OpenSim.Grid.InventoryServer
 {
     public class OpenInventory_Main : conscmd_callback
     {
-        LogBase m_console;
-        InventoryManager m_inventoryManager;
-        InventoryConfig m_config;
-        GridInventoryService m_inventoryService;
+        private LogBase m_console;
+        private InventoryManager m_inventoryManager;
+        private InventoryConfig m_config;
+        private GridInventoryService m_inventoryService;
 
         public const string LogName = "INVENTORY";
 
@@ -72,20 +66,20 @@ namespace OpenSim.Grid.InventoryServer
             m_config = new InventoryConfig(LogName, (Path.Combine(Util.configDir(), "InventoryServer_Config.xml")));
 
             m_inventoryService = new GridInventoryService();
-           // m_inventoryManager = new InventoryManager();
+            // m_inventoryManager = new InventoryManager();
             m_inventoryService.AddPlugin(m_config.DatabaseProvider);
 
             MainLog.Instance.Notice(LogName, "Starting HTTP server ...");
             BaseHttpServer httpServer = new BaseHttpServer(m_config.HttpPort);
             httpServer.AddStreamHandler(
                 new RestDeserialisehandler<Guid, InventoryCollection>("POST", "/GetInventory/",
-                                                                                  m_inventoryService.GetUserInventory));
+                                                                      m_inventoryService.GetUserInventory));
             httpServer.AddStreamHandler(
                 new RestDeserialisehandler<Guid, bool>("POST", "/CreateInventory/",
-                                                                                  m_inventoryService.CreateUsersInventory));
+                                                       m_inventoryService.CreateUsersInventory));
             httpServer.AddStreamHandler(
                 new RestDeserialisehandler<InventoryFolderBase, bool>("POST", "/NewFolder/",
-                                                                                  m_inventoryService.AddInventoryFolder));
+                                                                      m_inventoryService.AddInventoryFolder));
 
             httpServer.AddStreamHandler(
                 new RestDeserialisehandler<InventoryFolderBase, bool>("POST", "/MoveFolder/",
@@ -93,16 +87,16 @@ namespace OpenSim.Grid.InventoryServer
 
             httpServer.AddStreamHandler(
                 new RestDeserialisehandler<InventoryItemBase, bool>("POST", "/NewItem/",
-                                                                                  m_inventoryService.AddInventoryItem));
+                                                                    m_inventoryService.AddInventoryItem));
             httpServer.AddStreamHandler(
                 new RestDeserialisehandler<InventoryItemBase, bool>("POST", "/DeleteItem/",
-                                                                                  m_inventoryService.DeleteInvItem));
+                                                                    m_inventoryService.DeleteInvItem));
 
             httpServer.AddStreamHandler(
                 new RestDeserialisehandler<Guid, List<InventoryFolderBase>>("POST", "/RootFolders/",
-                                                                                  m_inventoryService.RequestFirstLevelFolders));
+                                                                            m_inventoryService.RequestFirstLevelFolders));
 
-          //  httpServer.AddStreamHandler(new InventoryManager.GetInventory(m_inventoryManager));
+            //  httpServer.AddStreamHandler(new InventoryManager.GetInventory(m_inventoryManager));
 
             httpServer.Start();
             MainLog.Instance.Notice(LogName, "Started HTTP server");

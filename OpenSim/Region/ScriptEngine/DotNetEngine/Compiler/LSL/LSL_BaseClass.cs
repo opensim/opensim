@@ -1638,7 +1638,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL
 
         public LSL_Types.list llListReplaceList(LSL_Types.list dest, LSL_Types.list src, int start, int end)
         {
-            return m_LSL_Functions.llListReplaceList(dest,src,start,end);
+            return m_LSL_Functions.llListReplaceList(dest, src, start, end);
         }
 
         public void llLoadURL(string avatar_id, string message, string url)
@@ -2025,7 +2025,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL
         public const int REMOTE_DATA_CHANNEL = 1;
         public const int REMOTE_DATA_REQUEST = 2;
         public const int REMOTE_DATA_REPLY = 3;
-        
+
         public const int PRIM_MATERIAL = 2;
         public const int PRIM_PHYSICS = 3;
         public const int PRIM_TEMP_ON_REZ = 4;
@@ -2041,7 +2041,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL
         public const int PRIM_FLEXIBLE = 21;
         public const int PRIM_TEXGEN = 22;
         public const int PRIM_CAST_SHADOWS = 24; // Not implemented, here for completeness sake
-        public const int PRIM_POINT_LIGHT = 23;  // Huh?
+        public const int PRIM_POINT_LIGHT = 23; // Huh?
         public const int PRIM_TEXGEN_DEFAULT = 0;
         public const int PRIM_TEXGEN_PLANAR = 1;
         public const int PRIM_TYPE_BOX = 0;

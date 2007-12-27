@@ -29,7 +29,8 @@ using libsecondlife;
 
 namespace OpenSim.Framework
 {
-    public delegate void restart( RegionInfo thisRegion );
+    public delegate void restart(RegionInfo thisRegion);
+
     //public delegate void regionup ( RegionInfo thisRegion );
 
     public enum RegionStatus : int
@@ -38,7 +39,7 @@ namespace OpenSim.Framework
         Up = 1,
         Crashed = 2,
         Starting = 3
-    };
+    } ;
 
     public interface IScene
     {

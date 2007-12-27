@@ -25,14 +25,12 @@
 * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 * 
 */
-using System;
-
 namespace OpenSim.Framework.Data.MSSQL
 {
     /// <summary>
     /// An interface to the log database for MySQL
     /// </summary>
-    class MSSQLLogData : ILogData
+    internal class MSSQLLogData : ILogData
     {
         /// <summary>
         /// The database manager
@@ -51,7 +49,9 @@ namespace OpenSim.Framework.Data.MSSQL
             string settingUserId = GridDataMySqlFile.ParseFileReadValue("user_id");
             string settingPassword = GridDataMySqlFile.ParseFileReadValue("password");
 
-            database = new MSSQLManager(settingDataSource, settingInitialCatalog, settingPersistSecurityInfo, settingUserId, settingPassword);
+            database =
+                new MSSQLManager(settingDataSource, settingInitialCatalog, settingPersistSecurityInfo, settingUserId,
+                                 settingPassword);
         }
 
         /// <summary>
@@ -63,7 +63,8 @@ namespace OpenSim.Framework.Data.MSSQL
         /// <param name="arguments">The arguments passed to the method</param>
         /// <param name="priority">How critical is this?</param>
         /// <param name="logMessage">The message to log</param>
-        public void saveLog(string serverDaemon, string target, string methodCall, string arguments, int priority, string logMessage)
+        public void saveLog(string serverDaemon, string target, string methodCall, string arguments, int priority,
+                            string logMessage)
         {
             try
             {

@@ -31,8 +31,7 @@ namespace OpenSim.Framework.Communications
 {
     public interface IInterRegionCommunications
     {
-        
-        string rdebugRegionName{ get; set; }
+        string rdebugRegionName { get; set; }
         bool InformRegionOfChildAgent(ulong regionHandle, AgentCircuitData agentData);
         bool InformRegionOfPrimCrossing(ulong regionHandle, LLUUID primID, string objData);
         bool RegionUp(SearializableRegionInfo region, ulong regionhandle);
@@ -45,6 +44,5 @@ namespace OpenSim.Framework.Communications
         bool AcknowledgePrimCrossed(ulong regionHandle, LLUUID primID);
 
         void TellRegionToCloseChildConnection(ulong regionHandle, LLUUID agentID);
-
     }
 }

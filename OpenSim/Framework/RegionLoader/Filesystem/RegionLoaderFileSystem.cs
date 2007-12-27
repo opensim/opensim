@@ -25,12 +25,8 @@
 * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 * 
 */
-using System;
-using System.Collections.Generic;
-using System.Text;
-using Nini.Config;
-using OpenSim.Framework;
 using System.IO;
+using Nini.Config;
 
 namespace OpenSim.Framework.RegionLoader.Filesystem
 {

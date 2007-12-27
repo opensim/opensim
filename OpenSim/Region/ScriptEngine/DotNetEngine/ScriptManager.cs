@@ -224,7 +224,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
 
         #region Start/Stop/Reset script
 
-        Object startStopLock = new Object();
+        private Object startStopLock = new Object();
 
         /// <summary>
         /// Fetches, loads and hooks up a script to an objects events
@@ -261,7 +261,8 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
         }
 
         // Create a new instance of the compiler (reuse)
-        Compiler.LSL.Compiler LSLCompiler = new Compiler.LSL.Compiler();
+        private Compiler.LSL.Compiler LSLCompiler = new Compiler.LSL.Compiler();
+
         private void _StartScript(uint localID, LLUUID itemID, string Script)
         {
             lock (startStopLock)
@@ -316,7 +317,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
                     CompiledScript.Start(LSLB);
 
                     // Fire the first start-event
-                    m_scriptEngine.m_EventQueueManager.AddToScriptQueue(localID, itemID, "state_entry", new object[] { });
+                    m_scriptEngine.m_EventQueueManager.AddToScriptQueue(localID, itemID, "state_entry", new object[] {});
                 }
                 catch (Exception e)
                 {
@@ -327,12 +328,14 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
                         string text = "Error compiling script:\r\n" + e.Message.ToString();
                         if (text.Length > 1500)
                             text = text.Substring(0, 1500);
-                        World.SimChat(Helpers.StringToField(text), ChatTypeEnum.Say, 0, m_host.AbsolutePosition, m_host.Name, m_host.UUID);
+                        World.SimChat(Helpers.StringToField(text), ChatTypeEnum.Say, 0, m_host.AbsolutePosition,
+                                      m_host.Name, m_host.UUID);
                     }
                     catch (Exception e2)
                     {
                         m_scriptEngine.Log.Error("ScriptEngine", "Error displaying error in-world: " + e2.ToString());
-                        m_scriptEngine.Log.Error("ScriptEngine", "Errormessage: Error compiling script:\r\n" + e.Message.ToString());
+                        m_scriptEngine.Log.Error("ScriptEngine",
+                                                 "Errormessage: Error compiling script:\r\n" + e.Message.ToString());
                     }
                 }
             }
@@ -342,38 +345,38 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
         {
             lock (startStopLock)
             {
-            // Stop script
-            Console.WriteLine("Stop script localID: " + localID + " LLUID: " + itemID.ToString());
+                // Stop script
+                Console.WriteLine("Stop script localID: " + localID + " LLUID: " + itemID.ToString());
 
 
-            // Stop long command on script
-            m_scriptEngine.m_LSLLongCmdHandler.RemoveScript(localID, itemID);
+                // Stop long command on script
+                m_scriptEngine.m_LSLLongCmdHandler.RemoveScript(localID, itemID);
 
-            LSL_BaseClass LSLBC = GetScript(localID, itemID);
-            if (LSLBC == null)
-                return;
+                LSL_BaseClass LSLBC = GetScript(localID, itemID);
+                if (LSLBC == null)
+                    return;
 
-            // TEMP: First serialize it
-            //GetSerializedScript(localID, itemID);
+                // TEMP: First serialize it
+                //GetSerializedScript(localID, itemID);
 
 
-            try
-            {
-                // Get AppDomain
-                AppDomain ad = LSLBC.Exec.GetAppDomain();
-                // Tell script not to accept new requests
-                GetScript(localID, itemID).Exec.StopScript();
-                // Remove from internal structure
-                RemoveScript(localID, itemID);
-                // Tell AppDomain that we have stopped script
-                m_scriptEngine.m_AppDomainManager.StopScript(ad);
+                try
+                {
+                    // Get AppDomain
+                    AppDomain ad = LSLBC.Exec.GetAppDomain();
+                    // Tell script not to accept new requests
+                    GetScript(localID, itemID).Exec.StopScript();
+                    // Remove from internal structure
+                    RemoveScript(localID, itemID);
+                    // Tell AppDomain that we have stopped script
+                    m_scriptEngine.m_AppDomainManager.StopScript(ad);
+                }
+                catch (Exception e)
+                {
+                    Console.WriteLine("Exception stopping script localID: " + localID + " LLUID: " + itemID.ToString() +
+                                      ": " + e.ToString());
+                }
             }
-            catch (Exception e)
-            {
-                Console.WriteLine("Exception stopping script localID: " + localID + " LLUID: " + itemID.ToString() +
-                                  ": " + e.ToString());
-            }
-        }
         }
 
         private string ProcessYield(string FileName)

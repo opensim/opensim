@@ -80,7 +80,7 @@ namespace OpenSim.Region.ScriptEngine.Common
             {
                 if (!(o is Vector3)) return false;
 
-                Vector3 vector = (Vector3)o;
+                Vector3 vector = (Vector3) o;
 
                 return (x == vector.x && x == vector.x && z == vector.z);
             }
@@ -88,11 +88,12 @@ namespace OpenSim.Region.ScriptEngine.Common
             #endregion
 
             #region Vector & Vector Math
+
             // Vector-Vector Math
             public static Vector3 operator +(Vector3 lhs, Vector3 rhs)
             {
                 return new Vector3(lhs.x + rhs.x, lhs.y + rhs.y, lhs.z + rhs.z);
-            } 
+            }
 
             public static Vector3 operator -(Vector3 lhs, Vector3 rhs)
             {
@@ -101,51 +102,53 @@ namespace OpenSim.Region.ScriptEngine.Common
 
             public static Vector3 operator *(Vector3 lhs, Vector3 rhs)
             {
-                return new Vector3(lhs.x * rhs.x, lhs.y * rhs.y, lhs.z * rhs.z);
+                return new Vector3(lhs.x*rhs.x, lhs.y*rhs.y, lhs.z*rhs.z);
             }
 
             public static Vector3 operator %(Vector3 v1, Vector3 v2)
             {
                 //Cross product
                 Vector3 tv;
-                tv.x = (v1.y * v2.z) - (v1.z * v2.y);
-                tv.y = (v1.z * v2.x) - (v1.x * v2.z);
-                tv.z = (v1.x * v2.y) - (v1.y * v2.x);
+                tv.x = (v1.y*v2.z) - (v1.z*v2.y);
+                tv.y = (v1.z*v2.x) - (v1.x*v2.z);
+                tv.z = (v1.x*v2.y) - (v1.y*v2.x);
                 return tv;
             }
 
             #endregion
-            
+
             #region Vector & Float Math
+
             // Vector-Float and Float-Vector Math
             public static Vector3 operator *(Vector3 vec, float val)
             {
-                return new Vector3(vec.x * val, vec.y * val, vec.z * val);
+                return new Vector3(vec.x*val, vec.y*val, vec.z*val);
             }
 
             public static Vector3 operator *(float val, Vector3 vec)
             {
-                return new Vector3(vec.x * val, vec.y * val, vec.z * val);
+                return new Vector3(vec.x*val, vec.y*val, vec.z*val);
             }
 
             public static Vector3 operator /(Vector3 v, float f)
             {
-                v.x = v.x / f;
-                v.y = v.y / f;
-                v.z = v.z / f;
+                v.x = v.x/f;
+                v.y = v.y/f;
+                v.z = v.z/f;
                 return v;
             }
 
             #endregion
 
             #region Vector & Rotation Math
+
             // Vector-Rotation Math
             public static Vector3 operator *(Vector3 v, Quaternion r)
             {
                 Quaternion vq = new Quaternion(v.x, v.y, v.z, 0);
                 Quaternion nq = new Quaternion(-r.x, -r.y, -r.z, r.s);
 
-                Quaternion result = (r * vq) * nq;
+                Quaternion result = (r*vq)*nq;
 
                 return new Vector3(result.x, result.y, result.z);
             }
@@ -157,38 +160,41 @@ namespace OpenSim.Region.ScriptEngine.Common
                 Quaternion vq = new Quaternion(vec.x, vec.y, vec.z, 0);
                 Quaternion nq = new Quaternion(-quat.x, -quat.y, -quat.z, quat.s);
 
-                Quaternion result = (quat * vq) * nq;
+                Quaternion result = (quat*vq)*nq;
 
                 return new Vector3(result.x, result.y, result.z);
             }
+
             #endregion
 
             #region Static Helper Functions
+
             public static double Dot(Vector3 v1, Vector3 v2)
             {
-                return (v1.x * v2.x) + (v1.y * v2.y) + (v1.z * v2.z);
+                return (v1.x*v2.x) + (v1.y*v2.y) + (v1.z*v2.z);
             }
 
             public static Vector3 Cross(Vector3 v1, Vector3 v2)
             {
                 return new Vector3
-                (
-                    v1.y * v2.z - v1.z * v2.y,
-                    v1.z * v2.x - v1.x * v2.z,
-                    v1.x * v2.y - v1.y * v2.x
-                );
+                    (
+                    v1.y*v2.z - v1.z*v2.y,
+                    v1.z*v2.x - v1.x*v2.z,
+                    v1.x*v2.y - v1.y*v2.x
+                    );
             }
 
             public static float Mag(Vector3 v)
             {
-                return (float)Math.Sqrt(v.x * v.y + v.y * v.y + v.z * v.z);
+                return (float) Math.Sqrt(v.x*v.y + v.y*v.y + v.z*v.z);
             }
 
             public static Vector3 Norm(Vector3 vector)
             {
                 float mag = Mag(vector);
-                return new Vector3(vector.x / mag, vector.y / mag, vector.z / mag);
+                return new Vector3(vector.x/mag, vector.y/mag, vector.z/mag);
             }
+
             #endregion
         }
 
@@ -227,7 +233,7 @@ namespace OpenSim.Region.ScriptEngine.Common
             {
                 if (!(o is Quaternion)) return false;
 
-                Quaternion quaternion = (Quaternion)o;
+                Quaternion quaternion = (Quaternion) o;
 
                 return x == quaternion.x && y == quaternion.y && z == quaternion.z && s == quaternion.s;
             }
@@ -253,10 +259,10 @@ namespace OpenSim.Region.ScriptEngine.Common
             public static Quaternion operator *(Quaternion a, Quaternion b)
             {
                 Quaternion c;
-                c.x = a.s * b.x + a.x * b.s + a.y * b.z - a.z * b.y;
-                c.y = a.s * b.y + a.y * b.s + a.z * b.x - a.x * b.z;
-                c.z = a.s * b.z + a.z * b.s + a.x * b.y - a.y * b.x;
-                c.s = a.s * b.s - a.x * b.x - a.y * b.y - a.z * b.z;
+                c.x = a.s*b.x + a.x*b.s + a.y*b.z - a.z*b.y;
+                c.y = a.s*b.y + a.y*b.s + a.z*b.x - a.x*b.z;
+                c.z = a.s*b.z + a.z*b.s + a.x*b.y - a.y*b.x;
+                c.s = a.s*b.s - a.x*b.x - a.y*b.y - a.z*b.z;
                 return c;
             }
         }
@@ -324,7 +330,7 @@ namespace OpenSim.Region.ScriptEngine.Common
                 {
                     if (start >= m_data.Length)
                     {
-                        return this.GetSublist(0, end);
+                        return GetSublist(0, end);
                     }
                     if (end >= m_data.Length)
                     {
@@ -334,7 +340,7 @@ namespace OpenSim.Region.ScriptEngine.Common
                     //ret = new object[m_data.Length - Math.Abs(end - start + 1)];
                     //Array.Copy(m_data, 0, ret, m_data.Length - start, end + 1);
                     //Array.Copy(m_data, start, ret, 0, m_data.Length - start);
-                    return this.GetSublist(0, end) + this.GetSublist(start, this.Data.Length - 1);
+                    return GetSublist(0, end) + GetSublist(start, Data.Length - 1);
                     //return new list(ret);
                 }
             }

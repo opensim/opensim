@@ -182,7 +182,7 @@ namespace OpenSim.Framework.Communications.Cache
                 Asset.Description = "empty";
                 Asset.Local = storeLocal;
                 Asset.Temporary = tempFile;
-               
+
                 TransactionID = transaction;
                 m_storeLocal = storeLocal;
                 if (Asset.Data.Length > 2)
@@ -312,6 +312,7 @@ namespace OpenSim.Framework.Communications.Cache
         }
 
         #region Nested Classes currently not in use (waiting for them to be enabled)
+
         public class AssetCapsUploader
         {
             // Fields
@@ -424,6 +425,7 @@ namespace OpenSim.Framework.Communications.Cache
                 return text;
             }
         }
+
         #endregion
     }
 }

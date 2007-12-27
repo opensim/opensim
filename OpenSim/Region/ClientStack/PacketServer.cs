@@ -68,10 +68,11 @@ namespace OpenSim.Region.ClientStack
 
         protected virtual IClientAPI CreateNewClient(EndPoint remoteEP, UseCircuitCodePacket initialcirpack,
                                                      ClientManager clientManager, IScene scene, AssetCache assetCache,
-                                                     PacketServer packServer, AgentCircuitManager authenSessions, LLUUID agentId, LLUUID sessionId, uint circuitCode)
+                                                     PacketServer packServer, AgentCircuitManager authenSessions,
+                                                     LLUUID agentId, LLUUID sessionId, uint circuitCode)
         {
             return
-                new ClientView(remoteEP, scene, assetCache, packServer, authenSessions, agentId, sessionId, circuitCode );
+                new ClientView(remoteEP, scene, assetCache, packServer, authenSessions, agentId, sessionId, circuitCode);
         }
 
         public virtual bool AddNewClient(EndPoint epSender, UseCircuitCodePacket useCircuit, AssetCache assetCache,
@@ -86,7 +87,8 @@ namespace OpenSim.Region.ClientStack
             else
             {
                 newuser = CreateNewClient(epSender, useCircuit, m_scene.ClientManager, m_scene, assetCache, this,
-                                          authenticateSessionsClass, useCircuit.CircuitCode.ID, useCircuit.CircuitCode.SessionID, useCircuit.CircuitCode.Code);
+                                          authenticateSessionsClass, useCircuit.CircuitCode.ID,
+                                          useCircuit.CircuitCode.SessionID, useCircuit.CircuitCode.Code);
 
                 m_scene.ClientManager.Add(useCircuit.CircuitCode.Code, newuser);
 
@@ -123,9 +125,8 @@ namespace OpenSim.Region.ClientStack
         /// <param name="circuitcode"></param>
         public virtual void CloseCircuit(uint circuitcode)
         {
-            
             m_networkHandler.RemoveClientCircuit(circuitcode);
-            
+
             //m_scene.ClientManager.CloseAllAgents(circuitcode);
         }
 

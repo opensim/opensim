@@ -26,7 +26,6 @@
 * 
 */
 
-using System;
 using System.IO;
 using libsecondlife;
 using OpenSim.Framework;
