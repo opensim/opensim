@@ -2878,13 +2878,38 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler
         //
         public int osTerrainSetHeight(int x, int y, double val)
         {
-            World.Terrain.Set(x, y, val);
-            return 1;
+            if (World.PermissionsMngr.CanTerraform(m_host.OwnerID, new LLVector3(x, y, 0)))
+            {
+                World.Terrain.Set(x, y, val);
+                return 1;
+            }
+            else
+            {
+                return 0;
+            }
         }
 
         public double osTerrainGetHeight(int x, int y)
         {
             return World.Terrain.GetHeight(x, y);
+        }
+
+        public int osRegionRestart(double seconds)
+        {
+            if (World.PermissionsMngr.CanRestartSim(m_host.OwnerID))
+            {
+                World.Restart((float)ms);
+                return 1;
+            }
+            else
+            {
+                return 0;
+            }
+        }
+
+        public void osRegionNotice(string msg)
+        {
+            World.SendGeneralAlert(msg);
         }
 
         public string osSetDynamicTextureURL(string dynamicID, string contentType, string url, string extraParams,
