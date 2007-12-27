@@ -65,7 +65,7 @@ namespace OpenSim.Framework.Communications
                         if (typeInterface != null)
                         {
                             IInventoryData plug =
-                                (IInventoryData) Activator.CreateInstance(pluginAssembly.GetType(pluginType.ToString()));
+                                (IInventoryData)Activator.CreateInstance(pluginAssembly.GetType(pluginType.ToString()));
                             plug.Initialise();
                             m_plugins.Add(plug.getName(), plug);
                             MainLog.Instance.Verbose("AGENTINVENTORY", "Added IInventoryData Interface");
@@ -74,44 +74,41 @@ namespace OpenSim.Framework.Communications
                 }
             }
         }
-                    
+
         public List<InventoryFolderBase> RequestFirstLevelFolders(Guid rawUserID)
         {
             LLUUID userID = new LLUUID(rawUserID);
             return RequestFirstLevelFolders(userID);
         }
-        
+
         /// <summary>
         /// Returns the root folder plus any folders in root (so down one level in the Inventory folders tree)
         /// </summary>
         /// <param name="userID"></param>
         /// <returns></returns>
         public List<InventoryFolderBase> RequestFirstLevelFolders(LLUUID userID)
-        {            
-            List<InventoryFolderBase> inventoryList = new List<InventoryFolderBase>();            
+        {
+            List<InventoryFolderBase> inventoryList = new List<InventoryFolderBase>();
             InventoryFolderBase rootFolder = null;
-            
+
             foreach (KeyValuePair<string, IInventoryData> plugin in m_plugins)
             {
                 rootFolder = plugin.Value.getUserRootFolder(userID);
                 if (rootFolder != null)
                 {
                     MainLog.Instance.Verbose(
-                        "INVENTORY", 
+                        "INVENTORY",
                         "Found root folder for user with ID " + userID + ".  Retrieving inventory contents.");
-                    
+
                     inventoryList = plugin.Value.getInventoryFolders(rootFolder.folderID);
                     inventoryList.Insert(0, rootFolder);
                     return inventoryList;
                 }
             }
-            
-            if (null == rootFolder)
-            {
-                MainLog.Instance.Warn(
-                    "INVENTORY", "Could not find a root folder belonging to user with ID " + userID);
-            }
-            
+
+            MainLog.Instance.Warn(
+                "INVENTORY", "Could not find a root folder belonging to user with ID " + userID);
+
             return inventoryList;
         }
 
