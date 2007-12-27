@@ -52,12 +52,8 @@ namespace OpenSim.DataStore.MSSQL
         private SqlDataAdapter shapeDa;
         private SqlDataAdapter terrainDa;
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="dbfile"></param>
-        /// <param name="dbname"></param>
-        public void Initialise(string dbfile)
+        // see IRegionDataStore
+        public void Initialise(string dbfile, bool persistPrimInventories)
         {
             IniFile GridDataMySqlFile = new IniFile("mssql_connection.ini");
             string settingDataSource = GridDataMySqlFile.ParseFileReadValue("data_source");

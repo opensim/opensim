@@ -1008,21 +1008,17 @@ namespace OpenSim.Region.Environment.Scenes
         /// <param name="localID"></param>
         public bool GetInventoryFileName(IClientAPI client, uint localID)
         {
-//            if (localID == m_localID)
-//            {
-                if (m_inventorySerial > 0)
-                {
-                    client.SendTaskInventory(m_uuid, (short)m_inventorySerial,
-                                             Helpers.StringToField(m_inventoryFileName));
-                    return true;
-                }
-                else
-                {
-                    client.SendTaskInventory(m_uuid, 0, new byte[0]);
-                    return false;
-                }
-//            }
-            return false;
+            if (m_inventorySerial > 0)
+            {
+                client.SendTaskInventory(m_uuid, (short)m_inventorySerial,
+                                         Helpers.StringToField(m_inventoryFileName));
+                return true;
+            }
+            else
+            {
+                client.SendTaskInventory(m_uuid, 0, new byte[0]);
+                return false;
+            }
         }
 
         public string RequestInventoryFile(IXfer xferManager)

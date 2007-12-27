@@ -44,6 +44,7 @@ namespace OpenSim.DataStore.MonoSqlite
     {
         private const string primSelect = "select * from prims";
         private const string shapeSelect = "select * from primshapes";
+        private const string itemsSelect = "select * from primitems";
         private const string terrainSelect = "select * from terrain limit 1";
         private const string landSelect = "select * from land";
         private const string landAccessListSelect = "select * from landaccesslist";
@@ -56,6 +57,8 @@ namespace OpenSim.DataStore.MonoSqlite
         private SqliteDataAdapter landAccessListDa;
 
         private String m_connectionString;
+        
+        private bool persistPrimInventories;
 
         /***********************************************************************
          *
@@ -63,9 +66,11 @@ namespace OpenSim.DataStore.MonoSqlite
          *
          **********************************************************************/
 
-        public void Initialise(string connectionString)
+        // see IRegionDataStore
+        public void Initialise(string connectionString, bool persistPrimInventories)
         {
-            m_connectionString = connectionString;
+            m_connectionString = connectionString;           
+            this.persistPrimInventories = persistPrimInventories;
 
             ds = new DataSet();
 
@@ -601,10 +606,40 @@ namespace OpenSim.DataStore.MonoSqlite
             createCol(shapes, "Texture", typeof (Byte[]));
             createCol(shapes, "ExtraParams", typeof (Byte[]));
 
-            shapes.PrimaryKey = new DataColumn[] {shapes.Columns["UUID"]};
+            shapes.PrimaryKey = new DataColumn[] { shapes.Columns["UUID"] };
 
             return shapes;
         }
+        
+        private DataTable createItemsTable()
+        {
+            DataTable items = new DataTable("primitems");
+
+            createCol(items, "UUID", typeof (String));
+            createCol(items, "invType", typeof (Int32));
+            createCol(items, "assetID", typeof (String));
+            createCol(items, "assetType", typeof (Int32));
+            createCol(items, "parentFolderID", typeof (String));
+            
+            createCol(items, "name", typeof (String));
+            createCol(items, "description", typeof (String));
+            
+            createCol(items, "creationDate", typeof (Int64));
+            createCol(items, "creatorID", typeof (String));
+            createCol(items, "ownerID", typeof (String));
+            createCol(items, "lastOwnerID", typeof (String));
+            createCol(items, "groupID", typeof (String));
+
+            createCol(items, "nextPermissions", typeof (Int32));
+            createCol(items, "currentPermissions", typeof (Int32));
+            createCol(items, "basePermissions", typeof (Int32));
+            createCol(items, "everyonePermissions", typeof (Int32));
+            createCol(items, "groupPermissions", typeof (Int32));
+
+            items.PrimaryKey = new DataColumn[] { items.Columns["UUID"] };
+            
+            return items;
+        }        
 
         private DataTable createLandTable()
         {
@@ -1192,16 +1227,22 @@ namespace OpenSim.DataStore.MonoSqlite
             da.DeleteCommand = delete;
         }
 
+        /// <summary>
+        /// Create the necessary database tables.
+        /// </summary>
+        /// <param name="conn"></param>
         private void InitDB(SqliteConnection conn)
         {
             string createPrims = defineTable(createPrimTable());
             string createShapes = defineTable(createShapeTable());
+            string createItems = defineTable(createItemsTable());
             string createTerrain = defineTable(createTerrainTable());
             string createLand = defineTable(createLandTable());
             string createLandAccessList = defineTable(createLandAccessListTable());
 
             SqliteCommand pcmd = new SqliteCommand(createPrims, conn);
             SqliteCommand scmd = new SqliteCommand(createShapes, conn);
+            SqliteCommand icmd = new SqliteCommand(createItems, conn);
             SqliteCommand tcmd = new SqliteCommand(createTerrain, conn);
             SqliteCommand lcmd = new SqliteCommand(createLand, conn);
             SqliteCommand lalcmd = new SqliteCommand(createLandAccessList, conn);
@@ -1224,6 +1265,18 @@ namespace OpenSim.DataStore.MonoSqlite
             catch (SqliteSyntaxException)
             {
                 MainLog.Instance.Warn("SQLITE", "Shapes Table Already Exists");
+            }
+            
+            if (persistPrimInventories)
+            {
+                try
+                {
+                    icmd.ExecuteNonQuery();
+                }
+                catch (SqliteSyntaxException)
+                {
+                    MainLog.Instance.Warn("SQLITE", "Primitives Inventory Table Already Exists");
+                }    
             }
 
             try
@@ -1259,12 +1312,19 @@ namespace OpenSim.DataStore.MonoSqlite
         {
             SqliteCommand primSelectCmd = new SqliteCommand(primSelect, conn);
             SqliteDataAdapter pDa = new SqliteDataAdapter(primSelectCmd);
+            
             SqliteCommand shapeSelectCmd = new SqliteCommand(shapeSelect, conn);
             SqliteDataAdapter sDa = new SqliteDataAdapter(shapeSelectCmd);
+            
+            SqliteCommand itemsSelectCmd = new SqliteCommand(itemsSelect, conn);
+            SqliteDataAdapter iDa = new SqliteDataAdapter(itemsSelectCmd);
+            
             SqliteCommand terrainSelectCmd = new SqliteCommand(terrainSelect, conn);
             SqliteDataAdapter tDa = new SqliteDataAdapter(terrainSelectCmd);
+            
             SqliteCommand landSelectCmd = new SqliteCommand(landSelect, conn);
             SqliteDataAdapter lDa = new SqliteDataAdapter(landSelectCmd);
+            
             SqliteCommand landAccessListSelectCmd = new SqliteCommand(landAccessListSelect, conn);
             SqliteDataAdapter lalDa = new SqliteDataAdapter(landAccessListSelectCmd);
 
@@ -1273,6 +1333,10 @@ namespace OpenSim.DataStore.MonoSqlite
             {
                 pDa.Fill(tmpDS, "prims");
                 sDa.Fill(tmpDS, "primshapes");
+                
+                if (persistPrimInventories)
+                    iDa.Fill(tmpDS, "primitems");
+                
                 tDa.Fill(tmpDS, "terrain");
                 lDa.Fill(tmpDS, "land");
                 lalDa.Fill(tmpDS, "landaccesslist");
@@ -1285,6 +1349,10 @@ namespace OpenSim.DataStore.MonoSqlite
 
             pDa.Fill(tmpDS, "prims");
             sDa.Fill(tmpDS, "primshapes");
+            
+            if (persistPrimInventories)
+                iDa.Fill(tmpDS, "primitems");
+            
             tDa.Fill(tmpDS, "terrain");
             lDa.Fill(tmpDS, "land");
             lalDa.Fill(tmpDS,"landaccesslist");
@@ -1297,6 +1365,7 @@ namespace OpenSim.DataStore.MonoSqlite
                     return false;
                 }
             }
+            
             foreach (DataColumn col in createShapeTable().Columns)
             {
                 if (!tmpDS.Tables["primshapes"].Columns.Contains(col.ColumnName))
@@ -1305,6 +1374,9 @@ namespace OpenSim.DataStore.MonoSqlite
                     return false;
                 }
             }
+            
+            // TODO Not restoring prim inventories quite yet
+            
             foreach (DataColumn col in createTerrainTable().Columns)
             {
                 if (!tmpDS.Tables["terrain"].Columns.Contains(col.ColumnName))
@@ -1313,6 +1385,7 @@ namespace OpenSim.DataStore.MonoSqlite
                     return false;
                 }
             }
+            
             foreach (DataColumn col in createLandTable().Columns)
             {
                 if (!tmpDS.Tables["land"].Columns.Contains(col.ColumnName))
@@ -1321,6 +1394,7 @@ namespace OpenSim.DataStore.MonoSqlite
                     return false;
                 }
             }
+            
             foreach (DataColumn col in createLandAccessListTable().Columns)
             {
                 if (!tmpDS.Tables["landaccesslist"].Columns.Contains(col.ColumnName))
@@ -1329,6 +1403,7 @@ namespace OpenSim.DataStore.MonoSqlite
                     return false;
                 }
             }
+            
             return true;
         }
 
@@ -1382,6 +1457,10 @@ namespace OpenSim.DataStore.MonoSqlite
             {
                 return "integer";
             }
+            else if (type == typeof (Int64))
+            {
+                return "integer";
+            }            
             else if (type == typeof (Double))
             {
                 return "float";

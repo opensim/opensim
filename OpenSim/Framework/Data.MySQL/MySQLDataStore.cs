@@ -70,7 +70,8 @@ namespace OpenSim.Framework.Data.MySQL
          *
          **********************************************************************/
 
-        public void Initialise(string connectionstring)
+        // see IRegionDataStore
+        public void Initialise(string connectionstring, bool persistPrimInventories)
         {
             m_dataSet = new DataSet();
 

@@ -38,9 +38,10 @@ namespace OpenSim.Region.Environment.Interfaces
         /// <summary>
         /// Initialises the data storage engine
         /// </summary>
-        /// <param name="filename">The file to save the database to (may not be applicable)</param>
-        /// <param name="dbname">The name of the database to store to (may not be applicable)</param>
-        void Initialise(string filename);
+        /// <param name="filename">The file to save the database to (may not be applicable).  Alternatively,
+        /// a connection string for the database</param>
+        /// <param name="persistPrimInventories">Temporary switch while this option is immature</param>
+        void Initialise(string filename, bool persistPrimInventories);
 
         void StoreObject(SceneObjectGroup obj, LLUUID regionUUID);
         void RemoveObject(LLUUID uuid, LLUUID regionUUID);
