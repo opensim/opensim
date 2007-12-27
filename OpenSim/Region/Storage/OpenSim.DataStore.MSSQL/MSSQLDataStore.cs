@@ -391,6 +391,16 @@ namespace OpenSim.DataStore.MSSQL
             createCol(prims, "RotationZ", typeof(System.Double));
             createCol(prims, "RotationW", typeof(System.Double));
 
+            // sit target
+            createCol(prims, "SitTargetOffsetX", typeof(System.Double));
+            createCol(prims, "SitTargetOffsetY", typeof(System.Double));
+            createCol(prims, "SitTargetOffsetZ", typeof(System.Double));
+
+            createCol(prims, "SitTargetOrientW", typeof(System.Double));
+            createCol(prims, "SitTargetOrientX", typeof(System.Double));
+            createCol(prims, "SitTargetOrientY", typeof(System.Double));
+            createCol(prims, "SitTargetOrientZ", typeof(System.Double));
+
             // Add in contraints
             prims.PrimaryKey = new DataColumn[] { prims.Columns["UUID"] };
 
@@ -508,6 +518,22 @@ namespace OpenSim.DataStore.MSSQL
                 Convert.ToSingle(row["RotationW"])
                 );
 
+            try
+            {
+                prim.SetSitTargetLL(new LLVector3(
+                    Convert.ToSingle(row["SitTargetOffsetX"]),
+                    Convert.ToSingle(row["SitTargetOffsetX"]),
+                    Convert.ToSingle(row["SitTargetOffsetZ"])), new LLQuaternion(
+                    Convert.ToSingle(row["SitTargetOrientW"]),
+                    Convert.ToSingle(row["SitTargetOrientX"]),
+                    Convert.ToSingle(row["SitTargetOrientY"]),
+                    Convert.ToSingle(row["SitTargetOrientX"])));
+            }
+            catch (System.InvalidCastException)
+            {
+                // Database table was created before we got here and now has null values :P
+            }
+
             return prim;
         }
 
@@ -557,6 +583,26 @@ namespace OpenSim.DataStore.MSSQL
             row["RotationY"] = prim.RotationOffset.Y;
             row["RotationZ"] = prim.RotationOffset.Z;
             row["RotationW"] = prim.RotationOffset.W;
+
+            try
+            {
+                // Sit target
+                LLVector3 sitTargetPos = prim.GetSitTargetPositionLL();
+                row["SitTargetOffsetX"] = sitTargetPos.X;
+                row["SitTargetOffsetY"] = sitTargetPos.Y;
+                row["SitTargetOffsetZ"] = sitTargetPos.Z;
+
+                LLQuaternion sitTargetOrient = prim.GetSitTargetOrientationLL();
+                row["SitTargetOrientW"] = sitTargetOrient.W;
+                row["SitTargetOrientX"] = sitTargetOrient.X;
+                row["SitTargetOrientY"] = sitTargetOrient.Y;
+                row["SitTargetOrientZ"] = sitTargetOrient.Z;
+            }
+            catch (System.Exception)
+            {
+                // TODO: Add Sit Target Rows!
+            }
+
         }
 
         private PrimitiveBaseShape buildShape(DataRow row)

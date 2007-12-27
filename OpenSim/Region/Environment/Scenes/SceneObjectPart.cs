@@ -72,6 +72,8 @@ namespace OpenSim.Region.Environment.Scenes
         private Quaternion m_sitTargetOrientation = new Quaternion(0, 0, 0, 1);
         private LLUUID m_SitTargetAvatar = LLUUID.Zero;
 
+        
+
 
         // Main grid has default permissions as follows
         // 
@@ -344,6 +346,15 @@ namespace OpenSim.Region.Environment.Scenes
         }
 
         private string m_text = "";
+
+        public Vector3 SitTargetPosition
+        {
+            get { return m_sitTargetPosition; }
+        }
+        public Quaternion SitTargetOrientation
+        {
+            get { return m_sitTargetOrientation; }
+        }
 
         public string Text
         {
@@ -785,6 +796,22 @@ namespace OpenSim.Region.Environment.Scenes
         {
             m_sitTargetPosition = offset;
             m_sitTargetOrientation = orientation;
+        }
+        public LLVector3 GetSitTargetPositionLL()
+        {
+            return new LLVector3(m_sitTargetPosition.x, m_sitTargetPosition.y, m_sitTargetPosition.z);
+        }
+
+        public LLQuaternion GetSitTargetOrientationLL()
+        {
+            return new LLQuaternion(m_sitTargetOrientation.w, m_sitTargetOrientation.x, m_sitTargetOrientation.y, m_sitTargetOrientation.z);
+        }
+
+        // Utility function so the databases don't have to reference axiom.math
+        public void SetSitTargetLL(LLVector3 offset, LLQuaternion orientation)
+        {
+            m_sitTargetPosition = new Vector3(offset.X, offset.Y, offset.Z);
+            m_sitTargetOrientation = new Quaternion(orientation.W, orientation.X, orientation.Y, orientation.Z);
         }
 
         public Vector3 GetSitTargetPosition()
