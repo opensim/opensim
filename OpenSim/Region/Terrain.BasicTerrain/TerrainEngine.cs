@@ -1122,6 +1122,21 @@ namespace OpenSim.Region.Terrain
         }
 
         /// <summary>
+        /// Sets a particular heightmap point to a specified value
+        /// </summary>
+        /// <param name="x">X Coordinate</param>
+        /// <param name="y">Y Coordinate</param>
+        /// <param name="val">Value</param>
+        public void Set(int x, int y, double val)
+        {
+            lock (heightmap)
+            {
+                heightmap.Set(x, y, val);
+            }
+            tainted++;
+        }
+
+        /// <summary>
         /// Raises land in a sphere around the specified coordinates
         /// </summary>
         /// <param name="rx">Center of the sphere on the X axis</param>

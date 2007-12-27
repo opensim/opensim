@@ -2876,6 +2876,17 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler
         //
         // OpenSim functions
         //
+        public int osTerrainSetHeight(int x, int y, double val)
+        {
+            World.Terrain.Set(x, y, val);
+            return 1;
+        }
+
+        public double osTerrainGetHeight(int x, int y)
+        {
+            return World.Terrain.GetHeight(x, y);
+        }
+
         public string osSetDynamicTextureURL(string dynamicID, string contentType, string url, string extraParams,
                                              int timer)
         {

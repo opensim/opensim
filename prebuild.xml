@@ -1115,6 +1115,7 @@
       <Reference name="OpenSim.Framework"/>
       <Reference name="OpenSim.Framework.Console"/>
       <Reference name="OpenSim.Region.ScriptEngine.Common"/>
+      <Reference name="OpenSim.Region.Terrain.BasicTerrain"/>
       <Reference name="Axiom.MathLib.dll" localCopy="false"/>
       <Reference name="Nini.dll" />
       <Files>
