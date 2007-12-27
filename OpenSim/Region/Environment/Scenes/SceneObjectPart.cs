@@ -810,8 +810,11 @@ namespace OpenSim.Region.Environment.Scenes
         // Utility function so the databases don't have to reference axiom.math
         public void SetSitTargetLL(LLVector3 offset, LLQuaternion orientation)
         {
-            m_sitTargetPosition = new Vector3(offset.X, offset.Y, offset.Z);
-            m_sitTargetOrientation = new Quaternion(orientation.W, orientation.X, orientation.Y, orientation.Z);
+            if (!(offset.X == 0 && offset.Y == 0 && offset.Z == 0 && orientation.W == 0 && orientation.X == 0 && orientation.Y == 0 && (orientation.Z == 0 || orientation.Z == 1)))
+            {
+                m_sitTargetPosition = new Vector3(offset.X, offset.Y, offset.Z);
+                m_sitTargetOrientation = new Quaternion(orientation.W, orientation.X, orientation.Y, orientation.Z);
+            }
         }
 
         public Vector3 GetSitTargetPosition()
