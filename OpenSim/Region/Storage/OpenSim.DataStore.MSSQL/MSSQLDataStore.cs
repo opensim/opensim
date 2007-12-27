@@ -522,12 +522,12 @@ namespace OpenSim.DataStore.MSSQL
             {
                 prim.SetSitTargetLL(new LLVector3(
                     Convert.ToSingle(row["SitTargetOffsetX"]),
-                    Convert.ToSingle(row["SitTargetOffsetX"]),
+                    Convert.ToSingle(row["SitTargetOffsetY"]),
                     Convert.ToSingle(row["SitTargetOffsetZ"])), new LLQuaternion(
-                    Convert.ToSingle(row["SitTargetOrientW"]),
                     Convert.ToSingle(row["SitTargetOrientX"]),
                     Convert.ToSingle(row["SitTargetOrientY"]),
-                    Convert.ToSingle(row["SitTargetOrientX"])));
+                    Convert.ToSingle(row["SitTargetOrientZ"]),
+                    Convert.ToSingle(row["SitTargetOrientW"])));
             }
             catch (System.InvalidCastException)
             {

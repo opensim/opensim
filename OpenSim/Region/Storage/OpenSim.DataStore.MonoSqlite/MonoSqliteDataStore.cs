@@ -783,20 +783,34 @@ namespace OpenSim.DataStore.MonoSqlite
             {
                 prim.SetSitTargetLL(new LLVector3(
                     Convert.ToSingle(row["SitTargetOffsetX"]),
-                    Convert.ToSingle(row["SitTargetOffsetX"]),
+                    Convert.ToSingle(row["SitTargetOffsetY"]),
                     Convert.ToSingle(row["SitTargetOffsetZ"])), new LLQuaternion(
-                    Convert.ToSingle(row["SitTargetOrientW"]),
                     Convert.ToSingle(row["SitTargetOrientX"]),
                     Convert.ToSingle(row["SitTargetOrientY"]),
-                    Convert.ToSingle(row["SitTargetOrientX"])));
+                    Convert.ToSingle(row["SitTargetOrientZ"]),
+                    Convert.ToSingle(row["SitTargetOrientW"])));
             }
             catch (System.InvalidCastException)
             {
                 // Database table was created before we got here and now has null values :P
-                using (SqliteCommand cmd = new SqliteCommand("ALTER TABLE `prims` ADD COLUMN `SitTargetOffsetX` float NOT NULL default 0,  ADD COLUMN `SitTargetOffsetY` float NOT NULL default 0, ADD COLUMN `SitTargetOffsetZ` float NOT NULL default 0, ADD COLUMN `SitTargetOrientW` float NOT NULL default 0, ADD COLUMN `SitTargetOrientX` float NOT NULL default 0, ADD COLUMN `SitTargetOrientY` float NOT NULL default 0, ADD COLUMN `SitTargetOrientZ` float NOT NULL default 0;", m_conn))
-                {
-                    cmd.ExecuteNonQuery();
-                }
+                m_conn.Open();
+                SqliteCommand cmd = new SqliteCommand("ALTER TABLE prims ADD COLUMN SitTargetOffsetX float NOT NULL default 0;", m_conn);
+                cmd.ExecuteNonQuery();
+                cmd = new SqliteCommand("ALTER TABLE prims ADD COLUMN SitTargetOffsetY float NOT NULL default 0;", m_conn);
+                cmd.ExecuteNonQuery();
+                cmd = new SqliteCommand("ALTER TABLE prims ADD COLUMN SitTargetOffsetZ float NOT NULL default 0;", m_conn);
+                cmd.ExecuteNonQuery();
+                cmd = new SqliteCommand("ALTER TABLE prims ADD COLUMN SitTargetOrientW float NOT NULL default 0;", m_conn);
+                cmd.ExecuteNonQuery();
+                cmd = new SqliteCommand("ALTER TABLE prims ADD COLUMN SitTargetOrientX float NOT NULL default 0;", m_conn);
+                cmd.ExecuteNonQuery();
+                cmd = new SqliteCommand("ALTER TABLE prims ADD COLUMN SitTargetOrientY float NOT NULL default 0;", m_conn);
+                cmd.ExecuteNonQuery();
+                cmd = new SqliteCommand("ALTER TABLE prims ADD COLUMN SitTargetOrientZ float NOT NULL default 0;", m_conn);
+                cmd.ExecuteNonQuery();
+
+                    
+                
             }
 
             return prim;

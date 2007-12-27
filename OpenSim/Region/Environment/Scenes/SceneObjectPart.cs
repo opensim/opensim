@@ -804,13 +804,13 @@ namespace OpenSim.Region.Environment.Scenes
 
         public LLQuaternion GetSitTargetOrientationLL()
         {
-            return new LLQuaternion(m_sitTargetOrientation.w, m_sitTargetOrientation.x, m_sitTargetOrientation.y, m_sitTargetOrientation.z);
+            return new LLQuaternion( m_sitTargetOrientation.x, m_sitTargetOrientation.y, m_sitTargetOrientation.z,m_sitTargetOrientation.w);
         }
 
         // Utility function so the databases don't have to reference axiom.math
         public void SetSitTargetLL(LLVector3 offset, LLQuaternion orientation)
         {
-            if (!(offset.X == 0 && offset.Y == 0 && offset.Z == 0 && (orientation.W == 0 || orientation.W == 1) && orientation.X == 0 && orientation.Y == 0 && (orientation.Z == 0 || orientation.Z == 0)))
+            if (!(offset.X == 0 && offset.Y == 0 && offset.Z == 0 && (orientation.W == 0 || orientation.W == 1) && orientation.X == 0 && orientation.Y == 0 && orientation.Z == 0))
             {
                 m_sitTargetPosition = new Vector3(offset.X, offset.Y, offset.Z);
                 m_sitTargetOrientation = new Quaternion(orientation.W, orientation.X, orientation.Y, orientation.Z);

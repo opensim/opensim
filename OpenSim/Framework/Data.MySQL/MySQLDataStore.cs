@@ -702,12 +702,12 @@ namespace OpenSim.Framework.Data.MySQL
             {
                 prim.SetSitTargetLL(new LLVector3(
                     Convert.ToSingle(row["SitTargetOffsetX"]),
-                    Convert.ToSingle(row["SitTargetOffsetX"]),
+                    Convert.ToSingle(row["SitTargetOffsetY"]),
                     Convert.ToSingle(row["SitTargetOffsetZ"])), new LLQuaternion(
-                    Convert.ToSingle(row["SitTargetOrientW"]),
                     Convert.ToSingle(row["SitTargetOrientX"]),
                     Convert.ToSingle(row["SitTargetOrientY"]),
-                    Convert.ToSingle(row["SitTargetOrientX"])));
+                    Convert.ToSingle(row["SitTargetOrientZ"]),
+                    Convert.ToSingle(row["SitTargetOrientW"])));
             }
             catch (System.InvalidCastException)
             {
@@ -828,17 +828,30 @@ namespace OpenSim.Framework.Data.MySQL
             row["RotationZ"] = prim.RotationOffset.Z;
             row["RotationW"] = prim.RotationOffset.W;
 
-            // Sit target
-            LLVector3 sitTargetPos = prim.GetSitTargetPositionLL();
-            row["SitTargetOffsetX"] = sitTargetPos.X;
-            row["SitTargetOffsetY"] = sitTargetPos.Y;
-            row["SitTargetOffsetZ"] = sitTargetPos.Z;
+            try
+            {
+                // Sit target
+                LLVector3 sitTargetPos = prim.GetSitTargetPositionLL();
+                row["SitTargetOffsetX"] = sitTargetPos.X;
+                row["SitTargetOffsetY"] = sitTargetPos.Y;
+                row["SitTargetOffsetZ"] = sitTargetPos.Z;
 
-            LLQuaternion sitTargetOrient = prim.GetSitTargetOrientationLL();
-            row["SitTargetOrientW"] = sitTargetOrient.W;
-            row["SitTargetOrientX"] = sitTargetOrient.X;
-            row["SitTargetOrientY"] = sitTargetOrient.Y;
-            row["SitTargetOrientZ"] = sitTargetOrient.Z;
+                LLQuaternion sitTargetOrient = prim.GetSitTargetOrientationLL();
+                row["SitTargetOrientW"] = sitTargetOrient.W;
+                row["SitTargetOrientX"] = sitTargetOrient.X;
+                row["SitTargetOrientY"] = sitTargetOrient.Y;
+                row["SitTargetOrientZ"] = sitTargetOrient.Z;
+            } 
+            catch (MySql.Data.MySqlClient.MySqlException) 
+            {
+                // Database table was created before we got here and needs to be created! :P
+
+                using (MySqlCommand cmd = new MySqlCommand("ALTER TABLE `prims` ADD COLUMN `SitTargetOffsetX` float NOT NULL default 0,  ADD COLUMN `SitTargetOffsetY` float NOT NULL default 0, ADD COLUMN `SitTargetOffsetZ` float NOT NULL default 0, ADD COLUMN `SitTargetOrientW` float NOT NULL default 0, ADD COLUMN `SitTargetOrientX` float NOT NULL default 0, ADD COLUMN `SitTargetOrientY` float NOT NULL default 0, ADD COLUMN `SitTargetOrientZ` float NOT NULL default 0;", m_connection))
+                {
+                    cmd.ExecuteNonQuery();
+                }
+            }
+
             
         }
 
