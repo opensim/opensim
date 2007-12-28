@@ -140,7 +140,7 @@ namespace OpenSim.Framework
         static PrimitiveBaseShape()
         {
             m_defaultTexture =
-                new LLObject.TextureEntry(new LLUUID("00000000-0000-0000-9999-000000000005"));
+                new LLObject.TextureEntry(new LLUUID("89556747-24cb-43ed-920b-47caed15465f"));
         }
 
         public PrimitiveBaseShape()

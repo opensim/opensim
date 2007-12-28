@@ -335,48 +335,40 @@
     <Key Name="inventoryType" Value="0" />
     <Key Name="fileName" Value="peaches.jp2" />
   </Section>
-  <!-- Copied from hardcoded values -->
-  <Section Name="Bricks">
+  <Section Name="bricks">
     <Key Name="assetID" Value="00000000-0000-1111-9999-000000000001"/>
-    <Key Name="name" Value="Bricks"/>
+    <Key Name="name" Value="bricks"/>
     <Key Name="assetType" Value="0" />
     <Key Name="inventoryType" Value="0" />
     <Key Name="fileName" Value="bricks.jp2"/>
   </Section>
-  <Section Name="Plywood">
-    <Key Name="assetID" Value="00000000-0000-1111-9999-000000000002"/>
-    <Key Name="name" Value="Plywood"/>
+  <Section Name="plywood">
+    <Key Name="assetID" Value="89556747-24cb-43ed-920b-47caed15465f"/>
+    <Key Name="name" Value="plywood"/>
     <Key Name="assetType" Value="0" />
     <Key Name="inventoryType" Value="0" />
     <Key Name="fileName" Value="plywood.jp2"/>
   </Section>
-  <Section Name="Rocks">
+  <Section Name="rocks">
     <Key Name="assetID" Value="00000000-0000-1111-9999-000000000003"/>
-    <Key Name="name" Value="Rocks"/>
+    <Key Name="name" Value="rocks"/>
     <Key Name="assetType" Value="0" />
     <Key Name="inventoryType" Value="0" />
     <Key Name="fileName" Value="rocks.jp2"/>
   </Section>
-  <Section Name="Granite">
+  <Section Name="granite">
     <Key Name="assetID" Value="00000000-0000-1111-9999-000000000004"/>
-    <Key Name="name" Value="Granite"/>
+    <Key Name="name" Value="granite"/>
     <Key Name="assetType" Value="0" />
     <Key Name="inventoryType" Value="0" />
     <Key Name="fileName" Value="granite.jp2"/>
   </Section>
-  <Section Name="Hardwood">
+  <Section Name="hardwood">
     <Key Name="assetID" Value="00000000-0000-1111-9999-000000000005"/>
-    <Key Name="name" Value="Hardwood"/>
+    <Key Name="name" Value="hardwood"/>
     <Key Name="assetType" Value="0" />
     <Key Name="inventoryType" Value="0" />
     <Key Name="fileName" Value="hardwood.jp2"/>
-  </Section>
-  <Section Name="Prim Base Texture">
-    <Key Name="assetID" Value="00000000-0000-1111-5005-000000000005"/>
-    <Key Name="name" Value="Prim Base Texture"/>
-    <Key Name="assetType" Value="0" />
-    <Key Name="inventoryType" Value="0" />
-    <Key Name="fileName" Value="plywood.jp2"/>
   </Section>
   <Section Name="Map Base Texture">
     <Key Name="assetID" Value="00000000-0000-1111-9999-000000000006"/>

@@ -3520,7 +3520,7 @@ namespace OpenSim.Region.ClientStack
             shape.PathTaperY = addPacket.ObjectData.PathTaperY;
             shape.PathTwist = addPacket.ObjectData.PathTwist;
             shape.PathTwistBegin = addPacket.ObjectData.PathTwistBegin;
-            LLObject.TextureEntry ntex = new LLObject.TextureEntry(new LLUUID("00000000-0000-0000-9999-000000000005"));
+            LLObject.TextureEntry ntex = new LLObject.TextureEntry(new LLUUID("89556747-24cb-43ed-920b-47caed15465f"));
             shape.Textures = ntex;
             return shape;
         }

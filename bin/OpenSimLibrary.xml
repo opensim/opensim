@@ -540,7 +540,7 @@
     <Key Name="basePermissions" Value="2147483647" />
   </Section>
   <Section Name="bricks Texture">
-    <Key Name="inventoryID" Value="00000000-0000-1111-9999-000000000001"/>
+    <Key Name="inventoryID" Value="00000000-0000-2222-9999-000000000001"/>
     <Key Name="assetID" Value="00000000-0000-1111-9999-000000000001"/>
     <Key Name="description" Value="bricks texture" />
     <Key Name="name" Value="bricks" />
@@ -552,7 +552,7 @@
     <Key Name="basePermissions" Value="2147483647" />
   </Section>
   <Section Name="granite Texture">
-    <Key Name="inventoryID" Value="00000000-0000-1111-9999-000000000004"/>
+    <Key Name="inventoryID" Value="00000000-0000-2222-9999-000000000004"/>
     <Key Name="assetID" Value="00000000-0000-1111-9999-000000000004"/>
     <Key Name="description" Value="granite texture" />
     <Key Name="name" Value="granite" />
@@ -564,7 +564,7 @@
     <Key Name="basePermissions" Value="2147483647" />
   </Section>
   <Section Name="hardwood Texture">
-    <Key Name="inventoryID" Value="00000000-0000-1111-9999-000000000005"/>
+    <Key Name="inventoryID" Value="00000000-0000-2222-9999-000000000005"/>
     <Key Name="assetID" Value="00000000-0000-1111-9999-000000000005"/>
     <Key Name="description" Value="hardwood texture" />
     <Key Name="name" Value="hardwood" />
@@ -576,8 +576,8 @@
     <Key Name="basePermissions" Value="2147483647" />
   </Section>
   <Section Name="plywood Texture">
-    <Key Name="inventoryID" Value="00000000-0000-1111-9999-000000000002"/>
-    <Key Name="assetID" Value="00000000-0000-1111-9999-000000000002"/>
+    <Key Name="inventoryID" Value="00000000-0000-2222-9999-000000000002"/>
+    <Key Name="assetID" Value="89556747-24cb-43ed-920b-47caed15465f"/>
     <Key Name="description" Value="plywood texture" />
     <Key Name="name" Value="plywood" />
     <Key Name="assetType" Value="0" />
@@ -588,7 +588,7 @@
     <Key Name="basePermissions" Value="2147483647" />
   </Section>
   <Section Name="rocks Texture">
-    <Key Name="inventoryID" Value="00000000-0000-1111-9999-000000000003"/>
+    <Key Name="inventoryID" Value="00000000-0000-2222-9999-000000000003"/>
     <Key Name="assetID" Value="00000000-0000-1111-9999-000000000003"/>
     <Key Name="description" Value="rocks texture" />
     <Key Name="name" Value="rocks" />
