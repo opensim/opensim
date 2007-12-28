@@ -25,33 +25,13 @@
 * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 * 
 */
+
 using System;
-using System.Collections.Generic;
-using libsecondlife;
 
 namespace OpenSim.Framework
-{
-    /// <summary>
-    /// Description of IAssetServer.
-    /// </summary>
-    public interface IAssetServer
+{        
+    public interface IAssetLoader
     {
-        void SetReceiver(IAssetReceiver receiver);
-        void RequestAsset(LLUUID assetID, bool isTexture);
-        void UpdateAsset(AssetBase asset);
-        void StoreAndCommitAsset(AssetBase asset);
-        void Close();
-    }
-
-    // could change to delegate?
-    public interface IAssetReceiver
-    {
-        void AssetReceived(AssetBase asset, bool IsTexture);
-        void AssetNotFound(LLUUID assetID);
-    }
-
-    public interface IAssetPlugin
-    {
-        IAssetServer GetAssetServer();
+        void ForEachXmlAsset(Action<AssetBase> action);        
     }
 }

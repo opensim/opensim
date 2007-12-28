@@ -30,8 +30,8 @@ using System;
 using System.IO;
 using System.Reflection;
 using libsecondlife;
-using Nini.Config;
 using OpenSim.Framework;
+using OpenSim.Framework.AssetLoader.Filesystem;
 using OpenSim.Framework.Console;
 using OpenSim.Framework.Servers;
 
@@ -45,8 +45,12 @@ namespace OpenSim.Grid.AssetServer
         public AssetConfig m_config;
 
         public static OpenAsset_Main assetserver;
-
-        private LogBase m_console;
+        
+        private LogBase m_console;        
+        
+        // Temporarily hardcoded - should be a plugin
+        protected IAssetLoader assetLoader = new AssetLoaderFileSystem();        
+        
         private IAssetProvider m_assetProvider;
 
         [STAThread]
@@ -199,29 +203,13 @@ namespace OpenSim.Grid.AssetServer
 
         public void LoadDefaultAssets()
         {
-            string filePath = Path.Combine(Util.configDir(), "OpenSimAssetSet.xml");
-            if (File.Exists(filePath))
-            {
-                XmlConfigSource source = new XmlConfigSource(filePath);
-
-                for (int i = 0; i < source.Configs.Count; i++)
-                {
-                    string assetIdStr = source.Configs[i].GetString("assetID", LLUUID.Random().ToString());
-                    string name = source.Configs[i].GetString("name", "");
-                    sbyte type = (sbyte) source.Configs[i].GetInt("assetType", 0);
-                    sbyte invType = (sbyte) source.Configs[i].GetInt("inventoryType", 0);
-                    string fileName = source.Configs[i].GetString("fileName", "");
-
-                    AssetBase newAsset = CreateAsset(assetIdStr, name, fileName, false);
-
-                    newAsset.Type = type;
-                    newAsset.InvType = invType;
-
-                    m_assetProvider.CreateAsset(newAsset);
-                }
-            }
+            assetLoader.ForEachXmlAsset(StoreAsset);            
         }
 
+        protected void StoreAsset(AssetBase asset)
+        {
+            m_assetProvider.CreateAsset(asset);
+        }
 
         public void RunCmd(string cmd, string[] cmdparams)
         {

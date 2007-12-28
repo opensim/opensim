@@ -122,8 +122,7 @@ namespace OpenSim.Framework.Communications.Cache
         {
             MainLog.Instance.Verbose("LOCAL ASSET SERVER", "Setting up asset database");
 
-            ForEachDefaultAsset(StoreAsset);
-            ForEachXmlAsset(StoreAsset);
+            base.LoadDefaultAssets();
         }
     }
 

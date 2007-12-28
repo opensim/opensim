@@ -28,12 +28,10 @@
 
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Threading;
-using System.Xml;
 using libsecondlife;
-using Nini.Config;
 using OpenSim.Framework.Console;
+using OpenSim.Framework.AssetLoader.Filesystem;
 
 namespace OpenSim.Framework.Communications.Cache
 {
@@ -45,6 +43,9 @@ namespace OpenSim.Framework.Communications.Cache
         protected IAssetProvider m_assetProviderPlugin;
         protected object syncLock = new object();
 
+        // Temporarily hardcoded - should be a plugin
+        protected IAssetLoader assetLoader = new AssetLoaderFileSystem();
+        
         protected abstract void StoreAsset(AssetBase asset);
         protected abstract void CommitAssets();
 
@@ -85,8 +86,7 @@ namespace OpenSim.Framework.Communications.Cache
         {
             MainLog.Instance.Verbose("ASSETSERVER", "Setting up asset database");
 
-            ForEachDefaultAsset(StoreAsset);
-            ForEachXmlAsset(StoreAsset);
+            assetLoader.ForEachXmlAsset(StoreAsset);
 
             CommitAssets();
         }
@@ -117,25 +117,6 @@ namespace OpenSim.Framework.Communications.Cache
                     MainLog.Instance.Error("ASSETSERVER", e.Message);
                 }
             }
-        }
-
-        public void LoadAsset(AssetBase info, bool image, string filename)
-        {
-            //should request Asset from storage manager
-            //but for now read from file
-
-            string dataPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "assets"); //+ folder;
-            string fileName = Path.Combine(dataPath, filename);
-            FileInfo fInfo = new FileInfo(fileName);
-            long numBytes = fInfo.Length;
-            FileStream fStream = new FileStream(fileName, FileMode.Open, FileAccess.Read);
-            byte[] idata = new byte[numBytes];
-            BinaryReader br = new BinaryReader(fStream);
-            idata = br.ReadBytes((int) numBytes);
-            br.Close();
-            fStream.Close();
-            info.Data = idata;
-            //info.loaded=true;
         }
 
         public void SetReceiver(IAssetReceiver receiver)
@@ -178,79 +159,6 @@ namespace OpenSim.Framework.Communications.Cache
 
         public void SetServerInfo(string ServerUrl, string ServerKey)
         {
-        }
-
-        public virtual List<AssetBase> GetDefaultAssets()
-        {
-            List<AssetBase> assets = new List<AssetBase>();
-            return assets;
-        }
-
-        public AssetBase CreateImageAsset(string assetIdStr, string name, string filename)
-        {
-            return CreateAsset(assetIdStr, name, filename, true);
-        }
-
-        public void ForEachDefaultAsset(Action<AssetBase> action)
-        {
-            List<AssetBase> assets = GetDefaultAssets();
-            assets.ForEach(action);
-        }
-
-        public AssetBase CreateAsset(string assetIdStr, string name, string filename, bool isImage)
-        {
-            AssetBase asset = new AssetBase(
-                new LLUUID(assetIdStr),
-                name
-                );
-
-            if (!String.IsNullOrEmpty(filename))
-            {
-                MainLog.Instance.Verbose("ASSETS", "Loading: [{0}][{1}]", name, filename);
-
-                LoadAsset(asset, isImage, filename);
-            }
-            else
-            {
-                MainLog.Instance.Verbose("ASSETS", "Instantiated: [{0}]", name);
-            }
-
-            return asset;
-        }
-
-        public void ForEachXmlAsset(Action<AssetBase> action)
-        {
-            List<AssetBase> assets = new List<AssetBase>();
-            // System.Console.WriteLine("trying loading asset into database");
-            string filePath = Path.Combine(Util.configDir(), "OpenSimAssetSet.xml");
-            if (File.Exists(filePath))
-            {
-                try
-                {
-                    XmlConfigSource source = new XmlConfigSource(filePath);
-
-                    for (int i = 0; i < source.Configs.Count; i++)
-                    {
-                        // System.Console.WriteLine("loading asset into database");
-                        string assetIdStr = source.Configs[i].GetString("assetID", LLUUID.Random().ToString());
-                        string name = source.Configs[i].GetString("name", "");
-                        sbyte type = (sbyte) source.Configs[i].GetInt("assetType", 0);
-                        sbyte invType = (sbyte) source.Configs[i].GetInt("inventoryType", 0);
-                        string fileName = source.Configs[i].GetString("fileName", "");
-
-                        AssetBase newAsset = CreateAsset(assetIdStr, name, fileName, false);
-
-                        newAsset.Type = type;
-                        newAsset.InvType = invType;
-                        assets.Add(newAsset);
-                    }
-                }
-                catch (XmlException e)
-                {
-                    MainLog.Instance.Error("ASSETS", "Error loading " + filePath + ": " + e.ToString());
-                }
-            }
-            assets.ForEach(action);
         }
     }
 }
