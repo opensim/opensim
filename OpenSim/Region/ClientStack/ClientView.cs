@@ -2534,6 +2534,15 @@ namespace OpenSim.Region.ClientStack
                         RezObjectPacket rezPacket = (RezObjectPacket) Pack;
                         if (OnRezObject != null)
                         {
+                            //rezPacket.RezData.BypassRaycast;
+                            //rezPacket.RezData.RayEnd;
+                            //rezPacket.RezData.RayEndIsIntersection;
+                            //rezPacket.RezData.RayStart;
+                            //rezPacket.RezData.RayTargetID;
+                            //rezPacket.RezData.RemoveItem;
+                            //rezPacket.RezData.RezSelected;
+                            //rezPacket.RezData.FromTaskID;
+                            //MainLog.Instance.Verbose("REZData", rezPacket.ToString());
                             OnRezObject(this, rezPacket.InventoryData.ItemID, rezPacket.RezData.RayEnd);
                         }
                         break;
@@ -2713,7 +2722,13 @@ namespace OpenSim.Region.ClientStack
                         {
                             ObjectAddPacket addPacket = (ObjectAddPacket) Pack;
                             PrimitiveBaseShape shape = GetShapeFromAddPacket(addPacket);
-                            OnAddPrim(AgentId, addPacket.ObjectData.RayEnd, addPacket.ObjectData.Rotation, shape);
+                            MainLog.Instance.Verbose("REZData", addPacket.ToString());
+                            //BypassRaycast: 1
+                            //RayStart: <69.79469, 158.2652, 98.40343>
+                            //RayEnd: <61.97724, 141.995, 92.58341>   
+                            //RayTargetID: 00000000-0000-0000-0000-000000000000
+
+                            OnAddPrim(AgentId, addPacket.ObjectData.RayEnd, addPacket.ObjectData.Rotation, shape,addPacket.ObjectData.BypassRaycast,addPacket.ObjectData.RayStart,addPacket.ObjectData.RayTargetID,addPacket.ObjectData.RayEndIsIntersection);
                         }
                         break;
                     case PacketType.ObjectShape:

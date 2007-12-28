@@ -299,10 +299,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                              p2.PhysicsActorType == (int) ActorTypes.Prim))
                         {
                             if (p2.PhysicsActorType == (int) ActorTypes.Agent)
-                            {   if (p1.IsPhysical)
-                                {
-                                    int q = 1;
-                                }
+                            {   
                                 p2.CollidingObj = true;
                                 //contacts[i].depth = 0.003f;
                                 p2.Velocity = p2.Velocity + new PhysicsVector(0, 0, 2.5f);
@@ -313,18 +310,12 @@ namespace OpenSim.Region.Physics.OdePlugin
                             }
                             else
                             {
-                                if (p1.IsPhysical)
-                                {
-                                    int q = 1;
-                                }
-                                contacts[i].depth = 0.0000000f;
+                                
+                                //contacts[i].depth = 0.0000000f;
                             }
                             if (p1.PhysicsActorType == (int) ActorTypes.Agent)
                             {
-                                if (p2.IsPhysical)
-                                {
-                                    int q = 1;
-                                }
+                                
                                 p1.CollidingObj = true;
                                 //contacts[i].depth = 0.003f;
                                 p1.Velocity = p1.Velocity + new PhysicsVector(0, 0, 2.5f);

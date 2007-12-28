@@ -46,6 +46,8 @@ namespace OpenSim.Framework
         private static object XferLock = new object();
         private static Dictionary<LLUUID, string> capsURLS = new Dictionary<LLUUID, string>();
 
+     #region Vector Equasions
+
         public static double GetDistanceTo(LLVector3 a, LLVector3 b)
         {
             float dx = a.X - b.X;
@@ -53,6 +55,16 @@ namespace OpenSim.Framework
             float dz = a.Z - b.Z;
             return Math.Sqrt(dx*dx + dy*dy + dz*dz);
         }
+        public static double GetMagnitude(LLVector3 a) {
+            return Math.Sqrt((a.X * a.X) + (a.Y * a.Y) + (a.Z * a.Z));
+        }
+        public static LLVector3 GetNormal(LLVector3 a)
+        {
+            float Mag = (float)GetMagnitude(a);
+            return new LLVector3(a.X / Mag, a.Y / Mag, a.Z / Mag);
+
+        }
+     # endregion
 
         public static ulong UIntsToLong(uint X, uint Y)
         {

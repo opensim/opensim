@@ -694,19 +694,22 @@ namespace OpenSim.Region.Environment.Scenes
 
             EntityIntersection returnresult = new EntityIntersection();
             Vector3 vAbsolutePosition = new Vector3(AbsolutePosition.X, AbsolutePosition.Y, AbsolutePosition.Z);
+
             Vector3 vScale = new Vector3(Scale.X, Scale.Y, Scale.Z);
             Quaternion qRotation =
                 new Quaternion(RotationOffset.W, RotationOffset.X, RotationOffset.Y, RotationOffset.Z);
 
 
-            Quaternion worldRotation = (qRotation*parentrot);
-            Matrix3 worldRotM = worldRotation.ToRotationMatrix();
+            //Quaternion worldRotation = (qRotation*parentrot);
+            //Matrix3 worldRotM = worldRotation.ToRotationMatrix();
 
 
             Vector3 rOrigin = iray.Origin;
             Vector3 rDirection = iray.Direction;
 
+            
 
+            //rDirection = rDirection.Normalize();
             // Buidling the first part of the Quadratic equation
             Vector3 r2ndDirection = rDirection*rDirection;
             float itestPart1 = r2ndDirection.x + r2ndDirection.y + r2ndDirection.z;
