@@ -59,16 +59,6 @@
         <items />
       </folder>
       <folder>
-        <name>Lost And Found</name>
-        <agentID UUID="00000112-000f-0000-0000-000100bba000" />
-        <parentID UUID="00000112-000f-0000-0000-000100bba000" />
-        <folderID UUID="62c88a03-838c-4822-b912-10e4a9b831c5" />
-        <type>3</type>
-        <version>0</version>
-        <folders />
-        <items />
-      </folder>
-      <folder>
         <name>Notecards</name>
         <agentID UUID="00000112-000f-0000-0000-000100bba000" />
         <parentID UUID="00000112-000f-0000-0000-000100bba000" />
