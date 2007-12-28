@@ -474,7 +474,7 @@ namespace OpenSim.Region.Environment.Scenes
                                          if (!avatar.IsChildAgent)
                                              avatar.ControllingClient.Kick("The simulator is going down.");
 
-                                         avatar.ControllingClient.OutPacket(new DisableSimulatorPacket(),
+                                         avatar.ControllingClient.OutPacket(PacketPool.Instance.GetPacket(libsecondlife.Packets.PacketType.DisableSimulator),
                                                                             ThrottleOutPacketType.Task);
                                      });
 
@@ -1016,43 +1016,42 @@ namespace OpenSim.Region.Environment.Scenes
             // It's wrong many times though.
 
             LLVector3 pos = GetNewRezLocation(RayStart, RayEnd, RayTargetID, rot, bypassRaycast, RayEndIsIntersection);
+            
+         
+
 
             if (PermissionsMngr.CanRezObject(ownerID, pos))
             {
-                // rez ON the ground, not IN the ground
+
+                    // rez ON the ground, not IN the ground
                     pos.Z += 0.25F;
+               
 
-                AddNewPrim(ownerID, pos, rot, shape);
-            }
-        }
-
-        public virtual void AddNewPrim(LLUUID ownerID, LLVector3 pos, LLQuaternion rot, PrimitiveBaseShape shape)
-        {
-            SceneObjectGroup sceneOb =
-                new SceneObjectGroup(this, m_regionHandle, ownerID, PrimIDAllocate(), pos, rot, shape);
-
-            AddEntity(sceneOb);
-            SceneObjectPart rootPart = sceneOb.GetChildPart(sceneOb.UUID);
-            // if grass or tree, make phantom
-            //rootPart.ApplySanePermissions();
-            if ((rootPart.Shape.PCode == 95) || (rootPart.Shape.PCode == 255) || (rootPart.Shape.PCode == 111))
-            {
-                rootPart.AddFlag(LLObject.ObjectFlags.Phantom);
-                //rootPart.ObjectFlags += (uint)LLObject.ObjectFlags.Phantom;
-            }
-            // if not phantom, add to physics
-            bool UsePhysics = (((rootPart.ObjectFlags & (uint) LLObject.ObjectFlags.Physics) > 0) && m_physicalPrim);
-            if ((rootPart.ObjectFlags & (uint) LLObject.ObjectFlags.Phantom) == 0)
-            {
-                rootPart.PhysActor =
-                    PhysicsScene.AddPrimShape(
-                        rootPart.Name,
-                        rootPart.Shape,
-                        new PhysicsVector(pos.X, pos.Y, pos.Z),
-                        new PhysicsVector(shape.Scale.X, shape.Scale.Y, shape.Scale.Z),
-                        new Quaternion(), UsePhysics);
-                // subscribe to physics events.
-                rootPart.DoPhysicsPropertyUpdate(UsePhysics, true);
+                SceneObjectGroup sceneOb =
+                    new SceneObjectGroup(this, m_regionHandle, ownerID, PrimIDAllocate(), pos, rot, shape);
+                AddEntity(sceneOb);
+                SceneObjectPart rootPart = sceneOb.GetChildPart(sceneOb.UUID);
+                // if grass or tree, make phantom
+                //rootPart.ApplySanePermissions();
+                if ((rootPart.Shape.PCode == 95) || (rootPart.Shape.PCode == 255) || (rootPart.Shape.PCode == 111))
+                {
+                    rootPart.AddFlag(LLObject.ObjectFlags.Phantom);
+                    //rootPart.ObjectFlags += (uint)LLObject.ObjectFlags.Phantom;
+                }
+                // if not phantom, add to physics
+                bool UsePhysics = (((rootPart.ObjectFlags & (uint) LLObject.ObjectFlags.Physics) > 0) && m_physicalPrim);
+                if ((rootPart.ObjectFlags & (uint) LLObject.ObjectFlags.Phantom) == 0)
+                {
+                    rootPart.PhysActor =
+                        PhysicsScene.AddPrimShape(
+                            rootPart.Name,
+                            rootPart.Shape,
+                            new PhysicsVector(pos.X, pos.Y, pos.Z),
+                            new PhysicsVector(shape.Scale.X, shape.Scale.Y, shape.Scale.Z),
+                            new Quaternion(), UsePhysics);
+                    // subscribe to physics events.
+                    rootPart.DoPhysicsPropertyUpdate(UsePhysics, true);
+                }
             }
         }
 
@@ -1499,7 +1498,7 @@ namespace OpenSim.Region.Environment.Scenes
                         m_innerScene.removeUserCount(true);
                     }
                     // Tell a single agent to disconnect from the region.
-                    DisableSimulatorPacket disable = new DisableSimulatorPacket();
+                    libsecondlife.Packets.DisableSimulatorPacket disable = (libsecondlife.Packets.DisableSimulatorPacket) PacketPool.Instance.GetPacket(libsecondlife.Packets.PacketType.DisableSimulator);
                     presence.ControllingClient.OutPacket(disable, ThrottleOutPacketType.Task);
                 }
             }

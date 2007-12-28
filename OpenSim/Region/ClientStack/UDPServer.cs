@@ -30,7 +30,6 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Net;
 using System.Net.Sockets;
-using libsecondlife;
 using libsecondlife.Packets;
 using OpenSim.Framework;
 using OpenSim.Framework.Communications.Cache;
@@ -38,103 +37,6 @@ using OpenSim.Framework.Console;
 
 namespace OpenSim.Region.ClientStack
 {
-    public sealed class PacketPool
-    {
-        // Set up a thread-safe singleton pattern
-        static PacketPool()
-        {
-        }
-
-        private static readonly PacketPool instance = new PacketPool();
-
-        public static PacketPool Instance
-        {
-            get { return instance; }
-        }
-
-        private Hashtable pool = new Hashtable();
-
-        public Packet GetPacket(PacketType type)
-        {
-            Packet packet = null;
-
-            lock (pool)
-            {
-                if (pool[type] == null || ((Stack) pool[type]).Count == 0)
-                {
-                    // Creating a new packet if we cannot reuse an old package
-                    packet = Packet.BuildPacket(type);
-                }
-                else
-                {
-                    // Recycle old packages
-                    packet = (Packet) ((Stack) pool[type]).Pop();
-                }
-            }
-
-            return packet;
-        }
-
-        public Packet GetPacket(byte[] bytes, ref int packetEnd, byte[] zeroBuffer)
-        {
-            Packet packet = GetPacket(GetType(bytes, packetEnd, zeroBuffer));
-
-            int i = 0;
-            packet.FromBytes(bytes, ref i, ref packetEnd, zeroBuffer);
-            return packet;
-        }
-
-        public PacketType GetType(byte[] bytes, int packetEnd, byte[] zeroBuffer)
-        {
-            //Function removed from LibSL revision 1540
-            // We're using it..    so Built it into UDP server for now..  
-            ushort id;
-            PacketFrequency freq;
-            int i = 0, end = packetEnd;
-            Header header = Header.BuildHeader(bytes, ref i, ref end);
-            if (header.Zerocoded)
-            {
-                end = Helpers.ZeroDecode(bytes, end + 1, zeroBuffer) - 1;
-                bytes = zeroBuffer;
-            }
-
-            if (bytes[6] == 0xFF)
-            {
-                if (bytes[7] == 0xFF)
-                {
-                    id = (ushort) ((bytes[8] << 8) + bytes[9]);
-                    freq = PacketFrequency.Low;
-                }
-                else
-                {
-                    id = (ushort) bytes[7];
-                    freq = PacketFrequency.Medium;
-                }
-            }
-            else
-            {
-                id = (ushort) bytes[6];
-                freq = PacketFrequency.High;
-            }
-            return Packet.GetType(id, freq);
-        }
-
-        public void ReturnPacket(Packet packet)
-        {
-            lock (pool)
-            {
-                PacketType type = packet.Type;
-
-                if (pool[type] == null)
-                {
-                    pool[type] = new Stack();
-                }
-
-                ((Stack) pool[type]).Push(packet);
-            }
-        }
-    }
-
     public class UDPServer : ClientStackNetworkHandler
     {
         protected Dictionary<EndPoint, uint> clientCircuits = new Dictionary<EndPoint, uint>();

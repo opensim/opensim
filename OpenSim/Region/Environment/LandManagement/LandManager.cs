@@ -33,6 +33,7 @@ using libsecondlife.Packets;
 using OpenSim.Framework;
 using OpenSim.Framework.Console;
 using OpenSim.Region.Environment.Scenes;
+using OpenSim.Region.Environment.Interfaces;
 using OpenSim.Region.Physics.Manager;
 
 namespace OpenSim.Region.Environment.LandManagement
@@ -493,7 +494,7 @@ namespace OpenSim.Region.Environment.LandManagement
                             if (byteArrayCount >= LAND_BLOCKS_PER_PACKET)
                             {
                                 byteArrayCount = 0;
-                                packet = new ParcelOverlayPacket();
+                                packet = (ParcelOverlayPacket) PacketPool.Instance.GetPacket(PacketType.ParcelOverlay);
                                 packet.ParcelData.Data = byteArray;
                                 packet.ParcelData.SequenceID = sequenceID;
                                 remote_client.OutPacket((Packet) packet, ThrottleOutPacketType.Task);

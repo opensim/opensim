@@ -26,11 +26,9 @@
 * 
 */
 
-using System;
 using System.Collections.Generic;
 using libsecondlife;
 using libsecondlife.Packets;
-using OpenSim.Framework.Console;
 
 namespace OpenSim.Framework
 {
@@ -42,6 +40,7 @@ namespace OpenSim.Framework
 
         public void ForEachClient(ForEachClientDelegate whatToDo)
         {
+
             // Wasteful, I know
             IClientAPI[] LocalClients = new IClientAPI[0];
             lock (m_clients)
@@ -56,11 +55,9 @@ namespace OpenSim.Framework
                 {
                     whatToDo(LocalClients[i]);
                 }
-                catch (Exception e)
+                catch (System.Exception e)
                 {
-                    MainLog.Instance.Warn("CLIENT",
-                                          "Unable to do ForEachClient for one of the clients" + "\n Reason: " +
-                                          e.ToString());
+                    OpenSim.Framework.Console.MainLog.Instance.Warn("CLIENT", "Unable to do ForEachClient for one of the clients" + "\n Reason: " + e.ToString());
                 }
             }
         }
@@ -110,19 +107,20 @@ namespace OpenSim.Framework
                 IClientAPI client;
                 try
                 {
+
                     if (m_clients.TryGetValue(circuits[i], out client))
                     {
                         Remove(client.CircuitCode);
                         client.Close(false);
                     }
                 }
-                catch (Exception e)
+                catch (System.Exception e)
                 {
-                    MainLog.Instance.Error("CLIENT",
-                                           "Unable to shutdown circuit for: " + agentId.ToString() + "\n Reason: " +
-                                           e.ToString());
+                    OpenSim.Framework.Console.MainLog.Instance.Error("CLIENT", "Unable to shutdown circuit for: " + agentId.ToString() + "\n Reason: " + e.ToString());
                 }
             }
+
+            
         }
 
         private uint[] GetAllCircuits(LLUUID agentId)
@@ -137,7 +135,7 @@ namespace OpenSim.Framework
             }
 
 
-            for (int i = 0; i < LocalClients.Length; i++)
+            for (int i = 0; i < LocalClients.Length; i++ )
             {
                 if (LocalClients[i].AgentId == agentId)
                 {
@@ -150,7 +148,8 @@ namespace OpenSim.Framework
 
         public void ViewerEffectHandler(IClientAPI sender, ViewerEffectPacket.EffectBlock[] effectBlock)
         {
-            ViewerEffectPacket packet = new ViewerEffectPacket();
+            ViewerEffectPacket packet = (ViewerEffectPacket)  PacketPool.Instance.GetPacket(PacketType.ViewerEffect);
+            // TODO: don't create new blocks if recycling an old packet
             packet.Effect = effectBlock;
 
             // Wasteful, I know
@@ -170,6 +169,7 @@ namespace OpenSim.Framework
                     packet.AgentData.SessionID = LocalClients[i].SessionId;
                     LocalClients[i].OutPacket(packet, ThrottleOutPacketType.Task);
                 }
+
             }
         }
 

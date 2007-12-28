@@ -83,7 +83,9 @@ namespace OpenSim.Region.Environment.Scenes
         private void statsHeartBeat(object sender, EventArgs e)
         {
             m_report.Enabled = false;
-            SimStatsPacket statpack = new SimStatsPacket();
+            SimStatsPacket statpack = (SimStatsPacket) PacketPool.Instance.GetPacket(PacketType.SimStats);
+            // TODO: don't create new blocks if recycling an old packet
+
             SimStatsPacket.StatBlock[] sb = new SimStatsPacket.StatBlock[11];
             statpack.Region = new SimStatsPacket.RegionBlock();
             statpack.Region.RegionX = ReportingRegion.RegionLocX;

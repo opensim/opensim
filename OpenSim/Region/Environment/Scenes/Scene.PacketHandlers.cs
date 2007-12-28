@@ -29,6 +29,8 @@ using System.Collections.Generic;
 using libsecondlife;
 using libsecondlife.Packets;
 using OpenSim.Framework;
+using OpenSim.Framework.UserManagement;
+using OpenSim.Framework.Console;
 
 namespace OpenSim.Region.Environment.Scenes
 {
@@ -164,7 +166,9 @@ namespace OpenSim.Region.Environment.Scenes
             List<AvatarPickerAvatar> AvatarResponses = new List<AvatarPickerAvatar>();
             AvatarResponses = CommsManager.GenerateAgentPickerRequestResponse(RequestID, query);
 
-            AvatarPickerReplyPacket replyPacket = new AvatarPickerReplyPacket();
+            AvatarPickerReplyPacket replyPacket = (AvatarPickerReplyPacket) PacketPool.Instance.GetPacket(PacketType.AvatarPickerReply);
+            // TODO: don't create new blocks if recycling an old packet
+
             AvatarPickerReplyPacket.DataBlock[] searchData =
                 new AvatarPickerReplyPacket.DataBlock[AvatarResponses.Count];
             AvatarPickerReplyPacket.AgentDataBlock agentData = new AvatarPickerReplyPacket.AgentDataBlock();
