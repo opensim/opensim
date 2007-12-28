@@ -85,7 +85,7 @@ namespace OpenSim.Framework.AssetLoader.Filesystem
         {
             List<AssetBase> assets = new List<AssetBase>();
             // System.Console.WriteLine("trying loading asset into database");
-            string filePath = Path.Combine(Util.configDir(), "OpenSimAssetSet.xml");
+            string filePath = Path.Combine(Util.configDir(), "assets/OpenSimAssetSet.xml");
             if (File.Exists(filePath))
             {
                 try
