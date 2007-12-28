@@ -109,7 +109,6 @@ namespace OpenSim.Grid.AssetServer
             return null;
         }
 
-
         public IAssetProvider LoadDatabasePlugin(string FileName)
         {
             MainLog.Instance.Verbose("ASSET SERVER", "LoadDatabasePlugin: Attempting to load " + FileName);
@@ -150,55 +149,12 @@ namespace OpenSim.Grid.AssetServer
                     MainLog.Instance.Error("ASSET", "Failed to load a database plugin, server halting");
                     Environment.Exit(-1);
                 }
-//                assetServer.LoadDefaultAssets();
-
-//                m_assetServer = assetServer;
             }
             catch (Exception e)
             {
                 MainLog.Instance.Warn("ASSET", "setupDB() - Exception occured");
                 MainLog.Instance.Warn("ASSET", e.ToString());
             }
-        }
-
-        public void LoadAsset(AssetBase info, bool image, string filename)
-        {
-            //should request Asset from storage manager
-            //but for now read from file
-
-            string dataPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "assets"); //+ folder;
-            string fileName = Path.Combine(dataPath, filename);
-            FileInfo fInfo = new FileInfo(fileName);
-            long numBytes = fInfo.Length;
-            FileStream fStream = new FileStream(fileName, FileMode.Open, FileAccess.Read);
-            byte[] idata = new byte[numBytes];
-            BinaryReader br = new BinaryReader(fStream);
-            idata = br.ReadBytes((int) numBytes);
-            br.Close();
-            fStream.Close();
-            info.Data = idata;
-            //info.loaded=true;
-        }
-
-        public AssetBase CreateAsset(string assetIdStr, string name, string filename, bool isImage)
-        {
-            AssetBase asset = new AssetBase(
-                new LLUUID(assetIdStr),
-                name
-                );
-
-            if (!String.IsNullOrEmpty(filename))
-            {
-                MainLog.Instance.Verbose("ASSETS", "Loading: [{0}][{1}]", name, filename);
-
-                LoadAsset(asset, isImage, filename);
-            }
-            else
-            {
-                MainLog.Instance.Verbose("ASSETS", "Instantiated: [{0}]", name);
-            }
-
-            return asset;
         }
 
         public void LoadDefaultAssets()
