@@ -749,7 +749,7 @@ namespace OpenSim.Region.Environment.Scenes
             {
                 if (PermissionsMngr.CanEditObject(remoteClient.AgentId, group.UUID))
                 {
-                    group.SetPartName(name, primLocalID);
+                    group.SetPartName(Util.CleanString(name), primLocalID);
                 }
             }
         }
@@ -766,7 +766,7 @@ namespace OpenSim.Region.Environment.Scenes
             {
                 if (PermissionsMngr.CanEditObject(remoteClient.AgentId, group.UUID))
                 {
-                    group.SetPartDescription(description.Replace("\0",""), primLocalID);
+                    group.SetPartDescription(Util.CleanString(description), primLocalID);
                 }
             }
         }
