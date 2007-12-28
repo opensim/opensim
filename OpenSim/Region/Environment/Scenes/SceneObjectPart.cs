@@ -1327,7 +1327,7 @@ namespace OpenSim.Region.Environment.Scenes
         /// <param name="textureEntry"></param>
         public void UpdateTextureEntry(byte[] textureEntry)
         {
-            m_shape.Textures = new LLObject.TextureEntry(textureEntry, 0, textureEntry.Length);
+            m_shape.TextureEntry = textureEntry;
             ScheduleFullUpdate();
         }
 

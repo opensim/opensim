@@ -677,26 +677,32 @@ namespace OpenSim.Region.Environment.Scenes
         /// </summary>
         public override void Update()
         {
+            List<SceneObjectPart> parts = new List<SceneObjectPart>(m_parts.Values);
+
             if (Util.GetDistanceTo(lastPhysGroupPos, AbsolutePosition) > 0.02)
             {
-                foreach (SceneObjectPart part in m_parts.Values)
+                foreach (SceneObjectPart part in parts)
                 {
                     if (part.UpdateFlag == 0) part.UpdateFlag = 1;
                 }
+
                 lastPhysGroupPos = AbsolutePosition;
             }
+
             if ((Math.Abs(lastPhysGroupRot.W - GroupRotation.W) > 0.1)
                 || (Math.Abs(lastPhysGroupRot.X - GroupRotation.X) > 0.1)
                 || (Math.Abs(lastPhysGroupRot.Y - GroupRotation.Y) > 0.1)
                 || (Math.Abs(lastPhysGroupRot.Z - GroupRotation.Z) > 0.1))
             {
-                foreach (SceneObjectPart part in m_parts.Values)
+                foreach (SceneObjectPart part in parts)
                 {
                     if (part.UpdateFlag == 0) part.UpdateFlag = 1;
                 }
+
                 lastPhysGroupRot = GroupRotation;
             }
-            foreach (SceneObjectPart part in m_parts.Values)
+
+            foreach (SceneObjectPart part in parts)
             {
                 part.SendScheduledUpdates();
             }
