@@ -64,7 +64,7 @@ namespace OpenSim.Framework.Communications.Cache
 
             CreateLibraryItems();
 
-            string filePath = Path.Combine(Util.configDir(), "OpenSimLibrary.xml");
+            string filePath = Path.Combine(Util.configDir(), "inventory/OpenSimLibrary.xml");
             if (File.Exists(filePath))
             {
                 try
@@ -74,7 +74,7 @@ namespace OpenSim.Framework.Communications.Cache
                 }
                 catch (XmlException e)
                 {
-                    MainLog.Instance.Error("INVENTORY", "Error loading " + filePath + ": " + e.ToString());
+                    MainLog.Instance.Error("AGENTINVENTORY", "Error loading " + filePath + ": " + e.ToString());
                 }
             }
         }
