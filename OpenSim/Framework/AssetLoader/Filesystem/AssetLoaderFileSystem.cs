@@ -67,7 +67,7 @@ namespace OpenSim.Framework.AssetLoader.Filesystem
         
         protected void LoadAsset(AssetBase info, bool image, string filename)
         {
-            string dataPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "assets"); //+ folder;
+            string dataPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "assets/OpenSimAssetSet"); //+ folder;
             string fileName = Path.Combine(dataPath, filename);
             FileInfo fInfo = new FileInfo(fileName);
             long numBytes = fInfo.Length;
@@ -85,7 +85,7 @@ namespace OpenSim.Framework.AssetLoader.Filesystem
         {
             List<AssetBase> assets = new List<AssetBase>();
             // System.Console.WriteLine("trying loading asset into database");
-            string filePath = Path.Combine(Util.configDir(), "assets/OpenSimAssetSet.xml");
+            string filePath = Path.Combine(Util.configDir(), "assets/OpenSimAssetSet/OpenSimAssetSet.xml");
             if (File.Exists(filePath))
             {
                 try
