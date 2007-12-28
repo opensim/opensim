@@ -766,7 +766,7 @@ namespace OpenSim.Region.Environment.Scenes
             {
                 if (PermissionsMngr.CanEditObject(remoteClient.AgentId, group.UUID))
                 {
-                    group.SetPartDescription(description, primLocalID);
+                    group.SetPartDescription(description.Replace("\0",""), primLocalID);
                 }
             }
         }
