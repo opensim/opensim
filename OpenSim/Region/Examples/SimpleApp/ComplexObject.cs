@@ -43,7 +43,7 @@ namespace SimpleApp
             public RotatingWheel(ulong regionHandle, SceneObjectGroup parent, LLUUID ownerID, uint localID,
                                  LLVector3 groupPosition, LLVector3 offsetPosition, LLQuaternion rotationDirection)
                 : base(
-                    regionHandle, parent, ownerID, localID, new CylinderShape(0.5f, 0.2f), groupPosition, offsetPosition
+                    regionHandle, parent, ownerID, localID, PrimitiveBaseShape.CreateCylinder(0.5f, 0.2f), groupPosition, offsetPosition
                     )
             {
                 m_rotationDirection = rotationDirection;
@@ -64,7 +64,7 @@ namespace SimpleApp
 
 
         public ComplexObject(Scene scene, ulong regionHandle, LLUUID ownerID, uint localID, LLVector3 pos)
-            : base(scene, regionHandle, ownerID, localID, pos, BoxShape.Default)
+            : base(scene, regionHandle, ownerID, localID, pos, PrimitiveBaseShape.Default)
         {
             m_rotationDirection = new LLQuaternion(0.05f, 0.1f, 0.15f);
 

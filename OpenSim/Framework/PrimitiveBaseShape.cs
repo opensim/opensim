@@ -112,22 +112,22 @@ namespace OpenSim.Framework
 
         public ProfileShape ProfileShape
         {
-            get { return (ProfileShape) (ProfileCurve & 0xf); }
+            get { return (ProfileShape)(ProfileCurve & 0xf); }
             set
             {
-                byte oldValueMasked = (byte) (ProfileCurve & 0xf0);
-                ProfileCurve = (byte) (oldValueMasked | (byte) value);
+                byte oldValueMasked = (byte)(ProfileCurve & 0xf0);
+                ProfileCurve = (byte)(oldValueMasked | (byte)value);
             }
         }
 
         [XmlIgnore]
         public HollowShape HollowShape
         {
-            get { return (HollowShape) (ProfileCurve & 0xf0); }
+            get { return (HollowShape)(ProfileCurve & 0xf0); }
             set
             {
-                byte oldValueMasked = (byte) (ProfileCurve & 0x0f);
-                ProfileCurve = (byte) (oldValueMasked | (byte) value);
+                byte oldValueMasked = (byte)(ProfileCurve & 0x0f);
+                ProfileCurve = (byte)(oldValueMasked | (byte)value);
             }
         }
 
@@ -145,7 +145,7 @@ namespace OpenSim.Framework
 
         public PrimitiveBaseShape()
         {
-            PCode = (byte) PCodeEnum.Primitive;
+            PCode = (byte)PCodeEnum.Primitive;
             ExtraParams = new byte[1];
             Textures = m_defaultTexture;
         }
@@ -156,6 +156,58 @@ namespace OpenSim.Framework
             return shape;
         }
 
+        public static PrimitiveBaseShape CreateBox()
+        {
+            PrimitiveBaseShape shape = Create();
+
+            shape.PathCurve = (byte)Extrusion.Straight;
+            shape.ProfileShape = ProfileShape.Square;
+            shape.PathScaleX = 100;
+            shape.PathScaleY = 100;
+
+            return shape;
+        }
+
+        public static PrimitiveBaseShape CreateCylinder()
+        {
+            PrimitiveBaseShape shape = Create();
+
+            shape.PathCurve = (byte)Extrusion.Curve1;
+            shape.ProfileShape = ProfileShape.Square;
+
+            shape.PathScaleX = 100;
+            shape.PathScaleY = 100;
+
+            return shape;
+        }
+
+        public static PrimitiveBaseShape Default
+        {
+            get
+            {
+                PrimitiveBaseShape boxShape = CreateBox();
+
+                boxShape.SetScale(0.5f);
+
+                return boxShape;
+            }
+        }
+
+        public void SetScale(float side)
+        {
+            Scale = new LLVector3(side, side, side);
+        }
+
+        public void SetHeigth(float heigth)
+        {
+            Scale.Z = heigth;
+        }
+
+        public void SetRadius(float radius)
+        {
+            Scale.X = Scale.Y = radius * 2f;
+        }
+
         //void returns need to change of course
         public virtual void GetMesh()
         {
@@ -163,79 +215,17 @@ namespace OpenSim.Framework
 
         public PrimitiveBaseShape Copy()
         {
-            return (PrimitiveBaseShape) MemberwiseClone();
-        }
-    }
-
-    public class GenericShape : PrimitiveBaseShape
-    {
-        public GenericShape()
-            : base()
-        {
-        }
-    }
-
-    public class BoxShape : PrimitiveBaseShape
-    {
-        public BoxShape()
-            : base()
-        {
-            PathCurve = (byte) Extrusion.Straight;
-            ProfileShape = ProfileShape.Square;
-            PathScaleX = 100;
-            PathScaleY = 100;
+            return (PrimitiveBaseShape)MemberwiseClone();
         }
 
-        public BoxShape(float side)
-            : this()
+        public static PrimitiveBaseShape CreateCylinder(float radius, float heigth)
         {
-            SetSide(side);
-        }
+            PrimitiveBaseShape shape = CreateCylinder( );
 
-        public void SetSide(float side)
-        {
-            Scale = new LLVector3(side, side, side);
-        }
+            shape.SetHeigth( heigth );
+            shape.SetRadius( radius );
 
-        public static BoxShape Default
-        {
-            get
-            {
-                BoxShape boxShape = new BoxShape();
-
-                boxShape.SetSide(0.5f);
-
-                return boxShape;
-            }
-        }
-    }
-
-    public class CylinderShape : PrimitiveBaseShape
-    {
-        public CylinderShape()
-            : base()
-        {
-            PathCurve = (byte) Extrusion.Straight;
-            ProfileShape = ProfileShape.Circle;
-            PathScaleX = 100;
-            PathScaleY = 100;
-        }
-
-        public CylinderShape(float radius, float heigth)
-            : this()
-        {
-            SetRadius(radius);
-            SetHeigth(heigth);
-        }
-
-        private void SetHeigth(float heigth)
-        {
-            Scale.Z = heigth;
-        }
-
-        private void SetRadius(float radius)
-        {
-            Scale.X = Scale.Y = radius*2f;
+            return shape;
         }
     }
 }

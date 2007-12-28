@@ -203,7 +203,7 @@ namespace OpenSim.Framework.Data.MySQL
                             {
                                 MainLog.Instance.Notice(
                                     "No shape found for prim in storage, so setting default box shape");
-                                prim.Shape = BoxShape.Default;
+                                prim.Shape = PrimitiveBaseShape.Default;
                             }
                             group.AddPart(prim);
                             group.RootPart = prim;
@@ -223,7 +223,7 @@ namespace OpenSim.Framework.Data.MySQL
                             {
                                 MainLog.Instance.Notice(
                                     "No shape found for prim in storage, so setting default box shape");
-                                prim.Shape = BoxShape.Default;
+                                prim.Shape = PrimitiveBaseShape.Default;
                             }
                             createdObjects[new LLUUID(objID)].AddPart(prim);
                         }
