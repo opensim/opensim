@@ -931,6 +931,7 @@ namespace OpenSim.Region.Environment.Scenes
             if (RayEndIsIntersection == (byte)1)
             {
                 pos = RayEnd;
+                pos.Z += 0.25F;
                 return pos;
             }
             if (RayTargetID != LLUUID.Zero)
@@ -986,13 +987,14 @@ namespace OpenSim.Region.Environment.Scenes
 
 
 
-
+                    pos.Z += 0.25F;
                     return pos;
                 }
                 else
                 {
                     // fall back to our stupid functionality
                     pos = RayEnd;
+                    pos.Z += 0.25F;
                     return pos;
                 }
             }
@@ -1000,6 +1002,7 @@ namespace OpenSim.Region.Environment.Scenes
             {
                 // fall back to our stupid functionality
                 pos = RayEnd;
+                pos.Z += 0.25F;
                 return pos;
             }
                 
@@ -1018,7 +1021,7 @@ namespace OpenSim.Region.Environment.Scenes
             if (PermissionsMngr.CanRezObject(ownerID, pos))
             {
                 // rez ON the ground, not IN the ground
-                    pos.Z += 0.25F;
+                    
 
 
                 AddNewPrim(ownerID, pos, rot, shape);

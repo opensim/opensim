@@ -699,8 +699,23 @@ namespace OpenSim.Region.Environment.Scenes
             group.DeleteParts();
         }
 
-        public virtual void RezObject(IClientAPI remoteClient, LLUUID itemID, LLVector3 pos)
+        public virtual void RezObject(IClientAPI remoteClient, LLUUID itemID, LLVector3 RayEnd, LLVector3 RayStart,
+                                    LLUUID RayTargetID, byte BypassRayCast, bool RayEndIsIntersection,
+                                    uint EveryoneMask, uint GroupMask, uint NextOwnerMask, uint ItemFlags,
+                                    bool RezSelected, bool RemoveItem, LLUUID fromTaskID)
         {
+            byte bRayEndIsIntersection = (byte)0;
+
+            if (RayEndIsIntersection)
+            {
+                bRayEndIsIntersection = (byte)1;
+            }
+            else
+            {
+                bRayEndIsIntersection = (byte)0;
+            }
+
+            LLVector3 pos = GetNewRezLocation(RayStart, RayEnd, RayTargetID, new LLQuaternion(0, 0, 0, 1), BypassRayCast, bRayEndIsIntersection);
             CachedUserInfo userInfo = CommsManager.UserProfileCacheService.GetUserDetails(remoteClient.AgentId);
             if (userInfo != null)
             {

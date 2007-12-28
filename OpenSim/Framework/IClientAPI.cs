@@ -226,7 +226,23 @@ namespace OpenSim.Framework
     public delegate void ImprovedInstantMessage(
         LLUUID fromAgentID, LLUUID fromAgentSession, LLUUID toAgentID, LLUUID imSessionID, uint timestamp,
         string fromAgentName, string message, byte dialog); // Cut down from full list
-    public delegate void RezObject(IClientAPI remoteClient, LLUUID itemID, LLVector3 pos);
+
+    //rezPacket.RezData.BypassRaycast;
+    //rezPacket.RezData.RayEnd;
+    //rezPacket.RezData.RayEndIsIntersection;
+    //rezPacket.RezData.RayStart;
+    //rezPacket.RezData.RayTargetID;
+    //rezPacket.RezData.RemoveItem;
+    //rezPacket.RezData.RezSelected;
+    //rezPacket.RezData.FromTaskID;
+    //rezPacket.RezData.FromTaskID;
+    //rezPacket.RezData.EveryoneMask;
+    //rezPacket.RezData.GroupMask;
+    //rezPacket.RezData.NextOwnerMask;
+    public delegate void RezObject(IClientAPI remoteClient, LLUUID itemID, LLVector3 RayEnd, LLVector3 RayStart,
+                                    LLUUID RayTargetID, byte BypassRayCast, bool RayEndIsIntersection, 
+                                    uint EveryoneMask, uint GroupMask, uint NextOwnerMask, uint ItemFlags, 
+                                    bool RezSelected, bool RemoveItem, LLUUID fromTaskID );
 
     public delegate void ModifyTerrain(
         float height, float seconds, byte size, byte action, float north, float west, float south, float east,

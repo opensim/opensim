@@ -2560,8 +2560,19 @@ namespace OpenSim.Region.ClientStack
                             //rezPacket.RezData.RemoveItem;
                             //rezPacket.RezData.RezSelected;
                             //rezPacket.RezData.FromTaskID;
+                            //rezPacket.RezData.FromTaskID;
+                            //rezPacket.RezData.EveryoneMask;
+                            //rezPacket.RezData.GroupMask;
+                            //rezPacket.RezData.NextOwnerMask;
+                            
                             //MainLog.Instance.Verbose("REZData", rezPacket.ToString());
-                            OnRezObject(this, rezPacket.InventoryData.ItemID, rezPacket.RezData.RayEnd);
+                            OnRezObject(this, rezPacket.InventoryData.ItemID, rezPacket.RezData.RayEnd, 
+                                        rezPacket.RezData.RayStart,rezPacket.RezData.RayTargetID,
+                                        rezPacket.RezData.BypassRaycast,rezPacket.RezData.RayEndIsIntersection,
+                                        rezPacket.RezData.EveryoneMask,rezPacket.RezData.GroupMask,
+                                        rezPacket.RezData.NextOwnerMask,rezPacket.RezData.ItemFlags,
+                                        rezPacket.RezData.RezSelected,rezPacket.RezData.RemoveItem,
+                                        rezPacket.RezData.FromTaskID);
                         }
                         break;
                     case PacketType.DeRezObject:
@@ -2740,12 +2751,6 @@ namespace OpenSim.Region.ClientStack
                         {
                             ObjectAddPacket addPacket = (ObjectAddPacket) Pack;
                             PrimitiveBaseShape shape = GetShapeFromAddPacket(addPacket);
-                            MainLog.Instance.Verbose("REZData", addPacket.ToString());
-                            //BypassRaycast: 1
-                            //RayStart: <69.79469, 158.2652, 98.40343>
-                            //RayEnd: <61.97724, 141.995, 92.58341>   
-                            //RayTargetID: 00000000-0000-0000-0000-000000000000
-
                             OnAddPrim(AgentId, addPacket.ObjectData.RayEnd, addPacket.ObjectData.Rotation, shape,addPacket.ObjectData.BypassRaycast,addPacket.ObjectData.RayStart,addPacket.ObjectData.RayTargetID,addPacket.ObjectData.RayEndIsIntersection);
                         }
                         break;
