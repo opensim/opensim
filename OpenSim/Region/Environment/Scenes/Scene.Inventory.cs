@@ -716,6 +716,11 @@ namespace OpenSim.Region.Environment.Scenes
             }
 
             LLVector3 pos = GetNewRezLocation(RayStart, RayEnd, RayTargetID, new LLQuaternion(0, 0, 0, 1), BypassRayCast, bRayEndIsIntersection);
+            RezObject(remoteClient, itemID, pos);
+        }
+
+        public virtual void RezObject(IClientAPI remoteClient, LLUUID itemID, LLVector3 pos)
+        {
             CachedUserInfo userInfo = CommsManager.UserProfileCacheService.GetUserDetails(remoteClient.AgentId);
             if (userInfo != null)
             {
