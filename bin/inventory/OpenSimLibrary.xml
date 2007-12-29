@@ -1,7 +1,10 @@
 <Nini>
+  <!-- the root Opensim Library folder ID is 00000112-000f-0000-0000-000100bba000 -->
+
   <Section Name="Welcome notecard">
     <Key Name="inventoryID" Value="00000000-0000-2222-4444-000000000001" />
     <Key Name="assetID" Value="00000000-0000-2222-3333-000000000001" />
+    <Key Name="folderID" Value="00000112-000f-0000-0000-000100bba000"/>
     <Key Name="description" Value="Welcome" />
     <Key Name="name" Value="Welcome" />
     <Key Name="assetType" Value="7" />
@@ -14,6 +17,7 @@
   <Section Name="4-tile2 Texture">
     <Key Name="inventoryID" Value="00000000-0000-2222-4444-100000001000" />
     <Key Name="assetID" Value="00000000-0000-2222-3333-100000001000" />
+    <Key Name="folderID" Value="00000112-000f-0000-0000-000100bba001"/>
     <Key Name="description" Value="4-tile2 texture" />
     <Key Name="name" Value="4-tile2" />
     <Key Name="assetType" Value="0" />
@@ -26,6 +30,7 @@
   <Section Name="4-tile3 Texture">
     <Key Name="inventoryID" Value="00000000-0000-2222-4444-100000001001" />
     <Key Name="assetID" Value="00000000-0000-2222-3333-100000001001" />
+    <Key Name="folderID" Value="00000112-000f-0000-0000-000100bba001"/>
     <Key Name="description" Value="4-tile3 texture" />
     <Key Name="name" Value="4-tile3" />
     <Key Name="assetType" Value="0" />
@@ -38,6 +43,7 @@
   <Section Name="brick1_256 Texture">
     <Key Name="inventoryID" Value="00000000-0000-2222-4444-100000001002" />
     <Key Name="assetID" Value="00000000-0000-2222-3333-100000001002" />
+    <Key Name="folderID" Value="00000112-000f-0000-0000-000100bba001"/>
     <Key Name="description" Value="brick1_256 texture" />
     <Key Name="name" Value="brick1_256" />
     <Key Name="assetType" Value="0" />
@@ -50,6 +56,7 @@
   <Section Name="brick2_256 Texture">
     <Key Name="inventoryID" Value="00000000-0000-2222-4444-100000001003" />
     <Key Name="assetID" Value="00000000-0000-2222-3333-100000001003" />
+    <Key Name="folderID" Value="00000112-000f-0000-0000-000100bba001"/>
     <Key Name="description" Value="brick2_256 texture" />
     <Key Name="name" Value="brick2_256" />
     <Key Name="assetType" Value="0" />
@@ -62,6 +69,7 @@
   <Section Name="brick_mono Texture">
     <Key Name="inventoryID" Value="00000000-0000-2222-4444-100000001004" />
     <Key Name="assetID" Value="00000000-0000-2222-3333-100000001004" />
+    <Key Name="folderID" Value="00000112-000f-0000-0000-000100bba001"/>
     <Key Name="description" Value="brick_mono texture" />
     <Key Name="name" Value="brick_mono" />
     <Key Name="assetType" Value="0" />
@@ -74,6 +82,7 @@
   <Section Name="cedar Texture">
     <Key Name="inventoryID" Value="00000000-0000-2222-4444-100000001005" />
     <Key Name="assetID" Value="00000000-0000-2222-3333-100000001005" />
+    <Key Name="folderID" Value="00000112-000f-0000-0000-000100bba001"/>
     <Key Name="description" Value="cedar texture" />
     <Key Name="name" Value="cedar" />
     <Key Name="assetType" Value="0" />
@@ -86,6 +95,7 @@
   <Section Name="cement_block Texture">
     <Key Name="inventoryID" Value="00000000-0000-2222-4444-100000001006" />
     <Key Name="assetID" Value="00000000-0000-2222-3333-100000001006" />
+    <Key Name="folderID" Value="00000112-000f-0000-0000-000100bba001"/>
     <Key Name="description" Value="cement_block texture" />
     <Key Name="name" Value="cement_block" />
     <Key Name="assetType" Value="0" />
@@ -98,6 +108,7 @@
   <Section Name="clear Texture">
     <Key Name="inventoryID" Value="00000000-0000-2222-4444-100000001007" />
     <Key Name="assetID" Value="00000000-0000-2222-3333-100000001007" />
+    <Key Name="folderID" Value="00000112-000f-0000-0000-000100bba001"/>
     <Key Name="description" Value="clear texture" />
     <Key Name="name" Value="clear" />
     <Key Name="assetType" Value="0" />
@@ -110,6 +121,7 @@
   <Section Name="cobbles Texture">
     <Key Name="inventoryID" Value="00000000-0000-2222-4444-100000001008" />
     <Key Name="assetID" Value="00000000-0000-2222-3333-100000001008" />
+    <Key Name="folderID" Value="00000112-000f-0000-0000-000100bba001"/>
     <Key Name="description" Value="cobbles texture" />
     <Key Name="name" Value="cobbles" />
     <Key Name="assetType" Value="0" />
@@ -122,6 +134,7 @@
   <Section Name="creambrick Texture">
     <Key Name="inventoryID" Value="00000000-0000-2222-4444-100000001009" />
     <Key Name="assetID" Value="00000000-0000-2222-3333-100000001009" />
+    <Key Name="folderID" Value="00000112-000f-0000-0000-000100bba001"/>
     <Key Name="description" Value="creambrick texture" />
     <Key Name="name" Value="creambrick" />
     <Key Name="assetType" Value="0" />
@@ -134,6 +147,7 @@
   <Section Name="fgrass Texture">
     <Key Name="inventoryID" Value="00000000-0000-2222-4444-100000001010" />
     <Key Name="assetID" Value="00000000-0000-2222-3333-100000001010" />
+    <Key Name="folderID" Value="00000112-000f-0000-0000-000100bba001"/>
     <Key Name="description" Value="fgrass texture" />
     <Key Name="name" Value="fgrass" />
     <Key Name="assetType" Value="0" />
@@ -146,6 +160,7 @@
   <Section Name="glasstile2 Texture">
     <Key Name="inventoryID" Value="00000000-0000-2222-4444-100000001011" />
     <Key Name="assetID" Value="00000000-0000-2222-3333-100000001011" />
+    <Key Name="folderID" Value="00000112-000f-0000-0000-000100bba001"/>
     <Key Name="description" Value="glasstile2 texture" />
     <Key Name="name" Value="glasstile2" />
     <Key Name="assetType" Value="0" />
@@ -158,6 +173,7 @@
   <Section Name="graniteblock Texture">
     <Key Name="inventoryID" Value="00000000-0000-2222-4444-100000001012" />
     <Key Name="assetID" Value="00000000-0000-2222-3333-100000001012" />
+    <Key Name="folderID" Value="00000112-000f-0000-0000-000100bba001"/>
     <Key Name="description" Value="graniteblock texture" />
     <Key Name="name" Value="graniteblock" />
     <Key Name="assetType" Value="0" />
@@ -170,6 +186,7 @@
   <Section Name="grass Texture">
     <Key Name="inventoryID" Value="00000000-0000-2222-4444-100000001013" />
     <Key Name="assetID" Value="00000000-0000-2222-3333-100000001013" />
+    <Key Name="folderID" Value="00000112-000f-0000-0000-000100bba001"/>
     <Key Name="description" Value="grass texture" />
     <Key Name="name" Value="grass" />
     <Key Name="assetType" Value="0" />
@@ -182,6 +199,7 @@
   <Section Name="gravel Texture">
     <Key Name="inventoryID" Value="00000000-0000-2222-4444-100000001014" />
     <Key Name="assetID" Value="00000000-0000-2222-3333-100000001014" />
+    <Key Name="folderID" Value="00000112-000f-0000-0000-000100bba001"/>
     <Key Name="description" Value="gravel texture" />
     <Key Name="name" Value="gravel" />
     <Key Name="assetType" Value="0" />
@@ -194,6 +212,7 @@
   <Section Name="greybrick Texture">
     <Key Name="inventoryID" Value="00000000-0000-2222-4444-100000001015" />
     <Key Name="assetID" Value="00000000-0000-2222-3333-100000001015" />
+    <Key Name="folderID" Value="00000112-000f-0000-0000-000100bba001"/>
     <Key Name="description" Value="greybrick texture" />
     <Key Name="name" Value="greybrick" />
     <Key Name="assetType" Value="0" />
@@ -206,6 +225,7 @@
   <Section Name="ivy Texture">
     <Key Name="inventoryID" Value="00000000-0000-2222-4444-100000001016" />
     <Key Name="assetID" Value="00000000-0000-2222-3333-100000001016" />
+    <Key Name="folderID" Value="00000112-000f-0000-0000-000100bba001"/>
     <Key Name="description" Value="ivy texture" />
     <Key Name="name" Value="ivy" />
     <Key Name="assetType" Value="0" />
@@ -218,6 +238,7 @@
   <Section Name="mahogany Texture">
     <Key Name="inventoryID" Value="00000000-0000-2222-4444-100000001017" />
     <Key Name="assetID" Value="00000000-0000-2222-3333-100000001017" />
+    <Key Name="folderID" Value="00000112-000f-0000-0000-000100bba001"/>
     <Key Name="description" Value="mahogany texture" />
     <Key Name="name" Value="mahogany" />
     <Key Name="assetType" Value="0" />
@@ -230,6 +251,7 @@
   <Section Name="maple Texture">
     <Key Name="inventoryID" Value="00000000-0000-2222-4444-100000001018" />
     <Key Name="assetID" Value="00000000-0000-2222-3333-100000001018" />
+    <Key Name="folderID" Value="00000112-000f-0000-0000-000100bba001"/>
     <Key Name="description" Value="maple texture" />
     <Key Name="name" Value="maple" />
     <Key Name="assetType" Value="0" />
@@ -242,6 +264,7 @@
   <Section Name="mosaic02 Texture">
     <Key Name="inventoryID" Value="00000000-0000-2222-4444-100000001019" />
     <Key Name="assetID" Value="00000000-0000-2222-3333-100000001019" />
+    <Key Name="folderID" Value="00000112-000f-0000-0000-000100bba001"/>
     <Key Name="description" Value="mosaic02 texture" />
     <Key Name="name" Value="mosaic02" />
     <Key Name="assetType" Value="0" />
@@ -254,6 +277,7 @@
   <Section Name="palm1 Texture">
     <Key Name="inventoryID" Value="00000000-0000-2222-4444-100000001020" />
     <Key Name="assetID" Value="00000000-0000-2222-3333-100000001020" />
+    <Key Name="folderID" Value="00000112-000f-0000-0000-000100bba001"/>
     <Key Name="description" Value="palm1 texture" />
     <Key Name="name" Value="palm1" />
     <Key Name="assetType" Value="0" />
@@ -266,6 +290,7 @@
   <Section Name="papaya Texture">
     <Key Name="inventoryID" Value="00000000-0000-2222-4444-100000001021" />
     <Key Name="assetID" Value="00000000-0000-2222-3333-100000001021" />
+    <Key Name="folderID" Value="00000112-000f-0000-0000-000100bba001"/>
     <Key Name="description" Value="papaya texture" />
     <Key Name="name" Value="papaya" />
     <Key Name="assetType" Value="0" />
@@ -278,6 +303,7 @@
   <Section Name="papaya_bark Texture">
     <Key Name="inventoryID" Value="00000000-0000-2222-4444-100000001022" />
     <Key Name="assetID" Value="00000000-0000-2222-3333-100000001022" />
+    <Key Name="folderID" Value="00000112-000f-0000-0000-000100bba001"/>
     <Key Name="description" Value="papaya_bark texture" />
     <Key Name="name" Value="papaya_bark" />
     <Key Name="assetType" Value="0" />
@@ -290,6 +316,7 @@
   <Section Name="pastelbrick Texture">
     <Key Name="inventoryID" Value="00000000-0000-2222-4444-100000001023" />
     <Key Name="assetID" Value="00000000-0000-2222-3333-100000001023" />
+    <Key Name="folderID" Value="00000112-000f-0000-0000-000100bba001"/>
     <Key Name="description" Value="pastelbrick texture" />
     <Key Name="name" Value="pastelbrick" />
     <Key Name="assetType" Value="0" />
@@ -302,6 +329,7 @@
   <Section Name="pine1_10m Texture">
     <Key Name="inventoryID" Value="00000000-0000-2222-4444-100000001024" />
     <Key Name="assetID" Value="00000000-0000-2222-3333-100000001024" />
+    <Key Name="folderID" Value="00000112-000f-0000-0000-000100bba001"/>
     <Key Name="description" Value="pine1_10m texture" />
     <Key Name="name" Value="pine1_10m" />
     <Key Name="assetType" Value="0" />
@@ -314,6 +342,7 @@
   <Section Name="poplar Texture">
     <Key Name="inventoryID" Value="00000000-0000-2222-4444-100000001025" />
     <Key Name="assetID" Value="00000000-0000-2222-3333-100000001025" />
+    <Key Name="folderID" Value="00000112-000f-0000-0000-000100bba001"/>
     <Key Name="description" Value="poplar texture" />
     <Key Name="name" Value="poplar" />
     <Key Name="assetType" Value="0" />
@@ -326,6 +355,7 @@
   <Section Name="redtri_tile Texture">
     <Key Name="inventoryID" Value="00000000-0000-2222-4444-100000001026" />
     <Key Name="assetID" Value="00000000-0000-2222-3333-100000001026" />
+    <Key Name="folderID" Value="00000112-000f-0000-0000-000100bba001"/>
     <Key Name="description" Value="redtri_tile texture" />
     <Key Name="name" Value="redtri_tile" />
     <Key Name="assetType" Value="0" />
@@ -338,6 +368,7 @@
   <Section Name="rockbuilding Texture">
     <Key Name="inventoryID" Value="00000000-0000-2222-4444-100000001027" />
     <Key Name="assetID" Value="00000000-0000-2222-3333-100000001027" />
+    <Key Name="folderID" Value="00000112-000f-0000-0000-000100bba001"/>
     <Key Name="description" Value="rockbuilding texture" />
     <Key Name="name" Value="rockbuilding" />
     <Key Name="assetType" Value="0" />
@@ -350,6 +381,7 @@
   <Section Name="rockwallbig Texture">
     <Key Name="inventoryID" Value="00000000-0000-2222-4444-100000001028" />
     <Key Name="assetID" Value="00000000-0000-2222-3333-100000001028" />
+    <Key Name="folderID" Value="00000112-000f-0000-0000-000100bba001"/>
     <Key Name="description" Value="rockwallbig texture" />
     <Key Name="name" Value="rockwallbig" />
     <Key Name="assetType" Value="0" />
@@ -362,6 +394,7 @@
   <Section Name="roof01 Texture">
     <Key Name="inventoryID" Value="00000000-0000-2222-4444-100000001029" />
     <Key Name="assetID" Value="00000000-0000-2222-3333-100000001029" />
+    <Key Name="folderID" Value="00000112-000f-0000-0000-000100bba001"/>
     <Key Name="description" Value="roof01 texture" />
     <Key Name="name" Value="roof01" />
     <Key Name="assetType" Value="0" />
@@ -374,6 +407,7 @@
   <Section Name="rooftiles1 Texture">
     <Key Name="inventoryID" Value="00000000-0000-2222-4444-100000001030" />
     <Key Name="assetID" Value="00000000-0000-2222-3333-100000001030" />
+    <Key Name="folderID" Value="00000112-000f-0000-0000-000100bba001"/>
     <Key Name="description" Value="rooftiles1 texture" />
     <Key Name="name" Value="rooftiles1" />
     <Key Name="assetType" Value="0" />
@@ -386,6 +420,7 @@
   <Section Name="rooftiles2_peach Texture">
     <Key Name="inventoryID" Value="00000000-0000-2222-4444-100000001031" />
     <Key Name="assetID" Value="00000000-0000-2222-3333-100000001031" />
+    <Key Name="folderID" Value="00000112-000f-0000-0000-000100bba001"/>
     <Key Name="description" Value="rooftiles2_peach texture" />
     <Key Name="name" Value="rooftiles2_peach" />
     <Key Name="assetType" Value="0" />
@@ -398,6 +433,7 @@
   <Section Name="rooftiles2_roy Texture">
     <Key Name="inventoryID" Value="00000000-0000-2222-4444-100000001032" />
     <Key Name="assetID" Value="00000000-0000-2222-3333-100000001032" />
+    <Key Name="folderID" Value="00000112-000f-0000-0000-000100bba001"/>
     <Key Name="description" Value="rooftiles2_roy texture" />
     <Key Name="name" Value="rooftiles2_roy" />
     <Key Name="assetType" Value="0" />
@@ -410,6 +446,7 @@
   <Section Name="saguaro_8m Texture">
     <Key Name="inventoryID" Value="00000000-0000-2222-4444-100000001033" />
     <Key Name="assetID" Value="00000000-0000-2222-3333-100000001033" />
+    <Key Name="folderID" Value="00000112-000f-0000-0000-000100bba001"/>
     <Key Name="description" Value="saguaro_8m texture" />
     <Key Name="name" Value="saguaro_8m" />
     <Key Name="assetType" Value="0" />
@@ -422,6 +459,7 @@
   <Section Name="seawater Texture">
     <Key Name="inventoryID" Value="00000000-0000-2222-4444-100000001034" />
     <Key Name="assetID" Value="00000000-0000-2222-3333-100000001034" />
+    <Key Name="folderID" Value="00000112-000f-0000-0000-000100bba001"/>
     <Key Name="description" Value="seawater texture" />
     <Key Name="name" Value="seawater" />
     <Key Name="assetType" Value="0" />
@@ -434,6 +472,7 @@
   <Section Name="snow1 Texture">
     <Key Name="inventoryID" Value="00000000-0000-2222-4444-100000001035" />
     <Key Name="assetID" Value="00000000-0000-2222-3333-100000001035" />
+    <Key Name="folderID" Value="00000112-000f-0000-0000-000100bba001"/>
     <Key Name="description" Value="snow1 texture" />
     <Key Name="name" Value="snow1" />
     <Key Name="assetType" Value="0" />
@@ -446,6 +485,7 @@
   <Section Name="steel Texture">
     <Key Name="inventoryID" Value="00000000-0000-2222-4444-100000001036" />
     <Key Name="assetID" Value="00000000-0000-2222-3333-100000001036" />
+    <Key Name="folderID" Value="00000112-000f-0000-0000-000100bba001"/>
     <Key Name="description" Value="steel texture" />
     <Key Name="name" Value="steel" />
     <Key Name="assetType" Value="0" />
@@ -458,6 +498,7 @@
   <Section Name="stone1wall Texture">
     <Key Name="inventoryID" Value="00000000-0000-2222-4444-100000001037" />
     <Key Name="assetID" Value="00000000-0000-2222-3333-100000001037" />
+    <Key Name="folderID" Value="00000112-000f-0000-0000-000100bba001"/>
     <Key Name="description" Value="stone1wall texture" />
     <Key Name="name" Value="stone1wall" />
     <Key Name="assetType" Value="0" />
@@ -470,6 +511,7 @@
   <Section Name="stonetile Texture">
     <Key Name="inventoryID" Value="00000000-0000-2222-4444-100000001038" />
     <Key Name="assetID" Value="00000000-0000-2222-3333-100000001038" />
+    <Key Name="folderID" Value="00000112-000f-0000-0000-000100bba001"/>
     <Key Name="description" Value="stonetile texture" />
     <Key Name="name" Value="stonetile" />
     <Key Name="assetType" Value="0" />
@@ -482,6 +524,7 @@
   <Section Name="street2 Texture">
     <Key Name="inventoryID" Value="00000000-0000-2222-4444-100000001039" />
     <Key Name="assetID" Value="00000000-0000-2222-3333-100000001039" />
+    <Key Name="folderID" Value="00000112-000f-0000-0000-000100bba001"/>
     <Key Name="description" Value="street2 texture" />
     <Key Name="name" Value="street2" />
     <Key Name="assetType" Value="0" />
@@ -494,6 +537,7 @@
   <Section Name="thatch Texture">
     <Key Name="inventoryID" Value="00000000-0000-2222-4444-100000001040" />
     <Key Name="assetID" Value="00000000-0000-2222-3333-100000001040" />
+    <Key Name="folderID" Value="00000112-000f-0000-0000-000100bba001"/>
     <Key Name="description" Value="thatch texture" />
     <Key Name="name" Value="thatch" />
     <Key Name="assetType" Value="0" />
@@ -506,6 +550,7 @@
   <Section Name="water1 Texture">
     <Key Name="inventoryID" Value="00000000-0000-2222-4444-100000001041" />
     <Key Name="assetID" Value="00000000-0000-2222-3333-100000001041" />
+    <Key Name="folderID" Value="00000112-000f-0000-0000-000100bba001"/>
     <Key Name="description" Value="water1 texture" />
     <Key Name="name" Value="water1" />
     <Key Name="assetType" Value="0" />
@@ -518,6 +563,7 @@
   <Section Name="water3 Texture">
     <Key Name="inventoryID" Value="00000000-0000-2222-4444-100000001042" />
     <Key Name="assetID" Value="00000000-0000-2222-3333-100000001042" />
+    <Key Name="folderID" Value="00000112-000f-0000-0000-000100bba001"/>
     <Key Name="description" Value="water3 texture" />
     <Key Name="name" Value="water3" />
     <Key Name="assetType" Value="0" />
@@ -530,6 +576,7 @@
   <Section Name="wood1 Texture">
     <Key Name="inventoryID" Value="00000000-0000-2222-4444-100000001043" />
     <Key Name="assetID" Value="00000000-0000-2222-3333-100000001043" />
+    <Key Name="folderID" Value="00000112-000f-0000-0000-000100bba001"/>
     <Key Name="description" Value="wood1 texture" />
     <Key Name="name" Value="wood1" />
     <Key Name="assetType" Value="0" />
@@ -542,6 +589,7 @@
   <Section Name="bricks Texture">
     <Key Name="inventoryID" Value="00000000-0000-2222-9999-000000000001"/>
     <Key Name="assetID" Value="00000000-0000-1111-9999-000000000001"/>
+    <Key Name="folderID" Value="00000112-000f-0000-0000-000100bba001"/>
     <Key Name="description" Value="bricks texture" />
     <Key Name="name" Value="bricks" />
     <Key Name="assetType" Value="0" />
@@ -554,6 +602,7 @@
   <Section Name="granite Texture">
     <Key Name="inventoryID" Value="00000000-0000-2222-9999-000000000004"/>
     <Key Name="assetID" Value="00000000-0000-1111-9999-000000000004"/>
+    <Key Name="folderID" Value="00000112-000f-0000-0000-000100bba001"/>
     <Key Name="description" Value="granite texture" />
     <Key Name="name" Value="granite" />
     <Key Name="assetType" Value="0" />
@@ -566,6 +615,7 @@
   <Section Name="hardwood Texture">
     <Key Name="inventoryID" Value="00000000-0000-2222-9999-000000000005"/>
     <Key Name="assetID" Value="00000000-0000-1111-9999-000000000005"/>
+    <Key Name="folderID" Value="00000112-000f-0000-0000-000100bba001"/>
     <Key Name="description" Value="hardwood texture" />
     <Key Name="name" Value="hardwood" />
     <Key Name="assetType" Value="0" />
@@ -578,6 +628,7 @@
   <Section Name="plywood Texture">
     <Key Name="inventoryID" Value="00000000-0000-2222-9999-000000000002"/>
     <Key Name="assetID" Value="89556747-24cb-43ed-920b-47caed15465f"/>
+    <Key Name="folderID" Value="00000112-000f-0000-0000-000100bba001"/>
     <Key Name="description" Value="plywood texture" />
     <Key Name="name" Value="plywood" />
     <Key Name="assetType" Value="0" />
@@ -590,6 +641,7 @@
   <Section Name="rocks Texture">
     <Key Name="inventoryID" Value="00000000-0000-2222-9999-000000000003"/>
     <Key Name="assetID" Value="00000000-0000-1111-9999-000000000003"/>
+    <Key Name="folderID" Value="00000112-000f-0000-0000-000100bba001"/>
     <Key Name="description" Value="rocks texture" />
     <Key Name="name" Value="rocks" />
     <Key Name="assetType" Value="0" />

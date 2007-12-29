@@ -142,8 +142,10 @@ namespace OpenSim.Framework.Communications.Cache
                 item.avatarID = libOwner;
                 item.creatorsID = libOwner;
                 item.inventoryID =
-                    new LLUUID(source.Configs[i].GetString("inventoryID", LLUUID.Random().ToString()));
+                    new LLUUID(source.Configs[i].GetString("inventoryID", folderID.ToString()));
                 item.assetID = new LLUUID(source.Configs[i].GetString("assetID", LLUUID.Random().ToString()));
+                item.parentFolderID 
+                    = new LLUUID(source.Configs[i].GetString("folderID", LLUUID.Random().ToString()));
                 item.inventoryDescription = source.Configs[i].GetString("description", "");
                 item.inventoryName = source.Configs[i].GetString("name", "");
                 item.assetType = source.Configs[i].GetInt("assetType", 0);
@@ -152,16 +154,19 @@ namespace OpenSim.Framework.Communications.Cache
                 item.inventoryNextPermissions = (uint) source.Configs[i].GetLong("nextPermissions", 0x7FFFFFFF);
                 item.inventoryEveryOnePermissions = (uint) source.Configs[i].GetLong("everyonePermissions", 0x7FFFFFFF);
                 item.inventoryBasePermissions = (uint) source.Configs[i].GetLong("basePermissions", 0x7FFFFFFF);
-                if (item.assetType == 0)
+                
+                if (item.parentFolderID == folderID)
                 {
-                    item.parentFolderID = m_textureFolder.folderID;
-                    m_textureFolder.Items.Add(item.inventoryID, item);
+                    Items.Add(item.inventoryID, item);
                 }
                 else
                 {
-                    item.parentFolderID = folderID;
-                    Items.Add(item.inventoryID, item);
-                }
+                    // Very temporary - will only work for immediate child folders
+                    if (SubFolders.ContainsKey(item.parentFolderID))
+                    {
+                        SubFolders[item.parentFolderID].Items.Add(item.inventoryID, item);
+                    }
+                }              
             }
         }
     }
