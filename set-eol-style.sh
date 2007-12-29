@@ -11,7 +11,7 @@ set_eol_style()
     done
 }
 
-EXTENSIONS="cs ini example txt sql"
+EXTENSIONS="cs ini example txt sql xml"
 
 for ext in ${EXTENSIONS}; do
     set_eol_style $ext
