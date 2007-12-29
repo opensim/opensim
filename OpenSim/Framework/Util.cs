@@ -318,6 +318,11 @@ namespace OpenSim.Framework
             temp = ".";
             return temp;
         }
+        
+        public static string assetsDir()
+        {
+            return "assets";
+        }
 
         public static string configDir()
         {

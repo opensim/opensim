@@ -44,18 +44,18 @@ namespace OpenSim.Framework.AssetLoader.Filesystem
 { 
     public class AssetLoaderFileSystem : IAssetLoader
     {
-        protected AssetBase CreateAsset(string assetIdStr, string name, string filename, bool isImage)
+        protected AssetBase CreateAsset(string assetIdStr, string name, string path, bool isImage)
         {
             AssetBase asset = new AssetBase(
                 new LLUUID(assetIdStr),
                 name
                 );
 
-            if (!String.IsNullOrEmpty(filename))
+            if (!String.IsNullOrEmpty(path))
             {
-                MainLog.Instance.Verbose("ASSETS", "Loading: [{0}][{1}]", name, filename);
+                MainLog.Instance.Verbose("ASSETS", "Loading: [{0}][{1}]", name, path);
 
-                LoadAsset(asset, isImage, filename);
+                LoadAsset(asset, isImage, path);
             }
             else
             {
@@ -65,13 +65,11 @@ namespace OpenSim.Framework.AssetLoader.Filesystem
             return asset;
         }
         
-        protected void LoadAsset(AssetBase info, bool image, string filename)
+        protected void LoadAsset(AssetBase info, bool image, string path)
         {
-            string dataPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "assets/OpenSimAssetSet"); //+ folder;
-            string fileName = Path.Combine(dataPath, filename);
-            FileInfo fInfo = new FileInfo(fileName);
+            FileInfo fInfo = new FileInfo(path);
             long numBytes = fInfo.Length;
-            FileStream fStream = new FileStream(fileName, FileMode.Open, FileAccess.Read);
+            FileStream fStream = new FileStream(path, FileMode.Open, FileAccess.Read);
             byte[] idata = new byte[numBytes];
             BinaryReader br = new BinaryReader(fStream);
             idata = br.ReadBytes((int) numBytes);
@@ -83,25 +81,64 @@ namespace OpenSim.Framework.AssetLoader.Filesystem
         
         public void ForEachXmlAsset(Action<AssetBase> action)
         {
-            List<AssetBase> assets = new List<AssetBase>();
-            // System.Console.WriteLine("trying loading asset into database");
-            string filePath = Path.Combine(Util.configDir(), "assets/OpenSimAssetSet/OpenSimAssetSet.xml");
-            if (File.Exists(filePath))
+            List<AssetBase> assets = new List<AssetBase>();            
+            string assetSetsPath = Path.Combine(Util.assetsDir(), "AssetSets.xml");
+            
+            if (File.Exists(assetSetsPath))
+            {
+                string assetSetPath = "ERROR";
+                
+                try
+                {
+                    XmlConfigSource source = new XmlConfigSource(assetSetsPath);
+                    
+                    for (int i = 0; i < source.Configs.Count; i++)
+                    {
+                        assetSetPath = source.Configs[i].GetString("file", "");
+                        
+                        LoadXmlAssetSet(Path.Combine(Util.assetsDir(), assetSetPath), assets);
+                    }
+                }
+                catch (XmlException e)
+                {
+                    MainLog.Instance.Error("ASSETS", "Error loading {0} : {1}", assetSetPath, e);
+                }                
+            }
+            else
+            {
+                MainLog.Instance.Error(
+                    "ASSETS", 
+                    "Asset set control file assets/AssetSets.xml does not exist!  No assets loaded.");
+            }
+                                        
+            assets.ForEach(action);                
+        }
+        
+        /// <summary>
+        /// Use the asset set information at path to load assets
+        /// </summary>
+        /// <param name="path"></param>
+        /// <param name="assets"></param>
+        protected void LoadXmlAssetSet(string assetSetPath, List<AssetBase> assets)
+        {
+            MainLog.Instance.Verbose("ASSETS", "Loading asset set {0}", assetSetPath);
+            
+            if (File.Exists(assetSetPath))
             {
                 try
                 {
-                    XmlConfigSource source = new XmlConfigSource(filePath);
+                    XmlConfigSource source = new XmlConfigSource(assetSetPath);
+                    String dir = Path.GetDirectoryName(assetSetPath);
 
                     for (int i = 0; i < source.Configs.Count; i++)
                     {
-                        // System.Console.WriteLine("loading asset into database");
                         string assetIdStr = source.Configs[i].GetString("assetID", LLUUID.Random().ToString());
                         string name = source.Configs[i].GetString("name", "");
                         sbyte type = (sbyte) source.Configs[i].GetInt("assetType", 0);
                         sbyte invType = (sbyte) source.Configs[i].GetInt("inventoryType", 0);
-                        string fileName = source.Configs[i].GetString("fileName", "");
+                        string assetPath = Path.Combine(dir, source.Configs[i].GetString("fileName", ""));
 
-                        AssetBase newAsset = CreateAsset(assetIdStr, name, fileName, false);
+                        AssetBase newAsset = CreateAsset(assetIdStr, name, assetPath, false);
 
                         newAsset.Type = type;
                         newAsset.InvType = invType;
@@ -110,10 +147,13 @@ namespace OpenSim.Framework.AssetLoader.Filesystem
                 }
                 catch (XmlException e)
                 {
-                    MainLog.Instance.Error("ASSETS", "Error loading " + filePath + ": " + e.ToString());
+                    MainLog.Instance.Error("ASSETS", "Error loading {0} : {1}", assetSetPath, e);
                 }
             }
-            assets.ForEach(action);
+            else
+            {
+                MainLog.Instance.Error("ASSETS", "Asset set file {0} does not exist!", assetSetPath);
+            }
         }        
     }
 }

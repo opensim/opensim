@@ -1,0 +1,13 @@
+<Nini>
+  <!-- You probably don't want to remove the OpenSim asset set
+       since it contains various default assets which are currently hardcoded -->
+  <Section Name="OpenSim Asset Set">
+    <Key Name="file" Value="OpenSimAssetSet/OpenSimAssetSet.xml"/>
+  </Section>
+  <!-- New asset sets can be added as shown below -->
+  <!--
+  <Section Name="My Asset Set">
+    <Key Name="file" Value="MyAssetSet/MyAssetSet.xml"/>
+  </Section>
+  -->
+</Nini>
