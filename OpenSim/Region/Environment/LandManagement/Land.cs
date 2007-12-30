@@ -111,7 +111,7 @@ namespace OpenSim.Region.Environment.LandManagement
         public void sendLandProperties(int sequence_id, bool snap_selection, int request_result,
                                        IClientAPI remote_client)
         {
-            ParcelPropertiesPacket updatePacket = (ParcelPropertiesPacket) PacketPool.Instance.GetPacket(PacketType.ParcelProperties);
+            ParcelPropertiesPacket updatePacket = new ParcelPropertiesPacket();
             // TODO: don't create new blocks if recycling an old packet
  
             updatePacket.ParcelData.AABBMax = landData.AABBMax;
@@ -337,7 +337,7 @@ namespace OpenSim.Region.Environment.LandManagement
 
             if (flags == (uint) ParcelManager.AccessList.Access || flags == (uint) ParcelManager.AccessList.Both)
             {
-                replyPacket = (ParcelAccessListReplyPacket) PacketPool.Instance.GetPacket(PacketType.ParcelAccessListReply);
+                replyPacket = new ParcelAccessListReplyPacket();
                 replyPacket.Data.AgentID = agentID;
                 replyPacket.Data.Flags = (uint) ParcelManager.AccessList.Access;
                 replyPacket.Data.LocalID = landData.localID;
@@ -349,7 +349,7 @@ namespace OpenSim.Region.Environment.LandManagement
 
             if (flags == (uint) ParcelManager.AccessList.Ban || flags == (uint) ParcelManager.AccessList.Both)
             {
-                replyPacket = (ParcelAccessListReplyPacket) PacketPool.Instance.GetPacket(PacketType.ParcelAccessListReply);
+                replyPacket = new ParcelAccessListReplyPacket();
                 replyPacket.Data.AgentID = agentID;
                 replyPacket.Data.Flags = (uint) ParcelManager.AccessList.Ban;
                 replyPacket.Data.LocalID = landData.localID;
@@ -660,7 +660,7 @@ namespace OpenSim.Region.Environment.LandManagement
 
             bool firstCall = true;
             int MAX_OBJECTS_PER_PACKET = 251;
-            ForceObjectSelectPacket pack = (ForceObjectSelectPacket) PacketPool.Instance.GetPacket(PacketType.ForceObjectSelect);
+            ForceObjectSelectPacket pack = new ForceObjectSelectPacket();
             // TODO: don't create new blocks if recycling an old packet
             ForceObjectSelectPacket.DataBlock[] data;
             while (resultLocalIDs.Count > 0)
@@ -699,7 +699,7 @@ namespace OpenSim.Region.Environment.LandManagement
         public void sendLandObjectOwners(IClientAPI remote_client)
         {
             Dictionary<LLUUID, int> ownersAndCount = new Dictionary<LLUUID, int>();
-            ParcelObjectOwnersReplyPacket pack = (ParcelObjectOwnersReplyPacket) PacketPool.Instance.GetPacket(PacketType.ParcelObjectOwnersReply);
+            ParcelObjectOwnersReplyPacket pack = new ParcelObjectOwnersReplyPacket();
             // TODO: don't create new blocks if recycling an old packet
 
             foreach (SceneObjectGroup obj in primsOverMe)

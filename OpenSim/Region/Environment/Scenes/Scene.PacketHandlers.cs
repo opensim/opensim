@@ -166,7 +166,7 @@ namespace OpenSim.Region.Environment.Scenes
             List<AvatarPickerAvatar> AvatarResponses = new List<AvatarPickerAvatar>();
             AvatarResponses = CommsManager.GenerateAgentPickerRequestResponse(RequestID, query);
 
-            AvatarPickerReplyPacket replyPacket = (AvatarPickerReplyPacket) PacketPool.Instance.GetPacket(PacketType.AvatarPickerReply);
+            AvatarPickerReplyPacket replyPacket = new AvatarPickerReplyPacket();
             // TODO: don't create new blocks if recycling an old packet
 
             AvatarPickerReplyPacket.DataBlock[] searchData =

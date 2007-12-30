@@ -494,7 +494,7 @@ namespace OpenSim.Region.Environment.LandManagement
                             if (byteArrayCount >= LAND_BLOCKS_PER_PACKET)
                             {
                                 byteArrayCount = 0;
-                                packet = (ParcelOverlayPacket) PacketPool.Instance.GetPacket(PacketType.ParcelOverlay);
+                                packet = new ParcelOverlayPacket();
                                 packet.ParcelData.Data = byteArray;
                                 packet.ParcelData.SequenceID = sequenceID;
                                 remote_client.OutPacket((Packet) packet, ThrottleOutPacketType.Task);

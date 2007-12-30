@@ -931,7 +931,6 @@ namespace OpenSim.Region.Environment.Scenes
             if (RayEndIsIntersection == (byte)1)
             {
                 pos = RayEnd;
-                pos.Z += 0.25F;
                 return pos;
             }
             if (RayTargetID != LLUUID.Zero)
@@ -987,14 +986,13 @@ namespace OpenSim.Region.Environment.Scenes
 
 
 
-                    pos.Z += 0.25F;
+
                     return pos;
                 }
                 else
                 {
                     // fall back to our stupid functionality
                     pos = RayEnd;
-                    pos.Z += 0.25F;
                     return pos;
                 }
             }
@@ -1002,7 +1000,6 @@ namespace OpenSim.Region.Environment.Scenes
             {
                 // fall back to our stupid functionality
                 pos = RayEnd;
-                pos.Z += 0.25F;
                 return pos;
             }
                 
@@ -1012,7 +1009,12 @@ namespace OpenSim.Region.Environment.Scenes
                                         byte bypassRaycast, LLVector3 RayStart, LLUUID RayTargetID,
                                         byte RayEndIsIntersection)
         {
-          
+            // What we're *supposed* to do is raytrace from the camera position given by the client to the nearest collision
+            // in the direction the client supplies (the ground level that we clicked)  
+            // This function is pretty crappy right now..  so we're not affecting where the newly rezzed objects go
+            // Test it if you like.  The console will write where it guesses a collision took place. if it thinks one did.
+            // It's wrong many times though.
+
             LLVector3 pos = GetNewRezLocation(RayStart, RayEnd, RayTargetID, rot, bypassRaycast, RayEndIsIntersection);
             
          
@@ -1020,40 +1022,36 @@ namespace OpenSim.Region.Environment.Scenes
 
             if (PermissionsMngr.CanRezObject(ownerID, pos))
             {
-                // rez ON the ground, not IN the ground
-                    
 
+                    // rez ON the ground, not IN the ground
+                    pos.Z += 0.25F;
+               
 
-                AddNewPrim(ownerID, pos, rot, shape);
-            }
-        }
-
-        public virtual void AddNewPrim(LLUUID ownerID, LLVector3 pos, LLQuaternion rot, PrimitiveBaseShape shape)
-        {
-            SceneObjectGroup sceneOb =
-                new SceneObjectGroup(this, m_regionHandle, ownerID, PrimIDAllocate(), pos, rot, shape);
-            AddEntity(sceneOb);
-            SceneObjectPart rootPart = sceneOb.GetChildPart(sceneOb.UUID);
-            // if grass or tree, make phantom
-            //rootPart.ApplySanePermissions();
-            if ((rootPart.Shape.PCode == 95) || (rootPart.Shape.PCode == 255) || (rootPart.Shape.PCode == 111))
-            {
-                rootPart.AddFlag(LLObject.ObjectFlags.Phantom);
-                //rootPart.ObjectFlags += (uint)LLObject.ObjectFlags.Phantom;
-            }
-            // if not phantom, add to physics
-            bool UsePhysics = (((rootPart.ObjectFlags & (uint) LLObject.ObjectFlags.Physics) > 0) && m_physicalPrim);
-            if ((rootPart.ObjectFlags & (uint) LLObject.ObjectFlags.Phantom) == 0)
-            {
-                rootPart.PhysActor =
-                    PhysicsScene.AddPrimShape(
-                        rootPart.Name,
-                        rootPart.Shape,
-                        new PhysicsVector(pos.X, pos.Y, pos.Z),
-                        new PhysicsVector(shape.Scale.X, shape.Scale.Y, shape.Scale.Z),
-                        new Quaternion(), UsePhysics);
-                // subscribe to physics events.
-                rootPart.DoPhysicsPropertyUpdate(UsePhysics, true);
+                SceneObjectGroup sceneOb =
+                    new SceneObjectGroup(this, m_regionHandle, ownerID, PrimIDAllocate(), pos, rot, shape);
+                AddEntity(sceneOb);
+                SceneObjectPart rootPart = sceneOb.GetChildPart(sceneOb.UUID);
+                // if grass or tree, make phantom
+                //rootPart.ApplySanePermissions();
+                if ((rootPart.Shape.PCode == 95) || (rootPart.Shape.PCode == 255) || (rootPart.Shape.PCode == 111))
+                {
+                    rootPart.AddFlag(LLObject.ObjectFlags.Phantom);
+                    //rootPart.ObjectFlags += (uint)LLObject.ObjectFlags.Phantom;
+                }
+                // if not phantom, add to physics
+                bool UsePhysics = (((rootPart.ObjectFlags & (uint) LLObject.ObjectFlags.Physics) > 0) && m_physicalPrim);
+                if ((rootPart.ObjectFlags & (uint) LLObject.ObjectFlags.Phantom) == 0)
+                {
+                    rootPart.PhysActor =
+                        PhysicsScene.AddPrimShape(
+                            rootPart.Name,
+                            rootPart.Shape,
+                            new PhysicsVector(pos.X, pos.Y, pos.Z),
+                            new PhysicsVector(shape.Scale.X, shape.Scale.Y, shape.Scale.Z),
+                            new Quaternion(), UsePhysics);
+                    // subscribe to physics events.
+                    rootPart.DoPhysicsPropertyUpdate(UsePhysics, true);
+                }
             }
         }
 
@@ -1500,7 +1498,7 @@ namespace OpenSim.Region.Environment.Scenes
                         m_innerScene.removeUserCount(true);
                     }
                     // Tell a single agent to disconnect from the region.
-                    libsecondlife.Packets.DisableSimulatorPacket disable = (libsecondlife.Packets.DisableSimulatorPacket) PacketPool.Instance.GetPacket(libsecondlife.Packets.PacketType.DisableSimulator);
+                    DisableSimulatorPacket disable = new DisableSimulatorPacket();
                     presence.ControllingClient.OutPacket(disable, ThrottleOutPacketType.Task);
                 }
             }

@@ -300,11 +300,11 @@ namespace OpenSim.Region.Physics.OdePlugin
                         {
                             if (p2.PhysicsActorType == (int) ActorTypes.Agent)
                             {   
-                                p2.CollidingObj = true;
+                                //p2.CollidingObj = true;
                                 //contacts[i].depth = 0.003f;
-                                p2.Velocity = p2.Velocity + new PhysicsVector(0, 0, 2.5f);
-                                OdeCharacter character = (OdeCharacter) p2;
-                                character.SetPidStatus(true);
+                                //p2.Velocity = p2.Velocity + new PhysicsVector(0, 0, 2.5f);
+                                //OdeCharacter character = (OdeCharacter) p2;
+                                //character.SetPidStatus(true);
                                 //contacts[i].pos = new d.Vector3(contacts[i].pos.X + (p1.Size.X / 2), contacts[i].pos.Y + (p1.Size.Y / 2), contacts[i].pos.Z + (p1.Size.Z / 2));
                                 
                             }
@@ -316,12 +316,12 @@ namespace OpenSim.Region.Physics.OdePlugin
                             if (p1.PhysicsActorType == (int) ActorTypes.Agent)
                             {
                                 
-                                p1.CollidingObj = true;
+                                //p1.CollidingObj = true;
                                 //contacts[i].depth = 0.003f;
-                                p1.Velocity = p1.Velocity + new PhysicsVector(0, 0, 2.5f);
+                                //p1.Velocity = p1.Velocity + new PhysicsVector(0, 0, 2.5f);
                                 //contacts[i].pos = new d.Vector3(contacts[i].pos.X + (p2.Size.X / 2), contacts[i].pos.Y + (p2.Size.Y / 2), contacts[i].pos.Z + (p2.Size.Z / 2));
-                                OdeCharacter character = (OdeCharacter)p1;
-                                character.SetPidStatus(true);
+                                //OdeCharacter character = (OdeCharacter)p1;
+                                //character.SetPidStatus(true);
                             }
                             else
                             {

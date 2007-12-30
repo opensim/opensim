@@ -636,7 +636,7 @@ namespace OpenSim.Region.Environment.Scenes
         public void ServiceObjectPropertiesFamilyRequest(IClientAPI remoteClient, LLUUID AgentID, uint RequestFlags)
         {
             //RootPart.ServiceObjectPropertiesFamilyRequest(remoteClient, AgentID, RequestFlags);
-            ObjectPropertiesFamilyPacket objPropFamilyPack = (ObjectPropertiesFamilyPacket) PacketPool.Instance.GetPacket(PacketType.ObjectPropertiesFamily);
+            ObjectPropertiesFamilyPacket objPropFamilyPack = new ObjectPropertiesFamilyPacket();
             // TODO: don't create new blocks if recycling an old packet
 
             ObjectPropertiesFamilyPacket.ObjectDataBlock objPropDB = new ObjectPropertiesFamilyPacket.ObjectDataBlock();
@@ -677,32 +677,26 @@ namespace OpenSim.Region.Environment.Scenes
         /// </summary>
         public override void Update()
         {
-            List<SceneObjectPart> parts = new List<SceneObjectPart>(m_parts.Values);
-
             if (Util.GetDistanceTo(lastPhysGroupPos, AbsolutePosition) > 0.02)
             {
-                foreach (SceneObjectPart part in parts)
+                foreach (SceneObjectPart part in m_parts.Values)
                 {
                     if (part.UpdateFlag == 0) part.UpdateFlag = 1;
                 }
-
                 lastPhysGroupPos = AbsolutePosition;
             }
-
             if ((Math.Abs(lastPhysGroupRot.W - GroupRotation.W) > 0.1)
                 || (Math.Abs(lastPhysGroupRot.X - GroupRotation.X) > 0.1)
                 || (Math.Abs(lastPhysGroupRot.Y - GroupRotation.Y) > 0.1)
                 || (Math.Abs(lastPhysGroupRot.Z - GroupRotation.Z) > 0.1))
             {
-                foreach (SceneObjectPart part in parts)
+                foreach (SceneObjectPart part in m_parts.Values)
                 {
                     if (part.UpdateFlag == 0) part.UpdateFlag = 1;
                 }
-
                 lastPhysGroupRot = GroupRotation;
             }
-
-            foreach (SceneObjectPart part in parts)
+            foreach (SceneObjectPart part in m_parts.Values)
             {
                 part.SendScheduledUpdates();
             }
@@ -1051,7 +1045,7 @@ namespace OpenSim.Region.Environment.Scenes
         /// <param name="client"></param>
         public void GetProperites(IClientAPI client)
         {
-            ObjectPropertiesPacket proper = (ObjectPropertiesPacket) PacketPool.Instance.GetPacket(PacketType.ObjectProperties);
+            ObjectPropertiesPacket proper = new ObjectPropertiesPacket();
             // TODO: don't create new blocks if recycling an old packet
 
             proper.ObjectData = new ObjectPropertiesPacket.ObjectDataBlock[1];
@@ -1086,6 +1080,7 @@ namespace OpenSim.Region.Environment.Scenes
         /// <param name="name"></param>
         public void SetPartName(string name, uint localID)
         {
+            name = name.Remove(name.Length - 1, 1);
             SceneObjectPart part = GetChildPart(localID);
             if (part != null)
             {

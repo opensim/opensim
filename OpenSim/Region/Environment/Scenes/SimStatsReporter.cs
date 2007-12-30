@@ -83,7 +83,7 @@ namespace OpenSim.Region.Environment.Scenes
         private void statsHeartBeat(object sender, EventArgs e)
         {
             m_report.Enabled = false;
-            SimStatsPacket statpack = (SimStatsPacket) PacketPool.Instance.GetPacket(PacketType.SimStats);
+            SimStatsPacket statpack = new SimStatsPacket();
             // TODO: don't create new blocks if recycling an old packet
 
             SimStatsPacket.StatBlock[] sb = new SimStatsPacket.StatBlock[11];

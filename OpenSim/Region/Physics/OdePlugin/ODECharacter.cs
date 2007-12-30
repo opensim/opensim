@@ -404,18 +404,18 @@ namespace OpenSim.Region.Physics.OdePlugin
                 //  ok -- let's stand up straight!
                 //d.Matrix3 StandUpRotationalMatrix = new d.Matrix3(0.8184158f, -0.5744568f, -0.0139677f, 0.5744615f, 0.8185215f, -0.004074608f, 0.01377355f, -0.004689182f, 0.9998941f);
                 //d.BodySetRotation(Body, ref StandUpRotationalMatrix);
-                d.BodySetRotation(Body, ref m_StandUpRotation);
+                //d.BodySetRotation(Body, ref m_StandUpRotation);
                 // The above matrix was generated with the amazing standup routine below by danX0r *cheer*
-                //d.Vector3 feet;
-                //d.Vector3 head;
-                //d.BodyGetRelPointPos(Body, 0.0f, 0.0f, -1.0f, out feet);
-                //d.BodyGetRelPointPos(Body, 0.0f, 0.0f, 1.0f, out head);
-                //float posture = head.Z - feet.Z;
+                d.Vector3 feet;
+                d.Vector3 head;
+                d.BodyGetRelPointPos(Body, 0.0f, 0.0f, -1.0f, out feet);
+                d.BodyGetRelPointPos(Body, 0.0f, 0.0f, 1.0f, out head);
+                float posture = head.Z - feet.Z;
 
                 // restoring force proportional to lack of posture:
-                //float servo = (2.5f - posture) * POSTURE_SERVO;
-                //d.BodyAddForceAtRelPos(Body, 0.0f, 0.0f, servo, 0.0f, 0.0f, 1.0f);
-                //d.BodyAddForceAtRelPos(Body, 0.0f, 0.0f, -servo, 0.0f, 0.0f, -1.0f);
+                float servo = (2.5f - posture) * POSTURE_SERVO;
+                d.BodyAddForceAtRelPos(Body, 0.0f, 0.0f, servo, 0.0f, 0.0f, 1.0f);
+                d.BodyAddForceAtRelPos(Body, 0.0f, 0.0f, -servo, 0.0f, 0.0f, -1.0f);
 
                 //m_lastUpdateSent = false;
             }

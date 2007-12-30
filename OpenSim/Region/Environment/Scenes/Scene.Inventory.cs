@@ -557,7 +557,7 @@ namespace OpenSim.Region.Environment.Scenes
 
                         if (rezAsset != null)
                         {
-                            string script = Util.FieldToString(rezAsset.Data);
+                            string script = Helpers.FieldToUTF8String(rezAsset.Data);
                             EventManager.TriggerRezScript(localID, copyID, script);
                             rezzed = true;
                         }
@@ -733,7 +733,7 @@ namespace OpenSim.Region.Environment.Scenes
 
                         if (rezAsset != null)
                         {
-                            AddRezObject(Util.FieldToString(rezAsset.Data), pos);
+                            AddRezObject(Helpers.FieldToUTF8String(rezAsset.Data), pos);
                             //userInfo.DeleteItem(remoteClient.AgentId, item);
                             //remoteClient.SendRemoveInventoryItem(itemID);
                         }
