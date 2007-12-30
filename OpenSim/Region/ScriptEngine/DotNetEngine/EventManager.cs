@@ -38,6 +38,19 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
     [Serializable]
     internal class EventManager
     {
+
+        //
+        // Class is instanced in "ScriptEngine" and Uses "EventQueueManager" that is also instanced in "ScriptEngine".
+        // This class needs a bit of explaining:
+        //
+        // This class it the link between an event inside OpenSim and the corresponding event in a user script being executed.
+        //
+        // For example when an user touches an object then the "myScriptEngine.World.EventManager.OnObjectGrab" event is fired inside OpenSim.
+        // We hook up to this event and queue a touch_start in EventQueueManager with the proper LSL parameters. It will then be delivered to the script by EventQueueManager.
+        // You can check debug C# dump of an LSL script if you need to verify what exact parameters are needed.
+        //
+
+
         private ScriptEngine myScriptEngine;
         //public IScriptHost TEMP_OBJECT_ID;
         public EventManager(ScriptEngine _ScriptEngine)

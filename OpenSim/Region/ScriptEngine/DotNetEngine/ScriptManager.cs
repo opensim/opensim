@@ -45,6 +45,17 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
     /// Compiles them if necessary
     /// Execute functions for EventQueueManager (Sends them to script on other AppDomain for execution)
     /// </summary>
+    /// 
+
+    // This class is as close as you get to the script without being inside script class. It handles all the dirty work for other classes.
+    // * Keeps track of running scripts
+    // * Compiles script if necessary (through "Compiler")
+    // * Loads script (through "AppDomainManager" called from for example "EventQueueManager")
+    // * Executes functions inside script (called from for example "EventQueueManager" class)
+    // * Unloads script (through "AppDomainManager" called from for example "EventQueueManager")
+    // * Dedicated load/unload thread, and queues loading/unloading.
+    //   This so that scripts starting or stopping will not slow down other theads or whole system.
+    //
     [Serializable]
     public class ScriptManager
     {

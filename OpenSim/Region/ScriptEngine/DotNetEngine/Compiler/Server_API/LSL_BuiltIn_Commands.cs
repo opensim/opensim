@@ -47,6 +47,12 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler
     // REMEMBER TO UPDATE http://opensimulator.org/wiki/LlFunction_implementation_status
     //
 
+    // Notes:
+    // * If any function here needs to execute a LSL event in the script, use instance of "EventQueueManager" in "ScriptEngine".
+    // * If any function here needs to do some more advanced stuff like waiting for IO callbacks or similar that takes a long time then use "llSetTimerEvent" function as example.
+    //   There is a class called "LSLLongCmdHandler" that is used for long LSL commands.
+
+
     /// <summary>
     /// Contains all LSL ll-functions. This class will be in Default AppDomain.
     /// </summary>

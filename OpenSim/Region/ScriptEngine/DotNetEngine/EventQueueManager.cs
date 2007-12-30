@@ -44,6 +44,28 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
     [Serializable]
     internal class EventQueueManager
     {
+
+        //
+        // Class is instanced in "ScriptEngine" and used by "EventManager" also instanced in "ScriptEngine".
+        //
+        // Class purpose is to queue and execute functions that are received by "EventManager":
+        //   - allowing "EventManager" to release its event thread immediately, thus not interrupting server execution.
+        //   - allowing us to prioritize and control execution of script functions.
+        // Class can use multiple threads for simultaneous execution. Mutexes are used for thread safety.
+        //
+        // 1. Hold an execution queue for scripts
+        // 2. Use threads to process queue, each thread executes one script function on each pass.
+        // 3. Catch any script error and process it
+        //
+        //
+        // Notes:
+        // * Current execution load balancing is optimized for 1 thread, and can cause unfair execute balancing between scripts.
+        //   Not noticeable unless server is under high load.
+        // * This class contains the number of threads used for script executions. Since we are not microthreading scripts yet,
+        //   increase number of threads to allow more concurrent script executions in OpenSim.
+        //
+
+
         /// <summary>
         /// List of threads processing event queue
         /// </summary>

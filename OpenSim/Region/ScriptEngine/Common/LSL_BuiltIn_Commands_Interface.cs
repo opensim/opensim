@@ -32,6 +32,9 @@ namespace OpenSim.Region.ScriptEngine.Common
 {
     public interface LSL_BuiltIn_Commands_Interface
     {
+
+        // Interface used for loading and executing scripts
+
         string State();
 
         double llSin(double f);

@@ -36,6 +36,14 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL
 {
     public class Compiler
     {
+
+        // * Uses "LSL2Converter" to convert LSL to C# if necessary.
+        // * Compiles C#-code into an assembly
+        // * Returns assembly name ready for AppDomain load.
+        //
+        // Assembly is compiled using LSL_BaseClass as base. Look at debug C# code file created when LSL script is compiled for full details.
+        //
+
         private LSL2CSConverter LSL_Converter = new LSL2CSConverter();
         private CSharpCodeProvider codeProvider = new CSharpCodeProvider();
         private static UInt64 scriptCompileCounter = 0;

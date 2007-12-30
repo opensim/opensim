@@ -41,6 +41,14 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL
     //[Serializable]
     public class LSL_BaseClass : MarshalByRefObject, LSL_BuiltIn_Commands_Interface, IScript
     {
+
+        //
+        // Included as base for any LSL-script that is compiled.
+        // Any function added here will be accessible to the LSL script. But it must also be added to "LSL_BuiltIn_Commands_Interface" in "OpenSim.Region.ScriptEngine.Common" class.
+        //
+        // Security note: This script will be running inside an restricted AppDomain. Currently AppDomain is not very restricted.zxs
+        //
+
         // Object never expires
         public override Object InitializeLifetimeService()
         {
