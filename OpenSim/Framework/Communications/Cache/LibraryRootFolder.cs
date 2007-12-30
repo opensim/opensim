@@ -64,7 +64,7 @@ namespace OpenSim.Framework.Communications.Cache
 
             CreateLibraryItems();
 
-            string filePath = Path.Combine(Util.configDir(), "inventory/OpenSimLibrary.xml");
+            string filePath = Path.Combine(Util.configDir(), "inventory/OpenSimLibrary/OpenSimLibrary.xml");
             if (File.Exists(filePath))
             {
                 try
