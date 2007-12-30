@@ -35,8 +35,9 @@ using OpenSim.Region.Environment.Scenes;
 namespace OpenSim.Region.ScriptEngine.DotNetEngine
 {
     /// <summary>
-    /// This is the root object for ScriptEngine
+    /// This is the root object for ScriptEngine. Objects access each other trough this class.
     /// </summary>
+    /// 
     [Serializable]
     public class ScriptEngine : IRegionModule
     {

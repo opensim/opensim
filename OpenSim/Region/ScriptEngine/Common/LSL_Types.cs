@@ -33,6 +33,9 @@ namespace OpenSim.Region.ScriptEngine.Common
     [Serializable]
     public class LSL_Types
     {
+
+        // Types are kept is separate .dll to avoid having to add whatever .dll it is in it to script AppDomain
+
         [Serializable]
         public struct Vector3
         {

@@ -33,6 +33,10 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL
 {
     public class LSL2CSConverter
     {
+
+
+        // Uses regex to convert LSL code to C# code.
+
         //private Regex rnw = new Regex(@"[a-zA-Z0-9_\-]", RegexOptions.Compiled);
         private Dictionary<string, string> dataTypes = new Dictionary<string, string>();
         private Dictionary<string, string> quotes = new Dictionary<string, string>();

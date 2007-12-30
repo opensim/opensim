@@ -33,6 +33,8 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
         public static bool debug = true;
         public static ScriptEngine mySE;
 
+        // This class just contains some static log stuff used for debugging.
+
         //public delegate void SendToDebugEventDelegate(string Message);
         //public delegate void SendToLogEventDelegate(string Message);
         //static public event SendToDebugEventDelegate SendToDebugEvent;

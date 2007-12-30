@@ -36,6 +36,18 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
 {
     public class AppDomainManager
     {
+
+        //
+        // This class does AppDomain handling and loading/unloading of scripts in it.
+        // It is instanced in "ScriptEngine" and controlled from "ScriptManager"
+        //
+        // 1. Create a new AppDomain if old one is full (or doesn't exist)
+        // 2. Load scripts into AppDomain
+        // 3. Unload scripts from AppDomain (stopping them and marking them as inactive)
+        // 4. Unload AppDomain completely when all scripts in it has stopped
+        //
+
+
         private int maxScriptsPerAppDomain = 1;
 
         /// <summary>
