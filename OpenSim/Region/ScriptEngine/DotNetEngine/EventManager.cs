@@ -36,7 +36,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
     /// Prepares events so they can be directly executed upon a script by EventQueueManager, then queues it.
     /// </summary>
     [Serializable]
-    internal class EventManager
+    public class EventManager
     {
 
         //
@@ -46,7 +46,9 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
         // This class it the link between an event inside OpenSim and the corresponding event in a user script being executed.
         //
         // For example when an user touches an object then the "myScriptEngine.World.EventManager.OnObjectGrab" event is fired inside OpenSim.
-        // We hook up to this event and queue a touch_start in EventQueueManager with the proper LSL parameters. It will then be delivered to the script by EventQueueManager.
+        // We hook up to this event and queue a touch_start in EventQueueManager with the proper LSL parameters.
+        // It will then be delivered to the script by EventQueueManager.
+        //
         // You can check debug C# dump of an LSL script if you need to verify what exact parameters are needed.
         //
 
@@ -105,128 +107,128 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
         // When queued in EventQueueManager they need to be LSL compatible (name and params)
 
         //public void state_entry() { } // 
-        public void state_exit()
+        public void state_exit(uint localID, LLUUID itemID)
         {
         }
 
-        //public void touch_start() { }
-        public void touch()
+        //public void touch_start(uint localID, LLUUID itemID) { }
+        public void touch(uint localID, LLUUID itemID)
         {
         }
 
-        public void touch_end()
+        public void touch_end(uint localID, LLUUID itemID)
         {
         }
 
-        public void collision_start()
+        public void collision_start(uint localID, LLUUID itemID)
         {
         }
 
-        public void collision()
+        public void collision(uint localID, LLUUID itemID)
         {
         }
 
-        public void collision_end()
+        public void collision_end(uint localID, LLUUID itemID)
         {
         }
 
-        public void land_collision_start()
+        public void land_collision_start(uint localID, LLUUID itemID)
         {
         }
 
-        public void land_collision()
+        public void land_collision(uint localID, LLUUID itemID)
         {
         }
 
-        public void land_collision_end()
+        public void land_collision_end(uint localID, LLUUID itemID)
         {
         }
 
-        public void timer()
+        public void timer(uint localID, LLUUID itemID)
         {
         }
 
-        public void listen()
+        public void listen(uint localID, LLUUID itemID)
         {
         }
 
-        public void on_rez()
+        public void on_rez(uint localID, LLUUID itemID)
         {
         }
 
-        public void sensor()
+        public void sensor(uint localID, LLUUID itemID)
         {
         }
 
-        public void no_sensor()
+        public void no_sensor(uint localID, LLUUID itemID)
         {
         }
 
-        public void control()
+        public void control(uint localID, LLUUID itemID)
         {
         }
 
-        public void money()
+        public void money(uint localID, LLUUID itemID)
         {
         }
 
-        public void email()
+        public void email(uint localID, LLUUID itemID)
         {
         }
 
-        public void at_target()
+        public void at_target(uint localID, LLUUID itemID)
         {
         }
 
-        public void not_at_target()
+        public void not_at_target(uint localID, LLUUID itemID)
         {
         }
 
-        public void at_rot_target()
+        public void at_rot_target(uint localID, LLUUID itemID)
         {
         }
 
-        public void not_at_rot_target()
+        public void not_at_rot_target(uint localID, LLUUID itemID)
         {
         }
 
-        public void run_time_permissions()
+        public void run_time_permissions(uint localID, LLUUID itemID)
         {
         }
 
-        public void changed()
+        public void changed(uint localID, LLUUID itemID)
         {
         }
 
-        public void attach()
+        public void attach(uint localID, LLUUID itemID)
         {
         }
 
-        public void dataserver()
+        public void dataserver(uint localID, LLUUID itemID)
         {
         }
 
-        public void link_message()
+        public void link_message(uint localID, LLUUID itemID)
         {
         }
 
-        public void moving_start()
+        public void moving_start(uint localID, LLUUID itemID)
         {
         }
 
-        public void moving_end()
+        public void moving_end(uint localID, LLUUID itemID)
         {
         }
 
-        public void object_rez()
+        public void object_rez(uint localID, LLUUID itemID)
         {
         }
 
-        public void remote_data()
+        public void remote_data(uint localID, LLUUID itemID)
         {
         }
 
-        public void http_response()
+        public void http_response(uint localID, LLUUID itemID)
         {
         }
     }

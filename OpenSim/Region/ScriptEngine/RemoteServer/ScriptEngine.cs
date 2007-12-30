@@ -43,6 +43,7 @@ namespace OpenSim.Region.ScriptEngine.RemoteServer
     {
         internal Scene World;
         internal EventManager m_EventManager; // Handles and queues incoming events from OpenSim
+        internal RemoteServer m_RemoteServer;
 
         private LogBase m_log;
 
@@ -64,6 +65,8 @@ namespace OpenSim.Region.ScriptEngine.RemoteServer
             Log.Verbose("ScriptEngine", "RemoteEngine (Remote Script Server) initializing");
             // Create all objects we'll be using
             m_EventManager = new EventManager(this);
+            m_RemoteServer = new RemoteServer();
+            m_RemoteServer.Connect("localhost", 1234);
         }
 
         public void Shutdown()

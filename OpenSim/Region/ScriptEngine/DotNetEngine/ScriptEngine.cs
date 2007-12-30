@@ -41,10 +41,10 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
     [Serializable]
     public class ScriptEngine : IRegionModule
     {
-        internal Scene World;
-        internal EventManager m_EventManager; // Handles and queues incoming events from OpenSim
+        public Scene World;
+        public EventManager m_EventManager; // Handles and queues incoming events from OpenSim
         internal EventQueueManager m_EventQueueManager; // Executes events
-        internal ScriptManager m_ScriptManager; // Load, unload and execute scripts
+        public ScriptManager m_ScriptManager; // Load, unload and execute scripts
         internal AppDomainManager m_AppDomainManager;
         internal LSLLongCmdHandler m_LSLLongCmdHandler;
 
@@ -86,14 +86,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
             // We are shutting down
         }
 
-        //// !!!FOR DEBUGGING ONLY!!! (for executing script directly from test app)
-        //[Obsolete("!!!FOR DEBUGGING ONLY!!!")]
-        //public void StartScript(string ScriptID, IScriptHost ObjectID)
-        //{
-        //    this.myEventManager.TEMP_OBJECT_ID = ObjectID;
-        //    Log.Status("ScriptEngine", "DEBUG FUNCTION: StartScript: " + ScriptID);
-        //    myScriptManager.StartScript(ScriptID, ObjectID);
-        //}
+
 
         #region IRegionModule
 
@@ -112,7 +105,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
 
         public string Name
         {
-            get { return "LSLScriptingModule"; }
+            get { return "DotNetEngine"; }
         }
 
         public bool IsSharedModule
