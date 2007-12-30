@@ -1336,25 +1336,25 @@ namespace OpenSim.Region.Environment.Scenes
         // info
         public void UpdateTexture(LLObject.TextureEntry tex)
         {
-            LLColor tmpcolor;
-            for (uint i = 0; i < 32; i++)
-            {
-                if (tex.FaceTextures[i] != null)
-                {
-                    tmpcolor = tex.GetFace((uint) i).RGBA;
-                    tmpcolor.A = tmpcolor.A*255;
-                    tmpcolor.R = tmpcolor.R*255;
-                    tmpcolor.G = tmpcolor.G*255;
-                    tmpcolor.B = tmpcolor.B*255;
-                    tex.FaceTextures[i].RGBA = tmpcolor;
-                }
-            }
-            tmpcolor = tex.DefaultTexture.RGBA;
-            tmpcolor.A = tmpcolor.A*255;
-            tmpcolor.R = tmpcolor.R*255;
-            tmpcolor.G = tmpcolor.G*255;
-            tmpcolor.B = tmpcolor.B*255;
-            tex.DefaultTexture.RGBA = tmpcolor;
+            //LLColor tmpcolor;
+            //for (uint i = 0; i < 32; i++)
+            //{
+            //    if (tex.FaceTextures[i] != null)
+            //    {
+            //        tmpcolor = tex.GetFace((uint) i).RGBA;
+            //        tmpcolor.A = tmpcolor.A*255;
+            //        tmpcolor.R = tmpcolor.R*255;
+            //        tmpcolor.G = tmpcolor.G*255;
+            //        tmpcolor.B = tmpcolor.B*255;
+            //        tex.FaceTextures[i].RGBA = tmpcolor;
+            //    }
+            //}
+            //tmpcolor = tex.DefaultTexture.RGBA;
+            //tmpcolor.A = tmpcolor.A*255;
+            //tmpcolor.R = tmpcolor.R*255;
+            //tmpcolor.G = tmpcolor.G*255;
+            //tmpcolor.B = tmpcolor.B*255;
+            //tex.DefaultTexture.RGBA = tmpcolor;
             UpdateTextureEntry(tex.ToBytes());
         }
 
