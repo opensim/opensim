@@ -17,21 +17,35 @@ namespace OpenSim.Region.ScriptEngine.RemoteServer
             // Create a channel for communicating w/ the remote object
             // Notice no port is specified on the client
             TcpChannel chan = new TcpChannel();
-            ChannelServices.RegisterChannel(chan, true);
-
-            // Create an instance of the remote object
-            OpenSim.Grid.ScriptServer.RemotingObject obj = (OpenSim.Grid.ScriptServer.RemotingObject)Activator.GetObject(
-                typeof(OpenSim.Grid.ScriptServer.RemotingObject),
-                "tcp://" + hostname + ":" + port + "/DotNetEngine");
-
-            // Use the object
-            if (obj.Equals(null))
+            try
             {
-                System.Console.WriteLine("Error: unable to locate server");
+                ChannelServices.RegisterChannel(chan, true);
             }
-            else
+            catch (System.Runtime.Remoting.RemotingException)
             {
-                return obj;
+                System.Console.WriteLine("Error: tcp already registered, RemoteServer.cs in OpenSim.Region.ScriptEngine.RemoteServer line 24");
+            }
+            try
+            {
+
+                // Create an instance of the remote object
+                OpenSim.Grid.ScriptServer.RemotingObject obj = (OpenSim.Grid.ScriptServer.RemotingObject)Activator.GetObject(
+                    typeof(OpenSim.Grid.ScriptServer.RemotingObject),
+                    "tcp://" + hostname + ":" + port + "/DotNetEngine");
+
+                // Use the object
+                if (obj.Equals(null))
+                {
+                    System.Console.WriteLine("Error: unable to locate server");
+                }
+                else
+                {
+                    return obj;
+                }
+            }
+            catch (System.Net.Sockets.SocketException)
+            {
+                System.Console.WriteLine("Error: unable to connect to server");
             }
             return null;
 

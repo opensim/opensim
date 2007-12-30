@@ -56,8 +56,8 @@ namespace OpenSim.Region.Environment.Modules
 
         private void OnNewClient(IClientAPI client)
         {
-            FormFriendship(client,new Guid("c43a67ab-b196-4d62-936c-b40369547dee"));
-            FormFriendship(client, new Guid("0a2f777b-f44c-4662-8b22-c90ae038a3e6"));
+            //FormFriendship(client,new Guid("c43a67ab-b196-4d62-936c-b40369547dee"));
+            //FormFriendship(client, new Guid("0a2f777b-f44c-4662-8b22-c90ae038a3e6"));
         }
 
         public void PostInitialise()
