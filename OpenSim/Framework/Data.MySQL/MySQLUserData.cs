@@ -145,6 +145,31 @@ namespace OpenSim.Framework.Data.MySQL
             }
         }
 
+        #region User Friends List Data
+
+        public void AddNewUserFriend(LLUUID friendlistowner, LLUUID friend, uint perms)
+        {
+            MainLog.Instance.Verbose("FRIEND", "Stub AddNewUserFriend called");
+        }
+
+        public void RemoveUserFriend(LLUUID friendlistowner, LLUUID friend)
+        {
+            MainLog.Instance.Verbose("FRIEND", "Stub RemoveUserFriend called");
+        }
+        public void UpdateUserFriendPerms(LLUUID friendlistowner, LLUUID friend, uint perms)
+        {
+            MainLog.Instance.Verbose("FRIEND", "Stub UpdateUserFriendPerms called");
+        }
+
+
+        public List<FriendListItem> GetUserFriendList(LLUUID friendlistowner)
+        {
+            MainLog.Instance.Verbose("FRIEND", "Stub GetUserFriendList called");
+            return new List<FriendListItem>();
+        }
+
+        #endregion
+
         public List<Framework.AvatarPickerAvatar> GeneratePickerResults(LLUUID queryID, string query)
         {
             List<Framework.AvatarPickerAvatar> returnlist = new List<Framework.AvatarPickerAvatar>();

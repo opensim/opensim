@@ -29,6 +29,8 @@
 using System;
 using libsecondlife;
 using OpenSim.Framework;
+using OpenSim.Grid.ScriptServer;
+using OpenSim.Region.ScriptEngine.DotNetEngine;
 
 namespace OpenSim.Region.ScriptEngine.RemoteServer
 {
@@ -39,7 +41,7 @@ namespace OpenSim.Region.ScriptEngine.RemoteServer
     internal class EventManager
     {
 
-        System.Collections.Generic.Dictionary<uint, OpenSim.Grid.ScriptServer.RemotingObject> remoteScript = new System.Collections.Generic.Dictionary<uint, OpenSim.Grid.ScriptServer.RemotingObject>();
+        System.Collections.Generic.Dictionary<uint, RemotingObject> remoteScript = new System.Collections.Generic.Dictionary<uint, OpenSim.Grid.ScriptServer.RemotingObject>();
 
 
         private ScriptEngine myScriptEngine;

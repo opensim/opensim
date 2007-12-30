@@ -50,6 +50,12 @@ namespace OpenSim.Framework
         /// <returns>The user data profile</returns>
         UserProfileData GetUserByName(string fname, string lname);
 
+        /// <summary>
+        /// Returns a list of UUIDs firstnames and lastnames that match string query entered into the avatar picker.
+        /// </summary>
+        /// <param name="queryID">ID associated with the user's query. This must match what the client sent</param>
+        /// <param name="query">The filtered contents of the search box when the user hit search.</param>
+        /// <returns>The user data profile</returns>
         List<AvatarPickerAvatar> GeneratePickerResults(LLUUID queryID, string query);
 
         /// <summary>
@@ -92,6 +98,34 @@ namespace OpenSim.Framework
         /// <param name="agent">The agent to add</param>
         void AddNewUserAgent(UserAgentData agent);
 
+        /// <summary>
+        /// Adds a new friend to the database for XUser
+        /// </summary>
+        /// <param name="friendlistowner">The agent that who's friends list is being added to</param>
+        /// <param name="friend">The agent that being added to the friends list of the friends list owner</param>
+        /// <param name="perms">A uint bit vector for set perms that the friend being added has; 0 = none, 1=This friend can see when they sign on, 2 = map, 4 edit objects </param>
+        void AddNewUserFriend(LLUUID friendlistowner, LLUUID friend, uint perms);
+
+        /// <summary>
+        /// Delete friend on friendlistowner's friendlist.
+        /// </summary>
+        /// <param name="friendlistowner">The agent that who's friends list is being updated</param>
+        /// <param name="friend">The Ex-friend agent</param>
+        void RemoveUserFriend(LLUUID friendlistowner, LLUUID friend);
+
+        /// <summary>
+        /// Update permissions for friend on friendlistowner's friendlist.
+        /// </summary>
+        /// <param name="friendlistowner">The agent that who's friends list is being updated</param>
+        /// <param name="friend">The agent that is getting or loosing permissions</param>
+        /// <param name="perms">A uint bit vector for set perms that the friend being added has; 0 = none, 1=This friend can see when they sign on, 2 = map, 4 edit objects </param>
+        void UpdateUserFriendPerms(LLUUID friendlistowner, LLUUID friend, uint perms);
+
+        /// <summary>
+        /// Returns a list of FriendsListItems that describe the friends and permissions in the friend relationship for LLUUID friendslistowner
+        /// </summary>
+        /// <param name="friendlistowner">The agent that we're retreiving the friends Data.</param>
+        List<FriendListItem> GetUserFriendList(LLUUID friendlistowner);
         /// <summary>
         /// Attempts to move currency units between accounts (NOT RELIABLE / TRUSTWORTHY. DONT TRY RUN YOUR OWN CURRENCY EXCHANGE WITH REAL VALUES)
         /// </summary>
