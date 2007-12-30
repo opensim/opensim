@@ -214,7 +214,8 @@ namespace OpenSim.Framework.UserManagement
         /// <returns>Authenticated?</returns>
         public virtual bool AuthenticateUser(UserProfileData profile, string password)
         {
-            MainLog.Instance.Verbose("LOGIN", "Authenticating " + profile.username + " " + profile.surname);
+            MainLog.Instance.Verbose(
+                "LOGIN", "Authenticating {0} {1} ({2})", profile.username, profile.surname, profile.UUID);
 
             password = password.Remove(0, 3); //remove $1$
 

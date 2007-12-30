@@ -112,8 +112,10 @@ namespace OpenSim.Framework.Communications
         }
 
         /// <summary>
-        /// 
+        /// Get the root folder for a user
         /// </summary>
+        /// <param name="userID"></param>
+        /// <returns>null if no root folder was found</returns>
         public InventoryFolderBase RequestUsersRoot(LLUUID userID)
         {
             foreach (KeyValuePair<string, IInventoryData> plugin in m_plugins)
@@ -204,11 +206,27 @@ namespace OpenSim.Framework.Communications
             }
         }
 
+        /// <summary>
+        /// Create a new set of inventory folders for the given user.
+        /// </summary>
+        /// <param name="user"></param>
         public void CreateNewUserInventory(LLUUID user)
         {
-            UsersInventory inven = new UsersInventory();
-            inven.CreateNewInventorySet(user);
-            AddNewInventorySet(inven);
+            InventoryFolderBase existingRootFolder = RequestUsersRoot(user);
+            
+            if (null != existingRootFolder)
+            {
+                MainLog.Instance.Error(
+                    "AGENTINVENTORY", 
+                    "Did not create a new inventory for user {0} since they already have "
+                        + "a root inventory folder with id {1}", user, existingRootFolder);
+            }
+            else
+            {                
+                UsersInventory inven = new UsersInventory();
+                inven.CreateNewInventorySet(user);
+                AddNewInventorySet(inven);
+            }
         }
 
         public class UsersInventory
