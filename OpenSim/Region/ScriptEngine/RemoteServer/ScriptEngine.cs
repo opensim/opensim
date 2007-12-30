@@ -35,7 +35,7 @@ using OpenSim.Region.Environment.Scenes;
 namespace OpenSim.Region.ScriptEngine.RemoteServer
 {
     /// <summary>
-    /// This is the root object for ScriptEngine. Objects access each other trough this class.
+    /// This is the root object for RemoteServer. Objects access each other trough this class.
     /// </summary>
     /// 
     [Serializable]
@@ -43,7 +43,7 @@ namespace OpenSim.Region.ScriptEngine.RemoteServer
     {
         internal Scene World;
         internal EventManager m_EventManager; // Handles and queues incoming events from OpenSim
-        internal RemoteServer m_RemoteServer;
+        internal RemoteServer m_RemoteServer; // Handles connections to remote servers
 
         private LogBase m_log;
 

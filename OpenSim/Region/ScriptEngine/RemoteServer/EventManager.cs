@@ -33,6 +33,7 @@ using OpenSim.Framework;
 namespace OpenSim.Region.ScriptEngine.RemoteServer
 {
     /// <summary>
+    /// Handles events from OpenSim. Uses RemoteServer to send commands.
     /// </summary>
     [Serializable]
     internal class EventManager

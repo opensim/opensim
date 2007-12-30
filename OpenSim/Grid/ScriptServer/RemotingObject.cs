@@ -9,7 +9,8 @@ namespace OpenSim.Grid.ScriptServer
     {
         // This object will be exposed over remoting. It is a singleton, so it exists only in as one instance.
 
-        // Expose ScriptEngine
+        // Expose ScriptEngine directly for now ... this is not very secure :)
+        // NOTE! CURRENTLY JUST HARDWIRED DOTNETENGINE!
         public OpenSim.Region.ScriptEngine.DotNetEngine.ScriptEngine ScriptEngine = new OpenSim.Region.ScriptEngine.DotNetEngine.ScriptEngine();
 
         /// <summary>

@@ -9,6 +9,8 @@ namespace OpenSim.Region.ScriptEngine.RemoteServer
 {
     class RemoteServer
     {
+        // Handles connections to servers
+        // Create and returns server object
 
         public OpenSim.Grid.ScriptServer.RemotingObject Connect(string hostname, int port)
         {

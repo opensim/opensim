@@ -34,17 +34,26 @@ namespace OpenSim.Grid.ScriptServer
 {
     public class ScriptServerMain : conscmd_callback
     {
+        //
+        // Root object. Creates objects used.
+        //
+        private int listenPort = 1234;
         private readonly string m_logFilename = ("region-console.log");
-        internal RegionCommManager RegionScriptDaemon; // Listen for incoming from region
-        internal ScriptEngineManager ScriptEngines; // Loads scriptengines
         private LogBase m_log;
+
+        // Objects we use
+        internal RegionCommManager RegionScriptDaemon; // Listen for incoming from region
+        //internal ScriptEngineManager ScriptEngines; // Loads scriptengines
+        internal RemotingServer m_RemotingServer;
 
         public ScriptServerMain()
         {
             m_log = CreateLog();
 
             RegionScriptDaemon = new RegionCommManager(this, m_log);
-            ScriptEngines = new ScriptEngineManager(this, m_log);
+            //ScriptEngines = new ScriptEngineManager(this, m_log);
+            m_RemotingServer = new RemotingServer();
+            m_RemotingServer.CreateServer(listenPort, "DotNetEngine");
         }
 
         ~ScriptServerMain()
