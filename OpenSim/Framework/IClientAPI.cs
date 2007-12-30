@@ -225,20 +225,10 @@ namespace OpenSim.Framework
 
     public delegate void ImprovedInstantMessage(
         LLUUID fromAgentID, LLUUID fromAgentSession, LLUUID toAgentID, LLUUID imSessionID, uint timestamp,
-        string fromAgentName, string message, byte dialog); // Cut down from full list
+        string fromAgentName, string message, byte dialog, bool fromGroup, byte offline, uint ParentEstateID,
+        LLVector3 Position, LLUUID RegionID, byte[] binaryBucket); // This shouldn't be cut down...  
+        // especially if we're ever going to implement groups, presence, estate message dialogs...
 
-    //rezPacket.RezData.BypassRaycast;
-    //rezPacket.RezData.RayEnd;
-    //rezPacket.RezData.RayEndIsIntersection;
-    //rezPacket.RezData.RayStart;
-    //rezPacket.RezData.RayTargetID;
-    //rezPacket.RezData.RemoveItem;
-    //rezPacket.RezData.RezSelected;
-    //rezPacket.RezData.FromTaskID;
-    //rezPacket.RezData.FromTaskID;
-    //rezPacket.RezData.EveryoneMask;
-    //rezPacket.RezData.GroupMask;
-    //rezPacket.RezData.NextOwnerMask;
     public delegate void RezObject(IClientAPI remoteClient, LLUUID itemID, LLVector3 RayEnd, LLVector3 RayStart,
                                     LLUUID RayTargetID, byte BypassRayCast, bool RayEndIsIntersection, 
                                     uint EveryoneMask, uint GroupMask, uint NextOwnerMask, uint ItemFlags, 

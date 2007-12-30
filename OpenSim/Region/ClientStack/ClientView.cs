@@ -2540,12 +2540,23 @@ namespace OpenSim.Region.ClientStack
                         ImprovedInstantMessagePacket msgpack = (ImprovedInstantMessagePacket) Pack;
                         string IMfromName = Util.FieldToString(msgpack.MessageBlock.FromAgentName);
                         string IMmessage = Helpers.FieldToUTF8String(msgpack.MessageBlock.Message);
+                        //byte[] msgpack.MessageBlock.BinaryBucket;
+                        //bool msgpack.MessageBlock.FromGroup;
+                        
+                        //byte msgpack.MessageBlock.Offline;
+                        //uint msgpack.MessageBlock.ParentEstateID;
+                        //LLVector3 msgpack.MessageBlock.Position;
+                        //LLUUID msgpack.MessageBlock.RegionID;
+                       
                         if (OnInstantMessage != null)
                         {
                             OnInstantMessage(msgpack.AgentData.AgentID, msgpack.AgentData.SessionID,
                                              msgpack.MessageBlock.ToAgentID, msgpack.MessageBlock.ID,
                                              msgpack.MessageBlock.Timestamp, IMfromName, IMmessage,
-                                             msgpack.MessageBlock.Dialog);
+                                             msgpack.MessageBlock.Dialog, msgpack.MessageBlock.FromGroup,
+                                             msgpack.MessageBlock.Offline, msgpack.MessageBlock.ParentEstateID,
+                                             msgpack.MessageBlock.Position, msgpack.MessageBlock.RegionID, 
+                                             msgpack.MessageBlock.BinaryBucket);
                         }
                         break;
                     case PacketType.RezObject:

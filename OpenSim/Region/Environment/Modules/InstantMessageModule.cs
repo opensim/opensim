@@ -63,7 +63,9 @@ namespace OpenSim.Region.Environment.Modules
         private void OnInstantMessage(LLUUID fromAgentID,
                                       LLUUID fromAgentSession, LLUUID toAgentID,
                                       LLUUID imSessionID, uint timestamp, string fromAgentName,
-                                      string message, byte dialog)
+                                      string message, byte dialog, bool fromGroup, byte offline, 
+                                      uint ParentEstateID, LLVector3 Position, LLUUID RegionID, 
+                                      byte[] binaryBucket)
         {
             foreach (Scene scene in m_scenes)
             {
@@ -76,9 +78,9 @@ namespace OpenSim.Region.Environment.Modules
                         user.ControllingClient.SendInstantMessage(fromAgentID, fromAgentSession, message,
                                                                   toAgentID, imSessionID, fromAgentName, dialog,
                                                                   timestamp);
+						// Message sent
+						return;
                     }
-                    // Message sent
-                    return;
                 }
             }
 
