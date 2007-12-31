@@ -149,10 +149,10 @@ namespace OpenSim.Grid.InventoryServer
             {
                 _manager = manager;
 
-                _inventory = loadInventoryFromXmlFile("inventory/Inventory_Library.xml");
+                _inventory = loadInventoryFromXmlFile("attic/inventory/Inventory_Library.xml");
                 if (fixupInventory(_inventory))
                 {
-                    FileStream fs = new FileStream("inventory/Inventory_Library.xml", FileMode.Truncate, FileAccess.Write);
+                    FileStream fs = new FileStream("attic/inventory/Inventory_Library.xml", FileMode.Truncate, FileAccess.Write);
                     saveInventoryToStream(_inventory, fs);
                     fs.Flush();
                     fs.Close();

@@ -11,4 +11,4 @@ this restriction will probably be lifted in the future, at which point the
 inventory items and folders will only need to be configured on the grid inventory
 server (assuming you are running in grid mode rather than standalone)
 
-Inventory_Default.xml and Inventory_Library.xml are unused at the moment.
+Files in the attic directory are currently unused.
