@@ -129,7 +129,7 @@ namespace OpenSim.Framework
         public LLUUID folderID;
 
         /// <summary>
-        /// Tyep of Items normally stored in this folder
+        /// Type of items normally stored in this folder
         /// </summary>
         public short type;
 

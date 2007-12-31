@@ -280,8 +280,8 @@ namespace OpenSim.Framework.UserManagement
                 Hashtable TempHash = new Hashtable();
                 TempHash["name"] = folder.name;
                 TempHash["parent_id"] = folder.parentID.ToString();
-                TempHash["version"] = folder.version;
-                TempHash["type_default"] = folder.type;
+                TempHash["version"] = (Int32)folder.version;
+                TempHash["type_default"] = (Int32)folder.type;
                 TempHash["folder_id"] = folder.folderID.ToString();
                 folderHashes.Add(TempHash);
             }
