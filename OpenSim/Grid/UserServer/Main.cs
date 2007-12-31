@@ -31,6 +31,7 @@ using System.Collections.Generic;
 using System.IO;
 using libsecondlife;
 using OpenSim.Framework;
+using OpenSim.Framework.Communications.Cache;
 using OpenSim.Framework.Console;
 using OpenSim.Framework.Servers;
 
@@ -89,7 +90,8 @@ namespace OpenSim.Grid.UserServer
             m_userManager._config = Cfg;
             m_userManager.AddPlugin(Cfg.DatabaseProvider);
 
-            m_loginService = new UserLoginService(m_userManager, Cfg, Cfg.DefaultStartupMsg);
+            m_loginService = new UserLoginService(
+                 m_userManager, new LibraryRootFolder(), Cfg, Cfg.DefaultStartupMsg);
 
             MainLog.Instance.Verbose("REGION", "Starting HTTP process");
             BaseHttpServer httpServer = new BaseHttpServer(Cfg.HttpPort);

@@ -326,12 +326,25 @@ namespace OpenSim
 
             m_moduleLoader = new ModuleLoader(m_log, m_config);
 
-            MainLog.Instance.Verbose("Plugins", "Loading OpenSim application plugins");
-            foreach (TypeExtensionNode node in AddinManager.GetExtensionNodes("/OpenSim/Startup"))
-            {
+            ExtensionNodeList nodes = AddinManager.GetExtensionNodes("/OpenSim/Startup");
+            MainLog.Instance.Verbose("PLUGINS", "Loading {0} OpenSim application plugins", nodes.Count);
+            
+            foreach (TypeExtensionNode node in nodes)
+            {                    
                 IApplicationPlugin plugin = (IApplicationPlugin) node.CreateInstance();
-                plugin.Initialise(this);
-                m_plugins.Add(plugin);
+                                
+                // Debug code to try and track down a bizzare ubuntu/mono/linux bug on standalone where we
+                // appear to try and initialize all the plugins twice.  Currently disabled
+//                MainLog.Instance.Verbose("PLUGINS", "Hitting plugin {0}", plugin.ToString());
+//                if (m_plugins.Contains(plugin))
+//                {
+//                    MainLog.Instance.Verbose("PLUGINS", "Skipping {0}", plugin.ToString());
+//                }
+//                else
+//                {
+                    plugin.Initialise(this);
+                    m_plugins.Add(plugin);
+//                }
             }
 
             // Start UDP servers

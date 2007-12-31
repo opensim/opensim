@@ -26,10 +26,12 @@
 * 
 */
 
+using System.Collections.Generic;
 using System.IO;
 using System.Xml;
 using libsecondlife;
 using Nini.Config;
+
 using OpenSim.Framework.Console;
 
 namespace OpenSim.Framework.Communications.Cache
@@ -41,44 +43,62 @@ namespace OpenSim.Framework.Communications.Cache
     public class LibraryRootFolder : InventoryFolderImpl
     {
         private LLUUID libOwner = new LLUUID("11111111-1111-0000-0000-000100bba000");
-        private InventoryFolderImpl m_textureFolder;
+        
+        /// <summary>
+        /// Holds the root library folder and all its descendents.  This is really only used during inventory
+        /// setup so that we don't have to repeatedly search the tree of library folders.
+        /// </summary>
+        protected Dictionary<LLUUID, InventoryFolderImpl> libraryFolders 
+            = new Dictionary<LLUUID, InventoryFolderImpl>();
 
         public LibraryRootFolder()
         {
+            MainLog.Instance.Verbose("LIBRARYINVENTORY", "Loading library inventory");
+            
             agentID = libOwner;
             folderID = new LLUUID("00000112-000f-0000-0000-000100bba000");
             name = "OpenSim Library";
             parentID = LLUUID.Zero;
-            type = (short) -1;
+            type = (short) 8;
             version = (ushort) 1;
-
-            InventoryFolderImpl folderInfo = new InventoryFolderImpl();
-            folderInfo.agentID = libOwner;
-            folderInfo.folderID = new LLUUID("00000112-000f-0000-0000-000100bba001");
-            folderInfo.name = "Texture Library";
-            folderInfo.parentID = folderID;
-            folderInfo.type = -1;
-            folderInfo.version = 1;
-            SubFolders.Add(folderInfo.folderID, folderInfo);
-            m_textureFolder = folderInfo;
-
-            CreateLibraryItems();
-
-            string filePath = Path.Combine(Util.configDir(), "inventory/OpenSimLibrary/OpenSimLibrary.xml");
-            if (File.Exists(filePath))
+            
+            libraryFolders.Add(folderID, this);
+            
+            string foldersPath = Path.Combine(Util.configDir(), "inventory/OpenSimLibrary/OpenSimLibraryFolders.xml");
+            if (File.Exists(foldersPath))
             {
                 try
                 {
-                    XmlConfigSource source = new XmlConfigSource(filePath);
+                    XmlConfigSource source = new XmlConfigSource(foldersPath);
+                    ReadFoldersFromFile(source);
+                }
+                catch (XmlException e)
+                {
+                    MainLog.Instance.Error("AGENTINVENTORY", "Error loading " + foldersPath + ": " + e.ToString());
+                }
+            }            
+
+            CreateLibraryItems();
+
+            string itemsPath = Path.Combine(Util.configDir(), "inventory/OpenSimLibrary/OpenSimLibrary.xml");
+            if (File.Exists(itemsPath))
+            {
+                try
+                {
+                    XmlConfigSource source = new XmlConfigSource(itemsPath);
                     ReadItemsFromFile(source);
                 }
                 catch (XmlException e)
                 {
-                    MainLog.Instance.Error("AGENTINVENTORY", "Error loading " + filePath + ": " + e.ToString());
+                    MainLog.Instance.Error("AGENTINVENTORY", "Error loading " + itemsPath + ": " + e.ToString());
                 }
             }
         }
 
+        /// <summary>
+        /// Hardcoded item creation.  Please don't add any more items here - future items should be created 
+        /// in the xml in the bin/inventory folder.
+        /// </summary>
         private void CreateLibraryItems()
         {
             InventoryItemBase item =
@@ -133,7 +153,51 @@ namespace OpenSim.Framework.Communications.Cache
             item.inventoryNextPermissions = 0x7FFFFFFF;
             return item;
         }
+        
+        /// <summary>
+        /// Read library inventory folders from an external source
+        /// </summary>
+        /// <param name="source"></param>
+        private void ReadFoldersFromFile(IConfigSource source)
+        {        
+            for (int i = 0; i < source.Configs.Count; i++)
+            {       
+                IConfig config = source.Configs[i];
+                
+                InventoryFolderImpl folderInfo = new InventoryFolderImpl();
+                
+                folderInfo.folderID = new LLUUID(config.GetString("folderID", folderID.ToString()));
+                folderInfo.name = config.GetString("name", "unknown");                
+                folderInfo.parentID = new LLUUID(config.GetString("parentFolderID", folderID.ToString()));
+                folderInfo.type = (short)config.GetInt("type", 8);
+                
+                folderInfo.agentID = libOwner;                
+                folderInfo.version = 1;                
+                
+                if (libraryFolders.ContainsKey(folderInfo.parentID))
+                {                
+                    InventoryFolderImpl parentFolder = libraryFolders[folderInfo.parentID];
+                    
+                    libraryFolders.Add(folderInfo.folderID, folderInfo);
+                    parentFolder.SubFolders.Add(folderInfo.folderID, folderInfo);
+                    
+//                    MainLog.Instance.Verbose(
+//                        "LIBRARYINVENTORY", "Adding folder {0} ({1})", folderInfo.name, folderInfo.folderID);
+                }
+                else
+                {
+                    MainLog.Instance.Warn(
+                        "LIBRARYINVENTORY", 
+                        "Couldn't add folder {0} ({1}) since parent folder with ID {2} does not exist!",
+                        folderInfo.name, folderInfo.folderID, folderInfo.parentID);
+                }
+            }
+        }
 
+        /// <summary>
+        /// Read library inventory items metadata from an external source
+        /// </summary>
+        /// <param name="source"></param>        
         private void ReadItemsFromFile(IConfigSource source)
         {
             for (int i = 0; i < source.Configs.Count; i++)
@@ -145,7 +209,7 @@ namespace OpenSim.Framework.Communications.Cache
                     new LLUUID(source.Configs[i].GetString("inventoryID", folderID.ToString()));
                 item.assetID = new LLUUID(source.Configs[i].GetString("assetID", LLUUID.Random().ToString()));
                 item.parentFolderID 
-                    = new LLUUID(source.Configs[i].GetString("folderID", LLUUID.Random().ToString()));
+                    = new LLUUID(source.Configs[i].GetString("folderID", folderID.ToString()));
                 item.inventoryDescription = source.Configs[i].GetString("description", "");
                 item.inventoryName = source.Configs[i].GetString("name", "");
                 item.assetType = source.Configs[i].GetInt("assetType", 0);
@@ -155,19 +219,30 @@ namespace OpenSim.Framework.Communications.Cache
                 item.inventoryEveryOnePermissions = (uint) source.Configs[i].GetLong("everyonePermissions", 0x7FFFFFFF);
                 item.inventoryBasePermissions = (uint) source.Configs[i].GetLong("basePermissions", 0x7FFFFFFF);
                 
-                if (item.parentFolderID == folderID)
+                if (libraryFolders.ContainsKey(item.parentFolderID))
                 {
-                    Items.Add(item.inventoryID, item);
+                    InventoryFolderImpl parentFolder = libraryFolders[item.parentFolderID];
+                    
+                    parentFolder.Items.Add(item.inventoryID, item);
                 }
                 else
                 {
-                    // Very temporary - will only work for immediate child folders
-                    if (SubFolders.ContainsKey(item.parentFolderID))
-                    {
-                        SubFolders[item.parentFolderID].Items.Add(item.inventoryID, item);
-                    }
-                }              
+                    MainLog.Instance.Warn(
+                        "LIBRARYINVENTORY", 
+                        "Couldn't add item {0} ({1}) since parent folder with ID {2} does not exist!",
+                        item.inventoryName, item.inventoryID, item.parentFolderID);
+                }                
             }
+        }
+        
+        /// <summary>
+        /// Looks like a simple getter, but is written like this for some consistency with the other Request
+        /// methods in the superclass
+        /// </summary>
+        /// <returns></returns>
+        public Dictionary<LLUUID, InventoryFolderImpl> RequestSelfAndDescendentFolders()
+        {
+            return libraryFolders;
         }
     }
 }

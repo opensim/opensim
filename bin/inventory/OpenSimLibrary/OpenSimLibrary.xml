@@ -1,6 +1,22 @@
 <Nini>
   <!-- the root Opensim Library folder ID is 00000112-000f-0000-0000-000100bba000 -->
 
+<!--
+  <Section Name="Fart notecard">
+    <Key Name="inventoryID" Value="30000000-0000-2222-4444-000000000001" />
+    <Key Name="assetID" Value="30000000-0000-2222-3333-000000000001" />
+    <Key Name="folderID" Value="30000112-000f-0000-0000-000100bba001"/>
+    <Key Name="description" Value="ha" />
+    <Key Name="name" Value="Fart" />
+    <Key Name="assetType" Value="7" />
+    <Key Name="inventoryType" Value="7" />
+    <Key Name="currentPermissions" Value="2147483647" />
+    <Key Name="nextPermissions" Value="2147483647" />
+    <Key Name="everyonePermissions" Value="2147483647" />
+    <Key Name="basePermissions" Value="2147483647" />
+  </Section>
+-->
+
   <Section Name="Welcome notecard">
     <Key Name="inventoryID" Value="00000000-0000-2222-4444-000000000001" />
     <Key Name="assetID" Value="00000000-0000-2222-3333-000000000001" />
@@ -9,10 +25,10 @@
     <Key Name="name" Value="Welcome" />
     <Key Name="assetType" Value="7" />
     <Key Name="inventoryType" Value="7" />
-    <Key Name="currentPermissions" Value="1000000000000000" />
-    <Key Name="nextPermissions" Value="1000000000000000" />
-    <Key Name="everyonePermissions" Value="1000000000000000" />
-    <Key Name="basePermissions" Value="1000000000000000" />
+    <Key Name="currentPermissions" Value="2147483647" />
+    <Key Name="nextPermissions" Value="2147483647" />
+    <Key Name="everyonePermissions" Value="2147483647" />
+    <Key Name="basePermissions" Value="2147483647" />
   </Section>
   <Section Name="4-tile2 Texture">
     <Key Name="inventoryID" Value="00000000-0000-2222-4444-100000001000" />

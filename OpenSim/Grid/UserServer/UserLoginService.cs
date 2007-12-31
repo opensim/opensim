@@ -32,7 +32,9 @@ using System.Collections.Generic;
 using System.Threading;
 using libsecondlife;
 using Nwc.XmlRpc;
+
 using OpenSim.Framework;
+using OpenSim.Framework.Communications.Cache;
 using OpenSim.Framework.Console;
 using OpenSim.Framework.Data;
 using OpenSim.Framework.Servers;
@@ -45,8 +47,9 @@ namespace OpenSim.Grid.UserServer
     {
         public UserConfig m_config;
 
-        public UserLoginService(UserManagerBase userManager, UserConfig config, string welcomeMess)
-            : base(userManager, welcomeMess)
+        public UserLoginService(
+            UserManagerBase userManager, LibraryRootFolder libraryRootFolder, UserConfig config, string welcomeMess)
+            : base(userManager, libraryRootFolder, welcomeMess)
         {
             m_config = config;
         }

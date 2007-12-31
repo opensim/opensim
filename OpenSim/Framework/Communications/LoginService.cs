@@ -28,9 +28,12 @@
 
 using System;
 using System.Collections;
+using System.Collections.Generic;
 using System.Threading;
 using libsecondlife;
 using Nwc.XmlRpc;
+
+using OpenSim.Framework.Communications.Cache;
 using OpenSim.Framework.Console;
 
 namespace OpenSim.Framework.UserManagement
@@ -40,10 +43,18 @@ namespace OpenSim.Framework.UserManagement
         protected string m_welcomeMessage = "Welcome to OpenSim";
         protected UserManagerBase m_userManager = null;
         protected Mutex m_loginMutex = new Mutex(false);
+        
+        /// <summary>
+        /// Used during login to send the skeleton of the OpenSim Library to the client.
+        /// </summary>
+        protected LibraryRootFolder m_libraryRootFolder;
 
-        public LoginService(UserManagerBase userManager, string welcomeMess)
+        public LoginService(
+            UserManagerBase userManager, LibraryRootFolder libraryRootFolder, string welcomeMess)
         {
             m_userManager = userManager;
+            m_libraryRootFolder = libraryRootFolder;
+            
             if (welcomeMess != "")
             {
                 m_welcomeMessage = welcomeMess;
@@ -255,30 +266,27 @@ namespace OpenSim.Framework.UserManagement
         }
 
         /// <summary>
-        /// 
+        /// Converts the inventory library skeleton into the form required by the rpc request.
         /// </summary>
         /// <returns></returns>
         protected virtual ArrayList GetInventoryLibrary()
         {
-            //return new ArrayList();
-            Hashtable TempHash = new Hashtable();
-            TempHash["name"] = "OpenSim Library";
-            TempHash["parent_id"] = LLUUID.Zero.ToString();
-            TempHash["version"] = 1;
-            TempHash["type_default"] = -1;
-            TempHash["folder_id"] = "00000112-000f-0000-0000-000100bba000";
-            ArrayList temp = new ArrayList();
-            temp.Add(TempHash);
-
-            TempHash = new Hashtable();
-            TempHash["name"] = "Texture Library";
-            TempHash["parent_id"] = "00000112-000f-0000-0000-000100bba000";
-            TempHash["version"] = 1;
-            TempHash["type_default"] = -1;
-            TempHash["folder_id"] = "00000112-000f-0000-0000-000100bba001";
-            temp.Add(TempHash);
-
-            return temp;
+            Dictionary<LLUUID, InventoryFolderImpl> rootFolders 
+                = m_libraryRootFolder.RequestSelfAndDescendentFolders();
+            ArrayList folderHashes = new ArrayList();
+            
+            foreach (InventoryFolderBase folder in rootFolders.Values)
+            {
+                Hashtable TempHash = new Hashtable();
+                TempHash["name"] = folder.name;
+                TempHash["parent_id"] = folder.parentID.ToString();
+                TempHash["version"] = folder.version;
+                TempHash["type_default"] = folder.type;
+                TempHash["folder_id"] = folder.folderID.ToString();
+                folderHashes.Add(TempHash);
+            }
+            
+            return folderHashes;
         }
 
         /// <summary>
