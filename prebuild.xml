@@ -1151,41 +1151,6 @@
       </Files>
     </Project>
 
-    <Project name="OpenSim.Region.ScriptEngine.RemoteServer" path="OpenSim/Region/ScriptEngine/RemoteServer" type="Library">
-      <Configuration name="Debug">
-        <Options>
-          <OutputPath>../../../../bin/ScriptEngines/</OutputPath>
-        </Options>
-      </Configuration>
-      <Configuration name="Release">
-        <Options>
-          <OutputPath>../../../../bin/ScriptEngines/</OutputPath>
-        </Options>
-      </Configuration>
-
-      <ReferencePath>../../../../bin/</ReferencePath>      
-      <ReferencePath>../../../../bin/ScriptEngines/</ReferencePath> 
-      <Reference name="System" localCopy="false"/>
-      <Reference name="System.Data" localCopy="false"/>
-      <Reference name="System.Xml" localCopy="false"/>
-      <Reference name="System.Runtime.Remoting" localCopy="false"/>
-      <Reference name="OpenSim.Region.Environment" />
-      <Reference name="libsecondlife.dll"/>
-      <Reference name="RAIL.dll"/>
-      <Reference name="OpenSim.Framework"/>
-      <Reference name="OpenSim.Framework.Console"/>
-      <Reference name="OpenSim.Region.ScriptEngine.Common"/>
-      <Reference name="OpenSim.Region.Terrain.BasicTerrain"/>
-      <Reference name="OpenSim.Grid.ScriptServer"/>
-      <Reference name="OpenSim.Region.ScriptEngine"/>
-      <Reference name="OpenSim.Region.ScriptEngine.DotNetEngine"/>
-      <Reference name="Axiom.MathLib.dll" localCopy="false"/>
-      <Reference name="Nini.dll" />
-      <Files>
-        <Match pattern="*.cs" recurse="true"/>
-      </Files>
-    </Project>
-
 
 
 
@@ -1212,12 +1177,46 @@
       <Reference name="OpenSim.Framework.Servers"/>
       <Reference name="OpenSim.Framework.Data"/>
       <Reference name="OpenSim.Region.Environment"/>
-      <Reference name="OpenSim.Region.ScriptEngine.DotNetEngine"/>
+      <Reference name="../../../bin/ScriptEngines/OpenSim.Region.ScriptEngine.DotNetEngine"/>
       <Reference name="OpenSim.Region.ScriptEngine.Common"/>
       <Reference name="libsecondlife.dll"/>
       <Reference name="Axiom.MathLib.dll" localCopy="false"/>
       <Reference name="XMLRPC.dll"/>
 
+      <Files>
+        <Match pattern="*.cs" recurse="true"/>
+      </Files>
+    </Project>
+
+    <Project name="OpenSim.Region.ScriptEngine.RemoteServer" path="OpenSim/Region/ScriptEngine/RemoteServer" type="Library">
+      <Configuration name="Debug">
+        <Options>
+          <OutputPath>../../../../bin/ScriptEngines/</OutputPath>
+        </Options>
+      </Configuration>
+      <Configuration name="Release">
+        <Options>
+          <OutputPath>../../../../bin/ScriptEngines/</OutputPath>
+        </Options>
+      </Configuration>
+
+      <ReferencePath>../../../../bin/</ReferencePath>      
+      <ReferencePath>../../../../bin/ScriptEngines/</ReferencePath> 
+      <Reference name="System" localCopy="false"/>
+      <Reference name="System.Data" localCopy="false"/>
+      <Reference name="System.Xml" localCopy="false"/>
+      <Reference name="System.Runtime.Remoting" localCopy="false"/>
+      <Reference name="OpenSim.Region.Environment" />
+      <Reference name="libsecondlife.dll"/>
+      <Reference name="RAIL.dll"/>
+      <Reference name="OpenSim.Framework"/>
+      <Reference name="OpenSim.Framework.Console"/>
+      <Reference name="OpenSim.Region.ScriptEngine.Common"/>
+      <Reference name="OpenSim.Region.Terrain.BasicTerrain"/>
+      <Reference name="OpenSim.Grid.ScriptServer"/>
+      <Reference name="../../../../bin/ScriptEngines/OpenSim.Region.ScriptEngine.DotNetEngine"/>
+      <Reference name="Axiom.MathLib.dll" localCopy="false"/>
+      <Reference name="Nini.dll" />
       <Files>
         <Match pattern="*.cs" recurse="true"/>
       </Files>
