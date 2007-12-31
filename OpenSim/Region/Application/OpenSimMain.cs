@@ -332,19 +332,9 @@ namespace OpenSim
             foreach (TypeExtensionNode node in nodes)
             {                    
                 IApplicationPlugin plugin = (IApplicationPlugin) node.CreateInstance();
-                                
-                // Debug code to try and track down a bizzare ubuntu/mono/linux bug on standalone where we
-                // appear to try and initialize all the plugins twice.  Currently disabled
-//                MainLog.Instance.Verbose("PLUGINS", "Hitting plugin {0}", plugin.ToString());
-//                if (m_plugins.Contains(plugin))
-//                {
-//                    MainLog.Instance.Verbose("PLUGINS", "Skipping {0}", plugin.ToString());
-//                }
-//                else
-//                {
-                    plugin.Initialise(this);
-                    m_plugins.Add(plugin);
-//                }
+                
+                plugin.Initialise(this);
+                m_plugins.Add(plugin);
             }
 
             // Start UDP servers
@@ -384,7 +374,7 @@ namespace OpenSim
 
             m_moduleLoader.PickupModules(scene, ".");
             //m_moduleLoader.PickupModules(scene, "ScriptEngines");
-            m_moduleLoader.LoadRegionModules(Path.Combine("ScriptEngine", "OpenSim.Region.ScriptEngine.DotNetEngine.dll"), scene);
+            m_moduleLoader.LoadRegionModules(Path.Combine("ScriptEngines", "OpenSim.Region.ScriptEngine.DotNetEngine.dll"), scene);
             
 
             m_moduleLoader.InitialiseSharedModules(scene);
