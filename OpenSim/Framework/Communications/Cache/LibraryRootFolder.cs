@@ -64,35 +64,9 @@ namespace OpenSim.Framework.Communications.Cache
             
             libraryFolders.Add(folderID, this);
             
-            string foldersPath = Path.Combine(Util.configDir(), "inventory/OpenSimLibrary/OpenSimLibraryFolders.xml");
-            if (File.Exists(foldersPath))
-            {
-                try
-                {
-                    XmlConfigSource source = new XmlConfigSource(foldersPath);
-                    ReadFoldersFromFile(source);
-                }
-                catch (XmlException e)
-                {
-                    MainLog.Instance.Error("AGENTINVENTORY", "Error loading " + foldersPath + ": " + e.ToString());
-                }
-            }            
+            LoadLibraries(Path.Combine(Util.inventoryDir(), "Libraries.xml"));
 
             CreateLibraryItems();
-
-            string itemsPath = Path.Combine(Util.configDir(), "inventory/OpenSimLibrary/OpenSimLibrary.xml");
-            if (File.Exists(itemsPath))
-            {
-                try
-                {
-                    XmlConfigSource source = new XmlConfigSource(itemsPath);
-                    ReadItemsFromFile(source);
-                }
-                catch (XmlException e)
-                {
-                    MainLog.Instance.Error("AGENTINVENTORY", "Error loading " + itemsPath + ": " + e.ToString());
-                }
-            }
         }
 
         /// <summary>
@@ -155,84 +129,140 @@ namespace OpenSim.Framework.Communications.Cache
         }
         
         /// <summary>
-        /// Read library inventory folders from an external source
+        /// Use the asset set information at path to load assets
+        /// </summary>
+        /// <param name="path"></param>
+        /// <param name="assets"></param>
+        protected void LoadLibraries(string librariesControlPath)
+        {
+            MainLog.Instance.Verbose(
+                "LIBRARYINVENTORY", "Loading libraries control file {0}", librariesControlPath);
+            
+            LoadFromFile(librariesControlPath, "Libraries control", ReadLibraryFromConfig);
+        }
+        
+        /// <summary>
+        /// Read a library set from config
+        /// </summary>
+        /// <param name="config"></param>
+        protected void ReadLibraryFromConfig(IConfig config)
+        {
+            string foldersPath 
+                = Path.Combine(
+                    Util.inventoryDir(), config.GetString("foldersFile", ""));
+            
+            LoadFromFile(foldersPath, "Library folders", ReadFolderFromConfig);
+            
+            string itemsPath 
+                = Path.Combine(
+                    Util.inventoryDir(), config.GetString("itemsFile", ""));
+            
+            LoadFromFile(itemsPath, "Library items", ReadItemFromConfig);
+        }
+        
+        /// <summary>
+        /// Read a library inventory folder from a loaded configuration
         /// </summary>
         /// <param name="source"></param>
-        private void ReadFoldersFromFile(IConfigSource source)
-        {        
-            for (int i = 0; i < source.Configs.Count; i++)
-            {       
-                IConfig config = source.Configs[i];
+        private void ReadFolderFromConfig(IConfig config)
+        {                        
+            InventoryFolderImpl folderInfo = new InventoryFolderImpl();
+            
+            folderInfo.folderID = new LLUUID(config.GetString("folderID", folderID.ToString()));
+            folderInfo.name = config.GetString("name", "unknown");                
+            folderInfo.parentID = new LLUUID(config.GetString("parentFolderID", folderID.ToString()));
+            folderInfo.type = (short)config.GetInt("type", 8);
+            
+            folderInfo.agentID = libOwner;                
+            folderInfo.version = 1;                
+            
+            if (libraryFolders.ContainsKey(folderInfo.parentID))
+            {                
+                InventoryFolderImpl parentFolder = libraryFolders[folderInfo.parentID];
                 
-                InventoryFolderImpl folderInfo = new InventoryFolderImpl();
+                libraryFolders.Add(folderInfo.folderID, folderInfo);
+                parentFolder.SubFolders.Add(folderInfo.folderID, folderInfo);
                 
-                folderInfo.folderID = new LLUUID(config.GetString("folderID", folderID.ToString()));
-                folderInfo.name = config.GetString("name", "unknown");                
-                folderInfo.parentID = new LLUUID(config.GetString("parentFolderID", folderID.ToString()));
-                folderInfo.type = (short)config.GetInt("type", 8);
-                
-                folderInfo.agentID = libOwner;                
-                folderInfo.version = 1;                
-                
-                if (libraryFolders.ContainsKey(folderInfo.parentID))
-                {                
-                    InventoryFolderImpl parentFolder = libraryFolders[folderInfo.parentID];
-                    
-                    libraryFolders.Add(folderInfo.folderID, folderInfo);
-                    parentFolder.SubFolders.Add(folderInfo.folderID, folderInfo);
-                    
 //                    MainLog.Instance.Verbose(
 //                        "LIBRARYINVENTORY", "Adding folder {0} ({1})", folderInfo.name, folderInfo.folderID);
-                }
-                else
-                {
-                    MainLog.Instance.Warn(
-                        "LIBRARYINVENTORY", 
-                        "Couldn't add folder {0} ({1}) since parent folder with ID {2} does not exist!",
-                        folderInfo.name, folderInfo.folderID, folderInfo.parentID);
-                }
+            }
+            else
+            {
+                MainLog.Instance.Warn(
+                    "LIBRARYINVENTORY", 
+                    "Couldn't add folder {0} ({1}) since parent folder with ID {2} does not exist!",
+                    folderInfo.name, folderInfo.folderID, folderInfo.parentID);
             }
         }
 
         /// <summary>
-        /// Read library inventory items metadata from an external source
+        /// Read a library inventory item metadata from a loaded configuration
         /// </summary>
         /// <param name="source"></param>        
-        private void ReadItemsFromFile(IConfigSource source)
+        private void ReadItemFromConfig(IConfig config)
         {
-            for (int i = 0; i < source.Configs.Count; i++)
+            InventoryItemBase item = new InventoryItemBase();
+            item.avatarID = libOwner;
+            item.creatorsID = libOwner;
+            item.inventoryID = new LLUUID(config.GetString("inventoryID", folderID.ToString()));
+            item.assetID = new LLUUID(config.GetString("assetID", LLUUID.Random().ToString()));
+            item.parentFolderID = new LLUUID(config.GetString("folderID", folderID.ToString()));
+            item.inventoryDescription = config.GetString("description", "");
+            item.inventoryName = config.GetString("name", "");
+            item.assetType = config.GetInt("assetType", 0);
+            item.invType = config.GetInt("inventoryType", 0);
+            item.inventoryCurrentPermissions = (uint)config.GetLong("currentPermissions", 0x7FFFFFFF);
+            item.inventoryNextPermissions = (uint)config.GetLong("nextPermissions", 0x7FFFFFFF);
+            item.inventoryEveryOnePermissions = (uint)config.GetLong("everyonePermissions", 0x7FFFFFFF);
+            item.inventoryBasePermissions = (uint)config.GetLong("basePermissions", 0x7FFFFFFF);
+            
+            if (libraryFolders.ContainsKey(item.parentFolderID))
             {
-                InventoryItemBase item = new InventoryItemBase();
-                item.avatarID = libOwner;
-                item.creatorsID = libOwner;
-                item.inventoryID =
-                    new LLUUID(source.Configs[i].GetString("inventoryID", folderID.ToString()));
-                item.assetID = new LLUUID(source.Configs[i].GetString("assetID", LLUUID.Random().ToString()));
-                item.parentFolderID 
-                    = new LLUUID(source.Configs[i].GetString("folderID", folderID.ToString()));
-                item.inventoryDescription = source.Configs[i].GetString("description", "");
-                item.inventoryName = source.Configs[i].GetString("name", "");
-                item.assetType = source.Configs[i].GetInt("assetType", 0);
-                item.invType = source.Configs[i].GetInt("inventoryType", 0);
-                item.inventoryCurrentPermissions = (uint) source.Configs[i].GetLong("currentPermissions", 0x7FFFFFFF);
-                item.inventoryNextPermissions = (uint) source.Configs[i].GetLong("nextPermissions", 0x7FFFFFFF);
-                item.inventoryEveryOnePermissions = (uint) source.Configs[i].GetLong("everyonePermissions", 0x7FFFFFFF);
-                item.inventoryBasePermissions = (uint) source.Configs[i].GetLong("basePermissions", 0x7FFFFFFF);
+                InventoryFolderImpl parentFolder = libraryFolders[item.parentFolderID];
                 
-                if (libraryFolders.ContainsKey(item.parentFolderID))
+                parentFolder.Items.Add(item.inventoryID, item);
+            }
+            else
+            {
+                MainLog.Instance.Warn(
+                    "LIBRARYINVENTORY", 
+                    "Couldn't add item {0} ({1}) since parent folder with ID {2} does not exist!",
+                    item.inventoryName, item.inventoryID, item.parentFolderID);
+            }                
+        }
+                
+        private delegate void ConfigAction(IConfig config);        
+        
+        /// <summary>
+        /// Load the given configuration at a path and perform an action on each Config contained within it
+        /// </summary>
+        /// <param name="path"></param>
+        /// <param name="fileDescription"></param>
+        /// <param name="action"></param>
+        private void LoadFromFile(string path, string fileDescription, ConfigAction action)
+        {            
+            if (File.Exists(path))
+            {
+                try
                 {
-                    InventoryFolderImpl parentFolder = libraryFolders[item.parentFolderID];
-                    
-                    parentFolder.Items.Add(item.inventoryID, item);
+                    XmlConfigSource source = new XmlConfigSource(path);
+
+                    for (int i = 0; i < source.Configs.Count; i++)
+                    {    
+                        action(source.Configs[i]);
+                    }
                 }
-                else
+                catch (XmlException e)
                 {
-                    MainLog.Instance.Warn(
-                        "LIBRARYINVENTORY", 
-                        "Couldn't add item {0} ({1}) since parent folder with ID {2} does not exist!",
-                        item.inventoryName, item.inventoryID, item.parentFolderID);
+                    MainLog.Instance.Error(
+                        "LIBRARYINVENTORY", "Error loading {0} : {1}", path, e);
                 }                
             }
+            else
+            {
+                MainLog.Instance.Error(
+                    "LIBRARYINVENTORY", "{0} file {1} does not exist!", fileDescription, path);
+            }            
         }
         
         /// <summary>

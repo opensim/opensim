@@ -280,6 +280,7 @@ namespace OpenSim.Framework.UserManagement
             }
             return buddylistreturn;
         }
+        
         /// <summary>
         /// Converts the inventory library skeleton into the form required by the rpc request.
         /// </summary>

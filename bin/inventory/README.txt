@@ -1,14 +1,21 @@
 README
 
-The standard common inventory library is configured here.  You can add new inventory 
-folders to the standard library by editing OpenSimLibary/OpenSimLibraryFolders.xml
-You can also add new inventory items to OpenSimLibrary/OpenSimLibrary.xml,
-as long as they have a corresponding asset entry in bin/OpenSimAssetSet.xml.
+Folders and items which will appear in the standard common library for all
+avatars can be configured here.  The root folder (currently called OpenSim
+Library) is hardcoded, but you can add your own configuration of folders and
+items directly beneath this, in addition to (or instead of) the contents of the 
+default OpenSim library.
 
-The same set of folders and items must be present in the configuration of both
-the grid servers and all the regions.  The reasons for this are historical - 
-this restriction will probably be lifted in the future, at which point the
-inventory items and folders will only need to be configured on the grid inventory
-server (assuming you are running in grid mode rather than standalone)
+To add a new library, edit Libraries.xml.  The entry in here needs to point to
+two further xml files, one which details your library inventory folders and another
+which details your library inventory items.  Each inventory item will need to be
+associated with an asset.  Assets are configured separately in the bin/assets
+directory.
+
+If you are running in grid mode, any library you add must be present in both 
+your grid servers installation and in
+every region installation, otherwise library items will fail in the regions
+where the inventory configuration is not present.  The reasons for this are historical
+and will probably be lifted in a future revision.
 
 Files in the attic directory are currently unused.

@@ -321,7 +321,12 @@ namespace OpenSim.Framework
         
         public static string assetsDir()
         {
-            return "assets";
+            return Path.Combine(configDir(), "assets");
+        }
+
+        public static string inventoryDir()
+        {
+            return Path.Combine(configDir(), "inventory");
         }
 
         public static string configDir()
