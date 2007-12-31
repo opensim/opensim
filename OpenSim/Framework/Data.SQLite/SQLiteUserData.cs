@@ -46,9 +46,11 @@ namespace OpenSim.Framework.Data.SQLite
         /// Artificial constructor called upon plugin load
         /// </summary>
         private const string userSelect = "select * from users";
+        private const string userFriendsSelect = "select a.ownerID as ownerID,a.friendID as friendID,a.friendPerms as friendPerms,b.friendPerms as ownerperms, b.ownerID as fownerID, b.friendID as ffriendID from userfriends as a, userfriends as b";
 
         private DataSet ds;
         private SqliteDataAdapter da;
+        private SqliteDataAdapter daf;
 
         public void Initialise()
         {
@@ -57,14 +59,29 @@ namespace OpenSim.Framework.Data.SQLite
 
             ds = new DataSet();
             da = new SqliteDataAdapter(new SqliteCommand(userSelect, conn));
+            daf = new SqliteDataAdapter(new SqliteCommand(userFriendsSelect, conn));
 
             lock (ds)
             {
                 ds.Tables.Add(createUsersTable());
                 ds.Tables.Add(createUserAgentsTable());
+                ds.Tables.Add(createUserFriendsTable());
 
                 setupUserCommands(da, conn);
                 da.Fill(ds.Tables["users"]);
+
+                setupUserFriendsCommands(daf, conn);
+                try
+                {
+                    daf.Fill(ds.Tables["userfriends"]);
+                }
+                catch (SqliteSyntaxException)
+                {
+                    MainLog.Instance.Verbose("SQLITE", "userfriends table not found, creating.... ");
+                    InitDB(conn);
+                    daf.Fill(ds.Tables["userfriends"]);
+                }
+
             }
 
             return;
@@ -121,26 +138,119 @@ namespace OpenSim.Framework.Data.SQLite
         
         public void AddNewUserFriend(LLUUID friendlistowner, LLUUID friend, uint perms)
         {
+            //do stuff;
             MainLog.Instance.Verbose("FRIEND", "Stub AddNewUserFriend called");
+            DataTable friends = ds.Tables["userfriends"];
+            DataTable ua = ds.Tables["userfriends"];
+            lock (ds)
+            {
+               
+                
+                DataRow row = friends.NewRow();
+                fillFriendRow(row, friendlistowner,friend,perms);
+                friends.Rows.Add(row);
+
+                row = friends.NewRow();
+                fillFriendRow(row, friend, friendlistowner, perms);
+                friends.Rows.Add(row);
+
+                MainLog.Instance.Verbose("SQLITE",
+                                         "Adding Friend: " + ds.Tables["userfriends"].Rows.Count + " friends stored");
+                // save changes off to disk
+                daf.Update(ds, "userfriends");
+            }
         }
 
         public void RemoveUserFriend(LLUUID friendlistowner, LLUUID friend)
         {
+            DataTable ua = ds.Tables["userfriends"];
+            string select = "a.ownernID '" + friendlistowner.UUID.ToString() + "' and b.friendID ='" + friend.UUID.ToString() + "';";
+            lock (ds)
+            {
+                DataRow[] rows = ds.Tables["userfriends"].Select(select);
+                
+                if ( rows != null)
+                {
+                    if (rows.Length > 0)
+                    {
+                        for (int i = 0; i < rows.Length; i++)
+                        {
+                            FriendListItem user = new FriendListItem();
+                            DataRow row = rows[i];
+                            row.Delete();
+                        }
+                        daf.Update(ds, "userfriends");
+                    }
+                }
+            }
             MainLog.Instance.Verbose("FRIEND", "Stub RemoveUserFriend called");
         }
         public void UpdateUserFriendPerms(LLUUID friendlistowner, LLUUID friend, uint perms)
         {
+            DataTable ua = ds.Tables["userfriends"];
+            string select = "a.ownernID '" + friendlistowner.UUID.ToString() + "' and b.friendID ='" + friend.UUID.ToString() + "';";
+            lock (ds)
+            {
+                DataRow[] rows = ds.Tables["userfriends"].Select(select);
+                
+                if ( rows != null)
+                {
+                    if (rows.Length > 0)
+                    {
+                        for (int i = 0; i < rows.Length; i++)
+                        {
+                            FriendListItem user = new FriendListItem();
+                            DataRow row = rows[i];
+                            row["friendPerms"] = Convert.ToInt32(perms);
+                        }
+                        daf.Update(ds, "userfriends");
+                    }
+                }
+            }
             MainLog.Instance.Verbose("FRIEND", "Stub UpdateUserFriendPerms called");
         }
         
 
         public List<FriendListItem> GetUserFriendList(LLUUID friendlistowner)
         {
-            MainLog.Instance.Verbose("FRIEND", "Stub GetUserFriendList called");
-            return new List<FriendListItem>();
+            List<FriendListItem> returnlist = new List<FriendListItem>();
+            
+            string select = "ownerID = '" + friendlistowner.UUID.ToString() + "' and fownerID = friendID and ffriendID = ownerID";
+            lock (ds)
+            {
+                DataRow[] rows = ds.Tables["userfriends"].Select(select);
+                
+                if (rows.Length > 0)
+                {
+                    for (int i = 0; i < rows.Length; i++)
+                    {
+                        FriendListItem user = new FriendListItem();
+                        DataRow row = rows[i];
+                        user.FriendListOwner = new LLUUID((string)row[0]);
+                        user.Friend = new LLUUID((string)row[1]);
+                        user.FriendPerms =  Convert.ToUInt32(row[2]);
+                        user.FriendListOwnerPerms =  Convert.ToUInt32(row[3]);
+                        returnlist.Add(user);
+                    }
+                }
+            }          
+            return returnlist;
         }
+       
+        
+
 
         #endregion
+
+        public void UpdateUserCurrentRegion(LLUUID avatarid, LLUUID regionuuid)
+        {
+            MainLog.Instance.Verbose("USER", "Stub UpdateUserCUrrentRegion called");
+        }
+
+        public void LogOffUser(LLUUID avatarid)
+        {
+            MainLog.Instance.Verbose("USER", "Stub LogOffUser called");
+        }
 
         public List<Framework.AvatarPickerAvatar> GeneratePickerResults(LLUUID queryID, string query)
         {
@@ -441,6 +551,19 @@ namespace OpenSim.Framework.Data.SQLite
             return ua;
         }
 
+        private DataTable createUserFriendsTable()
+        {
+            DataTable ua = new DataTable("userfriends");
+            // table contains user <----> user relationship with perms
+            createCol(ua, "ownerID", typeof(String));
+            createCol(ua, "friendID", typeof(String));
+            createCol(ua, "friendPerms", typeof(Int32));
+            createCol(ua, "ownerPerms", typeof(Int32));
+            createCol(ua, "datetimestamp", typeof(Int32));
+
+            return ua;
+        }
+
         /***********************************************************************
          *  
          *  Convert between ADO.NET <=> OpenSim Objects
@@ -448,7 +571,7 @@ namespace OpenSim.Framework.Data.SQLite
          *  These should be database independant
          *
          **********************************************************************/
-
+         
         private UserProfileData buildUserProfile(DataRow row)
         {
             // TODO: this doesn't work yet because something more
@@ -485,6 +608,20 @@ namespace OpenSim.Framework.Data.SQLite
             user.profileImage = new LLUUID((String) row["profileImage"]);
             user.profileFirstImage = new LLUUID((String) row["profileFirstImage"]);
             return user;
+        }
+
+        private void fillFriendRow(DataRow row, LLUUID ownerID, LLUUID friendID, uint perms)
+        {
+            row["ownerID"] = ownerID.UUID.ToString();
+            row["friendID"] = friendID.UUID.ToString();
+            row["friendPerms"] = perms;
+            foreach (DataColumn col in ds.Tables["userfriends"].Columns)
+            {
+                if (row[col] == null)
+                {
+                    row[col] = "";
+                }
+            }
         }
 
         private void fillUserRow(DataRow row, UserProfileData user)
@@ -592,23 +729,68 @@ namespace OpenSim.Framework.Data.SQLite
             da.DeleteCommand = delete;
         }
 
+        private void setupUserFriendsCommands(SqliteDataAdapter daf, SqliteConnection conn)
+        {
+            daf.InsertCommand = createInsertCommand("userfriends", ds.Tables["userfriends"]);
+            daf.InsertCommand.Connection = conn;
+
+            daf.UpdateCommand = createUpdateCommand("userfriends", "ownerID=:ownerID and friendID=:friendID", ds.Tables["userfriends"]);
+            daf.UpdateCommand.Connection = conn;
+
+            SqliteCommand delete = new SqliteCommand("delete from users where ownerID=:ownerID and friendID=:friendID");
+            delete.Parameters.Add(createSqliteParameter("ownerID", typeof(String)));
+            delete.Parameters.Add(createSqliteParameter("friendID", typeof(String)));
+            delete.Connection = conn;
+            daf.DeleteCommand = delete;
+
+        }
+
         private void InitDB(SqliteConnection conn)
         {
             string createUsers = defineTable(createUsersTable());
+            string createFriends = defineTable(createUserFriendsTable());
+
             SqliteCommand pcmd = new SqliteCommand(createUsers, conn);
+            SqliteCommand fcmd = new SqliteCommand(createFriends, conn);
+
             conn.Open();
-            pcmd.ExecuteNonQuery();
+
+            try
+            {
+
+                pcmd.ExecuteNonQuery();
+            }
+            catch (System.Exception)
+            {
+                MainLog.Instance.Verbose("USERS", "users table already exists");
+            }
+
+            try
+            {
+                fcmd.ExecuteNonQuery();
+            }
+            catch (System.Exception)
+            {
+                MainLog.Instance.Verbose("USERS", "userfriends table already exists");
+            }
+
             conn.Close();
         }
 
         private bool TestTables(SqliteConnection conn)
         {
             SqliteCommand cmd = new SqliteCommand(userSelect, conn);
+            SqliteCommand fcmd = new SqliteCommand(userFriendsSelect, conn);
             SqliteDataAdapter pDa = new SqliteDataAdapter(cmd);
+            SqliteDataAdapter fDa = new SqliteDataAdapter(cmd);
+
             DataSet tmpDS = new DataSet();
+            DataSet tmpDS2 = new DataSet();
+
             try
             {
                 pDa.Fill(tmpDS, "users");
+                fDa.Fill(tmpDS2, "userfriends");
             }
             catch (SqliteSyntaxException)
             {

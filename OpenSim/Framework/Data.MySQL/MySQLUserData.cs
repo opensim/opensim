@@ -77,10 +77,13 @@ namespace OpenSim.Framework.Data.MySQL
 
             tableList["agents"] = null;
             tableList["users"] = null;
+            tableList["userfriends"] = null;
             database.GetTableVersion(tableList);
 
             UpgradeAgentsTable(tableList["agents"]);
             UpgradeUsersTable(tableList["users"]);
+            UpgradeFriendsTable(tableList["userfriends"]);
+
         }
 
         /// <summary>
@@ -109,6 +112,21 @@ namespace OpenSim.Framework.Data.MySQL
             if (oldVersion == null)
             {
                 database.ExecuteResourceSql("CreateUsersTable.sql");
+                return;
+            }
+        }
+
+        /// <summary>
+        /// Create or upgrade the table if necessary
+        /// </summary>
+        /// <param name="oldVersion">A null indicates that the table does not
+        /// currently exist</param>
+        private void UpgradeFriendsTable(string oldVersion)
+        {
+            // null as the version, indicates that the table didn't exist
+            if (oldVersion == null)
+            {
+                database.ExecuteResourceSql("CreateUserFriendsTable.sql");
                 return;
             }
         }
@@ -149,26 +167,165 @@ namespace OpenSim.Framework.Data.MySQL
 
         public void AddNewUserFriend(LLUUID friendlistowner, LLUUID friend, uint perms)
         {
+            int dtvalue = Util.UnixTimeSinceEpoch();
+
+            Dictionary<string, string> param = new Dictionary<string, string>();
+            param["?ownerID"] = friendlistowner.UUID.ToString();
+            param["?friendID"] = friend.UUID.ToString();
+            param["?friendPerms"] = perms.ToString();
+            param["?datetimestamp"] = dtvalue.ToString();
+            
+            try 
+            {
+                lock (database)
+                {
+                    IDbCommand adder =
+                        database.Query(
+                        "INSERT INTO `userfriends` " +
+                        "(`ownerID`,`friendID`,`friendPerms`,`datetimestamp`) " + 
+                        "VALUES " +
+                        "(?ownerID,?friendID,?friendPerms,?datetimestamp)",
+                            param);
+                    adder.ExecuteNonQuery();
+
+                    adder =
+                        database.Query(
+                        "INSERT INTO `userfriends` " +
+                        "(`ownerID`,`friendID`,`friendPerms`,`datetimestamp`) " +
+                        "VALUES " +
+                        "(?friendID,?ownerID,?friendPerms,?datetimestamp)",
+                            param);
+                    adder.ExecuteNonQuery();
+
+                }
+            }
+            catch (Exception e)
+            {
+                database.Reconnect();
+                MainLog.Instance.Error(e.ToString());
+                return;
+            }
             MainLog.Instance.Verbose("FRIEND", "Stub AddNewUserFriend called");
         }
 
         public void RemoveUserFriend(LLUUID friendlistowner, LLUUID friend)
         {
+            Dictionary<string, string> param = new Dictionary<string, string>();
+            param["?ownerID"] = friendlistowner.UUID.ToString();
+            param["?friendID"] = friend.UUID.ToString();
+
+
+            try
+            {
+                lock (database)
+                {
+                    IDbCommand updater =
+                        database.Query(
+                        "delete from userfriends " +
+                        "where ownerID = ?ownerID and friendID = ?friendID",
+                            param);
+                    updater.ExecuteNonQuery();
+
+                }
+            }
+            catch (Exception e)
+            {
+                database.Reconnect();
+                MainLog.Instance.Error(e.ToString());
+                return;
+            }
             MainLog.Instance.Verbose("FRIEND", "Stub RemoveUserFriend called");
         }
         public void UpdateUserFriendPerms(LLUUID friendlistowner, LLUUID friend, uint perms)
         {
+            Dictionary<string, string> param = new Dictionary<string, string>();
+            param["?ownerID"] = friendlistowner.UUID.ToString();
+            param["?friendID"] = friend.UUID.ToString();
+            param["?friendPerms"] = perms.ToString();
+            
+
+            try
+            {
+                lock (database)
+                {
+                    IDbCommand updater =
+                        database.Query(
+                        "update userfriends " +
+                        "SET friendPerms = ?friendPerms " +
+                        "where ownerID = ?ownerID and friendID = ?friendID",
+                            param);
+                    updater.ExecuteNonQuery();
+
+                }
+            }
+            catch (Exception e)
+            {
+                database.Reconnect();
+                MainLog.Instance.Error(e.ToString());
+                return;
+            }
             MainLog.Instance.Verbose("FRIEND", "Stub UpdateUserFriendPerms called");
         }
 
 
         public List<FriendListItem> GetUserFriendList(LLUUID friendlistowner)
         {
+            List<FriendListItem> Lfli = new List<FriendListItem>();
+
+            Dictionary<string, string> param = new Dictionary<string, string>();
+            param["?ownerID"] = friendlistowner.UUID.ToString();
+
+            try
+            {
+                lock (database)
+                {
+                    //Left Join userfriends to itself
+                    IDbCommand result =
+                        database.Query(
+                        "select a.ownerID,a.friendID,a.friendPerms,b.friendPerms as ownerperms from userfriends as a, userfriends as b" +
+                        " where a.ownerID = ?ownerID and b.ownerID = a.friendID and b.friendID = a.ownerID",
+                            param);
+                    IDataReader reader = result.ExecuteReader();
+
+
+                    while (reader.Read())
+                    {
+                        FriendListItem fli = new FriendListItem();
+                        fli.FriendListOwner = new LLUUID((string)reader["ownerID"]);
+                        fli.Friend = new LLUUID((string)reader["friendID"]);
+                        fli.FriendPerms = (uint)Convert.ToInt32(reader["friendPerms"]);
+
+                        // This is not a real column in the database table, it's a joined column from the opposite record
+                        fli.FriendListOwnerPerms = (uint)Convert.ToInt32(reader["ownerperms"]);
+                        
+                        Lfli.Add(fli);
+                    }
+                    reader.Close();
+                    result.Dispose();
+                }
+            }
+            catch (Exception e)
+            {
+                database.Reconnect();
+                MainLog.Instance.Error(e.ToString());
+                return Lfli;
+            }
+
             MainLog.Instance.Verbose("FRIEND", "Stub GetUserFriendList called");
-            return new List<FriendListItem>();
+            return Lfli;
         }
 
         #endregion
+
+        public void UpdateUserCurrentRegion(LLUUID avatarid, LLUUID regionuuid)
+        {
+            MainLog.Instance.Verbose("USER", "Stub UpdateUserCUrrentRegion called");
+        }
+
+        public void LogOffUser(LLUUID avatarid)
+        {
+            MainLog.Instance.Verbose("USER", "Stub LogOffUser called");
+        }
 
         public List<Framework.AvatarPickerAvatar> GeneratePickerResults(LLUUID queryID, string query)
         {

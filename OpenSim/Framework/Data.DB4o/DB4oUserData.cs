@@ -158,6 +158,16 @@ namespace OpenSim.Framework.Data.DB4o
 
         #endregion
 
+        public void UpdateUserCurrentRegion(LLUUID avatarid, LLUUID regionuuid)
+        {
+            //MainLog.Instance.Verbose("USER", "Stub UpdateUserCUrrentRegion called");
+        }
+
+        public void LogOffUser(LLUUID avatarid)
+        {
+            //MainLog.Instance.Verbose("USER", "Stub LogOffUser called");
+        }
+
         public List<Framework.AvatarPickerAvatar> GeneratePickerResults(LLUUID queryID, string query)
         {
             //Do nothing yet

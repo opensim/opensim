@@ -168,6 +168,7 @@ namespace OpenSim.Framework.UserManagement
                         //logResponse.SimAddress = "127.0.0.1"; //overwritten
                         //logResponse.SimPort = 0; //overwritten
                         logResponse.Message = GetMessage();
+                        logResponse.BuddList = ConvertFriendListItem(m_userManager.GetUserFriendList(agentID)); 
 
                         try
                         {
@@ -265,6 +266,20 @@ namespace OpenSim.Framework.UserManagement
             return m_welcomeMessage;
         }
 
+        private LoginResponse.BuddyList ConvertFriendListItem(List<FriendListItem> LFL)
+        {
+            LoginResponse.BuddyList buddylistreturn = new LoginResponse.BuddyList();
+            foreach (FriendListItem fl in LFL)
+            {
+                LoginResponse.BuddyList.BuddyInfo buddyitem = new LoginResponse.BuddyList.BuddyInfo(fl.Friend);
+                buddyitem.BuddyID = fl.Friend;
+                buddyitem.BuddyRightsHave = (int)fl.FriendListOwnerPerms;
+                buddyitem.BuddyRightsGiven = (int) fl.FriendPerms;
+                buddylistreturn.AddNewBuddy(buddyitem);
+
+            }
+            return buddylistreturn;
+        }
         /// <summary>
         /// Converts the inventory library skeleton into the form required by the rpc request.
         /// </summary>

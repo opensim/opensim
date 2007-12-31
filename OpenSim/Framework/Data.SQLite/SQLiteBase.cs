@@ -135,9 +135,12 @@ namespace OpenSim.Framework.Data.SQLite
                     subsql += ",\n";
                 }
                 subsql += col.ColumnName + " " + sqliteType(col.DataType);
-                if (col == dt.PrimaryKey[0])
+                if (dt.PrimaryKey.Length > 0)
                 {
-                    subsql += " primary key";
+                    if (col == dt.PrimaryKey[0])
+                    {
+                        subsql += " primary key";
+                    }
                 }
             }
             sql += subsql;

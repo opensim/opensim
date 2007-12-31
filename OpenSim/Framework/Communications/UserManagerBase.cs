@@ -197,6 +197,80 @@ namespace OpenSim.Framework.UserManagement
         }
 
         /// <summary>
+        /// Loads a user's friend list
+        /// </summary>
+        /// <param name="name">the UUID of the friend list owner</param>
+        /// <returns>A List of FriendListItems that contains info about the user's friends</returns>
+        public List<FriendListItem> GetUserFriendList(LLUUID ownerID)
+        {
+
+            foreach (KeyValuePair<string, IUserData> plugin in _plugins)
+            {
+                try
+                {
+                    return plugin.Value.GetUserFriendList(ownerID);
+                }
+                catch (Exception e)
+                {
+                    MainLog.Instance.Verbose("USERSTORAGE",
+                                             "Unable to GetUserFriendList via " + plugin.Key + "(" + e.ToString() + ")");
+                }
+            }
+
+            return null;
+
+        }
+
+        public void AddNewUserFriend(LLUUID friendlistowner, LLUUID friend, uint perms)
+        {
+            foreach (KeyValuePair<string, IUserData> plugin in _plugins)
+            {
+                try
+                {
+                    plugin.Value.AddNewUserFriend(friendlistowner,friend,perms);
+                }
+                catch (Exception e)
+                {
+                    MainLog.Instance.Verbose("USERSTORAGE",
+                                             "Unable to AddNewUserFriend via " + plugin.Key + "(" + e.ToString() + ")");
+                }
+            }
+
+        }
+
+
+        public void RemoveUserFriend(LLUUID friendlistowner, LLUUID friend)
+        {
+            foreach (KeyValuePair<string, IUserData> plugin in _plugins)
+            {
+                try
+                {
+                   plugin.Value.RemoveUserFriend(friendlistowner, friend);
+                }
+                catch (Exception e)
+                {
+                    MainLog.Instance.Verbose("USERSTORAGE",
+                                             "Unable to RemoveUserFriend via " + plugin.Key + "(" + e.ToString() + ")");
+                }
+            }
+        }
+
+        public void UpdateUserFriendPerms(LLUUID friendlistowner, LLUUID friend, uint perms)
+        {
+            foreach (KeyValuePair<string, IUserData> plugin in _plugins)
+            {
+                try
+                {
+                    plugin.Value.UpdateUserFriendPerms(friendlistowner, friend, perms);
+                }
+                catch (Exception e)
+                {
+                    MainLog.Instance.Verbose("USERSTORAGE",
+                                             "Unable to UpdateUserFriendPerms via " + plugin.Key + "(" + e.ToString() + ")");
+                }
+            }
+        }
+        /// <summary>
         /// Loads a user agent by name (not called directly)
         /// </summary>
         /// <param name="name">The agent's name</param>
