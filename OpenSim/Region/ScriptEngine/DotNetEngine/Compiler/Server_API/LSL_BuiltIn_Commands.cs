@@ -88,7 +88,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler
         {
             //Console.WriteLine("LSL_BuiltIn_Commands: InitializeLifetimeService()");
             //            return null;
-            ILease lease = (ILease) base.InitializeLifetimeService();
+            ILease lease = (ILease)base.InitializeLifetimeService();
 
             if (lease.CurrentState == LeaseState.Initial)
             {
@@ -108,43 +108,43 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler
         //starting out, we use the System.Math library for trig functions. - ckrinke 8-14-07
         public double llSin(double f)
         {
-            
-            return (double) Math.Sin(f);
+
+            return (double)Math.Sin(f);
         }
 
         public double llCos(double f)
         {
-            return (double) Math.Cos(f);
+            return (double)Math.Cos(f);
         }
 
         public double llTan(double f)
         {
-            return (double) Math.Tan(f);
+            return (double)Math.Tan(f);
         }
 
         public double llAtan2(double x, double y)
         {
-            return (double) Math.Atan2(y, x);
+            return (double)Math.Atan2(y, x);
         }
 
         public double llSqrt(double f)
         {
-            return (double) Math.Sqrt(f);
+            return (double)Math.Sqrt(f);
         }
 
         public double llPow(double fbase, double fexponent)
         {
-            return (double) Math.Pow(fbase, fexponent);
+            return (double)Math.Pow(fbase, fexponent);
         }
 
         public int llAbs(int i)
         {
-            return (int) Math.Abs(i);
+            return (int)Math.Abs(i);
         }
 
         public double llFabs(double f)
         {
-            return (double) Math.Abs(f);
+            return (double)Math.Abs(f);
         }
 
         public double llFrand(double mag)
@@ -157,32 +157,32 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler
 
         public int llFloor(double f)
         {
-            return (int) Math.Floor(f);
+            return (int)Math.Floor(f);
         }
 
         public int llCeil(double f)
         {
-            return (int) Math.Ceiling(f);
+            return (int)Math.Ceiling(f);
         }
 
         public int llRound(double f)
         {
-            return (int) Math.Round(f, 0);
+            return (int)Math.Round(f, 0);
         }
 
         //This next group are vector operations involving squaring and square root. ckrinke
         public double llVecMag(LSL_Types.Vector3 v)
         {
-            return (v.x*v.x + v.y*v.y + v.z*v.z);
+            return (v.x * v.x + v.y * v.y + v.z * v.z);
         }
 
         public LSL_Types.Vector3 llVecNorm(LSL_Types.Vector3 v)
         {
-            double mag = v.x*v.x + v.y*v.y + v.z*v.z;
+            double mag = v.x * v.x + v.y * v.y + v.z * v.z;
             LSL_Types.Vector3 nor = new LSL_Types.Vector3();
-            nor.x = v.x/mag;
-            nor.y = v.y/mag;
-            nor.z = v.z/mag;
+            nor.x = v.x / mag;
+            nor.y = v.y / mag;
+            nor.z = v.z / mag;
             return nor;
         }
 
@@ -191,46 +191,46 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler
             double dx = a.x - b.x;
             double dy = a.y - b.y;
             double dz = a.z - b.z;
-            return Math.Sqrt(dx*dx + dy*dy + dz*dz);
+            return Math.Sqrt(dx * dx + dy * dy + dz * dz);
         }
 
         //Now we start getting into quaternions which means sin/cos, matrices and vectors. ckrinke
         public LSL_Types.Vector3 llRot2Euler(LSL_Types.Quaternion r)
         {
             //This implementation is from http://lslwiki.net/lslwiki/wakka.php?wakka=LibraryRotationFunctions. ckrinke
-            LSL_Types.Quaternion t = new LSL_Types.Quaternion(r.x*r.x, r.y*r.y, r.z*r.z, r.s*r.s);
+            LSL_Types.Quaternion t = new LSL_Types.Quaternion(r.x * r.x, r.y * r.y, r.z * r.z, r.s * r.s);
             double m = (t.x + t.y + t.z + t.s);
             if (m == 0) return new LSL_Types.Vector3();
-            double n = 2*(r.y*r.s + r.x*r.z);
-            double p = m*m - n*n;
+            double n = 2 * (r.y * r.s + r.x * r.z);
+            double p = m * m - n * n;
             if (p > 0)
-                return new LSL_Types.Vector3(Math.Atan2(2.0*(r.x*r.s - r.y*r.z), (-t.x - t.y + t.z + t.s)),
+                return new LSL_Types.Vector3(Math.Atan2(2.0 * (r.x * r.s - r.y * r.z), (-t.x - t.y + t.z + t.s)),
                                              Math.Atan2(n, Math.Sqrt(p)),
-                                             Math.Atan2(2.0*(r.z*r.s - r.x*r.y), (t.x - t.y - t.z + t.s)));
+                                             Math.Atan2(2.0 * (r.z * r.s - r.x * r.y), (t.x - t.y - t.z + t.s)));
             else if (n > 0)
-                return new LSL_Types.Vector3(0.0, Math.PI/2, Math.Atan2((r.z*r.s + r.x*r.y), 0.5 - t.x - t.z));
+                return new LSL_Types.Vector3(0.0, Math.PI / 2, Math.Atan2((r.z * r.s + r.x * r.y), 0.5 - t.x - t.z));
             else
-                return new LSL_Types.Vector3(0.0, -Math.PI/2, Math.Atan2((r.z*r.s + r.x*r.y), 0.5 - t.x - t.z));
+                return new LSL_Types.Vector3(0.0, -Math.PI / 2, Math.Atan2((r.z * r.s + r.x * r.y), 0.5 - t.x - t.z));
         }
 
         public LSL_Types.Quaternion llEuler2Rot(LSL_Types.Vector3 v)
         {
             //this comes from from http://lslwiki.net/lslwiki/wakka.php?wakka=LibraryRotationFunctions but is incomplete as of 8/19/07
             float err = 0.00001f;
-            double ax = Math.Sin(v.x/2);
-            double aw = Math.Cos(v.x/2);
-            double by = Math.Sin(v.y/2);
-            double bw = Math.Cos(v.y/2);
-            double cz = Math.Sin(v.z/2);
-            double cw = Math.Cos(v.z/2);
+            double ax = Math.Sin(v.x / 2);
+            double aw = Math.Cos(v.x / 2);
+            double by = Math.Sin(v.y / 2);
+            double bw = Math.Cos(v.y / 2);
+            double cz = Math.Sin(v.z / 2);
+            double cw = Math.Cos(v.z / 2);
             LSL_Types.Quaternion a1 = new LSL_Types.Quaternion(0.0, 0.0, cz, cw);
             LSL_Types.Quaternion a2 = new LSL_Types.Quaternion(0.0, by, 0.0, bw);
             LSL_Types.Quaternion a3 = new LSL_Types.Quaternion(ax, 0.0, 0.0, aw);
             LSL_Types.Quaternion a = (a1 * a2) * a3;
             //This multiplication doesnt compile, yet.            a = a1 * a2 * a3;
-            LSL_Types.Quaternion b = new LSL_Types.Quaternion(ax*bw*cw + aw*by*cz,
-                                                              aw*by*cw - ax*bw*cz, aw*bw*cz + ax*by*cw,
-                                                              aw*bw*cw - ax*by*cz);
+            LSL_Types.Quaternion b = new LSL_Types.Quaternion(ax * bw * cw + aw * by * cz,
+                                                              aw * by * cw - ax * bw * cz, aw * bw * cz + ax * by * cw,
+                                                              aw * bw * cw - ax * by * cz);
             LSL_Types.Quaternion c = new LSL_Types.Quaternion();
             //This addition doesnt compile yet c = a + b;
             LSL_Types.Quaternion d = new LSL_Types.Quaternion();
@@ -448,9 +448,9 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler
         {
             // TODO: this needs to trigger a persistance save as well
             LLVector3 tmp = m_host.Scale;
-            tmp.X = (float) scale.x;
-            tmp.Y = (float) scale.y;
-            tmp.Z = (float) scale.z;
+            tmp.X = (float)scale.x;
+            tmp.Y = (float)scale.y;
+            tmp.Z = (float)scale.z;
             m_host.Scale = tmp;
             m_host.SendFullUpdateToAllClients();
             return;
@@ -712,11 +712,11 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler
         {
             if (m_host.ParentID != 0)
             {
-                m_host.UpdateOffSet(new LLVector3((float) pos.x, (float) pos.y, (float) pos.z));
+                m_host.UpdateOffSet(new LLVector3((float)pos.x, (float)pos.y, (float)pos.z));
             }
             else
             {
-                m_host.UpdateGroupPosition(new LLVector3((float) pos.x, (float) pos.y, (float) pos.z));
+                m_host.UpdateGroupPosition(new LLVector3((float)pos.x, (float)pos.y, (float)pos.z));
             }
         }
 
@@ -745,7 +745,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler
 
         public void llSetRot(LSL_Types.Quaternion rot)
         {
-            m_host.UpdateRotation(new LLQuaternion((float) rot.x, (float) rot.y, (float) rot.z, (float) rot.s));
+            m_host.UpdateRotation(new LLQuaternion((float)rot.x, (float)rot.y, (float)rot.z, (float)rot.s));
         }
 
         public LSL_Types.Quaternion llGetRot()
@@ -992,7 +992,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler
 
         public void llSleep(double sec)
         {
-            Thread.Sleep((int) (sec*1000));
+            Thread.Sleep((int)(sec * 1000));
         }
 
         public double llGetMass()
@@ -1344,7 +1344,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler
 
         public void llSetText(string text, LSL_Types.Vector3 color, double alpha)
         {
-            Vector3 av3 = new Vector3((float) color.x, (float) color.y, (float) color.z);
+            Vector3 av3 = new Vector3((float)color.x, (float)color.y, (float)color.z);
             m_host.SetText(text, av3, alpha);
         }
 
@@ -1443,12 +1443,12 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler
 
         public double llAcos(double val)
         {
-            return (double) Math.Acos(val);
+            return (double)Math.Acos(val);
         }
 
         public double llAsin(double val)
         {
-            return (double) Math.Asin(val);
+            return (double)Math.Asin(val);
         }
 
         public double llAngleBetween(LSL_Types.Quaternion a, LSL_Types.Quaternion b)
@@ -1527,7 +1527,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler
 
         public LSL_Types.list llListSort(LSL_Types.list src, int stride, int ascending)
         {
-           // SortedList<string, LSL_Types.list> sorted = new SortedList<string, LSL_Types.list>();
+            // SortedList<string, LSL_Types.list> sorted = new SortedList<string, LSL_Types.list>();
             // Add chunks to an array
             //int s = stride;
             //if (s < 1)
@@ -1660,7 +1660,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler
             }
             else
             {
-                return new LSL_Types.Vector3(0,0,0);
+                return new LSL_Types.Vector3(0, 0, 0);
             }
         }
 
@@ -1709,31 +1709,31 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler
             {
                 return 0;
             }
-            switch (src.Data[index].GetType())
+
+            if (src.Data[index] is System.Int32)
+                return 1;
+            if (src.Data[index] is System.Double)
+                return 2;
+            if (src.Data[index] is System.String)
             {
-                case typeof(System.Int32):
-                    return 1;
-                case typeof(System.Double):
-                    return 2;
-                case typeof(System.String):
-                    LLUUID tuuid;
-                    if (LLUUID.TryParse(src.Data[index].ToString(),out tuuid))
-                    {
-                        return 3;
-                    }
-                    else
-                    {
-                        return 4;
-                    }
-                case typeof(OpenSim.Region.ScriptEngine.Common.LSL_Types.Vector3):
-                    return 5;
-                case typeof(OpenSim.Region.ScriptEngine.Common.LSL_Types.Quaternion):
-                    return 6;
-                case typeof(OpenSim.Region.ScriptEngine.Common.LSL_Types.list):
-                    return 7;
-                default:
-                    return 0;
+                LLUUID tuuid;
+                if (LLUUID.TryParse(src.Data[index].ToString(), out tuuid))
+                {
+                    return 3;
+                }
+                else
+                {
+                    return 4;
+                }
             }
+            if (src.Data[index] is OpenSim.Region.ScriptEngine.Common.LSL_Types.Vector3)
+                return 5;
+            if (src.Data[index] is OpenSim.Region.ScriptEngine.Common.LSL_Types.Quaternion)
+                return 6;
+            if (src.Data[index] is OpenSim.Region.ScriptEngine.Common.LSL_Types.list)
+                return 7;
+            return 0;
+
         }
 
         public string llList2CSV(LSL_Types.list src)
@@ -1823,7 +1823,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler
 
         public LSL_Types.Vector3 llGetRegionCorner()
         {
-            return new LSL_Types.Vector3(World.RegionInfo.RegionLocX*256, World.RegionInfo.RegionLocY*256, 0);
+            return new LSL_Types.Vector3(World.RegionInfo.RegionLocX * 256, World.RegionInfo.RegionLocY * 256, 0);
         }
 
         public LSL_Types.list llListInsertList(LSL_Types.list dest, LSL_Types.list src, int start)
@@ -2034,14 +2034,14 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler
             Primitive.ParticleSystem prules = new Primitive.ParticleSystem();
             for (int i = 0; i < rules.Count; i += 2)
             {
-                switch ((int) rules[i])
+                switch ((int)rules[i])
                 {
-                    case (int) LSL_BaseClass.PSYS_PART_FLAGS:
-                        prules.PartFlags = (uint) rules[i + 1];
+                    case (int)LSL_BaseClass.PSYS_PART_FLAGS:
+                        prules.PartFlags = (uint)rules[i + 1];
                         break;
 
                     case (int)LSL_BaseClass.PSYS_PART_START_COLOR:
-                        prules.PartStartColor = (LLColor) rules[i + 1];
+                        prules.PartStartColor = (LLColor)rules[i + 1];
                         break;
 
                     case (int)LSL_BaseClass.PSYS_PART_START_ALPHA:
@@ -2049,7 +2049,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler
                         break;
 
                     case (int)LSL_BaseClass.PSYS_PART_END_COLOR:
-                        prules.PartEndColor = (LLColor) rules[i + 1];
+                        prules.PartEndColor = (LLColor)rules[i + 1];
                         break;
 
                     case (int)LSL_BaseClass.PSYS_PART_END_ALPHA:
@@ -2065,7 +2065,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler
                         break;
 
                     case (int)LSL_BaseClass.PSYS_PART_MAX_AGE:
-                        prules.MaxAge = (float) rules[i + 1];
+                        prules.MaxAge = (float)rules[i + 1];
                         break;
 
                     case (int)LSL_BaseClass.PSYS_SRC_ACCEL:
@@ -2077,35 +2077,35 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler
                         break;
 
                     case (int)LSL_BaseClass.PSYS_SRC_TEXTURE:
-                        prules.Texture = (LLUUID) rules[i + 1];
+                        prules.Texture = (LLUUID)rules[i + 1];
                         break;
 
                     case (int)LSL_BaseClass.PSYS_SRC_BURST_RATE:
-                        prules.BurstRate = (float) rules[i + 1];
+                        prules.BurstRate = (float)rules[i + 1];
                         break;
 
                     case (int)LSL_BaseClass.PSYS_SRC_BURST_PART_COUNT:
-                        prules.BurstPartCount = (byte) rules[i + 1];
+                        prules.BurstPartCount = (byte)rules[i + 1];
                         break;
 
                     case (int)LSL_BaseClass.PSYS_SRC_BURST_RADIUS:
-                        prules.BurstRadius = (float) rules[i + 1];
+                        prules.BurstRadius = (float)rules[i + 1];
                         break;
 
                     case (int)LSL_BaseClass.PSYS_SRC_BURST_SPEED_MIN:
-                        prules.BurstSpeedMin = (float) rules[i + 1];
+                        prules.BurstSpeedMin = (float)rules[i + 1];
                         break;
 
                     case (int)LSL_BaseClass.PSYS_SRC_BURST_SPEED_MAX:
-                        prules.BurstSpeedMax = (float) rules[i + 1];
+                        prules.BurstSpeedMax = (float)rules[i + 1];
                         break;
 
                     case (int)LSL_BaseClass.PSYS_SRC_MAX_AGE:
-                        prules.MaxAge = (float) rules[i + 1];
+                        prules.MaxAge = (float)rules[i + 1];
                         break;
 
                     case (int)LSL_BaseClass.PSYS_SRC_TARGET_KEY:
-                        prules.Target = (LLUUID) rules[i + 1];
+                        prules.Target = (LLUUID)rules[i + 1];
                         break;
 
                     case (int)LSL_BaseClass.PSYS_SRC_OMEGA:
@@ -2113,11 +2113,11 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler
                         break;
 
                     case (int)LSL_BaseClass.PSYS_SRC_ANGLE_BEGIN:
-                        prules.InnerAngle = (float) rules[i + 1];
+                        prules.InnerAngle = (float)rules[i + 1];
                         break;
 
                     case (int)LSL_BaseClass.PSYS_SRC_ANGLE_END:
-                        prules.OuterAngle = (float) rules[i + 1];
+                        prules.OuterAngle = (float)rules[i + 1];
                         break;
                 }
             }
@@ -2180,7 +2180,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler
 
             if (AVID != LLUUID.Zero)
                 return AVID.ToString();
-            else 
+            else
                 return "";
         }
 
@@ -2355,12 +2355,12 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler
 
         public double llLog10(double val)
         {
-            return (double) Math.Log10(val);
+            return (double)Math.Log10(val);
         }
 
         public double llLog(double val)
         {
-            return (double) Math.Log(val);
+            return (double)Math.Log(val);
         }
 
         public LSL_Types.list llGetAnimationList(string id)
@@ -2590,7 +2590,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler
         public void llOwnerSay(string msg)
         {
             //temp fix so that lsl wiki examples aren't annoying to use to test other functions
-            World.SimChat(Helpers.StringToField(msg),ChatTypeEnum.Say, 0, m_host.AbsolutePosition, m_host.Name, m_host.UUID);
+            World.SimChat(Helpers.StringToField(msg), ChatTypeEnum.Say, 0, m_host.AbsolutePosition, m_host.Name, m_host.UUID);
             IWorldComm wComm = m_ScriptEngine.World.RequestModuleInterface<IWorldComm>();
             wComm.DeliverMessage(m_host.UUID.ToString(), ChatTypeEnum.Say, 0, m_host.Name, msg);
         }
@@ -2613,7 +2613,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler
 
         public LSL_Types.list llListReplaceList(LSL_Types.list dest, LSL_Types.list src, int start, int end)
         {
-            return dest.GetSublist(0, start - 1) + src + dest.GetSublist(end + 1, -1); 
+            return dest.GetSublist(0, start - 1) + src + dest.GetSublist(end + 1, -1);
         }
 
         public void llLoadURL(string avatar_id, string message, string url)
@@ -2779,7 +2779,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler
             LLUUID reqID = httpScriptMod.
                     StartHttpRequest(m_localID, m_itemID, url, param, body);
 
-            if( reqID != null )
+            if (reqID != null)
                 return reqID.ToString();
             else
                 return null;
@@ -2840,7 +2840,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler
                 decimal v = land.area * (decimal)(0.22) * (decimal)bonusfactor;
                 return (int)v;
             }
-            
+
         }
 
         public LSL_Types.list llGetParcelDetails(LSL_Types.Vector3 pos, LSL_Types.list param)
@@ -2851,9 +2851,9 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler
                 return new LSL_Types.list(0);
             }
             LSL_Types.list ret = new LSL_Types.list();
-            foreach(object o in param.Data)
+            foreach (object o in param.Data)
             {
-                switch(o.ToString())
+                switch (o.ToString())
                 {
                     case "0":
                         ret = ret + new LSL_Types.list(land.landName);

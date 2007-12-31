@@ -439,6 +439,11 @@ namespace OpenSim.Region.ScriptEngine.Common
                 }
                 return output;
             }
+
+            public class String
+            {
+
+            }
         }
     }
 }
