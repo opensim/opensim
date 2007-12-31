@@ -47,6 +47,10 @@ namespace OpenSim.Region.ScriptEngine.RemoteServer
             {
                 System.Console.WriteLine("Error: unable to connect to server");
             }
+            catch (System.Runtime.Remoting.RemotingException)
+            {
+                System.Console.WriteLine("Error: unable to connect to server");
+            }
             return null;
 
         }
