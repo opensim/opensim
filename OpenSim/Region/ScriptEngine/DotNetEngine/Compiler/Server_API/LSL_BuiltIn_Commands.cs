@@ -1654,7 +1654,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler
             {
                 return new LSL_Types.Vector3(0, 0, 0);
             }
-            if (src.Data[index].GetType().ToString() == "OpenSim.Region.ScriptEngine.Common.LSL_Types+Vector3")
+            if (src.Data[index].GetType() == typeof(OpenSim.Region.ScriptEngine.Common.LSL_Types.Vector3))
             {
                 return (LSL_Types.Vector3)src.Data[index];
             }
@@ -1674,7 +1674,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler
             {
                 return new LSL_Types.Quaternion(0, 0, 0, 1);
             }
-            if (src.Data[index].GetType().ToString() == "OpenSim.Region.ScriptEngine.Common.LSL_Types+Quaternion")
+            if (src.Data[index].GetType() == typeof(OpenSim.Region.ScriptEngine.Common.LSL_Types.Quaternion))
             {
                 return (LSL_Types.Quaternion)src.Data[index];
             }
@@ -1709,13 +1709,13 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler
             {
                 return 0;
             }
-            switch (src.Data[index].GetType().ToString())
+            switch (src.Data[index].GetType())
             {
-                case "System.Int32":
+                case typeof(System.Int32):
                     return 1;
-                case "System.Double":
+                case typeof(System.Double):
                     return 2;
-                case "System.String":
+                case typeof(System.String):
                     LLUUID tuuid;
                     if (LLUUID.TryParse(src.Data[index].ToString(),out tuuid))
                     {
@@ -1725,11 +1725,11 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler
                     {
                         return 4;
                     }
-                case "OpenSim.Region.ScriptEngine.Common.LSL_Types+Vector3":
+                case typeof(OpenSim.Region.ScriptEngine.Common.LSL_Types.Vector3):
                     return 5;
-                case "OpenSim.Region.ScriptEngine.Common.LSL_Types+Quaternion":
+                case typeof(OpenSim.Region.ScriptEngine.Common.LSL_Types.Quaternion):
                     return 6;
-                case "OpenSim.Region.ScriptEngine.Common.LSL_Types+list":
+                case typeof(OpenSim.Region.ScriptEngine.Common.LSL_Types.list):
                     return 7;
                 default:
                     return 0;
