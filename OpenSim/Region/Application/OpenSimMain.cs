@@ -383,7 +383,9 @@ namespace OpenSim
             MainLog.Instance.Verbose("MODULES", "Loading Region's Modules");
 
             m_moduleLoader.PickupModules(scene, ".");
-            m_moduleLoader.PickupModules(scene, "ScriptEngines");
+            //m_moduleLoader.PickupModules(scene, "ScriptEngines");
+            m_moduleLoader.LoadRegionModules(Path.Combine("ScriptEngine", "OpenSim.Region.ScriptEngine.DotNetEngine.dll"), scene);
+            
 
             m_moduleLoader.InitialiseSharedModules(scene);
             scene.SetModuleInterfaces();
