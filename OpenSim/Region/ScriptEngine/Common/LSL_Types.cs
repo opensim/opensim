@@ -599,14 +599,23 @@ namespace OpenSim.Region.ScriptEngine.Common
                 return new LSLString(s);
             }
 
-            public static bool operator ==(LSLString s1, LSLString s2)
-            {
-                return s1.m_string == s2.m_string;
-            }
-            public static bool operator !=(LSLString s1, LSLString s2)
-            {
-                return s1.m_string != s2.m_string;
-            }
+            // Commented out:
+            /*
+                 [echo] Build Directory is /home/tedd/opensim/trunk/OpenSim/Region/ScriptEngine/Common/bin/Debug
+                  [csc] Compiling 5 files to '/home/tedd/opensim/trunk/OpenSim/Region/ScriptEngine/Common/bin/Debug/OpenSim.Region.ScriptEngine.Common.dll'.
+                  [csc] error CS0121: The call is ambiguous between the following methods or properties: `OpenSim.Region.ScriptEngine.Common.LSL_Types.LSLString.operator /(OpenSim.Region.ScriptEngine.Common.LSL_Types.LSLString, OpenSim.Region.ScriptEngine.Common.LSL_Types.LSLString)' and `string.operator /(string, string)'
+                  [csc] /home/tedd/opensim/trunk/OpenSim/Region/ScriptEngine/Common/LSL_Types.cs(602,32): (Location of the symbol related to previous error)
+                  [csc] /usr/lib/mono/2.0/mscorlib.dll (Location of the symbol related to previous error)
+                  [csc] Compilation failed: 1 error(s), 0 warnings
+             */
+            //public static bool operator ==(LSLString s1, LSLString s2)
+            //{
+            //    return s1.m_string == s2.m_string;
+            //}
+            //public static bool operator !=(LSLString s1, LSLString s2)
+            //{
+            //    return s1.m_string != s2.m_string;
+            //}
             #endregion
 
             #region Overriders
