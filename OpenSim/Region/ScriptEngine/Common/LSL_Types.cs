@@ -442,351 +442,342 @@ namespace OpenSim.Region.ScriptEngine.Common
 
             }
 
+        }
 
+        //
+        // BELOW IS WORK IN PROGRESS... IT WILL CHANGE, SO DON'T USE YET! :) 
+        //
 
-
-            //
-            // BELOW IS WORK IN PROGRESS... IT WILL CHANGE, SO DON'T USE YET! :) 
-            //
-
-            //Temp commented out
-            //[15:26:57] <justincc> [csc] Compiling 5 files to '/home/caseyj/jc/it/v/virtual-worlds/second-life/servers/opensim/src/opensim-svn-nematode/OpenSim/Region/ScriptEngine/Common/bin/Debug/OpenSim.Region.ScriptEngine.Common.dll'.
-            //[15:26:57] <justincc> [csc] error CS0121: The call is ambiguous between the following methods or properties: `OpenSim.Region.ScriptEngine.Common.LSL_Types.list.LSLString.operator /(OpenSim.Region.ScriptEngine.Common.LSL_Types.list.LSLString, OpenSim.Region.ScriptEngine.Common.LSL_Types.list.LSLString)' and `string.operator /(string, string)'
-
-
-
-            //public struct StringTest
-            //{
-            //    // Our own little string
-            //    internal string actualString;
-            //    public static implicit operator bool(StringTest mString)
-            //    {
-            //        if (mString.actualString.Length == 0)
-            //            return true;
-            //        return false;
-            //    }
-            //    public override string ToString()
-            //    {
-            //        return actualString;
-            //    }
-
-            //}
-
-            //[Serializable]
-            //public struct key
-            //{
-            //    public string value;
-
-            //    #region Constructors
-            //    public key(string s)
-            //    {
-            //        value = s;
-            //    }
-
-            //    #endregion
-
-            //    #region Methods
-
-            //    static public bool Parse2Key(string s)
-            //    {
-            //        Regex isuuid = new Regex(@"^[0-9a-fA-F]{8}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{12}$", RegexOptions.Compiled);
-            //        if (isuuid.IsMatch(s))
-            //        {
-            //            return true;
-            //        }
-            //        else
-            //        {
-            //            return false;
-            //        }
-            //    }
-
-            //    #endregion
-
-            //    #region Operators
-
-            //    static public implicit operator System.Boolean(key k)
-            //    {
-            //        if (k.value.Length == 0)
-            //        {
-            //            return false;
-            //        }
-
-            //        if (k.value == "00000000-0000-0000-0000-000000000000")
-            //        {
-            //            return false;
-            //        }
-            //        Regex isuuid = new Regex(@"^[0-9a-fA-F]{8}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{12}$", RegexOptions.Compiled);
-            //        if (isuuid.IsMatch(k.value))
-            //        {
-            //            return true;
-            //        }
-            //        else
-            //        {
-            //            return false;
-            //        }
-            //    }
-
-            //    static public implicit operator key(string s)
-            //    {
-            //        return new key(s);
-            //    }
-
-            //    static public implicit operator System.String(key k)
-            //    {
-            //        return k.value;
-            //    }
-
-            //    public static bool operator ==(key k1, key k2)
-            //    {
-            //        return k1.value == k2.value;
-            //    }
-            //    public static bool operator !=(key k1, key k2)
-            //    {
-            //        return k1.value != k2.value;
-            //    }
-
-            //    #endregion
-
-            //    #region Overriders
-
-            //    public override bool Equals(object o)
-            //    {
-            //        if (o is String)
-            //        {
-            //            string s = (string)o;
-            //            return s == this.value;
-            //        }
-            //        if (o is key)
-            //        {
-            //            key k = (key)o;
-            //            return this.value == k.value;
-            //        }
-            //        return false;
-            //    }
-
-            //    public override int GetHashCode()
-            //    {
-            //        return value.GetHashCode();
-            //    }
-
-            //    #endregion
-            //}
-
-            //[Serializable]
-            //public struct LSLString
-            //{
-            //    public string m_string;
-            //    #region Constructors
-            //    public LSLString(string s)
-            //    {
-            //        m_string = s;
-            //    }
-            //    #endregion
-
-            //    #region Operators
-            //    static public implicit operator System.Boolean(LSLString s)
-            //    {
-            //        if (s.m_string.Length == 0)
-            //        {
-            //            return false;
-            //        }
-            //        else
-            //        {
-            //            return true;
-            //        }
-            //    }
-
-            //    static public implicit operator System.String(LSLString s)
-            //    {
-            //        return s.m_string;
-            //    }
-
-            //    static public implicit operator LSLString(string s)
-            //    {
-            //        return new LSLString(s);
-            //    }
-
-            //    public static bool operator ==(LSLString s1, LSLString s2)
-            //    {
-            //        return s1.m_string == s2.m_string;
-            //    }
-            //    public static bool operator !=(LSLString s1, LSLString s2)
-            //    {
-            //        return s1.m_string != s2.m_string;
-            //    }
-            //    #endregion
-
-            //    #region Overriders
-            //    public override bool Equals(object o)
-            //    {
-            //        if (o is String)
-            //        {
-            //            string s = (string)o;
-            //            return s == this.m_string;
-            //        }
-            //        if (o is key)
-            //        {
-            //            key k = (key)o;
-            //            return this.m_string == k.value;
-            //        }
-            //        if (o is LSLString)
-            //        {
-            //            LSLString s = (string)o;
-            //            return this.m_string == s;
-            //        }
-            //        return false;
-            //    }
-
-            //    public override int GetHashCode()
-            //    {
-            //        return m_string.GetHashCode();
-            //    }
-
-            //    #endregion
-
-            //    #region " Standard string functions "
-            //    //Clone,CompareTo,Contains
-            //    //CopyTo,EndsWith,Equals,GetEnumerator,GetHashCode,GetType,GetTypeCode
-            //    //IndexOf,IndexOfAny,Insert,IsNormalized,LastIndexOf,LastIndexOfAny
-            //    //Length,Normalize,PadLeft,PadRight,Remove,Replace,Split,StartsWith,Substring,ToCharArray,ToLowerInvariant
-            //    //ToString,ToUpper,ToUpperInvariant,Trim,TrimEnd,TrimStart
-            //    public bool Contains(string value) { return m_string.Contains(value); }
-            //    public int IndexOf(string value) { return m_string.IndexOf(value); }
-            //    public int Length { get { return m_string.Length; } }
-
-
-            //    #endregion
-            //}
-
-            //[Serializable]
-            //public struct LSLInteger
-            //{
-            //    public int value;
-
-            //    #region Constructors
-            //    public LSLInteger(int i)
-            //    {
-            //        value = i;
-            //    }
-
-            //    public LSLInteger(double d)
-            //    {
-            //        value = (int)d;
-            //    }
-
-            //    #endregion
-            //    static public implicit operator System.Int32(LSLInteger i)
-            //    {
-            //        return i.value;
-            //    }
-
-            //    static public implicit operator System.Boolean(LSLInteger i)
-            //    {
-            //        if (i.value == 0)
-            //        {
-            //            return false;
-            //        }
-            //        else
-            //        {
-            //            return true;
-            //        }
-            //    }
-
-            //    static public implicit operator LSLInteger(int i)
-            //    {
-            //        return new LSLInteger(i);
-            //    }
-
-            //    static public implicit operator LSLInteger(double d)
-            //    {
-            //        return new LSLInteger(d);
-            //    }
-
-            //    static public LSLInteger operator &(LSLInteger i1, LSLInteger i2)
-            //    {
-            //        int ret = i1.value & i2.value;
-            //        return ret;
-            //    }
-
-
-            //    //static public implicit operator System.Double(LSLInteger i)
-            //    //{
-            //    //    return (double)i.value;
-            //    //}
-
-            //    #region Overriders
-
-            //    public override string ToString()
-            //    {
-            //        return this.value.ToString();
-            //    }
-
-            //    #endregion
-            //}
-
-            //[Serializable]
-            //public struct LSLFloat
-            //{
-            //    public double value;
-
-            //    #region Constructors
-            //    public LSLFloat(int i)
-            //    {
-            //        this.value = (double)i;
-            //    }
-
-            //    public LSLFloat(double d)
-            //    {
-            //        this.value = d;
-            //    }
-
-            //    #endregion
-
-            //    #region Operators
-
-            //    static public implicit operator System.Double(LSLFloat f)
-            //    {
-            //        return f.value;
-            //    }
-
-            //    //static public implicit operator System.Int32(LSLFloat f)
-            //    //{
-            //    //    return (int)f.value;
-            //    //}
-
-
-            //    static public implicit operator System.Boolean(LSLFloat f)
-            //    {
-            //        if (f.value == 0)
-            //        {
-            //            return false;
-            //        }
-            //        else
-            //        {
-            //            return true;
-            //        }
-            //    }
-
-            //    static public implicit operator LSLFloat(int i)
-            //    {
-            //        return new LSLFloat(i);
-            //    }
-
-            //    static public implicit operator LSLFloat(double d)
-            //    {
-            //        return new LSLFloat(d);
-            //    }
-            //    #endregion
-
-            //    #region Overriders
-            //    public override string ToString()
-            //    {
-            //        return this.value.ToString();
-            //    }
-            //    #endregion
-            //}
-
+        public struct StringTest
+        {
+            // Our own little string
+            internal string actualString;
+            public static implicit operator bool(StringTest mString)
+            {
+                if (mString.actualString.Length == 0)
+                    return true;
+                return false;
+            }
+            public override string ToString()
+            {
+                return actualString;
+            }
 
         }
+
+        [Serializable]
+        public struct key
+        {
+            public string value;
+
+            #region Constructors
+            public key(string s)
+            {
+                value = s;
+            }
+
+            #endregion
+
+            #region Methods
+
+            static public bool Parse2Key(string s)
+            {
+                Regex isuuid = new Regex(@"^[0-9a-fA-F]{8}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{12}$", RegexOptions.Compiled);
+                if (isuuid.IsMatch(s))
+                {
+                    return true;
+                }
+                else
+                {
+                    return false;
+                }
+            }
+
+            #endregion
+
+            #region Operators
+
+            static public implicit operator System.Boolean(key k)
+            {
+                if (k.value.Length == 0)
+                {
+                    return false;
+                }
+
+                if (k.value == "00000000-0000-0000-0000-000000000000")
+                {
+                    return false;
+                }
+                Regex isuuid = new Regex(@"^[0-9a-fA-F]{8}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{12}$", RegexOptions.Compiled);
+                if (isuuid.IsMatch(k.value))
+                {
+                    return true;
+                }
+                else
+                {
+                    return false;
+                }
+            }
+
+            static public implicit operator key(string s)
+            {
+                return new key(s);
+            }
+
+            static public implicit operator System.String(key k)
+            {
+                return k.value;
+            }
+
+            public static bool operator ==(key k1, key k2)
+            {
+                return k1.value == k2.value;
+            }
+            public static bool operator !=(key k1, key k2)
+            {
+                return k1.value != k2.value;
+            }
+
+            #endregion
+
+            #region Overriders
+
+            public override bool Equals(object o)
+            {
+                if (o is String)
+                {
+                    string s = (string)o;
+                    return s == this.value;
+                }
+                if (o is key)
+                {
+                    key k = (key)o;
+                    return this.value == k.value;
+                }
+                return false;
+            }
+
+            public override int GetHashCode()
+            {
+                return value.GetHashCode();
+            }
+
+            #endregion
+        }
+
+        [Serializable]
+        public struct LSLString
+        {
+            public string m_string;
+            #region Constructors
+            public LSLString(string s)
+            {
+                m_string = s;
+            }
+            #endregion
+
+            #region Operators
+            static public implicit operator System.Boolean(LSLString s)
+            {
+                if (s.m_string.Length == 0)
+                {
+                    return false;
+                }
+                else
+                {
+                    return true;
+                }
+            }
+
+            static public implicit operator System.String(LSLString s)
+            {
+                return s.m_string;
+            }
+
+            static public implicit operator LSLString(string s)
+            {
+                return new LSLString(s);
+            }
+
+            public static bool operator ==(LSLString s1, LSLString s2)
+            {
+                return s1.m_string == s2.m_string;
+            }
+            public static bool operator !=(LSLString s1, LSLString s2)
+            {
+                return s1.m_string != s2.m_string;
+            }
+            #endregion
+
+            #region Overriders
+            public override bool Equals(object o)
+            {
+                if (o is String)
+                {
+                    string s = (string)o;
+                    return s == this.m_string;
+                }
+                if (o is key)
+                {
+                    key k = (key)o;
+                    return this.m_string == k.value;
+                }
+                if (o is LSLString)
+                {
+                    LSLString s = (string)o;
+                    return this.m_string == s;
+                }
+                return false;
+            }
+
+            public override int GetHashCode()
+            {
+                return m_string.GetHashCode();
+            }
+
+            #endregion
+
+            #region " Standard string functions "
+            //Clone,CompareTo,Contains
+            //CopyTo,EndsWith,Equals,GetEnumerator,GetHashCode,GetType,GetTypeCode
+            //IndexOf,IndexOfAny,Insert,IsNormalized,LastIndexOf,LastIndexOfAny
+            //Length,Normalize,PadLeft,PadRight,Remove,Replace,Split,StartsWith,Substring,ToCharArray,ToLowerInvariant
+            //ToString,ToUpper,ToUpperInvariant,Trim,TrimEnd,TrimStart
+            public bool Contains(string value) { return m_string.Contains(value); }
+            public int IndexOf(string value) { return m_string.IndexOf(value); }
+            public int Length { get { return m_string.Length; } }
+
+
+            #endregion
+        }
+
+        [Serializable]
+        public struct LSLInteger
+        {
+            public int value;
+
+            #region Constructors
+            public LSLInteger(int i)
+            {
+                value = i;
+            }
+
+            public LSLInteger(double d)
+            {
+                value = (int)d;
+            }
+
+            #endregion
+            static public implicit operator System.Int32(LSLInteger i)
+            {
+                return i.value;
+            }
+
+            static public implicit operator System.Boolean(LSLInteger i)
+            {
+                if (i.value == 0)
+                {
+                    return false;
+                }
+                else
+                {
+                    return true;
+                }
+            }
+
+            static public implicit operator LSLInteger(int i)
+            {
+                return new LSLInteger(i);
+            }
+
+            static public implicit operator LSLInteger(double d)
+            {
+                return new LSLInteger(d);
+            }
+
+            static public LSLInteger operator &(LSLInteger i1, LSLInteger i2)
+            {
+                int ret = i1.value & i2.value;
+                return ret;
+            }
+
+
+            //static public implicit operator System.Double(LSLInteger i)
+            //{
+            //    return (double)i.value;
+            //}
+
+            #region Overriders
+
+            public override string ToString()
+            {
+                return this.value.ToString();
+            }
+
+            #endregion
+        }
+
+        [Serializable]
+        public struct LSLFloat
+        {
+            public double value;
+
+            #region Constructors
+            public LSLFloat(int i)
+            {
+                this.value = (double)i;
+            }
+
+            public LSLFloat(double d)
+            {
+                this.value = d;
+            }
+
+            #endregion
+
+            #region Operators
+
+            static public implicit operator System.Double(LSLFloat f)
+            {
+                return f.value;
+            }
+
+            //static public implicit operator System.Int32(LSLFloat f)
+            //{
+            //    return (int)f.value;
+            //}
+
+
+            static public implicit operator System.Boolean(LSLFloat f)
+            {
+                if (f.value == 0)
+                {
+                    return false;
+                }
+                else
+                {
+                    return true;
+                }
+            }
+
+            static public implicit operator LSLFloat(int i)
+            {
+                return new LSLFloat(i);
+            }
+
+            static public implicit operator LSLFloat(double d)
+            {
+                return new LSLFloat(d);
+            }
+            #endregion
+
+            #region Overriders
+            public override string ToString()
+            {
+                return this.value.ToString();
+            }
+            #endregion
+        }
+
     }
 }
