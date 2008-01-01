@@ -1177,7 +1177,7 @@
       <Reference name="OpenSim.Framework.Servers"/>
       <Reference name="OpenSim.Framework.Data"/>
       <Reference name="OpenSim.Region.Environment"/>
-      <Reference name="../../../bin/ScriptEngines/OpenSim.Region.ScriptEngine.DotNetEngine"/>
+      <Reference name="OpenSim.Region.ScriptEngine.DotNetEngine"/>
       <Reference name="OpenSim.Region.ScriptEngine.Common"/>
       <Reference name="libsecondlife.dll"/>
       <Reference name="Axiom.MathLib.dll" localCopy="false"/>
@@ -1214,7 +1214,7 @@
       <Reference name="OpenSim.Region.ScriptEngine.Common"/>
       <Reference name="OpenSim.Region.Terrain.BasicTerrain"/>
       <Reference name="OpenSim.Grid.ScriptServer"/>
-      <Reference name="../../../../bin/ScriptEngines/OpenSim.Region.ScriptEngine.DotNetEngine"/>
+      <Reference name="OpenSim.Region.ScriptEngine.DotNetEngine"/>
       <Reference name="Axiom.MathLib.dll" localCopy="false"/>
       <Reference name="Nini.dll" />
       <Files>
