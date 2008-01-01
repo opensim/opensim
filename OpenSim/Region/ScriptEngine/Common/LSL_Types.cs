@@ -27,6 +27,7 @@
 */
 
 using System;
+using System.Text.RegularExpressions;
 
 namespace OpenSim.Region.ScriptEngine.Common
 {
@@ -35,6 +36,309 @@ namespace OpenSim.Region.ScriptEngine.Common
     {
 
         // Types are kept is separate .dll to avoid having to add whatever .dll it is in it to script AppDomain
+        [Serializable]
+        public struct key
+        {
+            public string value;
+
+            #region Constructors
+            public key(string s)
+            {
+                value = s;
+            }
+
+            #endregion
+
+            #region Methods
+
+            static public bool Parse2Key(string s)
+            {
+                Regex isuuid = new Regex(@"^[0-9a-fA-F]{8}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{12}$", RegexOptions.Compiled);
+                if (isuuid.IsMatch(s))
+                {
+                    return true;
+                }
+                else
+                {
+                    return false;
+                }
+            }
+
+            #endregion
+
+            #region Operators
+
+            static public implicit operator System.Boolean(key k)
+            {
+                if (k.value.Length == 0)
+                {
+                    return false;
+                }
+
+                if (k.value == "00000000-0000-0000-0000-000000000000")
+                {
+                    return false;
+                }
+                Regex isuuid = new Regex(@"^[0-9a-fA-F]{8}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{12}$", RegexOptions.Compiled);
+                if (isuuid.IsMatch(k.value))
+                {
+                    return true;
+                }
+                else
+                {
+                    return false;
+                }
+            }
+
+            static public implicit operator key(string s)
+            {
+                return new key(s);
+            }
+
+            static public implicit operator System.String(key k)
+            {
+                return k.value;
+            }
+
+            public static bool operator ==(key k1, key k2)
+            {
+                return k1.value == k2.value;
+            }
+            public static bool operator !=(key k1, key k2)
+            {
+                return k1.value != k2.value;
+            }
+
+            #endregion
+
+            #region Overriders
+
+            public override bool Equals(object o)
+            {
+                if (o is String)
+                {
+                    string s = (string)o;
+                    return s == this.value;
+                }
+                if (o is key)
+                {
+                    key k = (key)o;
+                    return this.value == k.value;
+                }
+                return false;
+            }
+
+            public override int GetHashCode()
+            {
+                return value.GetHashCode();
+            }
+
+            #endregion
+        }
+
+        [Serializable]
+        public struct LSLString
+        {
+            public string value;
+
+            #region Constructors
+
+            public LSLString(string s)
+            {
+                value = s;
+            }
+
+            #endregion
+
+            #region Operators
+            static public implicit operator System.Boolean(LSLString s)
+            {
+                if (s.value.Length == 0)
+                {
+                    return false;
+                }
+                else
+                {
+                    return true;
+                }
+            }
+
+            static public implicit operator System.String(LSLString s)
+            {
+                return s.value;
+            }
+
+            static public implicit operator LSLString(string s)
+            {
+                return new LSLString(s);
+            }
+
+            public static bool operator ==(LSLString s1, LSLString s2)
+            {
+                return s1.value == s2.value;
+            }
+            public static bool operator !=(LSLString s1, LSLString s2)
+            {
+                return s1.value != s2.value;
+            }
+            #endregion
+
+            #region Overriders
+            public override bool Equals(object o)
+            {
+                if (o is String)
+                {
+                    string s = (string)o;
+                    return s == this.value;
+                }
+                if (o is key)
+                {
+                    key k = (key)o;
+                    return this.value == k.value;
+                }
+                if (o is LSLString)
+                {
+                    LSLString s = (string)o;
+                    return this.value == s.value;
+                }
+                return false;
+            }
+
+            public override int GetHashCode()
+            {
+                return value.GetHashCode();
+            }
+
+            #endregion
+        }
+
+        [Serializable]
+        public struct LSLInteger
+        {
+            public int value;
+
+            #region Constructors
+            public LSLInteger(int i)
+            {
+                value = i;
+            }
+
+            public LSLInteger(double d)
+            {
+                value = (int)d;
+            }
+
+            #endregion
+            static public implicit operator System.Int32(LSLInteger i)
+            {
+                return i.value;
+            }
+
+            static public implicit operator System.Boolean(LSLInteger i)
+            {
+                if (i.value == 0)
+                {
+                    return false;
+                }
+                else
+                {
+                    return true;
+                }
+            }
+
+            static public implicit operator LSLInteger(int i)
+            {
+                return new LSLInteger(i);
+            }
+
+            static public implicit operator LSLInteger(double d)
+            {
+                return new LSLInteger(d);
+            }
+
+            static public LSLInteger operator &(LSLInteger i1, LSLInteger i2)
+            {
+                int ret = i1.value & i2.value;
+                return ret;
+            }
+
+
+            //static public implicit operator System.Double(LSLInteger i)
+            //{
+            //    return (double)i.value;
+            //}
+
+            #region Overriders
+
+            public override string ToString()
+            {
+                return this.value.ToString();
+            }
+
+            #endregion
+        }
+
+        [Serializable]
+        public struct LSLFloat
+        {
+            public double value;
+
+            #region Constructors
+            public LSLFloat(int i)
+            {
+                this.value = (double)i;
+            }
+
+            public LSLFloat(double d)
+            {
+                this.value = d;
+            }
+
+            #endregion
+
+            #region Operators
+
+            static public implicit operator System.Double(LSLFloat f)
+            {
+                return f.value;
+            }
+
+            //static public implicit operator System.Int32(LSLFloat f)
+            //{
+            //    return (int)f.value;
+            //}
+
+
+            static public implicit operator System.Boolean(LSLFloat f)
+            {
+                if (f.value == 0)
+                {
+                    return false;
+                }
+                else
+                {
+                    return true;
+                }
+            }
+
+            static public implicit operator LSLFloat(int i)
+            {
+                return new LSLFloat(i);
+            }
+
+            static public implicit operator LSLFloat(double d)
+            {
+                return new LSLFloat(d);
+            }
+            #endregion
+
+            #region Overriders
+            public override string ToString()
+            {
+                return this.value.ToString();
+            }
+            #endregion
+        }
 
         [Serializable]
         public struct Vector3
