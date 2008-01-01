@@ -47,16 +47,20 @@ namespace OpenSim.Framework.Data.SQLite
         /// </summary>
         private const string userSelect = "select * from users";
         private const string userFriendsSelect = "select a.ownerID as ownerID,a.friendID as friendID,a.friendPerms as friendPerms,b.friendPerms as ownerperms, b.ownerID as fownerID, b.friendID as ffriendID from userfriends as a, userfriends as b";
-
+        
         private DataSet ds;
         private SqliteDataAdapter da;
         private SqliteDataAdapter daf;
+        SqliteConnection g_conn; 
 
         public void Initialise()
         {
             SqliteConnection conn = new SqliteConnection("URI=file:userprofiles.db,version=3");
             TestTables(conn);
 
+            // This sucks, but It doesn't seem to work with the dataset Syncing :P
+            g_conn = conn;
+            
             ds = new DataSet();
             da = new SqliteDataAdapter(new SqliteCommand(userSelect, conn));
             daf = new SqliteDataAdapter(new SqliteCommand(userFriendsSelect, conn));
@@ -147,11 +151,11 @@ namespace OpenSim.Framework.Data.SQLite
                
                 
                 DataRow row = friends.NewRow();
-                fillFriendRow(row, friendlistowner,friend,perms);
+                fillFriendRow(row, friendlistowner.UUID.ToString(),friend.UUID.ToString(),perms);
                 friends.Rows.Add(row);
 
                 row = friends.NewRow();
-                fillFriendRow(row, friend, friendlistowner, perms);
+                fillFriendRow(row, friend.UUID.ToString(), friendlistowner.UUID.ToString(), perms);
                 friends.Rows.Add(row);
 
                 MainLog.Instance.Verbose("SQLITE",
@@ -164,7 +168,7 @@ namespace OpenSim.Framework.Data.SQLite
         public void RemoveUserFriend(LLUUID friendlistowner, LLUUID friend)
         {
             DataTable ua = ds.Tables["userfriends"];
-            string select = "a.ownernID '" + friendlistowner.UUID.ToString() + "' and b.friendID ='" + friend.UUID.ToString() + "';";
+            string select = "`ownerID` ='" + friendlistowner.UUID.ToString() + "' and `friendID` ='" + friend.UUID.ToString() + "'";
             lock (ds)
             {
                 DataRow[] rows = ds.Tables["userfriends"].Select(select);
@@ -175,20 +179,44 @@ namespace OpenSim.Framework.Data.SQLite
                     {
                         for (int i = 0; i < rows.Length; i++)
                         {
-                            FriendListItem user = new FriendListItem();
                             DataRow row = rows[i];
                             row.Delete();
                         }
-                        daf.Update(ds, "userfriends");
+                        
                     }
                 }
             }
+            select = "`ownerID` ='" + friend.UUID.ToString() + "' and `friendID` ='" + friendlistowner.UUID.ToString() + "'";
+            lock (ds)
+            {
+                DataRow[] rows = ds.Tables["userfriends"].Select(select);
+
+                if (rows != null)
+                {
+                    if (rows.Length > 0)
+                    {
+                        for (int i = 0; i < rows.Length; i++)
+                        {
+                            DataRow row = rows[i];
+                            row.Delete();
+                        }
+
+                    }
+                }
+            }
+            SqliteCommand deletecommand = new SqliteCommand("delete from userfriends where `ownerID`='" + friendlistowner.UUID.ToString() + "' and `friendID` ='" + friend.UUID.ToString() + "'", g_conn);
+            g_conn.Open();
+            deletecommand.ExecuteNonQuery();
+            deletecommand = new SqliteCommand("delete from userfriends where `ownerID`='" + friend.UUID.ToString() + "' and `friendID` ='" + friendlistowner.UUID.ToString() + "'", g_conn);
+            deletecommand.ExecuteNonQuery();
+            g_conn.Close();
+
             MainLog.Instance.Verbose("FRIEND", "Stub RemoveUserFriend called");
         }
         public void UpdateUserFriendPerms(LLUUID friendlistowner, LLUUID friend, uint perms)
         {
             DataTable ua = ds.Tables["userfriends"];
-            string select = "a.ownernID '" + friendlistowner.UUID.ToString() + "' and b.friendID ='" + friend.UUID.ToString() + "';";
+            string select = "a.ownerID ='" + friendlistowner.UUID.ToString() + "' and b.friendID ='" + friend.UUID.ToString() + "'";
             lock (ds)
             {
                 DataRow[] rows = ds.Tables["userfriends"].Select(select);
@@ -737,7 +765,7 @@ namespace OpenSim.Framework.Data.SQLite
             daf.UpdateCommand = createUpdateCommand("userfriends", "ownerID=:ownerID and friendID=:friendID", ds.Tables["userfriends"]);
             daf.UpdateCommand.Connection = conn;
 
-            SqliteCommand delete = new SqliteCommand("delete from users where ownerID=:ownerID and friendID=:friendID");
+            SqliteCommand delete = new SqliteCommand("delete from userfriends where ownerID=:ownerID and friendID=:friendID");
             delete.Parameters.Add(createSqliteParameter("ownerID", typeof(String)));
             delete.Parameters.Add(createSqliteParameter("friendID", typeof(String)));
             delete.Connection = conn;

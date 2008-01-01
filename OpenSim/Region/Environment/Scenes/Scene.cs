@@ -1625,6 +1625,8 @@ namespace OpenSim.Region.Environment.Scenes
             }
         }
 
+       
+
         #endregion
 
         #region Other Methods
@@ -1697,6 +1699,45 @@ namespace OpenSim.Region.Environment.Scenes
                     m_eventManager.TriggerParcelPrimCountAdd((SceneObjectGroup) obj);
                 }
             }
+        }
+
+        /// <summary>
+        /// This method is a way for the Friends Module to create an instant 
+        /// message to the avatar and for Instant Messages that travel across 
+        /// gridcomms to make it to the Instant Message Module.
+        /// 
+        /// Friendship establishment and groups are unfortunately tied with instant messaging and 
+        /// there's no way to separate them completely.
+        /// </summary>
+        /// <param name="message">object containing the instant message data</param>
+        /// <returns>void</returns>
+        public void TriggerGridInstantMessage(GridInstantMessage message,InstantMessageReceiver options)
+        {
+            m_eventManager.TriggerGridInstantMessage(message,options);
+        }
+
+
+        public virtual void StoreAddFriendship(LLUUID ownerID, LLUUID friendID, uint perms)
+        {
+            // TODO: m_sceneGridService.DoStuff;
+            CommsManager.AddNewUserFriend(ownerID, friendID, perms);
+        }
+
+        public virtual void StoreUpdateFriendship(LLUUID ownerID, LLUUID friendID, uint perms)
+        {
+            // TODO: m_sceneGridService.DoStuff;
+            CommsManager.UpdateUserFriendPerms(ownerID, friendID, perms);
+        }
+
+        public virtual void StoreRemoveFriendship(LLUUID ownerID, LLUUID ExfriendID)
+        {
+            // TODO: m_sceneGridService.DoStuff;
+            CommsManager.RemoveUserFriend(ownerID, ExfriendID);
+        }
+        public virtual List<FriendListItem> StoreGetFriendsForUser(LLUUID ownerID)
+        {
+            // TODO: m_sceneGridService.DoStuff;
+            return CommsManager.GetUserFriendList(ownerID);
         }
 
         #endregion

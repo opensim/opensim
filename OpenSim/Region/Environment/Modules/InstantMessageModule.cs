@@ -52,6 +52,7 @@ namespace OpenSim.Region.Environment.Modules
             {
                 m_scenes.Add(scene);
                 scene.EventManager.OnNewClient += OnNewClient;
+                scene.EventManager.OnGridInstantMessageToIMModule += OnGridInstantMessage;
             }
         }
 
@@ -67,25 +68,49 @@ namespace OpenSim.Region.Environment.Modules
                                       uint ParentEstateID, LLVector3 Position, LLUUID RegionID, 
                                       byte[] binaryBucket)
         {
-            foreach (Scene scene in m_scenes)
+            
+            bool FriendDialog = ((dialog == (byte)38) || (dialog == (byte)39) || (dialog == (byte)40));
+
+            // IM dialogs need to be pre-processed and have their sessionID filled by the server
+            // so the sim can match the transaction on the return packet.
+            
+            // Don't send a Friend Dialog IM with a LLUUID.Zero session.
+            if (!(FriendDialog && imSessionID == LLUUID.Zero))
             {
-                if (scene.Entities.ContainsKey(toAgentID) && scene.Entities[toAgentID] is ScenePresence)
+                foreach (Scene scene in m_scenes)
                 {
-                    // Local message
-                    ScenePresence user = (ScenePresence) scene.Entities[toAgentID];
-                    if (!user.IsChildAgent)
+                    if (scene.Entities.ContainsKey(toAgentID) && scene.Entities[toAgentID] is ScenePresence)
                     {
-                        user.ControllingClient.SendInstantMessage(fromAgentID, fromAgentSession, message,
-                                                                  toAgentID, imSessionID, fromAgentName, dialog,
-                                                                  timestamp);
-						// Message sent
-						return;
+                        // Local message
+                        ScenePresence user = (ScenePresence)scene.Entities[toAgentID];
+                        if (!user.IsChildAgent)
+                        {
+                            user.ControllingClient.SendInstantMessage(fromAgentID, fromAgentSession, message,
+                                                                      toAgentID, imSessionID, fromAgentName, dialog,
+                                                                      timestamp);
+                            // Message sent
+                            return;
+                        }
                     }
                 }
             }
 
             // Still here, try send via Grid
             // TODO
+        }
+        
+        // Trusty OSG1 called method.  This method also gets called from the FriendsModule
+        // Turns out the sim has to send an instant message to the user to get it to show an accepted friend.
+
+        private void OnGridInstantMessage(GridInstantMessage msg)
+        {
+            // Trigger the above event handler
+            OnInstantMessage(new LLUUID(msg.fromAgentID), new LLUUID(msg.fromAgentSession), 
+                new LLUUID(msg.toAgentID), new LLUUID(msg.imSessionID), msg.timestamp, msg.fromAgentName, 
+                msg.message, msg.dialog, msg.fromGroup, msg.offline, msg.ParentEstateID, 
+                new LLVector3(msg.Position.x,msg.Position.y,msg.Position.z), new LLUUID(msg.RegionID), 
+                msg.binaryBucket);
+
         }
 
         public void PostInitialise()

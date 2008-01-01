@@ -551,6 +551,10 @@ namespace OpenSim.Region.ClientStack
         public event RegionInfoRequest OnRegionInfoRequest;
         public event EstateCovenantRequest OnEstateCovenantRequest;
 
+        public event FriendActionDelegate OnApproveFriendRequest;
+        public event FriendActionDelegate OnDenyFriendRequest;
+        public event FriendshipTermination OnTerminateFriendship;
+
         #region Scene/Avatar to Client
 
         /// <summary>
@@ -2554,6 +2558,39 @@ namespace OpenSim.Region.ClientStack
                                              msgpack.MessageBlock.Position, msgpack.MessageBlock.RegionID,
                                              msgpack.MessageBlock.BinaryBucket);
                         }
+                        break;
+
+                    case PacketType.AcceptFriendship:
+                        AcceptFriendshipPacket afriendpack = (AcceptFriendshipPacket)Pack;
+
+                        // My guess is this is the folder to stick the calling card into
+                        List<LLUUID> callingCardFolders = new List<LLUUID>();
+                        
+                        LLUUID agentID = afriendpack.AgentData.AgentID;
+                        LLUUID transactionID = afriendpack.TransactionBlock.TransactionID;
+
+                        for (int fi = 0; fi < afriendpack.FolderData.Length; fi++)
+                        {
+                            callingCardFolders.Add(afriendpack.FolderData[fi].FolderID);
+                        }
+
+                        if (OnApproveFriendRequest != null)
+                        {
+                            OnApproveFriendRequest(this, agentID, transactionID, callingCardFolders);
+                        }
+
+
+                        break;
+                    case PacketType.TerminateFriendship:
+                        TerminateFriendshipPacket tfriendpack = (TerminateFriendshipPacket)Pack;
+                        LLUUID listOwnerAgentID = tfriendpack.AgentData.AgentID;
+                        LLUUID exFriendID = tfriendpack.ExBlock.OtherID;
+
+                        if (OnTerminateFriendship != null)
+                        {
+                            OnTerminateFriendship(this, listOwnerAgentID, exFriendID);
+                        }
+
                         break;
                     case PacketType.RezObject:
                         RezObjectPacket rezPacket = (RezObjectPacket) Pack;

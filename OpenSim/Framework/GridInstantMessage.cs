@@ -27,26 +27,38 @@
 */
 
 using System;
-using libsecondlife;
+using OpenSim.Framework;
+
 
 namespace OpenSim.Framework
 {
+   
     [Serializable]
-    public class sLLVector3
+    public class GridInstantMessage
     {
-        public sLLVector3()
-        {
-        }
+        public Guid fromAgentID;
+        public Guid fromAgentSession;
+        public Guid toAgentID;
+        public Guid imSessionID;
+        public uint timestamp;
+        public string fromAgentName;
 
-        public sLLVector3(LLVector3 v)
-        {
-            x = v.X;
-            y = v.Y;
-            z = v.Z;
-        }
+        public string message;
+        public byte dialog;
+        public bool fromGroup;
+        public byte offline;
 
-        public float x=0;
-        public float y=0;
-        public float z=0;
+        public uint ParentEstateID;
+
+        public sLLVector3 Position;
+
+        public Guid RegionID;
+
+        public byte[] binaryBucket;
+
+        public GridInstantMessage()
+        {
+    
+        }       
     }
 }

@@ -138,8 +138,8 @@ namespace OpenSim.Region.Communications.Local
                 theUser.currentAgent.currentHandle = reg.RegionHandle;
 
                 LoginResponse.BuddyList buddyList = new LoginResponse.BuddyList();
-                buddyList.AddNewBuddy(new LoginResponse.BuddyList.BuddyInfo("11111111-1111-0000-0000-000100bba000"));
-                response.BuddList = buddyList;
+
+                response.BuddList = ConvertFriendListItem(m_userManager.GetUserFriendList(theUser.UUID)); 
 
                 Login _login = new Login();
                 //copy data to login object
@@ -162,7 +162,20 @@ namespace OpenSim.Region.Communications.Local
                 MainLog.Instance.Warn("LOGIN", "Not found region " + currentRegion);
             }
         }
+        private LoginResponse.BuddyList ConvertFriendListItem(List<FriendListItem> LFL)
+        {
+            LoginResponse.BuddyList buddylistreturn = new LoginResponse.BuddyList();
+            foreach (FriendListItem fl in LFL)
+            {
+                LoginResponse.BuddyList.BuddyInfo buddyitem = new LoginResponse.BuddyList.BuddyInfo(fl.Friend);
+                buddyitem.BuddyID = fl.Friend;
+                buddyitem.BuddyRightsHave = (int)fl.FriendListOwnerPerms;
+                buddyitem.BuddyRightsGiven = (int)fl.FriendPerms;
+                buddylistreturn.AddNewBuddy(buddyitem);
 
+            }
+            return buddylistreturn;
+        }
         protected override InventoryData CreateInventoryData(LLUUID userID)
         {
             List<InventoryFolderBase> folders = m_Parent.InventoryService.RequestFirstLevelFolders(userID);
@@ -207,6 +220,7 @@ namespace OpenSim.Region.Communications.Local
 
                 return new InventoryData(AgentInventoryArray, userInventory.InventoryRoot.FolderID);
             }
+            
         }
     }
 }

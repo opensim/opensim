@@ -27,12 +27,14 @@
 */
 
 using libsecondlife;
+using System;
 using OpenSim.Framework;
 using OpenSim.Region.Environment.Interfaces;
 using OpenSim.Region.Environment.LandManagement;
 
 namespace OpenSim.Region.Environment.Scenes
 {
+
     /// <summary>
     /// A class for triggering remote scene events.
     /// </summary>
@@ -113,6 +115,16 @@ namespace OpenSim.Region.Environment.Scenes
         public delegate void AvatarEnteringNewParcel(ScenePresence avatar, int localLandID, LLUUID regionID);
 
         public event AvatarEnteringNewParcel OnAvatarEnteringNewParcel;
+
+
+        public delegate void NewGridInstantMessage(GridInstantMessage message);
+
+        public event NewGridInstantMessage OnGridInstantMessageToIMModule;
+
+        public event NewGridInstantMessage OnGridInstantMessageToFriendsModule;
+
+        public event NewGridInstantMessage OnGridInstantMessageToGroupsModule;
+
 
 
         public void TriggerOnClientMovement(ScenePresence avatar)
@@ -265,5 +277,29 @@ namespace OpenSim.Region.Environment.Scenes
                 OnAvatarEnteringNewParcel(avatar, localLandID, regionID);
             }
         }
+
+        ///<summary>Used to pass instnat messages around between the Scene, the Friends Module and the Instant Messsage Module</summary>
+        ///<param name="message">Object containing the Instant Message Data</param>
+        ///<param name="whichModule">A bit vector containing the modules to send the message to</param>
+        public void TriggerGridInstantMessage(GridInstantMessage message, InstantMessageReceiver whichModule)
+        {
+            if ((whichModule & InstantMessageReceiver.IMModule) != 0)
+            {
+
+                if (OnGridInstantMessageToIMModule != null)
+                {
+                    OnGridInstantMessageToIMModule(message);
+                }
+            }
+            if ((whichModule & InstantMessageReceiver.FriendsModule) != 0)
+            {
+                if (OnGridInstantMessageToFriendsModule != null)
+                {
+                    OnGridInstantMessageToFriendsModule(message);
+                }
+
+            }
+        }
+        
     }
 }

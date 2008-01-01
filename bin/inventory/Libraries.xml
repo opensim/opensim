@@ -7,7 +7,7 @@
        the hardcoded root library folder ("OpenSim Library") 
 
        You can also add folders and items to the folders of libraries defined earlier on in this file -->
-
+ 
 <!--
   <Section Name="My Site Library">
     <Key Name="foldersFile" Value="MySiteLibrary/MySiteLibraryFolders.xml"/>

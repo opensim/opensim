@@ -152,6 +152,49 @@ namespace OpenSim.Framework.Communications
             }
         }
 
+        #region Friend Methods
+        /// <summary>
+        /// Adds a new friend to the database for XUser
+        /// </summary>
+        /// <param name="friendlistowner">The agent that who's friends list is being added to</param>
+        /// <param name="friend">The agent that being added to the friends list of the friends list owner</param>
+        /// <param name="perms">A uint bit vector for set perms that the friend being added has; 0 = none, 1=This friend can see when they sign on, 2 = map, 4 edit objects </param>
+        public void AddNewUserFriend(LLUUID friendlistowner, LLUUID friend, uint perms)
+        {
+            m_userService.AddNewUserFriend(friendlistowner, friend, perms);
+        }
+
+        /// <summary>
+        /// Delete friend on friendlistowner's friendlist.
+        /// </summary>
+        /// <param name="friendlistowner">The agent that who's friends list is being updated</param>
+        /// <param name="friend">The Ex-friend agent</param>
+        public void RemoveUserFriend(LLUUID friendlistowner, LLUUID friend)
+        {
+            m_userService.RemoveUserFriend(friendlistowner, friend);
+        }
+
+        /// <summary>
+        /// Update permissions for friend on friendlistowner's friendlist.
+        /// </summary>
+        /// <param name="friendlistowner">The agent that who's friends list is being updated</param>
+        /// <param name="friend">The agent that is getting or loosing permissions</param>
+        /// <param name="perms">A uint bit vector for set perms that the friend being added has; 0 = none, 1=This friend can see when they sign on, 2 = map, 4 edit objects </param>
+        public void UpdateUserFriendPerms(LLUUID friendlistowner, LLUUID friend, uint perms)
+        {
+            m_userService.UpdateUserFriendPerms(friendlistowner, friend, perms);
+        }
+        /// <summary>
+        /// Returns a list of FriendsListItems that describe the friends and permissions in the friend relationship for LLUUID friendslistowner
+        /// </summary>
+        /// <param name="friendlistowner">The agent that we're retreiving the friends Data.</param>
+        public List<FriendListItem> GetUserFriendList(LLUUID friendlistowner)
+        {
+            return m_userService.GetUserFriendList(friendlistowner);
+        }
+
+        #endregion
+
         #region Packet Handlers
 
         public void HandleUUIDNameRequest(LLUUID uuid, IClientAPI remote_client)

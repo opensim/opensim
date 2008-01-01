@@ -226,6 +226,13 @@ namespace OpenSim.Framework.Data.MySQL
                             param);
                     updater.ExecuteNonQuery();
 
+                    updater =
+                        database.Query(
+                        "delete from userfriends " +
+                        "where ownerID = ?friendID and friendID = ?ownerID",
+                            param);
+                    updater.ExecuteNonQuery();
+
                 }
             }
             catch (Exception e)

@@ -395,6 +395,14 @@ namespace OpenSim.Framework
 
     public delegate void ConfirmXfer(IClientAPI remoteClient, ulong xferID, uint packetID);
 
+    public delegate void FriendActionDelegate(IClientAPI remoteClient,LLUUID agentID,LLUUID transactionID,List<LLUUID> callingCardFolders);
+    
+    public delegate void FriendshipTermination(IClientAPI remoteClient,LLUUID agentID, LLUUID ExID);
+    
+   
+
+    
+
     public delegate void ObjectPermissions(
         IClientAPI remoteClinet, LLUUID AgentID, LLUUID SessionID,
         List<ObjectPermissionsPacket.ObjectDataBlock> permChanges);
@@ -490,6 +498,11 @@ namespace OpenSim.Framework
         event RegionInfoRequest OnRegionInfoRequest;
         event EstateCovenantRequest OnEstateCovenantRequest;
 
+        event FriendActionDelegate OnApproveFriendRequest;
+        event FriendActionDelegate OnDenyFriendRequest;
+        event FriendshipTermination OnTerminateFriendship;
+
+         
         LLVector3 StartPos { get; set; }
 
         LLUUID AgentId { get; }
