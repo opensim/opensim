@@ -128,7 +128,7 @@ namespace OpenSim.Framework
             set
             {
                 m_regionFlags = value;
-                configMember.forceSetConfigurationOption("region_flags", m_regionFlags.ToString());
+                configMember.forceSetConfigurationOption("region_flags", ((uint)m_regionFlags).ToString());
             }
         }
 
@@ -141,7 +141,7 @@ namespace OpenSim.Framework
             set
             {
                 m_simAccess = value;
-                configMember.forceSetConfigurationOption("sim_access", m_simAccess.ToString());
+                configMember.forceSetConfigurationOption("sim_access", ((byte)m_simAccess).ToString());
             }
         }
 
