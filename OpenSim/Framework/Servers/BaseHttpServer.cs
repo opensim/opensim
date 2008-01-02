@@ -385,7 +385,7 @@ namespace OpenSim.Framework.Servers
                 response.StatusCode = 301;
                 response.RedirectLocation = "secondlife:///app/login?first_name=" + keysvals["username"] + "&last_name=" +
                                             keysvals["lastname"] +
-                                            "&location=home&grid=Other&web_login_key=796f2b2a-0131-41e4-af12-00f60c24c458";
+                                            "&location=home&grid=other&web_login_key=796f2b2a-0131-41e4-af12-00f60c24c458";
 
                 response.OutputStream.Close();
             } // show_login_form == "FALSE"

@@ -87,10 +87,29 @@ namespace OpenSim.Grid.UserServer
                 responseData["lastname" + i.ToString()] = returnUsers[i].lastName;
             }
             response.Value = responseData;
-
+            
             return response;
         }
 
+        public XmlRpcResponse FriendListItemListtoXmlRPCResponse(List<FriendListItem> returnUsers)
+        {
+            XmlRpcResponse response = new XmlRpcResponse();
+            Hashtable responseData = new Hashtable();
+            // Query Result Information
+
+            responseData["avcount"] = (string)returnUsers.Count.ToString();
+
+            for (int i = 0; i < returnUsers.Count; i++)
+            {
+                responseData["ownerID" + i.ToString()] = returnUsers[i].FriendListOwner.UUID.ToString();
+                responseData["friendID" + i.ToString()] = returnUsers[i].Friend.UUID.ToString();
+                responseData["ownerPerms" + i.ToString()] = returnUsers[i].FriendListOwnerPerms.ToString();
+                responseData["friendPerms" + i.ToString()] = returnUsers[i].FriendPerms.ToString();
+            }
+            response.Value = responseData;
+
+            return response;
+        }
         /// <summary>
         /// Converts a user profile to an XML element which can be returned
         /// </summary>
@@ -149,6 +168,83 @@ namespace OpenSim.Grid.UserServer
 
             Console.WriteLine("[AVATARINFO]: Servicing Avatar Query: " + (string) requestData["avquery"]);
             return AvatarPickerListtoXmlRPCResponse(queryID, returnAvatar);
+        }
+
+        public XmlRpcResponse XmlRpcResponseXmlRPCAddUserFriend(XmlRpcRequest request)
+        {
+            XmlRpcResponse response = new XmlRpcResponse();
+            Hashtable requestData = (Hashtable)request.Params[0];
+            Hashtable responseData = new Hashtable();
+            string returnString = "FALSE";
+            // Query Result Information
+            
+            if (requestData.Contains("ownerID") && requestData.Contains("friendID") && requestData.Contains("friendPerms"))
+            {
+                // UserManagerBase.AddNewuserFriend
+                AddNewUserFriend(new LLUUID((string)requestData["ownerID"]), new LLUUID((string)requestData["friendID"]), (uint)Convert.ToInt32((string)requestData["friendPerms"]));
+                returnString = "TRUE";
+            }
+            responseData["returnString"] = returnString;
+            response.Value = responseData;
+            return response;
+        }
+
+        public XmlRpcResponse XmlRpcResponseXmlRPCRemoveUserFriend(XmlRpcRequest request)
+        {
+            XmlRpcResponse response = new XmlRpcResponse();
+            Hashtable requestData = (Hashtable)request.Params[0];
+            Hashtable responseData = new Hashtable();
+            string returnString = "FALSE";
+            // Query Result Information
+            
+            if (requestData.Contains("ownerID") && requestData.Contains("friendID"))
+            {
+                // UserManagerBase.AddNewuserFriend
+                RemoveUserFriend(new LLUUID((string)requestData["ownerID"]), new LLUUID((string)requestData["friendID"]));
+                returnString = "TRUE";
+            }
+            responseData["returnString"] = returnString;
+            response.Value = responseData;
+            return response;
+        
+        }
+
+        public XmlRpcResponse XmlRpcResponseXmlRPCUpdateUserFriendPerms(XmlRpcRequest request)
+        {
+            XmlRpcResponse response = new XmlRpcResponse();
+            Hashtable requestData = (Hashtable)request.Params[0];
+            Hashtable responseData = new Hashtable();
+            string returnString = "FALSE";
+           
+
+            
+            if (requestData.Contains("ownerID") && requestData.Contains("friendID") && requestData.Contains("friendPerms"))
+            {
+                UpdateUserFriendPerms(new LLUUID((string)requestData["ownerID"]), new LLUUID((string)requestData["friendID"]), (uint)Convert.ToInt32((string)requestData["friendPerms"]));
+                // UserManagerBase.
+                returnString = "TRUE";
+            }
+            responseData["returnString"] = returnString;
+            response.Value = responseData;
+            return response;
+        }
+
+        public XmlRpcResponse XmlRpcResponseXmlRPCGetUserFriendList(XmlRpcRequest request)
+        {
+            XmlRpcResponse response = new XmlRpcResponse();
+            Hashtable requestData = (Hashtable)request.Params[0];
+            Hashtable responseData = new Hashtable();
+
+            List<FriendListItem> returndata = new List<FriendListItem>();
+
+
+
+            if (requestData.Contains("ownerID"))
+            {
+                returndata = this.GetUserFriendList(new LLUUID((string)requestData["ownerID"]));
+            }
+            
+            return FriendListItemListtoXmlRPCResponse(returndata);
         }
 
         public XmlRpcResponse XmlRPCGetUserMethodName(XmlRpcRequest request)

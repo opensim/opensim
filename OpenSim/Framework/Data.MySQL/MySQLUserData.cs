@@ -205,7 +205,6 @@ namespace OpenSim.Framework.Data.MySQL
                 MainLog.Instance.Error(e.ToString());
                 return;
             }
-            MainLog.Instance.Verbose("FRIEND", "Stub AddNewUserFriend called");
         }
 
         public void RemoveUserFriend(LLUUID friendlistowner, LLUUID friend)
@@ -241,7 +240,6 @@ namespace OpenSim.Framework.Data.MySQL
                 MainLog.Instance.Error(e.ToString());
                 return;
             }
-            MainLog.Instance.Verbose("FRIEND", "Stub RemoveUserFriend called");
         }
         public void UpdateUserFriendPerms(LLUUID friendlistowner, LLUUID friend, uint perms)
         {
@@ -271,7 +269,6 @@ namespace OpenSim.Framework.Data.MySQL
                 MainLog.Instance.Error(e.ToString());
                 return;
             }
-            MainLog.Instance.Verbose("FRIEND", "Stub UpdateUserFriendPerms called");
         }
 
 
@@ -318,7 +315,6 @@ namespace OpenSim.Framework.Data.MySQL
                 return Lfli;
             }
 
-            MainLog.Instance.Verbose("FRIEND", "Stub GetUserFriendList called");
             return Lfli;
         }
 

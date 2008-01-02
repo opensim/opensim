@@ -109,6 +109,28 @@ namespace OpenSim.Region.Communications.OGS1
             return pickerlist;
         }
 
+        public List<FriendListItem> ConvertXMLRPCDataToFriendListItemList(Hashtable data)
+        {
+            List<FriendListItem> buddylist = new List<FriendListItem>();
+            int buddycount = Convert.ToInt32((string)data["avcount"]);
+            
+            
+            for (int i = 0; i < buddycount; i++)
+            {
+                FriendListItem buddylistitem = new FriendListItem();
+
+                buddylistitem.FriendListOwner = new LLUUID((string)data["ownerID" + i.ToString()]);
+                buddylistitem.Friend = new LLUUID((string)data["friendID" + i.ToString()]);
+                buddylistitem.FriendListOwnerPerms = (uint)Convert.ToInt32((string)data["ownerPerms" + i.ToString()]);
+                buddylistitem.FriendPerms = (uint)Convert.ToInt32((string)data["friendPerms" + i.ToString()]);
+
+                buddylist.Add(buddylistitem);
+            }
+            
+            
+            return buddylist;
+        }
+        
         public UserProfileData GetUserProfile(string firstName, string lastName)
         {
             return GetUserProfile(firstName + " " + lastName);
@@ -223,7 +245,49 @@ namespace OpenSim.Region.Communications.OGS1
         /// <param name="perms">A uint bit vector for set perms that the friend being added has; 0 = none, 1=This friend can see when they sign on, 2 = map, 4 edit objects </param>
         public void AddNewUserFriend(LLUUID friendlistowner, LLUUID friend, uint perms)
         {
+            try
+            {
+                Hashtable param = new Hashtable();
+                param["ownerID"] = friendlistowner.UUID.ToString();
+                param["friendID"] = friend.UUID.ToString();
+                param["friendPerms"] = perms.ToString();
+                IList parameters = new ArrayList();
+                parameters.Add(param);
 
+                XmlRpcRequest req = new XmlRpcRequest("add_new_user_friend", parameters);
+                XmlRpcResponse resp = req.Send(m_parent.NetworkServersInfo.UserURL, 3000);
+                Hashtable respData = (Hashtable)resp.Value;
+                if (respData != null)
+                {
+                    if (respData.Contains("returnString"))
+                    {
+                        if ((string)respData["returnString"] == "TRUE")
+                        {
+
+                        }
+                        else
+                        {
+                            MainLog.Instance.Warn("GRID", "Unable to add new friend, User Server Reported an issue");
+                        }
+                    }
+                    else
+                    {
+                        MainLog.Instance.Warn("GRID", "Unable to add new friend, UserServer didn't understand me!");
+                    }
+                }
+                else
+                {
+                    MainLog.Instance.Warn("GRID", "Unable to add new friend, UserServer didn't understand me!");
+
+                }
+            }
+            catch (WebException e)
+            {
+                MainLog.Instance.Warn("GRID","Error when trying to AddNewUserFriend: " +
+                                      e.Message);
+                
+            }
+            
         }
 
         /// <summary>
@@ -233,7 +297,49 @@ namespace OpenSim.Region.Communications.OGS1
         /// <param name="friend">The Ex-friend agent</param>
         public void RemoveUserFriend(LLUUID friendlistowner, LLUUID friend)
         {
+            try
+            {
+                Hashtable param = new Hashtable();
+                param["ownerID"] = friendlistowner.UUID.ToString();
+                param["friendID"] = friend.UUID.ToString();
+                
 
+                IList parameters = new ArrayList();
+                parameters.Add(param);
+
+                XmlRpcRequest req = new XmlRpcRequest("remove_user_friend", parameters);
+                XmlRpcResponse resp = req.Send(m_parent.NetworkServersInfo.UserURL, 3000);
+                Hashtable respData = (Hashtable)resp.Value;
+                if (respData != null)
+                {
+                    if (respData.Contains("returnString"))
+                    {
+                        if ((string)respData["returnString"] == "TRUE")
+                        {
+
+                        }
+                        else
+                        {
+                            MainLog.Instance.Warn("GRID", "Unable to remove friend, User Server Reported an issue");
+                        }
+                    }
+                    else
+                    {
+                        MainLog.Instance.Warn("GRID", "Unable to remove friend, UserServer didn't understand me!");
+                    }
+                }
+                else
+                {
+                    MainLog.Instance.Warn("GRID", "Unable to remove friend, UserServer didn't understand me!");
+
+                }
+            }
+            catch (WebException e)
+            {
+                MainLog.Instance.Warn("GRID", "Error when trying to RemoveUserFriend: " +
+                                      e.Message);
+                
+            }
         }
 
         /// <summary>
@@ -244,7 +350,48 @@ namespace OpenSim.Region.Communications.OGS1
         /// <param name="perms">A uint bit vector for set perms that the friend being added has; 0 = none, 1=This friend can see when they sign on, 2 = map, 4 edit objects </param>
         public void UpdateUserFriendPerms(LLUUID friendlistowner, LLUUID friend, uint perms)
         {
+            try
+            {
+                Hashtable param = new Hashtable();
+                param["ownerID"] = friendlistowner.UUID.ToString();
+                param["friendID"] = friend.UUID.ToString();
+                param["friendPerms"] = perms.ToString();
+                IList parameters = new ArrayList();
+                parameters.Add(param);
 
+                XmlRpcRequest req = new XmlRpcRequest("update_user_friend_perms", parameters);
+                XmlRpcResponse resp = req.Send(m_parent.NetworkServersInfo.UserURL, 3000);
+                Hashtable respData = (Hashtable)resp.Value;
+                if (respData != null)
+                {
+                    if (respData.Contains("returnString"))
+                    {
+                        if ((string)respData["returnString"] == "TRUE")
+                        {
+
+                        }
+                        else
+                        {
+                            MainLog.Instance.Warn("GRID", "Unable to update_user_friend_perms, User Server Reported an issue");
+                        }
+                    }
+                    else
+                    {
+                        MainLog.Instance.Warn("GRID", "Unable to update_user_friend_perms, UserServer didn't understand me!");
+                    }
+                }
+                else
+                {
+                    MainLog.Instance.Warn("GRID", "Unable to update_user_friend_perms, UserServer didn't understand me!");
+
+                }
+            }
+            catch (WebException e)
+            {
+                MainLog.Instance.Warn("GRID", "Error when trying to update_user_friend_perms: " +
+                                      e.Message);
+
+            }
         }
         /// <summary>
         /// Returns a list of FriendsListItems that describe the friends and permissions in the friend relationship for LLUUID friendslistowner
@@ -252,7 +399,33 @@ namespace OpenSim.Region.Communications.OGS1
         /// <param name="friendlistowner">The agent that we're retreiving the friends Data.</param>
         public List<FriendListItem> GetUserFriendList(LLUUID friendlistowner)
         {
-            return new List<FriendListItem>();
+            List<FriendListItem> buddylist = new List<FriendListItem>();
+            
+            try
+            {
+                Hashtable param = new Hashtable();
+                param["ownerID"] = friendlistowner.UUID.ToString();
+
+                IList parameters = new ArrayList();
+                parameters.Add(param);
+                XmlRpcRequest req = new XmlRpcRequest("get_user_friend_list", parameters);
+                XmlRpcResponse resp = req.Send(m_parent.NetworkServersInfo.UserURL, 3000);
+                Hashtable respData = (Hashtable) resp.Value;
+
+                if (respData.Contains("avcount")) 
+                {
+                    buddylist = ConvertXMLRPCDataToFriendListItemList(respData);
+                }
+                
+            }
+            catch (WebException e)
+            {
+                MainLog.Instance.Warn("Error when trying to fetch Avatar's friends list: " +
+                                      e.Message);
+                // Return Empty list (no friends)
+            }
+            return buddylist;
+             
         }
 
         #endregion
