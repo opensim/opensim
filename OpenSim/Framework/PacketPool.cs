@@ -68,9 +68,10 @@ namespace OpenSim.Framework
             return packet;
         }
 
-       private byte[] decoded_header = new byte[10];
         private PacketType GetType(byte[] bytes)
         {
+            byte[] decoded_header = new byte[10+8];
+
             ushort id;
             libsecondlife.PacketFrequency freq;
 
