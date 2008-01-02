@@ -155,8 +155,8 @@ namespace OpenSim.Region.Environment
             switch (Helpers.FieldToUTF8String(packet.MethodData.Method))
             {
                 case "getinfo":
-                    
-                    
+
+                    //MainLog.Instance.Verbose("ESTATE","CLIENT--->" +  packet.ToString());
                     sendRegionInfoPacketToAll();
                     if (m_scene.PermissionsMngr.GenericEstatePermission(remote_client.AgentId))
                     {
@@ -198,6 +198,12 @@ namespace OpenSim.Region.Environment
                         EstateChangeCovenant(packet);
                     }
                     break;
+                case "estateaccessdelta":
+                    if (m_scene.PermissionsMngr.GenericEstatePermission(remote_client.AgentId))
+                    {
+                        estateAccessDelta(remote_client, packet);
+                    }
+                    break;
                 default:
                     MainLog.Instance.Error("EstateOwnerMessage: Unknown method requested\n" + packet.ToString());
                     break;
@@ -220,53 +226,105 @@ namespace OpenSim.Region.Environment
             //Sending Estate Settings
             returnblock[0].Parameter = Helpers.StringToField(m_scene.RegionInfo.MasterAvatarFirstName + m_scene.RegionInfo.MasterAvatarLastName);
             returnblock[1].Parameter = Helpers.StringToField(m_scene.RegionInfo.MasterAvatarAssignedUUID.ToString());
-            returnblock[2].Parameter = Helpers.IntToBytes((int)m_scene.RegionInfo.EstateSettings.estateID);
-            returnblock[3].Parameter = Helpers.IntToBytes(269516800);
-            returnblock[4].Parameter = Helpers.IntToBytes(0);
-            returnblock[5].Parameter = Helpers.IntToBytes(1);
-            returnblock[6].Parameter = Helpers.StringToField(LLUUID.Random().ToString());
-            returnblock[7].Parameter = Helpers.IntToBytes(1160895077);
-            returnblock[8].Parameter = Helpers.IntToBytes(1);
+            returnblock[2].Parameter = Helpers.StringToField(m_scene.RegionInfo.EstateSettings.estateID.ToString());
+            
+            // TODO: Resolve Magic numbers here
+            returnblock[3].Parameter = Helpers.StringToField("269516800");
+            returnblock[4].Parameter = Helpers.StringToField("0");
+            returnblock[5].Parameter = Helpers.StringToField("1");
+            returnblock[6].Parameter = Helpers.StringToField(m_scene.RegionInfo.RegionID.ToString());
+            returnblock[7].Parameter = Helpers.StringToField("1160895077");
+            returnblock[8].Parameter = Helpers.StringToField("1");
+
             packet.ParamList = returnblock;
+            //MainLog.Instance.Verbose("ESTATE", "SIM--->" + packet.ToString());
             remote_client.OutPacket(packet, ThrottleOutPacketType.Task);
 
-            // Stuck here at the moment  The client sends a bunch of getinfo methods that need to be decoded the hard way
+            sendEstateManagerList(remote_client, packet);
+            
+        }
+
+        private void sendEstateManagerList(IClientAPI remote_client, EstateOwnerMessagePacket packet)
+        {
+            LLUUID invoice = packet.MethodData.Invoice;
+            
             //Sending Estate Managers
             packet = new EstateOwnerMessagePacket();
             packet.AgentData.TransactionID = LLUUID.Random();
-            packet.AgentData.AgentID=remote_client.AgentId;
-            packet.AgentData.SessionID=remote_client.SessionId;
+            packet.AgentData.AgentID = remote_client.AgentId;
+            packet.AgentData.SessionID = remote_client.SessionId;
             packet.MethodData.Invoice = invoice;
             packet.MethodData.Method = Helpers.StringToField("setaccess");
 
             LLUUID[] EstateManagers = m_scene.RegionInfo.EstateSettings.estateManagers;
-            
-            returnblock = new EstateOwnerMessagePacket.ParamListBlock[6+EstateManagers.Length];
-            
+
+            EstateOwnerMessagePacket.ParamListBlock[] returnblock = new EstateOwnerMessagePacket.ParamListBlock[6 + EstateManagers.Length];
+
             for (int i = 0; i < (6 + EstateManagers.Length); i++)
             {
                 returnblock[i] = new EstateOwnerMessagePacket.ParamListBlock();
             }
-            int j=0;
-            returnblock[j].Parameter = Helpers.IntToBytes((int)m_scene.RegionInfo.EstateSettings.estateID); j++;
-            returnblock[j].Parameter = Helpers.IntToBytes((int)EstateAccessCodex.EstateManagers); j++;
-            returnblock[j].Parameter = Helpers.IntToBytes(0); j++;
-            returnblock[j].Parameter = Helpers.IntToBytes(0); j++;
-            returnblock[j].Parameter = Helpers.IntToBytes(0); j++;
-            returnblock[j].Parameter = Helpers.IntToBytes(EstateManagers.Length); j++;
+            int j = 0;
+            returnblock[j].Parameter = Helpers.StringToField(m_scene.RegionInfo.EstateSettings.estateID.ToString()); j++;
+            returnblock[j].Parameter = Helpers.StringToField(((int)EstateAccessCodex.EstateManagers).ToString()); j++;
+            returnblock[j].Parameter = Helpers.StringToField("0"); j++;
+            returnblock[j].Parameter = Helpers.StringToField("0"); j++;
+            returnblock[j].Parameter = Helpers.StringToField("0"); j++;
+            returnblock[j].Parameter = Helpers.StringToField(EstateManagers.Length.ToString()); j++;
             for (int i = 0; i < EstateManagers.Length; i++)
             {
-                returnblock[j].Parameter = Helpers.StringToField(EstateManagers[i].ToString()); j++;
+                returnblock[j].Parameter = EstateManagers[i].GetBytes(); j++;
             }
             packet.ParamList = returnblock;
+            //MainLog.Instance.Verbose("ESTATE", "SIM--->" + packet.ToString());
             remote_client.OutPacket(packet, ThrottleOutPacketType.Task);
+        }
 
+        private void estateAccessDelta(IClientAPI remote_client, EstateOwnerMessagePacket packet)
+        {
+            // EstateAccessDelta handles Estate Managers, Sim Access, Sim Banlist, allowed Groups..  etc.
+            int estateAccessType = Convert.ToInt16(Helpers.FieldToUTF8String(packet.ParamList[1].Parameter));
 
+            switch (estateAccessType)
+            {
+                case 256:
             
+                // This needs to be updated for SuperEstateOwnerUser..   a non existing user in the estatesettings.xml
+                // So make sure you really trust your region owners.   because they can add other estate manaagers to your other estates
+                if (packet.AgentData.AgentID == m_scene.RegionInfo.MasterAvatarAssignedUUID || m_scene.PermissionsMngr.BypassPermissions)
+                {
+                    m_scene.RegionInfo.EstateSettings.AddEstateManager(new LLUUID(Helpers.FieldToUTF8String(packet.ParamList[2].Parameter)));
+                    sendEstateManagerList(remote_client, packet);
+                }
+                else
+                {
+                    remote_client.SendAlertMessage("Method EstateAccessDelta Failed, you don't have permissions");
+                }
+                
+                break;
+                case 512:
+                    // This needs to be updated for SuperEstateOwnerUser..   a non existing user in the estatesettings.xml
+                    // So make sure you really trust your region owners.   because they can add other estate manaagers to your other estates
+                    if (packet.AgentData.AgentID == m_scene.RegionInfo.MasterAvatarAssignedUUID || m_scene.PermissionsMngr.BypassPermissions)
+                    {
+                        m_scene.RegionInfo.EstateSettings.RemoveEstateManager(new LLUUID(Helpers.FieldToUTF8String(packet.ParamList[2].Parameter)));
+                        sendEstateManagerList(remote_client, packet);
+                    }
+                    else
+                    {
+                        remote_client.SendAlertMessage("Method EstateAccessDelta Failed, you don't have permissions");
+                    }
+                    break;
+
+            default:
+            
+                MainLog.Instance.Error("EstateOwnerMessage: Unknown EstateAccessType requested in estateAccessDelta\n" + packet.ToString());
+                break;
+            }
+            //MainLog.Instance.Error("EstateOwnerMessage: estateAccessDelta\n" + packet.ToString());     
 
 
         }
-
         private void estateSetRegionInfoHandler(EstateOwnerMessagePacket packet)
         {
             if (packet.ParamList.Length != 9)

@@ -646,8 +646,8 @@ namespace OpenSim.Framework
             for (int i = 0; i < numEstateManagers; i++)
             {
                 pos = GetNextEstateManager(pos);
-                
-                rEstateManagers[i] = GetEstateManagerAtPos(pos);
+
+                rEstateManagers[i] = GetEstateManagerAtPos(pos); pos++;
          
             }
             return rEstateManagers;
@@ -683,8 +683,63 @@ namespace OpenSim.Framework
             return numEstateManagers;
         }
 
+        public void AddEstateManager(LLUUID avatarID)
+        {
+            LLUUID[] testateManagers = GetEstateManagers();
+            LLUUID[] nestateManagers = new LLUUID[testateManagers.Length + 1];
+
+            int i = 0;
+            for (i = 0; i < testateManagers.Length; i++)
+            {
+                nestateManagers[i] = testateManagers[i];
+            }
+
+            nestateManagers[i] = avatarID;
+
+            //Saves it to the estate settings file
+            estateManagers = nestateManagers;
+
+        }
+        public void RemoveEstateManager(LLUUID avatarID)
+        {
+            int notfoundparam = 11; // starting high so the condense routine (max ten) doesn't run if we don't find it.
+            LLUUID[] testateManagers = GetEstateManagers(); // temporary estate managers list
+ 
+
+            int i = 0;
+            int foundpos = notfoundparam;
+
+            // search for estate manager.
+            for (i = 0; i < testateManagers.Length; i++)
+            {
+                if (testateManagers[i] == avatarID)
+                {
+                    foundpos = i;
+                    break;
+                }
+            }
+            if (foundpos < notfoundparam)
+            {
+                LLUUID[] restateManagers = new LLUUID[testateManagers.Length - 1];
+
+                // fill new estate managers array up to the found spot
+                for (int j = 0; j < foundpos; j++)
+                    restateManagers[j] = testateManagers[j];
+
+                // skip over the estate manager we're removing and compress
+                for (int j = foundpos + 1; j < testateManagers.Length; j++)
+                    restateManagers[j - 1] = testateManagers[j];
+
+                estateManagers = restateManagers;
+            }
+            else
+            {
+                OpenSim.Framework.Console.MainLog.Instance.Error("ESTATESETTINGS", "Unable to locate estate manager : " + avatarID.ToString() + " for removal");
+            }
+        }
+
         #endregion
-        
+
         private ConfigurationMember configMember;
 
         public EstateSettings()

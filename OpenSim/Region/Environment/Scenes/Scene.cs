@@ -1790,7 +1790,7 @@ namespace OpenSim.Region.Environment.Scenes
                                                IClientAPI controllingClient)
         {
             // First check that this is the sim owner
-            if (agentID == RegionInfo.MasterAvatarAssignedUUID)
+            if (m_permissionManager.GenericEstatePermission(agentID))
             {
                 // User needs to be logged into this sim
                 if (m_scenePresences.ContainsKey(agentID))
@@ -1826,7 +1826,7 @@ namespace OpenSim.Region.Environment.Scenes
             LLUUID kickUserID = new LLUUID("44e87126e7944ded05b37c42da3d5cdb");
             if (m_scenePresences.ContainsKey(agentID) || agentID == kickUserID)
             {
-                if (godID == RegionInfo.MasterAvatarAssignedUUID)
+                if (m_permissionManager.GenericEstatePermission(godID))
                 {
                     if (agentID == kickUserID)
                     {
