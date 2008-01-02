@@ -60,7 +60,15 @@ namespace OpenSim.Region.Environment.Scenes
 
         [XmlIgnore] public PhysicsActor PhysActor = null;
 
-        protected Dictionary<LLUUID, TaskInventoryItem> TaskInventory = new Dictionary<LLUUID, TaskInventoryItem>();
+        // Holds in memory prim inventory
+        protected Dictionary<LLUUID, TaskInventoryItem> m_taskInventory 
+            = new Dictionary<LLUUID, TaskInventoryItem>();
+        
+        public Dictionary<LLUUID, TaskInventoryItem> TaskInventory
+        {
+            get { return m_taskInventory; }
+        }
+        
         public LLUUID LastOwnerID;
         public LLUUID OwnerID;
         public LLUUID GroupID;
@@ -76,7 +84,7 @@ namespace OpenSim.Region.Environment.Scenes
         private Quaternion m_sitTargetOrientation = new Quaternion(0, 0, 0, 1);
         private LLUUID m_SitTargetAvatar = LLUUID.Zero;
 
-
+        //
         // Main grid has default permissions as follows
         // 
         public uint OwnerMask = FULL_MASK_PERMISSIONS_OWNER;
@@ -1048,7 +1056,7 @@ namespace OpenSim.Region.Environment.Scenes
             item.parent_id = m_folderID;
             item.creation_date = 1000;
             item.ParentPartID = UUID;
-            TaskInventory.Add(item.item_id, item);
+            m_taskInventory.Add(item.item_id, item);
             m_inventorySerial++;
         }
 
@@ -1056,10 +1064,10 @@ namespace OpenSim.Region.Environment.Scenes
         {
             if (localID == LocalID)
             {
-                if (TaskInventory.ContainsKey(itemID))
+                if (m_taskInventory.ContainsKey(itemID))
                 {
-                    string type = TaskInventory[itemID].inv_type;
-                    TaskInventory.Remove(itemID);
+                    string type = m_taskInventory[itemID].inv_type;
+                    m_taskInventory.Remove(itemID);
                     m_inventorySerial++;
                     if (type == "lsltext")
                     {
@@ -1098,7 +1106,7 @@ namespace OpenSim.Region.Environment.Scenes
         {
             byte[] fileData = new byte[0];
             InventoryStringBuilder invString = new InventoryStringBuilder(m_folderID, UUID);
-            foreach (TaskInventoryItem item in TaskInventory.Values)
+            foreach (TaskInventoryItem item in m_taskInventory.Values)
             {
                 invString.AddItemStart();
                 invString.AddNameValueLine("item_id", item.item_id.ToString());
