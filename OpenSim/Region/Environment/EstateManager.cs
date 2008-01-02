@@ -44,6 +44,15 @@ namespace OpenSim.Region.Environment
         private Scene m_scene;
         private RegionInfo m_regInfo;
 
+        public enum EstateAccessCodex : uint
+        {
+            AccessOptions = 17, 
+            AllowedGroups = 18,
+            EstateBans = 20,
+            EstateManagers = 24
+        }
+
+
         public EstateManager(Scene scene, RegionInfo reginfo)
         {
             m_scene = scene;
@@ -146,7 +155,13 @@ namespace OpenSim.Region.Environment
             switch (Helpers.FieldToUTF8String(packet.MethodData.Method))
             {
                 case "getinfo":
+                    
+                    
                     sendRegionInfoPacketToAll();
+                    if (m_scene.PermissionsMngr.GenericEstatePermission(remote_client.AgentId))
+                    {
+                        sendDetailedEstateData(remote_client, packet);
+                    }
                     break;
                 case "setregioninfo":
                     if (m_scene.PermissionsMngr.CanEditEstateTerrain(remote_client.AgentId))
@@ -187,6 +202,69 @@ namespace OpenSim.Region.Environment
                     MainLog.Instance.Error("EstateOwnerMessage: Unknown method requested\n" + packet.ToString());
                     break;
             }
+        }
+
+        private void sendDetailedEstateData(IClientAPI remote_client, EstateOwnerMessagePacket packet)
+        {
+            
+            LLUUID invoice = packet.MethodData.Invoice;
+            packet.AgentData.TransactionID = LLUUID.Random();
+            packet.MethodData.Method = Helpers.StringToField("estateupdateinfo");
+            EstateOwnerMessagePacket.ParamListBlock[] returnblock = new EstateOwnerMessagePacket.ParamListBlock[9];
+
+            for (int i = 0; i < 9; i++)
+            {
+                returnblock[i] = new EstateOwnerMessagePacket.ParamListBlock();
+            }
+
+            //Sending Estate Settings
+            returnblock[0].Parameter = Helpers.StringToField(m_scene.RegionInfo.MasterAvatarFirstName + m_scene.RegionInfo.MasterAvatarLastName);
+            returnblock[1].Parameter = Helpers.StringToField(m_scene.RegionInfo.MasterAvatarAssignedUUID.ToString());
+            returnblock[2].Parameter = Helpers.IntToBytes((int)m_scene.RegionInfo.EstateSettings.estateID);
+            returnblock[3].Parameter = Helpers.IntToBytes(269516800);
+            returnblock[4].Parameter = Helpers.IntToBytes(0);
+            returnblock[5].Parameter = Helpers.IntToBytes(1);
+            returnblock[6].Parameter = Helpers.StringToField(LLUUID.Random().ToString());
+            returnblock[7].Parameter = Helpers.IntToBytes(1160895077);
+            returnblock[8].Parameter = Helpers.IntToBytes(1);
+            packet.ParamList = returnblock;
+            remote_client.OutPacket(packet, ThrottleOutPacketType.Task);
+
+            // Stuck here at the moment  The client sends a bunch of getinfo methods that need to be decoded the hard way
+            //Sending Estate Managers
+            packet = new EstateOwnerMessagePacket();
+            packet.AgentData.TransactionID = LLUUID.Random();
+            packet.AgentData.AgentID=remote_client.AgentId;
+            packet.AgentData.SessionID=remote_client.SessionId;
+            packet.MethodData.Invoice = invoice;
+            packet.MethodData.Method = Helpers.StringToField("setaccess");
+
+            LLUUID[] EstateManagers = m_scene.RegionInfo.EstateSettings.estateManagers;
+            
+            returnblock = new EstateOwnerMessagePacket.ParamListBlock[6+EstateManagers.Length];
+            
+            for (int i = 0; i < (6 + EstateManagers.Length); i++)
+            {
+                returnblock[i] = new EstateOwnerMessagePacket.ParamListBlock();
+            }
+            int j=0;
+            returnblock[j].Parameter = Helpers.IntToBytes((int)m_scene.RegionInfo.EstateSettings.estateID); j++;
+            returnblock[j].Parameter = Helpers.IntToBytes((int)EstateAccessCodex.EstateManagers); j++;
+            returnblock[j].Parameter = Helpers.IntToBytes(0); j++;
+            returnblock[j].Parameter = Helpers.IntToBytes(0); j++;
+            returnblock[j].Parameter = Helpers.IntToBytes(0); j++;
+            returnblock[j].Parameter = Helpers.IntToBytes(EstateManagers.Length); j++;
+            for (int i = 0; i < EstateManagers.Length; i++)
+            {
+                returnblock[j].Parameter = Helpers.StringToField(EstateManagers[i].ToString()); j++;
+            }
+            packet.ParamList = returnblock;
+            remote_client.OutPacket(packet, ThrottleOutPacketType.Task);
+
+
+            
+
+
         }
 
         private void estateSetRegionInfoHandler(EstateOwnerMessagePacket packet)

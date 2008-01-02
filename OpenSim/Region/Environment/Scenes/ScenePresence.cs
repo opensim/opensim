@@ -320,7 +320,14 @@ namespace OpenSim.Region.Environment.Scenes
 
             // TODO: m_animations and m_animationSeqs should always be of the same length.
             // Move them into an object to (hopefully) avoid threading issues.
-            m_animations.Add(Animations.AnimsLLUUID["STAND"]);
+            try
+            {
+                m_animations.Add(Animations.AnimsLLUUID["STAND"]);
+            }
+            catch (KeyNotFoundException)
+            {
+                MainLog.Instance.Warn("AVATAR", "KeyNotFound Exception playing avatar stand animation");
+            }
             m_animationSeqs.Add(1);
 
             RegisterToEvents();

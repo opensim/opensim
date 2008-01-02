@@ -487,6 +487,204 @@ namespace OpenSim.Framework
             }
         }
 
+        private LLUUID m_estateManager0;
+        private LLUUID m_estateManager1;
+        private LLUUID m_estateManager2;
+        private LLUUID m_estateManager3;
+        private LLUUID m_estateManager4;
+        private LLUUID m_estateManager5;
+        private LLUUID m_estateManager6;
+        private LLUUID m_estateManager7;
+        private LLUUID m_estateManager8;
+        private LLUUID m_estateManager9;
+
+        public LLUUID[] estateManagers
+        {
+            get {
+                // returns a condensed array of LLUUIDs
+                return GetEstateManagers();
+                
+            }
+            set 
+            {
+                // Sets a Condensed array of LLUUIDS
+                int i = 0;
+                for (i = 0; i < value.Length; i++)
+                {
+                    switch (i)
+                    {
+                        case 0:
+                            m_estateManager0 = value[i];
+                            break;
+                        case 1:
+                            m_estateManager1 = value[i];
+                            break;
+                        case 2:
+                            m_estateManager2 = value[i];
+                            break;
+                        case 3:
+                            m_estateManager3 = value[i];
+                            break;
+                        case 4:
+                            m_estateManager4 = value[i];
+                            break;
+                        case 5:
+                            m_estateManager5 = value[i];
+                            break;
+                        case 6:
+                            m_estateManager6 = value[i];
+                            break;
+                        case 7:
+                            m_estateManager7 = value[i];
+                            break;
+                        case 8:
+                            m_estateManager8 = value[i];
+                            break;
+                        case 9:
+                            m_estateManager9 = value[i];
+                            break;
+                    }
+
+                }
+                // Clear the rest of them..   as they're no longer valid
+                for (int j = i; j < 10; j++)
+                {
+                    switch (i)
+                    {
+                        case 0:
+                            m_estateManager0 = LLUUID.Zero;
+                            break;
+                        case 1:
+                            m_estateManager1 = LLUUID.Zero;
+                            break;
+                        case 2:
+                            m_estateManager2 = LLUUID.Zero;
+                            break;
+                        case 3:
+                            m_estateManager3 = LLUUID.Zero;
+                            break;
+                        case 4:
+                            m_estateManager4 = LLUUID.Zero;
+                            break;
+                        case 5:
+                            m_estateManager5 = LLUUID.Zero;
+                            break;
+                        case 6:
+                            m_estateManager6 = LLUUID.Zero;
+                            break;
+                        case 7:
+                            m_estateManager7 = LLUUID.Zero;
+                            break;
+                        case 8:
+                            m_estateManager8 = LLUUID.Zero;
+                            break;
+                        case 9:
+                            m_estateManager9 = LLUUID.Zero;
+                            break;
+                    }
+                }
+                for (i = 0; i < 10; i++)
+                {
+                   // Writes out the Estate managers to the XML file.
+                   configMember.forceSetConfigurationOption("estate_manager_" + i, (GetEstateManagerAtPos(i)).ToString());
+
+                }
+            }
+        }
+
+        
+
+        #region EstateManager Get Methods to sort out skipped spots in the XML (suser error)
+
+        private LLUUID GetEstateManagerAtPos(int pos)
+        {
+            // This is a helper for writing them out to the xml file
+            switch (pos)
+            {
+                case 0:
+                    return m_estateManager0;
+                    
+                case 1:
+                    return m_estateManager1;
+                    
+                case 2:
+                    return m_estateManager2;
+                    
+                case 3:
+                    return m_estateManager3;
+                    
+                case 4:
+                    return m_estateManager4;
+                    
+                case 5:
+                    return m_estateManager5;
+                    
+                case 6:
+                    return m_estateManager6;
+                    
+                case 7:
+                    return m_estateManager7;
+                    
+                case 8:
+                    return m_estateManager8;
+                    
+                case 9:
+                    return m_estateManager9;
+                    
+                default:
+                    return LLUUID.Zero;
+                    
+            }
+        }
+        private LLUUID[] GetEstateManagers()
+        {
+            int numEstateManagers = GetNumberOfEstateManagers();
+            LLUUID[] rEstateManagers = new LLUUID[numEstateManagers];
+
+            int pos = 0;
+
+            for (int i = 0; i < numEstateManagers; i++)
+            {
+                pos = GetNextEstateManager(pos);
+                
+                rEstateManagers[i] = GetEstateManagerAtPos(pos);
+         
+            }
+            return rEstateManagers;
+        }
+
+        private int GetNextEstateManager(int startpos)
+        {
+            // This is a utility function that skips over estate managers set to LLUUID.Zero
+            int i = startpos;
+            for (i=startpos;i<10;i++) 
+            {
+                if (GetEstateManagerAtPos(i) != LLUUID.Zero) return i;
+            }
+            return i;
+
+        }
+        private int GetNumberOfEstateManagers()
+        {
+            // This function returns the number of estate managers set
+            // Regardless of whether there is a skipped spot
+            int numEstateManagers = 0;
+            if (m_estateManager0 != LLUUID.Zero) numEstateManagers++;
+            if (m_estateManager1 != LLUUID.Zero) numEstateManagers++;
+            if (m_estateManager2 != LLUUID.Zero) numEstateManagers++;
+            if (m_estateManager3 != LLUUID.Zero) numEstateManagers++;
+            if (m_estateManager4 != LLUUID.Zero) numEstateManagers++;
+            if (m_estateManager5 != LLUUID.Zero) numEstateManagers++;
+            if (m_estateManager6 != LLUUID.Zero) numEstateManagers++;
+            if (m_estateManager7 != LLUUID.Zero) numEstateManagers++;
+            if (m_estateManager8 != LLUUID.Zero) numEstateManagers++;
+            if (m_estateManager9 != LLUUID.Zero) numEstateManagers++;
+
+            return numEstateManagers;
+        }
+
+        #endregion
+        
         private ConfigurationMember configMember;
 
         public EstateSettings()
@@ -582,6 +780,28 @@ namespace OpenSim.Framework
                                                 "20.0", true);
             configMember.addConfigurationOption("terrain_image_id", ConfigurationOption.ConfigurationTypes.TYPE_LLUUID,
                                                 "", "00000000-0000-0000-0000-000000000000", true);
+
+            configMember.addConfigurationOption("estate_manager_0", ConfigurationOption.ConfigurationTypes.TYPE_LLUUID,
+                                                "", "00000000-0000-0000-0000-000000000000", true);
+            configMember.addConfigurationOption("estate_manager_1", ConfigurationOption.ConfigurationTypes.TYPE_LLUUID,
+                                                "", "00000000-0000-0000-0000-000000000000", true);
+            configMember.addConfigurationOption("estate_manager_2", ConfigurationOption.ConfigurationTypes.TYPE_LLUUID,
+                                                "", "00000000-0000-0000-0000-000000000000", true);
+            configMember.addConfigurationOption("estate_manager_3", ConfigurationOption.ConfigurationTypes.TYPE_LLUUID,
+                                                "", "00000000-0000-0000-0000-000000000000", true);
+            configMember.addConfigurationOption("estate_manager_4", ConfigurationOption.ConfigurationTypes.TYPE_LLUUID,
+                                                "", "00000000-0000-0000-0000-000000000000", true);
+            configMember.addConfigurationOption("estate_manager_5", ConfigurationOption.ConfigurationTypes.TYPE_LLUUID,
+                                                "", "00000000-0000-0000-0000-000000000000", true);
+            configMember.addConfigurationOption("estate_manager_6", ConfigurationOption.ConfigurationTypes.TYPE_LLUUID,
+                                                "", "00000000-0000-0000-0000-000000000000", true);
+            configMember.addConfigurationOption("estate_manager_7", ConfigurationOption.ConfigurationTypes.TYPE_LLUUID,
+                                                "", "00000000-0000-0000-0000-000000000000", true);
+            configMember.addConfigurationOption("estate_manager_8", ConfigurationOption.ConfigurationTypes.TYPE_LLUUID,
+                                                "", "00000000-0000-0000-0000-000000000000", true);
+            configMember.addConfigurationOption("estate_manager_9", ConfigurationOption.ConfigurationTypes.TYPE_LLUUID,
+                                                "", "00000000-0000-0000-0000-000000000000", true);
+
         }
 
         public bool handleIncomingConfiguration(string configuration_key, object configuration_result)
@@ -703,6 +923,38 @@ namespace OpenSim.Framework
                 case "terrain_image_id":
                     m_terrainImageID = (LLUUID) configuration_result;
                     break;
+
+                case "estate_manager_0":
+                    m_estateManager0 = (LLUUID)configuration_result;
+                    break;
+                case "estate_manager_1":
+                    m_estateManager1 = (LLUUID)configuration_result;
+                    break;
+                case "estate_manager_2":
+                    m_estateManager2 = (LLUUID)configuration_result;
+                    break;
+                case "estate_manager_3":
+                    m_estateManager3 = (LLUUID)configuration_result;
+                    break;
+                case "estate_manager_4":
+                    m_estateManager4 = (LLUUID)configuration_result;
+                    break;
+                case "estate_manager_5":
+                    m_estateManager5 = (LLUUID)configuration_result;
+                    break;
+                case "estate_manager_6":
+                    m_estateManager6 = (LLUUID)configuration_result;
+                    break;
+                case "estate_manager_7":
+                    m_estateManager7 = (LLUUID)configuration_result;
+                    break;
+                case "estate_manager_8":
+                    m_estateManager8 = (LLUUID)configuration_result;
+                    break;
+                case "estate_manager_9":
+                    m_estateManager9 = (LLUUID)configuration_result;
+                    break;
+                
             }
 
             return true;

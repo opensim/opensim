@@ -83,11 +83,18 @@ namespace OpenSim.Region.Environment
             return m_scene.RegionInfo.MasterAvatarAssignedUUID == user;
         }
 
-        protected virtual bool IsEstateManager(LLUUID user)
+        public virtual bool IsEstateManager(LLUUID user)
         {
             if (m_bypassPermissions)
             {
                 return true;
+            }
+
+            LLUUID[] estatemanagers = m_scene.RegionInfo.EstateSettings.estateManagers;
+            for (int i = 0; i < estatemanagers.Length; i++)
+            {
+                if (estatemanagers[i] == user)
+                    return true;
             }
 
             return false;
@@ -414,7 +421,7 @@ namespace OpenSim.Region.Environment
 
         #region Estate Permissions
 
-        protected virtual bool GenericEstatePermission(LLUUID user)
+        public virtual bool GenericEstatePermission(LLUUID user)
         {
             // Default: deny
             bool permission = false;
@@ -439,8 +446,8 @@ namespace OpenSim.Region.Environment
         {
             // Since this is potentially going on a grid...    
 
-            //return GenericEstatePermission(AgentId);
-            return m_scene.RegionInfo.MasterAvatarAssignedUUID == user;
+            return GenericEstatePermission(user);
+            //return m_scene.RegionInfo.MasterAvatarAssignedUUID == user;
         }
 
         #endregion
