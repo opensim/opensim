@@ -32,27 +32,34 @@ namespace OpenSim.Framework
 {
     public class BlockingQueue<T>
     {
-        private Queue<T> _queue = new Queue<T>();
-        private object _queueSync = new object();
+        private readonly Queue<T> m_queue = new Queue<T>();
+        private readonly object m_queueSync = new object();
 
         public void Enqueue(T value)
         {
-            lock (_queueSync)
+            lock (m_queueSync)
             {
-                _queue.Enqueue(value);
-                Monitor.Pulse(_queueSync);
+                m_queue.Enqueue(value);
+                Monitor.Pulse(m_queueSync);
             }
         }
 
         public T Dequeue()
         {
-            lock (_queueSync)
+            lock (m_queueSync)
             {
-                if (_queue.Count < 1)
-                    Monitor.Wait(_queueSync);
+                if (m_queue.Count < 1)
+                {
+                    Monitor.Wait(m_queueSync);
+                }
 
-                return _queue.Dequeue();
+                return m_queue.Dequeue();
             }
+        }
+
+        public bool Contains(T item)
+        {
+            return m_queue.Contains(item);
         }
     }
 }

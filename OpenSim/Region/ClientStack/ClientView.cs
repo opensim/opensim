@@ -2973,7 +2973,6 @@ namespace OpenSim.Region.ClientStack
                         //Console.WriteLine("image request: " + Pack.ToString());
                         for (int i = 0; i < imageRequest.RequestImage.Length; i++)
                         {
-                            // still working on the Texture download module so for now using old method
                             if (OnRequestTexture != null)
                             {
                                 TextureRequestArgs args = new TextureRequestArgs();
@@ -2984,10 +2983,6 @@ namespace OpenSim.Region.ClientStack
 
                                 OnRequestTexture(this, args);
                             }
-
-                            // m_assetCache.AddTextureRequest(this, imageRequest.RequestImage[i].Image,
-                            //                               imageRequest.RequestImage[i].Packet,
-                            //                               imageRequest.RequestImage[i].DiscardLevel);
                         }
                         break;
                     case PacketType.TransferRequest:

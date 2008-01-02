@@ -47,7 +47,7 @@ namespace OpenSim.Region.Environment.Modules
         private Scene m_scene;
         private List<Scene> m_scenes = new List<Scene>();
 
-        private BlockingQueue<TextureSender> QueueSenders = new BlockingQueue<TextureSender>();
+        private readonly BlockingQueue<TextureSender> m_queueSenders = new BlockingQueue<TextureSender>();
 
         private Dictionary<LLUUID, UserTextureDownloadService> m_userTextureServices =
             new Dictionary<LLUUID, UserTextureDownloadService>();
@@ -108,7 +108,7 @@ namespace OpenSim.Region.Environment.Modules
                     return true;
                 }
 
-                textureService = new UserTextureDownloadService(m_scene, QueueSenders);
+                textureService = new UserTextureDownloadService(m_scene, m_queueSenders);
                 m_userTextureServices.Add(userID, textureService);
                 return true;
             }
@@ -128,7 +128,7 @@ namespace OpenSim.Region.Environment.Modules
         {
             while (true)
             {
-                TextureSender sender = QueueSenders.Dequeue();
+                TextureSender sender = m_queueSenders.Dequeue();
                 if (sender.Cancel)
                 {
                     TextureSent(sender);
@@ -142,7 +142,7 @@ namespace OpenSim.Region.Environment.Modules
                     }
                     else
                     {
-                        QueueSenders.Enqueue(sender);
+                        m_queueSenders.Enqueue(sender);
                     }
                 }
             }
@@ -155,11 +155,9 @@ namespace OpenSim.Region.Environment.Modules
 
         public class UserTextureDownloadService
         {
-            private Dictionary<LLUUID, TextureSender> m_textureSenders = new Dictionary<LLUUID, TextureSender>();
-
-            private BlockingQueue<TextureSender> m_sharedSendersQueue;
-
-            private Scene m_scene;
+            private readonly Dictionary<LLUUID, TextureSender> m_textureSenders = new Dictionary<LLUUID, TextureSender>();
+            private readonly BlockingQueue<TextureSender> m_sharedSendersQueue;
+            private readonly Scene m_scene;
 
             public UserTextureDownloadService(Scene scene, BlockingQueue<TextureSender> sharedQueue)
             {
@@ -169,28 +167,35 @@ namespace OpenSim.Region.Environment.Modules
 
             public void HandleTextureRequest(IClientAPI client, TextureRequestArgs e)
             {
+                TextureSender textureSender;
+
                 //TODO: should be working out the data size/ number of packets to be sent for each discard level
                 if ((e.DiscardLevel >= 0) || (e.Priority != 0))
                 {
                     lock (m_textureSenders)
                     {
-                        if (!m_textureSenders.ContainsKey(e.RequestedAssetID))
+                        if (m_textureSenders.TryGetValue(e.RequestedAssetID, out textureSender))
+                        {
+                            textureSender.UpdateRequest(e.DiscardLevel, e.PacketNumber);
+                            textureSender.counter = 0;
+
+                            if ((textureSender.ImageLoaded) &&
+                                (textureSender.Sending == false))
+                            {
+                                textureSender.Sending = true;
+
+                                if (!m_sharedSendersQueue.Contains(textureSender))
+                                {
+                                    m_sharedSendersQueue.Enqueue(textureSender);
+                                }
+                            }
+                        }
+                        else
                         {
                             TextureSender requestHandler =
                                 new TextureSender(client, e.RequestedAssetID, e.DiscardLevel, e.PacketNumber);
                             m_textureSenders.Add(e.RequestedAssetID, requestHandler);
                             m_scene.AssetCache.GetAsset(e.RequestedAssetID, TextureCallback);
-                        }
-                        else
-                        {
-                            m_textureSenders[e.RequestedAssetID].UpdateRequest(e.DiscardLevel, e.PacketNumber);
-                            m_textureSenders[e.RequestedAssetID].counter = 0;
-                            if ((m_textureSenders[e.RequestedAssetID].ImageLoaded) &&
-                                (m_textureSenders[e.RequestedAssetID].Sending == false))
-                            {
-                                m_textureSenders[e.RequestedAssetID].Sending = true;
-                                m_sharedSendersQueue.Enqueue(m_textureSenders[e.RequestedAssetID]);
-                            }
                         }
                     }
                 }
@@ -198,9 +203,9 @@ namespace OpenSim.Region.Environment.Modules
                 {
                     lock (m_textureSenders)
                     {
-                        if (m_textureSenders.ContainsKey(e.RequestedAssetID))
+                        if (m_textureSenders.TryGetValue(e.RequestedAssetID, out textureSender))
                         {
-                            m_textureSenders[e.RequestedAssetID].Cancel = true;
+                            textureSender.Cancel = true;
                         }
                     }
                 }
@@ -210,19 +215,25 @@ namespace OpenSim.Region.Environment.Modules
             {
                 lock (m_textureSenders)
                 {
-                    if (m_textureSenders.ContainsKey(textureID))
+                    TextureSender textureSender;
+
+                    if (m_textureSenders.TryGetValue(textureID, out textureSender))
                     {
-                        if (!m_textureSenders[textureID].ImageLoaded)
+                        if (!textureSender.ImageLoaded)
                         {
-                            m_textureSenders[textureID].TextureReceived(asset);
-                            m_textureSenders[textureID].Sending = true;
-                            m_textureSenders[textureID].counter = 0;
-                            m_sharedSendersQueue.Enqueue(m_textureSenders[textureID]);
+                            textureSender.TextureReceived(asset);
+                            textureSender.Sending = true;
+                            textureSender.counter = 0;
+
+                            if (!m_sharedSendersQueue.Contains(textureSender))
+                            {
+                                m_sharedSendersQueue.Enqueue(textureSender);
+                            }
                         }
                     }
                     else
                     {
-                        // Got a texture with no sender object to handle it, this shouldn't happen
+                        throw new Exception("Got a texture with no sender object to handle it, this shouldn't happen");
                     }
                 }
             }
@@ -329,9 +340,9 @@ namespace OpenSim.Region.Environment.Modules
                         }
                         catch (ArgumentOutOfRangeException)
                         {
-                            MainLog.Instance.Warn("TEXTURE",
+                            MainLog.Instance.Error("TEXTURE",
                                                   "Unable to separate texture into multiple packets: Array bounds failure on asset:" +
-                                                  m_asset.FullID.ToString() + "- TextureDownloadModule.cs. line:328");
+                                                  m_asset.FullID.ToString() );
                             return;
                         }
                         RequestUser.OutPacket(im, ThrottleOutPacketType.Texture);

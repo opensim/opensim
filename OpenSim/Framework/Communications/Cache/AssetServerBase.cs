@@ -37,11 +37,11 @@ namespace OpenSim.Framework.Communications.Cache
 {
     public abstract class AssetServerBase : IAssetServer
     {
-        protected IAssetReceiver _receiver;
-        protected BlockingQueue<AssetRequest> _assetRequests;
-        protected Thread _localAssetServerThread;
-        protected IAssetProvider m_assetProviderPlugin;
-        protected object syncLock = new object();
+        protected IAssetReceiver m_receiver;
+        protected BlockingQueue<AssetRequest> m_assetRequests;
+        protected Thread m_localAssetServerThread;
+        protected IAssetProvider m_assetProvider;
+        protected object m_syncLock = new object();
 
         // Temporarily hardcoded - should be a plugin
         protected IAssetLoader assetLoader = new AssetLoaderFileSystem();
@@ -71,14 +71,14 @@ namespace OpenSim.Framework.Communications.Cache
                 MainLog.Instance.Verbose(
                     "ASSET", "Asset {0} received from asset server", req.AssetID);
 
-                _receiver.AssetReceived(asset, req.IsTexture);
+                m_receiver.AssetReceived(asset, req.IsTexture);
             }
             else
             {
                 MainLog.Instance.Error(
                     "ASSET", "Asset {0} not found by asset server", req.AssetID);
 
-                _receiver.AssetNotFound(req.AssetID);
+                m_receiver.AssetNotFound(req.AssetID);
             }
         }
 
@@ -95,11 +95,11 @@ namespace OpenSim.Framework.Communications.Cache
         public AssetServerBase()
         {
             MainLog.Instance.Verbose("ASSETSERVER", "Starting asset storage system");
-            _assetRequests = new BlockingQueue<AssetRequest>();
+            m_assetRequests = new BlockingQueue<AssetRequest>();
 
-            _localAssetServerThread = new Thread(RunRequests);
-            _localAssetServerThread.IsBackground = true;
-            _localAssetServerThread.Start();
+            m_localAssetServerThread = new Thread(RunRequests);
+            m_localAssetServerThread.IsBackground = true;
+            m_localAssetServerThread.Start();
         }
 
         private void RunRequests()
@@ -108,7 +108,7 @@ namespace OpenSim.Framework.Communications.Cache
             {
                 try
                 {
-                    AssetRequest req = _assetRequests.Dequeue();
+                    AssetRequest req = m_assetRequests.Dequeue();
 
                     ProcessRequest(req);
                 }
@@ -121,7 +121,7 @@ namespace OpenSim.Framework.Communications.Cache
 
         public void SetReceiver(IAssetReceiver receiver)
         {
-            _receiver = receiver;
+            m_receiver = receiver;
         }
 
         public void RequestAsset(LLUUID assetID, bool isTexture)
@@ -129,23 +129,23 @@ namespace OpenSim.Framework.Communications.Cache
             AssetRequest req = new AssetRequest();
             req.AssetID = assetID;
             req.IsTexture = isTexture;
-            _assetRequests.Enqueue(req);
+            m_assetRequests.Enqueue(req);
 
             MainLog.Instance.Verbose("ASSET", "Added {0} to request queue", assetID);
         }
 
         public virtual void UpdateAsset(AssetBase asset)
         {
-            lock (syncLock)
+            lock (m_syncLock)
             {
-                m_assetProviderPlugin.UpdateAsset(asset);
-                m_assetProviderPlugin.CommitAssets();
+                m_assetProvider.UpdateAsset(asset);
+                m_assetProvider.CommitAssets();
             }
         }
 
         public void StoreAndCommitAsset(AssetBase asset)
         {
-            lock (syncLock)
+            lock (m_syncLock)
             {
                 StoreAsset(asset);
                 CommitAssets();
@@ -154,7 +154,7 @@ namespace OpenSim.Framework.Communications.Cache
 
         public virtual void Close()
         {
-            _localAssetServerThread.Abort();
+            m_localAssetServerThread.Abort();
         }
 
         public void SetServerInfo(string ServerUrl, string ServerKey)

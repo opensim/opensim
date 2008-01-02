@@ -40,7 +40,7 @@ namespace OpenSim.Framework.Communications.Cache
 
         public SQLAssetServer(IAssetProvider assetProvider)
         {
-            m_assetProviderPlugin = assetProvider;
+            m_assetProvider = assetProvider;
         }
 
         public void AddPlugin(string FileName)
@@ -58,12 +58,12 @@ namespace OpenSim.Framework.Communications.Cache
                     {
                         IAssetProvider plug =
                             (IAssetProvider) Activator.CreateInstance(pluginAssembly.GetType(pluginType.ToString()));
-                        m_assetProviderPlugin = plug;
-                        m_assetProviderPlugin.Initialise();
+                        m_assetProvider = plug;
+                        m_assetProvider.Initialise();
 
                         MainLog.Instance.Verbose("AssetStorage",
-                                                 "Added " + m_assetProviderPlugin.Name + " " +
-                                                 m_assetProviderPlugin.Version);
+                                                 "Added " + m_assetProvider.Name + " " +
+                                                 m_assetProvider.Version);
                     }
                 }
             }
@@ -74,15 +74,15 @@ namespace OpenSim.Framework.Communications.Cache
         {
             base.Close();
 
-            m_assetProviderPlugin.CommitAssets();
+            m_assetProvider.CommitAssets();
         }
 
         protected override AssetBase GetAsset(AssetRequest req)
         {
             AssetBase asset;
-            lock (syncLock)
+            lock (m_syncLock)
             {
-                asset = m_assetProviderPlugin.FetchAsset(req.AssetID);
+                asset = m_assetProvider.FetchAsset(req.AssetID);
             }
 
             return asset;
@@ -90,12 +90,12 @@ namespace OpenSim.Framework.Communications.Cache
 
         protected override void StoreAsset(AssetBase asset)
         {
-            m_assetProviderPlugin.CreateAsset(asset);
+            m_assetProvider.CreateAsset(asset);
         }
 
         protected override void CommitAssets()
         {
-            m_assetProviderPlugin.CommitAssets();
+            m_assetProvider.CommitAssets();
         }
     }
 }

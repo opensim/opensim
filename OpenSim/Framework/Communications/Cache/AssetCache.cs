@@ -56,10 +56,10 @@ namespace OpenSim.Framework.Communications.Cache
 
         public Dictionary<LLUUID, AssetRequestsList> RequestLists = new Dictionary<LLUUID, AssetRequestsList>();
 
-        private IAssetServer m_assetServer;
+        private readonly IAssetServer m_assetServer;
 
-        private Thread m_assetCacheThread;
-        private LogBase m_log;
+        private readonly Thread m_assetCacheThread;
+        private readonly LogBase m_log;
 
         /// <summary>
         /// 
