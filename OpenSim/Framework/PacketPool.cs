@@ -68,9 +68,30 @@ namespace OpenSim.Framework
             return packet;
         }
 
+        // Copied from LibSL, and added a check to avoid overwriting the
+	// buffer
+        private void ZeroDecodeCommand(byte[] src, byte[] dest)
+        {
+            for (int srcPos = 6, destPos = 6; destPos < 10; ++srcPos)
+            {
+                if (src[srcPos] == 0x00)
+                {
+                    for (byte j = 0; j < src[srcPos + 1] && destPos < 10; ++j)
+                    {
+                        dest[destPos++] = 0x00;
+                    }
+                    ++srcPos;
+                                                                                                }
+                else
+                {
+                    dest[destPos++] = src[srcPos];
+                }
+           }
+	}
+
         private PacketType GetType(byte[] bytes)
         {
-            byte[] decoded_header = new byte[10+8];
+            byte[] decoded_header = new byte[10];
 
             ushort id;
             libsecondlife.PacketFrequency freq;
@@ -79,7 +100,7 @@ namespace OpenSim.Framework
 
             if((bytes[0] & libsecondlife.Helpers.MSG_ZEROCODED)!=0)
             {
-                libsecondlife.Helpers.ZeroDecodeCommand(bytes, decoded_header);
+                ZeroDecodeCommand(bytes, decoded_header);
             }
 
             if (decoded_header[6] == 0xFF)
