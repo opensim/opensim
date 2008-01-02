@@ -35,11 +35,12 @@ namespace OpenSim.Grid.ScriptServer
 
         private static void Main(string[] args)
         {
+            AppDomain.CurrentDomain.UnhandledException +=
+                new UnhandledExceptionEventHandler(CurrentDomain_UnhandledException);
+
             // Application is starting
             SE = new ScriptServerMain();
 
-            AppDomain.CurrentDomain.UnhandledException +=
-                new UnhandledExceptionEventHandler(CurrentDomain_UnhandledException);
         }
 
         private static void CurrentDomain_UnhandledException(object sender, UnhandledExceptionEventArgs e)

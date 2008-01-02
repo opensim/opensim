@@ -54,6 +54,7 @@ namespace OpenSim.Grid.ScriptServer
             //ScriptEngines = new ScriptEngineManager(this, m_log);
             m_RemotingServer = new RemotingServer();
             m_RemotingServer.CreateServer(listenPort, "DotNetEngine");
+            System.Console.ReadLine();
         }
 
         ~ScriptServerMain()

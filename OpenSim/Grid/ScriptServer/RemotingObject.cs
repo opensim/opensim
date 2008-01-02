@@ -14,6 +14,7 @@ namespace OpenSim.Grid.ScriptServer
         // NOTE! CURRENTLY JUST HARDWIRED DOTNETENGINE!
         public OpenSim.Region.ScriptEngine.DotNetEngine.ScriptEngine ScriptEngine = new OpenSim.Region.ScriptEngine.DotNetEngine.ScriptEngine();
 
+
         /// <summary>
         /// Receives calls from remote grids.
         /// </summary>

@@ -173,7 +173,7 @@ namespace OpenSim
                 config.Set("storage_connection_string", "URI=file:OpenSim.db,version=3");
                 config.Set("startup_console_commands_file", "");
                 config.Set("shutdown_console_commands_file", "");
-                config.Set("script_engine", "DotNetEngine");
+                config.Set("script_engine", "OpenSim.Region.ScriptEngine.DotNetEngine.dll");
                 config.Set("asset_database", "sqlite");
             }
 
@@ -246,7 +246,7 @@ namespace OpenSim
                 m_startupCommandsFile = startupConfig.GetString("startup_console_commands_file", "");
                 m_shutdownCommandsFile = startupConfig.GetString("shutdown_console_commands_file", "");
 
-                m_scriptEngine = startupConfig.GetString("script_engine", "DotNetEngine");
+                m_scriptEngine = startupConfig.GetString("script_engine", "OpenSim.Region.ScriptEngine.DotNetEngine.dll");
 
                 m_assetStorage = startupConfig.GetString("asset_database", "sqlite");
 
@@ -374,7 +374,7 @@ namespace OpenSim
 
             m_moduleLoader.PickupModules(scene, ".");
             //m_moduleLoader.PickupModules(scene, "ScriptEngines");
-            m_moduleLoader.LoadRegionModules(Path.Combine("ScriptEngines", "OpenSim.Region.ScriptEngine.DotNetEngine.dll"), scene);
+            m_moduleLoader.LoadRegionModules(Path.Combine("ScriptEngines", m_scriptEngine), scene);
             
 
             m_moduleLoader.InitialiseSharedModules(scene);
