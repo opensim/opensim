@@ -2550,7 +2550,7 @@ namespace OpenSim.Region.ClientStack
                         string IMmessage = Helpers.FieldToUTF8String(msgpack.MessageBlock.Message);
                         if (OnInstantMessage != null)
                         {
-                            OnInstantMessage(msgpack.AgentData.AgentID, msgpack.AgentData.SessionID,
+                            OnInstantMessage(this,msgpack.AgentData.AgentID, msgpack.AgentData.SessionID,
                                              msgpack.MessageBlock.ToAgentID, msgpack.MessageBlock.ID,
                                              msgpack.MessageBlock.Timestamp, IMfromName, IMmessage,
                                              msgpack.MessageBlock.Dialog, msgpack.MessageBlock.FromGroup,

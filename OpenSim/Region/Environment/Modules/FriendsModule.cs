@@ -72,7 +72,7 @@ namespace OpenSim.Region.Environment.Modules
 
             
         }
-        private void OnInstantMessage(LLUUID fromAgentID,
+        private void OnInstantMessage(IClientAPI client,LLUUID fromAgentID,
                                       LLUUID fromAgentSession, LLUUID toAgentID,
                                       LLUUID imSessionID, uint timestamp, string fromAgentName,
                                       string message, byte dialog, bool fromGroup, byte offline, 
@@ -97,7 +97,14 @@ namespace OpenSim.Region.Environment.Modules
                 msg.imSessionID = friendTransactionID.UUID; // This is the item we're mucking with here
                 m_log.Verbose("FRIEND","Filling Session: " + msg.imSessionID.ToString());
                 msg.timestamp = timestamp;
-                msg.fromAgentName = fromAgentName;
+                if (client != null)
+                {
+                    msg.fromAgentName = client.FirstName + " " + client.LastName;// fromAgentName;
+                }
+                else
+                {
+                    msg.fromAgentName = "(hippos)";// Added for posterity.  This means that we can't figure out who sent it
+                }
                 msg.message = message;
                 msg.dialog = dialog;
                 msg.fromGroup = fromGroup;
@@ -194,7 +201,7 @@ namespace OpenSim.Region.Environment.Modules
         private void OnGridInstantMessage(GridInstantMessage msg)
         {
             // Trigger the above event handler
-            OnInstantMessage(new LLUUID(msg.fromAgentID), new LLUUID(msg.fromAgentSession),
+            OnInstantMessage(null,new LLUUID(msg.fromAgentID), new LLUUID(msg.fromAgentSession),
                 new LLUUID(msg.toAgentID), new LLUUID(msg.imSessionID), msg.timestamp, msg.fromAgentName,
                 msg.message, msg.dialog, msg.fromGroup, msg.offline, msg.ParentEstateID,
                 new LLVector3(msg.Position.x, msg.Position.y, msg.Position.z), new LLUUID(msg.RegionID),

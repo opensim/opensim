@@ -61,7 +61,7 @@ namespace OpenSim.Region.Environment.Modules
             client.OnInstantMessage += OnInstantMessage;
         }
 
-        private void OnInstantMessage(LLUUID fromAgentID,
+        private void OnInstantMessage(IClientAPI client,LLUUID fromAgentID,
                                       LLUUID fromAgentSession, LLUUID toAgentID,
                                       LLUUID imSessionID, uint timestamp, string fromAgentName,
                                       string message, byte dialog, bool fromGroup, byte offline, 
@@ -105,7 +105,7 @@ namespace OpenSim.Region.Environment.Modules
         private void OnGridInstantMessage(GridInstantMessage msg)
         {
             // Trigger the above event handler
-            OnInstantMessage(new LLUUID(msg.fromAgentID), new LLUUID(msg.fromAgentSession), 
+            OnInstantMessage(null,new LLUUID(msg.fromAgentID), new LLUUID(msg.fromAgentSession), 
                 new LLUUID(msg.toAgentID), new LLUUID(msg.imSessionID), msg.timestamp, msg.fromAgentName, 
                 msg.message, msg.dialog, msg.fromGroup, msg.offline, msg.ParentEstateID, 
                 new LLVector3(msg.Position.x,msg.Position.y,msg.Position.z), new LLUUID(msg.RegionID), 

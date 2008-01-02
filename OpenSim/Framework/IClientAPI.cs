@@ -223,7 +223,7 @@ namespace OpenSim.Framework
 
     public delegate void AvatarNowWearing(Object sender, AvatarWearingArgs e);
 
-    public delegate void ImprovedInstantMessage(
+    public delegate void ImprovedInstantMessage(IClientAPI remoteclient,
         LLUUID fromAgentID, LLUUID fromAgentSession, LLUUID toAgentID, LLUUID imSessionID, uint timestamp,
         string fromAgentName, string message, byte dialog, bool fromGroup, byte offline, uint ParentEstateID,
         LLVector3 Position, LLUUID RegionID, byte[] binaryBucket); // This shouldn't be cut down...  
