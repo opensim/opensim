@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 using OpenSim.Region.Environment.Interfaces;
+using OpenSim.Region.ScriptEngine.DotNetEngine;
 
 namespace OpenSim.Grid.ScriptServer
 {
