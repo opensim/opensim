@@ -159,7 +159,7 @@ namespace OpenSim.Grid.AssetServer
 
         public void LoadDefaultAssets()
         {
-            assetLoader.ForEachXmlAsset(StoreAsset);            
+            assetLoader.ForEachDefaultXmlAsset(StoreAsset);            
         }
 
         protected void StoreAsset(AssetBase asset)

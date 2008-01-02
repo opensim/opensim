@@ -82,11 +82,11 @@ namespace OpenSim.Framework.Communications.Cache
             }
         }
 
-        public void LoadDefaultAssets()
+        public virtual void LoadDefaultAssets()
         {
             MainLog.Instance.Verbose("ASSETSERVER", "Setting up asset database");
 
-            assetLoader.ForEachXmlAsset(StoreAsset);
+            assetLoader.ForEachDefaultXmlAsset(StoreAsset);
 
             CommitAssets();
         }

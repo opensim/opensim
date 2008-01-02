@@ -32,6 +32,7 @@ namespace OpenSim.Framework
 {        
     public interface IAssetLoader
     {
-        void ForEachXmlAsset(Action<AssetBase> action);        
+        void ForEachDefaultXmlAsset(Action<AssetBase> action);
+        void ForEachDefaultXmlAsset(string assetSetFilename, Action<AssetBase> action);
     }
 }
