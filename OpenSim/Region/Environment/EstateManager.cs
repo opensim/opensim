@@ -477,7 +477,7 @@ namespace OpenSim.Region.Environment
             foreach (EstateOwnerMessagePacket.ParamListBlock block in packet.ParamList)
             {
                 float timeSeconds = 0;
-                timeSeconds = BitConverter.ToInt16(block.Parameter, 1);
+                timeSeconds = BitConverter.ToInt32(block.Parameter, 1);
                 timeSeconds = (int) ((timeSeconds/100) - 3);
                 m_scene.Restart(timeSeconds);
             }
@@ -489,6 +489,7 @@ namespace OpenSim.Region.Environment
             {
                 LLUUID newCovenantID = new LLUUID(Helpers.FieldToUTF8String(block.Parameter));
                 m_regInfo.CovenantID = newCovenantID;
+                m_scene.RegionInfo.SaveEstatecovenantUUID(newCovenantID);
             }
         }
 

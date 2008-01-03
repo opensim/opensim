@@ -390,5 +390,10 @@ namespace OpenSim.Framework
 
             return true;
         }
+        public void SaveEstatecovenantUUID(LLUUID notecard) 
+        {
+            configMember.forceSetConfigurationOption("estate_covanant_uuid", notecard.ToString());
+
+        }
     }
 }
