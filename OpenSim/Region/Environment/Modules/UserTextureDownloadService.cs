@@ -83,7 +83,7 @@ namespace OpenSim.Region.Environment.Modules
 
         private void EnqueueTextureSender(TextureSender textureSender)
         {
-            MainLog.Instance.Debug( "TEXTUREDOWNLOAD", "Start: ["+textureSender.RequestedAssetID+"] to ["+textureSender.RequestUser.Name+"]");
+            MainLog.Instance.Verbose( "TEXTUREDOWNLOAD", "Start: ["+textureSender.RequestedAssetID+"] to ["+textureSender.RequestUser.Name+"]");
 
             textureSender.Cancel = false;
             textureSender.Sending = true;
