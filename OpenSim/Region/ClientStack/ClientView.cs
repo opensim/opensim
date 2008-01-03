@@ -932,9 +932,9 @@ namespace OpenSim.Region.ClientStack
             //
             // http://opensimulator.org/mantis/view.php?id=226
             //
-            // for one example of this kind of thing.  So we'll go for a cautious max
-            // items of 20 which gives a packet size of about 11k
-            int MAX_ITEMS_PER_PACKET = 20;
+            // for one example of this kind of thing.  In fact, the Linden servers appear to only send about
+            // 6 to 7 items at a time, so let's stick with 6
+            int MAX_ITEMS_PER_PACKET = 6;
 
             Encoding enc = Encoding.ASCII;
             uint FULL_MASK_PERMISSIONS = 2147483647;
