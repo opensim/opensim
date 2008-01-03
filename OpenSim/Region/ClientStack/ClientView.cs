@@ -216,7 +216,7 @@ namespace OpenSim.Region.ClientStack
         {
             m_scene.RemoveClient(AgentId);
             // Send the STOP packet 
-            DisableSimulatorPacket disable = new DisableSimulatorPacket();
+            DisableSimulatorPacket disable = (DisableSimulatorPacket) PacketPool.Instance.GetPacket(PacketType.DisableSimulator);
             OutPacket(disable, ThrottleOutPacketType.Task);
 
 
@@ -257,7 +257,7 @@ namespace OpenSim.Region.ClientStack
 
         public void Kick(string message)
         {
-            KickUserPacket kupack = new KickUserPacket();
+            KickUserPacket kupack = (KickUserPacket) PacketPool.Instance.GetPacket(PacketType.KickUser);
             kupack.UserInfo.AgentID = AgentId;
             kupack.UserInfo.SessionID = SessionId;
             kupack.TargetBlock.TargetIP = (uint) 0;
@@ -600,7 +600,7 @@ namespace OpenSim.Region.ClientStack
         /// <param name="regInfo"></param>
         public void MoveAgentIntoRegion(RegionInfo regInfo, LLVector3 pos, LLVector3 look)
         {
-            AgentMovementCompletePacket mov = new AgentMovementCompletePacket();
+            AgentMovementCompletePacket mov = (AgentMovementCompletePacket) PacketPool.Instance.GetPacket(PacketType.AgentMovementComplete);
             mov.SimData.ChannelVersion = m_channelVersion;
             mov.AgentData.SessionID = m_sessionId;
             mov.AgentData.AgentID = AgentId;
@@ -635,7 +635,7 @@ namespace OpenSim.Region.ClientStack
 
         public void SendChatMessage(byte[] message, byte type, LLVector3 fromPos, string fromName, LLUUID fromAgentID)
         {
-            ChatFromSimulatorPacket reply = new ChatFromSimulatorPacket();
+            ChatFromSimulatorPacket reply = (ChatFromSimulatorPacket) PacketPool.Instance.GetPacket(PacketType.ChatFromSimulator);
             reply.ChatData.Audible = 1;
             reply.ChatData.Message = message;
             reply.ChatData.ChatType = type;
@@ -656,7 +656,7 @@ namespace OpenSim.Region.ClientStack
         public void SendInstantMessage(LLUUID fromAgent, LLUUID fromAgentSession, string message, LLUUID toAgent,
                                        LLUUID imSessionID, string fromName, byte dialog, uint timeStamp)
         {
-            ImprovedInstantMessagePacket msg = new ImprovedInstantMessagePacket();
+            ImprovedInstantMessagePacket msg = (ImprovedInstantMessagePacket) PacketPool.Instance.GetPacket(PacketType.ImprovedInstantMessage);
             msg.AgentData.AgentID = fromAgent;
             msg.AgentData.SessionID = fromAgentSession;
             msg.MessageBlock.FromAgentName = Helpers.StringToField(fromName);
@@ -744,7 +744,7 @@ namespace OpenSim.Region.ClientStack
             IPAddress neighbourIP = neighbourEndPoint.Address;
             ushort neighbourPort = (ushort) neighbourEndPoint.Port;
 
-            EnableSimulatorPacket enablesimpacket = new EnableSimulatorPacket();
+            EnableSimulatorPacket enablesimpacket = (EnableSimulatorPacket) PacketPool.Instance.GetPacket(PacketType.EnableSimulator);
             // TODO: don't create new blocks if recycling an old packet
             enablesimpacket.SimulatorInfo = new EnableSimulatorPacket.SimulatorInfoBlock();
             enablesimpacket.SimulatorInfo.Handle = neighbourHandle;
@@ -781,7 +781,7 @@ namespace OpenSim.Region.ClientStack
         {
             LLVector3 look = new LLVector3(lookAt.X*10, lookAt.Y*10, lookAt.Z*10);
 
-            CrossedRegionPacket newSimPack = new CrossedRegionPacket();
+            CrossedRegionPacket newSimPack = (CrossedRegionPacket) PacketPool.Instance.GetPacket(PacketType.CrossedRegion);
             // TODO: don't create new blocks if recycling an old packet
             newSimPack.AgentData = new CrossedRegionPacket.AgentDataBlock();
             newSimPack.AgentData.AgentID = AgentId;
@@ -804,7 +804,7 @@ namespace OpenSim.Region.ClientStack
 
         public void SendMapBlock(List<MapBlockData> mapBlocks)
         {
-            MapBlockReplyPacket mapReply = new MapBlockReplyPacket();
+            MapBlockReplyPacket mapReply = (MapBlockReplyPacket) PacketPool.Instance.GetPacket(PacketType.MapBlockReply);
             // TODO: don't create new blocks if recycling an old packet
             mapReply.AgentData.AgentID = AgentId;
             mapReply.Data = new MapBlockReplyPacket.DataBlock[mapBlocks.Count];
@@ -827,7 +827,7 @@ namespace OpenSim.Region.ClientStack
 
         public void SendLocalTeleport(LLVector3 position, LLVector3 lookAt, uint flags)
         {
-            TeleportLocalPacket tpLocal = new TeleportLocalPacket();
+            TeleportLocalPacket tpLocal = (TeleportLocalPacket) PacketPool.Instance.GetPacket(PacketType.TeleportLocal);
             tpLocal.Info.AgentID = AgentId;
             tpLocal.Info.TeleportFlags = flags;
             tpLocal.Info.LocationID = 2;
@@ -839,7 +839,7 @@ namespace OpenSim.Region.ClientStack
         public void SendRegionTeleport(ulong regionHandle, byte simAccess, IPEndPoint newRegionEndPoint, uint locationID,
                                        uint flags, string capsURL)
         {
-            TeleportFinishPacket teleport = new TeleportFinishPacket();
+            TeleportFinishPacket teleport = (TeleportFinishPacket) PacketPool.Instance.GetPacket(PacketType.TeleportFinish);
             teleport.Info.AgentID = AgentId;
             teleport.Info.RegionHandle = regionHandle;
             teleport.Info.SimAccess = simAccess;
@@ -865,7 +865,7 @@ namespace OpenSim.Region.ClientStack
         /// </summary>
         public void SendTeleportFailed()
         {
-            TeleportFailedPacket tpFailed = new TeleportFailedPacket();
+            TeleportFailedPacket tpFailed = (TeleportFailedPacket) PacketPool.Instance.GetPacket(PacketType.TeleportFailed);
             tpFailed.Info.AgentID = AgentId;
             tpFailed.Info.Reason = Helpers.StringToField("unknown failure of teleport");
             OutPacket(tpFailed, ThrottleOutPacketType.Task);
@@ -876,14 +876,14 @@ namespace OpenSim.Region.ClientStack
         /// </summary>
         public void SendTeleportLocationStart()
         {
-            TeleportStartPacket tpStart = new TeleportStartPacket();
+            TeleportStartPacket tpStart = (TeleportStartPacket) PacketPool.Instance.GetPacket(PacketType.TeleportStart);
             tpStart.Info.TeleportFlags = 16; // Teleport via location
             OutPacket(tpStart, ThrottleOutPacketType.Task);
         }
 
         public void SendMoneyBalance(LLUUID transaction, bool success, byte[] description, int balance)
         {
-            MoneyBalanceReplyPacket money = new MoneyBalanceReplyPacket();
+            MoneyBalanceReplyPacket money = (MoneyBalanceReplyPacket) PacketPool.Instance.GetPacket(PacketType.MoneyBalanceReply);
             money.MoneyData.AgentID = AgentId;
             money.MoneyData.TransactionID = transaction;
             money.MoneyData.TransactionSuccess = success;
@@ -894,7 +894,7 @@ namespace OpenSim.Region.ClientStack
 
         public void SendStartPingCheck(byte seq)
         {
-            StartPingCheckPacket pc = new StartPingCheckPacket();
+            StartPingCheckPacket pc = (StartPingCheckPacket) PacketPool.Instance.GetPacket(PacketType.StartPingCheck);
             pc.PingID.PingID = seq;
             pc.Header.Reliable = false;
             OutPacket(pc, ThrottleOutPacketType.Task);
@@ -902,7 +902,7 @@ namespace OpenSim.Region.ClientStack
 
         public void SendKillObject(ulong regionHandle, uint localID)
         {
-            KillObjectPacket kill = new KillObjectPacket();
+            KillObjectPacket kill = (KillObjectPacket) PacketPool.Instance.GetPacket(PacketType.KillObject);
             // TODO: don't create new blocks if recycling an old packet
             kill.ObjectData = new KillObjectPacket.ObjectDataBlock[1];
             kill.ObjectData[0] = new KillObjectPacket.ObjectDataBlock();
@@ -1096,7 +1096,7 @@ namespace OpenSim.Region.ClientStack
 
         private InventoryDescendentsPacket CreateInventoryDescendentsPacket(LLUUID ownerID, LLUUID folderID)
         {
-            InventoryDescendentsPacket descend = new InventoryDescendentsPacket();
+            InventoryDescendentsPacket descend = (InventoryDescendentsPacket) PacketPool.Instance.GetPacket(PacketType.InventoryDescendents);
             descend.AgentData.AgentID = AgentId;
             descend.AgentData.OwnerID = ownerID;
             descend.AgentData.FolderID = folderID;
@@ -1109,7 +1109,7 @@ namespace OpenSim.Region.ClientStack
         {
             Encoding enc = Encoding.ASCII;
             uint FULL_MASK_PERMISSIONS = 2147483647;
-            FetchInventoryReplyPacket inventoryReply = new FetchInventoryReplyPacket();
+            FetchInventoryReplyPacket inventoryReply = (FetchInventoryReplyPacket) PacketPool.Instance.GetPacket(PacketType.FetchInventoryReply);
             // TODO: don't create new blocks if recycling an old packet
             inventoryReply.AgentData.AgentID = AgentId;
             inventoryReply.InventoryData = new FetchInventoryReplyPacket.InventoryDataBlock[1];
@@ -1151,7 +1151,7 @@ namespace OpenSim.Region.ClientStack
         {
             Encoding enc = Encoding.ASCII;
             uint FULL_MASK_PERMISSIONS = 2147483647;
-            UpdateCreateInventoryItemPacket InventoryReply = new UpdateCreateInventoryItemPacket();
+            UpdateCreateInventoryItemPacket InventoryReply = (UpdateCreateInventoryItemPacket) PacketPool.Instance.GetPacket(PacketType.UpdateCreateInventoryItem);
             // TODO: don't create new blocks if recycling an old packet
             InventoryReply.AgentData.AgentID = AgentId;
             InventoryReply.AgentData.SimApproved = true;
@@ -1190,7 +1190,7 @@ namespace OpenSim.Region.ClientStack
 
         public void SendRemoveInventoryItem(LLUUID itemID)
         {
-            RemoveInventoryItemPacket remove = new RemoveInventoryItemPacket();
+            RemoveInventoryItemPacket remove = (RemoveInventoryItemPacket) PacketPool.Instance.GetPacket(PacketType.RemoveInventoryItem);
             // TODO: don't create new blocks if recycling an old packet
             remove.AgentData.AgentID = AgentId;
             remove.AgentData.SessionID = m_sessionId;
@@ -1203,7 +1203,7 @@ namespace OpenSim.Region.ClientStack
 
         public void SendTaskInventory(LLUUID taskID, short serial, byte[] fileName)
         {
-            ReplyTaskInventoryPacket replytask = new ReplyTaskInventoryPacket();
+            ReplyTaskInventoryPacket replytask = (ReplyTaskInventoryPacket) PacketPool.Instance.GetPacket(PacketType.ReplyTaskInventory);
             replytask.InventoryData.TaskID = taskID;
             replytask.InventoryData.Serial = serial;
             replytask.InventoryData.Filename = fileName;
@@ -1212,7 +1212,7 @@ namespace OpenSim.Region.ClientStack
 
         public void SendXferPacket(ulong xferID, uint packet, byte[] data)
         {
-            SendXferPacketPacket sendXfer = new SendXferPacketPacket();
+            SendXferPacketPacket sendXfer = (SendXferPacketPacket) PacketPool.Instance.GetPacket(PacketType.SendXferPacket);
             sendXfer.XferID.ID = xferID;
             sendXfer.XferID.Packet = packet;
             sendXfer.DataPacket.Data = data;
@@ -1230,7 +1230,7 @@ namespace OpenSim.Region.ClientStack
         /// <param name="message"></param>
         public void SendAlertMessage(string message)
         {
-            AlertMessagePacket alertPack = new AlertMessagePacket();
+            AlertMessagePacket alertPack = (AlertMessagePacket) PacketPool.Instance.GetPacket(PacketType.AlertMessage);
             alertPack.AlertData.Message = Helpers.StringToField(message);
             OutPacket(alertPack, ThrottleOutPacketType.Task);
         }
@@ -1242,7 +1242,7 @@ namespace OpenSim.Region.ClientStack
         /// <param name="modal"></param>
         public void SendAgentAlertMessage(string message, bool modal)
         {
-            AgentAlertMessagePacket alertPack = new AgentAlertMessagePacket();
+            AgentAlertMessagePacket alertPack = (AgentAlertMessagePacket) PacketPool.Instance.GetPacket(PacketType.AgentAlertMessage);
             alertPack.AgentData.AgentID = AgentId;
             alertPack.AlertData.Message = Helpers.StringToField(message);
             alertPack.AlertData.Modal = modal;
@@ -1252,7 +1252,7 @@ namespace OpenSim.Region.ClientStack
         public void SendLoadURL(string objectname, LLUUID objectID, LLUUID ownerID, bool groupOwned, string message,
                                 string url)
         {
-            LoadURLPacket loadURL = new LoadURLPacket();
+            LoadURLPacket loadURL = (LoadURLPacket) PacketPool.Instance.GetPacket(PacketType.LoadURL);
             loadURL.Data.ObjectName = Helpers.StringToField(objectname);
             loadURL.Data.ObjectID = objectID;
             loadURL.Data.OwnerID = ownerID;
@@ -1278,7 +1278,7 @@ namespace OpenSim.Region.ClientStack
 
         public void SendPlayAttachedSound(LLUUID soundID, LLUUID objectID, LLUUID ownerID, float gain, byte flags)
         {
-            AttachedSoundPacket sound = new AttachedSoundPacket();
+            AttachedSoundPacket sound = (AttachedSoundPacket) PacketPool.Instance.GetPacket(PacketType.AttachedSound);
             sound.DataBlock.SoundID = soundID;
             sound.DataBlock.ObjectID = objectID;
             sound.DataBlock.OwnerID = ownerID;
@@ -1290,7 +1290,7 @@ namespace OpenSim.Region.ClientStack
 
         public void SendSunPos(LLVector3 sunPos, LLVector3 sunVel)
         {
-            SimulatorViewerTimeMessagePacket viewertime = new SimulatorViewerTimeMessagePacket();
+            SimulatorViewerTimeMessagePacket viewertime = (SimulatorViewerTimeMessagePacket) PacketPool.Instance.GetPacket(PacketType.SimulatorViewerTimeMessage);
             viewertime.TimeInfo.SunDirection = sunPos;
             viewertime.TimeInfo.SunAngVelocity = sunVel;
             viewertime.TimeInfo.UsecSinceStart = (ulong) Util.UnixTimeSinceEpoch();
@@ -1300,7 +1300,7 @@ namespace OpenSim.Region.ClientStack
         public void SendViewerTime(int phase)
         {
             Console.WriteLine("SunPhase: {0}", phase);
-            SimulatorViewerTimeMessagePacket viewertime = new SimulatorViewerTimeMessagePacket();
+            SimulatorViewerTimeMessagePacket viewertime = (SimulatorViewerTimeMessagePacket) PacketPool.Instance.GetPacket(PacketType.SimulatorViewerTimeMessage);
             //viewertime.TimeInfo.SecPerDay = 86400;
             //viewertime.TimeInfo.SecPerYear = 31536000;
             viewertime.TimeInfo.SecPerDay = 1000;
@@ -1349,7 +1349,7 @@ namespace OpenSim.Region.ClientStack
                                          string flAbout, uint flags, LLUUID flImageID, LLUUID imageID, string profileURL,
                                          LLUUID partnerID)
         {
-            AvatarPropertiesReplyPacket avatarReply = new AvatarPropertiesReplyPacket();
+            AvatarPropertiesReplyPacket avatarReply = (AvatarPropertiesReplyPacket) PacketPool.Instance.GetPacket(PacketType.AvatarPropertiesReply);
             avatarReply.AgentData.AgentID = AgentId;
             avatarReply.AgentData.AvatarID = avatarID;
             avatarReply.PropertiesData.AboutText = Helpers.StringToField(aboutText);
@@ -1374,7 +1374,7 @@ namespace OpenSim.Region.ClientStack
         /// <param name="wearables"></param>
         public void SendWearables(AvatarWearable[] wearables, int serial)
         {
-            AgentWearablesUpdatePacket aw = new AgentWearablesUpdatePacket();
+            AgentWearablesUpdatePacket aw = (AgentWearablesUpdatePacket) PacketPool.Instance.GetPacket(PacketType.AgentWearablesUpdate);
             aw.AgentData.AgentID = AgentId;
             aw.AgentData.SerialNum = (uint) serial;
             aw.AgentData.SessionID = m_sessionId;
@@ -1402,7 +1402,7 @@ namespace OpenSim.Region.ClientStack
         /// <param name="textureEntry"></param>
         public void SendAppearance(LLUUID agentID, byte[] visualParams, byte[] textureEntry)
         {
-            AvatarAppearancePacket avp = new AvatarAppearancePacket();
+            AvatarAppearancePacket avp = (AvatarAppearancePacket) PacketPool.Instance.GetPacket(PacketType.AvatarAppearance);
             // TODO: don't create new blocks if recycling an old packet
             avp.VisualParam = new AvatarAppearancePacket.VisualParamBlock[218];
             avp.ObjectData.TextureEntry = textureEntry;
@@ -1422,7 +1422,7 @@ namespace OpenSim.Region.ClientStack
 
         public void SendAnimations(LLUUID[] animations, int[] seqs, LLUUID sourceAgentId)
         {
-            AvatarAnimationPacket ani = new AvatarAnimationPacket();
+            AvatarAnimationPacket ani = (AvatarAnimationPacket) PacketPool.Instance.GetPacket(PacketType.AvatarAnimation);
             // TODO: don't create new blocks if recycling an old packet
             ani.AnimationSourceList = new AvatarAnimationPacket.AnimationSourceListBlock[1];
             ani.AnimationSourceList[0] = new AvatarAnimationPacket.AnimationSourceListBlock();
@@ -1457,7 +1457,7 @@ namespace OpenSim.Region.ClientStack
         public void SendAvatarData(ulong regionHandle, string firstName, string lastName, LLUUID avatarID,
                                    uint avatarLocalID, LLVector3 Pos, byte[] textureEntry, uint parentID)
         {
-            ObjectUpdatePacket objupdate = new ObjectUpdatePacket();
+            ObjectUpdatePacket objupdate = (ObjectUpdatePacket) PacketPool.Instance.GetPacket(PacketType.ObjectUpdate);
             // TODO: don't create new blocks if recycling an old packet
             objupdate.RegionData.RegionHandle = regionHandle;
             objupdate.RegionData.TimeDilation = 64096;
@@ -1490,7 +1490,7 @@ namespace OpenSim.Region.ClientStack
         {
             ImprovedTerseObjectUpdatePacket.ObjectDataBlock terseBlock =
                 CreateAvatarImprovedBlock(localID, position, velocity, rotation);
-            ImprovedTerseObjectUpdatePacket terse = new ImprovedTerseObjectUpdatePacket();
+            ImprovedTerseObjectUpdatePacket terse = (ImprovedTerseObjectUpdatePacket) PacketPool.Instance.GetPacket(PacketType.ImprovedTerseObjectUpdate);
             // TODO: don't create new blocks if recycling an old packet
             terse.RegionData.RegionHandle = regionHandle;
             terse.RegionData.TimeDilation = timeDilation;
@@ -1502,7 +1502,7 @@ namespace OpenSim.Region.ClientStack
 
         public void SendCoarseLocationUpdate(List<LLVector3> CoarseLocations)
         {
-            CoarseLocationUpdatePacket loc = new CoarseLocationUpdatePacket();
+            CoarseLocationUpdatePacket loc = (CoarseLocationUpdatePacket) PacketPool.Instance.GetPacket(PacketType.CoarseLocationUpdate);
             // TODO: don't create new blocks if recycling an old packet
             int total = CoarseLocations.Count;
             CoarseLocationUpdatePacket.IndexBlock ib =
@@ -1535,7 +1535,7 @@ namespace OpenSim.Region.ClientStack
         /// <param name="attachPoint"></param>
         public void AttachObject(uint localID, LLQuaternion rotation, byte attachPoint)
         {
-            ObjectAttachPacket attach = new ObjectAttachPacket();
+            ObjectAttachPacket attach = (ObjectAttachPacket) PacketPool.Instance.GetPacket(PacketType.ObjectAttach);
             // TODO: don't create new blocks if recycling an old packet
             attach.AgentData.AgentID = AgentId;
             attach.AgentData.SessionID = m_sessionId;
@@ -1555,7 +1555,7 @@ namespace OpenSim.Region.ClientStack
             LLUUID objectID, LLUUID ownerID, string text, byte[] color, uint parentID, byte[] particleSystem,
             LLQuaternion rotation, byte clickAction)
         {
-            ObjectUpdatePacket outPacket = new ObjectUpdatePacket();
+            ObjectUpdatePacket outPacket = (ObjectUpdatePacket) PacketPool.Instance.GetPacket(PacketType.ObjectUpdate);
             // TODO: don't create new blocks if recycling an old packet
             outPacket.RegionData.RegionHandle = regionHandle;
             outPacket.RegionData.TimeDilation = timeDilation;
@@ -1599,7 +1599,7 @@ namespace OpenSim.Region.ClientStack
         {
             LLVector3 velocity = new LLVector3(0f, 0f, 0f);
             LLVector3 rotationalvelocity = new LLVector3(0f, 0f, 0f);
-            ImprovedTerseObjectUpdatePacket terse = new ImprovedTerseObjectUpdatePacket();
+            ImprovedTerseObjectUpdatePacket terse = (ImprovedTerseObjectUpdatePacket) PacketPool.Instance.GetPacket(PacketType.ImprovedTerseObjectUpdate);
             // TODO: don't create new blocks if recycling an old packet
             terse.RegionData.RegionHandle = regionHandle;
             terse.RegionData.TimeDilation = timeDilation;
@@ -1612,7 +1612,7 @@ namespace OpenSim.Region.ClientStack
         public void SendPrimTerseUpdate(ulong regionHandle, ushort timeDilation, uint localID, LLVector3 position,
                                         LLQuaternion rotation, LLVector3 velocity, LLVector3 rotationalvelocity)
         {
-            ImprovedTerseObjectUpdatePacket terse = new ImprovedTerseObjectUpdatePacket();
+            ImprovedTerseObjectUpdatePacket terse = (ImprovedTerseObjectUpdatePacket) PacketPool.Instance.GetPacket(PacketType.ImprovedTerseObjectUpdate);
             // TODO: don't create new blocks if recycling an old packet
             terse.RegionData.RegionHandle = regionHandle;
             terse.RegionData.TimeDilation = timeDilation;
@@ -1950,8 +1950,8 @@ namespace OpenSim.Region.ClientStack
 
         public void SendNameReply(LLUUID profileId, string firstname, string lastname)
         {
-            UUIDNameReplyPacket packet = new UUIDNameReplyPacket();
-
+            UUIDNameReplyPacket packet = (UUIDNameReplyPacket) PacketPool.Instance.GetPacket(PacketType.UUIDNameReply);
+            // TODO: don't create new blocks if recycling an old packet
             packet.UUIDNameBlock = new UUIDNameReplyPacket.UUIDNameBlockBlock[1];
             packet.UUIDNameBlock[0] = new UUIDNameReplyPacket.UUIDNameBlockBlock();
             packet.UUIDNameBlock[0].ID = profileId;
@@ -1999,7 +1999,7 @@ namespace OpenSim.Region.ClientStack
         {
             //System.Console.WriteLine("texture cached: " + packet.ToString());
             AgentCachedTexturePacket chechedtex = (AgentCachedTexturePacket) packet;
-            AgentCachedTextureResponsePacket cachedresp = new AgentCachedTextureResponsePacket();
+            AgentCachedTextureResponsePacket cachedresp = (AgentCachedTextureResponsePacket) PacketPool.Instance.GetPacket(PacketType.AgentCachedTextureResponse);
             // TODO: don't create new blocks if recycling an old packet
             cachedresp.AgentData.AgentID = AgentId;
             cachedresp.AgentData.SessionID = m_sessionId;
@@ -2160,7 +2160,7 @@ namespace OpenSim.Region.ClientStack
         {
             //should be getting the map layer from the grid server
             //send a layer covering the 800,800 - 1200,1200 area (should be covering the requested area)
-            MapLayerReplyPacket mapReply = new MapLayerReplyPacket();
+            MapLayerReplyPacket mapReply = (MapLayerReplyPacket) PacketPool.Instance.GetPacket(PacketType.MapLayerReply);
             // TODO: don't create new blocks if recycling an old packet
             mapReply.AgentData.AgentID = AgentId;
             mapReply.AgentData.Flags = 0;
@@ -2305,22 +2305,18 @@ namespace OpenSim.Region.ClientStack
             // Actually make the byte array and send it
             try
             {
-                byte[] sendbuffer = Pack.ToBytes();
-                if (Pack is RegionHandshakePacket)
-                {
-                    PacketPool.Instance.ReturnPacket(Pack);
-                }
+              byte[] sendbuffer = Pack.ToBytes();
+              PacketPool.Instance.ReturnPacket(Pack);
 
-                if (Pack.Header.Zerocoded)
-                {
-                    byte[] ZeroOutBuffer = new byte[4096];
-                    int packetsize = Helpers.ZeroEncode(sendbuffer, sendbuffer.Length, ZeroOutBuffer);
-                    m_networkServer.SendPacketTo(ZeroOutBuffer, packetsize, SocketFlags.None, m_circuitCode);
-                }
-                else
-                {
-                    m_networkServer.SendPacketTo(sendbuffer, sendbuffer.Length, SocketFlags.None, m_circuitCode);
-                }
+              if (Pack.Header.Zerocoded)
+              {
+                  int packetsize = Helpers.ZeroEncode(sendbuffer, sendbuffer.Length, ZeroOutBuffer);
+                  m_networkServer.SendPacketTo(ZeroOutBuffer, packetsize, SocketFlags.None, m_circuitCode);
+              }
+              else
+              {
+                  m_networkServer.SendPacketTo(sendbuffer, sendbuffer.Length, SocketFlags.None, m_circuitCode);
+              }
             }
             catch (Exception e)
             {
@@ -2366,7 +2362,7 @@ namespace OpenSim.Region.ClientStack
                 {
                     //reply to pingcheck
                     StartPingCheckPacket startPing = (StartPingCheckPacket) NewPack;
-                    CompletePingCheckPacket endPing = new CompletePingCheckPacket();
+                    CompletePingCheckPacket endPing = (CompletePingCheckPacket) PacketPool.Instance.GetPacket(PacketType.CompletePingCheck);
                     endPing.PingID.PingID = startPing.PingID.PingID;
                     OutPacket(endPing, ThrottleOutPacketType.Task);
                 }
@@ -2395,7 +2391,7 @@ namespace OpenSim.Region.ClientStack
         {
             if (Pack.Header.Reliable)
             {
-                PacketAckPacket ack_it = new PacketAckPacket();
+                PacketAckPacket ack_it = (PacketAckPacket) PacketPool.Instance.GetPacket(PacketType.PacketAck);
                 // TODO: don't create new blocks if recycling an old packet
                 ack_it.Packets = new PacketAckPacket.PacketsBlock[1];
                 ack_it.Packets[0] = new PacketAckPacket.PacketsBlock();
@@ -2451,7 +2447,7 @@ namespace OpenSim.Region.ClientStack
                     //MainLog.Instance.Verbose("NETWORK", "Sending PacketAck");
 
                     int i = 0;
-                    PacketAckPacket acks = new PacketAckPacket();
+                    PacketAckPacket acks = (PacketAckPacket) PacketPool.Instance.GetPacket(PacketType.PacketAck);
                     // TODO: don't create new blocks if recycling an old packet
                     acks.Packets = new PacketAckPacket.PacketsBlock[m_pendingAcks.Count];
 
@@ -3226,11 +3222,11 @@ namespace OpenSim.Region.ClientStack
                     case PacketType.TeleportLandmarkRequest:
                         TeleportLandmarkRequestPacket tpReq = (TeleportLandmarkRequestPacket) Pack;
 
-                        TeleportStartPacket tpStart = new TeleportStartPacket();
+                        TeleportStartPacket tpStart = (TeleportStartPacket) PacketPool.Instance.GetPacket(PacketType.TeleportStart);
                         tpStart.Info.TeleportFlags = 8; // tp via lm
                         OutPacket(tpStart, ThrottleOutPacketType.Task);
 
-                        TeleportProgressPacket tpProgress = new TeleportProgressPacket();
+                        TeleportProgressPacket tpProgress = (TeleportProgressPacket) PacketPool.Instance.GetPacket(PacketType.TeleportProgress);
                         tpProgress.Info.Message = (new ASCIIEncoding()).GetBytes("sending_landmark");
                         tpProgress.Info.TeleportFlags = 8;
                         tpProgress.AgentData.AgentID = tpReq.Info.AgentID;
@@ -3245,7 +3241,7 @@ namespace OpenSim.Region.ClientStack
 
                             if (lm.RegionID == m_scene.RegionInfo.RegionID)
                             {
-                                TeleportLocalPacket tpLocal = new TeleportLocalPacket();
+                                TeleportLocalPacket tpLocal = (TeleportLocalPacket) PacketPool.Instance.GetPacket(PacketType.TeleportLocal);
 
                                 tpLocal.Info.AgentID = tpReq.Info.AgentID;
                                 tpLocal.Info.TeleportFlags = 8; // Teleport via landmark
@@ -3255,7 +3251,7 @@ namespace OpenSim.Region.ClientStack
                             }
                             else
                             {
-                                TeleportCancelPacket tpCancel = new TeleportCancelPacket();
+                                TeleportCancelPacket tpCancel = (TeleportCancelPacket) PacketPool.Instance.GetPacket(PacketType.TeleportCancel);
                                 tpCancel.Info.AgentID = tpReq.Info.AgentID;
                                 tpCancel.Info.SessionID = tpReq.Info.SessionID;
                                 OutPacket(tpCancel, ThrottleOutPacketType.Task);
@@ -3265,7 +3261,7 @@ namespace OpenSim.Region.ClientStack
                         {
                             Console.WriteLine("Cancelling Teleport - fetch asset not yet implemented");
 
-                            TeleportCancelPacket tpCancel = new TeleportCancelPacket();
+                            TeleportCancelPacket tpCancel = (TeleportCancelPacket) PacketPool.Instance.GetPacket(PacketType.TeleportCancel);
                             tpCancel.Info.AgentID = tpReq.Info.AgentID;
                             tpCancel.Info.SessionID = tpReq.Info.SessionID;
                             OutPacket(tpCancel, ThrottleOutPacketType.Task);
@@ -3283,7 +3279,7 @@ namespace OpenSim.Region.ClientStack
                         else
                         {
                             //no event handler so cancel request
-                            TeleportCancelPacket tpCancel = new TeleportCancelPacket();
+                            TeleportCancelPacket tpCancel = (TeleportCancelPacket) PacketPool.Instance.GetPacket(PacketType.TeleportCancel);
                             tpCancel.Info.SessionID = tpLocReq.AgentData.SessionID;
                             tpCancel.Info.AgentID = tpLocReq.AgentData.AgentID;
                             OutPacket(tpCancel, ThrottleOutPacketType.Task);
@@ -3591,7 +3587,7 @@ namespace OpenSim.Region.ClientStack
 
         public void SendLogoutPacket()
         {
-            LogoutReplyPacket logReply = new LogoutReplyPacket();
+            LogoutReplyPacket logReply = (LogoutReplyPacket) PacketPool.Instance.GetPacket(PacketType.LogoutReply);
             // TODO: don't create new blocks if recycling an old packet
             logReply.AgentData.AgentID = AgentId;
             logReply.AgentData.SessionID = SessionId;

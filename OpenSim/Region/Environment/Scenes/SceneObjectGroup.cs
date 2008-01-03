@@ -636,7 +636,7 @@ namespace OpenSim.Region.Environment.Scenes
         public void ServiceObjectPropertiesFamilyRequest(IClientAPI remoteClient, LLUUID AgentID, uint RequestFlags)
         {
             //RootPart.ServiceObjectPropertiesFamilyRequest(remoteClient, AgentID, RequestFlags);
-            ObjectPropertiesFamilyPacket objPropFamilyPack = new ObjectPropertiesFamilyPacket();
+            ObjectPropertiesFamilyPacket objPropFamilyPack = (ObjectPropertiesFamilyPacket) PacketPool.Instance.GetPacket(PacketType.ObjectPropertiesFamily);
             // TODO: don't create new blocks if recycling an old packet
 
             ObjectPropertiesFamilyPacket.ObjectDataBlock objPropDB = new ObjectPropertiesFamilyPacket.ObjectDataBlock();
@@ -1045,7 +1045,7 @@ namespace OpenSim.Region.Environment.Scenes
         /// <param name="client"></param>
         public void GetProperites(IClientAPI client)
         {
-            ObjectPropertiesPacket proper = new ObjectPropertiesPacket();
+            ObjectPropertiesPacket proper = (ObjectPropertiesPacket) PacketPool.Instance.GetPacket(PacketType.ObjectProperties);
             // TODO: don't create new blocks if recycling an old packet
 
             proper.ObjectData = new ObjectPropertiesPacket.ObjectDataBlock[1];

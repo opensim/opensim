@@ -1496,7 +1496,7 @@ namespace OpenSim.Region.Environment.Scenes
                         m_innerScene.removeUserCount(true);
                     }
                     // Tell a single agent to disconnect from the region.
-                    DisableSimulatorPacket disable = new DisableSimulatorPacket();
+                    libsecondlife.Packets.DisableSimulatorPacket disable = (libsecondlife.Packets.DisableSimulatorPacket) PacketPool.Instance.GetPacket(libsecondlife.Packets.PacketType.DisableSimulator);
                     presence.ControllingClient.OutPacket(disable, ThrottleOutPacketType.Task);
                 }
             }
