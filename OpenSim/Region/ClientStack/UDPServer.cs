@@ -40,7 +40,7 @@ namespace OpenSim.Region.ClientStack
     public class UDPServer : ClientStackNetworkHandler
     {
         protected Dictionary<EndPoint, uint> clientCircuits = new Dictionary<EndPoint, uint>();
-        protected Dictionary<uint, EndPoint> clientCircuits_reverse = new Dictionary<uint, EndPoint>();
+        public Dictionary<uint, EndPoint> clientCircuits_reverse = new Dictionary<uint, EndPoint>();
         public Socket Server;
         protected IPEndPoint ServerIncoming;
         protected byte[] RecvBuffer = new byte[4096];

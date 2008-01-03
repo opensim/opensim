@@ -880,13 +880,14 @@ namespace OpenSim
                     break;
                 case "users":
                     m_log.Error(
-                        String.Format("{0,-16}{1,-16}{2,-25}{3,-25}{4,-16}{5,-16}{6,-16}", "Firstname", "Lastname",
-                                      "Agent ID", "Session ID", "Circuit", "IP", "World"));
+                        String.Format("{0,-16}{1,-16}{2,-37}{3,-16}{4,-22}{5,-16}", "Firstname", "Lastname",
+                                      "Agent ID", "Circuit", "IP", "Region"));
 
                     foreach (ScenePresence presence in m_sceneManager.GetCurrentSceneAvatars())
                     {
                         RegionInfo regionInfo = m_sceneManager.GetRegionInfo(presence.RegionHandle);
                         string regionName;
+                        System.Net.EndPoint ep = null;
 
                         if (regionInfo == null)
                         {
@@ -896,15 +897,21 @@ namespace OpenSim
                         {
                             regionName = regionInfo.RegionName;
                         }
+                        for (int i = 0; i < m_udpServers.Count; i++)
+                        {
+                            if (m_udpServers[i].RegionHandle == presence.RegionHandle)
+                            {
 
+                                m_udpServers[i].clientCircuits_reverse.TryGetValue(presence.ControllingClient.CircuitCode, out ep);
+                            }
+                        }
                         m_log.Error(
-                            String.Format("{0,-16}{1,-16}{2,-25}{3,-25}{4,-16},{5,-16}{6,-16}",
+                            String.Format("{0,-16}{1,-16}{2,-37}{3,-16}{4,-22}{5,-16}",
                                           presence.Firstname,
                                           presence.Lastname,
                                           presence.UUID,
-                                          presence.ControllingClient.AgentId,
-                                          "Unknown",
-                                          "Unknown",
+                                          presence.ControllingClient.CircuitCode,
+                                          ep,
                                           regionName));
                     }
 
