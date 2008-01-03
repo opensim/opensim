@@ -64,6 +64,7 @@ namespace OpenSim.Region.Environment.Scenes
         protected Dictionary<LLUUID, TaskInventoryItem> m_taskInventory 
             = new Dictionary<LLUUID, TaskInventoryItem>();
         
+        [XmlIgnore]
         public Dictionary<LLUUID, TaskInventoryItem> TaskInventory
         {
             get { return m_taskInventory; }
