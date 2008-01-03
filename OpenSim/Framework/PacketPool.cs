@@ -49,6 +49,8 @@ namespace OpenSim.Framework
 
         public Packet GetPacket(PacketType type)
         {
+            return Packet.BuildPacket(type);
+/* Skip until PacketPool performance problems have been resolved (mantis 281)
             Packet packet = null;
 
             lock (pool)
@@ -66,6 +68,7 @@ namespace OpenSim.Framework
             }
 
             return packet;
+*/
         }
 
         // Copied from LibSL, and added a check to avoid overwriting the
@@ -137,6 +140,7 @@ namespace OpenSim.Framework
 
         public void ReturnPacket(Packet packet) 
         {
+/* Skip until PacketPool performance problems have been resolved (mantis 281)
             lock (pool)
             {
                 PacketType type = packet.Type;
@@ -148,6 +152,7 @@ namespace OpenSim.Framework
 
                 ((Stack) pool[type]).Push(packet);
             }
+*/
         }
     }
 }
