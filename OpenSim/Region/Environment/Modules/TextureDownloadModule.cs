@@ -49,7 +49,7 @@ namespace OpenSim.Region.Environment.Modules
 
         private readonly BlockingQueue<TextureSender> m_queueSenders = new BlockingQueue<TextureSender>();
 
-        private Dictionary<LLUUID, UserTextureDownloadService> m_userTextureServices =
+        private readonly Dictionary<LLUUID, UserTextureDownloadService> m_userTextureServices =
             new Dictionary<LLUUID, UserTextureDownloadService>();
 
         private Thread m_thread;
@@ -73,6 +73,22 @@ namespace OpenSim.Region.Environment.Modules
                 m_scenes.Add(scene);
                 m_scene = scene;
                 m_scene.EventManager.OnNewClient += NewClient;
+                m_scene.EventManager.OnRemovePresence += EventManager_OnRemovePresence;
+            }
+        }
+
+        private void EventManager_OnRemovePresence(LLUUID agentId)
+        {
+            UserTextureDownloadService textureService;
+
+            lock (m_userTextureServices)
+            {
+                if( m_userTextureServices.TryGetValue( agentId, out textureService ))
+                {
+                    textureService.Close();
+
+                    m_userTextureServices.Remove(agentId);
+                }
             }
         }
 

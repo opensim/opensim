@@ -60,7 +60,7 @@ namespace OpenSim.Region.Environment.Scenes
 
         public event OnNewPresenceDelegate OnNewPresence;
 
-        public delegate void OnRemovePresenceDelegate(LLUUID uuid);
+        public delegate void OnRemovePresenceDelegate(LLUUID agentId);
 
         public event OnRemovePresenceDelegate OnRemovePresence;
 
@@ -165,11 +165,11 @@ namespace OpenSim.Region.Environment.Scenes
                 OnNewPresence(presence);
         }
 
-        public void TriggerOnRemovePresence(LLUUID uuid)
+        public void TriggerOnRemovePresence(LLUUID agentId)
         {
             if (OnRemovePresence != null)
             {
-                OnRemovePresence(uuid);
+                OnRemovePresence(agentId);
             }
         }
 

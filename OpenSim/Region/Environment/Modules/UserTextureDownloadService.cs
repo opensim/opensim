@@ -94,5 +94,18 @@ namespace OpenSim.Region.Environment.Modules
                 m_sharedSendersQueue.Enqueue(textureSender);
             }
         }
+
+        internal void Close()
+        {
+            lock (m_textureSenders)
+            {
+                foreach( TextureSender textureSender in m_textureSenders.Values )
+                {
+                    textureSender.Cancel = true;
+                }
+
+                m_textureSenders.Clear();
+            }
+        }
     }
 }
