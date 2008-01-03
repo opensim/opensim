@@ -59,7 +59,10 @@ namespace OpenSim.Framework
 
         public bool Contains(T item)
         {
-            return m_queue.Contains(item);
+            lock (m_queueSync)
+            {
+                return m_queue.Contains(item);
+            }
         }
     }
 }
