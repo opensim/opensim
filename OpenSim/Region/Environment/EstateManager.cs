@@ -477,9 +477,10 @@ namespace OpenSim.Region.Environment
             foreach (EstateOwnerMessagePacket.ParamListBlock block in packet.ParamList)
             {
                 float timeSeconds = 0;
-                timeSeconds = BitConverter.ToInt32(block.Parameter, 1);
-                timeSeconds = (int) ((timeSeconds/100) - 3);
+                Helpers.TryParse(Helpers.FieldToUTF8String(block.Parameter), out timeSeconds);
+                timeSeconds = (int)timeSeconds;
                 m_scene.Restart(timeSeconds);
+                
             }
         }
 
