@@ -116,7 +116,7 @@ namespace OpenSim.Framework
                 }
                 catch (System.Exception e)
                 {
-                    OpenSim.Framework.Console.MainLog.Instance.Error("CLIENT", "Unable to shutdown circuit for: " + agentId.ToString() + "\n Reason: " + e.ToString());
+                    OpenSim.Framework.Console.MainLog.Instance.Error("CLIENT", string.Format("Unable to shutdown circuit for: {0}\n Reason: {1}", agentId, e));
                 }
             }
 
