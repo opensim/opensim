@@ -54,7 +54,7 @@ namespace OpenSim.Framework
         public UserConfig(string description, string filename)
         {
             configMember =
-                new ConfigurationMember(filename, description, loadConfigurationOptions, handleIncomingConfiguration);
+                new ConfigurationMember(filename, description, loadConfigurationOptions, handleIncomingConfiguration,true);
             configMember.performConfigurationRetrieve();
         }
 

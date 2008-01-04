@@ -394,7 +394,7 @@ namespace OpenSim
 
         private static void CreateDefaultRegionInfoXml(string fileName)
         {
-            new RegionInfo("DEFAULT REGION CONFIG", fileName);
+            new RegionInfo("DEFAULT REGION CONFIG", fileName,false);
         }
 
         protected override StorageManager CreateStorageManager(string connectionstring)
@@ -771,7 +771,7 @@ namespace OpenSim
                     break;
 
                 case "create-region":
-                    CreateRegion(new RegionInfo(cmdparams[0], "Regions/" + cmdparams[1]));
+                    CreateRegion(new RegionInfo(cmdparams[0], "Regions/" + cmdparams[1],false));
                     break;
 
                 case "remove-region":

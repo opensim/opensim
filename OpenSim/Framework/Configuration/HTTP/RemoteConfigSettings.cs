@@ -38,7 +38,7 @@ namespace OpenSim.Framework.Configuration.HTTP
         {
             configMember =
                 new ConfigurationMember(filename, "REMOTE CONFIG SETTINGS", loadConfigurationOptions,
-                                        handleIncomingConfiguration);
+                                        handleIncomingConfiguration,true);
             configMember.forceConfigurationPluginLibrary("OpenSim.Framework.Configuration.XML.dll");
             configMember.performConfigurationRetrieve();
         }

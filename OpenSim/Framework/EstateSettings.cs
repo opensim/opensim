@@ -749,7 +749,7 @@ namespace OpenSim.Framework
             {
                 configMember =
                     new ConfigurationMember(Path.Combine(Util.configDir(), "estate_settings.xml"), "ESTATE SETTINGS",
-                                            loadConfigurationOptions, handleIncomingConfiguration);
+                                            loadConfigurationOptions, handleIncomingConfiguration,true);
                 configMember.performConfigurationRetrieve();
             }
         }

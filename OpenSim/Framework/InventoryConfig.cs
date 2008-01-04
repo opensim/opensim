@@ -48,7 +48,7 @@ namespace OpenSim.Framework
         public InventoryConfig(string description, string filename)
         {
             configMember =
-                new ConfigurationMember(filename, description, loadConfigurationOptions, handleIncomingConfiguration);
+                new ConfigurationMember(filename, description, loadConfigurationOptions, handleIncomingConfiguration, true);
             configMember.performConfigurationRetrieve();
         }
 

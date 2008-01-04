@@ -187,17 +187,17 @@ namespace OpenSim.Framework
 
         public ConfigurationMember configMember;
 
-        public RegionInfo(string description, string filename)
+        public RegionInfo(string description, string filename, bool skipConsoleConfig)
         {
             configMember =
-                new ConfigurationMember(filename, description, loadConfigurationOptions, handleIncomingConfiguration);
+                new ConfigurationMember(filename, description, loadConfigurationOptions, handleIncomingConfiguration,!skipConsoleConfig);
             configMember.performConfigurationRetrieve();
         }
 
-        public RegionInfo(string description, XmlNode xmlNode)
+        public RegionInfo(string description, XmlNode xmlNode, bool skipConsoleConfig)
         {
             configMember =
-                new ConfigurationMember(xmlNode, description, loadConfigurationOptions, handleIncomingConfiguration);
+                new ConfigurationMember(xmlNode, description, loadConfigurationOptions, handleIncomingConfiguration, !skipConsoleConfig);
             configMember.performConfigurationRetrieve();
         }
 

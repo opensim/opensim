@@ -51,29 +51,31 @@ namespace OpenSim.Framework
         private ConfigurationOptionResult resultFunction;
 
         private IGenericConfig configurationPlugin = null;
-
+        private bool useConsoleToPromptOnError = true;
         /// <summary>
         /// This is the default configuration DLL loaded
         /// </summary>
         private string configurationPluginFilename = "OpenSim.Framework.Configuration.XML.dll";
 
         public ConfigurationMember(string configuration_filename, string configuration_description,
-                                   ConfigurationOptionsLoad load_function, ConfigurationOptionResult result_function)
+                                   ConfigurationOptionsLoad load_function, ConfigurationOptionResult result_function, bool use_console_to_prompt_on_error)
         {
             configurationFilename = configuration_filename;
             configurationDescription = configuration_description;
             loadFunction = load_function;
             resultFunction = result_function;
+            useConsoleToPromptOnError = use_console_to_prompt_on_error;
         }
 
         public ConfigurationMember(XmlNode configuration_xml, string configuration_description,
-                                   ConfigurationOptionsLoad load_function, ConfigurationOptionResult result_function)
+                                   ConfigurationOptionsLoad load_function, ConfigurationOptionResult result_function, bool use_console_to_prompt_on_error)
         {
             configurationFilename = "";
             configurationFromXMLNode = configuration_xml;
             configurationDescription = configuration_description;
             loadFunction = load_function;
             resultFunction = result_function;
+            useConsoleToPromptOnError = use_console_to_prompt_on_error;
         }
 
         public void setConfigurationFilename(string filename)
@@ -231,7 +233,7 @@ namespace OpenSim.Framework
 
                     if (attribute == null)
                     {
-                        if (configOption.configurationUseDefaultNoPrompt)
+                        if (configOption.configurationUseDefaultNoPrompt || useConsoleToPromptOnError == false)
                         {
                             console_result = configOption.configurationDefault;
                         }

@@ -61,7 +61,7 @@ namespace OpenSim.Tools.Export
         public static void Main(string[] args)
         {
             OpenSimExport export = new OpenSimExport(InitConfig(args));
-            RegionInfo reg = new RegionInfo("Sara Jane", "Regions/1000-1000.xml");
+            RegionInfo reg = new RegionInfo("Sara Jane", "Regions/1000-1000.xml",false);
 
             Console.WriteLine("This application does nothing useful yet: " + reg.RegionID);
             foreach (SceneObjectGroup group in export.sman.DataStore.LoadObjects(reg.RegionID))

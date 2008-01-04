@@ -45,7 +45,7 @@ namespace OpenSim.Framework
         public AssetConfig(string description, string filename)
         {
             configMember =
-                new ConfigurationMember(filename, description, loadConfigurationOptions, handleIncomingConfiguration);
+                new ConfigurationMember(filename, description, loadConfigurationOptions, handleIncomingConfiguration, true);
             configMember.performConfigurationRetrieve();
         }
 

@@ -86,7 +86,7 @@ namespace OpenSim.Framework.RegionLoader.Web
                         {
                             MainLog.Instance.Debug(xmlDoc.FirstChild.ChildNodes[i].OuterXml);
                             regionInfos[i] =
-                                new RegionInfo("REGION CONFIG #" + (i + 1), xmlDoc.FirstChild.ChildNodes[i]);
+                                new RegionInfo("REGION CONFIG #" + (i + 1), xmlDoc.FirstChild.ChildNodes[i],false);
                         }
 
                         return regionInfos;

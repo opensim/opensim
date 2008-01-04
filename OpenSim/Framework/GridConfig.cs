@@ -55,7 +55,7 @@ namespace OpenSim.Framework
         public GridConfig(string description, string filename)
         {
             configMember =
-                new ConfigurationMember(filename, description, loadConfigurationOptions, handleIncomingConfiguration);
+                new ConfigurationMember(filename, description, loadConfigurationOptions, handleIncomingConfiguration, true);
             configMember.performConfigurationRetrieve();
         }
 
