@@ -553,7 +553,14 @@ namespace OpenSim.Region.Environment.Scenes
             // Add 1/6 the avatar's height to it's position so it doesn't shoot into the air
             // when the avatar stands up
 
-            AbsolutePosition = AbsolutePosition + new LLVector3(0, 0, (m_avHeight/6));
+            if (m_avHeight != 127.0f)
+            {
+                AbsolutePosition = AbsolutePosition + new LLVector3(0, 0, (m_avHeight / 6));
+            }
+            else
+            {
+                AbsolutePosition = AbsolutePosition + new LLVector3(0, 0, (1.56f / 6));
+            }
             SetMovementAnimation(Animations.AnimsLLUUID["LAND"], 2);
             SendFullUpdateToAllClients();
         }
