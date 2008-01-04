@@ -55,6 +55,8 @@ namespace OpenSim.Framework
         RegionInfo RegionInfo { get; }
         uint NextLocalId { get; }
 
+        bool PresenceChildStatus(LLUUID avatarID);
+
         RegionStatus Region_Status { get; set; }
 
         ClientManager ClientManager { get; }

@@ -493,7 +493,10 @@ namespace SimpleApp
             get { return m_circuitCode; }
             set { m_circuitCode = value; }
         }
+        public void SendBlueBoxMessage(LLUUID FromAvatarID, LLUUID fromSessionID, String FromAvatarName, String Message)
+        {
 
+        }
         public void SendLogoutPacket()
         {
         }

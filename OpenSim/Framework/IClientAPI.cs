@@ -618,6 +618,9 @@ namespace OpenSim.Framework
         event ViewerEffectEventHandler OnViewerEffect;
         event Action<IClientAPI> OnLogout;
         event Action<IClientAPI> OnConnectionClosed;
+
+        void SendBlueBoxMessage(LLUUID FromAvatarID, LLUUID fromSessionID, String FromAvatarName, String Message);
+
         void SendLogoutPacket();
     }
 }

@@ -389,7 +389,8 @@ namespace OpenSim.Region.Environment.Scenes
                 m_restartTimer.Elapsed += new ElapsedEventHandler(RestartTimer_Elapsed);
                 MainLog.Instance.Error("REGION", "Restarting Region in " + (seconds/60) + " minutes");
                 m_restartTimer.Start();
-                SendGeneralAlert(RegionInfo.RegionName + ": Restarting in 2 Minutes");
+                SendRegionMessageFromEstateTools(LLUUID.Random(), LLUUID.Random(), "", RegionInfo.RegionName + ": Restarting in 2 Minutes");
+                //SendGeneralAlert(RegionInfo.RegionName + ": Restarting in 2 Minutes");
             }
         }
 
@@ -403,8 +404,11 @@ namespace OpenSim.Region.Environment.Scenes
             if (m_RestartTimerCounter <= m_incrementsof15seconds)
             {
                 if (m_RestartTimerCounter == 4 || m_RestartTimerCounter == 6 || m_RestartTimerCounter == 7)
-                    SendGeneralAlert(RegionInfo.RegionName + ": Restarting in " + ((8 - m_RestartTimerCounter)*15) +
-                                     " seconds");
+                    SendRegionMessageFromEstateTools(LLUUID.Random(), LLUUID.Random(), "", RegionInfo.RegionName + ": Restarting in " + 
+                        ((8 - m_RestartTimerCounter) * 15) + " seconds");
+                   
+                // SendGeneralAlert(RegionInfo.RegionName + ": Restarting in " + ((8 - m_RestartTimerCounter)*15) +
+                                     //" seconds");
             }
             else
             {
@@ -1813,13 +1817,54 @@ namespace OpenSim.Region.Environment.Scenes
         }
 
         /// <summary>
-        /// 
+        /// Sends a Big Blue Box message on the upper right of the screen to the client
+        /// for all agents in the region
         /// </summary>
-        /// <param name="godID"></param>
-        /// <param name="sessionID"></param>
-        /// <param name="agentID"></param>
-        /// <param name="kickflags"></param>
-        /// <param name="reason"></param>
+        /// <param name="FromAvatarID">The person sending the message</param>
+        /// <param name="fromSessionID">The session of the person sending the message</param>
+        /// <param name="FromAvatarName">The name of the person doing the sending</param>
+        /// <param name="Message">The Message being sent to the user</param>
+        public void SendRegionMessageFromEstateTools(LLUUID FromAvatarID, LLUUID fromSessionID, String FromAvatarName, String Message)
+        {
+
+            List<ScenePresence> presenceList = GetScenePresences();
+
+            foreach (ScenePresence presence in presenceList)
+            {
+                if (!presence.IsChildAgent)
+                    presence.ControllingClient.SendBlueBoxMessage(FromAvatarID, fromSessionID, FromAvatarName, Message);
+            }
+        }
+
+        /// <summary>
+        /// Sends a Big Blue Box message on the upper right of the screen to the client
+        /// for all agents in the estate
+        /// </summary>
+        /// <param name="FromAvatarID">The person sending the message</param>
+        /// <param name="fromSessionID">The session of the person sending the message</param>
+        /// <param name="FromAvatarName">The name of the person doing the sending</param>
+        /// <param name="Message">The Message being sent to the user</param>
+        public void SendEstateMessageFromEstateTools(LLUUID FromAvatarID, LLUUID fromSessionID, String FromAvatarName, String Message)
+        {
+
+            ClientManager.ForEachClient(delegate(IClientAPI controller)
+                    {
+                        controller.SendBlueBoxMessage(FromAvatarID, fromSessionID, FromAvatarName, Message);
+                    }
+            );
+        }
+
+        /// <summary>
+        /// Kicks User specified from the simulator. This logs them off of the grid
+        /// If the client gets the UUID: 44e87126e7944ded05b37c42da3d5cdb it assumes 
+        /// that you're kicking it even if the avatar's UUID isn't the UUID that the 
+        /// agent is assigned
+        /// </summary>
+        /// <param name="godID">The person doing the kicking</param>
+        /// <param name="sessionID">The session of the person doing the kicking</param>
+        /// <param name="agentID">the person that is being kicked</param>
+        /// <param name="kickflags">This isn't used apparently</param>
+        /// <param name="reason">The message to send to the user after it's been turned into a field</param>
         public void handleGodlikeKickUser(LLUUID godID, LLUUID sessionID, LLUUID agentID, uint kickflags, byte[] reason)
         {
             // For some reason the client sends this seemingly hard coded UUID for kicking everyone.   Dun-know.
@@ -1832,22 +1877,11 @@ namespace OpenSim.Region.Environment.Scenes
                     {
                         ClientManager.ForEachClient(delegate(IClientAPI controller)
                                                         {
-                                                            ScenePresence p = GetScenePresence(controller.AgentId);
-                                                            bool childagent = !p.Equals(null) && p.IsChildAgent;
-                                                            if (controller.AgentId != godID && !childagent)
-                                                                // Do we really want to kick the initiator of this madness?
-                                                            {
+                                                            if (controller.AgentId != godID)
                                                                 controller.Kick(Helpers.FieldToUTF8String(reason));
 
-                                                                if (childagent)
-                                                                {
-                                                                    m_innerScene.removeUserCount(false);
-                                                                }
-                                                                else
-                                                                {
-                                                                    m_innerScene.removeUserCount(true);
-                                                                }
-                                                            }
+                                                             
+                                                         
                                                         }
                             );
                         // This is a bit crude.   It seems the client will be null before it actually stops the thread
@@ -2197,6 +2231,17 @@ namespace OpenSim.Region.Environment.Scenes
         public ScenePresence GetScenePresence(LLUUID avatarID)
         {
             return m_innerScene.GetScenePresence(avatarID);
+        }
+
+        /// <summary>
+        /// Request an Avatar's Child Status - used by ClientView when a 'kick everyone' or 'estate message' occurs
+        /// </summary>
+        /// <param name="avatarID">AvatarID to lookup</param>
+        /// <returns></returns>
+        public bool PresenceChildStatus(LLUUID avatarID)
+        {
+            ScenePresence cp = GetScenePresence(avatarID);
+            return cp.IsChildAgent;
         }
 
         /// <summary>

@@ -134,6 +134,14 @@ namespace OpenSim.Region.ClientStack
         }
 
         /// <summary>
+        /// This is a utility method used by single states to not duplicate kicks and blue card of death messages.
+        /// </summary>
+        public bool ChildAgentStatus()
+        {
+            return m_scene.PresenceChildStatus(AgentId);
+        }
+
+        /// <summary>
         /// First name of the agent/avatar represented by the client
         /// </summary>
         public string FirstName
@@ -257,13 +265,16 @@ namespace OpenSim.Region.ClientStack
 
         public void Kick(string message)
         {
-            KickUserPacket kupack = (KickUserPacket) PacketPool.Instance.GetPacket(PacketType.KickUser);
-            kupack.UserInfo.AgentID = AgentId;
-            kupack.UserInfo.SessionID = SessionId;
-            kupack.TargetBlock.TargetIP = (uint) 0;
-            kupack.TargetBlock.TargetPort = (ushort) 0;
-            kupack.UserInfo.Reason = Helpers.StringToField(message);
-            OutPacket(kupack, ThrottleOutPacketType.Task);
+            if (!ChildAgentStatus())
+            {
+                KickUserPacket kupack = (KickUserPacket)PacketPool.Instance.GetPacket(PacketType.KickUser);
+                kupack.UserInfo.AgentID = AgentId;
+                kupack.UserInfo.SessionID = SessionId;
+                kupack.TargetBlock.TargetIP = (uint)0;
+                kupack.TargetBlock.TargetPort = (ushort)0;
+                kupack.UserInfo.Reason = Helpers.StringToField(message);
+                OutPacket(kupack, ThrottleOutPacketType.Task);
+            }
         }
 
         public void Stop()
@@ -2786,7 +2797,7 @@ namespace OpenSim.Region.ClientStack
                         {
                             ObjectAddPacket addPacket = (ObjectAddPacket) Pack;
                             PrimitiveBaseShape shape = GetShapeFromAddPacket(addPacket);
-                            MainLog.Instance.Verbose("REZData", addPacket.ToString());
+                           // MainLog.Instance.Verbose("REZData", addPacket.ToString());
                             //BypassRaycast: 1
                             //RayStart: <69.79469, 158.2652, 98.40343>
                             //RayEnd: <61.97724, 141.995, 92.58341>   
@@ -3583,6 +3594,14 @@ namespace OpenSim.Region.ClientStack
             shape.TextureEntry = ntex.ToBytes();
             //shape.Textures = ntex;
             return shape;
+        }
+
+        public void SendBlueBoxMessage(LLUUID FromAvatarID, LLUUID fromSessionID, String FromAvatarName, String Message)
+        {
+            if (!ChildAgentStatus())
+            SendInstantMessage(FromAvatarID, fromSessionID, Message, AgentId, SessionId, FromAvatarName, (byte)1, (uint)Util.UnixTimeSinceEpoch());
+
+            //SendInstantMessage(FromAvatarID, fromSessionID, Message, AgentId, SessionId, FromAvatarName, (byte)21,(uint) Util.UnixTimeSinceEpoch());
         }
 
         public void SendLogoutPacket()

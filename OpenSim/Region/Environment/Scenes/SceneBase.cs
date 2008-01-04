@@ -157,7 +157,10 @@ namespace OpenSim.Region.Environment.Scenes
             OnRestart(RegionInfo);
         }
 
-
+        public virtual bool PresenceChildStatus(LLUUID avatarID)
+        {
+            return false;
+        }
         public abstract bool OtherRegionUp(RegionInfo thisRegion);
 
         #endregion

@@ -198,10 +198,22 @@ namespace OpenSim.Region.Environment
                         EstateChangeCovenant(packet);
                     }
                     break;
-                case "estateaccessdelta":
+                case "estateaccessdelta": // Estate access delta manages the banlist and allow list too.
                     if (m_scene.PermissionsMngr.GenericEstatePermission(remote_client.AgentId))
                     {
                         estateAccessDelta(remote_client, packet);
+                    }
+                    break;
+                case "simulatormessage": 
+                    if (m_scene.PermissionsMngr.GenericEstatePermission(remote_client.AgentId))
+                    {
+                        SendSimulatorBlueBoxMessage(remote_client, packet);
+                    }
+                    break;
+                case "instantmessage": 
+                    if (m_scene.PermissionsMngr.GenericEstatePermission(remote_client.AgentId))
+                    {
+                        SendEstateBlueBoxMessage(remote_client, packet);
                     }
                     break;
                 default:
@@ -210,6 +222,24 @@ namespace OpenSim.Region.Environment
             }
         }
 
+        private void SendSimulatorBlueBoxMessage(IClientAPI remote_client, EstateOwnerMessagePacket packet)
+        {
+            LLUUID invoice = packet.MethodData.Invoice;
+            LLUUID SenderID = new LLUUID(Helpers.FieldToUTF8String(packet.ParamList[2].Parameter));
+            string SenderName = Helpers.FieldToUTF8String(packet.ParamList[3].Parameter);
+            string Message = Helpers.FieldToUTF8String(packet.ParamList[4].Parameter);
+            m_scene.SendRegionMessageFromEstateTools(SenderID, packet.AgentData.SessionID, SenderName, Message);
+            
+        }
+        private void SendEstateBlueBoxMessage(IClientAPI remote_client, EstateOwnerMessagePacket packet)
+        {
+            LLUUID invoice = packet.MethodData.Invoice;
+            LLUUID SenderID = packet.AgentData.AgentID;
+            string SenderName = Helpers.FieldToUTF8String(packet.ParamList[0].Parameter);
+            string Message = Helpers.FieldToUTF8String(packet.ParamList[1].Parameter);
+            m_scene.SendEstateMessageFromEstateTools(SenderID, packet.AgentData.SessionID, SenderName, Message);
+
+        }
         private void sendDetailedEstateData(IClientAPI remote_client, EstateOwnerMessagePacket packet)
         {
             
