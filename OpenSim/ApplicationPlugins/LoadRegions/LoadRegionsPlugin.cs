@@ -40,7 +40,7 @@ namespace OpenSim.ApplicationPlugins.LoadRegions
     [Extension("/OpenSim/Startup")]
     public class LoadRegionsPlugin : IApplicationPlugin
     {
-        public string ModuleName()
+        string IApplicationPlugin.ModuleName()
         {
             return "OpenSim.ApplicationPlugins.LoadRegions.LoadRegionsPlugin";
         }

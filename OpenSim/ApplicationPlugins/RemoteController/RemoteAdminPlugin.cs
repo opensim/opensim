@@ -50,7 +50,7 @@ namespace OpenSim.ApplicationPlugins.LoadRegions
         private BaseHttpServer m_httpd;
         private string requiredPassword = "";
 
-        public string ModuleName()
+        string IApplicationPlugin.ModuleName()
         {
             return "OpenSim.ApplicationPlugins.LoadRegions.RemoteAdminPlugin";
         }
