@@ -279,16 +279,30 @@ namespace OpenSim
         /// </summary>
         public override void StartUp()
         {
+            //
+            // Called from app startup (OpenSim.Application)
+            //
+
+
+            // Create log directory if it doesn't exist
             if (!Directory.Exists(Util.logDir()))
             {
                 Directory.CreateDirectory(Util.logDir());
             }
 
+            // Create a log instance
             m_log = CreateLog();
             MainLog.Instance = m_log;
 
+            MainLog.Instance.Verbose("STARTUP", "TEDD DEBUG #1");
+            // Do baseclass startup sequence: OpenSim.Region.ClientStack.RegionApplicationBase.StartUp
+            // TerrainManager, StorageManager, HTTP Server
+            // This base will call abstract Initialize
             base.StartUp();
 
+
+            MainLog.Instance.Verbose("STARTUP", "TEDD DEBUG #2");
+            // StandAlone mode? m_sandbox is determined by !startupConfig.GetBoolean("gridmode", false)
             if (m_sandbox)
             {
                 LocalInventoryService inventoryService = new LocalInventoryService();
@@ -321,23 +335,31 @@ namespace OpenSim
             }
             else
             {
+                // We are in grid mode
                 m_commsManager = new CommunicationsOGS1(m_networkServersInfo, m_httpServer, m_assetCache);
                 m_httpServer.AddStreamHandler(new SimStatusHandler());
             }
 
+            MainLog.Instance.Verbose("STARTUP", "TEDD DEBUG #3");
+            // Create a ModuleLoader instance
             m_moduleLoader = new ModuleLoader(m_log, m_config);
 
+            MainLog.Instance.Verbose("STARTUP", "TEDD DEBUG #4");
             ExtensionNodeList nodes = AddinManager.GetExtensionNodes("/OpenSim/Startup");
             MainLog.Instance.Verbose("PLUGINS", "Loading {0} OpenSim application plugins", nodes.Count);
-            
+            MainLog.Instance.Verbose("STARTUP", "TEDD DEBUG #5");
+
+            int ctedd = 0;
             foreach (TypeExtensionNode node in nodes)
             {
-                MainLog.Instance.Verbose("PLUGINS", "Loading OpenSim application plugin: ", node.GetType().AssemblyQualifiedName.ToString());
                 IApplicationPlugin plugin = (IApplicationPlugin)node.CreateInstance();
+                MainLog.Instance.Debug("PLUGINS", "Loading OpenSim application plugin: ", plugin.GetType().AssemblyQualifiedName.ToString());
                 
                 plugin.Initialise(this);
                 m_plugins.Add(plugin);
+                MainLog.Instance.Verbose("STARTUP", "TEDD DEBUG #6: " + ++ctedd);
             }
+            MainLog.Instance.Verbose("STARTUP", "TEDD DEBUG #7");
 
             // Start UDP servers
             //for (int i = 0; i < m_udpServers.Count; i++)
@@ -355,17 +377,58 @@ namespace OpenSim
                 MainLog.Instance.Verbose("STARTUP", "No startup command script specified. Moving on...");
             }
 
-            MainLog.Instance.Status("STARTUP",
-                                    "Startup complete, serving " + m_udpServers.Count.ToString() + " region(s)");
-
+            // Start timer script (run a script every xx seconds)
             if (m_timedScript != "disabled")
             {
                 m_scriptTimer = new Timer();
                 m_scriptTimer.Enabled = true;
-                m_scriptTimer.Interval = (int) (1200*1000);
+                m_scriptTimer.Interval = (int)(1200 * 1000);
                 m_scriptTimer.Elapsed += new ElapsedEventHandler(RunAutoTimerScript);
             }
+
+            // We are done with startup
+            MainLog.Instance.Status("STARTUP",
+                                    "Startup complete, serving " + m_udpServers.Count.ToString() + " region(s)");
+
+            // When we return now we will be in a wait for input command loop.
         }
+
+        protected override void Initialize()
+        {
+            //
+            // Called from base.StartUp()
+            //
+
+            m_httpServerPort = m_networkServersInfo.HttpListenerPort;
+
+            IAssetServer assetServer;
+            if (m_assetStorage == "db4o")
+            {
+                assetServer = new LocalAssetServer();
+            }
+            else if (m_assetStorage == "grid")
+            {
+                assetServer = new GridAssetClient(m_networkServersInfo.AssetURL);
+            }
+            else if (m_assetStorage == "mssql")
+            {
+                SQLAssetServer sqlAssetServer = new SQLAssetServer("OpenSim.Framework.Data.MSSQL.dll");
+                sqlAssetServer.LoadDefaultAssets();
+                assetServer = sqlAssetServer;
+                //assetServer = new GridAssetClient("");
+            }
+            else
+            {
+                SQLAssetServer sqlAssetServer = new SQLAssetServer(m_standaloneAssetPlugin);
+                sqlAssetServer.LoadDefaultAssets();
+                assetServer = sqlAssetServer;
+            }
+
+            m_assetCache = new AssetCache(assetServer, m_log);
+            // m_assetCache = new assetCache("OpenSim.Region.GridInterfaces.Local.dll", m_networkServersInfo.AssetURL, m_networkServersInfo.AssetSendKey);
+            m_sceneManager.OnRestartSim += handleRestartRegion;
+        }
+
 
         public UDPServer CreateRegion(RegionInfo regionInfo)
         {
@@ -424,37 +487,6 @@ namespace OpenSim
                           m_moduleLoader, m_dumpAssetsToFile, m_physicalPrim, m_SendChildAgentTaskData);
         }
 
-        protected override void Initialize()
-        {
-            m_httpServerPort = m_networkServersInfo.HttpListenerPort;
-
-            IAssetServer assetServer;
-            if (m_assetStorage == "db4o")
-            {
-                assetServer = new LocalAssetServer();
-            }
-            else if (m_assetStorage == "grid")
-            {
-                assetServer = new GridAssetClient(m_networkServersInfo.AssetURL);
-            }
-            else if (m_assetStorage == "mssql")
-            {
-                SQLAssetServer sqlAssetServer = new SQLAssetServer("OpenSim.Framework.Data.MSSQL.dll");
-                sqlAssetServer.LoadDefaultAssets();
-                assetServer = sqlAssetServer;
-                //assetServer = new GridAssetClient("");
-            }
-            else
-            {
-                SQLAssetServer sqlAssetServer = new SQLAssetServer(m_standaloneAssetPlugin);
-                sqlAssetServer.LoadDefaultAssets();
-                assetServer = sqlAssetServer;
-            }
-
-            m_assetCache = new AssetCache(assetServer, m_log);
-            // m_assetCache = new assetCache("OpenSim.Region.GridInterfaces.Local.dll", m_networkServersInfo.AssetURL, m_networkServersInfo.AssetSendKey);
-            m_sceneManager.OnRestartSim += handleRestartRegion;
-        }
 
         public void handleRestartRegion(RegionInfo whichRegion)
         {
