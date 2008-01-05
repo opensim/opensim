@@ -31,6 +31,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Threading;
 using libsecondlife;
+using libsecondlife.StructuredData;
 using Nwc.XmlRpc;
 
 using OpenSim.Framework.Communications.Cache;
@@ -198,6 +199,132 @@ namespace OpenSim.Framework.UserManagement
             }
         }
 
+        public LLSD LLSDLoginMethod(LLSD request)
+        {
+            // Temporary fix
+            m_loginMutex.WaitOne();
+
+            try
+            {
+                bool GoodLogin = false;
+
+                UserProfileData userProfile = null;
+                LoginResponse logResponse = new LoginResponse();
+
+                if (request.Type == LLSDType.Map)
+                {
+                    LLSDMap map = (LLSDMap)request;
+
+                    if (map.ContainsKey("first") && map.ContainsKey("last") && map.ContainsKey("passwd"))
+                    {
+                        string firstname = map["first"].AsString();
+                        string lastname = map["last"].AsString();
+                        string passwd = map["passwd"].AsString();
+
+                        userProfile = GetTheUser(firstname, lastname);
+                        if (userProfile == null)
+                        {
+                            MainLog.Instance.Verbose(
+                                "LOGIN",
+                                "Could not find a profile for " + firstname + " " + lastname);
+
+                            return logResponse.CreateLoginFailedResponseLLSD();
+                        }
+
+                        GoodLogin = AuthenticateUser(userProfile, passwd);
+                    }
+                }
+
+                if (!GoodLogin)
+                {
+                    return logResponse.CreateLoginFailedResponseLLSD();
+                }
+                else
+                {
+                    // If we already have a session...
+                    if (userProfile.currentAgent != null && userProfile.currentAgent.agentOnline)
+                    {
+                        userProfile.currentAgent = null;
+                        m_userManager.CommitAgent(ref userProfile);
+
+                        // Reject the login
+                        return logResponse.CreateAlreadyLoggedInResponseLLSD();
+                    }
+
+                    // Otherwise...
+                    // Create a new agent session
+                    CreateAgent(userProfile, request);
+
+                    try
+                    {
+                        LLUUID agentID = userProfile.UUID;
+
+                        // Inventory Library Section
+                        InventoryData inventData = CreateInventoryData(agentID);
+                        ArrayList AgentInventoryArray = inventData.InventoryArray;
+
+                        Hashtable InventoryRootHash = new Hashtable();
+                        InventoryRootHash["folder_id"] = inventData.RootFolderID.ToString();
+                        ArrayList InventoryRoot = new ArrayList();
+                        InventoryRoot.Add(InventoryRootHash);
+                        userProfile.rootInventoryFolderID = inventData.RootFolderID;
+
+                        // Circuit Code
+                        uint circode = (uint)(Util.RandomClass.Next());
+
+                        logResponse.Lastname = userProfile.surname;
+                        logResponse.Firstname = userProfile.username;
+                        logResponse.AgentID = agentID.ToString();
+                        logResponse.SessionID = userProfile.currentAgent.sessionID.ToString();
+                        logResponse.SecureSessionID = userProfile.currentAgent.secureSessionID.ToString();
+                        logResponse.InventoryRoot = InventoryRoot;
+                        logResponse.InventorySkeleton = AgentInventoryArray;
+                        logResponse.InventoryLibrary = GetInventoryLibrary();
+
+                        Hashtable InventoryLibRootHash = new Hashtable();
+                        InventoryLibRootHash["folder_id"] = "00000112-000f-0000-0000-000100bba000";
+                        ArrayList InventoryLibRoot = new ArrayList();
+                        InventoryLibRoot.Add(InventoryLibRootHash);
+                        logResponse.InventoryLibRoot = InventoryLibRoot;
+
+                        logResponse.InventoryLibraryOwner = GetLibraryOwner();
+                        logResponse.CircuitCode = (Int32)circode;
+                        //logResponse.RegionX = 0; //overwritten
+                        //logResponse.RegionY = 0; //overwritten
+                        logResponse.Home = "!!null temporary value {home}!!"; // Overwritten
+                        //logResponse.LookAt = "\n[r" + TheUser.homeLookAt.X.ToString() + ",r" + TheUser.homeLookAt.Y.ToString() + ",r" + TheUser.homeLookAt.Z.ToString() + "]\n";
+                        //logResponse.SimAddress = "127.0.0.1"; //overwritten
+                        //logResponse.SimPort = 0; //overwritten
+                        logResponse.Message = GetMessage();
+                        logResponse.BuddList = ConvertFriendListItem(m_userManager.GetUserFriendList(agentID));
+
+                        try
+                        {
+                            CustomiseResponse(logResponse, userProfile);
+                        }
+                        catch (Exception ex)
+                        {
+                            MainLog.Instance.Verbose("LOGIN", ex.ToString());
+                            return logResponse.CreateDeadRegionResponseLLSD();
+                        }
+
+                        CommitAgent(ref userProfile);
+
+                        return logResponse.ToLLSDResponse();
+                    }
+                    catch (Exception ex)
+                    {
+                        MainLog.Instance.Verbose("LOGIN", ex.ToString());
+                        return logResponse.CreateFailedResponseLLSD();
+                    }
+                }
+            }
+            finally
+            {
+                m_loginMutex.ReleaseMutex();
+            }
+        }
+
         /// <summary>
         /// Customises the login response and fills in missing values.
         /// </summary>
@@ -242,6 +369,11 @@ namespace OpenSim.Framework.UserManagement
         /// <param name="profile"></param>
         /// <param name="request"></param>
         public void CreateAgent(UserProfileData profile, XmlRpcRequest request)
+        {
+            m_userManager.CreateAgent(profile, request);
+        }
+
+        public void CreateAgent(UserProfileData profile, LLSD request)
         {
             m_userManager.CreateAgent(profile, request);
         }

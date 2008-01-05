@@ -31,6 +31,7 @@ using System.Collections.Generic;
 using System.Reflection;
 using System.Security.Cryptography;
 using libsecondlife;
+using libsecondlife.StructuredData;
 using Nwc.XmlRpc;
 using OpenSim.Framework.Console;
 
@@ -382,6 +383,41 @@ namespace OpenSim.Framework.UserManagement
 //                    }
 //                }
 //            }
+
+            // What time did the user login?
+            agent.loginTime = Util.UnixTimeSinceEpoch();
+            agent.logoutTime = 0;
+
+            // Current location
+            agent.regionID = LLUUID.Zero; // Fill in later
+            agent.currentRegion = LLUUID.Zero; // Fill in later
+
+            profile.currentAgent = agent;
+        }
+
+        public void CreateAgent(UserProfileData profile, LLSD request)
+        {
+            UserAgentData agent = new UserAgentData();
+
+            // User connection
+            agent.agentOnline = true;
+
+            // Generate sessions
+            RNGCryptoServiceProvider rand = new RNGCryptoServiceProvider();
+            byte[] randDataS = new byte[16];
+            byte[] randDataSS = new byte[16];
+            rand.GetBytes(randDataS);
+            rand.GetBytes(randDataSS);
+
+            agent.secureSessionID = new LLUUID(randDataSS, 0);
+            agent.sessionID = new LLUUID(randDataS, 0);
+
+            // Profile UUID
+            agent.UUID = profile.UUID;
+
+            // Current position (from Home)
+            agent.currentHandle = profile.homeRegion;
+            agent.currentPos = profile.homeLocation;
 
             // What time did the user login?
             agent.loginTime = Util.UnixTimeSinceEpoch();

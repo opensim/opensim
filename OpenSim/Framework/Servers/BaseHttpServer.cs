@@ -34,6 +34,7 @@ using System.Text;
 using System.Threading;
 using System.Xml;
 using Nwc.XmlRpc;
+using libsecondlife.StructuredData;
 using OpenSim.Framework.Console;
 
 namespace OpenSim.Framework.Servers
@@ -43,6 +44,7 @@ namespace OpenSim.Framework.Servers
         protected Thread m_workerThread;
         protected HttpListener m_httpListener;
         protected Dictionary<string, XmlRpcMethod> m_rpcHandlers = new Dictionary<string, XmlRpcMethod>();
+        protected LLSDMethod m_llsdHandler = null;
         protected Dictionary<string, IRequestHandler> m_streamHandlers = new Dictionary<string, IRequestHandler>();
         protected uint m_port;
         protected bool m_ssl = false;
@@ -90,6 +92,11 @@ namespace OpenSim.Framework.Servers
             return false;
         }
 
+        public bool SetLLSDHandler(LLSDMethod handler)
+        {
+            m_llsdHandler = handler;
+            return true;
+        }
 
         public virtual void HandleRequest(Object stateinfo)
         {
@@ -136,7 +143,17 @@ namespace OpenSim.Framework.Servers
             }
             else
             {
-                HandleXmlRpcRequests(request, response);
+                switch (request.ContentType)
+                {
+                    //case "application/xml+llsd":
+                        //HandleLLSDRequests(request, response);
+                        //break;
+                    case "text/xml":
+                    case "application/xml":
+                    default:
+                        HandleXmlRpcRequests(request, response);
+                        break;
+                }
             }
         }
 
@@ -242,13 +259,65 @@ namespace OpenSim.Framework.Servers
                 }
             }
 
-            response.AddHeader("Content-type", "text/xml");
+            response.ContentType = "text/xml";
 
             byte[] buffer = Encoding.UTF8.GetBytes(responseString);
 
             response.SendChunked = false;
             response.ContentLength64 = buffer.Length;
             response.ContentEncoding = Encoding.UTF8;
+            try
+            {
+                response.OutputStream.Write(buffer, 0, buffer.Length);
+            }
+            catch (Exception ex)
+            {
+                MainLog.Instance.Warn("HTTPD", "Error - " + ex.Message);
+            }
+            finally
+            {
+                response.OutputStream.Close();
+            }
+        }
+
+        private void HandleLLSDRequests(HttpListenerRequest request, HttpListenerResponse response)
+        {
+            Stream requestStream = request.InputStream;
+
+            Encoding encoding = Encoding.UTF8;
+            StreamReader reader = new StreamReader(requestStream, encoding);
+
+            string requestBody = reader.ReadToEnd();
+            reader.Close();
+            requestStream.Close();
+
+            LLSD llsdRequest = null;
+            LLSD llsdResponse = null;
+
+            try { llsdRequest = LLSDParser.DeserializeXml(requestBody); }
+            catch (Exception ex) { MainLog.Instance.Warn("HTTPD", "Error - " + ex.Message); }
+
+            if (llsdRequest != null && m_llsdHandler != null)
+            {
+                llsdResponse = m_llsdHandler(llsdRequest);
+            }
+            else
+            {
+                LLSDMap map = new LLSDMap();
+                map["reason"] = LLSD.FromString("LLSDRequest");
+                map["message"] = LLSD.FromString("No handler registered for LLSD Requests");
+                map["login"] = LLSD.FromString("false");
+                llsdResponse = map;
+            }
+
+            response.ContentType = "application/xml+llsd";
+
+            byte[] buffer = LLSDParser.SerializeXmlBytes(llsdResponse);
+
+            response.SendChunked = false;
+            response.ContentLength64 = buffer.Length;
+            response.ContentEncoding = Encoding.UTF8;
+
             try
             {
                 response.OutputStream.Write(buffer, 0, buffer.Length);

@@ -30,6 +30,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using libsecondlife;
+using libsecondlife.StructuredData;
 using Nwc.XmlRpc;
 using OpenSim.Framework.Console;
 
@@ -197,10 +198,30 @@ namespace OpenSim.Framework.UserManagement
             return (xmlRpcResponse);
         } // GenerateResponse
 
+        public LLSD GenerateFailureResponseLLSD(string reason, string message, string login)
+        {
+            LLSDMap map = new LLSDMap();
+
+            // Ensure Login Failed message/reason;
+            ErrorMessage = message;
+            ErrorReason = reason;
+
+            map["reason"] = LLSD.FromString(ErrorReason);
+            map["message"] = LLSD.FromString(ErrorMessage);
+            map["login"] = LLSD.FromString(login);
+
+            return map;
+        }
+
         public XmlRpcResponse CreateFailedResponse()
         {
             return (CreateLoginFailedResponse());
         } // CreateErrorConnectingToGridResponse()
+
+        public LLSD CreateFailedResponseLLSD()
+        {
+            return CreateLoginFailedResponseLLSD();
+        }
 
         public XmlRpcResponse CreateLoginFailedResponse()
         {
@@ -210,6 +231,14 @@ namespace OpenSim.Framework.UserManagement
                                          "false"));
         } // LoginFailedResponse
 
+        public LLSD CreateLoginFailedResponseLLSD()
+        {
+            return GenerateFailureResponseLLSD(
+                "key",
+                "Could not authenticate your avatar. Please check your username and password, and check the grid if problems persist.",
+                "false");
+        }
+
         public XmlRpcResponse CreateAlreadyLoggedInResponse()
         {
             return
@@ -217,6 +246,14 @@ namespace OpenSim.Framework.UserManagement
                                          "You appear to be already logged in, if this is not the case please wait for your session to timeout, if this takes longer than a few minutes please contact the grid owner",
                                          "false"));
         } // CreateAlreadyLoggedInResponse()
+
+        public LLSD CreateAlreadyLoggedInResponseLLSD()
+        {
+            return GenerateFailureResponseLLSD(
+                "presence",
+                "You appear to be already logged in, if this is not the case please wait for your session to timeout, if this takes longer than a few minutes please contact the grid owner",
+                "false");
+        }
 
         public XmlRpcResponse CreateDeadRegionResponse()
         {
@@ -226,12 +263,28 @@ namespace OpenSim.Framework.UserManagement
                                          "false"));
         }
 
+        public LLSD CreateDeadRegionResponseLLSD()
+        {
+            return GenerateFailureResponseLLSD(
+                "key",
+                "The region you are attempting to log into is not responding. Please select another region and try again.",
+                "false");
+        }
+
         public XmlRpcResponse CreateGridErrorResponse()
         {
             return
                 (GenerateFailureResponse("key",
                                          "Error connecting to grid. Could not percieve credentials from login XML.",
                                          "false"));
+        }
+
+        public LLSD CreateGridErrorResponseLLSD()
+        {
+            return GenerateFailureResponseLLSD(
+                "key",
+                "Error connecting to grid. Could not percieve credentials from login XML.",
+                "false");
         }
 
         #endregion
@@ -316,6 +369,112 @@ namespace OpenSim.Framework.UserManagement
                 return (GenerateFailureResponse("Internal Error", "Error generating Login Response", "false"));
             }
         } // ToXmlRpcResponse
+
+        public LLSD ToLLSDResponse()
+        {
+            try
+            {
+                LLSDMap map = new LLSDMap();
+
+                map["first_name"] = LLSD.FromString(Firstname);
+                map["last_name"] = LLSD.FromString(Lastname);
+                map["agent_access"] = LLSD.FromString(agentAccess);
+
+                map["sim_port"] = LLSD.FromInteger(SimPort);
+                map["sim_ip"] = LLSD.FromString(SimAddress);
+
+                map["agent_id"] = LLSD.FromUUID(AgentID);
+                map["session_id"] = LLSD.FromUUID(SessionID);
+                map["secure_session_id"] = LLSD.FromUUID(SecureSessionID);
+                map["circuit_code"] = LLSD.FromInteger(CircuitCode);
+                map["seconds_since_epoch"] = LLSD.FromInteger((int)(DateTime.UtcNow - new DateTime(1970, 1, 1)).TotalSeconds);
+
+                #region Login Flags
+
+                LLSDMap loginFlagsLLSD = new LLSDMap();
+                loginFlagsLLSD["daylight_savings"] = LLSD.FromString(DST);
+                loginFlagsLLSD["stipend_since_login"] = LLSD.FromString(StipendSinceLogin);
+                loginFlagsLLSD["gendered"] = LLSD.FromString(Gendered);
+                loginFlagsLLSD["ever_logged_in"] = LLSD.FromString(EverLoggedIn);
+                map["login-flags"] = WrapLLSDMap(loginFlagsLLSD);
+
+                #endregion Login Flags
+
+                #region Global Textures
+
+                LLSDMap globalTexturesLLSD = new LLSDMap();
+                globalTexturesLLSD["sun_texture_id"] = LLSD.FromString(SunTexture);
+                globalTexturesLLSD["cloud_texture_id"] = LLSD.FromString(CloudTexture);
+                globalTexturesLLSD["moon_texture_id"] = LLSD.FromString(MoonTexture);
+
+                map["global-textures"] = WrapLLSDMap(globalTexturesLLSD);
+
+                #endregion Global Textures
+
+                map["seed_capability"] = LLSD.FromString(seedCapability);
+
+                // FIXME: Need a function that will convert these ArrayLists in to LLSDArrays,
+                // and convert the data inside them to LLSD objects as well
+
+                //map["event_categories"] = eventCategories;
+                //map["event_notifications"] = new LLSDArray(); // todo
+                //map["classified_categories"] = classifiedCategories;
+
+                #region UI Config
+
+                LLSDMap uiConfigLLSD = new LLSDMap();
+                uiConfigLLSD["allow_first_life"] = LLSD.FromString(allowFirstLife);
+                map["ui-config"] = WrapLLSDMap(uiConfigLLSD);
+
+                #endregion UI Config
+
+                #region Inventory
+
+                //map["inventory-skeleton"] = agentInventory;
+                //map["inventory-skel-lib"] = inventoryLibrary;
+                //map["inventory-root"] = inventoryRoot;
+                //map["inventory-lib-root"] = inventoryLibRoot;
+                //map["inventory-lib-owner"] = inventoryLibraryOwner;
+
+                #endregion Inventory
+
+                map["gestures"] = new LLSDArray(); // todo
+
+                //responseData["initial-outfit"] = initialOutfit;
+                //responseData["start_location"] = startLocation;
+
+                map["seed_capability"] = LLSD.FromString(seedCapability);
+                map["home"] = LLSD.FromString(home);
+                map["look_at"] = LLSD.FromString(lookAt);
+                map["message"] = LLSD.FromString(welcomeMessage);
+                map["region_x"] = LLSD.FromInteger(RegionX * 256);
+                map["region_y"] = LLSD.FromInteger(RegionY * 256);
+
+                if (m_buddyList != null)
+                {
+                    //map["buddy-list"] = m_buddyList.ToArray();
+                }
+
+                map["login"] = LLSD.FromString("true");
+
+                return map;
+            }
+            catch (Exception e)
+            {
+                MainLog.Instance.Warn(
+                    "CLIENT",
+                    "LoginResponse: Error creating XML-RPC Response: " + e.Message
+                    );
+                return GenerateFailureResponseLLSD("Internal Error", "Error generating Login Response", "false");
+            }
+        }
+
+        private LLSDArray WrapLLSDMap(LLSDMap wrapMe)
+        {
+            LLSDArray array = new LLSDArray();
+            array.Add(wrapMe);
+            return array;
+        }
 
         public void SetEventCategories(string category, string value)
         {

@@ -312,6 +312,7 @@ namespace OpenSim
                 m_loginService.OnLoginToRegion += backendService.AddNewSession;
 
                 m_httpServer.AddXmlRPCHandler("login_to_simulator", m_loginService.XmlRpcLoginMethod);
+                m_httpServer.SetLLSDHandler(m_loginService.LLSDLoginMethod);
 
                 if (m_standaloneAuthenticate)
                 {
