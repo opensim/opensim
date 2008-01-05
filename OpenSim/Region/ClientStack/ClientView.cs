@@ -3476,11 +3476,11 @@ namespace OpenSim.Region.ClientStack
                         // Send the client the ping response back
                         // Pass the same PingID in the matching packet
                         // Handled In the packet processing
-                        MainLog.Instance.Debug("CLIENT", "possibly unhandled StartPingCheck packet");
+                        //MainLog.Instance.Debug("CLIENT", "possibly unhandled StartPingCheck packet");
                         break;
                     case PacketType.CompletePingCheck:
                         // TODO: Perhaps this should be processed on the Sim to determine whether or not to drop a dead client
-                        MainLog.Instance.Warn("CLIENT", "unhandled CompletePingCheck packet");
+                        //MainLog.Instance.Warn("CLIENT", "unhandled CompletePingCheck packet");
                         break;
                     case PacketType.ObjectScale:
                         // TODO: handle this packet
@@ -3530,7 +3530,7 @@ namespace OpenSim.Region.ClientStack
                         break;
                     case PacketType.UseCircuitCode:
                         // TODO: handle this packet
-                        MainLog.Instance.Warn("CLIENT", "unhandled UseCircuitCode packet");
+                        //MainLog.Instance.Warn("CLIENT", "unhandled UseCircuitCode packet");
                         break;
                     case PacketType.EconomyDataRequest:
                         // TODO: handle this packet

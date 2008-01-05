@@ -1406,7 +1406,10 @@ namespace OpenSim.Region.Environment.Scenes
                                     "http://" + m_regInfo.ExternalHostName + ":" + httpListener.Port.ToString() +
                                     "/CAPS/" + agent.CapsPath + "0000/");
                     cap.RegisterHandlers();
-
+                    if (agent.child)
+                    {
+                    
+                    }
                     cap.AddNewInventoryItem = AddInventoryItem;
                     cap.ItemUpdatedCall = CapsUpdateInventoryItemAsset;
                     cap.TaskScriptUpdatedCall = CapsUpdateTaskInventoryScriptAsset;
