@@ -949,10 +949,13 @@ namespace OpenSim.Region.ClientStack
 
             Encoding enc = Encoding.ASCII;
             uint FULL_MASK_PERMISSIONS = 2147483647;
+            InventoryDescendentsPacket descend;
+            int i;
+            int count;
 
             if (fetchItems)
             {
-                InventoryDescendentsPacket descend = CreateInventoryDescendentsPacket(ownerID, folderID);
+                descend = CreateInventoryDescendentsPacket(ownerID, folderID);
 
                 if (items.Count < MAX_ITEMS_PER_PACKET)
                 {
@@ -974,8 +977,8 @@ namespace OpenSim.Region.ClientStack
                     descend.AgentData.Descendents += folders.Count;
                 }
 
-                int count = 0;
-                int i = 0;
+                count = 0;
+                i = 0;
                 foreach (InventoryItemBase item in items)
                 {
                     descend.ItemData[i] = new InventoryDescendentsPacket.ItemDataBlock();
@@ -990,14 +993,14 @@ namespace OpenSim.Region.ClientStack
                     descend.ItemData[i].FolderID = item.parentFolderID;
                     descend.ItemData[i].GroupID = new LLUUID("00000000-0000-0000-0000-000000000000");
                     descend.ItemData[i].GroupMask = 0;
-                    descend.ItemData[i].InvType = (sbyte) item.invType;
+                    descend.ItemData[i].InvType = (sbyte)item.invType;
                     descend.ItemData[i].Name = Helpers.StringToField(item.inventoryName);
                     descend.ItemData[i].NextOwnerMask = item.inventoryNextPermissions;
                     descend.ItemData[i].OwnerID = item.avatarID;
                     descend.ItemData[i].OwnerMask = item.inventoryCurrentPermissions;
                     descend.ItemData[i].SalePrice = 0;
                     descend.ItemData[i].SaleType = 0;
-                    descend.ItemData[i].Type = (sbyte) item.assetType;
+                    descend.ItemData[i].Type = (sbyte)item.assetType;
                     descend.ItemData[i].CRC =
                         Helpers.InventoryCRC(descend.ItemData[i].CreationDate, descend.ItemData[i].SaleType,
                                              descend.ItemData[i].InvType, descend.ItemData[i].Type,
@@ -1040,69 +1043,68 @@ namespace OpenSim.Region.ClientStack
             }
 
             //send subfolders
-            if (fetchFolders)
+
+            descend = CreateInventoryDescendentsPacket(ownerID, folderID);
+
+            if (folders.Count < MAX_ITEMS_PER_PACKET)
             {
-                InventoryDescendentsPacket descend = CreateInventoryDescendentsPacket(ownerID, folderID);
+                descend.FolderData = new InventoryDescendentsPacket.FolderDataBlock[folders.Count];
+                descend.AgentData.Descendents = folders.Count;
+            }
+            else
+            {
+                descend.FolderData = new InventoryDescendentsPacket.FolderDataBlock[MAX_ITEMS_PER_PACKET];
+                descend.AgentData.Descendents = MAX_ITEMS_PER_PACKET;
+            }
 
-                if (folders.Count < MAX_ITEMS_PER_PACKET)
-                {
-                    descend.FolderData = new InventoryDescendentsPacket.FolderDataBlock[folders.Count];
-                    descend.AgentData.Descendents = folders.Count;
-                }
-                else
-                {
-                    descend.FolderData = new InventoryDescendentsPacket.FolderDataBlock[MAX_ITEMS_PER_PACKET];
-                    descend.AgentData.Descendents = MAX_ITEMS_PER_PACKET;
-                }
+            // Not sure if this scenario ever actually occurs, but nonetheless we include the items
+            // count even if we're not sending item data for the same reasons as above.
+            if (!fetchItems)
+            {
+                descend.AgentData.Descendents += items.Count;
+            }
 
-                // Not sure if this scenario ever actually occurs, but nonetheless we include the items
-                // count even if we're not sending item data for the same reasons as above.
-                if (!fetchItems)
-                {
-                    descend.AgentData.Descendents += items.Count;
-                }
+            i = 0;
+            count = 0;
+            foreach (InventoryFolderBase folder in folders)
+            {
+                descend.FolderData[i] = new InventoryDescendentsPacket.FolderDataBlock();
+                descend.FolderData[i].FolderID = folder.folderID;
+                descend.FolderData[i].Name = Helpers.StringToField(folder.name);
+                descend.FolderData[i].ParentID = folder.parentID;
+                descend.FolderData[i].Type = (sbyte)folder.type;
 
-                int i = 0;
-                int count = 0;
-                foreach (InventoryFolderBase folder in folders)
-                {
-                    descend.FolderData[i] = new InventoryDescendentsPacket.FolderDataBlock();
-                    descend.FolderData[i].FolderID = folder.folderID;
-                    descend.FolderData[i].Name = Helpers.StringToField(folder.name);
-                    descend.FolderData[i].ParentID = folder.parentID;
-                    descend.FolderData[i].Type = (sbyte) folder.type;
-
-                    i++;
-                    count++;
-                    if (i == MAX_ITEMS_PER_PACKET)
-                    {
-                        OutPacket(descend, ThrottleOutPacketType.Asset);
-
-                        if ((folders.Count - count) > 0)
-                        {
-                            descend = CreateInventoryDescendentsPacket(ownerID, folderID);
-                            if ((folders.Count - count) < MAX_ITEMS_PER_PACKET)
-                            {
-                                descend.FolderData =
-                                    new InventoryDescendentsPacket.FolderDataBlock[folders.Count - count];
-                                descend.AgentData.Descendents = folders.Count - count;
-                            }
-                            else
-                            {
-                                descend.FolderData =
-                                    new InventoryDescendentsPacket.FolderDataBlock[MAX_ITEMS_PER_PACKET];
-                                descend.AgentData.Descendents = MAX_ITEMS_PER_PACKET;
-                            }
-                            i = 0;
-                        }
-                    }
-                }
-
-                if (i < MAX_ITEMS_PER_PACKET)
+                i++;
+                count++;
+                if (i == MAX_ITEMS_PER_PACKET)
                 {
                     OutPacket(descend, ThrottleOutPacketType.Asset);
+
+                    if ((folders.Count - count) > 0)
+                    {
+                        descend = CreateInventoryDescendentsPacket(ownerID, folderID);
+                        if ((folders.Count - count) < MAX_ITEMS_PER_PACKET)
+                        {
+                            descend.FolderData =
+                                new InventoryDescendentsPacket.FolderDataBlock[folders.Count - count];
+                            descend.AgentData.Descendents = folders.Count - count;
+                        }
+                        else
+                        {
+                            descend.FolderData =
+                                new InventoryDescendentsPacket.FolderDataBlock[MAX_ITEMS_PER_PACKET];
+                            descend.AgentData.Descendents = MAX_ITEMS_PER_PACKET;
+                        }
+                        i = 0;
+                    }
                 }
             }
+
+            if (i < MAX_ITEMS_PER_PACKET)
+            {
+                OutPacket(descend, ThrottleOutPacketType.Asset);
+            }
+
         }
 
         private InventoryDescendentsPacket CreateInventoryDescendentsPacket(LLUUID ownerID, LLUUID folderID)
