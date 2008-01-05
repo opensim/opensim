@@ -121,8 +121,8 @@ namespace OpenSim.Region.Communications.OGS1
                 GridResp = GridReq.Send(serversInfo.GridURL, 10000);
             } catch (Exception ex)
             {
-                MainLog.Instance.Error("Unable to connect to grid (Grid server not running?): " + ex.ToString());
-                return null; 
+                MainLog.Instance.Error("Unable to connect to grid. Grid server not running?");
+                throw(ex);
             }
             Hashtable GridRespData = (Hashtable)GridResp.Value;
             Hashtable griddatahash = GridRespData;

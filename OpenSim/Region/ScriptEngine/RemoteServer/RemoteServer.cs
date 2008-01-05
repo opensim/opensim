@@ -4,6 +4,7 @@ using System.Text;
 using System.Runtime.Remoting;
 using System.Runtime.Remoting.Channels;
 using System.Runtime.Remoting.Channels.Tcp;
+using OpenSim.Region.ScriptEngine.Common;
 
 namespace OpenSim.Region.ScriptEngine.RemoteServer
 {
@@ -12,7 +13,7 @@ namespace OpenSim.Region.ScriptEngine.RemoteServer
         // Handles connections to servers
         // Create and returns server object
 
-        public OpenSim.Grid.ScriptServer.RemotingObject Connect(string hostname, int port)
+        public ScriptServerInterfaces.ServerRemotingObject Connect(string hostname, int port)
         {
             // Create a channel for communicating w/ the remote object
             // Notice no port is specified on the client
@@ -29,8 +30,8 @@ namespace OpenSim.Region.ScriptEngine.RemoteServer
             {
 
                 // Create an instance of the remote object
-                OpenSim.Grid.ScriptServer.RemotingObject obj = (OpenSim.Grid.ScriptServer.RemotingObject)Activator.GetObject(
-                    typeof(OpenSim.Grid.ScriptServer.RemotingObject),
+                ScriptServerInterfaces.ServerRemotingObject obj = (ScriptServerInterfaces.ServerRemotingObject)Activator.GetObject(
+                    typeof(ScriptServerInterfaces.ServerRemotingObject),
                     "tcp://" + hostname + ":" + port + "/DotNetEngine");
 
                 // Use the object

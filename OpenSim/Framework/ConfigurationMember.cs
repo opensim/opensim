@@ -147,8 +147,15 @@ namespace OpenSim.Framework
             checkAndAddConfigOption(configOption);
         }
 
+
+        // TEMP - REMOVE
+        private int cE = 0;
         public void performConfigurationRetrieve()
         {
+            if (cE > 1)
+                MainLog.Instance.Error("READING CONFIGURATION COUT: " + cE.ToString());
+
+
             configurationPlugin = LoadConfigDll(configurationPluginFilename);
             configurationOptions.Clear();
             if (loadFunction == null)

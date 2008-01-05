@@ -36,7 +36,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
     /// Prepares events so they can be directly executed upon a script by EventQueueManager, then queues it.
     /// </summary>
     [Serializable]
-    public class EventManager
+    public class EventManager : OpenSim.Region.ScriptEngine.Common.ScriptServerInterfaces.RemoteEvents
     {
 
         //

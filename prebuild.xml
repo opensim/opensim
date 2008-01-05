@@ -1140,6 +1140,8 @@
       <Reference name="System" localCopy="false"/>
       <Reference name="System.Data" localCopy="false"/>
       <Reference name="System.Xml" localCopy="false"/>
+      <Reference name="libsecondlife.dll"/>
+      <Reference name="OpenSim.Framework"/>
       <Files>
         <Match pattern="*.cs" recurse="true"/>
       </Files>
@@ -1195,7 +1197,7 @@
       </Configuration>
 
       <ReferencePath>../../../bin/</ReferencePath>
-      <ReferencePath>../../../bin/ScriptEngines/</ReferencePath> 
+      <ReferencePath>../../../bin/ScriptEngines/</ReferencePath>
       <Reference name="System" localCopy="false"/>
       <Reference name="System.Data" localCopy="false"/>
       <Reference name="System.Runtime.Remoting" localCopy="false"/>
@@ -1206,13 +1208,6 @@
       <Reference name="OpenSim.Framework.Servers"/>
       <Reference name="OpenSim.Framework.Data"/>
       <Reference name="OpenSim.Region.Environment"/>
-
-      <!-- Explicit path since without it, the generated .build file does not correctly reference
-           the DotNetEngine assembly in bin/ScriptEngines (instead looking in simply bin/)
-           despite the bin/ScriptEngines reference path.  Hardcoding is not a permanent solution and
-           may cause some warnings in Visual Studio -->
-      <Reference name="../../../bin/ScriptEngines/OpenSim.Region.ScriptEngine.DotNetEngine"/>
-
       <Reference name="OpenSim.Region.ScriptEngine.Common"/>
       <Reference name="libsecondlife.dll"/>
       <Reference name="Axiom.MathLib.dll" localCopy="false"/>
@@ -1223,6 +1218,7 @@
       </Files>
     </Project>
 
+    
     <Project name="OpenSim.Region.ScriptEngine.RemoteServer" path="OpenSim/Region/ScriptEngine/RemoteServer" type="Library">
       <Configuration name="Debug">
         <Options>
@@ -1243,21 +1239,13 @@
       <Reference name="System.Runtime.Remoting" localCopy="false"/>
       <Reference name="OpenSim.Region.Environment" />
       <Reference name="libsecondlife.dll"/>
-      <Reference name="RAIL.dll"/>
       <Reference name="OpenSim.Framework"/>
       <Reference name="OpenSim.Framework.Console"/>
       <Reference name="OpenSim.Region.ScriptEngine.Common"/>
-      <Reference name="OpenSim.Region.Terrain.BasicTerrain"/>
-      <Reference name="OpenSim.Grid.ScriptServer"/>
-
-      <!-- Explicit path since without it, the generated .build file does not correctly reference
-           the DotNetEngine assembly in bin/ScriptEngines (instead looking in simply bin/)
-           despite the bin/ScriptEngines reference path.  Hardcoding is not a permanent solution and
-           may cause some warnings in Visual Studio -->
-      <Reference name="../../../../bin/ScriptEngines/OpenSim.Region.ScriptEngine.DotNetEngine"/>
-
-      <Reference name="Axiom.MathLib.dll" localCopy="false"/>
+      <Reference name="OpenSim.Region.ScriptEngine.DotNetEngine"/>
       <Reference name="Nini.dll" />
+      <!-- Reference name="OpenSim.Grid.ScriptServer"/ -->
+
       <Files>
         <Match pattern="*.cs" recurse="true"/>
       </Files>

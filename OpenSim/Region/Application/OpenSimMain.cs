@@ -331,8 +331,9 @@ namespace OpenSim
             MainLog.Instance.Verbose("PLUGINS", "Loading {0} OpenSim application plugins", nodes.Count);
             
             foreach (TypeExtensionNode node in nodes)
-            {                    
-                IApplicationPlugin plugin = (IApplicationPlugin) node.CreateInstance();
+            {
+                MainLog.Instance.Verbose("PLUGINS", "Loading OpenSim application plugin: ", node.GetType().AssemblyQualifiedName.ToString());
+                IApplicationPlugin plugin = (IApplicationPlugin)node.CreateInstance();
                 
                 plugin.Initialise(this);
                 m_plugins.Add(plugin);
@@ -375,7 +376,10 @@ namespace OpenSim
 
             m_moduleLoader.PickupModules(scene, ".");
             //m_moduleLoader.PickupModules(scene, "ScriptEngines");
+            //m_moduleLoader.LoadRegionModules(Path.Combine("ScriptEngines", m_scriptEngine), scene);
+            MainLog.Instance.Verbose("MODULES", "Loading scripting engine modules");
             m_moduleLoader.LoadRegionModules(Path.Combine("ScriptEngines", m_scriptEngine), scene);
+        
             
 
             m_moduleLoader.InitialiseSharedModules(scene);

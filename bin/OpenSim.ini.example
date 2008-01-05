@@ -44,7 +44,7 @@ verbose = true
 ; ScriptEngine
 script_engine = OpenSim.Region.ScriptEngine.DotNetEngine.dll
 ;Experimental remote ScriptServer plugin:
-;script_engine = OpenSim.Region.ScriptEngine.RemoteEngine.dll
+;script_engine = OpenSim.Region.ScriptEngine.RemoteServer.dll
 
 
 ; if you would like to allow prim to be physical and move by physics with the physical checkbox in the client set this to true.

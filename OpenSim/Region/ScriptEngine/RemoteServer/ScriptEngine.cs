@@ -92,7 +92,7 @@ namespace OpenSim.Region.ScriptEngine.RemoteServer
 
         public string Name
         {
-            get { return "LSLScriptingModule"; }
+            get { return "RemoteServerScriptingModule"; }
         }
 
         public bool IsSharedModule
