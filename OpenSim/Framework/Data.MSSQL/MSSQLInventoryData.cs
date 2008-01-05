@@ -475,7 +475,7 @@ namespace OpenSim.Framework.Data.MSSQL
                                                 "creatorID = @creatorID" +
                                                 "inventoryBasePermissions = @inventoryBasePermissions" +
                                                 "inventoryEveryOnePermissions = @inventoryEveryOnePermissions) where " +
-                                                "invenoryID = @keyInventoryID;", database.getConnection());
+                                                "inventoryID = @keyInventoryID;", database.getConnection());
             SqlParameter param1 = new SqlParameter("@inventoryID", item.inventoryID.ToString());
             SqlParameter param2 = new SqlParameter("@assetID", item.assetID);
             SqlParameter param3 = new SqlParameter("@assetType", item.assetType);
