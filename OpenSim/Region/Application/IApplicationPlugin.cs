@@ -37,5 +37,6 @@ namespace OpenSim
     {
         void Initialise(OpenSimMain openSim);
         void Close();
+        string ModuleName();
     }
 }

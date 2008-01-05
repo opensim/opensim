@@ -294,14 +294,12 @@ namespace OpenSim
             m_log = CreateLog();
             MainLog.Instance = m_log;
 
-            MainLog.Instance.Verbose("STARTUP", "TEDD DEBUG #1");
             // Do baseclass startup sequence: OpenSim.Region.ClientStack.RegionApplicationBase.StartUp
             // TerrainManager, StorageManager, HTTP Server
             // This base will call abstract Initialize
             base.StartUp();
 
 
-            MainLog.Instance.Verbose("STARTUP", "TEDD DEBUG #2");
             // StandAlone mode? m_sandbox is determined by !startupConfig.GetBoolean("gridmode", false)
             if (m_sandbox)
             {
@@ -340,26 +338,21 @@ namespace OpenSim
                 m_httpServer.AddStreamHandler(new SimStatusHandler());
             }
 
-            MainLog.Instance.Verbose("STARTUP", "TEDD DEBUG #3");
             // Create a ModuleLoader instance
             m_moduleLoader = new ModuleLoader(m_log, m_config);
 
-            MainLog.Instance.Verbose("STARTUP", "TEDD DEBUG #4");
             ExtensionNodeList nodes = AddinManager.GetExtensionNodes("/OpenSim/Startup");
             MainLog.Instance.Verbose("PLUGINS", "Loading {0} OpenSim application plugins", nodes.Count);
-            MainLog.Instance.Verbose("STARTUP", "TEDD DEBUG #5");
 
-            int ctedd = 0;
+            int modcount = 0;
             foreach (TypeExtensionNode node in nodes)
             {
                 IApplicationPlugin plugin = (IApplicationPlugin)node.CreateInstance();
-                MainLog.Instance.Debug("PLUGINS", "Loading OpenSim application plugin: ", plugin.GetType().AssemblyQualifiedName.ToString());
+                MainLog.Instance.Debug("PLUGINS", "Loading OpenSim application plugin(" + modcount + "): ", plugin.ModuleName());
                 
                 plugin.Initialise(this);
                 m_plugins.Add(plugin);
-                MainLog.Instance.Verbose("STARTUP", "TEDD DEBUG #6: " + ++ctedd);
             }
-            MainLog.Instance.Verbose("STARTUP", "TEDD DEBUG #7");
 
             // Start UDP servers
             //for (int i = 0; i < m_udpServers.Count; i++)
