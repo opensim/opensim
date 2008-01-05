@@ -542,8 +542,8 @@ namespace OpenSim.Region.Physics.OdePlugin
                 {
                     m_lastUpdateSent = true;
                     base.RequestPhysicsterseUpdate();
-                    string primScenAvatarIn = _parent_scene.whichspaceamIin(_position);
-                    int[] arrayitem = _parent_scene.calculateSpaceArrayItemFromPos(_position);
+                    //string primScenAvatarIn = _parent_scene.whichspaceamIin(_position);
+                    //int[] arrayitem = _parent_scene.calculateSpaceArrayItemFromPos(_position);
                     //if (primScenAvatarIn == "0")
                     //{
                     //MainLog.Instance.Verbose("Physics", "Avatar " + m_name + " in space with no prim. Arr:':" + arrayitem[0].ToString() + "," + arrayitem[1].ToString());
