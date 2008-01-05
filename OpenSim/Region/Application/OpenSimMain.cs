@@ -348,7 +348,6 @@ namespace OpenSim
             foreach (TypeExtensionNode node in nodes)
             {
                 IApplicationPlugin plugin = (IApplicationPlugin)node.CreateInstance();
-                MainLog.Instance.Debug("PLUGINS", "Loading OpenSim application plugin(" + modcount + "): ", plugin.ModuleName());
                 
                 plugin.Initialise(this);
                 m_plugins.Add(plugin);
