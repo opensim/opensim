@@ -238,6 +238,11 @@ namespace OpenSim.DataStore.MonoSqlite
             Commit();
         }
 
+        /// <summary>
+        /// Load persisted objects from region storage.
+        /// </summary>
+        /// <param name="regionUUID"></param>
+        /// <returns></returns>
         public List<SceneObjectGroup> LoadObjects(LLUUID regionUUID)
         {
             Dictionary<LLUUID, SceneObjectGroup> createdObjects = new Dictionary<LLUUID, SceneObjectGroup>();
@@ -299,6 +304,9 @@ namespace OpenSim.DataStore.MonoSqlite
                             }
                             createdObjects[new LLUUID(objID)].AddPart(prim);
                         }
+
+                        // Add inventory restore code here, probably in a separate method.
+
                     }
                     catch (Exception e)
                     {
@@ -314,6 +322,29 @@ namespace OpenSim.DataStore.MonoSqlite
             return retvals;
         }
 
+        /// <summary>
+        /// Load in a prim's persisted inventory.
+        /// </summary>
+        /// <param name="prim"></param>
+        /*
+        private void LoadPrimInventory(SceneObjectPart prim)
+        {
+            String sql = String.Format("primID = '{0}'", primID);            
+            DataRow[] dbItemRows = dbItems.Select(sql);
+            
+            DataRow shapeRow = shapes.Rows.Find(Util.ToRawUuidString(prim.UUID));
+                            if (shapeRow != null)
+                            {
+                                prim.Shape = buildShape(shapeRow);
+                            }
+                            else
+                            {
+                                MainLog.Instance.Notice(
+                                    "No shape found for prim in storage, so setting default box shape");
+                                prim.Shape = PrimitiveBaseShape.Default;
+                            }            
+        }
+        */
 
         public void StoreTerrain(double[,] ter, LLUUID regionID)
         {
@@ -499,7 +530,12 @@ namespace OpenSim.DataStore.MonoSqlite
             {
                 primDa.Update(ds, "prims");
                 shapeDa.Update(ds, "primshapes");
-                itemsDa.Update(ds, "primitems");
+                
+                if (persistPrimInventories)
+                {
+                    itemsDa.Update(ds, "primitems");
+                }
+                
                 terrainDa.Update(ds, "terrain");
                 landDa.Update(ds, "land");
                 landAccessListDa.Update(ds, "landaccesslist");
