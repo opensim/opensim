@@ -344,7 +344,6 @@ namespace OpenSim
             ExtensionNodeList nodes = AddinManager.GetExtensionNodes("/OpenSim/Startup");
             MainLog.Instance.Verbose("PLUGINS", "Loading {0} OpenSim application plugins", nodes.Count);
 
-            int modcount = 0;
             foreach (TypeExtensionNode node in nodes)
             {
                 IApplicationPlugin plugin = (IApplicationPlugin)node.CreateInstance();

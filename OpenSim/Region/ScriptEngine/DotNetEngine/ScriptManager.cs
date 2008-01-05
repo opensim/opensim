@@ -63,20 +63,23 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
 
         private Thread scriptLoadUnloadThread;
         private int scriptLoadUnloadThread_IdleSleepms = 100;
-        private Queue<LoadStruct> loadQueue = new Queue<LoadStruct>();
-        private Queue<UnloadStruct> unloadQueue = new Queue<UnloadStruct>();
+        private Queue<LUStruct> LUQueue = new Queue<LUStruct>();
+        
 
-        private struct LoadStruct
+        // Load/Unload structure
+        private struct LUStruct
         {
             public uint localID;
             public LLUUID itemID;
             public string script;
+            public LUType Action;
         }
 
-        private struct UnloadStruct
+        private enum LUType
         {
-            public uint localID;
-            public LLUUID itemID;
+            Unknown = 0,
+            Load = 1,
+            Unload = 2
         }
 
         // Object<string, Script<string, script>>
@@ -136,17 +139,15 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
             {
                 while (true)
                 {
-                    if (loadQueue.Count == 0 && unloadQueue.Count == 0)
+                    if (LUQueue.Count == 0)
                         Thread.Sleep(scriptLoadUnloadThread_IdleSleepms);
-                    if (unloadQueue.Count > 0)
+                    if (LUQueue.Count > 0)
                     {
-                        UnloadStruct item = unloadQueue.Dequeue();
-                        _StopScript(item.localID, item.itemID);
-                    }
-                    if (loadQueue.Count > 0)
-                    {
-                        LoadStruct item = loadQueue.Dequeue();
-                        _StartScript(item.localID, item.itemID, item.script);
+                        LUStruct item = LUQueue.Dequeue();
+                        if (item.Action == LUType.Unload) 
+                            _StopScript(item.localID, item.itemID);
+                        if (item.Action == LUType.Load) 
+                            _StartScript(item.localID, item.itemID, item.script);
                     }
                 }
             }
@@ -244,11 +245,12 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
         /// <param name="localID"></param>
         public void StartScript(uint localID, LLUUID itemID, string Script)
         {
-            LoadStruct ls = new LoadStruct();
+            LUStruct ls = new LUStruct();
             ls.localID = localID;
             ls.itemID = itemID;
             ls.script = Script;
-            loadQueue.Enqueue(ls);
+            ls.Action = LUType.Load;
+            LUQueue.Enqueue(ls);
         }
 
         /// <summary>
@@ -258,10 +260,11 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
         /// <param name="itemID"></param>
         public void StopScript(uint localID, LLUUID itemID)
         {
-            UnloadStruct ls = new UnloadStruct();
+            LUStruct ls = new LUStruct();
             ls.localID = localID;
             ls.itemID = itemID;
-            unloadQueue.Enqueue(ls);
+            ls.Action = LUType.Unload;
+            LUQueue.Enqueue(ls);
         }
 
         public void ResetScript(uint localID, LLUUID itemID)
