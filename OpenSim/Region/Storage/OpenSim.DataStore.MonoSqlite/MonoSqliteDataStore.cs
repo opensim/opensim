@@ -121,6 +121,7 @@ namespace OpenSim.DataStore.MonoSqlite
                 {
                     ds.Tables.Add(createItemsTable());
                     setupItemsCommands(itemsDa, conn);
+                    itemsDa.Fill(ds.Tables["primitems"]);
                 }
 
                 ds.Tables.Add(createTerrainTable());
@@ -265,12 +266,14 @@ namespace OpenSim.DataStore.MonoSqlite
                 {
                     try
                     {
+                        SceneObjectPart prim = null;
+                            
                         string uuid = (string) primRow["UUID"];
                         string objID = (string) primRow["SceneGroupID"];
                         if (uuid == objID) //is new SceneObjectGroup ?
                         {
                             SceneObjectGroup group = new SceneObjectGroup();
-                            SceneObjectPart prim = buildPrim(primRow);
+                            prim = buildPrim(primRow);
                             DataRow shapeRow = shapes.Rows.Find(Util.ToRawUuidString(prim.UUID));
                             if (shapeRow != null)
                             {
@@ -290,7 +293,7 @@ namespace OpenSim.DataStore.MonoSqlite
                         }
                         else
                         {
-                            SceneObjectPart prim = buildPrim(primRow);
+                            prim = buildPrim(primRow);
                             DataRow shapeRow = shapes.Rows.Find(Util.ToRawUuidString(prim.UUID));
                             if (shapeRow != null)
                             {
@@ -305,8 +308,10 @@ namespace OpenSim.DataStore.MonoSqlite
                             createdObjects[new LLUUID(objID)].AddPart(prim);
                         }
 
-                        // Add inventory restore code here, probably in a separate method.
-
+                        if (persistPrimInventories)
+                        {
+                            LoadItems(prim);
+                        }
                     }
                     catch (Exception e)
                     {
@@ -326,25 +331,28 @@ namespace OpenSim.DataStore.MonoSqlite
         /// Load in a prim's persisted inventory.
         /// </summary>
         /// <param name="prim"></param>
-        /*
-        private void LoadPrimInventory(SceneObjectPart prim)
+        private void LoadItems(SceneObjectPart prim)
         {
-            String sql = String.Format("primID = '{0}'", primID);            
+            MainLog.Instance.Verbose("DATASTORE", "Loading inventory for {0}, {1}", prim.Name, prim.UUID);
+            
+            DataTable dbItems = ds.Tables["primitems"];
+            
+            String sql = String.Format("primID = '{0}'", prim.UUID.ToString());            
             DataRow[] dbItemRows = dbItems.Select(sql);
             
-            DataRow shapeRow = shapes.Rows.Find(Util.ToRawUuidString(prim.UUID));
-                            if (shapeRow != null)
-                            {
-                                prim.Shape = buildShape(shapeRow);
-                            }
-                            else
-                            {
-                                MainLog.Instance.Notice(
-                                    "No shape found for prim in storage, so setting default box shape");
-                                prim.Shape = PrimitiveBaseShape.Default;
-                            }            
+            IDictionary<LLUUID, SceneObjectPart.TaskInventoryItem> inventory
+                = new Dictionary<LLUUID, SceneObjectPart.TaskInventoryItem>();
+            
+            foreach (DataRow row in dbItemRows)
+            {
+                SceneObjectPart.TaskInventoryItem item = buildItem(row);
+                inventory.Add(item.item_id, item);
+                
+                MainLog.Instance.Verbose("DATASTORE", "Restored item {0}, {1}", item.name, item.item_id); 
+            }
+            
+            prim.TaskInventory = inventory;            
         }
-        */
 
         public void StoreTerrain(double[,] ter, LLUUID regionID)
         {
@@ -699,11 +707,11 @@ namespace OpenSim.DataStore.MonoSqlite
             createCol(items, "lastOwnerID", typeof (String));
             createCol(items, "groupID", typeof (String));
 
-            createCol(items, "nextPermissions", typeof (Int32));
-            createCol(items, "currentPermissions", typeof (Int32));
-            createCol(items, "basePermissions", typeof (Int32));
-            createCol(items, "everyonePermissions", typeof (Int32));
-            createCol(items, "groupPermissions", typeof (Int32));
+            createCol(items, "nextPermissions", typeof (UInt32));
+            createCol(items, "currentPermissions", typeof (UInt32));
+            createCol(items, "basePermissions", typeof (UInt32));
+            createCol(items, "everyonePermissions", typeof (UInt32));
+            createCol(items, "groupPermissions", typeof (UInt32));
 
             items.PrimaryKey = new DataColumn[] {items.Columns["itemID"]};
 
@@ -876,6 +884,40 @@ namespace OpenSim.DataStore.MonoSqlite
             }
 
             return prim;
+        }
+        
+        /// <summary>
+        /// Build a prim inventory item from the persisted data.
+        /// </summary>
+        /// <param name="row"></param>
+        /// <returns></returns>
+        private SceneObjectPart.TaskInventoryItem buildItem(DataRow row)
+        {
+            SceneObjectPart.TaskInventoryItem taskItem = new SceneObjectPart.TaskInventoryItem();
+            
+            taskItem.item_id         = new LLUUID((String)row["itemID"]); 
+            taskItem.ParentPartID    = new LLUUID((String)row["primID"]);
+            taskItem.asset_id        = new LLUUID((String)row["assetID"]);
+            taskItem.parent_id       = new LLUUID((String)row["parentFolderID"]);
+            
+            taskItem.inv_type        = (String)row["invType"];
+            taskItem.type            = (String)row["assetType"];
+            
+            taskItem.name            = (String)row["name"];
+            taskItem.desc            = (String)row["description"];
+            taskItem.creation_date   = Convert.ToUInt32(row["creationDate"]);
+            taskItem.creator_id      = new LLUUID((String)row["creatorID"]);
+            taskItem.owner_id        = new LLUUID((String)row["ownerID"]);
+            taskItem.last_owner_id   = new LLUUID((String)row["lastOwnerID"]);
+            taskItem.group_id        = new LLUUID((String)row["groupID"]);
+            
+            taskItem.next_owner_mask = Convert.ToUInt32(row["nextPermissions"]);
+            taskItem.owner_mask      = Convert.ToUInt32(row["currentPermissions"]);
+            taskItem.base_mask       = Convert.ToUInt32(row["basePermissions"]);
+            taskItem.everyone_mask   = Convert.ToUInt32(row["everyonePermissions"]);
+            taskItem.group_mask      = Convert.ToUInt32(row["groupPermissions"]);
+            
+            return taskItem;
         }
 
         private LandData buildLandData(DataRow row)
@@ -1223,7 +1265,7 @@ namespace OpenSim.DataStore.MonoSqlite
         /// <param name="primID"></param>
         /// <param name="items"></param>
         /// <returns></returns>
-        private void addPrimInventory(LLUUID primID, Dictionary<LLUUID, SceneObjectPart.TaskInventoryItem> items)
+        private void addPrimInventory(LLUUID primID, IDictionary<LLUUID, SceneObjectPart.TaskInventoryItem> items)
         {
             MainLog.Instance.Verbose("DATASTORE", "Entered addPrimInventory with prim ID {0}", primID);
             

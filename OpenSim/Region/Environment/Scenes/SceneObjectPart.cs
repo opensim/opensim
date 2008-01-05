@@ -60,14 +60,21 @@ namespace OpenSim.Region.Environment.Scenes
 
         [XmlIgnore] public PhysicsActor PhysActor = null;
 
-        // Holds in memory prim inventory
-        protected Dictionary<LLUUID, TaskInventoryItem> m_taskInventory 
+        /// <summary>
+        /// Holds in memory prim inventory
+        /// </summary> 
+        protected IDictionary<LLUUID, TaskInventoryItem> m_taskInventory 
             = new Dictionary<LLUUID, TaskInventoryItem>();
         
         [XmlIgnore]
-        public Dictionary<LLUUID, TaskInventoryItem> TaskInventory
+        /// <summary>
+        /// Not really ideal to allow this to be set, but currently expedient for inserting a prim inventory
+        /// from persistence.
+        /// </summary>
+        public IDictionary<LLUUID, TaskInventoryItem> TaskInventory
         {
             get { return m_taskInventory; }
+            set { m_taskInventory = value; }
         }
         
         public LLUUID LastOwnerID;
