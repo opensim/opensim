@@ -52,6 +52,7 @@ namespace OpenSim.DataStore.MonoSqlite
         private DataSet ds;
         private SqliteDataAdapter primDa;
         private SqliteDataAdapter shapeDa;
+        private SqliteDataAdapter itemsDa;
         private SqliteDataAdapter terrainDa;
         private SqliteDataAdapter landDa;
         private SqliteDataAdapter landAccessListDa;
@@ -88,8 +89,11 @@ namespace OpenSim.DataStore.MonoSqlite
 
             SqliteCommand shapeSelectCmd = new SqliteCommand(shapeSelect, conn);
             shapeDa = new SqliteDataAdapter(shapeSelectCmd);
-            // SqliteCommandBuilder shapeCb = new SqliteCommandBuilder(shapeDa);
+            // SqliteCommandBuilder shapeCb = new SqliteCommandBuilder(shapeDa);      
 
+            SqliteCommand itemsSelectCmd = new SqliteCommand(itemsSelect, conn);
+            itemsDa = new SqliteDataAdapter(itemsSelectCmd);
+            
             SqliteCommand terrainSelectCmd = new SqliteCommand(terrainSelect, conn);
             terrainDa = new SqliteDataAdapter(terrainSelectCmd);
 
@@ -112,6 +116,12 @@ namespace OpenSim.DataStore.MonoSqlite
 
                 ds.Tables.Add(createShapeTable());
                 setupShapeCommands(shapeDa, conn);
+                
+                if (persistPrimInventories)
+                {
+                    ds.Tables.Add(createItemsTable());
+                    setupItemsCommands(itemsDa, conn);
+                }
 
                 ds.Tables.Add(createTerrainTable());
                 setupTerrainCommands(terrainDa, conn);
@@ -489,6 +499,7 @@ namespace OpenSim.DataStore.MonoSqlite
             {
                 primDa.Update(ds, "prims");
                 shapeDa.Update(ds, "primshapes");
+                itemsDa.Update(ds, "primitems");
                 terrainDa.Update(ds, "terrain");
                 landDa.Update(ds, "land");
                 landAccessListDa.Update(ds, "landaccesslist");
@@ -635,11 +646,13 @@ namespace OpenSim.DataStore.MonoSqlite
         {
             DataTable items = new DataTable("primitems");
 
-            createCol(items, "UUID", typeof (String));
-            createCol(items, "invType", typeof (Int32));
+            createCol(items, "itemID", typeof (String));
+            createCol(items, "primID", typeof (String));
             createCol(items, "assetID", typeof (String));
-            createCol(items, "assetType", typeof (Int32));
             createCol(items, "parentFolderID", typeof (String));
+            
+            createCol(items, "invType", typeof (String));            
+            createCol(items, "assetType", typeof (String));
 
             createCol(items, "name", typeof (String));
             createCol(items, "description", typeof (String));
@@ -656,7 +669,7 @@ namespace OpenSim.DataStore.MonoSqlite
             createCol(items, "everyonePermissions", typeof (Int32));
             createCol(items, "groupPermissions", typeof (Int32));
 
-            items.PrimaryKey = new DataColumn[] {items.Columns["UUID"]};
+            items.PrimaryKey = new DataColumn[] {items.Columns["itemID"]};
 
             return items;
         }
@@ -971,6 +984,30 @@ namespace OpenSim.DataStore.MonoSqlite
             row["SitTargetOrientY"] = sitTargetOrient.Y;
             row["SitTargetOrientZ"] = sitTargetOrient.Z;
         }
+        
+        private void fillItemRow(DataRow row, SceneObjectPart.TaskInventoryItem taskItem)
+        {
+            row["itemID"] = taskItem.item_id;
+            row["primID"] = taskItem.ParentPartID;
+            row["assetID"] = taskItem.asset_id;
+            row["parentFolderID"] = taskItem.parent_id;
+            
+            row["invType"] = taskItem.inv_type;
+            row["assetType"] = taskItem.type;
+            
+            row["name"] = taskItem.name;
+            row["description"] = taskItem.desc;
+            row["creationDate"] = taskItem.creation_date;
+            row["creatorID"] = taskItem.creator_id;
+            row["ownerID"] = taskItem.owner_id;
+            row["lastOwnerID"] = taskItem.last_owner_id;
+            row["groupID"] = taskItem.group_id;
+            row["nextPermissions"] = taskItem.next_owner_mask;
+            row["currentPermissions"] = taskItem.owner_mask;
+            row["basePermissions"] = taskItem.base_mask;
+            row["everyonePermissions"] = taskItem.everyone_mask;
+            row["groupPermissions"] = taskItem.group_mask;
+        }
 
         private void fillLandRow(DataRow row, LandData land, LLUUID regionUUID)
         {
@@ -1137,6 +1174,78 @@ namespace OpenSim.DataStore.MonoSqlite
             {
                 fillShapeRow(shapeRow, prim);
             }
+            
+            if (persistPrimInventories)
+            {
+                addPrimInventory(prim.UUID, prim.TaskInventory);
+            }
+        }
+        
+        /// <summary>
+        /// Persist prim inventory.  Deletes, updates and inserts rows.
+        /// </summary>
+        /// <param name="primID"></param>
+        /// <param name="items"></param>
+        /// <returns></returns>
+        private void addPrimInventory(LLUUID primID, Dictionary<LLUUID, SceneObjectPart.TaskInventoryItem> items)
+        {
+            MainLog.Instance.Verbose("DATASTORE", "Entered addPrimInventory with prim ID {0}", primID);
+            
+            // Find all existing inventory rows for this prim
+            DataTable dbItems = ds.Tables["primitems"];
+
+            String sql = String.Format("primID = '{0}'", primID);            
+            DataRow[] dbItemRows = dbItems.Select(sql);
+            
+            // Build structures for manipulation purposes
+            IDictionary<String, DataRow> dbItemsToRemove = new Dictionary<String, DataRow>();
+            ICollection<SceneObjectPart.TaskInventoryItem> itemsToAdd 
+                = new List<SceneObjectPart.TaskInventoryItem>();
+            
+            foreach (DataRow row in dbItemRows)
+            {
+                dbItemsToRemove.Add((String)row["itemID"], row);
+            }
+            
+            // Eliminate rows from the deletion set which already exist for this prim's inventory
+            // TODO Very temporary, need to take account of simple metadata changes soon
+            foreach (LLUUID itemId in items.Keys)
+            {
+                String rawItemId = itemId.ToString();
+                
+                if (dbItemsToRemove.ContainsKey(rawItemId))
+                {
+                    dbItemsToRemove.Remove(rawItemId);
+                }
+                else
+                {
+                    itemsToAdd.Add(items[itemId]);
+                }
+            }                        
+            
+            // Delete excess rows
+            foreach (DataRow row in dbItemsToRemove.Values)
+            {
+                MainLog.Instance.Verbose(
+                    "DATASTORE", 
+                    "Removing item {0}, {1} from prim ID {2}", 
+                    row["name"], row["itemID"], row["primID"]);
+                
+                row.Delete();
+            }
+            
+            // Insert items not already present 
+            foreach (SceneObjectPart.TaskInventoryItem newItem in itemsToAdd)
+            {
+                MainLog.Instance.Verbose(
+                    "DATASTORE", 
+                    "Adding item {0}, {1} to prim ID {1}", 
+                    newItem.name, newItem.item_id, newItem.ParentPartID);
+                
+                DataRow newItemRow = dbItems.NewRow();
+                fillItemRow(newItemRow, newItem);
+                dbItems.Rows.Add(newItemRow);                
+            }
         }
 
         /***********************************************************************
@@ -1263,6 +1372,20 @@ namespace OpenSim.DataStore.MonoSqlite
             param.SourceVersion = DataRowVersion.Current;
             return param;
         }
+        
+        private void setupItemsCommands(SqliteDataAdapter da, SqliteConnection conn)
+        {
+            da.InsertCommand = createInsertCommand("primitems", ds.Tables["primitems"]);
+            da.InsertCommand.Connection = conn;
+
+            da.UpdateCommand = createUpdateCommand("primitems", "itemID = :itemID", ds.Tables["primitems"]);
+            da.UpdateCommand.Connection = conn;
+
+            SqliteCommand delete = new SqliteCommand("delete from primitems where itemID = :itemID");
+            delete.Parameters.Add(createSqliteParameter("itemID", typeof (String)));
+            delete.Connection = conn;
+            da.DeleteCommand = delete;
+        }        
 
         private void setupPrimCommands(SqliteDataAdapter da, SqliteConnection conn)
         {
