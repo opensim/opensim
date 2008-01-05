@@ -134,9 +134,25 @@ namespace OpenSim.Grid.UserServer
 
                     tempMD5Passwd = Util.Md5Hash(Util.Md5Hash(tempMD5Passwd) + ":" + "");
 
-                    LLUUID userID = m_userManager.AddUserProfile(tempfirstname, templastname, tempMD5Passwd, regX, regY);
-                    RestObjectPoster.BeginPostObject<Guid>(m_userManager._config.InventoryUrl + "CreateInventory/",
-                                                           userID.UUID);
+                    LLUUID userID = new LLUUID();
+                    try
+                    {
+                        userID =
+                            m_userManager.AddUserProfile(tempfirstname, templastname, tempMD5Passwd, regX, regY);
+                    } catch (Exception ex)
+                    {
+                        m_console.Error("SERVER", "Error creating user: {0}", ex.ToString());
+                    }
+
+                    try
+                    {
+                        RestObjectPoster.BeginPostObject<Guid>(m_userManager._config.InventoryUrl + "CreateInventory/",
+                                                               userID.UUID);
+                    }
+                    catch (Exception ex)
+                    {
+                        m_console.Error("SERVER", "Error creating inventory for user: {0}", ex.ToString());
+                    }
                     m_lastCreatedUser = userID;
                     break;
             }
