@@ -28,9 +28,16 @@ Patches
 * Dalien
 * Darok
 
+LSL Devs
+
+* Alondria
+* CharlieO
+* Tedd
+
 Testers
 
 * Ckrinke
+* CharlieO (LSL)
 
 
 This software uses components from the following developers:
