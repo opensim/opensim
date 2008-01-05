@@ -113,10 +113,18 @@ namespace OpenSim.Region.Communications.OGS1
             SendParams.Add(GridParams);
 
             // Send Request
-            XmlRpcRequest GridReq = new XmlRpcRequest("simulator_login", SendParams);
-            XmlRpcResponse GridResp = GridReq.Send(serversInfo.GridURL, 10000);
-            Hashtable GridRespData = (Hashtable) GridResp.Value;
-
+            XmlRpcRequest GridReq;
+            XmlRpcResponse GridResp;
+            try
+            {
+                GridReq = new XmlRpcRequest("simulator_login", SendParams);
+                GridResp = GridReq.Send(serversInfo.GridURL, 10000);
+            } catch (Exception ex)
+            {
+                MainLog.Instance.Error("Unable to connect to grid (Grid server not running?): " + ex.ToString());
+                return null; 
+            }
+            Hashtable GridRespData = (Hashtable)GridResp.Value;
             Hashtable griddatahash = GridRespData;
 
             // Process Response
