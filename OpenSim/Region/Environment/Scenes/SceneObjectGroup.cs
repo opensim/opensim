@@ -1178,15 +1178,15 @@ namespace OpenSim.Region.Environment.Scenes
             SceneObjectPart part = GetChildPart(localID);
             if (part != null)
             {
-                SceneObjectPart.TaskInventoryItem taskItem = new SceneObjectPart.TaskInventoryItem();
+                TaskInventoryItem taskItem = new TaskInventoryItem();
                 taskItem.item_id = item.inventoryID;
                 taskItem.asset_id = item.assetID;
                 taskItem.name = item.inventoryName;
                 taskItem.desc = item.inventoryDescription;
                 taskItem.owner_id = item.avatarID;
                 taskItem.creator_id = item.creatorsID;
-                taskItem.type = SceneObjectPart.TaskInventoryItem.Types[item.assetType];
-                taskItem.inv_type = SceneObjectPart.TaskInventoryItem.Types[item.invType];
+                taskItem.type = TaskInventoryItem.Types[item.assetType];
+                taskItem.inv_type = TaskInventoryItem.Types[item.invType];
                 part.AddInventoryItem(taskItem);
                 return true;
             }
@@ -1200,15 +1200,15 @@ namespace OpenSim.Region.Environment.Scenes
                 SceneObjectPart part = GetChildPart(localID);
                 if (part != null)
                 {
-                    SceneObjectPart.TaskInventoryItem taskItem = new SceneObjectPart.TaskInventoryItem();
+                    TaskInventoryItem taskItem = new TaskInventoryItem();
                     taskItem.item_id = copyItemID;
                     taskItem.asset_id = item.assetID;
                     taskItem.name = item.inventoryName;
                     taskItem.desc = item.inventoryDescription;
                     taskItem.owner_id = new LLUUID(item.avatarID.ToString());
                     taskItem.creator_id = new LLUUID(item.creatorsID.ToString());
-                    taskItem.type = SceneObjectPart.TaskInventoryItem.Types[item.assetType];
-                    taskItem.inv_type = SceneObjectPart.TaskInventoryItem.InvTypes[item.invType];
+                    taskItem.type = TaskInventoryItem.Types[item.assetType];
+                    taskItem.inv_type = TaskInventoryItem.InvTypes[item.invType];
                     part.AddInventoryItem(taskItem);
                     return true;
                 }

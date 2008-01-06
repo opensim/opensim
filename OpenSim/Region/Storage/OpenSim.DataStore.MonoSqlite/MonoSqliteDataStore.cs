@@ -340,11 +340,11 @@ namespace OpenSim.DataStore.MonoSqlite
             String sql = String.Format("primID = '{0}'", prim.UUID.ToString());            
             DataRow[] dbItemRows = dbItems.Select(sql);
             
-            IList<SceneObjectPart.TaskInventoryItem> inventory = new List<SceneObjectPart.TaskInventoryItem>();
+            IList<TaskInventoryItem> inventory = new List<TaskInventoryItem>();
             
             foreach (DataRow row in dbItemRows)
             {
-                SceneObjectPart.TaskInventoryItem item = buildItem(row);
+                TaskInventoryItem item = buildItem(row);
                 inventory.Add(item);
                 
                 MainLog.Instance.Verbose("DATASTORE", "Restored item {0}, {1}", item.name, item.item_id); 
@@ -897,9 +897,9 @@ namespace OpenSim.DataStore.MonoSqlite
         /// </summary>
         /// <param name="row"></param>
         /// <returns></returns>
-        private SceneObjectPart.TaskInventoryItem buildItem(DataRow row)
+        private TaskInventoryItem buildItem(DataRow row)
         {
-            SceneObjectPart.TaskInventoryItem taskItem = new SceneObjectPart.TaskInventoryItem();
+            TaskInventoryItem taskItem = new TaskInventoryItem();
             
             taskItem.item_id         = new LLUUID((String)row["itemID"]); 
             taskItem.ParentPartID    = new LLUUID((String)row["primID"]);
@@ -1069,7 +1069,7 @@ namespace OpenSim.DataStore.MonoSqlite
             row["SitTargetOrientZ"] = sitTargetOrient.Z;
         }
         
-        private void fillItemRow(DataRow row, SceneObjectPart.TaskInventoryItem taskItem)
+        private void fillItemRow(DataRow row, TaskInventoryItem taskItem)
         {
             row["itemID"] = taskItem.item_id;
             row["primID"] = taskItem.ParentPartID;
@@ -1271,7 +1271,7 @@ namespace OpenSim.DataStore.MonoSqlite
         /// <param name="primID"></param>
         /// <param name="items"></param>
         /// <returns></returns>
-        private void addPrimInventory(LLUUID primID, IDictionary<LLUUID, SceneObjectPart.TaskInventoryItem> items)
+        private void addPrimInventory(LLUUID primID, IDictionary<LLUUID, TaskInventoryItem> items)
         {
             MainLog.Instance.Verbose("DATASTORE", "Entered addPrimInventory with prim ID {0}", primID);
             
@@ -1283,8 +1283,8 @@ namespace OpenSim.DataStore.MonoSqlite
             
             // Build structures for manipulation purposes
             IDictionary<String, DataRow> dbItemsToRemove = new Dictionary<String, DataRow>();
-            ICollection<SceneObjectPart.TaskInventoryItem> itemsToAdd 
-                = new List<SceneObjectPart.TaskInventoryItem>();
+            ICollection<TaskInventoryItem> itemsToAdd 
+                = new List<TaskInventoryItem>();
             
             foreach (DataRow row in dbItemRows)
             {
@@ -1319,7 +1319,7 @@ namespace OpenSim.DataStore.MonoSqlite
             }
             
             // Insert items not already present 
-            foreach (SceneObjectPart.TaskInventoryItem newItem in itemsToAdd)
+            foreach (TaskInventoryItem newItem in itemsToAdd)
             {
                 MainLog.Instance.Verbose(
                     "DATASTORE", 
