@@ -44,7 +44,7 @@ namespace OpenSim.Region.Environment.Scenes
 {
     public delegate void PrimCountTaintedDelegate();
 
-    public class SceneObjectGroup : EntityBase
+    public partial class SceneObjectGroup : EntityBase
     {
         private Encoding enc = Encoding.ASCII;
 
@@ -1133,101 +1133,6 @@ namespace OpenSim.Region.Environment.Scenes
                 return part.Description;
             }
             return "";
-        }
-
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="remoteClient"></param>
-        /// <param name="localID"></param>
-        public bool GetPartInventoryFileName(IClientAPI remoteClient, uint localID)
-        {
-            SceneObjectPart part = GetChildPart(localID);
-            if (part != null)
-            {
-                return part.GetInventoryFileName(remoteClient, localID);
-            }
-            else
-            {
-                MainLog.Instance.Warn(
-                    "SCENE",
-                    "Couldn't find part {0} in object group {1}, {2} to retreive prim inventory",
-                    localID, Name, UUID);
-            }
-            return false;
-        }
-
-        public void RequestInventoryFile(uint localID, IXfer xferManager)
-        {
-            SceneObjectPart part = GetChildPart(localID);
-            if (part != null)
-            {
-                part.RequestInventoryFile(xferManager);
-            }
-            else
-            {
-                MainLog.Instance.Warn(
-                    "PRIMINVENTORY",
-                    "Couldn't find part {0} in object group {1}, {2} to request inventory data",
-                    localID, Name, UUID);
-            }
-        }
-
-        public bool AddInventoryItem(IClientAPI remoteClient, uint localID, InventoryItemBase item)
-        {
-            SceneObjectPart part = GetChildPart(localID);
-            if (part != null)
-            {
-                TaskInventoryItem taskItem = new TaskInventoryItem();
-                taskItem.item_id = item.inventoryID;
-                taskItem.asset_id = item.assetID;
-                taskItem.name = item.inventoryName;
-                taskItem.desc = item.inventoryDescription;
-                taskItem.owner_id = item.avatarID;
-                taskItem.creator_id = item.creatorsID;
-                taskItem.type = TaskInventoryItem.Types[item.assetType];
-                taskItem.inv_type = TaskInventoryItem.Types[item.invType];
-                part.AddInventoryItem(taskItem);
-                return true;
-            }
-            return false;
-        }
-
-        public bool AddInventoryItem(IClientAPI remoteClient, uint localID, InventoryItemBase item, LLUUID copyItemID)
-        {
-            if (copyItemID != LLUUID.Zero)
-            {
-                SceneObjectPart part = GetChildPart(localID);
-                if (part != null)
-                {
-                    TaskInventoryItem taskItem = new TaskInventoryItem();
-                    taskItem.item_id = copyItemID;
-                    taskItem.asset_id = item.assetID;
-                    taskItem.name = item.inventoryName;
-                    taskItem.desc = item.inventoryDescription;
-                    taskItem.owner_id = new LLUUID(item.avatarID.ToString());
-                    taskItem.creator_id = new LLUUID(item.creatorsID.ToString());
-                    taskItem.type = TaskInventoryItem.Types[item.assetType];
-                    taskItem.inv_type = TaskInventoryItem.InvTypes[item.invType];
-                    part.AddInventoryItem(taskItem);
-                    return true;
-                }
-            }
-            else
-            {
-                return AddInventoryItem(remoteClient, localID, item);
-            }
-            return false;
-        }
-
-        public int RemoveInventoryItem(IClientAPI remoteClient, uint localID, LLUUID itemID)
-        {
-            SceneObjectPart part = GetChildPart(localID);
-            if (part != null)
-            {
-                return part.RemoveInventoryItem(remoteClient, localID, itemID);
-            }
-            return -1;
         }
 
         /// <summary>
