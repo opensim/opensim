@@ -72,7 +72,7 @@ namespace OpenSim.Grid.UserServer
 
             if (requestData.Contains("uri"))
             {
-                string URI = (string)requestData["URI"];
+                string URI = (string)requestData["uri"];
                 string sendkey=(string)requestData["sendkey"];
                 string recvkey=(string)requestData["recvkey"];
                 MessageServerInfo m = new MessageServerInfo();
@@ -146,7 +146,7 @@ namespace OpenSim.Grid.UserServer
             ArrayList SendParams = new ArrayList();
             SendParams.Add(reqparams);
 
-            XmlRpcRequest GridReq = new XmlRpcRequest("user_login", SendParams);
+            XmlRpcRequest GridReq = new XmlRpcRequest("login_to_simulator", SendParams);
             XmlRpcResponse GridResp = GridReq.Send(serv.URI, 6000);
             m_log.Verbose("LOGIN","Notified : " + serv.URI + " about user login");
 

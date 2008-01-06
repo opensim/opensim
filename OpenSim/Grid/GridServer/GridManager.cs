@@ -36,6 +36,8 @@ using Nwc.XmlRpc;
 using OpenSim.Framework;
 using OpenSim.Framework.Console;
 using OpenSim.Framework.Data;
+using OpenSim.Framework.Servers;
+
 
 namespace OpenSim.Grid.GridServer
 {
@@ -43,6 +45,7 @@ namespace OpenSim.Grid.GridServer
     {
         private Dictionary<string, IGridData> _plugins = new Dictionary<string, IGridData>();
         private Dictionary<string, ILogData> _logplugins = new Dictionary<string, ILogData>();
+        private List<MessageServerInfo> _MessageServers = new List<MessageServerInfo>();
 
         public GridConfig config;
 
@@ -414,7 +417,20 @@ namespace OpenSim.Grid.GridServer
 
                 responseData["allow_forceful_banlines"] = config.AllowForcefulBanlines;
 
+                // Instead of sending a multitude of message servers to the registering sim
+                // we should probably be sending a single one and parhaps it's backup 
+                // that has responsibility over routing it's messages.
 
+                // The Sim won't be contacting us again about any of the message server stuff during it's time up.
+
+                responseData["messageserver_count"] = _MessageServers.Count;
+
+                for (int i = 0; i < _MessageServers.Count; i++)
+                {
+                    responseData["messageserver_uri" + i] = _MessageServers[i].URI;
+                    responseData["messageserver_sendkey" + i] = _MessageServers[i].sendkey;
+                    responseData["messageserver_recvkey" + i] = _MessageServers[i].recvkey;
+                }
                 return response;
 
             }
@@ -424,6 +440,7 @@ namespace OpenSim.Grid.GridServer
                 responseData["error"] = "Another region already exists at that location. Try another";
                 return response;
             }
+
         }
 
         public XmlRpcResponse XmlRpcSimulatorDataRequestMethod(XmlRpcRequest request)
@@ -766,6 +783,50 @@ namespace OpenSim.Grid.GridServer
             {
                 return "ERROR! Could not save to database! (" + e.ToString() + ")";
             }
+        }
+        public XmlRpcResponse XmlRPCRegisterMessageServer(XmlRpcRequest request)
+        {
+            XmlRpcResponse response = new XmlRpcResponse();
+            Hashtable requestData = (Hashtable)request.Params[0];
+            Hashtable responseData = new Hashtable();
+
+            if (requestData.Contains("uri"))
+            {
+                string URI = (string)requestData["URI"];
+                string sendkey = (string)requestData["sendkey"];
+                string recvkey = (string)requestData["recvkey"];
+                MessageServerInfo m = new MessageServerInfo();
+                m.URI = URI;
+                m.sendkey = sendkey;
+                m.recvkey = recvkey;
+                if (!_MessageServers.Contains(m))
+                    _MessageServers.Add(m);
+                responseData["responsestring"] = "TRUE";
+                response.Value = responseData;
+            }
+            return response;
+        }
+        public XmlRpcResponse XmlRPCDeRegisterMessageServer(XmlRpcRequest request)
+        {
+            XmlRpcResponse response = new XmlRpcResponse();
+            Hashtable requestData = (Hashtable)request.Params[0];
+            Hashtable responseData = new Hashtable();
+
+            if (requestData.Contains("uri"))
+            {
+                string URI = (string)requestData["uri"];
+                string sendkey = (string)requestData["sendkey"];
+                string recvkey = (string)requestData["recvkey"];
+                MessageServerInfo m = new MessageServerInfo();
+                m.URI = URI;
+                m.sendkey = sendkey;
+                m.recvkey = recvkey;
+                if (_MessageServers.Contains(m))
+                    _MessageServers.Remove(m);
+                responseData["responsestring"] = "TRUE";
+                response.Value = responseData;
+            }
+            return response;
         }
     }
 }

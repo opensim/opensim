@@ -85,13 +85,7 @@ namespace OpenSim.Grid.MessagingServer
         {
             Cfg = new MessageServerConfig("MESSAGING SERVER", (Path.Combine(Util.configDir(), "MessagingServer_Config.xml")));
 
-            //MainLog.Instance.Verbose("REGION", "Establishing data connection");
-            //m_userManager = new UserManager();
-            //m_userManager._config = Cfg;
-            //m_userManager.AddPlugin(Cfg.DatabaseProvider);
-
-            //m_loginService = new UserLoginService(
-                 //m_userManager, new LibraryRootFolder(), Cfg, Cfg.DefaultStartupMsg);
+            
 
             MainLog.Instance.Verbose("REGION", "Starting HTTP process");
             BaseHttpServer httpServer = new BaseHttpServer(Cfg.HttpPort);

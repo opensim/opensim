@@ -41,6 +41,10 @@ namespace OpenSim.Framework
         public string UserSendKey = "";
         public string UserRecvKey = "";
 
+        public string GridServerURL = "";
+        public string GridSendKey = "";
+        public string GridRecvKey = "";
+
         public string DatabaseProvider = "";
         public string GridCommsProvider = "";
 
@@ -67,6 +71,14 @@ namespace OpenSim.Framework
             configMember.addConfigurationOption("user_send_key", ConfigurationOption.ConfigurationTypes.TYPE_STRING,
                                                 "Key to send to user server", "null", false);
             configMember.addConfigurationOption("user_recv_key", ConfigurationOption.ConfigurationTypes.TYPE_STRING,
+                                                "Key to expect from user server", "null", false);
+            configMember.addConfigurationOption("default_grid_server",
+                                                ConfigurationOption.ConfigurationTypes.TYPE_STRING_NOT_EMPTY,
+                                                "Default Grid Server URI",
+                                                "http://127.0.0.1:8002/", false);
+            configMember.addConfigurationOption("grid_send_key", ConfigurationOption.ConfigurationTypes.TYPE_STRING,
+                                                "Key to send to grid server", "null", false);
+            configMember.addConfigurationOption("grid_recv_key", ConfigurationOption.ConfigurationTypes.TYPE_STRING,
                                                 "Key to expect from user server", "null", false);
 
             configMember.addConfigurationOption("database_provider", ConfigurationOption.ConfigurationTypes.TYPE_STRING,
@@ -95,6 +107,15 @@ namespace OpenSim.Framework
                     break;
                 case "user_recv_key":
                     UserRecvKey = (string)configuration_result;
+                    break;
+                case "default_grid_server":
+                    GridServerURL = (string)configuration_result;
+                    break;
+                case "grid_send_key":
+                    GridSendKey = (string)configuration_result;
+                    break;
+                case "grid_recv_key":
+                    GridRecvKey = (string)configuration_result;
                     break;
                 case "database_provider":
                     DatabaseProvider = (string)configuration_result;

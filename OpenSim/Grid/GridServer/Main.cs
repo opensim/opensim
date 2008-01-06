@@ -119,6 +119,11 @@ namespace OpenSim.Grid.GridServer
             httpServer.AddXmlRPCHandler("simulator_data_request", m_gridManager.XmlRpcSimulatorDataRequestMethod);
             httpServer.AddXmlRPCHandler("map_block", m_gridManager.XmlRpcMapBlockMethod);
 
+            // Message Server ---> Grid Server
+            httpServer.AddXmlRPCHandler("register_messageserver", m_gridManager.XmlRPCRegisterMessageServer);
+            httpServer.AddXmlRPCHandler("deregister_messageserver", m_gridManager.XmlRPCDeRegisterMessageServer);
+
+
             httpServer.AddStreamHandler(new RestStreamHandler("GET", "/sims/", m_gridManager.RestGetSimMethod));
             httpServer.AddStreamHandler(new RestStreamHandler("POST", "/sims/", m_gridManager.RestSetSimMethod));
 

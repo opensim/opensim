@@ -13,5 +13,9 @@ namespace OpenSim.Framework.Servers
         public MessageServerInfo()
         {
         }
+        public override string ToString()
+        {
+            return URI;
+        }
     }
 }
