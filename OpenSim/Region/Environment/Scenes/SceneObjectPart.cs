@@ -56,7 +56,21 @@ namespace OpenSim.Region.Environment.Scenes
         private const uint FULL_MASK_PERMISSIONS_GENERAL = 2147483647;
         private const uint FULL_MASK_PERMISSIONS_OWNER = 2147483647;
         private string m_inventoryFileName = "";
+
+        /// <summary>
+        /// The inventory folder for this prim
+        /// </summary>
         private LLUUID m_folderID = LLUUID.Zero;
+        
+        /// <summary>
+        /// Exposing this is not particularly good, but it's one of the least evils at the moment to see
+        /// folder id from prim inventory item data, since it's not (yet) actually stored with the prim.
+        /// </summary>
+        public LLUUID FolderID
+        {
+            get { return m_folderID; }
+            set { m_folderID = value; }
+        }
 
         [XmlIgnore] public PhysicsActor PhysActor = null;
 
@@ -67,14 +81,9 @@ namespace OpenSim.Region.Environment.Scenes
             = new Dictionary<LLUUID, TaskInventoryItem>();
         
         [XmlIgnore]
-        /// <summary>
-        /// Not really ideal to allow this to be set, but currently expedient for inserting a prim inventory
-        /// from persistence.
-        /// </summary>
         public IDictionary<LLUUID, TaskInventoryItem> TaskInventory
         {
             get { return m_taskInventory; }
-            set { m_taskInventory = value; }
         }
         
         public LLUUID LastOwnerID;
@@ -1059,12 +1068,31 @@ namespace OpenSim.Region.Environment.Scenes
 
         #region Inventory
 
+        /// <summary>
+        /// Add an item to this prim's inventory.
+        /// </summary>
+        /// <param name="item"></param>
         public void AddInventoryItem(TaskInventoryItem item)
         {
             item.parent_id = m_folderID;
             item.creation_date = 1000;
             item.ParentPartID = UUID;
             m_taskInventory.Add(item.item_id, item);
+            m_inventorySerial++;
+        }
+        
+        /// <summary>
+        /// Add a whole collection of items to the prim's inventory at once.  We assume that the items already
+        /// have all their fields correctly filled out.
+        /// </summary>
+        /// <param name="items"></param>
+        public void AddInventoryItems(ICollection<TaskInventoryItem> items)
+        {
+            foreach (TaskInventoryItem item in items)
+            {
+                m_taskInventory.Add(item.item_id, item);
+            }
+            
             m_inventorySerial++;
         }
 
@@ -1077,7 +1105,7 @@ namespace OpenSim.Region.Environment.Scenes
                     string type = m_taskInventory[itemID].inv_type;
                     m_taskInventory.Remove(itemID);
                     m_inventorySerial++;
-                    if (type == "lsltext")
+                    if (type == "lsl_text")
                     {
                         return 10;
                     }
@@ -1110,7 +1138,7 @@ namespace OpenSim.Region.Environment.Scenes
             }
         }
 
-        public string RequestInventoryFile(IXfer xferManager)
+        public void RequestInventoryFile(IXfer xferManager)
         {
             byte[] fileData = new byte[0];
             InventoryStringBuilder invString = new InventoryStringBuilder(m_folderID, UUID);
@@ -1141,12 +1169,16 @@ namespace OpenSim.Region.Environment.Scenes
                 invString.AddNameValueLine("creation_date", item.creation_date.ToString());
                 invString.AddSectionEnd();
             }
+            
             fileData = Helpers.StringToField(invString.BuildString);
+            
+//            MainLog.Instance.Verbose(
+//                "PRIMINVENTORY", "RequestInventoryFile fileData: {0}", Helpers.FieldToUTF8String(fileData));
+            
             if (fileData.Length > 2)
             {
                 xferManager.AddNewFile(m_inventoryFileName, fileData);
             }
-            return "";
         }
 
         #endregion
@@ -1707,21 +1739,43 @@ namespace OpenSim.Region.Environment.Scenes
 
         public class TaskInventoryItem
         {
+            /// <summary>
+            /// Inventory types
+            /// </summary>
+            public static string[] InvTypes = new string[]
+            {
+                "texture",
+                "sound",
+                "",
+                "",
+                "",
+                "",
+                "",
+                "",
+                "",
+                "",
+                "lsl_text",
+                ""
+            };
+            
+            /// <summary>
+            /// Asset types
+            /// </summary>
             public static string[] Types = new string[]
-                {
-                    "texture",
-                    "sound",
-                    "",
-                    "",
-                    "",
-                    "",
-                    "",
-                    "",
-                    "",
-                    "",
-                    "lsltext",
-                    ""
-                };
+            {
+                "texture",
+                "sound",
+                "",
+                "",
+                "",
+                "",
+                "",
+                "",
+                "",
+                "",
+                "lsltext",
+                ""
+            };
 
             public LLUUID item_id = LLUUID.Zero;
             public LLUUID parent_id = LLUUID.Zero; //parent folder id 

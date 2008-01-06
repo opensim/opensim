@@ -1151,20 +1151,26 @@ namespace OpenSim.Region.Environment.Scenes
             {
                 MainLog.Instance.Warn(
                     "SCENE",
-                    "Couldn't find part {0} in object group {1} ({2}) to retreive prim inventory",
-                    localID, LocalId, UUID);
+                    "Couldn't find part {0} in object group {1}, {2} to retreive prim inventory",
+                    localID, Name, UUID);
             }
             return false;
         }
 
-        public string RequestInventoryFile(uint localID, IXfer xferManager)
+        public void RequestInventoryFile(uint localID, IXfer xferManager)
         {
             SceneObjectPart part = GetChildPart(localID);
             if (part != null)
             {
                 part.RequestInventoryFile(xferManager);
             }
-            return "";
+            else
+            {
+                MainLog.Instance.Warn(
+                    "PRIMINVENTORY",
+                    "Couldn't find part {0} in object group {1}, {2} to request inventory data",
+                    localID, Name, UUID);
+            }
         }
 
         public bool AddInventoryItem(IClientAPI remoteClient, uint localID, InventoryItemBase item)
@@ -1202,7 +1208,7 @@ namespace OpenSim.Region.Environment.Scenes
                     taskItem.owner_id = new LLUUID(item.avatarID.ToString());
                     taskItem.creator_id = new LLUUID(item.creatorsID.ToString());
                     taskItem.type = SceneObjectPart.TaskInventoryItem.Types[item.assetType];
-                    taskItem.inv_type = SceneObjectPart.TaskInventoryItem.Types[item.invType];
+                    taskItem.inv_type = SceneObjectPart.TaskInventoryItem.InvTypes[item.invType];
                     part.AddInventoryItem(taskItem);
                     return true;
                 }

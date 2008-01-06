@@ -340,18 +340,24 @@ namespace OpenSim.DataStore.MonoSqlite
             String sql = String.Format("primID = '{0}'", prim.UUID.ToString());            
             DataRow[] dbItemRows = dbItems.Select(sql);
             
-            IDictionary<LLUUID, SceneObjectPart.TaskInventoryItem> inventory
-                = new Dictionary<LLUUID, SceneObjectPart.TaskInventoryItem>();
+            IList<SceneObjectPart.TaskInventoryItem> inventory = new List<SceneObjectPart.TaskInventoryItem>();
             
             foreach (DataRow row in dbItemRows)
             {
                 SceneObjectPart.TaskInventoryItem item = buildItem(row);
-                inventory.Add(item.item_id, item);
+                inventory.Add(item);
                 
                 MainLog.Instance.Verbose("DATASTORE", "Restored item {0}, {1}", item.name, item.item_id); 
             }
             
-            prim.TaskInventory = inventory;            
+            prim.AddInventoryItems(inventory);
+            
+            // XXX A nasty little hack to recover the folder id for the prim (which is currently stored in 
+            // every item).  This data should really be stored in the prim table itself.
+            if (dbItemRows.Length > 0)
+            {
+                prim.FolderID = inventory[0].parent_id;
+            }
         }
 
         public void StoreTerrain(double[,] ter, LLUUID regionID)
