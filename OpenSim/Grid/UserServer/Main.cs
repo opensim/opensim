@@ -42,9 +42,11 @@ namespace OpenSim.Grid.UserServer
     public class OpenUser_Main : conscmd_callback
     {
         private UserConfig Cfg;
+        
 
         public UserManager m_userManager;
         public UserLoginService m_loginService;
+        public MessageServersConnector m_messagesService;
 
         private LogBase m_console;
         private LLUUID m_lastCreatedUser = LLUUID.Random();
@@ -93,6 +95,10 @@ namespace OpenSim.Grid.UserServer
             m_loginService = new UserLoginService(
                  m_userManager, new LibraryRootFolder(), Cfg, Cfg.DefaultStartupMsg);
 
+            m_messagesService = new MessageServersConnector(MainLog.Instance);
+
+            m_loginService.OnUserLoggedInAtLocation += NotifyMessageServersUserLoggedInToLocation;
+
             MainLog.Instance.Verbose("REGION", "Starting HTTP process");
             BaseHttpServer httpServer = new BaseHttpServer(Cfg.HttpPort);
 
@@ -106,7 +112,12 @@ namespace OpenSim.Grid.UserServer
             httpServer.AddXmlRPCHandler("remove_user_friend", m_userManager.XmlRpcResponseXmlRPCRemoveUserFriend);
             httpServer.AddXmlRPCHandler("update_user_friend_perms", m_userManager.XmlRpcResponseXmlRPCUpdateUserFriendPerms);
             httpServer.AddXmlRPCHandler("get_user_friend_list", m_userManager.XmlRpcResponseXmlRPCGetUserFriendList);
-            
+           
+            // Message Server ---> User Server
+            httpServer.AddXmlRPCHandler("register_messageserver", m_messagesService.XmlRPCRegisterMessageServer);
+            httpServer.AddXmlRPCHandler("agent_change_region", m_messagesService.XmlRPCUserMovedtoRegion);
+            httpServer.AddXmlRPCHandler("deregister_messageserver", m_messagesService.XmlRPCDeRegisterMessageServer);
+
 
             httpServer.AddStreamHandler(
                 new RestStreamHandler("DELETE", "/usersessions/", m_userManager.RestDeleteUserSessionMethod));
@@ -173,6 +184,7 @@ namespace OpenSim.Grid.UserServer
                     break;
 
                 case "shutdown":
+                    m_loginService.OnUserLoggedInAtLocation -= NotifyMessageServersUserLoggedInToLocation;
                     m_console.Close();
                     Environment.Exit(0);
                     break;
@@ -195,6 +207,10 @@ namespace OpenSim.Grid.UserServer
         public void TestResponse(List<InventoryFolderBase> resp)
         {
             Console.WriteLine("response got");
+        }
+        public void NotifyMessageServersUserLoggedInToLocation(LLUUID agentID, LLUUID sessionID, LLUUID RegionID, ulong regionhandle, LLVector3 Position)
+        {
+            m_messagesService.TellMessageServersAboutUser(agentID, sessionID, RegionID, regionhandle, Position);
         }
 
         /*private void ConfigDB(IGenericConfig configData)

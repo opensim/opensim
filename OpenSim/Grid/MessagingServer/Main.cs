@@ -39,9 +39,9 @@ namespace OpenSim.Grid.MessagingServer
 {
     /// <summary>
     /// </summary>
-    public class OpenUser_Main : conscmd_callback
+    public class OpenMessage_Main : conscmd_callback
     {
-        private UserConfig Cfg;
+        private MessageServerConfig Cfg;
 
         //public UserManager m_userManager;
         //public UserLoginService m_loginService;
@@ -52,22 +52,22 @@ namespace OpenSim.Grid.MessagingServer
         [STAThread]
         public static void Main(string[] args)
         {
-            Console.WriteLine("Launching UserServer...");
+            Console.WriteLine("Launching MessagingServer...");
 
-            OpenUser_Main userserver = new OpenUser_Main();
+            OpenMessage_Main messageserver = new OpenMessage_Main();
 
-            userserver.Startup();
-            userserver.Work();
+            messageserver.Startup();
+            messageserver.Work();
         }
 
-        private OpenUser_Main()
+        private OpenMessage_Main()
         {
             if (!Directory.Exists(Util.logDir()))
             {
                 Directory.CreateDirectory(Util.logDir());
             }
             m_console =
-                new LogBase((Path.Combine(Util.logDir(), "opengrid-messagingserver-console.log")), "OpenUser", this, true);
+                new LogBase((Path.Combine(Util.logDir(), "opengrid-messagingserver-console.log")), "OpenMessage", this, true);
             MainLog.Instance = m_console;
         }
 
@@ -83,9 +83,9 @@ namespace OpenSim.Grid.MessagingServer
 
         public void Startup()
         {
-            Cfg = new UserConfig("MESSAGING SERVER", (Path.Combine(Util.configDir(), "MessagingServer_Config.xml")));
+            Cfg = new MessageServerConfig("MESSAGING SERVER", (Path.Combine(Util.configDir(), "MessagingServer_Config.xml")));
 
-            MainLog.Instance.Verbose("REGION", "Establishing data connection");
+            //MainLog.Instance.Verbose("REGION", "Establishing data connection");
             //m_userManager = new UserManager();
             //m_userManager._config = Cfg;
             //m_userManager.AddPlugin(Cfg.DatabaseProvider);
@@ -120,21 +120,7 @@ namespace OpenSim.Grid.MessagingServer
             switch (what)
             {
                 case "user":
-                    string tempfirstname;
-                    string templastname;
-                    string tempMD5Passwd;
-                    uint regX = 1000;
-                    uint regY = 1000;
-
-                    tempfirstname = m_console.CmdPrompt("First name");
-                    templastname = m_console.CmdPrompt("Last name");
-                    tempMD5Passwd = m_console.PasswdPrompt("Password");
-                    regX = Convert.ToUInt32(m_console.CmdPrompt("Start Region X"));
-                    regY = Convert.ToUInt32(m_console.CmdPrompt("Start Region Y"));
-
-                    tempMD5Passwd = Util.Md5Hash(Util.Md5Hash(tempMD5Passwd) + ":" + "");
-
-                    LLUUID userID = new LLUUID();
+                    
                     try
                     {
                         //userID =
@@ -153,7 +139,7 @@ namespace OpenSim.Grid.MessagingServer
                     {
                         m_console.Error("SERVER", "Error creating inventory for user: {0}", ex.ToString());
                     }
-                    m_lastCreatedUser = userID;
+                   // m_lastCreatedUser = userID;
                     break;
             }
         }
@@ -163,61 +149,15 @@ namespace OpenSim.Grid.MessagingServer
             switch (cmd)
             {
                 case "help":
-                    m_console.Notice("create user - create a new user");
-                    m_console.Notice("shutdown - shutdown the grid (USE CAUTION!)");
-                    break;
-
-                case "create":
-                    do_create(cmdparams[0]);
+                    m_console.Notice("shutdown - shutdown the message server (USE CAUTION!)");
                     break;
 
                 case "shutdown":
                     m_console.Close();
                     Environment.Exit(0);
                     break;
-
-                case "test-inventory":
-                    //  RestObjectPosterResponse<List<InventoryFolderBase>> requester = new RestObjectPosterResponse<List<InventoryFolderBase>>();
-                    // requester.ReturnResponseVal = TestResponse;
-                    // requester.BeginPostObject<LLUUID>(m_userManager._config.InventoryUrl + "RootFolders/", m_lastCreatedUser);
-                    //List<InventoryFolderBase> folders =
-                        //SynchronousRestObjectPoster.BeginPostObject<LLUUID, List<InventoryFolderBase>>("POST",
-                                                                                                       //m_userManager.
-                                                                                                           //_config.
-                                                                                                           //InventoryUrl +
-                                                                                                       //"RootFolders/",
-                                                                                                       //m_lastCreatedUser);
-                    break;
             }
         }
-
-        public void TestResponse(List<InventoryFolderBase> resp)
-        {
-            Console.WriteLine("response got");
-        }
-
-        /*private void ConfigDB(IGenericConfig configData)
-        {
-            try
-            {
-                string attri = "";
-                attri = configData.GetAttribute("DataBaseProvider");
-                if (attri == "")
-                {
-                    StorageDll = "OpenSim.Framework.Data.DB4o.dll";
-                    configData.SetAttribute("DataBaseProvider", "OpenSim.Framework.Data.DB4o.dll");
-                }
-                else
-                {
-                    StorageDll = attri;
-                }
-                configData.Commit();
-            }
-            catch
-            {
-
-            }
-        }*/
 
         public void Show(string ShowWhat)
         {

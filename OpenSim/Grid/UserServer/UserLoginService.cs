@@ -43,8 +43,13 @@ using InventoryFolder=OpenSim.Framework.InventoryFolder;
 
 namespace OpenSim.Grid.UserServer
 {
+    public delegate void UserLoggedInAtLocation(LLUUID agentID, LLUUID sessionID, LLUUID RegionID, ulong regionhandle, LLVector3 Position);
+
+
     public class UserLoginService : LoginService
     {
+        public event UserLoggedInAtLocation OnUserLoggedInAtLocation;
+       
         public UserConfig m_config;
 
         public UserLoginService(
@@ -198,6 +203,10 @@ namespace OpenSim.Grid.UserServer
                     // Send
                     XmlRpcRequest GridReq = new XmlRpcRequest("expect_user", SendParams);
                     XmlRpcResponse GridResp = GridReq.Send(SimInfo.httpServerURI, 6000);
+                    if (OnUserLoggedInAtLocation != null)
+                    {
+                        OnUserLoggedInAtLocation(theUser.UUID, theUser.currentAgent.sessionID, theUser.currentAgent.currentRegion, theUser.currentAgent.currentHandle, theUser.currentAgent.currentPos);
+                    }
                 }
 
                 catch (Exception e)
