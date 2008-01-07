@@ -28,6 +28,7 @@ Patches
 * Danx0r
 * Dalien
 * Darok
+* jhurliman (LLSD Login)
 
 LSL Devs
 
@@ -50,6 +51,7 @@ This software uses components from the following developers:
 * AGEIA Inc. (PhysX)
 * Russel L. Smith (ODE)
 * Prebuild ( http://sourceforge.net/projects/dnpb/ )
+* LibSecondLife ( http://www.libsecondlife.org/wiki/Main_Page )
 
 In addition, we would like to thank:
 * The Mono Project

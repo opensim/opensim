@@ -145,9 +145,9 @@ namespace OpenSim.Framework.Servers
             {
                 switch (request.ContentType)
                 {
-                    //case "application/xml+llsd":
-                        //HandleLLSDRequests(request, response);
-                        //break;
+                    case "application/xml+llsd":
+                        HandleLLSDRequests(request, response);
+                        break;
                     case "text/xml":
                     case "application/xml":
                     default:
