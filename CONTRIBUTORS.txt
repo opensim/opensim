@@ -18,6 +18,7 @@ OpenSim Developers
 * Tedd
 * justincc (International Business Machines Corp.)
 * Teravus (w3z)
+* Johan Berntsson (3Di)
 
 Patches
 
