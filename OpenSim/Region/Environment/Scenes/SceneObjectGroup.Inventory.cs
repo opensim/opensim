@@ -109,20 +109,32 @@ namespace OpenSim.Region.Environment.Scenes
             }
         }
 
-        public bool AddInventoryItem(IClientAPI remoteClient, uint localID, InventoryItemBase item)
+        /// <summary>
+        /// Add an inventory item to a prim in this group.
+        /// </summary>
+        /// <param name="remoteClient"></param>
+        /// <param name="localID"></param>
+        /// <param name="item"></param>
+        /// <param name="copyItemID">The item UUID that should be used by the new item.</param>
+        /// <returns></returns>
+        public bool AddInventoryItem(IClientAPI remoteClient, uint localID, 
+                                     InventoryItemBase item, LLUUID copyItemID)
         {
+            LLUUID newItemId = ((copyItemID != null) ? copyItemID : item.inventoryID);
+            
             SceneObjectPart part = GetChildPart(localID);
             if (part != null)
             {
                 TaskInventoryItem taskItem = new TaskInventoryItem();
-                taskItem.item_id = item.inventoryID;
+                
+                taskItem.item_id = newItemId;                
                 taskItem.asset_id = item.assetID;
                 taskItem.name = item.inventoryName;
                 taskItem.desc = item.inventoryDescription;
                 taskItem.owner_id = item.avatarID;
                 taskItem.creator_id = item.creatorsID;
                 taskItem.type = TaskInventoryItem.Types[item.assetType];
-                taskItem.inv_type = TaskInventoryItem.Types[item.invType];
+                taskItem.inv_type = TaskInventoryItem.InvTypes[item.invType];
                 part.AddInventoryItem(taskItem);
                 
                 // It might seem somewhat crude to update the whole group for a single prim inventory change,
@@ -134,41 +146,14 @@ namespace OpenSim.Region.Environment.Scenes
                 
                 return true;
             }
-            return false;
-        }
-
-        public bool AddInventoryItem(IClientAPI remoteClient, uint localID, InventoryItemBase item, LLUUID copyItemID)
-        {
-            if (copyItemID != LLUUID.Zero)
-            {
-                SceneObjectPart part = GetChildPart(localID);
-                if (part != null)
-                {
-                    TaskInventoryItem taskItem = new TaskInventoryItem();
-                    taskItem.item_id = copyItemID;
-                    taskItem.asset_id = item.assetID;
-                    taskItem.name = item.inventoryName;
-                    taskItem.desc = item.inventoryDescription;
-                    taskItem.owner_id = new LLUUID(item.avatarID.ToString());
-                    taskItem.creator_id = new LLUUID(item.creatorsID.ToString());
-                    taskItem.type = TaskInventoryItem.Types[item.assetType];
-                    taskItem.inv_type = TaskInventoryItem.InvTypes[item.invType];
-                    part.AddInventoryItem(taskItem);
-                    
-                    // It might seem somewhat crude to update the whole group for a single prim inventory change,
-                    // but it's possible that other prim inventory changes will take place before the region 
-                    // persistence thread visits this object.  In the future, changes can be signalled at a more
-                    // granular level, or we could let the datastore worry about whether prims have really 
-                    // changed since they were last persisted.
-                    HasChanged = true;
-                    
-                    return true;
-                }
-            }
             else
             {
-                return AddInventoryItem(remoteClient, localID, item);
+                MainLog.Instance.Error(
+                    "PRIMINVENTORY",
+                    "Couldn't find prim local ID {0} in group {1}, {2} to add inventory item ID {3}",
+                    localID, Name, UUID, newItemId);
             }
+
             return false;
         }
 

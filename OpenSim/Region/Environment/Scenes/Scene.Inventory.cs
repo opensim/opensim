@@ -524,7 +524,7 @@ namespace OpenSim.Region.Environment.Scenes
             if (group != null)
             {
                 // TODO Retrieve itemID from client's inventory to pass on
-                //group.AddInventoryItem(rmoteClient, primLocalID, null);
+                //group.AddInventoryItem(remoteClient, primLocalID, null);
                 MainLog.Instance.Verbose(
                     "PRIMINVENTORY",
                     "UpdateTaskInventory called with script {0}, folder {1}, primLocalID {2}, user {3}",
