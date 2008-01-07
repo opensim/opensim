@@ -8,7 +8,7 @@ OpenSim Developers
 * MW
 * Adam Frisby 	(DeepThink Pty Ltd)
 * MingChen 	(DeepThink Pty Ltd)
-* lbsa71
+* lbsa71 (Tribal Media AB)
 * sdague (International Business Machines Corp.)
 * Andy-	
 * Gareth
