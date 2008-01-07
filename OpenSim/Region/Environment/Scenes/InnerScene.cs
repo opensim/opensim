@@ -51,7 +51,8 @@ namespace OpenSim.Region.Environment.Scenes
         #region Fields
 
         public Dictionary<LLUUID, ScenePresence> ScenePresences;
-        public Dictionary<LLUUID, SceneObjectGroup> SceneObjects;
+        // SceneObjects is not currently populated or used.
+        //public Dictionary<LLUUID, SceneObjectGroup> SceneObjects;
         public Dictionary<LLUUID, EntityBase> Entities;
 
         public BasicQuadTreeNode QuadTree;
@@ -110,7 +111,7 @@ namespace OpenSim.Region.Environment.Scenes
         public void Close()
         {
             ScenePresences.Clear();
-            SceneObjects.Clear();
+            //SceneObjects.Clear();
             Entities.Clear();
         }
 

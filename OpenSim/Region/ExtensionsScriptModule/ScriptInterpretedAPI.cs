@@ -69,7 +69,9 @@ namespace OpenSim.Region.ExtensionsScriptModule
         /// </summary>
         public SceneObjectGroup Task
         {
-            get { return Scene.Objects[ObjectID]; }
+            // XXX Casting not ideal, but previous Scene.Objects propery wasn't actually populated, so 
+            // wouldn't have worked anyway.
+            get { return (SceneObjectGroup)Scene.Entities[ObjectID]; }
         }
 
         /// <summary>

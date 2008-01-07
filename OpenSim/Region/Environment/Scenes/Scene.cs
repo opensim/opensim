@@ -180,10 +180,10 @@ namespace OpenSim.Region.Environment.Scenes
         }
 
         // Local reference to the objects in the scene (which are held in innerScene)
-        public Dictionary<LLUUID, SceneObjectGroup> Objects
-        {
-            get { return m_innerScene.SceneObjects; }
-        }
+//        public Dictionary<LLUUID, SceneObjectGroup> Objects
+//        {
+//            get { return m_innerScene.SceneObjects; }
+//        }
 
         // Reference to all of the agents in the scene (root and child)
         protected Dictionary<LLUUID, ScenePresence> m_scenePresences
@@ -192,11 +192,11 @@ namespace OpenSim.Region.Environment.Scenes
             set { m_innerScene.ScenePresences = value; }
         }
 
-        protected Dictionary<LLUUID, SceneObjectGroup> m_sceneObjects
-        {
-            get { return m_innerScene.SceneObjects; }
-            set { m_innerScene.SceneObjects = value; }
-        }
+//        protected Dictionary<LLUUID, SceneObjectGroup> m_sceneObjects
+//        {
+//            get { return m_innerScene.SceneObjects; }
+//            set { m_innerScene.SceneObjects = value; }
+//        }
 
         public Dictionary<LLUUID, EntityBase> Entities
         {
@@ -262,7 +262,7 @@ namespace OpenSim.Region.Environment.Scenes
             MainLog.Instance.Verbose("SCENE", "Creating new entitities instance");
             Entities = new Dictionary<LLUUID, EntityBase>();
             m_scenePresences = new Dictionary<LLUUID, ScenePresence>();
-            m_sceneObjects = new Dictionary<LLUUID, SceneObjectGroup>();
+            //m_sceneObjects = new Dictionary<LLUUID, SceneObjectGroup>();
 
             MainLog.Instance.Verbose("SCENE", "Creating LandMap");
             Terrain = new TerrainEngine((int) RegionInfo.RegionLocX, (int) RegionInfo.RegionLocY);
@@ -2277,20 +2277,20 @@ namespace OpenSim.Region.Environment.Scenes
         /// 
         /// </summary>
         /// <param name="action"></param>
-        public void ForEachObject(Action<SceneObjectGroup> action)
-        {
-            List<SceneObjectGroup> presenceList;
-
-            lock (m_sceneObjects)
-            {
-                presenceList = new List<SceneObjectGroup>(m_sceneObjects.Values);
-            }
-
-            foreach (SceneObjectGroup presence in presenceList)
-            {
-                action(presence);
-            }
-        }
+//        public void ForEachObject(Action<SceneObjectGroup> action)
+//        {
+//            List<SceneObjectGroup> presenceList;
+//
+//            lock (m_sceneObjects)
+//            {
+//                presenceList = new List<SceneObjectGroup>(m_sceneObjects.Values);
+//            }
+//
+//            foreach (SceneObjectGroup presence in presenceList)
+//            {
+//                action(presence);
+//            }
+//        }
 
         /// <summary>
         /// 
