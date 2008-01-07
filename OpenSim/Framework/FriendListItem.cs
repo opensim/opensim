@@ -34,6 +34,7 @@ namespace OpenSim.Framework
 {
     public class FriendListItem
     {
+
         public LLUUID FriendListOwner;
         public LLUUID Friend;
 

@@ -30,13 +30,14 @@ using System.Net;
 using System.Net.Sockets;
 using System.Collections;
 using System.Collections.Generic;
-using System.Xml;
+//using System.Xml;
 using libsecondlife;
 using Nwc.XmlRpc;
 using OpenSim.Framework;
 using OpenSim.Framework.Console;
 using OpenSim.Framework.Data;
 using OpenSim.Framework.Servers;
+using FriendRights = libsecondlife.FriendRights;
 
 namespace OpenSim.Grid.MessagingServer
 {
@@ -44,8 +45,15 @@ namespace OpenSim.Grid.MessagingServer
     {
         private LogBase m_log;
         private MessageServerConfig m_cfg;
+
+        //A hashtable of all current presences this server knows about
         private Hashtable m_presences = new Hashtable();
+
+        //a hashtable of all current regions this server knows about
         private Hashtable m_regionInfoCache = new Hashtable();
+
+        //A hashtable containing lists of UUIDs keyed by UUID for fast backreferencing
+        private Hashtable m_presence_BackReferences = new Hashtable();
 
         public MessageService(LogBase log, MessageServerConfig cfg)
         {
@@ -80,13 +88,104 @@ namespace OpenSim.Grid.MessagingServer
             }
 
             ulong regionHandle = Convert.ToUInt64((string)requestData["regionhandle"]);
+            
+            UserPresenceData up = new UserPresenceData();
+            up.agentData = agentData;
+            List<FriendListItem> flData = GetUserFriendList(agentData.AgentID);
+            up.friendData = flData;
+            RegionInfo riData = GetRegionInfo(regionHandle);
+            up.regionData = riData;
 
-            m_presences.Add(regionHandle, agentData);
+            ProcessFriendListSubscriptions(up);
 
 
             return new XmlRpcResponse();
         }
+        #region FriendList Methods
 
+        #region FriendListProcessing
+
+        public void ProcessFriendListSubscriptions(UserPresenceData userpresence)
+        {
+            List<FriendListItem> uFriendList = userpresence.friendData;
+            for (int i = 0; i < uFriendList.Count; i++)
+            {
+                if (m_presences.Contains(uFriendList[i].Friend))
+                {
+                    UserPresenceData friendup = (UserPresenceData)m_presences[uFriendList[i]];
+                    SubscribeToPresenceUpdates(userpresence, friendup, uFriendList[i],i);
+                }
+            }
+
+            m_presences.Add(userpresence.agentData.AgentID, userpresence);
+        }
+
+        public void SubscribeToPresenceUpdates(UserPresenceData userpresence, UserPresenceData friendpresence, 
+                                                FriendListItem uFriendListItem, int uFriendListIndex)
+        {
+            
+            if ((uFriendListItem.FriendListOwnerPerms & (uint)FriendRights.CanSeeOnline) != 0)
+            {
+                // Subscribe and Send Out updates
+                // Add backreference
+                m_presence_BackReferences.Add(userpresence.agentData.AgentID, friendpresence.agentData.AgentID);
+            }
+            
+            
+
+
+        }
+
+        /// <summary>
+        /// Adds a backreference so presence specific data doesn't have to be 
+        /// enumerated for each logged in user every time someone logs on or off.
+        /// </summary>
+        /// <param name="agentID"></param>
+        /// <param name="friendID"></param>
+        public void addBackReference(LLUUID agentID, LLUUID friendID)
+        {
+            if (m_presence_BackReferences.Contains(agentID))
+            {
+                List<LLUUID> presenseBackReferences = (List<LLUUID>)m_presence_BackReferences[agentID];
+                if (!presenseBackReferences.Contains(friendID))
+                {
+                    presenseBackReferences.Add(friendID);
+                }
+                m_presence_BackReferences[agentID] = presenseBackReferences;
+            }
+            else
+            {
+                List<LLUUID> presenceBackReferences = new List<LLUUID>();
+                presenceBackReferences.Add(friendID);
+                m_presence_BackReferences[agentID] = presenceBackReferences;
+            }
+        }
+
+        /// <summary>
+        /// Removes a backreference to free up some memory
+        /// </summary>
+        /// <param name="agentID"></param>
+        /// <param name="friendID"></param>
+        public void removeBackReference(LLUUID agentID, LLUUID friendID)
+        {
+            if (m_presence_BackReferences.Contains(agentID))
+            {
+                List<LLUUID> presenseBackReferences = (List<LLUUID>)m_presence_BackReferences[agentID];
+                if (presenseBackReferences.Contains(friendID))
+                {
+                    presenseBackReferences.Remove(friendID);
+                }
+
+                // If there are no more backreferences for this agent, 
+                // remove it to free up memory.
+                if (presenseBackReferences.Count == 0)
+                {
+                    m_presence_BackReferences.Remove(agentID);
+                }
+            }
+        }
+
+        #endregion
 
         #region FriendList Gathering
 
@@ -145,6 +244,8 @@ namespace OpenSim.Grid.MessagingServer
 
             return buddylist;
         }
+        #endregion
+
         #endregion
 
         #region regioninfo gathering

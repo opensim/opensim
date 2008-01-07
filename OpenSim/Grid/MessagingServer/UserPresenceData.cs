@@ -38,6 +38,7 @@ namespace OpenSim.Grid.MessagingServer
         public AgentCircuitData agentData = new AgentCircuitData();
         public RegionInfo regionData = new RegionInfo();
         public List<FriendListItem> friendData = new List<FriendListItem> ();
+        public List<LLUUID> subscriptionData = new List<LLUUID>();
 
         public UserPresenceData()
         {
