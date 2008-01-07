@@ -37,7 +37,29 @@ using OpenSim.Region.Environment.Interfaces;
 namespace OpenSim.Region.Environment.Scenes
 {
     public partial class SceneObjectGroup : EntityBase
-    {        
+    {
+        /// <summary>
+        /// Start a given script.
+        /// </summary>
+        /// <param name="localID">
+        /// A <see cref="System.UInt32"/>
+        /// </param>
+        public void StartScript(uint localID, LLUUID itemID)
+        {
+            SceneObjectPart part = GetChildPart(localID);
+            if (part != null)
+            {
+                part.StartScript(itemID);
+            }
+            else
+            {
+                MainLog.Instance.Error(
+                    "PRIMINVENTORY",
+                    "Couldn't find part {0} in object group {1}, {2} to start script with ID {3}",
+                    localID, Name, UUID, itemID);
+            }            
+        }
+        
         /// <summary>
         /// Start the scripts contained in all the prims in this group.
         /// </summary>
@@ -63,8 +85,8 @@ namespace OpenSim.Region.Environment.Scenes
             }
             else
             {
-                MainLog.Instance.Warn(
-                    "SCENE",
+                MainLog.Instance.Error(
+                    "PRIMINVENTORY",
                     "Couldn't find part {0} in object group {1}, {2} to retreive prim inventory",
                     localID, Name, UUID);
             }
@@ -80,7 +102,7 @@ namespace OpenSim.Region.Environment.Scenes
             }
             else
             {
-                MainLog.Instance.Warn(
+                MainLog.Instance.Error(
                     "PRIMINVENTORY",
                     "Couldn't find part {0} in object group {1}, {2} to request inventory data",
                     localID, Name, UUID);

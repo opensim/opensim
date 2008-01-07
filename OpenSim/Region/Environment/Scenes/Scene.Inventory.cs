@@ -559,57 +559,31 @@ namespace OpenSim.Region.Environment.Scenes
                     InventoryItemBase item = userInfo.RootFolder.HasItem(itemID);
                     if (item != null)
                     {
-                        bool isTexture = false;
-                        bool rezzed = false;
-                        if (item.invType == 0)
+                        SceneObjectGroup group = GetGroupByPrim(localID);
+                        if (group != null)
                         {
-                            isTexture = true;
-                        }
+                            // TODO: do we care about the value of this bool?
+                            group.AddInventoryItem(remoteClient, localID, item, copyID);
+                            group.StartScript(localID, copyID);
+                            group.GetProperites(remoteClient);
 
-                        AssetBase rezAsset = AssetCache.GetAsset(item.assetID, isTexture);
-
-                        if (rezAsset != null)
-                        {
-                            string script = Helpers.FieldToUTF8String(rezAsset.Data);
-                            EventManager.TriggerRezScript(localID, copyID, script);
-                            rezzed = true;
-                        }
-
-                        if (rezzed)
-                        {
-                            SceneObjectGroup group = GetGroupByPrim(localID);
-                            if (group != null)
-                            {
-                                // TODO: do we care about the value of this bool?
-                                group.AddInventoryItem(remoteClient, localID, item, copyID);
-                                group.GetProperites(remoteClient);
-
-                                MainLog.Instance.Verbose(
-                                    "PRIMINVENTORY",
-                                    "Rezzed script {0} (asset {1}) into prim {2} for user {3}",
-                                    item.inventoryName, rezAsset.FullID, localID, remoteClient.Name);
-                            }
-                            else
-                            {
-                                MainLog.Instance.Warn(
-                                    "PRIMINVENTORY",
-                                    "Could not rez script {0} into prim {1} for user {2}"
-                                    + " because the prim could not be found in the region!",
-                                    item.inventoryName, localID, remoteClient.Name);
-                            }
+                            MainLog.Instance.Verbose(
+                                "PRIMINVENTORY",
+                                "Rezzed script {0} into prim local ID {1} for user {2}",
+                                item.inventoryName, localID, remoteClient.Name);
                         }
                         else
                         {
-                            MainLog.Instance.Warn(
+                            MainLog.Instance.Error(
                                 "PRIMINVENTORY",
-                                "Could not rez script {0} into prim {1} for user {2}"
-                                + " because the item asset {3} could not be found!",
-                                item.inventoryName, localID, item.assetID, remoteClient.Name);
+                                "Could not rez script {0} into prim local ID {1} for user {2}"
+                                + " because the prim could not be found in the region!",
+                                item.inventoryName, localID, remoteClient.Name);
                         }
                     }
                     else
                     {
-                        MainLog.Instance.Warn(
+                        MainLog.Instance.Error(
                             "PRIMINVENTORY", "Could not find script inventory item {0} to rez for {1}!",
                             itemID, remoteClient.Name);
                     }

@@ -97,7 +97,7 @@ namespace OpenSim.Region.Environment.Scenes
         }
         
         /// <summary>
-        /// Start a script in this prim
+        /// Start a script which is in this prim's inventory.
         /// </summary>
         /// <param name="item"></param>
         /// <returns>true if script asset was found, false if it wasn't</returns>
@@ -126,7 +126,29 @@ namespace OpenSim.Region.Environment.Scenes
             }
             
             return false;
-        }        
+        }   
+        
+        /// <summary>
+        /// Start a script which is in this prim's inventory.
+        /// </summary>
+        /// <param name="itemId">
+        /// A <see cref="LLUUID"/>
+        /// </param>        
+        public void StartScript(LLUUID itemId)
+        {
+            if (m_taskInventory.ContainsKey(itemId))
+            {
+                StartScript(m_taskInventory[itemId]);
+            }            
+            else
+            {
+                MainLog.Instance.Error(
+                    "PRIMINVENTORY", 
+                    "Couldn't start script with ID {0} since it couldn't be found for prim {1}, {2}", 
+                    itemId, Name, UUID);
+            }                
+            
+        }
 
         /// <summary>
         /// Add an item to this prim's inventory.
