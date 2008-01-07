@@ -562,7 +562,6 @@ namespace OpenSim.Region.Environment.Scenes
                         SceneObjectGroup group = GetGroupByPrim(localID);
                         if (group != null)
                         {
-                            // TODO: do we care about the value of this bool?
                             group.AddInventoryItem(remoteClient, localID, item, copyID);
                             group.StartScript(localID, copyID);
                             group.GetProperites(remoteClient);

@@ -100,8 +100,8 @@ namespace OpenSim.Region.Environment.Scenes
         /// Start a script which is in this prim's inventory.
         /// </summary>
         /// <param name="item"></param>
-        /// <returns>true if script asset was found, false if it wasn't</returns>
-        public bool StartScript(TaskInventoryItem item)
+        /// <returns></returns>
+        public void StartScript(TaskInventoryItem item)
         {
 //            MainLog.Instance.Verbose(
 //                "PRIMINVENTORY", 
@@ -114,8 +114,6 @@ namespace OpenSim.Region.Environment.Scenes
             {
                 string script = Helpers.FieldToUTF8String(rezAsset.Data);
                 m_parentGroup.Scene.EventManager.TriggerRezScript(LocalID, item.item_id, script);
-                
-                return true;
             }     
             else
             {
@@ -124,8 +122,6 @@ namespace OpenSim.Region.Environment.Scenes
                     "Couldn't start script {0}, {1} since asset ID {2} could not be found", 
                     item.name, item.item_id, item.asset_id);
             }
-            
-            return false;
         }   
         
         /// <summary>
