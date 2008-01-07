@@ -174,6 +174,13 @@ namespace OpenSim.Region.Environment.Scenes
             m_inventorySerial++;
         }
 
+        /// <summary>
+        /// Remove an item from this prim's inventory
+        /// </summary>
+        /// <param name="remoteClient"></param>
+        /// <param name="localID"></param>
+        /// <param name="itemID"></param>
+        /// <returns>Numeric asset type of the item removed.</returns>
         public int RemoveInventoryItem(IClientAPI remoteClient, uint localID, LLUUID itemID)
         {
             if (localID == LocalID)
@@ -183,7 +190,7 @@ namespace OpenSim.Region.Environment.Scenes
                     string type = m_taskInventory[itemID].inv_type;
                     m_taskInventory.Remove(itemID);
                     m_inventorySerial++;
-                    if (type == "lsl_text")
+                    if (type == "lsltext")
                     {
                         return 10;
                     }

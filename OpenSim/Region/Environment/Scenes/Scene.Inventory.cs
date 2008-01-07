@@ -49,9 +49,6 @@ namespace OpenSim.Region.Environment.Scenes
                 group.StartScripts();
             }            
         }
-        
-        //split these method into this partial as a lot of these (hopefully) are only temporary and won't be needed once Caps is more complete
-        // or at least some of they can be moved somewhere else
 
         /// <summary>
         /// Add an inventory item to an avatar's inventory.

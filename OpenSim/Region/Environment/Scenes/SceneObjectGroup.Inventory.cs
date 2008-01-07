@@ -124,6 +124,14 @@ namespace OpenSim.Region.Environment.Scenes
                 taskItem.type = TaskInventoryItem.Types[item.assetType];
                 taskItem.inv_type = TaskInventoryItem.Types[item.invType];
                 part.AddInventoryItem(taskItem);
+                
+                // It might seem somewhat crude to update the whole group for a single prim inventory change,
+                // but it's possible that other prim inventory changes will take place before the region 
+                // persistence thread visits this object.  In the future, changes can be signalled at a more
+                // granular level, or we could let the datastore worry about whether prims have really 
+                // changed since they were last persisted.
+                HasChanged = true;
+                
                 return true;
             }
             return false;
@@ -146,6 +154,14 @@ namespace OpenSim.Region.Environment.Scenes
                     taskItem.type = TaskInventoryItem.Types[item.assetType];
                     taskItem.inv_type = TaskInventoryItem.InvTypes[item.invType];
                     part.AddInventoryItem(taskItem);
+                    
+                    // It might seem somewhat crude to update the whole group for a single prim inventory change,
+                    // but it's possible that other prim inventory changes will take place before the region 
+                    // persistence thread visits this object.  In the future, changes can be signalled at a more
+                    // granular level, or we could let the datastore worry about whether prims have really 
+                    // changed since they were last persisted.
+                    HasChanged = true;
+                    
                     return true;
                 }
             }
@@ -160,9 +176,19 @@ namespace OpenSim.Region.Environment.Scenes
         {
             SceneObjectPart part = GetChildPart(localID);
             if (part != null)
-            {
-                return part.RemoveInventoryItem(remoteClient, localID, itemID);
+            {                
+                int type = part.RemoveInventoryItem(remoteClient, localID, itemID);
+                
+                // It might seem somewhat crude to update the whole group for a single prim inventory change,
+                // but it's possible that other prim inventory changes will take place before the region 
+                // persistence thread visits this object.  In the future, changes can be signalled at a more
+                // granular level, or we could let the datastore worry about whether prims have really 
+                // changed since they were last persisted.
+                HasChanged = true;
+                
+                return type;
             }
+            
             return -1;
         } 
     }
