@@ -600,8 +600,19 @@ namespace OpenSim.Framework.Data.MySQL
         /// <returns>Success?</returns>
         public bool insertRegion(RegionProfileData regiondata)
         {
-            string sql =
-                "REPLACE INTO regions (regionHandle, regionName, uuid, regionRecvKey, regionSecret, regionSendKey, regionDataURI, ";
+            bool GRID_ONLY_UPDATE_NECESSARY_DATA = false;
+
+            string sql = "";
+            if (GRID_ONLY_UPDATE_NECESSARY_DATA)
+            {
+                sql += "INSERT INTO ";
+            }
+            else
+            {
+                sql += "REPLACE INTO ";
+            }
+
+            sql += "regions (regionHandle, regionName, uuid, regionRecvKey, regionSecret, regionSendKey, regionDataURI, ";
             sql +=
                 "serverIP, serverPort, serverURI, locX, locY, locZ, eastOverrideHandle, westOverrideHandle, southOverrideHandle, northOverrideHandle, regionAssetURI, regionAssetRecvKey, ";
             sql +=
@@ -611,8 +622,16 @@ namespace OpenSim.Framework.Data.MySQL
             sql +=
                 "?serverIP, ?serverPort, ?serverURI, ?locX, ?locY, ?locZ, ?eastOverrideHandle, ?westOverrideHandle, ?southOverrideHandle, ?northOverrideHandle, ?regionAssetURI, ?regionAssetRecvKey, ";
             sql +=
-                "?regionAssetSendKey, ?regionUserURI, ?regionUserRecvKey, ?regionUserSendKey, ?regionMapTexture, ?serverHttpPort, ?serverRemotingPort);";
-            //sql += "ON DUPLICATE KEY UPDATE;";
+                "?regionAssetSendKey, ?regionUserURI, ?regionUserRecvKey, ?regionUserSendKey, ?regionMapTexture, ?serverHttpPort, ?serverRemotingPort)";
+
+            if (GRID_ONLY_UPDATE_NECESSARY_DATA)
+            {
+                sql += "ON DUPLICATE KEY UPDATE serverIP = ?serverIP, serverPort = ?serverPort, serverURI = ?serverURI;";
+            }
+            else
+            {
+                sql += ";";
+            }
 
             Dictionary<string, string> parameters = new Dictionary<string, string>();
 
@@ -642,7 +661,6 @@ namespace OpenSim.Framework.Data.MySQL
             parameters["?regionMapTexture"] = regiondata.regionMapTextureID.ToString();
             parameters["?serverHttpPort"] = regiondata.httpPort.ToString();
             parameters["?serverRemotingPort"] = regiondata.remotingPort.ToString();
-
             bool returnval = false;
 
             try
