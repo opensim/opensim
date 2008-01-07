@@ -37,6 +37,19 @@ namespace OpenSim.Region.Environment.Scenes
 {
     public partial class Scene
     {
+        /// <summary>
+        /// Start all the scripts in the scene which should be started.
+        /// </summary>
+        public void StartScripts()
+        {
+            MainLog.Instance.Verbose("PRIMINVENTORY", "Starting scripts in scene");
+            
+            foreach (SceneObjectGroup group in Entities.Values)
+            {
+                group.StartScripts();
+            }            
+        }
+        
         //split these method into this partial as a lot of these (hopefully) are only temporary and won't be needed once Caps is more complete
         // or at least some of they can be moved somewhere else
 

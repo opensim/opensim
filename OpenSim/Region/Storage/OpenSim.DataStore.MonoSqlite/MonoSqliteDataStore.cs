@@ -243,7 +243,7 @@ namespace OpenSim.DataStore.MonoSqlite
         /// Load persisted objects from region storage.
         /// </summary>
         /// <param name="regionUUID"></param>
-        /// <returns></returns>
+        /// <returns>List of loaded groups</returns>
         public List<SceneObjectGroup> LoadObjects(LLUUID regionUUID)
         {
             Dictionary<LLUUID, SceneObjectGroup> createdObjects = new Dictionary<LLUUID, SceneObjectGroup>();

@@ -33,6 +33,7 @@ using System.Xml.Serialization;
 using libsecondlife;
 
 using OpenSim.Framework;
+using OpenSim.Framework.Console;
 using OpenSim.Region.Environment.Interfaces;
 using OpenSim.Region.Environment.Scenes.Scripting;
 
@@ -79,6 +80,53 @@ namespace OpenSim.Region.Environment.Scenes
         {
             get { return m_inventorySerial; }
         }
+        
+        
+        /// <summary>
+        /// Start all the scripts contained in this prim's inventory
+        /// </summary>
+        public void StartScripts()
+        {
+            foreach (TaskInventoryItem item in m_taskInventory.Values)
+            {
+                if ("lsltext" == item.type)
+                {
+                    StartScript(item);
+                }
+            }
+        }
+        
+        /// <summary>
+        /// Start a script in this prim
+        /// </summary>
+        /// <param name="item"></param>
+        /// <returns>true if script asset was found, false if it wasn't</returns>
+        public bool StartScript(TaskInventoryItem item)
+        {
+//            MainLog.Instance.Verbose(
+//                "PRIMINVENTORY", 
+//                "Starting script {0}, {1} in prim {2}, {3}", 
+//                item.name, item.item_id, Name, UUID);
+            
+            AssetBase rezAsset = m_parentGroup.Scene.AssetCache.GetAsset(item.asset_id, false);
+
+            if (rezAsset != null)
+            {
+                string script = Helpers.FieldToUTF8String(rezAsset.Data);
+                m_parentGroup.Scene.EventManager.TriggerRezScript(LocalID, item.item_id, script);
+                
+                return true;
+            }     
+            else
+            {
+                MainLog.Instance.Error(
+                    "PRIMINVENTORY", 
+                    "Couldn't start script {0}, {1} since asset ID {2} could not be found", 
+                    item.name, item.item_id, item.asset_id);
+            }
+            
+            return false;
+        }        
 
         /// <summary>
         /// Add an item to this prim's inventory.

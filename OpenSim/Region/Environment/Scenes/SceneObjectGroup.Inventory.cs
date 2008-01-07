@@ -37,7 +37,18 @@ using OpenSim.Region.Environment.Interfaces;
 namespace OpenSim.Region.Environment.Scenes
 {
     public partial class SceneObjectGroup : EntityBase
-    {
+    {        
+        /// <summary>
+        /// Start the scripts contained in all the prims in this group.
+        /// </summary>
+        public void StartScripts()
+        {
+            foreach (SceneObjectPart part in m_parts.Values)
+            {
+                part.StartScripts();
+            }            
+        }
+        
         /// <summary>
         /// 
         /// </summary>
@@ -131,6 +142,6 @@ namespace OpenSim.Region.Environment.Scenes
                 return part.RemoveInventoryItem(remoteClient, localID, itemID);
             }
             return -1;
-        }        
+        } 
     }
 }

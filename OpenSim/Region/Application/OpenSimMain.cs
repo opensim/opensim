@@ -426,23 +426,24 @@ namespace OpenSim
             UDPServer udpServer;
             Scene scene = SetupScene(regionInfo, out udpServer, m_permissions);
 
-            MainLog.Instance.Verbose("MODULES", "Loading Region's Modules");
+            MainLog.Instance.Verbose("MODULES", "Loading Region's modules");
 
             m_moduleLoader.PickupModules(scene, ".");
             //m_moduleLoader.PickupModules(scene, "ScriptEngines");
             //m_moduleLoader.LoadRegionModules(Path.Combine("ScriptEngines", m_scriptEngine), scene);
             MainLog.Instance.Verbose("MODULES", "Loading scripting engine modules");
-            m_moduleLoader.LoadRegionModules(Path.Combine("ScriptEngines", m_scriptEngine), scene);
-        
-            
+            m_moduleLoader.LoadRegionModules(Path.Combine("ScriptEngines", m_scriptEngine), scene);       
 
             m_moduleLoader.InitialiseSharedModules(scene);
             scene.SetModuleInterfaces();
 
             //Server side object editing permissions checking
             scene.PermissionsMngr.BypassPermissions = !m_permissions;
+            
+            // We need to do this after we've initialized the scripting engines.
+            scene.StartScripts();            
 
-            m_sceneManager.Add(scene);
+            m_sceneManager.Add(scene);                        
 
             m_udpServers.Add(udpServer);
             m_regionData.Add(regionInfo);

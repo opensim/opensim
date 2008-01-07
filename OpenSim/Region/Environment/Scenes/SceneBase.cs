@@ -54,7 +54,6 @@ namespace OpenSim.Region.Environment.Scenes
         protected ulong m_regionHandle;
         protected string m_regionName;
         protected RegionInfo m_regInfo;
-        protected RegionStatus m_regStatus;
 
         public TerrainEngine Terrain;
 
@@ -68,6 +67,7 @@ namespace OpenSim.Region.Environment.Scenes
         protected string m_datastore;
 
         private uint m_nextLocalId = 8880000;
+        
         private AssetCache m_assetCache;
 
         public AssetCache AssetCache
@@ -75,6 +75,8 @@ namespace OpenSim.Region.Environment.Scenes
             get { return m_assetCache; }
             set { m_assetCache = value; }
         }
+        
+        protected RegionStatus m_regStatus;        
 
         public RegionStatus Region_Status
         {

@@ -890,11 +890,12 @@ namespace OpenSim.Region.Environment.Scenes
         public virtual void LoadPrimsFromStorage(bool m_permissions)
         {
             MainLog.Instance.Verbose("SCENE", "Loading objects from datastore");
+            
             List<SceneObjectGroup> PrimsFromDB = m_storageManager.DataStore.LoadObjects(m_regInfo.RegionID);
-            foreach (SceneObjectGroup prim in PrimsFromDB)
+            foreach (SceneObjectGroup group in PrimsFromDB)
             {
-                AddEntityFromStorage(prim);
-                SceneObjectPart rootPart = prim.GetChildPart(prim.UUID);
+                AddEntityFromStorage(group);
+                SceneObjectPart rootPart = group.GetChildPart(group.UUID);
                 rootPart.ApplySanePermissions();
 
                 bool UsePhysics = (((rootPart.ObjectFlags & (uint) LLObject.ObjectFlags.Physics) > 0) && m_physicalPrim);
@@ -909,6 +910,7 @@ namespace OpenSim.Region.Environment.Scenes
                                        rootPart.RotationOffset.Y, rootPart.RotationOffset.Z), UsePhysics);
                 rootPart.DoPhysicsPropertyUpdate(UsePhysics, true);
             }
+            
             MainLog.Instance.Verbose("SCENE", "Loaded " + PrimsFromDB.Count.ToString() + " SceneObject(s)");
         }
 
