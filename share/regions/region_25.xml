@@ -1,1 +1,0 @@
-<Root><Config sim_name="Test Sim #25" sim_location_x="1001" sim_location_y="1009" datastore="region_25_datastore.yap" internal_ip_address="0.0.0.0" internal_ip_port="9025" external_host_name="127.0.0.1" terrain_file="default.r32" terrain_multiplier="60.0" master_avatar_first="Test" master_avatar_last="User" master_avatar_pass="test" /></Root>
