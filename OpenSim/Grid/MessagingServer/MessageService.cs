@@ -144,20 +144,20 @@ namespace OpenSim.Grid.MessagingServer
         /// <param name="friendID"></param>
         public void addBackReference(LLUUID agentID, LLUUID friendID)
         {
-            if (m_presence_BackReferences.Contains(agentID))
+            if (m_presence_BackReferences.Contains(friendID))
             {
-                List<LLUUID> presenseBackReferences = (List<LLUUID>)m_presence_BackReferences[agentID];
-                if (!presenseBackReferences.Contains(friendID))
+                List<LLUUID> presenseBackReferences = (List<LLUUID>)m_presence_BackReferences[friendID];
+                if (!presenseBackReferences.Contains(agentID))
                 {
-                    presenseBackReferences.Add(friendID);
+                    presenseBackReferences.Add(agentID);
                 }
-                m_presence_BackReferences[agentID] = presenseBackReferences;
+                m_presence_BackReferences[friendID] = presenseBackReferences;
             }
             else
             {
                 List<LLUUID> presenceBackReferences = new List<LLUUID>();
-                presenceBackReferences.Add(friendID);
-                m_presence_BackReferences[agentID] = presenceBackReferences;
+                presenceBackReferences.Add(agentID);
+                m_presence_BackReferences[friendID] = presenceBackReferences;
             }
         }
 
@@ -168,12 +168,12 @@ namespace OpenSim.Grid.MessagingServer
         /// <param name="friendID"></param>
         public void removeBackReference(LLUUID agentID, LLUUID friendID)
         {
-            if (m_presence_BackReferences.Contains(agentID))
+            if (m_presence_BackReferences.Contains(friendID))
             {
-                List<LLUUID> presenseBackReferences = (List<LLUUID>)m_presence_BackReferences[agentID];
-                if (presenseBackReferences.Contains(friendID))
+                List<LLUUID> presenseBackReferences = (List<LLUUID>)m_presence_BackReferences[friendID];
+                if (presenseBackReferences.Contains(agentID))
                 {
-                    presenseBackReferences.Remove(friendID);
+                    presenseBackReferences.Remove(agentID);
                 }
 
                 // If there are no more backreferences for this agent, 
