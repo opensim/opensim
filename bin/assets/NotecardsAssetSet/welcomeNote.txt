@@ -1,0 +1,4 @@
+
+Hello and thank you for using OpenSim. For more infomation visit http://opensimulator.org/wiki/Main_Page
+
+In this Library you will find example items to play with and learn on. To use any of these items just double click and/or drag them to the respective folder in your base inventory. Then you can drag them to prims.

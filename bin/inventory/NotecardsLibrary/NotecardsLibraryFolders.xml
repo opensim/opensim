@@ -1,0 +1,17 @@
+<Nini>
+<!--
+  <Section Name="Example Library">
+    <Key Name="folderID" Value="12345678-1234-1234-1234-1234567890ab"/>
+    <Key Name="parentFolderID" Value="00000112-000f-0000-0000-000100bba000"/>
+    <Key Name="name" Value="Example Library"/>
+    <Key Name="type" Value="0"/>
+  </Section>
+  -->
+  
+  <Section Name="Notecards Library">
+    <Key Name="folderID" Value="33cbd240-b9bf-11dc-95ff-0800200c9a66"/>
+    <Key Name="parentFolderID" Value="00000112-000f-0000-0000-000100bba000"/>
+    <Key Name="name" Value="Notecards Library"/>
+    <Key Name="type" Value="7"/>
+  </Section>
+</Nini>
