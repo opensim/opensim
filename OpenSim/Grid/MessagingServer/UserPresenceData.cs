@@ -25,26 +25,25 @@
 * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 * 
 */
-
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using libsecondlife;
+using OpenSim.Framework;
 
-namespace OpenSim.Framework
+namespace OpenSim.Grid.MessagingServer
 {
-    public class FriendListItem
+    public class UserPresenceData
     {
-        public LLUUID FriendListOwner;
-        public LLUUID Friend;
+        public AgentCircuitData agentData = new AgentCircuitData();
+        public RegionInfo regionData = new RegionInfo();
+        public List<FriendListItem> friendData = new List<FriendListItem> ();
 
-        // These are what the list owner gives the friend permission to do
-        public uint FriendPerms;
+        public UserPresenceData()
+        {
+            
 
-        // These are what the friend gives the listowner permission to do
-        public uint FriendListOwnerPerms;
+        }
 
-        public bool onlinestatus = false;
-       
-        
     }
 }

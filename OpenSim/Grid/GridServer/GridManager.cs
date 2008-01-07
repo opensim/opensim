@@ -45,6 +45,8 @@ namespace OpenSim.Grid.GridServer
     {
         private Dictionary<string, IGridData> _plugins = new Dictionary<string, IGridData>();
         private Dictionary<string, ILogData> _logplugins = new Dictionary<string, ILogData>();
+
+        // This is here so that the grid server can hand out MessageServer settings to regions on registration
         private List<MessageServerInfo> _MessageServers = new List<MessageServerInfo>();
 
         public GridConfig config;
