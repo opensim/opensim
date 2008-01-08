@@ -30,13 +30,16 @@ using System.Collections;
 using System.Collections.Generic;
 using libsecondlife;
 using OpenSim.Framework;
+using OpenSim.Framework.Data;
+
 
 namespace OpenSim.Grid.MessagingServer
 {
     public class UserPresenceData
     {
         public AgentCircuitData agentData = new AgentCircuitData();
-        public RegionInfo regionData = new RegionInfo();
+        public RegionProfileData regionData = new RegionProfileData();
+        public string httpURI = "";
         public List<FriendListItem> friendData = new List<FriendListItem> ();
         public List<LLUUID> subscriptionData = new List<LLUUID>();
 

@@ -93,7 +93,7 @@ namespace OpenSim.Grid.MessagingServer
             up.agentData = agentData;
             List<FriendListItem> flData = GetUserFriendList(agentData.AgentID);
             up.friendData = flData;
-            RegionInfo riData = GetRegionInfo(regionHandle);
+            RegionProfileData riData = GetRegionInfo(regionHandle);
             up.regionData = riData;
 
             ProcessFriendListSubscriptions(up);
@@ -101,6 +101,19 @@ namespace OpenSim.Grid.MessagingServer
 
             return new XmlRpcResponse();
         }
+
+        #region RegionComms Methods
+
+        public void SendRegionPresenceUpdate(UserPresenceData AgentData)
+        {
+            RegionProfileData whichRegion = AgentData.regionData;
+            //whichRegion.httpServerURI
+
+        }
+
+
+        #endregion
+
         #region FriendList Methods
 
         #region FriendListProcessing
@@ -110,9 +123,14 @@ namespace OpenSim.Grid.MessagingServer
             List<FriendListItem> uFriendList = userpresence.friendData;
             for (int i = 0; i < uFriendList.Count; i++)
             {
+                m_presence_BackReferences.Add(userpresence.agentData.AgentID, uFriendList[i].Friend);
+                m_presence_BackReferences.Add(uFriendList[i].Friend, userpresence.agentData.AgentID);
+
                 if (m_presences.Contains(uFriendList[i].Friend))
                 {
                     UserPresenceData friendup = (UserPresenceData)m_presences[uFriendList[i]];
+                    // Add backreference
+                    
                     SubscribeToPresenceUpdates(userpresence, friendup, uFriendList[i],i);
                 }
             }
@@ -127,14 +145,33 @@ namespace OpenSim.Grid.MessagingServer
             if ((uFriendListItem.FriendListOwnerPerms & (uint)FriendRights.CanSeeOnline) != 0)
             {
                 // Subscribe and Send Out updates
-                // Add backreference
-                m_presence_BackReferences.Add(userpresence.agentData.AgentID, friendpresence.agentData.AgentID);
-            }
-            
-            
+                if (!friendpresence.subscriptionData.Contains(friendpresence.agentData.AgentID))
+                {
+                    userpresence.subscriptionData.Add(friendpresence.agentData.AgentID);
+                    //Send Region Notice....   
+                }
+                else
+                {
+                    // we need to send out online status update, but the user is already subscribed
 
+                }
+            }
+            if ((uFriendListItem.FriendPerms & (uint)FriendRights.CanSeeOnline) != 0)
+            {
+                if (!friendpresence.subscriptionData.Contains(userpresence.agentData.AgentID))
+                {
+                    friendpresence.subscriptionData.Add(userpresence.agentData.AgentID);
+                    //Send Region Notice....
+                }
+                else
+                {
+                    // we need to send out online status update, but the user is already subscribed
+
+                }
+            }
 
         }
+
 
         /// <summary>
         /// Adds a backreference so presence specific data doesn't have to be 
@@ -256,12 +293,12 @@ namespace OpenSim.Grid.MessagingServer
         /// </summary>
         /// <param name="regionhandle">handle to the XY of the region we're looking for</param>
         /// <returns>A RegionInfo object to stick in the presence info</returns>
-        public RegionInfo GetRegionInfo(ulong regionhandle)
+        public RegionProfileData GetRegionInfo(ulong regionhandle)
         {
-            RegionInfo regionInfo = null;
+            RegionProfileData regionInfo = null;
             if (m_regionInfoCache.Contains(regionhandle))
             {
-                regionInfo = (RegionInfo)m_regionInfoCache[regionhandle];
+                regionInfo = (RegionProfileData)m_regionInfoCache[regionhandle];
             }
             else 
             {
@@ -269,8 +306,8 @@ namespace OpenSim.Grid.MessagingServer
             }
             return regionInfo;
         }
-        public RegionInfo RequestRegionInfo(ulong regionHandle)
-        {   RegionInfo regionInfo = null;
+        public RegionProfileData RequestRegionInfo(ulong regionHandle)
+        {   RegionProfileData regionProfile = null;
             try
             {
                 
@@ -295,18 +332,20 @@ namespace OpenSim.Grid.MessagingServer
                 string internalIpStr = (string)responseData["sim_ip"];
                 uint port = Convert.ToUInt32(responseData["sim_port"]);
                 string externalUri = (string)responseData["sim_uri"];
-
-                IPEndPoint neighbourInternalEndPoint = new IPEndPoint(IPAddress.Parse(internalIpStr), (int)port);
                 string neighbourExternalUri = externalUri;
-                regionInfo = new RegionInfo(regX, regY, neighbourInternalEndPoint, internalIpStr);
 
-                regionInfo.RemotingPort = Convert.ToUInt32((string)responseData["remoting_port"]);
-                regionInfo.RemotingAddress = internalIpStr;
+                regionProfile = new RegionProfileData();
+                regionProfile.httpPort = (uint)Convert.ToInt32((string)responseData["http_port"]);
+                regionProfile.httpServerURI = "http://" + internalIpStr + ":" + regionProfile.httpPort + "/";
+                regionProfile.regionHandle = Helpers.UIntsToLong((regX * 256), (regY * 256));
+                regionProfile.regionLocX = regX;
+                regionProfile.regionLocY = regY;
+               
+                regionProfile.remotingPort = Convert.ToUInt32((string)responseData["remoting_port"]);
+                regionProfile.UUID = new LLUUID((string)responseData["region_UUID"]);
+                regionProfile.regionName = (string)responseData["region_name"];
 
-                regionInfo.RegionID = new LLUUID((string)responseData["region_UUID"]);
-                regionInfo.RegionName = (string)responseData["region_name"];
-
-                m_regionInfoCache.Add(regionHandle, regionInfo);
+                m_regionInfoCache.Add(regionHandle, regionProfile);
             }
             catch (WebException)
             {
@@ -317,7 +356,7 @@ namespace OpenSim.Grid.MessagingServer
             }
            
 
-            return regionInfo;
+            return regionProfile;
         }
         #endregion
     }
