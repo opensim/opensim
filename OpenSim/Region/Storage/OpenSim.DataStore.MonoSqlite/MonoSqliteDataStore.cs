@@ -176,17 +176,6 @@ namespace OpenSim.DataStore.MonoSqlite
             }
         }
 
-        private bool Stopped(SceneObjectPart prim)
-        {
-            double threshold = 0.02;
-            return (Math.Abs(prim.Velocity.X) < threshold &&
-                    Math.Abs(prim.Velocity.Y) < threshold &&
-                    Math.Abs(prim.Velocity.Z) < threshold &&
-                    Math.Abs(prim.AngularVelocity.X) < threshold &&
-                    Math.Abs(prim.AngularVelocity.Y) < threshold &&
-                    Math.Abs(prim.AngularVelocity.Z) < threshold);
-        }
-
         public void StoreObject(SceneObjectGroup obj, LLUUID regionUUID)
         {
             lock (ds)
@@ -198,7 +187,7 @@ namespace OpenSim.DataStore.MonoSqlite
                         MainLog.Instance.Verbose("DATASTORE", "Adding obj: " + obj.UUID + " to region: " + regionUUID);
                         addPrim(prim, Util.ToRawUuidString(obj.UUID), Util.ToRawUuidString(regionUUID));
                     }
-                    else if (Stopped(prim))
+                    else if (prim.Stopped)
                     {
                         MainLog.Instance.Verbose("DATASTORE",
                                                  "Adding stopped obj: " + obj.UUID + " to region: " + regionUUID);

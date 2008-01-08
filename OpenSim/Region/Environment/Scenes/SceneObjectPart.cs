@@ -402,6 +402,19 @@ namespace OpenSim.Region.Environment.Scenes
             get { return m_shape.Scale; }
         }
 
+        public bool Stopped
+        {
+            get {
+                double threshold = 0.02;
+                return (Math.Abs(Velocity.X) < threshold &&
+                        Math.Abs(Velocity.Y) < threshold &&
+                        Math.Abs(Velocity.Z) < threshold &&
+                        Math.Abs(AngularVelocity.X) < threshold &&
+                        Math.Abs(AngularVelocity.Y) < threshold &&
+                        Math.Abs(AngularVelocity.Z) < threshold);
+            }
+        }
+
         #endregion
 
         public LLUUID ObjectOwner
