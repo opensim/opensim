@@ -55,6 +55,10 @@ namespace OpenSim.Grid.MessagingServer
         //A hashtable containing lists of UUIDs keyed by UUID for fast backreferencing
         private Hashtable m_presence_BackReferences = new Hashtable();
 
+        // Hashtable containing work units that need to be processed
+        private Hashtable m_unProcessedWorkUnits = new Hashtable();
+
+
         public MessageService(LogBase log, MessageServerConfig cfg)
         {
             m_log = log;
