@@ -61,54 +61,29 @@ namespace OpenSim.Grid.MessagingServer
             m_cfg = cfg;
         }
 
-        public XmlRpcResponse UserLoggedOn(XmlRpcRequest request)
-        {
-            
-            Hashtable requestData = (Hashtable)request.Params[0];
-            AgentCircuitData agentData = new AgentCircuitData();
-            agentData.SessionID = new LLUUID((string)requestData["session_id"]);
-            agentData.SecureSessionID = new LLUUID((string)requestData["secure_session_id"]);
-            agentData.firstname = (string)requestData["firstname"];
-            agentData.lastname = (string)requestData["lastname"];
-            agentData.AgentID = new LLUUID((string)requestData["agent_id"]);
-            agentData.circuitcode = Convert.ToUInt32(requestData["circuit_code"]);
-            agentData.CapsPath = (string)requestData["caps_path"];
-
-            if (requestData.ContainsKey("child_agent") && requestData["child_agent"].Equals("1"))
-            {
-                agentData.child = true;
-            }
-            else
-            {
-                agentData.startpos =
-                    new LLVector3(Convert.ToUInt32(requestData["startpos_x"]),
-                                  Convert.ToUInt32(requestData["startpos_y"]),
-                                  Convert.ToUInt32(requestData["startpos_z"]));
-                agentData.child = false;
-            }
-
-            ulong regionHandle = Convert.ToUInt64((string)requestData["regionhandle"]);
-            
-            UserPresenceData up = new UserPresenceData();
-            up.agentData = agentData;
-            List<FriendListItem> flData = GetUserFriendList(agentData.AgentID);
-            up.friendData = flData;
-            RegionProfileData riData = GetRegionInfo(regionHandle);
-            up.regionData = riData;
-
-            ProcessFriendListSubscriptions(up);
-
-
-            return new XmlRpcResponse();
-        }
-
+        
         #region RegionComms Methods
 
-        public void SendRegionPresenceUpdate(UserPresenceData AgentData)
+        /// <summary>
+        /// Informs a region about an Agent
+        /// </summary>
+        /// <param name="TalkingAbout">User to talk about</param>
+        /// <param name="UserToUpdate">User we're sending this too (contains the region)</param>
+        public void SendRegionPresenceUpdate(UserPresenceData TalkingAbout, UserPresenceData UserToUpdate)
         {
-            RegionProfileData whichRegion = AgentData.regionData;
+            // TODO: Fill in pertenant Presence Data from 'TalkingAbout'
+
+            RegionProfileData whichRegion = UserToUpdate.regionData;
             //whichRegion.httpServerURI
 
+            Hashtable PresenceParams = new Hashtable();
+            ArrayList SendParams = new ArrayList();
+            SendParams.Add(PresenceParams);
+
+            MainLog.Instance.Verbose("PRESENCE", "Informing " + whichRegion.regionName + " at " + whichRegion.httpServerURI);
+            // Send
+            XmlRpcRequest RegionReq = new XmlRpcRequest("presence_update", SendParams);
+            XmlRpcResponse RegionResp = RegionReq.Send(whichRegion.httpServerURI, 6000);
         }
 
 
@@ -116,8 +91,12 @@ namespace OpenSim.Grid.MessagingServer
 
         #region FriendList Methods
 
-        #region FriendListProcessing
-
+        
+        /// <summary>
+        /// Process Friendlist subscriptions for a user
+        /// The login method calls this for a User
+        /// </summary>
+        /// <param name="userpresence">The Agent we're processing the friendlist subscriptions</param>
         public void ProcessFriendListSubscriptions(UserPresenceData userpresence)
         {
             List<FriendListItem> uFriendList = userpresence.friendData;
@@ -138,6 +117,15 @@ namespace OpenSim.Grid.MessagingServer
             m_presences.Add(userpresence.agentData.AgentID, userpresence);
         }
 
+        /// <summary>
+        /// Does the necessary work to subscribe one agent to another's presence notifications
+        /// Gets called by ProcessFriendListSubscriptions.  You shouldn't call this directly 
+        /// unless you know what you're doing
+        /// </summary>
+        /// <param name="userpresence">P1</param>
+        /// <param name="friendpresence">P2</param>
+        /// <param name="uFriendListItem"></param>
+        /// <param name="uFriendListIndex"></param>
         public void SubscribeToPresenceUpdates(UserPresenceData userpresence, UserPresenceData friendpresence, 
                                                 FriendListItem uFriendListItem, int uFriendListIndex)
         {
@@ -149,12 +137,14 @@ namespace OpenSim.Grid.MessagingServer
                 {
                     userpresence.subscriptionData.Add(friendpresence.agentData.AgentID);
                     //Send Region Notice....   
+                    
                 }
                 else
                 {
                     // we need to send out online status update, but the user is already subscribed
-
+                    
                 }
+                SendRegionPresenceUpdate(friendpresence, userpresence);
             }
             if ((uFriendListItem.FriendPerms & (uint)FriendRights.CanSeeOnline) != 0)
             {
@@ -168,6 +158,7 @@ namespace OpenSim.Grid.MessagingServer
                     // we need to send out online status update, but the user is already subscribed
 
                 }
+                SendRegionPresenceUpdate(userpresence, friendpresence);
             }
 
         }
@@ -221,10 +212,54 @@ namespace OpenSim.Grid.MessagingServer
                 }
             }
         }
+        /// <summary>
+        /// Logoff Processor.  Call this to clean up agent presence data and send logoff presence notifications
+        /// </summary>
+        /// <param name="AgentID"></param>
+        private void ProcessLogOff(LLUUID AgentID)
+        {
+            if (m_presences.Contains(AgentID))
+            {
+                UserPresenceData AgentData = (UserPresenceData)m_presences[AgentID];
+
+                if (m_presence_BackReferences.Contains(AgentID))
+                {
+                    List<LLUUID> AgentsNeedingNotification = (List<LLUUID>)m_presence_BackReferences[AgentID];
+                    for (int i = 0; i < AgentsNeedingNotification.Count; i++)
+                    {
+                        // TODO: Do Region Notifications
+                        if (m_presences.Contains(AgentsNeedingNotification[i]))
+                        {
+                            UserPresenceData friendd = (UserPresenceData)m_presences[AgentsNeedingNotification[i]];
+                            
+                            // This might need to be enumerated and checked before we try to remove it.
+                            friendd.subscriptionData.Remove(AgentID);
+                            
+                            List<FriendListItem> fl = friendd.friendData;
+                            for (int j = 0; j < fl.Count; j++)
+                            {
+                                if (fl[j].Friend == AgentID)
+                                {
+                                    fl[j].onlinestatus = false;
+                                }
+
+                            }
+                            friendd.friendData = fl;
+
+                            SendRegionPresenceUpdate(AgentData, friendd);
+
+                        }
+                        removeBackReference(AgentID, AgentsNeedingNotification[i]);
+
+                    }
+                }
+            }
+        }
+        
 
         #endregion
 
-        #region FriendList Gathering
+        #region UserServer Comms
 
         /// <summary>
         /// Returns a list of FriendsListItems that describe the friends and permissions in the friend relationship for LLUUID friendslistowner
@@ -260,6 +295,12 @@ namespace OpenSim.Grid.MessagingServer
             return buddylist;
 
         }
+
+        /// <summary>
+        /// Converts XMLRPC Friend List to FriendListItem Object
+        /// </summary>
+        /// <param name="data">XMLRPC response data Hashtable</param>
+        /// <returns></returns>
         public List<FriendListItem> ConvertXMLRPCDataToFriendListItemList(Hashtable data)
         {
             List<FriendListItem> buddylist = new List<FriendListItem>();
@@ -281,10 +322,75 @@ namespace OpenSim.Grid.MessagingServer
 
             return buddylist;
         }
-        #endregion
+        /// <summary>
+        /// UserServer sends an expect_user method
+        /// this handles the method and provisions the 
+        /// necessary info for presence to work
+        /// </summary>
+        /// <param name="request">UserServer Data</param>
+        /// <returns></returns>
+        public XmlRpcResponse UserLoggedOn(XmlRpcRequest request)
+        {
+
+            Hashtable requestData = (Hashtable)request.Params[0];
+            AgentCircuitData agentData = new AgentCircuitData();
+            agentData.SessionID = new LLUUID((string)requestData["session_id"]);
+            agentData.SecureSessionID = new LLUUID((string)requestData["secure_session_id"]);
+            agentData.firstname = (string)requestData["firstname"];
+            agentData.lastname = (string)requestData["lastname"];
+            agentData.AgentID = new LLUUID((string)requestData["agent_id"]);
+            agentData.circuitcode = Convert.ToUInt32(requestData["circuit_code"]);
+            agentData.CapsPath = (string)requestData["caps_path"];
+
+            if (requestData.ContainsKey("child_agent") && requestData["child_agent"].Equals("1"))
+            {
+                agentData.child = true;
+            }
+            else
+            {
+                agentData.startpos =
+                    new LLVector3(Convert.ToUInt32(requestData["startpos_x"]),
+                                  Convert.ToUInt32(requestData["startpos_y"]),
+                                  Convert.ToUInt32(requestData["startpos_z"]));
+                agentData.child = false;
+            }
+
+            ulong regionHandle = Convert.ToUInt64((string)requestData["regionhandle"]);
+
+            UserPresenceData up = new UserPresenceData();
+            up.agentData = agentData;
+            List<FriendListItem> flData = GetUserFriendList(agentData.AgentID);
+            up.friendData = flData;
+            RegionProfileData riData = GetRegionInfo(regionHandle);
+            up.regionData = riData;
+
+            ProcessFriendListSubscriptions(up);
+
+
+            return new XmlRpcResponse();
+        }
+        
+        /// <summary>
+        /// The UserServer got a Logoff message 
+        /// Cleanup time for that user.  Send out presence notifications
+        /// </summary>
+        /// <param name="request"></param>
+        /// <returns></returns>
+        public XmlRpcResponse UserLoggedOff(XmlRpcRequest request)
+        {
+
+            Hashtable requestData = (Hashtable)request.Params[0];
+            
+            LLUUID AgentID = new LLUUID((string)requestData["agent_id"]);
+
+
+            ProcessLogOff(AgentID);
+
+
+            return new XmlRpcResponse();
+        }
 
         #endregion
-
         #region regioninfo gathering
 
         /// <summary>
@@ -306,6 +412,12 @@ namespace OpenSim.Grid.MessagingServer
             }
             return regionInfo;
         }
+        /// <summary>
+        /// Get RegionProfileData from the GridServer
+        /// We'll Cache this information and use it for presence updates
+        /// </summary>
+        /// <param name="regionHandle"></param>
+        /// <returns></returns>
         public RegionProfileData RequestRegionInfo(ulong regionHandle)
         {   RegionProfileData regionProfile = null;
             try
