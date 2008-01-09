@@ -68,8 +68,8 @@ namespace OpenSim.Framework.Communications.Cache
 
             if (asset != null)
             {
-                MainLog.Instance.Verbose(
-                    "ASSET", "Asset {0} received from asset server", req.AssetID);
+                //MainLog.Instance.Verbose(
+                //    "ASSET", "Asset {0} received from asset server", req.AssetID);
 
                 m_receiver.AssetReceived(asset, req.IsTexture);
             }
