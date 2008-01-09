@@ -227,5 +227,17 @@ namespace OpenSim.Framework
 
             return shape;
         }
+
+        public void SetPathRange( LLVector3 pathRange )
+        {
+            PathBegin = LLObject.PackBeginCut(pathRange.X);
+            PathEnd = LLObject.PackEndCut(pathRange.Y);
+        }
+
+        public void SetProfileRange( LLVector3 profileRange )
+        {
+            ProfileBegin = LLObject.PackBeginCut(profileRange.X);
+            ProfileEnd = LLObject.PackEndCut(profileRange.Y);
+        }
     }
 }
