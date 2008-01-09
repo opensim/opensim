@@ -41,6 +41,10 @@ namespace OpenSim.Framework
         public LLUUID UUID;
 
         /// <summary>
+        /// The last used Web_login_key
+        /// </summary>
+        public LLUUID webLoginKey;
+        /// <summary>
         /// The first component of a users account name
         /// </summary>
         public string username;

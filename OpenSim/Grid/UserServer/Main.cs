@@ -103,6 +103,7 @@ namespace OpenSim.Grid.UserServer
             BaseHttpServer httpServer = new BaseHttpServer(Cfg.HttpPort);
 
             httpServer.AddXmlRPCHandler("login_to_simulator", m_loginService.XmlRpcLoginMethod);
+            
             httpServer.SetLLSDHandler(m_loginService.LLSDLoginMethod);
 
             httpServer.AddXmlRPCHandler("get_user_by_name", m_userManager.XmlRPCGetUserMethodName);

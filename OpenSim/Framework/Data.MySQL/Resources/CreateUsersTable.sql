@@ -25,9 +25,10 @@ CREATE TABLE `users` (
   `profileFirstText` text,
   `profileImage` varchar(36) default NULL,
   `profileFirstImage` varchar(36) default NULL,
+  `webLoginKey` varchar(36) default NULL,
   PRIMARY KEY  (`UUID`),
   UNIQUE KEY `usernames` (`username`,`lastname`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='Rev. 1';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='Rev. 2';
 
 -- ----------------------------
 -- Records 

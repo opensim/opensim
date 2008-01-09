@@ -446,6 +446,7 @@ namespace OpenSim.Framework.Data.MySQL
 
                 retval.profileImage = new LLUUID((string) reader["profileImage"]);
                 retval.profileFirstImage = new LLUUID((string) reader["profileFirstImage"]);
+                retval.webLoginKey = new LLUUID((string)reader["webLoginKey"]);
             }
             else
             {
@@ -531,7 +532,7 @@ namespace OpenSim.Framework.Data.MySQL
                                   float homeLookAtX, float homeLookAtY, float homeLookAtZ, int created, int lastlogin,
                                   string inventoryURI, string assetURI, uint canDoMask, uint wantDoMask,
                                   string aboutText, string firstText,
-                                  LLUUID profileImage, LLUUID firstImage)
+                                  LLUUID profileImage, LLUUID firstImage, LLUUID webLoginKey)
         {
             string sql =
                 "INSERT INTO users (`UUID`, `username`, `lastname`, `passwordHash`, `passwordSalt`, `homeRegion`, ";
@@ -539,14 +540,14 @@ namespace OpenSim.Framework.Data.MySQL
                 "`homeLocationX`, `homeLocationY`, `homeLocationZ`, `homeLookAtX`, `homeLookAtY`, `homeLookAtZ`, `created`, ";
             sql +=
                 "`lastLogin`, `userInventoryURI`, `userAssetURI`, `profileCanDoMask`, `profileWantDoMask`, `profileAboutText`, ";
-            sql += "`profileFirstText`, `profileImage`, `profileFirstImage`) VALUES ";
+            sql += "`profileFirstText`, `profileImage`, `profileFirstImage`, `webLoginKey`) VALUES ";
 
             sql += "(?UUID, ?username, ?lastname, ?passwordHash, ?passwordSalt, ?homeRegion, ";
             sql +=
                 "?homeLocationX, ?homeLocationY, ?homeLocationZ, ?homeLookAtX, ?homeLookAtY, ?homeLookAtZ, ?created, ";
             sql +=
                 "?lastLogin, ?userInventoryURI, ?userAssetURI, ?profileCanDoMask, ?profileWantDoMask, ?profileAboutText, ";
-            sql += "?profileFirstText, ?profileImage, ?profileFirstImage)";
+            sql += "?profileFirstText, ?profileImage, ?profileFirstImage, ?webLoginKey)";
 
             Dictionary<string, string> parameters = new Dictionary<string, string>();
             parameters["?UUID"] = uuid.ToString();
@@ -571,6 +572,7 @@ namespace OpenSim.Framework.Data.MySQL
             parameters["?profileFirstText"] = "";
             parameters["?profileImage"] = LLUUID.Zero.ToString();
             parameters["?profileFirstImage"] = LLUUID.Zero.ToString();
+            parameters["?webLoginKey"] = LLUUID.Random().ToString();
 
             bool returnval = false;
 

@@ -315,7 +315,7 @@ namespace OpenSim.Framework.Data.MSSQL
                                            user.lastLogin, user.userInventoryURI, user.userAssetURI,
                                            user.profileCanDoMask, user.profileWantDoMask,
                                            user.profileAboutText, user.profileFirstText, user.profileImage,
-                                           user.profileFirstImage);
+                                           user.profileFirstImage,user.webLoginKey);
                 }
             }
             catch (Exception e)

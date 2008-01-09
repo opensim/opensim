@@ -114,6 +114,12 @@ namespace OpenSim.Framework.Data.MySQL
                 database.ExecuteResourceSql("CreateUsersTable.sql");
                 return;
             }
+            else if (oldVersion.Contains("Rev. 1"))
+            {
+                database.ExecuteResourceSql("UpgradeUsersTableToVersion2.sql");
+                return;
+            }
+            //MainLog.Instance.Verbose("DB","DBVers:" + oldVersion);
         }
 
         /// <summary>
@@ -512,7 +518,7 @@ namespace OpenSim.Framework.Data.MySQL
                                            user.lastLogin, user.userInventoryURI, user.userAssetURI,
                                            user.profileCanDoMask, user.profileWantDoMask,
                                            user.profileAboutText, user.profileFirstText, user.profileImage,
-                                           user.profileFirstImage);
+                                           user.profileFirstImage, user.webLoginKey);
                 }
             }
             catch (Exception e)

@@ -549,6 +549,7 @@ namespace OpenSim.Framework.Data.SQLite
             createCol(users, "profileFirstText", typeof (String));
             createCol(users, "profileImage", typeof (String));
             createCol(users, "profileFirstImage", typeof (String));
+            createCol(users, "webLoginKey", typeof(String));
             // Add in contraints
             users.PrimaryKey = new DataColumn[] {users.Columns["UUID"]};
             return users;
@@ -635,6 +636,8 @@ namespace OpenSim.Framework.Data.SQLite
             user.profileFirstText = (String) row["profileFirstText"];
             user.profileImage = new LLUUID((String) row["profileImage"]);
             user.profileFirstImage = new LLUUID((String) row["profileFirstImage"]);
+            user.webLoginKey = new LLUUID((String) row["webLoginKey"]);
+
             return user;
         }
 
@@ -681,6 +684,7 @@ namespace OpenSim.Framework.Data.SQLite
             row["profileFirstText"] = user.profileFirstText;
             row["profileImage"] = user.profileImage;
             row["profileFirstImage"] = user.profileFirstImage;
+            row["webLoginKey"] = user.webLoginKey;
 
             // ADO.NET doesn't handle NULL very well
             foreach (DataColumn col in ds.Tables["users"].Columns)
@@ -825,6 +829,23 @@ namespace OpenSim.Framework.Data.SQLite
                 MainLog.Instance.Verbose("DATASTORE", "SQLite Database doesn't exist... creating");
                 InitDB(conn);
             }
+            conn.Open();
+            try
+            {
+                cmd = new SqliteCommand("select webLoginKey from users limit 1;", conn);
+                cmd.ExecuteNonQuery();
+            }
+            catch (SqliteSyntaxException)
+            {
+                cmd = new SqliteCommand("alter table users add column webLoginKey text default '00000000-0000-0000-0000-000000000000';", conn);
+                cmd.ExecuteNonQuery();
+                pDa.Fill(tmpDS, "users");
+            }
+            finally
+            {
+                conn.Close();
+            }
+
             return true;
         }
     }

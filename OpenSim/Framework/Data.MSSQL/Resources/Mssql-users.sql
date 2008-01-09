@@ -27,6 +27,7 @@ CREATE TABLE [users] (
   [profileFirstText] [ntext],
   [profileImage] [varchar](36) default NULL,
   [profileFirstImage] [varchar](36) default NULL,
+  [webLoginKey] [varchar](36) default NULL,
   PRIMARY KEY CLUSTERED
 (
 	[UUID] ASC

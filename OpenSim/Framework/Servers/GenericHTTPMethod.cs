@@ -13,7 +13,7 @@
 *       names of its contributors may be used to endorse or promote products
 *       derived from this software without specific prior written permission.
 *
-* THIS SOFTWARE IS PROVIDED BY THE DEVELOPERS AS IS AND ANY
+* THIS SOFTWARE IS PROVIDED BY THE DEVELOPERS ``AS IS'' AND ANY
 * EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
 * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
 * DISCLAIMED. IN NO EVENT SHALL THE CONTRIBUTORS BE LIABLE FOR ANY
@@ -25,37 +25,10 @@
 * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 * 
 */
+using System;
 using System.Collections;
-using System.IO;
 
 namespace OpenSim.Framework.Servers
 {
-    public interface IRequestHandler
-    {
-        // Return response content type
-        string ContentType { get; }
-
-        // Return required http method
-        string HttpMethod { get; }
-
-        // Return path
-        string Path { get; }
-
-    }
-
-    public interface IStreamedRequestHandler : IRequestHandler
-    {
-        // Handle request stream, return byte array
-        byte[] Handle(string path, Stream request);
-    }
-
-    public interface IStreamHandler : IRequestHandler
-    {
-        // Handle request stream, return byte array
-        void Handle(string path, Stream request, Stream response);
-    }
-    public interface IGenericHTTPHandler : IRequestHandler
-    {
-        Hashtable Handle(string path, Hashtable request);
-    }
+    public delegate Hashtable GenericHTTPMethod(Hashtable request);
 }

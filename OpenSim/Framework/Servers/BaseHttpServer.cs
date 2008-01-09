@@ -46,6 +46,8 @@ namespace OpenSim.Framework.Servers
         protected Dictionary<string, XmlRpcMethod> m_rpcHandlers = new Dictionary<string, XmlRpcMethod>();
         protected LLSDMethod m_llsdHandler = null;
         protected Dictionary<string, IRequestHandler> m_streamHandlers = new Dictionary<string, IRequestHandler>();
+        protected Dictionary<string, GenericHTTPMethod> m_HTTPHandlers = new Dictionary<string, GenericHTTPMethod>();
+
         protected uint m_port;
         protected bool m_ssl = false;
         protected bool m_firstcaps = true;
@@ -85,6 +87,18 @@ namespace OpenSim.Framework.Servers
             if (!m_rpcHandlers.ContainsKey(method))
             {
                 m_rpcHandlers.Add(method, handler);
+                return true;
+            }
+
+            //must already have a handler for that path so return false
+            return false;
+        }
+
+        public bool AddHTTPHandler(string method, GenericHTTPMethod handler)
+        {
+            if (!m_HTTPHandlers.ContainsKey(method))
+            {
+                m_HTTPHandlers.Add(method, handler);
                 return true;
             }
 
@@ -145,6 +159,10 @@ namespace OpenSim.Framework.Servers
             {
                 switch (request.ContentType)
                 {
+                    case null:
+                    case "text/html":
+                        HandleHTTPRequest(request, response);
+                        break;
                     case "application/xml+llsd":
                         HandleLLSDRequests(request, response);
                         break;
@@ -184,6 +202,32 @@ namespace OpenSim.Framework.Servers
             }
         }
 
+        private bool TryGetHTTPHandler(string handlerKey, out GenericHTTPMethod HTTPHandler)
+        {
+            string bestMatch = null;
+
+            foreach (string pattern in m_HTTPHandlers.Keys)
+            {
+                if (handlerKey.StartsWith(pattern))
+                {
+                    if (String.IsNullOrEmpty(bestMatch) || pattern.Length > bestMatch.Length)
+                    {
+                        bestMatch = pattern;
+                    }
+                }
+            }
+
+            if (String.IsNullOrEmpty(bestMatch))
+            {
+                HTTPHandler = null;
+                return false;
+            }
+            else
+            {
+                HTTPHandler = m_HTTPHandlers[bestMatch];
+                return true;
+            }
+        }
         private void HandleXmlRpcRequests(HttpListenerRequest request, HttpListenerResponse response)
         {
             Stream requestStream = request.InputStream;
@@ -204,27 +248,7 @@ namespace OpenSim.Framework.Servers
             }
             catch (XmlException e)
             {
-                Hashtable keysvals = new Hashtable();
-                responseString = String.Format("XmlException:\n{0}", e.Message);
-                MainLog.Instance.Error("XML", responseString);
-                string[] querystringkeys = request.QueryString.AllKeys;
-                string[] rHeaders = request.Headers.AllKeys;
-
-
-                foreach (string queryname in querystringkeys)
-                {
-                    keysvals.Add(queryname, request.QueryString[queryname]);
-                    MainLog.Instance.Warn("HTTP", queryname + "=" + request.QueryString[queryname]);
-                }
-                foreach (string headername in rHeaders)
-                {
-                    MainLog.Instance.Warn("HEADER", headername + "=" + request.Headers[headername]);
-                }
-                if (keysvals.ContainsKey("show_login_form"))
-                {
-                    HandleHTTPRequest(keysvals, request, response);
-                    return;
-                }
+                
             }
 
             if (xmlRprcRequest != null)
@@ -332,7 +356,7 @@ namespace OpenSim.Framework.Servers
             }
         }
 
-        public void HandleHTTPRequest(Hashtable keysvals, HttpListenerRequest request, HttpListenerResponse response)
+        public void HandleHTTPRequest(HttpListenerRequest request, HttpListenerResponse response)
         {
             // This is a test.  There's a workable alternative..  as this way sucks.
             // We'd like to put this into a text file parhaps that's easily editable.
@@ -345,119 +369,146 @@ namespace OpenSim.Framework.Servers
             // I depend on show_login_form being in the secondlife.exe parameters to figure out
             // to display the form, or process it.
             // a better way would be nifty.
+            Stream requestStream = request.InputStream;
 
-            if ((string) keysvals["show_login_form"] == "TRUE")
+            Encoding encoding = Encoding.UTF8;
+            StreamReader reader = new StreamReader(requestStream, encoding);
+
+            string requestBody = reader.ReadToEnd();
+            reader.Close();
+            requestStream.Close();
+
+            string responseString = String.Empty;
+
+            Hashtable keysvals = new Hashtable();
+
+            string[] querystringkeys = request.QueryString.AllKeys;
+            string[] rHeaders = request.Headers.AllKeys;
+
+
+            foreach (string queryname in querystringkeys)
             {
-                string responseString =
-                    "<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.0 Transitional//EN\" \"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd\">";
-                responseString = responseString + "<html xmlns=\"http://www.w3.org/1999/xhtml\">";
-                responseString = responseString + "<head>";
-                responseString = responseString +
-                                 "<meta http-equiv=\"Content-Type\" content=\"text/html; charset=utf-8\" />";
-                responseString = responseString + "<meta http-equiv=\"cache-control\" content=\"no-cache\">";
-                responseString = responseString + "<meta http-equiv=\"Pragma\" content=\"no-cache\">";
-                responseString = responseString + "<title>Second Life Login</title>";
-                responseString = responseString + "<body>";
-                responseString = responseString + "<div id=\"login_box\">";
-                // Linden Grid Form Post
-                //responseString = responseString + "<form action=\"https://secure-web16.secondlife.com/app/login/go.php?show_login_form=True&show_grid=&show_start_location=\" method=\"POST\" id=\"login-form\">";
-                responseString = responseString + "<form action=\"/\" method=\"GET\" id=\"login-form\">";
-
-                responseString = responseString + "<div id=\"message\">";
-                responseString = responseString + "</div>";
-                responseString = responseString + "<fieldset id=\"firstname\">";
-                responseString = responseString + "<legend>First Name:</legend>";
-                responseString = responseString +
-                                 "<input type=\"text\" id=\"firstname_input\" size=\"15\" maxlength=\"100\" name=\"username\" value=\"" +
-                                 keysvals["username"] + "\" />";
-                responseString = responseString + "</fieldset>";
-                responseString = responseString + "<fieldset id=\"lastname\">";
-                responseString = responseString + "<legend>Last Name:</legend>";
-                responseString = responseString +
-                                 "<input type=\"text\" size=\"15\" maxlength=\"100\" name=\"lastname\" value=\"" +
-                                 keysvals["lastname"] + "\" />";
-                responseString = responseString + "</fieldset>";
-                responseString = responseString + "<fieldset id=\"password\">";
-                responseString = responseString + "<legend>Password:</legend>";
-                responseString = responseString + "<table cellspacing=\"0\" cellpadding=\"0\" border=\"0\">";
-                responseString = responseString + "<tr>";
-                responseString = responseString +
-                                 "<td colspan=\"2\"><input type=\"password\" size=\"15\" maxlength=\"100\" name=\"password\" value=\"" +
-                                 keysvals["password"] + "\" /></td>";
-                responseString = responseString + "</tr>";
-                responseString = responseString + "<tr>";
-                responseString = responseString +
-                                 "<td valign=\"middle\"><input type=\"checkbox\" name=\"remember_password\" id=\"remember_password\" value=\"" +
-                                 keysvals["remember_password"] + "\" checked style=\"margin-left:0px;\"/></td>";
-                responseString = responseString + "<td><label for=\"remember_password\">Remember password</label></td>";
-                responseString = responseString + "</tr>";
-                responseString = responseString + "</table>";
-                responseString = responseString + "</fieldset>";
-                responseString = responseString + "<input type=\"hidden\" name=\"show_login_form\" value=\"FALSE\" />";
-                responseString = responseString + "<input type=\"hidden\" id=\"grid\" name=\"grid\" value=\"" +
-                                 keysvals["grid"] + "\" />";
-                responseString = responseString + "<div id=\"submitbtn\">";
-                responseString = responseString + "<input class=\"input_over\" type=\"submit\" value=\"Connect\" />";
-                responseString = responseString + "</div>";
-                responseString = responseString +
-                                 "<div id=\"connecting\" style=\"visibility:hidden\"><img src=\"/_img/sl_logo_rotate_black.gif\" align=\"absmiddle\"> Connecting...</div>";
-
-                responseString = responseString + "<div id=\"helplinks\">";
-                responseString = responseString +
-                                 "<a href=\"http://www.secondlife.com/join/index.php\" target=\"_blank\">Create new account</a> | ";
-                responseString = responseString +
-                                 "<a href=\"http://www.secondlife.com/account/request.php\" target=\"_blank\">Forgot password?</a>";
-                responseString = responseString + "</div>";
-
-                responseString = responseString + "<div id=\"channelinfo\"> " + keysvals["channel"] + " | " +
-                                 keysvals["version"] + "=" + keysvals["lang"] + "</div>";
-                responseString = responseString + "</form>";
-                responseString = responseString + "<script language=\"JavaScript\">";
-                responseString = responseString + "document.getElementById('firstname_input').focus();";
-                responseString = responseString + "</script>";
-                responseString = responseString + "</div>";
-                responseString = responseString + "</div>";
-                responseString = responseString + "</body>";
-                responseString = responseString + "</html>";
-                response.AddHeader("Content-type", "text/html");
-
-                byte[] buffer = Encoding.UTF8.GetBytes(responseString);
-
-                response.SendChunked = false;
-                response.ContentLength64 = buffer.Length;
-                response.ContentEncoding = Encoding.UTF8;
-                try
+                keysvals.Add(queryname, request.QueryString[queryname]);
+                MainLog.Instance.Warn("HTTP", queryname + "=" + request.QueryString[queryname]);
+            }
+            //foreach (string headername in rHeaders)
+            //{
+            //MainLog.Instance.Warn("HEADER", headername + "=" + request.Headers[headername]);
+            //}
+            if (keysvals.Contains("method"))
+            {
+                MainLog.Instance.Warn("HTTP", "Contains Method");
+                string method = (string) keysvals["method"];
+                MainLog.Instance.Warn("HTTP", requestBody);
+                GenericHTTPMethod requestprocessor;
+                bool foundHandler = TryGetHTTPHandler(method, out requestprocessor);
+                if (foundHandler)
                 {
-                    response.OutputStream.Write(buffer, 0, buffer.Length);
+                    Hashtable responsedata = requestprocessor(keysvals);
+                    DoHTTPGruntWork(responsedata,response);
+                       
+                        //SendHTML500(response);
+                    
                 }
-                catch (Exception ex)
+                else
                 {
-                    MainLog.Instance.Warn("HTTPD", "Error - " + ex.Message);
+                    MainLog.Instance.Warn("HTTP", "Handler Not Found");
+                    SendHTML404(response);
                 }
-                finally
-                {
-                    response.OutputStream.Close();
-                }
-            } // show_login_form == "TRUE"
+            }
             else
             {
-                // show_login_form is present but FALSE
-                //
-                // The idea here is that we're telling the client to log in immediately here using the following information
-                // For my testing, I'm hard coding  the web_login_key temporarily.
-                // Telling the client to go to the new improved SLURL for immediate logins
+                MainLog.Instance.Warn("HTTP", "No Method specified");
+                SendHTML404(response);
+            }
+        }
 
-                // The fact that it says grid=Other is important
+        private void DoHTTPGruntWork(Hashtable responsedata, HttpListenerResponse response)
+        {
+            int responsecode = (int)responsedata["int_response_code"];
+            string responseString = (string)responsedata["str_response_string"];
+            
+            // We're forgoing the usual error status codes here because the client 
+            // ignores anything but 200 and 301
 
-                // 
+            response.StatusCode = 200;
 
-                response.StatusCode = 301;
-                response.RedirectLocation = "secondlife:///app/login?first_name=" + keysvals["username"] + "&last_name=" +
-                                            keysvals["lastname"] +
-                                            "&location=home&grid=other&web_login_key=796f2b2a-0131-41e4-af12-00f60c24c458";
+            if (responsecode == 301)
+            {
+                response.RedirectLocation = (string)responsedata["str_redirect_location"];
+                response.StatusCode = responsecode;
+            }
+            response.AddHeader("Content-type", "text/html");
 
+            byte[] buffer = Encoding.UTF8.GetBytes(responseString);
+
+            response.SendChunked = false;
+            response.ContentLength64 = buffer.Length;
+            response.ContentEncoding = Encoding.UTF8;
+            try
+            {
+                response.OutputStream.Write(buffer, 0, buffer.Length);
+            }
+            catch (Exception ex)
+            {
+                MainLog.Instance.Warn("HTTPD", "Error - " + ex.Message);
+            }
+            finally
+            {
                 response.OutputStream.Close();
-            } // show_login_form == "FALSE"
+            }
+
+
+        }
+        public void SendHTML404(HttpListenerResponse response)
+        {
+            // I know this statuscode is dumb, but the client doesn't respond to 404s and 500s
+            response.StatusCode = 200;
+            response.AddHeader("Content-type", "text/html");
+
+            string responseString = GetHTTP404();
+            byte[] buffer = Encoding.UTF8.GetBytes(responseString);
+
+            response.SendChunked = false;
+            response.ContentLength64 = buffer.Length;
+            response.ContentEncoding = Encoding.UTF8;
+            try
+            {
+                response.OutputStream.Write(buffer, 0, buffer.Length);
+            }
+            catch (Exception ex)
+            {
+                MainLog.Instance.Warn("HTTPD", "Error - " + ex.Message);
+            }
+            finally
+            {
+                response.OutputStream.Close();
+            }
+        }
+        public void SendHTML500(HttpListenerResponse response)
+        {
+            // I know this statuscode is dumb, but the client doesn't respond to 404s and 500s
+            response.StatusCode = 200;
+            response.AddHeader("Content-type", "text/html");
+
+            string responseString = GetHTTP500();
+            byte[] buffer = Encoding.UTF8.GetBytes(responseString);
+
+            response.SendChunked = false;
+            response.ContentLength64 = buffer.Length;
+            response.ContentEncoding = Encoding.UTF8;
+            try
+            {
+                response.OutputStream.Write(buffer, 0, buffer.Length);
+            }
+            catch (Exception ex)
+            {
+                MainLog.Instance.Warn("HTTPD", "Error - " + ex.Message);
+            }
+            finally
+            {
+                response.OutputStream.Close();
+            }
         }
 
         public void Start()
@@ -504,5 +555,46 @@ namespace OpenSim.Framework.Servers
         {
             m_streamHandlers.Remove(GetHandlerKey(httpMethod, path));
         }
+
+        public void RemoveHTTPHandler(string httpMethod, string path)
+        {
+            m_HTTPHandlers.Remove(GetHandlerKey(httpMethod, path));
+        }
+        
+        public string GetHTTP404()
+        {
+            string file = Path.Combine(Util.configDir(), "http_404.html");
+            if (!File.Exists(file))
+                return getDefaultHTTP404();
+
+            StreamReader sr = File.OpenText(file);
+            string result = sr.ReadToEnd();
+            sr.Close();
+            return result;
+        }
+
+        public string GetHTTP500()
+        {
+            string file = Path.Combine(Util.configDir(), "http_500.html");
+            if (!File.Exists(file))
+                return getDefaultHTTP500();
+
+            StreamReader sr = File.OpenText(file);
+            string result = sr.ReadToEnd();
+            sr.Close();
+            return result;
+        }
+
+        // Fallback HTTP responses in case the HTTP error response files don't exist
+        private string getDefaultHTTP404()
+        {
+            return "<HTML><HEAD><TITLE>404 Page not found</TITLE><BODY><BR /><H1>Ooops!</H1><P>The page you requested has been obsconded with by knomes. Find hippos quick!</P></BODY></HTML>";
+        }
+
+        private string getDefaultHTTP500()
+        {
+            return "<HTML><HEAD><TITLE>500 Internal Server Error</TITLE><BODY><BR /><H1>Ooops!</H1><P>The server you requested is overun by knomes! Find hippos quick!</P></BODY></HTML>";
+        }
+
     }
 }
