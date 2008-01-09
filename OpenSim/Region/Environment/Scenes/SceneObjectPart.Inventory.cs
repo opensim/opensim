@@ -144,7 +144,26 @@ namespace OpenSim.Region.Environment.Scenes
                     itemId, Name, UUID);
             }                
             
-        }
+        }        
+        
+        /// <summary>
+        /// Stop a script which is in this prim's inventory.
+        /// </summary>
+        /// <param name="itemId"></param>        
+        public void StopScript(LLUUID itemId)
+        {
+            if (m_taskInventory.ContainsKey(itemId))
+            {
+                m_parentGroup.Scene.EventManager.TriggerRemoveScript(LocalID, itemId);
+            }            
+            else
+            {
+                MainLog.Instance.Error(
+                    "PRIMINVENTORY", 
+                    "Couldn't stop script with ID {0} since it couldn't be found for prim {1}, {2}", 
+                    itemId, Name, UUID);
+            }                            
+        }        
 
         /// <summary>
         /// Add an item to this prim's inventory.
@@ -173,33 +192,85 @@ namespace OpenSim.Region.Environment.Scenes
             
             m_inventorySerial++;
         }
+        
+        /// <summary>
+        /// Returns an existing inventory item.  Returns the original, so any changes will be live.
+        /// </summary>
+        /// <param name="itemID"></param>
+        /// <returns>null if the item does not exist</returns>
+        public TaskInventoryItem GetInventoryItem(LLUUID itemID)
+        {
+            if (m_taskInventory.ContainsKey(itemID))
+            {
+                return m_taskInventory[itemID];
+            }
+            else
+            {
+                MainLog.Instance.Error(
+                    "PRIMINVENTORY",
+                    "Tried to retrieve item ID {0} from prim {1}, {2} but the item does not exist in this inventory",
+                    itemID, Name, UUID);
+            }
+
+            return null;
+        }
+
+        /// <summary>
+        /// Update an existing inventory item.
+        /// </summary>
+        /// <param name="item">The updated item.  An item with the same id must already exist
+        /// in this prim's inventory.</param>
+        /// <returns>false if the item did not exist, true if the update occurred succesfully</returns>
+        public bool UpdateInventoryItem(TaskInventoryItem item)
+        {
+            if (m_taskInventory.ContainsKey(item.item_id))
+            {
+                m_taskInventory[item.item_id] = item;
+                m_inventorySerial++;
+                
+                return true;
+            }
+            else
+            {
+                MainLog.Instance.Error(
+                    "PRIMINVENTORY",
+                    "Tried to retrieve item ID {0} from prim {1}, {2} but the item does not exist in this inventory",
+                    item.item_id, Name, UUID);
+            }   
+            
+            return false;
+        }
 
         /// <summary>
         /// Remove an item from this prim's inventory
         /// </summary>
-        /// <param name="remoteClient"></param>
-        /// <param name="localID"></param>
         /// <param name="itemID"></param>
-        /// <returns>Numeric asset type of the item removed.</returns>
-        public int RemoveInventoryItem(IClientAPI remoteClient, uint localID, LLUUID itemID)
+        /// <returns>Numeric asset type of the item removed.  Returns -1 if the item did not exist
+        /// in this prim's inventory.</returns>
+        public int RemoveInventoryItem(LLUUID itemID)
         {
-            if (localID == LocalID)
+            if (m_taskInventory.ContainsKey(itemID))
             {
-                if (m_taskInventory.ContainsKey(itemID))
+                string type = m_taskInventory[itemID].inv_type;
+                m_taskInventory.Remove(itemID);
+                m_inventorySerial++;
+                if (type == "lsltext")
                 {
-                    string type = m_taskInventory[itemID].inv_type;
-                    m_taskInventory.Remove(itemID);
-                    m_inventorySerial++;
-                    if (type == "lsltext")
-                    {
-                        return 10;
-                    }
-                    else
-                    {
-                        return 0;
-                    }
+                    return 10;
+                }
+                else
+                {
+                    return 0;
                 }
             }
+            else
+            {
+                MainLog.Instance.Error(
+                    "PRIMINVENTORY",
+                    "Tried to remove item ID {0} from prim {1}, {2} but the item does not exist in this inventory",
+                    itemID, Name, UUID);
+            }            
+
             return -1;
         }
 

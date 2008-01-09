@@ -60,6 +60,27 @@ namespace OpenSim.Region.Environment.Scenes
             }            
         }
         
+//        /// Start a given script.
+//        /// </summary>
+//        /// <param name="localID">
+//        /// A <see cref="System.UInt32"/>
+//        /// </param>
+//        public void StartScript(LLUUID partID, LLUUID itemID)
+//        {
+//            SceneObjectPart part = GetChildPart(partID);
+//            if (part != null)
+//            {
+//                part.StartScript(itemID);
+//            }
+//            else
+//            {
+//                MainLog.Instance.Error(
+//                    "PRIMINVENTORY",
+//                    "Couldn't find part {0} in object group {1}, {2} to start script with ID {3}",
+//                    localID, Name, UUID, itemID);
+//            }            
+//        }        
+        
         /// <summary>
         /// Start the scripts contained in all the prims in this group.
         /// </summary>
@@ -70,6 +91,27 @@ namespace OpenSim.Region.Environment.Scenes
                 part.StartScripts();
             }            
         }
+        
+        /// Start a given script.
+        /// </summary>
+        /// <param name="localID">
+        /// A <see cref="System.UInt32"/>
+        /// </param>
+        public void StopScript(uint partID, LLUUID itemID)
+        {
+            SceneObjectPart part = GetChildPart(partID);
+            if (part != null)
+            {
+                part.StopScript(itemID);
+            }
+            else
+            {
+                MainLog.Instance.Error(
+                    "PRIMINVENTORY",
+                    "Couldn't find part {0} in object group {1}, {2} to stop script with ID {3}",
+                    partID, Name, UUID, itemID);
+            }            
+        }         
         
         /// <summary>
         /// 
@@ -156,13 +198,63 @@ namespace OpenSim.Region.Environment.Scenes
 
             return false;
         }
+        
+        /// <summary>
+        /// Returns an existing inventory item.  Returns the original, so any changes will be live.
+        /// </summary>
+        /// <param name="primID"></param>
+        /// <param name="itemID"></param>
+        /// <returns>null if the item does not exist</returns>
+        public TaskInventoryItem GetInventoryItem(uint primID, LLUUID itemID)
+        {
+            SceneObjectPart part = GetChildPart(primID);
+            if (part != null)
+            {
+                return part.GetInventoryItem(itemID);
+            }
+            else
+            {
+                MainLog.Instance.Error(
+                    "PRIMINVENTORY",
+                    "Couldn't find prim local ID {0} in prim {1}, {2} to get inventory item ID {3}",
+                    primID, part.Name, part.UUID, itemID);
+            }   
+            
+            return null;
+        }         
+        
+        /// <summary>
+        /// Update an existing inventory item.
+        /// </summary>
+        /// <param name="item">The updated item.  An item with the same id must already exist
+        /// in this prim's inventory</param>
+        /// <returns>false if the item did not exist, true if the update occurred succesfully</returns>
+        public bool UpdateInventoryItem(TaskInventoryItem item)
+        {
+            SceneObjectPart part = GetChildPart(item.ParentPartID);
+            if (part != null)
+            {
+                part.UpdateInventoryItem(item);
+                
+                return true;
+            }
+            else
+            {
+                MainLog.Instance.Error(
+                    "PRIMINVENTORY",
+                    "Couldn't find prim ID {0} to update item {1}, {2}",
+                    item.ParentPartID, item.name, item.item_id);
+            }   
+            
+            return false;
+        }        
 
-        public int RemoveInventoryItem(IClientAPI remoteClient, uint localID, LLUUID itemID)
+        public int RemoveInventoryItem(uint localID, LLUUID itemID)
         {
             SceneObjectPart part = GetChildPart(localID);
             if (part != null)
             {                
-                int type = part.RemoveInventoryItem(remoteClient, localID, itemID);
+                int type = part.RemoveInventoryItem(itemID);
                 
                 // It might seem somewhat crude to update the whole group for a single prim inventory change,
                 // but it's possible that other prim inventory changes will take place before the region 

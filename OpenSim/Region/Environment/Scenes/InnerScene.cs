@@ -433,7 +433,7 @@ namespace OpenSim.Region.Environment.Scenes
                 }
             }
             return returnResult;
-        }
+        }      
 
         public SceneObjectPart GetSceneObjectPart(uint localID)
         {

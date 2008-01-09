@@ -58,7 +58,9 @@ namespace OpenSim.Region.Environment.Scenes
         /// in which the item is to be placed.</param>
         public void AddInventoryItem(IClientAPI remoteClient, InventoryItemBase item)
         {
-            CachedUserInfo userInfo = CommsManager.UserProfileCacheService.GetUserDetails(remoteClient.AgentId);
+            CachedUserInfo userInfo 
+                = CommsManager.UserProfileCacheService.GetUserDetails(remoteClient.AgentId);
+            
             if (userInfo != null)
             {
                 userInfo.AddItem(remoteClient.AgentId, item);
@@ -157,28 +159,47 @@ namespace OpenSim.Region.Environment.Scenes
         /// <param name="itemID"></param>
         /// <param name="primID">The prim which contains the item to update</param>
         /// <param name="isScriptRunning">Indicates whether the script to update is currently running</param>
-        /// <param name="data"></param>
-        /// <returns>Asset LLUID created</returns>        
+        /// <param name="data"></param>       
         public void CapsUpdateTaskInventoryScriptAsset(IClientAPI remoteClient, LLUUID itemId,
                                                        LLUUID primId, bool isScriptRunning, byte[] data)
         {
-            // TODO Not currently doing anything with the isScriptRunning bool
+            // Retrieve group
+            SceneObjectPart part = GetSceneObjectPart(primId);
+            SceneObjectGroup group = part.ParentGroup;            
+            if (null == group)
+            {
+                MainLog.Instance.Error(
+                    "PRIMINVENTORY", 
+                    "Prim inventory update requested for item ID {0} in prim ID {1} but this prim does not exist",
+                    itemId, primId);
 
-            MainLog.Instance.Verbose(
-                "PRIMINVENTORY",
-                "Prim inventory script save functionality not yet implemented."
-                + "  remoteClient: {0}, itemID: {1}, primID: {2}, isScriptRunning: {3}",
-                remoteClient, itemId, primId, isScriptRunning);
-
-            // TODO
-            // Retrieve client LLUID
-            // Retrieve sog containing primID
+                return;
+            }
+                        
             // Retrieve item
-            // Create new asset and add to cache
+            TaskInventoryItem item = group.GetInventoryItem(part.LocalID, itemId);
+            if (null == item)
+            {
+                return;
+            }
+            
+            // Create new asset
+            // XXX Hardcoding the numbers is a temporary measure - need an enumeration for this            
+            AssetBase asset =
+                CreateAsset(item.name, item.desc, 10, 10, data);
+            AssetCache.AddAsset(asset);
+                        
             // Update item with new asset
-            // Trigger SOG update (see RezScript)
-            // Trigger rerunning of script (use TriggerRezScript event, see RezScript)
-            // return new asset id
+            item.asset_id = asset.FullID;
+            group.UpdateInventoryItem(item);
+            group.GetProperites(remoteClient);
+            
+            // Trigger rerunning of script (use TriggerRezScript event, see RezScript)           
+            if (isScriptRunning)
+            {
+                group.StopScript(part.LocalID, item.item_id);
+                group.StartScript(part.LocalID, item.item_id);            
+            }
         }
 
         /// <summary>
@@ -268,14 +289,14 @@ namespace OpenSim.Region.Environment.Scenes
                 }
                 else
                 {
-                    MainLog.Instance.Warn(
+                    MainLog.Instance.Error(
                         "AGENTINVENTORY",
                         "Item ID " + itemID + " not found for an inventory item update.");
                 }
             }
             else
             {
-                MainLog.Instance.Warn(
+                MainLog.Instance.Error(
                     "AGENTINVENTORY",
                     "Agent ID " + remoteClient.AgentId + " not found for an inventory item update.");
             }
@@ -290,7 +311,7 @@ namespace OpenSim.Region.Environment.Scenes
                 CachedUserInfo userInfo = CommsManager.UserProfileCacheService.GetUserDetails(oldAgentID);
                 if (userInfo == null)
                 {
-                    MainLog.Instance.Warn("AGENTINVENTORY", "Failed to find user " + oldAgentID.ToString());
+                    MainLog.Instance.Error("AGENTINVENTORY", "Failed to find user " + oldAgentID.ToString());
                     return;
                 }
 
@@ -299,13 +320,13 @@ namespace OpenSim.Region.Environment.Scenes
                     item = userInfo.RootFolder.HasItem(oldItemID);
                     if (item == null)
                     {
-                        MainLog.Instance.Warn("AGENTINVENTORY", "Failed to find item " + oldItemID.ToString());
+                        MainLog.Instance.Error("AGENTINVENTORY", "Failed to find item " + oldItemID.ToString());
                         return;
                     }
                 }
                 else
                 {
-                    MainLog.Instance.Warn("AGENTINVENTORY", "Failed to find item " + oldItemID.ToString());
+                    MainLog.Instance.Error("AGENTINVENTORY", "Failed to find item " + oldItemID.ToString());
                     return;
                 }
             }
@@ -346,7 +367,7 @@ namespace OpenSim.Region.Environment.Scenes
             CachedUserInfo userInfo = CommsManager.UserProfileCacheService.GetUserDetails(remoteClient.AgentId);
             if (userInfo == null)
             {
-                MainLog.Instance.Warn("AGENTINVENTORY", "Failed to find user " + remoteClient.AgentId.ToString());
+                MainLog.Instance.Error("AGENTINVENTORY", "Failed to find user " + remoteClient.AgentId.ToString());
                 return;
             }
 
@@ -367,13 +388,13 @@ namespace OpenSim.Region.Environment.Scenes
                 }
                 else
                 {
-                    MainLog.Instance.Warn("AGENTINVENTORY", "Failed to find item " + itemID.ToString());
+                    MainLog.Instance.Error("AGENTINVENTORY", "Failed to find item " + itemID.ToString());
                     return;
                 }
             }
             else
             {
-                MainLog.Instance.Warn("AGENTINVENTORY", "Failed to find item " + itemID.ToString() + ", no root folder");
+                MainLog.Instance.Error("AGENTINVENTORY", "Failed to find item " + itemID.ToString() + ", no root folder");
                 return;
             }
         }
@@ -476,7 +497,7 @@ namespace OpenSim.Region.Environment.Scenes
             }
             else
             {
-                MainLog.Instance.Warn(
+                MainLog.Instance.Error(
                     "PRIMINVENTORY", "Inventory requested of prim {0} which doesn't exist", primLocalID);
             }
         }
@@ -484,7 +505,8 @@ namespace OpenSim.Region.Environment.Scenes
         /// <summary>
         /// Remove an item from a prim (task) inventory
         /// </summary>
-        /// <param name="remoteClient"></param>
+        /// <param name="remoteClient">Unused at the moment but retained since the avatar ID might
+        /// be necessary for a permissions check at some stage.</param>
         /// <param name="itemID"></param>
         /// <param name="localID"></param>
         public void RemoveTaskInventory(IClientAPI remoteClient, LLUUID itemID, uint localID)
@@ -492,7 +514,7 @@ namespace OpenSim.Region.Environment.Scenes
             SceneObjectGroup group = GetGroupByPrim(localID);
             if (group != null)
             {
-                int type = group.RemoveInventoryItem(remoteClient, localID, itemID);
+                int type = group.RemoveInventoryItem(localID, itemID);
                 group.GetProperites(remoteClient);
                 if (type == 10)
                 {
@@ -501,7 +523,7 @@ namespace OpenSim.Region.Environment.Scenes
             }
             else
             {
-                MainLog.Instance.Warn(
+                MainLog.Instance.Error(
                     "PRIMINVENTORY",
                     "Removal of item {0} requested of prim {1} but this prim does not exist",
                     itemID,

@@ -375,8 +375,9 @@ namespace OpenSim.Region.Environment.Scenes
 
             foreach (SceneObjectPart part in m_parts.Values)
             {
-                Vector3 partPosition =
-                    new Vector3(part.AbsolutePosition.X, part.AbsolutePosition.Y, part.AbsolutePosition.Z);
+                // Temporary commented to stop compiler warning
+                //Vector3 partPosition =
+                //    new Vector3(part.AbsolutePosition.X, part.AbsolutePosition.Y, part.AbsolutePosition.Z);
                 Quaternion parentrotation =
                     new Quaternion(GroupRotation.W, GroupRotation.X, GroupRotation.Y, GroupRotation.Z);
 
@@ -827,10 +828,8 @@ namespace OpenSim.Region.Environment.Scenes
         /// <returns></returns>
         public bool HasChildPrim(LLUUID primID)
         {
-            SceneObjectPart childPart = null;
             if (m_parts.ContainsKey(primID))
             {
-                childPart = m_parts[primID];
                 return true;
             }
             return false;
