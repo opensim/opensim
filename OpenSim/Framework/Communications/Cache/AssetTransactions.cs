@@ -237,10 +237,23 @@ namespace OpenSim.Framework.Communications.Cache
                     SaveAssetToFile(filename, Asset.Data);
                 }
             }
-
+            ///Left this in and commented in case there are unforseen issues
+            //private void SaveAssetToFile(string filename, byte[] data)
+            //{
+            //    FileStream fs = File.Create(filename);
+            //    BinaryWriter bw = new BinaryWriter(fs);
+            //    bw.Write(data);
+            //    bw.Close();
+            //    fs.Close();
+            //}
             private void SaveAssetToFile(string filename, byte[] data)
             {
-                FileStream fs = File.Create(filename);
+                string assetPath = "UserAssets";
+                if (!Directory.Exists(assetPath))
+                {
+                    Directory.CreateDirectory(assetPath);
+                }
+                FileStream fs = File.Create(Path.Combine(assetPath, filename));
                 BinaryWriter bw = new BinaryWriter(fs);
                 bw.Write(data);
                 bw.Close();

@@ -536,10 +536,23 @@ namespace OpenSim.Region.Capabilities
 
                 return res;
             }
-
+            ///Left this in and commented in case there are unforseen issues
+            //private void SaveAssetToFile(string filename, byte[] data)
+            //{
+            //    FileStream fs = File.Create(filename);
+            //    BinaryWriter bw = new BinaryWriter(fs);
+            //    bw.Write(data);
+            //    bw.Close();
+            //    fs.Close();
+            //}
             private void SaveAssetToFile(string filename, byte[] data)
             {
-                FileStream fs = File.Create(filename);
+                string assetPath = "UserAssets";
+                if (!Directory.Exists(assetPath))
+                {
+                    Directory.CreateDirectory(assetPath);
+                }
+                FileStream fs = File.Create(Path.Combine(assetPath, filename));
                 BinaryWriter bw = new BinaryWriter(fs);
                 bw.Write(data);
                 bw.Close();
@@ -603,10 +616,23 @@ namespace OpenSim.Region.Capabilities
 
                 return res;
             }
-
+            ///Left this in and commented in case there are unforseen issues
+            //private void SaveAssetToFile(string filename, byte[] data)
+            //{
+            //    FileStream fs = File.Create(filename);
+            //    BinaryWriter bw = new BinaryWriter(fs);
+            //    bw.Write(data);
+            //    bw.Close();
+            //    fs.Close();
+            //}
             private void SaveAssetToFile(string filename, byte[] data)
             {
-                FileStream fs = File.Create(filename);
+                string assetPath = "UserAssets";
+                if (!Directory.Exists(assetPath))
+                {
+                    Directory.CreateDirectory(assetPath);
+                }
+                FileStream fs = File.Create(Path.Combine(assetPath, filename));
                 BinaryWriter bw = new BinaryWriter(fs);
                 bw.Write(data);
                 bw.Close();
@@ -693,10 +719,23 @@ namespace OpenSim.Region.Capabilities
                 // XXX Maybe this should be some meaningful error packet
                 return null;
             }
-
+            ///Left this in and commented in case there are unforseen issues
+            //private void SaveAssetToFile(string filename, byte[] data)
+            //{
+            //    FileStream fs = File.Create(filename);
+            //    BinaryWriter bw = new BinaryWriter(fs);
+            //    bw.Write(data);
+            //    bw.Close();
+            //    fs.Close();
+            //}
             private void SaveAssetToFile(string filename, byte[] data)
             {
-                FileStream fs = File.Create(filename);
+                string assetPath = "UserAssets";
+                if (!Directory.Exists(assetPath))
+                {
+                    Directory.CreateDirectory(assetPath);
+                }
+                FileStream fs = File.Create(Path.Combine(assetPath, filename));
                 BinaryWriter bw = new BinaryWriter(fs);
                 bw.Write(data);
                 bw.Close();
