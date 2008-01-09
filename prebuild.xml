@@ -673,34 +673,6 @@
       </Files>
     </Project>
 
-
-    <Project name="OpenSim.DataStore.MonoSqlite" path="OpenSim/Region/Storage/OpenSim.DataStore.MonoSqlite" type="Library">
-      <Configuration name="Debug">
-        <Options>
-          <OutputPath>../../../../bin/</OutputPath>
-        </Options>
-      </Configuration>
-      <Configuration name="Release">
-        <Options>
-          <OutputPath>../../../../bin/</OutputPath>
-        </Options>
-      </Configuration>
-
-      <ReferencePath>../../../../bin/</ReferencePath>
-      <Reference name="System" localCopy="false"/>
-      <Reference name="System.Xml"/>
-      <Reference name="System.Data"/>
-      <Reference name="Mono.Data.SqliteClient"/>
-      <Reference name="libsecondlife.dll"/>
-      <Reference name="OpenSim.Framework"/>
-      <Reference name="OpenSim.Region.Environment"/>
-      <Reference name="OpenSim.Framework.Console"/>
-      <Files>
-        <Match pattern="*.cs" recurse="true"/>
-      </Files>
-    </Project>
-
-
     <Project name="OpenSim.DataStore.MSSQL" path="OpenSim/Region/Storage/OpenSim.DataStore.MSSQL" type="Library">
       <Configuration name="Debug">
         <Options>
@@ -969,6 +941,7 @@
       <Reference name="OpenSim.Framework.Data"/>
       <Reference name="OpenSim.Framework"/>
       <Reference name="OpenSim.Framework.Console"/>
+      <Reference name="OpenSim.Region.Environment"/>
       <Reference name="libsecondlife.dll"/>
       <Reference name="Mono.Data.SqliteClient"/>
       <Files>

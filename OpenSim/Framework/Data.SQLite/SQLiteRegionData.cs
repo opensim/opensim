@@ -38,9 +38,9 @@ using OpenSim.Region.Environment.Interfaces;
 using OpenSim.Region.Environment.LandManagement;
 using OpenSim.Region.Environment.Scenes;
 
-namespace OpenSim.DataStore.MonoSqlite
+namespace OpenSim.Framework.Data.SQLite
 {
-    public class MonoSqliteDataStore : IRegionDataStore
+    public class SQLiteRegionData : IRegionDataStore
     {
         private const string primSelect = "select * from prims";
         private const string shapeSelect = "select * from primshapes";

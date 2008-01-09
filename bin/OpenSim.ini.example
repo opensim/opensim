@@ -21,7 +21,7 @@ physics = basicphysics
 ; storage_plugin = "OpenSim.DataStore.NullStorage.dll"
 
 ; --- To use sqlite as region storage:
-storage_plugin = "OpenSim.DataStore.MonoSqlite.dll"
+storage_plugin = "OpenSim.Framework.Data.SQLite.dll"
 storage_connection_string="URI=file:OpenSim.db,version=3";
 
 ; --- To use MySQL storage, supply your own connectionstring (this is only an example):
