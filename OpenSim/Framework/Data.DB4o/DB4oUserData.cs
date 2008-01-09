@@ -132,7 +132,13 @@ namespace OpenSim.Framework.Data.DB4o
                 return null;
             }
         }
+        public void StoreWebLoginKey(LLUUID AgentID, LLUUID WebLoginKey)
+        {
+            UserProfileData user = GetUserByUUID(AgentID);
+            user.webLoginKey = WebLoginKey;
+            UpdateUserProfile(user);
 
+        }
         #region User Friends List Data
 
         public void AddNewUserFriend(LLUUID friendlistowner, LLUUID friend, uint perms)

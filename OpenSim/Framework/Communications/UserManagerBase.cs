@@ -222,6 +222,23 @@ namespace OpenSim.Framework.UserManagement
 
         }
 
+        public void StoreWebLoginKey(LLUUID agentID, LLUUID webLoginKey)
+        {
+
+            foreach (KeyValuePair<string, IUserData> plugin in _plugins)
+            {
+                try
+                {
+                    plugin.Value.StoreWebLoginKey(agentID, webLoginKey);
+                }
+                catch (Exception e)
+                {
+                    MainLog.Instance.Verbose("USERSTORAGE",
+                                             "Unable to Store WebLoginKey via " + plugin.Key + "(" + e.ToString() + ")");
+                }
+            }
+        }
+
         public void AddNewUserFriend(LLUUID friendlistowner, LLUUID friend, uint perms)
         {
             foreach (KeyValuePair<string, IUserData> plugin in _plugins)

@@ -29,6 +29,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.IO;
 using System.Threading;
 using libsecondlife;
 using libsecondlife.StructuredData;
@@ -79,7 +80,7 @@ namespace OpenSim.Framework.UserManagement
                 Hashtable requestData = (Hashtable) request.Params[0];
 
                 bool GoodXML = (requestData.Contains("first") && requestData.Contains("last") &&
-                                requestData.Contains("passwd"));
+                                (requestData.Contains("passwd") || requestData.Contains("web_login_key")));
                 bool GoodLogin = false;
 
                 UserProfileData userProfile;
@@ -89,7 +90,8 @@ namespace OpenSim.Framework.UserManagement
                 {
                     string firstname = (string) requestData["first"];
                     string lastname = (string) requestData["last"];
-                    string passwd = (string) requestData["passwd"];
+
+                    
 
                     userProfile = GetTheUser(firstname, lastname);
                     if (userProfile == null)
@@ -100,8 +102,29 @@ namespace OpenSim.Framework.UserManagement
 
                         return logResponse.CreateLoginFailedResponse();
                     }
+                    if (requestData.Contains("passwd"))
+                    {
+                        string passwd = (string)requestData["passwd"];
+                        GoodLogin = AuthenticateUser(userProfile, passwd);
+                    }
+                    else if (requestData.Contains("web_login_key"))
+                    {
+                        LLUUID webloginkey = null;
+                        try
+                        {
+                            webloginkey = new LLUUID((string)requestData["web_login_key"]);
+                        }
+                        catch (System.Exception)
+                        {
+                            return logResponse.CreateFailedResponse();
+                        }
+                        GoodLogin = AuthenticateUser(userProfile, webloginkey);
 
-                    GoodLogin = AuthenticateUser(userProfile, passwd);
+                    }
+                    else
+                    {
+                        return logResponse.CreateFailedResponse();
+                    }
                 }
                 else
                 {
@@ -334,6 +357,105 @@ namespace OpenSim.Framework.UserManagement
         {
         }
 
+        public Hashtable ProcessHTMLLogin(Hashtable keysvals)
+        {
+            Hashtable returnactions = new Hashtable();
+            int statuscode = 200;
+
+            returnactions["int_response_code"] = statuscode;
+            returnactions["str_response_string"] = GetDefaultLoginForm();
+
+            if (keysvals.ContainsKey("show_login_form"))
+            {
+                if ((string)keysvals["show_login_form"] == "TRUE")
+                {
+
+                }
+                else
+                {
+
+
+                }
+
+            }
+            return returnactions;
+             
+        }
+
+        public string GetLoginForm()
+        {
+            string file = Path.Combine(Util.configDir(), "http_loginform.html");
+            if (!File.Exists(file))
+                return GetDefaultLoginForm();
+
+            StreamReader sr = File.OpenText(file);
+            string result = sr.ReadToEnd();
+            sr.Close();
+            return result;
+        }
+
+        public string GetDefaultLoginForm()
+        {
+            string responseString =
+           "<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.0 Transitional//EN\" \"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd\">";
+                responseString = responseString + "<html xmlns=\"http://www.w3.org/1999/xhtml\">";
+                responseString = responseString + "<head>";
+                responseString = responseString +
+                                 "<meta http-equiv=\"Content-Type\" content=\"text/html; charset=utf-8\" />";
+                responseString = responseString + "<meta http-equiv=\"cache-control\" content=\"no-cache\">";
+                responseString = responseString + "<meta http-equiv=\"Pragma\" content=\"no-cache\">";
+                responseString = responseString + "<title>Second Life Login</title>";
+                responseString = responseString + "<body>";
+                responseString = responseString + "<div id=\"login_box\">";
+                
+                responseString = responseString + "<form action=\"/\" method=\"GET\" id=\"login-form\">";
+
+                responseString = responseString + "<div id=\"message\">[$errors]</div>";
+                responseString = responseString + "<fieldset id=\"firstname\">";
+                responseString = responseString + "<legend>First Name:</legend>";
+                responseString = responseString + "<input type=\"text\" id=\"firstname_input\" size=\"15\" maxlength=\"100\" name=\"username\" value=\"[$firstname]\" />";
+                responseString = responseString + "</fieldset>";
+                responseString = responseString + "<fieldset id=\"lastname\">";
+                responseString = responseString + "<legend>Last Name:</legend>";
+                responseString = responseString + "<input type=\"text\" size=\"15\" maxlength=\"100\" name=\"lastname\" value=\"[$lastname]\" />";
+                responseString = responseString + "</fieldset>";
+                responseString = responseString + "<fieldset id=\"password\">";
+                responseString = responseString + "<legend>Password:</legend>";
+                responseString = responseString + "<table cellspacing=\"0\" cellpadding=\"0\" border=\"0\">";
+                responseString = responseString + "<tr>";
+                responseString = responseString + "<td colspan=\"2\"><input type=\"password\" size=\"15\" maxlength=\"100\" name=\"password\" value=\"[$password]\" /></td>";
+                responseString = responseString + "</tr>";
+                responseString = responseString + "<tr>";
+                responseString = responseString + "<td valign=\"middle\"><input type=\"checkbox\" name=\"remember_password\" id=\"remember_password\" [$remember_password] style=\"margin-left:0px;\"/></td>";
+                responseString = responseString + "<td><label for=\"remember_password\">Remember password</label></td>";
+                responseString = responseString + "</tr>";
+                responseString = responseString + "</table>";
+                responseString = responseString + "</fieldset>";
+                responseString = responseString + "<input type=\"hidden\" name=\"show_login_form\" value=\"FALSE\" />";
+                responseString = responseString + "<input type=\"hidden\" name=\"method\" value=\"login\" />";
+                responseString = responseString + "<input type=\"hidden\" id=\"grid\" name=\"grid\" value=\"[$grid]\" />";
+                responseString = responseString + "<div id=\"submitbtn\">";
+                responseString = responseString + "<input class=\"input_over\" type=\"submit\" value=\"Connect\" />";
+                responseString = responseString + "</div>";
+                responseString = responseString + "<div id=\"connecting\" style=\"visibility:hidden\"> Connecting...</div>";
+
+                responseString = responseString + "<div id=\"helplinks\">";
+                responseString = responseString + "<a href=\"http://www.secondlife.com/join/index.php\" target=\"_blank\">Create new account</a> | ";
+                responseString = responseString + "<a href=\"http://www.secondlife.com/account/request.php\" target=\"_blank\">Forgot password?</a>";
+                responseString = responseString + "</div>";
+
+                responseString = responseString + "<div id=\"channelinfo\"> [$clientchannelinfo] | [$clientversion]=[$clientlanguage]</div>";
+                responseString = responseString + "</form>";
+                responseString = responseString + "<script language=\"JavaScript\">";
+                responseString = responseString + "document.getElementById('firstname_input').focus();";
+                responseString = responseString + "</script>";
+                responseString = responseString + "</div>";
+                responseString = responseString + "</div>";
+                responseString = responseString + "</body>";
+                responseString = responseString + "</html>";
+            return responseString;
+        }
+
         /// <summary>
         /// Saves a target agent to the database
         /// </summary>
@@ -353,14 +475,33 @@ namespace OpenSim.Framework.UserManagement
         /// <returns>Authenticated?</returns>
         public virtual bool AuthenticateUser(UserProfileData profile, string password)
         {
+            bool passwordSuccess = false;
             MainLog.Instance.Verbose(
                 "LOGIN", "Authenticating {0} {1} ({2})", profile.username, profile.surname, profile.UUID);
+
+            // Web Login method seems to also occasionally send the hashed password itself
+        
 
             password = password.Remove(0, 3); //remove $1$
 
             string s = Util.Md5Hash(password + ":" + profile.passwordSalt);
 
-            return profile.passwordHash.Equals(s.ToString(), StringComparison.InvariantCultureIgnoreCase);
+            passwordSuccess = (profile.passwordHash.Equals(s.ToString(), StringComparison.InvariantCultureIgnoreCase) 
+                            || profile.passwordHash.Equals(password.ToString(),StringComparison.InvariantCultureIgnoreCase));
+
+            return passwordSuccess;
+        }
+
+        public virtual bool AuthenticateUser(UserProfileData profile, LLUUID webloginkey)
+        {
+            bool passwordSuccess = false;
+            MainLog.Instance.Verbose(
+                "LOGIN", "Authenticating {0} {1} ({2})", profile.username, profile.surname, profile.UUID);
+
+            // Match web login key unless it's the default weblogin key LLUUID.Zero
+            passwordSuccess = ((profile.webLoginKey==webloginkey) && profile.webLoginKey != LLUUID.Zero);
+
+            return passwordSuccess;
         }
 
         /// <summary>

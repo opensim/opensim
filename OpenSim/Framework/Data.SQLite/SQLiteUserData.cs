@@ -373,6 +373,29 @@ namespace OpenSim.Framework.Data.SQLite
             }
         }
 
+
+        public void StoreWebLoginKey(LLUUID AgentID, LLUUID WebLoginKey)
+        {
+            DataTable users = ds.Tables["users"];
+            lock (ds)
+            {
+                DataRow row = users.Rows.Find(Util.ToRawUuidString(AgentID));
+                if (row == null)
+                {
+                    MainLog.Instance.Warn("WEBLOGIN", "Unable to store new web login key for non-existant user");
+                }
+                else
+                {
+                    UserProfileData user = GetUserByUUID(AgentID);
+                    user.webLoginKey = WebLoginKey;
+                    fillUserRow(row, user);
+                    da.Update(ds, "users");
+
+                }
+            }
+
+        }
+
         /// <summary>
         /// Creates a new user profile
         /// </summary>
@@ -392,6 +415,7 @@ namespace OpenSim.Framework.Data.SQLite
                 else
                 {
                     fillUserRow(row, user);
+                    
                 }
                 // This is why we're getting the 'logins never log-off'..    because It isn't clearing the 
                 // useragents table once the useragent is null

@@ -468,6 +468,39 @@ namespace OpenSim.Framework.Data.MySQL
             return GetAgentByUUID(profile.UUID);
         }
 
+        public void StoreWebLoginKey(LLUUID AgentID, LLUUID WebLoginKey)
+        {
+            
+            Dictionary<string, string> param = new Dictionary<string, string>();
+            param["?UUID"] = AgentID.UUID.ToString();
+            param["?webLoginKey"] = WebLoginKey.UUID.ToString();
+
+            try
+            {
+                lock (database)
+                {
+                    IDbCommand updater =
+                        database.Query(
+                        "update users " +
+                        "SET webLoginKey = ?webLoginKey " +
+                        "where UUID = ?UUID",
+                            param);
+                    updater.ExecuteNonQuery();
+
+                }
+            }
+            catch (Exception e)
+            {
+                database.Reconnect();
+                MainLog.Instance.Error(e.ToString());
+                return;
+            }
+
+                
+            
+
+        }
+
         /// <summary>
         /// Returns an agent session by account UUID
         /// </summary>

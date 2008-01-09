@@ -297,7 +297,13 @@ namespace OpenSim.Framework.Data.MSSQL
                 return null;
             }
         }
-
+        public void StoreWebLoginKey(LLUUID AgentID, LLUUID WebLoginKey)
+        {
+            UserProfileData user = GetUserByUUID(AgentID);
+            user.webLoginKey = WebLoginKey;
+            UpdateUserProfile(user);
+            
+        }
         /// <summary>
         /// Creates a new users profile
         /// </summary>
@@ -358,7 +364,8 @@ namespace OpenSim.Framework.Data.MSSQL
                                                 "profileAboutText = @profileAboutText," +
                                                 "profileFirstText = @profileFirstText," +
                                                 "profileImage = @profileImage," +
-                                                "profileFirstImage = @profileFirstImage where " +
+                                                "profileFirstImage = @profileFirstImage, " +
+                                                "webLoginKey = @webLoginKey  where " +
                                                 "UUID = @keyUUUID;", database.getConnection());
             SqlParameter param1 = new SqlParameter("@uuid", user.UUID.ToString());
             SqlParameter param2 = new SqlParameter("@username", user.username);
@@ -383,6 +390,7 @@ namespace OpenSim.Framework.Data.MSSQL
             SqlParameter param21 = new SqlParameter("@profileImage", LLUUID.Zero.ToString());
             SqlParameter param22 = new SqlParameter("@profileFirstImage", LLUUID.Zero.ToString());
             SqlParameter param23 = new SqlParameter("@keyUUUID", user.UUID.ToString());
+            SqlParameter param24 = new SqlParameter("@webLoginKey", user.webLoginKey.UUID.ToString());
             command.Parameters.Add(param1);
             command.Parameters.Add(param2);
             command.Parameters.Add(param3);
@@ -406,6 +414,7 @@ namespace OpenSim.Framework.Data.MSSQL
             command.Parameters.Add(param21);
             command.Parameters.Add(param22);
             command.Parameters.Add(param23);
+            command.Parameters.Add(param24);
             try
             {
                 int affected = command.ExecuteNonQuery();

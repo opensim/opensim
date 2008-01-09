@@ -81,6 +81,12 @@ namespace OpenSim.Framework
         UserAgentData GetAgentByName(string fname, string lname);
 
         /// <summary>
+        /// Stores new web-login key for user during web page login
+        /// </summary>
+        /// <param name="webLoginKey"></param>
+        void StoreWebLoginKey(LLUUID agentID, LLUUID webLoginKey);
+
+        /// <summary>
         /// Adds a new User profile to the database 
         /// </summary>
         /// <param name="user">UserProfile to add</param>
