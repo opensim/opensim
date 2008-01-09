@@ -15,7 +15,7 @@
     <Key Name="basePermissions" Value="2147483647" />
   </Section>
 --> 
-
+<!--
   <Section Name="Shirt">
     <Key Name="inventoryID" Value="d5e46210-b9d1-11dc-95ff-0800200c9a66" />
     <Key Name="assetID" Value="00000000-38f9-1111-024e-222222111110" />
@@ -42,4 +42,5 @@
     <Key Name="everyonePermissions" Value="2147483647" />
     <Key Name="basePermissions" Value="2147483647" />
   </Section>
+-->
 </Nini>

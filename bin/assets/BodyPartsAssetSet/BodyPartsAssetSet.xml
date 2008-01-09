@@ -15,7 +15,7 @@
     <Key Name="inventoryType" Value="18" />
     <Key Name="fileName" Value="base_skin.dat"/>
   </Section>
-  <!--
+<!--
   <Section Name="Jim Skin">
     <Key Name="assetID" Value="77c41e39-38f9-f75a-024e-585989bbabbc"/>
     <Key Name="name" Value="Jim Skin"/>
@@ -31,7 +31,7 @@
     <Key Name="inventoryType" Value="13" />
     <Key Name="fileName" Value="goblin_skin.dat"/>
   </Section>
-  -->
+-->
   <Section Name="Shape">
     <Key Name="assetID" Value="66c41e39-38f9-f75a-024e-585989bfab73"/>
     <Key Name="name" Value="Shape"/>
@@ -39,7 +39,7 @@
     <Key Name="inventoryType" Value="18" />
     <Key Name="fileName" Value="base_shape.dat"/>
   </Section>
-  <!--
+<!--
   <Section Name="Jim Shape">
     <Key Name="assetID" Value="66c41e39-38f9-f75a-024e-585989bfab74"/>
     <Key Name="name" Value="Jim Shape"/>

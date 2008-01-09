@@ -66,47 +66,50 @@ namespace OpenSim.Framework.Communications.Cache
             
             LoadLibraries(Path.Combine(Util.inventoryDir(), "Libraries.xml"));
 
-            CreateLibraryItems();
+            // CreateLibraryItems();
         }
 
         /// <summary>
         /// Hardcoded item creation.  Please don't add any more items here - future items should be created 
         /// in the xml in the bin/inventory folder.
         /// </summary>
-        private void CreateLibraryItems()
-        {
-            InventoryItemBase item =
-                CreateItem(new LLUUID("66c41e39-38f9-f75a-024e-585989bfaba9"),
-                           new LLUUID("66c41e39-38f9-f75a-024e-585989bfab73"), "Default Shape", "Default Shape",
-                           (int) AssetType.Bodypart, (int) InventoryType.Wearable, folderID);
-            item.inventoryCurrentPermissions = 0;
-            item.inventoryNextPermissions = 0;
-            Items.Add(item.inventoryID, item);
+        ///
+        /// Commented the following out due to sending it all through xml, remove this section once this is provin to work stable.
+        ///
+        //private void CreateLibraryItems()
+        //{
+        //    InventoryItemBase item =
+        //        CreateItem(new LLUUID("66c41e39-38f9-f75a-024e-585989bfaba9"),
+        //                   new LLUUID("66c41e39-38f9-f75a-024e-585989bfab73"), "Default Shape", "Default Shape",
+        //                   (int) AssetType.Bodypart, (int) InventoryType.Wearable, folderID);
+        //    item.inventoryCurrentPermissions = 0;
+        //    item.inventoryNextPermissions = 0;
+        //    Items.Add(item.inventoryID, item);
 
-            item =
-                CreateItem(new LLUUID("77c41e39-38f9-f75a-024e-585989bfabc9"),
-                           new LLUUID("77c41e39-38f9-f75a-024e-585989bbabbb"), "Default Skin", "Default Skin",
-                           (int) AssetType.Bodypart, (int) InventoryType.Wearable, folderID);
-            item.inventoryCurrentPermissions = 0;
-            item.inventoryNextPermissions = 0;
-            Items.Add(item.inventoryID, item);
+        //    item =
+        //        CreateItem(new LLUUID("77c41e39-38f9-f75a-024e-585989bfabc9"),
+        //                   new LLUUID("77c41e39-38f9-f75a-024e-585989bbabbb"), "Default Skin", "Default Skin",
+        //                   (int) AssetType.Bodypart, (int) InventoryType.Wearable, folderID);
+        //    item.inventoryCurrentPermissions = 0;
+        //    item.inventoryNextPermissions = 0;
+        //    Items.Add(item.inventoryID, item);
 
-            item =
-                CreateItem(new LLUUID("77c41e39-38f9-f75a-0000-585989bf0000"),
-                           new LLUUID("00000000-38f9-1111-024e-222222111110"), "Default Shirt", "Default Shirt",
-                           (int) AssetType.Clothing, (int) InventoryType.Wearable, folderID);
-            item.inventoryCurrentPermissions = 0;
-            item.inventoryNextPermissions = 0;
-            Items.Add(item.inventoryID, item);
+        //    item =
+        //        CreateItem(new LLUUID("77c41e39-38f9-f75a-0000-585989bf0000"),
+        //                   new LLUUID("00000000-38f9-1111-024e-222222111110"), "Default Shirt", "Default Shirt",
+        //                   (int) AssetType.Clothing, (int) InventoryType.Wearable, folderID);
+        //    item.inventoryCurrentPermissions = 0;
+        //    item.inventoryNextPermissions = 0;
+        //    Items.Add(item.inventoryID, item);
 
-            item =
-                CreateItem(new LLUUID("77c41e39-38f9-f75a-0000-5859892f1111"),
-                           new LLUUID("00000000-38f9-1111-024e-222222111120"), "Default Pants", "Default Pants",
-                           (int) AssetType.Clothing, (int) InventoryType.Wearable, folderID);
-            item.inventoryCurrentPermissions = 0;
-            item.inventoryNextPermissions = 0;
-            Items.Add(item.inventoryID, item);
-        }
+        //    item =
+        //        CreateItem(new LLUUID("77c41e39-38f9-f75a-0000-5859892f1111"),
+        //                   new LLUUID("00000000-38f9-1111-024e-222222111120"), "Default Pants", "Default Pants",
+        //                   (int) AssetType.Clothing, (int) InventoryType.Wearable, folderID);
+        //    item.inventoryCurrentPermissions = 0;
+        //    item.inventoryNextPermissions = 0;
+        //    Items.Add(item.inventoryID, item);
+        //}
 
         public InventoryItemBase CreateItem(LLUUID inventoryID, LLUUID assetID, string name, string description,
                                             int assetType, int invType, LLUUID parentFolderID)
