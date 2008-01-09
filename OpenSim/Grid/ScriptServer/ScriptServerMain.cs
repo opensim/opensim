@@ -29,6 +29,8 @@
 using System.IO;
 using OpenSim.Framework;
 using OpenSim.Framework.Console;
+using OpenSim.Grid.ScriptServer.ScriptServer;
+using OpenSim.Region.ScriptEngine.Common;
 
 namespace OpenSim.Grid.ScriptServer
 {
@@ -41,19 +43,26 @@ namespace OpenSim.Grid.ScriptServer
         private readonly string m_logFilename = ("region-console.log");
         private LogBase m_log;
 
+        // TEMP
+        public static ScriptServerInterfaces.ScriptEngine Engine;
+
         // Objects we use
         internal RegionCommManager RegionScriptDaemon; // Listen for incoming from region
-        //internal ScriptEngineManager ScriptEngines; // Loads scriptengines
+        internal ScriptEngineManager ScriptEngines; // Loads scriptengines
         internal RemotingServer m_RemotingServer;
 
         public ScriptServerMain()
         {
             m_log = CreateLog();
 
-            RegionScriptDaemon = new RegionCommManager(this, m_log);
-            //ScriptEngines = new ScriptEngineManager(this, m_log);
-            m_RemotingServer = new RemotingServer();
-            m_RemotingServer.CreateServer(listenPort, "DotNetEngine");
+            // Set up script engine mananger
+            ScriptEngines = new ScriptEngineManager(this, m_log);
+
+            // Load DotNetEngine
+            Engine = ScriptEngines.LoadEngine("DotNetEngine");
+
+            // Set up server
+            m_RemotingServer = new RemotingServer(listenPort, "DotNetEngine");
             System.Console.ReadLine();
         }
 
@@ -68,7 +77,7 @@ namespace OpenSim.Grid.ScriptServer
                 Directory.CreateDirectory(Util.logDir());
             }
 
-            return new LogBase((Path.Combine(Util.logDir(), m_logFilename)), "Region", this, true);
+            return new LogBase((Path.Combine(Util.logDir(), m_logFilename)), "ScriptServer", this, true);
         }
 
         public void RunCmd(string command, string[] cmdparams)
