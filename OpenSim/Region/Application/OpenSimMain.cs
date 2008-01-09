@@ -169,7 +169,7 @@ namespace OpenSim
                 config.Set("physical_prim", true);
                 config.Set("child_get_tasks", false);
                 config.Set("serverside_object_permissions", false);
-                config.Set("storage_plugin", "OpenSim.DataStore.MonoSqlite.dll");
+                config.Set("storage_plugin", "OpenSim.Framework.Data.SQLite.dll");
                 config.Set("storage_connection_string", "URI=file:OpenSim.db,version=3");
                 config.Set("startup_console_commands_file", "");
                 config.Set("shutdown_console_commands_file", "");
