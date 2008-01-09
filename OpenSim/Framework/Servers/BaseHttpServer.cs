@@ -389,12 +389,9 @@ namespace OpenSim.Framework.Servers
             foreach (string queryname in querystringkeys)
             {
                 keysvals.Add(queryname, request.QueryString[queryname]);
-                MainLog.Instance.Warn("HTTP", queryname + "=" + request.QueryString[queryname]);
+                
             }
-            //foreach (string headername in rHeaders)
-            //{
-            //MainLog.Instance.Warn("HEADER", headername + "=" + request.Headers[headername]);
-            //}
+            
             if (keysvals.Contains("method"))
             {
                 MainLog.Instance.Warn("HTTP", "Contains Method");

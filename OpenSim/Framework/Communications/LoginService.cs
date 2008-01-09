@@ -30,6 +30,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
+using System.Text.RegularExpressions;
 using System.Threading;
 using libsecondlife;
 using libsecondlife.StructuredData;
@@ -359,21 +360,103 @@ namespace OpenSim.Framework.UserManagement
 
         public Hashtable ProcessHTMLLogin(Hashtable keysvals)
         {
+
+            // Matches all unspecified characters
+            // Currently specified,; lowercase letters, upper case letters, numbers, underline
+            //    period, space, parens, and dash.
+
+            Regex wfcut = new Regex("[^a-zA-Z0-9_\\.\\$ \\(\\)\\-]");
+            
             Hashtable returnactions = new Hashtable();
             int statuscode = 200;
 
-            returnactions["int_response_code"] = statuscode;
-            returnactions["str_response_string"] = GetDefaultLoginForm();
+            string firstname = "";
+            string lastname = "";
+            string location = "";
+            string region ="";
+            string grid = "";
+            string channel = "";
+            string version = "";
+            string lang = "";
+            string password = "";
+            string errormessages = "";
+
+            // the client requires the HTML form field be named 'username'
+            // however, the data it sends when it loads the first time is 'firstname'
+            // another one of those little nuances.
+
+            
+            if (keysvals.Contains("firstname"))
+                firstname = wfcut.Replace((string)keysvals["firstname"],"",99999);
+            if (keysvals.Contains("username"))
+                firstname = wfcut.Replace((string)keysvals["username"],"",99999);
+
+            if (keysvals.Contains("lastname"))
+                lastname = wfcut.Replace((string)keysvals["lastname"],"",99999);
+
+            if (keysvals.Contains("location"))
+                location = wfcut.Replace((string)keysvals["location"],"",99999);
+
+            if (keysvals.Contains("region"))
+                region = wfcut.Replace((string)keysvals["region"],"",99999);
+
+            if (keysvals.Contains("grid"))
+                grid = wfcut.Replace((string)keysvals["grid"],"",99999);
+
+            if (keysvals.Contains("channel"))
+                channel = wfcut.Replace((string)keysvals["channel"],"",99999);
+
+            if (keysvals.Contains("version"))
+                version = wfcut.Replace((string)keysvals["version"],"",99999);
+
+            if (keysvals.Contains("lang"))
+                lang = wfcut.Replace((string)keysvals["lang"],"",99999);
+           
+            if (keysvals.Contains("password"))
+                password = wfcut.Replace((string)keysvals["password"], "", 99999);
+
+            
+            // load our login form.
+            string loginform = GetLoginForm(firstname,lastname,location,region,grid,channel,version,lang,password,errormessages);
 
             if (keysvals.ContainsKey("show_login_form"))
             {
                 if ((string)keysvals["show_login_form"] == "TRUE")
                 {
-
+                    returnactions["int_response_code"] = statuscode;
+                    returnactions["str_response_string"] = loginform;
                 }
                 else
                 {
+                    UserProfileData user = GetTheUser(firstname, lastname);
+                    bool goodweblogin = false;
 
+                    if (user != null)
+                        goodweblogin = AuthenticateUser(user, password);
+
+                    if (goodweblogin)
+                    {
+                        LLUUID webloginkey = LLUUID.Random();
+                        m_userManager.StoreWebLoginKey(user.UUID, webloginkey);
+                        statuscode = 301;
+
+                        string redirectURL = "secondlife:///app/login?first_name=" + firstname + "&last_name=" +
+                                                    lastname +
+                                                    "&location=" + location + "&grid=Other&web_login_key=" + webloginkey.ToString();
+
+                        returnactions["int_response_code"] = statuscode;
+                        returnactions["str_redirect_location"] = redirectURL;
+                        returnactions["str_response_string"] = "<HTML><BODY>GoodLogin</BODY></HTML>";
+                    }
+                    else
+                    {
+                        errormessages = "The Username and password supplied did not match our records. Check your caps lock and try again";
+
+                        loginform = GetLoginForm(firstname, lastname, location, region, grid, channel, version, lang, password, errormessages);
+                        returnactions["int_response_code"] = statuscode;
+                        returnactions["str_response_string"] = loginform;
+
+                    }
 
                 }
 
@@ -382,16 +465,36 @@ namespace OpenSim.Framework.UserManagement
              
         }
 
-        public string GetLoginForm()
+        public string GetLoginForm(string firstname, string lastname, string location, string region, 
+                                    string grid, string channel, string version, string lang, 
+                                    string password, string errormessages)
         {
+            // inject our values in the form at the markers
+
+            string loginform="";
             string file = Path.Combine(Util.configDir(), "http_loginform.html");
             if (!File.Exists(file))
-                return GetDefaultLoginForm();
-
-            StreamReader sr = File.OpenText(file);
-            string result = sr.ReadToEnd();
-            sr.Close();
-            return result;
+            {
+                loginform = GetDefaultLoginForm();
+            }
+            else
+            {
+                StreamReader sr = File.OpenText(file);
+                loginform = sr.ReadToEnd();
+                sr.Close();
+            }
+            
+            loginform = loginform.Replace("[$firstname]", firstname);
+            loginform = loginform.Replace("[$lastname]", lastname);
+            loginform = loginform.Replace("[$location]", location);
+            loginform = loginform.Replace("[$region]", region);
+            loginform = loginform.Replace("[$grid]", grid);
+            loginform = loginform.Replace("[$channel]", channel);
+            loginform = loginform.Replace("[$version]", version);
+            loginform = loginform.Replace("[$lang]", lang);
+            loginform = loginform.Replace("[$password]", password);
+            loginform = loginform.Replace("[$errors]", errormessages);
+            return loginform;
         }
 
         public string GetDefaultLoginForm()
@@ -405,7 +508,7 @@ namespace OpenSim.Framework.UserManagement
                 responseString = responseString + "<meta http-equiv=\"cache-control\" content=\"no-cache\">";
                 responseString = responseString + "<meta http-equiv=\"Pragma\" content=\"no-cache\">";
                 responseString = responseString + "<title>Second Life Login</title>";
-                responseString = responseString + "<body>";
+                responseString = responseString + "<body><br />";
                 responseString = responseString + "<div id=\"login_box\">";
                 
                 responseString = responseString + "<form action=\"/\" method=\"GET\" id=\"login-form\">";
@@ -434,6 +537,11 @@ namespace OpenSim.Framework.UserManagement
                 responseString = responseString + "<input type=\"hidden\" name=\"show_login_form\" value=\"FALSE\" />";
                 responseString = responseString + "<input type=\"hidden\" name=\"method\" value=\"login\" />";
                 responseString = responseString + "<input type=\"hidden\" id=\"grid\" name=\"grid\" value=\"[$grid]\" />";
+                responseString = responseString + "<input type=\"hidden\" id=\"region\" name=\"region\" value=\"[$region]\" />";
+                responseString = responseString + "<input type=\"hidden\" id=\"location\" name=\"location\" value=\"[$location]\" />";
+                responseString = responseString + "<input type=\"hidden\" id=\"channel\" name=\"channel\" value=\"[$channel]\" />";
+                responseString = responseString + "<input type=\"hidden\" id=\"version\" name=\"version\" value=\"[$version]\" />";
+                responseString = responseString + "<input type=\"hidden\" id=\"lang\" name=\"lang\" value=\"[$lang]\" />";
                 responseString = responseString + "<div id=\"submitbtn\">";
                 responseString = responseString + "<input class=\"input_over\" type=\"submit\" value=\"Connect\" />";
                 responseString = responseString + "</div>";
@@ -444,7 +552,7 @@ namespace OpenSim.Framework.UserManagement
                 responseString = responseString + "<a href=\"http://www.secondlife.com/account/request.php\" target=\"_blank\">Forgot password?</a>";
                 responseString = responseString + "</div>";
 
-                responseString = responseString + "<div id=\"channelinfo\"> [$clientchannelinfo] | [$clientversion]=[$clientlanguage]</div>";
+                responseString = responseString + "<div id=\"channelinfo\"> [$channel] | [$version]=[$lang]</div>";
                 responseString = responseString + "</form>";
                 responseString = responseString + "<script language=\"JavaScript\">";
                 responseString = responseString + "document.getElementById('firstname_input').focus();";
@@ -480,14 +588,26 @@ namespace OpenSim.Framework.UserManagement
                 "LOGIN", "Authenticating {0} {1} ({2})", profile.username, profile.surname, profile.UUID);
 
             // Web Login method seems to also occasionally send the hashed password itself
-        
 
+
+            // we do this to get our hash in a form that the server password code can consume
+            // when the web-login-form submits the password in the clear (supposed to be over SSL!)
+            if (!password.StartsWith("$1$"))
+                password = "$1$" + Util.Md5Hash(password);
+
+
+            
             password = password.Remove(0, 3); //remove $1$
+            
+            
 
             string s = Util.Md5Hash(password + ":" + profile.passwordSalt);
+            // Testing...    
+            //MainLog.Instance.Verbose("LOGIN", "SubHash:" + s + " userprofile:" + profile.passwordHash);
+            //MainLog.Instance.Verbose("LOGIN", "userprofile:" + profile.passwordHash + " SubCT:" + password);
 
             passwordSuccess = (profile.passwordHash.Equals(s.ToString(), StringComparison.InvariantCultureIgnoreCase) 
-                            || profile.passwordHash.Equals(password.ToString(),StringComparison.InvariantCultureIgnoreCase));
+                            || profile.passwordHash.Equals(password,StringComparison.InvariantCultureIgnoreCase));
 
             return passwordSuccess;
         }

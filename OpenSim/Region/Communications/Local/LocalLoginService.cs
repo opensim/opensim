@@ -103,12 +103,17 @@ namespace OpenSim.Region.Communications.Local
             {
                 MainLog.Instance.Notice(
                     "LOGIN", "Authenticating " + profile.username + " " + profile.surname);
+               
+                if (!password.StartsWith("$1$"))
+                    password = "$1$" + Util.Md5Hash(password);
 
                 password = password.Remove(0, 3); //remove $1$
 
                 string s = Util.Md5Hash(password + ":" + profile.passwordSalt);
 
-                return profile.passwordHash.Equals(s.ToString(), StringComparison.InvariantCultureIgnoreCase);
+                bool loginresult = (profile.passwordHash.Equals(s.ToString(), StringComparison.InvariantCultureIgnoreCase)
+                            || profile.passwordHash.Equals(password, StringComparison.InvariantCultureIgnoreCase));
+                return loginresult;
             }
         }
 
