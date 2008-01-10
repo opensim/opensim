@@ -506,7 +506,7 @@ namespace OpenSim.Framework.UserManagement
                                  "<meta http-equiv=\"Content-Type\" content=\"text/html; charset=utf-8\" />";
                 responseString = responseString + "<meta http-equiv=\"cache-control\" content=\"no-cache\">";
                 responseString = responseString + "<meta http-equiv=\"Pragma\" content=\"no-cache\">";
-                responseString = responseString + "<title>Second Life Login</title>";
+                responseString = responseString + "<title>OpenSim Login</title>";
                 responseString = responseString + "<body><br />";
                 responseString = responseString + "<div id=\"login_box\">";
                 
@@ -547,8 +547,8 @@ namespace OpenSim.Framework.UserManagement
                 responseString = responseString + "<div id=\"connecting\" style=\"visibility:hidden\"> Connecting...</div>";
 
                 responseString = responseString + "<div id=\"helplinks\">";
-                responseString = responseString + "<a href=\"http://www.secondlife.com/join/index.php\" target=\"_blank\">Create new account</a> | ";
-                responseString = responseString + "<a href=\"http://www.secondlife.com/account/request.php\" target=\"_blank\">Forgot password?</a>";
+                responseString = responseString + "<a href=\"#join now link\" target=\"_blank\"></a> | ";
+                responseString = responseString + "<a href=\"#forgot password link\" target=\"_blank\"></a>";
                 responseString = responseString + "</div>";
 
                 responseString = responseString + "<div id=\"channelinfo\"> [$channel] | [$version]=[$lang]</div>";

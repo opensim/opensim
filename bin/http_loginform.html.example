@@ -4,7 +4,7 @@
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
 <meta http-equiv="cache-control" content="no-cache">
 <meta http-equiv="Pragma" content="no-cache">
-<title>Second Life Login</title>
+<title>OpenSim Login</title>
 <body><br />
 <div id="login_box">
                 
@@ -44,10 +44,11 @@
 </div>
 <div id="connecting" style="visibility:hidden"> Connecting...</div>
 
-<div id="helplinks">
-<a href="http://www.secondlife.com/join/index.php" target="_blank">Create new account</a> | 
-<a href="http://www.secondlife.com/account/request.php" target="_blank">Forgot password?</a>
-</div>
+<div id="helplinks"><!--- 
+<a href="#new account link" target="_blank">Create new account</a> | 
+<a href="#forgot password link" target="_blank">Forgot password?</a>
+---></div>
+
 
 <div id="channelinfo"> [$channel] | [$version]=[$lang]</div>
 </form>
