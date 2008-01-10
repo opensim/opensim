@@ -54,7 +54,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL
         {
             //Console.WriteLine("LSL_BaseClass: InitializeLifetimeService()");
             //            return null;
-            ILease lease = (ILease) base.InitializeLifetimeService();
+            ILease lease = (ILease)base.InitializeLifetimeService();
 
             if (lease.CurrentState == LeaseState.Initial)
             {
@@ -2094,6 +2094,12 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL
         public const int PRIM_BUMP_STUCCO = 15;
         public const int PRIM_BUMP_SUCTION = 16;
         public const int PRIM_BUMP_WEAVE = 17;
+
+        public const int PRIM_SCULPT_TYPE_SPHERE = 1;
+        public const int PRIM_SCULPT_TYPE_TORUS = 2;
+        public const int PRIM_SCULPT_TYPE_PLANE = 3;
+        public const int PRIM_SCULPT_TYPE_CYLINDER = 4;
+
 
         public const int MASK_BASE = 0;
         public const int MASK_OWNER = 1;
