@@ -82,7 +82,10 @@ namespace OpenSim.Framework
         public ushort ProfileEnd;
         public LLVector3 Scale;
         public byte PathCurve;
+
+        [XmlIgnore] // -- this one is re-constructed from ProfileShape and ProfileHollow
         public byte ProfileCurve;
+        
         public ushort ProfileHollow;
         public sbyte PathRadiusOffset;
         public byte PathRevolutions;
@@ -120,7 +123,6 @@ namespace OpenSim.Framework
             }
         }
 
-        [XmlIgnore]
         public HollowShape HollowShape
         {
             get { return (HollowShape)(ProfileCurve & 0xf0); }
