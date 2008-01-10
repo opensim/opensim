@@ -8,7 +8,7 @@
 <body><br />
 <div id="login_box">
                 
-<form action="/" method="GET" id="login-form">
+<form action="/go.cgi" method="GET" id="login-form">
 
 <div id="message">[$errors]</div>
 <fieldset id="firstname">

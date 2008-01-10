@@ -421,45 +421,44 @@ namespace OpenSim.Framework.UserManagement
 
             if (keysvals.ContainsKey("show_login_form"))
             {
-                if ((string)keysvals["show_login_form"] == "TRUE")
+                
+                UserProfileData user = GetTheUser(firstname, lastname);
+                bool goodweblogin = false;
+
+                if (user != null)
+                    goodweblogin = AuthenticateUser(user, password);
+
+                if (goodweblogin)
                 {
+                    LLUUID webloginkey = LLUUID.Random();
+                    m_userManager.StoreWebLoginKey(user.UUID, webloginkey);
+                    statuscode = 301;
+
+                    string redirectURL = "about:blank?redirect-http-hack=" + System.Web.HttpUtility.UrlEncode("secondlife:///app/login?first_name=" + firstname + "&last_name=" +
+                                                lastname +
+                                                "&location=" + location + "&grid=Other&web_login_key=" + webloginkey.ToString());
+                    //MainLog.Instance.Verbose("WEB", "R:" + redirectURL);
                     returnactions["int_response_code"] = statuscode;
-                    returnactions["str_response_string"] = loginform;
+                    returnactions["str_redirect_location"] = redirectURL;
+                    returnactions["str_response_string"] = "<HTML><BODY>GoodLogin</BODY></HTML>";
                 }
                 else
                 {
-                    UserProfileData user = GetTheUser(firstname, lastname);
-                    bool goodweblogin = false;
+                    errormessages = "The Username and password supplied did not match our records. Check your caps lock and try again";
 
-                    if (user != null)
-                        goodweblogin = AuthenticateUser(user, password);
-
-                    if (goodweblogin)
-                    {
-                        LLUUID webloginkey = LLUUID.Random();
-                        m_userManager.StoreWebLoginKey(user.UUID, webloginkey);
-                        statuscode = 301;
-
-                        string redirectURL = "secondlife:///app/login?first_name=" + firstname + "&last_name=" +
-                                                    lastname +
-                                                    "&location=" + location + "&grid=Other&web_login_key=" + webloginkey.ToString();
-
-                        returnactions["int_response_code"] = statuscode;
-                        returnactions["str_redirect_location"] = redirectURL;
-                        returnactions["str_response_string"] = "<HTML><BODY>GoodLogin</BODY></HTML>";
-                    }
-                    else
-                    {
-                        errormessages = "The Username and password supplied did not match our records. Check your caps lock and try again";
-
-                        loginform = GetLoginForm(firstname, lastname, location, region, grid, channel, version, lang, password, errormessages);
-                        returnactions["int_response_code"] = statuscode;
-                        returnactions["str_response_string"] = loginform;
-
-                    }
+                    loginform = GetLoginForm(firstname, lastname, location, region, grid, channel, version, lang, password, errormessages);
+                    returnactions["int_response_code"] = statuscode;
+                    returnactions["str_response_string"] = loginform;
 
                 }
 
+                
+
+            }
+            else
+            {
+                returnactions["int_response_code"] = statuscode;
+                returnactions["str_response_string"] = loginform;
             }
             return returnactions;
              
@@ -511,7 +510,7 @@ namespace OpenSim.Framework.UserManagement
                 responseString = responseString + "<body><br />";
                 responseString = responseString + "<div id=\"login_box\">";
                 
-                responseString = responseString + "<form action=\"/\" method=\"GET\" id=\"login-form\">";
+                responseString = responseString + "<form action=\"/go.cgi\" method=\"GET\" id=\"login-form\">";
 
                 responseString = responseString + "<div id=\"message\">[$errors]</div>";
                 responseString = responseString + "<fieldset id=\"firstname\">";

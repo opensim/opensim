@@ -381,6 +381,8 @@ namespace OpenSim.Framework.Servers
             string responseString = String.Empty;
 
             Hashtable keysvals = new Hashtable();
+            Hashtable headervals = new Hashtable();
+            string host = "";
 
             string[] querystringkeys = request.QueryString.AllKeys;
             string[] rHeaders = request.Headers.AllKeys;
@@ -391,12 +393,23 @@ namespace OpenSim.Framework.Servers
                 keysvals.Add(queryname, request.QueryString[queryname]);
                 
             }
-            
+
+            foreach (string headername in rHeaders)
+            {
+                //MainLog.Instance.Warn("HEADER", headername + "=" + request.Headers[headername]);
+                headervals[headername] = request.Headers[headername];
+            }
+
+            if (headervals.Contains("Host"))
+            {
+                host = (string)headervals["Host"];
+            }
+
             if (keysvals.Contains("method"))
             {
-                MainLog.Instance.Warn("HTTP", "Contains Method");
+                //MainLog.Instance.Warn("HTTP", "Contains Method");
                 string method = (string) keysvals["method"];
-                MainLog.Instance.Warn("HTTP", requestBody);
+                //MainLog.Instance.Warn("HTTP", requestBody);
                 GenericHTTPMethod requestprocessor;
                 bool foundHandler = TryGetHTTPHandler(method, out requestprocessor);
                 if (foundHandler)
@@ -409,14 +422,14 @@ namespace OpenSim.Framework.Servers
                 }
                 else
                 {
-                    MainLog.Instance.Warn("HTTP", "Handler Not Found");
-                    SendHTML404(response);
+                    //MainLog.Instance.Warn("HTTP", "Handler Not Found");
+                    SendHTML404(response, host);
                 }
             }
             else
             {
-                MainLog.Instance.Warn("HTTP", "No Method specified");
-                SendHTML404(response);
+                //MainLog.Instance.Warn("HTTP", "No Method specified");
+                SendHTML404(response, host);
             }
         }
 
@@ -457,13 +470,13 @@ namespace OpenSim.Framework.Servers
 
 
         }
-        public void SendHTML404(HttpListenerResponse response)
+        public void SendHTML404(HttpListenerResponse response, string host)
         {
             // I know this statuscode is dumb, but the client doesn't respond to 404s and 500s
             response.StatusCode = 200;
             response.AddHeader("Content-type", "text/html");
 
-            string responseString = GetHTTP404();
+            string responseString = GetHTTP404(host);
             byte[] buffer = Encoding.UTF8.GetBytes(responseString);
 
             response.SendChunked = false;
@@ -558,11 +571,11 @@ namespace OpenSim.Framework.Servers
             m_HTTPHandlers.Remove(GetHandlerKey(httpMethod, path));
         }
         
-        public string GetHTTP404()
+        public string GetHTTP404(string host)
         {
             string file = Path.Combine(Util.configDir(), "http_404.html");
             if (!File.Exists(file))
-                return getDefaultHTTP404();
+                return getDefaultHTTP404(host);
 
             StreamReader sr = File.OpenText(file);
             string result = sr.ReadToEnd();
@@ -583,9 +596,9 @@ namespace OpenSim.Framework.Servers
         }
 
         // Fallback HTTP responses in case the HTTP error response files don't exist
-        private string getDefaultHTTP404()
+        private string getDefaultHTTP404(string host)
         {
-            return "<HTML><HEAD><TITLE>404 Page not found</TITLE><BODY><BR /><H1>Ooops!</H1><P>The page you requested has been obsconded with by knomes. Find hippos quick!</P></BODY></HTML>";
+            return "<HTML><HEAD><TITLE>404 Page not found</TITLE><BODY><BR /><H1>Ooops!</H1><P>The page you requested has been obsconded with by knomes. Find hippos quick!</P><P>If you are trying to log-in, your link parameters should have: &quot;-loginpage http://" + host + "/?method=login -loginuri http://" + host + "/&quot; in your link </P></BODY></HTML>";
         }
 
         private string getDefaultHTTP500()
