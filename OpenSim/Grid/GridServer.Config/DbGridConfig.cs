@@ -48,7 +48,7 @@ namespace OpenGrid.Config.GridConfigDb4o
             return new DbGridConfig();
         }
     }
-	
+
     /// <summary>
     /// A DB4o based Gridserver configuration object
     /// </summary>
@@ -57,15 +57,15 @@ namespace OpenGrid.Config.GridConfigDb4o
         /// <summary>
         /// The DB4o Database
         /// </summary>
-        private IObjectContainer db;	
-		
+        private IObjectContainer db;
+
         /// <summary>
         /// User configuration for the Grid Config interfaces
         /// </summary>
         public void LoadDefaults()
         {
             MainLog.Instance.Notice("DbGridConfig.cs:LoadDefaults() - Please press enter to retain default or enter new settings");
-			
+
             // About the grid options
             this.GridOwner = MainLog.Instance.CmdPrompt("Grid owner", "OGS development team");
 
@@ -139,7 +139,7 @@ namespace OpenGrid.Config.GridConfigDb4o
                 MainLog.Instance.Warn("DbGridConfig.cs:InitConfig() - Exception occured");
                 MainLog.Instance.Warn(e.ToString());
             }
-			
+
             // Grid Settings
             MainLog.Instance.Verbose("DBGRIDCONFIG", "Grid settings loaded:");
             MainLog.Instance.Verbose("DBGRIDCONFIG", "Grid owner: " + this.GridOwner);
@@ -158,7 +158,7 @@ namespace OpenGrid.Config.GridConfigDb4o
             MainLog.Instance.Verbose("DBGRIDCONFIG", "Key to send to sims: " + this.SimSendKey);
             MainLog.Instance.Verbose("DBGRIDCONFIG", "Key to expect from sims: " + this.SimRecvKey);
         }
-	
+
         /// <summary>
         /// Closes down the database and releases filesystem locks
         /// </summary>

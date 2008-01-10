@@ -41,15 +41,15 @@ namespace OpenUser.Config.UserConfigDb4o
             return ( new DbUserConfig());
         }
     }
-	
+
     public class DbUserConfig : UserConfig
     {
-        private IObjectContainer db;	
-		
+        private IObjectContainer db;
+
         public void LoadDefaults()
         {
             MainLog.Instance.Notice("DbUserConfig.cs:LoadDefaults() - Please press enter to retain default or enter new settings");
-			
+
             this.DefaultStartupMsg = MainLog.Instance.CmdPrompt("Default startup message", "Welcome to OGS");
 
             this.GridServerURL = MainLog.Instance.CmdPrompt("Grid server URL","http://127.0.0.1:" + GridConfig.DefaultHttpPort.ToString() + "/");
@@ -88,14 +88,14 @@ namespace OpenUser.Config.UserConfigDb4o
                 MainLog.Instance.Warn("DbUserConfig.cs:InitConfig() - Exception occured");
                 MainLog.Instance.Warn(e.ToString());
             }
-			
+
             MainLog.Instance.Verbose("DBUSERCONFIG", "User settings loaded:");
             MainLog.Instance.Verbose("DBUSERCONFIG", "Default startup message: " + this.DefaultStartupMsg);
             MainLog.Instance.Verbose("DBUSERCONFIG", "Grid server URL: " + this.GridServerURL);
             MainLog.Instance.Verbose("DBUSERCONFIG", "Key to send to grid: " + this.GridSendKey);
             MainLog.Instance.Verbose("DBUSERCONFIG", "Key to expect from grid: " + this.GridRecvKey);
         }
-	
+
         public void Shutdown()
         {
             db.Close();

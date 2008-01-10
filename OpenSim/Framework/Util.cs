@@ -222,7 +222,7 @@ namespace OpenSim.Framework
                     output.Append(": ");
                 }
 
-				output.Append(CleanString(UTF8Encoding.UTF8.GetString(bytes, 0, bytes.Length - 1)));
+                output.Append(CleanString(UTF8Encoding.UTF8.GetString(bytes, 0, bytes.Length - 1)));
             }
             else
             {
@@ -414,30 +414,30 @@ namespace OpenSim.Framework
             return lluuid.UUID.ToString("n");
         }
 
-		public static string CleanString(string input)
-		{
-			if(input.Length == 0)
-				return input;
+        public static string CleanString(string input)
+        {
+            if(input.Length == 0)
+                return input;
 
-			int clip=input.Length;
+            int clip=input.Length;
 
-			// Test for ++ string terminator
-			int pos=input.IndexOf("\0");
-			if(pos != -1 && pos < clip)
-				clip=pos;
+            // Test for ++ string terminator
+            int pos=input.IndexOf("\0");
+            if(pos != -1 && pos < clip)
+                clip=pos;
 
-			// Test for CR
-			pos=input.IndexOf("\r");
-			if(pos != -1 && pos < clip)
-				clip=pos;
+            // Test for CR
+            pos=input.IndexOf("\r");
+            if(pos != -1 && pos < clip)
+                clip=pos;
 
-			// Test for LF
-			pos=input.IndexOf("\n");
-			if(pos != -1 && pos < clip)
-				clip=pos;
+            // Test for LF
+            pos=input.IndexOf("\n");
+            if(pos != -1 && pos < clip)
+                clip=pos;
 
-			// Truncate string before first end-of-line character found
-			return input.Substring(0, clip);
-		}
+            // Truncate string before first end-of-line character found
+            return input.Substring(0, clip);
+        }
     }
 }

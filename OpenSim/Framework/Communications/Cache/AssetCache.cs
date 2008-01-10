@@ -400,7 +400,7 @@ namespace OpenSim.Framework.Communications.Cache
             //Console.WriteLine("asset request " + requestID);
             if (!Assets.ContainsKey(requestID))
             {
-                //not found asset	
+                //not found asset
                 // so request from asset server
                 if (!RequestedAssets.ContainsKey(requestID))
                 {

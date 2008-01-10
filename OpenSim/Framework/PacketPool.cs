@@ -72,7 +72,7 @@ namespace OpenSim.Framework
         }
 
         // Copied from LibSL, and added a check to avoid overwriting the
-	// buffer
+        // buffer
         private void ZeroDecodeCommand(byte[] src, byte[] dest)
         {
             for (int srcPos = 6, destPos = 6; destPos < 10; ++srcPos)
@@ -89,8 +89,8 @@ namespace OpenSim.Framework
                 {
                     dest[destPos++] = src[srcPos];
                 }
-           }
-	}
+            }
+        }
 
         private PacketType GetType(byte[] bytes)
         {
