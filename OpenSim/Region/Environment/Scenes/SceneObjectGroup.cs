@@ -1074,12 +1074,12 @@ namespace OpenSim.Region.Environment.Scenes
         }
 
         /// <summary>
-        /// 
+        /// Set the name of a prim
         /// </summary>
         /// <param name="name"></param>
+        /// <param name="localID"></param>
         public void SetPartName(string name, uint localID)
         {
-            name = name.Remove(name.Length - 1, 1);
             SceneObjectPart part = GetChildPart(localID);
             if (part != null)
             {
