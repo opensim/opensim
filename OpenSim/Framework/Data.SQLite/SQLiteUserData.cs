@@ -45,6 +45,10 @@ namespace OpenSim.Framework.Data.SQLite
         /// <summary>
         /// Artificial constructor called upon plugin load
         /// </summary>
+        private const string SelectUserByUUID = "select * from users where UUID=:UUID";
+        private const string SelectUserByName = "select * from users where username=:username and surname=:surname";
+        private const string SelectFriendsByUUID = "select a.friendID, a.friendPerms, b.friendPerms from userfriends as a, userfriends as b where a.ownerID=:ownerID and b.ownerID=a.friendID and b.friendID=a.ownerID";
+
         private const string userSelect = "select * from users";
         private const string userFriendsSelect = "select a.ownerID as ownerID,a.friendID as friendID,a.friendPerms as friendPerms,b.friendPerms as ownerperms, b.ownerID as fownerID, b.friendID as ffriendID from userfriends as a, userfriends as b";
         
@@ -142,126 +146,69 @@ namespace OpenSim.Framework.Data.SQLite
         
         public void AddNewUserFriend(LLUUID friendlistowner, LLUUID friend, uint perms)
         {
-            //do stuff;
-            MainLog.Instance.Verbose("FRIEND", "Stub AddNewUserFriend called");
-            DataTable friends = ds.Tables["userfriends"];
-            DataTable ua = ds.Tables["userfriends"];
-            lock (ds)
+            string InsertFriends = "insert into userfriends(ownerID, friendID, friendPerms) values(:ownerID, :friendID, :perms)";
+            
+            using (SqliteCommand cmd = new SqliteCommand(InsertFriends, g_conn))
             {
-               
-                
-                DataRow row = friends.NewRow();
-                fillFriendRow(row, friendlistowner.UUID.ToString(),friend.UUID.ToString(),perms);
-                friends.Rows.Add(row);
-
-                row = friends.NewRow();
-                fillFriendRow(row, friend.UUID.ToString(), friendlistowner.UUID.ToString(), perms);
-                friends.Rows.Add(row);
-
-                MainLog.Instance.Verbose("SQLITE",
-                                         "Adding Friend: " + ds.Tables["userfriends"].Rows.Count + " friends stored");
-                // save changes off to disk
-                daf.Update(ds, "userfriends");
+                cmd.Parameters.Add(new SqliteParameter(":ownerID", friendlistowner.UUID.ToString()));
+                cmd.Parameters.Add(new SqliteParameter(":friendID", friend.UUID.ToString()));
+                cmd.Parameters.Add(new SqliteParameter(":perms", perms));
+                cmd.ExecuteNonQuery();
             }
-        }
-
-        public void RemoveUserFriend(LLUUID friendlistowner, LLUUID friend)
-        {
-            DataTable ua = ds.Tables["userfriends"];
-            string select = "`ownerID` ='" + friendlistowner.UUID.ToString() + "' and `friendID` ='" + friend.UUID.ToString() + "'";
-            lock (ds)
+            using (SqliteCommand cmd = new SqliteCommand(InsertFriends, g_conn))
             {
-                DataRow[] rows = ds.Tables["userfriends"].Select(select);
-                
-                if ( rows != null)
-                {
-                    if (rows.Length > 0)
-                    {
-                        for (int i = 0; i < rows.Length; i++)
-                        {
-                            DataRow row = rows[i];
-                            row.Delete();
-                        }
-                        
-                    }
-                }
+                cmd.Parameters.Add(new SqliteParameter(":ownerID", friend.UUID.ToString()));
+                cmd.Parameters.Add(new SqliteParameter(":friendID", friendlistowner.UUID.ToString()));
+                cmd.Parameters.Add(new SqliteParameter(":perms", perms));
+                cmd.ExecuteNonQuery();
             }
-            select = "`ownerID` ='" + friend.UUID.ToString() + "' and `friendID` ='" + friendlistowner.UUID.ToString() + "'";
-            lock (ds)
-            {
-                DataRow[] rows = ds.Tables["userfriends"].Select(select);
-
-                if (rows != null)
-                {
-                    if (rows.Length > 0)
-                    {
-                        for (int i = 0; i < rows.Length; i++)
-                        {
-                            DataRow row = rows[i];
-                            row.Delete();
-                        }
-
-                    }
-                }
-            }
-            SqliteCommand deletecommand = new SqliteCommand("delete from userfriends where `ownerID`='" + friendlistowner.UUID.ToString() + "' and `friendID` ='" + friend.UUID.ToString() + "'", g_conn);
-            g_conn.Open();
-            deletecommand.ExecuteNonQuery();
-            deletecommand = new SqliteCommand("delete from userfriends where `ownerID`='" + friend.UUID.ToString() + "' and `friendID` ='" + friendlistowner.UUID.ToString() + "'", g_conn);
-            deletecommand.ExecuteNonQuery();
-            g_conn.Close();
-
-            MainLog.Instance.Verbose("FRIEND", "Stub RemoveUserFriend called");
-        }
-        public void UpdateUserFriendPerms(LLUUID friendlistowner, LLUUID friend, uint perms)
-        {
-            DataTable ua = ds.Tables["userfriends"];
-            string select = "a.ownerID ='" + friendlistowner.UUID.ToString() + "' and b.friendID ='" + friend.UUID.ToString() + "'";
-            lock (ds)
-            {
-                DataRow[] rows = ds.Tables["userfriends"].Select(select);
-                
-                if ( rows != null)
-                {
-                    if (rows.Length > 0)
-                    {
-                        for (int i = 0; i < rows.Length; i++)
-                        {
-                            FriendListItem user = new FriendListItem();
-                            DataRow row = rows[i];
-                            row["friendPerms"] = Convert.ToInt32(perms);
-                        }
-                        daf.Update(ds, "userfriends");
-                    }
-                }
-            }
-            MainLog.Instance.Verbose("FRIEND", "Stub UpdateUserFriendPerms called");
         }
         
+        public void RemoveUserFriend(LLUUID friendlistowner, LLUUID friend)
+        {
+            string DeletePerms = "delete from friendlist where (ownerID=:ownerID and friendID=:friendID) or (ownerID=:friendID and friendID=:ownerID)";
+            using (SqliteCommand cmd = new SqliteCommand(DeletePerms, g_conn))
+            {
+                cmd.Parameters.Add(new SqliteParameter(":ownerID", friendlistowner.UUID.ToString()));
+                cmd.Parameters.Add(new SqliteParameter(":friendID", friend.UUID.ToString()));
+                cmd.ExecuteNonQuery();
+            }
+        }
+                
+        public void UpdateUserFriendPerms(LLUUID friendlistowner, LLUUID friend, uint perms)
+        {
+            string UpdatePerms = "update friendlist set perms=:perms where ownerID=:ownerID and friendID=:friendID";
+            using (SqliteCommand cmd = new SqliteCommand(UpdatePerms, g_conn))
+            {
+                cmd.Parameters.Add(new SqliteParameter(":perms", perms));
+                cmd.Parameters.Add(new SqliteParameter(":ownerID", friendlistowner.UUID.ToString()));
+                cmd.Parameters.Add(new SqliteParameter(":friendID", friend.UUID.ToString()));
+                cmd.ExecuteNonQuery();
+            }
+        }
 
         public List<FriendListItem> GetUserFriendList(LLUUID friendlistowner)
         {
             List<FriendListItem> returnlist = new List<FriendListItem>();
-            
-            string select = "ownerID = '" + friendlistowner.UUID.ToString() + "' and fownerID = friendID and ffriendID = ownerID";
-            lock (ds)
+
+            using (SqliteCommand cmd = new SqliteCommand(SelectFriendsByUUID, g_conn))
             {
-                DataRow[] rows = ds.Tables["userfriends"].Select(select);
-                
-                if (rows.Length > 0)
+                cmd.Parameters.Add(new SqliteParameter(":ownerID", friendlistowner.UUID.ToString()));
+                using (IDataReader reader = cmd.ExecuteReader()) 
                 {
-                    for (int i = 0; i < rows.Length; i++)
+                    while(reader.Read()) 
                     {
                         FriendListItem user = new FriendListItem();
-                        DataRow row = rows[i];
-                        user.FriendListOwner = new LLUUID((string)row[0]);
-                        user.Friend = new LLUUID((string)row[1]);
-                        user.FriendPerms =  Convert.ToUInt32(row[2]);
-                        user.FriendListOwnerPerms =  Convert.ToUInt32(row[3]);
+                        user.FriendListOwner = friendlistowner;
+                        user.Friend = new LLUUID((string)reader[0]);
+                        user.FriendPerms =  Convert.ToUInt32(reader[1]);
+                        user.FriendListOwnerPerms =  Convert.ToUInt32(reader[2]);
                         returnlist.Add(user);
                     }
+                    reader.Close();
                 }
-            }          
+            }
+             
             return returnlist;
         }
        
