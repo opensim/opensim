@@ -88,8 +88,7 @@ namespace OpenSim.Framework
         public byte PCode;
         public ushort ProfileBegin;
 
-        [XmlIgnore] // -- this one is re-constructed from ProfileShape and ProfileHollow
-            public byte ProfileCurve;
+        public byte ProfileCurve;
 
         public ushort ProfileEnd;
         public ushort ProfileHollow;
@@ -104,7 +103,7 @@ namespace OpenSim.Framework
 
         public PrimitiveBaseShape()
         {
-            PCode = (byte) PCodeEnum.Primitive;
+            PCode = (byte)PCodeEnum.Primitive;
             ExtraParams = new byte[1];
             Textures = m_defaultTexture;
         }
@@ -126,21 +125,21 @@ namespace OpenSim.Framework
 
         public ProfileShape ProfileShape
         {
-            get { return (ProfileShape) (ProfileCurve & 0xf); }
+            get { return (ProfileShape)(ProfileCurve & 0xf); }
             set
             {
-                byte oldValueMasked = (byte) (ProfileCurve & 0xf0);
-                ProfileCurve = (byte) (oldValueMasked | (byte) value);
+                byte oldValueMasked = (byte)(ProfileCurve & 0xf0);
+                ProfileCurve = (byte)(oldValueMasked | (byte)value);
             }
         }
 
         public HollowShape HollowShape
         {
-            get { return (HollowShape) (ProfileCurve & 0xf0); }
+            get { return (HollowShape)(ProfileCurve & 0xf0); }
             set
             {
-                byte oldValueMasked = (byte) (ProfileCurve & 0x0f);
-                ProfileCurve = (byte) (oldValueMasked | (byte) value);
+                byte oldValueMasked = (byte)(ProfileCurve & 0x0f);
+                ProfileCurve = (byte)(oldValueMasked | (byte)value);
             }
         }
 
@@ -172,7 +171,7 @@ namespace OpenSim.Framework
         {
             PrimitiveBaseShape shape = Create();
 
-            shape.PathCurve = (byte) Extrusion.Straight;
+            shape.PathCurve = (byte)Extrusion.Straight;
             shape.ProfileShape = ProfileShape.Square;
             shape.PathScaleX = 100;
             shape.PathScaleY = 100;
@@ -184,7 +183,7 @@ namespace OpenSim.Framework
         {
             PrimitiveBaseShape shape = Create();
 
-            shape.PathCurve = (byte) Extrusion.Curve1;
+            shape.PathCurve = (byte)Extrusion.Curve1;
             shape.ProfileShape = ProfileShape.Square;
 
             shape.PathScaleX = 100;
@@ -205,7 +204,7 @@ namespace OpenSim.Framework
 
         public void SetRadius(float radius)
         {
-            Scale.X = Scale.Y = radius*2f;
+            Scale.X = Scale.Y = radius * 2f;
         }
 
         //void returns need to change of course
@@ -215,7 +214,7 @@ namespace OpenSim.Framework
 
         public PrimitiveBaseShape Copy()
         {
-            return (PrimitiveBaseShape) MemberwiseClone();
+            return (PrimitiveBaseShape)MemberwiseClone();
         }
 
         public static PrimitiveBaseShape CreateCylinder(float radius, float heigth)
