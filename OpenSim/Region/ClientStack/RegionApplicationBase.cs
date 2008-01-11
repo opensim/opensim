@@ -57,6 +57,10 @@ namespace OpenSim.Region.ClientStack
 
         protected StorageManager m_storageManager;
         protected string m_storageConnectionString;
+        
+        // An attribute to indicate whether prim inventories should be persisted.
+        // Probably will be temporary until this stops being experimental.
+        protected bool m_storagePersistPrimInventories;
 
         public SceneManager SceneManager
         {

@@ -171,6 +171,7 @@ namespace OpenSim
                 config.Set("serverside_object_permissions", false);
                 config.Set("storage_plugin", "OpenSim.Framework.Data.SQLite.dll");
                 config.Set("storage_connection_string", "URI=file:OpenSim.db,version=3");
+                config.Set("storage_prim_inventories_experimental", false);
                 config.Set("startup_console_commands_file", "");
                 config.Set("shutdown_console_commands_file", "");
                 config.Set("script_engine", "OpenSim.Region.ScriptEngine.DotNetEngine.dll");
@@ -242,6 +243,8 @@ namespace OpenSim
                 m_storageDll = startupConfig.GetString("storage_plugin", "OpenSim.DataStore.MonoSqlite.dll");
                 m_storageConnectionString
                     = startupConfig.GetString("storage_connection_string", "URI=file:OpenSim.db,version=3");
+                m_storagePersistPrimInventories
+                    = startupConfig.GetBoolean("storage_prim_inventories_experimental", false);
 
                 m_startupCommandsFile = startupConfig.GetString("startup_console_commands_file", "");
                 m_shutdownCommandsFile = startupConfig.GetString("shutdown_console_commands_file", "");
@@ -465,7 +468,7 @@ namespace OpenSim
 
         protected override StorageManager CreateStorageManager(string connectionstring)
         {
-            return new StorageManager(m_storageDll, connectionstring);
+            return new StorageManager(m_storageDll, connectionstring, m_storagePersistPrimInventories);
         }
 
         protected override Scene CreateScene(RegionInfo regionInfo, StorageManager storageManager,
