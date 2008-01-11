@@ -89,7 +89,8 @@ namespace OpenSim.Region.Environment.Scenes
         {
             foreach (TaskInventoryItem item in m_taskInventory.Values)
             {
-                if ("lsltext" == item.type)
+                // XXX more hardcoding badness.  Should be an enum in TaskInventoryItem
+                if (10 == item.type)
                 {
                     StartScript(item);
                 }
@@ -251,17 +252,11 @@ namespace OpenSim.Region.Environment.Scenes
         {
             if (m_taskInventory.ContainsKey(itemID))
             {
-                string type = m_taskInventory[itemID].inv_type;
+                int type = m_taskInventory[itemID].inv_type;
                 m_taskInventory.Remove(itemID);
                 m_inventorySerial++;
-                if (type == "lsltext")
-                {
-                    return 10;
-                }
-                else
-                {
-                    return 0;
-                }
+                
+                return type;
             }
             else
             {
@@ -317,8 +312,8 @@ namespace OpenSim.Region.Environment.Scenes
                 invString.AddSectionEnd();
 
                 invString.AddNameValueLine("asset_id", item.asset_id.ToString());
-                invString.AddNameValueLine("type", item.type);
-                invString.AddNameValueLine("inv_type", item.inv_type);
+                invString.AddNameValueLine("type", TaskInventoryItem.Types[item.type]);
+                invString.AddNameValueLine("inv_type", TaskInventoryItem.InvTypes[item.inv_type]);
                 invString.AddNameValueLine("flags", "0x00");
                 invString.AddNameValueLine("name", item.name + "|");
                 invString.AddNameValueLine("desc", item.desc + "|");

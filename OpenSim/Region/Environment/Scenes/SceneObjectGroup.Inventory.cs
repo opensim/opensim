@@ -175,8 +175,8 @@ namespace OpenSim.Region.Environment.Scenes
                 taskItem.desc = item.inventoryDescription;
                 taskItem.owner_id = item.avatarID;
                 taskItem.creator_id = item.creatorsID;
-                taskItem.type = TaskInventoryItem.Types[item.assetType];
-                taskItem.inv_type = TaskInventoryItem.InvTypes[item.invType];
+                taskItem.type = item.assetType;
+                taskItem.inv_type = item.invType;
                 part.AddInventoryItem(taskItem);
                 
                 // It might seem somewhat crude to update the whole group for a single prim inventory change,

@@ -89,8 +89,8 @@ namespace OpenSim.Framework
         public LLUUID group_id = LLUUID.Zero;
 
         public LLUUID asset_id = LLUUID.Zero;
-        public string type = "";
-        public string inv_type = "";
+        public int type = 0;
+        public int inv_type = 0;
         public uint flags = 0;
         public string name = "";
         public string desc = "";

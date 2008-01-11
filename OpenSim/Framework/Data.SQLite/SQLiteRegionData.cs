@@ -690,8 +690,8 @@ namespace OpenSim.Framework.Data.SQLite
             createCol(items, "assetID", typeof (String));
             createCol(items, "parentFolderID", typeof (String));
             
-            createCol(items, "invType", typeof (String));            
-            createCol(items, "assetType", typeof (String));
+            createCol(items, "invType", typeof (Int32));            
+            createCol(items, "assetType", typeof (Int32));
 
             createCol(items, "name", typeof (String));
             createCol(items, "description", typeof (String));
@@ -895,8 +895,8 @@ namespace OpenSim.Framework.Data.SQLite
             taskItem.asset_id        = new LLUUID((String)row["assetID"]);
             taskItem.parent_id       = new LLUUID((String)row["parentFolderID"]);
             
-            taskItem.inv_type        = (String)row["invType"];
-            taskItem.type            = (String)row["assetType"];
+            taskItem.inv_type        = Convert.ToInt32(row["invType"]);
+            taskItem.type            = Convert.ToInt32(row["assetType"]);
             
             taskItem.name            = (String)row["name"];
             taskItem.desc            = (String)row["description"];

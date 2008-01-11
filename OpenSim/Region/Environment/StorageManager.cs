@@ -62,7 +62,7 @@ namespace OpenSim.Region.Environment
                     {
                         IRegionDataStore plug =
                             (IRegionDataStore) Activator.CreateInstance(pluginAssembly.GetType(pluginType.ToString()));
-                        plug.Initialise(connectionstring, false);
+                        plug.Initialise(connectionstring, true);
 
                         m_dataStore = plug;
 
