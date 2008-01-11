@@ -449,7 +449,7 @@ namespace OpenSim.Framework.Data.MySQL
                 
                 if( reader.IsDBNull( reader.GetOrdinal( "webLoginKey" ) ) )
                 {
-                    retval.webLoginKey = LLUUID.Random();
+                    retval.webLoginKey = LLUUID.Zero;
                 }
                 else
                 {
