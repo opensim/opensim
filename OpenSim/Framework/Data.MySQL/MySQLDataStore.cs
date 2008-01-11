@@ -44,6 +44,7 @@ namespace OpenSim.Framework.Data.MySQL
     {
         private const string m_primSelect = "select * from prims";
         private const string m_shapeSelect = "select * from primshapes";
+        private const string m_itemsSelect = "select * from primitems";
         private const string m_terrainSelect = "select * from terrain limit 1";
         private const string m_landSelect = "select * from land";
         private const string m_landAccessListSelect = "select * from landaccesslist";
@@ -51,15 +52,21 @@ namespace OpenSim.Framework.Data.MySQL
         private DataSet m_dataSet;
         private MySqlDataAdapter m_primDataAdapter;
         private MySqlDataAdapter m_shapeDataAdapter;
+        private MySqlDataAdapter m_itemsDataAdapter;
         private MySqlConnection m_connection;
         private MySqlDataAdapter m_terrainDataAdapter;
         private MySqlDataAdapter m_landDataAdapter;
         private MySqlDataAdapter m_landAccessListDataAdapter;
+        
         private DataTable m_primTable;
         private DataTable m_shapeTable;
+        private DataTable m_itemsTable;
         private DataTable m_terrainTable;
         private DataTable m_landTable;
         private DataTable m_landAccessListTable;
+        
+        // Temporary attribute while this is experimental
+        private bool persistPrimInventories;        
 
         /***********************************************************************
          *
@@ -71,6 +78,7 @@ namespace OpenSim.Framework.Data.MySQL
         public void Initialise(string connectionstring, bool persistPrimInventories)
         {
             m_dataSet = new DataSet();
+            this.persistPrimInventories = persistPrimInventories;
 
             MainLog.Instance.Verbose("DATASTORE", "MySql - connecting: " + connectionstring);
             m_connection = new MySqlConnection(connectionstring);
@@ -80,6 +88,9 @@ namespace OpenSim.Framework.Data.MySQL
 
             MySqlCommand shapeSelectCmd = new MySqlCommand(m_shapeSelect, m_connection);
             m_shapeDataAdapter = new MySqlDataAdapter(shapeSelectCmd);
+            
+            MySqlCommand itemsSelectCmd = new MySqlCommand(m_itemsSelect, m_connection);
+            m_itemsDataAdapter = new MySqlDataAdapter(itemsSelectCmd);            
 
             MySqlCommand terrainSelectCmd = new MySqlCommand(m_terrainSelect, m_connection);
             m_terrainDataAdapter = new MySqlDataAdapter(terrainSelectCmd);
@@ -103,6 +114,14 @@ namespace OpenSim.Framework.Data.MySQL
                 m_dataSet.Tables.Add(m_shapeTable);
                 SetupShapeCommands(m_shapeDataAdapter, m_connection);
                 m_shapeDataAdapter.Fill(m_shapeTable);
+                
+                if (persistPrimInventories)
+                {
+                    m_itemsTable = createItemsTable();
+                    m_dataSet.Tables.Add(m_itemsTable);
+                    SetupItemsCommands(m_itemsDataAdapter, m_connection);
+                    m_itemsDataAdapter.Fill(m_itemsTable);                
+                }
 
                 m_terrainTable = createTerrainTable();
                 m_dataSet.Tables.Add(m_terrainTable);
@@ -146,6 +165,7 @@ namespace OpenSim.Framework.Data.MySQL
         {
             DataTable prims = m_primTable;
             DataTable shapes = m_shapeTable;
+            DataTable items = m_itemsTable;
 
             string selectExp = "SceneGroupID = '" + Util.ToRawUuidString(obj) + "'";
             lock (m_dataSet)
@@ -153,12 +173,27 @@ namespace OpenSim.Framework.Data.MySQL
                 DataRow[] primRows = prims.Select(selectExp);
                 foreach (DataRow row in primRows)
                 {
+                    // Remove shapes row
                     LLUUID uuid = new LLUUID((string) row["UUID"]);
                     DataRow shapeRow = shapes.Rows.Find(Util.ToRawUuidString(uuid));
                     if (shapeRow != null)
                     {
                         shapeRow.Delete();
                     }
+                    
+                    if (persistPrimInventories)
+                    {                    
+                        // Remove items rows
+                        String sql = String.Format("primID = '{0}'", uuid);            
+                        DataRow[] itemRows = items.Select(sql);
+                
+                        foreach (DataRow itemsRow in itemRows)
+                        {
+                            shapeRow.Delete();
+                        }                    
+                    }
+                    
+                    // Remove prim row
                     row.Delete();
                 }
             }
@@ -166,6 +201,9 @@ namespace OpenSim.Framework.Data.MySQL
             Commit();
         }
 
+        /// <summary>
+        /// Load persisted objects from region storage.
+        /// </summary>        
         public List<SceneObjectGroup> LoadObjects(LLUUID regionUUID)
         {
             Dictionary<LLUUID, SceneObjectGroup> createdObjects = new Dictionary<LLUUID, SceneObjectGroup>();
@@ -186,14 +224,17 @@ namespace OpenSim.Framework.Data.MySQL
 
                 foreach (DataRow primRow in primsForRegion)
                 {
-                    try
+                    try                        
                     {
                         string uuid = (string) primRow["UUID"];
                         string objID = (string) primRow["SceneGroupID"];
+                        
+                        SceneObjectPart prim = buildPrim(primRow);
+                        
                         if (uuid == objID) //is new SceneObjectGroup ?
                         {
                             SceneObjectGroup group = new SceneObjectGroup();
-                            SceneObjectPart prim = buildPrim(primRow);
+                            
                             DataRow shapeRow = shapes.Rows.Find(Util.ToRawUuidString(prim.UUID));
                             if (shapeRow != null)
                             {
@@ -213,7 +254,6 @@ namespace OpenSim.Framework.Data.MySQL
                         }
                         else
                         {
-                            SceneObjectPart prim = buildPrim(primRow);
                             DataRow shapeRow = shapes.Rows.Find(Util.ToRawUuidString(prim.UUID));
                             if (shapeRow != null)
                             {
@@ -227,6 +267,11 @@ namespace OpenSim.Framework.Data.MySQL
                             }
                             createdObjects[new LLUUID(objID)].AddPart(prim);
                         }
+                        
+                        if (persistPrimInventories)
+                        {
+                            LoadItems(prim);
+                        }                        
                     }
                     catch (Exception e)
                     {
@@ -241,7 +286,39 @@ namespace OpenSim.Framework.Data.MySQL
             }
             return retvals;
         }
-
+        
+        /// <summary>
+        /// Load in a prim's persisted inventory.
+        /// </summary>
+        /// <param name="prim"></param>
+        private void LoadItems(SceneObjectPart prim)
+        {
+            MainLog.Instance.Verbose("DATASTORE", "Loading inventory for {0}, {1}", prim.Name, prim.UUID);
+            
+            DataTable dbItems = m_itemsTable;
+            
+            String sql = String.Format("primID = '{0}'", prim.UUID.ToString());            
+            DataRow[] dbItemRows = dbItems.Select(sql);
+            
+            IList<TaskInventoryItem> inventory = new List<TaskInventoryItem>();
+            
+            foreach (DataRow row in dbItemRows)
+            {
+                TaskInventoryItem item = buildItem(row);
+                inventory.Add(item);
+                
+                MainLog.Instance.Verbose("DATASTORE", "Restored item {0}, {1}", item.name, item.item_id); 
+            }
+            
+            prim.AddInventoryItems(inventory);
+            
+            // XXX A nasty little hack to recover the folder id for the prim (which is currently stored in 
+            // every item).  This data should really be stored in the prim table itself.
+            if (dbItemRows.Length > 0)
+            {
+                prim.FolderID = inventory[0].parent_id;
+            }
+        }        
 
         public void StoreTerrain(double[,] ter, LLUUID regionID)
         {
@@ -437,6 +514,12 @@ namespace OpenSim.Framework.Data.MySQL
 
                 m_primDataAdapter.Update(m_primTable);
                 m_shapeDataAdapter.Update(m_shapeTable);
+                
+                if (persistPrimInventories)
+                {
+                    m_itemsDataAdapter.Update(m_itemsTable);
+                }
+                
                 m_terrainDataAdapter.Update(m_terrainTable);
                 m_landDataAdapter.Update(m_landTable);
                 m_landAccessListDataAdapter.Update(m_landAccessListTable);
@@ -630,6 +713,38 @@ namespace OpenSim.Framework.Data.MySQL
 
             return shapes;
         }
+        
+        private DataTable createItemsTable()
+        {
+            DataTable items = new DataTable("primitems");
+
+            createCol(items, "itemID", typeof (String));
+            createCol(items, "primID", typeof (String));
+            createCol(items, "assetID", typeof (String));
+            createCol(items, "parentFolderID", typeof (String));
+            
+            createCol(items, "invType", typeof (Int32));            
+            createCol(items, "assetType", typeof (Int32));
+
+            createCol(items, "name", typeof (String));
+            createCol(items, "description", typeof (String));
+
+            createCol(items, "creationDate", typeof (Int64));
+            createCol(items, "creatorID", typeof (String));
+            createCol(items, "ownerID", typeof (String));
+            createCol(items, "lastOwnerID", typeof (String));
+            createCol(items, "groupID", typeof (String));
+
+            createCol(items, "nextPermissions", typeof (Int32));
+            createCol(items, "currentPermissions", typeof (Int32));
+            createCol(items, "basePermissions", typeof (Int32));
+            createCol(items, "everyonePermissions", typeof (Int32));
+            createCol(items, "groupPermissions", typeof (Int32));
+
+            items.PrimaryKey = new DataColumn[] {items.Columns["itemID"]};
+
+            return items;
+        }        
 
         /***********************************************************************
          *  
@@ -727,6 +842,41 @@ namespace OpenSim.Framework.Data.MySQL
             }
             return prim;
         }
+        
+        
+        /// <summary>
+        /// Build a prim inventory item from the persisted data.
+        /// </summary>
+        /// <param name="row"></param>
+        /// <returns></returns>
+        private TaskInventoryItem buildItem(DataRow row)
+        {
+            TaskInventoryItem taskItem = new TaskInventoryItem();
+            
+            taskItem.item_id         = new LLUUID((String)row["itemID"]); 
+            taskItem.ParentPartID    = new LLUUID((String)row["primID"]);
+            taskItem.asset_id        = new LLUUID((String)row["assetID"]);
+            taskItem.parent_id       = new LLUUID((String)row["parentFolderID"]);
+            
+            taskItem.inv_type        = Convert.ToInt32(row["invType"]);
+            taskItem.type            = Convert.ToInt32(row["assetType"]);
+            
+            taskItem.name            = (String)row["name"];
+            taskItem.desc            = (String)row["description"];
+            taskItem.creation_date   = Convert.ToUInt32(row["creationDate"]);
+            taskItem.creator_id      = new LLUUID((String)row["creatorID"]);
+            taskItem.owner_id        = new LLUUID((String)row["ownerID"]);
+            taskItem.last_owner_id   = new LLUUID((String)row["lastOwnerID"]);
+            taskItem.group_id        = new LLUUID((String)row["groupID"]);
+            
+            taskItem.next_owner_mask = Convert.ToUInt32(row["nextPermissions"]);
+            taskItem.owner_mask      = Convert.ToUInt32(row["currentPermissions"]);
+            taskItem.base_mask       = Convert.ToUInt32(row["basePermissions"]);
+            taskItem.everyone_mask   = Convert.ToUInt32(row["everyonePermissions"]);
+            taskItem.group_mask      = Convert.ToUInt32(row["groupPermissions"]);
+            
+            return taskItem;
+        }        
 
         private LandData buildLandData(DataRow row)
         {
@@ -870,6 +1020,30 @@ namespace OpenSim.Framework.Data.MySQL
                 }
             }
         }
+        
+        private void fillItemRow(DataRow row, TaskInventoryItem taskItem)
+        {
+            row["itemID"] = taskItem.item_id;
+            row["primID"] = taskItem.ParentPartID;
+            row["assetID"] = taskItem.asset_id;
+            row["parentFolderID"] = taskItem.parent_id;
+            
+            row["invType"] = taskItem.inv_type;
+            row["assetType"] = taskItem.type;
+            
+            row["name"] = taskItem.name;
+            row["description"] = taskItem.desc;
+            row["creationDate"] = taskItem.creation_date;
+            row["creatorID"] = taskItem.creator_id;
+            row["ownerID"] = taskItem.owner_id;
+            row["lastOwnerID"] = taskItem.last_owner_id;
+            row["groupID"] = taskItem.group_id;
+            row["nextPermissions"] = taskItem.next_owner_mask;
+            row["currentPermissions"] = taskItem.owner_mask;
+            row["basePermissions"] = taskItem.base_mask;
+            row["everyonePermissions"] = taskItem.everyone_mask;
+            row["groupPermissions"] = taskItem.group_mask;
+        }        
 
         private void fillLandRow(DataRow row, LandData land, LLUUID regionUUID)
         {
@@ -1017,7 +1191,79 @@ namespace OpenSim.Framework.Data.MySQL
             {
                 fillShapeRow(shapeRow, prim);
             }
+            
+            if (persistPrimInventories)
+            {
+                addPrimInventory(prim.UUID, prim.TaskInventory);
+            }            
         }
+        
+        /// <summary>
+        /// Persist prim inventory.  Deletes, updates and inserts rows.
+        /// </summary>
+        /// <param name="primID"></param>
+        /// <param name="items"></param>
+        /// <returns></returns>
+        private void addPrimInventory(LLUUID primID, IDictionary<LLUUID, TaskInventoryItem> items)
+        {
+            MainLog.Instance.Verbose("DATASTORE", "Entered addPrimInventory with prim ID {0}", primID);
+            
+            // Find all existing inventory rows for this prim
+            DataTable dbItems = m_itemsTable;
+
+            String sql = String.Format("primID = '{0}'", primID);            
+            DataRow[] dbItemRows = dbItems.Select(sql);
+            
+            // Build structures for manipulation purposes
+            IDictionary<String, DataRow> dbItemsToRemove = new Dictionary<String, DataRow>();
+            ICollection<TaskInventoryItem> itemsToAdd 
+                = new List<TaskInventoryItem>();
+            
+            foreach (DataRow row in dbItemRows)
+            {
+                dbItemsToRemove.Add((String)row["itemID"], row);
+            }
+            
+            // Eliminate rows from the deletion set which already exist for this prim's inventory
+            // TODO Very temporary, need to take account of simple metadata changes soon
+            foreach (LLUUID itemId in items.Keys)
+            {
+                String rawItemId = itemId.ToString();
+                
+                if (dbItemsToRemove.ContainsKey(rawItemId))
+                {
+                    dbItemsToRemove.Remove(rawItemId);
+                }
+                else
+                {
+                    itemsToAdd.Add(items[itemId]);
+                }
+            }                        
+            
+            // Delete excess rows
+            foreach (DataRow row in dbItemsToRemove.Values)
+            {
+                MainLog.Instance.Verbose(
+                    "DATASTORE", 
+                    "Removing item {0}, {1} from prim ID {2}", 
+                    row["name"], row["itemID"], row["primID"]);
+                
+                row.Delete();
+            }
+            
+            // Insert items not already present 
+            foreach (TaskInventoryItem newItem in itemsToAdd)
+            {
+                MainLog.Instance.Verbose(
+                    "DATASTORE", 
+                    "Adding item {0}, {1} to prim ID {1}", 
+                    newItem.name, newItem.item_id, newItem.ParentPartID);
+                
+                DataRow newItemRow = dbItems.NewRow();
+                fillItemRow(newItemRow, newItem);
+                dbItems.Rows.Add(newItemRow);                
+            }
+        }        
 
         /***********************************************************************
          *
@@ -1111,6 +1357,9 @@ namespace OpenSim.Framework.Data.MySQL
             }
             sql += subsql;
             sql += ")";
+            
+            //MainLog.Instance.Verbose("DATASTORE", "defineTable() sql {0}", sql);
+            
             return sql;
         }
 
@@ -1166,6 +1415,20 @@ namespace OpenSim.Framework.Data.MySQL
             delete.Connection = conn;
             da.DeleteCommand = delete;
         }
+        
+        private void SetupItemsCommands(MySqlDataAdapter da, MySqlConnection conn)
+        {
+            da.InsertCommand = createInsertCommand("primitems", m_itemsTable);
+            da.InsertCommand.Connection = conn;
+
+            da.UpdateCommand = createUpdateCommand("primitems", "itemID = :itemID", m_itemsTable);
+            da.UpdateCommand.Connection = conn;
+
+            MySqlCommand delete = new MySqlCommand("delete from primitems where itemID = :itemID");
+            delete.Parameters.Add(createMySqlParameter("itemID", typeof (String)));
+            delete.Connection = conn;
+            da.DeleteCommand = delete;
+        }        
 
         private void SetupTerrainCommands(MySqlDataAdapter da, MySqlConnection conn)
         {
@@ -1206,12 +1469,14 @@ namespace OpenSim.Framework.Data.MySQL
         {
             string createPrims = defineTable(createPrimTable());
             string createShapes = defineTable(createShapeTable());
+            string createItems = defineTable(createItemsTable());
             string createTerrain = defineTable(createTerrainTable());
             string createLand = defineTable(createLandTable());
             string createLandAccessList = defineTable(createLandAccessListTable());
 
             MySqlCommand pcmd = new MySqlCommand(createPrims, conn);
             MySqlCommand scmd = new MySqlCommand(createShapes, conn);
+            MySqlCommand icmd = new MySqlCommand(createItems, conn);
             MySqlCommand tcmd = new MySqlCommand(createTerrain, conn);
             MySqlCommand lcmd = new MySqlCommand(createLand, conn);
             MySqlCommand lalcmd = new MySqlCommand(createLandAccessList, conn);
@@ -1225,45 +1490,54 @@ namespace OpenSim.Framework.Data.MySQL
             {
                 pcmd.ExecuteNonQuery();
             }
-            catch (MySqlException)
+            catch (MySqlException e)
             {
-                MainLog.Instance.Warn("MySql", "Primitives Table Already Exists");
+                MainLog.Instance.Warn("MySql", "Primitives Table Already Exists: {0}", e);
             }
 
             try
             {
                 scmd.ExecuteNonQuery();
             }
-            catch (MySqlException)
+            catch (MySqlException e)
             {
-                MainLog.Instance.Warn("MySql", "Shapes Table Already Exists");
+                MainLog.Instance.Warn("MySql", "Shapes Table Already Exists: {0}", e);
             }
+            
+            try
+            {
+                icmd.ExecuteNonQuery();
+            }
+            catch (MySqlException e)
+            {
+                MainLog.Instance.Warn("MySql", "Items Table Already Exists: {0}", e);
+            }            
 
             try
             {
                 tcmd.ExecuteNonQuery();
             }
-            catch (MySqlException)
+            catch (MySqlException e)
             {
-                MainLog.Instance.Warn("MySql", "Terrain Table Already Exists");
+                MainLog.Instance.Warn("MySql", "Terrain Table Already Exists: {0}", e);
             }
 
             try
             {
                 lcmd.ExecuteNonQuery();
             }
-            catch (MySqlException)
+            catch (MySqlException e)
             {
-                MainLog.Instance.Warn("MySql", "Land Table Already Exists");
+                MainLog.Instance.Warn("MySql", "Land Table Already Exists: {0}", e);
             }
 
             try
             {
                 lalcmd.ExecuteNonQuery();
             }
-            catch (MySqlException)
+            catch (MySqlException e)
             {
-                MainLog.Instance.Warn("MySql", "LandAccessList Table Already Exists");
+                MainLog.Instance.Warn("MySql", "LandAccessList Table Already Exists: {0}", e);
             }
             conn.Close();
         }
@@ -1274,6 +1548,8 @@ namespace OpenSim.Framework.Data.MySQL
             MySqlDataAdapter pDa = new MySqlDataAdapter(primSelectCmd);
             MySqlCommand shapeSelectCmd = new MySqlCommand(m_shapeSelect, conn);
             MySqlDataAdapter sDa = new MySqlDataAdapter(shapeSelectCmd);
+            MySqlCommand itemsSelectCmd = new MySqlCommand(m_itemsSelect, conn);
+            MySqlDataAdapter iDa = new MySqlDataAdapter(itemsSelectCmd);            
             MySqlCommand terrainSelectCmd = new MySqlCommand(m_terrainSelect, conn);
             MySqlDataAdapter tDa = new MySqlDataAdapter(terrainSelectCmd);
             MySqlCommand landSelectCmd = new MySqlCommand(m_landSelect, conn);
@@ -1286,6 +1562,10 @@ namespace OpenSim.Framework.Data.MySQL
             {
                 pDa.Fill(tmpDS, "prims");
                 sDa.Fill(tmpDS, "primshapes");
+                
+                if (persistPrimInventories)
+                    iDa.Fill(tmpDS, "primitems");
+                
                 tDa.Fill(tmpDS, "terrain");
                 lDa.Fill(tmpDS, "land");
                 lalDa.Fill(tmpDS, "landaccesslist");
@@ -1298,6 +1578,10 @@ namespace OpenSim.Framework.Data.MySQL
 
             pDa.Fill(tmpDS, "prims");
             sDa.Fill(tmpDS, "primshapes");
+            
+            if (persistPrimInventories)
+                iDa.Fill(tmpDS, "primitems");
+            
             tDa.Fill(tmpDS, "terrain");
             lDa.Fill(tmpDS, "land");
             lalDa.Fill(tmpDS, "landaccesslist");
@@ -1310,6 +1594,7 @@ namespace OpenSim.Framework.Data.MySQL
                     return false;
                 }
             }
+            
             foreach (DataColumn col in createShapeTable().Columns)
             {
                 if (!tmpDS.Tables["primshapes"].Columns.Contains(col.ColumnName))
@@ -1318,6 +1603,9 @@ namespace OpenSim.Framework.Data.MySQL
                     return false;
                 }
             }
+            
+            // XXX primitems should probably go here eventually
+            
             foreach (DataColumn col in createTerrainTable().Columns)
             {
                 if (!tmpDS.Tables["terrain"].Columns.Contains(col.ColumnName))
@@ -1326,6 +1614,7 @@ namespace OpenSim.Framework.Data.MySQL
                     return false;
                 }
             }
+            
             foreach (DataColumn col in createLandTable().Columns)
             {
                 if (!tmpDS.Tables["land"].Columns.Contains(col.ColumnName))
@@ -1334,6 +1623,7 @@ namespace OpenSim.Framework.Data.MySQL
                     return false;
                 }
             }
+            
             foreach (DataColumn col in createLandAccessListTable().Columns)
             {
                 if (!tmpDS.Tables["landaccesslist"].Columns.Contains(col.ColumnName))
@@ -1342,6 +1632,7 @@ namespace OpenSim.Framework.Data.MySQL
                     return false;
                 }
             }
+            
             return true;
         }
 
@@ -1395,6 +1686,10 @@ namespace OpenSim.Framework.Data.MySQL
             {
                 return "integer";
             }
+            else if (type == typeof (Int64))
+            {
+                return "bigint";
+            }            
             else if (type == typeof (Double))
             {
                 return "float";

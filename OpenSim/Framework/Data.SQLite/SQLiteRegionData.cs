@@ -61,6 +61,7 @@ namespace OpenSim.Framework.Data.SQLite
 
         private String m_connectionString;
 
+        // Temporary attribute while this is experimental
         private bool persistPrimInventories;
 
         /***********************************************************************
@@ -208,6 +209,7 @@ namespace OpenSim.Framework.Data.SQLite
         {
             DataTable prims = ds.Tables["prims"];
             DataTable shapes = ds.Tables["primshapes"];
+            DataTable items = ds.Tables["primitems"];
 
             string selectExp = "SceneGroupID = '" + Util.ToRawUuidString(obj) + "'";
             lock (ds)
@@ -215,13 +217,28 @@ namespace OpenSim.Framework.Data.SQLite
                 DataRow[] primRows = prims.Select(selectExp);
                 foreach (DataRow row in primRows)
                 {
+                    // Remove shape rows
                     LLUUID uuid = new LLUUID((string) row["UUID"]);
                     DataRow shapeRow = shapes.Rows.Find(Util.ToRawUuidString(uuid));
                     if (shapeRow != null)
                     {
                         shapeRow.Delete();
                     }
-                    row.Delete();
+
+                    if (persistPrimInventories)
+                    {
+                        // Remove items rows
+                        String sql = String.Format("primID = '{0}'", uuid);            
+                        DataRow[] itemRows = items.Select(sql);
+                
+                        foreach (DataRow itemsRow in itemRows)
+                        {
+                            itemsRow.Delete();
+                        }
+                    }
+
+                    // Remove prim row
+                    row.Delete();                    
                 }
             }
 
@@ -1444,6 +1461,20 @@ namespace OpenSim.Framework.Data.SQLite
             param.SourceColumn = name;
             param.SourceVersion = DataRowVersion.Current;
             return param;
+        }                
+
+        private void setupPrimCommands(SqliteDataAdapter da, SqliteConnection conn)
+        {
+            da.InsertCommand = createInsertCommand("prims", ds.Tables["prims"]);
+            da.InsertCommand.Connection = conn;
+
+            da.UpdateCommand = createUpdateCommand("prims", "UUID=:UUID", ds.Tables["prims"]);
+            da.UpdateCommand.Connection = conn;
+
+            SqliteCommand delete = new SqliteCommand("delete from prims where UUID = :UUID");
+            delete.Parameters.Add(createSqliteParameter("UUID", typeof (String)));
+            delete.Connection = conn;
+            da.DeleteCommand = delete;
         }
         
         private void setupItemsCommands(SqliteDataAdapter da, SqliteConnection conn)
@@ -1459,20 +1490,6 @@ namespace OpenSim.Framework.Data.SQLite
             delete.Connection = conn;
             da.DeleteCommand = delete;
         }        
-
-        private void setupPrimCommands(SqliteDataAdapter da, SqliteConnection conn)
-        {
-            da.InsertCommand = createInsertCommand("prims", ds.Tables["prims"]);
-            da.InsertCommand.Connection = conn;
-
-            da.UpdateCommand = createUpdateCommand("prims", "UUID=:UUID", ds.Tables["prims"]);
-            da.UpdateCommand.Connection = conn;
-
-            SqliteCommand delete = new SqliteCommand("delete from prims where UUID = :UUID");
-            delete.Parameters.Add(createSqliteParameter("UUID", typeof (String)));
-            delete.Connection = conn;
-            da.DeleteCommand = delete;
-        }
 
         private void setupTerrainCommands(SqliteDataAdapter da, SqliteConnection conn)
         {
@@ -1656,8 +1673,8 @@ namespace OpenSim.Framework.Data.SQLite
                     return false;
                 }
             }
-
-            // TODO Not restoring prim inventories quite yet
+            
+            // XXX primitems should probably go here eventually
 
             foreach (DataColumn col in createTerrainTable().Columns)
             {
