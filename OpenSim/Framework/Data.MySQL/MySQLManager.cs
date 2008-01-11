@@ -446,7 +446,15 @@ namespace OpenSim.Framework.Data.MySQL
 
                 retval.profileImage = new LLUUID((string) reader["profileImage"]);
                 retval.profileFirstImage = new LLUUID((string) reader["profileFirstImage"]);
-                retval.webLoginKey = new LLUUID((string)reader["webLoginKey"]);
+                
+                if( reader.IsDBNull( reader.GetOrdinal( "webLoginKey" ) ) )
+                {
+                    retval.webLoginKey = LLUUID.Random();
+                }
+                else
+                {
+                    retval.webLoginKey = new LLUUID((string)reader["webLoginKey"]);
+                }
             }
             else
             {
