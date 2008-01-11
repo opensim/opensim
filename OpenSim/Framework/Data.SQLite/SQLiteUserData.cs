@@ -64,6 +64,7 @@ namespace OpenSim.Framework.Data.SQLite
 
             // This sucks, but It doesn't seem to work with the dataset Syncing :P
             g_conn = conn;
+            g_conn.Open();
             
             ds = new DataSet();
             da = new SqliteDataAdapter(new SqliteCommand(userSelect, conn));
