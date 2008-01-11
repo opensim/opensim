@@ -194,18 +194,26 @@ namespace OpenSim.Framework.Data.SQLite
             using (SqliteCommand cmd = new SqliteCommand(SelectFriendsByUUID, g_conn))
             {
                 cmd.Parameters.Add(new SqliteParameter(":ownerID", friendlistowner.UUID.ToString()));
-                using (IDataReader reader = cmd.ExecuteReader()) 
+
+                try
                 {
-                    while(reader.Read()) 
+                    using (IDataReader reader = cmd.ExecuteReader())
                     {
-                        FriendListItem user = new FriendListItem();
-                        user.FriendListOwner = friendlistowner;
-                        user.Friend = new LLUUID((string)reader[0]);
-                        user.FriendPerms =  Convert.ToUInt32(reader[1]);
-                        user.FriendListOwnerPerms =  Convert.ToUInt32(reader[2]);
-                        returnlist.Add(user);
+                        while (reader.Read())
+                        {
+                            FriendListItem user = new FriendListItem();
+                            user.FriendListOwner = friendlistowner;
+                            user.Friend = new LLUUID((string)reader[0]);
+                            user.FriendPerms = Convert.ToUInt32(reader[1]);
+                            user.FriendListOwnerPerms = Convert.ToUInt32(reader[2]);
+                            returnlist.Add(user);
+                        }
+                        reader.Close();
                     }
-                    reader.Close();
+                }
+                catch (Exception ex)
+                {
+                    MainLog.Instance.Error("USER", "Exception getting friends list for user: " + ex.ToString());
                 }
             }
              
