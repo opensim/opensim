@@ -162,7 +162,7 @@ namespace OpenSim.Region.Environment.Scenes
         public bool AddInventoryItem(IClientAPI remoteClient, uint localID, 
                                      InventoryItemBase item, LLUUID copyItemID)
         {
-            LLUUID newItemId = ((copyItemID != null) ? copyItemID : item.inventoryID);
+            LLUUID newItemId = (!copyItemID.Equals(null)) ? copyItemID : item.inventoryID;
             
             SceneObjectPart part = GetChildPart(localID);
             if (part != null)

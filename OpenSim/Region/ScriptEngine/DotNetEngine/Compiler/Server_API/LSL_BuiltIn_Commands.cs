@@ -2372,7 +2372,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler
         public void llSetParcelMusicURL(string url)
         {
             LLUUID landowner = World.GetLandOwner(m_host.AbsolutePosition.X, m_host.AbsolutePosition.Y);
-            if (landowner == null)
+            if (landowner.Equals(null))
             {
                 return;
             }
@@ -2779,7 +2779,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler
             LLUUID reqID = httpScriptMod.
                     StartHttpRequest(m_localID, m_itemID, url, param, body);
 
-            if (reqID != null)
+            if (!reqID.Equals(null))
                 return reqID.ToString();
             else
                 return null;
