@@ -7,7 +7,7 @@ using System.Text;
 
 namespace OpenSim.Region.ScriptEngine.Common.TRPC
 {
-    public class TCPClient: TCPCommon.ClientInterface
+    public class TCPClient : TCPCommon.ClientInterface
     {
 
         public TCPClient()
@@ -31,10 +31,18 @@ namespace OpenSim.Region.ScriptEngine.Common.TRPC
         {
             Socket newsock = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
             IPEndPoint ipe = new IPEndPoint(IPAddress.Parse(RemoteHost), RemotePort);
-            newsock.BeginConnect(ipe, new AsyncCallback(asyncConnected), newsock);
-
-
+            //newsock.BeginConnect(ipe, new AsyncCallback(asyncConnected), newsock);
+            newsock.Connect(ipe);
         }
+        public int ConnectAndReturnID(string RemoteHost, int RemotePort)
+        {
+            Socket newsock = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
+            IPEndPoint ipe = new IPEndPoint(IPAddress.Parse(RemoteHost), RemotePort);
+            //newsock.BeginConnect(ipe, new AsyncCallback(asyncConnected), newsock);
+            newsock.Connect(ipe);
+            return ProcessConnection(newsock);
+        }
+
 
         public void Disconnect(int ID)
         {
@@ -44,9 +52,15 @@ namespace OpenSim.Region.ScriptEngine.Common.TRPC
         void asyncConnected(IAsyncResult iar)
         {
             Socket client = (Socket)iar.AsyncState;
+            client.EndConnect(iar);
+            ProcessConnection(client);
+        }
+
+        private int ProcessConnection(Socket client)
+        {
             try
             {
-                client.EndConnect(iar);
+                
 
 
                 int id = ClientCount++;
@@ -69,12 +83,14 @@ namespace OpenSim.Region.ScriptEngine.Common.TRPC
                 if (ClientConnected != null)
                     ClientConnected(id, client.RemoteEndPoint);
 
+                return id;
             }
             catch (SocketException sex)
             {
                 if (ConnectError != null)
                     ConnectError(sex.Message);
             }
+            return -1;
         }
 
 

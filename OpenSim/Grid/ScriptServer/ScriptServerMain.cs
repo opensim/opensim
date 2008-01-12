@@ -31,6 +31,7 @@ using OpenSim.Framework;
 using OpenSim.Framework.Console;
 using OpenSim.Grid.ScriptServer.ScriptServer;
 using OpenSim.Region.ScriptEngine.Common;
+using OpenSim.Region.ScriptEngine.Common.TRPC;
 
 namespace OpenSim.Grid.ScriptServer
 {
@@ -39,7 +40,7 @@ namespace OpenSim.Grid.ScriptServer
         //
         // Root object. Creates objects used.
         //
-        private int listenPort = 1234;
+        private int listenPort = 8010;
         private readonly string m_logFilename = ("scriptserver.log");
         private LogBase m_log;
 
@@ -49,11 +50,14 @@ namespace OpenSim.Grid.ScriptServer
         // Objects we use
         internal RegionCommManager RegionScriptDaemon; // Listen for incoming from region
         internal ScriptEngineManager ScriptEngines; // Loads scriptengines
-        internal RemotingServer m_RemotingServer;
+        //internal RemotingServer m_RemotingServer;
+        internal TCPServer m_TCPServer;
+        internal TRPC_Remote RPC;
 
-        public ScriptServerMain()
+                public ScriptServerMain()
         {
             m_log = CreateLog();
+
 
             // Set up script engine mananger
             ScriptEngines = new ScriptEngineManager(this, m_log);
@@ -62,8 +66,25 @@ namespace OpenSim.Grid.ScriptServer
             Engine = ScriptEngines.LoadEngine("DotNetEngine");
 
             // Set up server
-            m_RemotingServer = new RemotingServer(listenPort, "DotNetEngine");
+            //m_RemotingServer = new RemotingServer(listenPort, "DotNetEngine");
+            m_TCPServer = new TCPServer(listenPort);
+            RPC = new TRPC_Remote(m_TCPServer);
+                    RPC.ReceiveCommand += new TRPC_Remote.ReceiveCommandDelegate(RPC_ReceiveCommand);
+            m_TCPServer.StartListen();
+
             System.Console.ReadLine();
+        }
+
+        private void RPC_ReceiveCommand(int ID, string Command, object[] p)
+        {
+            m_log.Notice("SERVER", "Received command: '" + Command + "'");
+            if (p != null)
+            {
+                for (int i = 0; i < p.Length; i++)
+                {
+                    m_log.Notice("SERVER", "Param " + i + ": " + p[i].ToString());
+                }
+            }
         }
 
         ~ScriptServerMain()
