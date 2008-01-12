@@ -98,6 +98,7 @@ namespace OpenSim.Region.Communications.OGS1
             // Login / Authentication
 
             GridParams["authkey"] = serversInfo.GridSendKey;
+            GridParams["recvkey"] = serversInfo.GridRecvKey;
             GridParams["UUID"] = regionInfo.RegionID.ToString();
             GridParams["sim_ip"] = regionInfo.ExternalHostName;
             GridParams["sim_port"] = regionInfo.InternalEndPoint.Port.ToString();
