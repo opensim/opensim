@@ -240,7 +240,11 @@ namespace OpenSim
 
                 m_permissions = startupConfig.GetBoolean("serverside_object_permissions", false);
 
-                m_storageDll = startupConfig.GetString("storage_plugin", "OpenSim.DataStore.MonoSqlite.dll");
+                m_storageDll = startupConfig.GetString("storage_plugin", "OpenSim.Framework.Data.SQLite.dll");
+                if (m_storageDll == "OpenSim.DataStore.MonoSqlite.dll") 
+                {
+                    m_storageDll = "OpenSim.Framework.Data.SQLite.dll";
+                }
                 m_storageConnectionString
                     = startupConfig.GetString("storage_connection_string", "URI=file:OpenSim.db,version=3");
                 m_storagePersistPrimInventories
