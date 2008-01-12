@@ -88,7 +88,7 @@ namespace OpenSim.Region.Environment.Modules
         private Queue<HttpRequestClass> rpcQueue = new Queue<HttpRequestClass>();
         private object HttpListLock = new object();
         private string m_name = "HttpScriptRequests";
-        private int httpTimeout = 300;
+        private int httpTimeout = 30000;
 
         // <request id, HttpRequestClass>
         private Dictionary<LLUUID, HttpRequestClass> m_pendingRequests;
