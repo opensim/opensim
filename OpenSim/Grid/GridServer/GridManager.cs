@@ -262,10 +262,10 @@ namespace OpenSim.Grid.GridServer
 
             TheSim = new RegionProfileData();
 
-            TheSim.regionRecvKey = config.SimRecvKey;
-            TheSim.regionSendKey = config.SimSendKey;
+            TheSim.regionRecvKey = String.Empty;
+            TheSim.regionSendKey = String.Empty;
             TheSim.regionSecret = config.SimRecvKey;
-            TheSim.regionDataURI = "";
+            TheSim.regionDataURI = String.Empty;
             TheSim.regionAssetURI = config.DefaultAssetServer;
             TheSim.regionAssetRecvKey = config.AssetRecvKey;
             TheSim.regionAssetSendKey = config.AssetSendKey;
@@ -289,7 +289,6 @@ namespace OpenSim.Grid.GridServer
             }
             catch (KeyNotFoundException) { }
 
-
             TheSim.regionHandle = Helpers.UIntsToLong((TheSim.regionLocX * 256), (TheSim.regionLocY * 256));
             TheSim.serverURI = "http://" + TheSim.serverIP + ":" + TheSim.serverPort + "/";
 
@@ -303,7 +302,9 @@ namespace OpenSim.Grid.GridServer
             OldSim = getRegion(TheSim.regionHandle);
             if (OldSim == null || OldSim.UUID == TheSim.UUID)
             {
-                if (OldSim == null || (OldSim.regionRecvKey == TheSim.regionRecvKey &&
+                if ((OldSim == null && TheSim.regionRecvKey == config.SimSendKey && 
+                    TheSim.regionRecvKey == config.SimRecvKey) || 
+                    (OldSim.regionRecvKey == TheSim.regionRecvKey &&
                     OldSim.regionSendKey == TheSim.regionSendKey))
                 {
                     MainLog.Instance.Verbose("GRID", "Adding region " + TheSim.regionLocX + " , " + TheSim.regionLocY + " , " +
