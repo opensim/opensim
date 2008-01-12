@@ -202,6 +202,9 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
 
         public void CheckHttpRequests()
         {
+            if (m_ScriptEngine.World == null)
+                return;
+
             IHttpRequests iHttpReq =
                 m_ScriptEngine.World.RequestModuleInterface<IHttpRequests>();
 
@@ -241,6 +244,9 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
 
         public void CheckXMLRPCRequests()
         {
+            if (m_ScriptEngine.World == null)
+                return;
+
             IXMLRPC xmlrpc = m_ScriptEngine.World.RequestModuleInterface<IXMLRPC>();
 
             if (xmlrpc != null)
@@ -266,6 +272,8 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
 
         public void CheckListeners()
         {
+            if (m_ScriptEngine.World == null)
+                return;
             IWorldComm comms = m_ScriptEngine.World.RequestModuleInterface<IWorldComm>();
 
             while (comms.HasMessages())

@@ -49,8 +49,8 @@ namespace OpenSim.Grid.ScriptServer
             Console.WriteLine("APPLICATION EXCEPTION DETECTED");
             Console.WriteLine("");
             Console.WriteLine("Application is terminating: " + e.IsTerminating.ToString());
-            Console.WriteLine("Exception:");
-            Console.WriteLine(e.ExceptionObject.ToString());
+            //Console.WriteLine("Exception:");
+            //Console.WriteLine(e.ExceptionObject.ToString());
         }
     }
 }

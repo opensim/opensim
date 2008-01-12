@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Text;
+using libsecondlife;
 using OpenSim.Region.ScriptEngine.Common.TRPC;
 
 namespace OpenSim.Region.ScriptEngine.Common
@@ -22,7 +23,11 @@ namespace OpenSim.Region.ScriptEngine.Common
                                 typeof(System.Int64),
                                 typeof(System.Double),
                                 typeof(System.Decimal),
-                                typeof(System.Array)
+                                typeof(System.Array),
+                                typeof(LLUUID),
+                                typeof(System.UInt16),
+                                typeof(System.UInt32),
+                                typeof(System.UInt64)
                             };
 
         // TODO: Maybe we should move queue into TCPSocket so we won't have to keep one queue instance per connection

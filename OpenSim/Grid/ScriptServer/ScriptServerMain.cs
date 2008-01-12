@@ -27,6 +27,7 @@
 */
 
 using System.IO;
+using libsecondlife;
 using OpenSim.Framework;
 using OpenSim.Framework.Console;
 using OpenSim.Grid.ScriptServer.ScriptServer;
@@ -46,6 +47,7 @@ namespace OpenSim.Grid.ScriptServer
 
         // TEMP
         public static ScriptServerInterfaces.ScriptEngine Engine;
+        //public static FakeScene m_Scene = new FakeScene(null,null,null,null,null,null,null,null,null,false, false, false);
 
         // Objects we use
         internal RegionCommManager RegionScriptDaemon; // Listen for incoming from region
@@ -64,6 +66,8 @@ namespace OpenSim.Grid.ScriptServer
 
             // Load DotNetEngine
             Engine = ScriptEngines.LoadEngine("DotNetEngine");
+            Engine.InitializeEngine(null, m_log, false);
+                    
 
             // Set up server
             //m_RemotingServer = new RemotingServer(listenPort, "DotNetEngine");
@@ -84,6 +88,11 @@ namespace OpenSim.Grid.ScriptServer
                 {
                     m_log.Notice("SERVER", "Param " + i + ": " + p[i].ToString());
                 }
+            }
+
+            if (Command == "OnRezScript")
+            {
+                Engine.EventManager().OnRezScript((uint)p[0], new LLUUID((string)p[1]), (string)p[2]);
             }
         }
 

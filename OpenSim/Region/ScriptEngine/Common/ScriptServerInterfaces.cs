@@ -1,5 +1,7 @@
 ﻿using libsecondlife;
 using OpenSim.Framework;
+using OpenSim.Framework.Console;
+using OpenSim.Region.Environment.Scenes;
 
 namespace OpenSim.Region.ScriptEngine.Common
 {
@@ -50,6 +52,7 @@ namespace OpenSim.Region.ScriptEngine.Common
         public interface ScriptEngine
         {
             RemoteEvents EventManager();
+            void InitializeEngine(Scene Sceneworld, LogBase logger, bool DontHookUp);
         }
 
     }

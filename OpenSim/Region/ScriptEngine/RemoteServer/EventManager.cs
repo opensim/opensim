@@ -87,7 +87,7 @@ namespace OpenSim.Region.ScriptEngine.RemoteServer
             myScriptEngine.Log.Verbose("RemoteEngine", "Creating new script (with connection)");
 
             // Temp for now: We have one connection only - this is hardcoded in myScriptServerID
-            RPC.SendCommand(myScriptServerID, "OnRezScript", script);
+            RPC.SendCommand(myScriptServerID, "OnRezScript", localID, itemID.ToString(), script);
 
             //ScriptServerInterfaces.ServerRemotingObject obj = myScriptEngine.m_RemoteServer.Connect("localhost", 1234);
             //remoteScript.Add(localID, obj);
@@ -99,6 +99,7 @@ namespace OpenSim.Region.ScriptEngine.RemoteServer
         public void touch_start(uint localID, LLVector3 offsetPos, IClientAPI remoteClient)
         {
                 //remoteScript[localID].Events.touch_start(localID, offsetPos, remoteClient);
+            RPC.SendCommand(myScriptServerID, "touch_start", offsetPos, "How to transfer IClientAPI?");
         }
 
 

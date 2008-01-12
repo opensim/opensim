@@ -62,7 +62,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
             get { return m_log; }
         }
 
-        public void InitializeEngine(Scene Sceneworld, LogBase logger)
+        public void InitializeEngine(Scene Sceneworld, LogBase logger, bool HookUpToServer)
         {
             World = Sceneworld;
             m_log = logger;
@@ -73,7 +73,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
 
             // Create all objects we'll be using
             m_EventQueueManager = new EventQueueManager(this);
-            m_EventManager = new EventManager(this);
+            m_EventManager = new EventManager(this, HookUpToServer);
             m_ScriptManager = new ScriptManager(this);
             m_AppDomainManager = new AppDomainManager();
             m_LSLLongCmdHandler = new LSLLongCmdHandler(this);
@@ -97,7 +97,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
 
         public void Initialise(Scene scene, IConfigSource config)
         {
-            InitializeEngine(scene, MainLog.Instance);
+            InitializeEngine(scene, MainLog.Instance, true);
         }
 
         public void PostInitialise()

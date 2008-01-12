@@ -314,7 +314,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
         /// <param name="localID"></param>
         /// <param name="FunctionName">Name of the function, will be state + "_event_" + FunctionName</param>
         /// <param name="param">Array of parameters to match event mask</param>
-        public void AddToObjectQueue(uint localID, string FunctionName, object[] param)
+        public void AddToObjectQueue(uint localID, string FunctionName, params object[] param)
         {
             // Determine all scripts in Object and add to their queue
             //myScriptEngine.m_logger.Verbose("ScriptEngine", "EventQueueManager Adding localID: " + localID + ", FunctionName: " + FunctionName);
@@ -345,7 +345,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
         /// <param name="itemID"></param>
         /// <param name="FunctionName">Name of the function, will be state + "_event_" + FunctionName</param>
         /// <param name="param">Array of parameters to match event mask</param>
-        public void AddToScriptQueue(uint localID, LLUUID itemID, string FunctionName, object[] param)
+        public void AddToScriptQueue(uint localID, LLUUID itemID, string FunctionName, params object[] param)
         {
             lock (queueLock)
             {

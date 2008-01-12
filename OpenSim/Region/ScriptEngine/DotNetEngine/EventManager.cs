@@ -55,34 +55,30 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
 
         private ScriptEngine myScriptEngine;
         //public IScriptHost TEMP_OBJECT_ID;
-        public EventManager(ScriptEngine _ScriptEngine)
+        public EventManager(ScriptEngine _ScriptEngine, bool performHookUp)
         {
             myScriptEngine = _ScriptEngine;
-            // TODO: HOOK EVENTS UP TO SERVER!
-            //myScriptEngine.m_logger.Verbose("ScriptEngine", "EventManager Start");
-            // TODO: ADD SERVER HOOK TO LOAD A SCRIPT THROUGH myScriptEngine.ScriptManager
 
-            // Hook up a test event to our test form
-            myScriptEngine.Log.Verbose("ScriptEngine", "Hooking up to server events");
-            myScriptEngine.World.EventManager.OnObjectGrab += touch_start;
-            myScriptEngine.World.EventManager.OnRezScript += OnRezScript;
-            myScriptEngine.World.EventManager.OnRemoveScript += OnRemoveScript;
+            // Hook up to events from OpenSim
+            // We may not want to do it because someone is controlling us and will deliver events to us
+            if (performHookUp)
+            {
+                myScriptEngine.Log.Verbose("ScriptEngine", "Hooking up to server events");
+                myScriptEngine.World.EventManager.OnObjectGrab += touch_start;
+                myScriptEngine.World.EventManager.OnRezScript += OnRezScript;
+                myScriptEngine.World.EventManager.OnRemoveScript += OnRemoveScript;
+                // TODO: HOOK ALL EVENTS UP TO SERVER!
+            }
         }
 
         public void touch_start(uint localID, LLVector3 offsetPos, IClientAPI remoteClient)
         {
             // Add to queue for all scripts in ObjectID object
-            //myScriptEngine.m_logger.Verbose("ScriptEngine", "EventManager Event: touch_start");
-            //Console.WriteLine("touch_start localID: " + localID);
             myScriptEngine.m_EventQueueManager.AddToObjectQueue(localID, "touch_start", new object[] {(int) 1});
         }
 
         public void OnRezScript(uint localID, LLUUID itemID, string script)
         {
-            //myScriptEngine.myScriptManager.StartScript(
-            //    Path.Combine("ScriptEngines", "Default.lsl"), 
-            //    new OpenSim.Region.Environment.Scenes.Scripting.NullScriptHost()
-            //);
             Console.WriteLine("OnRezScript localID: " + localID + " LLUID: " + itemID.ToString() + " Size: " +
                               script.Length);
             myScriptEngine.m_ScriptManager.StartScript(localID, itemID, script);
@@ -90,10 +86,6 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
 
         public void OnRemoveScript(uint localID, LLUUID itemID)
         {
-            //myScriptEngine.myScriptManager.StartScript(
-            //    Path.Combine("ScriptEngines", "Default.lsl"), 
-            //    new OpenSim.Region.Environment.Scenes.Scripting.NullScriptHost()
-            //);
             Console.WriteLine("OnRemoveScript localID: " + localID + " LLUID: " + itemID.ToString());
             myScriptEngine.m_ScriptManager.StopScript(
                 localID,
@@ -102,134 +94,166 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
         }
 
         // TODO: Replace placeholders below
+        // NOTE! THE PARAMETERS FOR THESE FUNCTIONS ARE NOT CORRECT!
         //  These needs to be hooked up to OpenSim during init of this class
         //   then queued in EventQueueManager.
         // When queued in EventQueueManager they need to be LSL compatible (name and params)
 
-        //public void state_entry() { } // 
         public void state_exit(uint localID, LLUUID itemID)
         {
+            myScriptEngine.m_EventQueueManager.AddToScriptQueue(localID, itemID, "state_exit");
         }
 
-        //public void touch_start(uint localID, LLUUID itemID) { }
         public void touch(uint localID, LLUUID itemID)
         {
+            myScriptEngine.m_EventQueueManager.AddToScriptQueue(localID, itemID, "touch");
         }
 
         public void touch_end(uint localID, LLUUID itemID)
         {
+            myScriptEngine.m_EventQueueManager.AddToScriptQueue(localID, itemID, "touch_end");
         }
 
         public void collision_start(uint localID, LLUUID itemID)
         {
+            myScriptEngine.m_EventQueueManager.AddToScriptQueue(localID, itemID, "collision_start");
         }
 
         public void collision(uint localID, LLUUID itemID)
         {
+            myScriptEngine.m_EventQueueManager.AddToScriptQueue(localID, itemID, "collision");
         }
 
         public void collision_end(uint localID, LLUUID itemID)
         {
+            myScriptEngine.m_EventQueueManager.AddToScriptQueue(localID, itemID, "collision_end");
         }
 
         public void land_collision_start(uint localID, LLUUID itemID)
         {
+            myScriptEngine.m_EventQueueManager.AddToScriptQueue(localID, itemID, "land_collision_start");
         }
 
         public void land_collision(uint localID, LLUUID itemID)
         {
+            myScriptEngine.m_EventQueueManager.AddToScriptQueue(localID, itemID, "land_collision");
         }
 
         public void land_collision_end(uint localID, LLUUID itemID)
         {
+            myScriptEngine.m_EventQueueManager.AddToScriptQueue(localID, itemID, "land_collision_end");
         }
 
+        // Handled by long commands
         public void timer(uint localID, LLUUID itemID)
         {
+            //myScriptEngine.m_EventQueueManager.AddToScriptQueue(localID, itemID, "");
         }
 
         public void listen(uint localID, LLUUID itemID)
         {
+            myScriptEngine.m_EventQueueManager.AddToScriptQueue(localID, itemID, "listen");
         }
 
         public void on_rez(uint localID, LLUUID itemID)
         {
+            myScriptEngine.m_EventQueueManager.AddToScriptQueue(localID, itemID, "on_rez");
         }
 
         public void sensor(uint localID, LLUUID itemID)
         {
+            myScriptEngine.m_EventQueueManager.AddToScriptQueue(localID, itemID, "sensor");
         }
 
         public void no_sensor(uint localID, LLUUID itemID)
         {
+            myScriptEngine.m_EventQueueManager.AddToScriptQueue(localID, itemID, "no_sensor");
         }
 
         public void control(uint localID, LLUUID itemID)
         {
+            myScriptEngine.m_EventQueueManager.AddToScriptQueue(localID, itemID, "control");
         }
 
         public void money(uint localID, LLUUID itemID)
         {
+            myScriptEngine.m_EventQueueManager.AddToScriptQueue(localID, itemID, "money");
         }
 
         public void email(uint localID, LLUUID itemID)
         {
+            myScriptEngine.m_EventQueueManager.AddToScriptQueue(localID, itemID, "email");
         }
 
         public void at_target(uint localID, LLUUID itemID)
         {
+            myScriptEngine.m_EventQueueManager.AddToScriptQueue(localID, itemID, "at_target");
         }
 
         public void not_at_target(uint localID, LLUUID itemID)
         {
+            myScriptEngine.m_EventQueueManager.AddToScriptQueue(localID, itemID, "not_at_target");
         }
 
         public void at_rot_target(uint localID, LLUUID itemID)
         {
+            myScriptEngine.m_EventQueueManager.AddToScriptQueue(localID, itemID, "at_rot_target");
         }
 
         public void not_at_rot_target(uint localID, LLUUID itemID)
         {
+            myScriptEngine.m_EventQueueManager.AddToScriptQueue(localID, itemID, "not_at_rot_target");
         }
 
         public void run_time_permissions(uint localID, LLUUID itemID)
         {
+            myScriptEngine.m_EventQueueManager.AddToScriptQueue(localID, itemID, "run_time_permissions");
         }
 
         public void changed(uint localID, LLUUID itemID)
         {
+            myScriptEngine.m_EventQueueManager.AddToScriptQueue(localID, itemID, "changed");
         }
 
         public void attach(uint localID, LLUUID itemID)
         {
+            myScriptEngine.m_EventQueueManager.AddToScriptQueue(localID, itemID, "attach");
         }
 
         public void dataserver(uint localID, LLUUID itemID)
         {
+            myScriptEngine.m_EventQueueManager.AddToScriptQueue(localID, itemID, "dataserver");
         }
 
         public void link_message(uint localID, LLUUID itemID)
         {
+            myScriptEngine.m_EventQueueManager.AddToScriptQueue(localID, itemID, "link_message");
         }
 
         public void moving_start(uint localID, LLUUID itemID)
         {
+            myScriptEngine.m_EventQueueManager.AddToScriptQueue(localID, itemID, "moving_start");
         }
 
         public void moving_end(uint localID, LLUUID itemID)
         {
+            myScriptEngine.m_EventQueueManager.AddToScriptQueue(localID, itemID, "moving_end");
         }
 
         public void object_rez(uint localID, LLUUID itemID)
         {
+            myScriptEngine.m_EventQueueManager.AddToScriptQueue(localID, itemID, "object_rez");
         }
 
         public void remote_data(uint localID, LLUUID itemID)
         {
+            myScriptEngine.m_EventQueueManager.AddToScriptQueue(localID, itemID, "remote_data");
         }
 
+        // Handled by long commands
         public void http_response(uint localID, LLUUID itemID)
         {
+        //    myScriptEngine.m_EventQueueManager.AddToScriptQueue(localID, itemID, "http_response");
         }
     }
 }
