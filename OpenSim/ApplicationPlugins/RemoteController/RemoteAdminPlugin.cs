@@ -66,6 +66,7 @@ namespace OpenSim.ApplicationPlugins.LoadRegions
                     m_httpd.AddXmlRPCHandler("admin_shutdown", XmlRpcShutdownMethod);
                     m_httpd.AddXmlRPCHandler("admin_broadcast", XmlRpcAlertMethod);
                     m_httpd.AddXmlRPCHandler("admin_restart", XmlRpcRestartMethod);
+                    m_httpd.AddXmlRPCHandler("admin_load_heightmap", XmlRpcLoadHeightmapMethod);
                 }
             }
             catch (NullReferenceException)
@@ -130,6 +131,44 @@ namespace OpenSim.ApplicationPlugins.LoadRegions
                 response.Value = responseData;
 
                 m_app.SceneManager.SendGeneralMessage(message);
+            }
+
+            return response;
+        }
+
+        public XmlRpcResponse XmlRpcLoadHeightmapMethod(XmlRpcRequest request)
+        {
+            XmlRpcResponse response = new XmlRpcResponse();
+            Hashtable requestData = (Hashtable)request.Params[0];
+
+            Hashtable responseData = new Hashtable();
+            if (requiredPassword != "" &&
+                (!requestData.Contains("password") || (string)requestData["password"] != requiredPassword))
+            {
+                responseData["accepted"] = "false";
+                response.Value = responseData;
+            }
+            else
+            {
+                string file = (string)requestData["filename"];
+                LLUUID regionID = LLUUID.Parse((string)requestData["regionid"]);
+                MainLog.Instance.Verbose("RADMIN", "Terrain Loading: " + file);
+
+                responseData["accepted"] = "true";
+
+                Scene region = null;
+
+                if (m_app.SceneManager.TryGetScene(regionID, out region))
+                {
+                    region.LoadWorldMap(file);
+                    responseData["success"] = "true";
+                }
+                else
+                {
+                    responseData["success"] = "false";
+                    responseData["error"] = "1: Unable to get a scene with that name.";
+                }
+                response.Value = responseData;
             }
 
             return response;

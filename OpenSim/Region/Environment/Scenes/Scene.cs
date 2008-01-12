@@ -775,6 +775,15 @@ namespace OpenSim.Region.Environment.Scenes
         }
 
         /// <summary>
+        /// Loads a world map from a specified R32 file
+        /// </summary>
+        /// <param name="filename">A working R32 file</param>
+        public void LoadWorldMap(string filename)
+        {
+            Terrain.LoadFromFileF32(filename);
+        }
+
+        /// <summary>
         /// Loads the World heightmap
         /// </summary>
         /// 
