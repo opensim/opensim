@@ -105,14 +105,14 @@ namespace OpenSim.Region.Environment.Scenes
             float simfps = (int) (m_fps*5);
 
             if (simfps > 45)
-                simfps = simfps - (simfps - 45);
+               simfps = simfps - (simfps - 45);
             if (simfps < 0)
                 simfps = 0;
 
             float physfps = (m_pfps/statsUpdatesEveryMS);
 
-            if (physfps > 50)
-                physfps = physfps - (physfps - 50);
+            if (physfps > 500)
+                physfps = physfps - (physfps - 500);
 
             if (physfps < 0)
                 physfps = 0;

@@ -643,6 +643,7 @@ namespace OpenSim.Region.Environment.Scenes
             {
                 if (!agent.IsChildAgent)
                 {
+                    pack.Header.Reliable = false;
                     agent.ControllingClient.OutPacket(pack, ThrottleOutPacketType.Task);
                 }
             }
