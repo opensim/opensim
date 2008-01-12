@@ -931,8 +931,8 @@ namespace OpenSim.Region.Physics.OdePlugin
 
 
                 // Figure out the Frames Per Second we're going at.
-
-                fps = (((step_time/ODE_STEPSIZE*m_physicsiterations)*2)*10);
+                //(step_time == 0.004f, there's 250 of those per second.   Times the step time/step size
+                fps = ((step_time/ODE_STEPSIZE)*(m_physicsiterations*250));
 
 
                 while (step_time > 0.0f)
