@@ -26,6 +26,7 @@
 * 
 */
 using System;
+using System.Net;
 using Nini.Config;
 using OpenSim.Framework;
 using OpenSim.Framework.Console;
@@ -38,6 +39,8 @@ namespace OpenSim
         [STAThread]
         public static void Main(string[] args)
         {
+            AppDomain.CurrentDomain.UnhandledException += new UnhandledExceptionEventHandler(CurrentDomain_UnhandledException);
+
             Console.WriteLine("OpenSim " + VersionInfo.Version + "\n");
 
 
@@ -76,5 +79,41 @@ namespace OpenSim
                 MainLog.Instance.MainLogPrompt();
             }
         }
+
+        /// <summary>
+        /// Global exception handler -- all unhandlet exceptions end up here :)
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private static void CurrentDomain_UnhandledException(object sender, UnhandledExceptionEventArgs e)
+        {
+            // TODO: Add config option to allow users to turn off error reporting
+            // TODO: Post error report (disabled for now)
+            
+                string msg = "";
+            msg += "\r\n";
+            msg += "APPLICATION EXCEPTION DETECTED\r\n";
+            msg += "\r\n";
+            msg += "Application is terminating: " + e.IsTerminating.ToString() + "\r\n";
+            msg += "Exception:";
+            msg += e.ExceptionObject.ToString();
+            Console.WriteLine(msg);
+
+            // Try to post errormessage to an URL
+            try
+            {
+                // DISABLED UNTIL WE CAN DISCUSS IF THIS IS MORALLY RIGHT OR NOT
+                // Note! Needs reference to System.Web 
+                //System.Net.WebClient wc = new WebClient();
+                //wc.DownloadData("http://www.opensimulator.org/ErrorReport.php?Msg=" +
+                //                System.Web.HttpUtility.UrlEncode(msg));
+                //wc.Dispose();
+            }
+            catch (Exception)
+            {
+                // Ignore
+            }
+        }
+
     }
 }
