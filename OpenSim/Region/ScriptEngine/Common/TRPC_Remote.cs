@@ -13,6 +13,17 @@ namespace OpenSim.Region.ScriptEngine.Common
 
         public delegate void ReceiveCommandDelegate(int ID, string Command, params object[] p);
         public event ReceiveCommandDelegate ReceiveCommand;
+        System.Collections.Generic.Dictionary<string, Type> TypeDictionary = new Dictionary<string, Type>();
+        Type[] Types = 
+                            {
+                                typeof(System.String),
+                                typeof(System.Int16),
+                                typeof(System.Int32),
+                                typeof(System.Int64),
+                                typeof(System.Double),
+                                typeof(System.Decimal),
+                                typeof(System.Array)
+                            };
 
         // TODO: Maybe we should move queue into TCPSocket so we won't have to keep one queue instance per connection
         private System.Collections.Generic.Dictionary<int, InQueueStruct> InQueue = new Dictionary<int, InQueueStruct>();
@@ -30,6 +41,12 @@ namespace OpenSim.Region.ScriptEngine.Common
             TCPS.ClientConnected += new TCPCommon.ClientConnectedDelegate(TCPS_ClientConnected);
             TCPS.DataReceived += new TCPCommon.DataReceivedDelegate(TCPS_DataReceived);
             //TCPS.StartListen();
+
+            // Make a lookup dictionary for types
+            foreach (Type t in Types)
+            {
+                TypeDictionary.Add(t.ToString(), t);
+            }
         }
 
         void TCPS_ClientConnected(int ID, System.Net.EndPoint Remote)
@@ -109,21 +126,32 @@ namespace OpenSim.Region.ScriptEngine.Common
                 {
                     string cmd = parts[0];
                     int paramCount = parts.Length - 1;
-                    string[] param = null;
-                    
+                    object[] param = null;
+
                     if (paramCount > 0)
                     {
                         // Process all parameters (decoding them from URL encoding)
-                        param = new string[paramCount];
+                        param = new object[paramCount];
                         for (int i = 1; i < parts.Length; i++)
                         {
-                            param[i - 1] = System.Web.HttpUtility.UrlDecode(parts[i]);
+                            string[] spl;
+                            spl = System.Web.HttpUtility.UrlDecode(parts[i]).Split('|');
+                            string t = spl[0];
+                            param[i - 1] = Convert.ChangeType(spl[1], TypeLookup(t));
                         }
                     }
 
                     ReceiveCommand(ID, cmd, param);
                 }
             }
+        }
+
+        private Type TypeLookup(string t)
+        {
+            Type ret = TypeDictionary[t];
+            if (ret != null)
+                return ret;
+            return typeof(object);
         }
 
         public void SendCommand(int ID, string Command, params object[] p)
@@ -134,7 +162,7 @@ namespace OpenSim.Region.ScriptEngine.Common
             string tmpStr = Command;
             for (int i = 0; i < p.Length; i++)
             {
-                tmpStr += "," + System.Web.HttpUtility.UrlEncode(p[i].ToString()); // .Replace(",", "%44")
+                tmpStr += "," + p[i].GetType().ToString() + "|" + System.Web.HttpUtility.UrlEncode(p[i].ToString()); // .Replace(",", "%44")
             }
             tmpStr += "\n";
             byte[] byteData = Encoding.ASCII.GetBytes(tmpStr);
