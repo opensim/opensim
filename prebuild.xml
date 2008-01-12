@@ -1117,6 +1117,8 @@
       <Reference name="System.Xml" localCopy="false"/>
       <Reference name="libsecondlife.dll"/>
       <Reference name="OpenSim.Framework"/>
+      <Reference name="OpenSim.Region.Environment" />
+      <Reference name="OpenSim.Framework.Console"/>
       <Files>
         <Match pattern="*.cs" recurse="true"/>
       </Files>
@@ -1142,11 +1144,11 @@
       <Reference name="System.Data" localCopy="false"/>
       <Reference name="System.Xml" localCopy="false"/>
       <Reference name="System.Runtime.Remoting" localCopy="false"/>
-      <Reference name="OpenSim.Region.Environment" />
       <Reference name="libsecondlife.dll"/>
       <Reference name="RAIL.dll"/>
       <Reference name="OpenSim.Framework"/>
       <Reference name="OpenSim.Framework.Console"/>
+      <Reference name="OpenSim.Region.Environment" />
       <Reference name="OpenSim.Region.ScriptEngine.Common"/>
       <Reference name="OpenSim.Region.Terrain.BasicTerrain"/>
       <Reference name="Axiom.MathLib.dll" localCopy="false"/>
@@ -1180,10 +1182,12 @@
       <Reference name="OpenSim"/>
       <Reference name="OpenSim.Framework"/>
       <Reference name="OpenSim.Framework.Console"/>
+      <Reference name="OpenSim.Framework.Communications"/>
       <Reference name="OpenSim.Framework.Servers"/>
       <Reference name="OpenSim.Framework.Data"/>
-      <Reference name="OpenSim.Region.Environment"/>
+      <Reference name="OpenSim.Region.Environment" />
       <Reference name="OpenSim.Region.ScriptEngine.Common"/>
+      <Reference name="OpenSim.Region.Terrain.BasicTerrain"/>
       <Reference name="libsecondlife.dll"/>
       <Reference name="Axiom.MathLib.dll" localCopy="false"/>
       <Reference name="XMLRPC.dll"/>
