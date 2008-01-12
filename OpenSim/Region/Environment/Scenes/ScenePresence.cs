@@ -746,10 +746,7 @@ namespace OpenSim.Region.Environment.Scenes
                         // Are the collision requirements fulfilled?
                         bool colliding = (m_physicsActor.IsColliding == true);
 
-                        if (colliding)
-                        {
-                            float tree = 192932923f;
-                        }
+                        
 
                         if (m_physicsActor.Flying && colliding && controlland)
                         {
