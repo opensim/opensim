@@ -1382,6 +1382,65 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler
 
         public void llModifyLand(int action, int brush)
         {
+            double dsize;
+            if (World.PermissionsMngr.CanTerraform(m_host.OwnerID, new LLVector3(m_host.AbsolutePosition.X, m_host.AbsolutePosition.Y, 0)))
+            {
+                switch (brush)
+                {
+                    case 1:
+                        dsize = 2;
+                        break;
+                    case 2:
+                        dsize = 4;
+                        break;
+                    case 3:
+                        dsize = 8;
+                        break;
+                    default:
+                        if (brush < 0)
+                        {
+                            dsize = (double)(-1 * brush);
+                        }
+                        else
+                        {
+                            LSLError("Invalid brush size");
+                            dsize = 0; // Should cease execution, but get unassigned local variable dsize on compile.
+                        }
+                        break;
+                }
+                switch (action)
+                {
+                    case 0:
+                        if (World.Terrain.GetHeight((int)m_host.AbsolutePosition.X, (int)m_host.AbsolutePosition.Y) < m_host.AbsolutePosition.Z)
+                        {
+                            World.Terrain.FlattenTerrain(m_host.AbsolutePosition.X, m_host.AbsolutePosition.Y, dsize, 1);
+                        }
+                        break;
+                    case 1:
+                        if (World.Terrain.GetHeight((int)m_host.AbsolutePosition.X, (int)m_host.AbsolutePosition.Y) < (double)m_host.AbsolutePosition.Z)
+                        {
+                            World.Terrain.RaiseTerrain(m_host.AbsolutePosition.X, m_host.AbsolutePosition.Y, dsize, 0.1);
+                        }
+                        break;
+                    case 2:
+                        if (World.Terrain.GetHeight((int)m_host.AbsolutePosition.X, (int)m_host.AbsolutePosition.Y) > 0)
+                        {
+                            World.Terrain.LowerTerrain(m_host.AbsolutePosition.X, m_host.AbsolutePosition.Y, dsize, 1);
+                        }
+                        break;
+                    case 3:
+                        World.Terrain.SmoothTerrain(m_host.AbsolutePosition.X, m_host.AbsolutePosition.Y, dsize, 1);
+                        break;
+                    case 4:
+                        World.Terrain.NoiseTerrain(m_host.AbsolutePosition.X, m_host.AbsolutePosition.Y, dsize, 1);
+                        break;
+                    case 5:
+                        World.Terrain.RevertTerrain(m_host.AbsolutePosition.X, m_host.AbsolutePosition.Y, dsize, 1);
+                        break;
+                    default:
+                        break;
+                }
+            }
         }
 
         public void llCollisionSound(string impact_sound, double impact_volume)
