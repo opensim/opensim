@@ -161,8 +161,13 @@ namespace OpenSim.Region.Physics.POSPlugin
             for (int i = 0; i < _prims.Count; ++i)
             {
                 if (check_collision(c, _prims[i]))
+                {
+                    
                     return true;
+                }
+
             }
+            
             return false;
         }
 
@@ -282,10 +287,12 @@ namespace OpenSim.Region.Physics.POSPlugin
                 {
                     character._velocity.Z = 0;
                     character._target_velocity.Z = 0;
+                    ((PhysicsActor)character).IsColliding = true;
                     character.RequestPhysicsterseUpdate();
                 }
                 else
                 {
+                    ((PhysicsActor)character).IsColliding = false;
                     character._velocity.Z = (character.Position.Z - oldposZ)/timeStep;
                 }
             }
