@@ -32,5 +32,7 @@ namespace OpenSim.Region.ScriptEngine.Common
     {
         string State();
         Executor Exec { get; }
+        string Source { get; set; }
+        void Start(LSL_BuiltIn_Commands_Interface BuiltIn_Commands);
     }
 }

@@ -1119,6 +1119,13 @@
       <Reference name="OpenSim.Framework"/>
       <Reference name="OpenSim.Region.Environment" />
       <Reference name="OpenSim.Framework.Console"/>
+      <Reference name="Axiom.MathLib.dll" localCopy="false"/>
+      <Reference name="Nini.dll" />
+      <Reference name="RAIL.dll"/>
+      <Reference name="OpenSim.Framework.Console"/>
+      <Reference name="OpenSim.Region.Terrain.BasicTerrain"/>
+      <Reference name="Nini.dll" />
+
       <Files>
         <Match pattern="*.cs" recurse="true"/>
       </Files>
@@ -1157,9 +1164,6 @@
         <Match pattern="*.cs" recurse="true"/>
       </Files>
     </Project>
-
-
-
 
     <Project name="OpenSim.Grid.ScriptServer" path="OpenSim/Grid/ScriptServer" type="Exe">
       <Configuration name="Debug">

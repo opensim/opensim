@@ -2,6 +2,7 @@
 using OpenSim.Framework;
 using OpenSim.Framework.Console;
 using OpenSim.Region.Environment.Scenes;
+using OpenSim.Region.ScriptEngine.Common.ScriptEngineBase;
 
 namespace OpenSim.Region.ScriptEngine.Common
 {
@@ -44,7 +45,7 @@ namespace OpenSim.Region.ScriptEngine.Common
             void remote_data(uint localID, LLUUID itemID);
             void http_response(uint localID, LLUUID itemID);
         }
-
+        
         public interface ServerRemotingObject
         {
             RemoteEvents Events();
@@ -52,7 +53,8 @@ namespace OpenSim.Region.ScriptEngine.Common
         public interface ScriptEngine
         {
             RemoteEvents EventManager();
-            void InitializeEngine(Scene Sceneworld, LogBase logger, bool DontHookUp);
+            void InitializeEngine(Scene Sceneworld, LogBase logger, bool DontHookUp, ScriptManager newScriptManager);
+            ScriptManager GetScriptManager();
         }
 
     }

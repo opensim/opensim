@@ -58,10 +58,10 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL
             {
                 case ".txt":
                 case ".lsl":
-                    Common.SendToDebug("Source code is LSL, converting to CS");
+                    Common.ScriptEngineBase.Common.SendToDebug("Source code is LSL, converting to CS");
                     return CompileFromLSLText(File.ReadAllText(LSOFileName));
                 case ".cs":
-                    Common.SendToDebug("Source code is CS");
+                    Common.ScriptEngineBase.Common.SendToDebug("Source code is CS");
                     return CompileFromCSText(File.ReadAllText(LSOFileName));
                 default:
                     throw new Exception("Unknown script type.");

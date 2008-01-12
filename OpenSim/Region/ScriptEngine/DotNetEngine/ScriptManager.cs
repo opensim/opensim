@@ -35,421 +35,127 @@ using System.Threading;
 using libsecondlife;
 using OpenSim.Framework;
 using OpenSim.Region.Environment.Scenes;
-using OpenSim.Region.ScriptEngine.DotNetEngine.Compiler;
+using OpenSim.Region.ScriptEngine.Common;
 using OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL;
 
 namespace OpenSim.Region.ScriptEngine.DotNetEngine
 {
-    /// <summary>
-    /// Loads scripts
-    /// Compiles them if necessary
-    /// Execute functions for EventQueueManager (Sends them to script on other AppDomain for execution)
-    /// </summary>
-    /// 
-
-    // This class is as close as you get to the script without being inside script class. It handles all the dirty work for other classes.
-    // * Keeps track of running scripts
-    // * Compiles script if necessary (through "Compiler")
-    // * Loads script (through "AppDomainManager" called from for example "EventQueueManager")
-    // * Executes functions inside script (called from for example "EventQueueManager" class)
-    // * Unloads script (through "AppDomainManager" called from for example "EventQueueManager")
-    // * Dedicated load/unload thread, and queues loading/unloading.
-    //   This so that scripts starting or stopping will not slow down other theads or whole system.
-    //
-    [Serializable]
-    public class ScriptManager
+    public class ScriptManager : OpenSim.Region.ScriptEngine.Common.ScriptEngineBase.ScriptManager
     {
-        #region Declares
-
-        private Thread scriptLoadUnloadThread;
-        private int scriptLoadUnloadThread_IdleSleepms = 100;
-        private Queue<LUStruct> LUQueue = new Queue<LUStruct>();
-        
-
-        // Load/Unload structure
-        private struct LUStruct
+        public ScriptManager(Common.ScriptEngineBase.ScriptEngine scriptEngine)
+            : base(scriptEngine)
         {
-            public uint localID;
-            public LLUUID itemID;
-            public string script;
-            public LUType Action;
+            base.m_scriptEngine = scriptEngine;
+
         }
 
-        private enum LUType
-        {
-            Unknown = 0,
-            Load = 1,
-            Unload = 2
-        }
+        // KEEP TRACK OF SCRIPTS <int id, whatever script>
+        //internal Dictionary<uint, Dictionary<LLUUID, LSL_BaseClass>> Scripts = new Dictionary<uint, Dictionary<LLUUID, LSL_BaseClass>>();
+        // LOAD SCRIPT
+        // UNLOAD SCRIPT
+        // PROVIDE SCRIPT WITH ITS INTERFACE TO OpenSim
 
-        // Object<string, Script<string, script>>
-        // IMPORTANT: Types and MemberInfo-derived objects require a LOT of memory.
-        // Instead use RuntimeTypeHandle, RuntimeFieldHandle and RunTimeHandle (IntPtr) instead!
-        internal Dictionary<uint, Dictionary<LLUUID, LSL_BaseClass>> Scripts =
-            new Dictionary<uint, Dictionary<LLUUID, LSL_BaseClass>>();
-
-        public Scene World
-        {
-            get { return m_scriptEngine.World; }
-        }
-
-        #endregion
-
-        #region Object init/shutdown
-
-        private ScriptEngine m_scriptEngine;
-
-        public ScriptManager(ScriptEngine scriptEngine)
-        {
-            m_scriptEngine = scriptEngine;
-            AppDomain.CurrentDomain.AssemblyResolve += new ResolveEventHandler(CurrentDomain_AssemblyResolve);
-            scriptLoadUnloadThread = new Thread(ScriptLoadUnloadThreadLoop);
-            scriptLoadUnloadThread.Name = "ScriptLoadUnloadThread";
-            scriptLoadUnloadThread.IsBackground = true;
-            scriptLoadUnloadThread.Priority = ThreadPriority.BelowNormal;
-            scriptLoadUnloadThread.Start();
-        }
-
-        ~ScriptManager()
-        {
-            // Abort load/unload thread
-            try
-            {
-                if (scriptLoadUnloadThread != null)
-                {
-                    if (scriptLoadUnloadThread.IsAlive == true)
-                    {
-                        scriptLoadUnloadThread.Abort();
-                        scriptLoadUnloadThread.Join();
-                    }
-                }
-            }
-            catch
-            {
-            }
-        }
-
-        #endregion
-
-        #region Load / Unload scripts (Thread loop)
-
-        private void ScriptLoadUnloadThreadLoop()
-        {
-            try
-            {
-                while (true)
-                {
-                    if (LUQueue.Count == 0)
-                        Thread.Sleep(scriptLoadUnloadThread_IdleSleepms);
-                    if (LUQueue.Count > 0)
-                    {
-                        LUStruct item = LUQueue.Dequeue();
-                        if (item.Action == LUType.Unload) 
-                            _StopScript(item.localID, item.itemID);
-                        if (item.Action == LUType.Load) 
-                            _StartScript(item.localID, item.itemID, item.script);
-                    }
-                }
-            }
-            catch (ThreadAbortException tae)
-            {
-                string a = tae.ToString();
-                a = "";
-                // Expected
-            }
-        }
-
-        #endregion
-
-        #region Helper functions
-
-        private static Assembly CurrentDomain_AssemblyResolve(object sender, ResolveEventArgs args)
-        {
-            //Console.WriteLine("ScriptManager.CurrentDomain_AssemblyResolve: " + args.Name);
-            return Assembly.GetExecutingAssembly().FullName == args.Name ? Assembly.GetExecutingAssembly() : null;
-        }
-
-        #endregion
-
-        #region Internal functions to keep track of script
-
-        internal Dictionary<LLUUID, LSL_BaseClass>.KeyCollection GetScriptKeys(uint localID)
-        {
-            if (Scripts.ContainsKey(localID) == false)
-                return null;
-
-            Dictionary<LLUUID, LSL_BaseClass> Obj;
-            Scripts.TryGetValue(localID, out Obj);
-
-            return Obj.Keys;
-        }
-
-        internal LSL_BaseClass GetScript(uint localID, LLUUID itemID)
-        {
-            if (Scripts.ContainsKey(localID) == false)
-                return null;
-
-            Dictionary<LLUUID, LSL_BaseClass> Obj;
-            Scripts.TryGetValue(localID, out Obj);
-            if (Obj.ContainsKey(itemID) == false)
-                return null;
-
-            // Get script
-            LSL_BaseClass Script;
-            Obj.TryGetValue(itemID, out Script);
-
-            return Script;
-        }
-
-        internal void SetScript(uint localID, LLUUID itemID, LSL_BaseClass Script)
-        {
-            // Create object if it doesn't exist
-            if (Scripts.ContainsKey(localID) == false)
-            {
-                Scripts.Add(localID, new Dictionary<LLUUID, LSL_BaseClass>());
-            }
-
-            // Delete script if it exists
-            Dictionary<LLUUID, LSL_BaseClass> Obj;
-            Scripts.TryGetValue(localID, out Obj);
-            if (Obj.ContainsKey(itemID) == true)
-                Obj.Remove(itemID);
-
-            // Add to object
-            Obj.Add(itemID, Script);
-        }
-
-        internal void RemoveScript(uint localID, LLUUID itemID)
-        {
-            // Don't have that object?
-            if (Scripts.ContainsKey(localID) == false)
-                return;
-
-            // Delete script if it exists
-            Dictionary<LLUUID, LSL_BaseClass> Obj;
-            Scripts.TryGetValue(localID, out Obj);
-            if (Obj.ContainsKey(itemID) == true)
-                Obj.Remove(itemID);
-        }
-
-        #endregion
-
-        #region Start/Stop/Reset script
-
-        private Object startStopLock = new Object();
-
-        /// <summary>
-        /// Fetches, loads and hooks up a script to an objects events
-        /// </summary>
-        /// <param name="itemID"></param>
-        /// <param name="localID"></param>
-        public void StartScript(uint localID, LLUUID itemID, string Script)
-        {
-            LUStruct ls = new LUStruct();
-            ls.localID = localID;
-            ls.itemID = itemID;
-            ls.script = Script;
-            ls.Action = LUType.Load;
-            LUQueue.Enqueue(ls);
-        }
-
-        /// <summary>
-        /// Disables and unloads a script
-        /// </summary>
-        /// <param name="localID"></param>
-        /// <param name="itemID"></param>
-        public void StopScript(uint localID, LLUUID itemID)
-        {
-            LUStruct ls = new LUStruct();
-            ls.localID = localID;
-            ls.itemID = itemID;
-            ls.Action = LUType.Unload;
-            LUQueue.Enqueue(ls);
-        }
-
-        public void ResetScript(uint localID, LLUUID itemID)
-        {
-            string script = GetScript(localID, itemID).SourceCode;
-            StopScript(localID, itemID);
-            StartScript(localID, itemID, script);
-        }
-
-        // Create a new instance of the compiler (reuse)
         private Compiler.LSL.Compiler LSLCompiler = new Compiler.LSL.Compiler();
 
-        private void _StartScript(uint localID, LLUUID itemID, string Script)
+        public override void _StartScript(uint localID, LLUUID itemID, string Script)
         {
-            lock (startStopLock)
+            //IScriptHost root = host.GetRoot();
+            Console.WriteLine("ScriptManager StartScript: localID: " + localID + ", itemID: " + itemID);
+
+            // We will initialize and start the script.
+            // It will be up to the script itself to hook up the correct events.
+            string ScriptSource = "";
+
+            SceneObjectPart m_host = World.GetSceneObjectPart(localID);
+
+            try
             {
-                //IScriptHost root = host.GetRoot();
-                Console.WriteLine("ScriptManager StartScript: localID: " + localID + ", itemID: " + itemID);
+                // Compile (We assume LSL)
+                ScriptSource = LSLCompiler.CompileFromLSLText(Script);
 
-                // We will initialize and start the script.
-                // It will be up to the script itself to hook up the correct events.
-                string ScriptSource = "";
+#if DEBUG
+                long before;
+                before = GC.GetTotalMemory(true);
+#endif
 
-                SceneObjectPart m_host = World.GetSceneObjectPart(localID);
+                IScript CompiledScript;
+                CompiledScript = m_scriptEngine.m_AppDomainManager.LoadScript(ScriptSource);
 
+#if DEBUG
+                Console.WriteLine("Script " + itemID + " occupies {0} bytes", GC.GetTotalMemory(true) - before);
+#endif
+
+                CompiledScript.Source = ScriptSource;
+                // Add it to our script memstruct
+                SetScript(localID, itemID, CompiledScript);
+
+                // We need to give (untrusted) assembly a private instance of BuiltIns
+                //  this private copy will contain Read-Only FullitemID so that it can bring that on to the server whenever needed.
+
+
+                LSL_BuiltIn_Commands LSLB = new LSL_BuiltIn_Commands(m_scriptEngine, m_host, localID, itemID);
+
+                // Start the script - giving it BuiltIns
+                CompiledScript.Start(LSLB);
+
+                // Fire the first start-event
+                m_scriptEngine.m_EventQueueManager.AddToScriptQueue(localID, itemID, "state_entry", new object[] { });
+            }
+            catch (Exception e)
+            {
+                //m_scriptEngine.Log.Error("ScriptEngine", "Error compiling script: " + e.ToString());
                 try
                 {
-                    if (!Script.EndsWith("dll"))
-                    {
-                        // Compile (We assume LSL)
-                        ScriptSource = LSLCompiler.CompileFromLSLText(Script);
-                        //Console.WriteLine("Compilation of " + FileName + " done");
-                        // * Insert yield into code
-                        ScriptSource = ProcessYield(ScriptSource);
-                    }
-                    else
-                    {
-                        ScriptSource = Script;
-                    }
-
-#if DEBUG
-                    long before;
-                    before = GC.GetTotalMemory(true);
-#endif
-
-                    LSL_BaseClass CompiledScript;
-                    CompiledScript = m_scriptEngine.m_AppDomainManager.LoadScript(ScriptSource);
-
-#if DEBUG
-                    Console.WriteLine("Script " + itemID + " occupies {0} bytes", GC.GetTotalMemory(true) - before);
-#endif
-
-                    CompiledScript.SourceCode = ScriptSource;
-                    // Add it to our script memstruct
-                    SetScript(localID, itemID, CompiledScript);
-
-                    // We need to give (untrusted) assembly a private instance of BuiltIns
-                    //  this private copy will contain Read-Only FullitemID so that it can bring that on to the server whenever needed.
-
-
-                    LSL_BuiltIn_Commands LSLB = new LSL_BuiltIn_Commands(m_scriptEngine, m_host, localID, itemID);
-
-                    // Start the script - giving it BuiltIns
-                    CompiledScript.Start(LSLB);
-
-                    // Fire the first start-event
-                    m_scriptEngine.m_EventQueueManager.AddToScriptQueue(localID, itemID, "state_entry", new object[] {});
+                    // DISPLAY ERROR INWORLD
+                    string text = "Error compiling script:\r\n" + e.Message.ToString();
+                    if (text.Length > 1500)
+                        text = text.Substring(0, 1500);
+                    World.SimChat(Helpers.StringToField(text), ChatTypeEnum.Say, 0, m_host.AbsolutePosition,
+                                  m_host.Name, m_host.UUID);
                 }
-                catch (Exception e)
+                catch (Exception e2)
                 {
-                    //m_scriptEngine.Log.Error("ScriptEngine", "Error compiling script: " + e.ToString());
-                    try
-                    {
-                        // DISPLAY ERROR INWORLD
-                        string text = "Error compiling script:\r\n" + e.Message.ToString();
-                        if (text.Length > 1500)
-                            text = text.Substring(0, 1500);
-                        World.SimChat(Helpers.StringToField(text), ChatTypeEnum.Say, 0, m_host.AbsolutePosition,
-                                      m_host.Name, m_host.UUID);
-                    }
-                    catch (Exception e2)
-                    {
-                        m_scriptEngine.Log.Error("ScriptEngine", "Error displaying error in-world: " + e2.ToString());
-                        m_scriptEngine.Log.Error("ScriptEngine",
-                                                 "Errormessage: Error compiling script:\r\n" + e.Message.ToString());
-                    }
+                    m_scriptEngine.Log.Error("ScriptEngine", "Error displaying error in-world: " + e2.ToString());
+                    m_scriptEngine.Log.Error("ScriptEngine",
+                                             "Errormessage: Error compiling script:\r\n" + e.Message.ToString());
                 }
             }
         }
 
-        private void _StopScript(uint localID, LLUUID itemID)
+        public override void _StopScript(uint localID, LLUUID itemID)
         {
-            lock (startStopLock)
-            {
-                // Stop script
-                Console.WriteLine("Stop script localID: " + localID + " LLUID: " + itemID.ToString());
+            // Stop script
+            Console.WriteLine("Stop script localID: " + localID + " LLUID: " + itemID.ToString());
 
 
-                // Stop long command on script
-                m_scriptEngine.m_LSLLongCmdHandler.RemoveScript(localID, itemID);
+            // Stop long command on script
+            m_scriptEngine.m_LSLLongCmdHandler.RemoveScript(localID, itemID);
 
-                LSL_BaseClass LSLBC = GetScript(localID, itemID);
-                if (LSLBC == null)
-                    return;
-
-                // TEMP: First serialize it
-                //GetSerializedScript(localID, itemID);
-
-
-                try
-                {
-                    // Get AppDomain
-                    AppDomain ad = LSLBC.Exec.GetAppDomain();
-                    // Tell script not to accept new requests
-                    GetScript(localID, itemID).Exec.StopScript();
-                    // Remove from internal structure
-                    RemoveScript(localID, itemID);
-                    // Tell AppDomain that we have stopped script
-                    m_scriptEngine.m_AppDomainManager.StopScript(ad);
-                }
-                catch (Exception e)
-                {
-                    Console.WriteLine("Exception stopping script localID: " + localID + " LLUID: " + itemID.ToString() +
-                                      ": " + e.ToString());
-                }
-            }
-        }
-
-        private string ProcessYield(string FileName)
-        {
-            // TODO: Create a new assembly and copy old but insert Yield Code
-            //return TempDotNetMicroThreadingCodeInjector.TestFix(FileName);
-            return FileName;
-        }
-
-        #endregion
-
-        #region Perform event execution in script
-
-        /// <summary>
-        /// Execute a LL-event-function in Script
-        /// </summary>
-        /// <param name="localID">Object the script is located in</param>
-        /// <param name="itemID">Script ID</param>
-        /// <param name="FunctionName">Name of function</param>
-        /// <param name="args">Arguments to pass to function</param>
-        internal void ExecuteEvent(uint localID, LLUUID itemID, string FunctionName, object[] args)
-        {
-#if DEBUG
-            Console.WriteLine("ScriptEngine: Inside ExecuteEvent for event " + FunctionName);
-#endif
-            // Execute a function in the script
-            //m_scriptEngine.Log.Verbose("ScriptEngine", "Executing Function localID: " + localID + ", itemID: " + itemID + ", FunctionName: " + FunctionName);
-            LSL_BaseClass Script = m_scriptEngine.m_ScriptManager.GetScript(localID, itemID);
-            if (Script == null)
+            IScript LSLBC = GetScript(localID, itemID);
+            if (LSLBC == null)
                 return;
 
-#if DEBUG
-            Console.WriteLine("ScriptEngine: Executing event: " + FunctionName);
-#endif
-            // Must be done in correct AppDomain, so leaving it up to the script itself
-            Script.Exec.ExecuteEvent(FunctionName, args);
+            // TEMP: First serialize it
+            //GetSerializedScript(localID, itemID);
+
+
+            try
+            {
+                // Get AppDomain
+                AppDomain ad = LSLBC.Exec.GetAppDomain();
+                // Tell script not to accept new requests
+                GetScript(localID, itemID).Exec.StopScript();
+                // Remove from internal structure
+                RemoveScript(localID, itemID);
+                // Tell AppDomain that we have stopped script
+                m_scriptEngine.m_AppDomainManager.StopScript(ad);
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine("Exception stopping script localID: " + localID + " LLUID: " + itemID.ToString() +
+                                  ": " + e.ToString());
+            }
         }
 
-        #endregion
-
-        #region Script serialization/deserialization
-
-        public void GetSerializedScript(uint localID, LLUUID itemID)
-        {
-            // Serialize the script and return it
-            // Should not be a problem
-            FileStream fs = File.Create("SERIALIZED_SCRIPT_" + itemID);
-            BinaryFormatter b = new BinaryFormatter();
-            b.Serialize(fs, GetScript(localID, itemID));
-            fs.Close();
-        }
-
-        public void PutSerializedScript(uint localID, LLUUID itemID)
-        {
-            // Deserialize the script and inject it into an AppDomain
-
-            // How to inject into an AppDomain?
-        }
-
-        #endregion
     }
 }

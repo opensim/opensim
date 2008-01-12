@@ -32,93 +32,23 @@ using OpenSim.Framework.Console;
 using OpenSim.Region.Environment.Interfaces;
 using OpenSim.Region.Environment.Scenes;
 using OpenSim.Region.ScriptEngine.Common;
+using OpenSim.Region.ScriptEngine.Common.ScriptEngineBase;
+using EventManager=OpenSim.Region.ScriptEngine.Common.ScriptEngineBase.EventManager;
 
 namespace OpenSim.Region.ScriptEngine.DotNetEngine
 {
-    /// <summary>
-    /// This is the root object for ScriptEngine. Objects access each other trough this class.
-    /// </summary>
-    /// 
     [Serializable]
-    public class ScriptEngine : IRegionModule, OpenSim.Region.ScriptEngine.Common.ScriptServerInterfaces.ScriptEngine
+    public class ScriptEngine : OpenSim.Region.ScriptEngine.Common.ScriptEngineBase.ScriptEngine
     {
-        public Scene World;
-        public EventManager m_EventManager; // Handles and queues incoming events from OpenSim
-        internal EventQueueManager m_EventQueueManager; // Executes events
-        public ScriptManager m_ScriptManager; // Load, unload and execute scripts
-        internal AppDomainManager m_AppDomainManager;
-        internal LSLLongCmdHandler m_LSLLongCmdHandler;
-
-        private LogBase m_log;
-
-        public ScriptEngine()
+        // We need to override a few things for our DotNetEngine
+        public override void Initialise(Scene scene, IConfigSource config)
         {
-            //Common.SendToDebug("ScriptEngine Object Initialized");
-            Common.mySE = this;
+            InitializeEngine(scene, MainLog.Instance, true, GetScriptManager());
         }
 
-        public LogBase Log
+        public override OpenSim.Region.ScriptEngine.Common.ScriptEngineBase.ScriptManager _GetScriptManager()
         {
-            get { return m_log; }
+            return new ScriptManager(this);
         }
-
-        public void InitializeEngine(Scene Sceneworld, LogBase logger, bool HookUpToServer)
-        {
-            World = Sceneworld;
-            m_log = logger;
-
-            Log.Verbose("ScriptEngine", "DotNet & LSL ScriptEngine initializing");
-
-            //m_logger.Status("ScriptEngine", "InitializeEngine");
-
-            // Create all objects we'll be using
-            m_EventQueueManager = new EventQueueManager(this);
-            m_EventManager = new EventManager(this, HookUpToServer);
-            m_ScriptManager = new ScriptManager(this);
-            m_AppDomainManager = new AppDomainManager();
-            m_LSLLongCmdHandler = new LSLLongCmdHandler(this);
-
-            // Should we iterate the region for scripts that needs starting?
-            // Or can we assume we are loaded before anything else so we can use proper events?
-        }
-
-        public void Shutdown()
-        {
-            // We are shutting down
-        }
-
-        ScriptServerInterfaces.RemoteEvents ScriptServerInterfaces.ScriptEngine.EventManager()
-        {
-            return this.m_EventManager;
-        }
-
-
-        #region IRegionModule
-
-        public void Initialise(Scene scene, IConfigSource config)
-        {
-            InitializeEngine(scene, MainLog.Instance, true);
-        }
-
-        public void PostInitialise()
-        {
-        }
-
-        public void Close()
-        {
-        }
-
-        public string Name
-        {
-            get { return "DotNetEngine"; }
-        }
-
-        public bool IsSharedModule
-        {
-            get { return false; }
-        }
-
-        #endregion
-
     }
 }
