@@ -1819,6 +1819,21 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL
             return m_LSL_Functions.osSetDynamicTextureURL(dynamicID, contentType, url, extraParams, timer);
         }
 
+        public double osTerrainGetHeight(int x, int y)
+        {
+            return m_LSL_Functions.osTerrainGetHeight(x, y);
+        }
+
+        public int osTerrainSetHeight(int x, int y, double val)
+        {
+            return m_LSL_Functions.osTerrainSetHeight(x, y, val);
+        }
+
+        public int osRegionRestart(double seconds)
+        {
+            return m_LSL_Functions.osRegionRestart(seconds);
+        }
+
         // LSL CONSTANTS
         public const int TRUE = 1;
         public const int FALSE = 0;
