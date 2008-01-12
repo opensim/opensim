@@ -792,7 +792,8 @@ namespace OpenSim.Region.ClientStack
         {
             LLVector3 look = new LLVector3(lookAt.X * 10, lookAt.Y * 10, lookAt.Z * 10);
 
-            CrossedRegionPacket newSimPack = (CrossedRegionPacket)PacketPool.Instance.GetPacket(PacketType.CrossedRegion);
+            //CrossedRegionPacket newSimPack = (CrossedRegionPacket)PacketPool.Instance.GetPacket(PacketType.CrossedRegion);
+            CrossedRegionPacket newSimPack = new CrossedRegionPacket();
             // TODO: don't create new blocks if recycling an old packet
             newSimPack.AgentData = new CrossedRegionPacket.AgentDataBlock();
             newSimPack.AgentData.AgentID = AgentId;
@@ -850,7 +851,9 @@ namespace OpenSim.Region.ClientStack
         public void SendRegionTeleport(ulong regionHandle, byte simAccess, IPEndPoint newRegionEndPoint, uint locationID,
                                        uint flags, string capsURL)
         {
-            TeleportFinishPacket teleport = (TeleportFinishPacket)PacketPool.Instance.GetPacket(PacketType.TeleportFinish);
+            //TeleportFinishPacket teleport = (TeleportFinishPacket)PacketPool.Instance.GetPacket(PacketType.TeleportFinish);
+
+            TeleportFinishPacket teleport = new TeleportFinishPacket();
             teleport.Info.AgentID = AgentId;
             teleport.Info.RegionHandle = regionHandle;
             teleport.Info.SimAccess = simAccess;
@@ -887,7 +890,8 @@ namespace OpenSim.Region.ClientStack
         /// </summary>
         public void SendTeleportLocationStart()
         {
-            TeleportStartPacket tpStart = (TeleportStartPacket)PacketPool.Instance.GetPacket(PacketType.TeleportStart);
+            //TeleportStartPacket tpStart = (TeleportStartPacket)PacketPool.Instance.GetPacket(PacketType.TeleportStart);
+            TeleportStartPacket tpStart = new TeleportStartPacket();
             tpStart.Info.TeleportFlags = 16; // Teleport via location
             OutPacket(tpStart, ThrottleOutPacketType.Task);
         }
