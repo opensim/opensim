@@ -244,6 +244,8 @@ namespace OpenSim
                 if (m_storageDll == "OpenSim.DataStore.MonoSqlite.dll") 
                 {
                     m_storageDll = "OpenSim.Framework.Data.SQLite.dll";
+                    Console.WriteLine("WARNING: OpenSim.DataStore.MonoSqlite.dll is depreciated. Set storage_plugin to OpenSim.Framework.Data.SQLite.dll.");
+                    Thread.Sleep(3000);
                 }
                 m_storageConnectionString
                     = startupConfig.GetString("storage_connection_string", "URI=file:OpenSim.db,version=3");
