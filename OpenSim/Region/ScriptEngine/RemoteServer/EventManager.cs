@@ -48,6 +48,7 @@ namespace OpenSim.Region.ScriptEngine.RemoteServer
         {
             myScriptEngine = _ScriptEngine;
 
+
             myScriptEngine.Log.Verbose("RemoteEngine", "Hooking up to server events");
             //myScriptEngine.World.EventManager.OnObjectGrab += touch_start;
             myScriptEngine.World.EventManager.OnRezScript += OnRezScript;
@@ -61,10 +62,11 @@ namespace OpenSim.Region.ScriptEngine.RemoteServer
         {
             // WE ARE CREATING A NEW SCRIPT ... CREATE SCRIPT, GET A REMOTEID THAT WE MAP FROM LOCALID
             myScriptEngine.Log.Verbose("RemoteEngine", "Creating new script (with connection)");
+
+
             ScriptServerInterfaces.ServerRemotingObject obj = myScriptEngine.m_RemoteServer.Connect("localhost", 1234);
-            
             remoteScript.Add(localID, obj);
-                //remoteScript[localID].Events.OnRezScript(localID, itemID, script);
+            remoteScript[localID].Events().OnRezScript(localID, itemID, script);
             
         }
 

@@ -13,19 +13,17 @@ namespace OpenSim.Region.ScriptEngine.RemoteServer
         // Handles connections to servers
         // Create and returns server object
 
+        public RemoteServer()
+        {
+            TcpChannel chan = new TcpChannel();
+            ChannelServices.RegisterChannel(chan, true);
+        }
+
         public ScriptServerInterfaces.ServerRemotingObject Connect(string hostname, int port)
         {
             // Create a channel for communicating w/ the remote object
             // Notice no port is specified on the client
-            TcpChannel chan = new TcpChannel();
-            try
-            {
-                ChannelServices.RegisterChannel(chan, true);
-            }
-            catch (System.Runtime.Remoting.RemotingException)
-            {
-                System.Console.WriteLine("Error: tcp already registered, RemoteServer.cs in OpenSim.Region.ScriptEngine.RemoteServer line 24");
-            }
+                        
             try
             {
 

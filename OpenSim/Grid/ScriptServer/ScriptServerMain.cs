@@ -40,7 +40,7 @@ namespace OpenSim.Grid.ScriptServer
         // Root object. Creates objects used.
         //
         private int listenPort = 1234;
-        private readonly string m_logFilename = ("region-console.log");
+        private readonly string m_logFilename = ("scriptserver.log");
         private LogBase m_log;
 
         // TEMP
