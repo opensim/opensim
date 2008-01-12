@@ -907,15 +907,44 @@ namespace OpenSim.Region.ScriptEngine.Common
         }
 
         public string llGetSubString(string src, int start, int end)
-        {
-            return src.Substring(start, end);
-        }
+         {
+            // substring expects length
+            // return src.Substring(start, end);
+
+            // if one is negative so use length of string as base
+            // if start > end then it is exclusive
+            // for length add +1 for char at location=0
+            if (start < 0) { start = src.Length-start; }
+            if (end < 0) { end = src.Length - end; }
+            if (start > end)
+            {
+                return src.Substring(0, 1+end) + src.Substring(start, src.Length - start);
+            }
+            else
+            {
+                return src.Substring(start, (1+end) - start);
+            }
+         }
 
         public string llDeleteSubString(string src, int start, int end)
-        {
-            return src.Remove(start, end - start);
+         {
+            //return src.Remove(start, end - start);
+            // if one is negative so use length of string as base
+            // if start > end then it is exclusive
+            // for length add +1 for char at location=0
+            if (start < 0) { start = src.Length - start; }
+            if (end < 0) { end = src.Length - end; }
+            if (start > end)
+            {
+                return src.Remove(0, 1 + end) + src.Remove(start, src.Length - start);
+            }
+            else
+            {
+                return src.Remove(start, (1 + end) - start);
+            }
         }
-
+   
+        
         public string llInsertString(string dst, int position, string src)
         {
             return dst.Insert(position, src);
