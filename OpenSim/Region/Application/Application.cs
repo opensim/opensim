@@ -95,10 +95,11 @@ namespace OpenSim
             msg += "APPLICATION EXCEPTION DETECTED\r\n";
             msg += "\r\n";
             msg += "Application is terminating: " + e.IsTerminating.ToString() + "\r\n";
-            msg += "Exception:";
-            msg += e.ExceptionObject.ToString();
             if (e.IsTerminating)
                 Console.WriteLine(msg);
+
+            msg += "Exception:";
+            msg += e.ExceptionObject.ToString();
 
             // Try to post errormessage to an URL
             try
