@@ -426,17 +426,29 @@ namespace OpenSim.Region.Environment
             }
             else
             {
-                float WaterHeight = (float) Convert.ToDecimal(Helpers.FieldToUTF8String(packet.ParamList[0].Parameter));
-                float TerrainRaiseLimit =
-                    (float) Convert.ToDecimal(Helpers.FieldToUTF8String(packet.ParamList[1].Parameter));
-                float TerrainLowerLimit =
-                    (float) Convert.ToDecimal(Helpers.FieldToUTF8String(packet.ParamList[2].Parameter));
-                bool UseFixedSun = convertParamStringToBool(packet.ParamList[4].Parameter);
-                float SunHour = (float) Convert.ToDecimal(Helpers.FieldToUTF8String(packet.ParamList[5].Parameter));
+                try
+                {
+                    string tmp;
+                    tmp = Helpers.FieldToUTF8String(packet.ParamList[0].Parameter);
+                    if (!tmp.Contains(".")) tmp += ".00";
+                    float WaterHeight = (float)Convert.ToDecimal(tmp);
+                    tmp = Helpers.FieldToUTF8String(packet.ParamList[1].Parameter);
+                    if (!tmp.Contains(".")) tmp += ".00";
+                    float TerrainRaiseLimit = (float)Convert.ToDecimal(tmp);
+                    tmp = Helpers.FieldToUTF8String(packet.ParamList[2].Parameter);
+                    if (!tmp.Contains(".")) tmp += ".00";
+                    float TerrainLowerLimit = (float)Convert.ToDecimal(tmp);
+                    bool UseFixedSun = convertParamStringToBool(packet.ParamList[4].Parameter);
+                    float SunHour = (float)Convert.ToDecimal(Helpers.FieldToUTF8String(packet.ParamList[5].Parameter));
 
-                setRegionSettings(WaterHeight, TerrainRaiseLimit, TerrainLowerLimit, UseFixedSun, SunHour);
+                    setRegionSettings(WaterHeight, TerrainRaiseLimit, TerrainLowerLimit, UseFixedSun, SunHour);
 
-                sendRegionInfoPacketToAll();
+                    sendRegionInfoPacketToAll();
+                }
+                catch (Exception ex)
+                {
+                    MainLog.Instance.Error("EstateManager: Exception while setting terrain settings: \n" + packet.ToString() + "\n" + ex.ToString());
+                }
             }
         }
 
