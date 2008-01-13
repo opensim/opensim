@@ -79,6 +79,26 @@
       </Files>
     </Project>
 
+    <Project name="TribalMedia.Framework.Data" path="ThirdParty/TribalMedia/TribalMedia.Framework.Data" type="Library">
+      <Configuration name="Debug">
+        <Options>
+          <OutputPath>../../../bin/</OutputPath>
+        </Options>
+      </Configuration>
+      <Configuration name="Release">
+        <Options>
+          <OutputPath>../../../bin/</OutputPath>
+        </Options>
+      </Configuration>
+
+      <ReferencePath>../../../bin/</ReferencePath>
+      <Reference name="System" localCopy="false"/>
+      <Reference name="System.Data"/>
+      <Files>
+        <Match pattern="*.cs" recurse="true"/>
+      </Files>
+    </Project>
+
     <Project name="OpenSim.Framework.Data" path="OpenSim/Framework/Data" type="Library">
       <Configuration name="Debug">
         <Options>
