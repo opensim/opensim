@@ -85,8 +85,9 @@ namespace OpenSim.Region.Physics.OdePlugin
         private static float metersInSpace = 29.9f;
         private IntPtr contactgroup;
         private IntPtr LandGeom = (IntPtr) 0;
-        private double[] _heightmap;
+        private float[] _heightmap;
         private float[] _origheightmap;
+        
         private d.NearCallback nearCallback;
         public d.TriCallback triCallback;
         public d.TriArrayCallback triArrayCallback;
@@ -185,7 +186,7 @@ namespace OpenSim.Region.Physics.OdePlugin
             }
 
             // zero out a heightmap array float array (single dimention [flattened]))
-            _heightmap = new double[514*514];
+            _heightmap = new float[514*514];
 
 
             // Zero out the prim spaces array (we split our space into smaller spaces so 
@@ -1152,8 +1153,118 @@ namespace OpenSim.Region.Physics.OdePlugin
             get { return (false); // for now we won't be multithreaded
             }
         }
+        public float[] ResizeTerrain512NearestNeighbour(float[] heightMap)
+        {
+            float[] returnarr = new float[262144];
+            float[,] resultarr = new float[m_regionWidth, m_regionHeight];
 
-        public float[] ResizeTerrain512(float[] heightMap)
+            // Filling out the array into it's multi-dimentional components
+            for (int y = 0; y < m_regionHeight; y++)
+            {
+                for (int x = 0; x < m_regionWidth; x++)
+                {
+                    resultarr[y, x] = heightMap[y * m_regionWidth + x];
+                }
+            }
+
+            // Resize using Nearest Neighbour
+
+            // This particular way is quick but it only works on a multiple of the original
+
+            // The idea behind this method can be described with the following diagrams
+            // second pass and third pass happen in the same loop really..  just separated 
+            // them to show what this does.
+
+            // First Pass
+            // ResultArr:
+            // 1,1,1,1,1,1
+            // 1,1,1,1,1,1
+            // 1,1,1,1,1,1
+            // 1,1,1,1,1,1
+            // 1,1,1,1,1,1
+            // 1,1,1,1,1,1
+
+            // Second Pass
+            // ResultArr2:
+            // 1,,1,,1,,1,,1,,1,
+            // ,,,,,,,,,,
+            // 1,,1,,1,,1,,1,,1,
+            // ,,,,,,,,,,
+            // 1,,1,,1,,1,,1,,1,
+            // ,,,,,,,,,,
+            // 1,,1,,1,,1,,1,,1,
+            // ,,,,,,,,,,
+            // 1,,1,,1,,1,,1,,1,
+            // ,,,,,,,,,,
+            // 1,,1,,1,,1,,1,,1,
+
+            // Third pass fills in the blanks
+            // ResultArr2:
+            // 1,1,1,1,1,1,1,1,1,1,1,1
+            // 1,1,1,1,1,1,1,1,1,1,1,1
+            // 1,1,1,1,1,1,1,1,1,1,1,1
+            // 1,1,1,1,1,1,1,1,1,1,1,1
+            // 1,1,1,1,1,1,1,1,1,1,1,1
+            // 1,1,1,1,1,1,1,1,1,1,1,1
+            // 1,1,1,1,1,1,1,1,1,1,1,1
+            // 1,1,1,1,1,1,1,1,1,1,1,1
+            // 1,1,1,1,1,1,1,1,1,1,1,1
+            // 1,1,1,1,1,1,1,1,1,1,1,1
+            // 1,1,1,1,1,1,1,1,1,1,1,1
+
+            // X,Y = .
+            // X+1,y = ^
+            // X,Y+1 = *
+            // X+1,Y+1 = #
+
+            // Filling in like this;
+            // .*
+            // ^#
+            // 1st .
+            // 2nd *
+            // 3rd ^
+            // 4th #
+            // on single loop.
+
+            float[,] resultarr2 = new float[512, 512];
+            for (int y = 0; y < m_regionHeight; y++)
+            {
+                for (int x = 0; x < m_regionWidth; x++)
+                {
+                    resultarr2[y * 2, x * 2] = resultarr[y, x];
+
+                    if (y < m_regionHeight)
+                    {
+                        resultarr2[(y * 2) + 1, x * 2] = resultarr[y, x];
+                    }
+                    if (x < m_regionWidth)
+                    {
+                        resultarr2[y * 2, (x * 2) + 1] = resultarr[y, x];
+                    }
+                    if (x < m_regionWidth && y < m_regionHeight)
+                    {
+                        resultarr2[(y * 2) + 1, (x * 2) + 1] = resultarr[y, x];
+                    }
+                }
+            }
+            //Flatten out the array
+            int i = 0;
+            for (int y = 0; y < 512; y++)
+            {
+                for (int x = 0; x < 512; x++)
+                {
+                    if (resultarr2[y, x] <= 0)
+                        returnarr[i] = 0.0000001f;
+                    else
+                        returnarr[i] = resultarr2[y, x];
+
+                    i++;
+                }
+            }
+
+            return returnarr;
+        }
+        public float[] ResizeTerrain512Interpolation(float[] heightMap)
         {
             float[] returnarr = new float[262144];
             float[,] resultarr = new float[m_regionWidth,m_regionHeight];
@@ -1315,11 +1426,11 @@ namespace OpenSim.Region.Physics.OdePlugin
             const uint heightmapHeightSamples = 2*m_regionHeight + 2;
             const float scale = 1.0f;
             const float offset = 0.0f;
-            const float thickness = 2.0f;
+            const float thickness = 0.2f;
             const int wrap = 0;
 
             //Double resolution
-            heightMap = ResizeTerrain512(heightMap);
+            heightMap = ResizeTerrain512Interpolation(heightMap);
             for (int x = 0; x < heightmapWidthSamples; x++)
             {
                 for (int y = 0; y < heightmapHeightSamples; y++)
@@ -1327,7 +1438,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                     int xx = Util.Clip(x - 1, 0, 511);
                     int yy = Util.Clip(y - 1, 0, 511);
 
-                    double val = (double) heightMap[yy*512 + xx];
+                    float val = heightMap[yy*512 + xx];
                     _heightmap[x*heightmapHeightSamples + y] = val;
                 }
             }
@@ -1339,7 +1450,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                     d.SpaceRemove(space, LandGeom);
                 }
                 IntPtr HeightmapData = d.GeomHeightfieldDataCreate();
-                d.GeomHeightfieldDataBuildDouble(HeightmapData, _heightmap, 0, heightmapWidth, heightmapHeight,
+                d.GeomHeightfieldDataBuildSingle(HeightmapData, _heightmap, 0, heightmapWidth, heightmapHeight,
                                                  (int) heightmapWidthSamples, (int) heightmapHeightSamples, scale,
                                                  offset, thickness, wrap);
                 d.GeomHeightfieldDataSetBounds(HeightmapData, m_regionWidth, m_regionHeight);
