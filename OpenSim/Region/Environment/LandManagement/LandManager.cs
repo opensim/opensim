@@ -243,8 +243,18 @@ namespace OpenSim.Region.Environment.LandManagement
         /// <returns>Land object at the point supplied</returns>
         public Land getLandObject(float x_float, float y_float)
         {
-            int x = Convert.ToInt32(Math.Floor(Convert.ToDouble(x_float)/Convert.ToDouble(4.0)));
-            int y = Convert.ToInt32(Math.Floor(Convert.ToDouble(y_float)/Convert.ToDouble(4.0)));
+            int x;
+            int y;
+
+            try
+            {
+                x = Convert.ToInt32(Math.Floor(Convert.ToDouble(x_float) / Convert.ToDouble(4.0)));
+                y = Convert.ToInt32(Math.Floor(Convert.ToDouble(y_float) / Convert.ToDouble(4.0)));
+            }
+            catch (System.OverflowException)
+            {
+                return null;
+            }
 
             if (x >= 64 || y >= 64 || x < 0 || y < 0)
             {

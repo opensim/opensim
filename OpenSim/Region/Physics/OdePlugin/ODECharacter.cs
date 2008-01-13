@@ -34,6 +34,26 @@ using OpenSim.Region.Physics.Manager;
 
 namespace OpenSim.Region.Physics.OdePlugin
 {
+    /// <summary>
+    /// Various properties that ODE uses for AMotors but isn't exposed in ODE.NET so we must define them ourselves.
+    /// </summary>
+ 
+    public enum dParam : int
+    {
+        LowStop = 0,
+        HiStop = 1,
+        Vel = 2,
+        FMax = 3,
+        FudgeFactor = 4,
+        Bounce = 5,
+        CFM = 6,
+        ERP = 7,
+        StopCFM = 8,
+        LoStop2 = 256,
+        HiStop2 = 257,
+        LoStop3 = 512,
+        HiStop3 = 513
+    }
     public class OdeCharacter : PhysicsActor
     {
         private PhysicsVector _position;
@@ -45,7 +65,8 @@ namespace OpenSim.Region.Physics.OdePlugin
         private PhysicsVector _target_velocity;
         private PhysicsVector _acceleration;
         private PhysicsVector m_rotationalVelocity;
-        private float m_density = 50f;
+        private float m_mass = 80f;
+        private float m_density = 60f;
         private bool m_pidControllerActive = true;
         private static float PID_D = 3020.0f;
         private static float PID_P = 7000.0f;
@@ -96,34 +117,7 @@ namespace OpenSim.Region.Physics.OdePlugin
 
             lock (OdeScene.OdeLock)
             {
-                int dAMotorEuler = 1;
-                Shell = d.CreateCapsule(parent_scene.space, CAPSULE_RADIUS, CAPSULE_LENGTH);
-                d.MassSetCapsule(out ShellMass, m_density, 3, CAPSULE_RADIUS, CAPSULE_LENGTH);
-                Body = d.BodyCreate(parent_scene.world);
-                d.BodySetMass(Body, ref ShellMass);
-                d.BodySetPosition(Body, pos.X, pos.Y, pos.Z);
-                d.GeomSetBody(Shell, Body);
-
-
-                d.BodySetRotation(Body, ref m_StandUpRotation);
-
-
-                //Amotor = d.JointCreateAMotor(parent_scene.world, IntPtr.Zero); 
-                //d.JointAttach(Amotor, Body, IntPtr.Zero);
-                //d.JointSetAMotorMode(Amotor, dAMotorEuler);
-                //d.JointSetAMotorNumAxes(Amotor, 3);
-                //d.JointSetAMotorAxis(Amotor, 0, 0, 1, 0, 0);
-                //d.JointSetAMotorAxis(Amotor, 1, 0, 0, 1, 0);
-                ///d.JointSetAMotorAxis(Amotor, 2, 0, 0, 0, 1);
-                //d.JointSetAMotorAngle(Amotor, 0, 0);
-                //d.JointSetAMotorAngle(Amotor, 1, 0);
-                //d.JointSetAMotorAngle(Amotor, 2, 0);
-                //d.JointSetAMotorParam(Amotor, 0, -0);
-                //d.JointSetAMotorParam(Amotor, 0x200, -0);
-                //d.JointSetAMotorParam(Amotor, 0x100, -0);
-                // d.JointSetAMotorParam(Amotor, 0, 0);
-                // d.JointSetAMotorParam(Amotor, 3, 0);
-                // d.JointSetAMotorParam(Amotor, 2, 0);
+                AvatarGeomAndBodyCreation(pos.X, pos.Y, pos.Z);
             }
             m_name = avName;
             parent_scene.geom_name_map[Shell] = avName;
@@ -136,6 +130,9 @@ namespace OpenSim.Region.Physics.OdePlugin
             set { return; }
         }
 
+        /// <summary>
+        /// If this is set, the avatar will move faster
+        /// </summary>
         public override bool SetAlwaysRun
         {
             get { return m_alwaysRun; }
@@ -160,6 +157,10 @@ namespace OpenSim.Region.Physics.OdePlugin
             set { flying = value; }
         }
 
+        /// <summary>
+        /// Returns if the avatar is colliding in general.
+        /// This includes the ground and objects and avatar.
+        /// </summary>
         public override bool IsColliding
         {
             get { return m_iscolliding; }
@@ -208,11 +209,17 @@ namespace OpenSim.Region.Physics.OdePlugin
             }
         }
 
+        /// <summary>
+        /// Returns if an avatar is colliding with the ground
+        /// </summary>
         public override bool CollidingGround
         {
             get { return m_iscollidingGround; }
             set
             {
+                // Collisions against the ground are not really reliable
+                // So, to get a consistant value we have to average the current result over time
+                // Currently we use 1 second = 10 calls to this.
                 int i;
                 int truecount = 0;
                 int falsecount = 0;
@@ -256,6 +263,9 @@ namespace OpenSim.Region.Physics.OdePlugin
             }
         }
 
+        /// <summary>
+        /// Returns if the avatar is colliding with an object
+        /// </summary>
         public override bool CollidingObj
         {
             get { return m_iscollidingObj; }
@@ -269,11 +279,21 @@ namespace OpenSim.Region.Physics.OdePlugin
             }
         }
 
+        /// <summary>
+        /// turn the PID controller on or off.   
+        /// The PID Controller will turn on all by itself in many situations
+        /// </summary>
+        /// <param name="status"></param>
         public void SetPidStatus(bool status)
         {
             m_pidControllerActive = status;
         }
 
+        /// <summary>
+        /// This 'puts' an avatar somewhere in the physics space.
+        /// Not really a good choice unless you 'know' it's a good 
+        /// spot otherwise you're likely to orbit the avatar.
+        /// </summary>
         public override PhysicsVector Position
         {
             get { return _position; }
@@ -293,6 +313,10 @@ namespace OpenSim.Region.Physics.OdePlugin
             set { m_rotationalVelocity = value; }
         }
 
+        /// <summary>
+        /// This property sets the height of the avatar only.  We use the height to make sure the avatar stands up straight
+        /// and use it to offset landings properly
+        /// </summary>
         public override PhysicsVector Size
         {
             get { return new PhysicsVector(CAPSULE_RADIUS*2, CAPSULE_RADIUS*2, CAPSULE_LENGTH); }
@@ -301,6 +325,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                 m_pidControllerActive = true;
                 lock (OdeScene.OdeLock)
                 {
+                    d.JointDestroy(Amotor);
                     PhysicsVector SetSize = value;
                     float prevCapsule = CAPSULE_LENGTH;
                     float capsuleradius = CAPSULE_RADIUS;
@@ -309,20 +334,91 @@ namespace OpenSim.Region.Physics.OdePlugin
                     CAPSULE_LENGTH = (SetSize.Z - ((SetSize.Z*0.43f))); // subtract 43% of the size
                     d.BodyDestroy(Body);
                     d.GeomDestroy(Shell);
-                    //MainLog.Instance.Verbose("PHYSICS", "Set Avatar Height To: " + (CAPSULE_RADIUS + CAPSULE_LENGTH));
-                    Shell = d.CreateCapsule(_parent_scene.space, capsuleradius, CAPSULE_LENGTH);
-                    d.MassSetCapsule(out ShellMass, m_density, 3, CAPSULE_RADIUS, CAPSULE_LENGTH);
-                    Body = d.BodyCreate(_parent_scene.world);
-                    d.BodySetMass(Body, ref ShellMass);
-                    d.BodySetPosition(Body, _position.X, _position.Y,
-                                      _position.Z + Math.Abs(CAPSULE_LENGTH - prevCapsule));
-                    d.GeomSetBody(Shell, Body);
+                    AvatarGeomAndBodyCreation(_position.X, _position.Y,
+                                      _position.Z + (Math.Abs(CAPSULE_LENGTH - prevCapsule)*2));
+                    Velocity = new PhysicsVector(0f, 0f, 0f);
+                    
                 }
                 _parent_scene.geom_name_map[Shell] = m_name;
                 _parent_scene.actor_name_map[Shell] = (PhysicsActor) this;
             }
         }
+        /// <summary>
+        /// This creates the Avatar's physical Surrogate at the position supplied
+        /// </summary>
+        /// <param name="npositionX"></param>
+        /// <param name="npositionY"></param>
+        /// <param name="npositionZ"></param>
+        private void AvatarGeomAndBodyCreation(float npositionX, float npositionY, float npositionZ)
+        {
+            int dAMotorEuler = 1;
+            Shell = d.CreateCapsule(_parent_scene.space, CAPSULE_RADIUS, CAPSULE_LENGTH);
+            d.MassSetCapsuleTotal(out ShellMass, m_mass, 2, CAPSULE_RADIUS, CAPSULE_LENGTH);
+            Body = d.BodyCreate(_parent_scene.world);
+            d.BodySetPosition(Body, npositionX, npositionY, npositionZ);
 
+            d.BodySetMass(Body, ref ShellMass);
+
+            // 90 Stand up on the cap of the capped cyllinder
+            d.RFromAxisAndAngle(out m_StandUpRotation, 1, 0, 0, (float)(Math.PI / 2));
+
+
+            d.GeomSetRotation(Shell, ref m_StandUpRotation);
+            d.BodySetRotation(Body, ref m_StandUpRotation);
+
+            d.GeomSetBody(Shell, Body);
+
+
+            // The purpose of the AMotor here is to keep the avatar's physical 
+            // surrogate from rotating while moving
+            Amotor = d.JointCreateAMotor(_parent_scene.world, IntPtr.Zero);
+            d.JointAttach(Amotor, Body, IntPtr.Zero);
+            d.JointSetAMotorMode(Amotor, dAMotorEuler);
+            d.JointSetAMotorNumAxes(Amotor, 3);
+            d.JointSetAMotorAxis(Amotor, 0, 0, 1, 0, 0);
+            d.JointSetAMotorAxis(Amotor, 1, 0, 0, 1, 0);
+            d.JointSetAMotorAxis(Amotor, 2, 0, 0, 0, 1);
+            d.JointSetAMotorAngle(Amotor, 0, 0);
+            d.JointSetAMotorAngle(Amotor, 1, 0);
+            d.JointSetAMotorAngle(Amotor, 2, 0);
+            
+            // These lowstops and high stops are effectively (no wiggle room)
+            d.JointSetAMotorParam(Amotor, (int)dParam.LowStop, -0.000000000001f);
+            d.JointSetAMotorParam(Amotor, (int)dParam.LoStop3, -0.000000000001f);
+            d.JointSetAMotorParam(Amotor, (int)dParam.LoStop2, -0.000000000001f);
+            d.JointSetAMotorParam(Amotor, (int)dParam.HiStop, 0.000000000001f);
+            d.JointSetAMotorParam(Amotor, (int)dParam.HiStop3, 0.000000000001f);
+            d.JointSetAMotorParam(Amotor, (int)dParam.HiStop2, 0.000000000001f);
+
+            // Fudge factor is 1f by default, we're setting it to 0.  We don't want it to Fudge or the 
+            // capped cyllinder will fall over
+            d.JointSetAMotorParam(Amotor, (int)dParam.FudgeFactor, 0f);
+            d.JointSetAMotorParam(Amotor, (int)dParam.FMax, 3800000f);
+
+
+            // The purpose of this routine here is to quickly stabilize the Body while it's popped up in the air.
+            // The amotor needs a few seconds to stabilize so without it, the avatar shoots up sky high when you 
+            // change appearance and when you enter the simulator
+            // After this routine is done, the amotor stabilizes much quicker
+            d.Vector3 feet;
+            d.Vector3 head;
+            d.BodyGetRelPointPos(Body, 0.0f, 0.0f, -1.0f, out feet);
+            d.BodyGetRelPointPos(Body, 0.0f, 0.0f, 1.0f, out head);
+            float posture = head.Z - feet.Z;
+
+            // restoring force proportional to lack of posture:
+            float servo = (2.5f - posture) * POSTURE_SERVO;
+            d.BodyAddForceAtRelPos(Body, 0.0f, 0.0f, servo, 0.0f, 0.0f, 1.0f);
+            d.BodyAddForceAtRelPos(Body, 0.0f, 0.0f, -servo, 0.0f, 0.0f, -1.0f);
+            
+            
+        }
+
+        // 
+        /// <summary>
+        /// Uses the capped cyllinder volume formula to calculate the avatar's mass.
+        /// This may be used in calculations in the scene/scenepresence
+        /// </summary>
         public override float Mass
         {
             get
@@ -385,6 +481,11 @@ namespace OpenSim.Region.Physics.OdePlugin
             _acceleration = accel;
         }
 
+        /// <summary>
+        /// Adds the force supplied to the Target Velocity 
+        /// The PID controller takes this target velocity and tries to make it a reality
+        /// </summary>
+        /// <param name="force"></param>
         public override void AddForce(PhysicsVector force)
         {
             m_pidControllerActive = true;
@@ -395,29 +496,15 @@ namespace OpenSim.Region.Physics.OdePlugin
             //m_lastUpdateSent = false;
         }
 
+        /// <summary>
+        /// After all of the forces add up with 'add force' we apply them with doForce
+        /// </summary>
+        /// <param name="force"></param>
         public void doForce(PhysicsVector force)
         {
             if (!collidelock)
             {
                 d.BodyAddForce(Body, force.X, force.Y, force.Z);
-
-                //  ok -- let's stand up straight!
-                //d.Matrix3 StandUpRotationalMatrix = new d.Matrix3(0.8184158f, -0.5744568f, -0.0139677f, 0.5744615f, 0.8185215f, -0.004074608f, 0.01377355f, -0.004689182f, 0.9998941f);
-                //d.BodySetRotation(Body, ref StandUpRotationalMatrix);
-                //d.BodySetRotation(Body, ref m_StandUpRotation);
-                // The above matrix was generated with the amazing standup routine below by danX0r *cheer*
-                d.Vector3 feet;
-                d.Vector3 head;
-                d.BodyGetRelPointPos(Body, 0.0f, 0.0f, -1.0f, out feet);
-                d.BodyGetRelPointPos(Body, 0.0f, 0.0f, 1.0f, out head);
-                float posture = head.Z - feet.Z;
-
-                // restoring force proportional to lack of posture:
-                float servo = (2.5f - posture) * POSTURE_SERVO;
-                d.BodyAddForceAtRelPos(Body, 0.0f, 0.0f, servo, 0.0f, 0.0f, 1.0f);
-                d.BodyAddForceAtRelPos(Body, 0.0f, 0.0f, -servo, 0.0f, 0.0f, -1.0f);
-
-                //m_lastUpdateSent = false;
             }
         }
 
@@ -425,9 +512,19 @@ namespace OpenSim.Region.Physics.OdePlugin
         {
         }
 
+
+        /// <summary>
+        /// Called from Simulate
+        /// This is the avatar's movement control + PID Controller
+        /// </summary>
+        /// <param name="timeStep"></param>
         public void Move(float timeStep)
         {
             //  no lock; for now it's only called from within Simulate()
+
+            // If the PID Controller isn't active then we set our force 
+            // calculating base velocity to the current position
+
             if (m_pidControllerActive == false)
             {
                 _zeroPosition = d.BodyGetPosition(Body);
@@ -458,6 +555,11 @@ namespace OpenSim.Region.Physics.OdePlugin
                 }
                 if (m_pidControllerActive)
                 {
+                    // We only want to deactivate the PID Controller if we think we want to have our surrogate
+                    // react to the physics scene by moving it's position.
+                    // Avatar to Avatar collisions
+                    // Prim to avatar collisions
+
                     d.Vector3 pos = d.BodyGetPosition(Body);
                     vec.X = (_target_velocity.X - vel.X)*PID_D + (_zeroPosition.X - pos.X)*PID_P;
                     vec.Y = (_target_velocity.Y - vel.Y)*PID_D + (_zeroPosition.Y - pos.Y)*PID_P;
@@ -474,11 +576,14 @@ namespace OpenSim.Region.Physics.OdePlugin
                 _zeroFlag = false;
                 if (m_iscolliding || flying)
                 {
+                    // We're flying and colliding with something
                     vec.X = ((_target_velocity.X/movementdivisor) - vel.X)*PID_D;
                     vec.Y = ((_target_velocity.Y/movementdivisor) - vel.Y)*PID_D;
                 }
                 if (m_iscolliding && !flying && _target_velocity.Z > 0.0f)
                 {
+                    // We're colliding with something and we're not flying but we're moving
+                    // This means we're walking or running.
                     d.Vector3 pos = d.BodyGetPosition(Body);
                     vec.Z = (_target_velocity.Z - vel.Z)*PID_D + (_zeroPosition.Z - pos.Z)*PID_P;
                     if (_target_velocity.X > 0)
@@ -492,6 +597,8 @@ namespace OpenSim.Region.Physics.OdePlugin
                 }
                 else if (!m_iscolliding && !flying)
                 {
+                    // we're not colliding and we're not flying so that means we're falling!
+                    // m_iscolliding includes collisions with the ground.
                     d.Vector3 pos = d.BodyGetPosition(Body);
                     if (_target_velocity.X > 0)
                     {
@@ -518,6 +625,9 @@ namespace OpenSim.Region.Physics.OdePlugin
             doForce(vec);
         }
 
+        /// <summary>
+        /// Updates the reported position and velocity.  This essentially sends the data up to ScenePresence.
+        /// </summary>
         public void UpdatePositionAndVelocity()
         {
             //  no lock; called from Simulate() -- if you call this from elsewhere, gotta lock or do Monitor.Enter/Exit!
@@ -533,25 +643,21 @@ namespace OpenSim.Region.Physics.OdePlugin
             _position.Y = vec.Y;
             _position.Z = vec.Z;
 
+            // Did we move last? = zeroflag
+            // This helps keep us from sliding all over
+
             if (_zeroFlag)
             {
                 _velocity.X = 0.0f;
                 _velocity.Y = 0.0f;
                 _velocity.Z = 0.0f;
+            
+                // Did we send out the 'stopped' message?
                 if (!m_lastUpdateSent)
                 {
                     m_lastUpdateSent = true;
                     base.RequestPhysicsterseUpdate();
-                    //string primScenAvatarIn = _parent_scene.whichspaceamIin(_position);
-                    //int[] arrayitem = _parent_scene.calculateSpaceArrayItemFromPos(_position);
-                    //if (primScenAvatarIn == "0")
-                    //{
-                    //MainLog.Instance.Verbose("Physics", "Avatar " + m_name + " in space with no prim. Arr:':" + arrayitem[0].ToString() + "," + arrayitem[1].ToString());
-                    //}
-                    //else
-                    //{
-                    //    MainLog.Instance.Verbose("Physics", "Avatar " + m_name + " in Prim space':" + primScenAvatarIn + ". Arr:" + arrayitem[0].ToString() + "," + arrayitem[1].ToString());
-                    //}
+                    
                 }
             }
             else
@@ -564,6 +670,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                 _velocity.Z = (vec.Z);
                 if (_velocity.Z < -6 && !m_hackSentFall)
                 {
+                    // Collisionupdates will be used in the future, right now the're not being used.
                     m_hackSentFall = true;
                     //base.SendCollisionUpdate(new CollisionEventUpdate());
                     m_pidControllerActive = false;
@@ -581,13 +688,21 @@ namespace OpenSim.Region.Physics.OdePlugin
             }
         }
 
+        /// <summary>
+        /// Cleanup the things we use in the scene.
+        /// </summary>
         public void Destroy()
         {
             lock (OdeScene.OdeLock)
             {
-                // d.JointDestroy(Amotor);
+                // Kill the Amotor
+                d.JointDestroy(Amotor);
+
+                //kill the Geometry
                 d.GeomDestroy(Shell);
                 _parent_scene.geom_name_map.Remove(Shell);
+                
+                //kill the body
                 d.BodyDestroy(Body);
             }
         }
