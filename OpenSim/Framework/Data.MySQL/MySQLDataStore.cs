@@ -1421,10 +1421,10 @@ namespace OpenSim.Framework.Data.MySQL
             da.InsertCommand = createInsertCommand("primitems", m_itemsTable);
             da.InsertCommand.Connection = conn;
 
-            da.UpdateCommand = createUpdateCommand("primitems", "itemID = :itemID", m_itemsTable);
+            da.UpdateCommand = createUpdateCommand("primitems", "itemID = ?itemID", m_itemsTable);
             da.UpdateCommand.Connection = conn;
 
-            MySqlCommand delete = new MySqlCommand("delete from primitems where itemID = :itemID");
+            MySqlCommand delete = new MySqlCommand("delete from primitems where itemID = ?itemID");
             delete.Parameters.Add(createMySqlParameter("itemID", typeof (String)));
             delete.Connection = conn;
             da.DeleteCommand = delete;
