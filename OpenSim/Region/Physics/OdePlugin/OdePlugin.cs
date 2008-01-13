@@ -390,7 +390,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                         }
                         if (contacts[i].depth >= 1.00f)
                         {
-                            OpenSim.Framework.Console.MainLog.Instance.Verbose("P", contacts[i].depth.ToString());
+                            //OpenSim.Framework.Console.MainLog.Instance.Verbose("P", contacts[i].depth.ToString());
                             if ((p2.PhysicsActorType == (int) ActorTypes.Agent &&
                                  p1.PhysicsActorType == (int) ActorTypes.Unknown) ||
                                 (p1.PhysicsActorType == (int) ActorTypes.Agent &&
