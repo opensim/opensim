@@ -407,14 +407,6 @@ namespace OpenSim.Region.Environment.Scenes
             return returnresult;
         }
 
-
-        /// <summary>
-        /// 
-        /// </summary>
-        public SceneObjectGroup(byte[] data)
-        {
-        }
-
         /// <summary>
         /// 
         /// </summary>
