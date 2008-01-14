@@ -79,60 +79,58 @@ namespace OpenSim.Framework.Data.SQLite
             ds = new DataSet();
 
             MainLog.Instance.Verbose("DATASTORE", "Sqlite - connecting: " + connectionString);
-            SqliteConnection conn = new SqliteConnection(m_connectionString);
+            m_conn = new SqliteConnection(m_connectionString);
+            m_conn.Open();
 
-            // Arg! Hate databases..   
-            m_conn = conn;
-
-            SqliteCommand primSelectCmd = new SqliteCommand(primSelect, conn);
+            SqliteCommand primSelectCmd = new SqliteCommand(primSelect, m_conn);
             primDa = new SqliteDataAdapter(primSelectCmd);
             //            SqliteCommandBuilder primCb = new SqliteCommandBuilder(primDa);
 
-            SqliteCommand shapeSelectCmd = new SqliteCommand(shapeSelect, conn);
+            SqliteCommand shapeSelectCmd = new SqliteCommand(shapeSelect, m_conn);
             shapeDa = new SqliteDataAdapter(shapeSelectCmd);
             // SqliteCommandBuilder shapeCb = new SqliteCommandBuilder(shapeDa);      
 
-            SqliteCommand itemsSelectCmd = new SqliteCommand(itemsSelect, conn);
+            SqliteCommand itemsSelectCmd = new SqliteCommand(itemsSelect, m_conn);
             itemsDa = new SqliteDataAdapter(itemsSelectCmd);
             
-            SqliteCommand terrainSelectCmd = new SqliteCommand(terrainSelect, conn);
+            SqliteCommand terrainSelectCmd = new SqliteCommand(terrainSelect, m_conn);
             terrainDa = new SqliteDataAdapter(terrainSelectCmd);
 
-            SqliteCommand landSelectCmd = new SqliteCommand(landSelect, conn);
+            SqliteCommand landSelectCmd = new SqliteCommand(landSelect, m_conn);
             landDa = new SqliteDataAdapter(landSelectCmd);
 
-            SqliteCommand landAccessListSelectCmd = new SqliteCommand(landAccessListSelect, conn);
+            SqliteCommand landAccessListSelectCmd = new SqliteCommand(landAccessListSelect, m_conn);
             landAccessListDa = new SqliteDataAdapter(landAccessListSelectCmd);
 
             // We fill the data set, now we've got copies in memory for the information
             // TODO: see if the linkage actually holds.
             // primDa.FillSchema(ds, SchemaType.Source, "PrimSchema");
-            TestTables(conn);
+            TestTables(m_conn);
 
             lock (ds)
             {
                 ds.Tables.Add(createPrimTable());
-                setupPrimCommands(primDa, conn);
+                setupPrimCommands(primDa, m_conn);
                 primDa.Fill(ds.Tables["prims"]);
 
                 ds.Tables.Add(createShapeTable());
-                setupShapeCommands(shapeDa, conn);
+                setupShapeCommands(shapeDa, m_conn);
                 
                 if (persistPrimInventories)
                 {
                     ds.Tables.Add(createItemsTable());
-                    setupItemsCommands(itemsDa, conn);
+                    setupItemsCommands(itemsDa, m_conn);
                     itemsDa.Fill(ds.Tables["primitems"]);
                 }
 
                 ds.Tables.Add(createTerrainTable());
-                setupTerrainCommands(terrainDa, conn);
+                setupTerrainCommands(terrainDa, m_conn);
 
                 ds.Tables.Add(createLandTable());
-                setupLandCommands(landDa, conn);
+                setupLandCommands(landDa, m_conn);
 
                 ds.Tables.Add(createLandAccessListTable());
-                setupLandAccessCommands(landAccessListDa, conn);
+                setupLandAccessCommands(landAccessListDa, m_conn);
 
                 // WORKAROUND: This is a work around for sqlite on
                 // windows, which gets really unhappy with blob columns
@@ -374,13 +372,11 @@ namespace OpenSim.Framework.Data.SQLite
 
                 // the following is an work around for .NET.  The perf
                 // issues associated with it aren't as bad as you think.
-                SqliteConnection conn = new SqliteConnection(m_connectionString);
-                conn.Open();
                 MainLog.Instance.Verbose("DATASTORE", "Storing terrain revision r" + revision.ToString());
                 String sql = "insert into terrain(RegionUUID, Revision, Heightfield)" +
                              " values(:RegionUUID, :Revision, :Heightfield)";
 
-                using (SqliteCommand cmd = new SqliteCommand(sql, conn))
+                using (SqliteCommand cmd = new SqliteCommand(sql, m_conn))
                 {
                     cmd.Parameters.Add(new SqliteParameter(":RegionUUID", Util.ToRawUuidString(regionID)));
                     cmd.Parameters.Add(new SqliteParameter(":Revision", revision));
@@ -398,13 +394,12 @@ namespace OpenSim.Framework.Data.SQLite
                 using (
                     SqliteCommand cmd =
                         new SqliteCommand("delete from terrain where RegionUUID=:RegionUUID and Revision < :Revision",
-                                          conn))
+                                          m_conn))
                 {
                     cmd.Parameters.Add(new SqliteParameter(":RegionUUID", Util.ToRawUuidString(regionID)));
                     cmd.Parameters.Add(new SqliteParameter(":Revision", revision));
                     cmd.ExecuteNonQuery();
                 }
-                conn.Close();
             }
         }
 
@@ -414,15 +409,11 @@ namespace OpenSim.Framework.Data.SQLite
             {
                 double[,] terret = new double[256,256];
                 terret.Initialize();
-                // the following is an work around for .NET.  The perf
-                // issues associated with it aren't as bad as you think.
-                SqliteConnection conn = new SqliteConnection(m_connectionString);
-                conn.Open();
+
                 String sql = "select RegionUUID, Revision, Heightfield from terrain" +
                              " where RegionUUID=:RegionUUID order by Revision desc";
 
-
-                using (SqliteCommand cmd = new SqliteCommand(sql, conn))
+                using (SqliteCommand cmd = new SqliteCommand(sql, m_conn))
                 {
                     cmd.Parameters.Add(new SqliteParameter(":RegionUUID", Util.ToRawUuidString(regionID)));
 
@@ -445,14 +436,12 @@ namespace OpenSim.Framework.Data.SQLite
                         else
                         {
                             MainLog.Instance.Verbose("DATASTORE", "No terrain found for region");
-                            conn.Close();
                             return null;
                         }
 
                         MainLog.Instance.Verbose("DATASTORE", "Loaded terrain revision r" + rev.ToString());
                     }
                 }
-                conn.Close();
                 return terret;
             }
         }
@@ -461,21 +450,17 @@ namespace OpenSim.Framework.Data.SQLite
         {
             lock (ds)
             {
-                SqliteConnection conn = new SqliteConnection(m_connectionString);
-                conn.Open();
-
-                using (SqliteCommand cmd = new SqliteCommand("delete from land where UUID=:UUID", conn))
+                using (SqliteCommand cmd = new SqliteCommand("delete from land where UUID=:UUID", m_conn))
                 {
                     cmd.Parameters.Add(new SqliteParameter(":UUID", Util.ToRawUuidString(globalID)));
                     cmd.ExecuteNonQuery();
                 }
 
-                using (SqliteCommand cmd = new SqliteCommand("delete from landaccesslist where LandUUID=:UUID", conn))
+                using (SqliteCommand cmd = new SqliteCommand("delete from landaccesslist where LandUUID=:UUID", m_conn))
                 {
                     cmd.Parameters.Add(new SqliteParameter(":UUID", Util.ToRawUuidString(globalID)));
                     cmd.ExecuteNonQuery();
                 }
-                conn.Close();
             }
         }
 
@@ -483,8 +468,6 @@ namespace OpenSim.Framework.Data.SQLite
         {
             lock (ds)
             {
-                SqliteConnection conn = new SqliteConnection(m_connectionString);
-                conn.Open();
                 DataTable land = ds.Tables["land"];
                 DataTable landaccesslist = ds.Tables["landaccesslist"];
 
@@ -501,7 +484,7 @@ namespace OpenSim.Framework.Data.SQLite
                 }
 
                 using (
-                    SqliteCommand cmd = new SqliteCommand("delete from landaccesslist where LandUUID=:LandUUID", conn))
+                    SqliteCommand cmd = new SqliteCommand("delete from landaccesslist where LandUUID=:LandUUID", m_conn))
                 {
                     cmd.Parameters.Add(new SqliteParameter(":LandUUID", Util.ToRawUuidString(parcel.landData.globalID)));
                     cmd.ExecuteNonQuery();
@@ -513,7 +496,6 @@ namespace OpenSim.Framework.Data.SQLite
                     fillLandAccessRow(newAccessRow, entry, parcel.landData.globalID);
                     landaccesslist.Rows.Add(newAccessRow);
                 }
-                conn.Close();
             }
 
             Commit();
