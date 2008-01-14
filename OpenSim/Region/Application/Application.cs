@@ -90,16 +90,19 @@ namespace OpenSim
             // TODO: Add config option to allow users to turn off error reporting
             // TODO: Post error report (disabled for now)
             
-                string msg = "";
+            string msg = "";
             msg += "\r\n";
-            msg += "APPLICATION EXCEPTION DETECTED\r\n";
+            msg += "APPLICATION EXCEPTION DETECTED: " + e.ToString() + "\r\n";
             msg += "\r\n";
-            msg += "Application is terminating: " + e.IsTerminating.ToString() + "\r\n";
-            if (e.IsTerminating)
-                Console.WriteLine(msg);
 
-            msg += "Exception:";
-            msg += e.ExceptionObject.ToString();
+            msg += "Exception: " + e.ExceptionObject.ToString() + "\r\n";
+            
+            msg += "\r\n";
+            msg += "Application is terminating: " + e.IsTerminating.ToString() + "\r\n";            
+
+            // Do we not always want to see exception messages?
+//            if (e.IsTerminating)
+                MainLog.Instance.Error("APPLICATION", msg);            
 
             // Try to post errormessage to an URL
             try
