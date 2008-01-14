@@ -57,7 +57,6 @@ namespace OpenSim.Framework.Data.SQLite
         {
             m_conn = new SqliteConnection("URI=file:" + dbfile + ",version=3");
             m_conn.Open();
-
             TestTables(m_conn);
             return;
         }
@@ -70,13 +69,15 @@ namespace OpenSim.Framework.Data.SQLite
                 cmd.Parameters.Add(new SqliteParameter(":UUID", uuid.UUID.ToString()));
                 using (IDataReader reader = cmd.ExecuteReader()) 
                 {
-                    reader.Read();
-                    if (reader != null) 
+                    if (reader.Read())
                     {
-                        return buildAsset(reader);
+                        AssetBase asset = buildAsset(reader);
+                        reader.Close();
+                        return asset;
                     }
                     else
                     {
+                        reader.Close();
                         return null;
                     }
                 }
@@ -85,8 +86,10 @@ namespace OpenSim.Framework.Data.SQLite
 
         public void CreateAsset(AssetBase asset)
         {
+            MainLog.Instance.Verbose("SQLITE", "Creating Asset " + asset.FullID.UUID.ToString());
             if (ExistsAsset(asset.FullID))
             {
+                MainLog.Instance.Verbose("SQLITE", "Asset exists, updating instead.  You should fix the caller for this!");
                 UpdateAsset(asset);
             }
             else 
@@ -140,7 +143,23 @@ namespace OpenSim.Framework.Data.SQLite
 
         public bool ExistsAsset(LLUUID uuid)
         {
-            return (FetchAsset(uuid) != null);
+            using (SqliteCommand cmd = new SqliteCommand(SelectAssetSQL, m_conn))
+            {
+                cmd.Parameters.Add(new SqliteParameter(":UUID", uuid.UUID.ToString()));
+                using (IDataReader reader = cmd.ExecuteReader()) 
+                {
+                    if(reader.Read())
+                    {
+                        reader.Close();
+                        return true;
+                    }
+                    else 
+                    {
+                        reader.Close();
+                        return false;
+                    }
+                }
+            }
         }
 
         public void DeleteAsset(LLUUID uuid)
