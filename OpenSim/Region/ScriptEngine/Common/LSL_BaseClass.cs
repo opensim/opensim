@@ -2158,8 +2158,8 @@ namespace OpenSim.Region.ScriptEngine.Common
         public const double SQRT2 = 1.414213538f;
 
         // Can not be public const?
-        public vector ZERO_VECTOR = new vector(0, 0, 0);
-        public rotation ZERO_ROTATION = new rotation(0, 0, 0, 0);
+        public vector ZERO_VECTOR = new vector(0.0, 0.0, 0.0);
+        public rotation ZERO_ROTATION = new rotation(0.0, 0, 0.0, 1.0);
 
     }
 }
