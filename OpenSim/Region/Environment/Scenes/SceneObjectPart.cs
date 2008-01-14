@@ -153,12 +153,65 @@ namespace OpenSim.Region.Environment.Scenes
         //unkown if this will be kept, added as a way of removing the group position from the group class
         protected LLVector3 m_groupPosition;
 
+        public LLVector3 GetWorldPosition()
+        {
+
+            Quaternion parentRot = new Quaternion(
+            ParentGroup.RootPart.RotationOffset.W,
+            ParentGroup.RootPart.RotationOffset.X,
+            ParentGroup.RootPart.RotationOffset.Y,
+            ParentGroup.RootPart.RotationOffset.Z);
+
+            Vector3 axPos
+                = new Vector3(
+                    OffsetPosition.X,
+                    OffsetPosition.Y,
+                    OffsetPosition.Z);
+
+            axPos = parentRot * axPos;
+            LLVector3 translationOffsetPosition = new LLVector3(axPos.x, axPos.y, axPos.z);
+            return GroupPosition + translationOffsetPosition;
+
+            //return (new LLVector3(axiomPos.x, axiomPos.y, axiomPos.z) + AbsolutePosition);
+        }
+
+        public LLQuaternion GetWorldRotation()
+        {
+            Quaternion newRot;
+            
+            if (this.LinkNum == 0)
+            {
+                newRot = new Quaternion(RotationOffset.W,RotationOffset.X,RotationOffset.Y,RotationOffset.Z);
+               
+            }
+            else
+            {
+                Quaternion parentRot = new Quaternion(
+                ParentGroup.RootPart.RotationOffset.W,
+                ParentGroup.RootPart.RotationOffset.X,
+                ParentGroup.RootPart.RotationOffset.Y,
+                ParentGroup.RootPart.RotationOffset.Z);
+
+                Quaternion oldRot
+                    = new Quaternion(
+                        RotationOffset.W,
+                        RotationOffset.X,
+                        RotationOffset.Y,
+                        RotationOffset.Z);
+
+                newRot = parentRot * oldRot;
+            }
+            return new LLQuaternion(newRot.x, newRot.y, newRot.z, newRot.w);
+
+            //return new LLQuaternion(axiomPartRotation.x, axiomPartRotation.y, axiomPartRotation.z, axiomPartRotation.w);
+
+        }
 
         public LLVector3 GroupPosition
         {
             get
             {
-                if (PhysActor != null)
+                if (PhysActor != null && ParentID == 0)
                 {
                     m_groupPosition.X = PhysActor.Position.X;
                     m_groupPosition.Y = PhysActor.Position.Y;
@@ -167,23 +220,35 @@ namespace OpenSim.Region.Environment.Scenes
                 return m_groupPosition;
             }
             set
-            {
+            {   
+                m_groupPosition = value;
+
                 if (PhysActor != null)
                 {
                     try
                     {
-                        //lock (m_parentGroup.Scene.SyncRoot)
-                        //{
-                        PhysActor.Position = new PhysicsVector(value.X, value.Y, value.Z);
+
+                        if (ParentID == 0)
+                        {
+                            PhysActor.Position = new PhysicsVector(value.X, value.Y, value.Z);
+
+                        }
+                        else
+                        {
+                            LLVector3 resultingposition = GetWorldPosition();
+                            PhysActor.Position = new PhysicsVector(resultingposition.X, resultingposition.Y, resultingposition.Z);
+                            LLQuaternion resultingrot = GetWorldRotation();
+                            PhysActor.Orientation = new Quaternion(resultingrot.W, resultingrot.X, resultingrot.Y, resultingrot.Z);
+                        }
+
                         m_parentGroup.Scene.PhysicsScene.AddPhysicsActorTaint(PhysActor);
-                        //}
                     }
                     catch (Exception e)
                     {
                         Console.WriteLine(e.Message);
                     }
                 }
-                m_groupPosition = value;
+               
             }
         }
 
@@ -192,7 +257,18 @@ namespace OpenSim.Region.Environment.Scenes
         public LLVector3 OffsetPosition
         {
             get { return m_offsetPosition; }
-            set { m_offsetPosition = value; }
+            set { m_offsetPosition = value;
+            try
+            {
+                // Hack to get the child prim to update positions in the physics engine
+                ParentGroup.AbsolutePosition = ParentGroup.AbsolutePosition;
+            }
+            catch (System.NullReferenceException)
+            {
+                // Ignore, and skip over.
+            }
+            //MainLog.Instance.Verbose("PART", "OFFSET:" + m_offsetPosition, ToString());
+            }
         }
 
         public LLVector3 AbsolutePosition
@@ -206,7 +282,7 @@ namespace OpenSim.Region.Environment.Scenes
         {
             get
             {
-                if (PhysActor != null)
+                if (PhysActor != null && ParentID == 0)
                 {
                     if (PhysActor.Orientation.x != 0 || PhysActor.Orientation.y != 0
                         || PhysActor.Orientation.z != 0 || PhysActor.Orientation.w != 0)
@@ -221,13 +297,25 @@ namespace OpenSim.Region.Environment.Scenes
             }
             set
             {
+                m_rotationOffset = value;
+
                 if (PhysActor != null)
                 {
                     try
                     {
                         //lock (Scene.SyncRoot)
                         //{
-                        PhysActor.Orientation = new Quaternion(value.W, value.X, value.Y, value.Z);
+                        if (ParentID == 0)
+                        {
+                            PhysActor.Orientation = new Quaternion(value.W, value.X, value.Y, value.Z);
+                            //MainLog.Instance.Verbose("PART", "RO1:" + PhysActor.Orientation.ToString());
+                        }
+                        else
+                        {
+                            LLQuaternion resultingrotation = GetWorldRotation();
+                            PhysActor.Orientation = new Quaternion(resultingrotation.W, resultingrotation.X, resultingrotation.Y, resultingrotation.Z);
+                            //MainLog.Instance.Verbose("PART", "RO2:" + PhysActor.Orientation.ToString());
+                        }
                         m_parentGroup.Scene.PhysicsScene.AddPhysicsActorTaint(PhysActor);
                         //}
                     }
@@ -236,7 +324,7 @@ namespace OpenSim.Region.Environment.Scenes
                         Console.WriteLine(ex.Message);
                     }
                 }
-                m_rotationOffset = value;
+                
             }
         }
 

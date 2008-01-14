@@ -170,6 +170,7 @@ namespace OpenSim.Region.Environment.Scenes
             foreach (SceneObjectPart part in sceneObject.Children.Values)
             {
                 part.LocalID = m_parentScene.PrimIDAllocate();
+                
             }
             sceneObject.UpdateParentIDs();
             AddEntity(sceneObject);

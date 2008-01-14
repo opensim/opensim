@@ -587,7 +587,9 @@ namespace OpenSim.Region.Physics.OdePlugin
         {
             get { return _position; }
 
-            set { _position = value; }
+            set { _position = value; 
+                //OpenSim.Framework.Console.MainLog.Instance.Verbose("PHYSICS", _position.ToString());
+            }
         }
 
         public override PhysicsVector Size

@@ -146,13 +146,13 @@ namespace OpenSim.Region.Environment.Scenes
                         part.GroupPosition = val;
                     }
                 }
-                if (m_rootPart.PhysActor != null)
-                {
-                    m_rootPart.PhysActor.Position =
-                        new PhysicsVector(m_rootPart.GroupPosition.X, m_rootPart.GroupPosition.Y,
-                                          m_rootPart.GroupPosition.Z);
-                    m_scene.PhysicsScene.AddPhysicsActorTaint(m_rootPart.PhysActor);
-                }
+                //if (m_rootPart.PhysActor != null)
+                //{
+                    //m_rootPart.PhysActor.Position =
+                        //new PhysicsVector(m_rootPart.GroupPosition.X, m_rootPart.GroupPosition.Y,
+                                          //m_rootPart.GroupPosition.Z);
+                    //m_scene.PhysicsScene.AddPhysicsActorTaint(m_rootPart.PhysActor);
+                //}
             }
         }
 
@@ -844,7 +844,7 @@ namespace OpenSim.Region.Environment.Scenes
             }
             return false;
         }
-
+        
         #endregion
 
         #region Packet Handlers
@@ -881,12 +881,12 @@ namespace OpenSim.Region.Environment.Scenes
             m_parts.Add(linkPart.UUID, linkPart);
             linkPart.SetParent(this);
 
-            if (linkPart.PhysActor != null)
-            {
-                m_scene.PhysicsScene.RemovePrim(linkPart.PhysActor);
+            //if (linkPart.PhysActor != null)
+            //{
+               // m_scene.PhysicsScene.RemovePrim(linkPart.PhysActor);
 
-                linkPart.PhysActor = null;
-            }
+                //linkPart.PhysActor = null;
+            //}
 
             //TODO: rest of parts
             foreach (SceneObjectPart part in objectGroup.Children.Values)
@@ -902,6 +902,7 @@ namespace OpenSim.Region.Environment.Scenes
             m_scene.DeleteEntity(objectGroup.UUID);
 
             objectGroup.DeleteParts();
+            AbsolutePosition = AbsolutePosition;
             ScheduleGroupForFullUpdate();
         }
 
@@ -918,7 +919,7 @@ namespace OpenSim.Region.Environment.Scenes
             {
                 // Remove the part from this object
                 m_parts.Remove(linkPart.UUID);
-
+                linkPart.ParentID = 0;
                 // We need to reset the child part's position 
                 // ready for life as a separate object after being a part of another object
                 Quaternion parentRot
@@ -951,19 +952,19 @@ namespace OpenSim.Region.Environment.Scenes
                 // Add physics information back to delinked part if appropriate
                 // XXX This is messy and should be refactorable with the similar section in
                 // SceneObjectPart.UpdatePrimFlags()
-                if (m_rootPart.PhysActor != null)
-                {
-                    linkPart.PhysActor = m_scene.PhysicsScene.AddPrimShape(
-                        linkPart.Name,
-                        linkPart.Shape,
-                        new PhysicsVector(linkPart.AbsolutePosition.X, linkPart.AbsolutePosition.Y,
-                                          linkPart.AbsolutePosition.Z),
-                        new PhysicsVector(linkPart.Scale.X, linkPart.Scale.Y, linkPart.Scale.Z),
-                        new Quaternion(linkPart.RotationOffset.W, linkPart.RotationOffset.X,
-                                       linkPart.RotationOffset.Y, linkPart.RotationOffset.Z),
-                        m_rootPart.PhysActor.IsPhysical);
-                    m_rootPart.DoPhysicsPropertyUpdate(m_rootPart.PhysActor.IsPhysical, true);
-                }
+                //if (m_rootPart.PhysActor != null)
+                //{
+                    //linkPart.PhysActor = m_scene.PhysicsScene.AddPrimShape(
+                        //linkPart.Name,
+                        //linkPart.Shape,
+                        //new PhysicsVector(linkPart.AbsolutePosition.X, linkPart.AbsolutePosition.Y,
+                                          //linkPart.AbsolutePosition.Z),
+                        //new PhysicsVector(linkPart.Scale.X, linkPart.Scale.Y, linkPart.Scale.Z),
+                        //new Quaternion(linkPart.RotationOffset.W, linkPart.RotationOffset.X,
+                                       //linkPart.RotationOffset.Y, linkPart.RotationOffset.Z),
+                        //m_rootPart.PhysActor.IsPhysical);
+                    //m_rootPart.DoPhysicsPropertyUpdate(m_rootPart.PhysActor.IsPhysical, true);
+                //}
 
                 SceneObjectGroup objectGroup = new SceneObjectGroup(m_scene, m_regionHandle, linkPart);
 
@@ -1139,7 +1140,18 @@ namespace OpenSim.Region.Environment.Scenes
             SceneObjectPart part = GetChildPart(localID);
             if (part != null)
             {
-                part.UpdatePrimFlags(type, inUse, data);
+                // If we have children
+                if (m_parts.Count > 1)
+                {
+                    foreach (SceneObjectPart parts in m_parts.Values)
+                    {
+                        parts.UpdatePrimFlags(type, inUse, data);
+                    }
+                }
+                else
+                {
+                    part.UpdatePrimFlags(type, inUse, data);
+                }
             }
         }
 
@@ -1639,7 +1651,17 @@ namespace OpenSim.Region.Environment.Scenes
 
         public void ApplyPhysics()
         {
-            m_rootPart.ApplyPhysics();
+            if (m_parts.Count > 1)
+            {
+                foreach (SceneObjectPart parts in m_parts.Values)
+                {
+                    parts.ApplyPhysics();
+                }
+            }
+            else
+            {
+                m_rootPart.ApplyPhysics();
+            }
         }
     }
 }
