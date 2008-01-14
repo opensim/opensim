@@ -41,7 +41,6 @@ namespace TribalMedia.Framework.Data
         }
 
         public abstract DbConnection GetNewConnection();
-
         public abstract string CreateParamName(string fieldName);
 
         public DbCommand CreateSelectCommand(TableMapper mapper, DbConnection connection, string fieldName, object key)
@@ -67,7 +66,7 @@ namespace TribalMedia.Framework.Data
 
             DbParameter param = command.CreateParameter();
             param.ParameterName = keyFieldParamName;
-            param.Value = FieldMapper.ConvertToDbType(key);
+            param.Value = ConvertToDbType(key);
             command.Parameters.Add(param);
 
             return String.Format("{0}={1}", fieldName, keyFieldParamName);
@@ -130,6 +129,11 @@ namespace TribalMedia.Framework.Data
                               String.Join(", ", paramNames.ToArray()));
 
             return command;
+        }
+
+        public virtual object ConvertToDbType(object value)
+        {
+            return value;
         }
     }
 }

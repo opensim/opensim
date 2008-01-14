@@ -62,13 +62,13 @@ namespace TribalMedia.Framework.Data
             get { return m_tableName; }
         }
 
-        private Schema m_schema;
+        protected Schema m_schema;
         public Schema Schema
         {
             get { return m_schema; }
         }
 
-        private FieldMapper m_keyFieldMapper;
+        protected FieldMapper m_keyFieldMapper;
         public FieldMapper KeyFieldMapper
         {
             get { return m_keyFieldMapper; }
@@ -103,6 +103,11 @@ namespace TribalMedia.Framework.Data
         public DbCommand CreateUpdateCommand(DbConnection connection, object rowMapper, object primaryKey)
         {
             return m_connectionPool.CreateUpdateCommand(this, connection, rowMapper, primaryKey);
+        }
+
+        public object ConvertToDbType(object value)
+        {
+            return m_connectionPool.ConvertToDbType(value);
         }
     }
 }

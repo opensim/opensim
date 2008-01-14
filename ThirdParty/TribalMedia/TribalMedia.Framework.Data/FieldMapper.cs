@@ -78,52 +78,18 @@ namespace TribalMedia.Framework.Data
             command.Parameters.Add(param);
         }
 
-        public void ExpandField<TObj>(TObj obj, DbCommand command, List<string> fieldNames)
+        public virtual void ExpandField<TObj>(TObj obj, DbCommand command, List<string> fieldNames)
         {
             string fieldName = FieldName;
             object value = GetParamValue(obj);
 
-            //if (ValueType == typeof (Vector3))
-            //{
-            //    Vector3 vector = (Vector3) value;
-
-            //    RawAddParam(command, fieldNames, fieldName + "X", vector.X);
-            //    RawAddParam(command, fieldNames, fieldName + "Y", vector.Y);
-            //    RawAddParam(command, fieldNames, fieldName + "Z", vector.Z);
-            //}
-            //else if (ValueType == typeof (Quaternion))
-            //{
-            //    Quaternion quaternion = (Quaternion) value;
-
-            //    RawAddParam(command, fieldNames, fieldName + "X", quaternion.X);
-            //    RawAddParam(command, fieldNames, fieldName + "Y", quaternion.Y);
-            //    RawAddParam(command, fieldNames, fieldName + "Z", quaternion.Z);
-            //    RawAddParam(command, fieldNames, fieldName + "W", quaternion.W);
-            //}
-            //else
-            //{
-                RawAddParam(command, fieldNames, fieldName, ConvertToDbType(value));
-            //}
+            RawAddParam(command, fieldNames, fieldName, m_tableMapper.ConvertToDbType(value));
         }
 
-        protected object GetValue(DataReader reader)
+        protected virtual object GetValue(DataReader reader)
         {
             object value;
-            //if (ValueType == typeof (Vector3))
-            //{
-            //    value = reader.GetVector(m_fieldName);
-            //}
-            //else if (ValueType == typeof (Quaternion))
-            //{
-            //    value = reader.GetQuaternion(m_fieldName);
-            //}
-            //else 
-            //if (ValueType == typeof(UID))
-            //{
-            //    Guid guid = reader.GetGuid(m_fieldName);
-            //    value = new UID(guid);
-            //}
-            //else 
+
             if (ValueType == typeof(Guid))
             {
                 value = reader.GetGuid(m_fieldName);
@@ -159,16 +125,6 @@ namespace TribalMedia.Framework.Data
             {
                 value = default(ValueType);
             }
-
-            return value;
-        }
-
-        public static object ConvertToDbType(object value)
-        {
-            //if (value is UID)
-            //{
-            //    return (value as UID).UUID.ToString();
-            //}
 
             return value;
         }

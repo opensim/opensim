@@ -61,29 +61,6 @@ namespace TribalMedia.Framework.Data
             return (sbyte) m_source.GetInt16(m_source.GetOrdinal(name));
         }
 
-        //public Vector3 GetVector(string s)
-        //{
-        //    float x = GetFloat(s + "X");
-        //    float y = GetFloat(s + "Y");
-        //    float z = GetFloat(s + "Z");
-
-        //    Vector3 vector = new Vector3(x, y, z);
-
-        //    return vector;
-        //}
-
-        //public Quaternion GetQuaternion(string s)
-        //{
-        //    float x = GetFloat(s + "X");
-        //    float y = GetFloat(s + "Y");
-        //    float z = GetFloat(s + "Z");
-        //    float w = GetFloat(s + "W");
-
-        //    Quaternion quaternion = new Quaternion(x, y, z, w);
-
-        //    return quaternion;
-        //}
-
         public float GetFloat(string name)
         {
             return m_source.GetFloat(m_source.GetOrdinal(name));
@@ -134,7 +111,7 @@ namespace TribalMedia.Framework.Data
             return m_source.Read();
         }
 
-        internal Guid GetGuid(string name)
+        public Guid GetGuid(string name)
         {
             string guidString = GetString(name);
             if (String.IsNullOrEmpty(guidString))
