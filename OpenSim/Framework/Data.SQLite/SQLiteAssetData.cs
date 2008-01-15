@@ -66,7 +66,7 @@ namespace OpenSim.Framework.Data.SQLite
             
             using (SqliteCommand cmd = new SqliteCommand(SelectAssetSQL, m_conn))
             {
-                cmd.Parameters.Add(new SqliteParameter(":UUID", uuid.UUID.ToString()));
+                cmd.Parameters.Add(new SqliteParameter(":UUID", Util.ToRawUuidString(uuid)));
                 using (IDataReader reader = cmd.ExecuteReader()) 
                 {
                     if (reader.Read())
@@ -86,7 +86,7 @@ namespace OpenSim.Framework.Data.SQLite
 
         public void CreateAsset(AssetBase asset)
         {
-            MainLog.Instance.Verbose("SQLITE", "Creating Asset " + asset.FullID.UUID.ToString());
+            MainLog.Instance.Verbose("SQLITE", "Creating Asset " + Util.ToRawUuidString(asset.FullID));
             if (ExistsAsset(asset.FullID))
             {
                 MainLog.Instance.Verbose("SQLITE", "Asset exists, updating instead.  You should fix the caller for this!");
@@ -96,7 +96,7 @@ namespace OpenSim.Framework.Data.SQLite
             {
                 using (SqliteCommand cmd = new SqliteCommand(InsertAssetSQL, m_conn))
                 {
-                    cmd.Parameters.Add(new SqliteParameter(":UUID", asset.FullID.UUID.ToString()));
+                    cmd.Parameters.Add(new SqliteParameter(":UUID", Util.ToRawUuidString(asset.FullID)));
                     cmd.Parameters.Add(new SqliteParameter(":Name", asset.Name));
                     cmd.Parameters.Add(new SqliteParameter(":Description", asset.Description));
                     cmd.Parameters.Add(new SqliteParameter(":Type", asset.Type));
@@ -116,7 +116,7 @@ namespace OpenSim.Framework.Data.SQLite
             
             using (SqliteCommand cmd = new SqliteCommand(UpdateAssetSQL, m_conn))
             {
-                cmd.Parameters.Add(new SqliteParameter(":UUID", asset.FullID.UUID.ToString()));
+                cmd.Parameters.Add(new SqliteParameter(":UUID", Util.ToRawUuidString(asset.FullID)));
                 cmd.Parameters.Add(new SqliteParameter(":Name", asset.Name));
                 cmd.Parameters.Add(new SqliteParameter(":Description", asset.Description));
                 cmd.Parameters.Add(new SqliteParameter(":Type", asset.Type));
@@ -145,7 +145,7 @@ namespace OpenSim.Framework.Data.SQLite
         {
             using (SqliteCommand cmd = new SqliteCommand(SelectAssetSQL, m_conn))
             {
-                cmd.Parameters.Add(new SqliteParameter(":UUID", uuid.UUID.ToString()));
+                cmd.Parameters.Add(new SqliteParameter(":UUID", Util.ToRawUuidString(uuid)));
                 using (IDataReader reader = cmd.ExecuteReader()) 
                 {
                     if(reader.Read())
@@ -166,7 +166,7 @@ namespace OpenSim.Framework.Data.SQLite
         {
             using (SqliteCommand cmd = new SqliteCommand(DeleteAssetSQL, m_conn))
             {
-                cmd.Parameters.Add(new SqliteParameter(":UUID", uuid.UUID.ToString()));
+                cmd.Parameters.Add(new SqliteParameter(":UUID", Util.ToRawUuidString(uuid)));
                 
                 cmd.ExecuteNonQuery();
             }
