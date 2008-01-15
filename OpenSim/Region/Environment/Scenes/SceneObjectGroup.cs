@@ -249,7 +249,7 @@ namespace OpenSim.Region.Environment.Scenes
 
             AttachToBackup();
 
-            ApplyPhysics();
+            ApplyPhysics(scene.m_physicalPrim);
 
             ScheduleGroupForFullUpdate();
         }
@@ -302,7 +302,7 @@ namespace OpenSim.Region.Environment.Scenes
 
             AttachToBackup();
 
-            ApplyPhysics();
+            ApplyPhysics(scene.m_physicalPrim);
 
             ScheduleGroupForFullUpdate();
         }
@@ -426,7 +426,7 @@ namespace OpenSim.Region.Environment.Scenes
 
             AttachToBackup();
 
-            ApplyPhysics();
+            //ApplyPhysics(scene.m_physicalPrim);
         }
 
         /// <summary>
@@ -1577,6 +1577,12 @@ namespace OpenSim.Region.Environment.Scenes
             }
         }
 
+        public void ResetChildPrimPhysicsPositions()
+        {
+            AbsolutePosition = AbsolutePosition;
+            HasChanged = false;
+        }
+
         public LLUUID GetPartsFullID(uint localID)
         {
             SceneObjectPart part = GetChildPart(localID);
@@ -1649,18 +1655,22 @@ namespace OpenSim.Region.Environment.Scenes
             Text = text;
         }
 
-        public void ApplyPhysics()
+        public void ApplyPhysics(bool m_physicalPrim)
         {
             if (m_parts.Count > 1)
             {
                 foreach (SceneObjectPart parts in m_parts.Values)
                 {
-                    parts.ApplyPhysics();
+                    parts.ApplyPhysics(m_rootPart.ObjectFlags, m_physicalPrim);
+                    
+                    // Hack to get the physics scene geometries in the right spot
+                    ResetChildPrimPhysicsPositions();
+                   
                 }
             }
             else
             {
-                m_rootPart.ApplyPhysics();
+                m_rootPart.ApplyPhysics(m_rootPart.ObjectFlags, m_physicalPrim);
             }
         }
     }

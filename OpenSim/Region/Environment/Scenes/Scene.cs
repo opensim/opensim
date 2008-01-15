@@ -908,17 +908,8 @@ namespace OpenSim.Region.Environment.Scenes
                 SceneObjectPart rootPart = group.GetChildPart(group.UUID);
                 rootPart.ApplySanePermissions();
 
-                bool UsePhysics = (((rootPart.ObjectFlags & (uint) LLObject.ObjectFlags.Physics) > 0) && m_physicalPrim);
-                if ((rootPart.ObjectFlags & (uint) LLObject.ObjectFlags.Phantom) == 0)
-                    rootPart.PhysActor = PhysicsScene.AddPrimShape(
-                        rootPart.Name,
-                        rootPart.Shape,
-                        new PhysicsVector(rootPart.AbsolutePosition.X, rootPart.AbsolutePosition.Y,
-                                          rootPart.AbsolutePosition.Z),
-                        new PhysicsVector(rootPart.Scale.X, rootPart.Scale.Y, rootPart.Scale.Z),
-                        new Quaternion(rootPart.RotationOffset.W, rootPart.RotationOffset.X,
-                                       rootPart.RotationOffset.Y, rootPart.RotationOffset.Z), UsePhysics);
-                rootPart.DoPhysicsPropertyUpdate(UsePhysics, true);
+                group.ApplyPhysics(m_physicalPrim);
+                //rootPart.DoPhysicsPropertyUpdate(UsePhysics, true);
             }
             
             MainLog.Instance.Verbose("SCENE", "Loaded " + PrimsFromDB.Count.ToString() + " SceneObject(s)");
@@ -1054,19 +1045,7 @@ namespace OpenSim.Region.Environment.Scenes
                 //rootPart.ObjectFlags += (uint)LLObject.ObjectFlags.Phantom;
             }
             // if not phantom, add to physics
-            bool UsePhysics = (((rootPart.ObjectFlags & (uint) LLObject.ObjectFlags.Physics) > 0) && m_physicalPrim);
-            if ((rootPart.ObjectFlags & (uint) LLObject.ObjectFlags.Phantom) == 0)
-            {
-                rootPart.PhysActor =
-                    PhysicsScene.AddPrimShape(
-                        rootPart.Name,
-                        rootPart.Shape,
-                        new PhysicsVector(pos.X, pos.Y, pos.Z),
-                        new PhysicsVector(shape.Scale.X, shape.Scale.Y, shape.Scale.Z),
-                        new Quaternion(), UsePhysics);
-                // subscribe to physics events.
-                rootPart.DoPhysicsPropertyUpdate(UsePhysics, true);
-            }
+            sceneOb.ApplyPhysics(m_physicalPrim);
         }
 
         public void AddTree(LLVector3 scale, LLQuaternion rotation, LLVector3 position,

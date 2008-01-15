@@ -261,7 +261,7 @@ namespace OpenSim.Region.Environment.Scenes
             try
             {
                 // Hack to get the child prim to update positions in the physics engine
-                ParentGroup.AbsolutePosition = ParentGroup.AbsolutePosition;
+                ParentGroup.ResetChildPrimPhysicsPositions();
             }
             catch (System.NullReferenceException)
             {
@@ -646,14 +646,17 @@ namespace OpenSim.Region.Environment.Scenes
             return newobject;
         }
 
-        public void ApplyPhysics()
+        public void ApplyPhysics(uint rootObjectFlags, bool m_physicalPrim)
         {
-            bool isPhysical = ((ObjectFlags & (uint) LLObject.ObjectFlags.Physics) != 0);
-            bool isPhantom = ((ObjectFlags & (uint) LLObject.ObjectFlags.Phantom) != 0);
 
-            bool usePhysics = isPhysical && !isPhantom;
+            bool isPhysical = (((rootObjectFlags & (uint) LLObject.ObjectFlags.Physics) != 0) && m_physicalPrim);
+            bool isPhantom = ((rootObjectFlags & (uint) LLObject.ObjectFlags.Phantom) != 0);
 
-            if (usePhysics)
+            // Added clarification..   since A rigid body is an object that you can kick around, etc.
+            bool RigidBody = isPhysical && !isPhantom;
+
+            // The only time the physics scene shouldn't know about the prim is if it's phantom
+            if (!isPhantom)
             {
                 PhysActor = m_parentGroup.Scene.PhysicsScene.AddPrimShape(
                     Name,
@@ -662,10 +665,11 @@ namespace OpenSim.Region.Environment.Scenes
                                       AbsolutePosition.Z),
                     new PhysicsVector(Scale.X, Scale.Y, Scale.Z),
                     new Quaternion(RotationOffset.W, RotationOffset.X,
-                                   RotationOffset.Y, RotationOffset.Z), usePhysics);
-            }
+                                   RotationOffset.Y, RotationOffset.Z), RigidBody);
 
-            DoPhysicsPropertyUpdate(usePhysics, true);
+
+                DoPhysicsPropertyUpdate(RigidBody, true);
+            }
         }
 
         public void ApplyNextOwnerPermissions()
