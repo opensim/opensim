@@ -917,9 +917,15 @@ namespace OpenSim.Region.Environment.Scenes
 
             if (null != linkPart)
             {
+
                 // Remove the part from this object
                 m_parts.Remove(linkPart.UUID);
                 linkPart.ParentID = 0;
+
+                if (linkPart.PhysActor != null)
+                {
+                    m_scene.PhysicsScene.RemovePrim(linkPart.PhysActor);
+                }
                 // We need to reset the child part's position 
                 // ready for life as a separate object after being a part of another object
                 Quaternion parentRot
