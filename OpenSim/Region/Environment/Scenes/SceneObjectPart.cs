@@ -153,6 +153,11 @@ namespace OpenSim.Region.Environment.Scenes
         //unkown if this will be kept, added as a way of removing the group position from the group class
         protected LLVector3 m_groupPosition;
 
+        /// <summary>
+        /// Method for a prim to get it's world position from the group.
+        /// Remember, the Group Position simply gives the position of the group itself
+        /// </summary>
+        /// <returns>A Linked Child Prim objects position in world</returns>
         public LLVector3 GetWorldPosition()
         {
 
@@ -175,6 +180,10 @@ namespace OpenSim.Region.Environment.Scenes
             //return (new LLVector3(axiomPos.x, axiomPos.y, axiomPos.z) + AbsolutePosition);
         }
 
+        /// <summary>
+        /// Gets the rotation of this prim offset by the group rotation
+        /// </summary>
+        /// <returns></returns>
         public LLQuaternion GetWorldRotation()
         {
             Quaternion newRot;
@@ -211,6 +220,7 @@ namespace OpenSim.Region.Environment.Scenes
         {
             get
             {
+                // If this is a linkset, we don't want the physics engine mucking up our group position here.
                 if (PhysActor != null && ParentID == 0)
                 {
                     m_groupPosition.X = PhysActor.Position.X;
@@ -228,6 +238,7 @@ namespace OpenSim.Region.Environment.Scenes
                     try
                     {
 
+                        // Root prim actually goes at Position
                         if (ParentID == 0)
                         {
                             PhysActor.Position = new PhysicsVector(value.X, value.Y, value.Z);
@@ -235,12 +246,16 @@ namespace OpenSim.Region.Environment.Scenes
                         }
                         else
                         {
+                            
+                            // To move the child prim in respect to the group position and rotation we have to calculate
+
                             LLVector3 resultingposition = GetWorldPosition();
                             PhysActor.Position = new PhysicsVector(resultingposition.X, resultingposition.Y, resultingposition.Z);
                             LLQuaternion resultingrot = GetWorldRotation();
                             PhysActor.Orientation = new Quaternion(resultingrot.W, resultingrot.X, resultingrot.Y, resultingrot.Z);
                         }
-
+                        
+                        // Tell the physics engines that this prim changed.
                         m_parentGroup.Scene.PhysicsScene.AddPhysicsActorTaint(PhysActor);
                     }
                     catch (Exception e)
@@ -260,7 +275,7 @@ namespace OpenSim.Region.Environment.Scenes
             set { m_offsetPosition = value;
             try
             {
-                // Hack to get the child prim to update positions in the physics engine
+                // Hack to get the child prim to update world positions in the physics engine
                 ParentGroup.ResetChildPrimPhysicsPositions();
             }
             catch (System.NullReferenceException)
@@ -282,6 +297,7 @@ namespace OpenSim.Region.Environment.Scenes
         {
             get
             {
+                // We don't want the physics engine mucking up the rotations in a linkset
                 if (PhysActor != null && ParentID == 0)
                 {
                     if (PhysActor.Orientation.x != 0 || PhysActor.Orientation.y != 0
@@ -303,8 +319,7 @@ namespace OpenSim.Region.Environment.Scenes
                 {
                     try
                     {
-                        //lock (Scene.SyncRoot)
-                        //{
+                        // Root prim gets value directly
                         if (ParentID == 0)
                         {
                             PhysActor.Orientation = new Quaternion(value.W, value.X, value.Y, value.Z);
@@ -312,6 +327,7 @@ namespace OpenSim.Region.Environment.Scenes
                         }
                         else
                         {
+                            // Child prim we have to calculate it's world rotation
                             LLQuaternion resultingrotation = GetWorldRotation();
                             PhysActor.Orientation = new Quaternion(resultingrotation.W, resultingrotation.X, resultingrotation.Y, resultingrotation.Z);
                             //MainLog.Instance.Verbose("PART", "RO2:" + PhysActor.Orientation.ToString());
