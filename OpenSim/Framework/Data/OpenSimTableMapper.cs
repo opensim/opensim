@@ -3,9 +3,9 @@ using TribalMedia.Framework.Data;
 
 namespace OpenSim.Framework.Data
 {
-    public abstract class OpenSimTableMapper<TRowMapper, TPrimaryKey> : ObjectTableMapper<TRowMapper, TPrimaryKey>
+    public abstract class OpenSimTableMapper<TRowMapper, TPrimaryKey> : BaseTableMapper<TRowMapper, TPrimaryKey>
     {
-        public OpenSimTableMapper(DatabaseMapper database, string tableName) : base(database, tableName)
+        public OpenSimTableMapper(BaseDatabaseConnector database, string tableName) : base(database, tableName)
         {
         }
 

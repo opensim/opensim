@@ -30,17 +30,15 @@ using System.Data.Common;
 
 namespace TribalMedia.Framework.Data
 {
-    public delegate TField RowMapperGetAccessor<TRowMapper, TField>(TRowMapper rowMapper);
-
-    public delegate void RowMapperSetAccessor<TRowMapper, TField>(TRowMapper rowMapper, TField value);
+    //public delegate TField RowMapperGetAccessor<TRowMapper, TField>(TRowMapper rowMapper);
+    //public delegate void RowMapperSetAccessor<TRowMapper, TField>(TRowMapper rowMapper, TField value);
 
     public delegate TField ObjectGetAccessor<TObj, TField>(TObj obj);
-
     public delegate void ObjectSetAccessor<TObj, TField>(TObj obj, TField value);
 
-    public abstract class FieldMapper
+    public abstract class BaseFieldMapper
     {
-        private readonly TableMapper m_tableMapper;
+        private readonly BaseTableMapper m_tableMapper;
         private readonly string m_fieldName;
 
         public string FieldName
@@ -57,7 +55,7 @@ namespace TribalMedia.Framework.Data
 
         public abstract object GetParamValue(object obj);
 
-        public FieldMapper( TableMapper tableMapper, string fieldName, Type valueType)
+        public BaseFieldMapper(BaseTableMapper tableMapper, string fieldName, Type valueType)
         {
             m_fieldName = fieldName;
             m_valueType = valueType;
@@ -94,32 +92,32 @@ namespace TribalMedia.Framework.Data
             {
                 value = reader.GetGuid(m_fieldName);
             }
-            else if (ValueType == typeof (bool))
+            else if (ValueType == typeof(bool))
             {
                 uint boolVal = reader.GetUShort(m_fieldName);
                 value = (boolVal == 1);
             }
-            else 
-            if (ValueType == typeof (byte))
-            {
-                value = reader.GetByte(m_fieldName);
-            }
-            else if (ValueType == typeof (sbyte))
-            {
-                value = reader.GetSByte(m_fieldName);
-            }
-            else if (ValueType == typeof (ushort))
-            {
-                value = reader.GetUShort(m_fieldName);
-            }
-            else if (ValueType == typeof (byte[]))
-            {
-                value = reader.GetBytes(m_fieldName);
-            }
             else
-            {
-                value = reader.Get(m_fieldName);
-            }
+                if (ValueType == typeof(byte))
+                {
+                    value = reader.GetByte(m_fieldName);
+                }
+                else if (ValueType == typeof(sbyte))
+                {
+                    value = reader.GetSByte(m_fieldName);
+                }
+                else if (ValueType == typeof(ushort))
+                {
+                    value = reader.GetUShort(m_fieldName);
+                }
+                else if (ValueType == typeof(byte[]))
+                {
+                    value = reader.GetBytes(m_fieldName);
+                }
+                else
+                {
+                    value = reader.Get(m_fieldName);
+                }
 
             if (value is DBNull)
             {
@@ -130,51 +128,51 @@ namespace TribalMedia.Framework.Data
         }
     }
 
-    public class RowMapperField<TRowMapper, TField> : FieldMapper
-        where TRowMapper : RowMapper
-    {
-        private readonly RowMapperGetAccessor<TRowMapper, TField> m_fieldGetAccessor;
-        private readonly RowMapperSetAccessor<TRowMapper, TField> m_fieldSetAccessor;
+    //public class RowMapperField<TRowMapper, TField> : FieldMapper
+    //    where TRowMapper : RowMapper
+    //{
+    //    private readonly RowMapperGetAccessor<TRowMapper, TField> m_fieldGetAccessor;
+    //    private readonly RowMapperSetAccessor<TRowMapper, TField> m_fieldSetAccessor;
 
-        public override object GetParamValue(object obj)
-        {
-            return m_fieldGetAccessor((TRowMapper) obj);
-        }
+    //    public override object GetParamValue(object obj)
+    //    {
+    //        return m_fieldGetAccessor((TRowMapper) obj);
+    //    }
 
-        public override void SetPropertyFromReader(object mapper, DataReader reader)
-        {
-            object value;
+    //    public override void SetPropertyFromReader(object mapper, DataReader reader)
+    //    {
+    //        object value;
 
-            value = GetValue(reader);
+    //        value = GetValue(reader);
 
-            if (value == null)
-            {
-                m_fieldSetAccessor((TRowMapper) mapper, default(TField));
-            }
-            else
-            {
-                m_fieldSetAccessor((TRowMapper) mapper, (TField) value);
-            }
-        }
+    //        if (value == null)
+    //        {
+    //            m_fieldSetAccessor((TRowMapper) mapper, default(TField));
+    //        }
+    //        else
+    //        {
+    //            m_fieldSetAccessor((TRowMapper) mapper, (TField) value);
+    //        }
+    //    }
 
 
-        public RowMapperField(TableMapper tableMapper, string fieldName, RowMapperGetAccessor<TRowMapper, TField> rowMapperGetAccessor,
-                              RowMapperSetAccessor<TRowMapper, TField> rowMapperSetAccessor)
-            : base(tableMapper, fieldName, typeof(TField))
-        {
-            m_fieldGetAccessor = rowMapperGetAccessor;
-            m_fieldSetAccessor = rowMapperSetAccessor;
-        }
-    }
+    //    public RowMapperField(TableMapper tableMapper, string fieldName, RowMapperGetAccessor<TRowMapper, TField> rowMapperGetAccessor,
+    //                          RowMapperSetAccessor<TRowMapper, TField> rowMapperSetAccessor)
+    //        : base(tableMapper, fieldName, typeof(TField))
+    //    {
+    //        m_fieldGetAccessor = rowMapperGetAccessor;
+    //        m_fieldSetAccessor = rowMapperSetAccessor;
+    //    }
+    //}
 
-    public class ObjectField<TObject, TField> : FieldMapper
+    public class ObjectField<TObject, TField> : BaseFieldMapper
     {
         private readonly ObjectGetAccessor<TObject, TField> m_fieldGetAccessor;
         private readonly ObjectSetAccessor<TObject, TField> m_fieldSetAccessor;
 
         public override object GetParamValue(object obj)
         {
-            return m_fieldGetAccessor((TObject) obj);
+            return m_fieldGetAccessor((TObject)obj);
         }
 
         public override void SetPropertyFromReader(object obj, DataReader reader)
@@ -185,18 +183,18 @@ namespace TribalMedia.Framework.Data
 
             if (value == null)
             {
-                m_fieldSetAccessor((TObject) obj, default(TField));
+                m_fieldSetAccessor((TObject)obj, default(TField));
             }
             else
             {
-                m_fieldSetAccessor((TObject) obj, (TField) value);
+                m_fieldSetAccessor((TObject)obj, (TField)value);
             }
         }
 
 
-        public ObjectField(TableMapper tableMapper, string fieldName, ObjectGetAccessor<TObject, TField> rowMapperGetAccessor,
+        public ObjectField(BaseTableMapper tableMapper, string fieldName, ObjectGetAccessor<TObject, TField> rowMapperGetAccessor,
                            ObjectSetAccessor<TObject, TField> rowMapperSetAccessor)
-            : base(tableMapper, fieldName, typeof (TField))
+            : base(tableMapper, fieldName, typeof(TField))
         {
             m_fieldGetAccessor = rowMapperGetAccessor;
             m_fieldSetAccessor = rowMapperSetAccessor;

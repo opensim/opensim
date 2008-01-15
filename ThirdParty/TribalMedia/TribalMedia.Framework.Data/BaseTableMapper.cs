@@ -27,12 +27,98 @@
 using System;
 using System.Data;
 using System.Data.Common;
+using TribalMedia.Framework.Data;
 
 namespace TribalMedia.Framework.Data
 {
-    public abstract class ObjectTableMapper<TRowMapper, TPrimaryKey> : TableMapper
+    public abstract class BaseTableMapper
     {
-        public ObjectTableMapper(DatabaseMapper database, string tableName)
+        private readonly BaseDatabaseConnector m_database;
+        private readonly object m_syncRoot = new object();
+
+        protected void WithConnection(Action<DbConnection> action)
+        {
+            lock (m_syncRoot)
+            {
+                DbConnection m_connection = m_database.GetNewConnection();
+
+                if (m_connection.State != ConnectionState.Open)
+                {
+                    m_connection.Open();
+                }
+
+                action(m_connection);
+
+                if (m_connection.State == ConnectionState.Open)
+                {
+                    m_connection.Close();
+                }
+            }
+        }
+
+        private readonly string m_tableName;
+        public string TableName
+        {
+            get { return m_tableName; }
+        }
+
+        protected Schema m_schema;
+        public Schema Schema
+        {
+            get { return m_schema; }
+        }
+
+        protected BaseFieldMapper m_keyFieldMapper;
+        public BaseFieldMapper KeyFieldMapper
+        {
+            get { return m_keyFieldMapper; }
+        }
+
+        public BaseTableMapper(BaseDatabaseConnector database, string tableName)
+        {
+            m_database = database;
+            m_tableName = tableName.ToLower(); // Stupid MySQL hack.
+        }
+
+        public string CreateParamName(string fieldName)
+        {
+            return m_database.CreateParamName(fieldName);
+        }
+
+        protected DbCommand CreateSelectCommand(DbConnection connection, string fieldName, object primaryKey)
+        {
+            return m_database.CreateSelectCommand(this, connection, fieldName, primaryKey);
+        }
+
+        public string CreateCondition(DbCommand command, string fieldName, object key)
+        {
+            return m_database.CreateCondition(this, command, fieldName, key);
+        }
+
+        public DbCommand CreateInsertCommand(DbConnection connection, object obj)
+        {
+            return m_database.CreateInsertCommand(this, connection, obj);
+        }
+
+        public DbCommand CreateUpdateCommand(DbConnection connection, object rowMapper, object primaryKey)
+        {
+            return m_database.CreateUpdateCommand(this, connection, rowMapper, primaryKey);
+        }
+
+        public object ConvertToDbType(object value)
+        {
+            return m_database.ConvertToDbType(value);
+        }
+
+        protected virtual DataReader CreateReader(IDataReader reader)
+        {
+            return new DataReader(reader);
+        }
+    }
+
+    public abstract class BaseTableMapper<TRowMapper, TPrimaryKey> : BaseTableMapper
+    {
+        public BaseTableMapper(BaseDatabaseConnector database, string tableName)
             : base(database, tableName)
         {
         }
@@ -52,7 +138,7 @@ namespace TribalMedia.Framework.Data
                                        {
                                            if (reader.Read())
                                            {
-                                               result = FromReader( CreateReader(reader));
+                                               result = FromReader(CreateReader(reader));
                                                success = true;
                                            }
                                            else
@@ -67,7 +153,7 @@ namespace TribalMedia.Framework.Data
 
             return success;
         }
-       
+
         public virtual bool Remove(TPrimaryKey id)
         {
             int deleted = 0;

@@ -46,19 +46,19 @@ namespace TribalMedia.Framework.Data
 
         public ushort GetUShort(string name)
         {
-            return (ushort) m_source.GetInt32(m_source.GetOrdinal(name));
+            return (ushort)m_source.GetInt32(m_source.GetOrdinal(name));
         }
 
         public byte GetByte(string name)
         {
             int ordinal = m_source.GetOrdinal(name);
-            byte value = (byte) m_source.GetInt16(ordinal);
+            byte value = (byte)m_source.GetInt16(ordinal);
             return value;
         }
 
         public sbyte GetSByte(string name)
         {
-            return (sbyte) m_source.GetInt16(m_source.GetOrdinal(name));
+            return (sbyte)m_source.GetInt16(m_source.GetOrdinal(name));
         }
 
         public float GetFloat(string name)
@@ -84,7 +84,7 @@ namespace TribalMedia.Framework.Data
             int bytesRead;
             do
             {
-                bytesRead = (int) m_source.GetBytes(ordinal, totalRead, buffer, 0, buffer.Length);
+                bytesRead = (int)m_source.GetBytes(ordinal, totalRead, buffer, 0, buffer.Length);
                 totalRead += bytesRead;
 
                 memStream.Write(buffer, 0, bytesRead);
@@ -103,7 +103,7 @@ namespace TribalMedia.Framework.Data
                 return null;
             }
 
-            return (string) value;
+            return (string)value;
         }
 
         public bool Read()

@@ -16,10 +16,10 @@ namespace OpenSim.Framework.Data
 
     public class PrimitiveBaseShapeTableMapper : OpenSimTableMapper<PrimitiveBaseShapeRowMapper, Guid>
     {
-        public PrimitiveBaseShapeTableMapper(DatabaseMapper connection, string tableName)
+        public PrimitiveBaseShapeTableMapper(BaseDatabaseConnector connection, string tableName)
             : base(connection, tableName)
         {
-            RowMapperSchema<PrimitiveBaseShapeRowMapper> rowMapperSchema = new RowMapperSchema<PrimitiveBaseShapeRowMapper>(this);
+            ObjectSchema<PrimitiveBaseShapeRowMapper> rowMapperSchema = new ObjectSchema<PrimitiveBaseShapeRowMapper>(this);
             m_schema = rowMapperSchema;
 
             m_keyFieldMapper = rowMapperSchema.AddMapping<Guid>("SceneObjectPartId",

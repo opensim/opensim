@@ -9,7 +9,7 @@ namespace OpenSim.Framework.Data
 {
     public class OpenSimObjectFieldMapper<TObject, TField> : ObjectField<TObject, TField>
     {
-        public OpenSimObjectFieldMapper(TableMapper tableMapper, string fieldName,
+        public OpenSimObjectFieldMapper(BaseTableMapper tableMapper, string fieldName,
                                         ObjectGetAccessor<TObject, TField> rowMapperGetAccessor,
                                         ObjectSetAccessor<TObject, TField> rowMapperSetAccessor)
             : base(tableMapper, fieldName, rowMapperGetAccessor, rowMapperSetAccessor)
@@ -40,7 +40,7 @@ namespace OpenSim.Framework.Data
             }
             else
             {
-                base.ExpandField<TObj>(obj, command, fieldNames);
+                base.ExpandField(obj, command, fieldNames);
             }
         }
 

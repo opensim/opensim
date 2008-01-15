@@ -31,24 +31,25 @@ namespace TribalMedia.Framework.Data
 {
     public class Schema
     {
-        protected TableMapper m_tableMapper;
-        protected Dictionary<string, FieldMapper> m_mappings;
+        protected BaseTableMapper m_tableMapper;
+        protected Dictionary<string, BaseFieldMapper> m_mappings;
 
-        public Dictionary<string, FieldMapper> Fields
+        public Dictionary<string, BaseFieldMapper> Fields
         {
             get { return m_mappings; }
         }
 
-        public Schema(TableMapper tableMapper)
+        public Schema(BaseTableMapper tableMapper)
         {
-            m_mappings = new Dictionary<string, FieldMapper>();
+            m_mappings = new Dictionary<string, BaseFieldMapper>();
             m_tableMapper = tableMapper;
         }
     }
 
     public class ObjectSchema<TObj> : Schema
     {
-        public ObjectSchema(TableMapper tableMapper) : base(tableMapper)
+        public ObjectSchema(BaseTableMapper tableMapper)
+            : base(tableMapper)
         {
         }
 
@@ -65,25 +66,25 @@ namespace TribalMedia.Framework.Data
         }
     }
 
-    public class RowMapperSchema<TRowMapper> : Schema
-        where TRowMapper : RowMapper
-    {
-        public RowMapperSchema(TableMapper tableMapper) : base(tableMapper)
-        {
-        }
+    //public class RowMapperSchema<TRowMapper> : Schema
+    //    where TRowMapper : RowMapper
+    //{
+    //    public RowMapperSchema(TableMapper tableMapper) : base(tableMapper)
+    //    {
+    //    }
 
-        public RowMapperField<TRowMapper, TField> AddMapping<TField>(string fieldName,
-                                                                     RowMapperGetAccessor<TRowMapper, TField>
-                                                                         rowMapperGetAccessor,
-                                                                     RowMapperSetAccessor<TRowMapper, TField>
-                                                                         rowMapperSetAccessor)
-        {
-            RowMapperField<TRowMapper, TField> rowMapperField =
-                new RowMapperField<TRowMapper, TField>(m_tableMapper, fieldName, rowMapperGetAccessor, rowMapperSetAccessor);
+    //    public RowMapperField<TRowMapper, TField> AddMapping<TField>(string fieldName,
+    //                                                                 RowMapperGetAccessor<TRowMapper, TField>
+    //                                                                     rowMapperGetAccessor,
+    //                                                                 RowMapperSetAccessor<TRowMapper, TField>
+    //                                                                     rowMapperSetAccessor)
+    //    {
+    //        RowMapperField<TRowMapper, TField> rowMapperField =
+    //            new RowMapperField<TRowMapper, TField>(m_tableMapper, fieldName, rowMapperGetAccessor, rowMapperSetAccessor);
 
-            m_mappings.Add(fieldName, rowMapperField);
+    //        m_mappings.Add(fieldName, rowMapperField);
 
-            return rowMapperField;
-        }
-    }
+    //        return rowMapperField;
+    //    }
+    //}
 }

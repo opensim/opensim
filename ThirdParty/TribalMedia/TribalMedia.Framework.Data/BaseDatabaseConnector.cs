@@ -31,11 +31,11 @@ using System.Data.Common;
 
 namespace TribalMedia.Framework.Data
 {
-    public abstract class DatabaseMapper
+    public abstract class BaseDatabaseConnector
     {
         protected string m_connectionString;
 
-        public DatabaseMapper(string connectionString)
+        public BaseDatabaseConnector(string connectionString)
         {
             m_connectionString = connectionString;
         }
@@ -43,7 +43,7 @@ namespace TribalMedia.Framework.Data
         public abstract DbConnection GetNewConnection();
         public abstract string CreateParamName(string fieldName);
 
-        public DbCommand CreateSelectCommand(TableMapper mapper, DbConnection connection, string fieldName, object key)
+        public DbCommand CreateSelectCommand(BaseTableMapper mapper, DbConnection connection, string fieldName, object key)
         {
             string table = mapper.TableName;
 
@@ -60,7 +60,7 @@ namespace TribalMedia.Framework.Data
             return command;
         }
 
-        public string CreateCondition(TableMapper mapper, DbCommand command, string fieldName, object key)
+        public string CreateCondition(BaseTableMapper mapper, DbCommand command, string fieldName, object key)
         {
             string keyFieldParamName = mapper.CreateParamName(fieldName);
 
@@ -72,7 +72,7 @@ namespace TribalMedia.Framework.Data
             return String.Format("{0}={1}", fieldName, keyFieldParamName);
         }
 
-        public DbCommand CreateUpdateCommand(TableMapper mapper, DbConnection connection, object rowMapper, object primaryKey)
+        public DbCommand CreateUpdateCommand(BaseTableMapper mapper, DbConnection connection, object rowMapper, object primaryKey)
         {
             string table = mapper.TableName;
 
@@ -80,7 +80,7 @@ namespace TribalMedia.Framework.Data
 
             DbCommand command = connection.CreateCommand();
 
-            foreach (FieldMapper fieldMapper in mapper.Schema.Fields.Values)
+            foreach (BaseFieldMapper fieldMapper in mapper.Schema.Fields.Values)
             {
                 if (fieldMapper != mapper.KeyFieldMapper)
                 {
@@ -104,7 +104,7 @@ namespace TribalMedia.Framework.Data
             return command;
         }
 
-        public DbCommand CreateInsertCommand(TableMapper mapper, DbConnection connection, object obj)
+        public DbCommand CreateInsertCommand(BaseTableMapper mapper, DbConnection connection, object obj)
         {
             string table = mapper.TableName;
 
@@ -112,7 +112,7 @@ namespace TribalMedia.Framework.Data
 
             DbCommand command = connection.CreateCommand();
 
-            foreach (FieldMapper fieldMapper in mapper.Schema.Fields.Values)
+            foreach (BaseFieldMapper fieldMapper in mapper.Schema.Fields.Values)
             {
                 fieldMapper.ExpandField(obj, command, fieldNames);
             }

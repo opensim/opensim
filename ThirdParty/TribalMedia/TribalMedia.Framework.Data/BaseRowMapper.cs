@@ -51,7 +51,7 @@ namespace TribalMedia.Framework.Data
 
         public override void FillObject(DataReader reader)
         {
-            foreach (FieldMapper fieldMapper in m_schema.Fields.Values)
+            foreach (BaseFieldMapper fieldMapper in m_schema.Fields.Values)
             {
                 fieldMapper.SetPropertyFromReader(m_obj, reader);
             }
@@ -76,7 +76,7 @@ namespace TribalMedia.Framework.Data
 
         public override void FillObject(DataReader reader)
         {
-            foreach (FieldMapper fieldMapper in m_schema.Fields.Values)
+            foreach (BaseFieldMapper fieldMapper in m_schema.Fields.Values)
             {
                 fieldMapper.SetPropertyFromReader(this, reader);
             }

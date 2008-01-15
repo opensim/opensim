@@ -4,7 +4,7 @@ using TribalMedia.Framework.Data;
 
 namespace OpenSim.Framework.Data
 {
-    public abstract class OpenSimDatabaseMapper : DatabaseMapper
+    public abstract class OpenSimDatabaseMapper : BaseDatabaseConnector
     {
         public OpenSimDatabaseMapper(string connectionString) : base(connectionString)
         {
