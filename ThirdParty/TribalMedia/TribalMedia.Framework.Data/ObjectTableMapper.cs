@@ -32,8 +32,8 @@ namespace TribalMedia.Framework.Data
 {
     public abstract class ObjectTableMapper<TRowMapper, TPrimaryKey> : TableMapper
     {
-        public ObjectTableMapper(DatabaseMapper connectionPool, string tableName)
-            : base(connectionPool, tableName)
+        public ObjectTableMapper(DatabaseMapper database, string tableName)
+            : base(database, tableName)
         {
         }
 
@@ -52,7 +52,7 @@ namespace TribalMedia.Framework.Data
                                        {
                                            if (reader.Read())
                                            {
-                                               result = FromReader(new DataReader(reader));
+                                               result = FromReader( CreateReader(reader));
                                                success = true;
                                            }
                                            else
@@ -67,8 +67,7 @@ namespace TribalMedia.Framework.Data
 
             return success;
         }
-
-
+       
         public virtual bool Remove(TPrimaryKey id)
         {
             int deleted = 0;

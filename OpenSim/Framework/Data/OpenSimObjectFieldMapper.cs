@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Data.Common;
 using System.Text;
 using libsecondlife;
 using TribalMedia.Framework.Data;
@@ -15,7 +16,7 @@ namespace OpenSim.Framework.Data
         {
         }
 
-        public override void ExpandField<TObj>(TObj obj, System.Data.Common.DbCommand command, List<string> fieldNames)
+        public override void ExpandField<TObj>(TObj obj, DbCommand command, List<string> fieldNames)
         {
             string fieldName = FieldName;
             object value = GetParamValue(obj);

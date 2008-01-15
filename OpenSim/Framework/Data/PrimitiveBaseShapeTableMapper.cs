@@ -14,7 +14,7 @@ namespace OpenSim.Framework.Data
         }
     }
 
-    public class PrimitiveBaseShapeTableMapper : ObjectTableMapper<PrimitiveBaseShapeRowMapper, Guid>
+    public class PrimitiveBaseShapeTableMapper : OpenSimTableMapper<PrimitiveBaseShapeRowMapper, Guid>
     {
         public PrimitiveBaseShapeTableMapper(DatabaseMapper connection, string tableName)
             : base(connection, tableName)

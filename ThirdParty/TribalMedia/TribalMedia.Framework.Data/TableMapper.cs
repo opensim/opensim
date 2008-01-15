@@ -33,14 +33,14 @@ namespace TribalMedia.Framework.Data
 {
     public abstract class TableMapper
     {
-        private readonly DatabaseMapper m_connectionPool;
+        private readonly DatabaseMapper m_database;
         private readonly object m_syncRoot = new object();
 
         protected void WithConnection(Action<DbConnection> action)
         {
             lock (m_syncRoot)
             {
-                DbConnection m_connection = m_connectionPool.GetNewConnection();
+                DbConnection m_connection = m_database.GetNewConnection();
 
                 if (m_connection.State != ConnectionState.Open)
                 {
@@ -74,40 +74,45 @@ namespace TribalMedia.Framework.Data
             get { return m_keyFieldMapper; }
         }
 
-        public TableMapper(DatabaseMapper connectionPool, string tableName)
+        public TableMapper(DatabaseMapper database, string tableName)
         {
-            m_connectionPool = connectionPool;
+            m_database = database;
             m_tableName = tableName.ToLower(); // Stupid MySQL hack.
         }
 
         public string CreateParamName(string fieldName)
         {
-            return m_connectionPool.CreateParamName(fieldName);
+            return m_database.CreateParamName(fieldName);
         }
 
         protected DbCommand CreateSelectCommand(DbConnection connection, string fieldName, object primaryKey)
         {
-            return m_connectionPool.CreateSelectCommand(this, connection, fieldName, primaryKey);
+            return m_database.CreateSelectCommand(this, connection, fieldName, primaryKey);
         }
 
         public string CreateCondition(DbCommand command, string fieldName, object key)
         {
-            return m_connectionPool.CreateCondition(this, command, fieldName, key);
+            return m_database.CreateCondition(this, command, fieldName, key);
         }
 
         public DbCommand CreateInsertCommand(DbConnection connection, object obj)
         {
-            return m_connectionPool.CreateInsertCommand(this, connection, obj);
+            return m_database.CreateInsertCommand(this, connection, obj);
         }
 
         public DbCommand CreateUpdateCommand(DbConnection connection, object rowMapper, object primaryKey)
         {
-            return m_connectionPool.CreateUpdateCommand(this, connection, rowMapper, primaryKey);
+            return m_database.CreateUpdateCommand(this, connection, rowMapper, primaryKey);
         }
 
         public object ConvertToDbType(object value)
         {
-            return m_connectionPool.ConvertToDbType(value);
+            return m_database.ConvertToDbType(value);
+        }
+
+        protected virtual DataReader CreateReader(IDataReader reader)
+        {
+            return new DataReader(reader);
         }
     }
 }
