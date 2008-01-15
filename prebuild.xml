@@ -83,11 +83,13 @@
       <Configuration name="Debug">
         <Options>
           <OutputPath>../../../bin/</OutputPath>
+          <KeyFile>TribalMedia.Framework.Data.snk</KeyFile>
         </Options>
       </Configuration>
       <Configuration name="Release">
         <Options>
           <OutputPath>../../../bin/</OutputPath>
+          <KeyFile>TribalMedia.Framework.Data.snk</KeyFile>
         </Options>
       </Configuration>
 
@@ -102,7 +104,7 @@
     <Project name="OpenSim.Framework.Data" path="OpenSim/Framework/Data" type="Library">
       <Configuration name="Debug">
         <Options>
-          <OutputPath>../../../bin/</OutputPath>
+          <OutputPath>../../../bin/</OutputPath>          
         </Options>
       </Configuration>
       <Configuration name="Release">
