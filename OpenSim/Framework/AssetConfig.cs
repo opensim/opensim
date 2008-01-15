@@ -26,6 +26,8 @@
 * 
 */
 
+using System;
+
 namespace OpenSim.Framework
 {
     /// <summary>
@@ -33,9 +35,9 @@ namespace OpenSim.Framework
     /// </summary>
     public class AssetConfig
     {
-        public string DefaultStartupMsg = "";
+        public string DefaultStartupMsg = String.Empty;
 
-        public string DatabaseProvider = "";
+        public string DatabaseProvider = String.Empty;
 
         public static uint DefaultHttpPort = 8003;
         public uint HttpPort = DefaultHttpPort;

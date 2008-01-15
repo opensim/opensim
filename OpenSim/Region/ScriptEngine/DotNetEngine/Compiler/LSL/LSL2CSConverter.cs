@@ -28,6 +28,7 @@
 
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
+using System;
 
 namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL
 {
@@ -58,7 +59,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL
         public string Convert(string Script)
         {
             quotes.Clear();
-            string Return = "";
+            string Return = System.String.Empty;
             Script = " \r\n" + Script;
 
             //
@@ -72,13 +73,13 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL
 
             // QUOTE REPLACEMENT
             // temporarily replace quotes so we can work our magic on the script without
-            //  always considering if we are inside our outside ""'s
-            string _Script = "";
+            //  always considering if we are inside our outside String.Empty's
+            string _Script = System.String.Empty;
             string C;
             bool in_quote = false;
             bool quote_replaced = false;
             string quote_replacement_string = "Q_U_O_T_E_REPLACEMENT_";
-            string quote = "";
+            string quote = System.String.Empty;
             bool last_was_escape = false;
             int quote_replaced_count = 0;
             for (int p = 0; p < Script.Length; p++)
@@ -97,7 +98,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL
                         }
                         else
                         {
-                            if (quote == "")
+                            if (quote == System.String.Empty)
                             {
                                 // We didn't replace quote, probably because of empty string?
                                 _Script += quote_replacement_string +
@@ -107,7 +108,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL
                             quotes.Add(
                                 quote_replacement_string +
                                 quote_replaced_count.ToString().PadLeft(5, "0".ToCharArray()[0]), quote);
-                            quote = "";
+                            quote = System.String.Empty;
                         }
                         break;
                     }
@@ -151,10 +152,10 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL
             //
             int ilevel = 0;
             int lastlevel = 0;
-            string ret = "";
-            string cache = "";
+            string ret = System.String.Empty;
+            string cache = System.String.Empty;
             bool in_state = false;
-            string current_statename = "";
+            string current_statename = System.String.Empty;
             for (int p = 0; p < Script.Length; p++)
             {
                 C = Script.Substring(p, 1);
@@ -191,7 +192,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL
                                               RegexOptions.Compiled | RegexOptions.Multiline | RegexOptions.Singleline);
                         }
                         ret += cache;
-                        cache = "";
+                        cache = String.Empty;
                     }
                     if (ilevel == 0 && lastlevel == 1)
                     {
@@ -199,7 +200,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL
                         if (in_state == true)
                         {
                             cache = cache.Remove(cache.Length - 1, 1);
-                            //cache = Regex.Replace(cache, "}$", "", RegexOptions.Multiline | RegexOptions.Singleline);
+                            //cache = Regex.Replace(cache, "}$", String.Empty, RegexOptions.Multiline | RegexOptions.Singleline);
 
                             //Replace function names
                             // void dataserver(key query_id, string data) {
@@ -213,9 +214,9 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL
                         }
 
                         ret += cache;
-                        cache = "";
+                        cache = String.Empty;
                         in_state = true;
-                        current_statename = "";
+                        current_statename = String.Empty;
                     }
 
                     break;
@@ -223,10 +224,10 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL
                 lastlevel = ilevel;
             }
             ret += cache;
-            cache = "";
+            cache = String.Empty;
 
             Script = ret;
-            ret = "";
+            ret = String.Empty;
 
 
             foreach (string key in dataTypes.Keys)
@@ -287,7 +288,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL
 
             // Add namespace, class name and inheritance
 
-            Return = "" +
+            Return = String.Empty +
                      "using OpenSim.Region.ScriptEngine.Common; using System.Collections.Generic;";
             //"using System; " +
             //"using System.Collections.Generic; " +
@@ -309,9 +310,9 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL
             //}
 
 
-            Return += "" +
+            Return += String.Empty +
                       "namespace SecondLife { ";
-            Return += "" +
+            Return += String.Empty +
                       //"[Serializable] " +
                       "public class Script : OpenSim.Region.ScriptEngine.Common.LSL_BaseClass { ";
             Return += @"public Script() { } ";

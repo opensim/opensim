@@ -27,23 +27,24 @@
 */
 
 using Nini.Config;
+using System;
 
 namespace OpenSim.Framework
 {
     public class NetworkServersInfo
     {
         public string AssetURL = "http://127.0.0.1:" + AssetConfig.DefaultHttpPort.ToString() + "/";
-        public string AssetSendKey = "";
+        public string AssetSendKey = String.Empty;
 
-        public string GridURL = "";
-        public string GridSendKey = "";
-        public string GridRecvKey = "";
-        public string UserURL = "";
-        public string UserSendKey = "";
-        public string UserRecvKey = "";
+        public string GridURL = String.Empty;
+        public string GridSendKey = String.Empty;
+        public string GridRecvKey = String.Empty;
+        public string UserURL = String.Empty;
+        public string UserSendKey = String.Empty;
+        public string UserRecvKey = String.Empty;
         public bool isSandbox;
 
-        public string InventoryURL = "";
+        public string InventoryURL = String.Empty;
 
         public static uint DefaultHttpListenerPort = 9000;
         public uint HttpListenerPort = DefaultHttpListenerPort;

@@ -323,7 +323,7 @@ namespace OpenSim.Framework.Data.MySQL
 
                 // World Map Addition
                 string tempRegionMap = reader["regionMapTexture"].ToString();
-                if (tempRegionMap != "")
+                if (tempRegionMap != String.Empty)
                 {
                     retval.regionMapTextureID = new LLUUID(tempRegionMap);
                 }
@@ -572,12 +572,12 @@ namespace OpenSim.Framework.Data.MySQL
             parameters["?homeLookAtZ"] = homeLookAtZ.ToString();
             parameters["?created"] = created.ToString();
             parameters["?lastLogin"] = lastlogin.ToString();
-            parameters["?userInventoryURI"] = "";
-            parameters["?userAssetURI"] = "";
+            parameters["?userInventoryURI"] = String.Empty;
+            parameters["?userAssetURI"] = String.Empty;
             parameters["?profileCanDoMask"] = "0";
             parameters["?profileWantDoMask"] = "0";
-            parameters["?profileAboutText"] = "";
-            parameters["?profileFirstText"] = "";
+            parameters["?profileAboutText"] = String.Empty;
+            parameters["?profileFirstText"] = String.Empty;
             parameters["?profileImage"] = LLUUID.Zero.ToString();
             parameters["?profileFirstImage"] = LLUUID.Zero.ToString();
             parameters["?webLoginKey"] = LLUUID.Random().ToString();
@@ -612,7 +612,7 @@ namespace OpenSim.Framework.Data.MySQL
         {
             bool GRID_ONLY_UPDATE_NECESSARY_DATA = false;
 
-            string sql = "";
+            string sql = String.Empty;
             if (GRID_ONLY_UPDATE_NECESSARY_DATA)
             {
                 sql += "INSERT INTO ";

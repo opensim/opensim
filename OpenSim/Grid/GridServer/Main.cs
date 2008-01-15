@@ -149,7 +149,7 @@ namespace OpenSim.Grid.GridServer
             /*
             foreach (SimProfileBase sim in m_simProfileManager.SimProfiles.Values)
             {
-                string SimResponse = "";
+                string SimResponse = String.Empty;
                 try
                 {
                     WebRequest CheckSim = WebRequest.Create("http://" + sim.sim_ip + ":" + sim.sim_port.ToString() + "/checkstatus/");
@@ -158,7 +158,7 @@ namespace OpenSim.Grid.GridServer
                     CheckSim.ContentLength = 0;
 
                     StreamWriter stOut = new StreamWriter(CheckSim.GetRequestStream(), System.Text.Encoding.ASCII);
-                    stOut.Write("");
+                    stOut.Write(String.Empty);
                     stOut.Close();
 
                     StreamReader stIn = new StreamReader(CheckSim.GetResponse().GetResponseStream());
@@ -204,9 +204,9 @@ namespace OpenSim.Grid.GridServer
         {
             try
             {
-                string attri = "";
+                string attri = String.Empty;
                 attri = configData.GetAttribute("DataBaseProvider");
-                if (attri == "")
+                if (attri == String.Empty)
                 {
                     GridDll = "OpenSim.Framework.Data.DB4o.dll";
                     configData.SetAttribute("DataBaseProvider", "OpenSim.Framework.Data.DB4o.dll");

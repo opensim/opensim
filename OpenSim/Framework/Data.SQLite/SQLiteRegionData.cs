@@ -1368,7 +1368,7 @@ namespace OpenSim.Framework.Data.SQLite
         private SqliteCommand createUpdateCommand(string table, string pk, DataTable dt)
         {
             string sql = "update " + table + " set ";
-            string subsql = "";
+            string subsql = String.Empty;
             foreach (DataColumn col in dt.Columns)
             {
                 if (subsql.Length > 0)
@@ -1396,7 +1396,7 @@ namespace OpenSim.Framework.Data.SQLite
         private string defineTable(DataTable dt)
         {
             string sql = "create table " + dt.TableName + "(";
-            string subsql = "";
+            string subsql = String.Empty;
             foreach (DataColumn col in dt.Columns)
             {
                 if (subsql.Length > 0)

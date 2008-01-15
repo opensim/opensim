@@ -26,23 +26,25 @@
 * 
 */
 
+using System;
+
 namespace OpenSim.Framework
 {
     public class GridConfig
     {
-        public string GridOwner = "";
-        public string DefaultAssetServer = "";
-        public string AssetSendKey = "";
-        public string AssetRecvKey = "";
+        public string GridOwner = String.Empty;
+        public string DefaultAssetServer = String.Empty;
+        public string AssetSendKey = String.Empty;
+        public string AssetRecvKey = String.Empty;
 
-        public string DefaultUserServer = "";
-        public string UserSendKey = "";
-        public string UserRecvKey = "";
+        public string DefaultUserServer = String.Empty;
+        public string UserSendKey = String.Empty;
+        public string UserRecvKey = String.Empty;
 
-        public string SimSendKey = "";
-        public string SimRecvKey = "";
+        public string SimSendKey = String.Empty;
+        public string SimRecvKey = String.Empty;
 
-        public string DatabaseProvider = "";
+        public string DatabaseProvider = String.Empty;
 
 
         public static uint DefaultHttpPort = 8001;

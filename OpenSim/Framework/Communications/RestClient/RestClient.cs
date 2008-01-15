@@ -201,7 +201,7 @@ namespace OpenSim.Framework.Communications
         /// <returns>slash '/' if not already present</returns>
         private string slash(string s)
         {
-            return isSlashed(s) ? "" : "/";
+            return isSlashed(s) ? String.Empty : "/";
         }
 
         /// <summary>

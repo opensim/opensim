@@ -52,8 +52,8 @@ namespace OpenSim.Framework.RegionLoader.Web
             else
             {
                 IniConfig startupConfig = (IniConfig) m_configSouce.Configs["Startup"];
-                string url = startupConfig.GetString("regionload_webserver_url", "").Trim();
-                if (url == "")
+                string url = startupConfig.GetString("regionload_webserver_url", System.String.Empty).Trim();
+                if (url == System.String.Empty)
                 {
                     MainLog.Instance.Error("WEBLOADER", "Unable to load webserver URL - URL was empty.");
                     return null;
@@ -66,7 +66,7 @@ namespace OpenSim.Framework.RegionLoader.Web
                     HttpWebResponse webResponse = (HttpWebResponse) webRequest.GetResponse();
                     MainLog.Instance.Debug("WEBLOADER", "Downloading Region Information From Remote Server...");
                     StreamReader reader = new StreamReader(webResponse.GetResponseStream());
-                    string xmlSource = "";
+                    string xmlSource = System.String.Empty;
                     string tempStr = reader.ReadLine();
                     while (tempStr != null)
                     {

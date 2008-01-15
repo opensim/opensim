@@ -429,10 +429,10 @@ namespace OpenSim.Region.ScriptEngine.Common
             public override string ToString()
             {
                 string output;
-                output = "";
+                output = String.Empty;
                 if (m_data.Length == 0)
                 {
-                    return "";
+                    return String.Empty;
                 }
                 foreach (object o in m_data)
                 {

@@ -136,7 +136,7 @@ namespace OpenSim.Framework.Communications
 
         public LLUUID AddUser(string firstName, string lastName, string password, uint regX, uint regY)
         {
-            string md5PasswdHash = Util.Md5Hash(Util.Md5Hash(password) + ":" + "");
+            string md5PasswdHash = Util.Md5Hash(Util.Md5Hash(password) + ":" + String.Empty);
 
             m_userService.AddUserProfile(firstName, lastName, md5PasswdHash, regX, regY);
             UserProfileData userProf = UserService.GetUserProfile(firstName, lastName);

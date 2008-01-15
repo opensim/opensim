@@ -27,6 +27,7 @@
 */
 
 using System.Collections.Generic;
+using System;
 using libsecondlife;
 
 namespace OpenSim.Framework
@@ -46,7 +47,7 @@ namespace OpenSim.Framework
         public event ChildAgentUpdate OnChildAgentUpdate;
 
 
-        public string debugRegionName = "";
+        public string debugRegionName = String.Empty;
 
 
         /// <summary>

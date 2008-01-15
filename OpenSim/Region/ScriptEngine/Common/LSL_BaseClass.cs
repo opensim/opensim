@@ -79,7 +79,7 @@ namespace OpenSim.Region.ScriptEngine.Common
 
 
         public LSL_BuiltIn_Commands_Interface m_LSL_Functions;
-        private string _Source = "";
+        private string _Source = String.Empty;
         public string Source
         {
             get

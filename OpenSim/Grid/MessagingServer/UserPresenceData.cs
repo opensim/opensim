@@ -39,7 +39,7 @@ namespace OpenSim.Grid.MessagingServer
     {
         public AgentCircuitData agentData = new AgentCircuitData();
         public RegionProfileData regionData = new RegionProfileData();
-        public string httpURI = "";
+        public string httpURI = String.Empty;
         public List<FriendListItem> friendData = new List<FriendListItem> ();
         public List<LLUUID> subscriptionData = new List<LLUUID>();
 

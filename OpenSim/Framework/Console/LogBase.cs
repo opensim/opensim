@@ -298,7 +298,7 @@ namespace OpenSim.Framework.Console
             catch (Exception e)
             {
                 MainLog.Instance.Error("Console", "System.Console.ReadLine exception " + e.ToString());
-                return "";
+                return String.Empty;
             }
         }
 
@@ -377,7 +377,7 @@ namespace OpenSim.Framework.Console
         public string CmdPrompt(string prompt, string defaultresponse)
         {
             string temp = CmdPrompt(String.Format("{0} [{1}]", prompt, defaultresponse));
-            if (temp == "")
+            if (temp == String.Empty)
             {
                 return defaultresponse;
             }

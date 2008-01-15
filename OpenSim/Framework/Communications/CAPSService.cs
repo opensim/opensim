@@ -48,7 +48,7 @@ namespace OpenSim.Framework.Communications
         public string CapsRequest(string request, string path, string param)
         {
             System.Console.WriteLine("new caps request " + request + " from path " + path);
-            return "";
+            return System.String.Empty;
         }
     }
 }

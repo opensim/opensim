@@ -262,7 +262,7 @@ namespace OpenSim.Region.Environment.Types
         public string[] GetNeighbours(string nodeName)
         {
             string[] retVal = new string[1];
-            retVal[0] = "";
+            retVal[0] = System.String.Empty;
             return retVal;
         }
     }

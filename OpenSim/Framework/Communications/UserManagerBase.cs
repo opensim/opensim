@@ -472,7 +472,7 @@ namespace OpenSim.Framework.UserManagement
             user.username = firstName;
             user.surname = lastName;
             user.passwordHash = pass;
-            user.passwordSalt = "";
+            user.passwordSalt = String.Empty;
             user.created = Util.UnixTimeSinceEpoch();
             user.homeLookAt = new LLVector3(100, 100, 100);
             user.homeRegionX = regX;

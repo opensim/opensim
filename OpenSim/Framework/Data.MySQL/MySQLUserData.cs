@@ -347,8 +347,8 @@ namespace OpenSim.Framework.Data.MySQL
             if (querysplit.Length == 2)
             {
                 Dictionary<string, string> param = new Dictionary<string, string>();
-                param["?first"] = objAlphaNumericPattern.Replace(querysplit[0], "") + "%";
-                param["?second"] = objAlphaNumericPattern.Replace(querysplit[1], "") + "%";
+                param["?first"] = objAlphaNumericPattern.Replace(querysplit[0], String.Empty) + "%";
+                param["?second"] = objAlphaNumericPattern.Replace(querysplit[1], String.Empty) + "%";
                 try
                 {
                     lock (database)
@@ -386,7 +386,7 @@ namespace OpenSim.Framework.Data.MySQL
                     lock (database)
                     {
                         Dictionary<string, string> param = new Dictionary<string, string>();
-                        param["?first"] = objAlphaNumericPattern.Replace(querysplit[0], "") + "%";
+                        param["?first"] = objAlphaNumericPattern.Replace(querysplit[0], String.Empty) + "%";
 
                         IDbCommand result =
                             database.Query(

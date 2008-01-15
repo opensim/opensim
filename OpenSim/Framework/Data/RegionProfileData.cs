@@ -41,7 +41,7 @@ namespace OpenSim.Framework.Data
         /// <summary>
         /// The name of the region
         /// </summary>
-        public string regionName = "";
+        public string regionName = String.Empty;
 
         /// <summary>
         /// A 64-bit number combining map position into a (mostly) unique ID
@@ -65,10 +65,10 @@ namespace OpenSim.Framework.Data
         /// Authentication secrets
         /// </summary>
         /// <remarks>Not very secure, needs improvement.</remarks>
-        public string regionSendKey = "";
+        public string regionSendKey = String.Empty;
 
-        public string regionRecvKey = "";
-        public string regionSecret = "";
+        public string regionRecvKey = String.Empty;
+        public string regionSecret = String.Empty;
 
         /// <summary>
         /// Whether the region is online
@@ -78,14 +78,14 @@ namespace OpenSim.Framework.Data
         /// <summary>
         /// Information about the server that the region is currently hosted on
         /// </summary>
-        public string serverIP = "";
+        public string serverIP = String.Empty;
 
         public uint serverPort;
-        public string serverURI = "";
+        public string serverURI = String.Empty;
 
         public uint httpPort;
         public uint remotingPort;
-        public string httpServerURI = "";
+        public string httpServerURI = String.Empty;
 
         /// <summary>
         /// Set of optional overrides. Can be used to create non-eulicidean spaces.
@@ -100,23 +100,23 @@ namespace OpenSim.Framework.Data
         /// Optional: URI Location of the region database
         /// </summary>
         /// <remarks>Used for floating sim pools where the region data is not nessecarily coupled to a specific server</remarks>
-        public string regionDataURI = "";
+        public string regionDataURI = String.Empty;
 
         /// <summary>
         /// Region Asset Details
         /// </summary>
-        public string regionAssetURI = "";
+        public string regionAssetURI = String.Empty;
 
-        public string regionAssetSendKey = "";
-        public string regionAssetRecvKey = "";
+        public string regionAssetSendKey = String.Empty;
+        public string regionAssetRecvKey = String.Empty;
 
         /// <summary>
         /// Region Userserver Details
         /// </summary>
-        public string regionUserURI = "";
+        public string regionUserURI = String.Empty;
 
-        public string regionUserSendKey = "";
-        public string regionUserRecvKey = "";
+        public string regionUserSendKey = String.Empty;
+        public string regionUserRecvKey = String.Empty;
 
         /// <summary>
         /// Region Map Texture Asset

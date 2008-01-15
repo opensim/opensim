@@ -149,7 +149,7 @@ namespace OpenSim.Framework.UserManagement
             ErrorMessage = "You have entered an invalid name/password combination.  Check Caps/lock.";
             ErrorReason = "key";
             welcomeMessage = "Welcome to OpenSim!";
-            seedCapability = "";
+            seedCapability = String.Empty;
             home = "{'region_handle':[r" + (1000*256).ToString() + ",r" + (1000*256).ToString() + "], 'position':[r" +
                    userProfile.homepos.X.ToString() + ",r" + userProfile.homepos.Y.ToString() + ",r" +
                    userProfile.homepos.Z.ToString() + "], 'look_at':[r" + userProfile.homelookat.X.ToString() + ",r" +

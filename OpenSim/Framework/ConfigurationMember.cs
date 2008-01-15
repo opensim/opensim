@@ -44,8 +44,8 @@ namespace OpenSim.Framework
         public delegate void ConfigurationOptionsLoad();
 
         private List<ConfigurationOption> configurationOptions = new List<ConfigurationOption>();
-        private string configurationFilename = "";
-        private string configurationDescription = "";
+        private string configurationFilename = String.Empty;
+        private string configurationDescription = String.Empty;
         private XmlNode configurationFromXMLNode = null;
         private ConfigurationOptionsLoad loadFunction;
         private ConfigurationOptionResult resultFunction;
@@ -70,7 +70,7 @@ namespace OpenSim.Framework
         public ConfigurationMember(XmlNode configuration_xml, string configuration_description,
                                    ConfigurationOptionsLoad load_function, ConfigurationOptionResult result_function, bool use_console_to_prompt_on_error)
         {
-            configurationFilename = "";
+            configurationFilename = String.Empty;
             configurationFromXMLNode = configuration_xml;
             configurationDescription = configuration_description;
             loadFunction = load_function;
@@ -100,8 +100,8 @@ namespace OpenSim.Framework
 
         private void checkAndAddConfigOption(ConfigurationOption option)
         {
-            if ((option.configurationKey != "" && option.configurationQuestion != "") ||
-                (option.configurationKey != "" && option.configurationUseDefaultNoPrompt))
+            if ((option.configurationKey != String.Empty && option.configurationQuestion != String.Empty) ||
+                (option.configurationKey != String.Empty && option.configurationUseDefaultNoPrompt))
             {
                 if (!configurationOptions.Contains(option))
                 {
@@ -190,7 +190,7 @@ namespace OpenSim.Framework
                 return;
             }
 
-            if (configurationFilename.Trim() != "")
+            if (configurationFilename.Trim() != String.Empty)
             {
                 configurationPlugin.SetFileName(configurationFilename);
                 try
@@ -220,11 +220,11 @@ namespace OpenSim.Framework
             {
                 bool convertSuccess = false;
                 object return_result = null;
-                string errorMessage = "";
+                string errorMessage = String.Empty;
                 bool ignoreNextFromConfig = false;
                 while (convertSuccess == false)
                 {
-                    string console_result = "";
+                    string console_result = String.Empty;
                     string attribute = null;
                     if (useFile || configurationFromXMLNode != null)
                     {
@@ -250,7 +250,7 @@ namespace OpenSim.Framework
                                  configOption.shouldIBeAsked(configOption.configurationKey)) ||
                                 configOption.shouldIBeAsked == null)
                             {
-                                if (configurationDescription.Trim() != "")
+                                if (configurationDescription.Trim() != String.Empty)
                                 {
                                     console_result =
                                         MainLog.Instance.CmdPrompt(

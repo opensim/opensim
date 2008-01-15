@@ -45,7 +45,7 @@ namespace OpenSim
 
 
             Console.Write("Performing compatibility checks... ");
-            string supported = "";
+            string supported = String.Empty;
             if (Util.IsEnvironmentSupported(ref supported))
             {
                 Console.WriteLine(" Environment is compatible.\n");
@@ -90,7 +90,7 @@ namespace OpenSim
             // TODO: Add config option to allow users to turn off error reporting
             // TODO: Post error report (disabled for now)
             
-            string msg = "";
+            string msg = String.Empty;
             msg += "\r\n";
             msg += "APPLICATION EXCEPTION DETECTED: " + e.ToString() + "\r\n";
             msg += "\r\n";

@@ -71,9 +71,9 @@ namespace OpenSim.Framework.Configuration
                 else
                 {
                     createdFile = true;
-                    rootNode = doc.CreateNode(XmlNodeType.Element, "Root", "");
+                    rootNode = doc.CreateNode(XmlNodeType.Element, "Root", String.Empty);
                     doc.AppendChild(rootNode);
-                    configNode = doc.CreateNode(XmlNodeType.Element, "Config", "");
+                    configNode = doc.CreateNode(XmlNodeType.Element, "Config", String.Empty);
                     rootNode.AppendChild(configNode);
                 }
 

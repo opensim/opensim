@@ -194,7 +194,7 @@ namespace OpenSim.Grid.GridServer
         /// <returns>An XML string containing neighbour entities</returns>
         public string GetXMLNeighbours(ulong reqhandle)
         {
-            string response = "";
+            string response = String.Empty;
             RegionProfileData central_region = getRegion(reqhandle);
             RegionProfileData neighbour;
             for (int x = -1; x < 2; x++)
@@ -241,7 +241,7 @@ namespace OpenSim.Grid.GridServer
             {
                 TheSim = getRegion(new LLUUID((string)requestData["UUID"]));
 
-                //                logToDB((new LLUUID((string)requestData["UUID"])).ToString(),"XmlRpcSimulatorLoginMethod","", 5,"Region attempting login with UUID.");
+                //                logToDB((new LLUUID((string)requestData["UUID"])).ToString(),"XmlRpcSimulatorLoginMethod",String.Empty, 5,"Region attempting login with UUID.");
             }
             else
             {
@@ -615,7 +615,7 @@ namespace OpenSim.Grid.GridServer
         /// <returns></returns>
         public string RestGetRegionMethod(string request, string path, string param)
         {
-            return RestGetSimMethod("", "/sims/", param);
+            return RestGetSimMethod(String.Empty, "/sims/", param);
         }
 
         /// <summary>
@@ -627,7 +627,7 @@ namespace OpenSim.Grid.GridServer
         /// <returns></returns>
         public string RestSetRegionMethod(string request, string path, string param)
         {
-            return RestSetSimMethod("", "/sims/", param);
+            return RestSetSimMethod(String.Empty, "/sims/", param);
         }
 
         /// <summary>
@@ -704,7 +704,7 @@ namespace OpenSim.Grid.GridServer
             TheSim.regionRecvKey = config.SimRecvKey;
             TheSim.regionSendKey = config.SimSendKey;
             TheSim.regionSecret = config.SimRecvKey;
-            TheSim.regionDataURI = "";
+            TheSim.regionDataURI = String.Empty;
             TheSim.regionAssetURI = config.DefaultAssetServer;
             TheSim.regionAssetRecvKey = config.AssetRecvKey;
             TheSim.regionAssetSendKey = config.AssetSendKey;
@@ -776,7 +776,7 @@ namespace OpenSim.Grid.GridServer
                         {
                             kvp.Value.AddProfile(TheSim);
                             MainLog.Instance.Verbose("grid", "New sim added to grid (" + TheSim.regionName + ")");
-                            logToDB(TheSim.UUID.ToString(), "RestSetSimMethod", "", 5,
+                            logToDB(TheSim.UUID.ToString(), "RestSetSimMethod", String.Empty, 5,
                                     "Region successfully updated and connected to grid.");
                         }
                         else

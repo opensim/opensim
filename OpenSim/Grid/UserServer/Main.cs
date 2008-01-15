@@ -147,7 +147,7 @@ namespace OpenSim.Grid.UserServer
                     regX = Convert.ToUInt32(m_console.CmdPrompt("Start Region X"));
                     regY = Convert.ToUInt32(m_console.CmdPrompt("Start Region Y"));
 
-                    tempMD5Passwd = Util.Md5Hash(Util.Md5Hash(tempMD5Passwd) + ":" + "");
+                    tempMD5Passwd = Util.Md5Hash(Util.Md5Hash(tempMD5Passwd) + ":" + String.Empty);
 
                     LLUUID userID = new LLUUID();
                     try
@@ -220,9 +220,9 @@ namespace OpenSim.Grid.UserServer
         {
             try
             {
-                string attri = "";
+                string attri = String.Empty;
                 attri = configData.GetAttribute("DataBaseProvider");
-                if (attri == "")
+                if (attri == String.Empty)
                 {
                     StorageDll = "OpenSim.Framework.Data.DB4o.dll";
                     configData.SetAttribute("DataBaseProvider", "OpenSim.Framework.Data.DB4o.dll");

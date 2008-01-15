@@ -756,106 +756,106 @@ namespace OpenSim.Framework
 
         public void loadConfigurationOptions()
         {
-            configMember.addConfigurationOption("billable_factor", ConfigurationOption.ConfigurationTypes.TYPE_FLOAT, "",
+            configMember.addConfigurationOption("billable_factor", ConfigurationOption.ConfigurationTypes.TYPE_FLOAT, String.Empty,
                                                 "0.0", true);
-            configMember.addConfigurationOption("estate_id", ConfigurationOption.ConfigurationTypes.TYPE_UINT32, "", "0",
+            configMember.addConfigurationOption("estate_id", ConfigurationOption.ConfigurationTypes.TYPE_UINT32, String.Empty, "0",
                                                 true);
             configMember.addConfigurationOption("parent_estate_id", ConfigurationOption.ConfigurationTypes.TYPE_UINT32,
-                                                "", "0", true);
-            configMember.addConfigurationOption("max_agents", ConfigurationOption.ConfigurationTypes.TYPE_BYTE, "", "40",
+                                                String.Empty, "0", true);
+            configMember.addConfigurationOption("max_agents", ConfigurationOption.ConfigurationTypes.TYPE_BYTE, String.Empty, "40",
                                                 true);
 
             configMember.addConfigurationOption("object_bonus_factor", ConfigurationOption.ConfigurationTypes.TYPE_FLOAT,
-                                                "", "1.0", true);
-            configMember.addConfigurationOption("redirect_grid_x", ConfigurationOption.ConfigurationTypes.TYPE_INT32, "",
+                                                String.Empty, "1.0", true);
+            configMember.addConfigurationOption("redirect_grid_x", ConfigurationOption.ConfigurationTypes.TYPE_INT32, String.Empty,
                                                 "0", true);
-            configMember.addConfigurationOption("redirect_grid_y", ConfigurationOption.ConfigurationTypes.TYPE_INT32, "",
+            configMember.addConfigurationOption("redirect_grid_y", ConfigurationOption.ConfigurationTypes.TYPE_INT32, String.Empty,
                                                 "0", true);
-            configMember.addConfigurationOption("region_flags", ConfigurationOption.ConfigurationTypes.TYPE_UINT32, "",
+            configMember.addConfigurationOption("region_flags", ConfigurationOption.ConfigurationTypes.TYPE_UINT32, String.Empty,
                                                 "0", true);
-            configMember.addConfigurationOption("sim_access", ConfigurationOption.ConfigurationTypes.TYPE_BYTE, "", "21",
+            configMember.addConfigurationOption("sim_access", ConfigurationOption.ConfigurationTypes.TYPE_BYTE, String.Empty, "21",
                                                 true);
-            configMember.addConfigurationOption("sun_hour", ConfigurationOption.ConfigurationTypes.TYPE_FLOAT, "", "0",
+            configMember.addConfigurationOption("sun_hour", ConfigurationOption.ConfigurationTypes.TYPE_FLOAT, String.Empty, "0",
                                                 true);
             configMember.addConfigurationOption("terrain_raise_limit", ConfigurationOption.ConfigurationTypes.TYPE_FLOAT,
-                                                "", "0", true);
+                                                String.Empty, "0", true);
             configMember.addConfigurationOption("terrain_lower_limit", ConfigurationOption.ConfigurationTypes.TYPE_FLOAT,
-                                                "", "0", true);
-            configMember.addConfigurationOption("use_fixed_sun", ConfigurationOption.ConfigurationTypes.TYPE_BOOLEAN, "",
+                                                String.Empty, "0", true);
+            configMember.addConfigurationOption("use_fixed_sun", ConfigurationOption.ConfigurationTypes.TYPE_BOOLEAN, String.Empty,
                                                 "false", true);
             configMember.addConfigurationOption("price_per_meter", ConfigurationOption.ConfigurationTypes.TYPE_UINT32,
-                                                "", "1", true);
+                                                String.Empty, "1", true);
             configMember.addConfigurationOption("region_water_height",
-                                                ConfigurationOption.ConfigurationTypes.TYPE_UINT16, "", "20", true);
+                                                ConfigurationOption.ConfigurationTypes.TYPE_UINT16, String.Empty, "20", true);
             configMember.addConfigurationOption("region_allow_terraform",
-                                                ConfigurationOption.ConfigurationTypes.TYPE_BOOLEAN, "", "true", true);
+                                                ConfigurationOption.ConfigurationTypes.TYPE_BOOLEAN, String.Empty, "true", true);
 
-            configMember.addConfigurationOption("terrain_base_0", ConfigurationOption.ConfigurationTypes.TYPE_LLUUID, "",
+            configMember.addConfigurationOption("terrain_base_0", ConfigurationOption.ConfigurationTypes.TYPE_LLUUID, String.Empty,
                                                 "b8d3965a-ad78-bf43-699b-bff8eca6c975", true);
-            configMember.addConfigurationOption("terrain_base_1", ConfigurationOption.ConfigurationTypes.TYPE_LLUUID, "",
+            configMember.addConfigurationOption("terrain_base_1", ConfigurationOption.ConfigurationTypes.TYPE_LLUUID, String.Empty,
                                                 "abb783e6-3e93-26c0-248a-247666855da3", true);
-            configMember.addConfigurationOption("terrain_base_2", ConfigurationOption.ConfigurationTypes.TYPE_LLUUID, "",
+            configMember.addConfigurationOption("terrain_base_2", ConfigurationOption.ConfigurationTypes.TYPE_LLUUID, String.Empty,
                                                 "179cdabd-398a-9b6b-1391-4dc333ba321f", true);
-            configMember.addConfigurationOption("terrain_base_3", ConfigurationOption.ConfigurationTypes.TYPE_LLUUID, "",
+            configMember.addConfigurationOption("terrain_base_3", ConfigurationOption.ConfigurationTypes.TYPE_LLUUID, String.Empty,
                                                 "beb169c7-11ea-fff2-efe5-0f24dc881df2", true);
 
             configMember.addConfigurationOption("terrain_detail_0", ConfigurationOption.ConfigurationTypes.TYPE_LLUUID,
-                                                "", "00000000-0000-0000-0000-000000000000", true);
+                                                String.Empty, "00000000-0000-0000-0000-000000000000", true);
             configMember.addConfigurationOption("terrain_detail_1", ConfigurationOption.ConfigurationTypes.TYPE_LLUUID,
-                                                "", "00000000-0000-0000-0000-000000000000", true);
+                                                String.Empty, "00000000-0000-0000-0000-000000000000", true);
             configMember.addConfigurationOption("terrain_detail_2", ConfigurationOption.ConfigurationTypes.TYPE_LLUUID,
-                                                "", "00000000-0000-0000-0000-000000000000", true);
+                                                String.Empty, "00000000-0000-0000-0000-000000000000", true);
             configMember.addConfigurationOption("terrain_detail_3", ConfigurationOption.ConfigurationTypes.TYPE_LLUUID,
-                                                "", "00000000-0000-0000-0000-000000000000", true);
+                                                String.Empty, "00000000-0000-0000-0000-000000000000", true);
 
             configMember.addConfigurationOption("terrain_start_height_0",
-                                                ConfigurationOption.ConfigurationTypes.TYPE_FLOAT, "", "10.0", true);
+                                                ConfigurationOption.ConfigurationTypes.TYPE_FLOAT, String.Empty, "10.0", true);
             configMember.addConfigurationOption("terrain_start_height_1",
-                                                ConfigurationOption.ConfigurationTypes.TYPE_FLOAT, "", "10.0", true);
+                                                ConfigurationOption.ConfigurationTypes.TYPE_FLOAT, String.Empty, "10.0", true);
             configMember.addConfigurationOption("terrain_start_height_2",
-                                                ConfigurationOption.ConfigurationTypes.TYPE_FLOAT, "", "10.0", true);
+                                                ConfigurationOption.ConfigurationTypes.TYPE_FLOAT, String.Empty, "10.0", true);
             configMember.addConfigurationOption("terrain_start_height_3",
-                                                ConfigurationOption.ConfigurationTypes.TYPE_FLOAT, "", "10.0", true);
+                                                ConfigurationOption.ConfigurationTypes.TYPE_FLOAT, String.Empty, "10.0", true);
 
             configMember.addConfigurationOption("terrain_height_range_0",
-                                                ConfigurationOption.ConfigurationTypes.TYPE_FLOAT, "", "60.0", true);
+                                                ConfigurationOption.ConfigurationTypes.TYPE_FLOAT, String.Empty, "60.0", true);
             configMember.addConfigurationOption("terrain_height_range_1",
-                                                ConfigurationOption.ConfigurationTypes.TYPE_FLOAT, "", "60.0", true);
+                                                ConfigurationOption.ConfigurationTypes.TYPE_FLOAT, String.Empty, "60.0", true);
             configMember.addConfigurationOption("terrain_height_range_2",
-                                                ConfigurationOption.ConfigurationTypes.TYPE_FLOAT, "", "60.0", true);
+                                                ConfigurationOption.ConfigurationTypes.TYPE_FLOAT, String.Empty, "60.0", true);
             configMember.addConfigurationOption("terrain_height_range_3",
-                                                ConfigurationOption.ConfigurationTypes.TYPE_FLOAT, "", "60.0", true);
+                                                ConfigurationOption.ConfigurationTypes.TYPE_FLOAT, String.Empty, "60.0", true);
 
             configMember.addConfigurationOption("terrain_file",
-                                                ConfigurationOption.ConfigurationTypes.TYPE_STRING_NOT_EMPTY, "",
+                                                ConfigurationOption.ConfigurationTypes.TYPE_STRING_NOT_EMPTY, String.Empty,
                                                 "default.r32", true);
             configMember.addConfigurationOption("terrain_multiplier", ConfigurationOption.ConfigurationTypes.TYPE_FLOAT,
-                                                "", "60.0", true);
-            configMember.addConfigurationOption("water_height", ConfigurationOption.ConfigurationTypes.TYPE_DOUBLE, "",
+                                                String.Empty, "60.0", true);
+            configMember.addConfigurationOption("water_height", ConfigurationOption.ConfigurationTypes.TYPE_DOUBLE, String.Empty,
                                                 "20.0", true);
             configMember.addConfigurationOption("terrain_image_id", ConfigurationOption.ConfigurationTypes.TYPE_LLUUID,
-                                                "", "00000000-0000-0000-0000-000000000000", true);
+                                                String.Empty, "00000000-0000-0000-0000-000000000000", true);
 
             configMember.addConfigurationOption("estate_manager_0", ConfigurationOption.ConfigurationTypes.TYPE_LLUUID,
-                                                "", "00000000-0000-0000-0000-000000000000", true);
+                                                String.Empty, "00000000-0000-0000-0000-000000000000", true);
             configMember.addConfigurationOption("estate_manager_1", ConfigurationOption.ConfigurationTypes.TYPE_LLUUID,
-                                                "", "00000000-0000-0000-0000-000000000000", true);
+                                                String.Empty, "00000000-0000-0000-0000-000000000000", true);
             configMember.addConfigurationOption("estate_manager_2", ConfigurationOption.ConfigurationTypes.TYPE_LLUUID,
-                                                "", "00000000-0000-0000-0000-000000000000", true);
+                                                String.Empty, "00000000-0000-0000-0000-000000000000", true);
             configMember.addConfigurationOption("estate_manager_3", ConfigurationOption.ConfigurationTypes.TYPE_LLUUID,
-                                                "", "00000000-0000-0000-0000-000000000000", true);
+                                                String.Empty, "00000000-0000-0000-0000-000000000000", true);
             configMember.addConfigurationOption("estate_manager_4", ConfigurationOption.ConfigurationTypes.TYPE_LLUUID,
-                                                "", "00000000-0000-0000-0000-000000000000", true);
+                                                String.Empty, "00000000-0000-0000-0000-000000000000", true);
             configMember.addConfigurationOption("estate_manager_5", ConfigurationOption.ConfigurationTypes.TYPE_LLUUID,
-                                                "", "00000000-0000-0000-0000-000000000000", true);
+                                                String.Empty, "00000000-0000-0000-0000-000000000000", true);
             configMember.addConfigurationOption("estate_manager_6", ConfigurationOption.ConfigurationTypes.TYPE_LLUUID,
-                                                "", "00000000-0000-0000-0000-000000000000", true);
+                                                String.Empty, "00000000-0000-0000-0000-000000000000", true);
             configMember.addConfigurationOption("estate_manager_7", ConfigurationOption.ConfigurationTypes.TYPE_LLUUID,
-                                                "", "00000000-0000-0000-0000-000000000000", true);
+                                                String.Empty, "00000000-0000-0000-0000-000000000000", true);
             configMember.addConfigurationOption("estate_manager_8", ConfigurationOption.ConfigurationTypes.TYPE_LLUUID,
-                                                "", "00000000-0000-0000-0000-000000000000", true);
+                                                String.Empty, "00000000-0000-0000-0000-000000000000", true);
             configMember.addConfigurationOption("estate_manager_9", ConfigurationOption.ConfigurationTypes.TYPE_LLUUID,
-                                                "", "00000000-0000-0000-0000-000000000000", true);
+                                                String.Empty, "00000000-0000-0000-0000-000000000000", true);
 
         }
 

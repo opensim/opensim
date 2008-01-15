@@ -45,7 +45,7 @@ namespace OpenSim.Region.Communications.Local
 
         private Dictionary<string, string> m_queuedGridSettings = new Dictionary<string, string>();
 
-        public string _gdebugRegionName = "";
+        public string _gdebugRegionName = System.String.Empty;
 
         public string gdebugRegionName
         {
@@ -53,7 +53,7 @@ namespace OpenSim.Region.Communications.Local
             set { _gdebugRegionName = value; }
         }
 
-        public string _rdebugRegionName = "";
+        public string _rdebugRegionName = System.String.Empty;
 
         public string rdebugRegionName
         {

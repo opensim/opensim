@@ -157,17 +157,17 @@ namespace OpenSim.Framework
 
     public class RegionInfo : SimpleRegionInfo
     {
-        public string RegionName = "";
+        public string RegionName = String.Empty;
 
-        public string DataStore = "";
+        public string DataStore = String.Empty;
         public bool isSandbox = false;
         public bool commFailTF = false;
 
         public LLUUID MasterAvatarAssignedUUID = LLUUID.Zero;
         public LLUUID CovenantID = LLUUID.Zero;
-        public string MasterAvatarFirstName = "";
-        public string MasterAvatarLastName = "";
-        public string MasterAvatarSandboxPassword = "";
+        public string MasterAvatarFirstName = String.Empty;
+        public string MasterAvatarLastName = String.Empty;
+        public string MasterAvatarSandboxPassword = String.Empty;
 
         // Apparently, we're applying the same estatesettings regardless of whether it's local or remote.
         private static EstateSettings m_estateSettings;
@@ -241,7 +241,7 @@ namespace OpenSim.Framework
         //not in use, should swap to nini though.
         public void LoadFromNiniSource(IConfigSource source, string sectionName)
         {
-            string errorMessage = "";
+            string errorMessage = String.Empty;
             RegionID = new LLUUID(source.Configs[sectionName].GetString("Region_ID", LLUUID.Random().ToString()));
             RegionName = source.Configs[sectionName].GetString("sim_name", "OpenSim Test");
             m_regionLocX = Convert.ToUInt32(source.Configs[sectionName].GetString("sim_location_x", "1000"));
@@ -275,7 +275,7 @@ namespace OpenSim.Framework
             MasterAvatarLastName = source.Configs[sectionName].GetString("master_avatar_last", "User");
             MasterAvatarSandboxPassword = source.Configs[sectionName].GetString("master_avatar_pass", "test");
 
-            if (errorMessage != "")
+            if (errorMessage != String.Empty)
             {
                 // a error 
             }
@@ -384,7 +384,7 @@ namespace OpenSim.Framework
                     break;
                 case "master_avatar_pass":
                     string tempMD5Passwd = (string) configuration_result;
-                    MasterAvatarSandboxPassword = Util.Md5Hash(Util.Md5Hash(tempMD5Passwd) + ":" + "");
+                    MasterAvatarSandboxPassword = Util.Md5Hash(Util.Md5Hash(tempMD5Passwd) + ":" + String.Empty);
                     break;
             }
 

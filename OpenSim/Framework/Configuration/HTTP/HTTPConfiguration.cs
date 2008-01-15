@@ -39,7 +39,7 @@ namespace OpenSim.Framework.Configuration.HTTP
 
         private XmlConfiguration xmlConfig;
 
-        private string configFileName = "";
+        private string configFileName = System.String.Empty;
 
         public HTTPConfiguration()
         {

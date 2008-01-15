@@ -485,7 +485,7 @@ namespace OpenSim.Framework.Data.MySQL
                         foreach (DataColumn column in table.Columns)
                             Debug.Write(column.ColumnName + " = " +
                                         row[column, DataRowVersion.Original] + ", ");
-                        Debug.WriteLine("");
+                        Debug.WriteLine(String.Empty);
                     }
                     //--- Display the current values, if there are any.
                     if (row.HasVersion(DataRowVersion.Current))
@@ -494,9 +494,9 @@ namespace OpenSim.Framework.Data.MySQL
                         foreach (DataColumn column in table.Columns)
                             Debug.Write(column.ColumnName + " = " +
                                         row[column, DataRowVersion.Current] + ", ");
-                        Debug.WriteLine("");
+                        Debug.WriteLine(String.Empty);
                     }
-                    Debug.WriteLine("");
+                    Debug.WriteLine(String.Empty);
                 }
             }
         }
@@ -1313,7 +1313,7 @@ namespace OpenSim.Framework.Data.MySQL
         private MySqlCommand createUpdateCommand(string table, string pk, DataTable dt)
         {
             string sql = "update " + table + " set ";
-            string subsql = "";
+            string subsql = String.Empty;
             foreach (DataColumn col in dt.Columns)
             {
                 if (subsql.Length > 0)
@@ -1341,7 +1341,7 @@ namespace OpenSim.Framework.Data.MySQL
         private string defineTable(DataTable dt)
         {
             string sql = "create table " + dt.TableName + "(";
-            string subsql = "";
+            string subsql = String.Empty;
             foreach (DataColumn col in dt.Columns)
             {
                 if (subsql.Length > 0)

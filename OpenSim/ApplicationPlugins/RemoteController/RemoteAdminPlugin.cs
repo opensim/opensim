@@ -48,7 +48,7 @@ namespace OpenSim.ApplicationPlugins.LoadRegions
     {
         private OpenSimMain m_app;
         private BaseHttpServer m_httpd;
-        private string requiredPassword = "";
+        private string requiredPassword = String.Empty;
 
         public void Initialise(OpenSimMain openSim)
         {
@@ -57,7 +57,7 @@ namespace OpenSim.ApplicationPlugins.LoadRegions
                 if (openSim.ConfigSource.Configs["RemoteAdmin"].GetBoolean("enabled", false))
                 {
                     MainLog.Instance.Verbose("RADMIN", "Remote Admin Plugin Enabled");
-                    requiredPassword = openSim.ConfigSource.Configs["RemoteAdmin"].GetString("access_password", "");
+                    requiredPassword = openSim.ConfigSource.Configs["RemoteAdmin"].GetString("access_password", String.Empty);
 
                     m_app = openSim;
                     m_httpd = openSim.HttpServer;
@@ -83,7 +83,7 @@ namespace OpenSim.ApplicationPlugins.LoadRegions
             LLUUID regionID = new LLUUID((string) requestData["regionID"]);
 
             Hashtable responseData = new Hashtable();
-            if (requiredPassword != "" &&
+            if (requiredPassword != String.Empty &&
                 (!requestData.Contains("password") || (string) requestData["password"] != requiredPassword))
             {
                 responseData["accepted"] = "false";
@@ -116,7 +116,7 @@ namespace OpenSim.ApplicationPlugins.LoadRegions
             Hashtable requestData = (Hashtable) request.Params[0];
 
             Hashtable responseData = new Hashtable();
-            if (requiredPassword != "" &&
+            if (requiredPassword != String.Empty &&
                 (!requestData.Contains("password") || (string) requestData["password"] != requiredPassword))
             {
                 responseData["accepted"] = "false";
@@ -142,7 +142,7 @@ namespace OpenSim.ApplicationPlugins.LoadRegions
             Hashtable requestData = (Hashtable)request.Params[0];
 
             Hashtable responseData = new Hashtable();
-            if (requiredPassword != "" &&
+            if (requiredPassword != String.Empty &&
                 (!requestData.Contains("password") || (string)requestData["password"] != requiredPassword))
             {
                 responseData["accepted"] = "false";
@@ -180,7 +180,7 @@ namespace OpenSim.ApplicationPlugins.LoadRegions
             XmlRpcResponse response = new XmlRpcResponse();
             Hashtable requestData = (Hashtable) request.Params[0];
             Hashtable responseData = new Hashtable();
-            if (requiredPassword != "" &&
+            if (requiredPassword != String.Empty &&
                 (!requestData.Contains("password") || (string) requestData["password"] != requiredPassword))
             {
                 responseData["accepted"] = "false";
@@ -236,7 +236,7 @@ namespace OpenSim.ApplicationPlugins.LoadRegions
             XmlRpcResponse response = new XmlRpcResponse();
             Hashtable requestData = (Hashtable) request.Params[0];
             Hashtable responseData = new Hashtable();
-            if (requiredPassword != "" &&
+            if (requiredPassword != System.String.Empty &&
                 (!requestData.Contains("password") || (string) requestData["password"] != requiredPassword))
             {
                 responseData["created"] = "false";

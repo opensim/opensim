@@ -161,7 +161,7 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
             catch (ThreadAbortException tae)
             {
                 string a = tae.ToString();
-                a = "";
+                a = String.Empty;
                 // Expected
             }
         }

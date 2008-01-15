@@ -131,7 +131,7 @@ namespace OpenSim.Region.Environment.Modules
         public class XferDownLoad
         {
             public byte[] Data = new byte[0];
-            public string FileName = "";
+            public string FileName = String.Empty;
             public ulong XferID = 0;
             public int DataPointer = 0;
             public uint Packet = 0;

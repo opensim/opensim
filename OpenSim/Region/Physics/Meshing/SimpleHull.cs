@@ -53,7 +53,7 @@ namespace OpenSim.Region.Physics.Meshing
 
         public override String ToString()
         {
-            String result = "";
+            String result = String.Empty;
             foreach (Vertex v in vertices)
             {
                 result += "b:" + v.ToString() + "\n";

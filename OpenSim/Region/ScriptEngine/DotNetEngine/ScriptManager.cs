@@ -64,7 +64,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
 
             // We will initialize and start the script.
             // It will be up to the script itself to hook up the correct events.
-            string ScriptSource = "";
+            string ScriptSource = String.Empty;
 
             SceneObjectPart m_host = World.GetSceneObjectPart(localID);
 

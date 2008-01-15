@@ -41,7 +41,7 @@ namespace OpenSim.Region.Environment.Scenes
 {
     public partial class SceneObjectPart : IScriptHost
     {
-        private string m_inventoryFileName = "";
+        private string m_inventoryFileName = String.Empty;
         
         /// <summary>
         /// The inventory folder for this prim
@@ -334,7 +334,7 @@ namespace OpenSim.Region.Environment.Scenes
 
         public class InventoryStringBuilder
         {
-            public string BuildString = "";
+            public string BuildString = String.Empty;
 
             public InventoryStringBuilder(LLUUID folderID, LLUUID parentID)
             {

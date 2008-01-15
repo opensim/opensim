@@ -259,7 +259,7 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
                     //Deliver data to prim's remote_data handler
                     object[] resobj = new object[]
                         {
-                            2, rInfo.GetChannelKey().ToString(), rInfo.GetMessageID().ToString(), "",
+                            2, rInfo.GetChannelKey().ToString(), rInfo.GetMessageID().ToString(), String.Empty,
                             rInfo.GetIntValue(),
                             rInfo.GetStrVal()
                         };

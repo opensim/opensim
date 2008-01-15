@@ -356,7 +356,7 @@ namespace OpenSim.Framework
             {
                 return capsURLS[userID];
             }
-            return "";
+            return String.Empty;
         }
 
         public static void SetCapsURL(LLUUID userID, string url)

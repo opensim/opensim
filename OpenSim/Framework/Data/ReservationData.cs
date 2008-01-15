@@ -37,11 +37,11 @@ namespace OpenSim.Framework.Data
         public int reservationMaxX = 65536;
         public int reservationMaxY = 65536;
 
-        public string reservationName = "";
-        public string reservationCompany = "";
+        public string reservationName = System.String.Empty;
+        public string reservationCompany = System.String.Empty;
         public bool status = true;
 
-        public string gridSendKey = "";
-        public string gridRecvKey = "";
+        public string gridSendKey = System.String.Empty;
+        public string gridRecvKey = System.String.Empty;
     }
 }

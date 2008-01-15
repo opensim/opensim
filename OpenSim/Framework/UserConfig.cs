@@ -26,6 +26,8 @@
 * 
 */
 
+using System;
+
 namespace OpenSim.Framework
 {
     /// <summary>
@@ -33,14 +35,14 @@ namespace OpenSim.Framework
     /// </summary>
     public class UserConfig
     {
-        public string DefaultStartupMsg = "";
-        public string GridServerURL = "";
-        public string GridSendKey = "";
-        public string GridRecvKey = "";
+        public string DefaultStartupMsg = String.Empty;
+        public string GridServerURL = String.Empty;
+        public string GridSendKey = String.Empty;
+        public string GridRecvKey = String.Empty;
 
-        public string InventoryUrl = "";
+        public string InventoryUrl = String.Empty;
 
-        public string DatabaseProvider = "";
+        public string DatabaseProvider = String.Empty;
 
         public static uint DefaultHttpPort = 8002;
         public static bool DefaultHttpSSL = false;

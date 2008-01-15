@@ -99,7 +99,7 @@ namespace OpenSim.Framework.AssetLoader.Filesystem
                     
                     for (int i = 0; i < source.Configs.Count; i++)
                     {
-                        assetSetPath = source.Configs[i].GetString("file", "");
+                        assetSetPath = source.Configs[i].GetString("file", String.Empty);
                         
                         LoadXmlAssetSet(Path.Combine(Util.assetsDir(), assetSetPath), assets);
                     }
@@ -138,10 +138,10 @@ namespace OpenSim.Framework.AssetLoader.Filesystem
                     for (int i = 0; i < source.Configs.Count; i++)
                     {
                         string assetIdStr = source.Configs[i].GetString("assetID", LLUUID.Random().ToString());
-                        string name = source.Configs[i].GetString("name", "");
+                        string name = source.Configs[i].GetString("name", String.Empty);
                         sbyte type = (sbyte) source.Configs[i].GetInt("assetType", 0);
                         sbyte invType = (sbyte) source.Configs[i].GetInt("inventoryType", 0);
-                        string assetPath = Path.Combine(dir, source.Configs[i].GetString("fileName", ""));
+                        string assetPath = Path.Combine(dir, source.Configs[i].GetString("fileName", String.Empty));
 
                         AssetBase newAsset = CreateAsset(assetIdStr, name, assetPath, false);
 

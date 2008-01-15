@@ -44,19 +44,19 @@ namespace OpenSim.Region.Environment.Scenes.Scripting
 
         public string SitName
         {
-            get { return ""; }
+            get { return String.Empty; }
             set { }
         }
 
         public string TouchName
         {
-            get { return ""; }
+            get { return String.Empty; }
             set { }
         }
 
         public string Description
         {
-            get { return ""; }
+            get { return String.Empty; }
             set { }
         }
 

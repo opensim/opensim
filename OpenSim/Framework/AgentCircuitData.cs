@@ -61,7 +61,7 @@ namespace OpenSim.Framework
         public bool child;
         public LLUUID InventoryFolder;
         public LLUUID BaseFolder;
-        public string CapsPath = "";
+        public string CapsPath = String.Empty;
     }
 
     [Serializable]
@@ -100,6 +100,6 @@ namespace OpenSim.Framework
         public bool child;
         public Guid InventoryFolder;
         public Guid BaseFolder;
-        public string CapsPath = "";
+        public string CapsPath = String.Empty;
     }
 }

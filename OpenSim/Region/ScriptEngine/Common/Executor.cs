@@ -88,7 +88,7 @@ namespace OpenSim.Region.ScriptEngine.Common
 
             //type.InvokeMember(EventName, BindingFlags.InvokeMethod, null, m_Script, args);
 
-            //Console.WriteLine("ScriptEngine Executor.ExecuteEvent: \"" + EventName + "\"");
+            //Console.WriteLine("ScriptEngine Executor.ExecuteEvent: \String.Empty + EventName + "\String.Empty);
 
             if (Events.ContainsKey(EventName) == false)
             {
@@ -112,7 +112,7 @@ namespace OpenSim.Region.ScriptEngine.Common
 
             if (ev == null) // No event by that name!
             {
-                //Console.WriteLine("ScriptEngine Can not find any event named: \"" + EventName + "\"");
+                //Console.WriteLine("ScriptEngine Can not find any event named: \String.Empty + EventName + "\String.Empty);
                 return;
             }
 

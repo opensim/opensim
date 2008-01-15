@@ -33,11 +33,11 @@ namespace OpenSim.Region.Capabilities
     [LLSDMap]
     public class LLSDAssetUploadRequest
     {
-        public string asset_type = "";
-        public string description = "";
+        public string asset_type = System.String.Empty;
+        public string description = System.String.Empty;
         public LLUUID folder_id = LLUUID.Zero;
-        public string inventory_type = "";
-        public string name = "";
+        public string inventory_type = System.String.Empty;
+        public string name = System.String.Empty;
 
         public LLSDAssetUploadRequest()
         {

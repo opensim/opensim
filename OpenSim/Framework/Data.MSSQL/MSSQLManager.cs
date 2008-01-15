@@ -186,7 +186,7 @@ namespace OpenSim.Framework.Data.MSSQL
         protected static string defineTable(DataTable dt)
         {
             string sql = "create table " + dt.TableName + "(";
-            string subsql = "";
+            string subsql = String.Empty;
             foreach (DataColumn col in dt.Columns)
             {
                 if (subsql.Length > 0)
@@ -337,7 +337,7 @@ namespace OpenSim.Framework.Data.MSSQL
 
                 // World Map Addition
                 string tempRegionMap = reader["regionMapTexture"].ToString();
-                if (tempRegionMap != "")
+                if (tempRegionMap != String.Empty)
                 {
                     regionprofile.regionMapTextureID = new LLUUID(tempRegionMap);
                 }
@@ -644,12 +644,12 @@ namespace OpenSim.Framework.Data.MSSQL
             parameters["homeLookAtZ"] = homeLookAtZ.ToString();
             parameters["created"] = created.ToString();
             parameters["lastLogin"] = lastlogin.ToString();
-            parameters["userInventoryURI"] = "";
-            parameters["userAssetURI"] = "";
+            parameters["userInventoryURI"] = String.Empty;
+            parameters["userAssetURI"] = String.Empty;
             parameters["profileCanDoMask"] = "0";
             parameters["profileWantDoMask"] = "0";
-            parameters["profileAboutText"] = "";
-            parameters["profileFirstText"] = "";
+            parameters["profileAboutText"] = String.Empty;
+            parameters["profileFirstText"] = String.Empty;
             parameters["profileImage"] = LLUUID.Zero.ToString();
             parameters["profileFirstImage"] = LLUUID.Zero.ToString();
             parameters["webLoginKey"] = LLUUID.Random().ToString();

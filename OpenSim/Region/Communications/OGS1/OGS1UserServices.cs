@@ -144,7 +144,7 @@ namespace OpenSim.Region.Communications.OGS1
             {
                 Hashtable param = new Hashtable();
                 param["queryid"] = (string) queryID.ToString();
-                param["avquery"] = objAlphaNumericPattern.Replace(query, "");
+                param["avquery"] = objAlphaNumericPattern.Replace(query, String.Empty);
                 IList parameters = new ArrayList();
                 parameters.Add(param);
                 XmlRpcRequest req = new XmlRpcRequest("get_avatar_picker_avatar", parameters);
@@ -212,7 +212,7 @@ namespace OpenSim.Region.Communications.OGS1
 
         public UserProfileData SetupMasterUser(string firstName, string lastName)
         {
-            return SetupMasterUser(firstName, lastName, "");
+            return SetupMasterUser(firstName, lastName, String.Empty);
         }
 
         public UserProfileData SetupMasterUser(string firstName, string lastName, string password)

@@ -976,7 +976,7 @@ namespace OpenSim.Region.Physics.BulletXPlugin
     public class BulletXCharacter : BulletXActor
     {
         public BulletXCharacter(BulletXScene parent_scene, PhysicsVector pos)
-            : this("", parent_scene, pos)
+            : this(String.Empty, parent_scene, pos)
         {
         }
 

@@ -152,13 +152,13 @@ namespace OpenSim.Framework.Communications.Cache
         {
             string foldersPath 
                 = Path.Combine(
-                    Util.inventoryDir(), config.GetString("foldersFile", ""));
+                    Util.inventoryDir(), config.GetString("foldersFile", System.String.Empty));
             
             LoadFromFile(foldersPath, "Library folders", ReadFolderFromConfig);
             
             string itemsPath 
                 = Path.Combine(
-                    Util.inventoryDir(), config.GetString("itemsFile", ""));
+                    Util.inventoryDir(), config.GetString("itemsFile", System.String.Empty));
             
             LoadFromFile(itemsPath, "Library items", ReadItemFromConfig);
         }
@@ -210,8 +210,8 @@ namespace OpenSim.Framework.Communications.Cache
             item.inventoryID = new LLUUID(config.GetString("inventoryID", folderID.ToString()));
             item.assetID = new LLUUID(config.GetString("assetID", LLUUID.Random().ToString()));
             item.parentFolderID = new LLUUID(config.GetString("folderID", folderID.ToString()));
-            item.inventoryDescription = config.GetString("description", "");
-            item.inventoryName = config.GetString("name", "");
+            item.inventoryDescription = config.GetString("description", System.String.Empty);
+            item.inventoryName = config.GetString("name", System.String.Empty);
             item.assetType = config.GetInt("assetType", 0);
             item.invType = config.GetInt("inventoryType", 0);
             item.inventoryCurrentPermissions = (uint)config.GetLong("currentPermissions", 0x7FFFFFFF);

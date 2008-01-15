@@ -143,7 +143,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL
             // TODO: Return errors to user somehow
             if (results.Errors.Count > 0)
             {
-                string errtext = "";
+                string errtext = String.Empty;
                 foreach (CompilerError CompErr in results.Errors)
                 {
                     errtext += "Line number " + (CompErr.Line - 1) +

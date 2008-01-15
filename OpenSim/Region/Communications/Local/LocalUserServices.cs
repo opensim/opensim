@@ -55,7 +55,7 @@ namespace OpenSim.Region.Communications.Local
 
         public override UserProfileData SetupMasterUser(string firstName, string lastName)
         {
-            return SetupMasterUser(firstName, lastName, "");
+            return SetupMasterUser(firstName, lastName, String.Empty);
         }
 
         public override UserProfileData SetupMasterUser(string firstName, string lastName, string password)

@@ -33,12 +33,12 @@ namespace OpenSim.Framework
     /// </summary>
     public class InventoryConfig
     {
-        public string DefaultStartupMsg = "";
-        public string UserServerURL = "";
-        public string UserSendKey = "";
-        public string UserRecvKey = "";
+        public string DefaultStartupMsg = System.String.Empty;
+        public string UserServerURL = System.String.Empty;
+        public string UserSendKey = System.String.Empty;
+        public string UserRecvKey = System.String.Empty;
 
-        public string DatabaseProvider = "";
+        public string DatabaseProvider = System.String.Empty;
         public static uint DefaultHttpPort = 8004;
 
         public uint HttpPort = DefaultHttpPort;

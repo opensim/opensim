@@ -63,7 +63,7 @@ namespace OpenSim.Region.ScriptEngine.LSOEngine.LSO
             LSOEngine.LSO.Common.SendToLog("Assembly name: " + asmName.Name);
             LSOEngine.LSO.Common.SendToLog("Assembly File Name: " + asmName.Name + ".dll");
             LSOEngine.LSO.Common.SendToLog("Starting processing of LSL ByteCode...");
-            LSOEngine.LSO.Common.SendToLog("");
+            LSOEngine.LSO.Common.SendToLog(String.Empty);
 
 
             // Create Assembly
@@ -81,7 +81,7 @@ namespace OpenSim.Region.ScriptEngine.LSOEngine.LSO
                 (asmName.Name,
                  DLL_FileName);
 
-            //Common.SendToDebug("asmName.Name is still \"" + asmName.Name + "\"");
+            //Common.SendToDebug("asmName.Name is still \String.Empty + asmName.Name + "\String.Empty);
             // Create a Class (/Type)
             TypeBuilder typeBuilder = modBuilder.DefineType(
                 "LSL_ScriptObject",
@@ -152,7 +152,7 @@ namespace OpenSim.Region.ScriptEngine.LSOEngine.LSO
 
             //foreach (string s in ret)
             //{
-            //    Common.SendToLog("");
+            //    Common.SendToLog(String.Empty);
             //    Common.SendToLog("*** Executing LSL Server Event: " + s);
             //    //object test = type.GetMember(s);
             //    //object runner = type.InvokeMember(s, BindingFlags.Public | BindingFlags.InvokeMethod | BindingFlags.Instance, null, MyScript, args);

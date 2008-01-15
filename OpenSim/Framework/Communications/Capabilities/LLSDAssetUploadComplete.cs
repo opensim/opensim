@@ -26,15 +26,16 @@
 * 
 */
 using libsecondlife;
+using System;
 
 namespace OpenSim.Region.Capabilities
 {
     [LLSDType("MAP")]
     public class LLSDAssetUploadComplete
     {
-        public string new_asset = "";
+        public string new_asset = String.Empty;
         public LLUUID new_inventory_item = LLUUID.Zero;
-        public string state = "";
+        public string state = String.Empty;
         //public bool success = false;
 
         public LLSDAssetUploadComplete()

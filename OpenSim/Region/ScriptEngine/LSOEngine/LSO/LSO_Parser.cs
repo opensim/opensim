@@ -430,7 +430,7 @@ namespace OpenSim.Region.ScriptEngine.LSOEngine.LSO
 
         private string Read_String()
         {
-            string ret = "";
+            string ret = String.Empty;
             byte reader = br_read(1)[0];
             while (reader != 0x000)
             {

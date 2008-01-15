@@ -37,8 +37,8 @@ namespace OpenSim.Framework
         public LLUUID FullID;
         public sbyte Type;
         public sbyte InvType;
-        public string Name = "";
-        public string Description = "";
+        public string Name = String.Empty;
+        public string Description = String.Empty;
         public bool Local = false;
         public bool Temporary = false;
 

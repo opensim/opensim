@@ -197,7 +197,7 @@ namespace OpenSim.Region.Capabilities
         {
             Console.WriteLine("texture request " + request);
             // Needs implementing (added to remove compiler warning)
-            return "";
+            return String.Empty;
         }
 
         #region EventQueue (Currently not enabled)
@@ -211,7 +211,7 @@ namespace OpenSim.Region.Capabilities
         /// <returns></returns>
         public string ProcessEventQueue(string request, string path, string param)
         {
-            string res = "";
+            string res = String.Empty;
 
             if (m_capsEventQueue.Count > 0)
             {
@@ -476,17 +476,17 @@ namespace OpenSim.Region.Capabilities
         {
             public event UpLoadedAsset OnUpLoad;
 
-            private string uploaderPath = "";
+            private string uploaderPath = String.Empty;
             private LLUUID newAssetID;
             private LLUUID inventoryItemID;
             private LLUUID parentFolder;
             private BaseHttpServer httpListener;
             private bool m_dumpAssetsToFile;
-            private string m_assetName = "";
-            private string m_assetDes = "";
+            private string m_assetName = String.Empty;
+            private string m_assetDes = String.Empty;
 
-            private string m_invType = "";
-            private string m_assetType = "";
+            private string m_invType = String.Empty;
+            private string m_assetType = String.Empty;
 
             public AssetUploader(string assetName, string description, LLUUID assetID, LLUUID inventoryItem,
                                  LLUUID parentFolderID, string invType, string assetType, string path,
@@ -514,7 +514,7 @@ namespace OpenSim.Region.Capabilities
             public string uploaderCaps(byte[] data, string path, string param)
             {
                 LLUUID inv = inventoryItemID;
-                string res = "";
+                string res = String.Empty;
                 LLSDAssetUploadComplete uploadComplete = new LLSDAssetUploadComplete();
                 uploadComplete.new_asset = newAssetID.ToString();
                 uploadComplete.new_inventory_item = inv;
@@ -568,7 +568,7 @@ namespace OpenSim.Region.Capabilities
         {
             public event UpdateItem OnUpLoad;
 
-            private string uploaderPath = "";
+            private string uploaderPath = String.Empty;
             private LLUUID inventoryItemID;
             private BaseHttpServer httpListener;
             private bool m_dumpAssetToFile;
@@ -592,7 +592,7 @@ namespace OpenSim.Region.Capabilities
             public string uploaderCaps(byte[] data, string path, string param)
             {
                 LLUUID inv = inventoryItemID;
-                string res = "";
+                string res = String.Empty;
                 LLSDAssetUploadComplete uploadComplete = new LLSDAssetUploadComplete();
                 LLUUID assetID = LLUUID.Zero;
 
@@ -648,7 +648,7 @@ namespace OpenSim.Region.Capabilities
         {
             public event UpdateTaskScript OnUpLoad;
 
-            private string uploaderPath = "";
+            private string uploaderPath = String.Empty;
             private LLUUID inventoryItemID;
             private LLUUID primID;
             private bool isScriptRunning;
@@ -686,7 +686,7 @@ namespace OpenSim.Region.Capabilities
 //                        "TaskInventoryScriptUpdater received data: {0}, path: {1}, param: {2}", 
 //                        data, path, param);
 
-                    string res = "";
+                    string res = String.Empty;
                     LLSDTaskInventoryUploadComplete uploadComplete = new LLSDTaskInventoryUploadComplete();
 
                     if (OnUpLoad != null)

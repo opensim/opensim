@@ -87,7 +87,7 @@ namespace OpenSim.Region.Environment.Modules
             string bornOn = "Before now";
             string flAbout = "First life? What is one of those? OpenSim is my life!";
             LLUUID partner = new LLUUID("11111111-1111-0000-0000-000100bba000");
-            remoteClient.SendAvatarProperties(avatarID, about, bornOn, "", flAbout, 0, LLUUID.Zero, LLUUID.Zero, "",
+            remoteClient.SendAvatarProperties(avatarID, about, bornOn, System.String.Empty, flAbout, 0, LLUUID.Zero, LLUUID.Zero, System.String.Empty,
                                               partner);
         }
     }

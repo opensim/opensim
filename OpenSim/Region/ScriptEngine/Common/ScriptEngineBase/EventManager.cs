@@ -148,7 +148,7 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
         // Handled by long commands
         public void timer(uint localID, LLUUID itemID)
         {
-            //myScriptEngine.m_EventQueueManager.AddToScriptQueue(localID, itemID, "");
+            //myScriptEngine.m_EventQueueManager.AddToScriptQueue(localID, itemID, String.Empty);
         }
 
         public void listen(uint localID, LLUUID itemID)

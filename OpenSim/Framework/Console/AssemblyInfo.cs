@@ -36,12 +36,12 @@ using System.Runtime.InteropServices;
 
 [assembly : AssemblyTitle("ServerConsole")]
 [assembly : AssemblyDescription("")]
-[assembly : AssemblyConfiguration("")]
-[assembly : AssemblyCompany("")]
+[assembly: AssemblyConfiguration("")]
+[assembly: AssemblyCompany("")]
 [assembly : AssemblyProduct("ServerConsole")]
-[assembly : AssemblyCopyright("")]
-[assembly : AssemblyTrademark("")]
-[assembly : AssemblyCulture("")]
+[assembly: AssemblyCopyright("")]
+[assembly: AssemblyTrademark("")]
+[assembly: AssemblyCulture("")]
 
 // This sets the default COM visibility of types in the assembly to invisible.
 // If you need to expose a type to COM, use [ComVisible(true)] on that type.

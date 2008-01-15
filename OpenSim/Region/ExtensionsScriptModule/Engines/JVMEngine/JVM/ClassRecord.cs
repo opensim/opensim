@@ -237,7 +237,7 @@ namespace OpenSim.Region.ExtensionsScriptModule.JVMEngine.JVM
 
         public class PoolUtf8 : PoolItem
         {
-            public string Value = "";
+            public string Value = String.Empty;
 
             public void readValue(byte[] data, ref int pointer, int length)
             {
@@ -274,7 +274,7 @@ namespace OpenSim.Region.ExtensionsScriptModule.JVMEngine.JVM
 
         public class PoolClass : PoolItem
         {
-            //public string name = "";
+            //public string name = String.Empty;
             public ushort namePointer = 0;
             private ClassRecord parent;
             public PoolUtf8 Name;
@@ -384,7 +384,7 @@ namespace OpenSim.Region.ExtensionsScriptModule.JVMEngine.JVM
         {
             public ushort AccessFlags = 0;
             public ushort NameIndex = 0;
-            public string Name = "";
+            public string Name = String.Empty;
             public ushort DescriptorIndex = 0;
             public ushort AttributeCount = 0;
             public List<MethodAttribute> Attributes = new List<MethodAttribute>();
@@ -436,7 +436,7 @@ namespace OpenSim.Region.ExtensionsScriptModule.JVMEngine.JVM
             public class MethodAttribute
             {
                 public ushort NameIndex = 0;
-                public string Name = "";
+                public string Name = String.Empty;
                 public Int32 Length = 0;
                 //for now only support code attribute
                 public ushort MaxStack = 0;
@@ -502,7 +502,7 @@ namespace OpenSim.Region.ExtensionsScriptModule.JVMEngine.JVM
                 public class SubAttribute
                 {
                     public ushort NameIndex = 0;
-                    public string Name = "";
+                    public string Name = String.Empty;
                     public Int32 Length = 0;
                     public byte[] Data;
                     private ClassRecord parent;
@@ -546,7 +546,7 @@ namespace OpenSim.Region.ExtensionsScriptModule.JVMEngine.JVM
         {
             public ushort AccessFlags = 0;
             public ushort NameIndex = 0;
-            public string Name = "";
+            public string Name = String.Empty;
             public ushort DescriptorIndex = 0;
             public ushort AttributeCount = 0;
             public List<FieldAttribute> Attributes = new List<FieldAttribute>();
@@ -605,7 +605,7 @@ namespace OpenSim.Region.ExtensionsScriptModule.JVMEngine.JVM
             public class FieldAttribute
             {
                 public ushort NameIndex = 0;
-                public string Name = "";
+                public string Name = String.Empty;
                 public Int32 Length = 0;
                 public byte[] Data;
                 private ClassRecord parent;

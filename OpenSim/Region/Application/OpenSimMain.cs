@@ -172,8 +172,8 @@ namespace OpenSim
                 config.Set("storage_plugin", "OpenSim.Framework.Data.SQLite.dll");
                 config.Set("storage_connection_string", "URI=file:OpenSim.db,version=3");
                 config.Set("storage_prim_inventories_experimental", false);
-                config.Set("startup_console_commands_file", "");
-                config.Set("shutdown_console_commands_file", "");
+                config.Set("startup_console_commands_file", String.Empty);
+                config.Set("shutdown_console_commands_file", String.Empty);
                 config.Set("script_engine", "OpenSim.Region.ScriptEngine.DotNetEngine.dll");
                 config.Set("asset_database", "sqlite");
             }
@@ -252,8 +252,8 @@ namespace OpenSim
                 m_storagePersistPrimInventories
                     = startupConfig.GetBoolean("storage_prim_inventories_experimental", false);
 
-                m_startupCommandsFile = startupConfig.GetString("startup_console_commands_file", "");
-                m_shutdownCommandsFile = startupConfig.GetString("shutdown_console_commands_file", "");
+                m_startupCommandsFile = startupConfig.GetString("startup_console_commands_file", String.Empty);
+                m_shutdownCommandsFile = startupConfig.GetString("shutdown_console_commands_file", String.Empty);
 
                 m_scriptEngine = startupConfig.GetString("script_engine", "OpenSim.Region.ScriptEngine.DotNetEngine.dll");
 
@@ -374,7 +374,7 @@ namespace OpenSim
             // }
 
             //Run Startup Commands
-            if (m_startupCommandsFile != "")
+            if (m_startupCommandsFile != String.Empty)
             {
                 RunCommandScript(m_startupCommandsFile);
             }
@@ -421,7 +421,7 @@ namespace OpenSim
                 SQLAssetServer sqlAssetServer = new SQLAssetServer("OpenSim.Framework.Data.MSSQL.dll");
                 sqlAssetServer.LoadDefaultAssets();
                 assetServer = sqlAssetServer;
-                //assetServer = new GridAssetClient("");
+                //assetServer = new GridAssetClient(String.Empty);
             }
             else
             {
@@ -585,7 +585,7 @@ namespace OpenSim
         /// </summary>
         public virtual void Shutdown()
         {
-            if (m_startupCommandsFile != "")
+            if (m_startupCommandsFile != String.Empty)
             {
                 RunCommandScript(m_shutdownCommandsFile);
             }
@@ -622,10 +622,10 @@ namespace OpenSim
             if (File.Exists(fileName))
             {
                 StreamReader readFile = File.OpenText(fileName);
-                string currentCommand = "";
+                string currentCommand = String.Empty;
                 while ((currentCommand = readFile.ReadLine()) != null)
                 {
-                    if (currentCommand != "")
+                    if (currentCommand != String.Empty)
                     {
                         MainLog.Instance.Verbose("COMMANDFILE", "Running '" + currentCommand + "'");
                         MainLog.Instance.MainLogRunCommand(currentCommand);
@@ -645,7 +645,7 @@ namespace OpenSim
         /// <param name="cmdparams">Additional arguments passed to the command</param>
         public void RunCmd(string command, string[] cmdparams)
         {
-            string result = "";
+            string result = String.Empty;
 
             switch (command)
             {
@@ -982,7 +982,7 @@ namespace OpenSim
 
         private string CombineParams(string[] commandParams, int pos)
         {
-            string result = "";
+            string result = String.Empty;
             for (int i = pos; i < commandParams.Length; i++)
             {
                 result += commandParams[i] + " ";

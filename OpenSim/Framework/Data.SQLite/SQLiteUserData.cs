@@ -630,7 +630,7 @@ namespace OpenSim.Framework.Data.SQLite
             {
                 if (row[col] == null)
                 {
-                    row[col] = "";
+                    row[col] = String.Empty;
                 }
             }
         }
@@ -671,7 +671,7 @@ namespace OpenSim.Framework.Data.SQLite
             {
                 if (row[col] == null)
                 {
-                    row[col] = "";
+                    row[col] = String.Empty;
                 }
             }
         }

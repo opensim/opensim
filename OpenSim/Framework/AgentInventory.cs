@@ -234,7 +234,7 @@ namespace OpenSim.Framework
         public LLUUID CreatorID;
         public sbyte InvType;
         public sbyte Type;
-        public string Name = "";
+        public string Name = System.String.Empty;
         public string Description;
 
         public InventoryItem()
@@ -245,7 +245,7 @@ namespace OpenSim.Framework
         public string ExportString()
         {
             string typ = "notecard";
-            string result = "";
+            string result = System.String.Empty;
             result += "\tinv_object\t0\n\t{\n";
             result += "\t\tobj_id\t%s\n";
             result += "\t\tparent_id\t" + ItemID.ToString() + "\n";

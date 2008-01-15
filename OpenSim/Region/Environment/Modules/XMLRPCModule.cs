@@ -331,7 +331,7 @@ namespace OpenSim.Region.Environment.Modules
             m_ChannelKey = channelKey;
             m_MessageID = LLUUID.Random();
             m_processed = false;
-            m_resp = "";
+            m_resp = String.Empty;
         }
 
         public bool IsProcessed()

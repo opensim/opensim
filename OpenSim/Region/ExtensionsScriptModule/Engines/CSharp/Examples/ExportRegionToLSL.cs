@@ -50,7 +50,7 @@ namespace OpenSim.Region.ExtensionsScriptModule.CSharp.Examples
         {
             /*if (args[0].ToLower() == "lslexport")
             {
-                string sequence = "";
+                string sequence = String.Empty;
 
                 foreach (KeyValuePair<LLUUID, SceneObject> obj in script.world.Objects)
                 {
@@ -82,13 +82,13 @@ namespace OpenSim.Region.ExtensionsScriptModule.CSharp.Examples
             LLVector3 scale = prim.Scale;
             LLVector3 rootPos = prim.WorldPos;
 
-            string setPrimParams = "";
+            string setPrimParams = String.Empty;
 
             setPrimParams += "[PRIM_SCALE, " + scale.ToString() + ", PRIM_POS, " + rootPos.ToString() + ", PRIM_ROTATION, " + rot.ToString() + "]\n";
 
             return setPrimParams;
               */
-            return "";
+            return System.String.Empty;
         }
     }
 }

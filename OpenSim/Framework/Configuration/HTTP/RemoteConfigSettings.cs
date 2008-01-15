@@ -32,7 +32,7 @@ namespace OpenSim.Framework.Configuration.HTTP
     {
         private ConfigurationMember configMember;
 
-        public string baseConfigURL = "";
+        public string baseConfigURL = System.String.Empty;
 
         public RemoteConfigSettings(string filename)
         {

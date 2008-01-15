@@ -31,8 +31,8 @@ namespace OpenSim.Region.Capabilities
     [LLSDMap]
     public class LLSDAssetUploadResponse
     {
-        public string uploader = "";
-        public string state = "";
+        public string uploader = System.String.Empty;
+        public string state = System.String.Empty;
 
         public LLSDAssetUploadResponse()
         {

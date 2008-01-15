@@ -54,7 +54,7 @@ namespace OpenSim.Region.Environment.Scenes
 
 
         public KillObjectDelegate KillObject;
-        public string _debugRegionName = "";
+        public string _debugRegionName = String.Empty;
 
         public string debugRegionName
         {

@@ -297,7 +297,7 @@ namespace OpenSim.Region.ScriptEngine.Common
 
         public int llListen(int channelID, string name, string ID, string msg)
         {
-            if (ID == "")
+            if (ID == String.Empty)
             {
                 ID = LLUUID.Zero.ToString();
             }
@@ -338,19 +338,19 @@ namespace OpenSim.Region.ScriptEngine.Common
         public string llDetectedName(int number)
         {
             NotImplemented("llDetectedName");
-            return "";
+            return String.Empty;
         }
 
         public string llDetectedKey(int number)
         {
             NotImplemented("llDetectedKey");
-            return "";
+            return String.Empty;
         }
 
         public string llDetectedOwner(int number)
         {
             NotImplemented("llDetectedOwner");
-            return "";
+            return String.Empty;
         }
 
         public int llDetectedType(int number)
@@ -693,7 +693,7 @@ namespace OpenSim.Region.ScriptEngine.Common
                 return texface.TextureID.ToString();
             }
             NotImplemented("llGetTexture");
-            return "";
+            return String.Empty;
         }
 
         public void llSetPos(LSL_Types.Vector3 pos)
@@ -1175,7 +1175,7 @@ namespace OpenSim.Region.ScriptEngine.Common
         public string llGetPermissionsKey()
         {
             NotImplemented("llGetPermissionsKey");
-            return "";
+            return String.Empty;
         }
 
         public int llGetPermissions()
@@ -1336,7 +1336,7 @@ namespace OpenSim.Region.ScriptEngine.Common
         public string llGetInventoryName(int type, int number)
         {
             NotImplemented("llGetInventoryName");
-            return "";
+            return String.Empty;
         }
 
         public void llSetScriptState(string name, int run)
@@ -1378,13 +1378,13 @@ namespace OpenSim.Region.ScriptEngine.Common
         public string llRequestAgentData(string id, int data)
         {
             NotImplemented("llRequestAgentData");
-            return "";
+            return String.Empty;
         }
 
         public string llRequestInventoryData(string name)
         {
             NotImplemented("llRequestInventoryData");
-            return "";
+            return String.Empty;
         }
 
         public void llSetDamage(double damage)
@@ -1473,7 +1473,7 @@ namespace OpenSim.Region.ScriptEngine.Common
         public string llGetAnimation(string id)
         {
             NotImplemented("llGetAnimation");
-            return "";
+            return String.Empty;
         }
 
         public void llResetScript()
@@ -1495,7 +1495,7 @@ namespace OpenSim.Region.ScriptEngine.Common
 
         public string llGetScriptName()
         {
-            return "";
+            return String.Empty;
         }
 
         public int llGetNumberOfSides()
@@ -1534,7 +1534,7 @@ namespace OpenSim.Region.ScriptEngine.Common
 
         public string llGetInventoryKey(string name)
         {
-            return "";
+            return String.Empty;
         }
 
         public void llAllowInventoryDrop(int add)
@@ -1592,7 +1592,7 @@ namespace OpenSim.Region.ScriptEngine.Common
         public string llGetOwnerKey(string id)
         {
             NotImplemented("llGetOwnerKey");
-            return "";
+            return String.Empty;
         }
 
         public LSL_Types.Vector3 llGetCenterOfMass()
@@ -1610,14 +1610,14 @@ namespace OpenSim.Region.ScriptEngine.Common
             //    s = 1;
             //int c = 0;
             //LSL_Types.list chunk = new LSL_Types.list();
-            //string chunkString = "";
+            //string chunkString = String.Empty;
             //foreach (string element in src)
             //{
             //    c++;
             //    if (c > s)
             //    {
             //        sorted.Add(chunkString, chunk);
-            //        chunkString = "";
+            //        chunkString = String.Empty;
             //        chunk = new LSL_Types.list();
             //        c = 0;
             //    }
@@ -1693,7 +1693,7 @@ namespace OpenSim.Region.ScriptEngine.Common
             }
             if (index >= src.Length)
             {
-                return "";
+                return String.Empty;
             }
             return src.Data[index].ToString();
         }
@@ -1814,7 +1814,7 @@ namespace OpenSim.Region.ScriptEngine.Common
 
         public string llList2CSV(LSL_Types.list src)
         {
-            string ret = "";
+            string ret = String.Empty;
             foreach (object o in src.Data)
             {
                 ret = ret + o.ToString() + ",";
@@ -1968,7 +1968,7 @@ namespace OpenSim.Region.ScriptEngine.Common
         public string llKey2Name(string id)
         {
             NotImplemented("llKey2Name");
-            return "";
+            return String.Empty;
         }
 
         public void llSetTextureAnim(int mode, int face, int sizex, int sizey, double start, double length, double rate)
@@ -2006,7 +2006,7 @@ namespace OpenSim.Region.ScriptEngine.Common
         public string llGetNotecardLine(string name, int line)
         {
             NotImplemented("llGetNotecardLine");
-            return "";
+            return String.Empty;
         }
 
         public LSL_Types.Vector3 llGetAgentSize(string id)
@@ -2257,7 +2257,7 @@ namespace OpenSim.Region.ScriptEngine.Common
             if (AVID != LLUUID.Zero)
                 return AVID.ToString();
             else
-                return "";
+                return String.Empty;
         }
 
         public void llAddToLandPassList(string avatar, double hours)
@@ -2289,9 +2289,9 @@ namespace OpenSim.Region.ScriptEngine.Common
         {
             if (src.Length == 0)
             {
-                return "";
+                return String.Empty;
             }
-            string ret = "";
+            string ret = String.Empty;
             foreach (object o in src.Data)
             {
                 ret = ret + o.ToString() + seperator;
@@ -2352,7 +2352,7 @@ namespace OpenSim.Region.ScriptEngine.Common
             if (xmlrpcMod.IsEnabled())
             {
                 LLUUID channelID = xmlrpcMod.OpenXMLRPCChannel(m_localID, m_itemID);
-                object[] resobj = new object[] { 1, channelID.ToString(), LLUUID.Zero.ToString(), "", 0, "" };
+                object[] resobj = new object[] { 1, channelID.ToString(), LLUUID.Zero.ToString(), String.Empty, 0, String.Empty };
                 m_ScriptEngine.m_EventQueueManager.AddToScriptQueue(m_localID, m_itemID, "remote_data", resobj);
             }
         }
@@ -2360,7 +2360,7 @@ namespace OpenSim.Region.ScriptEngine.Common
         public string llSendRemoteData(string channel, string dest, int idata, string sdata)
         {
             NotImplemented("llSendRemoteData");
-            return "";
+            return String.Empty;
         }
 
         public void llRemoteDataReply(string channel, string message_id, string sdata, int idata)
@@ -2578,7 +2578,7 @@ namespace OpenSim.Region.ScriptEngine.Common
         public string llGetNumberOfNotecardLines(string name)
         {
             NotImplemented("llGetNumberOfNotecardLines");
-            return "";
+            return String.Empty;
         }
 
         public LSL_Types.list llGetBoundingBox(string obj)
@@ -2600,7 +2600,7 @@ namespace OpenSim.Region.ScriptEngine.Common
         public string llIntegerToBase64(int number)
         {
             NotImplemented("llIntegerToBase64");
-            return "";
+            return String.Empty;
         }
 
         public int llBase64ToInteger(string str)
@@ -2660,7 +2660,7 @@ namespace OpenSim.Region.ScriptEngine.Common
         public string llGetInventoryCreator(string item)
         {
             NotImplemented("llGetInventoryCreator");
-            return "";
+            return String.Empty;
         }
 
         public void llOwnerSay(string msg)
@@ -2828,7 +2828,7 @@ namespace OpenSim.Region.ScriptEngine.Common
 
         public string llXorBase64StringsCorrect(string str1, string str2)
         {
-            string ret = "";
+            string ret = String.Empty;
             string src1 = llBase64ToString(str1);
             string src2 = llBase64ToString(str2);
             int c = 0;
@@ -3002,7 +3002,7 @@ namespace OpenSim.Region.ScriptEngine.Common
         public string osSetDynamicTextureURL(string dynamicID, string contentType, string url, string extraParams,
                                              int timer)
         {
-            if (dynamicID == "")
+            if (dynamicID == String.Empty)
             {
                 IDynamicTextureManager textureManager = World.RequestModuleInterface<IDynamicTextureManager>();
                 LLUUID createdTexture =

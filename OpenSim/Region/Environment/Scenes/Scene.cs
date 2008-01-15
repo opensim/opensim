@@ -389,7 +389,7 @@ namespace OpenSim.Region.Environment.Scenes
                 m_restartTimer.Elapsed += new ElapsedEventHandler(RestartTimer_Elapsed);
                 MainLog.Instance.Error("REGION", "Restarting Region in " + (seconds/60) + " minutes");
                 m_restartTimer.Start();
-                SendRegionMessageFromEstateTools(LLUUID.Random(), LLUUID.Random(), "", RegionInfo.RegionName + ": Restarting in 2 Minutes");
+                SendRegionMessageFromEstateTools(LLUUID.Random(), LLUUID.Random(), String.Empty, RegionInfo.RegionName + ": Restarting in 2 Minutes");
                 //SendGeneralAlert(RegionInfo.RegionName + ": Restarting in 2 Minutes");
             }
         }
@@ -404,7 +404,7 @@ namespace OpenSim.Region.Environment.Scenes
             if (m_RestartTimerCounter <= m_incrementsof15seconds)
             {
                 if (m_RestartTimerCounter == 4 || m_RestartTimerCounter == 6 || m_RestartTimerCounter == 7)
-                    SendRegionMessageFromEstateTools(LLUUID.Random(), LLUUID.Random(), "", RegionInfo.RegionName + ": Restarting in " + 
+                    SendRegionMessageFromEstateTools(LLUUID.Random(), LLUUID.Random(), String.Empty, RegionInfo.RegionName + ": Restarting in " + 
                         ((8 - m_RestartTimerCounter) * 15) + " seconds");
                    
                 // SendGeneralAlert(RegionInfo.RegionName + ": Restarting in " + ((8 - m_RestartTimerCounter)*15) +
@@ -1408,7 +1408,7 @@ namespace OpenSim.Region.Environment.Scenes
         {
             if (regionHandle == m_regInfo.RegionHandle)
             {
-                if (agent.CapsPath != "")
+                if (agent.CapsPath != String.Empty)
                 {
                     Caps cap =
                         new Caps(AssetCache, httpListener, m_regInfo.ExternalHostName, httpListener.Port,
@@ -2004,7 +2004,7 @@ namespace OpenSim.Region.Environment.Scenes
 
         private string CombineParams(string[] commandParams, int pos)
         {
-            string result = "";
+            string result = String.Empty;
             for (int i = pos; i < commandParams.Length; i++)
             {
                 result += commandParams[i] + " ";
@@ -2253,7 +2253,7 @@ namespace OpenSim.Region.Environment.Scenes
         /// </summary>
         /// <param name="avatarID">AvatarID to lookup</param>
         /// <returns></returns>
-        public bool PresenceChildStatus(LLUUID avatarID)
+        public override bool PresenceChildStatus(LLUUID avatarID)
         {
             ScenePresence cp = GetScenePresence(avatarID);
             return cp.IsChildAgent;

@@ -123,8 +123,8 @@ namespace OpenSim.Framework.Communications.Cache
             public LLUUID TransactionID = LLUUID.Zero;
             public bool UploadComplete;
             public ulong XferID;
-            private string m_name = "";
-            private string m_description = "";
+            private string m_name = String.Empty;
+            private string m_description = String.Empty;
             private sbyte type = 0;
             private sbyte invType = 0;
             private uint nextPerm = 0;
@@ -331,12 +331,12 @@ namespace OpenSim.Framework.Communications.Cache
             // Fields
             private BaseHttpServer httpListener;
             private LLUUID inventoryItemID;
-            private string m_assetDescription = "";
-            private string m_assetName = "";
+            private string m_assetDescription = String.Empty;
+            private string m_assetName = String.Empty;
             private LLUUID m_folderID;
             private LLUUID newAssetID;
             private bool m_dumpImageToFile;
-            private string uploaderPath = "";
+            private string uploaderPath = String.Empty;
 
             // Events
             public event UpLoadedAsset OnUpLoad;
@@ -367,7 +367,7 @@ namespace OpenSim.Framework.Communications.Cache
             public string uploaderCaps(byte[] data, string path, string param)
             {
                 LLUUID inventoryItemID = this.inventoryItemID;
-                string text = "";
+                string text = String.Empty;
                 LLSDAssetUploadComplete complete = new LLSDAssetUploadComplete();
                 complete.new_asset = newAssetID.ToString();
                 complete.new_inventory_item = inventoryItemID;
@@ -380,7 +380,7 @@ namespace OpenSim.Framework.Communications.Cache
                 }
                 if (OnUpLoad != null)
                 {
-                    OnUpLoad(m_assetName, "description", newAssetID, inventoryItemID, LLUUID.Zero, data, "", "");
+                    OnUpLoad(m_assetName, "description", newAssetID, inventoryItemID, LLUUID.Zero, data, String.Empty, String.Empty);
                 }
                 return text;
             }
@@ -391,10 +391,10 @@ namespace OpenSim.Framework.Communications.Cache
             // Fields
             private BaseHttpServer httpListener;
             private LLUUID inventoryItemID;
-            private string m_assetName = "";
+            private string m_assetName = String.Empty;
             private LLUUID newAssetID;
             private bool SaveImages = false;
-            private string uploaderPath = "";
+            private string uploaderPath = String.Empty;
 
             // Events
             public event UpLoadedAsset OnUpLoad;
@@ -420,7 +420,7 @@ namespace OpenSim.Framework.Communications.Cache
             public string uploaderCaps(byte[] data, string path, string param)
             {
                 LLUUID inventoryItemID = this.inventoryItemID;
-                string text = "";
+                string text = String.Empty;
                 LLSDAssetUploadComplete complete = new LLSDAssetUploadComplete();
                 complete.new_asset = newAssetID.ToString();
                 complete.new_inventory_item = inventoryItemID;
@@ -433,7 +433,7 @@ namespace OpenSim.Framework.Communications.Cache
                 }
                 if (OnUpLoad != null)
                 {
-                    OnUpLoad(m_assetName, "description", newAssetID, inventoryItemID, LLUUID.Zero, data, "", "");
+                    OnUpLoad(m_assetName, "description", newAssetID, inventoryItemID, LLUUID.Zero, data, String.Empty, String.Empty);
                 }
                 return text;
             }

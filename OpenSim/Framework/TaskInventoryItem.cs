@@ -27,6 +27,7 @@
 */
 
 using libsecondlife;
+using System;
 
 namespace OpenSim.Framework
 {
@@ -44,16 +45,16 @@ namespace OpenSim.Framework
         {
             "texture",
             "sound",
-            "",
-            "",
-            "",
-            "",
-            "",
-            "",
-            "",
-            "",
+            String.Empty,
+            String.Empty,
+            String.Empty,
+            String.Empty,
+            String.Empty,
+            String.Empty,
+            String.Empty,
+            String.Empty,
             "lsl_text",
-            ""
+            String.Empty
         };
         
         /// <summary>
@@ -63,16 +64,16 @@ namespace OpenSim.Framework
         {
             "texture",
             "sound",
-            "",
-            "",
-            "",
-            "",
-            "",
-            "",
-            "",
-            "",
+            String.Empty,
+            String.Empty,
+            String.Empty,
+            String.Empty,
+            String.Empty,
+            String.Empty,
+            String.Empty,
+            String.Empty,
             "lsltext",
-            ""
+            String.Empty
         };
 
         public LLUUID item_id = LLUUID.Zero;
@@ -92,8 +93,8 @@ namespace OpenSim.Framework
         public int type = 0;
         public int inv_type = 0;
         public uint flags = 0;
-        public string name = "";
-        public string desc = "";
+        public string name = String.Empty;
+        public string desc = String.Empty;
         public uint creation_date = 0;
 
         public LLUUID ParentPartID = LLUUID.Zero;

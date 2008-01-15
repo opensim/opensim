@@ -83,7 +83,7 @@ namespace OpenSim.Region.Physics.OdePlugin
         private bool m_alwaysRun = false;
         private bool m_hackSentFall = false;
         private bool m_hackSentFly = false;
-        private string m_name = "";
+        private string m_name = String.Empty;
 
         private bool[] m_colliderarr = new bool[11];
         private bool[] m_colliderGroundarr = new bool[11];

@@ -208,7 +208,7 @@ namespace OpenSim.Framework.Communications.Cache
         /// <param name="asset"></param>
         public void AddAsset(AssetBase asset)
         {
-            string temporary = asset.Temporary ? "temporary" : "";
+            string temporary = asset.Temporary ? "temporary" : String.Empty;
             string type = asset.Type == 0 ? "texture" : "asset";
 
             string result = "Ignored";

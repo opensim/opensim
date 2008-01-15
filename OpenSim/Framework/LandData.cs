@@ -26,6 +26,7 @@
 * 
 */
 using System.Collections.Generic;
+using System;
 using libsecondlife;
 
 namespace OpenSim.Framework
@@ -34,7 +35,7 @@ namespace OpenSim.Framework
     {
         public byte[] landBitmapByteArray = new byte[512];
         public string landName = "Your Parcel";
-        public string landDesc = "";
+        public string landDesc = String.Empty;
         public LLUUID ownerID = LLUUID.Zero;
         public bool isGroupOwned = false;
         public LLVector3 AABBMin = new LLVector3();
@@ -67,8 +68,8 @@ namespace OpenSim.Framework
         public int localID = 0;
         public LLUUID globalID = LLUUID.Zero;
 
-        public string mediaURL = "";
-        public string musicURL = "";
+        public string mediaURL = String.Empty;
+        public string musicURL = String.Empty;
         public float passHours = 0;
         public int passPrice = 0;
         public LLUUID snapshotID = LLUUID.Zero;

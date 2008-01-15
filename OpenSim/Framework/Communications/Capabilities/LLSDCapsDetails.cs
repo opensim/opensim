@@ -26,20 +26,22 @@
 * 
 */
 
+using System;
+
 namespace OpenSim.Region.Capabilities
 {
     [LLSDType("MAP")]
     public class LLSDCapsDetails
     {
-        public string MapLayer = "";
-        public string NewFileAgentInventory = "";
-        //public string EventQueueGet = "";
-        // public string RequestTextureDownload = "";
-        // public string ChatSessionRequest = "";
-        public string UpdateNotecardAgentInventory = "";
-        public string UpdateScriptAgentInventory = "";
-        public string UpdateScriptTaskInventory = "";
-        // public string ParcelVoiceInfoRequest = "";
+        public string MapLayer = String.Empty;
+        public string NewFileAgentInventory = String.Empty;
+        //public string EventQueueGet = String.Empty;
+        // public string RequestTextureDownload = String.Empty;
+        // public string ChatSessionRequest = String.Empty;
+        public string UpdateNotecardAgentInventory = String.Empty;
+        public string UpdateScriptAgentInventory = String.Empty;
+        public string UpdateScriptTaskInventory = String.Empty;
+        // public string ParcelVoiceInfoRequest = String.Empty;
 
         public LLSDCapsDetails()
         {

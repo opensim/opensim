@@ -88,7 +88,7 @@ namespace OpenSim.Region.Environment.Scenes.Scripting
             //}
             //catch (Exception e)
             //{
-            //    m_log.Error("ScriptEngine", "Error loading assembly \"" + FileName + "\": " + e.ToString());
+            //    m_log.Error("ScriptEngine", "Error loading assembly \String.Empty + FileName + "\": " + e.ToString());
             //}
 
 
@@ -105,7 +105,7 @@ namespace OpenSim.Region.Environment.Scenes.Scripting
             //}
             //catch (Exception e)
             //{
-            //    m_log.Error("ScriptEngine", "Error initializing type \"" + NameSpace + "\" from \"" + FileName + "\": " + e.ToString());
+            //    m_log.Error("ScriptEngine", "Error initializing type \String.Empty + NameSpace + "\" from \String.Empty + FileName + "\": " + e.ToString());
             //}
 
             ScriptEngineInterface ret;
@@ -115,7 +115,7 @@ namespace OpenSim.Region.Environment.Scenes.Scripting
             //}
             //catch (Exception e)
             //{
-            //    m_log.Error("ScriptEngine", "Error initializing type \"" + NameSpace + "\" from \"" + FileName + "\": " + e.ToString());
+            //    m_log.Error("ScriptEngine", "Error initializing type \String.Empty + NameSpace + "\" from \String.Empty + FileName + "\": " + e.ToString());
             //}
 
             return ret;

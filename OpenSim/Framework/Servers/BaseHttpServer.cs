@@ -382,7 +382,7 @@ namespace OpenSim.Framework.Servers
 
             Hashtable keysvals = new Hashtable();
             Hashtable headervals = new Hashtable();
-            string host = "";
+            string host = String.Empty;
 
             string[] querystringkeys = request.QueryString.AllKeys;
             string[] rHeaders = request.Headers.AllKeys;

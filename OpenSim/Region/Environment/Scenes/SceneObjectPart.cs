@@ -395,7 +395,7 @@ namespace OpenSim.Region.Environment.Scenes
             set { m_acceleration = value; }
         }
 
-        private string m_description = "";
+        private string m_description = String.Empty;
 
         public string Description
         {
@@ -418,7 +418,7 @@ namespace OpenSim.Region.Environment.Scenes
             }
         }
 
-        private string m_text = "";
+        private string m_text = String.Empty;
 
         public Vector3 SitTargetPosition
         {
@@ -440,7 +440,7 @@ namespace OpenSim.Region.Environment.Scenes
             }
         }
 
-        private string m_sitName = "";
+        private string m_sitName = String.Empty;
 
         public string SitName
         {
@@ -448,7 +448,7 @@ namespace OpenSim.Region.Environment.Scenes
             set { m_sitName = value; }
         }
 
-        private string m_touchName = "";
+        private string m_touchName = String.Empty;
 
         public string TouchName
         {

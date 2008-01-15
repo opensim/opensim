@@ -58,7 +58,7 @@ namespace OpenSim.Framework.UserManagement
             m_userManager = userManager;
             m_libraryRootFolder = libraryRootFolder;
             
-            if (welcomeMess != "")
+            if (welcomeMess != String.Empty)
             {
                 m_welcomeMessage = welcomeMess;
             }
@@ -370,16 +370,16 @@ namespace OpenSim.Framework.UserManagement
             Hashtable returnactions = new Hashtable();
             int statuscode = 200;
 
-            string firstname = "";
-            string lastname = "";
-            string location = "";
-            string region ="";
-            string grid = "";
-            string channel = "";
-            string version = "";
-            string lang = "";
-            string password = "";
-            string errormessages = "";
+            string firstname = String.Empty;
+            string lastname = String.Empty;
+            string location = String.Empty;
+            string region =String.Empty;
+            string grid = String.Empty;
+            string channel = String.Empty;
+            string version = String.Empty;
+            string lang = String.Empty;
+            string password = String.Empty;
+            string errormessages = String.Empty;
 
             // the client requires the HTML form field be named 'username'
             // however, the data it sends when it loads the first time is 'firstname'
@@ -387,33 +387,33 @@ namespace OpenSim.Framework.UserManagement
 
             
             if (keysvals.Contains("firstname"))
-                firstname = wfcut.Replace((string)keysvals["firstname"],"",99999);
+                firstname = wfcut.Replace((string)keysvals["firstname"],String.Empty,99999);
             if (keysvals.Contains("username"))
-                firstname = wfcut.Replace((string)keysvals["username"],"",99999);
+                firstname = wfcut.Replace((string)keysvals["username"],String.Empty,99999);
 
             if (keysvals.Contains("lastname"))
-                lastname = wfcut.Replace((string)keysvals["lastname"],"",99999);
+                lastname = wfcut.Replace((string)keysvals["lastname"],String.Empty,99999);
 
             if (keysvals.Contains("location"))
-                location = wfcut.Replace((string)keysvals["location"],"",99999);
+                location = wfcut.Replace((string)keysvals["location"],String.Empty,99999);
 
             if (keysvals.Contains("region"))
-                region = wfcut.Replace((string)keysvals["region"],"",99999);
+                region = wfcut.Replace((string)keysvals["region"],String.Empty,99999);
 
             if (keysvals.Contains("grid"))
-                grid = wfcut.Replace((string)keysvals["grid"],"",99999);
+                grid = wfcut.Replace((string)keysvals["grid"],String.Empty,99999);
 
             if (keysvals.Contains("channel"))
-                channel = wfcut.Replace((string)keysvals["channel"],"",99999);
+                channel = wfcut.Replace((string)keysvals["channel"],String.Empty,99999);
 
             if (keysvals.Contains("version"))
-                version = wfcut.Replace((string)keysvals["version"],"",99999);
+                version = wfcut.Replace((string)keysvals["version"],String.Empty,99999);
 
             if (keysvals.Contains("lang"))
-                lang = wfcut.Replace((string)keysvals["lang"],"",99999);
+                lang = wfcut.Replace((string)keysvals["lang"],String.Empty,99999);
            
             if (keysvals.Contains("password"))
-                password = wfcut.Replace((string)keysvals["password"], "", 99999);
+                password = wfcut.Replace((string)keysvals["password"], String.Empty, 99999);
 
             
             // load our login form.
@@ -470,7 +470,7 @@ namespace OpenSim.Framework.UserManagement
         {
             // inject our values in the form at the markers
 
-            string loginform="";
+            string loginform=String.Empty;
             string file = Path.Combine(Util.configDir(), "http_loginform.html");
             if (!File.Exists(file))
             {

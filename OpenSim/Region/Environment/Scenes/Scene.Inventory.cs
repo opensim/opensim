@@ -376,7 +376,7 @@ namespace OpenSim.Region.Environment.Scenes
                 InventoryItemBase item = userInfo.RootFolder.HasItem(itemID);
                 if (item != null)
                 {
-                    if (newName != "")
+                    if (newName != System.String.Empty)
                     {
                         item.inventoryName = newName;
                     }

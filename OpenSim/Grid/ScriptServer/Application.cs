@@ -47,9 +47,9 @@ namespace OpenSim.Grid.ScriptServer
 
         private static void CurrentDomain_UnhandledException(object sender, UnhandledExceptionEventArgs e)
         {
-            Console.WriteLine("");
+            Console.WriteLine(String.Empty);
             Console.WriteLine("APPLICATION EXCEPTION DETECTED");
-            Console.WriteLine("");
+            Console.WriteLine(String.Empty);
             Console.WriteLine("Application is terminating: " + e.IsTerminating.ToString());
             //Console.WriteLine("Exception:");
             //Console.WriteLine(e.ExceptionObject.ToString());

@@ -1114,7 +1114,7 @@ namespace OpenSim.Region.Environment.Scenes
             {
                 return part.Name;
             }
-            return "";
+            return String.Empty;
         }
 
         public string GetPartDescription(uint localID)
@@ -1124,7 +1124,7 @@ namespace OpenSim.Region.Environment.Scenes
             {
                 return part.Description;
             }
-            return "";
+            return String.Empty;
         }
 
         /// <summary>

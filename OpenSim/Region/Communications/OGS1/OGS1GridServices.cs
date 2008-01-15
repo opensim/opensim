@@ -55,7 +55,7 @@ namespace OpenSim.Region.Communications.OGS1
         public BaseHttpServer httpListener;
         public NetworkServersInfo serversInfo;
         public BaseHttpServer httpServer;
-        public string _gdebugRegionName = "";
+        public string _gdebugRegionName = String.Empty;
 
         public string gdebugRegionName
         {
@@ -63,7 +63,7 @@ namespace OpenSim.Region.Communications.OGS1
             set { _gdebugRegionName = value; }
         }
 
-        public string _rdebugRegionName = "";
+        public string _rdebugRegionName = String.Empty;
 
         public string rdebugRegionName
         {

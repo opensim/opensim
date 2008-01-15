@@ -87,7 +87,7 @@ namespace OpenSim.Grid.ScriptServer.ScriptServer
             //}
             //catch (Exception e)
             //{
-            //    m_log.Error("ScriptEngine", "Error loading assembly \"" + FileName + "\": " + e.ToString());
+            //    m_log.Error("ScriptEngine", "Error loading assembly \String.Empty + FileName + "\": " + e.ToString());
             //}
 
 
@@ -104,7 +104,7 @@ namespace OpenSim.Grid.ScriptServer.ScriptServer
             //}
             //catch (Exception e)
             //{
-            //    m_log.Error("ScriptEngine", "Error initializing type \"" + NameSpace + "\" from \"" + FileName + "\": " + e.ToString());
+            //    m_log.Error("ScriptEngine", "Error initializing type \String.Empty + NameSpace + "\" from \String.Empty + FileName + "\": " + e.ToString());
             //}
 
             ScriptServerInterfaces.ScriptEngine ret;
@@ -114,7 +114,7 @@ namespace OpenSim.Grid.ScriptServer.ScriptServer
             //}
             //catch (Exception e)
             //{
-            //    m_log.Error("ScriptEngine", "Error initializing type \"" + NameSpace + "\" from \"" + FileName + "\": " + e.ToString());
+            //    m_log.Error("ScriptEngine", "Error initializing type \String.Empty + NameSpace + "\" from \String.Empty + FileName + "\": " + e.ToString());
             //}
 
             return ret;

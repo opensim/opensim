@@ -343,7 +343,7 @@ namespace OpenSim.Region.ClientStack
         {
             if (m_debug > 0)
             {
-                string info = "";
+                string info = String.Empty;
                 if (m_debug < 255 && packet.Type == PacketType.AgentUpdate)
                     return;
                 if (m_debug < 254 && packet.Type == PacketType.ViewerEffect)
@@ -783,7 +783,7 @@ namespace OpenSim.Region.ClientStack
             agentData.child = false;
             agentData.firstname = m_firstName;
             agentData.lastname = m_lastName;
-            agentData.CapsPath = "";
+            agentData.CapsPath = String.Empty;
             return agentData;
         }
 
@@ -2521,7 +2521,7 @@ namespace OpenSim.Region.ClientStack
                     case PacketType.ChatFromViewer:
                         ChatFromViewerPacket inchatpack = (ChatFromViewerPacket)Pack;
 
-                        string fromName = ""; //ClientAvatar.firstname + " " + ClientAvatar.lastname;
+                        string fromName = String.Empty; //ClientAvatar.firstname + " " + ClientAvatar.lastname;
                         byte[] message = inchatpack.ChatData.Message;
                         byte type = inchatpack.ChatData.Type;
                         LLVector3 fromPos = new LLVector3(); // ClientAvatar.Pos;
