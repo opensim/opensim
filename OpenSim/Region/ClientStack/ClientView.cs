@@ -2373,8 +2373,19 @@ namespace OpenSim.Region.ClientStack
                     {
                         foreach (PacketAckPacket.PacketsBlock block in ackPacket.Packets)
                         {
-                            m_unAckedBytes -= m_needAck[block.ID].ToBytes().Length;
-                            m_needAck.Remove(block.ID);
+                            if (m_needAck.ContainsKey(block.ID))
+                            {
+                                try
+                                {
+                                    m_unAckedBytes -= m_needAck[block.ID].ToBytes().Length;
+                                    m_needAck.Remove(block.ID);
+                                }
+                                catch (System.Collections.Generic.KeyNotFoundException)
+                                {
+                                    // Did another packet come in with the ack already?  
+                                    // apparently so!
+                                }
+                            }
                         }
                     }
                 }
