@@ -790,14 +790,17 @@ namespace OpenSim.Region.Environment.Scenes
                     // Reset sit target.
                     if (part.GetAvatarOnSitTarget() == UUID)
                         part.SetAvatarOnSitTarget(LLUUID.Zero);
-                }
 
-                m_pos += m_parentPosition + new LLVector3(0.0f, 0.0f, 2.0f*m_sitAvatarHeight);
-                m_parentPosition = new LLVector3();
+                    m_parentPosition = part.GetWorldPosition();
+                }
 
                 if (m_physicsActor == null)
                     AddToPhysicalScene();
 
+                m_pos += m_parentPosition + new LLVector3(0.0f, 0.0f, 2.0f*m_sitAvatarHeight);
+                m_parentPosition = new LLVector3();
+
+                
                 m_parentID = 0;
                 SendFullUpdateToAllClients();
             }
