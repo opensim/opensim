@@ -62,7 +62,8 @@ namespace OpenSim.Region.Environment.Scenes
             UnAckedBytes = 24
         }
 
-        private int statsUpdatesEveryMS = 1000;
+        private int statsUpdatesEveryMS = 5000;
+        private int statsUpdateFactor = 0;
         private float m_timeDilation = 0;
         private int m_fps = 0;
         private float m_pfps = 0;
@@ -96,6 +97,7 @@ namespace OpenSim.Region.Environment.Scenes
 
         public SimStatsReporter(RegionInfo regionData)
         {
+            statsUpdateFactor = (int)(statsUpdatesEveryMS / 1000);
             ReportingRegion = regionData;
             for (int i = 0; i<19;i++)
             {
@@ -129,14 +131,14 @@ namespace OpenSim.Region.Environment.Scenes
 
             #region various statistic googly moogly
 
-            float simfps = (int) (m_fps*5);
+            float simfps = (int) ((m_fps * 5));
 
-            if (simfps > 45)
-               simfps = simfps - (simfps - 45);
-            if (simfps < 0)
-                simfps = 0;
+            //if (simfps > 45)
+               //simfps = simfps - (simfps - 45);
+            //if (simfps < 0)
+                //simfps = 0;
 
-            float physfps = (m_pfps/statsUpdatesEveryMS);
+            float physfps = ((m_pfps / 1000));
 
             //if (physfps > 600)
                 //physfps = physfps - (physfps - 600);
@@ -148,19 +150,19 @@ namespace OpenSim.Region.Environment.Scenes
 
             //sb[0] = sbb;
             sb[0].StatID = (uint) Stats.TimeDilation;
-            sb[0].StatValue = (m_timeDilation);
+            sb[0].StatValue = ((m_timeDilation  / statsUpdateFactor));
 
             //sb[1] = sbb;
             sb[1].StatID = (uint) Stats.SimFPS;
-            sb[1].StatValue = simfps;
+            sb[1].StatValue = simfps/statsUpdateFactor;
 
             //sb[2] = sbb;
             sb[2].StatID = (uint) Stats.PhysicsFPS;
-            sb[2].StatValue = physfps;
+            sb[2].StatValue = physfps / statsUpdateFactor;
 
             //sb[3] = sbb;
             sb[3].StatID = (uint) Stats.AgentUpdates;
-            sb[3].StatValue = (m_agentUpdates);
+            sb[3].StatValue = (m_agentUpdates / statsUpdateFactor);
 
             //sb[4] = sbb;
             sb[4].StatID = (uint) Stats.Agents;
@@ -179,19 +181,19 @@ namespace OpenSim.Region.Environment.Scenes
             sb[7].StatValue = m_activePrim;
 
             sb[8].StatID = (uint)Stats.FrameMS;
-            sb[8].StatValue = m_frameMS;
+            sb[8].StatValue = m_frameMS / statsUpdateFactor;
 
             sb[9].StatID = (uint)Stats.NetMS;
-            sb[9].StatValue = m_netMS;
+            sb[9].StatValue = m_netMS / statsUpdateFactor;
 
             sb[10].StatID = (uint)Stats.PhysicsMS;
-            sb[10].StatValue = m_physicsMS;
+            sb[10].StatValue = m_physicsMS / statsUpdateFactor;
 
             sb[11].StatID = (uint)Stats.ImageMS ;
-            sb[11].StatValue = m_imageMS;
+            sb[11].StatValue = m_imageMS / statsUpdateFactor;
 
             sb[12].StatID = (uint)Stats.OtherMS;
-            sb[12].StatValue = m_otherMS;
+            sb[12].StatValue = m_otherMS / statsUpdateFactor;
 
             //sb[8] = sbb;
             sb[13].StatID = (uint)Stats.InPacketsPerSecond;
@@ -199,14 +201,14 @@ namespace OpenSim.Region.Environment.Scenes
 
             //sb[9] = sbb;
             sb[14].StatID = (uint)Stats.OutPacketsPerSecond;
-            sb[14].StatValue = (m_outPacketsPerSecond);
+            sb[14].StatValue = (m_outPacketsPerSecond / statsUpdateFactor);
 
             //sb[10] = sbb;
             sb[15].StatID = (uint)Stats.UnAckedBytes;
             sb[15].StatValue = m_unAckedBytes;
 
             sb[16].StatID = (uint)Stats.AgentMS;
-            sb[16].StatValue = m_agentMS;
+            sb[16].StatValue = m_agentMS / statsUpdateFactor;
 
             sb[17].StatID = (uint)Stats.PendingDownloads;
             sb[17].StatValue = m_pendingDownloads;
@@ -226,6 +228,7 @@ namespace OpenSim.Region.Environment.Scenes
 
         private void resetvalues()
         {
+            m_timeDilation = 0;
             m_fps = 0;
             m_pfps = 0;
             m_agentUpdates = 0;
@@ -244,12 +247,13 @@ namespace OpenSim.Region.Environment.Scenes
 
         public void SetTimeDilation(float td)
         {
-            m_timeDilation = td;
-            if (m_timeDilation > 1.0f)
-                m_timeDilation = (m_timeDilation - (m_timeDilation - 0.91f));
+            float tdsetting = td;
+            //if (tdsetting > 1.0f)
+                //tdsetting = (tdsetting - (tdsetting - 0.91f));
 
-            if (m_timeDilation < 0)
-                m_timeDilation = 0.0f;
+            //if (tdsetting < 0)
+                //tdsetting = 0.0f;
+            m_timeDilation += tdsetting;
         }
 
         public void SetRootAgents(int rootAgents)

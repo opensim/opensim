@@ -426,6 +426,7 @@ namespace OpenSim.Region.ClientStack
                 m_lastPacketsReceived = m_packetsReceived;
 
             }
+            SendPacketStats();
         }
 
         # region Setup
@@ -2502,7 +2503,7 @@ namespace OpenSim.Region.ClientStack
 
             SendAcks();
             ResendUnacked();
-            SendPacketStats();
+            
 
         }
 
