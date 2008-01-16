@@ -41,7 +41,6 @@ namespace OpenSim.Region.Environment.Modules
     //this is a first attempt, to start breaking the mess thats called the assetcache up.
     // basically this should be the texture sending (to clients) code moved out of assetcache 
     //and some small clean up
-    // but on first tests it didn't seem to work very well so is currently not in use.
     public class TextureDownloadModule : IRegionModule
     {
         private Scene m_scene;
@@ -173,5 +172,6 @@ namespace OpenSim.Region.Environment.Modules
             sender.Sending = false;
             m_scene.AddPendingDownloads(-1);
         }
+
     }
 }

@@ -44,12 +44,12 @@ namespace OpenSim.Region.Environment.Scenes
 {
     public partial class SceneObjectPart : IScriptHost
     {
-        private const LLObject.ObjectFlags OBJFULL_MASK_GENERAL =
-            LLObject.ObjectFlags.ObjectCopy | LLObject.ObjectFlags.ObjectModify | LLObject.ObjectFlags.ObjectTransfer;
+        private const PermissionMask OBJFULL_MASK_GENERAL =
+            PermissionMask.Copy | PermissionMask.Modify | PermissionMask.Transfer | PermissionMask.Move;
 
-        private const LLObject.ObjectFlags OBJFULL_MASK_OWNER =
-            LLObject.ObjectFlags.ObjectCopy | LLObject.ObjectFlags.ObjectModify | LLObject.ObjectFlags.ObjectOwnerModify |
-            LLObject.ObjectFlags.ObjectTransfer | LLObject.ObjectFlags.ObjectYouOwner;
+        private const PermissionMask OBJFULL_MASK_OWNER =
+            PermissionMask.Copy | PermissionMask.Modify |
+            PermissionMask.Transfer;
 
         private const uint OBJNEXT_OWNER = 2147483647;
 
@@ -76,10 +76,10 @@ namespace OpenSim.Region.Environment.Scenes
         //
         // Main grid has default permissions as follows
         // 
-        public uint OwnerMask = FULL_MASK_PERMISSIONS_OWNER;
+        public uint OwnerMask =(uint) PermissionMask.All;
         public uint NextOwnerMask = OBJNEXT_OWNER;
-        public uint GroupMask = (uint) LLObject.ObjectFlags.None;
-        public uint EveryoneMask = (uint) LLObject.ObjectFlags.None;
+        public uint GroupMask = (uint) PermissionMask.None;
+        public uint EveryoneMask = (uint)PermissionMask.None;
         public uint BaseMask = FULL_MASK_PERMISSIONS_OWNER;
 
         protected byte[] m_particleSystem = new byte[0];
@@ -697,21 +697,7 @@ namespace OpenSim.Region.Environment.Scenes
         public void ApplySanePermissions()
         {
             // These are some flags that The OwnerMask should never have
-            OwnerMask &= ~(uint) LLObject.ObjectFlags.ObjectGroupOwned;
-            OwnerMask &= ~(uint) LLObject.ObjectFlags.Physics;
-            OwnerMask &= ~(uint) LLObject.ObjectFlags.Phantom;
-            OwnerMask &= ~(uint) LLObject.ObjectFlags.Scripted;
-            OwnerMask &= ~(uint) LLObject.ObjectFlags.Touch;
-            OwnerMask &= ~(uint) LLObject.ObjectFlags.Temporary;
-            OwnerMask &= ~(uint) LLObject.ObjectFlags.TemporaryOnRez;
-            OwnerMask &= ~(uint) LLObject.ObjectFlags.ZlibCompressed;
-            OwnerMask &= ~(uint) LLObject.ObjectFlags.AllowInventoryDrop;
-            OwnerMask &= ~(uint) LLObject.ObjectFlags.AnimSource;
-            OwnerMask &= ~(uint) LLObject.ObjectFlags.Money;
-            OwnerMask &= ~(uint) LLObject.ObjectFlags.CastShadows;
-            OwnerMask &= ~(uint) LLObject.ObjectFlags.InventoryEmpty;
-            OwnerMask &= ~(uint) LLObject.ObjectFlags.CreateSelected;
-
+       
 
             // These are some flags that the next owner mask should never have
             NextOwnerMask &= ~(uint) LLObject.ObjectFlags.ObjectYouOwner;
@@ -754,23 +740,7 @@ namespace OpenSim.Region.Environment.Scenes
 
 
             // These are some flags that EveryoneMask should never have
-            EveryoneMask &= ~(uint) LLObject.ObjectFlags.ObjectYouOwner;
-            EveryoneMask &= ~(uint) LLObject.ObjectFlags.ObjectTransfer;
-            EveryoneMask &= ~(uint) LLObject.ObjectFlags.ObjectOwnerModify;
-            EveryoneMask &= ~(uint) LLObject.ObjectFlags.ObjectGroupOwned;
-            EveryoneMask &= ~(uint) LLObject.ObjectFlags.Physics;
-            EveryoneMask &= ~(uint) LLObject.ObjectFlags.Phantom;
-            EveryoneMask &= ~(uint) LLObject.ObjectFlags.Scripted;
-            EveryoneMask &= ~(uint) LLObject.ObjectFlags.Touch;
-            EveryoneMask &= ~(uint) LLObject.ObjectFlags.Temporary;
-            EveryoneMask &= ~(uint) LLObject.ObjectFlags.TemporaryOnRez;
-            EveryoneMask &= ~(uint) LLObject.ObjectFlags.ZlibCompressed;
-            EveryoneMask &= ~(uint) LLObject.ObjectFlags.AllowInventoryDrop;
-            EveryoneMask &= ~(uint) LLObject.ObjectFlags.AnimSource;
-            EveryoneMask &= ~(uint) LLObject.ObjectFlags.Money;
-            EveryoneMask &= ~(uint) LLObject.ObjectFlags.CastShadows;
-            EveryoneMask &= ~(uint) LLObject.ObjectFlags.InventoryEmpty;
-            EveryoneMask &= ~(uint) LLObject.ObjectFlags.CreateSelected;
+            //EveryoneMask = (uint)OBJFULL_MASK_EVERYONE;
 
 
             // These are some flags that ObjectFlags (m_flags) should never have
