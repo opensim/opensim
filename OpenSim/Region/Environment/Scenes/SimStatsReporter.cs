@@ -57,6 +57,8 @@ namespace OpenSim.Region.Environment.Scenes
             ChildAgents = 14,
             InPacketsPerSecond = 17,
             OutPacketsPerSecond = 18,
+            PendingDownloads = 19,
+            PendingUploads = 20,
             UnAckedBytes = 24
         }
 
@@ -64,9 +66,10 @@ namespace OpenSim.Region.Environment.Scenes
         private float m_timeDilation = 0;
         private int m_fps = 0;
         private float m_pfps = 0;
-        private float m_agentUpdates = 0;
+        private int m_agentUpdates = 0;
         private int m_frameMS = 0;
         private int m_netMS = 0;
+        private int m_agentMS = 0;
         private int m_physicsMS = 0;
         private int m_imageMS = 0;
         private int m_otherMS = 0;
@@ -77,8 +80,11 @@ namespace OpenSim.Region.Environment.Scenes
         private int m_outPacketsPerSecond = 0;
         private int m_activePrim = 0;
         private int m_unAckedBytes = 0;
+        private int m_pendingDownloads = 0;
+        private int m_pendingUploads = 0;
+       
 
-        SimStatsPacket.StatBlock[] sb = new SimStatsPacket.StatBlock[16];
+        SimStatsPacket.StatBlock[] sb = new SimStatsPacket.StatBlock[19];
         SimStatsPacket.RegionBlock rb = new SimStatsPacket.RegionBlock();
         SimStatsPacket statpack = (SimStatsPacket)PacketPool.Instance.GetPacket(PacketType.SimStats);
         
@@ -91,7 +97,7 @@ namespace OpenSim.Region.Environment.Scenes
         public SimStatsReporter(RegionInfo regionData)
         {
             ReportingRegion = regionData;
-            for (int i = 0; i<16;i++)
+            for (int i = 0; i<19;i++)
             {
                 sb[i] = new SimStatsPacket.StatBlock();
             }
@@ -157,7 +163,7 @@ namespace OpenSim.Region.Environment.Scenes
             sb[3].StatValue = (m_agentUpdates);
 
             //sb[4] = sbb;
-            //sb[4].StatID = (uint) Stats.Agents;
+            sb[4].StatID = (uint) Stats.Agents;
             sb[4].StatValue = m_rootAgents;
 
             //sb[5] = sbb;
@@ -188,16 +194,25 @@ namespace OpenSim.Region.Environment.Scenes
             sb[12].StatValue = m_otherMS;
 
             //sb[8] = sbb;
-            sb[13].StatID = (uint) Stats.InPacketsPerSecond;
+            sb[13].StatID = (uint)Stats.InPacketsPerSecond;
             sb[13].StatValue = (m_inPacketsPerSecond);
 
             //sb[9] = sbb;
-            sb[14].StatID = (uint) Stats.OutPacketsPerSecond;
+            sb[14].StatID = (uint)Stats.OutPacketsPerSecond;
             sb[14].StatValue = (m_outPacketsPerSecond);
 
             //sb[10] = sbb;
-            sb[15].StatID = (uint) Stats.UnAckedBytes;
+            sb[15].StatID = (uint)Stats.UnAckedBytes;
             sb[15].StatValue = m_unAckedBytes;
+
+            sb[16].StatID = (uint)Stats.AgentMS;
+            sb[16].StatValue = m_agentMS;
+
+            sb[17].StatID = (uint)Stats.PendingDownloads;
+            sb[17].StatValue = m_pendingDownloads;
+
+            sb[18].StatID = (uint)Stats.PendingUploads;
+            sb[18].StatValue = m_pendingUploads;
 
             statpack.Stat = sb;
 
@@ -218,6 +233,7 @@ namespace OpenSim.Region.Environment.Scenes
             m_outPacketsPerSecond = 0;
             m_unAckedBytes = 0;
             m_frameMS = 0;
+            m_agentMS = 0;
             m_netMS = 0;
             m_physicsMS = 0;
             m_imageMS = 0;
@@ -266,7 +282,7 @@ namespace OpenSim.Region.Environment.Scenes
             m_pfps += frames;
         }
 
-        public void AddAgentUpdates(float numUpdates)
+        public void AddAgentUpdates(int numUpdates)
         {
             m_agentUpdates += numUpdates;
         }
@@ -294,6 +310,10 @@ namespace OpenSim.Region.Environment.Scenes
         {
             m_netMS += ms;
         }
+        public void addAgentMS(int ms)
+        {
+            m_agentMS += ms;
+        }
         public void addPhysicsMS(int ms)
         {
             m_physicsMS += ms;
@@ -306,5 +326,10 @@ namespace OpenSim.Region.Environment.Scenes
         {
             m_otherMS += ms;
         }
+        public void addPendingDownload(int count)
+        {
+            m_pendingDownloads += count;
+        }
+        
     }
 }

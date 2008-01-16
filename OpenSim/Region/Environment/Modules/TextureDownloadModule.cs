@@ -137,7 +137,9 @@ namespace OpenSim.Region.Environment.Modules
             if (TryGetUserTextureService(client.AgentId, out textureService))
             {
                 textureService.HandleTextureRequest(client, e);
+                m_scene.AddPendingDownloads(1);
             }
+            
         }
 
         public void ProcessTextureSenders()
@@ -169,6 +171,7 @@ namespace OpenSim.Region.Environment.Modules
         private void TextureSent(TextureSender sender)
         {
             sender.Sending = false;
+            m_scene.AddPendingDownloads(-1);
         }
     }
 }

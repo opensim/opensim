@@ -607,7 +607,6 @@ namespace OpenSim.Region.Environment.Scenes
                 m_statsReporter.AddPhysicsFPS(physicsFPS);
                 m_statsReporter.SetTimeDilation(m_timedilation);
                 m_statsReporter.AddFPS(1);
-                m_statsReporter.AddAgentUpdates(1);
                 m_statsReporter.AddInPackets(0);
                 m_statsReporter.SetRootAgents(m_innerScene.GetRootAgentCount());
                 m_statsReporter.SetChildAgents(m_innerScene.GetChildAgentCount());
@@ -1765,6 +1764,20 @@ namespace OpenSim.Region.Environment.Scenes
             m_statsReporter.AddInPackets(inPackets);
             m_statsReporter.AddOutPackets(outPackets);
             m_statsReporter.AddunAckedBytes(unAckedBytes);
+        }
+        public void AddAgentTime(int ms)
+        {
+            m_statsReporter.addFrameMS(ms);
+            m_statsReporter.addAgentMS(ms);
+        }
+        public void AddAgentUpdates(int count)
+        {
+            m_statsReporter.AddAgentUpdates(count);
+        }
+
+        public void AddPendingDownloads(int count)
+        {
+            m_statsReporter.addPendingDownload(count);
         }
 
         #endregion
