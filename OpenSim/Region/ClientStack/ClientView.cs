@@ -63,7 +63,14 @@ namespace OpenSim.Region.ClientStack
         // private InventoryCache m_inventoryCache;
         private int m_cachedTextureSerial = 0;
         private Timer m_clientPingTimer;
+
         private int m_packetsReceived = 0;
+        private int m_lastpacketsSentToScene = 0;
+        private int m_unAckedBytes = 0;
+
+        private int m_packetsSent = 0;
+        private int m_lastPacketsSent = 0;
+
         private int m_probesWithNoIngressPackets = 0;
         private int m_lastPacketsReceived = 0;
         private byte[] ZeroOutBuffer = new byte[4096];
@@ -409,6 +416,7 @@ namespace OpenSim.Region.ClientStack
                 {
                     // this will normally trigger at least one packet (ping response)
                     SendStartPingCheck(0);
+                    
                 }
             }
             else
@@ -416,6 +424,7 @@ namespace OpenSim.Region.ClientStack
                 // Something received in the meantime - we can reset the counters
                 m_probesWithNoIngressPackets = 0;
                 m_lastPacketsReceived = m_packetsReceived;
+                
             }
         }
 
@@ -565,6 +574,9 @@ namespace OpenSim.Region.ClientStack
         public event FriendActionDelegate OnApproveFriendRequest;
         public event FriendActionDelegate OnDenyFriendRequest;
         public event FriendshipTermination OnTerminateFriendship;
+
+        public event PacketStats OnPacketStats;
+
 
         #region Scene/Avatar to Client
 
@@ -2245,6 +2257,7 @@ namespace OpenSim.Region.ClientStack
                     try
                     {
                         m_needAck.Add(Pack.Header.Sequence, Pack);
+                        m_unAckedBytes += Pack.ToBytes().Length;
                     }
                     catch (Exception) // HACKY
                     {
@@ -2298,6 +2311,7 @@ namespace OpenSim.Region.ClientStack
                 if (Pack.Header.Reliable) //DIRTY HACK
                 {
                     AddAck(Pack); // this adds the need to ack this packet later
+                    
 
                     if (Pack.Type != PacketType.PacketAck && Pack.Type != PacketType.LogoutRequest)
                     {
@@ -2343,6 +2357,7 @@ namespace OpenSim.Region.ClientStack
                     {
                         foreach (uint ack in NewPack.Header.AckList)
                         {
+                            m_unAckedBytes -= m_needAck[ack].ToBytes().Length;
                             m_needAck.Remove(ack);
                         }
                     }
@@ -2358,6 +2373,7 @@ namespace OpenSim.Region.ClientStack
                     {
                         foreach (PacketAckPacket.PacketsBlock block in ackPacket.Packets)
                         {
+                            m_unAckedBytes -= m_needAck[block.ID].ToBytes().Length;
                             m_needAck.Remove(block.ID);
                         }
                     }
@@ -2387,6 +2403,7 @@ namespace OpenSim.Region.ClientStack
             item.Incoming = false;
             item.throttleType = throttlePacketType; // Packet throttle type
             m_packetQueue.Enqueue(item);
+            m_packetsSent++;
         }
 
         # region Low Level Packet Methods
@@ -2472,8 +2489,21 @@ namespace OpenSim.Region.ClientStack
 
         protected void AckTimer_Elapsed(object sender, ElapsedEventArgs ea)
         {
+            
             SendAcks();
             ResendUnacked();
+            SendPacketStats();
+          
+        }
+
+        protected void SendPacketStats()
+        {
+            if (OnPacketStats != null)
+            {
+                OnPacketStats(m_packetsReceived - m_lastPacketsReceived, m_packetsSent - m_lastPacketsSent, m_unAckedBytes);
+                m_lastPacketsReceived = m_packetsReceived;
+                m_lastPacketsSent = m_packetsSent;
+            }
         }
 
         #endregion

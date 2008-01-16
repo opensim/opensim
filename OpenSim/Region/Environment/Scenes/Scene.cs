@@ -1228,6 +1228,7 @@ namespace OpenSim.Region.Environment.Scenes
 
             client.OnGrabObject += ProcessObjectGrab;
             client.OnAvatarPickerRequest += ProcessAvatarPickerRequest;
+            client.OnPacketStats += AddPacketStats;
 
             EventManager.TriggerOnNewClient(client);
         }
@@ -1757,6 +1758,13 @@ namespace OpenSim.Region.Environment.Scenes
         {
             // TODO: m_sceneGridService.DoStuff;
             return CommsManager.GetUserFriendList(ownerID);
+        }
+
+        public void AddPacketStats(int inPackets, int outPackets, int unAckedBytes)
+        {
+            m_statsReporter.AddInPackets(inPackets);
+            m_statsReporter.AddOutPackets(outPackets);
+            m_statsReporter.AddunAckedBytes(unAckedBytes);
         }
 
         #endregion

@@ -398,6 +398,8 @@ namespace OpenSim.Framework
     public delegate void FriendActionDelegate(IClientAPI remoteClient,LLUUID agentID,LLUUID transactionID,List<LLUUID> callingCardFolders);
     
     public delegate void FriendshipTermination(IClientAPI remoteClient,LLUUID agentID, LLUUID ExID);
+
+    public delegate void PacketStats(int inPackets, int outPackets, int unAckedBytes);
     
    
 
@@ -501,6 +503,7 @@ namespace OpenSim.Framework
         event FriendActionDelegate OnApproveFriendRequest;
         event FriendActionDelegate OnDenyFriendRequest;
         event FriendshipTermination OnTerminateFriendship;
+        event PacketStats OnPacketStats;
 
          
         LLVector3 StartPos { get; set; }
