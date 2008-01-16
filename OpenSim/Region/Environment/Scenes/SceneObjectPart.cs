@@ -327,7 +327,7 @@ namespace OpenSim.Region.Environment.Scenes
                         }
                         else
                         {
-                            // Child prim we have to calculate it's world rotation
+                            // Child prim we have to calculate it's world rotationwel
                             LLQuaternion resultingrotation = GetWorldRotation();
                             PhysActor.Orientation = new Quaternion(resultingrotation.W, resultingrotation.X, resultingrotation.Y, resultingrotation.Z);
                             //MainLog.Instance.Verbose("PART", "RO2:" + PhysActor.Orientation.ToString());

@@ -125,6 +125,12 @@ namespace OpenSim.Region.Environment.Scenes
         private int m_update_land = 1;
         private int m_update_avatars = 1;
 
+        private int frameMS = 0;
+        private int physicsMS2 = 0;
+        private int physicsMS = 0;
+        private int otherMS = 0;
+
+
         #endregion
 
         #region Properties
@@ -551,6 +557,8 @@ namespace OpenSim.Region.Environment.Scenes
             // Aquire a lock so only one update call happens at once
             updateLock.WaitOne();
             float physicsFPS = 0;
+            
+            frameMS = System.Environment.TickCount;
             try
             {
                 // Increment the frame counter
@@ -559,18 +567,26 @@ namespace OpenSim.Region.Environment.Scenes
                 // Loop it
                 if (m_frame == Int32.MaxValue)
                     m_frame = 0;
+                
 
+                            physicsMS2 = System.Environment.TickCount;
                 if (m_frame%m_update_physics == 0)
                     m_innerScene.UpdatePreparePhysics();
+                            physicsMS2 = System.Environment.TickCount - physicsMS2;
 
                 if (m_frame%m_update_entitymovement == 0)
                     m_innerScene.UpdateEntityMovement();
 
+                            physicsMS = System.Environment.TickCount;
                 if (m_frame%m_update_physics == 0)
                     physicsFPS = m_innerScene.UpdatePhysics(
                         Math.Max(SinceLastFrame.TotalSeconds, m_timespan)
                         );
+                
+                            physicsMS = System.Environment.TickCount - physicsMS;
+                physicsMS += physicsMS2;
 
+                            otherMS = System.Environment.TickCount;
                 if (m_frame%m_update_entities == 0)
                     m_innerScene.UpdateEntities();
 
@@ -585,7 +601,7 @@ namespace OpenSim.Region.Environment.Scenes
 
                 if (m_frame%m_update_land == 0)
                     UpdateLand();
-
+                            otherMS = System.Environment.TickCount - otherMS;
                 // if (m_frame%m_update_avatars == 0)
                 //   UpdateInWorldTime();
                 m_statsReporter.AddPhysicsFPS(physicsFPS);
@@ -597,6 +613,11 @@ namespace OpenSim.Region.Environment.Scenes
                 m_statsReporter.SetChildAgents(m_innerScene.GetChildAgentCount());
                 m_statsReporter.SetObjects(m_innerScene.GetTotalObjects());
                 m_statsReporter.SetActiveObjects(m_innerScene.GetActiveObjects());
+                frameMS = System.Environment.TickCount - frameMS;
+                m_statsReporter.addFrameMS(frameMS);
+                m_statsReporter.addPhysicsMS(physicsMS);
+                m_statsReporter.addOtherMS(otherMS);
+                
             }
             catch (NotImplementedException)
             {
