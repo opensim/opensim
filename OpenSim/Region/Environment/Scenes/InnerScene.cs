@@ -928,17 +928,22 @@ namespace OpenSim.Region.Environment.Scenes
                 {
                     SceneObjectGroup copy = originPrim.Copy(AgentID, GroupID);
                     copy.AbsolutePosition = copy.AbsolutePosition + offset;
+                    copy.ResetIDs();
+                    
                     lock (Entities)
                     {
                         Entities.Add(copy.UUID, copy);
                     }
+                    
                     m_numPrim++;
+                    
+                    copy.StartScripts();
                     copy.ScheduleGroupForFullUpdate();
                 }
             }
             else
             {
-                MainLog.Instance.Warn("client", "Attempted to duplicate nonexistant prim");
+                MainLog.Instance.Warn("SCENE", "Attempted to duplicate nonexistant prim id {0}", GroupID);
             }
         }
 

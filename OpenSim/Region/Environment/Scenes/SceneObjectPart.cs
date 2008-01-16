@@ -952,10 +952,10 @@ namespace OpenSim.Region.Environment.Scenes
         #region Copying
 
         /// <summary>
-        /// 
+        /// Duplicates this part.
         /// </summary>
         /// <returns></returns>
-        public SceneObjectPart Copy(uint localID, LLUUID AgentID, LLUUID GroupID)
+        public SceneObjectPart Copy(uint localID, LLUUID AgentID, LLUUID GroupID, int linkNum)
         {
             SceneObjectPart dupe = (SceneObjectPart) MemberwiseClone();
             dupe.m_shape = m_shape.Copy();
@@ -977,6 +977,10 @@ namespace OpenSim.Region.Environment.Scenes
             dupe.ObjectSaleType = ObjectSaleType;
             dupe.SalePrice = SalePrice;
             dupe.Category = Category;
+            
+            dupe.TaskInventory = (TaskInventoryDictionary)dupe.TaskInventory.Clone();
+            
+            dupe.ResetIDs(linkNum);
 
             // This may be wrong...    it might have to be applied in SceneObjectGroup to the object that's being duplicated.
             dupe.LastOwnerID = ObjectOwner;

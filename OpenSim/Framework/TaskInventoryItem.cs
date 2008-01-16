@@ -36,7 +36,13 @@ using System;
 
 namespace OpenSim.Framework
 {        
-    public class TaskInventoryDictionary : Dictionary<LLUUID, TaskInventoryItem>, IXmlSerializable
+    /// <summary>
+    /// A dictionary for task inventory.
+    /// 
+    /// This class is not thread safe.  Callers must synchronize on Dictionary methods.
+    /// </summary>
+    public class TaskInventoryDictionary : Dictionary<LLUUID, TaskInventoryItem>, 
+        ICloneable, IXmlSerializable
     {
         private static XmlSerializer tiiSerializer = new XmlSerializer(typeof(TaskInventoryItem));        
         
@@ -86,19 +92,38 @@ namespace OpenSim.Framework
         // see IXmlSerializable
         public void WriteXml(XmlWriter writer)
         {
-            foreach (TaskInventoryItem item in Values)
+            lock (this)
             {
-                tiiSerializer.Serialize(writer, item);
+                foreach (TaskInventoryItem item in Values)
+                {
+                    tiiSerializer.Serialize(writer, item);
+                }
             }
             
             //tiiSerializer.Serialize(writer, Values);
+        }
+        
+        // see ICloneable
+        public Object Clone()
+        {
+            TaskInventoryDictionary clone = new TaskInventoryDictionary();
+            
+            lock (this)
+            {
+                foreach (LLUUID uuid in Keys)
+                {
+                    clone.Add(uuid, (TaskInventoryItem)this[uuid].Clone());
+                }
+            }
+            
+            return clone;
         }
     }
     
     /// <summary>
     /// Represents an item in a task inventory
     /// </summary>
-    public class TaskInventoryItem
+    public class TaskInventoryItem : ICloneable
     {
         /// <summary>
         /// XXX This should really be factored out into some constants class.
@@ -141,17 +166,7 @@ namespace OpenSim.Framework
             String.Empty,
             "lsltext",
             String.Empty
-        };
-        
-        /// <summary>
-        /// Reset the LLUUIDs for this item.
-        /// </summary>
-        /// <param name="partID">The new part ID to which this item belongs</param>
-        public void ResetIDs(LLUUID partID)
-        {
-            ItemID = LLUUID.Random();
-            ParentPartID = partID;
-        }         
+        };              
 
         public LLUUID ItemID = LLUUID.Zero;
         public LLUUID ParentID = LLUUID.Zero; //parent folder id 
@@ -175,5 +190,21 @@ namespace OpenSim.Framework
         public uint CreationDate = 0;
 
         public LLUUID ParentPartID = LLUUID.Zero;
+        
+        /// <summary>
+        /// Reset the LLUUIDs for this item.
+        /// </summary>
+        /// <param name="partID">The new part ID to which this item belongs</param>
+        public void ResetIDs(LLUUID partID)
+        {
+            ItemID = LLUUID.Random();
+            ParentPartID = partID;
+        }   
+
+        // See ICloneable
+        public Object Clone()
+        {
+            return MemberwiseClone();
+        }
     }
 }

@@ -572,9 +572,8 @@ namespace OpenSim.Region.Environment.Scenes
         /// <param name="part"></param>
         public void CopyRootPart(SceneObjectPart part, LLUUID cAgentID, LLUUID cGroupID)
         {
-            SceneObjectPart newPart = part.Copy(m_scene.PrimIDAllocate(), OwnerID, GroupID);
+            SceneObjectPart newPart = part.Copy(m_scene.PrimIDAllocate(), OwnerID, GroupID, m_parts.Count);
             newPart.SetParent(this);
-            newPart.LinkNum = m_parts.Count;
             m_parts.Add(newPart.UUID, newPart);
             SetPartAsRoot(newPart);
         }
@@ -602,9 +601,8 @@ namespace OpenSim.Region.Environment.Scenes
         /// <param name="part"></param>
         public void CopyPart(SceneObjectPart part, LLUUID cAgentID, LLUUID cGroupID)
         {
-            SceneObjectPart newPart = part.Copy(m_scene.PrimIDAllocate(), OwnerID, GroupID);
+            SceneObjectPart newPart = part.Copy(m_scene.PrimIDAllocate(), OwnerID, GroupID, m_parts.Count);
             newPart.SetParent(this);
-            newPart.LinkNum = m_parts.Count;
             m_parts.Add(newPart.UUID, newPart);
             SetPartAsNonRoot(newPart);
         }

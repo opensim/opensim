@@ -88,13 +88,16 @@ namespace OpenSim.Region.Environment.Scenes
         /// <param name="linkNum'>Link number for the part</param>
         public void ResetInventoryIDs()
         {
-            IList<TaskInventoryItem> items = new List<TaskInventoryItem>(TaskInventory.Values);
-            TaskInventory.Clear();
-            
-            foreach (TaskInventoryItem item in items)
-            {
-                item.ResetIDs(UUID);
-                TaskInventory.Add(item.ItemID, item);
+            lock (TaskInventory)
+            {              
+                IList<TaskInventoryItem> items = new List<TaskInventoryItem>(TaskInventory.Values);
+                TaskInventory.Clear();
+                
+                foreach (TaskInventoryItem item in items)
+                {
+                    item.ResetIDs(UUID);
+                    TaskInventory.Add(item.ItemID, item);
+                }
             }
         }        
         
@@ -103,12 +106,15 @@ namespace OpenSim.Region.Environment.Scenes
         /// </summary>
         public void StartScripts()
         {
-            foreach (TaskInventoryItem item in m_taskInventory.Values)
+            lock (m_taskInventory)
             {
-                // XXX more hardcoding badness.  Should be an enum in TaskInventoryItem
-                if (10 == item.Type)
+                foreach (TaskInventoryItem item in m_taskInventory.Values)
                 {
-                    StartScript(item);
+                    // XXX more hardcoding badness.  Should be an enum in TaskInventoryItem
+                    if (10 == item.Type)
+                    {
+                        StartScript(item);
+                    }
                 }
             }
         }
@@ -149,18 +155,20 @@ namespace OpenSim.Region.Environment.Scenes
         /// </param>        
         public void StartScript(LLUUID itemId)
         {
-            if (m_taskInventory.ContainsKey(itemId))
-            {
-                StartScript(m_taskInventory[itemId]);
-            }            
-            else
-            {
-                MainLog.Instance.Error(
-                    "PRIMINVENTORY", 
-                    "Couldn't start script with ID {0} since it couldn't be found for prim {1}, {2}", 
-                    itemId, Name, UUID);
-            }                
-            
+            lock (m_taskInventory)
+            {            
+                if (m_taskInventory.ContainsKey(itemId))
+                {
+                    StartScript(m_taskInventory[itemId]);
+                }            
+                else
+                {
+                    MainLog.Instance.Error(
+                        "PRIMINVENTORY", 
+                        "Couldn't start script with ID {0} since it couldn't be found for prim {1}, {2}", 
+                        itemId, Name, UUID);
+                }                
+            }
         }        
         
         /// <summary>
@@ -191,7 +199,12 @@ namespace OpenSim.Region.Environment.Scenes
             item.ParentID = m_folderID;
             item.CreationDate = 1000;
             item.ParentPartID = UUID;
-            m_taskInventory.Add(item.ItemID, item);
+            
+            lock (m_taskInventory)
+            {            
+                m_taskInventory.Add(item.ItemID, item);
+            }
+            
             m_inventorySerial++;
         }
         
@@ -202,9 +215,12 @@ namespace OpenSim.Region.Environment.Scenes
         /// <param name="items"></param>
         public void AddInventoryItems(ICollection<TaskInventoryItem> items)
         {
-            foreach (TaskInventoryItem item in items)
-            {
-                m_taskInventory.Add(item.ItemID, item);
+            lock (m_taskInventory)
+            {                 
+                foreach (TaskInventoryItem item in items)
+                {           
+                    m_taskInventory.Add(item.ItemID, item);
+                }
             }
             
             m_inventorySerial++;
@@ -217,16 +233,19 @@ namespace OpenSim.Region.Environment.Scenes
         /// <returns>null if the item does not exist</returns>
         public TaskInventoryItem GetInventoryItem(LLUUID itemID)
         {
-            if (m_taskInventory.ContainsKey(itemID))
-            {
-                return m_taskInventory[itemID];
-            }
-            else
-            {
-                MainLog.Instance.Error(
-                    "PRIMINVENTORY",
-                    "Tried to retrieve item ID {0} from prim {1}, {2} but the item does not exist in this inventory",
-                    itemID, Name, UUID);
+            lock (m_taskInventory)
+            {              
+                if (m_taskInventory.ContainsKey(itemID))
+                {
+                    return m_taskInventory[itemID];
+                }
+                else
+                {
+                    MainLog.Instance.Error(
+                        "PRIMINVENTORY",
+                        "Tried to retrieve item ID {0} from prim {1}, {2} but the item does not exist in this inventory",
+                        itemID, Name, UUID);
+                }
             }
 
             return null;
@@ -240,20 +259,23 @@ namespace OpenSim.Region.Environment.Scenes
         /// <returns>false if the item did not exist, true if the update occurred succesfully</returns>
         public bool UpdateInventoryItem(TaskInventoryItem item)
         {
-            if (m_taskInventory.ContainsKey(item.ItemID))
-            {
-                m_taskInventory[item.ItemID] = item;
-                m_inventorySerial++;
-                
-                return true;
+            lock (m_taskInventory)
+            {            
+                if (m_taskInventory.ContainsKey(item.ItemID))
+                {
+                    m_taskInventory[item.ItemID] = item;
+                    m_inventorySerial++;
+                    
+                    return true;
+                }
+                else
+                {
+                    MainLog.Instance.Error(
+                        "PRIMINVENTORY",
+                        "Tried to retrieve item ID {0} from prim {1}, {2} but the item does not exist in this inventory",
+                        item.ItemID, Name, UUID);
+                }   
             }
-            else
-            {
-                MainLog.Instance.Error(
-                    "PRIMINVENTORY",
-                    "Tried to retrieve item ID {0} from prim {1}, {2} but the item does not exist in this inventory",
-                    item.ItemID, Name, UUID);
-            }   
             
             return false;
         }
@@ -266,21 +288,24 @@ namespace OpenSim.Region.Environment.Scenes
         /// in this prim's inventory.</returns>
         public int RemoveInventoryItem(LLUUID itemID)
         {
-            if (m_taskInventory.ContainsKey(itemID))
-            {
-                int type = m_taskInventory[itemID].InvType;
-                m_taskInventory.Remove(itemID);
-                m_inventorySerial++;
-                
-                return type;
+            lock (m_taskInventory)
+            {            
+                if (m_taskInventory.ContainsKey(itemID))
+                {
+                    int type = m_taskInventory[itemID].InvType;
+                    m_taskInventory.Remove(itemID);
+                    m_inventorySerial++;
+                    
+                    return type;
+                }
+                else
+                {
+                    MainLog.Instance.Error(
+                        "PRIMINVENTORY",
+                        "Tried to remove item ID {0} from prim {1}, {2} but the item does not exist in this inventory",
+                        itemID, Name, UUID);
+                }            
             }
-            else
-            {
-                MainLog.Instance.Error(
-                    "PRIMINVENTORY",
-                    "Tried to remove item ID {0} from prim {1}, {2} but the item does not exist in this inventory",
-                    itemID, Name, UUID);
-            }            
 
             return -1;
         }
@@ -309,32 +334,36 @@ namespace OpenSim.Region.Environment.Scenes
         {
             byte[] fileData = new byte[0];
             InventoryStringBuilder invString = new InventoryStringBuilder(m_folderID, UUID);
-            foreach (TaskInventoryItem item in m_taskInventory.Values)
-            {
-                invString.AddItemStart();
-                invString.AddNameValueLine("item_id", item.ItemID.ToString());
-                invString.AddNameValueLine("parent_id", item.ParentID.ToString());
-
-                invString.AddPermissionsStart();
-                invString.AddNameValueLine("base_mask", "0x7FFFFFFF");
-                invString.AddNameValueLine("owner_mask", "0x7FFFFFFF");
-                invString.AddNameValueLine("group_mask", "0x7FFFFFFF");
-                invString.AddNameValueLine("everyone_mask", "0x7FFFFFFF");
-                invString.AddNameValueLine("next_owner_mask", "0x7FFFFFFF");
-                invString.AddNameValueLine("creator_id", item.CreatorID.ToString());
-                invString.AddNameValueLine("owner_id", item.OwnerID.ToString());
-                invString.AddNameValueLine("last_owner_id", item.LastOwnerID.ToString());
-                invString.AddNameValueLine("group_id", item.GroupID.ToString());
-                invString.AddSectionEnd();
-
-                invString.AddNameValueLine("asset_id", item.AssetID.ToString());
-                invString.AddNameValueLine("type", TaskInventoryItem.Types[item.Type]);
-                invString.AddNameValueLine("inv_type", TaskInventoryItem.InvTypes[item.InvType]);
-                invString.AddNameValueLine("flags", "0x00");
-                invString.AddNameValueLine("name", item.Name + "|");
-                invString.AddNameValueLine("desc", item.Description + "|");
-                invString.AddNameValueLine("creation_date", item.CreationDate.ToString());
-                invString.AddSectionEnd();
+            
+            lock (m_taskInventory)
+            {            
+                foreach (TaskInventoryItem item in m_taskInventory.Values)
+                {
+                    invString.AddItemStart();
+                    invString.AddNameValueLine("item_id", item.ItemID.ToString());
+                    invString.AddNameValueLine("parent_id", item.ParentID.ToString());
+    
+                    invString.AddPermissionsStart();
+                    invString.AddNameValueLine("base_mask", "0x7FFFFFFF");
+                    invString.AddNameValueLine("owner_mask", "0x7FFFFFFF");
+                    invString.AddNameValueLine("group_mask", "0x7FFFFFFF");
+                    invString.AddNameValueLine("everyone_mask", "0x7FFFFFFF");
+                    invString.AddNameValueLine("next_owner_mask", "0x7FFFFFFF");
+                    invString.AddNameValueLine("creator_id", item.CreatorID.ToString());
+                    invString.AddNameValueLine("owner_id", item.OwnerID.ToString());
+                    invString.AddNameValueLine("last_owner_id", item.LastOwnerID.ToString());
+                    invString.AddNameValueLine("group_id", item.GroupID.ToString());
+                    invString.AddSectionEnd();
+    
+                    invString.AddNameValueLine("asset_id", item.AssetID.ToString());
+                    invString.AddNameValueLine("type", TaskInventoryItem.Types[item.Type]);
+                    invString.AddNameValueLine("inv_type", TaskInventoryItem.InvTypes[item.InvType]);
+                    invString.AddNameValueLine("flags", "0x00");
+                    invString.AddNameValueLine("name", item.Name + "|");
+                    invString.AddNameValueLine("desc", item.Description + "|");
+                    invString.AddNameValueLine("creation_date", item.CreationDate.ToString());
+                    invString.AddSectionEnd();
+                }
             }
             
             fileData = Helpers.StringToField(invString.BuildString);
