@@ -96,6 +96,24 @@ namespace libTerrain
             return this;
         }
 
+        public Channel Elevate(double meters)
+        {
+            SetDiff();
+
+            int x, y;
+
+            for (x = 0; x < w; x++)
+            {
+                for (y = 0; y < h; y++)
+                {
+                        map[x, y] += meters;
+                }
+            }
+
+            return this;
+        }
+
+
         public Channel Clip()
         {
             int x, y;

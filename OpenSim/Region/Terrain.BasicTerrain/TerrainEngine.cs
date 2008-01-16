@@ -477,6 +477,7 @@ namespace OpenSim.Region.Terrain
                         resultText += "terrain erode thermal <talus> <rounds> <carry>\n";
                         resultText += "terrain erode hydraulic <rain> <evaporation> <solubility> <frequency> <rounds>\n";
                         resultText += "terrain multiply <val> - multiplies a terrain by <val>\n";
+                        resultText += "terrain elevate <val> - elevates a terrain by <val>\n";
                         resultText += "terrain revert - reverts the terrain to the stored original\n";
                         resultText += "terrain bake - saves the current terrain into the revert map\n";
                         resultText +=
@@ -522,6 +523,10 @@ namespace OpenSim.Region.Terrain
 
                     case "rescale":
                         SetRange(Convert.ToSingle(args[1]), Convert.ToSingle(args[2]));
+                        break;
+
+                    case "elevate":
+                        Elevate(Convert.ToSingle(args[1]));
                         break;
 
                     case "fill":
@@ -762,6 +767,16 @@ namespace OpenSim.Region.Terrain
         public void SetRange(float min, float max)
         {
             heightmap.Normalise((double) min, (double) max);
+            tainted++;
+        }
+
+        /// <summary>
+        /// Adds meters (positive or negative) to terrain height
+        /// </summary>
+        /// <param name="meters">Positive or negative value to add to new array</param>
+        public void Elevate(float meters)
+        {
+            heightmap.Elevate((double)meters);
             tainted++;
         }
 
