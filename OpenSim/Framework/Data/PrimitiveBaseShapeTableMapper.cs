@@ -5,11 +5,11 @@ using libsecondlife;
 
 namespace OpenSim.Framework.Data
 {
-    public class PrimitiveBaseShapeRowMapper : RowMapper<PrimitiveBaseShape>
+    public class PrimitiveBaseShapeRowMapper : BaseRowMapper<PrimitiveBaseShape>
     {
         public Guid SceneObjectPartId;
 
-        public PrimitiveBaseShapeRowMapper(Schema schema, PrimitiveBaseShape obj) : base(schema, obj)
+        public PrimitiveBaseShapeRowMapper(BaseSchema schema, PrimitiveBaseShape obj) : base(schema, obj)
         {
         }
     }
@@ -19,7 +19,7 @@ namespace OpenSim.Framework.Data
         public PrimitiveBaseShapeTableMapper(BaseDatabaseConnector connection, string tableName)
             : base(connection, tableName)
         {
-            ObjectSchema<PrimitiveBaseShapeRowMapper> rowMapperSchema = new ObjectSchema<PrimitiveBaseShapeRowMapper>(this);
+            BaseSchema<PrimitiveBaseShapeRowMapper> rowMapperSchema = new BaseSchema<PrimitiveBaseShapeRowMapper>(this);
             m_schema = rowMapperSchema;
 
             m_keyFieldMapper = rowMapperSchema.AddMapping<Guid>("SceneObjectPartId",
@@ -111,7 +111,7 @@ namespace OpenSim.Framework.Data
                                                delegate(PrimitiveBaseShapeRowMapper shape, byte[] value) { shape.Object.ExtraParams = value; });            
         }
 
-        public override PrimitiveBaseShapeRowMapper FromReader(DataReader reader)
+        public override PrimitiveBaseShapeRowMapper FromReader(BaseDataReader reader)
         {
             PrimitiveBaseShape shape = new PrimitiveBaseShape();
 

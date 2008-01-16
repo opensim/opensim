@@ -29,10 +29,7 @@ using System.Collections.Generic;
 using System.Data.Common;
 
 namespace TribalMedia.Framework.Data
-{
-    //public delegate TField RowMapperGetAccessor<TRowMapper, TField>(TRowMapper rowMapper);
-    //public delegate void RowMapperSetAccessor<TRowMapper, TField>(TRowMapper rowMapper, TField value);
-
+{  
     public delegate TField ObjectGetAccessor<TObj, TField>(TObj obj);
     public delegate void ObjectSetAccessor<TObj, TField>(TObj obj, TField value);
 
@@ -62,7 +59,7 @@ namespace TribalMedia.Framework.Data
             m_tableMapper = tableMapper;
         }
 
-        public abstract void SetPropertyFromReader(object mapper, DataReader reader);
+        public abstract void SetPropertyFromReader(object mapper, BaseDataReader reader);
 
         public void RawAddParam(DbCommand command, List<string> fieldNames, string fieldName, object value)
         {
@@ -84,7 +81,7 @@ namespace TribalMedia.Framework.Data
             RawAddParam(command, fieldNames, fieldName, m_tableMapper.ConvertToDbType(value));
         }
 
-        protected virtual object GetValue(DataReader reader)
+        protected virtual object GetValue(BaseDataReader reader)
         {
             object value;
 
@@ -128,43 +125,6 @@ namespace TribalMedia.Framework.Data
         }
     }
 
-    //public class RowMapperField<TRowMapper, TField> : FieldMapper
-    //    where TRowMapper : RowMapper
-    //{
-    //    private readonly RowMapperGetAccessor<TRowMapper, TField> m_fieldGetAccessor;
-    //    private readonly RowMapperSetAccessor<TRowMapper, TField> m_fieldSetAccessor;
-
-    //    public override object GetParamValue(object obj)
-    //    {
-    //        return m_fieldGetAccessor((TRowMapper) obj);
-    //    }
-
-    //    public override void SetPropertyFromReader(object mapper, DataReader reader)
-    //    {
-    //        object value;
-
-    //        value = GetValue(reader);
-
-    //        if (value == null)
-    //        {
-    //            m_fieldSetAccessor((TRowMapper) mapper, default(TField));
-    //        }
-    //        else
-    //        {
-    //            m_fieldSetAccessor((TRowMapper) mapper, (TField) value);
-    //        }
-    //    }
-
-
-    //    public RowMapperField(TableMapper tableMapper, string fieldName, RowMapperGetAccessor<TRowMapper, TField> rowMapperGetAccessor,
-    //                          RowMapperSetAccessor<TRowMapper, TField> rowMapperSetAccessor)
-    //        : base(tableMapper, fieldName, typeof(TField))
-    //    {
-    //        m_fieldGetAccessor = rowMapperGetAccessor;
-    //        m_fieldSetAccessor = rowMapperSetAccessor;
-    //    }
-    //}
-
     public class ObjectField<TObject, TField> : BaseFieldMapper
     {
         private readonly ObjectGetAccessor<TObject, TField> m_fieldGetAccessor;
@@ -175,7 +135,7 @@ namespace TribalMedia.Framework.Data
             return m_fieldGetAccessor((TObject)obj);
         }
 
-        public override void SetPropertyFromReader(object obj, DataReader reader)
+        public override void SetPropertyFromReader(object obj, BaseDataReader reader)
         {
             object value;
 

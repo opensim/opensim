@@ -44,7 +44,7 @@ namespace OpenSim.Framework.Data
             }
         }
 
-        protected override object GetValue(DataReader reader)
+        protected override object GetValue(BaseDataReader reader)
         {
             object value;
 

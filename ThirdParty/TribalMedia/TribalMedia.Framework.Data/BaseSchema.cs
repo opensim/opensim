@@ -29,7 +29,7 @@ using TribalMedia.Framework.Data;
 
 namespace TribalMedia.Framework.Data
 {
-    public class Schema
+    public class BaseSchema
     {
         protected BaseTableMapper m_tableMapper;
         protected Dictionary<string, BaseFieldMapper> m_mappings;
@@ -39,16 +39,16 @@ namespace TribalMedia.Framework.Data
             get { return m_mappings; }
         }
 
-        public Schema(BaseTableMapper tableMapper)
+        public BaseSchema(BaseTableMapper tableMapper)
         {
             m_mappings = new Dictionary<string, BaseFieldMapper>();
             m_tableMapper = tableMapper;
         }
     }
 
-    public class ObjectSchema<TObj> : Schema
+    public class BaseSchema<TObj> : BaseSchema
     {
-        public ObjectSchema(BaseTableMapper tableMapper)
+        public BaseSchema(BaseTableMapper tableMapper)
             : base(tableMapper)
         {
         }
@@ -65,26 +65,4 @@ namespace TribalMedia.Framework.Data
             return rowMapperField;
         }
     }
-
-    //public class RowMapperSchema<TRowMapper> : Schema
-    //    where TRowMapper : RowMapper
-    //{
-    //    public RowMapperSchema(TableMapper tableMapper) : base(tableMapper)
-    //    {
-    //    }
-
-    //    public RowMapperField<TRowMapper, TField> AddMapping<TField>(string fieldName,
-    //                                                                 RowMapperGetAccessor<TRowMapper, TField>
-    //                                                                     rowMapperGetAccessor,
-    //                                                                 RowMapperSetAccessor<TRowMapper, TField>
-    //                                                                     rowMapperSetAccessor)
-    //    {
-    //        RowMapperField<TRowMapper, TField> rowMapperField =
-    //            new RowMapperField<TRowMapper, TField>(m_tableMapper, fieldName, rowMapperGetAccessor, rowMapperSetAccessor);
-
-    //        m_mappings.Add(fieldName, rowMapperField);
-
-    //        return rowMapperField;
-    //    }
-    //}
 }

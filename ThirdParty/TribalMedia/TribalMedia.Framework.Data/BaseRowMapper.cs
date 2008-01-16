@@ -28,14 +28,14 @@ using TribalMedia.Framework.Data;
 
 namespace TribalMedia.Framework.Data
 {
-    public abstract class RowMapper
+    public abstract class BaseRowMapper
     {
-        public abstract void FillObject(DataReader reader);
+        public abstract void FillObject(BaseDataReader reader);
     }
 
-    public class ObjectMapper<TObj> : RowMapper
+    public class BaseRowMapper<TObj> : BaseRowMapper
     {
-        private readonly Schema m_schema;
+        private readonly BaseSchema m_schema;
         private readonly TObj m_obj;
 
         public TObj Object
@@ -43,38 +43,13 @@ namespace TribalMedia.Framework.Data
             get { return m_obj; }
         }
 
-        public ObjectMapper(Schema schema, TObj obj)
+        public BaseRowMapper(BaseSchema schema, TObj obj)
         {
             m_schema = schema;
             m_obj = obj;
         }
 
-        public override void FillObject(DataReader reader)
-        {
-            foreach (BaseFieldMapper fieldMapper in m_schema.Fields.Values)
-            {
-                fieldMapper.SetPropertyFromReader(m_obj, reader);
-            }
-        }
-    }
-
-    public class RowMapper<TObj> : RowMapper
-    {
-        private readonly Schema m_schema;
-        private readonly TObj m_obj;
-
-        public TObj Object
-        {
-            get { return m_obj; }
-        }
-
-        public RowMapper(Schema schema, TObj obj)
-        {
-            m_schema = schema;
-            m_obj = obj;
-        }
-
-        public override void FillObject(DataReader reader)
+        public override void FillObject(BaseDataReader reader)
         {
             foreach (BaseFieldMapper fieldMapper in m_schema.Fields.Values)
             {

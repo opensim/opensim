@@ -3,7 +3,7 @@ using MySql.Data.MySqlClient;
 
 namespace OpenSim.Framework.Data.MySQL
 {
-    public class MySQLDatabaseMapper : OpenSimDatabaseMapper
+    public class MySQLDatabaseMapper : OpenSimDatabaseConnector
     {
         public MySQLDatabaseMapper(string connectionString)
             : base(connectionString)

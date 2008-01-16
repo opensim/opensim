@@ -30,11 +30,11 @@ using System.IO;
 
 namespace TribalMedia.Framework.Data
 {
-    public class DataReader
+    public class BaseDataReader
     {
         private readonly IDataReader m_source;
 
-        public DataReader(IDataReader source)
+        public BaseDataReader(IDataReader source)
         {
             m_source = source;
         }

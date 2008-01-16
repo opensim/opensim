@@ -416,7 +416,7 @@ namespace OpenSim.Region.ClientStack
                 {
                     // this will normally trigger at least one packet (ping response)
                     SendStartPingCheck(0);
-                    
+
                 }
             }
             else
@@ -424,7 +424,7 @@ namespace OpenSim.Region.ClientStack
                 // Something received in the meantime - we can reset the counters
                 m_probesWithNoIngressPackets = 0;
                 m_lastPacketsReceived = m_packetsReceived;
-                
+
             }
         }
 
@@ -2311,7 +2311,7 @@ namespace OpenSim.Region.ClientStack
                 if (Pack.Header.Reliable) //DIRTY HACK
                 {
                     AddAck(Pack); // this adds the need to ack this packet later
-                    
+
 
                     if (Pack.Type != PacketType.PacketAck && Pack.Type != PacketType.LogoutRequest)
                     {
@@ -2355,10 +2355,15 @@ namespace OpenSim.Region.ClientStack
                 {
                     lock (m_needAck)
                     {
-                        foreach (uint ack in NewPack.Header.AckList)
+                        foreach (uint ackedPacketId in NewPack.Header.AckList)
                         {
-                            m_unAckedBytes -= m_needAck[ack].ToBytes().Length;
-                            m_needAck.Remove(ack);
+                            Packet ackedPacket;
+
+                            if (m_needAck.TryGetValue(ackedPacketId, out ackedPacket))
+                            {
+                                m_unAckedBytes -= ackedPacket.ToBytes().Length;
+                                m_needAck.Remove(ackedPacketId);
+                            }
                         }
                     }
                 }
@@ -2373,18 +2378,12 @@ namespace OpenSim.Region.ClientStack
                     {
                         foreach (PacketAckPacket.PacketsBlock block in ackPacket.Packets)
                         {
-                            if (m_needAck.ContainsKey(block.ID))
+                            uint ackedPackId = block.ID;
+                            Packet ackedPacket;
+                            if (m_needAck.TryGetValue(ackedPackId, out ackedPacket))
                             {
-                                try
-                                {
-                                    m_unAckedBytes -= m_needAck[block.ID].ToBytes().Length;
-                                    m_needAck.Remove(block.ID);
-                                }
-                                catch (System.Collections.Generic.KeyNotFoundException)
-                                {
-                                    // Did another packet come in with the ack already?  
-                                    // apparently so!
-                                }
+                                m_unAckedBytes -= ackedPacket.ToBytes().Length;
+                                m_needAck.Remove(ackedPackId);
                             }
                         }
                     }
@@ -2500,11 +2499,11 @@ namespace OpenSim.Region.ClientStack
 
         protected void AckTimer_Elapsed(object sender, ElapsedEventArgs ea)
         {
-            
+
             SendAcks();
             ResendUnacked();
             SendPacketStats();
-          
+
         }
 
         protected void SendPacketStats()

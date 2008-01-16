@@ -7,7 +7,7 @@ using TribalMedia.Framework.Data;
 
 namespace OpenSim.Framework.Data
 {
-    public class OpenSimDataReader : DataReader
+    public class OpenSimDataReader : BaseDataReader
     {
         public OpenSimDataReader(IDataReader source) : base(source)
         {

@@ -135,5 +135,7 @@ namespace TribalMedia.Framework.Data
         {
             return value;
         }
+
+        public abstract BaseDataReader CreateReader(IDataReader reader);
     }
 }

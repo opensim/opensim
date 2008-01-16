@@ -1,12 +1,12 @@
-using System.Data.Common;
+using System.Data;
 using libsecondlife;
 using TribalMedia.Framework.Data;
 
 namespace OpenSim.Framework.Data
 {
-    public abstract class OpenSimDatabaseMapper : BaseDatabaseConnector
+    public abstract class OpenSimDatabaseConnector : BaseDatabaseConnector
     {
-        public OpenSimDatabaseMapper(string connectionString) : base(connectionString)
+        public OpenSimDatabaseConnector(string connectionString) : base(connectionString)
         {
         }
 
@@ -18,6 +18,11 @@ namespace OpenSim.Framework.Data
             }
 
             return base.ConvertToDbType(value);
+        }
+
+        public override BaseDataReader CreateReader(IDataReader reader)
+        {
+            return new OpenSimDataReader(reader);
         }
     }
 }

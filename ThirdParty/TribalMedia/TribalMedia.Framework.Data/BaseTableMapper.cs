@@ -62,8 +62,8 @@ namespace TribalMedia.Framework.Data
             get { return m_tableName; }
         }
 
-        protected Schema m_schema;
-        public Schema Schema
+        protected BaseSchema m_schema;
+        public BaseSchema Schema
         {
             get { return m_schema; }
         }
@@ -110,9 +110,9 @@ namespace TribalMedia.Framework.Data
             return m_database.ConvertToDbType(value);
         }
 
-        protected virtual DataReader CreateReader(IDataReader reader)
+        protected virtual BaseDataReader CreateReader(IDataReader reader)
         {
-            return new DataReader(reader);
+            return m_database.CreateReader(reader);
         }
     }
 
@@ -138,7 +138,7 @@ namespace TribalMedia.Framework.Data
                                        {
                                            if (reader.Read())
                                            {
-                                               result = FromReader(CreateReader(reader));
+                                               result = FromReader( CreateReader(reader));
                                                success = true;
                                            }
                                            else
@@ -240,6 +240,6 @@ namespace TribalMedia.Framework.Data
             }
         }
 
-        public abstract TRowMapper FromReader(DataReader reader);
+        public abstract TRowMapper FromReader(BaseDataReader reader);
     }
 }
