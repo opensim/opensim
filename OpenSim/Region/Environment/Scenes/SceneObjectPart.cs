@@ -991,6 +991,19 @@ namespace OpenSim.Region.Environment.Scenes
         }
 
         #endregion
+        
+        /// <summary>
+        /// Reset LLUUIDs for this part.  This involves generate this part's own LLUUID and
+        /// generating new LLUUIDs for all the items in the inventory.
+        /// </summary>
+        /// <param name="linkNum'>Link number for the part</param>
+        public void ResetIDs(int linkNum)
+        {
+            UUID = LLUUID.Random();
+            LinkNum = linkNum;      
+            
+            ResetInventoryIDs();
+        }
 
         #region Update Scheduling
 

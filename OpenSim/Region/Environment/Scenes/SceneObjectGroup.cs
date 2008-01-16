@@ -609,15 +609,19 @@ namespace OpenSim.Region.Environment.Scenes
             SetPartAsNonRoot(newPart);
         }
 
-
-        public void GenerateNewIDs()
+        /// <summary>
+        /// Reset the LLUUIDs for all the prims that make up this group.
+        /// 
+        /// This is called by methods which want to add a new group to an existing scene, in order
+        /// to ensure that there are no clashes with groups already present.
+        /// </summary>
+        public void ResetIDs()
         {
             List<SceneObjectPart> partsList = new List<SceneObjectPart>(m_parts.Values);
             m_parts.Clear();
             foreach (SceneObjectPart part in partsList)
             {
-                part.UUID = LLUUID.Random();
-                part.LinkNum = m_parts.Count;
+                part.ResetIDs(m_parts.Count);                
                 m_parts.Add(part.UUID, part);
             }
         }

@@ -205,6 +205,8 @@ namespace OpenSim.Framework.Data.SQLite
 
         public void RemoveObject(LLUUID obj, LLUUID regionUUID)
         {
+            MainLog.Instance.Verbose("DATASTORE", "Removing obj: {0} from region: {1}", obj.UUID, regionUUID);
+            
             DataTable prims = ds.Tables["prims"];
             DataTable shapes = ds.Tables["primshapes"];
             DataTable items = ds.Tables["primitems"];
@@ -229,9 +231,9 @@ namespace OpenSim.Framework.Data.SQLite
                         String sql = String.Format("primID = '{0}'", uuid);            
                         DataRow[] itemRows = items.Select(sql);
                 
-                        foreach (DataRow itemsRow in itemRows)
+                        foreach (DataRow itemRow in itemRows)
                         {
-                            itemsRow.Delete();
+                            itemRow.Delete();
                         }
                     }
 
@@ -351,7 +353,7 @@ namespace OpenSim.Framework.Data.SQLite
                 TaskInventoryItem item = buildItem(row);
                 inventory.Add(item);
                 
-                MainLog.Instance.Verbose("DATASTORE", "Restored item {0}, {1}", item.name, item.item_id); 
+                MainLog.Instance.Verbose("DATASTORE", "Restored item {0}, {1}", item.Name, item.ItemID); 
             }
             
             prim.AddInventoryItems(inventory);
@@ -360,7 +362,7 @@ namespace OpenSim.Framework.Data.SQLite
             // every item).  This data should really be stored in the prim table itself.
             if (dbItemRows.Length > 0)
             {
-                prim.FolderID = inventory[0].parent_id;
+                prim.FolderID = inventory[0].ParentID;
             }
         }
 
@@ -889,27 +891,27 @@ namespace OpenSim.Framework.Data.SQLite
         {
             TaskInventoryItem taskItem = new TaskInventoryItem();
             
-            taskItem.item_id         = new LLUUID((String)row["itemID"]); 
-            taskItem.ParentPartID    = new LLUUID((String)row["primID"]);
-            taskItem.asset_id        = new LLUUID((String)row["assetID"]);
-            taskItem.parent_id       = new LLUUID((String)row["parentFolderID"]);
+            taskItem.ItemID        = new LLUUID((String)row["itemID"]); 
+            taskItem.ParentPartID  = new LLUUID((String)row["primID"]);
+            taskItem.AssetID       = new LLUUID((String)row["assetID"]);
+            taskItem.ParentID      = new LLUUID((String)row["parentFolderID"]);
             
-            taskItem.inv_type        = Convert.ToInt32(row["invType"]);
-            taskItem.type            = Convert.ToInt32(row["assetType"]);
+            taskItem.InvType       = Convert.ToInt32(row["invType"]);
+            taskItem.Type          = Convert.ToInt32(row["assetType"]);
             
-            taskItem.name            = (String)row["name"];
-            taskItem.desc            = (String)row["description"];
-            taskItem.creation_date   = Convert.ToUInt32(row["creationDate"]);
-            taskItem.creator_id      = new LLUUID((String)row["creatorID"]);
-            taskItem.owner_id        = new LLUUID((String)row["ownerID"]);
-            taskItem.last_owner_id   = new LLUUID((String)row["lastOwnerID"]);
-            taskItem.group_id        = new LLUUID((String)row["groupID"]);
+            taskItem.Name          = (String)row["name"];
+            taskItem.Description   = (String)row["description"];
+            taskItem.CreationDate  = Convert.ToUInt32(row["creationDate"]);
+            taskItem.CreatorID     = new LLUUID((String)row["creatorID"]);
+            taskItem.OwnerID       = new LLUUID((String)row["ownerID"]);
+            taskItem.LastOwnerID   = new LLUUID((String)row["lastOwnerID"]);
+            taskItem.GroupID       = new LLUUID((String)row["groupID"]);
             
-            taskItem.next_owner_mask = Convert.ToUInt32(row["nextPermissions"]);
-            taskItem.owner_mask      = Convert.ToUInt32(row["currentPermissions"]);
-            taskItem.base_mask       = Convert.ToUInt32(row["basePermissions"]);
-            taskItem.everyone_mask   = Convert.ToUInt32(row["everyonePermissions"]);
-            taskItem.group_mask      = Convert.ToUInt32(row["groupPermissions"]);
+            taskItem.NextOwnerMask = Convert.ToUInt32(row["nextPermissions"]);
+            taskItem.OwnerMask     = Convert.ToUInt32(row["currentPermissions"]);
+            taskItem.BaseMask      = Convert.ToUInt32(row["basePermissions"]);
+            taskItem.EveryoneMask  = Convert.ToUInt32(row["everyonePermissions"]);
+            taskItem.GroupMask     = Convert.ToUInt32(row["groupPermissions"]);
             
             return taskItem;
         }
@@ -1059,26 +1061,26 @@ namespace OpenSim.Framework.Data.SQLite
         
         private void fillItemRow(DataRow row, TaskInventoryItem taskItem)
         {
-            row["itemID"] = taskItem.item_id;
+            row["itemID"] = taskItem.ItemID;
             row["primID"] = taskItem.ParentPartID;
-            row["assetID"] = taskItem.asset_id;
-            row["parentFolderID"] = taskItem.parent_id;
+            row["assetID"] = taskItem.AssetID;
+            row["parentFolderID"] = taskItem.ParentID;
             
-            row["invType"] = taskItem.inv_type;
-            row["assetType"] = taskItem.type;
+            row["invType"] = taskItem.InvType;
+            row["assetType"] = taskItem.Type;
             
-            row["name"] = taskItem.name;
-            row["description"] = taskItem.desc;
-            row["creationDate"] = taskItem.creation_date;
-            row["creatorID"] = taskItem.creator_id;
-            row["ownerID"] = taskItem.owner_id;
-            row["lastOwnerID"] = taskItem.last_owner_id;
-            row["groupID"] = taskItem.group_id;
-            row["nextPermissions"] = taskItem.next_owner_mask;
-            row["currentPermissions"] = taskItem.owner_mask;
-            row["basePermissions"] = taskItem.base_mask;
-            row["everyonePermissions"] = taskItem.everyone_mask;
-            row["groupPermissions"] = taskItem.group_mask;
+            row["name"] = taskItem.Name;
+            row["description"] = taskItem.Description;
+            row["creationDate"] = taskItem.CreationDate;
+            row["creatorID"] = taskItem.CreatorID;
+            row["ownerID"] = taskItem.OwnerID;
+            row["lastOwnerID"] = taskItem.LastOwnerID;
+            row["groupID"] = taskItem.GroupID;
+            row["nextPermissions"] = taskItem.NextOwnerMask;
+            row["currentPermissions"] = taskItem.OwnerMask;
+            row["basePermissions"] = taskItem.BaseMask;
+            row["everyonePermissions"] = taskItem.EveryoneMask;
+            row["groupPermissions"] = taskItem.GroupMask;
         }
 
         private void fillLandRow(DataRow row, LandData land, LLUUID regionUUID)
@@ -1311,8 +1313,8 @@ namespace OpenSim.Framework.Data.SQLite
             {
                 MainLog.Instance.Verbose(
                     "DATASTORE", 
-                    "Adding item {0}, {1} to prim ID {1}", 
-                    newItem.name, newItem.item_id, newItem.ParentPartID);
+                    "Adding item {0}, {1} to prim ID {2}", 
+                    newItem.Name, newItem.ItemID, newItem.ParentPartID);
                 
                 DataRow newItemRow = dbItems.NewRow();
                 fillItemRow(newItemRow, newItem);

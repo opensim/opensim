@@ -184,21 +184,21 @@ namespace OpenSim.Region.Environment.Scenes
             }
             
             // Create new asset
-            // XXX Hardcoding the numbers is a temporary measure - need an enumeration for this            
-            AssetBase asset =
-                CreateAsset(item.name, item.desc, 10, 10, data);
+            // XXX Hardcoding the numbers is a temporary measure - need an enumeration for this 
+            // There may well be one in libsecondlife
+            AssetBase asset = CreateAsset(item.Name, item.Description, 10, 10, data);
             AssetCache.AddAsset(asset);
                         
             // Update item with new asset
-            item.asset_id = asset.FullID;
+            item.AssetID = asset.FullID;
             group.UpdateInventoryItem(item);
             group.GetProperites(remoteClient);
             
             // Trigger rerunning of script (use TriggerRezScript event, see RezScript)           
             if (isScriptRunning)
             {
-                group.StopScript(part.LocalID, item.item_id);
-                group.StartScript(part.LocalID, item.item_id);            
+                group.StopScript(part.LocalID, item.ItemID);
+                group.StartScript(part.LocalID, item.ItemID);            
             }
         }
 
@@ -750,12 +750,14 @@ namespace OpenSim.Region.Environment.Scenes
         private void AddRezObject(string xmlData, LLVector3 pos)
         {
             SceneObjectGroup group = new SceneObjectGroup(this, m_regionHandle, xmlData);
-            group.GenerateNewIDs();
+            group.ResetIDs();
             AddEntity(group);
             group.AbsolutePosition = pos;
             SceneObjectPart rootPart = group.GetChildPart(group.UUID);
             rootPart.ApplySanePermissions();
             group.ApplyPhysics(m_physicalPrim);
+            group.StartScripts();
+
             //bool UsePhysics = (((rootPart.ObjectFlags & (uint)LLObject.ObjectFlags.Physics) > 0)&& m_physicalPrim);
             //if ((rootPart.ObjectFlags & (uint) LLObject.ObjectFlags.Phantom) == 0)
             //{
@@ -772,6 +774,7 @@ namespace OpenSim.Region.Environment.Scenes
             // rootPart.DoPhysicsPropertyUpdate(UsePhysics, true);
 
             // }
+            //
             rootPart.ScheduleFullUpdate();
         }
     }

@@ -68,7 +68,7 @@ namespace OpenSim.Region.Environment.Scenes
                                                                 m_regInfo.RegionHandle, aPrimNode.OuterXml);
                     if (newIDS)
                     {
-                        obj.GenerateNewIDs();
+                        obj.ResetIDs();
                     }
                     //if we want this to be a import method then we need new uuids for the object to avoid any clashes
                     //obj.RegenerateFullIDs(); 

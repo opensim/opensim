@@ -57,19 +57,7 @@ namespace OpenSim.Region.Environment.Scenes
             get { return m_folderID; }
             set { m_folderID = value; }
         }        
-
-        /// <summary>
-        /// Holds in memory prim inventory
-        /// </summary> 
-        protected IDictionary<LLUUID, TaskInventoryItem> m_taskInventory 
-            = new Dictionary<LLUUID, TaskInventoryItem>();
-        
-        [XmlIgnore]
-        public IDictionary<LLUUID, TaskInventoryItem> TaskInventory
-        {
-            get { return m_taskInventory; }
-        }
-        
+                
         /// <summary>
         /// Serial count for inventory file , used to tell if inventory has changed
         /// no need for this to be part of Database backup
@@ -79,8 +67,36 @@ namespace OpenSim.Region.Environment.Scenes
         public uint InventorySerial
         {
             get { return m_inventorySerial; }
+            set { m_inventorySerial = value; }
+        }        
+
+        /// <summary>
+        /// Holds in memory prim inventory
+        /// </summary> 
+        protected TaskInventoryDictionary m_taskInventory = new TaskInventoryDictionary();
+        
+        public TaskInventoryDictionary TaskInventory
+        {
+            get { return m_taskInventory; }
+            set { m_taskInventory = value; }
         }
         
+        /// <summary>
+        /// Reset LLUUIDs for all the items in the prim's inventory.  This involves either generating
+        /// new ones or setting existing UUIDs to the correct parent UUIDs
+        /// </summary>
+        /// <param name="linkNum'>Link number for the part</param>
+        public void ResetInventoryIDs()
+        {
+            IList<TaskInventoryItem> items = new List<TaskInventoryItem>(TaskInventory.Values);
+            TaskInventory.Clear();
+            
+            foreach (TaskInventoryItem item in items)
+            {
+                item.ResetIDs(UUID);
+                TaskInventory.Add(item.ItemID, item);
+            }
+        }        
         
         /// <summary>
         /// Start all the scripts contained in this prim's inventory
@@ -90,7 +106,7 @@ namespace OpenSim.Region.Environment.Scenes
             foreach (TaskInventoryItem item in m_taskInventory.Values)
             {
                 // XXX more hardcoding badness.  Should be an enum in TaskInventoryItem
-                if (10 == item.type)
+                if (10 == item.Type)
                 {
                     StartScript(item);
                 }
@@ -107,21 +123,21 @@ namespace OpenSim.Region.Environment.Scenes
 //            MainLog.Instance.Verbose(
 //                "PRIMINVENTORY", 
 //                "Starting script {0}, {1} in prim {2}, {3}", 
-//                item.name, item.item_id, Name, UUID);
+//                item.Name, item.ItemID, Name, UUID);
             
-            AssetBase rezAsset = m_parentGroup.Scene.AssetCache.GetAsset(item.asset_id, false);
+            AssetBase rezAsset = m_parentGroup.Scene.AssetCache.GetAsset(item.AssetID, false);
 
             if (rezAsset != null)
             {
                 string script = Helpers.FieldToUTF8String(rezAsset.Data);
-                m_parentGroup.Scene.EventManager.TriggerRezScript(LocalID, item.item_id, script);
+                m_parentGroup.Scene.EventManager.TriggerRezScript(LocalID, item.ItemID, script);
             }     
             else
             {
                 MainLog.Instance.Error(
                     "PRIMINVENTORY", 
                     "Couldn't start script {0}, {1} since asset ID {2} could not be found", 
-                    item.name, item.item_id, item.asset_id);
+                    item.Name, item.ItemID, item.AssetID);
             }
         }   
         
@@ -172,10 +188,10 @@ namespace OpenSim.Region.Environment.Scenes
         /// <param name="item"></param>
         public void AddInventoryItem(TaskInventoryItem item)
         {
-            item.parent_id = m_folderID;
-            item.creation_date = 1000;
+            item.ParentID = m_folderID;
+            item.CreationDate = 1000;
             item.ParentPartID = UUID;
-            m_taskInventory.Add(item.item_id, item);
+            m_taskInventory.Add(item.ItemID, item);
             m_inventorySerial++;
         }
         
@@ -188,7 +204,7 @@ namespace OpenSim.Region.Environment.Scenes
         {
             foreach (TaskInventoryItem item in items)
             {
-                m_taskInventory.Add(item.item_id, item);
+                m_taskInventory.Add(item.ItemID, item);
             }
             
             m_inventorySerial++;
@@ -224,9 +240,9 @@ namespace OpenSim.Region.Environment.Scenes
         /// <returns>false if the item did not exist, true if the update occurred succesfully</returns>
         public bool UpdateInventoryItem(TaskInventoryItem item)
         {
-            if (m_taskInventory.ContainsKey(item.item_id))
+            if (m_taskInventory.ContainsKey(item.ItemID))
             {
-                m_taskInventory[item.item_id] = item;
+                m_taskInventory[item.ItemID] = item;
                 m_inventorySerial++;
                 
                 return true;
@@ -236,7 +252,7 @@ namespace OpenSim.Region.Environment.Scenes
                 MainLog.Instance.Error(
                     "PRIMINVENTORY",
                     "Tried to retrieve item ID {0} from prim {1}, {2} but the item does not exist in this inventory",
-                    item.item_id, Name, UUID);
+                    item.ItemID, Name, UUID);
             }   
             
             return false;
@@ -252,7 +268,7 @@ namespace OpenSim.Region.Environment.Scenes
         {
             if (m_taskInventory.ContainsKey(itemID))
             {
-                int type = m_taskInventory[itemID].inv_type;
+                int type = m_taskInventory[itemID].InvType;
                 m_taskInventory.Remove(itemID);
                 m_inventorySerial++;
                 
@@ -296,8 +312,8 @@ namespace OpenSim.Region.Environment.Scenes
             foreach (TaskInventoryItem item in m_taskInventory.Values)
             {
                 invString.AddItemStart();
-                invString.AddNameValueLine("item_id", item.item_id.ToString());
-                invString.AddNameValueLine("parent_id", item.parent_id.ToString());
+                invString.AddNameValueLine("item_id", item.ItemID.ToString());
+                invString.AddNameValueLine("parent_id", item.ParentID.ToString());
 
                 invString.AddPermissionsStart();
                 invString.AddNameValueLine("base_mask", "0x7FFFFFFF");
@@ -305,19 +321,19 @@ namespace OpenSim.Region.Environment.Scenes
                 invString.AddNameValueLine("group_mask", "0x7FFFFFFF");
                 invString.AddNameValueLine("everyone_mask", "0x7FFFFFFF");
                 invString.AddNameValueLine("next_owner_mask", "0x7FFFFFFF");
-                invString.AddNameValueLine("creator_id", item.creator_id.ToString());
-                invString.AddNameValueLine("owner_id", item.owner_id.ToString());
-                invString.AddNameValueLine("last_owner_id", item.last_owner_id.ToString());
-                invString.AddNameValueLine("group_id", item.group_id.ToString());
+                invString.AddNameValueLine("creator_id", item.CreatorID.ToString());
+                invString.AddNameValueLine("owner_id", item.OwnerID.ToString());
+                invString.AddNameValueLine("last_owner_id", item.LastOwnerID.ToString());
+                invString.AddNameValueLine("group_id", item.GroupID.ToString());
                 invString.AddSectionEnd();
 
-                invString.AddNameValueLine("asset_id", item.asset_id.ToString());
-                invString.AddNameValueLine("type", TaskInventoryItem.Types[item.type]);
-                invString.AddNameValueLine("inv_type", TaskInventoryItem.InvTypes[item.inv_type]);
+                invString.AddNameValueLine("asset_id", item.AssetID.ToString());
+                invString.AddNameValueLine("type", TaskInventoryItem.Types[item.Type]);
+                invString.AddNameValueLine("inv_type", TaskInventoryItem.InvTypes[item.InvType]);
                 invString.AddNameValueLine("flags", "0x00");
-                invString.AddNameValueLine("name", item.name + "|");
-                invString.AddNameValueLine("desc", item.desc + "|");
-                invString.AddNameValueLine("creation_date", item.creation_date.ToString());
+                invString.AddNameValueLine("name", item.Name + "|");
+                invString.AddNameValueLine("desc", item.Description + "|");
+                invString.AddNameValueLine("creation_date", item.CreationDate.ToString());
                 invString.AddSectionEnd();
             }
             

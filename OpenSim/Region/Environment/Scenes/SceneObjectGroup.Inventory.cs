@@ -169,14 +169,14 @@ namespace OpenSim.Region.Environment.Scenes
             {
                 TaskInventoryItem taskItem = new TaskInventoryItem();
                 
-                taskItem.item_id = newItemId;                
-                taskItem.asset_id = item.assetID;
-                taskItem.name = item.inventoryName;
-                taskItem.desc = item.inventoryDescription;
-                taskItem.owner_id = item.avatarID;
-                taskItem.creator_id = item.creatorsID;
-                taskItem.type = item.assetType;
-                taskItem.inv_type = item.invType;
+                taskItem.ItemID = newItemId;                
+                taskItem.AssetID = item.assetID;
+                taskItem.Name = item.inventoryName;
+                taskItem.Description = item.inventoryDescription;
+                taskItem.OwnerID = item.avatarID;
+                taskItem.CreatorID = item.creatorsID;
+                taskItem.Type = item.assetType;
+                taskItem.InvType = item.invType;
                 part.AddInventoryItem(taskItem);
                 
                 // It might seem somewhat crude to update the whole group for a single prim inventory change,
@@ -250,7 +250,7 @@ namespace OpenSim.Region.Environment.Scenes
                 MainLog.Instance.Error(
                     "PRIMINVENTORY",
                     "Couldn't find prim ID {0} to update item {1}, {2}",
-                    item.ParentPartID, item.name, item.item_id);
+                    item.ParentPartID, item.Name, item.ItemID);
             }   
             
             return false;
