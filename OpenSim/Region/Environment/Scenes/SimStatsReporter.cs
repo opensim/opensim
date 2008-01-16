@@ -62,8 +62,9 @@ namespace OpenSim.Region.Environment.Scenes
             UnAckedBytes = 24
         }
 
-        private int statsUpdatesEveryMS = 5000;
-        private int statsUpdateFactor = 0;
+        // Sending a stats update every 3 seconds
+        private int statsUpdatesEveryMS = 3000;
+        private float statsUpdateFactor = 0;
         private float m_timeDilation = 0;
         private int m_fps = 0;
         private float m_pfps = 0;
@@ -97,7 +98,8 @@ namespace OpenSim.Region.Environment.Scenes
 
         public SimStatsReporter(RegionInfo regionData)
         {
-            statsUpdateFactor = (int)(statsUpdatesEveryMS / 1000);
+
+            statsUpdateFactor = (float)(statsUpdatesEveryMS / 1000);
             ReportingRegion = regionData;
             for (int i = 0; i<19;i++)
             {
@@ -131,6 +133,8 @@ namespace OpenSim.Region.Environment.Scenes
 
             #region various statistic googly moogly
 
+            // Our FPS is actually 10fps, so multiplying by 5 to get the amount that people expect there
+            // 0-50 is pretty close to 0-45
             float simfps = (int) ((m_fps * 5));
 
             //if (simfps > 45)
@@ -138,6 +142,7 @@ namespace OpenSim.Region.Environment.Scenes
             //if (simfps < 0)
                 //simfps = 0;
 
+            //
             float physfps = ((m_pfps / 1000));
 
             //if (physfps > 600)
@@ -148,35 +153,34 @@ namespace OpenSim.Region.Environment.Scenes
 
             #endregion
 
-            //sb[0] = sbb;
-            sb[0].StatID = (uint) Stats.TimeDilation;
-            sb[0].StatValue = ((m_timeDilation  / statsUpdateFactor));
+            //Our time dilation is 0.91 when we're running a full speed, 
+            // therefore to make sure we get an appropriate range, 
+            // we have to factor in our error.   (0.10f * statsUpdateFactor) 
+            // multiplies the fix for the error times the amount of times it'll occur a second
+            // / 10 divides the value by the number of times the sim heartbeat runs (10fps)
+            // Then we divide the whole amount by the amount of seconds pass in between stats updates.
 
-            //sb[1] = sbb;
+            sb[0].StatID = (uint) Stats.TimeDilation;
+            sb[0].StatValue = ((((m_timeDilation + (0.10f * statsUpdateFactor)) /10)  / statsUpdateFactor));
+
             sb[1].StatID = (uint) Stats.SimFPS;
             sb[1].StatValue = simfps/statsUpdateFactor;
 
-            //sb[2] = sbb;
             sb[2].StatID = (uint) Stats.PhysicsFPS;
             sb[2].StatValue = physfps / statsUpdateFactor;
 
-            //sb[3] = sbb;
             sb[3].StatID = (uint) Stats.AgentUpdates;
             sb[3].StatValue = (m_agentUpdates / statsUpdateFactor);
 
-            //sb[4] = sbb;
             sb[4].StatID = (uint) Stats.Agents;
             sb[4].StatValue = m_rootAgents;
 
-            //sb[5] = sbb;
             sb[5].StatID = (uint) Stats.ChildAgents;
             sb[5].StatValue = m_childAgents;
 
-            //sb[6] = sbb;
             sb[6].StatID = (uint) Stats.TotalPrim;
             sb[6].StatValue = m_numPrim;
 
-            //sb[7] = sbb;
             sb[7].StatID = (uint) Stats.ActivePrim;
             sb[7].StatValue = m_activePrim;
 
@@ -195,15 +199,12 @@ namespace OpenSim.Region.Environment.Scenes
             sb[12].StatID = (uint)Stats.OtherMS;
             sb[12].StatValue = m_otherMS / statsUpdateFactor;
 
-            //sb[8] = sbb;
             sb[13].StatID = (uint)Stats.InPacketsPerSecond;
             sb[13].StatValue = (m_inPacketsPerSecond);
 
-            //sb[9] = sbb;
             sb[14].StatID = (uint)Stats.OutPacketsPerSecond;
             sb[14].StatValue = (m_outPacketsPerSecond / statsUpdateFactor);
 
-            //sb[10] = sbb;
             sb[15].StatID = (uint)Stats.UnAckedBytes;
             sb[15].StatValue = m_unAckedBytes;
 
@@ -243,16 +244,19 @@ namespace OpenSim.Region.Environment.Scenes
             m_otherMS = 0;
         }
 
-        
+        # region methods called from Scene
+        // The majority of these functions are additive
+        // so that you can easily change the amount of 
+        // seconds in between sim stats updates
 
-        public void SetTimeDilation(float td)
+        public void AddTimeDilation(float td)
         {
             float tdsetting = td;
-            //if (tdsetting > 1.0f)
-                //tdsetting = (tdsetting - (tdsetting - 0.91f));
+            if (tdsetting > 1.0f)
+                tdsetting = (tdsetting - (tdsetting - 0.91f));
 
-            //if (tdsetting < 0)
-                //tdsetting = 0.0f;
+            if (tdsetting < 0)
+                tdsetting = 0.0f;
             m_timeDilation += tdsetting;
         }
 
@@ -334,6 +338,8 @@ namespace OpenSim.Region.Environment.Scenes
         {
             m_pendingDownloads += count;
         }
-        
+
+        #endregion
+
     }
 }

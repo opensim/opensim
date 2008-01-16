@@ -605,7 +605,7 @@ namespace OpenSim.Region.Environment.Scenes
                 // if (m_frame%m_update_avatars == 0)
                 //   UpdateInWorldTime();
                 m_statsReporter.AddPhysicsFPS(physicsFPS);
-                m_statsReporter.SetTimeDilation(m_timedilation);
+                m_statsReporter.AddTimeDilation(m_timedilation);
                 m_statsReporter.AddFPS(1);
                 m_statsReporter.AddInPackets(0);
                 m_statsReporter.SetRootAgents(m_innerScene.GetRootAgentCount());

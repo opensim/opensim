@@ -65,11 +65,11 @@ namespace OpenSim.Region.ClientStack
         private Timer m_clientPingTimer;
 
         private int m_packetsReceived = 0;
-        private int m_lastpacketsSentToScene = 0;
+        private int m_lastPacketsReceivedSentToScene = 0;
         private int m_unAckedBytes = 0;
 
         private int m_packetsSent = 0;
-        private int m_lastPacketsSent = 0;
+        private int m_lastPacketsSentSentToScene = 0;
 
         private int m_probesWithNoIngressPackets = 0;
         private int m_lastPacketsReceived = 0;
@@ -426,7 +426,7 @@ namespace OpenSim.Region.ClientStack
                 m_lastPacketsReceived = m_packetsReceived;
 
             }
-            SendPacketStats();
+            //SendPacketStats();
         }
 
         # region Setup
@@ -2503,7 +2503,7 @@ namespace OpenSim.Region.ClientStack
 
             SendAcks();
             ResendUnacked();
-            
+            SendPacketStats();
 
         }
 
@@ -2511,9 +2511,9 @@ namespace OpenSim.Region.ClientStack
         {
             if (OnPacketStats != null)
             {
-                OnPacketStats(m_packetsReceived - m_lastPacketsReceived, m_packetsSent - m_lastPacketsSent, m_unAckedBytes);
-                m_lastPacketsReceived = m_packetsReceived;
-                m_lastPacketsSent = m_packetsSent;
+                OnPacketStats(m_packetsReceived - m_lastPacketsReceivedSentToScene, m_packetsSent - m_lastPacketsSentSentToScene, m_unAckedBytes);
+                m_lastPacketsReceivedSentToScene = m_packetsReceived;
+                m_lastPacketsSentSentToScene = m_packetsSent;
             }
         }
 
