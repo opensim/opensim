@@ -1283,19 +1283,22 @@ namespace OpenSim.Framework.Data.SQLite
             
             // Eliminate rows from the deletion set which already exist for this prim's inventory
             // TODO Very temporary, need to take account of simple metadata changes soon
-            foreach (LLUUID itemId in items.Keys)
+            lock (items)
             {
-                String rawItemId = itemId.ToString();
-                
-                if (dbItemsToRemove.ContainsKey(rawItemId))
+                foreach (LLUUID itemId in items.Keys)
                 {
-                    dbItemsToRemove.Remove(rawItemId);
-                }
-                else
-                {
-                    itemsToAdd.Add(items[itemId]);
-                }
-            }                        
+                    String rawItemId = itemId.ToString();
+                    
+                    if (dbItemsToRemove.ContainsKey(rawItemId))
+                    {
+                        dbItemsToRemove.Remove(rawItemId);
+                    }
+                    else
+                    {
+                        itemsToAdd.Add(items[itemId]);
+                    }
+                }    
+            }
             
             // Delete excess rows
             foreach (DataRow row in dbItemsToRemove.Values)

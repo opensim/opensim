@@ -1222,34 +1222,37 @@ namespace OpenSim.Framework.Data.MySQL
             
             foreach (DataRow row in dbItemRows)
             {
-                MainLog.Instance.Verbose(
-                    "DATASTORE", 
-                    "Found item {0}, {1} in prim id {2}", 
-                    row["name"], row["itemID"], primID);
+//                MainLog.Instance.Verbose(
+//                    "DATASTORE", 
+//                    "Found item {0}, {1} in prim id {2}", 
+//                    row["name"], row["itemID"], primID);
                 
                 dbItemsToRemove.Add((String)row["itemID"], row);
             }
             
             // Eliminate rows from the deletion set which already exist for this prim's inventory
             // TODO Very temporary, need to take account of simple metadata changes soon
-            foreach (LLUUID itemId in items.Keys)
+            lock (items)
             {
-                String rawItemId = itemId.ToString();
-                
-                if (dbItemsToRemove.ContainsKey(rawItemId))
+                foreach (LLUUID itemId in items.Keys)
                 {
-                    MainLog.Instance.Verbose(
-                        "DATASTORE", 
-                        "Discarding item {0}, {1} from remove candidates for prim id {2}", 
-                        items[itemId].Name, rawItemId, primID);
+                    String rawItemId = itemId.ToString();
                     
-                    dbItemsToRemove.Remove(rawItemId);
-                }
-                else
-                {
-                    itemsToAdd.Add(items[itemId]);
-                }
-            }                        
+                    if (dbItemsToRemove.ContainsKey(rawItemId))
+                    {
+//                        MainLog.Instance.Verbose(
+//                            "DATASTORE", 
+//                            "Discarding item {0}, {1} from remove candidates for prim id {2}", 
+//                            items[itemId].Name, rawItemId, primID);
+                        
+                        dbItemsToRemove.Remove(rawItemId);
+                    }
+                    else
+                    {
+                        itemsToAdd.Add(items[itemId]);
+                    }
+                }    
+            }
             
             // Delete excess rows
             foreach (DataRow row in dbItemsToRemove.Values)
