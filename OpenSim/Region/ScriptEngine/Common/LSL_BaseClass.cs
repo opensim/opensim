@@ -31,6 +31,7 @@ using System.Collections.Generic;
 using System.Runtime.Remoting.Lifetime;
 using System.Threading;
 using OpenSim.Region.ScriptEngine.Common;
+using OpenSim.Region.ScriptEngine.Common.ScriptEngineBase;
 using integer = System.Int32;
 using key = System.String;
 using vector = OpenSim.Region.ScriptEngine.Common.LSL_Types.Vector3;
@@ -64,6 +65,12 @@ namespace OpenSim.Region.ScriptEngine.Common
             return lease;
         }
 
+        public EventQueueManager.Queue_llDetectParams_Struct _llDetectParams;
+        EventQueueManager.Queue_llDetectParams_Struct IScript.llDetectParams
+        {
+            get { return _llDetectParams; }
+            set { _llDetectParams = value; }
+        }
 
         private Executor m_Exec;
 
@@ -125,6 +132,8 @@ namespace OpenSim.Region.ScriptEngine.Common
 
             return;
         }
+
+
 
 
         //

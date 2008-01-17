@@ -37,6 +37,7 @@ using OpenSim.Framework;
 using OpenSim.Region.Environment.Interfaces;
 using OpenSim.Region.Environment.Scenes;
 using OpenSim.Region.ScriptEngine.Common;
+using OpenSim.Region.ScriptEngine.Common.ScriptEngineBase;
 //using OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL;
 
 namespace OpenSim.Region.ScriptEngine.Common
@@ -2368,7 +2369,7 @@ namespace OpenSim.Region.ScriptEngine.Common
             {
                 LLUUID channelID = xmlrpcMod.OpenXMLRPCChannel(m_localID, m_itemID);
                 object[] resobj = new object[] { 1, channelID.ToString(), LLUUID.Zero.ToString(), String.Empty, 0, String.Empty };
-                m_ScriptEngine.m_EventQueueManager.AddToScriptQueue(m_localID, m_itemID, "remote_data", resobj);
+                m_ScriptEngine.m_EventQueueManager.AddToScriptQueue(m_localID, m_itemID, "remote_data", EventQueueManager.llDetectNull, resobj);
             }
         }
 

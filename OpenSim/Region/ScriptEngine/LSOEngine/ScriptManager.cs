@@ -36,6 +36,7 @@ using libsecondlife;
 using OpenSim.Framework;
 using OpenSim.Region.Environment.Scenes;
 using OpenSim.Region.ScriptEngine.Common;
+using OpenSim.Region.ScriptEngine.Common.ScriptEngineBase;
 
 namespace OpenSim.Region.ScriptEngine.LSOEngine
 {
@@ -96,7 +97,7 @@ namespace OpenSim.Region.ScriptEngine.LSOEngine
                 CompiledScript.Start(LSLB);
 
                 // Fire the first start-event
-                m_scriptEngine.m_EventQueueManager.AddToScriptQueue(localID, itemID, "state_entry", new object[] { });
+                m_scriptEngine.m_EventQueueManager.AddToScriptQueue(localID, itemID, "state_entry", EventQueueManager.llDetectNull, new object[] { });
             }
             catch (Exception e)
             {

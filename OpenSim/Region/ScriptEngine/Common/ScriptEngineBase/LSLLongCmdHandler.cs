@@ -185,7 +185,7 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
                     if (ts.next.ToUniversalTime() < DateTime.Now.ToUniversalTime())
                     {
                         // Add it to queue
-                        m_ScriptEngine.m_EventQueueManager.AddToScriptQueue(ts.localID, ts.itemID, "timer",
+                        m_ScriptEngine.m_EventQueueManager.AddToScriptQueue(ts.localID, ts.itemID, "timer", EventQueueManager.llDetectNull, 
                                                                             new object[] {});
                         // set next interval
 
@@ -230,7 +230,7 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
                     };
 
                 m_ScriptEngine.m_EventQueueManager.AddToScriptQueue(
-                    httpInfo.localID, httpInfo.itemID, "http_response", resobj
+                    httpInfo.localID, httpInfo.itemID, "http_response", EventQueueManager.llDetectNull, resobj
                     );
 
                 httpInfo.Stop();
@@ -264,7 +264,7 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
                             rInfo.GetStrVal()
                         };
                     m_ScriptEngine.m_EventQueueManager.AddToScriptQueue(
-                        rInfo.GetLocalID(), rInfo.GetItemID(), "remote_data", resobj
+                        rInfo.GetLocalID(), rInfo.GetItemID(), "remote_data", EventQueueManager.llDetectNull, resobj
                         );
                 }
             }
@@ -287,7 +287,7 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
                     };
 
                 m_ScriptEngine.m_EventQueueManager.AddToScriptQueue(
-                    lInfo.GetLocalID(), lInfo.GetItemID(), "listen", resobj
+                    lInfo.GetLocalID(), lInfo.GetItemID(), "listen", EventQueueManager.llDetectNull, resobj
                     );
             }
         }

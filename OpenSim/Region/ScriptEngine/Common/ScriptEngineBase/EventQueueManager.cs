@@ -96,7 +96,28 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
             public uint localID;
             public LLUUID itemID;
             public string functionName;
+            public Queue_llDetectParams_Struct llDetectParams;
             public object[] param;
+        }
+
+        /// <summary>
+        /// Shared empty llDetectNull
+        /// </summary>
+        public readonly static Queue_llDetectParams_Struct llDetectNull = new Queue_llDetectParams_Struct();
+
+        /// <summary>
+        /// Structure to hold data for llDetect* commands
+        /// </summary>
+        public struct Queue_llDetectParams_Struct
+        {
+            // More or less just a placeholder for the actual moving of additional data
+            // should be fixed to something better :)
+            public LSL_Types.key[] _key;
+            public LSL_Types.Quaternion[] _Quaternion;
+            public LSL_Types.Vector3[] _Vector3;
+            public bool[] _bool;
+            public int[] _int;
+            public string [] _string;
         }
 
         /// <summary>
@@ -211,7 +232,7 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
                                                                              + ", QIS.functionName: " + QIS.functionName);
 #endif
                                     m_ScriptEngine.m_ScriptManager.ExecuteEvent(QIS.localID, QIS.itemID,
-                                                                                QIS.functionName, QIS.param);
+                                                                                QIS.functionName, QIS.llDetectParams, QIS.param);
                                 }
                                 catch (Exception e)
                                 {
@@ -311,10 +332,10 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
         /// <summary>
         /// Add event to event execution queue
         /// </summary>
-        /// <param name="localID"></param>
+        /// <param name="localID">Region object ID</param>
         /// <param name="FunctionName">Name of the function, will be state + "_event_" + FunctionName</param>
         /// <param name="param">Array of parameters to match event mask</param>
-        public void AddToObjectQueue(uint localID, string FunctionName, params object[] param)
+        public void AddToObjectQueue(uint localID, string FunctionName, Queue_llDetectParams_Struct qParams, params object[] param)
         {
             // Determine all scripts in Object and add to their queue
             //myScriptEngine.m_logger.Verbose("ScriptEngine", "EventQueueManager Adding localID: " + localID + ", FunctionName: " + FunctionName);
@@ -334,18 +355,18 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
             {
                 // Add to each script in that object
                 // TODO: Some scripts may not subscribe to this event. Should we NOT add it? Does it matter?
-                AddToScriptQueue(localID, itemID, FunctionName, param);
+                AddToScriptQueue(localID, itemID, FunctionName, qParams, param);
             }
         }
 
         /// <summary>
         /// Add event to event execution queue
         /// </summary>
-        /// <param name="localID"></param>
-        /// <param name="itemID"></param>
+        /// <param name="localID">Region object ID</param>
+        /// <param name="itemID">Region script ID</param>
         /// <param name="FunctionName">Name of the function, will be state + "_event_" + FunctionName</param>
         /// <param name="param">Array of parameters to match event mask</param>
-        public void AddToScriptQueue(uint localID, LLUUID itemID, string FunctionName, params object[] param)
+        public void AddToScriptQueue(uint localID, LLUUID itemID, string FunctionName, Queue_llDetectParams_Struct qParams, params object[] param)
         {
             lock (queueLock)
             {
@@ -354,6 +375,7 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
                 QIS.localID = localID;
                 QIS.itemID = itemID;
                 QIS.functionName = FunctionName;
+                QIS.llDetectParams = qParams;
                 QIS.param = param;
 
                 // Add it to queue

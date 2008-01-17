@@ -26,6 +26,8 @@
 * 
 */
 
+using OpenSim.Region.ScriptEngine.Common.ScriptEngineBase;
+
 namespace OpenSim.Region.ScriptEngine.Common
 {
     public interface IScript
@@ -34,5 +36,6 @@ namespace OpenSim.Region.ScriptEngine.Common
         Executor Exec { get; }
         string Source { get; set; }
         void Start(LSL_BuiltIn_Commands_Interface BuiltIn_Commands);
+        EventQueueManager.Queue_llDetectParams_Struct llDetectParams { get; set; }
     }
 }

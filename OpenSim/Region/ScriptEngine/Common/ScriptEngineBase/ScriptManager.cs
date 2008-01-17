@@ -232,7 +232,7 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
         /// <param name="itemID">Script ID</param>
         /// <param name="FunctionName">Name of function</param>
         /// <param name="args">Arguments to pass to function</param>
-        internal void ExecuteEvent(uint localID, LLUUID itemID, string FunctionName, object[] args)
+        internal void ExecuteEvent(uint localID, LLUUID itemID, string FunctionName, EventQueueManager.Queue_llDetectParams_Struct qParams, object[] args)
         {
 #if DEBUG
             Console.WriteLine("ScriptEngine: Inside ExecuteEvent for event " + FunctionName);
@@ -247,6 +247,7 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
             Console.WriteLine("ScriptEngine: Executing event: " + FunctionName);
 #endif
             // Must be done in correct AppDomain, so leaving it up to the script itself
+            Script.llDetectParams = qParams;
             Script.Exec.ExecuteEvent(FunctionName, args);
         }
 
