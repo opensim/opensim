@@ -792,7 +792,22 @@ namespace OpenSim.Region.ScriptEngine.Common
 
         public void llApplyImpulse(LSL_Types.Vector3 force, int local)
         {
-            NotImplemented("llApplyImpulse");
+            //No energy force yet
+            if (local == 1)
+            {
+                NotImplemented("llApplyImpulse Local Force");
+            }
+            else
+            {
+                if (force.x > 20000)
+                    force.x = 20000;
+                if (force.y > 20000)
+                    force.y = 20000;
+                if (force.z > 20000)
+                    force.z = 20000;
+
+                m_host.ApplyImpulse(new LLVector3((float)force.x,(float)force.y,(float)force.z));
+            }
         }
 
         public void llApplyRotationalImpulse(LSL_Types.Vector3 force, int local)

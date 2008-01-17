@@ -578,6 +578,16 @@ namespace OpenSim.Region.Environment.Scenes
             SetPartAsRoot(newPart);
         }
 
+        public void applyImpulse(PhysicsVector impulse)
+        {
+            SceneObjectPart rootpart = m_rootPart;
+            if (m_rootPart.PhysActor != null)
+            {
+                m_rootPart.PhysActor.AddForce(impulse);
+                m_scene.PhysicsScene.AddPhysicsActorTaint(m_rootPart.PhysActor);
+            }
+        }
+
         public void SetRootPartOwner(SceneObjectPart part, LLUUID cAgentID, LLUUID cGroupID)
         {
             part.LastOwnerID = part.OwnerID;

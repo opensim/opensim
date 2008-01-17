@@ -520,6 +520,21 @@ namespace OpenSim.Region.Environment.Scenes
 
         protected PrimitiveBaseShape m_shape;
 
+        /// <summary>
+        /// hook to the physics scene to apply impulse
+        /// This is sent up to the group, which then finds the root prim
+        /// and applies the force on the root prim of the group
+        /// </summary>
+        /// <param name="impulse">Vector force</param>
+        public void ApplyImpulse(LLVector3 impulsei)
+        {
+            PhysicsVector impulse = new PhysicsVector(impulsei.X, impulsei.Y, impulsei.Z);
+            if (m_parentGroup != null)
+            {
+                m_parentGroup.applyImpulse(impulse);
+            }
+        }
+
         public void TriggerScriptChangedEvent(Changed val)
         {
             if (m_parentGroup != null)

@@ -27,6 +27,7 @@
 */
 
 using System;
+using System.Collections.Generic;
 using Axiom.Math;
 using Ode.NET;
 using OpenSim.Framework;
@@ -50,6 +51,9 @@ namespace OpenSim.Region.Physics.OdePlugin
         private bool m_taintshape = false;
         private bool m_taintPhysics = false;
         public bool m_taintremove = false;
+
+        private bool m_taintforce = false;
+        private List<PhysicsVector> m_forcelist = new List<PhysicsVector>();
 
         private IMesh _mesh;
         private PrimitiveBaseShape _pbs;
@@ -355,6 +359,9 @@ namespace OpenSim.Region.Physics.OdePlugin
             if (m_taintshape)
                 changeshape(timestep);
             //
+
+            if (m_taintforce)
+                changeAddForce(timestep);
         }
 
         public void Move(float timestep)
@@ -541,6 +548,27 @@ namespace OpenSim.Region.Physics.OdePlugin
             m_taintshape = false;
         }
 
+        public void changeAddForce(float timestamp)
+        {
+            lock (m_forcelist)
+            {
+                //OpenSim.Framework.Console.MainLog.Instance.Verbose("PHYSICS", "dequeing forcelist");
+                if (IsPhysical)
+                {
+                    PhysicsVector iforce = new PhysicsVector();
+                    for (int i = 0; i < m_forcelist.Count; i++)
+                    {
+                        iforce = iforce + (m_forcelist[i]*100);
+                    }   
+                    d.BodyEnable(Body);
+                    d.BodyAddForce(Body, iforce.X, iforce.Y, iforce.Z);
+                }
+                m_forcelist.Clear();
+            }
+            m_taintforce = false;
+
+        }
+
         public override bool IsPhysical
         {
             get { return m_isphysical; }
@@ -663,6 +691,9 @@ namespace OpenSim.Region.Physics.OdePlugin
 
         public override void AddForce(PhysicsVector force)
         {
+            m_forcelist.Add(force);
+            m_taintforce = true;
+            //OpenSim.Framework.Console.MainLog.Instance.Verbose("PHYSICS", "Added Force:" + force.ToString() +  " to prim at " + Position.ToString());
         }
 
         public override PhysicsVector RotationalVelocity
