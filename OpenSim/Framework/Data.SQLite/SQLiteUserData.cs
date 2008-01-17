@@ -51,6 +51,9 @@ namespace OpenSim.Framework.Data.SQLite
 
         private const string userSelect = "select * from users";
         private const string userFriendsSelect = "select a.ownerID as ownerID,a.friendID as friendID,a.friendPerms as friendPerms,b.friendPerms as ownerperms, b.ownerID as fownerID, b.friendID as ffriendID from userfriends as a, userfriends as b";
+
+        private const string AvatarPickerAndSQL = "select * from users where username like :username and surname like :surname";
+        private const string AvatarPickerOrSQL = "select * from users where username like :username or surname like :surname";
         
         private DataSet ds;
         private SqliteDataAdapter da;
@@ -243,41 +246,43 @@ namespace OpenSim.Framework.Data.SQLite
             querysplit = query.Split(' ');
             if (querysplit.Length == 2)
             {
-                string select = "username like '" + querysplit[0] + "%' and surname like '" + querysplit[1] + "%'";
-                lock (ds)
+                using (SqliteCommand cmd = new SqliteCommand(AvatarPickerAndSQL, g_conn))
                 {
-                    DataRow[] rows = ds.Tables["users"].Select(select);
-                    if (rows.Length > 0)
+                    cmd.Parameters.Add(new SqliteParameter(":username", querysplit[0] + "%"));
+                    cmd.Parameters.Add(new SqliteParameter(":surname", querysplit[1] + "%"));
+
+                    using (IDataReader reader = cmd.ExecuteReader())
                     {
-                        for (int i = 0; i < rows.Length; i++)
+                        while (reader.Read())
                         {
                             Framework.AvatarPickerAvatar user = new Framework.AvatarPickerAvatar();
-                            DataRow row = rows[i];
-                            user.AvatarID = new LLUUID((string) row["UUID"]);
-                            user.firstName = (string) row["username"];
-                            user.lastName = (string) row["surname"];
+                            user.AvatarID = new LLUUID((string) reader["UUID"]);
+                            user.firstName = (string) reader["username"];
+                            user.lastName = (string) reader["surname"];
                             returnlist.Add(user);
                         }
+                        reader.Close();
                     }
                 }
             }
             else if (querysplit.Length == 1)
             {
-                string select = "username like '" + querysplit[0] + "%' OR surname like '" + querysplit[0] + "%'";
-                lock (ds)
+                using (SqliteCommand cmd = new SqliteCommand(AvatarPickerOrSQL, g_conn))
                 {
-                    DataRow[] rows = ds.Tables["users"].Select(select);
-                    if (rows.Length > 0)
+                    cmd.Parameters.Add(new SqliteParameter(":username", querysplit[0] + "%"));
+                    cmd.Parameters.Add(new SqliteParameter(":surname", querysplit[0] + "%"));
+
+                    using (IDataReader reader = cmd.ExecuteReader())
                     {
-                        for (int i = 0; i < rows.Length; i++)
+                        while (reader.Read())
                         {
                             Framework.AvatarPickerAvatar user = new Framework.AvatarPickerAvatar();
-                            DataRow row = rows[i];
-                            user.AvatarID = new LLUUID((string) row[0]);
-                            user.firstName = (string) row[1];
-                            user.lastName = (string) row[2];
+                            user.AvatarID = new LLUUID((string) reader["UUID"]);
+                            user.firstName = (string) reader["username"];
+                            user.lastName = (string) reader["surname"];
                             returnlist.Add(user);
                         }
+                        reader.Close();
                     }
                 }
             }
