@@ -125,7 +125,15 @@ namespace OpenSim.Region.Environment.Scenes
 
         public event NewGridInstantMessage OnGridInstantMessageToGroupsModule;
 
+        public delegate void ScriptChangedEvent(uint localID, uint change);
+       
+        public event ScriptChangedEvent OnScriptChangedEvent;
 
+        public void TriggerOnScriptChangedEvent(uint localID, uint change)
+        {
+            if (OnScriptChangedEvent != null)
+                OnScriptChangedEvent(localID,change);
+        }
 
         public void TriggerOnClientMovement(ScenePresence avatar)
         {

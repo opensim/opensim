@@ -1249,6 +1249,7 @@ namespace OpenSim.Region.Environment.Scenes
             return avatar;
         }
 
+
         protected void GetAvatarAppearance(IClientAPI client, out AvatarAppearance appearance)
         {
             if (m_AvatarFactory == null ||
@@ -2188,6 +2189,12 @@ namespace OpenSim.Region.Environment.Scenes
         {
             ScriptEngines.Add(scriptEngine);
             scriptEngine.InitializeEngine(this, logger);
+        }
+
+        public void TriggerObjectChanged(uint localID, uint change)
+        {
+
+            m_eventManager.TriggerOnScriptChangedEvent(localID, change);
         }
 
         #endregion

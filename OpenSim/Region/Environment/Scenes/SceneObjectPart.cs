@@ -42,6 +42,23 @@ using OpenSim.Region.Physics.Manager;
 
 namespace OpenSim.Region.Environment.Scenes
 {
+    // I don't really know where to put this except here.  
+    // Can't access the OpenSim.Region.ScriptEngine.Common.LSL_BaseClass.Changed constants
+
+    [Flags]
+    public enum Changed : uint
+    {
+        INVENTORY = 1,
+        COLOR = 2,
+        SHAPE = 4,
+        SCALE = 8,
+        TEXTURE = 16,
+        LINK = 32,
+        ALLOWED_DROP = 64,
+        OWNER = 128
+    }
+    
+
     public partial class SceneObjectPart : IScriptHost
     {
         private const PermissionMask OBJFULL_MASK_GENERAL =
@@ -94,7 +111,7 @@ namespace OpenSim.Region.Environment.Scenes
         private byte m_updateFlag;
 
         #region Properties
-
+        
         public LLUUID CreatorID;
 
         public LLUUID ObjectCreator
@@ -160,7 +177,7 @@ namespace OpenSim.Region.Environment.Scenes
         /// <returns>A Linked Child Prim objects position in world</returns>
         public LLVector3 GetWorldPosition()
         {
-
+            
             Quaternion parentRot = new Quaternion(
             ParentGroup.RootPart.RotationOffset.W,
             ParentGroup.RootPart.RotationOffset.X,
@@ -186,6 +203,7 @@ namespace OpenSim.Region.Environment.Scenes
         /// <returns></returns>
         public LLQuaternion GetWorldRotation()
         {
+            
             Quaternion newRot;
             
             if (this.LinkNum == 0)
@@ -277,6 +295,7 @@ namespace OpenSim.Region.Environment.Scenes
             {
                 // Hack to get the child prim to update world positions in the physics engine
                 ParentGroup.ResetChildPrimPhysicsPositions();
+                
             }
             catch (System.NullReferenceException)
             {
@@ -427,6 +446,8 @@ namespace OpenSim.Region.Environment.Scenes
             set
             {
                 m_color = value;
+                TriggerScriptChangedEvent(Changed.COLOR);
+                
                 /* ScheduleFullUpdate() need not be called b/c after
                  * setting the color, the text will be set, so then
                  * ScheduleFullUpdate() will be called. */
@@ -477,7 +498,12 @@ namespace OpenSim.Region.Environment.Scenes
         public int LinkNum
         {
             get { return m_linkNum; }
-            set { m_linkNum = value; }
+            set 
+            { 
+                m_linkNum = value;
+                TriggerScriptChangedEvent(Changed.LINK);
+                
+            }
         }
 
         private byte m_clickAction = 0;
@@ -494,16 +520,35 @@ namespace OpenSim.Region.Environment.Scenes
 
         protected PrimitiveBaseShape m_shape;
 
+        public void TriggerScriptChangedEvent(Changed val)
+        {
+            if (m_parentGroup != null)
+            {
+                if (m_parentGroup.Scene != null)
+                    m_parentGroup.Scene.TriggerObjectChanged(LocalID, (uint)val);
+            }
+
+        }
+
         public PrimitiveBaseShape Shape
         {
             get { return m_shape; }
-            set { m_shape = value; }
+            set 
+            {
+                
+                m_shape = value;
+                TriggerScriptChangedEvent(Changed.SHAPE);
+            }
         }
 
         public LLVector3 Scale
         {
-            set { m_shape.Scale = value; }
             get { return m_shape.Scale; }
+            set 
+            { 
+                m_shape.Scale = value;
+                TriggerScriptChangedEvent(Changed.SCALE);
+            }
         }
 
         public bool Stopped
@@ -692,6 +737,8 @@ namespace OpenSim.Region.Environment.Scenes
         {
             BaseMask = NextOwnerMask;
             OwnerMask = NextOwnerMask;
+            TriggerScriptChangedEvent(Changed.OWNER);
+            
         }
 
         public void ApplySanePermissions()
@@ -918,6 +965,7 @@ namespace OpenSim.Region.Environment.Scenes
         public void SetAvatarOnSitTarget(LLUUID avatarID)
         {
             m_SitTargetAvatar = avatarID;
+            TriggerScriptChangedEvent(Changed.LINK);
         }
 
         public LLUUID GetAvatarOnSitTarget()
@@ -1328,6 +1376,7 @@ namespace OpenSim.Region.Environment.Scenes
         public void UpdateTextureEntry(byte[] textureEntry)
         {
             m_shape.TextureEntry = textureEntry;
+            TriggerScriptChangedEvent(Changed.TEXTURE);
             ScheduleFullUpdate();
         }
 

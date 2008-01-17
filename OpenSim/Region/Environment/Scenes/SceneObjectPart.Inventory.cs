@@ -203,6 +203,7 @@ namespace OpenSim.Region.Environment.Scenes
             lock (m_taskInventory)
             {            
                 m_taskInventory.Add(item.ItemID, item);
+                TriggerScriptChangedEvent(Changed.INVENTORY);
             }
             
             m_inventorySerial++;
@@ -220,6 +221,7 @@ namespace OpenSim.Region.Environment.Scenes
                 foreach (TaskInventoryItem item in items)
                 {           
                     m_taskInventory.Add(item.ItemID, item);
+                    TriggerScriptChangedEvent(Changed.INVENTORY);
                 }
             }
             
@@ -265,7 +267,8 @@ namespace OpenSim.Region.Environment.Scenes
                 {
                     m_taskInventory[item.ItemID] = item;
                     m_inventorySerial++;
-                    
+                    TriggerScriptChangedEvent(Changed.INVENTORY);
+                  
                     return true;
                 }
                 else
@@ -295,6 +298,7 @@ namespace OpenSim.Region.Environment.Scenes
                     int type = m_taskInventory[itemID].InvType;
                     m_taskInventory.Remove(itemID);
                     m_inventorySerial++;
+                    TriggerScriptChangedEvent(Changed.INVENTORY);
                     
                     return type;
                 }

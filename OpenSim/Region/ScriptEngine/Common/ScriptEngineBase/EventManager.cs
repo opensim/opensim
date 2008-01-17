@@ -68,8 +68,15 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
                 myScriptEngine.World.EventManager.OnObjectGrab += touch_start;
                 myScriptEngine.World.EventManager.OnRezScript += OnRezScript;
                 myScriptEngine.World.EventManager.OnRemoveScript += OnRemoveScript;
+                myScriptEngine.World.EventManager.OnScriptChangedEvent += changed;
                 // TODO: HOOK ALL EVENTS UP TO SERVER!
             }
+        }
+
+        public void changed(uint localID, uint change)
+        {
+            // Add to queue for all scripts in localID, Object pass change.
+            myScriptEngine.m_EventQueueManager.AddToObjectQueue(localID,"changed", new object[] {(int) change});
         }
 
         public void touch_start(uint localID, LLVector3 offsetPos, IClientAPI remoteClient)
