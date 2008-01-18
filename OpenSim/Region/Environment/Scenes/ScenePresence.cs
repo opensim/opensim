@@ -1510,7 +1510,7 @@ namespace OpenSim.Region.Environment.Scenes
             adb.AgentID = agentID;
             adb.SessionID = sessionID; // More security
 
-            gdb.GodLevel = (byte) 100;
+            gdb.GodLevel = (byte) 250;
             gdb.Token = token;
             //respondPacket.AgentData = (GrantGodlikePowersPacket.AgentDataBlock)ablock;
             respondPacket.GrantData = gdb;

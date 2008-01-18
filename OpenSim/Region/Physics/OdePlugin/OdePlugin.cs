@@ -174,7 +174,7 @@ namespace OpenSim.Region.Physics.OdePlugin
 
                 // Set the gravity,, don't disable things automatically (we set it explicitly on some things)
 
-                d.WorldSetGravity(world, 0.0f, 0.0f, -10.0f);
+                d.WorldSetGravity(world, 0.0f, 0.0f, -9.8f);
                 d.WorldSetAutoDisableFlag(world, false);
                 d.WorldSetContactSurfaceLayer(world, 0.001f);
                 
@@ -336,8 +336,8 @@ namespace OpenSim.Region.Physics.OdePlugin
 
                     if (contacts[i].depth >= 0.08f)
                     {
-                        /*  This is disabled at the moment only because it needs more tweaking
-                            It will eventually be uncommented
+                          //This is disabled at the moment only because it needs more tweaking
+                            //It will eventually be uncommented
                          
                         if (contacts[i].depth >= 1.00f)
                         {
@@ -363,7 +363,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                             else
                             {
                                 
-                                contacts[i].depth = 0.0000000f;
+                                //contacts[i].depth = 0.0000000f;
                             }
                             if (p1.PhysicsActorType == (int) ActorTypes.Agent)
                             {
@@ -378,10 +378,10 @@ namespace OpenSim.Region.Physics.OdePlugin
                             else
                             {
                                 
-                                contacts[i].depth = 0.0000000f;
+                                //contacts[i].depth = 0.0000000f;
                             }
                         }
-                         */
+                         
 
                         // If you interpenetrate a prim with another prim
                         if (p1.PhysicsActorType == (int) ActorTypes.Prim && p2.PhysicsActorType == (int) ActorTypes.Prim)
