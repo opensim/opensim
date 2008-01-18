@@ -1696,19 +1696,15 @@ namespace OpenSim.Region.Environment.Scenes
             return LLUUID.Zero;
         }
 
-        private static readonly object _performParcelPrimCountUpdateMutex = new object();
         /// <summary>
         /// 
         /// </summary>
         public void performParcelPrimCountUpdate()
         {
-            lock (_performParcelPrimCountUpdateMutex)
-            {
                 m_LandManager.resetAllLandPrimCounts();
                 m_eventManager.TriggerParcelPrimCountUpdate();
                 m_LandManager.finalizeLandPrimCountUpdate();
                 m_LandManager.landPrimCountTainted = false;
-            }
         }
 
         /// <summary>

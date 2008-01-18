@@ -80,6 +80,7 @@ namespace OpenSim
             }
         }
 
+        private static bool _IsHandlingException = false; // Make sure we don't go recursive on ourself
         /// <summary>
         /// Global exception handler -- all unhandlet exceptions end up here :)
         /// </summary>
@@ -87,6 +88,9 @@ namespace OpenSim
         /// <param name="e"></param>
         private static void CurrentDomain_UnhandledException(object sender, UnhandledExceptionEventArgs e)
         {
+            if (_IsHandlingException)
+                return;
+            _IsHandlingException = true;
             // TODO: Add config option to allow users to turn off error reporting
             // TODO: Post error report (disabled for now)
             
@@ -96,7 +100,10 @@ namespace OpenSim
             msg += "\r\n";
 
             msg += "Exception: " + e.ExceptionObject.ToString() + "\r\n";
-            
+            Exception ex = (Exception)e.ExceptionObject;
+            if (ex.InnerException != null)
+                msg += "InnerException: " + ex.InnerException.ToString() + "\r\n";
+
             msg += "\r\n";
             msg += "Application is terminating: " + e.IsTerminating.ToString() + "\r\n";            
 
@@ -118,6 +125,8 @@ namespace OpenSim
             {
                 // Ignore
             }
+
+            _IsHandlingException=false;
         }
 
     }
