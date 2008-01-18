@@ -240,7 +240,7 @@ namespace OpenSim.Region.Environment
             return objectEveryoneMask;
         }
 
-        protected virtual bool GenericObjectPermission(LLUUID user, LLUUID objId)
+        protected virtual bool GenericObjectPermission(LLUUID currentUser, LLUUID objId)
         {
             // Default: deny
             bool permission = false;
@@ -256,32 +256,40 @@ namespace OpenSim.Region.Environment
                 return false;
             }
 
-            SceneObjectGroup task = (SceneObjectGroup) m_scene.Entities[objId];
-            LLUUID taskOwner = null;
-            // Added this because at this point in time it wouldn't be wise for 
-            // the administrator object permissions to take effect.
-            LLUUID objectOwner = task.OwnerID;
+            SceneObjectGroup group = (SceneObjectGroup) m_scene.Entities[objId];
+            
+            LLUUID objectOwner = group.OwnerID;
 
             // Object owners should be able to edit their own content
-            if (user == objectOwner)
+            if (currentUser == objectOwner)
+            {
                 permission = true;
+            }
 
             // Users should be able to edit what is over their land.
-            Land parcel = m_scene.LandManager.getLandObject(task.AbsolutePosition.X, task.AbsolutePosition.Y);
-            if (parcel != null && parcel.landData.ownerID == user)
+            Land parcel = m_scene.LandManager.getLandObject(group.AbsolutePosition.X, group.AbsolutePosition.Y);
+            if ((parcel != null) && ( parcel.landData.ownerID == currentUser))
+            {
                 permission = true;
+            }
 
             // Estate users should be able to edit anything in the sim
-            if (IsEstateManager(user))
+            if (IsEstateManager(currentUser))
+            {
                 permission = true;
+            }
 
             // Admin objects should not be editable by the above
-            if (IsAdministrator(taskOwner))
+            if (IsAdministrator(objectOwner))
+            {
                 permission = false;
+            }
 
             // Admin should be able to edit anything in the sim (including admin objects)
-            if (IsAdministrator(user))
+            if (IsAdministrator(currentUser))
+            {
                 permission = true;
+            }
 
             return permission;
         }

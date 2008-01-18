@@ -1572,12 +1572,7 @@ namespace OpenSim.Region.Environment.Scenes
             lPos = OffsetPosition;
             SendFullUpdateToClient(remoteClient, lPos, clientflags);
         }
-
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="remoteClient"></param>
-        /// <param name="lPos"></param>
+   
         public void SendFullUpdateToClient(IClientAPI remoteClient, LLVector3 lPos, uint clientFlags)
         {
             LLQuaternion lRot;
