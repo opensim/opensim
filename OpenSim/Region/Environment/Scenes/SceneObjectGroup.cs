@@ -56,10 +56,10 @@ namespace OpenSim.Region.Environment.Scenes
         public event PrimCountTaintedDelegate OnPrimCountTainted;
 
         /// <summary>
-        /// Signal whether the prim's non-inventory attributes have changed 
-        /// since its last persistent backup
+        /// Signal whether the non-inventory attributes of any prims in the group have changed 
+        /// since the group's last persistent backup
         /// </summary>
-        public bool HasPrimChanged = false;
+        public bool HasGroupChanged = false;
 
         private LLVector3 lastPhysGroupPos;
         private LLQuaternion lastPhysGroupRot;
@@ -732,7 +732,7 @@ namespace OpenSim.Region.Environment.Scenes
         /// </summary>
         public void ScheduleGroupForFullUpdate()
         {
-            HasPrimChanged = true;
+            HasGroupChanged = true;
             foreach (SceneObjectPart part in m_parts.Values)
             {
                 part.ScheduleFullUpdate();
@@ -744,7 +744,7 @@ namespace OpenSim.Region.Environment.Scenes
         /// </summary>
         public void ScheduleGroupForTerseUpdate()
         {
-            HasPrimChanged = true;
+            HasGroupChanged = true;
             foreach (SceneObjectPart part in m_parts.Values)
             {
                 part.ScheduleTerseUpdate();
@@ -756,7 +756,7 @@ namespace OpenSim.Region.Environment.Scenes
         /// </summary>
         public void SendGroupFullUpdate()
         {
-            HasPrimChanged = true;
+            HasGroupChanged = true;
             foreach (SceneObjectPart part in m_parts.Values)
             {
                 part.SendFullUpdateToAllClients();
@@ -768,7 +768,7 @@ namespace OpenSim.Region.Environment.Scenes
         /// </summary>
         public void SendGroupTerseUpdate()
         {
-            HasPrimChanged = true;
+            HasGroupChanged = true;
             foreach (SceneObjectPart part in m_parts.Values)
             {
                 part.SendTerseUpdateToAllClients();
@@ -1487,10 +1487,10 @@ namespace OpenSim.Region.Environment.Scenes
         /// <param name="datastore"></param>
         public void ProcessBackup(IRegionDataStore datastore)
         {
-            if (HasPrimChanged)
+            if (HasGroupChanged)
             {
                 datastore.StoreObject(this, m_scene.RegionInfo.RegionID);
-                HasPrimChanged = false;
+                HasGroupChanged = false;
             }
         }
 
@@ -1602,7 +1602,7 @@ namespace OpenSim.Region.Environment.Scenes
         public void ResetChildPrimPhysicsPositions()
         {
             AbsolutePosition = AbsolutePosition;
-            HasPrimChanged = false;
+            HasGroupChanged = false;
         }
 
         public LLUUID GetPartsFullID(uint localID)

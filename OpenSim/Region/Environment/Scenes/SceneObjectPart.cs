@@ -1089,7 +1089,7 @@ namespace OpenSim.Region.Environment.Scenes
         {
             if (m_parentGroup != null)
             {
-                m_parentGroup.HasPrimChanged = true;
+                m_parentGroup.HasGroupChanged = true;
             }
             TimeStampFull = (uint) Util.UnixTimeSinceEpoch();
             m_updateFlag = 2;
@@ -1130,7 +1130,7 @@ namespace OpenSim.Region.Environment.Scenes
             {
                 if (m_parentGroup != null)
                 {
-                    m_parentGroup.HasPrimChanged = true;
+                    m_parentGroup.HasGroupChanged = true;
                 }
                 TimeStampTerse = (uint) Util.UnixTimeSinceEpoch();
                 m_updateFlag = 1;
