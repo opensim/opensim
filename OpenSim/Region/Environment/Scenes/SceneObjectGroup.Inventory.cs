@@ -184,7 +184,7 @@ namespace OpenSim.Region.Environment.Scenes
                 // persistence thread visits this object.  In the future, changes can be signalled at a more
                 // granular level, or we could let the datastore worry about whether prims have really 
                 // changed since they were last persisted.
-                HasChanged = true;
+                HasPrimChanged = true;
                 
                 return true;
             }
@@ -241,7 +241,7 @@ namespace OpenSim.Region.Environment.Scenes
                 // persistence thread visits this object.  In the future, changes can be signalled at a more
                 // granular level, or we could let the datastore worry about whether prims have really 
                 // changed since they were last persisted.
-                HasChanged = true;                
+                HasPrimChanged = true;                
                 
                 return true;
             }
@@ -268,7 +268,7 @@ namespace OpenSim.Region.Environment.Scenes
                 // persistence thread visits this object.  In the future, changes can be signalled at a more
                 // granular level, or we could let the datastore worry about whether prims have really 
                 // changed since they were last persisted.
-                HasChanged = true;
+                HasPrimChanged = true;
                 
                 return type;
             }

@@ -55,7 +55,11 @@ namespace OpenSim.Region.Environment.Scenes
 
         public event PrimCountTaintedDelegate OnPrimCountTainted;
 
-        public bool HasChanged = false;
+        /// <summary>
+        /// Signal whether the prim's non-inventory attributes have changed 
+        /// since its last persistent backup
+        /// </summary>
+        public bool HasPrimChanged = false;
 
         private LLVector3 lastPhysGroupPos;
         private LLQuaternion lastPhysGroupRot;
@@ -728,7 +732,7 @@ namespace OpenSim.Region.Environment.Scenes
         /// </summary>
         public void ScheduleGroupForFullUpdate()
         {
-            HasChanged = true;
+            HasPrimChanged = true;
             foreach (SceneObjectPart part in m_parts.Values)
             {
                 part.ScheduleFullUpdate();
@@ -740,7 +744,7 @@ namespace OpenSim.Region.Environment.Scenes
         /// </summary>
         public void ScheduleGroupForTerseUpdate()
         {
-            HasChanged = true;
+            HasPrimChanged = true;
             foreach (SceneObjectPart part in m_parts.Values)
             {
                 part.ScheduleTerseUpdate();
@@ -752,7 +756,7 @@ namespace OpenSim.Region.Environment.Scenes
         /// </summary>
         public void SendGroupFullUpdate()
         {
-            HasChanged = true;
+            HasPrimChanged = true;
             foreach (SceneObjectPart part in m_parts.Values)
             {
                 part.SendFullUpdateToAllClients();
@@ -764,7 +768,7 @@ namespace OpenSim.Region.Environment.Scenes
         /// </summary>
         public void SendGroupTerseUpdate()
         {
-            HasChanged = true;
+            HasPrimChanged = true;
             foreach (SceneObjectPart part in m_parts.Values)
             {
                 part.SendTerseUpdateToAllClients();
@@ -1483,10 +1487,10 @@ namespace OpenSim.Region.Environment.Scenes
         /// <param name="datastore"></param>
         public void ProcessBackup(IRegionDataStore datastore)
         {
-            if (HasChanged)
+            if (HasPrimChanged)
             {
                 datastore.StoreObject(this, m_scene.RegionInfo.RegionID);
-                HasChanged = false;
+                HasPrimChanged = false;
             }
         }
 
@@ -1598,7 +1602,7 @@ namespace OpenSim.Region.Environment.Scenes
         public void ResetChildPrimPhysicsPositions()
         {
             AbsolutePosition = AbsolutePosition;
-            HasChanged = false;
+            HasPrimChanged = false;
         }
 
         public LLUUID GetPartsFullID(uint localID)
