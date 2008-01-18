@@ -896,17 +896,21 @@ namespace OpenSim.Region.Environment.Scenes
 
         #region Load Land
 
+        private static readonly object _loadAllLAndMutex = new object();
         public void loadAllLandObjectsFromStorage()
         {
-            MainLog.Instance.Verbose("SCENE", "Loading land objects from storage");
-            List<LandData> landData = m_storageManager.DataStore.LoadLandObjects(RegionInfo.RegionID);
-            if (landData.Count == 0)
+            lock (_loadAllLAndMutex)
             {
-                m_LandManager.NoLandDataFromStorage();
-            }
-            else
-            {
-                m_LandManager.IncomingLandObjectsFromStorage(landData);
+                MainLog.Instance.Verbose("SCENE", "Loading land objects from storage");
+                List<LandData> landData = m_storageManager.DataStore.LoadLandObjects(RegionInfo.RegionID);
+                if (landData.Count == 0)
+                {
+                    m_LandManager.NoLandDataFromStorage();
+                }
+                else
+                {
+                    m_LandManager.IncomingLandObjectsFromStorage(landData);
+                }
             }
         }
 
