@@ -398,7 +398,7 @@ namespace OpenSim.Region.Physics.OdePlugin
             d.JointSetAMotorParam(Amotor, (int)dParam.FudgeFactor, 0f);
             d.JointSetAMotorParam(Amotor, (int)dParam.FMax, 3800000f);
 
-            //standupStraight();
+            standupStraight();
             
             
             
