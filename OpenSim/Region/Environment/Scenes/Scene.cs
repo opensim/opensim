@@ -896,11 +896,8 @@ namespace OpenSim.Region.Environment.Scenes
 
         #region Load Land
 
-        private static readonly object _loadAllLAndMutex = new object();
         public void loadAllLandObjectsFromStorage()
         {
-            lock (_loadAllLAndMutex)
-            {
                 MainLog.Instance.Verbose("SCENE", "Loading land objects from storage");
                 List<LandData> landData = m_storageManager.DataStore.LoadLandObjects(RegionInfo.RegionID);
                 if (landData.Count == 0)
@@ -911,7 +908,6 @@ namespace OpenSim.Region.Environment.Scenes
                 {
                     m_LandManager.IncomingLandObjectsFromStorage(landData);
                 }
-            }
         }
 
         #endregion
@@ -1700,15 +1696,19 @@ namespace OpenSim.Region.Environment.Scenes
             return LLUUID.Zero;
         }
 
+        private readonly const object _performParcelPrimCountUpdateMutex = new object();
         /// <summary>
         /// 
         /// </summary>
         public void performParcelPrimCountUpdate()
         {
-            m_LandManager.resetAllLandPrimCounts();
-            m_eventManager.TriggerParcelPrimCountUpdate();
-            m_LandManager.finalizeLandPrimCountUpdate();
-            m_LandManager.landPrimCountTainted = false;
+            lock (performParcelPrimCountUpdate)
+            {
+                m_LandManager.resetAllLandPrimCounts();
+                m_eventManager.TriggerParcelPrimCountUpdate();
+                m_LandManager.finalizeLandPrimCountUpdate();
+                m_LandManager.landPrimCountTainted = false;
+            }
         }
 
         /// <summary>
