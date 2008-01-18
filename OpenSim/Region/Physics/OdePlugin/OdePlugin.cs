@@ -144,7 +144,7 @@ namespace OpenSim.Region.Physics.OdePlugin
             // This is the *non* moving version.   Use this when an avatar 
             // isn't moving to keep it in place better
             TerrainContact.surface.mode |= d.ContactFlags.SoftERP;
-            TerrainContact.surface.mu = 550.0f;
+            TerrainContact.surface.mu = 255.0f;
             TerrainContact.surface.bounce = 0.1f;
             TerrainContact.surface.soft_erp = 0.1025f;
 
@@ -152,13 +152,13 @@ namespace OpenSim.Region.Physics.OdePlugin
             // THis is the *non* moving version of friction and bounce 
             // Use this when an avatar comes in contact with a prim
             // and is moving
-            AvatarMovementprimContact.surface.mu = 150.0f;
+            AvatarMovementprimContact.surface.mu = 75.0f;
             AvatarMovementprimContact.surface.bounce = 0.1f;
 
             // Terrain contact friction bounce and various error correcting calculations
             // Use this when an avatar is in contact with the terrain and moving.
             AvatarMovementTerrainContact.surface.mode |= d.ContactFlags.SoftERP;
-            AvatarMovementTerrainContact.surface.mu = 150.0f;
+            AvatarMovementTerrainContact.surface.mu = 75.0f;
             AvatarMovementTerrainContact.surface.bounce = 0.1f;
             AvatarMovementTerrainContact.surface.soft_erp = 0.1025f;
 
