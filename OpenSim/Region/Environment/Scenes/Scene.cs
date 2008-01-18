@@ -1696,13 +1696,13 @@ namespace OpenSim.Region.Environment.Scenes
             return LLUUID.Zero;
         }
 
-        private readonly const object _performParcelPrimCountUpdateMutex = new object();
+        private static readonly object _performParcelPrimCountUpdateMutex = new object();
         /// <summary>
         /// 
         /// </summary>
         public void performParcelPrimCountUpdate()
         {
-            lock (performParcelPrimCountUpdate)
+            lock (_performParcelPrimCountUpdateMutex)
             {
                 m_LandManager.resetAllLandPrimCounts();
                 m_eventManager.TriggerParcelPrimCountUpdate();
