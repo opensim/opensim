@@ -108,13 +108,11 @@ namespace OpenSim.Framework.Data.MySQL
                 m_primTable = createPrimTable();
                 m_dataSet.Tables.Add(m_primTable);
                 SetupPrimCommands(m_primDataAdapter, m_connection);
-                m_primDataAdapter.FillSchema(m_primTable, SchemaType.Source); // to avoid random System.Data.DBConcurrencyException: Concurrency violation: the UpdateCommand affected 0 records.
                 m_primDataAdapter.Fill(m_primTable);
 
                 m_shapeTable = createShapeTable();
                 m_dataSet.Tables.Add(m_shapeTable);
                 SetupShapeCommands(m_shapeDataAdapter, m_connection);
-                m_shapeDataAdapter.FillSchema(m_shapeTable, SchemaType.Source); // to avoid random System.Data.DBConcurrencyException: Concurrency violation: the UpdateCommand affected 0 records.
                 m_shapeDataAdapter.Fill(m_shapeTable);
                 
                 if (persistPrimInventories)
@@ -122,26 +120,22 @@ namespace OpenSim.Framework.Data.MySQL
                     m_itemsTable = createItemsTable();
                     m_dataSet.Tables.Add(m_itemsTable);
                     SetupItemsCommands(m_itemsDataAdapter, m_connection);
-                    m_itemsDataAdapter.FillSchema(m_itemsTable, SchemaType.Source); // to avoid random System.Data.DBConcurrencyException: Concurrency violation: the UpdateCommand affected 0 records.
                     m_itemsDataAdapter.Fill(m_itemsTable);                
                 }
 
                 m_terrainTable = createTerrainTable();
                 m_dataSet.Tables.Add(m_terrainTable);
                 SetupTerrainCommands(m_terrainDataAdapter, m_connection);
-                m_terrainDataAdapter.FillSchema(m_terrainTable, SchemaType.Source); // to avoid random System.Data.DBConcurrencyException: Concurrency violation: the UpdateCommand affected 0 records.
                 m_terrainDataAdapter.Fill(m_terrainTable);
 
                 m_landTable = createLandTable();
                 m_dataSet.Tables.Add(m_landTable);
                 setupLandCommands(m_landDataAdapter, m_connection);
-                m_landDataAdapter.FillSchema(m_landTable, SchemaType.Source); // to avoid random System.Data.DBConcurrencyException: Concurrency violation: the UpdateCommand affected 0 records.
                 m_landDataAdapter.Fill(m_landTable);
 
                 m_landAccessListTable = createLandAccessListTable();
                 m_dataSet.Tables.Add(m_landAccessListTable);
                 setupLandAccessCommands(m_landAccessListDataAdapter, m_connection);
-                m_landAccessListDataAdapter.FillSchema(m_landAccessListTable, SchemaType.Source); // to avoid random System.Data.DBConcurrencyException: Concurrency violation: the UpdateCommand affected 0 records.
                 m_landAccessListDataAdapter.Fill(m_landAccessListTable);
             }
         }
@@ -525,18 +519,25 @@ namespace OpenSim.Framework.Data.MySQL
 
                 // DisplayDataSet(m_dataSet, "Region DataSet");
 
+            MainLog.Instance.Verbose("DATASTORE", "Tedd debug: m_primDataAdapter.Update(m_primTable)");
                 m_primDataAdapter.Update(m_primTable);
+                MainLog.Instance.Verbose("DATASTORE", "Tedd debug: m_shapeDataAdapter.Update(m_shapeTable)");
                 m_shapeDataAdapter.Update(m_shapeTable);
                 
                 if (persistPrimInventories)
                 {
+                    MainLog.Instance.Verbose("DATASTORE", "Tedd debug: m_itemsDataAdapter.Update(m_itemsTable)");
                     m_itemsDataAdapter.Update(m_itemsTable);
                 }
-                
+
+                MainLog.Instance.Verbose("DATASTORE", "Tedd debug: m_terrainDataAdapter.Update(m_terrainTable)");
                 m_terrainDataAdapter.Update(m_terrainTable);
+                MainLog.Instance.Verbose("DATASTORE", "Tedd debug: m_landDataAdapter.Update(m_landTable)");
                 m_landDataAdapter.Update(m_landTable);
+                MainLog.Instance.Verbose("DATASTORE", "Tedd debug: m_landAccessListDataAdapter.Update(m_landAccessListTable)");
                 m_landAccessListDataAdapter.Update(m_landAccessListTable);
 
+                MainLog.Instance.Verbose("DATASTORE", "Tedd debug: m_dataSet.AcceptChanges()");
                 m_dataSet.AcceptChanges();
         }
 
@@ -1587,22 +1588,16 @@ namespace OpenSim.Framework.Data.MySQL
             DataSet tmpDS = new DataSet();
             try
             {
-                pDa.FillSchema(tmpDS, SchemaType.Source); // to avoid random System.Data.DBConcurrencyException: Concurrency violation: the UpdateCommand affected 0 records.
                 pDa.Fill(tmpDS, "prims");
-                sDa.FillSchema(tmpDS, SchemaType.Source); // to avoid random System.Data.DBConcurrencyException: Concurrency violation: the UpdateCommand affected 0 records.
                 sDa.Fill(tmpDS, "primshapes");
 
                 if (persistPrimInventories)
                 {
-                    iDa.FillSchema(tmpDS, SchemaType.Source); // to avoid random System.Data.DBConcurrencyException: Concurrency violation: the UpdateCommand affected 0 records.
                     iDa.Fill(tmpDS, "primitems");
                 }
 
-                tDa.FillSchema(tmpDS, SchemaType.Source); // to avoid random System.Data.DBConcurrencyException: Concurrency violation: the UpdateCommand affected 0 records.
                 tDa.Fill(tmpDS, "terrain");
-                lDa.FillSchema(tmpDS, SchemaType.Source); // to avoid random System.Data.DBConcurrencyException: Concurrency violation: the UpdateCommand affected 0 records.
                 lDa.Fill(tmpDS, "land");
-                lalDa.FillSchema(tmpDS, SchemaType.Source); // to avoid random System.Data.DBConcurrencyException: Concurrency violation: the UpdateCommand affected 0 records.
                 lalDa.Fill(tmpDS, "landaccesslist");
             }
             catch (MySqlException)
@@ -1611,22 +1606,16 @@ namespace OpenSim.Framework.Data.MySQL
                 InitDB(conn);
             }
 
-            pDa.FillSchema(tmpDS, SchemaType.Source); // to avoid random System.Data.DBConcurrencyException: Concurrency violation: the UpdateCommand affected 0 records.
             pDa.Fill(tmpDS, "prims");
-            sDa.FillSchema(tmpDS, SchemaType.Source); // to avoid random System.Data.DBConcurrencyException: Concurrency violation: the UpdateCommand affected 0 records.
             sDa.Fill(tmpDS, "primshapes");
 
             if (persistPrimInventories)
             {
-                iDa.FillSchema(tmpDS, SchemaType.Source); // to avoid random System.Data.DBConcurrencyException: Concurrency violation: the UpdateCommand affected 0 records.
                 iDa.Fill(tmpDS, "primitems");
             }
 
-            tDa.FillSchema(tmpDS, SchemaType.Source); // to avoid random System.Data.DBConcurrencyException: Concurrency violation: the UpdateCommand affected 0 records.
             tDa.Fill(tmpDS, "terrain");
-            lDa.FillSchema(tmpDS, SchemaType.Source); // to avoid random System.Data.DBConcurrencyException: Concurrency violation: the UpdateCommand affected 0 records.
             lDa.Fill(tmpDS, "land");
-            lalDa.FillSchema(tmpDS, SchemaType.Source); // to avoid random System.Data.DBConcurrencyException: Concurrency violation: the UpdateCommand affected 0 records.
             lalDa.Fill(tmpDS, "landaccesslist");
 
             foreach (DataColumn col in createPrimTable().Columns)
