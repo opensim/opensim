@@ -1703,15 +1703,10 @@ namespace OpenSim.Region.Environment.Scenes
         /// </summary>
         public void performParcelPrimCountUpdate()
         {
-            MainLog.Instance.Verbose("SCENE", "Performing parcel prim count update: resetAllLandPrimCounts()");
             m_LandManager.resetAllLandPrimCounts();
-            MainLog.Instance.Verbose("SCENE", "Performing parcel prim count update: TriggerParcelPrimCountUpdate()");
             m_eventManager.TriggerParcelPrimCountUpdate();
-            MainLog.Instance.Verbose("SCENE", "Performing parcel prim count update: finalizeLandPrimCountUpdate()");
             m_LandManager.finalizeLandPrimCountUpdate();
-            MainLog.Instance.Verbose("SCENE", "Performing parcel prim count update: landPrimCountTainted = false");
                 m_LandManager.landPrimCountTainted = false;
-                MainLog.Instance.Verbose("SCENE", "Performing parcel prim count update: Done");
         }
 
         /// <summary>

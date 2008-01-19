@@ -138,17 +138,9 @@ namespace OpenSim.Region.Environment.LandManagement
 
         public void IncomingLandObjectFromStorage(LandData data)
         {
-            // TODO: REMOVE (TEDD)
-            MainLog.Instance.Verbose("LandManager", "IncomingLandObjectFromStorage: " + data.localID);
             Land new_land = new Land(data.ownerID, data.isGroupOwned, m_scene);
-            // TODO: REMOVE (TEDD)
-            MainLog.Instance.Verbose("LandManager", "IncomingLandObjectFromStorage: data.Copy()");
             new_land.landData = data.Copy();
-            // TODO: REMOVE (TEDD)
-            MainLog.Instance.Verbose("LandManager", "IncomingLandObjectFromStorage: new_land.setLandBitmapFromByteArray()");
             new_land.setLandBitmapFromByteArray();
-            // TODO: REMOVE (TEDD)
-            MainLog.Instance.Verbose("LandManager", "IncomingLandObjectFromStorage: addLandObject(new_land)");
             addLandObject(new_land);
         }
 
@@ -177,15 +169,11 @@ namespace OpenSim.Region.Environment.LandManagement
         /// <param name="new_land">The land object being added</param>
         public Land addLandObject(Land new_land)
         {
-            // TODO: REMOVE (TEDD)
-            MainLog.Instance.Verbose("LandManager", "addLandObject()");
             lastLandLocalID++;
             new_land.landData.localID = lastLandLocalID;
             landList.Add(lastLandLocalID, new_land.Copy());
 
 
-            // TODO: REMOVE (TEDD)
-            MainLog.Instance.Verbose("LandManager", "new_land.getLandBitmap()");
             bool[,] landBitmap = new_land.getLandBitmap();
             int x, y;
             for (x = 0; x < 64; x++)
@@ -198,12 +186,8 @@ namespace OpenSim.Region.Environment.LandManagement
                     }
                 }
             }
-            // TODO: REMOVE (TEDD)
-            MainLog.Instance.Verbose("LandManager", "forceUpdateLandInfo()");
             landList[lastLandLocalID].forceUpdateLandInfo();
-            MainLog.Instance.Verbose("LandManager", "TriggerLandObjectAdded");
             m_scene.EventManager.TriggerLandObjectAdded(new_land, m_scene.RegionInfo.RegionID);
-            MainLog.Instance.Verbose("LandManager", "end of addLandObject()");
             return new_land;
         }
 

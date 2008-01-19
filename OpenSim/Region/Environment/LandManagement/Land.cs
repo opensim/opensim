@@ -447,14 +447,8 @@ namespace OpenSim.Region.Environment.LandManagement
         /// </summary>
         public void forceUpdateLandInfo()
         {
-            // TODO: REMOVE (TEDD)
-            MainLog.Instance.Verbose("LandManager", "updateAABBAndAreaValues()");
             updateAABBAndAreaValues();
-            // TODO: REMOVE (TEDD)
-            MainLog.Instance.Verbose("LandManager", "updateLandBitmapByteArray()");
             updateLandBitmapByteArray();
-            // TODO: REMOVE (TEDD)
-            MainLog.Instance.Verbose("LandManager", "end of forceUpdateLandInfo()");
         }
 
         public void setLandBitmapFromByteArray()
