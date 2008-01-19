@@ -446,6 +446,8 @@ namespace OpenSim.Region.Environment.LandManagement
         /// </summary>
         public void forceUpdateLandInfo()
         {
+            // TODO: REMOVE (TEDD)
+            Console.WriteLine("addLandObject()");
             updateAABBAndAreaValues();
             updateLandBitmapByteArray();
         }
