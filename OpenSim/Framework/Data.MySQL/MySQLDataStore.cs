@@ -215,76 +215,83 @@ namespace OpenSim.Framework.Data.MySQL
             DataTable prims = m_primTable;
             DataTable shapes = m_shapeTable;
 
-            string byRegion = "RegionUUID = '" + Util.ToRawUuidString(regionUUID) + "'";
-            string orderByParent = "ParentID ASC";
-
-            lock (m_dataSet)
+            try
             {
-                DataRow[] primsForRegion = prims.Select(byRegion, orderByParent);
-                MainLog.Instance.Verbose("DATASTORE",
-                                         "Loaded " + primsForRegion.Length + " prims for region: " + regionUUID);
+                string byRegion = "RegionUUID = '" + Util.ToRawUuidString(regionUUID) + "'";
+                string orderByParent = "ParentID ASC";
 
-                foreach (DataRow primRow in primsForRegion)
+                lock (m_dataSet)
                 {
-                    try                        
-                    {
-                        string uuid = (string) primRow["UUID"];
-                        string objID = (string) primRow["SceneGroupID"];
-                        
-                        SceneObjectPart prim = buildPrim(primRow);
-                        
-                        if (uuid == objID) //is new SceneObjectGroup ?
-                        {
-                            SceneObjectGroup group = new SceneObjectGroup();
-                            
-                            DataRow shapeRow = shapes.Rows.Find(Util.ToRawUuidString(prim.UUID));
-                            if (shapeRow != null)
-                            {
-                                prim.Shape = buildShape(shapeRow);
-                            }
-                            else
-                            {
-                                MainLog.Instance.Notice(
-                                    "No shape found for prim in storage, so setting default box shape");
-                                prim.Shape = PrimitiveBaseShape.Default;
-                            }
-                            group.AddPart(prim);
-                            group.RootPart = prim;
+                    DataRow[] primsForRegion = prims.Select(byRegion, orderByParent);
+                    MainLog.Instance.Verbose("DATASTORE",
+                                             "Loaded " + primsForRegion.Length + " prims for region: " + regionUUID);
 
-                            createdObjects.Add(group.UUID, group);
-                            retvals.Add(group);
-                        }
-                        else
+                    foreach (DataRow primRow in primsForRegion)
+                    {
+                        try
                         {
-                            DataRow shapeRow = shapes.Rows.Find(Util.ToRawUuidString(prim.UUID));
-                            if (shapeRow != null)
+                            string uuid = (string)primRow["UUID"];
+                            string objID = (string)primRow["SceneGroupID"];
+
+                            SceneObjectPart prim = buildPrim(primRow);
+
+                            if (uuid == objID) //is new SceneObjectGroup ?
                             {
-                                prim.Shape = buildShape(shapeRow);
+                                SceneObjectGroup group = new SceneObjectGroup();
+
+                                DataRow shapeRow = shapes.Rows.Find(Util.ToRawUuidString(prim.UUID));
+                                if (shapeRow != null)
+                                {
+                                    prim.Shape = buildShape(shapeRow);
+                                }
+                                else
+                                {
+                                    MainLog.Instance.Notice(
+                                        "No shape found for prim in storage, so setting default box shape");
+                                    prim.Shape = PrimitiveBaseShape.Default;
+                                }
+                                group.AddPart(prim);
+                                group.RootPart = prim;
+
+                                createdObjects.Add(group.UUID, group);
+                                retvals.Add(group);
                             }
                             else
                             {
-                                MainLog.Instance.Notice(
-                                    "No shape found for prim in storage, so setting default box shape");
-                                prim.Shape = PrimitiveBaseShape.Default;
+                                DataRow shapeRow = shapes.Rows.Find(Util.ToRawUuidString(prim.UUID));
+                                if (shapeRow != null)
+                                {
+                                    prim.Shape = buildShape(shapeRow);
+                                }
+                                else
+                                {
+                                    MainLog.Instance.Notice(
+                                        "No shape found for prim in storage, so setting default box shape");
+                                    prim.Shape = PrimitiveBaseShape.Default;
+                                }
+                                createdObjects[new LLUUID(objID)].AddPart(prim);
                             }
-                            createdObjects[new LLUUID(objID)].AddPart(prim);
+
+                            if (persistPrimInventories)
+                            {
+                                LoadItems(prim);
+                            }
                         }
-                        
-                        if (persistPrimInventories)
+                        catch (Exception e)
                         {
-                            LoadItems(prim);
-                        }                        
-                    }
-                    catch (Exception e)
-                    {
-                        MainLog.Instance.Error("DATASTORE", "Failed create prim object, exception and data follows");
-                        MainLog.Instance.Verbose("DATASTORE", e.ToString());
-                        foreach (DataColumn col in prims.Columns)
-                        {
-                            MainLog.Instance.Verbose("DATASTORE", "Col: " + col.ColumnName + " => " + primRow[col]);
+                            MainLog.Instance.Error("DATASTORE", "Failed create prim object, exception and data follows");
+                            MainLog.Instance.Verbose("DATASTORE", e.ToString());
+                            foreach (DataColumn col in prims.Columns)
+                            {
+                                MainLog.Instance.Verbose("DATASTORE", "Col: " + col.ColumnName + " => " + primRow[col]);
+                            }
                         }
                     }
                 }
+            }
+            catch (Exception ex)
+            {
+                MainLog.Instance.Error("DATASTORE", "Exception trying to load prim objects: " + ex.ToString());
             }
             return retvals;
         }
