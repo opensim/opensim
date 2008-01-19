@@ -134,7 +134,34 @@ namespace OpenSim.Region.Physics.OdePlugin
                 }
                 else
                 {
-                    prim_geom = d.CreateBox(m_targetSpace, _size.X, _size.Y, _size.Z);
+                    if (pbs.ProfileShape == ProfileShape.HalfCircle && pbs.PathCurve == (byte)Extrusion.Curve1)
+                    {
+                        if (_size.X == _size.Y && _size.Y == _size.Z && _size.X == _size.Z)
+                        {
+                            prim_geom = d.CreateSphere(m_targetSpace, _size.X / 2);
+                        }
+                        else
+                        {
+                            prim_geom = d.CreateBox(m_targetSpace, _size.X, _size.Y, _size.Z);
+                        }
+                    }
+                    //else if (pbs.ProfileShape == ProfileShape.Circle && pbs.PathCurve == (byte)Extrusion.Straight)
+                    //{
+                        //Cyllinder
+                        //if (_size.X == _size.Y)
+                        //{
+                            //prim_geom = d.CreateCylinder(m_targetSpace, _size.X / 2, _size.Z);
+                        //}
+                        //else
+                        //{
+                            //prim_geom = d.CreateBox(m_targetSpace, _size.X, _size.Y, _size.Z);
+                        //}
+                    //}
+                    else
+                    {
+
+                        prim_geom = d.CreateBox(m_targetSpace, _size.X, _size.Y, _size.Z);
+                    }
                 }
 
                 d.GeomSetPosition(prim_geom, _position.X, _position.Y, _position.Z);
@@ -459,7 +486,35 @@ namespace OpenSim.Region.Physics.OdePlugin
                 }
                 else
                 {
-                    prim_geom = d.CreateBox(m_targetSpace, _size.X, _size.Y, _size.Z);
+                    if (_pbs.ProfileShape == ProfileShape.HalfCircle && _pbs.PathCurve == (byte)Extrusion.Curve1)
+                    {
+                        if (_size.X == _size.Y && _size.Y == _size.Z && _size.X == _size.Z)
+                        {
+                            prim_geom = d.CreateSphere(m_targetSpace, _size.X / 2);
+                        }
+                        else
+                        {
+                            prim_geom = d.CreateBox(m_targetSpace, _size.X, _size.Y, _size.Z);
+                        }
+                    }
+                    //else if (_pbs.ProfileShape == ProfileShape.Circle && _pbs.PathCurve == (byte)Extrusion.Straight)
+                    //{
+                        //Cyllinder
+                        //if (_size.X == _size.Y)
+                        //{
+                        //    prim_geom = d.CreateCylinder(m_targetSpace, _size.X / 2, _size.Z);
+                        //}
+                        //else
+                        //{
+                            //prim_geom = d.CreateBox(m_targetSpace, _size.X, _size.Y, _size.Z);
+                        //}
+                    //}
+                    else
+                    {
+
+                        prim_geom = d.CreateBox(m_targetSpace, _size.X, _size.Y, _size.Z);
+                    }
+                    //prim_geom = d.CreateBox(m_targetSpace, _size.X, _size.Y, _size.Z);
                     d.GeomSetPosition(prim_geom, _position.X, _position.Y, _position.Z);
                     d.Quaternion myrot = new d.Quaternion();
                     myrot.W = _orientation.w;
@@ -471,7 +526,34 @@ namespace OpenSim.Region.Physics.OdePlugin
             }
             else
             {
-                prim_geom = d.CreateBox(m_targetSpace, _size.X, _size.Y, _size.Z);
+                if (_pbs.ProfileShape == ProfileShape.HalfCircle && _pbs.PathCurve == (byte)Extrusion.Curve1)
+                {
+                    if (_size.X == _size.Y && _size.Y == _size.Z && _size.X == _size.Z)
+                    {
+                        prim_geom = d.CreateSphere(m_targetSpace, _size.X / 2);
+                    }
+                    else
+                    {
+                        prim_geom = d.CreateBox(m_targetSpace, _size.X, _size.Y, _size.Z);
+                    }
+                }
+                //else if (_pbs.ProfileShape == ProfileShape.Circle && _pbs.PathCurve == (byte)Extrusion.Straight)
+                //{
+                    //Cyllinder
+                    //if (_size.X == _size.Y)
+                    //{
+                        //prim_geom = d.CreateCylinder(m_targetSpace, _size.X / 2, _size.Z);
+                    //}
+                    //else
+                    //{
+                        //prim_geom = d.CreateBox(m_targetSpace, _size.X, _size.Y, _size.Z);
+                    //}
+                //}
+                else
+                {
+
+                    prim_geom = d.CreateBox(m_targetSpace, _size.X, _size.Y, _size.Z);
+                }
                 d.GeomSetPosition(prim_geom, _position.X, _position.Y, _position.Z);
                 d.Quaternion myrot = new d.Quaternion();
                 myrot.W = _orientation.w;
@@ -780,6 +862,9 @@ namespace OpenSim.Region.Physics.OdePlugin
                     {
                         m_throttleUpdates = false;
                         throttleCounter = 0;
+                        m_rotationalVelocity.X = 0;
+                        m_rotationalVelocity.Y = 0;
+                        m_rotationalVelocity.Z = 0;
                         base.RequestPhysicsterseUpdate();
                         m_lastUpdateSent = true;
                     }
