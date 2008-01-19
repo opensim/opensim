@@ -519,25 +519,18 @@ namespace OpenSim.Framework.Data.MySQL
 
                 // DisplayDataSet(m_dataSet, "Region DataSet");
 
-            MainLog.Instance.Verbose("DATASTORE", "Tedd debug: m_primDataAdapter.Update(m_primTable)");
                 m_primDataAdapter.Update(m_primTable);
-                MainLog.Instance.Verbose("DATASTORE", "Tedd debug: m_shapeDataAdapter.Update(m_shapeTable)");
                 m_shapeDataAdapter.Update(m_shapeTable);
                 
                 if (persistPrimInventories)
                 {
-                    MainLog.Instance.Verbose("DATASTORE", "Tedd debug: m_itemsDataAdapter.Update(m_itemsTable)");
                     m_itemsDataAdapter.Update(m_itemsTable);
                 }
 
-                MainLog.Instance.Verbose("DATASTORE", "Tedd debug: m_terrainDataAdapter.Update(m_terrainTable)");
                 m_terrainDataAdapter.Update(m_terrainTable);
-                MainLog.Instance.Verbose("DATASTORE", "Tedd debug: m_landDataAdapter.Update(m_landTable)");
                 m_landDataAdapter.Update(m_landTable);
-                MainLog.Instance.Verbose("DATASTORE", "Tedd debug: m_landAccessListDataAdapter.Update(m_landAccessListTable)");
                 m_landAccessListDataAdapter.Update(m_landAccessListTable);
 
-                MainLog.Instance.Verbose("DATASTORE", "Tedd debug: m_dataSet.AcceptChanges()");
                 m_dataSet.AcceptChanges();
         }
 
