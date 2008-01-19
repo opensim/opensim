@@ -900,24 +900,16 @@ namespace OpenSim.Region.Environment.Scenes
         public void loadAllLandObjectsFromStorage()
         {
                 MainLog.Instance.Verbose("SCENE", "Loading land objects from storage");
-                // TODO: REMOVE (TEDD)
-                MainLog.Instance.Verbose("SCENE", "LandObjLoad debug: DataStore.LoadLandObjects");
                 List<LandData> landData = m_storageManager.DataStore.LoadLandObjects(RegionInfo.RegionID);
 
                 if (landData.Count == 0)
                 {
-                    // TODO: REMOVE (TEDD)
-                    MainLog.Instance.Verbose("SCENE", "LandObjLoad debug: NoLandDataFromStorage()");
                     m_LandManager.NoLandDataFromStorage();
                 }
                 else
                 {
-                    // TODO: REMOVE (TEDD)
-                    MainLog.Instance.Verbose("SCENE", "LandObjLoad debug: IncomingLandObjectsFromStorage(landData)");
                     m_LandManager.IncomingLandObjectsFromStorage(landData);
                 }
-                // TODO: REMOVE (TEDD)
-                MainLog.Instance.Verbose("SCENE", "Done loading land objects from storage");
         }
 
         #endregion

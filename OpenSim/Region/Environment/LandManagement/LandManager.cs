@@ -127,7 +127,7 @@ namespace OpenSim.Region.Environment.LandManagement
                 }
                 catch (Exception ex)
                 {
-                    MainLog.Instance.Verbose("LandManager", "IncomingLandObjectsFromStorage: Exception: " + ex.ToString() );
+                    MainLog.Instance.Error("LandManager", "IncomingLandObjectsFromStorage: Exception: " + ex.ToString());
                 }
             }
             //foreach (LandData parcel in data)
@@ -178,12 +178,14 @@ namespace OpenSim.Region.Environment.LandManagement
         public Land addLandObject(Land new_land)
         {
             // TODO: REMOVE (TEDD)
-            Console.WriteLine("addLandObject()");
+            MainLog.Instance.Verbose("LandManager", "addLandObject()");
             lastLandLocalID++;
             new_land.landData.localID = lastLandLocalID;
             landList.Add(lastLandLocalID, new_land.Copy());
 
 
+            // TODO: REMOVE (TEDD)
+            MainLog.Instance.Verbose("LandManager", "new_land.getLandBitmap()");
             bool[,] landBitmap = new_land.getLandBitmap();
             int x, y;
             for (x = 0; x < 64; x++)
@@ -196,8 +198,12 @@ namespace OpenSim.Region.Environment.LandManagement
                     }
                 }
             }
+            // TODO: REMOVE (TEDD)
+            MainLog.Instance.Verbose("LandManager", "forceUpdateLandInfo()");
             landList[lastLandLocalID].forceUpdateLandInfo();
+            MainLog.Instance.Verbose("LandManager", "TriggerLandObjectAdded");
             m_scene.EventManager.TriggerLandObjectAdded(new_land, m_scene.RegionInfo.RegionID);
+            MainLog.Instance.Verbose("LandManager", "end of addLandObject()");
             return new_land;
         }
 
