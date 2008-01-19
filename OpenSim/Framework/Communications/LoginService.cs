@@ -92,6 +92,11 @@ namespace OpenSim.Framework.UserManagement
                     string firstname = (string) requestData["first"];
                     string lastname = (string) requestData["last"];
 
+                    if( requestData.Contains("version"))
+                    {
+                        string clientversion = (string)requestData["version"];
+                        MainLog.Instance.Verbose("LOGIN","Client Version " + clientversion + " for " + firstname + " " + lastname);
+                    }
                     
 
                     userProfile = GetTheUser(firstname, lastname);

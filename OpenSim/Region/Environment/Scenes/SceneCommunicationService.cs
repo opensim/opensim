@@ -421,25 +421,27 @@ namespace OpenSim.Region.Environment.Scenes
                     agent.startpos = position;
                     agent.child = true;
                     avatar.Close();
-                    m_commsProvider.InterRegion.InformRegionOfChildAgent(regionHandle, agent);
+                    if (m_commsProvider.InterRegion.InformRegionOfChildAgent(regionHandle, agent) &&
                     m_commsProvider.InterRegion.ExpectAvatarCrossing(regionHandle, avatar.ControllingClient.AgentId,
-                                                                     position, false);
-                    AgentCircuitData circuitdata = avatar.ControllingClient.RequestClientInfo();
-                    string capsPath = Util.GetCapsURL(avatar.ControllingClient.AgentId);
-                    avatar.ControllingClient.SendRegionTeleport(regionHandle, 13, reg.ExternalEndPoint, 4, (1 << 4),
-                                                                capsPath);
-                    avatar.MakeChildAgent();
-                    if (KillObject != null)
+                                                                     position, false)) ;
                     {
-                        KillObject(avatar.LocalId);
-                    }
-                    uint newRegionX = (uint) (regionHandle >> 40);
-                    uint newRegionY = (((uint) (regionHandle)) >> 8);
-                    uint oldRegionX = (uint) (m_regionInfo.RegionHandle >> 40);
-                    uint oldRegionY = (((uint) (m_regionInfo.RegionHandle)) >> 8);
-                    if (Util.fast_distance2d((int) (newRegionX - oldRegionX), (int) (newRegionY - oldRegionY)) > 3)
-                    {
-                        CloseChildAgentConnections(avatar);
+                        AgentCircuitData circuitdata = avatar.ControllingClient.RequestClientInfo();
+                        string capsPath = Util.GetCapsURL(avatar.ControllingClient.AgentId);
+                        avatar.ControllingClient.SendRegionTeleport(regionHandle, 13, reg.ExternalEndPoint, 4, (1 << 4),
+                                                                    capsPath);
+                        avatar.MakeChildAgent();
+                        if (KillObject != null)
+                        {
+                            KillObject(avatar.LocalId);
+                        }
+                        uint newRegionX = (uint)(regionHandle >> 40);
+                        uint newRegionY = (((uint)(regionHandle)) >> 8);
+                        uint oldRegionX = (uint)(m_regionInfo.RegionHandle >> 40);
+                        uint oldRegionY = (((uint)(m_regionInfo.RegionHandle)) >> 8);
+                        if (Util.fast_distance2d((int)(newRegionX - oldRegionX), (int)(newRegionY - oldRegionY)) > 3)
+                        {
+                            CloseChildAgentConnections(avatar);
+                        }
                     }
                 }
             }
