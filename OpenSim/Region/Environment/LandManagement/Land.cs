@@ -31,6 +31,7 @@ using System.Collections.Generic;
 using libsecondlife;
 using libsecondlife.Packets;
 using OpenSim.Framework;
+using OpenSim.Framework.Console;
 using OpenSim.Region.Environment.Scenes;
 using OpenSim.Region.Environment.Interfaces;
 
@@ -447,9 +448,13 @@ namespace OpenSim.Region.Environment.LandManagement
         public void forceUpdateLandInfo()
         {
             // TODO: REMOVE (TEDD)
-            Console.WriteLine("addLandObject()");
+            MainLog.Instance.Verbose("LandManager", "updateAABBAndAreaValues()");
             updateAABBAndAreaValues();
+            // TODO: REMOVE (TEDD)
+            MainLog.Instance.Verbose("LandManager", "updateLandBitmapByteArray()");
             updateLandBitmapByteArray();
+            // TODO: REMOVE (TEDD)
+            MainLog.Instance.Verbose("LandManager", "end of forceUpdateLandInfo()");
         }
 
         public void setLandBitmapFromByteArray()
