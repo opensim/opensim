@@ -900,13 +900,17 @@ namespace OpenSim.Region.Environment.Scenes
         public void loadAllLandObjectsFromStorage()
         {
                 MainLog.Instance.Verbose("SCENE", "Loading land objects from storage");
+                MainLog.Instance.Verbose("SCENE", "LandObjLoad debug: DataStore.LoadLandObjects");
                 List<LandData> landData = m_storageManager.DataStore.LoadLandObjects(RegionInfo.RegionID);
+
                 if (landData.Count == 0)
                 {
+                    MainLog.Instance.Verbose("SCENE", "LandObjLoad debug: NoLandDataFromStorage()");
                     m_LandManager.NoLandDataFromStorage();
                 }
                 else
                 {
+                    MainLog.Instance.Verbose("SCENE", "LandObjLoad debug: IncomingLandObjectsFromStorage(landData)");
                     m_LandManager.IncomingLandObjectsFromStorage(landData);
                 }
                 MainLog.Instance.Verbose("SCENE", "Done loading land objects from storage");
