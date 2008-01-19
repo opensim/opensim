@@ -156,9 +156,9 @@ namespace OpenSim.Framework.Data.MySQL
                         // MainLog.Instance.Verbose("DATASTORE", "Ignoring Physical obj: " + obj.UUID + " in region: " + regionUUID);
                     }
                 }
-            }
 
             Commit();
+            }
         }
 
         public void RemoveObject(LLUUID obj, LLUUID regionUUID)
@@ -198,9 +198,9 @@ namespace OpenSim.Framework.Data.MySQL
                     // Remove prim row
                     row.Delete();
                 }
-            }
 
             Commit();
+            }
         }
 
         /// <summary>
@@ -418,57 +418,38 @@ namespace OpenSim.Framework.Data.MySQL
         {
             lock (m_dataSet)
             {
-                MainLog.Instance.Verbose("DATASTORE", "Tedd debug: 1");
                 DataTable land = m_landTable;
-                MainLog.Instance.Verbose("DATASTORE", "Tedd debug: 2");
                 DataTable landaccesslist = m_landAccessListTable;
 
-                MainLog.Instance.Verbose("DATASTORE", "Tedd debug: 3");
                 DataRow landRow = land.Rows.Find(Util.ToRawUuidString(parcel.landData.globalID));
-                MainLog.Instance.Verbose("DATASTORE", "Tedd debug: 4");
                 if (landRow == null)
                 {
-                    MainLog.Instance.Verbose("DATASTORE", "Tedd debug: 5");
                     landRow = land.NewRow();
-                    MainLog.Instance.Verbose("DATASTORE", "Tedd debug: 6");
                     fillLandRow(landRow, parcel.landData, regionUUID);
-                    MainLog.Instance.Verbose("DATASTORE", "Tedd debug: 7");
                     land.Rows.Add(landRow);
                 }
                 else
                 {
-                    MainLog.Instance.Verbose("DATASTORE", "Tedd debug: 8");
                     fillLandRow(landRow, parcel.landData, regionUUID);
                 }
 
-                MainLog.Instance.Verbose("DATASTORE", "Tedd debug: 9");
                 using (
                     MySqlCommand cmd =
                         new MySqlCommand("delete from landaccesslist where LandUUID=?LandUUID", m_connection))
                 {
-                    MainLog.Instance.Verbose("DATASTORE", "Tedd debug: 10");
                     cmd.Parameters.Add(new MySqlParameter("?LandUUID", Util.ToRawUuidString(parcel.landData.globalID)));
-                    MainLog.Instance.Verbose("DATASTORE", "Tedd debug: 11");
                     cmd.ExecuteNonQuery();
                 }
 
-                MainLog.Instance.Verbose("DATASTORE", "Tedd debug: 12");
-                int i = 0;
                 foreach (ParcelManager.ParcelAccessEntry entry in parcel.landData.parcelAccessList)
                 {
-                    i++;
-                    MainLog.Instance.Verbose("DATASTORE", "Tedd debug: 12:1:" + i);
                     DataRow newAccessRow = landaccesslist.NewRow();
-                    MainLog.Instance.Verbose("DATASTORE", "Tedd debug: 12:2:" + i);
                     fillLandAccessRow(newAccessRow, entry, parcel.landData.globalID);
-                    MainLog.Instance.Verbose("DATASTORE", "Tedd debug: 12:3:" + i);
                     landaccesslist.Rows.Add(newAccessRow);
                 }
-            }
 
-            MainLog.Instance.Verbose("DATASTORE", "Tedd debug: 13");
             Commit();
-            MainLog.Instance.Verbose("DATASTORE", "Tedd debug: 14");
+            }
         }
 
         public List<LandData> LoadLandObjects(LLUUID regionUUID)
@@ -536,8 +517,6 @@ namespace OpenSim.Framework.Data.MySQL
                 m_connection.Open();
             }
 
-            lock (m_dataSet)
-            {
                 // DisplayDataSet(m_dataSet, "Region DataSet");
 
                 m_primDataAdapter.Update(m_primTable);
@@ -553,12 +532,14 @@ namespace OpenSim.Framework.Data.MySQL
                 m_landAccessListDataAdapter.Update(m_landAccessListTable);
 
                 m_dataSet.AcceptChanges();
-            }
         }
 
         public void Shutdown()
         {
-            Commit();
+            lock (m_dataSet)
+            {
+                Commit();
+            }
         }
 
         /***********************************************************************
