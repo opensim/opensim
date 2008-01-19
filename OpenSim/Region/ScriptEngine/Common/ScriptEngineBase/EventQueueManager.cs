@@ -108,6 +108,7 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
         /// <summary>
         /// Structure to hold data for llDetect* commands
         /// </summary>
+        [Serializable]
         public struct Queue_llDetectParams_Struct
         {
             // More or less just a placeholder for the actual moving of additional data
@@ -238,17 +239,17 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
                                 {
                                     // DISPLAY ERROR INWORLD
                                     string text = "Error executing script function \"" + QIS.functionName + "\":\r\n";
-                                    //if (e.InnerException != null)
-                                    //{
+                                    if (e.InnerException != null)
+                                    {
                                     // Send inner exception
                                     text += e.InnerException.Message.ToString();
-                                    //}
-                                    //else
-                                    //{
+                                    }
+                                    else
+                                    {
                                     text += "\r\n";
                                     // Send normal
                                     text += e.Message.ToString();
-                                    //}
+                                    }
                                     try
                                     {
                                         if (text.Length > 1500)
