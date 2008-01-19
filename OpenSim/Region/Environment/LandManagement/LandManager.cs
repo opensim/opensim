@@ -119,10 +119,21 @@ namespace OpenSim.Region.Environment.LandManagement
 
         public void IncomingLandObjectsFromStorage(List<LandData> data)
         {
-            foreach (LandData parcel in data)
+            for (int i = 0; i < data.Count; i++)
             {
-                IncomingLandObjectFromStorage(parcel);
+                try
+                {
+                    IncomingLandObjectFromStorage(data[i]);
+                }
+                catch (Exception ex)
+                {
+                    MainLog.Instance.Verbose("LandManager", "IncomingLandObjectsFromStorage: Exception: " + ex.ToString() );
+                }
             }
+            //foreach (LandData parcel in data)
+            //{
+            //    IncomingLandObjectFromStorage(parcel);
+            //}
         }
 
         public void IncomingLandObjectFromStorage(LandData data)
