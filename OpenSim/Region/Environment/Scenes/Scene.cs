@@ -519,7 +519,7 @@ namespace OpenSim.Region.Environment.Scenes
         /// </summary>
         public void StartTimer()
         {
-            MainLog.Instance.Debug("SCENE", "Starting timer")
+            MainLog.Instance.Debug("SCENE", "Starting timer");
             m_heartbeatTimer.Enabled = true;
             m_heartbeatTimer.Interval = (int) (m_timespan*1000);
             m_heartbeatTimer.Elapsed += new ElapsedEventHandler(Heartbeat);
