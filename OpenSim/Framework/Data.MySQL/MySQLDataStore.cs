@@ -291,7 +291,7 @@ namespace OpenSim.Framework.Data.MySQL
             }
             catch (Exception ex)
             {
-                MainLog.Instance.Error("DATASTORE", "Exception trying to load prim objects: " + ex.ToString());
+                MainLog.Instance.Error("DATASTORE", "Exception trying to load prim objects for region " + regionUUID + ": " + ex.ToString());
             }
             return retvals;
         }

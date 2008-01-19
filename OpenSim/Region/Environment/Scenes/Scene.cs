@@ -519,6 +519,7 @@ namespace OpenSim.Region.Environment.Scenes
         /// </summary>
         public void StartTimer()
         {
+            MainLog.Instance.Debug("SCENE", "Starting timer")
             m_heartbeatTimer.Enabled = true;
             m_heartbeatTimer.Interval = (int) (m_timespan*1000);
             m_heartbeatTimer.Elapsed += new ElapsedEventHandler(Heartbeat);
@@ -908,6 +909,7 @@ namespace OpenSim.Region.Environment.Scenes
                 {
                     m_LandManager.IncomingLandObjectsFromStorage(landData);
                 }
+                MainLog.Instance.Debug("SCENE", "Done loading land objects from storage");
         }
 
         #endregion
@@ -1701,10 +1703,15 @@ namespace OpenSim.Region.Environment.Scenes
         /// </summary>
         public void performParcelPrimCountUpdate()
         {
-                m_LandManager.resetAllLandPrimCounts();
-                m_eventManager.TriggerParcelPrimCountUpdate();
-                m_LandManager.finalizeLandPrimCountUpdate();
+            MainLog.Instance.Debug("SCENE", "Performing parcel prim count update: resetAllLandPrimCounts()");
+            m_LandManager.resetAllLandPrimCounts();
+            MainLog.Instance.Debug("SCENE", "Performing parcel prim count update: TriggerParcelPrimCountUpdate()");
+            m_eventManager.TriggerParcelPrimCountUpdate();
+            MainLog.Instance.Debug("SCENE", "Performing parcel prim count update: finalizeLandPrimCountUpdate()");
+            m_LandManager.finalizeLandPrimCountUpdate();
+            MainLog.Instance.Debug("SCENE", "Performing parcel prim count update: landPrimCountTainted = false");
                 m_LandManager.landPrimCountTainted = false;
+                MainLog.Instance.Debug("SCENE", "Performing parcel prim count update: Done");
         }
 
         /// <summary>
