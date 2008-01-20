@@ -420,11 +420,13 @@ namespace OpenSim.Region.Environment.Scenes
                     agent.InventoryFolder = LLUUID.Zero;
                     agent.startpos = position;
                     agent.child = true;
-                    avatar.Close();
-                    if (m_commsProvider.InterRegion.InformRegionOfChildAgent(regionHandle, agent) &&
-                    m_commsProvider.InterRegion.ExpectAvatarCrossing(regionHandle, avatar.ControllingClient.AgentId,
-                                                                     position, false)) ;
+
+
+                    if(m_commsProvider.InterRegion.InformRegionOfChildAgent(regionHandle, agent))
                     {
+                        avatar.Close();
+                        m_commsProvider.InterRegion.ExpectAvatarCrossing(regionHandle, avatar.ControllingClient.AgentId,
+                                                                     position, false);
                         AgentCircuitData circuitdata = avatar.ControllingClient.RequestClientInfo();
                         string capsPath = Util.GetCapsURL(avatar.ControllingClient.AgentId);
                         avatar.ControllingClient.SendRegionTeleport(regionHandle, 13, reg.ExternalEndPoint, 4, (1 << 4),
@@ -442,6 +444,10 @@ namespace OpenSim.Region.Environment.Scenes
                         {
                             CloseChildAgentConnections(avatar);
                         }
+                    }
+                    else
+                    {
+                        avatar.ControllingClient.SendTeleportFailed("Remote Region appears to be down");
                     }
                 }
             }

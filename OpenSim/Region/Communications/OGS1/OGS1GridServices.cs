@@ -594,28 +594,31 @@ namespace OpenSim.Region.Communications.OGS1
                     //don't want to be creating a new link to the remote instance every time like we are here
                     bool retValue = false;
 
-
-                    OGS1InterRegionRemoting remObject = (OGS1InterRegionRemoting) Activator.GetObject(
-                                                                                      typeof (OGS1InterRegionRemoting),
-                                                                                      "tcp://" + regInfo.RemotingAddress +
-                                                                                      ":" + regInfo.RemotingPort +
-                                                                                      "/InterRegions");
-
-                    if (remObject != null)
+                    checkRegion(regInfo.RemotingAddress, regInfo.RemotingPort);
+                    if (Available)
                     {
-                        retValue = remObject.InformRegionOfChildAgent(regionHandle, new sAgentCircuitData(agentData));
-                    }
-                    else
-                    {
-                        Console.WriteLine("remoting object not found");
-                    }
-                    remObject = null;
-                    MainLog.Instance.Verbose("INTER",
-                                             gdebugRegionName + ": OGS1 tried to InformRegionOfChildAgent for " +
-                                             agentData.firstname + " " + agentData.lastname + " and got " +
-                                             retValue.ToString());
+                        OGS1InterRegionRemoting remObject = (OGS1InterRegionRemoting)Activator.GetObject(
+                                                                                          typeof(OGS1InterRegionRemoting),
+                                                                                          "tcp://" + regInfo.RemotingAddress +
+                                                                                          ":" + regInfo.RemotingPort +
+                                                                                          "/InterRegions");
 
-                    return retValue;
+                        if (remObject != null)
+                        {
+                            retValue = remObject.InformRegionOfChildAgent(regionHandle, new sAgentCircuitData(agentData));
+                        }
+                        else
+                        {
+                            Console.WriteLine("remoting object not found");
+                        }
+                        remObject = null;
+                        MainLog.Instance.Verbose("INTER",
+                                                 gdebugRegionName + ": OGS1 tried to InformRegionOfChildAgent for " +
+                                                 agentData.firstname + " " + agentData.lastname + " and got " +
+                                                 retValue.ToString());
+
+                        return retValue;
+                    }
                 }
 
                 return false;
@@ -1085,5 +1088,41 @@ namespace OpenSim.Region.Communications.OGS1
         #endregion
 
         #endregion
+
+        // helper to see if remote region is up
+        bool m_bAvailable = false;
+        int timeOut = 15000; //15 seconds
+
+        public void checkRegion(string address, uint port)
+        {
+            IPAddress ia = null;
+            IPAddress.TryParse(address, out ia);
+            IPEndPoint m_EndPoint = new IPEndPoint(ia, (int)port);
+            AsyncCallback ConnectedMethodCallback = new AsyncCallback(ConnectedMethod);
+            Socket socket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
+            IAsyncResult ar = socket.BeginConnect(m_EndPoint, ConnectedMethodCallback, socket);
+            ar.AsyncWaitHandle.WaitOne(timeOut, false);
+            socket.Close();
+        }
+
+        public bool Available
+        {
+            get { return m_bAvailable; }
+        }
+
+        void ConnectedMethod(IAsyncResult ar)
+        {
+            Socket socket = (Socket)ar.AsyncState;
+            try
+            {
+                socket.EndConnect(ar);
+                m_bAvailable = true;
+            }
+            catch (Exception)
+            {
+            }
+            socket.Close();
+        }
     }
+
 }

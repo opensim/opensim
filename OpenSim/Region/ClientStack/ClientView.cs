@@ -890,11 +890,11 @@ namespace OpenSim.Region.ClientStack
         /// <summary>
         /// 
         /// </summary>
-        public void SendTeleportFailed()
+        public void SendTeleportFailed(string reason)
         {
             TeleportFailedPacket tpFailed = (TeleportFailedPacket)PacketPool.Instance.GetPacket(PacketType.TeleportFailed);
             tpFailed.Info.AgentID = AgentId;
-            tpFailed.Info.Reason = Helpers.StringToField("unknown failure of teleport");
+            tpFailed.Info.Reason = Helpers.StringToField(reason);
             OutPacket(tpFailed, ThrottleOutPacketType.Task);
         }
 
