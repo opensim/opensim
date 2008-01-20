@@ -403,6 +403,7 @@ namespace OpenSim.Region.Environment.Scenes
         public virtual void RequestTeleportToLocation(ScenePresence avatar, ulong regionHandle, LLVector3 position,
                                                       LLVector3 lookAt, uint flags)
         {
+            bool destRegionUp = false;
             if (regionHandle == m_regionInfo.RegionHandle)
             {
                 avatar.ControllingClient.SendTeleportLocationStart();
@@ -421,10 +422,21 @@ namespace OpenSim.Region.Environment.Scenes
                     agent.startpos = position;
                     agent.child = true;
 
-
-                    if(m_commsProvider.InterRegion.InformRegionOfChildAgent(regionHandle, agent))
+                    if (reg.RemotingAddress != "" && reg.RemotingPort != 0)
+                    {
+                        // region is remote. see if it is up
+                        m_commsProvider.InterRegion.CheckRegion(reg.RemotingAddress, reg.RemotingPort);
+                        destRegionUp = m_commsProvider.InterRegion.Available;
+                    }
+                    else
+                    {
+                        // assume local regions are always up
+                        destRegionUp = true;
+                    }
+                    if(destRegionUp)
                     {
                         avatar.Close();
+                        m_commsProvider.InterRegion.InformRegionOfChildAgent(regionHandle, agent);
                         m_commsProvider.InterRegion.ExpectAvatarCrossing(regionHandle, avatar.ControllingClient.AgentId,
                                                                      position, false);
                         AgentCircuitData circuitdata = avatar.ControllingClient.RequestClientInfo();

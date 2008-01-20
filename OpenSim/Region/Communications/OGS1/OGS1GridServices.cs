@@ -594,9 +594,7 @@ namespace OpenSim.Region.Communications.OGS1
                     //don't want to be creating a new link to the remote instance every time like we are here
                     bool retValue = false;
 
-                    checkRegion(regInfo.RemotingAddress, regInfo.RemotingPort);
-                    if (Available)
-                    {
+
                         OGS1InterRegionRemoting remObject = (OGS1InterRegionRemoting)Activator.GetObject(
                                                                                           typeof(OGS1InterRegionRemoting),
                                                                                           "tcp://" + regInfo.RemotingAddress +
@@ -618,7 +616,7 @@ namespace OpenSim.Region.Communications.OGS1
                                                  retValue.ToString());
 
                         return retValue;
-                    }
+
                 }
 
                 return false;
@@ -1091,18 +1089,18 @@ namespace OpenSim.Region.Communications.OGS1
 
         // helper to see if remote region is up
         bool m_bAvailable = false;
-        int timeOut = 15000; //15 seconds
+        int timeOut = 10; //10 seconds
 
-        public void checkRegion(string address, uint port)
+        public void CheckRegion(string address, uint port)
         {
+            m_bAvailable = false;
             IPAddress ia = null;
             IPAddress.TryParse(address, out ia);
             IPEndPoint m_EndPoint = new IPEndPoint(ia, (int)port);
             AsyncCallback ConnectedMethodCallback = new AsyncCallback(ConnectedMethod);
             Socket socket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
             IAsyncResult ar = socket.BeginConnect(m_EndPoint, ConnectedMethodCallback, socket);
-            ar.AsyncWaitHandle.WaitOne(timeOut, false);
-            socket.Close();
+            ar.AsyncWaitHandle.WaitOne(timeOut*1000, false);
         }
 
         public bool Available

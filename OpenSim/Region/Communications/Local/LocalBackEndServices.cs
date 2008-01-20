@@ -47,6 +47,18 @@ namespace OpenSim.Region.Communications.Local
 
         public string _gdebugRegionName = System.String.Empty;
 
+        bool m_bAvailable=true;
+
+        public void CheckRegion(string address, uint port)
+        {
+            m_bAvailable = true;
+        }
+
+        public bool Available
+        {
+            get { return m_bAvailable; }
+        }
+
         public string gdebugRegionName
         {
             get { return _gdebugRegionName; }
