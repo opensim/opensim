@@ -106,12 +106,6 @@ namespace OpenSim.Framework
         void UpdateUserCurrentRegion(LLUUID avatarid, LLUUID regionuuid);
 
         /// <summary>
-        /// Log User Off
-        /// </summary>
-        /// <param name="avatarid">avatar to log off</param>
-        void LogOffUser(LLUUID avatarid);
-
-        /// <summary>
         /// Adds a new agent to the database
         /// </summary>
         /// <param name="agent">The agent to add</param>

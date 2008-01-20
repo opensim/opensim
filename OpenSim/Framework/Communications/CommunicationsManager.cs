@@ -163,6 +163,19 @@ namespace OpenSim.Framework.Communications
         {
             m_userService.AddNewUserFriend(friendlistowner, friend, perms);
         }
+        /// <summary>
+        /// Logs off a user and does the appropriate communications
+        /// </summary>
+        /// <param name="userid"></param>
+        /// <param name="regionid"></param>
+        /// <param name="regionhandle"></param>
+        /// <param name="posx"></param>
+        /// <param name="posy"></param>
+        /// <param name="posz"></param>
+        public void LogOffUser(LLUUID userid, LLUUID regionid, ulong regionhandle, float posx, float posy, float posz)
+        {
+            m_userService.LogOffUser(userid, regionid, regionhandle, posx, posy, posz);
+        }
 
         /// <summary>
         /// Delete friend on friendlistowner's friendlist.

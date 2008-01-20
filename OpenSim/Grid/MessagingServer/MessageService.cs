@@ -388,7 +388,7 @@ namespace OpenSim.Grid.MessagingServer
             LLUUID AgentID = new LLUUID((string)requestData["agent_id"]);
 
 
-            ProcessLogOff(AgentID);
+            //ProcessLogOff(AgentID);
 
 
             return new XmlRpcResponse();

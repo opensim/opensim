@@ -130,7 +130,31 @@ namespace OpenSim.Region.Communications.OGS1
             
             return buddylist;
         }
-        
+
+        /// <summary>
+        /// Logs off a user on the user server
+        /// </summary>
+        /// <param name="UserID">UUID of the user</param>
+        /// <param name="regionData">UUID of the Region</param>
+        /// <param name="posx">final position x</param>
+        /// <param name="posy">final position y</param>
+        /// <param name="posz">final position z</param>
+        public void LogOffUser(LLUUID userid, LLUUID regionid, ulong regionhandle, float posx, float posy, float posz)
+        {
+            Hashtable param = new Hashtable();
+            param["avatar_uuid"] = userid.UUID.ToString();
+            param["region_uuid"] = regionid.UUID.ToString();
+            param["region_handle"] = regionhandle.ToString();
+            param["region_pos_x"] = posx.ToString();
+            param["region_pos_y"] = posy.ToString();
+            param["region_pos_z"] = posz.ToString();
+
+            IList parameters = new ArrayList();
+            parameters.Add(param);
+            XmlRpcRequest req = new XmlRpcRequest("logout_of_simulator", parameters);
+            XmlRpcResponse resp = req.Send(m_parent.NetworkServersInfo.UserURL, 3000);
+
+        }
         public UserProfileData GetUserProfile(string firstName, string lastName)
         {
             return GetUserProfile(firstName + " " + lastName);

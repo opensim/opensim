@@ -73,6 +73,16 @@ namespace OpenSim.Framework
         void UpdateUserFriendPerms(LLUUID friendlistowner, LLUUID friend, uint perms);
 
         /// <summary>
+        /// Logs off a user on the user server
+        /// </summary>
+        /// <param name="UserID">UUID of the user</param>
+        /// <param name="regionData">UUID of the Region</param>
+        /// <param name="posx">final position x</param>
+        /// <param name="posy">final position y</param>
+        /// <param name="posz">final position z</param>
+        void LogOffUser(LLUUID userid, LLUUID regionid, ulong regionhandle, float posx, float posy, float posz);
+
+        /// <summary>
         /// Returns a list of FriendsListItems that describe the friends and permissions in the friend relationship for LLUUID friendslistowner
         /// </summary>
         /// <param name="friendlistowner">The agent that we're retreiving the friends Data.</param>

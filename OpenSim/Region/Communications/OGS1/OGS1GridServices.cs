@@ -375,6 +375,9 @@ namespace OpenSim.Region.Communications.OGS1
             return neighbours;
         }
 
+
+        
+
         /// <summary>
         /// Performs a XML-RPC query against the grid server returning mapblock information in the specified coordinates
         /// </summary>

@@ -317,6 +317,43 @@ namespace OpenSim.Grid.UserServer
             return ProfileToXmlRPCResponse(userProfile);
         }
 
+        public XmlRpcResponse XmlRPCLogOffUserMethodUUID(XmlRpcRequest request)
+        {
+            XmlRpcResponse response = new XmlRpcResponse();
+            Hashtable requestData = (Hashtable)request.Params[0];
+            
+            
+            UserProfileData userProfile;
+
+            if (requestData.Contains("avatar_uuid"))
+            {
+                try
+                {
+                    LLUUID userUUID = new LLUUID((string)requestData["avatar_uuid"]);
+                    LLUUID RegionID = new LLUUID((string)requestData["region_uuid"]);
+                    ulong regionhandle = (ulong)Convert.ToInt64((string)requestData["region_handle"]);
+                    float posx = (float)Convert.ToDecimal((string)requestData["region_pos_x"]);
+                    float posy = (float)Convert.ToDecimal((string)requestData["region_pos_y"]);
+                    float posz = (float)Convert.ToDecimal((string)requestData["region_pos_z"]);
+                    
+                    LogOffUser(userUUID, RegionID, regionhandle, posx, posy, posz);
+                }
+                catch (FormatException)
+                {
+                    OpenSim.Framework.Console.MainLog.Instance.Warn("LOGOUT", "Error in Logout XMLRPC Params");
+                    return response;
+                }
+
+            }
+            else
+            {
+                return CreateUnknownUserErrorResponse();
+            }
+
+
+            return response;
+        }
+
         #endregion
 
         public override UserProfileData SetupMasterUser(string firstName, string lastName)

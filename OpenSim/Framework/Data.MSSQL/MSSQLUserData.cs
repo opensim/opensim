@@ -129,10 +129,7 @@ namespace OpenSim.Framework.Data.MSSQL
             MainLog.Instance.Verbose("USER", "Stub UpdateUserCUrrentRegion called");
         }
 
-        public void LogOffUser(LLUUID avatarid)
-        {
-            MainLog.Instance.Verbose("USER", "Stub LogOffUser called");
-        }
+ 
 
         public List<Framework.AvatarPickerAvatar> GeneratePickerResults(LLUUID queryID, string query)
         {

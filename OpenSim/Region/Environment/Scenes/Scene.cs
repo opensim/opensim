@@ -1285,6 +1285,9 @@ namespace OpenSim.Region.Environment.Scenes
                 else
                 {
                     m_innerScene.removeUserCount(true);
+                    CommsManager.LogOffUser(agentID, RegionInfo.RegionID, RegionInfo.RegionHandle, 
+                                                avatar.AbsolutePosition.X, avatar.AbsolutePosition.Y, 
+                                                avatar.AbsolutePosition.Z);
                 }
             }
             catch (NullReferenceException)

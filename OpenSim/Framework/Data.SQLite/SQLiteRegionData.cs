@@ -188,9 +188,9 @@ namespace OpenSim.Framework.Data.SQLite
                     }
                     else if (prim.Stopped)
                     {
-                        MainLog.Instance.Verbose("DATASTORE",
-                                                 "Adding stopped obj: " + obj.UUID + " to region: " + regionUUID);
-                        addPrim(prim, Util.ToRawUuidString(obj.UUID), Util.ToRawUuidString(regionUUID));
+                        //MainLog.Instance.Verbose("DATASTORE",
+                                                 //"Adding stopped obj: " + obj.UUID + " to region: " + regionUUID);
+                        //addPrim(prim, Util.ToRawUuidString(obj.UUID), Util.ToRawUuidString(regionUUID));
                     }
                     else
                     {

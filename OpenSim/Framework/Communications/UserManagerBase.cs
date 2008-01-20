@@ -411,7 +411,44 @@ namespace OpenSim.Framework.UserManagement
 
             profile.currentAgent = agent;
         }
+        public void LogOffUser(LLUUID userid, LLUUID regionid, ulong regionhandle, float posx, float posy, float posz)
+        {
+            UserProfileData userProfile;
+            UserAgentData userAgent;
+            LLVector3 currentPos = new LLVector3(posx, posy, posz);
 
+            userProfile = GetUserProfile(userid);
+
+            if (userProfile != null)
+            {
+                
+                userAgent = userProfile.currentAgent;
+                if (userAgent != null)
+                {
+                    userAgent.agentOnline = false;
+                    userAgent.logoutTime = Util.UnixTimeSinceEpoch();
+                    userAgent.sessionID = LLUUID.Zero;
+                    userAgent.currentRegion = regionid;
+                    userAgent.currentHandle = regionhandle;
+
+                    userAgent.currentPos = currentPos;
+
+                    userProfile.currentAgent = userAgent;
+
+
+                    CommitAgent(ref userProfile);
+                }
+                else
+                {
+                    MainLog.Instance.Verbose("LOGOUT", "didn't save logout position, currentAgent is null *do Fix ");
+                }
+                MainLog.Instance.Verbose("LOGOUT", userProfile.username + " " + userProfile.surname);
+            }
+            else
+            {
+                MainLog.Instance.Warn("LOGOUT", "Unknown User logged out");
+            }
+        }
         public void CreateAgent(UserProfileData profile, LLSD request)
         {
             UserAgentData agent = new UserAgentData();
