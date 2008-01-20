@@ -335,8 +335,12 @@ namespace OpenSim.Region.Environment.Scenes
                         m_neighbours.Add(otherRegion);
                     }
                 }
-                if ((Math.Abs(otherRegion.RegionLocX - RegionInfo.RegionLocX) <= 1) &&
-                    (Math.Abs(otherRegion.RegionLocY - RegionInfo.RegionLocY) <= 1))
+                // If these are cast to INT because long + negative values + abs returns invalid data
+
+                int resultX = Math.Abs((int)otherRegion.RegionLocX - (int)RegionInfo.RegionLocX);
+                int resultY = Math.Abs((int)otherRegion.RegionLocY - (int)RegionInfo.RegionLocY);
+                if ((resultX <= 1) &&
+                    ( resultY <= 1))
                 {
                     try
                     {
