@@ -1010,8 +1010,18 @@ namespace OpenSim.Region.Environment.Scenes
         /// </summary>
         protected void SetMovementAnimation(LLUUID anim, int seq)
         {
-            if (m_animations[0] != anim)
+            try
             {
+                if (m_animations[0] != anim)
+                {
+                    m_animations[0] = anim;
+                    m_animationSeqs[0] = seq;
+                    SendAnimPack();
+                }
+            }
+            catch
+            {
+                MainLog.Instance.Warn("AVATAR", "SetMovementAnimation for avatar failed. Attempting recovery...");
                 m_animations[0] = anim;
                 m_animationSeqs[0] = seq;
                 SendAnimPack();
