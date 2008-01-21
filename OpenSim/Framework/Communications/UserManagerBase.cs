@@ -442,7 +442,8 @@ namespace OpenSim.Framework.UserManagement
                 {
                     MainLog.Instance.Verbose("LOGOUT", "didn't save logout position, currentAgent is null *do Fix ");
                 }
-                MainLog.Instance.Verbose("LOGOUT", userProfile.username + " " + userProfile.surname);
+                MainLog.Instance.Verbose("LOGOUT", userProfile.username + " " + userProfile.surname + " from " + regionhandle + "(" + posx + "," + posy + "," + posz + ")" );
+                MainLog.Instance.Verbose("LOGOUT", "userid: " + userid.ToString() + "   regionid: " + regionid.ToString() );
             }
             else
             {
