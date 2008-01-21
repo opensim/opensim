@@ -491,7 +491,8 @@ namespace OpenSim.Region.Communications.OGS1
             InterRegionSingleton.Instance.OnPrimGroupNear += TriggerExpectPrimCrossing;
             InterRegionSingleton.Instance.OnRegionUp += TriggerRegionUp;
             InterRegionSingleton.Instance.OnChildAgentUpdate += TriggerChildAgentUpdate;
-            //InterRegionSingleton.Instance.OnRegionUp += RegionUp;
+            InterRegionSingleton.Instance.OnTellRegionToCloseChildConnection += TriggerTellRegionToCloseChildConnection;
+            
         }
 
         #region Methods called by regions in this instance
@@ -959,8 +960,53 @@ namespace OpenSim.Region.Communications.OGS1
             }
         }
 
-        public void TellRegionToCloseChildConnection(ulong regionHandle, LLUUID agentID)
+        public bool TellRegionToCloseChildConnection(ulong regionHandle, LLUUID agentID)
         {
+            RegionInfo regInfo = null;
+            try
+            {
+                if (m_localBackend.TriggerTellRegionToCloseChildConnection(regionHandle, agentID))
+                {
+                    return true;
+                }
+
+                regInfo = RequestNeighbourInfo(regionHandle);
+                if (regInfo != null)
+                {
+                    bool retValue = false;
+                    OGS1InterRegionRemoting remObject = (OGS1InterRegionRemoting)Activator.GetObject(
+                                                                                      typeof(OGS1InterRegionRemoting),
+                                                                                      "tcp://" + regInfo.RemotingAddress +
+                                                                                      ":" + regInfo.RemotingPort +
+                                                                                      "/InterRegions");
+                    if (remObject != null)
+                    {
+                        retValue =
+                            remObject.TellRegionToCloseChildConnection(regionHandle, agentID.UUID);
+                    }
+                    else
+                    {
+                        Console.WriteLine("remoting object not found");
+                    }
+                    remObject = null;
+
+                    return true;
+                }
+                //TODO need to see if we know about where this region is and use .net remoting 
+                // to inform it. 
+                return false;
+            }
+            catch (RemotingException e)
+            {
+                MainLog.Instance.Warn("Remoting Error: Unable to connect to adjacent region to tell it to close child agents: " + regInfo.RegionName +
+                                      " " + regInfo.RegionLocX + "," + regInfo.RegionLocY);
+                //MainLog.Instance.Debug(e.ToString());
+                return false;
+            }
+            catch
+            {
+                return false;
+            }
         }
 
         public bool AcknowledgeAgentCrossed(ulong regionHandle, LLUUID agentId)
@@ -1084,6 +1130,20 @@ namespace OpenSim.Region.Communications.OGS1
                 MainLog.Instance.Error("Remoting Error: Unable to connect to adjacent region.\n" + e.ToString());
                 return false;
             }
+        }
+
+        public bool TriggerTellRegionToCloseChildConnection(ulong regionHandle, LLUUID agentID)
+        {
+            try
+            {
+                return m_localBackend.TriggerTellRegionToCloseChildConnection(regionHandle, agentID);
+            }
+            catch (RemotingException)
+            {
+                MainLog.Instance.Verbose("INTERREGION", "Remoting Error: Unable to connect to neighbour to tell it to close a child connection");
+                return false;
+            }
+
         }
 
         #endregion

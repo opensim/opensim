@@ -45,6 +45,7 @@ namespace OpenSim.Framework
         public event CloseAgentConnection OnCloseAgentConnection;
         public event RegionUp OnRegionUp;
         public event ChildAgentUpdate OnChildAgentUpdate;
+        
 
 
         public string debugRegionName = String.Empty;
@@ -139,12 +140,15 @@ namespace OpenSim.Framework
             return false;
         }
 
-        public virtual void TriggerCloseAgentConnection(ulong regionHandle, LLUUID agentID)
+        public virtual bool TriggerCloseAgentConnection(ulong regionHandle, LLUUID agentID)
         {
             if (OnCloseAgentConnection != null)
             {
                 OnCloseAgentConnection(regionHandle, agentID);
+                return true;
+
             }
+            return false;
         }
 
         /// <summary>
@@ -176,6 +180,14 @@ namespace OpenSim.Framework
                 OnNeighboursUpdate(neighbours);
                 return true;
             }
+
+            return false;
+        }
+
+        public bool TriggerTellRegionToCloseChildConnection(ulong regionHandle, LLUUID agentID)
+        {
+            if (OnCloseAgentConnection != null)
+                return OnCloseAgentConnection(regionHandle, agentID);
 
             return false;
         }

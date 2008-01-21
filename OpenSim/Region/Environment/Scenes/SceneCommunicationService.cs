@@ -51,6 +51,7 @@ namespace OpenSim.Region.Environment.Scenes
         public event PrimCrossing OnPrimCrossingIntoRegion;
         public event RegionUp OnRegionUp;
         public event ChildAgentUpdate OnChildAgentUpdate;
+        
 
 
         public KillObjectDelegate KillObject;
@@ -86,6 +87,7 @@ namespace OpenSim.Region.Environment.Scenes
                 regionCommsHost.OnCloseAgentConnection += CloseConnection;
                 regionCommsHost.OnRegionUp += newRegionUp;
                 regionCommsHost.OnChildAgentUpdate += ChildAgentUpdate;
+                
             }
             else
             {
@@ -160,12 +162,15 @@ namespace OpenSim.Region.Environment.Scenes
             }
         }
 
-        protected void CloseConnection(ulong regionHandle, LLUUID agentID)
+        protected bool CloseConnection(ulong regionHandle, LLUUID agentID)
         {
+            MainLog.Instance.Verbose("INTERREGION", "Incoming Agent Close Request for agent: " + agentID.ToString());
+            
             if (OnCloseAgentConnection != null)
             {
-                OnCloseAgentConnection(regionHandle, agentID);
+                return OnCloseAgentConnection(regionHandle, agentID);
             }
+            return false;
         }
 
         #endregion
@@ -366,6 +371,50 @@ namespace OpenSim.Region.Environment.Scenes
                           d);
         }
 
+        public delegate void SendCloseChildAgentDelegate( ScenePresence presence);
+
+        /// <summary>
+        /// This informs all neighboring regions about the settings of it's child agent.
+        /// Calls an asynchronous method to do so..  so it doesn't lag the sim.
+        /// 
+        /// This contains information, such as, Draw Distance, Camera location, Current Position, Current throttle settings, etc.
+        /// 
+        /// </summary>
+        private void SendCloseChildAgentAsync(ScenePresence presence)
+        {
+
+            foreach (ulong regionHandle in presence.KnownChildRegions)
+            {
+                bool regionAccepted = m_commsProvider.InterRegion.TellRegionToCloseChildConnection(regionHandle, presence.ControllingClient.AgentId);
+
+                if (regionAccepted)
+                {
+                    MainLog.Instance.Notice("INTERGRID", "Completed sending agent Close agent Request to neighbor");
+                    presence.RemoveNeighbourRegion(regionHandle);
+                }
+                else
+                {
+                    MainLog.Instance.Notice("INTERGRID", "Failed sending agent Close agent Request to neighbor");
+                    
+                }
+                
+            }
+        }
+
+        private void SendCloseChildAgentCompleted(IAsyncResult iar)
+        {
+            SendCloseChildAgentDelegate icon = (SendCloseChildAgentDelegate)iar.AsyncState;
+            icon.EndInvoke(iar);
+        }
+
+        public void SendCloseChildAgentConnections(ScenePresence presence)
+        {
+            // This assumes that we know what our neighbors are.
+            SendCloseChildAgentDelegate d = SendCloseChildAgentAsync;
+            d.BeginInvoke(presence,
+                          SendCloseChildAgentCompleted,
+                          d);
+        }
 
         /// <summary>
         /// Helper function to request neighbors from grid-comms
@@ -454,7 +503,7 @@ namespace OpenSim.Region.Environment.Scenes
                         uint oldRegionY = (((uint)(m_regionInfo.RegionHandle)) >> 8);
                         if (Util.fast_distance2d((int)(newRegionX - oldRegionX), (int)(newRegionY - oldRegionY)) > 3)
                         {
-                            CloseChildAgentConnections(avatar);
+                            SendCloseChildAgentConnections(avatar);
                         }
                     }
                     else
@@ -481,15 +530,6 @@ namespace OpenSim.Region.Environment.Scenes
             return m_commsProvider.InterRegion.ExpectPrimCrossing(regionhandle, primID, position, isPhysical);
         }
 
-        public void CloseChildAgentConnections(ScenePresence presence)
-        {
-            foreach (ulong regionHandle in presence.KnownChildRegions)
-            {
-                m_commsProvider.InterRegion.TellRegionToCloseChildConnection(regionHandle,
-                                                                             presence.ControllingClient.AgentId);
-                presence.RemoveNeighbourRegion(regionHandle);
-            }
-        }
 
         public Dictionary<string, string> GetGridSettings()
         {

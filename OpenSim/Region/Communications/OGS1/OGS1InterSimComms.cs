@@ -45,6 +45,8 @@ namespace OpenSim.Region.Communications.OGS1
 
     public delegate bool ChildAgentUpdate(ulong regionHandle, ChildAgentDataUpdate childUpdate);
 
+    public delegate bool TellRegionToCloseChildConnection(ulong regionHandle, LLUUID agentID);
+
     public sealed class InterRegionSingleton
     {
         private static readonly InterRegionSingleton instance = new InterRegionSingleton();
@@ -55,6 +57,8 @@ namespace OpenSim.Region.Communications.OGS1
         public event PrimGroupArrival OnPrimGroupArrival;
         public event RegionUp OnRegionUp;
         public event ChildAgentUpdate OnChildAgentUpdate;
+        public event TellRegionToCloseChildConnection OnTellRegionToCloseChildConnection;
+
 
 
         static InterRegionSingleton()
@@ -123,6 +127,16 @@ namespace OpenSim.Region.Communications.OGS1
             }
             return false;
         }
+
+        public bool TellRegionToCloseChildConnection(ulong regionHandle, LLUUID agentID)
+        {
+            if (OnTellRegionToCloseChildConnection != null)
+            {
+
+                return OnTellRegionToCloseChildConnection(regionHandle, agentID);
+            }
+            return false;
+        }
     }
 
     public class OGS1InterRegionRemoting : MarshalByRefObject
@@ -171,6 +185,7 @@ namespace OpenSim.Region.Communications.OGS1
             }
         }
 
+
         public bool ExpectAvatarCrossing(ulong regionHandle, Guid agentID, sLLVector3 position, bool isFlying)
         {
             try
@@ -212,6 +227,19 @@ namespace OpenSim.Region.Communications.OGS1
             catch (RemotingException e)
             {
                 Console.WriteLine("Remoting Error: Unable to connect to remote region.\n" + e.ToString());
+                return false;
+            }
+        }
+        public bool TellRegionToCloseChildConnection(ulong regionHandle, Guid agentID)
+        {
+            try
+            {
+                return InterRegionSingleton.Instance.TellRegionToCloseChildConnection(regionHandle, new LLUUID(agentID));
+
+            }
+            catch (RemotingException)
+            {
+                OpenSim.Framework.Console.MainLog.Instance.Verbose("INTERREGION", "Remoting Error: Unable to connect to remote region: " + regionHandle.ToString());
                 return false;
             }
         }

@@ -175,6 +175,7 @@ namespace OpenSim.Framework.Communications
         public void LogOffUser(LLUUID userid, LLUUID regionid, ulong regionhandle, float posx, float posy, float posz)
         {
             m_userService.LogOffUser(userid, regionid, regionhandle, posx, posy, posz);
+
         }
 
         /// <summary>

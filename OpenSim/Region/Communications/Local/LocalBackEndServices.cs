@@ -203,7 +203,14 @@ namespace OpenSim.Region.Communications.Local
             }
             return mapBlocks;
         }
-
+        public bool TellRegionToCloseChildConnection(ulong regionHandle, LLUUID agentID)
+        {
+            if (m_regionListeners.ContainsKey(regionHandle))
+            {
+                return m_regionListeners[regionHandle].TriggerTellRegionToCloseChildConnection(regionHandle, agentID);
+            }
+            return false;
+        }
 
         public virtual bool RegionUp(SearializableRegionInfo sregion, ulong regionhandle)
         {
@@ -267,6 +274,14 @@ namespace OpenSim.Region.Communications.Local
             return false;
         }
 
+        public bool TriggerTellRegionToCloseChildConnection(ulong regionHandle, LLUUID agentID)
+        {
+            if (m_regionListeners.ContainsKey(regionHandle))
+            {
+                return m_regionListeners[regionHandle].TriggerTellRegionToCloseChildConnection(regionHandle, agentID);
+            }
+            return false;
+        }
         /// <summary> 
         /// </summary>
         /// <param name="regionHandle"></param>
@@ -328,13 +343,7 @@ namespace OpenSim.Region.Communications.Local
             return false;
         }
 
-        public void TellRegionToCloseChildConnection(ulong regionHandle, LLUUID agentID)
-        {
-            if (m_regionListeners.ContainsKey(regionHandle))
-            {
-                m_regionListeners[regionHandle].TriggerCloseAgentConnection(regionHandle, agentID);
-            }
-        }
+       
 
         public bool AcknowledgeAgentCrossed(ulong regionHandle, LLUUID agentId)
         {

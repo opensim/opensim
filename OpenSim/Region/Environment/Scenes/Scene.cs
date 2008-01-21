@@ -1288,6 +1288,7 @@ namespace OpenSim.Region.Environment.Scenes
                     CommsManager.LogOffUser(agentID, RegionInfo.RegionID, RegionInfo.RegionHandle, 
                                                 avatar.AbsolutePosition.X, avatar.AbsolutePosition.Y, 
                                                 avatar.AbsolutePosition.Z);
+                    m_sceneGridService.SendCloseChildAgentConnections(avatar);
                 }
             }
             catch (NullReferenceException)
@@ -1389,6 +1390,7 @@ namespace OpenSim.Region.Environment.Scenes
             m_sceneGridService.OnCloseAgentConnection += CloseConnection;
             m_sceneGridService.OnRegionUp += OtherRegionUp;
             m_sceneGridService.OnChildAgentUpdate += IncomingChildAgentDataUpdate;
+            
 
 
             m_sceneGridService.KillObject = SendKillObject;
@@ -1509,7 +1511,7 @@ namespace OpenSim.Region.Environment.Scenes
         /// </summary>
         /// <param name="regionHandle"></param>
         /// <param name="agentID"></param>
-        public void CloseConnection(ulong regionHandle, LLUUID agentID)
+        public bool CloseConnection(ulong regionHandle, LLUUID agentID)
         {
             if (regionHandle == m_regionHandle)
             {
@@ -1527,8 +1529,10 @@ namespace OpenSim.Region.Environment.Scenes
                     // Tell a single agent to disconnect from the region.
                     libsecondlife.Packets.DisableSimulatorPacket disable = (libsecondlife.Packets.DisableSimulatorPacket) PacketPool.Instance.GetPacket(libsecondlife.Packets.PacketType.DisableSimulator);
                     presence.ControllingClient.OutPacket(disable, ThrottleOutPacketType.Task);
+                    presence.ControllingClient.Close(true);
                 }
             }
+            return true;
         }
 
         /// <summary>

@@ -45,6 +45,6 @@ namespace OpenSim.Framework.Communications
         bool AcknowledgeAgentCrossed(ulong regionHandle, LLUUID agentId);
         bool AcknowledgePrimCrossed(ulong regionHandle, LLUUID primID);
 
-        void TellRegionToCloseChildConnection(ulong regionHandle, LLUUID agentID);
+        bool TellRegionToCloseChildConnection(ulong regionHandle, LLUUID agentID);
     }
 }
