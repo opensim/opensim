@@ -216,11 +216,13 @@ namespace OpenSim.Region.Environment.Scenes
         }
         
         /// <summary>
-        /// Add a whole collection of items to the prim's inventory at once.  We assume that the items already
-        /// have all their fields correctly filled out.
+        /// Restore a whole collection of items to the prim's inventory at once.  
+        /// We assume that the items already have all their fields correctly filled out.
+        /// The items are not flagged for persistence to the database, since they are being restored 
+        /// from persistence rather than being newly added.
         /// </summary>
         /// <param name="items"></param>
-        public void AddInventoryItems(ICollection<TaskInventoryItem> items)
+        public void RestoreInventoryItems(ICollection<TaskInventoryItem> items)
         {
             lock (m_taskInventory)
             {                 
