@@ -485,8 +485,10 @@ namespace OpenSim.Region.ScriptEngine.Common
                 m_host.UpdateTexture(tex);
                 return;
             }
-            NotImplemented("llSetColor");
-            return;
+            else
+            {
+                NotImplemented("llSetColor");
+            }
         }
 
         public double llGetAlpha(int face)
@@ -532,8 +534,10 @@ namespace OpenSim.Region.ScriptEngine.Common
                 m_host.UpdateTexture(tex);
                 return;
             }
-            NotImplemented("llSetAlpha");
-            return;
+            else
+            {
+                NotImplemented("llSetAlpha");
+            }
         }
 
         public LSL_Types.Vector3 llGetColor(int face)
@@ -557,8 +561,11 @@ namespace OpenSim.Region.ScriptEngine.Common
                 rgb.z = (255 - (texcolor.B * 255)) / 255;
                 return rgb;
             }
-            NotImplemented("llGetColor");
-            return new LSL_Types.Vector3();
+            else
+            {
+                NotImplemented("llGetColor");
+                return new LSL_Types.Vector3();
+            }
         }
 
         public void llSetTexture(string texture, int face)
@@ -586,8 +593,10 @@ namespace OpenSim.Region.ScriptEngine.Common
                 m_host.UpdateTexture(tex);
                 return;
             }
-            NotImplemented("llSetTexture");
-            return;
+            else
+            {
+                NotImplemented("llSetTexture");
+            }
         }
 
         public void llScaleTexture(double u, double v, int face)
@@ -617,8 +626,10 @@ namespace OpenSim.Region.ScriptEngine.Common
                 m_host.UpdateTexture(tex);
                 return;
             }
-            NotImplemented("llScaleTexture");
-            return;
+            else
+            {
+                NotImplemented("llScaleTexture");
+            }
         }
 
         public void llOffsetTexture(double u, double v, int face)
@@ -648,8 +659,10 @@ namespace OpenSim.Region.ScriptEngine.Common
                 m_host.UpdateTexture(tex);
                 return;
             }
-            NotImplemented("llOffsetTexture");
-            return;
+            else
+            {
+                NotImplemented("llOffsetTexture");
+            }
         }
 
         public void llRotateTexture(double rotation, int face)
@@ -676,8 +689,10 @@ namespace OpenSim.Region.ScriptEngine.Common
                 m_host.UpdateTexture(tex);
                 return;
             }
-            NotImplemented("llRotateTexture");
-            return;
+            else
+            {
+                NotImplemented("llRotateTexture");
+            }
         }
 
         public string llGetTexture(int face)
@@ -693,8 +708,11 @@ namespace OpenSim.Region.ScriptEngine.Common
                 texface = tex.GetFace((uint)face);
                 return texface.TextureID.ToString();
             }
-            NotImplemented("llGetTexture");
-            return String.Empty;
+            else
+            {
+                NotImplemented("llGetTexture");
+                return String.Empty;
+            }
         }
 
         public void llSetPos(LSL_Types.Vector3 pos)
