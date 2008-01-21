@@ -44,8 +44,26 @@ namespace OpenSim.Region.Environment.Interfaces
         /// <param name="persistPrimInventories">Temporary switch while this option is immature</param>
         void Initialise(string filename, bool persistPrimInventories);
 
+        /// <summary>
+        /// Stores all object's details apart from inventory
+        /// </summary>
+        /// <param name="obj"></param>
+        /// <param name="regionUUID"></param>
         void StoreObject(SceneObjectGroup obj, LLUUID regionUUID);
+        
+        /// <summary>
+        /// Entirely removes the object, including inventory
+        /// </summary>
+        /// <param name="uuid"></param>
+        /// <param name="regionUUID"></param>
+        /// <returns></returns>
         void RemoveObject(LLUUID uuid, LLUUID regionUUID);
+        
+        /// <summary>
+        /// Store a prim's inventory
+        /// </summary>
+        /// <returns></returns>
+        void StorePrimInventory(LLUUID primID, IDictionary<LLUUID, TaskInventoryItem> items);
 
         List<SceneObjectGroup> LoadObjects(LLUUID regionUUID);
 

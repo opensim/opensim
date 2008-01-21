@@ -179,13 +179,6 @@ namespace OpenSim.Region.Environment.Scenes
                 taskItem.InvType = item.invType;
                 part.AddInventoryItem(taskItem);
                 
-                // It might seem somewhat crude to update the whole group for a single prim inventory change,
-                // but it's possible that other prim inventory changes will take place before the region 
-                // persistence thread visits this object.  In the future, changes can be signalled at a more
-                // granular level, or we could let the datastore worry about whether prims have really 
-                // changed since they were last persisted.
-                HasGroupChanged = true;
-                
                 return true;
             }
             else
@@ -234,14 +227,7 @@ namespace OpenSim.Region.Environment.Scenes
             SceneObjectPart part = GetChildPart(item.ParentPartID);
             if (part != null)
             {
-                part.UpdateInventoryItem(item);
-
-                // It might seem somewhat crude to update the whole group for a single prim inventory change,
-                // but it's possible that other prim inventory changes will take place before the region 
-                // persistence thread visits this object.  In the future, changes can be signalled at a more
-                // granular level, or we could let the datastore worry about whether prims have really 
-                // changed since they were last persisted.
-                HasGroupChanged = true;                
+                part.UpdateInventoryItem(item);              
                 
                 return true;
             }
@@ -262,13 +248,6 @@ namespace OpenSim.Region.Environment.Scenes
             if (part != null)
             {                
                 int type = part.RemoveInventoryItem(itemID);
-                
-                // It might seem somewhat crude to update the whole group for a single prim inventory change,
-                // but it's possible that other prim inventory changes will take place before the region 
-                // persistence thread visits this object.  In the future, changes can be signalled at a more
-                // granular level, or we could let the datastore worry about whether prims have really 
-                // changed since they were last persisted.
-                HasGroupChanged = true;
                 
                 return type;
             }

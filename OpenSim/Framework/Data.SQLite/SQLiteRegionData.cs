@@ -1248,22 +1248,15 @@ namespace OpenSim.Framework.Data.SQLite
             {
                 fillShapeRow(shapeRow, prim);
             }
-            
-            if (persistPrimInventories)
-            {
-                addPrimInventory(prim.UUID, prim.TaskInventory);
-            }
         }
         
-        /// <summary>
-        /// Persist prim inventory.  Deletes, updates and inserts rows.
-        /// </summary>
-        /// <param name="primID"></param>
-        /// <param name="items"></param>
-        /// <returns></returns>
-        private void addPrimInventory(LLUUID primID, IDictionary<LLUUID, TaskInventoryItem> items)
+        // see IRegionDatastore
+        public void StorePrimInventory(LLUUID primID, IDictionary<LLUUID, TaskInventoryItem> items)
         {
-            MainLog.Instance.Verbose("DATASTORE", "Entered addPrimInventory with prim ID {0}", primID);
+            if (!persistPrimInventories)
+                return;
+            
+            MainLog.Instance.Verbose("DATASTORE", "Entered StorePrimInventory with prim ID {0}", primID);
             
             // Find all existing inventory rows for this prim
             DataTable dbItems = ds.Tables["primitems"];

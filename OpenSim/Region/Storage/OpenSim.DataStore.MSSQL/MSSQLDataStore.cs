@@ -752,6 +752,12 @@ namespace OpenSim.DataStore.MSSQL
                 fillShapeRow(shapeRow, prim);
             }
         }
+        
+        // see IRegionDatastore
+        public void StorePrimInventory(LLUUID primID, IDictionary<LLUUID, TaskInventoryItem> items)
+        {
+            // No implementation yet
+        }
 
         /***********************************************************************
          *

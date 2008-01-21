@@ -156,9 +156,9 @@ namespace OpenSim.Framework.Data.MySQL
                         // MainLog.Instance.Verbose("DATASTORE", "Ignoring Physical obj: " + obj.UUID + " in region: " + regionUUID);
                     }
                 }
+            }
 
             Commit();
-            }
         }
 
         public void RemoveObject(LLUUID obj, LLUUID regionUUID)
@@ -198,9 +198,9 @@ namespace OpenSim.Framework.Data.MySQL
                     // Remove prim row
                     row.Delete();
                 }
+            }
 
             Commit();
-            }
         }
 
         /// <summary>
@@ -215,83 +215,76 @@ namespace OpenSim.Framework.Data.MySQL
             DataTable prims = m_primTable;
             DataTable shapes = m_shapeTable;
 
-            try
+            string byRegion = "RegionUUID = '" + Util.ToRawUuidString(regionUUID) + "'";
+            string orderByParent = "ParentID ASC";
+
+            lock (m_dataSet)
             {
-                string byRegion = "RegionUUID = '" + Util.ToRawUuidString(regionUUID) + "'";
-                string orderByParent = "ParentID ASC";
+                DataRow[] primsForRegion = prims.Select(byRegion, orderByParent);
+                MainLog.Instance.Verbose("DATASTORE",
+                                         "Loaded " + primsForRegion.Length + " prims for region: " + regionUUID);
 
-                lock (m_dataSet)
+                foreach (DataRow primRow in primsForRegion)
                 {
-                    DataRow[] primsForRegion = prims.Select(byRegion, orderByParent);
-                    MainLog.Instance.Verbose("DATASTORE",
-                                             "Loaded " + primsForRegion.Length + " prims for region: " + regionUUID);
-
-                    foreach (DataRow primRow in primsForRegion)
+                    try                        
                     {
-                        try
+                        string uuid = (string) primRow["UUID"];
+                        string objID = (string) primRow["SceneGroupID"];
+                        
+                        SceneObjectPart prim = buildPrim(primRow);
+                        
+                        if (uuid == objID) //is new SceneObjectGroup ?
                         {
-                            string uuid = (string)primRow["UUID"];
-                            string objID = (string)primRow["SceneGroupID"];
-
-                            SceneObjectPart prim = buildPrim(primRow);
-
-                            if (uuid == objID) //is new SceneObjectGroup ?
+                            SceneObjectGroup group = new SceneObjectGroup();
+                            
+                            DataRow shapeRow = shapes.Rows.Find(Util.ToRawUuidString(prim.UUID));
+                            if (shapeRow != null)
                             {
-                                SceneObjectGroup group = new SceneObjectGroup();
-
-                                DataRow shapeRow = shapes.Rows.Find(Util.ToRawUuidString(prim.UUID));
-                                if (shapeRow != null)
-                                {
-                                    prim.Shape = buildShape(shapeRow);
-                                }
-                                else
-                                {
-                                    MainLog.Instance.Notice(
-                                        "No shape found for prim in storage, so setting default box shape");
-                                    prim.Shape = PrimitiveBaseShape.Default;
-                                }
-                                group.AddPart(prim);
-                                group.RootPart = prim;
-
-                                createdObjects.Add(group.UUID, group);
-                                retvals.Add(group);
+                                prim.Shape = buildShape(shapeRow);
                             }
                             else
                             {
-                                DataRow shapeRow = shapes.Rows.Find(Util.ToRawUuidString(prim.UUID));
-                                if (shapeRow != null)
-                                {
-                                    prim.Shape = buildShape(shapeRow);
-                                }
-                                else
-                                {
-                                    MainLog.Instance.Notice(
-                                        "No shape found for prim in storage, so setting default box shape");
-                                    prim.Shape = PrimitiveBaseShape.Default;
-                                }
-                                createdObjects[new LLUUID(objID)].AddPart(prim);
+                                MainLog.Instance.Notice(
+                                    "No shape found for prim in storage, so setting default box shape");
+                                prim.Shape = PrimitiveBaseShape.Default;
                             }
+                            group.AddPart(prim);
+                            group.RootPart = prim;
 
-                            if (persistPrimInventories)
-                            {
-                                LoadItems(prim);
-                            }
+                            createdObjects.Add(group.UUID, group);
+                            retvals.Add(group);
                         }
-                        catch (Exception e)
+                        else
                         {
-                            MainLog.Instance.Error("DATASTORE", "Failed create prim object, exception and data follows");
-                            MainLog.Instance.Verbose("DATASTORE", e.ToString());
-                            foreach (DataColumn col in prims.Columns)
+                            DataRow shapeRow = shapes.Rows.Find(Util.ToRawUuidString(prim.UUID));
+                            if (shapeRow != null)
                             {
-                                MainLog.Instance.Verbose("DATASTORE", "Col: " + col.ColumnName + " => " + primRow[col]);
+                                prim.Shape = buildShape(shapeRow);
                             }
+                            else
+                            {
+                                MainLog.Instance.Notice(
+                                    "No shape found for prim in storage, so setting default box shape");
+                                prim.Shape = PrimitiveBaseShape.Default;
+                            }
+                            createdObjects[new LLUUID(objID)].AddPart(prim);
+                        }
+                        
+                        if (persistPrimInventories)
+                        {
+                            LoadItems(prim);
+                        }                        
+                    }
+                    catch (Exception e)
+                    {
+                        MainLog.Instance.Error("DATASTORE", "Failed create prim object, exception and data follows");
+                        MainLog.Instance.Verbose("DATASTORE", e.ToString());
+                        foreach (DataColumn col in prims.Columns)
+                        {
+                            MainLog.Instance.Verbose("DATASTORE", "Col: " + col.ColumnName + " => " + primRow[col]);
                         }
                     }
                 }
-            }
-            catch (Exception ex)
-            {
-                MainLog.Instance.Error("DATASTORE", "Exception trying to load prim objects for region " + regionUUID + ": " + ex.ToString());
             }
             return retvals;
         }
@@ -416,8 +409,6 @@ namespace OpenSim.Framework.Data.MySQL
 
         public void StoreLandObject(Land parcel, LLUUID regionUUID)
         {
-            MainLog.Instance.Verbose("DATASTORE", "Tedds temp fix: Waiting 3 seconds for stuff to catch up. (Someone please fix! :))");
-            System.Threading.Thread.Sleep(3000);
             lock (m_dataSet)
             {
                 DataTable land = m_landTable;
@@ -449,9 +440,9 @@ namespace OpenSim.Framework.Data.MySQL
                     fillLandAccessRow(newAccessRow, entry, parcel.landData.globalID);
                     landaccesslist.Rows.Add(newAccessRow);
                 }
+            }
 
             Commit();
-            }
         }
 
         public List<LandData> LoadLandObjects(LLUUID regionUUID)
@@ -519,6 +510,8 @@ namespace OpenSim.Framework.Data.MySQL
                 m_connection.Open();
             }
 
+            lock (m_dataSet)
+            {
                 // DisplayDataSet(m_dataSet, "Region DataSet");
 
                 m_primDataAdapter.Update(m_primTable);
@@ -528,20 +521,18 @@ namespace OpenSim.Framework.Data.MySQL
                 {
                     m_itemsDataAdapter.Update(m_itemsTable);
                 }
-
+                
                 m_terrainDataAdapter.Update(m_terrainTable);
                 m_landDataAdapter.Update(m_landTable);
                 m_landAccessListDataAdapter.Update(m_landAccessListTable);
 
                 m_dataSet.AcceptChanges();
+            }
         }
 
         public void Shutdown()
         {
-            lock (m_dataSet)
-            {
-                Commit();
-            }
+            Commit();
         }
 
         /***********************************************************************
@@ -1201,23 +1192,16 @@ namespace OpenSim.Framework.Data.MySQL
             else
             {
                 fillShapeRow(shapeRow, prim);
-            }
-            
-            if (persistPrimInventories)
-            {
-                addPrimInventory(prim.UUID, prim.TaskInventory);
-            }            
+            }           
         }
         
-        /// <summary>
-        /// Persist prim inventory.  Deletes, updates and inserts rows.
-        /// </summary>
-        /// <param name="primID"></param>
-        /// <param name="items"></param>
-        /// <returns></returns>
-        private void addPrimInventory(LLUUID primID, IDictionary<LLUUID, TaskInventoryItem> items)
+        // see IRegionDatastore
+        public void StorePrimInventory(LLUUID primID, IDictionary<LLUUID, TaskInventoryItem> items)
         {
-            MainLog.Instance.Verbose("DATASTORE", "Entered addPrimInventory with prim ID {0}", primID);
+            if (!persistPrimInventories)
+                return;
+                     
+            MainLog.Instance.Verbose("DATASTORE", "Entered StorePrimInventory with prim ID {0}", primID);
             
             // Find all existing inventory rows for this prim
             DataTable dbItems = m_itemsTable;
@@ -1585,12 +1569,10 @@ namespace OpenSim.Framework.Data.MySQL
             {
                 pDa.Fill(tmpDS, "prims");
                 sDa.Fill(tmpDS, "primshapes");
-
+                
                 if (persistPrimInventories)
-                {
                     iDa.Fill(tmpDS, "primitems");
-                }
-
+                
                 tDa.Fill(tmpDS, "terrain");
                 lDa.Fill(tmpDS, "land");
                 lalDa.Fill(tmpDS, "landaccesslist");
@@ -1603,12 +1585,10 @@ namespace OpenSim.Framework.Data.MySQL
 
             pDa.Fill(tmpDS, "prims");
             sDa.Fill(tmpDS, "primshapes");
-
+            
             if (persistPrimInventories)
-            {
                 iDa.Fill(tmpDS, "primitems");
-            }
-
+            
             tDa.Fill(tmpDS, "terrain");
             lDa.Fill(tmpDS, "land");
             lalDa.Fill(tmpDS, "landaccesslist");

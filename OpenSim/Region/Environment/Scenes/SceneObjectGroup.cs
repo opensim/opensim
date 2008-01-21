@@ -1492,6 +1492,8 @@ namespace OpenSim.Region.Environment.Scenes
                 datastore.StoreObject(this, m_scene.RegionInfo.RegionID);
                 HasGroupChanged = false;
             }
+            
+            ForEachPart(delegate(SceneObjectPart part) { part.ProcessInventoryBackup(datastore); });
         }
 
         #endregion
@@ -1704,9 +1706,12 @@ namespace OpenSim.Region.Environment.Scenes
 
         public void ForEachPart(Action<SceneObjectPart> whatToDo)
         {
-            foreach (SceneObjectPart part in m_parts.Values)
+            lock (m_parts)
             {
-                whatToDo(part);
+                foreach (SceneObjectPart part in m_parts.Values)
+                {
+                    whatToDo(part);
+                }
             }
         }
     }

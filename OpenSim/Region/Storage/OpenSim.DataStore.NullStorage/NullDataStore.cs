@@ -49,6 +49,11 @@ namespace OpenSim.DataStore.NullStorage
         public void RemoveObject(LLUUID obj, LLUUID regionUUID)
         {
         }
+        
+        // see IRegionDatastore
+        public void StorePrimInventory(LLUUID primID, IDictionary<LLUUID, TaskInventoryItem> items)
+        {
+        }        
 
         public List<SceneObjectGroup> LoadObjects(LLUUID regionUUID)
         {

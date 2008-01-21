@@ -82,6 +82,11 @@ namespace OpenSim.Region.Environment.Scenes
         }
         
         /// <summary>
+        /// Tracks whether inventory has changed since the last persistent backup
+        /// </summary>
+        private bool HasInventoryChanged;
+        
+        /// <summary>
         /// Reset LLUUIDs for all the items in the prim's inventory.  This involves either generating
         /// new ones or setting existing UUIDs to the correct parent UUIDs
         /// </summary>
@@ -207,6 +212,7 @@ namespace OpenSim.Region.Environment.Scenes
             }
             
             m_inventorySerial++;
+            HasInventoryChanged = true;
         }
         
         /// <summary>
@@ -224,7 +230,7 @@ namespace OpenSim.Region.Environment.Scenes
                     TriggerScriptChangedEvent(Changed.INVENTORY);
                 }
             }
-            
+                        
             m_inventorySerial++;
         }
         
@@ -268,6 +274,8 @@ namespace OpenSim.Region.Environment.Scenes
                     m_taskInventory[item.ItemID] = item;
                     m_inventorySerial++;
                     TriggerScriptChangedEvent(Changed.INVENTORY);
+                    
+                    HasInventoryChanged = true;
                   
                     return true;
                 }
@@ -299,6 +307,8 @@ namespace OpenSim.Region.Environment.Scenes
                     m_taskInventory.Remove(itemID);
                     m_inventorySerial++;
                     TriggerScriptChangedEvent(Changed.INVENTORY);
+                    
+                    HasInventoryChanged = true;
                     
                     return type;
                 }
@@ -380,6 +390,20 @@ namespace OpenSim.Region.Environment.Scenes
                 xferManager.AddNewFile(m_inventoryFileName, fileData);
             }
         }
+        
+        /// <summary>
+        /// Process inventory backup
+        /// </summary>
+        /// <param name="datastore"></param>
+        public void ProcessInventoryBackup(IRegionDataStore datastore)
+        {
+            if (HasInventoryChanged)
+            {
+                datastore.StorePrimInventory(UUID, TaskInventory);
+                
+                HasInventoryChanged = false;
+            }
+        }        
 
         public class InventoryStringBuilder
         {
