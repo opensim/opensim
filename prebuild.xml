@@ -102,6 +102,7 @@
       </Files>
     </Project>
 
+-->
     <Project name="OpenSim.Framework.Data" path="OpenSim/Framework/Data" type="Library">
       <Configuration name="Debug">
         <Options>
@@ -126,7 +127,7 @@
         <Match pattern="*.cs" recurse="true"/>
       </Files>
     </Project>
--->
+
     <Project name="OpenSim.Framework.Configuration.XML" path="OpenSim/Framework/Configuration/XML" type="Library">
       <Configuration name="Debug">
         <Options>
