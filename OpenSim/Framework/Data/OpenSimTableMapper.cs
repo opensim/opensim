@@ -1,4 +1,5 @@
 using System.Data;
+/*
 using TribalMedia.Framework.Data;
 
 namespace OpenSim.Framework.Data
@@ -10,3 +11,4 @@ namespace OpenSim.Framework.Data
         }
     }
 }
+*/

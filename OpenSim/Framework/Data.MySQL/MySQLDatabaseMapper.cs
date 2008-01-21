@@ -2,6 +2,7 @@ using System.Data.Common;
 using MySql.Data.MySqlClient;
 // using TribalMedia.Framework.Data;
 
+/*
 namespace OpenSim.Framework.Data.MySQL
 {
     public class MySQLDatabaseMapper : OpenSimDatabaseConnector
@@ -23,3 +24,4 @@ namespace OpenSim.Framework.Data.MySQL
         }
     }
 }
+*/

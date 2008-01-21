@@ -1,5 +1,6 @@
 using System.Data;
 using libsecondlife;
+/*
 using TribalMedia.Framework.Data;
 
 namespace OpenSim.Framework.Data
@@ -26,3 +27,4 @@ namespace OpenSim.Framework.Data
         }
     }
 }
+*/

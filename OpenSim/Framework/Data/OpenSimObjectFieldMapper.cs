@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Data.Common;
 using System.Text;
 using libsecondlife;
+/*
 using TribalMedia.Framework.Data;
 
 namespace OpenSim.Framework.Data
@@ -72,3 +73,4 @@ namespace OpenSim.Framework.Data
         }      
     }
 }
+*/
