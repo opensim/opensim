@@ -51,7 +51,7 @@ namespace OpenSim.DataStore.NullStorage
         }
         
         // see IRegionDatastore
-        public void StorePrimInventory(LLUUID primID, IDictionary<LLUUID, TaskInventoryItem> items)
+        public void StorePrimInventory(LLUUID primID, ICollection<TaskInventoryItem> items)
         {
         }        
 

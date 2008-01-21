@@ -63,7 +63,7 @@ namespace OpenSim.Region.Environment.Interfaces
         /// Store a prim's inventory
         /// </summary>
         /// <returns></returns>
-        void StorePrimInventory(LLUUID primID, IDictionary<LLUUID, TaskInventoryItem> items);
+        void StorePrimInventory(LLUUID primID, ICollection<TaskInventoryItem> items);
 
         List<SceneObjectGroup> LoadObjects(LLUUID regionUUID);
 

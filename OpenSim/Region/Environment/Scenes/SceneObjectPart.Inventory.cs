@@ -401,7 +401,10 @@ namespace OpenSim.Region.Environment.Scenes
         {
             if (HasInventoryChanged)
             {
-                datastore.StorePrimInventory(UUID, TaskInventory);
+                lock (TaskInventory)
+                {
+                    datastore.StorePrimInventory(UUID, TaskInventory.Values);
+                }
                 
                 HasInventoryChanged = false;
             }

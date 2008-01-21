@@ -754,7 +754,7 @@ namespace OpenSim.DataStore.MSSQL
         }
         
         // see IRegionDatastore
-        public void StorePrimInventory(LLUUID primID, IDictionary<LLUUID, TaskInventoryItem> items)
+        public void StorePrimInventory(LLUUID primID, ICollection<TaskInventoryItem> items)
         {
             // No implementation yet
         }

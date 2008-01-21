@@ -167,7 +167,6 @@ namespace OpenSim.Framework.Data.MySQL
 
             DataTable prims = m_primTable;
             DataTable shapes = m_shapeTable;
-            DataTable items = m_itemsTable;
 
             string selectExp = "SceneGroupID = '" + Util.ToRawUuidString(obj) + "'";
             lock (m_dataSet)
@@ -185,14 +184,7 @@ namespace OpenSim.Framework.Data.MySQL
                     
                     if (persistPrimInventories)
                     {                    
-                        // Remove items rows
-                        String sql = String.Format("primID = '{0}'", uuid);            
-                        DataRow[] itemRows = items.Select(sql);
-                
-                        foreach (DataRow itemRow in itemRows)
-                        {
-                            itemRow.Delete();
-                        }                    
+                        RemoveItems(uuid);
                     }
                     
                     // Remove prim row
@@ -203,6 +195,21 @@ namespace OpenSim.Framework.Data.MySQL
             Commit();
         }
 
+        /// <summary>
+        /// Remove all persisted items of the given prim.
+        /// The caller must acquire the necessrary synchronization locks and commit or rollback changes.
+        /// </summary>
+        private void RemoveItems(LLUUID uuid)
+        {
+            String sql = String.Format("primID = '{0}'", uuid);            
+            DataRow[] itemRows = m_itemsTable.Select(sql);
+    
+            foreach (DataRow itemRow in itemRows)
+            {
+                itemRow.Delete();
+            }
+        }
+        
         /// <summary>
         /// Load persisted objects from region storage.
         /// </summary>        
@@ -1196,83 +1203,34 @@ namespace OpenSim.Framework.Data.MySQL
         }
         
         // see IRegionDatastore
-        public void StorePrimInventory(LLUUID primID, IDictionary<LLUUID, TaskInventoryItem> items)
+        public void StorePrimInventory(LLUUID primID, ICollection<TaskInventoryItem> items)
         {
             if (!persistPrimInventories)
                 return;
                      
-            MainLog.Instance.Verbose("DATASTORE", "Entered StorePrimInventory with prim ID {0}", primID);
+            MainLog.Instance.Verbose("DATASTORE", "Persisting Prim Inventory with prim ID {0}", primID);
             
+            // For now, we're just going to crudely remove all the previous inventory items 
+            // no matter whether they have changed or not, and replace them with the current set.
             lock (m_dataSet)
-            {            
-                // Find all existing inventory rows for this prim
-                DataTable dbItems = m_itemsTable;
-    
-                String sql = String.Format("primID = '{0}'", primID);            
-                DataRow[] dbItemRows = dbItems.Select(sql);
+            {                              
+                RemoveItems(primID);              
                 
-                // Build structures for manipulation purposes
-                IDictionary<String, DataRow> dbItemsToRemove = new Dictionary<String, DataRow>();
-                ICollection<TaskInventoryItem> itemsToAdd = new List<TaskInventoryItem>();
-                
-                foreach (DataRow row in dbItemRows)
+                // repalce with current inventory details
+                foreach (TaskInventoryItem newItem in items)
                 {
-    //                MainLog.Instance.Verbose(
-    //                    "DATASTORE", 
-    //                    "Found item {0}, {1} in prim id {2}", 
-    //                    row["name"], row["itemID"], primID);
+//                    MainLog.Instance.Verbose(
+//                        "DATASTORE", 
+//                        "Adding item {0}, {1} to prim ID {2}", 
+//                        newItem.Name, newItem.ItemID, newItem.ParentPartID);
                     
-                    dbItemsToRemove.Add((String)row["itemID"], row);
-                }
-                
-                // Eliminate rows from the deletion set which already exist for this prim's inventory
-                // TODO Very temporary, need to take account of simple metadata changes soon
-                lock (items)
-                {
-                    foreach (LLUUID itemId in items.Keys)
-                    {
-                        String rawItemId = itemId.ToString();
-                        
-                        if (dbItemsToRemove.ContainsKey(rawItemId))
-                        {
-    //                        MainLog.Instance.Verbose(
-    //                            "DATASTORE", 
-    //                            "Discarding item {0}, {1} from remove candidates for prim id {2}", 
-    //                            items[itemId].Name, rawItemId, primID);
-                            
-                            dbItemsToRemove.Remove(rawItemId);
-                        }
-                        else
-                        {
-                            itemsToAdd.Add(items[itemId]);
-                        }
-                    }    
-                }
-                
-                // Delete excess rows
-                foreach (DataRow row in dbItemsToRemove.Values)
-                {
-                    MainLog.Instance.Verbose(
-                        "DATASTORE", 
-                        "Removing item {0}, {1} from prim ID {2}", 
-                        row["name"], row["itemID"], row["primID"]);
-                    
-                    row.Delete();
-                }
-                
-                // Insert items not already present 
-                foreach (TaskInventoryItem newItem in itemsToAdd)
-                {
-                    MainLog.Instance.Verbose(
-                        "DATASTORE", 
-                        "Adding item {0}, {1} to prim ID {2}", 
-                        newItem.Name, newItem.ItemID, newItem.ParentPartID);
-                    
-                    DataRow newItemRow = dbItems.NewRow();
+                    DataRow newItemRow = m_itemsTable.NewRow();
                     fillItemRow(newItemRow, newItem);
-                    dbItems.Rows.Add(newItemRow);                
+                    m_itemsTable.Rows.Add(newItemRow);                
                 }
             }
+            
+            Commit();
         }        
 
         /***********************************************************************
