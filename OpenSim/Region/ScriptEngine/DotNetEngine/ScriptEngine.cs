@@ -29,11 +29,7 @@
 using System;
 using Nini.Config;
 using OpenSim.Framework.Console;
-using OpenSim.Region.Environment.Interfaces;
 using OpenSim.Region.Environment.Scenes;
-using OpenSim.Region.ScriptEngine.Common;
-using OpenSim.Region.ScriptEngine.Common.ScriptEngineBase;
-using EventManager=OpenSim.Region.ScriptEngine.Common.ScriptEngineBase.EventManager;
 
 namespace OpenSim.Region.ScriptEngine.DotNetEngine
 {

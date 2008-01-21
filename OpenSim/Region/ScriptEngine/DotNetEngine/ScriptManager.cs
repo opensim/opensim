@@ -27,17 +27,11 @@
 */
 /* Original code: Tedd Hansen */
 using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Reflection;
-using System.Runtime.Serialization.Formatters.Binary;
-using System.Threading;
 using libsecondlife;
 using OpenSim.Framework;
 using OpenSim.Region.Environment.Scenes;
 using OpenSim.Region.ScriptEngine.Common;
 using OpenSim.Region.ScriptEngine.Common.ScriptEngineBase;
-using OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL;
 
 namespace OpenSim.Region.ScriptEngine.DotNetEngine
 {
@@ -86,7 +80,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
                 Console.WriteLine("Script " + itemID + " occupies {0} bytes", GC.GetTotalMemory(true) - before);
 #endif
 
-                CompiledScript.Source = ScriptSource;
+                CompiledScript.Source = Script;
                 // Add it to our script memstruct
                 SetScript(localID, itemID, CompiledScript);
 
