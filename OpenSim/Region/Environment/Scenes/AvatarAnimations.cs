@@ -53,7 +53,7 @@ namespace OpenSim.Region.Environment.Scenes
                 {
                     if (nod.Attributes["name"] != null)
                     {
-                        AnimsLLUUID.Add(nod.Attributes["name"].Value, nod.InnerText);
+                        AnimsLLUUID.Add((string)nod.Attributes["name"].Value, (LLUUID)nod.InnerText);
                     }
                 }
             }
