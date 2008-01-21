@@ -549,14 +549,14 @@ namespace OpenSim.Region.Environment.Scenes
                 //group.AddInventoryItem(remoteClient, primLocalID, null);
                 MainLog.Instance.Verbose(
                     "PRIMINVENTORY",
-                    "UpdateTaskInventory called with script {0}, folder {1}, primLocalID {2}, user {3}",
+                    "UpdateTaskInventory called with item {0}, folder {1}, primLocalID {2}, user {3}",
                     itemID, folderID, primLocalID, remoteClient.Name);
             }
             else
             {
                 MainLog.Instance.Warn(
                     "PRIMINVENTORY",
-                    "Update with script {0} requested of prim {1} for {2} but this prim does not exist",
+                    "Update with item {0} requested of prim {1} for {2} but this prim does not exist",
                     itemID, primLocalID, remoteClient.Name);
             }
         }
