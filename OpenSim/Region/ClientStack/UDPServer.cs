@@ -112,7 +112,7 @@ namespace OpenSim.Region.ClientStack
             {
                 // TODO : Actually only handle those states that we have control over, re-throw everything else,
                 // TODO: implement cases as we encounter them.
-                m_log.Error("UDPSERVER", "Connection Error! - " + e.ToString());
+                //m_log.Error("UDPSERVER", "Connection Error! - " + e.ToString());
                 switch (e.SocketErrorCode)
                 {
                     case SocketError.AlreadyInProgress:
@@ -156,7 +156,7 @@ namespace OpenSim.Region.ClientStack
                         {
                             Server.BeginReceiveFrom(RecvBuffer, 0, RecvBuffer.Length, SocketFlags.None, ref epSender,
                                                     ReceivedData, null);
-
+  
                             // Ter: For some stupid reason ConnectionReset basically kills our async event structure..  
                             // so therefore..  we've got to tell the server to BeginReceiveFrom again.
                             // This will happen over and over until we've gone through all packets 
@@ -180,9 +180,9 @@ namespace OpenSim.Region.ClientStack
 
                 return;
             }
-            catch (ObjectDisposedException e)
+            catch (ObjectDisposedException)
             {
-                m_log.Warn("UDPSERVER", "Connection Error! - " + e.ToString());
+                
                 //MainLog.Instance.Debug("UDPSERVER", e.ToString());
                 return;
             }
@@ -193,18 +193,9 @@ namespace OpenSim.Region.ClientStack
             {
                 packet = PacketPool.Instance.GetPacket(RecvBuffer, ref packetEnd, ZeroBuffer);
             }
-            catch (Exception e)
+            catch (Exception)
             {
-                MainLog.Instance.Warn("UDPSERVER","Packet Error! - " + e.ToString());
-                try
-                {
-                    packet = Packet.BuildPacket(RecvBuffer, ref packetEnd, ZeroBuffer);
-                    MainLog.Instance.Warn("UDPSERVER", "Recovered from Packet Error - " + e.ToString());
-                }
-                catch (Exception e2)
-                {
-                    MainLog.Instance.Warn("UDPSERVER", "2nd Packet Error! - " + e.ToString());
-                }
+                
             }
 
             if (packet != null)
@@ -227,7 +218,7 @@ namespace OpenSim.Region.ClientStack
                 {
                     // invalid client
                     //CFK: This message seems to have served its usefullness as of 12-15 so I am commenting it out for now
-                    m_log.Warn("UDPSERVER", "Got a packet from an invalid client - " + packet.ToString());
+                    //m_log.Warn("UDPSERVER", "Got a packet from an invalid client - " + packet.ToString());
 
                 }
             }
