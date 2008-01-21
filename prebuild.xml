@@ -79,6 +79,7 @@
       </Files>
     </Project>
 
+<!--
     <Project name="TribalMedia.Framework.Data" path="ThirdParty/TribalMedia/TribalMedia.Framework.Data" type="Library">
       <Configuration name="Debug">
         <Options>
@@ -125,7 +126,7 @@
         <Match pattern="*.cs" recurse="true"/>
       </Files>
     </Project>
-
+-->
     <Project name="OpenSim.Framework.Configuration.XML" path="OpenSim/Framework/Configuration/XML" type="Library">
       <Configuration name="Debug">
         <Options>
@@ -906,7 +907,7 @@
       <Reference name="System.Data"/>
       <Reference name="OpenSim.Framework"/>
       <Reference name="OpenSim.Framework.Data"/>
-      <Reference name="TribalMedia.Framework.Data"/>
+<!--      <Reference name="TribalMedia.Framework.Data"/> -->
       <Reference name="libsecondlife.dll"/>
       <Reference name="MySql.Data.dll"/>
       <Reference name="OpenSim.Framework.Console"/>
