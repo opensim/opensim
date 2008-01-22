@@ -613,6 +613,9 @@ namespace OpenSim.Framework
         void SendAvatarProperties(LLUUID avatarID, string aboutText, string bornOn, string charterMember, string flAbout,
                                   uint flags, LLUUID flImageID, LLUUID imageID, string profileURL, LLUUID partnerID);
 
+        byte[] GetThrottlesPacked(float multiplier);
+        
+
         void SetDebug(int newDebug);
         void InPacket(Packet NewPack);
         void Close(bool ShutdownCircuit);

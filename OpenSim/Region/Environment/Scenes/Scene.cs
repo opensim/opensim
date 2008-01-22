@@ -1391,6 +1391,8 @@ namespace OpenSim.Region.Environment.Scenes
             m_sceneGridService.OnCloseAgentConnection += CloseConnection;
             m_sceneGridService.OnRegionUp += OtherRegionUp;
             m_sceneGridService.OnChildAgentUpdate += IncomingChildAgentDataUpdate;
+           
+
             
 
 
@@ -1492,19 +1494,25 @@ namespace OpenSim.Region.Environment.Scenes
         public virtual bool IncomingChildAgentDataUpdate(ulong regionHandle, ChildAgentDataUpdate cAgentData)
         {
             ScenePresence childAgentUpdate = GetScenePresence(new LLUUID(cAgentData.AgentID));
-            if (!(childAgentUpdate.Equals(null)))
+            if (childAgentUpdate != null)
             {
                 // I can't imagine *yet* why we would get an update if the agent is a root agent..    
                 // however to avoid a race condition crossing borders..   
                 if (childAgentUpdate.IsChildAgent)
                 {
+                    uint rRegionX = (uint)(cAgentData.regionHandle >> 40);
+                    uint rRegionY = (((uint)(cAgentData.regionHandle)) >> 8);
+                    uint tRegionX = RegionInfo.RegionLocX;
+                    uint tRegionY = RegionInfo.RegionLocY;
                     //Send Data to ScenePresence
-                    childAgentUpdate.ChildAgentDataUpdate(cAgentData);
+                    childAgentUpdate.ChildAgentDataUpdate(cAgentData, tRegionX, tRegionY, rRegionX, rRegionY);
                     // Not Implemented:
                     //TODO: Do we need to pass the message on to one of our neighbors?
+                   
                 }
+                return true;
             }
-            return true;
+            return false;
         }
 
         /// <summary>
@@ -1612,6 +1620,11 @@ namespace OpenSim.Region.Environment.Scenes
         public bool InformNeighbourOfCrossing(ulong regionHandle, LLUUID agentID, LLVector3 position, bool isFlying)
         {
             return m_sceneGridService.CrossToNeighbouringRegion(regionHandle, agentID, position, isFlying);
+        }
+
+        public void SendOutChildAgentUpdates(ChildAgentDataUpdate cadu, ScenePresence presence)
+        {
+            m_sceneGridService.SendChildAgentDataUpdate(cadu, presence);
         }
 
         #endregion

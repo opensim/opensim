@@ -226,7 +226,12 @@ namespace SimpleApp
         public virtual void SetChildAgentThrottle(byte[] throttle)
         {
         }
+        public byte[] GetThrottlesPacked(float multiplier)
+        {
+            return new byte[0];
+        }
 
+        
         public virtual void SendAnimations(LLUUID[] animations, int[] seqs, LLUUID sourceAgentId)
         {
         }

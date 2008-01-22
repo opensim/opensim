@@ -46,5 +46,8 @@ namespace OpenSim.Framework
         public Guid AgentID;
         public float godlevel;
         public byte[] throttles;
+        public bool alwaysrun;
+        public Guid ActiveGroupID;
+        public uint GroupAccess;
     }
 }

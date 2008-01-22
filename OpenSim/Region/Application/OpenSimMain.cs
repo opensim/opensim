@@ -276,8 +276,8 @@ namespace OpenSim
 
                 m_dumpAssetsToFile = standaloneConfig.GetBoolean("dump_assets_to_file", false);
             }
-            if (!m_sandbox)
-                m_SendChildAgentTaskData = false;
+            //if (!m_sandbox)
+                //m_SendChildAgentTaskData = false;
 
 
             m_networkServersInfo.loadFromConfiguration(m_config);
@@ -485,8 +485,8 @@ namespace OpenSim
             if (m_SendChildAgentTaskData)
             {
                 MainLog.Instance.Error("WARNING",
-                                       "Send Child Agent Task Updates is enabled. This is for testing only.  It doesn't work on grid mode!");
-                Thread.Sleep(12000);
+                                       "Send Child Agent Task Updates is enabled. This is for testing only.");
+                //Thread.Sleep(12000);
             }
             return
                 new Scene(regionInfo, circuitManager, permissionManager, m_commsManager, sceneGridService, m_assetCache,

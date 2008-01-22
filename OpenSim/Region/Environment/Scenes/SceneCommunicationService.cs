@@ -332,7 +332,7 @@ namespace OpenSim.Region.Environment.Scenes
             //bool val = m_commsProvider.InterRegion.RegionUp(new SearializableRegionInfo(region));
         }
 
-        public delegate void SendChildAgentDataUpdateDelegate(ulong regionHandle, ChildAgentDataUpdate cAgentData);
+        public delegate void SendChildAgentDataUpdateDelegate(ChildAgentDataUpdate cAgentData, ScenePresence presence);
 
         /// <summary>
         /// This informs all neighboring regions about the settings of it's child agent.
@@ -341,18 +341,22 @@ namespace OpenSim.Region.Environment.Scenes
         /// This contains information, such as, Draw Distance, Camera location, Current Position, Current throttle settings, etc.
         /// 
         /// </summary>
-        private void SendChildAgentDataUpdateAsync(ulong regionHandle, ChildAgentDataUpdate cAgentData)
+        private void SendChildAgentDataUpdateAsync(ChildAgentDataUpdate cAgentData, ScenePresence presence)
         {
-            MainLog.Instance.Notice("INTERGRID", "Informing a neighbor about my agent.");
-            bool regionAccepted = m_commsProvider.InterRegion.ChildAgentUpdate(regionHandle, cAgentData);
+            //MainLog.Instance.Notice("INTERGRID", "Informing neighbors about my agent.");
 
-            if (regionAccepted)
+            foreach (ulong regionHandle in presence.KnownChildRegions)
             {
-                MainLog.Instance.Notice("INTERGRID", "Completed sending a neighbor an update about my agent");
-            }
-            else
-            {
-                MainLog.Instance.Notice("INTERGRID", "Failed sending a neighbor an update about my agent");
+                bool regionAccepted = m_commsProvider.InterRegion.ChildAgentUpdate(regionHandle, cAgentData);
+
+                if (regionAccepted)
+                {
+                    //MainLog.Instance.Notice("INTERGRID", "Completed sending a neighbor an update about my agent");
+                }
+                else
+                {
+                    //MainLog.Instance.Notice("INTERGRID", "Failed sending a neighbor an update about my agent");
+                }
             }
         }
 
@@ -362,11 +366,11 @@ namespace OpenSim.Region.Environment.Scenes
             icon.EndInvoke(iar);
         }
 
-        public void SendChildAgentDataUpdate(ulong regionHandle, ChildAgentDataUpdate cAgentData)
+        public void SendChildAgentDataUpdate(ChildAgentDataUpdate cAgentData, ScenePresence presence)
         {
             // This assumes that we know what our neighbors are.
             SendChildAgentDataUpdateDelegate d = SendChildAgentDataUpdateAsync;
-            d.BeginInvoke(regionHandle, cAgentData,
+            d.BeginInvoke(cAgentData,presence,
                           SendChildAgentDataUpdateCompleted,
                           d);
         }
@@ -374,11 +378,8 @@ namespace OpenSim.Region.Environment.Scenes
         public delegate void SendCloseChildAgentDelegate( ScenePresence presence);
 
         /// <summary>
-        /// This informs all neighboring regions about the settings of it's child agent.
+        /// This Closes child agents on neighboring regions
         /// Calls an asynchronous method to do so..  so it doesn't lag the sim.
-        /// 
-        /// This contains information, such as, Draw Distance, Camera location, Current Position, Current throttle settings, etc.
-        /// 
         /// </summary>
         private void SendCloseChildAgentAsync(ScenePresence presence)
         {

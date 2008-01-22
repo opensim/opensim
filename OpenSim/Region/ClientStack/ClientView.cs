@@ -641,7 +641,8 @@ namespace OpenSim.Region.ClientStack
             }
             mov.Data.LookAt = look;
 
-            OutPacket(mov, ThrottleOutPacketType.Task);
+            // Hack to get this out immediately and skip the throttles
+            OutPacket(mov, ThrottleOutPacketType.Unknown);
         }
 
         /// <summary>
@@ -824,7 +825,8 @@ namespace OpenSim.Region.ClientStack
             newSimPack.RegionData.SimPort = (ushort)externalIPEndPoint.Port;
             newSimPack.RegionData.SeedCapability = Helpers.StringToField(capsURL);
 
-            OutPacket(newSimPack, ThrottleOutPacketType.Task);
+            // Hack to get this out immediately and skip throttles
+            OutPacket(newSimPack, ThrottleOutPacketType.Unknown);
         }
 
         public void SendMapBlock(List<MapBlockData> mapBlocks)
@@ -858,7 +860,9 @@ namespace OpenSim.Region.ClientStack
             tpLocal.Info.LocationID = 2;
             tpLocal.Info.LookAt = lookAt;
             tpLocal.Info.Position = position;
-            OutPacket(tpLocal, ThrottleOutPacketType.Task);
+
+            // Hack to get this out immediately and skip throttles
+            OutPacket(tpLocal, ThrottleOutPacketType.Unknown);
         }
 
         public void SendRegionTeleport(ulong regionHandle, byte simAccess, IPEndPoint newRegionEndPoint, uint locationID,
@@ -884,7 +888,9 @@ namespace OpenSim.Region.ClientStack
             teleport.Info.SimPort = (ushort)newRegionEndPoint.Port;
             teleport.Info.LocationID = 4;
             teleport.Info.TeleportFlags = 1 << 4;
-            OutPacket(teleport, ThrottleOutPacketType.Task);
+
+            // Hack to get this out immediately and skip throttles.
+            OutPacket(teleport, ThrottleOutPacketType.Unknown);
         }
 
         /// <summary>
@@ -895,7 +901,9 @@ namespace OpenSim.Region.ClientStack
             TeleportFailedPacket tpFailed = (TeleportFailedPacket)PacketPool.Instance.GetPacket(PacketType.TeleportFailed);
             tpFailed.Info.AgentID = AgentId;
             tpFailed.Info.Reason = Helpers.StringToField(reason);
-            OutPacket(tpFailed, ThrottleOutPacketType.Task);
+
+            // Hack to get this out immediately and skip throttles
+            OutPacket(tpFailed, ThrottleOutPacketType.Unknown);
         }
 
         /// <summary>
@@ -906,7 +914,9 @@ namespace OpenSim.Region.ClientStack
             //TeleportStartPacket tpStart = (TeleportStartPacket)PacketPool.Instance.GetPacket(PacketType.TeleportStart);
             TeleportStartPacket tpStart = new TeleportStartPacket();
             tpStart.Info.TeleportFlags = 16; // Teleport via location
-            OutPacket(tpStart, ThrottleOutPacketType.Task);
+
+            // Hack to get this out immediately and skip throttles
+            OutPacket(tpStart, ThrottleOutPacketType.Unknown);
         }
 
         public void SendMoneyBalance(LLUUID transaction, bool success, byte[] description, int balance)
@@ -1882,7 +1892,7 @@ namespace OpenSim.Region.ClientStack
             objectData.PathTwistBegin = primData.PathTwistBegin;
             objectData.ExtraParams = primData.ExtraParams;
         }
-
+        
         /// <summary>
         /// Set some default values in a ObjectUpdatePacket
         /// </summary>
@@ -2220,6 +2230,11 @@ namespace OpenSim.Region.ClientStack
             }
             this.OutPacket(mbReply, ThrottleOutPacketType.Land);
              */
+        }
+
+        public byte[] GetThrottlesPacked(float multiplier)
+        {
+            return m_packetQueue.GetThrottlesPacked(multiplier);
         }
 
         public void SetChildAgentThrottle(byte[] throttles)

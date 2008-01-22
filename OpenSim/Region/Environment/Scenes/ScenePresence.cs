@@ -55,6 +55,7 @@ namespace OpenSim.Region.Environment.Scenes
         private LLVector3 m_requestedSitOffset = new LLVector3();
         private float m_sitAvatarHeight = 2.0f;
         private float m_godlevel = 0;
+        private LLVector3 m_LastChildAgentUpdatePosition = new LLVector3();
 
         private int m_perfMonMS = 0;
 
@@ -89,6 +90,8 @@ namespace OpenSim.Region.Environment.Scenes
         private uint m_AgentControlFlags = (uint) 0;
         private LLQuaternion m_headrotation = new LLQuaternion();
         private byte m_state = (byte) 0;
+
+        private List<LLUUID> m_knownPrimUUID = new List<LLUUID>();
 
         // Agent's Draw distance.
         protected float m_DrawDistance = 0f;
@@ -135,6 +138,17 @@ namespace OpenSim.Region.Environment.Scenes
             set { m_physicsActor = value; }
             get { return m_physicsActor; }
         }
+
+        public bool KnownPrim(LLUUID primID)
+        {
+            if (m_knownPrimUUID.Contains(primID))
+            {
+                return true;
+            }
+            m_knownPrimUUID.Add(primID);
+            return false;
+        }
+
 
         public bool Updated
         {
@@ -499,7 +513,7 @@ namespace OpenSim.Region.Environment.Scenes
             m_scene.CommsManager.UserProfileCacheService.UpdateUserInventory(m_uuid);
             //if (!m_gotAllObjectsInScene)
             //{
-            //m_scene.SendAllSceneObjectsToClient(this);
+            m_scene.SendAllSceneObjectsToClient(this);
             //m_gotAllObjectsInScene = true;
             //}
         }
@@ -1408,6 +1422,29 @@ namespace OpenSim.Region.Environment.Scenes
                     m_scene.NotifyMyCoarseLocationChange();
                 }
             }
+
+            // Minimum Draw distance is 64 meters, the Radius of the draw distance sphere is 32m
+            if (Util.GetDistanceTo(AbsolutePosition,m_LastChildAgentUpdatePosition) > 32) 
+            {
+                ChildAgentDataUpdate cadu = new ChildAgentDataUpdate();
+                cadu.ActiveGroupID=LLUUID.Zero.UUID;
+                cadu.AgentID = UUID.UUID;
+                cadu.alwaysrun = m_setAlwaysRun;
+                cadu.AVHeight = m_avHeight;
+                LLVector3 tempCameraCenter = new LLVector3(m_CameraCenter.x, m_CameraCenter.y, m_CameraCenter.z);
+                cadu.cameraPosition = new sLLVector3(tempCameraCenter);
+                cadu.drawdistance = m_DrawDistance;
+                cadu.godlevel = m_godlevel;
+                cadu.GroupAccess = 0;
+                cadu.Position = new sLLVector3(AbsolutePosition);
+                cadu.regionHandle = m_scene.RegionInfo.RegionHandle;
+                cadu.throttles = ControllingClient.GetThrottlesPacked(1f);
+                cadu.Velocity = new sLLVector3(Velocity); 
+                m_scene.SendOutChildAgentUpdates(cadu,this);
+                m_LastChildAgentUpdatePosition.X = AbsolutePosition.X;
+                m_LastChildAgentUpdatePosition.Y = AbsolutePosition.Y;
+                m_LastChildAgentUpdatePosition.Z = AbsolutePosition.Z;
+            }
         }
 
         #endregion
@@ -1532,15 +1569,30 @@ namespace OpenSim.Region.Environment.Scenes
         /// This updates important decision making data about a child agent
         /// The main purpose is to figure out what objects to send to a child agent that's in a neighboring region
         /// </summary>
-        public void ChildAgentDataUpdate(ChildAgentDataUpdate cAgentData)
+        public void ChildAgentDataUpdate(ChildAgentDataUpdate cAgentData, uint tRegionX, uint tRegionY, uint rRegionX, uint rRegionY)
         {
             // 
+            int shiftx = ((int)rRegionX - (int)tRegionX) * 256;
+            int shifty = ((int)rRegionY - (int)tRegionY) * 256;
+            
             m_DrawDistance = cAgentData.drawdistance;
-            m_pos = new LLVector3(cAgentData.Position.x, cAgentData.Position.y, cAgentData.Position.z);
+            m_pos = new LLVector3(cAgentData.Position.x + shiftx, cAgentData.Position.y + shifty, cAgentData.Position.z);
+
+            // It's hard to say here..   We can't really tell where the camera position is unless it's in world cordinates from the sending region
             m_CameraCenter =
                 new Vector3(cAgentData.cameraPosition.x, cAgentData.cameraPosition.y, cAgentData.cameraPosition.z);
+            
+
             m_godlevel = cAgentData.godlevel;
+            SetHeight(cAgentData.AVHeight);
+
             ControllingClient.SetChildAgentThrottle(cAgentData.throttles);
+
+
+
+            // Sends out the objects in the user's draw distance if m_sendTasksToChild is true.
+            if (m_scene.m_sendTasksToChild)
+                m_scene.SendAllSceneObjectsToClient(this);
             //cAgentData.AVHeight;
             //cAgentData.regionHandle;
             //m_velocity = cAgentData.Velocity;

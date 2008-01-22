@@ -356,7 +356,7 @@ namespace OpenSim.Region.ClientStack
             return (int) (((float) value/(float) curmax)*newmax);
         }
 
-        private byte[] GetThrottlesPacked(float multiplier)
+        public byte[] GetThrottlesPacked(float multiplier)
         {
             int singlefloat = 4;
             float tResend = ResendThrottle.Throttle*multiplier;

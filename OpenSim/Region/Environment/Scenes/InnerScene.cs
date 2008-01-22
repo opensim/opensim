@@ -537,20 +537,24 @@ namespace OpenSim.Region.Environment.Scenes
                     // the initial update for and what we'll use to limit the 
                     // space we check for new objects on movement.
 
-                    if (presence.IsChildAgent)
+                    if (presence.IsChildAgent && m_parentScene.m_sendTasksToChild)
                     {
-                        //Vector3 avPosition = new Vector3(presence.AbsolutePosition.X,presence.AbsolutePosition.Y,presence.AbsolutePosition.Z);
-                        //LLVector3 oLoc = ((SceneObjectGroup)ent).AbsolutePosition;
-                        //Vector3 objPosition = new Vector3(oLoc.X,oLoc.Y,oLoc.Z);
-                        //float distResult = Vector3Distance(avPosition, objPosition);
-                        //if (distResult > 512)
-                        //{
-                        //int x = 0;
-                        //}
-                        //if (distResult < presence.DrawDistance)
-                        //{
-                        ((SceneObjectGroup) ent).ScheduleFullUpdateToAvatar(presence);
-                        //}
+                        LLVector3 oLoc = ((SceneObjectGroup)ent).AbsolutePosition;
+                        float distResult = (float)Util.GetDistanceTo(presence.AbsolutePosition,oLoc);
+
+                        //MainLog.Instance.Verbose("DISTANCE", distResult.ToString());
+
+                        if (distResult > 60)
+                        {
+                            int x = 0;
+                        }
+                        if (distResult < presence.DrawDistance)
+                        {
+                            // Send Only if we don't already know about it.
+                            // KnownPrim also makes the prim known when called.
+                            if (!presence.KnownPrim(((SceneObjectGroup) ent).UUID))
+                                ((SceneObjectGroup) ent).ScheduleFullUpdateToAvatar(presence);
+                        }
                     }
                     else
                     {
