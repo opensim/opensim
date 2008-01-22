@@ -123,12 +123,12 @@ namespace OpenSim.Region.Terrain
             tainted++;
         }
 
-        public bool Tainted()
+        public bool IsTainted()
         {
             return (tainted != 0);
         }
 
-        public bool StillEditing()
+        public bool IsUserStillEditing()
         {
             TimeSpan gap = DateTime.Now - lastEdit;
 
@@ -138,7 +138,7 @@ namespace OpenSim.Region.Terrain
             return false;
         }
 
-        public bool Tainted(int x, int y)
+        public bool IsTainted(int x, int y)
         {
             return (heightmap.diff[x/16, y/16] != 0);
         }
@@ -284,7 +284,7 @@ namespace OpenSim.Region.Terrain
             {
                 for (int y = 0; y < 16; y++)
                 {
-                    if (Tainted(x*16, y*16))
+                    if (IsTainted(x*16, y*16))
                     {
                         remoteUser.SendLayerData(x, y, GetHeights1D());
                     }
@@ -300,7 +300,7 @@ namespace OpenSim.Region.Terrain
         /// <summary>
         /// Checks to make sure the terrain is within baked values +/- maxRaise/minLower
         /// </summary>
-        public void CheckHeightValues()
+        private void SetTerrainWithinBounds()
         {
             int x, y;
             for (x = 0; x < w; x++)
@@ -518,7 +518,7 @@ namespace OpenSim.Region.Terrain
                         return ConsoleHills(args, ref resultText);
 
                     case "regenerate":
-                        HillsGenerator();
+                        SetDefaultTerrain();
                         break;
 
                     case "rescale":
@@ -618,9 +618,9 @@ namespace OpenSim.Region.Terrain
 
                             case "grdmap":
                                 if (args.Length >= 4)
-                                    ExportImage(filename, args[3]);
+                                    WriteImage(filename, args[3]);
                                 else
-                                    ExportImage(filename, "defaultstripe.png");
+                                    WriteImage(filename, "defaultstripe.png");
                                 break;
 
                             case "png":
@@ -1272,7 +1272,7 @@ namespace OpenSim.Region.Terrain
         /// <summary>
         /// Generates a simple set of hills in the shape of an island
         /// </summary>
-        public void HillsGenerator()
+        public void SetDefaultTerrain()
         {
             lock (heightmap)
             {
@@ -1317,7 +1317,7 @@ namespace OpenSim.Region.Terrain
         /// </summary>
         /// <param name="filename">The destination filename for the image</param>
         /// <param name="gradientmap">A 1x*height* image which contains the colour gradient to export with. Must be at least 1x2 pixels, 1x256 or more is ideal.</param>
-        public void ExportImage(string filename, string gradientmap)
+        public void WriteImage(string filename, string gradientmap)
         {
             try
             {
@@ -1335,7 +1335,7 @@ namespace OpenSim.Region.Terrain
         /// Exports the current heightmap in Jpeg2000 format to a byte[]
         /// </summary>
         /// <param name="gradientmap">A 1x*height* image which contains the colour gradient to export with. Must be at least 1x2 pixels, 1x256 or more is ideal.</param>
-        public byte[] ExportJpegImage(string gradientmap)
+        public byte[] WriteJpegImage(string gradientmap)
         {
             byte[] imageData = null;
             try

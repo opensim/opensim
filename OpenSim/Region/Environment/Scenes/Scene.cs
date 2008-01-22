@@ -685,7 +685,7 @@ namespace OpenSim.Region.Environment.Scenes
 
         private void UpdateTerrain()
         {
-            if (Terrain.Tainted() && !Terrain.StillEditing())
+            if (Terrain.IsTainted() && !Terrain.IsUserStillEditing())
             {
                 CreateTerrainTexture(true);
 
@@ -706,7 +706,7 @@ namespace OpenSim.Region.Environment.Scenes
                                       {
                                           for (int y = 0; y < 16; y++)
                                           {
-                                              if (Terrain.Tainted(x*16, y*16))
+                                              if (Terrain.IsTainted(x*16, y*16))
                                               {
                                                   client.SendLayerData(x, y, terData);
                                               }
@@ -807,6 +807,7 @@ namespace OpenSim.Region.Environment.Scenes
         public void LoadWorldMap(string filename)
         {
             Terrain.LoadFromFileF32(filename);
+            Terrain.SaveRevertMap();
         }
 
         /// <summary>
@@ -823,7 +824,7 @@ namespace OpenSim.Region.Environment.Scenes
                     if (string.IsNullOrEmpty(m_regInfo.EstateSettings.terrainFile))
                     {
                         MainLog.Instance.Verbose("TERRAIN", "No default terrain. Generating a new terrain.");
-                        Terrain.HillsGenerator();
+                        Terrain.SetDefaultTerrain();
 
                         m_storageManager.DataStore.StoreTerrain(Terrain.GetHeights2DD(), RegionInfo.RegionID);
                     }
@@ -838,7 +839,7 @@ namespace OpenSim.Region.Environment.Scenes
                         {
                             MainLog.Instance.Verbose("TERRAIN",
                                                      "No terrain found in database or default. Generating a new terrain.");
-                            Terrain.HillsGenerator();
+                            Terrain.SetDefaultTerrain();
                         }
                         m_storageManager.DataStore.StoreTerrain(Terrain.GetHeights2DD(), RegionInfo.RegionID);
                     }
@@ -885,7 +886,7 @@ namespace OpenSim.Region.Environment.Scenes
         public void CreateTerrainTexture(bool temporary)
         {
             //create a texture asset of the terrain 
-            byte[] data = Terrain.ExportJpegImage("defaultstripe.png");
+            byte[] data = Terrain.WriteJpegImage("defaultstripe.png");
             m_regInfo.EstateSettings.terrainImageID = LLUUID.Random();
             AssetBase asset = new AssetBase();
             asset.FullID = m_regInfo.EstateSettings.terrainImageID;
