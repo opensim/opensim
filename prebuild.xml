@@ -972,6 +972,7 @@
       <Reference name="Mono.Data.SqliteClient"/>
       <Files>
         <Match pattern="*.cs" recurse="true"/>
+        <Match path="Resources" pattern="*.sql" buildAction="EmbeddedResource"/>
       </Files>
     </Project>
 
