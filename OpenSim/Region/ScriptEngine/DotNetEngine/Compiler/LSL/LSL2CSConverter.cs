@@ -73,7 +73,8 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL
 
             // QUOTE REPLACEMENT
             // temporarily replace quotes so we can work our magic on the script without
-            //  always considering if we are inside our outside String.Empty's
+            //  always considering if we are inside our outside quotes's
+            // TODO: Does this work on half-quotes in strings? ;)
             string _Script = System.String.Empty;
             string C;
             bool in_quote = false;
@@ -251,7 +252,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL
             // Add "void" in front of functions that needs it
             Script =
                 Regex.Replace(Script,
-                              @"^(\s*public\s+)((?!(if|switch|for)[^a-zA-Z0-9_])[a-zA-Z0-9_]*\s*\([^\)]*\)[^;]*\{)",
+                              @"^(\s*public\s+)?((?!(if|switch|for)[^a-zA-Z0-9_])[a-zA-Z0-9_]*\s*\([^\)]*\)[^;]*\{)",
                               @"$1void $2", RegexOptions.Compiled | RegexOptions.Multiline | RegexOptions.Singleline);
 
             // Replace <x,y,z> and <x,y,z,r>
