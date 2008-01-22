@@ -754,7 +754,7 @@ namespace OpenSim.Region.Environment.Scenes
             AddEntity(group);
             group.AbsolutePosition = pos;
             SceneObjectPart rootPart = group.GetChildPart(group.UUID);
-            rootPart.ApplySanePermissions();
+            rootPart.TrimPermissions();
             group.ApplyPhysics(m_physicalPrim);
             group.StartScripts();
 

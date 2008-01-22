@@ -288,7 +288,7 @@ namespace OpenSim.Region.Environment.Scenes
                             AddPart(part);
                             part.RegionHandle = m_regionHandle;
 
-                            part.ApplySanePermissions();
+                            part.TrimPermissions();
                         }
                         break;
                     case XmlNodeType.EndElement:
@@ -524,7 +524,7 @@ namespace OpenSim.Region.Environment.Scenes
             dupe.m_regionHandle = m_regionHandle;
 
             dupe.CopyRootPart(m_rootPart, OwnerID, GroupID);
-            dupe.m_rootPart.ApplySanePermissions();
+            dupe.m_rootPart.TrimPermissions();
 
             /// may need to create a new Physics actor.
             if (dupe.RootPart.PhysActor != null)

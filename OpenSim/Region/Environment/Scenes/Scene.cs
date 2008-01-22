@@ -933,7 +933,7 @@ namespace OpenSim.Region.Environment.Scenes
             {
                 AddEntityFromStorage(group);
                 SceneObjectPart rootPart = group.GetChildPart(group.UUID);
-                rootPart.ApplySanePermissions();
+                rootPart.TrimPermissions();
 
                 group.ApplyPhysics(m_physicalPrim);
                 //rootPart.DoPhysicsPropertyUpdate(UsePhysics, true);
@@ -1065,7 +1065,7 @@ namespace OpenSim.Region.Environment.Scenes
             AddEntity(sceneOb);
             SceneObjectPart rootPart = sceneOb.GetChildPart(sceneOb.UUID);
             // if grass or tree, make phantom
-            //rootPart.ApplySanePermissions();
+            //rootPart.TrimPermissions();
             if ((rootPart.Shape.PCode == 95) || (rootPart.Shape.PCode == 255) || (rootPart.Shape.PCode == 111))
             {
                 rootPart.AddFlag(LLObject.ObjectFlags.Phantom);
