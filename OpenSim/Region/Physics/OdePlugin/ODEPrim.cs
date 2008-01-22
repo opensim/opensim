@@ -138,7 +138,14 @@ namespace OpenSim.Region.Physics.OdePlugin
                     {
                         if (_size.X == _size.Y && _size.Y == _size.Z && _size.X == _size.Z)
                         {
-                            prim_geom = d.CreateSphere(m_targetSpace, _size.X / 2);
+                            if (((_size.X / 2f) > 0f) && ((_size.X / 2f) < 1000))
+                            {
+                                prim_geom = d.CreateSphere(m_targetSpace, _size.X / 2);
+                            }
+                            else
+                            {
+                                prim_geom = d.CreateBox(m_targetSpace, _size.X, _size.Y, _size.Z);
+                            }
                         }
                         else
                         {
@@ -490,7 +497,16 @@ namespace OpenSim.Region.Physics.OdePlugin
                     {
                         if (_size.X == _size.Y && _size.Y == _size.Z && _size.X == _size.Z)
                         {
-                            prim_geom = d.CreateSphere(m_targetSpace, _size.X / 2);
+                            if (((_size.X / 2f) > 0f) && ((_size.X / 2f) < 1000))
+                            {
+                                prim_geom = d.CreateSphere(m_targetSpace, _size.X / 2);
+                            }
+                            else
+                            {
+                                OpenSim.Framework.Console.MainLog.Instance.Verbose("PHYSICS", "Failed to load a sphere bad size");
+                                prim_geom = d.CreateBox(m_targetSpace, _size.X, _size.Y, _size.Z);
+                            }
+
                         }
                         else
                         {
