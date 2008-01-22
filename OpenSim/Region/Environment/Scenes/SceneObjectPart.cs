@@ -76,7 +76,7 @@ namespace OpenSim.Region.Environment.Scenes
 
         private Vector3 m_sitTargetPosition = new Vector3(0, 0, 0);
         private Quaternion m_sitTargetOrientation = new Quaternion(0, 0, 0, 1);
-        private LLUUID m_SitTargetAvatar = LLUUID.Zero;
+        private LLUUID m_sitTargetAvatar = LLUUID.Zero;
 
         #region Permissions
 
@@ -921,13 +921,13 @@ namespace OpenSim.Region.Environment.Scenes
 
         public void SetAvatarOnSitTarget(LLUUID avatarID)
         {
-            m_SitTargetAvatar = avatarID;
+            m_sitTargetAvatar = avatarID;
             TriggerScriptChangedEvent(Changed.LINK);
         }
 
         public LLUUID GetAvatarOnSitTarget()
         {
-            return m_SitTargetAvatar;
+            return m_sitTargetAvatar;
         }
 
 
