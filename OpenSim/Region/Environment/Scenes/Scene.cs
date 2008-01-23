@@ -280,6 +280,8 @@ namespace OpenSim.Region.Environment.Scenes
 
             m_statsReporter = new SimStatsReporter(regInfo);
             m_statsReporter.OnSendStatsResult += SendSimStatsPackets;
+            MainLog.Instance.Verbose("PLATFORM", System.Environment.OSVersion.Platform.ToString());
+            MainLog.Instance.Verbose("PLATFORM", System.Environment.OSVersion.ToString());
         }
 
         #endregion

@@ -138,7 +138,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                     {
                         if (_size.X == _size.Y && _size.Y == _size.Z && _size.X == _size.Z)
                         {
-                            if (((_size.X / 2f) > 0f) && ((_size.X / 2f) < 1000))
+                            if (((_size.X / 2f) > 0f))
                             {
                                 prim_geom = d.CreateSphere(m_targetSpace, _size.X / 2);
                             }
