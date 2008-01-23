@@ -549,7 +549,8 @@ namespace OpenSim.Region.Environment.Scenes
                 //group.AddInventoryItem(remoteClient, primLocalID, null);
                 MainLog.Instance.Verbose(
                     "PRIMINVENTORY",
-                    "UpdateTaskInventory called with item {0}, folder {1}, primLocalID {2}, user {3}",
+                    "Non script prim inventory not yet implemented!"
+                        + "\nUpdateTaskInventory called with item {0}, folder {1}, primLocalID {2}, user {3}",
                     itemID, folderID, primLocalID, remoteClient.Name);
             }
             else
@@ -569,13 +570,23 @@ namespace OpenSim.Region.Environment.Scenes
         /// <param name="localID"></param>
         public void RezScript(IClientAPI remoteClient, LLUUID itemID, uint localID)
         {
-            CachedUserInfo userInfo = CommsManager.UserProfileCacheService.GetUserDetails(remoteClient.AgentId);
             LLUUID copyID = LLUUID.Random();
-            if (userInfo != null)
+            
+            if (itemID != LLUUID.Zero)
             {
-                if (userInfo.RootFolder != null)
+                CachedUserInfo userInfo = CommsManager.UserProfileCacheService.GetUserDetails(remoteClient.AgentId);
+            
+                if (userInfo != null && userInfo.RootFolder != null)
                 {
                     InventoryItemBase item = userInfo.RootFolder.HasItem(itemID);
+                    
+                    // Try library
+                    // XXX clumsy, possibly should be one call
+                    if (null == item)
+                    {
+                        item = CommsManager.UserProfileCacheService.libraryRoot.HasItem(itemID);
+                    }
+                        
                     if (item != null)
                     {
                         SceneObjectGroup group = GetGroupByPrim(localID);
@@ -584,11 +595,11 @@ namespace OpenSim.Region.Environment.Scenes
                             group.AddInventoryItem(remoteClient, localID, item, copyID);
                             group.StartScript(localID, copyID);
                             group.GetProperites(remoteClient);
-
-                            MainLog.Instance.Verbose(
-                                "PRIMINVENTORY",
-                                "Rezzed script {0} into prim local ID {1} for user {2}",
-                                item.inventoryName, localID, remoteClient.Name);
+    
+    //                        MainLog.Instance.Verbose(
+    //                            "PRIMINVENTORY",
+    //                            "Rezzed script {0} into prim local ID {1} for user {2}",
+    //                            item.inventoryName, localID, remoteClient.Name);
                         }
                         else
                         {
@@ -606,6 +617,14 @@ namespace OpenSim.Region.Environment.Scenes
                             itemID, remoteClient.Name);
                     }
                 }
+            }
+            else  // If the itemID is zero then the script has been rezzed directly in an object's inventory
+            {
+                // not yet implemented
+                // TODO Need to get more details from original RezScript packet                
+                // XXX jc tmp
+//                AssetBase asset = CreateAsset("chimney sweep", "sailor.lsl", 10, 10, null);
+//                AssetCache.AddAsset(asset);            
             }
         }
 
