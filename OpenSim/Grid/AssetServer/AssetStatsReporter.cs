@@ -36,7 +36,7 @@ namespace OpenSim.Grid.AssetServer
     /// </summary>
     public class AssetStatsReporter
     {
-        private Timer ageStatsTimer = new Timer(24 * 60 * 60);
+        private Timer ageStatsTimer = new Timer(24 * 60 * 60 * 1000);
         
         private long assetRequestsToday;
         public long AssetRequestsToday { get { return assetRequestsToday; } }
