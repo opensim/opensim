@@ -84,6 +84,8 @@ namespace OpenSim.Region.Physics.OdePlugin
         private bool m_alwaysRun = false;
         private bool m_hackSentFall = false;
         private bool m_hackSentFly = false;
+        private bool m_foundDebian = false;
+
         private string m_name = String.Empty;
 
         private bool[] m_colliderarr = new bool[11];
@@ -106,7 +108,17 @@ namespace OpenSim.Region.Physics.OdePlugin
             _position = pos;
             _acceleration = new PhysicsVector();
             _parent_scene = parent_scene;
-           
+            string etcreturn = Util.ReadEtcIssue();
+            if (etcreturn.Contains("Debian"))
+            {
+                m_foundDebian = true;
+                m_tensor = 14000000f;
+            }
+            else
+            {
+                m_tensor = 3800000f;
+            }
+
             m_StandUpRotation =
                 new d.Matrix3(0.5f, 0.7071068f, 0.5f, -0.7071068f, 0f, 0.7071068f, 0.5f, -0.7071068f,
                               0.5f);
@@ -326,14 +338,14 @@ namespace OpenSim.Region.Physics.OdePlugin
                 m_pidControllerActive = true;
                 lock (OdeScene.OdeLock)
                 {
-                    //d.JointDestroy(Amotor);
+                    d.JointDestroy(Amotor);
                     
                     PhysicsVector SetSize = value;
                     float prevCapsule = CAPSULE_LENGTH;
                     float capsuleradius = CAPSULE_RADIUS;
                     //capsuleradius = 0.2f;
 
-                    CAPSULE_LENGTH = (SetSize.Z - ((SetSize.Z*0.43f))); // subtract 43% of the size
+                    CAPSULE_LENGTH = (SetSize.Z - ((SetSize.Z*0.52f))); // subtract 43% of the size
                     OpenSim.Framework.Console.MainLog.Instance.Verbose("SIZE", CAPSULE_LENGTH.ToString());
                     d.BodyDestroy(Body);
                     d.GeomDestroy(Shell);
@@ -364,40 +376,40 @@ namespace OpenSim.Region.Physics.OdePlugin
             d.BodySetMass(Body, ref ShellMass);
             d.Matrix3 m_caprot;
             // 90 Stand up on the cap of the capped cyllinder
-            //d.RFromAxisAndAngle(out m_caprot, 1, 0, 1, (float)(Math.PI / 2));
+            d.RFromAxisAndAngle(out m_caprot, 1, 0, 1, (float)(Math.PI / 2));
 
 
-            //d.GeomSetRotation(Shell, ref m_caprot);
-            //d.BodySetRotation(Body, ref m_caprot);
+            d.GeomSetRotation(Shell, ref m_caprot);
+            d.BodySetRotation(Body, ref m_caprot);
 
             d.GeomSetBody(Shell, Body);
 
 
             // The purpose of the AMotor here is to keep the avatar's physical 
             // surrogate from rotating while moving
-            //Amotor = d.JointCreateAMotor(_parent_scene.world, IntPtr.Zero);
-            //d.JointAttach(Amotor, Body, IntPtr.Zero);
-            ///d.JointSetAMotorMode(Amotor, dAMotorEuler);
-            //d.JointSetAMotorNumAxes(Amotor, 3);
-            //d.JointSetAMotorAxis(Amotor, 0, 0, 1, 0, 0);
-            //d.JointSetAMotorAxis(Amotor, 1, 0, 0, 1, 0);
-            //d.JointSetAMotorAxis(Amotor, 2, 0, 0, 0, 1);
-            //d.JointSetAMotorAngle(Amotor, 0, 0);
-            //d.JointSetAMotorAngle(Amotor, 1, 0);
-            //d.JointSetAMotorAngle(Amotor, 2, 0);
+            Amotor = d.JointCreateAMotor(_parent_scene.world, IntPtr.Zero);
+            d.JointAttach(Amotor, Body, IntPtr.Zero);
+            d.JointSetAMotorMode(Amotor, dAMotorEuler);
+            d.JointSetAMotorNumAxes(Amotor, 3);
+            d.JointSetAMotorAxis(Amotor, 0, 0, 1, 0, 0);
+            d.JointSetAMotorAxis(Amotor, 1, 0, 0, 1, 0);
+            d.JointSetAMotorAxis(Amotor, 2, 0, 0, 0, 1);
+            d.JointSetAMotorAngle(Amotor, 0, 0);
+            d.JointSetAMotorAngle(Amotor, 1, 0);
+            d.JointSetAMotorAngle(Amotor, 2, 0);
             
             // These lowstops and high stops are effectively (no wiggle room)
-            //d.JointSetAMotorParam(Amotor, (int)dParam.LowStop, -0.000000000001f);
-            //d.JointSetAMotorParam(Amotor, (int)dParam.LoStop3, -0.000000000001f);
-            //d.JointSetAMotorParam(Amotor, (int)dParam.LoStop2, -0.000000000001f);
-            //d.JointSetAMotorParam(Amotor, (int)dParam.HiStop, 0.000000000001f);
-            //d.JointSetAMotorParam(Amotor, (int)dParam.HiStop3, 0.000000000001f);
-            //d.JointSetAMotorParam(Amotor, (int)dParam.HiStop2, 0.000000000001f);
+            d.JointSetAMotorParam(Amotor, (int)dParam.LowStop, -0.000000000001f);
+            d.JointSetAMotorParam(Amotor, (int)dParam.LoStop3, -0.000000000001f);
+            d.JointSetAMotorParam(Amotor, (int)dParam.LoStop2, -0.000000000001f);
+            d.JointSetAMotorParam(Amotor, (int)dParam.HiStop, 0.000000000001f);
+            d.JointSetAMotorParam(Amotor, (int)dParam.HiStop3, 0.000000000001f);
+            d.JointSetAMotorParam(Amotor, (int)dParam.HiStop2, 0.000000000001f);
 
             // Fudge factor is 1f by default, we're setting it to 0.  We don't want it to Fudge or the 
             // capped cyllinder will fall over
-            //d.JointSetAMotorParam(Amotor, (int)dParam.FudgeFactor, 0f);
-            //d.JointSetAMotorParam(Amotor, (int)dParam.FMax, tensor);
+            d.JointSetAMotorParam(Amotor, (int)dParam.FudgeFactor, 0f);
+            d.JointSetAMotorParam(Amotor, (int)dParam.FMax, tensor);
             
             //d.Matrix3 bodyrotation = d.BodyGetRotation(Body);
             //d.QfromR(
@@ -528,7 +540,7 @@ namespace OpenSim.Region.Physics.OdePlugin
             {
                 d.BodyAddForce(Body, force.X, force.Y, force.Z);
                 //d.BodySetRotation(Body, ref m_StandUpRotation);
-                standupStraight();
+                //standupStraight();
                 
             }
         }
@@ -721,7 +733,7 @@ namespace OpenSim.Region.Physics.OdePlugin
             lock (OdeScene.OdeLock)
             {
                 // Kill the Amotor
-                //d.JointDestroy(Amotor);
+                d.JointDestroy(Amotor);
 
                 //kill the Geometry
                 d.GeomDestroy(Shell);
