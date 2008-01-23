@@ -439,5 +439,27 @@ namespace OpenSim.Framework
             // Truncate string before first end-of-line character found
             return input.Substring(0, clip);
         }
+
+        /// <summary>
+        /// returns the contents of /etc/issue on Unix Systems
+        /// Use this for where it's absolutely necessary to implement platform specific stuff
+        /// ( like the ODE library :P
+        /// </summary>
+        /// <returns></returns>
+        public static string ReadEtcIssue()
+        {
+            try
+            {
+                StreamReader sr = new StreamReader("/etc/issue.net");
+                string issue = sr.ReadToEnd();
+                sr.Close();
+                return issue;
+            }
+            catch (System.Exception)
+            {
+                return "";
+            }
+
+        }
     }
 }

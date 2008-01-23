@@ -282,14 +282,12 @@ namespace OpenSim.Region.Environment.Scenes
             m_statsReporter.OnSendStatsResult += SendSimStatsPackets;
             MainLog.Instance.Verbose("PLATFORM", System.Environment.OSVersion.Platform.ToString());
             MainLog.Instance.Verbose("PLATFORM", System.Environment.OSVersion.ToString());
-            try
+            string etcreturn = Util.ReadEtcIssue();
+            if (etcreturn.Contains("Debian"))
             {
-                MainLog.Instance.Verbose("PLATRORM", "TERM:" + System.Environment.GetEnvironmentVariable("TERM"));
+                MainLog.Instance.Verbose("PLATFORM", "Found Debian!");
             }
-            catch (System.Exception)
-            {
-                MainLog.Instance.Verbose("PLATFORM", "No TERM Environment Variable");
-            }
+            
         }
 
         #endregion
