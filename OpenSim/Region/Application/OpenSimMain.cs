@@ -171,7 +171,7 @@ namespace OpenSim
                 config.Set("serverside_object_permissions", false);
                 config.Set("storage_plugin", "OpenSim.Framework.Data.SQLite.dll");
                 config.Set("storage_connection_string", "URI=file:OpenSim.db,version=3");
-                config.Set("storage_prim_inventories_experimental", false);
+                config.Set("storage_prim_inventories", true);
                 config.Set("startup_console_commands_file", String.Empty);
                 config.Set("shutdown_console_commands_file", String.Empty);
                 config.Set("script_engine", "OpenSim.Region.ScriptEngine.DotNetEngine.dll");
@@ -250,7 +250,7 @@ namespace OpenSim
                 m_storageConnectionString
                     = startupConfig.GetString("storage_connection_string", "URI=file:OpenSim.db,version=3");
                 m_storagePersistPrimInventories
-                    = startupConfig.GetBoolean("storage_prim_inventories_experimental", false);
+                    = startupConfig.GetBoolean("storage_prim_inventories", true);
 
                 m_startupCommandsFile = startupConfig.GetString("startup_console_commands_file", String.Empty);
                 m_shutdownCommandsFile = startupConfig.GetString("shutdown_console_commands_file", String.Empty);

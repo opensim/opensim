@@ -30,11 +30,14 @@ storage_connection_string="URI=file:OpenSim.db,version=3";
 ; storage_connection_string="Data Source=localhost;Database=opensim;User ID=opensim;Password=*****;";
 
 ; turn on experimental storage of prim inventories in the region database
-; more details of the current state of this can be found at
+
+; Prim inventory storage is now turned on by default
+; However, this option remains in case it needs to be disabled
+; More details of the current state of this can be found at
 ;
 ; http://opensimulator.org/wiki/OpenSim:Prim_Inventory_Persistence
 ;
-storage_prim_inventories_experimental = false
+storage_prim_inventories = true
 
 startup_console_commands_file = "startup_commands.txt"
 shutdown_console_commands_file = "shutdown_commands.txt"
