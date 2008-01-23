@@ -222,7 +222,7 @@ namespace OpenSim.Framework.Console
         {
             lock (m_syncRoot)
             {
-                string now = DateTime.Now.ToString("[MM-dd hh:mm:ss] ");
+                string now = DateTime.Now.ToString("[MM-dd HH:mm:ss] ");
                 Log.Write(now);
                 try
                 {
