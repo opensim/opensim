@@ -42,7 +42,18 @@ namespace OpenSim.Grid.AssetServer
     {
         private OpenAsset_Main m_assetManager;
         private IAssetProvider m_assetProvider;
+        private AssetStatsReporter m_stats;
 
+        public GetAssetStreamHandler(OpenAsset_Main assetManager, IAssetProvider assetProvider,
+                                     AssetStatsReporter stats)
+            : base("GET", "/assets")
+        {
+            MainLog.Instance.Verbose("REST", "In Get Request");
+            m_assetManager = assetManager;
+            m_assetProvider = assetProvider;
+            m_stats = stats;
+        }
+        
         public override byte[] Handle(string path, Stream request)
         {
             MainLog.Instance.Verbose("REST", "In Handle");
@@ -57,6 +68,8 @@ namespace OpenSim.Grid.AssetServer
                     LLUUID assetID = LLUUID.Parse(p[0]);
 
                     MainLog.Instance.Verbose("REST", "GET:/asset fetch param={0} UUID={1}", param, assetID);
+                    m_stats.AddRequest();
+                    
                     AssetBase asset = m_assetProvider.FetchAsset(assetID);
                     if (asset != null)
                     {
@@ -70,7 +83,7 @@ namespace OpenSim.Grid.AssetServer
                         xw.Flush();
 
                         ms.Seek(0, SeekOrigin.Begin);
-                        StreamReader sr = new StreamReader(ms);
+                        //StreamReader sr = new StreamReader(ms);
 
                         result = ms.GetBuffer();
                         MainLog.Instance.Verbose("REST", "Buffer: {0}", result);
@@ -87,14 +100,6 @@ namespace OpenSim.Grid.AssetServer
                 MainLog.Instance.Error(e.ToString());
             }
             return result;
-        }
-
-        public GetAssetStreamHandler(OpenAsset_Main assetManager, IAssetProvider assetProvider)
-            : base("GET", "/assets")
-        {
-            MainLog.Instance.Verbose("REST", "In Get Request");
-            m_assetManager = assetManager;
-            m_assetProvider = assetProvider;
         }
     }
 

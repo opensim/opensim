@@ -1,0 +1,82 @@
+﻿/*
+* Copyright (c) Contributors, http://opensimulator.org/
+* See CONTRIBUTORS.TXT for a full list of copyright holders.
+*
+* Redistribution and use in source and binary forms, with or without
+* modification, are permitted provided that the following conditions are met:
+*     * Redistributions of source code must retain the above copyright
+*       notice, this list of conditions and the following disclaimer.
+*     * Redistributions in binary form must reproduce the above copyright
+*       notice, this list of conditions and the following disclaimer in the
+*       documentation and/or other materials provided with the distribution.
+*     * Neither the name of the OpenSim Project nor the
+*       names of its contributors may be used to endorse or promote products
+*       derived from this software without specific prior written permission.
+*
+* THIS SOFTWARE IS PROVIDED BY THE DEVELOPERS ``AS IS'' AND ANY
+* EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+* WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+* DISCLAIMED. IN NO EVENT SHALL THE CONTRIBUTORS BE LIABLE FOR ANY
+* DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+* (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+* LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
+* ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+* (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+* SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+* 
+*/
+
+using System.Text;
+using System.Timers;
+
+namespace OpenSim.Grid.AssetServer
+{
+    /// <summary>
+    /// Collects and reports information on the requests made to the asset server
+    /// </summary>
+    public class AssetStatsReporter
+    {
+        private Timer ageStatsTimer = new Timer(24 * 60 * 60);
+        
+        private long assetRequestsToday;
+        public long AssetRequestsToday { get { return assetRequestsToday; } }
+        
+        private long assetRequestsYesterday;
+        public long AssetRequestsYesterday { get { return assetRequestsYesterday; } }       
+        
+        public AssetStatsReporter()
+        {
+            ageStatsTimer.Elapsed += new ElapsedEventHandler(OnAgeing);
+            ageStatsTimer.Enabled = true;
+        }
+        
+        private void OnAgeing(object source, ElapsedEventArgs e)
+        {
+            assetRequestsYesterday = assetRequestsToday;
+            
+            // There is a possibility that an asset request could occur between the execution of these
+            // two statements.  But we're better off without the synchronization overhead.
+            assetRequestsToday = 0;            
+        }
+        
+        /// <summary>
+        /// Record that a request was made to the asset server
+        /// </summary>
+        public void AddRequest()
+        {
+            assetRequestsToday++;
+        }
+
+        /// <summary>
+        /// Report back collected statistical information.
+        /// </summary>
+        /// <returns></returns>
+        public string Report()
+        {
+            return string.Format(
+@"Asset requests today     : {0}
+Asset requests yesterday : {1}",
+                AssetRequestsToday, AssetRequestsYesterday);
+        }
+    }
+}
