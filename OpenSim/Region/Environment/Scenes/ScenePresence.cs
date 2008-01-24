@@ -332,7 +332,10 @@ namespace OpenSim.Region.Environment.Scenes
             AbsolutePosition = m_controllingClient.StartPos;
 
             Animations = new AvatarAnimations();
-            Animations.LoadAnims();
+            lock (Animations)
+            {
+                Animations.LoadAnims();
+            }
 
             // TODO: m_animations and m_animationSeqs should always be of the same length.
             // Move them into an object to (hopefully) avoid threading issues.
