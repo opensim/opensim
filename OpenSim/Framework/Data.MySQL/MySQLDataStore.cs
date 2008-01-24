@@ -416,6 +416,9 @@ namespace OpenSim.Framework.Data.MySQL
 
         public void StoreLandObject(Land parcel, LLUUID regionUUID)
         {
+            MainLog.Instance.Verbose("DATASTORE", "Tedds temp fix: Waiting 3 seconds for stuff to catch up. (Someone please fix! :))");
+            System.Threading.Thread.Sleep(3000);
+            
             lock (m_dataSet)
             {
                 DataTable land = m_landTable;
