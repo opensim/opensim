@@ -38,6 +38,7 @@ using OpenSim.Framework.Communications.Cache;
 using OpenSim.Framework.Console;
 using OpenSim.Framework.Data;
 using OpenSim.Framework.Servers;
+using OpenSim.Framework.Statistics;
 using OpenSim.Framework.UserManagement;
 using InventoryFolder=OpenSim.Framework.InventoryFolder;
 
@@ -53,8 +54,9 @@ namespace OpenSim.Grid.UserServer
         public UserConfig m_config;
 
         public UserLoginService(
-            UserManagerBase userManager, LibraryRootFolder libraryRootFolder, UserConfig config, string welcomeMess)
-            : base(userManager, libraryRootFolder, welcomeMess)
+            UserManagerBase userManager, LibraryRootFolder libraryRootFolder, 
+            UserStatsReporter statsCollector, UserConfig config, string welcomeMess)
+            : base(userManager, libraryRootFolder, statsCollector, welcomeMess)
         {
             m_config = config;
         }

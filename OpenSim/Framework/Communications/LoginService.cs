@@ -38,6 +38,7 @@ using Nwc.XmlRpc;
 
 using OpenSim.Framework.Communications.Cache;
 using OpenSim.Framework.Console;
+using OpenSim.Framework.Statistics;
 
 namespace OpenSim.Framework.UserManagement
 {
@@ -47,16 +48,28 @@ namespace OpenSim.Framework.UserManagement
         protected UserManagerBase m_userManager = null;
         protected Mutex m_loginMutex = new Mutex(false);
         
+        protected UserStatsReporter m_statsCollector;        
+        
         /// <summary>
         /// Used during login to send the skeleton of the OpenSim Library to the client.
         /// </summary>
         protected LibraryRootFolder m_libraryRootFolder;
 
-        public LoginService(
-            UserManagerBase userManager, LibraryRootFolder libraryRootFolder, string welcomeMess)
+        /// <summary>
+        /// Constructor
+        /// </summary>
+        /// <param name="userManager"></param>
+        /// <param name="libraryRootFolder"></param>
+        /// <param name="statsCollector">
+        /// An object for collecting statistical information.  
+        /// Can be null if statistics are not required</param>
+        /// <param name="welcomeMess"></param>
+        public LoginService(UserManagerBase userManager, LibraryRootFolder libraryRootFolder, 
+                            UserStatsReporter statsCollector, string welcomeMess)
         {
             m_userManager = userManager;
             m_libraryRootFolder = libraryRootFolder;
+            m_statsCollector = statsCollector;
             
             if (welcomeMess != String.Empty)
             {
@@ -211,6 +224,11 @@ namespace OpenSim.Framework.UserManagement
                             //return logResponse.ToXmlRpcResponse();
                         }
                         CommitAgent(ref userProfile);
+                        
+                        // If we reach this point, then the login has successfully logged onto the grid
+                        if (m_statsCollector != null)
+                            m_statsCollector.AddSuccessfulLogin();
+                        
                         return logResponse.ToXmlRpcResponse();
                     }
 
@@ -338,6 +356,10 @@ namespace OpenSim.Framework.UserManagement
                         }
 
                         CommitAgent(ref userProfile);
+                        
+                        // If we reach this point, then the login has successfully logged onto the grid
+                        if (m_statsCollector != null)
+                            m_statsCollector.AddSuccessfulLogin();                        
 
                         return logResponse.ToLLSDResponse();
                     }

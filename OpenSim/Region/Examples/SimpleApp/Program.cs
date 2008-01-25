@@ -88,7 +88,8 @@ namespace SimpleApp
             m_commsManager = localComms;
 
             LocalLoginService loginService =
-                new LocalLoginService(userService, String.Empty, localComms, m_networkServersInfo, false);
+                new LocalLoginService(
+                    userService, String.Empty, localComms, m_networkServersInfo, null, false);
             loginService.OnLoginToRegion += backendService.AddNewSession;
 
             m_httpServer.AddXmlRPCHandler("login_to_simulator", loginService.XmlRpcLoginMethod);

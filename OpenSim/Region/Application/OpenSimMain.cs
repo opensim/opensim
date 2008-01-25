@@ -327,9 +327,10 @@ namespace OpenSim
                                             inventoryService, backendService, backendService, m_dumpAssetsToFile);
                 m_commsManager = localComms;
 
+                // TODO No user stats collection yet for standalone
                 m_loginService =
                     new LocalLoginService(userService, m_standaloneWelcomeMessage, localComms, m_networkServersInfo,
-                                          m_standaloneAuthenticate);
+                                          null, m_standaloneAuthenticate);
                 m_loginService.OnLoginToRegion += backendService.AddNewSession;
 
                 // XMLRPC action

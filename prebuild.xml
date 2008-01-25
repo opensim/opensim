@@ -79,6 +79,26 @@
       </Files>
     </Project>
 
+    <Project name="OpenSim.Framework.Statistics" path="OpenSim/Framework/Statistics" type="Library">
+      <Configuration name="Debug">
+        <Options>
+          <OutputPath>../../../bin/</OutputPath>
+        </Options>
+      </Configuration>
+      <Configuration name="Release">
+        <Options>
+          <OutputPath>../../../bin/</OutputPath>
+        </Options>
+      </Configuration>
+
+      <ReferencePath>../../../bin/</ReferencePath>
+      <Reference name="System"/>
+
+      <Files>
+        <Match pattern="*.cs" recurse="true"/>
+      </Files>
+    </Project>
+
 <!--
     <Project name="TribalMedia.Framework.Data" path="ThirdParty/TribalMedia/TribalMedia.Framework.Data" type="Library">
       <Configuration name="Debug">
@@ -282,7 +302,6 @@
         <Match pattern="*.cs" recurse="true"/>
       </Files>
     </Project>
-
 
     <Project name="OpenSim.Region.Physics.Manager" path="OpenSim/Region/Physics/Manager" type="Library">
       <Configuration name="Debug">
@@ -532,6 +551,7 @@
       <Reference name="OpenSim.Framework.Data" />
       <Reference name="OpenSim.Framework.Servers"/>
       <Reference name="OpenSim.Framework.Console"/>
+      <Reference name="OpenSim.Framework.Statistics"/>
       <Reference name="libsecondlife.dll"/>
       <Reference name="Db4objects.Db4o.dll"/>
       <Reference name="Nini.dll" />
@@ -557,11 +577,12 @@
       <ReferencePath>../../../../bin/</ReferencePath>
       <Reference name="System"/>
       <Reference name="System.Xml"/>
-      <Reference name="OpenSim.Framework.Communications"/>
       <Reference name="OpenSim.Framework"/>
+      <Reference name="OpenSim.Framework.Communications"/>
+      <Reference name="OpenSim.Framework.Console"/>
       <Reference name="OpenSim.Framework.Data" />
       <Reference name="OpenSim.Framework.Servers"/>
-      <Reference name="OpenSim.Framework.Console"/>
+      <Reference name="OpenSim.Framework.Statistics"/>
       <Reference name="libsecondlife.dll"/>
       <Reference name="XMLRPC.dll"/>
 
@@ -1058,6 +1079,7 @@
       <Reference name="OpenSim.Framework.Communications"/>
       <Reference name="OpenSim.Framework.Data"/>
       <Reference name="OpenSim.Framework.Servers"/>
+      <Reference name="OpenSim.Framework.Statistics"/>
       <Reference name="libsecondlife.dll"/>
       <Reference name="Db4objects.Db4o.dll"/>
       <Reference name="XMLRPC.dll"/>
@@ -1295,7 +1317,7 @@
     </Project>
 
     <!-- Tests -->
-    <Project name="UserServerStressTest" path="OpenSim/Tests/UserServer/Stress" type="Exe">
+    <Project name="OpenSim.Test.UserServer.Stress" path="OpenSim/Tests/UserServer/Stress" type="Exe">
       <Configuration name="Debug">
         <Options>
           <OutputPath>../../../../bin/tests/stress</OutputPath>

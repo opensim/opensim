@@ -34,6 +34,7 @@ using libsecondlife;
 using OpenSim.Framework;
 using OpenSim.Framework.Communications.Cache;
 using OpenSim.Framework.Console;
+using OpenSim.Framework.Statistics;
 using OpenSim.Framework.UserManagement;
 using InventoryFolder=OpenSim.Framework.InventoryFolder;
 
@@ -52,9 +53,10 @@ namespace OpenSim.Region.Communications.Local
 
         public event LoginToRegionEvent OnLoginToRegion;
 
-        public LocalLoginService(UserManagerBase userManager, string welcomeMess, CommunicationsLocal parent,
-                                 NetworkServersInfo serversInfo, bool authenticate)
-            : base(userManager, parent.UserProfileCacheService.libraryRoot, welcomeMess)
+        public LocalLoginService(UserManagerBase userManager, string welcomeMess, 
+                                 CommunicationsLocal parent, NetworkServersInfo serversInfo, 
+                                 UserStatsReporter statsCollector, bool authenticate)
+            : base(userManager, parent.UserProfileCacheService.libraryRoot, statsCollector, welcomeMess)
         {
             m_Parent = parent;
             this.serversInfo = serversInfo;

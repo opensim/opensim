@@ -34,6 +34,7 @@ using OpenSim.Framework;
 using OpenSim.Framework.Communications.Cache;
 using OpenSim.Framework.Console;
 using OpenSim.Framework.Servers;
+using OpenSim.Framework.Statistics;
 
 namespace OpenSim.Grid.UserServer
 {
@@ -47,6 +48,8 @@ namespace OpenSim.Grid.UserServer
         public UserManager m_userManager;
         public UserLoginService m_loginService;
         public MessageServersConnector m_messagesService;
+        
+        protected UserStatsReporter m_stats;        
 
         private LogBase m_console;
         private LLUUID m_lastCreatedUser = LLUUID.Random();
@@ -91,9 +94,11 @@ namespace OpenSim.Grid.UserServer
             m_userManager = new UserManager();
             m_userManager._config = Cfg;
             m_userManager.AddPlugin(Cfg.DatabaseProvider);
+            
+            m_stats = new UserStatsReporter();
 
             m_loginService = new UserLoginService(
-                 m_userManager, new LibraryRootFolder(), Cfg, Cfg.DefaultStartupMsg);
+                 m_userManager, new LibraryRootFolder(), m_stats, Cfg, Cfg.DefaultStartupMsg);
 
             m_messagesService = new MessageServersConnector(MainLog.Instance);
 
@@ -180,6 +185,7 @@ namespace OpenSim.Grid.UserServer
             {
                 case "help":
                     m_console.Notice("create user - create a new user");
+                    m_console.Notice("stats - statistical information for this server");                    
                     m_console.Notice("shutdown - shutdown the grid (USE CAUTION!)");
                     break;
 
@@ -192,6 +198,10 @@ namespace OpenSim.Grid.UserServer
                     m_console.Close();
                     Environment.Exit(0);
                     break;
+                    
+                case "stats":
+                    MainLog.Instance.Notice("STATS", Environment.NewLine + m_stats.Report());
+                    break;                    
 
                 case "test-inventory":
                     //  RestObjectPosterResponse<List<InventoryFolderBase>> requester = new RestObjectPosterResponse<List<InventoryFolderBase>>();
