@@ -1225,8 +1225,11 @@ namespace OpenSim.Region.Environment.Scenes
                     m_updateCount = 0;
                     lastPhysPos = AbsolutePosition;
                 }
-                CheckForSignificantMovement();
+
+                // followed suggestion from mic bowman. reversed the two lines below.
                 CheckForBorderCrossing();
+                CheckForSignificantMovement(); // sends update to the modules.
+                
             }
         }
 
