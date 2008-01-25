@@ -798,6 +798,7 @@
       <Reference name="OpenSim.Framework.Console"/>
       <Reference name="OpenSim.Region.Physics.Manager"/>
       <Reference name="OpenSim.Framework.Servers"/>
+      <Reference name="OpenSim.Framework.Statistics"/>
       <Reference name="OpenSim.Region.Environment"/>
       <Reference name="OpenSim.Region.ClientStack"/>
       <Reference name="OpenSim.Framework.Communications"/>
@@ -899,6 +900,7 @@
       <Reference name="OpenSim.Region.Physics.Manager"/>
       <Reference name="XMLRPC.dll"/>
       <Reference name="OpenSim.Framework.Servers"/>
+      <Reference name="OpenSim.Framework.Statistics"/>
       <Reference name="OpenSim.Framework.Communications"/>
       <Reference name="OpenSim.Region.Communications.Local"/>
       <Reference name="OpenSim.Region.ClientStack"/>
