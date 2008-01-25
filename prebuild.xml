@@ -1294,6 +1294,25 @@
       </Files>
     </Project>
 
+    <!-- Tests -->
+    <Project name="UserServerStressTest" path="OpenSim/Tests/UserServer/Stress" type="Exe">
+      <Configuration name="Debug">
+        <Options>
+          <OutputPath>../../../../bin/tests/stress</OutputPath>
+        </Options>
+      </Configuration>
+      <Configuration name="Release">
+        <Options>
+          <OutputPath>../../../../bin/tests/stress</OutputPath>
+        </Options>
+      </Configuration>
+
+      <ReferencePath>../../../../bin/tests/stress</ReferencePath>
+      <Reference name="System" localCopy="false"/>
+      <Files>
+        <Match pattern="*.cs" recurse="true"/>
+      </Files>
+    </Project>
 
     
     <!-- Tools -->
@@ -1334,8 +1353,6 @@
         <Match pattern="*.cs" recurse="true"/>
       </Files>
     </Project>
-
-
 
   </Solution>
 
@@ -1396,12 +1413,3 @@
 
   </Solution>
 </Prebuild>
-
-
-
-
-
-
-
-
-
