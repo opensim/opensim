@@ -19,15 +19,18 @@ OpenSim Developers
 * justincc (International Business Machines Corp.)
 * Teravus (w3z)
 * Johan Berntsson (3Di)
-
-Patches
-
-* Alondria
-* BigFootAg
-* CharlieO
+* Ckrinke
 * Danx0r
 * Dalien
 * Darok
+* chi11ken
+* adjohn
+* Alondria
+
+Patches
+
+* BigFootAg
+* CharlieO
 * jhurliman (LLSD Login)
 
 LSL Devs
@@ -40,7 +43,6 @@ Testers
 
 * Ckrinke
 * CharlieO (LSL)
-
 
 This software uses components from the following developers:
 * Sleepycat Software (Berkeley DB)
