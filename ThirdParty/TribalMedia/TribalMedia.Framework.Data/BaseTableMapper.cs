@@ -123,35 +123,58 @@ namespace TribalMedia.Framework.Data
         {
         }
 
+        // HACK: This is a temporary function used by TryGetValue().
+        // Due to a bug in mono 1.2.6, delegate blocks cannot contain
+        // a using() block.  This has been fixed in SVN, so the next
+        // mono release should work.
+        private void TryGetConnectionValue(DbConnection connection, TPrimaryKey primaryKey, ref TRowMapper result, ref bool success)
+        {
+            using (
+                DbCommand command =
+                CreateSelectCommand(connection, KeyFieldMapper.FieldName, primaryKey))
+            {
+                using (IDataReader reader = command.ExecuteReader())
+                {
+                    if (reader.Read())
+                    {
+                        result = FromReader( CreateReader(reader));
+                        success = true;
+                    }
+                    else
+                    {
+                        success = false;
+                    }
+                }
+            }
+        }
+
         public bool TryGetValue(TPrimaryKey primaryKey, out TRowMapper value)
         {
             TRowMapper result = default(TRowMapper);
             bool success = false;
 
             WithConnection(delegate(DbConnection connection)
-                               {
-                                   using (
-                                       DbCommand command =
-                                           CreateSelectCommand(connection, KeyFieldMapper.FieldName, primaryKey))
-                                   {
-                                       using (IDataReader reader = command.ExecuteReader())
-                                       {
-                                           if (reader.Read())
-                                           {
-                                               result = FromReader( CreateReader(reader));
-                                               success = true;
-                                           }
-                                           else
-                                           {
-                                               success = false;
-                                           }
-                                       }
-                                   }
-                               });
+                           {
+                               TryGetConnectionValue(connection, primaryKey, ref result, ref success);
+                           });
 
             value = result;
 
             return success;
+        }
+
+        // HACK: This is a temporary function used by Remove().
+        // Due to a bug in mono 1.2.6, delegate blocks cannot contain
+        // a using() block.  This has been fixed in SVN, so the next
+        // mono release should work.
+        protected virtual void TryDelete(DbConnection connection, TPrimaryKey id, ref int deleted)
+        {
+            using (
+                DbCommand command =
+                CreateDeleteCommand(connection, KeyFieldMapper.FieldName, id))
+            {
+                deleted = command.ExecuteNonQuery();
+            }
         }
 
         public virtual bool Remove(TPrimaryKey id)
@@ -159,14 +182,9 @@ namespace TribalMedia.Framework.Data
             int deleted = 0;
 
             WithConnection(delegate(DbConnection connection)
-                               {
-                                   using (
-                                       DbCommand command =
-                                           CreateDeleteCommand(connection, KeyFieldMapper.FieldName, id))
-                                   {
-                                       deleted = command.ExecuteNonQuery();
-                                   }
-                               });
+                           {
+                               TryDelete(connection, id, ref deleted);
+                           });
 
             if (deleted == 1)
             {
@@ -177,7 +195,6 @@ namespace TribalMedia.Framework.Data
                 return false;
             }
         }
-
 
         public DbCommand CreateDeleteCommand(DbConnection connection, string fieldName, TPrimaryKey primaryKey)
         {
@@ -196,17 +213,26 @@ namespace TribalMedia.Framework.Data
             return command;
         }
 
+        // HACK: This is a temporary function used by Update().
+        // Due to a bug in mono 1.2.6, delegate blocks cannot contain
+        // a using() block.  This has been fixed in SVN, so the next
+        // mono release should work.
+        protected void TryUpdate(DbConnection connection, TPrimaryKey primaryKey, TRowMapper value, ref int updated)
+        {
+            using (DbCommand command = CreateUpdateCommand(connection, value, primaryKey))
+            {
+                updated = command.ExecuteNonQuery();
+            }
+        }
+
         public virtual bool Update(TPrimaryKey primaryKey, TRowMapper value)
         {
             int updated = 0;
 
             WithConnection(delegate(DbConnection connection)
-                               {
-                                   using (DbCommand command = CreateUpdateCommand(connection, value, primaryKey))
-                                   {
-                                       updated = command.ExecuteNonQuery();
-                                   }
-                               });
+                           {
+                               TryUpdate(connection, primaryKey, value, ref updated);
+                           });
 
             if (updated == 1)
             {
@@ -218,17 +244,26 @@ namespace TribalMedia.Framework.Data
             }
         }
 
+        // HACK: This is a temporary function used by Add().
+        // Due to a bug in mono 1.2.6, delegate blocks cannot contain
+        // a using() block.  This has been fixed in SVN, so the next
+        // mono release should work.
+        protected void TryAdd(DbConnection connection, TRowMapper value, ref int added)
+        {
+            using (DbCommand command = CreateInsertCommand(connection, value))
+            {
+                added = command.ExecuteNonQuery();
+            }
+        }
+
         public virtual bool Add(TRowMapper value)
         {
             int added = 0;
 
             WithConnection(delegate(DbConnection connection)
-                               {
-                                   using (DbCommand command = CreateInsertCommand(connection, value))
-                                   {
-                                       added = command.ExecuteNonQuery();
-                                   }
-                               });
+                           {
+                               TryAdd(connection, value, ref added);
+                           });
 
             if (added == 1)
             {
