@@ -108,8 +108,8 @@ namespace OpenSim.Region.Physics.OdePlugin
             _position = pos;
             _acceleration = new PhysicsVector();
             _parent_scene = parent_scene;
-            string etcreturn = Util.ReadEtcIssue();
-            if (etcreturn.Contains("Debian") || etcreturn.Contains("Ubuntu"))
+
+            if (System.Environment.OSVersion.Platform == PlatformID.Unix)
             {
                 m_foundDebian = true;
                 m_tensor = 14000000f;
