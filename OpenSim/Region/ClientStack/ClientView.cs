@@ -2678,6 +2678,7 @@ namespace OpenSim.Region.ClientStack
                         break;
                     case PacketType.ModifyLand:
                         ModifyLandPacket modify = (ModifyLandPacket)Pack;
+                        //MainLog.Instance.Verbose("LAND", "LAND:" + modify.ToString());
                         if (modify.ParcelData.Length > 0)
                         {
                             if (OnModifyTerrain != null)

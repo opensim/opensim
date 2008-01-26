@@ -344,20 +344,27 @@ namespace OpenSim.Region.Environment.Scenes
         private void SendChildAgentDataUpdateAsync(ChildAgentDataUpdate cAgentData, ScenePresence presence)
         {
             //MainLog.Instance.Notice("INTERGRID", "Informing neighbors about my agent.");
-
-            foreach (ulong regionHandle in presence.KnownChildRegions)
+            try
             {
-                bool regionAccepted = m_commsProvider.InterRegion.ChildAgentUpdate(regionHandle, cAgentData);
+                foreach (ulong regionHandle in presence.KnownChildRegions)
+                {
+                    bool regionAccepted = m_commsProvider.InterRegion.ChildAgentUpdate(regionHandle, cAgentData);
 
-                if (regionAccepted)
-                {
-                    //MainLog.Instance.Notice("INTERGRID", "Completed sending a neighbor an update about my agent");
-                }
-                else
-                {
-                    //MainLog.Instance.Notice("INTERGRID", "Failed sending a neighbor an update about my agent");
+                    if (regionAccepted)
+                    {
+                        //MainLog.Instance.Notice("INTERGRID", "Completed sending a neighbor an update about my agent");
+                    }
+                    else
+                    {
+                        //MainLog.Instance.Notice("INTERGRID", "Failed sending a neighbor an update about my agent");
+                    }
                 }
             }
+            catch (System.InvalidOperationException)
+            {
+                // We're ignoring a collection was modified error because this data gets old and outdated fast.
+            }
+
         }
 
         private void SendChildAgentDataUpdateCompleted(IAsyncResult iar)
