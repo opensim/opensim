@@ -80,7 +80,7 @@ namespace OpenSim.Region.Physics.OdePlugin
         private const uint m_regionWidth = 256;
         private const uint m_regionHeight = 256;
 
-        private static float ODE_STEPSIZE = 0.004f;
+        private static float ODE_STEPSIZE = 0.025f;
         private static bool RENDER_FLAG = false;
         private static float metersInSpace = 29.9f;
         private IntPtr contactgroup;
@@ -1087,7 +1087,7 @@ namespace OpenSim.Region.Physics.OdePlugin
 
                 // Figure out the Frames Per Second we're going at.
                 //(step_time == 0.004f, there's 250 of those per second.   Times the step time/step size
-                fps = ((step_time/ODE_STEPSIZE)*(m_physicsiterations*250));
+                fps = (step_time/ODE_STEPSIZE) * 1000;
 
 
                 while (step_time > 0.0f)

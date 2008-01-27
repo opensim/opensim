@@ -68,8 +68,8 @@ namespace OpenSim.Region.Physics.OdePlugin
         private float m_mass = 80f;
         private float m_density = 60f;
         private bool m_pidControllerActive = true;
-        private static float PID_D = 3020.0f;
-        private static float PID_P = 7000.0f;
+        private float PID_D = 800.0f;
+        private float PID_P = 900.0f;
         private static float POSTURE_SERVO = 10000.0f;
         public static float CAPSULE_RADIUS = 0.37f;
         public float CAPSULE_LENGTH = 2.140599f;
@@ -112,11 +112,11 @@ namespace OpenSim.Region.Physics.OdePlugin
             if (System.Environment.OSVersion.Platform == PlatformID.Unix)
             {
                 m_foundDebian = true;
-                m_tensor = 14000000f;
+                m_tensor = 1000000f;
             }
             else
             {
-                m_tensor = 3800000f;
+                m_tensor = 1000000f;
             }
 
             m_StandUpRotation =
@@ -384,7 +384,7 @@ namespace OpenSim.Region.Physics.OdePlugin
 
             d.GeomSetBody(Shell, Body);
 
-
+            
             // The purpose of the AMotor here is to keep the avatar's physical 
             // surrogate from rotating while moving
             Amotor = d.JointCreateAMotor(_parent_scene.world, IntPtr.Zero);
@@ -562,6 +562,7 @@ namespace OpenSim.Region.Physics.OdePlugin
             // If the PID Controller isn't active then we set our force 
             // calculating base velocity to the current position
 
+
             if (m_pidControllerActive == false)
             {
                 _zeroPosition = d.BodyGetPosition(Body);
@@ -598,11 +599,11 @@ namespace OpenSim.Region.Physics.OdePlugin
                     // Prim to avatar collisions
 
                     d.Vector3 pos = d.BodyGetPosition(Body);
-                    vec.X = (_target_velocity.X - vel.X)*PID_D + (_zeroPosition.X - pos.X)*PID_P;
-                    vec.Y = (_target_velocity.Y - vel.Y)*PID_D + (_zeroPosition.Y - pos.Y)*PID_P;
+                    vec.X = (_target_velocity.X - vel.X) * (PID_D) + (_zeroPosition.X - pos.X) * PID_P;
+                    vec.Y = (_target_velocity.Y - vel.Y)*(PID_D) + (_zeroPosition.Y - pos.Y)*PID_P;
                     if (flying)
                     {
-                        vec.Z = (_target_velocity.Z - vel.Z)*(PID_D + 5100) + (_zeroPosition.Z - pos.Z)*PID_P;
+                        vec.Z = (_target_velocity.Z - vel.Z) * (PID_D) + (_zeroPosition.Z - pos.Z) * PID_P;
                     }
                 }
                 //PidStatus = true;
@@ -650,12 +651,12 @@ namespace OpenSim.Region.Physics.OdePlugin
 
                 if (flying)
                 {
-                    vec.Z = (_target_velocity.Z - vel.Z)*(PID_D + 5100);
+                    vec.Z = (_target_velocity.Z - vel.Z) * (PID_D);
                 }
             }
             if (flying)
             {
-                vec.Z += 10.0f;
+                vec.Z += (9.8f*m_mass);
             }
 
 
