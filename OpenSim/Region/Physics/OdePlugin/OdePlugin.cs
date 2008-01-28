@@ -338,7 +338,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                     {
                           //This is disabled at the moment only because it needs more tweaking
                             //It will eventually be uncommented
-                         /*
+                         
                         if (contacts[i].depth >= 1.00f)
                         {
                             //MainLog.Instance.Debug("PHYSICS",contacts[i].depth.ToString());
@@ -350,6 +350,8 @@ namespace OpenSim.Region.Physics.OdePlugin
                             (p1.PhysicsActorType == (int) ActorTypes.Agent &&
                              p2.PhysicsActorType == (int) ActorTypes.Prim))
                         {
+                            //contacts[i].depth = contacts[i].depth * 4.15f;
+                            /*
                             if (p2.PhysicsActorType == (int) ActorTypes.Agent)
                             {   
                                 p2.CollidingObj = true;
@@ -380,8 +382,9 @@ namespace OpenSim.Region.Physics.OdePlugin
                                 
                                 //contacts[i].depth = 0.0000000f;
                             }
+                              */
                         }
-                        */ 
+                        
 
                         // If you interpenetrate a prim with another prim
                         if (p1.PhysicsActorType == (int) ActorTypes.Prim && p2.PhysicsActorType == (int) ActorTypes.Prim)
