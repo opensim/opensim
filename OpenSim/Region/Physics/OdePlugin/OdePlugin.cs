@@ -80,7 +80,7 @@ namespace OpenSim.Region.Physics.OdePlugin
         private const uint m_regionWidth = 256;
         private const uint m_regionHeight = 256;
 
-        private static float ODE_STEPSIZE = 0.025f;
+        private static float ODE_STEPSIZE = 0.020f;
         private static bool RENDER_FLAG = false;
         private static float metersInSpace = 29.9f;
         private IntPtr contactgroup;
