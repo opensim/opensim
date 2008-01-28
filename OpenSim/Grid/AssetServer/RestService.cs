@@ -35,6 +35,7 @@ using libsecondlife;
 using OpenSim.Framework;
 using OpenSim.Framework.Console;
 using OpenSim.Framework.Servers;
+using OpenSim.Framework.Statistics;
 
 namespace OpenSim.Grid.AssetServer
 {

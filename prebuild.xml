@@ -1050,6 +1050,7 @@
       <Reference name="OpenSim.Framework.Console"/>
       <Reference name="OpenSim.Framework.Servers"/>
       <Reference name="OpenSim.Framework.Communications"/>
+      <Reference name="OpenSim.Framework.Statistics"/>
       <Reference name="libsecondlife.dll"/>
 
       <Files>
