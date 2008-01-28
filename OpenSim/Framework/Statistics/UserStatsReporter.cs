@@ -42,7 +42,13 @@ namespace OpenSim.Framework.Statistics
         public int SuccessfulLoginsToday { get { return successfulLoginsToday; } }
         
         private int successfulLoginsYesterday;
-        public int SuccessfulLoginsYesterday { get { return successfulLoginsYesterday; } }       
+        public int SuccessfulLoginsYesterday { get { return successfulLoginsYesterday; } }    
+        
+        private int successfulLogins;
+        public int SuccessfulLogins { get { return successfulLogins; } }
+        
+        private int logouts;
+        public int Logouts { get { return logouts; } }
         
         public UserStatsReporter()
         {
@@ -64,7 +70,13 @@ namespace OpenSim.Framework.Statistics
         /// </summary>
         public void AddSuccessfulLogin()
         {
+            successfulLogins++;            
             successfulLoginsToday++;
+        }
+        
+        public void AddLogout()
+        {
+            logouts++;
         }
 
         /// <summary>
@@ -74,9 +86,9 @@ namespace OpenSim.Framework.Statistics
         public string Report()
         {
             return string.Format(
-@"Successful logins today     : {0}
-Successful logins yesterday : {1}",
-                SuccessfulLoginsToday, SuccessfulLoginsYesterday);
+@"Successful logins total : {0}, today : {1}, yesterday : {2}
+          Logouts total : {3}",
+                SuccessfulLogins, SuccessfulLoginsToday, SuccessfulLoginsYesterday, Logouts);
         }
     }
 }

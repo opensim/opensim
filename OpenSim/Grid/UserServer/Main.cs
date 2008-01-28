@@ -44,7 +44,6 @@ namespace OpenSim.Grid.UserServer
     {
         private UserConfig Cfg;
         
-
         public UserManager m_userManager;
         public UserLoginService m_loginService;
         public MessageServersConnector m_messagesService;
@@ -89,13 +88,13 @@ namespace OpenSim.Grid.UserServer
         public void Startup()
         {
             Cfg = new UserConfig("USER SERVER", (Path.Combine(Util.configDir(), "UserServer_Config.xml")));
+            
+            m_stats = new UserStatsReporter();            
 
             MainLog.Instance.Verbose("REGION", "Establishing data connection");
-            m_userManager = new UserManager();
+            m_userManager = new UserManager(m_stats);
             m_userManager._config = Cfg;
-            m_userManager.AddPlugin(Cfg.DatabaseProvider);
-            
-            m_stats = new UserStatsReporter();
+            m_userManager.AddPlugin(Cfg.DatabaseProvider);            
 
             m_loginService = new UserLoginService(
                  m_userManager, new LibraryRootFolder(), m_stats, Cfg, Cfg.DefaultStartupMsg);

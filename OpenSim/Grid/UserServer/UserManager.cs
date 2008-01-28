@@ -32,16 +32,21 @@ using System.Text.RegularExpressions;
 using libsecondlife;
 using Nwc.XmlRpc;
 using OpenSim.Framework;
+using OpenSim.Framework.Statistics;
 using OpenSim.Framework.UserManagement;
 
 namespace OpenSim.Grid.UserServer
 {
     public class UserManager : UserManagerBase
-    {
-        public UserManager()
+    {        
+        /// <summary>
+        /// Constructor.
+        /// </summary>
+        /// <param name="statsCollector">Can be null if stats collection is not required.
+        /// </param>
+        public UserManager(UserStatsReporter statsCollector) : base(statsCollector)       
         {
-        }
-
+        }        
 
         /// <summary>
         /// Deletes an active agent session

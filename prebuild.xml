@@ -1363,6 +1363,7 @@
       <Reference name="OpenSim.Framework"/>
       <Reference name="OpenSim.Framework.Data"/>
       <Reference name="OpenSim.Framework.Console"/>
+      <Reference name="OpenSim.Framework.Statistics"/>
       <Reference name="OpenSim.Region.Physics.Manager"/>
       <Reference name="OpenSim.Framework.Servers"/>
       <Reference name="OpenSim.Region.Environment"/>

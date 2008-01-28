@@ -30,6 +30,7 @@ using System;
 using libsecondlife;
 using OpenSim.Framework;
 using OpenSim.Framework.Communications;
+using OpenSim.Framework.Statistics;
 using OpenSim.Framework.UserManagement;
 
 namespace OpenSim.Region.Communications.Local
@@ -42,8 +43,17 @@ namespace OpenSim.Region.Communications.Local
         private IInventoryServices m_inventoryService;
 
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="serversInfo"></param>
+        /// <param name="defaultHomeLocX"></param>
+        /// <param name="defaultHomeLocY"></param>
+        /// <param name="inventoryService"></param>
+        /// <param name="statsCollector">Can be null if stats collection is not required.</param>
         public LocalUserServices(NetworkServersInfo serversInfo, uint defaultHomeLocX, uint defaultHomeLocY,
-                                 IInventoryServices inventoryService)
+                                 IInventoryServices inventoryService, UserStatsReporter statsCollector)
+            : base(statsCollector)
         {
             m_serversInfo = serversInfo;
 

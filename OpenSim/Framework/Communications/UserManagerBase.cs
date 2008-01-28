@@ -34,6 +34,7 @@ using libsecondlife;
 using libsecondlife.StructuredData;
 using Nwc.XmlRpc;
 using OpenSim.Framework.Console;
+using OpenSim.Framework.Statistics;
 
 namespace OpenSim.Framework.UserManagement
 {
@@ -44,7 +45,18 @@ namespace OpenSim.Framework.UserManagement
     {
         public UserConfig _config;
         private Dictionary<string, IUserData> _plugins = new Dictionary<string, IUserData>();
+        protected UserStatsReporter _stats;
 
+        /// <summary>
+        /// Constructor.
+        /// </summary>
+        /// <param name="statsCollector">Can be null if stats collection is not required.
+        /// </param>
+        public UserManagerBase(UserStatsReporter statsCollector)            
+        {
+            _stats = statsCollector;
+        }
+        
         /// <summary>
         /// Adds a new user server plugin - user servers will be requested in the order they were loaded.
         /// </summary>
@@ -411,8 +423,21 @@ namespace OpenSim.Framework.UserManagement
 
             profile.currentAgent = agent;
         }
+        
+        /// <summary>
+        /// Process a user logoff from OpenSim.
+        /// </summary>
+        /// <param name="userid"></param>
+        /// <param name="regionid"></param>
+        /// <param name="regionhandle"></param>
+        /// <param name="posx"></param>
+        /// <param name="posy"></param>
+        /// <param name="posz"></param>
         public void LogOffUser(LLUUID userid, LLUUID regionid, ulong regionhandle, float posx, float posy, float posz)
         {
+            if (_stats != null)
+                _stats.AddLogout();
+            
             UserProfileData userProfile;
             UserAgentData userAgent;
             LLVector3 currentPos = new LLVector3(posx, posy, posz);
@@ -450,6 +475,7 @@ namespace OpenSim.Framework.UserManagement
                 MainLog.Instance.Warn("LOGOUT", "Unknown User logged out");
             }
         }
+        
         public void CreateAgent(UserProfileData profile, LLSD request)
         {
             UserAgentData agent = new UserAgentData();
