@@ -32,6 +32,7 @@ Patches
 * BigFootAg
 * CharlieO
 * jhurliman (LLSD Login)
+* kinoc
 
 LSL Devs
 
