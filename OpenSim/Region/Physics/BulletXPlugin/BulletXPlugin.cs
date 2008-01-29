@@ -311,8 +311,8 @@ namespace OpenSim.Region.Physics.BulletXPlugin
 
             bool needsCollision = base.NeedsCollision(bodyA, bodyB);
 
-            MainLog.Instance.Debug("BulletX", "A collision was detected between {0} and {1} --> {2}", nameA, nameB,
-                                   needsCollision);
+            //MainLog.Instance.Debug("BulletX", "A collision was detected between {0} and {1} --> {2}", nameA, nameB,
+                                   //needsCollision);
 
 
             return needsCollision;
