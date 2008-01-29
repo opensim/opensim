@@ -436,6 +436,10 @@ namespace OpenSim
             m_sceneManager.OnRestartSim += handleRestartRegion;
         }
 
+        public LLUUID CreateUser(string tempfirstname, string templastname, string tempPasswd, uint regX, uint regY)
+        {
+            return m_commsManager.AddUser(tempfirstname,templastname,tempPasswd,regX,regY);
+        }
 
         public UDPServer CreateRegion(RegionInfo regionInfo)
         {
@@ -678,6 +682,7 @@ namespace OpenSim
                     m_log.Error("  alert [First] [Last] [Message] - send an alert to a user. Case sensitive.");
                     m_log.Error("  alert general [Message] - send an alert to all users.");
                     m_log.Error("backup - trigger a simulator backup");
+                    m_log.Error("create user - adds a new user");
                     m_log.Error("change-region [name] - sets the region that many of these commands affect.");
                     m_log.Error("command-script [filename] - Execute command in a file.");
                     m_log.Error("debug - debugging commands");

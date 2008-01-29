@@ -67,6 +67,7 @@ namespace OpenSim.ApplicationPlugins.LoadRegions
                     m_httpd.AddXmlRPCHandler("admin_broadcast", XmlRpcAlertMethod);
                     m_httpd.AddXmlRPCHandler("admin_restart", XmlRpcRestartMethod);
                     m_httpd.AddXmlRPCHandler("admin_load_heightmap", XmlRpcLoadHeightmapMethod);
+                    m_httpd.AddXmlRPCHandler("admin_create_user", XmlRpcCreateUserMethod);
                 }
             }
             catch (NullReferenceException)
@@ -281,9 +282,60 @@ namespace OpenSim.ApplicationPlugins.LoadRegions
             return response;
         }
 
+        public XmlRpcResponse XmlRpcCreateUserMethod(XmlRpcRequest request)
+        {
+            MainLog.Instance.Verbose("RADMIN", "Received Create User Administrator Request");
+            XmlRpcResponse response = new XmlRpcResponse();
+            Hashtable requestData = (Hashtable) request.Params[0];
+            Hashtable responseData = new Hashtable();
+            if (requiredPassword != System.String.Empty &&
+                (!requestData.Contains("password") || (string) requestData["password"] != requiredPassword))
+            {
+                responseData["created"] = "false";
+                response.Value = responseData;
+            }
+            else
+            {
+                try
+                {
+                    string tempfirstname = (string) requestData["user_firstname"];
+                    string templastname  = (string) requestData["user_lastname"];
+                    string tempPasswd    = (string) requestData["user_password"];
+                    uint   regX          = Convert.ToUInt32((Int32) requestData["start_region_x"]);
+                    uint   regY          = Convert.ToUInt32((Int32) requestData["start_region_y"]);
+
+     	            LLUUID tempuserID = m_app.CreateUser(tempfirstname, templastname, tempPasswd, regX, regY);
+
+                    if (tempuserID == LLUUID.Zero)
+                    {
+                        responseData["created"]     = "false";
+                        responseData["error"]       = "Error creating user";
+                        responseData["avatar_uuid"] = LLUUID.Zero;
+                        response.Value              = responseData;
+                        MainLog.Instance.Error("RADMIN", "Error creating user (" + tempfirstname + " " + templastname + ") :");
+                    }
+                    else
+                    {
+                        responseData["created"]     = "true";
+                        responseData["avatar_uuid"] = tempuserID;
+                        response.Value              = responseData;
+                        MainLog.Instance.Verbose("RADMIN", "User " + tempfirstname + " " + templastname + " created. Userid " + tempuserID + " assigned.");
+                    }  
+                }
+                catch (Exception e)
+                {
+                    responseData["created"] = "false";
+                    responseData["error"]   = e.ToString();
+                    responseData["avatar_uuid"] = LLUUID.Zero;
+                    response.Value          = responseData;
+                }
+            }
+
+            return response;
+        }
+
         public void Close()
         {
         }
-
     }
 }
