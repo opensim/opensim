@@ -165,7 +165,11 @@ namespace OpenSim.Region.Terrain
         {
             // Shiny.
             double size = (double) (1 << brushsize);
-
+            //System.Console.WriteLine("SIZE:" + size.ToString() + " Seconds:" + seconds.ToString());
+            if (seconds == 1)
+            {
+                seconds = 0.0315f;
+            }
             /*  Okay, so here's the deal
              * This has to handle both when a user draws on the terrain *and* when a user selects 
              * a selection of AABB on terrain and applies whatever routine the client requests
@@ -202,6 +206,8 @@ namespace OpenSim.Region.Terrain
                         {
                             FlattenTerrain(y, x, size, (double) seconds/5.0);
                             lastEdit = DateTime.Now;
+                            remoteUser.SendLayerData((int)(x / 16), (int)(x / 16), GetHeights1D());
+
                         }
                     }
                     break;
@@ -213,6 +219,7 @@ namespace OpenSim.Region.Terrain
                         {
                             RaiseTerrain(y, x, size, (double) seconds/5.0);
                             lastEdit = DateTime.Now;
+                            remoteUser.SendLayerData((int)(x / 16), (int)(x / 16), GetHeights1D());
                         }
                     }
                     break;
@@ -224,6 +231,7 @@ namespace OpenSim.Region.Terrain
                         {
                             LowerTerrain(y, x, size, (double) seconds/5.0);
                             lastEdit = DateTime.Now;
+                            remoteUser.SendLayerData((int)(x / 16), (int)(x / 16), GetHeights1D());
                         }
                     }
                     break;
@@ -295,6 +303,8 @@ namespace OpenSim.Region.Terrain
 
             return;
         }
+
+        
 
 
         /// <summary>
