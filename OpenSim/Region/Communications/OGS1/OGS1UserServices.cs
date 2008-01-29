@@ -152,7 +152,15 @@ namespace OpenSim.Region.Communications.OGS1
             IList parameters = new ArrayList();
             parameters.Add(param);
             XmlRpcRequest req = new XmlRpcRequest("logout_of_simulator", parameters);
-            XmlRpcResponse resp = req.Send(m_parent.NetworkServersInfo.UserURL, 3000);
+            try
+            {
+                XmlRpcResponse resp = req.Send(m_parent.NetworkServersInfo.UserURL, 3000);
+            }
+            catch (System.Net.WebException)
+            {
+                MainLog.Instance.Warn("LOGOFF", "Unable to notify grid server of user logoff");
+            }
+
 
         }
         public UserProfileData GetUserProfile(string firstName, string lastName)
