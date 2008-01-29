@@ -571,8 +571,17 @@ namespace OpenSim.Region.Physics.OdePlugin
 
             // If the PID Controller isn't active then we set our force 
             // calculating base velocity to the current position
-             PID_D = 2200.0f;
-             PID_P = 900.0f;
+            if (System.Environment.OSVersion.Platform == PlatformID.Unix)
+            {
+                PID_D = 3200.0f;
+                PID_P = 1400.0f;
+            }
+            else
+            {
+                PID_D = 2200.0f;
+                PID_P = 900.0f;
+            }
+             
 
             if (m_pidControllerActive == false)
             {
