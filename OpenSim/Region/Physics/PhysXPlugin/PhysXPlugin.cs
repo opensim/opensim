@@ -224,6 +224,16 @@ namespace OpenSim.Region.Physics.PhysXPlugin
             set { return; }
         }
 
+        public override bool Grabbed
+        {
+            set { return; }
+        }
+
+        public override bool Selected
+        {
+            set { return; }
+        }
+
         public override bool IsPhysical
         {
             get { return false; }
@@ -407,6 +417,16 @@ namespace OpenSim.Region.Physics.PhysXPlugin
         public override bool SetAlwaysRun
         {
             get { return false; }
+            set { return; }
+        }
+
+        public override bool Grabbed
+        {
+            set { return; }
+        }
+
+        public override bool Selected
+        {
             set { return; }
         }
 

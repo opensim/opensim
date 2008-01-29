@@ -207,7 +207,14 @@ namespace OpenSim.Region.Environment.Scenes
         public bool IsSelected
         {
             get { return m_isSelected; }
-            set { m_isSelected = value; }
+            set {
+                m_isSelected = value;
+                // Tell physics engine that group is selected
+                if (m_rootPart.PhysActor != null)
+                {
+                    m_rootPart.PhysActor.Selected = value;
+                }
+            }
         }
 
         // The UUID for the Region this Object is in.
@@ -1039,20 +1046,45 @@ namespace OpenSim.Region.Environment.Scenes
         }
 
         /// <summary>
-        /// 
+        /// If object is physical, apply force to move it around
+        /// If object is not physical, just put it at the resulting location
         /// </summary>
-        /// <param name="offset"></param>
-        /// <param name="pos"></param>
+        /// <param name="offset">Always seems to be 0,0,0, so ignoring</param>
+        /// <param name="pos">New position.  We do the math here to turn it into a force</param>
         /// <param name="remoteClient"></param>
         public void GrabMovement(LLVector3 offset, LLVector3 pos, IClientAPI remoteClient)
         {
+            
             if (m_scene.EventManager.TriggerGroupMove(UUID, pos))
             {
-                AbsolutePosition = pos;
-                m_rootPart.SendTerseUpdateToAllClients();
+
+                if (m_rootPart.PhysActor != null)
+                {
+                    if (m_rootPart.PhysActor.IsPhysical)
+                    {
+                        LLVector3 llmoveforce = pos - AbsolutePosition;
+                        PhysicsVector grabforce = new PhysicsVector(llmoveforce.X, llmoveforce.Y, llmoveforce.Z);
+                        grabforce = (grabforce / 10) * m_rootPart.PhysActor.Mass;
+                        m_rootPart.PhysActor.AddForce(grabforce);
+                        m_scene.PhysicsScene.AddPhysicsActorTaint(m_rootPart.PhysActor);
+                    }
+                    else
+                    {
+                        NonPhysicalGrabMovement(pos);
+                    }
+                }
+                else
+                {
+                    NonPhysicalGrabMovement(pos);
+                }
             }
         }
+        public void NonPhysicalGrabMovement(LLVector3 pos)
+        {
+            AbsolutePosition = pos;
+            m_rootPart.SendTerseUpdateToAllClients();
 
+        }
         /// <summary>
         /// 
         /// </summary>

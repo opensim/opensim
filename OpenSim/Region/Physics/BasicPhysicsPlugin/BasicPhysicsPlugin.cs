@@ -224,6 +224,16 @@ namespace OpenSim.Region.Physics.BasicPhysicsPlugin
             set { return; }
         }
 
+        public override bool Grabbed
+        {
+            set { return; }
+        }
+
+        public override bool Selected
+        {
+            set { return; }
+        }
+
         public override bool IsPhysical
         {
             get { return false; }

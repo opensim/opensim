@@ -354,6 +354,16 @@ namespace OpenSim.Region.Physics.POSPlugin
             set { return; }
         }
 
+        public override bool Grabbed
+        {
+            set { return; }
+        }
+
+        public override bool Selected
+        {
+            set { return; }
+        }
+
         public override bool IsPhysical
         {
             get { return false; }
@@ -607,5 +617,16 @@ namespace OpenSim.Region.Physics.POSPlugin
             get { return false; }
             set { return; }
         }
+
+        public override bool Grabbed
+        {
+            set { return; }
+        }
+
+        public override bool Selected
+        {
+            set { return; }
+        }
+
     }
 }

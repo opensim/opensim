@@ -122,6 +122,10 @@ namespace OpenSim.Region.Physics.Manager
 
         public abstract PrimitiveBaseShape Shape { set; }
 
+        public abstract bool Grabbed { set; }
+
+        public abstract bool Selected { set; }
+
         public virtual void RequestPhysicsterseUpdate()
         {
             // Make a temporary copy of the event to avoid possibility of
@@ -190,6 +194,8 @@ namespace OpenSim.Region.Physics.Manager
         public abstract void AddForce(PhysicsVector force);
 
         public abstract void SetMomentum(PhysicsVector momentum);
+
+        
     }
 
     public class NullPhysicsActor : PhysicsActor
@@ -205,6 +211,17 @@ namespace OpenSim.Region.Physics.Manager
             get { return false; }
             set { return; }
         }
+
+        public override bool Grabbed
+        {
+            set { return; }
+        }
+
+        public override bool Selected
+        {
+            set { return; }
+        }
+
 
         public override bool CollidingGround
         {

@@ -152,6 +152,17 @@ namespace OpenSim.Region.Physics.OdePlugin
             set { m_alwaysRun = value; }
         }
 
+        public override bool Grabbed
+        {
+            set { return; }
+        }
+
+        public override bool Selected
+        {
+            set { return; }
+        }
+
+
         public override bool IsPhysical
         {
             get { return false; }

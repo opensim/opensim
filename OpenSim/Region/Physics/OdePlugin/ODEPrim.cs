@@ -202,6 +202,17 @@ namespace OpenSim.Region.Physics.OdePlugin
             set { return; }
         }
 
+        public override bool Grabbed
+        {
+            set { return; }
+        }
+
+        public override bool Selected
+        {
+            set { return; }
+        }
+
+
         public void enableBody()
         {
             // Sets the geom to a body
