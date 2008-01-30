@@ -359,6 +359,9 @@ namespace OpenSim.Region.Physics.OdePlugin
                     CAPSULE_LENGTH = (SetSize.Z - ((SetSize.Z*0.52f))); // subtract 43% of the size
                     OpenSim.Framework.Console.MainLog.Instance.Verbose("SIZE", CAPSULE_LENGTH.ToString());
                     d.BodyDestroy(Body);
+
+                    _parent_scene.waitForSpaceUnlock(_parent_scene.space);
+
                     d.GeomDestroy(Shell);
                     AvatarGeomAndBodyCreation(_position.X, _position.Y,
                                       _position.Z + (Math.Abs(CAPSULE_LENGTH - prevCapsule) * 2), m_tensor);
@@ -389,6 +392,7 @@ namespace OpenSim.Region.Physics.OdePlugin
             }
 
             int dAMotorEuler = 1;
+            _parent_scene.waitForSpaceUnlock(_parent_scene.space);
             Shell = d.CreateCapsule(_parent_scene.space, CAPSULE_RADIUS, CAPSULE_LENGTH);
             d.MassSetCapsuleTotal(out ShellMass, m_mass, 2, CAPSULE_RADIUS, CAPSULE_LENGTH);
             Body = d.BodyCreate(_parent_scene.world);
@@ -781,6 +785,8 @@ namespace OpenSim.Region.Physics.OdePlugin
                 d.JointDestroy(Amotor);
 
                 //kill the Geometry
+                _parent_scene.waitForSpaceUnlock(_parent_scene.space);
+
                 d.GeomDestroy(Shell);
                 _parent_scene.geom_name_map.Remove(Shell);
                 

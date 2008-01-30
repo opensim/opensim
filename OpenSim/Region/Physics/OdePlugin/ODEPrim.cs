@@ -140,15 +140,20 @@ namespace OpenSim.Region.Physics.OdePlugin
                         {
                             if (((_size.X / 2f) > 0f))
                             {
+
+
+                                _parent_scene.waitForSpaceUnlock(m_targetSpace);
                                 prim_geom = d.CreateSphere(m_targetSpace, _size.X / 2);
                             }
                             else
                             {
+                                _parent_scene.waitForSpaceUnlock(m_targetSpace);
                                 prim_geom = d.CreateBox(m_targetSpace, _size.X, _size.Y, _size.Z);
                             }
                         }
                         else
                         {
+                            _parent_scene.waitForSpaceUnlock(m_targetSpace);
                             prim_geom = d.CreateBox(m_targetSpace, _size.X, _size.Y, _size.Z);
                         }
                     }
@@ -166,7 +171,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                     //}
                     else
                     {
-
+                        _parent_scene.waitForSpaceUnlock(m_targetSpace);
                         prim_geom = d.CreateBox(m_targetSpace, _size.X, _size.Y, _size.Z);
                     }
                 }
@@ -190,6 +195,12 @@ namespace OpenSim.Region.Physics.OdePlugin
             }
         }
 
+        /// <summary>
+        /// Nasty, however without this you get 
+        /// 'invalid operation for locked space' when things are really loaded down
+        /// </summary>
+        /// <param name="space"></param>
+        
         public override int PhysicsActorType
         {
             get { return (int) ActorTypes.Prim; }
@@ -375,6 +386,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                                          3*sizeof (int));
             d.GeomTriMeshDataPreprocess(_triMeshData);
 
+            _parent_scene.waitForSpaceUnlock(m_targetSpace);
             prim_geom = d.CreateTriMesh(m_targetSpace, _triMeshData, parent_scene.triCallback, null, null);
 
             if (IsPhysical && Body == (IntPtr) 0)
@@ -427,6 +439,8 @@ namespace OpenSim.Region.Physics.OdePlugin
                 int[] arrayitem = _parent_scene.calculateSpaceArrayItemFromPos(_position);
                 m_targetSpace = _parent_scene.recalculateSpaceForGeom(prim_geom, _position, m_targetSpace);
                 d.GeomSetPosition(prim_geom, _position.X, _position.Y, _position.Z);
+
+                _parent_scene.waitForSpaceUnlock(m_targetSpace);
                 d.SpaceAdd(m_targetSpace, prim_geom);
             }
 
@@ -486,6 +500,7 @@ namespace OpenSim.Region.Physics.OdePlugin
             }
             if (d.SpaceQuery(m_targetSpace, prim_geom))
             {
+                _parent_scene.waitForSpaceUnlock(m_targetSpace);
                 d.SpaceRemove(m_targetSpace, prim_geom);
             }
             d.GeomDestroy(prim_geom);
@@ -510,17 +525,20 @@ namespace OpenSim.Region.Physics.OdePlugin
                         {
                             if (((_size.X / 2f) > 0f) && ((_size.X / 2f) < 1000))
                             {
+                                _parent_scene.waitForSpaceUnlock(m_targetSpace);
                                 prim_geom = d.CreateSphere(m_targetSpace, _size.X / 2);
                             }
                             else
                             {
                                 OpenSim.Framework.Console.MainLog.Instance.Verbose("PHYSICS", "Failed to load a sphere bad size");
+                                _parent_scene.waitForSpaceUnlock(m_targetSpace);
                                 prim_geom = d.CreateBox(m_targetSpace, _size.X, _size.Y, _size.Z);
                             }
 
                         }
                         else
                         {
+                            _parent_scene.waitForSpaceUnlock(m_targetSpace);
                             prim_geom = d.CreateBox(m_targetSpace, _size.X, _size.Y, _size.Z);
                         }
                     }
@@ -538,7 +556,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                     //}
                     else
                     {
-
+                        _parent_scene.waitForSpaceUnlock(m_targetSpace);
                         prim_geom = d.CreateBox(m_targetSpace, _size.X, _size.Y, _size.Z);
                     }
                     //prim_geom = d.CreateBox(m_targetSpace, _size.X, _size.Y, _size.Z);
@@ -557,10 +575,12 @@ namespace OpenSim.Region.Physics.OdePlugin
                 {
                     if (_size.X == _size.Y && _size.Y == _size.Z && _size.X == _size.Z)
                     {
+                        _parent_scene.waitForSpaceUnlock(m_targetSpace);
                         prim_geom = d.CreateSphere(m_targetSpace, _size.X / 2);
                     }
                     else
                     {
+                        _parent_scene.waitForSpaceUnlock(m_targetSpace);
                         prim_geom = d.CreateBox(m_targetSpace, _size.X, _size.Y, _size.Z);
                     }
                 }
@@ -578,7 +598,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                 //}
                 else
                 {
-
+                    _parent_scene.waitForSpaceUnlock(m_targetSpace);
                     prim_geom = d.CreateBox(m_targetSpace, _size.X, _size.Y, _size.Z);
                 }
                 d.GeomSetPosition(prim_geom, _position.X, _position.Y, _position.Z);
@@ -630,11 +650,13 @@ namespace OpenSim.Region.Physics.OdePlugin
                 }
                 else
                 {
+                    _parent_scene.waitForSpaceUnlock(m_targetSpace);
                     prim_geom = d.CreateBox(m_targetSpace, _size.X, _size.Y, _size.Z);
                 }
             }
             else
             {
+                _parent_scene.waitForSpaceUnlock(m_targetSpace);
                 prim_geom = d.CreateBox(m_targetSpace, _size.X, _size.Y, _size.Z);
             }
             if (IsPhysical && Body == (IntPtr) 0)
