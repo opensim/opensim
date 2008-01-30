@@ -40,11 +40,15 @@ namespace OpenSim.Grid.AssetServer
         private Timer ageStatsTimer = new Timer(24 * 60 * 60 * 1000);
         private DateTime startTime = DateTime.Now;
         
-        private long assetRequestsToday;        
+        private long assetRequestsToday;    
+        private long assetRequestsNotFoundToday;
         private long assetRequestsYesterday;
+        private long assetRequestsNotFoundYesterday;
         
-        public long AssetRequestsToday { get { return assetRequestsToday; } }        
-        public long AssetRequestsYesterday { get { return assetRequestsYesterday; } }       
+        public long AssetRequestsToday { get { return assetRequestsToday; } }
+        public long AssetRequestsNotFoundToday { get { return assetRequestsNotFoundToday; } }        
+        public long AssetRequestsYesterday { get { return assetRequestsYesterday; } }
+        public long AssetRequestsNotFoundYesterday { get { return assetRequestsNotFoundYesterday; } }        
         
         public AssetStatsReporter()
         {
@@ -58,7 +62,18 @@ namespace OpenSim.Grid.AssetServer
             
             // There is a possibility that an asset request could occur between the execution of these
             // two statements.  But we're better off without the synchronization overhead.
-            assetRequestsToday = 0;            
+            assetRequestsToday = 0;   
+            
+            assetRequestsNotFoundYesterday = assetRequestsNotFoundToday;
+            assetRequestsNotFoundToday = 0;
+        }
+        
+        /// <summary>
+        /// Record that an asset request failed to find an asset
+        /// </summary>
+        public void AddNotFoundRequest()
+        {
+            assetRequestsNotFoundToday++;
         }
         
         /// <summary>
@@ -82,10 +97,10 @@ namespace OpenSim.Grid.AssetServer
             long assetRequestsYesterdayPerHour = (long)Math.Round(AssetRequestsYesterday / 24.0);
             
             return string.Format(
-@"Asset requests today     : {0}  ({1} per hour)
-Asset requests yesterday : {2}  ({3} per hour)",
-                AssetRequestsToday, assetRequestsTodayPerHour,
-                AssetRequestsYesterday, assetRequestsYesterdayPerHour);
+@"Asset requests today     : {0}  ({1} per hour)  of which {2} were not found
+Asset requests yesterday : {3}  ({4} per hour)  of which {5} were not found",
+                AssetRequestsToday, assetRequestsTodayPerHour, AssetRequestsNotFoundToday,
+                AssetRequestsYesterday, assetRequestsYesterdayPerHour, AssetRequestsNotFoundYesterday);
         }
     }
 }

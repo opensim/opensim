@@ -45,6 +45,12 @@ namespace OpenSim.Grid.AssetServer
         private IAssetProvider m_assetProvider;
         private AssetStatsReporter m_stats;
 
+        /// <summary>
+        /// Constructor.
+        /// </summary>
+        /// <param name="assetManager"></param>
+        /// <param name="assetProvider"></param>
+        /// <param name="stats">Can be null if stats collection isn't required</param>
         public GetAssetStreamHandler(OpenAsset_Main assetManager, IAssetProvider assetProvider,
                                      AssetStatsReporter stats)
             : base("GET", "/assets")
@@ -73,8 +79,9 @@ namespace OpenSim.Grid.AssetServer
                             "REST", "GET:/asset ignoring request with malformed UUID {0}", p[0]);
                         return result;
                     }   
-
-                    m_stats.AddRequest();
+    
+                    if (m_stats != null)
+                        m_stats.AddRequest();
                     
                     AssetBase asset = m_assetProvider.FetchAsset(assetID);
                     if (asset != null)
@@ -100,6 +107,9 @@ namespace OpenSim.Grid.AssetServer
                     }
                     else
                     {
+                        if (m_stats != null)
+                            m_stats.AddNotFoundRequest();
+                        
                         MainLog.Instance.Verbose("REST", "GET:/asset failed to find {0}", assetID);
                     }
                 }
