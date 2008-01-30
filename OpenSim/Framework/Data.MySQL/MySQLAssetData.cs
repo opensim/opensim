@@ -95,9 +95,12 @@ namespace OpenSim.Framework.Data.MySQL
                         cmd.Dispose();
                     }
                 }
-                catch (Exception)
+                catch (Exception e)
                 {
-                    MainLog.Instance.Warn("ASSETS", "MySql failure fetching asset");
+                    MainLog.Instance.Error(
+                        "ASSETS", "MySql failure fetching asset" + Environment.NewLine + e.ToString()
+                       + Environment.NewLine + "Attempting reconnection");
+                    _dbConnection.Reconnect();
                 }
             }
             return asset;
@@ -112,20 +115,30 @@ namespace OpenSim.Framework.Data.MySQL
                     _dbConnection.Connection);
 
             // need to ensure we dispose
-            using (cmd)
-            {
-                MySqlParameter p = cmd.Parameters.Add("?id", MySqlDbType.Binary, 16);
-                p.Value = asset.FullID.GetBytes();
-                cmd.Parameters.AddWithValue("?name", asset.Name);
-                cmd.Parameters.AddWithValue("?description", asset.Description);
-                cmd.Parameters.AddWithValue("?assetType", asset.Type);
-                cmd.Parameters.AddWithValue("?invType", asset.InvType);
-                cmd.Parameters.AddWithValue("?local", asset.Local);
-                cmd.Parameters.AddWithValue("?temporary", asset.Temporary);
-                cmd.Parameters.AddWithValue("?data", asset.Data);
-                cmd.ExecuteNonQuery();
-                cmd.Dispose();
+            try
+            {            
+                using (cmd)
+                {
+                    MySqlParameter p = cmd.Parameters.Add("?id", MySqlDbType.Binary, 16);
+                    p.Value = asset.FullID.GetBytes();
+                    cmd.Parameters.AddWithValue("?name", asset.Name);
+                    cmd.Parameters.AddWithValue("?description", asset.Description);
+                    cmd.Parameters.AddWithValue("?assetType", asset.Type);
+                    cmd.Parameters.AddWithValue("?invType", asset.InvType);
+                    cmd.Parameters.AddWithValue("?local", asset.Local);
+                    cmd.Parameters.AddWithValue("?temporary", asset.Temporary);
+                    cmd.Parameters.AddWithValue("?data", asset.Data);
+                    cmd.ExecuteNonQuery();
+                    cmd.Dispose();
+                }
             }
+            catch (Exception e)
+            {
+                MainLog.Instance.Error(
+                    "ASSETS", "MySql failure creating asset" + Environment.NewLine + e.ToString()
+                   + Environment.NewLine + "Attempting reconnection");
+                _dbConnection.Reconnect();
+            }                
         }
 
         public void UpdateAsset(AssetBase asset)
