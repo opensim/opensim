@@ -208,9 +208,16 @@ namespace OpenSim.Region.Physics.OdePlugin
 
         internal void waitForSpaceUnlock(IntPtr space)
         {
-            while (d.SpaceLockQuery(space))
+            try
             {
+                while (d.SpaceLockQuery(space))
+                {
 
+                }
+            }
+            catch (System.Exception)
+            {
+                //Using this to catch the 'dll doesn't expose entrypoint SpaceLockQuery since the mac library hasn't been rebuilt yet
             }
         }
         /// <summary>
