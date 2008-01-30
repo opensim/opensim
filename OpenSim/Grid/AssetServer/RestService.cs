@@ -69,7 +69,8 @@ namespace OpenSim.Grid.AssetServer
                     
                     if (!LLUUID.TryParse(p[0], out assetID))
                     {
-                        MainLog.Instance.Verbose("REST", "GET:/asset ignoring malformed UUID {0}", p[0]);
+                        MainLog.Instance.Verbose(
+                            "REST", "GET:/asset ignoring request with malformed UUID {0}", p[0]);
                         return result;
                     }   
 
