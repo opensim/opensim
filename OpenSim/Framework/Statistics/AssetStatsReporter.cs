@@ -26,6 +26,7 @@
 * 
 */
 
+using System;
 using System.Text;
 using System.Timers;
 
@@ -37,11 +38,12 @@ namespace OpenSim.Grid.AssetServer
     public class AssetStatsReporter
     {
         private Timer ageStatsTimer = new Timer(24 * 60 * 60 * 1000);
+        private DateTime startTime = DateTime.Now;
         
-        private long assetRequestsToday;
-        public long AssetRequestsToday { get { return assetRequestsToday; } }
-        
+        private long assetRequestsToday;        
         private long assetRequestsYesterday;
+        
+        public long AssetRequestsToday { get { return assetRequestsToday; } }        
         public long AssetRequestsYesterday { get { return assetRequestsYesterday; } }       
         
         public AssetStatsReporter()
@@ -73,10 +75,17 @@ namespace OpenSim.Grid.AssetServer
         /// <returns></returns>
         public string Report()
         {
+            double elapsedHours = (DateTime.Now - startTime).TotalHours;
+            if (elapsedHours <= 0) { elapsedHours = 1; }  // prevent divide by zero
+            
+            long assetRequestsTodayPerHour = (long)Math.Round(AssetRequestsToday / elapsedHours);
+            long assetRequestsYesterdayPerHour = (long)Math.Round(AssetRequestsYesterday / 24.0);
+            
             return string.Format(
-@"Asset requests today     : {0}
-Asset requests yesterday : {1}",
-                AssetRequestsToday, AssetRequestsYesterday);
+@"Asset requests today     : {0}  ({1} per hour)
+Asset requests yesterday : {2}  ({3} per hour)",
+                AssetRequestsToday, assetRequestsTodayPerHour,
+                AssetRequestsYesterday, assetRequestsYesterdayPerHour);
         }
     }
 }
