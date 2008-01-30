@@ -208,17 +208,12 @@ namespace OpenSim.Region.Physics.OdePlugin
 
         internal void waitForSpaceUnlock(IntPtr space)
         {
-            try
-            {
+           
                 while (d.SpaceLockQuery(space))
                 {
-
+                    int i = 0;
                 }
-            }
-            catch (System.Exception)
-            {
-                //Using this to catch the 'dll doesn't expose entrypoint SpaceLockQuery since the mac library hasn't been rebuilt yet
-            }
+
         }
         /// <summary>
         /// Debug space message for printing the space that a prim/avatar is in.
