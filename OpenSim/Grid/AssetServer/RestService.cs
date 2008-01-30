@@ -57,7 +57,6 @@ namespace OpenSim.Grid.AssetServer
         
         public override byte[] Handle(string path, Stream request)
         {
-            MainLog.Instance.Verbose("REST", "In Handle");
             string param = GetParam(path);
             byte[] result = new byte[] {};
             try
@@ -66,16 +65,19 @@ namespace OpenSim.Grid.AssetServer
 
                 if (p.Length > 0)
                 {
-                    LLUUID assetID = LLUUID.Parse(p[0]);
+                    LLUUID assetID = null;    
+                    
+                    if (!LLUUID.TryParse(p[0], out assetID))
+                    {
+                        MainLog.Instance.Verbose("REST", "GET:/asset ignoring malformed UUID {0}", p[0]);
+                        return result;
+                    }   
 
-                    MainLog.Instance.Verbose("REST", "GET:/asset fetch param={0} UUID={1}", param, assetID);
                     m_stats.AddRequest();
                     
                     AssetBase asset = m_assetProvider.FetchAsset(assetID);
                     if (asset != null)
                     {
-                        MainLog.Instance.Verbose("REST", "GET:/asset found {0}, {1}", assetID, asset.Name);
-
                         XmlSerializer xs = new XmlSerializer(typeof (AssetBase));
                         MemoryStream ms = new MemoryStream();
                         XmlTextWriter xw = new XmlTextWriter(ms, Encoding.UTF8);
@@ -87,7 +89,12 @@ namespace OpenSim.Grid.AssetServer
                         //StreamReader sr = new StreamReader(ms);
 
                         result = ms.GetBuffer();
-                        MainLog.Instance.Verbose("REST", "Buffer: {0}", result);
+                        
+                        MainLog.Instance.Verbose(
+                            "REST", 
+                            "GET:/asset found {0} with name {1}, size {2} bytes",
+                            assetID, asset.Name, result.Length);
+
                         Array.Resize<byte>(ref result, (int) ms.Length);
                     }
                     else
