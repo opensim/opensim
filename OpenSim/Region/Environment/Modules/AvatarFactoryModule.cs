@@ -41,7 +41,7 @@ namespace OpenSim.Region.Environment.Modules
     public class AvatarFactoryModule : IAvatarFactory
     {
         private Scene m_scene = null;
-        private Dictionary<LLUUID, AvatarAppearance> m_avatarsAppearance = new Dictionary<LLUUID, AvatarAppearance>();
+        private readonly Dictionary<LLUUID, AvatarAppearance> m_avatarsAppearance = new Dictionary<LLUUID, AvatarAppearance>();
 
         public bool TryGetAvatarAppearance(LLUUID avatarId, out AvatarAppearance appearance)
         {

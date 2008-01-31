@@ -32,7 +32,7 @@ namespace OpenSim.Framework.Communications
 {
     public class CAPSService
     {
-        private BaseHttpServer m_server;
+        private readonly BaseHttpServer m_server;
 
         public CAPSService(BaseHttpServer httpServer)
         {

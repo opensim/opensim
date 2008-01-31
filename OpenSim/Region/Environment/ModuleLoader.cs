@@ -43,7 +43,7 @@ namespace OpenSim.Region.Environment
         public Dictionary<string, Assembly> LoadedAssemblys = new Dictionary<string, Assembly>();
 
         private readonly List<IRegionModule> m_loadedModules = new List<IRegionModule>();
-        private Dictionary<string, IRegionModule> m_loadedSharedModules = new Dictionary<string, IRegionModule>();
+        private readonly Dictionary<string, IRegionModule> m_loadedSharedModules = new Dictionary<string, IRegionModule>();
         private readonly LogBase m_log;
         private readonly IConfigSource m_config;
 
