@@ -2139,20 +2139,30 @@ namespace OpenSim.Region.ScriptEngine.Common
             PSYS_SRC_ANGLE_END = 23
         }
 
+        internal Primitive.ParticleSystem.ParticleDataFlags ConvertUINTtoFlags(uint flags)
+        {
+            Primitive.ParticleSystem.ParticleDataFlags returnval = Primitive.ParticleSystem.ParticleDataFlags.None;
+
+            return returnval;
+        }
+
         // AL: This does not actually do anything yet. There are issues within Libsecondlife revolving around PSYS_PART_FLAGS
         // (need to OR the values, but currently stores this within an enum) as well as discovery of how the CRC works and the
         // actual packet. 
+
         public void llParticleSystem(LSL_Types.list rules)
         {
             Primitive.ParticleSystem prules = new Primitive.ParticleSystem();
             LSL_Types.Vector3 tempv = new LSL_Types.Vector3();
+            
+            float tempf = 0;
 
             for (int i = 0; i < rules.Length; i += 2)
             {
                 switch ((int)rules.Data[i])
                 {
                     case (int)LSL_BaseClass.PSYS_PART_FLAGS:
-                        prules.PartFlags = (uint)rules.Data[i + 1];
+                        prules.PartFlags = (uint)Convert.ToInt32(rules.Data[i + 1].ToString());
                         break;
 
                     case (int)LSL_BaseClass.PSYS_PART_START_COLOR:
@@ -2163,19 +2173,22 @@ namespace OpenSim.Region.ScriptEngine.Common
                         break;
 
                     case (int)LSL_BaseClass.PSYS_PART_START_ALPHA:
-                        prules.PartStartColor.A = (float)rules.Data[i + 1];
+                        tempf = Convert.ToSingle(rules.Data[i + 1].ToString());
+                        prules.PartStartColor.A = (float)tempf;
                         break;
 
                     case (int)LSL_BaseClass.PSYS_PART_END_COLOR:
-                        prules.PartEndColor = (LLColor)rules.Data[i + 1];
                         tempv = (LSL_Types.Vector3)rules.Data[i + 1];
+                        //prules.PartEndColor = new LLColor(tempv.x,tempv.y,tempv.z,1);
+                        
                         prules.PartEndColor.R = (float)tempv.x;
                         prules.PartEndColor.G = (float)tempv.y;
                         prules.PartEndColor.B = (float)tempv.z;
                         break;
 
                     case (int)LSL_BaseClass.PSYS_PART_END_ALPHA:
-                        prules.PartEndColor.A = (float)rules.Data[i + 1];
+                        tempf = Convert.ToSingle(rules.Data[i + 1].ToString());
+                        prules.PartEndColor.A = (float)tempf;
                         break;
 
                     case (int)LSL_BaseClass.PSYS_PART_START_SCALE:
@@ -2191,7 +2204,8 @@ namespace OpenSim.Region.ScriptEngine.Common
                         break;
 
                     case (int)LSL_BaseClass.PSYS_PART_MAX_AGE:
-                        prules.MaxAge = (float)rules.Data[i + 1];
+                        //tempf = (LSL_Types.LSLFloat)rules.Data[i + 1];
+                        prules.MaxAge = 7;//(float)tempf;
                         break;
 
                     case (int)LSL_BaseClass.PSYS_SRC_ACCEL:
@@ -2211,27 +2225,32 @@ namespace OpenSim.Region.ScriptEngine.Common
                         break;
 
                     case (int)LSL_BaseClass.PSYS_SRC_BURST_RATE:
-                        prules.BurstRate = (float)rules.Data[i + 1];
+                        tempf = Convert.ToSingle(rules.Data[i + 1].ToString());
+                        prules.BurstRate = (float)tempf;
                         break;
 
                     case (int)LSL_BaseClass.PSYS_SRC_BURST_PART_COUNT:
-                        prules.BurstPartCount = (byte)rules.Data[i + 1];
+                        prules.BurstPartCount = (byte)Convert.ToByte(rules.Data[i + 1].ToString());
                         break;
 
                     case (int)LSL_BaseClass.PSYS_SRC_BURST_RADIUS:
-                        prules.BurstRadius = (float)rules.Data[i + 1];
+                        tempf = Convert.ToSingle(rules.Data[i + 1].ToString());
+                        prules.BurstRadius = (float)tempf;
                         break;
 
                     case (int)LSL_BaseClass.PSYS_SRC_BURST_SPEED_MIN:
-                        prules.BurstSpeedMin = (float)rules.Data[i + 1];
+                        tempf = Convert.ToSingle(rules.Data[i + 1].ToString());
+                        prules.BurstSpeedMin = (float)tempf;
                         break;
 
                     case (int)LSL_BaseClass.PSYS_SRC_BURST_SPEED_MAX:
-                        prules.BurstSpeedMax = (float)rules.Data[i + 1];
+                        tempf = Convert.ToSingle(rules.Data[i + 1].ToString());
+                        prules.BurstSpeedMax = (float)tempf;
                         break;
 
                     case (int)LSL_BaseClass.PSYS_SRC_MAX_AGE:
-                        prules.MaxAge = (float)rules.Data[i + 1];
+                        tempf = Convert.ToSingle(rules.Data[i + 1].ToString());
+                        prules.MaxAge = (float)tempf;
                         break;
 
                     case (int)LSL_BaseClass.PSYS_SRC_TARGET_KEY:
@@ -2248,16 +2267,21 @@ namespace OpenSim.Region.ScriptEngine.Common
                         break;
 
                     case (int)LSL_BaseClass.PSYS_SRC_ANGLE_BEGIN:
-                        prules.InnerAngle = (float)rules.Data[i + 1];
+                        tempf = Convert.ToSingle(rules.Data[i + 1].ToString());
+                        prules.InnerAngle = (float)tempf;
                         break;
 
                     case (int)LSL_BaseClass.PSYS_SRC_ANGLE_END:
-                        prules.OuterAngle = (float)rules.Data[i + 1];
+                        tempf = Convert.ToSingle(rules.Data[i + 1].ToString());
+                        prules.OuterAngle = (float)tempf;
                         break;
                 }
-            }
 
+            }
+            prules.CRC = 1;
+            OpenSim.Framework.Console.MainLog.Instance.Verbose("PARTICLE", "PS: " + prules.ToString());
             m_host.AddNewParticleSystem(prules);
+            m_host.SendFullUpdateToAllClients();
         }
 
         public void llGroundRepel(double height, int water, double tau)
