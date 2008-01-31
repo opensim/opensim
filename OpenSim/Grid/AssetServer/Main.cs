@@ -184,7 +184,7 @@ namespace OpenSim.Grid.AssetServer
                     break;
                     
                 case "stats":
-                    MainLog.Instance.Notice("STATS", Environment.NewLine + m_stats.Report());
+                    m_console.Notice("STATS", Environment.NewLine + m_stats.Report());
                     break;
 
                 case "shutdown":

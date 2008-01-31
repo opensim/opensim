@@ -39,6 +39,7 @@ using OpenSim.Framework;
 using OpenSim.Framework.Communications.Cache;
 using OpenSim.Framework.Console;
 using OpenSim.Framework.Servers;
+using OpenSim.Framework.Statistics;
 using OpenSim.Region.ClientStack;
 using OpenSim.Region.Communications.Local;
 using OpenSim.Region.Communications.OGS1;
@@ -244,7 +245,7 @@ namespace OpenSim
                 if (m_storageDll == "OpenSim.DataStore.MonoSqlite.dll") 
                 {
                     m_storageDll = "OpenSim.Framework.Data.SQLite.dll";
-                    Console.WriteLine("WARNING: OpenSim.DataStore.MonoSqlite.dll is depreciated. Set storage_plugin to OpenSim.Framework.Data.SQLite.dll.");
+                    Console.WriteLine("WARNING: OpenSim.DataStore.MonoSqlite.dll is deprecated. Set storage_plugin to OpenSim.Framework.Data.SQLite.dll.");
                     Thread.Sleep(3000);
                 }
                 m_storageConnectionString
@@ -301,8 +302,10 @@ namespace OpenSim
 
             // Create a log instance
             m_log = CreateLog();
-            MainLog.Instance = m_log;
+            MainLog.Instance = m_log;          
 
+            StatsManager.StartCollecting();
+            
             // Do baseclass startup sequence: OpenSim.Region.ClientStack.RegionApplicationBase.StartUp
             // TerrainManager, StorageManager, HTTP Server
             // This base will call abstract Initialize
@@ -703,6 +706,7 @@ namespace OpenSim
                     m_log.Error("show uptime - show simulator startup and uptime.");
                     m_log.Error("show users - show info about connected users.");
                     m_log.Error("show modules - shows info aboutloaded modules.");
+                    m_log.Error("stats - statistical information for this server not displayed in the client");
                     m_log.Error("shutdown - disconnect all clients and shutdown.");
                     m_log.Error("terrain help - show help for terrain commands.");
                     break;
@@ -883,6 +887,19 @@ namespace OpenSim
                         m_sceneManager.CurrentOrFirstScene.ExportWorldMap("exportmap.jpg");
                     }
                     break;
+                
+                case "stats":
+                    if (StatsManager.SimExtraStats != null)
+                    {
+                        MainLog.Instance.Notice(
+                            "STATS", Environment.NewLine + StatsManager.SimExtraStats.Report());                    
+                    }
+                    else
+                    {
+                        MainLog.Instance.Notice("STATS", "Extra statistics collection has not been enabled");
+                    }
+                    break;
+                
 
                 default:
                     m_log.Error("Unknown command");

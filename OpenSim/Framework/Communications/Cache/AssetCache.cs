@@ -31,7 +31,9 @@ using System.Collections.Generic;
 using System.Threading;
 using libsecondlife;
 using libsecondlife.Packets;
+
 using OpenSim.Framework.Console;
+using OpenSim.Framework.Statistics;
 
 namespace OpenSim.Framework.Communications.Cache
 {
@@ -220,9 +222,13 @@ namespace OpenSim.Framework.Communications.Cache
                     result = "Duplicate ignored.";
                 }
                 else
-                {
-                    TextureImage textur = new TextureImage(asset);
+                {                    
+                    TextureImage textur = new TextureImage(asset);                                        
                     Textures.Add(textur.FullID, textur);
+                    
+                    if (StatsManager.SimExtraStats != null)
+                        StatsManager.SimExtraStats.AddTexture(textur);
+                    
                     if (asset.Temporary)
                     {
                         result = "Added to cache";
@@ -244,6 +250,10 @@ namespace OpenSim.Framework.Communications.Cache
                 {
                     AssetInfo assetInf = new AssetInfo(asset);
                     Assets.Add(assetInf.FullID, assetInf);
+                    
+                    if (StatsManager.SimExtraStats != null)
+                        StatsManager.SimExtraStats.AddAsset(assetInf);
+                    
                     if (asset.Temporary)
                     {
                         result = "Added to cache";
@@ -292,8 +302,12 @@ namespace OpenSim.Framework.Communications.Cache
 
                     TextureImage image = new TextureImage(asset);
                     if (!Textures.ContainsKey(image.FullID))
-                    {
+                    {                        
                         Textures.Add(image.FullID, image);
+                        
+                        if (StatsManager.SimExtraStats != null)
+                            StatsManager.SimExtraStats.AddTexture(image);
+                        
                         if (RequestedTextures.ContainsKey(image.FullID))
                         {
                             AssetRequest req = RequestedTextures[image.FullID];
@@ -312,6 +326,10 @@ namespace OpenSim.Framework.Communications.Cache
                     if (!Assets.ContainsKey(assetInf.FullID))
                     {
                         Assets.Add(assetInf.FullID, assetInf);
+                        
+                        if (StatsManager.SimExtraStats != null)
+                            StatsManager.SimExtraStats.AddAsset(assetInf);
+                        
                         if (RequestedAssets.ContainsKey(assetInf.FullID))
                         {
                             AssetRequest req = RequestedAssets[assetInf.FullID];
