@@ -2139,95 +2139,120 @@ namespace OpenSim.Region.ScriptEngine.Common
             PSYS_SRC_ANGLE_END = 23
         }
 
-        public void llParticleSystem(List<Object> rules)
+        // AL: This does not actually do anything yet. There are issues within Libsecondlife revolving around PSYS_PART_FLAGS
+        // (need to OR the values, but currently stores this within an enum) as well as discovery of how the CRC works and the
+        // actual packet. 
+        public void llParticleSystem(LSL_Types.list rules)
         {
             Primitive.ParticleSystem prules = new Primitive.ParticleSystem();
-            for (int i = 0; i < rules.Count; i += 2)
+            LSL_Types.Vector3 tempv = new LSL_Types.Vector3();
+
+            for (int i = 0; i < rules.Length; i += 2)
             {
-                switch ((int)rules[i])
+                switch ((int)rules.Data[i])
                 {
                     case (int)LSL_BaseClass.PSYS_PART_FLAGS:
-                        prules.PartFlags = (uint)rules[i + 1];
+                        prules.PartFlags = (uint)rules.Data[i + 1];
                         break;
 
                     case (int)LSL_BaseClass.PSYS_PART_START_COLOR:
-                        prules.PartStartColor = (LLColor)rules[i + 1];
+                        tempv = (LSL_Types.Vector3)rules.Data[i + 1];
+                        prules.PartStartColor.R = (float)tempv.x;
+                        prules.PartStartColor.G = (float)tempv.y;
+                        prules.PartStartColor.B = (float)tempv.z;
                         break;
 
                     case (int)LSL_BaseClass.PSYS_PART_START_ALPHA:
-                        //what is the cast?                    prules.PartStartColor = (LSL_Types.Vec)rules[i + 1];
+                        prules.PartStartColor.A = (float)rules.Data[i + 1];
                         break;
 
                     case (int)LSL_BaseClass.PSYS_PART_END_COLOR:
-                        prules.PartEndColor = (LLColor)rules[i + 1];
+                        prules.PartEndColor = (LLColor)rules.Data[i + 1];
+                        tempv = (LSL_Types.Vector3)rules.Data[i + 1];
+                        prules.PartEndColor.R = (float)tempv.x;
+                        prules.PartEndColor.G = (float)tempv.y;
+                        prules.PartEndColor.B = (float)tempv.z;
                         break;
 
                     case (int)LSL_BaseClass.PSYS_PART_END_ALPHA:
-                        //what is the cast?                    prules.PartStartColor = (LLColor)rules[i + 1];
+                        prules.PartEndColor.A = (float)rules.Data[i + 1];
                         break;
 
                     case (int)LSL_BaseClass.PSYS_PART_START_SCALE:
-                        //what is the cast?                    prules.PartStartColor = (LLColor)rules[i + 1];
+                        tempv = (LSL_Types.Vector3)rules.Data[i + 1];
+                        prules.PartStartScaleX = (float)tempv.x;
+                        prules.PartStartScaleY = (float)tempv.y;
                         break;
 
                     case (int)LSL_BaseClass.PSYS_PART_END_SCALE:
-                        //what is the cast?                    prules.PartStartColor = (LLColor)rules[i + 1];
+                        tempv = (LSL_Types.Vector3)rules.Data[i + 1];
+                        prules.PartEndScaleX = (float)tempv.x;
+                        prules.PartEndScaleY = (float)tempv.y;
                         break;
 
                     case (int)LSL_BaseClass.PSYS_PART_MAX_AGE:
-                        prules.MaxAge = (float)rules[i + 1];
+                        prules.MaxAge = (float)rules.Data[i + 1];
                         break;
 
                     case (int)LSL_BaseClass.PSYS_SRC_ACCEL:
-                        //what is the cast?                    prules.PartStartColor = (LLColor)rules[i + 1];
+                        tempv = (LSL_Types.Vector3)rules.Data[i + 1];
+                        prules.PartAcceleration.X = (float)tempv.x;
+                        prules.PartAcceleration.Y = (float)tempv.y;
+                        prules.PartAcceleration.Z = (float)tempv.z;
                         break;
 
                     case (int)LSL_BaseClass.PSYS_SRC_PATTERN:
-                        //what is the cast?                    prules.PartStartColor = (LLColor)rules[i + 1];
+                        int tmpi = (int)rules.Data[i + 1];
+                        prules.Pattern = (Primitive.ParticleSystem.SourcePattern)tmpi;
                         break;
 
                     case (int)LSL_BaseClass.PSYS_SRC_TEXTURE:
-                        prules.Texture = (LLUUID)rules[i + 1];
+                        prules.Texture = new LLUUID(rules.Data[i + 1].ToString());
                         break;
 
                     case (int)LSL_BaseClass.PSYS_SRC_BURST_RATE:
-                        prules.BurstRate = (float)rules[i + 1];
+                        prules.BurstRate = (float)rules.Data[i + 1];
                         break;
 
                     case (int)LSL_BaseClass.PSYS_SRC_BURST_PART_COUNT:
-                        prules.BurstPartCount = (byte)rules[i + 1];
+                        prules.BurstPartCount = (byte)rules.Data[i + 1];
                         break;
 
                     case (int)LSL_BaseClass.PSYS_SRC_BURST_RADIUS:
-                        prules.BurstRadius = (float)rules[i + 1];
+                        prules.BurstRadius = (float)rules.Data[i + 1];
                         break;
 
                     case (int)LSL_BaseClass.PSYS_SRC_BURST_SPEED_MIN:
-                        prules.BurstSpeedMin = (float)rules[i + 1];
+                        prules.BurstSpeedMin = (float)rules.Data[i + 1];
                         break;
 
                     case (int)LSL_BaseClass.PSYS_SRC_BURST_SPEED_MAX:
-                        prules.BurstSpeedMax = (float)rules[i + 1];
+                        prules.BurstSpeedMax = (float)rules.Data[i + 1];
                         break;
 
                     case (int)LSL_BaseClass.PSYS_SRC_MAX_AGE:
-                        prules.MaxAge = (float)rules[i + 1];
+                        prules.MaxAge = (float)rules.Data[i + 1];
                         break;
 
                     case (int)LSL_BaseClass.PSYS_SRC_TARGET_KEY:
-                        prules.Target = (LLUUID)rules[i + 1];
+                        prules.Target = new LLUUID(rules.Data[i + 1].ToString());
                         break;
 
                     case (int)LSL_BaseClass.PSYS_SRC_OMEGA:
+                        // AL: This is an assumption, since it is the only thing that would match.
+                        tempv = (LSL_Types.Vector3)rules.Data[i + 1];
+                        prules.AngularVelocity.X = (float)tempv.x;
+                        prules.AngularVelocity.Y = (float)tempv.y;
+                        prules.AngularVelocity.Z = (float)tempv.z;
                         //cast??                    prules.MaxAge = (float)rules[i + 1];
                         break;
 
                     case (int)LSL_BaseClass.PSYS_SRC_ANGLE_BEGIN:
-                        prules.InnerAngle = (float)rules[i + 1];
+                        prules.InnerAngle = (float)rules.Data[i + 1];
                         break;
 
                     case (int)LSL_BaseClass.PSYS_SRC_ANGLE_END:
-                        prules.OuterAngle = (float)rules[i + 1];
+                        prules.OuterAngle = (float)rules.Data[i + 1];
                         break;
                 }
             }

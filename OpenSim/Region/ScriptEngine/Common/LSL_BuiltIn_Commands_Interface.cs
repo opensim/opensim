@@ -439,7 +439,7 @@ namespace OpenSim.Region.ScriptEngine.Common
         //wiki: double llGetRegionFPS()
         double llGetRegionFPS();
         //wiki: llParticleSystem(List<Object> rules
-        void llParticleSystem(List<object> rules);
+        void llParticleSystem(LSL_Types.list rules);
         //wiki: llGroundRepel(double height, integer water, double tau)
         void llGroundRepel(double height, int water, double tau);
         void llGiveInventoryList();

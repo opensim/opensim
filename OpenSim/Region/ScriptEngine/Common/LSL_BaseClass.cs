@@ -1322,7 +1322,7 @@ namespace OpenSim.Region.ScriptEngine.Common
         //
         // DO NOT MODIFY HERE: MODIFY IN LSL_BuiltIn_Commands.cs
         //
-        public void llParticleSystem(List<Object> rules)
+        public void llParticleSystem(LSL_Types.list rules)
         {
             m_LSL_Functions.llParticleSystem(rules);
         }
