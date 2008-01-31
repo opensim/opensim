@@ -163,12 +163,6 @@ namespace OpenSim.Region.Environment.Modules
                 fromAgentID = e.Sender.AgentId;
             }
 
-            // Try to reconnect to server if not connected
-            if ((m_irc.Enabled)&&(!m_irc.Connected))
-            {
-                m_irc.Connect(m_scenes);
-            }
-
             if (e.Message.Length > 0)
             {
                 if (m_irc.Connected && (avatar != null)) // this is to keep objects from talking to IRC
@@ -211,7 +205,6 @@ namespace OpenSim.Region.Environment.Modules
         private bool m_connected = false;
 
         private List<Scene> m_scenes = null;
-        private List<Scene> m_last_scenes = null;
         private LogBase m_log;
 
         public IRCChatModule(IConfigSource config)
@@ -220,19 +213,6 @@ namespace OpenSim.Region.Environment.Modules
             m_tcp = null;
             m_writer = null;
             m_reader = null;
-
-            // configuration in OpenSim.ini
-            // [IRC]
-            // server  = chat.freenode.net
-            // nick    = OSimBot_mysim
-            // ;username = OSimBot_mysim
-            // channel = #opensim-regions
-            // port = 6667
-            //
-            // Traps I/O disconnects so it does not crash the sim
-            // Trys to reconnect if disconnected and someone says something
-            // Tells IRC server "QUIT" when doing a close (just to be nice)
-            // Default port back to 6667
 
             try
             {
@@ -258,7 +238,7 @@ namespace OpenSim.Region.Environment.Modules
             try
             {
                 m_scenes = scenes;
-                m_last_scenes = scenes;
+
                 m_tcp = new TcpClient(m_server, (int) m_port);
                 m_log.Verbose("IRC", "Connecting...");
                 m_stream = m_tcp.GetStream();
@@ -310,20 +290,14 @@ namespace OpenSim.Region.Environment.Modules
                 m_log.Error("IRC", "Disconnected from IRC server.");
                 listener.Abort();
                 pingSender.Abort();
-                m_writer.Close();
-                m_reader.Close();
-                m_tcp.Close();
                 m_connected = false;
-                if (m_enabled) { Connect(m_last_scenes); }
             }
         }
 
         private Dictionary<string, string> ExtractMsg(string input)
         {
-            m_log.Verbose("IRC", "ExtractMsg: " + input);
             Dictionary<string, string> result = null;
-            //string regex = @":(?<nick>\w*)!~(?<user>\S*) PRIVMSG (?<channel>\S+) :(?<msg>.*)";
-            string regex = @":(?<nick>\w*)!(?<user>\S*) PRIVMSG (?<channel>\S+) :(?<msg>.*)";
+            string regex = @":(?<nick>\w*)!~(?<user>\S*) PRIVMSG (?<channel>\S+) :(?<msg>.*)";
             Regex RE = new Regex(regex, RegexOptions.Multiline);
             MatchCollection matches = RE.Matches(input);
             // Get some direct matches $1 $4 is a 
@@ -350,24 +324,10 @@ namespace OpenSim.Region.Environment.Modules
         {
             while (true)
             {
-                try
-                {
-                    m_writer.WriteLine("PING :" + m_server);
-                    m_writer.Flush();
-                    Thread.Sleep(15000);
-                }
-                catch (IOException)
-                {
-                    m_log.Error("IRC", "Disconnected from IRC server.");
-                    listener.Abort();
-                    pingSender.Abort();
-                    m_writer.Close();
-                    m_reader.Close();
-                    m_tcp.Close();
-                    m_connected = false;
-                    if (m_enabled) { Connect(m_last_scenes); }
-                }
-           }
+                m_writer.WriteLine("PING :" + m_server);
+                m_writer.Flush();
+                Thread.Sleep(15000);
+            }
         }
 
         public void ListenerRun()
@@ -376,53 +336,36 @@ namespace OpenSim.Region.Environment.Modules
             LLVector3 pos = new LLVector3(128, 128, 20);
             while (true)
             {
-                try
+                while ((inputLine = m_reader.ReadLine()) != null)
                 {
-                    while ((inputLine = m_reader.ReadLine()) != null)
+                    // Console.WriteLine(inputLine);
+                    if (inputLine.Contains(m_channel))
                     {
-                        // Console.WriteLine(inputLine);
-                        if (inputLine.Contains(m_channel))
+                        Dictionary<string, string> data = ExtractMsg(inputLine);
+                        if (data != null)
                         {
-                            Dictionary<string, string> data = ExtractMsg(inputLine);
-                            if (data != null)
+                            foreach (Scene m_scene in m_scenes)
                             {
-                                foreach (Scene m_scene in m_scenes)
-                                {
-                                    m_scene.ForEachScenePresence(delegate(ScenePresence avatar)
+                                m_scene.ForEachScenePresence(delegate(ScenePresence avatar)
+                                                                 {
+                                                                     if (!avatar.IsChildAgent)
                                                                      {
-                                                                         if (!avatar.IsChildAgent)
-                                                                         {
-                                                                             avatar.ControllingClient.SendChatMessage(
-                                                                                 Helpers.StringToField(data["msg"]), 255,
-                                                                                 pos, data["nick"],
-                                                                                 LLUUID.Zero);
-                                                                         }
-                                                                     });
-                                }
+                                                                         avatar.ControllingClient.SendChatMessage(
+                                                                             Helpers.StringToField(data["msg"]), 255,
+                                                                             pos, data["nick"],
+                                                                             LLUUID.Zero);
+                                                                     }
+                                                                 });
                             }
                         }
                     }
-                    Thread.Sleep(50);
                 }
-                catch (IOException)
-                {
-                    m_log.Error("IRC", "Disconnected from IRC server.");
-                    listener.Abort();
-                    pingSender.Abort();
-                    m_writer.Close();
-                    m_reader.Close();
-                    m_tcp.Close();
-                    m_connected = false;
-                    if (m_enabled) { Connect(m_last_scenes); }
-                }
-
+                Thread.Sleep(50);
             }
         }
 
         public void Close()
         {
-            m_writer.WriteLine("QUIT :" + m_nick+" to "+m_channel+" wormhole with "+m_server+" closing");
-            m_writer.Flush();
             listener.Abort();
             pingSender.Abort();
             m_writer.Close();
