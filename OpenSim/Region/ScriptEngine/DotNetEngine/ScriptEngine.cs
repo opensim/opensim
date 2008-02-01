@@ -39,12 +39,18 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
         // We need to override a few things for our DotNetEngine
         public override void Initialise(Scene scene, IConfigSource config)
         {
+            ConfigSource = config;
             InitializeEngine(scene, MainLog.Instance, true, GetScriptManager());
         }
 
         public override OpenSim.Region.ScriptEngine.Common.ScriptEngineBase.ScriptManager _GetScriptManager()
         {
             return new ScriptManager(this);
+        }
+
+        public override string ScriptConfigSourceName
+        {
+            get { return "ScriptEngine.DotNetEngine"; }
         }
     }
 }

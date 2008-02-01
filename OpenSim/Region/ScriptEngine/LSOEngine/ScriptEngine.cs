@@ -51,5 +51,11 @@ namespace OpenSim.Region.ScriptEngine.LSOEngine
         {
             return new ScriptManager(this);
         }
+
+        public override string ScriptConfigSourceName
+        {
+            get { return "ScriptEngine.LSOEngine"; }
+        }
+
     }
 }

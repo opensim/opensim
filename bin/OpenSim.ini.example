@@ -114,3 +114,35 @@ shout_distance = 100
 ; send a Sun update ever frame_rate # of frames.  A lower number will
 ; make for smoother sun transition at the cost of network
 ;frame_rate = 100
+
+[ScriptEngine.DotNetEngine]
+
+; When a script receives an event the event is queued.
+; Any free thread will start executing this event. One script can only have one event executed simultaneously.
+; If you have only one thread, and one script has a loop or does a lot of work, then no other scripts can run at the same time.
+; Same if you have 10 threads, then only 10 scripts can be run simultaneously. 
+; But because most scripts exit after their task, the threads are free to go on to the next script.
+
+; Number of threads to use for script event execution
+; Threads are shared across all regions
+NumberOfScriptThreads=2
+
+; Should the script threads be private for each region?
+; true: Each region will get <NumberOfScriptThreads> dedicated to scripts within that region
+;       Number of threads will be <NumberOfScriptThreads>*<NumberOfRegions>
+; false: All regions share <NumberOfScriptThreads> for all their scripts
+PrivateRegionThreads=false
+
+; How long MAX should a script be allowed to run?
+; Do not set this too low (like 50ms) as there are some time wasted in simply executing a function
+; There is also a small speed penalty for every kill that is made
+MaxEventExecutionTimeMs=5000
+
+; Should we enable the max script event execution thread to look for scripts that exceed their timeslice?
+EnforceMaxEventExecutionTime=true
+
+; If no scripts have executed in this pass how long should we sleep before checking again
+; Impact:
+; Too low and you will waste lots of CPU
+; Too high and people touching object or similar will have to wait up to this amount of time before script responding
+SleepTimeIfNoScriptExecutionMs=50

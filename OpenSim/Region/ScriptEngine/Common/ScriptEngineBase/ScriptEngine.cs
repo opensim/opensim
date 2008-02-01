@@ -51,10 +51,15 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
         public AppDomainManager m_AppDomainManager;
         public LSLLongCmdHandler m_LSLLongCmdHandler;
 
+        public IConfigSource ConfigSource;
+        public IConfig ScriptConfigSource;
+        public abstract string ScriptConfigSourceName { get; }
+
         public ScriptManager GetScriptManager()
         {
             return _GetScriptManager();
         }
+
         public abstract ScriptManager _GetScriptManager();
 
         private LogBase m_log;
@@ -74,6 +79,7 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
         {
             World = Sceneworld;
             m_log = logger;
+            ScriptConfigSource = ConfigSource.Configs[ScriptConfigSourceName];
 
             Log.Verbose("ScriptEngine", "DotNet & LSL ScriptEngine initializing");
 

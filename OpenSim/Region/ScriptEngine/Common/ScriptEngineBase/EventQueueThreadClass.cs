@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Text;
 using System.Threading;
 using libsecondlife;
+using Nini.Config;
 using OpenSim.Framework;
 using OpenSim.Region.Environment.Scenes.Scripting;
 
@@ -16,7 +17,7 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
         /// <summary>
         /// How many ms to sleep if queue is empty
         /// </summary>
-        private int nothingToDoSleepms = 50;
+        private int nothingToDoSleepms;// = 50;
 
         public DateTime LastExecutionStarted;
         public bool InExecution = false;
@@ -28,6 +29,7 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
         public EventQueueThreadClass(EventQueueManager eqm)
         {
             eventQueueManager = eqm;
+            nothingToDoSleepms = eqm.m_ScriptEngine.ScriptConfigSource.GetInt("SleepTimeIfNoScriptExecutionMs", 50);
             Start();
         }
 
@@ -183,7 +185,7 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
                     }
                     catch (ThreadAbortException tae)
                     {
-                        throw tae;
+                        eventQueueManager.m_ScriptEngine.Log.Notice("ScriptEngine", "ThreadAbortException while executing function.");
                     }
                     catch (Exception e)
                     {

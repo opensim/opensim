@@ -69,21 +69,25 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
         /// <summary>
         /// List of threads processing event queue
         /// </summary>
-        private List<EventQueueThreadClass> eventQueueThreads = new List<EventQueueThreadClass>();
-        private object eventQueueThreadsLock = new object();
+        private List<EventQueueThreadClass> eventQueueThreads;// = new List<EventQueueThreadClass>();
+        private object eventQueueThreadsLock;// = new object();
+
+        private static List<EventQueueThreadClass> staticEventQueueThreads;// = new List<EventQueueThreadClass>();
+        private static object staticEventQueueThreadsLock;// = new object();
 
         public object queueLock = new object(); // Mutex lock object
 
         /// <summary>
         /// How many threads to process queue with
         /// </summary>
-        private int numberOfThreads = 2;
+        private int numberOfThreads;
 
         /// <summary>
         /// Maximum time one function can use for execution before we perform a thread kill
         /// </summary>
-        private int maxFunctionExecutionTimems = 50;
-        private bool EnforceMaxExecutionTime = true;
+        private int maxFunctionExecutionTimems;
+        private bool EnforceMaxExecutionTime;
+
 
         /// <summary>
         /// Queue containing events waiting to be executed
@@ -138,6 +142,36 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
         {
             m_ScriptEngine = _ScriptEngine;
 
+
+            // Create thread pool list and lock object
+            // Determine from config if threads should be dedicated to regions or shared
+            if (m_ScriptEngine.ScriptConfigSource.GetBoolean("PrivateRegionThreads", false))
+            {
+                // PRIVATE THREAD POOL PER REGION
+                eventQueueThreads = new List<EventQueueThreadClass>();
+                eventQueueThreadsLock = new object();
+            }
+            else
+            {
+                // SHARED THREAD POOL
+                // Crate the objects in statics
+                if (staticEventQueueThreads == null)
+                    staticEventQueueThreads = new List<EventQueueThreadClass>();
+                if (staticEventQueueThreadsLock == null)
+                    staticEventQueueThreadsLock = new object();
+
+                // Create local reference to them
+                eventQueueThreads = staticEventQueueThreads;
+                eventQueueThreadsLock = staticEventQueueThreadsLock;
+            }
+
+            numberOfThreads = m_ScriptEngine.ScriptConfigSource.GetInt("NumberOfScriptThreads", 2);
+
+            maxFunctionExecutionTimems = m_ScriptEngine.ScriptConfigSource.GetInt("MaxEventExecutionTimeMs", 5000);
+            EnforceMaxExecutionTime = m_ScriptEngine.ScriptConfigSource.GetBoolean("EnforceMaxEventExecutionTime", false);
+
+
+
             // Start function max exec time enforcement thread
             if (EnforceMaxExecutionTime)
             {
@@ -150,9 +184,10 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
             //
             // Start event queue processing threads (worker threads)
             //
+
             lock (eventQueueThreadsLock)
             {
-                for (int ThreadCount = 0; ThreadCount <= numberOfThreads; ThreadCount++)
+                for (int ThreadCount = eventQueueThreads.Count; ThreadCount <= numberOfThreads; ThreadCount++)
                 {
                     StartNewThreadClass();
                 }
@@ -315,7 +350,7 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
             }
         }
 
-        private static void AbortThreadClass(EventQueueThreadClass threadClass)
+        private void AbortThreadClass(EventQueueThreadClass threadClass)
         {
             try
             {
@@ -326,12 +361,15 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
                 Console.WriteLine("Could you please report this to Tedd:");
                 Console.WriteLine("Script thread execution timeout kill ended in exception: " + ex.ToString());
             }
+            m_ScriptEngine.Log.Debug("DotNetEngine", "Killed script execution thread, count: " + eventQueueThreads.Count);
         }
 
         private void StartNewThreadClass()
         {
             EventQueueThreadClass eqtc = new EventQueueThreadClass(this);
             eventQueueThreads.Add(eqtc);
+            m_ScriptEngine.Log.Debug("DotNetEngine", "Started new script execution thread, count: " + eventQueueThreads.Count);
+
         }
     }
 }
