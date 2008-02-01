@@ -1829,6 +1829,11 @@ namespace OpenSim.Region.ScriptEngine.Common
             return m_LSL_Functions.llGetParcelDetails(pos, param);
         }
 
+        public string llStringTrim(string src, int type)
+        {
+            return m_LSL_Functions.llStringTrim(src, type);
+        }
+
         //
         // OpenSim Functions
         //
@@ -1852,6 +1857,13 @@ namespace OpenSim.Region.ScriptEngine.Common
         {
             return m_LSL_Functions.osRegionRestart(seconds);
         }
+
+        public void osRegionNotice(string msg)
+        {
+            m_LSL_Functions.osRegionNotice(msg);
+        }
+
+
 
         // LSL CONSTANTS
         public const int TRUE = 1;
@@ -2165,7 +2177,9 @@ namespace OpenSim.Region.ScriptEngine.Common
         public const double DEG_TO_RAD = 0.01745329238f;
         public const double RAD_TO_DEG = 57.29578f;
         public const double SQRT2 = 1.414213538f;
-
+	    public const int STRING_TRIM_HEAD = 1;
+	    public const int STRING_TRIM_TAIL = 2;
+	    public const int STRING_TRIM = 3;
         // Can not be public const?
         public vector ZERO_VECTOR = new vector(0.0, 0.0, 0.0);
         public rotation ZERO_ROTATION = new rotation(0.0, 0, 0.0, 1.0);

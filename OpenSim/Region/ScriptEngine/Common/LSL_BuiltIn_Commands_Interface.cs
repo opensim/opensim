@@ -633,11 +633,12 @@ namespace OpenSim.Region.ScriptEngine.Common
         int llGetParcelMaxPrims(LSL_Types.Vector3 pos, int sim_wide);
         //wiki list llGetParcelDetails(vector pos, list params)
         LSL_Types.list llGetParcelDetails(LSL_Types.Vector3 pos, LSL_Types.list param);
-
+        string llStringTrim(string src, int type);
         //OpenSim functions
         string osSetDynamicTextureURL(string dynamicID, string contentType, string url, string extraParams, int timer);
         double osTerrainGetHeight(int x, int y);
         int osTerrainSetHeight(int x, int y, double val);
         int osRegionRestart(double seconds);
+        void osRegionNotice(string msg);
     }
 }

@@ -3062,6 +3062,14 @@ namespace OpenSim.Region.ScriptEngine.Common
             return ret;
         }
 
+	    public string llStringTrim(string src, int type)
+	    {
+	        if (type == (int)LSL_BaseClass.STRING_TRIM_HEAD) { return src.TrimStart(); }
+	        if (type == (int)LSL_BaseClass.STRING_TRIM_TAIL) { return src.TrimEnd(); }
+	        if (type == (int)LSL_BaseClass.STRING_TRIM) { return src.Trim(); }
+	        return src;
+	    }
+
         //
         // OpenSim functions
         //
