@@ -125,21 +125,21 @@ namespace OpenSim
             AddinManager.Initialize(".");
             AddinManager.Registry.Update(null);
 
-            string iniFilePath = startupConfig.GetString("inifile", "OpenSim.ini");
+            Application.iniFilePath = startupConfig.GetString("inifile", "OpenSim.ini");
 
             m_config = new IniConfigSource();
             //check for .INI file (either default or name passed in command line)
-            if (File.Exists(iniFilePath))
+            if (File.Exists(Application.iniFilePath))
             {
-                m_config.Merge(new IniConfigSource(iniFilePath));
+                m_config.Merge(new IniConfigSource(Application.iniFilePath));
                 m_config.Merge(configSource);
             }
             else
             {
-                iniFilePath = Path.Combine(Util.configDir(), iniFilePath);
-                if (File.Exists(iniFilePath))
+                Application.iniFilePath = Path.Combine(Util.configDir(), Application.iniFilePath);
+                if (File.Exists(Application.iniFilePath))
                 {
-                    m_config.Merge(new IniConfigSource(iniFilePath));
+                    m_config.Merge(new IniConfigSource(Application.iniFilePath));
                     m_config.Merge(configSource);
                 }
                 else
@@ -149,7 +149,7 @@ namespace OpenSim
 
                     m_config.Merge(configSource);
 
-                    m_config.Save(iniFilePath);
+                    m_config.Save(Application.iniFilePath);
                 }
             }
 

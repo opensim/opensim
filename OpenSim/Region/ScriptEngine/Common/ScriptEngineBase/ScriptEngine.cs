@@ -28,6 +28,7 @@
 
 
 using System;
+using System.IO;
 using Nini.Config;
 using OpenSim.Framework.Console;
 using OpenSim.Region.Environment.Interfaces;
@@ -128,8 +129,14 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
             RefreshConfigFileSeconds = ScriptConfigSource.GetInt("RefreshConfig", 0);
 
             // Reload from disk
-            ConfigSource.Reload();
-            // Create a new object (probably not necessary?)
+            //ConfigSource.Reload();
+            if (File.Exists(OpenSim.Application.iniFilePath))
+            {
+                //ConfigSource.Merge(new IniConfigSource(OpenSim.Application.iniFilePath));
+            }
+        
+
+        // Create a new object (probably not necessary?)
 //            ScriptConfigSource = ConfigSource.Configs[ScriptEngineName];
 
             if (m_EventQueueManager != null) m_EventQueueManager.ReadConfig();

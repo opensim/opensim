@@ -1161,12 +1161,13 @@
       </Configuration>
 
       <ReferencePath>../../../../bin/</ReferencePath>      
-      <ReferencePath>../../../../bin/ScriptEngines/</ReferencePath> 
+      <ReferencePath>../../../../bin/ScriptEngines/</ReferencePath>
       <Reference name="System" localCopy="false"/>
       <Reference name="System.Data" localCopy="false"/>
       <Reference name="System.Web" localCopy="false"/>
       <Reference name="System.Xml" localCopy="false"/>
       <Reference name="libsecondlife.dll"/>
+      <Reference name="OpenSim" />
       <Reference name="OpenSim.Framework"/>
       <Reference name="OpenSim.Region.Environment" />
       <Reference name="OpenSim.Framework.Console"/>

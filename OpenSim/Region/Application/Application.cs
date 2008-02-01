@@ -35,6 +35,8 @@ namespace OpenSim
 {
     public class Application
     {
+        public static string iniFilePath = "";
+
         //could move our main function into OpenSimMain and kill this class
         [STAThread]
         public static void Main(string[] args)
