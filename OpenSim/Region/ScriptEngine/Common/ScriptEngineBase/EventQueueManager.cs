@@ -187,7 +187,7 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
 
             lock (eventQueueThreadsLock)
             {
-                for (int ThreadCount = eventQueueThreads.Count; ThreadCount <= numberOfThreads; ThreadCount++)
+                for (int ThreadCount = eventQueueThreads.Count; ThreadCount < numberOfThreads; ThreadCount++)
                 {
                     StartNewThreadClass();
                 }

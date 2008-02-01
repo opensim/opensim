@@ -302,7 +302,7 @@ namespace OpenSim.Framework.Data.MySQL
         /// <param name="prim"></param>
         private void LoadItems(SceneObjectPart prim)
         {
-            MainLog.Instance.Verbose("DATASTORE", "Loading inventory for {0}, {1}", prim.Name, prim.UUID);
+            //MainLog.Instance.Verbose("DATASTORE", "Loading inventory for {0}, {1}", prim.Name, prim.UUID);
             
             DataTable dbItems = m_itemsTable;
             
