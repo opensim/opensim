@@ -21,10 +21,12 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
 
         public DateTime LastExecutionStarted;
         public bool InExecution = false;
+        public bool KillCurrentScript = false;
 
         private EventQueueManager eventQueueManager;
         public Thread EventQueueThread;
         private static int ThreadCount = 0;
+        private ThreadPriority MyThreadPriority;
 
         public EventQueueThreadClass(EventQueueManager eqm)
         {
@@ -43,9 +45,36 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
         /// </summary>
         private void Start()
         {
+            // Later with ScriptServer we might want to ask OS for stuff too, so doing this a bit manually
+            string pri = eventQueueManager.m_ScriptEngine.ScriptConfigSource.GetString("ScriptThreadPriority", "BelowNormal");
+            switch (pri.ToLower())
+            {
+                case "lowest":
+                    MyThreadPriority = ThreadPriority.Lowest;
+                    break;
+                case "belownormal":
+                    MyThreadPriority = ThreadPriority.BelowNormal;
+                    break;
+                case "normal":
+                    MyThreadPriority = ThreadPriority.Normal;
+                    break;
+                case "abovenormal":
+                    MyThreadPriority = ThreadPriority.AboveNormal;
+                    break;
+                case "highest":
+                    MyThreadPriority = ThreadPriority.Highest;
+                    break;
+                default:
+                    MyThreadPriority = ThreadPriority.BelowNormal; // Default
+                    eventQueueManager.m_ScriptEngine.Log.Error("ScriptEngineBase", "Unknown priority type \"" + pri + "\" in config file. Defaulting to \"BelowNormal\".");
+                    break;
+            }
+
+
             EventQueueThread = new Thread(EventQueueThreadLoop);
             EventQueueThread.IsBackground = true;
-            EventQueueThread.Priority = ThreadPriority.BelowNormal;
+            
+            EventQueueThread.Priority = MyThreadPriority;
             EventQueueThread.Name = "EventQueueManagerThread_" + ThreadCount;
             EventQueueThread.Start();
 
@@ -134,6 +163,7 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
                                                                              + ", QIS.functionName: " + QIS.functionName);
 #endif
                                     LastExecutionStarted = DateTime.Now;
+                                    KillCurrentScript = false;
                                     InExecution = true;
                                     eventQueueManager.m_ScriptEngine.m_ScriptManager.ExecuteEvent(QIS.localID, QIS.itemID,
                                                                                 QIS.functionName, QIS.llDetectParams, QIS.param);
@@ -155,6 +185,9 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
                                         // Send normal
                                         text += e.Message.ToString();
                                     }
+                                    if (KillCurrentScript)
+                                        text += "\r\nScript will be deactivated!";
+
                                     try
                                     {
                                         if (text.Length > 1500)
@@ -173,6 +206,14 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
                                         // T oconsole
                                         eventQueueManager.m_ScriptEngine.Log.Error("ScriptEngine",
                                                                  "Unable to send text in-world:\r\n" + text);
+                                    }
+                                    finally
+                                    {
+                                        // So we are done sending message in-world
+                                        if (KillCurrentScript)
+                                        {
+                                            eventQueueManager.m_ScriptEngine.m_ScriptManager.RemoveScript(QIS.localID, QIS.itemID);
+                                        }
                                     }
                                 }
                                 finally

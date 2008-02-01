@@ -82,11 +82,13 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
         /// </summary>
         private int numberOfThreads;
 
+
         /// <summary>
         /// Maximum time one function can use for execution before we perform a thread kill
         /// </summary>
         private int maxFunctionExecutionTimems;
         private bool EnforceMaxExecutionTime;
+        private bool KillScriptOnMaxFunctionExecutionTime;
 
 
         /// <summary>
@@ -169,7 +171,7 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
 
             maxFunctionExecutionTimems = m_ScriptEngine.ScriptConfigSource.GetInt("MaxEventExecutionTimeMs", 5000);
             EnforceMaxExecutionTime = m_ScriptEngine.ScriptConfigSource.GetBoolean("EnforceMaxEventExecutionTime", false);
-
+            KillScriptOnMaxFunctionExecutionTime = m_ScriptEngine.ScriptConfigSource.GetBoolean("DeactivateScriptOnTimeout", false);
 
 
             // Start function max exec time enforcement thread
@@ -336,6 +338,7 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
                                     maxFunctionExecutionTimems)
                                 {
                                     // We need to kill this thread!
+                                    EventQueueThread.KillCurrentScript = KillScriptOnMaxFunctionExecutionTime;
                                     AbortThreadClass(EventQueueThread);
                                     // Then start another
                                     StartNewThreadClass();

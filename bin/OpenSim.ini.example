@@ -127,19 +127,28 @@ shout_distance = 100
 ; Threads are shared across all regions
 NumberOfScriptThreads=2
 
+; Script event execution thread priority inside application.
+; Valid values: Lowest, BelowNormal, Normal, AboveNormal, Highest
+ScriptThreadPriority=BelowNormal
+
 ; Should the script threads be private for each region?
 ; true: Each region will get <NumberOfScriptThreads> dedicated to scripts within that region
 ;       Number of threads will be <NumberOfScriptThreads>*<NumberOfRegions>
 ; false: All regions share <NumberOfScriptThreads> for all their scripts
 PrivateRegionThreads=false
 
-; How long MAX should a script be allowed to run?
+; How long MAX should a script event be allowed to run (per event execution)?
 ; Do not set this too low (like 50ms) as there are some time wasted in simply executing a function
 ; There is also a small speed penalty for every kill that is made
 MaxEventExecutionTimeMs=5000
 
 ; Should we enable the max script event execution thread to look for scripts that exceed their timeslice?
 EnforceMaxEventExecutionTime=true
+
+; Should we stop the script completely when time exceeds?
+; This is useful if you have a high <MaxEventExecutionTimeMs> and want to deactivate scripts that go wrong
+; Note that for example physics engine can slow down the system and make scripts spend more time
+DeactivateScriptOnTimeout=false
 
 ; If no scripts have executed in this pass how long should we sleep before checking again
 ; Impact:
