@@ -211,7 +211,7 @@ namespace OpenSim.Region.Physics.OdePlugin
            
                 while (d.SpaceLockQuery(space))
                 {
-                    int i = 0;
+                    
                 }
             
            

@@ -2162,7 +2162,7 @@ namespace OpenSim.Region.ScriptEngine.Common
                 switch ((int)rules.Data[i])
                 {
                     case (int)LSL_BaseClass.PSYS_PART_FLAGS:
-                        prules.PartFlags = (uint)Convert.ToInt32(rules.Data[i + 1].ToString());
+                        prules.PartDataFlags = (Primitive.ParticleSystem.ParticleDataFlags)((uint)Convert.ToInt32(rules.Data[i + 1].ToString()));
                         break;
 
                     case (int)LSL_BaseClass.PSYS_PART_START_COLOR:
@@ -2204,8 +2204,8 @@ namespace OpenSim.Region.ScriptEngine.Common
                         break;
 
                     case (int)LSL_BaseClass.PSYS_PART_MAX_AGE:
-                        //tempf = (LSL_Types.LSLFloat)rules.Data[i + 1];
-                        prules.MaxAge = 7;//(float)tempf;
+                        tempf = Convert.ToSingle(rules.Data[i + 1].ToString());
+                        prules.PartMaxAge = (float)tempf;
                         break;
 
                     case (int)LSL_BaseClass.PSYS_SRC_ACCEL:
@@ -2279,6 +2279,31 @@ namespace OpenSim.Region.ScriptEngine.Common
 
             }
             prules.CRC = 1;
+            Console.WriteLine("----------ps----------\n");
+            Console.WriteLine(" AngularVelocity:" + prules.AngularVelocity.ToString() + "\n" +
+            " BurstPartCount:" + prules.BurstPartCount.ToString() + "\n" +
+            " BurstRadius:" + prules.BurstRadius.ToString() + "\n" +
+            " BurstRate:" + prules.BurstRate.ToString() + "\n" +
+            " BurstSpeedMax:" + prules.BurstSpeedMax.ToString() + "\n" +
+            " BurstSpeedMin:" + prules.BurstSpeedMin.ToString() + "\n" +
+            " CRC:" + prules.CRC.ToString() + "\n" +
+            " InnerAngle:" + prules.InnerAngle.ToString() + "\n" +
+            " MaxAge:" + prules.MaxAge.ToString() + "\n" +
+            " OuterAngle:" + prules.OuterAngle.ToString() + "\n" +
+            " PartAcceleration:" + prules.PartAcceleration.ToString() + "\n" +
+            " PartDataFlags:" + prules.PartDataFlags.ToString() + "\n" +
+            " PartEndColor:" + prules.PartEndColor.ToString() + "\n" +
+            " PartEndScaleX:" + prules.PartEndScaleX.ToString() + "\n" +
+            " PartEndScaleY:" + prules.PartEndScaleY.ToString() + "\n" +
+            " PartFlags:" + prules.PartFlags.ToString() + "\n" +
+            " PartMaxAge:" + prules.PartMaxAge.ToString() + "\n" +
+            " PartStartColor:" + prules.PartStartColor.ToString() + "\n" +
+            " PartStartScaleX:" + prules.PartStartScaleX.ToString() + "\n" +
+            " PartStartScaleY:" + prules.PartStartScaleY.ToString() + "\n" +
+            " Pattern:" + prules.Pattern.ToString() + "\n" +
+            " StartAge:" + prules.StartAge.ToString() + "\n" +
+            " Target:" + prules.Target.ToString() + "\n" +
+            " Texture:" + prules.Texture.ToString() + "");
             OpenSim.Framework.Console.MainLog.Instance.Verbose("PARTICLE", "PS: " + prules.ToString());
             m_host.AddNewParticleSystem(prules);
             m_host.SendFullUpdateToAllClients();
