@@ -124,7 +124,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
 
 
             // Stop long command on script
-            m_scriptEngine.m_LSLLongCmdHandler.RemoveScript(localID, itemID);
+            m_scriptEngine.m_ASYNCLSLCommandManager.RemoveScript(localID, itemID);
 
             IScript LSLBC = GetScript(localID, itemID);
             if (LSLBC == null)

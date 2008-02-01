@@ -44,14 +44,14 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
         public static void SendToDebug(string Message)
         {
             //if (Debug == true)
-            mySE.Log.Verbose("ScriptEngine", "Debug: " + Message);
+            mySE.Log.Verbose(mySE.ScriptEngineName, "Debug: " + Message);
             //SendToDebugEvent("\r\n" + DateTime.Now.ToString("[HH:mm:ss] ") + Message);
         }
 
         public static void SendToLog(string Message)
         {
             //if (Debug == true)
-            mySE.Log.Verbose("ScriptEngine", "LOG: " + Message);
+            mySE.Log.Verbose(mySE.ScriptEngineName, "LOG: " + Message);
             //SendToLogEvent("\r\n" + DateTime.Now.ToString("[HH:mm:ss] ") + Message);
         }
     }

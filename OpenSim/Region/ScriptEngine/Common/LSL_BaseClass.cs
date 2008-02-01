@@ -112,7 +112,7 @@ namespace OpenSim.Region.ScriptEngine.Common
         {
             m_LSL_Functions = LSL_Functions;
 
-            //MainLog.Instance.Notice("ScriptEngine", "LSL_BaseClass.Start() called.");
+            //MainLog.Instance.Notice(ScriptEngineName, "LSL_BaseClass.Start() called.");
 
             // Get this AppDomain's settings and display some of them.
             AppDomainSetup ads = AppDomain.CurrentDomain.SetupInformation;

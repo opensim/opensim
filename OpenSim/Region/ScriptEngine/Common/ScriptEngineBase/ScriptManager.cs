@@ -57,12 +57,12 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
     //   This so that scripts starting or stopping will not slow down other theads or whole system.
     //
     [Serializable]
-    public abstract class ScriptManager
+    public abstract class ScriptManager : iScriptEngineFunctionModule
     {
         #region Declares
 
         private Thread scriptLoadUnloadThread;
-        private int scriptLoadUnloadThread_IdleSleepms = 100;
+        private int scriptLoadUnloadThread_IdleSleepms;
         private Queue<LUStruct> LUQueue = new Queue<LUStruct>();
 
 
@@ -95,6 +95,11 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
 
         #endregion
 
+        public void ReadConfig()
+        {
+            scriptLoadUnloadThread_IdleSleepms = m_scriptEngine.ScriptConfigSource.GetInt("ScriptLoadUnloadLoopms", 30);
+        }
+
         #region Object init/shutdown
 
         public ScriptEngineBase.ScriptEngine m_scriptEngine;
@@ -102,6 +107,7 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
         public ScriptManager(ScriptEngineBase.ScriptEngine scriptEngine)
         {
             m_scriptEngine = scriptEngine;
+            ReadConfig();
             AppDomain.CurrentDomain.AssemblyResolve += new ResolveEventHandler(CurrentDomain_AssemblyResolve);
             scriptLoadUnloadThread = new Thread(ScriptLoadUnloadThreadLoop);
             scriptLoadUnloadThread.Name = "ScriptLoadUnloadThread";
@@ -238,7 +244,7 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
             Console.WriteLine("ScriptEngine: Inside ExecuteEvent for event " + FunctionName);
 #endif
             // Execute a function in the script
-            //m_scriptEngine.Log.Verbose("ScriptEngine", "Executing Function localID: " + localID + ", itemID: " + itemID + ", FunctionName: " + FunctionName);
+            //m_scriptEngine.Log.Verbose(ScriptEngineName, "Executing Function localID: " + localID + ", itemID: " + itemID + ", FunctionName: " + FunctionName);
             //ScriptBaseInterface Script = (ScriptBaseInterface)GetScript(localID, itemID);
             IScript Script = GetScript(localID, itemID);
             if (Script == null)
@@ -345,5 +351,16 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
         }
 
         #endregion
+
+        /// <summary>
+        /// If set to true then threads and stuff should try to make a graceful exit
+        /// </summary>
+        public bool PleaseShutdown
+        {
+            get { return _PleaseShutdown; }
+            set { _PleaseShutdown = value; }
+        }
+        private bool _PleaseShutdown = false;
+
     }
 }

@@ -37,7 +37,7 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
     /// Prepares events so they can be directly executed upon a script by EventQueueManager, then queues it.
     /// </summary>
     [Serializable]
-    public class EventManager : OpenSim.Region.ScriptEngine.Common.ScriptServerInterfaces.RemoteEvents
+    public class EventManager : OpenSim.Region.ScriptEngine.Common.ScriptServerInterfaces.RemoteEvents, iScriptEngineFunctionModule
     {
 
         //
@@ -59,12 +59,13 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
         public EventManager(ScriptEngine _ScriptEngine, bool performHookUp)
         {
             myScriptEngine = _ScriptEngine;
+            ReadConfig();
 
             // Hook up to events from OpenSim
             // We may not want to do it because someone is controlling us and will deliver events to us
             if (performHookUp)
             {
-                myScriptEngine.Log.Verbose("ScriptEngine", "Hooking up to server events");
+                myScriptEngine.Log.Verbose(myScriptEngine.ScriptEngineName, "Hooking up to server events");
                 myScriptEngine.World.EventManager.OnObjectGrab += touch_start;
                 myScriptEngine.World.EventManager.OnRezScript += OnRezScript;
                 myScriptEngine.World.EventManager.OnRemoveScript += OnRemoveScript;
@@ -72,6 +73,11 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
                 // TODO: HOOK ALL EVENTS UP TO SERVER!
             }
         }
+
+        public void ReadConfig()
+        {
+        }
+
 
         public void changed(uint localID, uint change)
         {
@@ -263,5 +269,16 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
         {
             //    myScriptEngine.m_EventQueueManager.AddToScriptQueue(localID, itemID, "http_response", EventQueueManager.llDetectNull);
         }
+
+        /// <summary>
+        /// If set to true then threads and stuff should try to make a graceful exit
+        /// </summary>
+        public bool PleaseShutdown
+        {
+            get { return _PleaseShutdown; }
+            set { _PleaseShutdown = value; }
+        }
+        private bool _PleaseShutdown = false;
+
     }
 }

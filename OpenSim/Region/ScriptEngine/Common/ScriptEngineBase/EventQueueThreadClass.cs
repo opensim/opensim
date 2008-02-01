@@ -12,12 +12,13 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
     /// <summary>
     /// Because every thread needs some data set for it (time started to execute current function), it will do its work within a class
     /// </summary>
-    public class EventQueueThreadClass
+    public class EventQueueThreadClass: iScriptEngineFunctionModule
     {
         /// <summary>
         /// How many ms to sleep if queue is empty
         /// </summary>
         private int nothingToDoSleepms;// = 50;
+        private ThreadPriority MyThreadPriority;
 
         public long LastExecutionStarted;
         public bool InExecution = false;
@@ -26,25 +27,27 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
         private EventQueueManager eventQueueManager;
         public Thread EventQueueThread;
         private static int ThreadCount = 0;
-        private ThreadPriority MyThreadPriority;
+
+        private string ScriptEngineName = "ScriptEngine.Common";
 
         public EventQueueThreadClass(EventQueueManager eqm)
         {
             eventQueueManager = eqm;
-            nothingToDoSleepms = eqm.m_ScriptEngine.ScriptConfigSource.GetInt("SleepTimeIfNoScriptExecutionMs", 50);
+            ReadConfig();
             Start();
         }
 
         ~EventQueueThreadClass()
         {
-            Shutdown();
+            Stop();
         }
 
-        /// <summary>
-        /// Start thread
-        /// </summary>
-        private void Start()
+
+        public void ReadConfig()
         {
+            ScriptEngineName = eventQueueManager.m_ScriptEngine.ScriptEngineName;
+            nothingToDoSleepms = eventQueueManager.m_ScriptEngine.ScriptConfigSource.GetInt("SleepTimeIfNoScriptExecutionMs", 50);
+
             // Later with ScriptServer we might want to ask OS for stuff too, so doing this a bit manually
             string pri = eventQueueManager.m_ScriptEngine.ScriptConfigSource.GetString("ScriptThreadPriority", "BelowNormal");
             switch (pri.ToLower())
@@ -70,6 +73,19 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
                     break;
             }
 
+            // Now set that priority
+            if (EventQueueThread != null)
+                if (EventQueueThread.IsAlive)
+                    EventQueueThread.Priority = MyThreadPriority;
+
+        }
+
+
+        /// <summary>
+        /// Start thread
+        /// </summary>
+        private void Start()
+        {
 
             EventQueueThread = new Thread(EventQueueThreadLoop);
             EventQueueThread.IsBackground = true;
@@ -84,18 +100,20 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
             ThreadCount++;
         }
 
-        public void Shutdown()
+        public void Stop()
         {
+            PleaseShutdown = true;                  // Set shutdown flag
+            Thread.Sleep(100);                       // Wait a bit
             if (EventQueueThread != null && EventQueueThread.IsAlive == true)
             {
                 try
                 {
-                    EventQueueThread.Abort();
-                    EventQueueThread.Join();
+                    EventQueueThread.Abort();               // Send abort
+                    EventQueueThread.Join();                // Wait for it
                 }
                 catch (Exception)
                 {
-                    //myScriptEngine.Log.Verbose("ScriptEngine", "EventQueueManager Exception killing worker thread: " + e.ToString());
+                    //myScriptEngine.Log.Verbose(ScriptEngineName, "EventQueueManager Exception killing worker thread: " + e.ToString());
                 }
             }
         }
@@ -106,10 +124,10 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
         /// </summary>
         private void EventQueueThreadLoop()
         {
-            //myScriptEngine.m_logger.Verbose("ScriptEngine", "EventQueueManager Worker thread spawned");
+            //myScriptEngine.m_logger.Verbose(ScriptEngineName, "EventQueueManager Worker thread spawned");
             try
             {
-                                while (true)
+               while (true)
                 {
                     try
                     {
@@ -117,7 +135,7 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
                         while (true)
                         {
                             // Every now and then check if we should shut down
-                            if (eventQueueManager.ThreadsToExit > 0)
+                            if (PleaseShutdown || eventQueueManager.ThreadsToExit > 0)
                             {
                                 // Someone should shut down, lets get exclusive lock
                                 lock (eventQueueManager.ThreadsToExitLock)
@@ -125,9 +143,15 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
                                     // Lets re-check in case someone grabbed it
                                     if (eventQueueManager.ThreadsToExit > 0)
                                     {
-                                        // We are go for shutdown
+                                        // Its crowded here so we'll shut down
                                         eventQueueManager.ThreadsToExit--;
-                                        Shutdown();
+                                        Stop();
+                                        return;
+                                    }
+                                    else
+                                    {
+                                        // We have been asked to shut down
+                                        Stop();
                                         return;
                                     }
                                 }
@@ -139,6 +163,9 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
                             EventQueueManager.QueueItemStruct QIS = BlankQIS;
                             bool GotItem = false;
 
+                            if (PleaseShutdown)
+                                return;
+
                             if (eventQueueManager.eventQueue.Count == 0)
                             {
                                 // Nothing to do? Sleep a bit waiting for something to do
@@ -147,7 +174,7 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
                             else
                             {
                                 // Something in queue, process
-                                //myScriptEngine.m_logger.Verbose("ScriptEngine", "Processing event for localID: " + QIS.localID + ", itemID: " + QIS.itemID + ", FunctionName: " + QIS.FunctionName);
+                                //myScriptEngine.m_logger.Verbose(ScriptEngineName, "Processing event for localID: " + QIS.localID + ", itemID: " + QIS.itemID + ", FunctionName: " + QIS.FunctionName);
 
                                 // OBJECT BASED LOCK - TWO THREADS WORKING ON SAME OBJECT IS NOT GOOD
                                 lock (eventQueueManager.queueLock)
@@ -179,7 +206,7 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
                                     try
                                     {
 #if DEBUG
-                                        eventQueueManager.m_ScriptEngine.Log.Debug("ScriptEngine",
+                                        eventQueueManager.m_ScriptEngine.Log.Debug(ScriptEngineName,
                                                                                    "Executing event:\r\n"
                                                                                    + "QIS.localID: " + QIS.localID
                                                                                    + ", QIS.itemID: " + QIS.itemID
@@ -235,7 +262,7 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
                                             //else
                                             //{
                                             // T oconsole
-                                            eventQueueManager.m_ScriptEngine.Log.Error("ScriptEngine",
+                                            eventQueueManager.m_ScriptEngine.Log.Error(ScriptEngineName,
                                                                                        "Unable to send text in-world:\r\n" +
                                                                                        text);
                                         }
@@ -260,19 +287,28 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
                     }
                     catch (ThreadAbortException tae)
                     {
-                        eventQueueManager.m_ScriptEngine.Log.Notice("ScriptEngine", "ThreadAbortException while executing function.");
+                        eventQueueManager.m_ScriptEngine.Log.Notice(ScriptEngineName, "ThreadAbortException while executing function.");
                     }
                     catch (Exception e)
                     {
-                        eventQueueManager.m_ScriptEngine.Log.Error("ScriptEngine", "Exception in EventQueueThreadLoop: " + e.ToString());
+                        eventQueueManager.m_ScriptEngine.Log.Error(ScriptEngineName, "Exception in EventQueueThreadLoop: " + e.ToString());
                     }
                 } // while
             } // try
             catch (ThreadAbortException)
             {
-                //myScriptEngine.Log.Verbose("ScriptEngine", "EventQueueManager Worker thread killed: " + tae.Message);
+                //myScriptEngine.Log.Verbose(ScriptEngineName, "EventQueueManager Worker thread killed: " + tae.Message);
             }
         }
 
+        /// <summary>
+        /// If set to true then threads and stuff should try to make a graceful exit
+        /// </summary>
+        public bool PleaseShutdown
+        {
+            get { return _PleaseShutdown; }
+            set { _PleaseShutdown = value; }
+        }
+        private bool _PleaseShutdown = false;
     }
 }

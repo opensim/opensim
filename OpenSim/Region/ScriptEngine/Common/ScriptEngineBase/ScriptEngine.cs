@@ -42,27 +42,28 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
     /// </summary>
     /// 
     [Serializable]
-    public abstract class ScriptEngine : IRegionModule, OpenSim.Region.ScriptEngine.Common.ScriptServerInterfaces.ScriptEngine
+    public abstract class ScriptEngine : IRegionModule, OpenSim.Region.ScriptEngine.Common.ScriptServerInterfaces.ScriptEngine, iScriptEngineFunctionModule
     {
         public Scene World;
-        public EventManager m_EventManager; // Handles and queues incoming events from OpenSim
-        public EventQueueManager m_EventQueueManager; // Executes events
-        public ScriptManager m_ScriptManager; // Load, unload and execute scripts
-        public AppDomainManager m_AppDomainManager;
-        public LSLLongCmdHandler m_LSLLongCmdHandler;
+        public EventManager m_EventManager;                         // Handles and queues incoming events from OpenSim
+        public EventQueueManager m_EventQueueManager;               // Executes events, handles script threads
+        public ScriptManager m_ScriptManager;                       // Load, unload and execute scripts
+        public AppDomainManager m_AppDomainManager;                 // Handles loading/unloading of scripts into AppDomains
+        public AsyncLSLCommandManager m_ASYNCLSLCommandManager;     // Asyncronous LSL commands (commands that returns with an event)
+        public MaintenanceThread m_MaintenanceThread;               // Thread that does different kinds of maintenance, for example refreshing config and killing scripts that has been running too long
 
         public IConfigSource ConfigSource;
         public IConfig ScriptConfigSource;
-        public abstract string ScriptConfigSourceName { get; }
+        public abstract string ScriptEngineName { get; }
 
         /// <summary>
         /// How many seconds between re-reading config-file. 0 = never. ScriptEngine will try to adjust to new config changes.
         /// </summary>
-        public int ReReadConfigFileSeconds {
-            get { return (int)(ReReadConfigFilens / 10000); }
-            set { ReReadConfigFilens = value * 10000; }
+        public int RefreshConfigFileSeconds {
+            get { return (int)(RefreshConfigFilens / 10000); }
+            set { RefreshConfigFilens = value * 10000; }
         }
-        public long ReReadConfigFilens = 0;
+        public long RefreshConfigFilens = 0;
 
         public ScriptManager GetScriptManager()
         {
@@ -88,21 +89,22 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
         {
             World = Sceneworld;
             m_log = logger;
-            ScriptConfigSource = ConfigSource.Configs[ScriptConfigSourceName];
+            ScriptConfigSource = ConfigSource.Configs[ScriptEngineName];
 
-            Log.Verbose("ScriptEngine", "DotNet & LSL ScriptEngine initializing");
+            Log.Verbose(ScriptEngineName, "DotNet & LSL ScriptEngine initializing");
 
-            //m_logger.Status("ScriptEngine", "InitializeEngine");
+            //m_logger.Status(ScriptEngineName, "InitializeEngine");
 
             // Create all objects we'll be using
             m_EventQueueManager = new EventQueueManager(this);
             m_EventManager = new EventManager(this, HookUpToServer);
             m_ScriptManager = newScriptManager;
-            //m_ScriptManager = new ScriptManager(this);
-            m_AppDomainManager = new AppDomainManager(ScriptConfigSource.GetInt("ScriptsPerAppDomain", 1));
-            m_LSLLongCmdHandler = new LSLLongCmdHandler(this);
+            m_AppDomainManager = new AppDomainManager(this);
+            m_ASYNCLSLCommandManager = new AsyncLSLCommandManager(this);
+            m_MaintenanceThread = new MaintenanceThread(this);
 
-            ReReadConfigFileSeconds = ScriptConfigSource.GetInt("ReReadConfig", 0);
+            ReadConfig();
+
 
 
             // Should we iterate the region for scripts that needs starting?
@@ -117,6 +119,26 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
         ScriptServerInterfaces.RemoteEvents ScriptServerInterfaces.ScriptEngine.EventManager()
         {
             return this.m_EventManager;
+        }
+        public void ReadConfig()
+        {
+#if DEBUG
+            Log.Debug(ScriptEngineName, "Refreshing configuration for all modules");
+#endif
+            RefreshConfigFileSeconds = ScriptConfigSource.GetInt("RefreshConfig", 0);
+
+            // Reload from disk
+            ConfigSource.Reload();
+            // Create a new object (probably not necessary?)
+//            ScriptConfigSource = ConfigSource.Configs[ScriptEngineName];
+
+            if (m_EventQueueManager != null) m_EventQueueManager.ReadConfig();
+            if (m_EventManager != null) m_EventManager.ReadConfig();
+            if (m_ScriptManager != null) m_ScriptManager.ReadConfig();
+            if (m_AppDomainManager != null) m_AppDomainManager.ReadConfig();
+            if (m_ASYNCLSLCommandManager != null) m_ASYNCLSLCommandManager.ReadConfig();
+            if (m_MaintenanceThread != null) m_MaintenanceThread.ReadConfig();
+
         }
 
 
@@ -134,7 +156,7 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
 
         public string Name
         {
-            get { return "DotNetEngine"; }
+            get { return "Common." + ScriptEngineName; }
         }
 
         public bool IsSharedModule
@@ -145,6 +167,16 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
         
 
         #endregion
+
+        /// <summary>
+        /// If set to true then threads and stuff should try to make a graceful exit
+        /// </summary>
+        public bool PleaseShutdown
+        {
+            get { return _PleaseShutdown; }
+            set { _PleaseShutdown = value; }
+        }
+        private bool _PleaseShutdown = false;
 
     }
 }

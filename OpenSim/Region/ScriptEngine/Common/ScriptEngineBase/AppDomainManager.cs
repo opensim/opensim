@@ -35,7 +35,7 @@ using OpenSim.Region.ScriptEngine.Common;
 
 namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
 {
-    public class AppDomainManager
+    public class AppDomainManager : iScriptEngineFunctionModule
     {
 
         //
@@ -85,12 +85,17 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
         private object getLock = new object(); // Mutex
         private object freeLock = new object(); // Mutex
 
-        //private ScriptEngine m_scriptEngine;
+        private ScriptEngine m_scriptEngine;
         //public AppDomainManager(ScriptEngine scriptEngine)
-        public AppDomainManager(int MaxScriptsPerDomain)
+        public AppDomainManager(ScriptEngine scriptEngine)
         {
-            maxScriptsPerAppDomain = MaxScriptsPerDomain; 
-            //m_scriptEngine = scriptEngine;
+            m_scriptEngine = scriptEngine;
+            ReadConfig();
+        }
+
+        public void ReadConfig()
+        {
+            maxScriptsPerAppDomain = m_scriptEngine.ScriptConfigSource.GetInt("ScriptsPerAppDomain", 1);
         }
 
         /// <summary>
@@ -99,7 +104,7 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
         /// <returns>Free AppDomain</returns>
         private AppDomainStructure GetFreeAppDomain()
         {
-            Console.WriteLine("Finding free AppDomain");
+            //            Console.WriteLine("Finding free AppDomain");
             lock (getLock)
             {
                 // Current full?
@@ -117,7 +122,7 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
                     currentAD.CurrentAppDomain = PrepareNewAppDomain();
                 }
 
-                Console.WriteLine("Scripts loaded in this Appdomain: " + currentAD.ScriptsLoaded);
+                //                Console.WriteLine("Scripts loaded in this Appdomain: " + currentAD.ScriptsLoaded);
                 return currentAD;
             } // lock
         }
@@ -144,7 +149,7 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
             ads.ConfigurationFile = AppDomain.CurrentDomain.SetupInformation.ConfigurationFile;
 
             AppDomain AD = AppDomain.CreateDomain("ScriptAppDomain_" + AppDomainNameCount, null, ads);
-            Console.WriteLine("Loading: " +
+            m_scriptEngine.Log.Verbose(m_scriptEngine.ScriptEngineName, "AppDomain Loading: " +
                               AssemblyName.GetAssemblyName("OpenSim.Region.ScriptEngine.Common.dll").ToString());
             AD.Load(AssemblyName.GetAssemblyName("OpenSim.Region.ScriptEngine.Common.dll"));
 
@@ -169,17 +174,16 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
                         // Is number of unloaded bigger or equal to number of loaded?
                         if (ads.ScriptsLoaded <= ads.ScriptsWaitingUnload)
                         {
-                            Console.WriteLine("Found empty AppDomain, unloading");
                             // Remove from internal list
                             appDomains.Remove(ads);
 #if DEBUG
+                            Console.WriteLine("Found empty AppDomain, unloading");
                             long m = GC.GetTotalMemory(true);
 #endif
                             // Unload
                             AppDomain.Unload(ads.CurrentAppDomain);
 #if DEBUG
-                            Console.WriteLine("AppDomain unload freed " + (m - GC.GetTotalMemory(true)) +
-                                              " bytes of memory");
+                            m_scriptEngine.Log.Verbose(m_scriptEngine.ScriptEngineName, "AppDomain unload freed " + (m - GC.GetTotalMemory(true)) + " bytes of memory");
 #endif
                         }
                     }
@@ -193,7 +197,9 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
             // Find next available AppDomain to put it in
             AppDomainStructure FreeAppDomain = GetFreeAppDomain();
 
-            Console.WriteLine("Loading into AppDomain: " + FileName);
+#if DEBUG
+            m_scriptEngine.Log.Verbose(m_scriptEngine.ScriptEngineName, "Loading into AppDomain: " + FileName);
+#endif
             IScript mbrt =
                 (IScript)
                 FreeAppDomain.CurrentAppDomain.CreateInstanceFromAndUnwrap(FileName, "SecondLife.Script");
@@ -213,7 +219,9 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
         {
             lock (freeLock)
             {
-                Console.WriteLine("Stopping script in AppDomain");
+#if DEBUG
+                m_scriptEngine.Log.Verbose(m_scriptEngine.ScriptEngineName, "Stopping script in AppDomain");
+#endif
                 // Check if it is current AppDomain
                 if (currentAD.CurrentAppDomain == ad)
                 {
@@ -236,5 +244,15 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
 
             UnloadAppDomains(); // Outsite lock, has its own GetLock
         }
+        /// <summary>
+        /// If set to true then threads and stuff should try to make a graceful exit
+        /// </summary>
+        public bool PleaseShutdown
+        {
+            get { return _PleaseShutdown; }
+            set { _PleaseShutdown = value; }
+        }
+        private bool _PleaseShutdown = false;
+
     }
 }

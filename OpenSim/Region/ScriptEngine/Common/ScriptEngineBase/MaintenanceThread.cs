@@ -8,7 +8,7 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
     /// <summary>
     /// This class does maintenance on script engine.
     /// </summary>
-    public class MaintenanceThread
+    public class MaintenanceThread : iScriptEngineFunctionModule
     {
         public ScriptEngine m_ScriptEngine;
         private int MaintenanceLoopms;
@@ -28,7 +28,7 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
             StopMaintenanceThread();
         }
 
-        private void ReadConfig()
+        public void ReadConfig()
         {
             MaintenanceLoopms = m_ScriptEngine.ScriptConfigSource.GetInt("MaintenanceLoopms", 50);
         }
@@ -80,48 +80,74 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
         /// </summary>
         public void MaintenanceLoop()
         {
-            try
+            if (m_ScriptEngine.m_EventQueueManager.maxFunctionExecutionTimens < MaintenanceLoopms)
+                m_ScriptEngine.Log.Warn(m_ScriptEngine.ScriptEngineName,
+                    "Configuration error: MaxEventExecutionTimeMs is less than MaintenanceLoopms. The Maintenance Loop will only check scripts once per run.");
+
+            while (true)
             {
-                long Last_maxFunctionExecutionTimens = 0;// DateTime.Now.Ticks;
-                long Last_ReReadConfigFilens = DateTime.Now.Ticks;
-                while (true)
+                try
                 {
-                    System.Threading.Thread.Sleep(MaintenanceLoopms);                           // Sleep
-
-                    // Re-reading config every x seconds?
-                    if (m_ScriptEngine.ReReadConfigFileSeconds > 0)
+                    long Last_maxFunctionExecutionTimens = 0; // DateTime.Now.Ticks;
+                    long Last_ReReadConfigFilens = DateTime.Now.Ticks;
+                    while (true)
                     {
-                        // Check if its time to re-read config
-                        if (DateTime.Now.Ticks - Last_ReReadConfigFilens > m_ScriptEngine.ReReadConfigFilens)
+                        System.Threading.Thread.Sleep(MaintenanceLoopms); // Sleep before next pass
+                        if (PleaseShutdown)
+                            return;
+                        //
+                        // Re-reading config every x seconds
+                        //
+                        if (m_ScriptEngine.RefreshConfigFileSeconds > 0)
                         {
-                            // Its time to re-read config file
-                            m_ScriptEngine.ConfigSource.Reload();                                                   // Re-read config
-                            Last_ReReadConfigFilens = DateTime.Now.Ticks;                                           // Reset time
+                            // Check if its time to re-read config
+                            if (DateTime.Now.Ticks - Last_ReReadConfigFilens > m_ScriptEngine.RefreshConfigFilens)
+                            {
+                                // Its time to re-read config file
+                                m_ScriptEngine.ConfigSource.Reload(); // Refresh config
+                                m_ScriptEngine.ReadConfig();
+                                Last_ReReadConfigFilens = DateTime.Now.Ticks; // Reset time
+                            }
                         }
-                    }
 
-                    // Adjust number of running script threads if not correct
-                    if (m_ScriptEngine.m_EventQueueManager.eventQueueThreads.Count != m_ScriptEngine.m_EventQueueManager.numberOfThreads)
-                    {
+                        //
+                        // Adjust number of running script threads if not correct
+                        //
                         m_ScriptEngine.m_EventQueueManager.AdjustNumberOfScriptThreads();
-                    }
 
-
-                    // Check if any script has exceeded its max execution time
-                    if (m_ScriptEngine.m_EventQueueManager.EnforceMaxExecutionTime)
-                    {
-                        if (DateTime.Now.Ticks - Last_maxFunctionExecutionTimens > m_ScriptEngine.m_EventQueueManager.maxFunctionExecutionTimens)
+                        //
+                        // Check if any script has exceeded its max execution time
+                        //
+                        if (m_ScriptEngine.m_EventQueueManager.EnforceMaxExecutionTime)
                         {
-                            m_ScriptEngine.m_EventQueueManager.CheckScriptMaxExecTime();                           // Do check
-                            Last_maxFunctionExecutionTimens = DateTime.Now.Ticks;                                  // Reset time
+                            // We are enforcing execution time
+                            if (DateTime.Now.Ticks - Last_maxFunctionExecutionTimens >
+                                m_ScriptEngine.m_EventQueueManager.maxFunctionExecutionTimens)
+                            {
+                                // Its time to check again
+                                m_ScriptEngine.m_EventQueueManager.CheckScriptMaxExecTime(); // Do check
+                                Last_maxFunctionExecutionTimens = DateTime.Now.Ticks; // Reset time
+                            }
                         }
                     }
                 }
-            }
-            catch (ThreadAbortException tae)
-            {
+                catch (Exception ex)
+                {
+                    m_ScriptEngine.Log.Error(m_ScriptEngine.ScriptEngineName, "Exception in MaintenanceLoopThread. Thread will recover after 5 sec throttle. Exception: " + ex.ToString());
+                    Thread.Sleep(5000);
+                }
             }
         }
         #endregion
+        /// <summary>
+        /// If set to true then threads and stuff should try to make a graceful exit
+        /// </summary>
+        public bool PleaseShutdown
+        {
+            get { return _PleaseShutdown; }
+            set { _PleaseShutdown = value; }
+        }
+        private bool _PleaseShutdown = false;
+
     }
 }

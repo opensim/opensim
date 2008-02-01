@@ -42,7 +42,7 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
     /// Events are queued and executed in separate thread
     /// </summary>
     [Serializable]
-    public class EventQueueManager
+    public class EventQueueManager : iScriptEngineFunctionModule
     {
 
         //
@@ -197,13 +197,22 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
 
         }
 
-        private void ReadConfig()
+        public void ReadConfig()
         {
+            // Refresh config
             numberOfThreads = m_ScriptEngine.ScriptConfigSource.GetInt("NumberOfScriptThreads", 2);
             maxFunctionExecutionTimems = m_ScriptEngine.ScriptConfigSource.GetInt("MaxEventExecutionTimeMs", 5000);
             EnforceMaxExecutionTime = m_ScriptEngine.ScriptConfigSource.GetBoolean("EnforceMaxEventExecutionTime", false);
             KillScriptOnMaxFunctionExecutionTime = m_ScriptEngine.ScriptConfigSource.GetBoolean("DeactivateScriptOnTimeout", false);
 
+            // Now refresh config in all threads
+            lock (eventQueueThreadsLock)
+            {
+                foreach (EventQueueThreadClass EventQueueThread in eventQueueThreads)
+                {
+                    EventQueueThread.ReadConfig();
+                }
+            }
         }
 
         #endregion
@@ -222,7 +231,7 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
             {
                 foreach (EventQueueThreadClass EventQueueThread in eventQueueThreads)
                 {
-                    EventQueueThread.Shutdown();
+                    AbortThreadClass(EventQueueThread);
                 }
                 eventQueueThreads.Clear();
                 staticGlobalEventQueueThreads.Clear();
@@ -243,7 +252,7 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
             EventQueueThreadClass eqtc = new EventQueueThreadClass(this);
             eventQueueThreads.Add(eqtc);
             staticGlobalEventQueueThreads.Add(eqtc);
-            m_ScriptEngine.Log.Debug("DotNetEngine", "Started new script execution thread. Current thread count: " + eventQueueThreads.Count);
+            m_ScriptEngine.Log.Debug(m_ScriptEngine.ScriptEngineName, "Started new script execution thread. Current thread count: " + eventQueueThreads.Count);
 
         }
         private void AbortThreadClass(EventQueueThreadClass threadClass)
@@ -252,16 +261,17 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
                 eventQueueThreads.Remove(threadClass);
             if (staticGlobalEventQueueThreads.Contains(threadClass))
                 staticGlobalEventQueueThreads.Remove(threadClass);
+
             try
             {
-                threadClass.Shutdown();
+                threadClass.Stop();
             }
             catch (Exception ex)
             {
-                m_ScriptEngine.Log.Error("EventQueueManager", "If you see this, could you please report it to Tedd:");
-                m_ScriptEngine.Log.Error("EventQueueManager", "Script thread execution timeout kill ended in exception: " + ex.ToString());
+                m_ScriptEngine.Log.Error(m_ScriptEngine.ScriptEngineName + ":EventQueueManager", "If you see this, could you please report it to Tedd:");
+                m_ScriptEngine.Log.Error(m_ScriptEngine.ScriptEngineName + ":EventQueueManager", "Script thread execution timeout kill ended in exception: " + ex.ToString());
             }
-            m_ScriptEngine.Log.Debug("DotNetEngine", "Killed script execution thread. Remaining thread count: " + eventQueueThreads.Count);
+            m_ScriptEngine.Log.Debug(m_ScriptEngine.ScriptEngineName, "Killed script execution thread. Remaining thread count: " + eventQueueThreads.Count);
         }
         #endregion
 
@@ -313,7 +323,7 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
         public void AddToObjectQueue(uint localID, string FunctionName, Queue_llDetectParams_Struct qParams, params object[] param)
         {
             // Determine all scripts in Object and add to their queue
-            //myScriptEngine.m_logger.Verbose("ScriptEngine", "EventQueueManager Adding localID: " + localID + ", FunctionName: " + FunctionName);
+            //myScriptEngine.m_logger.Verbose(ScriptEngineName, "EventQueueManager Adding localID: " + localID + ", FunctionName: " + FunctionName);
 
 
             // Do we have any scripts in this object at all? If not, return
@@ -367,6 +377,10 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
         /// </summary>
         public void AdjustNumberOfScriptThreads()
         {
+            // Is there anything here for us to do?
+            if (eventQueueThreads.Count == numberOfThreads)
+                return;
+
             lock (eventQueueThreadsLock)
             {
                 int diff = numberOfThreads - eventQueueThreads.Count;
@@ -424,5 +438,15 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
             }
         }
         #endregion
+        /// <summary>
+        /// If set to true then threads and stuff should try to make a graceful exit
+        /// </summary>
+        public bool PleaseShutdown
+        {
+            get { return _PleaseShutdown; }
+            set { _PleaseShutdown = value; }
+        }
+        private bool _PleaseShutdown = false;
+
     }
 }

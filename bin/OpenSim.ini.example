@@ -123,6 +123,13 @@ shout_distance = 100
 ; Same if you have 10 threads, then only 10 scripts can be run simultaneously. 
 ; But because most scripts exit after their task, the threads are free to go on to the next script.
 
+; Refresh ScriptEngine config options (these settings) every xx seconds
+; 0 = Do not refresh
+; Set it to number of seconds between refresh, for example 30.
+; Will allow you to change ScriptEngine settings while server is running just by editing this file.
+; For example to increase or decrease number of threads.
+RefreshConfig=0
+
 ; Number of threads to use for script event execution
 ; Threads are shared across all regions
 NumberOfScriptThreads=2
@@ -136,6 +143,7 @@ ScriptThreadPriority=BelowNormal
 ;       Number of threads will be <NumberOfScriptThreads>*<NumberOfRegions>
 ; false: All regions share <NumberOfScriptThreads> for all their scripts
 ;        Note! If you run multiple script engines based on "OpenSim.Region.ScriptEngine.Common" then all of them will share the same threads.
+; *** This setting will not work until you restart OpenSim
 PrivateRegionThreads=false
 
 ; How long MAX should a script event be allowed to run (per event execution)?
@@ -164,5 +172,14 @@ SleepTimeIfNoScriptExecutionMs=50
 ; Each AppDomain has some memory overhead. But leaving dead scripts in memory also has memory overhead.
 ScriptsPerAppDomain=1
 
-; ReRead ScriptEngine config options how often?
-ReReadConfig=0
+; Script loading / unloading sleep
+; How long load/unload thread should sleep if there is nothing to do
+; Higher value makes it respond slower when scripts are added/removed from prims
+; But once active it will process all in queue before sleeping again
+ScriptLoadUnloadLoopms=30
+
+; Async LL command sleep
+; If no async LL commands are waiting, how long should thread sleep before checking again
+; Async LL commands are LSL-commands that causes an event to be fired back with result
+AsyncLLCommandLoopms=50
+

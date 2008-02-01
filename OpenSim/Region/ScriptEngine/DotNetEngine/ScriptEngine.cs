@@ -48,7 +48,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
             return new ScriptManager(this);
         }
 
-        public override string ScriptConfigSourceName
+        public override string ScriptEngineName
         {
             get { return "ScriptEngine.DotNetEngine"; }
         }
