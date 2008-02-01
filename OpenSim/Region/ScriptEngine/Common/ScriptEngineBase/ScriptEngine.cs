@@ -55,6 +55,15 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
         public IConfig ScriptConfigSource;
         public abstract string ScriptConfigSourceName { get; }
 
+        /// <summary>
+        /// How many seconds between re-reading config-file. 0 = never. ScriptEngine will try to adjust to new config changes.
+        /// </summary>
+        public int ReReadConfigFileSeconds {
+            get { return (int)(ReReadConfigFilens / 10000); }
+            set { ReReadConfigFilens = value * 10000; }
+        }
+        public long ReReadConfigFilens = 0;
+
         public ScriptManager GetScriptManager()
         {
             return _GetScriptManager();
@@ -92,6 +101,9 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
             //m_ScriptManager = new ScriptManager(this);
             m_AppDomainManager = new AppDomainManager(ScriptConfigSource.GetInt("ScriptsPerAppDomain", 1));
             m_LSLLongCmdHandler = new LSLLongCmdHandler(this);
+
+            ReReadConfigFileSeconds = ScriptConfigSource.GetInt("ReReadConfig", 0);
+
 
             // Should we iterate the region for scripts that needs starting?
             // Or can we assume we are loaded before anything else so we can use proper events?

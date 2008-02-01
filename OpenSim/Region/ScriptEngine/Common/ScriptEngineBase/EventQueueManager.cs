@@ -65,12 +65,26 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
         //   increase number of threads to allow more concurrent script executions in OpenSim.
         //
 
+        public ScriptEngine m_ScriptEngine;
 
         /// <summary>
-        /// List of threads processing event queue
+        /// List of threads (classes) processing event queue
         /// </summary>
-        private List<EventQueueThreadClass> eventQueueThreads;// = new List<EventQueueThreadClass>();
-        private object eventQueueThreadsLock;// = new object();
+        internal List<EventQueueThreadClass> eventQueueThreads;
+        /// <summary>
+        /// Global static list of threads (classes) processing event queue -- used by max enforcment thread
+        /// </summary>
+        private List<EventQueueThreadClass> staticGlobalEventQueueThreads;
+        /// <summary>
+        /// Locking access to eventQueueThreads AND staticGlobalEventQueueThreads. Note that this may or may not be static depending on PrivateRegionThreads config setting.
+        /// </summary>
+        private object eventQueueThreadsLock;
+
+        /// <summary>
+        /// Used internally to specify how many threads should exit gracefully
+        /// </summary>
+        public int ThreadsToExit;
+        public object ThreadsToExitLock = new object();
 
         private static List<EventQueueThreadClass> staticEventQueueThreads;// = new List<EventQueueThreadClass>();
         private static object staticEventQueueThreadsLock;// = new object();
@@ -80,22 +94,43 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
         /// <summary>
         /// How many threads to process queue with
         /// </summary>
-        private int numberOfThreads;
-
+        internal int numberOfThreads;
 
         /// <summary>
-        /// Maximum time one function can use for execution before we perform a thread kill
+        /// Maximum time one function can use for execution before we perform a thread kill.
         /// </summary>
-        private int maxFunctionExecutionTimems;
-        private bool EnforceMaxExecutionTime;
+        private int maxFunctionExecutionTimems
+        {
+            get { return (int)(maxFunctionExecutionTimens / 10000); }
+            set { maxFunctionExecutionTimens = value * 10000; }
+        }
+
+        /// <summary>
+        /// Contains nanoseconds version of maxFunctionExecutionTimems so that it matches time calculations better (performance reasons).
+        /// WARNING! ONLY UPDATE maxFunctionExecutionTimems, NEVER THIS DIRECTLY.
+        /// </summary>
+        public long maxFunctionExecutionTimens;
+        /// <summary>
+        /// Enforce max execution time
+        /// </summary>
+        public bool EnforceMaxExecutionTime;
+        /// <summary>
+        /// Kill script (unload) when it exceeds execution time
+        /// </summary>
         private bool KillScriptOnMaxFunctionExecutionTime;
 
+        /// <summary>
+        /// List of localID locks for mutex processing of script events
+        /// </summary>
+        private List<uint> objectLocks = new List<uint>();
+        private object tryLockLock = new object(); // Mutex lock object
 
         /// <summary>
         /// Queue containing events waiting to be executed
         /// </summary>
         public Queue<QueueItemStruct> eventQueue = new Queue<QueueItemStruct>();
 
+        #region " Queue structures "
         /// <summary>
         /// Queue item structure
         /// </summary>
@@ -128,18 +163,9 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
             public int[] _int;
             public string[] _string;
         }
+        #endregion
 
-        /// <summary>
-        /// List of localID locks for mutex processing of script events
-        /// </summary>
-        private List<uint> objectLocks = new List<uint>();
-
-        private object tryLockLock = new object(); // Mutex lock object
-
-        public ScriptEngine m_ScriptEngine;
-
-        public Thread ExecutionTimeoutEnforcingThread;
-
+        #region " Initialization / Startup "
         public EventQueueManager(ScriptEngine _ScriptEngine)
         {
             m_ScriptEngine = _ScriptEngine;
@@ -167,66 +193,79 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
                 eventQueueThreadsLock = staticEventQueueThreadsLock;
             }
 
-            numberOfThreads = m_ScriptEngine.ScriptConfigSource.GetInt("NumberOfScriptThreads", 2);
+            ReadConfig();
 
+        }
+
+        private void ReadConfig()
+        {
+            numberOfThreads = m_ScriptEngine.ScriptConfigSource.GetInt("NumberOfScriptThreads", 2);
             maxFunctionExecutionTimems = m_ScriptEngine.ScriptConfigSource.GetInt("MaxEventExecutionTimeMs", 5000);
             EnforceMaxExecutionTime = m_ScriptEngine.ScriptConfigSource.GetBoolean("EnforceMaxEventExecutionTime", false);
             KillScriptOnMaxFunctionExecutionTime = m_ScriptEngine.ScriptConfigSource.GetBoolean("DeactivateScriptOnTimeout", false);
 
-
-            // Start function max exec time enforcement thread
-            if (EnforceMaxExecutionTime)
-            {
-                ExecutionTimeoutEnforcingThread = new Thread(ExecutionTimeoutEnforcingLoop);
-                ExecutionTimeoutEnforcingThread.Name = "ExecutionTimeoutEnforcingThread";
-                ExecutionTimeoutEnforcingThread.IsBackground = true;
-                ExecutionTimeoutEnforcingThread.Start();
-            }
-
-            //
-            // Start event queue processing threads (worker threads)
-            //
-
-            lock (eventQueueThreadsLock)
-            {
-                for (int ThreadCount = eventQueueThreads.Count; ThreadCount < numberOfThreads; ThreadCount++)
-                {
-                    StartNewThreadClass();
-                }
-            }
         }
 
+        #endregion
+        
+        #region " Shutdown all threads "
         ~EventQueueManager()
         {
-            try
-            {
-                if (ExecutionTimeoutEnforcingThread != null)
-                {
-                    if (ExecutionTimeoutEnforcingThread.IsAlive)
-                    {
-                        ExecutionTimeoutEnforcingThread.Abort();
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
-            }
+            Stop();
+        }
 
+        private void Stop()
+        {
 
             // Kill worker threads
             lock (eventQueueThreadsLock)
             {
-                foreach (EventQueueThreadClass EventQueueThread in new ArrayList(eventQueueThreads))
+                foreach (EventQueueThreadClass EventQueueThread in eventQueueThreads)
                 {
                     EventQueueThread.Shutdown();
                 }
                 eventQueueThreads.Clear();
+                staticGlobalEventQueueThreads.Clear();
             }
-            // Todo: Clean up our queues
-            eventQueue.Clear();
+            // Remove all entries from our event queue
+            lock (queueLock)
+            {
+                eventQueue.Clear();
+            }
         }
 
+        #endregion
 
+
+        #region " Start / stop script execution threads (ThreadClasses) "
+        private void StartNewThreadClass()
+        {
+            EventQueueThreadClass eqtc = new EventQueueThreadClass(this);
+            eventQueueThreads.Add(eqtc);
+            staticGlobalEventQueueThreads.Add(eqtc);
+            m_ScriptEngine.Log.Debug("DotNetEngine", "Started new script execution thread. Current thread count: " + eventQueueThreads.Count);
+
+        }
+        private void AbortThreadClass(EventQueueThreadClass threadClass)
+        {
+            if (eventQueueThreads.Contains(threadClass))
+                eventQueueThreads.Remove(threadClass);
+            if (staticGlobalEventQueueThreads.Contains(threadClass))
+                staticGlobalEventQueueThreads.Remove(threadClass);
+            try
+            {
+                threadClass.Shutdown();
+            }
+            catch (Exception ex)
+            {
+                m_ScriptEngine.Log.Error("EventQueueManager", "If you see this, could you please report it to Tedd:");
+                m_ScriptEngine.Log.Error("EventQueueManager", "Script thread execution timeout kill ended in exception: " + ex.ToString());
+            }
+            m_ScriptEngine.Log.Debug("DotNetEngine", "Killed script execution thread. Remaining thread count: " + eventQueueThreads.Count);
+        }
+        #endregion
+
+        #region " Mutex locks for queue access "
         /// <summary>
         /// Try to get a mutex lock on localID
         /// </summary>
@@ -262,8 +301,9 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
                 }
             }
         }
+        #endregion
 
-
+        #region " Add events to execution queue "
         /// <summary>
         /// Add event to event execution queue
         /// </summary>
@@ -317,62 +357,72 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
                 eventQueue.Enqueue(QIS);
             }
         }
+        #endregion
+
+        #region " Maintenance thread "
 
         /// <summary>
-        /// A thread should run in this loop and check all running scripts
+        /// Adjust number of script thread classes. It can start new, but if it needs to stop it will just set number of threads in "ThreadsToExit" and threads will have to exit themselves.
+        /// Called from MaintenanceThread
         /// </summary>
-        public void ExecutionTimeoutEnforcingLoop()
+        public void AdjustNumberOfScriptThreads()
         {
-            try
+            lock (eventQueueThreadsLock)
             {
-                while (true)
+                int diff = numberOfThreads - eventQueueThreads.Count;
+                // Positive number: Start
+                // Negative number: too many are running
+                if (diff > 0)
                 {
-                    System.Threading.Thread.Sleep(maxFunctionExecutionTimems);
-                    lock (eventQueueThreadsLock)
+                    // We need to add more threads
+                    for (int ThreadCount = eventQueueThreads.Count; ThreadCount < numberOfThreads; ThreadCount++)
                     {
-                        foreach (EventQueueThreadClass EventQueueThread in new ArrayList(eventQueueThreads))
+                        StartNewThreadClass();
+                    }
+                }
+                if (diff < 0)
+                {
+                    // We need to kill some threads
+                    lock (ThreadsToExitLock)
+                    {
+                        ThreadsToExit = Math.Abs(diff);
+                    }
+                }
+            }
+        }
+
+        /// <summary>
+        /// Check if any thread class has been executing an event too long
+        /// </summary>
+        public void CheckScriptMaxExecTime()
+        {
+            // Iterate through all ScriptThreadClasses and check how long their current function has been executing
+            lock (eventQueueThreadsLock)
+            {
+                foreach (EventQueueThreadClass EventQueueThread in staticGlobalEventQueueThreads)
+                {
+                    // Is thread currently executing anything?
+                    if (EventQueueThread.InExecution)
+                    {
+                        // Has execution time expired?
+                        if (DateTime.Now.Ticks - EventQueueThread.LastExecutionStarted >
+                            maxFunctionExecutionTimens)
                         {
-                            if (EventQueueThread.InExecution)
-                            {
-                                if (DateTime.Now.Subtract(EventQueueThread.LastExecutionStarted).Milliseconds >
-                                    maxFunctionExecutionTimems)
-                                {
-                                    // We need to kill this thread!
-                                    EventQueueThread.KillCurrentScript = KillScriptOnMaxFunctionExecutionTime;
-                                    AbortThreadClass(EventQueueThread);
-                                    // Then start another
-                                    StartNewThreadClass();
-                                }
-                            }
+                            // Yes! We need to kill this thread!
+
+                            // Set flag if script should be removed or not
+                            EventQueueThread.KillCurrentScript = KillScriptOnMaxFunctionExecutionTime;
+                            
+                            // Abort this thread
+                            AbortThreadClass(EventQueueThread);
+                            
+                            // We do not need to start another, MaintenenceThread will do that for us
+                            //StartNewThreadClass();
                         }
                     }
                 }
             }
-            catch (ThreadAbortException tae)
-            {
-            }
         }
-
-        private void AbortThreadClass(EventQueueThreadClass threadClass)
-        {
-            try
-            {
-                threadClass.Shutdown();
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine("Could you please report this to Tedd:");
-                Console.WriteLine("Script thread execution timeout kill ended in exception: " + ex.ToString());
-            }
-            m_ScriptEngine.Log.Debug("DotNetEngine", "Killed script execution thread, count: " + eventQueueThreads.Count);
-        }
-
-        private void StartNewThreadClass()
-        {
-            EventQueueThreadClass eqtc = new EventQueueThreadClass(this);
-            eventQueueThreads.Add(eqtc);
-            m_ScriptEngine.Log.Debug("DotNetEngine", "Started new script execution thread, count: " + eventQueueThreads.Count);
-
-        }
+        #endregion
     }
 }

@@ -19,7 +19,7 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
         /// </summary>
         private int nothingToDoSleepms;// = 50;
 
-        public DateTime LastExecutionStarted;
+        public long LastExecutionStarted;
         public bool InExecution = false;
         public bool KillCurrentScript = false;
 
@@ -109,120 +109,154 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
             //myScriptEngine.m_logger.Verbose("ScriptEngine", "EventQueueManager Worker thread spawned");
             try
             {
-                EventQueueManager.QueueItemStruct BlankQIS = new EventQueueManager.QueueItemStruct();
-                while (true)
+                                while (true)
                 {
                     try
                     {
-                        EventQueueManager.QueueItemStruct QIS = BlankQIS;
-                        bool GotItem = false;
-
-                        if (eventQueueManager.eventQueue.Count == 0)
+                        EventQueueManager.QueueItemStruct BlankQIS = new EventQueueManager.QueueItemStruct();
+                        while (true)
                         {
-                            // Nothing to do? Sleep a bit waiting for something to do
-                            Thread.Sleep(nothingToDoSleepms);
-                        }
-                        else
-                        {
-                            // Something in queue, process
-                            //myScriptEngine.m_logger.Verbose("ScriptEngine", "Processing event for localID: " + QIS.localID + ", itemID: " + QIS.itemID + ", FunctionName: " + QIS.FunctionName);
-
-                            // OBJECT BASED LOCK - TWO THREADS WORKING ON SAME OBJECT IS NOT GOOD
-                            lock (eventQueueManager.queueLock)
+                            // Every now and then check if we should shut down
+                            if (eventQueueManager.ThreadsToExit > 0)
                             {
-                                GotItem = false;
-                                for (int qc = 0; qc < eventQueueManager.eventQueue.Count; qc++)
+                                // Someone should shut down, lets get exclusive lock
+                                lock (eventQueueManager.ThreadsToExitLock)
                                 {
-                                    // Get queue item
-                                    QIS = eventQueueManager.eventQueue.Dequeue();
-
-                                    // Check if object is being processed by someone else
-                                    if (eventQueueManager.TryLock(QIS.localID) == false)
+                                    // Lets re-check in case someone grabbed it
+                                    if (eventQueueManager.ThreadsToExit > 0)
                                     {
-                                        // Object is already being processed, requeue it
-                                        eventQueueManager.eventQueue.Enqueue(QIS);
+                                        // We are go for shutdown
+                                        eventQueueManager.ThreadsToExit--;
+                                        Shutdown();
+                                        return;
                                     }
-                                    else
-                                    {
-                                        // We have lock on an object and can process it
-                                        GotItem = true;
-                                        break;
-                                    }
-                                } // go through queue
-                            } // lock
-
-                            if (GotItem == true)
-                            {
-                                // Execute function
-                                try
-                                {
-#if DEBUG
-                                    eventQueueManager.m_ScriptEngine.Log.Debug("ScriptEngine", "Executing event:\r\n"
-                                                                             + "QIS.localID: " + QIS.localID
-                                                                             + ", QIS.itemID: " + QIS.itemID
-                                                                             + ", QIS.functionName: " + QIS.functionName);
-#endif
-                                    LastExecutionStarted = DateTime.Now;
-                                    KillCurrentScript = false;
-                                    InExecution = true;
-                                    eventQueueManager.m_ScriptEngine.m_ScriptManager.ExecuteEvent(QIS.localID, QIS.itemID,
-                                                                                QIS.functionName, QIS.llDetectParams, QIS.param);
-                                    InExecution = false;
                                 }
-                                catch (Exception e)
-                                {
-                                    InExecution = false;
-                                    // DISPLAY ERROR INWORLD
-                                    string text = "Error executing script function \"" + QIS.functionName + "\":\r\n";
-                                    if (e.InnerException != null)
-                                    {
-                                        // Send inner exception
-                                        text += e.InnerException.Message.ToString();
-                                    }
-                                    else
-                                    {
-                                        text += "\r\n";
-                                        // Send normal
-                                        text += e.Message.ToString();
-                                    }
-                                    if (KillCurrentScript)
-                                        text += "\r\nScript will be deactivated!";
+                            }
 
+
+                            //try
+                            //  {
+                            EventQueueManager.QueueItemStruct QIS = BlankQIS;
+                            bool GotItem = false;
+
+                            if (eventQueueManager.eventQueue.Count == 0)
+                            {
+                                // Nothing to do? Sleep a bit waiting for something to do
+                                Thread.Sleep(nothingToDoSleepms);
+                            }
+                            else
+                            {
+                                // Something in queue, process
+                                //myScriptEngine.m_logger.Verbose("ScriptEngine", "Processing event for localID: " + QIS.localID + ", itemID: " + QIS.itemID + ", FunctionName: " + QIS.FunctionName);
+
+                                // OBJECT BASED LOCK - TWO THREADS WORKING ON SAME OBJECT IS NOT GOOD
+                                lock (eventQueueManager.queueLock)
+                                {
+                                    GotItem = false;
+                                    for (int qc = 0; qc < eventQueueManager.eventQueue.Count; qc++)
+                                    {
+                                        // Get queue item
+                                        QIS = eventQueueManager.eventQueue.Dequeue();
+
+                                        // Check if object is being processed by someone else
+                                        if (eventQueueManager.TryLock(QIS.localID) == false)
+                                        {
+                                            // Object is already being processed, requeue it
+                                            eventQueueManager.eventQueue.Enqueue(QIS);
+                                        }
+                                        else
+                                        {
+                                            // We have lock on an object and can process it
+                                            GotItem = true;
+                                            break;
+                                        }
+                                    } // go through queue
+                                } // lock
+
+                                if (GotItem == true)
+                                {
+                                    // Execute function
                                     try
                                     {
-                                        if (text.Length > 1500)
-                                            text = text.Substring(0, 1500);
-                                        IScriptHost m_host = eventQueueManager.m_ScriptEngine.World.GetSceneObjectPart(QIS.localID);
-                                        //if (m_host != null)
-                                        //{
-                                        eventQueueManager.m_ScriptEngine.World.SimChat(Helpers.StringToField(text), ChatTypeEnum.Say, 0,
-                                                                     m_host.AbsolutePosition, m_host.Name, m_host.UUID);
+#if DEBUG
+                                        eventQueueManager.m_ScriptEngine.Log.Debug("ScriptEngine",
+                                                                                   "Executing event:\r\n"
+                                                                                   + "QIS.localID: " + QIS.localID
+                                                                                   + ", QIS.itemID: " + QIS.itemID
+                                                                                   + ", QIS.functionName: " +
+                                                                                   QIS.functionName);
+#endif
+                                        LastExecutionStarted = DateTime.Now.Ticks;
+                                        KillCurrentScript = false;
+                                        InExecution = true;
+                                        eventQueueManager.m_ScriptEngine.m_ScriptManager.ExecuteEvent(QIS.localID,
+                                                                                                      QIS.itemID,
+                                                                                                      QIS.functionName,
+                                                                                                      QIS.llDetectParams,
+                                                                                                      QIS.param);
+                                        InExecution = false;
                                     }
-                                    catch
+                                    catch (Exception e)
                                     {
-                                        //}
-                                        //else
-                                        //{
-                                        // T oconsole
-                                        eventQueueManager.m_ScriptEngine.Log.Error("ScriptEngine",
-                                                                 "Unable to send text in-world:\r\n" + text);
+                                        InExecution = false;
+                                        // DISPLAY ERROR INWORLD
+                                        string text = "Error executing script function \"" + QIS.functionName +
+                                                      "\":\r\n";
+                                        if (e.InnerException != null)
+                                        {
+                                            // Send inner exception
+                                            text += e.InnerException.Message.ToString();
+                                        }
+                                        else
+                                        {
+                                            text += "\r\n";
+                                            // Send normal
+                                            text += e.Message.ToString();
+                                        }
+                                        if (KillCurrentScript)
+                                            text += "\r\nScript will be deactivated!";
+
+                                        try
+                                        {
+                                            if (text.Length > 1500)
+                                                text = text.Substring(0, 1500);
+                                            IScriptHost m_host =
+                                                eventQueueManager.m_ScriptEngine.World.GetSceneObjectPart(QIS.localID);
+                                            //if (m_host != null)
+                                            //{
+                                            eventQueueManager.m_ScriptEngine.World.SimChat(Helpers.StringToField(text),
+                                                                                           ChatTypeEnum.Say, 0,
+                                                                                           m_host.AbsolutePosition,
+                                                                                           m_host.Name, m_host.UUID);
+                                        }
+                                        catch
+                                        {
+                                            //}
+                                            //else
+                                            //{
+                                            // T oconsole
+                                            eventQueueManager.m_ScriptEngine.Log.Error("ScriptEngine",
+                                                                                       "Unable to send text in-world:\r\n" +
+                                                                                       text);
+                                        }
+                                        finally
+                                        {
+                                            // So we are done sending message in-world
+                                            if (KillCurrentScript)
+                                            {
+                                                eventQueueManager.m_ScriptEngine.m_ScriptManager.StopScript(
+                                                    QIS.localID, QIS.itemID);
+                                            }
+                                        }
                                     }
                                     finally
                                     {
-                                        // So we are done sending message in-world
-                                        if (KillCurrentScript)
-                                        {
-                                            eventQueueManager.m_ScriptEngine.m_ScriptManager.RemoveScript(QIS.localID, QIS.itemID);
-                                        }
+                                        InExecution = false;
+                                        eventQueueManager.ReleaseLock(QIS.localID);
                                     }
                                 }
-                                finally
-                                {
-                                    InExecution = false;
-                                    eventQueueManager.ReleaseLock(QIS.localID);
-                                }
-                            }
-                        } // Something in queue
+                            } // Something in queue
+                        }
                     }
                     catch (ThreadAbortException tae)
                     {

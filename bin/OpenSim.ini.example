@@ -135,6 +135,7 @@ ScriptThreadPriority=BelowNormal
 ; true: Each region will get <NumberOfScriptThreads> dedicated to scripts within that region
 ;       Number of threads will be <NumberOfScriptThreads>*<NumberOfRegions>
 ; false: All regions share <NumberOfScriptThreads> for all their scripts
+;        Note! If you run multiple script engines based on "OpenSim.Region.ScriptEngine.Common" then all of them will share the same threads.
 PrivateRegionThreads=false
 
 ; How long MAX should a script event be allowed to run (per event execution)?
@@ -163,3 +164,5 @@ SleepTimeIfNoScriptExecutionMs=50
 ; Each AppDomain has some memory overhead. But leaving dead scripts in memory also has memory overhead.
 ScriptsPerAppDomain=1
 
+; ReRead ScriptEngine config options how often?
+ReReadConfig=0
