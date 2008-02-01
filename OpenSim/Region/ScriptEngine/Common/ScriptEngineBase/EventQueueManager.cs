@@ -69,14 +69,10 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
         /// <summary>
         /// List of threads processing event queue
         /// </summary>
-        private List<Thread> eventQueueThreads = new List<Thread>();
+        private List<EventQueueThreadClass> eventQueueThreads = new List<EventQueueThreadClass>();
+        private object eventQueueThreadsLock = new object();
 
-        private object queueLock = new object(); // Mutex lock object
-
-        /// <summary>
-        /// How many ms to sleep if queue is empty
-        /// </summary>
-        private int nothingToDoSleepms = 50;
+        public object queueLock = new object(); // Mutex lock object
 
         /// <summary>
         /// How many threads to process queue with
@@ -84,14 +80,20 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
         private int numberOfThreads = 2;
 
         /// <summary>
+        /// Maximum time one function can use for execution before we perform a thread kill
+        /// </summary>
+        private int maxFunctionExecutionTimems = 50;
+        private bool EnforceMaxExecutionTime = true;
+
+        /// <summary>
         /// Queue containing events waiting to be executed
         /// </summary>
-        private Queue<QueueItemStruct> eventQueue = new Queue<QueueItemStruct>();
+        public Queue<QueueItemStruct> eventQueue = new Queue<QueueItemStruct>();
 
         /// <summary>
         /// Queue item structure
         /// </summary>
-        private struct QueueItemStruct
+        public struct QueueItemStruct
         {
             public uint localID;
             public LLUUID itemID;
@@ -118,7 +120,7 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
             public LSL_Types.Vector3[] _Vector3;
             public bool[] _bool;
             public int[] _int;
-            public string [] _string;
+            public string[] _string;
         }
 
         /// <summary>
@@ -128,177 +130,72 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
 
         private object tryLockLock = new object(); // Mutex lock object
 
-        private ScriptEngine m_ScriptEngine;
+        public ScriptEngine m_ScriptEngine;
+
+        public Thread ExecutionTimeoutEnforcingThread;
 
         public EventQueueManager(ScriptEngine _ScriptEngine)
         {
             m_ScriptEngine = _ScriptEngine;
 
+            // Start function max exec time enforcement thread
+            if (EnforceMaxExecutionTime)
+            {
+                ExecutionTimeoutEnforcingThread = new Thread(ExecutionTimeoutEnforcingLoop);
+                ExecutionTimeoutEnforcingThread.Name = "ExecutionTimeoutEnforcingThread";
+                ExecutionTimeoutEnforcingThread.IsBackground = true;
+                ExecutionTimeoutEnforcingThread.Start();
+            }
+
             //
             // Start event queue processing threads (worker threads)
             //
-            for (int ThreadCount = 0; ThreadCount <= numberOfThreads; ThreadCount++)
+            lock (eventQueueThreadsLock)
             {
-                Thread EventQueueThread = new Thread(EventQueueThreadLoop);
-                eventQueueThreads.Add(EventQueueThread);
-                EventQueueThread.IsBackground = true;
-                EventQueueThread.Priority = ThreadPriority.BelowNormal;
-                EventQueueThread.Name = "EventQueueManagerThread_" + ThreadCount;
-                EventQueueThread.Start();
+                for (int ThreadCount = 0; ThreadCount <= numberOfThreads; ThreadCount++)
+                {
+                    StartNewThreadClass();
+                }
             }
         }
 
         ~EventQueueManager()
         {
-            // Kill worker threads
-            foreach (Thread EventQueueThread in new ArrayList(eventQueueThreads))
+            try
             {
-                if (EventQueueThread != null && EventQueueThread.IsAlive == true)
+                if (ExecutionTimeoutEnforcingThread != null)
                 {
-                    try
+                    if (ExecutionTimeoutEnforcingThread.IsAlive)
                     {
-                        EventQueueThread.Abort();
-                        EventQueueThread.Join();
-                    }
-                    catch (Exception)
-                    {
-                        //myScriptEngine.Log.Verbose("ScriptEngine", "EventQueueManager Exception killing worker thread: " + e.ToString());
+                        ExecutionTimeoutEnforcingThread.Abort();
                     }
                 }
             }
-            eventQueueThreads.Clear();
+            catch (Exception ex)
+            {
+            }
+
+
+            // Kill worker threads
+            lock (eventQueueThreadsLock)
+            {
+                foreach (EventQueueThreadClass EventQueueThread in new ArrayList(eventQueueThreads))
+                {
+                    EventQueueThread.Shutdown();
+                }
+                eventQueueThreads.Clear();
+            }
             // Todo: Clean up our queues
             eventQueue.Clear();
         }
 
-        /// <summary>
-        /// Queue processing thread loop
-        /// </summary>
-        private void EventQueueThreadLoop()
-        {
-            //myScriptEngine.m_logger.Verbose("ScriptEngine", "EventQueueManager Worker thread spawned");
-            try
-            {
-                QueueItemStruct BlankQIS = new QueueItemStruct();
-                while (true)
-                {
-                    try
-                    {
-                        QueueItemStruct QIS = BlankQIS;
-                        bool GotItem = false;
-
-                        if (eventQueue.Count == 0)
-                        {
-                            // Nothing to do? Sleep a bit waiting for something to do
-                            Thread.Sleep(nothingToDoSleepms);
-                        }
-                        else
-                        {
-                            // Something in queue, process
-                            //myScriptEngine.m_logger.Verbose("ScriptEngine", "Processing event for localID: " + QIS.localID + ", itemID: " + QIS.itemID + ", FunctionName: " + QIS.FunctionName);
-
-                            // OBJECT BASED LOCK - TWO THREADS WORKING ON SAME OBJECT IS NOT GOOD
-                            lock (queueLock)
-                            {
-                                GotItem = false;
-                                for (int qc = 0; qc < eventQueue.Count; qc++)
-                                {
-                                    // Get queue item
-                                    QIS = eventQueue.Dequeue();
-
-                                    // Check if object is being processed by someone else
-                                    if (TryLock(QIS.localID) == false)
-                                    {
-                                        // Object is already being processed, requeue it
-                                        eventQueue.Enqueue(QIS);
-                                    }
-                                    else
-                                    {
-                                        // We have lock on an object and can process it
-                                        GotItem = true;
-                                        break;
-                                    }
-                                } // go through queue
-                            } // lock
-
-                            if (GotItem == true)
-                            {
-                                // Execute function
-                                try
-                                {
-#if DEBUG
-                                    m_ScriptEngine.Log.Debug("ScriptEngine", "Executing event:\r\n"
-                                                                             + "QIS.localID: " + QIS.localID
-                                                                             + ", QIS.itemID: " + QIS.itemID
-                                                                             + ", QIS.functionName: " + QIS.functionName);
-#endif
-                                    m_ScriptEngine.m_ScriptManager.ExecuteEvent(QIS.localID, QIS.itemID,
-                                                                                QIS.functionName, QIS.llDetectParams, QIS.param);
-                                }
-                                catch (Exception e)
-                                {
-                                    // DISPLAY ERROR INWORLD
-                                    string text = "Error executing script function \"" + QIS.functionName + "\":\r\n";
-                                    if (e.InnerException != null)
-                                    {
-                                    // Send inner exception
-                                    text += e.InnerException.Message.ToString();
-                                    }
-                                    else
-                                    {
-                                    text += "\r\n";
-                                    // Send normal
-                                    text += e.Message.ToString();
-                                    }
-                                    try
-                                    {
-                                        if (text.Length > 1500)
-                                            text = text.Substring(0, 1500);
-                                        IScriptHost m_host = m_ScriptEngine.World.GetSceneObjectPart(QIS.localID);
-                                        //if (m_host != null)
-                                        //{
-                                        m_ScriptEngine.World.SimChat(Helpers.StringToField(text), ChatTypeEnum.Say, 0,
-                                                                     m_host.AbsolutePosition, m_host.Name, m_host.UUID);
-                                    }
-                                    catch
-                                    {
-                                        //}
-                                        //else
-                                        //{
-                                        // T oconsole
-                                        m_ScriptEngine.Log.Error("ScriptEngine",
-                                                                 "Unable to send text in-world:\r\n" + text);
-                                    }
-                                }
-                                finally
-                                {
-                                    ReleaseLock(QIS.localID);
-                                }
-                            }
-                        } // Something in queue
-                    }
-                    catch (ThreadAbortException tae)
-                    {
-                        throw tae;
-                    }
-                    catch (Exception e)
-                    {
-                        m_ScriptEngine.Log.Error("ScriptEngine", "Exception in EventQueueThreadLoop: " + e.ToString());
-                    }
-                } // while
-            } // try
-            catch (ThreadAbortException)
-            {
-                //myScriptEngine.Log.Verbose("ScriptEngine", "EventQueueManager Worker thread killed: " + tae.Message);
-            }
-        }
 
         /// <summary>
         /// Try to get a mutex lock on localID
         /// </summary>
         /// <param name="localID"></param>
         /// <returns></returns>
-        private bool TryLock(uint localID)
+        public bool TryLock(uint localID)
         {
             lock (tryLockLock)
             {
@@ -318,7 +215,7 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
         /// Release mutex lock on localID
         /// </summary>
         /// <param name="localID"></param>
-        private void ReleaseLock(uint localID)
+        public void ReleaseLock(uint localID)
         {
             lock (tryLockLock)
             {
@@ -382,6 +279,59 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
                 // Add it to queue
                 eventQueue.Enqueue(QIS);
             }
+        }
+
+        /// <summary>
+        /// A thread should run in this loop and check all running scripts
+        /// </summary>
+        public void ExecutionTimeoutEnforcingLoop()
+        {
+            try
+            {
+                while (true)
+                {
+                    System.Threading.Thread.Sleep(maxFunctionExecutionTimems);
+                    lock (eventQueueThreadsLock)
+                    {
+                        foreach (EventQueueThreadClass EventQueueThread in new ArrayList(eventQueueThreads))
+                        {
+                            if (EventQueueThread.InExecution)
+                            {
+                                if (DateTime.Now.Subtract(EventQueueThread.LastExecutionStarted).Milliseconds >
+                                    maxFunctionExecutionTimems)
+                                {
+                                    // We need to kill this thread!
+                                    AbortThreadClass(EventQueueThread);
+                                    // Then start another
+                                    StartNewThreadClass();
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            catch (ThreadAbortException tae)
+            {
+            }
+        }
+
+        private static void AbortThreadClass(EventQueueThreadClass threadClass)
+        {
+            try
+            {
+                threadClass.Shutdown();
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("Could you please report this to Tedd:");
+                Console.WriteLine("Script thread execution timeout kill ended in exception: " + ex.ToString());
+            }
+        }
+
+        private void StartNewThreadClass()
+        {
+            EventQueueThreadClass eqtc = new EventQueueThreadClass(this);
+            eventQueueThreads.Add(eqtc);
         }
     }
 }
