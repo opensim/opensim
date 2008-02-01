@@ -2254,7 +2254,15 @@ namespace OpenSim.Region.ScriptEngine.Common
                         break;
 
                     case (int)LSL_BaseClass.PSYS_SRC_TARGET_KEY:
-                        prules.Target = new LLUUID(rules.Data[i + 1].ToString());
+                        LLUUID key = LLUUID.Zero;
+                        if (LLUUID.TryParse(rules.Data[i + 1].ToString(), out key))
+                        {
+                            prules.Target = key;
+                        }
+                        else
+                        {
+                            prules.Target = m_host.UUID;
+                        }
                         break;
 
                     case (int)LSL_BaseClass.PSYS_SRC_OMEGA:
