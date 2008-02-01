@@ -87,8 +87,9 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
 
         //private ScriptEngine m_scriptEngine;
         //public AppDomainManager(ScriptEngine scriptEngine)
-        public AppDomainManager()
+        public AppDomainManager(int MaxScriptsPerDomain)
         {
+            maxScriptsPerAppDomain = MaxScriptsPerDomain; 
             //m_scriptEngine = scriptEngine;
         }
 

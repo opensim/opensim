@@ -90,7 +90,7 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
             m_EventManager = new EventManager(this, HookUpToServer);
             m_ScriptManager = newScriptManager;
             //m_ScriptManager = new ScriptManager(this);
-            m_AppDomainManager = new AppDomainManager();
+            m_AppDomainManager = new AppDomainManager(ScriptConfigSource.GetInt("ScriptsPerAppDomain", 1));
             m_LSLLongCmdHandler = new LSLLongCmdHandler(this);
 
             // Should we iterate the region for scripts that needs starting?
