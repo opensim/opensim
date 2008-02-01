@@ -107,7 +107,8 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
         public ScriptManager(ScriptEngineBase.ScriptEngine scriptEngine)
         {
             m_scriptEngine = scriptEngine;
-            ReadConfig();
+            // We should not read config during startup as ScriptEngine may not have config object yet
+
             AppDomain.CurrentDomain.AssemblyResolve += new ResolveEventHandler(CurrentDomain_AssemblyResolve);
             scriptLoadUnloadThread = new Thread(ScriptLoadUnloadThreadLoop);
             scriptLoadUnloadThread.Name = "ScriptLoadUnloadThread";
