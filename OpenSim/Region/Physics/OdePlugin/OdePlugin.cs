@@ -873,10 +873,17 @@ namespace OpenSim.Region.Physics.OdePlugin
         /// <returns>a pointer to the space. This could be a new space or reused space.</returns>
         public IntPtr calculateSpaceForGeom(PhysicsVector pos)
         {
-            int[] xyspace = calculateSpaceArrayItemFromPos(pos);
-            //MainLog.Instance.Verbose("Physics", "Attempting to use arrayItem: " + xyspace[0].ToString() + "," + xyspace[1].ToString());
-            IntPtr locationbasedspace = staticPrimspace[xyspace[0], xyspace[1]];
+            IntPtr locationbasedspace =IntPtr.Zero;
+            try
+            {
+                int[] xyspace = calculateSpaceArrayItemFromPos(pos);
+                //MainLog.Instance.Verbose("Physics", "Attempting to use arrayItem: " + xyspace[0].ToString() + "," + xyspace[1].ToString());
+                locationbasedspace = staticPrimspace[xyspace[0], xyspace[1]];
+            }
+            catch (Exception)
+            {
 
+            }
             //locationbasedspace = space;
             return locationbasedspace;
         }
