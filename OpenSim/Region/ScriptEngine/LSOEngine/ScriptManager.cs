@@ -155,5 +155,9 @@ namespace OpenSim.Region.ScriptEngine.LSOEngine
             }
         }
 
+        public override void Initialize()
+        {
+            
+        }
     }
 }

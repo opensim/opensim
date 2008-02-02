@@ -455,9 +455,9 @@ namespace OpenSim
             //m_moduleLoader.PickupModules(scene, "ScriptEngines");
             //m_moduleLoader.LoadRegionModules(Path.Combine("ScriptEngines", m_scriptEngine), scene);
             MainLog.Instance.Verbose("MODULES", "Loading scripting engine modules");
-            foreach (string module in m_scriptEngine.Split(';'))
+            foreach (string module in m_scriptEngine.Split(','))
             {
-                string mod = module.Trim(" \t\r\n".ToCharArray()); // Clean up name
+                string mod = module.Trim(" \t".ToCharArray()); // Clean up name
                 MainLog.Instance.Verbose("MODULES", "Loading scripting engine: " + mod);
                 try
                 {

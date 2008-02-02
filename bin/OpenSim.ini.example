@@ -116,10 +116,10 @@ shout_distance = 100
 ; ##
 ; These are region modules loaded into each region to provide script support
 ; Scripts may be everything from LSL or C# scripts put in prims to whole game systems that controls the whole grid.
-; You can load multiple modules by separating them with ;.
+; You can load multiple modules by separating them with a coma.
 ;
 ; Example:
-;script_engine = OpenSim.Region.ScriptEngine.DotNetEngine.dll;OpenSim.Region.ScriptEngine.RemoteServer.dll
+;script_engine = OpenSim.Region.ScriptEngine.DotNetEngine.dll,OpenSim.Region.ScriptEngine.RemoteServer.dll
 ;
 ; This is the current and most stable ScriptEngine:
 script_engine = OpenSim.Region.ScriptEngine.DotNetEngine.dll
@@ -222,7 +222,7 @@ DefaultCompileLanguage=lsl
 
 ; Specify what compilers are allowed to be used
 ; Valid languages are: lsl, cs and vb
-AllowedCompilers=lsl;cs;vb
+AllowedCompilers=lsl,cs,vb
 
 ; Compile scripts with debugging
 ; Probably a thousand times slower, but gives you a line number when something goes wrong.

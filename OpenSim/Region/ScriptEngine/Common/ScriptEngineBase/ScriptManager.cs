@@ -112,9 +112,11 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
         {
             m_scriptEngine = scriptEngine;
         }
+        public abstract void Initialize();
         public void Start()
         {
             ReadConfig();
+            Initialize();
 
             AppDomain.CurrentDomain.AssemblyResolve += new ResolveEventHandler(CurrentDomain_AssemblyResolve);
 

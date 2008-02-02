@@ -43,6 +43,14 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
             base.m_scriptEngine = scriptEngine;
 
         }
+        private Compiler.LSL.Compiler LSLCompiler;
+
+
+        public override void Initialize()
+        {
+            // Create our compiler
+            LSLCompiler = new Compiler.LSL.Compiler(m_scriptEngine);
+        }
 
         // KEEP TRACK OF SCRIPTS <int id, whatever script>
         //internal Dictionary<uint, Dictionary<LLUUID, LSL_BaseClass>> Scripts = new Dictionary<uint, Dictionary<LLUUID, LSL_BaseClass>>();
@@ -50,17 +58,11 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
         // UNLOAD SCRIPT
         // PROVIDE SCRIPT WITH ITS INTERFACE TO OpenSim
 
-        private Compiler.LSL.Compiler LSLCompiler;
 
         public override void _StartScript(uint localID, LLUUID itemID, string Script)
         {
             m_scriptEngine.Log.Debug(m_scriptEngine.ScriptEngineName, "ScriptManager StartScript: localID: " + localID + ", itemID: " + itemID);
 
-            // First time start? Lets fire up our compiler...
-            if (LSLCompiler == null)
-            {
-                LSLCompiler = new Compiler.LSL.Compiler(m_scriptEngine);
-            }
 
             //IScriptHost root = host.GetRoot();
 
@@ -118,7 +120,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
                 catch (Exception e2)
                 {
                     m_scriptEngine.Log.Error(m_scriptEngine.ScriptEngineName, "Error displaying error in-world: " + e2.ToString());
-                    m_scriptEngine.Log.Error(m_scriptEngine.ScriptEngineName, 
+                    m_scriptEngine.Log.Error(m_scriptEngine.ScriptEngineName,
                                              "Errormessage: Error compiling script:\r\n" + e.Message.ToString());
                 }
             }

@@ -67,10 +67,8 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL
         private static CSharpCodeProvider CScodeProvider = new CSharpCodeProvider();
         private static VBCodeProvider VBcodeProvider = new VBCodeProvider();
 
-        private static UInt64 scriptCompileCounter = 0;
-
-        private static int instanceID = new Random().Next(0, int.MaxValue);
-        // Implemented due to peer preassure --- will cause garbage in ScriptEngines folder ;)
+        private static int instanceID = new Random().Next(0, int.MaxValue);                 // Unique number to use on our compiled files
+        private static UInt64 scriptCompileCounter = 0;                                     // And a counter
 
         public Common.ScriptEngineBase.ScriptEngine m_scriptEngine;
         public Compiler(Common.ScriptEngineBase.ScriptEngine scriptEngine)
@@ -107,7 +105,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL
             LanguageMapping.Add(enumCompileType.lsl.ToString(), enumCompileType.lsl);
 
             // Allowed compilers
-            string allowComp = m_scriptEngine.ScriptConfigSource.GetString("AllowedCompilers", "lsl;cs;vb");
+            string allowComp = m_scriptEngine.ScriptConfigSource.GetString("AllowedCompilers", "lsl,cs,vb");
             AllowedCompilers.Clear();
 
 #if DEBUG
@@ -115,7 +113,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL
 #endif
 
 
-            foreach (string strl in allowComp.Split(';'))
+            foreach (string strl in allowComp.Split(','))
             {
                 string strlan = strl.Trim(" \t".ToCharArray()).ToLower();
                 if (!LanguageMapping.ContainsKey(strlan))
@@ -299,6 +297,9 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL
             string OutFile =
                 Path.Combine("ScriptEngines",
                              FilePrefix + "_compiled_" + instanceID.ToString() + "_" + scriptCompileCounter.ToString() + ".dll");
+#if DEBUG
+            m_scriptEngine.Log.Debug(m_scriptEngine.ScriptEngineName, "Starting compile of \"" + OutFile + "\".");
+#endif
             try
             {
                 File.Delete(OutFile);
@@ -313,14 +314,16 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL
             // DEBUG - write source to disk
             if (WriteScriptSourceToDebugFile)
             {
+                string srcFileName = FilePrefix + "_source_" + Path.GetFileNameWithoutExtension(OutFile) + ext;
                 try
                 {
                     File.WriteAllText(
-                        Path.Combine("ScriptEngines", FilePrefix + "_source_" + Path.GetFileNameWithoutExtension(OutFile) + ext),
+                        Path.Combine("ScriptEngines", srcFileName),
                         Script);
                 }
-                catch
+                catch (Exception ex)
                 {
+                    m_scriptEngine.Log.Error(m_scriptEngine.ScriptEngineName, "Exception while trying to write script source to file \"" + srcFileName + "\": " + ex.ToString());
                 }
             }
 
@@ -346,7 +349,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL
             parameters.GenerateExecutable = false;
             parameters.OutputAssembly = OutFile;
             parameters.IncludeDebugInformation = CompileWithDebugInformation;
-            parameters.WarningLevel = 4;
+            parameters.WarningLevel = 1; // Should be 4?
             parameters.TreatWarningsAsErrors = false;
 
             CompilerResults results;
