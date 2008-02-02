@@ -50,6 +50,7 @@ namespace OpenSim.Framework.Data.MySQL
         private const string m_landAccessListSelect = "select * from landaccesslist";
 
         private DataSet m_dataSet;
+        private static object DBAccessLock = new object(); // Trying to use a static object because there might be other regions that keep modifying table
         private MySqlDataAdapter m_primDataAdapter;
         private MySqlDataAdapter m_shapeDataAdapter;
         private MySqlDataAdapter m_itemsDataAdapter;
@@ -103,7 +104,7 @@ namespace OpenSim.Framework.Data.MySQL
 
             TestTables(m_connection);
 
-            lock (m_dataSet)
+            lock (DBAccessLock)
             {
                 m_primTable = createPrimTable();
                 m_dataSet.Tables.Add(m_primTable);
@@ -142,7 +143,7 @@ namespace OpenSim.Framework.Data.MySQL
 
         public void StoreObject(SceneObjectGroup obj, LLUUID regionUUID)
         {
-            lock (m_dataSet)
+            lock (DBAccessLock)
             {
                 foreach (SceneObjectPart prim in obj.Children.Values)
                 {
@@ -169,7 +170,7 @@ namespace OpenSim.Framework.Data.MySQL
             DataTable shapes = m_shapeTable;
 
             string selectExp = "SceneGroupID = '" + Util.ToRawUuidString(obj) + "'";
-            lock (m_dataSet)
+            lock (DBAccessLock)
             {
                 DataRow[] primRows = prims.Select(selectExp);
                 foreach (DataRow row in primRows)
@@ -225,7 +226,7 @@ namespace OpenSim.Framework.Data.MySQL
             string byRegion = "RegionUUID = '" + Util.ToRawUuidString(regionUUID) + "'";
             string orderByParent = "ParentID ASC";
 
-            lock (m_dataSet)
+            lock (DBAccessLock)
             {
                 DataRow[] primsForRegion = prims.Select(byRegion, orderByParent);
                 MainLog.Instance.Verbose("DATASTORE",
@@ -335,7 +336,7 @@ namespace OpenSim.Framework.Data.MySQL
             MainLog.Instance.Verbose("DATASTORE", "Storing terrain revision r" + revision.ToString());
 
             DataTable terrain = m_dataSet.Tables["terrain"];
-            lock (m_dataSet)
+            lock (DBAccessLock)
             {
                 MySqlCommand cmd = new MySqlCommand("insert into terrain(RegionUUID, Revision, Heightfield)" +
                                                     " values(?RegionUUID, ?Revision, ?Heightfield)", m_connection);
@@ -396,7 +397,7 @@ namespace OpenSim.Framework.Data.MySQL
 
         public void RemoveLandObject(LLUUID globalID)
         {
-            lock (m_dataSet)
+            lock (DBAccessLock)
             {
                 using (MySqlCommand cmd = new MySqlCommand("delete from land where UUID=?UUID", m_connection))
                 {
@@ -418,62 +419,47 @@ namespace OpenSim.Framework.Data.MySQL
         {
             MainLog.Instance.Verbose("DATASTORE", "Tedds temp fix: Waiting 3 seconds for stuff to catch up. (Someone please fix! :))");
             System.Threading.Thread.Sleep(3000);
-
-            int loopCount = 0;
-            while (true)
+            
+            lock (DBAccessLock)
             {
-                loopCount++;
-                try
+                DataTable land = m_landTable;
+                DataTable landaccesslist = m_landAccessListTable;
+
+                DataRow landRow = land.Rows.Find(Util.ToRawUuidString(parcel.landData.globalID));
+                if (landRow == null)
                 {
-                    lock (m_dataSet)
-                    {
-                        DataTable land = m_landTable;
-                        DataTable landaccesslist = m_landAccessListTable;
-
-                        DataRow landRow = land.Rows.Find(Util.ToRawUuidString(parcel.landData.globalID));
-                        if (landRow == null)
-                        {
-                            landRow = land.NewRow();
-                            fillLandRow(landRow, parcel.landData, regionUUID);
-                            land.Rows.Add(landRow);
-                        }
-                        else
-                        {
-                            fillLandRow(landRow, parcel.landData, regionUUID);
-                        }
-
-                        using (
-                            MySqlCommand cmd =
-                                new MySqlCommand("delete from landaccesslist where LandUUID=?LandUUID", m_connection))
-                        {
-                            cmd.Parameters.Add(
-                                new MySqlParameter("?LandUUID", Util.ToRawUuidString(parcel.landData.globalID)));
-                            cmd.ExecuteNonQuery();
-                        }
-
-                        foreach (ParcelManager.ParcelAccessEntry entry in parcel.landData.parcelAccessList)
-                        {
-                            DataRow newAccessRow = landaccesslist.NewRow();
-                            fillLandAccessRow(newAccessRow, entry, parcel.landData.globalID);
-                            landaccesslist.Rows.Add(newAccessRow);
-                        }
-                    }
-                    Commit();
-                    break;
+                    landRow = land.NewRow();
+                    fillLandRow(landRow, parcel.landData, regionUUID);
+                    land.Rows.Add(landRow);
                 }
-                catch (Exception ex)
+                else
                 {
-                    System.Console.WriteLine("Tedds temp fix exception, will repeat taks: " + ex.ToString());
-                    if (loopCount > 3)
-                        throw (ex);
+                    fillLandRow(landRow, parcel.landData, regionUUID);
                 }
+
+                using (
+                    MySqlCommand cmd =
+                        new MySqlCommand("delete from landaccesslist where LandUUID=?LandUUID", m_connection))
+                {
+                    cmd.Parameters.Add(new MySqlParameter("?LandUUID", Util.ToRawUuidString(parcel.landData.globalID)));
+                    cmd.ExecuteNonQuery();
+                }
+
+                foreach (ParcelManager.ParcelAccessEntry entry in parcel.landData.parcelAccessList)
+                {
+                    DataRow newAccessRow = landaccesslist.NewRow();
+                    fillLandAccessRow(newAccessRow, entry, parcel.landData.globalID);
+                    landaccesslist.Rows.Add(newAccessRow);
+                }
+
+            Commit_NoLock();
             }
         }
 
         public List<LandData> LoadLandObjects(LLUUID regionUUID)
         {
             List<LandData> landDataForRegion = new List<LandData>();
-            lock (m_dataSet)
+            lock (DBAccessLock)
             {
                 DataTable land = m_landTable;
                 DataTable landaccesslist = m_landAccessListTable;
@@ -535,24 +521,37 @@ namespace OpenSim.Framework.Data.MySQL
                 m_connection.Open();
             }
 
-            lock (m_dataSet)
+            lock (DBAccessLock)
             {
-                // DisplayDataSet(m_dataSet, "Region DataSet");
-
-                m_primDataAdapter.Update(m_primTable);
-                m_shapeDataAdapter.Update(m_shapeTable);
-                
-                if (persistPrimInventories)
-                {
-                    m_itemsDataAdapter.Update(m_itemsTable);
-                }
-                
-                m_terrainDataAdapter.Update(m_terrainTable);
-                m_landDataAdapter.Update(m_landTable);
-                m_landAccessListDataAdapter.Update(m_landAccessListTable);
-
-                m_dataSet.AcceptChanges();
+                // Moved code to own sub that can be called directly by "StoreLandObject".
+                // Problem is that:
+                // - StoreLandObject locks
+                // - Some other function waits for lock
+                // - StoreLandObject releases lock
+                // - Other function obtains lock
+                // - StoreLandObject calls Commit that tries to take lock back
+                // - When StoreLandObject's Commit finally gets lock the table has been changed and we crash
+                Commit_NoLock();
             }
+        }
+
+        private void Commit_NoLock()
+        {
+            // DisplayDataSet(m_dataSet, "Region DataSet");
+
+            m_primDataAdapter.Update(m_primTable);
+            m_shapeDataAdapter.Update(m_shapeTable);
+
+            if (persistPrimInventories)
+            {
+                m_itemsDataAdapter.Update(m_itemsTable);
+            }
+
+            m_terrainDataAdapter.Update(m_terrainTable);
+            m_landDataAdapter.Update(m_landTable);
+            m_landAccessListDataAdapter.Update(m_landAccessListTable);
+
+            m_dataSet.AcceptChanges();
         }
 
         public void Shutdown()
@@ -1230,7 +1229,7 @@ namespace OpenSim.Framework.Data.MySQL
             
             // For now, we're just going to crudely remove all the previous inventory items 
             // no matter whether they have changed or not, and replace them with the current set.
-            lock (m_dataSet)
+            lock (DBAccessLock)
             {                              
                 RemoveItems(primID);              
                 
