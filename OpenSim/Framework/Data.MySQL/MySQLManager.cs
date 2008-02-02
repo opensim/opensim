@@ -342,8 +342,9 @@ namespace OpenSim.Framework.Data.MySQL
 		// this particular section of the mod attempts to supply a value from the region table to the caller of 'readSimRow()' 
 		// for the UUID of the region's owner (master avatar)
 		// 
-		retval.owner_uuid = (string) reader["owner_uuid"];
-		//
+		//retval.owner_uuid = (string) reader["owner_uuid"];
+        retval.owner_uuid = new LLUUID((string)reader["owner_uuid"]);
+        //
 		// end of daTwitch's mods to this file
             }
             else
