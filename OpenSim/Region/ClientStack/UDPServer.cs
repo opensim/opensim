@@ -260,7 +260,7 @@ namespace OpenSim.Region.ClientStack
             for (uint i = 0; i < 20; i++)
             {
                 newPort = listenPort + i;
-                m_log.Verbose("SERVER", "Opening UDP socket on " + listenIP.ToString() + " " + newPort + ". Allow alternate ports: " + Allow_Alternate_Port.ToString());
+                m_log.Verbose("SERVER", "Opening UDP socket on " + listenIP.ToString() + " " + newPort + ".");// Allow alternate ports: " + Allow_Alternate_Port.ToString());
                 try
                 {
                     ServerIncoming = new IPEndPoint(listenIP, (int) newPort);
@@ -272,7 +272,7 @@ namespace OpenSim.Region.ClientStack
                 catch (Exception ex)
                 {
                     // We are not looking for alternate ports?
-                    if (!Allow_Alternate_Port)
+                    //if (!Allow_Alternate_Port)
                         throw (ex);
 
                     // We are looking for alternate ports!

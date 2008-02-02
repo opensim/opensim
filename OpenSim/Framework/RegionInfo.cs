@@ -167,7 +167,7 @@ namespace OpenSim.Framework
         public bool isSandbox = false;
         public bool commFailTF = false;
 
-        public bool m_allow_alternate_ports;
+//        public bool m_allow_alternate_ports;
 
         public LLUUID MasterAvatarAssignedUUID = LLUUID.Zero;
         public LLUUID CovenantID = LLUUID.Zero;
