@@ -418,41 +418,56 @@ namespace OpenSim.Framework.Data.MySQL
         {
             MainLog.Instance.Verbose("DATASTORE", "Tedds temp fix: Waiting 3 seconds for stuff to catch up. (Someone please fix! :))");
             System.Threading.Thread.Sleep(3000);
-            
-            lock (m_dataSet)
+
+            int loopCount = 0;
+            while (true)
             {
-                DataTable land = m_landTable;
-                DataTable landaccesslist = m_landAccessListTable;
+                loopCount++;
+                try
+                {
+                    lock (m_dataSet)
+                    {
+                        DataTable land = m_landTable;
+                        DataTable landaccesslist = m_landAccessListTable;
 
-                DataRow landRow = land.Rows.Find(Util.ToRawUuidString(parcel.landData.globalID));
-                if (landRow == null)
-                {
-                    landRow = land.NewRow();
-                    fillLandRow(landRow, parcel.landData, regionUUID);
-                    land.Rows.Add(landRow);
-                }
-                else
-                {
-                    fillLandRow(landRow, parcel.landData, regionUUID);
-                }
+                        DataRow landRow = land.Rows.Find(Util.ToRawUuidString(parcel.landData.globalID));
+                        if (landRow == null)
+                        {
+                            landRow = land.NewRow();
+                            fillLandRow(landRow, parcel.landData, regionUUID);
+                            land.Rows.Add(landRow);
+                        }
+                        else
+                        {
+                            fillLandRow(landRow, parcel.landData, regionUUID);
+                        }
 
-                using (
-                    MySqlCommand cmd =
-                        new MySqlCommand("delete from landaccesslist where LandUUID=?LandUUID", m_connection))
-                {
-                    cmd.Parameters.Add(new MySqlParameter("?LandUUID", Util.ToRawUuidString(parcel.landData.globalID)));
-                    cmd.ExecuteNonQuery();
-                }
+                        using (
+                            MySqlCommand cmd =
+                                new MySqlCommand("delete from landaccesslist where LandUUID=?LandUUID", m_connection))
+                        {
+                            cmd.Parameters.Add(
+                                new MySqlParameter("?LandUUID", Util.ToRawUuidString(parcel.landData.globalID)));
+                            cmd.ExecuteNonQuery();
+                        }
 
-                foreach (ParcelManager.ParcelAccessEntry entry in parcel.landData.parcelAccessList)
+                        foreach (ParcelManager.ParcelAccessEntry entry in parcel.landData.parcelAccessList)
+                        {
+                            DataRow newAccessRow = landaccesslist.NewRow();
+                            fillLandAccessRow(newAccessRow, entry, parcel.landData.globalID);
+                            landaccesslist.Rows.Add(newAccessRow);
+                        }
+                    }
+                    Commit();
+                    break;
+                }
+                catch (Exception ex)
                 {
-                    DataRow newAccessRow = landaccesslist.NewRow();
-                    fillLandAccessRow(newAccessRow, entry, parcel.landData.globalID);
-                    landaccesslist.Rows.Add(newAccessRow);
+                    System.Console.WriteLine("Tedds temp fix exception, will repeat taks: " + ex.ToString());
+                    if (loopCount > 3)
+                        throw (ex);
                 }
             }
-
-            Commit();
         }
 
         public List<LandData> LoadLandObjects(LLUUID regionUUID)

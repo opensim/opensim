@@ -207,7 +207,6 @@ LoadUnloadMaxQueueSize=100
 ; Maximum number of (LSL) events that can be queued before new events are ignored.
 EventExecutionMaxQueueSize=300
 
-
 ; Async LL command sleep
 ; If no async LL commands are waiting, how long should thread sleep before checking again
 ; Async LL commands are LSL-commands that causes an event to be fired back with result
