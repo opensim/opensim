@@ -200,3 +200,22 @@ ScriptLoadUnloadLoopms=30
 ; Async LL commands are LSL-commands that causes an event to be fired back with result
 AsyncLLCommandLoopms=50
 
+; When script is converted from LSL to C#, or just plain compiled, a copy of the script source will be put in the ScriptEngine folder
+WriteScriptSourceToDebugFile=true
+
+; Specify default script compiler
+; If you do not specify //cs, //vb or //lsl tag as the first characters of your script then the default compiler will be chosen
+; Valid languages are: lsl, cs and vb
+DefaultCompileLanguage=lsl
+
+; Specify what compilers are allowed to be used
+; Valid languages are: lsl, cs and vb
+AllowedCompilers=lsl;cs;vb
+
+; Compile scripts with debugging
+; Probably a thousand times slower, but gives you a line number when something goes wrong.
+CompileWithDebugInformation=true
+
+; Remove old scripts on next startup
+CleanUpOldScriptsOnStartup=true
+

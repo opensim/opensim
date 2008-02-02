@@ -49,12 +49,17 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
         // UNLOAD SCRIPT
         // PROVIDE SCRIPT WITH ITS INTERFACE TO OpenSim
 
-        private Compiler.LSL.Compiler LSLCompiler = new Compiler.LSL.Compiler();
+        private Compiler.LSL.Compiler LSLCompiler;
 
         public override void _StartScript(uint localID, LLUUID itemID, string Script)
         {
-            //IScriptHost root = host.GetRoot();
             m_scriptEngine.Log.Debug(m_scriptEngine.ScriptEngineName, "ScriptManager StartScript: localID: " + localID + ", itemID: " + itemID);
+
+            // First time start? Lets fire up our compiler...
+            if (LSLCompiler == null)
+                LSLCompiler = new Compiler.LSL.Compiler(m_scriptEngine);
+
+            //IScriptHost root = host.GetRoot();
 
             // We will initialize and start the script.
             // It will be up to the script itself to hook up the correct events.
@@ -65,7 +70,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
             try
             {
                 // Compile (We assume LSL)
-                ScriptSource = LSLCompiler.CompileFromLSLText(Script);
+                ScriptSource = LSLCompiler.PerformScriptCompile(Script);
 
 #if DEBUG
                 long before;

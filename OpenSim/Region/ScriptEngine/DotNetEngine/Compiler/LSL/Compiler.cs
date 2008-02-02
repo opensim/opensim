@@ -28,9 +28,12 @@
 
 using System;
 using System.CodeDom.Compiler;
+using System.Collections.Generic;
+using System.Globalization;
 using System.IO;
 using System.Reflection;
 using Microsoft.CSharp;
+using Microsoft.VisualBasic;
 
 namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL
 {
@@ -44,45 +47,192 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL
         // Assembly is compiled using LSL_BaseClass as base. Look at debug C# code file created when LSL script is compiled for full details.
         //
 
-        private LSL2CSConverter LSL_Converter = new LSL2CSConverter();
-        private CSharpCodeProvider codeProvider = new CSharpCodeProvider();
+        internal enum enumCompileType
+        {
+            lsl = 0,
+            cs = 1,
+            vb = 2
+        }
+        private enumCompileType DefaultCompileLanguage;
+        private bool WriteScriptSourceToDebugFile;
+        private bool CompileWithDebugInformation;
+        private bool CleanUpOldScriptsOnStartup;
+        private System.Collections.Generic.Dictionary<string, Boolean> AllowedCompilers = new Dictionary<string, bool>(StringComparer.CurrentCultureIgnoreCase);
+        private System.Collections.Generic.Dictionary<string, enumCompileType> LanguageMapping = new Dictionary<string, enumCompileType>(StringComparer.CurrentCultureIgnoreCase);
+
+        private string FilePrefix;
+        private string ScriptEnginesPath = "ScriptEngines";
+
+        private static LSL2CSConverter LSL_Converter = new LSL2CSConverter();
+        private static CSharpCodeProvider CScodeProvider = new CSharpCodeProvider();
+        private static VBCodeProvider VBcodeProvider = new VBCodeProvider();
+
         private static UInt64 scriptCompileCounter = 0;
 
         private static int instanceID = new Random().Next(0, int.MaxValue);
-                           // Implemented due to peer preassure --- will cause garbage in ScriptEngines folder ;)
+        // Implemented due to peer preassure --- will cause garbage in ScriptEngines folder ;)
 
-        //private ICodeCompiler icc = codeProvider.CreateCompiler();
-        public string CompileFromFile(string LSOFileName)
+        public Common.ScriptEngineBase.ScriptEngine m_scriptEngine;
+        public Compiler(Common.ScriptEngineBase.ScriptEngine scriptEngine)
         {
-            switch (Path.GetExtension(LSOFileName).ToLower())
-            {
-                case ".txt":
-                case ".lsl":
-                    Common.ScriptEngineBase.Common.SendToDebug("Source code is LSL, converting to CS");
-                    return CompileFromLSLText(File.ReadAllText(LSOFileName));
-                case ".cs":
-                    Common.ScriptEngineBase.Common.SendToDebug("Source code is CS");
-                    return CompileFromCSText(File.ReadAllText(LSOFileName));
-                default:
-                    throw new Exception("Unknown script type.");
-            }
+            m_scriptEngine = scriptEngine;
+            ReadConfig();
         }
+        public bool in_startup = true;
+        public void ReadConfig()
+        {
+            WriteScriptSourceToDebugFile = m_scriptEngine.ScriptConfigSource.GetBoolean("WriteScriptSourceToDebugFile", true);
+            CompileWithDebugInformation = m_scriptEngine.ScriptConfigSource.GetBoolean("CompileWithDebugInformation", true);
+            CleanUpOldScriptsOnStartup = m_scriptEngine.ScriptConfigSource.GetBoolean("CleanUpOldScriptsOnStartup", true);
+
+            // Get file prefix from scriptengine name and make it file system safe:
+            FilePrefix = m_scriptEngine.ScriptEngineName;
+            foreach (char c in Path.GetInvalidFileNameChars())
+            {
+                FilePrefix = FilePrefix.Replace(c, '_');
+            }
+            // First time we start?
+            if (in_startup)
+            {
+                in_startup = false;
+                DeleteOldFiles();
+            }
+
+            LanguageMapping.Add("cs", enumCompileType.cs);
+            LanguageMapping.Add("vb", enumCompileType.lsl);
+            LanguageMapping.Add("lsl", enumCompileType.vb);
+
+            // Allowed compilers
+            string allowedCompilers = m_scriptEngine.ScriptConfigSource.GetString("AllowedCompilers", "lsl;cs;vb");
+            AllowedCompilers.Clear();
+            foreach (string strl in allowedCompilers.Split(';'))
+            {
+                string strlan = strl.Trim(" \t".ToCharArray()).ToLower();
+                if (!LanguageMapping.ContainsKey(strlan))
+                {
+                    m_scriptEngine.Log.Error(m_scriptEngine.ScriptEngineName, "Config error. Compiler is unable to recongnize language type \"" + strl + "\" specified in \"AllowedCompilers\".");
+                }
+                AllowedCompilers.Add(strlan, true);
+            }
+            if (AllowedCompilers.Count == 0)
+                m_scriptEngine.Log.Error(m_scriptEngine.ScriptEngineName, "Config error. Compiler could not recognize any language in \"AllowedCompilers\". Scripts will not be executed!");
+
+            // Default language
+            string defaultCompileLanguage = m_scriptEngine.ScriptConfigSource.GetString("DefaultCompileLanguage", "lsl").ToLower();
+
+            // Is this language recognized at all?
+            if (!LanguageMapping.ContainsKey(defaultCompileLanguage))
+                m_scriptEngine.Log.Error(m_scriptEngine.ScriptEngineName, "Config error. Default language specified in \"DefaultCompileLanguage\" is not recognized as a valid language. Scripts may not be executed!");
+
+            // Is this language in allow-list?
+            if (!AllowedCompilers.ContainsKey(defaultCompileLanguage))
+            {
+                m_scriptEngine.Log.Error(m_scriptEngine.ScriptEngineName,
+                                         "Config error. Default language \"" + defaultCompileLanguage + "\"specified in \"DefaultCompileLanguage\" is not in list of \"AllowedCompilers\". Scripts may not be executed!");
+            }
+            else
+            {
+                // LANGUAGE IS IN ALLOW-LIST
+                DefaultCompileLanguage = LanguageMapping[defaultCompileLanguage];
+            }
+
+            // We now have an allow-list, a mapping list, and a default language
+
+        }
+
+        private void DeleteOldFiles()
+        {
+
+            // CREATE FOLDER IF IT DOESNT EXIST
+            if (!Directory.Exists(ScriptEnginesPath))
+            {
+                try
+                {
+                    Directory.CreateDirectory(ScriptEnginesPath);
+                }
+                catch (Exception ex)
+                {
+                    m_scriptEngine.Log.Error(m_scriptEngine.ScriptEngineName, "Exception trying to create ScriptEngine directory \"" + ScriptEnginesPath + "\": " + ex.ToString());
+                }
+            }
+
+            foreach (string file in Directory.GetFiles(ScriptEnginesPath))
+            {
+                m_scriptEngine.Log.Error(m_scriptEngine.ScriptEngineName, "FILE FOUND: " + file);
+
+                if (file.ToLower().StartsWith(FilePrefix + "_compiled_") ||
+                    file.ToLower().StartsWith(FilePrefix + "_source_"))
+                {
+                    try
+                    {
+                        File.Delete(file);
+                    }
+                    catch (Exception ex)
+                    {
+                        m_scriptEngine.Log.Error(m_scriptEngine.ScriptEngineName, "Exception trying delete old script file \"" + file + "\": " + ex.ToString());
+                    }
+
+                }
+            }
+
+        }
+
+        ////private ICodeCompiler icc = codeProvider.CreateCompiler();
+        //public string CompileFromFile(string LSOFileName)
+        //{
+        //    switch (Path.GetExtension(LSOFileName).ToLower())
+        //    {
+        //        case ".txt":
+        //        case ".lsl":
+        //            Common.ScriptEngineBase.Common.SendToDebug("Source code is LSL, converting to CS");
+        //            return CompileFromLSLText(File.ReadAllText(LSOFileName));
+        //        case ".cs":
+        //            Common.ScriptEngineBase.Common.SendToDebug("Source code is CS");
+        //            return CompileFromCSText(File.ReadAllText(LSOFileName));
+        //        default:
+        //            throw new Exception("Unknown script type.");
+        //    }
+        //}
 
         /// <summary>
         /// Converts script from LSL to CS and calls CompileFromCSText
         /// </summary>
         /// <param name="Script">LSL script</param>
         /// <returns>Filename to .dll assembly</returns>
-        public string CompileFromLSLText(string Script)
+        public string PerformScriptCompile(string Script)
         {
-            if (Script.Substring(0, 4).ToLower() == "//c#")
+            enumCompileType l = DefaultCompileLanguage;
+
+
+            if (Script.StartsWith("//c#", true, CultureInfo.InvariantCulture))
+                l = enumCompileType.cs;
+            if (Script.StartsWith("//vb", true, CultureInfo.InvariantCulture))
+                l = enumCompileType.vb;
+            if (Script.StartsWith("//lsl", true, CultureInfo.InvariantCulture))
+                l = enumCompileType.lsl;
+
+            if (!AllowedCompilers.ContainsKey(l.ToString()))
             {
-                return CompileFromCSText(Script);
+                // Not allowed to compile to this language!
+                string errtext = String.Empty;
+                errtext += "The compiler for language \"" + l.ToString() + "\" is not in list of allowed compilers. Script will not be executed!";
+                throw new Exception(errtext);
+            }
+
+            string compileScript;
+
+            if (l == enumCompileType.lsl)
+            {
+                // Its LSL, convert it to C#
+                compileScript = LSL_Converter.Convert(Script);
+                l = enumCompileType.cs;
             }
             else
             {
-                return CompileFromCSText(LSL_Converter.Convert(Script));
+                // We don't need to convert
+                compileScript = Script;
             }
+            return CompileFromCSorVBText(Script, l);
         }
 
         /// <summary>
@@ -90,36 +240,45 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL
         /// </summary>
         /// <param name="Script">CS script</param>
         /// <returns>Filename to .dll assembly</returns>
-        public string CompileFromCSText(string Script)
+        internal string CompileFromCSorVBText(string Script, enumCompileType lang)
         {
+            string ext = "." + lang.ToString();
+
             // Output assembly name
             scriptCompileCounter++;
             string OutFile =
                 Path.Combine("ScriptEngines",
-                             "DotNetScript_" + instanceID.ToString() + "_" + scriptCompileCounter.ToString() + ".dll");
+                             FilePrefix + "_compiled_" + instanceID.ToString() + "_" + scriptCompileCounter.ToString() + ".dll");
             try
             {
                 File.Delete(OutFile);
             }
             catch (Exception e)
             {
-                Console.WriteLine("Exception attempting to delete old compiled script: " + e.ToString());
+                //m_scriptEngine.Log.Error(m_scriptEngine.ScriptEngineName, "Unable to delete old existring script-file before writing new. Compile aborted: " + e.ToString());
+                throw new Exception("Unable to delete old existring script-file before writing new. Compile aborted: " + e.ToString());
             }
             //string OutFile = Path.Combine("ScriptEngines", "SecondLife.Script.dll");
 
             // DEBUG - write source to disk
-            try
+            if (WriteScriptSourceToDebugFile)
             {
-                File.WriteAllText(
-                    Path.Combine("ScriptEngines", "debug_" + Path.GetFileNameWithoutExtension(OutFile) + ".cs"), Script);
-            }
-            catch
-            {
+                try
+                {
+                    File.WriteAllText(
+                        Path.Combine("ScriptEngines", FilePrefix + "_source_" + Path.GetFileNameWithoutExtension(OutFile) + ext),
+                        Script);
+                }
+                catch
+                {
+                }
             }
 
             // Do actual compile
             CompilerParameters parameters = new CompilerParameters();
+
             parameters.IncludeDebugInformation = true;
+
             // Add all available assemblies
             foreach (Assembly asm in AppDomain.CurrentDomain.GetAssemblies())
             {
@@ -136,11 +295,29 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL
             //parameters.ReferencedAssemblies.Add("OpenSim.Region.Environment");
             parameters.GenerateExecutable = false;
             parameters.OutputAssembly = OutFile;
-            parameters.IncludeDebugInformation = false;
-            CompilerResults results = codeProvider.CompileAssemblyFromSource(parameters, Script);
+            parameters.IncludeDebugInformation = CompileWithDebugInformation;
+            parameters.WarningLevel = 4;
+            parameters.TreatWarningsAsErrors = false;
 
+            CompilerResults results;
+            switch (lang)
+            {
+                case enumCompileType.vb:
+                    results = VBcodeProvider.CompileAssemblyFromSource(parameters, Script);
+                    break;
+                case enumCompileType.cs:
+                    results = CScodeProvider.CompileAssemblyFromSource(parameters, Script);
+                    break;
+                default:
+                    throw new Exception("Compiler is not able to recongnize language type \"" + lang.ToString() + "\"");
+            }
+
+            // Check result
             // Go through errors
-            // TODO: Return errors to user somehow
+
+            //
+            // WARNINGS AND ERRORS
+            //
             if (results.Errors.Count > 0)
             {
                 string errtext = String.Empty;
@@ -150,10 +327,22 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL
                                ", Error Number: " + CompErr.ErrorNumber +
                                ", '" + CompErr.ErrorText + "'\r\n";
                 }
-                throw new Exception(errtext);
+                if (!File.Exists(OutFile))
+                {
+                    throw new Exception(errtext);
+                }
             }
 
 
+            //
+            // NO ERRORS, BUT NO COMPILED FILE
+            //
+            if (!File.Exists(OutFile))
+            {
+                string errtext = String.Empty;
+                errtext += "No compile error. But not able to locate compiled file.";
+                throw new Exception(errtext);
+            }
             return OutFile;
         }
     }

@@ -58,6 +58,11 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
         /// </summary>
         private void StopMaintenanceThread()
         {
+#if DEBUG
+            m_ScriptEngine.Log.Debug(m_ScriptEngine.ScriptEngineName, "StopMaintenanceThread() called");
+#endif
+            PleaseShutdown = true;
+            Thread.Sleep(100);
             try
             {
                 if (MaintenanceThreadThread != null)
@@ -70,7 +75,7 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
             }
             catch (Exception ex)
             {
-                m_ScriptEngine.Log.Error("EventQueueManager", "Exception stopping maintenence thread: " + ex.ToString());
+                m_ScriptEngine.Log.Error(m_ScriptEngine.ScriptEngineName, "Exception stopping maintenence thread: " + ex.ToString());
             }
 
         }
