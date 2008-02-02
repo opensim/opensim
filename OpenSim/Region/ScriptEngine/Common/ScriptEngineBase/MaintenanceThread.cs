@@ -95,40 +95,44 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
                         System.Threading.Thread.Sleep(MaintenanceLoopms); // Sleep before next pass
                         if (PleaseShutdown)
                             return;
-                        //
-                        // Re-reading config every x seconds
-                        //
-                        if (m_ScriptEngine.RefreshConfigFileSeconds > 0)
-                        {
-                            // Check if its time to re-read config
-                            if (DateTime.Now.Ticks - Last_ReReadConfigFilens > m_ScriptEngine.RefreshConfigFilens)
-                            {
-                                // Its time to re-read config file
-                                m_ScriptEngine.ConfigSource.Reload(); // Refresh config
-                                m_ScriptEngine.ReadConfig();
-                                Last_ReReadConfigFilens = DateTime.Now.Ticks; // Reset time
-                            }
-                        }
 
-                        //
-                        // Adjust number of running script threads if not correct
-                        //
-                        m_ScriptEngine.m_EventQueueManager.AdjustNumberOfScriptThreads();
-
-                        //
-                        // Check if any script has exceeded its max execution time
-                        //
-                        if (m_ScriptEngine.m_EventQueueManager.EnforceMaxExecutionTime)
+                        if (m_ScriptEngine != null)
                         {
-                            // We are enforcing execution time
-                            if (DateTime.Now.Ticks - Last_maxFunctionExecutionTimens >
-                                m_ScriptEngine.m_EventQueueManager.maxFunctionExecutionTimens)
+                            //
+                            // Re-reading config every x seconds
+                            //
+                            if (m_ScriptEngine.RefreshConfigFileSeconds > 0)
                             {
-                                // Its time to check again
-                                m_ScriptEngine.m_EventQueueManager.CheckScriptMaxExecTime(); // Do check
-                                Last_maxFunctionExecutionTimens = DateTime.Now.Ticks; // Reset time
+                                // Check if its time to re-read config
+                                if (DateTime.Now.Ticks - Last_ReReadConfigFilens > m_ScriptEngine.RefreshConfigFilens)
+                                {
+                                    // Its time to re-read config file
+                                    m_ScriptEngine.ReadConfig();
+                                    Last_ReReadConfigFilens = DateTime.Now.Ticks; // Reset time
+                                }
                             }
-                        }
+
+                            //
+                            // Adjust number of running script threads if not correct
+                            //
+                            if (m_ScriptEngine.m_EventQueueManager != null)
+                                m_ScriptEngine.m_EventQueueManager.AdjustNumberOfScriptThreads();
+
+                            //
+                            // Check if any script has exceeded its max execution time
+                            //
+                            if (m_ScriptEngine.m_EventQueueManager != null && m_ScriptEngine.m_EventQueueManager.EnforceMaxExecutionTime)
+                            {
+                                // We are enforcing execution time
+                                if (DateTime.Now.Ticks - Last_maxFunctionExecutionTimens >
+                                    m_ScriptEngine.m_EventQueueManager.maxFunctionExecutionTimens)
+                                {
+                                    // Its time to check again
+                                    m_ScriptEngine.m_EventQueueManager.CheckScriptMaxExecTime(); // Do check
+                                    Last_maxFunctionExecutionTimens = DateTime.Now.Ticks; // Reset time
+                                }
+                            }
+                        } // m_ScriptEngine != null
                     }
                 }
                 catch (Exception ex)

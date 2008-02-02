@@ -51,11 +51,6 @@ asset_database = "sqlite"
 
 verbose = true
 
-; ScriptEngine
-script_engine = OpenSim.Region.ScriptEngine.DotNetEngine.dll
-;Experimental remote ScriptServer plugin:
-;script_engine = OpenSim.Region.ScriptEngine.RemoteServer.dll
-
 
 ; if you would like to allow prim to be physical and move by physics with the physical checkbox in the client set this to true.
 physical_prim = true
@@ -115,7 +110,29 @@ shout_distance = 100
 ; make for smoother sun transition at the cost of network
 ;frame_rate = 100
 
+
+; ##
+; ## ScriptEngine
+; ##
+; These are region modules loaded into each region to provide script support
+; Scripts may be everything from LSL or C# scripts put in prims to whole game systems that controls the whole grid.
+; You can load multiple modules by separating them with ;.
+;
+; Example:
+;script_engine = OpenSim.Region.ScriptEngine.DotNetEngine.dll;OpenSim.Region.ScriptEngine.RemoteServer.dll
+;
+; This is the current and most stable ScriptEngine:
+script_engine = OpenSim.Region.ScriptEngine.DotNetEngine.dll
+
+;Experimental remote ScriptServer plugin (does not currently work):
+;script_engine = OpenSim.Region.ScriptEngine.RemoteServer.dll
+
+
 [ScriptEngine.DotNetEngine]
+;
+; These settings are specific to DotNetEngine script engine
+; Other script engines based on OpenSim.Region.ScriptEngine.Common.dll will have almost identical settings, but in another section of this config file.
+;
 
 ; When a script receives an event the event is queued.
 ; Any free thread will start executing this event. One script can only have one event executed simultaneously.

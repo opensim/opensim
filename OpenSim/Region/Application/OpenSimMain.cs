@@ -455,7 +455,19 @@ namespace OpenSim
             //m_moduleLoader.PickupModules(scene, "ScriptEngines");
             //m_moduleLoader.LoadRegionModules(Path.Combine("ScriptEngines", m_scriptEngine), scene);
             MainLog.Instance.Verbose("MODULES", "Loading scripting engine modules");
-            m_moduleLoader.LoadRegionModules(Path.Combine("ScriptEngines", m_scriptEngine), scene);       
+            foreach (string module in m_scriptEngine.Split(';'))
+            {
+                string mod = module.Trim(" \t\r\n".ToCharArray()); // Clean up name
+                MainLog.Instance.Verbose("MODULES", "Loading scripting engine: " + mod);
+                try
+                {
+                    m_moduleLoader.LoadRegionModules(Path.Combine("ScriptEngines", mod), scene);
+                }
+                catch (Exception ex)
+                {
+                    MainLog.Instance.Error("MODULES", "Failed to load script engine: " + ex.ToString());
+                }
+            }
 
             m_moduleLoader.InitialiseSharedModules(scene);
             scene.SetModuleInterfaces();
