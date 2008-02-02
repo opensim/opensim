@@ -54,6 +54,7 @@ namespace OpenSim.Region.Environment.Modules
 
         private string m_last_new_user = null;
         private string m_last_leaving_user = null;
+        private string m_defaultzone = null;
         internal object m_syncInit = new object();
         internal object m_syncLogout = new object();
         private Thread m_irc_connector=null;
@@ -74,6 +75,13 @@ namespace OpenSim.Region.Environment.Modules
                     m_whisperdistance = config.Configs["Chat"].GetInt("whisper_distance", m_whisperdistance);
                     m_saydistance = config.Configs["Chat"].GetInt("say_distance", m_saydistance);
                     m_shoutdistance = config.Configs["Chat"].GetInt("shout_distance", m_shoutdistance);
+                }
+                catch (Exception)
+                {
+                }
+                try
+                {
+                    m_defaultzone = config.Configs["IRC"].GetString("nick","Sim");
                 }
                 catch (Exception)
                 {
@@ -302,7 +310,8 @@ namespace OpenSim.Region.Environment.Modules
                                                });
                      if (sourceRegion != null) return sourceRegion; 
            }
-            return "Sim";
+            if (m_defaultzone == null) { m_defaultzone = "Sim"; }
+            return m_defaultzone;
         }
     }
 
@@ -515,7 +524,7 @@ namespace OpenSim.Region.Environment.Modules
                 }
                 catch (Exception ex)
                 {
-                    m_log.Error("IRC", "PingRun exception trap:" + ex.ToString());
+                    m_log.Error("IRC", "PingRun exception trap:" + ex.ToString() + "\n" + ex.StackTrace);
                 }
             }
         }
@@ -526,10 +535,10 @@ namespace OpenSim.Region.Environment.Modules
             LLVector3 pos = new LLVector3(128, 128, 20);
             while (true)
             {
-               while ((m_connected == true) && ((inputLine = m_reader.ReadLine()) != null))
+             try
+            {
+              while ((m_connected == true) && ((inputLine = m_reader.ReadLine()) != null))
                 {
-                    try
-                    {
                         // Console.WriteLine(inputLine);
                         if (inputLine.Contains(m_channel))
                         {
@@ -565,6 +574,7 @@ namespace OpenSim.Region.Environment.Modules
                             ProcessIRCCommand(inputLine);
                         }
                         Thread.Sleep(150);
+                        }
                     }
                     catch (IOException)
                     {
@@ -573,9 +583,8 @@ namespace OpenSim.Region.Environment.Modules
                     }
                     catch (Exception ex)
                     {
-                        m_log.Error("IRC", "ListenerRun exception trap:" + ex.ToString());
+                        m_log.Error("IRC", "ListenerRun exception trap:" + ex.ToString()+"\n"+ex.StackTrace);
                     }
-                }
             }
         }
 
@@ -600,7 +609,7 @@ namespace OpenSim.Region.Environment.Modules
             }
             catch (Exception ex) // IRC gate should not crash Sim
             {
-                m_log.Error("IRC", "BroadcastSim Exception Trap:" + ex.ToString());
+                m_log.Error("IRC", "BroadcastSim Exception Trap:" + ex.ToString() + "\n" + ex.StackTrace);
 
             }
 
