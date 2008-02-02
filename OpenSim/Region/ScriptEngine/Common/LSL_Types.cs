@@ -354,6 +354,29 @@ namespace OpenSim.Region.ScriptEngine.Common
                 return new list(tmp);
             }
 
+            public void Add(object o)
+            {
+                object[] tmp;
+                tmp = new object[m_data.Length + 1];
+                m_data.CopyTo(tmp, 0);
+                tmp[m_data.Length] = o;
+                m_data = tmp;
+            }
+
+            public bool Contains(object o)
+            {
+                bool ret = false;
+                foreach (object i in Data)
+                {
+                    if (i == o)
+                    {
+                        ret = true;
+                        break;
+                    }
+                }
+                return ret;
+            }
+
             public list GetSublist(int start, int end)
             {
                 Console.WriteLine("GetSublist(" + start.ToString() + "," + end.ToString() + ")");

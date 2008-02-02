@@ -409,7 +409,7 @@ namespace OpenSim.Region.ScriptEngine.Common
 
         //wiki: llEjectFromLand(key pest)
         void llEjectFromLand(string pest);
-        void llParseString2List();
+        LSL_Types.list llParseString2List(string str, LSL_Types.list separators, LSL_Types.list spacers);
         //wiki: integer llOverMyLand(key id)
         int llOverMyLand(string id);
         //wiki: key llGetLandOwnerAt(vector pos)

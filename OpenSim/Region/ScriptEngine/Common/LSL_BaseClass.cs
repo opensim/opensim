@@ -1244,9 +1244,9 @@ namespace OpenSim.Region.ScriptEngine.Common
             m_LSL_Functions.llEjectFromLand(pest);
         }
 
-        public void llParseString2List()
+        public LSL_Types.list llParseString2List(string str, LSL_Types.list separators, LSL_Types.list spacers)
         {
-            m_LSL_Functions.llParseString2List();
+            return m_LSL_Functions.llParseString2List(str,separators,spacers);
         }
 
         public int llOverMyLand(string id)

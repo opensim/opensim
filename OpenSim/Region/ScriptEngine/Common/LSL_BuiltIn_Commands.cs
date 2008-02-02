@@ -2039,9 +2039,55 @@ namespace OpenSim.Region.ScriptEngine.Common
             NotImplemented("llEjectFromLand");
         }
 
-        public void llParseString2List()
+        public LSL_Types.list llParseString2List(string str, LSL_Types.list separators, LSL_Types.list spacers)
         {
-            NotImplemented("llParseString2List");
+            LSL_Types.list ret = new LSL_Types.list();
+            object[] delimeters = new object[separators.Length + spacers.Length];
+            separators.Data.CopyTo(delimeters, 0);
+            spacers.Data.CopyTo(delimeters, separators.Length); 
+            bool dfound = false;
+            do
+            {
+                dfound = false;
+                int cindex = -1;
+                string cdeli = "";
+                for (int i = 0; i < delimeters.Length; i++)
+                {
+                    int index = str.IndexOf(delimeters[i].ToString());
+                    bool found = index != -1;
+                    if (found)
+                    {
+                        if ((cindex > index) || (cindex == -1))
+                        {
+                            cindex = index;
+                            cdeli = (string)delimeters[i];
+                        }
+                        dfound = dfound || found;
+                    }
+                }
+                if (cindex != -1)
+                {
+                    if (cindex > 0)
+                    {
+                        ret.Add(str.Substring(0, cindex));
+                        if (spacers.Contains(cdeli))
+                        {
+                            ret.Add(cdeli);
+                        }
+                    }
+                    if (cindex == 0 && spacers.Contains(cdeli))
+                    {
+                        ret.Add(cdeli);
+                    }
+                    str = str.Substring(cindex + 1);
+                }
+            }
+            while (dfound);
+            if (str != "")
+            {
+                ret.Add(str);
+            }
+            return ret;
         }
 
         public int llOverMyLand(string id)
