@@ -1588,12 +1588,23 @@ namespace OpenSim.Region.ClientStack
             OutPacket(attach, ThrottleOutPacketType.Task);
         }
 
-
         public void SendPrimitiveToClient(
             ulong regionHandle, ushort timeDilation, uint localID, PrimitiveBaseShape primShape, LLVector3 pos,
             uint flags,
             LLUUID objectID, LLUUID ownerID, string text, byte[] color, uint parentID, byte[] particleSystem,
             LLQuaternion rotation, byte clickAction)
+        {
+            byte[] textureanim = new byte[0];
+
+            SendPrimitiveToClient(regionHandle, timeDilation, localID, primShape, pos, flags,
+                                  objectID, ownerID, text, color, parentID, particleSystem,
+                                    rotation, clickAction, textureanim);
+        }
+        public void SendPrimitiveToClient(
+            ulong regionHandle, ushort timeDilation, uint localID, PrimitiveBaseShape primShape, LLVector3 pos,
+            uint flags,
+            LLUUID objectID, LLUUID ownerID, string text, byte[] color, uint parentID, byte[] particleSystem,
+            LLQuaternion rotation, byte clickAction, byte[] textureanim)
         {
             ObjectUpdatePacket outPacket = (ObjectUpdatePacket)PacketPool.Instance.GetPacket(PacketType.ObjectUpdate);
             // TODO: don't create new blocks if recycling an old packet
@@ -1615,6 +1626,8 @@ namespace OpenSim.Region.ClientStack
             outPacket.ObjectData[0].PSBlock = particleSystem;
             outPacket.ObjectData[0].ClickAction = clickAction;
             //outPacket.ObjectData[0].Flags = 0;
+            
+            // Sound Radius
             outPacket.ObjectData[0].Radius = 20;
 
             byte[] pb = pos.GetBytes();
@@ -1622,6 +1635,10 @@ namespace OpenSim.Region.ClientStack
 
             byte[] rot = rotation.GetBytes();
             Array.Copy(rot, 0, outPacket.ObjectData[0].ObjectData, 36, rot.Length);
+
+            if (textureanim.Length > 0)
+                outPacket.ObjectData[0].TextureAnim = textureanim;
+            
 
             OutPacket(outPacket, ThrottleOutPacketType.Task);
         }

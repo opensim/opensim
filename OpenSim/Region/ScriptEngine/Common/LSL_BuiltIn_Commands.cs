@@ -2007,7 +2007,16 @@ namespace OpenSim.Region.ScriptEngine.Common
 
         public void llSetTextureAnim(int mode, int face, int sizex, int sizey, double start, double length, double rate)
         {
-            NotImplemented("llSetTextureAnim");
+            Primitive.TextureAnimation pTexAnim = new Primitive.TextureAnimation();
+            pTexAnim.Flags = (uint)mode;
+            pTexAnim.Face = (uint)face;
+            pTexAnim.Length = (float)length;
+            pTexAnim.Rate = (float)rate;
+            pTexAnim.SizeX = (uint)sizex;
+            pTexAnim.SizeY = (uint)sizey;
+            pTexAnim.Start = (float)start;
+            m_host.AddTextureAnimation(pTexAnim);
+            m_host.SendFullUpdateToAllClients();
         }
 
         public void llTriggerSoundLimited(string sound, double volume, LSL_Types.Vector3 top_north_east,

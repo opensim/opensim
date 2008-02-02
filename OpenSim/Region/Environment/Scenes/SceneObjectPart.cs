@@ -276,6 +276,8 @@ namespace OpenSim.Region.Environment.Scenes
             }
         }
 
+        private byte[] m_TextureAnimation;
+        
         protected LLVector3 m_offsetPosition;
 
         public LLVector3 OffsetPosition
@@ -600,6 +602,7 @@ namespace OpenSim.Region.Environment.Scenes
         {
             // It's not necessary to persist this
             m_inventoryFileName = "taskinventory" + LLUUID.Random().ToString();
+            m_TextureAnimation = new byte[0];
         }
 
         public SceneObjectPart(ulong regionHandle, SceneObjectGroup parent, LLUUID ownerID, uint localID,
@@ -646,7 +649,7 @@ namespace OpenSim.Region.Environment.Scenes
             m_rotationalvelocity = new LLVector3(0, 0, 0);
             AngularVelocity = new LLVector3(0, 0, 0);
             Acceleration = new LLVector3(0, 0, 0);
-
+            m_TextureAnimation = new byte[0];
             m_inventoryFileName = "taskinventory" + LLUUID.Random().ToString();
             m_folderID = LLUUID.Random();
 
@@ -1364,6 +1367,11 @@ namespace OpenSim.Region.Environment.Scenes
             UpdateTextureEntry(tex.ToBytes());
         }
 
+        public void AddTextureAnimation(Primitive.TextureAnimation pTexAnim)
+        {
+            m_TextureAnimation = pTexAnim.GetBytes();
+        }
+
         #endregion
 
         #region ParticleSystem
@@ -1534,7 +1542,7 @@ namespace OpenSim.Region.Environment.Scenes
             byte[] color = new byte[] {m_color.R, m_color.G, m_color.B, m_color.A};
             remoteClient.SendPrimitiveToClient(m_regionHandle, 64096, LocalID, m_shape, lPos, clientFlags, m_uuid,
                                                OwnerID,
-                                               m_text, color, ParentID, m_particleSystem, lRot, m_clickAction);
+                                               m_text, color, ParentID, m_particleSystem, lRot, m_clickAction, m_TextureAnimation);
         }
 
         /// Terse updates
