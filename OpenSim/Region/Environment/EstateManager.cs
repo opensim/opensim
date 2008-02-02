@@ -216,10 +216,26 @@ namespace OpenSim.Region.Environment
                         SendEstateBlueBoxMessage(remote_client, packet);
                     }
                     break;
+                case "setregiondebug":
+                    if (m_scene.PermissionsMngr.GenericEstatePermission(remote_client.AgentId))
+                    {
+                        SetRegionDebug(remote_client, packet);
+                    }
+                    break;
                 default:
                     MainLog.Instance.Error("EstateOwnerMessage: Unknown method requested\n" + packet.ToString());
                     break;
             }
+        }
+
+        private void SetRegionDebug(IClientAPI remote_client, EstateOwnerMessagePacket packet)
+        {
+            LLUUID invoice = packet.MethodData.Invoice;
+            LLUUID SenderID = packet.AgentData.AgentID;
+            bool scripted = convertParamStringToBool(packet.ParamList[0].Parameter);
+            bool collisionEvents = convertParamStringToBool(packet.ParamList[1].Parameter);
+            bool physics = convertParamStringToBool(packet.ParamList[2].Parameter);
+            m_scene.SetSceneCoreDebug(scripted, collisionEvents, physics);
         }
 
         private void SendSimulatorBlueBoxMessage(IClientAPI remote_client, EstateOwnerMessagePacket packet)

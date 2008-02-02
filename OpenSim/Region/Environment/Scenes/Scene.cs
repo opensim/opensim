@@ -130,6 +130,11 @@ namespace OpenSim.Region.Environment.Scenes
         private int physicsMS = 0;
         private int otherMS = 0;
 
+        private bool m_physics_enabled = true;
+        private bool m_physics_collisions_enabled = true;
+        private bool m_scripts_enabled = true;
+
+
 
         #endregion
 
@@ -475,6 +480,21 @@ namespace OpenSim.Region.Environment.Scenes
             }
         }
 
+        public void SetSceneCoreDebug(bool ScriptEngine, bool CollisionEvents, bool PhysicsEngine)
+        {
+            if (m_scripts_enabled != !ScriptEngine)
+            {
+                // Tedd!   Here's the method to disable the scripting engine!
+                MainLog.Instance.Verbose("TOTEDD", "Here is the method to trigger disabling of the scripting engine");
+            }
+            if (m_physics_enabled != !PhysicsEngine)
+            {
+                m_physics_enabled = !PhysicsEngine;
+
+            }
+
+        }
+
         // This is the method that shuts down the scene.
         public override void Close()
         {
@@ -575,7 +595,7 @@ namespace OpenSim.Region.Environment.Scenes
                 
 
                             physicsMS2 = System.Environment.TickCount;
-                if (m_frame%m_update_physics == 0)
+                if ((m_frame%m_update_physics == 0) && m_physics_enabled)
                     m_innerScene.UpdatePreparePhysics();
                             physicsMS2 = System.Environment.TickCount - physicsMS2;
 
@@ -583,7 +603,7 @@ namespace OpenSim.Region.Environment.Scenes
                     m_innerScene.UpdateEntityMovement();
 
                             physicsMS = System.Environment.TickCount;
-                if (m_frame%m_update_physics == 0)
+                if ((m_frame%m_update_physics == 0) && m_physics_enabled)
                     physicsFPS = m_innerScene.UpdatePhysics(
                         Math.Max(SinceLastFrame.TotalSeconds, m_timespan)
                         );
