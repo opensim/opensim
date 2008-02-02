@@ -27,6 +27,7 @@
 */
 
 using libsecondlife;
+using Nini.Config;
 using OpenSim.Framework;
 using OpenSim.Framework.Console;
 using OpenSim.Region.Environment.Scenes;
@@ -81,7 +82,7 @@ namespace OpenSim.Region.ScriptEngine.Common
         public interface ScriptEngine
         {
             RemoteEvents EventManager();
-            void InitializeEngine(Scene Sceneworld, LogBase logger, bool DontHookUp, ScriptManager newScriptManager);
+            void InitializeEngine(Scene Sceneworld, IConfigSource config, LogBase logger, bool DontHookUp, ScriptManager newScriptManager);
             ScriptManager GetScriptManager();
         }
 

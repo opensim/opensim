@@ -86,13 +86,18 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
             get { return m_log; }
         }
 
-        public void InitializeEngine(Scene Sceneworld, LogBase logger, bool HookUpToServer, ScriptManager newScriptManager)
+        public void InitializeEngine(Scene Sceneworld, IConfigSource config, LogBase logger, bool HookUpToServer, ScriptManager newScriptManager)
         {
             World = Sceneworld;
             m_log = logger;
-            ScriptConfigSource = ConfigSource.Configs[ScriptEngineName];
+            ConfigSource = config;
+            Log.Verbose(ScriptEngineName, "ScriptEngine initializing");
+            Log.Verbose(ScriptEngineName, "Reading configuration from config section \"" + ScriptEngineName + "\"");
 
-            Log.Verbose(ScriptEngineName, "DotNet & LSL ScriptEngine initializing");
+            // Make sure we have config
+            if (ConfigSource.Configs[ScriptEngineName] == null)
+                ConfigSource.AddConfig(ScriptEngineName);
+            ScriptConfigSource = ConfigSource.Configs[ScriptEngineName];
 
             //m_logger.Status(ScriptEngineName, "InitializeEngine");
 

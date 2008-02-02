@@ -75,7 +75,7 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
         /// Locking access to eventQueueThreads AND staticGlobalEventQueueThreads.
         /// Note that this may or may not be a reference to a static object depending on PrivateRegionThreads config setting.
         /// </summary>
-        private object eventQueueThreadsLock;
+        private object eventQueueThreadsLock = new object();
         // Static objects for referencing the objects above if we don't have private threads:
         internal static List<EventQueueThreadClass> staticEventQueueThreads;                // A static reference used if we don't use private threads
         internal static object staticEventQueueThreadsLock;                                 // Statick lock object reference for same reason
@@ -173,10 +173,11 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
         {
             m_ScriptEngine = _ScriptEngine;
 
+            bool PrivateRegionThreads = m_ScriptEngine.ScriptConfigSource.GetBoolean("PrivateRegionThreads", false);
 
             // Create thread pool list and lock object
             // Determine from config if threads should be dedicated to regions or shared
-            if (m_ScriptEngine.ScriptConfigSource.GetBoolean("PrivateRegionThreads", false))
+            if (PrivateRegionThreads)
             {
                 // PRIVATE THREAD POOL PER REGION
                 eventQueueThreads = new List<EventQueueThreadClass>();
@@ -185,13 +186,13 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
             else
             {
                 // SHARED THREAD POOL
-                // Crate the objects in statics
+                // Crate the static objects
                 if (staticEventQueueThreads == null)
                     staticEventQueueThreads = new List<EventQueueThreadClass>();
                 if (staticEventQueueThreadsLock == null)
                     staticEventQueueThreadsLock = new object();
 
-                // Create local reference to them
+                // Now reference our locals to them
                 eventQueueThreads = staticEventQueueThreads;
                 eventQueueThreadsLock = staticEventQueueThreadsLock;
             }
@@ -228,22 +229,25 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
 
         private void Stop()
         {
-
-            // Kill worker threads
-            lock (eventQueueThreadsLock)
+            if (eventQueueThreadsLock != null && eventQueueThreads != null)
             {
-                foreach (EventQueueThreadClass EventQueueThread in eventQueueThreads)
+                // Kill worker threads
+                lock (eventQueueThreadsLock)
                 {
-                    AbortThreadClass(EventQueueThread);
+                    foreach (EventQueueThreadClass EventQueueThread in eventQueueThreads)
+                    {
+                        AbortThreadClass(EventQueueThread);
+                    }
+                    eventQueueThreads.Clear();
+                    staticGlobalEventQueueThreads.Clear();
                 }
-                eventQueueThreads.Clear();
-                staticGlobalEventQueueThreads.Clear();
             }
-            // Remove all entries from our event queue
-            lock (queueLock)
-            {
-                eventQueue.Clear();
-            }
+
+                // Remove all entries from our event queue
+                lock (queueLock)
+                {
+                    eventQueue.Clear();
+                }
         }
 
         #endregion

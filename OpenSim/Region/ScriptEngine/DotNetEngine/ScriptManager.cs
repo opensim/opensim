@@ -41,7 +41,6 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
             : base(scriptEngine)
         {
             base.m_scriptEngine = scriptEngine;
-
         }
 
         // KEEP TRACK OF SCRIPTS <int id, whatever script>
@@ -55,7 +54,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
         public override void _StartScript(uint localID, LLUUID itemID, string Script)
         {
             //IScriptHost root = host.GetRoot();
-            Console.WriteLine("ScriptManager StartScript: localID: " + localID + ", itemID: " + itemID);
+            m_scriptEngine.Log.Debug(m_scriptEngine.ScriptEngineName, "ScriptManager StartScript: localID: " + localID + ", itemID: " + itemID);
 
             // We will initialize and start the script.
             // It will be up to the script itself to hook up the correct events.
@@ -77,7 +76,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
                 CompiledScript = m_scriptEngine.m_AppDomainManager.LoadScript(ScriptSource);
 
 #if DEBUG
-                Console.WriteLine("Script " + itemID + " occupies {0} bytes", GC.GetTotalMemory(true) - before);
+                m_scriptEngine.Log.Debug(m_scriptEngine.ScriptEngineName, "Script " + itemID + " occupies {0} bytes", GC.GetTotalMemory(true) - before);
 #endif
 
                 CompiledScript.Source = Script;
@@ -110,8 +109,8 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
                 }
                 catch (Exception e2)
                 {
-                    m_scriptEngine.Log.Error("ScriptEngine", "Error displaying error in-world: " + e2.ToString());
-                    m_scriptEngine.Log.Error("ScriptEngine",
+                    m_scriptEngine.Log.Error(m_scriptEngine.ScriptEngineName, "Error displaying error in-world: " + e2.ToString());
+                    m_scriptEngine.Log.Error(m_scriptEngine.ScriptEngineName, 
                                              "Errormessage: Error compiling script:\r\n" + e.Message.ToString());
                 }
             }
@@ -120,8 +119,9 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
         public override void _StopScript(uint localID, LLUUID itemID)
         {
             // Stop script
-            Console.WriteLine("Stop script localID: " + localID + " LLUID: " + itemID.ToString());
-
+#if DEBUG
+            m_scriptEngine.Log.Debug(m_scriptEngine.ScriptEngineName, "Stop script localID: " + localID + " LLUID: " + itemID.ToString());
+#endif
 
             // Stop long command on script
             m_scriptEngine.m_ASYNCLSLCommandManager.RemoveScript(localID, itemID);
@@ -147,7 +147,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
             }
             catch (Exception e)
             {
-                Console.WriteLine("Exception stopping script localID: " + localID + " LLUID: " + itemID.ToString() +
+                m_scriptEngine.Log.Error(m_scriptEngine.ScriptEngineName, "Exception stopping script localID: " + localID + " LLUID: " + itemID.ToString() +
                                   ": " + e.ToString());
             }
         }

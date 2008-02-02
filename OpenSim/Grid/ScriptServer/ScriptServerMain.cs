@@ -28,6 +28,7 @@
 
 using System.IO;
 using libsecondlife;
+using Nini.Config;
 using OpenSim.Framework;
 using OpenSim.Framework.Console;
 using OpenSim.Grid.ScriptServer.ScriptServer;
@@ -66,8 +67,8 @@ namespace OpenSim.Grid.ScriptServer
 
             // Load DotNetEngine
             Engine = ScriptEngines.LoadEngine("DotNetEngine");
-                    
-            Engine.InitializeEngine(null, m_log, false, Engine.GetScriptManager());
+                    IConfigSource config = null;
+            Engine.InitializeEngine(null, null, m_log, false, Engine.GetScriptManager());
                     
 
             // Set up server

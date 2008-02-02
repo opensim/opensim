@@ -40,7 +40,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
         public override void Initialise(Scene scene, IConfigSource config)
         {
             ConfigSource = config;
-            InitializeEngine(scene, MainLog.Instance, true, GetScriptManager());
+            InitializeEngine(scene, config, MainLog.Instance, true, GetScriptManager());
         }
 
         public override OpenSim.Region.ScriptEngine.Common.ScriptEngineBase.ScriptManager _GetScriptManager()
