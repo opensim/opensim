@@ -67,6 +67,7 @@ namespace OpenSim.Framework
             m_internalEndPoint = ConvertFrom.InternalEndPoint;
             m_externalHostName = ConvertFrom.ExternalHostName;
             m_remotingPort = ConvertFrom.RemotingPort;
+            m_allow_alternate_ports = ConvertFrom.m_allow_alternate_ports;
             RemotingAddress = ConvertFrom.RemotingAddress;
             RegionID = LLUUID.Zero;
         }
@@ -80,6 +81,7 @@ namespace OpenSim.Framework
             get { return m_remotingPort; }
             set { m_remotingPort = value; }
         }
+        public bool m_allow_alternate_ports;
 
         public string RemotingAddress;
 
@@ -125,6 +127,8 @@ namespace OpenSim.Framework
             set { m_externalHostName = value; }
         }
 
+        protected bool Allow_Alternate_Ports;
+
         protected IPEndPoint m_internalEndPoint;
 
         public IPEndPoint InternalEndPoint
@@ -162,6 +166,8 @@ namespace OpenSim.Framework
         public string DataStore = String.Empty;
         public bool isSandbox = false;
         public bool commFailTF = false;
+
+        public bool m_allow_alternate_ports;
 
         public LLUUID MasterAvatarAssignedUUID = LLUUID.Zero;
         public LLUUID CovenantID = LLUUID.Zero;
@@ -217,6 +223,7 @@ namespace OpenSim.Framework
             m_internalEndPoint = ConvertFrom.InternalEndPoint;
             m_externalHostName = ConvertFrom.ExternalHostName;
             m_remotingPort = ConvertFrom.RemotingPort;
+            m_allow_alternate_ports = ConvertFrom.m_allow_alternate_ports;
             RemotingAddress = ConvertFrom.RemotingAddress;
             RegionID = LLUUID.Zero;
         }
@@ -228,6 +235,7 @@ namespace OpenSim.Framework
             m_internalEndPoint = ConvertFrom.InternalEndPoint;
             m_externalHostName = ConvertFrom.ExternalHostName;
             m_remotingPort = ConvertFrom.RemotingPort;
+            m_allow_alternate_ports = ConvertFrom.m_allow_alternate_ports;
             RemotingAddress = ConvertFrom.RemotingAddress;
             RegionID = LLUUID.Zero;
         }
@@ -300,6 +308,9 @@ namespace OpenSim.Framework
             configMember.addConfigurationOption("internal_ip_port", ConfigurationOption.ConfigurationTypes.TYPE_INT32,
                                                 "Internal IP Port for incoming UDP client connections",
                                                 NetworkServersInfo.DefaultHttpListenerPort.ToString(), false);
+            configMember.addConfigurationOption("allow_alternate_ports", ConfigurationOption.ConfigurationTypes.TYPE_BOOLEAN,
+                                                "Allow sim to find alternate UDP ports when ports are in use?",
+                                                "false", false);
             configMember.addConfigurationOption("external_host_name",
                                                 ConfigurationOption.ConfigurationTypes.TYPE_STRING_NOT_EMPTY,
                                                 "External Host Name", "127.0.0.1", false);
@@ -357,7 +368,10 @@ namespace OpenSim.Framework
                     m_internalEndPoint = new IPEndPoint(address, 0);
                     break;
                 case "internal_ip_port":
-                    m_internalEndPoint.Port = (int) configuration_result;
+                    m_internalEndPoint.Port = (int)configuration_result;
+                    break;
+                case "allow_alternate_ports":
+                    m_allow_alternate_ports = (bool)configuration_result;
                     break;
                 case "external_host_name":
                     if ((string) configuration_result != "SYSTEMIP")

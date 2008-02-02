@@ -109,10 +109,16 @@ namespace OpenSim.Region.ClientStack
         protected Scene SetupScene(RegionInfo regionInfo, out UDPServer udpServer, bool m_permissions)
         {
             AgentCircuitManager circuitManager = new AgentCircuitManager();
-            udpServer = new UDPServer((uint) regionInfo.InternalEndPoint.Port, m_assetCache, m_log, circuitManager);
+            IPAddress listenIP;
+            if (!IPAddress.TryParse(regionInfo.ExternalHostName, out listenIP))
+                listenIP = IPAddress.Parse("0.0.0.0");
+
+            uint port = (uint) regionInfo.InternalEndPoint.Port;
+            udpServer = new UDPServer(listenIP, ref port, regionInfo.m_allow_alternate_ports, m_assetCache, m_log, circuitManager);
+            regionInfo.InternalEndPoint.Port = (int)port;
 
             Scene scene = CreateScene(regionInfo, m_storageManager, circuitManager);
-
+            
             udpServer.LocalScene = scene;
 
             scene.LoadWorldMap();

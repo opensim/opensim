@@ -67,7 +67,19 @@ namespace OpenSim.Framework.Console
 
             System.Console.WriteLine("Logs will be saved to current directory in " + LogFile);
 
-            Log = File.AppendText(LogFile);
+            try
+            {
+                Log = File.AppendText(LogFile);
+            }
+            catch (Exception ex)
+            {
+                System.Console.WriteLine("Unable to open log file. Do you already have another copy of OpenSim running? Permission problem?");
+                System.Console.WriteLine(ex.Message);
+                System.Console.WriteLine("");
+                System.Console.WriteLine("Application is terminating.");
+                System.Console.WriteLine("");
+                System.Threading.Thread.CurrentThread.Abort();
+            }
             Log.WriteLine("========================================================================");
             Log.WriteLine(componentname + " Started at " + DateTime.Now.ToString());
         }

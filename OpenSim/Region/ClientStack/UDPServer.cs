@@ -52,6 +52,8 @@ namespace OpenSim.Region.ClientStack
         protected ulong m_regionHandle;
 
         protected uint listenPort;
+        protected bool Allow_Alternate_Port;
+        protected IPAddress listenIP = IPAddress.Parse("0.0.0.0");
         protected IScene m_localScene;
         protected AssetCache m_assetCache;
         protected LogBase m_log;
@@ -82,13 +84,20 @@ namespace OpenSim.Region.ClientStack
         {
         }
 
-        public UDPServer(uint port, AssetCache assetCache, LogBase console, AgentCircuitManager authenticateClass)
+        public UDPServer(IPAddress _listenIP, ref uint port, bool allow_alternate_port, AssetCache assetCache, LogBase console, AgentCircuitManager authenticateClass)
         {
+            listenIP = _listenIP;
             listenPort = port;
+            Allow_Alternate_Port = allow_alternate_port;
             m_assetCache = assetCache;
             m_log = console;
             m_authenticateSessionsClass = authenticateClass;
             CreatePacketServer();
+
+            // Return new port
+            // This because in Grid mode it is not really important what port the region listens to as long as it is correctly registered.
+            // So the option allow_alternate_ports="true" was added to default.xml
+            port = listenPort;
         }
 
         protected virtual void CreatePacketServer()
@@ -98,7 +107,7 @@ namespace OpenSim.Region.ClientStack
 
         protected virtual void OnReceivedData(IAsyncResult result)
         {
-            ipeSender = new IPEndPoint(IPAddress.Parse("0.0.0.0"), 0);
+            ipeSender = new IPEndPoint(listenIP, 0);
             epSender = (EndPoint) ipeSender;
             Packet packet = null;
 
@@ -246,20 +255,40 @@ namespace OpenSim.Region.ClientStack
 
         public void ServerListener()
         {
-            m_log.Verbose("SERVER", "Opening UDP socket on " + listenPort.ToString());
 
-            ServerIncoming = new IPEndPoint(IPAddress.Parse("0.0.0.0"), (int) listenPort);
-            Server = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
-            Server.Bind(ServerIncoming);
+            uint newPort = listenPort;
+            for (uint i = 0; i < 10; i++)
+            {
+                newPort = listenPort + i;
+                m_log.Verbose("SERVER", "Opening UDP socket on " + listenIP.ToString() + " " + newPort + ". Allow alternate ports: " + Allow_Alternate_Port.ToString());
+                try
+                {
+                    ServerIncoming = new IPEndPoint(listenIP, (int) newPort);
+                    Server = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
+                    Server.Bind(ServerIncoming);
+                    listenPort = newPort;
+                    break;
+                }
+                catch (Exception ex)
+                {
+                    // We are not looking for alternate ports?
+                    if (!Allow_Alternate_Port)
+                        throw (ex);
+
+                    // We are looking for alternate ports!
+                    m_log.Verbose("SERVER", "UDP socket on " + listenIP.ToString() + " " + listenPort.ToString() + " is not available, trying next.");
+                }
+                System.Threading.Thread.Sleep(100); // Wait before we retry socket
+            }
 
             m_log.Verbose("SERVER", "UDP socket bound, getting ready to listen");
 
-            ipeSender = new IPEndPoint(IPAddress.Parse("0.0.0.0"), 0);
+            ipeSender = new IPEndPoint(listenIP, 0);
             epSender = (EndPoint) ipeSender;
             ReceivedData = new AsyncCallback(OnReceivedData);
             Server.BeginReceiveFrom(RecvBuffer, 0, RecvBuffer.Length, SocketFlags.None, ref epSender, ReceivedData, null);
 
-            m_log.Status("SERVER", "Listening...");
+            m_log.Status("SERVER", "Listening on port " + newPort);
         }
 
         public virtual void RegisterPacketServer(PacketServer server)

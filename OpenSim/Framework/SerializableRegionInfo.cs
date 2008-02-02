@@ -49,6 +49,7 @@ namespace OpenSim.Framework
             m_internalEndPoint = ConvertFrom.InternalEndPoint;
             m_externalHostName = ConvertFrom.ExternalHostName;
             m_remotingPort = ConvertFrom.RemotingPort;
+            m_allow_alternate_ports = ConvertFrom.m_allow_alternate_ports;
             RemotingAddress = ConvertFrom.RemotingAddress;
         }
 
@@ -80,6 +81,7 @@ namespace OpenSim.Framework
             get { return m_remotingPort; }
             set { m_remotingPort = value; }
         }
+        public bool m_allow_alternate_ports;
 
         public string RemotingAddress;
 
