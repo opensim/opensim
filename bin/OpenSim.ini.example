@@ -145,6 +145,7 @@ script_engine = OpenSim.Region.ScriptEngine.DotNetEngine.dll
 ; Set it to number of seconds between refresh, for example 30.
 ; Will allow you to change ScriptEngine settings while server is running just by editing this file.
 ; For example to increase or decrease number of threads.
+; NOTE! Disabled for now. Feature does not work.
 RefreshConfig=0
 
 ; Number of threads to use for script event execution

@@ -247,7 +247,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL
                 // Not allowed to compile to this language!
                 string errtext = String.Empty;
                 errtext += "The compiler for language \"" + l.ToString() + "\" is not in list of allowed compilers. Script will not be executed!";
-                //throw new Exception(errtext);
+                throw new Exception(errtext);
             }
 
             string compileScript = Script;
