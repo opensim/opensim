@@ -38,19 +38,20 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
         /// <summary>
         /// Maintenance thread. Enforcing max execution time for example.
         /// </summary>
-        public static Thread MaintenanceThreadThread;
+        public Thread MaintenanceThreadThread;
 
         /// <summary>
         /// Starts maintenance thread
         /// </summary>
         private void StartMaintenanceThread()
         {
-            StopMaintenanceThread();
-
-            MaintenanceThreadThread = new Thread(MaintenanceLoop);
-            MaintenanceThreadThread.Name = "ScriptMaintenanceThread";
-            MaintenanceThreadThread.IsBackground = true;
-            MaintenanceThreadThread.Start();
+            if (MaintenanceThreadThread == null)
+            {
+                MaintenanceThreadThread = new Thread(MaintenanceLoop);
+                MaintenanceThreadThread.Name = "ScriptMaintenanceThread";
+                MaintenanceThreadThread.IsBackground = true;
+                MaintenanceThreadThread.Start();
+            }
         }
 
         /// <summary>

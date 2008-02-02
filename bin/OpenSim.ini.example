@@ -195,6 +195,18 @@ ScriptsPerAppDomain=1
 ; But once active it will process all in queue before sleeping again
 ScriptLoadUnloadLoopms=30
 
+; Loading and unloading of scripts is queued and processed by a separate thread.
+; This thread can either be shared among all regions, or private (one thread per region)
+PrivateScriptLoadUnloadThread=false
+
+; Maximum number of items in load/unload queue before we start rejecting loads
+; Note that we will only be rejecting load. Unloads will still be able to queue.
+LoadUnloadMaxQueueSize=100
+
+; Maximum number of (LSL) events that can be queued before new events are ignored.
+EventExecutionMaxQueueSize=300
+
+
 ; Async LL command sleep
 ; If no async LL commands are waiting, how long should thread sleep before checking again
 ; Async LL commands are LSL-commands that causes an event to be fired back with result

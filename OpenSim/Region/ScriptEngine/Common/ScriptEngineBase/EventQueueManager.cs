@@ -99,6 +99,8 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
         /// </summary>
         internal int numberOfThreads;
 
+        internal static int EventExecutionMaxQueueSize;
+
         /// <summary>
         /// Maximum time one function can use for execution before we perform a thread kill.
         /// </summary>
@@ -208,6 +210,7 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
             maxFunctionExecutionTimems = m_ScriptEngine.ScriptConfigSource.GetInt("MaxEventExecutionTimeMs", 5000);
             EnforceMaxExecutionTime = m_ScriptEngine.ScriptConfigSource.GetBoolean("EnforceMaxEventExecutionTime", false);
             KillScriptOnMaxFunctionExecutionTime = m_ScriptEngine.ScriptConfigSource.GetBoolean("DeactivateScriptOnTimeout", false);
+            EventExecutionMaxQueueSize = m_ScriptEngine.ScriptConfigSource.GetInt("EventExecutionMaxQueueSize", 300);
 
             // Now refresh config in all threads
             lock (eventQueueThreadsLock)
@@ -362,6 +365,13 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
         {
             lock (queueLock)
             {
+                if (eventQueue.Count >= EventExecutionMaxQueueSize)
+                {
+                    m_ScriptEngine.Log.Error(m_ScriptEngine.ScriptEngineName, "ERROR: Event execution queue item count is at " + eventQueue.Count + ". Config variable \"EventExecutionMaxQueueSize\" is set to " + EventExecutionMaxQueueSize + ", so ignoring new event.");
+                    m_ScriptEngine.Log.Error(m_ScriptEngine.ScriptEngineName, "Event ignored: localID: " + localID + ", itemID: " + itemID + ", FunctionName: " + FunctionName);
+                    return;
+                }
+
                 // Create a structure and add data
                 QueueItemStruct QIS = new QueueItemStruct();
                 QIS.localID = localID;

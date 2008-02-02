@@ -62,9 +62,11 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
         #region Declares
 
         private Thread scriptLoadUnloadThread;
+        private static Thread staticScriptLoadUnloadThread;
         private int scriptLoadUnloadThread_IdleSleepms;
         private Queue<LUStruct> LUQueue = new Queue<LUStruct>();
-
+        private static bool PrivateThread;
+        private int LoadUnloadMaxQueueSize;
 
         // Load/Unload structure
         private struct LUStruct
@@ -98,6 +100,8 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
         public void ReadConfig()
         {
             scriptLoadUnloadThread_IdleSleepms = m_scriptEngine.ScriptConfigSource.GetInt("ScriptLoadUnloadLoopms", 30);
+            PrivateThread = m_scriptEngine.ScriptConfigSource.GetBoolean("PrivateScriptLoadUnloadThread", false);
+            LoadUnloadMaxQueueSize = m_scriptEngine.ScriptConfigSource.GetInt("LoadUnloadMaxQueueSize", 100);
         }
 
         #region Object init/shutdown
@@ -107,14 +111,52 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
         public ScriptManager(ScriptEngineBase.ScriptEngine scriptEngine)
         {
             m_scriptEngine = scriptEngine;
-            // We should not read config during startup as ScriptEngine may not have config object yet
+        }
+        public void Start()
+        {
+            ReadConfig();
 
             AppDomain.CurrentDomain.AssemblyResolve += new ResolveEventHandler(CurrentDomain_AssemblyResolve);
-            scriptLoadUnloadThread = new Thread(ScriptLoadUnloadThreadLoop);
-            scriptLoadUnloadThread.Name = "ScriptLoadUnloadThread";
-            scriptLoadUnloadThread.IsBackground = true;
-            scriptLoadUnloadThread.Priority = ThreadPriority.BelowNormal;
-            scriptLoadUnloadThread.Start();
+
+            //
+            // CREATE THREAD
+            // Private or shared
+            //
+            if (PrivateThread)
+            {
+                // Assign one thread per region
+                scriptLoadUnloadThread = StartScriptLoadUnloadThread();
+            }
+            else
+            {
+                // Shared thread - make sure one exist, then assign it to the private
+                if (staticScriptLoadUnloadThread == null)
+                {
+                    staticScriptLoadUnloadThread = StartScriptLoadUnloadThread();
+                }
+                scriptLoadUnloadThread = staticScriptLoadUnloadThread;
+            }
+        }
+
+        private static int privateThreadCount = 0;
+        private Thread StartScriptLoadUnloadThread()
+        {
+            Thread t = new Thread(ScriptLoadUnloadThreadLoop);
+            string name = "ScriptLoadUnloadThread:";
+            if (PrivateThread)
+            {
+                name += "Private:" + privateThreadCount;
+                privateThreadCount++;
+            }
+            else
+            {
+                name += "Shared";
+            }
+            t.Name = name;
+            t.IsBackground = true;
+            t.Priority = ThreadPriority.Normal;
+            t.Start();
+            return t;
         }
 
         ~ScriptManager()
@@ -122,6 +164,8 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
             // Abort load/unload thread
             try
             {
+                PleaseShutdown = true;
+                Thread.Sleep(100);
                 if (scriptLoadUnloadThread != null)
                 {
                     if (scriptLoadUnloadThread.IsAlive == true)
@@ -148,6 +192,8 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
                 {
                     if (LUQueue.Count == 0)
                         Thread.Sleep(scriptLoadUnloadThread_IdleSleepms);
+                    if (PleaseShutdown)
+                        return;
                     if (LUQueue.Count > 0)
                     {
                         LUStruct item = LUQueue.Dequeue();
@@ -185,7 +231,7 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
 
         #endregion
 
-  
+
 
         #region Start/Stop/Reset script
 
@@ -198,6 +244,12 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
         /// <param name="localID"></param>
         public void StartScript(uint localID, LLUUID itemID, string Script)
         {
+            if (LUQueue.Count >= LoadUnloadMaxQueueSize)
+            {
+                m_scriptEngine.Log.Error(m_scriptEngine.ScriptEngineName, "ERROR: Load/unload queue item count is at " + LUQueue.Count + ". Config variable \"LoadUnloadMaxQueueSize\" is set to " + LoadUnloadMaxQueueSize + ", so ignoring new script.");
+                return;
+            }
+
             LUStruct ls = new LUStruct();
             ls.localID = localID;
             ls.itemID = itemID;
@@ -224,9 +276,8 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
         //private Compiler.LSL.Compiler LSLCompiler = new Compiler.LSL.Compiler();
 
         public abstract void _StartScript(uint localID, LLUUID itemID, string Script);
-
         public abstract void _StopScript(uint localID, LLUUID itemID);
-
+        
 
         #endregion
 

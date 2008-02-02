@@ -92,23 +92,26 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
             m_log = logger;
             ConfigSource = config;
             Log.Verbose(ScriptEngineName, "ScriptEngine initializing");
-            Log.Verbose(ScriptEngineName, "Reading configuration from config section \"" + ScriptEngineName + "\"");
 
             // Make sure we have config
             if (ConfigSource.Configs[ScriptEngineName] == null)
                 ConfigSource.AddConfig(ScriptEngineName);
             ScriptConfigSource = ConfigSource.Configs[ScriptEngineName];
 
+
             //m_logger.Status(ScriptEngineName, "InitializeEngine");
 
             // Create all objects we'll be using
             m_EventQueueManager = new EventQueueManager(this);
             m_EventManager = new EventManager(this, HookUpToServer);
+            // We need to start it
+            newScriptManager.Start();
             m_ScriptManager = newScriptManager;
             m_AppDomainManager = new AppDomainManager(this);
             m_ASYNCLSLCommandManager = new AsyncLSLCommandManager(this);
             m_MaintenanceThread = new MaintenanceThread(this);
 
+            Log.Verbose(ScriptEngineName, "Reading configuration from config section \"" + ScriptEngineName + "\"");
             ReadConfig();
 
 

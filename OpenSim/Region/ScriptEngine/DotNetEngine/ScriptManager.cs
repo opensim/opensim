@@ -86,7 +86,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
 
                 CompiledScript.Source = Script;
                 // Add it to our script memstruct
-                SetScript(localID, itemID, CompiledScript);
+                m_scriptEngine.m_ScriptManager.SetScript(localID, itemID, CompiledScript);
 
                 // We need to give (untrusted) assembly a private instance of BuiltIns
                 //  this private copy will contain Read-Only FullitemID so that it can bring that on to the server whenever needed.
@@ -144,9 +144,9 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
                 // Get AppDomain
                 AppDomain ad = LSLBC.Exec.GetAppDomain();
                 // Tell script not to accept new requests
-                GetScript(localID, itemID).Exec.StopScript();
+                m_scriptEngine.m_ScriptManager.GetScript(localID, itemID).Exec.StopScript();
                 // Remove from internal structure
-                RemoveScript(localID, itemID);
+                m_scriptEngine.m_ScriptManager.RemoveScript(localID, itemID);
                 // Tell AppDomain that we have stopped script
                 m_scriptEngine.m_AppDomainManager.StopScript(ad);
             }
