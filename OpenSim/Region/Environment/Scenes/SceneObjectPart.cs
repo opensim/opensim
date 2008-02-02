@@ -57,7 +57,18 @@ namespace OpenSim.Region.Environment.Scenes
         ALLOWED_DROP = 64,
         OWNER = 128
     }
-    
+    [Flags]
+    public enum TextureAnimFlags : byte
+    {
+        NONE = 0x00,
+        ANIM_ON = 0x01,
+        LOOP = 0x02,
+        REVERSE = 0x04,
+        PING_PONG = 0x08,
+        SMOOTH = 0x10,
+        ROTATE = 0x20,
+        SCALE = 0x40
+    }
 
     public partial class SceneObjectPart : IScriptHost
     {
@@ -1367,9 +1378,37 @@ namespace OpenSim.Region.Environment.Scenes
             UpdateTextureEntry(tex.ToBytes());
         }
 
+        public byte ConvertScriptUintToByte(uint indata)
+        {
+            byte outdata = (byte)TextureAnimFlags.NONE;
+            if ((indata & 1) != 0) outdata |= (byte)TextureAnimFlags.ANIM_ON;
+            if ((indata & 2) != 0) outdata |= (byte)TextureAnimFlags.LOOP;
+            if ((indata & 4) != 0) outdata |= (byte)TextureAnimFlags.REVERSE;
+            if ((indata & 8) != 0) outdata |= (byte)TextureAnimFlags.PING_PONG;
+            if ((indata & 16) != 0) outdata |= (byte)TextureAnimFlags.SMOOTH;
+            if ((indata & 32) != 0) outdata |= (byte)TextureAnimFlags.ROTATE;
+            if ((indata & 64) != 0) outdata |= (byte)TextureAnimFlags.SCALE;
+            return outdata;
+        }
+
         public void AddTextureAnimation(Primitive.TextureAnimation pTexAnim)
         {
-            m_TextureAnimation = pTexAnim.GetBytes();
+            byte[] data = new byte[16];
+            int pos = 0;
+
+            // The flags don't like conversion from uint to byte, so we have to do 
+            // it the crappy way.  See the above function :(
+
+            data[pos] = ConvertScriptUintToByte(pTexAnim.Flags); pos++;
+            data[pos] = (byte)pTexAnim.Face; pos++;
+            data[pos] = (byte)pTexAnim.SizeX; pos++;
+            data[pos] = (byte)pTexAnim.SizeX; pos++;
+
+            Helpers.FloatToBytes(0).CopyTo(data, pos);
+            Helpers.FloatToBytes(0).CopyTo(data, pos + 4);
+            Helpers.FloatToBytes(0.5f).CopyTo(data, pos + 8);
+
+            m_TextureAnimation = data;
         }
 
         #endregion

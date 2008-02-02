@@ -42,6 +42,7 @@ using OpenSim.Region.ScriptEngine.Common.ScriptEngineBase;
 
 namespace OpenSim.Region.ScriptEngine.Common
 {
+    
     /// <summary>
     /// Contains all LSL ll-functions. This class will be in Default AppDomain.
     /// </summary>
@@ -2005,16 +2006,24 @@ namespace OpenSim.Region.ScriptEngine.Common
             return String.Empty;
         }
 
+        
+
         public void llSetTextureAnim(int mode, int face, int sizex, int sizey, double start, double length, double rate)
         {
             Primitive.TextureAnimation pTexAnim = new Primitive.TextureAnimation();
-            pTexAnim.Flags = (uint)mode;
+            pTexAnim.Flags =(uint) mode;
+            
+            //ALL_SIDES
+            if (face == -1)
+                    face = 255;
+            
             pTexAnim.Face = (uint)face;
             pTexAnim.Length = (float)length;
             pTexAnim.Rate = (float)rate;
             pTexAnim.SizeX = (uint)sizex;
             pTexAnim.SizeY = (uint)sizey;
             pTexAnim.Start = (float)start;
+
             m_host.AddTextureAnimation(pTexAnim);
             m_host.SendFullUpdateToAllClients();
         }
