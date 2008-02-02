@@ -280,7 +280,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL
                                 ":End Class :End Namespace\r\n";
                     break;
             }
-            return CompileFromCSorVBText(Script, l);
+            return CompileFromCSorVBText(compileScript, l);
         }
 
         /// <summary>
