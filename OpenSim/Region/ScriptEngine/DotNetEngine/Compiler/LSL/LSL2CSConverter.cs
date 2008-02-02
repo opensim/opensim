@@ -289,36 +289,18 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL
 
             // Add namespace, class name and inheritance
 
-            Return = String.Empty +
-                     "using OpenSim.Region.ScriptEngine.Common; using System.Collections.Generic;";
-            //"using System; " +
-            //"using System.Collections.Generic; " +
-            //"using System.Text; " +
-            //"using OpenSim.Region.ScriptEngine.Common; " +
-            //"using integer = System.Int32; " +
-            //"using key = System.String; ";
+            Return = String.Empty;// +
+                     //"using OpenSim.Region.ScriptEngine.Common; using System.Collections.Generic;";
+  
 
-            //// Make a Using out of DataTypes
-            //// Using integer = System.Int32;
-            //string _val;
-            //foreach (string key in DataTypes.Keys)
-            //{
-            //    DataTypes.TryGetValue(key, out _val);
-            //    if (key != _val)
-            //    {
-            //        Return += "using " + key + " = " + _val + "; ";
-            //    }
-            //}
-
-
-            Return += String.Empty +
-                      "namespace SecondLife { ";
-            Return += String.Empty +
-                      //"[Serializable] " +
-                      "public class Script : OpenSim.Region.ScriptEngine.Common.LSL_BaseClass { ";
-            Return += @"public Script() { } ";
+            //Return += String.Empty +
+            //          "namespace SecondLife { ";
+            //Return += String.Empty +
+            //          //"[Serializable] " +
+            //          "public class Script : OpenSim.Region.ScriptEngine.Common.LSL_BaseClass { ";
+            //Return += @"public Script() { } ";
             Return += Script;
-            Return += "} }\r\n";
+            //Return += "} }\r\n";
 
 
             quotes.Clear();

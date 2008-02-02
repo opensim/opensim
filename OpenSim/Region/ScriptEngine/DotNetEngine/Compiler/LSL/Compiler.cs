@@ -107,19 +107,25 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL
             LanguageMapping.Add(enumCompileType.lsl.ToString(), enumCompileType.lsl);
 
             // Allowed compilers
-            string allowedCompilers = m_scriptEngine.ScriptConfigSource.GetString("AllowedCompilers", "lsl;cs;vb");
+            string allowComp = m_scriptEngine.ScriptConfigSource.GetString("AllowedCompilers", "lsl;cs;vb");
             AllowedCompilers.Clear();
-            foreach (string strl in allowedCompilers.Split(';'))
+
+#if DEBUG
+            m_scriptEngine.Log.Debug(m_scriptEngine.ScriptEngineName, "Allowed languages: " + allowComp);
+#endif
+
+
+            foreach (string strl in allowComp.Split(';'))
             {
                 string strlan = strl.Trim(" \t".ToCharArray()).ToLower();
                 if (!LanguageMapping.ContainsKey(strlan))
                 {
-                    m_scriptEngine.Log.Error(m_scriptEngine.ScriptEngineName, "Config error. Compiler is unable to recongnize language type \"" + strl + "\" specified in \"AllowedCompilers\".");
+                    m_scriptEngine.Log.Error(m_scriptEngine.ScriptEngineName, "Config error. Compiler is unable to recongnize language type \"" + strlan + "\" specified in \"AllowedCompilers\".");
                 }
                 else
                 {
 #if DEBUG
-                    m_scriptEngine.Log.Debug(m_scriptEngine.ScriptEngineName, "Config OK. Compiler recongnized language type \"" + strl + "\" specified in \"AllowedCompilers\".");
+                    m_scriptEngine.Log.Debug(m_scriptEngine.ScriptEngineName, "Config OK. Compiler recongnized language type \"" + strlan + "\" specified in \"AllowedCompilers\".");
 #endif
                 }
                 AllowedCompilers.Add(strlan, true);
@@ -228,19 +234,25 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL
             if (Script.StartsWith("//c#", true, CultureInfo.InvariantCulture))
                 l = enumCompileType.cs;
             if (Script.StartsWith("//vb", true, CultureInfo.InvariantCulture))
+            {
                 l = enumCompileType.vb;
+                // We need to remove //vb, it won't compile with that
+
+                Script = Script.Substring(4, Script.Length - 4);
+            }
             if (Script.StartsWith("//lsl", true, CultureInfo.InvariantCulture))
                 l = enumCompileType.lsl;
+
 
             if (!AllowedCompilers.ContainsKey(l.ToString()))
             {
                 // Not allowed to compile to this language!
                 string errtext = String.Empty;
                 errtext += "The compiler for language \"" + l.ToString() + "\" is not in list of allowed compilers. Script will not be executed!";
-                throw new Exception(errtext);
+                //throw new Exception(errtext);
             }
 
-            string compileScript;
+            string compileScript = Script;
 
             if (l == enumCompileType.lsl)
             {
@@ -257,7 +269,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL
                                 String.Empty + "namespace SecondLife { " +
                                 String.Empty + "public class Script : OpenSim.Region.ScriptEngine.Common.LSL_BaseClass { " +
                                 @"public Script() { } " +
-                                Script +
+                                compileScript +
                                 "} }\r\n";
                     break;
                 case enumCompileType.vb:
@@ -266,7 +278,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL
                                 String.Empty + "NameSpace SecondLife { " +
                                 String.Empty + "Public Class Script: Inherits OpenSim.Region.ScriptEngine.Common.LSL_BaseClass: " +
                                 @"Public Sub New(): End Sub: " +
-                                Script +
+                                compileScript +
                                 ":End Class :End Namespace\r\n";
                     break;
             }
