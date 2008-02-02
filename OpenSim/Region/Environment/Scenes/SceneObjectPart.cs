@@ -1404,9 +1404,9 @@ namespace OpenSim.Region.Environment.Scenes
             data[pos] = (byte)pTexAnim.SizeX; pos++;
             data[pos] = (byte)pTexAnim.SizeX; pos++;
 
-            Helpers.FloatToBytes(0).CopyTo(data, pos);
-            Helpers.FloatToBytes(0).CopyTo(data, pos + 4);
-            Helpers.FloatToBytes(0.5f).CopyTo(data, pos + 8);
+            Helpers.FloatToBytes(pTexAnim.Start).CopyTo(data, pos);
+            Helpers.FloatToBytes(pTexAnim.Length ).CopyTo(data, pos + 4);
+            Helpers.FloatToBytes(pTexAnim.Rate).CopyTo(data, pos + 8);
 
             m_TextureAnimation = data;
         }
