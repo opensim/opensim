@@ -60,6 +60,7 @@ property_map = {
     ".mdp" : textfile,
     ".mds" : textfile,
     ".nsi" : textfile,
+    ".pdb" : binary,
     ".php" : script,
     ".pidb" : binary,
     ".pl" : script,
