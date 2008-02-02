@@ -70,15 +70,20 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
         /// <summary>
         /// List of threads (classes) processing event queue
         /// </summary>
-        internal List<EventQueueThreadClass> eventQueueThreads;
+        internal List<EventQueueThreadClass> eventQueueThreads;                             // Thread pool that we work on
         /// <summary>
-        /// Global static list of threads (classes) processing event queue -- used by max enforcment thread
-        /// </summary>
-        private List<EventQueueThreadClass> staticGlobalEventQueueThreads;
-        /// <summary>
-        /// Locking access to eventQueueThreads AND staticGlobalEventQueueThreads. Note that this may or may not be static depending on PrivateRegionThreads config setting.
+        /// Locking access to eventQueueThreads AND staticGlobalEventQueueThreads.
+        /// Note that this may or may not be a reference to a static object depending on PrivateRegionThreads config setting.
         /// </summary>
         private object eventQueueThreadsLock;
+        // Static objects for referencing the objects above if we don't have private threads:
+        internal static List<EventQueueThreadClass> staticEventQueueThreads;                // A static reference used if we don't use private threads
+        internal static object staticEventQueueThreadsLock;                                 // Statick lock object reference for same reason
+
+        /// <summary>
+        /// Global static list of all threads (classes) processing event queue -- used by max enforcment thread
+        /// </summary>
+        private List<EventQueueThreadClass> staticGlobalEventQueueThreads = new List<EventQueueThreadClass>();
 
         /// <summary>
         /// Used internally to specify how many threads should exit gracefully
@@ -86,8 +91,6 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
         public int ThreadsToExit;
         public object ThreadsToExitLock = new object();
 
-        private static List<EventQueueThreadClass> staticEventQueueThreads;// = new List<EventQueueThreadClass>();
-        private static object staticEventQueueThreadsLock;// = new object();
 
         public object queueLock = new object(); // Mutex lock object
 
