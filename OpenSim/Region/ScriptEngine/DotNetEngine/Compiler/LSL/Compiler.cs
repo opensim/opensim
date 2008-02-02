@@ -99,8 +99,8 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL
             }
 
             LanguageMapping.Add("cs", enumCompileType.cs);
-            LanguageMapping.Add("vb", enumCompileType.lsl);
-            LanguageMapping.Add("lsl", enumCompileType.vb);
+            LanguageMapping.Add("vb", enumCompileType.vb);
+            LanguageMapping.Add("lsl", enumCompileType.lsl);
 
             // Allowed compilers
             string allowedCompilers = m_scriptEngine.ScriptConfigSource.GetString("AllowedCompilers", "lsl;cs;vb");
@@ -158,7 +158,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL
 
             foreach (string file in Directory.GetFiles(ScriptEnginesPath))
             {
-                m_scriptEngine.Log.Error(m_scriptEngine.ScriptEngineName, "FILE FOUND: " + file);
+                //m_scriptEngine.Log.Error(m_scriptEngine.ScriptEngineName, "FILE FOUND: " + file);
 
                 if (file.ToLower().StartsWith(FilePrefix + "_compiled_") ||
                     file.ToLower().StartsWith(FilePrefix + "_source_"))
