@@ -343,7 +343,14 @@ namespace OpenSim.Framework.Data.MySQL
 		// for the UUID of the region's owner (master avatar)
 		// 
 		//retval.owner_uuid = (string) reader["owner_uuid"];
-        retval.owner_uuid = new LLUUID((string)reader["owner_uuid"]);
+                try
+                {
+                    retval.owner_uuid = new LLUUID((string)reader["owner_uuid"]);
+                }
+                catch
+                {
+                    retval.owner_uuid = LLUUID.Zero;
+                }
         //
 		// end of daTwitch's mods to this file
             }
