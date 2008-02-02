@@ -1727,6 +1727,14 @@ namespace OpenSim.Region.Environment.Scenes
             }
         }
 
+        public void SendDialogToUser(LLUUID avatarID, string objectName, LLUUID objectID, LLUUID ownerID,string message,LLUUID TextureID,int ch,string[] buttonlabels)
+        {
+            if (m_scenePresences.ContainsKey(avatarID))
+            {
+                m_scenePresences[avatarID].ControllingClient.SendDialog(objectName,objectID,ownerID,message,TextureID,ch,buttonlabels);
+            }
+        }
+
         /// <summary>
         /// 
         /// </summary>

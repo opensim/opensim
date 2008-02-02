@@ -1299,10 +1299,28 @@ namespace OpenSim.Region.ClientStack
             loadURL.Data.OwnerIsGroup = groupOwned;
             loadURL.Data.Message = Helpers.StringToField(message);
             loadURL.Data.URL = Helpers.StringToField(url);
-
             OutPacket(loadURL, ThrottleOutPacketType.Task);
         }
 
+        public void SendDialog(string objectname, LLUUID objectID, LLUUID ownerID, string msg, LLUUID textureID, int ch, string[] buttonlabels)
+        {
+            ScriptDialogPacket dialog = (ScriptDialogPacket)PacketPool.Instance.GetPacket(PacketType.ScriptDialog);
+            dialog.Data.ObjectID = objectID;
+            dialog.Data.ObjectName = Helpers.StringToField(objectname);
+            dialog.Data.FirstName = Helpers.StringToField(this.FirstName);
+            dialog.Data.LastName = Helpers.StringToField(this.LastName);
+            dialog.Data.Message = Helpers.StringToField(msg);
+            dialog.Data.ImageID = textureID;
+            dialog.Data.ChatChannel = ch;
+            ScriptDialogPacket.ButtonsBlock[] buttons = new ScriptDialogPacket.ButtonsBlock[buttonlabels.Length];
+            for (int i = 0; i < buttonlabels.Length; i++)
+            {
+                buttons[i] = new ScriptDialogPacket.ButtonsBlock();
+                buttons[i].ButtonLabel = Helpers.StringToField(buttonlabels[i]);
+            }
+            dialog.Buttons = buttons;
+            OutPacket(dialog, ThrottleOutPacketType.Task);
+        }
 
         public void SendPreLoadSound(LLUUID objectID, LLUUID ownerID, LLUUID soundID)
         {
@@ -2614,6 +2632,23 @@ namespace OpenSim.Region.ClientStack
                             args.Scene = Scene;
                             args.Sender = this;
 
+                            OnChatFromViewer(this, args);
+                        }
+                        break;
+                    case PacketType.ScriptDialogReply:
+                        ScriptDialogReplyPacket rdialog = (ScriptDialogReplyPacket)Pack;
+                        int ch = rdialog.Data.ChatChannel;
+                        byte[] msg = rdialog.Data.ButtonLabel;
+                        if (OnChatFromViewer != null)
+                        {
+                            ChatFromViewerArgs args = new ChatFromViewerArgs();
+                            args.Channel = ch;
+                            args.From = String.Empty;
+                            args.Message = Helpers.FieldToUTF8String(msg);
+                            args.Type = ChatTypeEnum.Shout;
+                            args.Position = new LLVector3();
+                            args.Scene = Scene;
+                            args.Sender = this;
                             OnChatFromViewer(this, args);
                         }
                         break;

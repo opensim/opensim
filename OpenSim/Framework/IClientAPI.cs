@@ -609,6 +609,7 @@ namespace OpenSim.Framework
 
         void SendAgentAlertMessage(string message, bool modal);
         void SendLoadURL(string objectname, LLUUID objectID, LLUUID ownerID, bool groupOwned, string message, string url);
+        void SendDialog(string objectname, LLUUID objectID, LLUUID ownerID, string msg, LLUUID textureID, int ch, string[] buttonlabels);
         bool AddMoney(int debit);
 
         void SendSunPos(LLVector3 sunPos, LLVector3 sunVel);

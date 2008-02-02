@@ -320,6 +320,10 @@ namespace SimpleApp
         {
         }
 
+        public virtual void SendDialog(string objectname, LLUUID objectID, LLUUID ownerID, string msg, LLUUID textureID, int ch, string[] buttonlabels)
+        {
+        }
+
         public virtual void SendPrimitiveToClient(ulong regionHandle, ushort timeDilation, uint localID,
                                                   PrimitiveBaseShape primShape, LLVector3 pos, uint flags,
                                                   LLUUID objectID, LLUUID ownerID, string text, byte[] color,

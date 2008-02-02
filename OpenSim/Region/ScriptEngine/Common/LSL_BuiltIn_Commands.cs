@@ -2487,7 +2487,19 @@ namespace OpenSim.Region.ScriptEngine.Common
 
         public void llDialog(string avatar, string message, LSL_Types.list buttons, int chat_channel)
         {
-            NotImplemented("llDialog");
+            LLUUID av = new LLUUID();
+            if (!LLUUID.TryParse(avatar,out av))
+            {
+                LSLError("First parameter to llDialog needs to be a key");
+                return;
+            }
+            string[] buts = new string[buttons.Length];
+            for(int i = 0; i < buttons.Length; i++)
+            {
+                buts[i] = buttons.Data[i].ToString();
+            }
+            World.SendDialogToUser(av, m_host.Name, m_host.UUID, m_host.OwnerID, message, new LLUUID("00000000-0000-2222-3333-100000001000"), chat_channel, buts);
+            //NotImplemented("llDialog");
         }
 
         public void llVolumeDetect(int detect)
