@@ -61,10 +61,10 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
         /// How many seconds between re-reading config-file. 0 = never. ScriptEngine will try to adjust to new config changes.
         /// </summary>
         public int RefreshConfigFileSeconds {
-            get { return (int)(RefreshConfigFilens / 10000); }
-            set { RefreshConfigFilens = value * 10000; }
+            get { return (int)(RefreshConfigFilens / 10000000); }
+            set { RefreshConfigFilens = value * 10000000; }
         }
-        public long RefreshConfigFilens = 0;
+        public long RefreshConfigFilens;
 
         public ScriptManager GetScriptManager()
         {
@@ -131,9 +131,9 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
         }
         public void ReadConfig()
         {
-#if DEBUG
-            Log.Debug(ScriptEngineName, "Refreshing configuration for all modules");
-#endif
+//#if DEBUG
+//            Log.Debug(ScriptEngineName, "Refreshing configuration for all modules");
+//#endif
             RefreshConfigFileSeconds = ScriptConfigSource.GetInt("RefreshConfig", 30);
 
             // Reload from disk? No!

@@ -90,12 +90,12 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
                 m_ScriptEngine.Log.Warn(m_ScriptEngine.ScriptEngineName,
                     "Configuration error: MaxEventExecutionTimeMs is less than MaintenanceLoopms. The Maintenance Loop will only check scripts once per run.");
 
+            long Last_maxFunctionExecutionTimens = 0; // DateTime.Now.Ticks;
+            long Last_ReReadConfigFilens = DateTime.Now.Ticks;
             while (true)
             {
                 try
                 {
-                    long Last_maxFunctionExecutionTimens = 0; // DateTime.Now.Ticks;
-                    long Last_ReReadConfigFilens = DateTime.Now.Ticks;
                     while (true)
                     {
                         System.Threading.Thread.Sleep(MaintenanceLoopms); // Sleep before next pass
@@ -107,11 +107,12 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
                             //
                             // Re-reading config every x seconds
                             //
-                            if (m_ScriptEngine.RefreshConfigFileSeconds > 0)
+                            if (m_ScriptEngine.RefreshConfigFilens > 0)
                             {
                                 // Check if its time to re-read config
                                 if (DateTime.Now.Ticks - Last_ReReadConfigFilens > m_ScriptEngine.RefreshConfigFilens)
                                 {
+                                    //Console.WriteLine("Time passed: " + (DateTime.Now.Ticks - Last_ReReadConfigFilens) + ">" + m_ScriptEngine.RefreshConfigFilens );
                                     // Its time to re-read config file
                                     m_ScriptEngine.ReadConfig();
                                     Last_ReReadConfigFilens = DateTime.Now.Ticks; // Reset time

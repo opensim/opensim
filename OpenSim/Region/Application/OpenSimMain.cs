@@ -720,8 +720,8 @@ namespace OpenSim
                     m_log.Error("show modules - shows info aboutloaded modules.");
                     m_log.Error("stats - statistical information for this server not displayed in the client");
                     m_log.Error("shutdown - disconnect all clients and shutdown.");
-                    m_log.Error("config set category field value - set a config value");
-                    m_log.Error("config get category field - get a config value");
+                    m_log.Error("config set section field value - set a config value");
+                    m_log.Error("config get section field - get a config value");
                     m_log.Error("config save - save OpenSim.ini");
                     m_log.Error("terrain help - show help for terrain commands.");
                     break;
