@@ -81,6 +81,8 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL
         public bool in_startup = true;
         public void ReadConfig()
         {
+
+            // Get some config
             WriteScriptSourceToDebugFile = m_scriptEngine.ScriptConfigSource.GetBoolean("WriteScriptSourceToDebugFile", true);
             CompileWithDebugInformation = m_scriptEngine.ScriptConfigSource.GetBoolean("CompileWithDebugInformation", true);
             CleanUpOldScriptsOnStartup = m_scriptEngine.ScriptConfigSource.GetBoolean("CleanUpOldScriptsOnStartup", true);
@@ -91,16 +93,18 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL
             {
                 FilePrefix = FilePrefix.Replace(c, '_');
             }
-            // First time we start?
+
+            // First time we start? Delete old files
             if (in_startup)
             {
                 in_startup = false;
                 DeleteOldFiles();
             }
 
-            LanguageMapping.Add("cs", enumCompileType.cs);
-            LanguageMapping.Add("vb", enumCompileType.vb);
-            LanguageMapping.Add("lsl", enumCompileType.lsl);
+            // Map name and enum type of our supported languages
+            LanguageMapping.Add(enumCompileType.cs.ToString(), enumCompileType.cs);
+            LanguageMapping.Add(enumCompileType.vb.ToString(), enumCompileType.vb);
+            LanguageMapping.Add(enumCompileType.lsl.ToString(), enumCompileType.lsl);
 
             // Allowed compilers
             string allowedCompilers = m_scriptEngine.ScriptConfigSource.GetString("AllowedCompilers", "lsl;cs;vb");
@@ -112,6 +116,12 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL
                 {
                     m_scriptEngine.Log.Error(m_scriptEngine.ScriptEngineName, "Config error. Compiler is unable to recongnize language type \"" + strl + "\" specified in \"AllowedCompilers\".");
                 }
+                else
+                {
+#if DEBUG
+                    m_scriptEngine.Log.Debug(m_scriptEngine.ScriptEngineName, "Config OK. Compiler recongnized language type \"" + strl + "\" specified in \"AllowedCompilers\".");
+#endif
+                }
                 AllowedCompilers.Add(strlan, true);
             }
             if (AllowedCompilers.Count == 0)
@@ -122,7 +132,11 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL
 
             // Is this language recognized at all?
             if (!LanguageMapping.ContainsKey(defaultCompileLanguage))
-                m_scriptEngine.Log.Error(m_scriptEngine.ScriptEngineName, "Config error. Default language specified in \"DefaultCompileLanguage\" is not recognized as a valid language. Scripts may not be executed!");
+            {
+                m_scriptEngine.Log.Error(m_scriptEngine.ScriptEngineName,
+                                         "Config error. Default language \"" + defaultCompileLanguage + "\" specified in \"DefaultCompileLanguage\" is not recognized as a valid language. Changing default to: \"lsl\".");
+                defaultCompileLanguage = "lsl";
+            }
 
             // Is this language in allow-list?
             if (!AllowedCompilers.ContainsKey(defaultCompileLanguage))
@@ -132,6 +146,10 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL
             }
             else
             {
+#if DEBUG
+                m_scriptEngine.Log.Debug(m_scriptEngine.ScriptEngineName,
+                         "Config OK. Default language \"" + defaultCompileLanguage + "\" specified in \"DefaultCompileLanguage\" is recognized as a valid language.");
+#endif
                 // LANGUAGE IS IN ALLOW-LIST
                 DefaultCompileLanguage = LanguageMapping[defaultCompileLanguage];
             }
@@ -140,6 +158,9 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL
 
         }
 
+        /// <summary>
+        /// Delete old script files
+        /// </summary>
         private void DeleteOldFiles()
         {
 
@@ -227,10 +248,27 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL
                 compileScript = LSL_Converter.Convert(Script);
                 l = enumCompileType.cs;
             }
-            else
+
+            switch (l)
             {
-                // We don't need to convert
-                compileScript = Script;
+                case enumCompileType.cs:
+                    compileScript = String.Empty +
+                                "using OpenSim.Region.ScriptEngine.Common; using System.Collections.Generic;" +
+                                String.Empty + "namespace SecondLife { " +
+                                String.Empty + "public class Script : OpenSim.Region.ScriptEngine.Common.LSL_BaseClass { " +
+                                @"public Script() { } " +
+                                Script +
+                                "} }\r\n";
+                    break;
+                case enumCompileType.vb:
+                    compileScript = String.Empty +
+                                "Imports OpenSim.Region.ScriptEngine.Common: Imports System.Collections.Generic: " +
+                                String.Empty + "NameSpace SecondLife { " +
+                                String.Empty + "Public Class Script: Inherits OpenSim.Region.ScriptEngine.Common.LSL_BaseClass: " +
+                                @"Public Sub New(): End Sub: " +
+                                Script +
+                                ":End Class :End Namespace\r\n";
+                    break;
             }
             return CompileFromCSorVBText(Script, l);
         }

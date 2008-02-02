@@ -41,6 +41,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
             : base(scriptEngine)
         {
             base.m_scriptEngine = scriptEngine;
+
         }
 
         // KEEP TRACK OF SCRIPTS <int id, whatever script>
@@ -57,7 +58,9 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
 
             // First time start? Lets fire up our compiler...
             if (LSLCompiler == null)
+            {
                 LSLCompiler = new Compiler.LSL.Compiler(m_scriptEngine);
+            }
 
             //IScriptHost root = host.GetRoot();
 
