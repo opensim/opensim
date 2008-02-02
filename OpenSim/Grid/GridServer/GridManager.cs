@@ -544,6 +544,7 @@ namespace OpenSim.Grid.GridServer
             IList simProfileList = new ArrayList();
 
             bool fastMode = false; // MySQL Only
+            fastMode = (config.DatabaseProvider == "OpenSim.Framework.Data.MySQL.dll");
 
             if (fastMode)
             {
