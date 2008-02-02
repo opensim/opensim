@@ -134,14 +134,14 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
 #if DEBUG
             Log.Debug(ScriptEngineName, "Refreshing configuration for all modules");
 #endif
-            RefreshConfigFileSeconds = ScriptConfigSource.GetInt("RefreshConfig", 0);
+            RefreshConfigFileSeconds = ScriptConfigSource.GetInt("RefreshConfig", 30);
 
-            // Reload from disk
+            // Reload from disk? No!
             //ConfigSource.Reload();
-            if (File.Exists(OpenSim.Application.iniFilePath))
-            {
-                //ConfigSource.Merge(new IniConfigSource(OpenSim.Application.iniFilePath));
-            }
+            //if (File.Exists(OpenSim.Application.iniFilePath))
+            //{
+            //    //ConfigSource.Merge(new IniConfigSource(OpenSim.Application.iniFilePath));
+            //}
         
 
         // Create a new object (probably not necessary?)

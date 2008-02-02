@@ -720,6 +720,9 @@ namespace OpenSim
                     m_log.Error("show modules - shows info aboutloaded modules.");
                     m_log.Error("stats - statistical information for this server not displayed in the client");
                     m_log.Error("shutdown - disconnect all clients and shutdown.");
+                    m_log.Error("config set category field value - set a config value");
+                    m_log.Error("config get category field - get a config value");
+                    m_log.Error("config save - save OpenSim.ini");
                     m_log.Error("terrain help - show help for terrain commands.");
                     break;
 
@@ -911,8 +914,66 @@ namespace OpenSim
                         MainLog.Instance.Notice("STATS", "Extra statistics collection has not been enabled");
                     }
                     break;
-                
 
+                case "config":
+                    string n = command.ToUpper();
+                    if (cmdparams.Length > 0)
+                    {
+                        switch (cmdparams[0].ToLower())
+                        {
+                            case "set":
+                                if (cmdparams.Length < 4)
+                                {
+                                    MainLog.Instance.Notice(n, "SYNTAX: " + n + " SET SECTION KEY VALUE");
+                                    MainLog.Instance.Notice(n, "EXAMPLE: " + n + " SET ScriptEngine.DotNetEngine NumberOfScriptThreads 5");
+                                }
+                                else
+                                {
+                                    IConfig c = DefaultConfig().Configs[cmdparams[1]];
+                                    if (c == null)
+                                        c = DefaultConfig().AddConfig(cmdparams[1]);
+                                    string _value = String.Join(" ", cmdparams, 3, cmdparams.Length - 3);
+                                    c.Set(cmdparams[2], _value);
+                                    m_config.Merge(c.ConfigSource);
+                                    
+                                        MainLog.Instance.Notice(n,
+                                                                n + " " + n + " " + cmdparams[1] + " " + cmdparams[2] + " " +
+                                                                _value);
+                                }
+                                break;
+                            case "get":
+                                if (cmdparams.Length < 3)
+                                {
+                                    MainLog.Instance.Notice(n, "SYNTAX: " + n + " GET SECTION KEY");
+                                    MainLog.Instance.Notice(n, "EXAMPLE: " + n + " GET ScriptEngine.DotNetEngine NumberOfScriptThreads");
+                                }
+                                else
+                                {
+                                    IConfig c = DefaultConfig().Configs[cmdparams[1]];
+                                    if (c == null)
+                                    {
+                                        MainLog.Instance.Notice(n, "Section \"" + cmdparams[1] + "\" does not exist.");
+                                        break;
+                                    }
+                                    else
+                                    {
+                                        MainLog.Instance.Notice(n,
+                                                                n + " GET " + cmdparams[1] + " " + cmdparams[2] + ": " +
+                                                                c.GetString(cmdparams[2]));
+                                    }
+                                }
+
+                                break;
+                            case "save":
+                                MainLog.Instance.Notice(n, "Saving configuration file: " + Application.iniFilePath);
+                                m_config.Save(Application.iniFilePath);
+                                break;
+                        }
+                    }
+                    else
+                    {
+                    }
+                    break;
                 default:
                     m_log.Error("Unknown command");
                     break;

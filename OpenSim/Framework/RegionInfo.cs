@@ -310,7 +310,7 @@ namespace OpenSim.Framework
                                                 NetworkServersInfo.DefaultHttpListenerPort.ToString(), false);
             configMember.addConfigurationOption("allow_alternate_ports", ConfigurationOption.ConfigurationTypes.TYPE_BOOLEAN,
                                                 "Allow sim to find alternate UDP ports when ports are in use?",
-                                                "false", false);
+                                                "false", true);
             configMember.addConfigurationOption("external_host_name",
                                                 ConfigurationOption.ConfigurationTypes.TYPE_STRING_NOT_EMPTY,
                                                 "External Host Name", "127.0.0.1", false);

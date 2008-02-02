@@ -257,7 +257,7 @@ namespace OpenSim.Region.ClientStack
         {
 
             uint newPort = listenPort;
-            for (uint i = 0; i < 10; i++)
+            for (uint i = 0; i < 20; i++)
             {
                 newPort = listenPort + i;
                 m_log.Verbose("SERVER", "Opening UDP socket on " + listenIP.ToString() + " " + newPort + ". Allow alternate ports: " + Allow_Alternate_Port.ToString());

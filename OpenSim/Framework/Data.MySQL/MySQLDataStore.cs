@@ -415,11 +415,12 @@ namespace OpenSim.Framework.Data.MySQL
             }
         }
 
+        static Random rnd = new Random();
         public void StoreLandObject(Land parcel, LLUUID regionUUID)
         {
             // Does the new locking fix it?
-            //MainLog.Instance.Verbose("DATASTORE", "Tedds temp fix: Waiting 3 seconds for stuff to catch up. (Someone please fix! :))");
-            //System.Threading.Thread.Sleep(3000);
+            MainLog.Instance.Verbose("DATASTORE", "Tedds temp fix: Waiting 3 seconds for stuff to catch up. (Someone please fix! :))");
+            System.Threading.Thread.Sleep(2500 + rnd.Next(300, 900));
             
             lock (DBAccessLock)
             {
@@ -1469,7 +1470,16 @@ namespace OpenSim.Framework.Data.MySQL
 
             if (conn.State != ConnectionState.Open)
             {
-                conn.Open();
+                try
+                {
+                    conn.Open();
+                }
+                catch (Exception ex)
+                {
+                    MainLog.Instance.Error("MySql", "Error connecting to MySQL server: " + ex.Message);
+                    MainLog.Instance.Error("MySql", "Application is terminating!");
+                    System.Threading.Thread.CurrentThread.Abort();
+                }
             }
 
             try
