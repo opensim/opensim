@@ -273,7 +273,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL
                 case enumCompileType.vb:
                     compileScript = String.Empty +
                                 "Imports OpenSim.Region.ScriptEngine.Common: Imports System.Collections.Generic: " +
-                                String.Empty + "NameSpace SecondLife { " +
+                                String.Empty + "NameSpace SecondLife:" +
                                 String.Empty + "Public Class Script: Inherits OpenSim.Region.ScriptEngine.Common.LSL_BaseClass: " +
                                 @"Public Sub New(): End Sub: " +
                                 compileScript +
