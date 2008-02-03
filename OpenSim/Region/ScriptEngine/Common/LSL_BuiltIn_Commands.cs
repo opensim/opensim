@@ -245,17 +245,17 @@ namespace OpenSim.Region.ScriptEngine.Common
 
         public LSL_Types.Vector3 llRot2Fwd(LSL_Types.Quaternion r)
         {
-            return new LSL_Types.Vector3();
+            return (new LSL_Types.Vector3(1,0,0) * r);
         }
 
         public LSL_Types.Vector3 llRot2Left(LSL_Types.Quaternion r)
         {
-            return new LSL_Types.Vector3();
+            return (new LSL_Types.Vector3(0, 1, 0) * r);
         }
 
         public LSL_Types.Vector3 llRot2Up(LSL_Types.Quaternion r)
         {
-            return new LSL_Types.Vector3();
+            return (new LSL_Types.Vector3(0, 0, 1) * r);
         }
         public LSL_Types.Quaternion llRotBetween(LSL_Types.Vector3 a, LSL_Types.Vector3 b)
         {

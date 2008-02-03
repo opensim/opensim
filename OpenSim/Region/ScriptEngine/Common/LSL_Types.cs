@@ -80,6 +80,11 @@ namespace OpenSim.Region.ScriptEngine.Common
                 return "<" + x.ToString() + ", " + y.ToString() + ", " + z.ToString() + ">";
             }
 
+            public static explicit operator string(Vector3 vec)
+            {
+                return "<" + vec.x.ToString() + ", " + vec.y.ToString() + ", " + vec.z.ToString() + ">";
+            }
+
             public static bool operator ==(Vector3 lhs, Vector3 rhs)
             {
                 return (lhs.x == rhs.x && lhs.y == rhs.y && lhs.z == rhs.z);
