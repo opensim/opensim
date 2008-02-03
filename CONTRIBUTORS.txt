@@ -19,7 +19,7 @@ OpenSim Developers
 * justincc (International Business Machines Corp.)
 * Teravus (w3z)
 * Johan Berntsson (3Di)
-* Ckrinke
+* Ckrinke (Charles Krinke)
 * Danx0r
 * Dalien
 * Darok
@@ -33,6 +33,7 @@ Patches
 * CharlieO
 * jhurliman (LLSD Login)
 * kinoc
+* daTwitch 
 
 LSL Devs
 
