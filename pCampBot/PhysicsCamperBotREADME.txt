@@ -6,7 +6,11 @@ It creates <N> clients that log in, randomly jump/walk around, and say excuses f
 **Warning:** Using this bot on a public grid could get you banned perminantly, so just say No! to greifing!
 
 -----Setup -----
-Run the prebuilds for it IN THIS FOLDER and then open the created solution and compile it.  It will end up in the regular opensim bin folder.
+Linux: chmod the .sh runprebuild file, run it and then delete the pCampBot.exe.build file.   nant, and it'll end up in the OpenSim/Bin folder
+
+Windows:
+Run the prebuild bat IN THIS FOLDER and then open the created solution and compile it.  the Exe file will end up in the regular opensim bin folder.
+
 
 -----Running the bot----
 
@@ -19,3 +23,10 @@ ex: pCampBot.exe -botcount <N> -loginuri <URI> -lastname <lastname>
 If you specify both a firstname *and* a lastname, you'll likely run into trouble unless you're only running a single bot.  In that case, there's also a password option.
 
 pCampBot.exe -botcount 1 -loginuri http://somegrid.com:8002 -firstname SomeDude -lastname SomeDude -password GobbleDeGook
+-------
+
+The bot also has console commands
+help - lists the console commands and what they do
+shutdown - gracefully shuts down the bots
+quit - forcefully shuts things down leaving stuff unclean
+addbots N - adds N number of random bots.  (replace 'N' with a number)
