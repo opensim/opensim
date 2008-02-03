@@ -87,7 +87,7 @@ CREATE TABLE land(
         Bitmap blob,
         Name varchar(255),
         Desc varchar(255),
-        OwnerUUID varchar(255),
+        OwnerUUID varchar(36),
         IsGroupOwned string,
         Area integer,
         AuctionID integer,
