@@ -1088,17 +1088,33 @@ namespace OpenSim.Region.Environment.Scenes
                              (m_movementflag & (uint) AgentManager.ControlFlags.AGENT_CONTROL_UP_POS) != 0)
                     {
                         // Client is moving, and colliding and pressing the page up button but isn't flying
-                        SetMovementAnimation(Animations.AnimsLLUUID["JUMP"], 1);
+                        try
+                        {
+                            SetMovementAnimation(Animations.AnimsLLUUID["JUMP"], 1);
+                        }
+                        catch (KeyNotFoundException)
+                        { }
                     }
                     else if (m_setAlwaysRun)
                     {
                         // We are running
-                        SetMovementAnimation(Animations.AnimsLLUUID["RUN"], 1);
+                        try
+                        {
+                            SetMovementAnimation(Animations.AnimsLLUUID["RUN"], 1);
+                        }
+                        catch (KeyNotFoundException)
+                        { }
                     }
                     else
                     {
                         // We're moving, but we're not doing anything else..   so play the stand animation
-                        SetMovementAnimation(Animations.AnimsLLUUID["WALK"], 1);
+                        try
+                        {
+                            SetMovementAnimation(Animations.AnimsLLUUID["WALK"], 1);
+                        }
+                        catch (KeyNotFoundException)
+                        { }
+
                     }
                 }
                 else
@@ -1130,7 +1146,13 @@ namespace OpenSim.Region.Environment.Scenes
                     else
                     {
                         // We're not moving..   and we're not doing anything..   so play the stand animation
-                        SetMovementAnimation(Animations.AnimsLLUUID["STAND"], 1);
+                        try
+                        {
+
+                            SetMovementAnimation(Animations.AnimsLLUUID["STAND"], 1);
+                        }
+                        catch (KeyNotFoundException)
+                        { }
                     }
                 }
             }
@@ -1181,8 +1203,13 @@ namespace OpenSim.Region.Environment.Scenes
                         direc.z *= 3;
                         //System.Console.WriteLine("Jump");
                         // PreJump and jump happen too quickly.  Many times prejump gets ignored.
-                        SetMovementAnimation(Animations.AnimsLLUUID["PREJUMP"], 1);
-                        SetMovementAnimation(Animations.AnimsLLUUID["JUMP"], 1);
+                        try
+                        {
+                            SetMovementAnimation(Animations.AnimsLLUUID["PREJUMP"], 1);
+                            SetMovementAnimation(Animations.AnimsLLUUID["JUMP"], 1);
+                        }
+                        catch (KeyNotFoundException)
+                        { }
                     }
                 }
             }
