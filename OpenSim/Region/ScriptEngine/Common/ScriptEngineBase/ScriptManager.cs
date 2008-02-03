@@ -100,7 +100,8 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
         public void ReadConfig()
         {
             scriptLoadUnloadThread_IdleSleepms = m_scriptEngine.ScriptConfigSource.GetInt("ScriptLoadUnloadLoopms", 30);
-            PrivateThread = m_scriptEngine.ScriptConfigSource.GetBoolean("PrivateScriptLoadUnloadThread", false);
+            // TODO: Requires sharing of all ScriptManagers to single thread
+            PrivateThread = true; // m_scriptEngine.ScriptConfigSource.GetBoolean("PrivateScriptLoadUnloadThread", false);
             LoadUnloadMaxQueueSize = m_scriptEngine.ScriptConfigSource.GetInt("LoadUnloadMaxQueueSize", 100);
         }
 

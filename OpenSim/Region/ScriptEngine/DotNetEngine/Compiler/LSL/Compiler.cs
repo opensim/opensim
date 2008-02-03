@@ -349,7 +349,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL
             parameters.GenerateExecutable = false;
             parameters.OutputAssembly = OutFile;
             parameters.IncludeDebugInformation = CompileWithDebugInformation;
-            parameters.WarningLevel = 1; // Should be 4?
+            //parameters.WarningLevel = 1; // Should be 4?
             parameters.TreatWarningsAsErrors = false;
 
             CompilerResults results;

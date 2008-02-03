@@ -175,7 +175,8 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
         {
             m_ScriptEngine = _ScriptEngine;
 
-            bool PrivateRegionThreads = m_ScriptEngine.ScriptConfigSource.GetBoolean("PrivateRegionThreads", false);
+            // TODO: We need to move from single EventQueueManager to list of it in to share threads
+            bool PrivateRegionThreads = true; // m_ScriptEngine.ScriptConfigSource.GetBoolean("PrivateRegionThreads", false);
 
             // Create thread pool list and lock object
             // Determine from config if threads should be dedicated to regions or shared
