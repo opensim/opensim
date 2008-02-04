@@ -43,22 +43,18 @@ namespace OpenSim.Grid.AssetServer
     {
         private OpenAsset_Main m_assetManager;
         private IAssetProvider m_assetProvider;
-        private AssetStatsReporter m_stats;
 
         /// <summary>
         /// Constructor.
         /// </summary>
         /// <param name="assetManager"></param>
         /// <param name="assetProvider"></param>
-        /// <param name="stats">Can be null if stats collection isn't required</param>
-        public GetAssetStreamHandler(OpenAsset_Main assetManager, IAssetProvider assetProvider,
-                                     AssetStatsReporter stats)
+        public GetAssetStreamHandler(OpenAsset_Main assetManager, IAssetProvider assetProvider)
             : base("GET", "/assets")
         {
             MainLog.Instance.Verbose("REST", "In Get Request");
             m_assetManager = assetManager;
             m_assetProvider = assetProvider;
-            m_stats = stats;
         }
         
         public override byte[] Handle(string path, Stream request)
@@ -80,8 +76,8 @@ namespace OpenSim.Grid.AssetServer
                         return result;
                     }   
     
-                    if (m_stats != null)
-                        m_stats.AddRequest();
+                    if (StatsManager.AssetStats != null)
+                        StatsManager.AssetStats.AddRequest();
                     
                     AssetBase asset = m_assetProvider.FetchAsset(assetID);
                     if (asset != null)
@@ -107,8 +103,8 @@ namespace OpenSim.Grid.AssetServer
                     }
                     else
                     {
-                        if (m_stats != null)
-                            m_stats.AddNotFoundRequest();
+                        if (StatsManager.AssetStats != null)
+                            StatsManager.AssetStats.AddNotFoundRequest();
                         
                         MainLog.Instance.Verbose("REST", "GET:/asset failed to find {0}", assetID);
                     }

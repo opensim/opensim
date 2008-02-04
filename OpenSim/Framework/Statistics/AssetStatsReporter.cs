@@ -30,7 +30,7 @@ using System;
 using System.Text;
 using System.Timers;
 
-namespace OpenSim.Grid.AssetServer
+namespace OpenSim.Framework.Statistics
 {
     /// <summary>
     /// Collects and reports information on the requests made to the asset server

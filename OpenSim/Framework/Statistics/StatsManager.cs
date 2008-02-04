@@ -33,19 +33,39 @@ namespace OpenSim.Framework.Statistics
     /// </summary>
     public class StatsManager
     {
+        private static AssetStatsReporter assetStats;
+        private static UserStatsReporter userStats;
         private static SimExtraStatsReporter simExtraStats;                
         
+        public static AssetStatsReporter AssetStats { get { return assetStats; } }
+        public static UserStatsReporter UserStats { get { return userStats; } }
         public static SimExtraStatsReporter SimExtraStats { get { return simExtraStats; } }
         
-        private StatsManager()
+        private StatsManager() {}
+        
+        /// <summary>
+        /// Start collecting statistics related to assets.
+        /// Should only be called once.
+        /// </summary>        
+        public static void StartCollectingAssetStats()
         {
+            assetStats = new AssetStatsReporter();
         }
         
         /// <summary>
-        /// Start recording statistics.  Should only be called once - calling again will reset statistic
-        /// counts.
+        /// Start collecting statistics related to users.
+        /// Should only be called once.
+        /// </summary>        
+        public static void StartCollectingUserStats()
+        {
+            userStats = new UserStatsReporter();
+        }        
+        
+        /// <summary>
+        /// Start collecting extra sim statistics apart from those collected for the client.  
+        /// Should only be called once.
         /// </summary>
-        public static void StartCollecting()
+        public static void StartCollectingSimExtraStats()
         {
             simExtraStats = new SimExtraStatsReporter();
         }

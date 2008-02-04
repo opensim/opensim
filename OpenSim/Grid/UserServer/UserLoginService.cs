@@ -55,8 +55,8 @@ namespace OpenSim.Grid.UserServer
 
         public UserLoginService(
             UserManagerBase userManager, LibraryRootFolder libraryRootFolder, 
-            UserStatsReporter statsCollector, UserConfig config, string welcomeMess)
-            : base(userManager, libraryRootFolder, statsCollector, welcomeMess)
+            UserConfig config, string welcomeMess)
+            : base(userManager, libraryRootFolder, welcomeMess)
         {
             m_config = config;
         }

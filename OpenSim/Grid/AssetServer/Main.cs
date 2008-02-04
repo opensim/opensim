@@ -52,9 +52,7 @@ namespace OpenSim.Grid.AssetServer
         // Temporarily hardcoded - should be a plugin
         protected IAssetLoader assetLoader = new AssetLoaderFileSystem();        
         
-        private IAssetProvider m_assetProvider;
-        
-        protected AssetStatsReporter m_stats;      
+        private IAssetProvider m_assetProvider;    
 
         [STAThread]
         public static void Main(string[] args)
@@ -101,9 +99,9 @@ namespace OpenSim.Grid.AssetServer
             m_console.Verbose("ASSET", "Starting HTTP process");
             BaseHttpServer httpServer = new BaseHttpServer(m_config.HttpPort);
             
-            m_stats = new AssetStatsReporter();
+            StatsManager.StartCollectingAssetStats();
 
-            httpServer.AddStreamHandler(new GetAssetStreamHandler(this, m_assetProvider, m_stats));
+            httpServer.AddStreamHandler(new GetAssetStreamHandler(this, m_assetProvider));
             httpServer.AddStreamHandler(new PostAssetStreamHandler(this, m_assetProvider));
 
             httpServer.Start();
@@ -184,7 +182,7 @@ namespace OpenSim.Grid.AssetServer
                     break;
                     
                 case "stats":
-                    m_console.Notice("STATS", Environment.NewLine + m_stats.Report());
+                    m_console.Notice("STATS", Environment.NewLine + StatsManager.AssetStats.Report());
                     break;
 
                 case "shutdown":

@@ -46,9 +46,7 @@ namespace OpenSim.Framework.UserManagement
     {
         protected string m_welcomeMessage = "Welcome to OpenSim";
         protected UserManagerBase m_userManager = null;
-        protected Mutex m_loginMutex = new Mutex(false);
-        
-        protected UserStatsReporter m_statsCollector;        
+        protected Mutex m_loginMutex = new Mutex(false);     
         
         /// <summary>
         /// Used during login to send the skeleton of the OpenSim Library to the client.
@@ -60,16 +58,12 @@ namespace OpenSim.Framework.UserManagement
         /// </summary>
         /// <param name="userManager"></param>
         /// <param name="libraryRootFolder"></param>
-        /// <param name="statsCollector">
-        /// An object for collecting statistical information.  
-        /// Can be null if statistics are not required</param>
         /// <param name="welcomeMess"></param>
         public LoginService(UserManagerBase userManager, LibraryRootFolder libraryRootFolder, 
-                            UserStatsReporter statsCollector, string welcomeMess)
+                            string welcomeMess)
         {
             m_userManager = userManager;
             m_libraryRootFolder = libraryRootFolder;
-            m_statsCollector = statsCollector;
             
             if (welcomeMess != String.Empty)
             {
@@ -226,8 +220,8 @@ namespace OpenSim.Framework.UserManagement
                         CommitAgent(ref userProfile);
                         
                         // If we reach this point, then the login has successfully logged onto the grid
-                        if (m_statsCollector != null)
-                            m_statsCollector.AddSuccessfulLogin();
+                        if (StatsManager.UserStats != null)
+                            StatsManager.UserStats.AddSuccessfulLogin();
                         
                         return logResponse.ToXmlRpcResponse();
                     }
@@ -358,8 +352,8 @@ namespace OpenSim.Framework.UserManagement
                         CommitAgent(ref userProfile);
                         
                         // If we reach this point, then the login has successfully logged onto the grid
-                        if (m_statsCollector != null)
-                            m_statsCollector.AddSuccessfulLogin();                        
+                        if (StatsManager.UserStats != null)
+                            StatsManager.UserStats.AddSuccessfulLogin();                        
 
                         return logResponse.ToLLSDResponse();
                     }

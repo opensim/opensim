@@ -304,7 +304,7 @@ namespace OpenSim
             m_log = CreateLog();
             MainLog.Instance = m_log;          
 
-            StatsManager.StartCollecting();
+            StatsManager.StartCollectingSimExtraStats();
             
             // Do baseclass startup sequence: OpenSim.Region.ClientStack.RegionApplicationBase.StartUp
             // TerrainManager, StorageManager, HTTP Server
@@ -320,7 +320,7 @@ namespace OpenSim
 
                 LocalUserServices userService =
                     new LocalUserServices(m_networkServersInfo, m_networkServersInfo.DefaultHomeLocX,
-                                          m_networkServersInfo.DefaultHomeLocY, inventoryService, null);
+                                          m_networkServersInfo.DefaultHomeLocY, inventoryService);
                 userService.AddPlugin(m_standaloneUserPlugin);
 
                 LocalBackEndServices backendService = new LocalBackEndServices();
@@ -333,7 +333,7 @@ namespace OpenSim
                 // TODO No user stats collection yet for standalone
                 m_loginService =
                     new LocalLoginService(userService, m_standaloneWelcomeMessage, localComms, m_networkServersInfo,
-                                          null, m_standaloneAuthenticate);
+                                          m_standaloneAuthenticate);
                 m_loginService.OnLoginToRegion += backendService.AddNewSession;
 
                 // XMLRPC action

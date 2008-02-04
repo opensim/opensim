@@ -45,17 +45,6 @@ namespace OpenSim.Framework.UserManagement
     {
         public UserConfig _config;
         private Dictionary<string, IUserData> _plugins = new Dictionary<string, IUserData>();
-        protected UserStatsReporter _stats;
-
-        /// <summary>
-        /// Constructor.
-        /// </summary>
-        /// <param name="statsCollector">Can be null if stats collection is not required.
-        /// </param>
-        public UserManagerBase(UserStatsReporter statsCollector)            
-        {
-            _stats = statsCollector;
-        }
         
         /// <summary>
         /// Adds a new user server plugin - user servers will be requested in the order they were loaded.
@@ -435,8 +424,8 @@ namespace OpenSim.Framework.UserManagement
         /// <param name="posz"></param>
         public void LogOffUser(LLUUID userid, LLUUID regionid, ulong regionhandle, float posx, float posy, float posz)
         {
-            if (_stats != null)
-                _stats.AddLogout();
+            if (StatsManager.UserStats != null)
+                StatsManager.UserStats.AddLogout();
             
             UserProfileData userProfile;
             UserAgentData userAgent;

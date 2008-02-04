@@ -77,7 +77,7 @@ namespace SimpleApp
 
             LocalUserServices userService =
                 new LocalUserServices(m_networkServersInfo, m_networkServersInfo.DefaultHomeLocX,
-                                      m_networkServersInfo.DefaultHomeLocY, inventoryService, null);
+                                      m_networkServersInfo.DefaultHomeLocY, inventoryService);
             userService.AddPlugin(m_userPlugin);
 
             LocalBackEndServices backendService = new LocalBackEndServices();
@@ -89,7 +89,7 @@ namespace SimpleApp
 
             LocalLoginService loginService =
                 new LocalLoginService(
-                    userService, String.Empty, localComms, m_networkServersInfo, null, false);
+                    userService, String.Empty, localComms, m_networkServersInfo, false);
             loginService.OnLoginToRegion += backendService.AddNewSession;
 
             m_httpServer.AddXmlRPCHandler("login_to_simulator", loginService.XmlRpcLoginMethod);

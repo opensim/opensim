@@ -38,16 +38,7 @@ using OpenSim.Framework.UserManagement;
 namespace OpenSim.Grid.UserServer
 {
     public class UserManager : UserManagerBase
-    {        
-        /// <summary>
-        /// Constructor.
-        /// </summary>
-        /// <param name="statsCollector">Can be null if stats collection is not required.
-        /// </param>
-        public UserManager(UserStatsReporter statsCollector) : base(statsCollector)       
-        {
-        }        
-
+    {            
         /// <summary>
         /// Deletes an active agent session
         /// </summary>

@@ -55,8 +55,8 @@ namespace OpenSim.Region.Communications.Local
 
         public LocalLoginService(UserManagerBase userManager, string welcomeMess, 
                                  CommunicationsLocal parent, NetworkServersInfo serversInfo, 
-                                 UserStatsReporter statsCollector, bool authenticate)
-            : base(userManager, parent.UserProfileCacheService.libraryRoot, statsCollector, welcomeMess)
+                                 bool authenticate)
+            : base(userManager, parent.UserProfileCacheService.libraryRoot, welcomeMess)
         {
             m_Parent = parent;
             this.serversInfo = serversInfo;

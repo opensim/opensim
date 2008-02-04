@@ -52,8 +52,7 @@ namespace OpenSim.Region.Communications.Local
         /// <param name="inventoryService"></param>
         /// <param name="statsCollector">Can be null if stats collection is not required.</param>
         public LocalUserServices(NetworkServersInfo serversInfo, uint defaultHomeLocX, uint defaultHomeLocY,
-                                 IInventoryServices inventoryService, UserStatsReporter statsCollector)
-            : base(statsCollector)
+                                 IInventoryServices inventoryService)
         {
             m_serversInfo = serversInfo;
 
