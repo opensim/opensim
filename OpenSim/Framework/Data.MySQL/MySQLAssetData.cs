@@ -76,6 +76,7 @@ namespace OpenSim.Framework.Data.MySQL
                         _dbConnection.Connection);
                 MySqlParameter p = cmd.Parameters.Add("?id", MySqlDbType.Binary, 16);
                 p.Value = assetID.GetBytes();
+                
                 try
                 {
                     using (MySqlDataReader dbReader = cmd.ExecuteReader(CommandBehavior.SingleRow))
@@ -107,39 +108,42 @@ namespace OpenSim.Framework.Data.MySQL
         }
 
         public void CreateAsset(AssetBase asset)
-        {
-            MySqlCommand cmd =
-                new MySqlCommand(
-                    "REPLACE INTO assets(id, name, description, assetType, invType, local, temporary, data)" +
-                    "VALUES(?id, ?name, ?description, ?assetType, ?invType, ?local, ?temporary, ?data)",
-                    _dbConnection.Connection);
-
-            // need to ensure we dispose
-            try
-            {            
-                using (cmd)
-                {
-                    MySqlParameter p = cmd.Parameters.Add("?id", MySqlDbType.Binary, 16);
-                    p.Value = asset.FullID.GetBytes();
-                    cmd.Parameters.AddWithValue("?name", asset.Name);
-                    cmd.Parameters.AddWithValue("?description", asset.Description);
-                    cmd.Parameters.AddWithValue("?assetType", asset.Type);
-                    cmd.Parameters.AddWithValue("?invType", asset.InvType);
-                    cmd.Parameters.AddWithValue("?local", asset.Local);
-                    cmd.Parameters.AddWithValue("?temporary", asset.Temporary);
-                    cmd.Parameters.AddWithValue("?data", asset.Data);
-                    cmd.ExecuteNonQuery();
-                    cmd.Dispose();
-                }
-            }
-            catch (Exception e)
+        {            
+            lock (_dbConnection)
             {
-                MainLog.Instance.Error(
-                    "ASSETS", 
-                    "MySql failure creating asset {0} with name {1}" + Environment.NewLine + e.ToString()
-                   + Environment.NewLine + "Attempting reconnection", asset.FullID, asset.Name);
-                _dbConnection.Reconnect();
-            }                
+                MySqlCommand cmd =
+                    new MySqlCommand(
+                        "REPLACE INTO assets(id, name, description, assetType, invType, local, temporary, data)" +
+                        "VALUES(?id, ?name, ?description, ?assetType, ?invType, ?local, ?temporary, ?data)",
+                        _dbConnection.Connection);
+            
+                // need to ensure we dispose
+                try
+                {            
+                    using (cmd)
+                    {
+                        MySqlParameter p = cmd.Parameters.Add("?id", MySqlDbType.Binary, 16);
+                        p.Value = asset.FullID.GetBytes();
+                        cmd.Parameters.AddWithValue("?name", asset.Name);
+                        cmd.Parameters.AddWithValue("?description", asset.Description);
+                        cmd.Parameters.AddWithValue("?assetType", asset.Type);
+                        cmd.Parameters.AddWithValue("?invType", asset.InvType);
+                        cmd.Parameters.AddWithValue("?local", asset.Local);
+                        cmd.Parameters.AddWithValue("?temporary", asset.Temporary);
+                        cmd.Parameters.AddWithValue("?data", asset.Data);
+                        cmd.ExecuteNonQuery();
+                        cmd.Dispose();
+                    }
+                }
+                catch (Exception e)
+                {
+                    MainLog.Instance.Error(
+                        "ASSETS", 
+                        "MySql failure creating asset {0} with name {1}" + Environment.NewLine + e.ToString()
+                       + Environment.NewLine + "Attempting reconnection", asset.FullID, asset.Name);
+                    _dbConnection.Reconnect();
+                }   
+            }
         }
 
         public void UpdateAsset(AssetBase asset)
