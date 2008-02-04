@@ -28,16 +28,59 @@
 
 using System;
 
+using OpenSim.Framework.Console;
+
 namespace OpenSim.Framework.Servers
 {
     /// <summary>
     /// Common base for the main OpenSimServers (user, grid, inventory, region, etc)
-    /// XXX Not yet implemented, may not grow up for some time
     /// </summary>
-    public class BaseOpenSimServer
+    public abstract class BaseOpenSimServer
     {
+        protected LogBase m_log;
+        
+        protected DateTime m_startuptime;
+        
         public BaseOpenSimServer()
         {
+            m_startuptime = DateTime.Now;
+        }     
+        
+        /// <summary>
+        /// Runs commands issued by the server console from the operator
+        /// </summary>
+        /// <param name="command">The first argument of the parameter (the command)</param>
+        /// <param name="cmdparams">Additional arguments passed to the command</param>
+        public virtual void RunCmd(string command, string[] cmdparams)
+        {
+            switch (command)
+            {      
+                case "help":
+                    m_log.Notice("show uptime - show server startup and uptime.");
+                    break;
+                    
+                case "show":
+                    if (cmdparams.Length > 0)
+                    {
+                        Show(cmdparams[0]);
+                    }
+                    break;
+            }
+        }
+        
+        /// <summary>
+        /// Outputs to the console information about the region
+        /// </summary>
+        /// <param name="ShowWhat">What information to display (valid arguments are "uptime", "users")</param>
+        public virtual void Show(string ShowWhat)
+        {
+            switch (ShowWhat)
+            {
+                case "uptime":
+                    m_log.Notice("Server has been running since " + m_startuptime.ToString());
+                    m_log.Notice("That is " + (DateTime.Now - m_startuptime).ToString());
+                    break;                    
+            }
         }
     }
 }

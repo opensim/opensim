@@ -39,14 +39,13 @@ namespace OpenSim.Grid.MessagingServer
 {
     /// <summary>
     /// </summary>
-    public class OpenMessage_Main : conscmd_callback
+    public class OpenMessage_Main : BaseOpenSimServer, conscmd_callback
     {
         private MessageServerConfig Cfg;
 
         //public UserManager m_userManager;
         //public UserLoginService m_loginService;
-
-        private LogBase m_console;
+        
         private LLUUID m_lastCreatedUser = LLUUID.Random();
 
         [STAThread]
@@ -66,18 +65,18 @@ namespace OpenSim.Grid.MessagingServer
             {
                 Directory.CreateDirectory(Util.logDir());
             }
-            m_console =
+            m_log =
                 new LogBase((Path.Combine(Util.logDir(), "opengrid-messagingserver-console.log")), "OpenMessage", this, true);
-            MainLog.Instance = m_console;
+            MainLog.Instance = m_log;
         }
 
         private void Work()
         {
-            m_console.Notice("Enter help for a list of commands\n");
+            m_log.Notice("Enter help for a list of commands\n");
 
             while (true)
             {
-                m_console.MainLogPrompt();
+                m_log.MainLogPrompt();
             }
         }
 
@@ -105,7 +104,7 @@ namespace OpenSim.Grid.MessagingServer
                 //new RestStreamHandler("DELETE", "/usersessions/", m_userManager.RestDeleteUserSessionMethod));
 
             httpServer.Start();
-            m_console.Status("SERVER", "Messageserver 0.4 - Startup complete");
+            m_log.Status("SERVER", "Messageserver 0.4 - Startup complete");
         }
 
 
@@ -121,7 +120,7 @@ namespace OpenSim.Grid.MessagingServer
                             //m_userManager.AddUserProfile(tempfirstname, templastname, tempMD5Passwd, regX, regY);
                     } catch (Exception ex)
                     {
-                        m_console.Error("SERVER", "Error creating user: {0}", ex.ToString());
+                        m_log.Error("SERVER", "Error creating user: {0}", ex.ToString());
                     }
 
                     try
@@ -131,23 +130,25 @@ namespace OpenSim.Grid.MessagingServer
                     }
                     catch (Exception ex)
                     {
-                        m_console.Error("SERVER", "Error creating inventory for user: {0}", ex.ToString());
+                        m_log.Error("SERVER", "Error creating inventory for user: {0}", ex.ToString());
                     }
                    // m_lastCreatedUser = userID;
                     break;
             }
         }
 
-        public void RunCmd(string cmd, string[] cmdparams)
+        public override void RunCmd(string cmd, string[] cmdparams)
         {
+            base.RunCmd(cmd, cmdparams);
+            
             switch (cmd)
             {
                 case "help":
-                    m_console.Notice("shutdown - shutdown the message server (USE CAUTION!)");
+                    m_log.Notice("shutdown - shutdown the message server (USE CAUTION!)");
                     break;
 
                 case "shutdown":
-                    m_console.Close();
+                    m_log.Close();
                     Environment.Exit(0);
                     break;
             }

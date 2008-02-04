@@ -31,20 +31,20 @@ using libsecondlife;
 using Nini.Config;
 using OpenSim.Framework;
 using OpenSim.Framework.Console;
+using OpenSim.Framework.Servers;
 using OpenSim.Grid.ScriptServer.ScriptServer;
 using OpenSim.Region.ScriptEngine.Common;
 using OpenSim.Region.ScriptEngine.Common.TRPC;
 
 namespace OpenSim.Grid.ScriptServer
 {
-    public class ScriptServerMain : conscmd_callback
+    public class ScriptServerMain : BaseOpenSimServer, conscmd_callback
     {
         //
         // Root object. Creates objects used.
         //
         private int listenPort = 8010;
         private readonly string m_logFilename = ("scriptserver.log");
-        private LogBase m_log;
 
         // TEMP
         public static ScriptServerInterfaces.ScriptEngine Engine;
@@ -110,14 +110,6 @@ namespace OpenSim.Grid.ScriptServer
             }
 
             return new LogBase((Path.Combine(Util.logDir(), m_logFilename)), "ScriptServer", this, true);
-        }
-
-        public void RunCmd(string command, string[] cmdparams)
-        {
-        }
-
-        public void Show(string ShowWhat)
-        {
         }
     }
 }

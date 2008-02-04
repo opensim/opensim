@@ -36,9 +36,8 @@ using OpenSim.Framework.Servers;
 
 namespace OpenSim.Grid.InventoryServer
 {
-    public class OpenInventory_Main : conscmd_callback
+    public class OpenInventory_Main : BaseOpenSimServer, conscmd_callback
     {
-        private LogBase m_console;
         private InventoryManager m_inventoryManager;
         private InventoryConfig m_config;
         private GridInventoryService m_inventoryService;
@@ -56,8 +55,8 @@ namespace OpenSim.Grid.InventoryServer
 
         public OpenInventory_Main()
         {
-            m_console = new LogBase("opengrid-inventory-console.log", LogName, this, true);
-            MainLog.Instance = m_console;
+            m_log = new LogBase("opengrid-inventory-console.log", LogName, this, true);
+            MainLog.Instance = m_log;
         }
 
         public void Startup()
@@ -104,16 +103,18 @@ namespace OpenSim.Grid.InventoryServer
 
         private void Work()
         {
-            m_console.Notice("Enter help for a list of commands\n");
+            m_log.Notice("Enter help for a list of commands\n");
 
             while (true)
             {
-                m_console.MainLogPrompt();
+                m_log.MainLogPrompt();
             }
         }
 
-        public void RunCmd(string cmd, string[] cmdparams)
+        public override void RunCmd(string cmd, string[] cmdparams)
         {
+            base.RunCmd(cmd, cmdparams);
+            
             switch (cmd)
             {
                 case "quit":
@@ -121,14 +122,10 @@ namespace OpenSim.Grid.InventoryServer
                     m_inventoryService.CreateUsersInventory(LLUUID.Random().UUID);
                     break;
                 case "shutdown":
-                    m_console.Close();
+                    m_log.Close();
                     Environment.Exit(0);
                     break;
             }
-        }
-
-        public void Show(string ShowWhat)
-        {
         }
     }
 }

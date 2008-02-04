@@ -40,7 +40,7 @@ namespace OpenSim.Grid.UserServer
 {
     /// <summary>
     /// </summary>
-    public class OpenUser_Main : conscmd_callback
+    public class OpenUser_Main : BaseOpenSimServer, conscmd_callback
     {
         private UserConfig Cfg;
         
@@ -48,7 +48,6 @@ namespace OpenSim.Grid.UserServer
         public UserLoginService m_loginService;
         public MessageServersConnector m_messagesService;        
 
-        private LogBase m_console;
         private LLUUID m_lastCreatedUser = LLUUID.Random();
 
         [STAThread]
@@ -68,18 +67,18 @@ namespace OpenSim.Grid.UserServer
             {
                 Directory.CreateDirectory(Util.logDir());
             }
-            m_console =
+            m_log =
                 new LogBase((Path.Combine(Util.logDir(), "opengrid-userserver-console.log")), "OpenUser", this, true);
-            MainLog.Instance = m_console;
+            MainLog.Instance = m_log;
         }
 
         private void Work()
         {
-            m_console.Notice("Enter help for a list of commands\n");
+            m_log.Notice("Enter help for a list of commands\n");
 
             while (true)
             {
-                m_console.MainLogPrompt();
+                m_log.MainLogPrompt();
             }
         }
 
@@ -129,7 +128,7 @@ namespace OpenSim.Grid.UserServer
                 new RestStreamHandler("DELETE", "/usersessions/", m_userManager.RestDeleteUserSessionMethod));
 
             httpServer.Start();
-            m_console.Status("SERVER", "Userserver 0.4 - Startup complete");
+            m_log.Status("SERVER", "Userserver 0.4 - Startup complete");
         }
 
 
@@ -144,11 +143,11 @@ namespace OpenSim.Grid.UserServer
                     uint regX = 1000;
                     uint regY = 1000;
 
-                    tempfirstname = m_console.CmdPrompt("First name");
-                    templastname = m_console.CmdPrompt("Last name");
-                    tempMD5Passwd = m_console.PasswdPrompt("Password");
-                    regX = Convert.ToUInt32(m_console.CmdPrompt("Start Region X"));
-                    regY = Convert.ToUInt32(m_console.CmdPrompt("Start Region Y"));
+                    tempfirstname = m_log.CmdPrompt("First name");
+                    templastname = m_log.CmdPrompt("Last name");
+                    tempMD5Passwd = m_log.PasswdPrompt("Password");
+                    regX = Convert.ToUInt32(m_log.CmdPrompt("Start Region X"));
+                    regY = Convert.ToUInt32(m_log.CmdPrompt("Start Region Y"));
 
                     tempMD5Passwd = Util.Md5Hash(Util.Md5Hash(tempMD5Passwd) + ":" + String.Empty);
 
@@ -159,7 +158,7 @@ namespace OpenSim.Grid.UserServer
                             m_userManager.AddUserProfile(tempfirstname, templastname, tempMD5Passwd, regX, regY);
                     } catch (Exception ex)
                     {
-                        m_console.Error("SERVER", "Error creating user: {0}", ex.ToString());
+                        m_log.Error("SERVER", "Error creating user: {0}", ex.ToString());
                     }
 
                     try
@@ -169,21 +168,23 @@ namespace OpenSim.Grid.UserServer
                     }
                     catch (Exception ex)
                     {
-                        m_console.Error("SERVER", "Error creating inventory for user: {0}", ex.ToString());
+                        m_log.Error("SERVER", "Error creating inventory for user: {0}", ex.ToString());
                     }
                     m_lastCreatedUser = userID;
                     break;
             }
         }
 
-        public void RunCmd(string cmd, string[] cmdparams)
+        public override void RunCmd(string cmd, string[] cmdparams)
         {
+            base.RunCmd(cmd, cmdparams);
+            
             switch (cmd)
             {
                 case "help":
-                    m_console.Notice("create user - create a new user");
-                    m_console.Notice("stats - statistical information for this server");                    
-                    m_console.Notice("shutdown - shutdown the grid (USE CAUTION!)");
+                    m_log.Notice("create user - create a new user");
+                    m_log.Notice("stats - statistical information for this server");                    
+                    m_log.Notice("shutdown - shutdown the grid (USE CAUTION!)");
                     break;
 
                 case "create":
@@ -192,7 +193,7 @@ namespace OpenSim.Grid.UserServer
 
                 case "shutdown":
                     m_loginService.OnUserLoggedInAtLocation -= NotifyMessageServersUserLoggedInToLocation;
-                    m_console.Close();
+                    m_log.Close();
                     Environment.Exit(0);
                     break;
                     
@@ -246,9 +247,5 @@ namespace OpenSim.Grid.UserServer
 
             }
         }*/
-
-        public void Show(string ShowWhat)
-        {
-        }
     }
 }

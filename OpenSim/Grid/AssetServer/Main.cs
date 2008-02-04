@@ -41,13 +41,11 @@ namespace OpenSim.Grid.AssetServer
     /// <summary>
     /// An asset server
     /// </summary>
-    public class OpenAsset_Main : conscmd_callback
+    public class OpenAsset_Main : BaseOpenSimServer, conscmd_callback
     {
         public AssetConfig m_config;
 
-        public static OpenAsset_Main assetserver;
-        
-        private LogBase m_console;        
+        public static OpenAsset_Main assetserver;   
         
         // Temporarily hardcoded - should be a plugin
         protected IAssetLoader assetLoader = new AssetLoaderFileSystem();        
@@ -67,11 +65,11 @@ namespace OpenSim.Grid.AssetServer
 
         private void Work()
         {
-            m_console.Notice("Enter help for a list of commands");
+            m_log.Notice("Enter help for a list of commands");
 
             while (true)
             {
-                m_console.MainLogPrompt();
+                m_log.MainLogPrompt();
             }
         }
 
@@ -81,22 +79,28 @@ namespace OpenSim.Grid.AssetServer
             {
                 Directory.CreateDirectory(Util.logDir());
             }
-            m_console =
-                new LogBase((Path.Combine(Util.logDir(), "opengrid-AssetServer-console.log")), "OpenAsset", this, true);
-            MainLog.Instance = m_console;
+            
+            m_log =
+                new LogBase(
+                    (Path.Combine(Util.logDir(), "opengrid-AssetServer-console.log")), 
+                    "OpenAsset", 
+                    this, 
+                    true);
+            
+            MainLog.Instance = m_log;
         }
 
         public void Startup()
         {
             m_config = new AssetConfig("ASSET SERVER", (Path.Combine(Util.configDir(), "AssetServer_Config.xml")));
 
-            m_console.Verbose("ASSET", "Setting up asset DB");
+            m_log.Verbose("ASSET", "Setting up asset DB");
             setupDB(m_config);
 
-            m_console.Verbose("ASSET", "Loading default asset set..");
+            m_log.Verbose("ASSET", "Loading default asset set..");
             LoadDefaultAssets();
 
-            m_console.Verbose("ASSET", "Starting HTTP process");
+            m_log.Verbose("ASSET", "Starting HTTP process");
             BaseHttpServer httpServer = new BaseHttpServer(m_config.HttpPort);
             
             StatsManager.StartCollectingAssetStats();
@@ -170,30 +174,28 @@ namespace OpenSim.Grid.AssetServer
             m_assetProvider.CreateAsset(asset);
         }
 
-        public void RunCmd(string cmd, string[] cmdparams)
+        public override void RunCmd(string cmd, string[] cmdparams)
         {
+            base.RunCmd(cmd, cmdparams);
+            
             switch (cmd)
             {
                 case "help":
-                    m_console.Notice(
+                    m_log.Notice(
                         @"shutdown - shutdown this asset server (USE CAUTION!)
                  stats    - statistical information for this server");                    
                     
-                    break;
+                    break;                  
                     
                 case "stats":
-                    m_console.Notice("STATS", Environment.NewLine + StatsManager.AssetStats.Report());
+                    m_log.Notice("STATS", Environment.NewLine + StatsManager.AssetStats.Report());
                     break;
 
                 case "shutdown":
-                    m_console.Close();
+                    m_log.Close();
                     Environment.Exit(0);
                     break;
             }
-        }
-
-        public void Show(string ShowWhat)
-        {
         }
     }
 }

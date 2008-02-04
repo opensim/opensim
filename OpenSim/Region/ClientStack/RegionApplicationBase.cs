@@ -40,17 +40,15 @@ using OpenSim.Region.Physics.Manager;
 
 namespace OpenSim.Region.ClientStack
 {
-    public abstract class RegionApplicationBase
+    public abstract class RegionApplicationBase : BaseOpenSimServer
     {
         protected AssetCache m_assetCache;
         protected Dictionary<EndPoint, uint> m_clientCircuits = new Dictionary<EndPoint, uint>();
-        protected DateTime m_startuptime;
         protected NetworkServersInfo m_networkServersInfo;
 
         protected BaseHttpServer m_httpServer;
         protected uint m_httpServerPort;
 
-        protected LogBase m_log;
         protected CommunicationsManager m_commsManager;
 
         protected SceneManager m_sceneManager = new SceneManager();
@@ -65,11 +63,6 @@ namespace OpenSim.Region.ClientStack
         public SceneManager SceneManager
         {
             get { return m_sceneManager; }
-        }
-
-        public RegionApplicationBase()
-        {
-            m_startuptime = DateTime.Now;
         }
 
         public virtual void StartUp()
