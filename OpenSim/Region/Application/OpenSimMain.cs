@@ -330,7 +330,6 @@ namespace OpenSim
                                             inventoryService, backendService, backendService, m_dumpAssetsToFile);
                 m_commsManager = localComms;
 
-                // TODO No user stats collection yet for standalone
                 m_loginService =
                     new LocalLoginService(userService, m_standaloneWelcomeMessage, localComms, m_networkServersInfo,
                                           m_standaloneAuthenticate);
@@ -718,7 +717,7 @@ namespace OpenSim
                     m_log.Error("show uptime - show simulator startup and uptime.");
                     m_log.Error("show users - show info about connected users.");
                     m_log.Error("show modules - shows info aboutloaded modules.");
-                    m_log.Error("stats - statistical information for this server not displayed in the client");
+                    m_log.Error("show stats - statistical information for this server not displayed in the client");
                     m_log.Error("shutdown - disconnect all clients and shutdown.");
                     m_log.Error("config set section field value - set a config value");
                     m_log.Error("config get section field - get a config value");
@@ -902,18 +901,6 @@ namespace OpenSim
                         m_sceneManager.CurrentOrFirstScene.ExportWorldMap("exportmap.jpg");
                     }
                     break;
-                
-                case "stats":
-                    if (StatsManager.SimExtraStats != null)
-                    {
-                        MainLog.Instance.Notice(
-                            "STATS", Environment.NewLine + StatsManager.SimExtraStats.Report());                    
-                    }
-                    else
-                    {
-                        MainLog.Instance.Notice("STATS", "Extra statistics collection has not been enabled");
-                    }
-                    break;
 
                 case "config":
                     string n = command.ToUpper();
@@ -1073,6 +1060,18 @@ namespace OpenSim
                                             scene.RegionInfo.RegionLocY);
                             });
                     break;
+                                    
+                case "stats":
+                    if (StatsManager.SimExtraStats != null)
+                    {
+                        m_log.Notice(
+                            "STATS", Environment.NewLine + StatsManager.SimExtraStats.Report());                    
+                    }
+                    else
+                    {
+                        m_log.Notice("STATS", "Extra sim statistics collection has not been enabled");
+                    }
+                    break;                    
             }
         }
 
