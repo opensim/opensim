@@ -34,6 +34,7 @@ Patches
 * jhurliman (LLSD Login)
 * kinoc
 * daTwitch 
+* mikkopa/_someone - RealXtend
 
 LSL Devs
 
