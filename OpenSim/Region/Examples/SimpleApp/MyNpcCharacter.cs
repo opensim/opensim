@@ -47,6 +47,8 @@ namespace SimpleApp
 
         public event Action<IClientAPI> OnLogout;
         public event ObjectPermissions OnObjectPermissions;
+
+        public event MoneyTransferRequest OnMoneyTransferRequest;
         public event Action<IClientAPI> OnConnectionClosed;
 
         public event ImprovedInstantMessage OnInstantMessage;

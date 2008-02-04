@@ -401,8 +401,7 @@ namespace OpenSim.Framework
 
     public delegate void PacketStats(int inPackets, int outPackets, int unAckedBytes);
     
-   
-
+    public delegate void MoneyTransferRequest(LLUUID sourceID, LLUUID destID, int amount, int transactionType, string description);
     
 
     public delegate void ObjectPermissions(
@@ -504,6 +503,9 @@ namespace OpenSim.Framework
         event FriendActionDelegate OnDenyFriendRequest;
         event FriendshipTermination OnTerminateFriendship;
         event PacketStats OnPacketStats;
+
+        // Financial packets
+        event MoneyTransferRequest OnMoneyTransferRequest;
 
          
         LLVector3 StartPos { get; set; }

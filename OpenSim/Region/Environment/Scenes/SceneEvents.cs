@@ -129,6 +129,31 @@ namespace OpenSim.Region.Environment.Scenes
        
         public event ScriptChangedEvent OnScriptChangedEvent;
 
+        public class MoneyTransferArgs : System.EventArgs 
+        {
+            public LLUUID sender;
+            public LLUUID reciever;
+
+            // Always false. The SL protocol sucks.
+            public bool authenticated = false;
+
+            public int amount;
+            public int transactiontype;
+            public string description;
+
+            public MoneyTransferArgs(LLUUID asender, LLUUID areciever, int aamount, int atransactiontype, string adescription) {
+                sender = asender;
+                reciever = areciever;
+                amount = aamount;
+                transactiontype = atransactiontype;
+                description = adescription;
+            }
+        }
+
+        public delegate void MoneyTransferEvent(Object sender, MoneyTransferArgs e);
+
+        public event MoneyTransferEvent OnMoneyTransfer;
+
         public void TriggerOnScriptChangedEvent(uint localID, uint change)
         {
             if (OnScriptChangedEvent != null)
@@ -191,15 +216,20 @@ namespace OpenSim.Region.Environment.Scenes
 
         public void TriggerParcelPrimCountUpdate()
         {
-            /*
-             * Removed by Adam to prevent some exceptions, temporary.
-             * */
             if (OnParcelPrimCountUpdate != null)
             {
                 OnParcelPrimCountUpdate();
-            }
-            
+            }    
         }
+
+        public void TriggerMoneyTransfer(Object sender, MoneyTransferArgs e)
+        {
+            if (OnMoneyTransfer != null)
+            {
+                OnMoneyTransfer(sender, e);
+            }
+        }
+
 
         public void TriggerParcelPrimCountAdd(SceneObjectGroup obj)
         {

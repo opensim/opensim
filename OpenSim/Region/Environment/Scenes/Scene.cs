@@ -1078,7 +1078,7 @@ namespace OpenSim.Region.Environment.Scenes
             }
         }
 
-        public virtual void AddNewPrim(LLUUID ownerID, LLVector3 pos, LLQuaternion rot, PrimitiveBaseShape shape)
+        public virtual SceneObjectGroup AddNewPrim(LLUUID ownerID, LLVector3 pos, LLQuaternion rot, PrimitiveBaseShape shape)
         {
             SceneObjectGroup sceneOb =
                 new SceneObjectGroup(this, m_regionHandle, ownerID, PrimIDAllocate(), pos, rot, shape);
@@ -1093,18 +1093,21 @@ namespace OpenSim.Region.Environment.Scenes
             }
             // if not phantom, add to physics
             sceneOb.ApplyPhysics(m_physicalPrim);
+
+            return sceneOb;
         }
 
-        public void AddTree(LLVector3 scale, LLQuaternion rotation, LLVector3 position,
+        public SceneObjectGroup AddTree(LLVector3 scale, LLQuaternion rotation, LLVector3 position,
                             Tree treeType, bool newTree)
         {
+            LLUUID uuid = this.RegionInfo.MasterAvatarAssignedUUID;
             PrimitiveBaseShape treeShape = new PrimitiveBaseShape();
             treeShape.PathCurve = 16;
             treeShape.PathEnd = 49900;
             treeShape.PCode = newTree ? (byte) PCode.NewTree : (byte) PCode.Tree;
             treeShape.Scale = scale;
             treeShape.State = (byte) treeType;
-            AddNewPrim(LLUUID.Random(), position, rotation, treeShape,(byte)1,LLVector3.Zero,LLUUID.Zero,(byte)1);
+            return AddNewPrim(uuid, position, rotation, treeShape);
         }
 
         public void RemovePrim(uint localID, LLUUID avatar_deleter)
@@ -1253,6 +1256,7 @@ namespace OpenSim.Region.Environment.Scenes
             client.OnUpdateTaskInventory += UpdateTaskInventory;
 
             client.OnGrabObject += ProcessObjectGrab;
+            client.OnMoneyTransferRequest += ProcessMoneyTransferRequest;
             client.OnAvatarPickerRequest += ProcessAvatarPickerRequest;
             client.OnPacketStats += AddPacketStats;
 

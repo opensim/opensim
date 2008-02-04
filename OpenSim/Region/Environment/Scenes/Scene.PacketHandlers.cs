@@ -138,6 +138,14 @@ namespace OpenSim.Region.Environment.Scenes
             }
         }
 
+        public virtual void ProcessMoneyTransferRequest(LLUUID source, LLUUID destination, int amount, int transactiontype, string description)
+        {
+            EventManager.MoneyTransferArgs args = new EventManager.MoneyTransferArgs(
+                source, destination, amount, transactiontype, description);
+
+            EventManager.TriggerMoneyTransfer(this, args);
+        }
+
         public virtual void ProcessObjectGrab(uint localID, LLVector3 offsetPos, IClientAPI remoteClient)
         {
             EventManager.TriggerObjectGrab(localID, offsetPos, remoteClient);

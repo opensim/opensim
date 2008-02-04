@@ -578,6 +578,8 @@ namespace OpenSim.Region.ClientStack
 
         public event PacketStats OnPacketStats;
 
+        public event MoneyTransferRequest OnMoneyTransferRequest;
+
 
         #region Scene/Avatar to Client
 
@@ -2044,6 +2046,21 @@ namespace OpenSim.Region.ClientStack
             AddLocalPacketHandler(PacketType.ViewerEffect, HandleViewerEffect);
             AddLocalPacketHandler(PacketType.AgentCachedTexture, AgentTextureCached);
             AddLocalPacketHandler(PacketType.MultipleObjectUpdate, MultipleObjUpdate);
+            AddLocalPacketHandler(PacketType.MoneyTransferRequest, HandleMoneyTransferRequest);
+        }
+
+        private bool HandleMoneyTransferRequest(IClientAPI sender, Packet Pack)
+        {
+            MoneyTransferRequestPacket money = (MoneyTransferRequestPacket)Pack;
+
+            if (OnMoneyTransferRequest != null)
+            {
+                OnMoneyTransferRequest(money.MoneyData.SourceID, money.MoneyData.DestID,
+                    money.MoneyData.Amount, money.MoneyData.TransactionType,
+                    Util.FieldToString(money.MoneyData.Description));
+            }
+
+            return true;
         }
 
         private bool HandleViewerEffect(IClientAPI sender, Packet Pack)

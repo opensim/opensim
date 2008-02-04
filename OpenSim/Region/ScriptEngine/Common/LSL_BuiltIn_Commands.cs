@@ -3199,6 +3199,18 @@ namespace OpenSim.Region.ScriptEngine.Common
             World.SendGeneralAlert(msg);
         }
 
+        public void osSetRot(LLUUID target, Quaternion rotation)
+        {
+            if (World.Entities.ContainsKey(target))
+            {
+                World.Entities[target].Rotation = rotation;
+            }
+            else
+            {
+                LSLError("osSetRot: Invalid target");
+            }
+        }
+
         public string osSetDynamicTextureURL(string dynamicID, string contentType, string url, string extraParams,
                                              int timer)
         {
