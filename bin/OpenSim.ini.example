@@ -18,10 +18,10 @@ physics = basicphysics
 
 ; *** Prim Storage - only leave one storage_plugin uncommented ***
 ; --- The NullStorage stores nothing - effectively disabling persistence:
-; storage_plugin = "OpenSim.DataStore.NullStorage.dll"
+storage_plugin = "OpenSim.DataStore.NullStorage.dll"
 
 ; --- To use sqlite as region storage:
-storage_plugin = "OpenSim.Framework.Data.SQLite.dll"
+;storage_plugin = "OpenSim.Framework.Data.SQLite.dll"
 storage_connection_string="URI=file:OpenSim.db,version=3";
 
 ; --- To use MySQL storage, supply your own connectionstring (this is only an example):
@@ -99,6 +99,15 @@ shout_distance = 100
 ;server  = name.of.irc.server.on.the.net
 ;nick    = OpenSimBotNameProbablyMakeThisShorter
 ;channel = #the_irc_channel_you_want_to_connect_to
+;port = 6667
+;MSGformat fields : 0=botnick, 1=user, 2=region, 3=message
+; must start with "PRIVMSG {0} : " or irc server will get upset
+;for <bot>:<user in region> :<message>
+;msgformat = "PRIVMSG {0} :<{1} in {2}>: {3}"
+;for <bot>:<message> - <user of region> :
+msgformat = "PRIVMSG {0} : {3} - {1} of {2}"
+;for <bot>:<message> - from <user> :
+;msgformat = "PRIVMSG {0} : {3} - from {1}"
 
 ; Uncomment the following to control the progression of daytime
 ; in the Sim.  The defaults are what is shown below
@@ -230,4 +239,5 @@ CompileWithDebugInformation=true
 
 ; Remove old scripts on next startup
 CleanUpOldScriptsOnStartup=true
+
 

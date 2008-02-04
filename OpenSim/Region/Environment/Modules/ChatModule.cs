@@ -154,6 +154,8 @@ namespace OpenSim.Region.Environment.Modules
                 }
                 client.OnLogout += ClientLoggedOut;
                 client.OnConnectionClosed += ClientLoggedOut;
+                //client.OnDisconnectUser += ClientLoggedOut;
+                client.OnLogout += ClientLoggedOut;
             }
             catch (Exception ex)
             {
@@ -323,6 +325,7 @@ namespace OpenSim.Region.Environment.Modules
         private string m_nick = null;
         private string m_basenick = null;
         private string m_channel = null;
+        private string m_privmsgformat = "PRIVMSG {0} :<{1} in {2}>: {3}";
 
         private NetworkStream m_stream;
         private TcpClient m_tcp;
@@ -356,7 +359,13 @@ namespace OpenSim.Region.Environment.Modules
             // ; USER <irc_user> <visible=8,invisible=0> * : <IRC_realname>
             // channel = #opensim-regions
             // port = 6667
-            //
+            // ;MSGformat fields : 0=botnick, 1=user, 2=region, 3=message
+            // ;for <bot>:<user in region> :<message>
+            // ;msgformat = "PRIVMSG {0} :<{1} in {2}>: {3}"
+            // ;for <bot>:<message> - <user of region> :
+            // ;msgformat = "PRIVMSG {0} : {3} - {1} of {2}"
+            // ;for <bot>:<message> - from <user> :
+            // ;msgformat = "PRIVMSG {0} : {3} - from {1}"
             // Traps I/O disconnects so it does not crash the sim
             // Trys to reconnect if disconnected and someone says something
             // Tells IRC server "QUIT" when doing a close (just to be nice)
@@ -370,6 +379,7 @@ namespace OpenSim.Region.Environment.Modules
                 m_channel = config.Configs["IRC"].GetString("channel");
                 m_port = (uint) config.Configs["IRC"].GetInt("port", (int) m_port);
                 m_user = config.Configs["IRC"].GetString("username", m_user);
+                m_privmsgformat = config.Configs["IRC"].GetString("msgformat", m_privmsgformat);
                 if (m_server != null && m_nick != null && m_channel != null)
                 {
                     m_nick = m_nick + Util.RandomClass.Next(1, 99);
@@ -456,7 +466,14 @@ namespace OpenSim.Region.Environment.Modules
 
             try
             {
-                m_writer.WriteLine("PRIVMSG {0} :<{1} in {2}>: {3}", m_channel, from, region, msg);
+                if (m_privmsgformat == null)
+                {
+                    m_writer.WriteLine("PRIVMSG {0} :<{1} in {2}>: {3}", m_channel, from, region, msg);
+                }
+                else
+                {
+                    m_writer.WriteLine(m_privmsgformat, m_channel, from, region, msg);
+                }
                 m_writer.Flush();
                 m_log.Verbose("IRC", "PrivMsg " + from + " in " + region + " :" + msg);
             }

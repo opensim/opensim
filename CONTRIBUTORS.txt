@@ -23,8 +23,8 @@ OpenSim Developers
 * Danx0r
 * Dalien
 * Darok
-* chi11ken
-* adjohn
+* chi11ken (3Di)
+* adjohn (3Di)
 * Alondria
 
 Patches
