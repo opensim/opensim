@@ -837,6 +837,7 @@
       <Reference name="OpenSim.Framework.Console"/>
       <Reference name="OpenSim.Framework.RegionLoader.Filesystem"/>
       <Reference name="OpenSim.Framework.RegionLoader.Web"/>
+      <Reference name="OpenSim.Framework.Servers"/>
       <Files>
         <Match pattern="*.cs" recurse="true"/>
       </Files>
