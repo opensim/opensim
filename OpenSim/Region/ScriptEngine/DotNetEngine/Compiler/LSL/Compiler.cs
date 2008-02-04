@@ -284,6 +284,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL
                                 @"Public Sub New(): End Sub: " +
                                 compileScript +
                                 ":End Class :End Namespace\r\n";
+                    break;
                 case enumCompileType.js:
                     compileScript = String.Empty +
                         "import OpenSim.Region.ScriptEngine.Common; import System.Collections.Generic;" +
