@@ -392,6 +392,10 @@ namespace SimpleApp
         {
         }
 
+        public void SendTriggeredSound(LLUUID soundID, LLUUID ownerID, LLUUID objectID, LLUUID parentID, ulong handle, LLVector3 position, float gain)
+        {
+        }
+
         public void SendAlertMessage(string message)
         {
         }

@@ -1349,6 +1349,20 @@ namespace OpenSim.Region.ClientStack
             OutPacket(sound, ThrottleOutPacketType.Task);
         }
 
+        public void SendTriggeredSound(LLUUID soundID, LLUUID ownerID, LLUUID objectID, LLUUID parentID, ulong handle, LLVector3 position, float gain)
+        {
+            SoundTriggerPacket sound = (SoundTriggerPacket)PacketPool.Instance.GetPacket(PacketType.SoundTrigger);
+            sound.SoundData.SoundID = soundID;
+            sound.SoundData.OwnerID = ownerID;
+            sound.SoundData.ObjectID = objectID;
+            sound.SoundData.ParentID = parentID;
+            sound.SoundData.Handle = handle;
+            sound.SoundData.Position = position;
+            sound.SoundData.Gain = gain;
+
+            OutPacket(sound, ThrottleOutPacketType.Task);
+        }
+
         public void SendSunPos(LLVector3 sunPos, LLVector3 sunVel)
         {
             SimulatorViewerTimeMessagePacket viewertime = (SimulatorViewerTimeMessagePacket)PacketPool.Instance.GetPacket(PacketType.SimulatorViewerTimeMessage);

@@ -34,6 +34,7 @@ using System.Threading;
 using Axiom.Math;
 using libsecondlife;
 using OpenSim.Framework;
+using OpenSim.Framework.Communications;
 using OpenSim.Region.Environment.Interfaces;
 using OpenSim.Region.Environment.Scenes;
 using OpenSim.Region.ScriptEngine.Common;
@@ -898,12 +899,44 @@ namespace OpenSim.Region.ScriptEngine.Common
 
         public void llSound()
         {
+            // This function has been deprecated
+            // see http://www.lslwiki.net/lslwiki/wakka.php?wakka=llSound
             NotImplemented("llSound");
         }
 
         public void llPlaySound(string sound, double volume)
         {
-            NotImplemented("llPlaySound");
+            if (volume > 1)
+                volume = 1;
+            if (volume < 0)
+                volume = 0;
+
+            LLUUID ownerID = m_host.OwnerID;
+            LLUUID objectID = m_host.UUID;
+            LLUUID soundID = LLUUID.Zero;
+            byte flags = 0;
+
+            if (!LLUUID.TryParse(sound, out soundID))
+            {
+                //Trys to fetch sound id from prim's inventory.
+                //Prim's inventory doesn't support non script items yet
+                SceneObjectPart op = World.GetSceneObjectPart(objectID);
+                foreach (KeyValuePair<LLUUID, TaskInventoryItem> item in op.TaskInventory)
+                {
+                    if (item.Value.Name == sound)
+                    {
+                        soundID = item.Value.ItemID;
+                        break;
+                    }
+                }
+            }
+
+            List<ScenePresence> avatarts = World.GetAvatars();
+            foreach (ScenePresence p in avatarts)
+            {
+                // TODO: some filtering by distance of avatar
+                p.ControllingClient.SendPlayAttachedSound(soundID, objectID, ownerID, (float)volume, flags);
+            }
         }
 
         public void llLoopSound(string sound, double volume)
@@ -928,7 +961,38 @@ namespace OpenSim.Region.ScriptEngine.Common
 
         public void llTriggerSound(string sound, double volume)
         {
-            NotImplemented("llTriggerSound");
+            if (volume > 1)
+                volume = 1;
+            if (volume < 0)
+                volume = 0;
+
+            LLUUID ownerID = m_host.OwnerID;
+            LLUUID objectID = m_host.UUID;
+            LLUUID parentID = this.m_host.GetRootPartUUID();
+            LLUUID soundID = LLUUID.Zero;
+            LLVector3 position = this.m_host.AbsolutePosition; // region local
+            ulong regionHandle = World.RegionInfo.RegionHandle;
+
+            if (!LLUUID.TryParse(sound, out soundID))
+            {
+                // search sound file from inventory
+                SceneObjectPart op = World.GetSceneObjectPart(objectID);
+                foreach (KeyValuePair<LLUUID, TaskInventoryItem> item in op.TaskInventory)
+                {
+                    if (item.Value.Name == sound)
+                    {
+                        soundID = item.Value.ItemID;
+                        break;
+                    }
+                }
+            }
+
+            List<ScenePresence> avatarts = World.GetAvatars();
+            foreach (ScenePresence p in avatarts)
+            {
+                // TODO: some filtering by distance of avatar
+                p.ControllingClient.SendTriggeredSound(soundID, ownerID, objectID, parentID, regionHandle, position, (float)volume);
+            }
         }
 
         public void llStopSound()
@@ -938,7 +1002,31 @@ namespace OpenSim.Region.ScriptEngine.Common
 
         public void llPreloadSound(string sound)
         {
-            NotImplemented("llPreloadSound");
+            LLUUID ownerID = m_host.OwnerID;
+            LLUUID objectID = m_host.UUID;
+            LLUUID soundID = LLUUID.Zero;
+
+            if (!LLUUID.TryParse(sound, out soundID))
+            {
+                //Trys to fetch sound id from prim's inventory.
+                //Prim's inventory doesn't support non script items yet
+                SceneObjectPart op = World.GetSceneObjectPart(objectID);
+                foreach (KeyValuePair<LLUUID, TaskInventoryItem> item in op.TaskInventory)
+                {
+                    if (item.Value.Name == sound)
+                    {
+                        soundID = item.Value.ItemID;
+                        break;
+                    }
+                }
+            }
+
+            List<ScenePresence> avatarts = World.GetAvatars();
+            foreach (ScenePresence p in avatarts)
+            {
+                // TODO: some filtering by distance of avatar
+                p.ControllingClient.SendPreLoadSound(objectID, objectID, soundID);
+            }
         }
 
         public string llGetSubString(string src, int start, int end)
