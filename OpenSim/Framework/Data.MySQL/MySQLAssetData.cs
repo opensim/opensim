@@ -98,8 +98,8 @@ namespace OpenSim.Framework.Data.MySQL
                 catch (Exception e)
                 {
                     MainLog.Instance.Error(
-                        "ASSETS", "MySql failure fetching asset" + Environment.NewLine + e.ToString()
-                       + Environment.NewLine + "Attempting reconnection");
+                        "ASSETS", "MySql failure fetching asset {0}" + Environment.NewLine + e.ToString()
+                       + Environment.NewLine + "Attempting reconnection", assetID);
                     _dbConnection.Reconnect();
                 }
             }
@@ -135,8 +135,9 @@ namespace OpenSim.Framework.Data.MySQL
             catch (Exception e)
             {
                 MainLog.Instance.Error(
-                    "ASSETS", "MySql failure creating asset" + Environment.NewLine + e.ToString()
-                   + Environment.NewLine + "Attempting reconnection");
+                    "ASSETS", 
+                    "MySql failure creating asset {0} with name {1}" + Environment.NewLine + e.ToString()
+                   + Environment.NewLine + "Attempting reconnection", asset.FullID, asset.Name);
                 _dbConnection.Reconnect();
             }                
         }
