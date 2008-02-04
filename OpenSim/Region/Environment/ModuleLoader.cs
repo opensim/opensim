@@ -135,6 +135,7 @@ namespace OpenSim.Region.Environment
                 m_loadedSharedModules.Add(xmlRpcMod.Name, xmlRpcMod);
             }
             //TextureDownloadModule textureModule = new TextureDownloadModule();
+
             //LoadedSharedModules.Add(textureModule.Name, textureModule);
         }
 

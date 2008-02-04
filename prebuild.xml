@@ -141,6 +141,7 @@
       <Reference name="XMLRPC.dll"/>
       <Reference name="libsecondlife.dll"/>
       <Reference name="OpenSim.Framework"/>
+      <Reference name="MySql.Data.dll"/>
       <Reference name="TribalMedia.Framework.Data"/>
       <Files>
         <Match pattern="*.cs" recurse="true"/>
@@ -651,6 +652,7 @@
       <Reference name="Microsoft.JScript"/>
       <Reference name="XMLRPC.dll"/>
       <Reference name="OpenSim.Framework.Communications"/>
+      <Reference name="TribalMedia.Framework.Data"/>
       <Reference name="Nini.dll" />
       <Files>
         <Match pattern="*.cs" recurse="true"/>

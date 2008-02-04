@@ -241,3 +241,7 @@ CompileWithDebugInformation=true
 CleanUpOldScriptsOnStartup=true
 
 
+[Appearance]
+persist = false
+connection_string = "Data Source=localhost;Database=avatar_appearance;User ID=root;Password=xxxx;pooling=false;"
+

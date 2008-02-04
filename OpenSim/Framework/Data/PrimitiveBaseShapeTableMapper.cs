@@ -1,9 +1,9 @@
 using System;
 using OpenSim.Framework;
-//using TribalMedia.Framework.Data;
+using TribalMedia.Framework.Data;
 using libsecondlife;
 
-/*
+
 namespace OpenSim.Framework.Data
 {
     public class PrimitiveBaseShapeRowMapper : BaseRowMapper<PrimitiveBaseShape>
@@ -142,4 +142,4 @@ namespace OpenSim.Framework.Data
         }
     }
 }
-*/
+

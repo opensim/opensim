@@ -389,6 +389,7 @@ namespace OpenSim.Framework.Communications
                 dst.Write(buf, 0, length);
                 length = src.Read(buf, 0, 1024);
             }
+
             _response = (HttpWebResponse) _request.GetResponse();
 
 //            IAsyncResult responseAsyncResult = _request.BeginGetResponse(new AsyncCallback(ResponseIsReadyDelegate), _request);

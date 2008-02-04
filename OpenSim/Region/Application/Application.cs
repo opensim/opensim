@@ -58,7 +58,7 @@ namespace OpenSim
             }
 
             Console.WriteLine("Starting...\n");
-
+          
             Culture.SetCurrentCulture();
 
             ArgvConfigSource configSource = new ArgvConfigSource(args);
@@ -75,6 +75,7 @@ namespace OpenSim
             OpenSimMain sim = new OpenSimMain(configSource);
 
             sim.StartUp();
+            
 
             while (true)
             {

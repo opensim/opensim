@@ -72,6 +72,7 @@ namespace OpenSim.Region.Environment.Scenes
 
     public partial class SceneObjectPart : IScriptHost
     {
+
         [XmlIgnore] public PhysicsActor PhysActor = null;
         
         public LLUUID LastOwnerID;
@@ -764,11 +765,13 @@ namespace OpenSim.Region.Environment.Scenes
 
         public void TrimPermissions()
         {
+
             BaseMask &= (uint)PermissionMask.All;
             OwnerMask &= (uint)PermissionMask.All;
             GroupMask &= (uint)PermissionMask.All;
             EveryoneMask &= (uint)PermissionMask.All;
             NextOwnerMask &= (uint)PermissionMask.All;
+
         }
 
         /// <summary>

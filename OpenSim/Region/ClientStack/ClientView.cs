@@ -351,6 +351,7 @@ namespace OpenSim.Region.ClientStack
             if (m_debug > 0)
             {
                 string info = String.Empty;
+               
                 if (m_debug < 255 && packet.Type == PacketType.AgentUpdate)
                     return;
                 if (m_debug < 254 && packet.Type == PacketType.ViewerEffect)

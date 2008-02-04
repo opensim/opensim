@@ -170,31 +170,9 @@ namespace OpenSim.Region.Environment
             // the administrator object permissions to take effect.
             LLUUID objectOwner = task.OwnerID;
 
-            //return task.RootPart.ObjectFlags;task.RootPart.ObjectFlags | 
-
             uint objectOwnerMask = task.RootPart.ObjectFlags;
+            objectOwnerMask = ApplyObjectModifyMasks(task.RootPart.OwnerMask, objectOwnerMask);
 
-            if((task.RootPart.OwnerMask & (uint)PermissionMask.Copy) != 0)
-            {
-                objectOwnerMask |= (uint)LLObject.ObjectFlags.ObjectCopy;
-            }
-
-            if ((task.RootPart.OwnerMask & (uint) PermissionMask.Move) != 0)
-            {
-                objectOwnerMask |= (uint)LLObject.ObjectFlags.ObjectMove;
-            }
-
-            if ((task.RootPart.OwnerMask & (uint) PermissionMask.Modify) != 0)
-            {
-                objectOwnerMask |= (uint)LLObject.ObjectFlags.ObjectModify;
-            }
-
-            if ((task.RootPart.OwnerMask & (uint) PermissionMask.Transfer) != 0)
-            {
-                objectOwnerMask |= (uint)LLObject.ObjectFlags.ObjectTransfer;
-            }
-
-            uint objectGroupMask = task.RootPart.ObjectFlags | task.RootPart.GroupMask;
             uint objectEveryoneMask = task.RootPart.ObjectFlags | task.RootPart.EveryoneMask;
 
             if (m_bypassPermissions)
@@ -238,6 +216,31 @@ namespace OpenSim.Region.Environment
                 return objectOwnerMask;
             }
             return objectEveryoneMask;
+        }
+
+
+        private uint ApplyObjectModifyMasks(uint parentMask, uint objectOwnerMask)
+        {
+            if ((parentMask & (uint)PermissionMask.Copy) != 0)
+            {
+                objectOwnerMask |= (uint)LLObject.ObjectFlags.ObjectCopy;
+            }
+
+            if ((parentMask & (uint)PermissionMask.Move) != 0)
+            {
+                objectOwnerMask |= (uint)LLObject.ObjectFlags.ObjectMove;
+            }
+
+            if ((parentMask & (uint)PermissionMask.Modify) != 0)
+            {
+                objectOwnerMask |= (uint)LLObject.ObjectFlags.ObjectModify;
+            }
+
+            if ((parentMask & (uint)PermissionMask.Transfer) != 0)
+            {
+                objectOwnerMask |= (uint)LLObject.ObjectFlags.ObjectTransfer;
+            }
+            return objectOwnerMask;
         }
 
         protected virtual bool GenericObjectPermission(LLUUID currentUser, LLUUID objId)

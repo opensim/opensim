@@ -1,6 +1,8 @@
 using System.Data;
+using System.Data.Common;
 using libsecondlife;
-/*
+using MySql.Data.MySqlClient;
+
 using TribalMedia.Framework.Data;
 
 namespace OpenSim.Framework.Data
@@ -26,5 +28,25 @@ namespace OpenSim.Framework.Data
             return new OpenSimDataReader(reader);
         }
     }
+
+
+    public class MySQLDatabaseMapper : OpenSimDatabaseConnector
+    {
+        public MySQLDatabaseMapper(string connectionString)
+            : base(connectionString)
+        {
+        }
+
+        public override DbConnection GetNewConnection()
+        {
+            MySqlConnection connection = new MySqlConnection(m_connectionString);
+            return connection;
+        }
+
+        public override string CreateParamName(string fieldName)
+        {
+            return "?" + fieldName;
+        }
+    }
 }
-*/
+

@@ -95,11 +95,13 @@ namespace OpenSim.Framework.Communications.Cache
                 //  RestClient rc = new RestClient(_assetServerUrl);
                 MainLog.Instance.Verbose("ASSET", "Storing asset");
                 //rc.AddResourcePath("assets");
+
                 // rc.RequestMethod = "POST";
                 //  rc.Request(s);
                 //MainLog.Instance.Verbose("ASSET", "Stored {0}", rc);
                 MainLog.Instance.Verbose("ASSET", "Sending to " + _assetServerUrl + "/assets/");
                 RestObjectPoster.BeginPostObject<AssetBase>(_assetServerUrl + "/assets/", asset);
+
             }
             catch (Exception e)
             {

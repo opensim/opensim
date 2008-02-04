@@ -35,6 +35,8 @@ using OpenSim.Framework.Communications.Cache;
 using OpenSim.Framework.Console;
 using OpenSim.Region.Environment.Interfaces;
 using OpenSim.Region.Environment.Scenes;
+using OpenSim.Framework.Data;
+using TribalMedia.Framework.Data;
 
 namespace OpenSim.Region.Environment.Modules
 {
@@ -43,6 +45,12 @@ namespace OpenSim.Region.Environment.Modules
         private Scene m_scene = null;
         private readonly Dictionary<LLUUID, AvatarAppearance> m_avatarsAppearance = new Dictionary<LLUUID, AvatarAppearance>();
 
+        private bool m_enablePersist = false;
+        private string m_connectionString;
+        private bool m_configured = false;
+        private BaseDatabaseConnector m_databaseMapper;
+        private AppearanceTableMapper m_appearanceMapper;
+
         public bool TryGetAvatarAppearance(LLUUID avatarId, out AvatarAppearance appearance)
         {
             if (m_avatarsAppearance.ContainsKey(avatarId))
@@ -50,22 +58,31 @@ namespace OpenSim.Region.Environment.Modules
                 appearance = m_avatarsAppearance[avatarId];
                 return true;
             }
-            else
+
+            if (m_enablePersist)
             {
-                AvatarWearable[] wearables;
-                byte[] visualParams;
-                GetDefaultAvatarAppearance(out wearables, out visualParams);
-                appearance = new AvatarAppearance(avatarId, wearables, visualParams);
-                try
+                if (m_appearanceMapper.TryGetValue(avatarId.UUID, out appearance))
                 {
+                    appearance.VisualParams = GetDefaultVisualParams();
+                    appearance.TextureEntry = AvatarAppearance.GetDefaultTextureEntry();
                     m_avatarsAppearance[avatarId] = appearance;
+                    return true;
                 }
-                catch (NullReferenceException)
-                {
-                    MainLog.Instance.Error("AVATAR", "Unable to load appearance for uninitialized avatar");
-                }
-                return true;
             }
+
+
+            //not found a appearance for user, so create a new one
+            AvatarWearable[] wearables;
+            byte[] visualParams;
+            GetDefaultAvatarAppearance(out wearables, out visualParams);
+            appearance = new AvatarAppearance(avatarId, wearables, visualParams);
+
+            m_avatarsAppearance[avatarId] = appearance;
+            if (m_enablePersist)
+            {
+                m_appearanceMapper.Add(avatarId.UUID, appearance);
+            }
+            return true;
         }
 
         public void Initialise(Scene scene, IConfigSource source)
@@ -76,6 +93,24 @@ namespace OpenSim.Region.Environment.Modules
             if (m_scene == null)
             {
                 m_scene = scene;
+            }
+
+            if (!m_configured)
+            {
+                m_configured = true;
+                try
+                {
+                    m_enablePersist = source.Configs["Appearance"].GetBoolean("persist", false);
+                    m_connectionString = source.Configs["Appearance"].GetString("connection_string", "");
+                }
+                catch (Exception)
+                {
+                }
+                if (m_enablePersist)
+                {
+                    m_databaseMapper = new MySQLDatabaseMapper(m_connectionString);
+                    m_appearanceMapper = new AppearanceTableMapper(m_databaseMapper, "AvatarAppearance");
+                }
             }
         }
 
@@ -109,7 +144,7 @@ namespace OpenSim.Region.Environment.Modules
 
         public void AvatarIsWearing(Object sender, AvatarWearingArgs e)
         {
-            IClientAPI clientView = (IClientAPI) sender;
+            IClientAPI clientView = (IClientAPI)sender;
             CachedUserInfo profile = m_scene.CommsManager.UserProfileCacheService.GetUserDetails(clientView.AgentId);
             if (profile != null)
             {
@@ -134,6 +169,11 @@ namespace OpenSim.Region.Environment.Modules
                                     AvatarAppearance avatAppearance = m_avatarsAppearance[clientView.AgentId];
                                     avatAppearance.Wearables[wear.Type].AssetID = assetId;
                                     avatAppearance.Wearables[wear.Type].ItemID = wear.ItemID;
+
+                                    if (m_enablePersist)
+                                    {
+                                        m_appearanceMapper.Update(clientView.AgentId.UUID, avatAppearance);
+                                    }
                                 }
                             }
                         }
