@@ -503,7 +503,7 @@ namespace OpenSim.Framework.Communications.Cache
                 {
                     int processedLength = 0;
                     // libsecondlife hardcodes 1500 as the maximum data chunk size
-                    int maxChunkSize = 1500;
+                    int maxChunkSize = 1250;
                     int packetNumber = 0;
 
                     while (processedLength < req.AssetInf.Data.Length)
