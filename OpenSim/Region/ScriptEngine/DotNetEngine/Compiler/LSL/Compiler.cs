@@ -34,6 +34,7 @@ using System.IO;
 using System.Reflection;
 using Microsoft.CSharp;
 using Microsoft.VisualBasic;
+using Microsoft.JScript;
 
 namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL
 {
@@ -51,7 +52,8 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL
         {
             lsl = 0,
             cs = 1,
-            vb = 2
+            vb = 2,
+            js = 3
         }
         private enumCompileType DefaultCompileLanguage;
         private bool WriteScriptSourceToDebugFile;
@@ -66,6 +68,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL
         private static LSL2CSConverter LSL_Converter = new LSL2CSConverter();
         private static CSharpCodeProvider CScodeProvider = new CSharpCodeProvider();
         private static VBCodeProvider VBcodeProvider = new VBCodeProvider();
+        private static JScriptCodeProvider JScodeProvider = new JScriptCodeProvider();
 
         private static int instanceID = new Random().Next(0, int.MaxValue);                 // Unique number to use on our compiled files
         private static UInt64 scriptCompileCounter = 0;                                     // And a counter
@@ -103,9 +106,10 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL
             LanguageMapping.Add(enumCompileType.cs.ToString(), enumCompileType.cs);
             LanguageMapping.Add(enumCompileType.vb.ToString(), enumCompileType.vb);
             LanguageMapping.Add(enumCompileType.lsl.ToString(), enumCompileType.lsl);
+            LanguageMapping.Add(enumCompileType.js.ToString(), enumCompileType.js);
 
             // Allowed compilers
-            string allowComp = m_scriptEngine.ScriptConfigSource.GetString("AllowedCompilers", "lsl,cs,vb");
+            string allowComp = m_scriptEngine.ScriptConfigSource.GetString("AllowedCompilers", "lsl,cs,vb,js");
             AllowedCompilers.Clear();
 
 #if DEBUG
@@ -241,6 +245,8 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL
             if (Script.StartsWith("//lsl", true, CultureInfo.InvariantCulture))
                 l = enumCompileType.lsl;
 
+            if (Script.StartsWith("//js", true, CultureInfo.InvariantCulture))
+                l = enumCompileType.js;
 
             if (!AllowedCompilers.ContainsKey(l.ToString()))
             {
@@ -278,6 +284,14 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL
                                 @"Public Sub New(): End Sub: " +
                                 compileScript +
                                 ":End Class :End Namespace\r\n";
+                case enumCompileType.js:
+                    compileScript = String.Empty +
+                        "import OpenSim.Region.ScriptEngine.Common; import System.Collections.Generic;" +
+                        "namespace SecondLife { " +
+                        "class Script : OpenSim.Region.ScriptEngine.Common.LSL_BaseClass { " +
+                        @"public Script() { } " +
+                        compileScript +
+                        "} }\r\n";
                     break;
             }
             return CompileFromCSorVBText(compileScript, l);
@@ -360,6 +374,9 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL
                     break;
                 case enumCompileType.cs:
                     results = CScodeProvider.CompileAssemblyFromSource(parameters, Script);
+                    break;
+                case enumCompileType.js:
+                    results = JScodeProvider.CompileAssemblyFromSource(parameters, Script);
                     break;
                 default:
                     throw new Exception("Compiler is not able to recongnize language type \"" + lang.ToString() + "\"");
