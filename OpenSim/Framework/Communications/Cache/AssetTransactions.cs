@@ -302,6 +302,7 @@ namespace OpenSim.Framework.Communications.Cache
                     item.assetType = type;
                     item.invType = invType;
                     item.parentFolderID = InventFolder;
+                    item.inventoryBasePermissions = 2147483647;
                     item.inventoryCurrentPermissions = 2147483647;
                     item.inventoryNextPermissions = nextPerm;
 
