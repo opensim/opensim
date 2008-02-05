@@ -194,6 +194,16 @@ namespace OpenSim.Framework.Communications
             }
         }
 
+        public virtual bool HasInventoryForUser(LLUUID userID)
+        {
+            return false;
+        }
+
+        public InventoryFolderBase RequestRootFolder(LLUUID userID)
+        {
+            return RequestUsersRoot(userID);
+        }
+
         /// <summary>
         /// 
         /// </summary>

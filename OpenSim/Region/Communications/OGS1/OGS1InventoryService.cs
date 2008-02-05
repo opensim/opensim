@@ -163,6 +163,16 @@ namespace OpenSim.Region.Communications.OGS1
                 "POST", _inventoryServerUrl + "/DeleteItem/", item);
         }
 
+        public bool HasInventoryForUser(LLUUID userID)
+        {
+            return false;
+        }
+
+        public InventoryFolderBase RequestRootFolder(LLUUID userID)
+        {
+            return null;
+        }
+
         public void CreateNewUserInventory(LLUUID user)
         {
         }

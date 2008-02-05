@@ -83,6 +83,20 @@ namespace OpenSim.Region.Communications.Local
             DeleteItem(item);
         }
 
+        public override bool HasInventoryForUser(LLUUID userID)
+        {
+            InventoryFolderBase root = RequestUsersRoot(userID);
+            if (root == null)
+            {
+                return false;
+            }
+            else
+            {
+                return true;
+            }
+        }
+
+
         /// <summary>
         /// Send the given inventory folder and its item contents back to the requester.
         /// </summary>

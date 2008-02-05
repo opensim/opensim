@@ -44,6 +44,8 @@ namespace OpenSim.Framework.Communications
         void AddNewInventoryItem(LLUUID userID, InventoryItemBase item);
         void DeleteInventoryItem(LLUUID userID, InventoryItemBase item);
         void CreateNewUserInventory(LLUUID user);
+        bool HasInventoryForUser(LLUUID userID);
+        InventoryFolderBase RequestRootFolder(LLUUID userID);
 
         /// <summary>
         /// Returns the root folder plus any folders in root (so down one level in the Inventory folders tree)
