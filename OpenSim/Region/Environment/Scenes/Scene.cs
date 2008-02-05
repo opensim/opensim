@@ -718,25 +718,30 @@ namespace OpenSim.Region.Environment.Scenes
 
                     m_storageManager.DataStore.StoreTerrain(Terrain.GetHeights2DD(), RegionInfo.RegionID);
 
-                    float[] terData = Terrain.GetHeights1D();
-
-                    Broadcast(delegate(IClientAPI client)
-                                  {
-                                      for (int x = 0; x < 16; x++)
-                                      {
-                                          for (int y = 0; y < 16; y++)
-                                          {
-                                              if (Terrain.IsTainted(x*16, y*16))
-                                              {
-                                                  client.SendLayerData(x, y, terData);
-                                              }
-                                          }
-                                      }
-                                  });
+                    SendTerrainUpdate(true);
 
                     Terrain.ResetTaint();
                 }
             }
+        }
+
+        public void SendTerrainUpdate(bool checkForTainted)
+        {
+            float[] terData = Terrain.GetHeights1D();
+
+            Broadcast(delegate(IClientAPI client)
+            {
+                for (int x = 0; x < 16; x++)
+                {
+                    for (int y = 0; y < 16; y++)
+                    {
+                        if ((!checkForTainted) || (Terrain.IsTainted(x * 16, y * 16)))
+                        {
+                            client.SendLayerData(x, y, terData);
+                        }
+                    }
+                }
+            });
         }
 
         private void UpdateStorageBackup()
