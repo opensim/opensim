@@ -35,6 +35,8 @@ namespace OpenSim.Framework.Configuration.HTTP
 {
     public class HTTPConfiguration : IGenericConfig
     {
+        private static readonly log4net.ILog m_log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+
         private RemoteConfigSettings remoteConfigSettings;
 
         private XmlConfiguration xmlConfig;
@@ -81,7 +83,7 @@ namespace OpenSim.Framework.Configuration.HTTP
             }
             catch (WebException)
             {
-                MainLog.Instance.Warn("Unable to connect to remote configuration file (" +
+                m_log.Warn("Unable to connect to remote configuration file (" +
                                       remoteConfigSettings.baseConfigURL + configFileName +
                                       "). Creating local file instead.");
                 xmlConfig.SetFileName(configFileName);

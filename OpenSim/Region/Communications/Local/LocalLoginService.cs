@@ -44,6 +44,8 @@ namespace OpenSim.Region.Communications.Local
 
     public class LocalLoginService : LoginService
     {
+        private static readonly log4net.ILog m_log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+
         private CommunicationsLocal m_Parent;
 
         private NetworkServersInfo serversInfo;
@@ -77,7 +79,7 @@ namespace OpenSim.Region.Communications.Local
             if (!authUsers)
             {
                 //no current user account so make one
-                MainLog.Instance.Notice("LOGIN", "No user account found so creating a new one.");
+                m_log.Info("[LOGIN]: No user account found so creating a new one.");
 
                 m_userManager.AddUserProfile(firstname, lastname, "test", defaultHomeX, defaultHomeY);
 
@@ -97,14 +99,14 @@ namespace OpenSim.Region.Communications.Local
             if (!authUsers)
             {
                 //for now we will accept any password in sandbox mode
-                MainLog.Instance.Notice("LOGIN", "Authorising user (no actual password check)");
+                m_log.Info("[LOGIN]: Authorising user (no actual password check)");
 
                 return true;
             }
             else
             {
-                MainLog.Instance.Notice(
-                    "LOGIN", "Authenticating " + profile.username + " " + profile.surname);
+                m_log.Info(
+                    "[LOGIN]: Authenticating " + profile.username + " " + profile.surname);
                
                 if (!password.StartsWith("$1$"))
                     password = "$1$" + Util.Md5Hash(password);
@@ -166,7 +168,7 @@ namespace OpenSim.Region.Communications.Local
             }
             else
             {
-                MainLog.Instance.Warn("LOGIN", "Not found region " + currentRegion);
+                m_log.Warn("[LOGIN]: Not found region " + currentRegion);
             }
         }
         private LoginResponse.BuddyList ConvertFriendListItem(List<FriendListItem> LFL)

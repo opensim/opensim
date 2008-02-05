@@ -39,6 +39,8 @@ namespace OpenSim.Framework
 {
     public class ConfigurationMember
     {
+        private static readonly log4net.ILog m_log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+
         public delegate bool ConfigurationOptionResult(string configuration_key, object configuration_result);
 
         public delegate void ConfigurationOptionsLoad();
@@ -110,7 +112,7 @@ namespace OpenSim.Framework
             }
             else
             {
-                MainLog.Instance.Notice(
+                m_log.Info(
                     "Required fields for adding a configuration option is invalid. Will not add this option (" +
                     option.configurationKey + ")");
             }
@@ -147,46 +149,44 @@ namespace OpenSim.Framework
             checkAndAddConfigOption(configOption);
         }
 
-
         // TEMP - REMOVE
         private int cE = 0;
         public void performConfigurationRetrieve()
         {
             if (cE > 1)
-                MainLog.Instance.Error("READING CONFIGURATION COUT: " + cE.ToString());
+                m_log.Error("READING CONFIGURATION COUT: " + cE.ToString());
 
 
             configurationPlugin = LoadConfigDll(configurationPluginFilename);
             configurationOptions.Clear();
             if (loadFunction == null)
             {
-                MainLog.Instance.Error("Load Function for '" + configurationDescription +
+                m_log.Error("Load Function for '" + configurationDescription +
                                        "' is null. Refusing to run configuration.");
                 return;
             }
 
             if (resultFunction == null)
             {
-                MainLog.Instance.Error("Result Function for '" + configurationDescription +
+                m_log.Error("Result Function for '" + configurationDescription +
                                        "' is null. Refusing to run configuration.");
                 return;
             }
 
-            MainLog.Instance.Verbose("CONFIG", "Calling Configuration Load Function...");
+            m_log.Info("[CONFIG]: Calling Configuration Load Function...");
             loadFunction();
 
             if (configurationOptions.Count <= 0)
             {
-                MainLog.Instance.Error("CONFIG",
-                                       "No configuration options were specified for '" + configurationOptions +
-                                       "'. Refusing to continue configuration.");
+                m_log.Error("[CONFIG]: No configuration options were specified for '" + configurationOptions +
+                            "'. Refusing to continue configuration.");
                 return;
             }
 
             bool useFile = true;
             if (configurationPlugin == null)
             {
-                MainLog.Instance.Error("CONFIG", "Configuration Plugin NOT LOADED!");
+                m_log.Error("[CONFIG]: Configuration Plugin NOT LOADED!");
                 return;
             }
 
@@ -200,7 +200,7 @@ namespace OpenSim.Framework
                 }
                 catch (XmlException e)
                 {
-                    MainLog.Instance.Error("Error loading " + configurationFilename + ": " + e.ToString());
+                    m_log.Error("Error loading " + configurationFilename + ": " + e.ToString());
                     useFile = false;
                 }
             }
@@ -208,11 +208,11 @@ namespace OpenSim.Framework
             {
                 if (configurationFromXMLNode != null)
                 {
-                    MainLog.Instance.Notice("Loading from XML Node, will not save to the file");
+                    m_log.Info("Loading from XML Node, will not save to the file");
                     configurationPlugin.LoadDataFromString(configurationFromXMLNode.OuterXml);
                 }
 
-                MainLog.Instance.Notice("XML Configuration Filename is not valid; will not save to the file.");
+                m_log.Info("XML Configuration Filename is not valid; will not save to the file.");
                 useFile = false;
             }
 
@@ -253,15 +253,15 @@ namespace OpenSim.Framework
                                 if (configurationDescription.Trim() != String.Empty)
                                 {
                                     console_result =
-                                        MainLog.Instance.CmdPrompt(
+                                        MainConsole.Instance.CmdPrompt(
                                             configurationDescription + ": " + configOption.configurationQuestion,
                                             configOption.configurationDefault);
                                 }
                                 else
                                 {
                                     console_result =
-                                        MainLog.Instance.CmdPrompt(configOption.configurationQuestion,
-                                                                   configOption.configurationDefault);
+                                        MainConsole.Instance.CmdPrompt(configOption.configurationQuestion,
+                                                                      configOption.configurationDefault);
                                 }
                             }
                             else
@@ -431,7 +431,7 @@ namespace OpenSim.Framework
 
                         if (!resultFunction(configOption.configurationKey, return_result))
                         {
-                            MainLog.Instance.Notice(
+                            m_log.Info(
                                 "The handler for the last configuration option denied that input, please try again.");
                             convertSuccess = false;
                             ignoreNextFromConfig = true;
@@ -441,20 +441,18 @@ namespace OpenSim.Framework
                     {
                         if (configOption.configurationUseDefaultNoPrompt)
                         {
-                            MainLog.Instance.Error("CONFIG",
-                                                   string.Format(
-                                                       "[{3}]:[{1}] is not valid default for parameter [{0}].\nThe configuration result must be parsable to {2}.\n",
-                                                       configOption.configurationKey, console_result, errorMessage,
-                                                       configurationFilename));
+                            m_log.Error(string.Format(
+                                            "[CONFIG]: [{3}]:[{1}] is not valid default for parameter [{0}].\nThe configuration result must be parsable to {2}.\n",
+                                            configOption.configurationKey, console_result, errorMessage,
+                                            configurationFilename));
                             convertSuccess = true;
                         }
                         else
                         {
-                            MainLog.Instance.Warn("CONFIG",
-                                                  string.Format(
-                                                      "[{3}]:[{1}] is not a valid value [{0}].\nThe configuration result must be parsable to {2}.\n",
-                                                      configOption.configurationKey, console_result, errorMessage,
-                                                      configurationFilename));
+                            m_log.Warn(string.Format(
+                                           "[CONFIG]: [{3}]:[{1}] is not a valid value [{0}].\nThe configuration result must be parsable to {2}.\n",
+                                           configOption.configurationKey, console_result, errorMessage,
+                                           configurationFilename));
                             ignoreNextFromConfig = true;
                         }
                     }

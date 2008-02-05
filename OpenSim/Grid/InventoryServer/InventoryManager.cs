@@ -41,6 +41,8 @@ namespace OpenSim.Grid.InventoryServer
 {
     public class InventoryManager
     {
+        private static readonly log4net.ILog m_log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+
         private IInventoryData _databasePlugin;
 
         /// <summary>
@@ -49,10 +51,10 @@ namespace OpenSim.Grid.InventoryServer
         /// <param name="FileName">The filename to the inventory server plugin DLL</param>
         public void AddDatabasePlugin(string FileName)
         {
-            MainLog.Instance.Verbose(OpenInventory_Main.LogName, "Invenstorage: Attempting to load " + FileName);
+            m_log.Info("[" + OpenInventory_Main.LogName + "]: Invenstorage: Attempting to load " + FileName);
             Assembly pluginAssembly = Assembly.LoadFrom(FileName);
 
-            MainLog.Instance.Verbose(OpenInventory_Main.LogName,
+            m_log.Info("[" + OpenInventory_Main.LogName + "]: " +
                                      "Invenstorage: Found " + pluginAssembly.GetTypes().Length + " interfaces.");
             foreach (Type pluginType in pluginAssembly.GetTypes())
             {
@@ -66,7 +68,7 @@ namespace OpenSim.Grid.InventoryServer
                             (IInventoryData) Activator.CreateInstance(pluginAssembly.GetType(pluginType.ToString()));
                         plug.Initialise();
                         _databasePlugin = plug;
-                        MainLog.Instance.Verbose(OpenInventory_Main.LogName,
+                        m_log.Info("[" + OpenInventory_Main.LogName + "]: " +
                                                  "Invenstorage: Added IInventoryData Interface");
                         break;
                     }
@@ -156,7 +158,7 @@ namespace OpenSim.Grid.InventoryServer
                     saveInventoryToStream(_inventory, fs);
                     fs.Flush();
                     fs.Close();
-                    MainLog.Instance.Debug(OpenInventory_Main.LogName, "Modified");
+                    m_log.Debug("[" + OpenInventory_Main.LogName + "]: Modified");
                 }
             }
 
@@ -166,14 +168,14 @@ namespace OpenSim.Grid.InventoryServer
 
             private byte[] GetUserInventory(LLUUID userID)
             {
-                MainLog.Instance.Notice(OpenInventory_Main.LogName, "Getting Inventory for user {0}", userID.ToString());
+                m_log.Info(String.Format("[" + OpenInventory_Main.LogName + "]: Getting Inventory for user {0}", userID.ToString()));
                 byte[] result = new byte[] {};
 
                 InventoryFolderBase fb = _manager._databasePlugin.getUserRootFolder(userID);
                 if (fb == null)
                 {
-                    MainLog.Instance.Notice(OpenInventory_Main.LogName, "Inventory not found for user {0}, creating new",
-                                            userID.ToString());
+                    m_log.Info(String.Format("[" + OpenInventory_Main.LogName + "]: Inventory not found for user {0}, creating new",
+                                             userID.ToString()));
                     CreateDefaultInventory(userID);
                 }
 

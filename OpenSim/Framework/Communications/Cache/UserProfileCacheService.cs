@@ -25,6 +25,8 @@
 * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 * 
 */
+
+using System;
 using System.Collections.Generic;
 using libsecondlife;
 using OpenSim.Framework.Console;
@@ -33,6 +35,8 @@ namespace OpenSim.Framework.Communications.Cache
 {
     public class UserProfileCacheService
     {
+        private static readonly log4net.ILog m_log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+
         // Fields
         private readonly CommunicationsManager m_parent;
         private readonly Dictionary<LLUUID, CachedUserInfo> m_userProfiles = new Dictionary<LLUUID, CachedUserInfo>();
@@ -69,7 +73,7 @@ namespace OpenSim.Framework.Communications.Cache
                     }
                     else
                     {
-                        MainLog.Instance.Error("USERCACHE", "User profile for user {0} not found", userID);
+                        m_log.Error(String.Format("[USERCACHE]: User profile for user {0} not found", userID));
                     }
                 }
             }
@@ -229,28 +233,28 @@ namespace OpenSim.Framework.Communications.Cache
                 }
                 else
                 {
-                    MainLog.Instance.Error(
-                        "INVENTORYCACHE", "Could not find root folder for user {0}", remoteClient.Name);
+                    m_log.Error(
+                        String.Format("[INVENTORYCACHE]: Could not find root folder for user {0}", remoteClient.Name));
 
                     return;
                 }
             }
             else
             {
-                MainLog.Instance.Error(
-                    "INVENTORYCACHE",
-                    "Could not find user profile for {0} for folder {1}",
-                    remoteClient.Name, folderID);
+                m_log.Error(
+                    String.Format("[INVENTORYCACHE]: " +
+                                  "Could not find user profile for {0} for folder {1}",
+                                  remoteClient.Name, folderID));
 
                 return;
             }
 
             // If we've reached this point then we couldn't find the folder, even though the client thinks
             // it exists
-            MainLog.Instance.Error(
-                "INVENTORYCACHE",
-                "Could not find folder {0} for user {1}",
-                folderID, remoteClient.Name);
+            m_log.Error(
+                String.Format("[INVENTORYCACHE]: " +
+                              "Could not find folder {0} for user {1}",
+                              folderID, remoteClient.Name));
         }
 
         public void HandlePurgeInventoryDescendents(IClientAPI remoteClient, LLUUID folderID)

@@ -270,12 +270,12 @@ namespace OpenSim.Region.Environment.Scenes
 
             RegisterDefaultSceneEvents();
 
-            MainLog.Instance.Verbose("SCENE", "Creating new entitities instance");
+            m_log.Info("[SCENE]: Creating new entitities instance");
             Entities = new Dictionary<LLUUID, EntityBase>();
             m_scenePresences = new Dictionary<LLUUID, ScenePresence>();
             //m_sceneObjects = new Dictionary<LLUUID, SceneObjectGroup>();
 
-            MainLog.Instance.Verbose("SCENE", "Creating LandMap");
+            m_log.Info("[SCENE]: Creating LandMap");
             Terrain = new TerrainEngine((int) RegionInfo.RegionLocX, (int) RegionInfo.RegionLocY);
 
             ScenePresence.LoadAnims();
@@ -365,16 +365,14 @@ namespace OpenSim.Region.Environment.Scenes
                     {
                         // This means that we're not booted up completely yet.
                         // This shouldn't happen too often anymore.
-                        MainLog.Instance.Error("SCENE",
-                                               "Couldn't inform client of regionup because we got a null reference exception");
+                        m_log.Error("[SCENE]: Couldn't inform client of regionup because we got a null reference exception");
                     }
                 }
                 else
                 {
-                    MainLog.Instance.Verbose("INTERGRID",
-                                             "Got notice about far away Region: " + otherRegion.RegionName.ToString() +
-                                             " at  (" + otherRegion.RegionLocX.ToString() + ", " +
-                                             otherRegion.RegionLocY.ToString() + ")");
+                    m_log.Info("[INTERGRID]: Got notice about far away Region: " + otherRegion.RegionName.ToString() +
+                               " at  (" + otherRegion.RegionLocX.ToString() + ", " +
+                               otherRegion.RegionLocY.ToString() + ")");
                 }
             }
             return true;
@@ -402,7 +400,7 @@ namespace OpenSim.Region.Environment.Scenes
                 m_RestartTimerCounter = 0;
                 m_restartTimer.AutoReset = true;
                 m_restartTimer.Elapsed += new ElapsedEventHandler(RestartTimer_Elapsed);
-                MainLog.Instance.Error("REGION", "Restarting Region in " + (seconds/60) + " minutes");
+                m_log.Error("[REGION]: Restarting Region in " + (seconds/60) + " minutes");
                 m_restartTimer.Start();
                 SendRegionMessageFromEstateTools(LLUUID.Random(), LLUUID.Random(), String.Empty, RegionInfo.RegionName + ": Restarting in 2 Minutes");
                 //SendGeneralAlert(RegionInfo.RegionName + ": Restarting in 2 Minutes");
@@ -436,9 +434,9 @@ namespace OpenSim.Region.Environment.Scenes
         // This causes the region to restart immediatley.
         public void RestartNow()
         {
-            MainLog.Instance.Error("REGION", "Closing");
+            m_log.Error("[REGION]: Closing");
             Close();
-            MainLog.Instance.Error("REGION", "Firing Region Restart Message");
+            m_log.Error("[REGION]: Firing Region Restart Message");
             base.Restart(0);
         }
 
@@ -485,7 +483,7 @@ namespace OpenSim.Region.Environment.Scenes
             if (m_scripts_enabled != !ScriptEngine)
             {
                 // Tedd!   Here's the method to disable the scripting engine!
-                MainLog.Instance.Verbose("TOTEDD", "Here is the method to trigger disabling of the scripting engine");
+                m_log.Info("[TOTEDD]: Here is the method to trigger disabling of the scripting engine");
             }
             if (m_physics_enabled != !PhysicsEngine)
             {
@@ -498,7 +496,7 @@ namespace OpenSim.Region.Environment.Scenes
         // This is the method that shuts down the scene.
         public override void Close()
         {
-            MainLog.Instance.Warn("SCENE", "Closing down the single simulator: " + RegionInfo.RegionName);
+            m_log.Warn("[SCENE]: Closing down the single simulator: " + RegionInfo.RegionName);
             // Kick all ROOT agents with the message, 'The simulator is going down'
             ForEachScenePresence(delegate(ScenePresence avatar)
                                      {
@@ -543,7 +541,7 @@ namespace OpenSim.Region.Environment.Scenes
         /// </summary>
         public void StartTimer()
         {
-            MainLog.Instance.Debug("SCENE", "Starting timer");
+            m_log.Debug("[SCENE]: Starting timer");
             m_heartbeatTimer.Enabled = true;
             m_heartbeatTimer.Interval = (int) (m_timespan*1000);
             m_heartbeatTimer.Elapsed += new ElapsedEventHandler(Heartbeat);
@@ -649,7 +647,7 @@ namespace OpenSim.Region.Environment.Scenes
             }
             catch (Exception e)
             {
-                MainLog.Instance.Error("Scene", "Failed with exception " + e.ToString());
+                m_log.Error("[Scene]: Failed with exception " + e.ToString());
             }
             finally
             {
@@ -848,7 +846,7 @@ namespace OpenSim.Region.Environment.Scenes
                 {
                     if (string.IsNullOrEmpty(m_regInfo.EstateSettings.terrainFile))
                     {
-                        MainLog.Instance.Verbose("TERRAIN", "No default terrain. Generating a new terrain.");
+                        m_log.Info("[TERRAIN]: No default terrain. Generating a new terrain.");
                         Terrain.SetDefaultTerrain();
 
                         m_storageManager.DataStore.StoreTerrain(Terrain.GetHeights2DD(), RegionInfo.RegionID);
@@ -862,8 +860,7 @@ namespace OpenSim.Region.Environment.Scenes
                         }
                         catch
                         {
-                            MainLog.Instance.Verbose("TERRAIN",
-                                                     "No terrain found in database or default. Generating a new terrain.");
+                            m_log.Info("[TERRAIN]: No terrain found in database or default. Generating a new terrain.");
                             Terrain.SetDefaultTerrain();
                         }
                         m_storageManager.DataStore.StoreTerrain(Terrain.GetHeights2DD(), RegionInfo.RegionID);
@@ -879,7 +876,7 @@ namespace OpenSim.Region.Environment.Scenes
             }
             catch (Exception e)
             {
-                MainLog.Instance.Warn("terrain", "Scene.cs: LoadWorldMap() - Failed with exception " + e.ToString());
+                m_log.Warn("[terrain]: Scene.cs: LoadWorldMap() - Failed with exception " + e.ToString());
             }
         }
 
@@ -894,12 +891,12 @@ namespace OpenSim.Region.Environment.Scenes
             {
                 if (dGridSettings["allow_forceful_banlines"] != "TRUE")
                 {
-                    MainLog.Instance.Verbose("GRID", "Grid is disabling forceful parcel banlists");
+                    m_log.Info("[GRID]: Grid is disabling forceful parcel banlists");
                     m_LandManager.allowedForcefulBans = false;
                 }
                 else
                 {
-                    MainLog.Instance.Verbose("GRID", "Grid is allowing forceful parcel banlists");
+                    m_log.Info("[GRID]: Grid is allowing forceful parcel banlists");
                     m_LandManager.allowedForcefulBans = true;
                 }
             }
@@ -929,7 +926,7 @@ namespace OpenSim.Region.Environment.Scenes
 
         public void loadAllLandObjectsFromStorage()
         {
-                MainLog.Instance.Verbose("SCENE", "Loading land objects from storage");
+                m_log.Info("[SCENE]: Loading land objects from storage");
                 List<LandData> landData = m_storageManager.DataStore.LoadLandObjects(RegionInfo.RegionID);
 
                 if (landData.Count == 0)
@@ -951,7 +948,7 @@ namespace OpenSim.Region.Environment.Scenes
         /// </summary>
         public virtual void LoadPrimsFromStorage(bool m_permissions)
         {
-            MainLog.Instance.Verbose("SCENE", "Loading objects from datastore");
+            m_log.Info("[SCENE]: Loading objects from datastore");
             
             List<SceneObjectGroup> PrimsFromDB = m_storageManager.DataStore.LoadObjects(m_regInfo.RegionID);
             foreach (SceneObjectGroup group in PrimsFromDB)
@@ -964,7 +961,7 @@ namespace OpenSim.Region.Environment.Scenes
                 //rootPart.DoPhysicsPropertyUpdate(UsePhysics, true);
             }
             
-            MainLog.Instance.Verbose("SCENE", "Loaded " + PrimsFromDB.Count.ToString() + " SceneObject(s)");
+            m_log.Info("[SCENE]: Loaded " + PrimsFromDB.Count.ToString() + " SceneObject(s)");
         }
 
 
@@ -999,7 +996,7 @@ namespace OpenSim.Region.Environment.Scenes
                 {
                     pos = target.AbsolutePosition;
 
-                    //MainLog.Instance.Verbose("RAYTRACE", pos.ToString());
+                    //m_log.Info("[RAYTRACE]: " + pos.ToString());
                     //EntityIntersection rayTracing = null;
                     //ScenePresence presence = ((ScenePresence)GetScenePresence(ownerID));
                     //if (presence != null)
@@ -1038,13 +1035,9 @@ namespace OpenSim.Region.Environment.Scenes
 
                         //Vector3 RezPoint = Newpos;
 
-                        //MainLog.Instance.Verbose("REZINFO", "Possible Rez Point:" + RezPoint.ToString());
+                        //m_log.Info("[REZINFO]: Possible Rez Point:" + RezPoint.ToString());
                         //pos = new LLVector3(RezPoint.x, RezPoint.y, RezPoint.z);
                     //}
-
-
-
-
 
                     return pos;
                 }
@@ -1061,18 +1054,14 @@ namespace OpenSim.Region.Environment.Scenes
                 pos = RayEnd;
                 return pos;
             }
-                
         }
 
         public virtual void AddNewPrim(LLUUID ownerID, LLVector3 RayEnd, LLQuaternion rot, PrimitiveBaseShape shape, 
-                                        byte bypassRaycast, LLVector3 RayStart, LLUUID RayTargetID,
-                                        byte RayEndIsIntersection)
+                                       byte bypassRaycast, LLVector3 RayStart, LLUUID RayTargetID,
+                                       byte RayEndIsIntersection)
         {            
             LLVector3 pos = GetNewRezLocation(RayStart, RayEnd, RayTargetID, rot, bypassRaycast, RayEndIsIntersection);
             
-         
-
-
             if (PermissionsMngr.CanRezObject(ownerID, pos))
             {
                 // rez ON the ground, not IN the ground
@@ -1364,7 +1353,7 @@ namespace OpenSim.Region.Environment.Scenes
             }
             catch (Exception e)
             {
-                MainLog.Instance.Error("Scene.cs:RemoveClient exception: " + e.ToString());
+                m_log.Error("Scene.cs:RemoveClient exception: " + e.ToString());
             }
 
             // Remove client agent from profile, so new logins will work
@@ -1474,7 +1463,7 @@ namespace OpenSim.Region.Environment.Scenes
 
                     if (m_capsHandlers.ContainsKey(agent.AgentID))
                     {
-                        //MainLog.Instance.Warn("client", "Adding duplicate CAPS entry for user " +
+                        //m_log.Warn("[client]: Adding duplicate CAPS entry for user " +
                         //    agent.AgentID.ToString());
                         try
                         {
@@ -1514,8 +1503,8 @@ namespace OpenSim.Region.Environment.Scenes
                     }
                     catch (Exception e)
                     {
-                        MainLog.Instance.Verbose("SCENE", "Unable to do Agent Crossing.");
-                        MainLog.Instance.Debug("SCENE", e.ToString());
+                        m_log.Info("[SCENE]: Unable to do Agent Crossing.");
+                        m_log.Debug("[SCENE]: " + e.ToString());
                     }
                     //m_innerScene.SwapRootChildAgent(false);
                 }
@@ -2158,14 +2147,14 @@ namespace OpenSim.Region.Environment.Scenes
             switch (showWhat)
             {
                 case "users":
-                    MainLog.Instance.Error("Current Region: " + RegionInfo.RegionName);
-                    MainLog.Instance.Error(
+                    m_log.Error("Current Region: " + RegionInfo.RegionName);
+                    m_log.Error(
                         String.Format("{0,-16}{1,-16}{2,-25}{3,-25}{4,-16}{5,-16}{6,-16}", "Firstname", "Lastname",
                                       "Agent ID", "Session ID", "Circuit", "IP", "World"));
 
                     foreach (ScenePresence scenePrescence in GetAvatars())
                     {
-                        MainLog.Instance.Error(
+                        m_log.Error(
                             String.Format("{0,-16}{1,-16}{2,-25}{3,-25}{4,-16},{5,-16}{6,-16}",
                                           scenePrescence.Firstname,
                                           scenePrescence.Lastname,
@@ -2177,12 +2166,12 @@ namespace OpenSim.Region.Environment.Scenes
                     }
                     break;
                 case "modules":
-                    MainLog.Instance.Error("The currently loaded modules in " + RegionInfo.RegionName + " are:");
+                    m_log.Error("The currently loaded modules in " + RegionInfo.RegionName + " are:");
                     foreach (IRegionModule module in Modules.Values)
                     {
                         if (!module.IsSharedModule)
                         {
-                            MainLog.Instance.Error("Region Module: " + module.Name);
+                            m_log.Error("Region Module: " + module.Name);
                         }
                     }
                     break;
@@ -2250,11 +2239,10 @@ namespace OpenSim.Region.Environment.Scenes
         /// 
         /// </summary>
         /// <param name="scriptEngine"></param>
-        /// <param name="logger"></param>
-        public void AddScriptEngine(ScriptEngineInterface scriptEngine, LogBase logger)
+        public void AddScriptEngine(ScriptEngineInterface scriptEngine)
         {
             ScriptEngines.Add(scriptEngine);
-            scriptEngine.InitializeEngine(this, logger);
+            scriptEngine.InitializeEngine(this);
         }
 
         public void TriggerObjectChanged(uint localID, uint change)
@@ -2372,7 +2360,7 @@ namespace OpenSim.Region.Environment.Scenes
                 }
                 catch (Exception e)
                 {
-                    MainLog.Instance.Verbose("BUG", e.ToString());
+                    m_log.Info("[BUG]: " + e.ToString());
                 }
             }
         }

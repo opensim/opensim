@@ -41,8 +41,7 @@ namespace OpenSim.Region.Environment.Modules
 {
     public class BetaGridLikeMoneyModule: IRegionModule
     {
-
-        private LogBase m_log;
+        private static readonly log4net.ILog m_log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 
         private Dictionary<ulong,Scene> m_scenel = new Dictionary<ulong,Scene>();
 
@@ -66,8 +65,6 @@ namespace OpenSim.Region.Environment.Modules
 
         public void Initialise(Scene scene, IConfigSource config)
         {
-            m_log = MainLog.Instance;
-            
             m_gConfig = config;
             ReadConfigAndPopulate();
 
@@ -160,11 +157,8 @@ namespace OpenSim.Region.Environment.Modules
             }
             else
             {
-                MainLog.Instance.Warn("MONEY", "Potential Fraud Warning, got money transfer request for avatar that isn't in this simulator - Details; Sender:" + e.sender.ToString() + " Reciver: " + e.reciever.ToString() + " Amount: " + e.amount.ToString());
+                m_log.Warn("[MONEY]: Potential Fraud Warning, got money transfer request for avatar that isn't in this simulator - Details; Sender:" + e.sender.ToString() + " Reciver: " + e.reciever.ToString() + " Amount: " + e.amount.ToString());
             }
-
-
-
         }
 
         private bool doMoneyTranfer(LLUUID Sender, LLUUID Receiver, int amount)

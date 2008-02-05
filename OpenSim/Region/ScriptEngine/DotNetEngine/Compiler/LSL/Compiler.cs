@@ -40,7 +40,6 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL
 {
     public class Compiler
     {
-
         // * Uses "LSL2Converter" to convert LSL to C# if necessary.
         // * Compiles C#-code into an assembly
         // * Returns assembly name ready for AppDomain load.
@@ -113,7 +112,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL
             AllowedCompilers.Clear();
 
 #if DEBUG
-            m_scriptEngine.Log.Debug(m_scriptEngine.ScriptEngineName, "Allowed languages: " + allowComp);
+            m_scriptEngine.Log.Debug("[" + m_scriptEngine.ScriptEngineName + "]: Allowed languages: " + allowComp);
 #endif
 
 
@@ -122,18 +121,18 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL
                 string strlan = strl.Trim(" \t".ToCharArray()).ToLower();
                 if (!LanguageMapping.ContainsKey(strlan))
                 {
-                    m_scriptEngine.Log.Error(m_scriptEngine.ScriptEngineName, "Config error. Compiler is unable to recongnize language type \"" + strlan + "\" specified in \"AllowedCompilers\".");
+                    m_scriptEngine.Log.Error("[" + m_scriptEngine.ScriptEngineName + "]: Config error. Compiler is unable to recongnize language type \"" + strlan + "\" specified in \"AllowedCompilers\".");
                 }
                 else
                 {
 #if DEBUG
-                    m_scriptEngine.Log.Debug(m_scriptEngine.ScriptEngineName, "Config OK. Compiler recongnized language type \"" + strlan + "\" specified in \"AllowedCompilers\".");
+                    m_scriptEngine.Log.Debug("[" + m_scriptEngine.ScriptEngineName + "]: Config OK. Compiler recongnized language type \"" + strlan + "\" specified in \"AllowedCompilers\".");
 #endif
                 }
                 AllowedCompilers.Add(strlan, true);
             }
             if (AllowedCompilers.Count == 0)
-                m_scriptEngine.Log.Error(m_scriptEngine.ScriptEngineName, "Config error. Compiler could not recognize any language in \"AllowedCompilers\". Scripts will not be executed!");
+                m_scriptEngine.Log.Error("[" + m_scriptEngine.ScriptEngineName + "]: Config error. Compiler could not recognize any language in \"AllowedCompilers\". Scripts will not be executed!");
 
             // Default language
             string defaultCompileLanguage = m_scriptEngine.ScriptConfigSource.GetString("DefaultCompileLanguage", "lsl").ToLower();
@@ -141,22 +140,22 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL
             // Is this language recognized at all?
             if (!LanguageMapping.ContainsKey(defaultCompileLanguage))
             {
-                m_scriptEngine.Log.Error(m_scriptEngine.ScriptEngineName,
-                                         "Config error. Default language \"" + defaultCompileLanguage + "\" specified in \"DefaultCompileLanguage\" is not recognized as a valid language. Changing default to: \"lsl\".");
+                m_scriptEngine.Log.Error("[" + m_scriptEngine.ScriptEngineName + "]: " +
+                                            "Config error. Default language \"" + defaultCompileLanguage + "\" specified in \"DefaultCompileLanguage\" is not recognized as a valid language. Changing default to: \"lsl\".");
                 defaultCompileLanguage = "lsl";
             }
 
             // Is this language in allow-list?
             if (!AllowedCompilers.ContainsKey(defaultCompileLanguage))
             {
-                m_scriptEngine.Log.Error(m_scriptEngine.ScriptEngineName,
-                                         "Config error. Default language \"" + defaultCompileLanguage + "\"specified in \"DefaultCompileLanguage\" is not in list of \"AllowedCompilers\". Scripts may not be executed!");
+                m_scriptEngine.Log.Error("[" + m_scriptEngine.ScriptEngineName + "]: " +
+                                            "Config error. Default language \"" + defaultCompileLanguage + "\"specified in \"DefaultCompileLanguage\" is not in list of \"AllowedCompilers\". Scripts may not be executed!");
             }
             else
             {
 #if DEBUG
-                m_scriptEngine.Log.Debug(m_scriptEngine.ScriptEngineName,
-                         "Config OK. Default language \"" + defaultCompileLanguage + "\" specified in \"DefaultCompileLanguage\" is recognized as a valid language.");
+                m_scriptEngine.Log.Debug("[" + m_scriptEngine.ScriptEngineName + "]: " +
+                                            "Config OK. Default language \"" + defaultCompileLanguage + "\" specified in \"DefaultCompileLanguage\" is recognized as a valid language.");
 #endif
                 // LANGUAGE IS IN ALLOW-LIST
                 DefaultCompileLanguage = LanguageMapping[defaultCompileLanguage];
@@ -181,13 +180,13 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL
                 }
                 catch (Exception ex)
                 {
-                    m_scriptEngine.Log.Error(m_scriptEngine.ScriptEngineName, "Exception trying to create ScriptEngine directory \"" + ScriptEnginesPath + "\": " + ex.ToString());
+                    m_scriptEngine.Log.Error("[" + m_scriptEngine.ScriptEngineName + "]: Exception trying to create ScriptEngine directory \"" + ScriptEnginesPath + "\": " + ex.ToString());
                 }
             }
 
             foreach (string file in Directory.GetFiles(ScriptEnginesPath))
             {
-                //m_scriptEngine.Log.Error(m_scriptEngine.ScriptEngineName, "FILE FOUND: " + file);
+                //m_scriptEngine.Log.Error("[" + m_scriptEngine.ScriptEngineName + "]: FILE FOUND: " + file);
 
                 if (file.ToLower().StartsWith(FilePrefix + "_compiled_") ||
                     file.ToLower().StartsWith(FilePrefix + "_source_"))
@@ -198,7 +197,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL
                     }
                     catch (Exception ex)
                     {
-                        m_scriptEngine.Log.Error(m_scriptEngine.ScriptEngineName, "Exception trying delete old script file \"" + file + "\": " + ex.ToString());
+                        m_scriptEngine.Log.Error("[" + m_scriptEngine.ScriptEngineName + "]: Exception trying delete old script file \"" + file + "\": " + ex.ToString());
                     }
 
                 }
@@ -313,7 +312,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL
                 Path.Combine("ScriptEngines",
                              FilePrefix + "_compiled_" + instanceID.ToString() + "_" + scriptCompileCounter.ToString() + ".dll");
 #if DEBUG
-            m_scriptEngine.Log.Debug(m_scriptEngine.ScriptEngineName, "Starting compile of \"" + OutFile + "\".");
+            m_scriptEngine.Log.Debug("[" + m_scriptEngine.ScriptEngineName + "]: Starting compile of \"" + OutFile + "\".");
 #endif
             try
             {
@@ -321,7 +320,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL
             }
             catch (Exception e)
             {
-                //m_scriptEngine.Log.Error(m_scriptEngine.ScriptEngineName, "Unable to delete old existring script-file before writing new. Compile aborted: " + e.ToString());
+                //m_scriptEngine.Log.Error("[" + m_scriptEngine.ScriptEngineName + "]: Unable to delete old existring script-file before writing new. Compile aborted: " + e.ToString());
                 throw new Exception("Unable to delete old existring script-file before writing new. Compile aborted: " + e.ToString());
             }
             //string OutFile = Path.Combine("ScriptEngines", "SecondLife.Script.dll");
@@ -338,7 +337,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL
                 }
                 catch (Exception ex)
                 {
-                    m_scriptEngine.Log.Error(m_scriptEngine.ScriptEngineName, "Exception while trying to write script source to file \"" + srcFileName + "\": " + ex.ToString());
+                    m_scriptEngine.Log.Error("[" + m_scriptEngine.ScriptEngineName + "]: Exception while trying to write script source to file \"" + srcFileName + "\": " + ex.ToString());
                 }
             }
 

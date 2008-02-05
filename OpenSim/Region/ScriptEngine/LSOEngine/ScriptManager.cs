@@ -101,7 +101,7 @@ namespace OpenSim.Region.ScriptEngine.LSOEngine
             }
             catch (Exception e)
             {
-                //m_scriptEngine.Log.Error("ScriptEngine", "Error compiling script: " + e.ToString());
+                //m_scriptEngine.Log.Error("[ScriptEngine]: Error compiling script: " + e.ToString());
                 try
                 {
                     // DISPLAY ERROR INWORLD
@@ -113,9 +113,9 @@ namespace OpenSim.Region.ScriptEngine.LSOEngine
                 }
                 catch (Exception e2)
                 {
-                    m_scriptEngine.Log.Error("ScriptEngine", "Error displaying error in-world: " + e2.ToString());
-                    m_scriptEngine.Log.Error("ScriptEngine",
-                                             "Errormessage: Error compiling script:\r\n" + e.Message.ToString());
+                    m_scriptEngine.Log.Error("[ScriptEngine]: Error displaying error in-world: " + e2.ToString());
+                    m_scriptEngine.Log.Error("[ScriptEngine]: " +
+                                                "Errormessage: Error compiling script:\r\n" + e.Message.ToString());
                 }
             }
         }
@@ -124,7 +124,6 @@ namespace OpenSim.Region.ScriptEngine.LSOEngine
         {
             // Stop script
             Console.WriteLine("Stop script localID: " + localID + " LLUID: " + itemID.ToString());
-
 
             // Stop long command on script
             m_scriptEngine.m_ASYNCLSLCommandManager.RemoveScript(localID, itemID);
@@ -135,7 +134,6 @@ namespace OpenSim.Region.ScriptEngine.LSOEngine
 
             // TEMP: First serialize it
             //GetSerializedScript(localID, itemID);
-
 
             try
             {
@@ -157,7 +155,6 @@ namespace OpenSim.Region.ScriptEngine.LSOEngine
 
         public override void Initialize()
         {
-            
         }
     }
 }

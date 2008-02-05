@@ -26,7 +26,6 @@
 * 
 */
 
-
 namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
 {
     public static class Common
@@ -36,23 +35,23 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
 
         // This class just contains some static log stuff used for debugging.
 
-        //public delegate void SendToDebugEventDelegate(string Message);
-        //public delegate void SendToLogEventDelegate(string Message);
+        //public delegate void SendToDebugEventDelegate(string message);
+        //public delegate void SendToLogEventDelegate(string message);
         //static public event SendToDebugEventDelegate SendToDebugEvent;
         //static public event SendToLogEventDelegate SendToLogEvent;
 
-        public static void SendToDebug(string Message)
+        public static void SendToDebug(string message)
         {
             //if (Debug == true)
-            mySE.Log.Verbose(mySE.ScriptEngineName, "Debug: " + Message);
-            //SendToDebugEvent("\r\n" + DateTime.Now.ToString("[HH:mm:ss] ") + Message);
+            mySE.Log.Info("[" + mySE.ScriptEngineName + "]: Debug: " + message);
+            //SendToDebugEvent("\r\n" + DateTime.Now.ToString("[HH:mm:ss] ") + message);
         }
 
-        public static void SendToLog(string Message)
+        public static void SendToLog(string message)
         {
             //if (Debug == true)
-            mySE.Log.Verbose(mySE.ScriptEngineName, "LOG: " + Message);
-            //SendToLogEvent("\r\n" + DateTime.Now.ToString("[HH:mm:ss] ") + Message);
+            mySE.Log.Info("[" + mySE.ScriptEngineName + "]: LOG: " + message);
+            //SendToLogEvent("\r\n" + DateTime.Now.ToString("[HH:mm:ss] ") + message);
         }
     }
 }

@@ -42,6 +42,8 @@ namespace OpenSim.Framework.Data.MSSQL
     /// </summary>
     internal class MSSQLManager
     {
+        private static readonly log4net.ILog m_log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+
         /// <summary>
         /// The database connection object
         /// </summary>
@@ -92,7 +94,7 @@ namespace OpenSim.Framework.Data.MSSQL
             }
             catch (Exception)
             {
-                MainLog.Instance.Verbose("DATASTORE", "MSSQL Database doesn't exist... creating");
+                m_log.Info("[DATASTORE]: MSSQL Database doesn't exist... creating");
                 InitDB(conn);
             }
             cmd = Query("select top 1 webLoginKey from users", new Dictionary<string, string>());
@@ -260,7 +262,7 @@ namespace OpenSim.Framework.Data.MSSQL
                 }
                 catch (Exception e)
                 {
-                    MainLog.Instance.Error("Unable to reconnect to database " + e.ToString());
+                    m_log.Error("Unable to reconnect to database " + e.ToString());
                 }
             }
         }
@@ -529,7 +531,7 @@ namespace OpenSim.Framework.Data.MSSQL
             }
             catch (Exception e)
             {
-                MainLog.Instance.Error("MSSQLManager : " + e.ToString());
+                m_log.Error("MSSQLManager : " + e.ToString());
             }
 
             return returnval;
@@ -573,7 +575,7 @@ namespace OpenSim.Framework.Data.MSSQL
             }
             catch (Exception e)
             {
-                MainLog.Instance.Error(e.ToString());
+                m_log.Error(e.ToString());
                 return false;
             }
 
@@ -667,7 +669,7 @@ namespace OpenSim.Framework.Data.MSSQL
             }
             catch (Exception e)
             {
-                MainLog.Instance.Error(e.ToString());
+                m_log.Error(e.ToString());
                 return false;
             }
 
@@ -688,7 +690,7 @@ namespace OpenSim.Framework.Data.MSSQL
             }
             catch (Exception e)
             {
-                MainLog.Instance.Error("Unable to execute query " + e.ToString());
+                m_log.Error("Unable to execute query " + e.ToString());
             }
         }
 
@@ -721,7 +723,7 @@ namespace OpenSim.Framework.Data.MSSQL
                         }
                         catch (Exception e)
                         {
-                            MainLog.Instance.Error(e.ToString());
+                            m_log.Error(e.ToString());
                         }
                     }
                     tables.Close();

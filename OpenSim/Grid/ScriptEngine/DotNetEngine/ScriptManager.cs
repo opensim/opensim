@@ -48,6 +48,8 @@ namespace OpenSim.Grid.ScriptEngine.DotNetEngine
     [Serializable]
     public class ScriptManager
     {
+        private static readonly log4net.ILog m_log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+
         #region Declares
 
         private Thread scriptLoadUnloadThread;
@@ -312,7 +314,7 @@ namespace OpenSim.Grid.ScriptEngine.DotNetEngine
             }
             catch (Exception e)
             {
-                //m_scriptEngine.Log.Error("ScriptEngine", "Error compiling script: " + e.ToString());
+                //m_scriptEngine.m_log.Error("[ScriptEngine]: Error compiling script: " + e.ToString());
                 try
                 {
                     // DISPLAY ERROR INWORLD
@@ -323,7 +325,7 @@ namespace OpenSim.Grid.ScriptEngine.DotNetEngine
                 }
                 catch (Exception e2)
                 {
-                    m_scriptEngine.Log.Error("ScriptEngine", "Error displaying error in-world: " + e2.ToString());
+                    m_scriptEngine.m_log.Error("[ScriptEngine]: Error displaying error in-world: " + e2.ToString());
                 }
             }
         }
@@ -384,7 +386,7 @@ namespace OpenSim.Grid.ScriptEngine.DotNetEngine
         internal void ExecuteEvent(uint localID, LLUUID itemID, string FunctionName, object[] args)
         {
             // Execute a function in the script
-            //m_scriptEngine.Log.Verbose("ScriptEngine", "Executing Function localID: " + localID + ", itemID: " + itemID + ", FunctionName: " + FunctionName);
+            //m_scriptEngine.m_log.Info("[ScriptEngine]: Executing Function localID: " + localID + ", itemID: " + itemID + ", FunctionName: " + FunctionName);
             LSL_BaseClass Script = m_scriptEngine.m_ScriptManager.GetScript(localID, itemID);
             if (Script == null)
                 return;

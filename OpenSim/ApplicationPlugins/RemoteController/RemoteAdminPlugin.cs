@@ -46,6 +46,8 @@ namespace OpenSim.ApplicationPlugins.LoadRegions
     [Extension("/OpenSim/Startup")]
     public class RemoteAdminPlugin : IApplicationPlugin
     {
+        private static readonly log4net.ILog m_log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+
         private OpenSimMain m_app;
         private BaseHttpServer m_httpd;
         private string requiredPassword = String.Empty;
@@ -56,7 +58,7 @@ namespace OpenSim.ApplicationPlugins.LoadRegions
             {
                 if (openSim.ConfigSource.Configs["RemoteAdmin"].GetBoolean("enabled", false))
                 {
-                    MainLog.Instance.Verbose("RADMIN", "Remote Admin Plugin Enabled");
+                    m_log.Info("[RADMIN]: Remote Admin Plugin Enabled");
                     requiredPassword = openSim.ConfigSource.Configs["RemoteAdmin"].GetString("access_password", String.Empty);
 
                     m_app = openSim;
@@ -126,7 +128,7 @@ namespace OpenSim.ApplicationPlugins.LoadRegions
             else
             {
                 string message = (string) requestData["message"];
-                MainLog.Instance.Verbose("RADMIN", "Broadcasting: " + message);
+                m_log.Info("[RADMIN]: Broadcasting: " + message);
 
                 responseData["accepted"] = "true";
                 response.Value = responseData;
@@ -153,7 +155,7 @@ namespace OpenSim.ApplicationPlugins.LoadRegions
             {
                 string file = (string)requestData["filename"];
                 LLUUID regionID = LLUUID.Parse((string)requestData["regionid"]);
-                MainLog.Instance.Verbose("RADMIN", "Terrain Loading: " + file);
+                m_log.Info("[RADMIN]: Terrain Loading: " + file);
 
                 responseData["accepted"] = "true";
 
@@ -177,7 +179,7 @@ namespace OpenSim.ApplicationPlugins.LoadRegions
 
         public XmlRpcResponse XmlRpcShutdownMethod(XmlRpcRequest request)
         {
-            MainLog.Instance.Verbose("RADMIN", "Received Shutdown Administrator Request");
+            m_log.Info("[RADMIN]: Received Shutdown Administrator Request");
             XmlRpcResponse response = new XmlRpcResponse();
             Hashtable requestData = (Hashtable) request.Params[0];
             Hashtable responseData = new Hashtable();
@@ -233,7 +235,7 @@ namespace OpenSim.ApplicationPlugins.LoadRegions
 
         public XmlRpcResponse XmlRpcCreateRegionMethod(XmlRpcRequest request)
         {
-            MainLog.Instance.Verbose("RADMIN", "Received Create Region Administrator Request");
+            m_log.Info("[RADMIN]: Received Create Region Administrator Request");
             XmlRpcResponse response = new XmlRpcResponse();
             Hashtable requestData = (Hashtable) request.Params[0];
             Hashtable responseData = new Hashtable();
@@ -284,7 +286,7 @@ namespace OpenSim.ApplicationPlugins.LoadRegions
 
         public XmlRpcResponse XmlRpcCreateUserMethod(XmlRpcRequest request)
         {
-            MainLog.Instance.Verbose("RADMIN", "Received Create User Administrator Request");
+            m_log.Info("[RADMIN]: Received Create User Administrator Request");
             XmlRpcResponse response = new XmlRpcResponse();
             Hashtable requestData = (Hashtable) request.Params[0];
             Hashtable responseData = new Hashtable();
@@ -312,14 +314,14 @@ namespace OpenSim.ApplicationPlugins.LoadRegions
                         responseData["error"]       = "Error creating user";
                         responseData["avatar_uuid"] = LLUUID.Zero;
                         response.Value              = responseData;
-                        MainLog.Instance.Error("RADMIN", "Error creating user (" + tempfirstname + " " + templastname + ") :");
+                        m_log.Error("[RADMIN]: Error creating user (" + tempfirstname + " " + templastname + ") :");
                     }
                     else
                     {
                         responseData["created"]     = "true";
                         responseData["avatar_uuid"] = tempuserID;
                         response.Value              = responseData;
-                        MainLog.Instance.Verbose("RADMIN", "User " + tempfirstname + " " + templastname + " created. Userid " + tempuserID + " assigned.");
+                        m_log.Info("[RADMIN]: User " + tempfirstname + " " + templastname + " created. Userid " + tempuserID + " assigned.");
                     }  
                 }
                 catch (Exception e)

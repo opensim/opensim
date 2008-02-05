@@ -96,7 +96,7 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
                     break;
                 default:
                     MyThreadPriority = ThreadPriority.BelowNormal; // Default
-                    eventQueueManager.m_ScriptEngine.Log.Error("ScriptEngineBase", "Unknown priority type \"" + pri + "\" in config file. Defaulting to \"BelowNormal\".");
+                    eventQueueManager.m_ScriptEngine.Log.Error("[ScriptEngineBase]: Unknown priority type \"" + pri + "\" in config file. Defaulting to \"BelowNormal\".");
                     break;
             }
 
@@ -137,7 +137,7 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
                 }
                 catch (Exception)
                 {
-                    //myScriptEngine.Log.Verbose(ScriptEngineName, "EventQueueManager Exception killing worker thread: " + e.ToString());
+                    //myScriptEngine.Log.Info("[" + ScriptEngineName + "]: EventQueueManager Exception killing worker thread: " + e.ToString());
                 }
             }
         }
@@ -147,7 +147,7 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
         /// </summary>
         private void EventQueueThreadLoop()
         {
-            //myScriptEngine.m_logger.Verbose(ScriptEngineName, "EventQueueManager Worker thread spawned");
+            //myScriptEngine.Log.Info("[" + ScriptEngineName + "]: EventQueueManager Worker thread spawned");
             try
             {
                while (true)
@@ -196,7 +196,7 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
                             else
                             {
                                 // Something in queue, process
-                                //myScriptEngine.m_logger.Verbose(ScriptEngineName, "Processing event for localID: " + QIS.localID + ", itemID: " + QIS.itemID + ", FunctionName: " + QIS.FunctionName);
+                                //myScriptEngine.Log.Info("[" + ScriptEngineName + "]: Processing event for localID: " + QIS.localID + ", itemID: " + QIS.itemID + ", FunctionName: " + QIS.FunctionName);
 
                                 // OBJECT BASED LOCK - TWO THREADS WORKING ON SAME OBJECT IS NOT GOOD
                                 lock (eventQueueManager.queueLock)
@@ -228,12 +228,12 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
                                     try
                                     {
 #if DEBUG
-                                        eventQueueManager.m_ScriptEngine.Log.Debug(ScriptEngineName,
-                                                                                   "Executing event:\r\n"
-                                                                                   + "QIS.localID: " + QIS.localID
-                                                                                   + ", QIS.itemID: " + QIS.itemID
-                                                                                   + ", QIS.functionName: " +
-                                                                                   QIS.functionName);
+                                        eventQueueManager.m_ScriptEngine.Log.Debug("[" + ScriptEngineName + "]: " +
+                                                                                      "Executing event:\r\n"
+                                                                                      + "QIS.localID: " + QIS.localID
+                                                                                      + ", QIS.itemID: " + QIS.itemID
+                                                                                      + ", QIS.functionName: " +
+                                                                                      QIS.functionName);
 #endif
                                         LastExecutionStarted = DateTime.Now.Ticks;
                                         KillCurrentScript = false;
@@ -284,9 +284,9 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
                                             //else
                                             //{
                                             // T oconsole
-                                            eventQueueManager.m_ScriptEngine.Log.Error(ScriptEngineName,
-                                                                                       "Unable to send text in-world:\r\n" +
-                                                                                       text);
+                                            eventQueueManager.m_ScriptEngine.Log.Error("[" + ScriptEngineName + "]: " +
+                                                                                          "Unable to send text in-world:\r\n" +
+                                                                                          text);
                                         }
                                         finally
                                         {
@@ -309,17 +309,17 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
                     }
                     catch (ThreadAbortException tae)
                     {
-                        eventQueueManager.m_ScriptEngine.Log.Notice(ScriptEngineName, "ThreadAbortException while executing function.");
+                        eventQueueManager.m_ScriptEngine.Log.Info("[" + ScriptEngineName + "]: ThreadAbortException while executing function.");
                     }
                     catch (Exception e)
                     {
-                        eventQueueManager.m_ScriptEngine.Log.Error(ScriptEngineName, "Exception in EventQueueThreadLoop: " + e.ToString());
+                        eventQueueManager.m_ScriptEngine.Log.Error("[" + ScriptEngineName + "]: Exception in EventQueueThreadLoop: " + e.ToString());
                     }
                 } // while
             } // try
             catch (ThreadAbortException)
             {
-                //myScriptEngine.Log.Verbose(ScriptEngineName, "EventQueueManager Worker thread killed: " + tae.Message);
+                //myScriptEngine.Log.Info("[" + ScriptEngineName + "]: EventQueueManager Worker thread killed: " + tae.Message);
             }
         }
 

@@ -25,6 +25,7 @@
 * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 * 
 */
+
 using System;
 using System.Collections.Generic;
 using Axiom.Math;
@@ -38,7 +39,6 @@ using OpenSim.Region.Physics.Manager;
 
 namespace OpenSim.Region.Environment.LandManagement
 {
-
     #region LandManager Class
 
     /// <summary>
@@ -46,6 +46,8 @@ namespace OpenSim.Region.Environment.LandManagement
     /// </summary>
     public class LandManager
     {
+        private static readonly log4net.ILog m_log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+
         #region Constants
 
         //Land types set with flags in ParcelOverlay.
@@ -56,7 +58,6 @@ namespace OpenSim.Region.Environment.LandManagement
         public const byte LAND_TYPE_OWNED_BY_REQUESTER = (byte) 3; //Equals 00000011
         public const byte LAND_TYPE_IS_FOR_SALE = (byte) 4; //Equals 00000100
         public const byte LAND_TYPE_IS_BEING_AUCTIONED = (byte) 5; //Equals 00000101
-
 
         //Flags that when set, a border on the given side will be placed
         //NOTE: North and East is assumable by the west and south sides (if land to east has a west border, then I have an east border; etc)
@@ -72,7 +73,6 @@ namespace OpenSim.Region.Environment.LandManagement
         public const int LAND_SELECT_OBJECTS_OWNER = 2;
         public const int LAND_SELECT_OBJECTS_GROUP = 4;
         public const int LAND_SELECT_OBJECTS_OTHER = 8;
-
 
         //These are other constants. Yay!
         public const int START_LAND_LOCAL_ID = 1;
@@ -127,7 +127,7 @@ namespace OpenSim.Region.Environment.LandManagement
                 //}
                 //catch (Exception ex)
                 //{
-                    //MainLog.Instance.Error("LandManager", "IncomingLandObjectsFromStorage: Exception: " + ex.ToString());
+                    //m_log.Error("[LandManager]: IncomingLandObjectsFromStorage: Exception: " + ex.ToString());
                     //throw ex;
                 //}
             }
@@ -526,8 +526,7 @@ namespace OpenSim.Region.Environment.LandManagement
                         }
                         catch (Exception e)
                         {
-                            MainLog.Instance.Debug("LAND",
-                                                   "Skipped Land checks because avatar is out of bounds: " + e.Message);
+                            m_log.Debug("[LAND]: Skipped Land checks because avatar is out of bounds: " + e.Message);
                         }
                     }
                 }

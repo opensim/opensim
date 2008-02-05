@@ -44,7 +44,6 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
     [Serializable]
     public class EventQueueManager : iScriptEngineFunctionModule
     {
-
         //
         // Class is instanced in "ScriptEngine" and used by "EventManager" also instanced in "ScriptEngine".
         //
@@ -256,16 +255,15 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
 
         #endregion
 
-
         #region " Start / stop script execution threads (ThreadClasses) "
         private void StartNewThreadClass()
         {
             EventQueueThreadClass eqtc = new EventQueueThreadClass(this);
             eventQueueThreads.Add(eqtc);
             staticGlobalEventQueueThreads.Add(eqtc);
-            m_ScriptEngine.Log.Debug(m_ScriptEngine.ScriptEngineName, "Started new script execution thread. Current thread count: " + eventQueueThreads.Count);
-
+            m_ScriptEngine.Log.Debug("[" + m_ScriptEngine.ScriptEngineName + "]: Started new script execution thread. Current thread count: " + eventQueueThreads.Count);
         }
+
         private void AbortThreadClass(EventQueueThreadClass threadClass)
         {
             if (eventQueueThreads.Contains(threadClass))
@@ -279,10 +277,10 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
             }
             catch (Exception ex)
             {
-                m_ScriptEngine.Log.Error(m_ScriptEngine.ScriptEngineName + ":EventQueueManager", "If you see this, could you please report it to Tedd:");
-                m_ScriptEngine.Log.Error(m_ScriptEngine.ScriptEngineName + ":EventQueueManager", "Script thread execution timeout kill ended in exception: " + ex.ToString());
+                m_ScriptEngine.Log.Error("[" + m_ScriptEngine.ScriptEngineName + ":EventQueueManager]: If you see this, could you please report it to Tedd:");
+                m_ScriptEngine.Log.Error("[" + m_ScriptEngine.ScriptEngineName + ":EventQueueManager]: Script thread execution timeout kill ended in exception: " + ex.ToString());
             }
-            m_ScriptEngine.Log.Debug(m_ScriptEngine.ScriptEngineName, "Killed script execution thread. Remaining thread count: " + eventQueueThreads.Count);
+            m_ScriptEngine.Log.Debug("[" + m_ScriptEngine.ScriptEngineName + "]: Killed script execution thread. Remaining thread count: " + eventQueueThreads.Count);
         }
         #endregion
 
@@ -334,8 +332,7 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
         public void AddToObjectQueue(uint localID, string FunctionName, Queue_llDetectParams_Struct qParams, params object[] param)
         {
             // Determine all scripts in Object and add to their queue
-            //myScriptEngine.m_logger.Verbose(ScriptEngineName, "EventQueueManager Adding localID: " + localID + ", FunctionName: " + FunctionName);
-
+            //myScriptEngine.log.Info("[" + ScriptEngineName + "]: EventQueueManager Adding localID: " + localID + ", FunctionName: " + FunctionName);
 
             // Do we have any scripts in this object at all? If not, return
             if (m_ScriptEngine.m_ScriptManager.Scripts.ContainsKey(localID) == false)
@@ -368,8 +365,8 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
             {
                 if (eventQueue.Count >= EventExecutionMaxQueueSize)
                 {
-                    m_ScriptEngine.Log.Error(m_ScriptEngine.ScriptEngineName, "ERROR: Event execution queue item count is at " + eventQueue.Count + ". Config variable \"EventExecutionMaxQueueSize\" is set to " + EventExecutionMaxQueueSize + ", so ignoring new event.");
-                    m_ScriptEngine.Log.Error(m_ScriptEngine.ScriptEngineName, "Event ignored: localID: " + localID + ", itemID: " + itemID + ", FunctionName: " + FunctionName);
+                    m_ScriptEngine.Log.Error("[" + m_ScriptEngine.ScriptEngineName + "]: ERROR: Event execution queue item count is at " + eventQueue.Count + ". Config variable \"EventExecutionMaxQueueSize\" is set to " + EventExecutionMaxQueueSize + ", so ignoring new event.");
+                    m_ScriptEngine.Log.Error("[" + m_ScriptEngine.ScriptEngineName + "]: Event ignored: localID: " + localID + ", itemID: " + itemID + ", FunctionName: " + FunctionName);
                     return;
                 }
 
@@ -456,6 +453,7 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
             }
         }
         #endregion
+
         /// <summary>
         /// If set to true then threads and stuff should try to make a graceful exit
         /// </summary>
@@ -465,6 +463,5 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
             set { _PleaseShutdown = value; }
         }
         private bool _PleaseShutdown = false;
-
     }
 }

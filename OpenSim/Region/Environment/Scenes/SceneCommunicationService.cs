@@ -40,6 +40,8 @@ namespace OpenSim.Region.Environment.Scenes
 
     public class SceneCommunicationService //one instance per region
     {
+        private static readonly log4net.ILog m_log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+
         protected CommunicationsManager m_commsProvider;
         protected RegionInfo m_regionInfo;
 
@@ -77,7 +79,7 @@ namespace OpenSim.Region.Environment.Scenes
 
             if (regionCommsHost != null)
             {
-                //MainLog.Instance.Verbose("INTER", debugRegionName + ": SceneCommunicationService: registered with gridservice and got" + regionCommsHost.ToString());
+                //m_log.Info("[INTER]: " + debugRegionName + ": SceneCommunicationService: registered with gridservice and got" + regionCommsHost.ToString());
 
                 regionCommsHost.debugRegionName = _debugRegionName;
 
@@ -91,7 +93,7 @@ namespace OpenSim.Region.Environment.Scenes
             }
             else
             {
-                //MainLog.Instance.Verbose("INTER", debugRegionName + ": SceneCommunicationService: registered with gridservice and got null");
+                //m_log.Info("[INTER]: " + debugRegionName + ": SceneCommunicationService: registered with gridservice and got null");
             }
         }
 
@@ -122,7 +124,7 @@ namespace OpenSim.Region.Environment.Scenes
         {
             if (OnExpectUser != null)
             {
-                //MainLog.Instance.Verbose("INTER", debugRegionName + ": SceneCommunicationService: OnExpectUser Fired for User:" + agent.firstname + " " + agent.lastname);
+                //m_log.Info("[INTER]: " + debugRegionName + ": SceneCommunicationService: OnExpectUser Fired for User:" + agent.firstname + " " + agent.lastname);
                 OnExpectUser(regionHandle, agent);
             }
         }
@@ -131,7 +133,7 @@ namespace OpenSim.Region.Environment.Scenes
         {
             if (OnRegionUp != null)
             {
-                //MainLog.Instance.Verbose("INTER", debugRegionName + ": SceneCommunicationService: newRegionUp Fired for User:" + region.RegionName);
+                //m_log.Info("[INTER]: " + debugRegionName + ": SceneCommunicationService: newRegionUp Fired for User:" + region.RegionName);
                 OnRegionUp(region);
             }
             return true;
@@ -164,7 +166,7 @@ namespace OpenSim.Region.Environment.Scenes
 
         protected bool CloseConnection(ulong regionHandle, LLUUID agentID)
         {
-            MainLog.Instance.Verbose("INTERREGION", "Incoming Agent Close Request for agent: " + agentID.ToString());
+            m_log.Info("[INTERREGION]: Incoming Agent Close Request for agent: " + agentID.ToString());
             
             if (OnCloseAgentConnection != null)
             {
@@ -199,14 +201,14 @@ namespace OpenSim.Region.Environment.Scenes
         private void InformClientOfNeighbourAsync(ScenePresence avatar, AgentCircuitData a, ulong regionHandle,
                                                   IPEndPoint endPoint)
         {
-            MainLog.Instance.Notice("INTERGRID", "Starting to inform client about neighbours");
+            m_log.Info("[INTERGRID]: Starting to inform client about neighbours");
             bool regionAccepted = m_commsProvider.InterRegion.InformRegionOfChildAgent(regionHandle, a);
 
             if (regionAccepted)
             {
                 avatar.ControllingClient.InformClientOfNeighbour(regionHandle, endPoint);
                 avatar.AddNeighbourRegion(regionHandle);
-                MainLog.Instance.Notice("INTERGRID", "Completed inform client about neighbours");
+                m_log.Info("[INTERGRID]: Completed inform client about neighbours");
             }
         }
 
@@ -291,17 +293,17 @@ namespace OpenSim.Region.Environment.Scenes
 
         private void InformNeighboursThatRegionIsUpAsync(RegionInfo region, ulong regionhandle)
         {
-            MainLog.Instance.Notice("INTERGRID", "Starting to inform neighbors that I'm here");
+            m_log.Info("[INTERGRID]: Starting to inform neighbors that I'm here");
             bool regionAccepted =
                 m_commsProvider.InterRegion.RegionUp((new SearializableRegionInfo(region)), regionhandle);
 
             if (regionAccepted)
             {
-                MainLog.Instance.Notice("INTERGRID", "Completed informing neighbors that I'm here");
+                m_log.Info("[INTERGRID]: Completed informing neighbors that I'm here");
             }
             else
             {
-                MainLog.Instance.Notice("INTERGRID", "Failed to inform neighbors that I'm here");
+                m_log.Info("[INTERGRID]: Failed to inform neighbors that I'm here");
             }
         }
 
@@ -311,7 +313,7 @@ namespace OpenSim.Region.Environment.Scenes
         /// </summary>
         public void InformNeighborsThatRegionisUp(RegionInfo region)
         {
-            //MainLog.Instance.Verbose("INTER", debugRegionName + ": SceneCommunicationService: Sending InterRegion Notification that region is up " + region.RegionName);
+            //m_log.Info("[INTER]: " + debugRegionName + ": SceneCommunicationService: Sending InterRegion Notification that region is up " + region.RegionName);
 
 
             List<SimpleRegionInfo> neighbours = new List<SimpleRegionInfo>();
@@ -343,7 +345,7 @@ namespace OpenSim.Region.Environment.Scenes
         /// </summary>
         private void SendChildAgentDataUpdateAsync(ChildAgentDataUpdate cAgentData, ScenePresence presence)
         {
-            //MainLog.Instance.Notice("INTERGRID", "Informing neighbors about my agent.");
+            //m_log.Info("[INTERGRID]: Informing neighbors about my agent.");
             try
             {
                 foreach (ulong regionHandle in presence.KnownChildRegions)
@@ -352,11 +354,11 @@ namespace OpenSim.Region.Environment.Scenes
 
                     if (regionAccepted)
                     {
-                        //MainLog.Instance.Notice("INTERGRID", "Completed sending a neighbor an update about my agent");
+                        //m_log.Info("[INTERGRID]: Completed sending a neighbor an update about my agent");
                     }
                     else
                     {
-                        //MainLog.Instance.Notice("INTERGRID", "Failed sending a neighbor an update about my agent");
+                        //m_log.Info("[INTERGRID]: Failed sending a neighbor an update about my agent");
                     }
                 }
             }
@@ -397,12 +399,12 @@ namespace OpenSim.Region.Environment.Scenes
 
                 if (regionAccepted)
                 {
-                    MainLog.Instance.Notice("INTERGRID", "Completed sending agent Close agent Request to neighbor");
+                    m_log.Info("[INTERGRID]: Completed sending agent Close agent Request to neighbor");
                     presence.RemoveNeighbourRegion(regionHandle);
                 }
                 else
                 {
-                    MainLog.Instance.Notice("INTERGRID", "Failed sending agent Close agent Request to neighbor");
+                    m_log.Info("[INTERGRID]: Failed sending agent Close agent Request to neighbor");
                     
                 }
                 
@@ -431,7 +433,7 @@ namespace OpenSim.Region.Environment.Scenes
         /// <returns></returns>
         public virtual RegionInfo RequestNeighbouringRegionInfo(ulong regionHandle)
         {
-            //MainLog.Instance.Verbose("INTER", debugRegionName + ": SceneCommunicationService: Sending Grid Services Request about neighbor " + regionHandle.ToString());
+            //m_log.Info("[INTER]: " + debugRegionName + ": SceneCommunicationService: Sending Grid Services Request about neighbor " + regionHandle.ToString());
             return m_commsProvider.GridService.RequestNeighbourInfo(regionHandle);
         }
 

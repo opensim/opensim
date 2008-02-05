@@ -34,17 +34,15 @@ namespace OpenSim.Grid.ScriptServer.ScriptServer
 {
     internal class ScriptEngineManager
     {
-        private LogBase m_log;
         private ScriptEngineLoader ScriptEngineLoader;
         private List<ScriptServerInterfaces.ScriptEngine> scriptEngines = new List<ScriptServerInterfaces.ScriptEngine>();
         private ScriptServerMain m_ScriptServerMain;
 
         // Initialize
-        public ScriptEngineManager(ScriptServerMain scm, LogBase logger)
+        public ScriptEngineManager(ScriptServerMain scm)
         {
             m_ScriptServerMain = scm;
-            m_log = logger;
-            ScriptEngineLoader = new ScriptEngineLoader(m_log);
+            ScriptEngineLoader = new ScriptEngineLoader();
         }
 
         ~ScriptEngineManager()

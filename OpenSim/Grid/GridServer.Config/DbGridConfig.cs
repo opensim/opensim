@@ -38,13 +38,15 @@ namespace OpenGrid.Config.GridConfigDb4o
     /// </summary>
     public class Db40ConfigPlugin: IGridConfig
     {
+        private static readonly log4net.ILog m_log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+
         /// <summary>
         /// Loads and returns a configuration objeect
         /// </summary>
         /// <returns>A grid configuration object</returns>
         public GridConfig GetConfigObject()
         {
-            MainLog.Instance.Verbose("DBGRIDCONFIG", "Loading Db40Config dll");
+            m_log.Info("[DBGRIDCONFIG]: Loading Db40Config dll");
             return new DbGridConfig();
         }
     }
@@ -64,24 +66,24 @@ namespace OpenGrid.Config.GridConfigDb4o
         /// </summary>
         public void LoadDefaults()
         {
-            MainLog.Instance.Notice("DbGridConfig.cs:LoadDefaults() - Please press enter to retain default or enter new settings");
+            MainConsole.Instance.Info("DbGridConfig.cs:LoadDefaults() - Please press enter to retain default or enter new settings");
 
             // About the grid options
-            this.GridOwner = MainLog.Instance.CmdPrompt("Grid owner", "OGS development team");
+            this.GridOwner = MainConsole.Instance.CmdPrompt("Grid owner", "OGS development team");
 
             // Asset Options
-            this.DefaultAssetServer = MainLog.Instance.CmdPrompt("Default asset server","http://127.0.0.1:" + AssetConfig.DefaultHttpPort.ToString() + "/");
-            this.AssetSendKey = MainLog.Instance.CmdPrompt("Key to send to asset server","null");
-            this.AssetRecvKey = MainLog.Instance.CmdPrompt("Key to expect from asset server","null");
+            this.DefaultAssetServer = MainConsole.Instance.CmdPrompt("Default asset server","http://127.0.0.1:" + AssetConfig.DefaultHttpPort.ToString() + "/");
+            this.AssetSendKey = MainConsole.Instance.CmdPrompt("Key to send to asset server","null");
+            this.AssetRecvKey = MainConsole.Instance.CmdPrompt("Key to expect from asset server","null");
 
             // User Server Options
-            this.DefaultUserServer = MainLog.Instance.CmdPrompt("Default user server","http://127.0.0.1:" + UserConfig.DefaultHttpPort.ToString() + "/");
-            this.UserSendKey = MainLog.Instance.CmdPrompt("Key to send to user server","null");
-            this.UserRecvKey = MainLog.Instance.CmdPrompt("Key to expect from user server","null");
+            this.DefaultUserServer = MainConsole.Instance.CmdPrompt("Default user server","http://127.0.0.1:" + UserConfig.DefaultHttpPort.ToString() + "/");
+            this.UserSendKey = MainConsole.Instance.CmdPrompt("Key to send to user server","null");
+            this.UserRecvKey = MainConsole.Instance.CmdPrompt("Key to expect from user server","null");
 
             // Region Server Options
-            this.SimSendKey = MainLog.Instance.CmdPrompt("Key to send to sims","null");
-            this.SimRecvKey = MainLog.Instance.CmdPrompt("Key to expect from sims","null");
+            this.SimSendKey = MainConsole.Instance.CmdPrompt("Key to send to sims","null");
+            this.SimRecvKey = MainConsole.Instance.CmdPrompt("Key to expect from sims","null");
         }
 
         /// <summary>
@@ -99,7 +101,7 @@ namespace OpenGrid.Config.GridConfigDb4o
                 // Found?
                 if (result.Count==1)
                 {
-                    MainLog.Instance.Verbose("DBGRIDCONFIG", "Found a GridConfig object in the local database, loading");
+                    m_log.Info("[DBGRIDCONFIG]: Found a GridConfig object in the local database, loading");
                     foreach (DbGridConfig cfg in result)
                     {
                         // Import each setting into this class
@@ -121,13 +123,13 @@ namespace OpenGrid.Config.GridConfigDb4o
                 }
                 else
                 {
-                    MainLog.Instance.Verbose("DBGRIDCONFIG", "Could not find object in database, loading precompiled defaults");
+                    m_log.Info("[DBGRIDCONFIG]: Could not find object in database, loading precompiled defaults");
 
                     // Load default settings into this class
                     LoadDefaults();
 
                     // Saves to the database file...
-                    MainLog.Instance.Verbose("DBGRIDCONFIG",  "Writing out default settings to local database");
+                    m_log.Info("[DBGRIDCONFIG]: Writing out default settings to local database");
                     db.Set(this);
 
                     // Closes file locks
@@ -136,27 +138,27 @@ namespace OpenGrid.Config.GridConfigDb4o
             }
             catch(Exception e)
             {
-                MainLog.Instance.Warn("DbGridConfig.cs:InitConfig() - Exception occured");
-                MainLog.Instance.Warn(e.ToString());
+                m_log.Warn("DbGridConfig.cs:InitConfig() - Exception occured");
+                m_log.Warn(e.ToString());
             }
 
             // Grid Settings
-            MainLog.Instance.Verbose("DBGRIDCONFIG", "Grid settings loaded:");
-            MainLog.Instance.Verbose("DBGRIDCONFIG", "Grid owner: " + this.GridOwner);
+            m_log.Info("[DBGRIDCONFIG]: Grid settings loaded:");
+            m_log.Info("[DBGRIDCONFIG]: Grid owner: " + this.GridOwner);
 
             // Asset Settings
-            MainLog.Instance.Verbose("DBGRIDCONFIG", "Default asset server: " + this.DefaultAssetServer);
-            MainLog.Instance.Verbose("DBGRIDCONFIG", "Key to send to asset server: " + this.AssetSendKey);
-            MainLog.Instance.Verbose("DBGRIDCONFIG", "Key to expect from asset server: " + this.AssetRecvKey);
+            m_log.Info("[DBGRIDCONFIG]: Default asset server: " + this.DefaultAssetServer);
+            m_log.Info("[DBGRIDCONFIG]: Key to send to asset server: " + this.AssetSendKey);
+            m_log.Info("[DBGRIDCONFIG]: Key to expect from asset server: " + this.AssetRecvKey);
 
             // User Settings
-            MainLog.Instance.Verbose("DBGRIDCONFIG", "Default user server: " + this.DefaultUserServer);
-            MainLog.Instance.Verbose("DBGRIDCONFIG", "Key to send to user server: " + this.UserSendKey);
-            MainLog.Instance.Verbose("DBGRIDCONFIG", "Key to expect from user server: " + this.UserRecvKey);
+            m_log.Info("[DBGRIDCONFIG]: Default user server: " + this.DefaultUserServer);
+            m_log.Info("[DBGRIDCONFIG]: Key to send to user server: " + this.UserSendKey);
+            m_log.Info("[DBGRIDCONFIG]: Key to expect from user server: " + this.UserRecvKey);
 
             // Region Settings
-            MainLog.Instance.Verbose("DBGRIDCONFIG", "Key to send to sims: " + this.SimSendKey);
-            MainLog.Instance.Verbose("DBGRIDCONFIG", "Key to expect from sims: " + this.SimRecvKey);
+            m_log.Info("[DBGRIDCONFIG]: Key to send to sims: " + this.SimSendKey);
+            m_log.Info("[DBGRIDCONFIG]: Key to expect from sims: " + this.SimRecvKey);
         }
 
         /// <summary>

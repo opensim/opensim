@@ -42,6 +42,8 @@ namespace OpenSim.Region.Environment.Scenes
 
     public class InnerScene
     {
+        private static readonly log4net.ILog m_log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+
         #region Events
 
         public event PhysicsCrash UnRecoverableError;
@@ -227,13 +229,13 @@ namespace OpenSim.Region.Environment.Scenes
             if (child)
             {
                 m_numChildAgents++;
-                MainLog.Instance.Verbose("SCENE", m_regInfo.RegionName + ": Creating new child agent.");
+                m_log.Info("[SCENE]: " + m_regInfo.RegionName + ": Creating new child agent.");
             }
             else
             {
                 m_numRootAgents++;
-                MainLog.Instance.Verbose("SCENE", m_regInfo.RegionName + ": Creating new root agent.");
-                MainLog.Instance.Verbose("SCENE", m_regInfo.RegionName + ": Adding Physical agent.");
+                m_log.Info("[SCENE]: " + m_regInfo.RegionName + ": Creating new root agent.");
+                m_log.Info("[SCENE]: " + m_regInfo.RegionName + ": Adding Physical agent.");
 
                 newAvatar.AddToPhysicalScene();
             }
@@ -542,7 +544,7 @@ namespace OpenSim.Region.Environment.Scenes
                         LLVector3 oLoc = ((SceneObjectGroup)ent).AbsolutePosition;
                         float distResult = (float)Util.GetDistanceTo(presence.AbsolutePosition,oLoc);
 
-                        //MainLog.Instance.Verbose("DISTANCE", distResult.ToString());
+                        //m_log.Info("[DISTANCE]: " + distResult.ToString());
 
                         if (distResult > 60)
                         {
@@ -897,9 +899,9 @@ namespace OpenSim.Region.Environment.Scenes
             }
             else
             {
-                MainLog.Instance.Verbose("SCENE",
+                m_log.Info(String.Format("[SCENE]: " +
                                          "DelinkObjects(): Could not find a root prim out of {0} as given to a delink request!",
-                                         primIds);
+                                         primIds));
             }
         }
 
@@ -947,7 +949,7 @@ namespace OpenSim.Region.Environment.Scenes
             }
             else
             {
-                MainLog.Instance.Warn("SCENE", "Attempted to duplicate nonexistant prim id {0}", GroupID);
+                m_log.Warn(String.Format("[SCENE]: Attempted to duplicate nonexistant prim id {0}", GroupID));
             }
         }
 

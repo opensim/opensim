@@ -37,6 +37,8 @@ namespace OpenSim.Region.ClientStack
 {
     public class PacketQueue
     {
+        private static readonly log4net.ILog m_log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+
         private bool m_enabled = true;
 
         private BlockingQueue<QueItem> SendQueue;
@@ -204,7 +206,7 @@ namespace OpenSim.Region.ClientStack
                         SendQueue.Enqueue(AssetOutgoingPacketQueue.Dequeue());
                     }
                 }
-                // MainLog.Instance.Verbose("THROTTLE", "Processed " + throttleLoops + " packets");
+                // m_log.Info("[THROTTLE]: Processed " + throttleLoops + " packets");
             }
         }
 
@@ -253,7 +255,7 @@ namespace OpenSim.Region.ClientStack
             lock (this)
             {
                 ResetCounters();
-                // MainLog.Instance.Verbose("THROTTLE", "Entering Throttle");
+                // m_log.Info("[THROTTLE]: Entering Throttle");
                 while (TotalThrottle.UnderLimit() && PacketsWaiting() &&
                        (throttleLoops <= MaxThrottleLoops))
                 {
@@ -316,7 +318,7 @@ namespace OpenSim.Region.ClientStack
                         AssetThrottle.Add(qpack.Packet.ToBytes().Length);
                     }
                 }
-                // MainLog.Instance.Verbose("THROTTLE", "Processed " + throttleLoops + " packets");
+                // m_log.Info("[THROTTLE]: Processed " + throttleLoops + " packets");
             }
         }
 
@@ -426,7 +428,7 @@ namespace OpenSim.Region.ClientStack
 
             tall = tResend + tLand + tWind + tCloud + tTask + tTexture + tAsset;
             /*
-              MainLog.Instance.Verbose("CLIENT", "Client AgentThrottle - Got throttle:resendbytes=" + tResend +
+              m_log.Info("[CLIENT]: Client AgentThrottle - Got throttle:resendbytes=" + tResend +
               " landbytes=" + tLand +
               " windbytes=" + tWind +
               " cloudbytes=" + tCloud +

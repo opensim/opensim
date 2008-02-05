@@ -37,6 +37,8 @@ namespace OpenSim.Framework.Communications.Cache
 {
     public abstract class AssetServerBase : IAssetServer
     {
+        private static readonly log4net.ILog m_log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+
         protected IAssetReceiver m_receiver;
         protected BlockingQueue<AssetRequest> m_assetRequests;
         protected Thread m_localAssetServerThread;
@@ -68,15 +70,15 @@ namespace OpenSim.Framework.Communications.Cache
 
             if (asset != null)
             {
-                //MainLog.Instance.Verbose(
-                //    "ASSET", "Asset {0} received from asset server", req.AssetID);
+                //m_log.Info(
+                //    String.Format("[ASSET]: Asset {0} received from asset server", req.AssetID));
 
                 m_receiver.AssetReceived(asset, req.IsTexture);
             }
             else
             {
-                MainLog.Instance.Error(
-                    "ASSET", "Asset {0} not found by asset server", req.AssetID);
+                m_log.Error(
+                    String.Format("[ASSET]: Asset {0} not found by asset server", req.AssetID));
 
                 m_receiver.AssetNotFound(req.AssetID);
             }
@@ -84,7 +86,7 @@ namespace OpenSim.Framework.Communications.Cache
 
         public virtual void LoadDefaultAssets()
         {
-            MainLog.Instance.Verbose("ASSETSERVER", "Setting up asset database");
+            m_log.Info("[ASSETSERVER]: Setting up asset database");
 
             assetLoader.ForEachDefaultXmlAsset(StoreAsset);
 
@@ -94,7 +96,7 @@ namespace OpenSim.Framework.Communications.Cache
 
         public AssetServerBase()
         {
-            MainLog.Instance.Verbose("ASSETSERVER", "Starting asset storage system");
+            m_log.Info("[ASSETSERVER]: Starting asset storage system");
             m_assetRequests = new BlockingQueue<AssetRequest>();
 
             m_localAssetServerThread = new Thread(RunRequests);
@@ -114,7 +116,7 @@ namespace OpenSim.Framework.Communications.Cache
                 }
                 catch (Exception e)
                 {
-                    MainLog.Instance.Error("ASSETSERVER", e.Message);
+                    m_log.Error("[ASSETSERVER]: " + e.Message);
                 }
             }
         }
@@ -131,7 +133,7 @@ namespace OpenSim.Framework.Communications.Cache
             req.IsTexture = isTexture;
             m_assetRequests.Enqueue(req);
 
-            MainLog.Instance.Verbose("ASSET", "Added {0} to request queue", assetID);
+            m_log.Info(String.Format("[ASSET]: Added {0} to request queue", assetID));
         }
 
         public virtual void UpdateAsset(AssetBase asset)

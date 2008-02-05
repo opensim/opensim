@@ -56,6 +56,8 @@ namespace OpenSim.Region.Physics.OdePlugin
     }
     public class OdeCharacter : PhysicsActor
     {
+        private static readonly log4net.ILog m_log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+
         private PhysicsVector _position;
         private d.Vector3 _zeroPosition;
         private d.Matrix3 m_StandUpRotation;
@@ -357,7 +359,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                     //capsuleradius = 0.2f;
 
                     CAPSULE_LENGTH = (SetSize.Z - ((SetSize.Z*0.52f))); // subtract 43% of the size
-                    OpenSim.Framework.Console.MainLog.Instance.Verbose("SIZE", CAPSULE_LENGTH.ToString());
+                    m_log.Info("[SIZE]: " + CAPSULE_LENGTH.ToString());
                     d.BodyDestroy(Body);
 
                     _parent_scene.waitForSpaceUnlock(_parent_scene.space);
@@ -440,7 +442,7 @@ namespace OpenSim.Region.Physics.OdePlugin
             //d.QfromR(
             //d.Matrix3 checkrotation = new d.Matrix3(0.7071068,0.5, -0.7071068,
             // 
-            //OpenSim.Framework.Console.MainLog.Instance.Verbose("PHYSICSAV", "Rotation: " + bodyrotation.M00 + " : " + bodyrotation.M01 + " : " + bodyrotation.M02 + " : " + bodyrotation.M10 + " : " + bodyrotation.M11 + " : " + bodyrotation.M12 + " : " + bodyrotation.M20 + " : " + bodyrotation.M21 + " : " + bodyrotation.M22);
+            //m_log.Info("[PHYSICSAV]: Rotation: " + bodyrotation.M00 + " : " + bodyrotation.M01 + " : " + bodyrotation.M02 + " : " + bodyrotation.M10 + " : " + bodyrotation.M11 + " : " + bodyrotation.M12 + " : " + bodyrotation.M20 + " : " + bodyrotation.M21 + " : " + bodyrotation.M22);
             //standupStraight();
             
             
@@ -479,7 +481,7 @@ namespace OpenSim.Region.Physics.OdePlugin
             d.BodyAddForceAtRelPos(Body, 0.0f, 0.0f, servo, 0.0f, 0.0f, 1.0f);
             d.BodyAddForceAtRelPos(Body, 0.0f, 0.0f, -servo, 0.0f, 0.0f, -1.0f);
             //d.Matrix3 bodyrotation = d.BodyGetRotation(Body);
-            //OpenSim.Framework.Console.MainLog.Instance.Verbose("PHYSICSAV", "Rotation: " + bodyrotation.M00 + " : " + bodyrotation.M01 + " : " + bodyrotation.M02 + " : " + bodyrotation.M10 + " : " + bodyrotation.M11 + " : " + bodyrotation.M12 + " : " + bodyrotation.M20 + " : " + bodyrotation.M21 + " : " + bodyrotation.M22);
+            //m_log.Info("[PHYSICSAV]: Rotation: " + bodyrotation.M00 + " : " + bodyrotation.M01 + " : " + bodyrotation.M02 + " : " + bodyrotation.M10 + " : " + bodyrotation.M11 + " : " + bodyrotation.M12 + " : " + bodyrotation.M20 + " : " + bodyrotation.M21 + " : " + bodyrotation.M22);
         }
 
         public override PhysicsVector Force

@@ -1003,9 +1003,9 @@ namespace OpenSim.Region.Environment.Scenes
             }
             else
             {
-                MainLog.Instance.Verbose("SCENE",
+                m_log.Info(String.Format("[SCENE]: " +
                                          "DelinkFromGroup(): Child prim local id {0} not found in object with root prim id {1}",
-                                         partID, LocalId);
+                                         partID, LocalId));
             }
         }
 

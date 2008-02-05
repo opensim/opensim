@@ -37,6 +37,8 @@ namespace OpenSim.Framework.Data.SQLite
 {
     internal class SQLiteManager : SQLiteBase
     {
+        private static readonly log4net.ILog m_log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+
         private IDbConnection dbcon;
 
         /// <summary>
@@ -101,7 +103,7 @@ namespace OpenSim.Framework.Data.SQLite
             }
             catch (SqliteSyntaxException)
             {
-                MainLog.Instance.Verbose("DATASTORE", "SQLite Database doesn't exist... creating");
+                m_log.Info("[DATASTORE]: SQLite Database doesn't exist... creating");
                 InitDB(conn);
             }
             return true;

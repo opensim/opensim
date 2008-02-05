@@ -39,7 +39,6 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
     [Serializable]
     public class EventManager : OpenSim.Region.ScriptEngine.Common.ScriptServerInterfaces.RemoteEvents, iScriptEngineFunctionModule
     {
-
         //
         // Class is instanced in "ScriptEngine" and Uses "EventQueueManager" that is also instanced in "ScriptEngine".
         // This class needs a bit of explaining:
@@ -65,7 +64,7 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
             // We may not want to do it because someone is controlling us and will deliver events to us
             if (performHookUp)
             {
-                myScriptEngine.Log.Verbose(myScriptEngine.ScriptEngineName, "Hooking up to server events");
+                myScriptEngine.Log.Info("[" + myScriptEngine.ScriptEngineName + "]: Hooking up to server events");
                 myScriptEngine.World.EventManager.OnObjectGrab += touch_start;
                 myScriptEngine.World.EventManager.OnRezScript += OnRezScript;
                 myScriptEngine.World.EventManager.OnRemoveScript += OnRemoveScript;
@@ -77,7 +76,6 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
         public void ReadConfig()
         {
         }
-
 
         public void changed(uint localID, uint change)
         {

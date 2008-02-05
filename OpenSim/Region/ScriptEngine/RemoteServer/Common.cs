@@ -26,6 +26,7 @@
 * 
 */
 /* Original code: Tedd Hansen */
+
 namespace OpenSim.Region.ScriptEngine.RemoteServer
 {
     public static class Common
@@ -43,14 +44,14 @@ namespace OpenSim.Region.ScriptEngine.RemoteServer
         public static void SendToDebug(string Message)
         {
             //if (Debug == true)
-            mySE.Log.Verbose("ScriptEngine", "Debug: " + Message);
+            mySE.Log.Info("[ScriptEngine]: Debug: " + Message);
             //SendToDebugEvent("\r\n" + DateTime.Now.ToString("[HH:mm:ss] ") + Message);
         }
 
         public static void SendToLog(string Message)
         {
             //if (Debug == true)
-            mySE.Log.Verbose("ScriptEngine", "LOG: " + Message);
+            mySE.Log.Info("[ScriptEngine]: LOG: " + Message);
             //SendToLogEvent("\r\n" + DateTime.Now.ToString("[HH:mm:ss] ") + Message);
         }
     }

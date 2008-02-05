@@ -1,4 +1,4 @@
-﻿/*
+/*
 * Copyright (c) Contributors, http://opensimulator.org/
 * See CONTRIBUTORS.TXT for a full list of copyright holders.
 *
@@ -27,7 +27,6 @@
 */
 
 using System;
-
 using OpenSim.Framework.Console;
 
 namespace OpenSim.Framework.Servers
@@ -37,8 +36,7 @@ namespace OpenSim.Framework.Servers
     /// </summary>
     public abstract class BaseOpenSimServer
     {
-        protected LogBase m_log;
-        
+        protected ConsoleBase m_console;
         protected DateTime m_startuptime;
         
         public BaseOpenSimServer()
@@ -56,7 +54,7 @@ namespace OpenSim.Framework.Servers
             switch (command)
             {      
                 case "help":
-                    m_log.Notice("show uptime - show server startup and uptime.");
+                    m_console.Notice("show uptime - show server startup and uptime.");
                     break;
                     
                 case "show":
@@ -77,8 +75,8 @@ namespace OpenSim.Framework.Servers
             switch (ShowWhat)
             {
                 case "uptime":
-                    m_log.Notice("Server has been running since " + m_startuptime.ToString());
-                    m_log.Notice("That is " + (DateTime.Now - m_startuptime).ToString());
+                    m_console.Notice("Server has been running since " + m_startuptime.ToString());
+                    m_console.Notice("That is " + (DateTime.Now - m_startuptime).ToString());
                     break;                    
             }
         }

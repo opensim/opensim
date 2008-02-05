@@ -39,6 +39,8 @@ namespace OpenSim.Region.ClientStack
 {
     public class UDPServer : ClientStackNetworkHandler
     {
+        private static readonly log4net.ILog m_log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+
         protected Dictionary<EndPoint, uint> clientCircuits = new Dictionary<EndPoint, uint>();
         public Dictionary<uint, EndPoint> clientCircuits_reverse = new Dictionary<uint, EndPoint>();
         public Socket Server;
@@ -56,7 +58,6 @@ namespace OpenSim.Region.ClientStack
         protected IPAddress listenIP = IPAddress.Parse("0.0.0.0");
         protected IScene m_localScene;
         protected AssetCache m_assetCache;
-        protected LogBase m_log;
         protected AgentCircuitManager m_authenticateSessionsClass;
 
         public PacketServer PacketServer
@@ -84,13 +85,12 @@ namespace OpenSim.Region.ClientStack
         {
         }
 
-        public UDPServer(IPAddress _listenIP, ref uint port, bool allow_alternate_port, AssetCache assetCache, LogBase console, AgentCircuitManager authenticateClass)
+        public UDPServer(IPAddress _listenIP, ref uint port, bool allow_alternate_port, AssetCache assetCache, AgentCircuitManager authenticateClass)
         {
             listenIP = _listenIP;
             listenPort = port;
             Allow_Alternate_Port = allow_alternate_port;
             m_assetCache = assetCache;
-            m_log = console;
             m_authenticateSessionsClass = authenticateClass;
             CreatePacketServer();
 
@@ -121,7 +121,7 @@ namespace OpenSim.Region.ClientStack
             {
                 // TODO : Actually only handle those states that we have control over, re-throw everything else,
                 // TODO: implement cases as we encounter them.
-                //m_log.Error("UDPSERVER", "Connection Error! - " + e.ToString());
+                //m_log.Error("[UDPSERVER]: Connection Error! - " + e.ToString());
                 switch (e.SocketErrorCode)
                 {
                     case SocketError.AlreadyInProgress:
@@ -134,7 +134,7 @@ namespace OpenSim.Region.ClientStack
                         }
                         catch (Exception a)
                         {
-                            MainLog.Instance.Verbose("UDPSERVER", a.ToString());
+                            m_log.Info("[UDPSERVER]: " + a.ToString());
                         }
                         try
                         {
@@ -159,7 +159,7 @@ namespace OpenSim.Region.ClientStack
                         }
                         catch (Exception)
                         {
-                            //MainLog.Instance.Verbose("UDPSERVER", a.ToString());
+                            //m_log.Info("[UDPSERVER]" + a.ToString());
                         }
                         try
                         {
@@ -191,8 +191,7 @@ namespace OpenSim.Region.ClientStack
             }
             catch (ObjectDisposedException)
             {
-                
-                //MainLog.Instance.Debug("UDPSERVER", e.ToString());
+                //m_log.Debug("[UDPSERVER]: " + e.ToString());
                 return;
             }
 
@@ -214,20 +213,20 @@ namespace OpenSim.Region.ClientStack
                 if (clientCircuits.TryGetValue(epSender, out circuit))
                 {
                     //if so then send packet to the packetserver
-                    //MainLog.Instance.Warn("UDPSERVER", "ALREADY HAVE Circuit!");
+                    //m_log.Warn("[UDPSERVER]: ALREADY HAVE Circuit!");
                     m_packetServer.InPacket(circuit, packet);
                 }
                 else if (packet.Type == PacketType.UseCircuitCode)
                 {
                     // new client
-                    MainLog.Instance.Debug("UDPSERVER", "Adding New Client");
+                    m_log.Debug("[UDPSERVER]: Adding New Client");
                     AddNewClient(packet);
                 }
                 else
                 {
                     // invalid client
                     //CFK: This message seems to have served its usefullness as of 12-15 so I am commenting it out for now
-                    //m_log.Warn("UDPSERVER", "Got a packet from an invalid client - " + packet.ToString());
+                    //m_log.Warn("[UDPSERVER]: Got a packet from an invalid client - " + packet.ToString());
 
                 }
             }
@@ -255,12 +254,11 @@ namespace OpenSim.Region.ClientStack
 
         public void ServerListener()
         {
-
             uint newPort = listenPort;
             for (uint i = 0; i < 20; i++)
             {
                 newPort = listenPort + i;
-                m_log.Verbose("SERVER", "Opening UDP socket on " + listenIP.ToString() + " " + newPort + ".");// Allow alternate ports: " + Allow_Alternate_Port.ToString());
+                m_log.Info("[SERVER]: Opening UDP socket on " + listenIP.ToString() + " " + newPort + ".");// Allow alternate ports: " + Allow_Alternate_Port.ToString());
                 try
                 {
                     ServerIncoming = new IPEndPoint(listenIP, (int) newPort);
@@ -276,19 +274,19 @@ namespace OpenSim.Region.ClientStack
                         throw (ex);
 
                     // We are looking for alternate ports!
-                    m_log.Verbose("SERVER", "UDP socket on " + listenIP.ToString() + " " + listenPort.ToString() + " is not available, trying next.");
+                    m_log.Info("[SERVER]: UDP socket on " + listenIP.ToString() + " " + listenPort.ToString() + " is not available, trying next.");
                 }
                 System.Threading.Thread.Sleep(100); // Wait before we retry socket
             }
 
-            m_log.Verbose("SERVER", "UDP socket bound, getting ready to listen");
+            m_log.Info("[SERVER]: UDP socket bound, getting ready to listen");
 
             ipeSender = new IPEndPoint(listenIP, 0);
             epSender = (EndPoint) ipeSender;
             ReceivedData = new AsyncCallback(OnReceivedData);
             Server.BeginReceiveFrom(RecvBuffer, 0, RecvBuffer.Length, SocketFlags.None, ref epSender, ReceivedData, null);
 
-            m_log.Status("SERVER", "Listening on port " + newPort);
+            m_log.Info("[SERVER]: Listening on port " + newPort);
         }
 
         public virtual void RegisterPacketServer(PacketServer server)

@@ -39,15 +39,14 @@ using OpenSim.Framework.Servers;
 
 namespace OpenSim.Grid.UserServer
 {
-
     public class MessageServersConnector
     {
-        private LogBase m_log;
+        private static readonly log4net.ILog m_log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+
         public Dictionary<string, MessageServerInfo> MessageServers;
         
-        public MessageServersConnector(LogBase log)
+        public MessageServersConnector()
         {
-            m_log=log;
             MessageServers = new Dictionary<string, MessageServerInfo>();
         }
         
@@ -65,7 +64,7 @@ namespace OpenSim.Grid.UserServer
         {
             if (!MessageServers.ContainsKey(URI))
             {
-                m_log.Warn("MSGSERVER", "Got addResponsibleRegion Request for a MessageServer that isn't registered");
+                m_log.Warn("[MSGSERVER]: Got addResponsibleRegion Request for a MessageServer that isn't registered");
             }
             else
             {
@@ -78,7 +77,7 @@ namespace OpenSim.Grid.UserServer
         {
             if (!MessageServers.ContainsKey(URI))
             {
-                m_log.Warn("MSGSERVER", "Got RemoveResponsibleRegion Request for a MessageServer that isn't registered");
+                m_log.Warn("[MSGSERVER]: Got RemoveResponsibleRegion Request for a MessageServer that isn't registered");
             }
             else
             {
@@ -175,10 +174,7 @@ namespace OpenSim.Grid.UserServer
 
             XmlRpcRequest GridReq = new XmlRpcRequest("login_to_simulator", SendParams);
             XmlRpcResponse GridResp = GridReq.Send(serv.URI, 6000);
-            m_log.Verbose("LOGIN","Notified : " + serv.URI + " about user login");
-
+            m_log.Info("[LOGIN]: Notified : " + serv.URI + " about user login");
         }
-
-
     }
 }

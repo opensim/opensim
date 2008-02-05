@@ -53,6 +53,8 @@ namespace OpenSim.Region.Physics.Meshing
 
     public class Meshmerizer : IMesher
     {
+        private static readonly log4net.ILog m_log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+
         // Setting baseDir to a path will enable the dumping of raw files
         // raw files can be imported by blender so a visual inspection of the results can be done
         //        const string baseDir = "rawFiles";
@@ -100,7 +102,6 @@ namespace OpenSim.Region.Physics.Meshing
             }
             return influenced;
         }
-
 
         private static void InsertVertices(List<Vertex> vertices, int usedForSeed, List<Triangle> triangles)
         {
@@ -174,7 +175,6 @@ namespace OpenSim.Region.Physics.Meshing
             }
         }
 
-
         private static Mesh CreateBoxMesh(String primName, PrimitiveBaseShape primShape, PhysicsVector size)
             // Builds the z (+ and -) surfaces of a box shaped prim
         {
@@ -236,7 +236,7 @@ namespace OpenSim.Region.Physics.Meshing
                     // Calculated separately to avoid errors
                 cutHull.AddVertex(legEnd);
 
-                MainLog.Instance.Debug("Starting cutting of the hollow shape from the prim {1}", 0, primName);
+                m_log.Debug(String.Format("Starting cutting of the hollow shape from the prim {1}", 0, primName));
                 SimpleHull cuttedHull = SimpleHull.SubtractHull(outerHull, cutHull);
 
                 outerHull = cuttedHull;

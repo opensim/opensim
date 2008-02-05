@@ -75,6 +75,8 @@ namespace OpenSim.Region.Environment.Modules
 {
     public class XMLRPCModule : IRegionModule, IXMLRPC
     {
+        private static readonly log4net.ILog m_log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+
         private Scene m_scene;
         private Queue<RPCRequestInfo> rpcQueue = new Queue<RPCRequestInfo>();
         private object XMLRPCListLock = new object();
@@ -83,18 +85,12 @@ namespace OpenSim.Region.Environment.Modules
         private int RemoteReplyScriptTimeout = 900;
         private int m_remoteDataPort = 0;
         private List<Scene> m_scenes = new List<Scene>();
-        private LogBase m_log;
 
         // <channel id, RPCChannelInfo>
         private Dictionary<LLUUID, RPCChannelInfo> m_openChannels;
 
         // <channel id, RPCRequestInfo>
         private Dictionary<LLUUID, RPCRequestInfo> m_pendingResponse;
-
-        public XMLRPCModule()
-        {
-            m_log = MainLog.Instance;
-        }
 
         public void Initialise(Scene scene, IConfigSource config)
         {
@@ -123,8 +119,8 @@ namespace OpenSim.Region.Environment.Modules
 
                 // Start http server
                 // Attach xmlrpc handlers
-                m_log.Verbose("REMOTE_DATA",
-                              "Starting XMLRPC Server on port " + m_remoteDataPort + " for llRemoteData commands.");
+                m_log.Info("[REMOTE_DATA]: " +
+                           "Starting XMLRPC Server on port " + m_remoteDataPort + " for llRemoteData commands.");
                 BaseHttpServer httpServer = new BaseHttpServer((uint) m_remoteDataPort);
                 httpServer.AddXmlRPCHandler("llRemoteData", XmlRpcRemoteData);
                 httpServer.Start();

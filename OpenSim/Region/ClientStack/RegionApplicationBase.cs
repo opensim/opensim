@@ -42,6 +42,8 @@ namespace OpenSim.Region.ClientStack
 {
     public abstract class RegionApplicationBase : BaseOpenSimServer
     {
+        private static readonly log4net.ILog m_log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+
         protected AssetCache m_assetCache;
         protected Dictionary<EndPoint, uint> m_clientCircuits = new Dictionary<EndPoint, uint>();
         protected NetworkServersInfo m_networkServersInfo;
@@ -75,19 +77,20 @@ namespace OpenSim.Region.ClientStack
 
             m_httpServer = new BaseHttpServer(m_httpServerPort);
 
-            m_log.Status("REGION", "Starting HTTP server");
+            m_log.Info("[REGION]: Starting HTTP server");
+
             m_httpServer.Start();
         }
 
         protected abstract void Initialize();
 
-        protected void StartLog()
+        protected void StartConsole()
         {
-            m_log = CreateLog();
-            MainLog.Instance = m_log;
+            m_console = CreateConsole();
+            MainConsole.Instance = m_console;
         }
 
-        protected abstract LogBase CreateLog();
+        protected abstract ConsoleBase CreateConsole();
         protected abstract PhysicsScene GetPhysicsScene();
         protected abstract StorageManager CreateStorageManager(string connectionstring);
 
@@ -107,7 +110,7 @@ namespace OpenSim.Region.ClientStack
             //    listenIP = IPAddress.Parse("0.0.0.0");
 
             uint port = (uint) regionInfo.InternalEndPoint.Port;
-            udpServer = new UDPServer(listenIP, ref port, regionInfo.m_allow_alternate_ports, m_assetCache, m_log, circuitManager);
+            udpServer = new UDPServer(listenIP, ref port, regionInfo.m_allow_alternate_ports, m_assetCache, circuitManager);
             regionInfo.InternalEndPoint.Port = (int)port;
 
             Scene scene = CreateScene(regionInfo, m_storageManager, circuitManager);
@@ -136,12 +139,12 @@ namespace OpenSim.Region.ClientStack
 
             if (masterAvatar != null)
             {
-                m_log.Verbose("PARCEL", "Found master avatar [" + masterAvatar.UUID.ToString() + "]");
+                m_log.Info("[PARCEL]: Found master avatar [" + masterAvatar.UUID.ToString() + "]");
                 scene.RegionInfo.MasterAvatarAssignedUUID = masterAvatar.UUID;
             }
             else
             {
-                m_log.Verbose("PARCEL", "No master avatar found, using null.");
+                m_log.Info("[PARCEL]: No master avatar found, using null.");
                 scene.RegionInfo.MasterAvatarAssignedUUID = LLUUID.Zero;
             }
 

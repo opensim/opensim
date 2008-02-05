@@ -39,6 +39,8 @@ namespace OpenSim.Region.Environment.Scenes
 {
     public class ScenePresence : EntityBase
     {
+        private static readonly log4net.ILog m_log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+
         public static AvatarAnimations Animations;
         public static byte[] DefaultTexture;
         public LLUUID currentParcelUUID = LLUUID.Zero;
@@ -345,7 +347,7 @@ namespace OpenSim.Region.Environment.Scenes
             }
             catch (KeyNotFoundException)
             {
-                MainLog.Instance.Warn("AVATAR", "KeyNotFound Exception playing avatar stand animation");
+                m_log.Warn("[AVATAR]: KeyNotFound Exception playing avatar stand animation");
             }
             m_animationSeqs.Add(1);
 
@@ -933,7 +935,7 @@ namespace OpenSim.Region.Environment.Scenes
             }
             else
             {
-                MainLog.Instance.Warn("Sit requested on unknown object: " + targetID.ToString());
+                m_log.Warn("Sit requested on unknown object: " + targetID.ToString());
             }
             SendSitResponse(remoteClient, targetID, offset);
         }
@@ -1047,7 +1049,7 @@ namespace OpenSim.Region.Environment.Scenes
             }
             catch
             {
-                MainLog.Instance.Warn("AVATAR", "SetMovementAnimation for avatar failed. Attempting recovery...");
+                m_log.Warn("[AVATAR]: SetMovementAnimation for avatar failed. Attempting recovery...");
                 m_animations[0] = anim;
                 m_animationSeqs[0] = seq;
                 SendAnimPack();
@@ -1184,13 +1186,13 @@ namespace OpenSim.Region.Environment.Scenes
                 //bool controlland = (((m_AgentControlFlags & (uint)AgentManager.ControlFlags.AGENT_CONTROL_UP_NEG) != 0) || ((m_AgentControlFlags & (uint)AgentManager.ControlFlags.AGENT_CONTROL_NUDGE_UP_NEG) != 0));
                 //bool colliding = (m_physicsActor.IsColliding==true);
                 //if (controlland) 
-                //    MainLog.Instance.Verbose("AGENT","landCommand");
+                //    m_log.Info("[AGENT]: landCommand");
                 //if (colliding ) 
-                //    MainLog.Instance.Verbose("AGENT","colliding");
+                //    m_log.Info("[AGENT]: colliding");
                 //if (m_physicsActor.Flying && colliding && controlland)
                 //{
                 //    StopFlying();
-                //    MainLog.Instance.Verbose("AGENT", "Stop FLying");
+                //    m_log.Info("[AGENT]: Stop FLying");
                 //}
             }
             else

@@ -87,7 +87,7 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
         private void StopMaintenanceThread()
         {
 #if DEBUG
-            m_ScriptEngine.Log.Debug(m_ScriptEngine.ScriptEngineName, "StopMaintenanceThread() called");
+            m_ScriptEngine.Log.Debug("[" + m_ScriptEngine.ScriptEngineName + "]: StopMaintenanceThread() called");
 #endif
             PleaseShutdown = true;
             Thread.Sleep(100);
@@ -103,7 +103,7 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
             }
             catch (Exception ex)
             {
-                m_ScriptEngine.Log.Error(m_ScriptEngine.ScriptEngineName, "Exception stopping maintenence thread: " + ex.ToString());
+                m_ScriptEngine.Log.Error("[" + m_ScriptEngine.ScriptEngineName + "]: Exception stopping maintenence thread: " + ex.ToString());
             }
         }
 
@@ -113,8 +113,8 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
         public void MaintenanceLoop()
         {
             if (m_ScriptEngine.m_EventQueueManager.maxFunctionExecutionTimens < MaintenanceLoopms)
-                m_ScriptEngine.Log.Warn(m_ScriptEngine.ScriptEngineName,
-                    "Configuration error: MaxEventExecutionTimeMs is less than MaintenanceLoopms. The Maintenance Loop will only check scripts once per run.");
+                m_ScriptEngine.Log.Warn("[" + m_ScriptEngine.ScriptEngineName + "]: " +
+                                           "Configuration error: MaxEventExecutionTimeMs is less than MaintenanceLoopms. The Maintenance Loop will only check scripts once per run.");
 
             long Last_maxFunctionExecutionTimens = 0; // DateTime.Now.Ticks;
             long Last_ReReadConfigFilens = DateTime.Now.Ticks;
@@ -170,7 +170,7 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
                 }
                 catch (Exception ex)
                 {
-                    m_ScriptEngine.Log.Error(m_ScriptEngine.ScriptEngineName, "Exception in MaintenanceLoopThread. Thread will recover after 5 sec throttle. Exception: " + ex.ToString());
+                    m_ScriptEngine.Log.Error("[" + m_ScriptEngine.ScriptEngineName + "]: Exception in MaintenanceLoopThread. Thread will recover after 5 sec throttle. Exception: " + ex.ToString());
                     Thread.Sleep(5000);
                 }
             }

@@ -38,6 +38,8 @@ namespace OpenSim.Region.Environment.Scenes
 {
     public partial class SceneObjectGroup : EntityBase
     {
+        private static readonly log4net.ILog m_log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+
         /// <summary>
         /// Start a given script.
         /// </summary>
@@ -53,10 +55,10 @@ namespace OpenSim.Region.Environment.Scenes
             }
             else
             {
-                MainLog.Instance.Error(
-                    "PRIMINVENTORY",
-                    "Couldn't find part {0} in object group {1}, {2} to start script with ID {3}",
-                    localID, Name, UUID, itemID);
+                m_log.Error(String.Format(
+                                "[PRIMINVENTORY]: " +
+                                "Couldn't find part {0} in object group {1}, {2} to start script with ID {3}",
+                                localID, Name, UUID, itemID));
             }            
         }
         
@@ -74,10 +76,10 @@ namespace OpenSim.Region.Environment.Scenes
 //            }
 //            else
 //            {
-//                MainLog.Instance.Error(
-//                    "PRIMINVENTORY",
-//                    "Couldn't find part {0} in object group {1}, {2} to start script with ID {3}",
-//                    localID, Name, UUID, itemID);
+//                m_log.Error(String.Format(
+//                                "[PRIMINVENTORY]: " +
+//                                "Couldn't find part {0} in object group {1}, {2} to start script with ID {3}",
+//                                localID, Name, UUID, itemID));
 //            }            
 //        }        
         
@@ -106,10 +108,10 @@ namespace OpenSim.Region.Environment.Scenes
             }
             else
             {
-                MainLog.Instance.Error(
-                    "PRIMINVENTORY",
-                    "Couldn't find part {0} in object group {1}, {2} to stop script with ID {3}",
-                    partID, Name, UUID, itemID);
+                m_log.Error(String.Format(
+                                "[PRIMINVENTORY]: " +
+                                "Couldn't find part {0} in object group {1}, {2} to stop script with ID {3}",
+                                partID, Name, UUID, itemID));
             }            
         }         
         
@@ -127,10 +129,10 @@ namespace OpenSim.Region.Environment.Scenes
             }
             else
             {
-                MainLog.Instance.Error(
-                    "PRIMINVENTORY",
-                    "Couldn't find part {0} in object group {1}, {2} to retreive prim inventory",
-                    localID, Name, UUID);
+                m_log.Error(String.Format(
+                                "[PRIMINVENTORY]: " +
+                                "Couldn't find part {0} in object group {1}, {2} to retreive prim inventory",
+                                localID, Name, UUID));
             }
             return false;
         }
@@ -144,10 +146,10 @@ namespace OpenSim.Region.Environment.Scenes
             }
             else
             {
-                MainLog.Instance.Error(
-                    "PRIMINVENTORY",
-                    "Couldn't find part {0} in object group {1}, {2} to request inventory data",
-                    localID, Name, UUID);
+                m_log.Error(String.Format(
+                                "[PRIMINVENTORY]: " +
+                                "Couldn't find part {0} in object group {1}, {2} to request inventory data",
+                                localID, Name, UUID));
             }
         }
 
@@ -183,10 +185,10 @@ namespace OpenSim.Region.Environment.Scenes
             }
             else
             {
-                MainLog.Instance.Error(
-                    "PRIMINVENTORY",
-                    "Couldn't find prim local ID {0} in group {1}, {2} to add inventory item ID {3}",
-                    localID, Name, UUID, newItemId);
+                m_log.Error(String.Format(
+                                "[PRIMINVENTORY]: " +
+                                "Couldn't find prim local ID {0} in group {1}, {2} to add inventory item ID {3}",
+                                localID, Name, UUID, newItemId));
             }
 
             return false;
@@ -207,10 +209,10 @@ namespace OpenSim.Region.Environment.Scenes
             }
             else
             {
-                MainLog.Instance.Error(
-                    "PRIMINVENTORY",
-                    "Couldn't find prim local ID {0} in prim {1}, {2} to get inventory item ID {3}",
-                    primID, part.Name, part.UUID, itemID);
+                m_log.Error(String.Format(
+                                "[PRIMINVENTORY]: " +
+                                "Couldn't find prim local ID {0} in prim {1}, {2} to get inventory item ID {3}",
+                                primID, part.Name, part.UUID, itemID));
             }   
             
             return null;
@@ -233,10 +235,10 @@ namespace OpenSim.Region.Environment.Scenes
             }
             else
             {
-                MainLog.Instance.Error(
-                    "PRIMINVENTORY",
-                    "Couldn't find prim ID {0} to update item {1}, {2}",
-                    item.ParentPartID, item.Name, item.ItemID);
+                m_log.Error(String.Format(
+                                "[PRIMINVENTORY]: " +
+                                "Couldn't find prim ID {0} to update item {1}, {2}",
+                                item.ParentPartID, item.Name, item.ItemID));
             }   
             
             return false;

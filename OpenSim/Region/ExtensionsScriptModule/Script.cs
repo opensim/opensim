@@ -53,12 +53,12 @@ namespace OpenSim.Region.ExtensionsScriptModule
 
         private void events_OnNewPresence(ScenePresence presence)
         {
-            script.logger.Verbose("TESTSCRIPT", "Hello " + presence.Firstname.ToString() + "!");
+            script.Log.Info("[TESTSCRIPT]: Hello " + presence.Firstname.ToString() + "!");
         }
 
         private void events_OnFrame()
         {
-            //script.logger.Verbose("TESTSCRIPT", "Hello World!");
+            //script.logger.Info("[TESTSCRIPT]: Hello World!");
         }
     }
 }

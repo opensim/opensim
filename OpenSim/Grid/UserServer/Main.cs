@@ -42,6 +42,8 @@ namespace OpenSim.Grid.UserServer
     /// </summary>
     public class OpenUser_Main : BaseOpenSimServer, conscmd_callback
     {
+        private static readonly log4net.ILog m_log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+
         private UserConfig Cfg;
         
         public UserManager m_userManager;
@@ -53,7 +55,9 @@ namespace OpenSim.Grid.UserServer
         [STAThread]
         public static void Main(string[] args)
         {
-            Console.WriteLine("Launching UserServer...");
+            log4net.Config.XmlConfigurator.Configure();
+
+            m_log.Info("Launching UserServer...");
 
             OpenUser_Main userserver = new OpenUser_Main();
 
@@ -63,22 +67,17 @@ namespace OpenSim.Grid.UserServer
 
         private OpenUser_Main()
         {
-            if (!Directory.Exists(Util.logDir()))
-            {
-                Directory.CreateDirectory(Util.logDir());
-            }
-            m_log =
-                new LogBase((Path.Combine(Util.logDir(), "opengrid-userserver-console.log")), "OpenUser", this, true);
-            MainLog.Instance = m_log;
+            m_console = new ConsoleBase("OpenUser", this);
+            MainConsole.Instance = m_console;
         }
 
         private void Work()
         {
-            m_log.Notice("Enter help for a list of commands\n");
+            m_console.Notice("Enter help for a list of commands\n");
 
             while (true)
             {
-                m_log.MainLogPrompt();
+                m_console.Prompt();
             }
         }
 
@@ -88,7 +87,7 @@ namespace OpenSim.Grid.UserServer
             
             StatsManager.StartCollectingUserStats();
 
-            MainLog.Instance.Verbose("REGION", "Establishing data connection");
+            m_log.Info("[REGION]: Establishing data connection");
             m_userManager = new UserManager();            
             m_userManager._config = Cfg;
             m_userManager.AddPlugin(Cfg.DatabaseProvider);            
@@ -96,11 +95,11 @@ namespace OpenSim.Grid.UserServer
             m_loginService = new UserLoginService(
                  m_userManager, new LibraryRootFolder(), Cfg, Cfg.DefaultStartupMsg);
 
-            m_messagesService = new MessageServersConnector(MainLog.Instance);
+            m_messagesService = new MessageServersConnector();
 
             m_loginService.OnUserLoggedInAtLocation += NotifyMessageServersUserLoggedInToLocation;
 
-            MainLog.Instance.Verbose("REGION", "Starting HTTP process");
+            m_log.Info("[REGION]: Starting HTTP process");
             BaseHttpServer httpServer = new BaseHttpServer(Cfg.HttpPort);
 
             httpServer.AddXmlRPCHandler("login_to_simulator", m_loginService.XmlRpcLoginMethod);
@@ -128,9 +127,8 @@ namespace OpenSim.Grid.UserServer
                 new RestStreamHandler("DELETE", "/usersessions/", m_userManager.RestDeleteUserSessionMethod));
 
             httpServer.Start();
-            m_log.Status("SERVER", "Userserver 0.4 - Startup complete");
+            m_log.Info("[SERVER]: Userserver 0.4 - Startup complete");
         }
-
 
         public void do_create(string what)
         {
@@ -143,11 +141,11 @@ namespace OpenSim.Grid.UserServer
                     uint regX = 1000;
                     uint regY = 1000;
 
-                    tempfirstname = m_log.CmdPrompt("First name");
-                    templastname = m_log.CmdPrompt("Last name");
-                    tempMD5Passwd = m_log.PasswdPrompt("Password");
-                    regX = Convert.ToUInt32(m_log.CmdPrompt("Start Region X"));
-                    regY = Convert.ToUInt32(m_log.CmdPrompt("Start Region Y"));
+                    tempfirstname = m_console.CmdPrompt("First name");
+                    templastname = m_console.CmdPrompt("Last name");
+                    tempMD5Passwd = m_console.PasswdPrompt("Password");
+                    regX = Convert.ToUInt32(m_console.CmdPrompt("Start Region X"));
+                    regY = Convert.ToUInt32(m_console.CmdPrompt("Start Region Y"));
 
                     tempMD5Passwd = Util.Md5Hash(Util.Md5Hash(tempMD5Passwd) + ":" + String.Empty);
 
@@ -158,7 +156,7 @@ namespace OpenSim.Grid.UserServer
                             m_userManager.AddUserProfile(tempfirstname, templastname, tempMD5Passwd, regX, regY);
                     } catch (Exception ex)
                     {
-                        m_log.Error("SERVER", "Error creating user: {0}", ex.ToString());
+                        m_log.Error(String.Format("[SERVER]: Error creating user: {0}", ex.ToString()));
                     }
 
                     try
@@ -168,7 +166,7 @@ namespace OpenSim.Grid.UserServer
                     }
                     catch (Exception ex)
                     {
-                        m_log.Error("SERVER", "Error creating inventory for user: {0}", ex.ToString());
+                        m_log.Error(String.Format("[SERVER]: Error creating inventory for user: {0}", ex.ToString()));
                     }
                     m_lastCreatedUser = userID;
                     break;
@@ -182,9 +180,9 @@ namespace OpenSim.Grid.UserServer
             switch (cmd)
             {
                 case "help":
-                    m_log.Notice("create user - create a new user");
-                    m_log.Notice("stats - statistical information for this server");                    
-                    m_log.Notice("shutdown - shutdown the grid (USE CAUTION!)");
+                    m_console.Notice("create user - create a new user");
+                    m_console.Notice("stats - statistical information for this server");                    
+                    m_console.Notice("shutdown - shutdown the grid (USE CAUTION!)");
                     break;
 
                 case "create":
@@ -193,12 +191,12 @@ namespace OpenSim.Grid.UserServer
 
                 case "shutdown":
                     m_loginService.OnUserLoggedInAtLocation -= NotifyMessageServersUserLoggedInToLocation;
-                    m_log.Close();
+                    m_console.Close();
                     Environment.Exit(0);
                     break;
                     
                 case "stats":
-                    MainLog.Instance.Notice("STATS", Environment.NewLine + StatsManager.UserStats.Report());
+                    m_console.Notice(StatsManager.UserStats.Report());
                     break;                    
 
                 case "test-inventory":
@@ -218,8 +216,9 @@ namespace OpenSim.Grid.UserServer
 
         public void TestResponse(List<InventoryFolderBase> resp)
         {
-            Console.WriteLine("response got");
+            m_console.Notice("response got");
         }
+
         public void NotifyMessageServersUserLoggedInToLocation(LLUUID agentID, LLUUID sessionID, LLUUID RegionID, ulong regionhandle, LLVector3 Position)
         {
             m_messagesService.TellMessageServersAboutUser(agentID, sessionID, RegionID, regionhandle, Position);

@@ -40,6 +40,8 @@ namespace OpenSim.Region.Communications.OGS1
 {
     public class OGS1UserServices : IUserService
     {
+        private static readonly log4net.ILog m_log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+
         private CommunicationsOGS1 m_parent;
 
         public OGS1UserServices(CommunicationsOGS1 parent)
@@ -51,10 +53,10 @@ namespace OpenSim.Region.Communications.OGS1
         {
             if (data.Contains("error_type"))
             {
-                MainLog.Instance.Warn("GRID",
-                                      "Error sent by user server when trying to get user profile: (" +
-                                      data["error_type"] +
-                                      "): " + data["error_desc"]);
+                m_log.Warn("[GRID]: " +
+                           "Error sent by user server when trying to get user profile: (" +
+                           data["error_type"] +
+                           "): " + data["error_desc"]);
                 return null;
             }
 
@@ -104,7 +106,7 @@ namespace OpenSim.Region.Communications.OGS1
             }
             else
             {
-                MainLog.Instance.Warn("INTERGRID", "Got invalid queryID from userServer");
+                m_log.Warn("[INTERGRID]: Got invalid queryID from userServer");
             }
             return pickerlist;
         }
@@ -158,7 +160,7 @@ namespace OpenSim.Region.Communications.OGS1
             }
             catch (System.Net.WebException)
             {
-                MainLog.Instance.Warn("LOGOFF", "Unable to notify grid server of user logoff");
+                m_log.Warn("[LOGOFF]: Unable to notify grid server of user logoff");
             }
 
 
@@ -186,8 +188,8 @@ namespace OpenSim.Region.Communications.OGS1
             }
             catch (WebException e)
             {
-                MainLog.Instance.Warn("Error when trying to fetch Avatar Picker Response: " +
-                                      e.Message);
+                m_log.Warn("Error when trying to fetch Avatar Picker Response: " +
+                           e.Message);
                 // Return Empty picker list (no results)
             }
             return pickerlist;
@@ -209,8 +211,8 @@ namespace OpenSim.Region.Communications.OGS1
             }
             catch (WebException e)
             {
-                MainLog.Instance.Warn("Error when trying to fetch profile data by name from remote user server: " +
-                                      e.Message);
+                m_log.Warn("Error when trying to fetch profile data by name from remote user server: " +
+                           e.Message);
             }
             return null;
         }
@@ -299,24 +301,24 @@ namespace OpenSim.Region.Communications.OGS1
                         }
                         else
                         {
-                            MainLog.Instance.Warn("GRID", "Unable to add new friend, User Server Reported an issue");
+                            m_log.Warn("[GRID]: Unable to add new friend, User Server Reported an issue");
                         }
                     }
                     else
                     {
-                        MainLog.Instance.Warn("GRID", "Unable to add new friend, UserServer didn't understand me!");
+                        m_log.Warn("[GRID]: Unable to add new friend, UserServer didn't understand me!");
                     }
                 }
                 else
                 {
-                    MainLog.Instance.Warn("GRID", "Unable to add new friend, UserServer didn't understand me!");
+                    m_log.Warn("[GRID]: Unable to add new friend, UserServer didn't understand me!");
 
                 }
             }
             catch (WebException e)
             {
-                MainLog.Instance.Warn("GRID","Error when trying to AddNewUserFriend: " +
-                                      e.Message);
+                m_log.Warn("[GRID]: Error when trying to AddNewUserFriend: " +
+                           e.Message);
                 
             }
             
@@ -352,24 +354,24 @@ namespace OpenSim.Region.Communications.OGS1
                         }
                         else
                         {
-                            MainLog.Instance.Warn("GRID", "Unable to remove friend, User Server Reported an issue");
+                            m_log.Warn("[GRID]: Unable to remove friend, User Server Reported an issue");
                         }
                     }
                     else
                     {
-                        MainLog.Instance.Warn("GRID", "Unable to remove friend, UserServer didn't understand me!");
+                        m_log.Warn("[GRID]: Unable to remove friend, UserServer didn't understand me!");
                     }
                 }
                 else
                 {
-                    MainLog.Instance.Warn("GRID", "Unable to remove friend, UserServer didn't understand me!");
+                    m_log.Warn("[GRID]: Unable to remove friend, UserServer didn't understand me!");
 
                 }
             }
             catch (WebException e)
             {
-                MainLog.Instance.Warn("GRID", "Error when trying to RemoveUserFriend: " +
-                                      e.Message);
+                m_log.Warn("[GRID]: Error when trying to RemoveUserFriend: " +
+                           e.Message);
                 
             }
         }
@@ -404,25 +406,24 @@ namespace OpenSim.Region.Communications.OGS1
                         }
                         else
                         {
-                            MainLog.Instance.Warn("GRID", "Unable to update_user_friend_perms, User Server Reported an issue");
+                            m_log.Warn("[GRID]: Unable to update_user_friend_perms, User Server Reported an issue");
                         }
                     }
                     else
                     {
-                        MainLog.Instance.Warn("GRID", "Unable to update_user_friend_perms, UserServer didn't understand me!");
+                        m_log.Warn("[GRID]: Unable to update_user_friend_perms, UserServer didn't understand me!");
                     }
                 }
                 else
                 {
-                    MainLog.Instance.Warn("GRID", "Unable to update_user_friend_perms, UserServer didn't understand me!");
+                    m_log.Warn("[GRID]: Unable to update_user_friend_perms, UserServer didn't understand me!");
 
                 }
             }
             catch (WebException e)
             {
-                MainLog.Instance.Warn("GRID", "Error when trying to update_user_friend_perms: " +
-                                      e.Message);
-
+                m_log.Warn("[GRID]: Error when trying to update_user_friend_perms: " +
+                           e.Message);
             }
         }
         /// <summary>
@@ -452,12 +453,11 @@ namespace OpenSim.Region.Communications.OGS1
             }
             catch (WebException e)
             {
-                MainLog.Instance.Warn("Error when trying to fetch Avatar's friends list: " +
-                                      e.Message);
+                m_log.Warn("Error when trying to fetch Avatar's friends list: " +
+                           e.Message);
                 // Return Empty list (no friends)
             }
             return buddylist;
-             
         }
 
         #endregion

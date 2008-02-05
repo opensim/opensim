@@ -43,8 +43,9 @@ namespace OpenSim.Region.Environment.Modules
 {
     public class ChatModule : IRegionModule, ISimChat
     {
+        private static readonly log4net.ILog m_log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+
         private List<Scene> m_scenes = new List<Scene>();
-        private LogBase m_log;
 
         private int m_whisperdistance = 10;
         private int m_saydistance = 30;
@@ -58,11 +59,6 @@ namespace OpenSim.Region.Environment.Modules
         internal object m_syncInit = new object();
         internal object m_syncLogout = new object();
         private Thread m_irc_connector=null;
-
-        public ChatModule()
-        {
-            m_log = MainLog.Instance;
-        }
 
         public void Initialise(Scene scene, IConfigSource config)
         {
@@ -159,7 +155,7 @@ namespace OpenSim.Region.Environment.Modules
             }
             catch (Exception ex)
             {
-                m_log.Error("IRC", "NewClient exception trap:" + ex.ToString());
+                m_log.Error("[IRC]: NewClient exception trap:" + ex.ToString());
             }
         }
 
@@ -180,13 +176,13 @@ namespace OpenSim.Region.Environment.Modules
                         {
                             m_last_leaving_user = clientName;
                             m_irc.PrivMsg(m_irc.Nick, "Sim", "notices " + clientName + " left " + clientRegion);
-                            m_log.Verbose("IRC", "IRC watcher notices " + clientName + " left " + clientRegion);
+                            m_log.Info("[IRC]: IRC watcher notices " + clientName + " left " + clientRegion);
                         }
                     }
                 }
                 catch (Exception ex)
                 {
-                    m_log.Error("IRC", "ClientLoggedOut exception trap:" + ex.ToString());
+                    m_log.Error("[IRC]: ClientLoggedOut exception trap:" + ex.ToString());
                 }
             }
 
@@ -319,6 +315,8 @@ namespace OpenSim.Region.Environment.Modules
 
     internal class IRCChatModule
     {
+        private static readonly log4net.ILog m_log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+
         private string m_server = null;
         private uint m_port = 6668;
         private string m_user = "USER OpenSimBot 8 * :I'm a OpenSim to irc bot";
@@ -341,7 +339,6 @@ namespace OpenSim.Region.Environment.Modules
 
         private List<Scene> m_scenes = null;
         private List<Scene> m_last_scenes = null;
-        private LogBase m_log;
 
         public IRCChatModule(IConfigSource config)
         {
@@ -388,9 +385,8 @@ namespace OpenSim.Region.Environment.Modules
             }
             catch (Exception)
             {
-                MainLog.Instance.Verbose("CHAT", "No IRC config information, skipping IRC bridge configuration");
+                m_log.Info("[CHAT]: No IRC config information, skipping IRC bridge configuration");
             }
-            m_log = MainLog.Instance;
         }
 
         public bool Connect(List<Scene> scenes)
@@ -404,9 +400,9 @@ namespace OpenSim.Region.Environment.Modules
                     if (m_last_scenes == null) { m_last_scenes = scenes; }
 
                     m_tcp = new TcpClient(m_server, (int)m_port);
-                    m_log.Verbose("IRC", "Connecting...");
+                    m_log.Info("[IRC]: Connecting...");
                     m_stream = m_tcp.GetStream();
-                    m_log.Verbose("IRC", "Connected to " + m_server);
+                    m_log.Info("[IRC]: Connected to " + m_server);
                     m_reader = new StreamReader(m_stream);
                     m_writer = new StreamWriter(m_stream);
 
@@ -422,7 +418,7 @@ namespace OpenSim.Region.Environment.Modules
                     m_writer.Flush();
                     m_writer.WriteLine("JOIN " + m_channel);
                     m_writer.Flush();
-                    m_log.Verbose("IRC", "Connection fully established");
+                    m_log.Info("[IRC]: Connection fully established");
                     m_connected = true;
                 }
                 catch (Exception e)
@@ -475,16 +471,16 @@ namespace OpenSim.Region.Environment.Modules
                     m_writer.WriteLine(m_privmsgformat, m_channel, from, region, msg);
                 }
                 m_writer.Flush();
-                m_log.Verbose("IRC", "PrivMsg " + from + " in " + region + " :" + msg);
+                m_log.Info("[IRC]: PrivMsg " + from + " in " + region + " :" + msg);
             }
             catch (IOException)
             {
-                m_log.Error("IRC", "Disconnected from IRC server.(PrivMsg)");
+                m_log.Error("[IRC]: Disconnected from IRC server.(PrivMsg)");
                 Reconnect();
             }
             catch (Exception ex)
             {
-                m_log.Error("IRC", "PrivMsg exception trap:" + ex.ToString());
+                m_log.Error("[IRC]: PrivMsg exception trap:" + ex.ToString());
             }
         }
 
@@ -493,7 +489,7 @@ namespace OpenSim.Region.Environment.Modules
             //examines IRC commands and extracts any private messages
             // which will then be reboadcast in the Sim
 
-            m_log.Verbose("IRC", "ExtractMsg: " + input);
+            m_log.Info("[IRC]: ExtractMsg: " + input);
             Dictionary<string, string> result = null;
             //string regex = @":(?<nick>\w*)!~(?<user>\S*) PRIVMSG (?<channel>\S+) :(?<msg>.*)";
             string regex = @":(?<nick>\w*)!(?<user>\S*) PRIVMSG (?<channel>\S+) :(?<msg>.*)";
@@ -510,10 +506,10 @@ namespace OpenSim.Region.Environment.Modules
             }
             else
             {
-                m_log.Verbose("IRC", "Number of matches: " + matches.Count);
+                m_log.Info("[IRC]: Number of matches: " + matches.Count);
                 if (matches.Count > 0)
                 {
-                    m_log.Verbose("IRC", "Number of groups: " + matches[0].Groups.Count);
+                    m_log.Info("[IRC]: Number of groups: " + matches[0].Groups.Count);
                 }
             }
             return result;
@@ -536,12 +532,12 @@ namespace OpenSim.Region.Environment.Modules
                 }
                 catch (IOException)
                 {
-                    m_log.Error("IRC", "Disconnected from IRC server.(PingRun)");
+                    m_log.Error("[IRC]: Disconnected from IRC server.(PingRun)");
                     Reconnect();
                 }
                 catch (Exception ex)
                 {
-                    m_log.Error("IRC", "PingRun exception trap:" + ex.ToString() + "\n" + ex.StackTrace);
+                    m_log.Error("[IRC]: PingRun exception trap:" + ex.ToString() + "\n" + ex.StackTrace);
                 }
             }
         }
@@ -552,29 +548,29 @@ namespace OpenSim.Region.Environment.Modules
             LLVector3 pos = new LLVector3(128, 128, 20);
             while (true)
             {
-             try
-            {
-              while ((m_connected == true) && ((inputLine = m_reader.ReadLine()) != null))
+                try
                 {
+                    while ((m_connected == true) && ((inputLine = m_reader.ReadLine()) != null))
+                    {
                         // Console.WriteLine(inputLine);
                         if (inputLine.Contains(m_channel))
                         {
-                           Dictionary<string, string> data = ExtractMsg(inputLine);
+                            Dictionary<string, string> data = ExtractMsg(inputLine);
                             // Any chat ???
                             if (data != null)
                             {
                                 foreach (Scene m_scene in m_scenes)
                                 {
                                     m_scene.ForEachScenePresence(delegate(ScenePresence avatar)
+                                                                 {
+                                                                     if (!avatar.IsChildAgent)
                                                                      {
-                                                                         if (!avatar.IsChildAgent)
-                                                                         {
-                                                                             avatar.ControllingClient.SendChatMessage(
-                                                                                 Helpers.StringToField(data["msg"]), 255,
-                                                                                 pos, data["nick"],
-                                                                                 LLUUID.Zero);
-                                                                         }
-                                                                     });
+                                                                         avatar.ControllingClient.SendChatMessage(
+                                                                             Helpers.StringToField(data["msg"]), 255,
+                                                                             pos, data["nick"],
+                                                                             LLUUID.Zero);
+                                                                     }
+                                                                 });
                                 }
                                                                 
 
@@ -584,24 +580,24 @@ namespace OpenSim.Region.Environment.Modules
                                 // Was an command from the IRC server
                                 ProcessIRCCommand(inputLine);
                             }
-                         }
+                        }
                         else
                         {
                             // Was an command from the IRC server
                             ProcessIRCCommand(inputLine);
                         }
                         Thread.Sleep(150);
-                        }
                     }
-                    catch (IOException)
-                    {
-                        m_log.Error("IRC", "ListenerRun IOException. Disconnected from IRC server ??? (ListenerRun)");
-                        Reconnect();
-                    }
-                    catch (Exception ex)
-                    {
-                        m_log.Error("IRC", "ListenerRun exception trap:" + ex.ToString()+"\n"+ex.StackTrace);
-                    }
+                }
+                catch (IOException)
+                {
+                    m_log.Error("[IRC]: ListenerRun IOException. Disconnected from IRC server ??? (ListenerRun)");
+                    Reconnect();
+                }
+                catch (Exception ex)
+                {
+                    m_log.Error("[IRC]: ListenerRun exception trap:" + ex.ToString() + "\n" + ex.StackTrace);
+                }
             }
         }
 
@@ -626,27 +622,27 @@ namespace OpenSim.Region.Environment.Modules
             }
             catch (Exception ex) // IRC gate should not crash Sim
             {
-                m_log.Error("IRC", "BroadcastSim Exception Trap:" + ex.ToString() + "\n" + ex.StackTrace);
+                m_log.Error("[IRC]: BroadcastSim Exception Trap:" + ex.ToString() + "\n" + ex.StackTrace);
 
             }
-
-
         }
+
         public enum ErrorReplies
         {
             NotRegistered = 451,	// ":You have not registered"
             NicknameInUse = 433		// "<nick> :Nickname is already in use"
         }
+
         public enum Replies
         {
             MotdStart = 375,		// ":- <server> Message of the day - "
             Motd = 372,				// ":- <text>"
             EndOfMotd = 376			// ":End of /MOTD command"
-                
         }
+
         public void ProcessIRCCommand(string command)
         {
-            //m_log.Verbose("IRC", "ProcessIRCCommand:"+command); 
+            //m_log.Info("[IRC]: ProcessIRCCommand:" + command); 
             
             string[] commArgs = new string[command.Split(' ').Length];
             string c_server = m_server;
@@ -656,6 +652,7 @@ namespace OpenSim.Region.Environment.Modules
             {
                 commArgs[0] = commArgs[0].Remove(0, 1);
             }
+
             if (commArgs[1] == "002")
             {
                 // fetch the correct servername
@@ -668,7 +665,7 @@ namespace OpenSim.Region.Environment.Modules
 
             if (commArgs[0] == "ERROR")
             {
-                m_log.Error("IRC", "IRC SERVER ERROR:" + command); 
+                m_log.Error("[IRC]: IRC SERVER ERROR:" + command); 
             }
 
             if (commArgs[0] == "PING")
@@ -695,7 +692,7 @@ namespace OpenSim.Region.Environment.Modules
                         case (int)ErrorReplies.NicknameInUse:
                             // Gen a new name
                             m_nick = m_basenick + Util.RandomClass.Next(1, 99);
-                            m_log.Error("IRC", "IRC SERVER reports NicknameInUse, trying " + m_nick);
+                            m_log.Error("[IRC]: IRC SERVER reports NicknameInUse, trying " + m_nick);
                             // Retry
                             m_writer.WriteLine("NICK " + m_nick);
                             m_writer.Flush();

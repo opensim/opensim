@@ -35,12 +35,7 @@ namespace OpenSim.Region.Environment.Scenes.Scripting
 {
     public class ScriptEngineLoader
     {
-        private LogBase m_log;
-
-        public ScriptEngineLoader(LogBase logger)
-        {
-            m_log = logger;
-        }
+        private static readonly log4net.ILog m_log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 
         public ScriptEngineInterface LoadScriptEngine(string EngineName)
         {
@@ -54,7 +49,7 @@ namespace OpenSim.Region.Environment.Scenes.Scripting
             }
             catch (Exception e)
             {
-                m_log.Error("ScriptEngine",
+                m_log.Error("[ScriptEngine]: " +
                             "Error loading assembly \"" + EngineName + "\": " + e.Message + ", " +
                             e.StackTrace.ToString());
             }
@@ -88,7 +83,7 @@ namespace OpenSim.Region.Environment.Scenes.Scripting
             //}
             //catch (Exception e)
             //{
-            //    m_log.Error("ScriptEngine", "Error loading assembly \String.Empty + FileName + "\": " + e.ToString());
+            //    m_log.Error("[ScriptEngine]: Error loading assembly \String.Empty + FileName + "\": " + e.ToString());
             //}
 
 
@@ -105,7 +100,7 @@ namespace OpenSim.Region.Environment.Scenes.Scripting
             //}
             //catch (Exception e)
             //{
-            //    m_log.Error("ScriptEngine", "Error initializing type \String.Empty + NameSpace + "\" from \String.Empty + FileName + "\": " + e.ToString());
+            //    m_log.Error("[ScriptEngine]: Error initializing type \String.Empty + NameSpace + "\" from \String.Empty + FileName + "\": " + e.ToString());
             //}
 
             ScriptEngineInterface ret;
@@ -115,7 +110,7 @@ namespace OpenSim.Region.Environment.Scenes.Scripting
             //}
             //catch (Exception e)
             //{
-            //    m_log.Error("ScriptEngine", "Error initializing type \String.Empty + NameSpace + "\" from \String.Empty + FileName + "\": " + e.ToString());
+            //    m_log.Error("[ScriptEngine]: Error initializing type \String.Empty + NameSpace + "\" from \String.Empty + FileName + "\": " + e.ToString());
             //}
 
             return ret;

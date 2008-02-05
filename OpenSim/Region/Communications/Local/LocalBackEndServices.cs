@@ -36,6 +36,8 @@ namespace OpenSim.Region.Communications.Local
 {
     public class LocalBackEndServices : IGridServices, IInterRegionCommunications
     {
+        private static readonly log4net.ILog m_log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+
         protected Dictionary<ulong, RegionInfo> m_regions = new Dictionary<ulong, RegionInfo>();
 
         protected Dictionary<ulong, RegionCommsListener> m_regionListeners =
@@ -93,8 +95,9 @@ namespace OpenSim.Region.Communications.Local
                 RegionCommsListener regionHost = new RegionCommsListener();
                 if (m_regionListeners.ContainsKey(regionInfo.RegionHandle))
                 {
-                    MainLog.Instance.Error("INTERREGION",
-                                           "Error:Region registered twice as an Events listener for Interregion Communications but not as a listed region.  In Standalone mode this will cause BIG issues.  In grid mode, it means a region went down and came back up.");
+                    m_log.Error("[INTERREGION]: " +
+                                "Error:Region registered twice as an Events listener for Interregion Communications but not as a listed region.  " +
+                                "In Standalone mode this will cause BIG issues.  In grid mode, it means a region went down and came back up.");
                     m_regionListeners.Remove(regionInfo.RegionHandle);
                 }
                 m_regionListeners.Add(regionInfo.RegionHandle, regionHost);
@@ -105,7 +108,7 @@ namespace OpenSim.Region.Communications.Local
             {
                 // Already in our list, so the region went dead and restarted.
                 m_regions.Remove(regionInfo.RegionHandle);
-                MainLog.Instance.Warn("INTERREGION", "Region registered twice. Region went down and came back up.");
+                m_log.Warn("[INTERREGION]: Region registered twice. Region went down and came back up.");
 
                 RegionCommsListener regionHost = new RegionCommsListener();
                 if (m_regionListeners.ContainsKey(regionInfo.RegionHandle))
@@ -229,7 +232,7 @@ namespace OpenSim.Region.Communications.Local
             {
                 // Console.WriteLine("CommsManager- Informing a region to expect child agent");
                 m_regionListeners[regionHandle].TriggerChildAgentUpdate(regionHandle, cAgentData);
-                //MainLog.Instance.Verbose("INTER", rdebugRegionName + ":Local BackEnd: Got Listener trigginering local event: " + agentData.firstname + " " + agentData.lastname);
+                //m_log.Info("[INTER]: " + rdebugRegionName + ":Local BackEnd: Got Listener trigginering local event: " + agentData.firstname + " " + agentData.lastname);
 
                 return true;
             }
@@ -292,13 +295,13 @@ namespace OpenSim.Region.Communications.Local
             //should change from agentCircuitData
         {
             //Console.WriteLine("CommsManager- Trying to Inform a region to expect child agent");
-            //MainLog.Instance.Verbose("INTER", rdebugRegionName + ":Local BackEnd: Trying to inform region of child agent: " + agentData.firstname + " " + agentData.lastname);
+            //m_log.Info("[INTER]: " + rdebugRegionName + ":Local BackEnd: Trying to inform region of child agent: " + agentData.firstname + " " + agentData.lastname);
 
             if (m_regionListeners.ContainsKey(regionHandle))
             {
                 // Console.WriteLine("CommsManager- Informing a region to expect child agent");
                 m_regionListeners[regionHandle].TriggerExpectUser(regionHandle, agentData);
-                //MainLog.Instance.Verbose("INTER", rdebugRegionName + ":Local BackEnd: Got Listener trigginering local event: " + agentData.firstname + " " + agentData.lastname);
+                //m_log.Info("[INTER]: " + rdebugRegionName + ":Local BackEnd: Got Listener trigginering local event: " + agentData.firstname + " " + agentData.lastname);
 
                 return true;
             }
@@ -389,11 +392,11 @@ namespace OpenSim.Region.Communications.Local
 
         public void TriggerExpectUser(ulong regionHandle, AgentCircuitData agent)
         {
-            //MainLog.Instance.Verbose("INTER", rdebugRegionName + ":Local BackEnd: Other region is sending child agent our way: " + agent.firstname + " " + agent.lastname);
+            //m_log.Info("[INTER]: " + rdebugRegionName + ":Local BackEnd: Other region is sending child agent our way: " + agent.firstname + " " + agent.lastname);
 
             if (m_regionListeners.ContainsKey(regionHandle))
             {
-                //MainLog.Instance.Verbose("INTER", rdebugRegionName + ":Local BackEnd: FoundLocalRegion To send it to: " + agent.firstname + " " + agent.lastname);
+                //m_log.Info("[INTER]: " + rdebugRegionName + ":Local BackEnd: FoundLocalRegion To send it to: " + agent.firstname + " " + agent.lastname);
 
                 m_regionListeners[regionHandle].TriggerExpectUser(regionHandle, agent);
             }
@@ -443,11 +446,11 @@ namespace OpenSim.Region.Communications.Local
 
         public bool IncomingChildAgent(ulong regionHandle, AgentCircuitData agentData)
         {
-            // MainLog.Instance.Verbose("INTER", rdebugRegionName + ":Local BackEnd: Other local region is sending child agent our way: " + agentData.firstname + " " + agentData.lastname);
+            // m_log.Info("[INTER]: " + rdebugRegionName + ":Local BackEnd: Other local region is sending child agent our way: " + agentData.firstname + " " + agentData.lastname);
 
             if (m_regionListeners.ContainsKey(regionHandle))
             {
-                //MainLog.Instance.Verbose("INTER", rdebugRegionName + ":Local BackEnd: found local region to trigger event on: " + agentData.firstname + " " + agentData.lastname);
+                //m_log.Info("[INTER]: " + rdebugRegionName + ":Local BackEnd: found local region to trigger event on: " + agentData.firstname + " " + agentData.lastname);
 
                 TriggerExpectUser(regionHandle, agentData);
                 return true;

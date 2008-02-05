@@ -38,6 +38,8 @@ namespace OpenSim.Region.ExtensionsScriptModule
 {
     public class ScriptManager : IRegionModule, IExtensionScriptModule
     {
+        private static readonly log4net.ILog m_log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+
         private readonly List<IScript> scripts = new List<IScript>();
         private Scene m_scene;
         private readonly Dictionary<string, IScriptCompiler> compilers = new Dictionary<string, IScriptCompiler>();
@@ -48,12 +50,12 @@ namespace OpenSim.Region.ExtensionsScriptModule
             {
                 ScriptInfo scriptInfo = new ScriptInfo(m_scene);
                 // Since each script could potentially corrupt their access with a stray assignment, making a new one for each script.
-                MainLog.Instance.Verbose("SCRIPT", "Loading " + script.Key);
+                m_log.Info("[SCRIPT]: Loading " + script.Key);
                 script.Value.Initialise(scriptInfo);
                 scripts.Add(script.Value);
             }
 
-            MainLog.Instance.Verbose("SCRIPT", string.Format("Finished loading {0} script(s)", compiledscripts.Count));
+            m_log.Info("[SCRIPT]: " + string.Format("Finished loading {0} script(s)", compiledscripts.Count));
         }
 
         public ScriptManager()
@@ -71,7 +73,7 @@ namespace OpenSim.Region.ExtensionsScriptModule
 
         public void Initialise(Scene scene, IConfigSource config)
         {
-            MainLog.Instance.Verbose("SCRIPTMODULE", "Initialising Extensions Scripting Module");
+            m_log.Info("[SCRIPTMODULE]: Initialising Extensions Scripting Module");
             m_scene = scene;
 
             m_scene.RegisterModuleInterface<IExtensionScriptModule>(this);
@@ -118,14 +120,14 @@ namespace OpenSim.Region.ExtensionsScriptModule
                     break;
 
                 default:
-                    MainLog.Instance.Error("Unknown script command");
+                    m_log.Error("Unknown script command");
                     break;
             }
         }
 
         public bool AddPreCompiledScript(IScript script)
         {
-            MainLog.Instance.Verbose("SCRIPT", "Loading script " + script.Name);
+            m_log.Info("[SCRIPT]: Loading script " + script.Name);
             ScriptInfo scriptInfo = new ScriptInfo(m_scene);
             // Since each script could potentially corrupt their access with a stray assignment, making a new one for each script.
             script.Initialise(scriptInfo);

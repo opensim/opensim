@@ -79,12 +79,12 @@ namespace OpenSim.Region.ScriptEngine.Common
         {
             RemoteEvents Events();
         }
+
         public interface ScriptEngine
         {
             RemoteEvents EventManager();
-            void InitializeEngine(Scene Sceneworld, IConfigSource config, LogBase logger, bool DontHookUp, ScriptManager newScriptManager);
+            void InitializeEngine(Scene Sceneworld, IConfigSource config, bool DontHookUp, ScriptManager newScriptManager);
             ScriptManager GetScriptManager();
         }
-
     }
 }

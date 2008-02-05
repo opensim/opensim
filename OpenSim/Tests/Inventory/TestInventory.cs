@@ -52,10 +52,10 @@ namespace OpenSim.Test.Inventory
         [TestFixtureSetUp]
         public void SetupInventoryTest()
         {
-
             _agent_1_id = LLUUID.Random();
 
-            MainLog.Instance = new LogBase("UnitTest.log", "TEST", null, false);
+            MainConsole.Instance = new ConsoleBase("TEST", null);
+
 //            _dbPlugin = new SQLiteInventoryStore();
             _dbPlugin = new MySQLInventoryData();
             _dbPlugin.Initialise();

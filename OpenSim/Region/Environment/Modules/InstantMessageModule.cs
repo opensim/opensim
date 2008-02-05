@@ -39,12 +39,6 @@ namespace OpenSim.Region.Environment.Modules
     public class InstantMessageModule : IRegionModule
     {
         private List<Scene> m_scenes = new List<Scene>();
-        private LogBase m_log;
-
-        public InstantMessageModule()
-        {
-            m_log = MainLog.Instance;
-        }
 
         public void Initialise(Scene scene, IConfigSource config)
         {
@@ -68,7 +62,6 @@ namespace OpenSim.Region.Environment.Modules
                                       uint ParentEstateID, LLVector3 Position, LLUUID RegionID, 
                                       byte[] binaryBucket)
         {
-            
             bool FriendDialog = ((dialog == (byte)38) || (dialog == (byte)39) || (dialog == (byte)40));
 
             // IM dialogs need to be pre-processed and have their sessionID filled by the server

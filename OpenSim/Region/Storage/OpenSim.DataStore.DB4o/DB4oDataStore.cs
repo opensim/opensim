@@ -42,9 +42,10 @@ using Db4objects.Db4o.Query;
 
 namespace OpenSim.DataStore.DB4oStorage
 {
-
     public class SceneObjectQuery : Predicate
     {
+        private static readonly log4net.ILog m_log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+
         private LLUUID globalIDSearch;
 
         public SceneObjectQuery(LLUUID find)
@@ -58,17 +59,14 @@ namespace OpenSim.DataStore.DB4oStorage
         }
     }
 
-
     public class DB4oDataStore : IRegionDataStore
     {
         private IObjectContainer db;
 
         public void Initialise(string dbfile, string dbname)
         {
-            MainLog.Instance.Verbose("DATASTORE", "DB4O - Opening " + dbfile);
+            m_log.Info("[DATASTORE]: DB4O - Opening " + dbfile);
             db = Db4oFactory.OpenFile(dbfile);
-
-            return;
         }
 
         public void StoreObject(SceneObjectGroup obj, LLUUID regionUUID)
@@ -91,7 +89,7 @@ namespace OpenSim.DataStore.DB4oStorage
             IObjectSet result = db.Get(typeof(SceneObjectGroup));
             List<SceneObjectGroup> retvals = new List<SceneObjectGroup>();
 
-            MainLog.Instance.Verbose("DATASTORE", "DB4O - LoadObjects found " + result.Count.ToString() + " objects");
+            m_log.Info("[DATASTORE]: DB4O - LoadObjects found " + result.Count.ToString() + " objects");
 
             foreach (Object obj in result)
             {
@@ -103,7 +101,6 @@ namespace OpenSim.DataStore.DB4oStorage
 
         public void StoreTerrain(double[,] ter)
         {
-
         }
 
         public double[,] LoadTerrain()
@@ -113,12 +110,10 @@ namespace OpenSim.DataStore.DB4oStorage
 
         public void RemoveLandObject(uint id)
         {
-
         }
 
         public void StoreParcel(Land parcel)
         {
-
         }
 
         public List<Land> LoadLandObjects()

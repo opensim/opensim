@@ -44,6 +44,8 @@ namespace OpenSim.Framework.UserManagement
 {
     public class LoginService
     {
+        private static readonly log4net.ILog m_log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+
         protected string m_welcomeMessage = "Welcome to OpenSim";
         protected UserManagerBase m_userManager = null;
         protected Mutex m_loginMutex = new Mutex(false);     
@@ -83,7 +85,7 @@ namespace OpenSim.Framework.UserManagement
             try
             {
                 //CFK: CustomizeResponse contains sufficient strings to alleviate the need for this.
-                //CKF: MainLog.Instance.Verbose("LOGIN", "Attempting login now...");
+                //CKF: m_log.Info("[LOGIN]: Attempting login now...");
                 XmlRpcResponse response = new XmlRpcResponse();
                 Hashtable requestData = (Hashtable) request.Params[0];
 
@@ -102,16 +104,14 @@ namespace OpenSim.Framework.UserManagement
                     if( requestData.Contains("version"))
                     {
                         string clientversion = (string)requestData["version"];
-                        MainLog.Instance.Verbose("LOGIN","Client Version " + clientversion + " for " + firstname + " " + lastname);
+                        m_log.Info("[LOGIN]: Client Version " + clientversion + " for " + firstname + " " + lastname);
                     }
                     
 
                     userProfile = GetTheUser(firstname, lastname);
                     if (userProfile == null)
                     {
-                        MainLog.Instance.Verbose(
-                            "LOGIN",
-                            "Could not find a profile for " + firstname + " " + lastname);
+                        m_log.Info("[LOGIN]: Could not find a profile for " + firstname + " " + lastname);
 
                         return logResponse.CreateLoginFailedResponse();
                     }
@@ -213,7 +213,7 @@ namespace OpenSim.Framework.UserManagement
                         }
                         catch (Exception e)
                         {
-                            MainLog.Instance.Verbose("LOGIN", e.ToString());
+                            m_log.Info("[LOGIN]: " + e.ToString());
                             return logResponse.CreateDeadRegionResponse();
                             //return logResponse.ToXmlRpcResponse();
                         }
@@ -225,10 +225,9 @@ namespace OpenSim.Framework.UserManagement
                         
                         return logResponse.ToXmlRpcResponse();
                     }
-
-                    catch (Exception E)
+                    catch (Exception e)
                     {
-                        MainLog.Instance.Verbose("LOGIN", E.ToString());
+                        m_log.Info("[LOGIN]: " + e.ToString());
                     }
                     //}
                 }
@@ -265,9 +264,7 @@ namespace OpenSim.Framework.UserManagement
                         userProfile = GetTheUser(firstname, lastname);
                         if (userProfile == null)
                         {
-                            MainLog.Instance.Verbose(
-                                "LOGIN",
-                                "Could not find a profile for " + firstname + " " + lastname);
+                            m_log.Info("[LOGIN]: Could not find a profile for " + firstname + " " + lastname);
 
                             return logResponse.CreateLoginFailedResponseLLSD();
                         }
@@ -345,7 +342,7 @@ namespace OpenSim.Framework.UserManagement
                         }
                         catch (Exception ex)
                         {
-                            MainLog.Instance.Verbose("LOGIN", ex.ToString());
+                            m_log.Info("[LOGIN]: " + ex.ToString());
                             return logResponse.CreateDeadRegionResponseLLSD();
                         }
 
@@ -359,7 +356,7 @@ namespace OpenSim.Framework.UserManagement
                     }
                     catch (Exception ex)
                     {
-                        MainLog.Instance.Verbose("LOGIN", ex.ToString());
+                        m_log.Info("[LOGIN]: " + ex.ToString());
                         return logResponse.CreateFailedResponseLLSD();
                     }
                 }
@@ -458,7 +455,7 @@ namespace OpenSim.Framework.UserManagement
                     string redirectURL = "about:blank?redirect-http-hack=" + System.Web.HttpUtility.UrlEncode("secondlife:///app/login?first_name=" + firstname + "&last_name=" +
                                                 lastname +
                                                 "&location=" + location + "&grid=Other&web_login_key=" + webloginkey.ToString());
-                    //MainLog.Instance.Verbose("WEB", "R:" + redirectURL);
+                    //m_log.Info("[WEB]: R:" + redirectURL);
                     returnactions["int_response_code"] = statuscode;
                     returnactions["str_redirect_location"] = redirectURL;
                     returnactions["str_response_string"] = "<HTML><BODY>GoodLogin</BODY></HTML>";
@@ -604,27 +601,22 @@ namespace OpenSim.Framework.UserManagement
         public virtual bool AuthenticateUser(UserProfileData profile, string password)
         {
             bool passwordSuccess = false;
-            MainLog.Instance.Verbose(
-                "LOGIN", "Authenticating {0} {1} ({2})", profile.username, profile.surname, profile.UUID);
+            m_log.Info(
+                String.Format("[LOGIN]: Authenticating {0} {1} ({2})", profile.username, profile.surname, profile.UUID));
 
             // Web Login method seems to also occasionally send the hashed password itself
-
 
             // we do this to get our hash in a form that the server password code can consume
             // when the web-login-form submits the password in the clear (supposed to be over SSL!)
             if (!password.StartsWith("$1$"))
                 password = "$1$" + Util.Md5Hash(password);
 
-
-            
             password = password.Remove(0, 3); //remove $1$
             
-            
-
             string s = Util.Md5Hash(password + ":" + profile.passwordSalt);
             // Testing...    
-            //MainLog.Instance.Verbose("LOGIN", "SubHash:" + s + " userprofile:" + profile.passwordHash);
-            //MainLog.Instance.Verbose("LOGIN", "userprofile:" + profile.passwordHash + " SubCT:" + password);
+            //m_log.Info("[LOGIN]: SubHash:" + s + " userprofile:" + profile.passwordHash);
+            //m_log.Info("[LOGIN]: userprofile:" + profile.passwordHash + " SubCT:" + password);
 
             passwordSuccess = (profile.passwordHash.Equals(s.ToString(), StringComparison.InvariantCultureIgnoreCase) 
                             || profile.passwordHash.Equals(password,StringComparison.InvariantCultureIgnoreCase));
@@ -635,8 +627,8 @@ namespace OpenSim.Framework.UserManagement
         public virtual bool AuthenticateUser(UserProfileData profile, LLUUID webloginkey)
         {
             bool passwordSuccess = false;
-            MainLog.Instance.Verbose(
-                "LOGIN", "Authenticating {0} {1} ({2})", profile.username, profile.surname, profile.UUID);
+            m_log.Info(
+                String.Format("[LOGIN]: Authenticating {0} {1} ({2})", profile.username, profile.surname, profile.UUID));
 
             // Match web login key unless it's the default weblogin key LLUUID.Zero
             passwordSuccess = ((profile.webLoginKey==webloginkey) && profile.webLoginKey != LLUUID.Zero);

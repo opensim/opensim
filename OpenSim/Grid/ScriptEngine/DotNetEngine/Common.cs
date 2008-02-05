@@ -26,10 +26,13 @@
 * 
 */
 /* Original code: Tedd Hansen */
+
 namespace OpenSim.Grid.ScriptEngine.DotNetEngine
 {
     public static class Common
     {
+        private static readonly log4net.ILog m_log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+
         public static bool debug = true;
         public static ScriptEngine mySE;
 
@@ -41,14 +44,14 @@ namespace OpenSim.Grid.ScriptEngine.DotNetEngine
         public static void SendToDebug(string Message)
         {
             //if (Debug == true)
-            mySE.Log.Verbose("ScriptEngine", "Debug: " + Message);
+            mySE.m_log.Info("[ScriptEngine]: Debug: " + Message);
             //SendToDebugEvent("\r\n" + DateTime.Now.ToString("[HH:mm:ss] ") + Message);
         }
 
         public static void SendToLog(string Message)
         {
             //if (Debug == true)
-            mySE.Log.Verbose("ScriptEngine", "LOG: " + Message);
+            mySE.m_log.Info("[ScriptEngine]: LOG: " + Message);
             //SendToLogEvent("\r\n" + DateTime.Now.ToString("[HH:mm:ss] ") + Message);
         }
     }

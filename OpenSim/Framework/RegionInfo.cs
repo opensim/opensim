@@ -31,6 +31,7 @@ using System.Net.Sockets;
 using System.Xml;
 using libsecondlife;
 using Nini.Config;
+using OpenSim.Framework.Console;
 
 namespace OpenSim.Framework
 {
@@ -176,7 +177,7 @@ namespace OpenSim.Framework
         public string MasterAvatarSandboxPassword = String.Empty;
 
         // Apparently, we're applying the same estatesettings regardless of whether it's local or remote.
-        private static EstateSettings m_estateSettings;
+        private EstateSettings m_estateSettings;
 
         public EstateSettings EstateSettings
         {
@@ -196,7 +197,7 @@ namespace OpenSim.Framework
         public RegionInfo(string description, string filename, bool skipConsoleConfig)
         {
             configMember =
-                new ConfigurationMember(filename, description, loadConfigurationOptions, handleIncomingConfiguration,!skipConsoleConfig);
+                new ConfigurationMember(filename, description, loadConfigurationOptions, handleIncomingConfiguration, !skipConsoleConfig);
             configMember.performConfigurationRetrieve();
         }
 

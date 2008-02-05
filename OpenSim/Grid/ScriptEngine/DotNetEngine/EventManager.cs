@@ -38,17 +38,19 @@ namespace OpenSim.Grid.ScriptEngine.DotNetEngine
     [Serializable]
     internal class EventManager
     {
+        private static readonly log4net.ILog m_log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+
         private ScriptEngine myScriptEngine;
         //public IScriptHost TEMP_OBJECT_ID;
         public EventManager(ScriptEngine _ScriptEngine)
         {
             myScriptEngine = _ScriptEngine;
             // TODO: HOOK EVENTS UP TO SERVER!
-            //myScriptEngine.m_logger.Verbose("ScriptEngine", "EventManager Start");
+            //myScriptEngine.m_log.Info("[ScriptEngine]: EventManager Start");
             // TODO: ADD SERVER HOOK TO LOAD A SCRIPT THROUGH myScriptEngine.ScriptManager
 
             // Hook up a test event to our test form
-            myScriptEngine.Log.Verbose("ScriptEngine", "Hooking up to server events");
+            myScriptEngine.m_log.Info("[ScriptEngine]: Hooking up to server events");
             myScriptEngine.World.EventManager.OnObjectGrab += touch_start;
             myScriptEngine.World.EventManager.OnRezScript += OnRezScript;
             myScriptEngine.World.EventManager.OnRemoveScript += OnRemoveScript;
@@ -57,7 +59,7 @@ namespace OpenSim.Grid.ScriptEngine.DotNetEngine
         public void touch_start(uint localID, LLVector3 offsetPos, IClientAPI remoteClient)
         {
             // Add to queue for all scripts in ObjectID object
-            //myScriptEngine.m_logger.Verbose("ScriptEngine", "EventManager Event: touch_start");
+            //myScriptEngine.m_log.Info("[ScriptEngine]: EventManager Event: touch_start");
             //Console.WriteLine("touch_start localID: " + localID);
             myScriptEngine.m_EventQueueManager.AddToObjectQueue(localID, "touch_start", new object[] {(int) 1});
         }

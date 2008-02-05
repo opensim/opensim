@@ -42,6 +42,8 @@ namespace OpenSim.Framework.Data.MySQL
     /// </summary>
     public class MySQLGridData : IGridData
     {
+        private static readonly log4net.ILog m_log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+
         /// <summary>
         /// MySQL Database Manager
         /// </summary>
@@ -168,7 +170,7 @@ namespace OpenSim.Framework.Data.MySQL
             catch (Exception e)
             {
                 database.Reconnect();
-                MainLog.Instance.Error(e.ToString());
+                m_log.Error(e.ToString());
                 return null;
             }
         }
@@ -200,7 +202,7 @@ namespace OpenSim.Framework.Data.MySQL
             catch (Exception e)
             {
                 database.Reconnect();
-                MainLog.Instance.Error(e.ToString());
+                m_log.Error(e.ToString());
                 return null;
             }
         }
@@ -247,7 +249,7 @@ namespace OpenSim.Framework.Data.MySQL
                 catch (Exception e)
                 {
                     database.Reconnect();
-                    MainLog.Instance.Error(e.ToString());
+                    m_log.Error(e.ToString());
                     return returnlist;
                 }
             }
@@ -282,7 +284,7 @@ namespace OpenSim.Framework.Data.MySQL
                 catch (Exception e)
                 {
                     database.Reconnect();
-                    MainLog.Instance.Error(e.ToString());
+                    m_log.Error(e.ToString());
                     return returnlist;
                 }
             }
@@ -316,7 +318,7 @@ namespace OpenSim.Framework.Data.MySQL
             catch (Exception e)
             {
                 database.Reconnect();
-                MainLog.Instance.Error(e.ToString());
+                m_log.Error(e.ToString());
                 return null;
             }
         }
@@ -405,7 +407,7 @@ namespace OpenSim.Framework.Data.MySQL
             catch (Exception e)
             {
                 database.Reconnect();
-                MainLog.Instance.Error(e.ToString());
+                m_log.Error(e.ToString());
                 return null;
             }
         }

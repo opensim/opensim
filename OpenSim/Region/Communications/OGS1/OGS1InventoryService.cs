@@ -38,6 +38,8 @@ namespace OpenSim.Region.Communications.OGS1
 {
     public class OGS1InventoryService : IInventoryServices
     {
+        private static readonly log4net.ILog m_log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+
         private string _inventoryServerUrl;
         private Dictionary<LLUUID, InventoryRequest> m_RequestingInventory = new Dictionary<LLUUID, InventoryRequest>();
 
@@ -71,9 +73,9 @@ namespace OpenSim.Region.Communications.OGS1
         {
             try
             {
-                MainLog.Instance.Verbose(
-                    "INVENTORY", "Requesting inventory from {0}/GetInventory/ for user {1}",
-                    _inventoryServerUrl, userID);
+                m_log.Info(
+                    String.Format("[INVENTORY]: Requesting inventory from {0}/GetInventory/ for user {1}",
+                                  _inventoryServerUrl, userID));
 
                 RestObjectPosterResponse<InventoryCollection> requester
                     = new RestObjectPosterResponse<InventoryCollection>();
@@ -83,7 +85,7 @@ namespace OpenSim.Region.Communications.OGS1
             }
             catch (Exception e)
             {
-                MainLog.Instance.Error("INVENTORY", e.ToString());
+                m_log.Error("[INVENTORY]: " + e.ToString());
             }
         }
 
@@ -96,9 +98,9 @@ namespace OpenSim.Region.Communications.OGS1
             LLUUID userID = response.UserID;
             if (m_RequestingInventory.ContainsKey(userID))
             {
-                MainLog.Instance.Verbose("INVENTORY",
+                m_log.Info(String.Format("[INVENTORY]: " +
                                          "Received inventory response for user {0} containing {1} folders and {2} items",
-                                         userID, response.Folders.Count, response.AllItems.Count);
+                                         userID, response.Folders.Count, response.AllItems.Count));
 
                 InventoryFolderImpl rootFolder = null;
                 InventoryRequest request = m_RequestingInventory[userID];
@@ -132,10 +134,10 @@ namespace OpenSim.Region.Communications.OGS1
             }
             else
             {
-                MainLog.Instance.Warn(
-                    "INVENTORY",
-                    "Received inventory response for {0} for which we do not have a record of requesting!",
-                    userID);
+                m_log.Warn(
+                    String.Format("[INVENTORY]: " +
+                                  "Received inventory response for {0} for which we do not have a record of requesting!",
+                                  userID));
             }
         }
 

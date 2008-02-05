@@ -39,6 +39,8 @@ namespace OpenSim.Grid.GridServer
     /// </summary>
     public class OpenGrid_Main : BaseOpenSimServer, conscmd_callback
     {
+        private static readonly log4net.ILog m_log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+
         public GridConfig Cfg;
 
         public static OpenGrid_Main thegrid;
@@ -54,11 +56,13 @@ namespace OpenSim.Grid.GridServer
         [STAThread]
         public static void Main(string[] args)
         {
+            log4net.Config.XmlConfigurator.Configure();
+
             if (args.Length > 0)
             {
                 if (args[0] == "-setuponly") setuponly = true;
             }
-            Console.WriteLine("Starting...\n");
+            m_log.Info("Starting...\n");
 
             thegrid = new OpenGrid_Main();
             thegrid.Startup();
@@ -68,23 +72,18 @@ namespace OpenSim.Grid.GridServer
 
         private void Work()
         {
-            m_log.Notice("Enter help for a list of commands\n");
+            m_console.Notice("Enter help for a list of commands\n");
 
             while (true)
             {
-                m_log.MainLogPrompt();
+                m_console.Prompt();
             }
         }
 
         private OpenGrid_Main()
         {
-            if (!Directory.Exists(Util.logDir()))
-            {
-                Directory.CreateDirectory(Util.logDir());
-            }
-            m_log =
-                new LogBase((Path.Combine(Util.logDir(), "opengrid-gridserver-console.log")), "OpenGrid", this, true);
-            MainLog.Instance = m_log;
+            m_console = new ConsoleBase("OpenGrid", this);
+            MainConsole.Instance = m_console;
         }
 
         public void managercallback(string cmd)
@@ -97,19 +96,18 @@ namespace OpenSim.Grid.GridServer
             }
         }
 
-
         public void Startup()
         {
             Cfg = new GridConfig("GRID SERVER", (Path.Combine(Util.configDir(), "GridServer_Config.xml")));
             //Yeah srsly, that's it.
             if (setuponly) Environment.Exit(0);
 
-            m_log.Verbose("GRID", "Connecting to Storage Server");
+            m_log.Info("[GRID]: Connecting to Storage Server");
             m_gridManager = new GridManager();
             m_gridManager.AddPlugin(Cfg.DatabaseProvider); // Made of win
             m_gridManager.config = Cfg;
 
-            m_log.Verbose("GRID", "Starting HTTP process");
+            m_log.Info("[GRID]: Starting HTTP process");
             BaseHttpServer httpServer = new BaseHttpServer(Cfg.HttpPort);
             //GridManagementAgent GridManagerAgent = new GridManagementAgent(httpServer, "gridserver", Cfg.SimSendKey, Cfg.SimRecvKey, managercallback);
 
@@ -135,7 +133,7 @@ namespace OpenSim.Grid.GridServer
 
             httpServer.Start();
 
-            m_log.Verbose("GRID", "Starting sim status checker");
+            m_log.Info("[GRID]: Starting sim status checker");
 
             Timer simCheckTimer = new Timer(3600000*3); // 3 Hours between updates.
             simCheckTimer.Elapsed += new ElapsedEventHandler(CheckSims);
@@ -186,11 +184,11 @@ namespace OpenSim.Grid.GridServer
             switch (cmd)
             {
                 case "help":
-                    m_log.Notice("shutdown - shutdown the grid (USE CAUTION!)");
+                    m_console.Notice("shutdown - shutdown the grid (USE CAUTION!)");
                     break;                                        
 
                 case "shutdown":
-                    m_log.Close();
+                    m_console.Close();
                     Environment.Exit(0);
                     break;
             }

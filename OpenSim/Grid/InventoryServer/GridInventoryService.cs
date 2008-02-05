@@ -37,6 +37,8 @@ namespace OpenSim.Grid.InventoryServer
 {
     public class GridInventoryService : InventoryServiceBase
     {
+        private static readonly log4net.ILog m_log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+
         public override void RequestInventoryForUser(LLUUID userID, InventoryFolderInfo folderCallBack,
                                                      InventoryItemInfo itemCallBack)
         {
@@ -108,7 +110,7 @@ namespace OpenSim.Grid.InventoryServer
             LLUUID userID = new LLUUID(rawUserID);
 
             // We get enough verbose messages later on for diagnostics
-            //MainLog.Instance.Verbose("INVENTORY", "Request for inventory for " + userID.ToString());            
+            //m_log.Info("[INVENTORY]: Request for inventory for " + userID.ToString());            
 
             InventoryCollection invCollection = new InventoryCollection();
             List<InventoryFolderBase> folders;
@@ -126,8 +128,8 @@ namespace OpenSim.Grid.InventoryServer
         {
             LLUUID userID = new LLUUID(rawUserID);
 
-            MainLog.Instance.Verbose(
-                "INVENTORY", "Creating new set of inventory folders for " + userID.ToString());
+            m_log.Info(
+                "[INVENTORY]: Creating new set of inventory folders for " + userID.ToString());
 
             CreateNewUserInventory(userID);
             return true;
@@ -152,8 +154,8 @@ namespace OpenSim.Grid.InventoryServer
         public bool AddInventoryFolder(InventoryFolderBase folder)
         {
             // Right now, this actions act more like an update/insert combination than a simple create.
-            MainLog.Instance.Verbose(
-                "INVENTORY",
+            m_log.Info(
+                "[INVENTORY]: " +
                 "Updating in   " + folder.parentID.ToString()
                 + ", folder " + folder.name);
 
@@ -163,8 +165,8 @@ namespace OpenSim.Grid.InventoryServer
 
         public bool MoveInventoryFolder(InventoryFolderBase folder)
         {
-            MainLog.Instance.Verbose(
-                "INVENTORY",
+            m_log.Info(
+                "[INVENTORY]: " +
                 "Moving folder " + folder.folderID
                 + " to " + folder.parentID.ToString());
 
@@ -175,8 +177,8 @@ namespace OpenSim.Grid.InventoryServer
         public bool AddInventoryItem(InventoryItemBase item)
         {
             // Right now, this actions act more like an update/insert combination than a simple create.
-            MainLog.Instance.Verbose(
-                "INVENTORY",
+            m_log.Info(
+                "[INVENTORY]: " +
                 "Updating in   " + item.parentFolderID.ToString()
                 + ", item " + item.inventoryName);
 
@@ -187,8 +189,8 @@ namespace OpenSim.Grid.InventoryServer
         public override void DeleteInventoryItem(LLUUID userID, InventoryItemBase item)
         {
             // extra spaces to align with other inventory messages
-            MainLog.Instance.Verbose(
-                "INVENTORY",
+            m_log.Info(
+                "[INVENTORY]: " +
                 "Deleting in   " + item.parentFolderID.ToString()
                 + ", item " + item.inventoryName);
 

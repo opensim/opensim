@@ -41,6 +41,8 @@ namespace OpenSim.Grid.MessagingServer
     /// </summary>
     public class OpenMessage_Main : BaseOpenSimServer, conscmd_callback
     {
+        private static readonly log4net.ILog m_log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+
         private MessageServerConfig Cfg;
 
         //public UserManager m_userManager;
@@ -51,7 +53,9 @@ namespace OpenSim.Grid.MessagingServer
         [STAThread]
         public static void Main(string[] args)
         {
-            Console.WriteLine("Launching MessagingServer...");
+            log4net.Config.XmlConfigurator.Configure();
+
+            m_log.Info("Launching MessagingServer...");
 
             OpenMessage_Main messageserver = new OpenMessage_Main();
 
@@ -61,22 +65,17 @@ namespace OpenSim.Grid.MessagingServer
 
         private OpenMessage_Main()
         {
-            if (!Directory.Exists(Util.logDir()))
-            {
-                Directory.CreateDirectory(Util.logDir());
-            }
-            m_log =
-                new LogBase((Path.Combine(Util.logDir(), "opengrid-messagingserver-console.log")), "OpenMessage", this, true);
-            MainLog.Instance = m_log;
+            m_console = new ConsoleBase("OpenMessage", this);
+            MainConsole.Instance = m_console;
         }
 
         private void Work()
         {
-            m_log.Notice("Enter help for a list of commands\n");
+            m_console.Notice("Enter help for a list of commands\n");
 
             while (true)
             {
-                m_log.MainLogPrompt();
+                m_console.Prompt();
             }
         }
 
@@ -84,9 +83,7 @@ namespace OpenSim.Grid.MessagingServer
         {
             Cfg = new MessageServerConfig("MESSAGING SERVER", (Path.Combine(Util.configDir(), "MessagingServer_Config.xml")));
 
-            
-
-            MainLog.Instance.Verbose("REGION", "Starting HTTP process");
+            m_log.Info("[REGION]: Starting HTTP process");
             BaseHttpServer httpServer = new BaseHttpServer(Cfg.HttpPort);
 
             //httpServer.AddXmlRPCHandler("login_to_simulator", m_loginService.XmlRpcLoginMethod);
@@ -104,9 +101,8 @@ namespace OpenSim.Grid.MessagingServer
                 //new RestStreamHandler("DELETE", "/usersessions/", m_userManager.RestDeleteUserSessionMethod));
 
             httpServer.Start();
-            m_log.Status("SERVER", "Messageserver 0.4 - Startup complete");
+            m_log.Info("[SERVER]: Messageserver 0.4 - Startup complete");
         }
-
 
         public void do_create(string what)
         {
@@ -120,7 +116,7 @@ namespace OpenSim.Grid.MessagingServer
                             //m_userManager.AddUserProfile(tempfirstname, templastname, tempMD5Passwd, regX, regY);
                     } catch (Exception ex)
                     {
-                        m_log.Error("SERVER", "Error creating user: {0}", ex.ToString());
+                        m_console.Error("[SERVER]: Error creating user: {0}", ex.ToString());
                     }
 
                     try
@@ -130,9 +126,9 @@ namespace OpenSim.Grid.MessagingServer
                     }
                     catch (Exception ex)
                     {
-                        m_log.Error("SERVER", "Error creating inventory for user: {0}", ex.ToString());
+                        m_console.Error("[SERVER]: Error creating inventory for user: {0}", ex.ToString());
                     }
-                   // m_lastCreatedUser = userID;
+                    // m_lastCreatedUser = userID;
                     break;
             }
         }
@@ -144,11 +140,11 @@ namespace OpenSim.Grid.MessagingServer
             switch (cmd)
             {
                 case "help":
-                    m_log.Notice("shutdown - shutdown the message server (USE CAUTION!)");
+                    m_console.Notice("shutdown - shutdown the message server (USE CAUTION!)");
                     break;
 
                 case "shutdown":
-                    m_log.Close();
+                    m_console.Close();
                     Environment.Exit(0);
                     break;
             }

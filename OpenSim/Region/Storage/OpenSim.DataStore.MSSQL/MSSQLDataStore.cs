@@ -43,6 +43,8 @@ namespace OpenSim.DataStore.MSSQL
 {
     public class MSSQLDataStore : IRegionDataStore
     {
+        private static readonly log4net.ILog m_log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+
         private const string primSelect = "select * from prims";
         private const string shapeSelect = "select * from primshapes";
         private const string terrainSelect = "select * from terrain";
@@ -68,7 +70,7 @@ namespace OpenSim.DataStore.MSSQL
 
             ds = new DataSet();
 
-            MainLog.Instance.Verbose("DATASTORE", "MSSQL - connecting: " + settingInitialCatalog);
+            m_log.Info("[DATASTORE]: MSSQL - connecting: " + settingInitialCatalog);
             SqlConnection conn = new SqlConnection(connectionString);
             SqlCommand primSelectCmd = new SqlCommand(primSelect, conn);
             primDa = new SqlDataAdapter(primSelectCmd);
@@ -109,7 +111,7 @@ namespace OpenSim.DataStore.MSSQL
                 }
                 catch (Exception)
                 {
-                    MainLog.Instance.Verbose("DATASTORE", "Caught fill error on primshapes table");
+                    m_log.Info("[DATASTORE]: Caught fill error on primshapes table");
                 }
                 try
                 {
@@ -117,7 +119,7 @@ namespace OpenSim.DataStore.MSSQL
                 }
                 catch (Exception)
                 {
-                    MainLog.Instance.Verbose("DATASTORE", "Caught fill error on terrain table");
+                    m_log.Info("[DATASTORE]: Caught fill error on terrain table");
                 }
                 return;
             }
@@ -129,18 +131,18 @@ namespace OpenSim.DataStore.MSSQL
             {
                 foreach (SceneObjectPart prim in obj.Children.Values)
                 {
-                    MainLog.Instance.Verbose("DATASTORE", "Adding obj: " + obj.UUID + " to region: " + regionUUID);
+                    m_log.Info("[DATASTORE]: Adding obj: " + obj.UUID + " to region: " + regionUUID);
                     addPrim(prim, obj.UUID, regionUUID);
                 }
             }
 
             Commit();
-            // MainLog.Instance.Verbose("Dump of prims:", ds.GetXml());
+            // m_log.Info("Dump of prims:", ds.GetXml());
         }
 
         public void RemoveObject(LLUUID obj, LLUUID regionUUID)
         {
-            MainLog.Instance.Verbose("DATASTORE", "Removing obj: {0} from region: {1}", obj.UUID, regionUUID);
+            m_log.Info(String.Format("[DATASTORE]: Removing obj: {0} from region: {1}", obj.UUID, regionUUID));
             
             DataTable prims = ds.Tables["prims"];
             DataTable shapes = ds.Tables["primshapes"];
@@ -179,7 +181,7 @@ namespace OpenSim.DataStore.MSSQL
             lock (ds)
             {
                 DataRow[] primsForRegion = prims.Select(byRegion, orderByParent);
-                MainLog.Instance.Verbose("DATASTORE",
+                m_log.Info("[DATASTORE]: " +
                                          "Loaded " + primsForRegion.Length + " prims for region: " + regionUUID);
 
                 foreach (DataRow primRow in primsForRegion)
@@ -199,7 +201,7 @@ namespace OpenSim.DataStore.MSSQL
                             }
                             else
                             {
-                                MainLog.Instance.Notice(
+                                m_log.Info(
                                     "No shape found for prim in storage, so setting default box shape");
                                 prim.Shape = PrimitiveBaseShape.Default;
                             }
@@ -219,7 +221,7 @@ namespace OpenSim.DataStore.MSSQL
                             }
                             else
                             {
-                                MainLog.Instance.Notice(
+                                m_log.Info(
                                     "No shape found for prim in storage, so setting default box shape");
                                 prim.Shape = PrimitiveBaseShape.Default;
                             }
@@ -228,11 +230,11 @@ namespace OpenSim.DataStore.MSSQL
                     }
                     catch (Exception e)
                     {
-                        MainLog.Instance.Error("DATASTORE", "Failed create prim object, exception and data follows");
-                        MainLog.Instance.Verbose("DATASTORE", e.ToString());
+                        m_log.Error("[DATASTORE]: Failed create prim object, exception and data follows");
+                        m_log.Info("[DATASTORE]: " + e.ToString());
                         foreach (DataColumn col in prims.Columns)
                         {
-                            MainLog.Instance.Verbose("DATASTORE", "Col: " + col.ColumnName + " => " + primRow[col]);
+                            m_log.Info("[DATASTORE]: Col: " + col.ColumnName + " => " + primRow[col]);
                         }
                     }
                 }
@@ -245,7 +247,7 @@ namespace OpenSim.DataStore.MSSQL
         {
             int revision = Util.UnixTimeSinceEpoch();
 
-            MainLog.Instance.Verbose("DATASTORE", "Storing terrain revision r" + revision.ToString());
+            m_log.Info("[DATASTORE]: Storing terrain revision r" + revision.ToString());
 
             DataTable terrain = ds.Tables["terrain"];
             lock (ds)
@@ -288,12 +290,12 @@ namespace OpenSim.DataStore.MSSQL
                 }
                 else
                 {
-                    MainLog.Instance.Verbose("DATASTORE", "No terrain found for region");
+                    m_log.Info("[DATASTORE]: No terrain found for region");
                     return null;
                 }
 
 
-                MainLog.Instance.Verbose("DATASTORE", "Loaded terrain revision r" + rev.ToString());
+                m_log.Info("[DATASTORE]: Loaded terrain revision r" + rev.ToString());
             }
 
             return terret;
@@ -950,7 +952,7 @@ namespace OpenSim.DataStore.MSSQL
             }
             catch (SqlException)
             {
-                MainLog.Instance.Warn("MSSQL", "Primitives Table Already Exists");
+                m_log.Warn("[MSSQL]: Primitives Table Already Exists");
             }
 
             try
@@ -960,7 +962,7 @@ namespace OpenSim.DataStore.MSSQL
             }
             catch (SqlException)
             {
-                MainLog.Instance.Warn("MSSQL", "Shapes Table Already Exists");
+                m_log.Warn("[MSSQL]: Shapes Table Already Exists");
             }
 
             try
@@ -970,7 +972,7 @@ namespace OpenSim.DataStore.MSSQL
             }
             catch (SqlException)
             {
-                MainLog.Instance.Warn("MSSQL", "Terrain Table Already Exists");
+                m_log.Warn("[MSSQL]: Terrain Table Already Exists");
             }
 
             conn.Close();
@@ -994,7 +996,7 @@ namespace OpenSim.DataStore.MSSQL
             }
             catch (SqlException)
             {
-                MainLog.Instance.Verbose("DATASTORE", "MSSQL Database doesn't exist... creating");
+                m_log.Info("[DATASTORE]: MSSQL Database doesn't exist... creating");
                 InitDB(conn);
             }
 
@@ -1009,14 +1011,14 @@ namespace OpenSim.DataStore.MSSQL
             }
             catch (SqlException e)
             {
-                MainLog.Instance.Verbose("DATASTORE", e.ToString());
+                m_log.Info("[DATASTORE]: " + e.ToString());
             }
 
             foreach (DataColumn col in createPrimTable().Columns)
             {
                 if (!tmpDS.Tables["prims"].Columns.Contains(col.ColumnName))
                 {
-                    MainLog.Instance.Verbose("DATASTORE", "Missing required column:" + col.ColumnName);
+                    m_log.Info("[DATASTORE]: Missing required column:" + col.ColumnName);
                     return false;
                 }
             }
@@ -1024,7 +1026,7 @@ namespace OpenSim.DataStore.MSSQL
             {
                 if (!tmpDS.Tables["primshapes"].Columns.Contains(col.ColumnName))
                 {
-                    MainLog.Instance.Verbose("DATASTORE", "Missing required column:" + col.ColumnName);
+                    m_log.Info("[DATASTORE]: Missing required column:" + col.ColumnName);
                     return false;
                 }
             }
@@ -1032,7 +1034,7 @@ namespace OpenSim.DataStore.MSSQL
             {
                 if (!tmpDS.Tables["terrain"].Columns.Contains(col.ColumnName))
                 {
-                    MainLog.Instance.Verbose("DATASTORE", "Missing require column:" + col.ColumnName);
+                    m_log.Info("[DATASTORE]: Missing require column:" + col.ColumnName);
                     return false;
                 }
             }

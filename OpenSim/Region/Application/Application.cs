@@ -35,16 +35,19 @@ namespace OpenSim
 {
     public class Application
     {
+        private static readonly log4net.ILog m_log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+
         public static string iniFilePath = "";
 
         //could move our main function into OpenSimMain and kill this class
         [STAThread]
         public static void Main(string[] args)
         {
+            log4net.Config.XmlConfigurator.Configure();
+
             AppDomain.CurrentDomain.UnhandledException += new UnhandledExceptionEventHandler(CurrentDomain_UnhandledException);
 
             Console.WriteLine("OpenSim " + VersionInfo.Version + "\n");
-
 
             Console.Write("Performing compatibility checks... ");
             string supported = String.Empty;
@@ -75,11 +78,10 @@ namespace OpenSim
             OpenSimMain sim = new OpenSimMain(configSource);
 
             sim.StartUp();
-            
 
             while (true)
             {
-                MainLog.Instance.MainLogPrompt();
+                MainConsole.Instance.Prompt();
             }
         }
 
@@ -112,7 +114,7 @@ namespace OpenSim
 
             // Do we not always want to see exception messages?
 //            if (e.IsTerminating)
-                MainLog.Instance.Error("APPLICATION", msg);            
+                MainConsole.Instance.Error("[APPLICATION]: " + msg);
 
             // Try to post errormessage to an URL
             try
@@ -131,6 +133,5 @@ namespace OpenSim
 
             _IsHandlingException=false;
         }
-
     }
 }

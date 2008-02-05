@@ -306,7 +306,7 @@ namespace OpenSim.Region.Environment.Scenes
             {
                 // Ignore, and skip over.
             }
-            //MainLog.Instance.Verbose("PART", "OFFSET:" + m_offsetPosition, ToString());
+            //m_log.Info("[PART]: OFFSET:" + m_offsetPosition.ToString());
             }
         }
 
@@ -347,14 +347,14 @@ namespace OpenSim.Region.Environment.Scenes
                         if (ParentID == 0)
                         {
                             PhysActor.Orientation = new Quaternion(value.W, value.X, value.Y, value.Z);
-                            //MainLog.Instance.Verbose("PART", "RO1:" + PhysActor.Orientation.ToString());
+                            //m_log.Info("[PART]: RO1:" + PhysActor.Orientation.ToString());
                         }
                         else
                         {
                             // Child prim we have to calculate it's world rotationwel
                             LLQuaternion resultingrotation = GetWorldRotation();
                             PhysActor.Orientation = new Quaternion(resultingrotation.W, resultingrotation.X, resultingrotation.Y, resultingrotation.Z);
-                            //MainLog.Instance.Verbose("PART", "RO2:" + PhysActor.Orientation.ToString());
+                            //m_log.Info("[PART]: RO2:" + PhysActor.Orientation.ToString());
                         }
                         m_parentGroup.Scene.PhysicsScene.AddPhysicsActorTaint(PhysActor);
                         //}
@@ -1554,14 +1554,13 @@ namespace OpenSim.Region.Environment.Scenes
             // Are we the owner?
             if (AgentID == OwnerID)
             {
-                MainLog.Instance.Verbose("PERMISSIONS",
-                                         "field: " + field.ToString() + ", mask: " + mask.ToString() + " addRemTF: " +
-                                         addRemTF.ToString());
+                m_log.Info("[PERMISSIONS]: field: " + field.ToString() + ", mask: " + mask.ToString() + " addRemTF: " +
+                           addRemTF.ToString());
 
                 //Field 8 = EveryoneMask
                 if (field == (byte) 8)
                 {
-                    MainLog.Instance.Verbose("PERMISSIONS", "Left over: " + (OwnerMask - EveryoneMask));
+                    m_log.Info("[PERMISSIONS]: Left over: " + (OwnerMask - EveryoneMask));
                     if (addRemTF == (byte) 0)
                     {
                         //EveryoneMask = (uint)0;
@@ -1751,7 +1750,7 @@ namespace OpenSim.Region.Environment.Scenes
 
         public void PhysicsOutOfBounds(PhysicsVector pos)
         {
-            MainLog.Instance.Verbose("PHYSICS", "Physical Object went out of bounds.");
+            m_log.Info("[PHYSICS]: Physical Object went out of bounds.");
             RemFlag(LLObject.ObjectFlags.Physics);
             DoPhysicsPropertyUpdate(false, true);
             m_parentGroup.Scene.PhysicsScene.AddPhysicsActorTaint(PhysActor);

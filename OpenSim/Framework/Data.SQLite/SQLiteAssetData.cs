@@ -39,6 +39,8 @@ namespace OpenSim.Framework.Data.SQLite
     /// </summary>
     public class SQLiteAssetData : SQLiteBase, IAssetProvider
     {
+        private static readonly log4net.ILog m_log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+
         /// <summary>
         /// The database manager
         /// </summary>
@@ -86,10 +88,10 @@ namespace OpenSim.Framework.Data.SQLite
 
         public void CreateAsset(AssetBase asset)
         {
-            MainLog.Instance.Verbose("SQLITE", "Creating Asset " + Util.ToRawUuidString(asset.FullID));
+            m_log.Info("[SQLITE]: Creating Asset " + Util.ToRawUuidString(asset.FullID));
             if (ExistsAsset(asset.FullID))
             {
-                MainLog.Instance.Verbose("SQLITE", "Asset exists, updating instead.  You should fix the caller for this!");
+                m_log.Info("[SQLITE]: Asset exists, updating instead.  You should fix the caller for this!");
                 UpdateAsset(asset);
             }
             else 
@@ -135,7 +137,7 @@ namespace OpenSim.Framework.Data.SQLite
             string temporary = asset.Temporary ? "Temporary" : "Stored";
             string local = asset.Local ? "Local" : "Remote";
 
-            MainLog.Instance.Verbose("SQLITE",
+            m_log.Info("[SQLITE]: " +
                                      string.Format("Loaded {6} {5} Asset: [{0}][{3}/{4}] \"{1}\":{2} ({7} bytes)",
                                                    asset.FullID, asset.Name, asset.Description, asset.Type,
                                                    asset.InvType, temporary, local, asset.Data.Length));
@@ -174,7 +176,7 @@ namespace OpenSim.Framework.Data.SQLite
 
         public void CommitAssets() // force a sync to the database
         {
-            MainLog.Instance.Verbose("SQLITE", "Attempting commit");
+            m_log.Info("[SQLITE]: Attempting commit");
             // lock (ds)
             //             {
             //                 da.Update(ds, "assets");
@@ -261,7 +263,7 @@ namespace OpenSim.Framework.Data.SQLite
             }
             catch (SqliteSyntaxException)
             {
-                MainLog.Instance.Verbose("SQLITE", "SQLite Database doesn't exist... creating");
+                m_log.Info("[SQLITE]: SQLite Database doesn't exist... creating");
                 InitDB(conn);
             }
             return true;

@@ -56,6 +56,8 @@ namespace OpenSim.Framework.Communications
     /// </remarks>
     public class RestClient
     {
+        private static readonly log4net.ILog m_log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+
         private string realuri;
 
         #region member variables
@@ -238,7 +240,7 @@ namespace OpenSim.Framework.Communications
                 }
             }
             realuri = sb.ToString();
-            MainLog.Instance.Verbose("REST", "RestURL: {0}", realuri);
+            m_log.Info(String.Format("[REST]: RestURL: {0}", realuri));
             return new Uri(sb.ToString());
         }
 
@@ -374,16 +376,16 @@ namespace OpenSim.Framework.Communications
             _asyncException = null;
             _request.ContentLength = src.Length;
 
-            MainLog.Instance.Verbose("REST", "Request Length {0}", _request.ContentLength);
-            MainLog.Instance.Verbose("REST", "Sending Web Request {0}", buildUri());
+            m_log.Info(String.Format("[REST]: Request Length {0}", _request.ContentLength));
+            m_log.Info(String.Format("[REST]: Sending Web Request {0}", buildUri()));
             src.Seek(0, SeekOrigin.Begin);
-            MainLog.Instance.Verbose("REST", "Seek is ok");
+            m_log.Info("[REST]: Seek is ok");
             Stream dst = _request.GetRequestStream();
-            MainLog.Instance.Verbose("REST", "GetRequestStream is ok");
+            m_log.Info("[REST]: GetRequestStream is ok");
 
             byte[] buf = new byte[1024];
             int length = src.Read(buf, 0, 1024);
-            MainLog.Instance.Verbose("REST", "First Read is ok");
+            m_log.Info("[REST]: First Read is ok");
             while (length > 0)
             {
                 dst.Write(buf, 0, length);

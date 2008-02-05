@@ -41,6 +41,8 @@ namespace OpenSim.Region.Environment.Scenes
 {
     public partial class SceneObjectPart : IScriptHost
     {
+        private static readonly log4net.ILog m_log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+
         private string m_inventoryFileName = String.Empty;
         
         /// <summary>
@@ -131,10 +133,10 @@ namespace OpenSim.Region.Environment.Scenes
         /// <returns></returns>
         public void StartScript(TaskInventoryItem item)
         {
-//            MainLog.Instance.Verbose(
-//                "PRIMINVENTORY", 
-//                "Starting script {0}, {1} in prim {2}, {3}", 
-//                item.Name, item.ItemID, Name, UUID);
+//            m_log.Info(String.Format(
+//                           "[PRIMINVENTORY]: " +
+//                           "Starting script {0}, {1} in prim {2}, {3}", 
+//                           item.Name, item.ItemID, Name, UUID));
             
             AssetBase rezAsset = m_parentGroup.Scene.AssetCache.GetAsset(item.AssetID, false);
 
@@ -145,10 +147,10 @@ namespace OpenSim.Region.Environment.Scenes
             }     
             else
             {
-                MainLog.Instance.Error(
-                    "PRIMINVENTORY", 
-                    "Couldn't start script {0}, {1} since asset ID {2} could not be found", 
-                    item.Name, item.ItemID, item.AssetID);
+                m_log.Error(String.Format(
+                                "[PRIMINVENTORY]: " +
+                                "Couldn't start script {0}, {1} since asset ID {2} could not be found", 
+                                item.Name, item.ItemID, item.AssetID));
             }
         }   
         
@@ -168,10 +170,10 @@ namespace OpenSim.Region.Environment.Scenes
                 }            
                 else
                 {
-                    MainLog.Instance.Error(
-                        "PRIMINVENTORY", 
-                        "Couldn't start script with ID {0} since it couldn't be found for prim {1}, {2}", 
-                        itemId, Name, UUID);
+                    m_log.Error(String.Format(
+                                    "[PRIMINVENTORY]: " +
+                                    "Couldn't start script with ID {0} since it couldn't be found for prim {1}, {2}", 
+                                    itemId, Name, UUID));
                 }                
             }
         }        
@@ -188,10 +190,10 @@ namespace OpenSim.Region.Environment.Scenes
             }            
             else
             {
-                MainLog.Instance.Error(
-                    "PRIMINVENTORY", 
-                    "Couldn't stop script with ID {0} since it couldn't be found for prim {1}, {2}", 
-                    itemId, Name, UUID);
+                m_log.Error(String.Format(
+                                "[PRIMINVENTORY]: " +
+                                "Couldn't stop script with ID {0} since it couldn't be found for prim {1}, {2}", 
+                                itemId, Name, UUID));
             }                            
         }        
 
@@ -251,10 +253,10 @@ namespace OpenSim.Region.Environment.Scenes
                 }
                 else
                 {
-                    MainLog.Instance.Error(
-                        "PRIMINVENTORY",
-                        "Tried to retrieve item ID {0} from prim {1}, {2} but the item does not exist in this inventory",
-                        itemID, Name, UUID);
+                    m_log.Error(String.Format(
+                                    "[PRIMINVENTORY]: " +
+                                    "Tried to retrieve item ID {0} from prim {1}, {2} but the item does not exist in this inventory",
+                                    itemID, Name, UUID));
                 }
             }
 
@@ -283,10 +285,10 @@ namespace OpenSim.Region.Environment.Scenes
                 }
                 else
                 {
-                    MainLog.Instance.Error(
-                        "PRIMINVENTORY",
-                        "Tried to retrieve item ID {0} from prim {1}, {2} but the item does not exist in this inventory",
-                        item.ItemID, Name, UUID);
+                    m_log.Error(String.Format(
+                                    "[PRIMINVENTORY]: " +
+                                    "Tried to retrieve item ID {0} from prim {1}, {2} but the item does not exist in this inventory",
+                                    item.ItemID, Name, UUID));
                 }   
             }
             
@@ -316,10 +318,10 @@ namespace OpenSim.Region.Environment.Scenes
                 }
                 else
                 {
-                    MainLog.Instance.Error(
-                        "PRIMINVENTORY",
-                        "Tried to remove item ID {0} from prim {1}, {2} but the item does not exist in this inventory",
-                        itemID, Name, UUID);
+                    m_log.Error(String.Format(
+                                    "[PRIMINVENTORY]: " +
+                                    "Tried to remove item ID {0} from prim {1}, {2} but the item does not exist in this inventory",
+                                    itemID, Name, UUID));
                 }            
             }
 
@@ -384,8 +386,8 @@ namespace OpenSim.Region.Environment.Scenes
             
             fileData = Helpers.StringToField(invString.BuildString);
             
-//            MainLog.Instance.Verbose(
-//                "PRIMINVENTORY", "RequestInventoryFile fileData: {0}", Helpers.FieldToUTF8String(fileData));
+//            m_log.Info(String.Format(
+//                           "[PRIMINVENTORY]: RequestInventoryFile fileData: {0}", Helpers.FieldToUTF8String(fileData)));
             
             if (fileData.Length > 2)
             {

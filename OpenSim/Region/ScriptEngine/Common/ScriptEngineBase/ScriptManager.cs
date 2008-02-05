@@ -249,7 +249,7 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
         {
             if (LUQueue.Count >= LoadUnloadMaxQueueSize)
             {
-                m_scriptEngine.Log.Error(m_scriptEngine.ScriptEngineName, "ERROR: Load/unload queue item count is at " + LUQueue.Count + ". Config variable \"LoadUnloadMaxQueueSize\" is set to " + LoadUnloadMaxQueueSize + ", so ignoring new script.");
+                m_scriptEngine.Log.Error("[" + m_scriptEngine.ScriptEngineName + "]: ERROR: Load/unload queue item count is at " + LUQueue.Count + ". Config variable \"LoadUnloadMaxQueueSize\" is set to " + LoadUnloadMaxQueueSize + ", so ignoring new script.");
                 return;
             }
 
@@ -299,7 +299,7 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
             Console.WriteLine("ScriptEngine: Inside ExecuteEvent for event " + FunctionName);
 #endif
             // Execute a function in the script
-            //m_scriptEngine.Log.Verbose(ScriptEngineName, "Executing Function localID: " + localID + ", itemID: " + itemID + ", FunctionName: " + FunctionName);
+            //m_scriptEngine.Log.Info("[" + ScriptEngineName + "]: Executing Function localID: " + localID + ", itemID: " + itemID + ", FunctionName: " + FunctionName);
             //ScriptBaseInterface Script = (ScriptBaseInterface)GetScript(localID, itemID);
             IScript Script = GetScript(localID, itemID);
             if (Script == null)

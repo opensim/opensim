@@ -42,6 +42,8 @@ namespace OpenSim.Framework.Data.MySQL
     /// </summary>
     internal class MySQLManager
     {
+        private static readonly log4net.ILog m_log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+
         /// <summary>
         /// The database connection object
         /// </summary>
@@ -71,7 +73,7 @@ namespace OpenSim.Framework.Data.MySQL
 
                 dbcon.Open();
 
-                MainLog.Instance.Verbose("MYSQL", "Connection established");
+                m_log.Info("[MYSQL]: Connection established");
             }
             catch (Exception e)
             {
@@ -113,7 +115,7 @@ namespace OpenSim.Framework.Data.MySQL
                 }
                 catch (Exception e)
                 {
-                    MainLog.Instance.Error("Unable to reconnect to database " + e.ToString());
+                    m_log.Error("Unable to reconnect to database " + e.ToString());
                 }
             }
         }
@@ -194,7 +196,7 @@ namespace OpenSim.Framework.Data.MySQL
                         }
                         catch (Exception e)
                         {
-                            MainLog.Instance.Error(e.ToString());
+                            m_log.Error(e.ToString());
                         }
                     }
                     tables.Close();
@@ -245,7 +247,7 @@ namespace OpenSim.Framework.Data.MySQL
                     }
                     catch (Exception e)
                     {
-                        MainLog.Instance.Error("Unable to reconnect to database " + e.ToString());
+                        m_log.Error("Unable to reconnect to database " + e.ToString());
                     }
 
                     // Run the query again
@@ -263,7 +265,7 @@ namespace OpenSim.Framework.Data.MySQL
                     catch (Exception e)
                     {
                         // Return null if it fails.
-                        MainLog.Instance.Error("Failed during Query generation: " + e.ToString());
+                        m_log.Error("Failed during Query generation: " + e.ToString());
                         return null;
                     }
                 }
@@ -523,7 +525,7 @@ namespace OpenSim.Framework.Data.MySQL
             }
             catch (Exception e)
             {
-                MainLog.Instance.Error(e.ToString());
+                m_log.Error(e.ToString());
                 return false;
             }
 
@@ -617,7 +619,7 @@ namespace OpenSim.Framework.Data.MySQL
             }
             catch (Exception e)
             {
-                MainLog.Instance.Error(e.ToString());
+                m_log.Error(e.ToString());
                 return false;
             }
 
@@ -726,7 +728,7 @@ namespace OpenSim.Framework.Data.MySQL
             }
             catch (Exception e)
             {
-                MainLog.Instance.Error(e.ToString());
+                m_log.Error(e.ToString());
                 return false;
             }
 

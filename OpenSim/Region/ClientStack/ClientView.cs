@@ -51,6 +51,8 @@ namespace OpenSim.Region.ClientStack
     /// </summary>
     public class ClientView : IClientAPI
     {
+        private static readonly log4net.ILog m_log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+
         /* static variables */
         public static TerrainManager TerrainManager;
 
@@ -196,7 +198,7 @@ namespace OpenSim.Region.ClientStack
             // m_inventoryCache = inventoryCache;
             m_authenticateSessionsHandler = authenSessions;
 
-            MainLog.Instance.Verbose("CLIENT", "Started up new client thread to handle incoming request");
+            m_log.Info("[CLIENT]: Started up new client thread to handle incoming request");
 
             m_agentId = agentId;
             m_sessionId = sessionId;
@@ -260,7 +262,7 @@ namespace OpenSim.Region.ClientStack
         public void Close(bool ShutdownCircult)
         {
             // Pull Client out of Region
-            MainLog.Instance.Verbose("CLIENT", "Close has been called");
+            m_log.Info("[CLIENT]: Close has been called");
 
             //raiseevent on the packet server to Shutdown the circuit
             if (ShutdownCircult)
@@ -286,7 +288,7 @@ namespace OpenSim.Region.ClientStack
 
         public void Stop()
         {
-            MainLog.Instance.Verbose("BUG", "Stop called, please find out where and remove it");
+            m_log.Info("[BUG]: Stop called, please find out where and remove it");
         }
 
         #endregion
@@ -378,7 +380,7 @@ namespace OpenSim.Region.ClientStack
 
         protected virtual void ClientLoop()
         {
-            MainLog.Instance.Verbose("CLIENT", "Entered loop");
+            m_log.Info("[CLIENT]: Entered loop");
             while (true)
             {
                 QueItem nextPacket = m_packetQueue.Dequeue();
@@ -445,7 +447,7 @@ namespace OpenSim.Region.ClientStack
             m_clientPingTimer.Elapsed += new ElapsedEventHandler(CheckClientConnectivity);
             m_clientPingTimer.Enabled = true;
 
-            MainLog.Instance.Verbose("CLIENT", "Adding viewer agent to scene");
+            m_log.Info("[CLIENT]: Adding viewer agent to scene");
             m_scene.AddNewClient(this, true);
         }
 
@@ -458,13 +460,13 @@ namespace OpenSim.Region.ClientStack
             if (!sessionInfo.Authorised)
             {
                 //session/circuit not authorised
-                MainLog.Instance.Notice("CLIENT", "New user request denied to " + m_userEndPoint.ToString());
+                m_log.Info("[CLIENT]: New user request denied to " + m_userEndPoint.ToString());
                 m_packetQueue.Close();
                 m_clientThread.Abort();
             }
             else
             {
-                MainLog.Instance.Notice("CLIENT", "Got authenticated connection from " + m_userEndPoint.ToString());
+                m_log.Info("[CLIENT]: Got authenticated connection from " + m_userEndPoint.ToString());
                 //session is authorised
                 m_firstName = sessionInfo.LoginInfo.First;
                 m_lastName = sessionInfo.LoginInfo.Last;
@@ -731,7 +733,7 @@ namespace OpenSim.Region.ClientStack
             }
             catch (Exception e)
             {
-                MainLog.Instance.Warn("client",
+                m_log.Warn("[client]: " +
                                       "ClientView.API.cs: SendLayerData() - Failed with exception " + e.ToString());
             }
         }
@@ -758,7 +760,7 @@ namespace OpenSim.Region.ClientStack
             }
             catch (Exception e)
             {
-                MainLog.Instance.Warn("client",
+                m_log.Warn("[client]: " +
                                       "ClientView.API.cs: SendLayerData() - Failed with exception " + e.ToString());
             }
         }
@@ -2102,7 +2104,7 @@ namespace OpenSim.Region.ClientStack
 
         protected virtual bool Logout(IClientAPI client, Packet packet)
         {
-            MainLog.Instance.Verbose("CLIENT", "Got a logout request");
+            m_log.Info("[CLIENT]: Got a logout request");
 
             if (OnLogout != null)
             {
@@ -2431,10 +2433,10 @@ namespace OpenSim.Region.ClientStack
             }
             catch (Exception e)
             {
-                MainLog.Instance.Warn("client",
+                m_log.Warn("[client]: " +
                                       "ClientView.m_packetQueue.cs:ProcessOutPacket() - WARNING: Socket exception occurred on connection " +
                                       m_userEndPoint.ToString() + " - killing thread");
-                MainLog.Instance.Error(e.ToString());
+                m_log.Error(e.ToString());
                 Close(true);
             }
         }
@@ -2545,7 +2547,7 @@ namespace OpenSim.Region.ClientStack
                 {
                     if ((now - packet.TickCount > RESEND_TIMEOUT) && (!packet.Header.Resent))
                     {
-                        MainLog.Instance.Verbose("NETWORK", "Resending " + packet.Type.ToString() + " packet, " +
+                        m_log.Info("[NETWORK]: Resending " + packet.Type.ToString() + " packet, " +
                                                             (now - packet.TickCount) + "ms have passed");
 
                         packet.Header.Resent = true;
@@ -2564,11 +2566,11 @@ namespace OpenSim.Region.ClientStack
                     if (m_pendingAcks.Count > 250)
                     {
                         // FIXME: Handle the odd case where we have too many pending ACKs queued up
-                        MainLog.Instance.Verbose("NETWORK", "Too many ACKs queued up!");
+                        m_log.Info("[NETWORK]: Too many ACKs queued up!");
                         return;
                     }
 
-                    //MainLog.Instance.Verbose("NETWORK", "Sending PacketAck");
+                    //m_log.Info("[NETWORK]: Sending PacketAck");
 
                     int i = 0;
                     PacketAckPacket acks = (PacketAckPacket)PacketPool.Instance.GetPacket(PacketType.PacketAck);
@@ -2754,7 +2756,7 @@ namespace OpenSim.Region.ClientStack
                             //rezPacket.RezData.RemoveItem;
                             //rezPacket.RezData.RezSelected;
                             //rezPacket.RezData.FromTaskID;
-                            //MainLog.Instance.Verbose("REZData", rezPacket.ToString());
+                            //m_log.Info("[REZData]: " + rezPacket.ToString());
                             OnRezObject(this, rezPacket.InventoryData.ItemID, rezPacket.RezData.RayEnd,
                                 rezPacket.RezData.RayStart, rezPacket.RezData.RayTargetID,
                                 rezPacket.RezData.BypassRaycast, rezPacket.RezData.RayEndIsIntersection,
@@ -2772,7 +2774,7 @@ namespace OpenSim.Region.ClientStack
                         break;
                     case PacketType.ModifyLand:
                         ModifyLandPacket modify = (ModifyLandPacket)Pack;
-                        //MainLog.Instance.Verbose("LAND", "LAND:" + modify.ToString());
+                        //m_log.Info("[LAND]: LAND:" + modify.ToString());
                         if (modify.ParcelData.Length > 0)
                         {
                             if (OnModifyTerrain != null)
@@ -2941,7 +2943,7 @@ namespace OpenSim.Region.ClientStack
                         {
                             ObjectAddPacket addPacket = (ObjectAddPacket)Pack;
                             PrimitiveBaseShape shape = GetShapeFromAddPacket(addPacket);
-                            // MainLog.Instance.Verbose("REZData", addPacket.ToString());
+                            // m_log.Info("[REZData]: " + addPacket.ToString());
                             //BypassRaycast: 1
                             //RayStart: <69.79469, 158.2652, 98.40343>
                             //RayEnd: <61.97724, 141.995, 92.58341>   
@@ -3068,7 +3070,7 @@ namespace OpenSim.Region.ClientStack
                         }
                         break;
                     case PacketType.ObjectPermissions:
-                        MainLog.Instance.Warn("CLIENT", "unhandled packet " + PacketType.ObjectPermissions.ToString());
+                        m_log.Warn("[CLIENT]: unhandled packet " + PacketType.ObjectPermissions.ToString());
                         ObjectPermissionsPacket newobjPerms = (ObjectPermissionsPacket)Pack;
 
                         List<ObjectPermissionsPacket.ObjectDataBlock> permChanges =
@@ -3344,7 +3346,7 @@ namespace OpenSim.Region.ClientStack
                         }
                         break;
                     case PacketType.MoveTaskInventory:
-                        MainLog.Instance.Warn("CLIENT", "unhandled MoveTaskInventory packet");
+                        m_log.Warn("[CLIENT]: unhandled MoveTaskInventory packet");
                         break;
                     case PacketType.RezScript:
                         //Console.WriteLine(Pack.ToString());
@@ -3594,7 +3596,7 @@ namespace OpenSim.Region.ClientStack
 
                         break;
                     case PacketType.GodKickUser:
-                        MainLog.Instance.Warn("CLIENT", "unhandled GodKickUser packet");
+                        m_log.Warn("[CLIENT]: unhandled GodKickUser packet");
 
                         GodKickUserPacket gkupack = (GodKickUserPacket)Pack;
 
@@ -3624,88 +3626,88 @@ namespace OpenSim.Region.ClientStack
                         // Send the client the ping response back
                         // Pass the same PingID in the matching packet
                         // Handled In the packet processing
-                        //MainLog.Instance.Debug("CLIENT", "possibly unhandled StartPingCheck packet");
+                        //m_log.Debug("[CLIENT]: possibly unhandled StartPingCheck packet");
                         break;
                     case PacketType.CompletePingCheck:
                         // TODO: Perhaps this should be processed on the Sim to determine whether or not to drop a dead client
-                        //MainLog.Instance.Warn("CLIENT", "unhandled CompletePingCheck packet");
+                        //m_log.Warn("[CLIENT]: unhandled CompletePingCheck packet");
                         break;
                     case PacketType.ObjectScale:
                         // TODO: handle this packet
-                        MainLog.Instance.Warn("CLIENT", "unhandled ObjectScale packet");
+                        m_log.Warn("[CLIENT]: unhandled ObjectScale packet");
                         break;
                     case PacketType.ViewerStats:
                         // TODO: handle this packet
-                        MainLog.Instance.Warn("CLIENT", "unhandled ViewerStats packet");
+                        m_log.Warn("[CLIENT]: unhandled ViewerStats packet");
                         break;
 
                     case PacketType.CreateGroupRequest:
                         // TODO: handle this packet
-                        MainLog.Instance.Warn("CLIENT", "unhandled CreateGroupRequest packet");
+                        m_log.Warn("[CLIENT]: unhandled CreateGroupRequest packet");
                         break;
                     case PacketType.GenericMessage:
                         // TODO: handle this packet
-                        MainLog.Instance.Warn("CLIENT", "unhandled GenericMessage packet");
+                        m_log.Warn("[CLIENT]: unhandled GenericMessage packet");
                         break;
                     case PacketType.MapItemRequest:
                         // TODO: handle this packet
-                        MainLog.Instance.Warn("CLIENT", "unhandled MapItemRequest packet");
+                        m_log.Warn("[CLIENT]: unhandled MapItemRequest packet");
                         break;
                     case PacketType.AgentResume:
                         // TODO: handle this packet
-                        MainLog.Instance.Warn("CLIENT", "unhandled AgentResume packet");
+                        m_log.Warn("[CLIENT]: unhandled AgentResume packet");
                         break;
                     case PacketType.AgentPause:
                         // TODO: handle this packet
-                        MainLog.Instance.Warn("CLIENT", "unhandled AgentPause packet");
+                        m_log.Warn("[CLIENT]: unhandled AgentPause packet");
                         break;
                     case PacketType.TransferAbort:
                         // TODO: handle this packet
-                        MainLog.Instance.Warn("CLIENT", "unhandled TransferAbort packet");
+                        m_log.Warn("[CLIENT]: unhandled TransferAbort packet");
                         break;
                     case PacketType.MuteListRequest:
                         // TODO: handle this packet
-                        MainLog.Instance.Warn("CLIENT", "unhandled MuteListRequest packet");
+                        m_log.Warn("[CLIENT]: unhandled MuteListRequest packet");
                         break;
                     case PacketType.AgentDataUpdateRequest:
                         // TODO: handle this packet
-                        MainLog.Instance.Warn("CLIENT", "unhandled AgentDataUpdateRequest packet");
+                        m_log.Warn("[CLIENT]: unhandled AgentDataUpdateRequest packet");
                         break;
 
                     case PacketType.ParcelDwellRequest:
                         // TODO: handle this packet
-                        MainLog.Instance.Warn("CLIENT", "unhandled ParcelDwellRequest packet");
+                        m_log.Warn("[CLIENT]: unhandled ParcelDwellRequest packet");
                         break;
                     case PacketType.UseCircuitCode:
                         // TODO: handle this packet
-                        //MainLog.Instance.Warn("CLIENT", "unhandled UseCircuitCode packet");
+                        //m_log.Warn("[CLIENT]: unhandled UseCircuitCode packet");
                         break;
                     case PacketType.EconomyDataRequest:
                         // TODO: handle this packet
-                        MainLog.Instance.Warn("CLIENT", "unhandled EconomyDataRequest packet");
+                        m_log.Warn("[CLIENT]: unhandled EconomyDataRequest packet");
                         break;
                     case PacketType.AgentHeightWidth:
                         // TODO: handle this packet
-                        MainLog.Instance.Warn("CLIENT", "unhandled AgentHeightWidth packet");
+                        m_log.Warn("[CLIENT]: unhandled AgentHeightWidth packet");
                         break;
                     case PacketType.ObjectSpinStop:
                         // TODO: handle this packet
-                        MainLog.Instance.Warn("CLIENT", "unhandled ObjectSpinStop packet");
+                        m_log.Warn("[CLIENT]: unhandled ObjectSpinStop packet");
                         break;
                     case PacketType.SoundTrigger:
                         // TODO: handle this packet
-                        MainLog.Instance.Warn("CLIENT", "unhandled SoundTrigger packet");
+                        m_log.Warn("[CLIENT]: unhandled SoundTrigger packet");
                         break;
                     case PacketType.UserInfoRequest:
                         // TODO: handle this packet
-                        MainLog.Instance.Warn("CLIENT", "unhandled UserInfoRequest packet");
+                        m_log.Warn("[CLIENT]: unhandled UserInfoRequest packet");
                         break;
                     case PacketType.InventoryDescendents:
                         // TODO: handle this packet
-                        MainLog.Instance.Warn("CLIENT", "unhandled InventoryDescent packet");
+                        m_log.Warn("[CLIENT]: unhandled InventoryDescent packet");
                         break;
                     default:
-                        MainLog.Instance.Warn("CLIENT", "unhandled packet " + Pack.ToString());
+                        m_log.Warn("[CLIENT]: unhandled packet " + Pack.ToString());
                         break;
 
                     #endregion

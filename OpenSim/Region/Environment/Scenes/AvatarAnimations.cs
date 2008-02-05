@@ -35,6 +35,8 @@ namespace OpenSim.Region.Environment.Scenes
 {
     public class AvatarAnimations
     {
+        private static readonly log4net.ILog m_log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+
         public Dictionary<string, LLUUID> AnimsLLUUID = new Dictionary<string, LLUUID>();
         public Dictionary<LLUUID, string> AnimsNames = new Dictionary<LLUUID, string>();
 
@@ -44,7 +46,7 @@ namespace OpenSim.Region.Environment.Scenes
 
         public void LoadAnims()
         {
-            //MainLog.Instance.Verbose("CLIENT", "Loading avatar animations");
+            //m_log.Info("[CLIENT]: Loading avatar animations");
             using (XmlTextReader reader = new XmlTextReader("data/avataranimations.xml"))
             {
                 XmlDocument doc = new XmlDocument();
@@ -58,7 +60,7 @@ namespace OpenSim.Region.Environment.Scenes
                 }
             }
 
-            // MainLog.Instance.Verbose("CLIENT", "Loaded " + AnimsLLUUID.Count.ToString() + " animation(s)");
+            // m_log.Info("[CLIENT]: Loaded " + AnimsLLUUID.Count.ToString() + " animation(s)");
 
             try
             {
@@ -70,7 +72,7 @@ namespace OpenSim.Region.Environment.Scenes
             }
             catch (InvalidOperationException)
             {
-                MainLog.Instance.Warn("AVATAR", "Unable to load animation names for an Avatar");
+                m_log.Warn("[AVATAR]: Unable to load animation names for an Avatar");
             }
         }
     }

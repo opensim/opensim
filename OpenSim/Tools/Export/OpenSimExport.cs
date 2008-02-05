@@ -47,10 +47,7 @@ namespace OpenSim.Tools.Export
             // AddinManager.Initialize(".");
             // AddinManager.Registry.Update(null);
 
-            // TODO: this really sucks, but given the way we do
-            // logging in OpenSim, we need to establish a log up front
-
-            MainLog.Instance = CreateLog();
+            MainConsole.Instance = CreateConsole();
 
             sman = new StorageManager(
                 startup.GetString("storage_plugin", "OpenSim.DataStore.NullStorage.dll"),
@@ -61,6 +58,8 @@ namespace OpenSim.Tools.Export
 
         public static void Main(string[] args)
         {
+            log4net.Config.XmlConfigurator.Configure();
+
             OpenSimExport export = new OpenSimExport(InitConfig(args));
             RegionInfo reg = new RegionInfo("Sara Jane", "Regions/1000-1000.xml",false);
 
@@ -71,16 +70,10 @@ namespace OpenSim.Tools.Export
             }
         }
 
-        protected LogBase CreateLog()
+        protected ConsoleBase CreateConsole()
         {
-            if (!Directory.Exists(Util.logDir()))
-            {
-                Directory.CreateDirectory(Util.logDir());
-            }
-
-            return new LogBase((Path.Combine(Util.logDir(), "export.log")), "Export", null, true);
+            return new ConsoleBase("Export", null);
         }
-
 
         private static IniConfigSource InitConfig(string[] args)
         {

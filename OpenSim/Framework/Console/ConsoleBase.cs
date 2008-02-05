@@ -33,61 +33,28 @@ using System.Net;
 
 namespace OpenSim.Framework.Console
 {
-    public enum LogPriority : int
+    public class ConsoleBase
     {
-        CRITICAL,
-        HIGH,
-        MEDIUM,
-        NORMAL,
-        LOW,
-        VERBOSE,
-        EXTRAVERBOSE
-    }
+        private static readonly log4net.ILog m_log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 
-    public class LogBase
-    {
         private object m_syncRoot = new object();
 
-        private StreamWriter Log;
-        public conscmd_callback cmdparser;
-        public string componentname;
-        private bool m_verbose;
+        public conscmd_callback m_cmdParser;
+        public string m_componentName;
 
-        public LogBase(string LogFile, string componentname, conscmd_callback cmdparser, bool verbose)
+        public ConsoleBase(string componentname, conscmd_callback cmdparser)
         {
-            this.componentname = componentname;
-            this.cmdparser = cmdparser;
-            m_verbose = verbose;
+            m_componentName = componentname;
+            m_cmdParser = cmdparser;
+
             System.Console.WriteLine("Creating new local console");
 
-            if (String.IsNullOrEmpty(LogFile))
-            {
-                LogFile = componentname + ".log";
-            }
-
-            System.Console.WriteLine("Logs will be saved to current directory in " + LogFile);
-
-            try
-            {
-                Log = File.AppendText(LogFile);
-            }
-            catch (Exception ex)
-            {
-                System.Console.WriteLine("Unable to open log file. Do you already have another copy of OpenSim running? Permission problem?");
-                System.Console.WriteLine(ex.Message);
-                System.Console.WriteLine("");
-                System.Console.WriteLine("Application is terminating.");
-                System.Console.WriteLine("");
-                System.Threading.Thread.CurrentThread.Abort();
-            }
-            Log.WriteLine("========================================================================");
-            Log.WriteLine(componentname + " Started at " + DateTime.Now.ToString());
+            m_log.Info("[" + m_componentName + "]: Started at " + DateTime.Now.ToString());
         }
 
         public void Close()
         {
-            Log.WriteLine("Shutdown at " + DateTime.Now.ToString());
-            Log.Close();
+            m_log.Info("[" + m_componentName + "]: Shutdown at " + DateTime.Now.ToString());
         }
 
         /// <summary>
@@ -99,23 +66,22 @@ namespace OpenSim.Framework.Console
         /// <returns>an ansii color</returns>
         private ConsoleColor DeriveColor(string input)
         {
-            int colIdx = (input.ToUpper().GetHashCode()%6) + 9;
+            int colIdx = (input.ToUpper().GetHashCode() % 6) + 9;
             return (ConsoleColor) colIdx;
         }
 
         /// <summary>
-        /// Sends a warning to the current log output
+        /// Sends a warning to the current console output
         /// </summary>
         /// <param name="format">The message to send</param>
         /// <param name="args">WriteLine-style message arguments</param>
         public void Warn(string format, params object[] args)
         {
             WriteNewLine(ConsoleColor.Yellow, format, args);
-            return;
         }
 
         /// <summary>
-        /// Sends a warning to the current log output
+        /// Sends a warning to the current console output
         /// </summary>
         /// <param name="sender">The module that sent this message</param>
         /// <param name="format">The message to send</param>
@@ -124,22 +90,20 @@ namespace OpenSim.Framework.Console
         {
             WritePrefixLine(DeriveColor(sender), sender);
             WriteNewLine(ConsoleColor.Yellow, format, args);
-            return;
         }
 
         /// <summary>
-        /// Sends a notice to the current log output
+        /// Sends a notice to the current console output
         /// </summary>
         /// <param name="format">The message to send</param>
         /// <param name="args">WriteLine-style message arguments</param>
         public void Notice(string format, params object[] args)
         {
             WriteNewLine(ConsoleColor.White, format, args);
-            return;
         }
 
         /// <summary>
-        /// Sends a notice to the current log output
+        /// Sends a notice to the current console output
         /// </summary>
         /// <param name="sender">The module that sent this message</param>
         /// <param name="format">The message to send</param>
@@ -148,22 +112,20 @@ namespace OpenSim.Framework.Console
         {
             WritePrefixLine(DeriveColor(sender), sender);
             WriteNewLine(ConsoleColor.White, format, args);
-            return;
         }
 
         /// <summary>
-        /// Sends an error to the current log output
+        /// Sends an error to the current console output
         /// </summary>
         /// <param name="format">The message to send</param>
         /// <param name="args">WriteLine-style message arguments</param>
         public void Error(string format, params object[] args)
         {
             WriteNewLine(ConsoleColor.Red, format, args);
-            return;
         }
 
         /// <summary>
-        /// Sends an error to the current log output
+        /// Sends an error to the current console output
         /// </summary>
         /// <param name="sender">The module that sent this message</param>
         /// <param name="format">The message to send</param>
@@ -172,38 +134,20 @@ namespace OpenSim.Framework.Console
         {
             WritePrefixLine(DeriveColor(sender), sender);
             Error(format, args);
-            return;
         }
 
         /// <summary>
-        /// Sends an informational message to the current log output
-        /// </summary>
-        /// <param name="sender">The module that sent this message</param>
-        /// <param name="format">The message to send</param>
-        /// <param name="args">WriteLine-style message arguments</param>
-        public void Verbose(string sender, string format, params object[] args)
-        {
-            if (m_verbose)
-            {
-                WritePrefixLine(DeriveColor(sender), sender);
-                WriteNewLine(ConsoleColor.Gray, format, args);
-                return;
-            }
-        }
-
-        /// <summary>
-        /// Sends a status message to the current log output
+        /// Sends a status message to the current console output
         /// </summary>
         /// <param name="format">The message to send</param>
         /// <param name="args">WriteLine-style message arguments</param>
         public void Status(string format, params object[] args)
         {
             WriteNewLine(ConsoleColor.Blue, format, args);
-            return;
         }
 
         /// <summary>
-        /// Sends a status message to the current log output
+        /// Sends a status message to the current console output
         /// </summary>
         /// <param name="sender">The module that sent this message</param>
         /// <param name="format">The message to send</param>
@@ -212,14 +156,12 @@ namespace OpenSim.Framework.Console
         {
             WritePrefixLine(DeriveColor(sender), sender);
             WriteNewLine(ConsoleColor.Blue, format, args);
-            return;
         }
 
         [Conditional("DEBUG")]
         public void Debug(string format, params object[] args)
         {
             WriteNewLine(ConsoleColor.Gray, format, args);
-            return;
         }
 
         [Conditional("DEBUG")]
@@ -227,7 +169,6 @@ namespace OpenSim.Framework.Console
         {
             WritePrefixLine(DeriveColor(sender), sender);
             WriteNewLine(ConsoleColor.Gray, format, args);
-            return;
         }
 
         private void WriteNewLine(ConsoleColor color, string format, params object[] args)
@@ -236,19 +177,16 @@ namespace OpenSim.Framework.Console
             {
                 lock (m_syncRoot)
                 {
-                    string now = DateTime.Now.ToString("[MM-dd HH:mm:ss] ");
-                    Log.Write(now);
                     try
                     {
-                        Log.WriteLine(format, args);
-                        Log.Flush();
+                        System.Console.WriteLine(format, args);
                     }
 
                     catch (FormatException)
                     {
                         System.Console.WriteLine(args);
                     }
-                    System.Console.Write(now);
+
                     try
                     {
                         if (color != ConsoleColor.White)
@@ -267,13 +205,10 @@ namespace OpenSim.Framework.Console
                         // Some older systems dont support coloured text.
                         System.Console.WriteLine(args);
                     }
-
-                    return;
                 }
             } 
             catch (ObjectDisposedException)
             {
-                return;
             }
         }
 
@@ -285,10 +220,7 @@ namespace OpenSim.Framework.Console
                 {
                     sender = sender.ToUpper();
 
-                    Log.WriteLine("[" + sender + "] ");
-
-
-                    Log.Flush();
+                    System.Console.WriteLine("[" + sender + "] ");
 
                     System.Console.Write("[");
 
@@ -305,37 +237,29 @@ namespace OpenSim.Framework.Console
                     }
 
                     System.Console.Write("] \t");
-
-                    return;
                 }
             }
             catch (ObjectDisposedException)
             {
-                return;
             }
         }
-
 
         public string ReadLine()
         {
             try
             {
-                string TempStr = System.Console.ReadLine();
-                Log.WriteLine(TempStr);
-                return TempStr;
+                return System.Console.ReadLine();
             }
             catch (Exception e)
             {
-                MainLog.Instance.Error("Console", "System.Console.ReadLine exception " + e.ToString());
+                m_log.Error("[Console]: System.Console.ReadLine exception " + e.ToString());
                 return String.Empty;
             }
         }
 
         public int Read()
         {
-            int TempInt = System.Console.Read();
-            Log.Write((char) TempInt);
-            return TempInt;
+            return System.Console.Read();
         }
 
         public IPAddress CmdPromptIPAddress(string prompt, string defaultvalue)
@@ -345,14 +269,14 @@ namespace OpenSim.Framework.Console
 
             while (true)
             {
-                addressStr = MainLog.Instance.CmdPrompt(prompt, defaultvalue);
+                addressStr = CmdPrompt(prompt, defaultvalue);
                 if (IPAddress.TryParse(addressStr, out address))
                 {
                     break;
                 }
                 else
                 {
-                    MainLog.Instance.Error("Illegal address. Please re-enter.");
+                    m_log.Error("Illegal address. Please re-enter.");
                 }
             }
 
@@ -366,7 +290,7 @@ namespace OpenSim.Framework.Console
 
             while (true)
             {
-                portStr = MainLog.Instance.CmdPrompt(prompt, defaultvalue);
+                portStr = CmdPrompt(prompt, defaultvalue);
                 if (uint.TryParse(portStr, out port))
                 {
                     if (port >= IPEndPoint.MinPort && port <= IPEndPoint.MaxPort)
@@ -375,7 +299,7 @@ namespace OpenSim.Framework.Console
                     }
                 }
 
-                MainLog.Instance.Error("Illegal address. Please re-enter.");
+                m_log.Error("Illegal address. Please re-enter.");
             }
 
             return port;
@@ -386,8 +310,6 @@ namespace OpenSim.Framework.Console
         public string PasswdPrompt(string prompt)
         {
             // FIXME: Needs to be better abstracted
-            Log.WriteLine(prompt);
-            Notice(prompt);
             ConsoleColor oldfg = System.Console.ForegroundColor;
             System.Console.ForegroundColor = System.Console.BackgroundColor;
             string temp = System.Console.ReadLine();
@@ -398,7 +320,7 @@ namespace OpenSim.Framework.Console
         // Displays a command prompt and waits for the user to enter a string, then returns that string
         public string CmdPrompt(string prompt)
         {
-            Notice(String.Format("{0}: ", prompt));
+            System.Console.WriteLine(String.Format("{0}: ", prompt));
             return ReadLine();
         }
 
@@ -429,7 +351,7 @@ namespace OpenSim.Framework.Console
                 }
                 else
                 {
-                    Notice("Valid options are " + OptionA + " or " + OptionB);
+                    System.Console.WriteLine("Valid options are " + OptionA + " or " + OptionB);
                     temp = CmdPrompt(prompt, defaultresponse);
                 }
             }
@@ -439,23 +361,23 @@ namespace OpenSim.Framework.Console
         // Runs a command with a number of parameters
         public Object RunCmd(string Cmd, string[] cmdparams)
         {
-            cmdparser.RunCmd(Cmd, cmdparams);
+            m_cmdParser.RunCmd(Cmd, cmdparams);
             return null;
         }
 
         // Shows data about something
         public void ShowCommands(string ShowWhat)
         {
-            cmdparser.Show(ShowWhat);
+            m_cmdParser.Show(ShowWhat);
         }
 
-        public void MainLogPrompt()
+        public void Prompt()
         {
-            string tempstr = CmdPrompt(componentname + "# ");
-            MainLogRunCommand(tempstr);
+            string tempstr = CmdPrompt(m_componentName + "# ");
+            RunCommand(tempstr);
         }
 
-        public void MainLogRunCommand(string command)
+        public void RunCommand(string command)
         {
             string[] tempstrarray;
             tempstrarray = command.Split(' ');
@@ -470,7 +392,7 @@ namespace OpenSim.Framework.Console
             }
             catch (Exception e)
             {
-                MainLog.Instance.Error("Console", "Command failed with exception " + e.ToString());
+                m_log.Error("[Console]: Command failed with exception " + e.ToString());
             }
         }
 

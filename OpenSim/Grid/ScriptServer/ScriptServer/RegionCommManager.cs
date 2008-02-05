@@ -38,13 +38,11 @@ namespace OpenSim.Grid.ScriptServer
 
         private List<RegionConnectionManager> Regions = new List<RegionConnectionManager>();
 
-        private LogBase m_log;
         private ScriptServerMain m_ScriptServerMain;
 
-        public RegionCommManager(ScriptServerMain scm, LogBase logger)
+        public RegionCommManager(ScriptServerMain scm)
         {
             m_ScriptServerMain = scm;
-            m_log = logger;
         }
 
         ~RegionCommManager()
@@ -96,9 +94,8 @@ namespace OpenSim.Grid.ScriptServer
             //   ~ ask scriptengines if they will accept script?
             //  - Add script to shared communication channel towards that region
 
-
             // TODO: FAKING A CONNECTION
-            Regions.Add(new RegionConnectionManager(m_ScriptServerMain, m_log, null));
+            Regions.Add(new RegionConnectionManager(m_ScriptServerMain, null));
         }
     }
 }

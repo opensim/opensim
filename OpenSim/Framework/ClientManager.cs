@@ -36,11 +36,12 @@ namespace OpenSim.Framework
 
     public class ClientManager
     {
+        private static readonly log4net.ILog m_log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+
         private Dictionary<uint, IClientAPI> m_clients;
 
         public void ForEachClient(ForEachClientDelegate whatToDo)
         {
-
             // Wasteful, I know
             IClientAPI[] LocalClients = new IClientAPI[0];
             lock (m_clients)
@@ -57,7 +58,7 @@ namespace OpenSim.Framework
                 }
                 catch (System.Exception e)
                 {
-                    OpenSim.Framework.Console.MainLog.Instance.Warn("CLIENT", "Unable to do ForEachClient for one of the clients" + "\n Reason: " + e.ToString());
+                    m_log.Warn("[CLIENT]: Unable to do ForEachClient for one of the clients" + "\n Reason: " + e.ToString());
                 }
             }
         }
@@ -116,11 +117,9 @@ namespace OpenSim.Framework
                 }
                 catch (System.Exception e)
                 {
-                    OpenSim.Framework.Console.MainLog.Instance.Error("CLIENT", string.Format("Unable to shutdown circuit for: {0}\n Reason: {1}", agentId, e));
+                    m_log.Error(string.Format("[CLIENT]: Unable to shutdown circuit for: {0}\n Reason: {1}", agentId, e));
                 }
             }
-
-            
         }
 
         private uint[] GetAllCircuits(LLUUID agentId)
@@ -133,7 +132,6 @@ namespace OpenSim.Framework
                 LocalClients = new IClientAPI[m_clients.Count];
                 m_clients.Values.CopyTo(LocalClients, 0);
             }
-
 
             for (int i = 0; i < LocalClients.Length; i++ )
             {
@@ -159,7 +157,6 @@ namespace OpenSim.Framework
                 LocalClients = new IClientAPI[m_clients.Count];
                 m_clients.Values.CopyTo(LocalClients, 0);
             }
-
 
             for (int i = 0; i < LocalClients.Length; i++)
             {

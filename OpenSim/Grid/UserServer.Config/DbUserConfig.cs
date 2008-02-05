@@ -35,9 +35,11 @@ namespace OpenUser.Config.UserConfigDb4o
 {
     public class Db4oConfigPlugin: IUserConfig
     {
+        private static readonly log4net.ILog m_log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+
         public UserConfig GetConfigObject()
         {
-            MainLog.Instance.Verbose("DBUSERCONFIG", "Loading Db40Config dll");
+            m_log.Info("[DBUSERCONFIG]: Loading Db40Config dll");
             return ( new DbUserConfig());
         }
     }
@@ -48,13 +50,13 @@ namespace OpenUser.Config.UserConfigDb4o
 
         public void LoadDefaults()
         {
-            MainLog.Instance.Notice("DbUserConfig.cs:LoadDefaults() - Please press enter to retain default or enter new settings");
+            m_log.Info("DbUserConfig.cs:LoadDefaults() - Please press enter to retain default or enter new settings");
 
-            this.DefaultStartupMsg = MainLog.Instance.CmdPrompt("Default startup message", "Welcome to OGS");
+            this.DefaultStartupMsg = m_log.CmdPrompt("Default startup message", "Welcome to OGS");
 
-            this.GridServerURL = MainLog.Instance.CmdPrompt("Grid server URL","http://127.0.0.1:" + GridConfig.DefaultHttpPort.ToString() + "/");
-            this.GridSendKey = MainLog.Instance.CmdPrompt("Key to send to grid server","null");
-            this.GridRecvKey = MainLog.Instance.CmdPrompt("Key to expect from grid server","null");
+            this.GridServerURL = m_log.CmdPrompt("Grid server URL","http://127.0.0.1:" + GridConfig.DefaultHttpPort.ToString() + "/");
+            this.GridSendKey = m_log.CmdPrompt("Key to send to grid server","null");
+            this.GridRecvKey = m_log.CmdPrompt("Key to expect from grid server","null");
         }
 
         public override void InitConfig()
@@ -65,7 +67,7 @@ namespace OpenUser.Config.UserConfigDb4o
                 IObjectSet result = db.Get(typeof(DbUserConfig));
                 if(result.Count==1)
                 {
-                    MainLog.Instance.Verbose("DBUSERCONFIG", "DbUserConfig.cs:InitConfig() - Found a UserConfig object in the local database, loading");
+                    m_log.Info("[DBUSERCONFIG]: DbUserConfig.cs:InitConfig() - Found a UserConfig object in the local database, loading");
                     foreach (DbUserConfig cfg in result)
                     {
                         this.GridServerURL=cfg.GridServerURL;
@@ -76,24 +78,24 @@ namespace OpenUser.Config.UserConfigDb4o
                 }
                 else
                 {
-                    MainLog.Instance.Verbose("DBUSERCONFIG", "DbUserConfig.cs:InitConfig() - Could not find object in database, loading precompiled defaults");
+                    m_log.Info("[DBUSERCONFIG]: DbUserConfig.cs:InitConfig() - Could not find object in database, loading precompiled defaults");
                     LoadDefaults();
-                    MainLog.Instance.Verbose("DBUSERCONFIG", "Writing out default settings to local database");
+                    m_log.Info("[DBUSERCONFIG]: Writing out default settings to local database");
                     db.Set(this);
                     db.Close();
                 }
             }
             catch(Exception e)
             {
-                MainLog.Instance.Warn("DbUserConfig.cs:InitConfig() - Exception occured");
-                MainLog.Instance.Warn(e.ToString());
+                m_log.Warn("DbUserConfig.cs:InitConfig() - Exception occured");
+                m_log.Warn(e.ToString());
             }
 
-            MainLog.Instance.Verbose("DBUSERCONFIG", "User settings loaded:");
-            MainLog.Instance.Verbose("DBUSERCONFIG", "Default startup message: " + this.DefaultStartupMsg);
-            MainLog.Instance.Verbose("DBUSERCONFIG", "Grid server URL: " + this.GridServerURL);
-            MainLog.Instance.Verbose("DBUSERCONFIG", "Key to send to grid: " + this.GridSendKey);
-            MainLog.Instance.Verbose("DBUSERCONFIG", "Key to expect from grid: " + this.GridRecvKey);
+            m_log.Info("[DBUSERCONFIG]: User settings loaded:");
+            m_log.Info("[DBUSERCONFIG]: Default startup message: " + this.DefaultStartupMsg);
+            m_log.Info("[DBUSERCONFIG]: Grid server URL: " + this.GridServerURL);
+            m_log.Info("[DBUSERCONFIG]: Key to send to grid: " + this.GridSendKey);
+            m_log.Info("[DBUSERCONFIG]: Key to expect from grid: " + this.GridRecvKey);
         }
 
         public void Shutdown()

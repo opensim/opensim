@@ -38,6 +38,8 @@ namespace OpenSim.Region.Environment.Scenes
 
     public class SceneManager
     {
+        private static readonly log4net.ILog m_log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+
         public event RestartSim OnRestartSim;
 
         private readonly List<Scene> m_localScenes;
@@ -98,8 +100,7 @@ namespace OpenSim.Region.Environment.Scenes
 
         public void HandleRestart(RegionInfo rdata)
         {
-            MainLog.Instance.Error("SCENEMANAGER",
-                                   "Got Restart message for region:" + rdata.RegionName + " Sending up to main");
+            m_log.Error("[SCENEMANAGER]: Got Restart message for region:" + rdata.RegionName + " Sending up to main");
             int RegionSceneElement = -1;
             for (int i = 0; i < m_localScenes.Count; i++)
             {
@@ -146,7 +147,7 @@ namespace OpenSim.Region.Environment.Scenes
             }
             else
             {
-                MainLog.Instance.Error("REGION", "Unable to notify Other regions of this Region coming up");
+                m_log.Error("[REGION]: Unable to notify Other regions of this Region coming up");
             }
         }
 
@@ -285,29 +286,29 @@ namespace OpenSim.Region.Environment.Scenes
             return false;
         }
 
-        public void SetDebugPacketOnCurrentScene(LogBase log, int newDebug)
+        public void SetDebugPacketOnCurrentScene(int newDebug)
         {
             ForEachCurrentScene(delegate(Scene scene)
+                                {
+                                    List<EntityBase> EntitieList = scene.GetEntities();
+
+                                    foreach (EntityBase entity in EntitieList)
                                     {
-                                        List<EntityBase> EntitieList = scene.GetEntities();
-
-                                        foreach (EntityBase entity in EntitieList)
+                                        if (entity is ScenePresence)
                                         {
-                                            if (entity is ScenePresence)
+                                            ScenePresence scenePrescence = entity as ScenePresence;
+                                            if (!scenePrescence.IsChildAgent)
                                             {
-                                                ScenePresence scenePrescence = entity as ScenePresence;
-                                                if (!scenePrescence.IsChildAgent)
-                                                {
-                                                    log.Error(String.Format("Packet debug for {0} {1} set to {2}",
-                                                                            scenePrescence.Firstname,
-                                                                            scenePrescence.Lastname,
-                                                                            newDebug));
+                                                m_log.Error(String.Format("Packet debug for {0} {1} set to {2}",
+                                                                          scenePrescence.Firstname,
+                                                                          scenePrescence.Lastname,
+                                                                          newDebug));
 
-                                                    scenePrescence.ControllingClient.SetDebug(newDebug);
-                                                }
+                                                scenePrescence.ControllingClient.SetDebug(newDebug);
                                             }
                                         }
-                                    });
+                                    }
+                                });
         }
 
         public List<ScenePresence> GetCurrentSceneAvatars()

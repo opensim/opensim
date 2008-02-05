@@ -25,6 +25,7 @@
 * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 * 
 */
+using System;
 using Axiom.Math;
 using OpenSim.Framework;
 using OpenSim.Framework.Console;
@@ -35,6 +36,8 @@ namespace OpenSim.Region.Physics.Manager
 
     public abstract class PhysicsScene
     {
+        private static readonly log4net.ILog m_log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+
         // The only thing that should register for this event is the InnerScene
         // Anything else could cause problems.
 
@@ -92,7 +95,7 @@ namespace OpenSim.Region.Physics.Manager
 
             public override PhysicsActor AddAvatar(string avName, PhysicsVector position)
             {
-                MainLog.Instance.Verbose("PHYSICS", "NullPhysicsScene : AddAvatar({0})", position);
+                m_log.Info(String.Format("[PHYSICS]: NullPhysicsScene : AddAvatar({0})", position));
                 return PhysicsActor.Null;
             }
 
@@ -107,7 +110,7 @@ namespace OpenSim.Region.Physics.Manager
 /*
             public override PhysicsActor AddPrim(PhysicsVector position, PhysicsVector size, Quaternion rotation)
             {
-                MainLog.Instance.Verbose("NullPhysicsScene : AddPrim({0},{1})", position, size);
+                m_log.Info(String.Format("NullPhysicsScene : AddPrim({0},{1})", position, size));
                 return PhysicsActor.Null;
             }
 */
@@ -121,7 +124,7 @@ namespace OpenSim.Region.Physics.Manager
             public override PhysicsActor AddPrimShape(string primName, PrimitiveBaseShape pbs, PhysicsVector position,
                                                       PhysicsVector size, Quaternion rotation, bool isPhysical)
             {
-                MainLog.Instance.Verbose("PHYSICS", "NullPhysicsScene : AddPrim({0},{1})", position, size);
+                m_log.Info(String.Format("[PHYSICS]: NullPhysicsScene : AddPrim({0},{1})", position, size));
                 return PhysicsActor.Null;
             }
 
@@ -131,20 +134,19 @@ namespace OpenSim.Region.Physics.Manager
 
             public override float Simulate(float timeStep)
             {
-                m_workIndicator = (m_workIndicator + 1)%10;
+                m_workIndicator = (m_workIndicator + 1) % 10;
 
-                //MainLog.Instance.SetStatus(m_workIndicator.ToString());
                 return 0f;
             }
 
             public override void GetResults()
             {
-                MainLog.Instance.Verbose("PHYSICS", "NullPhysicsScene : GetResults()");
+                m_log.Info("[PHYSICS]: NullPhysicsScene : GetResults()");
             }
 
             public override void SetTerrain(float[] heightMap)
             {
-                MainLog.Instance.Verbose("PHYSICS", "NullPhysicsScene : SetTerrain({0} items)", heightMap.Length);
+                m_log.Info(String.Format("[PHYSICS]: NullPhysicsScene : SetTerrain({0} items)", heightMap.Length));
             }
 
             public override void DeleteTerrain()

@@ -41,6 +41,8 @@ namespace OpenSim.Region.Environment
     /// </summary>
     public class EstateManager
     {
+        private static readonly log4net.ILog m_log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+
         private Scene m_scene;
         private RegionInfo m_regInfo;
 
@@ -156,7 +158,7 @@ namespace OpenSim.Region.Environment
             {
                 case "getinfo":
 
-                    //MainLog.Instance.Verbose("ESTATE","CLIENT--->" +  packet.ToString());
+                    //m_log.Info("[ESTATE]: CLIENT--->" +  packet.ToString());
                     sendRegionInfoPacketToAll();
                     if (m_scene.PermissionsMngr.GenericEstatePermission(remote_client.AgentId))
                     {
@@ -223,7 +225,7 @@ namespace OpenSim.Region.Environment
                     }
                     break;
                 default:
-                    MainLog.Instance.Error("EstateOwnerMessage: Unknown method requested\n" + packet.ToString());
+                    m_log.Error("EstateOwnerMessage: Unknown method requested\n" + packet.ToString());
                     break;
             }
         }
@@ -283,7 +285,7 @@ namespace OpenSim.Region.Environment
             returnblock[8].Parameter = Helpers.StringToField("1");
 
             packet.ParamList = returnblock;
-            //MainLog.Instance.Verbose("ESTATE", "SIM--->" + packet.ToString());
+            //m_log.Info("[ESTATE]: SIM--->" + packet.ToString());
             remote_client.OutPacket(packet, ThrottleOutPacketType.Task);
 
             sendEstateManagerList(remote_client, packet);
@@ -322,7 +324,7 @@ namespace OpenSim.Region.Environment
                 returnblock[j].Parameter = EstateManagers[i].GetBytes(); j++;
             }
             packet.ParamList = returnblock;
-            //MainLog.Instance.Verbose("ESTATE", "SIM--->" + packet.ToString());
+            //m_log.Info("[ESTATE]: SIM--->" + packet.ToString());
             remote_client.OutPacket(packet, ThrottleOutPacketType.Task);
         }
 
@@ -364,10 +366,10 @@ namespace OpenSim.Region.Environment
 
             default:
             
-                MainLog.Instance.Error("EstateOwnerMessage: Unknown EstateAccessType requested in estateAccessDelta\n" + packet.ToString());
+                m_log.Error("EstateOwnerMessage: Unknown EstateAccessType requested in estateAccessDelta\n" + packet.ToString());
                 break;
             }
-            //MainLog.Instance.Error("EstateOwnerMessage: estateAccessDelta\n" + packet.ToString());     
+            //m_log.Error("EstateOwnerMessage: estateAccessDelta\n" + packet.ToString());     
 
 
         }
@@ -375,7 +377,7 @@ namespace OpenSim.Region.Environment
         {
             if (packet.ParamList.Length != 9)
             {
-                MainLog.Instance.Error("EstateOwnerMessage: SetRegionInfo method has a ParamList of invalid length");
+                m_log.Error("EstateOwnerMessage: SetRegionInfo method has a ParamList of invalid length");
             }
             else
             {
@@ -438,7 +440,7 @@ namespace OpenSim.Region.Environment
         {
             if (packet.ParamList.Length != 9)
             {
-                MainLog.Instance.Error("EstateOwnerMessage: SetRegionTerrain method has a ParamList of invalid length");
+                m_log.Error("EstateOwnerMessage: SetRegionTerrain method has a ParamList of invalid length");
             }
             else
             {
@@ -463,7 +465,7 @@ namespace OpenSim.Region.Environment
                 }
                 catch (Exception ex)
                 {
-                    MainLog.Instance.Error("EstateManager: Exception while setting terrain settings: \n" + packet.ToString() + "\n" + ex.ToString());
+                    m_log.Error("EstateManager: Exception while setting terrain settings: \n" + packet.ToString() + "\n" + ex.ToString());
                 }
             }
         }

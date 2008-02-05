@@ -42,6 +42,8 @@ namespace OpenSim.Region.Physics.Meshing
     // is defined by the hull lies inside or outside the simplex chain
     public class SimpleHull
     {
+        private static readonly log4net.ILog m_log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+
         private List<Vertex> vertices = new List<Vertex>();
         private List<Vertex> holeVertices = new List<Vertex>(); // Only used, when the hull is hollow
 
@@ -243,9 +245,9 @@ namespace OpenSim.Region.Physics.Meshing
             SimpleHull otherHullClone = otherHull.Clone();
             bool intersects = false;
 
-            MainLog.Instance.Debug("State before intersection detection");
-            MainLog.Instance.Debug("The baseHull is:\n{1}", 0, baseHullClone.ToString());
-            MainLog.Instance.Debug("The otherHull is:\n{1}", 0, otherHullClone.ToString());
+            m_log.Debug("State before intersection detection");
+            m_log.Debug(String.Format("The baseHull is:\n{1}", 0, baseHullClone.ToString()));
+            m_log.Debug(String.Format("The otherHull is:\n{1}", 0, otherHullClone.ToString()));
 
             {
                 int iBase, iOther;
@@ -274,8 +276,8 @@ namespace OpenSim.Region.Physics.Meshing
                 }
             }
 
-            MainLog.Instance.Debug("State after intersection detection for the base hull");
-            MainLog.Instance.Debug("The baseHull is:\n{1}", 0, baseHullClone.ToString());
+            m_log.Debug("State after intersection detection for the base hull");
+            m_log.Debug(String.Format("The baseHull is:\n{1}", 0, baseHullClone.ToString()));
 
             {
                 int iOther, iBase;
@@ -303,8 +305,8 @@ namespace OpenSim.Region.Physics.Meshing
                 }
             }
 
-            MainLog.Instance.Debug("State after intersection detection for the base hull");
-            MainLog.Instance.Debug("The otherHull is:\n{1}", 0, otherHullClone.ToString());
+            m_log.Debug("State after intersection detection for the base hull");
+            m_log.Debug(String.Format("The otherHull is:\n{1}", 0, otherHullClone.ToString()));
 
 
             bool otherIsInBase = baseHullClone.containsPointsFrom(otherHullClone);
@@ -387,7 +389,7 @@ namespace OpenSim.Region.Physics.Meshing
                     done = true;
             }
 
-            MainLog.Instance.Debug("The resulting Hull is:\n{1}", 0, result.ToString());
+            m_log.Debug(String.Format("The resulting Hull is:\n{1}", 0, result.ToString()));
 
             return result;
         }

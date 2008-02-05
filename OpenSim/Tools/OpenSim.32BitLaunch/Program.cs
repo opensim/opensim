@@ -34,6 +34,8 @@ namespace OpenSim._32BitLaunch
     {
         static void Main(string[] args)
         {
+            log4net.Config.XmlConfigurator.Configure();
+
             System.Console.WriteLine("32-bit OpenSim executor");
             System.Console.WriteLine("-----------------------");
             System.Console.WriteLine("");

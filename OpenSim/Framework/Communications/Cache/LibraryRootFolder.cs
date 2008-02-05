@@ -26,12 +26,12 @@
 * 
 */
 
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Xml;
 using libsecondlife;
 using Nini.Config;
-
 using OpenSim.Framework.Console;
 
 namespace OpenSim.Framework.Communications.Cache
@@ -42,6 +42,8 @@ namespace OpenSim.Framework.Communications.Cache
     /// </summary>
     public class LibraryRootFolder : InventoryFolderImpl
     {
+        private static readonly log4net.ILog m_log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+
         private LLUUID libOwner = new LLUUID("11111111-1111-0000-0000-000100bba000");
         
         /// <summary>
@@ -53,7 +55,7 @@ namespace OpenSim.Framework.Communications.Cache
 
         public LibraryRootFolder()
         {
-            MainLog.Instance.Verbose("LIBRARYINVENTORY", "Loading library inventory");
+            m_log.Info("[LIBRARYINVENTORY]: Loading library inventory");
             
             agentID = libOwner;
             folderID = new LLUUID("00000112-000f-0000-0000-000100bba000");
@@ -138,8 +140,8 @@ namespace OpenSim.Framework.Communications.Cache
         /// <param name="assets"></param>
         protected void LoadLibraries(string librariesControlPath)
         {
-            MainLog.Instance.Verbose(
-                "LIBRARYINVENTORY", "Loading libraries control file {0}", librariesControlPath);
+            m_log.Info(
+                String.Format("LIBRARYINVENTORY", "Loading libraries control file {0}", librariesControlPath));
             
             LoadFromFile(librariesControlPath, "Libraries control", ReadLibraryFromConfig);
         }
@@ -186,15 +188,15 @@ namespace OpenSim.Framework.Communications.Cache
                 libraryFolders.Add(folderInfo.folderID, folderInfo);
                 parentFolder.SubFolders.Add(folderInfo.folderID, folderInfo);
                 
-//                    MainLog.Instance.Verbose(
-//                        "LIBRARYINVENTORY", "Adding folder {0} ({1})", folderInfo.name, folderInfo.folderID);
+//                    m_log.Info(
+//                        String.Format("[LIBRARYINVENTORY]: Adding folder {0} ({1})", folderInfo.name, folderInfo.folderID));
             }
             else
             {
-                MainLog.Instance.Warn(
-                    "LIBRARYINVENTORY", 
-                    "Couldn't add folder {0} ({1}) since parent folder with ID {2} does not exist!",
-                    folderInfo.name, folderInfo.folderID, folderInfo.parentID);
+                m_log.Warn(
+                    String.Format("[LIBRARYINVENTORY]: " + 
+                                  "Couldn't add folder {0} ({1}) since parent folder with ID {2} does not exist!",
+                                  folderInfo.name, folderInfo.folderID, folderInfo.parentID));
             }
         }
 
@@ -227,10 +229,10 @@ namespace OpenSim.Framework.Communications.Cache
             }
             else
             {
-                MainLog.Instance.Warn(
-                    "LIBRARYINVENTORY", 
-                    "Couldn't add item {0} ({1}) since parent folder with ID {2} does not exist!",
-                    item.inventoryName, item.inventoryID, item.parentFolderID);
+                m_log.Warn(
+                    String.Format("[LIBRARYINVENTORY]: " +
+                                  "Couldn't add item {0} ({1}) since parent folder with ID {2} does not exist!",
+                                  item.inventoryName, item.inventoryID, item.parentFolderID));
             }                
         }
                 
@@ -257,14 +259,14 @@ namespace OpenSim.Framework.Communications.Cache
                 }
                 catch (XmlException e)
                 {
-                    MainLog.Instance.Error(
-                        "LIBRARYINVENTORY", "Error loading {0} : {1}", path, e);
+                    m_log.Error(
+                        String.Format("[LIBRARYINVENTORY]: Error loading {0} : {1}", path, e));
                 }                
             }
             else
             {
-                MainLog.Instance.Error(
-                    "LIBRARYINVENTORY", "{0} file {1} does not exist!", fileDescription, path);
+                m_log.Error(
+                    String.Format("[LIBRARYINVENTORY]: {0} file {1} does not exist!", fileDescription, path));
             }            
         }
         

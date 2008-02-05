@@ -26,6 +26,7 @@
 * 
 */
 /* Original code: Tedd Hansen */
+
 using System;
 using libsecondlife;
 using OpenSim.Framework;
@@ -60,7 +61,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
 
         public override void _StartScript(uint localID, LLUUID itemID, string Script)
         {
-            m_scriptEngine.Log.Debug(m_scriptEngine.ScriptEngineName, "ScriptManager StartScript: localID: " + localID + ", itemID: " + itemID);
+            m_scriptEngine.Log.Debug("[" + m_scriptEngine.ScriptEngineName + "]: ScriptManager StartScript: localID: " + localID + ", itemID: " + itemID);
 
 
             //IScriptHost root = host.GetRoot();
@@ -85,7 +86,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
                 CompiledScript = m_scriptEngine.m_AppDomainManager.LoadScript(ScriptSource);
 
 #if DEBUG
-                m_scriptEngine.Log.Debug(m_scriptEngine.ScriptEngineName, "Script " + itemID + " occupies {0} bytes", GC.GetTotalMemory(true) - before);
+                m_scriptEngine.Log.Debug(String.Format("[" + m_scriptEngine.ScriptEngineName + "]: Script " + itemID + " occupies {0} bytes", GC.GetTotalMemory(true) - before));
 #endif
 
                 CompiledScript.Source = Script;
@@ -106,7 +107,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
             }
             catch (Exception e)
             {
-                //m_scriptEngine.Log.Error("ScriptEngine", "Error compiling script: " + e.ToString());
+                //m_scriptEngine.Log.Error("[ScriptEngine]: Error compiling script: " + e.ToString());
                 try
                 {
                     // DISPLAY ERROR INWORLD
@@ -118,9 +119,9 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
                 }
                 catch (Exception e2)
                 {
-                    m_scriptEngine.Log.Error(m_scriptEngine.ScriptEngineName, "Error displaying error in-world: " + e2.ToString());
-                    m_scriptEngine.Log.Error(m_scriptEngine.ScriptEngineName,
-                                             "Errormessage: Error compiling script:\r\n" + e.Message.ToString());
+                    m_scriptEngine.Log.Error("[" + m_scriptEngine.ScriptEngineName + "]: Error displaying error in-world: " + e2.ToString());
+                    m_scriptEngine.Log.Error("[" + m_scriptEngine.ScriptEngineName + "]: " +
+                                                "Errormessage: Error compiling script:\r\n" + e.Message.ToString());
                 }
             }
         }
@@ -129,7 +130,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
         {
             // Stop script
 #if DEBUG
-            m_scriptEngine.Log.Debug(m_scriptEngine.ScriptEngineName, "Stop script localID: " + localID + " LLUID: " + itemID.ToString());
+            m_scriptEngine.Log.Debug("[" + m_scriptEngine.ScriptEngineName + "]: Stop script localID: " + localID + " LLUID: " + itemID.ToString());
 #endif
 
             // Stop long command on script
@@ -141,7 +142,6 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
 
             // TEMP: First serialize it
             //GetSerializedScript(localID, itemID);
-
 
             try
             {
@@ -156,10 +156,9 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
             }
             catch (Exception e)
             {
-                m_scriptEngine.Log.Error(m_scriptEngine.ScriptEngineName, "Exception stopping script localID: " + localID + " LLUID: " + itemID.ToString() +
-                                  ": " + e.ToString());
+                m_scriptEngine.Log.Error("[" + m_scriptEngine.ScriptEngineName + "]: Exception stopping script localID: " + localID + " LLUID: " + itemID.ToString() +
+                                            ": " + e.ToString());
             }
         }
-
     }
 }

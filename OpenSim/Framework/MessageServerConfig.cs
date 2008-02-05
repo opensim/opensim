@@ -28,6 +28,7 @@
 using System;
 using System.Collections.Generic;
 using System.Text;
+using OpenSim.Framework.Console;
 
 namespace OpenSim.Framework
 {

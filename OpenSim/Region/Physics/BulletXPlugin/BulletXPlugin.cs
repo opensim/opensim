@@ -81,6 +81,8 @@ namespace OpenSim.Region.Physics.BulletXPlugin
     /// </summary>
     public class BulletXMaths
     {
+        private static readonly log4net.ILog m_log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+
         //Vector3
         public static Vector3 PhysicsVectorToXnaVector3(PhysicsVector physicsVector)
         {
@@ -311,7 +313,7 @@ namespace OpenSim.Region.Physics.BulletXPlugin
 
             bool needsCollision = base.NeedsCollision(bodyA, bodyB);
 
-            //MainLog.Instance.Debug("BulletX", "A collision was detected between {0} and {1} --> {2}", nameA, nameB,
+            //m_log.Debug("[BulletX]: A collision was detected between {0} and {1} --> {2}", nameA, nameB,
                                    //needsCollision);
 
 

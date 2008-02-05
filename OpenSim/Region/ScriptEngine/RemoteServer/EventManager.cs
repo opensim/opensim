@@ -26,6 +26,7 @@
 * 
 */
 /* Original code: Tedd Hansen */
+
 using System;
 using libsecondlife;
 using OpenSim.Framework;
@@ -40,7 +41,6 @@ namespace OpenSim.Region.ScriptEngine.RemoteServer
     [Serializable]
     internal class EventManager
     {
-
         System.Collections.Generic.Dictionary<uint, ScriptServerInterfaces.ServerRemotingObject> remoteScript = new System.Collections.Generic.Dictionary<uint, ScriptServerInterfaces.ServerRemotingObject>();
         TCPClient m_TCPClient;
         TRPC_Remote RPC;
@@ -59,32 +59,28 @@ namespace OpenSim.Region.ScriptEngine.RemoteServer
             RPC.ReceiveCommand += new TRPC_Remote.ReceiveCommandDelegate(RPC_ReceiveCommand);
             myScriptServerID = m_TCPClient.ConnectAndReturnID(remoteHost, remotePort);
             
-            myScriptEngine.Log.Verbose("RemoteEngine", "Hooking up to server events");
+            myScriptEngine.Log.Info("[RemoteEngine]: Hooking up to server events");
             //myScriptEngine.World.EventManager.OnObjectGrab += touch_start;
             myScriptEngine.World.EventManager.OnRezScript += OnRezScript;
             //myScriptEngine.World.EventManager.OnRemoveScript += OnRemoveScript;
-
-
         }
 
         void RPC_ReceiveCommand(int ID, string Command, params object[] p)
         {
-            myScriptEngine.Log.Notice("REMOTESERVER", "Received command: '" + Command + "'");
+            myScriptEngine.Log.Info("[REMOTESERVER]: Received command: '" + Command + "'");
             if (p != null)
             {
                 for (int i = 0; i < p.Length; i++)
                 {
-                    myScriptEngine.Log.Notice("REMOTESERVER", "Param " + i + ": " + p[i].ToString());
+                    myScriptEngine.Log.Info("[REMOTESERVER]: Param " + i + ": " + p[i].ToString());
                 }
             }
-
         }
-
 
         public void OnRezScript(uint localID, LLUUID itemID, string script)
         {
             // WE ARE CREATING A NEW SCRIPT ... CREATE SCRIPT, GET A REMOTEID THAT WE MAP FROM LOCALID
-            myScriptEngine.Log.Verbose("RemoteEngine", "Creating new script (with connection)");
+            myScriptEngine.Log.Info("[RemoteEngine]: Creating new script (with connection)");
 
             // Temp for now: We have one connection only - this is hardcoded in myScriptServerID
             RPC.SendCommand(myScriptServerID, "OnRezScript", localID, itemID.ToString(), script);
@@ -92,16 +88,13 @@ namespace OpenSim.Region.ScriptEngine.RemoteServer
             //ScriptServerInterfaces.ServerRemotingObject obj = myScriptEngine.m_RemoteServer.Connect("localhost", 1234);
             //remoteScript.Add(localID, obj);
             //remoteScript[localID].Events().OnRezScript(localID, itemID, script);
-            
-            
         }
 
         public void touch_start(uint localID, LLVector3 offsetPos, IClientAPI remoteClient)
         {
-                //remoteScript[localID].Events.touch_start(localID, offsetPos, remoteClient);
+            //remoteScript[localID].Events.touch_start(localID, offsetPos, remoteClient);
             RPC.SendCommand(myScriptServerID, "touch_start", offsetPos, "How to transfer IClientAPI?");
         }
-
 
 
         // PLACEHOLDERS -- CODE WILL CHANGE!
@@ -266,6 +259,5 @@ namespace OpenSim.Region.ScriptEngine.RemoteServer
         //{
         //        remoteScript[localID].Events.http_response(localID, itemID);
         //}
-
     }
 }

@@ -36,6 +36,8 @@ namespace OpenSim.Region.Environment.Scenes
 {
     public abstract class SceneBase : IScene
     {
+        private static readonly log4net.ILog m_log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+
         #region Events
 
         public event restart OnRestart;
@@ -155,7 +157,7 @@ namespace OpenSim.Region.Environment.Scenes
         /// <param name="seconds"></param>
         public virtual void Restart(int seconds)
         {
-            MainLog.Instance.Error("REGION", "passing Restart Message up the namespace");
+            m_log.Error("[REGION]: passing Restart Message up the namespace");
             OnRestart(RegionInfo);
         }
 
@@ -180,7 +182,7 @@ namespace OpenSim.Region.Environment.Scenes
             }
             catch (Exception e)
             {
-                MainLog.Instance.Error("SCENE", "SceneBase.cs: Close() - Failed with exception " + e.ToString());
+                m_log.Error("[SCENE]: SceneBase.cs: Close() - Failed with exception " + e.ToString());
             }
         }
 

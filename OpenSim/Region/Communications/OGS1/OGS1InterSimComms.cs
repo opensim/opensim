@@ -141,6 +141,8 @@ namespace OpenSim.Region.Communications.OGS1
 
     public class OGS1InterRegionRemoting : MarshalByRefObject
     {
+        private static readonly log4net.ILog m_log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+
         public OGS1InterRegionRemoting()
         {
         }
@@ -230,16 +232,16 @@ namespace OpenSim.Region.Communications.OGS1
                 return false;
             }
         }
+
         public bool TellRegionToCloseChildConnection(ulong regionHandle, Guid agentID)
         {
             try
             {
                 return InterRegionSingleton.Instance.TellRegionToCloseChildConnection(regionHandle, new LLUUID(agentID));
-
             }
             catch (RemotingException)
             {
-                OpenSim.Framework.Console.MainLog.Instance.Verbose("INTERREGION", "Remoting Error: Unable to connect to remote region: " + regionHandle.ToString());
+                m_log.Info("[INTERREGION]: Remoting Error: Unable to connect to remote region: " + regionHandle.ToString());
                 return false;
             }
         }

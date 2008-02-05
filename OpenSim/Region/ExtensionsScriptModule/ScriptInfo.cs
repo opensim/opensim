@@ -36,23 +36,26 @@ namespace OpenSim.Region.ExtensionsScriptModule
     /// </summary>
     public class ScriptInfo
     {
+        private static readonly log4net.ILog m_log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+
         // Reference to world.eventsManager provided for convenience
         public EventManager events;
 
         // The main world
         public Scene world;
 
-        // The console
-        public LogBase logger;
-
         // API Access
         public ScriptAPI api;
+
+        public log4net.ILog Log
+        {
+            get { return m_log; }
+        }
 
         public ScriptInfo(Scene scene)
         {
             world = scene;
             events = world.EventManager;
-            logger = MainLog.Instance;
             api = new ScriptAPI(world, LLUUID.Zero);
         }
 

@@ -43,7 +43,8 @@ namespace OpenSim.Grid.MessagingServer
 {
     public class MessageService
     {
-        private LogBase m_log;
+        private static readonly log4net.ILog m_log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+
         private MessageServerConfig m_cfg;
 
         //A hashtable of all current presences this server knows about
@@ -58,13 +59,10 @@ namespace OpenSim.Grid.MessagingServer
         // Hashtable containing work units that need to be processed
         private Hashtable m_unProcessedWorkUnits = new Hashtable();
 
-
-        public MessageService(LogBase log, MessageServerConfig cfg)
+        public MessageService(MessageServerConfig cfg)
         {
-            m_log = log;
             m_cfg = cfg;
         }
-
         
         #region RegionComms Methods
 
@@ -84,7 +82,7 @@ namespace OpenSim.Grid.MessagingServer
             ArrayList SendParams = new ArrayList();
             SendParams.Add(PresenceParams);
 
-            MainLog.Instance.Verbose("PRESENCE", "Informing " + whichRegion.regionName + " at " + whichRegion.httpServerURI);
+            m_log.Info("[PRESENCE]: Informing " + whichRegion.regionName + " at " + whichRegion.httpServerURI);
             // Send
             XmlRpcRequest RegionReq = new XmlRpcRequest("presence_update", SendParams);
             XmlRpcResponse RegionResp = RegionReq.Send(whichRegion.httpServerURI, 6000);
@@ -292,7 +290,7 @@ namespace OpenSim.Grid.MessagingServer
             }
             catch (WebException e)
             {
-                MainLog.Instance.Warn("Error when trying to fetch Avatar's friends list: " +
+                m_log.Warn("Error when trying to fetch Avatar's friends list: " +
                                       e.Message);
                 // Return Empty list (no friends)
             }
@@ -439,7 +437,7 @@ namespace OpenSim.Grid.MessagingServer
 
                 if (responseData.ContainsKey("error"))
                 {
-                    m_log.Error("GRID","error received from grid server" + responseData["error"]);
+                    m_log.Error("[GRID]: error received from grid server" + responseData["error"]);
                     return null;
                 }
 
@@ -465,7 +463,7 @@ namespace OpenSim.Grid.MessagingServer
             }
             catch (WebException)
             {
-                MainLog.Instance.Error("GRID",
+                m_log.Error("[GRID]: " +
                                        "Region lookup failed for: " + regionHandle.ToString() +
                                        " - Is the GridServer down?");
                 return null;

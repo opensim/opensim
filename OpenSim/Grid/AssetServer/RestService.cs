@@ -41,6 +41,8 @@ namespace OpenSim.Grid.AssetServer
 {
     public class GetAssetStreamHandler : BaseStreamHandler
     {
+        private static readonly log4net.ILog m_log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+
         private OpenAsset_Main m_assetManager;
         private IAssetProvider m_assetProvider;
 
@@ -52,7 +54,7 @@ namespace OpenSim.Grid.AssetServer
         public GetAssetStreamHandler(OpenAsset_Main assetManager, IAssetProvider assetProvider)
             : base("GET", "/assets")
         {
-            MainLog.Instance.Verbose("REST", "In Get Request");
+            m_log.Info("[REST]: In Get Request");
             m_assetManager = assetManager;
             m_assetProvider = assetProvider;
         }
@@ -71,8 +73,8 @@ namespace OpenSim.Grid.AssetServer
                     
                     if (!LLUUID.TryParse(p[0], out assetID))
                     {
-                        MainLog.Instance.Verbose(
-                            "REST", "GET:/asset ignoring request with malformed UUID {0}", p[0]);
+                        m_log.Info(String.Format(
+                                       "[REST]: GET:/asset ignoring request with malformed UUID {0}", p[0]));
                         return result;
                     }   
     
@@ -94,10 +96,9 @@ namespace OpenSim.Grid.AssetServer
 
                         result = ms.GetBuffer();
                         
-                        MainLog.Instance.Verbose(
-                            "REST", 
-                            "GET:/asset found {0} with name {1}, size {2} bytes",
-                            assetID, asset.Name, result.Length);
+                        m_log.Info(String.Format(
+                                       "[REST]: GET:/asset found {0} with name {1}, size {2} bytes",
+                                       assetID, asset.Name, result.Length));
 
                         Array.Resize<byte>(ref result, (int) ms.Length);
                     }
@@ -106,13 +107,13 @@ namespace OpenSim.Grid.AssetServer
                         if (StatsManager.AssetStats != null)
                             StatsManager.AssetStats.AddNotFoundRequest();
                         
-                        MainLog.Instance.Verbose("REST", "GET:/asset failed to find {0}", assetID);
+                        m_log.Info(String.Format("[REST]: GET:/asset failed to find {0}", assetID));
                     }
                 }
             }
             catch (Exception e)
             {
-                MainLog.Instance.Error(e.ToString());
+                m_log.Error(e.ToString());
             }
             return result;
         }
@@ -120,6 +121,8 @@ namespace OpenSim.Grid.AssetServer
 
     public class PostAssetStreamHandler : BaseStreamHandler
     {
+        private static readonly log4net.ILog m_log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+
         private OpenAsset_Main m_assetManager;
         private IAssetProvider m_assetProvider;
 
@@ -135,7 +138,7 @@ namespace OpenSim.Grid.AssetServer
             XmlSerializer xs = new XmlSerializer(typeof (AssetBase));
             AssetBase asset = (AssetBase) xs.Deserialize(request);
 
-            MainLog.Instance.Verbose("REST", "StoreAndCommitAsset {0}", asset.FullID);
+            m_log.Info(String.Format("[REST]: StoreAndCommitAsset {0}", asset.FullID));
             m_assetProvider.CreateAsset(asset);
             m_assetProvider.CommitAssets();
 

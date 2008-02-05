@@ -37,6 +37,8 @@ namespace OpenSim.Region.Physics.OdePlugin
 {
     public class OdePrim : PhysicsActor
     {
+        private static readonly log4net.ILog m_log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+
         public PhysicsVector _position;
         private PhysicsVector _velocity;
         private PhysicsVector m_lastVelocity = new PhysicsVector(0.0f, 0.0f, 0.0f);
@@ -530,7 +532,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                             }
                             else
                             {
-                                OpenSim.Framework.Console.MainLog.Instance.Verbose("PHYSICS", "Failed to load a sphere bad size");
+                                m_log.Info("[PHYSICS]: Failed to load a sphere bad size");
                                 _parent_scene.waitForSpaceUnlock(m_targetSpace);
                                 prim_geom = d.CreateBox(m_targetSpace, _size.X, _size.Y, _size.Z);
                             }
@@ -683,7 +685,7 @@ namespace OpenSim.Region.Physics.OdePlugin
         {
             lock (m_forcelist)
             {
-                //OpenSim.Framework.Console.MainLog.Instance.Verbose("PHYSICS", "dequeing forcelist");
+                //m_log.Info("[PHYSICS]: dequeing forcelist");
                 if (IsPhysical)
                 {
                     PhysicsVector iforce = new PhysicsVector();
@@ -747,7 +749,7 @@ namespace OpenSim.Region.Physics.OdePlugin
             get { return _position; }
 
             set { _position = value; 
-                //OpenSim.Framework.Console.MainLog.Instance.Verbose("PHYSICS", _position.ToString());
+                //m_log.Info("[PHYSICS]: " + _position.ToString());
             }
         }
 
@@ -824,7 +826,7 @@ namespace OpenSim.Region.Physics.OdePlugin
         {
             m_forcelist.Add(force);
             m_taintforce = true;
-            //OpenSim.Framework.Console.MainLog.Instance.Verbose("PHYSICS", "Added Force:" + force.ToString() +  " to prim at " + Position.ToString());
+            //m_log.Info("[PHYSICS]: Added Force:" + force.ToString() +  " to prim at " + Position.ToString());
         }
 
         public override PhysicsVector RotationalVelocity

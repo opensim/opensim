@@ -37,6 +37,8 @@ namespace OpenSim.Framework.Data.MySQL
 {
     internal class MySQLAssetData : IAssetProvider
     {
+        private static readonly log4net.ILog m_log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+
         private MySQLManager _dbConnection;
 
         #region IAssetProvider Members
@@ -46,7 +48,7 @@ namespace OpenSim.Framework.Data.MySQL
             // null as the version, indicates that the table didn't exist
             if (oldVersion == null)
             {
-                MainLog.Instance.Notice("ASSETS", "Creating new database tables");
+                m_log.Info("[ASSETS]: Creating new database tables");
                 _dbConnection.ExecuteResourceSql("CreateAssetsTable.sql");
                 return;
             }
@@ -98,9 +100,9 @@ namespace OpenSim.Framework.Data.MySQL
                 }
                 catch (Exception e)
                 {
-                    MainLog.Instance.Error(
-                        "ASSETS", "MySql failure fetching asset {0}" + Environment.NewLine + e.ToString()
-                       + Environment.NewLine + "Attempting reconnection", assetID);
+                    m_log.Error(String.Format(
+                                    "[ASSETS]: MySql failure fetching asset {0}" + Environment.NewLine + e.ToString()
+                                    + Environment.NewLine + "Attempting reconnection", assetID));
                     _dbConnection.Reconnect();
                 }
             }
@@ -137,10 +139,10 @@ namespace OpenSim.Framework.Data.MySQL
                 }
                 catch (Exception e)
                 {
-                    MainLog.Instance.Error(
-                        "ASSETS", 
-                        "MySql failure creating asset {0} with name {1}" + Environment.NewLine + e.ToString()
-                       + Environment.NewLine + "Attempting reconnection", asset.FullID, asset.Name);
+                    m_log.Error(String.Format(
+                                    "[ASSETS]: " +
+                                    "MySql failure creating asset {0} with name {1}" + Environment.NewLine + e.ToString()
+                                    + Environment.NewLine + "Attempting reconnection", asset.FullID, asset.Name));
                     _dbConnection.Reconnect();
                 }   
             }

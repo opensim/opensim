@@ -42,6 +42,8 @@ namespace OpenSim.Framework.UserManagement
     /// </summary>
     public class LoginResponse
     {
+        private static readonly log4net.ILog m_log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+
         private Hashtable loginFlagsHash;
         private Hashtable globalTexturesHash;
         private Hashtable loginError;
@@ -362,10 +364,8 @@ namespace OpenSim.Framework.UserManagement
             }
             catch (Exception e)
             {
-                MainLog.Instance.Warn(
-                    "CLIENT",
-                    "LoginResponse: Error creating XML-RPC Response: " + e.Message
-                    );
+                m_log.Warn("[CLIENT]: LoginResponse: Error creating XML-RPC Response: " + e.Message);
+
                 return (GenerateFailureResponse("Internal Error", "Error generating Login Response", "false"));
             }
         } // ToXmlRpcResponse
@@ -461,10 +461,8 @@ namespace OpenSim.Framework.UserManagement
             }
             catch (Exception e)
             {
-                MainLog.Instance.Warn(
-                    "CLIENT",
-                    "LoginResponse: Error creating XML-RPC Response: " + e.Message
-                    );
+                m_log.Warn("[CLIENT]: LoginResponse: Error creating XML-RPC Response: " + e.Message);
+
                 return GenerateFailureResponseLLSD("Internal Error", "Error generating Login Response", "false");
             }
         }

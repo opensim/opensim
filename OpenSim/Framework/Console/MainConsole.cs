@@ -25,13 +25,14 @@
 * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 * 
 */
+
 namespace OpenSim.Framework.Console
 {
-    public class MainLog
+    public class MainConsole
     {
-        private static LogBase instance;
+        private static ConsoleBase instance;
 
-        public static LogBase Instance
+        public static ConsoleBase Instance
         {
             get { return instance; }
             set { instance = value; }

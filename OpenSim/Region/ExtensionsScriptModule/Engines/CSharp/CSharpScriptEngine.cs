@@ -35,6 +35,8 @@ namespace OpenSim.Region.ExtensionsScriptModule.CSharp
 {
     public class CSharpScriptEngine : IScriptCompiler
     {
+        private static readonly log4net.ILog m_log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+
         public string FileExt()
         {
             return ".cs";
@@ -58,10 +60,10 @@ namespace OpenSim.Region.ExtensionsScriptModule.CSharp
 
             if (compilerResults.Errors.Count > 0)
             {
-                MainLog.Instance.Error("Compile errors");
+                m_log.Error("Compile errors");
                 foreach (CompilerError error in compilerResults.Errors)
                 {
-                    MainLog.Instance.Error(error.Line.ToString() + ": " + error.ErrorText.ToString());
+                    m_log.Error(error.Line.ToString() + ": " + error.ErrorText.ToString());
                 }
             }
             else

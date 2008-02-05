@@ -26,7 +26,6 @@
 * 
 */
 
-
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -37,7 +36,6 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
 {
     public class AppDomainManager : iScriptEngineFunctionModule
     {
-
         //
         // This class does AppDomain handling and loading/unloading of scripts in it.
         // It is instanced in "ScriptEngine" and controlled from "ScriptManager"
@@ -47,7 +45,6 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
         // 3. Unload scripts from AppDomain (stopping them and marking them as inactive)
         // 4. Unload AppDomain completely when all scripts in it has stopped
         //
-
 
         private int maxScriptsPerAppDomain = 1;
 
@@ -149,8 +146,8 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
             ads.ConfigurationFile = AppDomain.CurrentDomain.SetupInformation.ConfigurationFile;
 
             AppDomain AD = AppDomain.CreateDomain("ScriptAppDomain_" + AppDomainNameCount, null, ads);
-            m_scriptEngine.Log.Verbose(m_scriptEngine.ScriptEngineName, "AppDomain Loading: " +
-                              AssemblyName.GetAssemblyName("OpenSim.Region.ScriptEngine.Common.dll").ToString());
+            m_scriptEngine.Log.Info("[" + m_scriptEngine.ScriptEngineName + "]: AppDomain Loading: " +
+                                       AssemblyName.GetAssemblyName("OpenSim.Region.ScriptEngine.Common.dll").ToString());
             AD.Load(AssemblyName.GetAssemblyName("OpenSim.Region.ScriptEngine.Common.dll"));
 
             // Return the new AppDomain
@@ -183,7 +180,7 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
                             // Unload
                             AppDomain.Unload(ads.CurrentAppDomain);
 #if DEBUG
-                            m_scriptEngine.Log.Verbose(m_scriptEngine.ScriptEngineName, "AppDomain unload freed " + (m - GC.GetTotalMemory(true)) + " bytes of memory");
+                            m_scriptEngine.Log.Info("[" + m_scriptEngine.ScriptEngineName + "]: AppDomain unload freed " + (m - GC.GetTotalMemory(true)) + " bytes of memory");
 #endif
                         }
                     }
@@ -191,14 +188,13 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
             } // lock
         }
 
-
         public IScript LoadScript(string FileName)
         {
             // Find next available AppDomain to put it in
             AppDomainStructure FreeAppDomain = GetFreeAppDomain();
 
 #if DEBUG
-            m_scriptEngine.Log.Verbose(m_scriptEngine.ScriptEngineName, "Loading into AppDomain: " + FileName);
+            m_scriptEngine.Log.Info("[" + m_scriptEngine.ScriptEngineName + "]: Loading into AppDomain: " + FileName);
 #endif
             IScript mbrt =
                 (IScript)
@@ -220,7 +216,7 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
             lock (freeLock)
             {
 #if DEBUG
-                m_scriptEngine.Log.Verbose(m_scriptEngine.ScriptEngineName, "Stopping script in AppDomain");
+                m_scriptEngine.Log.Info("[" + m_scriptEngine.ScriptEngineName + "]: Stopping script in AppDomain");
 #endif
                 // Check if it is current AppDomain
                 if (currentAD.CurrentAppDomain == ad)
@@ -244,6 +240,7 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
 
             UnloadAppDomains(); // Outsite lock, has its own GetLock
         }
+
         /// <summary>
         /// If set to true then threads and stuff should try to make a graceful exit
         /// </summary>
@@ -253,6 +250,5 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
             set { _PleaseShutdown = value; }
         }
         private bool _PleaseShutdown = false;
-
     }
 }

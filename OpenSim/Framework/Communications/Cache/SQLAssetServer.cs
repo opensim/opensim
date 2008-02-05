@@ -33,6 +33,8 @@ namespace OpenSim.Framework.Communications.Cache
 {
     public class SQLAssetServer : AssetServerBase
     {
+        private static readonly log4net.ILog m_log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+
         public SQLAssetServer(string pluginName)
         {
             AddPlugin(pluginName);
@@ -45,7 +47,7 @@ namespace OpenSim.Framework.Communications.Cache
 
         public void AddPlugin(string FileName)
         {
-            MainLog.Instance.Verbose("SQLAssetServer", "AssetStorage: Attempting to load " + FileName);
+            m_log.Info("[SQLAssetServer]: AssetStorage: Attempting to load " + FileName);
             Assembly pluginAssembly = Assembly.LoadFrom(FileName);
 
             foreach (Type pluginType in pluginAssembly.GetTypes())
@@ -61,14 +63,13 @@ namespace OpenSim.Framework.Communications.Cache
                         m_assetProvider = plug;
                         m_assetProvider.Initialise();
 
-                        MainLog.Instance.Verbose("AssetStorage",
-                                                 "Added " + m_assetProvider.Name + " " +
-                                                 m_assetProvider.Version);
+                        m_log.Info("[AssetStorage]: " +
+                                   "Added " + m_assetProvider.Name + " " +
+                                   m_assetProvider.Version);
                     }
                 }
             }
         }
-
 
         public override void Close()
         {

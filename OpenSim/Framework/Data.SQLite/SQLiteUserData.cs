@@ -39,6 +39,8 @@ namespace OpenSim.Framework.Data.SQLite
     /// </summary>
     public class SQLiteUserData : SQLiteBase, IUserData
     {
+        private static readonly log4net.ILog m_log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+
         /// <summary>
         /// The database manager
         /// </summary>
@@ -89,7 +91,7 @@ namespace OpenSim.Framework.Data.SQLite
                 }
                 catch (SqliteSyntaxException)
                 {
-                    MainLog.Instance.Verbose("SQLITE", "userfriends table not found, creating.... ");
+                    m_log.Info("[SQLITE]: userfriends table not found, creating.... ");
                     InitDB(conn);
                     daf.Fill(ds.Tables["userfriends"]);
                 }
@@ -217,7 +219,7 @@ namespace OpenSim.Framework.Data.SQLite
                 }
                 catch (Exception ex)
                 {
-                    MainLog.Instance.Error("USER", "Exception getting friends list for user: " + ex.ToString());
+                    m_log.Error("[USER]: Exception getting friends list for user: " + ex.ToString());
                 }
             }
              
@@ -231,7 +233,7 @@ namespace OpenSim.Framework.Data.SQLite
 
         public void UpdateUserCurrentRegion(LLUUID avatarid, LLUUID regionuuid)
         {
-            MainLog.Instance.Verbose("USER", "Stub UpdateUserCUrrentRegion called");
+            m_log.Info("[USER]: Stub UpdateUserCUrrentRegion called");
         }
 
 
@@ -339,7 +341,7 @@ namespace OpenSim.Framework.Data.SQLite
                 DataRow row = users.Rows.Find(Util.ToRawUuidString(AgentID));
                 if (row == null)
                 {
-                    MainLog.Instance.Warn("WEBLOGIN", "Unable to store new web login key for non-existant user");
+                    m_log.Warn("[WEBLOGIN]: Unable to store new web login key for non-existant user");
                 }
                 else
                 {
@@ -411,7 +413,7 @@ namespace OpenSim.Framework.Data.SQLite
                     }
                 }
 
-                MainLog.Instance.Verbose("SQLITE",
+                m_log.Info("[SQLITE]: " +
                                          "Syncing user database: " + ds.Tables["users"].Rows.Count + " users stored");
                 // save changes off to disk
                 da.Update(ds, "users");
@@ -775,7 +777,7 @@ namespace OpenSim.Framework.Data.SQLite
             }
             catch (System.Exception)
             {
-                MainLog.Instance.Verbose("USERS", "users table already exists");
+                m_log.Info("[USERS]: users table already exists");
             }
 
             try
@@ -784,7 +786,7 @@ namespace OpenSim.Framework.Data.SQLite
             }
             catch (System.Exception)
             {
-                MainLog.Instance.Verbose("USERS", "userfriends table already exists");
+                m_log.Info("[USERS]: userfriends table already exists");
             }
 
             conn.Close();
@@ -807,7 +809,7 @@ namespace OpenSim.Framework.Data.SQLite
             }
             catch (SqliteSyntaxException)
             {
-                MainLog.Instance.Verbose("DATASTORE", "SQLite Database doesn't exist... creating");
+                m_log.Info("[DATASTORE]: SQLite Database doesn't exist... creating");
                 InitDB(conn);
             }
             conn.Open();

@@ -42,6 +42,8 @@ namespace OpenSim.Framework.Data.SQLite
 {
     public class SQLiteRegionData : IRegionDataStore
     {
+        private static readonly log4net.ILog m_log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+
         private const string primSelect = "select * from prims";
         private const string shapeSelect = "select * from primshapes";
         private const string itemsSelect = "select * from primitems";
@@ -78,7 +80,7 @@ namespace OpenSim.Framework.Data.SQLite
 
             ds = new DataSet();
 
-            MainLog.Instance.Verbose("DATASTORE", "Sqlite - connecting: " + connectionString);
+            m_log.Info("[DATASTORE]: Sqlite - connecting: " + connectionString);
             m_conn = new SqliteConnection(m_connectionString);
             m_conn.Open();
 
@@ -142,7 +144,7 @@ namespace OpenSim.Framework.Data.SQLite
                 }
                 catch (Exception)
                 {
-                    MainLog.Instance.Verbose("DATASTORE", "Caught fill error on primshapes table");
+                    m_log.Info("[DATASTORE]: Caught fill error on primshapes table");
                 }
 
                 try
@@ -151,7 +153,7 @@ namespace OpenSim.Framework.Data.SQLite
                 }
                 catch (Exception)
                 {
-                    MainLog.Instance.Verbose("DATASTORE", "Caught fill error on terrain table");
+                    m_log.Info("[DATASTORE]: Caught fill error on terrain table");
                 }
 
                 try
@@ -160,7 +162,7 @@ namespace OpenSim.Framework.Data.SQLite
                 }
                 catch (Exception)
                 {
-                    MainLog.Instance.Verbose("DATASTORE", "Caught fill error on land table");
+                    m_log.Info("[DATASTORE]: Caught fill error on land table");
                 }
 
                 try
@@ -169,7 +171,7 @@ namespace OpenSim.Framework.Data.SQLite
                 }
                 catch (Exception)
                 {
-                    MainLog.Instance.Verbose("DATASTORE", "Caught fill error on landaccesslist table");
+                    m_log.Info("[DATASTORE]: Caught fill error on landaccesslist table");
                 }
                 return;
             }
@@ -183,29 +185,29 @@ namespace OpenSim.Framework.Data.SQLite
                 {
                     if ((prim.ObjectFlags & (uint) LLObject.ObjectFlags.Physics) == 0)
                     {
-                        MainLog.Instance.Verbose("DATASTORE", "Adding obj: " + obj.UUID + " to region: " + regionUUID);
+                        m_log.Info("[DATASTORE]: Adding obj: " + obj.UUID + " to region: " + regionUUID);
                         addPrim(prim, Util.ToRawUuidString(obj.UUID), Util.ToRawUuidString(regionUUID));
                     }
                     else if (prim.Stopped)
                     {
-                        //MainLog.Instance.Verbose("DATASTORE",
+                        //m_log.Info("[DATASTORE]: " +
                                                  //"Adding stopped obj: " + obj.UUID + " to region: " + regionUUID);
                         //addPrim(prim, Util.ToRawUuidString(obj.UUID), Util.ToRawUuidString(regionUUID));
                     }
                     else
                     {
-                        // MainLog.Instance.Verbose("DATASTORE", "Ignoring Physical obj: " + obj.UUID + " in region: " + regionUUID);
+                        // m_log.Info("[DATASTORE]: Ignoring Physical obj: " + obj.UUID + " in region: " + regionUUID);
                     }
                 }
             }
 
             Commit();
-            // MainLog.Instance.Verbose("Dump of prims:", ds.GetXml());
+            // m_log.Info("[Dump of prims]: " + ds.GetXml());
         }
 
         public void RemoveObject(LLUUID obj, LLUUID regionUUID)
         {
-            MainLog.Instance.Verbose("DATASTORE", "Removing obj: {0} from region: {1}", obj.UUID, regionUUID);
+            m_log.Info(String.Format("[DATASTORE]: Removing obj: {0} from region: {1}", obj.UUID, regionUUID));
             
             DataTable prims = ds.Tables["prims"];
             DataTable shapes = ds.Tables["primshapes"];
@@ -274,7 +276,7 @@ namespace OpenSim.Framework.Data.SQLite
             lock (ds)
             {
                 DataRow[] primsForRegion = prims.Select(byRegion, orderByParent);
-                MainLog.Instance.Verbose("DATASTORE",
+                m_log.Info("[DATASTORE]: " +
                                          "Loaded " + primsForRegion.Length + " prims for region: " + regionUUID);
 
                 foreach (DataRow primRow in primsForRegion)
@@ -296,7 +298,7 @@ namespace OpenSim.Framework.Data.SQLite
                             }
                             else
                             {
-                                MainLog.Instance.Notice(
+                                m_log.Info(
                                     "No shape found for prim in storage, so setting default box shape");
                                 prim.Shape = PrimitiveBaseShape.Default;
                             }
@@ -316,7 +318,7 @@ namespace OpenSim.Framework.Data.SQLite
                             }
                             else
                             {
-                                MainLog.Instance.Notice(
+                                m_log.Info(
                                     "No shape found for prim in storage, so setting default box shape");
                                 prim.Shape = PrimitiveBaseShape.Default;
                             }
@@ -330,11 +332,11 @@ namespace OpenSim.Framework.Data.SQLite
                     }
                     catch (Exception e)
                     {
-                        MainLog.Instance.Error("DATASTORE", "Failed create prim object, exception and data follows");
-                        MainLog.Instance.Verbose("DATASTORE", e.ToString());
+                        m_log.Error("[DATASTORE]: Failed create prim object, exception and data follows");
+                        m_log.Info("[DATASTORE]: " + e.ToString());
                         foreach (DataColumn col in prims.Columns)
                         {
-                            MainLog.Instance.Verbose("DATASTORE", "Col: " + col.ColumnName + " => " + primRow[col]);
+                            m_log.Info("[DATASTORE]: Col: " + col.ColumnName + " => " + primRow[col]);
                         }
                     }
                 }
@@ -348,7 +350,7 @@ namespace OpenSim.Framework.Data.SQLite
         /// <param name="prim"></param>
         private void LoadItems(SceneObjectPart prim)
         {
-            MainLog.Instance.Verbose("DATASTORE", "Loading inventory for {0}, {1}", prim.Name, prim.UUID);
+            m_log.Info(String.Format("[DATASTORE]: Loading inventory for {0}, {1}", prim.Name, prim.UUID));
             
             DataTable dbItems = ds.Tables["primitems"];
             
@@ -362,7 +364,7 @@ namespace OpenSim.Framework.Data.SQLite
                 TaskInventoryItem item = buildItem(row);
                 inventory.Add(item);
                 
-                MainLog.Instance.Verbose("DATASTORE", "Restored item {0}, {1}", item.Name, item.ItemID); 
+                m_log.Info(String.Format("[DATASTORE]: Restored item {0}, {1}", item.Name, item.ItemID)); 
             }
             
             prim.RestoreInventoryItems(inventory);
@@ -383,7 +385,7 @@ namespace OpenSim.Framework.Data.SQLite
 
                 // the following is an work around for .NET.  The perf
                 // issues associated with it aren't as bad as you think.
-                MainLog.Instance.Verbose("DATASTORE", "Storing terrain revision r" + revision.ToString());
+                m_log.Info("[DATASTORE]: Storing terrain revision r" + revision.ToString());
                 String sql = "insert into terrain(RegionUUID, Revision, Heightfield)" +
                              " values(:RegionUUID, :Revision, :Heightfield)";
 
@@ -446,11 +448,11 @@ namespace OpenSim.Framework.Data.SQLite
                         }
                         else
                         {
-                            MainLog.Instance.Verbose("DATASTORE", "No terrain found for region");
+                            m_log.Info("[DATASTORE]: No terrain found for region");
                             return null;
                         }
 
-                        MainLog.Instance.Verbose("DATASTORE", "Loaded terrain revision r" + rev.ToString());
+                        m_log.Info("[DATASTORE]: Loaded terrain revision r" + rev.ToString());
                     }
                 }
                 return terret;
@@ -1265,7 +1267,7 @@ namespace OpenSim.Framework.Data.SQLite
             if (!persistPrimInventories)
                 return;
             
-            MainLog.Instance.Verbose("DATASTORE", "Entered StorePrimInventory with prim ID {0}", primID);
+            m_log.Info(String.Format("[DATASTORE]: Entered StorePrimInventory with prim ID {0}", primID));
             
             DataTable dbItems = ds.Tables["primitems"]; 
             
@@ -1278,10 +1280,10 @@ namespace OpenSim.Framework.Data.SQLite
                 // repalce with current inventory details
                 foreach (TaskInventoryItem newItem in items)
                 {
-//                    MainLog.Instance.Verbose(
-//                        "DATASTORE", 
-//                        "Adding item {0}, {1} to prim ID {2}", 
-//                        newItem.Name, newItem.ItemID, newItem.ParentPartID);
+//                    m_log.Info(String.Format(
+//                                   "[DATASTORE]: ", 
+//                                   "Adding item {0}, {1} to prim ID {2}", 
+//                                   newItem.Name, newItem.ItemID, newItem.ParentPartID));
                     
                     DataRow newItemRow = dbItems.NewRow();
                     fillItemRow(newItemRow, newItem);
@@ -1508,7 +1510,7 @@ namespace OpenSim.Framework.Data.SQLite
             }
             catch (SqliteSyntaxException)
             {
-                MainLog.Instance.Warn("SQLITE", "Primitives Table Already Exists");
+                m_log.Warn("[SQLITE]: Primitives Table Already Exists");
             }
 
             try
@@ -1517,7 +1519,7 @@ namespace OpenSim.Framework.Data.SQLite
             }
             catch (SqliteSyntaxException)
             {
-                MainLog.Instance.Warn("SQLITE", "Shapes Table Already Exists");
+                m_log.Warn("[SQLITE]: Shapes Table Already Exists");
             }
 
             if (persistPrimInventories)
@@ -1528,7 +1530,7 @@ namespace OpenSim.Framework.Data.SQLite
                 }
                 catch (SqliteSyntaxException)
                 {
-                    MainLog.Instance.Warn("SQLITE", "Primitives Inventory Table Already Exists");
+                    m_log.Warn("[SQLITE]: Primitives Inventory Table Already Exists");
                 }
             }
 
@@ -1538,7 +1540,7 @@ namespace OpenSim.Framework.Data.SQLite
             }
             catch (SqliteSyntaxException)
             {
-                MainLog.Instance.Warn("SQLITE", "Terrain Table Already Exists");
+                m_log.Warn("[SQLITE]: Terrain Table Already Exists");
             }
 
             try
@@ -1547,7 +1549,7 @@ namespace OpenSim.Framework.Data.SQLite
             }
             catch (SqliteSyntaxException)
             {
-                MainLog.Instance.Warn("SQLITE", "Land Table Already Exists");
+                m_log.Warn("[SQLITE]: Land Table Already Exists");
             }
 
             try
@@ -1556,7 +1558,7 @@ namespace OpenSim.Framework.Data.SQLite
             }
             catch (SqliteSyntaxException)
             {
-                MainLog.Instance.Warn("SQLITE", "LandAccessList Table Already Exists");
+                m_log.Warn("[SQLITE]: LandAccessList Table Already Exists");
             }
             conn.Close();
         }
@@ -1596,7 +1598,7 @@ namespace OpenSim.Framework.Data.SQLite
             }
             catch (SqliteSyntaxException)
             {
-                MainLog.Instance.Verbose("DATASTORE", "SQLite Database doesn't exist... creating");
+                m_log.Info("[DATASTORE]: SQLite Database doesn't exist... creating");
                 InitDB(conn);
             }
 
@@ -1614,7 +1616,7 @@ namespace OpenSim.Framework.Data.SQLite
             {
                 if (!tmpDS.Tables["prims"].Columns.Contains(col.ColumnName))
                 {
-                    MainLog.Instance.Verbose("DATASTORE", "Missing required column:" + col.ColumnName);
+                    m_log.Info("[DATASTORE]: Missing required column:" + col.ColumnName);
                     return false;
                 }
             }
@@ -1623,7 +1625,7 @@ namespace OpenSim.Framework.Data.SQLite
             {
                 if (!tmpDS.Tables["primshapes"].Columns.Contains(col.ColumnName))
                 {
-                    MainLog.Instance.Verbose("DATASTORE", "Missing required column:" + col.ColumnName);
+                    m_log.Info("[DATASTORE]: Missing required column:" + col.ColumnName);
                     return false;
                 }
             }
@@ -1634,7 +1636,7 @@ namespace OpenSim.Framework.Data.SQLite
             {
                 if (!tmpDS.Tables["terrain"].Columns.Contains(col.ColumnName))
                 {
-                    MainLog.Instance.Verbose("DATASTORE", "Missing require column:" + col.ColumnName);
+                    m_log.Info("[DATASTORE]: Missing require column:" + col.ColumnName);
                     return false;
                 }
             }
@@ -1643,7 +1645,7 @@ namespace OpenSim.Framework.Data.SQLite
             {
                 if (!tmpDS.Tables["land"].Columns.Contains(col.ColumnName))
                 {
-                    MainLog.Instance.Verbose("DATASTORE", "Missing require column:" + col.ColumnName);
+                    m_log.Info("[DATASTORE]: Missing require column:" + col.ColumnName);
                     return false;
                 }
             }
@@ -1652,7 +1654,7 @@ namespace OpenSim.Framework.Data.SQLite
             {
                 if (!tmpDS.Tables["landaccesslist"].Columns.Contains(col.ColumnName))
                 {
-                    MainLog.Instance.Verbose("DATASTORE", "Missing require column:" + col.ColumnName);
+                    m_log.Info("[DATASTORE]: Missing require column:" + col.ColumnName);
                     return false;
                 }
             }

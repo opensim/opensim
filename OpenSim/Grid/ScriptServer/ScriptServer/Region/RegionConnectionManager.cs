@@ -33,14 +33,12 @@ namespace OpenSim.Grid.ScriptServer
     // Maintains connection and communication to a region
     public class RegionConnectionManager : RegionBase
     {
-        private LogBase m_log;
         private ScriptServerMain m_ScriptServerMain;
         private object m_Connection;
 
-        public RegionConnectionManager(ScriptServerMain scm, LogBase logger, object Connection)
+        public RegionConnectionManager(ScriptServerMain scm, object Connection)
         {
             m_ScriptServerMain = scm;
-            m_log = logger;
             m_Connection = Connection;
         }
 

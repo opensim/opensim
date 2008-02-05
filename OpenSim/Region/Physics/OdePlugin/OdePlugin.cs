@@ -44,6 +44,8 @@ namespace OpenSim.Region.Physics.OdePlugin
     /// </summary>
     public class OdePlugin : IPhysicsPlugin
     {
+        private static readonly log4net.ILog m_log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+
         private OdeScene _mScene;
 
         public OdePlugin()
@@ -76,6 +78,8 @@ namespace OpenSim.Region.Physics.OdePlugin
 
     public class OdeScene : PhysicsScene
     {
+        private static readonly log4net.ILog m_log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+
         // TODO: this should be hard-coded in some common place
         private const uint m_regionWidth = 256;
         private const uint m_regionHeight = 256;
@@ -284,7 +288,7 @@ namespace OpenSim.Region.Physics.OdePlugin
 
                 //if (id == d.GeomClassID.TriMeshClass)
                 //{
-                    //               MainLog.Instance.Verbose("near: A collision was detected between {1} and {2}", 0, name1, name2);
+                    //               m_log.Info("near: A collision was detected between {1} and {2}", 0, name1, name2);
                     //System.Console.WriteLine("near: A collision was detected between {1} and {2}", 0, name1, name2);
                 //}
 
@@ -296,8 +300,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                 }
                 catch (SEHException)
                 {
-                    MainLog.Instance.Error("PHYSICS",
-                                           "The Operating system shut down ODE because of corrupt memory.  This could be a result of really irregular terrain.  If this repeats continuously, restart using Basic Physics and terrain fill your terrain.  Restarting the sim.");
+                    m_log.Error("[PHYSICS]: The Operating system shut down ODE because of corrupt memory.  This could be a result of really irregular terrain.  If this repeats continuously, restart using Basic Physics and terrain fill your terrain.  Restarting the sim.");
                     base.TriggerPhysicsBasedRestart();
                 }
 
@@ -352,7 +355,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                          
                         if (contacts[i].depth >= 1.00f)
                         {
-                            //MainLog.Instance.Debug("PHYSICS",contacts[i].depth.ToString());
+                            //m_log.Debug("[PHYSICS]: " +contacts[i].depth.ToString());
                         }
                          
                         //If you interpenetrate a prim with an agent
@@ -405,7 +408,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                         }
                         if (contacts[i].depth >= 1.00f)
                         {
-                            //OpenSim.Framework.Console.MainLog.Instance.Verbose("P", contacts[i].depth.ToString());
+                            //m_log.Info("[P]: " + contacts[i].depth.ToString());
                             if ((p2.PhysicsActorType == (int) ActorTypes.Agent &&
                                  p1.PhysicsActorType == (int) ActorTypes.Unknown) ||
                                 (p1.PhysicsActorType == (int) ActorTypes.Agent &&
@@ -654,9 +657,8 @@ namespace OpenSim.Region.Physics.OdePlugin
                             }
                             else
                             {
-                                MainLog.Instance.Verbose("Physics",
-                                                         "Invalid Scene passed to 'removeprim from scene':" +
-                                                         ((OdePrim) prim).m_targetSpace.ToString());
+                                m_log.Info("[Physics]: Invalid Scene passed to 'removeprim from scene':" +
+                                           ((OdePrim) prim).m_targetSpace.ToString());
                             }
                         }
                     }
@@ -678,9 +680,8 @@ namespace OpenSim.Region.Physics.OdePlugin
                             }
                             else
                             {
-                                MainLog.Instance.Verbose("Physics",
-                                                         "Invalid Scene passed to 'removeprim from scene':" +
-                                                         ((OdePrim) prim).m_targetSpace.ToString());
+                                m_log.Info("[Physics]: Invalid Scene passed to 'removeprim from scene':" +
+                                           ((OdePrim) prim).m_targetSpace.ToString());
                             }
                         }
                     }
@@ -742,9 +743,8 @@ namespace OpenSim.Region.Physics.OdePlugin
                     }
                     else
                     {
-                        MainLog.Instance.Verbose("Physics",
-                                                 "Invalid Scene passed to 'recalculatespace':" + currentspace.ToString() +
-                                                 " Geom:" + geom.ToString());
+                        m_log.Info("[Physics]: Invalid Scene passed to 'recalculatespace':" + currentspace.ToString() +
+                                   " Geom:" + geom.ToString());
                     }
                 }
                 else
@@ -761,9 +761,8 @@ namespace OpenSim.Region.Physics.OdePlugin
                             }
                             else
                             {
-                                MainLog.Instance.Verbose("Physics",
-                                                         "Invalid Scene passed to 'recalculatespace':" +
-                                                         sGeomIsIn.ToString() + " Geom:" + geom.ToString());
+                                m_log.Info("[Physics]: Invalid Scene passed to 'recalculatespace':" +
+                                           sGeomIsIn.ToString() + " Geom:" + geom.ToString());
                             }
                         }
                     }
@@ -787,9 +786,8 @@ namespace OpenSim.Region.Physics.OdePlugin
                         }
                         else
                         {
-                            MainLog.Instance.Verbose("Physics",
-                                                     "Invalid Scene passed to 'recalculatespace':" +
-                                                     currentspace.ToString() + " Geom:" + geom.ToString());
+                            m_log.Info("[Physics]: Invalid Scene passed to 'recalculatespace':" +
+                                       currentspace.ToString() + " Geom:" + geom.ToString());
                         }
                     }
                 }
@@ -807,9 +805,8 @@ namespace OpenSim.Region.Physics.OdePlugin
                         }
                         else
                         {
-                            MainLog.Instance.Verbose("Physics",
-                                                     "Invalid Scene passed to 'recalculatespace':" +
-                                                     currentspace.ToString() + " Geom:" + geom.ToString());
+                            m_log.Info("[Physics]: Invalid Scene passed to 'recalculatespace':" +
+                                       currentspace.ToString() + " Geom:" + geom.ToString());
                         }
                 }
                 else
@@ -826,9 +823,8 @@ namespace OpenSim.Region.Physics.OdePlugin
                             }
                             else
                             {
-                                MainLog.Instance.Verbose("Physics",
-                                                         "Invalid Scene passed to 'recalculatespace':" +
-                                                         sGeomIsIn.ToString() + " Geom:" + geom.ToString());
+                                m_log.Info("[Physics]: Invalid Scene passed to 'recalculatespace':" +
+                                           sGeomIsIn.ToString() + " Geom:" + geom.ToString());
                             }
                         }
                     }
@@ -876,7 +872,7 @@ namespace OpenSim.Region.Physics.OdePlugin
             IntPtr locationbasedspace =IntPtr.Zero;
             
                 int[] xyspace = calculateSpaceArrayItemFromPos(pos);
-                //MainLog.Instance.Verbose("Physics", "Attempting to use arrayItem: " + xyspace[0].ToString() + "," + xyspace[1].ToString());
+                //m_log.Info("[Physics]: Attempting to use arrayItem: " + xyspace[0].ToString() + "," + xyspace[1].ToString());
                 locationbasedspace = staticPrimspace[xyspace[0], xyspace[1]];
            
             //locationbasedspace = space;
@@ -970,7 +966,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                 name2 = "null";
             }
 
-            MainLog.Instance.Verbose("TriArrayCallback: A collision was detected between {1} and {2}", 0, name1, name2);
+            m_log.Info("TriArrayCallback: A collision was detected between {1} and {2}", 0, name1, name2);
 */
             return 1;
         }
@@ -984,19 +980,20 @@ namespace OpenSim.Region.Physics.OdePlugin
             {
                 name1 = "null";
             }
+
             if (!geom_name_map.TryGetValue(refObject, out name2))
             {
                 name2 = "null";
             }
 
-//            MainLog.Instance.Verbose("TriCallback: A collision was detected between {1} and {2}. Index was {3}", 0, name1, name2, triangleIndex);
+//            m_log.Info("TriCallback: A collision was detected between {1} and {2}. Index was {3}", 0, name1, name2, triangleIndex);
 
             d.Vector3 v0 = new d.Vector3();
             d.Vector3 v1 = new d.Vector3();
             d.Vector3 v2 = new d.Vector3();
 
             d.GeomTriMeshGetTriangle(trimesh, 0, ref v0, ref v1, ref v2);
-//            MainLog.Instance.Debug("Triangle {0} is <{1},{2},{3}>, <{4},{5},{6}>, <{7},{8},{9}>", triangleIndex, v0.X, v0.Y, v0.Z, v1.X, v1.Y, v1.Z, v2.X, v2.Y, v2.Z);
+//            m_log.Debug("Triangle {0} is <{1},{2},{3}>, <{4},{5},{6}>, <{7},{8},{9}>", triangleIndex, v0.X, v0.Y, v0.Z, v1.X, v1.Y, v1.Z, v2.X, v2.Y, v2.Z);
 
             return 1;
         }
@@ -1105,18 +1102,15 @@ namespace OpenSim.Region.Physics.OdePlugin
                 }
                 catch (StackOverflowException)
                 {
-                    MainLog.Instance.Error("PHYSICS",
-                                           "The operating system wasn't able to allocate enough memory for the simulation.  Restarting the sim.");
+                    m_log.Error("[PHYSICS]: The operating system wasn't able to allocate enough memory for the simulation.  Restarting the sim.");
                     base.TriggerPhysicsBasedRestart();
                 }
 
                 int i = 0;
 
-
                 // Figure out the Frames Per Second we're going at.
                 //(step_time == 0.004f, there's 250 of those per second.   Times the step time/step size
                 fps = (step_time/ODE_STEPSIZE) * 1000;
-
 
                 while (step_time > 0.0f)
                 {
@@ -1125,7 +1119,6 @@ namespace OpenSim.Region.Physics.OdePlugin
                         actor.Move(timeStep);
                         actor.collidelock = true;
                     }
-
 
                     collision_optimized(timeStep);
                     d.WorldQuickStep(world, ODE_STEPSIZE);
@@ -1178,8 +1171,8 @@ namespace OpenSim.Region.Physics.OdePlugin
 
         public override bool IsThreaded
         {
-            get { return (false); // for now we won't be multithreaded
-            }
+            // for now we won't be multithreaded
+            get { return (false); }
         }
         public float[] ResizeTerrain512NearestNeighbour(float[] heightMap)
         {
@@ -1275,6 +1268,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                     }
                 }
             }
+
             //Flatten out the array
             int i = 0;
             for (int y = 0; y < 512; y++)

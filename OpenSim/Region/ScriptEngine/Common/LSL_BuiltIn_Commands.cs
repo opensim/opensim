@@ -43,12 +43,13 @@ using OpenSim.Region.ScriptEngine.Common.ScriptEngineBase;
 
 namespace OpenSim.Region.ScriptEngine.Common
 {
-    
     /// <summary>
     /// Contains all LSL ll-functions. This class will be in Default AppDomain.
     /// </summary>
     public class LSL_BuiltIn_Commands : MarshalByRefObject, LSL_BuiltIn_Commands_Interface
     {
+        private static readonly log4net.ILog m_log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+
         private ASCIIEncoding enc = new ASCIIEncoding();
         private ScriptEngineBase.ScriptEngine m_ScriptEngine;
         private SceneObjectPart m_host;
@@ -63,7 +64,7 @@ namespace OpenSim.Region.ScriptEngine.Common
             m_localID = localID;
             m_itemID = itemID;
 
-            //MainLog.Instance.Notice(ScriptEngineName, "LSL_BaseClass.Start() called. Hosted by [" + m_host.Name + ":" + m_host.UUID + "@" + m_host.AbsolutePosition + "]");
+            //m_log.Info(ScriptEngineName, "LSL_BaseClass.Start() called. Hosted by [" + m_host.Name + ":" + m_host.UUID + "@" + m_host.AbsolutePosition + "]");
         }
 
         private DateTime m_timer = DateTime.Now;

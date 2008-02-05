@@ -37,6 +37,8 @@ namespace OpenSim.Framework.Data.DB4o
     /// </summary>
     public class DB4oUserData : IUserData
     {
+        private static readonly log4net.ILog m_log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+
         /// <summary>
         /// The database manager
         /// </summary>
@@ -143,22 +145,22 @@ namespace OpenSim.Framework.Data.DB4o
 
         public void AddNewUserFriend(LLUUID friendlistowner, LLUUID friend, uint perms)
         {
-            //MainLog.Instance.Verbose("FRIEND", "Stub AddNewUserFriend called");
+            //m_log.Info("[FRIEND]: Stub AddNewUserFriend called");
         }
 
         public void RemoveUserFriend(LLUUID friendlistowner, LLUUID friend)
         {
-            //MainLog.Instance.Verbose("FRIEND", "Stub RemoveUserFriend called");
+            //m_log.Info("[FRIEND]: Stub RemoveUserFriend called");
         }
         public void UpdateUserFriendPerms(LLUUID friendlistowner, LLUUID friend, uint perms)
         {
-            //MainLog.Instance.Verbose("FRIEND", "Stub UpdateUserFriendPerms called");
+            //m_log.Info("[FRIEND]: Stub UpdateUserFriendPerms called");
         }
 
 
         public List<FriendListItem> GetUserFriendList(LLUUID friendlistowner)
         {
-            //MainLog.Instance.Verbose("FRIEND", "Stub GetUserFriendList called");
+            //m_log.Info("[FRIEND]: Stub GetUserFriendList called");
             return new List<FriendListItem>();
         }
 
@@ -166,7 +168,7 @@ namespace OpenSim.Framework.Data.DB4o
 
         public void UpdateUserCurrentRegion(LLUUID avatarid, LLUUID regionuuid)
         {
-            //MainLog.Instance.Verbose("USER", "Stub UpdateUserCUrrentRegion called");
+            //m_log.Info("[USER]: Stub UpdateUserCUrrentRegion called");
         }
 
         

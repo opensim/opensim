@@ -35,6 +35,8 @@ namespace OpenSim.Framework.Communications.Cache
 {
     public class LocalAssetServer : AssetServerBase
     {
+        private static readonly log4net.ILog m_log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+
         private IObjectContainer db;
 
         public LocalAssetServer()
@@ -43,7 +45,7 @@ namespace OpenSim.Framework.Communications.Cache
             yapfile = File.Exists(Path.Combine(Util.dataDir(), "regionassets.yap"));
 
             db = Db4oFactory.OpenFile(Path.Combine(Util.dataDir(), "regionassets.yap"));
-            MainLog.Instance.Verbose("ASSETS", "Db4 Asset database  creation");
+            m_log.Info("[ASSETS]: Db4 Asset database  creation");
 
             if (!yapfile)
             {
@@ -67,7 +69,7 @@ namespace OpenSim.Framework.Communications.Cache
 
             if (db != null)
             {
-                MainLog.Instance.Verbose("ASSETSERVER", "Closing local asset server database");
+                m_log.Info("[ASSETSERVER]: Closing local asset server database");
                 db.Close();
             }
         }
@@ -120,7 +122,7 @@ namespace OpenSim.Framework.Communications.Cache
 
         protected virtual void SetUpAssetDatabase()
         {
-            MainLog.Instance.Verbose("LOCAL ASSET SERVER", "Setting up asset database");
+            m_log.Info("[LOCAL ASSET SERVER]: Setting up asset database");
 
             base.LoadDefaultAssets();
         }

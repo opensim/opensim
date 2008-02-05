@@ -35,6 +35,8 @@ namespace OpenSim.Framework.RegionLoader.Web
 {
     public class RegionLoaderWebServer : IRegionLoader
     {
+        private static readonly log4net.ILog m_log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+
         private IniConfigSource m_configSouce;
 
         public void SetIniConfigSource(IniConfigSource configSource)
@@ -46,7 +48,7 @@ namespace OpenSim.Framework.RegionLoader.Web
         {
             if (m_configSouce == null)
             {
-                MainLog.Instance.Error("WEBLOADER", "Unable to load configuration source!");
+                m_log.Error("[WEBLOADER]: Unable to load configuration source!");
                 return null;
             }
             else
@@ -55,16 +57,16 @@ namespace OpenSim.Framework.RegionLoader.Web
                 string url = startupConfig.GetString("regionload_webserver_url", System.String.Empty).Trim();
                 if (url == System.String.Empty)
                 {
-                    MainLog.Instance.Error("WEBLOADER", "Unable to load webserver URL - URL was empty.");
+                    m_log.Error("[WEBLOADER]: Unable to load webserver URL - URL was empty.");
                     return null;
                 }
                 else
                 {
                     HttpWebRequest webRequest = (HttpWebRequest) WebRequest.Create(url);
                     webRequest.Timeout = 30000; //30 Second Timeout
-                    MainLog.Instance.Debug("WEBLOADER", "Sending Download Request...");
+                    m_log.Debug("[WEBLOADER]: Sending Download Request...");
                     HttpWebResponse webResponse = (HttpWebResponse) webRequest.GetResponse();
-                    MainLog.Instance.Debug("WEBLOADER", "Downloading Region Information From Remote Server...");
+                    m_log.Debug("[WEBLOADER]: Downloading Region Information From Remote Server...");
                     StreamReader reader = new StreamReader(webResponse.GetResponseStream());
                     string xmlSource = System.String.Empty;
                     string tempStr = reader.ReadLine();
@@ -73,9 +75,8 @@ namespace OpenSim.Framework.RegionLoader.Web
                         xmlSource = xmlSource + tempStr;
                         tempStr = reader.ReadLine();
                     }
-                    MainLog.Instance.Debug("WEBLOADER",
-                                           "Done downloading region information from server. Total Bytes: " +
-                                           xmlSource.Length);
+                    m_log.Debug("[WEBLOADER]: Done downloading region information from server. Total Bytes: " +
+                                xmlSource.Length);
                     XmlDocument xmlDoc = new XmlDocument();
                     xmlDoc.LoadXml(xmlSource);
                     if (xmlDoc.FirstChild.Name == "Regions")
@@ -84,7 +85,7 @@ namespace OpenSim.Framework.RegionLoader.Web
                         int i;
                         for (i = 0; i < xmlDoc.FirstChild.ChildNodes.Count; i++)
                         {
-                            MainLog.Instance.Debug(xmlDoc.FirstChild.ChildNodes[i].OuterXml);
+                            m_log.Debug(xmlDoc.FirstChild.ChildNodes[i].OuterXml);
                             regionInfos[i] =
                                 new RegionInfo("REGION CONFIG #" + (i + 1), xmlDoc.FirstChild.ChildNodes[i],false);
                         }

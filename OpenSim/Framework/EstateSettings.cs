@@ -28,11 +28,14 @@
 using System;
 using System.IO;
 using libsecondlife;
+using OpenSim.Framework.Console;
 
 namespace OpenSim.Framework
 {
     public class EstateSettings
     {
+        private static readonly log4net.ILog m_log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+
         //Settings to this island
         private float m_billableFactor;
 
@@ -734,7 +737,7 @@ namespace OpenSim.Framework
             }
             else
             {
-                OpenSim.Framework.Console.MainLog.Instance.Error("ESTATESETTINGS", "Unable to locate estate manager : " + avatarID.ToString() + " for removal");
+                m_log.Error("[ESTATESETTINGS]: Unable to locate estate manager : " + avatarID.ToString() + " for removal");
             }
         }
 
@@ -749,7 +752,7 @@ namespace OpenSim.Framework
             {
                 configMember =
                     new ConfigurationMember(Path.Combine(Util.configDir(), "estate_settings.xml"), "ESTATE SETTINGS",
-                                            loadConfigurationOptions, handleIncomingConfiguration,true);
+                                            loadConfigurationOptions, handleIncomingConfiguration, true);
                 configMember.performConfigurationRetrieve();
             }
         }

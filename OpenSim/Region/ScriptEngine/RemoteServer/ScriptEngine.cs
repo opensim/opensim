@@ -26,6 +26,7 @@
 * 
 */
 /* Original code: Tedd Hansen */
+
 using System;
 using Nini.Config;
 using OpenSim.Framework.Console;
@@ -41,28 +42,27 @@ namespace OpenSim.Region.ScriptEngine.RemoteServer
     [Serializable]
     public class ScriptEngine : IRegionModule
     {
+        private static readonly log4net.ILog m_log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+
         internal Scene World;
         internal EventManager m_EventManager; // Handles and queues incoming events from OpenSim
         internal RemoteServer m_RemoteServer; // Handles connections to remote servers
-
-        private LogBase m_log;
 
         public ScriptEngine()
         {
             Common.mySE = this;
         }
 
-        public LogBase Log
+        public log4net.ILog Log
         {
             get { return m_log; }
         }
 
-        public void InitializeEngine(Scene Sceneworld, LogBase logger)
+        public void InitializeEngine(Scene Sceneworld)
         {
             World = Sceneworld;
-            m_log = logger;
 
-            Log.Verbose("ScriptEngine", "RemoteEngine (Remote Script Server) initializing");
+            m_log.Info("[ScriptEngine]: RemoteEngine (Remote Script Server) initializing");
             // Create all objects we'll be using
             m_EventManager = new EventManager(this);
             m_RemoteServer = new RemoteServer();
@@ -74,12 +74,11 @@ namespace OpenSim.Region.ScriptEngine.RemoteServer
             // We are shutting down
         }
 
-
         #region IRegionModule
 
         public void Initialise(Scene scene, IConfigSource config)
         {
-            InitializeEngine(scene, MainLog.Instance);
+            InitializeEngine(scene);
         }
 
         public void PostInitialise()
@@ -101,6 +100,5 @@ namespace OpenSim.Region.ScriptEngine.RemoteServer
         }
 
         #endregion
-
     }
 }

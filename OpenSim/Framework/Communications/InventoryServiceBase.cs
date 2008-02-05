@@ -36,6 +36,8 @@ namespace OpenSim.Framework.Communications
 {
     public abstract class InventoryServiceBase : IInventoryServices
     {
+        private static readonly log4net.ILog m_log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+
         protected Dictionary<string, IInventoryData> m_plugins = new Dictionary<string, IInventoryData>();
         //protected IAssetServer m_assetServer;
 
@@ -52,7 +54,7 @@ namespace OpenSim.Framework.Communications
         {
             if (!String.IsNullOrEmpty(FileName))
             {
-                MainLog.Instance.Verbose("AGENTINVENTORY", "Inventorystorage: Attempting to load " + FileName);
+                m_log.Info("[AGENTINVENTORY]: Inventorystorage: Attempting to load " + FileName);
                 Assembly pluginAssembly = Assembly.LoadFrom(FileName);
 
                 foreach (Type pluginType in pluginAssembly.GetTypes())
@@ -67,7 +69,7 @@ namespace OpenSim.Framework.Communications
                                 (IInventoryData) Activator.CreateInstance(pluginAssembly.GetType(pluginType.ToString()));
                             plug.Initialise();
                             m_plugins.Add(plug.getName(), plug);
-                            MainLog.Instance.Verbose("AGENTINVENTORY", "Added IInventoryData Interface");
+                            m_log.Info("[AGENTINVENTORY]: Added IInventoryData Interface");
                         }
                     }
                 }
@@ -95,9 +97,8 @@ namespace OpenSim.Framework.Communications
                 rootFolder = plugin.Value.getUserRootFolder(userID);
                 if (rootFolder != null)
                 {
-                    MainLog.Instance.Verbose(
-                        "INVENTORY",
-                        "Found root folder for user with ID " + userID + ".  Retrieving inventory contents.");
+                    m_log.Info(
+                        "[INVENTORY]: Found root folder for user with ID " + userID + ".  Retrieving inventory contents.");
 
                     inventoryList = plugin.Value.getInventoryFolders(rootFolder.folderID);
                     inventoryList.Insert(0, rootFolder);
@@ -105,8 +106,8 @@ namespace OpenSim.Framework.Communications
                 }
             }
 
-            MainLog.Instance.Warn(
-                "INVENTORY", "Could not find a root folder belonging to user with ID " + userID);
+            m_log.Warn(
+                "[INVENTORY]: Could not find a root folder belonging to user with ID " + userID);
 
             return inventoryList;
         }
@@ -226,10 +227,10 @@ namespace OpenSim.Framework.Communications
             
             if (null != existingRootFolder)
             {
-                MainLog.Instance.Error(
-                    "AGENTINVENTORY", 
-                    "Did not create a new inventory for user {0} since they already have "
-                        + "a root inventory folder with id {1}", user, existingRootFolder);
+                m_log.Error(
+                    String.Format("[AGENTINVENTORY]: " +
+                                  "Did not create a new inventory for user {0} since they already have "
+                                  + "a root inventory folder with id {1}", user, existingRootFolder));
             }
             else
             {                
@@ -251,6 +252,7 @@ namespace OpenSim.Framework.Communications
             public virtual void CreateNewInventorySet(LLUUID user)
             {
                 InventoryFolderBase folder = new InventoryFolderBase();
+
                 folder.parentID = LLUUID.Zero;
                 folder.agentID = user;
                 folder.folderID = LLUUID.Random();

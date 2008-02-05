@@ -54,6 +54,8 @@ namespace OpenSim.Region.Capabilities
 
     public class Caps
     {
+        private static readonly log4net.ILog m_log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+
         private string m_httpListenerHostName;
         private uint m_httpListenPort;
 
@@ -96,7 +98,7 @@ namespace OpenSim.Region.Capabilities
         /// </summary>
         public void RegisterHandlers()
         {
-            MainLog.Instance.Verbose("CAPS", "Registering CAPS handlers");
+            m_log.Info("[CAPS]: Registering CAPS handlers");
             string capsBase = "/CAPS/" + m_capsObjectPath;
             try
             {
@@ -115,7 +117,7 @@ namespace OpenSim.Region.Capabilities
             }
             catch (Exception e)
             {
-                MainLog.Instance.Error("CAPS", e.ToString());
+                m_log.Error("[CAPS]: " + e.ToString());
             }
         }
 
@@ -275,7 +277,7 @@ namespace OpenSim.Region.Capabilities
         {
             try
             {
-//                MainLog.Instance.Debug("CAPS", "request: {0}, path: {1}, param: {2}", request, path, param);
+//                m_log.Debug(String.Format("[CAPS]: request: {0}, path: {1}, param: {2}", request, path, param));
 
                 Hashtable hash = (Hashtable) LLSD.LLSDDeserialize(Helpers.StringToField(request));
                 LLSDTaskScriptUpdate llsdUpdateRequest = new LLSDTaskScriptUpdate();
@@ -303,16 +305,16 @@ namespace OpenSim.Region.Capabilities
                 uploadResponse.uploader = uploaderURL;
                 uploadResponse.state = "upload";
 
-//                MainLog.Instance.Verbose(
-//                    "CAPS", 
-//                    "ScriptTaskInventory response: {0}", 
-//                    LLSDHelpers.SerialiseLLSDReply(uploadResponse));
+//                m_log.Info(
+//                    String.Format("[CAPS]: " +
+//                                  "ScriptTaskInventory response: {0}", 
+//                                  LLSDHelpers.SerialiseLLSDReply(uploadResponse)));
 
                 return LLSDHelpers.SerialiseLLSDReply(uploadResponse);
             }
             catch (Exception e)
             {
-                MainLog.Instance.Error("CAPS", e.ToString());
+                m_log.Error("[CAPS]: " + e.ToString());
             }
 
             return null;
@@ -349,10 +351,10 @@ namespace OpenSim.Region.Capabilities
             uploadResponse.uploader = uploaderURL;
             uploadResponse.state = "upload";
 
-//            MainLog.Instance.Verbose(
-//                "CAPS", 
-//                "NoteCardAgentInventory response: {0}", 
-//                LLSDHelpers.SerialiseLLSDReply(uploadResponse));
+//            m_log.Info(
+//                String.Format("[CAPS]: " +
+//                              "NoteCardAgentInventory response: {0}", 
+//                              LLSDHelpers.SerialiseLLSDReply(uploadResponse)));
 
             return LLSDHelpers.SerialiseLLSDReply(uploadResponse);
         }
@@ -681,10 +683,10 @@ namespace OpenSim.Region.Capabilities
             {
                 try
                 {
-//                    MainLog.Instance.Verbose(
-//                        "CAPS", 
-//                        "TaskInventoryScriptUpdater received data: {0}, path: {1}, param: {2}", 
-//                        data, path, param);
+//                    m_log.Info(
+//                        String.Format("[CAPS]: " + 
+//                                      "TaskInventoryScriptUpdater received data: {0}, path: {1}, param: {2}", 
+//                                      data, path, param));
 
                     string res = String.Empty;
                     LLSDTaskInventoryUploadComplete uploadComplete = new LLSDTaskInventoryUploadComplete();
@@ -707,13 +709,13 @@ namespace OpenSim.Region.Capabilities
                         SaveAssetToFile("updatedtaskscript" + Util.RandomClass.Next(1, 1000) + ".dat", data);
                     }
 
-//                    MainLog.Instance.Verbose("CAPS", "TaskInventoryScriptUpdater.uploaderCaps res: {0}", res);
+//                    m_log.Info(String.Format("[CAPS]: TaskInventoryScriptUpdater.uploaderCaps res: {0}", res));
 
                     return res;
                 }
                 catch (Exception e)
                 {
-                    MainLog.Instance.Error("CAPS", e.ToString());
+                    m_log.Error("[CAPS]: " + e.ToString());
                 }
 
                 // XXX Maybe this should be some meaningful error packet

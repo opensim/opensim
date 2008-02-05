@@ -44,6 +44,8 @@ namespace OpenSim.Framework.Communications.Cache
     /// </summary>
     public class AssetCache : IAssetReceiver
     {
+        private static readonly log4net.ILog m_log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+
         public Dictionary<LLUUID, AssetInfo> Assets;
         public Dictionary<LLUUID, TextureImage> Textures;
 
@@ -61,14 +63,13 @@ namespace OpenSim.Framework.Communications.Cache
         private readonly IAssetServer m_assetServer;
 
         private readonly Thread m_assetCacheThread;
-        private readonly LogBase m_log;
 
         /// <summary>
         /// 
         /// </summary>
-        public AssetCache(IAssetServer assetServer, LogBase log)
+        public AssetCache(IAssetServer assetServer)
         {
-            log.Verbose("ASSETSTORAGE", "Creating Asset cache");
+            m_log.Info("[ASSETSTORAGE]: Creating Asset cache");
             m_assetServer = assetServer;
             m_assetServer.SetReceiver(this);
             Assets = new Dictionary<LLUUID, AssetInfo>();
@@ -76,8 +77,6 @@ namespace OpenSim.Framework.Communications.Cache
             m_assetCacheThread = new Thread(new ThreadStart(RunAssetManager));
             m_assetCacheThread.IsBackground = true;
             m_assetCacheThread.Start();
-
-            m_log = log;
         }
 
         /// <summary>
@@ -94,7 +93,7 @@ namespace OpenSim.Framework.Communications.Cache
                 }
                 catch (Exception e)
                 {
-                    m_log.Error("ASSETCACHE", e.ToString());
+                    m_log.Error("[ASSETCACHE]: " + e.ToString());
                 }
             }
         }
@@ -198,8 +197,8 @@ namespace OpenSim.Framework.Communications.Cache
                 }
             } while (--maxPolls > 0);
 
-            MainLog.Instance.Warn(
-                "ASSETCACHE", "Asset {0} was not received before the retrieval timeout was reached");
+            m_log.Warn(
+                String.Format("[ASSETCACHE]: Asset {0} was not received before the retrieval timeout was reached"));
 
             return null;
         }
@@ -266,7 +265,7 @@ namespace OpenSim.Framework.Communications.Cache
                 }
             }
 
-            m_log.Verbose("ASSETCACHE", "Adding {0} {1} [{2}]: {3}.", temporary, type, asset.FullID, result);
+            m_log.Info(String.Format("[ASSETCACHE]: Adding {0} {1} [{2}]: {3}.", temporary, type, asset.FullID, result));
         }
 
         public void DeleteAsset(LLUUID assetID)
@@ -362,7 +361,7 @@ namespace OpenSim.Framework.Communications.Cache
         {
             //if (this.RequestedTextures.ContainsKey(assetID))
             //{
-            //    MainLog.Instance.Warn("ASSET CACHE", "sending image not found for {0}", assetID);
+            //    m_log.Warn(String.Format("[ASSET CACHE]: sending image not found for {0}", assetID));
             //    AssetRequest req = this.RequestedTextures[assetID];
             //    ImageNotInDatabasePacket notFound = new ImageNotInDatabasePacket();
             //    notFound.ImageID.ID = assetID;
@@ -371,7 +370,7 @@ namespace OpenSim.Framework.Communications.Cache
             //}
             //else
             //{
-            //    MainLog.Instance.Error("ASSET CACHE", "Cound not send image not found for {0}", assetID);
+            //    m_log.Error(String.Format("[ASSET CACHE]: Cound not send image not found for {0}", assetID));
             //}
         }
 

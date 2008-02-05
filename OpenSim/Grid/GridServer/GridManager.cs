@@ -38,11 +38,12 @@ using OpenSim.Framework.Console;
 using OpenSim.Framework.Data;
 using OpenSim.Framework.Servers;
 
-
 namespace OpenSim.Grid.GridServer
 {
     internal class GridManager
     {
+        private static readonly log4net.ILog m_log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+
         private Dictionary<string, IGridData> _plugins = new Dictionary<string, IGridData>();
         private Dictionary<string, ILogData> _logplugins = new Dictionary<string, ILogData>();
 
@@ -57,10 +58,10 @@ namespace OpenSim.Grid.GridServer
         /// <param name="FileName">The filename to the grid server plugin DLL</param>
         public void AddPlugin(string FileName)
         {
-            MainLog.Instance.Verbose("DATA", "Attempting to load " + FileName);
+            m_log.Info("[DATA]: Attempting to load " + FileName);
             Assembly pluginAssembly = Assembly.LoadFrom(FileName);
 
-            MainLog.Instance.Verbose("DATA", "Found " + pluginAssembly.GetTypes().Length + " interfaces.");
+            m_log.Info("[DATA]: Found " + pluginAssembly.GetTypes().Length + " interfaces.");
             foreach (Type pluginType in pluginAssembly.GetTypes())
             {
                 if (!pluginType.IsAbstract)
@@ -74,7 +75,7 @@ namespace OpenSim.Grid.GridServer
                             (IGridData) Activator.CreateInstance(pluginAssembly.GetType(pluginType.ToString()));
                         plug.Initialise();
                         _plugins.Add(plug.getName(), plug);
-                        MainLog.Instance.Verbose("DATA", "Added IGridData Interface");
+                        m_log.Info("[DATA]: Added IGridData Interface");
                     }
 
                     typeInterface = null;
@@ -88,7 +89,7 @@ namespace OpenSim.Grid.GridServer
                             (ILogData) Activator.CreateInstance(pluginAssembly.GetType(pluginType.ToString()));
                         plug.Initialise();
                         _logplugins.Add(plug.getName(), plug);
-                        MainLog.Instance.Verbose("DATA", "Added ILogData Interface");
+                        m_log.Info("[DATA]: Added ILogData Interface");
                     }
 
                     typeInterface = null;
@@ -116,7 +117,7 @@ namespace OpenSim.Grid.GridServer
                 }
                 catch (Exception)
                 {
-                    MainLog.Instance.Warn("storage", "Unable to write log via " + kvp.Key);
+                    m_log.Warn("[storage]: Unable to write log via " + kvp.Key);
                 }
             }
         }
@@ -136,7 +137,7 @@ namespace OpenSim.Grid.GridServer
                 }
                 catch (Exception e)
                 {
-                    MainLog.Instance.Warn("storage", "getRegion - " + e.Message);
+                    m_log.Warn("[storage]: getRegion - " + e.Message);
                 }
             }
             return null;
@@ -157,7 +158,7 @@ namespace OpenSim.Grid.GridServer
                 }
                 catch
                 {
-                    MainLog.Instance.Warn("storage", "Unable to find region " + handle.ToString() + " via " + kvp.Key);
+                    m_log.Warn("[storage]: Unable to find region " + handle.ToString() + " via " + kvp.Key);
                 }
             }
             return null;
@@ -179,7 +180,7 @@ namespace OpenSim.Grid.GridServer
                 }
                 catch
                 {
-                    MainLog.Instance.Warn("storage", "Unable to query regionblock via " + kvp.Key);
+                    m_log.Warn("[storage]: Unable to query regionblock via " + kvp.Key);
                 }
             }
 
@@ -245,14 +246,14 @@ namespace OpenSim.Grid.GridServer
             }
             else
             {
-                MainLog.Instance.Verbose("GRID", "Region connected without a UUID, ignoring.");
+                m_log.Info("[GRID]: Region connected without a UUID, ignoring.");
                 responseData["error"] = "No UUID passed to grid server - unable to connect you";
                 return response;
             }
 
             if (TheSim == null) // Shouldnt this be in the REST Simulator Set method?
             {
-                MainLog.Instance.Verbose("GRID", "New region connecting");
+                m_log.Info("[GRID]: New region connecting");
                 myword = "creation";
             }
             else
@@ -320,7 +321,7 @@ namespace OpenSim.Grid.GridServer
                     (OldSim.regionRecvKey == TheSim.regionRecvKey &&
                     OldSim.regionSendKey == TheSim.regionSendKey))
                 {
-                    MainLog.Instance.Verbose("GRID", "Adding region " + TheSim.regionLocX + " , " + TheSim.regionLocY + " , " +
+                    m_log.Info("[GRID]: Adding region " + TheSim.regionLocX + " , " + TheSim.regionLocY + " , " +
                       TheSim.serverURI);
                     foreach (KeyValuePair<string, IGridData> kvp in _plugins)
                     {
@@ -330,17 +331,17 @@ namespace OpenSim.Grid.GridServer
                             switch (insertResponse)
                             {
                                 case DataResponse.RESPONSE_OK:
-                                    MainLog.Instance.Verbose("grid", "New sim " + myword + " successful: " + TheSim.regionName);
+                                    m_log.Info("[grid]: New sim " + myword + " successful: " + TheSim.regionName);
                                     break;
                                 case DataResponse.RESPONSE_ERROR:
-                                    MainLog.Instance.Warn("storage", "New sim creation failed (Error): " + TheSim.regionName);
+                                    m_log.Warn("[storage]: New sim creation failed (Error): " + TheSim.regionName);
                                     break;
                                 case DataResponse.RESPONSE_INVALIDCREDENTIALS:
-                                    MainLog.Instance.Warn("storage",
+                                    m_log.Warn("[storage]: " +
                                                           "New sim creation failed (Invalid Credentials): " + TheSim.regionName);
                                     break;
                                 case DataResponse.RESPONSE_AUTHREQUIRED:
-                                    MainLog.Instance.Warn("storage",
+                                    m_log.Warn("[storage]: " +
                                                           "New sim creation failed (Authentication Required): " +
                                                           TheSim.regionName);
                                     break;
@@ -348,9 +349,9 @@ namespace OpenSim.Grid.GridServer
                         }
                         catch (Exception e)
                         {
-                            MainLog.Instance.Warn("storage",
+                            m_log.Warn("[storage]: " +
                                                   "Unable to add region " + TheSim.UUID.ToString() + " via " + kvp.Key);
-                            MainLog.Instance.Warn("storage", e.ToString());
+                            m_log.Warn("[storage]: " + e.ToString());
                         }
 
 
@@ -458,14 +459,14 @@ namespace OpenSim.Grid.GridServer
                 }
                 else
                 {
-                    MainLog.Instance.Warn("grid", "Authentication failed when trying to add new region " + TheSim.regionName + " at location " + TheSim.regionLocX + " " + TheSim.regionLocY + " currently occupied by " + OldSim.regionName);
+                    m_log.Warn("[grid]: Authentication failed when trying to add new region " + TheSim.regionName + " at location " + TheSim.regionLocX + " " + TheSim.regionLocY + " currently occupied by " + OldSim.regionName);
                     responseData["error"] = "The key required to connect to your region did not match. Please check your send and recieve keys.";
                     return response;
                 }
             }
             else
             {
-                MainLog.Instance.Warn("grid", "Failed to add new region " + TheSim.regionName + " at location " + TheSim.regionLocX + " " + TheSim.regionLocY + " currently occupied by " + OldSim.regionName);
+                m_log.Warn("[grid]: Failed to add new region " + TheSim.regionName + " at location " + TheSim.regionLocX + " " + TheSim.regionLocY + " currently occupied by " + OldSim.regionName);
                 responseData["error"] = "Another region already exists at that location. Try another";
                 return response;
             }
@@ -496,7 +497,7 @@ namespace OpenSim.Grid.GridServer
             }
             else
             {
-                MainLog.Instance.Verbose("DATA", "found " + (string) simData.regionName + " regionHandle = " +
+                m_log.Info("[DATA]: found " + (string) simData.regionName + " regionHandle = " +
                                                  (string) requestData["region_handle"]);
                 responseData["sim_ip"] = Util.GetHostFromDNS(simData.serverIP).ToString();
                 responseData["sim_port"] = simData.serverPort.ToString();
@@ -535,8 +536,8 @@ namespace OpenSim.Grid.GridServer
             {
                 ymax = (Int32) requestData["ymax"];
             }
-            //CFK: The second MainLog is more meaningful and either standard or fast generally occurs.
-            //CFK: MainLog.Instance.Verbose("MAP", "World map request for range (" + xmin + "," + ymin + ")..(" + xmax + "," + ymax + ")");
+            //CFK: The second log is more meaningful and either standard or fast generally occurs.
+            //CFK: m_log.Info("[MAP]: World map request for range (" + xmin + "," + ymin + ")..(" + xmax + "," + ymax + ")");
 
             XmlRpcResponse response = new XmlRpcResponse();
             Hashtable responseData = new Hashtable();
@@ -575,7 +576,7 @@ namespace OpenSim.Grid.GridServer
 
                     simProfileList.Add(simProfileBlock);
                 }
-                MainLog.Instance.Verbose("MAP", "Fast map " + simProfileList.Count.ToString() +
+                m_log.Info("[MAP]: Fast map " + simProfileList.Count.ToString() +
                                                 " regions @ (" + xmin + "," + ymin + ")..(" + xmax + "," + ymax + ")");
             }
             else
@@ -610,7 +611,7 @@ namespace OpenSim.Grid.GridServer
                         }
                     }
                 }
-                MainLog.Instance.Verbose("MAP", "Std map " + simProfileList.Count.ToString() +
+                m_log.Info("[MAP]: Std map " + simProfileList.Count.ToString() +
                                                 " regions @ (" + xmin + "," + ymin + ")..(" + xmax + "," + ymax + ")");
             }
 
@@ -776,7 +777,7 @@ namespace OpenSim.Grid.GridServer
 
             try
             {
-                MainLog.Instance.Verbose("DATA",
+                m_log.Info("[DATA]: " +
                                          "Updating / adding via " + _plugins.Count + " storage provider(s) registered.");
                 foreach (KeyValuePair<string, IGridData> kvp in _plugins)
                 {
@@ -789,13 +790,13 @@ namespace OpenSim.Grid.GridServer
                             (reserveData == null && authkeynode.InnerText != TheSim.regionRecvKey))
                         {
                             kvp.Value.AddProfile(TheSim);
-                            MainLog.Instance.Verbose("grid", "New sim added to grid (" + TheSim.regionName + ")");
+                            m_log.Info("[grid]: New sim added to grid (" + TheSim.regionName + ")");
                             logToDB(TheSim.UUID.ToString(), "RestSetSimMethod", String.Empty, 5,
                                     "Region successfully updated and connected to grid.");
                         }
                         else
                         {
-                            MainLog.Instance.Warn("grid",
+                            m_log.Warn("[grid]: " +
                                                   "Unable to update region (RestSetSimMethod): Incorrect reservation auth key.");
                             // Wanted: " + reserveData.gridRecvKey + ", Got: " + TheSim.regionRecvKey + ".");
                             return "Unable to update region (RestSetSimMethod): Incorrect auth key.";
@@ -803,7 +804,7 @@ namespace OpenSim.Grid.GridServer
                     }
                     catch (Exception e)
                     {
-                        MainLog.Instance.Warn("GRID", "getRegionPlugin Handle " + kvp.Key + " unable to add new sim: " +
+                        m_log.Warn("[GRID]: getRegionPlugin Handle " + kvp.Key + " unable to add new sim: " +
                                                       e.ToString());
                     }
                 }

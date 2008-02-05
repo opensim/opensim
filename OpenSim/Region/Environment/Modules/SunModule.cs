@@ -39,6 +39,8 @@ namespace OpenSim.Region.Environment.Modules
 {
     public class SunModule : IRegionModule
     {
+        private static readonly log4net.ILog m_log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+
         private const double m_real_day = 24.0;
         private const int m_default_frame = 100;
         private int m_frame_mod;
@@ -48,7 +50,6 @@ namespace OpenSim.Region.Environment.Modules
         private long m_start;
 
         private Scene m_scene;
-        private LogBase m_log;
 
         public void Initialise(Scene scene, IConfigSource config)
         {
@@ -69,7 +70,6 @@ namespace OpenSim.Region.Environment.Modules
 
             m_dilation = (int) (m_real_day/m_day_length);
             m_scene = scene;
-            m_log = MainLog.Instance;
             scene.EventManager.OnFrame += SunUpdate;
             scene.EventManager.OnNewClient += SunToClient;
         }
@@ -104,7 +104,7 @@ namespace OpenSim.Region.Environment.Modules
                 m_frame++;
                 return;
             }
-            // m_log.Verbose("SUN","I've got an update {0} => {1}", m_scene.RegionsInfo.RegionName, HourOfTheDay());
+            // m_log.Info("[SUN]: I've got an update {0} => {1}", m_scene.RegionsInfo.RegionName, HourOfTheDay());
             List<ScenePresence> avatars = m_scene.GetAvatars();
             foreach (ScenePresence avatar in avatars)
             {

@@ -44,6 +44,8 @@ namespace OpenSim.Framework.AssetLoader.Filesystem
 { 
     public class AssetLoaderFileSystem : IAssetLoader
     {
+        private static readonly log4net.ILog m_log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+
         protected AssetBase CreateAsset(string assetIdStr, string name, string path, bool isImage)
         {
             AssetBase asset = new AssetBase(
@@ -53,13 +55,13 @@ namespace OpenSim.Framework.AssetLoader.Filesystem
 
             if (!String.IsNullOrEmpty(path))
             {
-                MainLog.Instance.Verbose("ASSETS", "Loading: [{0}][{1}]", name, path);
+                m_log.Info(String.Format("[ASSETS]: Loading: [{0}][{1}]", name, path));
 
                 LoadAsset(asset, isImage, path);
             }
             else
             {
-                MainLog.Instance.Verbose("ASSETS", "Instantiated: [{0}]", name);
+                m_log.Info(String.Format("[ASSETS]: Instantiated: [{0}]", name));
             }
 
             return asset;
@@ -106,14 +108,12 @@ namespace OpenSim.Framework.AssetLoader.Filesystem
                 }
                 catch (XmlException e)
                 {
-                    MainLog.Instance.Error("ASSETS", "Error loading {0} : {1}", assetSetPath, e);
+                    m_log.Error(String.Format("[ASSETS]: Error loading {0} : {1}", assetSetPath, e));
                 }                
             }
             else
             {
-                MainLog.Instance.Error(
-                    "ASSETS", 
-                    "Asset set control file assets/AssetSets.xml does not exist!  No assets loaded.");
+                m_log.Error("[ASSETS]: Asset set control file assets/AssetSets.xml does not exist!  No assets loaded.");
             }
                                         
             assets.ForEach(action);
@@ -126,7 +126,7 @@ namespace OpenSim.Framework.AssetLoader.Filesystem
         /// <param name="assets"></param>
         protected void LoadXmlAssetSet(string assetSetPath, List<AssetBase> assets)
         {
-            MainLog.Instance.Verbose("ASSETS", "Loading asset set {0}", assetSetPath);
+            m_log.Info(String.Format("[ASSETS]: Loading asset set {0}", assetSetPath));
             
             if (File.Exists(assetSetPath))
             {
@@ -152,12 +152,12 @@ namespace OpenSim.Framework.AssetLoader.Filesystem
                 }
                 catch (XmlException e)
                 {
-                    MainLog.Instance.Error("ASSETS", "Error loading {0} : {1}", assetSetPath, e);
+                    m_log.Error(String.Format("[ASSETS]: Error loading {0} : {1}", assetSetPath, e));
                 }
             }
             else
             {
-                MainLog.Instance.Error("ASSETS", "Asset set file {0} does not exist!", assetSetPath);
+                m_log.Error(String.Format("[ASSETS]: Asset set file {0} does not exist!", assetSetPath));
             }
         }        
     }

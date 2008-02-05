@@ -36,6 +36,8 @@ namespace OpenSim.Framework.Communications
 {
     public class CommunicationsManager
     {
+        private static readonly log4net.ILog m_log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+
         protected IUserService m_userService;
 
         public IUserService UserService
@@ -114,11 +116,11 @@ namespace OpenSim.Framework.Communications
 
                     if (cmmdParams.Length < 2)
                     {
-                        firstName = MainLog.Instance.CmdPrompt("First name", "Default");
-                        lastName = MainLog.Instance.CmdPrompt("Last name", "User");
-                        password = MainLog.Instance.PasswdPrompt("Password");
-                        regX = Convert.ToUInt32(MainLog.Instance.CmdPrompt("Start Region X", "1000"));
-                        regY = Convert.ToUInt32(MainLog.Instance.CmdPrompt("Start Region Y", "1000"));
+                        firstName = MainConsole.Instance.CmdPrompt("First name", "Default");
+                        lastName = MainConsole.Instance.CmdPrompt("Last name", "User");
+                        password = MainConsole.Instance.PasswdPrompt("Password");
+                        regX = Convert.ToUInt32(MainConsole.Instance.CmdPrompt("Start Region X", "1000"));
+                        regY = Convert.ToUInt32(MainConsole.Instance.CmdPrompt("Start Region Y", "1000"));
                     }
                     else
                     {

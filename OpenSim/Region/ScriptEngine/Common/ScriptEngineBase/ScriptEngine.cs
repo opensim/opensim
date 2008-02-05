@@ -26,7 +26,6 @@
 * 
 */
 
-
 using System;
 using System.IO;
 using Nini.Config;
@@ -45,6 +44,8 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
     [Serializable]
     public abstract class ScriptEngine : IRegionModule, OpenSim.Region.ScriptEngine.Common.ScriptServerInterfaces.ScriptEngine, iScriptEngineFunctionModule
     {
+        private static readonly log4net.ILog m_log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+
         public Scene World;
         public EventManager m_EventManager;                         // Handles and queues incoming events from OpenSim
         public EventQueueManager m_EventQueueManager;               // Executes events, handles script threads
@@ -73,7 +74,10 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
 
         public abstract ScriptManager _GetScriptManager();
 
-        private LogBase m_log;
+        public log4net.ILog Log
+        {
+            get { return m_log; }
+        }
 
         public ScriptEngine()
         {
@@ -81,25 +85,18 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
             Common.mySE = this;
         }
 
-        public LogBase Log
-        {
-            get { return m_log; }
-        }
-
-        public void InitializeEngine(Scene Sceneworld, IConfigSource config, LogBase logger, bool HookUpToServer, ScriptManager newScriptManager)
+        public void InitializeEngine(Scene Sceneworld, IConfigSource config, bool HookUpToServer, ScriptManager newScriptManager)
         {
             World = Sceneworld;
-            m_log = logger;
             ConfigSource = config;
-            Log.Verbose(ScriptEngineName, "ScriptEngine initializing");
+            m_log.Info("[" + ScriptEngineName + "]: ScriptEngine initializing");
 
             // Make sure we have config
             if (ConfigSource.Configs[ScriptEngineName] == null)
                 ConfigSource.AddConfig(ScriptEngineName);
             ScriptConfigSource = ConfigSource.Configs[ScriptEngineName];
 
-
-            //m_logger.Status(ScriptEngineName, "InitializeEngine");
+            //m_log.Info("[" + ScriptEngineName + "]: InitializeEngine");
 
             // Create all objects we'll be using
             m_EventQueueManager = new EventQueueManager(this);
@@ -111,10 +108,8 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
             m_ASYNCLSLCommandManager = new AsyncLSLCommandManager(this);
             m_MaintenanceThread = new MaintenanceThread(this);
 
-            Log.Verbose(ScriptEngineName, "Reading configuration from config section \"" + ScriptEngineName + "\"");
+            m_log.Info("[" + ScriptEngineName + "]: Reading configuration from config section \"" + ScriptEngineName + "\"");
             ReadConfig();
-
-
 
             // Should we iterate the region for scripts that needs starting?
             // Or can we assume we are loaded before anything else so we can use proper events?
@@ -129,10 +124,11 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
         {
             return this.m_EventManager;
         }
+
         public void ReadConfig()
         {
 //#if DEBUG
-//            Log.Debug(ScriptEngineName, "Refreshing configuration for all modules");
+//            m_log.Debug("[" + ScriptEngineName + "]: Refreshing configuration for all modules");
 //#endif
             RefreshConfigFileSeconds = ScriptConfigSource.GetInt("RefreshConfig", 30);
 
@@ -153,9 +149,7 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
             if (m_AppDomainManager != null) m_AppDomainManager.ReadConfig();
             if (m_ASYNCLSLCommandManager != null) m_ASYNCLSLCommandManager.ReadConfig();
             if (m_MaintenanceThread != null) m_MaintenanceThread.ReadConfig();
-
         }
-
 
         #region IRegionModule
 
@@ -178,8 +172,6 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
         {
             get { return false; }
         }
-
-        
 
         #endregion
 

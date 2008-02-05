@@ -39,6 +39,8 @@ namespace OpenSim.Grid.UserServer
 {
     public class UserManager : UserManagerBase
     {            
+        private static readonly log4net.ILog m_log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+
         /// <summary>
         /// Deletes an active agent session
         /// </summary>
@@ -106,6 +108,7 @@ namespace OpenSim.Grid.UserServer
 
             return response;
         }
+
         /// <summary>
         /// Converts a user profile to an XML element which can be returned
         /// </summary>
@@ -202,7 +205,6 @@ namespace OpenSim.Grid.UserServer
             responseData["returnString"] = returnString;
             response.Value = responseData;
             return response;
-        
         }
 
         public XmlRpcResponse XmlRpcResponseXmlRPCUpdateUserFriendPerms(XmlRpcRequest request)
@@ -212,8 +214,6 @@ namespace OpenSim.Grid.UserServer
             Hashtable responseData = new Hashtable();
             string returnString = "FALSE";
            
-
-            
             if (requestData.Contains("ownerID") && requestData.Contains("friendID") && requestData.Contains("friendPerms"))
             {
                 UpdateUserFriendPerms(new LLUUID((string)requestData["ownerID"]), new LLUUID((string)requestData["friendID"]), (uint)Convert.ToInt32((string)requestData["friendPerms"]));
@@ -232,8 +232,6 @@ namespace OpenSim.Grid.UserServer
             Hashtable responseData = new Hashtable();
 
             List<FriendListItem> returndata = new List<FriendListItem>();
-
-
 
             if (requestData.Contains("ownerID"))
             {
@@ -309,7 +307,6 @@ namespace OpenSim.Grid.UserServer
                 return CreateUnknownUserErrorResponse();
             }
 
-
             return ProfileToXmlRPCResponse(userProfile);
         }
 
@@ -317,7 +314,6 @@ namespace OpenSim.Grid.UserServer
         {
             XmlRpcResponse response = new XmlRpcResponse();
             Hashtable requestData = (Hashtable)request.Params[0];
-            
             
             UserProfileData userProfile;
 
@@ -336,16 +332,14 @@ namespace OpenSim.Grid.UserServer
                 }
                 catch (FormatException)
                 {
-                    OpenSim.Framework.Console.MainLog.Instance.Warn("LOGOUT", "Error in Logout XMLRPC Params");
+                    m_log.Warn("[LOGOUT]: Error in Logout XMLRPC Params");
                     return response;
                 }
-
             }
             else
             {
                 return CreateUnknownUserErrorResponse();
             }
-
 
             return response;
         }

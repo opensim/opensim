@@ -40,11 +40,12 @@ namespace OpenSim.Grid.ScriptServer
 {
     public class ScriptServerMain : BaseOpenSimServer, conscmd_callback
     {
+        private static readonly log4net.ILog m_log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+
         //
         // Root object. Creates objects used.
         //
         private int listenPort = 8010;
-        private readonly string m_logFilename = ("scriptserver.log");
 
         // TEMP
         public static ScriptServerInterfaces.ScriptEngine Engine;
@@ -59,16 +60,15 @@ namespace OpenSim.Grid.ScriptServer
 
                 public ScriptServerMain()
         {
-            m_log = CreateLog();
-
+            m_console = CreateConsole();
 
             // Set up script engine mananger
-            ScriptEngines = new ScriptEngineManager(this, m_log);
+            ScriptEngines = new ScriptEngineManager(this);
 
             // Load DotNetEngine
             Engine = ScriptEngines.LoadEngine("DotNetEngine");
                     IConfigSource config = null;
-            Engine.InitializeEngine(null, null, m_log, false, Engine.GetScriptManager());
+            Engine.InitializeEngine(null, null, false, Engine.GetScriptManager());
                     
 
             // Set up server
@@ -83,12 +83,12 @@ namespace OpenSim.Grid.ScriptServer
 
         private void RPC_ReceiveCommand(int ID, string Command, object[] p)
         {
-            m_log.Notice("SERVER", "Received command: '" + Command + "'");
+            m_log.Info("[SERVER]: Received command: '" + Command + "'");
             if (p != null)
             {
                 for (int i = 0; i < p.Length; i++)
                 {
-                    m_log.Notice("SERVER", "Param " + i + ": " + p[i].ToString());
+                    m_log.Info("[SERVER]: Param " + i + ": " + p[i].ToString());
                 }
             }
 
@@ -102,14 +102,9 @@ namespace OpenSim.Grid.ScriptServer
         {
         }
 
-        protected LogBase CreateLog()
+        protected ConsoleBase CreateConsole()
         {
-            if (!Directory.Exists(Util.logDir()))
-            {
-                Directory.CreateDirectory(Util.logDir());
-            }
-
-            return new LogBase((Path.Combine(Util.logDir(), m_logFilename)), "ScriptServer", this, true);
+            return new ConsoleBase("ScriptServer", this);
         }
     }
 }

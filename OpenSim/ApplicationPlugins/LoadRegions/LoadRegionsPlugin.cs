@@ -40,19 +40,21 @@ namespace OpenSim.ApplicationPlugins.LoadRegions
     [Extension("/OpenSim/Startup")]
     public class LoadRegionsPlugin : IApplicationPlugin
     {
+        private static readonly log4net.ILog m_log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+
         public void Initialise(OpenSimMain openSim)
         {
-            MainLog.Instance.Notice("LOADREGIONS", "Load Regions addin being initialised");
+            m_log.Info("[LOADREGIONS]: Load Regions addin being initialised");
 
             IRegionLoader regionLoader;
             if (openSim.ConfigSource.Configs["Startup"].GetString("region_info_source", "filesystem") == "filesystem")
             {
-                MainLog.Instance.Notice("LOADREGIONS", "Loading Region Info from filesystem");
+                m_log.Info("[LOADREGIONS]: Loading Region Info from filesystem");
                 regionLoader = new RegionLoaderFileSystem();
             }
             else
             {
-                MainLog.Instance.Notice("LOADREGIONSPLUGIN", "Loading Region Info from web");
+                m_log.Info("[LOADREGIONSPLUGIN]: Loading Region Info from web");
                 regionLoader = new RegionLoaderWebServer();
             }
 
@@ -63,7 +65,7 @@ namespace OpenSim.ApplicationPlugins.LoadRegions
 
             for (int i = 0; i < regionsToLoad.Length; i++)
             {
-                MainLog.Instance.Debug("LOADREGIONS", "Creating Region: " + regionsToLoad[i].RegionName + " (ThreadID: " + System.Threading.Thread.CurrentThread.ManagedThreadId.ToString() + ")");
+                m_log.Debug("[LOADREGIONS]: Creating Region: " + regionsToLoad[i].RegionName + " (ThreadID: " + System.Threading.Thread.CurrentThread.ManagedThreadId.ToString() + ")");
                 openSim.CreateRegion(regionsToLoad[i]);
             }
 
@@ -73,17 +75,17 @@ namespace OpenSim.ApplicationPlugins.LoadRegions
 
         public void LoadRegionFromConfig(OpenSimMain openSim, ulong regionhandle)
         {
-            MainLog.Instance.Notice("LOADREGIONS", "Load Regions addin being initialised");
+            m_log.Info("[LOADREGIONS]: Load Regions addin being initialised");
 
             IRegionLoader regionLoader;
             if (openSim.ConfigSource.Configs["Startup"].GetString("region_info_source", "filesystem") == "filesystem")
             {
-                MainLog.Instance.Notice("LOADREGIONS", "Loading Region Info from filesystem");
+                m_log.Info("[LOADREGIONS]: Loading Region Info from filesystem");
                 regionLoader = new RegionLoaderFileSystem();
             }
             else
             {
-                MainLog.Instance.Notice("LOADREGIONS", "Loading Region Info from web");
+                m_log.Info("[LOADREGIONS]: Loading Region Info from web");
                 regionLoader = new RegionLoaderWebServer();
             }
 
@@ -93,7 +95,7 @@ namespace OpenSim.ApplicationPlugins.LoadRegions
             {
                 if (regionhandle == regionsToLoad[i].RegionHandle)
                 {
-                    MainLog.Instance.Debug("LOADREGIONS", "Creating Region: " + regionsToLoad[i].RegionName + " (ThreadID: " + System.Threading.Thread.CurrentThread.ManagedThreadId.ToString() + ")");
+                    m_log.Debug("[LOADREGIONS]: Creating Region: " + regionsToLoad[i].RegionName + " (ThreadID: " + System.Threading.Thread.CurrentThread.ManagedThreadId.ToString() + ")");
                     openSim.CreateRegion(regionsToLoad[i]);
                 }
             }

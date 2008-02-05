@@ -35,6 +35,8 @@ namespace OpenSim.Region.Environment
 {
     public class StorageManager
     {
+        private static readonly log4net.ILog m_log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+
         private IRegionDataStore m_dataStore;
 
         public IRegionDataStore DataStore
@@ -49,7 +51,7 @@ namespace OpenSim.Region.Environment
 
         public StorageManager(string dllName, string connectionstring, bool persistPrimInventories)
         {
-            MainLog.Instance.Verbose("DATASTORE", "Attempting to load " + dllName);
+            m_log.Info("[DATASTORE]: Attempting to load " + dllName);
             Assembly pluginAssembly = Assembly.LoadFrom(dllName);
 
             foreach (Type pluginType in pluginAssembly.GetTypes())
@@ -66,7 +68,7 @@ namespace OpenSim.Region.Environment
 
                         m_dataStore = plug;
 
-                        MainLog.Instance.Verbose("DATASTORE", "Added IRegionDataStore Interface");
+                        m_log.Info("[DATASTORE]: Added IRegionDataStore Interface");
                     }
                 }
             }

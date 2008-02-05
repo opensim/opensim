@@ -36,6 +36,8 @@ namespace OpenSim.Region.Environment.Modules
 {
     public class TextureSender
     {
+        private static readonly log4net.ILog m_log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+
         public int counter = 0;
         private AssetBase m_asset;
         public long DataPointer = 0;
@@ -135,9 +137,8 @@ namespace OpenSim.Region.Environment.Modules
                     }
                     catch (ArgumentOutOfRangeException)
                     {
-                        MainLog.Instance.Error("TEXTURE",
-                                               "Unable to separate texture into multiple packets: Array bounds failure on asset:" +
-                                               m_asset.FullID.ToString() );
+                        m_log.Error("[TEXTURE]: Unable to separate texture into multiple packets: Array bounds failure on asset:" +
+                                    m_asset.FullID.ToString() );
                         return;
                     }
                     RequestUser.OutPacket(im, ThrottleOutPacketType.Texture);

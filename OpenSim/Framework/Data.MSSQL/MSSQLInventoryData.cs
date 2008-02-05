@@ -39,6 +39,8 @@ namespace OpenSim.Framework.Data.MSSQL
     /// </summary>
     public class MSSQLInventoryData : IInventoryData
     {
+        private static readonly log4net.ILog m_log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+
         /// <summary>
         /// The database manager
         /// </summary>
@@ -159,7 +161,7 @@ namespace OpenSim.Framework.Data.MSSQL
             catch (Exception e)
             {
                 database.Reconnect();
-                MainLog.Instance.Error(e.ToString());
+                m_log.Error(e.ToString());
                 return null;
             }
         }
@@ -198,7 +200,7 @@ namespace OpenSim.Framework.Data.MSSQL
             catch (Exception e)
             {
                 database.Reconnect();
-                MainLog.Instance.Error(e.ToString());
+                m_log.Error(e.ToString());
                 return null;
             }
         }
@@ -244,7 +246,7 @@ namespace OpenSim.Framework.Data.MSSQL
             catch (Exception e)
             {
                 database.Reconnect();
-                MainLog.Instance.Error(e.ToString());
+                m_log.Error(e.ToString());
                 return null;
             }
         }
@@ -282,7 +284,7 @@ namespace OpenSim.Framework.Data.MSSQL
             catch (Exception e)
             {
                 database.Reconnect();
-                MainLog.Instance.Error(e.ToString());
+                m_log.Error(e.ToString());
                 return null;
             }
         }
@@ -315,7 +317,7 @@ namespace OpenSim.Framework.Data.MSSQL
             }
             catch (SqlException e)
             {
-                MainLog.Instance.Error(e.ToString());
+                m_log.Error(e.ToString());
             }
 
             return null;
@@ -352,7 +354,7 @@ namespace OpenSim.Framework.Data.MSSQL
             catch (Exception e)
             {
                 database.Reconnect();
-                MainLog.Instance.Error(e.ToString());
+                m_log.Error(e.ToString());
             }
             return null;
         }
@@ -377,7 +379,7 @@ namespace OpenSim.Framework.Data.MSSQL
             }
             catch (Exception e)
             {
-                MainLog.Instance.Error(e.ToString());
+                m_log.Error(e.ToString());
             }
 
             return null;
@@ -412,7 +414,7 @@ namespace OpenSim.Framework.Data.MSSQL
             catch (Exception e)
             {
                 database.Reconnect();
-                MainLog.Instance.Error(e.ToString());
+                m_log.Error(e.ToString());
                 return null;
             }
         }
@@ -452,7 +454,7 @@ namespace OpenSim.Framework.Data.MSSQL
             }
             catch (SqlException e)
             {
-                MainLog.Instance.Error(e.ToString());
+                m_log.Error(e.ToString());
             }
         }
 
@@ -511,7 +513,7 @@ namespace OpenSim.Framework.Data.MSSQL
             }
             catch (Exception e)
             {
-                MainLog.Instance.Error(e.ToString());
+                m_log.Error(e.ToString());
             }
         }
 
@@ -533,7 +535,7 @@ namespace OpenSim.Framework.Data.MSSQL
             catch (SqlException e)
             {
                 database.Reconnect();
-                MainLog.Instance.Error(e.ToString());
+                m_log.Error(e.ToString());
             }
         }
 
@@ -564,7 +566,7 @@ namespace OpenSim.Framework.Data.MSSQL
             }
             catch (Exception e)
             {
-                MainLog.Instance.Error(e.ToString());
+                m_log.Error(e.ToString());
             }
         }
 
@@ -602,7 +604,7 @@ namespace OpenSim.Framework.Data.MSSQL
             }
             catch (Exception e)
             {
-                MainLog.Instance.Error(e.ToString());
+                m_log.Error(e.ToString());
             }
         }
 
@@ -628,7 +630,7 @@ namespace OpenSim.Framework.Data.MSSQL
             }
             catch (Exception e)
             {
-                MainLog.Instance.Error(e.ToString());
+                m_log.Error(e.ToString());
             }
         }
 
@@ -675,7 +677,7 @@ namespace OpenSim.Framework.Data.MSSQL
             catch (SqlException e)
             {
                 database.Reconnect();
-                MainLog.Instance.Error(e.ToString());
+                m_log.Error(e.ToString());
             }
         }
 
@@ -695,7 +697,7 @@ namespace OpenSim.Framework.Data.MSSQL
             catch (SqlException e)
             {
                 database.Reconnect();
-                MainLog.Instance.Error(e.ToString());
+                m_log.Error(e.ToString());
             }
         }
 

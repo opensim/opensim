@@ -31,7 +31,7 @@ namespace OpenSim.Framework.Servers
     /*
    public class CheckSumServer : UDPServerBase
     {
-        //protected ConsoleBase m_log;
+        private static readonly log4net.ILog m_log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 
         public CheckSumServer(int port)
             : base(port)
@@ -114,7 +114,7 @@ namespace OpenSim.Framework.Servers
             }
             catch (Exception)
             {
-                MainLog.Instance.Warn("CheckSumServer.cs:ProcessOutPacket() - WARNING: Socket exception occurred on connection ");
+                m_log.Warn("CheckSumServer.cs:ProcessOutPacket() - WARNING: Socket exception occurred on connection ");
             }
         }
 

@@ -41,6 +41,8 @@ namespace OpenSim.Framework.Servers
 {
     public class BaseHttpServer
     {
+        private static readonly log4net.ILog m_log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+
         protected Thread m_workerThread;
         protected HttpListener m_httpListener;
         protected Dictionary<string, XmlRpcMethod> m_rpcHandlers = new Dictionary<string, XmlRpcMethod>();
@@ -296,7 +298,7 @@ namespace OpenSim.Framework.Servers
             }
             catch (Exception ex)
             {
-                MainLog.Instance.Warn("HTTPD", "Error - " + ex.Message);
+                m_log.Warn("[HTTPD]: Error - " + ex.Message);
             }
             finally
             {
@@ -319,7 +321,7 @@ namespace OpenSim.Framework.Servers
             LLSD llsdResponse = null;
 
             try { llsdRequest = LLSDParser.DeserializeXml(requestBody); }
-            catch (Exception ex) { MainLog.Instance.Warn("HTTPD", "Error - " + ex.Message); }
+            catch (Exception ex) { m_log.Warn("[HTTPD]: Error - " + ex.Message); }
 
             if (llsdRequest != null && m_llsdHandler != null)
             {
@@ -348,7 +350,7 @@ namespace OpenSim.Framework.Servers
             }
             catch (Exception ex)
             {
-                MainLog.Instance.Warn("HTTPD", "Error - " + ex.Message);
+                m_log.Warn("[HTTPD]: Error - " + ex.Message);
             }
             finally
             {
@@ -396,7 +398,7 @@ namespace OpenSim.Framework.Servers
 
             foreach (string headername in rHeaders)
             {
-                //MainLog.Instance.Warn("HEADER", headername + "=" + request.Headers[headername]);
+                //m_log.Warn("[HEADER]: " + headername + "=" + request.Headers[headername]);
                 headervals[headername] = request.Headers[headername];
             }
 
@@ -407,9 +409,9 @@ namespace OpenSim.Framework.Servers
 
             if (keysvals.Contains("method"))
             {
-                //MainLog.Instance.Warn("HTTP", "Contains Method");
+                //m_log.Warn("[HTTP]: Contains Method");
                 string method = (string) keysvals["method"];
-                //MainLog.Instance.Warn("HTTP", requestBody);
+                //m_log.Warn("[HTTP]: " + requestBody);
                 GenericHTTPMethod requestprocessor;
                 bool foundHandler = TryGetHTTPHandler(method, out requestprocessor);
                 if (foundHandler)
@@ -422,13 +424,13 @@ namespace OpenSim.Framework.Servers
                 }
                 else
                 {
-                    //MainLog.Instance.Warn("HTTP", "Handler Not Found");
+                    //m_log.Warn("[HTTP]: Handler Not Found");
                     SendHTML404(response, host);
                 }
             }
             else
             {
-                //MainLog.Instance.Warn("HTTP", "No Method specified");
+                //m_log.Warn("[HTTP]: No Method specified");
                 SendHTML404(response, host);
             }
         }
@@ -461,7 +463,7 @@ namespace OpenSim.Framework.Servers
             }
             catch (Exception ex)
             {
-                MainLog.Instance.Warn("HTTPD", "Error - " + ex.Message);
+                m_log.Warn("[HTTPD]: Error - " + ex.Message);
             }
             finally
             {
@@ -488,7 +490,7 @@ namespace OpenSim.Framework.Servers
             }
             catch (Exception ex)
             {
-                MainLog.Instance.Warn("HTTPD", "Error - " + ex.Message);
+                m_log.Warn("[HTTPD]: Error - " + ex.Message);
             }
             finally
             {
@@ -513,7 +515,7 @@ namespace OpenSim.Framework.Servers
             }
             catch (Exception ex)
             {
-                MainLog.Instance.Warn("HTTPD", "Error - " + ex.Message);
+                m_log.Warn("[HTTPD]: Error - " + ex.Message);
             }
             finally
             {
@@ -523,7 +525,7 @@ namespace OpenSim.Framework.Servers
 
         public void Start()
         {
-            MainLog.Instance.Verbose("HTTPD", "Starting up HTTP Server");
+            m_log.Info("[HTTPD]: Starting up HTTP Server");
 
             m_workerThread = new Thread(new ThreadStart(StartHTTP));
             m_workerThread.IsBackground = true;
@@ -534,7 +536,7 @@ namespace OpenSim.Framework.Servers
         {
             try
             {
-                MainLog.Instance.Verbose("HTTPD", "Spawned main thread OK");
+                m_log.Info("[HTTPD]: Spawned main thread OK");
                 m_httpListener = new HttpListener();
 
                 if (!m_ssl)
@@ -556,7 +558,7 @@ namespace OpenSim.Framework.Servers
             }
             catch (Exception e)
             {
-                MainLog.Instance.Warn("HTTPD", "Error - " + e.Message);
+                m_log.Warn("[HTTPD]: Error - " + e.Message);
             }
         }
 

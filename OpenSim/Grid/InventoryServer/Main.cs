@@ -38,6 +38,8 @@ namespace OpenSim.Grid.InventoryServer
 {
     public class OpenInventory_Main : BaseOpenSimServer, conscmd_callback
     {
+        private static readonly log4net.ILog m_log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+
         private InventoryManager m_inventoryManager;
         private InventoryConfig m_config;
         private GridInventoryService m_inventoryService;
@@ -47,6 +49,8 @@ namespace OpenSim.Grid.InventoryServer
         [STAThread]
         public static void Main(string[] args)
         {
+            log4net.Config.XmlConfigurator.Configure();
+
             OpenInventory_Main theServer = new OpenInventory_Main();
             theServer.Startup();
 
@@ -55,20 +59,20 @@ namespace OpenSim.Grid.InventoryServer
 
         public OpenInventory_Main()
         {
-            m_log = new LogBase("opengrid-inventory-console.log", LogName, this, true);
-            MainLog.Instance = m_log;
+            m_console = new ConsoleBase(LogName, this);
+            MainConsole.Instance = m_console;
         }
 
         public void Startup()
         {
-            MainLog.Instance.Notice("Initialising inventory manager...");
+            m_log.Info("Initialising inventory manager...");
             m_config = new InventoryConfig(LogName, (Path.Combine(Util.configDir(), "InventoryServer_Config.xml")));
 
             m_inventoryService = new GridInventoryService();
             // m_inventoryManager = new InventoryManager();
             m_inventoryService.AddPlugin(m_config.DatabaseProvider);
 
-            MainLog.Instance.Notice(LogName, "Starting HTTP server ...");
+            m_log.Info("[" + LogName + "]: Starting HTTP server ...");
             BaseHttpServer httpServer = new BaseHttpServer(m_config.HttpPort);
             httpServer.AddStreamHandler(
                 new RestDeserialisehandler<Guid, InventoryCollection>("POST", "/GetInventory/",
@@ -95,19 +99,19 @@ namespace OpenSim.Grid.InventoryServer
                 new RestDeserialisehandler<Guid, List<InventoryFolderBase>>("POST", "/RootFolders/",
                                                                             m_inventoryService.RequestFirstLevelFolders));
 
-            //  httpServer.AddStreamHandler(new InventoryManager.GetInventory(m_inventoryManager));
+            // httpServer.AddStreamHandler(new InventoryManager.GetInventory(m_inventoryManager));
 
             httpServer.Start();
-            MainLog.Instance.Notice(LogName, "Started HTTP server");
+            m_log.Info("[" + LogName + "]: Started HTTP server");
         }
 
         private void Work()
         {
-            m_log.Notice("Enter help for a list of commands\n");
+            m_console.Notice("Enter help for a list of commands\n");
 
             while (true)
             {
-                m_log.MainLogPrompt();
+                m_console.Prompt();
             }
         }
 
@@ -122,7 +126,7 @@ namespace OpenSim.Grid.InventoryServer
                     m_inventoryService.CreateUsersInventory(LLUUID.Random().UUID);
                     break;
                 case "shutdown":
-                    m_log.Close();
+                    m_console.Close();
                     Environment.Exit(0);
                     break;
             }

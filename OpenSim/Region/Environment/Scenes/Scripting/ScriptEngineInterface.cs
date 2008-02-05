@@ -33,7 +33,7 @@ namespace OpenSim.Region.Environment.Scenes.Scripting
 {
     public interface ScriptEngineInterface
     {
-        void InitializeEngine(Scene Sceneworld, LogBase logger);
+        void InitializeEngine(Scene Sceneworld);
         void Shutdown();
 //        void StartScript(string ScriptID, IScriptHost ObjectID);
     }

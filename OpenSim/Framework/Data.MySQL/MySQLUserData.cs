@@ -39,6 +39,8 @@ namespace OpenSim.Framework.Data.MySQL
     /// </summary>
     internal class MySQLUserData : IUserData
     {
+        private static readonly log4net.ILog m_log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+
         /// <summary>
         /// Database manager for MySQL
         /// </summary>
@@ -119,7 +121,7 @@ namespace OpenSim.Framework.Data.MySQL
                 database.ExecuteResourceSql("UpgradeUsersTableToVersion2.sql");
                 return;
             }
-            //MainLog.Instance.Verbose("DB","DBVers:" + oldVersion);
+            //m_log.Info("[DB]: DBVers:" + oldVersion);
         }
 
         /// <summary>
@@ -164,7 +166,7 @@ namespace OpenSim.Framework.Data.MySQL
             catch (Exception e)
             {
                 database.Reconnect();
-                MainLog.Instance.Error(e.ToString());
+                m_log.Error(e.ToString());
                 return null;
             }
         }
@@ -208,7 +210,7 @@ namespace OpenSim.Framework.Data.MySQL
             catch (Exception e)
             {
                 database.Reconnect();
-                MainLog.Instance.Error(e.ToString());
+                m_log.Error(e.ToString());
                 return;
             }
         }
@@ -243,7 +245,7 @@ namespace OpenSim.Framework.Data.MySQL
             catch (Exception e)
             {
                 database.Reconnect();
-                MainLog.Instance.Error(e.ToString());
+                m_log.Error(e.ToString());
                 return;
             }
         }
@@ -272,7 +274,7 @@ namespace OpenSim.Framework.Data.MySQL
             catch (Exception e)
             {
                 database.Reconnect();
-                MainLog.Instance.Error(e.ToString());
+                m_log.Error(e.ToString());
                 return;
             }
         }
@@ -317,7 +319,7 @@ namespace OpenSim.Framework.Data.MySQL
             catch (Exception e)
             {
                 database.Reconnect();
-                MainLog.Instance.Error(e.ToString());
+                m_log.Error(e.ToString());
                 return Lfli;
             }
 
@@ -328,7 +330,7 @@ namespace OpenSim.Framework.Data.MySQL
 
         public void UpdateUserCurrentRegion(LLUUID avatarid, LLUUID regionuuid)
         {
-            MainLog.Instance.Verbose("USER", "Stub UpdateUserCUrrentRegion called");
+            m_log.Info("[USER]: Stub UpdateUserCUrrentRegion called");
         }
 
 
@@ -371,7 +373,7 @@ namespace OpenSim.Framework.Data.MySQL
                 catch (Exception e)
                 {
                     database.Reconnect();
-                    MainLog.Instance.Error(e.ToString());
+                    m_log.Error(e.ToString());
                     return returnlist;
                 }
             }
@@ -406,7 +408,7 @@ namespace OpenSim.Framework.Data.MySQL
                 catch (Exception e)
                 {
                     database.Reconnect();
-                    MainLog.Instance.Error(e.ToString());
+                    m_log.Error(e.ToString());
                     return returnlist;
                 }
             }
@@ -437,7 +439,7 @@ namespace OpenSim.Framework.Data.MySQL
             catch (Exception e)
             {
                 database.Reconnect();
-                MainLog.Instance.Error(e.ToString());
+                m_log.Error(e.ToString());
                 return null;
             }
         }
@@ -488,7 +490,7 @@ namespace OpenSim.Framework.Data.MySQL
             catch (Exception e)
             {
                 database.Reconnect();
-                MainLog.Instance.Error(e.ToString());
+                m_log.Error(e.ToString());
                 return;
             }
 
@@ -525,7 +527,7 @@ namespace OpenSim.Framework.Data.MySQL
             catch (Exception e)
             {
                 database.Reconnect();
-                MainLog.Instance.Error(e.ToString());
+                m_log.Error(e.ToString());
                 return null;
             }
         }
@@ -553,7 +555,7 @@ namespace OpenSim.Framework.Data.MySQL
             catch (Exception e)
             {
                 database.Reconnect();
-                MainLog.Instance.Error(e.ToString());
+                m_log.Error(e.ToString());
             }
         }
 

@@ -40,6 +40,8 @@ namespace OpenSim.Framework.Data.MSSQL
     /// </summary>
     public class SqlGridData : IGridData
     {
+        private static readonly log4net.ILog m_log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+
         /// <summary>
         /// Database manager
         /// </summary>
@@ -172,7 +174,7 @@ namespace OpenSim.Framework.Data.MSSQL
                 catch (Exception e)
                 {
                     database.Reconnect();
-                    MainLog.Instance.Error(e.ToString());
+                    m_log.Error(e.ToString());
                     return returnlist;
                 }
             }
@@ -208,7 +210,7 @@ namespace OpenSim.Framework.Data.MSSQL
                 catch (Exception e)
                 {
                     database.Reconnect();
-                    MainLog.Instance.Error(e.ToString());
+                    m_log.Error(e.ToString());
                     return returnlist;
                 }
             }

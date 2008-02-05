@@ -40,6 +40,8 @@ namespace OpenSim.Grid.ScriptEngine.DotNetEngine
     [Serializable]
     public class ScriptEngine : IRegionModule
     {
+        private static readonly log4net.ILog m_log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+
         internal Scene World;
         internal EventManager m_EventManager; // Handles and queues incoming events from OpenSim
         internal EventQueueManager m_EventQueueManager; // Executes events
@@ -47,7 +49,6 @@ namespace OpenSim.Grid.ScriptEngine.DotNetEngine
         internal AppDomainManager m_AppDomainManager;
         internal LSLLongCmdHandler m_LSLLongCmdHandler;
 
-        private LogBase m_log;
 
         public ScriptEngine()
         {
@@ -55,19 +56,13 @@ namespace OpenSim.Grid.ScriptEngine.DotNetEngine
             Common.mySE = this;
         }
 
-        public LogBase Log
-        {
-            get { return m_log; }
-        }
-
-        public void InitializeEngine(Scene Sceneworld, LogBase logger)
+        public void InitializeEngine(Scene Sceneworld)
         {
             World = Sceneworld;
-            m_log = logger;
 
-            Log.Verbose("ScriptEngine", "DotNet & LSL ScriptEngine initializing");
+            m_log.Info("[ScriptEngine]: DotNet & LSL ScriptEngine initializing");
 
-            //m_logger.Status("ScriptEngine", "InitializeEngine");
+            //m_log.Info("[ScriptEngine]: InitializeEngine");
 
             // Create all objects we'll be using
             m_EventQueueManager = new EventQueueManager(this);
@@ -90,7 +85,7 @@ namespace OpenSim.Grid.ScriptEngine.DotNetEngine
         //public void StartScript(string ScriptID, IScriptHost ObjectID)
         //{
         //    this.myEventManager.TEMP_OBJECT_ID = ObjectID;
-        //    Log.Status("ScriptEngine", "DEBUG FUNCTION: StartScript: " + ScriptID);
+        //    m_log.Info("[ScriptEngine]: DEBUG FUNCTION: StartScript: " + ScriptID);
         //    myScriptManager.StartScript(ScriptID, ObjectID);
         //}
 
@@ -98,7 +93,7 @@ namespace OpenSim.Grid.ScriptEngine.DotNetEngine
 
         public void Initialise(Scene scene, IConfigSource config)
         {
-            InitializeEngine(scene, MainLog.Instance);
+            InitializeEngine(scene);
         }
 
         public void PostInitialise()

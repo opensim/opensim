@@ -40,8 +40,7 @@ namespace OpenSim.Region.Environment.Modules
 {
     public class FriendsModule : IRegionModule
     {
-
-        private LogBase m_log;
+        private static readonly log4net.ILog m_log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 
         private Scene m_scene;
 
@@ -49,7 +48,6 @@ namespace OpenSim.Region.Environment.Modules
 
         public void Initialise(Scene scene, IConfigSource config)
         {
-            m_log = MainLog.Instance;
             m_scene = scene;
             scene.EventManager.OnNewClient += OnNewClient;
             scene.EventManager.OnGridInstantMessageToFriendsModule += OnGridInstantMessage;
@@ -72,6 +70,7 @@ namespace OpenSim.Region.Environment.Modules
 
             
         }
+
         private void OnInstantMessage(IClientAPI client,LLUUID fromAgentID,
                                       LLUUID fromAgentSession, LLUUID toAgentID,
                                       LLUUID imSessionID, uint timestamp, string fromAgentName,
@@ -89,13 +88,13 @@ namespace OpenSim.Region.Environment.Modules
 
                 m_pendingFriendRequests.Add(friendTransactionID, fromAgentID);
 
-                m_log.Verbose("FRIEND", "38 - From:" + fromAgentID.ToString() + " To: " + toAgentID.ToString() + " Session:" + imSessionID.ToString() + " Message:" + message);
+                m_log.Info("[FRIEND]: 38 - From:" + fromAgentID.ToString() + " To: " + toAgentID.ToString() + " Session:" + imSessionID.ToString() + " Message:" + message);
                 GridInstantMessage msg = new GridInstantMessage();
                 msg.fromAgentID = fromAgentID.UUID;
                 msg.fromAgentSession = fromAgentSession.UUID;
                 msg.toAgentID = toAgentID.UUID;
                 msg.imSessionID = friendTransactionID.UUID; // This is the item we're mucking with here
-                m_log.Verbose("FRIEND","Filling Session: " + msg.imSessionID.ToString());
+                m_log.Info("[FRIEND]: Filling Session: " + msg.imSessionID.ToString());
                 msg.timestamp = timestamp;
                 if (client != null)
                 {
@@ -115,20 +114,18 @@ namespace OpenSim.Region.Environment.Modules
                 msg.binaryBucket = binaryBucket;
                 m_scene.TriggerGridInstantMessage(msg, InstantMessageReceiver.IMModule);
             }
-            if (dialog == (byte)39)
-            {
-                m_log.Verbose("FRIEND", "38 - From:" + fromAgentID.ToString() + " To: " + toAgentID.ToString() + " Session:" + imSessionID.ToString() + " Message:" + message);
-
-            }
-            if (dialog == (byte)40)
-            {
-                m_log.Verbose("FRIEND", "38 - From:" + fromAgentID.ToString() + " To: " + toAgentID.ToString() + " Session:" + imSessionID.ToString() + " Message:" + message);
-            }
 
             // 39 == Accept Friendship
+            if (dialog == (byte)39)
+            {
+                m_log.Info("[FRIEND]: 39 - From:" + fromAgentID.ToString() + " To: " + toAgentID.ToString() + " Session:" + imSessionID.ToString() + " Message:" + message);
+            }
 
             // 40 == Decline Friendship
-               
+            if (dialog == (byte)40)
+            {
+                m_log.Info("[FRIEND]: 40 - From:" + fromAgentID.ToString() + " To: " + toAgentID.ToString() + " Session:" + imSessionID.ToString() + " Message:" + message);
+            }
         }
 
         private void OnApprovedFriendRequest(IClientAPI client, LLUUID agentID, LLUUID transactionID, List<LLUUID> callingCardFolders)
@@ -160,6 +157,7 @@ namespace OpenSim.Region.Environment.Modules
                 // TODO: Inform agent that the friend is online
             }
         }
+
         private void OnDenyFriendRequest(IClientAPI client, LLUUID agentID, LLUUID transactionID, List<LLUUID> callingCardFolders)
         {
             if (m_pendingFriendRequests.ContainsKey(transactionID))
@@ -184,19 +182,14 @@ namespace OpenSim.Region.Environment.Modules
                 msg.binaryBucket = new byte[0];
                 m_scene.TriggerGridInstantMessage(msg, InstantMessageReceiver.IMModule);
                 m_pendingFriendRequests.Remove(transactionID);
-
             }
-
-
         }
 
         private void OnTerminateFriendship(IClientAPI client, LLUUID agent, LLUUID exfriendID)
         {
             m_scene.StoreRemoveFriendship(agent, exfriendID);
             // TODO: Inform the client that the ExFriend is offline
-
         }
-
 
         private void OnGridInstantMessage(GridInstantMessage msg)
         {
@@ -206,15 +199,11 @@ namespace OpenSim.Region.Environment.Modules
                 msg.message, msg.dialog, msg.fromGroup, msg.offline, msg.ParentEstateID,
                 new LLVector3(msg.Position.x, msg.Position.y, msg.Position.z), new LLUUID(msg.RegionID),
                 msg.binaryBucket);
-
         }
-
 
         public void PostInitialise()
         {
         }
-
-        
 
         public void Close()
         {

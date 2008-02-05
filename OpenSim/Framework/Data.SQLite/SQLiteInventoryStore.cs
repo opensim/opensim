@@ -38,6 +38,8 @@ namespace OpenSim.Framework.Data.SQLite
 {
     public class SQLiteInventoryStore : SQLiteBase, IInventoryData
     {
+        private static readonly log4net.ILog m_log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+
         private const string invItemsSelect = "select * from inventoryitems";
         private const string invFoldersSelect = "select * from inventoryfolders";
 
@@ -57,7 +59,7 @@ namespace OpenSim.Framework.Data.SQLite
         {
             string connectionString = "URI=file:" + dbfile + ",version=3";
 
-            MainLog.Instance.Verbose("Inventory", "Sqlite - connecting: " + dbfile);
+            m_log.Info("[Inventory]: Sqlite - connecting: " + dbfile);
             SqliteConnection conn = new SqliteConnection(connectionString);
 
             TestTables(conn);
@@ -74,12 +76,12 @@ namespace OpenSim.Framework.Data.SQLite
             ds.Tables.Add(createInventoryFoldersTable());
             invFoldersDa.Fill(ds.Tables["inventoryfolders"]);
             setupFoldersCommands(invFoldersDa, conn);
-            MainLog.Instance.Verbose("DATASTORE", "Populated Intentory Folders Definitions");
+            m_log.Info("[DATASTORE]: Populated Intentory Folders Definitions");
 
             ds.Tables.Add(createInventoryItemsTable());
             invItemsDa.Fill(ds.Tables["inventoryitems"]);
             setupItemsCommands(invItemsDa, conn);
-            MainLog.Instance.Verbose("DATASTORE", "Populated Intentory Items Definitions");
+            m_log.Info("[DATASTORE]: Populated Intentory Items Definitions");
 
             ds.AcceptChanges();
         }
@@ -603,7 +605,7 @@ namespace OpenSim.Framework.Data.SQLite
             }
             catch (SqliteSyntaxException)
             {
-                MainLog.Instance.Verbose("DATASTORE", "SQLite Database doesn't exist... creating");
+                m_log.Info("[DATASTORE]: SQLite Database doesn't exist... creating");
                 InitDB(conn);
             }
 
@@ -614,7 +616,7 @@ namespace OpenSim.Framework.Data.SQLite
             {
                 if (! tmpDS.Tables["inventoryitems"].Columns.Contains(col.ColumnName))
                 {
-                    MainLog.Instance.Verbose("DATASTORE", "Missing required column:" + col.ColumnName);
+                    m_log.Info("[DATASTORE]: Missing required column:" + col.ColumnName);
                     return false;
                 }
             }
@@ -622,7 +624,7 @@ namespace OpenSim.Framework.Data.SQLite
             {
                 if (! tmpDS.Tables["inventoryfolders"].Columns.Contains(col.ColumnName))
                 {
-                    MainLog.Instance.Verbose("DATASTORE", "Missing required column:" + col.ColumnName);
+                    m_log.Info("[DATASTORE]: Missing required column:" + col.ColumnName);
                     return false;
                 }
             }
