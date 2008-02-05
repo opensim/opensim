@@ -232,68 +232,85 @@ namespace OpenSim.Framework.Console
 
         private void WriteNewLine(ConsoleColor color, string format, params object[] args)
         {
-            lock (m_syncRoot)
+            try
             {
-                string now = DateTime.Now.ToString("[MM-dd HH:mm:ss] ");
-                Log.Write(now);
-                try
+                lock (m_syncRoot)
                 {
-                    Log.WriteLine(format, args);
-                    Log.Flush();
-                }
+                    string now = DateTime.Now.ToString("[MM-dd HH:mm:ss] ");
+                    Log.Write(now);
+                    try
+                    {
+                        Log.WriteLine(format, args);
+                        Log.Flush();
+                    }
 
-                catch (FormatException)
-                {
-                    System.Console.WriteLine(args);
-                }
-                System.Console.Write(now);
-                try
-                {
-                    if (color != ConsoleColor.White)
-                        System.Console.ForegroundColor = color;
+                    catch (FormatException)
+                    {
+                        System.Console.WriteLine(args);
+                    }
+                    System.Console.Write(now);
+                    try
+                    {
+                        if (color != ConsoleColor.White)
+                            System.Console.ForegroundColor = color;
 
-                    System.Console.WriteLine(format, args);
-                    System.Console.ResetColor();
-                }
-                catch (ArgumentNullException)
-                {
-                    // Some older systems dont support coloured text.
-                    System.Console.WriteLine(format, args);
-                }
-                catch (FormatException)
-                {
-                    // Some older systems dont support coloured text.
-                    System.Console.WriteLine(args);
-                }
+                        System.Console.WriteLine(format, args);
+                        System.Console.ResetColor();
+                    }
+                    catch (ArgumentNullException)
+                    {
+                        // Some older systems dont support coloured text.
+                        System.Console.WriteLine(format, args);
+                    }
+                    catch (FormatException)
+                    {
+                        // Some older systems dont support coloured text.
+                        System.Console.WriteLine(args);
+                    }
 
+                    return;
+                }
+            } 
+            catch (ObjectDisposedException)
+            {
                 return;
             }
         }
 
         private void WritePrefixLine(ConsoleColor color, string sender)
         {
-            lock (m_syncRoot)
+            try
             {
-                sender = sender.ToUpper();
-                Log.WriteLine("[" + sender + "] ");
-                Log.Flush();
-
-                System.Console.Write("[");
-
-                try
+                lock (m_syncRoot)
                 {
-                    System.Console.ForegroundColor = color;
-                    System.Console.Write(sender);
-                    System.Console.ResetColor();
-                }
-                catch (ArgumentNullException)
-                {
-                    // Some older systems dont support coloured text.
-                    System.Console.WriteLine(sender);
-                }
+                    sender = sender.ToUpper();
 
-                System.Console.Write("] \t");
+                    Log.WriteLine("[" + sender + "] ");
 
+
+                    Log.Flush();
+
+                    System.Console.Write("[");
+
+                    try
+                    {
+                        System.Console.ForegroundColor = color;
+                        System.Console.Write(sender);
+                        System.Console.ResetColor();
+                    }
+                    catch (ArgumentNullException)
+                    {
+                        // Some older systems dont support coloured text.
+                        System.Console.WriteLine(sender);
+                    }
+
+                    System.Console.Write("] \t");
+
+                    return;
+                }
+            }
+            catch (ObjectDisposedException)
+            {
                 return;
             }
         }
