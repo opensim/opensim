@@ -89,6 +89,8 @@ namespace OpenSim.Region.Terrain
         public DateTime lastEdit = DateTime.Now;
 
 
+        private int counter = 0;
+
         /// <summary>
         /// Whether or not the terrain has been modified since it was last saved and sent to the Physics engine.
         /// Counts the number of modifications since the last save. (0 = Untainted)
@@ -206,7 +208,7 @@ namespace OpenSim.Region.Terrain
                         {
                             FlattenTerrain(y, x, size, (double) seconds/5.0);
                             lastEdit = DateTime.Now;
-                            remoteUser.SendLayerData((int)(x / 16), (int)(x / 16), GetHeights1D());
+                            //remoteUser.SendLayerData((int)(x / 16), (int)(x / 16), GetHeights1D());
 
                         }
                     }
@@ -219,7 +221,7 @@ namespace OpenSim.Region.Terrain
                         {
                             RaiseTerrain(y, x, size, (double) seconds/5.0);
                             lastEdit = DateTime.Now;
-                            remoteUser.SendLayerData((int)(x / 16), (int)(x / 16), GetHeights1D());
+                            //remoteUser.SendLayerData((int)(x / 16), (int)(x / 16), GetHeights1D());
                         }
                     }
                     break;
@@ -231,7 +233,7 @@ namespace OpenSim.Region.Terrain
                         {
                             LowerTerrain(y, x, size, (double) seconds/5.0);
                             lastEdit = DateTime.Now;
-                            remoteUser.SendLayerData((int)(x / 16), (int)(x / 16), GetHeights1D());
+                            //remoteUser.SendLayerData((int)(x / 16), (int)(x / 16), GetHeights1D());
                         }
                     }
                     break;
@@ -288,16 +290,22 @@ namespace OpenSim.Region.Terrain
                     break;
             }
 
-            for (int x = 0; x < 16; x++)
+            counter++;
+            if(counter==3)
             {
-                for (int y = 0; y < 16; y++)
+                counter=0;
+                for (int x = 0; x < 16; x++)
                 {
-                    if (IsTainted(x*16, y*16))
+                    for (int y = 0; y < 16; y++)
                     {
-                        remoteUser.SendLayerData(x, y, GetHeights1D());
+                        if (IsTainted(x*16, y*16))
+                        {
+                            remoteUser.SendLayerData(x, y, GetHeights1D());
+                        }
                     }
                 }
             }
+
 
             lastEdit = DateTime.Now;
 
