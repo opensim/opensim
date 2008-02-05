@@ -1877,6 +1877,7 @@ namespace OpenSim.Region.ScriptEngine.Common
         public const int STATUS_BLOCK_GRAB = 64;
         public const int STATUS_DIE_AT_EDGE = 128;
         public const int STATUS_RETURN_AT_EDGE = 256;
+        public const int STATUS_CAST_SHADOWS = 512;
         public const int AGENT = 1;
         public const int ACTIVE = 2;
         public const int PASSIVE = 4;

@@ -425,13 +425,105 @@ namespace OpenSim.Region.ScriptEngine.Common
 
         public void llSetStatus(int status, int value)
         {
-            NotImplemented("llSetStatus");
+            if ((status & LSL_BaseClass.STATUS_PHYSICS) == LSL_BaseClass.STATUS_PHYSICS)
+            {
+                m_host.AddFlag(LLObject.ObjectFlags.Physics);
+            }
+            if ((status & LSL_BaseClass.STATUS_PHANTOM) == LSL_BaseClass.STATUS_PHANTOM)
+            {
+                m_host.AddFlag(LLObject.ObjectFlags.Phantom);
+            }
+            if ((status & LSL_BaseClass.STATUS_CAST_SHADOWS) == LSL_BaseClass.STATUS_CAST_SHADOWS)
+            {
+                m_host.AddFlag(LLObject.ObjectFlags.CastShadows);
+            }
+            if ((status & LSL_BaseClass.STATUS_ROTATE_X) == LSL_BaseClass.STATUS_ROTATE_X)
+            {
+                NotImplemented("llSetStatus - STATUS_ROTATE_X");
+            }
+            if ((status & LSL_BaseClass.STATUS_ROTATE_Y) == LSL_BaseClass.STATUS_ROTATE_Y)
+            {
+                NotImplemented("llSetStatus - STATUS_ROTATE_Y");
+            }
+            if ((status & LSL_BaseClass.STATUS_ROTATE_Z) == LSL_BaseClass.STATUS_ROTATE_Z)
+            {
+                NotImplemented("llSetStatus - STATUS_ROTATE_Z");
+            }
+            if ((status & LSL_BaseClass.STATUS_BLOCK_GRAB) == LSL_BaseClass.STATUS_BLOCK_GRAB)
+            {
+                NotImplemented("llSetStatus - STATUS_BLOCK_GRAB");
+            }
+            if ((status & LSL_BaseClass.STATUS_DIE_AT_EDGE) == LSL_BaseClass.STATUS_DIE_AT_EDGE)
+            {
+                NotImplemented("llSetStatus - STATUS_DIE_AT_EDGE");
+            }
+            if ((status & LSL_BaseClass.STATUS_RETURN_AT_EDGE) == LSL_BaseClass.STATUS_RETURN_AT_EDGE)
+            {
+                NotImplemented("llSetStatus - STATUS_RETURN_AT_EDGE");
+            }
+            if ((status & LSL_BaseClass.STATUS_SANDBOX) == LSL_BaseClass.STATUS_SANDBOX)
+            {
+                NotImplemented("llSetStatus - STATUS_SANDBOX");
+            }
             return;
         }
 
         public int llGetStatus(int status)
         {
-            NotImplemented("llGetStatus");
+            Console.WriteLine(m_host.UUID.ToString() + " status is " + m_host.ObjectFlags.ToString());
+            switch (status)
+            {
+                case LSL_BaseClass.STATUS_PHYSICS:
+                    if ((m_host.ObjectFlags & (uint)LLObject.ObjectFlags.Physics) == (uint)LLObject.ObjectFlags.Physics)
+                    {
+                        return 1;
+                    }
+                    return 0;
+                    break;
+                case LSL_BaseClass.STATUS_PHANTOM:
+                    if ((m_host.ObjectFlags & (uint)LLObject.ObjectFlags.Phantom) == (uint)LLObject.ObjectFlags.Phantom)
+                    {
+                        return 1;
+                    }
+                    return 0;
+                    break;
+                case LSL_BaseClass.STATUS_CAST_SHADOWS:
+                    if ((m_host.ObjectFlags & (uint)LLObject.ObjectFlags.CastShadows) == (uint)LLObject.ObjectFlags.CastShadows)
+                    {
+                        return 1;
+                    }
+                    return 0;
+                    break;
+                case LSL_BaseClass.STATUS_BLOCK_GRAB:
+                    NotImplemented("llGetStatus - STATUS_BLOCK_GRAB");
+                    return 0;
+                    break;
+                case LSL_BaseClass.STATUS_DIE_AT_EDGE:
+                    NotImplemented("llGetStatus - STATUS_DIE_AT_EDGE");
+                    return 0;
+                    break;
+                case LSL_BaseClass.STATUS_RETURN_AT_EDGE:
+                    NotImplemented("llGetStatus - STATUS_RETURN_AT_EDGE");
+                    return 0;
+                    break;
+                case LSL_BaseClass.STATUS_ROTATE_X:
+                    NotImplemented("llGetStatus - STATUS_ROTATE_X");
+                    return 0;
+                    break;
+                case LSL_BaseClass.STATUS_ROTATE_Y:
+                    NotImplemented("llGetStatus - STATUS_ROTATE_Y");
+                    return 0;
+                    break;
+                case LSL_BaseClass.STATUS_ROTATE_Z:
+                    NotImplemented("llGetStatus - STATUS_ROTATE_Z");
+                    return 0;
+                    break;
+                case LSL_BaseClass.STATUS_SANDBOX:
+                    NotImplemented("llGetStatus - STATUS_SANDBOX");
+                    return 0;
+                    break;
+            }
+            NotImplemented("llGetStatus - Unknown Status parameter");
             return 0;
         }
 

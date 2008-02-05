@@ -305,6 +305,11 @@ namespace OpenSim.Region.ScriptEngine.Common
                 return "<" + x.ToString() + ", " + y.ToString() + ", " + z.ToString() + ", " + s.ToString() + ">";
             }
 
+            public static explicit operator string(Quaternion r)
+            {
+                return "<" + r.x.ToString() + ", " + r.y.ToString() + ", " + r.z.ToString() + ", " + r.s.ToString() + ">";
+            }
+
             public static bool operator ==(Quaternion lhs, Quaternion rhs)
             {
                 // Return true if the fields match:
@@ -454,6 +459,8 @@ namespace OpenSim.Region.ScriptEngine.Common
                 return output;
             }
 
+
+
             public override string ToString()
             {
                 string output;
@@ -470,6 +477,20 @@ namespace OpenSim.Region.ScriptEngine.Common
 
             }
 
+            public static explicit operator string(list l)
+            {
+                string output;
+                output = String.Empty;
+                if (l.m_data.Length == 0)
+                {
+                    return String.Empty;
+                }
+                foreach (object o in l.m_data)
+                {
+                    output = output + o.ToString();
+                }
+                return output;
+            }
         }
 
         //
