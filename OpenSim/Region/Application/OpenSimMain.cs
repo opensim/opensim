@@ -990,14 +990,14 @@ namespace OpenSim
         }
 
         // see BaseOpenSimServer
-        public void Show(string ShowWhat)
+        public override void Show(string ShowWhat)
         {
             base.Show(ShowWhat);
             
             switch (ShowWhat)
             {
                 case "users":
-                    m_log.Error(
+                    m_log.Notice(
                         String.Format("{0,-16}{1,-16}{2,-37}{3,-16}{4,-22}{5,-16}", "Firstname", "Lastname",
                                       "Agent ID", "Circuit", "IP", "Region"));
 
@@ -1023,7 +1023,7 @@ namespace OpenSim
                                 m_udpServers[i].clientCircuits_reverse.TryGetValue(presence.ControllingClient.CircuitCode, out ep);
                             }
                         }
-                        m_log.Error(
+                        m_log.Notice(
                             String.Format("{0,-16}{1,-16}{2,-37}{3,-16}{4,-22}{5,-16}",
                                           presence.Firstname,
                                           presence.Lastname,
@@ -1035,10 +1035,10 @@ namespace OpenSim
 
                     break;
                 case "modules":
-                    m_log.Error("The currently loaded shared modules are:");
+                    m_log.Notice("The currently loaded shared modules are:");
                     foreach (IRegionModule module in m_moduleLoader.GetLoadedSharedModules)
                     {
-                        m_log.Error("Shared Module: " + module.Name);
+                        m_log.Notice("Shared Module: " + module.Name);
                     }
                     break;
 
@@ -1046,7 +1046,7 @@ namespace OpenSim
                     m_sceneManager.ForEachScene(
                         delegate(Scene scene)
                             {
-                                m_log.Error("Region Name: " + scene.RegionInfo.RegionName + " , Region XLoc: " +
+                                m_log.Notice("Region Name: " + scene.RegionInfo.RegionName + " , Region XLoc: " +
                                             scene.RegionInfo.RegionLocX + " , Region YLoc: " +
                                             scene.RegionInfo.RegionLocY);
                             });
