@@ -225,13 +225,14 @@ AsyncLLCommandLoopms=50
 WriteScriptSourceToDebugFile=true
 
 ; Specify default script compiler
-; If you do not specify //cs, //vb or //lsl tag as the first characters of your script then the default compiler will be chosen
-; Valid languages are: lsl, cs and vb
+; If you do not specify //cs, //vb, //js or //lsl tag as the first characters of your script then the default compiler will be chosen
+; Valid languages are: lsl, cs, js and vb
 DefaultCompileLanguage=lsl
 
 ; Specify what compilers are allowed to be used
-; Valid languages are: lsl, cs and vb
-AllowedCompilers=lsl,cs,vb
+; Note vb only works on Windows for now (Mono lacks VB compile support)
+; Valid languages are: lsl, cs, js and vb
+AllowedCompilers=lsl,cs,js,vb
 
 ; Compile scripts with debugging
 ; Probably a thousand times slower, but gives you a line number when something goes wrong.

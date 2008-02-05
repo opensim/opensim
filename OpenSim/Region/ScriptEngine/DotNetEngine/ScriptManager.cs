@@ -41,7 +41,6 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
             : base(scriptEngine)
         {
             base.m_scriptEngine = scriptEngine;
-
         }
         private Compiler.LSL.Compiler LSLCompiler;
 
