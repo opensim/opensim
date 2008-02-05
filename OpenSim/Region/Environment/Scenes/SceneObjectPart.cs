@@ -1457,6 +1457,84 @@ namespace OpenSim.Region.Environment.Scenes
 
         #endregion
 
+        #region Sound
+        public void PreloadSound(string sound)
+        {
+            LLUUID ownerID = OwnerID;
+            LLUUID objectID = UUID;
+            LLUUID soundID = LLUUID.Zero;
+
+            if (!LLUUID.TryParse(sound, out soundID))
+            {
+                //Trys to fetch sound id from prim's inventory.
+                //Prim's inventory doesn't support non script items yet
+                SceneObjectPart op = this;
+                foreach (KeyValuePair<LLUUID, TaskInventoryItem> item in op.TaskInventory)
+                {
+                    if (item.Value.Name == sound)
+                    {
+                        soundID = item.Value.ItemID;
+                        break;
+                    }
+                }
+            }
+
+            List<ScenePresence> avatarts = m_parentGroup.Scene.GetAvatars();
+            foreach (ScenePresence p in avatarts)
+            {
+                // TODO: some filtering by distance of avatar
+               
+                p.ControllingClient.SendPreLoadSound(objectID, objectID, soundID);
+            }
+        }
+
+        public void SendSound(string sound, double volume, bool triggered)
+        {
+            if (volume > 1)
+                volume = 1;
+            if (volume < 0)
+                volume = 0;
+
+            LLUUID ownerID = OwnerID;
+            LLUUID objectID = UUID;
+            LLUUID parentID = GetRootPartUUID();
+            LLUUID soundID = LLUUID.Zero;
+            LLVector3 position = AbsolutePosition; // region local
+            ulong regionHandle = m_parentGroup.Scene.RegionInfo.RegionHandle;
+
+            byte flags = 0;
+
+            if (!LLUUID.TryParse(sound, out soundID))
+            {
+                // search sound file from inventory
+                SceneObjectPart op = this;
+                foreach (KeyValuePair<LLUUID, TaskInventoryItem> item in op.TaskInventory)
+                {
+                    if (item.Value.Name == sound)
+                    {
+                        soundID = item.Value.ItemID;
+                        break;
+                    }
+                }
+            }
+
+            List<ScenePresence> avatarts = m_parentGroup.Scene.GetAvatars();
+            foreach (ScenePresence p in avatarts)
+            {
+                // TODO: some filtering by distance of avatar
+                if (triggered)
+                {
+                    p.ControllingClient.SendTriggeredSound(soundID, ownerID, objectID, parentID, regionHandle, position, (float)volume);
+                }
+                else
+                {
+                    p.ControllingClient.SendPlayAttachedSound(soundID, objectID, ownerID, (float)volume, flags);
+                }
+            }
+        }
+
+        #endregion
+
         #region Resizing/Scale
 
         /// <summary>

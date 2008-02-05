@@ -145,6 +145,7 @@ namespace SimpleApp
         public event FriendActionDelegate OnDenyFriendRequest;
         public event FriendshipTermination OnTerminateFriendship;
         public event PacketStats OnPacketStats;
+        public event MoneyBalanceRequest OnMoneyBalanceRequest;
 
 #pragma warning restore 67
 

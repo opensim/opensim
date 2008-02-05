@@ -581,6 +581,8 @@ namespace OpenSim.Region.ClientStack
 
         public event MoneyTransferRequest OnMoneyTransferRequest;
 
+        public event MoneyBalanceRequest OnMoneyBalanceRequest;
+
 
         #region Scene/Avatar to Client
 
@@ -2067,15 +2069,23 @@ namespace OpenSim.Region.ClientStack
         private bool HandleMoneyTransferRequest(IClientAPI sender, Packet Pack)
         {
             MoneyTransferRequestPacket money = (MoneyTransferRequestPacket)Pack;
-
-            if (OnMoneyTransferRequest != null)
+            // validate the agent owns the agentID and sessionID
+            if (money.MoneyData.SourceID == sender.AgentId && money.AgentData.AgentID == sender.AgentId && money.AgentData.SessionID == sender.SessionId)
             {
-                OnMoneyTransferRequest(money.MoneyData.SourceID, money.MoneyData.DestID,
-                    money.MoneyData.Amount, money.MoneyData.TransactionType,
-                    Util.FieldToString(money.MoneyData.Description));
-            }
 
-            return true;
+                if (OnMoneyTransferRequest != null)
+                {
+                    OnMoneyTransferRequest(money.MoneyData.SourceID, money.MoneyData.DestID,
+                        money.MoneyData.Amount, money.MoneyData.TransactionType,
+                        Util.FieldToString(money.MoneyData.Description));
+                }
+
+                return true;
+            }
+            else
+            {
+                return false;
+            }
         }
 
         private bool HandleViewerEffect(IClientAPI sender, Packet Pack)
@@ -3434,7 +3444,13 @@ namespace OpenSim.Region.ClientStack
                     #endregion
 
                     case PacketType.MoneyBalanceRequest:
-                        SendMoneyBalance(LLUUID.Zero, true, new byte[0], MoneyBalance);
+                        MoneyBalanceRequestPacket moneybalancerequestpacket = (MoneyBalanceRequestPacket)Pack;
+                        if (OnMoneyBalanceRequest != null)
+                        {
+                            OnMoneyBalanceRequest(this, moneybalancerequestpacket.AgentData.AgentID, moneybalancerequestpacket.AgentData.SessionID, moneybalancerequestpacket.MoneyData.TransactionID);
+                        }
+                        
+                        
                         break;
                     case PacketType.UUIDNameRequest:
                         UUIDNameRequestPacket incoming = (UUIDNameRequestPacket)Pack;

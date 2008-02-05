@@ -125,6 +125,10 @@ namespace OpenSim.Region.Environment.Scenes
 
         public event NewGridInstantMessage OnGridInstantMessageToGroupsModule;
 
+        public delegate void ClientClosed(LLUUID clientID);
+
+        public event ClientClosed OnClientClosed;
+
         public delegate void ScriptChangedEvent(uint localID, uint change);
        
         public event ScriptChangedEvent OnScriptChangedEvent;
@@ -336,6 +340,14 @@ namespace OpenSim.Region.Environment.Scenes
                     OnGridInstantMessageToFriendsModule(message);
                 }
 
+            }
+        }
+
+        public void TriggerClientClosed(LLUUID ClientID)
+        {
+            if (OnClientClosed != null)
+            {
+                OnClientClosed(ClientID);
             }
         }
         

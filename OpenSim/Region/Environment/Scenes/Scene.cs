@@ -1315,6 +1315,8 @@ namespace OpenSim.Region.Environment.Scenes
                                                 avatar.AbsolutePosition.Z);
                     m_sceneGridService.SendCloseChildAgentConnections(avatar);
                 }
+
+                m_eventManager.TriggerClientClosed(agentID);
             }
             catch (NullReferenceException)
             {

@@ -906,37 +906,8 @@ namespace OpenSim.Region.ScriptEngine.Common
 
         public void llPlaySound(string sound, double volume)
         {
-            if (volume > 1)
-                volume = 1;
-            if (volume < 0)
-                volume = 0;
-
-            LLUUID ownerID = m_host.OwnerID;
-            LLUUID objectID = m_host.UUID;
-            LLUUID soundID = LLUUID.Zero;
-            byte flags = 0;
-
-            if (!LLUUID.TryParse(sound, out soundID))
-            {
-                //Trys to fetch sound id from prim's inventory.
-                //Prim's inventory doesn't support non script items yet
-                SceneObjectPart op = World.GetSceneObjectPart(objectID);
-                foreach (KeyValuePair<LLUUID, TaskInventoryItem> item in op.TaskInventory)
-                {
-                    if (item.Value.Name == sound)
-                    {
-                        soundID = item.Value.ItemID;
-                        break;
-                    }
-                }
-            }
-
-            List<ScenePresence> avatarts = World.GetAvatars();
-            foreach (ScenePresence p in avatarts)
-            {
-                // TODO: some filtering by distance of avatar
-                p.ControllingClient.SendPlayAttachedSound(soundID, objectID, ownerID, (float)volume, flags);
-            }
+            
+            m_host.SendSound(sound, volume, false);
         }
 
         public void llLoopSound(string sound, double volume)
@@ -961,38 +932,7 @@ namespace OpenSim.Region.ScriptEngine.Common
 
         public void llTriggerSound(string sound, double volume)
         {
-            if (volume > 1)
-                volume = 1;
-            if (volume < 0)
-                volume = 0;
-
-            LLUUID ownerID = m_host.OwnerID;
-            LLUUID objectID = m_host.UUID;
-            LLUUID parentID = this.m_host.GetRootPartUUID();
-            LLUUID soundID = LLUUID.Zero;
-            LLVector3 position = this.m_host.AbsolutePosition; // region local
-            ulong regionHandle = World.RegionInfo.RegionHandle;
-
-            if (!LLUUID.TryParse(sound, out soundID))
-            {
-                // search sound file from inventory
-                SceneObjectPart op = World.GetSceneObjectPart(objectID);
-                foreach (KeyValuePair<LLUUID, TaskInventoryItem> item in op.TaskInventory)
-                {
-                    if (item.Value.Name == sound)
-                    {
-                        soundID = item.Value.ItemID;
-                        break;
-                    }
-                }
-            }
-
-            List<ScenePresence> avatarts = World.GetAvatars();
-            foreach (ScenePresence p in avatarts)
-            {
-                // TODO: some filtering by distance of avatar
-                p.ControllingClient.SendTriggeredSound(soundID, ownerID, objectID, parentID, regionHandle, position, (float)volume);
-            }
+            m_host.SendSound(sound, volume, true);
         }
 
         public void llStopSound()
@@ -1002,31 +942,7 @@ namespace OpenSim.Region.ScriptEngine.Common
 
         public void llPreloadSound(string sound)
         {
-            LLUUID ownerID = m_host.OwnerID;
-            LLUUID objectID = m_host.UUID;
-            LLUUID soundID = LLUUID.Zero;
-
-            if (!LLUUID.TryParse(sound, out soundID))
-            {
-                //Trys to fetch sound id from prim's inventory.
-                //Prim's inventory doesn't support non script items yet
-                SceneObjectPart op = World.GetSceneObjectPart(objectID);
-                foreach (KeyValuePair<LLUUID, TaskInventoryItem> item in op.TaskInventory)
-                {
-                    if (item.Value.Name == sound)
-                    {
-                        soundID = item.Value.ItemID;
-                        break;
-                    }
-                }
-            }
-
-            List<ScenePresence> avatarts = World.GetAvatars();
-            foreach (ScenePresence p in avatarts)
-            {
-                // TODO: some filtering by distance of avatar
-                p.ControllingClient.SendPreLoadSound(objectID, objectID, soundID);
-            }
+            m_host.PreloadSound(sound);
         }
 
         public string llGetSubString(string src, int start, int end)
@@ -2439,32 +2355,7 @@ namespace OpenSim.Region.ScriptEngine.Common
 
             }
             prules.CRC = 1;
-            Console.WriteLine("----------ps----------\n");
-            Console.WriteLine(" AngularVelocity:" + prules.AngularVelocity.ToString() + "\n" +
-            " BurstPartCount:" + prules.BurstPartCount.ToString() + "\n" +
-            " BurstRadius:" + prules.BurstRadius.ToString() + "\n" +
-            " BurstRate:" + prules.BurstRate.ToString() + "\n" +
-            " BurstSpeedMax:" + prules.BurstSpeedMax.ToString() + "\n" +
-            " BurstSpeedMin:" + prules.BurstSpeedMin.ToString() + "\n" +
-            " CRC:" + prules.CRC.ToString() + "\n" +
-            " InnerAngle:" + prules.InnerAngle.ToString() + "\n" +
-            " MaxAge:" + prules.MaxAge.ToString() + "\n" +
-            " OuterAngle:" + prules.OuterAngle.ToString() + "\n" +
-            " PartAcceleration:" + prules.PartAcceleration.ToString() + "\n" +
-            " PartDataFlags:" + prules.PartDataFlags.ToString() + "\n" +
-            " PartEndColor:" + prules.PartEndColor.ToString() + "\n" +
-            " PartEndScaleX:" + prules.PartEndScaleX.ToString() + "\n" +
-            " PartEndScaleY:" + prules.PartEndScaleY.ToString() + "\n" +
-            " PartFlags:" + prules.PartFlags.ToString() + "\n" +
-            " PartMaxAge:" + prules.PartMaxAge.ToString() + "\n" +
-            " PartStartColor:" + prules.PartStartColor.ToString() + "\n" +
-            " PartStartScaleX:" + prules.PartStartScaleX.ToString() + "\n" +
-            " PartStartScaleY:" + prules.PartStartScaleY.ToString() + "\n" +
-            " Pattern:" + prules.Pattern.ToString() + "\n" +
-            " StartAge:" + prules.StartAge.ToString() + "\n" +
-            " Target:" + prules.Target.ToString() + "\n" +
-            " Texture:" + prules.Texture.ToString() + "");
-            OpenSim.Framework.Console.MainLog.Instance.Verbose("PARTICLE", "PS: " + prules.ToString());
+
             m_host.AddNewParticleSystem(prules);
             m_host.SendFullUpdateToAllClients();
         }

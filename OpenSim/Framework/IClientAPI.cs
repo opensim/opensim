@@ -403,6 +403,8 @@ namespace OpenSim.Framework
     
     public delegate void MoneyTransferRequest(LLUUID sourceID, LLUUID destID, int amount, int transactionType, string description);
     
+    // We keep all this information for fraud purposes in the future.
+    public delegate void MoneyBalanceRequest(IClientAPI remoteClient, LLUUID agentID, LLUUID sessionID, LLUUID TransactionID);
 
     public delegate void ObjectPermissions(
         IClientAPI remoteClinet, LLUUID AgentID, LLUUID SessionID,
@@ -506,6 +508,8 @@ namespace OpenSim.Framework
 
         // Financial packets
         event MoneyTransferRequest OnMoneyTransferRequest;
+
+        event MoneyBalanceRequest OnMoneyBalanceRequest;
 
          
         LLVector3 StartPos { get; set; }
