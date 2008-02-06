@@ -39,6 +39,11 @@ namespace OpenSim.Region.Environment.Scenes
 {
     public class ScenePresence : EntityBase
     {
+        ~ScenePresence()
+        {
+            m_log.Info("[ScenePresence] Destructor called");
+        }
+        
         private static readonly log4net.ILog m_log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 
         public static AvatarAnimations Animations = new AvatarAnimations();

@@ -97,7 +97,11 @@ namespace OpenSim.Region.Environment.Modules
                         XferDownLoad transaction = new XferDownLoad(fileName, fileData, xferID, remoteClient);
                         Transfers.Add(xferID, transaction);
                         NewFiles.Remove(fileName);
-                        transaction.StartSend();
+                        
+                        if (transaction.StartSend())
+                        {
+                            Transfers.Remove(xferID);
+                        }
                     }
                 }
             }
@@ -107,7 +111,12 @@ namespace OpenSim.Region.Environment.Modules
         {
             if (Transfers.ContainsKey(xferID))
             {
-                Transfers[xferID].AckPacket(packet);
+                if (Transfers[xferID].AckPacket(packet))
+                {
+                    {
+                        Transfers.Remove(xferID);
+                    }
+                }
             }
         }
 
@@ -137,7 +146,7 @@ namespace OpenSim.Region.Environment.Modules
             public uint Packet = 0;
             public IClientAPI Client;
             public uint Serial = 1;
-            private bool complete = false;
+            private bool complete;
 
             public XferDownLoad(string fileName, byte[] data, ulong xferID, IClientAPI client)
             {
@@ -151,7 +160,11 @@ namespace OpenSim.Region.Environment.Modules
             {
             }
 
-            public void StartSend()
+            /// <summary>
+            /// Start a transfer
+            /// </summary>
+            /// <returns>True if the transfer is complete, false if not</returns>
+            public bool StartSend()
             {
                 if (Data.Length < 1000)
                 {
@@ -160,6 +173,7 @@ namespace OpenSim.Region.Environment.Modules
                     Array.Copy(Helpers.IntToBytes(Data.Length), 0, transferData, 0, 4);
                     Array.Copy(Data, 0, transferData, 4, Data.Length);
                     Client.SendXferPacket(XferID, 0 + 0x80000000, transferData);
+                    
                     complete = true;
                 }
                 else
@@ -169,11 +183,18 @@ namespace OpenSim.Region.Environment.Modules
                     Array.Copy(Data, 0, transferData, 4, 1000);
                     Client.SendXferPacket(XferID, 0, transferData);
                     Packet++;
-                    DataPointer = 1000;
+                    DataPointer = 1000;                 
                 }
+                
+                return complete;                
             }
 
-            public void AckPacket(uint packet)
+            /// <summary>
+            /// Respond to an ack packet from the client
+            /// </summary>
+            /// <param name="packet"></param>
+            /// <returns>True if the transfer is complete, false otherwise</returns>
+            public bool AckPacket(uint packet)
             {
                 if (!complete)
                 {
@@ -193,9 +214,12 @@ namespace OpenSim.Region.Environment.Modules
                         Client.SendXferPacket(XferID, endPacket, transferData);
                         Packet++;
                         DataPointer += (Data.Length - DataPointer);
+                        
                         complete = true;
                     }
                 }
+                
+                return complete;
             }
         }
     }

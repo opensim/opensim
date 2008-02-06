@@ -68,7 +68,7 @@ namespace OpenSim.Framework
             m_clients = new Dictionary<uint, IClientAPI>();
         }
 
-        private void Remove(uint id)
+        public void Remove(uint id)
         {
             m_clients.Remove(id);
         }

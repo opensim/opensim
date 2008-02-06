@@ -51,6 +51,11 @@ namespace OpenSim.Region.ClientStack
     /// </summary>
     public class ClientView : IClientAPI
     {
+        ~ClientView()
+        {
+            m_log.Info("[CLIENTVIEW]: Dstructor called");                       
+        }
+        
         private static readonly log4net.ILog m_log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 
         /* static variables */

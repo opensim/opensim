@@ -36,6 +36,9 @@ namespace OpenSim.Region.ClientStack
 {
     public class PacketServer
     {
+        private static readonly log4net.ILog m_log 
+            = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+
         private ClientStackNetworkHandler m_networkHandler;
         private IScene m_scene;
 
@@ -132,8 +135,11 @@ namespace OpenSim.Region.ClientStack
 
         public virtual void CloseClient(IClientAPI client)
         {
+            //m_log.Info("PacketServer:CloseClient()");
+            
             CloseCircuit(client.CircuitCode);
             client.Close(false);
+            m_scene.ClientManager.Remove(client.CircuitCode);
         }
     }
 }
