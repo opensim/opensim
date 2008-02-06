@@ -318,7 +318,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL
             {
                 File.Delete(OutFile);
             }
-            catch (Exception e)
+            catch (Exception e) // NOTLEGIT - Should be just catching FileIOException
             {
                 //m_scriptEngine.Log.Error("[" + m_scriptEngine.ScriptEngineName + "]: Unable to delete old existring script-file before writing new. Compile aborted: " + e.ToString());
                 throw new Exception("Unable to delete old existring script-file before writing new. Compile aborted: " + e.ToString());
@@ -335,7 +335,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL
                         Path.Combine("ScriptEngines", srcFileName),
                         Script);
                 }
-                catch (Exception ex)
+                catch (Exception ex) // NOTLEGIT - Should be just catching FileIOException
                 {
                     m_scriptEngine.Log.Error("[" + m_scriptEngine.ScriptEngineName + "]: Exception while trying to write script source to file \"" + srcFileName + "\": " + ex.ToString());
                 }

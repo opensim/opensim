@@ -681,7 +681,7 @@ namespace OpenSim.Region.Terrain
                 }
                 return true;
             }
-            catch (Exception e)
+            catch (Exception e) // SEMI-LEGIT: Catching problems caused by user input or scripts
             {
                 resultText = "Error running terrain command: " + e.ToString();
                 return false;
@@ -1343,7 +1343,7 @@ namespace OpenSim.Region.Terrain
 
                 bmp.Save(filename, ImageFormat.Png);
             }
-            catch (Exception e)
+            catch (Exception e) // LEGIT: Catching problems caused by OpenJPEG p/invoke
             {
                 Console.WriteLine("Failed generating terrain map: " + e.ToString());
             }
@@ -1362,7 +1362,7 @@ namespace OpenSim.Region.Terrain
 
                 imageData = OpenJPEG.EncodeFromImage(bmp, true);
             }
-            catch (Exception e)
+            catch (Exception e) // LEGIT: Catching problems caused by OpenJPEG p/invoke
             {
                 Console.WriteLine("Failed generating terrain map: " + e.ToString());
             }

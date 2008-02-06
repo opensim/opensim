@@ -105,7 +105,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
                 // Fire the first start-event
                 m_scriptEngine.m_EventQueueManager.AddToScriptQueue(localID, itemID, "state_entry", EventQueueManager.llDetectNull, new object[] { });
             }
-            catch (Exception e)
+            catch (Exception e) // LEGIT: User Scripting
             {
                 //m_scriptEngine.Log.Error("[ScriptEngine]: Error compiling script: " + e.ToString());
                 try
@@ -117,7 +117,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
                     World.SimChat(Helpers.StringToField(text), ChatTypeEnum.Say, 0, m_host.AbsolutePosition,
                                   m_host.Name, m_host.UUID);
                 }
-                catch (Exception e2)
+                catch (Exception e2) // LEGIT: User Scripting
                 {
                     m_scriptEngine.Log.Error("[" + m_scriptEngine.ScriptEngineName + "]: Error displaying error in-world: " + e2.ToString());
                     m_scriptEngine.Log.Error("[" + m_scriptEngine.ScriptEngineName + "]: " +
@@ -154,7 +154,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
                 // Tell AppDomain that we have stopped script
                 m_scriptEngine.m_AppDomainManager.StopScript(ad);
             }
-            catch (Exception e)
+            catch (Exception e) // LEGIT: User Scripting
             {
                 m_scriptEngine.Log.Error("[" + m_scriptEngine.ScriptEngineName + "]: Exception stopping script localID: " + localID + " LLUID: " + itemID.ToString() +
                                             ": " + e.ToString());

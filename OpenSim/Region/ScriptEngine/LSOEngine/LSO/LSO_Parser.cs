@@ -365,7 +365,7 @@ namespace OpenSim.Region.ScriptEngine.LSOEngine.LSO
                     bytes[i] = br.ReadByte();
                 return bytes;
             }
-            catch (Exception e)
+            catch (Exception e) // NOTLEGIT: No user related exceptions throwable here?
             {
                 Common.SendToDebug("Exception: " + e.ToString());
                 throw (e);
