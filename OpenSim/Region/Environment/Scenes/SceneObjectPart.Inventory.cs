@@ -151,21 +151,23 @@ namespace OpenSim.Region.Environment.Scenes
 //                           "[PRIMINVENTORY]: " +
 //                           "Starting script {0}, {1} in prim {2}, {3}", 
 //                           item.Name, item.ItemID, Name, UUID));
-            
-            AssetBase rezAsset = m_parentGroup.Scene.AssetCache.GetAsset(item.AssetID, false);
-
-            if (rezAsset != null)
+            if (!((m_parentGroup.Scene.RegionInfo.EstateSettings.regionFlags & Simulator.RegionFlags.SkipScripts) == Simulator.RegionFlags.SkipScripts))
             {
-                string script = Helpers.FieldToUTF8String(rezAsset.Data);
-                m_parentGroup.Scene.EventManager.TriggerRezScript(LocalID, item.ItemID, script);
+                AssetBase rezAsset = m_parentGroup.Scene.AssetCache.GetAsset(item.AssetID, false);
 
-            }     
-            else
-            {
-                m_log.Error(String.Format(
-                                "[PRIMINVENTORY]: " +
-                                "Couldn't start script {0}, {1} since asset ID {2} could not be found", 
-                                item.Name, item.ItemID, item.AssetID));
+                if (rezAsset != null)
+                {
+                    string script = Helpers.FieldToUTF8String(rezAsset.Data);
+                    m_parentGroup.Scene.EventManager.TriggerRezScript(LocalID, item.ItemID, script);
+
+                }
+                else
+                {
+                    m_log.Error(String.Format(
+                                    "[PRIMINVENTORY]: " +
+                                    "Couldn't start script {0}, {1} since asset ID {2} could not be found",
+                                    item.Name, item.ItemID, item.AssetID));
+                }
             }
         }   
         
