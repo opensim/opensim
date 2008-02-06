@@ -179,16 +179,6 @@ namespace OpenSim.Framework.Console
                 {
                     try
                     {
-                        System.Console.WriteLine(format, args);
-                    }
-
-                    catch (FormatException)
-                    {
-                        System.Console.WriteLine(args);
-                    }
-
-                    try
-                    {
                         if (color != ConsoleColor.White)
                             System.Console.ForegroundColor = color;
 
