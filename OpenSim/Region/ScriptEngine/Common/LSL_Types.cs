@@ -232,7 +232,7 @@ namespace OpenSim.Region.ScriptEngine.Common
 
             public static float Mag(Vector3 v)
             {
-                return (float)Math.Sqrt(v.x * v.y + v.y * v.y + v.z * v.z);
+                return (float)Math.Sqrt(v.x * v.x + v.y * v.y + v.z * v.z);
             }
 
             public static Vector3 Norm(Vector3 vector)
