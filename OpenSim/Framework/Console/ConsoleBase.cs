@@ -299,6 +299,7 @@ namespace OpenSim.Framework.Console
         public string PasswdPrompt(string prompt)
         {
             // FIXME: Needs to be better abstracted
+            System.Console.WriteLine(String.Format("{0}: ", prompt));
             ConsoleColor oldfg = System.Console.ForegroundColor;
             System.Console.ForegroundColor = System.Console.BackgroundColor;
             string temp = System.Console.ReadLine();
