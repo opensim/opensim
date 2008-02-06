@@ -15,7 +15,7 @@ namespace OpenSim.Framework.Console
         override protected void Append(LoggingEvent le)
         {
             string loggingMessage = RenderLoggingEvent(le);
-            string regex = @"^(?<Front>.*)\[(?<Category>\w+)\](?<End>.*)";
+            string regex = @"^(?<Front>.*?)\[(?<Category>\w+)\]:?(?<End>.*)";
 
             Regex RE = new Regex(regex, RegexOptions.Multiline);
             MatchCollection matches = RE.Matches(loggingMessage);
@@ -26,8 +26,21 @@ namespace OpenSim.Framework.Console
                 System.Console.Write("[");
 
                 WriteColorText(DeriveColor(matches[0].Groups["Category"].Value), matches[0].Groups["Category"].Value);
-                System.Console.Write("]");
-                System.Console.WriteLine(matches[0].Groups["End"].Value);
+                System.Console.Write("]:");
+                
+                if (le.Level == Level.Error) 
+                {
+                    WriteColorText(ConsoleColor.Red, matches[0].Groups["End"].Value);
+                }
+                else if (le.Level == Level.Warn) 
+                {
+                    WriteColorText(ConsoleColor.Yellow, matches[0].Groups["End"].Value);
+                }
+                else 
+                {
+                    System.Console.Write(matches[0].Groups["End"].Value);
+                }
+                System.Console.WriteLine();
             } 
             else
             {
