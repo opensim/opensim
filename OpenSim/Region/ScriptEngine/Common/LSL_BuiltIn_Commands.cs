@@ -1814,7 +1814,7 @@ namespace OpenSim.Region.ScriptEngine.Common
             {
                 return 0.0;
             }
-            return Convert.ToSingle(src.Data[index]);
+            return Convert.ToDouble(src.Data[index]);
         }
 
         public string llList2String(LSL_Types.list src, int index)

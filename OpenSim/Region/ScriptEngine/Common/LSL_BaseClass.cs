@@ -1864,6 +1864,10 @@ namespace OpenSim.Region.ScriptEngine.Common
             m_LSL_Functions.osRegionNotice(msg);
         }
 
+        public double llList2Float(LSL_Types.list src, int index)
+        {
+            return m_LSL_Functions.llList2Float(src, index);
+        }
 
 
         // LSL CONSTANTS

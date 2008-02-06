@@ -354,6 +354,7 @@ namespace OpenSim.Region.ScriptEngine.Common
         //wiki: integer llList2Integer(list src, integer index)
         int llList2Integer(LSL_Types.list src, int index);
         //wiki: double llList2double(list src, integer index)
+        double llList2Float(LSL_Types.list src, int index);
         double osList2Double(LSL_Types.list src, int index);
         //wiki: string llList2String(list src, integer index)
         string llList2String(LSL_Types.list src, int index);
