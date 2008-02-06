@@ -25,6 +25,7 @@
 * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 * 
 */
+
 using System;
 using System.Collections.Generic;
 using System.Xml;
@@ -35,18 +36,11 @@ namespace OpenSim.Region.Environment.Scenes
 {
     public class AvatarAnimations
     {
-        private static readonly log4net.ILog m_log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
-
         public Dictionary<string, LLUUID> AnimsLLUUID = new Dictionary<string, LLUUID>();
         public Dictionary<LLUUID, string> AnimsNames = new Dictionary<LLUUID, string>();
 
         public AvatarAnimations()
         {
-        }
-
-        public void LoadAnims()
-        {
-            //m_log.Info("[CLIENT]: Loading avatar animations");
             using (XmlTextReader reader = new XmlTextReader("data/avataranimations.xml"))
             {
                 XmlDocument doc = new XmlDocument();
@@ -55,24 +49,13 @@ namespace OpenSim.Region.Environment.Scenes
                 {
                     if (nod.Attributes["name"] != null)
                     {
-                        AnimsLLUUID.Add((string)nod.Attributes["name"].Value, (LLUUID)nod.InnerText);
+                        string name = (string)nod.Attributes["name"].Value;
+                        LLUUID id = (LLUUID)nod.InnerText;
+
+                        AnimsLLUUID.Add(name, id);
+                        AnimsNames.Add(id, name);
                     }
                 }
-            }
-
-            // m_log.Info("[CLIENT]: Loaded " + AnimsLLUUID.Count.ToString() + " animation(s)");
-
-            try
-            {
-                //Mantis: 0000224: 2755 - Enumeration Operation may not execute [immediate crash] (ODE/2750/WIN2003) 
-                foreach (KeyValuePair<string, LLUUID> kp in ScenePresence.Animations.AnimsLLUUID)
-                {
-                    AnimsNames.Add(kp.Value, kp.Key);
-                }
-            }
-            catch (InvalidOperationException)
-            {
-                m_log.Warn("[AVATAR]: Unable to load animation names for an Avatar");
             }
         }
     }

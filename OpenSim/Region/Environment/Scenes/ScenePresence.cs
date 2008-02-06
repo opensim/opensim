@@ -41,8 +41,9 @@ namespace OpenSim.Region.Environment.Scenes
     {
         private static readonly log4net.ILog m_log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 
-        public static AvatarAnimations Animations;
+        public static AvatarAnimations Animations = new AvatarAnimations();
         public static byte[] DefaultTexture;
+
         public LLUUID currentParcelUUID = LLUUID.Zero;
         private List<LLUUID> m_animations = new List<LLUUID>();
         private List<int> m_animationSeqs = new List<int>();
@@ -332,12 +333,6 @@ namespace OpenSim.Region.Environment.Scenes
             m_localId = m_scene.NextLocalId;
 
             AbsolutePosition = m_controllingClient.StartPos;
-
-            Animations = new AvatarAnimations();
-            lock (Animations)
-            {
-                Animations.LoadAnims();
-            }
 
             // TODO: m_animations and m_animationSeqs should always be of the same length.
             // Move them into an object to (hopefully) avoid threading issues.
@@ -1640,13 +1635,6 @@ namespace OpenSim.Region.Environment.Scenes
             //cAgentData.AVHeight;
             //cAgentData.regionHandle;
             //m_velocity = cAgentData.Velocity;
-        }
-
-        /// <summary>
-        /// 
-        /// </summary>
-        public static void LoadAnims()
-        {
         }
 
         /// <summary>

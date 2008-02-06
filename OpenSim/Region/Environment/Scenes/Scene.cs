@@ -278,8 +278,6 @@ namespace OpenSim.Region.Environment.Scenes
             m_log.Info("[SCENE]: Creating LandMap");
             Terrain = new TerrainEngine((int) RegionInfo.RegionLocX, (int) RegionInfo.RegionLocY);
 
-            ScenePresence.LoadAnims();
-
             httpListener = httpServer;
             m_dumpAssetsToFile = dumpAssetsToFile;
 
