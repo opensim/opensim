@@ -237,6 +237,26 @@ namespace OpenSim.Region.Environment
             bool scripted = convertParamStringToBool(packet.ParamList[0].Parameter);
             bool collisionEvents = convertParamStringToBool(packet.ParamList[1].Parameter);
             bool physics = convertParamStringToBool(packet.ParamList[2].Parameter);
+            
+            if (physics)
+            {
+                m_scene.RegionInfo.EstateSettings.regionFlags |= Simulator.RegionFlags.SkipPhysics;
+            }
+            else
+            {
+                m_scene.RegionInfo.EstateSettings.regionFlags &= ~Simulator.RegionFlags.SkipPhysics;
+            }
+
+            if (scripted)
+            {
+                m_scene.RegionInfo.EstateSettings.regionFlags |= Simulator.RegionFlags.SkipScripts;
+            }
+            else
+            {
+                m_scene.RegionInfo.EstateSettings.regionFlags &= ~Simulator.RegionFlags.SkipScripts;
+            }
+
+
             m_scene.SetSceneCoreDebug(scripted, collisionEvents, physics);
         }
 

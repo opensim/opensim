@@ -88,10 +88,14 @@ namespace OpenSim.Region.Environment.Scenes
         /// </summary>
         public void StartScripts()
         {
-            foreach (SceneObjectPart part in m_parts.Values)
+            // Don't start scripts if they're turned off in the region!
+            if (!((m_scene.RegionInfo.EstateSettings.regionFlags & Simulator.RegionFlags.SkipScripts) == Simulator.RegionFlags.SkipScripts))
             {
-                part.StartScripts();
-            }            
+                foreach (SceneObjectPart part in m_parts.Values)
+                {
+                    part.StartScripts();
+                }
+            }
         }
 
         public void StopScripts()

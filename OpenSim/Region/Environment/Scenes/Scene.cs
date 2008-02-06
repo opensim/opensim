@@ -283,6 +283,23 @@ namespace OpenSim.Region.Environment.Scenes
             httpListener = httpServer;
             m_dumpAssetsToFile = dumpAssetsToFile;
 
+            if ((RegionInfo.EstateSettings.regionFlags & Simulator.RegionFlags.SkipScripts) == Simulator.RegionFlags.SkipScripts)
+            {
+                m_scripts_enabled = false;
+            }
+            else
+            {
+                m_scripts_enabled = true;
+            }
+            if ((RegionInfo.EstateSettings.regionFlags & Simulator.RegionFlags.SkipPhysics) == Simulator.RegionFlags.SkipPhysics)
+            {
+                m_physics_enabled = false;
+            }
+            else
+            {
+                m_physics_enabled = true;
+            }
+
             m_statsReporter = new SimStatsReporter(regInfo);
             m_statsReporter.OnSendStatsResult += SendSimStatsPackets;
         }
@@ -483,6 +500,37 @@ namespace OpenSim.Region.Environment.Scenes
             if (m_scripts_enabled != !ScriptEngine)
             {
                 // Tedd!   Here's the method to disable the scripting engine!
+                if (ScriptEngine)
+                {
+                    m_log.Info("Stopping all Scripts in Scene");
+                    lock (Entities)
+                    {
+                        foreach (EntityBase ent in Entities.Values)
+                        {
+                            if (ent is SceneObjectGroup)
+                            {
+                                ((SceneObjectGroup)ent).StopScripts();
+                            }
+                        }
+                    }
+                }
+                else
+                {
+                    m_log.Info("Starting all Scripts in Scene");
+                    lock (Entities)
+                    {
+                        foreach (EntityBase ent in Entities.Values)
+                        {
+                            if (ent is SceneObjectGroup)
+                            {
+                                ((SceneObjectGroup)ent).StartScripts();
+                            }
+                        }
+                    }
+                    
+
+                }
+                m_scripts_enabled = !ScriptEngine;
                 m_log.Info("[TOTEDD]: Here is the method to trigger disabling of the scripting engine");
             }
             if (m_physics_enabled != !PhysicsEngine)

@@ -137,7 +137,7 @@ namespace OpenSim.Region.Communications.OGS1
             try
             {
                 GridReq = new XmlRpcRequest("simulator_login", SendParams);
-                GridResp = GridReq.Send(serversInfo.GridURL, 10000);
+                GridResp = GridReq.Send(serversInfo.GridURL, 16000);
             } catch (Exception ex)
             {
                 m_log.Error("Unable to connect to grid. Grid server not running?");
