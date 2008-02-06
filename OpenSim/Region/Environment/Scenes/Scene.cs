@@ -639,6 +639,8 @@ namespace OpenSim.Region.Environment.Scenes
                 m_statsReporter.addFrameMS(frameMS);
                 m_statsReporter.addPhysicsMS(physicsMS);
                 m_statsReporter.addOtherMS(otherMS);
+                m_statsReporter.SetActiveScripts(m_innerScene.GetActiveScripts());
+                m_statsReporter.addScriptLines(m_innerScene.GetScriptLPS());
                 
             }
             catch (NotImplementedException)

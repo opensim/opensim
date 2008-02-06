@@ -100,47 +100,55 @@ namespace OpenSim.Region.ScriptEngine.Common
         //starting out, we use the System.Math library for trig functions. - ckrinke 8-14-07
         public double llSin(double f)
         {
-
+            m_host.AddScriptLPS(1);
             return (double)Math.Sin(f);
         }
 
         public double llCos(double f)
         {
+            m_host.AddScriptLPS(1);
             return (double)Math.Cos(f);
         }
 
         public double llTan(double f)
         {
+            m_host.AddScriptLPS(1);
             return (double)Math.Tan(f);
         }
 
         public double llAtan2(double x, double y)
         {
+            m_host.AddScriptLPS(1);
             return (double)Math.Atan2(y, x);
         }
 
         public double llSqrt(double f)
         {
+            m_host.AddScriptLPS(1);
             return (double)Math.Sqrt(f);
         }
 
         public double llPow(double fbase, double fexponent)
         {
+            m_host.AddScriptLPS(1);
             return (double)Math.Pow(fbase, fexponent);
         }
 
         public int llAbs(int i)
         {
+            m_host.AddScriptLPS(1);
             return (int)Math.Abs(i);
         }
 
         public double llFabs(double f)
         {
+            m_host.AddScriptLPS(1);
             return (double)Math.Abs(f);
         }
 
         public double llFrand(double mag)
         {
+            m_host.AddScriptLPS(1);
             lock (Util.RandomClass)
             {
                 return Util.RandomClass.NextDouble() * mag;
@@ -149,27 +157,32 @@ namespace OpenSim.Region.ScriptEngine.Common
 
         public int llFloor(double f)
         {
+            m_host.AddScriptLPS(1);
             return (int)Math.Floor(f);
         }
 
         public int llCeil(double f)
         {
+            m_host.AddScriptLPS(1);
             return (int)Math.Ceiling(f);
         }
 
         public int llRound(double f)
         {
+            m_host.AddScriptLPS(1);
             return (int)Math.Round(f, 0);
         }
 
         //This next group are vector operations involving squaring and square root. ckrinke
         public double llVecMag(LSL_Types.Vector3 v)
         {
+            m_host.AddScriptLPS(1);
             return (v.x * v.x + v.y * v.y + v.z * v.z);
         }
 
         public LSL_Types.Vector3 llVecNorm(LSL_Types.Vector3 v)
         {
+            m_host.AddScriptLPS(1);
             double mag = v.x * v.x + v.y * v.y + v.z * v.z;
             LSL_Types.Vector3 nor = new LSL_Types.Vector3();
             nor.x = v.x / mag;
@@ -180,6 +193,7 @@ namespace OpenSim.Region.ScriptEngine.Common
 
         public double llVecDist(LSL_Types.Vector3 a, LSL_Types.Vector3 b)
         {
+            m_host.AddScriptLPS(1);
             double dx = a.x - b.x;
             double dy = a.y - b.y;
             double dz = a.z - b.z;
@@ -189,6 +203,7 @@ namespace OpenSim.Region.ScriptEngine.Common
         //Now we start getting into quaternions which means sin/cos, matrices and vectors. ckrinke
         public LSL_Types.Vector3 llRot2Euler(LSL_Types.Quaternion r)
         {
+            m_host.AddScriptLPS(1);
             //This implementation is from http://lslwiki.net/lslwiki/wakka.php?wakka=LibraryRotationFunctions. ckrinke
             LSL_Types.Quaternion t = new LSL_Types.Quaternion(r.x * r.x, r.y * r.y, r.z * r.z, r.s * r.s);
             double m = (t.x + t.y + t.z + t.s);
@@ -207,6 +222,7 @@ namespace OpenSim.Region.ScriptEngine.Common
 
         public LSL_Types.Quaternion llEuler2Rot(LSL_Types.Vector3 v)
         {
+            m_host.AddScriptLPS(1);
             //this comes from from http://lslwiki.net/lslwiki/wakka.php?wakka=LibraryRotationFunctions but is incomplete as of 8/19/07
             float err = 0.00001f;
             double ax = Math.Sin(v.x / 2);
@@ -242,27 +258,31 @@ namespace OpenSim.Region.ScriptEngine.Common
 
         public LSL_Types.Quaternion llAxes2Rot(LSL_Types.Vector3 fwd, LSL_Types.Vector3 left, LSL_Types.Vector3 up)
         {
+            m_host.AddScriptLPS(1);
             return new LSL_Types.Quaternion();
         }
 
         public LSL_Types.Vector3 llRot2Fwd(LSL_Types.Quaternion r)
         {
+            m_host.AddScriptLPS(1);
             return (new LSL_Types.Vector3(1,0,0) * r);
         }
 
         public LSL_Types.Vector3 llRot2Left(LSL_Types.Quaternion r)
         {
+            m_host.AddScriptLPS(1);
             return (new LSL_Types.Vector3(0, 1, 0) * r);
         }
 
         public LSL_Types.Vector3 llRot2Up(LSL_Types.Quaternion r)
         {
+            m_host.AddScriptLPS(1);
             return (new LSL_Types.Vector3(0, 0, 1) * r);
         }
         public LSL_Types.Quaternion llRotBetween(LSL_Types.Vector3 a, LSL_Types.Vector3 b)
         {
             //A and B should both be normalized
-
+            m_host.AddScriptLPS(1);
             double dotProduct = LSL_Types.Vector3.Dot(a, b);
             LSL_Types.Vector3 crossProduct = LSL_Types.Vector3.Cross(a, b);
             double magProduct = LSL_Types.Vector3.Mag(a) * LSL_Types.Vector3.Mag(b);
@@ -274,6 +294,7 @@ namespace OpenSim.Region.ScriptEngine.Common
         }
         public void llWhisper(int channelID, string text)
         {
+            m_host.AddScriptLPS(1);
             World.SimChat(Helpers.StringToField(text),
                           ChatTypeEnum.Whisper, channelID, m_host.AbsolutePosition, m_host.Name, m_host.UUID);
 
@@ -283,6 +304,7 @@ namespace OpenSim.Region.ScriptEngine.Common
 
         public void llSay(int channelID, string text)
         {
+            m_host.AddScriptLPS(1);
             World.SimChat(Helpers.StringToField(text),
                           ChatTypeEnum.Say, channelID, m_host.AbsolutePosition, m_host.Name, m_host.UUID);
 
@@ -292,6 +314,7 @@ namespace OpenSim.Region.ScriptEngine.Common
 
         public void llShout(int channelID, string text)
         {
+            m_host.AddScriptLPS(1);
             World.SimChat(Helpers.StringToField(text),
                           ChatTypeEnum.Shout, channelID, m_host.AbsolutePosition, m_host.Name, m_host.UUID);
 
@@ -301,6 +324,7 @@ namespace OpenSim.Region.ScriptEngine.Common
 
         public int llListen(int channelID, string name, string ID, string msg)
         {
+            m_host.AddScriptLPS(1);
             if (ID == String.Empty)
             {
                 ID = LLUUID.Zero.ToString();
@@ -311,102 +335,119 @@ namespace OpenSim.Region.ScriptEngine.Common
 
         public void llListenControl(int number, int active)
         {
+            m_host.AddScriptLPS(1);
             IWorldComm wComm = m_ScriptEngine.World.RequestModuleInterface<IWorldComm>();
             wComm.ListenControl(number, active);
         }
 
         public void llListenRemove(int number)
         {
+            m_host.AddScriptLPS(1);
             IWorldComm wComm = m_ScriptEngine.World.RequestModuleInterface<IWorldComm>();
             wComm.ListenRemove(number);
         }
 
         public void llSensor(string name, string id, int type, double range, double arc)
         {
+            m_host.AddScriptLPS(1);
             NotImplemented("llSensor");
             return;
         }
 
         public void llSensorRepeat(string name, string id, int type, double range, double arc, double rate)
         {
+            m_host.AddScriptLPS(1);
             NotImplemented("llSensorRepeat");
             return;
         }
 
         public void llSensorRemove()
         {
+            m_host.AddScriptLPS(1);
             NotImplemented("llSensorRemove");
             return;
         }
 
         public string llDetectedName(int number)
         {
+            m_host.AddScriptLPS(1);
             NotImplemented("llDetectedName");
             return String.Empty;
         }
 
         public string llDetectedKey(int number)
         {
+            m_host.AddScriptLPS(1);
             NotImplemented("llDetectedKey");
             return String.Empty;
         }
 
         public string llDetectedOwner(int number)
         {
+            m_host.AddScriptLPS(1);
             NotImplemented("llDetectedOwner");
             return String.Empty;
         }
 
         public int llDetectedType(int number)
         {
+            m_host.AddScriptLPS(1);
             NotImplemented("llDetectedType");
             return 0;
         }
 
         public LSL_Types.Vector3 llDetectedPos(int number)
         {
+            m_host.AddScriptLPS(1);
             NotImplemented("llDetectedPos");
             return new LSL_Types.Vector3();
         }
 
         public LSL_Types.Vector3 llDetectedVel(int number)
         {
+            m_host.AddScriptLPS(1);
             NotImplemented("llDetectedVel");
             return new LSL_Types.Vector3();
         }
 
         public LSL_Types.Vector3 llDetectedGrab(int number)
         {
+            m_host.AddScriptLPS(1);
             NotImplemented("llDetectedGrab");
             return new LSL_Types.Vector3();
         }
 
         public LSL_Types.Quaternion llDetectedRot(int number)
         {
+            m_host.AddScriptLPS(1);
             NotImplemented("llDetectedRot");
             return new LSL_Types.Quaternion();
         }
 
         public int llDetectedGroup(int number)
         {
+            m_host.AddScriptLPS(1);
             NotImplemented("llDetectedGroup");
             return 0;
         }
 
         public int llDetectedLinkNumber(int number)
         {
+            m_host.AddScriptLPS(1);
             NotImplemented("llDetectedLinkNumber");
             return 0;
         }
 
         public void llDie()
         {
+            m_host.AddScriptLPS(1);
             World.DeleteSceneObjectGroup(m_host.ParentGroup);
             return;
         }
 
         public double llGround(LSL_Types.Vector3 offset)
         {
+            m_host.AddScriptLPS(1);
             int x = (int)(m_host.AbsolutePosition.X + offset.x);
             int y = (int)(m_host.AbsolutePosition.Y + offset.y);
             return World.GetLandHeight(x, y);
@@ -414,18 +455,21 @@ namespace OpenSim.Region.ScriptEngine.Common
 
         public double llCloud(LSL_Types.Vector3 offset)
         {
+            m_host.AddScriptLPS(1);
             NotImplemented("llCloud");
             return 0;
         }
 
         public LSL_Types.Vector3 llWind(LSL_Types.Vector3 offset)
         {
+            m_host.AddScriptLPS(1);
             NotImplemented("llWind");
             return new LSL_Types.Vector3();
         }
 
         public void llSetStatus(int status, int value)
         {
+            m_host.AddScriptLPS(1);
             if ((status & LSL_BaseClass.STATUS_PHYSICS) == LSL_BaseClass.STATUS_PHYSICS)
             {
                 m_host.AddFlag(LLObject.ObjectFlags.Physics);
@@ -466,11 +510,13 @@ namespace OpenSim.Region.ScriptEngine.Common
             {
                 NotImplemented("llSetStatus - STATUS_SANDBOX");
             }
+            
             return;
         }
 
         public int llGetStatus(int status)
         {
+            m_host.AddScriptLPS(1);
             Console.WriteLine(m_host.UUID.ToString() + " status is " + m_host.ObjectFlags.ToString());
             switch (status)
             {
@@ -530,6 +576,7 @@ namespace OpenSim.Region.ScriptEngine.Common
 
         public void llSetScale(LSL_Types.Vector3 scale)
         {
+            m_host.AddScriptLPS(1);
             // TODO: this needs to trigger a persistance save as well
             LLVector3 tmp = m_host.Scale;
             tmp.X = (float)scale.x;
@@ -542,11 +589,13 @@ namespace OpenSim.Region.ScriptEngine.Common
 
         public LSL_Types.Vector3 llGetScale()
         {
+            m_host.AddScriptLPS(1);
             return new LSL_Types.Vector3(m_host.Scale.X, m_host.Scale.Y, m_host.Scale.Z);
         }
 
         public void llSetColor(LSL_Types.Vector3 color, int face)
         {
+            m_host.AddScriptLPS(1);
             LLObject.TextureEntry tex = m_host.Shape.Textures;
             LLColor texcolor;
             if (face > -1)
@@ -588,6 +637,7 @@ namespace OpenSim.Region.ScriptEngine.Common
 
         public double llGetAlpha(int face)
         {
+            m_host.AddScriptLPS(1);
             LLObject.TextureEntry tex = m_host.Shape.Textures;
             if (face == -1) // TMP: Until we can determine number of sides, ALL_SIDES (-1) will return default color
             {
@@ -602,6 +652,7 @@ namespace OpenSim.Region.ScriptEngine.Common
 
         public void llSetAlpha(double alpha, int face)
         {
+            m_host.AddScriptLPS(1);
             LLObject.TextureEntry tex = m_host.Shape.Textures;
             LLColor texcolor;
             if (face > -1)
@@ -637,6 +688,7 @@ namespace OpenSim.Region.ScriptEngine.Common
 
         public LSL_Types.Vector3 llGetColor(int face)
         {
+            m_host.AddScriptLPS(1);
             LLObject.TextureEntry tex = m_host.Shape.Textures;
             LLColor texcolor;
             LSL_Types.Vector3 rgb;
@@ -665,6 +717,7 @@ namespace OpenSim.Region.ScriptEngine.Common
 
         public void llSetTexture(string texture, int face)
         {
+            m_host.AddScriptLPS(1);
             LLObject.TextureEntry tex = m_host.Shape.Textures;
 
             if (face > -1)
@@ -696,6 +749,7 @@ namespace OpenSim.Region.ScriptEngine.Common
 
         public void llScaleTexture(double u, double v, int face)
         {
+            m_host.AddScriptLPS(1);
             LLObject.TextureEntry tex = m_host.Shape.Textures;
             if (face > -1)
             {
@@ -729,6 +783,7 @@ namespace OpenSim.Region.ScriptEngine.Common
 
         public void llOffsetTexture(double u, double v, int face)
         {
+            m_host.AddScriptLPS(1);
             LLObject.TextureEntry tex = m_host.Shape.Textures;
             if (face > -1)
             {
@@ -762,6 +817,7 @@ namespace OpenSim.Region.ScriptEngine.Common
 
         public void llRotateTexture(double rotation, int face)
         {
+            m_host.AddScriptLPS(1);
             LLObject.TextureEntry tex = m_host.Shape.Textures;
             if (face > -1)
             {
@@ -792,6 +848,7 @@ namespace OpenSim.Region.ScriptEngine.Common
 
         public string llGetTexture(int face)
         {
+            m_host.AddScriptLPS(1);
             LLObject.TextureEntry tex = m_host.Shape.Textures;
             if (face == -1)
             {
@@ -812,6 +869,7 @@ namespace OpenSim.Region.ScriptEngine.Common
 
         public void llSetPos(LSL_Types.Vector3 pos)
         {
+            m_host.AddScriptLPS(1);
             if (m_host.ParentID != 0)
             {
                 m_host.UpdateOffSet(new LLVector3((float)pos.x, (float)pos.y, (float)pos.z));
@@ -824,6 +882,7 @@ namespace OpenSim.Region.ScriptEngine.Common
 
         public LSL_Types.Vector3 llGetPos()
         {
+            m_host.AddScriptLPS(1);
             return new LSL_Types.Vector3(m_host.AbsolutePosition.X,
                                          m_host.AbsolutePosition.Y,
                                          m_host.AbsolutePosition.Z);
@@ -831,6 +890,7 @@ namespace OpenSim.Region.ScriptEngine.Common
 
         public LSL_Types.Vector3 llGetLocalPos()
         {
+            m_host.AddScriptLPS(1);
             if (m_host.ParentID != 0)
             {
                 return new LSL_Types.Vector3(m_host.OffsetPosition.X,
@@ -847,65 +907,77 @@ namespace OpenSim.Region.ScriptEngine.Common
 
         public void llSetRot(LSL_Types.Quaternion rot)
         {
+            m_host.AddScriptLPS(1);
             m_host.UpdateRotation(new LLQuaternion((float)rot.x, (float)rot.y, (float)rot.z, (float)rot.s));
         }
 
         public LSL_Types.Quaternion llGetRot()
         {
+            m_host.AddScriptLPS(1);
             LLQuaternion q = m_host.RotationOffset;
             return new LSL_Types.Quaternion(q.X, q.Y, q.Z, q.W);
         }
 
         public LSL_Types.Quaternion llGetLocalRot()
         {
+            m_host.AddScriptLPS(1);
             return new LSL_Types.Quaternion(m_host.RotationOffset.X, m_host.RotationOffset.Y, m_host.RotationOffset.Z, m_host.RotationOffset.W);
         }
 
         public void llSetForce(LSL_Types.Vector3 force, int local)
         {
+            m_host.AddScriptLPS(1);
             NotImplemented("llSetForce");
         }
 
         public LSL_Types.Vector3 llGetForce()
         {
+            m_host.AddScriptLPS(1);
             NotImplemented("llGetForce");
             return new LSL_Types.Vector3();
         }
 
         public int llTarget(LSL_Types.Vector3 position, double range)
         {
+            m_host.AddScriptLPS(1);
             NotImplemented("llTarget");
             return 0;
         }
 
         public void llTargetRemove(int number)
         {
+            m_host.AddScriptLPS(1);
             NotImplemented("llTargetRemove");
         }
 
         public int llRotTarget(LSL_Types.Quaternion rot, double error)
         {
+            m_host.AddScriptLPS(1);
             NotImplemented("llRotTarget");
             return 0;
         }
 
         public void llRotTargetRemove(int number)
         {
+            m_host.AddScriptLPS(1);
             NotImplemented("llRotTargetRemove");
         }
 
         public void llMoveToTarget(LSL_Types.Vector3 target, double tau)
         {
+            m_host.AddScriptLPS(1);
             NotImplemented("llMoveToTarget");
         }
 
         public void llStopMoveToTarget()
         {
+            m_host.AddScriptLPS(1);
             NotImplemented("llStopMoveToTarget");
         }
 
         public void llApplyImpulse(LSL_Types.Vector3 force, int local)
         {
+            m_host.AddScriptLPS(1);
             //No energy force yet
             if (local == 1)
             {
@@ -926,65 +998,77 @@ namespace OpenSim.Region.ScriptEngine.Common
 
         public void llApplyRotationalImpulse(LSL_Types.Vector3 force, int local)
         {
+            m_host.AddScriptLPS(1);
             NotImplemented("llApplyRotationalImpulse");
         }
 
         public void llSetTorque(LSL_Types.Vector3 torque, int local)
         {
+            m_host.AddScriptLPS(1);
             NotImplemented("llSetTorque");
         }
 
         public LSL_Types.Vector3 llGetTorque()
         {
+            m_host.AddScriptLPS(1);
             NotImplemented("llGetTorque");
             return new LSL_Types.Vector3();
         }
 
         public void llSetForceAndTorque(LSL_Types.Vector3 force, LSL_Types.Vector3 torque, int local)
         {
+            m_host.AddScriptLPS(1);
             NotImplemented("llSetForceAndTorque");
         }
 
         public LSL_Types.Vector3 llGetVel()
         {
+            m_host.AddScriptLPS(1);
             return new LSL_Types.Vector3(m_host.Velocity.X, m_host.Velocity.Y, m_host.Velocity.Z);
         }
 
         public LSL_Types.Vector3 llGetAccel()
         {
+            m_host.AddScriptLPS(1);
             return new LSL_Types.Vector3(m_host.Acceleration.X, m_host.Acceleration.Y, m_host.Acceleration.Z);
         }
 
         public LSL_Types.Vector3 llGetOmega()
         {
+            m_host.AddScriptLPS(1);
             NotImplemented("llGetOmega");
             return new LSL_Types.Vector3();
         }
 
         public double llGetTimeOfDay()
         {
+            m_host.AddScriptLPS(1);
             NotImplemented("llGetTimeOfDay");
             return 0;
         }
 
         public double llGetWallclock()
         {
+            m_host.AddScriptLPS(1);
             return DateTime.Now.TimeOfDay.TotalSeconds;
         }
 
         public double llGetTime()
         {
+            m_host.AddScriptLPS(1);
             TimeSpan ScriptTime = DateTime.Now - m_timer;
             return (double)(ScriptTime.TotalMilliseconds / 1000);
         }
 
         public void llResetTime()
         {
+            m_host.AddScriptLPS(1);
             m_timer = DateTime.Now;
         }
 
         public double llGetAndResetTime()
         {
+            m_host.AddScriptLPS(1);
             TimeSpan ScriptTime = DateTime.Now - m_timer;
             m_timer = DateTime.Now;
             return (double)(ScriptTime.TotalMilliseconds / 1000);
@@ -992,6 +1076,7 @@ namespace OpenSim.Region.ScriptEngine.Common
 
         public void llSound()
         {
+            m_host.AddScriptLPS(1);
             // This function has been deprecated
             // see http://www.lslwiki.net/lslwiki/wakka.php?wakka=llSound
             NotImplemented("llSound");
@@ -999,47 +1084,55 @@ namespace OpenSim.Region.ScriptEngine.Common
 
         public void llPlaySound(string sound, double volume)
         {
-            
+            m_host.AddScriptLPS(1);
             m_host.SendSound(sound, volume, false);
         }
 
         public void llLoopSound(string sound, double volume)
         {
+            m_host.AddScriptLPS(1);
             NotImplemented("llLoopSound");
         }
 
         public void llLoopSoundMaster(string sound, double volume)
         {
+            m_host.AddScriptLPS(1);
             NotImplemented("llLoopSoundMaster");
         }
 
         public void llLoopSoundSlave(string sound, double volume)
         {
+            m_host.AddScriptLPS(1);
             NotImplemented("llLoopSoundSlave");
         }
 
         public void llPlaySoundSlave(string sound, double volume)
         {
+            m_host.AddScriptLPS(1);
             NotImplemented("llPlaySoundSlave");
         }
 
         public void llTriggerSound(string sound, double volume)
         {
+            m_host.AddScriptLPS(1);
             m_host.SendSound(sound, volume, true);
         }
 
         public void llStopSound()
         {
+            m_host.AddScriptLPS(1);
             NotImplemented("llStopSound");
         }
 
         public void llPreloadSound(string sound)
         {
+            m_host.AddScriptLPS(1);
             m_host.PreloadSound(sound);
         }
 
         public string llGetSubString(string src, int start, int end)
-         {
+        {
+            m_host.AddScriptLPS(1);
             // substring expects length
             // return src.Substring(start, end);
 
@@ -1059,7 +1152,8 @@ namespace OpenSim.Region.ScriptEngine.Common
          }
 
         public string llDeleteSubString(string src, int start, int end)
-         {
+        {
+            m_host.AddScriptLPS(1);
             //return src.Remove(start, end - start);
             // if one is negative so use length of string as base
             // if start > end then it is exclusive
@@ -1079,118 +1173,141 @@ namespace OpenSim.Region.ScriptEngine.Common
         
         public string llInsertString(string dst, int position, string src)
         {
+            m_host.AddScriptLPS(1);
             return dst.Insert(position, src);
         }
 
         public string llToUpper(string src)
         {
+            m_host.AddScriptLPS(1);
             return src.ToUpper();
         }
 
         public string llToLower(string src)
         {
+            m_host.AddScriptLPS(1);
             return src.ToLower();
         }
 
         public int llGiveMoney(string destination, int amount)
         {
+            m_host.AddScriptLPS(1);
             NotImplemented("llGiveMoney");
             return 0;
         }
 
         public void llMakeExplosion()
         {
+            m_host.AddScriptLPS(1);
             NotImplemented("llMakeExplosion");
         }
 
         public void llMakeFountain()
         {
+            m_host.AddScriptLPS(1);
             NotImplemented("llMakeFountain");
         }
 
         public void llMakeSmoke()
         {
+            m_host.AddScriptLPS(1);
             NotImplemented("llMakeSmoke");
         }
 
         public void llMakeFire()
         {
+            m_host.AddScriptLPS(1);
             NotImplemented("llMakeFire");
         }
 
         public void llRezObject(string inventory, LSL_Types.Vector3 pos, LSL_Types.Quaternion rot, int param)
         {
+            m_host.AddScriptLPS(1);
             NotImplemented("llRezObject");
         }
 
         public void llLookAt(LSL_Types.Vector3 target, double strength, double damping)
         {
+            m_host.AddScriptLPS(1);
             NotImplemented("llLookAt");
         }
 
         public void llStopLookAt()
         {
+            m_host.AddScriptLPS(1);
             NotImplemented("llStopLookAt");
         }
 
         public void llSetTimerEvent(double sec)
         {
+            m_host.AddScriptLPS(1);
             // Setting timer repeat
             m_ScriptEngine.m_ASYNCLSLCommandManager.SetTimerEvent(m_localID, m_itemID, sec);
         }
 
         public void llSleep(double sec)
         {
+            m_host.AddScriptLPS(1);
             Thread.Sleep((int)(sec * 1000));
         }
 
         public double llGetMass()
         {
+            m_host.AddScriptLPS(1);
             return m_host.GetMass();
         }
 
         public void llCollisionFilter(string name, string id, int accept)
         {
+            m_host.AddScriptLPS(1);
             NotImplemented("llCollisionFilter");
         }
 
         public void llTakeControls(int controls, int accept, int pass_on)
         {
+            m_host.AddScriptLPS(1);
             NotImplemented("llTakeControls");
         }
 
         public void llReleaseControls()
         {
+            m_host.AddScriptLPS(1);
             NotImplemented("llReleaseControls");
         }
 
         public void llAttachToAvatar(int attachment)
         {
+            m_host.AddScriptLPS(1);
             NotImplemented("llAttachToAvatar");
         }
 
         public void llDetachFromAvatar()
         {
+            m_host.AddScriptLPS(1);
             NotImplemented("llDetachFromAvatar");
         }
 
         public void llTakeCamera()
         {
+            m_host.AddScriptLPS(1);
             NotImplemented("llTakeCamera");
         }
 
         public void llReleaseCamera()
         {
+            m_host.AddScriptLPS(1);
             NotImplemented("llReleaseCamera");
         }
 
         public string llGetOwner()
         {
+            m_host.AddScriptLPS(1);
             return m_host.ObjectOwner.ToString();
         }
 
         public void llInstantMessage(string user, string message)
         {
+            m_host.AddScriptLPS(1);
             NotImplemented("llInstantMessage");
 
             // We may be able to use ClientView.SendInstantMessage here, but we need a client instance.
@@ -1204,51 +1321,62 @@ namespace OpenSim.Region.ScriptEngine.Common
 
         public void llEmail(string address, string subject, string message)
         {
+            m_host.AddScriptLPS(1);
             NotImplemented("llEmail");
         }
 
         public void llGetNextEmail(string address, string subject)
         {
+            m_host.AddScriptLPS(1);
             NotImplemented("llGetNextEmail");
         }
 
         public string llGetKey()
         {
+            m_host.AddScriptLPS(1);
             return m_host.UUID.ToString();
         }
 
         public void llSetBuoyancy(double buoyancy)
         {
+            m_host.AddScriptLPS(1);
             NotImplemented("llSetBuoyancy");
         }
 
         public void llSetHoverHeight(double height, int water, double tau)
         {
+            m_host.AddScriptLPS(1);
             NotImplemented("llSetHoverHeight");
         }
 
         public void llStopHover()
         {
+            m_host.AddScriptLPS(1);
+            m_host.AddScriptLPS(1);
             NotImplemented("llStopHover");
         }
 
         public void llMinEventDelay(double delay)
         {
+            m_host.AddScriptLPS(1);
             NotImplemented("llMinEventDelay");
         }
 
         public void llSoundPreload()
         {
+            m_host.AddScriptLPS(1);
             NotImplemented("llSoundPreload");
         }
 
         public void llRotLookAt(LSL_Types.Quaternion target, double strength, double damping)
         {
+            m_host.AddScriptLPS(1);
             NotImplemented("llRotLookAt");
         }
 
         public int llStringLength(string str)
         {
+            m_host.AddScriptLPS(1);
             if (str.Length > 0)
             {
                 return str.Length;
@@ -1261,26 +1389,31 @@ namespace OpenSim.Region.ScriptEngine.Common
 
         public void llStartAnimation(string anim)
         {
+            m_host.AddScriptLPS(1);
             NotImplemented("llStartAnimation");
         }
 
         public void llStopAnimation(string anim)
         {
+            m_host.AddScriptLPS(1);
             NotImplemented("llStopAnimation");
         }
 
         public void llPointAt()
         {
+            m_host.AddScriptLPS(1);
             NotImplemented("llPointAt");
         }
 
         public void llStopPointAt()
         {
+            m_host.AddScriptLPS(1);
             NotImplemented("llStopPointAt");
         }
 
         public void llTargetOmega(LSL_Types.Vector3 axis, double spinrate, double gain)
         {
+            m_host.AddScriptLPS(1);
             m_host.RotationalVelocity = new LLVector3((float)(axis.x * spinrate), (float)(axis.y * spinrate), (float)(axis.z * spinrate));
             m_host.AngularVelocity = new LLVector3((float)(axis.x * spinrate), (float)(axis.y * spinrate), (float)(axis.z * spinrate));
             m_host.ScheduleTerseUpdate();
@@ -1290,39 +1423,46 @@ namespace OpenSim.Region.ScriptEngine.Common
 
         public int llGetStartParameter()
         {
+            m_host.AddScriptLPS(1);
             NotImplemented("llGetStartParameter");
             return 0;
         }
 
         public void llGodLikeRezObject(string inventory, LSL_Types.Vector3 pos)
         {
+            m_host.AddScriptLPS(1);
             NotImplemented("llGodLikeRezObject");
         }
 
         public void llRequestPermissions(string agent, int perm)
         {
+            m_host.AddScriptLPS(1);
             NotImplemented("llRequestPermissions");
         }
 
         public string llGetPermissionsKey()
         {
+            m_host.AddScriptLPS(1);
             NotImplemented("llGetPermissionsKey");
             return String.Empty;
         }
 
         public int llGetPermissions()
         {
+            m_host.AddScriptLPS(1);
             NotImplemented("llGetPermissions");
             return 0;
         }
 
         public int llGetLinkNumber()
         {
+            m_host.AddScriptLPS(1);
             return m_host.LinkNum;
         }
 
         public void llSetLinkColor(int linknumber, LSL_Types.Vector3 color, int face)
         {
+            m_host.AddScriptLPS(1);
             SceneObjectPart part = m_host.ParentGroup.GetLinkNumPart(linknumber);
             if (linknumber > -1)
             {
@@ -1420,21 +1560,25 @@ namespace OpenSim.Region.ScriptEngine.Common
 
         public void llCreateLink(string target, int parent)
         {
+            m_host.AddScriptLPS(1);
             NotImplemented("llCreateLink");
         }
 
         public void llBreakLink(int linknum)
         {
+            m_host.AddScriptLPS(1);
             NotImplemented("llBreakLink");
         }
 
         public void llBreakAllLinks()
         {
+            m_host.AddScriptLPS(1);
             NotImplemented("llBreakAllLinks");
         }
 
         public string llGetLinkKey(int linknum)
         {
+            m_host.AddScriptLPS(1);
             SceneObjectPart part = m_host.ParentGroup.GetLinkNumPart(linknum);
             if (part != null)
             {
@@ -1448,6 +1592,7 @@ namespace OpenSim.Region.ScriptEngine.Common
 
         public string llGetLinkName(int linknum)
         {
+            m_host.AddScriptLPS(1);
             SceneObjectPart part = m_host.ParentGroup.GetLinkNumPart(linknum);
             if (part != null)
             {
@@ -1461,76 +1606,90 @@ namespace OpenSim.Region.ScriptEngine.Common
 
         public int llGetInventoryNumber(int type)
         {
+            m_host.AddScriptLPS(1);
             NotImplemented("llGetInventoryNumber");
             return 0;
         }
 
         public string llGetInventoryName(int type, int number)
         {
+            m_host.AddScriptLPS(1);
             NotImplemented("llGetInventoryName");
             return String.Empty;
         }
 
         public void llSetScriptState(string name, int run)
         {
+            m_host.AddScriptLPS(1);
             NotImplemented("llSetScriptState");
         }
 
         public double llGetEnergy()
         {
+            m_host.AddScriptLPS(1);
             return 1.0f;
         }
 
         public void llGiveInventory(string destination, string inventory)
         {
+            m_host.AddScriptLPS(1);
             NotImplemented("llGiveInventory");
         }
 
         public void llRemoveInventory(string item)
         {
+            m_host.AddScriptLPS(1);
             NotImplemented("llRemoveInventory");
         }
 
         public void llSetText(string text, LSL_Types.Vector3 color, double alpha)
         {
+            m_host.AddScriptLPS(1);
             Vector3 av3 = new Vector3((float)color.x, (float)color.y, (float)color.z);
             m_host.SetText(text, av3, alpha);
         }
 
         public double llWater(LSL_Types.Vector3 offset)
         {
+            m_host.AddScriptLPS(1);
             return World.RegionInfo.EstateSettings.waterHeight;
         }
 
         public void llPassTouches(int pass)
         {
+            m_host.AddScriptLPS(1);
             NotImplemented("llPassTouches");
         }
 
         public string llRequestAgentData(string id, int data)
         {
+            m_host.AddScriptLPS(1);
             NotImplemented("llRequestAgentData");
             return String.Empty;
         }
 
         public string llRequestInventoryData(string name)
         {
+            m_host.AddScriptLPS(1);
             NotImplemented("llRequestInventoryData");
             return String.Empty;
         }
 
         public void llSetDamage(double damage)
         {
+            m_host.AddScriptLPS(1);
             NotImplemented("llSetDamage");
         }
 
         public void llTeleportAgentHome(string agent)
         {
+            m_host.AddScriptLPS(1);
             NotImplemented("llTeleportAgentHome");
         }
 
         public void llModifyLand(int action, int brush)
         {
+            m_host.AddScriptLPS(1);
             double dsize;
             if (World.PermissionsMngr.CanTerraform(m_host.OwnerID, new LLVector3(m_host.AbsolutePosition.X, m_host.AbsolutePosition.Y, 0)))
             {
@@ -1594,92 +1753,111 @@ namespace OpenSim.Region.ScriptEngine.Common
 
         public void llCollisionSound(string impact_sound, double impact_volume)
         {
+            m_host.AddScriptLPS(1);
             NotImplemented("llCollisionSound");
         }
 
         public void llCollisionSprite(string impact_sprite)
         {
+            m_host.AddScriptLPS(1);
             NotImplemented("llCollisionSprite");
         }
 
         public string llGetAnimation(string id)
         {
+            m_host.AddScriptLPS(1);
             NotImplemented("llGetAnimation");
             return String.Empty;
         }
 
         public void llResetScript()
         {
+            m_host.AddScriptLPS(1);
             m_ScriptEngine.m_ScriptManager.ResetScript(m_localID, m_itemID);
         }
 
         public void llMessageLinked(int linknum, int num, string str, string id)
         {
+            m_host.AddScriptLPS(1);
         }
 
         public void llPushObject(string target, LSL_Types.Vector3 impulse, LSL_Types.Vector3 ang_impulse, int local)
         {
+            m_host.AddScriptLPS(1);
         }
 
         public void llPassCollisions(int pass)
         {
+            m_host.AddScriptLPS(1);
         }
 
         public string llGetScriptName()
         {
+            m_host.AddScriptLPS(1);
             return String.Empty;
         }
 
         public int llGetNumberOfSides()
         {
+            m_host.AddScriptLPS(1);
             return 0;
         }
 
         public LSL_Types.Quaternion llAxisAngle2Rot(LSL_Types.Vector3 axis, double angle)
         {
+            m_host.AddScriptLPS(1);
             return new LSL_Types.Quaternion();
         }
 
         public LSL_Types.Vector3 llRot2Axis(LSL_Types.Quaternion rot)
         {
+            m_host.AddScriptLPS(1);
             return new LSL_Types.Vector3();
         }
 
         public void llRot2Angle()
         {
+            m_host.AddScriptLPS(1);
         }
 
         public double llAcos(double val)
         {
+            m_host.AddScriptLPS(1);
             return (double)Math.Acos(val);
         }
 
         public double llAsin(double val)
         {
+            m_host.AddScriptLPS(1);
             return (double)Math.Asin(val);
         }
 
         public double llAngleBetween(LSL_Types.Quaternion a, LSL_Types.Quaternion b)
         {
+            m_host.AddScriptLPS(1);
             return 0;
         }
 
         public string llGetInventoryKey(string name)
         {
+            m_host.AddScriptLPS(1);
             return String.Empty;
         }
 
         public void llAllowInventoryDrop(int add)
         {
+            m_host.AddScriptLPS(1);
         }
 
         public LSL_Types.Vector3 llGetSunDirection()
         {
+            m_host.AddScriptLPS(1);
             return new LSL_Types.Vector3();
         }
 
         public LSL_Types.Vector3 llGetTextureOffset(int face)
         {
+            m_host.AddScriptLPS(1);
             LLObject.TextureEntry tex = m_host.Shape.Textures;
             LSL_Types.Vector3 offset;
             if (face == -1)
@@ -1694,6 +1872,7 @@ namespace OpenSim.Region.ScriptEngine.Common
 
         public LSL_Types.Vector3 llGetTextureScale(int side)
         {
+            m_host.AddScriptLPS(1);
             LLObject.TextureEntry tex = m_host.Shape.Textures;
             LSL_Types.Vector3 scale;
             if (side == -1)
@@ -1708,6 +1887,7 @@ namespace OpenSim.Region.ScriptEngine.Common
 
         public double llGetTextureRot(int face)
         {
+            m_host.AddScriptLPS(1);
             LLObject.TextureEntry tex = m_host.Shape.Textures;
             if (face == -1)
             {
@@ -1718,23 +1898,27 @@ namespace OpenSim.Region.ScriptEngine.Common
 
         public int llSubStringIndex(string source, string pattern)
         {
+            m_host.AddScriptLPS(1);
             return source.IndexOf(pattern);
         }
 
         public string llGetOwnerKey(string id)
         {
+            m_host.AddScriptLPS(1);
             NotImplemented("llGetOwnerKey");
             return String.Empty;
         }
 
         public LSL_Types.Vector3 llGetCenterOfMass()
         {
+            m_host.AddScriptLPS(1);
             NotImplemented("llGetCenterOfMass");
             return new LSL_Types.Vector3();
         }
 
         public LSL_Types.list llListSort(LSL_Types.list src, int stride, int ascending)
         {
+            m_host.AddScriptLPS(1);
             // SortedList<string, LSL_Types.list> sorted = new SortedList<string, LSL_Types.list>();
             // Add chunks to an array
             //int s = stride;
@@ -1775,11 +1959,13 @@ namespace OpenSim.Region.ScriptEngine.Common
 
         public int llGetListLength(LSL_Types.list src)
         {
+            m_host.AddScriptLPS(1);
             return src.Length;
         }
 
         public int llList2Integer(LSL_Types.list src, int index)
         {
+            m_host.AddScriptLPS(1);
             if (index < 0)
             {
                 index = src.Length + index;
@@ -1793,6 +1979,7 @@ namespace OpenSim.Region.ScriptEngine.Common
 
         public double osList2Double(LSL_Types.list src, int index)
         {
+            m_host.AddScriptLPS(1);
             if (index < 0)
             {
                 index = src.Length + index;
@@ -1806,6 +1993,7 @@ namespace OpenSim.Region.ScriptEngine.Common
 
         public double llList2Float(LSL_Types.list src, int index)
         {
+            m_host.AddScriptLPS(1);
             if (index < 0)
             {
                 index = src.Length + index;
@@ -1819,6 +2007,7 @@ namespace OpenSim.Region.ScriptEngine.Common
 
         public string llList2String(LSL_Types.list src, int index)
         {
+            m_host.AddScriptLPS(1);
             if (index < 0)
             {
                 index = src.Length + index;
@@ -1832,6 +2021,7 @@ namespace OpenSim.Region.ScriptEngine.Common
 
         public string llList2Key(LSL_Types.list src, int index)
         {
+            m_host.AddScriptLPS(1);
             if (index < 0)
             {
                 index = src.Length + index;
@@ -1854,6 +2044,7 @@ namespace OpenSim.Region.ScriptEngine.Common
 
         public LSL_Types.Vector3 llList2Vector(LSL_Types.list src, int index)
         {
+            m_host.AddScriptLPS(1);
             if (index < 0)
             {
                 index = src.Length + index;
@@ -1874,6 +2065,7 @@ namespace OpenSim.Region.ScriptEngine.Common
 
         public LSL_Types.Quaternion llList2Rot(LSL_Types.list src, int index)
         {
+            m_host.AddScriptLPS(1);
             if (index < 0)
             {
                 index = src.Length + index;
@@ -1894,6 +2086,7 @@ namespace OpenSim.Region.ScriptEngine.Common
 
         public LSL_Types.list llList2List(LSL_Types.list src, int start, int end)
         {
+            m_host.AddScriptLPS(1);
             return src.GetSublist(start, end);
         }
 
@@ -1909,6 +2102,7 @@ namespace OpenSim.Region.ScriptEngine.Common
 
         public int llGetListEntryType(LSL_Types.list src, int index)
         {
+            m_host.AddScriptLPS(1);
             if (index < 0)
             {
                 index = src.Length + index;
@@ -1946,6 +2140,7 @@ namespace OpenSim.Region.ScriptEngine.Common
 
         public string llList2CSV(LSL_Types.list src)
         {
+            m_host.AddScriptLPS(1);
             string ret = String.Empty;
             foreach (object o in src.Data)
             {
@@ -1957,11 +2152,13 @@ namespace OpenSim.Region.ScriptEngine.Common
 
         public LSL_Types.list llCSV2List(string src)
         {
+            m_host.AddScriptLPS(1);
             return new LSL_Types.list(src.Split(",".ToCharArray()));
         }
 
         public LSL_Types.list llListRandomize(LSL_Types.list src, int stride)
         {
+            m_host.AddScriptLPS(1);
             //int s = stride;
             //if (s < 1)
             //    s = 1;
@@ -2007,6 +2204,7 @@ namespace OpenSim.Region.ScriptEngine.Common
 
         public LSL_Types.list llList2ListStrided(LSL_Types.list src, int start, int end, int stride)
         {
+            m_host.AddScriptLPS(1);
             LSL_Types.list ret = new LSL_Types.list();
             //int s = stride;
             //if (s < 1)
@@ -2031,16 +2229,19 @@ namespace OpenSim.Region.ScriptEngine.Common
 
         public LSL_Types.Vector3 llGetRegionCorner()
         {
+            m_host.AddScriptLPS(1);
             return new LSL_Types.Vector3(World.RegionInfo.RegionLocX * 256, World.RegionInfo.RegionLocY * 256, 0);
         }
 
         public LSL_Types.list llListInsertList(LSL_Types.list dest, LSL_Types.list src, int start)
         {
+            m_host.AddScriptLPS(1);
             return dest.GetSublist(0, start - 1) + src + dest.GetSublist(start, -1);
         }
 
         public int llListFindList(LSL_Types.list src, LSL_Types.list test)
         {
+            m_host.AddScriptLPS(1);
             //foreach (string s in test)
             //{
             //    for (int ci = 0; ci < src.Count; ci++)
@@ -2055,16 +2256,19 @@ namespace OpenSim.Region.ScriptEngine.Common
 
         public string llGetObjectName()
         {
+            m_host.AddScriptLPS(1);
             return m_host.Name;
         }
 
         public void llSetObjectName(string name)
         {
+            m_host.AddScriptLPS(1);
             m_host.Name = name;
         }
 
         public string llGetDate()
         {
+            m_host.AddScriptLPS(1);
             DateTime date = DateTime.Now.ToUniversalTime();
             string result = date.ToString("yyyy-MM-dd");
             return result;
@@ -2072,33 +2276,39 @@ namespace OpenSim.Region.ScriptEngine.Common
 
         public int llEdgeOfWorld(LSL_Types.Vector3 pos, LSL_Types.Vector3 dir)
         {
+            m_host.AddScriptLPS(1);
             NotImplemented("llEdgeOfWorld");
             return 0;
         }
 
         public int llGetAgentInfo(string id)
         {
+            m_host.AddScriptLPS(1);
             NotImplemented("llGetAgentInfo");
             return 0;
         }
 
         public void llAdjustSoundVolume(double volume)
         {
+            m_host.AddScriptLPS(1);
             NotImplemented("llAdjustSoundVolume");
         }
 
         public void llSetSoundQueueing(int queue)
         {
+            m_host.AddScriptLPS(1);
             NotImplemented("llSetSoundQueueing");
         }
 
         public void llSetSoundRadius(double radius)
         {
+            m_host.AddScriptLPS(1);
             NotImplemented("llSetSoundRadius");
         }
 
         public string llKey2Name(string id)
         {
+            m_host.AddScriptLPS(1);
             NotImplemented("llKey2Name");
             return String.Empty;
         }
@@ -2107,6 +2317,7 @@ namespace OpenSim.Region.ScriptEngine.Common
 
         public void llSetTextureAnim(int mode, int face, int sizex, int sizey, double start, double length, double rate)
         {
+            m_host.AddScriptLPS(1);
             Primitive.TextureAnimation pTexAnim = new Primitive.TextureAnimation();
             pTexAnim.Flags =(uint) mode;
             
@@ -2128,16 +2339,19 @@ namespace OpenSim.Region.ScriptEngine.Common
         public void llTriggerSoundLimited(string sound, double volume, LSL_Types.Vector3 top_north_east,
                                           LSL_Types.Vector3 bottom_south_west)
         {
+            m_host.AddScriptLPS(1);
             NotImplemented("llTriggerSoundLimited");
         }
 
         public void llEjectFromLand(string pest)
         {
+            m_host.AddScriptLPS(1);
             NotImplemented("llEjectFromLand");
         }
 
         public LSL_Types.list llParseString2List(string str, LSL_Types.list separators, LSL_Types.list spacers)
         {
+            m_host.AddScriptLPS(1);
             LSL_Types.list ret = new LSL_Types.list();
             object[] delimeters = new object[separators.Length + spacers.Length];
             separators.Data.CopyTo(delimeters, 0);
@@ -2189,80 +2403,94 @@ namespace OpenSim.Region.ScriptEngine.Common
 
         public int llOverMyLand(string id)
         {
+            m_host.AddScriptLPS(1);
             NotImplemented("llOverMyLand");
             return 0;
         }
 
         public string llGetLandOwnerAt(LSL_Types.Vector3 pos)
         {
+            m_host.AddScriptLPS(1);
             return World.GetLandOwner((float)pos.x, (float)pos.y).ToString();
         }
 
         public string llGetNotecardLine(string name, int line)
         {
+            m_host.AddScriptLPS(1);
             NotImplemented("llGetNotecardLine");
             return String.Empty;
         }
 
         public LSL_Types.Vector3 llGetAgentSize(string id)
         {
+            m_host.AddScriptLPS(1);
             NotImplemented("llGetAgentSize");
             return new LSL_Types.Vector3();
         }
 
         public int llSameGroup(string agent)
         {
+            m_host.AddScriptLPS(1);
             NotImplemented("llSameGroup");
             return 0;
         }
 
         public void llUnSit(string id)
         {
+            m_host.AddScriptLPS(1);
             NotImplemented("llUnSit");
         }
 
         public LSL_Types.Vector3 llGroundSlope(LSL_Types.Vector3 offset)
         {
+            m_host.AddScriptLPS(1);
             NotImplemented("llGroundSlope");
             return new LSL_Types.Vector3();
         }
 
         public LSL_Types.Vector3 llGroundNormal(LSL_Types.Vector3 offset)
         {
+            m_host.AddScriptLPS(1);
             NotImplemented("llGroundNormal");
             return new LSL_Types.Vector3();
         }
 
         public LSL_Types.Vector3 llGroundContour(LSL_Types.Vector3 offset)
         {
+            m_host.AddScriptLPS(1);
             NotImplemented("llGroundContour");
             return new LSL_Types.Vector3();
         }
 
         public int llGetAttached()
         {
+            m_host.AddScriptLPS(1);
             NotImplemented("llGetAttached");
             return 0;
         }
 
         public int llGetFreeMemory()
         {
+            m_host.AddScriptLPS(1);
             NotImplemented("llGetFreeMemory");
             return 0;
         }
 
         public string llGetRegionName()
         {
+            m_host.AddScriptLPS(1);
             return World.RegionInfo.RegionName;
         }
 
         public double llGetRegionTimeDilation()
         {
+            m_host.AddScriptLPS(1);
             return (double)World.TimeDilation;
         }
 
         public double llGetRegionFPS()
         {
+            m_host.AddScriptLPS(1);
             return 10.0f;
         }
 
@@ -2313,6 +2541,7 @@ namespace OpenSim.Region.ScriptEngine.Common
 
         public void llParticleSystem(LSL_Types.list rules)
         {
+            m_host.AddScriptLPS(1);
             Primitive.ParticleSystem prules = new Primitive.ParticleSystem();
             LSL_Types.Vector3 tempv = new LSL_Types.Vector3();
             
@@ -2455,46 +2684,55 @@ namespace OpenSim.Region.ScriptEngine.Common
 
         public void llGroundRepel(double height, int water, double tau)
         {
+            m_host.AddScriptLPS(1);
             NotImplemented("llGroundRepel");
         }
 
         public void llGiveInventoryList()
         {
+            m_host.AddScriptLPS(1);
             NotImplemented("llGiveInventoryList");
         }
 
         public void llSetVehicleType(int type)
         {
+            m_host.AddScriptLPS(1);
             NotImplemented("llSetVehicleType");
         }
 
         public void llSetVehicledoubleParam(int param, double value)
         {
+            m_host.AddScriptLPS(1);
             NotImplemented("llSetVehicledoubleParam");
         }
 
         public void llSetVehicleVectorParam(int param, LSL_Types.Vector3 vec)
         {
+            m_host.AddScriptLPS(1);
             NotImplemented("llSetVehicleVectorParam");
         }
 
         public void llSetVehicleRotationParam(int param, LSL_Types.Quaternion rot)
         {
+            m_host.AddScriptLPS(1);
             NotImplemented("llSetVehicleRotationParam");
         }
 
         public void llSetVehicleFlags(int flags)
         {
+            m_host.AddScriptLPS(1);
             NotImplemented("llSetVehicleFlags");
         }
 
         public void llRemoveVehicleFlags(int flags)
         {
+            m_host.AddScriptLPS(1);
             NotImplemented("llRemoveVehicleFlags");
         }
 
         public void llSitTarget(LSL_Types.Vector3 offset, LSL_Types.Quaternion rot)
         {
+            m_host.AddScriptLPS(1);
             // LSL quaternions can normalize to 0, normal Quaternions can't.
             if (rot.s == 0 && rot.x == 0 && rot.y == 0 && rot.z == 0)
                 rot.z = 1; // ZERO_ROTATION = 0,0,0,1
@@ -2504,6 +2742,7 @@ namespace OpenSim.Region.ScriptEngine.Common
 
         public string llAvatarOnSitTarget()
         {
+            m_host.AddScriptLPS(1);
             LLUUID AVID = m_host.GetAvatarOnSitTarget();
 
             if (AVID != LLUUID.Zero)
@@ -2514,31 +2753,37 @@ namespace OpenSim.Region.ScriptEngine.Common
 
         public void llAddToLandPassList(string avatar, double hours)
         {
+            m_host.AddScriptLPS(1);
             NotImplemented("llAddToLandPassList");
         }
 
         public void llSetTouchText(string text)
         {
+            m_host.AddScriptLPS(1);
             m_host.TouchName = text;
         }
 
         public void llSetSitText(string text)
         {
+            m_host.AddScriptLPS(1);
             m_host.SitName = text;
         }
 
         public void llSetCameraEyeOffset(LSL_Types.Vector3 offset)
         {
+            m_host.AddScriptLPS(1);
             NotImplemented("llSetCameraEyeOffset");
         }
 
         public void llSetCameraAtOffset(LSL_Types.Vector3 offset)
         {
+            m_host.AddScriptLPS(1);
             NotImplemented("llSetCameraAtOffset");
         }
 
         public string llDumpList2String(LSL_Types.list src, string seperator)
         {
+            m_host.AddScriptLPS(1);
             if (src.Length == 0)
             {
                 return String.Empty;
@@ -2554,11 +2799,13 @@ namespace OpenSim.Region.ScriptEngine.Common
 
         public void llScriptDanger(LSL_Types.Vector3 pos)
         {
+            m_host.AddScriptLPS(1);
             NotImplemented("llScriptDanger");
         }
 
         public void llDialog(string avatar, string message, LSL_Types.list buttons, int chat_channel)
         {
+            m_host.AddScriptLPS(1);
             LLUUID av = new LLUUID();
             if (!LLUUID.TryParse(avatar,out av))
             {
@@ -2576,32 +2823,38 @@ namespace OpenSim.Region.ScriptEngine.Common
 
         public void llVolumeDetect(int detect)
         {
+            m_host.AddScriptLPS(1);
             NotImplemented("llVolumeDetect");
         }
 
         public void llResetOtherScript(string name)
         {
+            m_host.AddScriptLPS(1);
             NotImplemented("llResetOtherScript");
         }
 
         public int llGetScriptState(string name)
         {
+            m_host.AddScriptLPS(1);
             NotImplemented("llGetScriptState");
             return 0;
         }
 
         public void llRemoteLoadScript()
         {
+            m_host.AddScriptLPS(1);
             NotImplemented("llRemoteLoadScript");
         }
 
         public void llSetRemoteScriptAccessPin(int pin)
         {
+            m_host.AddScriptLPS(1);
             NotImplemented("llSetRemoteScriptAccessPin");
         }
 
         public void llRemoteLoadScriptPin(string target, string name, int pin, int running, int start_param)
         {
+            m_host.AddScriptLPS(1);
             NotImplemented("llRemoteLoadScriptPin");
         }
 
@@ -2612,6 +2865,7 @@ namespace OpenSim.Region.ScriptEngine.Common
         // REMOTE_DATA_REPLY = 3
         public void llOpenRemoteDataChannel()
         {
+            m_host.AddScriptLPS(1);
             IXMLRPC xmlrpcMod = m_ScriptEngine.World.RequestModuleInterface<IXMLRPC>();
             if (xmlrpcMod.IsEnabled())
             {
@@ -2623,34 +2877,40 @@ namespace OpenSim.Region.ScriptEngine.Common
 
         public string llSendRemoteData(string channel, string dest, int idata, string sdata)
         {
+            m_host.AddScriptLPS(1);
             NotImplemented("llSendRemoteData");
             return String.Empty;
         }
 
         public void llRemoteDataReply(string channel, string message_id, string sdata, int idata)
         {
+            m_host.AddScriptLPS(1);
             IXMLRPC xmlrpcMod = m_ScriptEngine.World.RequestModuleInterface<IXMLRPC>();
             xmlrpcMod.RemoteDataReply(channel, message_id, sdata, idata);
         }
 
         public void llCloseRemoteDataChannel(string channel)
         {
+            m_host.AddScriptLPS(1);
             IXMLRPC xmlrpcMod = m_ScriptEngine.World.RequestModuleInterface<IXMLRPC>();
             xmlrpcMod.CloseXMLRPCChannel(channel);
         }
 
         public string llMD5String(string src, int nonce)
         {
+            m_host.AddScriptLPS(1);
             return Util.Md5Hash(src + ":" + nonce.ToString());
         }
 
         public void llSetPrimitiveParams(LSL_Types.list rules)
         {
+            m_host.AddScriptLPS(1);
             NotImplemented("llSetPrimitiveParams");
         }
 
         public string llStringToBase64(string str)
         {
+            m_host.AddScriptLPS(1);
             try
             {
                 byte[] encData_byte = new byte[str.Length];
@@ -2666,6 +2926,7 @@ namespace OpenSim.Region.ScriptEngine.Common
 
         public string llBase64ToString(string str)
         {
+            m_host.AddScriptLPS(1);
             UTF8Encoding encoder = new UTF8Encoding();
             Decoder utf8Decode = encoder.GetDecoder();
             try
@@ -2685,32 +2946,38 @@ namespace OpenSim.Region.ScriptEngine.Common
 
         public void llXorBase64Strings()
         {
+            m_host.AddScriptLPS(1);
             throw new Exception("Command deprecated! Use llXorBase64StringsCorrect instead.");
         }
 
         public void llRemoteDataSetRegion()
         {
+            m_host.AddScriptLPS(1);
             NotImplemented("llRemoteDataSetRegion");
         }
 
         public double llLog10(double val)
         {
+            m_host.AddScriptLPS(1);
             return (double)Math.Log10(val);
         }
 
         public double llLog(double val)
         {
+            m_host.AddScriptLPS(1);
             return (double)Math.Log(val);
         }
 
         public LSL_Types.list llGetAnimationList(string id)
         {
+            m_host.AddScriptLPS(1);
             NotImplemented("llGetAnimationList");
             return new LSL_Types.list();
         }
 
         public void llSetParcelMusicURL(string url)
         {
+            m_host.AddScriptLPS(1);
             LLUUID landowner = World.GetLandOwner(m_host.AbsolutePosition.X, m_host.AbsolutePosition.Y);
             if (landowner.Equals(null))
             {
@@ -2725,11 +2992,13 @@ namespace OpenSim.Region.ScriptEngine.Common
 
         public LSL_Types.Vector3 llGetRootPosition()
         {
+            m_host.AddScriptLPS(1);
             return new LSL_Types.Vector3(m_host.ParentGroup.AbsolutePosition.X, m_host.ParentGroup.AbsolutePosition.Y, m_host.ParentGroup.AbsolutePosition.Z);
         }
 
         public LSL_Types.Quaternion llGetRootRotation()
         {
+            m_host.AddScriptLPS(1);
             return new LSL_Types.Quaternion(m_host.ParentGroup.GroupRotation.X, m_host.ParentGroup.GroupRotation.Y, m_host.ParentGroup.GroupRotation.Z, m_host.ParentGroup.GroupRotation.W);
         }
 
@@ -2740,21 +3009,25 @@ namespace OpenSim.Region.ScriptEngine.Common
 
         public void llSetObjectDesc(string desc)
         {
+            m_host.AddScriptLPS(1);
             m_host.Description = desc;
         }
 
         public string llGetCreator()
         {
+            m_host.AddScriptLPS(1);
             return m_host.ObjectCreator.ToString();
         }
 
         public string llGetTimestamp()
         {
+            m_host.AddScriptLPS(1);
             return DateTime.Now.ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ss.fffffffZ");
         }
 
         public void llSetLinkAlpha(int linknumber, double alpha, int face)
         {
+            m_host.AddScriptLPS(1);
             SceneObjectPart part = m_host.ParentGroup.GetLinkNumPart(linknumber);
             if (linknumber > -1)
             {
@@ -2836,17 +3109,20 @@ namespace OpenSim.Region.ScriptEngine.Common
 
         public int llGetNumberOfPrims()
         {
+            m_host.AddScriptLPS(1);
             return m_host.ParentGroup.PrimCount;
         }
 
         public string llGetNumberOfNotecardLines(string name)
         {
+            m_host.AddScriptLPS(1);
             NotImplemented("llGetNumberOfNotecardLines");
             return String.Empty;
         }
 
         public LSL_Types.list llGetBoundingBox(string obj)
         {
+            m_host.AddScriptLPS(1);
             NotImplemented("llGetBoundingBox");
             return new LSL_Types.list();
         }
@@ -2858,38 +3134,45 @@ namespace OpenSim.Region.ScriptEngine.Common
 
         public void llGetPrimitiveParams()
         {
+            m_host.AddScriptLPS(1);
             NotImplemented("llGetPrimitiveParams");
         }
 
         public string llIntegerToBase64(int number)
         {
+            m_host.AddScriptLPS(1);
             NotImplemented("llIntegerToBase64");
             return String.Empty;
         }
 
         public int llBase64ToInteger(string str)
         {
+            m_host.AddScriptLPS(1);
             NotImplemented("llBase64ToInteger");
             return 0;
         }
 
         public double llGetGMTclock()
         {
+            m_host.AddScriptLPS(1);
             return DateTime.UtcNow.TimeOfDay.TotalSeconds;
         }
 
         public string llGetSimulatorHostname()
         {
+            m_host.AddScriptLPS(1);
             return System.Environment.MachineName;
         }
 
         public void llSetLocalRot(LSL_Types.Quaternion rot)
         {
+            m_host.AddScriptLPS(1);
             m_host.RotationOffset = new LLQuaternion((float)rot.x, (float)rot.y, (float)rot.z, (float)rot.s);
         }
 
         public LSL_Types.list llParseStringKeepNulls(string src, LSL_Types.list seperators, LSL_Types.list spacers)
         {
+            m_host.AddScriptLPS(1);
             NotImplemented("llParseStringKeepNulls");
             return new LSL_Types.list();
         }
@@ -2897,38 +3180,45 @@ namespace OpenSim.Region.ScriptEngine.Common
         public void llRezAtRoot(string inventory, LSL_Types.Vector3 position, LSL_Types.Vector3 velocity,
                                 LSL_Types.Quaternion rot, int param)
         {
+            m_host.AddScriptLPS(1);
             NotImplemented("llRezAtRoot");
         }
 
         public int llGetObjectPermMask(int mask)
         {
+            m_host.AddScriptLPS(1);
             NotImplemented("llGetObjectPermMask");
             return 0;
         }
 
         public void llSetObjectPermMask(int mask, int value)
         {
+            m_host.AddScriptLPS(1);
             NotImplemented("llSetObjectPermMask");
         }
 
         public void llGetInventoryPermMask(string item, int mask)
         {
+            m_host.AddScriptLPS(1);
             NotImplemented("llGetInventoryPermMask");
         }
 
         public void llSetInventoryPermMask(string item, int mask, int value)
         {
+            m_host.AddScriptLPS(1);
             NotImplemented("llSetInventoryPermMask");
         }
 
         public string llGetInventoryCreator(string item)
         {
+            m_host.AddScriptLPS(1);
             NotImplemented("llGetInventoryCreator");
             return String.Empty;
         }
 
         public void llOwnerSay(string msg)
         {
+            m_host.AddScriptLPS(1);
             //temp fix so that lsl wiki examples aren't annoying to use to test other functions
             World.SimChat(Helpers.StringToField(msg), ChatTypeEnum.Say, 0, m_host.AbsolutePosition, m_host.Name, m_host.UUID);
             IWorldComm wComm = m_ScriptEngine.World.RequestModuleInterface<IWorldComm>();
@@ -2937,27 +3227,32 @@ namespace OpenSim.Region.ScriptEngine.Common
 
         public void llRequestSimulatorData(string simulator, int data)
         {
+            m_host.AddScriptLPS(1);
             NotImplemented("llRequestSimulatorData");
         }
 
         public void llForceMouselook(int mouselook)
         {
+            m_host.AddScriptLPS(1);
             NotImplemented("llForceMouselook");
         }
 
         public double llGetObjectMass(string id)
         {
+            m_host.AddScriptLPS(1);
             NotImplemented("llGetObjectMass");
             return 0;
         }
 
         public LSL_Types.list llListReplaceList(LSL_Types.list dest, LSL_Types.list src, int start, int end)
         {
+            m_host.AddScriptLPS(1);
             return dest.GetSublist(0, start - 1) + src + dest.GetSublist(end + 1, -1);
         }
 
         public void llLoadURL(string avatar_id, string message, string url)
         {
+            m_host.AddScriptLPS(1);
             LLUUID avatarId = new LLUUID(avatar_id);
             m_ScriptEngine.World.SendUrlToUser(avatarId, m_host.Name, m_host.UUID, m_host.ObjectOwner, false, message,
                                                url);
@@ -2965,16 +3260,19 @@ namespace OpenSim.Region.ScriptEngine.Common
 
         public void llParcelMediaCommandList(LSL_Types.list commandList)
         {
+            m_host.AddScriptLPS(1);
             NotImplemented("llParcelMediaCommandList");
         }
 
         public void llParcelMediaQuery()
         {
+            m_host.AddScriptLPS(1);
             NotImplemented("llParcelMediaQuery");
         }
 
         public int llModPow(int a, int b, int c)
         {
+            m_host.AddScriptLPS(1);
             Int64 tmp = 0;
             Int64 val = Math.DivRem(Convert.ToInt64(Math.Pow(a, b)), c, out tmp);
             return Convert.ToInt32(tmp);
@@ -2982,39 +3280,46 @@ namespace OpenSim.Region.ScriptEngine.Common
 
         public int llGetInventoryType(string name)
         {
+            m_host.AddScriptLPS(1);
             NotImplemented("llGetInventoryType");
             return 0;
         }
 
         public void llSetPayPrice(int price, LSL_Types.list quick_pay_buttons)
         {
+            m_host.AddScriptLPS(1);
             NotImplemented("llSetPayPrice");
         }
 
         public LSL_Types.Vector3 llGetCameraPos()
         {
+            m_host.AddScriptLPS(1);
             NotImplemented("llGetCameraPos");
             return new LSL_Types.Vector3();
         }
 
         public LSL_Types.Quaternion llGetCameraRot()
         {
+            m_host.AddScriptLPS(1);
             NotImplemented("llGetCameraRot");
             return new LSL_Types.Quaternion();
         }
 
         public void llSetPrimURL()
         {
+            m_host.AddScriptLPS(1);
             NotImplemented("llSetPrimURL");
         }
 
         public void llRefreshPrimURL()
         {
+            m_host.AddScriptLPS(1);
             NotImplemented("llRefreshPrimURL");
         }
 
         public string llEscapeURL(string url)
         {
+            m_host.AddScriptLPS(1);
             try
             {
                 return Uri.EscapeUriString(url);
@@ -3027,6 +3332,7 @@ namespace OpenSim.Region.ScriptEngine.Common
 
         public string llUnescapeURL(string url)
         {
+            m_host.AddScriptLPS(1);
             try
             {
                 return Uri.UnescapeDataString(url);
@@ -3039,59 +3345,70 @@ namespace OpenSim.Region.ScriptEngine.Common
 
         public void llMapDestination(string simname, LSL_Types.Vector3 pos, LSL_Types.Vector3 look_at)
         {
+            m_host.AddScriptLPS(1);
             NotImplemented("llMapDestination");
         }
 
         public void llAddToLandBanList(string avatar, double hours)
         {
+            m_host.AddScriptLPS(1);
             NotImplemented("llAddToLandBanList");
         }
 
         public void llRemoveFromLandPassList(string avatar)
         {
+            m_host.AddScriptLPS(1);
             NotImplemented("llRemoveFromLandPassList");
         }
 
         public void llRemoveFromLandBanList(string avatar)
         {
+            m_host.AddScriptLPS(1);
             NotImplemented("llRemoveFromLandBanList");
         }
 
         public void llSetCameraParams(LSL_Types.list rules)
         {
+            m_host.AddScriptLPS(1);
             NotImplemented("llSetCameraParams");
         }
 
         public void llClearCameraParams()
         {
+            m_host.AddScriptLPS(1);
             NotImplemented("llClearCameraParams");
         }
 
         public double llListStatistics(int operation, LSL_Types.list src)
         {
+            m_host.AddScriptLPS(1);
             NotImplemented("llListStatistics");
             return 0;
         }
 
         public int llGetUnixTime()
         {
+            m_host.AddScriptLPS(1);
             return Util.UnixTimeSinceEpoch();
         }
 
         public int llGetParcelFlags(LSL_Types.Vector3 pos)
         {
+            m_host.AddScriptLPS(1);
             NotImplemented("llGetParcelFlags");
             return 0;
         }
 
         public int llGetRegionFlags()
         {
+            m_host.AddScriptLPS(1);
             NotImplemented("llGetRegionFlags");
             return 0;
         }
 
         public string llXorBase64StringsCorrect(string str1, string str2)
         {
+            m_host.AddScriptLPS(1);
             string ret = String.Empty;
             string src1 = llBase64ToString(str1);
             string src2 = llBase64ToString(str2);
@@ -3109,6 +3426,7 @@ namespace OpenSim.Region.ScriptEngine.Common
 
         public string llHTTPRequest(string url, LSL_Types.list parameters, string body)
         {
+            m_host.AddScriptLPS(1);
             IHttpRequests httpScriptMod =
                 m_ScriptEngine.World.RequestModuleInterface<IHttpRequests>();
             List<string> param = new List<string>();
@@ -3127,28 +3445,33 @@ namespace OpenSim.Region.ScriptEngine.Common
 
         public void llResetLandBanList()
         {
+            m_host.AddScriptLPS(1);
             NotImplemented("llResetLandBanList");
         }
 
         public void llResetLandPassList()
         {
+            m_host.AddScriptLPS(1);
             NotImplemented("llResetLandPassList");
         }
 
         public int llGetParcelPrimCount(LSL_Types.Vector3 pos, int category, int sim_wide)
         {
+            m_host.AddScriptLPS(1);
             NotImplemented("llGetParcelPrimCount");
             return 0;
         }
 
         public LSL_Types.list llGetParcelPrimOwners(LSL_Types.Vector3 pos)
         {
+            m_host.AddScriptLPS(1);
             NotImplemented("llGetParcelPrimOwners");
             return new LSL_Types.list();
         }
 
         public int llGetObjectPrimCount(string object_id)
         {
+            m_host.AddScriptLPS(1);
             SceneObjectPart part = World.GetSceneObjectPart(new LLUUID(object_id));
             if (part == null)
             {
@@ -3162,6 +3485,7 @@ namespace OpenSim.Region.ScriptEngine.Common
 
         public int llGetParcelMaxPrims(LSL_Types.Vector3 pos, int sim_wide)
         {
+            m_host.AddScriptLPS(1);
             // Alondria: This currently just is utilizing the normal grid's 0.22 prims/m2 calculation
             // Which probably will be irrelevent in OpenSim....
             LandData land = World.GetLandData((float)pos.x, (float)pos.y);
@@ -3185,6 +3509,7 @@ namespace OpenSim.Region.ScriptEngine.Common
 
         public LSL_Types.list llGetParcelDetails(LSL_Types.Vector3 pos, LSL_Types.list param)
         {
+            m_host.AddScriptLPS(1);
             LandData land = World.GetLandData((float)pos.x, (float)pos.y);
             if (land == null)
             {
@@ -3219,7 +3544,8 @@ namespace OpenSim.Region.ScriptEngine.Common
         }
 
 	    public string llStringTrim(string src, int type)
-	    {
+        {
+            m_host.AddScriptLPS(1);
 	        if (type == (int)LSL_BaseClass.STRING_TRIM_HEAD) { return src.TrimStart(); }
 	        if (type == (int)LSL_BaseClass.STRING_TRIM_TAIL) { return src.TrimEnd(); }
 	        if (type == (int)LSL_BaseClass.STRING_TRIM) { return src.Trim(); }
@@ -3231,6 +3557,7 @@ namespace OpenSim.Region.ScriptEngine.Common
         //
         public int osTerrainSetHeight(int x, int y, double val)
         {
+            m_host.AddScriptLPS(1);
             if (x > 255 || x < 0 || y > 255 || y < 0)
                 LSLError("osTerrainSetHeight: Coordinate out of bounds");
 
@@ -3247,6 +3574,7 @@ namespace OpenSim.Region.ScriptEngine.Common
 
         public double osTerrainGetHeight(int x, int y)
         {
+            m_host.AddScriptLPS(1);
             if (x > 255 || x < 0 || y > 255 || y < 0)
                 LSLError("osTerrainGetHeight: Coordinate out of bounds");
 
@@ -3255,6 +3583,7 @@ namespace OpenSim.Region.ScriptEngine.Common
 
         public int osRegionRestart(double seconds)
         {
+            m_host.AddScriptLPS(1);
             if (World.PermissionsMngr.CanRestartSim(m_host.OwnerID))
             {
                 World.Restart((float)seconds);
@@ -3268,11 +3597,13 @@ namespace OpenSim.Region.ScriptEngine.Common
 
         public void osRegionNotice(string msg)
         {
+            m_host.AddScriptLPS(1);
             World.SendGeneralAlert(msg);
         }
 
         public void osSetRot(LLUUID target, Quaternion rotation)
         {
+            m_host.AddScriptLPS(1);
             if (World.Entities.ContainsKey(target))
             {
                 World.Entities[target].Rotation = rotation;
@@ -3286,6 +3617,7 @@ namespace OpenSim.Region.ScriptEngine.Common
         public string osSetDynamicTextureURL(string dynamicID, string contentType, string url, string extraParams,
                                              int timer)
         {
+            m_host.AddScriptLPS(1);
             if (dynamicID == String.Empty)
             {
                 IDynamicTextureManager textureManager = World.RequestModuleInterface<IDynamicTextureManager>();
@@ -3304,12 +3636,14 @@ namespace OpenSim.Region.ScriptEngine.Common
 
         private void NotImplemented(string Command)
         {
+            m_host.AddScriptLPS(1);
             if (throwErrorOnNotImplemented)
                 throw new NotImplementedException("Command not implemented: " + Command);
         }
 
         private void LSLError(string msg)
         {
+            m_host.AddScriptLPS(1);
             throw new Exception("LSL Runtime Error: " + msg);
         }
     }

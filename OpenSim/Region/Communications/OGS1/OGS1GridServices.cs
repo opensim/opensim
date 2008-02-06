@@ -1051,7 +1051,7 @@ namespace OpenSim.Region.Communications.OGS1
                 NoteDeadRegion(regionHandle);
                 return false;
             }
-            catch (RemotingException e)
+            catch (RemotingException)
             {
                 NoteDeadRegion(regionHandle);
                 m_log.Warn("Remoting Error: Unable to connect to adjacent region to tell it to close child agents: " + regInfo.RegionName +

@@ -125,6 +125,20 @@ namespace OpenSim.Region.Environment.Scenes
                 }
             }
         }
+
+        public void StopScripts()
+        {
+            lock (m_taskInventory)
+            {
+                foreach (TaskInventoryItem item in m_taskInventory.Values)
+                {
+                    if (10 == item.Type)
+                    {
+                        StopScript(item.ItemID);
+                    }
+                }
+            }
+        }
         
         /// <summary>
         /// Start a script which is in this prim's inventory.
@@ -144,6 +158,7 @@ namespace OpenSim.Region.Environment.Scenes
             {
                 string script = Helpers.FieldToUTF8String(rezAsset.Data);
                 m_parentGroup.Scene.EventManager.TriggerRezScript(LocalID, item.ItemID, script);
+
             }     
             else
             {
@@ -167,6 +182,7 @@ namespace OpenSim.Region.Environment.Scenes
                 if (m_taskInventory.ContainsKey(itemId))
                 {
                     StartScript(m_taskInventory[itemId]);
+                    m_parentGroup.AddActiveScriptCount(1);
                 }            
                 else
                 {
@@ -187,6 +203,7 @@ namespace OpenSim.Region.Environment.Scenes
             if (m_taskInventory.ContainsKey(itemId))
             {
                 m_parentGroup.Scene.EventManager.TriggerRemoveScript(LocalID, itemId);
+                m_parentGroup.AddActiveScriptCount(-1);
             }            
             else
             {
@@ -293,6 +310,11 @@ namespace OpenSim.Region.Environment.Scenes
             }
             
             return false;
+        }
+
+        public void AddScriptLPS(int count)
+        {
+            m_parentGroup.AddScriptLPS(count);
         }
 
         /// <summary>

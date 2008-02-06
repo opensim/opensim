@@ -51,10 +51,13 @@ namespace OpenSim.Region.Environment.Scenes
             PhysicsMS = 7,
             AgentMS = 8,
             ImageMS = 9,
+            ScriptMS = 10,
             TotalPrim = 11,
             ActivePrim = 12,
             Agents = 13,
             ChildAgents = 14,
+            ActiveScripts = 15,
+            ScriptLinesPerSecond = 16,
             InPacketsPerSecond = 17,
             OutPacketsPerSecond = 18,
             PendingDownloads = 19,
@@ -74,12 +77,15 @@ namespace OpenSim.Region.Environment.Scenes
         private int m_fps = 0;
         private float m_pfps = 0;
         private int m_agentUpdates = 0;
+
         private int m_frameMS = 0;
         private int m_netMS = 0;
         private int m_agentMS = 0;
         private int m_physicsMS = 0;
         private int m_imageMS = 0;
         private int m_otherMS = 0;
+        private int m_scriptMS = 0;
+
         private int m_rootAgents = 0;
         private int m_childAgents = 0;
         private int m_numPrim = 0;
@@ -89,9 +95,11 @@ namespace OpenSim.Region.Environment.Scenes
         private int m_unAckedBytes = 0;
         private int m_pendingDownloads = 0;
         private int m_pendingUploads = 0;
+        private int m_activeScripts = 0;
+        private int m_scriptLinesPerSecond = 0;
        
 
-        SimStatsPacket.StatBlock[] sb = new SimStatsPacket.StatBlock[19];
+        SimStatsPacket.StatBlock[] sb = new SimStatsPacket.StatBlock[21];
         SimStatsPacket.RegionBlock rb = new SimStatsPacket.RegionBlock();
         SimStatsPacket statpack = (SimStatsPacket)PacketPool.Instance.GetPacket(PacketType.SimStats);
         
@@ -106,7 +114,7 @@ namespace OpenSim.Region.Environment.Scenes
 
             statsUpdateFactor = (float)(statsUpdatesEveryMS / 1000);
             ReportingRegion = regionData;
-            for (int i = 0; i<19;i++)
+            for (int i = 0; i<21;i++)
             {
                 sb[i] = new SimStatsPacket.StatBlock();
             }
@@ -222,6 +230,12 @@ namespace OpenSim.Region.Environment.Scenes
             sb[18].StatID = (uint)Stats.PendingUploads;
             sb[18].StatValue = m_pendingUploads;
 
+            sb[19].StatID = (uint)Stats.ActiveScripts;
+            sb[19].StatValue = m_activeScripts;
+
+            sb[20].StatID = (uint)Stats.ScriptLinesPerSecond;
+            sb[20].StatValue = m_scriptLinesPerSecond / statsUpdateFactor;
+
             statpack.Stat = sb;
 
             if (OnSendStatsResult != null)
@@ -241,12 +255,15 @@ namespace OpenSim.Region.Environment.Scenes
             m_inPacketsPerSecond = 0;
             m_outPacketsPerSecond = 0;
             m_unAckedBytes = 0;
+            m_scriptLinesPerSecond = 0;
+
             m_frameMS = 0;
             m_agentMS = 0;
             m_netMS = 0;
             m_physicsMS = 0;
             m_imageMS = 0;
             m_otherMS = 0;
+            m_scriptMS = 0;
         }
 
         # region methods called from Scene
@@ -342,6 +359,16 @@ namespace OpenSim.Region.Environment.Scenes
         public void addPendingDownload(int count)
         {
             m_pendingDownloads += count;
+        }
+
+        public void addScriptLines(int count)
+        {
+            m_scriptLinesPerSecond += count;
+        }
+
+        public void SetActiveScripts(int count)
+        {
+            m_activeScripts = count;
         }
 
         #endregion

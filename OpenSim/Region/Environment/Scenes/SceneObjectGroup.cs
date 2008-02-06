@@ -1702,6 +1702,18 @@ namespace OpenSim.Region.Environment.Scenes
             m_parts.Clear();
         }
 
+        public void AddScriptLPS(int count)
+        {
+            InnerScene d = m_scene.m_innerScene;
+            d.AddToScriptLPS(count);
+        }
+
+        public void AddActiveScriptCount(int count)
+        {
+            InnerScene d = m_scene.m_innerScene;
+            d.AddActiveScripts(count);
+        }
+
         public override void SetText(string text, Vector3 color, double alpha)
         {
             Color = Color.FromArgb(0xff - (int) (alpha*0xff),

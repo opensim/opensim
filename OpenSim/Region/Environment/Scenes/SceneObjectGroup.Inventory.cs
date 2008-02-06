@@ -93,6 +93,17 @@ namespace OpenSim.Region.Environment.Scenes
                 part.StartScripts();
             }            
         }
+
+        public void StopScripts()
+        {
+            lock (m_parts)
+            {
+                foreach (SceneObjectPart part in m_parts.Values)
+                {
+                    part.StopScripts();
+                }
+            }
+        }
         
         /// Start a given script.
         /// </summary>

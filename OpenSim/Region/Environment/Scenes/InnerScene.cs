@@ -67,6 +67,9 @@ namespace OpenSim.Region.Environment.Scenes
         protected int m_numChildAgents = 0;
         protected int m_physicalPrim = 0;
 
+        protected int m_activeScripts = 0;
+        protected int m_scriptLPS = 0;
+
         internal object m_syncRoot = new object();
 
         public PhysicsScene _PhyScene;
@@ -201,6 +204,16 @@ namespace OpenSim.Region.Environment.Scenes
             m_physicalPrim--;
         }
 
+        public void AddToScriptLPS(int number)
+        {
+            m_scriptLPS += number;
+        }
+
+        public void AddActiveScripts(int number)
+        {
+            m_activeScripts += number;
+        }
+
         public void RemovePrim(uint localID, LLUUID avatar_deleter)
         {
             List<EntityBase> EntityList = GetEntities();
@@ -322,6 +335,17 @@ namespace OpenSim.Region.Environment.Scenes
             return m_physicalPrim;
         }
 
+        public int GetActiveScripts()
+        {
+            return m_activeScripts;
+        }
+
+        public int GetScriptLPS()
+        {
+            int returnval = m_scriptLPS;
+            m_scriptLPS = 0;
+            return returnval;
+        }
         #endregion
 
         #region Get Methods
@@ -546,10 +570,6 @@ namespace OpenSim.Region.Environment.Scenes
 
                         //m_log.Info("[DISTANCE]: " + distResult.ToString());
 
-                        if (distResult > 60)
-                        {
-                            int x = 0;
-                        }
                         if (distResult < presence.DrawDistance)
                         {
                             // Send Only if we don't already know about it.
