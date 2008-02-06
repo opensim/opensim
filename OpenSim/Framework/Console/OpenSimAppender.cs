@@ -27,7 +27,7 @@ namespace OpenSim.Framework.Console
 
                 WriteColorText(DeriveColor(matches[0].Groups["Category"].Value), matches[0].Groups["Category"].Value);
                 System.Console.Write("]");
-                System.Console.Write(matches[0].Groups["End"].Value);
+                System.Console.WriteLine(matches[0].Groups["End"].Value);
             } 
             else
             {
