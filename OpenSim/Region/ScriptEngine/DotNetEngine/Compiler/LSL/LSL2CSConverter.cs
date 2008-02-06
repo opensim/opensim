@@ -271,10 +271,10 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL
 
             // Replace (string) to .ToString() //
             Script =
-                Regex.Replace(Script, @"\(string\)\s*([a-zA-Z0-9_]+(\s*\([^\)]*\))?)", @"$1.ToString()",
+                Regex.Replace(Script, @"\(string\)\s*([a-zA-Z0-9_.]+(\s*\([^\)]*\))?)", @"$1.ToString()",
                               RegexOptions.Compiled | RegexOptions.Multiline | RegexOptions.Singleline);
             Script =
-                Regex.Replace(Script, @"\((float|int)\)\s*([a-zA-Z0-9_]+(\s*\([^\)]*\))?)", @"$1.Parse($2)",
+                Regex.Replace(Script, @"\((float|int)\)\s*([a-zA-Z0-9_.]+(\s*\([^\)]*\))?)", @"$1.Parse($2)",
                               RegexOptions.Compiled | RegexOptions.Multiline | RegexOptions.Singleline);
 
 
