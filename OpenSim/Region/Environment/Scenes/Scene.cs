@@ -1528,6 +1528,7 @@ namespace OpenSim.Region.Environment.Scenes
                         m_capsHandlers.Add(agent.AgentID, cap);
                     }
                 }
+                m_log.Debug("[client]: Creating agent circuit");
                 m_authenticateHandler.AddNewCircuit(agent.circuitcode, agent);
             }
         }
