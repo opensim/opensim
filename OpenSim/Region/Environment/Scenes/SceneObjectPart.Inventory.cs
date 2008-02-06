@@ -159,7 +159,7 @@ namespace OpenSim.Region.Environment.Scenes
                 {
                     string script = Helpers.FieldToUTF8String(rezAsset.Data);
                     m_parentGroup.Scene.EventManager.TriggerRezScript(LocalID, item.ItemID, script);
-
+                    m_parentGroup.AddActiveScriptCount(1);
                 }
                 else
                 {
@@ -184,7 +184,7 @@ namespace OpenSim.Region.Environment.Scenes
                 if (m_taskInventory.ContainsKey(itemId))
                 {
                     StartScript(m_taskInventory[itemId]);
-                    m_parentGroup.AddActiveScriptCount(1);
+                    
                 }            
                 else
                 {
