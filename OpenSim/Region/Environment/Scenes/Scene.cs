@@ -1003,6 +1003,7 @@ namespace OpenSim.Region.Environment.Scenes
             {
                 AddEntityFromStorage(group);
                 SceneObjectPart rootPart = group.GetChildPart(group.UUID);
+                rootPart.ObjectFlags &= ~(uint)LLObject.ObjectFlags.Scripted;
                 rootPart.TrimPermissions();
 
                 group.ApplyPhysics(m_physicalPrim);

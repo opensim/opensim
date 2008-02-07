@@ -670,6 +670,7 @@ namespace OpenSim.Region.Environment.Scenes
                        LLObject.ObjectFlags.AllowInventoryDrop |
                        LLObject.ObjectFlags.CreateSelected;
 
+
             TrimPermissions();
 
             ScheduleFullUpdate();
@@ -707,7 +708,11 @@ namespace OpenSim.Region.Environment.Scenes
             OffsetPosition = position;
             RotationOffset = rotation;
             ObjectFlags = flags;
-
+            
+            // Since we don't store script state, this is only a 'temporary' objectflag now
+            // If the object is scripted, the script will get loaded and this will be set again
+            ObjectFlags &= ~(uint)LLObject.ObjectFlags.Scripted; 
+            
             TrimPermissions();
             // ApplyPhysics();
 

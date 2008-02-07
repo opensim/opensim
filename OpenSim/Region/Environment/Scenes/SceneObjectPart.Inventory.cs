@@ -151,12 +151,15 @@ namespace OpenSim.Region.Environment.Scenes
 //                           "[PRIMINVENTORY]: " +
 //                           "Starting script {0}, {1} in prim {2}, {3}", 
 //                           item.Name, item.ItemID, Name, UUID));
+            AddFlag(LLObject.ObjectFlags.Scripted);
+
             if (!((m_parentGroup.Scene.RegionInfo.EstateSettings.regionFlags & Simulator.RegionFlags.SkipScripts) == Simulator.RegionFlags.SkipScripts))
             {
                 AssetBase rezAsset = m_parentGroup.Scene.AssetCache.GetAsset(item.AssetID, false);
 
                 if (rezAsset != null)
                 {
+                    
                     string script = Helpers.FieldToUTF8String(rezAsset.Data);
                     m_parentGroup.Scene.EventManager.TriggerRezScript(LocalID, item.ItemID, script);
                     m_parentGroup.AddActiveScriptCount(1);
@@ -169,6 +172,7 @@ namespace OpenSim.Region.Environment.Scenes
                                     item.Name, item.ItemID, item.AssetID));
                 }
             }
+            ScheduleFullUpdate();
         }   
         
         /// <summary>
@@ -202,10 +206,18 @@ namespace OpenSim.Region.Environment.Scenes
         /// <param name="itemId"></param>        
         public void StopScript(LLUUID itemId)
         {
+
+            
             if (m_taskInventory.ContainsKey(itemId))
             {
+                
                 m_parentGroup.Scene.EventManager.TriggerRemoveScript(LocalID, itemId);
                 m_parentGroup.AddActiveScriptCount(-1);
+                
+                
+                
+                
+                
             }            
             else
             {
@@ -213,7 +225,8 @@ namespace OpenSim.Region.Environment.Scenes
                                 "[PRIMINVENTORY]: " +
                                 "Couldn't stop script with ID {0} since it couldn't be found for prim {1}, {2}", 
                                 itemId, Name, UUID));
-            }                            
+            }
+                           
         }        
 
         /// <summary>
