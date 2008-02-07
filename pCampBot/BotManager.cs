@@ -76,11 +76,9 @@ namespace pCampBot
             for (int i = 0; i < botcount; i++)
             {
                 startupBot(i, cs);
-                
-
             }
-
         }
+
         /// <summary>
         /// Add additional bots (and threads) to our bot pool
         /// </summary>
@@ -89,14 +87,13 @@ namespace pCampBot
         {
             int len = m_td.Length;
             Thread[] m_td2 = new Thread[len + botcount];
-            int i;
-            for (i = 0; i < len; i++)
+            for (int i = 0; i < len; i++)
             {
                 m_td2[i] = m_td[i];
             }
             m_td = m_td2;
             int newlen = len + botcount;
-            for (i = i; i < newlen; i++)
+            for (int i = len; i < newlen; i++)
             {
                 startupBot(i, Previous_config);
             }
@@ -119,7 +116,6 @@ namespace pCampBot
             m_td[pos] = new Thread(pb.startup);
             m_td[pos].Start();
             m_lBot.Add(pb);
-
         }
 
         /// <summary>
@@ -136,7 +132,6 @@ namespace pCampBot
                 returnstring += chars.Substring(somthing.Next(chars.Length),1);
             }
             return returnstring;
-
         }
 
         /// <summary>
@@ -235,7 +230,6 @@ namespace pCampBot
         /// <param name="ShowWhat"></param>
         public void Show(string ShowWhat)
         {
-
         }
     }
 }
