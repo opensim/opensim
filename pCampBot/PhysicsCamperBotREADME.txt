@@ -6,7 +6,11 @@ It creates <N> clients that log in, randomly jump/walk around, and say excuses f
 **Warning:** Using this bot on a public grid could get you banned perminantly, so just say No! to greifing!
 
 -----Setup -----
-Linux: chmod the .sh runprebuild file, run it and then delete the pCampBot.exe.build file.   nant, and it'll end up in the OpenSim/Bin folder
+Linux: chmod the .sh runprebuild file, run it.  Then run nant like;   
+
+nant -buildfile: pCampBot.build 
+
+and pCampBot.exe will end up in the regular opensim/bin folder
 
 Windows:
 Run the prebuild bat IN THIS FOLDER and then open the created solution and compile it.  the Exe file will end up in the regular opensim bin folder.
