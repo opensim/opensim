@@ -58,7 +58,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL
         /// <summary>
         /// This contains number of lines WE use for header when compiling script. User will get error in line x-LinesToRemoveOnError when error occurs.
         /// </summary>
-        public int LinesToRemoveOnError = 2;
+        public int LinesToRemoveOnError = 3;
         private enumCompileType DefaultCompileLanguage;
         private bool WriteScriptSourceToDebugFile;
         private bool CompileWithDebugInformation;
@@ -273,30 +273,30 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL
             {
                 case enumCompileType.cs:
                     compileScript = String.Empty +
-                                "using OpenSim.Region.ScriptEngine.Common; using System.Collections.Generic;" +
+                                "using OpenSim.Region.ScriptEngine.Common; using System.Collections.Generic;\r\n" +
                                 String.Empty + "namespace SecondLife { " +
-                                String.Empty + "public class Script : OpenSim.Region.ScriptEngine.Common.LSL_BaseClass { " +
+                                String.Empty + "public class Script : OpenSim.Region.ScriptEngine.Common.LSL_BaseClass { \r\n" +
                                 @"public Script() { } " +
                                 compileScript +
-                                "} }\r\n\r\n";
+                                "} }\r\n";
                     break;
                 case enumCompileType.vb:
                     compileScript = String.Empty +
                                 "Imports OpenSim.Region.ScriptEngine.Common: Imports System.Collections.Generic: " +
                                 String.Empty + "NameSpace SecondLife:" +
                                 String.Empty + "Public Class Script: Inherits OpenSim.Region.ScriptEngine.Common.LSL_BaseClass: " +
-                                "Public Sub New()\r\nEnd Sub: " +
+                                "\r\nPublic Sub New()\r\nEnd Sub: " +
                                 compileScript +
                                 ":End Class :End Namespace\r\n";
                     break;
                 case enumCompileType.js:
                     compileScript = String.Empty +
-                        "import OpenSim.Region.ScriptEngine.Common; import System.Collections.Generic;" +
+                        "import OpenSim.Region.ScriptEngine.Common; import System.Collections.Generic;\r\n" +
                         "namespace SecondLife { " +
-                        "class Script : OpenSim.Region.ScriptEngine.Common.LSL_BaseClass { " +
+                        "class Script : OpenSim.Region.ScriptEngine.Common.LSL_BaseClass { \r\n" +
                         @"public Script() { } " +
                         compileScript +
-                        "} }\r\n\r\n";
+                        "} }\r\n";
                     break;
             }
             return CompileFromCSorVBText(compileScript, l);
