@@ -232,8 +232,7 @@ namespace OpenSim.Grid.UserServer
             {
                 m_log.Warn(
                     "[LOGIN]: " +
-                    "A root inventory folder for user ID " + userID + " was not found.  A new set"
-                    + " of empty inventory folders is being created.");
+                    "root inventory folder user " + userID + " not found. Creating.");
 
                 RestObjectPoster.BeginPostObject<Guid>(
                     m_config.InventoryUrl + "CreateInventory/", userID.UUID);
