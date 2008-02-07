@@ -54,6 +54,11 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL
             vb = 2,
             js = 3
         }
+
+        /// <summary>
+        /// This contains number of lines WE use for header when compiling script. User will get error in line x-LinesToRemoveOnError when error occurs.
+        /// </summary>
+        public int LinesToRemoveOnError = 2;
         private enumCompileType DefaultCompileLanguage;
         private bool WriteScriptSourceToDebugFile;
         private bool CompileWithDebugInformation;
@@ -273,14 +278,14 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL
                                 String.Empty + "public class Script : OpenSim.Region.ScriptEngine.Common.LSL_BaseClass { " +
                                 @"public Script() { } " +
                                 compileScript +
-                                "} }\r\n";
+                                "} }\r\n\r\n";
                     break;
                 case enumCompileType.vb:
-                    //                                "Public Sub New()\nEnd Sub: " +
                     compileScript = String.Empty +
                                 "Imports OpenSim.Region.ScriptEngine.Common: Imports System.Collections.Generic: " +
                                 String.Empty + "NameSpace SecondLife:" +
                                 String.Empty + "Public Class Script: Inherits OpenSim.Region.ScriptEngine.Common.LSL_BaseClass: " +
+                                "Public Sub New()\r\nEnd Sub: " +
                                 compileScript +
                                 ":End Class :End Namespace\r\n";
                     break;
@@ -291,7 +296,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL
                         "class Script : OpenSim.Region.ScriptEngine.Common.LSL_BaseClass { " +
                         @"public Script() { } " +
                         compileScript +
-                        "} }\r\n";
+                        "} }\r\n\r\n";
                     break;
             }
             return CompileFromCSorVBText(compileScript, l);
@@ -393,7 +398,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL
                 string errtext = String.Empty;
                 foreach (CompilerError CompErr in results.Errors)
                 {
-                    errtext += "Line number " + (CompErr.Line - 1) +
+                    errtext += "Line number " + (CompErr.Line - LinesToRemoveOnError) +
                                ", Error Number: " + CompErr.ErrorNumber +
                                ", '" + CompErr.ErrorText + "'\r\n";
                 }
