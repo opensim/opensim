@@ -38,8 +38,6 @@ using OpenSim.Framework;
 using OpenSim.Framework.Console;
 using Timer=System.Timers.Timer;
 
-
-
 namespace pCampBot
 {
     public class PhysicsBot
@@ -122,12 +120,12 @@ namespace pCampBot
         {
             client.Network.Logout();
         }
+
         /// <summary>
         /// This is the bot startup loop.
         /// </summary>
         public void startup()
         {
-
             client.Settings.LOGIN_SERVER = loginURI;
             client.Network.OnConnected += new NetworkManager.ConnectedCallback(this.Network_OnConnected);
             client.Network.OnSimConnected += new NetworkManager.SimConnectedCallback(this.Network_OnConnected);
@@ -147,14 +145,12 @@ namespace pCampBot
             }
             else
             {
-
-                MainLog.Instance.Error(firstname + " " + lastname,"Can't Log in: " + client.Network.LoginMessage);
+                MainConsole.Instance.Error(firstname + " " + lastname, "Can't login: " + client.Network.LoginMessage);
                 if (OnDisconnected != null)
                 {
                     OnDisconnected(this, EventType.DISCONNECTED);
                 }
             }
-
         }
 
         public void Network_OnConnected(object sender)
@@ -163,12 +159,10 @@ namespace pCampBot
             {
                 OnConnected(this, EventType.CONNECTED);
             }
-            
         }
+
         public void Simulator_Connected(object sender)
         {
-
-
         }
 
         public void Network_OnDisconnected(NetworkManager.DisconnectType reason, string message)
@@ -177,16 +171,11 @@ namespace pCampBot
             {
                 OnDisconnected(this,EventType.DISCONNECTED);
             }
-
-
         }
+
         public string[] readexcuses()
         {
-
-            
-            
             string allexcuses = "";
-            
                 
             string file = Path.Combine(Util.configDir(), "excuses");
             if (File.Exists(file))
@@ -195,14 +184,8 @@ namespace pCampBot
                 allexcuses = csr.ReadToEnd();
                 csr.Close();
             }
-            
 
             return allexcuses.Split(Environment.NewLine.ToCharArray());    
-
         }
-
-
     }
-
-
 }

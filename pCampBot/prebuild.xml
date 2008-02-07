@@ -52,6 +52,7 @@
       <Reference name="OpenSim.Framework.dll"/>
       <Reference name="OpenSim.Framework.Console.dll"/>
       <Reference name="Nini.dll" />
+      <Reference name="log4net"/>
 
       <Files>
         <Match pattern="*.cs" recurse="true"/>

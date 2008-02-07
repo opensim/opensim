@@ -44,25 +44,24 @@ namespace pCampBot
     /// </summary>
     public class BotManager : conscmd_callback
     {
-        protected LogBase m_log;
+        private static readonly log4net.ILog m_log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+
+        protected ConsoleBase m_console;
         protected List<PhysicsBot> m_lBot;
         protected Thread[] m_td;
-        protected string m_logFilename = "botlog.log";
         protected bool m_verbose = true;
         protected Random somthing = new Random(System.Environment.TickCount);
         protected int numbots = 0;
         protected IConfig Previous_config;
         
         /// <summary>
-        /// Constructor Creates Mainlog.Instance to take commands and provide the place to write data
+        /// Constructor Creates MainConsole.Instance to take commands and provide the place to write data
         /// </summary>
         public BotManager()
         {
-
-            m_log = CreateLog();
-            MainLog.Instance = m_log;
+            m_console = CreateConsole();
+            MainConsole.Instance = m_console;
             m_lBot = new List<PhysicsBot>();
-
         }
 
         /// <summary>
@@ -101,7 +100,6 @@ namespace pCampBot
             {
                 startupBot(i, Previous_config);
             }
-            
         }
        
         /// <summary>
@@ -151,19 +149,19 @@ namespace pCampBot
             switch (eventt)
             {
                 case EventType.CONNECTED:
-                    MainLog.Instance.Verbose(" " + callbot.firstname + " " + callbot.lastname, "Connected");
+                    m_log.Info("[ " + callbot.firstname + " " + callbot.lastname + "]: Connected");
                     numbots++;
                     break;
                 case EventType.DISCONNECTED:
-                    MainLog.Instance.Verbose(" " + callbot.firstname + " " + callbot.lastname, "Disconnected");
+                    m_log.Info("[ " + callbot.firstname + " " + callbot.lastname + "]: Disconnected");
                     m_td[m_lBot.IndexOf(callbot)].Abort();
                     numbots--;
                     if (numbots >1)
                         Environment.Exit(0);
                     break;
-
             }
         }
+
         /// <summary>
         /// Shutting down all bots
         /// </summary>
@@ -173,23 +171,15 @@ namespace pCampBot
             {
                 pb.shutdown();
             }
-
-            
-
         }
 
         /// <summary>
-        /// Standard Creatlog routine
+        /// Standard CreateConsole routine
         /// </summary>
         /// <returns></returns>
-        protected LogBase CreateLog()
+        protected ConsoleBase CreateConsole()
         {
-            if (!Directory.Exists(Util.logDir()))
-            {
-                Directory.CreateDirectory(Util.logDir());
-            }
-
-            return new LogBase((Path.Combine(Util.logDir(), m_logFilename)), "Region", this, m_verbose);
+            return new ConsoleBase("Region", this);
         }
 
         /// <summary>
@@ -219,11 +209,11 @@ namespace pCampBot
             switch (command)
             {
                 case "shutdown":
-                    MainLog.Instance.Warn("BOTMANAGER", "Shutting down bots");
+                    m_console.Warn("BOTMANAGER", "Shutting down bots");
                     doBotShutdown();
                     break;
                 case "quit":
-                    MainLog.Instance.Warn("DANGER", "This should only be used to quit the program if you've already used the shutdown command and the program hasn't quit");
+                    m_console.Warn("DANGER", "This should only be used to quit the program if you've already used the shutdown command and the program hasn't quit");
                     Environment.Exit(0);
                     break;
                 case "addbots":
@@ -234,10 +224,8 @@ namespace pCampBot
                         addbots(newbots);
                     break;
                 case "help":
-                    MainLog.Instance.Notice("HELP", "\nshutdown - graceful shutdown\naddbots <n> - adds n bots to the test\nquit - forcequits, dangerous if you have not already run shutdown");
+                    m_console.Notice("HELP", "\nshutdown - graceful shutdown\naddbots <n> - adds n bots to the test\nquit - forcequits, dangerous if you have not already run shutdown");
                     break;
-
-
             }
         }
 
@@ -250,5 +238,4 @@ namespace pCampBot
 
         }
     }
-        
 }

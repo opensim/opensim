@@ -35,7 +35,6 @@ using Nini.Config;
 using System.Threading;
 using OpenSim.Framework.Console;
 
-
 namespace pCampBot
 {
     /// <summary>
@@ -47,10 +46,9 @@ namespace pCampBot
         CONNECTED = 1,
         DISCONNECTED = 2
     }
+
     public class pCampBot
     {
-
-
         [STAThread]
         public static void Main(string[] args)
         {
@@ -63,7 +61,6 @@ namespace pCampBot
             cs.AddSwitch("Startup", "lastname");
             cs.AddSwitch("Startup", "password");
 
-            
             IConfig ol = cs.Configs["Startup"];
             int botcount = ol.GetInt("botcount", 1);
             BotManager bm = new BotManager();
@@ -72,9 +69,8 @@ namespace pCampBot
             bm.dobotStartup(botcount, ol);
             while (true)
             {
-                MainLog.Instance.MainLogPrompt();
+                MainConsole.Instance.Prompt();
             }
-
         }
     }
 }
