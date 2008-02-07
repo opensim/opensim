@@ -28,7 +28,7 @@
 
 using Mono.Addins;
 
-[assembly : AddinRoot("OpenSim", "0.4")]
+[assembly : AddinRoot("OpenSim", "0.5")]
 
 namespace OpenSim
 {

@@ -1,7 +1,7 @@
 !include "MUI.nsh"
 
 Name "OpenSim"
-OutFile "OpenSim Setup 0.4.exe"
+OutFile "OpenSim Setup 0.5.exe"
 
 CRCCheck On
 

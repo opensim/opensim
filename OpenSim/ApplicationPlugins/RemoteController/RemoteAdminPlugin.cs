@@ -39,7 +39,7 @@ using OpenSim.Framework.Servers;
 using OpenSim.Region.Environment.Scenes;
 
 [assembly : Addin]
-[assembly : AddinDependency("OpenSim", "0.4")]
+[assembly : AddinDependency("OpenSim", "0.5")]
 
 namespace OpenSim.ApplicationPlugins.LoadRegions
 {

@@ -101,7 +101,7 @@ namespace OpenSim.Grid.MessagingServer
                 //new RestStreamHandler("DELETE", "/usersessions/", m_userManager.RestDeleteUserSessionMethod));
 
             httpServer.Start();
-            m_log.Info("[SERVER]: Messageserver 0.4 - Startup complete");
+            m_log.Info("[SERVER]: Messageserver 0.5 - Startup complete");
         }
 
         public void do_create(string what)

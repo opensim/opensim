@@ -127,7 +127,7 @@ namespace OpenSim.Grid.UserServer
                 new RestStreamHandler("DELETE", "/usersessions/", m_userManager.RestDeleteUserSessionMethod));
 
             httpServer.Start();
-            m_log.Info("[SERVER]: Userserver 0.4 - Startup complete");
+            m_log.Info("[SERVER]: Userserver 0.5 - Startup complete");
         }
 
         public void do_create(string what)

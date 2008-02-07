@@ -33,7 +33,7 @@ using OpenSim.Framework.RegionLoader.Filesystem;
 using OpenSim.Framework.RegionLoader.Web;
 
 [assembly : Addin]
-[assembly : AddinDependency("OpenSim", "0.4")]
+[assembly : AddinDependency("OpenSim", "0.5")]
 
 namespace OpenSim.ApplicationPlugins.LoadRegions
 {
