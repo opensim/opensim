@@ -350,7 +350,26 @@ namespace OpenSim.Region.Environment.Scenes
                     TriggerScriptChangedEvent(Changed.INVENTORY);
                     
                     HasInventoryChanged = true;
-                    
+
+                    int scriptcount = 0;
+                    lock (m_taskInventory)
+                    {
+                        foreach (TaskInventoryItem item in m_taskInventory.Values)
+                        {
+                            if (item.Type == 10)
+                            {
+                                scriptcount++;
+                            }
+                        }
+
+                    }
+                    if (scriptcount <= 0)
+                    {
+                        RemFlag(LLObject.ObjectFlags.Scripted);
+                        ScheduleFullUpdate();
+                    }
+                    ScheduleFullUpdate(); 
+
                     return type;
                 }
                 else
