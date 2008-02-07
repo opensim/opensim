@@ -446,10 +446,9 @@ namespace OpenSim.Framework.UserManagement
                 }
                 else
                 {
-                    m_log.Info("[LOGOUT]: didn't save logout position, currentAgent is null *do Fix ");
+                    m_log.Info("[LOGOUT]: didn't save logout position, currentAgent: " + userAgent.ToString() );
                 }
                 m_log.Info("[LOGOUT]: " + userProfile.username + " " + userProfile.surname + " from " + regionhandle + "(" + posx + "," + posy + "," + posz + ")" );
-                m_log.Info("[LOGOUT]: userid: " + userid.ToString() + "   regionid: " + regionid.ToString() );
             }
             else
             {
