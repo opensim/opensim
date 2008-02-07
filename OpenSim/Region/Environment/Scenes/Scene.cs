@@ -626,7 +626,28 @@ namespace OpenSim.Region.Environment.Scenes
             // Aquire a lock so only one update call happens at once
             updateLock.WaitOne();
             float physicsFPS = 0;
-            
+            int agentsInScene = m_innerScene.GetRootAgentCount() + m_innerScene.GetChildAgentCount();
+
+            if (agentsInScene > 21)
+            {
+                if (m_update_entities == 1)
+                {
+                    m_update_avatars = 5;
+                    m_update_entities = 5;
+                    m_statsReporter.SetUpdateMS(6000);
+                }
+            }
+            else
+            {
+                if (m_update_entities == 5)
+                {
+                    m_update_avatars = 1;
+                    m_update_entities = 1;
+                    m_statsReporter.SetUpdateMS(3000);
+                }
+            }
+
+
             frameMS = System.Environment.TickCount;
             try
             {

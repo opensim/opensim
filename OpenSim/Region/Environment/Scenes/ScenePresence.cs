@@ -77,6 +77,7 @@ namespace OpenSim.Region.Environment.Scenes
         private bool m_newForce = false;
         private bool m_newCoarseLocations = true;
         private bool m_gotAllObjectsInScene = false;
+        
 
         // Default AV Height
         private float m_avHeight = 127.0f;
@@ -354,7 +355,7 @@ namespace OpenSim.Region.Environment.Scenes
             RegisterToEvents();
             SetDirectionVectors();
 
-            m_scene.LandManager.sendLandUpdate(this);
+            m_scene.LandManager.sendLandUpdate(this, true);
         }
 
         public ScenePresence(IClientAPI client, Scene world, RegionInfo reginfo, byte[] visualParams,

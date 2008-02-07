@@ -718,23 +718,32 @@ namespace OpenSim.Region.Environment.LandManagement
             }
         }
 
-        public void sendLandUpdate(ScenePresence avatar)
+        public void sendLandUpdate(ScenePresence avatar, bool force)
         {
             Land over = getLandObject((int) Math.Min(255, Math.Max(0, Math.Round(avatar.AbsolutePosition.X))),
                                       (int) Math.Min(255, Math.Max(0, Math.Round(avatar.AbsolutePosition.Y))));
 
             if (over != null)
             {
-                over.sendLandUpdateToClient(avatar.ControllingClient);
+                if (force)
+                {
+                    over.sendLandUpdateToClient(avatar.ControllingClient);
+                }
+
                 if (avatar.currentParcelUUID != over.landData.globalID)
                 {
+                    over.sendLandUpdateToClient(avatar.ControllingClient);
                     avatar.currentParcelUUID = over.landData.globalID;
                     m_scene.EventManager.TriggerAvatarEnteringNewParcel(avatar, over.landData.localID,
                                                                         m_scene.RegionInfo.RegionID);
                 }
             }
         }
+        public void sendLandUpdate(ScenePresence avatar)
+        {
+            sendLandUpdate(avatar, false);
 
+        }
         public void handleSignificantClientMovement(IClientAPI remote_client)
         {
             ScenePresence clientAvatar = m_scene.GetScenePresence(remote_client.AgentId);

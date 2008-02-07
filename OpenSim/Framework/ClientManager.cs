@@ -164,6 +164,7 @@ namespace OpenSim.Framework
                 {
                     packet.AgentData.AgentID = LocalClients[i].AgentId;
                     packet.AgentData.SessionID = LocalClients[i].SessionId;
+                    packet.Header.Reliable = false;
                     LocalClients[i].OutPacket(packet, ThrottleOutPacketType.Task);
                 }
 

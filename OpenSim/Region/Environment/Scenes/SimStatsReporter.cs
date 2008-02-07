@@ -124,6 +124,13 @@ namespace OpenSim.Region.Environment.Scenes
             m_report.Enabled = true;
         }
 
+        public void SetUpdateMS(int ms)
+        {
+            statsUpdatesEveryMS = ms;
+            statsUpdateFactor = (float)(statsUpdatesEveryMS / 1000);
+            m_report.Interval = statsUpdatesEveryMS;
+        }
+
         private void statsHeartBeat(object sender, EventArgs e)
         {
             m_report.Enabled = false;

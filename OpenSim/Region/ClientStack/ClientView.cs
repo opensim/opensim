@@ -957,6 +957,7 @@ namespace OpenSim.Region.ClientStack
             kill.ObjectData = new KillObjectPacket.ObjectDataBlock[1];
             kill.ObjectData[0] = new KillObjectPacket.ObjectDataBlock();
             kill.ObjectData[0].ID = localID;
+            kill.Header.Reliable = false;
             OutPacket(kill, ThrottleOutPacketType.Task);
         }
 
@@ -1378,6 +1379,7 @@ namespace OpenSim.Region.ClientStack
             viewertime.TimeInfo.SunDirection = sunPos;
             viewertime.TimeInfo.SunAngVelocity = sunVel;
             viewertime.TimeInfo.UsecSinceStart = (ulong)Util.UnixTimeSinceEpoch();
+            viewertime.Header.Reliable = false;
             OutPacket(viewertime, ThrottleOutPacketType.Task);
         }
 
@@ -1426,6 +1428,7 @@ namespace OpenSim.Region.ClientStack
             }
             viewertime.TimeInfo.SunAngVelocity = new LLVector3(0, 0.0f, 10.0f);
             viewertime.TimeInfo.UsecSinceStart = (ulong)Util.UnixTimeSinceEpoch();
+            viewertime.Header.Reliable = false;
             OutPacket(viewertime, ThrottleOutPacketType.Task);
         }
 
@@ -1521,7 +1524,7 @@ namespace OpenSim.Region.ClientStack
                 ani.AnimationList[i].AnimID = animations[i];
                 ani.AnimationList[i].AnimSequenceID = seqs[i];
             }
-
+            ani.Header.Reliable = false;
             OutPacket(ani, ThrottleOutPacketType.Task);
         }
 
@@ -1580,6 +1583,9 @@ namespace OpenSim.Region.ClientStack
             terse.RegionData.TimeDilation = timeDilation;
             terse.ObjectData = new ImprovedTerseObjectUpdatePacket.ObjectDataBlock[1];
             terse.ObjectData[0] = terseBlock;
+            
+                terse.Header.Reliable = false;
+            
 
             OutPacket(terse, ThrottleOutPacketType.Task);
         }
@@ -1604,6 +1610,7 @@ namespace OpenSim.Region.ClientStack
             ib.You = -1;
             ib.Prey = -1;
             loc.Index = ib;
+            loc.Header.Reliable = false;
             OutPacket(loc, ThrottleOutPacketType.Task);
         }
 
@@ -1706,7 +1713,7 @@ namespace OpenSim.Region.ClientStack
             terse.RegionData.TimeDilation = timeDilation;
             terse.ObjectData = new ImprovedTerseObjectUpdatePacket.ObjectDataBlock[1];
             terse.ObjectData[0] = CreatePrimImprovedBlock(localID, position, rotation, velocity, rotationalvelocity);
-
+            terse.Header.Reliable = false;
             OutPacket(terse, ThrottleOutPacketType.Task);
         }
 
@@ -1719,7 +1726,7 @@ namespace OpenSim.Region.ClientStack
             terse.RegionData.TimeDilation = timeDilation;
             terse.ObjectData = new ImprovedTerseObjectUpdatePacket.ObjectDataBlock[1];
             terse.ObjectData[0] = CreatePrimImprovedBlock(localID, position, rotation, velocity, rotationalvelocity);
-
+            terse.Header.Reliable = false;
             OutPacket(terse, ThrottleOutPacketType.Task);
         }
 
