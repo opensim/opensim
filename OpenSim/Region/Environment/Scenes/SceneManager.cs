@@ -316,21 +316,17 @@ namespace OpenSim.Region.Environment.Scenes
             List<ScenePresence> avatars = new List<ScenePresence>();
 
             ForEachCurrentScene(delegate(Scene scene)
-                                    {
-                                        List<EntityBase> EntitieList = scene.GetEntities();
+            {
+                List<ScenePresence> scenePrescences = scene.GetScenePresences();
 
-                                        foreach (EntityBase entity in EntitieList)
-                                        {
-                                            if (entity is ScenePresence)
-                                            {
-                                                ScenePresence scenePrescence = entity as ScenePresence;
-                                                if (!scenePrescence.IsChildAgent)
-                                                {
-                                                    avatars.Add(scenePrescence);
-                                                }
-                                            }
-                                        }
-                                    });
+                foreach (ScenePresence scenePrescence in scenePrescences)
+                {
+                    if (!scenePrescence.IsChildAgent)
+                    {
+                        avatars.Add(scenePrescence);
+                    }
+                }
+            });
 
             return avatars;
         }

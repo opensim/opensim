@@ -1407,12 +1407,28 @@ namespace OpenSim.Region.Environment.Scenes
 
             lock (m_scenePresences)
             {
-                m_scenePresences.Remove(agentID);
+                if (m_scenePresences.Remove(agentID))
+                {
+                    //m_log.Info(String.Format("[SCENE] Removed scene presence {0}", agentID));
+                }
+                else
+                {
+                    m_log.Warn(
+                        String.Format("[SCENE] Tried to remove non-existent scene prescence with agent ID {0} from scene ScenePresences list", agentID));
+                }
             }
 
             lock (Entities)
             {
-                Entities.Remove(agentID);
+                if (Entities.Remove(agentID))
+                {
+                    //m_log.Info(String.Format("[SCENE] Removed scene presence {0} from entities list", agentID));
+                }
+                else
+                {
+                    m_log.Warn(
+                        String.Format("[SCENE] Tried to remove non-existent scene prescence with agent ID {0} from scene Entities list", agentID));
+                }                
             }
 
             try
@@ -1425,7 +1441,7 @@ namespace OpenSim.Region.Environment.Scenes
             }
             catch (Exception e)
             {
-                m_log.Error("Scene.cs:RemoveClient exception: " + e.ToString());
+                m_log.Error("[SCENE] Scene.cs:RemoveClient exception: " + e.ToString());
             }
 
             // Remove client agent from profile, so new logins will work
