@@ -1445,7 +1445,10 @@ namespace OpenSim.Region.Environment.Scenes
             }
 
             // Remove client agent from profile, so new logins will work
-            CommsManager.UserService.clearUserAgent(agentID);
+            CommsManager.UserService.clearUserAgent(agentID);  
+            
+            //m_log.Info(String.Format("[SCENE] Memory pre  GC {0}", System.GC.GetTotalMemory(false)));
+            //m_log.Info(String.Format("[SCENE] Memory post GC {0}", System.GC.GetTotalMemory(true)));            
         }
 
         public override void CloseAllAgents(uint circuitcode)

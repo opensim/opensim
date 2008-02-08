@@ -103,12 +103,22 @@ namespace OpenSim.Framework.Communications.Cache
             }
         }
 
+        /// <summary>
+        /// Get an uploaded asset.  If the data is successfully retrieved, the transaction will be removed.
+        /// </summary>
+        /// <param name="transactionID"></param>
+        /// <returns>The asset if the upload has completed, null if it has not.</returns>
         public AssetBase GetTransactionAsset(LLUUID transactionID)
         {
             if (XferUploaders.ContainsKey(transactionID))
             {
-                return XferUploaders[transactionID].GetAssetData();
+                AssetXferUploader uploader = XferUploaders[transactionID];
+                AssetBase asset = uploader.GetAssetData();
+                XferUploaders.Remove(transactionID);
+                
+                return asset;
             }
+            
             return null;
         }
 
@@ -237,6 +247,7 @@ namespace OpenSim.Framework.Communications.Cache
                     SaveAssetToFile(filename, Asset.Data);
                 }
             }
+            
             ///Left this in and commented in case there are unforseen issues
             //private void SaveAssetToFile(string filename, byte[] data)
             //{
@@ -309,10 +320,6 @@ namespace OpenSim.Framework.Communications.Cache
                     userInfo.AddItem(ourClient.AgentId, item);
                     ourClient.SendInventoryItemCreateUpdate(item);
                 }
-            }
-
-            public void UpdateInventoryItem(LLUUID itemID)
-            {
             }
 
             public AssetBase GetAssetData()

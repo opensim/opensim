@@ -41,7 +41,7 @@ namespace OpenSim.Region.Environment.Scenes
     {
         ~ScenePresence()
         {
-            m_log.Info("[ScenePresence] Destructor called");
+            System.Console.WriteLine("[ScenePresence] Destructor called");
         }
         
         private static readonly log4net.ILog m_log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);

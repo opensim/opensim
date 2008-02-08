@@ -25,6 +25,8 @@
 * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 * 
 */
+
+using System;
 using System.Net;
 using System.Net.Sockets;
 using libsecondlife;
@@ -133,13 +135,17 @@ namespace OpenSim.Region.ClientStack
             //m_scene.ClientManager.CloseAllAgents(circuitcode);
         }
 
+        /// <summary>
+        /// Completely close down the given client.
+        /// </summary>
+        /// <param name="client"></param>
         public virtual void CloseClient(IClientAPI client)
         {
-            //m_log.Info("PacketServer:CloseClient()");
-            
+            m_log.Info("PacketServer:CloseClient()");
+         
             CloseCircuit(client.CircuitCode);
+            m_scene.ClientManager.Remove(client.CircuitCode);                
             client.Close(false);
-            m_scene.ClientManager.Remove(client.CircuitCode);
         }
     }
 }

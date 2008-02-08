@@ -53,7 +53,7 @@ namespace OpenSim.Region.ClientStack
     {
         ~ClientView()
         {
-            m_log.Info("[CLIENTVIEW]: Dstructor called");                       
+            System.Console.WriteLine("[CLIENTVIEW]: Destructor called");                       
         }
         
         private static readonly log4net.ILog m_log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
@@ -237,6 +237,10 @@ namespace OpenSim.Region.ClientStack
         private void CloseCleanup()
         {
             m_scene.RemoveClient(AgentId);
+            
+            //m_log.Info(String.Format("[CLIENTVIEW] Memory pre  GC {0}", System.GC.GetTotalMemory(false)));
+            //m_log.Info(String.Format("[CLIENTVIEW] Memory post GC {0}", System.GC.GetTotalMemory(true)));   
+            
             // Send the STOP packet 
             DisableSimulatorPacket disable = (DisableSimulatorPacket)PacketPool.Instance.GetPacket(PacketType.DisableSimulator);
             OutPacket(disable, ThrottleOutPacketType.Task);
@@ -264,6 +268,11 @@ namespace OpenSim.Region.ClientStack
             m_clientThread.Abort();
         }
 
+        /// <summary>
+        /// Close down the client view.  This *must* be the last method called, since the last  #
+        /// statement of CloseCleanup() aborts the thread.
+        /// </summary>
+        /// <param name="ShutdownCircult"></param>
         public void Close(bool ShutdownCircult)
         {
             // Pull Client out of Region
@@ -272,7 +281,6 @@ namespace OpenSim.Region.ClientStack
             //raiseevent on the packet server to Shutdown the circuit
             if (ShutdownCircult)
                 OnConnectionClosed(this);
-
 
             CloseCleanup();
         }

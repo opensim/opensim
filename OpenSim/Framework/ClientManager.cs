@@ -26,6 +26,7 @@
 * 
 */
 
+using System;
 using System.Collections.Generic;
 using libsecondlife;
 using libsecondlife.Packets;
@@ -70,7 +71,9 @@ namespace OpenSim.Framework
 
         public void Remove(uint id)
         {
+            //m_log.Info(String.Format("[CLIENT]: Removing client with code {0}, current count {1}", id, m_clients.Count));            
             m_clients.Remove(id);
+            m_log.Info(String.Format("[CLIENT]: Removed client with code {0}, new client count {1}", id, m_clients.Count));
         }
 
         public void Add(uint id, IClientAPI client)
