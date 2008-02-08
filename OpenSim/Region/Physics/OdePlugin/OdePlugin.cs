@@ -1011,6 +1011,9 @@ namespace OpenSim.Region.Physics.OdePlugin
             if ((pbs.ProfileBegin != 0) || pbs.ProfileEnd != 0)
                 return true;
 
+            if ((pbs.PathScaleX != 100) || (pbs.PathScaleY != 100))
+                return true;
+
             if (pbs.ProfileShape == ProfileShape.Circle && pbs.PathCurve == (byte)Extrusion.Straight)
                 return true;
 
