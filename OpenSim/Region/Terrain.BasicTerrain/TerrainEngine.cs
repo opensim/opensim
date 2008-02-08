@@ -291,7 +291,7 @@ namespace OpenSim.Region.Terrain
             }
 
             counter++;
-            if(counter==3)
+            if(counter==2)
             {
                 counter=0;
                 for (int x = 0; x < 16; x++)
