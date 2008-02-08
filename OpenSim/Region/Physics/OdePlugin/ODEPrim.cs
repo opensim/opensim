@@ -127,6 +127,18 @@ namespace OpenSim.Region.Physics.OdePlugin
                     m_targetSpace = _parent_scene.space;
             }
             m_primName = primName;
+            if (mesh != null)
+            {
+            }
+            else
+            {
+                if (_parent_scene.needsMeshing(_pbs))
+                {
+                    // Don't need to re-enable body..   it's done in SetMesh
+                    mesh = _parent_scene.mesher.CreateMesh(m_primName, _pbs, _size);
+                    // createmesh returns null when it's a shape that isn't a cube.
+                }
+            }
 
             lock (OdeScene.OdeLock)
             {
