@@ -63,10 +63,8 @@ namespace libTerrain
                     z *= z;
                     z -= ((x - rx)*(x - rx)) + ((y - ry)*(y - ry));
 
-                    if (z < 0)
-                        z = 0;
-
-                    Set(x, y, map[x, y] + (z*amount));
+                    if (z > 0.0)
+                        Set(x, y, map[x, y] + (z * amount));
                 }
             }
         }
@@ -88,10 +86,8 @@ namespace libTerrain
                     double z = size;
                     z -= Math.Sqrt(((x - rx)*(x - rx)) + ((y - ry)*(y - ry)));
 
-                    if (z < 0)
-                        z = 0;
-
-                    Set(x, y, map[x, y] + (z*amount));
+                    if (z > 0.0)
+                        Set(x, y, map[x, y] + (z * amount));
                 }
             }
         }
@@ -126,10 +122,8 @@ namespace libTerrain
                     z *= z;
                     z -= ((x - rx)*(x - rx)) + ((y - ry)*(y - ry));
 
-                    if (z < 0)
-                        z = 0;
-
-                    Set(x, y, map[x, y] - (z*amount));
+                    if (z > 0.0)
+                        Set(x, y, map[x, y] + (z * amount));
                 }
             }
         }
