@@ -37,6 +37,9 @@ namespace OpenSim.Framework.Communications.Cache
 {
     public class AgentAssetTransactions
     {
+        private static readonly log4net.ILog m_log 
+            = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+        
         // Fields
         public List<AssetCapsUploader> CapsUploaders = new List<AssetCapsUploader>();
         public List<NoteCardCapsUpdate> NotecardUpdaters = new List<NoteCardCapsUpdate>();
@@ -73,7 +76,11 @@ namespace OpenSim.Framework.Communications.Cache
             {
                 AssetXferUploader uploader = new AssetXferUploader(this, m_dumpAssetsToFile);
 
-                XferUploaders.Add(transactionID, uploader);
+                lock (XferUploaders)
+                {
+                    XferUploaders.Add(transactionID, uploader);
+                }
+                
                 return uploader;
             }
             return null;
@@ -81,13 +88,35 @@ namespace OpenSim.Framework.Communications.Cache
 
         public void HandleXfer(ulong xferID, uint packetID, byte[] data)
         {
-            foreach (AssetXferUploader uploader in XferUploaders.Values)
+            AssetXferUploader uploaderFound = null;
+            
+            lock (XferUploaders)
             {
-                if (uploader.XferID == xferID)
+                foreach (AssetXferUploader uploader in XferUploaders.Values)
                 {
-                    uploader.HandleXferPacket(xferID, packetID, data);
-                    break;
+                    if (uploader.XferID == xferID)
+                    {
+                        if (uploader.HandleXferPacket(xferID, packetID, data))
+                        {
+                            uploaderFound = uploader;
+                        }
+                        
+                        break;
+                    }
                 }
+                
+                // Remove the uploader once the uploader is complete
+                if (uploaderFound != null)
+                {                
+                    m_log.Info(
+                        String.Format(
+                            "[ASSET TRANSACTIONS] Removing asset xfer uploader with transfer id {0}, transaction {1}", 
+                            xferID, uploaderFound.TransactionID));                
+                    
+                    XferUploaders.Remove(uploaderFound.TransactionID);
+                    
+                    m_log.Info(String.Format("[ASSET TRANSACTIONS] Current uploaders: {0}", XferUploaders.Count));                
+                }            
             }
         }
 
@@ -114,7 +143,11 @@ namespace OpenSim.Framework.Communications.Cache
             {
                 AssetXferUploader uploader = XferUploaders[transactionID];
                 AssetBase asset = uploader.GetAssetData();
-                XferUploaders.Remove(transactionID);
+                
+                lock (XferUploaders)
+                {
+                    XferUploaders.Remove(transactionID);
+                }
                 
                 return asset;
             }
@@ -150,8 +183,14 @@ namespace OpenSim.Framework.Communications.Cache
                 m_dumpAssetToFile = dumpAssetToFile;
             }
 
-            // Methods
-            public void HandleXferPacket(ulong xferID, uint packetID, byte[] data)
+            /// <summary>
+            /// Process transfer data received from the client.
+            /// </summary>
+            /// <param name="xferID"></param>
+            /// <param name="packetID"></param>
+            /// <param name="data"></param>
+            /// <returns>True if the transfer is complete, false otherwise or if the xferID was not valid</returns>
+            public bool HandleXferPacket(ulong xferID, uint packetID, byte[] data)
             {
                 if (XferID == xferID)
                 {
@@ -175,11 +214,21 @@ namespace OpenSim.Framework.Communications.Cache
                     if ((packetID & 0x80000000) != 0)
                     {
                         SendCompleteMessage();
+                        return true;
                     }
                 }
+                
+                return false;
             }
 
-            public void Initialise(IClientAPI remoteClient, LLUUID assetID, LLUUID transaction, sbyte type, byte[] data,
+            /// <summary>
+            /// Initialise asset transfer from the client
+            /// </summary>
+            /// <param name="xferID"></param>
+            /// <param name="packetID"></param>
+            /// <param name="data"></param>
+            /// <returns>True if the transfer is complete, false otherwise</returns>            
+            public bool Initialise(IClientAPI remoteClient, LLUUID assetID, LLUUID transaction, sbyte type, byte[] data,
                                    bool storeLocal, bool tempFile)
             {
                 ourClient = remoteClient;
@@ -198,11 +247,14 @@ namespace OpenSim.Framework.Communications.Cache
                 if (Asset.Data.Length > 2)
                 {
                     SendCompleteMessage();
+                    return true;
                 }
                 else
                 {
                     ReqestStartXfer();
                 }
+                
+                return false;
             }
 
             protected void ReqestStartXfer()

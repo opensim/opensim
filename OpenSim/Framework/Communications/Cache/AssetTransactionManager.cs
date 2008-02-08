@@ -25,13 +25,19 @@
 * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 * 
 */
+
+using System;
 using System.Collections.Generic;
+
 using libsecondlife;
 
 namespace OpenSim.Framework.Communications.Cache
 {
     public class AssetTransactionManager
     {
+        private static readonly log4net.ILog m_log 
+            = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+        
         // Fields
         public CommunicationsManager CommsManager;
 
@@ -92,7 +98,17 @@ namespace OpenSim.Framework.Communications.Cache
                 AgentAssetTransactions.AssetXferUploader uploader = transactions.RequestXferUploader(transaction);
                 if (uploader != null)
                 {
-                    uploader.Initialise(remoteClient, assetID, transaction, type, data, storeLocal, tempFile);
+                    // Upload has already compelted uploading...
+                    if (uploader.Initialise(remoteClient, assetID, transaction, type, data, storeLocal, tempFile))
+                    {
+                        lock (transactions.XferUploaders)
+                        {
+                            // XXX Weak ass way of doing this by directly manipulating this public dictionary, purely temporary
+                            transactions.XferUploaders.Remove(uploader.TransactionID);
+                            
+                            m_log.Info(String.Format("[ASSET TRANSACTIONS] Current uploaders: {0}", transactions.XferUploaders.Count));                        
+                        }
+                    }
                 }
             }
         }
