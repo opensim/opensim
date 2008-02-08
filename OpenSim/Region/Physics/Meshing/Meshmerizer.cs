@@ -192,8 +192,8 @@ namespace OpenSim.Region.Physics.Meshing
             // Base
             Vertex MM = new Vertex(-0.5f, -0.5f, 0.0f);
             Vertex PM = new Vertex(+0.5f, -0.5f, 0.0f);
-            Vertex MP = new Vertex(-0.5f, +0.5f, 0.0f);
             Vertex PP = new Vertex(+0.5f, +0.5f, 0.0f);
+            Vertex MP = new Vertex(-0.5f, +0.5f, 0.0f);
 
             SimpleHull outerHull = new SimpleHull();
             outerHull.AddVertex(MM);
@@ -248,8 +248,9 @@ namespace OpenSim.Region.Physics.Meshing
                 float hollowFactorF = (float) hollowFactor/(float) 50000;
                 Vertex IMM = new Vertex(-0.5f*hollowFactorF, -0.5f*hollowFactorF, 0.0f);
                 Vertex IPM = new Vertex(+0.5f*hollowFactorF, -0.5f*hollowFactorF, 0.0f);
-                Vertex IMP = new Vertex(-0.5f*hollowFactorF, +0.5f*hollowFactorF, 0.0f);
                 Vertex IPP = new Vertex(+0.5f*hollowFactorF, +0.5f*hollowFactorF, 0.0f);
+                Vertex IMP = new Vertex(-0.5f*hollowFactorF, +0.5f*hollowFactorF, 0.0f);
+                
 
                 SimpleHull holeHull = new SimpleHull();
 
@@ -365,6 +366,7 @@ namespace OpenSim.Region.Physics.Meshing
             
 
             SimpleHull outerHull = new SimpleHull();
+            //Clockwise around the quadrants
             outerHull.AddVertex(Q1Q15);
             outerHull.AddVertex(Q1Q16);
             outerHull.AddVertex(Q1Q17);
@@ -501,52 +503,52 @@ namespace OpenSim.Region.Physics.Meshing
                 Vertex IQ1Q13 = new Vertex(-0.43f * hollowFactorF, -0.24f * hollowFactorF, 0.0f);
                 Vertex IQ1Q14 = new Vertex(-0.40f * hollowFactorF, -0.30f * hollowFactorF, 0.0f);
 
+                //Counter clockwise around the quadrants
                 SimpleHull holeHull = new SimpleHull();
-                holeHull.AddVertex(Q1Q15);
-                holeHull.AddVertex(Q1Q16);
-                holeHull.AddVertex(Q1Q17);
-                holeHull.AddVertex(Q1Q18);
-                holeHull.AddVertex(Q1Q19);
-
-                holeHull.AddVertex(IQ2Q10);
-                holeHull.AddVertex(IQ2Q11);
-                holeHull.AddVertex(IQ2Q12);
-                holeHull.AddVertex(IQ2Q13);
-                holeHull.AddVertex(IQ2Q14);
-                holeHull.AddVertex(IQ2Q15);
-                holeHull.AddVertex(IQ2Q16);
-                holeHull.AddVertex(IQ2Q17);
-                holeHull.AddVertex(IQ2Q18);
-                holeHull.AddVertex(IQ2Q19);
-
-                holeHull.AddVertex(IQ2Q20);
-                holeHull.AddVertex(IQ2Q21);
-                holeHull.AddVertex(IQ2Q22);
-                holeHull.AddVertex(IQ2Q23);
-                holeHull.AddVertex(IQ2Q24);
-                holeHull.AddVertex(IQ2Q25);
-                holeHull.AddVertex(IQ2Q26);
-                holeHull.AddVertex(IQ2Q27);
-                holeHull.AddVertex(IQ2Q28);
-                holeHull.AddVertex(IQ2Q29);
-
-                holeHull.AddVertex(IQ1Q20);
-                holeHull.AddVertex(IQ1Q21);
-                holeHull.AddVertex(IQ1Q22);
-                holeHull.AddVertex(IQ1Q23);
-                holeHull.AddVertex(IQ1Q24);
-                holeHull.AddVertex(IQ1Q25);
-                holeHull.AddVertex(IQ1Q26);
-                holeHull.AddVertex(IQ1Q27);
-                holeHull.AddVertex(IQ1Q28);
-                holeHull.AddVertex(IQ1Q29);
-
-                holeHull.AddVertex(IQ1Q10);
-                holeHull.AddVertex(IQ1Q11);
-                holeHull.AddVertex(IQ1Q12);
-                holeHull.AddVertex(IQ1Q13);
+                holeHull.AddVertex(IQ1Q15);
                 holeHull.AddVertex(IQ1Q14);
-                
+                holeHull.AddVertex(IQ1Q13);
+                holeHull.AddVertex(IQ1Q12);
+                holeHull.AddVertex(IQ1Q11);
+                holeHull.AddVertex(IQ1Q10);
+
+                holeHull.AddVertex(IQ1Q29);
+                holeHull.AddVertex(IQ1Q28);
+                holeHull.AddVertex(IQ1Q27);
+                holeHull.AddVertex(IQ1Q26);
+                holeHull.AddVertex(IQ1Q25);
+                holeHull.AddVertex(IQ1Q24);
+                holeHull.AddVertex(IQ1Q23);
+                holeHull.AddVertex(IQ1Q22);
+                holeHull.AddVertex(IQ1Q21);
+                holeHull.AddVertex(IQ1Q20);
+
+                holeHull.AddVertex(IQ2Q29);
+                holeHull.AddVertex(IQ2Q28);
+                holeHull.AddVertex(IQ2Q27);
+                holeHull.AddVertex(IQ2Q26);
+                holeHull.AddVertex(IQ2Q25);
+                holeHull.AddVertex(IQ2Q24);
+                holeHull.AddVertex(IQ2Q23);
+                holeHull.AddVertex(IQ2Q22);
+                holeHull.AddVertex(IQ2Q21);
+                holeHull.AddVertex(IQ2Q20);
+
+                holeHull.AddVertex(IQ2Q19);
+                holeHull.AddVertex(IQ2Q18);
+                holeHull.AddVertex(IQ2Q17);
+                holeHull.AddVertex(IQ2Q16);
+                holeHull.AddVertex(IQ2Q15);
+                holeHull.AddVertex(IQ2Q14);
+                holeHull.AddVertex(IQ2Q13);
+                holeHull.AddVertex(IQ2Q12);
+                holeHull.AddVertex(IQ2Q11);
+                holeHull.AddVertex(IQ2Q10);
+
+                holeHull.AddVertex(IQ1Q19);
+                holeHull.AddVertex(IQ1Q18);
+                holeHull.AddVertex(IQ1Q17);
+                holeHull.AddVertex(IQ1Q16);
 
                 SimpleHull hollowedHull = SimpleHull.SubtractHull(outerHull, holeHull);
 
