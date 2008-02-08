@@ -415,9 +415,9 @@ namespace OpenSim.Region.Physics.Meshing
             {
                 double fProfileBeginAngle = profileBegin / 50000.0 * 360.0;
                 // In degree, for easier debugging and understanding
-                fProfileBeginAngle -= (90.0 + 45.0); // for some reasons, the SL client counts from the corner -X/-Y
+                //fProfileBeginAngle -= (90.0 + 45.0); // for some reasons, the SL client counts from the corner -X/-Y
                 double fProfileEndAngle = 360.0 - profileEnd / 50000.0 * 360.0; // Pathend comes as complement to 1.0
-                fProfileEndAngle -= (90.0 + 45.0);
+                //fProfileEndAngle -= (90.0 + 45.0);
                 if (fProfileBeginAngle < fProfileEndAngle)
                     fProfileEndAngle -= 360.0;
 
