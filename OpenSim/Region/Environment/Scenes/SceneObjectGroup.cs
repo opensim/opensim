@@ -1585,8 +1585,6 @@ namespace OpenSim.Region.Environment.Scenes
             {
                 part.UpdateMovement();
             }
-
-            base.UpdateMovement();
         }
 
         /// <summary>
