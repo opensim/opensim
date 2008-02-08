@@ -456,7 +456,7 @@ namespace OpenSim.Region.Communications.OGS1
         /// <returns></returns>
         public XmlRpcResponse ExpectUser(XmlRpcRequest request)
         {
-            Console.WriteLine("Expecting User...");
+            m_log.Debug("[CONNECTION DEBUGGING]: Expect User called, starting agent setup ... ");
             Hashtable requestData = (Hashtable) request.Params[0];
             AgentCircuitData agentData = new AgentCircuitData();
             agentData.SessionID = new LLUUID((string) requestData["session_id"]);
@@ -469,10 +469,12 @@ namespace OpenSim.Region.Communications.OGS1
 
             if (requestData.ContainsKey("child_agent") && requestData["child_agent"].Equals("1"))
             {
+                m_log.Debug("[CONNECTION DEBUGGING]: Child agent detected");
                 agentData.child = true;
             }
             else
             {
+                m_log.Debug("[CONNECTION DEBUGGING]: Main agent detected");
                 agentData.startpos =
                     new LLVector3(Convert.ToUInt32(requestData["startpos_x"]),
                                   Convert.ToUInt32(requestData["startpos_y"]),
@@ -482,6 +484,7 @@ namespace OpenSim.Region.Communications.OGS1
 
             ulong regionHandle = Convert.ToUInt64((string) requestData["regionhandle"]);
 
+            m_log.Debug("[CONNECTION DEBUGGING]: Triggering welcome for " + agentData.AgentID.ToString() + " into " + regionHandle.ToString());
             m_localBackend.TriggerExpectUser(regionHandle, agentData);
 
             m_log.Info("[GRID]: Welcoming new user...");

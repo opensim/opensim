@@ -1241,6 +1241,7 @@ namespace OpenSim.Region.Environment.Scenes
         /// <param name="child"></param>
         public override void AddNewClient(IClientAPI client, bool child)
         {
+            m_log.Warn("[CONNECTION DEBUGGING]: Creating new client for " + client.AgentId.ToString());
             SubscribeToClientEvents(client);
 
             m_estateManager.sendRegionHandshake(client);
@@ -1516,6 +1517,7 @@ namespace OpenSim.Region.Environment.Scenes
             {
                 if (agent.CapsPath != String.Empty)
                 {
+                    m_log.Debug("[CONNECTION DEBUGGING]: Setting up CAPS handler for " + agent.AgentID.ToString() + " at " + agent.CapsPath.ToString());
                     Caps cap =
                         new Caps(AssetCache, httpListener, m_regInfo.ExternalHostName, httpListener.Port,
                                  agent.CapsPath, agent.AgentID, m_dumpAssetsToFile);
@@ -1526,7 +1528,7 @@ namespace OpenSim.Region.Environment.Scenes
                     cap.RegisterHandlers();
                     if (agent.child)
                     {
-                    
+
                     }
                     cap.AddNewInventoryItem = AddInventoryItem;
                     cap.ItemUpdatedCall = CapsUpdateInventoryItemAsset;
@@ -1534,14 +1536,14 @@ namespace OpenSim.Region.Environment.Scenes
 
                     if (m_capsHandlers.ContainsKey(agent.AgentID))
                     {
-                        //m_log.Warn("[client]: Adding duplicate CAPS entry for user " +
-                        //    agent.AgentID.ToString());
+                        m_log.Debug("[CONNECTION DEBUGGING]: Caps path already in use for " + agent.AgentID.ToString());
                         try
                         {
                             m_capsHandlers[agent.AgentID] = cap;
                         }
                         catch (KeyNotFoundException)
                         {
+                            m_log.Debug("[CONNECTION DEBUGGING]: Caught exception adding handler for " + agent.AgentID.ToString());
                             // Fix for a potential race condition.
                             m_capsHandlers.Add(agent.AgentID, cap);
                         }
@@ -1551,8 +1553,16 @@ namespace OpenSim.Region.Environment.Scenes
                         m_capsHandlers.Add(agent.AgentID, cap);
                     }
                 }
-                m_log.Debug("[client]: Creating agent circuit");
+                else
+                {
+                    m_log.Warn("[CONNECTION DEBUGGING]: Skipped setting up CAPS handler for " + agent.AgentID.ToString());
+                }
+                m_log.Debug("[CONNECTION DEBUGGING]: Creating new circuit code (" + agent.circuitcode.ToString() + ") for " + agent.AgentID.ToString());
                 m_authenticateHandler.AddNewCircuit(agent.circuitcode, agent);
+            }
+            else
+            {
+                m_log.Warn("[CONNECTION DEBUGGING]: Skipping this region for welcoming " + agent.AgentID.ToString() + " [" + regionHandle.ToString() + "]");
             }
         }
 
