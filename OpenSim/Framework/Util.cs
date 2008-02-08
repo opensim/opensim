@@ -47,7 +47,12 @@ namespace OpenSim.Framework
         private static Dictionary<LLUUID, string> capsURLS = new Dictionary<LLUUID, string>();
 
      #region Vector Equasions
-
+        /// <summary>
+        /// Get the distance between two 3d vectors
+        /// </summary>
+        /// <param name="a">A 3d vector</param>
+        /// <param name="b">A 3d vector</param>
+        /// <returns>The distance between the two vectors</returns>
         public static double GetDistanceTo(LLVector3 a, LLVector3 b)
         {
             float dx = a.X - b.X;
@@ -55,14 +60,43 @@ namespace OpenSim.Framework
             float dz = a.Z - b.Z;
             return Math.Sqrt(dx*dx + dy*dy + dz*dz);
         }
+
+        /// <summary>
+        /// Get the magnitude of a 3d vector
+        /// </summary>
+        /// <param name="a">A 3d vector</param>
+        /// <returns>The magnitude of the vector</returns>
         public static double GetMagnitude(LLVector3 a) {
             return Math.Sqrt((a.X * a.X) + (a.Y * a.Y) + (a.Z * a.Z));
         }
-        public static LLVector3 GetNormal(LLVector3 a)
+
+        /// <summary>
+        /// Get a normalized form of a 3d vector
+        /// </summary>
+        /// <param name="a">A 3d vector</param>
+        /// <returns>A new vector which is normalized form of the vector</returns>
+        /// <remarks>The vector paramater cannot be <0,0,0></remarks>
+        public static LLVector3 GetNormalizedVector(LLVector3 a)
         {
+            if (IsZeroVector(a))
+                throw new ArgumentException("Vector paramater cannot be a zero vector.");
+
             float Mag = (float)GetMagnitude(a);
             return new LLVector3(a.X / Mag, a.Y / Mag, a.Z / Mag);
+        }
 
+        /// <summary>
+        /// Returns if a vector is a zero vector (has all zero components)
+        /// </summary>
+        /// <returns></returns>
+        public static bool IsZeroVector( LLVector3 v )
+        {
+            if( v.X == 0 && v.Y == 0 && v.Z == 0)
+            {
+                return true;
+            }
+                
+            return false;
         }
      # endregion
 
