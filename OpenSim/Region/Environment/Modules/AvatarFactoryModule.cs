@@ -170,15 +170,20 @@ namespace OpenSim.Region.Environment.Modules
                                     avatAppearance.Wearables[wear.Type].AssetID = assetId;
                                     avatAppearance.Wearables[wear.Type].ItemID = wear.ItemID;
 
-                                    if (m_enablePersist)
-                                    {
-                                        m_appearanceMapper.Update(clientView.AgentId.UUID, avatAppearance);
-                                    }
+                                    UpdateDatabase(clientView.AgentId, avatAppearance);
                                 }
                             }
                         }
                     }
                 }
+            }
+        }
+
+        public void UpdateDatabase(LLUUID userID, AvatarAppearance avatAppearance)
+        {
+            if (m_enablePersist)
+            {
+                m_appearanceMapper.Update(userID.UUID, avatAppearance);
             }
         }
 

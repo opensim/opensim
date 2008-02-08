@@ -34,5 +34,7 @@ namespace OpenSim.Region.Environment.Interfaces
     public interface IAvatarFactory : IRegionModule
     {
         bool TryGetAvatarAppearance(LLUUID avatarId, out AvatarAppearance appearance);
+        void UpdateDatabase(LLUUID userID, AvatarAppearance avatAppearance);
+        
     }
 }
