@@ -198,7 +198,8 @@ namespace OpenSim.Framework.Communications.Cache
             } while (--maxPolls > 0);
 
             m_log.Warn(
-                String.Format("[ASSETCACHE]: Asset {0} was not received before the retrieval timeout was reached"));
+                       String.Format("[ASSETCACHE]: Asset {0} was not received before the retrieval timeout was reached", assetID.ToString())
+                );
 
             return null;
         }
