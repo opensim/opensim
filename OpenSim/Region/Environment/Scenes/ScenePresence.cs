@@ -520,6 +520,8 @@ namespace OpenSim.Region.Environment.Scenes
             //if (!m_gotAllObjectsInScene)
             //{
             m_scene.SendAllSceneObjectsToClient(this);
+            m_scene.LandManager.sendLandUpdate(this, true);
+            
             //m_gotAllObjectsInScene = true;
             //}
         }

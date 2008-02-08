@@ -627,6 +627,7 @@ namespace OpenSim.Region.Environment.Scenes
             updateLock.WaitOne();
             float physicsFPS = 0;
             int agentsInScene = m_innerScene.GetRootAgentCount() + m_innerScene.GetChildAgentCount();
+            
 
             if (agentsInScene > 21)
             {
