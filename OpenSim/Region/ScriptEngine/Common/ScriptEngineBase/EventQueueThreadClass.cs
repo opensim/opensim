@@ -227,14 +227,15 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
                                     // Execute function
                                     try
                                     {
-#if DEBUG
-                                        eventQueueManager.m_ScriptEngine.Log.Debug("[" + ScriptEngineName + "]: " +
-                                                                                      "Executing event:\r\n"
-                                                                                      + "QIS.localID: " + QIS.localID
-                                                                                      + ", QIS.itemID: " + QIS.itemID
-                                                                                      + ", QIS.functionName: " +
-                                                                                      QIS.functionName);
-#endif
+///cfk 2-7-08 dont need this right now and the default Linux build has DEBUG defined
+///#if DEBUG
+///                                        eventQueueManager.m_ScriptEngine.Log.Debug("[" + ScriptEngineName + "]: " +
+///                                                                                      "Executing event:\r\n"
+///                                                                                      + "QIS.localID: " + QIS.localID
+///                                                                                      + ", QIS.itemID: " + QIS.itemID
+///                                                                                      + ", QIS.functionName: " +
+///                                                                                      QIS.functionName);
+///#endif
                                         LastExecutionStarted = DateTime.Now.Ticks;
                                         KillCurrentScript = false;
                                         InExecution = true;
