@@ -292,9 +292,8 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL
                 case enumCompileType.js:
                     compileScript = String.Empty +
                         "import OpenSim.Region.ScriptEngine.Common; import System.Collections.Generic;\r\n" +
-                        "namespace SecondLife { " +
-                        "class Script : OpenSim.Region.ScriptEngine.Common.LSL_BaseClass { \r\n" +
-                        @"public Script() { } " +
+                        "package SecondLife {\r\n" +
+                        "class Script extends OpenSim.Region.ScriptEngine.Common.LSL_BaseClass { \r\n" +
                         compileScript +
                         "} }\r\n";
                     break;
