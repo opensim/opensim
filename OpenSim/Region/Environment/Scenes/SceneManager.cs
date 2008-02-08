@@ -289,26 +289,22 @@ namespace OpenSim.Region.Environment.Scenes
         public void SetDebugPacketOnCurrentScene(int newDebug)
         {
             ForEachCurrentScene(delegate(Scene scene)
-                                {
-                                    List<EntityBase> EntitieList = scene.GetEntities();
+            {
+                List<ScenePresence> scenePresences = scene.GetScenePresences();
 
-                                    foreach (EntityBase entity in EntitieList)
-                                    {
-                                        if (entity is ScenePresence)
-                                        {
-                                            ScenePresence scenePrescence = entity as ScenePresence;
-                                            if (!scenePrescence.IsChildAgent)
-                                            {
-                                                m_log.Error(String.Format("Packet debug for {0} {1} set to {2}",
-                                                                          scenePrescence.Firstname,
-                                                                          scenePrescence.Lastname,
-                                                                          newDebug));
+                foreach (ScenePresence scenePresence in scenePresences)
+                {
+                    if (!scenePresence.IsChildAgent)
+                    {
+                        m_log.Error(String.Format("Packet debug for {0} {1} set to {2}",
+                                                  scenePresence.Firstname,
+                                                  scenePresence.Lastname,
+                                                  newDebug));
 
-                                                scenePrescence.ControllingClient.SetDebug(newDebug);
-                                            }
-                                        }
-                                    }
-                                });
+                        scenePresence.ControllingClient.SetDebug(newDebug);
+                    }
+                }
+            });
         }
 
         public List<ScenePresence> GetCurrentSceneAvatars()
