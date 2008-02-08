@@ -148,7 +148,6 @@ namespace OpenSim.Region.Environment.Scenes
 
         public virtual void ProcessObjectGrab(uint localID, LLVector3 offsetPos, IClientAPI remoteClient)
         {
-            EventManager.TriggerObjectGrab(localID, offsetPos, remoteClient);
 
             List<EntityBase> EntitieList = GetEntities();
 
@@ -158,9 +157,21 @@ namespace OpenSim.Region.Environment.Scenes
                 {
                     SceneObjectGroup obj = ent as SceneObjectGroup;
 
+                    // Is this prim part of the group
                     if (obj.HasChildPrim(localID))
                     {
+                        // Currently only grab/touch for the single prim
+                        // the client handles rez correctly
                         obj.ObjectGrabHandler(localID, offsetPos, remoteClient);
+
+                        // trigger event, one for each prim part in the group
+                        // so that a touch to a non-root prim in a group will still
+                        // trigger a touch_start for a script in the root prim
+                        foreach (SceneObjectPart part in obj.Children.Values)
+                        {
+                            EventManager.TriggerObjectGrab(part.LocalID, part.OffsetPosition, remoteClient);
+                        }
+
                         return;
                     }
                 }
