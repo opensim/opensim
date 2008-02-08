@@ -58,7 +58,7 @@ namespace OpenSim.Region.Physics.Meshing
         // Setting baseDir to a path will enable the dumping of raw files
         // raw files can be imported by blender so a visual inspection of the results can be done
         //        const string baseDir = "rawFiles";
-        private const string baseDir = null;
+        private const string baseDir = null; //"rawFiles";
 
         private static void IntersectionParameterPD(PhysicsVector p1, PhysicsVector r1, PhysicsVector p2,
                                                     PhysicsVector r2, ref float lambda, ref float mu)
@@ -181,7 +181,13 @@ namespace OpenSim.Region.Physics.Meshing
             UInt16 hollowFactor = primShape.ProfileHollow;
             UInt16 profileBegin = primShape.ProfileBegin;
             UInt16 profileEnd = primShape.ProfileEnd;
+            UInt16 taperX = primShape.PathScaleX;
+            UInt16 taperY = primShape.PathScaleY;
 
+            //m_log.Error("pathShear:" + primShape.PathShearX.ToString() + "," + primShape.PathShearY.ToString());
+            //m_log.Error("pathTaper:" + primShape.PathTaperX.ToString() + "," + primShape.PathTaperY.ToString());
+            //m_log.Error("ProfileBegin:" + primShape.ProfileBegin.ToString() + "," + primShape.ProfileBegin.ToString());
+            //m_log.Error("PathScale:" + primShape.PathScaleX.ToString() + "," + primShape.PathScaleY.ToString());
             // Procedure: This is based on the fact that the upper (plus) and lower (minus) Z-surface
             // of a block are basically the same
             // They may be warped differently but the shape is identical
@@ -299,6 +305,35 @@ namespace OpenSim.Region.Physics.Meshing
 
             extr.size = size;
 
+            if (taperX != 100)
+            {
+                if (taperX > 100)
+                {
+                    extr.taperTopFactorX = 1.0f - ((float)taperX / 200);
+                    //m_log.Warn("taperTopFactorX: " + extr.taperTopFactorX.ToString());
+                }
+                else
+                {
+                    extr.taperBotFactorX = 1.0f - ((100 - (float)taperX) / 100);
+                    //m_log.Warn("taperBotFactorX: " + extr.taperBotFactorX.ToString());
+                }
+                
+            }
+
+            if (taperY != 100)
+            {
+                if (taperY > 100)
+                {
+                    extr.taperTopFactorY = 1.0f - ((float)taperY / 200);
+                    //m_log.Warn("taperTopFactorY: " + extr.taperTopFactorY.ToString());
+                }
+                else
+                {
+                    extr.taperBotFactorY = 1.0f - ((100 - (float)taperY) / 100);
+                    //m_log.Warn("taperBotFactorY: " + extr.taperBotFactorY.ToString());
+                }
+            }
+            
             Mesh result = extr.Extrude(m);
             result.DumpRaw(baseDir, primName, "Z extruded");
             return result;
@@ -309,7 +344,8 @@ namespace OpenSim.Region.Physics.Meshing
             UInt16 hollowFactor = primShape.ProfileHollow;
             UInt16 profileBegin = primShape.ProfileBegin;
             UInt16 profileEnd = primShape.ProfileEnd;
-
+            UInt16 taperX = primShape.PathScaleX;
+            UInt16 taperY = primShape.PathScaleY;
             // Procedure: This is based on the fact that the upper (plus) and lower (minus) Z-surface
             // of a block are basically the same
             // They may be warped differently but the shape is identical
@@ -589,7 +625,35 @@ namespace OpenSim.Region.Physics.Meshing
             Extruder extr = new Extruder();
 
             extr.size = size;
+            if (taperX != 100)
+            {
+                if (taperX > 100)
+                {
+                    extr.taperTopFactorX = 1.0f - ((float)taperX / 200);
+                    //m_log.Warn("taperTopFactorX: " + extr.taperTopFactorX.ToString());
+                }
+                else
+                {
+                    extr.taperBotFactorX = 1.0f - ((100 - (float)taperX) / 100);
+                    //m_log.Warn("taperBotFactorX: " + extr.taperBotFactorX.ToString());
+                }
 
+            }
+
+            if (taperY != 100)
+            {
+                if (taperY > 100)
+                {
+                    extr.taperTopFactorY = 1.0f - ((float)taperY / 200);
+                    //m_log.Warn("taperTopFactorY: " + extr.taperTopFactorY.ToString());
+                }
+                else
+                {
+                    extr.taperBotFactorY = 1.0f - ((100 - (float)taperY) / 100);
+                    //m_log.Warn("taperBotFactorY: " + extr.taperBotFactorY.ToString());
+                }
+            }
+            
             Mesh result = extr.Extrude(m);
             result.DumpRaw(baseDir, primName, "Z extruded");
             return result;

@@ -245,9 +245,9 @@ namespace OpenSim.Region.Physics.Meshing
             SimpleHull otherHullClone = otherHull.Clone();
             bool intersects = false;
 
-            m_log.Debug("State before intersection detection");
-            m_log.Debug(String.Format("The baseHull is:\n{1}", 0, baseHullClone.ToString()));
-            m_log.Debug(String.Format("The otherHull is:\n{1}", 0, otherHullClone.ToString()));
+            //m_log.Debug("State before intersection detection");
+            //m_log.Debug(String.Format("The baseHull is:\n{1}", 0, baseHullClone.ToString()));
+            //m_log.Debug(String.Format("The otherHull is:\n{1}", 0, otherHullClone.ToString()));
 
             {
                 int iBase, iOther;
@@ -276,8 +276,8 @@ namespace OpenSim.Region.Physics.Meshing
                 }
             }
 
-            m_log.Debug("State after intersection detection for the base hull");
-            m_log.Debug(String.Format("The baseHull is:\n{1}", 0, baseHullClone.ToString()));
+            //m_log.Debug("State after intersection detection for the base hull");
+            //m_log.Debug(String.Format("The baseHull is:\n{1}", 0, baseHullClone.ToString()));
 
             {
                 int iOther, iBase;
@@ -305,8 +305,8 @@ namespace OpenSim.Region.Physics.Meshing
                 }
             }
 
-            m_log.Debug("State after intersection detection for the base hull");
-            m_log.Debug(String.Format("The otherHull is:\n{1}", 0, otherHullClone.ToString()));
+            //m_log.Debug("State after intersection detection for the base hull");
+            //m_log.Debug(String.Format("The otherHull is:\n{1}", 0, otherHullClone.ToString()));
 
 
             bool otherIsInBase = baseHullClone.containsPointsFrom(otherHullClone);
@@ -389,7 +389,7 @@ namespace OpenSim.Region.Physics.Meshing
                     done = true;
             }
 
-            m_log.Debug(String.Format("The resulting Hull is:\n{1}", 0, result.ToString()));
+            //m_log.Debug(String.Format("The resulting Hull is:\n{1}", 0, result.ToString()));
 
             return result;
         }

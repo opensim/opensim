@@ -36,6 +36,11 @@ namespace OpenSim.Region.Physics.Meshing
         public float stopParameter;
         public PhysicsVector size;
 
+        public float taperTopFactorX = 1f;
+        public float taperTopFactorY = 1f;
+        public float taperBotFactorX = 1f;
+        public float taperBotFactorY = 1f;
+
         public Mesh Extrude(Mesh m)
         {
             // Currently only works for iSteps=1;
@@ -50,8 +55,8 @@ namespace OpenSim.Region.Physics.Meshing
                     continue;
 
                 v.Z = +.5f;
-                v.X *= size.X;
-                v.Y *= size.Y;
+                v.X *= (size.X * taperTopFactorX);
+                v.Y *= (size.Y * taperTopFactorY);
                 v.Z *= size.Z;
             }
 
@@ -61,8 +66,8 @@ namespace OpenSim.Region.Physics.Meshing
                     continue;
 
                 v.Z = -.5f;
-                v.X *= size.X;
-                v.Y *= size.Y;
+                v.X *= (size.X * taperBotFactorX);
+                v.Y *= (size.Y * taperBotFactorY);
                 v.Z *= size.Z;
             }
 
