@@ -389,6 +389,7 @@ namespace OpenSim.Region.Physics.OdePlugin
             {
                 disableBody();
             }
+            System.Threading.Thread.Sleep(10);
             float[] vertexList = mesh.getVertexListAsFloatLocked(); // Note, that vertextList is pinned in memory
             int[] indexList = mesh.getIndexListAsIntLocked(); // Also pinned, needs release after usage
             int VertexCount = vertexList.GetLength(0)/3;
@@ -400,9 +401,19 @@ namespace OpenSim.Region.Physics.OdePlugin
                                          3*sizeof (int));
             d.GeomTriMeshDataPreprocess(_triMeshData);
 
+            
             _parent_scene.waitForSpaceUnlock(m_targetSpace);
-            prim_geom = d.CreateTriMesh(m_targetSpace, _triMeshData, parent_scene.triCallback, null, null);
-
+            
+            try
+            {
+                prim_geom = d.CreateTriMesh(m_targetSpace, _triMeshData, parent_scene.triCallback, null, null);
+            }
+            catch (System.AccessViolationException)
+            {
+                
+                m_log.Error("MESH LOCKED");
+                return;
+            }
             if (IsPhysical && Body == (IntPtr) 0)
             {
                 // Recreate the body
