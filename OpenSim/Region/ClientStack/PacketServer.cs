@@ -141,7 +141,7 @@ namespace OpenSim.Region.ClientStack
         /// <param name="client"></param>
         public virtual void CloseClient(IClientAPI client)
         {
-            m_log.Info("PacketServer:CloseClient()");
+            //m_log.Info("PacketServer:CloseClient()");
          
             CloseCircuit(client.CircuitCode);
             m_scene.ClientManager.Remove(client.CircuitCode);                

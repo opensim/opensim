@@ -106,7 +106,7 @@ namespace OpenSim.Framework.Communications.Cache
                             // XXX Weak ass way of doing this by directly manipulating this public dictionary, purely temporary
                             transactions.XferUploaders.Remove(uploader.TransactionID);
                             
-                            m_log.Info(String.Format("[ASSET TRANSACTIONS] Current uploaders: {0}", transactions.XferUploaders.Count));                        
+                            //m_log.Info(String.Format("[ASSET TRANSACTIONS] Current uploaders: {0}", transactions.XferUploaders.Count));                        
                         }
                     }
                 }

@@ -108,14 +108,14 @@ namespace OpenSim.Framework.Communications.Cache
                 // Remove the uploader once the uploader is complete
                 if (uploaderFound != null)
                 {                
-                    m_log.Info(
-                        String.Format(
-                            "[ASSET TRANSACTIONS] Removing asset xfer uploader with transfer id {0}, transaction {1}", 
-                            xferID, uploaderFound.TransactionID));                
+//                    m_log.Info(
+//                        String.Format(
+//                            "[ASSET TRANSACTIONS] Removing asset xfer uploader with transfer id {0}, transaction {1}", 
+//                            xferID, uploaderFound.TransactionID));                
                     
                     XferUploaders.Remove(uploaderFound.TransactionID);
                     
-                    m_log.Info(String.Format("[ASSET TRANSACTIONS] Current uploaders: {0}", XferUploaders.Count));                
+                    //m_log.Info(String.Format("[ASSET TRANSACTIONS] Current uploaders: {0}", XferUploaders.Count));                
                 }            
             }
         }
