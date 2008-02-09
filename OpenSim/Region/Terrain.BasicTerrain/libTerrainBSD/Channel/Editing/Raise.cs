@@ -123,7 +123,7 @@ namespace libTerrain
                     z -= ((x - rx)*(x - rx)) + ((y - ry)*(y - ry));
 
                     if (z > 0.0)
-                        Set(x, y, map[x, y] + (z * amount));
+                        Set(x, y, map[x, y] - (z * amount));
                 }
             }
         }
