@@ -49,31 +49,61 @@ namespace OpenSim.Framework.Communications.Cache
         public Dictionary<LLUUID, AssetInfo> Assets;
         public Dictionary<LLUUID, TextureImage> Textures;
 
-        public List<AssetRequest> AssetRequests = new List<AssetRequest>(); //assets ready to be sent to viewers
-        public List<AssetRequest> TextureRequests = new List<AssetRequest>(); //textures ready to be sent
+        public List<AssetRequest> AssetRequests; //assets ready to be sent to viewers
+        public List<AssetRequest> TextureRequests; //textures ready to be sent
 
-        public Dictionary<LLUUID, AssetRequest> RequestedAssets = new Dictionary<LLUUID, AssetRequest>();
+        public Dictionary<LLUUID, AssetRequest> RequestedAssets;
         //Assets requested from the asset server
 
-        public Dictionary<LLUUID, AssetRequest> RequestedTextures = new Dictionary<LLUUID, AssetRequest>();
+        public Dictionary<LLUUID, AssetRequest> RequestedTextures;
         //Textures requested from the asset server
 
-        public Dictionary<LLUUID, AssetRequestsList> RequestLists = new Dictionary<LLUUID, AssetRequestsList>();
+        public Dictionary<LLUUID, AssetRequestsList> RequestLists;
 
         private readonly IAssetServer m_assetServer;
 
         private readonly Thread m_assetCacheThread;
 
-        /// <summary>
-        /// 
-        /// </summary>
+        public void ShowState()
+        {
+            m_log.InfoFormat("Assets:{0}  Testures:{1}  AssetRequests:{2}  TextureRequests:{3}  RequestedAssets:{4}  RequestedTextures:{5}  RequestLists:{6}",
+                Assets.Count,
+                Textures.Count,
+                AssetRequests.Count,
+                TextureRequests.Count,
+                RequestedAssets.Count,
+                RequestedTextures.Count,
+                RequestLists.Count );
+        }
+
+        public void Clear()
+        {
+            m_log.Info("[ASSETSTORAGE]: Clearing Asset cache");
+            Initialize();
+        }
+
+        private void Initialize()
+        {
+            Assets = new Dictionary<LLUUID, AssetInfo>();
+            Textures = new Dictionary<LLUUID, TextureImage>();
+            AssetRequests = new List<AssetRequest>(); //assets ready to be sent to viewers
+            TextureRequests = new List<AssetRequest>(); //textures ready to be sent
+
+            RequestedAssets = new Dictionary<LLUUID, AssetRequest>();
+            RequestedTextures = new Dictionary<LLUUID, AssetRequest>();
+            RequestLists = new Dictionary<LLUUID, AssetRequestsList>();
+        }
+
+
         public AssetCache(IAssetServer assetServer)
         {
             m_log.Info("[ASSETSTORAGE]: Creating Asset cache");
+            Initialize();
+
             m_assetServer = assetServer;
             m_assetServer.SetReceiver(this);
-            Assets = new Dictionary<LLUUID, AssetInfo>();
-            Textures = new Dictionary<LLUUID, TextureImage>();
+
+            
             m_assetCacheThread = new Thread(new ThreadStart(RunAssetManager));
             m_assetCacheThread.IsBackground = true;
             m_assetCacheThread.Start();
@@ -222,13 +252,13 @@ namespace OpenSim.Framework.Communications.Cache
                     result = "Duplicate ignored.";
                 }
                 else
-                {                    
-                    TextureImage textur = new TextureImage(asset);                                        
+                {
+                    TextureImage textur = new TextureImage(asset);
                     Textures.Add(textur.FullID, textur);
-                    
+
                     if (StatsManager.SimExtraStats != null)
                         StatsManager.SimExtraStats.AddTexture(textur);
-                    
+
                     if (asset.Temporary)
                     {
                         result = "Added to cache";
@@ -250,10 +280,10 @@ namespace OpenSim.Framework.Communications.Cache
                 {
                     AssetInfo assetInf = new AssetInfo(asset);
                     Assets.Add(assetInf.FullID, assetInf);
-                    
+
                     if (StatsManager.SimExtraStats != null)
                         StatsManager.SimExtraStats.AddAsset(assetInf);
-                    
+
                     if (asset.Temporary)
                     {
                         result = "Added to cache";
@@ -302,12 +332,12 @@ namespace OpenSim.Framework.Communications.Cache
 
                     TextureImage image = new TextureImage(asset);
                     if (!Textures.ContainsKey(image.FullID))
-                    {                        
+                    {
                         Textures.Add(image.FullID, image);
-                        
+
                         if (StatsManager.SimExtraStats != null)
                             StatsManager.SimExtraStats.AddTexture(image);
-                        
+
                         if (RequestedTextures.ContainsKey(image.FullID))
                         {
                             AssetRequest req = RequestedTextures[image.FullID];
@@ -326,10 +356,10 @@ namespace OpenSim.Framework.Communications.Cache
                     if (!Assets.ContainsKey(assetInf.FullID))
                     {
                         Assets.Add(assetInf.FullID, assetInf);
-                        
+
                         if (StatsManager.SimExtraStats != null)
                             StatsManager.SimExtraStats.AddAsset(assetInf);
-                        
+
                         if (RequestedAssets.ContainsKey(assetInf.FullID))
                         {
                             AssetRequest req = RequestedAssets[assetInf.FullID];
@@ -384,7 +414,7 @@ namespace OpenSim.Framework.Communications.Cache
             {
                 // over max number of bytes so split up file
                 long restData = data.LongLength - m_maxPacketSize;
-                int restPackets = (int) ((restData + m_maxPacketSize - 1)/m_maxPacketSize);
+                int restPackets = (int)((restData + m_maxPacketSize - 1) / m_maxPacketSize);
                 numPackets += restPackets;
             }
 
@@ -465,7 +495,7 @@ namespace OpenSim.Framework.Communications.Cache
             AssetRequest req;
             for (int i = 0; i < num; i++)
             {
-                req = (AssetRequest) AssetRequests[i];
+                req = (AssetRequest)AssetRequests[i];
                 //Console.WriteLine("sending asset " + req.RequestAssetID);
                 TransferInfoPacket Transfer = new TransferInfoPacket();
                 Transfer.TransferInfo.ChannelType = 2;
@@ -475,7 +505,7 @@ namespace OpenSim.Framework.Communications.Cache
                 {
                     Transfer.TransferInfo.Params = new byte[20];
                     Array.Copy(req.RequestAssetID.GetBytes(), 0, Transfer.TransferInfo.Params, 0, 16);
-                    int assType = (int) req.AssetInf.Type;
+                    int assType = (int)req.AssetInf.Type;
                     Array.Copy(Helpers.IntToBytes(assType), 0, Transfer.TransferInfo.Params, 16, 4);
                 }
                 else if (req.AssetRequestSource == 3)
@@ -485,7 +515,7 @@ namespace OpenSim.Framework.Communications.Cache
                     //Array.Copy(req.RequestUser.AgentId.GetBytes(), 0, Transfer.TransferInfo.Params, 0, 16);
                     //Array.Copy(req.RequestUser.SessionId.GetBytes(), 0, Transfer.TransferInfo.Params, 16, 16);
                 }
-                Transfer.TransferInfo.Size = (int) req.AssetInf.Data.Length;
+                Transfer.TransferInfo.Size = (int)req.AssetInf.Data.Length;
                 Transfer.TransferInfo.TransferID = req.TransferRequestID;
                 req.RequestUser.OutPacket(Transfer, ThrottleOutPacketType.Asset);
 

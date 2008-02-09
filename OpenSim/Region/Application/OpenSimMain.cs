@@ -651,6 +651,10 @@ namespace OpenSim
             
             switch (command)
             {
+                case "clear-assets":
+                    m_assetCache.Clear();
+                    break;
+
                 case "set-time":
                     m_sceneManager.SetCurrentSceneTimePhase(Convert.ToInt32(cmdparams[0]));
                     break;
@@ -679,6 +683,7 @@ namespace OpenSim
                     m_console.Notice("  alert [First] [Last] [Message] - send an alert to a user. Case sensitive.");
                     m_console.Notice("  alert general [Message] - send an alert to all users.");
                     m_console.Notice("backup - trigger a simulator backup");
+                    m_console.Notice("clear-assets - clear asset cache");
                     m_console.Notice("create user - adds a new user");
                     m_console.Notice("change-region [name] - sets the region that many of these commands affect.");
                     m_console.Notice("command-script [filename] - Execute command in a file.");
@@ -697,6 +702,7 @@ namespace OpenSim
                     m_console.Notice("save-xml2 [filename] - save prims to XML using version 2 format");
                     m_console.Notice("script - manually trigger scripts? or script commands?");
                     m_console.Notice("set-time [x] - set the current scene time phase");
+                    m_console.Notice("show assets - show state of asset cache.");
                     m_console.Notice("show users - show info about connected users.");
                     m_console.Notice("show modules - shows info aboutloaded modules.");
                     m_console.Notice("show stats - statistical information for this server not displayed in the client");
@@ -989,6 +995,10 @@ namespace OpenSim
             
             switch (ShowWhat)
             {
+                case "assets":
+                    m_assetCache.ShowState();
+                    break;
+
                 case "users":
                     m_console.Notice(
                         String.Format("{0,-16}{1,-16}{2,-37}{3,-16}{4,-22}{5,-16}", "Firstname", "Lastname",
