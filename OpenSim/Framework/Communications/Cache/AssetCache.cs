@@ -74,6 +74,29 @@ namespace OpenSim.Framework.Communications.Cache
                 RequestedAssets.Count,
                 RequestedTextures.Count,
                 RequestLists.Count );
+
+            int temporaryImages = 0;
+            int temporaryAssets = 0;
+
+            foreach (TextureImage texture in Textures.Values)
+            {
+                if(texture.Temporary)
+                {
+                    temporaryImages++;    
+                }
+            }
+
+            foreach (AssetInfo asset in Assets.Values)
+            {
+                if (asset.Temporary)
+                {
+                    temporaryAssets++;
+                }
+            }
+
+            m_log.InfoFormat("Temporary Images:{0}  Temporary Assets:{1}",
+                temporaryImages,
+                temporaryAssets );
         }
 
         public void Clear()
