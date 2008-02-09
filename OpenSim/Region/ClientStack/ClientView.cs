@@ -87,7 +87,7 @@ namespace OpenSim.Region.ClientStack
         private readonly uint m_circuitCode;
         private int m_moneyBalance;
 
-        private readonly byte[] m_channelVersion = new byte[] { 0x00 }; // Dummy value needed by libSL
+        private byte[] m_channelVersion = Helpers.StringToField("OpenSimulator 0.5"); // Dummy value needed by libSL
 
         /* protected variables */
 
@@ -195,6 +195,8 @@ namespace OpenSim.Region.ClientStack
                           AgentCircuitManager authenSessions, LLUUID agentId, LLUUID sessionId, uint circuitCode)
         {
             m_moneyBalance = 1000;
+
+            m_channelVersion = Helpers.StringToField(scene.GetSimulatorVersion());
 
             m_scene = scene;
             m_assetCache = assetCache;
@@ -609,8 +611,16 @@ namespace OpenSim.Region.ClientStack
         {
             RegionHandshakePacket handshake = (RegionHandshakePacket)PacketPool.Instance.GetPacket(PacketType.RegionHandshake);
 
+            bool estatemanager = false;
+            LLUUID[] EstateManagers = regionInfo.EstateSettings.estateManagers;
+            for (int i = 0; i < EstateManagers.Length; i++)
+            {
+                if (EstateManagers[i] == AgentId)
+                    estatemanager = true;
+            }
+
             handshake.RegionInfo.BillableFactor = regionInfo.EstateSettings.billableFactor;
-            handshake.RegionInfo.IsEstateManager = false;
+            handshake.RegionInfo.IsEstateManager = estatemanager;
             handshake.RegionInfo.TerrainHeightRange00 = regionInfo.EstateSettings.terrainHeightRange0;
             handshake.RegionInfo.TerrainHeightRange01 = regionInfo.EstateSettings.terrainHeightRange1;
             handshake.RegionInfo.TerrainHeightRange10 = regionInfo.EstateSettings.terrainHeightRange2;

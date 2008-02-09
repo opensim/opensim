@@ -427,6 +427,8 @@ namespace OpenSim.Framework.UserManagement
 
             if (userProfile != null)
             {
+                // This line needs to be in side the above if statement or the UserServer will crash on some logouts.
+                m_log.Info("[LOGOUT]: " + userProfile.username + " " + userProfile.surname + " from " + regionhandle + "(" + posx + "," + posy + "," + posz + ")");
                 
                 userAgent = userProfile.currentAgent;
                 if (userAgent != null)
@@ -434,7 +436,10 @@ namespace OpenSim.Framework.UserManagement
                     userAgent.agentOnline = false;
                     userAgent.logoutTime = Util.UnixTimeSinceEpoch();
                     userAgent.sessionID = LLUUID.Zero;
-                    userAgent.currentRegion = regionid;
+                    if (regionid != null)
+                    {
+                        userAgent.currentRegion = regionid;
+                    }
                     userAgent.currentHandle = regionhandle;
 
                     userAgent.currentPos = currentPos;
@@ -446,9 +451,10 @@ namespace OpenSim.Framework.UserManagement
                 }
                 else
                 {
-                    m_log.Info("[LOGOUT]: didn't save logout position, currentAgent: " + userAgent.ToString() );
+                    // If currentagent is null, we can't reference it here or the UserServer crashes!
+                    m_log.Info("[LOGOUT]: didn't save logout position: " + userid.ToString());
                 }
-                m_log.Info("[LOGOUT]: " + userProfile.username + " " + userProfile.surname + " from " + regionhandle + "(" + posx + "," + posy + "," + posz + ")" );
+                
             }
             else
             {

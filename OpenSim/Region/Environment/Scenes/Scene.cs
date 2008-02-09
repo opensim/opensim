@@ -82,6 +82,8 @@ namespace OpenSim.Region.Environment.Scenes
         private readonly Timer m_restartTimer = new Timer(15000); // Wait before firing
         private int m_incrementsof15seconds = 0;
 
+        public string m_simulatorVersion = "OpenSimulator 0.5";
+
         protected ModuleLoader m_moduleLoader;
         protected StorageManager m_storageManager;
         protected AgentCircuitManager m_authenticateHandler;
@@ -300,6 +302,22 @@ namespace OpenSim.Region.Environment.Scenes
 
             m_statsReporter = new SimStatsReporter(regInfo);
             m_statsReporter.OnSendStatsResult += SendSimStatsPackets;
+            string OSString = "";
+
+            if (System.Environment.OSVersion.Platform != PlatformID.Unix)
+            {
+                OSString = System.Environment.OSVersion.ToString();
+            }
+            else 
+            {
+                OSString = Util.ReadEtcIssue();
+            }
+            if (OSString.Length > 45)
+            {
+                OSString = OSString.Substring(0,45);
+            }
+
+            m_simulatorVersion = "OpenSimulator v0.5-SVN on " + OSString + " ChilTasks:" + m_sendTasksToChild.ToString() + " PhysPrim:" + m_physicalPrim.ToString();
         }
 
         #endregion
@@ -311,6 +329,11 @@ namespace OpenSim.Region.Environment.Scenes
             m_eventManager.OnParcelPrimCountAdd += m_LandManager.addPrimToLandPrimCounts;
             m_eventManager.OnParcelPrimCountUpdate += addPrimsToParcelCounts;
             m_eventManager.OnPermissionError += SendPermissionAlert;
+        }
+
+        public override string GetSimulatorVersion()
+        {
+            return m_simulatorVersion;
         }
 
         public override bool OtherRegionUp(RegionInfo otherRegion)

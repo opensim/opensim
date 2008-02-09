@@ -52,6 +52,8 @@ namespace OpenSim.Framework
         void Restart(int seconds);
         bool OtherRegionUp(RegionInfo thisRegion);
 
+        string GetSimulatorVersion();
+
         RegionInfo RegionInfo { get; }
         uint NextLocalId { get; }
 

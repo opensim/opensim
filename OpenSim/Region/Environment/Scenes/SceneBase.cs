@@ -167,6 +167,11 @@ namespace OpenSim.Region.Environment.Scenes
         }
         public abstract bool OtherRegionUp(RegionInfo thisRegion);
 
+        public virtual string GetSimulatorVersion()
+        {
+            return "OpenSimulator v0.5 SVN";
+        }
+
         #endregion
 
         #region Shutdown
