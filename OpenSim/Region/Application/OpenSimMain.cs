@@ -931,7 +931,21 @@ namespace OpenSim
                         }
                     }
                     break;
-                    
+                case "modules":
+                    if (cmdparams.Length > 0)
+                    {
+                        switch (cmdparams[0].ToLower())
+                        {
+                            case "list":
+                                foreach (IRegionModule irm in m_moduleLoader.GetLoadedSharedModules)
+                                {
+                                    m_console.Notice("Shared region module: " + irm.Name);
+                                }
+                                break;
+                        }
+                    }
+
+                    break;                    
                     /*
                      * Temporarily disabled but it would be good to have this - needs to be levered
                      * in to BaseOpenSimServer (which requires a RunCmd method restrcuture probably)
