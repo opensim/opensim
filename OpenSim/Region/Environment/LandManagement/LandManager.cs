@@ -727,15 +727,21 @@ namespace OpenSim.Region.Environment.LandManagement
             {
                 if (force)
                 {
-                    over.sendLandUpdateToClient(avatar.ControllingClient);
+                    if (!avatar.IsChildAgent)
+                    {
+                        over.sendLandUpdateToClient(avatar.ControllingClient);
+                    }
                 }
 
                 if (avatar.currentParcelUUID != over.landData.globalID)
                 {
-                    over.sendLandUpdateToClient(avatar.ControllingClient);
-                    avatar.currentParcelUUID = over.landData.globalID;
-                    m_scene.EventManager.TriggerAvatarEnteringNewParcel(avatar, over.landData.localID,
-                                                                        m_scene.RegionInfo.RegionID);
+                    if (!avatar.IsChildAgent)
+                    {
+                        over.sendLandUpdateToClient(avatar.ControllingClient);
+                        avatar.currentParcelUUID = over.landData.globalID;
+                        m_scene.EventManager.TriggerAvatarEnteringNewParcel(avatar, over.landData.localID,
+                                                                            m_scene.RegionInfo.RegionID);
+                    }
                 }
             }
         }
