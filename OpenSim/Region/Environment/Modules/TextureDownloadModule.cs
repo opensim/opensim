@@ -146,9 +146,12 @@ namespace OpenSim.Region.Environment.Modules
 
         public void ProcessTextureSenders()
         {
+            TextureSender sender = null;
+            
             while (true)
             {
-                TextureSender sender = m_queueSenders.Dequeue();
+                sender = m_queueSenders.Dequeue();
+                
                 if (sender.Cancel)
                 {
                     TextureSent(sender);
@@ -168,7 +171,10 @@ namespace OpenSim.Region.Environment.Modules
                     }
                 }
                 
-                m_log.Info(String.Format("[TEXTURE DOWNLOAD] Texture sender queue size: {0}", m_queueSenders.Count()));
+                // Make sure that any sender we currently have can get garbage collected
+                sender = null;
+                
+                //m_log.Info(String.Format("[TEXTURE DOWNLOAD] Texture sender queue size: {0}", m_queueSenders.Count()));
             }
         }
 

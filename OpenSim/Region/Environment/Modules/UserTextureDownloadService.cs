@@ -104,9 +104,9 @@ namespace OpenSim.Region.Environment.Modules
                         EnqueueTextureSender(textureSender);
                     }
                     
-                    m_log.Info(String.Format("[TEXTURE SENDER] Removing texture sender with uuid {0}", textureID));
+                    //m_log.Info(String.Format("[TEXTURE SENDER] Removing texture sender with uuid {0}", textureID));
                     m_textureSenders.Remove(textureID);                    
-                    m_log.Info(String.Format("[TEXTURE SENDER] Current texture senders in dictionary: {0}", m_textureSenders.Count));
+                    //m_log.Info(String.Format("[TEXTURE SENDER] Current texture senders in dictionary: {0}", m_textureSenders.Count));
                 }
                 else
                 {

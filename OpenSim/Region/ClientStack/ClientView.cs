@@ -51,10 +51,10 @@ namespace OpenSim.Region.ClientStack
     /// </summary>
     public class ClientView : IClientAPI
     {
-        ~ClientView()
-        {
-            System.Console.WriteLine("[CLIENTVIEW]: Destructor called");                       
-        }
+//        ~ClientView()
+//        {
+//            System.Console.WriteLine("[CLIENTVIEW]: Destructor called");                       
+//        }
         
         private static readonly log4net.ILog m_log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 
