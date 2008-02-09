@@ -389,7 +389,12 @@ namespace OpenSim.Region.Physics.OdePlugin
             {
                 disableBody();
             }
+
+            // This sleeper is there to moderate how long it takes between 
+            // setting up the mesh and pre-processing it when we get rapid fire mesh requests on a single object
             System.Threading.Thread.Sleep(10);
+            
+            
             float[] vertexList = mesh.getVertexListAsFloatLocked(); // Note, that vertextList is pinned in memory
             int[] indexList = mesh.getIndexListAsIntLocked(); // Also pinned, needs release after usage
             int VertexCount = vertexList.GetLength(0)/3;

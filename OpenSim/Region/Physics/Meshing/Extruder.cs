@@ -40,6 +40,8 @@ namespace OpenSim.Region.Physics.Meshing
         public float taperTopFactorY = 1f;
         public float taperBotFactorX = 1f;
         public float taperBotFactorY = 1f;
+        public float pushX = 0f;
+        public float pushY = 0f;
 
         public Mesh Extrude(Mesh m)
         {
@@ -54,10 +56,17 @@ namespace OpenSim.Region.Physics.Meshing
                 if (v == null)
                     continue;
 
+                // This is the top
+                // Set the Z + .5 to match the rest of the scale of the mesh
+                // Scale it by Size, and Taper the scaling
                 v.Z = +.5f;
                 v.X *= (size.X * taperTopFactorX);
                 v.Y *= (size.Y * taperTopFactorY);
                 v.Z *= size.Z;
+                
+                //Push the top of the object over by the Top Shear amount
+                v.X += pushX * size.X;
+                v.Y += pushY * size.X;
             }
 
             foreach (Vertex v in workingMinus.vertices)
@@ -65,6 +74,7 @@ namespace OpenSim.Region.Physics.Meshing
                 if (v == null)
                     continue;
 
+                // This is the bottom
                 v.Z = -.5f;
                 v.X *= (size.X * taperBotFactorX);
                 v.Y *= (size.Y * taperBotFactorY);

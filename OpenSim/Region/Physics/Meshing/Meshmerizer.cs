@@ -183,11 +183,14 @@ namespace OpenSim.Region.Physics.Meshing
             UInt16 profileEnd = primShape.ProfileEnd;
             UInt16 taperX = primShape.PathScaleX;
             UInt16 taperY = primShape.PathScaleY;
+            UInt16 pathShearX = primShape.PathShearX;
+            UInt16 pathShearY = primShape.PathShearY;
 
             //m_log.Error("pathShear:" + primShape.PathShearX.ToString() + "," + primShape.PathShearY.ToString());
             //m_log.Error("pathTaper:" + primShape.PathTaperX.ToString() + "," + primShape.PathTaperY.ToString());
             //m_log.Error("ProfileBegin:" + primShape.ProfileBegin.ToString() + "," + primShape.ProfileBegin.ToString());
             //m_log.Error("PathScale:" + primShape.PathScaleX.ToString() + "," + primShape.PathScaleY.ToString());
+            
             // Procedure: This is based on the fact that the upper (plus) and lower (minus) Z-surface
             // of a block are basically the same
             // They may be warped differently but the shape is identical
@@ -242,7 +245,7 @@ namespace OpenSim.Region.Physics.Meshing
                     // Calculated separately to avoid errors
                 cutHull.AddVertex(legEnd);
 
-                m_log.Debug(String.Format("Starting cutting of the hollow shape from the prim {1}", 0, primName));
+                //m_log.Debug(String.Format("Starting cutting of the hollow shape from the prim {1}", 0, primName));
                 SimpleHull cuttedHull = SimpleHull.SubtractHull(outerHull, cutHull);
 
                 outerHull = cuttedHull;
@@ -334,6 +337,37 @@ namespace OpenSim.Region.Physics.Meshing
                 }
             }
             
+            
+            if (pathShearX != 0)
+            {
+                if (pathShearX > 50) {
+                    // Complimentary byte.  Negative values wrap around the byte.  Positive values go up to 50
+                    extr.pushX = (((float)(256 - pathShearX) / 100) * -1f);
+                   // m_log.Warn("pushX: " + extr.pushX);
+                }
+                else 
+                {
+                    extr.pushX = (float)pathShearX / 100;
+                   // m_log.Warn("pushX: " + extr.pushX);
+                }
+            }
+
+            if (pathShearY != 0)
+            {
+                if (pathShearY > 50) {
+                    // Complimentary byte.  Negative values wrap around the byte.  Positive values go up to 50
+                    extr.pushY = (((float)(256 - pathShearY) / 100) * -1f);
+                    //m_log.Warn("pushY: " + extr.pushY);
+                }
+                else 
+                {
+                    extr.pushY = (float)pathShearY / 100;
+                    //m_log.Warn("pushY: " + extr.pushY);
+                }
+            }
+            
+
+
             Mesh result = extr.Extrude(m);
             result.DumpRaw(baseDir, primName, "Z extruded");
             return result;
@@ -346,6 +380,9 @@ namespace OpenSim.Region.Physics.Meshing
             UInt16 profileEnd = primShape.ProfileEnd;
             UInt16 taperX = primShape.PathScaleX;
             UInt16 taperY = primShape.PathScaleY;
+            UInt16 pathShearX = primShape.PathShearX;
+            UInt16 pathShearY = primShape.PathShearY;
+
             // Procedure: This is based on the fact that the upper (plus) and lower (minus) Z-surface
             // of a block are basically the same
             // They may be warped differently but the shape is identical
@@ -653,7 +690,37 @@ namespace OpenSim.Region.Physics.Meshing
                     //m_log.Warn("taperBotFactorY: " + extr.taperBotFactorY.ToString());
                 }
             }
-            
+
+            if (pathShearX != 0)
+            {
+                if (pathShearX > 50)
+                {
+                    // Complimentary byte.  Negative values wrap around the byte.  Positive values go up to 50
+                    extr.pushX = (((float)(256 - pathShearX) / 100) * -1f);
+                    //m_log.Warn("pushX: " + extr.pushX);
+                }
+                else
+                {
+                    extr.pushX = (float)pathShearX / 100;
+                    //m_log.Warn("pushX: " + extr.pushX);
+                }
+            }
+
+            if (pathShearY != 0)
+            {
+                if (pathShearY > 50)
+                {
+                    // Complimentary byte.  Negative values wrap around the byte.  Positive values go up to 50
+                    extr.pushY = (((float)(256 - pathShearY) / 100) * -1f);
+                    //m_log.Warn("pushY: " + extr.pushY);
+                }
+                else
+                {
+                    extr.pushY = (float)pathShearY / 100;
+                    //m_log.Warn("pushY: " + extr.pushY);
+                }
+            }
+
             Mesh result = extr.Extrude(m);
             result.DumpRaw(baseDir, primName, "Z extruded");
             return result;

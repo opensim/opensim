@@ -1014,6 +1014,9 @@ namespace OpenSim.Region.Physics.OdePlugin
             if ((pbs.PathScaleX != 100) || (pbs.PathScaleY != 100))
                 return true;
 
+            if ((pbs.PathShearX != 0) || (pbs.PathShearY != 0))
+                return true;
+
             if (pbs.ProfileShape == ProfileShape.Circle && pbs.PathCurve == (byte)Extrusion.Straight)
                 return true;
 
