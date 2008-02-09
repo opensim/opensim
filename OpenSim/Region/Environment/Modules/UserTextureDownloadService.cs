@@ -37,6 +37,9 @@ namespace OpenSim.Region.Environment.Modules
 {
     public class UserTextureDownloadService
     {
+        private static readonly log4net.ILog m_log 
+            = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+        
         private readonly Dictionary<LLUUID, TextureSender> m_textureSenders = new Dictionary<LLUUID, TextureSender>();
         private readonly BlockingQueue<TextureSender> m_sharedSendersQueue;
         private readonly Scene m_scene;
@@ -98,9 +101,12 @@ namespace OpenSim.Region.Environment.Modules
                     if (!textureSender.ImageLoaded)
                     {
                         textureSender.TextureReceived(asset);
-
                         EnqueueTextureSender(textureSender);
                     }
+                    
+                    m_log.Info(String.Format("[TEXTURE SENDER] Removing texture sender with uuid {0}", textureID));
+                    m_textureSenders.Remove(textureID);                    
+                    m_log.Info(String.Format("[TEXTURE SENDER] Current texture senders in dictionary: {0}", m_textureSenders.Count));
                 }
                 else
                 {

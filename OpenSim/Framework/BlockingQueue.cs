@@ -64,5 +64,10 @@ namespace OpenSim.Framework
                 return m_queue.Contains(item);
             }
         }
+        
+        public int Count()
+        {
+            return m_queue.Count;
+        }
     }
 }

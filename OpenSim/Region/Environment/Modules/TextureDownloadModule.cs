@@ -43,6 +43,9 @@ namespace OpenSim.Region.Environment.Modules
     //and some small clean up
     public class TextureDownloadModule : IRegionModule
     {
+        private static readonly log4net.ILog m_log 
+            = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+        
         private Scene m_scene;
         private List<Scene> m_scenes = new List<Scene>();
 
@@ -164,6 +167,8 @@ namespace OpenSim.Region.Environment.Modules
                         m_queueSenders.Enqueue(sender);
                     }
                 }
+                
+                m_log.Info(String.Format("[TEXTURE DOWNLOAD] Texture sender queue size: {0}", m_queueSenders.Count()));
             }
         }
 

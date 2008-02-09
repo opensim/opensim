@@ -36,7 +36,8 @@ namespace OpenSim.Region.Environment.Modules
 {
     public class TextureSender
     {
-        private static readonly log4net.ILog m_log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+        private static readonly log4net.ILog m_log 
+            = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 
         public int counter = 0;
         private AssetBase m_asset;
