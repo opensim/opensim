@@ -73,17 +73,22 @@ namespace OpenSim.Framework.Communications.Cache
                 TextureRequests.Count,
                 RequestedAssets.Count,
                 RequestedTextures.Count,
-                RequestLists.Count );
+                RequestLists.Count);
 
             int temporaryImages = 0;
             int temporaryAssets = 0;
 
+            long imageBytes = 0;
+            long assetBytes = 0;
+
             foreach (TextureImage texture in Textures.Values)
             {
-                if(texture.Temporary)
+                if (texture.Temporary)
                 {
-                    temporaryImages++;    
+                    temporaryImages++;
                 }
+
+                imageBytes += texture.Data.GetLongLength(0);
             }
 
             foreach (AssetInfo asset in Assets.Values)
@@ -92,11 +97,18 @@ namespace OpenSim.Framework.Communications.Cache
                 {
                     temporaryAssets++;
                 }
+
+                assetBytes += asset.Data.GetLongLength(0);
             }
 
-            m_log.InfoFormat("Temporary Images:{0}  Temporary Assets:{1}",
+            m_log.InfoFormat("Temporary Images: {0}  Temporary Assets: {1}",
                 temporaryImages,
-                temporaryAssets );
+                temporaryAssets);
+
+            m_log.InfoFormat("Image data: {0}kb  Asset data: {1}kb",
+    imageBytes/1024,
+    assetBytes/1024);
+
         }
 
         public void Clear()
@@ -126,7 +138,7 @@ namespace OpenSim.Framework.Communications.Cache
             m_assetServer = assetServer;
             m_assetServer.SetReceiver(this);
 
-            
+
             m_assetCacheThread = new Thread(new ThreadStart(RunAssetManager));
             m_assetCacheThread.IsBackground = true;
             m_assetCacheThread.Start();

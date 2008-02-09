@@ -494,7 +494,9 @@ namespace OpenSim.Region.Environment
             bool permission = false;
 
             if (parcel.landData.ownerID == user)
+            {
                 permission = true;
+            }
 
             if (parcel.landData.isGroupOwned)
             {
@@ -502,10 +504,14 @@ namespace OpenSim.Region.Environment
             }
 
             if (IsEstateManager(user))
+            {
                 permission = true;
+            }
 
             if (IsAdministrator(user))
+            {
                 permission = true;
+            }
 
             return permission;
         }
