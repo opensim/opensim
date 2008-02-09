@@ -81,6 +81,9 @@ namespace OpenSim.Framework.Communications.Cache
             long imageBytes = 0;
             long assetBytes = 0;
 
+                
+            
+
             foreach (TextureImage texture in Textures.Values)
             {
                 if (texture.Temporary)
@@ -201,22 +204,23 @@ namespace OpenSim.Framework.Communications.Cache
             else
             {
                 NewAssetRequest req = new NewAssetRequest(assetID, callback);
-                if (RequestLists.ContainsKey(assetID))
+
+                AssetRequestsList requestList;
+
+                lock (RequestLists)
                 {
-                    lock (RequestLists)
+                    if (RequestLists.TryGetValue(assetID, out requestList))
                     {
-                        RequestLists[assetID].Requests.Add(req);
+                    }
+                    else
+                    {
+                        requestList = new AssetRequestsList(assetID);
+                        RequestLists.Add(assetID, requestList);
                     }
                 }
-                else
-                {
-                    AssetRequestsList reqList = new AssetRequestsList(assetID);
-                    reqList.Requests.Add(req);
-                    lock (RequestLists)
-                    {
-                        RequestLists.Add(assetID, reqList);
-                    }
-                }
+
+                requestList.Requests.Add(req);
+    
                 m_assetServer.RequestAsset(assetID, false);
             }
         }
