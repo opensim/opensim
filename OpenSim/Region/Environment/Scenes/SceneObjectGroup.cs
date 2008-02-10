@@ -1218,6 +1218,13 @@ namespace OpenSim.Region.Environment.Scenes
                 part.UpdateExtraParam(type, inUse, data);
             }
         }
+        public SceneObjectPart[] GetParts()
+        {
+            int numParts = Children.Count;
+            SceneObjectPart[] partArray = new SceneObjectPart[numParts];
+            Children.Values.CopyTo(partArray, 0);
+            return partArray;
+        }
         public bool GetLocked()
         {
             return m_locked;

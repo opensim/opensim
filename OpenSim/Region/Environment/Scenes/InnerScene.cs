@@ -895,6 +895,7 @@ namespace OpenSim.Region.Environment.Scenes
             // be more efficient yet to keep this dictionary permanently on hand.
 
             Dictionary<uint, SceneObjectGroup> sceneObjects = new Dictionary<uint, SceneObjectGroup>();
+            
             List<EntityBase> EntitieList = GetEntities();
             foreach (EntityBase ent in EntitieList)
             {
@@ -902,14 +903,17 @@ namespace OpenSim.Region.Environment.Scenes
                 {
                     SceneObjectGroup obj = (SceneObjectGroup) ent;
                     sceneObjects.Add(obj.LocalId, obj);
+                    
                 }
             }
 
             // Find the root prim among the prim ids we've been given
             for (int i = 0; i < primIds.Count; i++)
             {
+                
                 if (sceneObjects.ContainsKey(primIds[i]))
                 {
+                    
                     parenPrim = sceneObjects[primIds[i]];
                     primIds.RemoveAt(i);
                     break;
@@ -925,9 +929,29 @@ namespace OpenSim.Region.Environment.Scenes
             }
             else
             {
-                m_log.InfoFormat("[SCENE]: " +
-                                 "DelinkObjects(): Could not find a root prim out of {0} as given to a delink request!",
-                                 primIds);
+                // If the first scan failed, we need to do a /deep/ scan of the linkages.  This is /really/ slow
+                // We know that this is not the root prim now essentially, so we don't have to worry about remapping 
+                // which one is the root prim
+                bool delinkedSomething = false;
+                for (int i = 0; i < primIds.Count; i++)
+                {
+                    foreach (SceneObjectGroup grp in sceneObjects.Values)
+                    {
+                        SceneObjectPart gPart = grp.GetChildPart(primIds[i]);
+                        if (gPart != null)
+                        {
+                            grp.DelinkFromGroup(primIds[i]);
+                            delinkedSomething = true;
+                        }
+
+                    }
+                }
+                if (!delinkedSomething)
+                {
+                    m_log.InfoFormat("[SCENE]: " +
+                                    "DelinkObjects(): Could not find a root prim out of {0} as given to a delink request!",
+                                    primIds);
+                }
             }
         }
 
