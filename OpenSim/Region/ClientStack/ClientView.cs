@@ -515,6 +515,8 @@ namespace OpenSim.Region.ClientStack
         public event GenericCall2 OnRequestWearables;
         public event SetAppearance OnSetAppearance;
         public event AvatarNowWearing OnAvatarNowWearing;
+        public event RezSingleAttachmentFromInv OnRezSingleAttachmentFromInv;
+        public event ObjectAttach OnObjectAttach;
         public event GenericCall2 OnCompleteMovementToRegion;
         public event UpdateAgent OnAgentUpdate;
         public event AgentRequestSit OnAgentRequestSit;
@@ -1645,6 +1647,7 @@ namespace OpenSim.Region.ClientStack
         public void AttachObject(uint localID, LLQuaternion rotation, byte attachPoint)
         {
             ObjectAttachPacket attach = (ObjectAttachPacket)PacketPool.Instance.GetPacket(PacketType.ObjectAttach);
+            System.Console.WriteLine("Attach object!");
             // TODO: don't create new blocks if recycling an old packet
             attach.AgentData.AgentID = AgentId;
             attach.AgentData.SessionID = m_sessionId;
@@ -2009,7 +2012,7 @@ namespace OpenSim.Region.ClientStack
         /// 
         /// </summary>
         /// <returns></returns>
-        protected ObjectUpdatePacket.ObjectDataBlock CreateDefaultAvatarPacket(byte[] textureEntry)
+        public ObjectUpdatePacket.ObjectDataBlock CreateDefaultAvatarPacket(byte[] textureEntry)
         {
             ObjectUpdatePacket.ObjectDataBlock objdata = new ObjectUpdatePacket.ObjectDataBlock();
             //  new libsecondlife.Packets.ObjectUpdatePacket.ObjectDataBlock(data1, ref i);
@@ -2858,6 +2861,21 @@ namespace OpenSim.Region.ClientStack
                             OnAvatarNowWearing(this, wearingArgs);
                         }
                         break;
+                    case PacketType.RezSingleAttachmentFromInv:
+                        if (OnRezSingleAttachmentFromInv != null)
+                        {
+                            RezSingleAttachmentFromInvPacket rez = (RezSingleAttachmentFromInvPacket) Pack;
+                            OnRezSingleAttachmentFromInv(this, rez.ObjectData.ItemID, 
+                                        rez.ObjectData.AttachmentPt, rez.ObjectData.ItemFlags, rez.ObjectData.NextOwnerMask);
+                        }
+                        break; 
+                    case PacketType.ObjectAttach:
+                        if (OnObjectAttach != null)
+                        {
+                           ObjectAttachPacket att = (ObjectAttachPacket) Pack;
+                           OnObjectAttach(this, att.ObjectData[0].ObjectLocalID, att.AgentData.AttachmentPoint, att.ObjectData[0].Rotation);
+                        }
+                        break; 
                     case PacketType.SetAlwaysRun:
                         SetAlwaysRunPacket run = (SetAlwaysRunPacket)Pack;
 

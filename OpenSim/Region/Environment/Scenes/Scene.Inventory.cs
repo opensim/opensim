@@ -33,6 +33,10 @@ using libsecondlife.Packets;
 using OpenSim.Framework;
 using OpenSim.Framework.Communications.Cache;
 using OpenSim.Framework.Console;
+using System.IO;
+using System.Text;
+using System.Xml;
+
 
 namespace OpenSim.Region.Environment.Scenes
 {
@@ -766,6 +770,12 @@ namespace OpenSim.Region.Environment.Scenes
                 }
             }
         }
+        public void RezSingleAttachment(IClientAPI remoteClient, LLUUID itemID, uint AttachmentPt,
+                                    uint ItemFlags, uint NextOwnerMask)
+        {
+            System.Console.WriteLine("RezSingleAttachment: unimplemented yet");
+        }
+
 
         private void AddRezObject(string xmlData, LLVector3 pos)
         {

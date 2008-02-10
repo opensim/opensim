@@ -234,6 +234,11 @@ namespace OpenSim.Framework
                                     uint EveryoneMask, uint GroupMask, uint NextOwnerMask, uint ItemFlags, 
                                     bool RezSelected, bool RemoveItem, LLUUID fromTaskID );
 
+    public delegate void RezSingleAttachmentFromInv(IClientAPI remoteClient, LLUUID itemID, uint AttachmentPt,
+                                    uint ItemFlags, uint NextOwnerMask);
+
+    public delegate void ObjectAttach(IClientAPI remoteClient, uint objectLocalID, uint AttachmentPt, LLQuaternion rot);
+
     public delegate void ModifyTerrain(
         float height, float seconds, byte size, byte action, float north, float west, float south, float east,
         IClientAPI remoteClient);
@@ -417,6 +422,8 @@ namespace OpenSim.Framework
         event ModifyTerrain OnModifyTerrain;
         event SetAppearance OnSetAppearance;
         event AvatarNowWearing OnAvatarNowWearing;
+        event RezSingleAttachmentFromInv OnRezSingleAttachmentFromInv;
+        event ObjectAttach OnObjectAttach;
         event StartAnim OnStartAnim;
         event StopAnim OnStopAnim;
         event LinkObjects OnLinkObjects;

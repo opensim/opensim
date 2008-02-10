@@ -58,6 +58,8 @@ namespace SimpleApp
         public event ModifyTerrain OnModifyTerrain;
         public event SetAppearance OnSetAppearance;
         public event AvatarNowWearing OnAvatarNowWearing;
+        public event RezSingleAttachmentFromInv OnRezSingleAttachmentFromInv;
+        public event ObjectAttach OnObjectAttach;
         public event StartAnim OnStartAnim;
         public event StopAnim OnStopAnim;
         public event LinkObjects OnLinkObjects;
