@@ -102,9 +102,10 @@ namespace OpenSim.Region.ScriptEngine.Common
         {
         }
 
-        public string State()
+        public string State
         {
-            return m_LSL_Functions.State();
+            get { return m_LSL_Functions.State; }
+            set { m_LSL_Functions.State = value;  }
         }
 
 

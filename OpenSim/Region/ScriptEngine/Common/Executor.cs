@@ -80,7 +80,7 @@ namespace OpenSim.Region.ScriptEngine.Common
                 return;
             }
 
-            string EventName = m_Script.State() + "_event_" + FunctionName;
+            string EventName = m_Script.State + "_event_" + FunctionName;
 
 //cfk 2-7-08 dont need this right now and the default Linux build has DEBUG defined
 ///#if DEBUG

@@ -70,9 +70,10 @@ namespace OpenSim.Region.ScriptEngine.Common
         private DateTime m_timer = DateTime.Now;
         private string m_state = "default";
 
-        public string State()
+        public string State
         {
-            return m_state;
+            get { return m_state; }
+            set { m_state = value; }
         }
 
         // Object never expires

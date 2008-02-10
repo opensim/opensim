@@ -35,7 +35,7 @@ namespace OpenSim.Region.ScriptEngine.Common
 
         // Interface used for loading and executing scripts
 
-        string State();
+        string State { get; set; }
 
         double llSin(double f);
         double llCos(double f);
