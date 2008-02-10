@@ -193,7 +193,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL
                                 Regex.Replace(cache,
                                               @"(?<s1>(?![a-zA-Z_]+)\s*)" + @"(state\s+)?([a-zA-Z_]+)(?<s2>[^a-zA-Z_\(\)]*){",
                                               "${s1}${s2}",
-                                              RegexOptions.Compiled | RegexOptions.Multiline | RegexOptions.Singleline);
+                                              RegexOptions.Compiled | RegexOptions.Multiline | RegexOptions.Singleline | RegexOptions.IgnoreCase);
                         }
                         ret += cache;
                         cache = String.Empty;
@@ -214,7 +214,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL
                                 Regex.Replace(cache,
                                               @"^(\s*)((?!(if|switch|for|while)[^a-zA-Z0-9_])[a-zA-Z0-9_]*\s*\([^\)]*\)[^;]*\{)",
                                               @"$1public " + current_statename + "_event_$2",
-                                              RegexOptions.Compiled | RegexOptions.Multiline | RegexOptions.Singleline);
+                                              RegexOptions.Compiled | RegexOptions.Multiline | RegexOptions.Singleline | RegexOptions.IgnoreCase);
                         }
 
                         ret += cache;
@@ -280,6 +280,10 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL
                 Regex.Replace(Script, @"\((float|int)\)\s*([a-zA-Z0-9_.]+(\s*\([^\)]*\))?)", @"$1.Parse($2)",
                               RegexOptions.Compiled | RegexOptions.Multiline | RegexOptions.Singleline);
 
+            // Replace "state STATENAME" with "state("statename")"
+            Script =
+                    Regex.Replace(Script, @"(state)\s+([^;\n\r]+)([\r\n\s];)", "$1(\"$2\")$3",
+                  RegexOptions.Compiled | RegexOptions.Multiline | RegexOptions.Singleline | RegexOptions.IgnoreCase);
 
             // REPLACE BACK QUOTES
             foreach (string key in quotes.Keys)
