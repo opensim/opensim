@@ -55,13 +55,13 @@ namespace OpenSim.Framework.AssetLoader.Filesystem
 
             if (!String.IsNullOrEmpty(path))
             {
-                m_log.Info(String.Format("[ASSETS]: Loading: [{0}][{1}]", name, path));
+                m_log.InfoFormat("[ASSETS]: Loading: [{0}][{1}]", name, path);
 
                 LoadAsset(asset, isImage, path);
             }
             else
             {
-                m_log.Info(String.Format("[ASSETS]: Instantiated: [{0}]", name));
+                m_log.InfoFormat("[ASSETS]: Instantiated: [{0}]", name);
             }
 
             return asset;
@@ -108,7 +108,7 @@ namespace OpenSim.Framework.AssetLoader.Filesystem
                 }
                 catch (XmlException e)
                 {
-                    m_log.Error(String.Format("[ASSETS]: Error loading {0} : {1}", assetSetPath, e));
+                    m_log.ErrorFormat("[ASSETS]: Error loading {0} : {1}", assetSetPath, e);
                 }                
             }
             else
@@ -126,7 +126,7 @@ namespace OpenSim.Framework.AssetLoader.Filesystem
         /// <param name="assets"></param>
         protected void LoadXmlAssetSet(string assetSetPath, List<AssetBase> assets)
         {
-            m_log.Info(String.Format("[ASSETS]: Loading asset set {0}", assetSetPath));
+            m_log.InfoFormat("[ASSETS]: Loading asset set {0}", assetSetPath);
             
             if (File.Exists(assetSetPath))
             {
@@ -152,12 +152,12 @@ namespace OpenSim.Framework.AssetLoader.Filesystem
                 }
                 catch (XmlException e)
                 {
-                    m_log.Error(String.Format("[ASSETS]: Error loading {0} : {1}", assetSetPath, e));
+                    m_log.ErrorFormat("[ASSETS]: Error loading {0} : {1}", assetSetPath, e);
                 }
             }
             else
             {
-                m_log.Error(String.Format("[ASSETS]: Asset set file {0} does not exist!", assetSetPath));
+                m_log.ErrorFormat("[ASSETS]: Asset set file {0} does not exist!", assetSetPath);
             }
         }        
     }

@@ -351,7 +351,7 @@ namespace OpenSim
             m_moduleLoader = new ModuleLoader(m_config);
 
             ExtensionNodeList nodes = AddinManager.GetExtensionNodes("/OpenSim/Startup");
-            m_log.Info(String.Format("[PLUGINS]: Loading {0} OpenSim application plugins", nodes.Count));
+            m_log.InfoFormat("[PLUGINS]: Loading {0} OpenSim application plugins", nodes.Count);
 
             foreach (TypeExtensionNode node in nodes)
             {
@@ -704,7 +704,7 @@ namespace OpenSim
                     m_console.Notice("set-time [x] - set the current scene time phase");
                     m_console.Notice("show assets - show state of asset cache.");
                     m_console.Notice("show users - show info about connected users.");
-                    m_console.Notice("show modules - shows info aboutloaded modules.");
+                    m_console.Notice("show modules - shows info about loaded modules.");
                     m_console.Notice("show stats - statistical information for this server not displayed in the client");
                     m_console.Notice("shutdown - disconnect all clients and shutdown.");
                     m_console.Notice("config set section field value - set a config value");

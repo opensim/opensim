@@ -245,7 +245,7 @@ namespace OpenSim.Region.Physics.Meshing
                     // Calculated separately to avoid errors
                 cutHull.AddVertex(legEnd);
 
-                //m_log.Debug(String.Format("Starting cutting of the hollow shape from the prim {1}", 0, primName));
+                //m_log.DebugFormat("Starting cutting of the hollow shape from the prim {1}", 0, primName);
                 SimpleHull cuttedHull = SimpleHull.SubtractHull(outerHull, cutHull);
 
                 outerHull = cuttedHull;
@@ -520,7 +520,7 @@ namespace OpenSim.Region.Physics.Meshing
                 // Calculated separately to avoid errors
                 cutHull.AddVertex(legEnd);
 
-                m_log.Debug(String.Format("Starting cutting of the hollow shape from the prim {1}", 0, primName));
+                m_log.DebugFormat("Starting cutting of the hollow shape from the prim {1}", 0, primName);
                 SimpleHull cuttedHull = SimpleHull.SubtractHull(outerHull, cutHull);
 
                 outerHull = cuttedHull;

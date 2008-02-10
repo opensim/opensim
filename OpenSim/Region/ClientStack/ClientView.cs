@@ -240,8 +240,8 @@ namespace OpenSim.Region.ClientStack
         {
             m_scene.RemoveClient(AgentId);
             
-            //m_log.Info(String.Format("[CLIENTVIEW] Memory pre  GC {0}", System.GC.GetTotalMemory(false)));
-            //m_log.Info(String.Format("[CLIENTVIEW] Memory post GC {0}", System.GC.GetTotalMemory(true)));   
+            //m_log.InfoFormat("[CLIENTVIEW] Memory pre  GC {0}", System.GC.GetTotalMemory(false));
+            //m_log.InfoFormat("[CLIENTVIEW] Memory post GC {0}", System.GC.GetTotalMemory(true));   
             
             // Send the STOP packet 
             DisableSimulatorPacket disable = (DisableSimulatorPacket)PacketPool.Instance.GetPacket(PacketType.DisableSimulator);

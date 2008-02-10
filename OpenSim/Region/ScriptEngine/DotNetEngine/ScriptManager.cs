@@ -86,7 +86,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
                 CompiledScript = m_scriptEngine.m_AppDomainManager.LoadScript(ScriptSource);
 
 #if DEBUG
-                m_scriptEngine.Log.Debug(String.Format("[" + m_scriptEngine.ScriptEngineName + "]: Script " + itemID + " occupies {0} bytes", GC.GetTotalMemory(true) - before));
+                m_scriptEngine.Log.DebugFormat("[" + m_scriptEngine.ScriptEngineName + "]: Script " + itemID + " occupies {0} bytes", GC.GetTotalMemory(true) - before);
 #endif
 
                 CompiledScript.Source = Script;

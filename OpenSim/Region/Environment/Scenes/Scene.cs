@@ -1432,7 +1432,7 @@ namespace OpenSim.Region.Environment.Scenes
             {
                 if (m_scenePresences.Remove(agentID))
                 {
-                    //m_log.Info(String.Format("[SCENE] Removed scene presence {0}", agentID));
+                    //m_log.InfoFormat("[SCENE] Removed scene presence {0}", agentID);
                 }
                 else
                 {
@@ -1445,7 +1445,7 @@ namespace OpenSim.Region.Environment.Scenes
             {
                 if (Entities.Remove(agentID))
                 {
-                    //m_log.Info(String.Format("[SCENE] Removed scene presence {0} from entities list", agentID));
+                    //m_log.InfoFormat("[SCENE] Removed scene presence {0} from entities list", agentID);
                 }
                 else
                 {
@@ -1470,8 +1470,8 @@ namespace OpenSim.Region.Environment.Scenes
             // Remove client agent from profile, so new logins will work
             CommsManager.UserService.clearUserAgent(agentID);  
             
-            //m_log.Info(String.Format("[SCENE] Memory pre  GC {0}", System.GC.GetTotalMemory(false)));
-            //m_log.Info(String.Format("[SCENE] Memory post GC {0}", System.GC.GetTotalMemory(true)));            
+            //m_log.InfoFormat("[SCENE] Memory pre  GC {0}", System.GC.GetTotalMemory(false));
+            //m_log.InfoFormat("[SCENE] Memory post GC {0}", System.GC.GetTotalMemory(true));            
         }
 
         public override void CloseAllAgents(uint circuitcode)

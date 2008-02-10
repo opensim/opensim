@@ -147,10 +147,10 @@ namespace OpenSim.Region.Environment.Scenes
         /// <returns></returns>
         public void StartScript(TaskInventoryItem item)
         {
-//            m_log.Info(String.Format(
-//                           "[PRIMINVENTORY]: " +
-//                           "Starting script {0}, {1} in prim {2}, {3}", 
-//                           item.Name, item.ItemID, Name, UUID));
+//            m_log.InfoFormat(
+//                "[PRIMINVENTORY]: " +
+//                "Starting script {0}, {1} in prim {2}, {3}", 
+//                item.Name, item.ItemID, Name, UUID);
             AddFlag(LLObject.ObjectFlags.Scripted);
 
             if (!((m_parentGroup.Scene.RegionInfo.EstateSettings.regionFlags & Simulator.RegionFlags.SkipScripts) == Simulator.RegionFlags.SkipScripts))
@@ -166,10 +166,10 @@ namespace OpenSim.Region.Environment.Scenes
                 }
                 else
                 {
-                    m_log.Error(String.Format(
-                                    "[PRIMINVENTORY]: " +
-                                    "Couldn't start script {0}, {1} since asset ID {2} could not be found",
-                                    item.Name, item.ItemID, item.AssetID));
+                    m_log.ErrorFormat(
+                        "[PRIMINVENTORY]: " +
+                        "Couldn't start script {0}, {1} since asset ID {2} could not be found",
+                        item.Name, item.ItemID, item.AssetID);
                 }
             }
             ScheduleFullUpdate();
@@ -192,10 +192,10 @@ namespace OpenSim.Region.Environment.Scenes
                 }            
                 else
                 {
-                    m_log.Error(String.Format(
-                                    "[PRIMINVENTORY]: " +
-                                    "Couldn't start script with ID {0} since it couldn't be found for prim {1}, {2}", 
-                                    itemId, Name, UUID));
+                    m_log.ErrorFormat(
+                        "[PRIMINVENTORY]: " +
+                        "Couldn't start script with ID {0} since it couldn't be found for prim {1}, {2}", 
+                        itemId, Name, UUID);
                 }                
             }
         }        
@@ -206,27 +206,18 @@ namespace OpenSim.Region.Environment.Scenes
         /// <param name="itemId"></param>        
         public void StopScript(LLUUID itemId)
         {
-
-            
             if (m_taskInventory.ContainsKey(itemId))
             {
-                
                 m_parentGroup.Scene.EventManager.TriggerRemoveScript(LocalID, itemId);
                 m_parentGroup.AddActiveScriptCount(-1);
-                
-                
-                
-                
-                
             }            
             else
             {
-                m_log.Error(String.Format(
-                                "[PRIMINVENTORY]: " +
-                                "Couldn't stop script with ID {0} since it couldn't be found for prim {1}, {2}", 
-                                itemId, Name, UUID));
+                m_log.ErrorFormat(
+                    "[PRIMINVENTORY]: " +
+                    "Couldn't stop script with ID {0} since it couldn't be found for prim {1}, {2}", 
+                    itemId, Name, UUID);
             }
-                           
         }        
 
         /// <summary>
@@ -285,10 +276,10 @@ namespace OpenSim.Region.Environment.Scenes
                 }
                 else
                 {
-                    m_log.Error(String.Format(
-                                    "[PRIMINVENTORY]: " +
-                                    "Tried to retrieve item ID {0} from prim {1}, {2} but the item does not exist in this inventory",
-                                    itemID, Name, UUID));
+                    m_log.ErrorFormat(
+                        "[PRIMINVENTORY]: " +
+                        "Tried to retrieve item ID {0} from prim {1}, {2} but the item does not exist in this inventory",
+                        itemID, Name, UUID);
                 }
             }
 
@@ -317,10 +308,10 @@ namespace OpenSim.Region.Environment.Scenes
                 }
                 else
                 {
-                    m_log.Error(String.Format(
-                                    "[PRIMINVENTORY]: " +
-                                    "Tried to retrieve item ID {0} from prim {1}, {2} but the item does not exist in this inventory",
-                                    item.ItemID, Name, UUID));
+                    m_log.ErrorFormat(
+                        "[PRIMINVENTORY]: " +
+                        "Tried to retrieve item ID {0} from prim {1}, {2} but the item does not exist in this inventory",
+                        item.ItemID, Name, UUID);
                 }   
             }
             
@@ -374,10 +365,10 @@ namespace OpenSim.Region.Environment.Scenes
                 }
                 else
                 {
-                    m_log.Error(String.Format(
-                                    "[PRIMINVENTORY]: " +
-                                    "Tried to remove item ID {0} from prim {1}, {2} but the item does not exist in this inventory",
-                                    itemID, Name, UUID));
+                    m_log.ErrorFormat(
+                        "[PRIMINVENTORY]: " +
+                        "Tried to remove item ID {0} from prim {1}, {2} but the item does not exist in this inventory",
+                        itemID, Name, UUID);
                 }            
             }
 
@@ -442,8 +433,8 @@ namespace OpenSim.Region.Environment.Scenes
             
             fileData = Helpers.StringToField(invString.BuildString);
             
-//            m_log.Info(String.Format(
-//                           "[PRIMINVENTORY]: RequestInventoryFile fileData: {0}", Helpers.FieldToUTF8String(fileData)));
+//            m_log.InfoFormat(
+//                "[PRIMINVENTORY]: RequestInventoryFile fileData: {0}", Helpers.FieldToUTF8String(fileData));
             
             if (fileData.Length > 2)
             {

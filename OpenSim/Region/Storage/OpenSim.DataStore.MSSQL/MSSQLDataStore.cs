@@ -142,7 +142,7 @@ namespace OpenSim.DataStore.MSSQL
 
         public void RemoveObject(LLUUID obj, LLUUID regionUUID)
         {
-            m_log.Info(String.Format("[DATASTORE]: Removing obj: {0} from region: {1}", obj.UUID, regionUUID));
+            m_log.InfoFormat("[DATASTORE]: Removing obj: {0} from region: {1}", obj.UUID, regionUUID);
             
             DataTable prims = ds.Tables["prims"];
             DataTable shapes = ds.Tables["primshapes"];

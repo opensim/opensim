@@ -73,8 +73,8 @@ namespace OpenSim.Grid.AssetServer
                     
                     if (!LLUUID.TryParse(p[0], out assetID))
                     {
-                        m_log.Info(String.Format(
-                                       "[REST]: GET:/asset ignoring request with malformed UUID {0}", p[0]));
+                        m_log.InfoFormat(
+                            "[REST]: GET:/asset ignoring request with malformed UUID {0}", p[0]);
                         return result;
                     }   
     
@@ -96,9 +96,9 @@ namespace OpenSim.Grid.AssetServer
 
                         result = ms.GetBuffer();
                         
-                        m_log.Info(String.Format(
-                                       "[REST]: GET:/asset found {0} with name {1}, size {2} bytes",
-                                       assetID, asset.Name, result.Length));
+                        m_log.InfoFormat(
+                            "[REST]: GET:/asset found {0} with name {1}, size {2} bytes",
+                            assetID, asset.Name, result.Length);
 
                         Array.Resize<byte>(ref result, (int) ms.Length);
                     }
@@ -107,7 +107,7 @@ namespace OpenSim.Grid.AssetServer
                         if (StatsManager.AssetStats != null)
                             StatsManager.AssetStats.AddNotFoundRequest();
                         
-                        m_log.Info(String.Format("[REST]: GET:/asset failed to find {0}", assetID));
+                        m_log.InfoFormat("[REST]: GET:/asset failed to find {0}", assetID);
                     }
                 }
             }
@@ -138,7 +138,7 @@ namespace OpenSim.Grid.AssetServer
             XmlSerializer xs = new XmlSerializer(typeof (AssetBase));
             AssetBase asset = (AssetBase) xs.Deserialize(request);
 
-            m_log.Info(String.Format("[REST]: StoreAndCommitAsset {0}", asset.FullID));
+            m_log.InfoFormat("[REST]: StoreAndCommitAsset {0}", asset.FullID);
             m_assetProvider.CreateAsset(asset);
             m_assetProvider.CommitAssets();
 

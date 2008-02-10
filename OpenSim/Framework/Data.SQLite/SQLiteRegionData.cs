@@ -207,7 +207,7 @@ namespace OpenSim.Framework.Data.SQLite
 
         public void RemoveObject(LLUUID obj, LLUUID regionUUID)
         {
-            m_log.Info(String.Format("[DATASTORE]: Removing obj: {0} from region: {1}", obj.UUID, regionUUID));
+            m_log.InfoFormat("[DATASTORE]: Removing obj: {0} from region: {1}", obj.UUID, regionUUID);
             
             DataTable prims = ds.Tables["prims"];
             DataTable shapes = ds.Tables["primshapes"];
@@ -350,7 +350,7 @@ namespace OpenSim.Framework.Data.SQLite
         /// <param name="prim"></param>
         private void LoadItems(SceneObjectPart prim)
         {
-            m_log.Info(String.Format("[DATASTORE]: Loading inventory for {0}, {1}", prim.Name, prim.UUID));
+            m_log.InfoFormat("[DATASTORE]: Loading inventory for {0}, {1}", prim.Name, prim.UUID);
             
             DataTable dbItems = ds.Tables["primitems"];
             
@@ -364,7 +364,7 @@ namespace OpenSim.Framework.Data.SQLite
                 TaskInventoryItem item = buildItem(row);
                 inventory.Add(item);
                 
-                m_log.Info(String.Format("[DATASTORE]: Restored item {0}, {1}", item.Name, item.ItemID)); 
+                m_log.InfoFormat("[DATASTORE]: Restored item {0}, {1}", item.Name, item.ItemID); 
             }
             
             prim.RestoreInventoryItems(inventory);
@@ -1174,7 +1174,6 @@ namespace OpenSim.Framework.Data.SQLite
             byte[] textureEntry = (byte[]) row["Texture"];
             s.TextureEntry = textureEntry;
 
-
             s.ExtraParams = (byte[]) row["ExtraParams"];
             // System.Text.ASCIIEncoding encoding = new System.Text.ASCIIEncoding();
             //             string texture = encoding.GetString((Byte[])row["Texture"]);
@@ -1267,7 +1266,7 @@ namespace OpenSim.Framework.Data.SQLite
             if (!persistPrimInventories)
                 return;
             
-            m_log.Info(String.Format("[DATASTORE]: Entered StorePrimInventory with prim ID {0}", primID));
+            m_log.InfoFormat("[DATASTORE]: Entered StorePrimInventory with prim ID {0}", primID);
             
             DataTable dbItems = ds.Tables["primitems"]; 
             
@@ -1280,10 +1279,10 @@ namespace OpenSim.Framework.Data.SQLite
                 // repalce with current inventory details
                 foreach (TaskInventoryItem newItem in items)
                 {
-//                    m_log.Info(String.Format(
-//                                   "[DATASTORE]: ", 
-//                                   "Adding item {0}, {1} to prim ID {2}", 
-//                                   newItem.Name, newItem.ItemID, newItem.ParentPartID));
+//                    m_log.InfoFormat(
+//                        "[DATASTORE]: ", 
+//                        "Adding item {0}, {1} to prim ID {2}", 
+//                        newItem.Name, newItem.ItemID, newItem.ParentPartID);
                     
                     DataRow newItemRow = dbItems.NewRow();
                     fillItemRow(newItemRow, newItem);

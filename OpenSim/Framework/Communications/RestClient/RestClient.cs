@@ -240,7 +240,7 @@ namespace OpenSim.Framework.Communications
                 }
             }
             realuri = sb.ToString();
-            m_log.Info(String.Format("[REST]: RestURL: {0}", realuri));
+            m_log.InfoFormat("[REST]: RestURL: {0}", realuri);
             return new Uri(sb.ToString());
         }
 
@@ -376,8 +376,8 @@ namespace OpenSim.Framework.Communications
             _asyncException = null;
             _request.ContentLength = src.Length;
 
-            m_log.Info(String.Format("[REST]: Request Length {0}", _request.ContentLength));
-            m_log.Info(String.Format("[REST]: Sending Web Request {0}", buildUri()));
+            m_log.InfoFormat("[REST]: Request Length {0}", _request.ContentLength);
+            m_log.InfoFormat("[REST]: Sending Web Request {0}", buildUri());
             src.Seek(0, SeekOrigin.Begin);
             m_log.Info("[REST]: Seek is ok");
             Stream dst = _request.GetRequestStream();

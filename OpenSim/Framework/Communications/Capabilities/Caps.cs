@@ -277,7 +277,7 @@ namespace OpenSim.Region.Capabilities
         {
             try
             {
-//                m_log.Debug(String.Format("[CAPS]: request: {0}, path: {1}, param: {2}", request, path, param));
+//                m_log.DebugFormat("[CAPS]: request: {0}, path: {1}, param: {2}", request, path, param);
 
                 Hashtable hash = (Hashtable) LLSD.LLSDDeserialize(Helpers.StringToField(request));
                 LLSDTaskScriptUpdate llsdUpdateRequest = new LLSDTaskScriptUpdate();
@@ -709,7 +709,7 @@ namespace OpenSim.Region.Capabilities
                         SaveAssetToFile("updatedtaskscript" + Util.RandomClass.Next(1, 1000) + ".dat", data);
                     }
 
-//                    m_log.Info(String.Format("[CAPS]: TaskInventoryScriptUpdater.uploaderCaps res: {0}", res));
+//                    m_log.InfoFormat("[CAPS]: TaskInventoryScriptUpdater.uploaderCaps res: {0}", res);
 
                     return res;
                 }

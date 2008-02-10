@@ -73,7 +73,7 @@ namespace OpenSim.Framework.Communications.Cache
                     }
                     else
                     {
-                        m_log.Error(String.Format("[USERCACHE]: User profile for user {0} not found", userID));
+                        m_log.ErrorFormat("[USERCACHE]: User profile for user {0} not found", userID);
                     }
                 }
             }

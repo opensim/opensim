@@ -115,7 +115,7 @@ namespace OpenSim.Framework.Communications.Cache
                     
                     XferUploaders.Remove(uploaderFound.TransactionID);
                     
-                    //m_log.Info(String.Format("[ASSET TRANSACTIONS] Current uploaders: {0}", XferUploaders.Count));                
+                    //m_log.InfoFormat("[ASSET TRANSACTIONS] Current uploaders: {0}", XferUploaders.Count);                
                 }            
             }
         }

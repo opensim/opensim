@@ -78,7 +78,7 @@ namespace OpenSim.Region.Environment
             DynamicTextureModule dynamicModule = new DynamicTextureModule();
             if (m_loadedSharedModules.ContainsKey(dynamicModule.Name))
             {
-                m_log.Error(String.Format("[MODULES]: Module name \"{0}\" already exists in module list. Module type {1} not added!", dynamicModule.Name, "DynamicTextureModule"));
+                m_log.ErrorFormat("[MODULES]: Module name \"{0}\" already exists in module list. Module type {1} not added!", dynamicModule.Name, "DynamicTextureModule");
             }
             else
             {
@@ -88,7 +88,7 @@ namespace OpenSim.Region.Environment
             ChatModule chat = new ChatModule();
             if (m_loadedSharedModules.ContainsKey(chat.Name))
             {
-                m_log.Error(String.Format("[MODULES]: Module name \"{0}\" already exists in module list. Module type {1} not added!", chat.Name, "ChatModule"));
+                m_log.ErrorFormat("[MODULES]: Module name \"{0}\" already exists in module list. Module type {1} not added!", chat.Name, "ChatModule");
             }
             else
             {
@@ -98,7 +98,7 @@ namespace OpenSim.Region.Environment
             InstantMessageModule imMod = new InstantMessageModule();
             if (m_loadedSharedModules.ContainsKey(imMod.Name))
             {
-                m_log.Error(String.Format("[MODULES]: Module name \"{0}\" already exists in module list. Module type {1} not added!", imMod.Name, "InstantMessageModule"));
+                m_log.ErrorFormat("[MODULES]: Module name \"{0}\" already exists in module list. Module type {1} not added!", imMod.Name, "InstantMessageModule");
             }
             else
             {
@@ -108,7 +108,7 @@ namespace OpenSim.Region.Environment
             LoadImageURLModule loadMod = new LoadImageURLModule();
             if (m_loadedSharedModules.ContainsKey(loadMod.Name))
             {
-                m_log.Error(String.Format("[MODULES]: Module name \"{0}\" already exists in module list. Module type {1} not added!", loadMod.Name, "LoadImageURLModule"));
+                m_log.ErrorFormat("[MODULES]: Module name \"{0}\" already exists in module list. Module type {1} not added!", loadMod.Name, "LoadImageURLModule");
             }
             else
             {
@@ -118,7 +118,7 @@ namespace OpenSim.Region.Environment
             AvatarFactoryModule avatarFactory = new AvatarFactoryModule();
             if (m_loadedSharedModules.ContainsKey(avatarFactory.Name))
             {
-                m_log.Error(String.Format("[MODULES]: Module name \"{0}\" already exists in module list. Module type {1} not added!", avatarFactory.Name, "AvarFactoryModule"));
+                m_log.ErrorFormat("[MODULES]: Module name \"{0}\" already exists in module list. Module type {1} not added!", avatarFactory.Name, "AvarFactoryModule");
             }
             else
             {
@@ -128,7 +128,7 @@ namespace OpenSim.Region.Environment
             XMLRPCModule xmlRpcMod = new XMLRPCModule();
             if (m_loadedSharedModules.ContainsKey(xmlRpcMod.Name))
             {
-                m_log.Error(String.Format("[MODULES]: Module name \"{0}\" already exists in module list. Module type {1} not added!", xmlRpcMod.Name, "XMLRPCModule"));
+                m_log.ErrorFormat("[MODULES]: Module name \"{0}\" already exists in module list. Module type {1} not added!", xmlRpcMod.Name, "XMLRPCModule");
             }
             else
             {
@@ -186,17 +186,17 @@ namespace OpenSim.Region.Environment
 
             if (modules.Length > 0)
             {
-                m_log.Info(String.Format("[MODULES]: Found Module Library [{0}]", dllName));
+                m_log.InfoFormat("[MODULES]: Found Module Library [{0}]", dllName);
                 foreach (IRegionModule module in modules)
                 {
                     if (!module.IsSharedModule)
                     {
-                        m_log.Info(String.Format("[MODULES]:    [{0}]: Initializing.", module.Name));
+                        m_log.InfoFormat("[MODULES]:    [{0}]: Initializing.", module.Name);
                         InitializeModule(module, scene);
                     }
                     else
                     {
-                        m_log.Info(String.Format("[MODULES]:    [{0}]: Loading Shared Module.", module.Name));
+                        m_log.InfoFormat("[MODULES]:    [{0}]: Loading Shared Module.", module.Name);
                         LoadSharedModule(module);
                     }
                 }
@@ -246,7 +246,7 @@ namespace OpenSim.Region.Environment
                 }
                 catch (BadImageFormatException)
                 {
-                    //m_log.Info(String.Format("[MODULES]: The file [{0}] is not a module assembly.", e.FileName));
+                    //m_log.InfoFormat("[MODULES]: The file [{0}] is not a module assembly.", e.FileName);
                 }
             }
 
@@ -270,7 +270,7 @@ namespace OpenSim.Region.Environment
                 }
                 catch (ReflectionTypeLoadException)
                 {
-                    m_log.Info(String.Format("[MODULES]: Could not load types for [{0}].", pluginAssembly.FullName));
+                    m_log.InfoFormat("[MODULES]: Could not load types for [{0}].", pluginAssembly.FullName);
                 }
             }
 

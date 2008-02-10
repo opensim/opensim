@@ -73,9 +73,9 @@ namespace OpenSim.Region.Communications.OGS1
         {
             try
             {
-                m_log.Info(
-                    String.Format("[INVENTORY]: Requesting inventory from {0}/GetInventory/ for user {1}",
-                                  _inventoryServerUrl, userID));
+                m_log.InfoFormat(
+                    "[INVENTORY]: Requesting inventory from {0}/GetInventory/ for user {1}",
+                    _inventoryServerUrl, userID);
 
                 RestObjectPosterResponse<InventoryCollection> requester
                     = new RestObjectPosterResponse<InventoryCollection>();
@@ -98,9 +98,9 @@ namespace OpenSim.Region.Communications.OGS1
             LLUUID userID = response.UserID;
             if (m_RequestingInventory.ContainsKey(userID))
             {
-                m_log.Info(String.Format("[INVENTORY]: " +
-                                         "Received inventory response for user {0} containing {1} folders and {2} items",
-                                         userID, response.Folders.Count, response.AllItems.Count));
+                m_log.InfoFormat("[INVENTORY]: " +
+                                 "Received inventory response for user {0} containing {1} folders and {2} items",
+                                 userID, response.Folders.Count, response.AllItems.Count);
 
                 InventoryFolderImpl rootFolder = null;
                 InventoryRequest request = m_RequestingInventory[userID];
@@ -134,10 +134,10 @@ namespace OpenSim.Region.Communications.OGS1
             }
             else
             {
-                m_log.Warn(
-                    String.Format("[INVENTORY]: " +
-                                  "Received inventory response for {0} for which we do not have a record of requesting!",
-                                  userID));
+                m_log.WarnFormat(
+                    "[INVENTORY]: " +
+                    "Received inventory response for {0} for which we do not have a record of requesting!",
+                    userID);
             }
         }
 

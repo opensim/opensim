@@ -83,8 +83,8 @@ namespace OpenSim.Region.Environment.Scenes
 
             if (!TryGetAvatar(avatarId, out avatar))
             {
-                m_log.Error(String.Format(
-                                "[AGENTINVENTORY]: Could not find avatar {0} to add inventory item", avatarId));
+                m_log.ErrorFormat(
+                    "[AGENTINVENTORY]: Could not find avatar {0} to add inventory item", avatarId);
                 return;
             }
 
@@ -146,10 +146,10 @@ namespace OpenSim.Region.Environment.Scenes
             }
             else
             {
-                m_log.Error(String.Format(
-                                "[AGENTINVENTORY]: " +
-                                "Avatar {0} cannot be found to update its inventory item asset",
-                                avatarId));
+                m_log.ErrorFormat(
+                    "[AGENTINVENTORY]: " +
+                    "Avatar {0} cannot be found to update its inventory item asset",
+                    avatarId);
             }
 
             return LLUUID.Zero;
@@ -171,10 +171,10 @@ namespace OpenSim.Region.Environment.Scenes
             SceneObjectGroup group = part.ParentGroup;            
             if (null == group)
             {
-                m_log.Error(String.Format(
-                                "[PRIMINVENTORY]: " +
-                                "Prim inventory update requested for item ID {0} in prim ID {1} but this prim does not exist",
-                                itemId, primId));
+                m_log.ErrorFormat(
+                    "[PRIMINVENTORY]: " +
+                    "Prim inventory update requested for item ID {0} in prim ID {1} but this prim does not exist",
+                    itemId, primId);
 
                 return;
             }
@@ -220,10 +220,10 @@ namespace OpenSim.Region.Environment.Scenes
             }
             else
             {
-                m_log.Error(String.Format(
-                                "[PRIMINVENTORY]: " +
-                                "Avatar {0} cannot be found to update its prim item asset",
-                                avatarId));
+                m_log.ErrorFormat(
+                    "[PRIMINVENTORY]: " +
+                    "Avatar {0} cannot be found to update its prim item asset",
+                    avatarId);
             }
         }
 
@@ -498,8 +498,8 @@ namespace OpenSim.Region.Environment.Scenes
             }
             else
             {
-                m_log.Error(String.Format(
-                                "[PRIMINVENTORY]: Inventory requested of prim {0} which doesn't exist", primLocalID));
+                m_log.ErrorFormat(
+                    "[PRIMINVENTORY]: Inventory requested of prim {0} which doesn't exist", primLocalID);
             }
         }
 
@@ -524,11 +524,11 @@ namespace OpenSim.Region.Environment.Scenes
             }
             else
             {
-                m_log.Error(String.Format(
-                                "[PRIMINVENTORY]: " +
-                                "Removal of item {0} requested of prim {1} but this prim does not exist",
-                                itemID,
-                                localID));
+                m_log.ErrorFormat(
+                    "[PRIMINVENTORY]: " +
+                    "Removal of item {0} requested of prim {1} but this prim does not exist",
+                    itemID,
+                    localID);
             }
         }
 
@@ -548,18 +548,18 @@ namespace OpenSim.Region.Environment.Scenes
             {
                 // TODO Retrieve itemID from client's inventory to pass on
                 //group.AddInventoryItem(remoteClient, primLocalID, null);
-                m_log.Info(String.Format(
-                               "[PRIMINVENTORY]: " +
-                               "Non script prim inventory not yet implemented!"
-                               + "\nUpdateTaskInventory called with item {0}, folder {1}, primLocalID {2}, user {3}",
-                               itemID, folderID, primLocalID, remoteClient.Name));
+                m_log.InfoFormat(
+                    "[PRIMINVENTORY]: " +
+                    "Non script prim inventory not yet implemented!"
+                    + "\nUpdateTaskInventory called with item {0}, folder {1}, primLocalID {2}, user {3}",
+                    itemID, folderID, primLocalID, remoteClient.Name);
             }
             else
             {
-                m_log.Warn(String.Format(
-                               "[PRIMINVENTORY]: " +
-                               "Update with item {0} requested of prim {1} for {2} but this prim does not exist",
-                               itemID, primLocalID, remoteClient.Name));
+                m_log.WarnFormat(
+                    "[PRIMINVENTORY]: " +
+                    "Update with item {0} requested of prim {1} for {2} but this prim does not exist",
+                    itemID, primLocalID, remoteClient.Name);
             }
         }
 
@@ -604,18 +604,18 @@ namespace OpenSim.Region.Environment.Scenes
                         }
                         else
                         {
-                            m_log.Error(String.Format(
-                                            "[PRIMINVENTORY]: " +
-                                            "Could not rez script {0} into prim local ID {1} for user {2}"
-                                            + " because the prim could not be found in the region!",
-                                            item.inventoryName, localID, remoteClient.Name));
+                            m_log.ErrorFormat(
+                                "[PRIMINVENTORY]: " +
+                                "Could not rez script {0} into prim local ID {1} for user {2}"
+                                + " because the prim could not be found in the region!",
+                                item.inventoryName, localID, remoteClient.Name);
                         }
                     }
                     else
                     {
-                        m_log.Error(String.Format(
-                                        "[PRIMINVENTORY]: Could not find script inventory item {0} to rez for {1}!",
-                                        itemID, remoteClient.Name));
+                        m_log.ErrorFormat(
+                            "[PRIMINVENTORY]: Could not find script inventory item {0} to rez for {1}!",
+                            itemID, remoteClient.Name);
                     }
                 }
             }

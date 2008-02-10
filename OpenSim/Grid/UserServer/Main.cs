@@ -156,7 +156,7 @@ namespace OpenSim.Grid.UserServer
                             m_userManager.AddUserProfile(tempfirstname, templastname, tempMD5Passwd, regX, regY);
                     } catch (Exception ex)
                     {
-                        m_log.Error(String.Format("[SERVER]: Error creating user: {0}", ex.ToString()));
+                        m_log.ErrorFormat("[SERVER]: Error creating user: {0}", ex.ToString());
                     }
 
                     try
@@ -166,7 +166,7 @@ namespace OpenSim.Grid.UserServer
                     }
                     catch (Exception ex)
                     {
-                        m_log.Error(String.Format("[SERVER]: Error creating inventory for user: {0}", ex.ToString()));
+                        m_log.ErrorFormat("[SERVER]: Error creating inventory for user: {0}", ex.ToString());
                     }
                     m_lastCreatedUser = userID;
                     break;

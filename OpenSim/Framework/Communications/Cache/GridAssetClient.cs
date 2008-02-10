@@ -52,7 +52,7 @@ namespace OpenSim.Framework.Communications.Cache
             Stream s = null;
             try
             {
-                m_log.Debug(String.Format("[ASSETCACHE]: Querying for {0}", req.AssetID.ToString()));
+                m_log.DebugFormat("[ASSETCACHE]: Querying for {0}", req.AssetID.ToString());
 
                 RestClient rc = new RestClient(_assetServerUrl);
                 rc.AddResourcePath("assets");
@@ -73,7 +73,7 @@ namespace OpenSim.Framework.Communications.Cache
             catch (Exception e)
             {
                 m_log.Error("[ASSETCACHE]: " + e.Message);
-                m_log.Debug(String.Format("[ASSETCACHE]: Getting asset {0}", req.AssetID.ToString()));
+                m_log.DebugFormat("[ASSETCACHE]: Getting asset {0}", req.AssetID.ToString());
                 m_log.Error("[ASSETCACHE]: " + e.StackTrace);
             }
 
@@ -100,7 +100,7 @@ namespace OpenSim.Framework.Communications.Cache
 
                 // rc.RequestMethod = "POST";
                 //  rc.Request(s);
-                //m_log.Info(String.Format("[ASSET]: Stored {0}", rc));
+                //m_log.InfoFormat("[ASSET]: Stored {0}", rc);
                 m_log.Info("[ASSET]: Sending to " + _assetServerUrl + "/assets/");
                 RestObjectPoster.BeginPostObject<AssetBase>(_assetServerUrl + "/assets/", asset);
 

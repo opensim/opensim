@@ -335,7 +335,7 @@ namespace OpenSim.Framework.Communications.Cache
                 }
             }
 
-            m_log.Info(String.Format("[ASSETCACHE]: Adding {0} {1} [{2}]: {3}.", temporary, type, asset.FullID, result));
+            m_log.InfoFormat("[ASSETCACHE]: Adding {0} {1} [{2}]: {3}.", temporary, type, asset.FullID, result);
         }
 
         public void DeleteAsset(LLUUID assetID)
@@ -431,7 +431,7 @@ namespace OpenSim.Framework.Communications.Cache
         {
             //if (this.RequestedTextures.ContainsKey(assetID))
             //{
-            //    m_log.Warn(String.Format("[ASSET CACHE]: sending image not found for {0}", assetID));
+            //    m_log.WarnFormat("[ASSET CACHE]: sending image not found for {0}", assetID);
             //    AssetRequest req = this.RequestedTextures[assetID];
             //    ImageNotInDatabasePacket notFound = new ImageNotInDatabasePacket();
             //    notFound.ImageID.ID = assetID;
@@ -440,7 +440,7 @@ namespace OpenSim.Framework.Communications.Cache
             //}
             //else
             //{
-            //    m_log.Error(String.Format("[ASSET CACHE]: Cound not send image not found for {0}", assetID));
+            //    m_log.ErrorFormat("[ASSET CACHE]: Cound not send image not found for {0}", assetID);
             //}
         }
 

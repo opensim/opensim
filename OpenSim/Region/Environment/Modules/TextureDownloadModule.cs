@@ -174,7 +174,7 @@ namespace OpenSim.Region.Environment.Modules
                 // Make sure that any sender we currently have can get garbage collected
                 sender = null;
                 
-                //m_log.Info(String.Format("[TEXTURE DOWNLOAD] Texture sender queue size: {0}", m_queueSenders.Count()));
+                //m_log.InfoFormat("[TEXTURE DOWNLOAD] Texture sender queue size: {0}", m_queueSenders.Count());
             }
         }
 

@@ -95,7 +95,7 @@ namespace OpenSim.Region.Physics.Manager
 
             public override PhysicsActor AddAvatar(string avName, PhysicsVector position)
             {
-                m_log.Info(String.Format("[PHYSICS]: NullPhysicsScene : AddAvatar({0})", position));
+                m_log.InfoFormat("[PHYSICS]: NullPhysicsScene : AddAvatar({0})", position);
                 return PhysicsActor.Null;
             }
 
@@ -110,7 +110,7 @@ namespace OpenSim.Region.Physics.Manager
 /*
             public override PhysicsActor AddPrim(PhysicsVector position, PhysicsVector size, Quaternion rotation)
             {
-                m_log.Info(String.Format("NullPhysicsScene : AddPrim({0},{1})", position, size));
+                m_log.InfoFormat("NullPhysicsScene : AddPrim({0},{1})", position, size);
                 return PhysicsActor.Null;
             }
 */
@@ -124,7 +124,7 @@ namespace OpenSim.Region.Physics.Manager
             public override PhysicsActor AddPrimShape(string primName, PrimitiveBaseShape pbs, PhysicsVector position,
                                                       PhysicsVector size, Quaternion rotation, bool isPhysical)
             {
-                m_log.Info(String.Format("[PHYSICS]: NullPhysicsScene : AddPrim({0},{1})", position, size));
+                m_log.InfoFormat("[PHYSICS]: NullPhysicsScene : AddPrim({0},{1})", position, size);
                 return PhysicsActor.Null;
             }
 
@@ -146,7 +146,7 @@ namespace OpenSim.Region.Physics.Manager
 
             public override void SetTerrain(float[] heightMap)
             {
-                m_log.Info(String.Format("[PHYSICS]: NullPhysicsScene : SetTerrain({0} items)", heightMap.Length));
+                m_log.InfoFormat("[PHYSICS]: NullPhysicsScene : SetTerrain({0} items)", heightMap.Length);
             }
 
             public override void DeleteTerrain()

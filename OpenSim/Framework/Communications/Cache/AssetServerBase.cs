@@ -133,7 +133,7 @@ namespace OpenSim.Framework.Communications.Cache
             req.IsTexture = isTexture;
             m_assetRequests.Enqueue(req);
 
-            m_log.Info(String.Format("[ASSET]: Added {0} to request queue", assetID));
+            m_log.InfoFormat("[ASSET]: Added {0} to request queue", assetID);
         }
 
         public virtual void UpdateAsset(AssetBase asset)

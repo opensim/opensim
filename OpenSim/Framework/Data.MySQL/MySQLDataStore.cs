@@ -165,7 +165,7 @@ namespace OpenSim.Framework.Data.MySQL
 
         public void RemoveObject(LLUUID obj, LLUUID regionUUID)
         {
-            m_log.Info(String.Format("[DATASTORE]: Removing obj: {0} from region: {1}", obj.UUID, regionUUID));
+            m_log.InfoFormat("[DATASTORE]: Removing obj: {0} from region: {1}", obj.UUID, regionUUID);
 
             DataTable prims = m_primTable;
             DataTable shapes = m_shapeTable;
@@ -304,7 +304,7 @@ namespace OpenSim.Framework.Data.MySQL
         /// <param name="prim"></param>
         private void LoadItems(SceneObjectPart prim)
         {
-            //m_log.Info(String.Format("[DATASTORE]: Loading inventory for {0}, {1}", prim.Name, prim.UUID));
+            //m_log.InfoFormat("[DATASTORE]: Loading inventory for {0}, {1}", prim.Name, prim.UUID);
             
             DataTable dbItems = m_itemsTable;
             
@@ -318,7 +318,7 @@ namespace OpenSim.Framework.Data.MySQL
                 TaskInventoryItem item = buildItem(row);
                 inventory.Add(item);
                 
-                m_log.Info(String.Format("[DATASTORE]: Restored item {0}, {1}", item.Name, item.ItemID)); 
+                m_log.InfoFormat("[DATASTORE]: Restored item {0}, {1}", item.Name, item.ItemID); 
             }
             
             prim.RestoreInventoryItems(inventory);
@@ -1216,7 +1216,7 @@ namespace OpenSim.Framework.Data.MySQL
             if (!persistPrimInventories)
                 return;
                      
-            m_log.Info(String.Format("[DATASTORE]: Persisting Prim Inventory with prim ID {0}", primID));
+            m_log.InfoFormat("[DATASTORE]: Persisting Prim Inventory with prim ID {0}", primID);
             
             // For now, we're just going to crudely remove all the previous inventory items 
             // no matter whether they have changed or not, and replace them with the current set.
@@ -1227,10 +1227,10 @@ namespace OpenSim.Framework.Data.MySQL
                 // repalce with current inventory details
                 foreach (TaskInventoryItem newItem in items)
                 {
-//                    m_log.Info(String.Format(
-//                                   "[DATASTORE]: " +
-//                                   "Adding item {0}, {1} to prim ID {2}", 
-//                                   newItem.Name, newItem.ItemID, newItem.ParentPartID));
+//                    m_log.InfoFormat(
+//                        "[DATASTORE]: " +
+//                        "Adding item {0}, {1} to prim ID {2}", 
+//                        newItem.Name, newItem.ItemID, newItem.ParentPartID);
                     
                     DataRow newItemRow = m_itemsTable.NewRow();
                     fillItemRow(newItemRow, newItem);
@@ -1313,7 +1313,6 @@ namespace OpenSim.Framework.Data.MySQL
             return cmd;
         }
 
-
         private string defineTable(DataTable dt)
         {
             string sql = "create table " + dt.TableName + "(";
@@ -1334,7 +1333,7 @@ namespace OpenSim.Framework.Data.MySQL
             sql += subsql;
             sql += ")";
             
-            //m_log.Info(String.Format("[DATASTORE]: defineTable() sql {0}", sql));
+            //m_log.InfoFormat("[DATASTORE]: defineTable() sql {0}", sql);
             
             return sql;
         }
@@ -1477,7 +1476,7 @@ namespace OpenSim.Framework.Data.MySQL
             }
             catch (MySqlException e)
             {
-                m_log.Warn(String.Format("[MySql]: Primitives Table Already Exists: {0}", e));
+                m_log.WarnFormat("[MySql]: Primitives Table Already Exists: {0}", e);
             }
 
             try
@@ -1486,7 +1485,7 @@ namespace OpenSim.Framework.Data.MySQL
             }
             catch (MySqlException e)
             {
-                m_log.Warn(String.Format("[MySql]: Shapes Table Already Exists: {0}", e));
+                m_log.WarnFormat("[MySql]: Shapes Table Already Exists: {0}", e);
             }
             
             try
@@ -1495,7 +1494,7 @@ namespace OpenSim.Framework.Data.MySQL
             }
             catch (MySqlException e)
             {
-                m_log.Warn(String.Format("[MySql]: Items Table Already Exists: {0}", e));
+                m_log.WarnFormat("[MySql]: Items Table Already Exists: {0}", e);
             }            
 
             try
@@ -1504,7 +1503,7 @@ namespace OpenSim.Framework.Data.MySQL
             }
             catch (MySqlException e)
             {
-                m_log.Warn(String.Format("[MySql]: Terrain Table Already Exists: {0}", e));
+                m_log.WarnFormat("[MySql]: Terrain Table Already Exists: {0}", e);
             }
 
             try
@@ -1513,7 +1512,7 @@ namespace OpenSim.Framework.Data.MySQL
             }
             catch (MySqlException e)
             {
-                m_log.Warn(String.Format("[MySql]: Land Table Already Exists: {0}", e));
+                m_log.WarnFormat("[MySql]: Land Table Already Exists: {0}", e);
             }
 
             try
@@ -1522,7 +1521,7 @@ namespace OpenSim.Framework.Data.MySQL
             }
             catch (MySqlException e)
             {
-                m_log.Warn(String.Format("[MySql]: LandAccessList Table Already Exists: {0}", e));
+                m_log.WarnFormat("[MySql]: LandAccessList Table Already Exists: {0}", e);
             }
             conn.Close();
         }

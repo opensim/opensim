@@ -925,9 +925,9 @@ namespace OpenSim.Region.Environment.Scenes
             }
             else
             {
-                m_log.Info(String.Format("[SCENE]: " +
-                                         "DelinkObjects(): Could not find a root prim out of {0} as given to a delink request!",
-                                         primIds));
+                m_log.InfoFormat("[SCENE]: " +
+                                 "DelinkObjects(): Could not find a root prim out of {0} as given to a delink request!",
+                                 primIds);
             }
         }
 
@@ -975,7 +975,7 @@ namespace OpenSim.Region.Environment.Scenes
             }
             else
             {
-                m_log.Warn(String.Format("[SCENE]: Attempted to duplicate nonexistant prim id {0}", GroupID));
+                m_log.WarnFormat("[SCENE]: Attempted to duplicate nonexistant prim id {0}", GroupID);
             }
         }
 
