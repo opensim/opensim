@@ -3230,7 +3230,11 @@ namespace OpenSim.Region.ScriptEngine.Common
         public double llGetObjectMass(string id)
         {
             m_host.AddScriptLPS(1);
-            NotImplemented("llGetObjectMass");
+            LLUUID key = new LLUUID();
+            if (LLUUID.TryParse(id,out key))
+            {
+                return (double)World.GetSceneObjectPart(World.Entities[key].LocalId).GetMass();
+            }
             return 0;
         }
 
