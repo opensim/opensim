@@ -126,12 +126,12 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL
                 string strlan = strl.Trim(" \t".ToCharArray()).ToLower();
                 if (!LanguageMapping.ContainsKey(strlan))
                 {
-                    m_scriptEngine.Log.Error("[" + m_scriptEngine.ScriptEngineName + "]: Config error. Compiler is unable to recongnize language type \"" + strlan + "\" specified in \"AllowedCompilers\".");
+                    m_scriptEngine.Log.Error("[" + m_scriptEngine.ScriptEngineName + "]: Config error. Compiler is unable to recognize language type \"" + strlan + "\" specified in \"AllowedCompilers\".");
                 }
                 else
                 {
 #if DEBUG
-                    m_scriptEngine.Log.Debug("[" + m_scriptEngine.ScriptEngineName + "]: Config OK. Compiler recongnized language type \"" + strlan + "\" specified in \"AllowedCompilers\".");
+                    m_scriptEngine.Log.Debug("[" + m_scriptEngine.ScriptEngineName + "]: Config OK. Compiler recognized language type \"" + strlan + "\" specified in \"AllowedCompilers\".");
 #endif
                 }
                 AllowedCompilers.Add(strlan, true);

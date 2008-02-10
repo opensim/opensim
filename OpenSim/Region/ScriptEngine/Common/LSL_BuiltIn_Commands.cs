@@ -2189,7 +2189,7 @@ namespace OpenSim.Region.ScriptEngine.Common
 
             //return ret;
             NotImplemented("llListRandomize");
-            return new LSL_Types.list();
+            return src;
         }
 
         public LSL_Types.list llList2ListStrided(LSL_Types.list src, int start, int end, int stride)
