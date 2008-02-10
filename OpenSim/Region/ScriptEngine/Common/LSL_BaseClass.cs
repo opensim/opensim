@@ -2186,9 +2186,20 @@ namespace OpenSim.Region.ScriptEngine.Common
 	    public const int STRING_TRIM_HEAD = 1;
 	    public const int STRING_TRIM_TAIL = 2;
 	    public const int STRING_TRIM = 3;
+        public const int LIST_STAT_RANGE = 0;
+        public const int LIST_STAT_MIN = 1;
+        public const int LIST_STAT_MAX = 2;
+        public const int LIST_STAT_MEAN = 3;
+        public const int LIST_STAT_MEDIAN = 4;
+        public const int LIST_STAT_STD_DEV = 5;
+        public const int LIST_STAT_SUM = 6;
+        public const int LIST_STAT_SUM_SQUARES = 7;
+        public const int LIST_STAT_NUM_COUNT = 8;
+        public const int LIST_STAT_GEOMETRIC_MEAN = 9;
+        public const int LIST_STAT_HARMONIC_MEAN = 100;
         // Can not be public const?
         public vector ZERO_VECTOR = new vector(0.0, 0.0, 0.0);
         public rotation ZERO_ROTATION = new rotation(0.0, 0, 0.0, 1.0);
-
+        
     }
 }

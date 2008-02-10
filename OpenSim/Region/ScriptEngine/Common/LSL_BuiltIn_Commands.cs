@@ -2134,7 +2134,7 @@ namespace OpenSim.Region.ScriptEngine.Common
             string ret = String.Empty;
             foreach (object o in src.Data)
             {
-                ret = ret + o.ToString() + ",";
+                ret = ret + o.ToString() + ", ";
             }
             ret = ret.Substring(0, ret.Length - 2);
             return ret;
@@ -3376,8 +3376,46 @@ namespace OpenSim.Region.ScriptEngine.Common
         public double llListStatistics(int operation, LSL_Types.list src)
         {
             m_host.AddScriptLPS(1);
-            NotImplemented("llListStatistics");
-            return 0;
+            LSL_Types.list nums = LSL_Types.list.ToDoubleList(src);
+            switch (operation)
+            {
+                case LSL_BaseClass.LIST_STAT_RANGE:
+                    return nums.Range();
+                    break;
+                case LSL_BaseClass.LIST_STAT_MIN:
+                    return nums.Min();
+                    break;
+                case LSL_BaseClass.LIST_STAT_MAX:
+                    return nums.Max();
+                    break;
+                case LSL_BaseClass.LIST_STAT_MEAN:
+                    return nums.Mean();
+                    break;
+                case LSL_BaseClass.LIST_STAT_MEDIAN:
+                    return nums.Median();
+                    break;
+                case LSL_BaseClass.LIST_STAT_NUM_COUNT:
+                    return nums.NumericLength();
+                    break;
+                case LSL_BaseClass.LIST_STAT_STD_DEV:
+                    return nums.StdDev();
+                    break;
+                case LSL_BaseClass.LIST_STAT_SUM:
+                    return nums.Sum();
+                    break;
+                case LSL_BaseClass.LIST_STAT_SUM_SQUARES:
+                    return nums.SumSqrs();
+                    break;
+                case LSL_BaseClass.LIST_STAT_GEOMETRIC_MEAN:
+                    return nums.GeometricMean();
+                    break;
+                case LSL_BaseClass.LIST_STAT_HARMONIC_MEAN:
+                    return nums.HarmonicMean();
+                    break;
+                default:
+                    return 0.0;
+                    break;
+            }
         }
 
         public int llGetUnixTime()
