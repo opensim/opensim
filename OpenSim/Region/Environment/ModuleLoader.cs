@@ -294,5 +294,12 @@ namespace OpenSim.Region.Environment
         {
             LoadedAssemblys.Clear();
         }
+
+        public void UnloadModule(IRegionModule rm)
+        {
+            rm.Close();
+            
+            m_loadedModules.Remove(rm);
+        }
     }
 }

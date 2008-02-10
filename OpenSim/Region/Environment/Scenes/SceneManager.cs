@@ -45,6 +45,11 @@ namespace OpenSim.Region.Environment.Scenes
         private readonly List<Scene> m_localScenes;
         private Scene m_currentScene = null;
 
+        public List<Scene> Scenes
+        {
+            get { return m_localScenes; }
+        }
+
         public Scene CurrentScene
         {
             get { return m_currentScene; }

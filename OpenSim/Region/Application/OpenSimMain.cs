@@ -961,6 +961,30 @@ namespace OpenSim
                                     m_console.Notice("Shared region module: " + irm.Name);
                                 }
                                 break;
+                            case "unload":
+                                if (cmdparams.Length > 1)
+                                {
+                                    foreach (IRegionModule rm in new System.Collections.ArrayList(m_moduleLoader.GetLoadedSharedModules))
+                                    {
+                                        if (rm.Name.ToLower() == cmdparams[1].ToLower())
+                                        {
+                                            m_console.Notice("Unloading module: " + rm.Name);
+                                            m_moduleLoader.UnloadModule(rm);
+                                        }
+                                    }
+                                }
+                                break;
+                            case "load":
+                                if (cmdparams.Length > 1)
+                                {
+                                    foreach (Scene s in new System.Collections.ArrayList(m_sceneManager.Scenes))
+                                    {
+                                        
+                                        m_console.Notice("Loading module: " + cmdparams[1]);
+                                        m_moduleLoader.LoadRegionModules(cmdparams[1], s);
+                                    }
+                                }
+                                break;
                         }
                     }
 
