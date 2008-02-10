@@ -3389,15 +3389,13 @@ namespace OpenSim.Region.ScriptEngine.Common
         public int llGetParcelFlags(LSL_Types.Vector3 pos)
         {
             m_host.AddScriptLPS(1);
-            NotImplemented("llGetParcelFlags");
-            return 0;
+            return (int)World.LandManager.getLandObject((float)pos.x, (float)pos.y).landData.landFlags;
         }
 
         public int llGetRegionFlags()
         {
             m_host.AddScriptLPS(1);
-            NotImplemented("llGetRegionFlags");
-            return 0;
+            return (int)World.RegionInfo.EstateSettings.regionFlags;
         }
 
         public string llXorBase64StringsCorrect(string str1, string str2)
