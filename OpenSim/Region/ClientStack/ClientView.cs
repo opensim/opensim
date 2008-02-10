@@ -51,11 +51,11 @@ namespace OpenSim.Region.ClientStack
     /// </summary>
     public class ClientView : IClientAPI
     {
-//        ~ClientView()
-//        {
-//            System.Console.WriteLine("[CLIENTVIEW]: Destructor called");                       
-//        }
-        
+        //        ~ClientView()
+        //        {
+        //            System.Console.WriteLine("[CLIENTVIEW]: Destructor called");                       
+        //        }
+
         private static readonly log4net.ILog m_log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 
         /* static variables */
@@ -239,10 +239,10 @@ namespace OpenSim.Region.ClientStack
         private void CloseCleanup()
         {
             m_scene.RemoveClient(AgentId);
-            
+
             //m_log.InfoFormat("[CLIENTVIEW] Memory pre  GC {0}", System.GC.GetTotalMemory(false));
             //m_log.InfoFormat("[CLIENTVIEW] Memory post GC {0}", System.GC.GetTotalMemory(true));   
-            
+
             // Send the STOP packet 
             DisableSimulatorPacket disable = (DisableSimulatorPacket)PacketPool.Instance.GetPacket(PacketType.DisableSimulator);
             OutPacket(disable, ThrottleOutPacketType.Task);
@@ -368,7 +368,7 @@ namespace OpenSim.Region.ClientStack
             if (m_debug > 0)
             {
                 string info = String.Empty;
-               
+
                 if (m_debug < 255 && packet.Type == PacketType.AgentUpdate)
                     return;
                 if (m_debug < 254 && packet.Type == PacketType.ViewerEffect)
@@ -1006,7 +1006,7 @@ namespace OpenSim.Region.ClientStack
             int MAX_ITEMS_PER_PACKET = 6;
 
             Encoding enc = Encoding.ASCII;
-            uint FULL_MASK_PERMISSIONS = 2147483647;
+            uint FULL_MASK_PERMISSIONS = (uint)PermissionMask.All;
             InventoryDescendentsPacket descend;
             int i;
             int count;
@@ -1179,7 +1179,7 @@ namespace OpenSim.Region.ClientStack
         public void SendInventoryItemDetails(LLUUID ownerID, InventoryItemBase item)
         {
             Encoding enc = Encoding.ASCII;
-            uint FULL_MASK_PERMISSIONS = 2147483647;
+            uint FULL_MASK_PERMISSIONS = (uint)PermissionMask.All;
             FetchInventoryReplyPacket inventoryReply = (FetchInventoryReplyPacket)PacketPool.Instance.GetPacket(PacketType.FetchInventoryReply);
             // TODO: don't create new blocks if recycling an old packet
             inventoryReply.AgentData.AgentID = AgentId;
@@ -1221,7 +1221,7 @@ namespace OpenSim.Region.ClientStack
         public void SendInventoryItemCreateUpdate(InventoryItemBase Item)
         {
             Encoding enc = Encoding.ASCII;
-            uint FULL_MASK_PERMISSIONS = 2147483647;
+            uint FULL_MASK_PERMISSIONS = (uint)PermissionMask.All;
             UpdateCreateInventoryItemPacket InventoryReply = (UpdateCreateInventoryItemPacket)PacketPool.Instance.GetPacket(PacketType.UpdateCreateInventoryItem);
             // TODO: don't create new blocks if recycling an old packet
             InventoryReply.AgentData.AgentID = AgentId;
@@ -1601,9 +1601,9 @@ namespace OpenSim.Region.ClientStack
             terse.RegionData.TimeDilation = timeDilation;
             terse.ObjectData = new ImprovedTerseObjectUpdatePacket.ObjectDataBlock[1];
             terse.ObjectData[0] = terseBlock;
-            
-                terse.Header.Reliable = false;
-            
+
+            terse.Header.Reliable = false;
+
 
             OutPacket(terse, ThrottleOutPacketType.Task);
         }
@@ -1695,7 +1695,7 @@ namespace OpenSim.Region.ClientStack
             outPacket.ObjectData[0].PSBlock = particleSystem;
             outPacket.ObjectData[0].ClickAction = clickAction;
             //outPacket.ObjectData[0].Flags = 0;
-            
+
             // Sound Radius
             outPacket.ObjectData[0].Radius = 20;
 
@@ -1707,7 +1707,7 @@ namespace OpenSim.Region.ClientStack
 
             if (textureanim.Length > 0)
                 outPacket.ObjectData[0].TextureAnim = textureanim;
-            
+
 
             OutPacket(outPacket, ThrottleOutPacketType.Task);
         }
@@ -1978,7 +1978,7 @@ namespace OpenSim.Region.ClientStack
             objectData.PathTwistBegin = primData.PathTwistBegin;
             objectData.ExtraParams = primData.ExtraParams;
         }
-        
+
         /// <summary>
         /// Set some default values in a ObjectUpdatePacket
         /// </summary>
@@ -3100,15 +3100,25 @@ namespace OpenSim.Region.ClientStack
                         }
                         break;
                     case PacketType.ObjectPermissions:
-                        m_log.Warn("[CLIENT]: unhandled packet " + PacketType.ObjectPermissions.ToString());
-                        ObjectPermissionsPacket newobjPerms = (ObjectPermissionsPacket)Pack;
-
-                        List<ObjectPermissionsPacket.ObjectDataBlock> permChanges =
-                            new List<ObjectPermissionsPacket.ObjectDataBlock>();
-
-                        for (int i = 0; i < newobjPerms.ObjectData.Length; i++)
+                        if (OnObjectPermissions != null)
                         {
-                            permChanges.Add(newobjPerms.ObjectData[i]);
+                            ObjectPermissionsPacket newobjPerms = (ObjectPermissionsPacket)Pack;
+
+                            LLUUID AgentID = newobjPerms.AgentData.AgentID;
+                            LLUUID SessionID = newobjPerms.AgentData.SessionID;
+
+                            for (int i = 0; i < newobjPerms.ObjectData.Length; i++)
+                            {
+                                ObjectPermissionsPacket.ObjectDataBlock permChanges = newobjPerms.ObjectData[i];
+
+
+                                byte field = permChanges.Field;
+                                uint localID = permChanges.ObjectLocalID;
+                                uint mask = permChanges.Mask;
+                                byte set = permChanges.Set;
+
+                                OnObjectPermissions(this, AgentID, SessionID, field, localID, mask, set);
+                            }
                         }
 
                         // Here's our data,  
@@ -3123,12 +3133,6 @@ namespace OpenSim.Region.ClientStack
                         // Unfortunately, we have to pass the event the packet because objData is an array
                         // That means multiple object perms may be updated in a single packet.
 
-                        LLUUID AgentID = newobjPerms.AgentData.AgentID;
-                        LLUUID SessionID = newobjPerms.AgentData.SessionID;
-                        if (OnObjectPermissions != null)
-                        {
-                            OnObjectPermissions(this, AgentID, SessionID, permChanges);
-                        }
 
                         break;
 
@@ -3481,8 +3485,8 @@ namespace OpenSim.Region.ClientStack
                         {
                             OnMoneyBalanceRequest(this, moneybalancerequestpacket.AgentData.AgentID, moneybalancerequestpacket.AgentData.SessionID, moneybalancerequestpacket.MoneyData.TransactionID);
                         }
-                        
-                        
+
+
                         break;
                     case PacketType.UUIDNameRequest:
                         UUIDNameRequestPacket incoming = (UUIDNameRequestPacket)Pack;

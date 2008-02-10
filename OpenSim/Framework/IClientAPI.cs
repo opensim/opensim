@@ -406,9 +406,7 @@ namespace OpenSim.Framework
     // We keep all this information for fraud purposes in the future.
     public delegate void MoneyBalanceRequest(IClientAPI remoteClient, LLUUID agentID, LLUUID sessionID, LLUUID TransactionID);
 
-    public delegate void ObjectPermissions(
-        IClientAPI remoteClinet, LLUUID AgentID, LLUUID SessionID,
-        List<ObjectPermissionsPacket.ObjectDataBlock> permChanges);
+    public delegate void ObjectPermissions(IClientAPI controller, LLUUID agentID, LLUUID sessionID, byte field, uint localId, uint mask, byte set);
 
     public interface IClientAPI
     {
