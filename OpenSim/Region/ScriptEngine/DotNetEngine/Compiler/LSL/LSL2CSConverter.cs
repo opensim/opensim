@@ -176,7 +176,9 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL
                     {
                         // 0 => 1: Get last 
                         Match m =
-                            Regex.Match(cache, @"(?![a-zA-Z_]+)\s*([a-zA-Z_]+)[^a-zA-Z_\(\)]*{",
+                          //Regex.Match(cache, @"(?![a-zA-Z_]+)\s*([a-zA-Z_]+)[^a-zA-Z_\(\)]*{",
+                            Regex.Match(cache, @"(?![a-zA-Z_]+)\s*(state\s+)?(?<statename>[a-zA-Z_]+)[^a-zA-Z_\(\)]*{",
+
                                         RegexOptions.Compiled | RegexOptions.Multiline | RegexOptions.Singleline);
 
                         in_state = false;
@@ -184,11 +186,12 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL
                         {
                             // Go back to level 0, this is not a state
                             in_state = true;
-                            current_statename = m.Groups[1].Captures[0].Value;
+                            current_statename = m.Groups["statename"].Captures[0].Value;
                             //Console.WriteLine("Current statename: " + current_statename);
                             cache =
+                                              //@"(?<s1>(?![a-zA-Z_]+)\s*)" + @"([a-zA-Z_]+)(?<s2>[^a-zA-Z_\(\)]*){",
                                 Regex.Replace(cache,
-                                              @"(?<s1>(?![a-zA-Z_]+)\s*)" + @"([a-zA-Z_]+)(?<s2>[^a-zA-Z_\(\)]*){",
+                                              @"(?<s1>(?![a-zA-Z_]+)\s*)" + @"(state\s+)?([a-zA-Z_]+)(?<s2>[^a-zA-Z_\(\)]*){",
                                               "${s1}${s2}",
                                               RegexOptions.Compiled | RegexOptions.Multiline | RegexOptions.Singleline);
                         }
@@ -260,7 +263,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL
                 Regex.Replace(Script, @"<([^,>;]*,[^,>;\)]*,[^,>;\)]*,[^,>;\)]*)>", @"new LSL_Types.Quaternion($1)",
                               RegexOptions.Compiled | RegexOptions.Multiline | RegexOptions.Singleline);
             Script =
-                Regex.Replace(Script, @"<([^,>;]*,[^,>;\)]*,[^,>;\)]*)>", @"new LSL_Types.Vector3($1)",
+                Regex.Replace(Script, @"<([^,>;)]*,[^,>;\)]*,[^,>;\)]*)>", @"new LSL_Types.Vector3($1)",
                               RegexOptions.Compiled | RegexOptions.Multiline | RegexOptions.Singleline);
 
             // Replace List []'s
