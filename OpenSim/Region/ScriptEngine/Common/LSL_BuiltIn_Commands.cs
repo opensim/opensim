@@ -73,7 +73,18 @@ namespace OpenSim.Region.ScriptEngine.Common
         public string State
         {
             get { return m_state; }
-            set { m_state = value; }
+            set {
+                bool changed = false;
+                if (m_state != value)
+                    changed = true;
+                // Set it
+                m_state = value;
+
+                if (changed)
+                {
+                    m_ScriptEngine.m_EventManager.state_entry(m_localID);
+                }
+            }
         }
 
         // Object never expires

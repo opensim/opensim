@@ -83,6 +83,12 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
             myScriptEngine.m_EventQueueManager.AddToObjectQueue(localID, "changed", EventQueueManager.llDetectNull, new object[] { (int)change });
         }
 
+        public void state_entry(uint localID)
+        {
+            // Add to queue for all scripts in ObjectID object
+            myScriptEngine.m_EventQueueManager.AddToObjectQueue(localID, "state_entry", EventQueueManager.llDetectNull, new object[] { });
+        }
+
         public void touch_start(uint localID, LLVector3 offsetPos, IClientAPI remoteClient)
         {
             // Add to queue for all scripts in ObjectID object
