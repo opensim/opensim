@@ -44,7 +44,19 @@ namespace OpenSim.Region.Environment.Scenes
 {
     // I don't really know where to put this except here.  
     // Can't access the OpenSim.Region.ScriptEngine.Common.LSL_BaseClass.Changed constants
-
+    [Flags]
+    public enum ExtraParamType
+    {
+        Something1 = 1,
+        Something2 = 2,
+        Something3 = 4,
+        Something4 = 8,
+        Flexible = 16,
+        Light = 32,
+        Sculpt = 48,
+        Something5 = 64,
+        Something6 = 128
+    }
     [Flags]
     public enum Changed : uint
     {
@@ -1166,6 +1178,15 @@ namespace OpenSim.Region.Environment.Scenes
 
         public void UpdatePrimFlags(ushort type, bool inUse, byte[] data)
         {
+
+
+            //m_log.Info("TSomething1:" + ((type & (ushort)ExtraParamType.Something1) == (ushort)ExtraParamType.Something1));
+            //m_log.Info("TSomething2:" + ((type & (ushort)ExtraParamType.Something2) == (ushort)ExtraParamType.Something2));
+            //m_log.Info("TSomething3:" + ((type & (ushort)ExtraParamType.Something3) == (ushort)ExtraParamType.Something3));
+            //m_log.Info("TSomething4:" + ((type & (ushort)ExtraParamType.Something4) == (ushort)ExtraParamType.Something4));
+            //m_log.Info("TSomething5:" + ((type & (ushort)ExtraParamType.Something5) == (ushort)ExtraParamType.Something5));
+            //m_log.Info("TSomething6:" + ((type & (ushort)ExtraParamType.Something6) == (ushort)ExtraParamType.Something6));
+            
             bool usePhysics = false;
             bool IsTemporary = false;
             bool IsPhantom = false;
@@ -1173,7 +1194,7 @@ namespace OpenSim.Region.Environment.Scenes
             bool wasUsingPhysics = ((ObjectFlags & (uint) LLObject.ObjectFlags.Physics) != 0);
             //bool IsLocked = false;
             int i = 0;
-
+            
 
             try
             {
@@ -1579,7 +1600,7 @@ namespace OpenSim.Region.Environment.Scenes
                         //EveryoneMask |= (uint)57344;
                     }
                     //ScheduleFullUpdate();
-                    SendFullUpdateToAllClients();
+                    SendFullUpdateToAllClientsExcept(AgentID);
                 }
                 //Field 16 = NextownerMask
                 if (field == (byte) 16)
@@ -1592,11 +1613,28 @@ namespace OpenSim.Region.Environment.Scenes
                     {
                         NextOwnerMask |= mask;
                     }
-                    SendFullUpdateToAllClients();
+                    SendFullUpdateToAllClientsExcept(AgentID);
                 }
+
+                if (field == (byte)2)
+                {
+                    if (addRemTF == (byte)0)
+                    {
+                        m_parentGroup.SetLocked(true);
+                         //OwnerMask &= ~mask;
+                    }
+                    else
+                    {
+                        m_parentGroup.SetLocked(false);
+                        //OwnerMask |= mask;
+                    }
+                    SendFullUpdateToAllClients();
+                    
+                }
+
             }
         }
-
+        
         #region Client Update Methods
 
         public void AddFullUpdateToAllAvatars()
@@ -1607,7 +1645,19 @@ namespace OpenSim.Region.Environment.Scenes
                 avatars[i].QueuePartForUpdate(this);
             }
         }
-
+        public void SendFullUpdateToAllClientsExcept(LLUUID agentID)
+        {
+            List<ScenePresence> avatars = m_parentGroup.GetScenePresences();
+            for (int i = 0; i < avatars.Count; i++)
+            {
+                // Ugly reference :(
+                if (avatars[i].UUID != agentID)
+                {
+                    m_parentGroup.SendPartFullUpdate(avatars[i].ControllingClient, this,
+                                                    avatars[i].GenerateClientFlags(UUID));
+                }
+            }
+        }
         public void AddFullUpdateToAvatar(ScenePresence presence)
         {
             presence.QueuePartForUpdate(this);
