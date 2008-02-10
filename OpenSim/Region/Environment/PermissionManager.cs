@@ -273,6 +273,19 @@ namespace OpenSim.Region.Environment
             if ((task.ObjectFlags & (uint)LLObject.ObjectFlags.Phantom) != 0)
                 objectmask |= (uint)LLObject.ObjectFlags.Phantom;
 
+            if ((task.ObjectFlags & (uint)LLObject.ObjectFlags.Touch) != 0)
+                objectmask |= (uint)LLObject.ObjectFlags.Touch;
+
+            if ((task.ObjectFlags & (uint)LLObject.ObjectFlags.Scripted) != 0)
+                objectmask |= (uint)LLObject.ObjectFlags.Scripted;
+
+            if ((task.ObjectFlags & (uint)LLObject.ObjectFlags.AllowInventoryDrop) != 0)
+                objectmask |= (uint)LLObject.ObjectFlags.AllowInventoryDrop;
+
+
+            if ((task.ObjectFlags & (uint)LLObject.ObjectFlags.CastShadows) != 0)
+                objectmask |= (uint)LLObject.ObjectFlags.CastShadows;
+
             return objectmask;
         }
 
