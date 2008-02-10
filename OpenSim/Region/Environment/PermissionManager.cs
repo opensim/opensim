@@ -42,6 +42,7 @@ namespace OpenSim.Region.Environment
         private uint PERM_MODIFY = (uint) 16384;
         private uint PERM_MOVE = (uint) 524288;
         private uint PERM_TRANS = (uint) 8192;
+        private uint PERM_LOCKED = (uint) 540672;
         // Bypasses the permissions engine (always returns OK)
         // disable in any production environment
         // TODO: Change this to false when permissions are a desired default
@@ -201,28 +202,25 @@ namespace OpenSim.Region.Environment
             // Remove any of the objectFlags that are temporary.  These will get added back if appropriate 
             // in the next bit of code
 
-            objflags &= (uint)LLObject.ObjectFlags.ObjectCopy; // Tells client you can copy the object
-            objflags &= (uint)LLObject.ObjectFlags.ObjectModify; // tells client you can modify the object
-            objflags &= (uint)LLObject.ObjectFlags.ObjectMove; // tells client that you can move the object (only, no mod)
-            objflags &= (uint)LLObject.ObjectFlags.ObjectTransfer; // tells the client that you can /take/ the object if you don't own it
-            objflags &= (uint)LLObject.ObjectFlags.ObjectYouOwner; // Tells client that you're the owner of the object
-            objflags &= (uint)LLObject.ObjectFlags.ObjectYouOfficer; // Tells client that you've got group object editing permission. Used when ObjectGroupOwned is set
+            objflags &= ~(uint)LLObject.ObjectFlags.ObjectCopy; // Tells client you can copy the object
+            objflags &= ~(uint)LLObject.ObjectFlags.ObjectModify; // tells client you can modify the object
+            objflags &= ~(uint)LLObject.ObjectFlags.ObjectMove; // tells client that you can move the object (only, no mod)
+            objflags &= ~(uint)LLObject.ObjectFlags.ObjectTransfer; // tells the client that you can /take/ the object if you don't own it
+            objflags &= ~(uint)LLObject.ObjectFlags.ObjectYouOwner; // Tells client that you're the owner of the object
+            objflags &= ~(uint)LLObject.ObjectFlags.ObjectYouOfficer; // Tells client that you've got group object editing permission. Used when ObjectGroupOwned is set
 
 
             // Creating the three ObjectFlags options for this method to choose from.
-            bool tasklocked = task.GetLocked(); // more debug needed to apply this, so we're going to set this to false for now
-            tasklocked = false;
-
-            uint objectOwnerMask = ApplyObjectModifyMasks(task.RootPart.OwnerMask, objflags, tasklocked);
-            objectOwnerMask = AddBackBrokenObjectProperties(task.RootPart, objectOwnerMask);
-
+            // Customize the OwnerMask
+            uint objectOwnerMask = ApplyObjectModifyMasks(task.RootPart.OwnerMask, objflags);
             objectOwnerMask |= (uint)LLObject.ObjectFlags.ObjectYouOwner;
 
-            uint objectGroupMask = ApplyObjectModifyMasks(task.RootPart.GroupMask, objflags, tasklocked);
-            objectGroupMask = AddBackBrokenObjectProperties(task.RootPart,objectGroupMask);
-
-            uint objectEveryoneMask = ApplyObjectModifyMasks(task.RootPart.EveryoneMask, objflags, tasklocked);
-            objectEveryoneMask = AddBackBrokenObjectProperties(task.RootPart,objectEveryoneMask);
+            // Customize the GroupMask
+            uint objectGroupMask = ApplyObjectModifyMasks(task.RootPart.GroupMask, objflags);
+            
+            // Customize the EveryoneMask
+            uint objectEveryoneMask = ApplyObjectModifyMasks(task.RootPart.EveryoneMask, objflags);
+           
 
             // Hack to allow collaboration until Groups and Group Permissions are implemented
             if ((objectEveryoneMask & (uint)LLObject.ObjectFlags.ObjectMove) != 0)
@@ -259,44 +257,14 @@ namespace OpenSim.Region.Environment
 
             return objectEveryoneMask;
         }
-        private uint AddBackBrokenObjectProperties(SceneObjectPart task, uint objectmask)
-        {
-            if ((task.ObjectFlags & (uint)LLObject.ObjectFlags.Physics) != 0)
-                objectmask |= (uint)LLObject.ObjectFlags.Physics;
-
-            if ((task.ObjectFlags & (uint)LLObject.ObjectFlags.Scripted) != 0)
-                objectmask |= (uint)LLObject.ObjectFlags.Scripted;
-
-            if ((task.ObjectFlags & (uint)LLObject.ObjectFlags.TemporaryOnRez) != 0)
-                objectmask |= (uint)LLObject.ObjectFlags.TemporaryOnRez;
-
-            if ((task.ObjectFlags & (uint)LLObject.ObjectFlags.Phantom) != 0)
-                objectmask |= (uint)LLObject.ObjectFlags.Phantom;
-
-            if ((task.ObjectFlags & (uint)LLObject.ObjectFlags.Touch) != 0)
-                objectmask |= (uint)LLObject.ObjectFlags.Touch;
-
-            if ((task.ObjectFlags & (uint)LLObject.ObjectFlags.Scripted) != 0)
-                objectmask |= (uint)LLObject.ObjectFlags.Scripted;
-
-            if ((task.ObjectFlags & (uint)LLObject.ObjectFlags.AllowInventoryDrop) != 0)
-                objectmask |= (uint)LLObject.ObjectFlags.AllowInventoryDrop;
+        
 
 
-            if ((task.ObjectFlags & (uint)LLObject.ObjectFlags.CastShadows) != 0)
-                objectmask |= (uint)LLObject.ObjectFlags.CastShadows;
-
-            return objectmask;
-        }
-
-
-        private uint ApplyObjectModifyMasks(uint setPermissionMask, uint objectFlagsMask, bool locked)
+        private uint ApplyObjectModifyMasks(uint setPermissionMask, uint objectFlagsMask)
         {
             // We are adding the temporary objectflags to the object's objectflags based on the 
             // permission flag given.  These change the F flags on the client.
-            if (!locked)
-            {
-
+           
                 if ((setPermissionMask & (uint)PermissionMask.Copy) != 0)
                 {
                     objectFlagsMask |= (uint)LLObject.ObjectFlags.ObjectCopy;
@@ -316,14 +284,15 @@ namespace OpenSim.Region.Environment
                 {
                     objectFlagsMask |= (uint)LLObject.ObjectFlags.ObjectTransfer;
                 }
-            }
+            
             return objectFlagsMask;
         }
-
+        
         protected virtual bool GenericObjectPermission(LLUUID currentUser, LLUUID objId)
         {
             // Default: deny
             bool permission = false;
+            bool locked = false;
 
             if (!m_scene.Entities.ContainsKey(objId))
             {
@@ -340,6 +309,19 @@ namespace OpenSim.Region.Environment
             SceneObjectGroup group = (SceneObjectGroup)m_scene.Entities[objId];
            
             LLUUID objectOwner = group.OwnerID;
+            locked = ((group.RootPart.OwnerMask & PERM_LOCKED) == 0);
+            
+            // People shouldn't be able to do anything with locked objects, except the Administrator
+            // The 'set permissions' runs through a different permission check, so when an object owner 
+            // sets an object locked, the only thing that they can do is unlock it.
+            //
+            // Nobody but the object owner can set permissions on an object
+            //
+
+            if (locked && (!IsAdministrator(currentUser)))
+            {
+                return false;
+            }
 
             // Object owners should be able to edit their own content
             if (currentUser == objectOwner)
@@ -419,8 +401,15 @@ namespace OpenSim.Region.Environment
                 // Added this because at this point in time it wouldn't be wise for 
                 // the administrator object permissions to take effect.
                 LLUUID objectOwner = task.OwnerID;
+                
+                // Anyone can move
                 if ((task.RootPart.EveryoneMask & PERM_MOVE) != 0)
                     permission = true;
+
+                // Locked
+                if ((task.RootPart.OwnerMask & PERM_LOCKED) != 0)
+                    permission = false;
+
             }
             return permission;
         }

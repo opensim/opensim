@@ -1620,13 +1620,14 @@ namespace OpenSim.Region.Environment.Scenes
                 {
                     if (addRemTF == (byte)0)
                     {
-                        m_parentGroup.SetLocked(true);
-                         //OwnerMask &= ~mask;
+                        //m_parentGroup.SetLocked(true);
+                        //PermissionMask.
+                         OwnerMask &= ~mask;
                     }
                     else
                     {
-                        m_parentGroup.SetLocked(false);
-                        //OwnerMask |= mask;
+                        //m_parentGroup.SetLocked(false);
+                        OwnerMask |= mask;
                     }
                     SendFullUpdateToAllClients();
                     

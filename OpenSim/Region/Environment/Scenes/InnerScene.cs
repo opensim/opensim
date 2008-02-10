@@ -768,6 +768,7 @@ namespace OpenSim.Region.Environment.Scenes
                 {
                     group.GrabMovement(offset, pos, remoteClient);
                 }
+                group.SendGroupTerseUpdate();
             }
         }
 

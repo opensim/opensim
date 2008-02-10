@@ -60,7 +60,7 @@ namespace OpenSim.Region.Environment.Scenes
         /// since the group's last persistent backup
         /// </summary>
         public bool HasGroupChanged = false;
-        private bool m_locked = false;
+        
 
         private LLVector3 lastPhysGroupPos;
         private LLQuaternion lastPhysGroupRot;
@@ -1225,15 +1225,7 @@ namespace OpenSim.Region.Environment.Scenes
             Children.Values.CopyTo(partArray, 0);
             return partArray;
         }
-        public bool GetLocked()
-        {
-            return m_locked;
-        }
-        public void SetLocked(bool val)
-        {
-            m_locked = val;
-
-        }
+        
         /// <summary>
         /// 
         /// </summary>
