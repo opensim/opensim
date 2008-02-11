@@ -374,12 +374,13 @@ namespace OpenSim.Framework.Data.MySQL
                 int rev = 0;
                 if (row.Read())
                 {
-                    byte[] heightmap = (byte[]) row["Heightfield"];
+                    MemoryStream str = new MemoryStream((byte[]) row["Heightfield"]);
+                    BinaryReader br = new BinaryReader(str);
                     for (int x = 0; x < 256; x++)
                     {
                         for (int y = 0; y < 256; y++)
                         {
-                            terret[x, y] = BitConverter.ToDouble(heightmap, ((x*256) + y)*8);
+                            terret[x, y] = br.ReadDouble();
                         }
                     }
                     rev = (int) row["Revision"];
