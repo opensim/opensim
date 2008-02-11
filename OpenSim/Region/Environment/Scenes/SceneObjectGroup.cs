@@ -1078,7 +1078,7 @@ namespace OpenSim.Region.Environment.Scenes
         /// 
         /// </summary>
         /// <param name="client"></param>
-        public void GetProperites(IClientAPI client)
+        public void GetProperties(IClientAPI client)
         {
             ObjectPropertiesPacket proper = (ObjectPropertiesPacket) PacketPool.Instance.GetPacket(PacketType.ObjectProperties);
             // TODO: don't create new blocks if recycling an old packet

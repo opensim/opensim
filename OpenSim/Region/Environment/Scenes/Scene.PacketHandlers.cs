@@ -106,7 +106,7 @@ namespace OpenSim.Region.Environment.Scenes
                 {
                     if (((SceneObjectGroup) ent).LocalId == primLocalID)
                     {
-                        ((SceneObjectGroup) ent).GetProperites(remoteClient);
+                        ((SceneObjectGroup) ent).GetProperties(remoteClient);
                         ((SceneObjectGroup) ent).IsSelected = true;
                         LandManager.setPrimsTainted();
                         break;

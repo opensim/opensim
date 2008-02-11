@@ -1577,65 +1577,43 @@ namespace OpenSim.Region.Environment.Scenes
 
         public void UpdatePermissions(LLUUID AgentID, byte field, uint localID, uint mask, byte addRemTF)
         {
+            bool set = addRemTF == 1;
+
             // Are we the owner?
             if (AgentID == OwnerID)
             {
-                m_log.Info("[PERMISSIONS]: field: " + field.ToString() + ", mask: " + mask.ToString() + " addRemTF: " +
-                           addRemTF.ToString());
-
-                //Field 8 = EveryoneMask
-                if (field == (byte) 8)
+                switch (field)
                 {
-                    m_log.Info("[PERMISSIONS]: Left over: " + (OwnerMask - EveryoneMask));
-                    if (addRemTF == (byte) 0)
-                    {
-                        //EveryoneMask = (uint)0;
-                        EveryoneMask &= ~mask;
-                        //EveryoneMask &= ~(uint)57344;
-                    }
-                    else
-                    {
-                        //EveryoneMask = (uint)0;
-                        EveryoneMask |= mask;
-                        //EveryoneMask |= (uint)57344;
-                    }
-                    //ScheduleFullUpdate();
-                    SendFullUpdateToAllClientsExcept(AgentID);
-                }
-                //Field 16 = NextownerMask
-                if (field == (byte) 16)
-                {
-                    if (addRemTF == (byte) 0)
-                    {
-                        NextOwnerMask &= ~mask;
-                    }
-                    else
-                    {
-                        NextOwnerMask |= mask;
-                    }
-                    SendFullUpdateToAllClientsExcept(AgentID);
+                    case 2:
+                        OwnerMask = ApplyMask(OwnerMask, set, mask);
+                        break;
+                    case 4:
+                        GroupMask = ApplyMask(GroupMask, set, mask);
+                        break;
+                    case 8:
+                        EveryoneMask = ApplyMask(EveryoneMask, set, mask);
+                        break;
+                    case 16:
+                        NextOwnerMask = ApplyMask(NextOwnerMask, set, mask);
+                        break;
                 }
 
-                if (field == (byte)2)
-                {
-                    if (addRemTF == (byte)0)
-                    {
-                        //m_parentGroup.SetLocked(true);
-                        //PermissionMask.
-                         OwnerMask &= ~mask;
-                    }
-                    else
-                    {
-                        //m_parentGroup.SetLocked(false);
-                        OwnerMask |= mask;
-                    }
-                    SendFullUpdateToAllClients();
-                    
-                }
-
+                ScheduleFullUpdate();
             }
         }
-        
+
+        private uint ApplyMask(uint val, bool set, uint mask)
+        {
+            if (set)
+            {
+                return val |= mask;
+            }
+            else
+            {
+                return val &= ~mask;
+            }
+        }
+
         #region Client Update Methods
 
         public void AddFullUpdateToAllAvatars()

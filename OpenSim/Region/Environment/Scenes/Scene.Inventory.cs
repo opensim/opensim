@@ -199,7 +199,7 @@ namespace OpenSim.Region.Environment.Scenes
             // Update item with new asset
             item.AssetID = asset.FullID;
             group.UpdateInventoryItem(item);
-            group.GetProperites(remoteClient);
+            group.GetProperties(remoteClient);
             
             // Trigger rerunning of script (use TriggerRezScript event, see RezScript)           
             if (isScriptRunning)
@@ -520,7 +520,7 @@ namespace OpenSim.Region.Environment.Scenes
             if (group != null)
             {
                 int type = group.RemoveInventoryItem(localID, itemID);
-                group.GetProperites(remoteClient);
+                group.GetProperties(remoteClient);
                 if (type == 10)
                 {
                     EventManager.TriggerRemoveScript(localID, itemID);
@@ -599,7 +599,7 @@ namespace OpenSim.Region.Environment.Scenes
                         {
                             group.AddInventoryItem(remoteClient, localID, item, copyID);
                             group.StartScript(localID, copyID);
-                            group.GetProperites(remoteClient);
+                            group.GetProperties(remoteClient);
     
     //                        m_log.Info(
     //                            String.Format("[PRIMINVENTORY]: " +
