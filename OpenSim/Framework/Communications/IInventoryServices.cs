@@ -36,19 +36,54 @@ namespace OpenSim.Framework.Communications
 
     public delegate void InventoryItemInfo(LLUUID userID, InventoryItemBase itemInfo);
 
+    /// <summary>
+    /// Defines all the operations one can perform on a user's inventory.
+    /// </summary>
     public interface IInventoryServices
     {
         void RequestInventoryForUser(LLUUID userID, InventoryFolderInfo folderCallBack, InventoryItemInfo itemCallBack);
+        
+        /// <summary>
+        /// Add a new folder to the given user's inventory
+        /// </summary>
+        /// <param name="userID"></param>
+        /// <param name="folder"></param>
         void AddNewInventoryFolder(LLUUID userID, InventoryFolderBase folder);
+        
         void MoveInventoryFolder(LLUUID userID, InventoryFolderBase folder);
+        
+        /// <summary>
+        /// Add a new item to the given user's inventory
+        /// </summary>
+        /// <param name="userID"></param>
+        /// <param name="item"></param>
         void AddNewInventoryItem(LLUUID userID, InventoryItemBase item);
+        
+        /// <summary>
+        /// Delete an item from the given user's inventory
+        /// </summary>
+        /// <param name="userID"></param>
+        /// <param name="item"></param>
         void DeleteInventoryItem(LLUUID userID, InventoryItemBase item);
+        
+        /// <summary>
+        /// Create a new inventory for the given user
+        /// </summary>
+        /// <param name="user"></param>
         void CreateNewUserInventory(LLUUID user);
+        
         bool HasInventoryForUser(LLUUID userID);
+
+        /// <summary>
+        /// Retrieve the root inventory folder for the given user.
+        /// </summary>
+        /// <param name="userID"></param>
+        /// <returns>null if no root folder was found</returns>
         InventoryFolderBase RequestRootFolder(LLUUID userID);
 
         /// <summary>
         /// Returns the root folder plus any folders in root (so down one level in the Inventory folders tree)
+        /// for the given user.
         /// </summary>
         /// <param name="userID"></param>
         /// <returns></returns>

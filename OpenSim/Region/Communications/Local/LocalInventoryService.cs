@@ -34,6 +34,10 @@ using OpenSim.Framework.Communications.Cache;
 
 namespace OpenSim.Region.Communications.Local
 {
+    /// <summary>
+    /// An implementation of user inventory where the inventory is held locally (e.g. when OpenSim is
+    /// operating in standalone mode. 
+    /// </summary>
     public class LocalInventoryService : InventoryServiceBase
     {
         public override void RequestInventoryForUser(LLUUID userID, InventoryFolderInfo folderCallBack,

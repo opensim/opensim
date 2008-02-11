@@ -36,16 +36,13 @@ namespace OpenSim.Framework.Communications
 {
     public abstract class InventoryServiceBase : IInventoryServices
     {
-        private static readonly log4net.ILog m_log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+        private static readonly log4net.ILog m_log 
+            = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 
         protected Dictionary<string, IInventoryData> m_plugins = new Dictionary<string, IInventoryData>();
-        //protected IAssetServer m_assetServer;
 
-        public InventoryServiceBase()
-        {
-            //m_assetServer = assetServer;
-        }
-
+        #region Plugin methods
+        
         /// <summary>
         /// Adds a new user server plugin - plugins will be requested in the order they were loaded.
         /// </summary>
@@ -75,18 +72,19 @@ namespace OpenSim.Framework.Communications
                 }
             }
         }
+        
+        #endregion
+        
+        #region IInventoryServices methods
 
+        // See IInventoryServices
         public List<InventoryFolderBase> RequestFirstLevelFolders(Guid rawUserID)
         {
             LLUUID userID = new LLUUID(rawUserID);
             return RequestFirstLevelFolders(userID);
         }
 
-        /// <summary>
-        /// Returns the root folder plus any folders in root (so down one level in the Inventory folders tree)
-        /// </summary>
-        /// <param name="userID"></param>
-        /// <returns></returns>
+        // See IInventoryServices
         public List<InventoryFolderBase> RequestFirstLevelFolders(LLUUID userID)
         {
             List<InventoryFolderBase> inventoryList = new List<InventoryFolderBase>();
@@ -112,11 +110,7 @@ namespace OpenSim.Framework.Communications
             return inventoryList;
         }
 
-        /// <summary>
-        /// Get the root folder for a user
-        /// </summary>
-        /// <param name="userID"></param>
-        /// <returns>null if no root folder was found</returns>
+        // See IInventoryServices
         public InventoryFolderBase RequestUsersRoot(LLUUID userID)
         {
             foreach (KeyValuePair<string, IInventoryData> plugin in m_plugins)
@@ -126,9 +120,7 @@ namespace OpenSim.Framework.Communications
             return null;
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
+        // See IInventoryServices
         public void MoveInventoryFolder(LLUUID userID, InventoryFolderBase folder)
         {
             foreach (KeyValuePair<string, IInventoryData> plugin in m_plugins)
@@ -136,12 +128,49 @@ namespace OpenSim.Framework.Communications
                 plugin.Value.moveInventoryFolder(folder);
             }
         }
+        
+        public virtual bool HasInventoryForUser(LLUUID userID)
+        {
+            return false;
+        }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="parentFolderID"></param>
-        /// <returns></returns>
+        // See IInventoryServices
+        public InventoryFolderBase RequestRootFolder(LLUUID userID)
+        {
+            return RequestUsersRoot(userID);
+        }
+
+        // See IInventoryServices
+        public void CreateNewUserInventory(LLUUID user)
+        {
+            InventoryFolderBase existingRootFolder = RequestUsersRoot(user);
+            
+            if (null != existingRootFolder)
+            {
+                m_log.Error(
+                    String.Format("[AGENTINVENTORY]: " +
+                                  "Did not create a new inventory for user {0} since they already have "
+                                  + "a root inventory folder with id {1}", user, existingRootFolder));
+            }
+            else
+            {                
+                UsersInventory inven = new UsersInventory();
+                inven.CreateNewInventorySet(user);
+                AddNewInventorySet(inven);
+            }
+        }      
+        
+        public abstract void RequestInventoryForUser(LLUUID userID, InventoryFolderInfo folderCallBack,
+                                                     InventoryItemInfo itemCallBack);
+        public abstract void AddNewInventoryFolder(LLUUID userID, InventoryFolderBase folder);
+        public abstract void MoveExistingInventoryFolder(InventoryFolderBase folder);
+        public abstract void AddNewInventoryItem(LLUUID userID, InventoryItemBase item);
+        public abstract void DeleteInventoryItem(LLUUID userID, InventoryItemBase item);        
+        
+        #endregion
+        
+        #region Methods used by GridInventoryService
+
         public List<InventoryFolderBase> RequestSubFolders(LLUUID parentFolderID)
         {
             List<InventoryFolderBase> inventoryList = new List<InventoryFolderBase>();
@@ -162,8 +191,10 @@ namespace OpenSim.Framework.Communications
             }
             return itemsList;
         }
+        
+        #endregion
 
-        public void AddFolder(InventoryFolderBase folder)
+        protected void AddFolder(InventoryFolderBase folder)
         {
             foreach (KeyValuePair<string, IInventoryData> plugin in m_plugins)
             {
@@ -171,7 +202,7 @@ namespace OpenSim.Framework.Communications
             }
         }
 
-        public void MoveFolder(InventoryFolderBase folder)
+        protected void MoveFolder(InventoryFolderBase folder)
         {
             foreach (KeyValuePair<string, IInventoryData> plugin in m_plugins)
             {
@@ -179,7 +210,7 @@ namespace OpenSim.Framework.Communications
             }
         }
 
-        public void AddItem(InventoryItemBase item)
+        protected void AddItem(InventoryItemBase item)
         {
             foreach (KeyValuePair<string, IInventoryData> plugin in m_plugins)
             {
@@ -187,67 +218,26 @@ namespace OpenSim.Framework.Communications
             }
         }
 
-        public void DeleteItem(InventoryItemBase item)
+        protected void DeleteItem(InventoryItemBase item)
         {
             foreach (KeyValuePair<string, IInventoryData> plugin in m_plugins)
             {
                 plugin.Value.deleteInventoryItem(item.inventoryID);
             }
         }
-
-        public virtual bool HasInventoryForUser(LLUUID userID)
-        {
-            return false;
-        }
-
-        public InventoryFolderBase RequestRootFolder(LLUUID userID)
-        {
-            return RequestUsersRoot(userID);
-        }
-
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="inventory"></param>
-        public void AddNewInventorySet(UsersInventory inventory)
+        
+        private void AddNewInventorySet(UsersInventory inventory)
         {
             foreach (InventoryFolderBase folder in inventory.Folders.Values)
             {
                 AddFolder(folder);
             }
-        }
+        }        
 
-        /// <summary>
-        /// Create a new set of inventory folders for the given user.
-        /// </summary>
-        /// <param name="user"></param>
-        public void CreateNewUserInventory(LLUUID user)
-        {
-            InventoryFolderBase existingRootFolder = RequestUsersRoot(user);
-            
-            if (null != existingRootFolder)
-            {
-                m_log.Error(
-                    String.Format("[AGENTINVENTORY]: " +
-                                  "Did not create a new inventory for user {0} since they already have "
-                                  + "a root inventory folder with id {1}", user, existingRootFolder));
-            }
-            else
-            {                
-                UsersInventory inven = new UsersInventory();
-                inven.CreateNewInventorySet(user);
-                AddNewInventorySet(inven);
-            }
-        }
-
-        public class UsersInventory
+        private class UsersInventory
         {
             public Dictionary<LLUUID, InventoryFolderBase> Folders = new Dictionary<LLUUID, InventoryFolderBase>();
             public Dictionary<LLUUID, InventoryItemBase> Items = new Dictionary<LLUUID, InventoryItemBase>();
-
-            public UsersInventory()
-            {
-            }
 
             public virtual void CreateNewInventorySet(LLUUID user)
             {
@@ -390,13 +380,5 @@ namespace OpenSim.Framework.Communications
                 Folders.Add(folder.folderID, folder);
             }
         }
-
-        public abstract void RequestInventoryForUser(LLUUID userID, InventoryFolderInfo folderCallBack,
-                                                     InventoryItemInfo itemCallBack);
-
-        public abstract void AddNewInventoryFolder(LLUUID userID, InventoryFolderBase folder);
-        public abstract void MoveExistingInventoryFolder(InventoryFolderBase folder);
-        public abstract void AddNewInventoryItem(LLUUID userID, InventoryItemBase item);
-        public abstract void DeleteInventoryItem(LLUUID userID, InventoryItemBase item);
     }
 }
