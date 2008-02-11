@@ -42,7 +42,8 @@ namespace OpenSim.Region.Environment.Scenes
 {
     public partial class Scene
     {
-        private static readonly log4net.ILog m_log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+        private static readonly log4net.ILog m_log 
+            = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 
         /// <summary>
         /// Start all the scripts in the scene which should be started.
@@ -404,10 +405,20 @@ namespace OpenSim.Region.Environment.Scenes
             }
         }
 
+        /// <summary>
+        /// Create a new inventory item.
+        /// </summary>
+        /// <param name="remoteClient"></param>
+        /// <param name="folderID"></param>
+        /// <param name="callbackID"></param>
+        /// <param name="asset"></param>
+        /// <param name="nextOwnerMask"></param>
         private void CreateNewInventoryItem(IClientAPI remoteClient, LLUUID folderID, uint callbackID,
                                             AssetBase asset, uint nextOwnerMask)
         {
-            CachedUserInfo userInfo = CommsManager.UserProfileCacheService.GetUserDetails(remoteClient.AgentId);
+            CachedUserInfo userInfo 
+                = CommsManager.UserProfileCacheService.GetUserDetails(remoteClient.AgentId);
+            
             if (userInfo != null)
             {
                 InventoryItemBase item = new InventoryItemBase();
@@ -426,10 +437,16 @@ namespace OpenSim.Region.Environment.Scenes
                 userInfo.AddItem(remoteClient.AgentId, item);
                 remoteClient.SendInventoryItemCreateUpdate(item);
             }
+            else
+            {
+                m_log.WarnFormat(
+                    "No user details associated with client {0} uuid {1} in CreateNewInventoryItem!", 
+                     remoteClient.Name, remoteClient.AgentId);
+            }
         }
 
         /// <summary>
-        /// temporary method to test out creating new inventory items
+        /// Create a new inventory item.
         /// </summary>
         /// <param name="remoteClient"></param>
         /// <param name="transActionID"></param>
