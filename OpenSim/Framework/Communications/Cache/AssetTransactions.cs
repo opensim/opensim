@@ -105,7 +105,9 @@ namespace OpenSim.Framework.Communications.Cache
                     }
                 }
                 
-                // Remove the uploader once the uploader is complete
+                // Remove the uploader once the uploader is complete 
+                //[don't think we can be sure a upload has finished from here, uploads are multi part things]
+                // [or maybe we can if we do more checking like data lenght checks]
                 if (uploaderFound != null)
                 {                
 //                    m_log.Info(
@@ -113,7 +115,7 @@ namespace OpenSim.Framework.Communications.Cache
 //                            "[ASSET TRANSACTIONS] Removing asset xfer uploader with transfer id {0}, transaction {1}", 
 //                            xferID, uploaderFound.TransactionID));                
                     
-                    XferUploaders.Remove(uploaderFound.TransactionID);
+   //                 XferUploaders.Remove(uploaderFound.TransactionID);
                     
                     //m_log.InfoFormat("[ASSET TRANSACTIONS] Current uploaders: {0}", XferUploaders.Count);                
                 }            

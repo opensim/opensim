@@ -99,15 +99,18 @@ namespace OpenSim.Framework.Communications.Cache
                 if (uploader != null)
                 {
                     // Upload has already compelted uploading...
+                    
                     if (uploader.Initialise(remoteClient, assetID, transaction, type, data, storeLocal, tempFile))
                     {
-                        lock (transactions.XferUploaders)
+                        //[commenting out as this removal breaks uploads]
+                       /*lock (transactions.XferUploaders)
                         {
+                          
                             // XXX Weak ass way of doing this by directly manipulating this public dictionary, purely temporary
                             transactions.XferUploaders.Remove(uploader.TransactionID);
                             
                             //m_log.InfoFormat("[ASSET TRANSACTIONS] Current uploaders: {0}", transactions.XferUploaders.Count);                        
-                        }
+                        }*/
                     }
                 }
             }
