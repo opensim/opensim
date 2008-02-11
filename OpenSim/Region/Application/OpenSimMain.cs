@@ -155,6 +155,7 @@ namespace OpenSim
             ReadConfigSettings();
         }
 
+        // this 
         public static IConfigSource DefaultConfig()
         {
             IConfigSource DefaultConfig = new IniConfigSource();
