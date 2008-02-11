@@ -1,20 +1,9 @@
 [Startup]
 gridmode = false
 
-; Select a mesher here. ZeroMesher is save and fast.
-; ZeroMesher also means that the physics engine models the physics of prims
-; sticking to the basic shapes the engine does support. Usually this is only a box.
-; Meshmerizer gives a better handling of complex prims by using triangle meshes.
-; Note, that only ODE physics currently deals with meshed prims in a satisfactoring way
-; 
-meshing = ZeroMesher
-;meshing = Meshmerizer
-
-; Choose one of the physics engines below
-physics = basicphysics
-;physics = POS
-;physics = OpenDynamicsEngine
-;physics = modified_BulletX
+; ##
+; ## STORAGE
+; ##
 
 ; *** Prim Storage - only leave one storage_plugin uncommented ***
 ; --- The NullStorage stores nothing - effectively disabling persistence:
@@ -39,9 +28,9 @@ storage_connection_string="URI=file:OpenSim.db,version=3";
 ;
 storage_prim_inventories = true
 
-startup_console_commands_file = "startup_commands.txt"
-shutdown_console_commands_file = "shutdown_commands.txt"
-serverside_object_permissions = false
+; Avatar appearance persistence
+appearance_persist = false
+appearance_connection_string = "Data Source=localhost;Database=avatar_appearance;User ID=root;Password=xxxx;pooling=false;"
 
 ; Select the type of database to use for asset storage
 ;asset_database = "db4o"
@@ -49,7 +38,32 @@ asset_database = "sqlite"
 ;asset_database = "grid"
 ;asset_database = "mssql"
 
+
+
+; ##
+; ## PHYSICS
+; ##
+
+; Select a mesher here. ZeroMesher is save and fast.
+; ZeroMesher also means that the physics engine models the physics of prims
+; sticking to the basic shapes the engine does support. Usually this is only a box.
+; Meshmerizer gives a better handling of complex prims by using triangle meshes.
+; Note, that only ODE physics currently deals with meshed prims in a satisfactoring way
+; 
+meshing = ZeroMesher
+;meshing = Meshmerizer
+
+; Choose one of the physics engines below
+physics = basicphysics
+;physics = POS
+;physics = OpenDynamicsEngine
+;physics = modified_BulletX
+
+
 verbose = true
+startup_console_commands_file = "startup_commands.txt"
+shutdown_console_commands_file = "shutdown_commands.txt"
+serverside_object_permissions = false
 
 
 ; if you would like to allow prim to be physical and move by physics with the physical checkbox in the client set this to true.
@@ -57,9 +71,6 @@ physical_prim = true
 
 ; To run a script every few minutes, set the script filename here
 ; timer_Script = "filename"
-
-; If you would like to see into this region from neighbor simulators
-see_into_this_sim_from_neighbor = true
 
 [StandAlone]
 accounts_authenticate = true
@@ -243,9 +254,4 @@ CompileWithDebugInformation=true
 
 ; Remove old scripts on next startup
 CleanUpOldScriptsOnStartup=true
-
-
-[Appearance]
-persist = false
-connection_string = "Data Source=localhost;Database=avatar_appearance;User ID=root;Password=xxxx;pooling=false;"
 

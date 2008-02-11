@@ -100,8 +100,8 @@ namespace OpenSim.Region.Environment.Modules
                 m_configured = true;
                 try
                 {
-                    m_enablePersist = source.Configs["Appearance"].GetBoolean("persist", false);
-                    m_connectionString = source.Configs["Appearance"].GetString("connection_string", "");
+                    m_enablePersist = source.Configs["Startup"].GetBoolean("appearance_persist", false);
+                    m_connectionString = source.Configs["Startup"].GetString("appearance_connection_string", "");
                 }
                 catch (Exception)
                 {
