@@ -29,6 +29,7 @@
 using System;
 using System.Collections.Generic;
 using System.Data;
+using System.Data.SqlClient;
 using System.IO;
 using System.Reflection;
 using libsecondlife;
@@ -71,7 +72,14 @@ namespace OpenSim.Framework.Data.MySQL
                                    username + ";Password=" + password + ";Pooling=" + cpooling + ";";
                 dbcon = new MySqlConnection(connectionString);
 
-                dbcon.Open();
+                try
+                {
+                    dbcon.Open();
+                }
+                catch(Exception e)
+                {
+                    throw new Exception( "Connection error while using connection string ["+connectionString+"]", e );
+                }
 
                 m_log.Info("[MYSQL]: Connection established");
             }
