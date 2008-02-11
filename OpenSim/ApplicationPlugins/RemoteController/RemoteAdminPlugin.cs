@@ -70,6 +70,7 @@ namespace OpenSim.ApplicationPlugins.LoadRegions
                     m_httpd.AddXmlRPCHandler("admin_restart", XmlRpcRestartMethod);
                     m_httpd.AddXmlRPCHandler("admin_load_heightmap", XmlRpcLoadHeightmapMethod);
                     m_httpd.AddXmlRPCHandler("admin_create_user", XmlRpcCreateUserMethod);
+                    m_httpd.AddXmlRPCHandler("admin_load_xml", XmlRpcLoadXMLMethod);
                 }
             }
             catch (NullReferenceException)
@@ -333,6 +334,53 @@ namespace OpenSim.ApplicationPlugins.LoadRegions
                 }
             }
 
+            return response;
+        }
+
+        public XmlRpcResponse XmlRpcLoadXMLMethod(XmlRpcRequest request)
+        {
+            m_log.Info("[RADMIN]: Received Load XML Administrator Request");
+            XmlRpcResponse response = new XmlRpcResponse();
+            Hashtable requestData = (Hashtable) request.Params[0];
+            Hashtable responseData = new Hashtable();
+            if (requiredPassword != System.String.Empty &&
+                (!requestData.Contains("password") || (string) requestData["password"] != requiredPassword))
+            {
+                responseData["loaded"] = "false";
+                responseData["switched"] = "false";
+                response.Value = responseData;
+            }
+            else
+            {
+                try
+                {
+                    string region_name     = (string) requestData["region_name"];
+                    string filename        = (string) requestData["filename"];
+                    
+                    if (m_app.SceneManager.TrySetCurrentScene(region_name))
+                    {
+                        m_log.Info("[RADMIN] Switched to region "+region_name);
+                        responseData["switched"] = "true";
+                        m_app.SceneManager.LoadCurrentSceneFromXml(filename, true, new LLVector3(0, 0, 0));
+                        responseData["loaded"]   = "true";
+                        response.Value           = responseData;
+                    }
+                    else
+                    {
+                        m_log.Info("[RADMIN] Failed to switch to region "+region_name);
+                        responseData["loaded"] = "false";
+                        responseData["switched"] = "false";
+                        response.Value = responseData;
+                    }
+                }
+                catch (Exception e)
+                {
+                    responseData["loaded"]  = "false";
+                    responseData["error"]   = e.ToString();
+                    response.Value          = responseData;
+                }
+            }
+            
             return response;
         }
 
