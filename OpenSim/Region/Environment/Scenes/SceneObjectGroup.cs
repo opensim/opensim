@@ -1726,13 +1726,16 @@ namespace OpenSim.Region.Environment.Scenes
         {
             if (m_parts.Count > 1)
             {
-                foreach (SceneObjectPart part in m_parts.Values)
+                lock (m_parts)
                 {
-                    part.ApplyPhysics(m_rootPart.ObjectFlags, m_physicalPrim);
-                    
-                    // Hack to get the physics scene geometries in the right spot
-                    ResetChildPrimPhysicsPositions();
-                   
+                    foreach (SceneObjectPart part in m_parts.Values)
+                    {
+                        part.ApplyPhysics(m_rootPart.ObjectFlags, m_physicalPrim);
+
+                        // Hack to get the physics scene geometries in the right spot
+                        ResetChildPrimPhysicsPositions();
+
+                    }
                 }
             }
             else

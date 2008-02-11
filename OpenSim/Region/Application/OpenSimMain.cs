@@ -65,7 +65,7 @@ namespace OpenSim
         public bool m_sandbox;
         public bool user_accounts;
         public bool m_gridLocalAsset;
-        public bool m_SendChildAgentTaskData;
+        public bool m_see_into_region_from_neighbor;
 
         protected LocalLoginService m_loginService;
 
@@ -167,7 +167,7 @@ namespace OpenSim
                 config.Set("physics", "basicphysics");
                 config.Set("verbose", true);
                 config.Set("physical_prim", true);
-                config.Set("child_get_tasks", false);
+                config.Set("see_into_this_sim_from_neighbor", true);
                 config.Set("serverside_object_permissions", false);
                 config.Set("storage_plugin", "OpenSim.Framework.Data.SQLite.dll");
                 config.Set("storage_connection_string", "URI=file:OpenSim.db,version=3");
@@ -238,7 +238,7 @@ namespace OpenSim
 
                 m_physicalPrim = startupConfig.GetBoolean("physical_prim", true);
 
-                m_SendChildAgentTaskData = startupConfig.GetBoolean("child_get_tasks", false);
+                m_see_into_region_from_neighbor = startupConfig.GetBoolean("see_into_this_sim_from_neighbor", true);
 
                 m_permissions = startupConfig.GetBoolean("serverside_object_permissions", false);
 
@@ -490,15 +490,10 @@ namespace OpenSim
         {
             PermissionManager permissionManager = new PermissionManager();
             SceneCommunicationService sceneGridService = new SceneCommunicationService(m_commsManager);
-            if (m_SendChildAgentTaskData)
-            {
-                m_log.Error("[WARNING]: Send Child Agent Task Updates is enabled. This is for testing only.");
-                //Thread.Sleep(12000);
-            }
             return
                 new Scene(regionInfo, circuitManager, permissionManager, m_commsManager, sceneGridService, m_assetCache,
                           storageManager, m_httpServer,
-                          m_moduleLoader, m_dumpAssetsToFile, m_physicalPrim, m_SendChildAgentTaskData);
+                          m_moduleLoader, m_dumpAssetsToFile, m_physicalPrim, m_see_into_region_from_neighbor);
         }
 
 

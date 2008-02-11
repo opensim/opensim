@@ -716,7 +716,7 @@ namespace OpenSim.Region.Environment.Scenes
                     // the initial update for and what we'll use to limit the 
                     // space we check for new objects on movement.
 
-                    if (presence.IsChildAgent && m_parentScene.m_sendTasksToChild)
+                    if (presence.IsChildAgent && m_parentScene.m_seeIntoRegionFromNeighbor)
                     {
                         LLVector3 oLoc = ((SceneObjectGroup)ent).AbsolutePosition;
                         float distResult = (float)Util.GetDistanceTo(presence.AbsolutePosition,oLoc);

@@ -77,7 +77,7 @@ namespace OpenSim.Region.Environment.Scenes
 
         private readonly Mutex updateLock;
         public bool m_physicalPrim;
-        public bool m_sendTasksToChild;
+        public bool m_seeIntoRegionFromNeighbor;
         private int m_RestartTimerCounter;
         private readonly Timer m_restartTimer = new Timer(15000); // Wait before firing
         private int m_incrementsof15seconds = 0;
@@ -224,7 +224,7 @@ namespace OpenSim.Region.Environment.Scenes
         public Scene(RegionInfo regInfo, AgentCircuitManager authen, PermissionManager permissionManager,
                      CommunicationsManager commsMan, SceneCommunicationService sceneGridService,
                      AssetCache assetCach, StorageManager storeManager, BaseHttpServer httpServer,
-                     ModuleLoader moduleLoader, bool dumpAssetsToFile, bool physicalPrim, bool SendTasksToChild)
+                     ModuleLoader moduleLoader, bool dumpAssetsToFile, bool physicalPrim, bool SeeIntoRegionFromNeighbor)
         {
             updateLock = new Mutex(false);
 
@@ -241,7 +241,7 @@ namespace OpenSim.Region.Environment.Scenes
             m_datastore = m_regInfo.DataStore;
 
             m_physicalPrim = physicalPrim;
-            m_sendTasksToChild = SendTasksToChild;
+            m_seeIntoRegionFromNeighbor = SeeIntoRegionFromNeighbor;
 
             m_eventManager = new EventManager();
 
@@ -317,7 +317,7 @@ namespace OpenSim.Region.Environment.Scenes
                 OSString = OSString.Substring(0, 45);
             }
 
-            m_simulatorVersion = "OpenSimulator v0.5-SVN on " + OSString + " ChilTasks:" + m_sendTasksToChild.ToString() + " PhysPrim:" + m_physicalPrim.ToString();
+            m_simulatorVersion = "OpenSimulator v0.5-SVN on " + OSString + " ChilTasks:" + m_seeIntoRegionFromNeighbor.ToString() + " PhysPrim:" + m_physicalPrim.ToString();
         }
 
         #endregion

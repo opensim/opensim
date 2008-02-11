@@ -58,6 +58,9 @@ physical_prim = true
 ; To run a script every few minutes, set the script filename here
 ; timer_Script = "filename"
 
+; If you would like to see into this region from neighbor simulators
+see_into_this_sim_from_neighbor = true
+
 [StandAlone]
 accounts_authenticate = true
 welcome_message = "Welcome to OpenSim"

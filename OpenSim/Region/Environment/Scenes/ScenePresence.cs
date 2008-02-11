@@ -428,7 +428,7 @@ namespace OpenSim.Region.Environment.Scenes
 
             if (!m_gotAllObjectsInScene)
             {
-                if (!m_isChildAgent || m_scene.m_sendTasksToChild)
+                if (!m_isChildAgent || m_scene.m_seeIntoRegionFromNeighbor)
                 {
                     
                     m_scene.SendAllSceneObjectsToClient(this);
@@ -1358,7 +1358,7 @@ namespace OpenSim.Region.Environment.Scenes
                 SendFullUpdateToOtherClient(avatar);
                 if (avatar.LocalId != LocalId)
                 {
-                    if (!avatar.m_isChildAgent || m_scene.m_sendTasksToChild)
+                    if (!avatar.m_isChildAgent || m_scene.m_seeIntoRegionFromNeighbor)
                     {
                         avatar.SendFullUpdateToOtherClient(this);
                         avatar.SendAppearanceToOtherAgent(this);
@@ -1638,7 +1638,7 @@ namespace OpenSim.Region.Environment.Scenes
 
 
             // Sends out the objects in the user's draw distance if m_sendTasksToChild is true.
-            if (m_scene.m_sendTasksToChild)
+            if (m_scene.m_seeIntoRegionFromNeighbor)
                 m_scene.SendAllSceneObjectsToClient(this);
             //cAgentData.AVHeight;
             //cAgentData.regionHandle;
