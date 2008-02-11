@@ -77,7 +77,10 @@ namespace OpenSim.Region.Physics.POSPlugin
         {
             // Does nothing right now
         }
+        public override void Dispose()
+        {
 
+        }
         public override PhysicsActor AddAvatar(string avName, PhysicsVector position)
         {
             POSCharacter act = new POSCharacter();

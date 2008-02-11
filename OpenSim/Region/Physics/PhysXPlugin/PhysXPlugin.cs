@@ -88,7 +88,10 @@ namespace OpenSim.Region.Physics.PhysXPlugin
         {
             // Does nothing right now
         }
+        public override void Dispose()
+        {
 
+        }
 
         public override PhysicsActor AddAvatar(string avName, PhysicsVector position)
         {

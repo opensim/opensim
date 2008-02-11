@@ -409,7 +409,10 @@ namespace OpenSim.Region.Physics.BulletXPlugin
             mesher = meshmerizer;
         }
 
+        public override void Dispose()
+        {
 
+        }
         public override PhysicsActor AddAvatar(string avName, PhysicsVector position)
         {
             PhysicsVector pos = new PhysicsVector();

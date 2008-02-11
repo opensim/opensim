@@ -81,6 +81,8 @@ namespace OpenSim.Region.Physics.Manager
 
         public abstract void DeleteTerrain();
 
+        public abstract void Dispose();
+
         public abstract bool IsThreaded { get; }
 
         private class NullPhysicsScene : PhysicsScene
@@ -156,6 +158,10 @@ namespace OpenSim.Region.Physics.Manager
             public override bool IsThreaded
             {
                 get { return false; }
+            }
+            public override void Dispose()
+            {
+
             }
         }
     }

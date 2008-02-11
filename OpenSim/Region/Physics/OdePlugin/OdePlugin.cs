@@ -73,6 +73,8 @@ namespace OpenSim.Region.Physics.OdePlugin
 
         public void Dispose()
         {
+            
+            d.CloseODE();
         }
     }
 
@@ -1508,6 +1510,24 @@ namespace OpenSim.Region.Physics.OdePlugin
 
         public override void DeleteTerrain()
         {
+        }
+        public override void Dispose()
+        {
+            lock (OdeLock)
+            {
+                
+                foreach (OdePrim prm in _prims)
+                {
+                    RemovePrim(prm);
+                }
+
+                foreach (OdeCharacter act in _characters)
+                {
+                    RemoveAvatar(act);
+                }
+                d.WorldDestroy(world);
+                //d.CloseODE();
+            }
         }
     }
 }

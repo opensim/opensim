@@ -472,6 +472,11 @@ namespace OpenSim.Region.Environment.Scenes
         // This causes the region to restart immediatley.
         public void RestartNow()
         {
+            if (PhysicsScene != null)
+            {
+                PhysicsScene.Dispose();
+            }
+
             m_log.Error("[REGION]: Closing");
             Close();
             m_log.Error("[REGION]: Firing Region Restart Message");
