@@ -43,9 +43,10 @@ namespace OpenSim
         [STAThread]
         public static void Main(string[] args)
         {
-            log4net.Config.XmlConfigurator.Configure();
-
+            // First line
             AppDomain.CurrentDomain.UnhandledException += new UnhandledExceptionEventHandler(CurrentDomain_UnhandledException);
+
+            log4net.Config.XmlConfigurator.Configure();
 
             Console.WriteLine("OpenSim " + VersionInfo.Version + "\n");
 
