@@ -1089,50 +1089,7 @@ namespace OpenSim.Region.Environment.Scenes
                 if (target != null)
                 {
                     pos = target.AbsolutePosition;
-
-                    //m_log.Info("[RAYTRACE]: " + pos.ToString());
-                    //EntityIntersection rayTracing = null;
-                    //ScenePresence presence = ((ScenePresence)GetScenePresence(ownerID));
-                    //if (presence != null)
-                    //{
-                    //Vector3 CameraPosition = presence.CameraPosition;
-                    //Vector3 rayEnd = new Vector3(pos.X, pos.Y, pos.Z);
-
-                    //float rayMag = m_innerScene.Vector3Distance(CameraPosition, rayEnd);
-                    //LLVector3 rayDirectionLL = Util.GetNormal(pos);
-
-                    //Vector3 rayDirection = new Vector3(rayDirectionLL.X, rayDirectionLL.Y, rayDirectionLL.Z);
-
-                    //Ray rezRay = new Ray(CameraPosition, rayDirection);
-
-                    //Vector3 RezDirectionFromCamera = rezRay.Direction;
-
-                    //rayTracing = m_innerScene.GetClosestIntersectingPrim(rezRay);
-                    //}
-
-                    //if ((rayTracing != null) && (rayTracing.HitTF))
-                    //{
-                    // We raytraced and found a prim in the way of the ground..  so 
-                    // We will rez the object somewhere close to the prim.  Better math needed. This is a Stub
-                    //Vector3 Newpos = new Vector3(rayTracing.obj.AbsolutePosition.X,rayTracing.obj.AbsolutePosition.Y,rayTracing.obj.AbsolutePosition.Z);
-                    //Vector3 Newpos = rayTracing.ipoint;
-                    //Vector3 NewScale =
-                    //new Vector3(rayTracing.obj.Scale.X, rayTracing.obj.Scale.Y, rayTracing.obj.Scale.Z);
-
-                    //Quaternion ParentRot = rayTracing.obj.ParentGroup.Rotation;
-                    //Quaternion ParentRot = new Quaternion(primParentRot.W,primParentRot.X,primParentRot.Y,primParentRot.Z);
-
-                    //LLQuaternion primLocalRot = rayTracing.obj.RotationOffset;
-                    //Quaternion LocalRot = new Quaternion(primLocalRot.W, primLocalRot.X, primLocalRot.Y, primLocalRot.Z);
-
-                    //Quaternion NewRot = LocalRot * ParentRot;
-
-                    //Vector3 RezPoint = Newpos;
-
-                    //m_log.Info("[REZINFO]: Possible Rez Point:" + RezPoint.ToString());
-                    //pos = new LLVector3(RezPoint.x, RezPoint.y, RezPoint.z);
-                    //}
-
+                    // TODO: Raytrace here
                     return pos;
                 }
                 else
@@ -1253,6 +1210,73 @@ namespace OpenSim.Region.Environment.Scenes
             m_sceneXmlLoader.SavePrimsToXml2(fileName);
         }
 
+        public void CrossPrimGroupIntoNewRegion(LLVector3 position, SceneObjectGroup grp)
+        {
+            m_log.Warn("Prim crossing: " + grp.UUID.ToString());
+            int thisx = (int)RegionInfo.RegionLocX;
+            int thisy = (int)RegionInfo.RegionLocY;
+            ulong newRegionHandle = 0;
+            LLVector3 pos = grp.AbsolutePosition;
+
+            if (position.X > 255.6f)
+            {
+                pos.X = ((pos.X - 256) + 10);
+                
+                newRegionHandle = Util.UIntsToLong((uint)((thisx + 1) * 256), (uint)(thisy * 256));
+                
+                // x + 1
+            }
+            else if (position.X < 0.4f)
+            {
+                pos.X = ((pos.X + 256) - 10);
+                newRegionHandle = Util.UIntsToLong((uint)((thisx - 1) * 256), (uint)(thisy * 256));
+                // x - 1
+            }
+
+            if (position.Y > 255.6f)
+            {
+                pos.Y = ((pos.Y - 256) + 10);
+                newRegionHandle = Util.UIntsToLong((uint)(thisx * 256), (uint)((thisy + 1) * 256));
+               // y + 1
+            }
+            else if (position.Y < 0.4f)
+            {
+                pos.Y = ((pos.Y + 256) - 10);
+                newRegionHandle = Util.UIntsToLong((uint)(thisx * 256), (uint)((thisy - 1) * 256));
+                // y - 1
+            }
+
+            // Offset the positions for the new region across the border
+            grp.OffsetForNewRegion(pos);
+            
+            if (newRegionHandle != 0)
+            {
+                bool successYN = false;
+                successYN = m_sceneGridService.PrimCrossToNeighboringRegion(newRegionHandle, grp.UUID, m_sceneXmlLoader.SavePrimGroupToXML2String(grp));
+                if (successYN)
+                {
+                    // We remove the object here
+                    try
+                    {
+                        DeleteSceneObjectGroup(grp);
+                    }
+                    catch (System.Exception)
+                    {
+                        m_log.Warn("[DATABASE]: exception when trying to remove the prim that crossed the border.");
+                    }
+                }
+                else
+                {
+                    m_log.Warn("[INTERREGION]: Prim Crossing Failed!");
+                }
+            }
+        }
+        public void IncomingInterRegionPrimGroup(ulong regionHandle, LLUUID primID, string objXMLData)
+        {
+            m_log.Warn("{[INTERREGION]: OMG!  A new prim arrived from a neighbor!..  Kyill eeehht! before it corrupts my entire database!  AHHH!  I feel so dirty now!    yuck!   ack! arg!");
+            m_sceneXmlLoader.LoadGroupFromXml2String(objXMLData);
+
+        }
         #endregion
 
         #region Add/Remove Avatar Methods
@@ -1527,6 +1551,7 @@ namespace OpenSim.Region.Environment.Scenes
             m_sceneGridService.OnCloseAgentConnection += CloseConnection;
             m_sceneGridService.OnRegionUp += OtherRegionUp;
             m_sceneGridService.OnChildAgentUpdate += IncomingChildAgentDataUpdate;
+            m_sceneGridService.OnExpectPrim += IncomingInterRegionPrimGroup;
 
 
 
@@ -1540,6 +1565,7 @@ namespace OpenSim.Region.Environment.Scenes
         /// </summary>
         public void UnRegisterReginWithComms()
         {
+            m_sceneGridService.OnExpectPrim -= IncomingInterRegionPrimGroup;
             m_sceneGridService.OnChildAgentUpdate -= IncomingChildAgentDataUpdate;
             m_sceneGridService.OnRegionUp -= OtherRegionUp;
             m_sceneGridService.OnExpectUser -= NewUserConnection;

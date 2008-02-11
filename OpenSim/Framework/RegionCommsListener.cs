@@ -70,7 +70,7 @@ namespace OpenSim.Framework
 
         public virtual bool TriggerExpectPrim(ulong regionHandle, LLUUID primID, string objData)
         {
-            if (OnExpectUser != null)
+            if (OnExpectPrim != null)
             {
                 OnExpectPrim(regionHandle, primID, objData);
                 return true;

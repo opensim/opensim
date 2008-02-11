@@ -126,23 +126,11 @@ namespace OpenSim.Region.Environment.Scenes
             set
             {
                 LLVector3 val = value;
-                if (val.X > 255.6f)
+                if (val.X > 255.6f || val.X < 0.4f || val.Y > 255.6f || val.Y < 0.4f)
                 {
-                    val.X = 255.6f;
+                    m_scene.CrossPrimGroupIntoNewRegion(val, this);
                 }
-                else if (val.X < 0.4f)
-                {
-                    val.X = 0.4f;
-                }
-
-                if (val.Y > 255.6f)
-                {
-                    val.Y = 255.6f;
-                }
-                else if (val.Y < 0.4f)
-                {
-                    val.Y = 0.4f;
-                }
+                
 
                 lock (m_parts)
                 {
@@ -1376,6 +1364,11 @@ namespace OpenSim.Region.Environment.Scenes
             }
             AbsolutePosition = newPos;
             ScheduleGroupForTerseUpdate();
+        }
+
+        public void OffsetForNewRegion(LLVector3 offset)
+        {
+            m_rootPart.GroupPosition = offset;
         }
 
         #endregion

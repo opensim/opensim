@@ -84,6 +84,7 @@ namespace OpenSim.Region.Physics.OdePlugin
         public OdePrim(String primName, OdeScene parent_scene, IntPtr targetSpace, PhysicsVector pos, PhysicsVector size,
                        Quaternion rotation, IMesh mesh, PrimitiveBaseShape pbs, bool pisPhysical)
         {
+            System.Threading.Thread.Sleep(20);
             _velocity = new PhysicsVector();
             _position = pos;
             m_taintposition = pos;

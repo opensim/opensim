@@ -123,6 +123,33 @@ namespace OpenSim.Region.Environment.Scenes
             file.Close();
         }
 
+        public string SavePrimGroupToXML2String(SceneObjectGroup grp)
+        {
+            string returnstring = "";
+            returnstring += "<scene>\n";
+            returnstring += grp.ToXmlString2();
+            returnstring += "</scene>\n";
+            return returnstring;
+
+        }
+
+        public void LoadGroupFromXml2String(string xmlString)
+        {
+            XmlDocument doc = new XmlDocument();
+            XmlNode rootNode;
+           
+            XmlTextReader reader = new XmlTextReader(new StringReader(xmlString));
+            reader.WhitespaceHandling = WhitespaceHandling.None;
+            doc.Load(reader);
+            reader.Close();
+            rootNode = doc.FirstChild;
+            foreach (XmlNode aPrimNode in rootNode.ChildNodes)
+            {
+                CreatePrimFromXml(aPrimNode.OuterXml);
+            }
+         
+        }
+
         public void LoadPrimsFromXml2(string fileName)
         {
             XmlDocument doc = new XmlDocument();
