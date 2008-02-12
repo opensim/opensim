@@ -81,26 +81,15 @@ namespace OpenSim.Framework.Communications.Cache
         /// Get the collection of asset transactions for the given user.
         /// </summary>
         /// <param name="userID"></param>
-        /// <returns></returns>
+        /// <returns>null if this agent does not have an asset transactions collection</returns>
         public AgentAssetTransactions GetUserTransactions(LLUUID userID)
         {
             if (AgentTransactions.ContainsKey(userID))
             {
                 return AgentTransactions[userID];
             }
+            
             return null;
-        }
-
-        public void HandleInventoryFromTransaction(IClientAPI remoteClient, LLUUID transactionID, LLUUID folderID,
-                                                   uint callbackID, string description, string name, sbyte invType,
-                                                   sbyte type, byte wearableType, uint nextOwnerMask)
-        {
-            AgentAssetTransactions transactions = GetUserTransactions(remoteClient.AgentId);
-            if (transactions != null)
-            {
-                transactions.RequestCreateInventoryItem(remoteClient, transactionID, folderID, callbackID, description,
-                                                        name, invType, type, wearableType, nextOwnerMask);
-            }
         }
 
         public void HandleUDPUploadRequest(IClientAPI remoteClient, LLUUID assetID, LLUUID transaction, sbyte type,

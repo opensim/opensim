@@ -449,7 +449,7 @@ namespace OpenSim.Region.Environment.Scenes
         /// Create a new inventory item.
         /// </summary>
         /// <param name="remoteClient"></param>
-        /// <param name="transActionID"></param>
+        /// <param name="transactionID"></param>
         /// <param name="folderID"></param>
         /// <param name="callbackID"></param>
         /// <param name="description"></param>
@@ -458,14 +458,16 @@ namespace OpenSim.Region.Environment.Scenes
         /// <param name="type"></param>
         /// <param name="wearableType"></param>
         /// <param name="nextOwnerMask"></param>
-        public void CreateNewInventoryItem(IClientAPI remoteClient, LLUUID transActionID, LLUUID folderID,
+        public void CreateNewInventoryItem(IClientAPI remoteClient, LLUUID transactionID, LLUUID folderID,
                                            uint callbackID, string description, string name, sbyte invType,
                                            sbyte assetType,
                                            byte wearableType, uint nextOwnerMask)
         {
-            if (transActionID == LLUUID.Zero)
+            if (transactionID == LLUUID.Zero)
             {
-                CachedUserInfo userInfo = CommsManager.UserProfileCacheService.GetUserDetails(remoteClient.AgentId);
+                CachedUserInfo userInfo 
+                    = CommsManager.UserProfileCacheService.GetUserDetails(remoteClient.AgentId);
+                
                 if (userInfo != null)
                 {
                     AssetBase asset = CreateAsset(name, description, invType, assetType, null);
@@ -473,13 +475,30 @@ namespace OpenSim.Region.Environment.Scenes
 
                     CreateNewInventoryItem(remoteClient, folderID, callbackID, asset, nextOwnerMask);
                 }
+                else
+                {
+                    m_log.ErrorFormat(
+                        "userInfo for agent uuid {0} unexpectedly null in CreateNewInventoryItem", 
+                        remoteClient.AgentId);
+                }
             }
             else
             {
-                CommsManager.TransactionsManager.HandleInventoryFromTransaction(remoteClient, transActionID, folderID,
-                                                                                callbackID, description, name, invType,
-                                                                                assetType, wearableType, nextOwnerMask);
-                //System.Console.WriteLine("request to create inventory item from transaction " + transActionID);
+                AgentAssetTransactions transactions 
+                    = CommsManager.TransactionsManager.GetUserTransactions(remoteClient.AgentId);
+                
+                if (transactions != null)
+                {
+                    transactions.RequestCreateInventoryItem(
+                        remoteClient, transactionID, folderID, callbackID, description,
+                        name, invType, assetType, wearableType, nextOwnerMask);                    
+                }
+                else
+                {
+                    m_log.ErrorFormat(
+                        "Agent asset transactions for agent {0} uuid {1} in transaction uuid {2} unexpectedly null!", 
+                        remoteClient.Name, remoteClient.AgentId, transactionID); 
+                }
             }
         }
 
