@@ -33,7 +33,10 @@ using libsecondlife;
 
 namespace OpenSim.Framework.Communications.Cache
 {
-    public class AssetTransactionManager
+    /// <summary>
+    /// Manage the collection of agent asset transaction collections.  Each agent has its own transaction collection
+    /// </summary>
+    public class AgentAssetTransactionsManager
     {
         private static readonly log4net.ILog m_log 
             = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
@@ -41,19 +44,28 @@ namespace OpenSim.Framework.Communications.Cache
         // Fields
         public CommunicationsManager CommsManager;
 
-        public Dictionary<LLUUID, AgentAssetTransactions> AgentTransactions =
+        /// <summary>
+        /// Each agent has its own singleton collection of transactions
+        /// </summary>
+        private Dictionary<LLUUID, AgentAssetTransactions> AgentTransactions =
             new Dictionary<LLUUID, AgentAssetTransactions>();
 
+        /// <summary>
+        /// Should we dump uploaded assets to the filesystem?
+        /// </summary>
         private bool m_dumpAssetsToFile;
 
-        public AssetTransactionManager(CommunicationsManager commsManager, bool dumpAssetsToFile)
+        public AgentAssetTransactionsManager(CommunicationsManager commsManager, bool dumpAssetsToFile)
         {
             CommsManager = commsManager;
             m_dumpAssetsToFile = dumpAssetsToFile;
         }
 
-        // Methods
-        public AgentAssetTransactions AddUser(LLUUID userID)
+        /// <summary>
+        /// Add a collection of asset transactions for the given user
+        /// </summary>
+        /// <param name="userID"></param>
+        public void AddUser(LLUUID userID)
         {
             lock (AgentTransactions)
             {
@@ -61,13 +73,16 @@ namespace OpenSim.Framework.Communications.Cache
                 {
                     AgentAssetTransactions transactions = new AgentAssetTransactions(userID, this, m_dumpAssetsToFile);
                     AgentTransactions.Add(userID, transactions);
-                    return transactions;
                 }
             }
-            return null;
         }
 
-        public AgentAssetTransactions GetUserTransActions(LLUUID userID)
+        /// <summary>
+        /// Get the collection of asset transactions for the given user.
+        /// </summary>
+        /// <param name="userID"></param>
+        /// <returns></returns>
+        public AgentAssetTransactions GetUserTransactions(LLUUID userID)
         {
             if (AgentTransactions.ContainsKey(userID))
             {
@@ -80,7 +95,7 @@ namespace OpenSim.Framework.Communications.Cache
                                                    uint callbackID, string description, string name, sbyte invType,
                                                    sbyte type, byte wearableType, uint nextOwnerMask)
         {
-            AgentAssetTransactions transactions = GetUserTransActions(remoteClient.AgentId);
+            AgentAssetTransactions transactions = GetUserTransactions(remoteClient.AgentId);
             if (transactions != null)
             {
                 transactions.RequestCreateInventoryItem(remoteClient, transactionID, folderID, callbackID, description,
@@ -92,7 +107,7 @@ namespace OpenSim.Framework.Communications.Cache
                                            byte[] data, bool storeLocal, bool tempFile)
         {
             // Console.WriteLine("asset upload of " + assetID);
-            AgentAssetTransactions transactions = GetUserTransActions(remoteClient.AgentId);
+            AgentAssetTransactions transactions = GetUserTransactions(remoteClient.AgentId);
             if (transactions != null)
             {
                 AgentAssetTransactions.AssetXferUploader uploader = transactions.RequestXferUploader(transaction);
@@ -118,7 +133,7 @@ namespace OpenSim.Framework.Communications.Cache
 
         public void HandleXfer(IClientAPI remoteClient, ulong xferID, uint packetID, byte[] data)
         {
-            AgentAssetTransactions transactions = GetUserTransActions(remoteClient.AgentId);
+            AgentAssetTransactions transactions = GetUserTransactions(remoteClient.AgentId);
             if (transactions != null)
             {
                 transactions.HandleXfer(xferID, packetID, data);

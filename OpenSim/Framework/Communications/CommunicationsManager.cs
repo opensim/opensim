@@ -73,9 +73,9 @@ namespace OpenSim.Framework.Communications
             get { return m_userProfileCacheService; }
         }
 
-        protected AssetTransactionManager m_transactionsManager;
+        protected AgentAssetTransactionsManager m_transactionsManager;
 
-        public AssetTransactionManager TransactionsManager
+        public AgentAssetTransactionsManager TransactionsManager
         {
             get { return m_transactionsManager; }
         }
@@ -100,7 +100,7 @@ namespace OpenSim.Framework.Communications
             m_networkServersInfo = serversInfo;
             m_assetCache = assetCache;
             m_userProfileCacheService = new UserProfileCacheService(this);
-            m_transactionsManager = new AssetTransactionManager(this, dumpAssetsToFile);
+            m_transactionsManager = new AgentAssetTransactionsManager(this, dumpAssetsToFile);
         }
 
         public void doCreate(string[] cmmdParams)

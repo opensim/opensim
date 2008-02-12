@@ -266,7 +266,7 @@ namespace OpenSim.Region.Environment.Scenes
                     else
                     {
                         AgentAssetTransactions transactions
-                            = CommsManager.TransactionsManager.GetUserTransActions(remoteClient.AgentId);
+                            = CommsManager.TransactionsManager.GetUserTransactions(remoteClient.AgentId);
 
                         if (transactions != null)
                         {

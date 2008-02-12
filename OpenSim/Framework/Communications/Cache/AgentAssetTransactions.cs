@@ -35,6 +35,9 @@ using OpenSim.Region.Capabilities;
 
 namespace OpenSim.Framework.Communications.Cache
 {
+    /// <summary>
+    /// Manage asset transactions for a single agent.
+    /// </summary>
     public class AgentAssetTransactions
     {
         private static readonly log4net.ILog m_log 
@@ -45,11 +48,11 @@ namespace OpenSim.Framework.Communications.Cache
         public List<NoteCardCapsUpdate> NotecardUpdaters = new List<NoteCardCapsUpdate>();
         public LLUUID UserID;
         public Dictionary<LLUUID, AssetXferUploader> XferUploaders = new Dictionary<LLUUID, AssetXferUploader>();
-        public AssetTransactionManager Manager;
+        public AgentAssetTransactionsManager Manager;
         private bool m_dumpAssetsToFile;
 
         // Methods
-        public AgentAssetTransactions(LLUUID agentID, AssetTransactionManager manager, bool dumpAssetsToFile)
+        public AgentAssetTransactions(LLUUID agentID, AgentAssetTransactionsManager manager, bool dumpAssetsToFile)
         {
             UserID = agentID;
             Manager = manager;
