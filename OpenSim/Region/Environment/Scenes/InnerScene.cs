@@ -240,7 +240,7 @@ namespace OpenSim.Region.Environment.Scenes
             if (TryGetAvatar(remoteClient.AgentId, out av)) {
                 ObjectUpdatePacket objupdate = new ObjectUpdatePacket();
                 objupdate.RegionData.RegionHandle = m_regInfo.RegionHandle;
-                objupdate.RegionData.TimeDilation = 64096;
+                objupdate.RegionData.TimeDilation = ushort.MaxValue;
                 objupdate.ObjectData = new ObjectUpdatePacket.ObjectDataBlock[2];
                 // avatar stuff - horrible group copypaste
 

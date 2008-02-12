@@ -1289,7 +1289,7 @@ namespace OpenSim.Region.Environment.Scenes
             LLVector3 pos = m_pos;
             LLVector3 vel = Velocity;
             LLQuaternion rot = new LLQuaternion(m_bodyRot.x, m_bodyRot.y, m_bodyRot.z, m_bodyRot.w);
-            remoteClient.SendAvatarTerseUpdate(m_regionHandle, 64096, LocalId, new LLVector3(pos.X, pos.Y, pos.Z),
+            remoteClient.SendAvatarTerseUpdate(m_regionHandle, (ushort)(m_scene.TimeDilation * (float)ushort.MaxValue), LocalId, new LLVector3(pos.X, pos.Y, pos.Z),
                                                new LLVector3(vel.X, vel.Y, vel.Z), rot);
 
             m_scene.AddAgentTime(System.Environment.TickCount - m_perfMonMS);

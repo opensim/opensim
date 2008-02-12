@@ -1567,7 +1567,7 @@ namespace OpenSim.Region.ClientStack
             ObjectUpdatePacket objupdate = (ObjectUpdatePacket)PacketPool.Instance.GetPacket(PacketType.ObjectUpdate);
             // TODO: don't create new blocks if recycling an old packet
             objupdate.RegionData.RegionHandle = regionHandle;
-            objupdate.RegionData.TimeDilation = 64096;
+            objupdate.RegionData.TimeDilation = ushort.MaxValue;
             objupdate.ObjectData = new ObjectUpdatePacket.ObjectDataBlock[1];
             objupdate.ObjectData[0] = CreateDefaultAvatarPacket(textureEntry);
 

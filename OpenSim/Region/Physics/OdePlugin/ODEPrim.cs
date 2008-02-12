@@ -53,6 +53,7 @@ namespace OpenSim.Region.Physics.OdePlugin
         private bool m_taintshape = false;
         private bool m_taintPhysics = false;
         public bool m_taintremove = false;
+        public bool m_taintdisable = false;
 
         private bool m_taintforce = false;
         private List<PhysicsVector> m_forcelist = new List<PhysicsVector>();
@@ -451,6 +452,9 @@ namespace OpenSim.Region.Physics.OdePlugin
 
             if (m_taintforce)
                 changeAddForce(timestep);
+
+            if (m_taintdisable)
+                changedisable(timestep);
         }
 
         public void Move(float timestep)
@@ -493,6 +497,13 @@ namespace OpenSim.Region.Physics.OdePlugin
             }
 
             m_taintrot = _orientation;
+        }
+        public void changedisable(float timestep)
+        {
+            if (Body != (IntPtr) 0)
+                d.BodyDisable(Body);
+
+            m_taintdisable = false;
         }
 
         public void changePhysicsStatus(float timestap)
@@ -862,7 +873,16 @@ namespace OpenSim.Region.Physics.OdePlugin
 
         public override PhysicsVector RotationalVelocity
         {
-            get { return m_rotationalVelocity; }
+            get {
+                if (_zeroFlag)
+                    return PhysicsVector.Zero;
+                m_lastUpdateSent = false;
+                
+                if (m_rotationalVelocity.IsIdentical(PhysicsVector.Zero, 0.2f))
+                    return PhysicsVector.Zero;
+
+                return m_rotationalVelocity; 
+            }
             set { m_rotationalVelocity = value; }
         }
 
@@ -917,6 +937,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                     && (Math.Abs(m_lastposition.Z - l_position.Z) < 0.02))
                 {
                     _zeroFlag = true;
+                    m_throttleUpdates = false;
                 }
                 else
                 {
@@ -944,9 +965,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                     {
                         m_throttleUpdates = false;
                         throttleCounter = 0;
-                        m_rotationalVelocity.X = 0;
-                        m_rotationalVelocity.Y = 0;
-                        m_rotationalVelocity.Z = 0;
+                        m_rotationalVelocity = PhysicsVector.Zero;
                         base.RequestPhysicsterseUpdate();
                         m_lastUpdateSent = true;
                     }
@@ -960,10 +979,15 @@ namespace OpenSim.Region.Physics.OdePlugin
                     _velocity.X = vel.X;
                     _velocity.Y = vel.Y;
                     _velocity.Z = vel.Z;
-
-                    m_rotationalVelocity.X = rotvel.X;
-                    m_rotationalVelocity.Y = rotvel.Y;
-                    m_rotationalVelocity.Z = rotvel.Z;
+                    if (_velocity.IsIdentical(PhysicsVector.Zero, 0.5f))
+                    {
+                        m_rotationalVelocity = PhysicsVector.Zero;
+                    }
+                    else
+                    {
+                        m_rotationalVelocity.setValues(rotvel.X, rotvel.Y, rotvel.Z);
+                    }
+                    
                     //System.Console.WriteLine("ODE: " + m_rotationalVelocity.ToString());
                     _orientation.w = ori.W;
                     _orientation.x = ori.X;

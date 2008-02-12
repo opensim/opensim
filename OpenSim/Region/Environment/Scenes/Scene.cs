@@ -69,7 +69,7 @@ namespace OpenSim.Region.Environment.Scenes
         public InnerScene m_innerScene;
 
         private Random Rand = new Random();
-        private uint _primCount = 702000;
+        private uint _primCount = 720000;
         private readonly Mutex _primAllocateMutex = new Mutex(false);
 
         private int m_timePhase = 24;
@@ -113,7 +113,7 @@ namespace OpenSim.Region.Environment.Scenes
 
         protected int m_fps = 10;
         protected int m_frame = 0;
-        protected float m_timespan = 0.1f;
+        protected float m_timespan = 0.089f;
         protected DateTime m_lastupdate = DateTime.Now;
 
         protected float m_timedilation = 1.0f;
@@ -750,8 +750,17 @@ namespace OpenSim.Region.Environment.Scenes
             finally
             {
                 updateLock.ReleaseMutex();
+                // Get actual time dilation
+                float tmpval = (m_timespan / (float)SinceLastFrame.TotalSeconds);
 
-                m_timedilation = m_timespan / (float)SinceLastFrame.TotalSeconds;
+                // If actual time dilation is greater then one, we're catching up, so subtract 
+                // the amount that's greater then 1 from the time dilation
+                if (tmpval > 1.0)
+                {
+                    tmpval = tmpval - (tmpval - 1.0f);
+                }
+                    m_timedilation = tmpval;
+               
                 m_lastupdate = DateTime.Now;
             }
         }

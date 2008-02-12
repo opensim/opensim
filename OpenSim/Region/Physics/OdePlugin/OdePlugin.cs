@@ -405,8 +405,15 @@ namespace OpenSim.Region.Physics.OdePlugin
                         // If you interpenetrate a prim with another prim
                         if (p1.PhysicsActorType == (int) ActorTypes.Prim && p2.PhysicsActorType == (int) ActorTypes.Prim)
                         {
-                            // Don't collide, one or both prim will explode.
-                            contacts[i].depth = 0f;
+                            if (contacts[i].depth >= 0.25f)
+                            {
+                                // Don't collide, one or both prim will explode.
+                                ((OdePrim)p1).m_taintdisable = true;
+                                AddPhysicsActorTaint(p1);
+                                ((OdePrim)p2).m_taintdisable = true;
+                                AddPhysicsActorTaint(p2);
+                                contacts[i].depth = 0f;
+                            }
                         }
                         if (contacts[i].depth >= 1.00f)
                         {

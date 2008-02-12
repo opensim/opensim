@@ -1593,7 +1593,10 @@ namespace OpenSim.Region.Environment.Scenes
                 part.UpdateMovement();
             }
         }
-
+        public float GetTimeDilation()
+        {
+            return m_scene.TimeDilation;
+        }
         /// <summary>
         /// Added as a way for the storage provider to reset the scene, 
         /// most likely a better way to do this sort of thing but for now...

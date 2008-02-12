@@ -181,7 +181,7 @@ namespace OpenSim.Region.Environment.Scenes
             // Then we divide the whole amount by the amount of seconds pass in between stats updates.
 
             sb[0].StatID = (uint) Stats.TimeDilation;
-            sb[0].StatValue = ((((m_timeDilation + (0.10f * statsUpdateFactor)) /10)  / statsUpdateFactor));
+            sb[0].StatValue = m_timeDilation ; //((((m_timeDilation + (0.10f * statsUpdateFactor)) /10)  / statsUpdateFactor));
 
             sb[1].StatID = (uint) Stats.SimFPS;
             sb[1].StatValue = simfps/statsUpdateFactor;
@@ -280,13 +280,13 @@ namespace OpenSim.Region.Environment.Scenes
 
         public void AddTimeDilation(float td)
         {
-            float tdsetting = td;
-            if (tdsetting > 1.0f)
-                tdsetting = (tdsetting - (tdsetting - 0.91f));
+            //float tdsetting = td;
+            //if (tdsetting > 1.0f)
+                //tdsetting = (tdsetting - (tdsetting - 0.91f));
 
-            if (tdsetting < 0)
-                tdsetting = 0.0f;
-            m_timeDilation += tdsetting;
+            //if (tdsetting < 0)
+                //tdsetting = 0.0f;
+            m_timeDilation = td;
         }
 
         public void SetRootAgents(int rootAgents)

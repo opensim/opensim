@@ -94,10 +94,12 @@ namespace OpenSim.Region.Environment.Scenes
         public byte ObjectSaleType;
         public int SalePrice;
         public uint Category;
+        
 
         public Int32 CreationDate;
         public uint ParentID = 0;
 
+        private PhysicsVector m_lastRotationalVelocity = PhysicsVector.Zero;
         private Vector3 m_sitTargetPosition = new Vector3(0, 0, 0);
         private Quaternion m_sitTargetOrientation = new Quaternion(0, 0, 0, 1);
         private LLUUID m_sitTargetAvatar = LLUUID.Zero;
@@ -417,9 +419,7 @@ namespace OpenSim.Region.Environment.Scenes
                 {
                     if (PhysActor.IsPhysical)
                     {
-                        m_rotationalvelocity.X = PhysActor.RotationalVelocity.X;
-                        m_rotationalvelocity.Y = PhysActor.RotationalVelocity.Y;
-                        m_rotationalvelocity.Z = PhysActor.RotationalVelocity.Z;
+                        m_rotationalvelocity.FromBytes(PhysActor.RotationalVelocity.GetBytes(),0);
                     }
                 }
 
@@ -1693,7 +1693,7 @@ namespace OpenSim.Region.Environment.Scenes
 
 
             byte[] color = new byte[] {m_color.R, m_color.G, m_color.B, m_color.A};
-            remoteClient.SendPrimitiveToClient(m_regionHandle, 64096, LocalID, m_shape, lPos, clientFlags, m_uuid,
+            remoteClient.SendPrimitiveToClient(m_regionHandle, (ushort)(m_parentGroup.GetTimeDilation() * (float)ushort.MaxValue), LocalID, m_shape, lPos, clientFlags, m_uuid,
                                                OwnerID,
                                                m_text, color, ParentID, m_particleSystem, lRot, m_clickAction, m_TextureAnimation);
         }
@@ -1741,12 +1741,13 @@ namespace OpenSim.Region.Environment.Scenes
             LLQuaternion mRot = RotationOffset;
             if ((ObjectFlags & (uint) LLObject.ObjectFlags.Physics) == 0)
             {
-                remoteClient.SendPrimTerseUpdate(m_regionHandle, 64096, LocalID, lPos, mRot);
+                remoteClient.SendPrimTerseUpdate(m_regionHandle, (ushort)(m_parentGroup.GetTimeDilation() * (float)ushort.MaxValue), LocalID, lPos, mRot);
             }
             else
             {
-                remoteClient.SendPrimTerseUpdate(m_regionHandle, 64096, LocalID, lPos, mRot, Velocity,
+                remoteClient.SendPrimTerseUpdate(m_regionHandle, (ushort)(m_parentGroup.GetTimeDilation() * (float)ushort.MaxValue), LocalID, lPos, mRot, Velocity,
                                                  RotationalVelocity);
+                //System.Console.WriteLine("LID: " + LocalID + " RVel:" + RotationalVelocity.ToString() + " TD: " + ((ushort)(m_parentGroup.Scene.TimeDilation * 500000f)).ToString() + ":" + m_parentGroup.Scene.TimeDilation.ToString());
             }
         }
 
@@ -1755,13 +1756,13 @@ namespace OpenSim.Region.Environment.Scenes
             LLQuaternion mRot = RotationOffset;
             if ((ObjectFlags & (uint) LLObject.ObjectFlags.Physics) == 0)
             {
-                remoteClient.SendPrimTerseUpdate(m_regionHandle, 64096, LocalID, lPos, mRot);
+                remoteClient.SendPrimTerseUpdate(m_regionHandle, (ushort)(m_parentGroup.GetTimeDilation() * (float)ushort.MaxValue), LocalID, lPos, mRot);
             }
             else
             {
-                remoteClient.SendPrimTerseUpdate(m_regionHandle, 64096, LocalID, lPos, mRot, Velocity,
+                remoteClient.SendPrimTerseUpdate(m_regionHandle, (ushort)(m_parentGroup.GetTimeDilation() * (float)ushort.MaxValue), LocalID, lPos, mRot, Velocity,
                                                  RotationalVelocity);
-                //System.Console.WriteLine("RVel:" + RotationalVelocity);
+                //System.Console.WriteLine("LID: " + LocalID + "RVel:" + RotationalVelocity.ToString() + " TD: " + ((ushort)(m_parentGroup.Scene.TimeDilation * 500000f)).ToString() + ":" + m_parentGroup.Scene.TimeDilation.ToString());
             }
         }
 

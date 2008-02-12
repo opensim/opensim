@@ -46,12 +46,67 @@ namespace OpenSim.Region.Physics.Manager
             Y = y;
             Z = z;
         }
-
+        public void setValues(float x, float y, float z)
+        {
+            X = x;
+            Y = y;
+            Z = z;
+        }
         public static readonly PhysicsVector Zero = new PhysicsVector(0f, 0f, 0f);
 
         public override string ToString()
         {
             return "<" + X + "," + Y + "," + Z + ">";
+        }
+
+        /// <summary>
+        /// These routines are the easiest way to store XYZ values in an LLVector3 without requiring 3 calls.
+        /// </summary>
+        /// <returns></returns>
+        public byte[] GetBytes()
+        {
+            byte[] byteArray = new byte[12];
+
+            Buffer.BlockCopy(BitConverter.GetBytes(X), 0, byteArray, 0, 4);
+            Buffer.BlockCopy(BitConverter.GetBytes(Y), 0, byteArray, 4, 4);
+            Buffer.BlockCopy(BitConverter.GetBytes(Z), 0, byteArray, 8, 4);
+
+            if (!BitConverter.IsLittleEndian)
+            {
+                Array.Reverse(byteArray, 0, 4);
+                Array.Reverse(byteArray, 4, 4);
+                Array.Reverse(byteArray, 8, 4);
+            }
+
+            return byteArray;
+        }
+
+        public void FromBytes(byte[] byteArray, int pos)
+        {
+            byte[] conversionBuffer = null;
+            if (!BitConverter.IsLittleEndian)
+            {
+                // Big endian architecture
+                if (conversionBuffer == null)
+                    conversionBuffer = new byte[12];
+
+                Buffer.BlockCopy(byteArray, pos, conversionBuffer, 0, 12);
+
+                Array.Reverse(conversionBuffer, 0, 4);
+                Array.Reverse(conversionBuffer, 4, 4);
+                Array.Reverse(conversionBuffer, 8, 4);
+
+                X = BitConverter.ToSingle(conversionBuffer, 0);
+                Y = BitConverter.ToSingle(conversionBuffer, 4);
+                Z = BitConverter.ToSingle(conversionBuffer, 8);
+            }
+            else
+            {
+                // Little endian architecture
+                X = BitConverter.ToSingle(byteArray, pos);
+                Y = BitConverter.ToSingle(byteArray, pos + 4);
+                Z = BitConverter.ToSingle(byteArray, pos + 8);
+            }
         }
 
         // Operations
