@@ -1611,7 +1611,7 @@ namespace OpenSim.Region.Environment.Scenes
                         break;
                 }
 
-                ScheduleFullUpdate();
+                // ScheduleFullUpdate();
             }
         }
 

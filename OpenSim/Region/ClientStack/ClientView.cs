@@ -1709,8 +1709,9 @@ namespace OpenSim.Region.ClientStack
             Array.Copy(rot, 0, outPacket.ObjectData[0].ObjectData, 36, rot.Length);
 
             if (textureanim.Length > 0)
+            {
                 outPacket.ObjectData[0].TextureAnim = textureanim;
-
+            }
 
             OutPacket(outPacket, ThrottleOutPacketType.Task);
         }

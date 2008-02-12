@@ -782,7 +782,9 @@ namespace OpenSim.Region.Environment.Scenes
         {
             SceneObjectGroup group = GetGroupByPrim(ObjectID);
             if (group != null)
+            {
                 group.ServiceObjectPropertiesFamilyRequest(remoteClient, AgentID, RequestFlags);
+            }
         }
 
         /// <summary>
