@@ -429,6 +429,7 @@ namespace OpenSim.Region.Physics.OdePlugin
 
         public void ProcessTaints(float timestep)
         {
+            System.Threading.Thread.Sleep(5);
             if (m_taintposition != _position)
                 Move(timestep);
 
@@ -712,6 +713,7 @@ namespace OpenSim.Region.Physics.OdePlugin
 
         public void changeAddForce(float timestamp)
         {
+            System.Threading.Thread.Sleep(2);
             lock (m_forcelist)
             {
                 //m_log.Info("[PHYSICS]: dequeing forcelist");

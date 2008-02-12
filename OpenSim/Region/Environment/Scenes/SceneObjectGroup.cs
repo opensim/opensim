@@ -580,11 +580,17 @@ namespace OpenSim.Region.Environment.Scenes
 
         public void applyImpulse(PhysicsVector impulse)
         {
+            // We check if rootpart is null here because scripts don't delete if you delete the host.
+            // This means that unfortunately, we can pass a null physics actor to Simulate!
+            // Make sure we don't do that!
             SceneObjectPart rootpart = m_rootPart;
-            if (m_rootPart.PhysActor != null)
+            if (rootpart != null)
             {
-                m_rootPart.PhysActor.AddForce(impulse);
-                m_scene.PhysicsScene.AddPhysicsActorTaint(m_rootPart.PhysActor);
+                if (rootpart.PhysActor != null)
+                {
+                    rootpart.PhysActor.AddForce(impulse);
+                    m_scene.PhysicsScene.AddPhysicsActorTaint(rootpart.PhysActor);
+                }
             }
         }
 

@@ -639,6 +639,7 @@ namespace OpenSim.Region.Physics.OdePlugin
         {
             lock (OdeLock)
             {
+                System.Threading.Thread.Sleep(20);
                 if (prim.IsPhysical)
                 {
                     prim.disableBody();
@@ -733,7 +734,7 @@ namespace OpenSim.Region.Physics.OdePlugin
             // never be called if the prim is physical(active)
 
             // All physical prim end up in the root space
-
+            System.Threading.Thread.Sleep(20);
             if (currentspace != space)
             {
                 if (d.SpaceQuery(currentspace, geom) && currentspace != (IntPtr) 0)
