@@ -917,6 +917,10 @@ namespace OpenSim.Region.Environment.Scenes
                 {
                     group.GrabMovement(offset, pos, remoteClient);
                 }
+                // This is outside the above permissions condition
+                // so that if the object is locked the client moving the object
+                // get's it's position on the simulator even if it was the same as before
+                // This keeps the moving user's client in sync with the rest of the world.
                 group.SendGroupTerseUpdate();
             }
         }

@@ -1610,8 +1610,24 @@ namespace OpenSim.Region.Environment.Scenes
                         NextOwnerMask = ApplyMask(NextOwnerMask, set, mask);
                         break;
                 }
+                SendFullUpdateToAllClients();
 
-                // ScheduleFullUpdate();
+                SendObjectPropertiesToClient(AgentID);
+                
+                
+            }
+        }
+
+        private void SendObjectPropertiesToClient(LLUUID AgentID)
+        {
+            List<ScenePresence> avatars = m_parentGroup.GetScenePresences();
+            for (int i = 0; i < avatars.Count; i++)
+            {
+                // Ugly reference :(
+                if (avatars[i].UUID == AgentID)
+                {
+                    m_parentGroup.GetProperties(avatars[i].ControllingClient);
+                }
             }
         }
 
