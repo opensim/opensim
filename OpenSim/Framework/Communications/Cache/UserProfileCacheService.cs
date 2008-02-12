@@ -259,6 +259,9 @@ namespace OpenSim.Framework.Communications.Cache
 
         public void HandlePurgeInventoryDescendents(IClientAPI remoteClient, LLUUID folderID)
         {
+//            m_log.InfoFormat("[INVENTORYCACHE]: Purging folder {0} for {1} uuid {2}", 
+//                folderID, remoteClient.Name, remoteClient.AgentId);
+            
             CachedUserInfo userProfile;
             if (m_userProfiles.TryGetValue(remoteClient.AgentId, out userProfile))
             {
