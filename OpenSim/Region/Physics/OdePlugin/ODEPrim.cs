@@ -49,6 +49,7 @@ namespace OpenSim.Region.Physics.OdePlugin
         private Quaternion _orientation;
         private PhysicsVector m_taintposition;
         private PhysicsVector m_taintsize;
+        private PhysicsVector m_taintVelocity = PhysicsVector.Zero;
         private Quaternion m_taintrot;
         private bool m_taintshape = false;
         private bool m_taintPhysics = false;
@@ -455,7 +456,12 @@ namespace OpenSim.Region.Physics.OdePlugin
 
             if (m_taintdisable)
                 changedisable(timestep);
+
+            if (m_taintVelocity != PhysicsVector.Zero)
+                changevelocity(timestep);
         }
+
+        
 
         public void Move(float timestep)
         {
@@ -743,7 +749,18 @@ namespace OpenSim.Region.Physics.OdePlugin
             m_taintforce = false;
 
         }
-
+        private void changevelocity(float timestep)
+        {
+            System.Threading.Thread.Sleep(20);
+            if (IsPhysical)
+            {
+                if (Body != (IntPtr)0)
+                {
+                    d.BodySetLinearVel(Body, m_taintVelocity.X, m_taintVelocity.Y, m_taintVelocity.Z);
+                }
+            }
+            m_taintVelocity = PhysicsVector.Zero;
+        }
         public override bool IsPhysical
         {
             get { return m_isphysical; }
@@ -838,7 +855,14 @@ namespace OpenSim.Region.Physics.OdePlugin
                 returnVelocity.Z = (m_lastVelocity.Z + _velocity.Z)/2;
                 return returnVelocity;
             }
-            set { _velocity = value; }
+            set { 
+                _velocity = value;
+                
+                m_taintVelocity = value;
+                _parent_scene.AddPhysicsActorTaint(this);
+           
+            
+            }
         }
 
         public override bool Kinematic
@@ -898,16 +922,24 @@ namespace OpenSim.Region.Physics.OdePlugin
                 d.Vector3 rotvel = d.BodyGetAngularVel(Body);
 
                 PhysicsVector l_position = new PhysicsVector();
+
+                
                 //  kluge to keep things in bounds.  ODE lets dead avatars drift away (they should be removed!)
-                if (vec.X < 0.0f) vec.X = 0.0f;
-                if (vec.Y < 0.0f) vec.Y = 0.0f;
-                if (vec.X > 255.95f) vec.X = 255.95f;
-                if (vec.Y > 255.95f) vec.Y = 255.95f;
+                //if (vec.X < 0.0f) vec.X = 0.0f;
+                //if (vec.Y < 0.0f) vec.Y = 0.0f;
+                //if (vec.X > 255.95f) vec.X = 255.95f;
+                //if (vec.Y > 255.95f) vec.Y = 255.95f;
                 m_lastposition = _position;
 
                 l_position.X = vec.X;
                 l_position.Y = vec.Y;
                 l_position.Z = vec.Z;
+
+                if (l_position.X > 257f || l_position.X < -1f || l_position.Y > 257f || l_position.Y < -1f)
+                {
+                    base.RequestPhysicsterseUpdate();
+                }
+
                 if (l_position.Z < 0)
                 {
                     // This is so prim that get lost underground don't fall forever and suck up 

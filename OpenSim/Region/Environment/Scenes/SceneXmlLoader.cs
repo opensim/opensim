@@ -175,6 +175,8 @@ namespace OpenSim.Region.Environment.Scenes
         public void CreatePrimFromXml(string xmlData)
         {
             SceneObjectGroup obj = new SceneObjectGroup(xmlData);
+            LLVector3 receivedVelocity = obj.RootPart.Velocity;
+            //System.Console.WriteLine(obj.RootPart.Velocity.ToString());
             m_innerScene.AddEntityFromStorage(obj);
 
             SceneObjectPart rootPart = obj.GetChildPart(obj.UUID);
@@ -191,6 +193,8 @@ namespace OpenSim.Region.Environment.Scenes
                     new Quaternion(rootPart.RotationOffset.W, rootPart.RotationOffset.X,
                                    rootPart.RotationOffset.Y, rootPart.RotationOffset.Z), UsePhysics);
                 rootPart.DoPhysicsPropertyUpdate(UsePhysics, true);
+                rootPart.Velocity = receivedVelocity;
+                 
             }
         }
 

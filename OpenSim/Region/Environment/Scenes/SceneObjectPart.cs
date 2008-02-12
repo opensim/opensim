@@ -405,7 +405,19 @@ namespace OpenSim.Region.Environment.Scenes
 
                 return m_velocity;
             }
-            set { m_velocity = value; }
+            set { 
+                
+                m_velocity = value;
+                if (PhysActor != null)
+                {
+                    if (PhysActor.IsPhysical)
+                    {
+                        PhysActor.Velocity = new PhysicsVector(value.X, value.Y, value.Z);
+                        m_parentGroup.Scene.PhysicsScene.AddPhysicsActorTaint(PhysActor);
+                    }
+                }
+              
+            }
         }
 
         public LLVector3 RotationalVelocity
@@ -742,6 +754,7 @@ namespace OpenSim.Region.Environment.Scenes
         {
             XmlSerializer serializer = new XmlSerializer(typeof (SceneObjectPart));
             SceneObjectPart newobject = (SceneObjectPart) serializer.Deserialize(xmlReader);
+
             return newobject;
         }
 
@@ -1776,6 +1789,16 @@ namespace OpenSim.Region.Environment.Scenes
 
         public void PhysicsRequestingTerseUpdate()
         {
+            if (PhysActor != null)
+            {
+                LLVector3 newpos = new LLVector3(PhysActor.Position.GetBytes(), 0);
+                if (newpos.X > 257f || newpos.X < -1f || newpos.Y > 257f || newpos.Y < -1f)
+                {
+                    m_parentGroup.AbsolutePosition = newpos;
+                    return;
+                }
+                
+            }
             ScheduleTerseUpdate();
 
             //SendTerseUpdateToAllClients();

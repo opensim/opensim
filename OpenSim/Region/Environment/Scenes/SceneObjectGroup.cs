@@ -126,7 +126,7 @@ namespace OpenSim.Region.Environment.Scenes
             set
             {
                 LLVector3 val = value;
-                if (val.X > 255.6f || val.X < 0.4f || val.Y > 255.6f || val.Y < 0.4f)
+                if (val.X > 257f || val.X < -1f || val.Y > 257f || val.Y < -1f)
                 {
                     m_scene.CrossPrimGroupIntoNewRegion(val, this);
                 }

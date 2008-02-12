@@ -745,7 +745,7 @@ namespace OpenSim.Region.Environment.Scenes
             }
             catch (Exception e)
             {
-                m_log.Error("[Scene]: Failed with exception " + e.ToString());
+                m_log.Error("[Scene]: Failed with exception " + e.ToString() + " On Region: " + RegionInfo.RegionName);
             }
             finally
             {
@@ -1230,32 +1230,32 @@ namespace OpenSim.Region.Environment.Scenes
             int thisx = (int)RegionInfo.RegionLocX;
             int thisy = (int)RegionInfo.RegionLocY;
             ulong newRegionHandle = 0;
-            LLVector3 pos = grp.AbsolutePosition;
+            LLVector3 pos = position;
 
-            if (position.X > 255.6f)
+            if (position.X > 257f)
             {
-                pos.X = ((pos.X - 256) + 10);
+                pos.X = ((pos.X - 256));
                 
                 newRegionHandle = Util.UIntsToLong((uint)((thisx + 1) * 256), (uint)(thisy * 256));
                 
                 // x + 1
             }
-            else if (position.X < 0.4f)
+            else if (position.X < -1f)
             {
-                pos.X = ((pos.X + 256) - 10);
+                pos.X = ((pos.X + 256));
                 newRegionHandle = Util.UIntsToLong((uint)((thisx - 1) * 256), (uint)(thisy * 256));
                 // x - 1
             }
 
-            if (position.Y > 255.6f)
+            if (position.Y > 257f)
             {
-                pos.Y = ((pos.Y - 256) + 10);
+                pos.Y = ((pos.Y - 256));
                 newRegionHandle = Util.UIntsToLong((uint)(thisx * 256), (uint)((thisy + 1) * 256));
                // y + 1
             }
-            else if (position.Y < 0.4f)
+            else if (position.Y < -1f)
             {
-                pos.Y = ((pos.Y + 256) - 10);
+                pos.Y = ((pos.Y + 256));
                 newRegionHandle = Util.UIntsToLong((uint)(thisx * 256), (uint)((thisy - 1) * 256));
                 // y - 1
             }
@@ -1287,7 +1287,7 @@ namespace OpenSim.Region.Environment.Scenes
         }
         public void IncomingInterRegionPrimGroup(ulong regionHandle, LLUUID primID, string objXMLData)
         {
-            m_log.Warn("{[INTERREGION]: OMG!  A new prim arrived from a neighbor!..  Kyill eeehht! before it corrupts my entire database!  AHHH!  I feel so dirty now!    yuck!   ack! arg!");
+            m_log.Warn("{[INTERREGION]: A new prim arrived from a neighbor");
             m_sceneXmlLoader.LoadGroupFromXml2String(objXMLData);
 
         }
