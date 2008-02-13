@@ -374,11 +374,10 @@ namespace OpenSim.Framework.Data.MSSQL
                     {
                         Dictionary<string, string> param = new Dictionary<string, string>();
                         param["first"] = querysplit[0];
-                        param["second"] = querysplit[1];
 
                         IDbCommand result =
                             database.Query(
-                                "SELECT UUID,username,surname FROM " + m_usersTableName + " WHERE username = @first OR lastname = @second",
+                                "SELECT UUID,username,surname FROM " + m_usersTableName + " WHERE username = @first OR lastname = @first",
                                 param);
                         IDataReader reader = result.ExecuteReader();
 
