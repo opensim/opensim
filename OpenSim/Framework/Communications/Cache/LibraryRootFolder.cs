@@ -55,7 +55,7 @@ namespace OpenSim.Framework.Communications.Cache
 
         public LibraryRootFolder()
         {
-            m_log.Info("[LIBRARYINVENTORY]: Loading library inventory");
+            m_log.Info("[LIBRARY INVENTORY]: Loading library inventory");
             
             agentID = libOwner;
             folderID = new LLUUID("00000112-000f-0000-0000-000100bba000");
@@ -141,7 +141,8 @@ namespace OpenSim.Framework.Communications.Cache
         protected void LoadLibraries(string librariesControlPath)
         {
             m_log.Info(
-                String.Format("LIBRARYINVENTORY", "Loading libraries control file {0}", librariesControlPath));
+                String.Format(
+                    "[LIBRARY INVENTORY]: Loading libraries control file {0}", librariesControlPath));
             
             LoadFromFile(librariesControlPath, "Libraries control", ReadLibraryFromConfig);
         }
@@ -189,14 +190,13 @@ namespace OpenSim.Framework.Communications.Cache
                 parentFolder.SubFolders.Add(folderInfo.folderID, folderInfo);
                 
 //                    m_log.Info(
-//                        String.Format("[LIBRARYINVENTORY]: Adding folder {0} ({1})", folderInfo.name, folderInfo.folderID));
+//                        String.Format("[LIBRARY INVENTORY]: Adding folder {0} ({1})", folderInfo.name, folderInfo.folderID));
             }
             else
             {
-                m_log.Warn(
-                    String.Format("[LIBRARYINVENTORY]: " + 
-                                  "Couldn't add folder {0} ({1}) since parent folder with ID {2} does not exist!",
-                                  folderInfo.name, folderInfo.folderID, folderInfo.parentID));
+                m_log.WarnFormat(
+                    "[LIBRARY INVENTORY]: Couldn't add folder {0} ({1}) since parent folder with ID {2} does not exist!",
+                    folderInfo.name, folderInfo.folderID, folderInfo.parentID);
             }
         }
 
@@ -229,10 +229,9 @@ namespace OpenSim.Framework.Communications.Cache
             }
             else
             {
-                m_log.Warn(
-                    String.Format("[LIBRARYINVENTORY]: " +
-                                  "Couldn't add item {0} ({1}) since parent folder with ID {2} does not exist!",
-                                  item.inventoryName, item.inventoryID, item.parentFolderID));
+                m_log.WarnFormat(
+                    "[LIBRARY INVENTORY]: Couldn't add item {0} ({1}) since parent folder with ID {2} does not exist!",
+                    item.inventoryName, item.inventoryID, item.parentFolderID);
             }                
         }
                 
@@ -260,13 +259,13 @@ namespace OpenSim.Framework.Communications.Cache
                 catch (XmlException e)
                 {
                     m_log.Error(
-                        String.Format("[LIBRARYINVENTORY]: Error loading {0} : {1}", path, e));
+                        String.Format("[LIBRARY INVENTORY]: Error loading {0} : {1}", path, e));
                 }                
             }
             else
             {
                 m_log.Error(
-                    String.Format("[LIBRARYINVENTORY]: {0} file {1} does not exist!", fileDescription, path));
+                    String.Format("[LIBRARY INVENTORY]: {0} file {1} does not exist!", fileDescription, path));
             }            
         }
         
