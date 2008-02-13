@@ -78,9 +78,24 @@ namespace OpenSim.Framework.Communications.Cache
                         = new AgentAssetTransactions(userID, this, m_dumpAssetsToFile);
                     AgentTransactions.Add(userID, transactions);  
                 }
-            }
+                
+                return AgentTransactions[userID];                
+            }            
+        }
+        
+        /// <summary>
+        /// Remove the given agent asset transactions.  This should be called when a client is departing
+        /// from a scene (and hence won't be making any more transactions here).
+        /// </summary>
+        /// <param name="userID"></param>
+        public void RemoveAgentAssetTransactions(LLUUID userID)
+        {
+            m_log.DebugFormat("Removing agent asset transactions structure for agent {0}", userID);
             
-            return AgentTransactions[userID];
+            lock (AgentTransactions)
+            {
+                AgentTransactions.Remove(userID);
+            }
         }
         
         /// <summary>

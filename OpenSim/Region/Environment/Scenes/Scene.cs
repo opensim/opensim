@@ -1466,6 +1466,8 @@ namespace OpenSim.Region.Environment.Scenes
 
             ForEachScenePresence(
                 delegate(ScenePresence presence) { presence.CoarseLocationChange(); });
+            
+            CommsManager.TransactionsManager.RemoveAgentAssetTransactions(agentID);
 
             lock (m_scenePresences)
             {
