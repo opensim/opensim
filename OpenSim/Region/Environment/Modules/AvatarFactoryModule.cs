@@ -65,7 +65,7 @@ namespace OpenSim.Region.Environment.Modules
                 {
                     appearance.VisualParams = GetDefaultVisualParams();
                     appearance.TextureEntry = AvatarAppearance.GetDefaultTextureEntry();
-                    m_avatarsAppearance[avatarId] = appearance;
+                    m_avatarsAppearance.Add(avatarId, appearance);
                     return true;
                 }
             }
@@ -77,7 +77,7 @@ namespace OpenSim.Region.Environment.Modules
             GetDefaultAvatarAppearance(out wearables, out visualParams);
             appearance = new AvatarAppearance(avatarId, wearables, visualParams);
 
-            m_avatarsAppearance[avatarId] = appearance;
+            m_avatarsAppearance.Add(avatarId, appearance);            
             if (m_enablePersist)
             {
                 m_appearanceMapper.Add(avatarId.UUID, appearance);
