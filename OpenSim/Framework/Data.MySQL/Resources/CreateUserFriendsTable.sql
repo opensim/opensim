@@ -4,7 +4,7 @@ SET FOREIGN_KEY_CHECKS=0;
 -- ----------------------------
 CREATE TABLE `userfriends` (
    `ownerID` VARCHAR(37) NOT NULL,
-   `friendID` VARCHAR(47) NOT NULL,
+   `friendID` VARCHAR(37) NOT NULL,
    `friendPerms` INT NOT NULL,
    `datetimestamp` INT NOT NULL,
 	 UNIQUE KEY  (`ownerID`, `friendID`)
