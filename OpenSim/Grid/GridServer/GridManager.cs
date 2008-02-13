@@ -317,8 +317,8 @@ namespace OpenSim.Grid.GridServer
             if (OldSim == null || OldSim.UUID == TheSim.UUID)
             {
                 if ((OldSim == null && TheSim.regionRecvKey == config.SimSendKey && 
-                    TheSim.regionRecvKey == config.SimRecvKey) || 
-                    (OldSim.regionRecvKey == TheSim.regionRecvKey &&
+                    TheSim.regionRecvKey == config.SimRecvKey) ||
+                    (OldSim != null && OldSim.regionRecvKey == TheSim.regionRecvKey &&
                     OldSim.regionSendKey == TheSim.regionSendKey))
                 {
                     m_log.Info("[GRID]: Adding region " + TheSim.regionLocX + " , " + TheSim.regionLocY + " , " +
