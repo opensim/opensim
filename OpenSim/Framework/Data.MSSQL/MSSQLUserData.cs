@@ -37,7 +37,7 @@ namespace OpenSim.Framework.Data.MSSQL
     /// <summary>
     /// A database interface class to a user profile storage system
     /// </summary>
-    internal class MSSQLUserData : IUserData
+    public class MSSQLUserData : IUserData
     {
         private static readonly log4net.ILog m_log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 
@@ -86,37 +86,41 @@ namespace OpenSim.Framework.Data.MSSQL
                 new MSSQLManager(settingDataSource, settingInitialCatalog, settingPersistSecurityInfo, settingUserId,
                                  settingPassword);
 
-            if (!TestTables())
-            {
-                database.ExecuteResourceSql("Mssql-agents.sql");
-                database.ExecuteResourceSql("Mssql-users.sql");
-                database.ExecuteResourceSql("Mssql-userfriends.sql");
-            }
+            TestTables();
         }
 
         private bool TestTables()
         {
-            IDbCommand cmd = database.Query("select top 1 webLoginKey from "+m_usersTableName, new Dictionary<string, string>());
+            IDbCommand cmd;
+
+            cmd = database.Query("select top 1 * from " + m_usersTableName, new Dictionary<string, string>());
             try
             {
                 cmd.ExecuteNonQuery();
-                cmd.Dispose();
             }
             catch
             {
-                database.Query("alter table "+m_usersTableName+" add column [webLoginKey] varchar(36) default NULL", new Dictionary<string, string>());
+                database.ExecuteResourceSql("Mssql-users.sql");
+            }
+       
+            cmd = database.Query("select top 1 * from " + m_agentsTableName, new Dictionary<string, string>());
+            try
+            {
                 cmd.ExecuteNonQuery();
-                cmd.Dispose();
+            }
+            catch
+            {
+                database.ExecuteResourceSql("Mssql-agents.sql");
             }
 
-            cmd = database.Query("select top 1 * from "+m_usersTableName, new Dictionary<string, string>());
+            cmd = database.Query("select top 1 * from " + m_userFriendsTableName, new Dictionary<string, string>());
             try
             {
                 cmd.ExecuteNonQuery();
             }
             catch
             {
-                return false;
+                database.ExecuteResourceSql("CreateUserFriendsTable.sql");
             }
 
             return true;
@@ -180,6 +184,7 @@ namespace OpenSim.Framework.Data.MSSQL
                         "VALUES " +
                         "(@ownerID,@friendID,@friendPerms,@datetimestamp)",
                             param);
+
                     adder.ExecuteNonQuery();
 
                     adder =
