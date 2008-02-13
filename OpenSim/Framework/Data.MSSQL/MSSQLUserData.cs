@@ -342,7 +342,7 @@ namespace OpenSim.Framework.Data.MSSQL
 
                         IDbCommand result =
                             database.Query(
-                                "SELECT UUID,username,surname FROM " + m_usersTableName + " WHERE username = @first AND lastname = @second",
+                                "SELECT UUID,username,lastname FROM " + m_usersTableName + " WHERE username = @first AND lastname = @second",
                                 param);
                         IDataReader reader = result.ExecuteReader();
 
@@ -352,7 +352,7 @@ namespace OpenSim.Framework.Data.MSSQL
                             Framework.AvatarPickerAvatar user = new Framework.AvatarPickerAvatar();
                             user.AvatarID = new LLUUID((string)reader["UUID"]);
                             user.firstName = (string)reader["username"];
-                            user.lastName = (string)reader["surname"];
+                            user.lastName = (string)reader["lastname"];
                             returnlist.Add(user);
                         }
                         reader.Close();
@@ -377,7 +377,7 @@ namespace OpenSim.Framework.Data.MSSQL
 
                         IDbCommand result =
                             database.Query(
-                                "SELECT UUID,username,surname FROM " + m_usersTableName + " WHERE username = @first OR lastname = @first",
+                                "SELECT UUID,username,lastname FROM " + m_usersTableName + " WHERE username = @first OR lastname = @first",
                                 param);
                         IDataReader reader = result.ExecuteReader();
 
@@ -387,7 +387,7 @@ namespace OpenSim.Framework.Data.MSSQL
                             Framework.AvatarPickerAvatar user = new Framework.AvatarPickerAvatar();
                             user.AvatarID = new LLUUID((string)reader["UUID"]);
                             user.firstName = (string)reader["username"];
-                            user.lastName = (string)reader["surname"];
+                            user.lastName = (string)reader["lastname"];
                             returnlist.Add(user);
                         }
                         reader.Close();
