@@ -25,6 +25,9 @@
 * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 * 
 */
+using System.Collections.Generic;
+using System.Data;
+
 namespace OpenSim.Framework.Data.MSSQL
 {
     /// <summary>
@@ -52,6 +55,18 @@ namespace OpenSim.Framework.Data.MSSQL
             database =
                 new MSSQLManager(settingDataSource, settingInitialCatalog, settingPersistSecurityInfo, settingUserId,
                                  settingPassword);
+
+            IDbCommand cmd = database.Query("select top 1 * from logs", new Dictionary<string, string>());
+            try
+            {
+                cmd.ExecuteNonQuery();
+                cmd.Dispose();
+            }
+            catch
+            {
+                database.ExecuteResourceSql("Mssql-logs.sql");
+            }
+
         }
 
         /// <summary>

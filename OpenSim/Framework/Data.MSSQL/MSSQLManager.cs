@@ -52,16 +52,8 @@ namespace OpenSim.Framework.Data.MSSQL
         /// <summary>
         /// Connection string for ADO.net
         /// </summary>
-        private string connectionString;
+        private readonly string connectionString;
 
-        /// <summary>
-        /// Initialises and creates a new Sql connection and maintains it.
-        /// </summary>
-        /// <param name="hostname">The Sql server being connected to</param>
-        /// <param name="database">The name of the Sql database being used</param>
-        /// <param name="username">The username logging into the database</param>
-        /// <param name="password">The password for the user logging in</param>
-        /// <param name="cpooling">Whether to use connection pooling or not, can be one of the following: 'yes', 'true', 'no' or 'false', if unsure use 'false'.</param>
         public MSSQLManager(string dataSource, string initialCatalog, string persistSecurityInfo, string userId,
                             string password)
         {
@@ -71,68 +63,12 @@ namespace OpenSim.Framework.Data.MSSQL
                                    ";Persist Security Info=" + persistSecurityInfo + ";User ID=" + userId + ";Password=" +
                                    password + ";";
                 dbcon = new SqlConnection(connectionString);
-                TestTables(dbcon);
                 dbcon.Open();
             }
             catch (Exception e)
             {
                 throw new Exception("Error initialising Sql Database: " + e.ToString());
             }
-        }
-
-        private bool TestTables(IDbConnection conn)
-        {
-            IDbCommand cmd = Query("SELECT * FROM regions", new Dictionary<string, string>());
-            //SqlCommand cmd = (SqlCommand)dbcon.CreateCommand();
-            //cmd.CommandText = "SELECT * FROM regions";    
-            try
-            {
-                conn.Open();
-                cmd.ExecuteNonQuery();
-                cmd.Dispose();
-                conn.Close();
-            }
-            catch (Exception)
-            {
-                m_log.Info("[DATASTORE]: MSSQL Database doesn't exist... creating");
-                InitDB(conn);
-            }
-            cmd = Query("select top 1 webLoginKey from users", new Dictionary<string, string>());
-            try
-            {
-                conn.Open();
-                cmd.ExecuteNonQuery();
-                cmd.Dispose();
-                conn.Close();
-            }
-            catch (Exception)
-            {
-                conn.Open();
-                cmd = Query("alter table users add column [webLoginKey] varchar(36) default NULL", new Dictionary<string, string>());
-                cmd.ExecuteNonQuery();
-                cmd.Dispose();
-                conn.Close();
-            }
-            return true;
-        }
-
-        private void InitDB(IDbConnection conn)
-        {
-            string createRegions = defineTable(createRegionsTable());
-            Dictionary<string, string> param = new Dictionary<string, string>();
-            IDbCommand pcmd = Query(createRegions, param);
-            if (conn.State == ConnectionState.Closed)
-            {
-                conn.Open();
-            }
-            pcmd.ExecuteNonQuery();
-            pcmd.Dispose();
-
-            ExecuteResourceSql("Mssql-users.sql");
-            ExecuteResourceSql("Mssql-agents.sql");
-            ExecuteResourceSql("Mssql-logs.sql");
-
-            conn.Close();
         }
 
         private DataTable createRegionsTable()
@@ -253,7 +189,6 @@ namespace OpenSim.Framework.Data.MSSQL
             {
                 try
                 {
-                    //string connectionString = "Data Source=WRK-OU-738\\SQLEXPRESS;Initial Catalog=rex;Persist Security Info=True;User ID=sa;Password=rex";
                     // Close the DB connection
                     dbcon.Close();
                     // Try reopen it

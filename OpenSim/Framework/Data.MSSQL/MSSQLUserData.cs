@@ -85,8 +85,42 @@ namespace OpenSim.Framework.Data.MSSQL
             database =
                 new MSSQLManager(settingDataSource, settingInitialCatalog, settingPersistSecurityInfo, settingUserId,
                                  settingPassword);
+
+            if (!TestTables())
+            {
+                database.ExecuteResourceSql("Mssql-agents.sql");
+                database.ExecuteResourceSql("Mssql-users.sql");
+                database.ExecuteResourceSql("Mssql-userfriends.sql");
+            }
         }
 
+        private bool TestTables()
+        {
+            IDbCommand cmd = database.Query("select top 1 webLoginKey from "+m_usersTableName, new Dictionary<string, string>());
+            try
+            {
+                cmd.ExecuteNonQuery();
+                cmd.Dispose();
+            }
+            catch
+            {
+                database.Query("alter table "+m_usersTableName+" add column [webLoginKey] varchar(36) default NULL", new Dictionary<string, string>());
+                cmd.ExecuteNonQuery();
+                cmd.Dispose();
+            }
+
+            cmd = database.Query("select top 1 * from "+m_usersTableName, new Dictionary<string, string>());
+            try
+            {
+                cmd.ExecuteNonQuery();
+            }
+            catch
+            {
+                return false;
+            }
+
+            return true;
+        }
         /// <summary>
         /// Searches the database for a specified user profile by name components
         /// </summary>
@@ -104,7 +138,7 @@ namespace OpenSim.Framework.Data.MSSQL
                     param["second"] = last;
 
                     IDbCommand result =
-                        database.Query("SELECT * FROM "+m_usersTableName+" WHERE username = @first AND lastname = @second", param);
+                        database.Query("SELECT * FROM " + m_usersTableName + " WHERE username = @first AND lastname = @second", param);
                     IDataReader reader = result.ExecuteReader();
 
                     UserProfileData row = database.readUserRow(reader);
@@ -153,7 +187,7 @@ namespace OpenSim.Framework.Data.MSSQL
             m_log.Info("[USER]: Stub UpdateUserCUrrentRegion called");
         }
 
- 
+
 
         public List<Framework.AvatarPickerAvatar> GeneratePickerResults(LLUUID queryID, string query)
         {
@@ -180,9 +214,9 @@ namespace OpenSim.Framework.Data.MSSQL
                         while (reader.Read())
                         {
                             Framework.AvatarPickerAvatar user = new Framework.AvatarPickerAvatar();
-                            user.AvatarID = new LLUUID((string) reader["UUID"]);
-                            user.firstName = (string) reader["username"];
-                            user.lastName = (string) reader["surname"];
+                            user.AvatarID = new LLUUID((string)reader["UUID"]);
+                            user.firstName = (string)reader["username"];
+                            user.lastName = (string)reader["surname"];
                             returnlist.Add(user);
                         }
                         reader.Close();
@@ -216,9 +250,9 @@ namespace OpenSim.Framework.Data.MSSQL
                         while (reader.Read())
                         {
                             Framework.AvatarPickerAvatar user = new Framework.AvatarPickerAvatar();
-                            user.AvatarID = new LLUUID((string) reader["UUID"]);
-                            user.firstName = (string) reader["username"];
-                            user.lastName = (string) reader["surname"];
+                            user.AvatarID = new LLUUID((string)reader["UUID"]);
+                            user.firstName = (string)reader["username"];
+                            user.lastName = (string)reader["surname"];
                             returnlist.Add(user);
                         }
                         reader.Close();
@@ -323,7 +357,7 @@ namespace OpenSim.Framework.Data.MSSQL
             UserProfileData user = GetUserByUUID(AgentID);
             user.webLoginKey = WebLoginKey;
             UpdateUserProfile(user);
-            
+
         }
         /// <summary>
         /// Creates a new users profile
@@ -342,7 +376,7 @@ namespace OpenSim.Framework.Data.MSSQL
                                            user.lastLogin, user.userInventoryURI, user.userAssetURI,
                                            user.profileCanDoMask, user.profileWantDoMask,
                                            user.profileAboutText, user.profileFirstText, user.profileImage,
-                                           user.profileFirstImage,user.webLoginKey);
+                                           user.profileFirstImage, user.webLoginKey);
                 }
             }
             catch (Exception e)

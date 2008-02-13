@@ -78,9 +78,6 @@ namespace OpenSim.Framework.Data
         /// <returns>An array containing all the sim profiles in the specified range</returns>
         RegionProfileData[] GetProfilesInRange(uint Xmin, uint Ymin, uint Xmax, uint Ymax);
 
-
-        List<AvatarPickerAvatar> GeneratePickerResults(LLUUID queryID, string query);
-
         /// <summary>
         /// Authenticates a sim by use of its recv key. 
         /// WARNING: Insecure

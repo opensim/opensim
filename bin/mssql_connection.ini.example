@@ -9,8 +9,10 @@ user_id=username
 password=password
 
 ; These entries are only for if you, for some reason, wish to customize your user server table names.
+; Do note that if you change the table names, you might have to change the sql resources too manually
 ; If ommitted, default values will be used.
 
 userstablename=users
 userfriendstablename=userfriends
 agentstablename=agents
+regionstablename=regions
