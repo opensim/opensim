@@ -100,6 +100,23 @@ namespace OpenSim.Region.Communications.Local
             }
         }
 
+        public override InventoryFolderBase RequestNamedFolder(LLUUID userID, string folderName)
+        {
+             List<InventoryFolderBase> folders = RequestFirstLevelFolders(userID);
+             InventoryFolderBase requestedFolder = null;
+
+            //need to make sure we send root folder first
+            foreach (InventoryFolderBase folder in folders)
+            {
+                if (folder.name == folderName)
+                {
+                    requestedFolder = folder;
+                    break;
+                }
+            }
+
+            return requestedFolder;
+        }
 
         /// <summary>
         /// Send the given inventory folder and its item contents back to the requester.

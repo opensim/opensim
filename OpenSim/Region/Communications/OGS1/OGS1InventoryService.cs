@@ -175,6 +175,11 @@ namespace OpenSim.Region.Communications.OGS1
             return null;
         }
 
+        public virtual InventoryFolderBase RequestNamedFolder(LLUUID userID, string folderName)
+        {
+            return null;
+        }
+
         public void CreateNewUserInventory(LLUUID user)
         {
         }

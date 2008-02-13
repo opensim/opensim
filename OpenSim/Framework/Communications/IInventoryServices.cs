@@ -88,5 +88,13 @@ namespace OpenSim.Framework.Communications
         /// <param name="userID"></param>
         /// <returns></returns>
         List<InventoryFolderBase> RequestFirstLevelFolders(LLUUID userID);
+
+        /// <summary>
+        /// Returns the named folder in that users inventory, returns null if folder is not found.
+        /// </summary>
+        /// <param name="userID"></param>
+        /// <param name="folderName"></param>
+        /// <returns></returns>
+        InventoryFolderBase RequestNamedFolder(LLUUID userID, string folderName);
     }
 }

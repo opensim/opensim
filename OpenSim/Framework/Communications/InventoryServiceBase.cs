@@ -141,6 +141,12 @@ namespace OpenSim.Framework.Communications
         }
 
         // See IInventoryServices
+        public virtual InventoryFolderBase RequestNamedFolder(LLUUID userID, string folderName)
+        {
+            return null;
+        }
+
+        // See IInventoryServices
         public void CreateNewUserInventory(LLUUID user)
         {
             InventoryFolderBase existingRootFolder = RequestUsersRoot(user);
