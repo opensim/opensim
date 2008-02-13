@@ -359,7 +359,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                     //capsuleradius = 0.2f;
 
                     CAPSULE_LENGTH = (SetSize.Z - ((SetSize.Z*0.52f))); // subtract 43% of the size
-                    m_log.Info("[SIZE]: " + CAPSULE_LENGTH.ToString());
+                    //m_log.Info("[SIZE]: " + CAPSULE_LENGTH.ToString());
                     d.BodyDestroy(Body);
 
                     _parent_scene.waitForSpaceUnlock(_parent_scene.space);

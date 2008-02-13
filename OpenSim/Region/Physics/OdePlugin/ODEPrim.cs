@@ -431,7 +431,7 @@ namespace OpenSim.Region.Physics.OdePlugin
             catch (System.AccessViolationException)
             {
                 
-                m_log.Error("MESH LOCKED");
+                m_log.Error("[PHYSICS]: MESH LOCKED");
                 return;
             }
             if (IsPhysical && Body == (IntPtr) 0)
