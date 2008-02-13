@@ -730,7 +730,16 @@ namespace OpenSim.Region.Physics.OdePlugin
                             }
                         }
                     }
+                    try
+                    {
 
+                        d.GeomDestroy(prim.prim_geom);
+                    }
+                    catch (System.AccessViolationException)
+                    {
+                        m_log.Info("[PHYSICS]: Couldn't remove prim from physics scene, it was already be removed.");
+                    }
+                    _prims.Remove(prim);
 
                     //If there are no more geometries in the sub-space, we don't need it in the main space anymore
                     if (d.SpaceGetNumGeoms(prim.m_targetSpace) == 0)
@@ -755,9 +764,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                     }
                 }
 
-                d.GeomDestroy(prim.prim_geom);
 
-                _prims.Remove(prim);
             }
         }
         /// <summary>
