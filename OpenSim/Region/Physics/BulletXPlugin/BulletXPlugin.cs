@@ -769,7 +769,10 @@ namespace OpenSim.Region.Physics.BulletXPlugin
                 }
             }
         }
-
+        public override float CollisionScore
+        {
+            get { return 0f; }
+        }
         public override PhysicsVector Size
         {
             get { return _size; }

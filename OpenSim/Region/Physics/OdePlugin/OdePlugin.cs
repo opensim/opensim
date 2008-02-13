@@ -89,6 +89,9 @@ namespace OpenSim.Region.Physics.OdePlugin
         private static float ODE_STEPSIZE = 0.020f;
         private static bool RENDER_FLAG = false;
         private static float metersInSpace = 29.9f;
+
+        private int interpenetrations_before_disable = 35;
+
         private IntPtr contactgroup;
         private IntPtr LandGeom = (IntPtr) 0;
         private float[] _heightmap;
@@ -109,13 +112,18 @@ namespace OpenSim.Region.Physics.OdePlugin
         private d.Contact AvatarMovementprimContact;
         private d.Contact AvatarMovementTerrainContact;
 
+        
+
         private int m_physicsiterations = 10;
         private float m_SkipFramesAtms = 0.40f; // Drop frames gracefully at a 400 ms lag
         private PhysicsActor PANull = new NullPhysicsActor();
         private float step_time = 0.0f;
+        private int ms = 0;
         public IntPtr world;
 
         public IntPtr space;
+
+        private IntPtr tmpSpace;
         // split static geometry collision handling into spaces of 30 meters
         public IntPtr[,] staticPrimspace = new IntPtr[(int) (300/metersInSpace),(int) (300/metersInSpace)];
 
@@ -206,6 +214,14 @@ namespace OpenSim.Region.Physics.OdePlugin
             }
         }
 
+        public void starttiming()
+        {
+            ms = Environment.TickCount;
+        }
+        public int stoptiming()
+        {
+            return Environment.TickCount - ms;
+        }
         // Initialize the mesh plugin
         public override void Initialise(IMesher meshmerizer)
         {
@@ -311,6 +327,7 @@ namespace OpenSim.Region.Physics.OdePlugin
 
                 for (int i = 0; i < count; i++)
                 {
+                    //m_log.Warn("[CCOUNT]: " + count);
                     IntPtr joint;
                     // If we're colliding with terrain, use 'TerrainContact' instead of contact.
                     // allows us to have different settings
@@ -405,13 +422,46 @@ namespace OpenSim.Region.Physics.OdePlugin
                         // If you interpenetrate a prim with another prim
                         if (p1.PhysicsActorType == (int) ActorTypes.Prim && p2.PhysicsActorType == (int) ActorTypes.Prim)
                         {
+                            OdePrim op1 = (OdePrim)p1;
+                            OdePrim op2 = (OdePrim)p2;
+                            op1.m_collisionscore++;
+                            op2.m_collisionscore++;
+                            
+
+                            if (op1.m_collisionscore > 80 || op2.m_collisionscore > 80)
+                            {
+                                op1.m_taintdisable = true;
+                                AddPhysicsActorTaint(p1);
+                                op2.m_taintdisable = true;
+                                AddPhysicsActorTaint(p2);
+                            }
+                           
                             if (contacts[i].depth >= 0.25f)
                             {
                                 // Don't collide, one or both prim will explode.
-                                ((OdePrim)p1).m_taintdisable = true;
-                                AddPhysicsActorTaint(p1);
-                                ((OdePrim)p2).m_taintdisable = true;
-                                AddPhysicsActorTaint(p2);
+                                
+
+                                op1.m_interpenetrationcount++;
+                                op2.m_interpenetrationcount++;
+                                interpenetrations_before_disable = 20;
+                                if (op1.m_interpenetrationcount >= interpenetrations_before_disable)
+                                {
+                                    op1.m_taintdisable = true;
+                                    AddPhysicsActorTaint(p1);
+                                }
+                                if (op2.m_interpenetrationcount >= interpenetrations_before_disable)
+                                {
+                                    op2.m_taintdisable = true;
+                                    AddPhysicsActorTaint(p2);
+                                }
+
+                               
+                                //contacts[i].depth = contacts[i].depth / 8f;
+                                //contacts[i].normal = new d.Vector3(0, 0, 1);
+                            }
+                            if (op1.m_disabled || op2.m_disabled)
+                            {
+                                //Manually disabled objects stay disabled 
                                 contacts[i].depth = 0f;
                             }
                         }
@@ -531,6 +581,7 @@ namespace OpenSim.Region.Physics.OdePlugin
         /// <param name="timeStep"></param>
         private void collision_optimized(float timeStep)
         {
+            starttiming();
             foreach (OdeCharacter chr in _characters)
             {
                 // Reset the collision values to false
@@ -554,6 +605,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                     //forcedZ = true;
                 //}
             }
+            int avms = stoptiming();
 
             // If the sim is running slow this frame, 
             // don't process collision for prim!
@@ -562,9 +614,11 @@ namespace OpenSim.Region.Physics.OdePlugin
                 foreach (OdePrim chr in _activeprims)
                 {
                     // This if may not need to be there..    it might be skipped anyway.
-                    if (d.BodyIsEnabled(chr.Body))
+                    if (d.BodyIsEnabled(chr.Body) && (!chr.m_disabled))
                     {
+                        
                         d.SpaceCollide2(space, chr.prim_geom, IntPtr.Zero, nearCallback);
+                        //calculateSpaceForGeom(chr.Position)
                         //foreach (OdePrim ch2 in _prims)
                         /// should be a separate space -- lots of avatars will be N**2 slow
                         //{
@@ -580,6 +634,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                         //}
                         //}
                     }
+                    d.SpaceCollide2(LandGeom, chr.prim_geom, IntPtr.Zero, nearCallback);
                 }
             }
             else
@@ -593,6 +648,9 @@ namespace OpenSim.Region.Physics.OdePlugin
                     {
                         // Collide test the prims with the terrain..   since if you don't do this, 
                         // next frame, all of the physical prim in the scene will awaken and explode upwards
+                        tmpSpace = calculateSpaceForGeom(chr.Position);
+                        if (tmpSpace != (IntPtr) 0 && d.GeomIsSpace(tmpSpace))
+                        d.SpaceCollide2(calculateSpaceForGeom(chr.Position), chr.prim_geom, IntPtr.Zero, nearCallback);
                         d.SpaceCollide2(LandGeom, chr.prim_geom, IntPtr.Zero, nearCallback);
                     }
                 }
@@ -1140,7 +1198,14 @@ namespace OpenSim.Region.Physics.OdePlugin
                     }
 
                     collision_optimized(timeStep);
-                    d.WorldQuickStep(world, ODE_STEPSIZE);
+                    try
+                    {
+                        d.WorldQuickStep(world, ODE_STEPSIZE);
+                    }
+                    catch (StackOverflowException)
+                    {
+                        d.WorldQuickStep(world, 0.001f);
+                    }
                     d.JointGroupEmpty(contactgroup);
                     foreach (OdeCharacter actor in _characters)
                     {
@@ -1165,6 +1230,12 @@ namespace OpenSim.Region.Physics.OdePlugin
                         RemovePrimThreadLocked(prim);
                     }
                     processedtaints = true;
+                    prim.m_collisionscore = 0;
+                }
+
+                foreach (OdePrim prim in _activeprims)
+                {
+                    prim.m_collisionscore = 0;
                 }
 
                 if (processedtaints)

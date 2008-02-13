@@ -325,6 +325,11 @@ namespace OpenSim.Region.Physics.PhysXPlugin
             set { _velocity = value; }
         }
 
+        public override float CollisionScore
+        {
+            get { return 0f; }
+        }
+
         public override bool Kinematic
         {
             get { return false; }
@@ -501,6 +506,11 @@ namespace OpenSim.Region.Physics.PhysXPlugin
         {
             get { return _velocity; }
             set { _velocity = value; }
+        }
+
+        public override float CollisionScore
+        {
+            get { return 0f; }
         }
 
         public override bool Kinematic

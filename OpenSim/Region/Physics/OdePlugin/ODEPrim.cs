@@ -55,6 +55,7 @@ namespace OpenSim.Region.Physics.OdePlugin
         private bool m_taintPhysics = false;
         public bool m_taintremove = false;
         public bool m_taintdisable = false;
+        public bool m_disabled = false;
 
         private bool m_taintforce = false;
         private List<PhysicsVector> m_forcelist = new List<PhysicsVector>();
@@ -65,10 +66,15 @@ namespace OpenSim.Region.Physics.OdePlugin
         public IntPtr m_targetSpace = (IntPtr) 0;
         public IntPtr prim_geom;
         public IntPtr _triMeshData;
+
         private bool iscolliding = false;
         private bool m_isphysical = false;
         private bool m_throttleUpdates = false;
         private int throttleCounter = 0;
+        public int m_interpenetrationcount = 0;
+        public int m_collisionscore = 0;
+        public int m_roundsUnderMotionThreshold = 0;
+
         public bool outofBounds = false;
         private float m_density = 10.000006836f; // Aluminum g/cm3;
 
@@ -257,6 +263,10 @@ namespace OpenSim.Region.Physics.OdePlugin
             d.GeomSetBody(prim_geom, Body);
             d.BodySetAutoDisableFlag(Body, true);
             d.BodySetAutoDisableSteps(Body, 20);
+            
+            m_interpenetrationcount = 0;
+            m_collisionscore = 0;
+            m_disabled = false;
 
             _parent_scene.addActivePrim(this);
         }
@@ -383,6 +393,8 @@ namespace OpenSim.Region.Physics.OdePlugin
                 d.BodyDestroy(Body);
                 Body = (IntPtr) 0;
             }
+            m_disabled = true;
+            m_collisionscore = 0;
         }
 
         public void setMesh(OdeScene parent_scene, IMesh mesh)
@@ -425,7 +437,11 @@ namespace OpenSim.Region.Physics.OdePlugin
             if (IsPhysical && Body == (IntPtr) 0)
             {
                 // Recreate the body
+                m_interpenetrationcount = 0;
+                m_collisionscore = 0;
+                
                 enableBody();
+
             }
         }
 
@@ -485,7 +501,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                 _parent_scene.waitForSpaceUnlock(m_targetSpace);
                 d.SpaceAdd(m_targetSpace, prim_geom);
             }
-
+            resetCollisionAccounting();
             m_taintposition = _position;
         }
 
@@ -501,14 +517,23 @@ namespace OpenSim.Region.Physics.OdePlugin
             {
                 d.BodySetQuaternion(Body, ref myrot);
             }
-
+            resetCollisionAccounting();
             m_taintrot = _orientation;
         }
-        public void changedisable(float timestep)
+
+        private void resetCollisionAccounting()
         {
+            m_collisionscore = 0;
+            m_interpenetrationcount = 0;
+            m_disabled = false;
+        }
+
+        public void changedisable(float timestep)
+        {   
+            m_disabled = true;
             if (Body != (IntPtr) 0)
                 d.BodyDisable(Body);
-
+            
             m_taintdisable = false;
         }
 
@@ -528,8 +553,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                     disableBody();
                 }
             }
-
-
+            resetCollisionAccounting();
             m_taintPhysics = m_isphysical;
         }
 
@@ -670,7 +694,7 @@ namespace OpenSim.Region.Physics.OdePlugin
             }
 
             _parent_scene.geom_name_map[prim_geom] = oldname;
-
+            resetCollisionAccounting();
             m_taintsize = _size;
         }
 
@@ -724,7 +748,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                 d.GeomSetQuaternion(prim_geom, ref myrot);
             }
             _parent_scene.geom_name_map[prim_geom] = oldname;
-
+            resetCollisionAccounting();
             m_taintshape = false;
         }
 
@@ -746,6 +770,8 @@ namespace OpenSim.Region.Physics.OdePlugin
                 }
                 m_forcelist.Clear();
             }
+            m_collisionscore = 0;
+            m_interpenetrationcount = 0;
             m_taintforce = false;
 
         }
@@ -759,6 +785,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                     d.BodySetLinearVel(Body, m_taintVelocity.X, m_taintVelocity.Y, m_taintVelocity.Z);
                 }
             }
+            resetCollisionAccounting();
             m_taintVelocity = PhysicsVector.Zero;
         }
         public override bool IsPhysical
@@ -863,6 +890,11 @@ namespace OpenSim.Region.Physics.OdePlugin
            
             
             }
+        }
+
+        public override float CollisionScore
+        {
+            get { return m_collisionscore; }
         }
 
         public override bool Kinematic

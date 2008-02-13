@@ -172,6 +172,8 @@ namespace OpenSim.Region.Physics.Manager
 
         public abstract PhysicsVector Velocity { get; set; }
 
+        public abstract float CollisionScore { get;}
+
         public abstract PhysicsVector Acceleration { get; }
 
         public abstract Quaternion Orientation { get; set; }
@@ -271,6 +273,12 @@ namespace OpenSim.Region.Physics.Manager
             get { return PhysicsVector.Zero; }
             set { return; }
         }
+
+        public override float CollisionScore 
+        {
+            get { return 0f; }
+        }
+
 
         public override Quaternion Orientation
         {

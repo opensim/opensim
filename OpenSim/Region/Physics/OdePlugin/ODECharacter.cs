@@ -514,6 +514,11 @@ namespace OpenSim.Region.Physics.OdePlugin
             }
         }
 
+        public override float CollisionScore
+        {
+            get { return 0f; }
+        }
+
         public override bool Kinematic
         {
             get { return false; }

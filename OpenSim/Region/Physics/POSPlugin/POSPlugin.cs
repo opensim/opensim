@@ -446,6 +446,11 @@ namespace OpenSim.Region.Physics.POSPlugin
             set { _target_velocity = value; }
         }
 
+        public override float CollisionScore
+        {
+            get { return 0f; }
+        }
+
         public override Quaternion Orientation
         {
             get { return Quaternion.Identity; }
@@ -577,6 +582,11 @@ namespace OpenSim.Region.Physics.POSPlugin
         {
             get { return _velocity; }
             set { _velocity = value; }
+        }
+
+        public override float CollisionScore
+        {
+            get { return 0f; }
         }
 
         public override Quaternion Orientation

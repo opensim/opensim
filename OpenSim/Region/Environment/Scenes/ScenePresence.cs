@@ -100,6 +100,9 @@ namespace OpenSim.Region.Environment.Scenes
         private LLQuaternion m_headrotation = new LLQuaternion();
         private byte m_state = (byte) 0;
 
+        //Reuse the LLVector3 instead of creating a new one on the UpdateMovement method
+        private LLVector3 movementvector = new LLVector3();
+
         private List<LLUUID> m_knownPrimUUID = new List<LLUUID>();
 
         // Agent's Draw distance.
@@ -1660,8 +1663,19 @@ namespace OpenSim.Region.Environment.Scenes
                         NewForce force = m_forcesList[i];
 
                         m_updateflag = true;
-
-                        Velocity = new LLVector3(force.X, force.Y, force.Z);
+                        try
+                        {
+                            movementvector.X = force.X;
+                            movementvector.Y = force.Y;
+                            movementvector.Z = force.Z;
+                            Velocity = movementvector;
+                        }
+                        catch (System.NullReferenceException)
+                        {
+                            // Under extreme load, this returns a NullReference Exception that we can ignore. 
+                            // Ignoring this causes no movement to be sent to the physics engine...  
+                            // which when the scene is moving at 1 frame every 10 seconds, it doesn't really matter!
+                        }
                         m_newForce = true;
                     }
                     for (int i = 0; i < m_forcesList.Count; i++)

@@ -317,6 +317,11 @@ namespace OpenSim.Region.Physics.BasicPhysicsPlugin
             set { _velocity = value; }
         }
 
+        public override float CollisionScore
+        {
+            get { return 0f; }
+        }
+
         public override Quaternion Orientation
         {
             get { return Quaternion.Identity; }
