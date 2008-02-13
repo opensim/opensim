@@ -3,9 +3,10 @@ for your effort!)
 
 Add your name in here if you have committed to OpenSim
 
+
 OpenSim Developers 
 
-* MW
+* MW (Tribal Media AB)
 * Adam Frisby 	(DeepThink Pty Ltd)
 * MingChen 	(DeepThink Pty Ltd)
 * lbsa71 (Tribal Media AB)
@@ -27,6 +28,7 @@ OpenSim Developers
 * adjohn (3Di)
 * Alondria
 
+
 Patches
 
 * BigFootAg
@@ -35,6 +37,8 @@ Patches
 * kinoc
 * daTwitch 
 * mikkopa/_someone - RealXtend
+* openlifegrid.com
+
 
 LSL Devs
 
@@ -42,10 +46,13 @@ LSL Devs
 * CharlieO
 * Tedd
 
+
 Testers
 
 * Ckrinke
 * CharlieO (LSL)
+* openlifegrid.com
+
 
 This software uses components from the following developers:
 * Sleepycat Software (Berkeley DB)
@@ -57,6 +64,7 @@ This software uses components from the following developers:
 * Russel L. Smith (ODE)
 * Prebuild ( http://sourceforge.net/projects/dnpb/ )
 * LibSecondLife ( http://www.libsecondlife.org/wiki/Main_Page )
+
 
 In addition, we would like to thank:
 * The Mono Project
