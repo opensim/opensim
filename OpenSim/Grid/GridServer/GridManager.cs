@@ -316,13 +316,29 @@ namespace OpenSim.Grid.GridServer
             OldSim = getRegion(TheSim.regionHandle);
             if (OldSim == null || OldSim.UUID == TheSim.UUID)
             {
-                if ((OldSim == null && TheSim.regionRecvKey == config.SimSendKey && 
-                    TheSim.regionRecvKey == config.SimRecvKey) ||
-                    (OldSim != null && OldSim.regionRecvKey == TheSim.regionRecvKey &&
-                    OldSim.regionSendKey == TheSim.regionSendKey))
+                bool brandNew = ( OldSim == null && TheSim.regionRecvKey == config.SimSendKey && 
+                                TheSim.regionRecvKey == config.SimRecvKey );
+
+                bool overwritingOldOne = ( OldSim != null && OldSim.regionRecvKey == TheSim.regionRecvKey &&
+                                         OldSim.regionSendKey == TheSim.regionSendKey );
+
+                if (brandNew)
                 {
                     m_log.Info("[GRID]: Adding region " + TheSim.regionLocX + " , " + TheSim.regionLocY + " , " +
-                      TheSim.serverURI);
+                               TheSim.serverURI);
+                }
+
+                if (overwritingOldOne)
+                {
+                    m_log.Info("[GRID]: Overwriting region " + OldSim.regionLocX + " , " + OldSim.regionLocY + " , " +
+                               OldSim.serverURI + " with " + TheSim.regionLocX + " , " + TheSim.regionLocY + " , " +
+                               TheSim.serverURI);
+                }
+
+                if (brandNew ||
+                    overwritingOldOne)
+                {
+
                     foreach (KeyValuePair<string, IGridData> kvp in _plugins)
                     {
                         try
@@ -388,7 +404,9 @@ namespace OpenSim.Grid.GridServer
                             NeighbourBlock["regionHandle"] = aSim.Value.regionHandle.ToString();
 
                             if (aSim.Value.UUID != TheSim.UUID)
+                            {
                                 SimNeighboursData.Add(NeighbourBlock);
+                            }
                         }
                     }
                     else
