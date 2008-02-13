@@ -53,31 +53,44 @@ namespace OpenSim.Region.Environment.Modules
 
         public bool TryGetAvatarAppearance(LLUUID avatarId, out AvatarAppearance appearance)
         {
-            if (m_avatarsAppearance.ContainsKey(avatarId))
+            //check cache
+            lock (m_avatarsAppearance)
             {
-                appearance = m_avatarsAppearance[avatarId];
-                return true;
+                if (m_avatarsAppearance.ContainsKey(avatarId))
+                {
+                    appearance = m_avatarsAppearance[avatarId];
+                    return true;
+                }
             }
 
+            //check db
             if (m_enablePersist)
             {
                 if (m_appearanceMapper.TryGetValue(avatarId.UUID, out appearance))
                 {
                     appearance.VisualParams = GetDefaultVisualParams();
                     appearance.TextureEntry = AvatarAppearance.GetDefaultTextureEntry();
-                    m_avatarsAppearance.Add(avatarId, appearance);
+                    lock (m_avatarsAppearance)
+                    {
+                        m_avatarsAppearance.Add(avatarId, appearance);
+                    }
                     return true;
                 }
             }
 
-
-            //not found a appearance for user, so create a new one
+            //not found a appearance for the user, so create a new one
             AvatarWearable[] wearables;
             byte[] visualParams;
             GetDefaultAvatarAppearance(out wearables, out visualParams);
             appearance = new AvatarAppearance(avatarId, wearables, visualParams);
 
-            m_avatarsAppearance.Add(avatarId, appearance);            
+            //add appearance to dictionary cache
+            lock (m_avatarsAppearance)
+            {
+                m_avatarsAppearance.Add(avatarId, appearance);
+            }
+
+            //update database
             if (m_enablePersist)
             {
                 m_appearanceMapper.Add(avatarId.UUID, appearance);
@@ -162,11 +175,13 @@ namespace OpenSim.Region.Environment.Modules
                             if (baseItem != null)
                             {
                                 assetId = baseItem.assetID;
-                                //temporary dictionary storage. This should be storing to a database
-
+                               
                                 if (m_avatarsAppearance.ContainsKey(clientView.AgentId))
                                 {
-                                    AvatarAppearance avatAppearance = m_avatarsAppearance[clientView.AgentId];
+                                    lock (m_avatarsAppearance)
+                                    {
+                                        AvatarAppearance avatAppearance = m_avatarsAppearance[clientView.AgentId];
+                                    }
                                     avatAppearance.Wearables[wear.Type].AssetID = assetId;
                                     avatAppearance.Wearables[wear.Type].ItemID = wear.ItemID;
 
