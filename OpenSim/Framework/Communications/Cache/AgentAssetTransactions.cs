@@ -113,10 +113,9 @@ namespace OpenSim.Framework.Communications.Cache
                 // [or maybe we can if we do more checking like data lenght checks]
                 if (uploaderFound != null)
                 {                
-//                    m_log.Info(
-//                        String.Format(
-//                            "[ASSET TRANSACTIONS] Removing asset xfer uploader with transfer id {0}, transaction {1}", 
-//                            xferID, uploaderFound.TransactionID));                
+//                    m_log.InfoFormat(
+//                        "[ASSET TRANSACTIONS] Removing asset xfer uploader with transfer id {0}, transaction {1}", 
+//                        xferID, uploaderFound.TransactionID);                
                     
    //                 XferUploaders.Remove(uploaderFound.TransactionID);
                     

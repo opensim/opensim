@@ -80,7 +80,7 @@ namespace OpenSim.Region.Physics.Manager
             }
             else
             {
-                m_log.Warn(String.Format("[PHYSICS]: couldn't find physicsEngine: {0}", physEngineName));
+                m_log.WarnFormat("[PHYSICS]: couldn't find physicsEngine: {0}", physEngineName);
                 throw new ArgumentException(String.Format("couldn't find physicsEngine: {0}", physEngineName));
             }
         }

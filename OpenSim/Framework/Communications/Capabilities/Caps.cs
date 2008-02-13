@@ -305,10 +305,9 @@ namespace OpenSim.Region.Capabilities
                 uploadResponse.uploader = uploaderURL;
                 uploadResponse.state = "upload";
 
-//                m_log.Info(
-//                    String.Format("[CAPS]: " +
-//                                  "ScriptTaskInventory response: {0}", 
-//                                  LLSDHelpers.SerialiseLLSDReply(uploadResponse)));
+//                m_log.InfoFormat("[CAPS]: " +
+//                                 "ScriptTaskInventory response: {0}",
+//                                 LLSDHelpers.SerialiseLLSDReply(uploadResponse)));
 
                 return LLSDHelpers.SerialiseLLSDReply(uploadResponse);
             }
@@ -351,10 +350,9 @@ namespace OpenSim.Region.Capabilities
             uploadResponse.uploader = uploaderURL;
             uploadResponse.state = "upload";
 
-//            m_log.Info(
-//                String.Format("[CAPS]: " +
-//                              "NoteCardAgentInventory response: {0}", 
-//                              LLSDHelpers.SerialiseLLSDReply(uploadResponse)));
+//            m_log.InfoFormat("[CAPS]: " +
+//                             "NoteCardAgentInventory response: {0}",
+//                             LLSDHelpers.SerialiseLLSDReply(uploadResponse)));
 
             return LLSDHelpers.SerialiseLLSDReply(uploadResponse);
         }
@@ -683,10 +681,9 @@ namespace OpenSim.Region.Capabilities
             {
                 try
                 {
-//                    m_log.Info(
-//                        String.Format("[CAPS]: " + 
-//                                      "TaskInventoryScriptUpdater received data: {0}, path: {1}, param: {2}", 
-//                                      data, path, param));
+//                    m_log.InfoFormat("[CAPS]: " + 
+//                                     "TaskInventoryScriptUpdater received data: {0}, path: {1}, param: {2}",
+//                                     data, path, param));
 
                     string res = String.Empty;
                     LLSDTaskInventoryUploadComplete uploadComplete = new LLSDTaskInventoryUploadComplete();

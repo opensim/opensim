@@ -601,8 +601,7 @@ namespace OpenSim.Framework.UserManagement
         public virtual bool AuthenticateUser(UserProfileData profile, string password)
         {
             bool passwordSuccess = false;
-            m_log.Info(
-                String.Format("[LOGIN]: Authenticating {0} {1} ({2})", profile.username, profile.surname, profile.UUID));
+            m_log.InfoFormat("[LOGIN]: Authenticating {0} {1} ({2})", profile.username, profile.surname, profile.UUID);
 
             // Web Login method seems to also occasionally send the hashed password itself
 
@@ -627,8 +626,7 @@ namespace OpenSim.Framework.UserManagement
         public virtual bool AuthenticateUser(UserProfileData profile, LLUUID webloginkey)
         {
             bool passwordSuccess = false;
-            m_log.Info(
-                String.Format("[LOGIN]: Authenticating {0} {1} ({2})", profile.username, profile.surname, profile.UUID));
+            m_log.InfoFormat("[LOGIN]: Authenticating {0} {1} ({2})", profile.username, profile.surname, profile.UUID);
 
             // Match web login key unless it's the default weblogin key LLUUID.Zero
             passwordSuccess = ((profile.webLoginKey==webloginkey) && profile.webLoginKey != LLUUID.Zero);

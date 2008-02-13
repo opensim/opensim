@@ -1477,8 +1477,7 @@ namespace OpenSim.Region.Environment.Scenes
                 }
                 else
                 {
-                    m_log.Warn(
-                        String.Format("[SCENE] Tried to remove non-existent scene prescence with agent ID {0} from scene ScenePresences list", agentID));
+                    m_log.WarnFormat("[SCENE] Tried to remove non-existent scene prescence with agent ID {0} from scene ScenePresences list", agentID);
                 }
             }
 
@@ -1490,8 +1489,7 @@ namespace OpenSim.Region.Environment.Scenes
                 }
                 else
                 {
-                    m_log.Warn(
-                        String.Format("[SCENE] Tried to remove non-existent scene prescence with agent ID {0} from scene Entities list", agentID));
+                    m_log.WarnFormat("[SCENE] Tried to remove non-existent scene prescence with agent ID {0} from scene Entities list", agentID);
                 }
             }
 
@@ -2302,21 +2300,19 @@ namespace OpenSim.Region.Environment.Scenes
             {
                 case "users":
                     m_log.Error("Current Region: " + RegionInfo.RegionName);
-                    m_log.Error(
-                        String.Format("{0,-16}{1,-16}{2,-25}{3,-25}{4,-16}{5,-16}{6,-16}", "Firstname", "Lastname",
-                                      "Agent ID", "Session ID", "Circuit", "IP", "World"));
+                    m_log.ErrorFormat("{0,-16}{1,-16}{2,-25}{3,-25}{4,-16}{5,-16}{6,-16}", "Firstname", "Lastname",
+                                      "Agent ID", "Session ID", "Circuit", "IP", "World");
 
                     foreach (ScenePresence scenePrescence in GetAvatars())
                     {
-                        m_log.Error(
-                            String.Format("{0,-16}{1,-16}{2,-25}{3,-25}{4,-16},{5,-16}{6,-16}",
+                        m_log.ErrorFormat("{0,-16}{1,-16}{2,-25}{3,-25}{4,-16},{5,-16}{6,-16}",
                                           scenePrescence.Firstname,
                                           scenePrescence.Lastname,
                                           scenePrescence.UUID,
                                           scenePrescence.ControllingClient.AgentId,
                                           "Unknown",
                                           "Unknown",
-                                          RegionInfo.RegionName));
+                                          RegionInfo.RegionName);
                     }
                     break;
                 case "modules":

@@ -600,10 +600,9 @@ namespace OpenSim.Region.Environment.Scenes
                             group.StartScript(localID, copyID);
                             group.GetProperties(remoteClient);
     
-    //                        m_log.Info(
-    //                            String.Format("[PRIMINVENTORY]: " +
-    //                                          "Rezzed script {0} into prim local ID {1} for user {2}",
-    //                                          item.inventoryName, localID, remoteClient.Name));
+    //                        m_log.InfoFormat("[PRIMINVENTORY]: " +
+    //                                         "Rezzed script {0} into prim local ID {1} for user {2}",
+    //                                         item.inventoryName, localID, remoteClient.Name);
                         }
                         else
                         {

@@ -70,15 +70,13 @@ namespace OpenSim.Framework.Communications.Cache
 
             if (asset != null)
             {
-                //m_log.Info(
-                //    String.Format("[ASSET]: Asset {0} received from asset server", req.AssetID));
+                //m_log.InfoFormat("[ASSET]: Asset {0} received from asset server", req.AssetID);
 
                 m_receiver.AssetReceived(asset, req.IsTexture);
             }
             else
             {
-                m_log.Error(
-                    String.Format("[ASSET]: Asset {0} not found by asset server", req.AssetID));
+                m_log.ErrorFormat("[ASSET]: Asset {0} not found by asset server", req.AssetID);
 
                 m_receiver.AssetNotFound(req.AssetID);
             }
@@ -92,7 +90,6 @@ namespace OpenSim.Framework.Communications.Cache
 
             CommitAssets();
         }
-
 
         public AssetServerBase()
         {

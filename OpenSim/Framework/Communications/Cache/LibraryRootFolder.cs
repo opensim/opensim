@@ -140,9 +140,8 @@ namespace OpenSim.Framework.Communications.Cache
         /// <param name="assets"></param>
         protected void LoadLibraries(string librariesControlPath)
         {
-            m_log.Info(
-                String.Format(
-                    "[LIBRARY INVENTORY]: Loading libraries control file {0}", librariesControlPath));
+            m_log.InfoFormat(
+                "[LIBRARY INVENTORY]: Loading libraries control file {0}", librariesControlPath);
             
             LoadFromFile(librariesControlPath, "Libraries control", ReadLibraryFromConfig);
         }
@@ -188,9 +187,8 @@ namespace OpenSim.Framework.Communications.Cache
                 
                 libraryFolders.Add(folderInfo.folderID, folderInfo);
                 parentFolder.SubFolders.Add(folderInfo.folderID, folderInfo);
-                
-//                    m_log.Info(
-//                        String.Format("[LIBRARY INVENTORY]: Adding folder {0} ({1})", folderInfo.name, folderInfo.folderID));
+
+//                 m_log.InfoFormat("[LIBRARY INVENTORY]: Adding folder {0} ({1})", folderInfo.name, folderInfo.folderID);
             }
             else
             {
@@ -258,14 +256,12 @@ namespace OpenSim.Framework.Communications.Cache
                 }
                 catch (XmlException e)
                 {
-                    m_log.Error(
-                        String.Format("[LIBRARY INVENTORY]: Error loading {0} : {1}", path, e));
+                    m_log.ErrorFormat("[LIBRARY INVENTORY]: Error loading {0} : {1}", path, e);
                 }                
             }
             else
             {
-                m_log.Error(
-                    String.Format("[LIBRARY INVENTORY]: {0} file {1} does not exist!", fileDescription, path));
+                m_log.ErrorFormat("[LIBRARY INVENTORY]: {0} file {1} does not exist!", fileDescription, path);
             }            
         }
         

@@ -233,28 +233,25 @@ namespace OpenSim.Framework.Communications.Cache
                 }
                 else
                 {
-                    m_log.Error(
-                        String.Format("[INVENTORYCACHE]: Could not find root folder for user {0}", remoteClient.Name));
+                    m_log.ErrorFormat("[INVENTORYCACHE]: Could not find root folder for user {0}", remoteClient.Name);
 
                     return;
                 }
             }
             else
             {
-                m_log.Error(
-                    String.Format("[INVENTORYCACHE]: " +
+                m_log.ErrorFormat("[INVENTORYCACHE]: " +
                                   "Could not find user profile for {0} for folder {1}",
-                                  remoteClient.Name, folderID));
+                                  remoteClient.Name, folderID);
 
                 return;
             }
 
             // If we've reached this point then we couldn't find the folder, even though the client thinks
             // it exists
-            m_log.Error(
-                String.Format("[INVENTORYCACHE]: " +
+            m_log.ErrorFormat("[INVENTORYCACHE]: " +
                               "Could not find folder {0} for user {1}",
-                              folderID, remoteClient.Name));
+                              folderID, remoteClient.Name);
         }
 
         public void HandlePurgeInventoryDescendents(IClientAPI remoteClient, LLUUID folderID)

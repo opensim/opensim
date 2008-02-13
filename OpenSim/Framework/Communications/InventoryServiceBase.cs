@@ -147,10 +147,9 @@ namespace OpenSim.Framework.Communications
             
             if (null != existingRootFolder)
             {
-                m_log.Error(
-                    String.Format("[AGENTINVENTORY]: " +
+                m_log.ErrorFormat("[AGENTINVENTORY]: " +
                                   "Did not create a new inventory for user {0} since they already have "
-                                  + "a root inventory folder with id {1}", user, existingRootFolder));
+                                  + "a root inventory folder with id {1}", user, existingRootFolder);
             }
             else
             {                
