@@ -1311,7 +1311,6 @@ namespace OpenSim.Region.Environment.Scenes
 
             m_LandManager.sendParcelOverlay(client);
             CommsManager.UserProfileCacheService.AddNewUser(client.AgentId);
-            CommsManager.TransactionsManager.AddUser(client.AgentId);
         }
 
         protected virtual void SubscribeToClientEvents(IClientAPI client)

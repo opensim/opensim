@@ -34,7 +34,8 @@ using libsecondlife;
 namespace OpenSim.Framework.Communications.Cache
 {
     /// <summary>
-    /// Manage the collection of agent asset transaction collections.  Each agent has its own transaction collection
+    /// Provider handlers for processing asset transactions originating from the agent.  This encompasses
+    /// clothing creation and update as well as asset uploads.
     /// </summary>
     public class AgentAssetTransactionsManager
     {
@@ -62,34 +63,76 @@ namespace OpenSim.Framework.Communications.Cache
         }
 
         /// <summary>
-        /// Add a collection of asset transactions for the given user
+        /// Get the collection of asset transactions for the given user.  If one does not already exist, it
+        /// is created.
         /// </summary>
         /// <param name="userID"></param>
-        public void AddUser(LLUUID userID)
+        /// <returns></returns>
+        private AgentAssetTransactions GetUserTransactions(LLUUID userID)
         {
             lock (AgentTransactions)
             {
                 if (!AgentTransactions.ContainsKey(userID))
                 {
-                    AgentAssetTransactions transactions = new AgentAssetTransactions(userID, this, m_dumpAssetsToFile);
-                    AgentTransactions.Add(userID, transactions);
+                    AgentAssetTransactions transactions 
+                        = new AgentAssetTransactions(userID, this, m_dumpAssetsToFile);
+                    AgentTransactions.Add(userID, transactions);  
                 }
             }
-        }
-
-        /// <summary>
-        /// Get the collection of asset transactions for the given user.
-        /// </summary>
-        /// <param name="userID"></param>
-        /// <returns>null if this agent does not have an asset transactions collection</returns>
-        public AgentAssetTransactions GetUserTransactions(LLUUID userID)
-        {
-            if (AgentTransactions.ContainsKey(userID))
-            {
-                return AgentTransactions[userID];
-            }
             
-            return null;
+            return AgentTransactions[userID];
+        }
+        
+        /// <summary>
+        /// Create an inventory item from data that has been received through a transaction.
+        /// 
+        /// This is called when new clothing or body parts are created.  It may also be called in other
+        /// situations.
+        /// </summary>
+        /// <param name="remoteClient"></param>
+        /// <param name="transactionID"></param>
+        /// <param name="folderID"></param>
+        /// <param name="callbackID"></param>
+        /// <param name="description"></param>
+        /// <param name="name"></param>
+        /// <param name="invType"></param>
+        /// <param name="type"></param>
+        /// <param name="wearableType"></param>
+        /// <param name="nextOwnerMask"></param>
+        public void HandleItemCreationFromTransaction(IClientAPI remoteClient, LLUUID transactionID, LLUUID folderID,
+                                                      uint callbackID, string description, string name, sbyte invType,
+                                                      sbyte type, byte wearableType, uint nextOwnerMask)
+        {
+            m_log.InfoFormat(
+                "[TRANSACTIONS MANAGER] Called HandleItemCreationFromTransaction with item {0}", name);
+            
+            AgentAssetTransactions transactions = GetUserTransactions(remoteClient.AgentId);
+            
+            transactions.RequestCreateInventoryItem(
+                remoteClient, transactionID, folderID, callbackID, description,
+                name, invType, type, wearableType, nextOwnerMask);
+        }  
+           
+        /// <summary>
+        /// Update an inventory item with data that has been received through a transaction.
+        /// 
+        /// This is called when clothing or body parts are updated (for instance, with new textures or 
+        /// colours).  It may also be called in other situations.
+        /// </summary>
+        /// <param name="remoteClient"></param>
+        /// <param name="transactionID"></param>
+        /// <param name="item"></param>
+        public void HandleItemUpdateFromTransaction(IClientAPI remoteClient, LLUUID transactionID, 
+                                                    InventoryItemBase item)
+        {
+            m_log.InfoFormat(
+                "[TRANSACTIONS MANAGER] Called HandleItemUpdateFromTransaction with item {0}", 
+                item.inventoryName);
+            
+            AgentAssetTransactions transactions
+                = CommsManager.TransactionsManager.GetUserTransactions(remoteClient.AgentId);
+
+            transactions.RequestUpdateInventoryItem(remoteClient, transactionID, item);        
         }
 
         public void HandleUDPUploadRequest(IClientAPI remoteClient, LLUUID assetID, LLUUID transaction, sbyte type,
@@ -97,36 +140,39 @@ namespace OpenSim.Framework.Communications.Cache
         {
             // Console.WriteLine("asset upload of " + assetID);
             AgentAssetTransactions transactions = GetUserTransactions(remoteClient.AgentId);
-            if (transactions != null)
+
+            AgentAssetTransactions.AssetXferUploader uploader = transactions.RequestXferUploader(transaction);
+            if (uploader != null)
             {
-                AgentAssetTransactions.AssetXferUploader uploader = transactions.RequestXferUploader(transaction);
-                if (uploader != null)
+                // Upload has already compelted uploading...
+                
+                if (uploader.Initialise(remoteClient, assetID, transaction, type, data, storeLocal, tempFile))
                 {
-                    // Upload has already compelted uploading...
-                    
-                    if (uploader.Initialise(remoteClient, assetID, transaction, type, data, storeLocal, tempFile))
+                    //[commenting out as this removal breaks uploads]
+                   /*lock (transactions.XferUploaders)
                     {
-                        //[commenting out as this removal breaks uploads]
-                       /*lock (transactions.XferUploaders)
-                        {
-                          
-                            // XXX Weak ass way of doing this by directly manipulating this public dictionary, purely temporary
-                            transactions.XferUploaders.Remove(uploader.TransactionID);
-                            
-                            //m_log.InfoFormat("[ASSET TRANSACTIONS] Current uploaders: {0}", transactions.XferUploaders.Count);                        
-                        }*/
-                    }
+                      
+                        // XXX Weak ass way of doing this by directly manipulating this public dictionary, purely temporary
+                        transactions.XferUploaders.Remove(uploader.TransactionID);
+                        
+                        //m_log.InfoFormat("[ASSET TRANSACTIONS] Current uploaders: {0}", transactions.XferUploaders.Count);                        
+                    }*/
                 }
             }
         }
 
+        /// <summary>
+        /// Conduct an asset transfer from the client.
+        /// </summary>
+        /// <param name="remoteClient"></param>
+        /// <param name="xferID"></param>
+        /// <param name="packetID"></param>
+        /// <param name="data"></param>
         public void HandleXfer(IClientAPI remoteClient, ulong xferID, uint packetID, byte[] data)
         {
             AgentAssetTransactions transactions = GetUserTransactions(remoteClient.AgentId);
-            if (transactions != null)
-            {
-                transactions.HandleXfer(xferID, packetID, data);
-            }
+            
+            transactions.HandleXfer(xferID, packetID, data);
         }
     }
 }

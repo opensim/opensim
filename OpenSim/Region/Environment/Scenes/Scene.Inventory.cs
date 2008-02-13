@@ -253,6 +253,7 @@ namespace OpenSim.Region.Environment.Scenes
             if (userInfo != null && userInfo.RootFolder != null)
             {
                 InventoryItemBase item = userInfo.RootFolder.HasItem(itemID);
+                
                 if (item != null)
                 {
                     if (LLUUID.Zero == transactionID)
@@ -265,34 +266,8 @@ namespace OpenSim.Region.Environment.Scenes
                     }
                     else
                     {
-                        AgentAssetTransactions transactions
-                            = CommsManager.TransactionsManager.GetUserTransactions(remoteClient.AgentId);
-
-                        if (transactions != null)
-                        {
-                            LLUUID assetID = LLUUID.Combine(transactionID, remoteClient.SecureSessionId);
-                            AssetBase asset
-                                = AssetCache.GetAsset(
-                                    assetID, (item.assetType == (int) AssetType.Texture ? true : false));
-
-                            if (asset == null)
-                            {
-                                asset = transactions.GetTransactionAsset(transactionID);
-                            }
-
-                            if (asset != null && asset.FullID == assetID)
-                            {
-                                asset.Name = item.inventoryName;
-                                asset.Description = item.inventoryDescription;
-                                asset.InvType = (sbyte) item.invType;
-                                asset.Type = (sbyte) item.assetType;
-                                item.assetID = asset.FullID;
-
-                                AssetCache.AddAsset(asset);
-                            }
-
-                            userInfo.UpdateItem(remoteClient.AgentId, item);
-                        }
+                        CommsManager.TransactionsManager.HandleItemUpdateFromTransaction(
+                             remoteClient, transactionID, item);                        
                     }
                 }
                 else
@@ -484,21 +459,9 @@ namespace OpenSim.Region.Environment.Scenes
             }
             else
             {
-                AgentAssetTransactions transactions 
-                    = CommsManager.TransactionsManager.GetUserTransactions(remoteClient.AgentId);
-                
-                if (transactions != null)
-                {
-                    transactions.RequestCreateInventoryItem(
-                        remoteClient, transactionID, folderID, callbackID, description,
-                        name, invType, assetType, wearableType, nextOwnerMask);                    
-                }
-                else
-                {
-                    m_log.ErrorFormat(
-                        "Agent asset transactions for agent {0} uuid {1} in transaction uuid {2} unexpectedly null!", 
-                        remoteClient.Name, remoteClient.AgentId, transactionID); 
-                }
+                CommsManager.TransactionsManager.HandleItemCreationFromTransaction(
+                    remoteClient, transactionID, folderID, callbackID, description,
+                    name, invType, assetType, wearableType, nextOwnerMask);                    
             }
         }
 

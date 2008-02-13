@@ -136,6 +136,15 @@ namespace OpenSim.Framework.Communications.Cache
                                                                         wearableType, nextOwnerMask);
             }
         }
+        
+        public void RequestUpdateInventoryItem(IClientAPI remoteClient, LLUUID transactionID, 
+                                               InventoryItemBase item)
+        {
+            if (XferUploaders.ContainsKey(transactionID))
+            {
+                XferUploaders[transactionID].RequestUpdateInventoryItem(remoteClient, transactionID, item);
+            }
+        }        
 
         /// <summary>
         /// Get an uploaded asset.  If the data is successfully retrieved, the transaction will be removed.
@@ -349,6 +358,44 @@ namespace OpenSim.Framework.Communications.Cache
                     {
                         DoCreateItem();
                     }
+                }
+            }
+                      
+            public void RequestUpdateInventoryItem(IClientAPI remoteClient, LLUUID transactionID, 
+                                                   InventoryItemBase item)
+            {
+                if (TransactionID == transactionID)
+                {            
+                    CachedUserInfo userInfo =
+                        m_userTransactions.Manager.CommsManager.UserProfileCacheService.GetUserDetails(
+                            remoteClient.AgentId);
+                    
+                    if (userInfo != null)
+                    {                    
+                        LLUUID assetID = LLUUID.Combine(transactionID, remoteClient.SecureSessionId);
+                        
+                        AssetBase asset
+                            = m_userTransactions.Manager.CommsManager.AssetCache.GetAsset(
+                                assetID, (item.assetType == (int) AssetType.Texture ? true : false));
+                        
+                        if (asset == null)
+                        {
+                            asset = m_userTransactions.GetTransactionAsset(transactionID);
+                        }                    
+
+                        if (asset != null && asset.FullID == assetID)
+                        {
+                            asset.Name = item.inventoryName;
+                            asset.Description = item.inventoryDescription;
+                            asset.InvType = (sbyte) item.invType;
+                            asset.Type = (sbyte) item.assetType;
+                            item.assetID = asset.FullID;
+
+                            m_userTransactions.Manager.CommsManager.AssetCache.AddAsset(Asset);
+                        }      
+                        
+                        userInfo.UpdateItem(remoteClient.AgentId, item);                    
+                    }     
                 }
             }
 
