@@ -161,23 +161,154 @@ namespace OpenSim.Framework.Data.MSSQL
 
         public void AddNewUserFriend(LLUUID friendlistowner, LLUUID friend, uint perms)
         {
-            m_log.Info("[FRIEND]: Stub AddNewUserFriend called");
+            int dtvalue = Util.UnixTimeSinceEpoch();
+
+            Dictionary<string, string> param = new Dictionary<string, string>();
+            param["@ownerID"] = friendlistowner.UUID.ToString();
+            param["@friendID"] = friend.UUID.ToString();
+            param["@friendPerms"] = perms.ToString();
+            param["@datetimestamp"] = dtvalue.ToString();
+
+            try
+            {
+                lock (database)
+                {
+                    IDbCommand adder =
+                        database.Query(
+                        "INSERT INTO `" + m_userFriendsTableName + "` " +
+                        "(`ownerID`,`friendID`,`friendPerms`,`datetimestamp`) " +
+                        "VALUES " +
+                        "(@ownerID,@friendID,@friendPerms,@datetimestamp)",
+                            param);
+                    adder.ExecuteNonQuery();
+
+                    adder =
+                        database.Query(
+                        "INSERT INTO `" + m_userFriendsTableName + "` " +
+                        "(`ownerID`,`friendID`,`friendPerms`,`datetimestamp`) " +
+                        "VALUES " +
+                        "(@friendID,@ownerID,@friendPerms,@datetimestamp)",
+                            param);
+                    adder.ExecuteNonQuery();
+
+                }
+            }
+            catch (Exception e)
+            {
+                database.Reconnect();
+                m_log.Error(e.ToString());
+                return;
+            }
         }
 
         public void RemoveUserFriend(LLUUID friendlistowner, LLUUID friend)
         {
-            m_log.Info("[FRIEND]: Stub RemoveUserFriend called");
+            Dictionary<string, string> param = new Dictionary<string, string>();
+            param["@ownerID"] = friendlistowner.UUID.ToString();
+            param["@friendID"] = friend.UUID.ToString();
+
+
+            try
+            {
+                lock (database)
+                {
+                    IDbCommand updater =
+                        database.Query(
+                        "delete from " + m_userFriendsTableName + " where ownerID = @ownerID and friendID = @friendID",
+                            param);
+                    updater.ExecuteNonQuery();
+
+                    updater =
+                        database.Query(
+                        "delete from " + m_userFriendsTableName + " where ownerID = @friendID and friendID = @ownerID",
+                            param);
+                    updater.ExecuteNonQuery();
+
+                }
+            }
+            catch (Exception e)
+            {
+                database.Reconnect();
+                m_log.Error(e.ToString());
+                return;
+            }
         }
+
         public void UpdateUserFriendPerms(LLUUID friendlistowner, LLUUID friend, uint perms)
         {
-            m_log.Info("[FRIEND]: Stub UpdateUserFriendPerms called");
+            Dictionary<string, string> param = new Dictionary<string, string>();
+            param["@ownerID"] = friendlistowner.UUID.ToString();
+            param["@friendID"] = friend.UUID.ToString();
+            param["@friendPerms"] = perms.ToString();
+
+
+            try
+            {
+                lock (database)
+                {
+                    IDbCommand updater =
+                        database.Query(
+                        "update " + m_userFriendsTableName +
+                        " SET friendPerms = @friendPerms " +
+                        "where ownerID = @ownerID and friendID = @friendID",
+                            param);
+
+                    updater.ExecuteNonQuery();
+                }
+            }
+            catch (Exception e)
+            {
+                database.Reconnect();
+                m_log.Error(e.ToString());
+                return;
+            }
         }
 
 
         public List<FriendListItem> GetUserFriendList(LLUUID friendlistowner)
         {
-            m_log.Info("[FRIEND]: Stub GetUserFriendList called");
-            return new List<FriendListItem>();
+            List<FriendListItem> Lfli = new List<FriendListItem>();
+
+            Dictionary<string, string> param = new Dictionary<string, string>();
+            param["@ownerID"] = friendlistowner.UUID.ToString();
+
+            try
+            {
+                lock (database)
+                {
+                    //Left Join userfriends to itself
+                    IDbCommand result =
+                        database.Query(
+                        "select a.ownerID,a.friendID,a.friendPerms,b.friendPerms as ownerperms from " + m_userFriendsTableName + " as a, " + m_userFriendsTableName + " as b" +
+                        " where a.ownerID = @ownerID and b.ownerID = a.friendID and b.friendID = a.ownerID",
+                            param);
+                    IDataReader reader = result.ExecuteReader();
+
+
+                    while (reader.Read())
+                    {
+                        FriendListItem fli = new FriendListItem();
+                        fli.FriendListOwner = new LLUUID((string)reader["ownerID"]);
+                        fli.Friend = new LLUUID((string)reader["friendID"]);
+                        fli.FriendPerms = (uint)Convert.ToInt32(reader["friendPerms"]);
+
+                        // This is not a real column in the database table, it's a joined column from the opposite record
+                        fli.FriendListOwnerPerms = (uint)Convert.ToInt32(reader["ownerperms"]);
+
+                        Lfli.Add(fli);
+                    }
+                    reader.Close();
+                    result.Dispose();
+                }
+            }
+            catch (Exception e)
+            {
+                database.Reconnect();
+                m_log.Error(e.ToString());
+                return Lfli;
+            }
+
+            return Lfli;
         }
 
         #endregion
