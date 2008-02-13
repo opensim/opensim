@@ -200,7 +200,9 @@ namespace OpenSim.Framework.Data.MySQL
                             string tableName = (string) tables["TABLE_NAME"];
                             string comment = (string) tables["TABLE_COMMENT"];
                             if (tableList.ContainsKey(tableName))
+                            {
                                 tableList[tableName] = comment;
+                            }
                         }
                         catch (Exception e)
                         {

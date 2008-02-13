@@ -46,6 +46,10 @@ namespace OpenSim.Framework.Data.MSSQL
         /// </summary>
         public MSSQLManager database;
 
+        private string m_agentsTableName;
+        private string m_usersTableName;
+        private string m_userFriendsTableName;
+
         /// <summary>
         /// Loads and initialises the MySQL storage plugin
         /// </summary>
@@ -53,12 +57,30 @@ namespace OpenSim.Framework.Data.MSSQL
         {
             // Load from an INI file connection details
             // TODO: move this to XML?
-            IniFile GridDataMySqlFile = new IniFile("mssql_connection.ini");
-            string settingDataSource = GridDataMySqlFile.ParseFileReadValue("data_source");
-            string settingInitialCatalog = GridDataMySqlFile.ParseFileReadValue("initial_catalog");
-            string settingPersistSecurityInfo = GridDataMySqlFile.ParseFileReadValue("persist_security_info");
-            string settingUserId = GridDataMySqlFile.ParseFileReadValue("user_id");
-            string settingPassword = GridDataMySqlFile.ParseFileReadValue("password");
+            IniFile iniFile = new IniFile("mssql_connection.ini");
+            string settingDataSource = iniFile.ParseFileReadValue("data_source");
+            string settingInitialCatalog = iniFile.ParseFileReadValue("initial_catalog");
+            string settingPersistSecurityInfo = iniFile.ParseFileReadValue("persist_security_info");
+            string settingUserId = iniFile.ParseFileReadValue("user_id");
+            string settingPassword = iniFile.ParseFileReadValue("password");
+
+            m_usersTableName = iniFile.ParseFileReadValue("userstablename");
+            if (m_usersTableName == null)
+            {
+                m_usersTableName = "users";
+            }
+
+            m_userFriendsTableName = iniFile.ParseFileReadValue("userfriendstablename");
+            if (m_userFriendsTableName == null)
+            {
+                m_userFriendsTableName = "userfriends";
+            }
+
+            m_agentsTableName = iniFile.ParseFileReadValue("agentstablename");
+            if (m_agentsTableName == null)
+            {
+                m_agentsTableName = "agents";
+            }
 
             database =
                 new MSSQLManager(settingDataSource, settingInitialCatalog, settingPersistSecurityInfo, settingUserId,
@@ -82,7 +104,7 @@ namespace OpenSim.Framework.Data.MSSQL
                     param["second"] = last;
 
                     IDbCommand result =
-                        database.Query("SELECT * FROM users WHERE username = @first AND lastname = @second", param);
+                        database.Query("SELECT * FROM "+m_usersTableName+" WHERE username = @first AND lastname = @second", param);
                     IDataReader reader = result.ExecuteReader();
 
                     UserProfileData row = database.readUserRow(reader);
@@ -150,7 +172,7 @@ namespace OpenSim.Framework.Data.MSSQL
 
                         IDbCommand result =
                             database.Query(
-                                "SELECT UUID,username,surname FROM users WHERE username = @first AND lastname = @second",
+                                "SELECT UUID,username,surname FROM " + m_usersTableName + " WHERE username = @first AND lastname = @second",
                                 param);
                         IDataReader reader = result.ExecuteReader();
 
@@ -186,7 +208,7 @@ namespace OpenSim.Framework.Data.MSSQL
 
                         IDbCommand result =
                             database.Query(
-                                "SELECT UUID,username,surname FROM users WHERE username = @first OR lastname = @second",
+                                "SELECT UUID,username,surname FROM " + m_usersTableName + " WHERE username = @first OR lastname = @second",
                                 param);
                         IDataReader reader = result.ExecuteReader();
 
@@ -223,7 +245,7 @@ namespace OpenSim.Framework.Data.MSSQL
                     Dictionary<string, string> param = new Dictionary<string, string>();
                     param["uuid"] = uuid.ToString();
 
-                    IDbCommand result = database.Query("SELECT * FROM users WHERE UUID = @uuid", param);
+                    IDbCommand result = database.Query("SELECT * FROM " + m_usersTableName + " WHERE UUID = @uuid", param);
                     IDataReader reader = result.ExecuteReader();
 
                     UserProfileData row = database.readUserRow(reader);
@@ -278,7 +300,7 @@ namespace OpenSim.Framework.Data.MSSQL
                     Dictionary<string, string> param = new Dictionary<string, string>();
                     param["uuid"] = uuid.ToString();
 
-                    IDbCommand result = database.Query("SELECT * FROM agents WHERE UUID = @uuid", param);
+                    IDbCommand result = database.Query("SELECT * FROM " + m_agentsTableName + " WHERE UUID = @uuid", param);
                     IDataReader reader = result.ExecuteReader();
 
                     UserAgentData row = database.readAgentRow(reader);
@@ -342,7 +364,7 @@ namespace OpenSim.Framework.Data.MSSQL
 
         public bool UpdateUserProfile(UserProfileData user)
         {
-            SqlCommand command = new SqlCommand("UPDATE users set UUID = @uuid, " +
+            SqlCommand command = new SqlCommand("UPDATE " + m_usersTableName + " set UUID = @uuid, " +
                                                 "username = @username, " +
                                                 "lastname = @lastname," +
                                                 "passwordHash = @passwordHash," +

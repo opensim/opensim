@@ -76,8 +76,12 @@ physical_prim = true
 accounts_authenticate = true
 welcome_message = "Welcome to OpenSim"
 inventory_plugin = "OpenSim.Framework.Data.SQLite.dll"
+
+; User Data Database provider
 ; userDatabase_plugin = "OpenSim.Framework.Data.DB4o.dll"
+; userDatabase_plugin = "OpenSim.Framework.Data.MySQL.dll"
 userDatabase_plugin = "OpenSim.Framework.Data.SQLite.dll"
+
 default_location_x = 1000
 default_location_y = 1000
 dump_assets_to_file = false

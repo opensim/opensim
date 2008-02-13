@@ -1,3 +1,6 @@
+; The IniConfig.cs that parses this file by just finding the first key={value} in the whole text so comments aren't really honoured.
+; Also, this algorithm can probably lead to 'amusing' results in unfortunate cases.
+
 [mysqlconnection]
 hostname=localhost
 database=database
@@ -5,3 +8,10 @@ username=username
 password=password
 pooling=false
 port=3306
+
+; These entries are only for if you, for some reason, wish to customize your user server table names.
+; If ommitted, default values will be used.
+
+userstablename=users
+userfriendstablename=userfriends
+agentstablename=agents
