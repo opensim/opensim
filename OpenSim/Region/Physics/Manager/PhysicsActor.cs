@@ -126,6 +126,8 @@ namespace OpenSim.Region.Physics.Manager
 
         public abstract bool Selected { set; }
 
+        public abstract void CrossingFailure();
+
         public virtual void RequestPhysicsterseUpdate()
         {
             // Make a temporary copy of the event to avoid possibility of
@@ -277,6 +279,11 @@ namespace OpenSim.Region.Physics.Manager
         public override float CollisionScore 
         {
             get { return 0f; }
+        }
+
+        public override void CrossingFailure()
+        {
+
         }
 
 

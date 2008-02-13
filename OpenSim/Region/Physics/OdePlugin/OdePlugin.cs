@@ -16,7 +16,7 @@
 * THIS SOFTWARE IS PROVIDED BY THE DEVELOPERS ``AS IS'' AND ANY
 * EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
 * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
-* DISCLAIMED. IN NO EVENT SHALL THE CONTRIBUTORS BE LIABLE FOR ANY
+* DISCLAIMEd. IN NO EVENT SHALL THE CONTRIBUTORS BE LIABLE FOR ANY
 * DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
 * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
 * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
@@ -46,10 +46,12 @@ namespace OpenSim.Region.Physics.OdePlugin
     {
         private static readonly log4net.ILog m_log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 
+        private CollisionLocker ode;
         private OdeScene _mScene;
 
         public OdePlugin()
         {
+            ode = new CollisionLocker();
         }
 
         public bool Init()
@@ -61,7 +63,7 @@ namespace OpenSim.Region.Physics.OdePlugin
         {
             if (_mScene == null)
             {
-                _mScene = new OdeScene();
+                _mScene = new OdeScene(ode);
             }
             return (_mScene);
         }
@@ -74,7 +76,7 @@ namespace OpenSim.Region.Physics.OdePlugin
         public void Dispose()
         {
             
-            d.CloseODE();
+            
         }
     }
 
@@ -82,6 +84,7 @@ namespace OpenSim.Region.Physics.OdePlugin
     {
         private static readonly log4net.ILog m_log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 
+        CollisionLocker ode;
         // TODO: this should be hard-coded in some common place
         private const uint m_regionWidth = 256;
         private const uint m_regionHeight = 256;
@@ -137,8 +140,9 @@ namespace OpenSim.Region.Physics.OdePlugin
         /// Sets many properties that ODE requires to be stable
         /// These settings need to be tweaked 'exactly' right or weird stuff happens.
         /// </summary>
-        public OdeScene()
+        public OdeScene(CollisionLocker dode)
         {
+            ode = dode;
             nearCallback = near;
             triCallback = TriCallback;
             triArrayCallback = TriArrayCallback;
@@ -178,6 +182,7 @@ namespace OpenSim.Region.Physics.OdePlugin
 
             lock (OdeLock)
             {
+
                 // Creat the world and the first space
                 world = d.WorldCreate();
                 space = d.HashSpaceCreate(IntPtr.Zero);
@@ -268,8 +273,14 @@ namespace OpenSim.Region.Physics.OdePlugin
                 // We'll be calling near recursivly if one 
                 // of them is a space to find all of the 
                 // contact points in the space
-
-                d.SpaceCollide2(g1, g2, IntPtr.Zero, nearCallback);
+                try
+                {
+                    d.SpaceCollide2(g1, g2, IntPtr.Zero, nearCallback);
+                }
+                catch (System.AccessViolationException)
+                {
+                    m_log.Warn("[PHYSICS]: Unable to collide test a space");
+                }
                 //Colliding a space or a geom with a space or a geom. so drill down
 
                 //Collide all geoms in each space..   
@@ -304,7 +315,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                     name2 = "null";
                 }
 
-                //if (id == d.GeomClassID.TriMeshClass)
+                //if (id == d.GeomClassId.TriMeshClass)
                 //{
                     //               m_log.Info("near: A collision was detected between {1} and {2}", 0, name1, name2);
                     //System.Console.WriteLine("near: A collision was detected between {1} and {2}", 0, name1, name2);
@@ -320,6 +331,10 @@ namespace OpenSim.Region.Physics.OdePlugin
                 {
                     m_log.Error("[PHYSICS]: The Operating system shut down ODE because of corrupt memory.  This could be a result of really irregular terrain.  If this repeats continuously, restart using Basic Physics and terrain fill your terrain.  Restarting the sim.");
                     base.TriggerPhysicsBasedRestart();
+                }
+                catch (System.AccessViolationException)
+                {
+                    m_log.Warn("[PHYSICS]: Unable to collide test an object");
                 }
 
                 PhysicsActor p1;
@@ -438,7 +453,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                            
                             if (contacts[i].depth >= 0.25f)
                             {
-                                // Don't collide, one or both prim will explode.
+                                // Don't collide, one or both prim will expld.
                                 
 
                                 op1.m_interpenetrationcount++;
@@ -596,8 +611,14 @@ namespace OpenSim.Region.Physics.OdePlugin
                 // And we'll run this again against the avatar and the space segment
                 // This will return with a bunch of possible objects in the space segment
                 // and we'll run it again on all of them.
-
-                d.SpaceCollide2(space, chr.Shell, IntPtr.Zero, nearCallback);
+                try
+                {
+                    d.SpaceCollide2(space, chr.Shell, IntPtr.Zero, nearCallback);
+                }
+                catch (AccessViolationException)
+                {
+                    m_log.Warn("[PHYSICS]: Unable to space collide");
+                }
                 //float terrainheight = GetTerrainHeightAtXY(chr.Position.X, chr.Position.Y);
                 //if (chr.Position.Z + (chr.Velocity.Z * timeStep) < terrainheight + 10)
                 //{
@@ -616,8 +637,14 @@ namespace OpenSim.Region.Physics.OdePlugin
                     // This if may not need to be there..    it might be skipped anyway.
                     if (d.BodyIsEnabled(chr.Body) && (!chr.m_disabled))
                     {
-                        
-                        d.SpaceCollide2(space, chr.prim_geom, IntPtr.Zero, nearCallback);
+                        try 
+                        {
+                            d.SpaceCollide2(space, chr.prim_geom, IntPtr.Zero, nearCallback);
+                        }
+                        catch (AccessViolationException)
+                        {
+                            m_log.Warn("[PHYSICS]: Unable to space collide");
+                        }
                         //calculateSpaceForGeom(chr.Position)
                         //foreach (OdePrim ch2 in _prims)
                         /// should be a separate space -- lots of avatars will be N**2 slow
@@ -634,7 +661,14 @@ namespace OpenSim.Region.Physics.OdePlugin
                         //}
                         //}
                     }
-                    d.SpaceCollide2(LandGeom, chr.prim_geom, IntPtr.Zero, nearCallback);
+                    try 
+                    {
+                        d.SpaceCollide2(LandGeom, chr.prim_geom, IntPtr.Zero, nearCallback);
+                    }
+                    catch (AccessViolationException)
+                    {
+                        m_log.Warn("[PHYSICS]: Unable to space collide");
+                    }
                 }
             }
             else
@@ -663,7 +697,7 @@ namespace OpenSim.Region.Physics.OdePlugin
             pos.X = position.X;
             pos.Y = position.Y;
             pos.Z = position.Z;
-            OdeCharacter newAv = new OdeCharacter(avName, this, pos);
+            OdeCharacter newAv = new OdeCharacter(avName, this, pos, ode);
             _characters.Add(newAv);
             return newAv;
         }
@@ -1007,7 +1041,7 @@ namespace OpenSim.Region.Physics.OdePlugin
             OdePrim newPrim;
             lock (OdeLock)
             {
-                newPrim = new OdePrim(name, this, targetspace, pos, siz, rot, mesh, pbs, isphysical);
+                newPrim = new OdePrim(name, this, targetspace, pos, siz, rot, mesh, pbs, isphysical, ode);
 
                 _prims.Add(newPrim);
             }
@@ -1203,8 +1237,15 @@ namespace OpenSim.Region.Physics.OdePlugin
                         actor.Move(timeStep);
                         actor.collidelock = true;
                     }
+                    
+                    ode.dlock(world);
 
                     collision_optimized(timeStep);
+
+                    
+
+                    ode.dunlock(world);
+                    
                     try
                     {
                         d.WorldQuickStep(world, ODE_STEPSIZE);
@@ -1228,25 +1269,28 @@ namespace OpenSim.Region.Physics.OdePlugin
                     actor.UpdatePositionAndVelocity();
                 }
 
-                bool processedtaints = false;
-                foreach (OdePrim prim in _taintedPrim)
+                if (!ode.lockquery())
                 {
-                    prim.ProcessTaints(timeStep);
-                    if (prim.m_taintremove)
+                    bool processedtaints = false;
+                    foreach (OdePrim prim in _taintedPrim)
                     {
-                        RemovePrimThreadLocked(prim);
-                    }
-                    processedtaints = true;
-                    prim.m_collisionscore = 0;
+                        prim.ProcessTaints(timeStep);
+                        if (prim.m_taintremove)
+                        {
+                            RemovePrimThreadLocked(prim);
+                        }
+                        processedtaints = true;
+                        prim.m_collisionscore = 0;
+                    }  
+                    if (processedtaints)
+                        _taintedPrim = new List<OdePrim>();
                 }
-
                 foreach (OdePrim prim in _activeprims)
                 {
                     prim.m_collisionscore = 0;
                 }
 
-                if (processedtaints)
-                    _taintedPrim = new List<OdePrim>();
+              
 
                 if (timeStep < 0.2f)
                 {

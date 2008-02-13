@@ -480,6 +480,10 @@ namespace OpenSim.Region.Physics.POSPlugin
         public override void SetMomentum(PhysicsVector momentum)
         {
         }
+        public override void CrossingFailure()
+        {
+
+        }
     }
 
     public class POSPrim : PhysicsActor
@@ -639,6 +643,10 @@ namespace OpenSim.Region.Physics.POSPlugin
         public override bool Selected
         {
             set { return; }
+        }
+        public override void CrossingFailure()
+        {
+
         }
 
     }

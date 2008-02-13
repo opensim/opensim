@@ -393,6 +393,10 @@ namespace OpenSim.Region.Physics.PhysXPlugin
             _position.Y = vec.Y;
             _position.Z = vec.Z;
         }
+        public override void CrossingFailure()
+        {
+
+        }
     }
 
 
@@ -576,6 +580,10 @@ namespace OpenSim.Region.Physics.PhysXPlugin
         public override PhysicsVector GeometricCenter
         {
             get { return PhysicsVector.Zero; }
+        }
+        public override void CrossingFailure()
+        {
+
         }
     }
 }

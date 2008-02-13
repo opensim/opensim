@@ -986,6 +986,11 @@ namespace OpenSim.Region.Physics.BulletXPlugin
         }
 
         #endregion
+
+        public override void CrossingFailure()
+        {
+
+        }
     }
 
     /// <summary>

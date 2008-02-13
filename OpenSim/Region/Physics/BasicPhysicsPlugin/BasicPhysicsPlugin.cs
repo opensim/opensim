@@ -351,5 +351,9 @@ namespace OpenSim.Region.Physics.BasicPhysicsPlugin
         public override void SetMomentum(PhysicsVector momentum)
         {
         }
+        public override void CrossingFailure()
+        {
+
+        }
     }
 }

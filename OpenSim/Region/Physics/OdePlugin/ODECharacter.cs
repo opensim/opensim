@@ -16,7 +16,7 @@
 * THIS SOFTWARE IS PROVIDED BY THE DEVELOPERS ``AS IS'' AND ANY
 * EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
 * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
-* DISCLAIMED. IN NO EVENT SHALL THE CONTRIBUTORS BE LIABLE FOR ANY
+* DISCLAIMEd. IN NO EVENT SHALL THE CONTRIBUTORS BE LIABLE FOR ANY
 * DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
 * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
 * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
@@ -35,7 +35,7 @@ using OpenSim.Region.Physics.Manager;
 namespace OpenSim.Region.Physics.OdePlugin
 {
     /// <summary>
-    /// Various properties that ODE uses for AMotors but isn't exposed in ODE.NET so we must define them ourselves.
+    /// Various properties that ODE uses for AMotors but isn't exposed in d.NET so we must define them ourselves.
     /// </summary>
  
     public enum dParam : int
@@ -87,6 +87,7 @@ namespace OpenSim.Region.Physics.OdePlugin
         private bool m_hackSentFall = false;
         private bool m_hackSentFly = false;
         private bool m_foundDebian = false;
+        private CollisionLocker ode;
 
         private string m_name = String.Empty;
 
@@ -103,8 +104,9 @@ namespace OpenSim.Region.Physics.OdePlugin
         public d.Mass ShellMass;
         public bool collidelock = false;
 
-        public OdeCharacter(String avName, OdeScene parent_scene, PhysicsVector pos)
+        public OdeCharacter(String avName, OdeScene parent_scene, PhysicsVector pos, CollisionLocker dode)
         {
+            ode = dode;
             _velocity = new PhysicsVector();
             _target_velocity = new PhysicsVector();
             _position = pos;
@@ -800,6 +802,10 @@ namespace OpenSim.Region.Physics.OdePlugin
                 //kill the body
                 d.BodyDestroy(Body);
             }
+        }
+        public override void CrossingFailure()
+        {
+
         }
     }
 }
