@@ -817,7 +817,7 @@ namespace OpenSim.Region.Terrain
             {
                 for (x = 0; x < h; x++)
                 {
-                    heightmap.map[x, y] = bs.ReadDouble();
+                    heightmap.Set(x, y, (double) bs.ReadSingle());
                 }
             }
 
@@ -842,7 +842,7 @@ namespace OpenSim.Region.Terrain
             {
                 for (x = 0; x < w; x++)
                 {
-                    heightmap.map[x, y] = (double) bs.ReadSingle();
+                    heightmap.Set(x, y, (double) bs.ReadSingle());
                 }
             }
 
@@ -954,7 +954,7 @@ namespace OpenSim.Region.Terrain
             {
                 for (x = 0; x < w; x++)
                 {
-                    heightmap.map[x, y] = (double) bs.ReadByte()*((double) bs.ReadByte()/127.0);
+                    heightmap.Set(x, y, (double) bs.ReadByte()*((double) bs.ReadByte()/127.0));
                     bs.ReadBytes(11); // Advance the stream to next bytes.
                 }
             }

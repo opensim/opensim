@@ -178,9 +178,11 @@ namespace OpenSim.Region.Environment.Modules
                                
                                 if (m_avatarsAppearance.ContainsKey(clientView.AgentId))
                                 {
+                                    AvatarAppearance avatAppearance = null;
+                                    
                                     lock (m_avatarsAppearance)
                                     {
-                                        AvatarAppearance avatAppearance = m_avatarsAppearance[clientView.AgentId];
+                                        avatAppearance = m_avatarsAppearance[clientView.AgentId];
                                     }
                                     avatAppearance.Wearables[wear.Type].AssetID = assetId;
                                     avatAppearance.Wearables[wear.Type].ItemID = wear.ItemID;
