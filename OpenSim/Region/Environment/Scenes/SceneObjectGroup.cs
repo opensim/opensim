@@ -868,12 +868,13 @@ namespace OpenSim.Region.Environment.Scenes
         #region Packet Handlers
 
         /// <summary>
-        /// 
+        /// Link the prims in a given group to this group
         /// </summary>
-        /// <param name="objectGroup"></param>
+        /// <param name="objectGroup">The group of prims which should be linked to this group</param>
         public void LinkToGroup(SceneObjectGroup objectGroup)
         {
             SceneObjectPart linkPart = objectGroup.m_rootPart;
+            
             Vector3 oldGroupPosition =
                 new Vector3(linkPart.GroupPosition.X, linkPart.GroupPosition.Y, linkPart.GroupPosition.Z);
             Quaternion oldRootRotation =
@@ -882,20 +883,23 @@ namespace OpenSim.Region.Environment.Scenes
 
             linkPart.OffsetPosition = linkPart.GroupPosition - AbsolutePosition;
             linkPart.GroupPosition = AbsolutePosition;
-
             Vector3 axPos = new Vector3(linkPart.OffsetPosition.X, linkPart.OffsetPosition.Y, linkPart.OffsetPosition.Z);
+            
             Quaternion parentRot =
                 new Quaternion(m_rootPart.RotationOffset.W, m_rootPart.RotationOffset.X, m_rootPart.RotationOffset.Y,
                                m_rootPart.RotationOffset.Z);
             axPos = parentRot.Inverse()*axPos;
+            
             linkPart.OffsetPosition = new LLVector3(axPos.x, axPos.y, axPos.z);
             Quaternion oldRot =
                 new Quaternion(linkPart.RotationOffset.W, linkPart.RotationOffset.X, linkPart.RotationOffset.Y,
                                linkPart.RotationOffset.Z);
             Quaternion newRot = parentRot.Inverse()*oldRot;
             linkPart.RotationOffset = new LLQuaternion(newRot.x, newRot.y, newRot.z, newRot.w);
+            
             linkPart.ParentID = m_rootPart.LocalID;
             linkPart.LinkNum = m_parts.Count;
+            
             m_parts.Add(linkPart.UUID, linkPart);
             linkPart.SetParent(this);
 
@@ -935,7 +939,8 @@ namespace OpenSim.Region.Environment.Scenes
 
             if (null != linkPart)
             {
-
+                LLQuaternion worldRot = linkPart.GetWorldRotation();  
+    
                 // Remove the part from this object
                 m_parts.Remove(linkPart.UUID);
                 linkPart.ParentID = 0;
@@ -944,8 +949,9 @@ namespace OpenSim.Region.Environment.Scenes
                 {
                     m_scene.PhysicsScene.RemovePrim(linkPart.PhysActor);
                 }
+                
                 // We need to reset the child part's position 
-                // ready for life as a separate object after being a part of another object
+                // ready for life as a separate object after being a part of another object                                                
                 Quaternion parentRot
                     = new Quaternion(
                         m_rootPart.RotationOffset.W,
@@ -964,6 +970,10 @@ namespace OpenSim.Region.Environment.Scenes
                 linkPart.GroupPosition = AbsolutePosition + linkPart.OffsetPosition;
                 linkPart.OffsetPosition = new LLVector3(0, 0, 0);
 
+                linkPart.RotationOffset = worldRot;
+
+                // This chunk is probably unnecesary now - delete later on
+                /*
                 Quaternion oldRot
                     = new Quaternion(
                         linkPart.RotationOffset.W,
@@ -972,6 +982,7 @@ namespace OpenSim.Region.Environment.Scenes
                         linkPart.RotationOffset.Z);
                 Quaternion newRot = parentRot*oldRot;
                 linkPart.RotationOffset = new LLQuaternion(newRot.x, newRot.y, newRot.z, newRot.w);
+                */
 
                 // Add physics information back to delinked part if appropriate
                 // XXX This is messy and should be refactorable with the similar section in
