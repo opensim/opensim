@@ -265,13 +265,13 @@ namespace OpenSim.Framework.Communications.Cache
                 }
                 else
                 {
-                    ReqestStartXfer();
+                    RequestStartXfer();
                 }
                 
                 return false;
             }
 
-            protected void ReqestStartXfer()
+            protected void RequestStartXfer()
             {
                 UploadComplete = false;
                 XferID = Util.GetNextXferID();

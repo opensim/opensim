@@ -118,7 +118,7 @@ namespace OpenSim.Framework.Communications.Cache
                                                       uint callbackID, string description, string name, sbyte invType,
                                                       sbyte type, byte wearableType, uint nextOwnerMask)
         {
-            m_log.InfoFormat(
+            m_log.DebugFormat(
                 "[TRANSACTIONS MANAGER] Called HandleItemCreationFromTransaction with item {0}", name);
             
             AgentAssetTransactions transactions = GetUserTransactions(remoteClient.AgentId);
@@ -140,7 +140,7 @@ namespace OpenSim.Framework.Communications.Cache
         public void HandleItemUpdateFromTransaction(IClientAPI remoteClient, LLUUID transactionID, 
                                                     InventoryItemBase item)
         {
-            m_log.InfoFormat(
+            m_log.DebugFormat(
                 "[TRANSACTIONS MANAGER] Called HandleItemUpdateFromTransaction with item {0}", 
                 item.inventoryName);
             
@@ -150,6 +150,15 @@ namespace OpenSim.Framework.Communications.Cache
             transactions.RequestUpdateInventoryItem(remoteClient, transactionID, item);        
         }
 
+        /// <summary>
+        /// Request that a client (agent) begin an asset transfer.
+        /// </summary>
+        /// <param name="remoteClient"></param>
+        /// <param name="assetID"></param>
+        /// <param name="transaction"></param>
+        /// <param name="type"></param>
+        /// <param name="data"></param></param>
+        /// <param name="tempFile"></param>
         public void HandleUDPUploadRequest(IClientAPI remoteClient, LLUUID assetID, LLUUID transaction, sbyte type,
                                            byte[] data, bool storeLocal, bool tempFile)
         {
@@ -177,7 +186,8 @@ namespace OpenSim.Framework.Communications.Cache
         }
 
         /// <summary>
-        /// Conduct an asset transfer from the client.
+        /// Handle asset transfer data packets received in response to the asset upload request in
+        /// HandleUDPUploadRequest()
         /// </summary>
         /// <param name="remoteClient"></param>
         /// <param name="xferID"></param>
