@@ -72,7 +72,7 @@ namespace OpenSim.Region.Environment.Modules
                     appearance.TextureEntry = AvatarAppearance.GetDefaultTextureEntry();
                     lock (m_avatarsAppearance)
                     {
-                        m_avatarsAppearance.Add(avatarId, appearance);
+                        m_avatarsAppearance[avatarId] = appearance;
                     }
                     return true;
                 }
@@ -87,7 +87,7 @@ namespace OpenSim.Region.Environment.Modules
             //add appearance to dictionary cache
             lock (m_avatarsAppearance)
             {
-                m_avatarsAppearance.Add(avatarId, appearance);
+                m_avatarsAppearance[avatarId] = appearance;
             }
 
             //update database
