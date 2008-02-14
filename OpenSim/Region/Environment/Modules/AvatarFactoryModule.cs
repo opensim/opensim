@@ -57,34 +57,27 @@ namespace OpenSim.Region.Environment.Modules
 
         public bool TryGetAvatarAppearance(LLUUID avatarId, out AvatarAppearance appearance)
         {
-            appearance = CheckCache(avatarId);
-            if (appearance != null)
-            {
-                return true;
-            }
-
-            //not in cache so check to see if another thread is already fetching it
+           
             //should only let one thread at a time do this part
             EventWaitHandle waitHandle = null;
+            bool fetchInProgress = false;
             lock (m_syncLock)
             {
+                appearance = CheckCache(avatarId);
+                if (appearance != null)
+                {
+                    return true;
+                }
+
+                //not in cache so check to see if another thread is already fetching it
                 if (m_fetchesInProgress.TryGetValue(avatarId, out waitHandle))
                 {
-                    waitHandle.WaitOne();
-                    appearance = CheckCache(avatarId);
-                    if (appearance != null)
-                    {
-                        waitHandle = null;
-                        return true;
-                    }
-                    else
-                    {
-                        waitHandle = null;
-                        return false;
-                    }
+                    fetchInProgress = true;
                 }
                 else
                 {
+                    fetchInProgress = false;
+
                     //no thread already fetching this appearance, so add a wait handle to list
                     //for any following threads that want the same appearance
                     waitHandle = new EventWaitHandle(false, EventResetMode.ManualReset);
@@ -92,62 +85,84 @@ namespace OpenSim.Region.Environment.Modules
                 }
             }
 
-
-            //this is the first thread to request this appearance
-            //so let it check the db and if not found then create a default appearance
-            //and add that to the cache
-            appearance = CheckDatabase(avatarId);
-            if (appearance != null)
+            if (fetchInProgress)
             {
-                //appearance has now been added to cache so lets pulse any waiting threads
-                lock (m_syncLock)
+                waitHandle.WaitOne();
+                appearance = CheckCache(avatarId);
+                if (appearance != null)
                 {
-                    m_fetchesInProgress.Remove(avatarId);
-                    waitHandle.Set();
+                    waitHandle = null;
+                    return true;
                 }
-                waitHandle = null;
-                return true;
-            }
-
-            //not found a appearance for the user, so create a new default one
-            appearance = CreateDefault(avatarId);
-            if (appearance != null)
-            {
-                //update database
-                if (m_enablePersist)
+                else
                 {
-                    m_appearanceMapper.Add(avatarId.UUID, appearance);
+                    waitHandle = null;
+                    return false;
                 }
 
-                //add appearance to dictionary cache
-                lock (m_avatarsAppearance)
-                {
-                    m_avatarsAppearance[avatarId] = appearance;
-                }
-
-                //appearance has now been added to cache so lets pulse any waiting threads
-                lock (m_syncLock)
-                {
-                    m_fetchesInProgress.Remove(avatarId);
-                    waitHandle.Set();
-                }
-                waitHandle = null;
-                return true;
             }
             else
             {
-                //something went wrong, so release the wait handle and remove it
-                //all waiting threads will fail to find cached appearance
-                //but its better for them to fail than wait for ever
-                lock (m_syncLock)
-                {
-                    m_fetchesInProgress.Remove(avatarId);
-                    waitHandle.Set();
-                }
-                waitHandle = null;
-                return false;
-            }
+                Thread.Sleep(5000);
 
+                //this is the first thread to request this appearance
+                //so let it check the db and if not found then create a default appearance
+                //and add that to the cache
+                appearance = CheckDatabase(avatarId);
+                if (appearance != null)
+                {
+                    //appearance has now been added to cache so lets pulse any waiting threads
+                    lock (m_syncLock)
+                    {
+                        m_fetchesInProgress.Remove(avatarId);
+                        waitHandle.Set();
+                    }
+                    // waitHandle.Close();
+                    waitHandle = null;
+                    return true;
+                }
+
+                //not found a appearance for the user, so create a new default one
+                appearance = CreateDefault(avatarId);
+                if (appearance != null)
+                {
+                    //update database
+                    if (m_enablePersist)
+                    {
+                        m_appearanceMapper.Add(avatarId.UUID, appearance);
+                    }
+
+                    //add appearance to dictionary cache
+                    lock (m_avatarsAppearance)
+                    {
+                        m_avatarsAppearance[avatarId] = appearance;
+                    }
+
+                    //appearance has now been added to cache so lets pulse any waiting threads
+                    lock (m_syncLock)
+                    {
+                        m_fetchesInProgress.Remove(avatarId);
+                        waitHandle.Set();
+                    }
+                   // waitHandle.Close();
+                    waitHandle = null;
+                    return true;
+                }
+                else
+                {
+                    //something went wrong, so release the wait handle and remove it
+                    //all waiting threads will fail to find cached appearance
+                    //but its better for them to fail than wait for ever
+                    lock (m_syncLock)
+                    {
+                        m_fetchesInProgress.Remove(avatarId);
+                        waitHandle.Set();
+                    }
+                     //waitHandle.Close();
+                    waitHandle = null;
+                    return false;
+                }
+            }
         }
 
         private AvatarAppearance CreateDefault(LLUUID avatarId)
@@ -197,8 +212,10 @@ namespace OpenSim.Region.Environment.Modules
 
         public void Initialise(Scene scene, IConfigSource source)
         {
-            scene.RegisterModuleInterface<IAvatarFactory>(this);
-            scene.EventManager.OnNewClient += NewClient;
+           
+                scene.RegisterModuleInterface<IAvatarFactory>(this);
+                scene.EventManager.OnNewClient += NewClient;
+            
 
             if (m_scene == null)
             {
