@@ -347,8 +347,8 @@ namespace OpenSim.Framework.UserManagement
                 responseData["home"] = home;
                 responseData["look_at"] = lookAt;
                 responseData["message"] = welcomeMessage;
-                responseData["region_x"] = (Int32)RegionX * Constants.RegionSize;
-                responseData["region_y"] = (Int32)RegionY * Constants.RegionSize;
+                responseData["region_x"] = (Int32)(RegionX * Constants.RegionSize);
+                responseData["region_y"] = (Int32)(RegionY * Constants.RegionSize);
 
                 //responseData["inventory-lib-root"] = new ArrayList(); // todo
 
