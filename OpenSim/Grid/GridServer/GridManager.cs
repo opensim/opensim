@@ -315,8 +315,8 @@ namespace OpenSim.Grid.GridServer
             OldSim = getRegion(TheSim.regionHandle);
             if (OldSim == null || OldSim.UUID == TheSim.UUID)
             {
-                bool brandNew = ( OldSim == null && TheSim.regionRecvKey == config.SimSendKey && 
-                                TheSim.regionRecvKey == config.SimRecvKey );
+                bool brandNew = ( OldSim == null && TheSim.regionRecvKey == config.SimSendKey &&
+                                 TheSim.regionSendKey == config.SimRecvKey);
 
                 bool overwritingOldOne = ( OldSim != null && OldSim.regionRecvKey == TheSim.regionRecvKey &&
                                          OldSim.regionSendKey == TheSim.regionSendKey );
