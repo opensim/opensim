@@ -143,7 +143,8 @@ namespace OpenSim.Grid.UserServer
 
                     tempfirstname = m_console.CmdPrompt("First name");
                     templastname = m_console.CmdPrompt("Last name");
-                    tempMD5Passwd = m_console.PasswdPrompt("Password");
+                    //tempMD5Passwd = m_console.PasswdPrompt("Password");
+                    tempMD5Passwd = m_console.CmdPrompt("Password");
                     regX = Convert.ToUInt32(m_console.CmdPrompt("Start Region X"));
                     regY = Convert.ToUInt32(m_console.CmdPrompt("Start Region Y"));
 
