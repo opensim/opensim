@@ -1232,31 +1232,31 @@ namespace OpenSim.Region.Environment.Scenes
             ulong newRegionHandle = 0;
             LLVector3 pos = position;
 
-            if (position.X > 257f)
+            if (position.X > Constants.RegionSize + 0.1f)
             {
-                pos.X = ((pos.X - 256));
-                
-                newRegionHandle = Util.UIntsToLong((uint)((thisx + 1) * 256), (uint)(thisy * 256));
+                pos.X = ((pos.X - Constants.RegionSize));
+
+                newRegionHandle = Util.UIntsToLong((uint)((thisx + 1) * Constants.RegionSize), (uint)(thisy * Constants.RegionSize));
                 
                 // x + 1
             }
-            else if (position.X < -1f)
+            else if (position.X < -0.1f)
             {
-                pos.X = ((pos.X + 256));
-                newRegionHandle = Util.UIntsToLong((uint)((thisx - 1) * 256), (uint)(thisy * 256));
+                pos.X = ((pos.X + Constants.RegionSize));
+                newRegionHandle = Util.UIntsToLong((uint)((thisx - 1) * Constants.RegionSize), (uint)(thisy * Constants.RegionSize));
                 // x - 1
             }
 
-            if (position.Y > 257f)
+            if (position.Y > Constants.RegionSize + 0.1f)
             {
-                pos.Y = ((pos.Y - 256));
-                newRegionHandle = Util.UIntsToLong((uint)(thisx * 256), (uint)((thisy + 1) * 256));
+                pos.Y = ((pos.Y - Constants.RegionSize));
+                newRegionHandle = Util.UIntsToLong((uint)(thisx * Constants.RegionSize), (uint)((thisy + 1) * Constants.RegionSize));
                // y + 1
             }
             else if (position.Y < -1f)
             {
-                pos.Y = ((pos.Y + 256));
-                newRegionHandle = Util.UIntsToLong((uint)(thisx * 256), (uint)((thisy - 1) * 256));
+                pos.Y = ((pos.Y + Constants.RegionSize));
+                newRegionHandle = Util.UIntsToLong((uint)(thisx * Constants.RegionSize), (uint)((thisy - 1) * Constants.RegionSize));
                 // y - 1
             }
 

@@ -272,41 +272,59 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL
             switch (l)
             {
                 case enumCompileType.cs:
-                    compileScript = String.Empty +
-                                "using OpenSim.Region.ScriptEngine.Common; using System.Collections.Generic;\r\n" +
-                                String.Empty + "namespace SecondLife { " +
-                                String.Empty + "public class Script : OpenSim.Region.ScriptEngine.Common.LSL_BaseClass { \r\n" +
-                                @"public Script() { } " +
-                                compileScript +
-                                "} }\r\n";
+                    compileScript = CreateCSCompilerScript(compileScript);
                     break;
                 case enumCompileType.vb:
-                    compileScript = String.Empty +
-                                "Imports OpenSim.Region.ScriptEngine.Common: Imports System.Collections.Generic: " +
-                                String.Empty + "NameSpace SecondLife:" +
-                                String.Empty + "Public Class Script: Inherits OpenSim.Region.ScriptEngine.Common.LSL_BaseClass: " +
-                                "\r\nPublic Sub New()\r\nEnd Sub: " +
-                                compileScript +
-                                ":End Class :End Namespace\r\n";
+                    compileScript = CreateVBCompilerScript(compileScript);
                     break;
                 case enumCompileType.js:
-                    compileScript = String.Empty +
-                        "import OpenSim.Region.ScriptEngine.Common; import System.Collections.Generic;\r\n" +
-                        "package SecondLife {\r\n" +
-                        "class Script extends OpenSim.Region.ScriptEngine.Common.LSL_BaseClass { \r\n" +
-                        compileScript +
-                        "} }\r\n";
+                    compileScript = CreateJSCompilerScript(compileScript);
                     break;
             }
-            return CompileFromCSorVBText(compileScript, l);
+            return CompileFromDotNetText(compileScript, l);
+        }
+
+        private static string CreateJSCompilerScript(string compileScript)
+        {
+            compileScript = String.Empty +
+                "import OpenSim.Region.ScriptEngine.Common; import System.Collections.Generic;\r\n" +
+                "package SecondLife {\r\n" +
+                "class Script extends OpenSim.Region.ScriptEngine.Common.LSL_BaseClass { \r\n" +
+                compileScript +
+                "} }\r\n";
+            return compileScript;
+        }
+
+        private static string CreateCSCompilerScript(string compileScript)
+        {
+            compileScript = String.Empty +
+                        "using OpenSim.Region.ScriptEngine.Common; using System.Collections.Generic;\r\n" +
+                        String.Empty + "namespace SecondLife { " +
+                        String.Empty + "public class Script : OpenSim.Region.ScriptEngine.Common.LSL_BaseClass { \r\n" +
+                        @"public Script() { } " +
+                        compileScript +
+                        "} }\r\n";
+            return compileScript;
+        }
+
+        private static string CreateVBCompilerScript(string compileScript)
+        {
+            compileScript = String.Empty +
+                        "Imports OpenSim.Region.ScriptEngine.Common: Imports System.Collections.Generic: " +
+                        String.Empty + "NameSpace SecondLife:" +
+                        String.Empty + "Public Class Script: Inherits OpenSim.Region.ScriptEngine.Common.LSL_BaseClass: " +
+                        "\r\nPublic Sub New()\r\nEnd Sub: " +
+                        compileScript +
+                        ":End Class :End Namespace\r\n";
+            return compileScript;
         }
 
         /// <summary>
-        /// Compile CS script to .Net assembly (.dll)
+        /// Compile .NET script to .Net assembly (.dll)
         /// </summary>
         /// <param name="Script">CS script</param>
         /// <returns>Filename to .dll assembly</returns>
-        internal string CompileFromCSorVBText(string Script, enumCompileType lang)
+        internal string CompileFromDotNetText(string Script, enumCompileType lang)
         {
             string ext = "." + lang.ToString();
 

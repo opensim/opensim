@@ -387,7 +387,7 @@ namespace OpenSim.Region.Environment.Scenes
                 // This may need to be updated to the maximum draw distance possible..  
                 // We might (and probably will) be checking for prim creation from other sims
                 // when the camera crosses the border.
-                float idist = 256f;
+                float idist = (float)Constants.RegionSize;
 
 
                 if (inter.HitTF)

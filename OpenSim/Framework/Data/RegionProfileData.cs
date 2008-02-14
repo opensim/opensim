@@ -169,7 +169,7 @@ namespace OpenSim.Framework.Data
             RegionProfileData simData = new RegionProfileData();
             simData.regionLocX = Convert.ToUInt32((string) responseData["region_locx"]);
             simData.regionLocY = Convert.ToUInt32((string) responseData["region_locy"]);
-            simData.regionHandle = Helpers.UIntsToLong((simData.regionLocX*256), (simData.regionLocY*256));
+            simData.regionHandle = Helpers.UIntsToLong((simData.regionLocX * Constants.RegionSize), (simData.regionLocY * Constants.RegionSize));
             simData.serverIP = (string) responseData["sim_ip"];
             simData.serverPort = Convert.ToUInt32((string) responseData["sim_port"]);
             simData.httpPort = Convert.ToUInt32((string) responseData["http_port"]);
@@ -203,7 +203,7 @@ namespace OpenSim.Framework.Data
             RegionProfileData simData = new RegionProfileData();
             simData.regionLocX = Convert.ToUInt32((string) responseData["region_locx"]);
             simData.regionLocY = Convert.ToUInt32((string) responseData["region_locy"]);
-            simData.regionHandle = Helpers.UIntsToLong((simData.regionLocX*256), (simData.regionLocY*256));
+            simData.regionHandle = Helpers.UIntsToLong((simData.regionLocX * Constants.RegionSize), (simData.regionLocY * Constants.RegionSize));
             simData.serverIP = (string) responseData["sim_ip"];
             simData.serverPort = Convert.ToUInt32((string) responseData["sim_port"]);
             simData.httpPort = Convert.ToUInt32((string) responseData["http_port"]);

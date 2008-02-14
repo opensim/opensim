@@ -152,7 +152,7 @@ namespace OpenSim.Framework.UserManagement
             ErrorReason = "key";
             welcomeMessage = "Welcome to OpenSim!";
             seedCapability = String.Empty;
-            home = "{'region_handle':[r" + (1000*256).ToString() + ",r" + (1000*256).ToString() + "], 'position':[r" +
+            home = "{'region_handle':[r" + (1000*Constants.RegionSize).ToString() + ",r" + (1000*Constants.RegionSize).ToString() + "], 'position':[r" +
                    userProfile.homepos.X.ToString() + ",r" + userProfile.homepos.Y.ToString() + ",r" +
                    userProfile.homepos.Z.ToString() + "], 'look_at':[r" + userProfile.homelookat.X.ToString() + ",r" +
                    userProfile.homelookat.Y.ToString() + ",r" + userProfile.homelookat.Z.ToString() + "]}";
@@ -347,8 +347,8 @@ namespace OpenSim.Framework.UserManagement
                 responseData["home"] = home;
                 responseData["look_at"] = lookAt;
                 responseData["message"] = welcomeMessage;
-                responseData["region_x"] = (Int32) RegionX*256;
-                responseData["region_y"] = (Int32) RegionY*256;
+                responseData["region_x"] = (Int32)RegionX * Constants.RegionSize;
+                responseData["region_y"] = (Int32)RegionY * Constants.RegionSize;
 
                 //responseData["inventory-lib-root"] = new ArrayList(); // todo
 
@@ -447,8 +447,8 @@ namespace OpenSim.Framework.UserManagement
                 map["home"] = LLSD.FromString(home);
                 map["look_at"] = LLSD.FromString(lookAt);
                 map["message"] = LLSD.FromString(welcomeMessage);
-                map["region_x"] = LLSD.FromInteger(RegionX * 256);
-                map["region_y"] = LLSD.FromInteger(RegionY * 256);
+                map["region_x"] = LLSD.FromInteger(RegionX * Constants.RegionSize);
+                map["region_y"] = LLSD.FromInteger(RegionY * Constants.RegionSize);
 
                 if (m_buddyList != null)
                 {

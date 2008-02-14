@@ -81,7 +81,7 @@ namespace OpenSim.Region.Environment.Scenes
             m_parentScene = parent;
             m_regInfo = regInfo;
             PermissionsMngr = permissionsMngr;
-            QuadTree = new BasicQuadTreeNode(null, "/0/", 0, 0, 256, 256);
+            QuadTree = new BasicQuadTreeNode(null, "/0/", 0, 0, (short)Constants.RegionSize, (short)Constants.RegionSize);
             QuadTree.Subdivide();
             QuadTree.Subdivide();
         }

@@ -82,8 +82,8 @@ namespace OpenSim.Grid.UserServer
                 // Customise the response
                 //CFK: This is redundant and the next message should always appear.
                 //CFK: m_log.Info("[LOGIN]: Home Location");
-                response.Home = "{'region_handle':[r" + (SimInfo.regionLocX*256).ToString() + ",r" +
-                                (SimInfo.regionLocY*256).ToString() + "], " +
+                response.Home = "{'region_handle':[r" + (SimInfo.regionLocX * Constants.RegionSize).ToString() + ",r" +
+                                (SimInfo.regionLocY * Constants.RegionSize).ToString() + "], " +
                                 "'position':[r" + theUser.homeLocation.X.ToString() + ",r" +
                                 theUser.homeLocation.Y.ToString() + ",r" + theUser.homeLocation.Z.ToString() + "], " +
                                 "'look_at':[r" + theUser.homeLocation.X.ToString() + ",r" +
@@ -144,7 +144,7 @@ namespace OpenSim.Grid.UserServer
                 // Send him to default region instead
                 // Load information from the gridserver
 
-                ulong defaultHandle = (((ulong) m_config.DefaultX*256) << 32) | ((ulong) m_config.DefaultY*256);
+                ulong defaultHandle = (((ulong)m_config.DefaultX * Constants.RegionSize) << 32) | ((ulong)m_config.DefaultY * Constants.RegionSize);
 
                 m_log.Warn(
                     "[LOGIN]: Home region not available: sending to default " + defaultHandle.ToString());
@@ -158,8 +158,8 @@ namespace OpenSim.Grid.UserServer
 
                     // Customise the response
                     m_log.Info("[LOGIN]: Home Location");
-                    response.Home = "{'region_handle':[r" + (SimInfo.regionLocX*256).ToString() + ",r" +
-                                    (SimInfo.regionLocY*256).ToString() + "], " +
+                    response.Home = "{'region_handle':[r" + (SimInfo.regionLocX * Constants.RegionSize).ToString() + ",r" +
+                                    (SimInfo.regionLocY * Constants.RegionSize).ToString() + "], " +
                                     "'position':[r" + theUser.homeLocation.X.ToString() + ",r" +
                                     theUser.homeLocation.Y.ToString() + ",r" + theUser.homeLocation.Z.ToString() + "], " +
                                     "'look_at':[r" + theUser.homeLocation.X.ToString() + ",r" +

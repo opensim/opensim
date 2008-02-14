@@ -1514,12 +1514,12 @@ namespace OpenSim.Region.Environment.Scenes
             pos2.Y = pos2.Y + (vel.Y*timeStep);
             pos2.Z = pos2.Z + (vel.Z*timeStep);
 
-            if ((pos2.X < 0) || (pos2.X > 256))
+            if ((pos2.X < 0) || (pos2.X > Constants.RegionSize))
             {
                 CrossToNewRegion();
             }
 
-            if ((pos2.Y < 0) || (pos2.Y > 256))
+            if ((pos2.Y < 0) || (pos2.Y > Constants.RegionSize))
             {
                 CrossToNewRegion();
             }
@@ -1544,17 +1544,12 @@ namespace OpenSim.Region.Environment.Scenes
             // distance into new region to place avatar
             const float enterDistance = 0.1f;
 
-            // region size
-            // TODO: this should be hard-coded in some common place
-            const float regionWidth = 256;
-            const float regionHeight = 256;
-
             if (pos.X < boundaryDistance)
             {
                 neighbourx--;
-                newpos.X = regionWidth - enterDistance;
+                newpos.X = Constants.RegionSize - enterDistance;
             }
-            else if (pos.X > regionWidth - boundaryDistance)
+            else if (pos.X > Constants.RegionSize - boundaryDistance)
             {
                 neighbourx++;
                 newpos.X = enterDistance;
@@ -1563,16 +1558,16 @@ namespace OpenSim.Region.Environment.Scenes
             if (pos.Y < boundaryDistance)
             {
                 neighboury--;
-                newpos.Y = regionHeight - enterDistance;
+                newpos.Y = Constants.RegionSize - enterDistance;
             }
-            else if (pos.Y > regionHeight - boundaryDistance)
+            else if (pos.Y > Constants.RegionSize - boundaryDistance)
             {
                 neighboury++;
                 newpos.Y = enterDistance;
             }
 
             LLVector3 vel = m_velocity;
-            ulong neighbourHandle = Helpers.UIntsToLong((uint) (neighbourx*256), (uint) (neighboury*256));
+            ulong neighbourHandle = Helpers.UIntsToLong((uint)(neighbourx * Constants.RegionSize), (uint)(neighboury * Constants.RegionSize));
             SimpleRegionInfo neighbourRegion = m_scene.RequestNeighbouringRegionInfo(neighbourHandle);
             if (neighbourRegion != null)
             {
@@ -1622,8 +1617,8 @@ namespace OpenSim.Region.Environment.Scenes
         public void ChildAgentDataUpdate(ChildAgentDataUpdate cAgentData, uint tRegionX, uint tRegionY, uint rRegionX, uint rRegionY)
         {
             // 
-            int shiftx = ((int)rRegionX - (int)tRegionX) * 256;
-            int shifty = ((int)rRegionY - (int)tRegionY) * 256;
+            int shiftx = ((int)rRegionX - (int)tRegionX) * (int)Constants.RegionSize;
+            int shifty = ((int)rRegionY - (int)tRegionY) * (int)Constants.RegionSize;
             
             m_DrawDistance = cAgentData.drawdistance;
             m_pos = new LLVector3(cAgentData.Position.x + shiftx, cAgentData.Position.y + shifty, cAgentData.Position.z);

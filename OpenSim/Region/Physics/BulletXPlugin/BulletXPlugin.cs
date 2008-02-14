@@ -336,7 +336,7 @@ namespace OpenSim.Region.Physics.BulletXPlugin
 
         private const int minXY = 0;
         private const int minZ = 0;
-        private const int maxXY = 256;
+        private const int maxXY = (int)Constants.RegionSize;
         private const int maxZ = 4096;
         private const int maxHandles = 32766; //Why? I don't know
         private const float gravity = 9.8f;

@@ -203,13 +203,13 @@ namespace OpenSim.Grid.GridServer
                 {
                     if (
                         getRegion(
-                            Util.UIntsToLong((uint) ((central_region.regionLocX + x)*256),
-                                             (uint) (central_region.regionLocY + y)*256)) != null)
+                            Util.UIntsToLong((uint)((central_region.regionLocX + x) * Constants.RegionSize),
+                                             (uint)(central_region.regionLocY + y) * Constants.RegionSize)) != null)
                     {
                         neighbour =
                             getRegion(
-                                Util.UIntsToLong((uint) ((central_region.regionLocX + x)*256),
-                                                 (uint) (central_region.regionLocY + y)*256));
+                                Util.UIntsToLong((uint)((central_region.regionLocX + x) * Constants.RegionSize),
+                                                 (uint)(central_region.regionLocY + y) * Constants.RegionSize));
                         response += "<neighbour>";
                         response += "<sim_ip>" + neighbour.serverIP + "</sim_ip>";
                         response += "<sim_port>" + neighbour.serverPort.ToString() + "</sim_port>";
@@ -303,7 +303,7 @@ namespace OpenSim.Grid.GridServer
             }
             catch (KeyNotFoundException) { }
 
-            TheSim.regionHandle = Helpers.UIntsToLong((TheSim.regionLocX * 256), (TheSim.regionLocY * 256));
+            TheSim.regionHandle = Helpers.UIntsToLong((TheSim.regionLocX * Constants.RegionSize), (TheSim.regionLocY * Constants.RegionSize));
             TheSim.serverURI = "http://" + TheSim.serverIP + ":" + TheSim.serverPort + "/";
 
             TheSim.httpServerURI = "http://" + TheSim.serverIP + ":" + TheSim.httpPort + "/";
@@ -416,13 +416,13 @@ namespace OpenSim.Grid.GridServer
                             {
                                 if (
                                     getRegion(
-                                        Helpers.UIntsToLong((uint)((TheSim.regionLocX + x) * 256),
-                                                            (uint)(TheSim.regionLocY + y) * 256)) != null)
+                                        Helpers.UIntsToLong((uint)((TheSim.regionLocX + x) * Constants.RegionSize),
+                                                            (uint)(TheSim.regionLocY + y) * Constants.RegionSize)) != null)
                                 {
                                     neighbour =
                                         getRegion(
-                                            Helpers.UIntsToLong((uint)((TheSim.regionLocX + x) * 256),
-                                                                (uint)(TheSim.regionLocY + y) * 256));
+                                            Helpers.UIntsToLong((uint)((TheSim.regionLocX + x) * Constants.RegionSize),
+                                                                (uint)(TheSim.regionLocY + y) * Constants.RegionSize));
 
                                     NeighbourBlock = new Hashtable();
                                     NeighbourBlock["sim_ip"] = Util.GetHostFromDNS(neighbour.serverIP).ToString();
@@ -604,7 +604,7 @@ namespace OpenSim.Grid.GridServer
                 {
                     for (int y = ymin; y < ymax + 1; y++)
                     {
-                        ulong regHandle = Helpers.UIntsToLong((uint) (x*256), (uint) (y*256));
+                        ulong regHandle = Helpers.UIntsToLong((uint)(x * Constants.RegionSize), (uint)(y * Constants.RegionSize));
                         simProfile = getRegion(regHandle);
                         if (simProfile != null)
                         {
@@ -764,12 +764,12 @@ namespace OpenSim.Grid.GridServer
 
                     case "region_locx":
                         TheSim.regionLocX = Convert.ToUInt32((string) simnode.ChildNodes[i].InnerText);
-                        TheSim.regionHandle = Helpers.UIntsToLong((TheSim.regionLocX*256), (TheSim.regionLocY*256));
+                        TheSim.regionHandle = Helpers.UIntsToLong((TheSim.regionLocX * Constants.RegionSize), (TheSim.regionLocY * Constants.RegionSize));
                         break;
 
                     case "region_locy":
                         TheSim.regionLocY = Convert.ToUInt32((string) simnode.ChildNodes[i].InnerText);
-                        TheSim.regionHandle = Helpers.UIntsToLong((TheSim.regionLocX*256), (TheSim.regionLocY*256));
+                        TheSim.regionHandle = Helpers.UIntsToLong((TheSim.regionLocX * Constants.RegionSize), (TheSim.regionLocY * Constants.RegionSize));
                         break;
                 }
             }
@@ -787,9 +787,9 @@ namespace OpenSim.Grid.GridServer
                 return "ERROR! Servers must register with public addresses.";
             }
 
-            if (requireValid && (TheSim.serverIP.StartsWith("0.")))
+            if (requireValid && (TheSim.serverIP.StartsWith("0.") || TheSim.serverIP.StartsWith("255.")))
             {
-                return "ERROR! 0.*.*.* Addresses are invalid, please check your server config and try again";
+                return "ERROR! 0.*.*.* / 255.*.*.* Addresses are invalid, please check your server config and try again";
             }
 
 

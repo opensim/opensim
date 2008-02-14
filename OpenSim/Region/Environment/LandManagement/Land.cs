@@ -78,7 +78,7 @@ namespace OpenSim.Region.Environment.LandManagement
         /// <returns>Returns true if the piece of land contains the specified point</returns>
         public bool containsPoint(int x, int y)
         {
-            if (x >= 0 && y >= 0 && x <= 256 && x <= 256)
+            if (x >= 0 && y >= 0 && x <= Constants.RegionSize && x <= Constants.RegionSize)
             {
                 return (landBitmap[x/4, y/4] == true);
             }
@@ -545,7 +545,7 @@ namespace OpenSim.Region.Environment.LandManagement
         /// <returns></returns>
         public static bool[,] basicFullRegionLandBitmap()
         {
-            return getSquareLandBitmap(0, 0, 256, 256);
+            return getSquareLandBitmap(0, 0, (int)Constants.RegionSize, (int)Constants.RegionSize);
         }
 
         /// <summary>

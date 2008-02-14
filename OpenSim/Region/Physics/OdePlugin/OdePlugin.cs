@@ -85,9 +85,9 @@ namespace OpenSim.Region.Physics.OdePlugin
         private static readonly log4net.ILog m_log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 
         CollisionLocker ode;
-        // TODO: this should be hard-coded in some common place
-        private const uint m_regionWidth = 256;
-        private const uint m_regionHeight = 256;
+        
+        private const uint m_regionWidth = Constants.RegionSize;
+        private const uint m_regionHeight = Constants.RegionSize;
 
         private static float ODE_STEPSIZE = 0.020f;
         private static bool RENDER_FLAG = false;
@@ -585,7 +585,7 @@ namespace OpenSim.Region.Physics.OdePlugin
         }
         private float GetTerrainHeightAtXY(float x, float y) 
         {
-            return (float)_origheightmap[(int) y*256 + (int) x];
+            return (float)_origheightmap[(int)y * Constants.RegionSize + (int)x];
             
 
         }

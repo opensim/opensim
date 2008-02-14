@@ -203,21 +203,21 @@ namespace OpenSim.Region.Physics.POSPlugin
                 {
                     character.Position.Y = 0.1F;
                 }
-                else if (character.Position.Y >= 256)
+                else if (character.Position.Y >= Constants.RegionSize)
                 {
-                    character.Position.Y = 255.9F;
+                    character.Position.Y = Constants.RegionSize - 0.1f;
                 }
 
                 if (character.Position.X < 0)
                 {
                     character.Position.X = 0.1F;
                 }
-                else if (character.Position.X >= 256)
+                else if (character.Position.X >= Constants.RegionSize)
                 {
-                    character.Position.X = 255.9F;
+                    character.Position.X = Constants.RegionSize - 0.1f;
                 }
 
-                float terrainheight = _heightMap[(int) character.Position.Y*256 + (int) character.Position.X];
+                float terrainheight = _heightMap[(int)character.Position.Y * Constants.RegionSize + (int)character.Position.X];
                 if (character.Position.Z + (character._target_velocity.Z*timeStep) < terrainheight + 2)
                 {
                     character.Position.Z = terrainheight + 1.0f;
@@ -269,18 +269,18 @@ namespace OpenSim.Region.Physics.POSPlugin
                 {
                     character.Position.Y = 0.1F;
                 }
-                else if (character.Position.Y >= 256)
+                else if (character.Position.Y >= Constants.RegionSize)
                 {
-                    character.Position.Y = 255.9F;
+                    character.Position.Y = Constants.RegionSize - 0.1f;
                 }
 
                 if (character.Position.X < 0)
                 {
                     character.Position.X = 0.1F;
                 }
-                else if (character.Position.X >= 256)
+                else if (character.Position.X >= Constants.RegionSize)
                 {
-                    character.Position.X = 255.9F;
+                    character.Position.X = Constants.RegionSize - 0.1f;
                 }
 
                 character._velocity.X = (character.Position.X - oldposX)/timeStep;

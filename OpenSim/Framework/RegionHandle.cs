@@ -63,8 +63,8 @@ namespace OpenSim.Framework
             uint ny = (uint) y;
 
             // Multiply grid coords to get region coords
-            nx *= 256;
-            ny *= 256;
+            nx *= Constants.RegionSize;
+            ny *= Constants.RegionSize;
 
             // Stuff the IP address in too
             nx = (uint) a << 16;
@@ -80,7 +80,7 @@ namespace OpenSim.Framework
         /// <param name="y">Grid Y Coordinate</param>
         public RegionHandle(uint x, uint y)
         {
-            handle = ((x*256) << 32) | (y*256);
+            handle = ((x * Constants.RegionSize) << 32) | (y * Constants.RegionSize);
         }
 
         /// <summary>

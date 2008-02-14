@@ -128,8 +128,8 @@ namespace OpenSim.Region.Communications.Local
 
             if (reg != null)
             {
-                response.Home = "{'region_handle':[r" + (reg.RegionLocX*256).ToString() + ",r" +
-                                (reg.RegionLocY*256).ToString() + "], " +
+                response.Home = "{'region_handle':[r" + (reg.RegionLocX * Constants.RegionSize).ToString() + ",r" +
+                                (reg.RegionLocY * Constants.RegionSize).ToString() + "], " +
                                 "'position':[r" + theUser.homeLocation.X.ToString() + ",r" +
                                 theUser.homeLocation.Y.ToString() + ",r" + theUser.homeLocation.Z.ToString() + "], " +
                                 "'look_at':[r" + theUser.homeLocation.X.ToString() + ",r" +

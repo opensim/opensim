@@ -2232,7 +2232,7 @@ namespace OpenSim.Region.ScriptEngine.Common
         public LSL_Types.Vector3 llGetRegionCorner()
         {
             m_host.AddScriptLPS(1);
-            return new LSL_Types.Vector3(World.RegionInfo.RegionLocX * 256, World.RegionInfo.RegionLocY * 256, 0);
+            return new LSL_Types.Vector3(World.RegionInfo.RegionLocX * Constants.RegionSize, World.RegionInfo.RegionLocY * Constants.RegionSize, 0);
         }
 
         public LSL_Types.list llListInsertList(LSL_Types.list dest, LSL_Types.list src, int start)

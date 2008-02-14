@@ -70,7 +70,7 @@ namespace OpenSim.Framework
         /// </summary>
         public ulong homeRegion
         {
-            get { return Helpers.UIntsToLong((homeRegionX*256), (homeRegionY*256)); }
+            get { return Helpers.UIntsToLong((homeRegionX * (uint)Constants.RegionSize), (homeRegionY * (uint)Constants.RegionSize)); }
             set
             {
                 homeRegionX = (uint) (value >> 40);
