@@ -31,6 +31,7 @@ using OpenSim.Framework;
 using OpenSim.Framework.Communications.Cache;
 using OpenSim.Framework.Console;
 using OpenSim.Region.Terrain;
+using OpenSim.Region.Environment.Interfaces;
 
 namespace OpenSim.Region.Environment.Scenes
 {
@@ -58,6 +59,7 @@ namespace OpenSim.Region.Environment.Scenes
         protected RegionInfo m_regInfo;
 
         public TerrainEngine Terrain;
+        public ITerrainChannel Heightmap;
 
         protected EventManager m_eventManager;
 

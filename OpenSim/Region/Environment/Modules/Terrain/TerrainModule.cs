@@ -32,11 +32,12 @@ using System.Collections;
 using System.Collections.Generic;
 using OpenSim.Framework;
 using OpenSim.Framework.Console;
+using OpenSim.Region.Environment.Modules;
 using OpenSim.Region.Environment.Interfaces;
 using OpenSim.Region.Environment.Scenes;
 using libsecondlife;
 
-namespace OpenSim.Region.Environment.Modules
+namespace OpenSim.Region.Environment.Modules.Terrain
 {
     /// <summary>
     /// A new version of the old Channel class, simplified

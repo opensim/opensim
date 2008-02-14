@@ -189,9 +189,9 @@ namespace OpenSim.Region.ClientStack
 
                 return;
             }
-            catch (ObjectDisposedException)
+            catch (ObjectDisposedException e)
             {
-                //m_log.Debug("[UDPSERVER]: " + e.ToString());
+                m_log.Debug("[UDPSERVER]: " + e.ToString());
                 return;
             }
 
@@ -201,9 +201,9 @@ namespace OpenSim.Region.ClientStack
             {
                 packet = PacketPool.Instance.GetPacket(RecvBuffer, ref packetEnd, ZeroBuffer);
             }
-            catch (Exception)
+            catch (Exception e)
             {
-                
+                m_log.Debug("[UDPSERVER]: " + e.ToString());
             }
 
             if (packet != null)
