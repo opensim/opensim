@@ -308,7 +308,6 @@ namespace OpenSim.Grid.GridServer
 
             TheSim.httpServerURI = "http://" + TheSim.serverIP + ":" + TheSim.httpPort + "/";
 
-
             TheSim.regionName = (string)requestData["sim_name"];
             TheSim.UUID = new LLUUID((string)requestData["UUID"]);
 
@@ -477,8 +476,21 @@ namespace OpenSim.Grid.GridServer
                 }
                 else
                 {
-                    m_log.Warn("[grid]: Authentication failed when trying to add new region " + TheSim.regionName + " at location " + TheSim.regionLocX + " " + TheSim.regionLocY + " currently occupied by " + OldSim.regionName);
-                    responseData["error"] = "The key required to connect to your region did not match. Please check your send and recieve keys.";
+                    if (OldSim == null)
+                    {
+                        m_log.Warn("[grid]: Authentication failed when trying to add new region " + TheSim.regionName +
+                                   " at location " + TheSim.regionLocX +
+                                   " " + TheSim.regionLocY + " with TheSim.regionRecvKey " + TheSim.regionRecvKey + "(" + config.SimSendKey + ") and TheSim.regionRecvKey " + TheSim.regionSendKey + "(" + config.SimRecvKey + ") ");
+                    }
+                    else
+                    {
+                        m_log.Warn("[grid]: Authentication failed when trying to add new region " + TheSim.regionName +
+                                   " at location " + TheSim.regionLocX +
+                                   " " + TheSim.regionLocY + " currently occupied by " + OldSim.regionName);
+                    }
+
+                    responseData["error"] =
+                        "The key required to connect to your region did not match. Please check your send and recieve keys.";
                     return response;
                 }
             }
