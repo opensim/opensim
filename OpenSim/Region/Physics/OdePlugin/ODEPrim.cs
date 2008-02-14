@@ -186,7 +186,7 @@ namespace OpenSim.Region.Physics.OdePlugin
         {
             prev_geom = prim_geom;
             prim_geom = geom;
-            m_log.Warn("Setting Geom to: " + prim_geom);
+            //m_log.Warn("Setting Geom to: " + prim_geom);
             
         }
 
@@ -464,10 +464,7 @@ namespace OpenSim.Region.Physics.OdePlugin
 
             m_targetSpace = targetspace;
 
-            if (m_targetSpace != (IntPtr)0)
-            {
-                m_log.Warn("[PHYSICS]: target: " + m_targetSpace.ToString());
-            }
+           
 
             if (_mesh != null)
             {

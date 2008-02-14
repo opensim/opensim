@@ -776,7 +776,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                            
                         }
                     }
-                    m_log.Warn(prim.prim_geom);
+                    //m_log.Warn(prim.prim_geom);
                     try
                     {
                         if (prim.prim_geom != (IntPtr)0)
