@@ -176,7 +176,7 @@ namespace OpenSim.Region.Environment.Modules
                 asset.Type = 0;
                 asset.Description = "dynamic image";
                 asset.Local = false;
-                asset.Temporary = false;
+                asset.Temporary = true;
                 scene.AssetCache.AddAsset(asset);
 
                 LastAssetID = asset.FullID;
