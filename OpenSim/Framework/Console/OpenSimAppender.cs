@@ -14,37 +14,44 @@ namespace OpenSim.Framework.Console
     {
         override protected void Append(LoggingEvent le)
         {
-            string loggingMessage = RenderLoggingEvent(le);
-            string regex = @"^(?<Front>.*?)\[(?<Category>[^\]]+)\]:?(?<End>.*)";
-
-            Regex RE = new Regex(regex, RegexOptions.Multiline);
-            MatchCollection matches = RE.Matches(loggingMessage);
-            // Get some direct matches $1 $4 is a 
-            if (matches.Count == 1)
-            {
-                System.Console.Write(matches[0].Groups["Front"].Value);
-                System.Console.Write("[");
-
-                WriteColorText(DeriveColor(matches[0].Groups["Category"].Value), matches[0].Groups["Category"].Value);
-                System.Console.Write("]:");
+            try {
+                string loggingMessage = RenderLoggingEvent(le);
+                string regex = @"^(?<Front>.*?)\[(?<Category>[^\]]+)\]:?(?<End>.*)";
                 
-                if (le.Level == Level.Error) 
+                
+                Regex RE = new Regex(regex, RegexOptions.Multiline);
+                MatchCollection matches = RE.Matches(loggingMessage);
+                // Get some direct matches $1 $4 is a 
+                if (matches.Count == 1)
                 {
-                    WriteColorText(ConsoleColor.Red, matches[0].Groups["End"].Value);
-                }
-                else if (le.Level == Level.Warn) 
+                    System.Console.Write(matches[0].Groups["Front"].Value);
+                    System.Console.Write("[");
+                    
+                    WriteColorText(DeriveColor(matches[0].Groups["Category"].Value), matches[0].Groups["Category"].Value);
+                    System.Console.Write("]:");
+                    
+                    if (le.Level == Level.Error) 
+                    {
+                        WriteColorText(ConsoleColor.Red, matches[0].Groups["End"].Value);
+                    }
+                    else if (le.Level == Level.Warn) 
+                    {
+                        WriteColorText(ConsoleColor.Yellow, matches[0].Groups["End"].Value);
+                    }
+                    else 
+                    {
+                        System.Console.Write(matches[0].Groups["End"].Value);
+                    }
+                    System.Console.WriteLine();
+                } 
+                else
                 {
-                    WriteColorText(ConsoleColor.Yellow, matches[0].Groups["End"].Value);
+                    System.Console.Write(loggingMessage);
                 }
-                else 
-                {
-                    System.Console.Write(matches[0].Groups["End"].Value);
-                }
-                System.Console.WriteLine();
-            } 
-            else
+            }
+            catch (Exception e)
             {
-                System.Console.Write(loggingMessage);
+                System.Console.WriteLine("Couldn't write out log message", e.ToString());
             }
         }
 
