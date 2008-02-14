@@ -1033,16 +1033,11 @@ namespace OpenSim.Region.Physics.OdePlugin
             rot.z = rotation.z;
 
 
-            int[] iprimspaceArrItem = calculateSpaceArrayItemFromPos(pos);
-            IntPtr targetspace = calculateSpaceForGeom(pos);
-
-            if (targetspace == IntPtr.Zero)
-                targetspace = createprimspace(iprimspaceArrItem[0], iprimspaceArrItem[1]);
-
+            
             OdePrim newPrim;
             lock (OdeLock)
             {
-                newPrim = new OdePrim(name, this, targetspace, pos, siz, rot, mesh, pbs, isphysical, ode);
+                newPrim = new OdePrim(name, this, pos, siz, rot, mesh, pbs, isphysical, ode);
 
                 _prims.Add(newPrim);
             }
@@ -1244,18 +1239,8 @@ namespace OpenSim.Region.Physics.OdePlugin
 
                         collision_optimized(timeStep);
 
-
-
+                        d.WorldQuickStep(world, ODE_STEPSIZE);
                        
-
-                        try
-                        {
-                            d.WorldQuickStep(world, ODE_STEPSIZE);
-                        }
-                        catch (StackOverflowException)
-                        {
-                            d.WorldQuickStep(world, 0.001f);
-                        }
                         d.JointGroupEmpty(contactgroup);
                         ode.dunlock(world);
 

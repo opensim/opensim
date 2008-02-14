@@ -92,7 +92,7 @@ namespace OpenSim.Region.Physics.OdePlugin
 
         private int debugcounter = 0;
 
-        public OdePrim(String primName, OdeScene parent_scene, IntPtr targetSpace, PhysicsVector pos, PhysicsVector size,
+        public OdePrim(String primName, OdeScene parent_scene, PhysicsVector pos, PhysicsVector size,
                        Quaternion rotation, IMesh mesh, PrimitiveBaseShape pbs, bool pisPhysical, CollisionLocker dode)
         {
             ode = dode;
@@ -126,7 +126,7 @@ namespace OpenSim.Region.Physics.OdePlugin
             _pbs = pbs;
 
             _parent_scene = parent_scene;
-            m_targetSpace = targetSpace;
+            m_targetSpace = (IntPtr)0;
 
             if (pos.Z < 0)
                 m_isphysical = false;
@@ -433,6 +433,14 @@ namespace OpenSim.Region.Physics.OdePlugin
         }
         public void changeadd(float timestep)
         {
+            int[] iprimspaceArrItem = _parent_scene.calculateSpaceArrayItemFromPos(_position);
+            IntPtr targetspace = _parent_scene.calculateSpaceForGeom(_position);
+
+            if (targetspace == IntPtr.Zero)
+                targetspace = _parent_scene.createprimspace(iprimspaceArrItem[0], iprimspaceArrItem[1]);
+
+            m_targetSpace = targetspace;
+
             if (_mesh != null)
             {
             }
@@ -630,11 +638,11 @@ namespace OpenSim.Region.Physics.OdePlugin
 
         public void changesize(float timestamp)
         {
-            if (!_parent_scene.geom_name_map.ContainsKey(prim_geom))
-            {
-                m_taintsize = _size;
-                return;
-            }
+            //if (!_parent_scene.geom_name_map.ContainsKey(prim_geom))
+            //{
+               // m_taintsize = _size;
+                //return;
+            //}
             string oldname = _parent_scene.geom_name_map[prim_geom];
 
             
