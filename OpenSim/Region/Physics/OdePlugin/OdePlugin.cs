@@ -736,6 +736,7 @@ namespace OpenSim.Region.Physics.OdePlugin
         /// <param name="prim"></param>
         public void RemovePrimThreadLocked(OdePrim prim)
         {
+            prim.ResetTaints();
             lock (OdeLock)
             {
                 System.Threading.Thread.Sleep(20);
@@ -1237,31 +1238,39 @@ namespace OpenSim.Region.Physics.OdePlugin
                         actor.Move(timeStep);
                         actor.collidelock = true;
                     }
-                    
-                    ode.dlock(world);
-
-                    collision_optimized(timeStep);
-
-                    
-
-                    ode.dunlock(world);
-                    
-                    try
+                    if (!ode.lockquery())
                     {
-                        d.WorldQuickStep(world, ODE_STEPSIZE);
+                        ode.dlock(world);
+
+                        collision_optimized(timeStep);
+
+
+
+                       
+
+                        try
+                        {
+                            d.WorldQuickStep(world, ODE_STEPSIZE);
+                        }
+                        catch (StackOverflowException)
+                        {
+                            d.WorldQuickStep(world, 0.001f);
+                        }
+                        d.JointGroupEmpty(contactgroup);
+                        ode.dunlock(world);
+
+                        step_time -= ODE_STEPSIZE;
+                        i++;
                     }
-                    catch (StackOverflowException)
+                    else
                     {
-                        d.WorldQuickStep(world, 0.001f);
+                        fps = 0;
                     }
-                    d.JointGroupEmpty(contactgroup);
+
                     foreach (OdeCharacter actor in _characters)
                     {
                         actor.collidelock = false;
                     }
-
-                    step_time -= ODE_STEPSIZE;
-                    i++;
                 }
 
                 foreach (OdeCharacter actor in _characters)
@@ -1273,12 +1282,14 @@ namespace OpenSim.Region.Physics.OdePlugin
                 {
                     bool processedtaints = false;
                     foreach (OdePrim prim in _taintedPrim)
-                    {
-                        prim.ProcessTaints(timeStep);
+                    {   
                         if (prim.m_taintremove)
                         {
                             RemovePrimThreadLocked(prim);
                         }
+                        
+                        prim.ProcessTaints(timeStep);
+
                         processedtaints = true;
                         prim.m_collisionscore = 0;
                     }  

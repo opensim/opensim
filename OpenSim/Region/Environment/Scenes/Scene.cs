@@ -1282,6 +1282,13 @@ namespace OpenSim.Region.Environment.Scenes
                 else
                 {
                     m_log.Warn("[INTERREGION]: Prim Crossing Failed!");
+                    if (grp.RootPart != null)
+                    {
+                        if (grp.RootPart.PhysActor != null)
+                        {
+                            grp.RootPart.PhysActor.CrossingFailure();
+                        }
+                    }
                 }
             }
         }

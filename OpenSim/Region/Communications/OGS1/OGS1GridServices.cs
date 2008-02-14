@@ -833,7 +833,7 @@ namespace OpenSim.Region.Communications.OGS1
                     failures = m_deadRegionCache[regionHandle];
                 }
             }
-            if (failures <= 3)
+            if (failures <= 1)
             {
                 RegionInfo regInfo = null;
                 try

@@ -142,8 +142,7 @@ namespace OpenSim.Region.Physics.OdePlugin
             m_taintadd = true;
             _parent_scene.AddPhysicsActorTaint(this);
             //  don't do .add() here; old geoms get recycled with the same hash
-            parent_scene.geom_name_map[prim_geom] = primName;
-            parent_scene.actor_name_map[prim_geom] = (PhysicsActor) this;
+            
         }
 
         /// <summary>
@@ -378,7 +377,7 @@ namespace OpenSim.Region.Physics.OdePlugin
 
         public void ProcessTaints(float timestep)
         {
-            System.Threading.Thread.Sleep(5);
+            
 
             if (m_taintadd)
                 changeadd(timestep);
@@ -412,7 +411,26 @@ namespace OpenSim.Region.Physics.OdePlugin
                 changevelocity(timestep);
         }
 
+        public void ResetTaints()
+        {
 
+            m_taintposition = _position;
+
+            m_taintrot = _orientation;
+
+            m_taintPhysics = m_isphysical;
+
+            m_taintsize = _size;
+            
+
+            m_taintshape = false;
+
+            m_taintforce = false;
+              
+            m_taintdisable = false;
+
+            m_taintVelocity = PhysicsVector.Zero;
+        }
         public void changeadd(float timestep)
         {
             if (_mesh != null)
@@ -525,7 +543,9 @@ namespace OpenSim.Region.Physics.OdePlugin
                 }
 
 
-            }
+            } 
+            _parent_scene.geom_name_map[prim_geom] = this.m_primName;
+            _parent_scene.actor_name_map[prim_geom] = (PhysicsActor)this;
             m_taintadd = false;
 
 
@@ -610,8 +630,14 @@ namespace OpenSim.Region.Physics.OdePlugin
 
         public void changesize(float timestamp)
         {
+            if (!_parent_scene.geom_name_map.ContainsKey(prim_geom))
+            {
+                m_taintsize = _size;
+                return;
+            }
             string oldname = _parent_scene.geom_name_map[prim_geom];
 
+            
             // Cleanup of old prim geometry
             if (_mesh != null)
             {
@@ -995,10 +1021,15 @@ namespace OpenSim.Region.Physics.OdePlugin
         public override void CrossingFailure()
         {
             m_crossingfailures++;
-            if (m_crossingfailures >= 5)
+            if (m_crossingfailures > 5)
+            {
+                base.RaiseOutOfBounds(_position);
+                return;
+
+            }
+            else if (m_crossingfailures == 5)
             {
                 m_log.Warn("[PHYSICS]: Too many crossing failures for: " + m_primName);
-
             }
         }
         public void UpdatePositionAndVelocity()
