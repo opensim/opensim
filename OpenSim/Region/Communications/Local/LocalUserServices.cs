@@ -97,7 +97,7 @@ namespace OpenSim.Region.Communications.Local
             UserProfileData data = GetUserProfile(uuid);
             if (data == null)
             {
-                throw new Exception("Unknown master user UUID");
+                throw new Exception("Unknown master user UUID. Possible reason: UserServer is not running.");
             }
             return data;
         }
