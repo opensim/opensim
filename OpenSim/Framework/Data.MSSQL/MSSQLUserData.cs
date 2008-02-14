@@ -179,8 +179,8 @@ namespace OpenSim.Framework.Data.MSSQL
                 {
                     IDbCommand adder =
                         database.Query(
-                        "INSERT INTO `" + m_userFriendsTableName + "` " +
-                        "(`ownerID`,`friendID`,`friendPerms`,`datetimestamp`) " +
+                        "INSERT INTO " + m_userFriendsTableName + " " +
+                        "(ownerID,friendID,friendPerms,datetimestamp) " +
                         "VALUES " +
                         "(@ownerID,@friendID,@friendPerms,@datetimestamp)",
                             param);
@@ -189,8 +189,8 @@ namespace OpenSim.Framework.Data.MSSQL
 
                     adder =
                         database.Query(
-                        "INSERT INTO `" + m_userFriendsTableName + "` " +
-                        "(`ownerID`,`friendID`,`friendPerms`,`datetimestamp`) " +
+                        "INSERT INTO " + m_userFriendsTableName + " " +
+                        "(ownerID,friendID,friendPerms,datetimestamp) " +
                         "VALUES " +
                         "(@friendID,@ownerID,@friendPerms,@datetimestamp)",
                             param);
