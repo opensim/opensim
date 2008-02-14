@@ -93,7 +93,7 @@ namespace OpenSim.Region.Environment.Scenes
         protected SceneXmlLoader m_sceneXmlLoader;
 
         protected Dictionary<LLUUID, Caps> m_capsHandlers = new Dictionary<LLUUID, Caps>();
-        protected BaseHttpServer httpListener;
+        protected BaseHttpServer m_httpListener;
 
         protected Dictionary<string, IRegionModule> Modules = new Dictionary<string, IRegionModule>();
         public Dictionary<Type, object> ModuleInterfaces = new Dictionary<Type, object>();
@@ -280,7 +280,7 @@ namespace OpenSim.Region.Environment.Scenes
             m_log.Info("[SCENE]: Creating LandMap");
             Terrain = new TerrainEngine((int)RegionInfo.RegionLocX, (int)RegionInfo.RegionLocY);
 
-            httpListener = httpServer;
+            m_httpListener = httpServer;
             m_dumpAssetsToFile = dumpAssetsToFile;
 
             if ((RegionInfo.EstateSettings.regionFlags & Simulator.RegionFlags.SkipScripts) == Simulator.RegionFlags.SkipScripts)
@@ -1609,11 +1609,11 @@ namespace OpenSim.Region.Environment.Scenes
                 {
                     m_log.Debug("[CONNECTION DEBUGGING]: Setting up CAPS handler for " + agent.AgentID.ToString() + " at " + agent.CapsPath.ToString());
                     Caps cap =
-                        new Caps(AssetCache, httpListener, m_regInfo.ExternalHostName, httpListener.Port,
+                        new Caps(AssetCache, m_httpListener, m_regInfo.ExternalHostName, m_httpListener.Port,
                                  agent.CapsPath, agent.AgentID, m_dumpAssetsToFile);
 
                     Util.SetCapsURL(agent.AgentID,
-                                    "http://" + m_regInfo.ExternalHostName + ":" + httpListener.Port.ToString() +
+                                    "http://" + m_regInfo.ExternalHostName + ":" + m_httpListener.Port.ToString() +
                                     "/CAPS/" + agent.CapsPath + "0000/");
                     cap.RegisterHandlers();
                     if (agent.child)
@@ -2579,6 +2579,35 @@ namespace OpenSim.Region.Environment.Scenes
         public List<EntityBase> GetEntities()
         {
             return m_innerScene.GetEntities();
+        }
+
+        #endregion
+
+        #region BaseHTTPServer wrapper methods
+
+        public bool AddHTTPHandler(string method, GenericHTTPMethod handler)
+        {
+            return m_httpListener.AddHTTPHandler(method, handler);
+        }
+
+        public bool AddXmlRPCHandler(string method, XmlRpcMethod handler)
+        {
+            return m_httpListener.AddXmlRPCHandler(method, handler);
+        }
+
+        public void AddStreamHandler(IRequestHandler handler)
+        {
+            m_httpListener.AddStreamHandler(handler);
+        }
+
+        public void RemoveStreamHandler(string httpMethod, string path)
+        {
+            m_httpListener.RemoveStreamHandler(httpMethod, path);
+        }
+
+        public void RemoveHTTPHandler(string httpMethod, string path)
+        {
+            m_httpListener.RemoveHTTPHandler(httpMethod, path);
         }
 
         #endregion
