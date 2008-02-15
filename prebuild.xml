@@ -1480,6 +1480,31 @@
         <Match pattern="*.cs" recurse="true"/>
       </Files>
     </Project>
+
+    <Project name="pCampBot" path="OpenSim/Tools/pCampBot" type="Exe">
+      <Configuration name="Debug">
+        <Options>
+          <OutputPath>../../../bin/</OutputPath>
+        </Options>
+      </Configuration>
+      <Configuration name="Release">
+        <Options>
+          <OutputPath>../../../bin/</OutputPath>
+        </Options>
+      </Configuration>
+
+      <ReferencePath>../../../bin/</ReferencePath>
+      <Reference name="System" localCopy="false"/>
+      <Reference name="libsecondlife.dll"/>
+      <Reference name="OpenSim.Framework.dll"/>
+      <Reference name="OpenSim.Framework.Console.dll"/>
+      <Reference name="Nini.dll" />
+      <Reference name="log4net"/>
+
+      <Files>
+        <Match pattern="*.cs" recurse="true"/>
+      </Files>
+    </Project>
   </Solution>
 
   <!-- Prebuild tool -->
