@@ -1496,8 +1496,8 @@
       <ReferencePath>../../../bin/</ReferencePath>
       <Reference name="System" localCopy="false"/>
       <Reference name="libsecondlife.dll"/>
-      <Reference name="OpenSim.Framework.dll"/>
-      <Reference name="OpenSim.Framework.Console.dll"/>
+      <Reference name="OpenSim.Framework"/>
+      <Reference name="OpenSim.Framework.Console"/>
       <Reference name="Nini.dll" />
       <Reference name="log4net"/>
 

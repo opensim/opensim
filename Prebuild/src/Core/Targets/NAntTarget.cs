@@ -547,6 +547,8 @@ namespace Prebuild.Core.Targets
                 ss.WriteLine("            <include name=\"OpenSim*.exe\"/>");
                 ss.WriteLine("            <include name=\"ScriptEngines/*\"/>");
                 ss.WriteLine("            <include name=\"Physics/*\"/>");
+                ss.WriteLine("            <exclude name=\"OpenSim.32BitLaunch.exe\"/>");
+                ss.WriteLine("            <exclude name=\"ScriptEngines/Default.lsl\"/>");
                 ss.WriteLine("        </fileset>");
                 ss.WriteLine("        </delete>");
                 ss.WriteLine("        <delete dir=\"${obj.dir}\" failonerror=\"false\" />");
