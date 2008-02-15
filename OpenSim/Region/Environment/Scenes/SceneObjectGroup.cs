@@ -1265,23 +1265,11 @@ namespace OpenSim.Region.Environment.Scenes
             if (part != null)
             {
                 part.UpdateShape(shapeBlock);
-            }
-            if (m_rootPart.PhysActor != null)
-            {
-                m_scene.PhysicsScene.RemovePrim(m_rootPart.PhysActor);
-                m_rootPart.PhysActor = m_scene.PhysicsScene.AddPrimShape(
-                    m_rootPart.Name,
-                    m_rootPart.Shape,
-                    new PhysicsVector(m_rootPart.AbsolutePosition.X, m_rootPart.AbsolutePosition.Y,
-                                      m_rootPart.AbsolutePosition.Z),
-                    new PhysicsVector(m_rootPart.Scale.X, m_rootPart.Scale.Y, m_rootPart.Scale.Z),
-                    new Quaternion(m_rootPart.RotationOffset.W, m_rootPart.RotationOffset.X,
-                                   m_rootPart.RotationOffset.Y, m_rootPart.RotationOffset.Z),
-                    m_rootPart.PhysActor.IsPhysical);
-                bool UsePhysics = ((m_rootPart.ObjectFlags & (uint) LLObject.ObjectFlags.Physics) != 0);
-                m_rootPart.DoPhysicsPropertyUpdate(UsePhysics, true);
 
+                if (part.PhysActor != null)
+                    m_scene.PhysicsScene.AddPhysicsActorTaint(part.PhysActor);
             }
+            
         }
 
         #endregion
@@ -1299,15 +1287,24 @@ namespace OpenSim.Region.Environment.Scenes
             if (part != null)
             {
                 part.Resize(scale);
-                if (part.UUID == m_rootPart.UUID)
+                if (part.PhysActor != null)
                 {
-                    if (m_rootPart.PhysActor != null)
-                    {
-                        m_rootPart.PhysActor.Size =
-                            new PhysicsVector(m_rootPart.Scale.X, m_rootPart.Scale.Y, m_rootPart.Scale.Z);
-                        m_scene.PhysicsScene.AddPhysicsActorTaint(m_rootPart.PhysActor);
-                    }
+                    part.PhysActor.Size =
+                            new PhysicsVector(scale.X, scale.Y, scale.Z);
+                    m_scene.PhysicsScene.AddPhysicsActorTaint(part.PhysActor);
                 }
+                if (part.UUID != m_rootPart.UUID)
+                    ScheduleGroupForFullUpdate();
+
+                //if (part.UUID == m_rootPart.UUID)
+                //{
+                    //if (m_rootPart.PhysActor != null)
+                    //{
+                        //m_rootPart.PhysActor.Size =
+                            //new PhysicsVector(m_rootPart.Scale.X, m_rootPart.Scale.Y, m_rootPart.Scale.Z);
+                        //m_scene.PhysicsScene.AddPhysicsActorTaint(m_rootPart.PhysActor);
+                    //}
+                //}
             }
         }
 

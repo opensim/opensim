@@ -682,6 +682,11 @@ namespace OpenSim.Region.Physics.OdePlugin
 
         public void changePhysicsStatus(float timestap)
         {
+            while (ode.lockquery())
+            {
+            }
+            ode.dlock(_parent_scene.world);
+
             if (m_isphysical == true)
             {
                 if (Body == (IntPtr) 0)
@@ -696,6 +701,9 @@ namespace OpenSim.Region.Physics.OdePlugin
                     disableBody();
                 }
             }
+
+            ode.dunlock(_parent_scene.world);
+
             resetCollisionAccounting();
             m_taintPhysics = m_isphysical;
         }
@@ -730,7 +738,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                 d.SpaceRemove(m_targetSpace, prim_geom);
             }
             d.GeomDestroy(prim_geom);
-
+            prim_geom = (IntPtr)0;
             // we don't need to do space calculation because the client sends a position update also.
 
             // Construction of new prim
@@ -742,6 +750,23 @@ namespace OpenSim.Region.Physics.OdePlugin
                 if (mesh != null)
                 {
                     setMesh(_parent_scene, mesh);
+                    d.GeomSetPosition(prim_geom, _position.X, _position.Y, _position.Z);
+                    d.Quaternion myrot = new d.Quaternion();
+                    myrot.W = _orientation.w;
+                    myrot.X = _orientation.x;
+                    myrot.Y = _orientation.y;
+                    myrot.Z = _orientation.z;
+                    d.GeomSetQuaternion(prim_geom, ref myrot);
+
+
+                    //d.GeomBoxSetLengths(prim_geom, _size.X, _size.Y, _size.Z);
+                    if (IsPhysical && Body == (IntPtr)0)
+                    {
+                        // Re creates body on size.
+                        // EnableBody also does setMass()
+                        enableBody();
+                        d.BodyEnable(Body);
+                    }
                 }
                 else
                 {
@@ -870,37 +895,120 @@ namespace OpenSim.Region.Physics.OdePlugin
                 disableBody();
             }
             d.GeomDestroy(prim_geom);
-            if (_mesh != null)
-            {
-                d.GeomBoxSetLengths(prim_geom, _size.X, _size.Y, _size.Z);
-            }
+            prim_geom = (IntPtr) 0;
+            // we don't need to do space calculation because the client sends a position update also.
 
             // Construction of new prim
             if (_parent_scene.needsMeshing(_pbs))
             {
+                // Don't need to re-enable body..   it's done in SetMesh
                 IMesh mesh = _parent_scene.mesher.CreateMesh(oldname, _pbs, _size);
+                // createmesh returns null when it's a shape that isn't a cube.
                 if (mesh != null)
                 {
                     setMesh(_parent_scene, mesh);
+                    d.GeomSetPosition(prim_geom, _position.X, _position.Y, _position.Z);
+                    d.Quaternion myrot = new d.Quaternion();
+                    myrot.W = _orientation.w;
+                    myrot.X = _orientation.x;
+                    myrot.Y = _orientation.y;
+                    myrot.Z = _orientation.z;
+                    d.GeomSetQuaternion(prim_geom, ref myrot);
+
+
+                    //d.GeomBoxSetLengths(prim_geom, _size.X, _size.Y, _size.Z);
+                    if (IsPhysical && Body == (IntPtr)0)
+                    {
+                        // Re creates body on size.
+                        // EnableBody also does setMass()
+                        enableBody();
+                        d.BodyEnable(Body);
+                    }
                 }
+                else
+                {
+                    if (_pbs.ProfileShape == ProfileShape.HalfCircle && _pbs.PathCurve == (byte)Extrusion.Curve1)
+                    {
+                        if (_size.X == _size.Y && _size.Y == _size.Z && _size.X == _size.Z)
+                        {
+                            if (((_size.X / 2f) > 0f) && ((_size.X / 2f) < 1000))
+                            {
+                                _parent_scene.waitForSpaceUnlock(m_targetSpace);
+                                SetGeom(d.CreateSphere(m_targetSpace, _size.X / 2));
+                            }
+                            else
+                            {
+                                m_log.Info("[PHYSICS]: Failed to load a sphere bad size");
+                                _parent_scene.waitForSpaceUnlock(m_targetSpace);
+                                SetGeom(d.CreateBox(m_targetSpace, _size.X, _size.Y, _size.Z));
+                            }
+
+                        }
+                        else
+                        {
+                            _parent_scene.waitForSpaceUnlock(m_targetSpace);
+                            SetGeom(d.CreateBox(m_targetSpace, _size.X, _size.Y, _size.Z));
+                        }
+                    }
+                    //else if (_pbs.ProfileShape == ProfileShape.Circle && _pbs.PathCurve == (byte)Extrusion.Straight)
+                    //{
+                    //Cyllinder
+                    //if (_size.X == _size.Y)
+                    //{
+                    //    prim_geom = d.CreateCylinder(m_targetSpace, _size.X / 2, _size.Z);
+                    //}
+                    //else
+                    //{
+                    //prim_geom = d.CreateBox(m_targetSpace, _size.X, _size.Y, _size.Z);
+                    //}
+                    //}
+                    else
+                    {
+                        _parent_scene.waitForSpaceUnlock(m_targetSpace);
+                        SetGeom(prim_geom = d.CreateBox(m_targetSpace, _size.X, _size.Y, _size.Z));
+                    }
+                    //prim_geom = d.CreateBox(m_targetSpace, _size.X, _size.Y, _size.Z);
+                    d.GeomSetPosition(prim_geom, _position.X, _position.Y, _position.Z);
+                    d.Quaternion myrot = new d.Quaternion();
+                    myrot.W = _orientation.w;
+                    myrot.X = _orientation.x;
+                    myrot.Y = _orientation.y;
+                    myrot.Z = _orientation.z;
+                    d.GeomSetQuaternion(prim_geom, ref myrot);
+                }
+            }
+            else
+            {
+                if (_pbs.ProfileShape == ProfileShape.HalfCircle && _pbs.PathCurve == (byte)Extrusion.Curve1)
+                {
+                    if (_size.X == _size.Y && _size.Y == _size.Z && _size.X == _size.Z)
+                    {
+                        _parent_scene.waitForSpaceUnlock(m_targetSpace);
+                        SetGeom(d.CreateSphere(m_targetSpace, _size.X / 2));
+                    }
+                    else
+                    {
+                        _parent_scene.waitForSpaceUnlock(m_targetSpace);
+                        SetGeom(d.CreateBox(m_targetSpace, _size.X, _size.Y, _size.Z));
+                    }
+                }
+                //else if (_pbs.ProfileShape == ProfileShape.Circle && _pbs.PathCurve == (byte)Extrusion.Straight)
+                //{
+                //Cyllinder
+                //if (_size.X == _size.Y)
+                //{
+                //prim_geom = d.CreateCylinder(m_targetSpace, _size.X / 2, _size.Z);
+                //}
+                //else
+                //{
+                //prim_geom = d.CreateBox(m_targetSpace, _size.X, _size.Y, _size.Z);
+                //}
+                //}
                 else
                 {
                     _parent_scene.waitForSpaceUnlock(m_targetSpace);
                     SetGeom(d.CreateBox(m_targetSpace, _size.X, _size.Y, _size.Z));
                 }
-            }
-            else
-            {
-                _parent_scene.waitForSpaceUnlock(m_targetSpace);
-                SetGeom(d.CreateBox(m_targetSpace, _size.X, _size.Y, _size.Z));
-            }
-            if (IsPhysical && Body == (IntPtr) 0)
-            {
-                //re-create new body
-                enableBody();
-            }
-            else
-            {
                 d.GeomSetPosition(prim_geom, _position.X, _position.Y, _position.Z);
                 d.Quaternion myrot = new d.Quaternion();
                 myrot.W = _orientation.w;
@@ -908,6 +1016,16 @@ namespace OpenSim.Region.Physics.OdePlugin
                 myrot.Y = _orientation.y;
                 myrot.Z = _orientation.z;
                 d.GeomSetQuaternion(prim_geom, ref myrot);
+
+
+                //d.GeomBoxSetLengths(prim_geom, _size.X, _size.Y, _size.Z);
+                if (IsPhysical && Body == (IntPtr)0)
+                {
+                    // Re creates body on size.
+                    // EnableBody also does setMass()
+                    enableBody();
+                    d.BodyEnable(Body);
+                }
             }
             _parent_scene.geom_name_map[prim_geom] = oldname;
 
@@ -924,7 +1042,7 @@ namespace OpenSim.Region.Physics.OdePlugin
             }
             ode.dlock(_parent_scene.world);
 
-            System.Threading.Thread.Sleep(2);
+            
             lock (m_forcelist)
             {
                 //m_log.Info("[PHYSICS]: dequeing forcelist");
@@ -1048,7 +1166,11 @@ namespace OpenSim.Region.Physics.OdePlugin
 
         public override PrimitiveBaseShape Shape
         {
-            set { _pbs = value; }
+            set { 
+
+                _pbs = value;
+                m_taintshape = true;
+            }
         }
 
         public override PhysicsVector Velocity

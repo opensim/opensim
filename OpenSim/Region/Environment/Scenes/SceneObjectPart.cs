@@ -1182,6 +1182,10 @@ namespace OpenSim.Region.Environment.Scenes
             m_shape.PathTaperY = shapeBlock.PathTaperY;
             m_shape.PathTwist = shapeBlock.PathTwist;
             m_shape.PathTwistBegin = shapeBlock.PathTwistBegin;
+            if (PhysActor != null)
+            {
+                PhysActor.Shape = m_shape;
+            }
             ScheduleFullUpdate();
         }
 
@@ -1583,6 +1587,7 @@ namespace OpenSim.Region.Environment.Scenes
         public void Resize(LLVector3 scale)
         {
             m_shape.Scale = scale;
+            
             ScheduleFullUpdate();
         }
 

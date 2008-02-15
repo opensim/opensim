@@ -508,7 +508,12 @@ namespace OpenSim.Region.Physics.OdePlugin
 
         public override PhysicsVector Velocity
         {
-            get { return _velocity; }
+            get {
+                if (_zeroFlag)
+                    return PhysicsVector.Zero;
+                m_lastUpdateSent = false;
+                return _velocity; 
+            }
             set
             {
                 m_pidControllerActive = true;
@@ -612,7 +617,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                 _zeroPosition = d.BodyGetPosition(Body);
             }
             //PidStatus = true;
-
+            
             PhysicsVector vec = new PhysicsVector();
             d.Vector3 vel = d.BodyGetLinearVel(Body);
             float movementdivisor = 1f;

@@ -737,11 +737,26 @@ namespace OpenSim.Region.Environment.Scenes
                 m_statsReporter.addOtherMS(otherMS);
                 m_statsReporter.SetActiveScripts(m_innerScene.GetActiveScripts());
                 m_statsReporter.addScriptLines(m_innerScene.GetScriptLPS());
-                
+
             }
             catch (NotImplementedException)
             {
                 throw;
+            }
+            catch (System.AccessViolationException e)
+            {
+                m_log.Error("[Scene]: Failed with exception " + e.ToString() + " On Region: " + RegionInfo.RegionName);
+
+            }
+            catch (System.NullReferenceException e)
+            {
+                m_log.Error("[Scene]: Failed with exception " + e.ToString() + " On Region: " + RegionInfo.RegionName);
+
+            }
+            catch (System.InvalidOperationException e)
+            {
+                m_log.Error("[Scene]: Failed with exception " + e.ToString() + " On Region: " + RegionInfo.RegionName);
+
             }
             catch (Exception e)
             {
