@@ -57,7 +57,7 @@ namespace OpenSim.Region.Environment.Modules
 
         public bool TryGetAvatarAppearance(LLUUID avatarId, out AvatarAppearance appearance)
         {
-           
+
             //should only let one thread at a time do this part
             EventWaitHandle waitHandle = null;
             bool fetchInProgress = false;
@@ -99,7 +99,6 @@ namespace OpenSim.Region.Environment.Modules
                     waitHandle = null;
                     return false;
                 }
-
             }
             else
             {
@@ -144,7 +143,7 @@ namespace OpenSim.Region.Environment.Modules
                         m_fetchesInProgress.Remove(avatarId);
                         waitHandle.Set();
                     }
-                   // waitHandle.Close();
+                    // waitHandle.Close();
                     waitHandle = null;
                     return true;
                 }
@@ -158,7 +157,7 @@ namespace OpenSim.Region.Environment.Modules
                         m_fetchesInProgress.Remove(avatarId);
                         waitHandle.Set();
                     }
-                     //waitHandle.Close();
+                    //waitHandle.Close();
                     waitHandle = null;
                     return false;
                 }
@@ -179,7 +178,6 @@ namespace OpenSim.Region.Environment.Modules
         private AvatarAppearance CheckDatabase(LLUUID avatarId)
         {
             AvatarAppearance appearance = null;
-            //check db
             if (m_enablePersist)
             {
                 if (m_appearanceMapper.TryGetValue(avatarId.UUID, out appearance))
@@ -198,13 +196,11 @@ namespace OpenSim.Region.Environment.Modules
         private AvatarAppearance CheckCache(LLUUID avatarId)
         {
             AvatarAppearance appearance = null;
-            //check cache
             lock (m_avatarsAppearance)
             {
                 if (m_avatarsAppearance.ContainsKey(avatarId))
                 {
                     appearance = m_avatarsAppearance[avatarId];
-                    // return true;
                 }
             }
             return appearance;
@@ -212,10 +208,8 @@ namespace OpenSim.Region.Environment.Modules
 
         public void Initialise(Scene scene, IConfigSource source)
         {
-           
-                scene.RegisterModuleInterface<IAvatarFactory>(this);
-                scene.EventManager.OnNewClient += NewClient;
-            
+            scene.RegisterModuleInterface<IAvatarFactory>(this);
+            scene.EventManager.OnNewClient += NewClient;
 
             if (m_scene == null)
             {
@@ -277,31 +271,38 @@ namespace OpenSim.Region.Environment.Modules
             {
                 if (profile.RootFolder != null)
                 {
-                    //Todo look up the assetid from the inventory cache for each itemId that is in AvatarWearingArgs
-                    // then store assetid and itemId and wearable type in a database
-                    foreach (AvatarWearingArgs.Wearable wear in e.NowWearing)
+                    if (m_avatarsAppearance.ContainsKey(clientView.AgentId))
                     {
-                        if (wear.Type < 13)
+                        AvatarAppearance avatAppearance = null;
+                        lock (m_avatarsAppearance)
                         {
-                            LLUUID assetId;
+                            avatAppearance = m_avatarsAppearance[clientView.AgentId];
+                        }
 
-                            InventoryItemBase baseItem = profile.RootFolder.HasItem(wear.ItemID);
-                            if (baseItem != null)
+                        foreach (AvatarWearingArgs.Wearable wear in e.NowWearing)
+                        {
+                            if (wear.Type < 13)
                             {
-                                assetId = baseItem.assetID;
-
-                                if (m_avatarsAppearance.ContainsKey(clientView.AgentId))
+                                if (wear.ItemID == LLUUID.Zero)
                                 {
-                                    AvatarAppearance avatAppearance = null;
-
-                                    lock (m_avatarsAppearance)
-                                    {
-                                        avatAppearance = m_avatarsAppearance[clientView.AgentId];
-                                    }
-                                    avatAppearance.Wearables[wear.Type].AssetID = assetId;
-                                    avatAppearance.Wearables[wear.Type].ItemID = wear.ItemID;
+                                    avatAppearance.Wearables[wear.Type].ItemID = LLUUID.Zero;
+                                    avatAppearance.Wearables[wear.Type].AssetID = LLUUID.Zero;
 
                                     UpdateDatabase(clientView.AgentId, avatAppearance);
+                                }
+                                else
+                                {
+                                    LLUUID assetId;
+
+                                    InventoryItemBase baseItem = profile.RootFolder.HasItem(wear.ItemID);
+                                    if (baseItem != null)
+                                    {
+                                        assetId = baseItem.assetID;
+                                        avatAppearance.Wearables[wear.Type].AssetID = assetId;
+                                        avatAppearance.Wearables[wear.Type].ItemID = wear.ItemID;
+
+                                        UpdateDatabase(clientView.AgentId, avatAppearance);
+                                    }
                                 }
                             }
                         }
