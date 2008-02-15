@@ -10,7 +10,7 @@
         <WarningLevel>4</WarningLevel>
         <WarningsAsErrors>false</WarningsAsErrors>
         <SuppressWarnings></SuppressWarnings>
-        <OutputPath>../bin</OutputPath>
+        <OutputPath>../../../bin</OutputPath>
         <DebugInformation>true</DebugInformation>
         <IncrementalBuild>true</IncrementalBuild>
         <NoStdLib>false</NoStdLib>
@@ -25,7 +25,7 @@
         <WarningLevel>4</WarningLevel>
         <WarningsAsErrors>false</WarningsAsErrors>
         <SuppressWarnings></SuppressWarnings>
-        <OutputPath>../bin</OutputPath>
+        <OutputPath>../../../bin</OutputPath>
         <DebugInformation>false</DebugInformation>
         <IncrementalBuild>true</IncrementalBuild>
         <NoStdLib>false</NoStdLib>
@@ -37,16 +37,16 @@
     <Project name="pCampBot" path="./" type="Exe">
       <Configuration name="Debug">
         <Options>
-          <OutputPath>../bin/</OutputPath>
+          <OutputPath>../../../bin/</OutputPath>
         </Options>
       </Configuration>
       <Configuration name="Release">
         <Options>
-          <OutputPath>../bin/</OutputPath>
+          <OutputPath>../../../bin/</OutputPath>
         </Options>
       </Configuration>
 
-      <ReferencePath>../bin/</ReferencePath>
+      <ReferencePath>../../../bin/</ReferencePath>
       <Reference name="System" localCopy="false"/>
       <Reference name="libsecondlife.dll"/>
       <Reference name="OpenSim.Framework.dll"/>
