@@ -126,7 +126,7 @@ namespace OpenSim.Region.Environment.Modules
             if (response.StatusCode == HttpStatusCode.OK)
             {
                 Bitmap image = new Bitmap(response.GetResponseStream());
-                Bitmap resize = new Bitmap(image, new Size(512, 512));
+                Bitmap resize = new Bitmap(image, new Size(1024, 1024));
                 byte[] imageJ2000 = OpenJPEG.EncodeFromImage(resize, true);
 
                 m_textureManager.ReturnData(state.RequestID, imageJ2000);
