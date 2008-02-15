@@ -126,7 +126,35 @@ namespace OpenSim.Region.Environment.Modules
             if (response.StatusCode == HttpStatusCode.OK)
             {
                 Bitmap image = new Bitmap(response.GetResponseStream());
-                Bitmap resize = new Bitmap(image, new Size(1024, 1024));
+                Size newsize;
+
+                // TODO: make this a bit less hard coded
+                if ((image.Height < 64) && (image.Width < 64))
+                {
+                    newsize = new Size(32, 32);
+                }
+                else if ((image.Height < 128) && (image.Width < 128))
+                {
+                    newsize = new Size(64, 64);
+                } 
+                else if ((image.Height <256) && (image.Width < 256))
+                {
+                    newsize = new Size(128, 128);
+                }
+                else if ((image.Height < 512 && image.Width < 512))
+                {
+                    newsize = new Size(256, 256);
+                }
+                else if ((image.Height < 1024 && image.Width < 1024))
+                {
+                    newsize = new Size(512, 512);
+                }
+                else
+                {
+                    newsize = new Size(1024,1024);
+                }    
+
+                Bitmap resize = new Bitmap(image, newsize);
                 byte[] imageJ2000 = OpenJPEG.EncodeFromImage(resize, true);
 
                 m_textureManager.ReturnData(state.RequestID, imageJ2000);
