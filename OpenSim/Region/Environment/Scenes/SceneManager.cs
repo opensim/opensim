@@ -187,6 +187,12 @@ namespace OpenSim.Region.Environment.Scenes
                     {
                         success = false;
                     }
+                    
+                    // Messy way of preventing us printing out the same help text for each scene
+                    if (cmdparams.Length <= 0 || cmdparams[0] == "help")
+                    {
+                        break;
+                    }
                 }
 
                 return success;
