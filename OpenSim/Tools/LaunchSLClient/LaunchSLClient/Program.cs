@@ -25,10 +25,10 @@
 * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 * 
 */
+
 using System;
 using System.Collections.Generic;
 using System.Windows.Forms;
-
 
 namespace LaunchSLClient
 {
@@ -40,7 +40,6 @@ namespace LaunchSLClient
         [STAThread]
         static void Main()
         {
-
             try
             {
                 Application.EnableVisualStyles();

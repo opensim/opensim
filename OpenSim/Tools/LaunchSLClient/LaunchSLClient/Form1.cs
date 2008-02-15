@@ -25,6 +25,7 @@
 * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 * 
 */
+
 using System;
 using System.IO;
 using System.Collections;
@@ -42,33 +43,112 @@ namespace LaunchSLClient
 {
     public partial class Form1 : Form
     {
+        const string deepGridUrl = "http://user.deepgrid.com:8002/";
+        const string osGridUrl = "http://www.osgrid.org:8002/";
+        const string openLifeGridUrl = "http://logingrid.net:8002";
+
         string gridUrl = "";
         string sandboxUrl = "";
-        string deepGridUrl = "http://user.deepgrid.com:8002/";
-        string osGridUrl = "http://www.osgrid.org:8002/";
         string runUrl = "";
         string runLine = "";
-        Object exeFlags;
-        Object exePath;
+        string exeFlags = "";
+        string exePath = "";
 
-
-        public Form1()
+        private void addLocalSandbox(ref ArrayList menuItems)
         {
-            InitializeComponent();
-            ArrayList menuItems=new ArrayList();
-            menuItems.Add("Please select one:");
-            string sandboxHostName = "";
-            string sandboxPort = "";
-            Object simPath = null;
-            FileInfo defaultFile;
-            StreamReader stream;
+            // build sandbox URL from Regions\default.xml
+            // this is highly dependant on a standard default.xml
+            if (File.Exists(@"Regions\default.xml"))
+            {
+                string sandboxHostName = "";
+                string sandboxPort = "";
+                string text;
+                
+                Regex myRegex = new Regex(".*internal_ip_port=\\\"(?<port>.*?)\\\".*external_host_name=\\\"(?<name>.*?)\\\".*");
 
+                FileInfo defaultFile = new FileInfo(@"Regions\default.xml");
+                StreamReader stream = defaultFile.OpenText();
+                do
+                {
+                    text = stream.ReadLine();
+                    if (text == null)
+                    {
+                        break;
+                    }
+                    MatchCollection theMatches = myRegex.Matches(text);
+                    foreach (Match theMatch in theMatches)
+                    {
+                        if (theMatch.Length != 0)
+                        {
+                            sandboxHostName = theMatch.Groups["name"].ToString();
+                            sandboxPort = theMatch.Groups["port"].ToString();
+                        }
+                    }
+                } while (text != null);
 
+                stream.Close();
+                sandboxUrl = "http:\\" + sandboxHostName + ":" + sandboxPort;
+                menuItems.Add("Local Sandbox");
+            }
+        }
+
+        private void addLocalGrid(ref ArrayList menuItems)
+        {
+            //build local grid URL from network_servers_information.xml
+            // this is highly dependant on a standard default.xml
+            if (File.Exists(@"network_servers_information.xml"))
+            {
+                string text;
+                FileInfo defaultFile = new FileInfo(@"network_servers_information.xml");
+                Regex myRegex = new Regex(".*UserServerURL=\\\"(?<url>.*?)\\\".*");
+                StreamReader stream = defaultFile.OpenText();
+
+                do
+                {
+                    text = stream.ReadLine();
+                    if (text == null)
+                    {
+                        break;
+                    }
+                    foreach (Match theMatch in myRegex.Matches(text))
+                    {
+                        if (theMatch.Length != 0)
+                        {
+                            gridUrl = theMatch.Groups["url"].ToString();
+                        }
+                    }
+                } while (text != null);
+                stream.Close();
+                if (gridUrl != null)
+                {
+                    menuItems.Add("Local Grid Server");
+                }
+            }
+        }
+
+        private void addLocalSims(ref ArrayList menuItems)
+        {
+            // find opensim directory
+            RegistryKey exeKey = Registry.LocalMachine.OpenSubKey(@"SOFTWARE\OpenSim\OpenSim");
+            if (exeKey != null)
+            {
+                Object simPath = exeKey.GetValue("Path");
+
+                Directory.SetCurrentDirectory(simPath.ToString());  //this should be set to wherever we decide to put the binaries
+
+                addLocalSandbox(ref menuItems);
+                addLocalGrid(ref menuItems);
+            }
+            else
+            {
+                MessageBox.Show("No OpenSim installed. Showing public grids only", "No OpenSim");
+            }
+        }
+
+        private void getClient(ref string exePath, ref string runLine, ref string exeFlags)
+        {
             // get executable path from registry
-            //
-            RegistryKey regKey;
-            RegistryKey exeKey;
-            regKey = Registry.LocalMachine.OpenSubKey(@"SOFTWARE\Linden Research, Inc.\SecondLife");
+            RegistryKey regKey = Registry.LocalMachine.OpenSubKey(@"SOFTWARE\Linden Research, Inc.\SecondLife");
             if (regKey == null)
             {
                 regKey = Registry.LocalMachine.OpenSubKey(@"SOFTWARE\Wow6432Node\Linden Research, Inc.\SecondLife");
@@ -77,108 +157,35 @@ namespace LaunchSLClient
                     throw new LauncherException("Can't find Second Life. Are you sure it is installed?", "LauncherException.Form1");
                 }
             }
-            Object exe = regKey.GetValue("Exe");
-            exeFlags = regKey.GetValue("Flags");
-            exePath = regKey.GetValue("");
-            runLine = exePath.ToString() + "\\" + exe.ToString();
+            string exe = regKey.GetValue("Exe").ToString();
+            exeFlags = regKey.GetValue("Flags").ToString();
+            exePath = regKey.GetValue("").ToString();
+            runLine = exePath + "\\" + exe;
             Registry.LocalMachine.Flush();
             Registry.LocalMachine.Close();
+        }
 
-            // find opensim directory
-            //
-            exeKey = Registry.LocalMachine.OpenSubKey(@"SOFTWARE\OpenSim\OpenSim");
-            if (exeKey != null)
-            {
+        public Form1()
+        {
+            InitializeComponent();
+            ArrayList menuItems = new ArrayList();
 
-                simPath = exeKey.GetValue("Path");
+            getClient(ref exePath, ref runLine, ref exeFlags);
 
-                // build sandbox URL from Regions\default.xml
-                // this is highly dependant on a standard default.xml
-                //
-                Directory.SetCurrentDirectory(simPath.ToString());  //this should be set to wherever we decide to put the binaries
-                string text;
-                Regex myRegex = new Regex(".*internal_ip_port=\\\"(?<port>.*?)\\\".*external_host_name=\\\"(?<name>.*?)\\\".*");
-                if (File.Exists(@"Regions\default.xml"))
-                {
-                    defaultFile = new FileInfo(@"Regions\default.xml");
-                    stream = defaultFile.OpenText();
-                    do
-                    {
-                        text = stream.ReadLine();
-                        if (text == null)
-                        {
-                            break;
-                        }
-                        MatchCollection theMatches = myRegex.Matches(text);
-                        foreach (Match theMatch in theMatches)
-                        {
-                            if (theMatch.Length != 0)
-                            {
-                                sandboxHostName = theMatch.Groups["name"].ToString();
-                                sandboxPort = theMatch.Groups["port"].ToString();
-                            }
-                        }
-                    } while (text != null);
-                    stream.Close();
-                    sandboxUrl = "http:\\" + sandboxHostName + ":" + sandboxPort;
-                    menuItems.Add("Local Sandbox");
-                }
-                else
-                {
-                    MessageBox.Show("No OpenSim config files found. Please run OpenSim and finish configuration to run a local sim. Showing public grids only", "No OpenSim");
-                }
+            menuItems.Add("Please select one:");
 
-
-                //build local grid URL from network_servers_information.xml
-                // this is highly dependant on a standard default.xml
-                //
-                myRegex = new Regex(".*UserServerURL=\\\"(?<url>.*?)\\\".*");
-                if (File.Exists(@"network_servers_information.xml"))
-                {
-                    defaultFile = new FileInfo(@"network_servers_information.xml");
-
-
-                    stream = defaultFile.OpenText();
-                    do
-                    {
-                        text = stream.ReadLine();
-                        if (text == null)
-                        {
-                            break;
-                        }
-                        MatchCollection theMatches = myRegex.Matches(text);
-                        foreach (Match theMatch in theMatches)
-                        {
-                            if (theMatch.Length != 0)
-                            {
-                                gridUrl = theMatch.Groups["url"].ToString();
-                            }
-                        }
-                    } while (text != null);
-                    stream.Close();
-                    if (gridUrl != null)
-                    {
-                        menuItems.Add("Local Grid Server");
-                    }
-                }
-            }
-            else
-            {
-                MessageBox.Show("No OpenSim installed. Showing public grids only", "No OpenSim");
-            }
+            addLocalSims(ref menuItems);
 
             menuItems.Add("OSGrid - www.osgrid.org");
             menuItems.Add("DeepGrid - www.deepgrid.com");
             menuItems.Add("OpenlifeGrid - www.openlifegrid.com");
-            
-            // We don't have a proper login uri for SL grid
-          //  menuItems.Add("Linden Labs - www.secondlife.com");
-            comboBox1.DataSource=menuItems;
+            menuItems.Add("Linden Labs - www.secondlife.com");
+
+            comboBox1.DataSource = menuItems;
         }
 
         private void radioButton1_CheckedChanged(object sender, EventArgs e)
         {
-
         }
 
         private void comboBox1_SelectedIndexChanged(object sender, EventArgs e)
@@ -188,8 +195,8 @@ namespace LaunchSLClient
             if (comboBox1.Text == "Local Grid Server") { runUrl = " -loginuri " + gridUrl; }
             if (comboBox1.Text == "DeepGrid - www.deepgrid.com") { runUrl = " -loginuri " + deepGridUrl; }
             if (comboBox1.Text == "OSGrid - www.osgrid.org") { runUrl = " -loginuri " + osGridUrl; }
+            if (comboBox1.Text == "OpenlifeGrid - www.openlifegrid.com") { runUrl = " -loginuri " + openLifeGridUrl; }
             if (comboBox1.Text == "Linden Labs - www.secondlife.com") { runUrl = ""; }
-            if (comboBox1.Text == "OpenlifeGrid - www.openlifegrid.com") { runUrl = " -loginuri http://logingrid.net:8002"; }
 
             System.Diagnostics.Process proc = new System.Diagnostics.Process();
             proc.StartInfo.FileName = runLine;

@@ -25,6 +25,7 @@
 * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 * 
 */
+
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -33,7 +34,6 @@ namespace LaunchSLClient
 {
     class LauncherException : ApplicationException
     {
-
         private const string CUSTOMMESSAGE = "The SL Client Launcher has failed with the following error: ";
 
         private LauncherException() { }

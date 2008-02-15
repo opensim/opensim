@@ -98,15 +98,11 @@ namespace LaunchSLClient
             this.Text = "OpenSim Client Launcher";
             this.ResumeLayout(false);
             this.PerformLayout();
-
         }
 
         #endregion
 
         private System.Windows.Forms.ComboBox comboBox1;
         private System.Windows.Forms.TextBox textBox1;
-
     }
 }
-
-
