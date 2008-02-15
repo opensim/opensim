@@ -123,6 +123,13 @@ namespace OpenSim
         {
             IConfig startupConfig = configSource.Configs["Startup"];
 
+            // The Mono addin manager (in Mono.Addins.dll version 0.2.0.0) occasionally seems to corrupt its addin cache
+            // Hence, as a temporary solution we'll remove it before each startup
+            if (Directory.Exists("addin-db-000"))
+            {
+                Directory.Delete("addin-db-000", true);
+            }
+            
             AddinManager.Initialize(".");
             AddinManager.Registry.Update(null);
 
