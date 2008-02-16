@@ -75,7 +75,7 @@ namespace OpenSim.Region.ScriptEngine.Common
 
         private Executor m_Exec;
 
-        Executor IScript.Exec
+        ExecutorBase IScript.Exec
         {
             get
             {

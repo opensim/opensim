@@ -33,7 +33,7 @@ namespace OpenSim.Region.ScriptEngine.Common
     public interface IScript
     {
         string State { get; set; }
-        Executor Exec { get; }
+        ExecutorBase Exec { get; }
         string Source { get; set; }
         void Start(LSL_BuiltIn_Commands_Interface BuiltIn_Commands);
         EventQueueManager.Queue_llDetectParams_Struct llDetectParams { get; set; }

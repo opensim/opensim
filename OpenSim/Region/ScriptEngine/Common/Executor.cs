@@ -33,63 +33,25 @@ using System.Runtime.Remoting.Lifetime;
 
 namespace OpenSim.Region.ScriptEngine.Common
 {
-    public class Executor : MarshalByRefObject
+    public class Executor : ExecutorBase
     {
-        // Private instance for each script
-
-        private IScript m_Script;
+        // Cache functions by keeping a reference to them in a dictionary
         private Dictionary<string, MethodInfo> Events = new Dictionary<string, MethodInfo>();
-        private bool m_Running = true;
-        //private List<IScript> Scripts = new List<IScript>();
 
-        public Executor(IScript Script)
+        public Executor(IScript script) : base(script)
         {
-            m_Script = Script;
         }
 
-        // Object never expires
-        public override Object InitializeLifetimeService()
-        {
-            //Console.WriteLine("Executor: InitializeLifetimeService()");
-            //            return null;
-            ILease lease = (ILease) base.InitializeLifetimeService();
-
-            if (lease.CurrentState == LeaseState.Initial)
-            {
-                lease.InitialLeaseTime = TimeSpan.Zero; // TimeSpan.FromMinutes(1);
-//                lease.SponsorshipTimeout = TimeSpan.FromMinutes(2);
-//                lease.RenewOnCallTime = TimeSpan.FromSeconds(2);
-            }
-            return lease;
-        }
-
-        public AppDomain GetAppDomain()
-        {
-            return AppDomain.CurrentDomain;
-        }
-
-        public void ExecuteEvent(string FunctionName, object[] args)
+        protected override void DoExecuteEvent(string FunctionName, object[] args)
         {
             // IMPORTANT: Types and MemberInfo-derived objects require a LOT of memory.
             // Instead use RuntimeTypeHandle, RuntimeFieldHandle and RunTimeHandle (IntPtr) instead!
-            //try
-            //{
-            if (m_Running == false)
-            {
-                // Script is inactive, do not execute!
-                return;
-            }
 
             string EventName = m_Script.State + "_event_" + FunctionName;
 
-//cfk 2-7-08 dont need this right now and the default Linux build has DEBUG defined
 ///#if DEBUG
 ///            Console.WriteLine("ScriptEngine: Script event function name: " + EventName);
 ///#endif
-
-            //type.InvokeMember(EventName, BindingFlags.InvokeMethod, null, m_Script, args);
-
-            //Console.WriteLine("ScriptEngine Executor.ExecuteEvent: \String.Empty + EventName + "\String.Empty);
 
             if (Events.ContainsKey(EventName) == false)
             {
@@ -122,27 +84,9 @@ namespace OpenSim.Region.ScriptEngine.Common
 ///            Console.WriteLine("ScriptEngine: Executing function name: " + EventName);
 ///#endif
             // Found
-            //try
-            //{
-            // Invoke it
             ev.Invoke(m_Script, args);
 
-            //}
-            //catch (Exception e)
-            //{
-            //    // TODO: Send to correct place
-            //    Console.WriteLine("ScriptEngine Exception attempting to executing script function: " + e.ToString());
-            //}
-
-
-            //}
-            //catch { }
         }
 
-
-        public void StopScript()
-        {
-            m_Running = false;
-        }
     }
 }
