@@ -199,7 +199,8 @@ namespace OpenSim.Region.ClientStack
 
             try
             {
-                packet = PacketPool.Instance.GetPacket(RecvBuffer, ref packetEnd, ZeroBuffer);
+               packet = PacketPool.Instance.GetPacket(RecvBuffer, ref packetEnd, ZeroBuffer);
+               
             }
             catch (Exception e)
             {

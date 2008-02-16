@@ -554,5 +554,45 @@ namespace OpenSim.Region.Environment.Scenes
         {
             return m_commsProvider.GridService.GetGridSettings();
         }
+
+        public void LogOffUser(LLUUID userid, LLUUID regionid, ulong regionhandle, float posx, float posy, float posz)
+        {
+             m_commsProvider.LogOffUser(userid, regionid, regionhandle, posx, posy, posz);
+        }
+
+        public void ClearUserAgent(LLUUID avatarID)
+        {
+            m_commsProvider.UserService.clearUserAgent(avatarID);
+        }
+
+        public void AddNewUserFriend(LLUUID friendlistowner, LLUUID friend, uint perms)
+        {
+            m_commsProvider.AddNewUserFriend(friendlistowner, friend, perms);
+        }
+
+        public void UpdateUserFriendPerms(LLUUID friendlistowner, LLUUID friend, uint perms)
+        {
+            m_commsProvider.UpdateUserFriendPerms(friendlistowner, friend, perms);
+        }
+
+        public void RemoveUserFriend(LLUUID friendlistowner, LLUUID friend)
+        {
+            m_commsProvider.RemoveUserFriend(friendlistowner, friend);
+        }
+
+        public List<FriendListItem> GetUserFriendList(LLUUID friendlistowner)
+        {
+            return m_commsProvider.GetUserFriendList(friendlistowner);
+        }
+
+        public  List<MapBlockData> RequestNeighbourMapBlocks(int minX, int minY, int maxX, int maxY)
+        {
+            return m_commsProvider.GridService.RequestNeighbourMapBlocks(minX, minY, maxX, maxY);
+        }
+
+        public List<AvatarPickerAvatar> GenerateAgentPickerRequestResponse(LLUUID queryID, string query)
+        {
+            return m_commsProvider.GenerateAgentPickerRequestResponse(queryID, query);
+        }
     }
 }

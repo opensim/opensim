@@ -183,7 +183,7 @@ namespace OpenSim.Region.Environment.Scenes
             //EventManager.TriggerAvatarPickerRequest();
 
             List<AvatarPickerAvatar> AvatarResponses = new List<AvatarPickerAvatar>();
-            AvatarResponses = CommsManager.GenerateAgentPickerRequestResponse(RequestID, query);
+            AvatarResponses = m_sceneGridService.GenerateAgentPickerRequestResponse(RequestID, query);
 
             AvatarPickerReplyPacket replyPacket = (AvatarPickerReplyPacket) PacketPool.Instance.GetPacket(PacketType.AvatarPickerReply);
             // TODO: don't create new blocks if recycling an old packet

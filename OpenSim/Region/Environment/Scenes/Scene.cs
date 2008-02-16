@@ -900,7 +900,7 @@ namespace OpenSim.Region.Environment.Scenes
         public void ExportWorldMap(string fileName)
         {
             List<MapBlockData> mapBlocks =
-                CommsManager.GridService.RequestNeighbourMapBlocks((int)(RegionInfo.RegionLocX - 9),
+                m_sceneGridService.RequestNeighbourMapBlocks((int)(RegionInfo.RegionLocX - 9),
                                                                    (int)(RegionInfo.RegionLocY - 9),
                                                                    (int)(RegionInfo.RegionLocX + 9),
                                                                    (int)(RegionInfo.RegionLocY + 9));
@@ -1461,7 +1461,7 @@ namespace OpenSim.Region.Environment.Scenes
                 else
                 {
                     m_innerScene.removeUserCount(true);
-                    CommsManager.LogOffUser(agentID, RegionInfo.RegionID, RegionInfo.RegionHandle,
+                    m_sceneGridService.LogOffUser(agentID, RegionInfo.RegionID, RegionInfo.RegionHandle,
                                                 avatar.AbsolutePosition.X, avatar.AbsolutePosition.Y,
                                                 avatar.AbsolutePosition.Z);
                     m_sceneGridService.SendCloseChildAgentConnections(avatar);
@@ -1530,7 +1530,7 @@ namespace OpenSim.Region.Environment.Scenes
             }
 
             // Remove client agent from profile, so new logins will work
-            CommsManager.UserService.clearUserAgent(agentID);
+            m_sceneGridService.ClearUserAgent(agentID);
 
             //m_log.InfoFormat("[SCENE] Memory pre  GC {0}", System.GC.GetTotalMemory(false));
             //m_log.InfoFormat("[SCENE] Memory post GC {0}", System.GC.GetTotalMemory(true));            
@@ -1983,24 +1983,24 @@ namespace OpenSim.Region.Environment.Scenes
         public virtual void StoreAddFriendship(LLUUID ownerID, LLUUID friendID, uint perms)
         {
             // TODO: m_sceneGridService.DoStuff;
-            CommsManager.AddNewUserFriend(ownerID, friendID, perms);
+            m_sceneGridService.AddNewUserFriend(ownerID, friendID, perms);
         }
 
         public virtual void StoreUpdateFriendship(LLUUID ownerID, LLUUID friendID, uint perms)
         {
             // TODO: m_sceneGridService.DoStuff;
-            CommsManager.UpdateUserFriendPerms(ownerID, friendID, perms);
+            m_sceneGridService.UpdateUserFriendPerms(ownerID, friendID, perms);
         }
 
         public virtual void StoreRemoveFriendship(LLUUID ownerID, LLUUID ExfriendID)
         {
             // TODO: m_sceneGridService.DoStuff;
-            CommsManager.RemoveUserFriend(ownerID, ExfriendID);
+            m_sceneGridService.RemoveUserFriend(ownerID, ExfriendID);
         }
         public virtual List<FriendListItem> StoreGetFriendsForUser(LLUUID ownerID)
         {
             // TODO: m_sceneGridService.DoStuff;
-            return CommsManager.GetUserFriendList(ownerID);
+            return m_sceneGridService.GetUserFriendList(ownerID);
         }
 
         public void AddPacketStats(int inPackets, int outPackets, int unAckedBytes)
