@@ -92,6 +92,7 @@ namespace OpenSim.Region.ScriptEngine.Common
                 // Script is inactive, do not execute!
                 return;
             }
+            DoExecuteEvent(FunctionName, args);
         }
         protected abstract void DoExecuteEvent(string FunctionName, object[] args);
 
