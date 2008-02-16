@@ -9,7 +9,7 @@ using OpenSim.Region.Environment.Scenes;
 
 namespace OpenSim.Region.Environment.Modules
 {
-    public class AgentAgentTransactionModule : IRegionModule, IAgentAssetTransactions
+    public class AgentAssetTransactionModule : IRegionModule, IAgentAssetTransactions
     {
         private Dictionary<LLUUID, Scene> RegisteredScenes = new Dictionary<LLUUID, Scene>();
         private Scene m_scene = null;
