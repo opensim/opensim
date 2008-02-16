@@ -36,6 +36,7 @@ using OpenSim.Framework.Console;
 using System.IO;
 using System.Text;
 using System.Xml;
+using OpenSim.Region.Environment.Interfaces;
 
 
 namespace OpenSim.Region.Environment.Scenes
@@ -266,8 +267,12 @@ namespace OpenSim.Region.Environment.Scenes
                     }
                     else
                     {
-                        CommsManager.TransactionsManager.HandleItemUpdateFromTransaction(
-                             remoteClient, transactionID, item);                        
+                        IAgentAssetTransactions agentTransactions = this.RequestModuleInterface<IAgentAssetTransactions>();
+                        if (agentTransactions != null)
+                        {
+                            agentTransactions.HandleItemUpdateFromTransaction(
+                                         remoteClient, transactionID, item);
+                        }
                     }
                 }
                 else
@@ -459,9 +464,15 @@ namespace OpenSim.Region.Environment.Scenes
             }
             else
             {
-                CommsManager.TransactionsManager.HandleItemCreationFromTransaction(
+                IAgentAssetTransactions agentTransactions = this.RequestModuleInterface<IAgentAssetTransactions>();
+                if (agentTransactions != null)
+                {
+                    agentTransactions.HandleItemCreationFromTransaction(
                     remoteClient, transactionID, folderID, callbackID, description,
-                    name, invType, assetType, wearableType, nextOwnerMask);                    
+                    name, invType, assetType, wearableType, nextOwnerMask); 
+                }
+
+                                
             }
         }
 

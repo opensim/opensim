@@ -1397,8 +1397,8 @@ namespace OpenSim.Region.Environment.Scenes
             client.OnUpdateInventoryItem += UpdateInventoryItemAsset;
             client.OnCopyInventoryItem += CopyInventoryItem;
             client.OnMoveInventoryItem += MoveInventoryItem;
-            client.OnAssetUploadRequest += CommsManager.TransactionsManager.HandleUDPUploadRequest;
-            client.OnXferReceive += CommsManager.TransactionsManager.HandleXfer;
+           // client.OnAssetUploadRequest += CommsManager.TransactionsManager.HandleUDPUploadRequest;
+          //  client.OnXferReceive += CommsManager.TransactionsManager.HandleXfer;
             client.OnRezScript += RezScript;
 
             client.OnRequestTaskInventory += RequestTaskInventory;
@@ -1489,8 +1489,12 @@ namespace OpenSim.Region.Environment.Scenes
 
             ForEachScenePresence(
                 delegate(ScenePresence presence) { presence.CoarseLocationChange(); });
-            
-            CommsManager.TransactionsManager.RemoveAgentAssetTransactions(agentID);
+           
+            IAgentAssetTransactions agentTransactions = this.RequestModuleInterface<IAgentAssetTransactions>();
+            if (agentTransactions != null)
+            {
+                agentTransactions.RemoveAgentAssetTransactions(agentID);
+            }
 
             lock (m_scenePresences)
             {

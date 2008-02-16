@@ -1,51 +1,99 @@
-/*
-* Copyright (c) Contributors, http://opensimulator.org/
-* See CONTRIBUTORS.TXT for a full list of copyright holders.
-*
-* Redistribution and use in source and binary forms, with or without
-* modification, are permitted provided that the following conditions are met:
-*     * Redistributions of source code must retain the above copyright
-*       notice, this list of conditions and the following disclaimer.
-*     * Redistributions in binary form must reproduce the above copyright
-*       notice, this list of conditions and the following disclaimer in the
-*       documentation and/or other materials provided with the distribution.
-*     * Neither the name of the OpenSim Project nor the
-*       names of its contributors may be used to endorse or promote products
-*       derived from this software without specific prior written permission.
-*
-* THIS SOFTWARE IS PROVIDED BY THE DEVELOPERS ``AS IS'' AND ANY
-* EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
-* WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
-* DISCLAIMED. IN NO EVENT SHALL THE CONTRIBUTORS BE LIABLE FOR ANY
-* DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
-* (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
-* LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
-* ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
-* (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
-* SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-* 
-*/
-
-//moved to a module, left here until the module is found to have no problems
-/*
-using System;
+﻿using System;
 using System.Collections.Generic;
-
+using System.Text;
 using libsecondlife;
+using Nini.Config;
+using OpenSim.Framework;
+using OpenSim.Region.Environment.Interfaces;
+using OpenSim.Region.Environment.Scenes;
 
-namespace OpenSim.Framework.Communications.Cache
+namespace OpenSim.Region.Environment.Modules
 {
-    /// <summary>
-    /// Provider handlers for processing asset transactions originating from the agent.  This encompasses
-    /// clothing creation and update as well as asset uploads.
-    /// </summary>
+    public class AgentAgentTransactionModule : IRegionModule, IAgentAssetTransactions
+    {
+        private Dictionary<LLUUID, Scene> RegisteredScenes = new Dictionary<LLUUID, Scene>();
+        private Scene m_scene = null;
+        private bool m_dumpAssetsToFile = false;
+
+        private AgentAssetTransactionsManager m_transactionManager;
+
+        public void Initialise(Scene scene, IConfigSource config)
+        {
+            if (!RegisteredScenes.ContainsKey(scene.RegionInfo.RegionID))
+            {
+                RegisteredScenes.Add(scene.RegionInfo.RegionID, scene);
+                scene.RegisterModuleInterface<IAgentAssetTransactions>(this);
+
+                scene.EventManager.OnNewClient += NewClient;
+
+                try
+                {
+                    m_dumpAssetsToFile = config.Configs["StandAlone"].GetBoolean("dump_assets_to_file", false);
+                }
+                catch (Exception)
+                {
+                }
+            }
+
+            if (m_scene == null)
+            {
+                m_scene = scene;
+                m_transactionManager = new AgentAssetTransactionsManager(m_scene, m_dumpAssetsToFile);
+            }
+        }
+
+        public void PostInitialise()
+        {
+
+        }
+
+        public void Close()
+        {
+        }
+
+        public string Name
+        {
+            get { return "AgentTransactionModule"; }
+        }
+
+        public bool IsSharedModule
+        {
+            get { return true; }
+        }
+
+        public void NewClient(IClientAPI client)
+        {
+            client.OnAssetUploadRequest += m_transactionManager.HandleUDPUploadRequest;
+            client.OnXferReceive += m_transactionManager.HandleXfer;
+        }
+
+        public void HandleItemCreationFromTransaction(IClientAPI remoteClient, LLUUID transactionID, LLUUID folderID,
+                                                   uint callbackID, string description, string name, sbyte invType,
+                                                   sbyte type, byte wearableType, uint nextOwnerMask)
+        {
+            m_transactionManager.HandleItemCreationFromTransaction(remoteClient, transactionID, folderID, callbackID, description, name, invType, type, wearableType, nextOwnerMask);
+        }
+
+        public void HandleItemUpdateFromTransaction(IClientAPI remoteClient, LLUUID transactionID,
+                                               InventoryItemBase item)
+        {
+            m_transactionManager.HandleItemUpdateFromTransaction(remoteClient, transactionID, item);
+        }
+
+        public void RemoveAgentAssetTransactions(LLUUID userID)
+        {
+            m_transactionManager.RemoveAgentAssetTransactions(userID);
+        }
+    }
+
+    //should merge this classes and clean up
     public class AgentAssetTransactionsManager
     {
-        private static readonly log4net.ILog m_log 
+        private static readonly log4net.ILog m_log
             = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
-        
+
         // Fields
-        public CommunicationsManager CommsManager;
+        public Scene MyScene;
 
         /// <summary>
         /// Each agent has its own singleton collection of transactions
@@ -58,9 +106,9 @@ namespace OpenSim.Framework.Communications.Cache
         /// </summary>
         private bool m_dumpAssetsToFile;
 
-        public AgentAssetTransactionsManager(CommunicationsManager commsManager, bool dumpAssetsToFile)
+        public AgentAssetTransactionsManager(Scene scene, bool dumpAssetsToFile)
         {
-            CommsManager = commsManager;
+            MyScene = scene;
             m_dumpAssetsToFile = dumpAssetsToFile;
         }
 
@@ -76,15 +124,15 @@ namespace OpenSim.Framework.Communications.Cache
             {
                 if (!AgentTransactions.ContainsKey(userID))
                 {
-                    AgentAssetTransactions transactions 
+                    AgentAssetTransactions transactions
                         = new AgentAssetTransactions(userID, this, m_dumpAssetsToFile);
-                    AgentTransactions.Add(userID, transactions);  
+                    AgentTransactions.Add(userID, transactions);
                 }
-                
-                return AgentTransactions[userID];                
-            }            
+
+                return AgentTransactions[userID];
+            }
         }
-        
+
         /// <summary>
         /// Remove the given agent asset transactions.  This should be called when a client is departing
         /// from a scene (and hence won't be making any more transactions here).
@@ -92,14 +140,14 @@ namespace OpenSim.Framework.Communications.Cache
         /// <param name="userID"></param>
         public void RemoveAgentAssetTransactions(LLUUID userID)
         {
-            m_log.DebugFormat("Removing agent asset transactions structure for agent {0}", userID);
-            
+            // m_log.DebugFormat("Removing agent asset transactions structure for agent {0}", userID);
+
             lock (AgentTransactions)
             {
                 AgentTransactions.Remove(userID);
             }
         }
-        
+
         /// <summary>
         /// Create an inventory item from data that has been received through a transaction.
         /// 
@@ -122,14 +170,14 @@ namespace OpenSim.Framework.Communications.Cache
         {
             m_log.DebugFormat(
                 "[TRANSACTIONS MANAGER] Called HandleItemCreationFromTransaction with item {0}", name);
-            
+
             AgentAssetTransactions transactions = GetUserTransactions(remoteClient.AgentId);
-            
+
             transactions.RequestCreateInventoryItem(
                 remoteClient, transactionID, folderID, callbackID, description,
                 name, invType, type, wearableType, nextOwnerMask);
-        }  
-           
+        }
+
         /// <summary>
         /// Update an inventory item with data that has been received through a transaction.
         /// 
@@ -139,17 +187,17 @@ namespace OpenSim.Framework.Communications.Cache
         /// <param name="remoteClient"></param>
         /// <param name="transactionID"></param>
         /// <param name="item"></param>
-        public void HandleItemUpdateFromTransaction(IClientAPI remoteClient, LLUUID transactionID, 
+        public void HandleItemUpdateFromTransaction(IClientAPI remoteClient, LLUUID transactionID,
                                                     InventoryItemBase item)
         {
             m_log.DebugFormat(
-                "[TRANSACTIONS MANAGER] Called HandleItemUpdateFromTransaction with item {0}", 
+               "[TRANSACTIONS MANAGER] Called HandleItemUpdateFromTransaction with item {0}",
                 item.inventoryName);
-            
-            AgentAssetTransactions transactions
-                = CommsManager.TransactionsManager.GetUserTransactions(remoteClient.AgentId);
 
-            transactions.RequestUpdateInventoryItem(remoteClient, transactionID, item);        
+            AgentAssetTransactions transactions
+                = GetUserTransactions(remoteClient.AgentId);
+
+            transactions.RequestUpdateInventoryItem(remoteClient, transactionID, item);
         }
 
         /// <summary>
@@ -170,20 +218,11 @@ namespace OpenSim.Framework.Communications.Cache
             AgentAssetTransactions.AssetXferUploader uploader = transactions.RequestXferUploader(transaction);
             if (uploader != null)
             {
-                // Upload has already compelted uploading...
-                
+
                 if (uploader.Initialise(remoteClient, assetID, transaction, type, data, storeLocal, tempFile))
                 {
-                    //[commenting out as this removal breaks uploads]
-                   /*lock (transactions.XferUploaders)
-                    {
-                      
-                        // XXX Weak ass way of doing this by directly manipulating this public dictionary, purely temporary
-                        transactions.XferUploaders.Remove(uploader.TransactionID);
-                        
-                        //m_log.InfoFormat("[ASSET TRANSACTIONS] Current uploaders: {0}", transactions.XferUploaders.Count);                        
-                    }*/
-         /*       }
+
+                }
             }
         }
 
@@ -198,9 +237,8 @@ namespace OpenSim.Framework.Communications.Cache
         public void HandleXfer(IClientAPI remoteClient, ulong xferID, uint packetID, byte[] data)
         {
             AgentAssetTransactions transactions = GetUserTransactions(remoteClient.AgentId);
-            
+
             transactions.HandleXfer(xferID, packetID, data);
         }
     }
 }
-*/

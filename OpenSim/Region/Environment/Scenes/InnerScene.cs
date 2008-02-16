@@ -150,7 +150,7 @@ namespace OpenSim.Region.Environment.Scenes
         {
             lock (m_syncRoot)
             {
-                return _PhyScene.Simulate((float) elapsed);
+                return _PhyScene.Simulate((float)elapsed);
             }
         }
 
@@ -175,7 +175,7 @@ namespace OpenSim.Region.Environment.Scenes
             foreach (SceneObjectPart part in sceneObject.Children.Values)
             {
                 part.LocalID = m_parentScene.PrimIDAllocate();
-                
+
             }
             sceneObject.UpdateParentIDs();
             AddEntity(sceneObject);
@@ -222,9 +222,9 @@ namespace OpenSim.Region.Environment.Scenes
             {
                 if (obj is SceneObjectGroup)
                 {
-                    if (((SceneObjectGroup) obj).LocalId == localID)
+                    if (((SceneObjectGroup)obj).LocalId == localID)
                     {
-                        m_parentScene.RemoveEntity((SceneObjectGroup) obj);
+                        m_parentScene.RemoveEntity((SceneObjectGroup)obj);
                         m_numPrim--;
                         return;
                     }
@@ -237,7 +237,8 @@ namespace OpenSim.Region.Environment.Scenes
             System.Console.WriteLine("Attaching object " + objectLocalID + " to " + AttachmentPt);
             SceneObjectPart p = GetSceneObjectPart(objectLocalID);
             ScenePresence av = null;
-            if (TryGetAvatar(remoteClient.AgentId, out av)) {
+            if (TryGetAvatar(remoteClient.AgentId, out av))
+            {
                 ObjectUpdatePacket objupdate = new ObjectUpdatePacket();
                 objupdate.RegionData.RegionHandle = m_regInfo.RegionHandle;
                 objupdate.RegionData.TimeDilation = ushort.MaxValue;
@@ -287,7 +288,7 @@ namespace OpenSim.Region.Environment.Scenes
                 objupdate.ObjectData[0].NameValue =
                        Helpers.StringToField("FirstName STRING RW SV " + av.Firstname + "\nLastName STRING RW SV " + av.Lastname);
                 LLVector3 pos2 = av.AbsolutePosition;
-                       // new LLVector3((float) Pos.X, (float) Pos.Y, (float) Pos.Z);
+                // new LLVector3((float) Pos.X, (float) Pos.Y, (float) Pos.Z);
                 byte[] pb = pos2.GetBytes();
                 Array.Copy(pb, 0, objupdate.ObjectData[0].ObjectData, 16, pb.Length);
 
@@ -318,7 +319,7 @@ namespace OpenSim.Region.Environment.Scenes
 
                 objupdate.ObjectData[1].TextureEntry = primData.TextureEntry;
                 objupdate.ObjectData[1].PCode = primData.PCode;
-                objupdate.ObjectData[1].State = (byte)(((byte)AttachmentPt) << 4) ;
+                objupdate.ObjectData[1].State = (byte)(((byte)AttachmentPt) << 4);
                 objupdate.ObjectData[1].PathBegin = primData.PathBegin;
                 objupdate.ObjectData[1].PathEnd = primData.PathEnd;
                 objupdate.ObjectData[1].PathScaleX = primData.PathScaleX;
@@ -356,7 +357,7 @@ namespace OpenSim.Region.Environment.Scenes
                 objupdate.ObjectData[1].Radius = 20;
                 objupdate.ObjectData[1].NameValue =
                        Helpers.StringToField("AttachItemID STRING RW SV " + p.UUID);
-                LLVector3 pos = new LLVector3((float) 0.0, (float) 0.0, (float) 0.0);
+                LLVector3 pos = new LLVector3((float)0.0, (float)0.0, (float)0.0);
 
                 pb = pos.GetBytes();
                 Array.Copy(pb, 0, objupdate.ObjectData[1].ObjectData, 0, pb.Length);
@@ -364,13 +365,7 @@ namespace OpenSim.Region.Environment.Scenes
                 byte[] brot = rot.GetBytes();
                 Array.Copy(brot, 0, objupdate.ObjectData[1].ObjectData, 36, brot.Length);
 
-
-
-            remoteClient.OutPacket(objupdate, ThrottleOutPacketType.Task);
-
-                
-                
-
+                remoteClient.OutPacket(objupdate, ThrottleOutPacketType.Task);
             }
             else
             {
@@ -466,8 +461,8 @@ namespace OpenSim.Region.Environment.Scenes
         {
             // some network situations come in where child agents get closed twice.
             if (m_numChildAgents < 0)
-            { 
-                m_numChildAgents = 0; 
+            {
+                m_numChildAgents = 0;
             }
 
             return m_numChildAgents;
@@ -569,8 +564,8 @@ namespace OpenSim.Region.Environment.Scenes
             {
                 if (ent is SceneObjectGroup)
                 {
-                    if (((SceneObjectGroup) ent).HasChildPrim(localID))
-                        return (SceneObjectGroup) ent;
+                    if (((SceneObjectGroup)ent).HasChildPrim(localID))
+                        return (SceneObjectGroup)ent;
                 }
             }
             return null;
@@ -584,8 +579,8 @@ namespace OpenSim.Region.Environment.Scenes
             {
                 if (ent is SceneObjectGroup)
                 {
-                    if (((SceneObjectGroup) ent).HasChildPrim(fullID))
-                        return (SceneObjectGroup) ent;
+                    if (((SceneObjectGroup)ent).HasChildPrim(fullID))
+                        return (SceneObjectGroup)ent;
                 }
             }
             return null;
@@ -600,7 +595,7 @@ namespace OpenSim.Region.Environment.Scenes
             {
                 if (ent is SceneObjectGroup)
                 {
-                    SceneObjectGroup reportingG = (SceneObjectGroup) ent;
+                    SceneObjectGroup reportingG = (SceneObjectGroup)ent;
                     EntityIntersection result = reportingG.TestIntersection(hray);
                     if (result.HitTF)
                     {
@@ -613,7 +608,7 @@ namespace OpenSim.Region.Environment.Scenes
                 }
             }
             return returnResult;
-        }      
+        }
 
         public SceneObjectPart GetSceneObjectPart(uint localID)
         {
@@ -719,7 +714,7 @@ namespace OpenSim.Region.Environment.Scenes
                     if (presence.IsChildAgent && m_parentScene.m_seeIntoRegionFromNeighbor)
                     {
                         LLVector3 oLoc = ((SceneObjectGroup)ent).AbsolutePosition;
-                        float distResult = (float)Util.GetDistanceTo(presence.AbsolutePosition,oLoc);
+                        float distResult = (float)Util.GetDistanceTo(presence.AbsolutePosition, oLoc);
 
                         //m_log.Info("[DISTANCE]: " + distResult.ToString());
 
@@ -727,13 +722,13 @@ namespace OpenSim.Region.Environment.Scenes
                         {
                             // Send Only if we don't already know about it.
                             // KnownPrim also makes the prim known when called.
-                            if (!presence.KnownPrim(((SceneObjectGroup) ent).UUID))
-                                ((SceneObjectGroup) ent).ScheduleFullUpdateToAvatar(presence);
+                            if (!presence.KnownPrim(((SceneObjectGroup)ent).UUID))
+                                ((SceneObjectGroup)ent).ScheduleFullUpdateToAvatar(presence);
                         }
                     }
                     else
                     {
-                        ((SceneObjectGroup) ent).ScheduleFullUpdateToAvatar(presence);
+                        ((SceneObjectGroup)ent).ScheduleFullUpdateToAvatar(presence);
                     }
                 }
             }
@@ -903,7 +898,7 @@ namespace OpenSim.Region.Environment.Scenes
             {
                 if (PermissionsMngr.CanEditObject(remoteClient.AgentId, group.UUID))
                 {
-                    group.UpdatePrimFlags(localID, (ushort) packet.Type, true, packet.ToBytes());
+                    group.UpdatePrimFlags(localID, (ushort)packet.Type, true, packet.ToBytes());
                 }
             }
         }
@@ -1003,9 +998,9 @@ namespace OpenSim.Region.Environment.Scenes
             {
                 if (ent is SceneObjectGroup)
                 {
-                    if (((SceneObjectGroup) ent).LocalId == parentPrim)
+                    if (((SceneObjectGroup)ent).LocalId == parentPrim)
                     {
-                        parenPrim = (SceneObjectGroup) ent;
+                        parenPrim = (SceneObjectGroup)ent;
                         break;
                     }
                 }
@@ -1020,9 +1015,9 @@ namespace OpenSim.Region.Environment.Scenes
                     {
                         if (ent is SceneObjectGroup)
                         {
-                            if (((SceneObjectGroup) ent).LocalId == childPrims[i])
+                            if (((SceneObjectGroup)ent).LocalId == childPrims[i])
                             {
-                                children.Add((SceneObjectGroup) ent);
+                                children.Add((SceneObjectGroup)ent);
                             }
                         }
                     }
@@ -1049,25 +1044,25 @@ namespace OpenSim.Region.Environment.Scenes
             // be more efficient yet to keep this dictionary permanently on hand.
 
             Dictionary<uint, SceneObjectGroup> sceneObjects = new Dictionary<uint, SceneObjectGroup>();
-            
+
             List<EntityBase> EntitieList = GetEntities();
             foreach (EntityBase ent in EntitieList)
             {
                 if (ent is SceneObjectGroup)
                 {
-                    SceneObjectGroup obj = (SceneObjectGroup) ent;
+                    SceneObjectGroup obj = (SceneObjectGroup)ent;
                     sceneObjects.Add(obj.LocalId, obj);
-                    
+
                 }
             }
 
             // Find the root prim among the prim ids we've been given
             for (int i = 0; i < primIds.Count; i++)
             {
-                
+
                 if (sceneObjects.ContainsKey(primIds[i]))
                 {
-                    
+
                     parenPrim = sceneObjects[primIds[i]];
                     primIds.RemoveAt(i);
                     break;
@@ -1124,9 +1119,9 @@ namespace OpenSim.Region.Environment.Scenes
             {
                 if (ent is SceneObjectGroup)
                 {
-                    if (((SceneObjectGroup) ent).LocalId == originalPrim)
+                    if (((SceneObjectGroup)ent).LocalId == originalPrim)
                     {
-                        originPrim = (SceneObjectGroup) ent;
+                        originPrim = (SceneObjectGroup)ent;
                         break;
                     }
                 }
@@ -1139,14 +1134,14 @@ namespace OpenSim.Region.Environment.Scenes
                     SceneObjectGroup copy = originPrim.Copy(AgentID, GroupID);
                     copy.AbsolutePosition = copy.AbsolutePosition + offset;
                     copy.ResetIDs();
-                    
+
                     lock (Entities)
                     {
                         Entities.Add(copy.UUID, copy);
                     }
-                    
+
                     m_numPrim++;
-                    
+
                     copy.StartScripts();
                     copy.ScheduleGroupForFullUpdate();
                 }
@@ -1170,7 +1165,7 @@ namespace OpenSim.Region.Environment.Scenes
 
             return
                 (float)
-                Math.Sqrt((v1.x - v2.x)*(v1.x - v2.x) + (v1.y - v2.y)*(v1.y - v2.y) + (v1.z - v2.z)*(v1.z - v2.z));
+                Math.Sqrt((v1.x - v2.x) * (v1.x - v2.x) + (v1.y - v2.y) * (v1.y - v2.y) + (v1.z - v2.z) * (v1.z - v2.z));
         }
 
         #endregion

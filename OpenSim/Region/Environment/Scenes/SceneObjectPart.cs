@@ -1618,8 +1618,7 @@ namespace OpenSim.Region.Environment.Scenes
                 SendFullUpdateToAllClients();
 
                 SendObjectPropertiesToClient(AgentID);
-                
-                
+
             }
         }
 
