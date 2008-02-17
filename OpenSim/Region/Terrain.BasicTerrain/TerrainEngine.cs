@@ -430,7 +430,7 @@ namespace OpenSim.Region.Terrain
                 }
             }
             SaveRevertMap();
-            tainted++;
+            ResetTaint();
         }
 
         /// <summary>
