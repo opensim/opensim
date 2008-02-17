@@ -74,7 +74,7 @@ namespace OpenSim.Region.Environment
             m_scene.EventManager.TriggerPermissionError(user, reason);
         }
 
-        protected virtual bool IsAdministrator(LLUUID user)
+        public virtual bool IsAdministrator(LLUUID user)
         {
             if (m_bypassPermissions)
             {

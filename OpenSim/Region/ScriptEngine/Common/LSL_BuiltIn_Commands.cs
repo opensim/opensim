@@ -3676,6 +3676,16 @@ namespace OpenSim.Region.ScriptEngine.Common
             return LLUUID.Zero.ToString();
         }
 
+	public int osConsoleCommand(string Command)
+	{
+		if (World.PermissionsMngr.IsAdministrator(m_host.OwnerID)) {
+			OpenSim.Framework.Console.MainConsole.Instance.RunCommand(Command);
+			return 1;
+		} else {
+			return 0;
+		}
+	}
+
         private void NotImplemented(string Command)
         {
             m_host.AddScriptLPS(1);
