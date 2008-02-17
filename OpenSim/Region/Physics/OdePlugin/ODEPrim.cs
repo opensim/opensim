@@ -672,9 +672,11 @@ namespace OpenSim.Region.Physics.OdePlugin
             }
             ode.dlock(_parent_scene.world);
             m_disabled = true;
-            if (Body != (IntPtr) 0)
+            if (Body != (IntPtr)0)
+            {
                 d.BodyDisable(Body);
-
+                Body = (IntPtr)0;
+            }
             ode.dunlock(_parent_scene.world);
 
             m_taintdisable = false;
@@ -682,27 +684,30 @@ namespace OpenSim.Region.Physics.OdePlugin
 
         public void changePhysicsStatus(float timestap)
         {
-            while (ode.lockquery())
+            lock (ode)
             {
-            }
-            ode.dlock(_parent_scene.world);
-
-            if (m_isphysical == true)
-            {
-                if (Body == (IntPtr) 0)
+                while (ode.lockquery())
                 {
-                    enableBody();
                 }
-            }
-            else
-            {
-                if (Body != (IntPtr) 0)
-                {
-                    disableBody();
-                }
-            }
+                ode.dlock(_parent_scene.world);
 
-            ode.dunlock(_parent_scene.world);
+                if (m_isphysical == true)
+                {
+                    if (Body == (IntPtr)0)
+                    {
+                        enableBody();
+                    }
+                }
+                else
+                {
+                    if (Body != (IntPtr)0)
+                    {
+                        disableBody();
+                    }
+                }
+
+                ode.dunlock(_parent_scene.world);
+            }
 
             resetCollisionAccounting();
             m_taintPhysics = m_isphysical;
@@ -1279,18 +1284,21 @@ namespace OpenSim.Region.Physics.OdePlugin
 
                 
                 //  kluge to keep things in bounds.  ODE lets dead avatars drift away (they should be removed!)
-                //if (vec.X < 0.0f) vec.X = 0.0f;
-                //if (vec.Y < 0.0f) vec.Y = 0.0f;
-                //if (vec.X > 255.95f) vec.X = 255.95f;
-                //if (vec.Y > 255.95f) vec.Y = 255.95f;
+                //if (vec.X < 0.0f) { vec.X = 0.0f; if (Body != (IntPtr)0) d.BodySetAngularVel(Body, 0, 0, 0); }
+                //if (vec.Y < 0.0f) { vec.Y = 0.0f; if (Body != (IntPtr)0) d.BodySetAngularVel(Body, 0, 0, 0); }
+                //if (vec.X > 255.95f) { vec.X = 255.95f; if (Body != (IntPtr)0) d.BodySetAngularVel(Body, 0, 0, 0); }
+                //if (vec.Y > 255.95f) { vec.Y = 255.95f; if (Body != (IntPtr)0) d.BodySetAngularVel(Body, 0, 0, 0); }
+
                 m_lastposition = _position;
 
                 l_position.X = vec.X;
                 l_position.Y = vec.Y;
                 l_position.Z = vec.Z;
 
-                //if (l_position.X > 257f || l_position.X < -1f || l_position.Y > 257f || l_position.Y < -1f)
-                //{
+                if (l_position.X > 255.95f || l_position.X < 0f || l_position.Y > 255.95f || l_position.Y < 0f)
+                {
+                    base.RaiseOutOfBounds(_position);
+                }
                     //if (m_crossingfailures < 5)
                     //{
                         //base.RequestPhysicsterseUpdate();
@@ -1385,6 +1393,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                     m_lastUpdateSent = false;
                     if (!m_throttleUpdates || throttleCounter > 15)
                     {
+                        
                         base.RequestPhysicsterseUpdate();
                     }
                     else

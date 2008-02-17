@@ -269,6 +269,8 @@ namespace OpenSim.Region.Physics.OdePlugin
 
             if (d.GeomIsSpace(g1) || d.GeomIsSpace(g2))
             {
+                if (g1 == (IntPtr)0 || g2 == (IntPtr)0)
+                    return;
                 // Separating static prim geometry spaces.   
                 // We'll be calling near recursivly if one 
                 // of them is a space to find all of the 
@@ -280,6 +282,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                 catch (System.AccessViolationException)
                 {
                     m_log.Warn("[PHYSICS]: Unable to collide test a space");
+                    return;
                 }
                 //Colliding a space or a geom with a space or a geom. so drill down
 
@@ -291,6 +294,8 @@ namespace OpenSim.Region.Physics.OdePlugin
             {
                 // Colliding Geom To Geom
                 // This portion of the function 'was' blatantly ripped off from BoxStack.cs
+                if (g1 == (IntPtr)0 || g2 == (IntPtr)0)
+                    return;
 
                 IntPtr b1 = d.GeomGetBody(g1);
                 IntPtr b2 = d.GeomGetBody(g2);
@@ -300,6 +305,8 @@ namespace OpenSim.Region.Physics.OdePlugin
 
                 if (b1 != IntPtr.Zero && b2 != IntPtr.Zero && d.AreConnectedExcluding(b1, b2, d.JointType.Contact))
                     return;
+
+                
 
                 d.GeomClassID id = d.GeomGetClass(g1);
 
@@ -325,6 +332,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                 int count = 0;
                 try
                 {
+                    //m_log.Warn(g1.ToString() + "|" + g2.ToString());
                     count = d.Collide(g1, g2, contacts.GetLength(0), contacts, d.ContactGeom.SizeOf);
                 }
                 catch (SEHException)
@@ -335,7 +343,9 @@ namespace OpenSim.Region.Physics.OdePlugin
                 }
                 catch (System.AccessViolationException)
                 {
+                    
                     m_log.Warn("[PHYSICS]: Unable to collide test an object");
+                    return;
                 }
 
                 PhysicsActor p1;
@@ -438,48 +448,48 @@ namespace OpenSim.Region.Physics.OdePlugin
                         // If you interpenetrate a prim with another prim
                         if (p1.PhysicsActorType == (int) ActorTypes.Prim && p2.PhysicsActorType == (int) ActorTypes.Prim)
                         {
-                            OdePrim op1 = (OdePrim)p1;
-                            OdePrim op2 = (OdePrim)p2;
-                            op1.m_collisionscore++;
-                            op2.m_collisionscore++;
+                            //OdePrim op1 = (OdePrim)p1;
+                            //OdePrim op2 = (OdePrim)p2;
+                            //op1.m_collisionscore++;
+                            //op2.m_collisionscore++;
                             
 
-                            if (op1.m_collisionscore > 80 || op2.m_collisionscore > 80)
-                            {
-                                op1.m_taintdisable = true;
-                                AddPhysicsActorTaint(p1);
-                                op2.m_taintdisable = true;
-                                AddPhysicsActorTaint(p2);
-                            }
+                            //if (op1.m_collisionscore > 8000 || op2.m_collisionscore > 8000)
+                            //{
+                                //op1.m_taintdisable = true;
+                                //AddPhysicsActorTaint(p1);
+                                //op2.m_taintdisable = true;
+                                //AddPhysicsActorTaint(p2);
+                            //}
                            
-                            if (contacts[i].depth >= 0.25f)
-                            {
+                            //if (contacts[i].depth >= 0.25f)
+                            //{
                                 // Don't collide, one or both prim will expld.
                                 
 
-                                op1.m_interpenetrationcount++;
-                                op2.m_interpenetrationcount++;
-                                interpenetrations_before_disable = 20;
-                                if (op1.m_interpenetrationcount >= interpenetrations_before_disable)
-                                {
-                                    op1.m_taintdisable = true;
-                                    AddPhysicsActorTaint(p1);
-                                }
-                                if (op2.m_interpenetrationcount >= interpenetrations_before_disable)
-                                {
-                                    op2.m_taintdisable = true;
-                                    AddPhysicsActorTaint(p2);
-                                }
+                                //op1.m_interpenetrationcount++;
+                                //op2.m_interpenetrationcount++;
+                                //interpenetrations_before_disable = 200;
+                                //if (op1.m_interpenetrationcount >= interpenetrations_before_disable)
+                                //{
+                                    //op1.m_taintdisable = true;
+                                    //AddPhysicsActorTaint(p1);
+                                //}
+                                //if (op2.m_interpenetrationcount >= interpenetrations_before_disable)
+                                //{
+                                   // op2.m_taintdisable = true;
+                                    //AddPhysicsActorTaint(p2);
+                                //}
 
                                
                                 //contacts[i].depth = contacts[i].depth / 8f;
                                 //contacts[i].normal = new d.Vector3(0, 0, 1);
-                            }
-                            if (op1.m_disabled || op2.m_disabled)
-                            {
+                            //}
+                            //if (op1.m_disabled || op2.m_disabled)
+                            //{
                                 //Manually disabled objects stay disabled 
-                                contacts[i].depth = 0f;
-                            }
+                                //contacts[i].depth = 0f;
+                            //}
                         }
                         if (contacts[i].depth >= 1.00f)
                         {
@@ -720,9 +730,9 @@ namespace OpenSim.Region.Physics.OdePlugin
                 {
                     OdePrim p = (OdePrim) prim;
 
-                    //p.setPrimForRemoval();
-                    //AddPhysicsActorTaint(prim);
-                    RemovePrimThreadLocked(p);
+                    p.setPrimForRemoval();
+                    AddPhysicsActorTaint(prim);
+                    //RemovePrimThreadLocked(p);
                 }
             }
         }
@@ -760,8 +770,8 @@ namespace OpenSim.Region.Physics.OdePlugin
                     //m_log.Warn(prim.m_targetSpace);
 
 
-                    if (prim.m_targetSpace != (IntPtr)0)
-                    {
+                    //if (prim.m_targetSpace != (IntPtr)0)
+                    //{
                         if (d.SpaceQuery(prim.m_targetSpace, prim.prim_geom))
                         {
 
@@ -769,7 +779,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                             {
                                 waitForSpaceUnlock(prim.m_targetSpace);
                                 d.SpaceRemove(prim.m_targetSpace, prim.prim_geom);
-                                prim.m_targetSpace = space;
+                                prim.m_targetSpace = (IntPtr) 0;
                             }
                             else
                             {
@@ -778,7 +788,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                             }
 
                         }
-                    }
+                    //}
                     //m_log.Warn(prim.prim_geom);
                     try
                     {
@@ -1309,10 +1319,10 @@ namespace OpenSim.Region.Physics.OdePlugin
                     bool processedtaints = false;
                     foreach (OdePrim prim in _taintedPrim)
                     {   
-                        //if (prim.m_taintremove)
-                        //{
-                            //RemovePrimThreadLocked(prim);
-                        //}
+                        if (prim.m_taintremove)
+                        {
+                            RemovePrimThreadLocked(prim);
+                        }
                         
                         prim.ProcessTaints(timeStep);
 
