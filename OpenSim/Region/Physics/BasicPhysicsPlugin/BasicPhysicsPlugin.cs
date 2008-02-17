@@ -274,6 +274,12 @@ namespace OpenSim.Region.Physics.BasicPhysicsPlugin
             set { return; }
         }
 
+        public override bool Stopped
+        {
+            get { return false; }
+        }
+
+
         public override PhysicsVector Position
         {
             get { return _position; }

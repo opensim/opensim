@@ -403,6 +403,11 @@ namespace OpenSim.Region.Physics.POSPlugin
             set { return; }
         }
 
+        public override bool Stopped
+        {
+            get { return false; }
+        }
+
         public override PhysicsVector Position
         {
             get { return _position; }
@@ -543,6 +548,11 @@ namespace OpenSim.Region.Physics.POSPlugin
         {
             get { return false; }
             set { return; }
+        }
+
+        public override bool Stopped
+        {
+            get { return false; }
         }
 
         public override PhysicsVector Position

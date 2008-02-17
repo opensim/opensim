@@ -279,6 +279,11 @@ namespace OpenSim.Region.Physics.PhysXPlugin
             set { m_rotationalVelocity = value; }
         }
 
+        public override bool Stopped
+        {
+            get { return false; }
+        }
+
         public override PhysicsVector Position
         {
             get { return _position; }
@@ -477,6 +482,11 @@ namespace OpenSim.Region.Physics.PhysXPlugin
         {
             get { return false; }
             set { return; }
+        }
+
+        public override bool Stopped
+        {
+            get { return false; }
         }
 
         public override PhysicsVector Position

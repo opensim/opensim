@@ -118,6 +118,8 @@ namespace OpenSim.Region.Physics.Manager
             get { return new NullPhysicsActor(); }
         }
 
+        public abstract bool Stopped { get; }
+
         public abstract PhysicsVector Size { get; set; }
 
         public abstract PrimitiveBaseShape Shape { set; }
@@ -204,6 +206,11 @@ namespace OpenSim.Region.Physics.Manager
 
     public class NullPhysicsActor : PhysicsActor
     {
+        public override bool Stopped 
+        { 
+            get{ return false; } 
+        }
+
         public override PhysicsVector Position
         {
             get { return PhysicsVector.Zero; }

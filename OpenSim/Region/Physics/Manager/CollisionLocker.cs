@@ -35,7 +35,7 @@ namespace OpenSim.Region.Physics.Manager
     public class CollisionLocker
     {
         
-        private bool locked = false;
+        
         private List<IntPtr> worldlock = new List<IntPtr>();
         public CollisionLocker()
         {

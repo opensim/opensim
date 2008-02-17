@@ -77,8 +77,11 @@ namespace OpenSim.Region.Environment.Scenes
         private bool m_newForce = false;
         private bool m_newCoarseLocations = true;
         private bool m_gotAllObjectsInScene = false;
-        
 
+        private bool m_lastPhysicsStoppedStatus = false;
+
+        private LLVector3 m_lastVelocity = LLVector3.Zero;
+        
         // Default AV Height
         private float m_avHeight = 127.0f;
 
@@ -1263,11 +1266,17 @@ namespace OpenSim.Region.Environment.Scenes
                         m_updateCount = 0;
                     }
                 }
-                else if (Util.GetDistanceTo(lastPhysPos, AbsolutePosition) > 0.02) // physics-related movement
+                else if ((Util.GetDistanceTo(lastPhysPos, AbsolutePosition) > 0.02) || (Util.GetDistanceTo(m_lastVelocity, m_velocity) > 0.02)) // physics-related movement
                 {
+
+                    
+                    // Send Terse Update to all clients updates lastPhysPos and m_lastVelocity
+                    // doing the above assures us that we know what we sent the clients last
                     SendTerseUpdateToAllClients();
                     m_updateCount = 0;
-                    lastPhysPos = AbsolutePosition;
+                    
+
+                    
                 }
 
                 // followed suggestion from mic bowman. reversed the two lines below.
@@ -1307,6 +1316,9 @@ namespace OpenSim.Region.Environment.Scenes
             m_perfMonMS = System.Environment.TickCount;
 
             m_scene.Broadcast(SendTerseUpdateToClient);
+
+            m_lastVelocity = m_velocity;
+            lastPhysPos = AbsolutePosition;
 
             m_scene.AddAgentTime(System.Environment.TickCount - m_perfMonMS);
             
@@ -1729,7 +1741,7 @@ namespace OpenSim.Region.Environment.Scenes
                                   AbsolutePosition.Z);
 
             m_physicsActor = scene.AddAvatar(Firstname + "." + Lastname, pVec);
-            m_physicsActor.OnRequestTerseUpdate += SendTerseUpdateToAllClients;
+            //m_physicsActor.OnRequestTerseUpdate += SendTerseUpdateToAllClients;
             m_physicsActor.OnCollisionUpdate += PhysicsCollisionUpdate;
         }
 

@@ -1129,6 +1129,11 @@ namespace OpenSim.Region.Physics.OdePlugin
             set { m_throttleUpdates = value; }
         }
 
+        public override bool Stopped
+        {
+            get { return _zeroFlag; }
+        }
+
         public override PhysicsVector Position
         {
             get { return _position; }
@@ -1233,12 +1238,13 @@ namespace OpenSim.Region.Physics.OdePlugin
         public override PhysicsVector RotationalVelocity
         {
             get {
+                PhysicsVector pv = new PhysicsVector(0, 0, 0);
                 if (_zeroFlag)
-                    return PhysicsVector.Zero;
+                    return pv;
                 m_lastUpdateSent = false;
                 
-                if (m_rotationalVelocity.IsIdentical(PhysicsVector.Zero, 0.2f))
-                    return PhysicsVector.Zero;
+                if (m_rotationalVelocity.IsIdentical(pv, 0.2f))
+                    return pv;
 
                 return m_rotationalVelocity; 
             }
@@ -1261,7 +1267,7 @@ namespace OpenSim.Region.Physics.OdePlugin
         public void UpdatePositionAndVelocity()
         {
             //  no lock; called from Simulate() -- if you call this from elsewhere, gotta lock or do Monitor.Enter/Exit!
-
+            PhysicsVector pv = new PhysicsVector(0, 0, 0);
             if (Body != (IntPtr) 0)
             {
                 d.Vector3 vec = d.BodyGetPosition(Body);
@@ -1348,7 +1354,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                     {
                         m_throttleUpdates = false;
                         throttleCounter = 0;
-                        m_rotationalVelocity = PhysicsVector.Zero;
+                        m_rotationalVelocity = pv;
                         base.RequestPhysicsterseUpdate();
                         m_lastUpdateSent = true;
                     }
@@ -1362,9 +1368,9 @@ namespace OpenSim.Region.Physics.OdePlugin
                     _velocity.X = vel.X;
                     _velocity.Y = vel.Y;
                     _velocity.Z = vel.Z;
-                    if (_velocity.IsIdentical(PhysicsVector.Zero, 0.5f))
+                    if (_velocity.IsIdentical(pv, 0.5f))
                     {
-                        m_rotationalVelocity = PhysicsVector.Zero;
+                        m_rotationalVelocity = pv;
                     }
                     else
                     {

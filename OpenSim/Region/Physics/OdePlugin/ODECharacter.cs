@@ -317,6 +317,11 @@ namespace OpenSim.Region.Physics.OdePlugin
             m_pidControllerActive = status;
         }
 
+        public override bool Stopped
+        {
+            get { return _zeroFlag; }
+        }
+
         /// <summary>
         /// This 'puts' an avatar somewhere in the physics space.
         /// Not really a good choice unless you 'know' it's a good 
@@ -509,8 +514,9 @@ namespace OpenSim.Region.Physics.OdePlugin
         public override PhysicsVector Velocity
         {
             get {
+                // There's a problem with PhysicsVector.Zero! Don't Use it Here!
                 if (_zeroFlag)
-                    return PhysicsVector.Zero;
+                    return new PhysicsVector(0f, 0f, 0f);
                 m_lastUpdateSent = false;
                 return _velocity; 
             }
@@ -756,7 +762,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                 if (!m_lastUpdateSent)
                 {
                     m_lastUpdateSent = true;
-                    base.RequestPhysicsterseUpdate();
+                    //base.RequestPhysicsterseUpdate();
                     
                 }
             }

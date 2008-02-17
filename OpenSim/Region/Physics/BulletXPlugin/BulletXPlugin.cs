@@ -730,6 +730,11 @@ namespace OpenSim.Region.Physics.BulletXPlugin
             _name = name;
         }
 
+        public override bool Stopped
+        {
+            get { return false; }
+        }
+
         public override PhysicsVector Position
         {
             get { return _position; }
