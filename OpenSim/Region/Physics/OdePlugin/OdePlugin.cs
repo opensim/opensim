@@ -755,74 +755,77 @@ namespace OpenSim.Region.Physics.OdePlugin
                         prim.disableBody();
                     }
                     // we don't want to remove the main space
-                    if (prim.m_targetSpace != space && prim.IsPhysical == false)
+                    
+                    // If the geometry is in the targetspace, remove it from the target space
+                    //m_log.Warn(prim.m_targetSpace);
+
+
+                    if (prim.m_targetSpace != (IntPtr)0)
                     {
-                        // If the geometry is in the targetspace, remove it from the target space
-                        //m_log.Warn(prim.m_targetSpace);
-
-
-                        if (prim.m_targetSpace != (IntPtr)0)
+                        if (d.SpaceQuery(prim.m_targetSpace, prim.prim_geom))
                         {
-                            if (d.SpaceQuery(prim.m_targetSpace, prim.prim_geom))
+
+                            if (d.GeomIsSpace(prim.m_targetSpace))
                             {
-
-                                if (d.GeomIsSpace(prim.m_targetSpace))
-                                {
-                                    waitForSpaceUnlock(prim.m_targetSpace);
-                                    d.SpaceRemove(prim.m_targetSpace, prim.prim_geom);
-                                    prim.m_targetSpace = space;
-                                }
-                                else
-                                {
-                                    m_log.Info("[Physics]: Invalid Scene passed to 'removeprim from scene':" +
-                                               ((OdePrim)prim).m_targetSpace.ToString());
-                                }
-
+                                waitForSpaceUnlock(prim.m_targetSpace);
+                                d.SpaceRemove(prim.m_targetSpace, prim.prim_geom);
+                                prim.m_targetSpace = space;
                             }
-                        }
-                        //m_log.Warn(prim.prim_geom);
-                        try
-                        {
-                            if (prim.prim_geom != (IntPtr)0)
+                            else
                             {
-                                d.GeomDestroy(prim.prim_geom);
-                                prim.prim_geom = (IntPtr)0;
+                                m_log.Info("[Physics]: Invalid Scene passed to 'removeprim from scene':" +
+                                           ((OdePrim)prim).m_targetSpace.ToString());
                             }
 
                         }
-                        catch (System.AccessViolationException)
-                        {
-                            m_log.Info("[PHYSICS]: Couldn't remove prim from physics scene, it was already be removed.");
-                        }
-                        _prims.Remove(prim);
-
-                        //If there are no more geometries in the sub-space, we don't need it in the main space anymore
-                        //if (d.SpaceGetNumGeoms(prim.m_targetSpace) == 0)
-                        //{
-                        //if (!(prim.m_targetSpace.Equals(null)))
-                        //{
-                        //if (d.GeomIsSpace(prim.m_targetSpace))
-                        //{
-                        //waitForSpaceUnlock(prim.m_targetSpace);
-                        //d.SpaceRemove(space, prim.m_targetSpace);
-                        // free up memory used by the space.
-                        //d.SpaceDestroy(prim.m_targetSpace);
-                        //int[] xyspace = calculateSpaceArrayItemFromPos(prim.Position);
-                        //resetSpaceArrayItemToZero(xyspace[0], xyspace[1]);
-                        //}
-                        //else
-                        //{
-                        //m_log.Info("[Physics]: Invalid Scene passed to 'removeprim from scene':" +
-                        //((OdePrim) prim).m_targetSpace.ToString());
-                        //}
-                        //}
-                        //}
                     }
+                    //m_log.Warn(prim.prim_geom);
+                    try
+                    {
+                        if (prim.prim_geom != (IntPtr)0)
+                        {
+                            d.GeomDestroy(prim.prim_geom);
+                            prim.prim_geom = (IntPtr)0;
+                        }
+                        else
+                        {
+                            m_log.Warn("[PHYSICS]: Unable to remove prim from physics scene");
+                        }
 
+                    }
+                    catch (System.AccessViolationException)
+                    {
+                        m_log.Info("[PHYSICS]: Couldn't remove prim from physics scene, it was already be removed.");
+                    }
+                    _prims.Remove(prim);
 
-
-                    ode.dunlock(world);
+                    //If there are no more geometries in the sub-space, we don't need it in the main space anymore
+                    //if (d.SpaceGetNumGeoms(prim.m_targetSpace) == 0)
+                    //{
+                    //if (!(prim.m_targetSpace.Equals(null)))
+                    //{
+                    //if (d.GeomIsSpace(prim.m_targetSpace))
+                    //{
+                    //waitForSpaceUnlock(prim.m_targetSpace);
+                    //d.SpaceRemove(space, prim.m_targetSpace);
+                    // free up memory used by the space.
+                    //d.SpaceDestroy(prim.m_targetSpace);
+                    //int[] xyspace = calculateSpaceArrayItemFromPos(prim.Position);
+                    //resetSpaceArrayItemToZero(xyspace[0], xyspace[1]);
+                    //}
+                    //else
+                    //{
+                    //m_log.Info("[Physics]: Invalid Scene passed to 'removeprim from scene':" +
+                    //((OdePrim) prim).m_targetSpace.ToString());
+                    //}
+                    //}
+                    //}
                 }
+
+
+
+                ode.dunlock(world);
+                
             }
         }
         /// <summary>
@@ -1261,19 +1264,30 @@ namespace OpenSim.Region.Physics.OdePlugin
                         if (!ode.lockquery())
                         { 
                             ode.dlock(world);
-                            foreach (OdeCharacter actor in _characters)
+                            try
                             {
-                                actor.Move(timeStep);
-                                
+                                foreach (OdeCharacter actor in _characters)
+                                {
+                                    actor.Move(timeStep);
+
+                                }
+
+
+                                collision_optimized(timeStep);
+
+                                d.WorldQuickStep(world, ODE_STEPSIZE);
+
+                                d.JointGroupEmpty(contactgroup);
+                                ode.dunlock(world);
+                            } 
+                            catch (Exception e)
+                            {
+                                m_log.Error("[PHYSICS]: " + e.Message.ToString() + e.TargetSite.ToString());
+                                ode.dunlock(world);
                             }
+                                
+                                
                             
-
-                            collision_optimized(timeStep);
-
-                            d.WorldQuickStep(world, ODE_STEPSIZE);
-
-                            d.JointGroupEmpty(contactgroup);
-                            ode.dunlock(world);
 
                             step_time -= ODE_STEPSIZE;
                             i++;
