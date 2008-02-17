@@ -1289,13 +1289,13 @@ namespace OpenSim.Region.Physics.OdePlugin
                 l_position.Y = vec.Y;
                 l_position.Z = vec.Z;
 
-                if (l_position.X > 257f || l_position.X < -1f || l_position.Y > 257f || l_position.Y < -1f)
-                {
-                    if (m_crossingfailures < 5)
-                    {
-                        base.RequestPhysicsterseUpdate();
-                    }
-                }
+                //if (l_position.X > 257f || l_position.X < -1f || l_position.Y > 257f || l_position.Y < -1f)
+                //{
+                    //if (m_crossingfailures < 5)
+                    //{
+                        //base.RequestPhysicsterseUpdate();
+                    //}
+                //}
 
                 if (l_position.Z < 0)
                 {
