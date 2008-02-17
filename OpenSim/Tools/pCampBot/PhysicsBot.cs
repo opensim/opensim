@@ -36,7 +36,7 @@ using Nini.Config;
 using System.Threading;
 using OpenSim.Framework;
 using OpenSim.Framework.Console;
-using Timer=System.Timers.Timer;
+using Timer = System.Timers.Timer;
 
 namespace pCampBot
 {
@@ -49,10 +49,10 @@ namespace pCampBot
         public string lastname;
         public string password;
         public string loginURI;
-        
+
         public event AnEvent OnConnected;
         public event AnEvent OnDisconnected;
-        
+
         protected Timer m_action; // Action Timer
 
         protected Random somthing = new Random(System.Environment.TickCount);// We do stuff randomly here
@@ -79,24 +79,34 @@ namespace pCampBot
         {
             //client.Throttle.Task = 500000f;
             //client.Throttle.Set();
-            
-            client.Self.Movement.AlwaysRun = true;
+            int walkorrun = somthing.Next(4); // Randomize between walking and running. The greater this number,
+                                              // the greater the bot's chances to walk instead of run.
+            if (walkorrun == 0)
+            {
+                client.Self.Movement.AlwaysRun = true;
+            }
+            else
+            {
+                client.Self.Movement.AlwaysRun = false;
+            }
+
             LLVector3 pos = client.Self.SimPosition;
-            LLVector3 newpos = new LLVector3(somthing.Next(255),somthing.Next(255),somthing.Next(255));
-            
-            
+            LLVector3 newpos = new LLVector3(somthing.Next(255), somthing.Next(255), somthing.Next(255));
             client.Self.Movement.TurnToward(newpos);
+
             for (int i = 0; i < 2000; i++)
             {
                 client.Self.Movement.AtPos = true;
+                Thread.Sleep(somthing.Next(25, 75)); // Makes sure the bots keep walking for this time.
             }
             client.Self.Jump();
+
             string randomf = talkarray[somthing.Next(talkarray.Length)];
             if (talkarray.Length > 1 && randomf.Length > 1)
-                client.Self.Chat("Can't do it, " + randomf, 0, ChatType.Normal);
-            
-            Thread.Sleep(somthing.Next(1,20));
-            
+                client.Self.Chat(randomf, 0, ChatType.Normal);
+
+            //Thread.Sleep(somthing.Next(1, 10)); // Apparently its better without it right now.
+
         }
 
         /// <summary>
@@ -132,7 +142,7 @@ namespace pCampBot
             client.Network.OnDisconnected += new NetworkManager.DisconnectedCallback(this.Network_OnDisconnected);
             if (client.Network.Login(firstname, lastname, password, "pCampBot", "Your name"))
             {
-                
+
                 if (OnConnected != null)
                 {
                     m_action = new Timer(somthing.Next(1000, 10000));
@@ -169,15 +179,15 @@ namespace pCampBot
         {
             if (OnDisconnected != null)
             {
-                OnDisconnected(this,EventType.DISCONNECTED);
+                OnDisconnected(this, EventType.DISCONNECTED);
             }
         }
 
         public string[] readexcuses()
         {
             string allexcuses = "";
-                
-            string file = Path.Combine(Util.configDir(), "excuses");
+
+            string file = Path.Combine(Util.configDir(), "pCampBotSentences.txt");
             if (File.Exists(file))
             {
                 StreamReader csr = File.OpenText(file);
@@ -185,7 +195,7 @@ namespace pCampBot
                 csr.Close();
             }
 
-            return allexcuses.Split(Environment.NewLine.ToCharArray());    
+            return allexcuses.Split(Environment.NewLine.ToCharArray());
         }
     }
 }
