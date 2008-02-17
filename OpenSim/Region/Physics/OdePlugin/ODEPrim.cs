@@ -1073,22 +1073,24 @@ namespace OpenSim.Region.Physics.OdePlugin
         }
         private void changevelocity(float timestep)
         {
-            while (ode.lockquery())
+            lock (ode)
             {
-            }
-            ode.dlock(_parent_scene.world);
-
-            System.Threading.Thread.Sleep(20);
-            if (IsPhysical)
-            {
-                if (Body != (IntPtr)0)
+                while (ode.lockquery())
                 {
-                    d.BodySetLinearVel(Body, m_taintVelocity.X, m_taintVelocity.Y, m_taintVelocity.Z);
                 }
+                ode.dlock(_parent_scene.world);
+
+                System.Threading.Thread.Sleep(20);
+                if (IsPhysical)
+                {
+                    if (Body != (IntPtr)0)
+                    {
+                        d.BodySetLinearVel(Body, m_taintVelocity.X, m_taintVelocity.Y, m_taintVelocity.Z);
+                    }
+                }
+
+                ode.dunlock(_parent_scene.world);
             }
-
-            ode.dunlock(_parent_scene.world);
-
             //resetCollisionAccounting();
             m_taintVelocity = PhysicsVector.Zero;
         }
