@@ -680,29 +680,39 @@ namespace OpenSim.Grid.GridServer
         /// </summary>
         /// <param name="request"></param>
         /// <param name="path"></param>
-        /// <param name="param"></param>
+        /// <param name="param">A string representing the sim's UUID</param>
         /// <returns>Information about the sim in XML</returns>
         public string RestGetSimMethod(string request, string path, string param)
         {
             string respstring = String.Empty;
 
             RegionProfileData TheSim;
-            LLUUID UUID = new LLUUID(param);
-            TheSim = getRegion(UUID);
 
-            if (!(TheSim == null))
+            LLUUID UUID;
+            if (LLUUID.TryParse(param, out UUID))
+            {
+                TheSim = getRegion(UUID);
+
+                if (!(TheSim == null))
+                {
+                    respstring = "<Root>";
+                    respstring += "<authkey>" + TheSim.regionSendKey + "</authkey>";
+                    respstring += "<sim>";
+                    respstring += "<uuid>" + TheSim.UUID.ToString() + "</uuid>";
+                    respstring += "<regionname>" + TheSim.regionName + "</regionname>";
+                    respstring += "<sim_ip>" + Util.GetHostFromDNS(TheSim.serverIP).ToString() + "</sim_ip>";
+                    respstring += "<sim_port>" + TheSim.serverPort.ToString() + "</sim_port>";
+                    respstring += "<region_locx>" + TheSim.regionLocX.ToString() + "</region_locx>";
+                    respstring += "<region_locy>" + TheSim.regionLocY.ToString() + "</region_locy>";
+                    respstring += "<estate_id>1</estate_id>";
+                    respstring += "</sim>";
+                    respstring += "</Root>";
+                }
+            }
+            else
             {
                 respstring = "<Root>";
-                respstring += "<authkey>" + TheSim.regionSendKey + "</authkey>";
-                respstring += "<sim>";
-                respstring += "<uuid>" + TheSim.UUID.ToString() + "</uuid>";
-                respstring += "<regionname>" + TheSim.regionName + "</regionname>";
-                respstring += "<sim_ip>" + Util.GetHostFromDNS(TheSim.serverIP).ToString() + "</sim_ip>";
-                respstring += "<sim_port>" + TheSim.serverPort.ToString() + "</sim_port>";
-                respstring += "<region_locx>" + TheSim.regionLocX.ToString() + "</region_locx>";
-                respstring += "<region_locy>" + TheSim.regionLocY.ToString() + "</region_locy>";
-                respstring += "<estate_id>1</estate_id>";
-                respstring += "</sim>";
+                respstring += "<error>Param must be a UUID</error>";
                 respstring += "</Root>";
             }
 
