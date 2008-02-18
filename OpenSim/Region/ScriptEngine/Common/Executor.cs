@@ -49,9 +49,9 @@ namespace OpenSim.Region.ScriptEngine.Common
 
             string EventName = m_Script.State + "_event_" + FunctionName;
 
-///#if DEBUG
-///            Console.WriteLine("ScriptEngine: Script event function name: " + EventName);
-///#endif
+#if DEBUG
+            Console.WriteLine("ScriptEngine: Script event function name: " + EventName);
+#endif
 
             if (Events.ContainsKey(EventName) == false)
             {
@@ -80,9 +80,9 @@ namespace OpenSim.Region.ScriptEngine.Common
             }
 
 //cfk 2-7-08 dont need this right now and the default Linux build has DEBUG defined
-///#if DEBUG
-///            Console.WriteLine("ScriptEngine: Executing function name: " + EventName);
-///#endif
+#if DEBUG
+            Console.WriteLine("ScriptEngine: Executing function name: " + EventName);
+#endif
             // Found
             ev.Invoke(m_Script, args);
 
