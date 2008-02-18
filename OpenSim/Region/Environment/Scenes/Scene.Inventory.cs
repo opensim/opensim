@@ -476,6 +476,51 @@ namespace OpenSim.Region.Environment.Scenes
             }
         }
 
+        private void RemoveInventoryItem(IClientAPI remoteClient, LLUUID itemID)
+        {
+            CachedUserInfo userInfo
+                = CommsManager.UserProfileCacheService.GetUserDetails(remoteClient.AgentId);
+            if (userInfo == null)
+            {
+                m_log.Error("[AGENTINVENTORY]: Failed to find user " + remoteClient.AgentId.ToString());
+                return;
+            }
+
+            // is going through the root folder really the best way? 
+            // this triggers a tree walk to find and remove the item. 8-(
+            // since this only happens in Trash (in theory) shouldn't we grab 
+            // the trash folder directly instead of RootFolder?
+            if (userInfo.RootFolder != null)
+            {
+                InventoryItemBase item = userInfo.RootFolder.HasItem(itemID);
+                if (item != null)
+                {
+                    userInfo.DeleteItem(remoteClient.AgentId, item);
+                }
+            }
+        }
+
+        private void RemoveInventoryFolder(IClientAPI remoteClient, LLUUID folderID)
+        {
+            CachedUserInfo userInfo
+                = CommsManager.UserProfileCacheService.GetUserDetails(remoteClient.AgentId);
+            if (userInfo == null)
+            {
+                m_log.Error("[AGENTINVENTORY]: Failed to find user " + remoteClient.AgentId.ToString());
+                return;
+            }
+
+            if (userInfo.RootFolder != null)
+            {
+                InventoryItemBase folder = userInfo.RootFolder.HasItem(folderID);
+                if (folder != null)
+                {
+                    // doesn't work just yet, commented out. WIll fix in next patch.
+                   // userInfo.DeleteItem(remoteClient.AgentId, folder);
+                }
+            }
+        }
+
         private SceneObjectGroup GetGroupByPrim(uint localID)
         {
             List<EntityBase> EntitieList = GetEntities();

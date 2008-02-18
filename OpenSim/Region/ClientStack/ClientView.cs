@@ -570,6 +570,8 @@ namespace OpenSim.Region.ClientStack
         public event UpdateInventoryItem OnUpdateInventoryItem;
         public event CopyInventoryItem OnCopyInventoryItem;
         public event MoveInventoryItem OnMoveInventoryItem;
+        public event RemoveInventoryItem OnRemoveInventoryItem;
+        public event RemoveInventoryFolder OnRemoveInventoryFolder;
         public event UDPAssetUploadRequest OnAssetUploadRequest;
         public event XferReceive OnXferReceive;
         public event RequestXfer OnRequestXfer;
@@ -3370,6 +3372,26 @@ namespace OpenSim.Region.ClientStack
                             {
                                 OnMoveInventoryItem(this, datablock.FolderID, datablock.ItemID, datablock.Length,
                                                     Util.FieldToString(datablock.NewName));
+                            }
+                        }
+                        break;
+                    case PacketType.RemoveInventoryItem:
+                        RemoveInventoryItemPacket removeItem = (RemoveInventoryItemPacket)Pack;
+                        if (OnRemoveInventoryItem != null)
+                        {
+                            foreach (RemoveInventoryItemPacket.InventoryDataBlock datablock in removeItem.InventoryData)
+                            {
+                                OnRemoveInventoryItem(this, datablock.ItemID);
+                            }
+                        }
+                        break;
+                    case PacketType.RemoveInventoryFolder:
+                        RemoveInventoryFolderPacket removeFolder = (RemoveInventoryFolderPacket)Pack;
+                        if (OnRemoveInventoryFolder != null)
+                        {
+                            foreach (RemoveInventoryFolderPacket.FolderDataBlock datablock in removeFolder.FolderData)
+                            {
+                                OnRemoveInventoryFolder(this, datablock.FolderID);
                             }
                         }
                         break;

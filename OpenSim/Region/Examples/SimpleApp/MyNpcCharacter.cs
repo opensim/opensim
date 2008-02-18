@@ -112,6 +112,8 @@ namespace SimpleApp
         public event CreateInventoryFolder OnCreateNewInventoryFolder;
         public event UpdateInventoryFolder OnUpdateInventoryFolder;
         public event MoveInventoryFolder OnMoveInventoryFolder;
+        public event RemoveInventoryFolder OnRemoveInventoryFolder;
+        public event RemoveInventoryItem OnRemoveInventoryItem;
         public event FetchInventoryDescendents OnFetchInventoryDescendents;
         public event PurgeInventoryDescendents OnPurgeInventoryDescendents;
         public event FetchInventory OnFetchInventory;
