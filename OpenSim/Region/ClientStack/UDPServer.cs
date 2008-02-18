@@ -311,9 +311,12 @@ namespace OpenSim.Region.ClientStack
         private void CloseEndPoint(EndPoint sender)
         {
             uint circuit;
-            if (clientCircuits.TryGetValue(sender, out circuit))
+            lock (clientCircuits)
             {
-                m_packetServer.CloseCircuit(circuit);
+                if (clientCircuits.TryGetValue(sender, out circuit))
+                {
+                    m_packetServer.CloseCircuit(circuit);
+                }
             }
         }
 
@@ -322,12 +325,17 @@ namespace OpenSim.Region.ClientStack
             UseCircuitCodePacket useCircuit = (UseCircuitCodePacket) packet;
             lock (clientCircuits)
             {
-                clientCircuits.Add(epSender, useCircuit.CircuitCode.Code);
+                if (!clientCircuits.ContainsKey(epSender))
+                    clientCircuits.Add(epSender, useCircuit.CircuitCode.Code);
+                else
+                    m_log.Error("[UDPSERVER]: clientCircuits already contans entry for user " + useCircuit.CircuitCode.Code.ToString() + ". NOT adding.");
             }
             lock (clientCircuits_reverse)
             {
                 if (!clientCircuits_reverse.ContainsKey(useCircuit.CircuitCode.Code))
-                clientCircuits_reverse.Add(useCircuit.CircuitCode.Code, epSender);
+                    clientCircuits_reverse.Add(useCircuit.CircuitCode.Code, epSender);
+                else
+                    m_log.Error("[UDPSERVER]: clientCurcuits_reverse already contains entry for user " + useCircuit.CircuitCode.Code.ToString() + ". NOT adding.");
             }
 
             PacketServer.AddNewClient(epSender, useCircuit, m_assetCache, m_authenticateSessionsClass);
@@ -380,22 +388,28 @@ namespace OpenSim.Region.ClientStack
         {
             // find the endpoint for this circuit
             EndPoint sendto = null;
-            if (clientCircuits_reverse.TryGetValue(circuitcode, out sendto))
+            lock (clientCircuits_reverse)
             {
-                //we found the endpoint so send the packet to it
-                Server.SendTo(buffer, size, flags, sendto);
+                if (clientCircuits_reverse.TryGetValue(circuitcode, out sendto))
+                {
+                    //we found the endpoint so send the packet to it
+                    Server.SendTo(buffer, size, flags, sendto);
+                }
             }
         }
 
         public virtual void RemoveClientCircuit(uint circuitcode)
         {
             EndPoint sendto = null;
-            if (clientCircuits_reverse.TryGetValue(circuitcode, out sendto))
+            lock (clientCircuits_reverse)
             {
-                clientCircuits.Remove(sendto);
+                if (clientCircuits_reverse.TryGetValue(circuitcode, out sendto))
+                {
+                    clientCircuits.Remove(sendto);
 
 
-                clientCircuits_reverse.Remove(circuitcode);
+                    clientCircuits_reverse.Remove(circuitcode);
+                }
             }
         }
     }

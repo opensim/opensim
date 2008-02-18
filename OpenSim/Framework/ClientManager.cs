@@ -72,20 +72,28 @@ namespace OpenSim.Framework
         public void Remove(uint id)
         {
             //m_log.InfoFormat("[CLIENT]: Removing client with code {0}, current count {1}", id, m_clients.Count);            
-            m_clients.Remove(id);
+            lock (m_clients)
+            {
+                m_clients.Remove(id);
+            }
             m_log.InfoFormat("[CLIENT]: Removed client with code {0}, new client count {1}", id, m_clients.Count);
         }
 
         public void Add(uint id, IClientAPI client)
         {
-            m_clients.Add(id, client);
+            lock (m_clients)
+            {
+                m_clients.Add(id, client);
+            }
         }
 
         public void InPacket(uint circuitCode, Packet packet)
         {
             IClientAPI client;
-
-            if (m_clients.TryGetValue(circuitCode, out client))
+            bool tryGetRet = false;
+            lock (m_clients)
+                tryGetRet = m_clients.TryGetValue(circuitCode, out client);
+            if(tryGetRet)
             {
                 client.InPacket(packet);
             }
@@ -94,8 +102,10 @@ namespace OpenSim.Framework
         public void CloseAllAgents(uint circuitCode)
         {
             IClientAPI client;
-
-            if (m_clients.TryGetValue(circuitCode, out client))
+            bool tryGetRet = false;
+            lock (m_clients)
+                tryGetRet = m_clients.TryGetValue(circuitCode, out client);
+            if (tryGetRet) 
             {
                 CloseAllCircuits(client.AgentId);
             }
@@ -111,8 +121,10 @@ namespace OpenSim.Framework
                 IClientAPI client;
                 try
                 {
-
-                    if (m_clients.TryGetValue(circuits[i], out client))
+                    bool tryGetRet = false;
+                    lock (m_clients)
+                        tryGetRet = m_clients.TryGetValue(circuits[i], out client);
+                    if(tryGetRet)
                     {
                         Remove(client.CircuitCode);
                         client.Close(false);
@@ -176,7 +188,10 @@ namespace OpenSim.Framework
 
         public bool TryGetClient(uint circuitId, out IClientAPI user)
         {
-            return m_clients.TryGetValue(circuitId, out user);
+            lock (m_clients)
+            {
+                return m_clients.TryGetValue(circuitId, out user);
+            }
         }
     }
 }
