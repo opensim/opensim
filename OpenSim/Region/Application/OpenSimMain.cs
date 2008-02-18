@@ -342,10 +342,7 @@ namespace OpenSim
                 // Provides the LLSD login
                 m_httpServer.SetLLSDHandler(m_loginService.LLSDLoginMethod);
 
-                if (m_standaloneAuthenticate)
-                {
-                    CreateAccount = localComms.doCreate;
-                }
+                CreateAccount = localComms.doCreate;
             }
             else
             {
@@ -706,7 +703,7 @@ namespace OpenSim
                     m_console.Notice("  alert general [Message] - send an alert to all users.");
                     m_console.Notice("backup - trigger a simulator backup");
                     m_console.Notice("clear-assets - clear asset cache");
-                    m_console.Notice("create user - adds a new user");
+                    m_console.Notice("create user - adds a new user.");
                     m_console.Notice("change-region [name] - sets the region that many of these commands affect.");
                     m_console.Notice("command-script [filename] - Execute command in a file.");
                     m_console.Notice("debug - debugging commands");
@@ -838,10 +835,7 @@ namespace OpenSim
                     break;
 
                 case "create":
-                    if (CreateAccount != null)
-                    {
-                        CreateAccount(cmdparams);
-                    }
+                    CreateAccount(cmdparams);
                     break;
 
                 case "create-region":
