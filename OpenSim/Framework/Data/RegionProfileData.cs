@@ -182,7 +182,15 @@ namespace OpenSim.Framework.Data
             return simData;
         }
 
-        public RegionProfileData RequestSimProfileData(ulong region_handle, string gridserver_url,
+        /// <summary>
+        /// Request sim profile information from a grid server
+        /// </summary>
+        /// <param name="region_handle"></param>
+        /// <param name="gridserver_url"></param>
+        /// <param name="gridserver_sendkey"></param>
+        /// <param name="gridserver_recvkey"></param>
+        /// <returns>The sim profile.  Null if there was a request failure</returns>
+        public static RegionProfileData RequestSimProfileData(ulong region_handle, string gridserver_url,
                                                        string gridserver_sendkey, string gridserver_recvkey)
         {
             Hashtable requestData = new Hashtable();

@@ -75,7 +75,7 @@ namespace OpenSim.Region.Communications.OGS1
         }
 
         /// <summary>
-        /// 
+        /// Contructor.  Adds "expect_user" and "check" xmlrpc method handlers
         /// </summary>
         /// <param name="servers_info"></param>
         /// <param name="httpServe"></param>

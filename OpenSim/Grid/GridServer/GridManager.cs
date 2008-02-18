@@ -503,6 +503,11 @@ namespace OpenSim.Grid.GridServer
 
         }
 
+        /// <summary>
+        /// Returns an XML RPC response to a simulator profile request
+        /// </summary>
+        /// <param name="request"></param>
+        /// <returns></returns>
         public XmlRpcResponse XmlRpcSimulatorDataRequestMethod(XmlRpcRequest request)
         {
             Hashtable requestData = (Hashtable) request.Params[0];

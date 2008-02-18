@@ -72,12 +72,13 @@ namespace OpenSim.Grid.UserServer
             bool tryDefault = false;
             //CFK: Since the try is always "tried", the "Home Location" message should always appear, so comment this one.
             //CFK: m_log.Info("[LOGIN]: Load information from the gridserver");
-            RegionProfileData SimInfo = new RegionProfileData();
+
             try
             {
-                SimInfo =
-                    SimInfo.RequestSimProfileData(theUser.currentAgent.currentHandle, m_config.GridServerURL,
-                                                  m_config.GridSendKey, m_config.GridRecvKey);
+                RegionProfileData SimInfo =
+                    RegionProfileData.RequestSimProfileData(
+                        theUser.currentAgent.currentHandle, m_config.GridServerURL,
+                        m_config.GridSendKey, m_config.GridRecvKey);
 
                 // Customise the response
                 //CFK: This is redundant and the next message should always appear.
@@ -129,16 +130,18 @@ namespace OpenSim.Grid.UserServer
                 theUser.currentAgent.currentRegion = SimInfo.UUID;
                 theUser.currentAgent.currentHandle = SimInfo.regionHandle;
 
-                m_log.Info("[LOGIN]: " + SimInfo.regionName + " @ " + SimInfo.httpServerURI + "  " +
-                                                  SimInfo.regionLocX + "," + SimInfo.regionLocY);
+                m_log.Info("[LOGIN]: Sending expect user call to "
+                           + SimInfo.regionName + " @ " + SimInfo.httpServerURI + "  " +
+                           SimInfo.regionLocX + "," + SimInfo.regionLocY);
 
-                XmlRpcRequest GridReq = new XmlRpcRequest("expect_user", SendParams);
+                XmlRpcRequest GridReq = new XmlRpcRequest("expect_user", SendParams);                
                 XmlRpcResponse GridResp = GridReq.Send(SimInfo.httpServerURI, 6000);
             }
             catch (Exception)
             {
                 tryDefault = true;
             }
+            
             if (tryDefault)
             {
                 // Send him to default region instead
@@ -149,12 +152,11 @@ namespace OpenSim.Grid.UserServer
                 m_log.Warn(
                     "[LOGIN]: Home region not available: sending to default " + defaultHandle.ToString());
 
-                SimInfo = new RegionProfileData();
                 try
                 {
-                    SimInfo =
-                        SimInfo.RequestSimProfileData(defaultHandle, m_config.GridServerURL,
-                                                      m_config.GridSendKey, m_config.GridRecvKey);
+                    RegionProfileData SimInfo = RegionProfileData.RequestSimProfileData(
+                        defaultHandle, m_config.GridServerURL,
+                        m_config.GridSendKey, m_config.GridRecvKey);
 
                     // Customise the response
                     m_log.Info("[LOGIN]: Home Location");
