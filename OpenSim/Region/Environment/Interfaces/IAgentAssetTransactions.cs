@@ -1,4 +1,4 @@
-/*
+﻿/*
 * Copyright (c) Contributors, http://opensimulator.org/
 * See CONTRIBUTORS.TXT for a full list of copyright holders.
 *
@@ -31,7 +31,7 @@ using OpenSim.Framework;
 
 namespace OpenSim.Region.Environment.Interfaces
 {
-    public interface IAgentAssetTransactions : IRegionModule
+    public interface IAgentAssetTransactions
     {
         void HandleItemUpdateFromTransaction(IClientAPI remoteClient, LLUUID transactionID,
                                              InventoryItemBase item);
