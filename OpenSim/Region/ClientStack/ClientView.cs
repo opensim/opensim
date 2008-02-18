@@ -2584,7 +2584,7 @@ namespace OpenSim.Region.ClientStack
                 {
                     if ((now - packet.TickCount > RESEND_TIMEOUT) && (!packet.Header.Resent))
                     {
-                        m_log.Info("[NETWORK]: Resending " + packet.Type.ToString() + " packet, " +
+                        m_log.Debug("[NETWORK]: Resending " + packet.Type.ToString() + " packet, " +
                                                             (now - packet.TickCount) + "ms have passed");
 
                         packet.Header.Resent = true;
