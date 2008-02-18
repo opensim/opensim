@@ -559,6 +559,7 @@ namespace OpenSim.Framework.Servers
             catch (Exception e)
             {
                 m_log.Warn("[HTTPD]: Error - " + e.Message);
+                m_log.Warn("Tip: Do you have permission to listen on port " + m_port + "?");
             }
         }
 

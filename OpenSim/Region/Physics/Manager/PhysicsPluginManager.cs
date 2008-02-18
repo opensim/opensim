@@ -106,6 +106,14 @@ namespace OpenSim.Region.Physics.Manager
 
         private void AddPlugin(string FileName)
         {
+            // TODO / NOTE
+            // The assembly named 'OpenSim.Region.Physics.BasicPhysicsPlugin' was loaded from 
+            // 'file:///C:/OpenSim/trunk2/bin/Physics/OpenSim.Region.Physics.BasicPhysicsPlugin.dll'
+            // using the LoadFrom context. The use of this context can result in unexpected behavior
+            // for serialization, casting and dependency resolution. In almost all cases, it is recommended 
+            // that the LoadFrom context be avoided. This can be done by installing assemblies in the 
+            // Global Assembly Cache or in the ApplicationBase directory and using Assembly.
+            // Load when explicitly loading assemblies.
             Assembly pluginAssembly = Assembly.LoadFrom(FileName);
 
             foreach (Type pluginType in pluginAssembly.GetTypes())

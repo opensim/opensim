@@ -421,8 +421,8 @@ namespace OpenSim.Framework.Data.MySQL
         public void StoreLandObject(Land parcel, LLUUID regionUUID)
         {
             // Does the new locking fix it?
-            m_log.Info("[DATASTORE]: Tedds temp fix: Waiting 3 seconds for stuff to catch up. (Someone please fix! :))");
-            System.Threading.Thread.Sleep(2500 + rnd.Next(300, 900));
+            m_log.Info("[DATASTORE]: Tedds temp fix: Waiting 3 seconds to avoid others writing to table while we hold a dataset of it. (Someone please fix! :))");
+            System.Threading.Thread.Sleep(2500 + rnd.Next(0, 1000));
             
             lock (m_dataSet)
             {

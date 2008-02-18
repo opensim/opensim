@@ -56,7 +56,7 @@ namespace OpenSim.ApplicationPlugins.LoadRegions
         {
             try
             {
-                if (openSim.ConfigSource.Configs["RemoteAdmin"].GetBoolean("enabled", false))
+                if (openSim.ConfigSource.Configs["RemoteAdmin"] != null && openSim.ConfigSource.Configs["RemoteAdmin"].GetBoolean("enabled", false))
                 {
                     m_log.Info("[RADMIN]: Remote Admin Plugin Enabled");
                     requiredPassword = openSim.ConfigSource.Configs["RemoteAdmin"].GetString("access_password", String.Empty);

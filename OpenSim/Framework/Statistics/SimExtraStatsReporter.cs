@@ -50,8 +50,12 @@ namespace OpenSim.Framework.Statistics
         
         public void AddTexture(AssetBase image)
         {
-            texturesInCache++;
-            textureCacheMemoryUsage += image.Data.Length;
+            // Tedd: I added null check to avoid exception. Don't know if texturesInCache should ++ anyway?
+            if (image.Data != null)
+            {
+                texturesInCache++;
+                textureCacheMemoryUsage += image.Data.Length;
+            }
         }        
 
         /// <summary>
