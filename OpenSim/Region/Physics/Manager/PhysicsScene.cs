@@ -60,7 +60,7 @@ namespace OpenSim.Region.Physics.Manager
 
         public abstract void Initialise(IMesher meshmerizer);
 
-        public abstract PhysicsActor AddAvatar(string avName, PhysicsVector position);
+        public abstract PhysicsActor AddAvatar(string avName, PhysicsVector position, PhysicsVector size);
 
         public abstract void RemoveAvatar(PhysicsActor actor);
 
@@ -95,7 +95,7 @@ namespace OpenSim.Region.Physics.Manager
                 // Does nothing right now
             }
 
-            public override PhysicsActor AddAvatar(string avName, PhysicsVector position)
+            public override PhysicsActor AddAvatar(string avName, PhysicsVector position, PhysicsVector size)
             {
                 m_log.InfoFormat("[PHYSICS]: NullPhysicsScene : AddAvatar({0})", position);
                 return PhysicsActor.Null;

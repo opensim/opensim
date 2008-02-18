@@ -702,13 +702,13 @@ namespace OpenSim.Region.Physics.OdePlugin
             }
         }
 
-        public override PhysicsActor AddAvatar(string avName, PhysicsVector position)
+        public override PhysicsActor AddAvatar(string avName, PhysicsVector position, PhysicsVector size)
         {
             PhysicsVector pos = new PhysicsVector();
             pos.X = position.X;
             pos.Y = position.Y;
             pos.Z = position.Z;
-            OdeCharacter newAv = new OdeCharacter(avName, this, pos, ode);
+            OdeCharacter newAv = new OdeCharacter(avName, this, pos, ode, size);
             _characters.Add(newAv);
             return newAv;
         }

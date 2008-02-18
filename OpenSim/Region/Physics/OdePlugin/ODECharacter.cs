@@ -104,7 +104,7 @@ namespace OpenSim.Region.Physics.OdePlugin
         public d.Mass ShellMass;
         public bool collidelock = false;
 
-        public OdeCharacter(String avName, OdeScene parent_scene, PhysicsVector pos, CollisionLocker dode)
+        public OdeCharacter(String avName, OdeScene parent_scene, PhysicsVector pos, CollisionLocker dode, PhysicsVector size)
         {
             ode = dode;
             _velocity = new PhysicsVector();
@@ -131,6 +131,7 @@ namespace OpenSim.Region.Physics.OdePlugin
             {
                 m_colliderarr[i] = false;
             }
+            CAPSULE_LENGTH = (size.Z - ((size.Z * 0.52f))); 
 
             lock (OdeScene.OdeLock)
             {

@@ -413,7 +413,7 @@ namespace OpenSim.Region.Physics.BulletXPlugin
         {
 
         }
-        public override PhysicsActor AddAvatar(string avName, PhysicsVector position)
+        public override PhysicsActor AddAvatar(string avName, PhysicsVector position, PhysicsVector size)
         {
             PhysicsVector pos = new PhysicsVector();
             pos.X = position.X;
