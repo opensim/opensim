@@ -281,7 +281,7 @@ namespace OpenSim.Region.Environment.LandManagement
 
         public Land getLandObject(int x, int y)
         {
-            if (x >= Constants.RegionSize || y >= Constants.RegionSize || x < 0 || y < 0)
+            if (x >= (int)Constants.RegionSize || y >= (int)Constants.RegionSize || x < 0 || y < 0)
             {
                 // These exceptions here will cause a lot of complaints from the users specifically because
                 // they happen every time at border crossings
