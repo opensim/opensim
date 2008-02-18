@@ -131,11 +131,27 @@ namespace OpenSim.Framework.Communications
                         regY = Convert.ToUInt32(cmmdParams[5]);
                     }
 
-                    AddUser(firstName, lastName, password, regX, regY);
+                    if (null == m_userService.GetUserProfile(firstName, lastName))
+                    {
+                        AddUser(firstName, lastName, password, regX, regY);
+                    }
+                    else
+                    {
+                        m_log.ErrorFormat("[USERS]: A user with the name {0} {1} already exists!", firstName, lastName);
+                    }
                     break;
             }
         }
 
+        /// <summary>
+        /// Persistently adds a user to OpenSim.
+        /// </summary>
+        /// <param name="firstName"></param>
+        /// <param name="lastName"></param>
+        /// <param name="password"></param>
+        /// <param name="regX"></param>
+        /// <param name="regY"></param>
+        /// <returns>The UUID of the added user.  Returns null if the add was unsuccessful</returns>
         public LLUUID AddUser(string firstName, string lastName, string password, uint regX, uint regY)
         {
             string md5PasswdHash = Util.Md5Hash(Util.Md5Hash(password) + ":" + String.Empty);
@@ -149,7 +165,7 @@ namespace OpenSim.Framework.Communications
             else
             {
                 m_inventoryService.CreateNewUserInventory(userProf.UUID);
-                System.Console.WriteLine("Created new inventory set for " + firstName + " " + lastName);
+                System.Console.WriteLine("[USERS]: Created new inventory set for " + firstName + " " + lastName);
                 return userProf.UUID;
             }
         }

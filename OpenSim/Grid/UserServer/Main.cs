@@ -148,6 +148,12 @@ namespace OpenSim.Grid.UserServer
                     regX = Convert.ToUInt32(m_console.CmdPrompt("Start Region X"));
                     regY = Convert.ToUInt32(m_console.CmdPrompt("Start Region Y"));
 
+                    if (null != m_userManager.GetUserProfile(tempfirstname, templastname))
+                    {
+                        m_log.ErrorFormat("[USERS]: A user with the name {0} {1} already exists!", tempfirstname, templastname);
+                        break;
+                    }
+                    
                     tempMD5Passwd = Util.Md5Hash(Util.Md5Hash(tempMD5Passwd) + ":" + String.Empty);
 
                     LLUUID userID = new LLUUID();
@@ -157,7 +163,7 @@ namespace OpenSim.Grid.UserServer
                             m_userManager.AddUserProfile(tempfirstname, templastname, tempMD5Passwd, regX, regY);
                     } catch (Exception ex)
                     {
-                        m_log.ErrorFormat("[SERVER]: Error creating user: {0}", ex.ToString());
+                        m_log.ErrorFormat("[USERS]: Error creating user: {0}", ex.ToString());
                     }
 
                     try
@@ -167,7 +173,7 @@ namespace OpenSim.Grid.UserServer
                     }
                     catch (Exception ex)
                     {
-                        m_log.ErrorFormat("[SERVER]: Error creating inventory for user: {0}", ex.ToString());
+                        m_log.ErrorFormat("[USERS]: Error creating inventory for user: {0}", ex.ToString());
                     }
                     m_lastCreatedUser = userID;
                     break;
@@ -204,13 +210,12 @@ namespace OpenSim.Grid.UserServer
                     //  RestObjectPosterResponse<List<InventoryFolderBase>> requester = new RestObjectPosterResponse<List<InventoryFolderBase>>();
                     // requester.ReturnResponseVal = TestResponse;
                     // requester.BeginPostObject<LLUUID>(m_userManager._config.InventoryUrl + "RootFolders/", m_lastCreatedUser);
-                    List<InventoryFolderBase> folders =
-                        SynchronousRestObjectPoster.BeginPostObject<LLUUID, List<InventoryFolderBase>>("POST",
-                                                                                                       m_userManager.
-                                                                                                           _config.
-                                                                                                           InventoryUrl +
-                                                                                                       "RootFolders/",
-                                                                                                       m_lastCreatedUser);
+                    SynchronousRestObjectPoster.BeginPostObject<LLUUID, List<InventoryFolderBase>>("POST",
+                                                                                                   m_userManager.
+                                                                                                       _config.
+                                                                                                       InventoryUrl +
+                                                                                                   "RootFolders/",
+                                                                                                   m_lastCreatedUser);
                     break;
             }
         }

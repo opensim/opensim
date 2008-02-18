@@ -32,9 +32,23 @@ namespace OpenSim.Framework
 {
     public interface IUserService
     {
+        /// <summary>
+        /// Loads a user profile by name
+        /// </summary>
+        /// <param name="fname">First name</param>
+        /// <param name="lname">Last name</param>
+        /// <returns>A user profile.  Returns null if no profile is found</returns>        
         UserProfileData GetUserProfile(string firstName, string lastName);
+        
         //UserProfileData GetUserProfile(string name);
+        
+        /// <summary>
+        /// Loads a user profile from a database by UUID
+        /// </summary>
+        /// <param name="uuid">The target UUID</param>
+        /// <returns>A user profile.  Returns null if no user profile is found.</returns>        
         UserProfileData GetUserProfile(LLUUID userId);
+        
         void clearUserAgent(LLUUID avatarID);
         List<AvatarPickerAvatar> GenerateAgentPickerRequestResponse(LLUUID QueryID, string Query);
 

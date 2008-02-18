@@ -86,11 +86,24 @@ namespace OpenSim.Framework.UserManagement
 
         #region Get UserProfile 
 
-        /// <summary>
-        /// Loads a user profile from a database by UUID
-        /// </summary>
-        /// <param name="uuid">The target UUID</param>
-        /// <returns>A user profile.  Returns null if no user profile is found.</returns>
+        // see IUserService
+        public UserProfileData GetUserProfile(string fname, string lname)
+        {
+            foreach (KeyValuePair<string, IUserData> plugin in _plugins)
+            {
+                UserProfileData profile = plugin.Value.GetUserByName(fname, lname);
+
+                if (profile != null)
+                {
+                    profile.currentAgent = getUserAgent(profile.UUID);
+                    return profile;
+                }
+            }
+
+            return null;
+        }
+        
+        // see IUserService        
         public UserProfileData GetUserProfile(LLUUID uuid)
         {
             foreach (KeyValuePair<string, IUserData> plugin in _plugins)
@@ -123,28 +136,6 @@ namespace OpenSim.Framework.UserManagement
                 }
             }
             return pickerlist;
-        }
-
-        /// <summary>
-        /// Loads a user profile by name
-        /// </summary>
-        /// <param name="fname">First name</param>
-        /// <param name="lname">Last name</param>
-        /// <returns>A user profile.  Returns null if no profile is found</returns>
-        public UserProfileData GetUserProfile(string fname, string lname)
-        {
-            foreach (KeyValuePair<string, IUserData> plugin in _plugins)
-            {
-                UserProfileData profile = plugin.Value.GetUserByName(fname, lname);
-
-                if (profile != null)
-                {
-                    profile.currentAgent = getUserAgent(profile.UUID);
-                    return profile;
-                }
-            }
-
-            return null;
         }
 
         /// <summary>

@@ -295,15 +295,15 @@ namespace OpenSim.Framework.Console
         }
 
         // Displays a prompt and waits for the user to enter a string, then returns that string
-        // Done with no echo and suitable for passwords
+        // (Done with no echo and suitable for passwords - currently disabled)
         public string PasswdPrompt(string prompt)
         {
             // FIXME: Needs to be better abstracted
             System.Console.WriteLine(String.Format("{0}: ", prompt));
-            ConsoleColor oldfg = System.Console.ForegroundColor;
-            System.Console.ForegroundColor = System.Console.BackgroundColor;
+            //ConsoleColor oldfg = System.Console.ForegroundColor;
+            //System.Console.ForegroundColor = System.Console.BackgroundColor;
             string temp = System.Console.ReadLine();
-            System.Console.ForegroundColor = oldfg;
+            //System.Console.ForegroundColor = oldfg;
             return temp;
         }
 
