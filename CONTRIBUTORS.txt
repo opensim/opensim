@@ -39,6 +39,10 @@ Patches
 * mikkopa/_someone - RealXtend
 * openlifegrid.com
 * Dr Scofield (International Business Machines Corp.)
+* Daedius
+* alex_carnell
+* webmage (International Business Machines Corp.)
+* jimbo2120 (International Business Machines Corp.)
 
 
 LSL Devs
