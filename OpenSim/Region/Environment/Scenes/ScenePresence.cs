@@ -750,7 +750,14 @@ namespace OpenSim.Region.Environment.Scenes
                         if ((flags & (uint) DCF) != 0)
                         {
                             DCFlagKeyPressed = true;
-                            agent_control_v3 += Dir_Vectors[i];
+                            try
+                            {
+                                agent_control_v3 += Dir_Vectors[i];
+                            }
+                            catch (IndexOutOfRangeException)
+                            {
+                                // Why did I get this?
+                            }
                             if ((m_movementflag & (uint) DCF) == 0)
                             {
                                 m_movementflag += (byte) (uint) DCF;

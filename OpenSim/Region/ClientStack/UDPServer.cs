@@ -224,39 +224,6 @@ namespace OpenSim.Region.ClientStack
                 m_log.Debug("[UDPSERVER]: " + e.ToString());
             }
 
-            if (packet != null)
-            {
-                // do we already have a circuit for this endpoint
-                uint circuit;
-                if (clientCircuits.TryGetValue(epSender, out circuit))
-                {
-                    //if so then send packet to the packetserver
-                    //m_log.Warn("[UDPSERVER]: ALREADY HAVE Circuit!");
-                    m_packetServer.InPacket(circuit, packet);
-                }
-                else if (packet.Type == PacketType.UseCircuitCode)
-                {
-                    // new client
-                    m_log.Debug("[UDPSERVER]: Adding New Client");
-                    try
-                    {
-                        AddNewClient(packet);
-                    }
-                    catch (Exception e3)
-                    {
-                        m_log.Error("[UDPSERVER]: Adding New Client threw exception " + e3.ToString());
-                        Server.BeginReceiveFrom(RecvBuffer, 0, RecvBuffer.Length, SocketFlags.None, ref epSender,
-                                                    ReceivedData, null);
-                    }
-                }
-                else
-                {
-                    // invalid client
-                    //CFK: This message seems to have served its usefullness as of 12-15 so I am commenting it out for now
-                    //m_log.Warn("[UDPSERVER]: Got a packet from an invalid client - " + packet.ToString());
-
-                }
-            }
             try
             {
                 Server.BeginReceiveFrom(RecvBuffer, 0, RecvBuffer.Length, SocketFlags.None, ref epSender, ReceivedData, null);
@@ -289,6 +256,56 @@ namespace OpenSim.Region.ClientStack
                 }
 
             }
+
+            if (packet != null)
+            {
+                try
+                {
+                    // do we already have a circuit for this endpoint
+                    uint circuit;
+
+                    bool ret = false;
+                    lock (clientCircuits)
+                    {
+                        ret = clientCircuits.TryGetValue(epSender, out circuit);
+                    }
+                    if (ret)
+                    {
+                        //if so then send packet to the packetserver
+                        //m_log.Warn("[UDPSERVER]: ALREADY HAVE Circuit!");
+                        m_packetServer.InPacket(circuit, packet);
+                    }
+                    else if (packet.Type == PacketType.UseCircuitCode)
+                    {
+                        // new client
+                        m_log.Debug("[UDPSERVER]: Adding New Client");
+                        AddNewClient(packet);
+                    }
+                    else
+                    {
+                        // invalid client
+                        //CFK: This message seems to have served its usefullness as of 12-15 so I am commenting it out for now
+                        //m_log.Warn("[UDPSERVER]: Got a packet from an invalid client - " + packet.ToString());
+
+                    }
+                }
+                catch (Exception ex)
+                {
+                    m_log.Error("[UDPSERVER]: Exception in processing packet.");
+                    m_log.Debug("[UDPSERVER]: Adding New Client");
+                    try
+                    {
+                        AddNewClient(packet);
+                    }
+                    catch (Exception e3)
+                    {
+                        m_log.Error("[UDPSERVER]: Adding New Client threw exception " + e3.ToString());
+                        Server.BeginReceiveFrom(RecvBuffer, 0, RecvBuffer.Length, SocketFlags.None, ref epSender,
+                                                    ReceivedData, null);
+                    }
+                }
+            }
+            
         }
 
         private void CloseEndPoint(EndPoint sender)
