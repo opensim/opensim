@@ -310,7 +310,15 @@ namespace OpenSim.Region.Environment.LandManagement
         {
             //First, lets loop through the points and make sure they are all in the same peice of land
             //Get the land object at start
-            Land startLandObject = getLandObject(start_x, start_y);
+            Land startLandObject = null;
+            try
+            {
+                startLandObject = getLandObject(start_x, start_y);
+            }
+            catch (Exception)
+            {
+                m_log.Error("[LAND]: " + "Unable to get land object for subdivision at x: " + start_x + " y:" + start_y);
+            }
             if (startLandObject == null) return false; //No such land object at the beginning
 
             //Loop through the points
@@ -386,7 +394,15 @@ namespace OpenSim.Region.Environment.LandManagement
             {
                 for (stepXSelected = start_x; stepXSelected <= end_x; stepXSelected += 4)
                 {
-                    Land p = getLandObject(stepXSelected, stepYSelected);
+                    Land p = null;
+                    try
+                    {
+                        p = getLandObject(stepXSelected, stepYSelected);
+                    }
+                    catch (Exception)
+                    {
+                        m_log.Error("[LAND]: " + "Unable to get land object for subdivision at x: " + stepXSelected + " y:" + stepYSelected);
+                    }
                     if (p != null)
                     {
                         if (!selectedLandObjects.Contains(p))
@@ -452,7 +468,18 @@ namespace OpenSim.Region.Environment.LandManagement
                 for (x = 0; x < 64; x++)
                 {
                     byte tempByte = (byte) 0; //This represents the byte for the current 4x4
-                    Land currentParcelBlock = getLandObject(x*4, y*4);
+                    Land currentParcelBlock = null;
+
+                    try
+                    {
+                        currentParcelBlock = getLandObject(x * 4, y * 4);
+                    }
+                    catch (Exception)
+                    {
+                        m_log.Warn("[LAND]: " + "unable to get land at x: " + (x * 4) + " y: " + (y * 4));
+                    }
+                        
+                    
                     if (currentParcelBlock != null)
                     {
                         if (currentParcelBlock.landData.ownerID == remote_client.AgentId)
@@ -545,7 +572,16 @@ namespace OpenSim.Region.Environment.LandManagement
             {
                 for (y = 0; y < inc_y; y++)
                 {
-                    Land currentParcel = getLandObject(start_x + x, start_y + y);
+                    
+                    Land currentParcel = null;
+                    try
+                    {
+                        getLandObject(start_x + x, start_y + y);
+                    }
+                    catch (Exception)
+                    {
+                        m_log.Warn("[LAND]: " + "unable to get land at x: " + (start_x + x) + " y: " + (start_y + y));
+                    }
                     if (currentParcel != null)
                     {
                         if (!temp.Contains(currentParcel))
@@ -699,6 +735,7 @@ namespace OpenSim.Region.Environment.LandManagement
             {
                 if (presence.UUID == avatar.AgentId)
                 {
+
                     List<Land> checkLandParcels = parcelsNearPoint(presence.AbsolutePosition);
                     foreach (Land checkBan in checkLandParcels)
                     {
@@ -720,8 +757,16 @@ namespace OpenSim.Region.Environment.LandManagement
 
         public void sendLandUpdate(ScenePresence avatar, bool force)
         {
-            Land over = getLandObject((int) Math.Min(255, Math.Max(0, Math.Round(avatar.AbsolutePosition.X))),
-                                      (int) Math.Min(255, Math.Max(0, Math.Round(avatar.AbsolutePosition.Y))));
+            Land over  = null;
+            try
+            {
+                over = getLandObject((int)Math.Min(255, Math.Max(0, Math.Round(avatar.AbsolutePosition.X))),
+                                          (int)Math.Min(255, Math.Max(0, Math.Round(avatar.AbsolutePosition.Y))));
+            }
+            catch (Exception)
+            {
+                m_log.Warn("[LAND]: " + "unable to get land at x: " + Math.Round(avatar.AbsolutePosition.X) + " y: " + Math.Round(avatar.AbsolutePosition.Y));
+            }
 
             if (over != null)
             {
