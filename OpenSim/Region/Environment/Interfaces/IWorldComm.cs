@@ -40,5 +40,6 @@ namespace OpenSim.Region.Environment.Interfaces
         ListenerInfo GetNextMessage();
         void ListenControl(int handle, int active);
         void ListenRemove(int handle);
+        void DeleteListener(LLUUID itemID);
     }
 }

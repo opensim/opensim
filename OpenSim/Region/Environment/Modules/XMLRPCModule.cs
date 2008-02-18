@@ -188,6 +188,24 @@ namespace OpenSim.Region.Environment.Modules
             return channel;
         }
 
+        public void DeleteChannel(LLUUID itemID)
+        {
+
+            foreach (RPCChannelInfo li in m_openChannels.Values)
+            {
+
+                if (li.GetItemID().Equals(itemID))
+                {
+
+                    m_openChannels.Remove(li.GetChannelID());
+                    return;
+
+                }
+
+            }
+
+        }
+
         /**********************************************
          * Remote Data Reply
          * 
@@ -408,5 +426,6 @@ namespace OpenSim.Region.Environment.Modules
         {
             return m_localID;
         }
+
     }
 }

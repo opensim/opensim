@@ -70,6 +70,7 @@ namespace OpenSim.Region.Environment.Modules
     {
         private Scene m_scene;
         private object CommListLock = new object();
+        private object ListLock = new object();
         private string m_name = "WorldCommModule";
         private ListenerManager m_listenerManager;
         private Queue<ListenerInfo> m_pending;
@@ -134,6 +135,15 @@ namespace OpenSim.Region.Environment.Modules
         public void ListenRemove(int handle)
         {
             m_listenerManager.Remove(handle);
+        }
+
+        public void DeleteListener(LLUUID itemID)
+        {
+            lock (ListLock)
+            {
+                m_listenerManager.DeleteListener(itemID);
+            }
+
         }
 
         // This method scans nearby objects and determines if they are listeners,
@@ -301,6 +311,18 @@ namespace OpenSim.Region.Environment.Modules
         public void Remove(int handle)
         {
             m_listeners.Remove(handle);
+        }
+
+        public void DeleteListener(LLUUID itemID)
+        {
+            foreach (ListenerInfo li in m_listeners.Values)
+            {
+                if (li.GetItemID().Equals(itemID))
+                {
+                    Remove(li.GetHandle());
+                    return;
+                }
+            }
         }
 
         private int GetNewHandle()

@@ -39,5 +39,6 @@ namespace OpenSim.Region.Environment.Interfaces
         RPCRequestInfo GetNextRequest();
         void RemoteDataReply(string channel, string message_id, string sdata, int idata);
         bool IsEnabled();
+        void DeleteChannel(LLUUID itemID);
     }
 }

@@ -120,6 +120,13 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
             IHttpRequests iHttpReq =
                 m_ScriptEngine.World.RequestModuleInterface<IHttpRequests>();
             iHttpReq.StopHttpRequest(localID, itemID);
+
+            IWorldComm comms = m_ScriptEngine.World.RequestModuleInterface<IWorldComm>();
+            comms.DeleteListener(itemID);
+
+            IXMLRPC xmlrpc = m_ScriptEngine.World.RequestModuleInterface<IXMLRPC>();
+            xmlrpc.DeleteChannel(itemID);
+
         }
 
         #region TIMER
