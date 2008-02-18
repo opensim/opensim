@@ -391,6 +391,7 @@ namespace OpenSim
             }
 
             // We are done with startup
+            PrintFileToConsole("startuplogo.txt");
             m_log.Info("[STARTUP]: Startup complete, serving " + m_udpServers.Count.ToString() + " region(s)");
         }
 
@@ -646,6 +647,20 @@ namespace OpenSim
                 m_log.Error("[COMMANDFILE]: Command script missing. Can not run commands");
             }
         }
+
+        private void PrintFileToConsole(string fileName)
+        {
+            if (File.Exists(fileName))
+            {
+                StreamReader readFile = File.OpenText(fileName);
+                string currentLine = String.Empty;
+                while ((currentLine = readFile.ReadLine()) != null)
+                {
+                    m_log.Info("[!]" + currentLine);
+                }
+            }
+        }
+
 
         /// <summary>
         /// Runs commands issued by the server console from the operator
