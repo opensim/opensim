@@ -74,7 +74,7 @@ namespace OpenSim.Region.Environment
             m_scene.EventManager.TriggerPermissionError(user, reason);
         }
 
-        public virtual bool IsAdministrator(LLUUID user)
+        protected virtual bool IsAdministrator(LLUUID user)
         {
             if (m_bypassPermissions)
             {
@@ -494,6 +494,11 @@ namespace OpenSim.Region.Environment
         {
             return IsAdministrator(user);
         }
+
+	public virtual bool CanRunConsoleCommand(LLUUID user)
+	{
+		return IsAdministrator(user);
+	}
 
         public virtual bool CanTerraform(LLUUID user, LLVector3 position)
         {

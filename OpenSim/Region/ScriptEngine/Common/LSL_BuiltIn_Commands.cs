@@ -3676,14 +3676,21 @@ namespace OpenSim.Region.ScriptEngine.Common
             return LLUUID.Zero.ToString();
         }
 
-	public int osConsoleCommand(string Command)
+	public bool osConsoleCommand(string Command)
 	{
-		if (World.PermissionsMngr.IsAdministrator(m_host.OwnerID)) {
-			OpenSim.Framework.Console.MainConsole.Instance.RunCommand(Command);
-			return 1;
-		} else {
-			return 0;
+		m_host.AddScriptLPS(1);
+		Nini.Config.IConfigSource config = new Nini.Config.IniConfigSource(Application.iniFilePath);
+		if (config.Configs["LL-Functions"] == null)
+	                config.AddConfig("LL-Functions");
+
+		if (config.Configs["LL-Functions"].GetBoolean("AllowosConsoleCommand", false)) {
+			if (World.PermissionsMngr.CanRunConsoleCommand(m_host.OwnerID)) {
+				OpenSim.Framework.Console.MainConsole.Instance.RunCommand(Command);
+				return true;
+			}
+			return false;
 		}
+		return false;
 	}
 
         private void NotImplemented(string Command)

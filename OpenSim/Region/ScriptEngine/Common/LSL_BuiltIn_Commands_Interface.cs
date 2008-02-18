@@ -641,6 +641,6 @@ namespace OpenSim.Region.ScriptEngine.Common
         int osTerrainSetHeight(int x, int y, double val);
         int osRegionRestart(double seconds);
         void osRegionNotice(string msg);
-	int osConsoleCommand(string Command);
+	bool osConsoleCommand(string Command);
     }
 }

@@ -259,3 +259,7 @@ CompileWithDebugInformation=true
 ; Remove old scripts on next startup
 CleanUpOldScriptsOnStartup=true
 
+[LL-Functions]
+; Set the following to true to allow administrator owned scripts to execute console commands
+AllowosConsoleCommand=false
+

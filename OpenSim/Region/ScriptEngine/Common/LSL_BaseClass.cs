@@ -1865,7 +1865,7 @@ namespace OpenSim.Region.ScriptEngine.Common
             m_LSL_Functions.osRegionNotice(msg);
         }
 
-	public int osConsoleCommand(string Command)
+	public bool osConsoleCommand(string Command)
 	{
 	    return m_LSL_Functions.osConsoleCommand(Command);
 	}
