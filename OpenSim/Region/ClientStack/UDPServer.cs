@@ -111,7 +111,7 @@ namespace OpenSim.Region.ClientStack
             epSender = (EndPoint) ipeSender;
             Packet packet = null;
 
-            int numBytes;
+            int numBytes = 1;
 
             try
             {
@@ -173,8 +173,9 @@ namespace OpenSim.Region.ClientStack
                             // Stupid I know..  
                             // but Flusing the buffer would be even more stupid...  so, we're stuck with this ugly method.
                         }
-                        catch (SocketException)
+                        catch (SocketException e2)
                         {
+                            m_log.Error("[UDPSERVER]: " + e2.ToString());
                         }
 
                         // Here's some reference code!   :D  
@@ -187,12 +188,28 @@ namespace OpenSim.Region.ClientStack
                         break;
                 }
 
-                return;
+                //return;
             }
             catch (ObjectDisposedException e)
             {
                 m_log.Debug("[UDPSERVER]: " + e.ToString());
-                return;
+                try
+                {
+                    Server.BeginReceiveFrom(RecvBuffer, 0, RecvBuffer.Length, SocketFlags.None, ref epSender,
+                                            ReceivedData, null);
+
+                    // Ter: For some stupid reason ConnectionReset basically kills our async event structure..  
+                    // so therefore..  we've got to tell the server to BeginReceiveFrom again.
+                    // This will happen over and over until we've gone through all packets 
+                    // sent to and from this particular user.
+                    // Stupid I know..  
+                    // but Flusing the buffer would be even more stupid...  so, we're stuck with this ugly method.
+                }
+                catch (SocketException e2)
+                {
+                    m_log.Error("[UDPSERVER]: " + e2.ToString());
+                }
+                //return;
             }
 
             int packetEnd = numBytes - 1;
@@ -221,7 +238,16 @@ namespace OpenSim.Region.ClientStack
                 {
                     // new client
                     m_log.Debug("[UDPSERVER]: Adding New Client");
-                    AddNewClient(packet);
+                    try
+                    {
+                        AddNewClient(packet);
+                    }
+                    catch (Exception e3)
+                    {
+                        m_log.Error("[UDPSERVER]: Adding New Client threw exception " + e3.ToString());
+                        Server.BeginReceiveFrom(RecvBuffer, 0, RecvBuffer.Length, SocketFlags.None, ref epSender,
+                                                    ReceivedData, null);
+                    }
                 }
                 else
                 {
@@ -231,8 +257,38 @@ namespace OpenSim.Region.ClientStack
 
                 }
             }
+            try
+            {
+                Server.BeginReceiveFrom(RecvBuffer, 0, RecvBuffer.Length, SocketFlags.None, ref epSender, ReceivedData, null);
+            }
+            catch (SocketException e4)
+            {
+                try
+                {
+                    CloseEndPoint(epSender);
+                }
+                catch (Exception a)
+                {
+                    m_log.Info("[UDPSERVER]: " + a.ToString());
+                }
+                try
+                {
+                    Server.BeginReceiveFrom(RecvBuffer, 0, RecvBuffer.Length, SocketFlags.None, ref epSender,
+                                            ReceivedData, null);
 
-            Server.BeginReceiveFrom(RecvBuffer, 0, RecvBuffer.Length, SocketFlags.None, ref epSender, ReceivedData, null);
+                    // Ter: For some stupid reason ConnectionReset basically kills our async event structure..  
+                    // so therefore..  we've got to tell the server to BeginReceiveFrom again.
+                    // This will happen over and over until we've gone through all packets 
+                    // sent to and from this particular user.
+                    // Stupid I know..  
+                    // but Flusing the buffer would be even more stupid...  so, we're stuck with this ugly method.
+                }
+                catch (SocketException e5)
+                {
+                    m_log.Error("[UDPSERVER]: " + e5.ToString());
+                }
+
+            }
         }
 
         private void CloseEndPoint(EndPoint sender)
@@ -247,8 +303,15 @@ namespace OpenSim.Region.ClientStack
         protected virtual void AddNewClient(Packet packet)
         {
             UseCircuitCodePacket useCircuit = (UseCircuitCodePacket) packet;
-            clientCircuits.Add(epSender, useCircuit.CircuitCode.Code);
-            clientCircuits_reverse.Add(useCircuit.CircuitCode.Code, epSender);
+            lock (clientCircuits)
+            {
+                clientCircuits.Add(epSender, useCircuit.CircuitCode.Code);
+            }
+            lock (clientCircuits_reverse)
+            {
+                if (!clientCircuits_reverse.ContainsKey(useCircuit.CircuitCode.Code))
+                clientCircuits_reverse.Add(useCircuit.CircuitCode.Code, epSender);
+            }
 
             PacketServer.AddNewClient(epSender, useCircuit, m_assetCache, m_authenticateSessionsClass);
         }

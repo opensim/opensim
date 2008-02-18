@@ -476,6 +476,7 @@ namespace OpenSim.Region.ClientStack
             {
                 //session/circuit not authorised
                 m_log.Info("[CLIENT]: New user request denied to " + m_userEndPoint.ToString());
+                m_packetQueue.Flush();
                 m_packetQueue.Close();
                 m_clientThread.Abort();
             }
