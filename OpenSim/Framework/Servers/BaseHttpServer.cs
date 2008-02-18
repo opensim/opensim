@@ -230,6 +230,13 @@ namespace OpenSim.Framework.Servers
                 return true;
             }
         }
+        
+        /// <summary>
+        /// Try all the registered xmlrpc handlers when an xmlrpc request is received.
+        /// Sends back an XMLRPC unknown request response if no handler is registered for the requested method.
+        /// </summary>
+        /// <param name="request"></param>
+        /// <param name="response"></param>
         private void HandleXmlRpcRequests(HttpListenerRequest request, HttpListenerResponse response)
         {
             Stream requestStream = request.InputStream;
@@ -268,12 +275,8 @@ namespace OpenSim.Framework.Servers
                     else
                     {
                         xmlRpcResponse = new XmlRpcResponse();
-                        Hashtable unknownMethodError = new Hashtable();
-                        unknownMethodError["reason"] = "XmlRequest";
-                        ;
-                        unknownMethodError["message"] = "Unknown Rpc Request [" + methodName + "]";
-                        unknownMethodError["login"] = "false";
-                        xmlRpcResponse.Value = unknownMethodError;
+                        // Code set in accordance with http://xmlrpc-epi.sourceforge.net/specs/rfc.fault_codes.php
+                        xmlRpcResponse.SetFault(-32601, String.Format("Requested method [{0}] not found", methodName));
                     }
 
                     responseString = XmlRpcResponseSerializer.Singleton.Serialize(xmlRpcResponse);

@@ -450,7 +450,9 @@ namespace OpenSim.Region.Communications.OGS1
 
         // Grid Request Processing
         /// <summary>
-        /// 
+        /// Received from the user server when a user starts logging in.  This call allows
+        /// the region to prepare for direct communication from the client.  Sends back an empty
+        /// xmlrpc response on completion.
         /// </summary>
         /// <param name="request"></param>
         /// <returns></returns>

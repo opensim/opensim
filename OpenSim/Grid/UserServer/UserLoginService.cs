@@ -130,12 +130,19 @@ namespace OpenSim.Grid.UserServer
                 theUser.currentAgent.currentRegion = SimInfo.UUID;
                 theUser.currentAgent.currentHandle = SimInfo.regionHandle;
 
-                m_log.Info("[LOGIN]: Sending expect user call to "
+                m_log.Info("[LOGIN]: Telling "
                            + SimInfo.regionName + " @ " + SimInfo.httpServerURI + "  " +
-                           SimInfo.regionLocX + "," + SimInfo.regionLocY);
+                           SimInfo.regionLocX + "," + SimInfo.regionLocY + " to expect user connection");
 
                 XmlRpcRequest GridReq = new XmlRpcRequest("expect_user", SendParams);                
                 XmlRpcResponse GridResp = GridReq.Send(SimInfo.httpServerURI, 6000);
+                
+                if (GridResp.IsFault)
+                {
+                    m_log.ErrorFormat(
+                        "[LOGIN]: XMLRPC request for {0} failed, fault code: {1}, reason: {2}", 
+                        SimInfo.httpServerURI, GridResp.FaultCode, GridResp.FaultString);
+                }                
             }
             catch (Exception)
             {
