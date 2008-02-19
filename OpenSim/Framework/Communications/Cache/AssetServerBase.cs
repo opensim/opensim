@@ -97,6 +97,7 @@ namespace OpenSim.Framework.Communications.Cache
             m_assetRequests = new BlockingQueue<AssetRequest>();
 
             m_localAssetServerThread = new Thread(RunRequests);
+            m_localAssetServerThread.Name = "LocalAssetServerThread";
             m_localAssetServerThread.IsBackground = true;
             m_localAssetServerThread.Start();
         }

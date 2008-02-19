@@ -181,7 +181,7 @@ namespace OpenSim
                 config.Set("storage_prim_inventories", true);
                 config.Set("startup_console_commands_file", String.Empty);
                 config.Set("shutdown_console_commands_file", String.Empty);
-                config.Set("script_engine", "");
+                config.Set("script_engine", "OpenSim.Region.ScriptEngine.DotNetEngine.dll");
                 config.Set("asset_database", "sqlite");
             }
 
@@ -264,8 +264,7 @@ namespace OpenSim
                 m_startupCommandsFile = startupConfig.GetString("startup_console_commands_file", String.Empty);
                 m_shutdownCommandsFile = startupConfig.GetString("shutdown_console_commands_file", String.Empty);
 
-                m_scriptEngine = startupConfig.GetString("script_engine", "");
-
+                m_scriptEngine = startupConfig.GetString("script_engine", "OpenSim.Region.ScriptEngine.DotNetEngine.dll");
                 m_assetStorage = startupConfig.GetString("asset_database", "sqlite");
 
                 m_timedScript = startupConfig.GetString("timer_Script", "disabled");

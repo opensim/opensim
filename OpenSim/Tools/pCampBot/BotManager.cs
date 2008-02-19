@@ -114,6 +114,8 @@ namespace pCampBot
             if (cs.GetString("lastname", "random") == "random") pb.lastname = CreateRandomName();
 
             m_td[pos] = new Thread(pb.startup);
+            m_td[pos].Name = "CampBot_" + pos;
+            m_td[pos].IsBackground = true;
             m_td[pos].Start();
             m_lBot.Add(pb);
         }

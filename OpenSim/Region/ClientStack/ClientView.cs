@@ -225,6 +225,7 @@ namespace OpenSim.Region.ClientStack
             RegisterLocalPacketHandlers();
 
             m_clientThread = new Thread(new ThreadStart(AuthUser));
+            m_clientThread.Name = "ClientThread";
             m_clientThread.IsBackground = true;
             m_clientThread.Start();
         }

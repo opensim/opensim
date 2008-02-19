@@ -66,6 +66,7 @@ namespace OpenSim.Region.Environment.Modules
             {
                 //Console.WriteLine("Creating Texture download module");
                 m_thread = new Thread(new ThreadStart(ProcessTextureSenders));
+                m_thread.Name = "ProcessTextureSenderThread";
                 m_thread.IsBackground = true;
                 m_thread.Start();
             }

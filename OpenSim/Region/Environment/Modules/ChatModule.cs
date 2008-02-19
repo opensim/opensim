@@ -92,7 +92,11 @@ namespace OpenSim.Region.Environment.Modules
 
                 // setup IRC Relay
                 if (m_irc == null) { m_irc = new IRCChatModule(config); }
-                if (m_irc_connector == null) { m_irc_connector = new Thread(IRCConnectRun); }
+                if (m_irc_connector == null) { 
+                    m_irc_connector = new Thread(IRCConnectRun);
+                    m_irc_connector.Name = "IRCConnectorThread";
+                    m_irc_connector.IsBackground = true;
+                }
 
             }
         }
@@ -104,7 +108,11 @@ namespace OpenSim.Region.Environment.Modules
                 try
                 {
                     //m_irc.Connect(m_scenes);
-                    if (m_irc_connector == null) { m_irc_connector = new Thread(IRCConnectRun); }
+                    if (m_irc_connector == null) { 
+                        m_irc_connector = new Thread(IRCConnectRun);
+                        m_irc_connector.Name = "IRCConnectorThread";
+                        m_irc_connector.IsBackground = true;
+                    }
                     if (!m_irc_connector.IsAlive) { m_irc_connector.Start(); }
                 }
                 catch (Exception ex)
@@ -248,7 +256,10 @@ namespace OpenSim.Region.Environment.Modules
                 // In a non-blocking way. Eventually the connector will get it started
                 try
                 {
-                    if (m_irc_connector == null) { m_irc_connector = new Thread(IRCConnectRun); }
+                    if (m_irc_connector == null) { m_irc_connector = new Thread(IRCConnectRun);
+                    m_irc_connector.Name = "IRCConnectorThread";
+                    m_irc_connector.IsBackground = true;
+                    }
                     if (!m_irc_connector.IsAlive) { m_irc_connector.Start(); }
                 }
                 catch (Exception ex)
@@ -407,9 +418,13 @@ namespace OpenSim.Region.Environment.Modules
                     m_writer = new StreamWriter(m_stream);
 
                     pingSender = new Thread(new ThreadStart(PingRun));
+                    pingSender.Name = "PingSenderThread";
+                    pingSender.IsBackground = true;
                     pingSender.Start();
 
                     listener = new Thread(new ThreadStart(ListenerRun));
+                    listener.Name = "IRCChatModuleListenerThread";
+                    listener.IsBackground = true;
                     listener.Start();
 
                     m_writer.WriteLine(m_user);
