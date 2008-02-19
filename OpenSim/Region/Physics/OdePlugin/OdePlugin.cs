@@ -1165,6 +1165,9 @@ namespace OpenSim.Region.Physics.OdePlugin
             if (pbs.ProfileShape == ProfileShape.Circle && pbs.PathCurve == (byte)Extrusion.Straight)
                 return true;
 
+            if (pbs.ProfileShape == ProfileShape.EquilateralTriangle)
+                return true;
+
             return false;
         }
 

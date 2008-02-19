@@ -58,7 +58,7 @@ namespace OpenSim.Region.Physics.Meshing
         // Setting baseDir to a path will enable the dumping of raw files
         // raw files can be imported by blender so a visual inspection of the results can be done
         //        const string baseDir = "rawFiles";
-        private const string baseDir = null; //"rawFiles";
+        private const string baseDir = "rawFiles";
 
         private static void IntersectionParameterPD(PhysicsVector p1, PhysicsVector r1, PhysicsVector p2,
                                                     PhysicsVector r2, ref float lambda, ref float mu)
@@ -724,7 +724,209 @@ namespace OpenSim.Region.Physics.Meshing
             Mesh result = extr.Extrude(m);
             result.DumpRaw(baseDir, primName, "Z extruded");
             return result;
+        
         }
+
+
+        private static Mesh CreatePrismMesh(String primName, PrimitiveBaseShape primShape, PhysicsVector size)
+        // Builds the z (+ and -) surfaces of a box shaped prim
+        {
+            UInt16 hollowFactor = primShape.ProfileHollow;
+            UInt16 profileBegin = primShape.ProfileBegin;
+            UInt16 profileEnd = primShape.ProfileEnd;
+            UInt16 taperX = primShape.PathScaleX;
+            UInt16 taperY = primShape.PathScaleY;
+            UInt16 pathShearX = primShape.PathShearX;
+            UInt16 pathShearY = primShape.PathShearY;
+
+            //m_log.Error("pathShear:" + primShape.PathShearX.ToString() + "," + primShape.PathShearY.ToString());
+            //m_log.Error("pathTaper:" + primShape.PathTaperX.ToString() + "," + primShape.PathTaperY.ToString());
+            //m_log.Error("ProfileBegin:" + primShape.ProfileBegin.ToString() + "," + primShape.ProfileBegin.ToString());
+            //m_log.Error("PathScale:" + primShape.PathScaleX.ToString() + "," + primShape.PathScaleY.ToString());
+
+            // Procedure: This is based on the fact that the upper (plus) and lower (minus) Z-surface
+            // of a block are basically the same
+            // They may be warped differently but the shape is identical
+            // So we only create one surface as a model and derive both plus and minus surface of the block from it
+            // This is done in a model space where the block spans from -.5 to +.5 in X and Y
+            // The mapping to Scene space is done later during the "extrusion" phase
+
+            // Base
+            Vertex MM = new Vertex(-0.25f, -0.45f, 0.0f);
+            Vertex PM = new Vertex(+0.5f, 0f, 0.0f);
+            Vertex PP = new Vertex(-0.25f, +0.45f, 0.0f);
+            
+
+            SimpleHull outerHull = new SimpleHull();
+            outerHull.AddVertex(MM);
+            outerHull.AddVertex(PM);
+            outerHull.AddVertex(PP);
+            
+
+            // Deal with cuts now
+            if ((profileBegin != 0) || (profileEnd != 0))
+            {
+                double fProfileBeginAngle = profileBegin / 50000.0 * 360.0;
+                // In degree, for easier debugging and understanding
+                //fProfileBeginAngle -= (90.0 + 45.0); // for some reasons, the SL client counts from the corner -X/-Y
+                double fProfileEndAngle = 360.0 - profileEnd / 50000.0 * 360.0; // Pathend comes as complement to 1.0
+                //fProfileEndAngle -= (90.0 + 45.0);
+                if (fProfileBeginAngle < fProfileEndAngle)
+                    fProfileEndAngle -= 360.0;
+
+                // Note, that we don't want to cut out a triangle, even if this is a 
+                // good approximation for small cuts. Indeed we want to cut out an arc
+                // and we approximate this arc by a polygon chain
+                // Also note, that these vectors are of length 1.0 and thus their endpoints lay outside the model space
+                // So it can easily be subtracted from the outer hull
+                int iSteps = (int)(((fProfileBeginAngle - fProfileEndAngle) / 45.0) + .5);
+                // how many steps do we need with approximately 45 degree
+                double dStepWidth = (fProfileBeginAngle - fProfileEndAngle) / iSteps;
+
+                Vertex origin = new Vertex(0.0f, 0.0f, 0.0f);
+
+                // Note the sequence of vertices here. It's important to have the other rotational sense than in outerHull
+                SimpleHull cutHull = new SimpleHull();
+                cutHull.AddVertex(origin);
+                for (int i = 0; i < iSteps; i++)
+                {
+                    double angle = fProfileBeginAngle - i * dStepWidth; // we count against the angle orientation!!!!
+                    Vertex v = Vertex.FromAngle(angle * Math.PI / 180.0);
+                    cutHull.AddVertex(v);
+                }
+                Vertex legEnd = Vertex.FromAngle(fProfileEndAngle * Math.PI / 180.0);
+                // Calculated separately to avoid errors
+                cutHull.AddVertex(legEnd);
+
+                //m_log.DebugFormat("Starting cutting of the hollow shape from the prim {1}", 0, primName);
+                SimpleHull cuttedHull = SimpleHull.SubtractHull(outerHull, cutHull);
+
+                outerHull = cuttedHull;
+            }
+
+            // Deal with the hole here
+            if (hollowFactor > 0)
+            {
+                float hollowFactorF = (float)hollowFactor / (float)50000;
+                Vertex IMM = new Vertex(-0.25f * (float)(hollowFactorF / 1.9), -0.45f * (float)(hollowFactorF / 1.9), 0.0f);
+                Vertex IPM = new Vertex(+0.5f * (float)(hollowFactorF / 1.9), +0f * (float)(hollowFactorF / 1.9), 0.0f);
+                Vertex IPP = new Vertex(-0.25f * (float)(hollowFactorF / 1.9), +0.45f * (float)(hollowFactorF / 1.9), 0.0f);
+                
+
+
+                SimpleHull holeHull = new SimpleHull();
+
+                holeHull.AddVertex(IMM);
+                holeHull.AddVertex(IPP);
+                holeHull.AddVertex(IPM);
+
+                SimpleHull hollowedHull = SimpleHull.SubtractHull(outerHull, holeHull);
+
+                outerHull = hollowedHull;
+            }
+
+            Mesh m = new Mesh();
+
+            Vertex Seed1 = new Vertex(0.0f, -10.0f, 0.0f);
+            Vertex Seed2 = new Vertex(-10.0f, 10.0f, 0.0f);
+            Vertex Seed3 = new Vertex(10.0f, 10.0f, 0.0f);
+
+            m.Add(Seed1);
+            m.Add(Seed2);
+            m.Add(Seed3);
+
+            m.Add(new Triangle(Seed1, Seed2, Seed3));
+            m.Add(outerHull.getVertices());
+
+            InsertVertices(m.vertices, 3, m.triangles);
+            m.DumpRaw(baseDir, primName, "Proto first Mesh");
+
+            m.Remove(Seed1);
+            m.Remove(Seed2);
+            m.Remove(Seed3);
+            m.DumpRaw(baseDir, primName, "Proto seeds removed");
+
+            m.RemoveTrianglesOutside(outerHull);
+            m.DumpRaw(baseDir, primName, "Proto outsides removed");
+
+            foreach (Triangle t in m.triangles)
+            {
+                PhysicsVector n = t.getNormal();
+                if (n.Z < 0.0)
+                    t.invertNormal();
+            }
+
+            Extruder extr = new Extruder();
+
+            extr.size = size;
+
+            if (taperX != 100)
+            {
+                if (taperX > 100)
+                {
+                    extr.taperTopFactorX = 1.0f - ((float)taperX / 200);
+                    //m_log.Warn("taperTopFactorX: " + extr.taperTopFactorX.ToString());
+                }
+                else
+                {
+                    extr.taperBotFactorX = 1.0f - ((100 - (float)taperX) / 100);
+                    //m_log.Warn("taperBotFactorX: " + extr.taperBotFactorX.ToString());
+                }
+
+            }
+
+            if (taperY != 100)
+            {
+                if (taperY > 100)
+                {
+                    extr.taperTopFactorY = 1.0f - ((float)taperY / 200);
+                    //m_log.Warn("taperTopFactorY: " + extr.taperTopFactorY.ToString());
+                }
+                else
+                {
+                    extr.taperBotFactorY = 1.0f - ((100 - (float)taperY) / 100);
+                    //m_log.Warn("taperBotFactorY: " + extr.taperBotFactorY.ToString());
+                }
+            }
+
+
+            if (pathShearX != 0)
+            {
+                if (pathShearX > 50)
+                {
+                    // Complimentary byte.  Negative values wrap around the byte.  Positive values go up to 50
+                    extr.pushX = (((float)(256 - pathShearX) / 100) * -1f);
+                    // m_log.Warn("pushX: " + extr.pushX);
+                }
+                else
+                {
+                    extr.pushX = (float)pathShearX / 100;
+                    // m_log.Warn("pushX: " + extr.pushX);
+                }
+            }
+
+            if (pathShearY != 0)
+            {
+                if (pathShearY > 50)
+                {
+                    // Complimentary byte.  Negative values wrap around the byte.  Positive values go up to 50
+                    extr.pushY = (((float)(256 - pathShearY) / 100) * -1f);
+                    //m_log.Warn("pushY: " + extr.pushY);
+                }
+                else
+                {
+                    extr.pushY = (float)pathShearY / 100;
+                    //m_log.Warn("pushY: " + extr.pushY);
+                }
+            }
+
+
+
+            Mesh result = extr.Extrude(m);
+            result.DumpRaw(baseDir, primName, "Z extruded");
+            return result;
+        }
+
         public static void CalcNormals(Mesh mesh)
         {
             int iTriangles = mesh.triangles.Count;
@@ -803,6 +1005,11 @@ namespace OpenSim.Region.Physics.Meshing
                         CalcNormals(mesh);
                     }
                     break;
+                case ProfileShape.EquilateralTriangle:
+                    mesh = CreatePrismMesh(primName, primShape, size);
+                    CalcNormals(mesh);
+                    break;
+
                 default:
                     mesh = CreateBoxMesh(primName, primShape, size);
                     CalcNormals(mesh);
