@@ -58,7 +58,7 @@ namespace OpenSim.Region.Physics.Meshing
         // Setting baseDir to a path will enable the dumping of raw files
         // raw files can be imported by blender so a visual inspection of the results can be done
         //        const string baseDir = "rawFiles";
-        private const string baseDir = "rawFiles";
+        private const string baseDir = null; //"rawFiles";
 
         private static void IntersectionParameterPD(PhysicsVector p1, PhysicsVector r1, PhysicsVector p2,
                                                     PhysicsVector r2, ref float lambda, ref float mu)
