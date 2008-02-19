@@ -38,5 +38,7 @@ namespace OpenSim.Region.Environment.Interfaces
         LLUUID StartHttpRequest(uint localID, LLUUID itemID, string url, List<string> parameters, string body);
         void StopHttpRequest(uint m_localID, LLUUID m_itemID);
         HttpRequestClass GetNextCompletedRequest();
+        void RemoveCompletedRequest(LLUUID id);
+
     }
 }

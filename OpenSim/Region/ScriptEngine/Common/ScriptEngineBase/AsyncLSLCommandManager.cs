@@ -125,8 +125,10 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
             comms.DeleteListener(itemID);
 
             IXMLRPC xmlrpc = m_ScriptEngine.World.RequestModuleInterface<IXMLRPC>();
-            xmlrpc.DeleteChannel(itemID);
+            xmlrpc.DeleteChannels(itemID);
 
+            xmlrpc.CancelSRDRequests(itemID);
+    
         }
 
         #region TIMER
@@ -238,23 +240,28 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
                 // implemented here yet anyway.  Should be fixed if/when maxsize
                 // is supported
 
-                object[] resobj = new object[]
+                if (m_ScriptEngine.m_ScriptManager.GetScript(httpInfo.localID, httpInfo.itemID) != null)
+                {
+                    iHttpReq.RemoveCompletedRequest(httpInfo.reqID);
+                    object[] resobj = new object[]
                     {
                         httpInfo.reqID.ToString(), httpInfo.status, null, httpInfo.response_body
                     };
 
-                m_ScriptEngine.m_EventQueueManager.AddToScriptQueue(
-                    httpInfo.localID, httpInfo.itemID, "http_response", EventQueueManager.llDetectNull, resobj
+                    m_ScriptEngine.m_EventQueueManager.AddToScriptQueue(
+                        httpInfo.localID, httpInfo.itemID, "http_response", EventQueueManager.llDetectNull, resobj
                     );
 
-                httpInfo.Stop();
-                httpInfo = null;
+                }
 
                 httpInfo = iHttpReq.GetNextCompletedRequest();
+
             }
         }
 
         #endregion
+
+        #region Check llRemoteData channels
 
         public void CheckXMLRPCRequests()
         {
@@ -265,24 +272,63 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
 
             if (xmlrpc != null)
             {
-                while (xmlrpc.hasRequests())
-                {
-                    RPCRequestInfo rInfo = xmlrpc.GetNextRequest();
-                    //Console.WriteLine("PICKED REQUEST");
+                RPCRequestInfo rInfo = xmlrpc.GetNextCompletedRequest();
 
-                    //Deliver data to prim's remote_data handler
-                    object[] resobj = new object[]
+                while (rInfo != null)
+                {
+                    if (m_ScriptEngine.m_ScriptManager.GetScript(rInfo.GetLocalID(), rInfo.GetItemID()) != null)
+                    {
+                        xmlrpc.RemoveCompletedRequest(rInfo.GetMessageID());
+
+                        //Deliver data to prim's remote_data handler
+                        object[] resobj = new object[]
                         {
                             2, rInfo.GetChannelKey().ToString(), rInfo.GetMessageID().ToString(), String.Empty,
                             rInfo.GetIntValue(),
                             rInfo.GetStrVal()
                         };
-                    m_ScriptEngine.m_EventQueueManager.AddToScriptQueue(
-                        rInfo.GetLocalID(), rInfo.GetItemID(), "remote_data", EventQueueManager.llDetectNull, resobj
+                        m_ScriptEngine.m_EventQueueManager.AddToScriptQueue(
+                            rInfo.GetLocalID(), rInfo.GetItemID(), "remote_data", EventQueueManager.llDetectNull, resobj
                         );
+
+                    }
+
+                    rInfo = xmlrpc.GetNextCompletedRequest();
+
                 }
+
+                SendRemoteDataRequest srdInfo = xmlrpc.GetNextCompletedSRDRequest();
+
+                while (srdInfo != null)
+                {
+                    if (m_ScriptEngine.m_ScriptManager.GetScript(srdInfo.m_localID, srdInfo.m_itemID) != null)
+                    {
+                        xmlrpc.RemoveCompletedSRDRequest(srdInfo.GetReqID());
+
+                        //Deliver data to prim's remote_data handler
+                        object[] resobj = new object[]
+                        {
+                            3, srdInfo.channel.ToString(), srdInfo.GetReqID().ToString(), String.Empty,
+                            srdInfo.idata,
+                            srdInfo.sdata
+                        };
+                        m_ScriptEngine.m_EventQueueManager.AddToScriptQueue(
+                            srdInfo.m_localID, srdInfo.m_itemID, "remote_data", EventQueueManager.llDetectNull, resobj
+                        );
+
+                    }
+
+                    srdInfo = xmlrpc.GetNextCompletedSRDRequest();
+
+                }
+
+            
             }
         }
+
+        #endregion
+
+        #region Check llListeners
 
         public void CheckListeners()
         {
@@ -290,21 +336,31 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
                 return;
             IWorldComm comms = m_ScriptEngine.World.RequestModuleInterface<IWorldComm>();
 
-            while (comms.HasMessages())
+            if (comms != null)
             {
-                ListenerInfo lInfo = comms.GetNextMessage();
-
-                //Deliver data to prim's listen handler
-                object[] resobj = new object[]
+                while (comms.HasMessages())
+                {
+                    if (m_ScriptEngine.m_ScriptManager.GetScript(
+                        comms.PeekNextMessageLocalID(), comms.PeekNextMessageItemID()) != null)
                     {
-                        lInfo.GetChannel(), lInfo.GetName(), lInfo.GetID().ToString(), lInfo.GetMessage()
-                    };
+                        ListenerInfo lInfo = comms.GetNextMessage();
 
-                m_ScriptEngine.m_EventQueueManager.AddToScriptQueue(
-                    lInfo.GetLocalID(), lInfo.GetItemID(), "listen", EventQueueManager.llDetectNull, resobj
-                    );
+                        //Deliver data to prim's listen handler
+                        object[] resobj = new object[]
+                        {
+                            lInfo.GetChannel(), lInfo.GetName(), lInfo.GetID().ToString(), lInfo.GetMessage()
+                        };
+
+                        m_ScriptEngine.m_EventQueueManager.AddToScriptQueue(
+                            lInfo.GetLocalID(), lInfo.GetItemID(), "listen", EventQueueManager.llDetectNull, resobj
+                        );
+                    }
+
+               }
             }
         }
+
+        #endregion
 
         /// <summary>
         /// If set to true then threads and stuff should try to make a graceful exit

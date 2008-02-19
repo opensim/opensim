@@ -28,6 +28,8 @@
 
 using libsecondlife;
 using OpenSim.Region.Environment.Modules;
+using System.Collections;
+using System.Collections.Generic;
 
 namespace OpenSim.Region.Environment.Interfaces
 {
@@ -36,9 +38,14 @@ namespace OpenSim.Region.Environment.Interfaces
         LLUUID OpenXMLRPCChannel(uint localID, LLUUID itemID);
         void CloseXMLRPCChannel(LLUUID channelKey);
         bool hasRequests();
-        RPCRequestInfo GetNextRequest();
         void RemoteDataReply(string channel, string message_id, string sdata, int idata);
         bool IsEnabled();
-        void DeleteChannel(LLUUID itemID);
+        RPCRequestInfo GetNextCompletedRequest();
+        void RemoveCompletedRequest(LLUUID id);
+        void DeleteChannels(LLUUID itemID);
+        LLUUID SendRemoteData(uint localID, LLUUID itemID, string channel, string dest, int idata, string sdata);
+        SendRemoteDataRequest GetNextCompletedSRDRequest();
+        void RemoveCompletedSRDRequest(LLUUID id);
+        void CancelSRDRequests(LLUUID itemID);
     }
 }

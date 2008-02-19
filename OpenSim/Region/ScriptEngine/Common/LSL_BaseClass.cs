@@ -2091,6 +2091,10 @@ namespace OpenSim.Region.ScriptEngine.Common
         public const int REMOTE_DATA_CHANNEL = 1;
         public const int REMOTE_DATA_REQUEST = 2;
         public const int REMOTE_DATA_REPLY = 3;
+        public const int HTTP_METHOD = 0;
+        public const int HTTP_MIMETYPE = 1;
+        public const int HTTP_BODY_MAXLENGTH = 2;
+        public const int HTTP_VERIFY_CERT = 3;
 
         public const int PRIM_MATERIAL = 2;
         public const int PRIM_PHYSICS = 3;

@@ -2880,8 +2880,8 @@ namespace OpenSim.Region.ScriptEngine.Common
         public string llSendRemoteData(string channel, string dest, int idata, string sdata)
         {
             m_host.AddScriptLPS(1);
-            NotImplemented("llSendRemoteData");
-            return String.Empty;
+            IXMLRPC xmlrpcMod = m_ScriptEngine.World.RequestModuleInterface<IXMLRPC>();
+            return (xmlrpcMod.SendRemoteData(m_localID, m_itemID, channel, dest, idata, sdata)).ToString();
         }
 
         public void llRemoteDataReply(string channel, string message_id, string sdata, int idata)

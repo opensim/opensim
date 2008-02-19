@@ -67,6 +67,7 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
         private Queue<LUStruct> LUQueue = new Queue<LUStruct>();
         private static bool PrivateThread;
         private int LoadUnloadMaxQueueSize;
+        private Object scriptLock = new Object();
 
         // Load/Unload structure
         private struct LUStruct
@@ -304,7 +305,9 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
             //ScriptBaseInterface Script = (ScriptBaseInterface)GetScript(localID, itemID);
             IScript Script = GetScript(localID, itemID);
             if (Script == null)
+            {
                 return;
+            }
 //cfk 2-7-08 dont need this right now and the default Linux build has DEBUG defined
 ///#if DEBUG
 ///            Console.WriteLine("ScriptEngine: Executing event: " + FunctionName);
@@ -331,37 +334,42 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
 
         public IScript GetScript(uint localID, LLUUID itemID)
         {
-            if (Scripts.ContainsKey(localID) == false)
-                return null;
+            lock (scriptLock)
+            {
+                if (Scripts.ContainsKey(localID) == false)
+                    return null;
 
-            Dictionary<LLUUID, IScript> Obj;
-            Scripts.TryGetValue(localID, out Obj);
-            if (Obj.ContainsKey(itemID) == false)
-                return null;
+                Dictionary<LLUUID, IScript> Obj;
+                Scripts.TryGetValue(localID, out Obj);
+                if (Obj.ContainsKey(itemID) == false)
+                    return null;
 
-            // Get script
-            IScript Script;
-            Obj.TryGetValue(itemID, out Script);
-
-            return Script;
+                // Get script
+                IScript Script;
+                Obj.TryGetValue(itemID, out Script);
+                return Script;
+            }
         }
 
         public void SetScript(uint localID, LLUUID itemID, IScript Script)
         {
-            // Create object if it doesn't exist
-            if (Scripts.ContainsKey(localID) == false)
+            lock (scriptLock)
             {
-                Scripts.Add(localID, new Dictionary<LLUUID, IScript>());
+                // Create object if it doesn't exist
+                if (Scripts.ContainsKey(localID) == false)
+                {
+                    Scripts.Add(localID, new Dictionary<LLUUID, IScript>());
+                }
+
+                // Delete script if it exists
+                Dictionary<LLUUID, IScript> Obj;
+                Scripts.TryGetValue(localID, out Obj);
+                if (Obj.ContainsKey(itemID) == true)
+                    Obj.Remove(itemID);
+
+                // Add to object
+                Obj.Add(itemID, Script);
             }
-
-            // Delete script if it exists
-            Dictionary<LLUUID, IScript> Obj;
-            Scripts.TryGetValue(localID, out Obj);
-            if (Obj.ContainsKey(itemID) == true)
-                Obj.Remove(itemID);
-
-            // Add to object
-            Obj.Add(itemID, Script);
         }
 
         public void RemoveScript(uint localID, LLUUID itemID)
