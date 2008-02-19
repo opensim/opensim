@@ -298,7 +298,11 @@ namespace OpenSim
             //
             // Called from app startup (OpenSim.Application)
             //
-
+            
+            m_log.Info("========================================================================");
+            m_log.Info("=========================== STARTING OPENSIM ===========================");
+            m_log.Info("========================================================================");
+            
             m_console = CreateConsole();
             MainConsole.Instance = m_console;
 
