@@ -350,7 +350,7 @@ namespace OpenSim.Framework.Data.SQLite
         /// <param name="prim"></param>
         private void LoadItems(SceneObjectPart prim)
         {
-            m_log.InfoFormat("[DATASTORE]: Loading inventory for {0}, {1}", prim.Name, prim.UUID);
+            //m_log.DebugFormat("[DATASTORE]: Loading inventory for {0}, {1}", prim.Name, prim.UUID);
             
             DataTable dbItems = ds.Tables["primitems"];
             
@@ -364,7 +364,7 @@ namespace OpenSim.Framework.Data.SQLite
                 TaskInventoryItem item = buildItem(row);
                 inventory.Add(item);
                 
-                m_log.InfoFormat("[DATASTORE]: Restored item {0}, {1}", item.Name, item.ItemID); 
+                //m_log.DebugFormat("[DATASTORE]: Restored item {0}, {1}", item.Name, item.ItemID); 
             }
             
             prim.RestoreInventoryItems(inventory);

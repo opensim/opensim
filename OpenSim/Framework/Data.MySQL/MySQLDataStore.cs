@@ -318,7 +318,7 @@ namespace OpenSim.Framework.Data.MySQL
                 TaskInventoryItem item = buildItem(row);
                 inventory.Add(item);
                 
-                m_log.InfoFormat("[DATASTORE]: Restored item {0}, {1}", item.Name, item.ItemID); 
+                //m_log.DebugFormat("[DATASTORE]: Restored item {0}, {1}", item.Name, item.ItemID); 
             }
             
             prim.RestoreInventoryItems(inventory);
