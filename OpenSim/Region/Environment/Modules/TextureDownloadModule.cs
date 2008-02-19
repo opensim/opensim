@@ -55,7 +55,7 @@ namespace OpenSim.Region.Environment.Modules
         private readonly BlockingQueue<TextureSender> m_queueSenders = new BlockingQueue<TextureSender>();
 
         /// <summary>
-        /// Each user has their own texture download queue.
+        /// Each user has their own texture download service.
         /// </summary>
         private readonly Dictionary<LLUUID, UserTextureDownloadService> m_userTextureServices =
             new Dictionary<LLUUID, UserTextureDownloadService>();
