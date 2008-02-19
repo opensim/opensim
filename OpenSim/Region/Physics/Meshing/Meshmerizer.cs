@@ -175,6 +175,178 @@ namespace OpenSim.Region.Physics.Meshing
             }
         }
 
+        private static SimpleHull BuildHoleHull(PrimitiveBaseShape pbs, ProfileShape pshape, HollowShape hshape, UInt16 hollowFactor)
+        {
+            // Tackle HollowShape.Same
+            float fhollowFactor = (float)hollowFactor;
+
+            switch (pshape)
+            {
+                case ProfileShape.Square:
+                    if (hshape == HollowShape.Same)
+                        hshape= HollowShape.Square;
+                    break;
+                case ProfileShape.EquilateralTriangle:
+                    fhollowFactor = ((float)hollowFactor / 1.9f);
+                    if (hshape == HollowShape.Same)
+                    {
+                        hshape = HollowShape.Triangle;
+                    }
+
+                    break;
+
+                case ProfileShape.Circle:
+                    if (pbs.PathCurve == (byte)Extrusion.Straight)
+                    {
+                        if (hshape == HollowShape.Same)
+                        {
+                            hshape = HollowShape.Circle;
+                        }
+                    }
+                    break;
+                default:
+                    if (hshape == HollowShape.Same)
+                        hshape= HollowShape.Square;
+                    break;
+            }
+
+            
+            SimpleHull holeHull = null;
+
+            if (hshape == HollowShape.Square)
+            {
+                float hollowFactorF = (float)fhollowFactor / (float)50000;
+                Vertex IMM = new Vertex(-0.5f * hollowFactorF, -0.5f * hollowFactorF, 0.0f);
+                Vertex IPM = new Vertex(+0.5f * hollowFactorF, -0.5f * hollowFactorF, 0.0f);
+                Vertex IPP = new Vertex(+0.5f * hollowFactorF, +0.5f * hollowFactorF, 0.0f);
+                Vertex IMP = new Vertex(-0.5f * hollowFactorF, +0.5f * hollowFactorF, 0.0f);
+
+
+                holeHull = new SimpleHull();
+
+                holeHull.AddVertex(IMM);
+                holeHull.AddVertex(IMP);
+                holeHull.AddVertex(IPP);
+                holeHull.AddVertex(IPM);
+            }
+            if (hshape == HollowShape.Circle && pbs.PathCurve == (byte)Extrusion.Straight)
+            {
+                float hollowFactorF = (float)fhollowFactor / (float)50000;
+
+                Vertex IQ1Q15 = new Vertex(-0.35f * hollowFactorF, -0.35f * hollowFactorF, 0.0f);
+                Vertex IQ1Q16 = new Vertex(-0.30f * hollowFactorF, -0.40f * hollowFactorF, 0.0f);
+                Vertex IQ1Q17 = new Vertex(-0.24f * hollowFactorF, -0.43f * hollowFactorF, 0.0f);
+                Vertex IQ1Q18 = new Vertex(-0.18f * hollowFactorF, -0.46f * hollowFactorF, 0.0f);
+                Vertex IQ1Q19 = new Vertex(-0.11f * hollowFactorF, -0.48f * hollowFactorF, 0.0f);
+
+                Vertex IQ2Q10 = new Vertex(+0.0f * hollowFactorF, -0.50f * hollowFactorF, 0.0f);
+                Vertex IQ2Q11 = new Vertex(+0.11f * hollowFactorF, -0.48f * hollowFactorF, 0.0f);
+                Vertex IQ2Q12 = new Vertex(+0.18f * hollowFactorF, -0.46f * hollowFactorF, 0.0f);
+                Vertex IQ2Q13 = new Vertex(+0.24f * hollowFactorF, -0.43f * hollowFactorF, 0.0f);
+                Vertex IQ2Q14 = new Vertex(+0.30f * hollowFactorF, -0.40f * hollowFactorF, 0.0f);
+                Vertex IQ2Q15 = new Vertex(+0.35f * hollowFactorF, -0.35f * hollowFactorF, 0.0f);
+                Vertex IQ2Q16 = new Vertex(+0.40f * hollowFactorF, -0.30f * hollowFactorF, 0.0f);
+                Vertex IQ2Q17 = new Vertex(+0.43f * hollowFactorF, -0.24f * hollowFactorF, 0.0f);
+                Vertex IQ2Q18 = new Vertex(+0.46f * hollowFactorF, -0.18f * hollowFactorF, 0.0f);
+                Vertex IQ2Q19 = new Vertex(+0.48f * hollowFactorF, -0.11f * hollowFactorF, 0.0f);
+
+                Vertex IQ2Q20 = new Vertex(+0.50f * hollowFactorF, +0.0f * hollowFactorF, 0.0f);
+                Vertex IQ2Q21 = new Vertex(+0.48f * hollowFactorF, +0.11f * hollowFactorF, 0.0f);
+                Vertex IQ2Q22 = new Vertex(+0.46f * hollowFactorF, +0.18f * hollowFactorF, 0.0f);
+                Vertex IQ2Q23 = new Vertex(+0.43f * hollowFactorF, +0.24f * hollowFactorF, 0.0f);
+                Vertex IQ2Q24 = new Vertex(+0.40f * hollowFactorF, +0.30f * hollowFactorF, 0.0f);
+                Vertex IQ2Q25 = new Vertex(+0.35f * hollowFactorF, +0.35f * hollowFactorF, 0.0f);
+                Vertex IQ2Q26 = new Vertex(+0.30f * hollowFactorF, +0.40f * hollowFactorF, 0.0f);
+                Vertex IQ2Q27 = new Vertex(+0.24f * hollowFactorF, +0.43f * hollowFactorF, 0.0f);
+                Vertex IQ2Q28 = new Vertex(+0.18f * hollowFactorF, +0.46f * hollowFactorF, 0.0f);
+                Vertex IQ2Q29 = new Vertex(+0.11f * hollowFactorF, +0.48f * hollowFactorF, 0.0f);
+
+                Vertex IQ1Q20 = new Vertex(+0.0f * hollowFactorF, +0.50f * hollowFactorF, 0.0f);
+                Vertex IQ1Q21 = new Vertex(-0.11f * hollowFactorF, +0.48f * hollowFactorF, 0.0f);
+                Vertex IQ1Q22 = new Vertex(-0.18f * hollowFactorF, +0.46f * hollowFactorF, 0.0f);
+                Vertex IQ1Q23 = new Vertex(-0.24f * hollowFactorF, +0.43f * hollowFactorF, 0.0f);
+                Vertex IQ1Q24 = new Vertex(-0.30f * hollowFactorF, +0.40f * hollowFactorF, 0.0f);
+                Vertex IQ1Q25 = new Vertex(-0.35f * hollowFactorF, +0.35f * hollowFactorF, 0.0f);
+                Vertex IQ1Q26 = new Vertex(-0.40f * hollowFactorF, +0.30f * hollowFactorF, 0.0f);
+                Vertex IQ1Q27 = new Vertex(-0.43f * hollowFactorF, +0.24f * hollowFactorF, 0.0f);
+                Vertex IQ1Q28 = new Vertex(-0.46f * hollowFactorF, +0.18f * hollowFactorF, 0.0f);
+                Vertex IQ1Q29 = new Vertex(-0.48f * hollowFactorF, +0.11f * hollowFactorF, 0.0f);
+
+                Vertex IQ1Q10 = new Vertex(-0.50f * hollowFactorF, +0.0f * hollowFactorF, 0.0f);
+                Vertex IQ1Q11 = new Vertex(-0.48f * hollowFactorF, -0.11f * hollowFactorF, 0.0f);
+                Vertex IQ1Q12 = new Vertex(-0.46f * hollowFactorF, -0.18f * hollowFactorF, 0.0f);
+                Vertex IQ1Q13 = new Vertex(-0.43f * hollowFactorF, -0.24f * hollowFactorF, 0.0f);
+                Vertex IQ1Q14 = new Vertex(-0.40f * hollowFactorF, -0.30f * hollowFactorF, 0.0f);
+
+                //Counter clockwise around the quadrants
+                holeHull = new SimpleHull();
+                holeHull.AddVertex(IQ1Q15);
+                holeHull.AddVertex(IQ1Q14);
+                holeHull.AddVertex(IQ1Q13);
+                holeHull.AddVertex(IQ1Q12);
+                holeHull.AddVertex(IQ1Q11);
+                holeHull.AddVertex(IQ1Q10);
+
+                holeHull.AddVertex(IQ1Q29);
+                holeHull.AddVertex(IQ1Q28);
+                holeHull.AddVertex(IQ1Q27);
+                holeHull.AddVertex(IQ1Q26);
+                holeHull.AddVertex(IQ1Q25);
+                holeHull.AddVertex(IQ1Q24);
+                holeHull.AddVertex(IQ1Q23);
+                holeHull.AddVertex(IQ1Q22);
+                holeHull.AddVertex(IQ1Q21);
+                holeHull.AddVertex(IQ1Q20);
+
+                holeHull.AddVertex(IQ2Q29);
+                holeHull.AddVertex(IQ2Q28);
+                holeHull.AddVertex(IQ2Q27);
+                holeHull.AddVertex(IQ2Q26);
+                holeHull.AddVertex(IQ2Q25);
+                holeHull.AddVertex(IQ2Q24);
+                holeHull.AddVertex(IQ2Q23);
+                holeHull.AddVertex(IQ2Q22);
+                holeHull.AddVertex(IQ2Q21);
+                holeHull.AddVertex(IQ2Q20);
+
+                holeHull.AddVertex(IQ2Q19);
+                holeHull.AddVertex(IQ2Q18);
+                holeHull.AddVertex(IQ2Q17);
+                holeHull.AddVertex(IQ2Q16);
+                holeHull.AddVertex(IQ2Q15);
+                holeHull.AddVertex(IQ2Q14);
+                holeHull.AddVertex(IQ2Q13);
+                holeHull.AddVertex(IQ2Q12);
+                holeHull.AddVertex(IQ2Q11);
+                holeHull.AddVertex(IQ2Q10);
+
+                holeHull.AddVertex(IQ1Q19);
+                holeHull.AddVertex(IQ1Q18);
+                holeHull.AddVertex(IQ1Q17);
+                holeHull.AddVertex(IQ1Q16);
+            }
+            if (hshape == HollowShape.Triangle)
+            {
+                float hollowFactorF = (float)fhollowFactor / (float)50000;
+                Vertex IMM = new Vertex(-0.25f * hollowFactorF, -0.45f * hollowFactorF, 0.0f);
+                Vertex IPM = new Vertex(+0.5f * hollowFactorF, +0f * hollowFactorF, 0.0f);
+                Vertex IPP = new Vertex(-0.25f * hollowFactorF, +0.45f * hollowFactorF, 0.0f);
+
+
+
+                holeHull = new SimpleHull();
+
+                holeHull.AddVertex(IMM);
+                holeHull.AddVertex(IPP);
+                holeHull.AddVertex(IPM);
+
+            }
+
+            return holeHull;
+
+
+        }
+
         private static Mesh CreateBoxMesh(String primName, PrimitiveBaseShape primShape, PhysicsVector size)
             // Builds the z (+ and -) surfaces of a box shaped prim
         {
@@ -185,6 +357,7 @@ namespace OpenSim.Region.Physics.Meshing
             UInt16 taperY = primShape.PathScaleY;
             UInt16 pathShearX = primShape.PathShearX;
             UInt16 pathShearY = primShape.PathShearY;
+            
 
             //m_log.Error("pathShear:" + primShape.PathShearX.ToString() + "," + primShape.PathShearY.ToString());
             //m_log.Error("pathTaper:" + primShape.PathTaperX.ToString() + "," + primShape.PathTaperY.ToString());
@@ -254,23 +427,14 @@ namespace OpenSim.Region.Physics.Meshing
             // Deal with the hole here
             if (hollowFactor > 0)
             {
-                float hollowFactorF = (float) hollowFactor/(float) 50000;
-                Vertex IMM = new Vertex(-0.5f*hollowFactorF, -0.5f*hollowFactorF, 0.0f);
-                Vertex IPM = new Vertex(+0.5f*hollowFactorF, -0.5f*hollowFactorF, 0.0f);
-                Vertex IPP = new Vertex(+0.5f*hollowFactorF, +0.5f*hollowFactorF, 0.0f);
-                Vertex IMP = new Vertex(-0.5f*hollowFactorF, +0.5f*hollowFactorF, 0.0f);
-                
 
-                SimpleHull holeHull = new SimpleHull();
+                SimpleHull holeHull = BuildHoleHull(primShape, primShape.ProfileShape, primShape.HollowShape, hollowFactor);
+                if (holeHull != null)
+                {
+                    SimpleHull hollowedHull = SimpleHull.SubtractHull(outerHull, holeHull);
 
-                holeHull.AddVertex(IMM);
-                holeHull.AddVertex(IMP);
-                holeHull.AddVertex(IPP);
-                holeHull.AddVertex(IPM);
-
-                SimpleHull hollowedHull = SimpleHull.SubtractHull(outerHull, holeHull);
-
-                outerHull = hollowedHull;
+                    outerHull = hollowedHull;
+                }
             }
 
             Mesh m = new Mesh();
@@ -529,103 +693,14 @@ namespace OpenSim.Region.Physics.Meshing
             // Deal with the hole here
             if (hollowFactor > 0)
             {
-                float hollowFactorF = (float)hollowFactor / (float)50000;
+                
+                SimpleHull holeHull = BuildHoleHull(primShape, primShape.ProfileShape, primShape.HollowShape, hollowFactor);
+                if (holeHull != null)
+                {
+                    SimpleHull hollowedHull = SimpleHull.SubtractHull(outerHull, holeHull);
 
-                Vertex IQ1Q15 = new Vertex(-0.35f * hollowFactorF, -0.35f * hollowFactorF, 0.0f);
-                Vertex IQ1Q16 = new Vertex(-0.30f * hollowFactorF, -0.40f * hollowFactorF, 0.0f);
-                Vertex IQ1Q17 = new Vertex(-0.24f * hollowFactorF, -0.43f * hollowFactorF, 0.0f);
-                Vertex IQ1Q18 = new Vertex(-0.18f * hollowFactorF, -0.46f * hollowFactorF, 0.0f);
-                Vertex IQ1Q19 = new Vertex(-0.11f * hollowFactorF, -0.48f * hollowFactorF, 0.0f);
-
-                Vertex IQ2Q10 = new Vertex(+0.0f * hollowFactorF, -0.50f * hollowFactorF, 0.0f);
-                Vertex IQ2Q11 = new Vertex(+0.11f * hollowFactorF, -0.48f * hollowFactorF, 0.0f);
-                Vertex IQ2Q12 = new Vertex(+0.18f * hollowFactorF, -0.46f * hollowFactorF, 0.0f);
-                Vertex IQ2Q13 = new Vertex(+0.24f * hollowFactorF, -0.43f * hollowFactorF, 0.0f);
-                Vertex IQ2Q14 = new Vertex(+0.30f * hollowFactorF, -0.40f * hollowFactorF, 0.0f);
-                Vertex IQ2Q15 = new Vertex(+0.35f * hollowFactorF, -0.35f * hollowFactorF, 0.0f);
-                Vertex IQ2Q16 = new Vertex(+0.40f * hollowFactorF, -0.30f * hollowFactorF, 0.0f);
-                Vertex IQ2Q17 = new Vertex(+0.43f * hollowFactorF, -0.24f * hollowFactorF, 0.0f);
-                Vertex IQ2Q18 = new Vertex(+0.46f * hollowFactorF, -0.18f * hollowFactorF, 0.0f);
-                Vertex IQ2Q19 = new Vertex(+0.48f * hollowFactorF, -0.11f * hollowFactorF, 0.0f);
-
-                Vertex IQ2Q20 = new Vertex(+0.50f * hollowFactorF, +0.0f * hollowFactorF, 0.0f);
-                Vertex IQ2Q21 = new Vertex(+0.48f * hollowFactorF, +0.11f * hollowFactorF, 0.0f);
-                Vertex IQ2Q22 = new Vertex(+0.46f * hollowFactorF, +0.18f * hollowFactorF, 0.0f);
-                Vertex IQ2Q23 = new Vertex(+0.43f * hollowFactorF, +0.24f * hollowFactorF, 0.0f);
-                Vertex IQ2Q24 = new Vertex(+0.40f * hollowFactorF, +0.30f * hollowFactorF, 0.0f);
-                Vertex IQ2Q25 = new Vertex(+0.35f * hollowFactorF, +0.35f * hollowFactorF, 0.0f);
-                Vertex IQ2Q26 = new Vertex(+0.30f * hollowFactorF, +0.40f * hollowFactorF, 0.0f);
-                Vertex IQ2Q27 = new Vertex(+0.24f * hollowFactorF, +0.43f * hollowFactorF, 0.0f);
-                Vertex IQ2Q28 = new Vertex(+0.18f * hollowFactorF, +0.46f * hollowFactorF, 0.0f);
-                Vertex IQ2Q29 = new Vertex(+0.11f * hollowFactorF, +0.48f * hollowFactorF, 0.0f);
-
-                Vertex IQ1Q20 = new Vertex(+0.0f * hollowFactorF, +0.50f * hollowFactorF, 0.0f);
-                Vertex IQ1Q21 = new Vertex(-0.11f * hollowFactorF, +0.48f * hollowFactorF, 0.0f);
-                Vertex IQ1Q22 = new Vertex(-0.18f * hollowFactorF, +0.46f * hollowFactorF, 0.0f);
-                Vertex IQ1Q23 = new Vertex(-0.24f * hollowFactorF, +0.43f * hollowFactorF, 0.0f);
-                Vertex IQ1Q24 = new Vertex(-0.30f * hollowFactorF, +0.40f * hollowFactorF, 0.0f);
-                Vertex IQ1Q25 = new Vertex(-0.35f * hollowFactorF, +0.35f * hollowFactorF, 0.0f);
-                Vertex IQ1Q26 = new Vertex(-0.40f * hollowFactorF, +0.30f * hollowFactorF, 0.0f);
-                Vertex IQ1Q27 = new Vertex(-0.43f * hollowFactorF, +0.24f * hollowFactorF, 0.0f);
-                Vertex IQ1Q28 = new Vertex(-0.46f * hollowFactorF, +0.18f * hollowFactorF, 0.0f);
-                Vertex IQ1Q29 = new Vertex(-0.48f * hollowFactorF, +0.11f * hollowFactorF, 0.0f);
-
-                Vertex IQ1Q10 = new Vertex(-0.50f * hollowFactorF, +0.0f * hollowFactorF, 0.0f);
-                Vertex IQ1Q11 = new Vertex(-0.48f * hollowFactorF, -0.11f * hollowFactorF, 0.0f);
-                Vertex IQ1Q12 = new Vertex(-0.46f * hollowFactorF, -0.18f * hollowFactorF, 0.0f);
-                Vertex IQ1Q13 = new Vertex(-0.43f * hollowFactorF, -0.24f * hollowFactorF, 0.0f);
-                Vertex IQ1Q14 = new Vertex(-0.40f * hollowFactorF, -0.30f * hollowFactorF, 0.0f);
-
-                //Counter clockwise around the quadrants
-                SimpleHull holeHull = new SimpleHull();
-                holeHull.AddVertex(IQ1Q15);
-                holeHull.AddVertex(IQ1Q14);
-                holeHull.AddVertex(IQ1Q13);
-                holeHull.AddVertex(IQ1Q12);
-                holeHull.AddVertex(IQ1Q11);
-                holeHull.AddVertex(IQ1Q10);
-
-                holeHull.AddVertex(IQ1Q29);
-                holeHull.AddVertex(IQ1Q28);
-                holeHull.AddVertex(IQ1Q27);
-                holeHull.AddVertex(IQ1Q26);
-                holeHull.AddVertex(IQ1Q25);
-                holeHull.AddVertex(IQ1Q24);
-                holeHull.AddVertex(IQ1Q23);
-                holeHull.AddVertex(IQ1Q22);
-                holeHull.AddVertex(IQ1Q21);
-                holeHull.AddVertex(IQ1Q20);
-
-                holeHull.AddVertex(IQ2Q29);
-                holeHull.AddVertex(IQ2Q28);
-                holeHull.AddVertex(IQ2Q27);
-                holeHull.AddVertex(IQ2Q26);
-                holeHull.AddVertex(IQ2Q25);
-                holeHull.AddVertex(IQ2Q24);
-                holeHull.AddVertex(IQ2Q23);
-                holeHull.AddVertex(IQ2Q22);
-                holeHull.AddVertex(IQ2Q21);
-                holeHull.AddVertex(IQ2Q20);
-
-                holeHull.AddVertex(IQ2Q19);
-                holeHull.AddVertex(IQ2Q18);
-                holeHull.AddVertex(IQ2Q17);
-                holeHull.AddVertex(IQ2Q16);
-                holeHull.AddVertex(IQ2Q15);
-                holeHull.AddVertex(IQ2Q14);
-                holeHull.AddVertex(IQ2Q13);
-                holeHull.AddVertex(IQ2Q12);
-                holeHull.AddVertex(IQ2Q11);
-                holeHull.AddVertex(IQ2Q10);
-
-                holeHull.AddVertex(IQ1Q19);
-                holeHull.AddVertex(IQ1Q18);
-                holeHull.AddVertex(IQ1Q17);
-                holeHull.AddVertex(IQ1Q16);
-
-                SimpleHull hollowedHull = SimpleHull.SubtractHull(outerHull, holeHull);
-
-                outerHull = hollowedHull;
+                    outerHull = hollowedHull;
+                }
             }
 
             Mesh m = new Mesh();
@@ -807,22 +882,15 @@ namespace OpenSim.Region.Physics.Meshing
             // Deal with the hole here
             if (hollowFactor > 0)
             {
-                float hollowFactorF = (float)hollowFactor / (float)50000;
-                Vertex IMM = new Vertex(-0.25f * (float)(hollowFactorF / 1.9), -0.45f * (float)(hollowFactorF / 1.9), 0.0f);
-                Vertex IPM = new Vertex(+0.5f * (float)(hollowFactorF / 1.9), +0f * (float)(hollowFactorF / 1.9), 0.0f);
-                Vertex IPP = new Vertex(-0.25f * (float)(hollowFactorF / 1.9), +0.45f * (float)(hollowFactorF / 1.9), 0.0f);
-                
 
 
-                SimpleHull holeHull = new SimpleHull();
+                SimpleHull holeHull = BuildHoleHull(primShape, primShape.ProfileShape, primShape.HollowShape, hollowFactor);
+                if (holeHull != null)
+                {
+                    SimpleHull hollowedHull = SimpleHull.SubtractHull(outerHull, holeHull);
 
-                holeHull.AddVertex(IMM);
-                holeHull.AddVertex(IPP);
-                holeHull.AddVertex(IPM);
-
-                SimpleHull hollowedHull = SimpleHull.SubtractHull(outerHull, holeHull);
-
-                outerHull = hollowedHull;
+                    outerHull = hollowedHull;
+                }
             }
 
             Mesh m = new Mesh();
