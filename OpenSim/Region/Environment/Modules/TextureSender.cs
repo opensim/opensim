@@ -34,36 +34,59 @@ using OpenSim.Framework.Console;
 
 namespace OpenSim.Region.Environment.Modules
 {
+    /// <summary>
+    /// A TextureSender handles the process of receiving a texture requested by the client from the 
+    /// AssetCache, and then sending that texture back to the client.
+    /// </summary>
     public class TextureSender
     {
         private static readonly log4net.ILog m_log 
             = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 
+        /// <summary>
+        /// Records the number of times texture send has been called.
+        /// </summary>
         public int counter = 0;
+        
+        /// <summary>
+        /// Holds the texture asset to send.
+        /// </summary>
         private AssetBase m_asset;
-        public long DataPointer = 0;
-        public int NumPackets = 0;
-        public int PacketCounter = 0;
+        
+        /// <summary>
+        /// This is actually the number of extra packets required to send the texture data!  We always assume
+        /// at least one is required.
+        /// </summary>
+        private int NumPackets = 0;
+        
+        /// <summary>
+        /// Holds the packet number to send next.  In this case, each packet is 1000 bytes long and starts
+        /// at the 600th byte (0th indexed).
+        /// </summary>
+        private int PacketCounter = 0;
+        
         public bool Cancel = false;
         public bool ImageLoaded = false;
-
         public bool Sending = false;
 
-        public IClientAPI RequestUser;
-        public LLUUID RequestedAssetID;
-        public int RequestedDiscardLevel = -1;
-        public uint StartPacketNumber = 0;
+        private IClientAPI RequestUser;
 
-        // private int m_sentDiscardLevel = -1;
+        private int RequestedDiscardLevel = -1;
+        private uint StartPacketNumber = 0;
 
-        public TextureSender(IClientAPI client, LLUUID textureID, int discardLevel, uint packetNumber)
+        public TextureSender(IClientAPI client, int discardLevel, uint packetNumber)
         {
             RequestUser = client;
-            RequestedAssetID = textureID;
             RequestedDiscardLevel = discardLevel;
             StartPacketNumber = packetNumber;
         }
 
+        /// <summary>
+        /// Load up the texture data to send.
+        /// </summary>
+        /// <param name="asset">
+        /// A <see cref="AssetBase"/>
+        /// </param>
         public void TextureReceived(AssetBase asset)
         {
             m_asset = asset;
@@ -79,6 +102,10 @@ namespace OpenSim.Region.Environment.Modules
             PacketCounter = (int) StartPacketNumber;
         }
 
+        /// <summary>
+        /// Send a texture packet to the client.
+        /// </summary>
+        /// <returns>True if the last packet has been sent, false otherwise.</returns>
         public bool SendTexturePacket()
         {
             SendPacket();
@@ -91,6 +118,9 @@ namespace OpenSim.Region.Environment.Modules
             return false;
         }
 
+        /// <summary>
+        /// Sends a texture packet to the client.
+        /// </summary>
         private void SendPacket()
         {
             if (PacketCounter <= NumPackets)
@@ -148,6 +178,12 @@ namespace OpenSim.Region.Environment.Modules
             }
         }
 
+        /// <summary>
+        /// Calculate the number of packets that will be required to send the texture loaded into this sender
+        /// This is actually the number of 1000 byte packets not including an initial 600 byte packet...
+        /// </summary>
+        /// <param name="length"></param>
+        /// <returns></returns>
         private int CalculateNumPackets(int length)
         {
             int numPackets = 0;

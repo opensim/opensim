@@ -35,13 +35,27 @@ using OpenSim.Region.Environment.Scenes;
 
 namespace OpenSim.Region.Environment.Modules
 {
+    /// <summary>
+    /// This module sets up texture senders in response to client texture requests, and places them on a
+    /// processing queue once those senders have the appropriate data (i.e. a texture retrieved from the 
+    /// asset cache).
+    /// </summary>
     public class UserTextureDownloadService
     {
         private static readonly log4net.ILog m_log 
             = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
         
+        /// <summary>
+        /// Holds texture senders before they have received the appropriate texture from the asset cache.
+        /// </summary>
         private readonly Dictionary<LLUUID, TextureSender> m_textureSenders = new Dictionary<LLUUID, TextureSender>();
+        
+        /// <summary>
+        /// Texture Senders are placed in this queue once they have received their texture from the asset
+        /// cache.  Another module actually invokes the send.
+        /// </summary>
         private readonly BlockingQueue<TextureSender> m_sharedSendersQueue;
+        
         private readonly Scene m_scene;
 
         public UserTextureDownloadService(Scene scene, BlockingQueue<TextureSender> sharedQueue)
@@ -50,6 +64,12 @@ namespace OpenSim.Region.Environment.Modules
             m_sharedSendersQueue = sharedQueue;
         }
 
+        /// <summary>
+        /// Handle a texture request.  This involves creating a texture sender and placing it on the 
+        /// previously passed in shared queue.
+        /// </summary>
+        /// <param name="client"> </param>
+        /// <param name="e"></param>
         public void HandleTextureRequest(IClientAPI client, TextureRequestArgs e)
         {
             TextureSender textureSender;
@@ -72,8 +92,9 @@ namespace OpenSim.Region.Environment.Modules
                     else
                     {
                         TextureSender requestHandler =
-                            new TextureSender(client, e.RequestedAssetID, e.DiscardLevel, e.PacketNumber);
+                            new TextureSender(client, e.DiscardLevel, e.PacketNumber);                        
                         m_textureSenders.Add(e.RequestedAssetID, requestHandler);
+                        
                         m_scene.AssetCache.GetAsset(e.RequestedAssetID, TextureCallback);
                     }
                 }
@@ -90,6 +111,12 @@ namespace OpenSim.Region.Environment.Modules
             }
         }
 
+        /// <summary>
+        /// The callback for the asset cache when a texture has been retrieved.  This method queues the
+        /// texture sender for processing.
+        /// </summary>
+        /// <param name="textureID"></param>
+        /// <param name="asset"></param>
         public void TextureCallback(LLUUID textureID, AssetBase asset)
         {
             lock (m_textureSenders)
@@ -115,6 +142,10 @@ namespace OpenSim.Region.Environment.Modules
             }
         }
 
+        /// <summary>
+        /// Place a ready texture sender on the processing queue.
+        /// </summary>
+        /// <param name="textureSender"></param>
         private void EnqueueTextureSender(TextureSender textureSender)
         {
             textureSender.Cancel = false;
@@ -127,6 +158,9 @@ namespace OpenSim.Region.Environment.Modules
             }
         }
 
+        /// <summary>
+        /// Close this module.
+        /// </summary>
         internal void Close()
         {
             lock (m_textureSenders)
