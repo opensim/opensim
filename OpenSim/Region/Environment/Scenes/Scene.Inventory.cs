@@ -316,12 +316,23 @@ namespace OpenSim.Region.Environment.Scenes
                     return;
                 }
             }
+            
+            AssetBase asset 
+                = AssetCache.GetAsset(
+                    item.assetID, (item.assetType == (int)AssetType.Texture ? true : false));
 
-            // TODO: preserve current permissions?
-            CreateNewInventoryItem(
-                remoteClient, newFolderID, callbackID, 
-                AssetCache.GetAsset(item.assetID, (item.assetType == (int)AssetType.Texture ? true : false)), 
-                item.inventoryNextPermissions);
+            if (asset != null)
+            {
+                // TODO: preserve current permissions?
+                CreateNewInventoryItem(
+                    remoteClient, newFolderID, callbackID, asset, item.inventoryNextPermissions);
+            }
+            else
+            {
+                m_log.ErrorFormat(
+                    "[AGENT INVENTORY]: Could not copy item {0} since asset {1} could not be found",
+                    item.inventoryName, item.assetID);                
+            }
         }
 
         private AssetBase CreateAsset(string name, string description, sbyte invType, sbyte assetType, byte[] data)
