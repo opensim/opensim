@@ -27,6 +27,7 @@
 */
 
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Threading;
 using libsecondlife;
@@ -128,7 +129,7 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
             xmlrpc.DeleteChannels(itemID);
 
             xmlrpc.CancelSRDRequests(itemID);
-    
+
         }
 
         #region TIMER
@@ -140,8 +141,10 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
         {
             public uint localID;
             public LLUUID itemID;
-            public double interval;
-            public DateTime next;
+            //public double interval;
+            public long interval;
+            //public DateTime next;
+            public long next;
         }
 
         private List<TimerClass> Timers = new List<TimerClass>();
@@ -160,8 +163,12 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
             TimerClass ts = new TimerClass();
             ts.localID = m_localID;
             ts.itemID = m_itemID;
-            ts.interval = sec / 1000;
-            ts.next = DateTime.Now.ToUniversalTime().AddSeconds(ts.interval);
+            ts.interval = Convert.ToInt64(sec * 10000000); // How many 100 nanoseconds (ticks) should we wait
+            //       2193386136332921 ticks
+            //       219338613 seconds
+
+            //ts.next = DateTime.Now.ToUniversalTime().AddSeconds(ts.interval);
+            ts.next = DateTime.Now.Ticks + ts.interval;
             lock (TimerListLock)
             {
                 Timers.Add(ts);
@@ -173,17 +180,25 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
             // Remove from timer
             lock (TimerListLock)
             {
-                List<TimerClass> NewTimers = new List<TimerClass>();
-                foreach (TimerClass ts in Timers)
+                foreach (TimerClass ts in new ArrayList(Timers))
                 {
-                    if (ts.localID != m_localID && ts.itemID != m_itemID)
-                    {
-                        NewTimers.Add(ts);
-                    }
+                    if (ts.localID == m_localID && ts.itemID == m_itemID)
+                        Timers.Remove(ts);
                 }
-                Timers.Clear();
-                Timers = NewTimers;
             }
+
+            // Old method: Create new list       
+            //List<TimerClass> NewTimers = new List<TimerClass>();
+            //foreach (TimerClass ts in Timers)
+            //{
+            //    if (ts.localID != m_localID && ts.itemID != m_itemID)
+            //    {
+            //        NewTimers.Add(ts);
+            //    }
+            //}
+            //Timers.Clear();
+            //Timers = NewTimers;
+            //}
         }
 
         public void CheckTimerEvents()
@@ -198,15 +213,17 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
                 foreach (TimerClass ts in Timers)
                 {
                     // Time has passed?
-                    if (ts.next.ToUniversalTime() < DateTime.Now.ToUniversalTime())
+                    if (ts.next < DateTime.Now.Ticks)
                     {
+                        
+                        Console.WriteLine("Time has passed: Now: " + DateTime.Now.Ticks + ", Passed: " + ts.next);
                         // Add it to queue
-                        m_ScriptEngine.m_EventQueueManager.AddToScriptQueue(ts.localID, ts.itemID, "timer", EventQueueManager.llDetectNull, 
-                                                                            new object[] {});
+                        m_ScriptEngine.m_EventQueueManager.AddToScriptQueue(ts.localID, ts.itemID, "timer", EventQueueManager.llDetectNull,
+                                                                            null);
                         // set next interval
 
-
-                        ts.next = DateTime.Now.ToUniversalTime().AddSeconds(ts.interval);
+                        //ts.next = DateTime.Now.ToUniversalTime().AddSeconds(ts.interval);
+                        ts.next = DateTime.Now.Ticks + ts.interval;
                     }
                 }
             } // lock
@@ -322,7 +339,7 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
 
                 }
 
-            
+
             }
         }
 
@@ -356,7 +373,7 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
                         );
                     }
 
-               }
+                }
             }
         }
 
