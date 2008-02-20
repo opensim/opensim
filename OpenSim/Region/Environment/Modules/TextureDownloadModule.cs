@@ -13,7 +13,7 @@
 *       names of its contributors may be used to endorse or promote products
 *       derived from this software without specific prior written permission.
 *
-* THIS SOFTWARE IS PROVIDED BY THE DEVELOPERS ``AS IS'' AND ANY
+* THIS SOFTWARE IS PROVIDED BY THE DEVELOPERS AS IS AND ANY
 * EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
 * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
 * DISCLAIMED. IN NO EVENT SHALL THE CONTRIBUTORS BE LIABLE FOR ANY
@@ -161,7 +161,6 @@ namespace OpenSim.Region.Environment.Modules
             if (TryGetUserTextureService(client.AgentId, out textureService))
             {
                 textureService.HandleTextureRequest(client, e);
-                m_scene.AddPendingDownloads(1);
             }            
         }
 
@@ -208,8 +207,9 @@ namespace OpenSim.Region.Environment.Modules
         /// <param name="sender"></param>
         private void TextureSent(TextureSender sender)
         {
-            sender.Sending = false;
-            m_scene.AddPendingDownloads(-1);
+            sender.Sending = false;    
+            //m_log.DebugFormat("[TEXTURE DOWNLOAD]: Removing download stat for {0}", sender.assetID);            
+            m_scene.AddPendingDownloads(-1);            
         }
     }
 }

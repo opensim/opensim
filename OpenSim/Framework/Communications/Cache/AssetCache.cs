@@ -249,6 +249,8 @@ namespace OpenSim.Framework.Communications.Cache
             }
             else
             {
+                m_log.DebugFormat("[ASSET CACHE]: Adding request for {0} {1}", isTexture ? "texture" : "asset", assetId);            
+            
                 NewAssetRequest req = new NewAssetRequest(assetId, callback);
 
                 // Make sure we always have a request list to which to add the asset
@@ -265,11 +267,10 @@ namespace OpenSim.Framework.Communications.Cache
                     }
                 }
 
-                m_log.DebugFormat("[ASSET CACHE]: Added request for {0} {1}", isTexture ? "texture" : "asset", assetId);
                 requestList.Requests.Add(req);
 
                 m_assetServer.RequestAsset(assetId, isTexture);
-            }
+            }            
         }
 
         /// <summary>
@@ -383,7 +384,7 @@ namespace OpenSim.Framework.Communications.Cache
                 }
             }
 
-            m_log.InfoFormat("[ASSET CACHE]: Adding {0} {1} [{2}]: {3}.", temporary, type, asset.FullID, result);
+            m_log.DebugFormat("[ASSET CACHE]: Adding {0} {1} [{2}]: {3}.", temporary, type, asset.FullID, result);
         }
 
         /// <summary>
@@ -411,7 +412,7 @@ namespace OpenSim.Framework.Communications.Cache
         // See IAssetReceiver
         public void AssetReceived(AssetBase asset, bool IsTexture)
         {
-            m_log.InfoFormat("[ASSET CACHE]: Recieved {0} [{1}]", IsTexture ? "texture" : "asset", asset.FullID);
+            m_log.DebugFormat("[ASSET CACHE]: Recieved {0} [{1}]", IsTexture ? "texture" : "asset", asset.FullID);
 
             if (asset.FullID != LLUUID.Zero) // if it is set to zero then the asset wasn't found by the server
             {
@@ -425,7 +426,7 @@ namespace OpenSim.Framework.Communications.Cache
                     TextureImage image = new TextureImage(asset);
                     if (Textures.ContainsKey(image.FullID))
                     {
-                        m_log.InfoFormat("[ASSET CACHE]: There's already an texture {0} in memory. Skipping.", asset.FullID);
+                        m_log.DebugFormat("[ASSET CACHE]: There's already an texture {0} in memory. Skipping.", asset.FullID);
                     }
                     else
                     {

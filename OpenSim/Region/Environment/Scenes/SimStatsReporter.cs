@@ -370,7 +370,7 @@ namespace OpenSim.Region.Environment.Scenes
         public void addPendingDownload(int count)
         {
             m_pendingDownloads += count;
-            //m_log.InfoFormat("Adding {0} to pending downloads to make {1}", count, m_pendingDownloads);            
+            //m_log.InfoFormat("[stats]: Adding {0} to pending downloads to make {1}", count, m_pendingDownloads);            
         }
 
         public void addScriptLines(int count)

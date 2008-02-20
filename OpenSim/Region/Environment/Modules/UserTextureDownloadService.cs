@@ -42,8 +42,8 @@ namespace OpenSim.Region.Environment.Modules
     /// </summary>
     public class UserTextureDownloadService
     {
-        //private static readonly log4net.ILog m_log 
-        //    = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+        private static readonly log4net.ILog m_log 
+            = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
         
         /// <summary>
         /// Holds texture senders before they have received the appropriate texture from the asset cache.
@@ -81,16 +81,15 @@ namespace OpenSim.Region.Environment.Modules
                 {
                     if (m_textureSenders.TryGetValue(e.RequestedAssetID, out textureSender))
                     {
-                        textureSender.UpdateRequest(e.DiscardLevel, e.PacketNumber);
-
-                        if ((textureSender.ImageLoaded) &&
-                            (textureSender.Sending == false))
-                        {
-                            EnqueueTextureSender(textureSender);
-                        }
+                        // If we've received new non UUID information for this request and it hasn't dispatched 
+                        // yet, then update the request accordingly.
+                        textureSender.UpdateRequest(e.DiscardLevel, e.PacketNumber);                        
                     }
                     else
                     {
+                        //m_log.DebugFormat("[USER TEXTURE DOWNLOAD]: Adding download stat {0}", e.RequestedAssetID);                
+                        m_scene.AddPendingDownloads(1);
+                
                         TextureSender requestHandler =
                             new TextureSender(client, e.DiscardLevel, e.PacketNumber);                        
                         m_textureSenders.Add(e.RequestedAssetID, requestHandler);
@@ -141,7 +140,7 @@ namespace OpenSim.Region.Environment.Modules
                         // TODO Send packet back to the client telling it not to expect the texture
                         // The absence of this packet doesn't appear to be causing it a problem right now
                         
-                        //m_log.InfoFormat("Removing {0} from pending downloads count", textureID);
+                        //m_log.DebugFormat("[USER TEXTURE DOWNLOAD]: Removing download stat for {0}", textureID);
                         m_scene.AddPendingDownloads(-1);
                     }
                     

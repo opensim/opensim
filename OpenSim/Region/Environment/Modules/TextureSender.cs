@@ -53,6 +53,8 @@ namespace OpenSim.Region.Environment.Modules
         /// </summary>
         private AssetBase m_asset;
         
+        //public LLUUID assetID { get { return m_asset.FullID; } }
+        
         /// <summary>
         /// This is actually the number of extra packets required to send the texture data!  We always assume
         /// at least one is required.
