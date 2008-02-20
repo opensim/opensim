@@ -214,7 +214,7 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
                     // Time has passed?
                     if (ts.next < DateTime.Now.Ticks)
                     {
-                        Console.WriteLine("Time has passed: Now: " + DateTime.Now.Ticks + ", Passed: " + ts.next);
+//                        Console.WriteLine("Time has passed: Now: " + DateTime.Now.Ticks + ", Passed: " + ts.next);
                         // Add it to queue
                         m_ScriptEngine.m_EventQueueManager.AddToScriptQueue(ts.localID, ts.itemID, "timer", EventQueueManager.llDetectNull,
                                                                             null);

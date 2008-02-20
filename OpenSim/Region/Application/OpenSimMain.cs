@@ -28,6 +28,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Text;
 using System.Threading;
@@ -744,6 +745,7 @@ namespace OpenSim
                     m_console.Notice("show users - show info about connected users.");
                     m_console.Notice("show modules - shows info about loaded modules.");
                     m_console.Notice("show stats - statistical information for this server not displayed in the client");
+                    m_console.Notice("threads - list threads");
                     m_console.Notice("shutdown - disconnect all clients and shutdown.");
                     m_console.Notice("config set section field value - set a config value");
                     m_console.Notice("config get section field - get a config value");
@@ -751,6 +753,17 @@ namespace OpenSim
                     m_console.Notice("terrain help - show help for terrain commands.");
                     break;
 
+                case "threads":
+                    if (cmdparams.Length > 0)
+                    {
+                        int c = 0;
+                        foreach (Thread t in Process.GetCurrentProcess().Threads)
+                        {
+                            c++;
+                            m_console.Notice("THREAD", "Thread " + c + ": " + t.Name + " (" + t.ToString() + ")");
+                        }
+                    }
+                    break;
                 case "save-xml":
                     if (cmdparams.Length > 0)
                     {
