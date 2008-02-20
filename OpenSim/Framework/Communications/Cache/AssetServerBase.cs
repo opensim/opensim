@@ -120,6 +120,10 @@ namespace OpenSim.Framework.Communications.Cache
             }
         }
 
+        /// <summary>
+        /// The receiver will be called back with asset data once it comes in.
+        /// </summary>
+        /// <param name="receiver"></param>
         public void SetReceiver(IAssetReceiver receiver)
         {
             m_receiver = receiver;
