@@ -93,7 +93,7 @@ namespace OpenSim.Grid.ScriptEngine.DotNetEngine
         //   then queued in EventQueueManager.
         // When queued in EventQueueManager they need to be LSL compatible (name and params)
 
-        //public void state_entry() { } // 
+        //public void state_entry() { }
         public void state_exit()
         {
         }

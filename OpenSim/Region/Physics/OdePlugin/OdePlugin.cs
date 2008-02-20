@@ -44,7 +44,7 @@ namespace OpenSim.Region.Physics.OdePlugin
     /// </summary>
     public class OdePlugin : IPhysicsPlugin
     {
-        private static readonly log4net.ILog m_log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+        //private static readonly log4net.ILog m_log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 
         private CollisionLocker ode;
         private OdeScene _mScene;
@@ -75,8 +75,6 @@ namespace OpenSim.Region.Physics.OdePlugin
 
         public void Dispose()
         {
-            
-            
         }
     }
 
@@ -324,7 +322,7 @@ namespace OpenSim.Region.Physics.OdePlugin
 
                 //if (id == d.GeomClassId.TriMeshClass)
                 //{
-                    //               m_log.Info("near: A collision was detected between {1} and {2}", 0, name1, name2);
+                    //               m_log.InfoFormat("near: A collision was detected between {1} and {2}", 0, name1, name2);
                     //System.Console.WriteLine("near: A collision was detected between {1} and {2}", 0, name1, name2);
                 //}
 
@@ -357,7 +355,6 @@ namespace OpenSim.Region.Physics.OdePlugin
                     IntPtr joint;
                     // If we're colliding with terrain, use 'TerrainContact' instead of contact.
                     // allows us to have different settings
-                    
 
                     if (!actor_name_map.TryGetValue(g1, out p1))
                     {
@@ -370,7 +367,6 @@ namespace OpenSim.Region.Physics.OdePlugin
 
                     // We only need to test p2 for 'jump crouch purposes'
                     p2.IsColliding = true;
-
 
                     switch (p1.PhysicsActorType)
                     {
@@ -395,12 +391,12 @@ namespace OpenSim.Region.Physics.OdePlugin
 
                     if (contacts[i].depth >= 0.08f)
                     {
-                          //This is disabled at the moment only because it needs more tweaking
-                            //It will eventually be uncommented
+                        //This is disabled at the moment only because it needs more tweaking
+                        //It will eventually be uncommented
                          
                         if (contacts[i].depth >= 1.00f)
                         {
-                            //m_log.Debug("[PHYSICS]: " +contacts[i].depth.ToString());
+                            //m_log.Debug("[PHYSICS]: " + contacts[i].depth.ToString());
                         }
                          
                         //If you interpenetrate a prim with an agent
@@ -769,7 +765,6 @@ namespace OpenSim.Region.Physics.OdePlugin
                     // If the geometry is in the targetspace, remove it from the target space
                     //m_log.Warn(prim.m_targetSpace);
 
-
                     //if (prim.m_targetSpace != (IntPtr)0)
                     //{
                         if (d.SpaceQuery(prim.m_targetSpace, prim.prim_geom))
@@ -832,12 +827,10 @@ namespace OpenSim.Region.Physics.OdePlugin
                     //}
                 }
 
-
-
                 ode.dunlock(world);
-                
             }
         }
+
         /// <summary>
         /// Takes a space pointer and zeros out the array we're using to hold the spaces
         /// </summary>
@@ -914,7 +907,6 @@ namespace OpenSim.Region.Physics.OdePlugin
                     }
                 }
 
-
                 //If there are no more geometries in the sub-space, we don't need it in the main space anymore
                 if (d.SpaceGetNumGeoms(currentspace) == 0)
                 {
@@ -979,7 +971,6 @@ namespace OpenSim.Region.Physics.OdePlugin
                     }
                 }
             }
-
 
             // The routines in the Position and Size sections do the 'inserting' into the space, 
             // so all we have to do is make sure that the space that we're putting the prim into 
@@ -1111,7 +1102,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                 name2 = "null";
             }
 
-            m_log.Info("TriArrayCallback: A collision was detected between {1} and {2}", 0, name1, name2);
+            m_log.InfoFormat("TriArrayCallback: A collision was detected between {1} and {2}", 0, name1, name2);
 */
             return 1;
         }
@@ -1131,14 +1122,14 @@ namespace OpenSim.Region.Physics.OdePlugin
                 name2 = "null";
             }
 
-//            m_log.Info("TriCallback: A collision was detected between {1} and {2}. Index was {3}", 0, name1, name2, triangleIndex);
+//            m_log.InfoFormat("TriCallback: A collision was detected between {1} and {2}. Index was {3}", 0, name1, name2, triangleIndex);
 
             d.Vector3 v0 = new d.Vector3();
             d.Vector3 v1 = new d.Vector3();
             d.Vector3 v2 = new d.Vector3();
 
             d.GeomTriMeshGetTriangle(trimesh, 0, ref v0, ref v1, ref v2);
-//            m_log.Debug("Triangle {0} is <{1},{2},{3}>, <{4},{5},{6}>, <{7},{8},{9}>", triangleIndex, v0.X, v0.Y, v0.Z, v1.X, v1.Y, v1.Z, v2.X, v2.Y, v2.Z);
+//            m_log.DebugFormat("Triangle {0} is <{1},{2},{3}>, <{4},{5},{6}>, <{7},{8},{9}>", triangleIndex, v0.X, v0.Y, v0.Z, v1.X, v1.Y, v1.Z, v2.X, v2.Y, v2.Z);
 
             return 1;
         }
@@ -1282,9 +1273,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                                 foreach (OdeCharacter actor in _characters)
                                 {
                                     actor.Move(timeStep);
-
                                 }
-
 
                                 collision_optimized(timeStep);
 
@@ -1299,9 +1288,6 @@ namespace OpenSim.Region.Physics.OdePlugin
                                 ode.dunlock(world);
                             }
                                 
-                                
-                            
-
                             step_time -= ODE_STEPSIZE;
                             i++;
                         }
@@ -1691,6 +1677,7 @@ namespace OpenSim.Region.Physics.OdePlugin
         public override void DeleteTerrain()
         {
         }
+
         public override void Dispose()
         {
             lock (OdeLock)

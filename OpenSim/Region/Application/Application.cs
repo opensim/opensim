@@ -35,8 +35,6 @@ namespace OpenSim
 {
     public class Application
     {
-        private static readonly log4net.ILog m_log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
-
         public static string iniFilePath = "";
 
         //could move our main function into OpenSimMain and kill this class

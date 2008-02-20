@@ -13,7 +13,7 @@
 *       names of its contributors may be used to endorse or promote products
 *       derived from this software without specific prior written permission.
 *
-* THIS SOFTWARE IS PROVIDED BY THE DEVELOPERS AS IS AND ANY
+* THIS SOFTWARE IS PROVIDED BY THE DEVELOPERS ``AS IS'' AND ANY
 * EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
 * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
 * DISCLAIMED. IN NO EVENT SHALL THE CONTRIBUTORS BE LIABLE FOR ANY
@@ -53,7 +53,7 @@ namespace OpenSim.Region.Physics.Meshing
 
     public class Meshmerizer : IMesher
     {
-        private static readonly log4net.ILog m_log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+        //private static readonly log4net.ILog m_log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 
         // Setting baseDir to a path will enable the dumping of raw files
         // raw files can be imported by blender so a visual inspection of the results can be done
@@ -530,12 +530,11 @@ namespace OpenSim.Region.Physics.Meshing
                 }
             }
             
-
-
             Mesh result = extr.Extrude(m);
             result.DumpRaw(baseDir, primName, "Z extruded");
             return result;
         }
+
         private static Mesh CreateCyllinderMesh(String primName, PrimitiveBaseShape primShape, PhysicsVector size)
         // Builds the z (+ and -) surfaces of a box shaped prim
         {
@@ -601,7 +600,6 @@ namespace OpenSim.Region.Physics.Meshing
             Vertex Q1Q13 = new Vertex(-0.43f, -0.24f, 0.0f);
             Vertex Q1Q14 = new Vertex(-0.40f, -0.30f, 0.0f);
             
-
             SimpleHull outerHull = new SimpleHull();
             //Clockwise around the quadrants
             outerHull.AddVertex(Q1Q15);
@@ -684,7 +682,7 @@ namespace OpenSim.Region.Physics.Meshing
                 // Calculated separately to avoid errors
                 cutHull.AddVertex(legEnd);
 
-               // m_log.DebugFormat("Starting cutting of the hollow shape from the prim {1}", 0, primName);
+                // m_log.DebugFormat("Starting cutting of the hollow shape from the prim {1}", 0, primName);
                 SimpleHull cuttedHull = SimpleHull.SubtractHull(outerHull, cutHull);
 
                 outerHull = cuttedHull;
@@ -693,7 +691,6 @@ namespace OpenSim.Region.Physics.Meshing
             // Deal with the hole here
             if (hollowFactor > 0)
             {
-                
                 SimpleHull holeHull = BuildHoleHull(primShape, primShape.ProfileShape, primShape.HollowShape, hollowFactor);
                 if (holeHull != null)
                 {
@@ -799,9 +796,7 @@ namespace OpenSim.Region.Physics.Meshing
             Mesh result = extr.Extrude(m);
             result.DumpRaw(baseDir, primName, "Z extruded");
             return result;
-        
         }
-
 
         private static Mesh CreatePrismMesh(String primName, PrimitiveBaseShape primShape, PhysicsVector size)
         // Builds the z (+ and -) surfaces of a box shaped prim
@@ -837,7 +832,6 @@ namespace OpenSim.Region.Physics.Meshing
             outerHull.AddVertex(PM);
             outerHull.AddVertex(PP);
             
-
             // Deal with cuts now
             if ((profileBegin != 0) || (profileEnd != 0))
             {
@@ -882,8 +876,6 @@ namespace OpenSim.Region.Physics.Meshing
             // Deal with the hole here
             if (hollowFactor > 0)
             {
-
-
                 SimpleHull holeHull = BuildHoleHull(primShape, primShape.ProfileShape, primShape.HollowShape, hollowFactor);
                 if (holeHull != null)
                 {
@@ -940,7 +932,6 @@ namespace OpenSim.Region.Physics.Meshing
                     extr.taperBotFactorX = 1.0f - ((100 - (float)taperX) / 100);
                     //m_log.Warn("taperBotFactorX: " + extr.taperBotFactorX.ToString());
                 }
-
             }
 
             if (taperY != 100)
@@ -956,7 +947,6 @@ namespace OpenSim.Region.Physics.Meshing
                     //m_log.Warn("taperBotFactorY: " + extr.taperBotFactorY.ToString());
                 }
             }
-
 
             if (pathShearX != 0)
             {
@@ -987,8 +977,6 @@ namespace OpenSim.Region.Physics.Meshing
                     //m_log.Warn("pushY: " + extr.pushY);
                 }
             }
-
-
 
             Mesh result = extr.Extrude(m);
             result.DumpRaw(baseDir, primName, "Z extruded");

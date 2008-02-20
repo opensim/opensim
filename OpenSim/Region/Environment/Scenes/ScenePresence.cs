@@ -873,7 +873,6 @@ namespace OpenSim.Region.Environment.Scenes
                 // TODO: determine position to sit at based on scene geometry; don't trust offset from client
                 // see http://wiki.secondlife.com/wiki/User:Andrew_Linden/Office_Hours/2007_11_06 for details on how LL does it
 
-
                 // Is a sit target available?
                 Vector3 avSitOffSet = part.GetSitTargetPosition();
                 Quaternion avSitOrientation = part.GetSitTargetOrientation();
@@ -893,15 +892,12 @@ namespace OpenSim.Region.Environment.Scenes
                     autopilot = false;
                 }
 
-
                 pos = part.AbsolutePosition + offset;
 
                 if (m_physicsActor != null)
                 {
-                    // 
                     // If we're not using the client autopilot, we're immediately warping the avatar to the location
                     // We can remove the physicsActor until they stand up.
-                    //
                     m_sitAvatarHeight = m_physicsActor.Size.Z;
 
                     if (autopilot)
@@ -913,17 +909,13 @@ namespace OpenSim.Region.Environment.Scenes
                             RemoveFromPhysicalScene();
                             AbsolutePosition = pos + new LLVector3(0.0f, 0.0f, m_sitAvatarHeight);
                         }
-                        else
-                        {
-                        }
                     }
                     else
                     {
                         RemoveFromPhysicalScene();
                     }
-                } // Physactor != null
-            } // part != null
-
+                }
+            }
 
             avatarSitResponse.SitTransform.AutoPilot = autopilot;
             avatarSitResponse.SitTransform.SitPosition = offset;

@@ -219,8 +219,8 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
                                             GotItem = true;
                                             break;
                                         }
-                                    } // go through queue
-                                } // lock
+                                    }
+                                }
 
                                 if (GotItem == true)
                                 {
@@ -305,7 +305,7 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
                                         eventQueueManager.ReleaseLock(QIS.localID);
                                     }
                                 }
-                            } // Something in queue
+                            }
                         }
                     }
                     catch (ThreadAbortException tae)
@@ -316,8 +316,8 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
                     {
                         eventQueueManager.m_ScriptEngine.Log.Error("[" + ScriptEngineName + "]: Exception in EventQueueThreadLoop: " + e.ToString());
                     }
-                } // while
-            } // try
+                }
+            }
             catch (ThreadAbortException)
             {
                 //myScriptEngine.Log.Info("[" + ScriptEngineName + "]: EventQueueManager Worker thread killed: " + tae.Message);

@@ -37,7 +37,7 @@ namespace OpenSim.Framework.Data.DB4o
     /// </summary>
     public class DB4oUserData : IUserData
     {
-        private static readonly log4net.ILog m_log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+        //private static readonly log4net.ILog m_log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 
         /// <summary>
         /// The database manager

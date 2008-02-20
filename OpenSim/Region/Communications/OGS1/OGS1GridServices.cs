@@ -13,7 +13,7 @@
 *       names of its contributors may be used to endorse or promote products
 *       derived from this software without specific prior written permission.
 *
-* THIS SOFTWARE IS PROVIDED BY THE DEVELOPERS AS IS AND ANY
+* THIS SOFTWARE IS PROVIDED BY THE DEVELOPERS ``AS IS'' AND ANY
 * EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
 * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
 * DISCLAIMED. IN NO EVENT SHALL THE CONTRIBUTORS BE LIABLE FOR ANY
@@ -112,20 +112,15 @@ namespace OpenSim.Region.Communications.OGS1
             GridParams["remoting_port"] = NetworkServersInfo.RemotingListenerPort.ToString();
             GridParams["map-image-id"] = regionInfo.EstateSettings.terrainImageID.ToString();
 
-
-	    // Added by daTwitch
-	    // part of an initial brutish effort to provide accurate information (as per the xml region spec)
-	    // wrt the ownership of a given region
-	    // the (very bad) assumption is that this value is being read and handled inconsistently or
-	    // not at all. Current strategy is to put the code in place to support the validity of this information
-	    // and to roll forward debugging any issues from that point
-	    //
-	    // this particular section of the mod attempts to supply a value from the region's xml file to the grid 
-	    // server for the UUID of the region's owner (master avatar)
-	    // 
-	    GridParams["master_avatar_uuid"] = regionInfo.MasterAvatarAssignedUUID.ToString();
-	    // end of daTwitch's addition to this file
-
+            // part of an initial brutish effort to provide accurate information (as per the xml region spec)
+            // wrt the ownership of a given region
+            // the (very bad) assumption is that this value is being read and handled inconsistently or
+            // not at all. Current strategy is to put the code in place to support the validity of this information
+            // and to roll forward debugging any issues from that point
+            //
+            // this particular section of the mod attempts to supply a value from the region's xml file to the grid 
+            // server for the UUID of the region's owner (master avatar)
+            GridParams["master_avatar_uuid"] = regionInfo.MasterAvatarAssignedUUID.ToString();
 
             // Package into an XMLRPC Request
             ArrayList SendParams = new ArrayList();

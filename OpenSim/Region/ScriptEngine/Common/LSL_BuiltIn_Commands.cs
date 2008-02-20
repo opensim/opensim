@@ -13,7 +13,7 @@
 *       names of its contributors may be used to endorse or promote products
 *       derived from this software without specific prior written permission.
 *
-* THIS SOFTWARE IS PROVIDED BY THE DEVELOPERS AS IS AND ANY
+* THIS SOFTWARE IS PROVIDED BY THE DEVELOPERS ``AS IS'' AND ANY
 * EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
 * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
 * DISCLAIMED. IN NO EVENT SHALL THE CONTRIBUTORS BE LIABLE FOR ANY
@@ -48,7 +48,7 @@ namespace OpenSim.Region.ScriptEngine.Common
     /// </summary>
     public class LSL_BuiltIn_Commands : MarshalByRefObject, LSL_BuiltIn_Commands_Interface
     {
-        private static readonly log4net.ILog m_log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+        //private static readonly log4net.ILog m_log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 
         private ASCIIEncoding enc = new ASCIIEncoding();
         private ScriptEngineBase.ScriptEngine m_ScriptEngine;
@@ -3393,40 +3393,28 @@ namespace OpenSim.Region.ScriptEngine.Common
             {
                 case LSL_BaseClass.LIST_STAT_RANGE:
                     return nums.Range();
-                    break;
                 case LSL_BaseClass.LIST_STAT_MIN:
                     return nums.Min();
-                    break;
                 case LSL_BaseClass.LIST_STAT_MAX:
                     return nums.Max();
-                    break;
                 case LSL_BaseClass.LIST_STAT_MEAN:
                     return nums.Mean();
-                    break;
                 case LSL_BaseClass.LIST_STAT_MEDIAN:
                     return nums.Median();
-                    break;
                 case LSL_BaseClass.LIST_STAT_NUM_COUNT:
                     return nums.NumericLength();
-                    break;
                 case LSL_BaseClass.LIST_STAT_STD_DEV:
                     return nums.StdDev();
-                    break;
                 case LSL_BaseClass.LIST_STAT_SUM:
                     return nums.Sum();
-                    break;
                 case LSL_BaseClass.LIST_STAT_SUM_SQUARES:
                     return nums.SumSqrs();
-                    break;
                 case LSL_BaseClass.LIST_STAT_GEOMETRIC_MEAN:
                     return nums.GeometricMean();
-                    break;
                 case LSL_BaseClass.LIST_STAT_HARMONIC_MEAN:
                     return nums.HarmonicMean();
-                    break;
                 default:
                     return 0.0;
-                    break;
             }
         }
 
@@ -3676,28 +3664,30 @@ namespace OpenSim.Region.ScriptEngine.Common
             return LLUUID.Zero.ToString();
         }
 
-	public bool osConsoleCommand(string Command)
-	{
-		m_host.AddScriptLPS(1);
-		Nini.Config.IConfigSource config = new Nini.Config.IniConfigSource(Application.iniFilePath);
-		if (config.Configs["LL-Functions"] == null)
-	                config.AddConfig("LL-Functions");
+        public bool osConsoleCommand(string command)
+        {
+            m_host.AddScriptLPS(1);
+            Nini.Config.IConfigSource config = new Nini.Config.IniConfigSource(Application.iniFilePath);
+            if (config.Configs["LL-Functions"] == null)
+                config.AddConfig("LL-Functions");
 
-		if (config.Configs["LL-Functions"].GetBoolean("AllowosConsoleCommand", false)) {
-			if (World.PermissionsMngr.CanRunConsoleCommand(m_host.OwnerID)) {
-				OpenSim.Framework.Console.MainConsole.Instance.RunCommand(Command);
-				return true;
-			}
-			return false;
-		}
-		return false;
-	}
+            if (config.Configs["LL-Functions"].GetBoolean("AllowosConsoleCommand", false))
+            {
+                if (World.PermissionsMngr.CanRunConsoleCommand(m_host.OwnerID))
+                {
+                    OpenSim.Framework.Console.MainConsole.Instance.RunCommand(command);
+                    return true;
+                }
+                return false;
+            }
+            return false;
+        }
 
-        private void NotImplemented(string Command)
+        private void NotImplemented(string command)
         {
             m_host.AddScriptLPS(1);
             if (throwErrorOnNotImplemented)
-                throw new NotImplementedException("Command not implemented: " + Command);
+                throw new NotImplementedException("Command not implemented: " + command);
         }
 
         private void LSLError(string msg)

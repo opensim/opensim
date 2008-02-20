@@ -13,7 +13,7 @@
 *       names of its contributors may be used to endorse or promote products
 *       derived from this software without specific prior written permission.
 *
-* THIS SOFTWARE IS PROVIDED BY THE DEVELOPERS AS IS AND ANY
+* THIS SOFTWARE IS PROVIDED BY THE DEVELOPERS ``AS IS'' AND ANY
 * EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
 * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
 * DISCLAIMED. IN NO EVENT SHALL THE CONTRIBUTORS BE LIABLE FOR ANY
@@ -39,7 +39,7 @@ namespace OpenSim.Region.Environment.Modules
 {
     public class SunModule : IRegionModule
     {
-        private static readonly log4net.ILog m_log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+        //private static readonly log4net.ILog m_log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 
         private const double m_real_day = 24.0;
         private const int m_default_frame = 100;
@@ -104,7 +104,7 @@ namespace OpenSim.Region.Environment.Modules
                 m_frame++;
                 return;
             }
-            // m_log.Info("[SUN]: I've got an update {0} => {1}", m_scene.RegionsInfo.RegionName, HourOfTheDay());
+            // m_log.InfoFormat("[SUN]: I've got an update {0} => {1}", m_scene.RegionsInfo.RegionName, HourOfTheDay());
             List<ScenePresence> avatars = m_scene.GetAvatars();
             foreach (ScenePresence avatar in avatars)
             {

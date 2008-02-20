@@ -123,23 +123,17 @@ namespace OpenSim.Framework.Data
         /// </summary>
         public LLUUID regionMapTextureID = new LLUUID("00000000-0000-0000-9999-000000000006");
 
-	// added by daTwitch
-	// part of an initial brutish effort to provide accurate information (as per the xml region spec)
-	// wrt the ownership of a given region
-	// the (very bad) assumption is that this value is being read and handled inconsistently or
-	// not at all. Current strategy is to put the code in place to support the validity of this information
-	// and to roll forward debugging any issues from that point
-	//
-	// this particular mod to the file provides support within the spec for RegionProfileData for the 
-	// owner_uuid for the region
-	//
-	/// <summary>
-	/// this particular mod to the file provides support within the spec for RegionProfileData for the 
-	/// owner_uuid for the region
-	/// </summary>
-	public LLUUID owner_uuid;
+        // part of an initial brutish effort to provide accurate information (as per the xml region spec)
+        // wrt the ownership of a given region
+        // the (very bad) assumption is that this value is being read and handled inconsistently or
+        // not at all. Current strategy is to put the code in place to support the validity of this information
+        // and to roll forward debugging any issues from that point
         //
-	// end of daTwitch mod to this file
+        /// <summary>
+        /// this particular mod to the file provides support within the spec for RegionProfileData for the 
+        /// owner_uuid for the region
+        /// </summary>
+        public LLUUID owner_uuid;
 
         /// <summary>
         /// Get Sim profile data from grid server when in grid mode

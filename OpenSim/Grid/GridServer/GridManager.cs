@@ -283,7 +283,6 @@ namespace OpenSim.Grid.GridServer
             TheSim.regionLocZ = 0;
             TheSim.regionMapTextureID = new LLUUID((string)requestData["map-image-id"]);
 
-    	    // Added by daTwitch
     	    // part of an initial brutish effort to provide accurate information (as per the xml region spec)
     	    // wrt the ownership of a given region
     	    // the (very bad) assumption is that this value is being read and handled inconsistently or
@@ -292,9 +291,7 @@ namespace OpenSim.Grid.GridServer
     	    //
     	    // this particular section of the mod attempts to receive a value from the region's xml file by way of 
     	    // OSG1GridServices for the region's owner
-    	    // 
     	    TheSim.owner_uuid = (string)requestData["master_avatar_uuid"];
-    	    // end of daTwitch's mods to this file
 
             try
             {

@@ -13,7 +13,7 @@
 *       names of its contributors may be used to endorse or promote products
 *       derived from this software without specific prior written permission.
 *
-* THIS SOFTWARE IS PROVIDED BY THE DEVELOPERS AS IS AND ANY
+* THIS SOFTWARE IS PROVIDED BY THE DEVELOPERS ``AS IS'' AND ANY
 * EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
 * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
 * DISCLAIMED. IN NO EVENT SHALL THE CONTRIBUTORS BE LIABLE FOR ANY
@@ -105,7 +105,7 @@ namespace OpenSim.Grid.ScriptEngine.DotNetEngine
 
                 Console.WriteLine("Scripts loaded in this Appdomain: " + currentAD.ScriptsLoaded);
                 return currentAD;
-            } // lock
+            }
         }
 
         private int AppDomainNameCount;
@@ -169,10 +169,9 @@ namespace OpenSim.Grid.ScriptEngine.DotNetEngine
 #endif
                         }
                     }
-                } // foreach
-            } // lock
+                }
+            }
         }
-
 
         public LSL_BaseClass LoadScript(string FileName)
         {
@@ -188,7 +187,6 @@ namespace OpenSim.Grid.ScriptEngine.DotNetEngine
 
             return mbrt;
         }
-
 
         /// <summary>
         /// Increase "dead script" counter for an AppDomain
@@ -217,8 +215,8 @@ namespace OpenSim.Grid.ScriptEngine.DotNetEngine
                         ads.ScriptsWaitingUnload++;
                         break;
                     }
-                } // foreach
-            } // lock
+                }
+            }
 
             UnloadAppDomains(); // Outsite lock, has its own GetLock
         }

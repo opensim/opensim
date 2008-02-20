@@ -13,7 +13,7 @@
 *       names of its contributors may be used to endorse or promote products
 *       derived from this software without specific prior written permission.
 *
-* THIS SOFTWARE IS PROVIDED BY THE DEVELOPERS AS IS AND ANY
+* THIS SOFTWARE IS PROVIDED BY THE DEVELOPERS ``AS IS'' AND ANY
 * EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
 * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
 * DISCLAIMED. IN NO EVENT SHALL THE CONTRIBUTORS BE LIABLE FOR ANY
@@ -63,7 +63,6 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
         {
             cmdHandlerThreadCycleSleepms = m_ScriptEngine.ScriptConfigSource.GetInt("AsyncLLCommandLoopms", 50);
         }
-
 
         ~AsyncLSLCommandManager()
         {
@@ -215,7 +214,6 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
                     // Time has passed?
                     if (ts.next < DateTime.Now.Ticks)
                     {
-                        
                         Console.WriteLine("Time has passed: Now: " + DateTime.Now.Ticks + ", Passed: " + ts.next);
                         // Add it to queue
                         m_ScriptEngine.m_EventQueueManager.AddToScriptQueue(ts.localID, ts.itemID, "timer", EventQueueManager.llDetectNull,
@@ -226,7 +224,7 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
                         ts.next = DateTime.Now.Ticks + ts.interval;
                     }
                 }
-            } // lock
+            }
         }
 
         #endregion
@@ -272,7 +270,6 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
                 }
 
                 httpInfo = iHttpReq.GetNextCompletedRequest();
-
             }
         }
 
@@ -307,11 +304,9 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
                         m_ScriptEngine.m_EventQueueManager.AddToScriptQueue(
                             rInfo.GetLocalID(), rInfo.GetItemID(), "remote_data", EventQueueManager.llDetectNull, resobj
                         );
-
                     }
 
                     rInfo = xmlrpc.GetNextCompletedRequest();
-
                 }
 
                 SendRemoteDataRequest srdInfo = xmlrpc.GetNextCompletedSRDRequest();
@@ -332,14 +327,10 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
                         m_ScriptEngine.m_EventQueueManager.AddToScriptQueue(
                             srdInfo.m_localID, srdInfo.m_itemID, "remote_data", EventQueueManager.llDetectNull, resobj
                         );
-
                     }
 
                     srdInfo = xmlrpc.GetNextCompletedSRDRequest();
-
                 }
-
-
             }
         }
 
@@ -372,7 +363,6 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
                             lInfo.GetLocalID(), lInfo.GetItemID(), "listen", EventQueueManager.llDetectNull, resobj
                         );
                     }
-
                 }
             }
         }

@@ -130,9 +130,7 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
 
                         if (m_ScriptEngine != null)
                         {
-                            //
                             // Re-reading config every x seconds
-                            //
                             if (m_ScriptEngine.RefreshConfigFilens > 0)
                             {
                                 // Check if its time to re-read config
@@ -145,15 +143,11 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
                                 }
                             }
 
-                            //
                             // Adjust number of running script threads if not correct
-                            //
                             if (m_ScriptEngine.m_EventQueueManager != null)
                                 m_ScriptEngine.m_EventQueueManager.AdjustNumberOfScriptThreads();
 
-                            //
                             // Check if any script has exceeded its max execution time
-                            //
                             if (m_ScriptEngine.m_EventQueueManager != null && m_ScriptEngine.m_EventQueueManager.EnforceMaxExecutionTime)
                             {
                                 // We are enforcing execution time
@@ -165,7 +159,7 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
                                     Last_maxFunctionExecutionTimens = DateTime.Now.Ticks; // Reset time
                                 }
                             }
-                        } // m_ScriptEngine != null
+                        }
                     }
                 }
                 catch (Exception ex)

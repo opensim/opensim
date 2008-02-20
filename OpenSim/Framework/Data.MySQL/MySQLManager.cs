@@ -344,17 +344,14 @@ namespace OpenSim.Framework.Data.MySQL
                     retval.regionMapTextureID = LLUUID.Zero;
                 }
 
-		// Added by daTwitch
-		// part of an initial brutish effort to provide accurate information (as per the xml region spec)
-		// wrt the ownership of a given region
-		// the (very bad) assumption is that this value is being read and handled inconsistently or
-		// not at all. Current strategy is to put the code in place to support the validity of this information
-		// and to roll forward debugging any issues from that point
-		//
-		// this particular section of the mod attempts to supply a value from the region table to the caller of 'readSimRow()' 
-		// for the UUID of the region's owner (master avatar)
-		// 
-		//retval.owner_uuid = (string) reader["owner_uuid"];
+                // part of an initial brutish effort to provide accurate information (as per the xml region spec)
+                // wrt the ownership of a given region
+                // the (very bad) assumption is that this value is being read and handled inconsistently or
+                // not at all. Current strategy is to put the code in place to support the validity of this information
+                // and to roll forward debugging any issues from that point
+                //
+                // this particular section of the mod attempts to supply a value from the region table to the caller of 'readSimRow()' 
+                // for the UUID of the region's owner (master avatar)
                 try
                 {
                     retval.owner_uuid = new LLUUID((string)reader["owner_uuid"]);
@@ -363,8 +360,6 @@ namespace OpenSim.Framework.Data.MySQL
                 {
                     retval.owner_uuid = LLUUID.Zero;
                 }
-        //
-		// end of daTwitch's mods to this file
             }
             else
             {
@@ -660,31 +655,27 @@ namespace OpenSim.Framework.Data.MySQL
             sql +=
                 "serverIP, serverPort, serverURI, locX, locY, locZ, eastOverrideHandle, westOverrideHandle, southOverrideHandle, northOverrideHandle, regionAssetURI, regionAssetRecvKey, ";
 
-	    // Added by daTwitch
-	    // part of an initial brutish effort to provide accurate information (as per the xml region spec)
-	    // wrt the ownership of a given region
-	    // the (very bad) assumption is that this value is being read and handled inconsistently or
-	    // not at all. Current strategy is to put the code in place to support the validity of this information
-	    // and to roll forward debugging any issues from that point
-	    //
-	    // this particular section of the mod attempts to implement the commit of a supplied value
-	    // server for the UUID of the region's owner (master avatar). It consists of the addition of the column and value to the relevant sql,
-	    // as well as the related parameterization
+            // part of an initial brutish effort to provide accurate information (as per the xml region spec)
+            // wrt the ownership of a given region
+            // the (very bad) assumption is that this value is being read and handled inconsistently or
+            // not at all. Current strategy is to put the code in place to support the validity of this information
+            // and to roll forward debugging any issues from that point
+            //
+            // this particular section of the mod attempts to implement the commit of a supplied value
+            // server for the UUID of the region's owner (master avatar). It consists of the addition of the column and value to the relevant sql,
+            // as well as the related parameterization
             sql +=
                 "regionAssetSendKey, regionUserURI, regionUserRecvKey, regionUserSendKey, regionMapTexture, serverHttpPort, serverRemotingPort, owner_uuid) VALUES ";
-		// daTwitch
-
 
             sql += "(?regionHandle, ?regionName, ?uuid, ?regionRecvKey, ?regionSecret, ?regionSendKey, ?regionDataURI, ";
             sql +=
                 "?serverIP, ?serverPort, ?serverURI, ?locX, ?locY, ?locZ, ?eastOverrideHandle, ?westOverrideHandle, ?southOverrideHandle, ?northOverrideHandle, ?regionAssetURI, ?regionAssetRecvKey, ";
             sql +=
                 "?regionAssetSendKey, ?regionUserURI, ?regionUserRecvKey, ?regionUserSendKey, ?regionMapTexture, ?serverHttpPort, ?serverRemotingPort, ?owner_uuid)";
-		// daTwitch
+
             if (GRID_ONLY_UPDATE_NECESSARY_DATA)
             {
                 sql += "ON DUPLICATE KEY UPDATE serverIP = ?serverIP, serverPort = ?serverPort, serverURI = ?serverURI, owner_uuid - ?owner_uuid;";
-		// daTwitch
             }
             else
             {
@@ -719,8 +710,7 @@ namespace OpenSim.Framework.Data.MySQL
             parameters["?regionMapTexture"] = regiondata.regionMapTextureID.ToString();
             parameters["?serverHttpPort"] = regiondata.httpPort.ToString();
             parameters["?serverRemotingPort"] = regiondata.remotingPort.ToString();
-	    parameters["?owner_uuid"] = regiondata.owner_uuid.ToString();
-	    // daTwitch
+            parameters["?owner_uuid"] = regiondata.owner_uuid.ToString();
 
             bool returnval = false;
 

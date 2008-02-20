@@ -42,7 +42,7 @@ namespace OpenSim.Region.Physics.Meshing
     // is defined by the hull lies inside or outside the simplex chain
     public class SimpleHull
     {
-        private static readonly log4net.ILog m_log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+        //private static readonly log4net.ILog m_log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 
         private List<Vertex> vertices = new List<Vertex>();
         private List<Vertex> holeVertices = new List<Vertex>(); // Only used, when the hull is hollow
@@ -228,8 +228,8 @@ namespace OpenSim.Region.Physics.Meshing
                         distToV1 = distTemp;
                         bestIntersectingSimplex = sTest;
                     }
-                } // end if vTemp
-            } // end foreach
+                }
+            }
 
             Intersection = bestIntersection;
             if (bestIntersectingSimplex != null)
@@ -308,7 +308,6 @@ namespace OpenSim.Region.Physics.Meshing
             //m_log.Debug("State after intersection detection for the base hull");
             //m_log.DebugFormat("The otherHull is:\n{1}", 0, otherHullClone.ToString());
 
-
             bool otherIsInBase = baseHullClone.containsPointsFrom(otherHullClone);
             if (!intersects && otherIsInBase)
             {
@@ -316,7 +315,6 @@ namespace OpenSim.Region.Physics.Meshing
                 baseHullClone.holeVertices = otherHullClone.vertices;
                 return baseHullClone;
             }
-
 
             SimpleHull result = new SimpleHull();
 

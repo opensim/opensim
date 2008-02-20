@@ -42,8 +42,8 @@ namespace OpenSim.Region.Environment.Modules
     /// </summary>
     public class UserTextureDownloadService
     {
-        private static readonly log4net.ILog m_log 
-            = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+        //private static readonly log4net.ILog m_log 
+        //    = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
         
         /// <summary>
         /// Holds texture senders before they have received the appropriate texture from the asset cache.

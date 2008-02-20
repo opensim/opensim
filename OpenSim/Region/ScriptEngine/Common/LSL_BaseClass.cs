@@ -13,7 +13,7 @@
 *       names of its contributors may be used to endorse or promote products
 *       derived from this software without specific prior written permission.
 *
-* THIS SOFTWARE IS PROVIDED BY THE DEVELOPERS AS IS AND ANY
+* THIS SOFTWARE IS PROVIDED BY THE DEVELOPERS ``AS IS'' AND ANY
 * EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
 * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
 * DISCLAIMED. IN NO EVENT SHALL THE CONTRIBUTORS BE LIABLE FOR ANY
@@ -48,7 +48,7 @@ namespace OpenSim.Region.ScriptEngine.Common
         // Security note: This script will be running inside an restricted AppDomain. Currently AppDomain is not very restricted.
         //
 
-        private static readonly log4net.ILog m_log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+        //private static readonly log4net.ILog m_log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 
         // Object never expires
         public override Object InitializeLifetimeService()
@@ -1865,16 +1865,15 @@ namespace OpenSim.Region.ScriptEngine.Common
             m_LSL_Functions.osRegionNotice(msg);
         }
 
-	public bool osConsoleCommand(string Command)
-	{
-	    return m_LSL_Functions.osConsoleCommand(Command);
-	}
+        public bool osConsoleCommand(string Command)
+        {
+            return m_LSL_Functions.osConsoleCommand(Command);
+        }
 
         public double llList2Float(LSL_Types.list src, int index)
         {
             return m_LSL_Functions.llList2Float(src, index);
         }
-
 
         // LSL CONSTANTS
         public const int TRUE = 1;
@@ -2162,7 +2161,6 @@ namespace OpenSim.Region.ScriptEngine.Common
         public const int PRIM_SCULPT_TYPE_PLANE = 3;
         public const int PRIM_SCULPT_TYPE_CYLINDER = 4;
 
-
         public const int MASK_BASE = 0;
         public const int MASK_OWNER = 1;
         public const int MASK_GROUP = 2;
@@ -2210,6 +2208,5 @@ namespace OpenSim.Region.ScriptEngine.Common
         // Can not be public const?
         public vector ZERO_VECTOR = new vector(0.0, 0.0, 0.0);
         public rotation ZERO_ROTATION = new rotation(0.0, 0, 0.0, 1.0);
-        
     }
 }

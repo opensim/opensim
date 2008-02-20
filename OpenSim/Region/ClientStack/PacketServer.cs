@@ -38,8 +38,8 @@ namespace OpenSim.Region.ClientStack
 {
     public class PacketServer
     {
-        private static readonly log4net.ILog m_log 
-            = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+        //private static readonly log4net.ILog m_log 
+        //    = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 
         private ClientStackNetworkHandler m_networkHandler;
         private IScene m_scene;

@@ -176,8 +176,8 @@ namespace OpenSim.Grid.ScriptEngine.DotNetEngine
                                         GotItem = true;
                                         break;
                                     }
-                                } // go through queue
-                            } // lock
+                                }
+                            }
 
                             if (GotItem == true)
                             {
@@ -225,7 +225,7 @@ namespace OpenSim.Grid.ScriptEngine.DotNetEngine
                                     ReleaseLock(QIS.localID);
                                 }
                             }
-                        } // Something in queue
+                        }
                     }
                     catch (ThreadAbortException tae)
                     {
@@ -235,8 +235,8 @@ namespace OpenSim.Grid.ScriptEngine.DotNetEngine
                     {
                         Console.WriteLine("Exception in EventQueueThreadLoop: " + e.ToString());
                     }
-                } // while
-            } // try
+                }
+            }
             catch (ThreadAbortException)
             {
                 //myScriptEngine.m_log.Info("[ScriptEngine]: EventQueueManager Worker thread killed: " + tae.Message);
@@ -278,7 +278,6 @@ namespace OpenSim.Grid.ScriptEngine.DotNetEngine
                 }
             }
         }
-
 
         /// <summary>
         /// Add event to event execution queue
