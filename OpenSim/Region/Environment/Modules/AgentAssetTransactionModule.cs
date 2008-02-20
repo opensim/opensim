@@ -45,28 +45,42 @@ namespace OpenSim.Region.Environment.Modules
 
         private AgentAssetTransactionsManager m_transactionManager;
 
+        public AgentAssetTransactionModule()
+        {
+           // System.Console.WriteLine("creating AgentAssetTransactionModule");
+        }
+
         public void Initialise(Scene scene, IConfigSource config)
         {
             if (!RegisteredScenes.ContainsKey(scene.RegionInfo.RegionID))
             {
+               // System.Console.WriteLine("initialising AgentAssetTransactionModule");
                 RegisteredScenes.Add(scene.RegionInfo.RegionID, scene);
                 scene.RegisterModuleInterface<IAgentAssetTransactions>(this);
 
                 scene.EventManager.OnNewClient += NewClient;
-
-                try
-                {
-                    m_dumpAssetsToFile = config.Configs["StandAlone"].GetBoolean("dump_assets_to_file", false);
-                }
-                catch (Exception)
-                {
-                }
             }
 
             if (m_scene == null)
             {
                 m_scene = scene;
-                m_transactionManager = new AgentAssetTransactionsManager(m_scene, m_dumpAssetsToFile);
+                if (config.Configs["StandAlone"] != null)
+                {
+                    try
+                    {
+                        m_dumpAssetsToFile = config.Configs["StandAlone"].GetBoolean("dump_assets_to_file", false);
+                        m_transactionManager = new AgentAssetTransactionsManager(m_scene, m_dumpAssetsToFile);
+                    }
+                    catch (Exception)
+                    {
+                        m_transactionManager = new AgentAssetTransactionsManager(m_scene, false);
+                    }
+                }
+                else
+                {
+                    m_transactionManager = new AgentAssetTransactionsManager(m_scene, false);
+                }
+               
             }
         }
 
