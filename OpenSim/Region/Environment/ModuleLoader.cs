@@ -137,6 +137,17 @@ namespace OpenSim.Region.Environment
             //TextureDownloadModule textureModule = new TextureDownloadModule();
 
             //LoadedSharedModules.Add(textureModule.Name, textureModule);
+
+            AgentAssetTransactionModule transactionsModule = new AgentAssetTransactionModule();
+            if (m_loadedSharedModules.ContainsKey(transactionsModule.Name))
+            {
+                m_log.ErrorFormat("[MODULES]: Module name \"{0}\" already exists in module list. Module type {1} not added!", xmlRpcMod.Name, "XMLRPCModule");
+            }
+            else
+            {
+                m_loadedSharedModules.Add(transactionsModule.Name, transactionsModule);
+            }
+
         }
 
         public void InitialiseSharedModules(Scene scene)
