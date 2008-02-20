@@ -299,6 +299,10 @@ namespace OpenSim.Framework.Communications.Cache
 
             if (TryGetCachedAsset(assetID, out asset))
             {
+                return asset;
+            }
+            else
+            {
                 m_assetServer.RequestAsset(assetID, isTexture);
 
                 do
@@ -315,10 +319,6 @@ namespace OpenSim.Framework.Communications.Cache
                                  isTexture ? "texture" : "asset", assetID.ToString());
 
                 return null;
-            }
-            else
-            {
-                return asset;
             }
         }
 
@@ -385,28 +385,6 @@ namespace OpenSim.Framework.Communications.Cache
             }
 
             m_log.DebugFormat("[ASSET CACHE]: Adding {0} {1} [{2}]: {3}.", temporary, type, asset.FullID, result);
-        }
-
-        /// <summary>
-        /// Copy an asset and add it to the cache with a new assetID.
-        /// XXX We shouldn't actually ever need to do this!
-        /// </summary>
-        /// <param name="assetID"></param>
-        /// <returns></returns>
-        public AssetBase CopyAsset(LLUUID assetID)
-        {
-            AssetBase asset;
-
-            if (TryGetCachedAsset(assetID, out asset))
-            {
-                asset.FullID = LLUUID.Random(); // TODO: check for conflicts
-                AddAsset(asset);
-                return asset;
-            }
-            else
-            {
-                return null;
-            }
         }
 
         // See IAssetReceiver

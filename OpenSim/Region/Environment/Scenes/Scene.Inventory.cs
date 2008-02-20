@@ -51,7 +51,7 @@ namespace OpenSim.Region.Environment.Scenes
         /// </summary>
         public void StartScripts()
         {
-            m_log.Info("[PRIMINVENTORY]: Starting scripts in scene");
+            m_log.Info("[PRIM INVENTORY]: Starting scripts in scene");
             
             foreach (SceneObjectGroup group in Entities.Values)
             {
@@ -90,7 +90,7 @@ namespace OpenSim.Region.Environment.Scenes
             if (!TryGetAvatar(avatarId, out avatar))
             {
                 m_log.ErrorFormat(
-                    "[AGENTINVENTORY]: Could not find avatar {0} to add inventory item", avatarId);
+                    "[AGENT INVENTORY]: Could not find avatar {0} to add inventory item", avatarId);
                 return;
             }
 
@@ -153,7 +153,7 @@ namespace OpenSim.Region.Environment.Scenes
             else
             {
                 m_log.ErrorFormat(
-                    "[AGENTINVENTORY]: " +
+                    "[AGENT INVENTORY]: " +
                     "Avatar {0} cannot be found to update its inventory item asset",
                     avatarId);
             }
@@ -178,7 +178,7 @@ namespace OpenSim.Region.Environment.Scenes
             if (null == group)
             {
                 m_log.ErrorFormat(
-                    "[PRIMINVENTORY]: " +
+                    "[PRIM INVENTORY]: " +
                     "Prim inventory update requested for item ID {0} in prim ID {1} but this prim does not exist",
                     itemId, primId);
 
@@ -227,7 +227,7 @@ namespace OpenSim.Region.Environment.Scenes
             else
             {
                 m_log.ErrorFormat(
-                    "[PRIMINVENTORY]: " +
+                    "[PRIM INVENTORY]: " +
                     "Avatar {0} cannot be found to update its prim item asset",
                     avatarId);
             }
@@ -284,7 +284,7 @@ namespace OpenSim.Region.Environment.Scenes
             else
             {
                 m_log.Error(
-                    "[AGENTINVENTORY]: Agent ID " + remoteClient.AgentId + " not found for an inventory item update.");
+                    "[AGENT INVENTORY]: Agent ID " + remoteClient.AgentId + " not found for an inventory item update.");
             }
         }
 
@@ -297,7 +297,7 @@ namespace OpenSim.Region.Environment.Scenes
                 CachedUserInfo userInfo = CommsManager.UserProfileCacheService.GetUserDetails(oldAgentID);
                 if (userInfo == null)
                 {
-                    m_log.Error("[AGENTINVENTORY]: Failed to find user " + oldAgentID.ToString());
+                    m_log.Error("[AGENT INVENTORY]: Failed to find user " + oldAgentID.ToString());
                     return;
                 }
 
@@ -306,29 +306,22 @@ namespace OpenSim.Region.Environment.Scenes
                     item = userInfo.RootFolder.HasItem(oldItemID);
                     if (item == null)
                     {
-                        m_log.Error("[AGENTINVENTORY]: Failed to find item " + oldItemID.ToString());
+                        m_log.Error("[AGENT INVENTORY]: Failed to find item " + oldItemID.ToString());
                         return;
                     }
                 }
                 else
                 {
-                    m_log.Error("[AGENTINVENTORY]: Failed to find item " + oldItemID.ToString());
+                    m_log.Error("[AGENT INVENTORY]: Failed to find item " + oldItemID.ToString());
                     return;
                 }
             }
 
-
-            AssetBase asset = AssetCache.CopyAsset(item.assetID);
-            if (asset == null)
-            {
-                m_log.Warn("[AGENTINVENTORY]: Failed to find asset " + item.assetID.ToString());
-                return;
-            }
-
-            asset.Name = (newName.Length == 0) ? item.inventoryName : newName;
-
             // TODO: preserve current permissions?
-            CreateNewInventoryItem(remoteClient, newFolderID, callbackID, asset, item.inventoryNextPermissions);
+            CreateNewInventoryItem(
+                remoteClient, newFolderID, callbackID, 
+                AssetCache.GetAsset(item.assetID, (item.assetType == (int)AssetType.Texture ? true : false)), 
+                item.inventoryNextPermissions);
         }
 
         private AssetBase CreateAsset(string name, string description, sbyte invType, sbyte assetType, byte[] data)
@@ -347,13 +340,13 @@ namespace OpenSim.Region.Environment.Scenes
                                       string newName)
         {
             m_log.Info(
-                "[AGENTINVENTORY]: " +
+                "[AGENT INVENTORY]: " +
                 "Moving item for " + remoteClient.AgentId.ToString());
 
             CachedUserInfo userInfo = CommsManager.UserProfileCacheService.GetUserDetails(remoteClient.AgentId);
             if (userInfo == null)
             {
-                m_log.Error("[AGENTINVENTORY]: Failed to find user " + remoteClient.AgentId.ToString());
+                m_log.Error("[AGENT INVENTORY]: Failed to find user " + remoteClient.AgentId.ToString());
                 return;
             }
 
@@ -374,13 +367,13 @@ namespace OpenSim.Region.Environment.Scenes
                 }
                 else
                 {
-                    m_log.Error("[AGENTINVENTORY]: Failed to find item " + itemID.ToString());
+                    m_log.Error("[AGENT INVENTORY]: Failed to find item " + itemID.ToString());
                     return;
                 }
             }
             else
             {
-                m_log.Error("[AGENTINVENTORY]: Failed to find item " + itemID.ToString() + ", no root folder");
+                m_log.Error("[AGENT INVENTORY]: Failed to find item " + itemID.ToString() + ", no root folder");
                 return;
             }
         }
@@ -482,7 +475,7 @@ namespace OpenSim.Region.Environment.Scenes
                 = CommsManager.UserProfileCacheService.GetUserDetails(remoteClient.AgentId);
             if (userInfo == null)
             {
-                m_log.Error("[AGENTINVENTORY]: Failed to find user " + remoteClient.AgentId.ToString());
+                m_log.Error("[AGENT INVENTORY]: Failed to find user " + remoteClient.AgentId.ToString());
                 return;
             }
 
@@ -506,7 +499,7 @@ namespace OpenSim.Region.Environment.Scenes
                 = CommsManager.UserProfileCacheService.GetUserDetails(remoteClient.AgentId);
             if (userInfo == null)
             {
-                m_log.Error("[AGENTINVENTORY]: Failed to find user " + remoteClient.AgentId.ToString());
+                m_log.Error("[AGENT INVENTORY]: Failed to find user " + remoteClient.AgentId.ToString());
                 return;
             }
 
@@ -558,7 +551,7 @@ namespace OpenSim.Region.Environment.Scenes
             else
             {
                 m_log.ErrorFormat(
-                    "[PRIMINVENTORY]: Inventory requested of prim {0} which doesn't exist", primLocalID);
+                    "[PRIM INVENTORY]: Inventory requested of prim {0} which doesn't exist", primLocalID);
             }
         }
 
@@ -584,7 +577,7 @@ namespace OpenSim.Region.Environment.Scenes
             else
             {
                 m_log.ErrorFormat(
-                    "[PRIMINVENTORY]: " +
+                    "[PRIM INVENTORY]: " +
                     "Removal of item {0} requested of prim {1} but this prim does not exist",
                     itemID,
                     localID);
@@ -608,7 +601,7 @@ namespace OpenSim.Region.Environment.Scenes
                 // TODO Retrieve itemID from client's inventory to pass on
                 //group.AddInventoryItem(remoteClient, primLocalID, null);
                 m_log.InfoFormat(
-                    "[PRIMINVENTORY]: " +
+                    "[PRIM INVENTORY]: " +
                     "Non script prim inventory not yet implemented!"
                     + "\nUpdateTaskInventory called with item {0}, folder {1}, primLocalID {2}, user {3}",
                     itemID, folderID, primLocalID, remoteClient.Name);
@@ -616,7 +609,7 @@ namespace OpenSim.Region.Environment.Scenes
             else
             {
                 m_log.WarnFormat(
-                    "[PRIMINVENTORY]: " +
+                    "[PRIM INVENTORY]: " +
                     "Update with item {0} requested of prim {1} for {2} but this prim does not exist",
                     itemID, primLocalID, remoteClient.Name);
             }
@@ -663,7 +656,7 @@ namespace OpenSim.Region.Environment.Scenes
                         else
                         {
                             m_log.ErrorFormat(
-                                "[PRIMINVENTORY]: " +
+                                "[PRIM INVENTORY]: " +
                                 "Could not rez script {0} into prim local ID {1} for user {2}"
                                 + " because the prim could not be found in the region!",
                                 item.inventoryName, localID, remoteClient.Name);
@@ -672,7 +665,7 @@ namespace OpenSim.Region.Environment.Scenes
                     else
                     {
                         m_log.ErrorFormat(
-                            "[PRIMINVENTORY]: Could not find script inventory item {0} to rez for {1}!",
+                            "[PRIM INVENTORY]: Could not find script inventory item {0} to rez for {1}!",
                             itemID, remoteClient.Name);
                     }
                 }
@@ -824,6 +817,7 @@ namespace OpenSim.Region.Environment.Scenes
                 }
             }
         }
+        
         public void RezSingleAttachment(IClientAPI remoteClient, LLUUID itemID, uint AttachmentPt,
                                     uint ItemFlags, uint NextOwnerMask)
         {
