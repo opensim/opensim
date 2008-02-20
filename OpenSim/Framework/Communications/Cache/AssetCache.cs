@@ -44,8 +44,8 @@ namespace OpenSim.Framework.Communications.Cache
     /// 
     /// This class actually encapsulates two largely separate mechanisms.  One mechanism fetches assets either
     /// synchronously or async and passes the data back to the requester.  The second mechanism fetches assets and
-    /// sends packetised data directly back to the client.  The only point where they meets is AssetReceived() and
-    /// AssetNotFound().
+    /// sends packetised data directly back to the client.  The only point where they meet is AssetReceived() and
+    /// AssetNotFound(), which means they do share the same asset and texture caches.
     /// 
     /// TODO  Assets in this cache are effectively immortal (they are never disposed off through old age).
     /// This is not a huge problem at the moment since other memory use usually dwarfs that used by assets
@@ -469,7 +469,7 @@ namespace OpenSim.Framework.Communications.Cache
 
                 // Notify requesters for this asset
                 if (RequestLists.ContainsKey(asset.FullID))
-                {
+                {                  
                     lock (RequestLists)
                     {
                         AssetRequestsList reqList = RequestLists[asset.FullID];
@@ -513,14 +513,16 @@ namespace OpenSim.Framework.Communications.Cache
             // Notify requesters for this asset 
             lock (RequestLists)
             {
-                AssetRequestsList reqList = RequestLists[assetID];
-                foreach (NewAssetRequest req in reqList.Requests)
+                if (RequestLists.ContainsKey(assetID))
                 {
-                    req.Callback(assetID, null);
+                    AssetRequestsList reqList = RequestLists[assetID];
+                    foreach (NewAssetRequest req in reqList.Requests)
+                    {
+                        req.Callback(assetID, null);
+                    }
+    
+                    RequestLists.Remove(assetID);
                 }
-
-                RequestLists.Remove(assetID);
-                reqList.Requests.Clear();
             }            
         }
 

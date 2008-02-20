@@ -77,7 +77,7 @@ namespace OpenSim.Framework.Communications.Cache
             }
             else
             {
-                m_log.ErrorFormat("[ASSETSERVER]: Asset {0} not found by asset server", req.AssetID);
+                m_log.ErrorFormat("[ASSET SERVER]: Asset {0} not found by asset server", req.AssetID);
 
                 m_receiver.AssetNotFound(req.AssetID);
             }
@@ -85,7 +85,7 @@ namespace OpenSim.Framework.Communications.Cache
 
         public virtual void LoadDefaultAssets()
         {
-            m_log.Info("[ASSETSERVER]: Setting up asset database");
+            m_log.Info("[ASSET SERVER]: Setting up asset database");
 
             assetLoader.ForEachDefaultXmlAsset(StoreAsset);
 
@@ -94,7 +94,7 @@ namespace OpenSim.Framework.Communications.Cache
 
         public AssetServerBase()
         {
-            m_log.Info("[ASSETSERVER]: Starting asset storage system");
+            m_log.Info("[ASSET SERVER]: Starting asset storage system");
             m_assetRequests = new BlockingQueue<AssetRequest>();
 
             m_localAssetServerThread = new Thread(RunRequests);
@@ -115,7 +115,7 @@ namespace OpenSim.Framework.Communications.Cache
                 }
                 catch (Exception e)
                 {
-                    m_log.Error("[ASSETSERVER]: " + e.Message);
+                    m_log.Error("[ASSET SERVER]: " + e.ToString());
                 }
             }
         }
@@ -136,7 +136,7 @@ namespace OpenSim.Framework.Communications.Cache
             req.IsTexture = isTexture;
             m_assetRequests.Enqueue(req);
 
-            m_log.InfoFormat("[ASSETSERVER]: Added {0} to request queue", assetID);
+            m_log.InfoFormat("[ASSET SERVER]: Added {0} to request queue", assetID);
         }
 
         public virtual void UpdateAsset(AssetBase asset)
