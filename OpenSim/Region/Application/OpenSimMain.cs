@@ -754,15 +754,17 @@ namespace OpenSim
                     break;
 
                 case "threads":
-                    if (cmdparams.Length > 0)
-                    {
-                        int c = 0;
-                        foreach (Thread t in Process.GetCurrentProcess().Threads)
+                        m_console.Notice("THREAD", Process.GetCurrentProcess().Threads.Count + " threads running:");
+                        int _tc = 0;
+                    
+                        foreach (ProcessThread pt in Process.GetCurrentProcess().Threads)
                         {
-                            c++;
-                            m_console.Notice("THREAD", "Thread " + c + ": " + t.Name + " (" + t.ToString() + ")");
+                            _tc++;
+                            m_console.Notice("THREAD", _tc + ": ID: " + pt.Id + ", Started: " + pt.StartTime.ToString() + ", CPU time: " + pt.TotalProcessorTime + ", Pri: " + pt.BasePriority.ToString() + ", State: " + pt.ThreadState.ToString());
+                            
                         }
-                    }
+
+
                     break;
                 case "save-xml":
                     if (cmdparams.Length > 0)
