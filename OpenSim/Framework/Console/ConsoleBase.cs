@@ -37,7 +37,7 @@ namespace OpenSim.Framework.Console
     {
         private static readonly log4net.ILog m_log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 
-        private object m_syncRoot = new object();
+        private readonly object m_syncRoot = new object();
 
         public conscmd_callback m_cmdParser;
         public string m_componentName;

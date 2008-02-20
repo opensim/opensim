@@ -65,7 +65,7 @@ namespace OpenSim.Framework
         Task = 4,
         Texture = 5,
         Asset = 6,
-        Unknown = 7,
+        Unknown = 7, // Also doubles as 'do not throttle'
         Back = 8
     }
 
