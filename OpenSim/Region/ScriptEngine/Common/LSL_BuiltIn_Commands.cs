@@ -1244,7 +1244,7 @@ namespace OpenSim.Region.ScriptEngine.Common
         {
             m_host.AddScriptLPS(1);
             // Setting timer repeat
-            m_ScriptEngine.m_ASYNCLSLCommandManager.SetTimerEvent(m_localID, m_itemID, sec);
+            m_ScriptEngine.m_ASYNCLSLCommandManager.SetTimerEvent(m_localID, m_itemID, sec / 1000);
         }
 
         public void llSleep(double sec)

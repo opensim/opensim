@@ -160,7 +160,7 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
             TimerClass ts = new TimerClass();
             ts.localID = m_localID;
             ts.itemID = m_itemID;
-            ts.interval = sec;
+            ts.interval = sec / 1000;
             ts.next = DateTime.Now.ToUniversalTime().AddSeconds(ts.interval);
             lock (TimerListLock)
             {
