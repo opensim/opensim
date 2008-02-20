@@ -451,6 +451,10 @@ namespace OpenSim.Framework
         event Action<IClientAPI> OnRequestAvatarsData;
         event AddNewPrim OnAddPrim;
 
+        event FetchInventory OnAgentDataUpdateRequest;
+        event FetchInventory OnUserInfoRequest;
+        event TeleportLocationRequest OnSetStartLocationRequest;
+
         event RequestGodlikePowers OnRequestGodlikePowers;
         event GodKickUser OnGodKickUser;
 
@@ -619,6 +623,8 @@ namespace OpenSim.Framework
         void SendTaskInventory(LLUUID taskID, short serial, byte[] fileName);
         void SendXferPacket(ulong xferID, uint packet, byte[] data);
         void SendAvatarPickerReply(AvatarPickerReplyPacket Pack);
+
+        void SendAgentDataUpdate(LLUUID agentid, LLUUID activegroupid, string firstname, string lastname, ulong grouppowers, string groupname, string grouptitle);
 
         void SendPreLoadSound(LLUUID objectID, LLUUID ownerID, LLUUID soundID);
         void SendPlayAttachedSound(LLUUID soundID, LLUUID objectID, LLUUID ownerID, float gain, byte flags);

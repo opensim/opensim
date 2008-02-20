@@ -561,6 +561,11 @@ namespace OpenSim.Region.ClientStack
         public event RequestAvatarProperties OnRequestAvatarProperties;
         public event SetAlwaysRun OnSetAlwaysRun;
 
+        public event FetchInventory OnAgentDataUpdateRequest;
+        public event FetchInventory OnUserInfoRequest;
+        public event TeleportLocationRequest OnSetStartLocationRequest;
+
+
         public event CreateNewInventoryItem OnCreateNewInventoryItem;
         public event CreateInventoryFolder OnCreateNewInventoryFolder;
         public event UpdateInventoryFolder OnUpdateInventoryFolder;
@@ -1299,6 +1304,19 @@ namespace OpenSim.Region.ClientStack
         public void SendAvatarPickerReply(AvatarPickerReplyPacket replyPacket)
         {
             OutPacket(replyPacket, ThrottleOutPacketType.Task);
+        }
+
+        public void SendAgentDataUpdate(LLUUID agentid, LLUUID activegroupid, string firstname, string lastname, ulong grouppowers, string groupname,string grouptitle)
+        {
+            AgentDataUpdatePacket sendAgentDataUpdate = (AgentDataUpdatePacket)PacketPool.Instance.GetPacket(PacketType.AgentDataUpdate);
+            sendAgentDataUpdate.AgentData.ActiveGroupID = activegroupid;
+            sendAgentDataUpdate.AgentData.AgentID = agentid;
+            sendAgentDataUpdate.AgentData.FirstName = Helpers.StringToField(firstname);
+            sendAgentDataUpdate.AgentData.GroupName = Helpers.StringToField(groupname);
+            sendAgentDataUpdate.AgentData.GroupPowers = grouppowers;
+            sendAgentDataUpdate.AgentData.GroupTitle = Helpers.StringToField(grouptitle);
+            sendAgentDataUpdate.AgentData.LastName = Helpers.StringToField(lastname);
+            OutPacket(sendAgentDataUpdate,ThrottleOutPacketType.Task);
         }
 
         /// <summary>
@@ -2795,6 +2813,7 @@ namespace OpenSim.Region.ClientStack
                             //rezPacket.RezData.RezSelected;
                             //rezPacket.RezData.FromTaskID;
                             //m_log.Info("[REZData]: " + rezPacket.ToString());
+                            
                             OnRezObject(this, rezPacket.InventoryData.ItemID, rezPacket.RezData.RayEnd,
                                 rezPacket.RezData.RayStart, rezPacket.RezData.RayTargetID,
                                 rezPacket.RezData.BypassRaycast, rezPacket.RezData.RayEndIsIntersection,
@@ -2948,6 +2967,41 @@ namespace OpenSim.Region.ClientStack
                             OnAvatarPickerRequest(this, Requestdata.AgentID, Requestdata.QueryID,
                                                   Helpers.FieldToUTF8String(querydata.Name));
                         }
+                        break;
+                    case PacketType.AgentDataUpdateRequest:
+                        AgentDataUpdateRequestPacket avRequestDataUpdatePacket = (AgentDataUpdateRequestPacket)Pack;
+                        
+                        if (OnAgentDataUpdateRequest != null)
+                        {
+                            OnAgentDataUpdateRequest(this, avRequestDataUpdatePacket.AgentData.AgentID, avRequestDataUpdatePacket.AgentData.SessionID);
+                        }
+
+                        break;
+                    case PacketType.UserInfoRequest:
+                        UserInfoRequestPacket avUserInfoRequestPacket = (UserInfoRequestPacket)Pack;
+                        if (OnUserInfoRequest != null)
+                        {
+                            OnUserInfoRequest(this,avUserInfoRequestPacket.AgentData.AgentID,avUserInfoRequestPacket.AgentData.SessionID);
+
+                        }
+                        break;
+
+                    case PacketType.SetStartLocationRequest:
+                        SetStartLocationRequestPacket avSetStartLocationRequestPacket = (SetStartLocationRequestPacket)Pack;
+                        if (avSetStartLocationRequestPacket.AgentData.AgentID == AgentId && avSetStartLocationRequestPacket.AgentData.SessionID == SessionId)
+                        {
+                            if (OnSetStartLocationRequest != null)
+                            {
+                                OnSetStartLocationRequest(this, 0, avSetStartLocationRequestPacket.StartLocationData.LocationPos,
+                                                            avSetStartLocationRequestPacket.StartLocationData.LocationLookAt,
+                                                            avSetStartLocationRequestPacket.StartLocationData.LocationID);
+                            }
+                        }
+                        break;
+
+                    case PacketType.AgentThrottle:
+                        AgentThrottlePacket atpack = (AgentThrottlePacket)Pack;
+                        m_packetQueue.SetThrottleFromClient(atpack.Throttle.Throttles);
                         break;
 
                     #endregion
@@ -3654,14 +3708,11 @@ namespace OpenSim.Region.ClientStack
                             OnEstateCovenantRequest(this, epack.SessionID);
                         }
                         break;
-                    case PacketType.AgentThrottle:
-                        AgentThrottlePacket atpack = (AgentThrottlePacket)Pack;
-                        m_packetQueue.SetThrottleFromClient(atpack.Throttle.Throttles);
-                        break;
+
 
                     #endregion
 
-                    #region unimplemented handlers
+                    #region GodPackets
 
                     case PacketType.RequestGodlikePowers:
                         RequestGodlikePowersPacket rglpPack = (RequestGodlikePowersPacket)Pack;
@@ -3698,6 +3749,12 @@ namespace OpenSim.Region.ClientStack
 
                         //OutPacket(kupack, ThrottleOutPacketType.Task);
                         break;
+
+
+                    #endregion
+
+                    #region unimplemented handlers
+
 
                     case PacketType.StartPingCheck:
                         // Send the client the ping response back
@@ -3746,17 +3803,17 @@ namespace OpenSim.Region.ClientStack
                         // TODO: handle this packet
                         m_log.Warn("[CLIENT]: unhandled MuteListRequest packet");
                         break;
-                    case PacketType.AgentDataUpdateRequest:
+                    //case PacketType.AgentDataUpdateRequest:
                         // TODO: handle this packet
-                        m_log.Warn("[CLIENT]: unhandled AgentDataUpdateRequest packet");
-                        break;
+                        //m_log.Warn("[CLIENT]: unhandled AgentDataUpdateRequest packet");
+                        //break;
 
                     case PacketType.ParcelDwellRequest:
                         // TODO: handle this packet
                         m_log.Warn("[CLIENT]: unhandled ParcelDwellRequest packet");
                         break;
                     case PacketType.UseCircuitCode:
-                        // TODO: handle this packet
+                        // TODO: Don't display this one, we handle it at a lower level
                         //m_log.Warn("[CLIENT]: unhandled UseCircuitCode packet");
                         break;
                     case PacketType.EconomyDataRequest:
@@ -3775,10 +3832,10 @@ namespace OpenSim.Region.ClientStack
                         // TODO: handle this packet
                         m_log.Warn("[CLIENT]: unhandled SoundTrigger packet");
                         break;
-                    case PacketType.UserInfoRequest:
+                    //case PacketType.UserInfoRequest:
                         // TODO: handle this packet
-                        m_log.Warn("[CLIENT]: unhandled UserInfoRequest packet");
-                        break;
+                        //m_log.Warn("[CLIENT]: unhandled UserInfoRequest packet");
+                        //break;
                     case PacketType.InventoryDescendents:
                         // TODO: handle this packet
                         m_log.Warn("[CLIENT]: unhandled InventoryDescent packet");

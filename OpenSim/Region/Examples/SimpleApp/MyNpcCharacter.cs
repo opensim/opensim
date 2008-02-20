@@ -89,6 +89,9 @@ namespace SimpleApp
         public event MoveObject OnGrabUpdate;
         public event ViewerEffectEventHandler OnViewerEffect;
 
+        public event FetchInventory OnAgentDataUpdateRequest;
+        public event FetchInventory OnUserInfoRequest;
+        public event TeleportLocationRequest OnSetStartLocationRequest;
 
         public event UpdateShape OnUpdatePrimShape;
         public event ObjectExtraParams OnUpdateExtraParams;
@@ -224,6 +227,11 @@ namespace SimpleApp
 
         public virtual void SendAvatarPickerReply(AvatarPickerReplyPacket response)
         {
+        }
+
+        public virtual void SendAgentDataUpdate(LLUUID agentid, LLUUID activegroupid, string firstname, string lastname, ulong grouppowers, string groupname, string grouptitle)
+        {
+
         }
 
         public virtual void SendKillObject(ulong regionHandle, uint localID)
