@@ -1079,6 +1079,7 @@ namespace OpenSim.Region.Environment.Scenes
             if (m_parentGroup != null)
             {
                 m_parentGroup.HasGroupChanged = true;
+                m_parentGroup.QueueForUpdateCheck();
             }
             TimeStampFull = (uint) Util.UnixTimeSinceEpoch();
             m_updateFlag = 2;
@@ -1120,9 +1121,11 @@ namespace OpenSim.Region.Environment.Scenes
                 if (m_parentGroup != null)
                 {
                     m_parentGroup.HasGroupChanged = true;
+                    m_parentGroup.QueueForUpdateCheck();
                 }
                 TimeStampTerse = (uint) Util.UnixTimeSinceEpoch();
                 m_updateFlag = 1;
+
             }
         }
 

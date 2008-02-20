@@ -62,6 +62,7 @@ namespace OpenSim.Region.Environment.Scenes
         protected RegionInfo m_regInfo;
         protected Scene m_parentScene;
         protected PermissionManager PermissionsMngr;
+        protected List<EntityBase> m_updateList = new List<EntityBase>();
         protected int m_numRootAgents = 0;
         protected int m_numPrim = 0;
         protected int m_numChildAgents = 0;
@@ -146,6 +147,15 @@ namespace OpenSim.Region.Environment.Scenes
             }
         }
 
+        internal void UpdatePresences()
+        {
+            List<ScenePresence> updateScenePresences = GetScenePresences();
+            foreach (ScenePresence pres in updateScenePresences)
+            {
+                pres.Update();
+            }
+        }
+
         internal float UpdatePhysics(double elapsed)
         {
             lock (m_syncRoot)
@@ -191,6 +201,29 @@ namespace OpenSim.Region.Environment.Scenes
                     Entities.Add(sceneObject.UUID, sceneObject);
                 }
                 m_numPrim++;
+            }
+        }
+
+        internal void AddToUpdateList(EntityBase obj)
+        {
+            lock (m_updateList)
+            {
+                if (!m_updateList.Contains(obj))
+                {
+                    m_updateList.Add(obj);
+                }
+            }
+        }
+
+        internal void ProcessUpdates()
+        {
+            lock (m_updateList)
+            {
+                for (int i = 0; i < m_updateList.Count; i++)
+                {
+                    m_updateList[i].Update();
+                }
+                m_updateList.Clear();
             }
         }
 

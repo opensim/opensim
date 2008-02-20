@@ -765,6 +765,11 @@ namespace OpenSim.Region.Environment.Scenes
             }
         }
 
+        public void QueueForUpdateCheck()
+        {
+            m_scene.m_innerScene.AddToUpdateList(this);
+        }
+
         /// <summary>
         /// 
         /// </summary>

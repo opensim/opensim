@@ -120,7 +120,9 @@ namespace OpenSim.Region.Environment.Scenes
 
         private int m_update_physics = 1;
         private int m_update_entitymovement = 1;
-        private int m_update_entities = 1;
+        private int m_update_entities = 20; // Run through all objects checking for updates
+        private int m_update_entitiesquick = 1; // Run through objects that have scheduled updates checking for updates
+        private int m_update_presences = 1; // Update scene presence movements
         private int m_update_events = 1;
         private int m_update_backup = 200;
         private int m_update_terrain = 50;
@@ -706,8 +708,18 @@ namespace OpenSim.Region.Environment.Scenes
                 physicsMS += physicsMS2;
 
                 otherMS = System.Environment.TickCount;
+                // run through all entities looking for updates (slow)
                 if (m_frame % m_update_entities == 0)
                     m_innerScene.UpdateEntities();
+
+                // run through entities that have scheduled themselves for 
+                // updates looking for updates(faster)
+                if (m_frame % m_update_entitiesquick == 0)
+                    m_innerScene.ProcessUpdates();
+
+                // Run through scenepresences looking for updates
+                if (m_frame % m_update_presences == 0)
+                    m_innerScene.UpdatePresences();
 
                 if (m_frame % m_update_events == 0)
                     UpdateEvents();
@@ -1167,6 +1179,7 @@ namespace OpenSim.Region.Environment.Scenes
             }
             // if not phantom, add to physics
             sceneOb.ApplyPhysics(m_physicalPrim);
+            m_innerScene.AddToUpdateList(sceneOb);
 
             return sceneOb;
         }
