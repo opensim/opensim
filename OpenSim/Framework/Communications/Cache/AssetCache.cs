@@ -246,7 +246,7 @@ namespace OpenSim.Framework.Communications.Cache
         }
 
         /// <summary>
-        /// Synchronously retreive  an asset.  If the asset isn't in the cache, a request will be made to the persistent store to
+        /// Synchronously retreive an asset.  If the asset isn't in the cache, a request will be made to the persistent store to
         /// load it into the cache.  
         /// 
         /// XXX We'll keep polling the cache until we get the asset or we exceed
@@ -489,7 +489,7 @@ namespace OpenSim.Framework.Communications.Cache
             }
             */
             
-            // Notify callers 
+            // Notify requesters for this asset 
             lock (RequestLists)
             {
                 AssetRequestsList reqList = RequestLists[assetID];

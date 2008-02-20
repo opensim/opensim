@@ -376,13 +376,14 @@ namespace OpenSim.Framework.Console
             Array.Resize<string>(ref tempstrarray, tempstrarray.Length - 1);
             Array.Reverse(tempstrarray);
             string[] cmdparams = (string[]) tempstrarray;
+            
             try
             {
                 RunCmd(cmd, cmdparams);
             }
             catch (Exception e)
             {
-                m_log.Error("[Console]: Command failed with exception " + e.ToString());
+                m_log.ErrorFormat("[Console]: Command [{0}] failed with exception {1}", command, e.ToString());
             }
         }
 
