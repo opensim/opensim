@@ -617,6 +617,11 @@ namespace OpenSim.Region.Environment.Scenes
             }
         }
 
+        public List<ulong> GetKnownRegionList()
+        {
+            return m_knownChildRegions;
+        }
+
         #endregion
 
         #region Event Handlers
@@ -1767,7 +1772,25 @@ namespace OpenSim.Region.Environment.Scenes
 
         internal void Close()
         {
+            lock (m_knownPrimUUID)
+            {
+                m_knownPrimUUID.Clear();
+            }
+            lock (m_knownChildRegions)
+            {
+                m_knownChildRegions.Clear();
+            }
+            lock (m_updateTimes)
+            {
+                m_updateTimes.Clear();
+            }
+            lock (m_partsUpdateQueue)
+            {
+                m_partsUpdateQueue.Clear();
+            }
+
             RemoveFromPhysicalScene();
+            GC.Collect();
         }
     }
 }

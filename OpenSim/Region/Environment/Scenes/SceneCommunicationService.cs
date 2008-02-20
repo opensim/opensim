@@ -38,6 +38,8 @@ namespace OpenSim.Region.Environment.Scenes
 {
     public delegate void KillObjectDelegate(uint localID);
 
+    public delegate void RemoveKnownRegionsFromAvatarList(LLUUID avatarID, List<ulong> regionlst);
+
     public class SceneCommunicationService //one instance per region
     {
         private static readonly log4net.ILog m_log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
@@ -54,6 +56,7 @@ namespace OpenSim.Region.Environment.Scenes
         public event PrimCrossing OnPrimCrossingIntoRegion;
         public event RegionUp OnRegionUp;
         public event ChildAgentUpdate OnChildAgentUpdate;
+        public event RemoveKnownRegionsFromAvatarList OnRemoveKnownRegionFromAvatar;
         
 
 
@@ -393,23 +396,23 @@ namespace OpenSim.Region.Environment.Scenes
                           d);
         }
 
-        public delegate void SendCloseChildAgentDelegate( ScenePresence presence);
+        public delegate void SendCloseChildAgentDelegate( LLUUID agentID, List<ulong> regionlst);
 
         /// <summary>
         /// This Closes child agents on neighboring regions
         /// Calls an asynchronous method to do so..  so it doesn't lag the sim.
         /// </summary>
-        private void SendCloseChildAgentAsync(ScenePresence presence)
+        private void SendCloseChildAgentAsync(LLUUID agentID, List<ulong> regionlst)
         {
 
-            foreach (ulong regionHandle in presence.KnownChildRegions)
+            foreach (ulong regionHandle in regionlst)
             {
-                bool regionAccepted = m_commsProvider.InterRegion.TellRegionToCloseChildConnection(regionHandle, presence.ControllingClient.AgentId);
+                bool regionAccepted = m_commsProvider.InterRegion.TellRegionToCloseChildConnection(regionHandle, agentID);
 
                 if (regionAccepted)
                 {
                     m_log.Info("[INTERGRID]: Completed sending agent Close agent Request to neighbor");
-                    presence.RemoveNeighbourRegion(regionHandle);
+                    
                 }
                 else
                 {
@@ -417,6 +420,13 @@ namespace OpenSim.Region.Environment.Scenes
                     
                 }
                 
+            }
+            // We remove the list of known regions from the agent's known region list through an event
+            // to scene, because, if an agent logged of, it's likely that there will be no scene presence
+            // by the time we get to this part of the method.
+            if (OnRemoveKnownRegionFromAvatar != null)
+            {
+                OnRemoveKnownRegionFromAvatar(agentID,regionlst);
             }
         }
 
@@ -426,11 +436,11 @@ namespace OpenSim.Region.Environment.Scenes
             icon.EndInvoke(iar);
         }
 
-        public void SendCloseChildAgentConnections(ScenePresence presence)
+        public void SendCloseChildAgentConnections(LLUUID agentID, List<ulong> regionslst)
         {
             // This assumes that we know what our neighbors are.
             SendCloseChildAgentDelegate d = SendCloseChildAgentAsync;
-            d.BeginInvoke(presence,
+            d.BeginInvoke(agentID, regionslst,
                           SendCloseChildAgentCompleted,
                           d);
         }
@@ -522,7 +532,7 @@ namespace OpenSim.Region.Environment.Scenes
                         uint oldRegionY = (((uint)(m_regionInfo.RegionHandle)) >> 8);
                         if (Util.fast_distance2d((int)(newRegionX - oldRegionX), (int)(newRegionY - oldRegionY)) > 3)
                         {
-                            SendCloseChildAgentConnections(avatar);
+                            SendCloseChildAgentConnections(avatar.UUID,avatar.GetKnownRegionList());
                         }
                     }
                     else

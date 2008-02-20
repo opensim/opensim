@@ -48,6 +48,17 @@ namespace OpenSim.Region.Environment.Types
             m_queue = new Queue<SceneObjectPart>();
             m_ids = new List<LLUUID>();
         }
+        public void Clear()
+        {
+            lock (m_ids)
+            {
+                m_ids.Clear();
+            }
+            lock (m_queue)
+            {
+                m_queue.Clear();
+            }
+        }
 
         public void Enqueue(SceneObjectPart part)
         {

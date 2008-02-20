@@ -267,7 +267,7 @@ namespace OpenSim.Region.ClientStack
             // We can't reach into other scenes and close the connection 
             // We need to do this over grid communications
             //m_scene.CloseAllAgents(CircuitCode);
-
+            GC.Collect();
             m_clientThread.Abort();
         }
 

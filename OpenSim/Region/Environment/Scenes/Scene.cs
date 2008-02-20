@@ -1479,7 +1479,13 @@ namespace OpenSim.Region.Environment.Scenes
                     m_sceneGridService.LogOffUser(agentID, RegionInfo.RegionID, RegionInfo.RegionHandle,
                                                 avatar.AbsolutePosition.X, avatar.AbsolutePosition.Y,
                                                 avatar.AbsolutePosition.Z);
-                    m_sceneGridService.SendCloseChildAgentConnections(avatar);
+                    List<ulong> childknownRegions = new List<ulong>();
+                    List<ulong> ckn = avatar.GetKnownRegionList();
+                    for (int i = 0; i < ckn.Count; i++)
+                    {
+                        childknownRegions.Add(ckn[i]);
+                    }
+                    m_sceneGridService.SendCloseChildAgentConnections(agentID, childknownRegions);
                 }
 
                 m_eventManager.TriggerClientClosed(agentID);
@@ -1554,6 +1560,22 @@ namespace OpenSim.Region.Environment.Scenes
             //m_log.InfoFormat("[SCENE] Memory pre  GC {0}", System.GC.GetTotalMemory(false));
             //m_log.InfoFormat("[SCENE] Memory post GC {0}", System.GC.GetTotalMemory(true));            
         }
+        public void HandleRemoveKnownRegionsFromAvatar(LLUUID avatarID, List<ulong> regionslst)
+        {
+            ScenePresence av = GetScenePresence(avatarID);
+            if (av != null)
+            {
+                lock (av)
+                {
+               
+                    for (int i = 0; i < regionslst.Count; i++)
+                    {
+                        av.KnownChildRegions.Remove(regionslst[i]);
+                    }
+                }
+            }
+
+        }
 
         public override void CloseAllAgents(uint circuitcode)
         {
@@ -1607,6 +1629,7 @@ namespace OpenSim.Region.Environment.Scenes
             m_sceneGridService.OnRegionUp += OtherRegionUp;
             m_sceneGridService.OnChildAgentUpdate += IncomingChildAgentDataUpdate;
             m_sceneGridService.OnExpectPrim += IncomingInterRegionPrimGroup;
+            m_sceneGridService.OnRemoveKnownRegionFromAvatar += HandleRemoveKnownRegionsFromAvatar;
 
 
 
@@ -1620,6 +1643,7 @@ namespace OpenSim.Region.Environment.Scenes
         /// </summary>
         public void UnRegisterReginWithComms()
         {
+            m_sceneGridService.OnRemoveKnownRegionFromAvatar -= HandleRemoveKnownRegionsFromAvatar;
             m_sceneGridService.OnExpectPrim -= IncomingInterRegionPrimGroup;
             m_sceneGridService.OnChildAgentUpdate -= IncomingChildAgentDataUpdate;
             m_sceneGridService.OnRegionUp -= OtherRegionUp;
