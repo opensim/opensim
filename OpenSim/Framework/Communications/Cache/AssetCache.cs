@@ -457,21 +457,22 @@ namespace OpenSim.Framework.Communications.Cache
 
         public void AssetNotFound(LLUUID assetID)
         {
-            m_log.ErrorFormat("[ASSET CACHE]: Unhandled AssetNotFound for {0}", assetID);
+            //m_log.ErrorFormat("[ASSET CACHE]: Unhandled AssetNotFound for {0}", assetID);
 
-            //if (this.RequestedTextures.ContainsKey(assetID))
-            //{
-            //    m_log.WarnFormat("[ASSET CACHE]: sending image not found for {0}", assetID);
-            //    AssetRequest req = this.RequestedTextures[assetID];
-            //    ImageNotInDatabasePacket notFound = new ImageNotInDatabasePacket();
-            //    notFound.ImageID.ID = assetID;
-            //    req.RequestUser.OutPacket(notFound);
-            //    this.RequestedTextures.Remove(assetID);
-            //}
-            //else
-            //{
-            //    m_log.ErrorFormat("[ASSET CACHE]: Cound not send image not found for {0}", assetID);
-            //}
+            AssetRequest req;
+
+            if (RequestedTextures.TryGetValue(assetID, out req))
+            {
+                m_log.WarnFormat("[ASSET CACHE]: sending image not found for {0}", assetID);                
+                ImageNotInDatabasePacket notFound = new ImageNotInDatabasePacket();
+                notFound.ImageID.ID = assetID;
+                req.RequestUser.OutPacket(notFound, ThrottleOutPacketType.Unknown);
+                RequestedTextures.Remove(assetID);
+            }
+            else
+            {
+                m_log.ErrorFormat("[ASSET CACHE]: Asset [{0}] not found, but couldn't find any users to send to ", assetID);
+            }
         }
 
         private int CalculateNumPackets(byte[] data)

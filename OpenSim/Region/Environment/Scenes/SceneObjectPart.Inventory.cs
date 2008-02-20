@@ -33,6 +33,7 @@ using System.Xml.Serialization;
 using libsecondlife;
 
 using OpenSim.Framework;
+using OpenSim.Framework.Communications.Cache;
 using OpenSim.Framework.Console;
 using OpenSim.Region.Environment.Interfaces;
 using OpenSim.Region.Environment.Scenes.Scripting;
@@ -44,12 +45,12 @@ namespace OpenSim.Region.Environment.Scenes
         private static readonly log4net.ILog m_log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 
         private string m_inventoryFileName = String.Empty;
-        
+
         /// <summary>
         /// The inventory folder for this prim
         /// </summary>
         private LLUUID m_folderID = LLUUID.Zero;
-        
+
         /// <summary>
         /// Exposing this is not particularly good, but it's one of the least evils at the moment to see
         /// folder id from prim inventory item data, since it's not (yet) actually stored with the prim.
@@ -58,8 +59,8 @@ namespace OpenSim.Region.Environment.Scenes
         {
             get { return m_folderID; }
             set { m_folderID = value; }
-        }        
-                
+        }
+
         /// <summary>
         /// Serial count for inventory file , used to tell if inventory has changed
         /// no need for this to be part of Database backup
@@ -70,24 +71,24 @@ namespace OpenSim.Region.Environment.Scenes
         {
             get { return m_inventorySerial; }
             set { m_inventorySerial = value; }
-        }        
+        }
 
         /// <summary>
         /// Holds in memory prim inventory
         /// </summary> 
         protected TaskInventoryDictionary m_taskInventory = new TaskInventoryDictionary();
-        
+
         public TaskInventoryDictionary TaskInventory
         {
             get { return m_taskInventory; }
             set { m_taskInventory = value; }
         }
-        
+
         /// <summary>
         /// Tracks whether inventory has changed since the last persistent backup
         /// </summary>
         private bool HasInventoryChanged;
-        
+
         /// <summary>
         /// Reset LLUUIDs for all the items in the prim's inventory.  This involves either generating
         /// new ones or setting existing UUIDs to the correct parent UUIDs
@@ -96,18 +97,18 @@ namespace OpenSim.Region.Environment.Scenes
         public void ResetInventoryIDs()
         {
             lock (TaskInventory)
-            {              
+            {
                 IList<TaskInventoryItem> items = new List<TaskInventoryItem>(TaskInventory.Values);
                 TaskInventory.Clear();
-                
+
                 foreach (TaskInventoryItem item in items)
                 {
                     item.ResetIDs(UUID);
                     TaskInventory.Add(item.ItemID, item);
                 }
             }
-        }        
-        
+        }
+
         /// <summary>
         /// Start all the scripts contained in this prim's inventory
         /// </summary>
@@ -139,7 +140,7 @@ namespace OpenSim.Region.Environment.Scenes
                 }
             }
         }
-        
+
         /// <summary>
         /// Start a script which is in this prim's inventory.
         /// </summary>
@@ -147,34 +148,36 @@ namespace OpenSim.Region.Environment.Scenes
         /// <returns></returns>
         public void StartScript(TaskInventoryItem item)
         {
-//            m_log.InfoFormat(
-//                "[PRIMINVENTORY]: " +
-//                "Starting script {0}, {1} in prim {2}, {3}", 
-//                item.Name, item.ItemID, Name, UUID);
+            //            m_log.InfoFormat(
+            //                "[PRIMINVENTORY]: " +
+            //                "Starting script {0}, {1} in prim {2}, {3}", 
+            //                item.Name, item.ItemID, Name, UUID);
             AddFlag(LLObject.ObjectFlags.Scripted);
 
             if (!((m_parentGroup.Scene.RegionInfo.EstateSettings.regionFlags & Simulator.RegionFlags.SkipScripts) == Simulator.RegionFlags.SkipScripts))
             {
-                AssetBase rezAsset = m_parentGroup.Scene.AssetCache.GetAsset(item.AssetID, false);
+                AssetCache cache = m_parentGroup.Scene.AssetCache;
 
-                if (rezAsset != null)
-                {
-                    
-                    string script = Helpers.FieldToUTF8String(rezAsset.Data);
-                    m_parentGroup.Scene.EventManager.TriggerRezScript(LocalID, item.ItemID, script);
-                    m_parentGroup.AddActiveScriptCount(1);
-                }
-                else
-                {
-                    m_log.ErrorFormat(
-                        "[PRIMINVENTORY]: " +
-                        "Couldn't start script {0}, {1} since asset ID {2} could not be found",
-                        item.Name, item.ItemID, item.AssetID);
-                }
+                cache.GetAsset(item.AssetID, delegate(LLUUID assetID, AssetBase asset)
+                   {
+                       if (asset.FullID == LLUUID.Zero)
+                       {
+                           m_log.ErrorFormat(
+                               "[PRIMINVENTORY]: " +
+                               "Couldn't start script {0}, {1} since asset ID {2} could not be found",
+                               item.Name, item.ItemID, item.AssetID);
+                       }
+                       else
+                       {
+                           string script = Helpers.FieldToUTF8String(asset.Data);
+                           m_parentGroup.Scene.EventManager.TriggerRezScript(LocalID,item.ItemID,script);
+                           m_parentGroup.AddActiveScriptCount(1);
+                           ScheduleFullUpdate();
+                       }
+                   });
             }
-            ScheduleFullUpdate();
-        }   
-        
+        }
+
         /// <summary>
         /// Start a script which is in this prim's inventory.
         /// </summary>
@@ -184,22 +187,22 @@ namespace OpenSim.Region.Environment.Scenes
         public void StartScript(LLUUID itemId)
         {
             lock (m_taskInventory)
-            {            
+            {
                 if (m_taskInventory.ContainsKey(itemId))
                 {
                     StartScript(m_taskInventory[itemId]);
-                    
-                }            
+
+                }
                 else
                 {
                     m_log.ErrorFormat(
                         "[PRIMINVENTORY]: " +
-                        "Couldn't start script with ID {0} since it couldn't be found for prim {1}, {2}", 
+                        "Couldn't start script with ID {0} since it couldn't be found for prim {1}, {2}",
                         itemId, Name, UUID);
-                }                
+                }
             }
-        }        
-        
+        }
+
         /// <summary>
         /// Stop a script which is in this prim's inventory.
         /// </summary>
@@ -210,15 +213,15 @@ namespace OpenSim.Region.Environment.Scenes
             {
                 m_parentGroup.Scene.EventManager.TriggerRemoveScript(LocalID, itemId);
                 m_parentGroup.AddActiveScriptCount(-1);
-            }            
+            }
             else
             {
                 m_log.ErrorFormat(
                     "[PRIMINVENTORY]: " +
-                    "Couldn't stop script with ID {0} since it couldn't be found for prim {1}, {2}", 
+                    "Couldn't stop script with ID {0} since it couldn't be found for prim {1}, {2}",
                     itemId, Name, UUID);
             }
-        }        
+        }
 
         /// <summary>
         /// Add an item to this prim's inventory.
@@ -229,17 +232,17 @@ namespace OpenSim.Region.Environment.Scenes
             item.ParentID = m_folderID;
             item.CreationDate = 1000;
             item.ParentPartID = UUID;
-            
+
             lock (m_taskInventory)
-            {            
+            {
                 m_taskInventory.Add(item.ItemID, item);
                 TriggerScriptChangedEvent(Changed.INVENTORY);
             }
-            
+
             m_inventorySerial++;
             HasInventoryChanged = true;
         }
-        
+
         /// <summary>
         /// Restore a whole collection of items to the prim's inventory at once.  
         /// We assume that the items already have all their fields correctly filled out.
@@ -250,17 +253,17 @@ namespace OpenSim.Region.Environment.Scenes
         public void RestoreInventoryItems(ICollection<TaskInventoryItem> items)
         {
             lock (m_taskInventory)
-            {                 
+            {
                 foreach (TaskInventoryItem item in items)
-                {           
+                {
                     m_taskInventory.Add(item.ItemID, item);
                     TriggerScriptChangedEvent(Changed.INVENTORY);
                 }
             }
-                        
+
             m_inventorySerial++;
         }
-        
+
         /// <summary>
         /// Returns an existing inventory item.  Returns the original, so any changes will be live.
         /// </summary>
@@ -269,7 +272,7 @@ namespace OpenSim.Region.Environment.Scenes
         public TaskInventoryItem GetInventoryItem(LLUUID itemID)
         {
             lock (m_taskInventory)
-            {              
+            {
                 if (m_taskInventory.ContainsKey(itemID))
                 {
                     return m_taskInventory[itemID];
@@ -295,15 +298,15 @@ namespace OpenSim.Region.Environment.Scenes
         public bool UpdateInventoryItem(TaskInventoryItem item)
         {
             lock (m_taskInventory)
-            {            
+            {
                 if (m_taskInventory.ContainsKey(item.ItemID))
                 {
                     m_taskInventory[item.ItemID] = item;
                     m_inventorySerial++;
                     TriggerScriptChangedEvent(Changed.INVENTORY);
-                    
+
                     HasInventoryChanged = true;
-                  
+
                     return true;
                 }
                 else
@@ -312,9 +315,9 @@ namespace OpenSim.Region.Environment.Scenes
                         "[PRIMINVENTORY]: " +
                         "Tried to retrieve item ID {0} from prim {1}, {2} but the item does not exist in this inventory",
                         item.ItemID, Name, UUID);
-                }   
+                }
             }
-            
+
             return false;
         }
 
@@ -332,14 +335,14 @@ namespace OpenSim.Region.Environment.Scenes
         public int RemoveInventoryItem(LLUUID itemID)
         {
             lock (m_taskInventory)
-            {            
+            {
                 if (m_taskInventory.ContainsKey(itemID))
                 {
                     int type = m_taskInventory[itemID].InvType;
                     m_taskInventory.Remove(itemID);
                     m_inventorySerial++;
                     TriggerScriptChangedEvent(Changed.INVENTORY);
-                    
+
                     HasInventoryChanged = true;
 
                     int scriptcount = 0;
@@ -359,7 +362,7 @@ namespace OpenSim.Region.Environment.Scenes
                         RemFlag(LLObject.ObjectFlags.Scripted);
                         ScheduleFullUpdate();
                     }
-                    ScheduleFullUpdate(); 
+                    ScheduleFullUpdate();
 
                     return type;
                 }
@@ -369,7 +372,7 @@ namespace OpenSim.Region.Environment.Scenes
                         "[PRIMINVENTORY]: " +
                         "Tried to remove item ID {0} from prim {1}, {2} but the item does not exist in this inventory",
                         itemID, Name, UUID);
-                }            
+                }
             }
 
             return -1;
@@ -384,7 +387,7 @@ namespace OpenSim.Region.Environment.Scenes
         {
             if (m_inventorySerial > 0)
             {
-                client.SendTaskInventory(m_uuid, (short) m_inventorySerial,
+                client.SendTaskInventory(m_uuid, (short)m_inventorySerial,
                                          Helpers.StringToField(m_inventoryFileName));
                 return true;
             }
@@ -399,15 +402,15 @@ namespace OpenSim.Region.Environment.Scenes
         {
             byte[] fileData = new byte[0];
             InventoryStringBuilder invString = new InventoryStringBuilder(m_folderID, UUID);
-            
+
             lock (m_taskInventory)
-            {            
+            {
                 foreach (TaskInventoryItem item in m_taskInventory.Values)
                 {
                     invString.AddItemStart();
                     invString.AddNameValueLine("item_id", item.ItemID.ToString());
                     invString.AddNameValueLine("parent_id", item.ParentID.ToString());
-    
+
                     invString.AddPermissionsStart();
                     invString.AddNameValueLine("base_mask", "0x7FFFFFFF");
                     invString.AddNameValueLine("owner_mask", "0x7FFFFFFF");
@@ -419,7 +422,7 @@ namespace OpenSim.Region.Environment.Scenes
                     invString.AddNameValueLine("last_owner_id", item.LastOwnerID.ToString());
                     invString.AddNameValueLine("group_id", item.GroupID.ToString());
                     invString.AddSectionEnd();
-    
+
                     invString.AddNameValueLine("asset_id", item.AssetID.ToString());
                     invString.AddNameValueLine("type", TaskInventoryItem.Types[item.Type]);
                     invString.AddNameValueLine("inv_type", TaskInventoryItem.InvTypes[item.InvType]);
@@ -430,18 +433,18 @@ namespace OpenSim.Region.Environment.Scenes
                     invString.AddSectionEnd();
                 }
             }
-            
+
             fileData = Helpers.StringToField(invString.BuildString);
-            
-//            m_log.InfoFormat(
-//                "[PRIMINVENTORY]: RequestInventoryFile fileData: {0}", Helpers.FieldToUTF8String(fileData));
-            
+
+            //            m_log.InfoFormat(
+            //                "[PRIMINVENTORY]: RequestInventoryFile fileData: {0}", Helpers.FieldToUTF8String(fileData));
+
             if (fileData.Length > 2)
             {
                 xferManager.AddNewFile(m_inventoryFileName, fileData);
             }
         }
-        
+
         /// <summary>
         /// Process inventory backup
         /// </summary>
@@ -454,10 +457,10 @@ namespace OpenSim.Region.Environment.Scenes
                 {
                     datastore.StorePrimInventory(UUID, TaskInventory.Values);
                 }
-                
+
                 HasInventoryChanged = false;
             }
-        }        
+        }
 
         public class InventoryStringBuilder
         {
@@ -505,6 +508,6 @@ namespace OpenSim.Region.Environment.Scenes
             public void Close()
             {
             }
-        }        
+        }
     }
 }
