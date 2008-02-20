@@ -363,9 +363,14 @@ namespace OpenSim.Region.Environment.Scenes
         {
             m_otherMS += ms;
         }
+        
+//        private static readonly log4net.ILog m_log 
+//            = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+        
         public void addPendingDownload(int count)
         {
             m_pendingDownloads += count;
+            //m_log.InfoFormat("Adding {0} to pending downloads to make {1}", count, m_pendingDownloads);            
         }
 
         public void addScriptLines(int count)

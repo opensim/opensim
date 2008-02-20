@@ -160,7 +160,7 @@ namespace OpenSim.Region.Environment.Scenes
 
                 cache.GetAsset(item.AssetID, delegate(LLUUID assetID, AssetBase asset)
                    {
-                       if (asset.FullID == LLUUID.Zero)
+                       if (null == asset)
                        {
                            m_log.ErrorFormat(
                                "[PRIMINVENTORY]: " +
@@ -174,7 +174,7 @@ namespace OpenSim.Region.Environment.Scenes
                            m_parentGroup.AddActiveScriptCount(1);
                            ScheduleFullUpdate();
                        }
-                   });
+                   }, false);
             }
         }
 

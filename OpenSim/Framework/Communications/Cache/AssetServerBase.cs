@@ -37,7 +37,8 @@ namespace OpenSim.Framework.Communications.Cache
 {
     public abstract class AssetServerBase : IAssetServer
     {
-        private static readonly log4net.ILog m_log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+        private static readonly log4net.ILog m_log 
+            = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 
         protected IAssetReceiver m_receiver;
         protected BlockingQueue<AssetRequest> m_assetRequests;
@@ -70,13 +71,13 @@ namespace OpenSim.Framework.Communications.Cache
 
             if (asset != null)
             {
-                //m_log.InfoFormat("[ASSET]: Asset {0} received from asset server", req.AssetID);
+                //m_log.InfoFormat("[ASSETSERVER]: Asset {0} received from asset server", req.AssetID);
 
                 m_receiver.AssetReceived(asset, req.IsTexture);
             }
             else
             {
-                m_log.ErrorFormat("[ASSET]: Asset {0} not found by asset server", req.AssetID);
+                m_log.ErrorFormat("[ASSETSERVER]: Asset {0} not found by asset server", req.AssetID);
 
                 m_receiver.AssetNotFound(req.AssetID);
             }
@@ -131,7 +132,7 @@ namespace OpenSim.Framework.Communications.Cache
             req.IsTexture = isTexture;
             m_assetRequests.Enqueue(req);
 
-            m_log.InfoFormat("[ASSET]: Added {0} to request queue", assetID);
+            m_log.InfoFormat("[ASSETSERVER]: Added {0} to request queue", assetID);
         }
 
         public virtual void UpdateAsset(AssetBase asset)

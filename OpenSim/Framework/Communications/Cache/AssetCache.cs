@@ -116,7 +116,7 @@ namespace OpenSim.Framework.Communications.Cache
 
         public void Clear()
         {
-            m_log.Info("[ASSETSTORAGE]: Clearing Asset cache");
+            m_log.Info("[ASSET CACHE]: Clearing Asset cache");
             Initialize();
         }
 
@@ -135,7 +135,7 @@ namespace OpenSim.Framework.Communications.Cache
 
         public AssetCache(IAssetServer assetServer)
         {
-            m_log.Info("[ASSETSTORAGE]: Creating Asset cache");
+            m_log.Info("[ASSET CACHE]: Creating Asset cache");
             Initialize();
 
             m_assetServer = assetServer;
@@ -161,7 +161,7 @@ namespace OpenSim.Framework.Communications.Cache
                 }
                 catch (Exception e)
                 {
-                    m_log.Error("[ASSETCACHE]: " + e.ToString());
+                    m_log.Error("[ASSET CACHE]: " + e.ToString());
                 }
             }
         }
@@ -204,21 +204,28 @@ namespace OpenSim.Framework.Communications.Cache
             return false;
         }
 
-        public void GetAsset(LLUUID assetId, AssetRequestCallback callback)
+        /// <summary>
+        /// Asynchronously retrieve an asset.
+        /// </summary>
+        /// <param name="assetId"></param>
+        /// <param name="callback">
+        /// A callback invoked when the asset has either been found or not found.
+        /// If the asset was found this is called with the asset UUID and the asset data
+        /// If the asset was not found this is still called with the asset UUID but with a null asset data reference</param>
+        public void GetAsset(LLUUID assetId, AssetRequestCallback callback, bool isTexture)
         {
             AssetBase asset;
 
             if (TryGetCachedAsset(assetId, out asset))
             {
-
                 callback(assetId, asset);
             }
             else
             {
                 NewAssetRequest req = new NewAssetRequest(assetId, callback);
 
+                // Make sure we always have a request list to which to add the asset
                 AssetRequestsList requestList;
-
                 lock (RequestLists)
                 {
                     if (RequestLists.TryGetValue(assetId, out requestList))
@@ -231,22 +238,22 @@ namespace OpenSim.Framework.Communications.Cache
                     }
                 }
 
-                m_log.DebugFormat("[ASSETCACHE]: Added request for asset {0}", assetId);
+                m_log.DebugFormat("[ASSET CACHE]: Added request for {0} {1}", isTexture ? "texture" : "asset", assetId);
                 requestList.Requests.Add(req);
 
-                m_assetServer.RequestAsset(assetId, false);
+                m_assetServer.RequestAsset(assetId, isTexture);
             }
         }
 
         /// <summary>
-        /// Get an asset.  If the asset isn't in the cache, a request will be made to the persistent store to
+        /// Synchronously retreive  an asset.  If the asset isn't in the cache, a request will be made to the persistent store to
         /// load it into the cache.  
         /// 
         /// XXX We'll keep polling the cache until we get the asset or we exceed
         /// the allowed number of polls.  This isn't a very good way of doing things since a single thread
         /// is processing inbound packets, so if the asset server is slow, we could block this for up to
         /// the timeout period.  What we might want to do is register asynchronous callbacks on asset
-        /// receipt in the same manner as the nascent (but not yet active) TextureDownloadModule.  Of course,
+        /// receipt in the same manner as the TextureDownloadModule.  Of course,
         /// a timeout before asset receipt usually isn't fatal, the operation will work on the retry when the
         /// asset is much more likely to have made it into the cache.
         /// </summary>
@@ -276,7 +283,8 @@ namespace OpenSim.Framework.Communications.Cache
                     }
                 } while (--maxPolls > 0);
 
-                m_log.WarnFormat("[ASSETCACHE]: Asset {0} was not received before the retrieval timeout was reached", assetID.ToString());
+                m_log.WarnFormat("[ASSET CACHE]: {0} {1} was not received before the retrieval timeout was reached", 
+                                 isTexture ? "texture" : "asset", assetID.ToString());
 
                 return null;
             }
@@ -348,7 +356,7 @@ namespace OpenSim.Framework.Communications.Cache
                 }
             }
 
-            m_log.InfoFormat("[ASSETCACHE]: Adding {0} {1} [{2}]: {3}.", temporary, type, asset.FullID, result);
+            m_log.InfoFormat("[ASSET CACHE]: Adding {0} {1} [{2}]: {3}.", temporary, type, asset.FullID, result);
         }
 
         public AssetBase CopyAsset(LLUUID assetID)
@@ -367,9 +375,10 @@ namespace OpenSim.Framework.Communications.Cache
             }
         }
 
+        // See IAssetReceiver
         public void AssetReceived(AssetBase asset, bool IsTexture)
         {
-            m_log.InfoFormat("[ASSETCACHE]: Recieved {0} [{1}]", IsTexture ? "texture" : "asset", asset.FullID);
+            m_log.InfoFormat("[ASSET CACHE]: Recieved {0} [{1}]", IsTexture ? "texture" : "asset", asset.FullID);
 
             if (asset.FullID != LLUUID.Zero) // if it is set to zero then the asset wasn't found by the server
             {
@@ -383,7 +392,7 @@ namespace OpenSim.Framework.Communications.Cache
                     TextureImage image = new TextureImage(asset);
                     if (Textures.ContainsKey(image.FullID))
                     {
-                        m_log.InfoFormat("[ASSETCACHE]: There's already an texture {0} in memory. Skipping.", asset.FullID);
+                        m_log.InfoFormat("[ASSET CACHE]: There's already an texture {0} in memory. Skipping.", asset.FullID);
                     }
                     else
                     {
@@ -396,7 +405,7 @@ namespace OpenSim.Framework.Communications.Cache
 
                         if (RequestedTextures.ContainsKey(image.FullID))
                         {
-                            m_log.InfoFormat("[ASSETCACHE]: Moving {0} from RequestedTextures to TextureRequests", asset.FullID);
+                            m_log.InfoFormat("[ASSET CACHE]: Moving {0} from RequestedTextures to TextureRequests", asset.FullID);
 
                             AssetRequest req = RequestedTextures[image.FullID];
                             req.ImageInfo = image;
@@ -413,7 +422,7 @@ namespace OpenSim.Framework.Communications.Cache
                     AssetInfo assetInf = new AssetInfo(asset);
                     if (Assets.ContainsKey(assetInf.FullID))
                     {
-                        m_log.InfoFormat("[ASSETCACHE]: There's already an asset {0} in memory. Skipping.", asset.FullID);
+                        m_log.InfoFormat("[ASSET CACHE]: There's already an asset {0} in memory. Skipping.", asset.FullID);
                     }
                     else
                     {
@@ -426,7 +435,7 @@ namespace OpenSim.Framework.Communications.Cache
 
                         if (RequestedAssets.ContainsKey(assetInf.FullID))
                         {
-                            m_log.InfoFormat("[ASSETCACHE]: Moving {0} from RequestedAssets to AssetRequests", asset.FullID);
+                            m_log.InfoFormat("[ASSET CACHE]: Moving {0} from RequestedAssets to AssetRequests", asset.FullID);
 
                             AssetRequest req = RequestedAssets[assetInf.FullID];
                             req.AssetInf = assetInf;
@@ -455,12 +464,17 @@ namespace OpenSim.Framework.Communications.Cache
             }
         }
 
+        // See IAssetReceiver
         public void AssetNotFound(LLUUID assetID)
         {
-            //m_log.ErrorFormat("[ASSET CACHE]: Unhandled AssetNotFound for {0}", assetID);
-
+            //m_log.ErrorFormat("[ASSET CACHE]: AssetNotFound for {0}", assetID);
+    
+            // The 'image not found' packet needs to happen, but RequestedTextures is not actually used (should be cleaned up)
+            // It might also be better to do this in the TextureDownloadModule
+            /*
+             * 
             AssetRequest req;
-
+            
             if (RequestedTextures.TryGetValue(assetID, out req))
             {
                 m_log.WarnFormat("[ASSET CACHE]: sending image not found for {0}", assetID);                
@@ -473,6 +487,20 @@ namespace OpenSim.Framework.Communications.Cache
             {
                 m_log.ErrorFormat("[ASSET CACHE]: Asset [{0}] not found, but couldn't find any users to send to ", assetID);
             }
+            */
+            
+            // Notify callers 
+            lock (RequestLists)
+            {
+                AssetRequestsList reqList = RequestLists[assetID];
+                foreach (NewAssetRequest req in reqList.Requests)
+                {
+                    req.Callback(assetID, null);
+                }
+
+                RequestLists.Remove(assetID);
+                reqList.Requests.Clear();
+            }            
         }
 
         private int CalculateNumPackets(byte[] data)

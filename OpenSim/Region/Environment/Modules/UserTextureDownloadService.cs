@@ -95,7 +95,7 @@ namespace OpenSim.Region.Environment.Modules
                             new TextureSender(client, e.DiscardLevel, e.PacketNumber);                        
                         m_textureSenders.Add(e.RequestedAssetID, requestHandler);
                         
-                        m_scene.AssetCache.GetAsset(e.RequestedAssetID, TextureCallback);
+                        m_scene.AssetCache.GetAsset(e.RequestedAssetID, TextureCallback, true);
                     }
                 }
             }
@@ -117,7 +117,7 @@ namespace OpenSim.Region.Environment.Modules
         /// </summary>
         /// <param name="textureID"></param>
         /// <param name="asset"></param>
-        public void TextureCallback(LLUUID textureID, AssetBase asset)
+        public void TextureCallback(LLUUID textureID, AssetBase texture)
         {
             lock (m_textureSenders)
             {
@@ -125,10 +125,24 @@ namespace OpenSim.Region.Environment.Modules
 
                 if (m_textureSenders.TryGetValue(textureID, out textureSender))
                 {
-                    if (!textureSender.ImageLoaded)
+                    if (null != texture)
                     {
-                        textureSender.TextureReceived(asset);
-                        EnqueueTextureSender(textureSender);
+                        if (!textureSender.ImageLoaded)
+                        {
+                            textureSender.TextureReceived(texture);
+                            EnqueueTextureSender(textureSender);
+                        }
+                    }
+                    else
+                    {
+                        // Right now, leaving it up to lower level asset server code to post the fact that
+                        // this texture could not be found
+                        
+                        // TODO Send packet back to the client telling it not to expect the texture
+                        // The absence of this packet doesn't appear to be causing it a problem right now
+                        
+                        //m_log.InfoFormat("Removing {0} from pending downloads count", textureID);
+                        m_scene.AddPendingDownloads(-1);
                     }
                     
                     //m_log.InfoFormat("[TEXTURE SENDER] Removing texture sender with uuid {0}", textureID);
