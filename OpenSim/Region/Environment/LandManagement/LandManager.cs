@@ -576,7 +576,7 @@ namespace OpenSim.Region.Environment.LandManagement
                     Land currentParcel = null;
                     try
                     {
-                        getLandObject(start_x + x, start_y + y);
+                        currentParcel = getLandObject(start_x + x, start_y + y);
                     }
                     catch (Exception)
                     {

@@ -136,9 +136,13 @@ namespace OpenSim.Region.Physics.Manager
             // a race condition if the last subscriber unsubscribes
             // immediately after the null check and before the event is raised.
             RequestTerseUpdate handler = OnRequestTerseUpdate;
+            
             if (handler != null)
             {
-                handler();
+                lock (handler)
+                {
+                    handler();
+                }
             }
         }
 
@@ -150,17 +154,25 @@ namespace OpenSim.Region.Physics.Manager
             OutOfBounds handler = OnOutOfBounds;
             if (handler != null)
             {
-                handler(pos);
+                lock (handler)
+                {
+                    handler(pos);
+                }
             }
         }
 
         public virtual void SendCollisionUpdate(EventArgs e)
         {
             CollisionUpdate handler = OnCollisionUpdate;
+      
             if (handler != null)
-            {
-                handler(e);
+            { 
+                lock (handler)
+                {
+                    handler(e);
+                }
             }
+            
         }
 
 
