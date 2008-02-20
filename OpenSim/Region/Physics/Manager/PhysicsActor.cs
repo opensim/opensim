@@ -138,7 +138,7 @@ namespace OpenSim.Region.Physics.Manager
             RequestTerseUpdate handler = OnRequestTerseUpdate;
             if (handler != null)
             {
-                OnRequestTerseUpdate();
+                handler();
             }
         }
 
@@ -150,7 +150,7 @@ namespace OpenSim.Region.Physics.Manager
             OutOfBounds handler = OnOutOfBounds;
             if (handler != null)
             {
-                OnOutOfBounds(pos);
+                handler(pos);
             }
         }
 
@@ -159,7 +159,7 @@ namespace OpenSim.Region.Physics.Manager
             CollisionUpdate handler = OnCollisionUpdate;
             if (handler != null)
             {
-                OnCollisionUpdate(e);
+                handler(e);
             }
         }
 
