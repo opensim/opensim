@@ -79,18 +79,18 @@ namespace OpenSim.Region.Environment.Modules
 
         public void HandleXfer(ulong xferID, uint packetID, byte[] data)
         {
-            AssetXferUploader uploaderFound = null;
+           // AssetXferUploader uploaderFound = null;
             
             lock (XferUploaders)
             {
                 foreach (AssetXferUploader uploader in XferUploaders.Values)
                 {
                     if (uploader.XferID == xferID)
-                    {   
+                    {
+                        uploader.HandleXferPacket(xferID, packetID, data);
                         break;
                     }
-                }
-                          
+                }             
             }
         }
 
