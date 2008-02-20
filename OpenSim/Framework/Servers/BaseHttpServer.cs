@@ -363,6 +363,20 @@ namespace OpenSim.Framework.Servers
 
         public void HandleHTTPRequest(HttpListenerRequest request, HttpListenerResponse response)
         {
+            switch( request.HttpMethod )
+            {
+                case "OPTIONS":
+                    response.StatusCode = 200;
+                    return;
+
+                default:
+                    HandleContentVerbs(request, response);
+                    return;
+            }
+        }
+
+        private void HandleContentVerbs(HttpListenerRequest request, HttpListenerResponse response)
+        {
             // This is a test.  There's a workable alternative..  as this way sucks.
             // We'd like to put this into a text file parhaps that's easily editable.
             // 
@@ -374,6 +388,8 @@ namespace OpenSim.Framework.Servers
             // I depend on show_login_form being in the secondlife.exe parameters to figure out
             // to display the form, or process it.
             // a better way would be nifty.
+
+
             Stream requestStream = request.InputStream;
 
             Encoding encoding = Encoding.UTF8;
@@ -422,7 +438,7 @@ namespace OpenSim.Framework.Servers
                     Hashtable responsedata = requestprocessor(keysvals);
                     DoHTTPGruntWork(responsedata,response);
                        
-                        //SendHTML500(response);
+                    //SendHTML500(response);
                     
                 }
                 else
