@@ -543,7 +543,6 @@ namespace OpenSim.Region.Environment.Scenes
             set
             {
                 m_clickAction = value;
-                ScheduleFullUpdate();
             }
         }
 

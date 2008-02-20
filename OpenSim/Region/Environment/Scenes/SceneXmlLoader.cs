@@ -193,9 +193,10 @@ namespace OpenSim.Region.Environment.Scenes
                     new Quaternion(rootPart.RotationOffset.W, rootPart.RotationOffset.X,
                                    rootPart.RotationOffset.Y, rootPart.RotationOffset.Z), UsePhysics);
                 rootPart.DoPhysicsPropertyUpdate(UsePhysics, true);
-                rootPart.Velocity = receivedVelocity;
-                 
+                rootPart.Velocity = receivedVelocity;                 
             }
+
+            obj.ScheduleGroupForFullUpdate();
         }
 
         public void SavePrimsToXml2(string fileName)

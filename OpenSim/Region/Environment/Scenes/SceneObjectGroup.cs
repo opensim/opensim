@@ -352,8 +352,6 @@ namespace OpenSim.Region.Environment.Scenes
             sr.Close();
 
             UpdateParentIDs();
-
-            ScheduleGroupForFullUpdate();
         }
 
         private void AttachToBackup()
