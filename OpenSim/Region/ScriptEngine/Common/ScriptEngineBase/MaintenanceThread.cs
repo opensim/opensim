@@ -88,23 +88,20 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
         private void StopMaintenanceThread()
         {
 #if DEBUG
-            m_ScriptEngine.Log.Debug("[" + m_ScriptEngine.ScriptEngineName + "]: StopMaintenanceThread() called");
+            //m_ScriptEngine.Log.Debug("[" + m_ScriptEngine.ScriptEngineName + "]: StopMaintenanceThread() called");
 #endif
             PleaseShutdown = true;
             Thread.Sleep(100);
             try
             {
-                if (MaintenanceThreadThread != null)
-                {
-                    if (MaintenanceThreadThread.IsAlive)
+                if (MaintenanceThreadThread != null && MaintenanceThreadThread.IsAlive)
                     {
                         MaintenanceThreadThread.Abort();
                     }
-                }
             }
             catch (Exception ex)
             {
-                m_ScriptEngine.Log.Error("[" + m_ScriptEngine.ScriptEngineName + "]: Exception stopping maintenence thread: " + ex.ToString());
+                //m_ScriptEngine.Log.Error("[" + m_ScriptEngine.ScriptEngineName + "]: Exception stopping maintenence thread: " + ex.ToString());
             }
         }
 

@@ -75,7 +75,7 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
                     if (cmdHandlerThread.IsAlive == true)
                     {
                         cmdHandlerThread.Abort();
-                        cmdHandlerThread.Join();
+                        //cmdHandlerThread.Join();
                     }
                 }
             }

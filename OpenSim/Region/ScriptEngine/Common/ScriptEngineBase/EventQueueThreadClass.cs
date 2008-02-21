@@ -134,7 +134,7 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
                 try
                 {
                     EventQueueThread.Abort();               // Send abort
-                    EventQueueThread.Join();                // Wait for it
+                    //EventQueueThread.Join();                // Wait for it
                 }
                 catch (Exception)
                 {

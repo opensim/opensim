@@ -233,15 +233,15 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
             if (eventQueueThreads != null && eventQueueThreads != null)
             {
                 // Kill worker threads
-                lock (eventQueueThreads)
-                {
-                    foreach (EventQueueThreadClass EventQueueThread in eventQueueThreads)
+                //lock (eventQueueThreads)
+                //{
+                    foreach (EventQueueThreadClass EventQueueThread in new ArrayList(eventQueueThreads))
                     {
                         AbortThreadClass(EventQueueThread);
                     }
-                    eventQueueThreads.Clear();
-                    staticGlobalEventQueueThreads.Clear();
-                }
+                    //eventQueueThreads.Clear();
+                    //staticGlobalEventQueueThreads.Clear();
+                //}
             }
 
                 // Remove all entries from our event queue
@@ -275,10 +275,10 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
             }
             catch (Exception ex)
             {
-                m_ScriptEngine.Log.Error("[" + m_ScriptEngine.ScriptEngineName + ":EventQueueManager]: If you see this, could you please report it to Tedd:");
-                m_ScriptEngine.Log.Error("[" + m_ScriptEngine.ScriptEngineName + ":EventQueueManager]: Script thread execution timeout kill ended in exception: " + ex.ToString());
+                //m_ScriptEngine.Log.Error("[" + m_ScriptEngine.ScriptEngineName + ":EventQueueManager]: If you see this, could you please report it to Tedd:");
+                //m_ScriptEngine.Log.Error("[" + m_ScriptEngine.ScriptEngineName + ":EventQueueManager]: Script thread execution timeout kill ended in exception: " + ex.ToString());
             }
-            m_ScriptEngine.Log.Debug("[" + m_ScriptEngine.ScriptEngineName + "]: Killed script execution thread. Remaining thread count: " + eventQueueThreads.Count);
+            //m_ScriptEngine.Log.Debug("[" + m_ScriptEngine.ScriptEngineName + "]: Killed script execution thread. Remaining thread count: " + eventQueueThreads.Count);
         }
         #endregion
 
