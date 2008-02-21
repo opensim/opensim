@@ -238,7 +238,7 @@ namespace OpenSim.Region.ClientStack
 
         # region Client Methods
 
-        private void CloseCleanup()
+        private void CloseCleanup(bool ShutdownCircult)
         {
             m_scene.RemoveClient(AgentId);
 
@@ -268,8 +268,15 @@ namespace OpenSim.Region.ClientStack
             // We can't reach into other scenes and close the connection 
             // We need to do this over grid communications
             //m_scene.CloseAllAgents(CircuitCode);
-            GC.Collect();
-            m_clientThread.Abort();
+            
+            // If we're not shutting down the circuit, then this is the last time we'll go here.
+            // If we are shutting down the circuit, the UDP Server will come back here with 
+            // ShutDownCircuit = false
+            if (!(ShutdownCircult))
+            {
+                GC.Collect();
+                m_clientThread.Abort();
+            }
         }
 
         /// <summary>
@@ -286,7 +293,7 @@ namespace OpenSim.Region.ClientStack
             if (ShutdownCircult)
                 OnConnectionClosed(this);
 
-            CloseCleanup();
+            CloseCleanup(ShutdownCircult);
         }
 
         public void Kick(string message)
