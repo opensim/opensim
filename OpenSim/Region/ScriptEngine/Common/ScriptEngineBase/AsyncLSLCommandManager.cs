@@ -57,6 +57,7 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
             cmdHandlerThread.Priority = ThreadPriority.BelowNormal;
             cmdHandlerThread.IsBackground = true;
             cmdHandlerThread.Start();
+            OpenSim.Framework.ThreadTracker.Add(cmdHandlerThread);
         }
 
         public void ReadConfig()

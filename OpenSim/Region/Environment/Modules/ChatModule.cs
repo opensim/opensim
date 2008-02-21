@@ -113,7 +113,10 @@ namespace OpenSim.Region.Environment.Modules
                         m_irc_connector.Name = "IRCConnectorThread";
                         m_irc_connector.IsBackground = true;
                     }
-                    if (!m_irc_connector.IsAlive) { m_irc_connector.Start(); }
+                    if (!m_irc_connector.IsAlive) { 
+                        m_irc_connector.Start();
+                        OpenSim.Framework.ThreadTracker.Add(m_irc_connector);
+                    }
                 }
                 catch (Exception ex)
                 {
@@ -260,7 +263,10 @@ namespace OpenSim.Region.Environment.Modules
                     m_irc_connector.Name = "IRCConnectorThread";
                     m_irc_connector.IsBackground = true;
                     }
-                    if (!m_irc_connector.IsAlive) { m_irc_connector.Start(); }
+                    if (!m_irc_connector.IsAlive) { 
+                        m_irc_connector.Start();
+                        OpenSim.Framework.ThreadTracker.Add(m_irc_connector);
+                    }
                 }
                 catch (Exception ex)
                 {
@@ -421,11 +427,13 @@ namespace OpenSim.Region.Environment.Modules
                     pingSender.Name = "PingSenderThread";
                     pingSender.IsBackground = true;
                     pingSender.Start();
+                    OpenSim.Framework.ThreadTracker.Add(pingSender);
 
                     listener = new Thread(new ThreadStart(ListenerRun));
                     listener.Name = "IRCChatModuleListenerThread";
                     listener.IsBackground = true;
                     listener.Start();
+                    OpenSim.Framework.ThreadTracker.Add(listener);
 
                     m_writer.WriteLine(m_user);
                     m_writer.Flush();

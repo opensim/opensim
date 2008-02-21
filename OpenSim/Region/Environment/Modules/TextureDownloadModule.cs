@@ -75,6 +75,7 @@ namespace OpenSim.Region.Environment.Modules
                 m_thread.Name = "ProcessTextureSenderThread";
                 m_thread.IsBackground = true;
                 m_thread.Start();
+                OpenSim.Framework.ThreadTracker.Add(m_thread);
             }
 
             if (!m_scenes.Contains(scene))

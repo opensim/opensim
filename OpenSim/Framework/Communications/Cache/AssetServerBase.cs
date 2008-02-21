@@ -101,6 +101,7 @@ namespace OpenSim.Framework.Communications.Cache
             m_localAssetServerThread.Name = "LocalAssetServerThread";
             m_localAssetServerThread.IsBackground = true;
             m_localAssetServerThread.Start();
+            OpenSim.Framework.ThreadTracker.Add(m_localAssetServerThread);
         }
 
         private void RunRequests()

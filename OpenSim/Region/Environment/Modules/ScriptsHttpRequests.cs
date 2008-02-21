@@ -287,6 +287,7 @@ namespace OpenSim.Region.Environment.Modules
             httpThread.IsBackground = true;
             finished = false;
             httpThread.Start();
+            OpenSim.Framework.ThreadTracker.Add(httpThread);
         }
 
         /*

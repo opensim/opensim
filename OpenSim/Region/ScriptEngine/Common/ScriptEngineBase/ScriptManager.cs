@@ -160,6 +160,7 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
             t.IsBackground = true;
             t.Priority = ThreadPriority.Normal;
             t.Start();
+            OpenSim.Framework.ThreadTracker.Add(t);
             return t;
         }
 

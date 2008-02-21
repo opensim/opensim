@@ -754,15 +754,30 @@ namespace OpenSim
                     break;
 
                 case "threads":
-                        m_console.Notice("THREAD", Process.GetCurrentProcess().Threads.Count + " threads running:");
-                        int _tc = 0;
+                        //m_console.Notice("THREAD", Process.GetCurrentProcess().Threads.Count + " threads running:");
+                        //int _tc = 0;
                     
-                        foreach (ProcessThread pt in Process.GetCurrentProcess().Threads)
+                        //foreach (ProcessThread pt in Process.GetCurrentProcess().Threads)
+                        //{
+                        //    _tc++;
+                        //    m_console.Notice("THREAD", _tc + ": ID: " + pt.Id + ", Started: " + pt.StartTime.ToString() + ", CPU time: " + pt.TotalProcessorTime + ", Pri: " + pt.BasePriority.ToString() + ", State: " + pt.ThreadState.ToString());
+                            
+                        //}
+                    List<Thread> threads = OpenSim.Framework.ThreadTracker.GetThreads();
+                    if (threads == null)
+                    {
+                        m_console.Notice("THREAD", "Thread tracking is only enabled in DEBUG mode.");
+                    }
+                    else
+                    {
+                        int _tc = 0;
+                        m_console.Notice("THREAD", threads.Count + " threads are being tracked:");
+                        foreach (Thread t in threads)
                         {
                             _tc++;
-                            m_console.Notice("THREAD", _tc + ": ID: " + pt.Id + ", Started: " + pt.StartTime.ToString() + ", CPU time: " + pt.TotalProcessorTime + ", Pri: " + pt.BasePriority.ToString() + ", State: " + pt.ThreadState.ToString());
-                            
+                            m_console.Notice("THREAD", _tc + ": ID: " + t.ManagedThreadId.ToString() + ", Name: " + t.Name + ", Alive: " + t.IsAlive.ToString() + ", Pri: " + t.Priority.ToString() + ", State: " + t.ThreadState.ToString());
                         }
+                    }
 
 
                     break;

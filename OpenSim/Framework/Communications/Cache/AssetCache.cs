@@ -171,6 +171,7 @@ namespace OpenSim.Framework.Communications.Cache
             m_assetCacheThread.Name = "AssetCacheThread";
             m_assetCacheThread.IsBackground = true;
             m_assetCacheThread.Start();
+            OpenSim.Framework.ThreadTracker.Add(m_assetCacheThread);
         }
 
         /// <summary>

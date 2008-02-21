@@ -550,6 +550,7 @@ namespace OpenSim.Framework.Servers
             m_workerThread.Name = "HttpThread";
             m_workerThread.IsBackground = true;
             m_workerThread.Start();
+            OpenSim.Framework.ThreadTracker.Add(m_workerThread);
         }
 
         private void StartHTTP()

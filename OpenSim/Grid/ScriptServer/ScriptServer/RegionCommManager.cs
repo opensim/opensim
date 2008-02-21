@@ -61,6 +61,7 @@ namespace OpenSim.Grid.ScriptServer
             listenThread.Name = "ListenThread";
             listenThread.IsBackground = true;
             listenThread.Start();
+            OpenSim.Framework.ThreadTracker.Add(listenThread);
         }
 
         /// <summary>

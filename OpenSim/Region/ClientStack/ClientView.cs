@@ -228,6 +228,7 @@ namespace OpenSim.Region.ClientStack
             m_clientThread.Name = "ClientThread";
             m_clientThread.IsBackground = true;
             m_clientThread.Start();
+            OpenSim.Framework.ThreadTracker.Add(m_clientThread);
         }
 
         public void SetDebug(int newDebug)
