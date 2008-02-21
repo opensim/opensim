@@ -1272,7 +1272,8 @@ namespace OpenSim.Region.Physics.OdePlugin
                             {
                                 foreach (OdeCharacter actor in _characters)
                                 {
-                                    actor.Move(timeStep);
+                                    if (actor != null) 
+                                        actor.Move(timeStep);
                                 }
 
                                 collision_optimized(timeStep);
@@ -1300,7 +1301,8 @@ namespace OpenSim.Region.Physics.OdePlugin
 
                 foreach (OdeCharacter actor in _characters)
                 {
-                    actor.UpdatePositionAndVelocity();
+                    if (actor != null)
+                        actor.UpdatePositionAndVelocity();
                 }
 
                 if (!ode.lockquery())

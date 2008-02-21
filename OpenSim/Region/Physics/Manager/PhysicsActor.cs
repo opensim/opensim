@@ -139,10 +139,9 @@ namespace OpenSim.Region.Physics.Manager
             
             if (handler != null)
             {
-                lock (handler)
-                {
+                
                     handler();
-                }
+               
             }
         }
 
@@ -154,10 +153,7 @@ namespace OpenSim.Region.Physics.Manager
             OutOfBounds handler = OnOutOfBounds;
             if (handler != null)
             {
-                lock (handler)
-                {
                     handler(pos);
-                }
             }
         }
 
@@ -167,10 +163,7 @@ namespace OpenSim.Region.Physics.Manager
       
             if (handler != null)
             { 
-                lock (handler)
-                {
                     handler(e);
-                }
             }
             
         }
