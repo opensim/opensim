@@ -60,24 +60,22 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
         // Notes:
         // * Current execution load balancing is optimized for 1 thread, and can cause unfair execute balancing between scripts.
         //   Not noticeable unless server is under high load.
-        // * This class contains the number of threads used for script executions. Since we are not microthreading scripts yet,
-        //   increase number of threads to allow more concurrent script executions in OpenSim.
         //
 
         public ScriptEngine m_ScriptEngine;
 
         /// <summary>
         /// List of threads (classes) processing event queue
+        /// Note that this may or may not be a reference to a static object depending on PrivateRegionThreads config setting.
         /// </summary>
         internal List<EventQueueThreadClass> eventQueueThreads;                             // Thread pool that we work on
         /// <summary>
         /// Locking access to eventQueueThreads AND staticGlobalEventQueueThreads.
-        /// Note that this may or may not be a reference to a static object depending on PrivateRegionThreads config setting.
         /// </summary>
-        private object eventQueueThreadsLock = new object();
+//        private object eventQueueThreadsLock = new object();
         // Static objects for referencing the objects above if we don't have private threads:
         internal static List<EventQueueThreadClass> staticEventQueueThreads;                // A static reference used if we don't use private threads
-        internal static object staticEventQueueThreadsLock;                                 // Statick lock object reference for same reason
+//        internal static object staticEventQueueThreadsLock;                                 // Statick lock object reference for same reason
 
         /// <summary>
         /// Global static list of all threads (classes) processing event queue -- used by max enforcment thread
@@ -91,7 +89,7 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
         public object ThreadsToExitLock = new object();
 
 
-        public object queueLock = new object(); // Mutex lock object
+        //public object queueLock = new object(); // Mutex lock object
 
         /// <summary>
         /// How many threads to process queue with
@@ -183,7 +181,7 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
             {
                 // PRIVATE THREAD POOL PER REGION
                 eventQueueThreads = new List<EventQueueThreadClass>();
-                eventQueueThreadsLock = new object();
+             //   eventQueueThreadsLock = new object();
             }
             else
             {
@@ -191,12 +189,12 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
                 // Crate the static objects
                 if (staticEventQueueThreads == null)
                     staticEventQueueThreads = new List<EventQueueThreadClass>();
-                if (staticEventQueueThreadsLock == null)
-                    staticEventQueueThreadsLock = new object();
+               // if (staticEventQueueThreadsLock == null)
+               //     staticEventQueueThreadsLock = new object();
 
                 // Now reference our locals to them
                 eventQueueThreads = staticEventQueueThreads;
-                eventQueueThreadsLock = staticEventQueueThreadsLock;
+                //eventQueueThreadsLock = staticEventQueueThreadsLock;
             }
 
             ReadConfig();
@@ -213,7 +211,7 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
             EventExecutionMaxQueueSize = m_ScriptEngine.ScriptConfigSource.GetInt("EventExecutionMaxQueueSize", 300);
 
             // Now refresh config in all threads
-            lock (eventQueueThreadsLock)
+            lock (eventQueueThreads)
             {
                 foreach (EventQueueThreadClass EventQueueThread in eventQueueThreads)
                 {
@@ -232,10 +230,10 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
 
         private void Stop()
         {
-            if (eventQueueThreadsLock != null && eventQueueThreads != null)
+            if (eventQueueThreads != null && eventQueueThreads != null)
             {
                 // Kill worker threads
-                lock (eventQueueThreadsLock)
+                lock (eventQueueThreads)
                 {
                     foreach (EventQueueThreadClass EventQueueThread in eventQueueThreads)
                     {
@@ -247,7 +245,7 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
             }
 
                 // Remove all entries from our event queue
-                lock (queueLock)
+                lock (eventQueue)
                 {
                     eventQueue.Clear();
                 }
@@ -361,7 +359,7 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
         /// <param name="param">Array of parameters to match event mask</param>
         public void AddToScriptQueue(uint localID, LLUUID itemID, string FunctionName, Queue_llDetectParams_Struct qParams, params object[] param)
         {
-            lock (queueLock)
+            lock (eventQueue)
             {
                 if (eventQueue.Count >= EventExecutionMaxQueueSize)
                 {
@@ -396,7 +394,7 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
             if (eventQueueThreads.Count == numberOfThreads)
                 return;
 
-            lock (eventQueueThreadsLock)
+            lock (eventQueueThreads)
             {
                 int diff = numberOfThreads - eventQueueThreads.Count;
                 // Positive number: Start
@@ -426,7 +424,7 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
         public void CheckScriptMaxExecTime()
         {
             // Iterate through all ScriptThreadClasses and check how long their current function has been executing
-            lock (eventQueueThreadsLock)
+            lock (eventQueueThreads)
             {
                 foreach (EventQueueThreadClass EventQueueThread in staticGlobalEventQueueThreads)
                 {

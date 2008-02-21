@@ -200,7 +200,7 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
                                 //myScriptEngine.Log.Info("[" + ScriptEngineName + "]: Processing event for localID: " + QIS.localID + ", itemID: " + QIS.itemID + ", FunctionName: " + QIS.FunctionName);
 
                                 // OBJECT BASED LOCK - TWO THREADS WORKING ON SAME OBJECT IS NOT GOOD
-                                lock (eventQueueManager.queueLock)
+                                lock (eventQueueManager.eventQueue)
                                 {
                                     GotItem = false;
                                     for (int qc = 0; qc < eventQueueManager.eventQueue.Count; qc++)
@@ -230,12 +230,12 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
                                     {
 ///cfk 2-7-08 dont need this right now and the default Linux build has DEBUG defined
 #if DEBUG
-                                        eventQueueManager.m_ScriptEngine.Log.Debug("[" + ScriptEngineName + "]: " +
-                                                                                      "Executing event:\r\n"
-                                                                                      + "QIS.localID: " + QIS.localID
-                                                                                      + ", QIS.itemID: " + QIS.itemID
-                                                                                      + ", QIS.functionName: " +
-                                                                                      QIS.functionName);
+                                        //eventQueueManager.m_ScriptEngine.Log.Debug("[" + ScriptEngineName + "]: " +
+                                        //                                              "Executing event:\r\n"
+                                        //                                              + "QIS.localID: " + QIS.localID
+                                        //                                              + ", QIS.itemID: " + QIS.itemID
+                                        //                                              + ", QIS.functionName: " +
+                                        //                                              QIS.functionName);
 #endif
                                         LastExecutionStarted = DateTime.Now.Ticks;
                                         KillCurrentScript = false;
