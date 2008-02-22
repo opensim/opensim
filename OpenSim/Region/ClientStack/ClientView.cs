@@ -317,7 +317,7 @@ namespace OpenSim.Region.ClientStack
             // in it to process.  It's an on-purpose threadlock though because 
             // without it, the clientloop will suck up all sim resources.
 
-            m_packetQueue = new PacketQueue();
+            m_packetQueue = new PacketQueue(agentId);
 
             RegisterLocalPacketHandlers();
 

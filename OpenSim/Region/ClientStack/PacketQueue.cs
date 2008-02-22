@@ -29,13 +29,16 @@ using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Timers;
+using libsecondlife;
 using libsecondlife.Packets;
 using OpenSim.Framework;
+using OpenSim.Framework.Statistics;
+using OpenSim.Framework.Statistics.Interfaces;
 using Timer=System.Timers.Timer;
 
 namespace OpenSim.Region.ClientStack
 {
-    public class PacketQueue
+    public class PacketQueue : IPullStatsProvider
     {
         //private static readonly log4net.ILog m_log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 
@@ -76,8 +79,10 @@ namespace OpenSim.Region.ClientStack
         // private long LastThrottle;
         // private long ThrottleInterval;
         private Timer throttleTimer;
+        
+        private LLUUID m_agentId;
 
-        public PacketQueue()
+        public PacketQueue(LLUUID agentId)
         {
             // While working on this, the BlockingQueue had me fooled for a bit.
             // The Blocking queue causes the thread to stop until there's something 
@@ -116,6 +121,13 @@ namespace OpenSim.Region.ClientStack
             // TIMERS needed for this
             // LastThrottle = DateTime.Now.Ticks;
             // ThrottleInterval = (long)(throttletimems/throttleTimeDivisor);
+            
+            m_agentId = agentId;
+            
+            if (StatsManager.SimExtraStats != null)            
+            {
+                StatsManager.SimExtraStats.RegisterPacketQueueStatsProvider(m_agentId, this);
+            }
         }
 
         /* STANDARD QUEUE MANIPULATION INTERFACES */
@@ -214,6 +226,11 @@ namespace OpenSim.Region.ClientStack
         {
             m_enabled = false;
             throttleTimer.Stop();
+            
+            if (StatsManager.SimExtraStats != null)            
+            {
+                StatsManager.SimExtraStats.DeregisterPacketQueueStatsProvider(m_agentId);
+            }            
         }
 
         private void ResetCounters()
@@ -482,6 +499,22 @@ namespace OpenSim.Region.ClientStack
             }
             // effectively wiggling the slider causes things reset
             ResetCounters();
+        }
+        
+        // See IPullStatsProvider
+        public string GetStats()
+        {
+            return string.Format("{0,7}  {1,7}  {2,7}  {3,7}  {4,7}  {5,7}  {6,7}  {7,7}  {8,7}  {9,7}",
+                                 SendQueue.Count(),
+                                 IncomingPacketQueue.Count,
+                                 OutgoingPacketQueue.Count,
+                                 ResendOutgoingPacketQueue.Count,
+                                 LandOutgoingPacketQueue.Count,
+                                 WindOutgoingPacketQueue.Count,
+                                 CloudOutgoingPacketQueue.Count,
+                                 TaskOutgoingPacketQueue.Count,
+                                 TextureOutgoingPacketQueue.Count,
+                                 AssetOutgoingPacketQueue.Count);                                     
         }
     }
 }

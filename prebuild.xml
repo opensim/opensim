@@ -147,6 +147,7 @@
 
       <ReferencePath>../../../bin/</ReferencePath>
       <Reference name="System"/>
+      <Reference name="libsecondlife.dll"/>
       <Reference name="OpenSim.Framework"/>
 
       <Files>
@@ -752,6 +753,7 @@
       <Reference name="OpenSim.Framework.Servers"/>
       <Reference name="OpenSim.Framework.Console"/>
       <Reference name="OpenSim.Framework.Communications"/>
+      <Reference name="OpenSim.Framework.Statistics"/>
       <Reference name="OpenSim.Region.Communications.Local"/>      
       <Reference name="OpenSim.Region.Physics.Manager"/>
       <Reference name="XMLRPC.dll"/>

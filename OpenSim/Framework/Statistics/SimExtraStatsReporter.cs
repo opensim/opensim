@@ -26,12 +26,19 @@
 * 
 */
 
+using System;
+using System.Collections.Generic;
+using System.Text;
+
 using OpenSim.Framework;
+using OpenSim.Framework.Statistics.Interfaces;
+
+using libsecondlife;
 
 namespace OpenSim.Framework.Statistics
 {  
     public class SimExtraStatsReporter
-    {
+    {        
         private long assetsInCache;
         private long texturesInCache;        
         private long assetCacheMemoryUsage;
@@ -41,6 +48,12 @@ namespace OpenSim.Framework.Statistics
         public long TexturesInCache { get { return texturesInCache; } }
         public long AssetCacheMemoryUsage { get { return assetCacheMemoryUsage; } }
         public long TextureCacheMemoryUsage { get { return textureCacheMemoryUsage; } }
+        
+        /// <summary>
+        /// Retain a dictionary of all packet queues stats reporters
+        /// </summary>
+        private IDictionary<LLUUID, PacketQueueStatsReporter> packetQueueStatsReporters
+            = new Dictionary<LLUUID, PacketQueueStatsReporter>();
         
         public void AddAsset(AssetBase asset)
         {
@@ -56,19 +69,87 @@ namespace OpenSim.Framework.Statistics
                 texturesInCache++;
                 textureCacheMemoryUsage += image.Data.Length;
             }
-        }        
+        }  
+        
+        /// <summary>
+        /// Register as a packet queue stats provider
+        /// </summary>
+        /// <param name="uuid">An agent LLUUID</param>
+        /// <param name="provider"></param>
+        public void RegisterPacketQueueStatsProvider(LLUUID uuid, IPullStatsProvider provider)
+        {
+            lock (packetQueueStatsReporters)
+            {
+                packetQueueStatsReporters[uuid] = new PacketQueueStatsReporter(provider);
+            }
+        }
+        
+        /// <summary>
+        /// Deregister a packet queue stats provider
+        /// </summary>
+        /// <param name="uuid">An agent LLUUID</param>
+        public void DeregisterPacketQueueStatsProvider(LLUUID uuid)
+        {
+            lock (packetQueueStatsReporters)
+            {
+                packetQueueStatsReporters.Remove(uuid);
+            }
+        }
 
         /// <summary>
         /// Report back collected statistical information.
         /// </summary>
         /// <returns></returns>
         public string Report()
-        {            
-            return string.Format(
+        {    
+            StringBuilder sb = new StringBuilder(Environment.NewLine);
+            sb.Append("PACKET QUEUE STATISTICS");
+            sb.Append(Environment.NewLine);            
+            sb.Append(
+                string.Format(
 @"Asset   cache contains {0,6} assets   using {1,10:0.000}K
-Texture cache contains {2,6} textures using {3,10:0.000}K",
-                AssetsInCache, AssetCacheMemoryUsage / 1024.0, 
-                TexturesInCache, TextureCacheMemoryUsage / 1024.0);
+Texture cache contains {2,6} textures using {3,10:0.000}K" + Environment.NewLine,
+                    AssetsInCache, AssetCacheMemoryUsage / 1024.0, 
+                    TexturesInCache, TextureCacheMemoryUsage / 1024.0));
+
+            sb.Append(Environment.NewLine);
+            sb.Append("PACKET QUEUE STATISTICS");
+            sb.Append(Environment.NewLine);
+            sb.Append("Agent UUID                                ");
+            sb.Append("  Send     In       Out      Resend ");  
+            sb.Append("  Land     Wind     Cloud    Task     Texture  Asset");
+            sb.Append(Environment.NewLine);            
+                
+            foreach (LLUUID key in packetQueueStatsReporters.Keys)
+            {
+                sb.Append(string.Format("{0}: ", key));
+                sb.Append(packetQueueStatsReporters[key].Report());
+                sb.Append(Environment.NewLine);
+            }
+            
+            return sb.ToString();
         }        
+    }
+
+    /// <summary>
+    /// Pull packet queue stats from packet queues and report
+    /// </summary>
+    public class PacketQueueStatsReporter
+    {
+        private IPullStatsProvider m_statsProvider;
+        
+        public PacketQueueStatsReporter(IPullStatsProvider provider)
+        {
+            m_statsProvider = provider;    
+        }
+        
+        /// <summary>
+        /// Report back collected statistical information.
+        /// </summary>
+        /// <returns></returns>        
+        public string Report()
+        {
+            return m_statsProvider.GetStats();
+        }
     }
 }
