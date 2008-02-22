@@ -132,7 +132,7 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
         public void ReadConfig()
         {
 #if DEBUG
-            m_log.Debug("[" + ScriptEngineName + "]: Refreshing configuration for all modules");
+            //m_log.Debug("[" + ScriptEngineName + "]: Refreshing configuration for all modules");
 #endif
             RefreshConfigFileSeconds = ScriptConfigSource.GetInt("RefreshConfig", 30);
 

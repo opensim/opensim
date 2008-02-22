@@ -27,6 +27,7 @@
 */
 
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Text;
 using System.Threading;
@@ -132,7 +133,7 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
                         if (PleaseShutdown)
                             return;
 
-                        foreach (ScriptEngine m_ScriptEngine in ScriptEngine.ScriptEngines)
+                        foreach (ScriptEngine m_ScriptEngine in new ArrayList(ScriptEngine.ScriptEngines))
                         {
                             lastScriptEngine = m_ScriptEngine;
                             if (m_ScriptEngine != null)
