@@ -68,7 +68,7 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
         /// List of threads (classes) processing event queue
         /// Note that this may or may not be a reference to a static object depending on PrivateRegionThreads config setting.
         /// </summary>
-        internal static List<EventQueueThreadClass> eventQueueThreads;                             // Thread pool that we work on
+        internal static List<EventQueueThreadClass> eventQueueThreads = new List<EventQueueThreadClass>();                             // Thread pool that we work on
         /// <summary>
         /// Locking access to eventQueueThreads AND staticGlobalEventQueueThreads.
         /// </summary>
@@ -131,7 +131,7 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
         /// Queue containing events waiting to be executed
         /// </summary>
         public Queue<QueueItemStruct> eventQueue = new Queue<QueueItemStruct>();
-
+        
         #region " Queue structures "
         /// <summary>
         /// Queue item structure
@@ -172,7 +172,6 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
         {
             m_ScriptEngine = _ScriptEngine;
 
-            eventQueueThreads = new List<EventQueueThreadClass>();
             ReadConfig();
         }
 

@@ -27,6 +27,7 @@
 */
 
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Text;
 using System.Threading;
@@ -72,7 +73,7 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
 
         public void ReadConfig()
         {
-            foreach (ScriptEngine m_ScriptEngine in ScriptEngine.ScriptEngines)
+            foreach (ScriptEngine m_ScriptEngine in new ArrayList(ScriptEngine.ScriptEngines))
             {
                 ScriptEngineName = m_ScriptEngine.ScriptEngineName;
                 nothingToDoSleepms = m_ScriptEngine.ScriptConfigSource.GetInt("SleepTimeIfNoScriptExecutionMs", 50);
@@ -186,7 +187,7 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
 
         public void DoProcessQueue()
         {
-            foreach (ScriptEngine m_ScriptEngine in ScriptEngine.ScriptEngines)
+            foreach (ScriptEngine m_ScriptEngine in new ArrayList(ScriptEngine.ScriptEngines))
             {
                 lastScriptEngine = m_ScriptEngine;
                 // Every now and then check if we should shut down

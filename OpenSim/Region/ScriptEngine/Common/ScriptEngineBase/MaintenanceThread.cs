@@ -96,7 +96,7 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
 #if DEBUG
             //m_ScriptEngine.Log.Debug("[" + m_ScriptEngine.ScriptEngineName + "]: StopMaintenanceThread() called");
 #endif
-            PleaseShutdown = true;
+            //PleaseShutdown = true;
             Thread.Sleep(100);
             try
             {
@@ -130,8 +130,8 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
                     while (true)
                     {
                         System.Threading.Thread.Sleep(MaintenanceLoopms); // Sleep before next pass
-                        if (PleaseShutdown)
-                            return;
+                        //if (PleaseShutdown)
+                        //    return;
 
                         foreach (ScriptEngine m_ScriptEngine in new ArrayList(ScriptEngine.ScriptEngines))
                         {
@@ -187,14 +187,14 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
         }
         #endregion
 
-        /// <summary>
-        /// If set to true then threads and stuff should try to make a graceful exit
-        /// </summary>
-        public bool PleaseShutdown
-        {
-            get { return _PleaseShutdown; }
-            set { _PleaseShutdown = value; }
-        }
-        private bool _PleaseShutdown = false;
+        ///// <summary>
+        ///// If set to true then threads and stuff should try to make a graceful exit
+        ///// </summary>
+        //public bool PleaseShutdown
+        //{
+        //    get { return _PleaseShutdown; }
+        //    set { _PleaseShutdown = value; }
+        //}
+        //private bool _PleaseShutdown = false;
     }
 }
