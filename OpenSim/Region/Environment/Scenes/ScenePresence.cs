@@ -116,6 +116,8 @@ namespace OpenSim.Region.Environment.Scenes
         private readonly List<ulong> m_knownChildRegions = new List<ulong>();
                                      //neighbouring regions we have enabled a child agent in
 
+        private SignificantClientMovement handler001 = null; //OnSignificantClientMovement;
+
 
         /// <summary>
         /// Implemented Control Flags
@@ -1482,9 +1484,10 @@ namespace OpenSim.Region.Environment.Scenes
             if (Util.GetDistanceTo(AbsolutePosition, posLastSignificantMove) > 0.5)
             {
                 posLastSignificantMove = AbsolutePosition;
-                if (OnSignificantClientMovement != null)
+                
+                if (handler001 != null)
                 {
-                    OnSignificantClientMovement(m_controllingClient);
+                    handler001(m_controllingClient);
                     m_scene.NotifyMyCoarseLocationChange();
                 }
             }

@@ -47,6 +47,7 @@ namespace OpenSim.Region.Environment.Scenes
         #region Events
 
         public event PhysicsCrash UnRecoverableError;
+        private PhysicsCrash handler001 = null;
 
         #endregion
 
@@ -715,9 +716,10 @@ namespace OpenSim.Region.Environment.Scenes
 
         public void physicsBasedCrash()
         {
-            if (UnRecoverableError != null)
+            handler001 = UnRecoverableError;
+            if (handler001 != null)
             {
-                UnRecoverableError();
+                handler001();
             }
         }
 

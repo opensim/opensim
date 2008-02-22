@@ -39,6 +39,8 @@ namespace OpenSim.Region.Environment.Scenes
 
         public event SendStatResult OnSendStatsResult;
 
+        private SendStatResult handler001 = null;
+
         private enum Stats : uint
         {
             TimeDilation = 0,
@@ -245,9 +247,10 @@ namespace OpenSim.Region.Environment.Scenes
 
             statpack.Stat = sb;
 
-            if (OnSendStatsResult != null)
+            handler001 = OnSendStatsResult;
+            if (handler001 != null)
             {
-                OnSendStatsResult(statpack);
+                handler001(statpack);
             }
             resetvalues();
             m_report.Enabled = true;

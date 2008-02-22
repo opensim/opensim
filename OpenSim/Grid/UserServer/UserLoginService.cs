@@ -51,6 +51,8 @@ namespace OpenSim.Grid.UserServer
         private static readonly log4net.ILog m_log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 
         public event UserLoggedInAtLocation OnUserLoggedInAtLocation;
+
+        private UserLoggedInAtLocation handler001 = null;
        
         public UserConfig m_config;
 
@@ -214,9 +216,10 @@ namespace OpenSim.Grid.UserServer
                     // Send
                     XmlRpcRequest GridReq = new XmlRpcRequest("expect_user", SendParams);
                     XmlRpcResponse GridResp = GridReq.Send(SimInfo.httpServerURI, 6000);
-                    if (OnUserLoggedInAtLocation != null)
+                    handler001 = OnUserLoggedInAtLocation;
+                    if (handler001 != null)
                     {
-                        OnUserLoggedInAtLocation(theUser.UUID, theUser.currentAgent.sessionID, theUser.currentAgent.currentRegion, theUser.currentAgent.currentHandle, theUser.currentAgent.currentPos);
+                        handler001(theUser.UUID, theUser.currentAgent.sessionID, theUser.currentAgent.currentRegion, theUser.currentAgent.currentHandle, theUser.currentAgent.currentPos);
                     }
                 }
 

@@ -54,6 +54,7 @@ namespace OpenSim.Region.Environment.Scenes
         protected ulong m_regionHandle;
 
         public event PrimCountTaintedDelegate OnPrimCountTainted;
+        private PrimCountTaintedDelegate handler001 = null;
 
         /// <summary>
         /// Signal whether the non-inventory attributes of any prims in the group have changed 
@@ -1525,9 +1526,10 @@ namespace OpenSim.Region.Environment.Scenes
         /// </summary>
         public void TriggerTainted()
         {
-            if (OnPrimCountTainted != null)
+            handler001 =  OnPrimCountTainted;
+            if (handler001 != null)
             {
-                OnPrimCountTainted();
+                handler001();
             }
         }
 
