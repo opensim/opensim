@@ -1508,36 +1508,6 @@
       </Files>
     </Project>
 
-    <Project name="LaunchSLClient" path="OpenSim/Tools/LaunchSLClient" type="Exe">
-      <Configuration name="Debug">
-        <Options>
-          <OutputPath>../../../bin/</OutputPath>
-        </Options>
-      </Configuration>
-      <Configuration name="Release">
-        <Options>
-          <OutputPath>../../../bin/</OutputPath>
-        </Options>
-      </Configuration>
-
-      <ReferencePath>../../../bin/</ReferencePath>
-      <Reference name="System" localCopy="false"/>
-      <Reference name="System.IO" localCopy="false"/>
-      <Reference name="System.Collections" localCopy="false"/>
-      <Reference name="System.Collections.Generic" localCopy="false"/>
-      <Reference name="System.ComponentModel" localCopy="false"/>
-      <Reference name="System.Data" localCopy="false"/>
-      <Reference name="System.Diagnostics" localCopy="false"/>
-      <Reference name="System.Drawing" localCopy="false"/>
-      <Reference name="System.Text" localCopy="false"/>
-      <Reference name="System.Text.RegularExpressions" localCopy="false"/>
-      <Reference name="System.Windows.Forms" localCopy="false"/>
-      <Reference name="Microsoft.Win32" localCopy="false"/>
-
-      <Files>
-        <Match pattern="*.cs" recurse="true"/>
-      </Files>
-    </Project>
   </Solution>
 
   <!-- Prebuild tool -->
