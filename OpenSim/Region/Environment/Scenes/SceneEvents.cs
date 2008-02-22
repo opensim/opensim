@@ -158,165 +158,218 @@ namespace OpenSim.Region.Environment.Scenes
 
         public event MoneyTransferEvent OnMoneyTransfer;
 
+
+        /* Designated Event Deletage Instances */
+
+        private ScriptChangedEvent handler001 = null; //OnScriptChangedEvent;
+        private ClientMovement handler002 = null; //OnClientMovement;
+        private OnPermissionErrorDelegate handler003 = null; //OnPermissionError;
+        private OnPluginConsoleDelegate handler004 = null; //OnPluginConsole;
+        private OnFrameDelegate handler005 = null; //OnFrame;
+        private OnNewClientDelegate handler006 = null; //OnNewClient;
+        private OnNewPresenceDelegate handler007 = null; //OnNewPresence;
+        private OnRemovePresenceDelegate handler008 = null; //OnRemovePresence;
+        private OnBackupDelegate handler009 = null; //OnBackup;
+        private OnParcelPrimCountUpdateDelegate handler010 = null; //OnParcelPrimCountUpdate;
+        private MoneyTransferEvent handler011 = null; //OnMoneyTransfer;
+        private OnParcelPrimCountAddDelegate handler012 = null; //OnParcelPrimCountAdd;
+        private OnShutdownDelegate handler013 = null; //OnShutdown;
+        private ObjectGrabDelegate handler014 = null; //OnObjectGrab;
+        private NewRezScript handler015 = null; //OnRezScript;
+        private RemoveScript handler016 = null; //OnRemoveScript;
+        private SceneGroupMoved handler017 = null; //OnSceneGroupMove;
+        private SceneGroupGrabed handler018 = null; //OnSceneGroupGrab;
+        private LandObjectAdded handler020 = null; //OnLandObjectAdded;
+        private LandObjectRemoved handler021 = null; //OnLandObjectRemoved;
+        private AvatarEnteringNewParcel handler022 = null; //OnAvatarEnteringNewParcel;
+        private NewGridInstantMessage handler023 = null; //OnGridInstantMessageToIMModule;
+        private NewGridInstantMessage handler024 = null; //OnGridInstantMessageToFriendsModule;
+        private ClientClosed handler025 = null; //OnClientClosed;
+
         public void TriggerOnScriptChangedEvent(uint localID, uint change)
         {
-            if (OnScriptChangedEvent != null)
-                OnScriptChangedEvent(localID,change);
+            handler001 = OnScriptChangedEvent;
+            if (handler001 != null)
+                handler001(localID, change);
         }
 
         public void TriggerOnClientMovement(ScenePresence avatar)
         {
-            if (OnClientMovement != null)
-                OnClientMovement(avatar);
+            handler002 = OnClientMovement;
+            if (handler002 != null)
+                handler002(avatar);
         }
 
         public void TriggerPermissionError(LLUUID user, string reason)
         {
-            if (OnPermissionError != null)
-                OnPermissionError(user, reason);
+            handler003 = OnPermissionError;
+            if (handler003 != null)
+                handler003(user, reason);
         }
 
         public void TriggerOnPluginConsole(string[] args)
         {
-            if (OnPluginConsole != null)
-                OnPluginConsole(args);
+            handler004 = OnPluginConsole;
+            if (handler004 != null)
+                handler004(args);
         }
 
         public void TriggerOnFrame()
         {
-            if (OnFrame != null)
+            handler005 = OnFrame;
+            if (handler005 != null)
             {
-                OnFrame();
+                handler005();
             }
         }
 
         public void TriggerOnNewClient(IClientAPI client)
         {
-            if (OnNewClient != null)
-                OnNewClient(client);
+            handler006 = OnNewClient;
+            if (handler006 != null)
+                handler006(client);
         }
 
         public void TriggerOnNewPresence(ScenePresence presence)
         {
-            if (OnNewPresence != null)
-                OnNewPresence(presence);
+            handler007 = OnNewPresence;
+            if (handler007 != null)
+                handler007(presence);
         }
 
         public void TriggerOnRemovePresence(LLUUID agentId)
         {
-            if (OnRemovePresence != null)
+            handler008 = OnRemovePresence;
+            if (handler008 != null)
             {
-                OnRemovePresence(agentId);
+                handler008(agentId);
             }
         }
 
         public void TriggerOnBackup(IRegionDataStore dstore)
         {
-            if (OnBackup != null)
+            handler009 = OnBackup;
+            if (handler009 != null)
             {
-                OnBackup(dstore);
+                handler009(dstore);
             }
         }
 
         public void TriggerParcelPrimCountUpdate()
         {
-            if (OnParcelPrimCountUpdate != null)
+            handler010 = OnParcelPrimCountUpdate;
+            if (handler010 != null)
             {
-                OnParcelPrimCountUpdate();
+                handler010();
             }    
         }
 
         public void TriggerMoneyTransfer(Object sender, MoneyTransferArgs e)
         {
-            if (OnMoneyTransfer != null)
+            handler011 = OnMoneyTransfer;
+            if (handler011 != null)
             {
-                OnMoneyTransfer(sender, e);
+                handler011(sender, e);
             }
         }
 
 
         public void TriggerParcelPrimCountAdd(SceneObjectGroup obj)
         {
-            if (OnParcelPrimCountAdd != null)
+            handler012 = OnParcelPrimCountAdd;
+            if (handler012 != null)
             {
-                OnParcelPrimCountAdd(obj);
+                handler012(obj);
             }
         }
 
         public void TriggerShutdown()
         {
-            if (OnShutdown != null)
-                OnShutdown();
+            handler013 = OnShutdown;
+            if (handler013 != null)
+                handler013();
         }
 
         public void TriggerObjectGrab(uint localID, LLVector3 offsetPos, IClientAPI remoteClient)
         {
-            if (OnObjectGrab != null)
+            handler014 = OnObjectGrab;
+            if (handler014 != null)
             {
-                OnObjectGrab(localID, offsetPos, remoteClient);
+                handler014(localID, offsetPos, remoteClient);
             }
         }
 
         public void TriggerRezScript(uint localID, LLUUID itemID, string script)
         {
-            if (OnRezScript != null)
+            handler015 = OnRezScript;
+            if (handler015 != null)
             {
-                OnRezScript(localID, itemID, script);
+                handler015(localID, itemID, script);
             }
         }
 
         public void TriggerRemoveScript(uint localID, LLUUID itemID)
         {
-            if (OnRemoveScript != null)
+            handler016 = OnRemoveScript;
+            if (handler016 != null)
             {
-                OnRemoveScript(localID, itemID);
+                handler016(localID, itemID);
             }
         }
 
         public bool TriggerGroupMove(LLUUID groupID, LLVector3 delta)
         {
-            if (OnSceneGroupMove != null)
+            handler017 = OnSceneGroupMove;
+
+            if (handler017 != null)
             {
-                return OnSceneGroupMove(groupID, delta);
+                return handler017(groupID, delta);
             }
             return true;
         }
 
         public void TriggerGroupGrab(LLUUID groupID, LLVector3 offset, LLUUID userID)
         {
-            if (OnSceneGroupGrab != null)
+            handler018 = OnSceneGroupGrab;
+            if (handler018 != null)
             {
-                OnSceneGroupGrab(groupID, offset, userID);
+                handler018(groupID, offset, userID);
             }
         }
 
         public void TriggerLandObjectAdded(Land newParcel, LLUUID regionID)
         {
-            if (OnLandObjectAdded != null)
+            handler020 = OnLandObjectAdded;
+
+            if (handler020 != null)
             {
-                OnLandObjectAdded(newParcel, regionID);
+                handler020(newParcel, regionID);
             }
         }
 
         public void TriggerLandObjectRemoved(LLUUID globalID)
         {
-            if (OnLandObjectRemoved != null)
+            handler021 = OnLandObjectRemoved;
+            if (handler021 != null)
             {
-                OnLandObjectRemoved(globalID);
+                handler021(globalID);
             }
         }
 
         public void TriggerLandObjectUpdated(uint localParcelID, Land newParcel)
         {
             //triggerLandObjectRemoved(localParcelID);
+
             TriggerLandObjectAdded(newParcel, newParcel.m_scene.RegionInfo.RegionID);
         }
 
         public void TriggerAvatarEnteringNewParcel(ScenePresence avatar, int localLandID, LLUUID regionID)
         {
-            if (OnAvatarEnteringNewParcel != null)
+            handler022 = OnAvatarEnteringNewParcel;
+
+            if (handler022 != null)
             {
-                OnAvatarEnteringNewParcel(avatar, localLandID, regionID);
+                handler022(avatar, localLandID, regionID);
             }
         }
 
@@ -327,17 +380,18 @@ namespace OpenSim.Region.Environment.Scenes
         {
             if ((whichModule & InstantMessageReceiver.IMModule) != 0)
             {
-
-                if (OnGridInstantMessageToIMModule != null)
+                handler023 = OnGridInstantMessageToIMModule;
+                if (handler023 != null)
                 {
-                    OnGridInstantMessageToIMModule(message);
+                    handler023(message);
                 }
             }
             if ((whichModule & InstantMessageReceiver.FriendsModule) != 0)
             {
-                if (OnGridInstantMessageToFriendsModule != null)
+                handler024 = OnGridInstantMessageToFriendsModule;
+                if (handler024 != null)
                 {
-                    OnGridInstantMessageToFriendsModule(message);
+                    handler024(message);
                 }
 
             }
@@ -345,9 +399,10 @@ namespace OpenSim.Region.Environment.Scenes
 
         public void TriggerClientClosed(LLUUID ClientID)
         {
-            if (OnClientClosed != null)
+            handler025 = OnClientClosed;
+            if (handler025 != null)
             {
-                OnClientClosed(ClientID);
+                handler025(ClientID);
             }
         }
         
