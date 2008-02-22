@@ -63,13 +63,18 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
         public void ReadConfig()
         {
             // Bad hack, but we need a m_ScriptEngine :)
-            foreach (ScriptEngine m_ScriptEngine in ScriptEngine.ScriptEngines)
+            lock (ScriptEngine.ScriptEngines)
             {
-                MaintenanceLoopms = m_ScriptEngine.ScriptConfigSource.GetInt("MaintenanceLoopms", 50);
-                MaintenanceLoopTicks_ScriptLoadUnload = m_ScriptEngine.ScriptConfigSource.GetInt("MaintenanceLoopTicks_ScriptLoadUnload", 1);
-                MaintenanceLoopTicks_Other = m_ScriptEngine.ScriptConfigSource.GetInt("MaintenanceLoopTicks_Other", 10);
+                foreach (ScriptEngine m_ScriptEngine in ScriptEngine.ScriptEngines)
+                {
+                    MaintenanceLoopms = m_ScriptEngine.ScriptConfigSource.GetInt("MaintenanceLoopms", 50);
+                    MaintenanceLoopTicks_ScriptLoadUnload =
+                        m_ScriptEngine.ScriptConfigSource.GetInt("MaintenanceLoopTicks_ScriptLoadUnload", 1);
+                    MaintenanceLoopTicks_Other =
+                        m_ScriptEngine.ScriptConfigSource.GetInt("MaintenanceLoopTicks_Other", 10);
 
-                return;
+                    return;
+                }
             }
         }
 
@@ -159,52 +164,53 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
                         MaintenanceLoopTicks_Other_Count++;
 
 
-                        foreach (ScriptEngine m_ScriptEngine in new ArrayList(ScriptEngine.ScriptEngines))
+                        lock (ScriptEngine.ScriptEngines)
                         {
-                            lastScriptEngine = m_ScriptEngine;
-                            // Re-reading config every x seconds
-                            if (MaintenanceLoopTicks_Other_Count >= MaintenanceLoopTicks_Other)
+                            foreach (ScriptEngine m_ScriptEngine in ScriptEngine.ScriptEngines)
                             {
-                                MaintenanceLoopTicks_Other_ResetCount = true;
-                                if (m_ScriptEngine.RefreshConfigFilens > 0)
+                                lastScriptEngine = m_ScriptEngine;
+                                // Re-reading config every x seconds
+                                if (MaintenanceLoopTicks_Other_Count >= MaintenanceLoopTicks_Other)
                                 {
-
-                                    // Check if its time to re-read config
-                                    if (DateTime.Now.Ticks - Last_ReReadConfigFilens >
-                                        m_ScriptEngine.RefreshConfigFilens)
+                                    MaintenanceLoopTicks_Other_ResetCount = true;
+                                    if (m_ScriptEngine.RefreshConfigFilens > 0)
                                     {
-                                        //Console.WriteLine("Time passed: " + (DateTime.Now.Ticks - Last_ReReadConfigFilens) + ">" + m_ScriptEngine.RefreshConfigFilens );
-                                        // Its time to re-read config file
-                                        m_ScriptEngine.ReadConfig();
-                                        Last_ReReadConfigFilens = DateTime.Now.Ticks; // Reset time
-                                    }
-
-
-                                    // Adjust number of running script threads if not correct
-                                    if (m_ScriptEngine.m_EventQueueManager != null)
-                                        m_ScriptEngine.m_EventQueueManager.AdjustNumberOfScriptThreads();
-
-                                    // Check if any script has exceeded its max execution time
-                                    if (EventQueueManager.EnforceMaxExecutionTime)
-                                    {
-                                        // We are enforcing execution time
-                                        if (DateTime.Now.Ticks - Last_maxFunctionExecutionTimens >
-                                            EventQueueManager.maxFunctionExecutionTimens)
+                                        // Check if its time to re-read config
+                                        if (DateTime.Now.Ticks - Last_ReReadConfigFilens >
+                                            m_ScriptEngine.RefreshConfigFilens)
                                         {
-                                            // Its time to check again
-                                            m_ScriptEngine.m_EventQueueManager.CheckScriptMaxExecTime(); // Do check
-                                            Last_maxFunctionExecutionTimens = DateTime.Now.Ticks; // Reset time
+                                            //Console.WriteLine("Time passed: " + (DateTime.Now.Ticks - Last_ReReadConfigFilens) + ">" + m_ScriptEngine.RefreshConfigFilens );
+                                            // Its time to re-read config file
+                                            m_ScriptEngine.ReadConfig();
+                                            Last_ReReadConfigFilens = DateTime.Now.Ticks; // Reset time
+                                        }
+
+
+                                        // Adjust number of running script threads if not correct
+                                        if (m_ScriptEngine.m_EventQueueManager != null)
+                                            m_ScriptEngine.m_EventQueueManager.AdjustNumberOfScriptThreads();
+
+                                        // Check if any script has exceeded its max execution time
+                                        if (EventQueueManager.EnforceMaxExecutionTime)
+                                        {
+                                            // We are enforcing execution time
+                                            if (DateTime.Now.Ticks - Last_maxFunctionExecutionTimens >
+                                                EventQueueManager.maxFunctionExecutionTimens)
+                                            {
+                                                // Its time to check again
+                                                m_ScriptEngine.m_EventQueueManager.CheckScriptMaxExecTime(); // Do check
+                                                Last_maxFunctionExecutionTimens = DateTime.Now.Ticks; // Reset time
+                                            }
                                         }
                                     }
                                 }
-
-                            }
-                            if (MaintenanceLoopTicks_ScriptLoadUnload_Count >= MaintenanceLoopTicks_ScriptLoadUnload)
-                            {
-                                MaintenanceLoopTicks_ScriptLoadUnload_ResetCount = true;
-                                // LOAD / UNLOAD SCRIPTS
-                                if (m_ScriptEngine.m_ScriptManager != null)
-                                    m_ScriptEngine.m_ScriptManager.DoScriptLoadUnload();
+                                if (MaintenanceLoopTicks_ScriptLoadUnload_Count >= MaintenanceLoopTicks_ScriptLoadUnload)
+                                {
+                                    MaintenanceLoopTicks_ScriptLoadUnload_ResetCount = true;
+                                    // LOAD / UNLOAD SCRIPTS
+                                    if (m_ScriptEngine.m_ScriptManager != null)
+                                        m_ScriptEngine.m_ScriptManager.DoScriptLoadUnload();
+                                }
                             }
                         }
                     }

@@ -41,28 +41,36 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
     /// </summary>
     public class AsyncLSLCommandManager : iScriptEngineFunctionModule
     {
-        private Thread cmdHandlerThread;
+        private static Thread cmdHandlerThread;
         private int cmdHandlerThreadCycleSleepms;
 
         private ScriptEngine m_ScriptEngine;
 
-        public AsyncLSLCommandManager(ScriptEngine _ScriptEngine)
+        public AsyncLSLCommandManager()
         {
-            m_ScriptEngine = _ScriptEngine;
+            //m_ScriptEngine = _ScriptEngine;
             ReadConfig();
 
-            // Start the thread that will be doing the work
-            cmdHandlerThread = new Thread(CmdHandlerThreadLoop);
-            cmdHandlerThread.Name = "CmdHandlerThread";
-            cmdHandlerThread.Priority = ThreadPriority.BelowNormal;
-            cmdHandlerThread.IsBackground = true;
-            cmdHandlerThread.Start();
-            OpenSim.Framework.ThreadTracker.Add(cmdHandlerThread);
+            StartThread();
+        }
+
+        private void StartThread()
+        {
+            if (cmdHandlerThread == null)
+            {
+                // Start the thread that will be doing the work
+                cmdHandlerThread = new Thread(CmdHandlerThreadLoop);
+                cmdHandlerThread.Name = "AsyncLSLCmdHandlerThread";
+                cmdHandlerThread.Priority = ThreadPriority.BelowNormal;
+                cmdHandlerThread.IsBackground = true;
+                cmdHandlerThread.Start();
+                OpenSim.Framework.ThreadTracker.Add(cmdHandlerThread);
+            }
         }
 
         public void ReadConfig()
         {
-            cmdHandlerThreadCycleSleepms = m_ScriptEngine.ScriptConfigSource.GetInt("AsyncLLCommandLoopms", 50);
+            cmdHandlerThreadCycleSleepms = m_ScriptEngine.ScriptConfigSource.GetInt("AsyncLLCommandLoopms", 100);
         }
 
         ~AsyncLSLCommandManager()
@@ -88,29 +96,46 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
         {
             while (true)
             {
-                // Check timers
-                CheckTimerEvents();
-                Thread.Sleep(25);
-                // Check HttpRequests
-                CheckHttpRequests();
-                Thread.Sleep(25);
-                // Check XMLRPCRequests
-                CheckXMLRPCRequests();
-                Thread.Sleep(25);
-                // Check Listeners
-                CheckListeners();
-                Thread.Sleep(25);
-
-                // Sleep before next cycle
-                //Thread.Sleep(cmdHandlerThreadCycleSleepms);
+                try
+                {
+                    while (true)
+                    {
+                        Thread.Sleep(cmdHandlerThreadCycleSleepms);
+                        lock (ScriptEngine.ScriptEngines)
+                        {
+                            foreach (ScriptEngine se in ScriptEngine.ScriptEngines) 
+                            {
+                                m_ScriptEngine = se;
+                                m_ScriptEngine.m_ASYNCLSLCommandManager.DoOneCmdHandlerPass();
+                            }
+                        }
+                        // Sleep before next cycle
+                        //Thread.Sleep(cmdHandlerThreadCycleSleepms);
+                    }
+                }
+                catch
+                {
+                }
             }
+        }
+
+        internal void DoOneCmdHandlerPass()
+        {
+            // Check timers
+            CheckTimerEvents();
+            // Check HttpRequests
+            CheckHttpRequests();
+            // Check XMLRPCRequests
+            CheckXMLRPCRequests();
+            // Check Listeners
+            CheckListeners();
         }
 
         /// <summary>
         /// Remove a specific script (and all its pending commands)
         /// </summary>
-        /// <param name="m_localID"></param>
-        /// <param name="m_itemID"></param>
+        /// <param name="localID"></param>
+        /// <param name="itemID"></param>
         public void RemoveScript(uint localID, LLUUID itemID)
         {
             // Remove a specific script

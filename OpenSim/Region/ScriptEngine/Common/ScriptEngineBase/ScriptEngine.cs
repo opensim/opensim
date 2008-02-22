@@ -84,7 +84,10 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
         public ScriptEngine()
         {
             Common.mySE = this;                 // For logging, just need any instance, doesn't matter
-            ScriptEngines.Add(this);            // Keep a list of ScriptEngines for shared threads to process all instances
+            lock (ScriptEngines)
+            {
+                ScriptEngines.Add(this); // Keep a list of ScriptEngines for shared threads to process all instances
+            }
         }
 
         public void InitializeEngine(Scene Sceneworld, IConfigSource config, bool HookUpToServer, ScriptManager newScriptManager)
@@ -107,7 +110,7 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
             newScriptManager.Start();
             m_ScriptManager = newScriptManager;
             m_AppDomainManager = new AppDomainManager(this);
-            m_ASYNCLSLCommandManager = new AsyncLSLCommandManager(this);
+            m_ASYNCLSLCommandManager = new AsyncLSLCommandManager();
             if (m_MaintenanceThread == null)
                 m_MaintenanceThread = new MaintenanceThread();
 
@@ -121,7 +124,10 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
         public void Shutdown()
         {
             // We are shutting down
-            ScriptEngines.Remove(this);
+            lock (ScriptEngines)
+            {
+                ScriptEngines.Remove(this);
+            }
         }
 
         ScriptServerInterfaces.RemoteEvents ScriptServerInterfaces.ScriptEngine.EventManager()
@@ -136,13 +142,6 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
 #endif
             RefreshConfigFileSeconds = ScriptConfigSource.GetInt("RefreshConfig", 30);
 
-            // Reload from disk? No!
-            //ConfigSource.Reload();
-            //if (File.Exists(OpenSim.Application.iniFilePath))
-            //{
-            //    //ConfigSource.Merge(new IniConfigSource(OpenSim.Application.iniFilePath));
-            //}
-        
 
         // Create a new object (probably not necessary?)
 //            ScriptConfigSource = ConfigSource.Configs[ScriptEngineName];
@@ -179,15 +178,6 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
 
         #endregion
 
-        /// <summary>
-        /// If set to true then threads and stuff should try to make a graceful exit
-        /// </summary>
-        //public bool PleaseShutdown
-        //{
-        //    get { return _PleaseShutdown; }
-        //    set { _PleaseShutdown = value; }
-        //}
-        //private bool _PleaseShutdown = false;
 
     }
 }

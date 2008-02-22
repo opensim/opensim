@@ -210,12 +210,6 @@ SleepTimeIfNoScriptExecutionMs=50
 ; Each AppDomain has some memory overhead. But leaving dead scripts in memory also has memory overhead.
 ScriptsPerAppDomain=1
 
-; Script loading / unloading sleep
-; How long load/unload thread should sleep if there is nothing to do
-; Higher value makes it respond slower when scripts are added/removed from prims
-; But once active it will process all in queue before sleeping again
-
-
 ; MaintenanceLoop
 ; How often to run maintenance loop
 ; Maintenance loop is doing: script compile/load, script unload, reload config, adjust running config and enforce max execution time
@@ -224,6 +218,10 @@ MaintenanceLoopms=50
 ; How many maintenanceloops between each of these.
 ; (if 2 then function will be executed every MaintenanceLoopms*2 ms)
 ; Script loading/unloading
+
+; How long load/unload thread should sleep if there is nothing to do
+; Higher value makes it respond slower when scripts are added/removed from prims
+; But once active it will process all in queue before sleeping again
 MaintenanceLoopTicks_ScriptLoadUnload=1
 
 ; Other tasks
