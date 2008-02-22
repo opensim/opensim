@@ -131,6 +131,8 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
             long Last_ReReadConfigFilens = DateTime.Now.Ticks;
             int MaintenanceLoopTicks_ScriptLoadUnload_Count = 0;
             int MaintenanceLoopTicks_Other_Count = 0;
+            bool MaintenanceLoopTicks_ScriptLoadUnload_ResetCount = false;
+            bool MaintenanceLoopTicks_Other_ResetCount = false;
 
             while (true)
             {
@@ -139,6 +141,18 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
                     while (true)
                     {
                         System.Threading.Thread.Sleep(MaintenanceLoopms); // Sleep before next pass
+
+                        // Reset counters?
+                        if (MaintenanceLoopTicks_ScriptLoadUnload_ResetCount)
+                        {
+                            MaintenanceLoopTicks_ScriptLoadUnload_ResetCount = false;
+                            MaintenanceLoopTicks_ScriptLoadUnload_Count = 0;
+                        }
+                        if (MaintenanceLoopTicks_Other_ResetCount)
+                        {
+                            MaintenanceLoopTicks_Other_ResetCount = false;
+                            MaintenanceLoopTicks_Other_Count = 0;
+                        }
 
                         // Increase our counters
                         MaintenanceLoopTicks_ScriptLoadUnload_Count++;
@@ -151,7 +165,7 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
                             // Re-reading config every x seconds
                             if (MaintenanceLoopTicks_Other_Count >= MaintenanceLoopTicks_Other)
                             {
-                                MaintenanceLoopTicks_Other_Count = 0;
+                                MaintenanceLoopTicks_Other_ResetCount = true;
                                 if (m_ScriptEngine.RefreshConfigFilens > 0)
                                 {
 
@@ -187,7 +201,7 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
                             }
                             if (MaintenanceLoopTicks_ScriptLoadUnload_Count >= MaintenanceLoopTicks_ScriptLoadUnload)
                             {
-                                MaintenanceLoopTicks_ScriptLoadUnload_Count = 0;
+                                MaintenanceLoopTicks_ScriptLoadUnload_ResetCount = true;
                                 // LOAD / UNLOAD SCRIPTS
                                 if (m_ScriptEngine.m_ScriptManager != null)
                                     m_ScriptEngine.m_ScriptManager.DoScriptLoadUnload();

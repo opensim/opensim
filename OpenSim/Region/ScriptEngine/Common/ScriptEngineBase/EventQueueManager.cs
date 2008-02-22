@@ -173,6 +173,7 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
             m_ScriptEngine = _ScriptEngine;
 
             ReadConfig();
+            AdjustNumberOfScriptThreads();
         }
 
         public void ReadConfig()
