@@ -35,6 +35,6 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
     public interface iScriptEngineFunctionModule
     {
         void ReadConfig();
-        bool PleaseShutdown { get; set; }
+//        bool PleaseShutdown { get; set; }
     }
 }

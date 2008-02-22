@@ -452,14 +452,14 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
         }
         #endregion
 
-        /// <summary>
-        /// If set to true then threads and stuff should try to make a graceful exit
-        /// </summary>
-        public bool PleaseShutdown
-        {
-            get { return _PleaseShutdown; }
-            set { _PleaseShutdown = value; }
-        }
-        private bool _PleaseShutdown = false;
+        ///// <summary>
+        ///// If set to true then threads and stuff should try to make a graceful exit
+        ///// </summary>
+        //public bool PleaseShutdown
+        //{
+        //    get { return _PleaseShutdown; }
+        //    set { _PleaseShutdown = value; }
+        //}
+        //private bool _PleaseShutdown = false;
     }
 }

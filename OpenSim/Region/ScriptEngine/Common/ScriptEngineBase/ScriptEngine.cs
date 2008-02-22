@@ -27,6 +27,7 @@
 */
 
 using System;
+using System.Collections.Generic;
 using System.IO;
 using Nini.Config;
 using OpenSim.Framework.Console;
@@ -46,13 +47,14 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
     {
         private static readonly log4net.ILog m_log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 
+        public static List<ScriptEngine> ScriptEngines = new List<ScriptEngine>();
         public Scene World;
         public EventManager m_EventManager;                         // Handles and queues incoming events from OpenSim
         public EventQueueManager m_EventQueueManager;               // Executes events, handles script threads
         public ScriptManager m_ScriptManager;                       // Load, unload and execute scripts
         public AppDomainManager m_AppDomainManager;                 // Handles loading/unloading of scripts into AppDomains
         public AsyncLSLCommandManager m_ASYNCLSLCommandManager;     // Asyncronous LSL commands (commands that returns with an event)
-        public MaintenanceThread m_MaintenanceThread;               // Thread that does different kinds of maintenance, for example refreshing config and killing scripts that has been running too long
+        public static MaintenanceThread m_MaintenanceThread;               // Thread that does different kinds of maintenance, for example refreshing config and killing scripts that has been running too long
 
         public IConfigSource ConfigSource;
         public IConfig ScriptConfigSource;
@@ -74,15 +76,15 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
 
         public abstract ScriptManager _GetScriptManager();
 
-        public log4net.ILog Log
+        public static log4net.ILog Log
         {
             get { return m_log; }
         }
 
         public ScriptEngine()
         {
-            //Common.SendToDebug("ScriptEngine Object Initialized");
-            Common.mySE = this;
+            Common.mySE = this;                 // For logging, just need any instance, doesn't matter
+            ScriptEngines.Add(this);            // Keep a list of ScriptEngines for shared threads to process all instances
         }
 
         public void InitializeEngine(Scene Sceneworld, IConfigSource config, bool HookUpToServer, ScriptManager newScriptManager)
@@ -106,7 +108,8 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
             m_ScriptManager = newScriptManager;
             m_AppDomainManager = new AppDomainManager(this);
             m_ASYNCLSLCommandManager = new AsyncLSLCommandManager(this);
-            m_MaintenanceThread = new MaintenanceThread(this);
+            if (m_MaintenanceThread == null)
+                m_MaintenanceThread = new MaintenanceThread();
 
             m_log.Info("[" + ScriptEngineName + "]: Reading configuration from config section \"" + ScriptEngineName + "\"");
             ReadConfig();
@@ -118,6 +121,7 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
         public void Shutdown()
         {
             // We are shutting down
+            ScriptEngines.Remove(this);
         }
 
         ScriptServerInterfaces.RemoteEvents ScriptServerInterfaces.ScriptEngine.EventManager()
@@ -178,12 +182,12 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
         /// <summary>
         /// If set to true then threads and stuff should try to make a graceful exit
         /// </summary>
-        public bool PleaseShutdown
-        {
-            get { return _PleaseShutdown; }
-            set { _PleaseShutdown = value; }
-        }
-        private bool _PleaseShutdown = false;
+        //public bool PleaseShutdown
+        //{
+        //    get { return _PleaseShutdown; }
+        //    set { _PleaseShutdown = value; }
+        //}
+        //private bool _PleaseShutdown = false;
 
     }
 }
