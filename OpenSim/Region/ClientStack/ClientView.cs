@@ -214,6 +214,7 @@ namespace OpenSim.Region.ClientStack
         private UpdateVector handler089 = null; //OnUpdatePrimGroupPosition;
         private UpdatePrimRotation handler090 = null; //OnUpdatePrimGroupRotation;
         private UpdatePrimGroupRotation handler091 = null; //OnUpdatePrimGroupMouseRotation;
+        private PacketStats handler093 = null; // OnPacketStats;
 
 
         /* Properties */
@@ -2818,9 +2819,10 @@ namespace OpenSim.Region.ClientStack
 
         protected void SendPacketStats()
         {
-            if (OnPacketStats != null)
+            handler093 = OnPacketStats;
+            if (handler093 != null)
             {
-                OnPacketStats(m_packetsReceived - m_lastPacketsReceivedSentToScene, m_packetsSent - m_lastPacketsSentSentToScene, m_unAckedBytes);
+                handler093(m_packetsReceived - m_lastPacketsReceivedSentToScene, m_packetsSent - m_lastPacketsSentSentToScene, m_unAckedBytes);
                 m_lastPacketsReceivedSentToScene = m_packetsReceived;
                 m_lastPacketsSentSentToScene = m_packetsSent;
             }

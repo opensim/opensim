@@ -59,6 +59,13 @@ namespace OpenSim.Region.Communications.OGS1
         public event ChildAgentUpdate OnChildAgentUpdate;
         public event TellRegionToCloseChildConnection OnTellRegionToCloseChildConnection;
 
+        private InformRegionChild handler001 = null; // OnChildAgent;
+        private ExpectArrival handler002 = null; // OnArrival;
+        private InformRegionPrimGroup handler003 = null; // OnPrimGroupNear;
+        private PrimGroupArrival handler004 = null; // OnPrimGroupArrival;
+        private RegionUp handler005 = null; // OnRegionUp;
+        private ChildAgentUpdate handler006 = null; // OnChildAgentUpdate;
+        private TellRegionToCloseChildConnection handler007 = null; // OnTellRegionToCloseChildConnection;
 
 
         static InterRegionSingleton()
@@ -76,64 +83,70 @@ namespace OpenSim.Region.Communications.OGS1
 
         public bool InformRegionOfChildAgent(ulong regionHandle, AgentCircuitData agentData)
         {
-            if (OnChildAgent != null)
+            handler001 = OnChildAgent;
+            if (handler001 != null)
             {
-                return OnChildAgent(regionHandle, agentData);
+                return handler001(regionHandle, agentData);
             }
             return false;
         }
 
         public bool RegionUp(SearializableRegionInfo sregion, ulong regionhandle)
         {
-            if (OnRegionUp != null)
+            handler005 = OnRegionUp;
+            if (handler005 != null)
             {
-                return OnRegionUp(sregion, regionhandle);
+                return handler005(sregion, regionhandle);
             }
             return false;
         }
 
         public bool ChildAgentUpdate(ulong regionHandle, ChildAgentDataUpdate cAgentUpdate)
         {
-            if (OnChildAgentUpdate != null)
+            handler006 = OnChildAgentUpdate;
+            if (handler006 != null)
             {
-                return OnChildAgentUpdate(regionHandle, cAgentUpdate);
+                return handler006(regionHandle, cAgentUpdate);
             }
             return false;
         }
 
         public bool ExpectAvatarCrossing(ulong regionHandle, LLUUID agentID, LLVector3 position, bool isFlying)
         {
-            if (OnArrival != null)
+            handler002 = OnArrival;
+            if (handler002 != null)
             {
-                return OnArrival(regionHandle, agentID, position, isFlying);
+                return handler002(regionHandle, agentID, position, isFlying);
             }
             return false;
         }
 
         public bool InformRegionPrim(ulong regionHandle, LLUUID primID, LLVector3 position, bool isPhysical)
         {
-            if (OnPrimGroupNear != null)
+            handler003 = OnPrimGroupNear;
+            if (handler003 != null)
             {
-                return OnPrimGroupNear(regionHandle, primID, position, isPhysical);
+                return handler003(regionHandle, primID, position, isPhysical);
             }
             return false;
         }
 
         public bool ExpectPrimCrossing(ulong regionHandle, LLUUID primID, string objData)
         {
-            if (OnPrimGroupArrival != null)
+            handler004 = OnPrimGroupArrival;
+            if (handler004 != null)
             {
-                return OnPrimGroupArrival(regionHandle, primID, objData);
+                return handler004(regionHandle, primID, objData);
             }
             return false;
         }
 
         public bool TellRegionToCloseChildConnection(ulong regionHandle, LLUUID agentID)
         {
-            if (OnTellRegionToCloseChildConnection != null)
+            handler007 = OnTellRegionToCloseChildConnection;
+            if (handler007 != null)
             {
-
-                return OnTellRegionToCloseChildConnection(regionHandle, agentID);
+                return handler007(regionHandle, agentID);
             }
             return false;
         }

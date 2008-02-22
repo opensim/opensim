@@ -45,8 +45,18 @@ namespace OpenSim.Framework
         public event CloseAgentConnection OnCloseAgentConnection;
         public event RegionUp OnRegionUp;
         public event ChildAgentUpdate OnChildAgentUpdate;
-        
 
+        private ExpectUserDelegate handler001 = null; // OnExpectUser
+        private ExpectPrimDelegate handler002 = null; // OnExpectPrim;
+        private GenericCall2 handler003 = null; // OnExpectChildAgent;
+        private AgentCrossing handler004 = null; // OnAvatarCrossingIntoRegion;
+        private PrimCrossing handler005 = null; // OnPrimCrossingIntoRegion;
+        private UpdateNeighbours handler006 = null; // OnNeighboursUpdate;
+        private AcknowledgeAgentCross handler007 = null; // OnAcknowledgeAgentCrossed;
+        private AcknowledgePrimCross handler008 = null; // OnAcknowledgePrimCrossed;
+        private CloseAgentConnection handler009 = null; // OnCloseAgentConnection;
+        private RegionUp handler010 = null; // OnRegionUp;
+        private ChildAgentUpdate handler011 = null; // OnChildAgentUpdate;
 
         public string debugRegionName = String.Empty;
 
@@ -58,9 +68,10 @@ namespace OpenSim.Framework
         /// <returns></returns>
         public virtual bool TriggerExpectUser(ulong regionHandle, AgentCircuitData agent)
         {
-            if (OnExpectUser != null)
+            handler001 = OnExpectUser;
+            if (handler001 != null)
             {
-                OnExpectUser(regionHandle, agent);
+                handler001(regionHandle, agent);
                 return true;
             }
 
@@ -70,9 +81,10 @@ namespace OpenSim.Framework
 
         public virtual bool TriggerExpectPrim(ulong regionHandle, LLUUID primID, string objData)
         {
-            if (OnExpectPrim != null)
+            handler002 = OnExpectPrim;
+            if (handler002 != null)
             {
-                OnExpectPrim(regionHandle, primID, objData);
+                handler002(regionHandle, primID, objData);
                 return true;
             }
             return false;
@@ -80,9 +92,10 @@ namespace OpenSim.Framework
 
         public virtual bool TriggerRegionUp(RegionInfo region)
         {
-            if (OnRegionUp != null)
+            handler010 = OnRegionUp;
+            if (handler010 != null)
             {
-                OnRegionUp(region);
+                handler010(region);
                 return true;
             }
             return false;
@@ -90,9 +103,10 @@ namespace OpenSim.Framework
 
         public virtual bool TriggerChildAgentUpdate(ulong regionHandle, ChildAgentDataUpdate cAgentData)
         {
-            if (OnChildAgentUpdate != null)
+            handler011 = OnChildAgentUpdate;
+            if (handler011 != null)
             {
-                OnChildAgentUpdate(regionHandle, cAgentData);
+                handler011(regionHandle, cAgentData);
                 return true;
             }
             return false;
@@ -101,9 +115,10 @@ namespace OpenSim.Framework
         public virtual bool TriggerExpectAvatarCrossing(ulong regionHandle, LLUUID agentID, LLVector3 position,
                                                         bool isFlying)
         {
-            if (OnAvatarCrossingIntoRegion != null)
+            handler004 = OnAvatarCrossingIntoRegion;
+            if (handler004 != null)
             {
-                OnAvatarCrossingIntoRegion(regionHandle, agentID, position, isFlying);
+                handler004(regionHandle, agentID, position, isFlying);
                 return true;
             }
             return false;
@@ -112,9 +127,10 @@ namespace OpenSim.Framework
         public virtual bool TriggerExpectPrimCrossing(ulong regionHandle, LLUUID primID, LLVector3 position,
                                                       bool isPhysical)
         {
-            if (OnPrimCrossingIntoRegion != null)
+            handler005 = OnPrimCrossingIntoRegion;
+            if (handler005 != null)
             {
-                OnPrimCrossingIntoRegion(regionHandle, primID, position, isPhysical);
+                handler005(regionHandle, primID, position, isPhysical);
                 return true;
             }
             return false;
@@ -122,9 +138,10 @@ namespace OpenSim.Framework
 
         public virtual bool TriggerAcknowledgeAgentCrossed(ulong regionHandle, LLUUID agentID)
         {
-            if (OnAcknowledgeAgentCrossed != null)
+            handler007 = OnAcknowledgeAgentCrossed;
+            if (handler007 != null)
             {
-                OnAcknowledgeAgentCrossed(regionHandle, agentID);
+                handler007(regionHandle, agentID);
                 return true;
             }
             return false;
@@ -132,9 +149,10 @@ namespace OpenSim.Framework
 
         public virtual bool TriggerAcknowledgePrimCrossed(ulong regionHandle, LLUUID primID)
         {
-            if (OnAcknowledgePrimCrossed != null)
+            handler008 = OnAcknowledgePrimCrossed;
+            if (handler008 != null)
             {
-                OnAcknowledgePrimCrossed(regionHandle, primID);
+                handler008(regionHandle, primID);
                 return true;
             }
             return false;
@@ -142,9 +160,10 @@ namespace OpenSim.Framework
 
         public virtual bool TriggerCloseAgentConnection(ulong regionHandle, LLUUID agentID)
         {
-            if (OnCloseAgentConnection != null)
+            handler009 = OnCloseAgentConnection;
+            if (handler009 != null)
             {
-                OnCloseAgentConnection(regionHandle, agentID);
+                handler009(regionHandle, agentID);
                 return true;
 
             }
@@ -158,9 +177,10 @@ namespace OpenSim.Framework
         /// <returns></returns>
         public virtual bool TriggerExpectChildAgent()
         {
-            if (OnExpectChildAgent != null)
+            handler003 = OnExpectChildAgent;
+            if (handler003 != null)
             {
-                OnExpectChildAgent();
+                handler003();
                 return true;
             }
 
@@ -175,9 +195,10 @@ namespace OpenSim.Framework
         /// <returns></returns>
         public virtual bool TriggerOnNeighboursUpdate(List<RegionInfo> neighbours)
         {
-            if (OnNeighboursUpdate != null)
+            handler006 = OnNeighboursUpdate;
+            if (handler006 != null)
             {
-                OnNeighboursUpdate(neighbours);
+                handler006(neighbours);
                 return true;
             }
 
@@ -186,8 +207,9 @@ namespace OpenSim.Framework
 
         public bool TriggerTellRegionToCloseChildConnection(ulong regionHandle, LLUUID agentID)
         {
-            if (OnCloseAgentConnection != null)
-                return OnCloseAgentConnection(regionHandle, agentID);
+            handler009 = OnCloseAgentConnection;
+            if (handler009 != null)
+                return handler009(regionHandle, agentID);
 
             return false;
         }
