@@ -171,8 +171,8 @@ msgformat = "PRIVMSG {0} : {3} - {1} of {2}"
 ; Refresh ScriptEngine config options (these settings) every xx seconds
 ; 0 = Do not refresh
 ; Set it to number of seconds between refresh, for example 30.
-; Will allow you to change ScriptEngine settings while server is running just by editing this file.
-; For example to increase or decrease number of threads.
+; Will allow you to change ScriptEngine settings while server is running just by using "CONFIG SET" on console
+; For example to increase or decrease number of threads: CONFIG SET NumberOfScriptThreads 10
 ; NOTE! Disabled for now. Feature does not work.
 RefreshConfig=0
 
@@ -183,14 +183,6 @@ NumberOfScriptThreads=2
 ; Script event execution thread priority inside application.
 ; Valid values: Lowest, BelowNormal, Normal, AboveNormal, Highest
 ScriptThreadPriority=BelowNormal
-
-; Should the script threads be private for each region?
-; true: Each region will get <NumberOfScriptThreads> dedicated to scripts within that region
-;       Number of threads will be <NumberOfScriptThreads>*<NumberOfRegions>
-; false: All regions share <NumberOfScriptThreads> for all their scripts
-;        Note! If you run multiple script engines based on "OpenSim.Region.ScriptEngine.Common" then all of them will share the same threads.
-; *** This setting will not work until you restart OpenSim
-PrivateRegionThreads=false
 
 ; How long MAX should a script event be allowed to run (per event execution)?
 ; Do not set this too low (like 50ms) as there are some time wasted in simply executing a function
@@ -222,11 +214,22 @@ ScriptsPerAppDomain=1
 ; How long load/unload thread should sleep if there is nothing to do
 ; Higher value makes it respond slower when scripts are added/removed from prims
 ; But once active it will process all in queue before sleeping again
-ScriptLoadUnloadLoopms=30
 
-; Loading and unloading of scripts is queued and processed by a separate thread.
-; This thread can either be shared among all regions, or private (one thread per region)
-PrivateScriptLoadUnloadThread=false
+
+; MaintenanceLoop
+; How often to run maintenance loop
+; Maintenance loop is doing: script compile/load, script unload, reload config, adjust running config and enforce max execution time
+MaintenanceLoopms=50
+
+; How many maintenanceloops between each of these.
+; (if 2 then function will be executed every MaintenanceLoopms*2 ms)
+; Script loading/unloading
+MaintenanceLoopTicks_ScriptLoadUnload=1
+
+; Other tasks
+; check if we need to reload config, adjust running config and enforce max execution time
+MaintenanceLoopTicks_Other=10
+
 
 ; Maximum number of items in load/unload queue before we start rejecting loads
 ; Note that we will only be rejecting load. Unloads will still be able to queue.

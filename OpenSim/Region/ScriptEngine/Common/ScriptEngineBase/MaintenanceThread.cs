@@ -41,6 +41,9 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
     {
         //public ScriptEngine m_ScriptEngine;
         private int MaintenanceLoopms;
+        private int MaintenanceLoopTicks_ScriptLoadUnload;
+        private int MaintenanceLoopTicks_Other;
+
 
         public MaintenanceThread()
         {
@@ -63,6 +66,9 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
             foreach (ScriptEngine m_ScriptEngine in ScriptEngine.ScriptEngines)
             {
                 MaintenanceLoopms = m_ScriptEngine.ScriptConfigSource.GetInt("MaintenanceLoopms", 50);
+                MaintenanceLoopTicks_ScriptLoadUnload = m_ScriptEngine.ScriptConfigSource.GetInt("MaintenanceLoopTicks_ScriptLoadUnload", 1);
+                MaintenanceLoopTicks_Other = m_ScriptEngine.ScriptConfigSource.GetInt("MaintenanceLoopTicks_Other", 10);
+
                 return;
             }
         }
@@ -123,6 +129,10 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
 
             long Last_maxFunctionExecutionTimens = 0; // DateTime.Now.Ticks;
             long Last_ReReadConfigFilens = DateTime.Now.Ticks;
+            long Last_MaintenanceRun = 0;
+            int MaintenanceLoopTicks_ScriptLoadUnload_Count = 0;
+            int MaintenanceLoopTicks_Other_Count = 0;
+
             while (true)
             {
                 try
@@ -132,15 +142,20 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
                         System.Threading.Thread.Sleep(MaintenanceLoopms); // Sleep before next pass
                         //if (PleaseShutdown)
                         //    return;
+                        MaintenanceLoopTicks_ScriptLoadUnload_Count++;
+                        MaintenanceLoopTicks_Other_Count++;
+
 
                         foreach (ScriptEngine m_ScriptEngine in new ArrayList(ScriptEngine.ScriptEngines))
                         {
                             lastScriptEngine = m_ScriptEngine;
-                            if (m_ScriptEngine != null)
+                            // Re-reading config every x seconds
+                            if (m_ScriptEngine.RefreshConfigFilens > 0)
                             {
-                                // Re-reading config every x seconds
-                                if (m_ScriptEngine.RefreshConfigFilens > 0)
+
+                                if (MaintenanceLoopTicks_Other_Count >= MaintenanceLoopTicks_Other)
                                 {
+                                    MaintenanceLoopTicks_Other_Count = 0;
                                     // Check if its time to re-read config
                                     if (DateTime.Now.Ticks - Last_ReReadConfigFilens >
                                         m_ScriptEngine.RefreshConfigFilens)
@@ -150,29 +165,33 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
                                         m_ScriptEngine.ReadConfig();
                                         Last_ReReadConfigFilens = DateTime.Now.Ticks; // Reset time
                                     }
-                                }
 
-                                // Adjust number of running script threads if not correct
-                                if (m_ScriptEngine.m_EventQueueManager != null)
-                                    m_ScriptEngine.m_EventQueueManager.AdjustNumberOfScriptThreads();
 
-                                // Check if any script has exceeded its max execution time
-                                if (EventQueueManager.EnforceMaxExecutionTime)
-                                {
-                                    // We are enforcing execution time
-                                    if (DateTime.Now.Ticks - Last_maxFunctionExecutionTimens >
-                                        EventQueueManager.maxFunctionExecutionTimens)
+                                    // Adjust number of running script threads if not correct
+                                    if (m_ScriptEngine.m_EventQueueManager != null)
+                                        m_ScriptEngine.m_EventQueueManager.AdjustNumberOfScriptThreads();
+
+                                    // Check if any script has exceeded its max execution time
+                                    if (EventQueueManager.EnforceMaxExecutionTime)
                                     {
-                                        // Its time to check again
-                                        m_ScriptEngine.m_EventQueueManager.CheckScriptMaxExecTime(); // Do check
-                                        Last_maxFunctionExecutionTimens = DateTime.Now.Ticks; // Reset time
+                                        // We are enforcing execution time
+                                        if (DateTime.Now.Ticks - Last_maxFunctionExecutionTimens >
+                                            EventQueueManager.maxFunctionExecutionTimens)
+                                        {
+                                            // Its time to check again
+                                            m_ScriptEngine.m_EventQueueManager.CheckScriptMaxExecTime(); // Do check
+                                            Last_maxFunctionExecutionTimens = DateTime.Now.Ticks; // Reset time
+                                        }
                                     }
                                 }
 
-                                // LOAD / UNLOAD SCRIPTS
-                                if (m_ScriptEngine.m_ScriptManager != null)
-                                    m_ScriptEngine.m_ScriptManager.DoScriptLoadUnload();
-
+                                if (MaintenanceLoopTicks_ScriptLoadUnload_Count >= MaintenanceLoopTicks_ScriptLoadUnload)
+                                {
+                                    MaintenanceLoopTicks_ScriptLoadUnload_Count = 0;
+                                    // LOAD / UNLOAD SCRIPTS
+                                    if (m_ScriptEngine.m_ScriptManager != null)
+                                        m_ScriptEngine.m_ScriptManager.DoScriptLoadUnload();
+                                }
                             }
                         }
                     }
