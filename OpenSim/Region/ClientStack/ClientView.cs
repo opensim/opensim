@@ -2079,7 +2079,11 @@ namespace OpenSim.Region.ClientStack
             SetDefaultPrimPacketValues(objupdate);
             objupdate.UpdateFlags = flags;
             SetPrimPacketShapeData(objupdate, primShape);
-
+            if ((primShape.PCode == 111) || (primShape.PCode == 255))
+            {
+                objupdate.Data = new byte[1];
+                objupdate.Data[0] = primShape.State;
+            }
             return objupdate;
         }
 
