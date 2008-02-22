@@ -110,7 +110,7 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
             newScriptManager.Start();
             m_ScriptManager = newScriptManager;
             m_AppDomainManager = new AppDomainManager(this);
-            m_ASYNCLSLCommandManager = new AsyncLSLCommandManager();
+            m_ASYNCLSLCommandManager = new AsyncLSLCommandManager(this);
             if (m_MaintenanceThread == null)
                 m_MaintenanceThread = new MaintenanceThread();
 

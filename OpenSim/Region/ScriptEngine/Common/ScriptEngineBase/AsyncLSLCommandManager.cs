@@ -42,13 +42,13 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
     public class AsyncLSLCommandManager : iScriptEngineFunctionModule
     {
         private static Thread cmdHandlerThread;
-        private int cmdHandlerThreadCycleSleepms;
+        private static int cmdHandlerThreadCycleSleepms;
 
         private ScriptEngine m_ScriptEngine;
 
-        public AsyncLSLCommandManager()
+        public AsyncLSLCommandManager(ScriptEngine _ScriptEngine)
         {
-            //m_ScriptEngine = _ScriptEngine;
+            m_ScriptEngine = _ScriptEngine;
             ReadConfig();
 
             StartThread();
@@ -92,7 +92,7 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
             }
         }
 
-        private void CmdHandlerThreadLoop()
+        private static void CmdHandlerThreadLoop()
         {
             while (true)
             {
@@ -101,14 +101,13 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
                     while (true)
                     {
                         Thread.Sleep(cmdHandlerThreadCycleSleepms);
-                        lock (ScriptEngine.ScriptEngines)
-                        {
-                            foreach (ScriptEngine se in ScriptEngine.ScriptEngines) 
+                        //lock (ScriptEngine.ScriptEngines)
+                        //{
+                            foreach (ScriptEngine se in new ArrayList(ScriptEngine.ScriptEngines)) 
                             {
-                                m_ScriptEngine = se;
-                                m_ScriptEngine.m_ASYNCLSLCommandManager.DoOneCmdHandlerPass();
+                                se.m_ASYNCLSLCommandManager.DoOneCmdHandlerPass();
                             }
-                        }
+                        //}
                         // Sleep before next cycle
                         //Thread.Sleep(cmdHandlerThreadCycleSleepms);
                     }

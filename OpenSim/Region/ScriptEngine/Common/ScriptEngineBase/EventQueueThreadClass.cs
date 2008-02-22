@@ -73,9 +73,9 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
 
         public void ReadConfig()
         {
-            //lock (ScriptEngine.ScriptEngines)
-            //{
-                foreach (ScriptEngine m_ScriptEngine in new ArrayList(ScriptEngine.ScriptEngines))
+            lock (ScriptEngine.ScriptEngines)
+            {
+                foreach (ScriptEngine m_ScriptEngine in ScriptEngine.ScriptEngines)
                 {
                     ScriptEngineName = m_ScriptEngine.ScriptEngineName;
                     nothingToDoSleepms = m_ScriptEngine.ScriptConfigSource.GetInt("SleepTimeIfNoScriptExecutionMs", 50);
@@ -106,7 +106,7 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
                             break;
                     }
                 }
-            //}
+            }
             // Now set that priority
             if (EventQueueThread != null)
                 if (EventQueueThread.IsAlive)

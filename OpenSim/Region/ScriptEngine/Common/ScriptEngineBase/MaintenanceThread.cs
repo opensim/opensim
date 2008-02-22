@@ -164,9 +164,9 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
                         MaintenanceLoopTicks_Other_Count++;
 
 
-                        lock (ScriptEngine.ScriptEngines)
-                        {
-                            foreach (ScriptEngine m_ScriptEngine in ScriptEngine.ScriptEngines)
+                        //lock (ScriptEngine.ScriptEngines)
+                        //{
+                            foreach (ScriptEngine m_ScriptEngine in new ArrayList(ScriptEngine.ScriptEngines))
                             {
                                 lastScriptEngine = m_ScriptEngine;
                                 // Re-reading config every x seconds
@@ -212,7 +212,7 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
                                         m_ScriptEngine.m_ScriptManager.DoScriptLoadUnload();
                                 }
                             }
-                        }
+                        //}
                     }
                 }
                 catch (Exception ex)
