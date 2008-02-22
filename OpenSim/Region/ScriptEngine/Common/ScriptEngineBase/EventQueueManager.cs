@@ -45,7 +45,7 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
     public class EventQueueManager : iScriptEngineFunctionModule
     {
         //
-        // Class is instanced in "ScriptEngine" and used by "EventManager" also instanced in "ScriptEngine".
+        // Class is instanced in "ScriptEngine" and used by "EventManager" which is also instanced in "ScriptEngine".
         //
         // Class purpose is to queue and execute functions that are received by "EventManager":
         //   - allowing "EventManager" to release its event thread immediately, thus not interrupting server execution.
@@ -68,25 +68,25 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
         /// List of threads (classes) processing event queue
         /// Note that this may or may not be a reference to a static object depending on PrivateRegionThreads config setting.
         /// </summary>
-        internal List<EventQueueThreadClass> eventQueueThreads;                             // Thread pool that we work on
+        internal static List<EventQueueThreadClass> eventQueueThreads;                             // Thread pool that we work on
         /// <summary>
         /// Locking access to eventQueueThreads AND staticGlobalEventQueueThreads.
         /// </summary>
 //        private object eventQueueThreadsLock = new object();
         // Static objects for referencing the objects above if we don't have private threads:
-        internal static List<EventQueueThreadClass> staticEventQueueThreads;                // A static reference used if we don't use private threads
+        //internal static List<EventQueueThreadClass> staticEventQueueThreads;                // A static reference used if we don't use private threads
 //        internal static object staticEventQueueThreadsLock;                                 // Statick lock object reference for same reason
 
         /// <summary>
         /// Global static list of all threads (classes) processing event queue -- used by max enforcment thread
         /// </summary>
-        private List<EventQueueThreadClass> staticGlobalEventQueueThreads = new List<EventQueueThreadClass>();
+        //private List<EventQueueThreadClass> staticGlobalEventQueueThreads = new List<EventQueueThreadClass>();
 
         /// <summary>
         /// Used internally to specify how many threads should exit gracefully
         /// </summary>
-        public int ThreadsToExit;
-        public object ThreadsToExitLock = new object();
+        public static int ThreadsToExit;
+        public static object ThreadsToExitLock = new object();
 
 
         //public object queueLock = new object(); // Mutex lock object
@@ -94,14 +94,14 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
         /// <summary>
         /// How many threads to process queue with
         /// </summary>
-        internal int numberOfThreads;
+        internal static int numberOfThreads;
 
         internal static int EventExecutionMaxQueueSize;
 
         /// <summary>
         /// Maximum time one function can use for execution before we perform a thread kill.
         /// </summary>
-        private int maxFunctionExecutionTimems
+        private static int maxFunctionExecutionTimems
         {
             get { return (int)(maxFunctionExecutionTimens / 10000); }
             set { maxFunctionExecutionTimens = value * 10000; }
@@ -111,15 +111,15 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
         /// Contains nanoseconds version of maxFunctionExecutionTimems so that it matches time calculations better (performance reasons).
         /// WARNING! ONLY UPDATE maxFunctionExecutionTimems, NEVER THIS DIRECTLY.
         /// </summary>
-        public long maxFunctionExecutionTimens;
+        public static long maxFunctionExecutionTimens;
         /// <summary>
         /// Enforce max execution time
         /// </summary>
-        public bool EnforceMaxExecutionTime;
+        public static bool EnforceMaxExecutionTime;
         /// <summary>
         /// Kill script (unload) when it exceeds execution time
         /// </summary>
-        private bool KillScriptOnMaxFunctionExecutionTime;
+        private static bool KillScriptOnMaxFunctionExecutionTime;
 
         /// <summary>
         /// List of localID locks for mutex processing of script events
@@ -172,33 +172,8 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
         {
             m_ScriptEngine = _ScriptEngine;
 
-            // TODO: We need to move from single EventQueueManager to list of it in to share threads
-            bool PrivateRegionThreads = true; // m_ScriptEngine.ScriptConfigSource.GetBoolean("PrivateRegionThreads", false);
-
-            // Create thread pool list and lock object
-            // Determine from config if threads should be dedicated to regions or shared
-            if (PrivateRegionThreads)
-            {
-                // PRIVATE THREAD POOL PER REGION
-                eventQueueThreads = new List<EventQueueThreadClass>();
-             //   eventQueueThreadsLock = new object();
-            }
-            else
-            {
-                // SHARED THREAD POOL
-                // Crate the static objects
-                if (staticEventQueueThreads == null)
-                    staticEventQueueThreads = new List<EventQueueThreadClass>();
-               // if (staticEventQueueThreadsLock == null)
-               //     staticEventQueueThreadsLock = new object();
-
-                // Now reference our locals to them
-                eventQueueThreads = staticEventQueueThreads;
-                //eventQueueThreadsLock = staticEventQueueThreadsLock;
-            }
-
+            eventQueueThreads = new List<EventQueueThreadClass>();
             ReadConfig();
-
         }
 
         public void ReadConfig()
@@ -230,18 +205,18 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
 
         private void Stop()
         {
-            if (eventQueueThreads != null && eventQueueThreads != null)
+            if (eventQueueThreads != null)
             {
                 // Kill worker threads
-                //lock (eventQueueThreads)
-                //{
+                lock (eventQueueThreads)
+                {
                     foreach (EventQueueThreadClass EventQueueThread in new ArrayList(eventQueueThreads))
                     {
                         AbortThreadClass(EventQueueThread);
                     }
                     //eventQueueThreads.Clear();
                     //staticGlobalEventQueueThreads.Clear();
-                //}
+                }
             }
 
                 // Remove all entries from our event queue
@@ -256,9 +231,8 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
         #region " Start / stop script execution threads (ThreadClasses) "
         private void StartNewThreadClass()
         {
-            EventQueueThreadClass eqtc = new EventQueueThreadClass(this);
+            EventQueueThreadClass eqtc = new EventQueueThreadClass();
             eventQueueThreads.Add(eqtc);
-            staticGlobalEventQueueThreads.Add(eqtc);
             m_ScriptEngine.Log.Debug("[" + m_ScriptEngine.ScriptEngineName + "]: Started new script execution thread. Current thread count: " + eventQueueThreads.Count);
         }
 
@@ -266,8 +240,6 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
         {
             if (eventQueueThreads.Contains(threadClass))
                 eventQueueThreads.Remove(threadClass);
-            if (staticGlobalEventQueueThreads.Contains(threadClass))
-                staticGlobalEventQueueThreads.Remove(threadClass);
 
             try
             {
@@ -426,7 +398,7 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
             // Iterate through all ScriptThreadClasses and check how long their current function has been executing
             lock (eventQueueThreads)
             {
-                foreach (EventQueueThreadClass EventQueueThread in staticGlobalEventQueueThreads)
+                foreach (EventQueueThreadClass EventQueueThread in eventQueueThreads)
                 {
                     // Is thread currently executing anything?
                     if (EventQueueThread.InExecution)

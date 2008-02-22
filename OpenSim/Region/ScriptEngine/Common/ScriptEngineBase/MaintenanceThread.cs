@@ -156,12 +156,11 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
                                     m_ScriptEngine.m_EventQueueManager.AdjustNumberOfScriptThreads();
 
                                 // Check if any script has exceeded its max execution time
-                                if (m_ScriptEngine.m_EventQueueManager != null &&
-                                    m_ScriptEngine.m_EventQueueManager.EnforceMaxExecutionTime)
+                                if (EventQueueManager.EnforceMaxExecutionTime)
                                 {
                                     // We are enforcing execution time
                                     if (DateTime.Now.Ticks - Last_maxFunctionExecutionTimens >
-                                        m_ScriptEngine.m_EventQueueManager.maxFunctionExecutionTimens)
+                                        EventQueueManager.maxFunctionExecutionTimens)
                                     {
                                         // Its time to check again
                                         m_ScriptEngine.m_EventQueueManager.CheckScriptMaxExecTime(); // Do check
