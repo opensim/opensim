@@ -225,6 +225,9 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
                     //if (PleaseShutdown)
                     //    return;
 
+                    if (m_ScriptEngine.m_EventQueueManager == null || m_ScriptEngine.m_EventQueueManager.eventQueue == null)
+                        continue;
+
                     if (m_ScriptEngine.m_EventQueueManager.eventQueue.Count == 0)
                     {
                         // Nothing to do? Sleep a bit waiting for something to do

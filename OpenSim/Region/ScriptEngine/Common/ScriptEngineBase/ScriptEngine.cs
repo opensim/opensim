@@ -54,7 +54,7 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
         public ScriptManager m_ScriptManager;                       // Load, unload and execute scripts
         public AppDomainManager m_AppDomainManager;                 // Handles loading/unloading of scripts into AppDomains
         public AsyncLSLCommandManager m_ASYNCLSLCommandManager;     // Asyncronous LSL commands (commands that returns with an event)
-        public static MaintenanceThread m_MaintenanceThread;               // Thread that does different kinds of maintenance, for example refreshing config and killing scripts that has been running too long
+        public static MaintenanceThread m_MaintenanceThread;        // Thread that does different kinds of maintenance, for example refreshing config and killing scripts that has been running too long
 
         public IConfigSource ConfigSource;
         public IConfig ScriptConfigSource;
