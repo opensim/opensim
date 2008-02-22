@@ -103,7 +103,7 @@ namespace OpenSim.Framework.Statistics
         public string Report()
         {    
             StringBuilder sb = new StringBuilder(Environment.NewLine);
-            sb.Append("PACKET QUEUE STATISTICS");
+            sb.Append("ASSET CACHE STATISTICS");
             sb.Append(Environment.NewLine);            
             sb.Append(
                 string.Format(
@@ -115,9 +115,11 @@ Texture cache contains {2,6} textures using {3,10:0.000}K" + Environment.NewLine
             sb.Append(Environment.NewLine);
             sb.Append("PACKET QUEUE STATISTICS");
             sb.Append(Environment.NewLine);
-            sb.Append("Agent UUID                                ");
-            sb.Append("  Send     In       Out      Resend ");  
-            sb.Append("  Land     Wind     Cloud    Task     Texture  Asset");
+            sb.Append("Agent UUID                          ");
+            sb.Append(
+                string.Format(
+                    "  {0,7}  {1,7}  {2,7}  {3,7}  {4,7}  {5,7}  {6,7}  {7,7}  {8,7}  {9,7}", 
+                    "Send", "In", "Out", "Resend", "Land", "Wind", "Cloud", "Task", "Texture", "Asset"));
             sb.Append(Environment.NewLine);            
                 
             foreach (LLUUID key in packetQueueStatsReporters.Keys)

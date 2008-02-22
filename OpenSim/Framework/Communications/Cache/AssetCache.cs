@@ -395,7 +395,7 @@ namespace OpenSim.Framework.Communications.Cache
         public void AssetReceived(AssetBase asset, bool IsTexture)
         {
             #if DEBUG
-            m_log.DebugFormat("[ASSET CACHE]: Recieved {0} [{1}]", IsTexture ? "texture" : "asset", asset.FullID);
+            m_log.DebugFormat("[ASSET CACHE]: Received {0} [{1}]", IsTexture ? "texture" : "asset", asset.FullID);
             #endif
 
             if (asset.FullID != LLUUID.Zero) // if it is set to zero then the asset wasn't found by the server
