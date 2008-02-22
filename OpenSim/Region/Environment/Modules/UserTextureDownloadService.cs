@@ -42,8 +42,8 @@ namespace OpenSim.Region.Environment.Modules
     /// </summary>
     public class UserTextureDownloadService
     {
-        //private static readonly log4net.ILog m_log 
-        //    = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+        private static readonly log4net.ILog m_log 
+            = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
         
         /// <summary>
         /// Holds texture senders before they have received the appropriate texture from the asset cache.
@@ -138,7 +138,6 @@ namespace OpenSim.Region.Environment.Modules
                         // this texture could not be found
                         
                         // TODO Send packet back to the client telling it not to expect the texture
-                        // The absence of this packet doesn't appear to be causing it a problem right now
                         
                         //m_log.DebugFormat("[USER TEXTURE DOWNLOAD]: Removing download stat for {0}", textureID);
                         m_scene.AddPendingDownloads(-1);
@@ -150,7 +149,9 @@ namespace OpenSim.Region.Environment.Modules
                 }
                 else
                 {
-                    throw new Exception("Got a texture with no sender object to handle it, this shouldn't happen");
+                    m_log.WarnFormat(
+                       "Got a texture uuid {0} with no sender object to handle it, this shouldn't happen",
+                       textureID);
                 }
             }
         }
