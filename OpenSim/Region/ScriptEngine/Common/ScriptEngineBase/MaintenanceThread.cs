@@ -129,7 +129,6 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
 
             long Last_maxFunctionExecutionTimens = 0; // DateTime.Now.Ticks;
             long Last_ReReadConfigFilens = DateTime.Now.Ticks;
-            long Last_MaintenanceRun = 0;
             int MaintenanceLoopTicks_ScriptLoadUnload_Count = 0;
             int MaintenanceLoopTicks_Other_Count = 0;
 
@@ -140,8 +139,8 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
                     while (true)
                     {
                         System.Threading.Thread.Sleep(MaintenanceLoopms); // Sleep before next pass
-                        //if (PleaseShutdown)
-                        //    return;
+
+                        // Increase our counters
                         MaintenanceLoopTicks_ScriptLoadUnload_Count++;
                         MaintenanceLoopTicks_Other_Count++;
 
@@ -150,12 +149,12 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
                         {
                             lastScriptEngine = m_ScriptEngine;
                             // Re-reading config every x seconds
-                            if (m_ScriptEngine.RefreshConfigFilens > 0)
+                            if (MaintenanceLoopTicks_Other_Count >= MaintenanceLoopTicks_Other)
                             {
-
-                                if (MaintenanceLoopTicks_Other_Count >= MaintenanceLoopTicks_Other)
+                                MaintenanceLoopTicks_Other_Count = 0;
+                                if (m_ScriptEngine.RefreshConfigFilens > 0)
                                 {
-                                    MaintenanceLoopTicks_Other_Count = 0;
+
                                     // Check if its time to re-read config
                                     if (DateTime.Now.Ticks - Last_ReReadConfigFilens >
                                         m_ScriptEngine.RefreshConfigFilens)
@@ -185,13 +184,13 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
                                     }
                                 }
 
-                                if (MaintenanceLoopTicks_ScriptLoadUnload_Count >= MaintenanceLoopTicks_ScriptLoadUnload)
-                                {
-                                    MaintenanceLoopTicks_ScriptLoadUnload_Count = 0;
-                                    // LOAD / UNLOAD SCRIPTS
-                                    if (m_ScriptEngine.m_ScriptManager != null)
-                                        m_ScriptEngine.m_ScriptManager.DoScriptLoadUnload();
-                                }
+                            }
+                            if (MaintenanceLoopTicks_ScriptLoadUnload_Count >= MaintenanceLoopTicks_ScriptLoadUnload)
+                            {
+                                MaintenanceLoopTicks_ScriptLoadUnload_Count = 0;
+                                // LOAD / UNLOAD SCRIPTS
+                                if (m_ScriptEngine.m_ScriptManager != null)
+                                    m_ScriptEngine.m_ScriptManager.DoScriptLoadUnload();
                             }
                         }
                     }
