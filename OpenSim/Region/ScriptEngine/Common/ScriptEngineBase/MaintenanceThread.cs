@@ -168,6 +168,11 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
                                         Last_maxFunctionExecutionTimens = DateTime.Now.Ticks; // Reset time
                                     }
                                 }
+
+                                // LOAD / UNLOAD SCRIPTS
+                                if (m_ScriptEngine.m_ScriptManager != null)
+                                    m_ScriptEngine.m_ScriptManager.DoScriptLoadUnload();
+
                             }
                         }
                     }

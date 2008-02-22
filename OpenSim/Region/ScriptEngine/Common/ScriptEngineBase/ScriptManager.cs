@@ -129,14 +129,14 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
             if (PrivateThread)
             {
                 // Assign one thread per region
-                scriptLoadUnloadThread = StartScriptLoadUnloadThread();
+                //scriptLoadUnloadThread = StartScriptLoadUnloadThread();
             }
             else
             {
                 // Shared thread - make sure one exist, then assign it to the private
                 if (staticScriptLoadUnloadThread == null)
                 {
-                    staticScriptLoadUnloadThread = StartScriptLoadUnloadThread();
+                    //staticScriptLoadUnloadThread = StartScriptLoadUnloadThread();
                 }
                 scriptLoadUnloadThread = staticScriptLoadUnloadThread;
             }
@@ -196,21 +196,7 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
                         Thread.Sleep(scriptLoadUnloadThread_IdleSleepms);
                     //if (PleaseShutdown)
                     //    return;
-                    if (LUQueue.Count > 0)
-                    {
-                        LUStruct item = LUQueue.Dequeue();
-                        lock (startStopLock)        // Lock so we have only 1 thread working on loading/unloading of scripts
-                        {
-                            if (item.Action == LUType.Unload)
-                            {
-                                _StopScript(item.localID, item.itemID);
-                            }
-                            if (item.Action == LUType.Load)
-                            {
-                                _StartScript(item.localID, item.itemID, item.script);
-                            }
-                        }
-                    }
+                    DoScriptLoadUnload();
                 }
             }
             catch (ThreadAbortException tae)
@@ -219,6 +205,26 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
                 a = String.Empty;
                 // Expected
             }
+        }
+
+        public void DoScriptLoadUnload()
+        {
+            if (LUQueue.Count > 0)
+            {
+                LUStruct item = LUQueue.Dequeue();
+                lock (startStopLock)        // Lock so we have only 1 thread working on loading/unloading of scripts
+                {
+                    if (item.Action == LUType.Unload)
+                    {
+                        _StopScript(item.localID, item.itemID);
+                    }
+                    if (item.Action == LUType.Load)
+                    {
+                        _StartScript(item.localID, item.itemID, item.script);
+                    }
+                }
+            }
+
         }
 
         #endregion
