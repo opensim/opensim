@@ -52,7 +52,9 @@ namespace OpenSim.Framework.Communications.Cache
             Stream s = null;
             try
             {
-                m_log.DebugFormat("[ASSETCACHE]: Querying for {0}", req.AssetID.ToString());
+                #if DEBUG
+                //m_log.DebugFormat("[GRID ASSET CLIENT]: Querying for {0}", req.AssetID.ToString());
+                #endif
 
                 RestClient rc = new RestClient(_assetServerUrl);
                 rc.AddResourcePath("assets");
@@ -72,9 +74,9 @@ namespace OpenSim.Framework.Communications.Cache
             }
             catch (Exception e)
             {
-                m_log.Error("[ASSETCACHE]: " + e.Message);
-                m_log.DebugFormat("[ASSETCACHE]: Getting asset {0}", req.AssetID.ToString());
-                m_log.Error("[ASSETCACHE]: " + e.StackTrace);
+                m_log.Error("[GRID ASSET CLIENT]: " + e.Message);
+                m_log.DebugFormat("[GRID ASSET CLIENT]: Getting asset {0}", req.AssetID.ToString());
+                m_log.Error("[GRID ASSET CLIENT]: " + e.StackTrace);
             }
 
             return null;
@@ -95,19 +97,19 @@ namespace OpenSim.Framework.Communications.Cache
                 // XmlSerializer xs = new XmlSerializer(typeof(AssetBase));
                 //   xs.Serialize(s, asset);
                 //  RestClient rc = new RestClient(_assetServerUrl);
-                m_log.Info("[ASSET]: Storing asset");
+                m_log.Info("[GRID ASSET CLIENT]: Storing asset");
                 //rc.AddResourcePath("assets");
 
                 // rc.RequestMethod = "POST";
                 //  rc.Request(s);
                 //m_log.InfoFormat("[ASSET]: Stored {0}", rc);
-                m_log.Info("[ASSET]: Sending to " + _assetServerUrl + "/assets/");
+                m_log.Info("[GRID ASSET CLIENT]: Sending to " + _assetServerUrl + "/assets/");
                 RestObjectPoster.BeginPostObject<AssetBase>(_assetServerUrl + "/assets/", asset);
 
             }
             catch (Exception e)
             {
-                m_log.Error("[ASSETS]: " + e.Message);
+                m_log.Error("[GRID ASSET CLIENT]: " + e.Message);
             }
         }
 

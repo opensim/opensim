@@ -250,7 +250,9 @@ namespace OpenSim.Framework.Communications.Cache
             }
             else
             {
-                m_log.DebugFormat("[ASSET CACHE]: Adding request for {0} {1}", isTexture ? "texture" : "asset", assetId);            
+                #if DEBUG
+                //m_log.DebugFormat("[ASSET CACHE]: Adding request for {0} {1}", isTexture ? "texture" : "asset", assetId);
+                #endif
             
                 NewAssetRequest req = new NewAssetRequest(assetId, callback);
 
@@ -384,14 +386,17 @@ namespace OpenSim.Framework.Communications.Cache
                     }
                 }
             }
-
-            m_log.DebugFormat("[ASSET CACHE]: Adding {0} {1} [{2}]: {3}.", temporary, type, asset.FullID, result);
+            #if DEBUG
+            //m_log.DebugFormat("[ASSET CACHE]: Adding {0} {1} [{2}]: {3}.", temporary, type, asset.FullID, result);
+            #endif
         }
 
         // See IAssetReceiver
         public void AssetReceived(AssetBase asset, bool IsTexture)
         {
+            #if DEBUG
             m_log.DebugFormat("[ASSET CACHE]: Recieved {0} [{1}]", IsTexture ? "texture" : "asset", asset.FullID);
+            #endif
 
             if (asset.FullID != LLUUID.Zero) // if it is set to zero then the asset wasn't found by the server
             {
@@ -405,7 +410,9 @@ namespace OpenSim.Framework.Communications.Cache
                     TextureImage image = new TextureImage(asset);
                     if (Textures.ContainsKey(image.FullID))
                     {
-                        m_log.DebugFormat("[ASSET CACHE]: There's already an texture {0} in memory. Skipping.", asset.FullID);
+                        #if DEBUG                        
+                        //m_log.DebugFormat("[ASSET CACHE]: There's already an texture {0} in memory. Skipping.", asset.FullID);
+                        #endif
                     }
                     else
                     {
@@ -422,7 +429,9 @@ namespace OpenSim.Framework.Communications.Cache
                     AssetInfo assetInf = new AssetInfo(asset);
                     if (Assets.ContainsKey(assetInf.FullID))
                     {
-                        m_log.DebugFormat("[ASSET CACHE]: There's already an asset {0} in memory. Skipping.", asset.FullID);
+                        #if DEBUG
+                        //m_log.DebugFormat("[ASSET CACHE]: There's already an asset {0} in memory. Skipping.", asset.FullID);
+                        #endif
                     }
                     else
                     {
@@ -435,7 +444,9 @@ namespace OpenSim.Framework.Communications.Cache
 
                         if (RequestedAssets.ContainsKey(assetInf.FullID))
                         {
-                            m_log.DebugFormat("[ASSET CACHE]: Moving {0} from RequestedAssets to AssetRequests", asset.FullID);
+                            #if DEBUG
+                            //m_log.DebugFormat("[ASSET CACHE]: Moving {0} from RequestedAssets to AssetRequests", asset.FullID);
+                            #endif
 
                             AssetRequest req = RequestedAssets[assetInf.FullID];
                             req.AssetInf = assetInf;
