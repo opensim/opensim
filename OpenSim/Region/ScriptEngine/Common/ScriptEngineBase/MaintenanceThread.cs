@@ -58,7 +58,12 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
 
         public void ReadConfig()
         {
-            MaintenanceLoopms = m_ScriptEngine.ScriptConfigSource.GetInt("MaintenanceLoopms", 50);
+            // Bad hack, but we need a m_ScriptEngine :)
+            foreach (ScriptEngine m_ScriptEngine in ScriptEngine.ScriptEngines)
+            {
+                MaintenanceLoopms = m_ScriptEngine.ScriptConfigSource.GetInt("MaintenanceLoopms", 50);
+                return;
+            }
         }
 
         #region " Maintenance thread "
@@ -169,7 +174,8 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
                 }
                 catch (Exception ex)
                 {
-                    ScriptEngine.Log.Error("[" + lastScriptEngine.ScriptEngineName + "]: Exception in MaintenanceLoopThread. Thread will recover after 5 sec throttle. Exception: " + ex.ToString());
+                    if (lastScriptEngine != null)
+                        lastScriptEngine.Log.Error("[" + lastScriptEngine.ScriptEngineName + "]: Exception in MaintenanceLoopThread. Thread will recover after 5 sec throttle. Exception: " + ex.ToString());
                     Thread.Sleep(5000);
                 }
             }

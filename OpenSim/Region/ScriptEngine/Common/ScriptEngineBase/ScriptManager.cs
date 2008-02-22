@@ -194,8 +194,8 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
                 {
                     if (LUQueue.Count == 0)
                         Thread.Sleep(scriptLoadUnloadThread_IdleSleepms);
-                    if (PleaseShutdown)
-                        return;
+                    //if (PleaseShutdown)
+                    //    return;
                     if (LUQueue.Count > 0)
                     {
                         LUStruct item = LUQueue.Dequeue();
