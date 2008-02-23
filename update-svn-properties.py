@@ -75,6 +75,7 @@ property_map = {
     ".so" : binary,
     ".sql" : textfile,
     ".txt" : textfile,
+    ".user" : textfile,
     ".userprefs" : textfile,
     ".usertasks" : textfile,
     ".xml" : textfile,
