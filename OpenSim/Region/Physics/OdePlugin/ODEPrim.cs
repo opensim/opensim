@@ -210,7 +210,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                 // without this, if an avatar selects prim, they can walk right 
                 // through it while it's selected
 
-                if (m_isphysical || !value)
+                if ((m_isphysical && !_zeroFlag) || !value)
                 {
                     m_taintselected = value;
                     _parent_scene.AddPhysicsActorTaint(this);
