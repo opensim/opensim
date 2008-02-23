@@ -1447,9 +1447,10 @@ namespace OpenSim.Region.Physics.OdePlugin
             }
         }
         public void UpdatePositionAndVelocity()
-        {
+        { 
             //  no lock; called from Simulate() -- if you call this from elsewhere, gotta lock or do Monitor.Enter/Exit!
             PhysicsVector pv = new PhysicsVector(0, 0, 0);
+            bool lastZeroFlag = _zeroFlag;
             if (Body != (IntPtr) 0)
             {
                 d.Vector3 vec = d.BodyGetPosition(Body);
@@ -1546,6 +1547,9 @@ namespace OpenSim.Region.Physics.OdePlugin
                 }
                 else
                 {
+                    if (lastZeroFlag != _zeroFlag)
+                        base.RequestPhysicsterseUpdate();
+
                     m_lastVelocity = _velocity;
 
                     _position = l_position;
