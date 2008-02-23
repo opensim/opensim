@@ -895,6 +895,11 @@ namespace OpenSim.Region.Physics.BulletXPlugin
             set { return; }
         }
 
+        public override uint LocalID
+        {
+            set { return; }
+        }
+
         public override bool Grabbed
         {
             set { return; }

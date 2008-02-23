@@ -52,12 +52,30 @@ namespace OpenSim.Region.Physics.OdePlugin
         private PhysicsVector m_taintsize;
         private PhysicsVector m_taintVelocity = PhysicsVector.Zero;
         private Quaternion m_taintrot;
+        private const CollisionCategories m_default_collisionFlags = (CollisionCategories.Geom
+                                                        | CollisionCategories.Space
+                                                        | CollisionCategories.Body
+                                                        | CollisionCategories.Character);
         private bool m_taintshape = false;
         private bool m_taintPhysics = false;
+        private bool m_collidesLand = true;
+        private bool m_collidesWater = false;
+
+        // Default we're a Geometry
+        private CollisionCategories m_collisionCategories = (CollisionCategories.Geom );
+
+        // Default, Collide with Other Geometries, spaces and Bodies
+        private CollisionCategories m_collisionFlags = m_default_collisionFlags;
+
         public bool m_taintremove = false;
         public bool m_taintdisable = false;
         public bool m_disabled = false;
         public bool m_taintadd = false;
+        public bool m_taintselected = false;
+
+
+        public uint m_localID = 0;
+
         public GCHandle gc;
         private CollisionLocker ode;
 
@@ -74,6 +92,8 @@ namespace OpenSim.Region.Physics.OdePlugin
 
         private bool iscolliding = false;
         private bool m_isphysical = false;
+        private bool m_isSelected = false;
+
         private bool m_throttleUpdates = false;
         private int throttleCounter = 0;
         public int m_interpenetrationcount = 0;
@@ -172,6 +192,11 @@ namespace OpenSim.Region.Physics.OdePlugin
             set { return; }
         }
 
+        public override uint LocalID
+        {
+            set { m_localID = value; }
+        }
+
         public override bool Grabbed
         {
             set { return; }
@@ -179,16 +204,58 @@ namespace OpenSim.Region.Physics.OdePlugin
 
         public override bool Selected
         {
-            set { return; }
+            set {
+                // This only makes the object not collidable if the object 
+                // is physical or the object is modified somehow *IN THE FUTURE*
+                // without this, if an avatar selects prim, they can walk right 
+                // through it while it's selected
+
+                if (m_isphysical || !value)
+                {
+                    m_taintselected = value;
+                    _parent_scene.AddPhysicsActorTaint(this);
+                }
+                else
+                {
+
+                    m_taintselected = value;
+                    m_isSelected = value;
+                }
+
+            }
         }
 
         public void SetGeom(IntPtr geom)
         {
             prev_geom = prim_geom;
             prim_geom = geom;
+            if (prim_geom != (IntPtr)0)
+            {
+                d.GeomSetCategoryBits(prim_geom, (int)m_collisionCategories);
+                d.GeomSetCollideBits(prim_geom, (int)m_collisionFlags);
+            }
             //m_log.Warn("Setting Geom to: " + prim_geom);
             
         }
+
+        public void enableBodySoft()
+        {
+            if (m_isphysical)
+                if (Body != (IntPtr)0)
+                    d.BodyEnable(Body);
+
+            m_disabled = false;
+        }
+
+        public void disableBodySoft()
+        {
+            m_disabled = true;
+        
+            if (m_isphysical)
+                if (Body != (IntPtr)0)
+                    d.BodyDisable(Body);
+        }
+
 
         public void enableBody()
         {
@@ -204,6 +271,13 @@ namespace OpenSim.Region.Physics.OdePlugin
             myrot.Z = _orientation.z;
             d.BodySetQuaternion(Body, ref myrot);
             d.GeomSetBody(prim_geom, Body);
+            m_collisionCategories |= CollisionCategories.Body;
+            m_collisionFlags |= (CollisionCategories.Land | CollisionCategories.Wind);
+
+            d.GeomSetCategoryBits(prim_geom, (int)m_collisionCategories);
+            d.GeomSetCollideBits(prim_geom, (int)m_collisionFlags);
+
+
             d.BodySetAutoDisableFlag(Body, true);
             d.BodySetAutoDisableSteps(Body, 20);
             
@@ -332,6 +406,15 @@ namespace OpenSim.Region.Physics.OdePlugin
             //this kills the body so things like 'mesh' can re-create it.
             if (Body != (IntPtr) 0)
             {
+                m_collisionCategories &= ~CollisionCategories.Body;
+                m_collisionFlags &= ~(CollisionCategories.Wind | CollisionCategories.Land);
+
+                if (prim_geom != (IntPtr)0)
+                {
+                    d.GeomSetCategoryBits(prim_geom, (int)m_collisionCategories);
+                    d.GeomSetCollideBits(prim_geom, (int)m_collisionFlags);
+                }   
+
                 _parent_scene.remActivePrim(this);
                 d.BodyDestroy(Body);
                 Body = (IntPtr) 0;
@@ -425,8 +508,79 @@ namespace OpenSim.Region.Physics.OdePlugin
             if (m_taintdisable)
                 changedisable(timestep);
 
+            if (m_taintselected != m_isSelected)
+                changeSelectedStatus(timestep);
+
             if (m_taintVelocity != PhysicsVector.Zero)
                 changevelocity(timestep);
+        }
+
+        private void changeSelectedStatus(float timestep)
+        {
+            while (ode.lockquery())
+            {
+            }
+            ode.dlock(_parent_scene.world);
+
+            if (m_taintselected)
+            {
+
+
+                m_collisionCategories = CollisionCategories.Selected;
+                m_collisionFlags = (CollisionCategories.Sensor | CollisionCategories.Space);
+
+                // We do the body disable soft twice because 'in theory' a collision could have happened 
+                // in between the disabling and the collision properties setting
+                // which would wake the physical body up from a soft disabling and potentially cause it to fall 
+                // through the ground.
+
+                if (m_isphysical)
+                {
+                    disableBodySoft();
+                }
+
+                if (prim_geom != (IntPtr)0)
+                {
+                    d.GeomSetCategoryBits(prim_geom, (int)m_collisionCategories);
+                    d.GeomSetCollideBits(prim_geom, (int)m_collisionFlags);
+                }
+
+                if (m_isphysical)
+                {
+                    disableBodySoft();
+                }
+
+            }
+            else
+            {
+                
+                m_collisionCategories = CollisionCategories.Geom;
+                
+                if (m_isphysical)
+                    m_collisionCategories |= CollisionCategories.Body;
+
+
+                m_collisionFlags = m_default_collisionFlags;
+
+                if (m_collidesLand)
+                    m_collisionFlags |= CollisionCategories.Land;
+                if (m_collidesWater)
+                    m_collisionFlags |= CollisionCategories.Water;
+
+                if (prim_geom != (IntPtr)0)
+                {
+                    d.GeomSetCategoryBits(prim_geom, (int)m_collisionCategories);
+                    d.GeomSetCollideBits(prim_geom, (int)m_collisionFlags);
+                }
+                if (m_isphysical)
+                    enableBodySoft();
+
+                
+            }
+
+            ode.dunlock(_parent_scene.world);
+            resetCollisionAccounting();
+            m_isSelected = m_taintselected;
         }
 
         public void ResetTaints()
@@ -437,6 +591,8 @@ namespace OpenSim.Region.Physics.OdePlugin
             m_taintrot = _orientation;
 
             m_taintPhysics = m_isphysical;
+
+            m_taintselected = m_isSelected;
 
             m_taintsize = _size;
             
@@ -586,6 +742,9 @@ namespace OpenSim.Region.Physics.OdePlugin
             ode.dunlock(_parent_scene.world);
             _parent_scene.geom_name_map[prim_geom] = this.m_primName;
             _parent_scene.actor_name_map[prim_geom] = (PhysicsActor)this;
+
+            changeSelectedStatus(timestep);
+
             m_taintadd = false;
 
 
@@ -630,6 +789,8 @@ namespace OpenSim.Region.Physics.OdePlugin
             }
             ode.dunlock(_parent_scene.world);
 
+            changeSelectedStatus(timestep);
+            
             resetCollisionAccounting();
             m_taintposition = _position;
         }
@@ -682,7 +843,7 @@ namespace OpenSim.Region.Physics.OdePlugin
             m_taintdisable = false;
         }
 
-        public void changePhysicsStatus(float timestap)
+        public void changePhysicsStatus(float timestep)
         {
             lock (ode)
             {
@@ -708,6 +869,8 @@ namespace OpenSim.Region.Physics.OdePlugin
 
                 ode.dunlock(_parent_scene.world);
             }
+
+            changeSelectedStatus(timestep);
 
             resetCollisionAccounting();
             m_taintPhysics = m_isphysical;
@@ -880,6 +1043,8 @@ namespace OpenSim.Region.Physics.OdePlugin
 
             ode.dunlock(_parent_scene.world);
 
+            changeSelectedStatus(timestamp);
+
             resetCollisionAccounting();
             m_taintsize = _size;
         }
@@ -927,7 +1092,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                         // Re creates body on size.
                         // EnableBody also does setMass()
                         enableBody();
-                        d.BodyEnable(Body);
+                        
                     }
                 }
                 else
@@ -1032,9 +1197,13 @@ namespace OpenSim.Region.Physics.OdePlugin
                     d.BodyEnable(Body);
                 }
             }
+            
+
             _parent_scene.geom_name_map[prim_geom] = oldname;
 
             ode.dunlock(_parent_scene.world);
+
+            changeSelectedStatus(timestamp);
 
             resetCollisionAccounting();
             m_taintshape = false;
@@ -1042,56 +1211,62 @@ namespace OpenSim.Region.Physics.OdePlugin
 
         public void changeAddForce(float timestamp)
         {
-            while (ode.lockquery())
-            {
-            }
-            ode.dlock(_parent_scene.world);
-
-            
-            lock (m_forcelist)
-            {
-                //m_log.Info("[PHYSICS]: dequeing forcelist");
-                if (IsPhysical)
-                {
-                    PhysicsVector iforce = new PhysicsVector();
-                    for (int i = 0; i < m_forcelist.Count; i++)
-                    {
-                        iforce = iforce + (m_forcelist[i]*100);
-                    }   
-                    d.BodyEnable(Body);
-                    d.BodyAddForce(Body, iforce.X, iforce.Y, iforce.Z);
-                }
-                m_forcelist.Clear();
-            }
-
-            ode.dunlock(_parent_scene.world);
-
-            m_collisionscore = 0;
-            m_interpenetrationcount = 0;
-            m_taintforce = false;
-
-        }
-        private void changevelocity(float timestep)
-        {
-            lock (ode)
+            if (!m_isSelected)
             {
                 while (ode.lockquery())
                 {
                 }
                 ode.dlock(_parent_scene.world);
 
-                System.Threading.Thread.Sleep(20);
-                if (IsPhysical)
+
+                lock (m_forcelist)
                 {
-                    if (Body != (IntPtr)0)
+                    //m_log.Info("[PHYSICS]: dequeing forcelist");
+                    if (IsPhysical)
                     {
-                        d.BodySetLinearVel(Body, m_taintVelocity.X, m_taintVelocity.Y, m_taintVelocity.Z);
+                        PhysicsVector iforce = new PhysicsVector();
+                        for (int i = 0; i < m_forcelist.Count; i++)
+                        {
+                            iforce = iforce + (m_forcelist[i] * 100);
+                        }
+                        d.BodyEnable(Body);
+                        d.BodyAddForce(Body, iforce.X, iforce.Y, iforce.Z);
                     }
+                    m_forcelist.Clear();
                 }
 
                 ode.dunlock(_parent_scene.world);
+
+                m_collisionscore = 0;
+                m_interpenetrationcount = 0;
             }
-            //resetCollisionAccounting();
+            m_taintforce = false;
+
+        }
+        private void changevelocity(float timestep)
+        {
+            if (!m_isSelected)
+            {
+                lock (ode)
+                {
+                    while (ode.lockquery())
+                    {
+                    }
+                    ode.dlock(_parent_scene.world);
+
+                    System.Threading.Thread.Sleep(20);
+                    if (IsPhysical)
+                    {
+                        if (Body != (IntPtr)0)
+                        {
+                            d.BodySetLinearVel(Body, m_taintVelocity.X, m_taintVelocity.Y, m_taintVelocity.Z);
+                        }
+                    }
+
+                    ode.dunlock(_parent_scene.world);
+                }
+                //resetCollisionAccounting();
+            }
             m_taintVelocity = PhysicsVector.Zero;
         }
         public override bool IsPhysical

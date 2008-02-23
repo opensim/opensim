@@ -78,6 +78,21 @@ namespace OpenSim.Region.Physics.OdePlugin
         }
     }
 
+    [Flags]
+    public enum CollisionCategories : int
+    {
+        Disabled = 0,
+        Geom = 0x00000001,
+        Body = 0x00000002,
+        Space = 0x00000004,
+        Character = 0x00000008,
+        Land = 0x00000010,
+        Water = 0x00000020,
+        Wind = 0x00000040,
+        Sensor = 0x00000080,
+        Selected = 0x00000100
+    }
+
     public class OdeScene : PhysicsScene
     {
         private static readonly log4net.ILog m_log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
@@ -997,6 +1012,7 @@ namespace OpenSim.Region.Physics.OdePlugin
         {
             // creating a new space for prim and inserting it into main space.
             staticPrimspace[iprimspaceArrItemX, iprimspaceArrItemY] = d.HashSpaceCreate(IntPtr.Zero);
+            d.GeomSetCategoryBits(staticPrimspace[iprimspaceArrItemX, iprimspaceArrItemY], (int)CollisionCategories.Space);
             waitForSpaceUnlock(space);
             d.SpaceAdd(space, staticPrimspace[iprimspaceArrItemX, iprimspaceArrItemY]);
             return staticPrimspace[iprimspaceArrItemX, iprimspaceArrItemY];
@@ -1656,6 +1672,12 @@ namespace OpenSim.Region.Physics.OdePlugin
                                                  offset, thickness, wrap);
                 d.GeomHeightfieldDataSetBounds(HeightmapData, m_regionWidth, m_regionHeight);
                 LandGeom = d.CreateHeightfield(space, HeightmapData, 1);
+                if (LandGeom != (IntPtr)0)
+                {
+                    d.GeomSetCategoryBits(LandGeom, (int)(CollisionCategories.Land));
+                    d.GeomSetCollideBits(LandGeom, (int)(CollisionCategories.Space));
+
+                }
                 geom_name_map[LandGeom] = "Terrain";
 
                 d.Matrix3 R = new d.Matrix3();

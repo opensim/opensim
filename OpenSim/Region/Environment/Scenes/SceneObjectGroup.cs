@@ -203,6 +203,14 @@ namespace OpenSim.Region.Environment.Scenes
                 if (m_rootPart.PhysActor != null)
                 {
                     m_rootPart.PhysActor.Selected = value;
+                    // Pass it on to the children.
+                    foreach (SceneObjectPart child in Children.Values)
+                    {
+                        if (child.PhysActor != null)
+                        {
+                            child.PhysActor.Selected = value;
+                        }
+                    }
                 }
             }
         }

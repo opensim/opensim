@@ -357,6 +357,11 @@ namespace OpenSim.Region.Physics.POSPlugin
             set { return; }
         }
 
+        public override uint LocalID
+        {
+            set { return; }
+        }
+
         public override bool Grabbed
         {
             set { return; }
@@ -642,6 +647,11 @@ namespace OpenSim.Region.Physics.POSPlugin
         public override bool SetAlwaysRun
         {
             get { return false; }
+            set { return; }
+        }
+
+        public override uint LocalID
+        {
             set { return; }
         }
 

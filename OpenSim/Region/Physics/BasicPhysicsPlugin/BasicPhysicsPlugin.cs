@@ -228,6 +228,11 @@ namespace OpenSim.Region.Physics.BasicPhysicsPlugin
             set { return; }
         }
 
+        public override uint LocalID
+        {
+            set { return; }
+        }
+
         public override bool Grabbed
         {
             set { return; }

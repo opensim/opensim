@@ -87,6 +87,8 @@ namespace OpenSim.Region.Physics.OdePlugin
         private bool m_hackSentFall = false;
         private bool m_hackSentFly = false;
         private bool m_foundDebian = false;
+        public uint m_localID = 0;
+
         private CollisionLocker ode;
 
         private string m_name = String.Empty;
@@ -94,6 +96,15 @@ namespace OpenSim.Region.Physics.OdePlugin
         private bool[] m_colliderarr = new bool[11];
         private bool[] m_colliderGroundarr = new bool[11];
 
+        // Default we're a Character
+        private CollisionCategories m_collisionCategories = (CollisionCategories.Character);
+
+        // Default, Collide with Other Geometries, spaces, bodies and characters.
+        private CollisionCategories m_collisionFlags = (CollisionCategories.Geom
+                                                        | CollisionCategories.Space
+                                                        | CollisionCategories.Body
+                                                        | CollisionCategories.Character 
+                                                        | CollisionCategories.Land);
 
         private bool jumping = false;
         //private float gravityAccel;
@@ -155,6 +166,11 @@ namespace OpenSim.Region.Physics.OdePlugin
         {
             get { return m_alwaysRun; }
             set { m_alwaysRun = value; }
+        }
+
+        public override uint LocalID
+        {
+            set { m_localID = value; }
         }
 
         public override bool Grabbed
@@ -404,6 +420,10 @@ namespace OpenSim.Region.Physics.OdePlugin
             int dAMotorEuler = 1;
             _parent_scene.waitForSpaceUnlock(_parent_scene.space);
             Shell = d.CreateCapsule(_parent_scene.space, CAPSULE_RADIUS, CAPSULE_LENGTH);
+            
+            d.GeomSetCategoryBits(Shell, (int)m_collisionCategories);
+            d.GeomSetCollideBits(Shell, (int)m_collisionFlags);
+
             d.MassSetCapsuleTotal(out ShellMass, m_mass, 2, CAPSULE_RADIUS, CAPSULE_LENGTH);
             Body = d.BodyCreate(_parent_scene.world);
             d.BodySetPosition(Body, npositionX, npositionY, npositionZ);

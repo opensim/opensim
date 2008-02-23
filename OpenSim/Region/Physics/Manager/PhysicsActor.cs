@@ -124,6 +124,8 @@ namespace OpenSim.Region.Physics.Manager
 
         public abstract PrimitiveBaseShape Shape { set; }
 
+        public abstract uint LocalID { set; }
+
         public abstract bool Grabbed { set; }
 
         public abstract bool Selected { set; }
@@ -225,6 +227,11 @@ namespace OpenSim.Region.Physics.Manager
         public override bool SetAlwaysRun
         {
             get { return false; }
+            set { return; }
+        }
+
+        public override uint LocalID 
+        {
             set { return; }
         }
 
