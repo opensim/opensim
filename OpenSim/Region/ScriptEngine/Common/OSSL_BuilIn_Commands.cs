@@ -119,6 +119,10 @@ namespace OpenSim.Region.ScriptEngine.Common
                 {
                     Load();
                     Position.x += value;
+                    if (Position.x > 255)
+                        Position.x = 255;
+                    if (Position.x < 0)
+                        Position.x = 0;
                     Save();
                 }
             }
@@ -133,6 +137,10 @@ namespace OpenSim.Region.ScriptEngine.Common
                 {
                     Load();
                     Position.y += value;
+                    if (Position.y > 255)
+                        Position.y = 255;
+                    if (Position.y < 0)
+                        Position.y = 0;
                     Save();
                 }
             }
@@ -147,6 +155,10 @@ namespace OpenSim.Region.ScriptEngine.Common
                 {
                     Load();
                     Position.z += value;
+                    if (Position.z > 255)
+                        Position.z = 255;
+                    if (Position.z < 0)
+                        Position.z = 0;
                     Save();
                 }
             }
