@@ -91,7 +91,7 @@ namespace OpenSim.Region.ScriptEngine.LSOEngine
                 //  this private copy will contain Read-Only FullitemID so that it can bring that on to the server whenever needed.
 
 
-                LSL_BuiltIn_Commands LSLB = new LSL_BuiltIn_Commands(m_scriptEngine, m_host, localID, itemID);
+                BuilIn_Commands LSLB = new BuilIn_Commands(m_scriptEngine, m_host, localID, itemID);
 
                 // Start the script - giving it BuiltIns
                 CompiledScript.Start(LSLB);

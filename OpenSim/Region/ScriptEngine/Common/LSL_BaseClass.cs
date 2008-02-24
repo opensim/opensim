@@ -86,7 +86,7 @@ namespace OpenSim.Region.ScriptEngine.Common
         }
 
 
-        public LSL_BuiltIn_Commands_Interface m_LSL_Functions;
+        public BuilIn_Commands m_LSL_Functions;
         private string _Source = String.Empty;
         public string Source
         {
@@ -110,7 +110,7 @@ namespace OpenSim.Region.ScriptEngine.Common
 
 
 
-        public void Start(LSL_BuiltIn_Commands_Interface LSL_Functions)
+        public void Start(BuilIn_Commands LSL_Functions)
         {
             m_LSL_Functions = LSL_Functions;
 

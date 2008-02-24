@@ -35,7 +35,7 @@ namespace OpenSim.Region.ScriptEngine.Common
         string State { get; set; }
         ExecutorBase Exec { get; }
         string Source { get; set; }
-        void Start(LSL_BuiltIn_Commands_Interface BuiltIn_Commands);
+        void Start(BuilIn_Commands BuiltIn_Commands);
         EventQueueManager.Queue_llDetectParams_Struct llDetectParams { get; set; }
     }
 }
