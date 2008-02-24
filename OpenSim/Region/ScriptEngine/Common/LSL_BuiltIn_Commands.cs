@@ -482,43 +482,43 @@ namespace OpenSim.Region.ScriptEngine.Common
         public void llSetStatus(int status, int value)
         {
             m_host.AddScriptLPS(1);
-            if ((status & LSL_BaseClass.STATUS_PHYSICS) == LSL_BaseClass.STATUS_PHYSICS)
+            if ((status & BuiltIn_Commands_BaseClass.STATUS_PHYSICS) == BuiltIn_Commands_BaseClass.STATUS_PHYSICS)
             {
                 m_host.AddFlag(LLObject.ObjectFlags.Physics);
             }
-            if ((status & LSL_BaseClass.STATUS_PHANTOM) == LSL_BaseClass.STATUS_PHANTOM)
+            if ((status & BuiltIn_Commands_BaseClass.STATUS_PHANTOM) == BuiltIn_Commands_BaseClass.STATUS_PHANTOM)
             {
                 m_host.AddFlag(LLObject.ObjectFlags.Phantom);
             }
-            if ((status & LSL_BaseClass.STATUS_CAST_SHADOWS) == LSL_BaseClass.STATUS_CAST_SHADOWS)
+            if ((status & BuiltIn_Commands_BaseClass.STATUS_CAST_SHADOWS) == BuiltIn_Commands_BaseClass.STATUS_CAST_SHADOWS)
             {
                 m_host.AddFlag(LLObject.ObjectFlags.CastShadows);
             }
-            if ((status & LSL_BaseClass.STATUS_ROTATE_X) == LSL_BaseClass.STATUS_ROTATE_X)
+            if ((status & BuiltIn_Commands_BaseClass.STATUS_ROTATE_X) == BuiltIn_Commands_BaseClass.STATUS_ROTATE_X)
             {
                 NotImplemented("llSetStatus - STATUS_ROTATE_X");
             }
-            if ((status & LSL_BaseClass.STATUS_ROTATE_Y) == LSL_BaseClass.STATUS_ROTATE_Y)
+            if ((status & BuiltIn_Commands_BaseClass.STATUS_ROTATE_Y) == BuiltIn_Commands_BaseClass.STATUS_ROTATE_Y)
             {
                 NotImplemented("llSetStatus - STATUS_ROTATE_Y");
             }
-            if ((status & LSL_BaseClass.STATUS_ROTATE_Z) == LSL_BaseClass.STATUS_ROTATE_Z)
+            if ((status & BuiltIn_Commands_BaseClass.STATUS_ROTATE_Z) == BuiltIn_Commands_BaseClass.STATUS_ROTATE_Z)
             {
                 NotImplemented("llSetStatus - STATUS_ROTATE_Z");
             }
-            if ((status & LSL_BaseClass.STATUS_BLOCK_GRAB) == LSL_BaseClass.STATUS_BLOCK_GRAB)
+            if ((status & BuiltIn_Commands_BaseClass.STATUS_BLOCK_GRAB) == BuiltIn_Commands_BaseClass.STATUS_BLOCK_GRAB)
             {
                 NotImplemented("llSetStatus - STATUS_BLOCK_GRAB");
             }
-            if ((status & LSL_BaseClass.STATUS_DIE_AT_EDGE) == LSL_BaseClass.STATUS_DIE_AT_EDGE)
+            if ((status & BuiltIn_Commands_BaseClass.STATUS_DIE_AT_EDGE) == BuiltIn_Commands_BaseClass.STATUS_DIE_AT_EDGE)
             {
                 NotImplemented("llSetStatus - STATUS_DIE_AT_EDGE");
             }
-            if ((status & LSL_BaseClass.STATUS_RETURN_AT_EDGE) == LSL_BaseClass.STATUS_RETURN_AT_EDGE)
+            if ((status & BuiltIn_Commands_BaseClass.STATUS_RETURN_AT_EDGE) == BuiltIn_Commands_BaseClass.STATUS_RETURN_AT_EDGE)
             {
                 NotImplemented("llSetStatus - STATUS_RETURN_AT_EDGE");
             }
-            if ((status & LSL_BaseClass.STATUS_SANDBOX) == LSL_BaseClass.STATUS_SANDBOX)
+            if ((status & BuiltIn_Commands_BaseClass.STATUS_SANDBOX) == BuiltIn_Commands_BaseClass.STATUS_SANDBOX)
             {
                 NotImplemented("llSetStatus - STATUS_SANDBOX");
             }
@@ -532,43 +532,43 @@ namespace OpenSim.Region.ScriptEngine.Common
             Console.WriteLine(m_host.UUID.ToString() + " status is " + m_host.ObjectFlags.ToString());
             switch (status)
             {
-                case LSL_BaseClass.STATUS_PHYSICS:
+                case BuiltIn_Commands_BaseClass.STATUS_PHYSICS:
                     if ((m_host.ObjectFlags & (uint)LLObject.ObjectFlags.Physics) == (uint)LLObject.ObjectFlags.Physics)
                     {
                         return 1;
                     }
                     return 0;
-                case LSL_BaseClass.STATUS_PHANTOM:
+                case BuiltIn_Commands_BaseClass.STATUS_PHANTOM:
                     if ((m_host.ObjectFlags & (uint)LLObject.ObjectFlags.Phantom) == (uint)LLObject.ObjectFlags.Phantom)
                     {
                         return 1;
                     }
                     return 0;
-                case LSL_BaseClass.STATUS_CAST_SHADOWS:
+                case BuiltIn_Commands_BaseClass.STATUS_CAST_SHADOWS:
                     if ((m_host.ObjectFlags & (uint)LLObject.ObjectFlags.CastShadows) == (uint)LLObject.ObjectFlags.CastShadows)
                     {
                         return 1;
                     }
                     return 0;
-                case LSL_BaseClass.STATUS_BLOCK_GRAB:
+                case BuiltIn_Commands_BaseClass.STATUS_BLOCK_GRAB:
                     NotImplemented("llGetStatus - STATUS_BLOCK_GRAB");
                     return 0;
-                case LSL_BaseClass.STATUS_DIE_AT_EDGE:
+                case BuiltIn_Commands_BaseClass.STATUS_DIE_AT_EDGE:
                     NotImplemented("llGetStatus - STATUS_DIE_AT_EDGE");
                     return 0;
-                case LSL_BaseClass.STATUS_RETURN_AT_EDGE:
+                case BuiltIn_Commands_BaseClass.STATUS_RETURN_AT_EDGE:
                     NotImplemented("llGetStatus - STATUS_RETURN_AT_EDGE");
                     return 0;
-                case LSL_BaseClass.STATUS_ROTATE_X:
+                case BuiltIn_Commands_BaseClass.STATUS_ROTATE_X:
                     NotImplemented("llGetStatus - STATUS_ROTATE_X");
                     return 0;
-                case LSL_BaseClass.STATUS_ROTATE_Y:
+                case BuiltIn_Commands_BaseClass.STATUS_ROTATE_Y:
                     NotImplemented("llGetStatus - STATUS_ROTATE_Y");
                     return 0;
-                case LSL_BaseClass.STATUS_ROTATE_Z:
+                case BuiltIn_Commands_BaseClass.STATUS_ROTATE_Z:
                     NotImplemented("llGetStatus - STATUS_ROTATE_Z");
                     return 0;
-                case LSL_BaseClass.STATUS_SANDBOX:
+                case BuiltIn_Commands_BaseClass.STATUS_SANDBOX:
                     NotImplemented("llGetStatus - STATUS_SANDBOX");
                     return 0;
             }
@@ -2553,23 +2553,23 @@ namespace OpenSim.Region.ScriptEngine.Common
             {
                 switch ((int)rules.Data[i])
                 {
-                    case (int)LSL_BaseClass.PSYS_PART_FLAGS:
+                    case (int)BuiltIn_Commands_BaseClass.PSYS_PART_FLAGS:
                         prules.PartDataFlags = (Primitive.ParticleSystem.ParticleDataFlags)((uint)Convert.ToInt32(rules.Data[i + 1].ToString()));
                         break;
 
-                    case (int)LSL_BaseClass.PSYS_PART_START_COLOR:
+                    case (int)BuiltIn_Commands_BaseClass.PSYS_PART_START_COLOR:
                         tempv = (LSL_Types.Vector3)rules.Data[i + 1];
                         prules.PartStartColor.R = (float)tempv.x;
                         prules.PartStartColor.G = (float)tempv.y;
                         prules.PartStartColor.B = (float)tempv.z;
                         break;
 
-                    case (int)LSL_BaseClass.PSYS_PART_START_ALPHA:
+                    case (int)BuiltIn_Commands_BaseClass.PSYS_PART_START_ALPHA:
                         tempf = Convert.ToSingle(rules.Data[i + 1].ToString());
                         prules.PartStartColor.A = (float)tempf;
                         break;
 
-                    case (int)LSL_BaseClass.PSYS_PART_END_COLOR:
+                    case (int)BuiltIn_Commands_BaseClass.PSYS_PART_END_COLOR:
                         tempv = (LSL_Types.Vector3)rules.Data[i + 1];
                         //prules.PartEndColor = new LLColor(tempv.x,tempv.y,tempv.z,1);
                         
@@ -2578,74 +2578,74 @@ namespace OpenSim.Region.ScriptEngine.Common
                         prules.PartEndColor.B = (float)tempv.z;
                         break;
 
-                    case (int)LSL_BaseClass.PSYS_PART_END_ALPHA:
+                    case (int)BuiltIn_Commands_BaseClass.PSYS_PART_END_ALPHA:
                         tempf = Convert.ToSingle(rules.Data[i + 1].ToString());
                         prules.PartEndColor.A = (float)tempf;
                         break;
 
-                    case (int)LSL_BaseClass.PSYS_PART_START_SCALE:
+                    case (int)BuiltIn_Commands_BaseClass.PSYS_PART_START_SCALE:
                         tempv = (LSL_Types.Vector3)rules.Data[i + 1];
                         prules.PartStartScaleX = (float)tempv.x;
                         prules.PartStartScaleY = (float)tempv.y;
                         break;
 
-                    case (int)LSL_BaseClass.PSYS_PART_END_SCALE:
+                    case (int)BuiltIn_Commands_BaseClass.PSYS_PART_END_SCALE:
                         tempv = (LSL_Types.Vector3)rules.Data[i + 1];
                         prules.PartEndScaleX = (float)tempv.x;
                         prules.PartEndScaleY = (float)tempv.y;
                         break;
 
-                    case (int)LSL_BaseClass.PSYS_PART_MAX_AGE:
+                    case (int)BuiltIn_Commands_BaseClass.PSYS_PART_MAX_AGE:
                         tempf = Convert.ToSingle(rules.Data[i + 1].ToString());
                         prules.PartMaxAge = (float)tempf;
                         break;
 
-                    case (int)LSL_BaseClass.PSYS_SRC_ACCEL:
+                    case (int)BuiltIn_Commands_BaseClass.PSYS_SRC_ACCEL:
                         tempv = (LSL_Types.Vector3)rules.Data[i + 1];
                         prules.PartAcceleration.X = (float)tempv.x;
                         prules.PartAcceleration.Y = (float)tempv.y;
                         prules.PartAcceleration.Z = (float)tempv.z;
                         break;
 
-                    case (int)LSL_BaseClass.PSYS_SRC_PATTERN:
+                    case (int)BuiltIn_Commands_BaseClass.PSYS_SRC_PATTERN:
                         int tmpi = (int)rules.Data[i + 1];
                         prules.Pattern = (Primitive.ParticleSystem.SourcePattern)tmpi;
                         break;
 
-                    case (int)LSL_BaseClass.PSYS_SRC_TEXTURE:
+                    case (int)BuiltIn_Commands_BaseClass.PSYS_SRC_TEXTURE:
                         prules.Texture = new LLUUID(rules.Data[i + 1].ToString());
                         break;
 
-                    case (int)LSL_BaseClass.PSYS_SRC_BURST_RATE:
+                    case (int)BuiltIn_Commands_BaseClass.PSYS_SRC_BURST_RATE:
                         tempf = Convert.ToSingle(rules.Data[i + 1].ToString());
                         prules.BurstRate = (float)tempf;
                         break;
 
-                    case (int)LSL_BaseClass.PSYS_SRC_BURST_PART_COUNT:
+                    case (int)BuiltIn_Commands_BaseClass.PSYS_SRC_BURST_PART_COUNT:
                         prules.BurstPartCount = (byte)Convert.ToByte(rules.Data[i + 1].ToString());
                         break;
 
-                    case (int)LSL_BaseClass.PSYS_SRC_BURST_RADIUS:
+                    case (int)BuiltIn_Commands_BaseClass.PSYS_SRC_BURST_RADIUS:
                         tempf = Convert.ToSingle(rules.Data[i + 1].ToString());
                         prules.BurstRadius = (float)tempf;
                         break;
 
-                    case (int)LSL_BaseClass.PSYS_SRC_BURST_SPEED_MIN:
+                    case (int)BuiltIn_Commands_BaseClass.PSYS_SRC_BURST_SPEED_MIN:
                         tempf = Convert.ToSingle(rules.Data[i + 1].ToString());
                         prules.BurstSpeedMin = (float)tempf;
                         break;
 
-                    case (int)LSL_BaseClass.PSYS_SRC_BURST_SPEED_MAX:
+                    case (int)BuiltIn_Commands_BaseClass.PSYS_SRC_BURST_SPEED_MAX:
                         tempf = Convert.ToSingle(rules.Data[i + 1].ToString());
                         prules.BurstSpeedMax = (float)tempf;
                         break;
 
-                    case (int)LSL_BaseClass.PSYS_SRC_MAX_AGE:
+                    case (int)BuiltIn_Commands_BaseClass.PSYS_SRC_MAX_AGE:
                         tempf = Convert.ToSingle(rules.Data[i + 1].ToString());
                         prules.MaxAge = (float)tempf;
                         break;
 
-                    case (int)LSL_BaseClass.PSYS_SRC_TARGET_KEY:
+                    case (int)BuiltIn_Commands_BaseClass.PSYS_SRC_TARGET_KEY:
                         LLUUID key = LLUUID.Zero;
                         if (LLUUID.TryParse(rules.Data[i + 1].ToString(), out key))
                         {
@@ -2657,7 +2657,7 @@ namespace OpenSim.Region.ScriptEngine.Common
                         }
                         break;
 
-                    case (int)LSL_BaseClass.PSYS_SRC_OMEGA:
+                    case (int)BuiltIn_Commands_BaseClass.PSYS_SRC_OMEGA:
                         // AL: This is an assumption, since it is the only thing that would match.
                         tempv = (LSL_Types.Vector3)rules.Data[i + 1];
                         prules.AngularVelocity.X = (float)tempv.x;
@@ -2666,12 +2666,12 @@ namespace OpenSim.Region.ScriptEngine.Common
                         //cast??                    prules.MaxAge = (float)rules[i + 1];
                         break;
 
-                    case (int)LSL_BaseClass.PSYS_SRC_ANGLE_BEGIN:
+                    case (int)BuiltIn_Commands_BaseClass.PSYS_SRC_ANGLE_BEGIN:
                         tempf = Convert.ToSingle(rules.Data[i + 1].ToString());
                         prules.InnerAngle = (float)tempf;
                         break;
 
-                    case (int)LSL_BaseClass.PSYS_SRC_ANGLE_END:
+                    case (int)BuiltIn_Commands_BaseClass.PSYS_SRC_ANGLE_END:
                         tempf = Convert.ToSingle(rules.Data[i + 1].ToString());
                         prules.OuterAngle = (float)tempf;
                         break;
@@ -3391,27 +3391,27 @@ namespace OpenSim.Region.ScriptEngine.Common
             LSL_Types.list nums = LSL_Types.list.ToDoubleList(src);
             switch (operation)
             {
-                case LSL_BaseClass.LIST_STAT_RANGE:
+                case BuiltIn_Commands_BaseClass.LIST_STAT_RANGE:
                     return nums.Range();
-                case LSL_BaseClass.LIST_STAT_MIN:
+                case BuiltIn_Commands_BaseClass.LIST_STAT_MIN:
                     return nums.Min();
-                case LSL_BaseClass.LIST_STAT_MAX:
+                case BuiltIn_Commands_BaseClass.LIST_STAT_MAX:
                     return nums.Max();
-                case LSL_BaseClass.LIST_STAT_MEAN:
+                case BuiltIn_Commands_BaseClass.LIST_STAT_MEAN:
                     return nums.Mean();
-                case LSL_BaseClass.LIST_STAT_MEDIAN:
+                case BuiltIn_Commands_BaseClass.LIST_STAT_MEDIAN:
                     return nums.Median();
-                case LSL_BaseClass.LIST_STAT_NUM_COUNT:
+                case BuiltIn_Commands_BaseClass.LIST_STAT_NUM_COUNT:
                     return nums.NumericLength();
-                case LSL_BaseClass.LIST_STAT_STD_DEV:
+                case BuiltIn_Commands_BaseClass.LIST_STAT_STD_DEV:
                     return nums.StdDev();
-                case LSL_BaseClass.LIST_STAT_SUM:
+                case BuiltIn_Commands_BaseClass.LIST_STAT_SUM:
                     return nums.Sum();
-                case LSL_BaseClass.LIST_STAT_SUM_SQUARES:
+                case BuiltIn_Commands_BaseClass.LIST_STAT_SUM_SQUARES:
                     return nums.SumSqrs();
-                case LSL_BaseClass.LIST_STAT_GEOMETRIC_MEAN:
+                case BuiltIn_Commands_BaseClass.LIST_STAT_GEOMETRIC_MEAN:
                     return nums.GeometricMean();
-                case LSL_BaseClass.LIST_STAT_HARMONIC_MEAN:
+                case BuiltIn_Commands_BaseClass.LIST_STAT_HARMONIC_MEAN:
                     return nums.HarmonicMean();
                 default:
                     return 0.0;
@@ -3576,9 +3576,9 @@ namespace OpenSim.Region.ScriptEngine.Common
 	    public string llStringTrim(string src, int type)
         {
             m_host.AddScriptLPS(1);
-	        if (type == (int)LSL_BaseClass.STRING_TRIM_HEAD) { return src.TrimStart(); }
-	        if (type == (int)LSL_BaseClass.STRING_TRIM_TAIL) { return src.TrimEnd(); }
-	        if (type == (int)LSL_BaseClass.STRING_TRIM) { return src.Trim(); }
+	        if (type == (int)BuiltIn_Commands_BaseClass.STRING_TRIM_HEAD) { return src.TrimStart(); }
+	        if (type == (int)BuiltIn_Commands_BaseClass.STRING_TRIM_TAIL) { return src.TrimEnd(); }
+	        if (type == (int)BuiltIn_Commands_BaseClass.STRING_TRIM) { return src.Trim(); }
 	        return src;
 	    }
 

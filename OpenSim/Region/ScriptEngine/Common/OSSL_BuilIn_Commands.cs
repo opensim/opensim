@@ -39,9 +39,11 @@ namespace OpenSim.Region.ScriptEngine.Common
                                     LLUUID itemID)
             : base(scriptEngine, host, localID, itemID)
         {
+            Prim = new OSSLPrim(this);
         }
 
-        private OSSLPrim Prim;
+
+        public OSSLPrim Prim;
 
         public class OSSLPrim
         {

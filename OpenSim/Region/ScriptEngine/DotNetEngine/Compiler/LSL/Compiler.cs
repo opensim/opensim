@@ -289,7 +289,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL
             compileScript = String.Empty +
                 "import OpenSim.Region.ScriptEngine.Common; import System.Collections.Generic;\r\n" +
                 "package SecondLife {\r\n" +
-                "class Script extends OpenSim.Region.ScriptEngine.Common.BuilIn_Commands { \r\n" +
+                "class Script extends OpenSim.Region.ScriptEngine.Common.BuiltIn_Commands_BaseClass { \r\n" +
                 compileScript +
                 "} }\r\n";
             return compileScript;
@@ -300,7 +300,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL
             compileScript = String.Empty +
                         "using OpenSim.Region.ScriptEngine.Common; using System.Collections.Generic;\r\n" +
                         String.Empty + "namespace SecondLife { " +
-                        String.Empty + "public class Script : OpenSim.Region.ScriptEngine.Common.BuilIn_Commands { \r\n" +
+                        String.Empty + "public class Script : OpenSim.Region.ScriptEngine.Common.BuiltIn_Commands_BaseClass { \r\n" +
                         @"public Script() { } " +
                         compileScript +
                         "} }\r\n";
@@ -312,7 +312,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL
             compileScript = String.Empty +
                         "Imports OpenSim.Region.ScriptEngine.Common: Imports System.Collections.Generic: " +
                         String.Empty + "NameSpace SecondLife:" +
-                        String.Empty + "Public Class Script: Inherits OpenSim.Region.ScriptEngine.Common.BuilIn_Commands: " +
+                        String.Empty + "Public Class Script: Inherits OpenSim.Region.ScriptEngine.Common.BuiltIn_Commands_BaseClass: " +
                         "\r\nPublic Sub New()\r\nEnd Sub: " +
                         compileScript +
                         ":End Class :End Namespace\r\n";

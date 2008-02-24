@@ -162,7 +162,7 @@ namespace OpenSim.Region.ScriptEngine.LSOEngine.LSO
                         if (mi.Name == fname)
                         {
                             il.Emit(OpCodes.Ldarg_0);
-                            il.Emit(OpCodes.Call, typeof (LSL_BaseClass).GetMethod("GetLSL_BuiltIn", new Type[] {}));
+                            il.Emit(OpCodes.Call, typeof (BuiltIn_Commands_BaseClass).GetMethod("GetLSL_BuiltIn", new Type[] {}));
                             // Pop required number of items from my stack to .Net stack
                             IL_PopToStack(il, mi.GetParameters().Length);
                             il.Emit(OpCodes.Callvirt, mi);
@@ -377,7 +377,7 @@ namespace OpenSim.Region.ScriptEngine.LSOEngine.LSO
         private void IL_CallBaseFunction(ILGenerator il, string methodname)
         {
             il.Emit(OpCodes.Ldarg_0);
-            il.Emit(OpCodes.Call, typeof (LSL_BaseClass).GetMethod(methodname, new Type[] {}));
+            il.Emit(OpCodes.Call, typeof (BuiltIn_Commands_BaseClass).GetMethod(methodname, new Type[] {}));
         }
 
         private void IL_CallBaseFunction(ILGenerator il, string methodname, object data)
@@ -387,7 +387,7 @@ namespace OpenSim.Region.ScriptEngine.LSOEngine.LSO
                 il.Emit(OpCodes.Ldstr, (string) data);
             if (data.GetType() == typeof (UInt32))
                 il.Emit(OpCodes.Ldc_I4, (UInt32) data);
-            il.Emit(OpCodes.Call, typeof (LSL_BaseClass).GetMethod(methodname, new Type[] {data.GetType()}));
+            il.Emit(OpCodes.Call, typeof (BuiltIn_Commands_BaseClass).GetMethod(methodname, new Type[] {data.GetType()}));
         }
 
         private void IL_Push(ILGenerator il, object data)
@@ -397,7 +397,7 @@ namespace OpenSim.Region.ScriptEngine.LSOEngine.LSO
 
             IL_PushDataTypeToILStack(il, data);
 
-            il.Emit(OpCodes.Call, typeof (LSL_BaseClass).GetMethod("PUSH", new Type[] {data.GetType()}));
+            il.Emit(OpCodes.Call, typeof (BuiltIn_Commands_BaseClass).GetMethod("PUSH", new Type[] {data.GetType()}));
         }
 
         private void IL_PushDataTypeToILStack(ILGenerator il, object data)

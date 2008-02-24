@@ -86,7 +86,7 @@ namespace OpenSim.Region.ScriptEngine.LSOEngine.LSO
             TypeBuilder typeBuilder = modBuilder.DefineType(
                 "LSL_ScriptObject",
                 TypeAttributes.Public | TypeAttributes.BeforeFieldInit,
-                typeof (LSL_BaseClass));
+                typeof (BuiltIn_Commands_BaseClass));
             //,
             //                        typeof());
             //, typeof(LSL_BuiltIn_Commands_Interface));
@@ -179,7 +179,7 @@ namespace OpenSim.Region.ScriptEngine.LSOEngine.LSO
                 new Type[0]);
 
             //Define the reflection ConstructorInfor for System.Object
-            ConstructorInfo conObj = typeof (LSL_BaseClass).GetConstructor(new Type[0]);
+            ConstructorInfo conObj = typeof (BuiltIn_Commands_BaseClass).GetConstructor(new Type[0]);
 
             //call constructor of base object
             ILGenerator il = constructor.GetILGenerator();
@@ -272,7 +272,7 @@ namespace OpenSim.Region.ScriptEngine.LSOEngine.LSO
 
                     // Make call
                     il.Emit(OpCodes.Call,
-                            typeof (LSL_BaseClass).GetMethod("AddToStatic", new Type[] {typeof (UInt32), datatype}));
+                            typeof (BuiltIn_Commands_BaseClass).GetMethod("AddToStatic", new Type[] {typeof (UInt32), datatype}));
                 }
             }
 
