@@ -381,6 +381,7 @@
       <Reference name="Axiom.MathLib.dll" localCopy="false"/>
       <Reference name="OpenSim.Framework" localCopy="false"/>
       <Reference name="OpenSim.Framework.Console" localCopy="false"/>
+      <Reference name="nunit.framework.dll" />
       <Reference name="Nini.dll" />
       <Reference name="log4net"/>
 
@@ -479,6 +480,7 @@
       <Reference name="OpenSim.Framework.Console"/>
       <Reference name="OpenSim.Region.Physics.Manager" localCopy="false"/>
       <Reference name="Ode.NET.dll" localCopy="false" />
+      <Reference name="nunit.framework.dll" />
       <Reference name="log4net"/>
 
       <Files>
