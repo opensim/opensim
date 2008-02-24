@@ -45,22 +45,33 @@ namespace OpenSim.Region.ScriptEngine.Common
 
         public class OSSLPrim
         {
+            private OSSL_BuilIn_Commands OSSL;
+            public OSSLPrim(OSSL_BuilIn_Commands bc)
+            {
+                OSSL = bc;
+            }
 
-            private LSL_Types.Vector3 _position;
             public LSL_Types.Vector3 Position {
-                get { return _position; }
-                set { _position = value; }
+                get { return OSSL.llGetPos(); }
+                set { OSSL.llSetPos(value); }
             }
-            private LSL_Types.Quaternion _rotation;
             public LSL_Types.Quaternion Rotation { 
-                get { return _rotation; } 
-                set { _rotation = value; }
+                get { return OSSL.llGetRot(); } 
+                set { OSSL.llSetRot(value); }
             }
-            private string _text;
-            public string Text
+            private TextStruct _text;
+            public TextStruct Text
             {
                 get { return _text; }
-                set { _text = value; }
+                set { _text = value;
+                    OSSL.llSetText(_text.Text, _text.color, _text.alpha); }
+            }
+
+            public struct TextStruct
+            {
+                public string Text;
+                public LSL_Types.Vector3 color;
+                public double alpha;
             }
         }
         //public struct OSSLPrim_Position
