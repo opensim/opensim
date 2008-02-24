@@ -40,11 +40,13 @@ namespace OpenSim.Region.ScriptEngine.Common
             : base(scriptEngine, host, localID, itemID)
         {
             Prim = new OSSLPrim(this);
+            
         }
 
 
         public OSSLPrim Prim;
 
+        [Serializable]
         public class OSSLPrim
         {
             private OSSL_BuilIn_Commands OSSL;
