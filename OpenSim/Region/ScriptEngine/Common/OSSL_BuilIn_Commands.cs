@@ -40,7 +40,7 @@ namespace OpenSim.Region.ScriptEngine.Common
             : base(scriptEngine, host, localID, itemID)
         {
             Prim = new OSSLPrim(this);
-            
+
         }
 
 
@@ -49,28 +49,39 @@ namespace OpenSim.Region.ScriptEngine.Common
         [Serializable]
         public class OSSLPrim
         {
-            private OSSL_BuilIn_Commands OSSL;
+            internal OSSL_BuilIn_Commands OSSL;
             public OSSLPrim(OSSL_BuilIn_Commands bc)
             {
                 OSSL = bc;
+                Position = new OSSLPrim_Position(this);
+                Rotation = new OSSLPrim_Rotation(this);
             }
 
-            public LSL_Types.Vector3 Position {
-                get { return OSSL.llGetPos(); }
-                set { OSSL.llSetPos(value); }
-            }
-            public LSL_Types.Quaternion Rotation { 
-                get { return OSSL.llGetRot(); } 
-                set { OSSL.llSetRot(value); }
-            }
+
+            public OSSLPrim_Position Position;
+            public OSSLPrim_Rotation Rotation;
+            //public LSL_Types.Vector3 Position
+            //{
+            //    get { return OSSL.llGetPos(); }
+            //    set { OSSL.llSetPos(value); }
+            //}
+            //public LSL_Types.Quaternion Rotation
+            //{
+            //    get { return OSSL.llGetRot(); }
+            //    set { OSSL.llSetRot(value); }
+            //}
             private TextStruct _text;
             public TextStruct Text
             {
                 get { return _text; }
-                set { _text = value;
-                    OSSL.llSetText(_text.Text, _text.color, _text.alpha); }
+                set
+                {
+                    _text = value;
+                    OSSL.llSetText(_text.Text, _text.color, _text.alpha);
+                }
             }
 
+            [Serializable]
             public struct TextStruct
             {
                 public string Text;
@@ -78,12 +89,143 @@ namespace OpenSim.Region.ScriptEngine.Common
                 public double alpha;
             }
         }
-        //public struct OSSLPrim_Position
-        //{
-        //    public int X;
-        //    public int Y;
-        //    public int Z;
-        //}
+
+        [Serializable]
+        public class OSSLPrim_Position
+        {
+            private OSSLPrim prim;
+            private LSL_Types.Vector3 Position;
+            public OSSLPrim_Position(OSSLPrim _prim)
+            {
+                prim = _prim;
+            }
+            private void Load()
+            {
+                Position = prim.OSSL.llGetPos();
+            }
+            private void Save()
+            {
+                prim.OSSL.llSetPos(Position);
+            }
+
+            public double x
+            {
+                get
+                {
+                    Load();
+                    return Position.x;
+                }
+                set
+                {
+                    Load();
+                    Position.x += value;
+                    Save();
+                }
+            }
+            public double y
+            {
+                get
+                {
+                    Load();
+                    return Position.y;
+                }
+                set
+                {
+                    Load();
+                    Position.y += value;
+                    Save();
+                }
+            }
+            public double z
+            {
+                get
+                {
+                    Load();
+                    return Position.z;
+                }
+                set
+                {
+                    Load();
+                    Position.z += value;
+                    Save();
+                }
+            }
+        }
+        [Serializable]
+        public class OSSLPrim_Rotation
+        {
+            private OSSLPrim prim;
+            private LSL_Types.Quaternion Rotation;
+            public OSSLPrim_Rotation(OSSLPrim _prim)
+            {
+                prim = _prim;
+            }
+            private void Load()
+            {
+                Rotation = prim.OSSL.llGetRot();
+            }
+            private void Save()
+            {
+                prim.OSSL.llSetRot(Rotation);
+            }
+
+            public double x
+            {
+                get
+                {
+                    Load();
+                    return Rotation.x;
+                }
+                set
+                {
+                    Load();
+                    Rotation.x += value;
+                    Save();
+                }
+            }
+            public double y
+            {
+                get
+                {
+                    Load();
+                    return Rotation.y;
+                }
+                set
+                {
+                    Load();
+                    Rotation.y += value;
+                    Save();
+                }
+            }
+            public double z
+            {
+                get
+                {
+                    Load();
+                    return Rotation.z;
+                }
+                set
+                {
+                    Load();
+                    Rotation.z += value;
+                    Save();
+                }
+            }
+            public double s
+            {
+                get
+                {
+                    Load();
+                    return Rotation.s;
+                }
+                set
+                {
+                    Load();
+                    Rotation.s += value;
+                    Save();
+                }
+            }
+        }
         //public struct OSSLPrim_Rotation
         //{
         //    public double X;
