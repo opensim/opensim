@@ -31,8 +31,11 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Threading;
 using libsecondlife;
+using Axiom.Math;
 using OpenSim.Region.Environment.Interfaces;
 using OpenSim.Region.Environment.Modules;
+using OpenSim.Region.Environment.Scenes;
+using OpenSim.Framework;
 
 namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
 {
@@ -45,6 +48,10 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
         private static int cmdHandlerThreadCycleSleepms;
 
         private ScriptEngine m_ScriptEngine;
+
+        public Dictionary<uint, Dictionary<LLUUID, LSL_Types.list>> SenseEvents =
+            new Dictionary<uint, Dictionary<LLUUID, LSL_Types.list>>();
+        private Object SenseLock = new Object();
 
         public AsyncLSLCommandManager(ScriptEngine _ScriptEngine)
         {
@@ -128,6 +135,8 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
             CheckXMLRPCRequests();
             // Check Listeners
             CheckListeners();
+            // Check Sensors
+            CheckSenseRepeaterEvents();
         }
 
         /// <summary>
@@ -153,6 +162,9 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
             xmlrpc.DeleteChannels(itemID);
 
             xmlrpc.CancelSRDRequests(itemID);
+
+            // Remove Sensors
+            UnSetSenseRepeaterEvents(localID, itemID);
 
         }
 
@@ -253,6 +265,262 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
         }
 
         #endregion
+        #region SENSOR
+
+        //
+        // SenseRepeater and Sensors
+        //
+        private class SenseRepeatClass
+        {
+            public uint localID;
+            public LLUUID itemID;
+            public double interval;
+            public DateTime next;
+
+            public string name;
+            public LLUUID keyID;
+            public int type;
+            public double range;
+            public double arc;
+            public SceneObjectPart host;
+        }
+
+        private List<SenseRepeatClass> SenseRepeaters = new List<SenseRepeatClass>();
+        private object SenseRepeatListLock = new object();
+
+        public void SetSenseRepeatEvent(uint m_localID, LLUUID m_itemID,
+            string name, LLUUID keyID, int type, double range, double arc, double sec,SceneObjectPart host)
+        {
+            Console.WriteLine("SetSensorEvent");
+
+            // Always remove first, in case this is a re-set
+            UnSetSenseRepeaterEvents(m_localID, m_itemID);
+            if (sec == 0) // Disabling timer
+                return;
+
+            // Add to timer
+            SenseRepeatClass ts = new SenseRepeatClass();
+            ts.localID = m_localID;
+            ts.itemID = m_itemID;
+            ts.interval = sec;
+            ts.name = name;
+            ts.keyID = keyID;
+            ts.type = type;
+            ts.range = range;
+            ts.arc = arc;
+            ts.host = host;
+
+            ts.next = DateTime.Now.ToUniversalTime().AddSeconds(ts.interval);
+            lock (SenseRepeatListLock)
+            {
+                SenseRepeaters.Add(ts);
+            }
+        }
+
+        public void UnSetSenseRepeaterEvents(uint m_localID, LLUUID m_itemID)
+        {
+            // Remove from timer
+            lock (SenseRepeatListLock)
+            {
+                List<SenseRepeatClass> NewSensors = new List<SenseRepeatClass>();
+                foreach (SenseRepeatClass ts in SenseRepeaters)
+                {
+                    if (ts.localID != m_localID && ts.itemID != m_itemID)
+                    {
+                        NewSensors.Add(ts);
+                    }
+                }
+                SenseRepeaters.Clear();
+                SenseRepeaters = NewSensors;
+            }
+        }
+
+        public void CheckSenseRepeaterEvents()
+        {
+            // Nothing to do here?
+            if (SenseRepeaters.Count == 0)
+                return;
+
+            lock (SenseRepeatListLock)
+            {
+                // Go through all timers
+                foreach (SenseRepeatClass ts in SenseRepeaters)
+                {
+                    // Time has passed?
+                    if (ts.next.ToUniversalTime() < DateTime.Now.ToUniversalTime())
+                    {
+                        SensorSweep(ts);
+                        // set next interval
+                        ts.next = DateTime.Now.ToUniversalTime().AddSeconds(ts.interval);
+                    }
+                }
+            } // lock
+        }
+
+        public void SenseOnce(uint m_localID, LLUUID m_itemID,
+            string name, LLUUID keyID, int type, double range, double arc, SceneObjectPart host)
+        {
+            // Add to timer
+            SenseRepeatClass ts = new SenseRepeatClass();
+            ts.localID = m_localID;
+            ts.itemID = m_itemID;
+            ts.interval = 0;
+            ts.name = name;
+            ts.keyID = keyID;
+            ts.type = type;
+            ts.range = range;
+            ts.arc = arc;
+            ts.host = host;
+            SensorSweep(ts);
+        }
+
+        public LSL_Types.list GetSensorList(uint m_localID, LLUUID m_itemID)
+        {
+            lock (SenseLock)
+            {
+                Dictionary<LLUUID, LSL_Types.list> Obj = null;
+                if (!SenseEvents.TryGetValue(m_localID, out Obj))
+                {
+                    m_ScriptEngine.Log.Info("[AsyncLSL]: GetSensorList missing localID: " + m_localID);
+                    return null;
+                }
+                lock (Obj)
+                {
+                    // Get script
+                    LSL_Types.list SenseList = null;
+                    if (!Obj.TryGetValue(m_itemID, out SenseList))
+                    {
+                        m_ScriptEngine.Log.Info("[AsyncLSL]: GetSensorList missing itemID: " + m_itemID);
+                        return null;
+                    }
+                    return SenseList;
+                }
+            }
+
+        }
+
+        private void SensorSweep(SenseRepeatClass ts)
+        {
+            //m_ScriptEngine.Log.Info("[AsyncLSL]:Enter SensorSweep");
+             SceneObjectPart SensePoint =ts.host;
+            
+           if (SensePoint == null)
+           {
+               //m_ScriptEngine.Log.Info("[AsyncLSL]: Enter SensorSweep (SensePoint == null) for "+ts.itemID.ToString());
+               return;
+           }
+           //m_ScriptEngine.Log.Info("[AsyncLSL]: Enter SensorSweep Scan");
+            
+           LLVector3 sensorPos = SensePoint.AbsolutePosition;
+           LLVector3 regionPos = new LLVector3(m_ScriptEngine.World.RegionInfo.RegionLocX * Constants.RegionSize, m_ScriptEngine.World.RegionInfo.RegionLocY * Constants.RegionSize, 0);
+           LLVector3 fromRegionPos = sensorPos + regionPos;
+
+           LLQuaternion q = SensePoint.RotationOffset;
+           LSL_Types.Quaternion r = new LSL_Types.Quaternion(q.X, q.Y, q.Z, q.W);
+           LSL_Types.Vector3 forward_dir = (new LSL_Types.Vector3(1, 0, 0) * r);
+           double mag_fwd = LSL_Types.Vector3.Mag(forward_dir);
+
+            // Here we should do some smart culling ...
+            // math seems quicker than strings so try that first
+            LSL_Types.list SensedObjects = new LSL_Types.list();
+            LSL_Types.Vector3 ZeroVector = new LSL_Types.Vector3(0, 0, 0);
+
+            foreach (EntityBase ent in m_ScriptEngine.World.Entities.Values)
+            {
+                
+                LLVector3 toRegionPos = ent.AbsolutePosition + regionPos;
+                double dis = Math.Abs((double) Util.GetDistanceTo(toRegionPos, fromRegionPos));
+                if (dis <= ts.range)
+                {
+                    // In Range, is it the right Type ?
+                    int objtype = 0;
+
+                    if (m_ScriptEngine.World.GetScenePresence(ent.UUID) != null) objtype |= 0x01; // actor
+                    if (ent.Velocity.Equals(ZeroVector))
+                        objtype |= 0x04; // passive non-moving
+                    else
+                        objtype |= 0x02; // active moving
+                    if (ent is IScript) objtype |= 0x08; // Scripted. It COULD have one hidden ... 
+
+                    if ( ((ts.type & objtype) != 0 ) ||((ts.type & objtype) == ts.type ))
+                    {
+                        // docs claim AGENT|ACTIVE should find agent objects OR active objects
+                        // so the bitwise AND with object type should be non-zero
+
+                        // Right type too, what about the other params , key and name ?
+                        bool keep = true;
+                        if (ts.arc != Math.PI)
+                        {
+                            // not omni-directional. Can you see it ?
+                            // vec forward_dir = llRot2Fwd(llGetRot())
+                            // vec obj_dir = toRegionPos-fromRegionPos
+                            // dot=dot(forward_dir,obj_dir)
+                            // mag_fwd = mag(forward_dir)
+                            // mag_obj = mag(obj_dir)
+                            // ang = acos( dot /(mag_fwd*mag_obj))
+                            double ang_obj = 0;
+                            try
+                            {
+                                LLVector3 diff =toRegionPos - fromRegionPos;
+                                LSL_Types.Vector3 obj_dir = new LSL_Types.Vector3(diff.X, diff.Y, diff.Z);
+                                double dot = LSL_Types.Vector3.Dot(forward_dir, obj_dir);
+                                double mag_obj = LSL_Types.Vector3.Mag(obj_dir);
+                                ang_obj = Math.Acos(dot / (mag_fwd * mag_obj));
+                            }
+                            catch 
+                            { 
+                            }
+
+                            if (ang_obj > ts.arc) keep = false;
+                        }
+
+                        if (keep && (ts.name.Length > 0) && (ts.name != ent.Name))
+                        {
+                            keep = false;
+                        }
+
+                        if (keep && (ts.keyID != null) && (ts.keyID != LLUUID.Zero) && (ts.keyID != ent.UUID))
+                        {
+                            keep = false;
+                        }
+                        if (keep==true) SensedObjects.Add(ent.UUID);
+                    }
+                }
+            }
+            //m_ScriptEngine.Log.Info("[AsyncLSL]: Enter SensorSweep SenseLock");
+
+            lock (SenseLock)
+            {
+                // Create object if it doesn't exist
+                if (SenseEvents.ContainsKey(ts.localID) == false)
+                {
+                    SenseEvents.Add(ts.localID, new Dictionary<LLUUID, LSL_Types.list>());
+                }
+                // clear if previous traces exist
+                Dictionary<LLUUID, LSL_Types.list> Obj;
+                SenseEvents.TryGetValue(ts.localID, out Obj);
+                if (Obj.ContainsKey(ts.itemID) == true)
+                    Obj.Remove(ts.itemID);
+
+                // note list may be zero length
+                Obj.Add(ts.itemID, SensedObjects); 
+
+            if (SensedObjects.Length == 0)
+            {
+                // send a "no_sensor"
+                // Add it to queue
+                m_ScriptEngine.m_EventQueueManager.AddToScriptQueue(ts.localID, ts.itemID, "no_sensor", EventQueueManager.llDetectNull,
+                                                                    new object[] {});
+            }
+            else
+            {
+                        
+                m_ScriptEngine.m_EventQueueManager.AddToScriptQueue(ts.localID, ts.itemID, "sensor", EventQueueManager.llDetectNull,
+                                                                    new object[] { SensedObjects.Length });
+            }
+          }
+        }
+        #endregion
 
         #region HTTP REQUEST
 
@@ -271,7 +539,7 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
 
             while (httpInfo != null)
             {
-                //Console.WriteLine("PICKED HTTP REQ:" + httpInfo.response_body + httpInfo.status);
+                //m_ScriptEngine.Log.Info("[AsyncLSL]:" + httpInfo.response_body + httpInfo.status);
 
                 // Deliver data to prim's remote_data handler
                 //
@@ -291,7 +559,7 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
                     m_ScriptEngine.m_EventQueueManager.AddToScriptQueue(
                         httpInfo.localID, httpInfo.itemID, "http_response", EventQueueManager.llDetectNull, resobj
                     );
-
+                //Thread.Sleep(2500);
                 }
 
                 httpInfo = iHttpReq.GetNextCompletedRequest();
@@ -381,7 +649,8 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
                         //Deliver data to prim's listen handler
                         object[] resobj = new object[]
                         {
-                            lInfo.GetChannel(), lInfo.GetName(), lInfo.GetID().ToString(), lInfo.GetMessage()
+                        //lInfo.GetChannel(), lInfo.GetName(), lInfo.GetID().ToString(), lInfo.GetMessage()
+                            lInfo.GetChannel(), lInfo.GetName(), lInfo.GetSourceItemID().ToString(), lInfo.GetMessage()
                         };
 
                         m_ScriptEngine.m_EventQueueManager.AddToScriptQueue(

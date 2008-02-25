@@ -34,7 +34,8 @@ Patches
 * BigFootAg
 * CharlieO
 * jhurliman (LLSD Login)
-* kinoc
+* kinoc (Daxtron Labs)
+* dmiles (Daxtron Labs)
 * daTwitch 
 * mikkopa/_someone - RealXtend
 * openlifegrid.com

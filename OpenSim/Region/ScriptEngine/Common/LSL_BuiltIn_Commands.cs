@@ -27,6 +27,7 @@
 */
 
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Runtime.Remoting.Lifetime;
 using System.Text;
@@ -362,64 +363,163 @@ namespace OpenSim.Region.ScriptEngine.Common
         public void llSensor(string name, string id, int type, double range, double arc)
         {
             m_host.AddScriptLPS(1);
-            NotImplemented("llSensor");
+            LLUUID keyID = LLUUID.Zero;
+            try
+            {
+                if (id.Length > 0) keyID = new LLUUID(id);
+            }
+            catch 
+            { 
+            }
+            m_ScriptEngine.m_ASYNCLSLCommandManager.SenseOnce(m_localID, m_itemID, name, keyID, type, range, arc, m_host);
+
             return;
-        }
+            // NotImplemented("llSensor");
+       }
 
         public void llSensorRepeat(string name, string id, int type, double range, double arc, double rate)
         {
             m_host.AddScriptLPS(1);
-            NotImplemented("llSensorRepeat");
+            LLUUID keyID = LLUUID.Zero;
+            try
+            {
+                if (id.Length > 0) keyID = new LLUUID(id);
+            }
+            catch
+            {
+            }
+
+            m_ScriptEngine.m_ASYNCLSLCommandManager.SetSenseRepeatEvent(m_localID, m_itemID, name, keyID, type, range, arc, rate, m_host);
             return;
-        }
+            // NotImplemented("llSensorRepeat");
+       }
 
         public void llSensorRemove()
         {
             m_host.AddScriptLPS(1);
-            NotImplemented("llSensorRemove");
+            m_ScriptEngine.m_ASYNCLSLCommandManager.UnSetSenseRepeaterEvents(m_localID, m_itemID);
             return;
+           // NotImplemented("llSensorRemove");
         }
 
         public string llDetectedName(int number)
         {
             m_host.AddScriptLPS(1);
-            NotImplemented("llDetectedName");
-            return String.Empty;
+            LSL_Types.list SenseList = m_ScriptEngine.m_ASYNCLSLCommandManager.GetSensorList(m_localID, m_itemID);
+            if ((number>0)&&(number <= SenseList.Length))
+            {
+                LLUUID SensedUUID = (LLUUID)SenseList.Data[number];
+                //ScenePresence SensedObject = World.GetScenePresence(SensedUUID);
+                EntityBase SensedObject=null;
+                lock (World.Entities)
+                {
+                World.Entities.TryGetValue(SensedUUID, out SensedObject);
+                }
+
+                if (SensedObject == null)
+                    return String.Empty;
+                return SensedObject.Name;
+            }
+            else
+                return String.Empty;
+             //NotImplemented("llDetectedName");
+       }
+
+        public LLUUID uuidDetectedKey(int number)
+        {
+            LSL_Types.list SenseList = m_ScriptEngine.m_ASYNCLSLCommandManager.GetSensorList(m_localID, m_itemID);
+            if ((number >= 0) && (number < SenseList.Length))
+            {
+                LLUUID SensedUUID = (LLUUID)SenseList.Data[number];
+                return SensedUUID;
+            }
+            return LLUUID.Zero;
+        }
+
+        public EntityBase entityDetectedKey(int number)
+        {
+            LSL_Types.list SenseList = m_ScriptEngine.m_ASYNCLSLCommandManager.GetSensorList(m_localID, m_itemID);
+            if ((number >= 0) && (number < SenseList.Length))
+            {
+                LLUUID SensedUUID = (LLUUID)SenseList.Data[number];
+                EntityBase SensedObject = null;
+                lock (World.Entities)
+                {
+                    World.Entities.TryGetValue(SensedUUID, out SensedObject);
+                }
+                return SensedObject;
+            }
+            return null;
         }
 
         public string llDetectedKey(int number)
         {
             m_host.AddScriptLPS(1);
-            NotImplemented("llDetectedKey");
-            return String.Empty;
+            LLUUID SensedUUID = uuidDetectedKey(number);
+            if (SensedUUID == LLUUID.Zero)
+                return String.Empty;
+
+            return SensedUUID.ToString();
         }
 
         public string llDetectedOwner(int number)
         {
             m_host.AddScriptLPS(1);
-            NotImplemented("llDetectedOwner");
+            EntityBase SensedObject = entityDetectedKey(number);
+            if (SensedObject ==null)
+                return String.Empty;
+            //return SensedObject.O  .Name; // What is the owner of the object ?
+            //EntityBase SensedObject = World.GetScenePresence(SensedUUID);
+            LLUUID SensedUUID = uuidDetectedKey(number);
+            SceneObjectPart SOP = World.GetSceneObjectPart(SensedUUID);
+            if (SOP != null) { return SOP.ObjectOwner.ToString(); }
             return String.Empty;
-        }
+               
+       }
 
         public int llDetectedType(int number)
         {
             m_host.AddScriptLPS(1);
-            NotImplemented("llDetectedType");
-            return 0;
+            EntityBase SensedObject = entityDetectedKey(number);
+            if (SensedObject == null)
+                return 0;
+            int mask = 0;
+
+            LLUUID SensedUUID = uuidDetectedKey(number);
+            LSL_Types.Vector3 ZeroVector = new LSL_Types.Vector3(0, 0, 0);
+
+            if (World.GetScenePresence(SensedUUID) != null) mask |= 0x01; // actor
+            if (SensedObject.Velocity.Equals(ZeroVector))
+                mask |= 0x04; // passive non-moving
+            else
+                mask |= 0x02; // active moving
+            if (SensedObject is IScript) mask |= 0x08; // Scripted. It COULD have one hidden ... 
+            return mask;
+
         }
 
         public LSL_Types.Vector3 llDetectedPos(int number)
         {
             m_host.AddScriptLPS(1);
-            NotImplemented("llDetectedPos");
-            return new LSL_Types.Vector3();
+            EntityBase SensedObject = entityDetectedKey(number);
+            if (SensedObject == null)
+                return new LSL_Types.Vector3(0, 0, 0);
+               
+            return new LSL_Types.Vector3(SensedObject.AbsolutePosition.X,SensedObject.AbsolutePosition.Y,SensedObject.AbsolutePosition.Z);
+
+            //NotImplemented("llDetectedPos");
         }
 
         public LSL_Types.Vector3 llDetectedVel(int number)
         {
             m_host.AddScriptLPS(1);
-            NotImplemented("llDetectedVel");
-            return new LSL_Types.Vector3();
+            EntityBase SensedObject = entityDetectedKey(number);
+            if (SensedObject == null)
+                return new LSL_Types.Vector3(0, 0, 0);
+
+            return new LSL_Types.Vector3(SensedObject.Velocity.X, SensedObject.Velocity.Y, SensedObject.Velocity.Z);
+           // NotImplemented("llDetectedVel");
+           // return new LSL_Types.Vector3();
         }
 
         public LSL_Types.Vector3 llDetectedGrab(int number)
@@ -432,8 +532,11 @@ namespace OpenSim.Region.ScriptEngine.Common
         public LSL_Types.Quaternion llDetectedRot(int number)
         {
             m_host.AddScriptLPS(1);
-            NotImplemented("llDetectedRot");
-            return new LSL_Types.Quaternion();
+            EntityBase SensedObject = entityDetectedKey(number);
+            if (SensedObject == null)
+                return new LSL_Types.Quaternion();
+
+            return new LSL_Types.Quaternion(SensedObject.Rotation.x, SensedObject.Rotation.y, SensedObject.Rotation.z, SensedObject.Rotation.w);
         }
 
         public int llDetectedGroup(int number)
@@ -2401,6 +2504,7 @@ namespace OpenSim.Region.ScriptEngine.Common
                 ret.Add(str);
             }
             return ret;
+
         }
 
         public int llOverMyLand(string id)
@@ -3222,6 +3326,8 @@ namespace OpenSim.Region.ScriptEngine.Common
         {
             m_host.AddScriptLPS(1);
             //temp fix so that lsl wiki examples aren't annoying to use to test other functions
+            //should be similar to : llInstantMessage(llGetOwner(),msg)
+            // llGetOwner ==> m_host.ObjectOwner.ToString()
             World.SimChat(Helpers.StringToField(msg), ChatTypeEnum.Say, 0, m_host.AbsolutePosition, m_host.Name, m_host.UUID);
             IWorldComm wComm = m_ScriptEngine.World.RequestModuleInterface<IWorldComm>();
             wComm.DeliverMessage(m_host.UUID.ToString(), ChatTypeEnum.Say, 0, m_host.Name, msg);
