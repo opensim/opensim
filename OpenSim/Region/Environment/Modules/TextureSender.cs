@@ -31,6 +31,7 @@ using libsecondlife;
 using libsecondlife.Packets;
 using OpenSim.Framework;
 using OpenSim.Framework.Console;
+using OpenSim.Region.Environment.Interfaces;
 
 namespace OpenSim.Region.Environment.Modules
 {
@@ -38,7 +39,7 @@ namespace OpenSim.Region.Environment.Modules
     /// A TextureSender handles the process of receiving a texture requested by the client from the 
     /// AssetCache, and then sending that texture back to the client.
     /// </summary>
-    public class TextureSender
+    public class TextureSender : ITextureSender
     {
         private static readonly log4net.ILog m_log 
             = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
@@ -67,9 +68,25 @@ namespace OpenSim.Region.Environment.Modules
         /// </summary>
         private int PacketCounter = 0;
         
-        public bool Cancel = false;
+        // See ITextureSender
+        public bool Cancel 
+        { 
+            get { return false; }
+            set { m_cancel = value; }
+        }
+                    
+        private bool m_cancel = false;
+        
+        // See ITextureSender
+        public bool Sending 
+        { 
+            get { return false; }
+            set { m_sending = value; }
+        }
+                    
+        private bool m_sending = false;        
+        
         public bool ImageLoaded = false;
-        public bool Sending = false;
 
         private IClientAPI RequestUser;
 
@@ -97,6 +114,7 @@ namespace OpenSim.Region.Environment.Modules
             ImageLoaded = true;
         }
 
+        // See ITextureSender
         public void UpdateRequest(int discardLevel, uint packetNumber)
         {
             RequestedDiscardLevel = discardLevel;
@@ -104,12 +122,11 @@ namespace OpenSim.Region.Environment.Modules
             PacketCounter = (int) StartPacketNumber;
         }
 
-        /// <summary>
-        /// Send a texture packet to the client.
-        /// </summary>
-        /// <returns>True if the last packet has been sent, false otherwise.</returns>
+        // See ITextureSender
         public bool SendTexturePacket()
         {
+            //m_log.DebugFormat("[TEXTURE SENDER]: Sending packet for {0}", m_asset.FullID);
+            
             SendPacket();
             counter++;
             if ((NumPackets == 0) || (RequestedDiscardLevel == -1) || (PacketCounter > NumPackets) ||
@@ -170,7 +187,7 @@ namespace OpenSim.Region.Environment.Modules
                     }
                     catch (ArgumentOutOfRangeException)
                     {
-                        m_log.Error("[TEXTURE]: Unable to separate texture into multiple packets: Array bounds failure on asset:" +
+                        m_log.Error("[TEXTURE SENDER]: Unable to separate texture into multiple packets: Array bounds failure on asset:" +
                                     m_asset.FullID.ToString() );
                         return;
                     }

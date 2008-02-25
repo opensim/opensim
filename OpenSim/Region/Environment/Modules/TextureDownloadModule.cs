@@ -52,7 +52,8 @@ namespace OpenSim.Region.Environment.Modules
         /// <summary>
         /// There is one queue for all textures waiting to be sent, regardless of the requesting user.
         /// </summary>
-        private readonly BlockingQueue<TextureSender> m_queueSenders = new BlockingQueue<TextureSender>();
+        private readonly BlockingQueue<ITextureSender> m_queueSenders 
+            = new BlockingQueue<ITextureSender>();
 
         /// <summary>
         /// Each user has their own texture download service.
@@ -135,17 +136,19 @@ namespace OpenSim.Region.Environment.Modules
         /// <param name="userID"></param>
         /// <param name="textureService"></param>
         /// <returns>Always returns true, since a service is created if one does not already exist</returns>
-        private bool TryGetUserTextureService(LLUUID userID, out UserTextureDownloadService textureService)
+        private bool TryGetUserTextureService(
+            IClientAPI client, out UserTextureDownloadService textureService)
         {
             lock (m_userTextureServices)
             {
-                if (m_userTextureServices.TryGetValue(userID, out textureService))
+                if (m_userTextureServices.TryGetValue(client.AgentId, out textureService))
                 {
                     return true;
                 }
 
-                textureService = new UserTextureDownloadService(m_scene, m_queueSenders);
-                m_userTextureServices.Add(userID, textureService);
+                textureService = new UserTextureDownloadService(client, m_scene, m_queueSenders);
+                m_userTextureServices.Add(client.AgentId, textureService);
+                
                 return true;
             }
         }
@@ -159,9 +162,10 @@ namespace OpenSim.Region.Environment.Modules
         {
             IClientAPI client = (IClientAPI) sender;
             UserTextureDownloadService textureService;
-            if (TryGetUserTextureService(client.AgentId, out textureService))
+            
+            if (TryGetUserTextureService(client, out textureService))
             {
-                textureService.HandleTextureRequest(client, e);
+                textureService.HandleTextureRequest(e);
             }            
         }
 
@@ -170,7 +174,7 @@ namespace OpenSim.Region.Environment.Modules
         /// </summary>
         public void ProcessTextureSenders()
         {
-            TextureSender sender = null;
+            ITextureSender sender = null;
             
             while (true)
             {
@@ -206,7 +210,7 @@ namespace OpenSim.Region.Environment.Modules
         /// Called when the texture has finished sending.
         /// </summary>
         /// <param name="sender"></param>
-        private void TextureSent(TextureSender sender)
+        private void TextureSent(ITextureSender sender)
         {
             sender.Sending = false;    
             //m_log.DebugFormat("[TEXTURE DOWNLOAD]: Removing download stat for {0}", sender.assetID);            

@@ -28,9 +28,13 @@
 
 using System;
 using System.Collections.Generic;
+
 using libsecondlife;
+using libsecondlife.Packets;
+
 using OpenSim.Framework;
 using OpenSim.Framework.Console;
+using OpenSim.Region.Environment.Interfaces;
 using OpenSim.Region.Environment.Scenes;
 
 namespace OpenSim.Region.Environment.Modules
@@ -54,12 +58,16 @@ namespace OpenSim.Region.Environment.Modules
         /// Texture Senders are placed in this queue once they have received their texture from the asset
         /// cache.  Another module actually invokes the send.
         /// </summary>
-        private readonly BlockingQueue<TextureSender> m_sharedSendersQueue;
+        private readonly BlockingQueue<ITextureSender> m_sharedSendersQueue;
         
         private readonly Scene m_scene;
+        
+        private readonly IClientAPI m_client;
 
-        public UserTextureDownloadService(Scene scene, BlockingQueue<TextureSender> sharedQueue)
+        public UserTextureDownloadService(
+            IClientAPI client, Scene scene, BlockingQueue<ITextureSender> sharedQueue)
         {
+            m_client = client;
             m_scene = scene;
             m_sharedSendersQueue = sharedQueue;
         }
@@ -68,9 +76,8 @@ namespace OpenSim.Region.Environment.Modules
         /// Handle a texture request.  This involves creating a texture sender and placing it on the 
         /// previously passed in shared queue.
         /// </summary>
-        /// <param name="client"> </param>
         /// <param name="e"></param>
-        public void HandleTextureRequest(IClientAPI client, TextureRequestArgs e)
+        public void HandleTextureRequest(TextureRequestArgs e)
         {
             TextureSender textureSender;
 
@@ -91,7 +98,7 @@ namespace OpenSim.Region.Environment.Modules
                         m_scene.AddPendingDownloads(1);
                 
                         TextureSender requestHandler =
-                            new TextureSender(client, e.DiscardLevel, e.PacketNumber);                        
+                            new TextureSender(m_client, e.DiscardLevel, e.PacketNumber);                        
                         m_textureSenders.Add(e.RequestedAssetID, requestHandler);
                         
                         m_scene.AssetCache.GetAsset(e.RequestedAssetID, TextureCallback, true);
@@ -118,6 +125,8 @@ namespace OpenSim.Region.Environment.Modules
         /// <param name="texture"></param>
         public void TextureCallback(LLUUID textureID, AssetBase texture)
         {
+            //m_log.DebugFormat("[USER TEXTURE DOWNLOAD SERVICE]: Calling TextureCallback with {0}, texture == null is {1}", textureID, (texture == null ? true : false));
+            
             lock (m_textureSenders)
             {
                 TextureSender textureSender;
@@ -129,13 +138,12 @@ namespace OpenSim.Region.Environment.Modules
                     // Needs investigation.
                     if (texture == null || texture.Data == null)
                     {
-                        // Right now, leaving it up to lower level asset server code to post the fact that
-                        // this texture could not be found
-
-                        // TODO Send packet back to the client telling it not to expect the texture
-
-                        //m_log.DebugFormat("[USER TEXTURE DOWNLOAD]: Removing download stat for {0}", textureID);
-                        m_scene.AddPendingDownloads(-1);
+                        m_log.DebugFormat(
+                            "[USER TEXTURE DOWNLOAD SERVICE]: Queueing TextureNotFoundSender for {0}", 
+                            textureID);
+                       
+                        ITextureSender textureNotFoundSender = new TextureNotFoundSender(m_client, textureID);
+                        EnqueueTextureSender(textureNotFoundSender);
                     }
                     else
                     {
@@ -163,11 +171,10 @@ namespace OpenSim.Region.Environment.Modules
         /// Place a ready texture sender on the processing queue.
         /// </summary>
         /// <param name="textureSender"></param>
-        private void EnqueueTextureSender(TextureSender textureSender)
+        private void EnqueueTextureSender(ITextureSender textureSender)
         {
             textureSender.Cancel = false;
             textureSender.Sending = true;
-            textureSender.counter = 0;
 
             if (!m_sharedSendersQueue.Contains(textureSender))
             {

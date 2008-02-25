@@ -242,6 +242,10 @@ namespace OpenSim.Framework.Communications.Cache
         /// If the asset was not found this is still called with the asset UUID but with a null asset data reference</param>
         public void GetAsset(LLUUID assetId, AssetRequestCallback callback, bool isTexture)
         {
+            #if DEBUG
+            //m_log.DebugFormat("[ASSET CACHE]: Requesting {0} {1}", isTexture ? "texture" : "asset", assetId);
+            #endif
+                
             AssetBase asset;
 
             if (TryGetCachedAsset(assetId, out asset))
@@ -249,11 +253,11 @@ namespace OpenSim.Framework.Communications.Cache
                 callback(assetId, asset);
             }
             else
-            {
+            {  
                 #if DEBUG
                 //m_log.DebugFormat("[ASSET CACHE]: Adding request for {0} {1}", isTexture ? "texture" : "asset", assetId);
                 #endif
-            
+                
                 NewAssetRequest req = new NewAssetRequest(assetId, callback);
 
                 // Make sure we always have a request list to which to add the asset
@@ -395,7 +399,7 @@ namespace OpenSim.Framework.Communications.Cache
         public void AssetReceived(AssetBase asset, bool IsTexture)
         {
             #if DEBUG
-            m_log.DebugFormat("[ASSET CACHE]: Received {0} [{1}]", IsTexture ? "texture" : "asset", asset.FullID);
+            //m_log.DebugFormat("[ASSET CACHE]: Received {0} [{1}]", IsTexture ? "texture" : "asset", asset.FullID);
             #endif
 
             if (asset.FullID != LLUUID.Zero) // if it is set to zero then the asset wasn't found by the server
@@ -479,27 +483,7 @@ namespace OpenSim.Framework.Communications.Cache
         // See IAssetReceiver
         public void AssetNotFound(LLUUID assetID)
         {
-            //m_log.ErrorFormat("[ASSET CACHE]: AssetNotFound for {0}", assetID);
-    
-            // The 'image not found' packet needs to happen, but RequestedTextures is not actually used (should be cleaned up)
-            // It might also be better to do this in the TextureDownloadModule
-            /*
-             * 
-            AssetRequest req;
-            
-            if (RequestedTextures.TryGetValue(assetID, out req))
-            {
-                m_log.WarnFormat("[ASSET CACHE]: sending image not found for {0}", assetID);                
-                ImageNotInDatabasePacket notFound = new ImageNotInDatabasePacket();
-                notFound.ImageID.ID = assetID;
-                req.RequestUser.OutPacket(notFound, ThrottleOutPacketType.Unknown);
-                RequestedTextures.Remove(assetID);
-            }
-            else
-            {
-                m_log.ErrorFormat("[ASSET CACHE]: Asset [{0}] not found, but couldn't find any users to send to ", assetID);
-            }
-            */
+            m_log.WarnFormat("[ASSET CACHE]: AssetNotFound for {0}", assetID);
             
             // Notify requesters for this asset 
             lock (RequestLists)
