@@ -37,14 +37,14 @@ use constant CLEAR => "\033[0m";
 our %totals;
 
 
-find(\&test, "../OpenSim");
+find(\&test, "../../OpenSim");
 print Dumper(\%totals);
 
 sub test {
     my $file = $File::Find::name;
     my $dir = $File::Find::dir;
-    $file =~ s{^../}{}; #strip off prefix
-    $dir =~ s{^../}{}; #strip off prefix
+    $file =~ s{^../../}{}; #strip off prefix
+    $dir =~ s{^../../}{}; #strip off prefix
     
     return if ($file !~ /\.cs$/);
     return if ($file =~ /AssemblyInfo\.cs$/);
