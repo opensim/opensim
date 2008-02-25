@@ -144,7 +144,13 @@ namespace OpenSim.Grid.UserServer
                     m_log.ErrorFormat(
                         "[LOGIN]: XMLRPC request for {0} failed, fault code: {1}, reason: {2}", 
                         SimInfo.httpServerURI, GridResp.FaultCode, GridResp.FaultString);
-                }                
+                }
+                handler001 = OnUserLoggedInAtLocation;
+                if (handler001 != null)
+                {
+                    m_log.Info("[LOGIN]: Letting other objects know about login");
+                    handler001(theUser.UUID, theUser.currentAgent.sessionID, theUser.currentAgent.currentRegion, theUser.currentAgent.currentHandle, theUser.currentAgent.currentPos);
+                }
             }
             catch (Exception)
             {
@@ -219,6 +225,7 @@ namespace OpenSim.Grid.UserServer
                     handler001 = OnUserLoggedInAtLocation;
                     if (handler001 != null)
                     {
+                        m_log.Info("[LOGIN]: Letting other objects know about login");
                         handler001(theUser.UUID, theUser.currentAgent.sessionID, theUser.currentAgent.currentRegion, theUser.currentAgent.currentHandle, theUser.currentAgent.currentPos);
                     }
                 }

@@ -44,6 +44,7 @@ namespace OpenSim.Grid.MessagingServer
         private static readonly log4net.ILog m_log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 
         private MessageServerConfig Cfg;
+        private MessageService msgsvc;
 
         //public UserManager m_userManager;
         //public UserLoginService m_loginService;
@@ -56,6 +57,8 @@ namespace OpenSim.Grid.MessagingServer
             log4net.Config.XmlConfigurator.Configure();
 
             m_log.Info("Launching MessagingServer...");
+
+            
 
             OpenMessage_Main messageserver = new OpenMessage_Main();
 
@@ -85,23 +88,32 @@ namespace OpenSim.Grid.MessagingServer
 
             m_log.Info("[REGION]: Starting HTTP process");
             BaseHttpServer httpServer = new BaseHttpServer(Cfg.HttpPort);
-
-            //httpServer.AddXmlRPCHandler("login_to_simulator", m_loginService.XmlRpcLoginMethod);
-
-            //httpServer.AddXmlRPCHandler("get_user_by_name", m_userManager.XmlRPCGetUserMethodName);
-            //httpServer.AddXmlRPCHandler("get_user_by_uuid", m_userManager.XmlRPCGetUserMethodUUID);
-            //httpServer.AddXmlRPCHandler("get_avatar_picker_avatar", m_userManager.XmlRPCGetAvatarPickerAvatar);
-            //httpServer.AddXmlRPCHandler("add_new_user_friend", m_userManager.XmlRpcResponseXmlRPCAddUserFriend);
-            //httpServer.AddXmlRPCHandler("remove_user_friend", m_userManager.XmlRpcResponseXmlRPCRemoveUserFriend);
-            //httpServer.AddXmlRPCHandler("update_user_friend_perms", m_userManager.XmlRpcResponseXmlRPCUpdateUserFriendPerms);
-            //httpServer.AddXmlRPCHandler("get_user_friend_list", m_userManager.XmlRpcResponseXmlRPCGetUserFriendList);
             
+            msgsvc = new MessageService(Cfg);
 
-            //httpServer.AddStreamHandler(
+            if (msgsvc.registerWithUserServer())
+            {
+                httpServer.AddXmlRPCHandler("login_to_simulator", msgsvc.UserLoggedOn);
+
+                //httpServer.AddXmlRPCHandler("get_user_by_name", m_userManager.XmlRPCGetUserMethodName);
+                //httpServer.AddXmlRPCHandler("get_user_by_uuid", m_userManager.XmlRPCGetUserMethodUUID);
+                //httpServer.AddXmlRPCHandler("get_avatar_picker_avatar", m_userManager.XmlRPCGetAvatarPickerAvatar);
+                //httpServer.AddXmlRPCHandler("add_new_user_friend", m_userManager.XmlRpcResponseXmlRPCAddUserFriend);
+                //httpServer.AddXmlRPCHandler("remove_user_friend", m_userManager.XmlRpcResponseXmlRPCRemoveUserFriend);
+                //httpServer.AddXmlRPCHandler("update_user_friend_perms", m_userManager.XmlRpcResponseXmlRPCUpdateUserFriendPerms);
+                //httpServer.AddXmlRPCHandler("get_user_friend_list", m_userManager.XmlRpcResponseXmlRPCGetUserFriendList);
+
+
+                //httpServer.AddStreamHandler(
                 //new RestStreamHandler("DELETE", "/usersessions/", m_userManager.RestDeleteUserSessionMethod));
 
-            httpServer.Start();
-            m_log.Info("[SERVER]: Messageserver 0.5 - Startup complete");
+                httpServer.Start();
+                m_log.Info("[SERVER]: Messageserver 0.5 - Startup complete");
+            }
+            else
+            {
+                m_log.Error("[STARTUP]: Unable to connect to User Server");
+            }
         }
 
         public void do_create(string what)
@@ -144,6 +156,7 @@ namespace OpenSim.Grid.MessagingServer
                     break;
 
                 case "shutdown":
+                    msgsvc.deregisterWithUserServer();
                     m_console.Close();
                     Environment.Exit(0);
                     break;

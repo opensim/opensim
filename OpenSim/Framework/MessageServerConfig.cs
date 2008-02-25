@@ -45,6 +45,7 @@ namespace OpenSim.Framework
         public string GridServerURL = String.Empty;
         public string GridSendKey = String.Empty;
         public string GridRecvKey = String.Empty;
+        public string MessageServerIP = String.Empty;
 
         public string DatabaseProvider = String.Empty;
         public string GridCommsProvider = String.Empty;
@@ -92,6 +93,8 @@ namespace OpenSim.Framework
                                                 "Http Listener port", DefaultHttpPort.ToString(), false);
             configMember.addConfigurationOption("http_ssl", ConfigurationOption.ConfigurationTypes.TYPE_BOOLEAN,
                                                 "Use SSL? true/false", DefaultHttpSSL.ToString(), false);
+            configMember.addConfigurationOption("published_ip", ConfigurationOption.ConfigurationTypes.TYPE_STRING,
+                                    "My Published IP Address", "127.0.0.1", false);
 
         }
 
@@ -129,6 +132,9 @@ namespace OpenSim.Framework
                     break;
                 case "region_comms_provider":
                     GridCommsProvider = (string)configuration_result;
+                    break;
+                case "published_ip":
+                    MessageServerIP = (string)configuration_result;
                     break;
                 }
 

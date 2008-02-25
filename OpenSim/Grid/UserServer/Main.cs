@@ -227,6 +227,7 @@ namespace OpenSim.Grid.UserServer
 
         public void NotifyMessageServersUserLoggedInToLocation(LLUUID agentID, LLUUID sessionID, LLUUID RegionID, ulong regionhandle, LLVector3 Position)
         {
+            
             m_messagesService.TellMessageServersAboutUser(agentID, sessionID, RegionID, regionhandle, Position);
         }
 

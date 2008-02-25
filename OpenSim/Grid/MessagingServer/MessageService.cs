@@ -333,7 +333,7 @@ namespace OpenSim.Grid.MessagingServer
         /// <returns></returns>
         public XmlRpcResponse UserLoggedOn(XmlRpcRequest request)
         {
-
+            m_log.Info("[LOGON]: User logged on, building indexes for user");
             Hashtable requestData = (Hashtable)request.Params[0];
             AgentCircuitData agentData = new AgentCircuitData();
             agentData.SessionID = new LLUUID((string)requestData["session_id"]);
@@ -471,6 +471,108 @@ namespace OpenSim.Grid.MessagingServer
            
 
             return regionProfile;
+        }
+        public bool registerWithUserServer ()
+        {
+            
+            Hashtable UserParams = new Hashtable();
+            // Login / Authentication
+            
+            if (m_cfg.HttpSSL)
+            {
+                UserParams["uri"] = "https://" + m_cfg.MessageServerIP + ":" + m_cfg.HttpPort;
+            }
+            else 
+            {
+                UserParams["uri"] = "http://" + m_cfg.MessageServerIP + ":" + m_cfg.HttpPort;
+            }
+
+            UserParams["recvkey"] = m_cfg.UserRecvKey;
+            UserParams["sendkey"] = m_cfg.UserRecvKey;
+            
+
+            
+
+            // Package into an XMLRPC Request
+            ArrayList SendParams = new ArrayList();
+            SendParams.Add(UserParams);
+
+            // Send Request
+            XmlRpcRequest UserReq;
+            XmlRpcResponse UserResp;
+            try
+            {
+                UserReq = new XmlRpcRequest("register_messageserver", SendParams);
+                UserResp = UserReq.Send(m_cfg.UserServerURL, 16000);
+            } catch (Exception ex)
+            {
+                m_log.Error("Unable to connect to grid. Grid server not running?");
+                throw(ex);
+            }
+            Hashtable GridRespData = (Hashtable)UserResp.Value;
+            Hashtable griddatahash = GridRespData;
+
+            // Process Response
+            if (GridRespData.ContainsKey("responsestring"))
+            {
+                return true;
+            }
+            else
+            {
+                return false;
+            }
+            
+       
+        }
+        public bool deregisterWithUserServer()
+        {
+
+            Hashtable UserParams = new Hashtable();
+            // Login / Authentication
+
+            if (m_cfg.HttpSSL)
+            {
+                UserParams["uri"] = "https://" + m_cfg.MessageServerIP + ":" + m_cfg.HttpPort;
+            }
+            else
+            {
+                UserParams["uri"] = "http://" + m_cfg.MessageServerIP + ":" + m_cfg.HttpPort;
+            }
+
+            UserParams["recvkey"] = m_cfg.UserRecvKey;
+            UserParams["sendkey"] = m_cfg.UserRecvKey;
+
+            // Package into an XMLRPC Request
+            ArrayList SendParams = new ArrayList();
+            SendParams.Add(UserParams);
+
+            // Send Request
+            XmlRpcRequest UserReq;
+            XmlRpcResponse UserResp;
+            try
+            {
+                UserReq = new XmlRpcRequest("deregister_messageserver", SendParams);
+                UserResp = UserReq.Send(m_cfg.UserServerURL, 16000);
+            }
+            catch (Exception ex)
+            {
+                m_log.Error("Unable to connect to grid. Grid server not running?");
+                throw (ex);
+            }
+            Hashtable UserRespData = (Hashtable)UserResp.Value;
+            Hashtable userdatahash = UserRespData;
+
+            // Process Response
+            if (UserRespData.ContainsKey("responsestring"))
+            {
+                return true;
+            }
+            else
+            {
+                return false;
+            }
+
+
         }
         #endregion
     }

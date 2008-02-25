@@ -119,7 +119,7 @@ namespace OpenSim.Grid.UserServer
 
             if (requestData.Contains("uri"))
             {
-                string URI = (string)requestData["URI"];
+                string URI = (string)requestData["uri"];
 
                 DeRegisterMessageServer(URI);
                 responseData["responsestring"] = "TRUE";
@@ -153,6 +153,14 @@ namespace OpenSim.Grid.UserServer
         public void TellMessageServersAboutUser(LLUUID agentID, LLUUID sessionID, LLUUID RegionID, ulong regionhandle, LLVector3 Position)
         {
             // Loop over registered Message Servers ( AND THERE WILL BE MORE THEN ONE :D )
+            if (MessageServers.Count > 0)
+            {
+                m_log.Info("[MSGCONNECTOR]: Sending login notice to registered message servers");
+            }
+            else
+            {
+                m_log.Info("[MSGCONNECTOR]: No Message Servers registered, ignoring");
+            }
             foreach (MessageServerInfo serv in MessageServers.Values)
             {
                 NotifyMessageServerAboutUser(serv, agentID, sessionID, RegionID, regionhandle, Position);
