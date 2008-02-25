@@ -124,7 +124,10 @@ namespace OpenSim.Region.Environment.Modules
 
                 if (m_textureSenders.TryGetValue(textureID, out textureSender))
                 {
-                    if (texture == null)
+                    // XXX It may be perfectly valid for a texture to have no data...  but if we pass
+                    // this on to the TextureSender it will blow up, so just discard for now.
+                    // Needs investigation.
+                    if (texture == null || texture.Data == null)
                     {
                         // Right now, leaving it up to lower level asset server code to post the fact that
                         // this texture could not be found
