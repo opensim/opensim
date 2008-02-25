@@ -371,7 +371,7 @@ namespace OpenSim.Region.ScriptEngine.Common
             catch 
             { 
             }
-            m_ScriptEngine.m_ASYNCLSLCommandManager.SenseOnce(m_localID, m_itemID, name, keyID, type, range, arc, m_host);
+            m_ScriptEngine.m_ASYNCLSLCommandManager.m_SensorRepeat.SenseOnce(m_localID, m_itemID, name, keyID, type, range, arc, m_host);
 
             return;
             // NotImplemented("llSensor");
@@ -389,7 +389,7 @@ namespace OpenSim.Region.ScriptEngine.Common
             {
             }
 
-            m_ScriptEngine.m_ASYNCLSLCommandManager.SetSenseRepeatEvent(m_localID, m_itemID, name, keyID, type, range, arc, rate, m_host);
+            m_ScriptEngine.m_ASYNCLSLCommandManager.m_SensorRepeat.SetSenseRepeatEvent(m_localID, m_itemID, name, keyID, type, range, arc, rate, m_host);
             return;
             // NotImplemented("llSensorRepeat");
        }
@@ -397,7 +397,7 @@ namespace OpenSim.Region.ScriptEngine.Common
         public void llSensorRemove()
         {
             m_host.AddScriptLPS(1);
-            m_ScriptEngine.m_ASYNCLSLCommandManager.UnSetSenseRepeaterEvents(m_localID, m_itemID);
+            m_ScriptEngine.m_ASYNCLSLCommandManager.m_SensorRepeat.UnSetSenseRepeaterEvents(m_localID, m_itemID);
             return;
            // NotImplemented("llSensorRemove");
         }
@@ -405,7 +405,7 @@ namespace OpenSim.Region.ScriptEngine.Common
         public string llDetectedName(int number)
         {
             m_host.AddScriptLPS(1);
-            LSL_Types.list SenseList = m_ScriptEngine.m_ASYNCLSLCommandManager.GetSensorList(m_localID, m_itemID);
+            LSL_Types.list SenseList = m_ScriptEngine.m_ASYNCLSLCommandManager.m_SensorRepeat.GetSensorList(m_localID, m_itemID);
             if ((number>0)&&(number <= SenseList.Length))
             {
                 LLUUID SensedUUID = (LLUUID)SenseList.Data[number];
@@ -427,7 +427,7 @@ namespace OpenSim.Region.ScriptEngine.Common
 
         public LLUUID uuidDetectedKey(int number)
         {
-            LSL_Types.list SenseList = m_ScriptEngine.m_ASYNCLSLCommandManager.GetSensorList(m_localID, m_itemID);
+            LSL_Types.list SenseList = m_ScriptEngine.m_ASYNCLSLCommandManager.m_SensorRepeat.GetSensorList(m_localID, m_itemID);
             if ((number >= 0) && (number < SenseList.Length))
             {
                 LLUUID SensedUUID = (LLUUID)SenseList.Data[number];
@@ -438,7 +438,7 @@ namespace OpenSim.Region.ScriptEngine.Common
 
         public EntityBase entityDetectedKey(int number)
         {
-            LSL_Types.list SenseList = m_ScriptEngine.m_ASYNCLSLCommandManager.GetSensorList(m_localID, m_itemID);
+            LSL_Types.list SenseList = m_ScriptEngine.m_ASYNCLSLCommandManager.m_SensorRepeat.GetSensorList(m_localID, m_itemID);
             if ((number >= 0) && (number < SenseList.Length))
             {
                 LLUUID SensedUUID = (LLUUID)SenseList.Data[number];
@@ -1347,7 +1347,7 @@ namespace OpenSim.Region.ScriptEngine.Common
         {
             m_host.AddScriptLPS(1);
             // Setting timer repeat
-            m_ScriptEngine.m_ASYNCLSLCommandManager.SetTimerEvent(m_localID, m_itemID, sec);
+            m_ScriptEngine.m_ASYNCLSLCommandManager.m_Timer.SetTimerEvent(m_localID, m_itemID, sec);
         }
 
         public void llSleep(double sec)
