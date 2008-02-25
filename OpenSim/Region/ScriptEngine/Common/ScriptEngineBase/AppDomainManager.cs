@@ -139,11 +139,12 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
             // Construct and initialize settings for a second AppDomain.
             AppDomainSetup ads = new AppDomainSetup();
             ads.ApplicationBase = AppDomain.CurrentDomain.BaseDirectory;
-            ads.DisallowBindingRedirects = false;
+            ads.DisallowBindingRedirects = true;
             ads.DisallowCodeDownload = true;
-            ads.LoaderOptimization = LoaderOptimization.MultiDomain; // Sounds good ;)
-            ads.ShadowCopyFiles = "true"; // Enabled shadowing
+            ads.LoaderOptimization = LoaderOptimization.MultiDomainHost;
+            ads.ShadowCopyFiles = "false"; // Disable shadowing
             ads.ConfigurationFile = AppDomain.CurrentDomain.SetupInformation.ConfigurationFile;
+
 
             AppDomain AD = AppDomain.CreateDomain("ScriptAppDomain_" + AppDomainNameCount, null, ads);
             m_scriptEngine.Log.Info("[" + m_scriptEngine.ScriptEngineName + "]: AppDomain Loading: " +

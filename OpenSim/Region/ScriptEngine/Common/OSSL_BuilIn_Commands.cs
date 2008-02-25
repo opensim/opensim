@@ -105,6 +105,18 @@ namespace OpenSim.Region.ScriptEngine.Common
             }
             private void Save()
             {
+                if (Position.x > 255)
+                    Position.x = 255;
+                if (Position.x < 0)
+                    Position.x = 0;
+                if (Position.y > 255)
+                    Position.y = 255;
+                if (Position.y < 0)
+                    Position.y = 0;
+                if (Position.z > 768)
+                    Position.z = 768;
+                if (Position.z < 0)
+                    Position.z = 0;
                 prim.OSSL.llSetPos(Position);
             }
 
@@ -118,11 +130,7 @@ namespace OpenSim.Region.ScriptEngine.Common
                 set
                 {
                     Load();
-                    Position.x += value;
-                    if (Position.x > 255)
-                        Position.x = 255;
-                    if (Position.x < 0)
-                        Position.x = 0;
+                    Position.x = value;
                     Save();
                 }
             }
@@ -136,11 +144,7 @@ namespace OpenSim.Region.ScriptEngine.Common
                 set
                 {
                     Load();
-                    Position.y += value;
-                    if (Position.y > 255)
-                        Position.y = 255;
-                    if (Position.y < 0)
-                        Position.y = 0;
+                    Position.y = value;
                     Save();
                 }
             }
@@ -154,11 +158,7 @@ namespace OpenSim.Region.ScriptEngine.Common
                 set
                 {
                     Load();
-                    Position.z += value;
-                    if (Position.z > 255)
-                        Position.z = 255;
-                    if (Position.z < 0)
-                        Position.z = 0;
+                    Position.z = value;
                     Save();
                 }
             }
@@ -191,7 +191,7 @@ namespace OpenSim.Region.ScriptEngine.Common
                 set
                 {
                     Load();
-                    Rotation.x += value;
+                    Rotation.x = value;
                     Save();
                 }
             }
@@ -205,7 +205,7 @@ namespace OpenSim.Region.ScriptEngine.Common
                 set
                 {
                     Load();
-                    Rotation.y += value;
+                    Rotation.y = value;
                     Save();
                 }
             }
@@ -219,7 +219,7 @@ namespace OpenSim.Region.ScriptEngine.Common
                 set
                 {
                     Load();
-                    Rotation.z += value;
+                    Rotation.z = value;
                     Save();
                 }
             }
@@ -233,7 +233,7 @@ namespace OpenSim.Region.ScriptEngine.Common
                 set
                 {
                     Load();
-                    Rotation.s += value;
+                    Rotation.s = value;
                     Save();
                 }
             }
