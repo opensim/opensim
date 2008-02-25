@@ -336,7 +336,7 @@ namespace OpenSim.Region.ClientStack
 
         # region Client Methods
 
-        private void CloseCleanup(bool ShutdownCircult)
+        private void CloseCleanup(bool shutdownCircuit)
         {
             m_scene.RemoveClient(AgentId);
 
@@ -347,10 +347,7 @@ namespace OpenSim.Region.ClientStack
             DisableSimulatorPacket disable = (DisableSimulatorPacket)PacketPool.Instance.GetPacket(PacketType.DisableSimulator);
             OutPacket(disable, ThrottleOutPacketType.Task);
 
-
-            // FLUSH Packets
             m_packetQueue.Close();
-            m_packetQueue.Flush();
 
             Thread.Sleep(2000);
 
@@ -370,7 +367,7 @@ namespace OpenSim.Region.ClientStack
             // If we're not shutting down the circuit, then this is the last time we'll go here.
             // If we are shutting down the circuit, the UDP Server will come back here with 
             // ShutDownCircuit = false
-            if (!(ShutdownCircult))
+            if (!(shutdownCircuit))
             {
                 GC.Collect();
                 m_clientThread.Abort();
@@ -381,17 +378,19 @@ namespace OpenSim.Region.ClientStack
         /// Close down the client view.  This *must* be the last method called, since the last  #
         /// statement of CloseCleanup() aborts the thread.
         /// </summary>
-        /// <param name="ShutdownCircult"></param>
-        public void Close(bool ShutdownCircult)
+        /// <param name="shutdownCircuit"></param>
+        public void Close(bool shutdownCircuit)
         {
             // Pull Client out of Region
             m_log.Info("[CLIENT]: Close has been called");
 
             //raiseevent on the packet server to Shutdown the circuit
-            if (ShutdownCircult)
+            if (shutdownCircuit)
+            {
                 OnConnectionClosed(this);
+            }
 
-            CloseCleanup(ShutdownCircult);
+            CloseCleanup(shutdownCircuit);
         }
 
         public void Kick(string message)
@@ -503,7 +502,7 @@ namespace OpenSim.Region.ClientStack
         protected virtual void ClientLoop()
         {
             m_log.Info("[CLIENT]: Entered loop");
-            while (true)
+            while( true )
             {
                 QueItem nextPacket = m_packetQueue.Dequeue();
                 if (nextPacket.Incoming)
@@ -583,7 +582,6 @@ namespace OpenSim.Region.ClientStack
             {
                 //session/circuit not authorised
                 m_log.Info("[CLIENT]: New user request denied to " + m_userEndPoint.ToString());
-                m_packetQueue.Flush();
                 m_packetQueue.Close();
                 m_clientThread.Abort();
             }
@@ -1082,7 +1080,7 @@ namespace OpenSim.Region.ClientStack
             StartPingCheckPacket pc = (StartPingCheckPacket)PacketPool.Instance.GetPacket(PacketType.StartPingCheck);
             pc.PingID.PingID = seq;
             pc.Header.Reliable = false;
-            OutPacket(pc, ThrottleOutPacketType.Task);
+            OutPacket(pc, ThrottleOutPacketType.Unknown);
         }
 
         public void SendKillObject(ulong regionHandle, uint localID)

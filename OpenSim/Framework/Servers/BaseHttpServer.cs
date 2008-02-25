@@ -154,8 +154,16 @@ namespace OpenSim.Framework.Servers
                 request.InputStream.Close();
                 response.ContentType = requestHandler.ContentType;
                 response.ContentLength64 = buffer.LongLength;
-                response.OutputStream.Write(buffer, 0, buffer.Length);
-                response.OutputStream.Close();
+
+                try
+                {
+                    response.OutputStream.Write(buffer, 0, buffer.Length);
+                    response.OutputStream.Close();
+                }
+                catch (HttpListenerException e)
+                {
+                    m_log.InfoFormat("[BASEHTTPSERVER] Http request abnormally terminated.");
+                }
             }
             else
             {

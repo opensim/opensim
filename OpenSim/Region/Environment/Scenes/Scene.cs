@@ -1397,7 +1397,7 @@ namespace OpenSim.Region.Environment.Scenes
             client.OnRegionInfoRequest += m_estateManager.HandleRegionInfoRequest;
             client.OnEstateCovenantRequest += m_estateManager.HandleEstateCovenantRequest;
             client.OnRequestGodlikePowers += handleRequestGodlikePowers;
-            client.OnGodKickUser += handleGodlikeKickUser;
+            client.OnGodKickUser += HandleGodlikeKickUser;
             client.OnObjectPermissions += HandleObjectPermissionsUpdate;
 
             client.OnCreateNewInventoryItem += CreateNewInventoryItem;
@@ -2188,7 +2188,7 @@ namespace OpenSim.Region.Environment.Scenes
         /// <param name="agentID">the person that is being kicked</param>
         /// <param name="kickflags">This isn't used apparently</param>
         /// <param name="reason">The message to send to the user after it's been turned into a field</param>
-        public void handleGodlikeKickUser(LLUUID godID, LLUUID sessionID, LLUUID agentID, uint kickflags, byte[] reason)
+        public void HandleGodlikeKickUser(LLUUID godID, LLUUID sessionID, LLUUID agentID, uint kickflags, byte[] reason)
         {
             // For some reason the client sends this seemingly hard coded UUID for kicking everyone.   Dun-know.
             LLUUID kickUserID = new LLUUID("44e87126e7944ded05b37c42da3d5cdb");

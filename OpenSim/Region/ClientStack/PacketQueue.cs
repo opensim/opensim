@@ -182,7 +182,7 @@ namespace OpenSim.Region.ClientStack
             return SendQueue.Dequeue();
         }
 
-        public void Flush()
+        private void Flush()
         {
             lock (this)
             {
@@ -224,6 +224,8 @@ namespace OpenSim.Region.ClientStack
 
         public void Close()
         {
+            Flush();
+
             m_enabled = false;
             throttleTimer.Stop();
             

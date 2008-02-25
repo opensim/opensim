@@ -161,7 +161,6 @@ namespace OpenSim.Region.Environment.Modules
                 }
                 client.OnLogout += ClientLoggedOut;
                 client.OnConnectionClosed += ClientLoggedOut;
-                //client.OnDisconnectUser += ClientLoggedOut;
                 client.OnLogout += ClientLoggedOut;
             }
             catch (Exception ex)

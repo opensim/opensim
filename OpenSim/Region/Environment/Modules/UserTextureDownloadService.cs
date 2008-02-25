@@ -115,7 +115,7 @@ namespace OpenSim.Region.Environment.Modules
         /// texture sender for processing.
         /// </summary>
         /// <param name="textureID"></param>
-        /// <param name="asset"></param>
+        /// <param name="texture"></param>
         public void TextureCallback(LLUUID textureID, AssetBase texture)
         {
             lock (m_textureSenders)
@@ -124,7 +124,17 @@ namespace OpenSim.Region.Environment.Modules
 
                 if (m_textureSenders.TryGetValue(textureID, out textureSender))
                 {
-                    if (null != texture)
+                    if (texture == null)
+                    {
+                        // Right now, leaving it up to lower level asset server code to post the fact that
+                        // this texture could not be found
+
+                        // TODO Send packet back to the client telling it not to expect the texture
+
+                        //m_log.DebugFormat("[USER TEXTURE DOWNLOAD]: Removing download stat for {0}", textureID);
+                        m_scene.AddPendingDownloads(-1);
+                    }
+                    else
                     {
                         if (!textureSender.ImageLoaded)
                         {
@@ -132,17 +142,7 @@ namespace OpenSim.Region.Environment.Modules
                             EnqueueTextureSender(textureSender);
                         }
                     }
-                    else
-                    {
-                        // Right now, leaving it up to lower level asset server code to post the fact that
-                        // this texture could not be found
-                        
-                        // TODO Send packet back to the client telling it not to expect the texture
-                        
-                        //m_log.DebugFormat("[USER TEXTURE DOWNLOAD]: Removing download stat for {0}", textureID);
-                        m_scene.AddPendingDownloads(-1);
-                    }
-                    
+
                     //m_log.InfoFormat("[TEXTURE SENDER] Removing texture sender with uuid {0}", textureID);
                     m_textureSenders.Remove(textureID);                    
                     //m_log.InfoFormat("[TEXTURE SENDER] Current texture senders in dictionary: {0}", m_textureSenders.Count);
