@@ -39,6 +39,16 @@ using libsecondlife;
 
 namespace OpenSim.Region.Environment.Modules.Terrain
 {
+    public interface ITerrainPaintableEffect
+    {
+        void PaintEffect(ITerrainChannel map, double x, double y, double strength);
+    }
+
+    public interface ITerrainFloodEffect
+    {
+        void FloodEffect(ITerrainChannel map, Boolean[,] fillArea, double strength);
+    }
+
     /// <summary>
     /// A new version of the old Channel class, simplified
     /// </summary>
