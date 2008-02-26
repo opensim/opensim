@@ -49,6 +49,11 @@ namespace OpenSim.Region.Environment.Modules.Terrain
         void FloodEffect(ITerrainChannel map, Boolean[,] fillArea, double strength);
     }
 
+    public interface ITerrainEffect
+    {
+        void RunEffect(ITerrainChannel map, double strength);
+    }
+
     /// <summary>
     /// A new version of the old Channel class, simplified
     /// </summary>
@@ -103,16 +108,97 @@ namespace OpenSim.Region.Environment.Modules.Terrain
         }
     }
 
+    public enum StandardTerrainEffects : byte
+    {
+        Flatten = 0,
+        Raise = 1,
+        Lower = 2,
+        Smooth = 3,
+        Noise = 4,
+        Revert = 5
+    }
+
     public class TerrainModule : IRegionModule
     {
-        Scene m_scene;
+        private static readonly log4net.ILog m_log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 
+        private Dictionary<StandardTerrainEffects, ITerrainPaintableEffect> m_painteffects =
+            new Dictionary<StandardTerrainEffects, ITerrainPaintableEffect>();
+        private Dictionary<StandardTerrainEffects, ITerrainFloodEffect> m_floodeffects =
+            new Dictionary<StandardTerrainEffects, ITerrainFloodEffect>();
+        Scene m_scene;
+        ITerrainChannel m_channel;
         private IConfigSource m_gConfig;
+
+        private void InstallDefaultEffects()
+        {
+            m_painteffects[StandardTerrainEffects.Raise] = new PaintBrushes.RaiseSphere();
+            m_floodeffects[StandardTerrainEffects.Raise] = new FloodBrushes.RaiseArea();
+        }
 
         public void Initialise(Scene scene, IConfigSource config)
         {
             m_scene = scene;
             m_gConfig = config;
+
+            m_channel = new TerrainChannel();
+            m_scene.EventManager.OnNewClient += EventManager_OnNewClient;
+        }
+
+        void EventManager_OnNewClient(IClientAPI client)
+        {
+            client.OnModifyTerrain += client_OnModifyTerrain;
+        }
+
+        void client_OnModifyTerrain(float height, float seconds, byte size, byte action, float north, float west, float south, float east, IClientAPI remoteClient)
+        {
+            // Not a good permissions check, if in area mode, need to check the entire area.
+            if (m_scene.PermissionsMngr.CanTerraform(remoteClient.AgentId, new LLVector3(north, west, 0)))
+            {
+
+                if (north == south && east == west)
+                {
+                    if (m_painteffects.ContainsKey((StandardTerrainEffects)action))
+                    {
+                        m_painteffects[(StandardTerrainEffects)action].PaintEffect(
+                            m_channel, west, south, Math.Pow(size, 2.0));
+                    }
+                    else
+                    {
+                        m_log.Debug("Unknown terrain brush type " + action.ToString());
+                    }
+                }
+                else
+                {
+                    if (m_floodeffects.ContainsKey((StandardTerrainEffects)action))
+                    {
+                        bool[,] fillArea = new bool[m_channel.Width, m_channel.Height];
+
+                        fillArea.Initialize();
+
+                        int x, y;
+                        for (x = 0; x < m_channel.Width; x++)
+                        {
+                            for (y = 0; y < m_channel.Height; y++)
+                            {
+                                fillArea[x, y] = true;
+                            }
+                        }
+
+                        m_floodeffects[(StandardTerrainEffects)action].FloodEffect(
+                            m_channel, fillArea, Math.Pow(size, 2.0));
+                    }
+                    else
+                    {
+                        m_log.Debug("Unknown terrain flood type " + action.ToString());
+                    }
+                }
+            }
+        }
+
+        public void PostInitialise()
+        {
+            InstallDefaultEffects();
         }
 
         public void Close()
@@ -127,10 +213,6 @@ namespace OpenSim.Region.Environment.Modules.Terrain
         public bool IsSharedModule
         {
             get { return false; }
-        }
-
-        public void PostInitialise()
-        {
         }
     }
 }
