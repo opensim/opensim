@@ -6,7 +6,7 @@ using OpenSim.Region.Environment.Interfaces;
 
 namespace OpenSim.Region.Environment.Modules.Terrain.FloodBrushes
 {
-    class RaiseArea : ITerrainFloodEffect
+    public class RaiseArea : ITerrainFloodEffect
     {
         #region ITerrainFloodEffect Members
 

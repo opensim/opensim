@@ -6,7 +6,7 @@ using OpenSim.Region.Environment.Interfaces;
 
 namespace OpenSim.Region.Environment.Modules.Terrain.PaintBrushes
 {
-    class RaiseSphere : ITerrainPaintableEffect
+    public class RaiseSphere : ITerrainPaintableEffect
     {
         #region ITerrainPaintableEffect Members
 

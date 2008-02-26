@@ -54,6 +54,12 @@ namespace OpenSim.Region.Environment.Modules.Terrain
         void RunEffect(ITerrainChannel map, double strength);
     }
 
+    public interface ITerrainLoader 
+    {
+        ITerrainChannel LoadFile(string filename);
+        void SaveFile(string filename);
+    }
+
     /// <summary>
     /// A new version of the old Channel class, simplified
     /// </summary>
@@ -126,6 +132,7 @@ namespace OpenSim.Region.Environment.Modules.Terrain
             new Dictionary<StandardTerrainEffects, ITerrainPaintableEffect>();
         private Dictionary<StandardTerrainEffects, ITerrainFloodEffect> m_floodeffects =
             new Dictionary<StandardTerrainEffects, ITerrainFloodEffect>();
+        private Dictionary<string, ITerrainLoader> m_loaders = new Dictionary<string, ITerrainLoader>();
         Scene m_scene;
         ITerrainChannel m_channel;
         private IConfigSource m_gConfig;
@@ -134,6 +141,34 @@ namespace OpenSim.Region.Environment.Modules.Terrain
         {
             m_painteffects[StandardTerrainEffects.Raise] = new PaintBrushes.RaiseSphere();
             m_floodeffects[StandardTerrainEffects.Raise] = new FloodBrushes.RaiseArea();
+
+            // Float[256,256] array format (RAW32)
+            m_loaders[".r32"] = new FileLoaders.RAW32();
+            m_loaders[".f32"] = m_loaders[".r32"];
+        }
+
+        public void LoadFromFile(string filename)
+        {
+            foreach (KeyValuePair<string, ITerrainLoader> loader in m_loaders)
+            {
+                if (filename.EndsWith(loader.Key))
+                {
+                    loader.Value.LoadFile(filename);
+                    return;
+                }
+            }
+        }
+
+        public void SaveToFile(string filename)
+        {
+            foreach (KeyValuePair<string, ITerrainLoader> loader in m_loaders)
+            {
+                if (filename.EndsWith(loader.Key))
+                {
+                    loader.Value.SaveFile(filename);
+                    return;
+                }
+            }
         }
 
         public void Initialise(Scene scene, IConfigSource config)
