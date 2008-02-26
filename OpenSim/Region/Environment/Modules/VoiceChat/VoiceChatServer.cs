@@ -306,22 +306,23 @@ namespace OpenSim.Region.Environment.Modules.VoiceChat
             }
         }
 
-        public ScenePresence getScenePresence(LLUUID clientID)
+        public LLVector3 getScenePresencePosition(LLUUID clientID)
         {
             foreach (Scene scene in m_scenes)
             {
                 ScenePresence x;
                 if ((x = scene.GetScenePresence(clientID)) != null)
                 {
-                    return x;
+                    return x.AbsolutePosition + new LLVector3(Constants.RegionSize * scene.RegionInfo.RegionLocX,
+                        Constants.RegionSize * scene.RegionInfo.RegionLocY, 0);
                 }
             }
-            return null;
+            return LLVector3.Zero;
         }
 
         public void BroadcastVoice(VoicePacket packet)
         {
-            libsecondlife.LLVector3 origPos = getScenePresence(packet.m_clientId).AbsolutePosition;
+            libsecondlife.LLVector3 origPos = getScenePresencePosition(packet.m_clientId);
 
             byte[] bytes = packet.GetBytes();
             foreach (VoiceClient client in m_clients.Values)
@@ -329,9 +330,9 @@ namespace OpenSim.Region.Environment.Modules.VoiceChat
                 if (client.IsEnabled() && client.m_clientId != packet.m_clientId &&
                     client.m_authenticated && client.IsCodecSupported(packet.m_codec))
                 {
-                    ScenePresence presence = getScenePresence(client.m_clientId);
+                    LLVector3 presenceLoc = getScenePresencePosition(client.m_clientId);
 
-                    if (presence != null && Util.GetDistanceTo(presence.AbsolutePosition, origPos) < 20)
+                    if (presenceLoc != LLVector3.Zero && Util.GetDistanceTo(presenceLoc, origPos) < 20)
                     {
                         client.SendTo(bytes);
                     }
