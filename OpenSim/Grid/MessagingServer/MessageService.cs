@@ -101,22 +101,28 @@ namespace OpenSim.Grid.MessagingServer
         /// <param name="userpresence">The Agent we're processing the friendlist subscriptions</param>
         public void ProcessFriendListSubscriptions(UserPresenceData userpresence)
         {
+            lock (m_presences)
+            {
+                if (!m_presences.Contains(userpresence.agentData.AgentID))
+                    m_presences.Add(userpresence.agentData.AgentID, userpresence);
+            }
+
             List<FriendListItem> uFriendList = userpresence.friendData;
             for (int i = 0; i < uFriendList.Count; i++)
             {
-                m_presence_BackReferences.Add(userpresence.agentData.AgentID, uFriendList[i].Friend);
-                m_presence_BackReferences.Add(uFriendList[i].Friend, userpresence.agentData.AgentID);
+                //m_presence_BackReferences.Add(userpresence.agentData.AgentID, uFriendList[i].Friend);
+               // m_presence_BackReferences.Add(uFriendList[i].Friend, userpresence.agentData.AgentID);
 
                 if (m_presences.Contains(uFriendList[i].Friend))
                 {
-                    UserPresenceData friendup = (UserPresenceData)m_presences[uFriendList[i]];
+                    UserPresenceData friendup = (UserPresenceData)m_presences[uFriendList[i].Friend];
                     // Add backreference
                     
                     SubscribeToPresenceUpdates(userpresence, friendup, uFriendList[i],i);
                 }
             }
 
-            m_presences.Add(userpresence.agentData.AgentID, userpresence);
+            
         }
 
         /// <summary>
@@ -220,23 +226,47 @@ namespace OpenSim.Grid.MessagingServer
         /// <param name="AgentID"></param>
         private void ProcessLogOff(LLUUID AgentID)
         {
-            if (m_presences.Contains(AgentID))
+            UserPresenceData AgentData = null;
+            List<LLUUID> AgentsNeedingNotification = new List<LLUUID>();
+            UserPresenceData friendd = null;
+            lock (m_presences)
             {
-                UserPresenceData AgentData = (UserPresenceData)m_presences[AgentID];
-
-                if (m_presence_BackReferences.Contains(AgentID))
+                if (m_presences.Contains(AgentID))
                 {
-                    List<LLUUID> AgentsNeedingNotification = (List<LLUUID>)m_presence_BackReferences[AgentID];
-                    for (int i = 0; i < AgentsNeedingNotification.Count; i++)
+                    AgentData = (UserPresenceData)m_presences[AgentID];
+                }
+            }
+
+            if (AgentData != null)
+            {
+                 AgentsNeedingNotification = AgentData.subscriptionData;
+                //lock (m_presence_BackReferences)
+                //{
+                    //if (m_presence_BackReferences.Contains(AgentID))
+                    //{
+                        //AgentsNeedingNotification = (List<LLUUID>)m_presence_BackReferences[AgentID];
+                    //}
+                //}
+
+
+                for (int i = 0; i < AgentsNeedingNotification.Count; i++)
+                {
+                    // TODO: Do Region Notifications
+                    lock(m_presences)
                     {
-                        // TODO: Do Region Notifications
                         if (m_presences.Contains(AgentsNeedingNotification[i]))
                         {
-                            UserPresenceData friendd = (UserPresenceData)m_presences[AgentsNeedingNotification[i]];
-                            
-                            // This might need to be enumerated and checked before we try to remove it.
+                            friendd = (UserPresenceData)m_presences[AgentsNeedingNotification[i]];
+                        }
+                    }
+
+                        // This might need to be enumerated and checked before we try to remove it.
+                    if (friendd != null)
+                    {
+                        lock (friendd)
+                        {
                             friendd.subscriptionData.Remove(AgentID);
-                            
+
                             List<FriendListItem> fl = friendd.friendData;
                             for (int j = 0; j < fl.Count; j++)
                             {
@@ -247,15 +277,19 @@ namespace OpenSim.Grid.MessagingServer
 
                             }
                             friendd.friendData = fl;
-
-                            SendRegionPresenceUpdate(AgentData, friendd);
+                            m_presences[AgentsNeedingNotification[i]] = friendd;
 
                         }
-                        removeBackReference(AgentID, AgentsNeedingNotification[i]);
+                        SendRegionPresenceUpdate(AgentData, friendd);
 
+
+                        //removeBackReference(AgentID, AgentsNeedingNotification[i]);
                     }
+
                 }
+                
             }
+            
         }
         
 
@@ -335,12 +369,24 @@ namespace OpenSim.Grid.MessagingServer
         {
             m_log.Info("[LOGON]: User logged on, building indexes for user");
             Hashtable requestData = (Hashtable)request.Params[0];
+
+            //requestData["sendkey"] = serv.sendkey;
+            //requestData["agentid"] = agentID.ToString();
+            //requestData["sessionid"] = sessionID.ToString();
+            //requestData["regionid"] = RegionID.ToString();
+            //requestData["regionhandle"] = regionhandle.ToString();
+            //requestData["positionx"] = positionX.ToString();
+            //requestData["positiony"] = positionY.ToString();
+            //requestData["positionz"] = positionZ.ToString();
+            //requestData["firstname"] = firstname;
+            //requestData["lastname"] = lastname;
+
             AgentCircuitData agentData = new AgentCircuitData();
-            agentData.SessionID = new LLUUID((string)requestData["session_id"]);
+            agentData.SessionID = new LLUUID((string)requestData["sessionid"]);
             agentData.SecureSessionID = new LLUUID((string)requestData["secure_session_id"]);
             agentData.firstname = (string)requestData["firstname"];
             agentData.lastname = (string)requestData["lastname"];
-            agentData.AgentID = new LLUUID((string)requestData["agent_id"]);
+            agentData.AgentID = new LLUUID((string)requestData["agentid"]);
             agentData.circuitcode = Convert.ToUInt32(requestData["circuit_code"]);
             agentData.CapsPath = (string)requestData["caps_path"];
 
@@ -351,9 +397,9 @@ namespace OpenSim.Grid.MessagingServer
             else
             {
                 agentData.startpos =
-                    new LLVector3(Convert.ToUInt32(requestData["startpos_x"]),
-                                  Convert.ToUInt32(requestData["startpos_y"]),
-                                  Convert.ToUInt32(requestData["startpos_z"]));
+                     new LLVector3(Convert.ToUInt32(requestData["positionx"]),
+                                  Convert.ToUInt32(requestData["positiony"]),
+                                  Convert.ToUInt32(requestData["positionz"]));
                 agentData.child = false;
             }
 
@@ -383,10 +429,10 @@ namespace OpenSim.Grid.MessagingServer
 
             Hashtable requestData = (Hashtable)request.Params[0];
             
-            LLUUID AgentID = new LLUUID((string)requestData["agent_id"]);
+            LLUUID AgentID = new LLUUID((string)requestData["agentid"]);
 
 
-            //ProcessLogOff(AgentID);
+            ProcessLogOff(AgentID);
 
 
             return new XmlRpcResponse();
@@ -458,8 +504,13 @@ namespace OpenSim.Grid.MessagingServer
                 regionProfile.remotingPort = Convert.ToUInt32((string)responseData["remoting_port"]);
                 regionProfile.UUID = new LLUUID((string)responseData["region_UUID"]);
                 regionProfile.regionName = (string)responseData["region_name"];
-
-                m_regionInfoCache.Add(regionHandle, regionProfile);
+                lock (m_regionInfoCache)
+                {
+                    if (!m_regionInfoCache.Contains(regionHandle))
+                    {
+                        m_regionInfoCache.Add(regionHandle, regionProfile);
+                    }
+                }
             }
             catch (WebException)
             {

@@ -94,7 +94,7 @@ namespace OpenSim.Grid.MessagingServer
             if (msgsvc.registerWithUserServer())
             {
                 httpServer.AddXmlRPCHandler("login_to_simulator", msgsvc.UserLoggedOn);
-
+                httpServer.AddXmlRPCHandler("logout_of_simulator", msgsvc.UserLoggedOff);
                 //httpServer.AddXmlRPCHandler("get_user_by_name", m_userManager.XmlRPCGetUserMethodName);
                 //httpServer.AddXmlRPCHandler("get_user_by_uuid", m_userManager.XmlRPCGetUserMethodUUID);
                 //httpServer.AddXmlRPCHandler("get_avatar_picker_avatar", m_userManager.XmlRPCGetAvatarPickerAvatar);

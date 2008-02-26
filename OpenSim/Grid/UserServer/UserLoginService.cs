@@ -44,7 +44,9 @@ using InventoryFolder=OpenSim.Framework.InventoryFolder;
 
 namespace OpenSim.Grid.UserServer
 {
-    public delegate void UserLoggedInAtLocation(LLUUID agentID, LLUUID sessionID, LLUUID RegionID, ulong regionhandle, LLVector3 Position);
+   
+    public delegate void UserLoggedInAtLocation(LLUUID agentID, LLUUID sessionID, LLUUID RegionID,
+    ulong regionhandle, float positionX, float positionY, float positionZ, string firstname, string lastname);
 
     public class UserLoginService : LoginService
     {
@@ -149,7 +151,9 @@ namespace OpenSim.Grid.UserServer
                 if (handler001 != null)
                 {
                     m_log.Info("[LOGIN]: Letting other objects know about login");
-                    handler001(theUser.UUID, theUser.currentAgent.sessionID, theUser.currentAgent.currentRegion, theUser.currentAgent.currentHandle, theUser.currentAgent.currentPos);
+                    handler001(theUser.UUID, theUser.currentAgent.sessionID, theUser.currentAgent.currentRegion, 
+                        theUser.currentAgent.currentHandle, theUser.currentAgent.currentPos.X,theUser.currentAgent.currentPos.Y,theUser.currentAgent.currentPos.Z,
+                        theUser.username,theUser.surname);
                 }
             }
             catch (Exception)
@@ -226,7 +230,9 @@ namespace OpenSim.Grid.UserServer
                     if (handler001 != null)
                     {
                         m_log.Info("[LOGIN]: Letting other objects know about login");
-                        handler001(theUser.UUID, theUser.currentAgent.sessionID, theUser.currentAgent.currentRegion, theUser.currentAgent.currentHandle, theUser.currentAgent.currentPos);
+                        handler001(theUser.UUID, theUser.currentAgent.sessionID, theUser.currentAgent.currentRegion,
+                        theUser.currentAgent.currentHandle, theUser.currentAgent.currentPos.X, theUser.currentAgent.currentPos.Y, theUser.currentAgent.currentPos.Z,
+                        theUser.username, theUser.surname);
                     }
                 }
 

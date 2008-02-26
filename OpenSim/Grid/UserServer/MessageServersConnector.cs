@@ -52,12 +52,20 @@ namespace OpenSim.Grid.UserServer
         
         public void RegisterMessageServer(string URI, MessageServerInfo serverData)
         {
-            MessageServers.Add(URI, serverData);
+            lock (MessageServers)
+            {
+                if (!MessageServers.ContainsKey(URI))
+                    MessageServers.Add(URI, serverData);
+            }
         }
         
         public void DeRegisterMessageServer(string URI)
         {
-            MessageServers.Remove(URI);
+            lock (MessageServers)
+            {
+                if (MessageServers.ContainsKey(URI))
+                    MessageServers.Remove(URI);
+            }
         }
         
         public void AddResponsibleRegion(string URI, ulong regionhandle)
@@ -150,24 +158,73 @@ namespace OpenSim.Grid.UserServer
             return response;
         }
 
-        public void TellMessageServersAboutUser(LLUUID agentID, LLUUID sessionID, LLUUID RegionID, ulong regionhandle, LLVector3 Position)
+        public void TellMessageServersAboutUser(LLUUID agentID, LLUUID sessionID, LLUUID RegionID,
+                                                ulong regionhandle, float positionX, float positionY, 
+                                                float positionZ, string firstname, string lastname)
         {
             // Loop over registered Message Servers ( AND THERE WILL BE MORE THEN ONE :D )
-            if (MessageServers.Count > 0)
+            lock (MessageServers)
             {
-                m_log.Info("[MSGCONNECTOR]: Sending login notice to registered message servers");
-            }
-            else
-            {
-                m_log.Info("[MSGCONNECTOR]: No Message Servers registered, ignoring");
-            }
-            foreach (MessageServerInfo serv in MessageServers.Values)
-            {
-                NotifyMessageServerAboutUser(serv, agentID, sessionID, RegionID, regionhandle, Position);
+                if (MessageServers.Count > 0)
+                {
+                    m_log.Info("[MSGCONNECTOR]: Sending login notice to registered message servers");
+                }
+                else
+                {
+                    m_log.Info("[MSGCONNECTOR]: No Message Servers registered, ignoring");
+                }
+                foreach (MessageServerInfo serv in MessageServers.Values)
+                {
+                    NotifyMessageServerAboutUser(serv, agentID, sessionID, RegionID,
+                                                regionhandle, positionX, positionY, positionZ,
+                                                firstname, lastname);
+                }
             }
         }
 
-        private void NotifyMessageServerAboutUser(MessageServerInfo serv, LLUUID agentID, LLUUID sessionID, LLUUID RegionID, ulong regionhandle, LLVector3 Position)
+        public void TellMessageServersAboutUserLogoff(LLUUID agentID)
+        {
+            lock (MessageServers)
+            {
+                if (MessageServers.Count > 0)
+                {
+                    m_log.Info("[MSGCONNECTOR]: Sending login notice to registered message servers");
+                }
+                else
+                {
+                    m_log.Info("[MSGCONNECTOR]: No Message Servers registered, ignoring");
+                }
+                foreach (MessageServerInfo serv in MessageServers.Values)
+                {
+                    NotifyMessageServerAboutUserLogoff(serv,agentID);
+                }
+            }
+        }
+
+        private void NotifyMessageServerAboutUserLogoff(MessageServerInfo serv, LLUUID agentID)
+        {
+            Hashtable reqparams = new Hashtable();
+            reqparams["sendkey"] = serv.sendkey;
+            reqparams["agentid"] = agentID.ToString();
+            ArrayList SendParams = new ArrayList();
+            SendParams.Add(reqparams);
+
+            XmlRpcRequest GridReq = new XmlRpcRequest("logout_of_simulator", SendParams);
+            try
+            {
+                XmlRpcResponse GridResp = GridReq.Send(serv.URI, 6000);
+            }
+            catch (System.Net.WebException)
+            {
+                m_log.Warn("[MSGCONNECTOR]: Unable to notify Message Server about log out.  Other users might still think this user is online");
+            }
+            m_log.Info("[LOGOUT]: Notified : " + serv.URI + " about user logout");
+        }
+
+        private void NotifyMessageServerAboutUser(MessageServerInfo serv, 
+                                                    LLUUID agentID, LLUUID sessionID, LLUUID RegionID,
+                                                    ulong regionhandle, float positionX, float positionY, float positionZ, 
+                                                    string firstname, string lastname)
         {
             Hashtable reqparams = new Hashtable();
             reqparams["sendkey"] = serv.sendkey;
@@ -175,14 +232,28 @@ namespace OpenSim.Grid.UserServer
             reqparams["sessionid"] = sessionID.ToString();
             reqparams["regionid"] = RegionID.ToString();
             reqparams["regionhandle"] = regionhandle.ToString();
-            reqparams["position"] = Position.ToString();
+            reqparams["positionx"] = positionX.ToString();
+            reqparams["positiony"] = positionY.ToString();
+            reqparams["positionz"] = positionZ.ToString();
+            reqparams["firstname"] = firstname;
+            reqparams["lastname"] = lastname;
+
+            //reqparams["position"] = Position.ToString();
 
             ArrayList SendParams = new ArrayList();
             SendParams.Add(reqparams);
 
             XmlRpcRequest GridReq = new XmlRpcRequest("login_to_simulator", SendParams);
-            XmlRpcResponse GridResp = GridReq.Send(serv.URI, 6000);
-            m_log.Info("[LOGIN]: Notified : " + serv.URI + " about user login");
+            try
+            {
+                XmlRpcResponse GridResp = GridReq.Send(serv.URI, 6000);
+                m_log.Info("[LOGIN]: Notified : " + serv.URI + " about user login");
+            }
+            catch (System.Net.WebException)
+            {
+                m_log.Warn("[MSGCONNECTOR]: Unable to notify Message Server about login.  Presence might be borked for this user");
+            }
+            
         }
     }
 }

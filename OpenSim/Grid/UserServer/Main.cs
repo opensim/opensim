@@ -98,6 +98,7 @@ namespace OpenSim.Grid.UserServer
             m_messagesService = new MessageServersConnector();
 
             m_loginService.OnUserLoggedInAtLocation += NotifyMessageServersUserLoggedInToLocation;
+            m_userManager.OnLogOffUser += NotifyMessageServersUserLoggOff;
 
             m_log.Info("[REGION]: Starting HTTP process");
             BaseHttpServer httpServer = new BaseHttpServer(Cfg.HttpPort);
@@ -225,10 +226,18 @@ namespace OpenSim.Grid.UserServer
             m_console.Notice("response got");
         }
 
-        public void NotifyMessageServersUserLoggedInToLocation(LLUUID agentID, LLUUID sessionID, LLUUID RegionID, ulong regionhandle, LLVector3 Position)
+        public void NotifyMessageServersUserLoggOff(LLUUID agentID)
+        {
+            m_messagesService.TellMessageServersAboutUserLogoff(agentID);
+        }
+
+        public void NotifyMessageServersUserLoggedInToLocation(LLUUID agentID, LLUUID sessionID, LLUUID RegionID,
+                                                                ulong regionhandle, float positionX, float positionY, 
+                                                                float positionZ, string firstname, string lastname)
         {
             
-            m_messagesService.TellMessageServersAboutUser(agentID, sessionID, RegionID, regionhandle, Position);
+            m_messagesService.TellMessageServersAboutUser( agentID, sessionID, RegionID, regionhandle, positionX,
+                positionY,  positionZ, firstname, lastname);
         }
 
         /*private void ConfigDB(IGenericConfig configData)

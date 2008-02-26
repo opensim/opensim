@@ -37,10 +37,13 @@ using OpenSim.Framework.UserManagement;
 
 namespace OpenSim.Grid.UserServer
 {
+    public delegate void logOffUser(LLUUID AgentID);
+
     public class UserManager : UserManagerBase
     {            
         private static readonly log4net.ILog m_log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
-
+        public event logOffUser OnLogOffUser;
+        private logOffUser handler001 = null;
         /// <summary>
         /// Deletes an active agent session
         /// </summary>
@@ -327,7 +330,11 @@ namespace OpenSim.Grid.UserServer
                     float posx = (float)Convert.ToDecimal((string)requestData["region_pos_x"]);
                     float posy = (float)Convert.ToDecimal((string)requestData["region_pos_y"]);
                     float posz = (float)Convert.ToDecimal((string)requestData["region_pos_z"]);
-                    
+
+                    handler001 = OnLogOffUser;
+                    if (handler001 != null)
+                        handler001(userUUID);
+
                     LogOffUser(userUUID, RegionID, regionhandle, posx, posy, posz);
                 }
                 catch (FormatException)
