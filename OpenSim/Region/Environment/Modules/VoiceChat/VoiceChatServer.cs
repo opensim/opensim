@@ -34,18 +34,21 @@ namespace OpenSim.Region.Environment.Modules.VoiceChat
 
         public void Initialise(Scene scene, Nini.Config.IConfigSource source)
         {
-            if (!m_scenes.Contains(scene))
-                m_scenes.Add(scene);
-
-            scene.EventManager.OnNewClient += NewClient;
-            scene.EventManager.OnRemovePresence += RemovePresence;
-
             try
             {
                 m_enabled = source.Configs["Voice"].GetBoolean("enabled", m_enabled);
             }
             catch (Exception)
             { }
+
+            if (m_enabled)
+            {
+                if (!m_scenes.Contains(scene))
+                    m_scenes.Add(scene);
+
+                scene.EventManager.OnNewClient += NewClient;
+                scene.EventManager.OnRemovePresence += RemovePresence;
+            }
         }
 
         public void PostInitialise()
