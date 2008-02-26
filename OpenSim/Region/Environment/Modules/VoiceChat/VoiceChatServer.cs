@@ -21,7 +21,7 @@ namespace OpenSim.Region.Environment.Modules.VoiceChat
 
         Thread m_listenerThread;
         Thread m_mainThread;
-        List<Scene> m_scenes;
+        List<Scene> m_scenes = new List<Scene>();
         Socket m_server;
         Socket m_selectCancel;
         bool m_enabled = false;
