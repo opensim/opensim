@@ -55,22 +55,42 @@ namespace pCampBot
             //Set up our nifty config..  thanks to nini
             ArgvConfigSource cs = new ArgvConfigSource(args);
 
-            cs.AddSwitch("Startup", "botcount");
-            cs.AddSwitch("Startup", "loginuri");
+            cs.AddSwitch("Startup", "botcount","n");
+            cs.AddSwitch("Startup", "loginuri","l");
             cs.AddSwitch("Startup", "firstname");
             cs.AddSwitch("Startup", "lastname");
             cs.AddSwitch("Startup", "password");
+            cs.AddSwitch("Startup", "help","h");
 
             IConfig ol = cs.Configs["Startup"];
-            int botcount = ol.GetInt("botcount", 1);
-            BotManager bm = new BotManager();
-
-            //startup specified number of bots.  1 is the default
-            bm.dobotStartup(botcount, ol);
-            while (true)
-            {
-                MainConsole.Instance.Prompt();
+            if (ol.Get("help") != null) {
+                Help();
+            } else {
+                int botcount = ol.GetInt("botcount", 1);
+                
+                BotManager bm = new BotManager();
+                
+                //startup specified number of bots.  1 is the default
+                bm.dobotStartup(botcount, ol);
+                while (true)
+                {
+                    MainConsole.Instance.Prompt();
+                }
             }
+        }
+        
+        public static void Help()
+        {
+            System.Console.WriteLine(
+                                     "usage: pCampBot <-loginuri loginuri> [OPTIONS]\n" +
+                                     "Spawns a set of bots to test an OpenSim region\n\n" +
+                                     "  -l, -loginuri      loginuri for sim to log into (required)\n" +
+                                     "  -n, -botcount      number of bots to start (default: 1)\n" +
+                                     "  -firstname         first name for the bot(s) (default: random string)\n" +
+                                     "  -lastname          lastname for the bot(s) (default: random string)\n" +
+                                     "  -password          password for the bots(s) (default: random string)\n" +
+                                     "  -h, -help          show this message"
+                                     );
         }
     }
 }
