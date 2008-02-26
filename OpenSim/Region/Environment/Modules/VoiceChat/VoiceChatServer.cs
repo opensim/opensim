@@ -21,7 +21,7 @@ namespace OpenSim.Region.Environment.Modules.VoiceChat
 
         Thread m_listenerThread;
         Thread m_mainThread;
-        Scene m_scene;
+        List<Scene> m_scenes;
         Socket m_server;
         Socket m_selectCancel;
         bool m_enabled = false;
@@ -34,7 +34,11 @@ namespace OpenSim.Region.Environment.Modules.VoiceChat
 
         public void Initialise(Scene scene, Nini.Config.IConfigSource source)
         {
-            m_scene = scene;
+            if (!m_scenes.Contains(scene))
+                m_scenes.Add(scene);
+
+            scene.EventManager.OnNewClient += NewClient;
+            scene.EventManager.OnRemovePresence += RemovePresence;
 
             try
             {
@@ -52,14 +56,11 @@ namespace OpenSim.Region.Environment.Modules.VoiceChat
             m_clients = new Dictionary<Socket, VoiceClient>();
             m_uuidToClient = new Dictionary<LLUUID, VoiceClient>();
 
-            m_scene.EventManager.OnNewClient += NewClient;
-            m_scene.EventManager.OnRemovePresence += RemovePresence;
-
             try
             {
                 CreateListeningSocket();
             }
-            catch (Exception e)
+            catch (Exception)
             {
                 m_log.Error("[VOICECHAT]: Unable to start listening");
                 return;
@@ -305,9 +306,22 @@ namespace OpenSim.Region.Environment.Modules.VoiceChat
             }
         }
 
+        public ScenePresence getScenePresence(LLUUID clientID)
+        {
+            foreach (Scene scene in m_scenes)
+            {
+                ScenePresence x;
+                if ((x = scene.GetScenePresence(clientID)) != null)
+                {
+                    return x;
+                }
+            }
+            return null;
+        }
+
         public void BroadcastVoice(VoicePacket packet)
         {
-            libsecondlife.LLVector3 origPos = m_scene.GetScenePresence(packet.m_clientId).AbsolutePosition;
+            libsecondlife.LLVector3 origPos = getScenePresence(packet.m_clientId).AbsolutePosition;
 
             byte[] bytes = packet.GetBytes();
             foreach (VoiceClient client in m_clients.Values)
@@ -315,7 +329,7 @@ namespace OpenSim.Region.Environment.Modules.VoiceChat
                 if (client.IsEnabled() && client.m_clientId != packet.m_clientId &&
                     client.m_authenticated && client.IsCodecSupported(packet.m_codec))
                 {
-                    ScenePresence presence = m_scene.GetScenePresence(client.m_clientId);
+                    ScenePresence presence = getScenePresence(client.m_clientId);
 
                     if (presence != null && Util.GetDistanceTo(presence.AbsolutePosition, origPos) < 20)
                     {
