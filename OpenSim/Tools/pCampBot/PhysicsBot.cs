@@ -117,7 +117,7 @@ namespace pCampBot
             firstname = startupConfig.GetString("firstname", "random");
             lastname = startupConfig.GetString("lastname", "random");
             password = startupConfig.GetString("password", "12345");
-            loginURI = startupConfig.GetString("loginuri", "http://10.1.1.5:9000");
+            loginURI = startupConfig.GetString("loginuri");
 
 
 
