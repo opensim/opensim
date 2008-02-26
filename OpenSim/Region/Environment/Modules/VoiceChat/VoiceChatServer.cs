@@ -26,8 +26,8 @@ namespace OpenSim.Region.Environment.Modules.VoiceChat
         Socket m_selectCancel;
         bool m_enabled = false;
 
-        Dictionary<Socket, VoiceClient> m_clients;
-        Dictionary<LLUUID, VoiceClient> m_uuidToClient;
+        Dictionary<Socket, VoiceClient> m_clients = new Dictionary<Socket,VoiceClient>();
+        Dictionary<LLUUID, VoiceClient> m_uuidToClient = new Dictionary<LLUUID,VoiceClient>();
 
 
         #region IRegionModule Members
@@ -55,9 +55,6 @@ namespace OpenSim.Region.Environment.Modules.VoiceChat
         {
             if (m_enabled != true)
                 return;
-
-            m_clients = new Dictionary<Socket, VoiceClient>();
-            m_uuidToClient = new Dictionary<LLUUID, VoiceClient>();
 
             try
             {
