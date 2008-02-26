@@ -30,6 +30,7 @@ using System.Net;
 using System.Net.Sockets;
 using System.Collections;
 using System.Collections.Generic;
+using System.Threading;
 //using System.Xml;
 using libsecondlife;
 using Nwc.XmlRpc;
@@ -59,6 +60,8 @@ namespace OpenSim.Grid.MessagingServer
         // Hashtable containing work units that need to be processed
         private Hashtable m_unProcessedWorkUnits = new Hashtable();
 
+        
+
         public MessageService(MessageServerConfig cfg)
         {
             m_cfg = cfg;
@@ -66,29 +69,7 @@ namespace OpenSim.Grid.MessagingServer
         
         #region RegionComms Methods
 
-        /// <summary>
-        /// Informs a region about an Agent
-        /// </summary>
-        /// <param name="TalkingAbout">User to talk about</param>
-        /// <param name="UserToUpdate">User we're sending this too (contains the region)</param>
-        public void SendRegionPresenceUpdate(UserPresenceData TalkingAbout, UserPresenceData UserToUpdate)
-        {
-            // TODO: Fill in pertenant Presence Data from 'TalkingAbout'
-
-            RegionProfileData whichRegion = UserToUpdate.regionData;
-            //whichRegion.httpServerURI
-
-            Hashtable PresenceParams = new Hashtable();
-            ArrayList SendParams = new ArrayList();
-            SendParams.Add(PresenceParams);
-
-            m_log.Info("[PRESENCE]: Informing " + whichRegion.regionName + " at " + whichRegion.httpServerURI);
-            // Send
-            XmlRpcRequest RegionReq = new XmlRpcRequest("presence_update", SendParams);
-            XmlRpcResponse RegionResp = RegionReq.Send(whichRegion.httpServerURI, 6000);
-        }
-
-
+        
         #endregion
 
         #region FriendList Methods
@@ -152,7 +133,13 @@ namespace OpenSim.Grid.MessagingServer
                     // we need to send out online status update, but the user is already subscribed
                     
                 }
-                SendRegionPresenceUpdate(friendpresence, userpresence);
+                PresenceInformer friendlistupdater = new PresenceInformer();
+                friendlistupdater.presence1 = friendpresence;
+                friendlistupdater.presence2 = userpresence;
+                WaitCallback cb = new WaitCallback(friendlistupdater.go);
+                ThreadPool.QueueUserWorkItem(cb);
+
+                //SendRegionPresenceUpdate(friendpresence, userpresence);
             }
             if ((uFriendListItem.FriendPerms & (uint)FriendRights.CanSeeOnline) != 0)
             {
@@ -166,7 +153,14 @@ namespace OpenSim.Grid.MessagingServer
                     // we need to send out online status update, but the user is already subscribed
 
                 }
-                SendRegionPresenceUpdate(userpresence, friendpresence);
+                PresenceInformer friendlistupdater = new PresenceInformer();
+                friendlistupdater.presence1 = userpresence;
+                friendlistupdater.presence2 = friendpresence;
+
+                WaitCallback cb2 = new WaitCallback(friendlistupdater.go);
+                ThreadPool.QueueUserWorkItem(cb2);
+                
+                //SendRegionPresenceUpdate(userpresence, friendpresence);
             }
 
         }
@@ -280,7 +274,14 @@ namespace OpenSim.Grid.MessagingServer
                             m_presences[AgentsNeedingNotification[i]] = friendd;
 
                         }
-                        SendRegionPresenceUpdate(AgentData, friendd);
+                        PresenceInformer friendlistupdater = new PresenceInformer();
+                        friendlistupdater.presence1 = AgentData;
+                        friendlistupdater.presence2 = friendd;
+
+                        WaitCallback cb3 = new WaitCallback(friendlistupdater.go);
+                        ThreadPool.QueueUserWorkItem(cb3);
+
+                        //SendRegionPresenceUpdate(AgentData, friendd);
 
 
                         //removeBackReference(AgentID, AgentsNeedingNotification[i]);
