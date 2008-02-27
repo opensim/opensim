@@ -138,6 +138,11 @@ namespace Prebuild.Core.Parse
 				return "Win32";
 			}
 
+            if (File.Exists("/System/Library/Frameworks/Cocoa.framework/Cocoa"))
+            {
+                return "MACOSX";
+            }
+
 			/*
 			 * .NET 1.x, under Mono, the UNIX code is 128. Under
 			 * .NET 2.x, Mono or MS, the UNIX code is 4
