@@ -131,6 +131,7 @@ namespace SimpleApp
         public event RezScript OnRezScript;
         public event UpdateTaskInventory OnUpdateTaskInventory;
         public event RemoveTaskInventory OnRemoveTaskItem;
+        public event RequestAsset OnRequestAsset;
 
         public event UUIDNameRequest OnNameFromUUIDRequest;
 

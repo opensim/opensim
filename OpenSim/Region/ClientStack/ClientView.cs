@@ -51,10 +51,10 @@ namespace OpenSim.Region.ClientStack
     /// </summary>
     public class ClientView : IClientAPI
     {
-//                ~ClientView()
-//                {
-//                    System.Console.WriteLine("[CLIENTVIEW]: Destructor called");                       
-//                }
+        //                ~ClientView()
+        //                {
+        //                    System.Console.WriteLine("[CLIENTVIEW]: Destructor called");                       
+        //                }
 
         private static readonly log4net.ILog m_log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 
@@ -119,7 +119,7 @@ namespace OpenSim.Region.ClientStack
         protected LLVector3 m_startpos;
         protected EndPoint m_userEndPoint;
 
-        /* Instantiated Designated Event Delegates */ 
+        /* Instantiated Designated Event Delegates */
         //- used so we don't create new objects for each incoming packet and then toss it out later */
 
         private RequestAvatarProperties handler001 = null; //OnRequestAvatarProperties;
@@ -214,7 +214,8 @@ namespace OpenSim.Region.ClientStack
         private UpdateVector handler089 = null; //OnUpdatePrimGroupPosition;
         private UpdatePrimRotation handler090 = null; //OnUpdatePrimGroupRotation;
         private UpdatePrimGroupRotation handler091 = null; //OnUpdatePrimGroupMouseRotation;
-        private PacketStats handler093 = null; // OnPacketStats;
+        private PacketStats handler093 = null; // OnPacketStats;#
+        private RequestAsset handler094 = null; // OnRequestAsset;
 
 
         /* Properties */
@@ -363,7 +364,7 @@ namespace OpenSim.Region.ClientStack
             // We can't reach into other scenes and close the connection 
             // We need to do this over grid communications
             //m_scene.CloseAllAgents(CircuitCode);
-            
+
             // If we're not shutting down the circuit, then this is the last time we'll go here.
             // If we are shutting down the circuit, the UDP Server will come back here with 
             // ShutDownCircuit = false
@@ -502,7 +503,7 @@ namespace OpenSim.Region.ClientStack
         protected virtual void ClientLoop()
         {
             m_log.Info("[CLIENT]: Entered loop");
-            while( true )
+            while (true)
             {
                 QueItem nextPacket = m_packetQueue.Dequeue();
                 if (nextPacket.Incoming)
@@ -690,6 +691,7 @@ namespace OpenSim.Region.ClientStack
         public event RezScript OnRezScript;
         public event UpdateTaskInventory OnUpdateTaskInventory;
         public event RemoveTaskInventory OnRemoveTaskItem;
+        public event RequestAsset OnRequestAsset;
 
         public event UUIDNameRequest OnNameFromUUIDRequest;
 
@@ -1410,7 +1412,7 @@ namespace OpenSim.Region.ClientStack
             OutPacket(replyPacket, ThrottleOutPacketType.Task);
         }
 
-        public void SendAgentDataUpdate(LLUUID agentid, LLUUID activegroupid, string firstname, string lastname, ulong grouppowers, string groupname,string grouptitle)
+        public void SendAgentDataUpdate(LLUUID agentid, LLUUID activegroupid, string firstname, string lastname, ulong grouppowers, string groupname, string grouptitle)
         {
             AgentDataUpdatePacket sendAgentDataUpdate = (AgentDataUpdatePacket)PacketPool.Instance.GetPacket(PacketType.AgentDataUpdate);
             sendAgentDataUpdate.AgentData.ActiveGroupID = activegroupid;
@@ -1420,7 +1422,7 @@ namespace OpenSim.Region.ClientStack
             sendAgentDataUpdate.AgentData.GroupPowers = grouppowers;
             sendAgentDataUpdate.AgentData.GroupTitle = Helpers.StringToField(grouptitle);
             sendAgentDataUpdate.AgentData.LastName = Helpers.StringToField(lastname);
-            OutPacket(sendAgentDataUpdate,ThrottleOutPacketType.Task);
+            OutPacket(sendAgentDataUpdate, ThrottleOutPacketType.Task);
         }
 
         /// <summary>
@@ -2329,10 +2331,10 @@ namespace OpenSim.Region.ClientStack
                     {
                         LLUUID partId = part.UUID;
 
-                        
-                        
-                        
-                        
+
+
+
+
                         UpdatePrimRotation handler090 = OnUpdatePrimGroupRotation;
                         UpdatePrimGroupRotation handler091 = OnUpdatePrimGroupMouseRotation;
 
@@ -2344,7 +2346,7 @@ namespace OpenSim.Region.ClientStack
                                 handler086 = OnUpdatePrimSinglePosition;
                                 if (handler086 != null)
                                 {
-                                    
+
                                     // System.Console.WriteLine("new movement position is " + pos.X + " , " + pos.Y + " , " + pos.Z);
                                     handler086(localId, pos1, this);
                                 }
@@ -2355,18 +2357,18 @@ namespace OpenSim.Region.ClientStack
                                 handler087 = OnUpdatePrimSingleRotation;
                                 if (handler087 != null)
                                 {
-                                    
+
                                     //System.Console.WriteLine("new tab rotation is " + rot.X + " , " + rot.Y + " , " + rot.Z + " , " + rot.W);
                                     handler087(localId, rot1, this);
                                 }
                                 break;
                             case 3:
-                                
+
                                 LLQuaternion rot2 = new LLQuaternion(block.Data, 12, true);
                                 handler087 = OnUpdatePrimSingleRotation;
                                 if (handler087 != null)
                                 {
-                                    
+
                                     //System.Console.WriteLine("new mouse rotation is " + rot.X + " , " + rot.Y + " , " + rot.Z + " , " + rot.W);
                                     handler087(localId, rot2, this);
                                 }
@@ -2378,7 +2380,7 @@ namespace OpenSim.Region.ClientStack
                                 handler088 = OnUpdatePrimScale;
                                 if (handler088 != null)
                                 {
-                                    
+
                                     // Console.WriteLine("new scale is " + scale.X + " , " + scale.Y + " , " + scale.Z);
                                     handler088(localId, scale1, this);
                                 }
@@ -2390,18 +2392,18 @@ namespace OpenSim.Region.ClientStack
 
                                 if (handler089 != null)
                                 {
-                                    
+
                                     handler089(localId, pos2, this);
                                 }
                                 break;
                             case 10:
-                                
+
                                 LLQuaternion rot3 = new LLQuaternion(block.Data, 0, true);
 
                                 handler090 = OnUpdatePrimGroupRotation;
                                 if (handler090 != null)
                                 {
-                                    
+
                                     //  Console.WriteLine("new rotation is " + rot.X + " , " + rot.Y + " , " + rot.Z + " , " + rot.W);
                                     handler090(localId, rot3, this);
                                 }
@@ -2429,7 +2431,7 @@ namespace OpenSim.Region.ClientStack
                                 handler088 = OnUpdatePrimScale;
                                 if (handler088 != null)
                                 {
-                                    
+
                                     //Console.WriteLine("new scale is " + scale.X + " , " + scale.Y + " , " + scale.Z);
                                     handler088(localId, scale2, this);
 
@@ -2449,10 +2451,10 @@ namespace OpenSim.Region.ClientStack
                                 handler088 = OnUpdatePrimScale;
                                 if (handler088 != null)
                                 {
-                                    
+
                                     // Console.WriteLine("new scale is " + scale.X + " , " + scale.Y + " , " + scale.Z );
                                     handler088(localId, scale5, this);
-                                    
+
                                     handler086 = OnUpdatePrimSinglePosition;
                                     if (handler086 != null)
                                     {
@@ -2762,7 +2764,7 @@ namespace OpenSim.Region.ClientStack
                     if ((now - packet.TickCount > RESEND_TIMEOUT) && (!packet.Header.Resent))
                     {
                         //m_log.Debug("[NETWORK]: Resending " + packet.Type.ToString() + " packet, " +
-                                                            //(now - packet.TickCount) + "ms have passed");
+                        //(now - packet.TickCount) + "ms have passed");
 
                         packet.Header.Resent = true;
                         OutPacket(packet, ThrottleOutPacketType.Resend);
@@ -2863,13 +2865,13 @@ namespace OpenSim.Region.ClientStack
 
                     case PacketType.AvatarPropertiesRequest:
                         AvatarPropertiesRequestPacket avatarProperties = (AvatarPropertiesRequestPacket)Pack;
-                        
+
                         handler001 = OnRequestAvatarProperties;
                         if (handler001 != null)
                         {
                             handler001(this, avatarProperties.AgentData.AvatarID);
                         }
-                        
+
 
                         break;
                     case PacketType.ChatFromViewer:
@@ -2900,7 +2902,7 @@ namespace OpenSim.Region.ClientStack
                                 handler002(this, args);
                         }
 
-                        
+
 
                         break;
                     case PacketType.ScriptDialogReply:
@@ -2921,7 +2923,7 @@ namespace OpenSim.Region.ClientStack
                             if (handler003 != null)
                                 handler003(this, args);
                         }
-                        
+
                         break;
                     case PacketType.ImprovedInstantMessage:
                         ImprovedInstantMessagePacket msgpack = (ImprovedInstantMessagePacket)Pack;
@@ -2940,7 +2942,7 @@ namespace OpenSim.Region.ClientStack
                                              msgpack.MessageBlock.BinaryBucket);
                         }
 
-                        
+
                         break;
 
                     case PacketType.AcceptFriendship:
@@ -2963,7 +2965,7 @@ namespace OpenSim.Region.ClientStack
                             handler005(this, agentID, transactionID, callingCardFolders);
                         }
 
-                        
+
 
 
                         break;
@@ -2977,7 +2979,7 @@ namespace OpenSim.Region.ClientStack
                         {
                             handler006(this, listOwnerAgentID, exFriendID);
                         }
-                        
+
 
                         break;
                     case PacketType.RezObject:
@@ -2995,7 +2997,7 @@ namespace OpenSim.Region.ClientStack
                             //rezPacket.RezData.RezSelected;
                             //rezPacket.RezData.FromTaskID;
                             //m_log.Info("[REZData]: " + rezPacket.ToString());
-                            
+
                             handler007(this, rezPacket.InventoryData.ItemID, rezPacket.RezData.RayEnd,
                                 rezPacket.RezData.RayStart, rezPacket.RezData.RayTargetID,
                                 rezPacket.RezData.BypassRaycast, rezPacket.RezData.RayEndIsIntersection,
@@ -3004,7 +3006,7 @@ namespace OpenSim.Region.ClientStack
                                 rezPacket.RezData.RezSelected, rezPacket.RezData.RemoveItem,
                                 rezPacket.RezData.FromTaskID);
                         }
-                        
+
                         break;
                     case PacketType.DeRezObject:
                         handler008 = OnDeRezObject;
@@ -3012,7 +3014,7 @@ namespace OpenSim.Region.ClientStack
                         {
                             handler008(Pack, this);
                         }
-                        
+
                         break;
                     case PacketType.ModifyLand:
                         ModifyLandPacket modify = (ModifyLandPacket)Pack;
@@ -3021,7 +3023,7 @@ namespace OpenSim.Region.ClientStack
                         {
                             if (OnModifyTerrain != null)
                             {
-                                
+
                                 for (int i = 0; i < modify.ParcelData.Length; i++)
                                 {
                                     handler009 = OnModifyTerrain;
@@ -3036,7 +3038,7 @@ namespace OpenSim.Region.ClientStack
                                 }
                             }
                         }
-                        
+
                         break;
                     case PacketType.RegionHandshakeReply:
 
@@ -3045,7 +3047,7 @@ namespace OpenSim.Region.ClientStack
                         {
                             handler010(this);
                         }
-                        
+
                         break;
                     case PacketType.AgentWearablesRequest:
                         handler011 = OnRequestWearables;
@@ -3054,7 +3056,7 @@ namespace OpenSim.Region.ClientStack
                         {
                             handler011();
                         }
-                        
+
 
                         handler012 = OnRequestAvatarsData;
 
@@ -3063,7 +3065,7 @@ namespace OpenSim.Region.ClientStack
                             handler012(this);
                         }
 
-                        
+
                         break;
                     case PacketType.AgentSetAppearance:
                         AgentSetAppearancePacket appear = (AgentSetAppearancePacket)Pack;
@@ -3073,7 +3075,7 @@ namespace OpenSim.Region.ClientStack
                         {
                             handler013(appear.ObjectData.TextureEntry, appear.VisualParam);
                         }
-                        
+
                         break;
                     case PacketType.AgentIsNowWearing:
                         if (OnAvatarNowWearing != null)
@@ -3094,7 +3096,7 @@ namespace OpenSim.Region.ClientStack
                                 handler014(this, wearingArgs);
                             }
 
-                            
+
                         }
                         break;
                     case PacketType.RezSingleAttachmentFromInv:
@@ -3102,28 +3104,28 @@ namespace OpenSim.Region.ClientStack
                         handler015 = OnRezSingleAttachmentFromInv;
                         if (handler015 != null)
                         {
-                            RezSingleAttachmentFromInvPacket rez = (RezSingleAttachmentFromInvPacket) Pack;
-                            handler015(this, rez.ObjectData.ItemID, 
+                            RezSingleAttachmentFromInvPacket rez = (RezSingleAttachmentFromInvPacket)Pack;
+                            handler015(this, rez.ObjectData.ItemID,
                                         rez.ObjectData.AttachmentPt, rez.ObjectData.ItemFlags, rez.ObjectData.NextOwnerMask);
                         }
-                        
-                        break; 
+
+                        break;
                     case PacketType.ObjectAttach:
 
-                        
+
                         if (OnObjectAttach != null)
                         {
                             ObjectAttachPacket att = (ObjectAttachPacket)Pack;
-                            
+
                             handler016 = OnObjectAttach;
-                            
+
                             if (handler016 != null)
-                            {    
+                            {
                                 handler016(this, att.ObjectData[0].ObjectLocalID, att.AgentData.AttachmentPoint, att.ObjectData[0].Rotation);
                             }
                         }
-                        
-                        break; 
+
+                        break;
                     case PacketType.SetAlwaysRun:
                         SetAlwaysRunPacket run = (SetAlwaysRunPacket)Pack;
 
@@ -3131,7 +3133,7 @@ namespace OpenSim.Region.ClientStack
                         if (handler017 != null)
                             handler017(this, run.AgentData.AlwaysRun);
 
-                        
+
 
                         break;
                     case PacketType.CompleteAgentMovement:
@@ -3243,7 +3245,7 @@ namespace OpenSim.Region.ClientStack
 
                     case PacketType.SetStartLocationRequest:
                         SetStartLocationRequestPacket avSetStartLocationRequestPacket = (SetStartLocationRequestPacket)Pack;
-                        
+
                         if (avSetStartLocationRequestPacket.AgentData.AgentID == AgentId && avSetStartLocationRequestPacket.AgentData.SessionID == SessionId)
                         {
                             handler027 = OnSetStartLocationRequest;
@@ -3494,7 +3496,7 @@ namespace OpenSim.Region.ClientStack
                                 byte set = permChanges.Set;
 
                                 handler043 = OnObjectPermissions;
-                                
+
                                 if (handler043 != null)
                                     OnObjectPermissions(this, AgentID, SessionID, field, localID, mask, set);
                             }
@@ -3539,7 +3541,7 @@ namespace OpenSim.Region.ClientStack
                     case PacketType.RequestImage:
                         RequestImagePacket imageRequest = (RequestImagePacket)Pack;
                         //Console.WriteLine("image request: " + Pack.ToString());
-                        
+
                         handler045 = null;
 
                         for (int i = 0; i < imageRequest.RequestImage.Length; i++)
@@ -3551,9 +3553,9 @@ namespace OpenSim.Region.ClientStack
                                 args.DiscardLevel = imageRequest.RequestImage[i].DiscardLevel;
                                 args.PacketNumber = imageRequest.RequestImage[i].Packet;
                                 args.Priority = imageRequest.RequestImage[i].DownloadPriority;
-                                
+
                                 handler045 = OnRequestTexture;
-                                
+
                                 if (handler045 != null)
                                     OnRequestTexture(this, args);
                             }
@@ -3562,7 +3564,12 @@ namespace OpenSim.Region.ClientStack
                     case PacketType.TransferRequest:
                         //Console.WriteLine("ClientView.ProcessPackets.cs:ProcessInPacket() - Got transfer request");
                         TransferRequestPacket transfer = (TransferRequestPacket)Pack;
-                        m_assetCache.AddAssetRequest(this, transfer);
+                        // m_assetCache.AddAssetRequest(this, transfer);
+                        handler094 = OnRequestAsset;
+                        if (handler094 != null)
+                        {
+                            handler094(this, transfer);
+                        }
                         break;
                     case PacketType.AssetUploadRequest:
                         AssetUploadRequestPacket request = (AssetUploadRequestPacket)Pack;
@@ -3606,7 +3613,7 @@ namespace OpenSim.Region.ClientStack
                         handler049 = OnConfirmXfer;
                         if (handler049 != null)
                         {
-                             handler049(this, confirmXfer.XferID.ID, confirmXfer.XferID.Packet);
+                            handler049(this, confirmXfer.XferID.ID, confirmXfer.XferID.Packet);
                         }
                         break;
                     case PacketType.CreateInventoryFolder:
@@ -3615,7 +3622,7 @@ namespace OpenSim.Region.ClientStack
                         handler050 = OnCreateNewInventoryFolder;
                         if (handler050 != null)
                         {
-                            
+
                             handler050(this, invFolder.FolderData.FolderID,
                                        (ushort)invFolder.FolderData.Type,
                                        Util.FieldToString(invFolder.FolderData.Name),
@@ -3709,7 +3716,7 @@ namespace OpenSim.Region.ClientStack
                         }
                         break;
                     case PacketType.PurgeInventoryDescendents:
-                        
+
                         PurgeInventoryDescendentsPacket Purge = (PurgeInventoryDescendentsPacket)Pack;
 
                         handler056 = OnPurgeInventoryDescendents;
@@ -4130,7 +4137,7 @@ namespace OpenSim.Region.ClientStack
                         }
                         break;
                     case PacketType.EstateCovenantRequest:
-                        
+
                         EstateCovenantRequestPacket.AgentDataBlock epack =
                             ((EstateCovenantRequestPacket)Pack).AgentData;
 
@@ -4246,9 +4253,9 @@ namespace OpenSim.Region.ClientStack
                         m_log.Warn("[CLIENT]: unhandled MuteListRequest packet");
                         break;
                     //case PacketType.AgentDataUpdateRequest:
-                        // TODO: handle this packet
-                        //m_log.Warn("[CLIENT]: unhandled AgentDataUpdateRequest packet");
-                        //break;
+                    // TODO: handle this packet
+                    //m_log.Warn("[CLIENT]: unhandled AgentDataUpdateRequest packet");
+                    //break;
 
                     case PacketType.ParcelDwellRequest:
                         // TODO: handle this packet
@@ -4275,9 +4282,9 @@ namespace OpenSim.Region.ClientStack
                         m_log.Warn("[CLIENT]: unhandled SoundTrigger packet");
                         break;
                     //case PacketType.UserInfoRequest:
-                        // TODO: handle this packet
-                        //m_log.Warn("[CLIENT]: unhandled UserInfoRequest packet");
-                        //break;
+                    // TODO: handle this packet
+                    //m_log.Warn("[CLIENT]: unhandled UserInfoRequest packet");
+                    //break;
                     case PacketType.InventoryDescendents:
                         // TODO: handle this packet
                         m_log.Warn("[CLIENT]: unhandled InventoryDescent packet");
