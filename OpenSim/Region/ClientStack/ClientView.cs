@@ -3564,12 +3564,12 @@ namespace OpenSim.Region.ClientStack
                     case PacketType.TransferRequest:
                         //Console.WriteLine("ClientView.ProcessPackets.cs:ProcessInPacket() - Got transfer request");
                         TransferRequestPacket transfer = (TransferRequestPacket)Pack;
-                        // m_assetCache.AddAssetRequest(this, transfer);
-                        handler094 = OnRequestAsset;
+                        m_assetCache.AddAssetRequest(this, transfer);
+                       /* handler094 = OnRequestAsset;
                         if (handler094 != null)
                         {
                             handler094(this, transfer);
-                        }
+                        }*/
                         break;
                     case PacketType.AssetUploadRequest:
                         AssetUploadRequestPacket request = (AssetUploadRequestPacket)Pack;

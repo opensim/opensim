@@ -69,12 +69,12 @@ namespace OpenSim.Framework.Communications.Cache
         ///
         /// Assets requests which are waiting for asset server data.  This includes texture requests
         /// </summary>
-        //   private Dictionary<LLUUID, AssetRequest> RequestedAssets;
+         private Dictionary<LLUUID, AssetRequest> RequestedAssets;
 
         /// <summary>
         /// Asset requests with data which are ready to be sent back to requesters.  This includes textures.
         /// </summary>
-       //  private List<AssetRequest> AssetRequests;
+        private List<AssetRequest> AssetRequests;
 
 
         /// <summary>
@@ -84,7 +84,7 @@ namespace OpenSim.Framework.Communications.Cache
 
         private readonly IAssetServer m_assetServer;
 
-      //  private readonly Thread m_assetCacheThread;
+        private readonly Thread m_assetCacheThread;
 
         /// <summary>
         /// Report statistical data.
@@ -94,7 +94,7 @@ namespace OpenSim.Framework.Communications.Cache
             m_log.InfoFormat("Assets:{0}  Textures:{1}   RequestLists:{2}",
                 Assets.Count,
                 Textures.Count,
-               //  AssetRequests.Count,
+              //   AssetRequests.Count,
               //    RequestedAssets.Count,
                 RequestLists.Count);
 
@@ -150,9 +150,9 @@ namespace OpenSim.Framework.Communications.Cache
         {
             Assets = new Dictionary<LLUUID, AssetInfo>();
             Textures = new Dictionary<LLUUID, TextureImage>();
-           //  AssetRequests = new List<AssetRequest>();
+            AssetRequests = new List<AssetRequest>();
 
-           //  RequestedAssets = new Dictionary<LLUUID, AssetRequest>();
+            RequestedAssets = new Dictionary<LLUUID, AssetRequest>();
             RequestLists = new Dictionary<LLUUID, AssetRequestsList>();
         }
 
@@ -168,18 +168,18 @@ namespace OpenSim.Framework.Communications.Cache
             m_assetServer = assetServer;
             m_assetServer.SetReceiver(this);
 
-             // m_assetCacheThread = new Thread(new ThreadStart(RunAssetManager));
-            //  m_assetCacheThread.Name = "AssetCacheThread";
-             //  m_assetCacheThread.IsBackground = true;
-             //  m_assetCacheThread.Start();
-             // OpenSim.Framework.ThreadTracker.Add(m_assetCacheThread);
+             m_assetCacheThread = new Thread(new ThreadStart(RunAssetManager));
+              m_assetCacheThread.Name = "AssetCacheThread";
+              m_assetCacheThread.IsBackground = true;
+              m_assetCacheThread.Start();
+             OpenSim.Framework.ThreadTracker.Add(m_assetCacheThread);
         }
 
         /// <summary>
         /// Process the asset queue which holds data which is packeted up and sent
         /// directly back to the client.
         /// </summary>
-         /*   public void RunAssetManager()
+            public void RunAssetManager()
             {
                 while (true)
                 {
@@ -193,7 +193,7 @@ namespace OpenSim.Framework.Communications.Cache
                         m_log.Error("[ASSET CACHE]: " + e.ToString());
                     }
                 }
-            }*/
+            }
 
         /// <summary>
         /// Only get an asset if we already have it in the cache.
@@ -449,7 +449,7 @@ namespace OpenSim.Framework.Communications.Cache
                             StatsManager.SimExtraStats.AddAsset(assetInf);
                         }
 
-                        /*  if (RequestedAssets.ContainsKey(assetInf.FullID))
+                        if (RequestedAssets.ContainsKey(assetInf.FullID))
                            {
    #if DEBUG
                                //m_log.DebugFormat("[ASSET CACHE]: Moving {0} from RequestedAssets to AssetRequests", asset.FullID);
@@ -461,7 +461,7 @@ namespace OpenSim.Framework.Communications.Cache
 
                                RequestedAssets.Remove(assetInf.FullID);
                                AssetRequests.Add(req);
-                           }*/
+                           }
                     }
                 }
 
@@ -485,6 +485,7 @@ namespace OpenSim.Framework.Communications.Cache
                         //texturedownloadmodule , and hitting a lock in there. While the texturedownload thread (which was holding
                         // the lock in the texturedownload module) was trying to 
                         //request a new asset and hitting a lock in here on the RequestLists.
+                        
                         List<NewAssetRequest> theseRequests = new List<NewAssetRequest>(reqList.Requests);
                         reqList.Requests.Clear();
 
@@ -541,7 +542,7 @@ namespace OpenSim.Framework.Communications.Cache
 
         }
 
-        /*
+        
           /// <summary>
            /// Calculate the number of packets required to send the asset to the client.
            /// </summary>
@@ -735,7 +736,7 @@ namespace OpenSim.Framework.Communications.Cache
                {
                }
            }
-        */
+        
 
         public class AssetInfo : AssetBase
         {

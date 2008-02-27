@@ -65,17 +65,17 @@ namespace OpenSim.Region.Environment.Modules
             if (!RegisteredScenes.ContainsKey(scene.RegionInfo.RegionID))
             {
                 RegisteredScenes.Add(scene.RegionInfo.RegionID, scene);
-                scene.EventManager.OnNewClient += NewClient;
+              //  scene.EventManager.OnNewClient += NewClient;
             }
 
             if (m_scene == null)
             {
                 m_scene = scene;
-                m_thread = new Thread(new ThreadStart(RunAssetQueue));
-                m_thread.Name = "AssetDownloadQueueThread";
-                m_thread.IsBackground = true;
-                m_thread.Start();
-                OpenSim.Framework.ThreadTracker.Add(m_thread);
+               // m_thread = new Thread(new ThreadStart(RunAssetQueue));
+              //  m_thread.Name = "AssetDownloadQueueThread";
+               // m_thread.IsBackground = true;
+               // m_thread.Start();
+               // OpenSim.Framework.ThreadTracker.Add(m_thread);
             }
         }
 
@@ -99,7 +99,7 @@ namespace OpenSim.Region.Environment.Modules
 
         public void NewClient(IClientAPI client)
         {
-            client.OnRequestAsset += AddAssetRequest;
+           // client.OnRequestAsset += AddAssetRequest;
         }
 
         /// <summary>
