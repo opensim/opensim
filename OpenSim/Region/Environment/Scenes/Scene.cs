@@ -1555,7 +1555,10 @@ namespace OpenSim.Region.Environment.Scenes
             }
 
             // Remove client agent from profile, so new logins will work
-            m_sceneGridService.ClearUserAgent(agentID);
+            if (!avatar.IsChildAgent)
+            {
+                m_sceneGridService.ClearUserAgent(agentID);
+            }
 
             //m_log.InfoFormat("[SCENE] Memory pre  GC {0}", System.GC.GetTotalMemory(false));
             //m_log.InfoFormat("[SCENE] Memory post GC {0}", System.GC.GetTotalMemory(true));            
@@ -1630,10 +1633,6 @@ namespace OpenSim.Region.Environment.Scenes
             m_sceneGridService.OnChildAgentUpdate += IncomingChildAgentDataUpdate;
             m_sceneGridService.OnExpectPrim += IncomingInterRegionPrimGroup;
             m_sceneGridService.OnRemoveKnownRegionFromAvatar += HandleRemoveKnownRegionsFromAvatar;
-
-
-
-
 
             m_sceneGridService.KillObject = SendKillObject;
         }
@@ -1788,7 +1787,7 @@ namespace OpenSim.Region.Environment.Scenes
                     }
                     // Tell a single agent to disconnect from the region.
                     libsecondlife.Packets.DisableSimulatorPacket disable = (libsecondlife.Packets.DisableSimulatorPacket)PacketPool.Instance.GetPacket(libsecondlife.Packets.PacketType.DisableSimulator);
-                    presence.ControllingClient.OutPacket(disable, ThrottleOutPacketType.Task);
+                    presence.ControllingClient.OutPacket(disable, ThrottleOutPacketType.Unknown);
                     presence.ControllingClient.Close(true);
                 }
             }

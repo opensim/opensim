@@ -345,7 +345,7 @@ namespace OpenSim.Region.ClientStack
 
             // Send the STOP packet 
             DisableSimulatorPacket disable = (DisableSimulatorPacket)PacketPool.Instance.GetPacket(PacketType.DisableSimulator);
-            OutPacket(disable, ThrottleOutPacketType.Task);
+            OutPacket(disable, ThrottleOutPacketType.Unknown);
 
             m_packetQueue.Close();
 
