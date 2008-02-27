@@ -143,8 +143,9 @@ namespace OpenSim.Region.Environment.Modules.Terrain
             m_floodeffects[StandardTerrainEffects.Raise] = new FloodBrushes.RaiseArea();
 
             // Float[256,256] array format (RAW32)
-            // m_loaders[".r32"] = new FileLoaders.RAW32();
-            // m_loaders[".f32"] = m_loaders[".r32"];
+            m_loaders[".r32"] = new FileLoaders.RAW32();
+            m_loaders[".f32"] = m_loaders[".r32"];
+            m_loaders[".ter"] = new FileLoaders.Terragen();
         }
 
         public void LoadFromFile(string filename)
