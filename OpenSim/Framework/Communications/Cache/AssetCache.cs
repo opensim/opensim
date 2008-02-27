@@ -91,7 +91,7 @@ namespace OpenSim.Framework.Communications.Cache
         /// </summary>
         public void ShowState()
         {
-            m_log.InfoFormat("Assets:{0}  Textures:{1}  AssetRequests:{2}  RequestedAssets:{3}  RequestLists:{4}",
+            m_log.InfoFormat("Assets:{0}  Textures:{1}   RequestLists:{2}",
                 Assets.Count,
                 Textures.Count,
                //  AssetRequests.Count,
