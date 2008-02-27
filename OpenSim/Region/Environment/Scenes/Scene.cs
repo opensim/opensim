@@ -1466,7 +1466,12 @@ namespace OpenSim.Region.Environment.Scenes
         /// <param name="agentID"></param>
         public override void RemoveClient(LLUUID agentID)
         {
+            bool childagentYN = false;
             ScenePresence avatar = GetScenePresence(agentID);
+            if (avatar != null)
+            {
+                childagentYN = avatar.IsChildAgent;
+            }
             try
             {
                 if (avatar.IsChildAgent)
@@ -1555,7 +1560,7 @@ namespace OpenSim.Region.Environment.Scenes
             }
 
             // Remove client agent from profile, so new logins will work
-            if (!avatar.IsChildAgent)
+            if (!childagentYN)
             {
                 m_sceneGridService.ClearUserAgent(agentID);
             }

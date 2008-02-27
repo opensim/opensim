@@ -35,6 +35,7 @@ using OpenSim.Framework.Console;
 using OpenSim.Region.Environment.Interfaces;
 using OpenSim.Region.Environment.Scenes;
 using libsecondlife;
+using Nwc.XmlRpc;
 
 namespace OpenSim.Region.Environment.Modules
 {
@@ -42,17 +43,31 @@ namespace OpenSim.Region.Environment.Modules
     {
         private static readonly log4net.ILog m_log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 
-        private Scene m_scene;
+        private List<Scene> m_scene = new List<Scene>();
 
         Dictionary<LLUUID, LLUUID> m_pendingFriendRequests = new Dictionary<LLUUID, LLUUID>();
 
         public void Initialise(Scene scene, IConfigSource config)
         {
-            m_scene = scene;
+            lock (m_scene)
+            {
+                if (m_scene.Count == 0)
+                {
+                    scene.AddXmlRPCHandler("presence_update", processPresenceUpdate);
+                }
+
+                if (!m_scene.Contains(scene))
+                    m_scene.Add(scene);
+            }
             scene.EventManager.OnNewClient += OnNewClient;
             scene.EventManager.OnGridInstantMessageToFriendsModule += OnGridInstantMessage;
+            
         }
-
+        public XmlRpcResponse processPresenceUpdate(XmlRpcRequest req)
+        {
+            m_log.Info("[FRIENDS]: Got Notification about a user! OMG");
+            return new XmlRpcResponse();
+        }
         private void OnNewClient(IClientAPI client)
         {
             // All friends establishment protocol goes over instant message
@@ -112,7 +127,8 @@ namespace OpenSim.Region.Environment.Modules
                 msg.Position = new sLLVector3(Position);
                 msg.RegionID = RegionID.UUID;
                 msg.binaryBucket = binaryBucket;
-                m_scene.TriggerGridInstantMessage(msg, InstantMessageReceiver.IMModule);
+                // We don't really care which scene we pipe it through.
+                m_scene[0].TriggerGridInstantMessage(msg, InstantMessageReceiver.IMModule);
             }
 
             // 39 == Accept Friendship
@@ -133,6 +149,14 @@ namespace OpenSim.Region.Environment.Modules
             if (m_pendingFriendRequests.ContainsKey(transactionID))
             {
                 // Found Pending Friend Request with that Transaction..    
+                Scene SceneAgentIn = m_scene[0];
+
+                // Found Pending Friend Request with that Transaction..    
+                ScenePresence agentpresence = GetPresenceFromAgentID(agentID);
+                if (agentpresence != null)
+                {
+                    SceneAgentIn = agentpresence.Scene;
+                }
 
                 // Compose response to other agent.
                 GridInstantMessage msg = new GridInstantMessage();
@@ -145,13 +169,15 @@ namespace OpenSim.Region.Environment.Modules
                 msg.message = agentID.UUID.ToString();
                 msg.ParentEstateID = 0;
                 msg.timestamp = (uint)Util.UnixTimeSinceEpoch();
-                msg.RegionID = m_scene.RegionInfo.RegionID.UUID;
+                msg.RegionID = SceneAgentIn.RegionInfo.RegionID.UUID;
                 msg.dialog = (byte)39;// Approved friend request
                 msg.Position = new sLLVector3();
                 msg.offline = (byte)0;
                 msg.binaryBucket = new byte[0];
-                m_scene.TriggerGridInstantMessage(msg, InstantMessageReceiver.IMModule);
-                m_scene.StoreAddFriendship(m_pendingFriendRequests[transactionID], agentID, (uint)1);
+                // We don't really care which scene we pipe it through, it goes to the shared IM Module and/or the database
+
+                SceneAgentIn.TriggerGridInstantMessage(msg, InstantMessageReceiver.IMModule);
+                SceneAgentIn.StoreAddFriendship(m_pendingFriendRequests[transactionID], agentID, (uint)1);
                 m_pendingFriendRequests.Remove(transactionID);
 
                 // TODO: Inform agent that the friend is online
@@ -162,8 +188,14 @@ namespace OpenSim.Region.Environment.Modules
         {
             if (m_pendingFriendRequests.ContainsKey(transactionID))
             {
-                // Found Pending Friend Request with that Transaction..    
+                Scene SceneAgentIn = m_scene[0];
 
+                // Found Pending Friend Request with that Transaction..    
+                ScenePresence agentpresence = GetPresenceFromAgentID(agentID);
+                if (agentpresence != null)
+                {
+                    SceneAgentIn = agentpresence.Scene;
+                }
                 // Compose response to other agent.
                 GridInstantMessage msg = new GridInstantMessage();
                 msg.toAgentID = m_pendingFriendRequests[transactionID].UUID;
@@ -175,19 +207,19 @@ namespace OpenSim.Region.Environment.Modules
                 msg.message = agentID.UUID.ToString();
                 msg.ParentEstateID = 0;
                 msg.timestamp = (uint)Util.UnixTimeSinceEpoch();
-                msg.RegionID = m_scene.RegionInfo.RegionID.UUID;
+                msg.RegionID = SceneAgentIn.RegionInfo.RegionID.UUID;
                 msg.dialog = (byte)40;// Deny friend request
                 msg.Position = new sLLVector3();
                 msg.offline = (byte)0;
                 msg.binaryBucket = new byte[0];
-                m_scene.TriggerGridInstantMessage(msg, InstantMessageReceiver.IMModule);
+                SceneAgentIn.TriggerGridInstantMessage(msg, InstantMessageReceiver.IMModule);
                 m_pendingFriendRequests.Remove(transactionID);
             }
         }
 
         private void OnTerminateFriendship(IClientAPI client, LLUUID agent, LLUUID exfriendID)
         {
-            m_scene.StoreRemoveFriendship(agent, exfriendID);
+            m_scene[0].StoreRemoveFriendship(agent, exfriendID);
             // TODO: Inform the client that the ExFriend is offline
         }
 
@@ -199,6 +231,29 @@ namespace OpenSim.Region.Environment.Modules
                 msg.message, msg.dialog, msg.fromGroup, msg.offline, msg.ParentEstateID,
                 new LLVector3(msg.Position.x, msg.Position.y, msg.Position.z), new LLUUID(msg.RegionID),
                 msg.binaryBucket);
+        }
+
+        private ScenePresence GetPresenceFromAgentID(LLUUID AgentID)
+        {
+            ScenePresence returnAgent = null;
+            lock (m_scene)
+            {
+                ScenePresence queryagent = null;
+                for (int i = 0; i < m_scene.Count; i++)
+                {
+                    queryagent = m_scene[i].GetScenePresence(AgentID);
+                    if (queryagent != null)
+                    {
+                        if (!queryagent.IsChildAgent)
+                        {
+                            returnAgent = queryagent;
+                            break;
+                        }
+                    }
+                }
+            }
+            return returnAgent;
+
         }
 
         public void PostInitialise()
@@ -216,7 +271,7 @@ namespace OpenSim.Region.Environment.Modules
 
         public bool IsSharedModule
         {
-            get { return false; }
+            get { return true; }
         }
     }
 }
