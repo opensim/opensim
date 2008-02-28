@@ -3244,18 +3244,259 @@ namespace OpenSim.Region.ScriptEngine.Common
             NotImplemented("llGetPrimitiveParams");
         }
 
+        //  <remarks>
+        //  <para>
+        //  The .NET definition of base 64 is:
+        //  <list>
+        //  <item>
+        //  Significant: A-Z a-z 0-9 + -
+        //  </item>
+        //  <item>
+        //  Whitespace: \t \n \r ' '
+        //  </item>
+        //  <item>
+        //  Valueless: =
+        //  </item>
+        //  <item>
+        //  End-of-string: \0 or '=='
+        //  </item>
+        //  </list>
+        //  </para>
+        //  <para>
+        //  Each point in a base-64 string represents
+        //  a 6 bit value. A 32-bit integer can be 
+        //  represented using 6 characters (with some
+        //  redundancy). 
+        //  </para>
+        //  <para>
+        //  LSL requires a base64 string to be 8 
+        //  characters in length. LSL also uses '/'
+        //  rather than '-' (MIME compliant).
+        //  </para>
+        //  <para>
+        //  RFC 1341 used as a reference (as specified
+        //  by the SecondLife Wiki).
+        //  </para>
+        //  <para>
+        //  SL do not record any kind of exception for
+        //  these functions, so the string to integer
+        //  conversion returns '0' if an invalid 
+        //  character is encountered during conversion.
+        //  </para>
+        //  <para>
+        //  References
+        //  <list>
+        //  <item>
+        //  http://lslwiki.net/lslwiki/wakka.php?wakka=Base64
+        //  </item>
+        //  <item>
+        //  </item>
+        //  </list>
+        //  </para>
+        //  </remarks>
+      
+        //  <summary>
+        //  Table for converting 6-bit integers into
+        //  base-64 characters
+        //  </summary>
+
+        private static readonly char[] i2ctable = 
+        {
+            'A','B','C','D','E','F','G','H',
+            'I','J','K','L','M','N','O','P',
+            'Q','R','S','T','U','V','W','X',
+            'Y','Z',
+            'a','b','c','d','e','f','g','h',
+            'i','j','k','l','m','n','o','p',
+            'q','r','s','t','u','v','w','x',
+            'y','z',
+            '0','1','2','3','4','5','6','7',
+            '8','9',
+            '+','/'
+        };
+
+        //  <summary>
+        //  Table for converting base-64 characters
+        //  into 6-bit integers.
+        //  </summary>
+
+        private static readonly int[] c2itable =
+        {
+            -1,-1,-1,-1,-1,-1,-1,-1,    // 0x
+            -1,-1,-1,-1,-1,-1,-1,-1,
+            -1,-1,-1,-1,-1,-1,-1,-1,    // 1x    
+            -1,-1,-1,-1,-1,-1,-1,-1,
+            -1,-1,-1,-1,-1,-1,-1,-1,    // 2x
+            -1,-1,-1,63,-1,-1,-1,64,
+            53,54,55,56,57,58,59,60,    // 3x
+            61,62,-1,-1,-1,0,-1,-1,
+            -1,1,2,3,4,5,6,7,           // 4x
+            8,9,10,11,12,13,14,15,
+            16,17,18,19,20,21,22,23,    // 5x
+            24,25,26,-1,-1,-1,-1,-1,
+            -1,27,28,29,30,31,32,33,    // 6x
+            34,35,36,37,38,39,40,41,
+            42,43,44,45,46,47,48,49,    // 7x
+            50,51,52,-1,-1,-1,-1,-1,
+            -1,-1,-1,-1,-1,-1,-1,-1,    // 8x
+            -1,-1,-1,-1,-1,-1,-1,-1,
+            -1,-1,-1,-1,-1,-1,-1,-1,    // 9x
+            -1,-1,-1,-1,-1,-1,-1,-1,
+            -1,-1,-1,-1,-1,-1,-1,-1,    // Ax
+            -1,-1,-1,-1,-1,-1,-1,-1,
+            -1,-1,-1,-1,-1,-1,-1,-1,    // Bx
+            -1,-1,-1,-1,-1,-1,-1,-1,
+            -1,-1,-1,-1,-1,-1,-1,-1,    // Cx
+            -1,-1,-1,-1,-1,-1,-1,-1,
+            -1,-1,-1,-1,-1,-1,-1,-1,    // Dx
+            -1,-1,-1,-1,-1,-1,-1,-1,
+            -1,-1,-1,-1,-1,-1,-1,-1,    // Ex
+            -1,-1,-1,-1,-1,-1,-1,-1,
+            -1,-1,-1,-1,-1,-1,-1,-1,    // Fx
+            -1,-1,-1,-1,-1,-1,-1,-1
+        };
+
+        //  <summary>
+        //  Converts a 32-bit integer into a Base64
+        //  character string. Base64 character strings
+        //  are always 8 characters long. All iinteger
+        //  values are acceptable.
+        //  </summary>
+        //  <param name="number">
+        //  32-bit integer to be converted.
+        //  </param>
+        //  <returns>
+        //  8 character string. The 1st six characters
+        //  contain the encoded number, the last two
+        //  characters are padded with "=".
+        //  </returns>
+
         public string llIntegerToBase64(int number)
         {
+
+            // uninitialized string
+
+            char[] imdt = new char[8];
+
             m_host.AddScriptLPS(1);
-            NotImplemented("llIntegerToBase64");
-            return String.Empty;
+
+            // Manually unroll the loop
+
+            imdt[7] = '=';
+            imdt[6] = '=';
+            imdt[5] = i2ctable[number<<4  & 0x3F];
+            imdt[4] = i2ctable[number>>2  & 0x3F];
+            imdt[3] = i2ctable[number>>8  & 0x3F];
+            imdt[2] = i2ctable[number>>14 & 0x3F];
+            imdt[1] = i2ctable[number>>20 & 0x3F];
+            imdt[0] = i2ctable[number>>26 & 0x3F];
+
+            return new string(imdt);
+
         }
+
+        //  <summary>
+        //  Converts an eight character base-64 string
+        //  into a 32-bit integer.
+        //  </summary>
+        //  <param name="str">
+        //  8 characters string to be converted. Other
+        //  length strings return zero.
+        //  </param>
+        //  <returns>
+        //  Returns an integer representing the 
+        //  encoded value providedint he 1st 6 
+        //  characters of the string.
+        //  </returns>
+        //  <remarks>
+        //  This is coded to behave like LSL's
+        //  implementation (I think), based upon the
+        //  information available at the Wiki.
+        //  If more than 8 characters are supplied, 
+        //  zero is returned.
+        //  If a NULL string is supplied, zero will
+        //  be returned.
+        //  If fewer than 6 characters are supplied, then
+        //  the answer will reflect a partial 
+        //  accumulation.
+        //  <para>
+        //  The 6-bit segments are 
+        //  extracted left-to-right in big-endian mode, 
+        //  which means that segment 6 only contains the 
+        //  two low-order bits of the 32 bit integer as
+        //  its high order 2 bits. A short string therefore
+        //  means loss of low-order information. E.g.
+        //
+        //  |<---------------------- 32-bit integer ----------------------->|<-Pad->|
+        //  |<--Byte 0----->|<--Byte 1----->|<--Byte 2----->|<--Byte 3----->|<-Pad->|
+        //  |3|3|2|2|2|2|2|2|2|2|2|2|1|1|1|1|1|1|1|1|1|1| | | | | | | | | | |P|P|P|P|
+        //  |1|0|9|8|7|6|5|4|3|2|1|0|9|8|7|6|5|4|3|2|1|0|9|8|7|6|5|4|3|2|1|0|P|P|P|P|
+        //  |  str[0]   |  str[1]   |  str[2]   |  str[3]   |  str[4]   |  str[6]   |
+        //
+        //  </para>
+        //  </remarks>
 
         public int llBase64ToInteger(string str)
         {
+
+            int number = 0;
+            int digit;
+            int baddigit = 0;
+
             m_host.AddScriptLPS(1);
-            NotImplemented("llBase64ToInteger");
-            return 0;
+
+            //    Require a well-fromed base64 string
+
+            if(str.Length > 8)
+                return 0;
+
+            //    The loop is unrolled in the interests
+            //    of performance and simple necessity.
+            //
+            //    MUST find 6 digits to be well formed
+            //      -1 == invalid
+            //       0 == padding
+
+            if((digit=c2itable[str[0]])<=0)
+            {
+                return digit<0?(int)0:number;
+            }
+            number += --digit<<26;
+ 
+            if((digit=c2itable[str[1]])<=0)
+            {
+                return digit<0?(int)0:number;
+            }
+            number += --digit<<20;
+ 
+            if((digit=c2itable[str[2]])<=0)
+            {
+                return digit<0?(int)0:number;
+            }
+            number += --digit<<14;
+ 
+            if((digit=c2itable[str[3]])<=0)
+            {
+                return digit<0?(int)0:number;
+            }
+            number += --digit<<8;
+ 
+            if((digit=c2itable[str[4]])<=0)
+            {
+                return digit<0?(int)0:number;
+            }
+            number += --digit<<2;
+ 
+            if((digit=c2itable[str[5]])<=0)
+            {
+                return digit<0?(int)0:number;
+            }
+            number += --digit>>4;
+ 
+            // ignore trailing padding
+ 
+            return number;
+
         }
 
         public double llGetGMTclock()
@@ -3276,11 +3517,179 @@ namespace OpenSim.Region.ScriptEngine.Common
             m_host.RotationOffset = new LLQuaternion((float)rot.x, (float)rot.y, (float)rot.z, (float)rot.s);
         }
 
-        public LSL_Types.list llParseStringKeepNulls(string src, LSL_Types.list seperators, LSL_Types.list spacers)
+        //  <summary>
+        //  Scan the string supplied in 'src' and
+        //  tokenize it based upon two sets of 
+        //  tokenizers provided in two lists, 
+        //  separators and spacers.
+        //  </summary>
+        //
+        //  <remarks>
+        //  Separators demarcate tokens and are
+        //  elided as they are encountered. Spacers
+        //  also demarcate tokens, but are themselves
+        //  retained as tokens.
+        //
+        //  Both separators and spacers may be arbitrarily
+        //  long strings. i.e. ":::".
+        //
+        //  The function returns an ordered list 
+        //  representing the tokens found in the supplied
+        //  sources string. If two successive tokenizers
+        //  are encountered, then a NULL entry is added
+        //  to the list.
+        //
+        //  It is a precondition that the source and 
+        //  toekizer lisst are non-null. If they are null,
+        //  then a null pointer exception will be thrown 
+        //  while their lengths are being determined.
+        //
+        //  A small amount of working memoryis required
+        //  of approximately 8*#tokenizers.
+        //
+        //  There are many ways in which this function 
+        //  can be implemented, this implementation is 
+        //  fairly naive and assumes that when the
+        //  function is invooked with a short source
+        //  string and/or short lists of tokenizers, then
+        //  performance will not be an issue.
+        //
+        //  In order to minimize the perofrmance 
+        //  effects of long strings, or large numbers
+        //  of tokeizers, the function skips as far as
+        //  possible whenever a toekenizer is found, 
+        //  and eliminates redundant tokenizers as soon
+        //  as is possible.
+        //
+        //  The implementation tries to avoid any copying
+        //  of arrays or other objects.
+        //  </remarks>
+    
+        public LSL_Types.list llParseStringKeepNulls(string src, LSL_Types.list separators, LSL_Types.list spacers)
         {
+
+            int         beginning = 0;
+            int         srclen    = src.Length;
+            int         seplen    = separators.Length;
+            object[]    separray  = separators.Data;
+            int         spclen    = spacers.Length;
+            object[]    spcarray  = spacers.Data;
+            int         mlen      = seplen+spclen;
+
+            int[]       offset    = new int[mlen+1];
+            bool[]      active    = new bool[mlen];
+
+            int         best;
+            int         j;
+
+            //    Initial capacity reduces resize cost
+
+            LSL_Types.list tokens = new LSL_Types.list();
+
             m_host.AddScriptLPS(1);
-            NotImplemented("llParseStringKeepNulls");
-            return new LSL_Types.list();
+
+            //    All entries are initially valid
+
+            for(int i=0; i<mlen; i++) active[i] = true;
+
+            offset[mlen] = srclen;
+            
+            while(beginning<srclen)
+            {
+
+                best = mlen;    // as bad as it gets
+
+                //    Scan for separators
+
+                for(j=0; j<seplen; j++)
+                {    
+                    if(active[j])
+                    {
+                        // scan all of the markers
+                        if((offset[j] = src.IndexOf((string)separray[j],beginning)) == -1)
+                        { 
+                            // not present at all
+                            active[j] = false;
+                        } else
+                        {
+                            // present and correct
+                            if(offset[j] < offset[best])
+                            {    
+                                // closest so far
+                                best = j;
+                                if(offset[best] == beginning)
+                                    break;
+                            }
+                        }
+                    }
+                }
+
+                //    Scan for spacers
+
+                if(offset[best] != beginning)
+                {
+                    for(j=seplen; (j<mlen) && (offset[best] > beginning); j++)
+                    {    
+                        if(active[j])
+                        {
+                            // scan all of the markers
+                            if((offset[j] = src.IndexOf((string)spcarray[j-seplen],beginning)) == -1)
+                            { 
+                                // not present at all
+                                active[j] = false;
+                            } else
+                            {
+                                // present and correct
+                                if(offset[j] < offset[best])
+                                {    
+                                    // closest so far
+                                    best = j;
+                                }
+                            }
+                        }
+                    }
+                }
+
+                //    This is the normal exit from the scanning loop
+
+                if(best == mlen)
+                {    
+                    // no markers were found on this pass
+                    // so we're pretty much done
+                    tokens.Add(src.Substring(beginning, srclen-beginning));
+                    break;
+                }
+
+                //    Otherwise we just add the newly delimited token
+                //    and recalculate where the search should continue.
+
+                tokens.Add(src.Substring(beginning,offset[best]-beginning));
+
+                if(best<seplen)
+                {
+                    beginning = offset[best]+((string)separray[best]).Length;
+                } else
+                {
+                    beginning = offset[best]+((string)spcarray[best-seplen]).Length;
+                    tokens.Add(spcarray[best-seplen]);
+                }
+
+            }
+
+            //    This an awkward an not very intuitive boundary case. If the
+            //    last substring is a tokenizer, then there is an implied trailing
+            //    null list entry. Hopefully the single comparison will not be too
+            //    arduous. Alternatively the 'break' could be replced with a return
+            //    but that's shabby programming.
+
+            if(beginning == srclen)
+            {
+                if(srclen != 0)
+                    tokens.Add("");
+            }
+
+            return tokens;
+
         }
 
         public void llRezAtRoot(string inventory, LSL_Types.Vector3 position, LSL_Types.Vector3 velocity,
