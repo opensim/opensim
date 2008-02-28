@@ -133,6 +133,9 @@ namespace OpenSim.Region.Environment.Scenes
        
         public event ScriptChangedEvent OnScriptChangedEvent;
 
+        public event OnNewPresenceDelegate OnMakeChildAgent;
+
+
         public class MoneyTransferArgs : System.EventArgs 
         {
             public LLUUID sender;
@@ -185,6 +188,7 @@ namespace OpenSim.Region.Environment.Scenes
         private NewGridInstantMessage handler023 = null; //OnGridInstantMessageToIMModule;
         private NewGridInstantMessage handler024 = null; //OnGridInstantMessageToFriendsModule;
         private ClientClosed handler025 = null; //OnClientClosed;
+        private OnNewPresenceDelegate handler026 = null; //OnMakeChildAgent;
 
         public void TriggerOnScriptChangedEvent(uint localID, uint change)
         {
@@ -404,6 +408,16 @@ namespace OpenSim.Region.Environment.Scenes
             {
                 handler025(ClientID);
             }
+        }
+
+        public void TriggerOnMakeChildAgent(ScenePresence presence)
+        {
+            handler026 = OnMakeChildAgent;
+            if (handler026 != null)
+            {
+                handler026(presence);
+            }
+
         }
         
     }

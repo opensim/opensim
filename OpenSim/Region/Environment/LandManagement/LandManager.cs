@@ -775,6 +775,8 @@ namespace OpenSim.Region.Environment.LandManagement
                     if (!avatar.IsChildAgent)
                     {
                         over.sendLandUpdateToClient(avatar.ControllingClient);
+                        m_scene.EventManager.TriggerAvatarEnteringNewParcel(avatar, over.landData.localID,
+                                                                            m_scene.RegionInfo.RegionID);
                     }
                 }
 

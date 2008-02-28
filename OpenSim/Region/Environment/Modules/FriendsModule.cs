@@ -45,6 +45,8 @@ namespace OpenSim.Region.Environment.Modules
 
         private List<Scene> m_scene = new List<Scene>();
 
+
+        Dictionary<LLUUID, ulong> m_rootAgents = new Dictionary<LLUUID, ulong>();
         Dictionary<LLUUID, LLUUID> m_pendingFriendRequests = new Dictionary<LLUUID, LLUUID>();
 
         public void Initialise(Scene scene, IConfigSource config)
@@ -62,6 +64,9 @@ namespace OpenSim.Region.Environment.Modules
             scene.EventManager.OnNewClient += OnNewClient;
             scene.EventManager.OnGridInstantMessageToFriendsModule += OnGridInstantMessage;
             scene.EventManager.OnAvatarEnteringNewParcel += AvatarEnteringParcel;
+            scene.EventManager.OnMakeChildAgent += MakeChildAgent;
+            scene.EventManager.OnClientClosed += ClientLoggedOut;
+
             
             
         }
@@ -86,13 +91,60 @@ namespace OpenSim.Region.Environment.Modules
             client.OnTerminateFriendship += OnTerminateFriendship;
             
             
+            
 
             
         }
 
+        private void ClientLoggedOut(LLUUID AgentId)
+        {
+            lock (m_rootAgents)
+            {
+                if (m_rootAgents.ContainsKey(AgentId))
+                {
+                        m_rootAgents.Remove(AgentId);
+                        m_log.Info("[FRIEND]: Removing " + AgentId  + ". Agent logged out.");
+                }
+            }
+        }
+
         private void AvatarEnteringParcel(ScenePresence avatar, int localLandID, LLUUID regionID)
         {
-            int i = 0;
+            lock (m_rootAgents)
+            {
+                if (m_rootAgents.ContainsKey(avatar.UUID))
+                {
+                    if (avatar.RegionHandle != m_rootAgents[avatar.UUID])
+                    {
+                        m_rootAgents[avatar.UUID] = avatar.RegionHandle;
+                        m_log.Info("[FRIEND]: Claiming " + avatar.Firstname + " " + avatar.Lastname + " in region:" + avatar.RegionHandle + ".");
+                        // Claim User! my user!  Mine mine mine!
+                    }
+                }
+                else
+                {
+                    m_rootAgents.Add(avatar.UUID, avatar.RegionHandle);
+                    m_log.Info("[FRIEND]: Claiming " + avatar.Firstname + " " + avatar.Lastname + " in region:" + avatar.RegionHandle + ".");
+                }
+            }
+            //m_log.Info("[FRIEND]: " + avatar.Name + " status:" + (!avatar.IsChildAgent).ToString());
+        }
+        private void MakeChildAgent(ScenePresence avatar)
+        {
+
+            lock (m_rootAgents)
+            {
+                if (m_rootAgents.ContainsKey(avatar.UUID))
+                {
+                    if (m_rootAgents[avatar.UUID] == avatar.RegionHandle)
+                    {
+                        m_rootAgents.Remove(avatar.UUID);
+                        m_log.Info("[FRIEND]: Removing " + avatar.Firstname + " " + avatar.Lastname + " as a root agent");
+                    }
+
+                }
+            }
+            
         }
 
         private void OnInstantMessage(IClientAPI client,LLUUID fromAgentID,

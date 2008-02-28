@@ -547,7 +547,7 @@ namespace OpenSim.Region.Environment.Scenes
             m_isChildAgent = true;
             m_scene.SwapRootAgentCount(true);
             RemoveFromPhysicalScene();
-
+            m_scene.EventManager.TriggerOnMakeChildAgent(this);
             //this.Pos = new LLVector3(128, 128, 70);  
         }
 
