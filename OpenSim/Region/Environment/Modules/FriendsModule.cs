@@ -61,6 +61,8 @@ namespace OpenSim.Region.Environment.Modules
             }
             scene.EventManager.OnNewClient += OnNewClient;
             scene.EventManager.OnGridInstantMessageToFriendsModule += OnGridInstantMessage;
+            scene.EventManager.OnAvatarEnteringNewParcel += AvatarEnteringParcel;
+            
             
         }
         public XmlRpcResponse processPresenceUpdate(XmlRpcRequest req)
@@ -82,8 +84,15 @@ namespace OpenSim.Region.Environment.Modules
             client.OnApproveFriendRequest += OnApprovedFriendRequest;
             client.OnDenyFriendRequest += OnDenyFriendRequest;
             client.OnTerminateFriendship += OnTerminateFriendship;
+            
+            
 
             
+        }
+
+        private void AvatarEnteringParcel(ScenePresence avatar, int localLandID, LLUUID regionID)
+        {
+            int i = 0;
         }
 
         private void OnInstantMessage(IClientAPI client,LLUUID fromAgentID,

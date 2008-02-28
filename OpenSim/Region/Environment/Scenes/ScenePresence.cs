@@ -1484,7 +1484,7 @@ namespace OpenSim.Region.Environment.Scenes
             if (Util.GetDistanceTo(AbsolutePosition, posLastSignificantMove) > 0.5)
             {
                 posLastSignificantMove = AbsolutePosition;
-                
+                handler001 = OnSignificantClientMovement;
                 if (handler001 != null)
                 {
                     handler001(m_controllingClient);
