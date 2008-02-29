@@ -598,7 +598,7 @@ namespace OpenSim.Region.Physics.OdePlugin
             if (Body != (IntPtr) 0)
             {
                 float newmass = CalculateMass();
-                m_log.Info("[PHYSICS]: New Mass: " + newmass.ToString());
+                //m_log.Info("[PHYSICS]: New Mass: " + newmass.ToString());
 
                 if (newmass <= 0) newmass = 0.0001f;
                 d.MassSetBoxTotal(out pMass, newmass, _size.X, _size.Y, _size.Z);
