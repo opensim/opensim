@@ -357,8 +357,8 @@ namespace OpenSim.Region.Physics.OdePlugin
                     if (_pbs.PathCurve == (byte)Extrusion.Straight)
                     {
                         // Cylinder
-                        float volume1 = (float)(Math.PI * Math.Pow(_size.X, 2) * _size.Z);
-                        float volume2 = (float)(Math.PI * Math.Pow(_size.Y, 2) * _size.Z);
+                        float volume1 = (float)(Math.PI * Math.Pow(_size.X/2, 2) * _size.Z);
+                        float volume2 = (float)(Math.PI * Math.Pow(_size.Y/2, 2) * _size.Z);
 
                         // Approximating the cylinder's irregularity.
                         if (volume1 > volume2)
