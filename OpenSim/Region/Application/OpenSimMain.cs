@@ -78,7 +78,6 @@ namespace OpenSim
         protected List<UDPServer> m_udpServers = new List<UDPServer>();
         protected List<RegionInfo> m_regionData = new List<RegionInfo>();
 
-        private bool m_verbose;
         private bool m_physicalPrim;
         private bool m_permissions = false;
 
@@ -173,7 +172,6 @@ namespace OpenSim
             {
                 config.Set("gridmode", false);
                 config.Set("physics", "basicphysics");
-                config.Set("verbose", true);
                 config.Set("physical_prim", true);
                 config.Set("see_into_this_sim_from_neighbor", true);
                 config.Set("serverside_object_permissions", false);
@@ -241,9 +239,6 @@ namespace OpenSim
                 m_physicsEngine = startupConfig.GetString("physics", "basicphysics");
                 m_meshEngineName = startupConfig.GetString("meshing", "ZeroMesher");
                 
-                // TODO: since log4net changes, verbose flag doesn't do anything
-                m_verbose = startupConfig.GetBoolean("verbose", true);
-
                 m_physicalPrim = startupConfig.GetBoolean("physical_prim", true);
 
                 m_see_into_region_from_neighbor = startupConfig.GetBoolean("see_into_this_sim_from_neighbor", true);

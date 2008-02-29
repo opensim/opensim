@@ -25,6 +25,7 @@
 * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 * 
 */
+
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -121,7 +122,6 @@ namespace OpenSim.Framework.Servers
             HttpListenerRequest request = context.Request;
             HttpListenerResponse response = context.Response;
 
-
             response.KeepAlive = false;
             response.SendChunked = false;
 
@@ -160,7 +160,7 @@ namespace OpenSim.Framework.Servers
                     response.OutputStream.Write(buffer, 0, buffer.Length);
                     response.OutputStream.Close();
                 }
-                catch (HttpListenerException e)
+                catch (HttpListenerException)
                 {
                     m_log.InfoFormat("[BASEHTTPSERVER] Http request abnormally terminated.");
                 }
@@ -263,9 +263,8 @@ namespace OpenSim.Framework.Servers
             {
                 xmlRprcRequest = (XmlRpcRequest) (new XmlRpcRequestDeserializer()).Deserialize(requestBody);
             }
-            catch (XmlException e)
+            catch (XmlException)
             {
-                
             }
 
             if (xmlRprcRequest != null)
@@ -407,8 +406,6 @@ namespace OpenSim.Framework.Servers
             reader.Close();
             requestStream.Close();
 
-            string responseString = String.Empty;
-
             Hashtable keysvals = new Hashtable();
             Hashtable headervals = new Hashtable();
             string host = String.Empty;
@@ -416,11 +413,9 @@ namespace OpenSim.Framework.Servers
             string[] querystringkeys = request.QueryString.AllKeys;
             string[] rHeaders = request.Headers.AllKeys;
 
-
             foreach (string queryname in querystringkeys)
             {
                 keysvals.Add(queryname, request.QueryString[queryname]);
-                
             }
 
             foreach (string headername in rHeaders)
@@ -447,7 +442,6 @@ namespace OpenSim.Framework.Servers
                     DoHTTPGruntWork(responsedata,response);
                        
                     //SendHTML500(response);
-                    
                 }
                 else
                 {
@@ -484,6 +478,7 @@ namespace OpenSim.Framework.Servers
             response.SendChunked = false;
             response.ContentLength64 = buffer.Length;
             response.ContentEncoding = Encoding.UTF8;
+
             try
             {
                 response.OutputStream.Write(buffer, 0, buffer.Length);
@@ -496,9 +491,8 @@ namespace OpenSim.Framework.Servers
             {
                 response.OutputStream.Close();
             }
-
-
         }
+
         public void SendHTML404(HttpListenerResponse response, string host)
         {
             // I know this statuscode is dumb, but the client doesn't respond to 404s and 500s
@@ -511,6 +505,7 @@ namespace OpenSim.Framework.Servers
             response.SendChunked = false;
             response.ContentLength64 = buffer.Length;
             response.ContentEncoding = Encoding.UTF8;
+
             try
             {
                 response.OutputStream.Write(buffer, 0, buffer.Length);
@@ -524,6 +519,7 @@ namespace OpenSim.Framework.Servers
                 response.OutputStream.Close();
             }
         }
+
         public void SendHTML500(HttpListenerResponse response)
         {
             // I know this statuscode is dumb, but the client doesn't respond to 404s and 500s
@@ -592,7 +588,6 @@ namespace OpenSim.Framework.Servers
             }
         }
 
-
         public void RemoveStreamHandler(string httpMethod, string path)
         {
             m_streamHandlers.Remove(GetHandlerKey(httpMethod, path));
@@ -637,6 +632,5 @@ namespace OpenSim.Framework.Servers
         {
             return "<HTML><HEAD><TITLE>500 Internal Server Error</TITLE><BODY><BR /><H1>Ooops!</H1><P>The server you requested is overun by knomes! Find hippos quick!</P></BODY></HTML>";
         }
-
     }
 }

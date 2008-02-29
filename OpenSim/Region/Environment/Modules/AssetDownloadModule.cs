@@ -131,7 +131,6 @@ namespace OpenSim.Region.Environment.Modules
             {
                 if (!userRequests.ContainsKey(requestID))
                 {
-                   
                     AssetRequest request = new AssetRequest();
                     request.RequestUser = userInfo;
                     request.RequestAssetID = requestID;
@@ -154,9 +153,7 @@ namespace OpenSim.Region.Environment.Modules
                 userRequests.Add(requestID, request);
                 RequestedAssets[userInfo.AgentId] = userRequests;
                 m_scene.AssetCache.GetAsset(requestID, AssetCallback, false);
-              
             }
-            return;
         }
 
         public void AssetCallback(LLUUID assetID, AssetBase asset)
@@ -190,7 +187,7 @@ namespace OpenSim.Region.Environment.Modules
                     ProcessAssetQueue();
                     Thread.Sleep(500);
                 }
-                catch (Exception e)
+                catch (Exception)
                 {
                   //  m_log.Error("[ASSET CACHE]: " + e.ToString());
                 }
@@ -292,6 +289,7 @@ namespace OpenSim.Region.Environment.Modules
                 AssetRequests.RemoveAt(0);
             }
         }
+
         /// <summary>
         /// Calculate the number of packets required to send the asset to the client.
         /// </summary>

@@ -68,7 +68,6 @@ namespace OpenSim
             configSource.AddSwitch("Startup", "inifile");
             configSource.AddSwitch("Startup", "gridmode");
             configSource.AddSwitch("Startup", "physics");
-            configSource.AddSwitch("Startup", "verbose");
             configSource.AddSwitch("Startup", "useexecutepath");
 
             configSource.AddConfig("StandAlone");

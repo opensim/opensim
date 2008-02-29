@@ -61,13 +61,11 @@ physics = basicphysics
 ;physics = modified_BulletX
 
 
-verbose = true
 startup_console_commands_file = "startup_commands.txt"
 shutdown_console_commands_file = "shutdown_commands.txt"
 serverside_object_permissions = false
 
-
-; if you would like to allow prim to be physical and move by physics with the physical checkbox in the client set this to true.
+; if you would like to allow prims to be physical and move by physics with the physical checkbox in the client set this to true.
 physical_prim = true
 
 ; To run a script every few minutes, set the script filename here
@@ -264,4 +262,3 @@ CleanUpOldScriptsOnStartup=true
 [LL-Functions]
 ; Set the following to true to allow administrator owned scripts to execute console commands
 AllowosConsoleCommand=false
-
