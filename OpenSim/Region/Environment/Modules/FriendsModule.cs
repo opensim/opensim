@@ -45,8 +45,8 @@ namespace OpenSim.Region.Environment.Modules
 
         private List<Scene> m_scene = new List<Scene>();
 
-
         Dictionary<LLUUID, ulong> m_rootAgents = new Dictionary<LLUUID, ulong>();
+
         Dictionary<LLUUID, LLUUID> m_pendingFriendRequests = new Dictionary<LLUUID, LLUUID>();
 
         public void Initialise(Scene scene, IConfigSource config)
@@ -66,9 +66,6 @@ namespace OpenSim.Region.Environment.Modules
             scene.EventManager.OnAvatarEnteringNewParcel += AvatarEnteringParcel;
             scene.EventManager.OnMakeChildAgent += MakeChildAgent;
             scene.EventManager.OnClientClosed += ClientLoggedOut;
-
-            
-            
         }
         public XmlRpcResponse processPresenceUpdate(XmlRpcRequest req)
         {
@@ -89,10 +86,6 @@ namespace OpenSim.Region.Environment.Modules
             client.OnApproveFriendRequest += OnApprovedFriendRequest;
             client.OnDenyFriendRequest += OnDenyFriendRequest;
             client.OnTerminateFriendship += OnTerminateFriendship;
-            
-            
-            
-
             
         }
 
@@ -144,9 +137,9 @@ namespace OpenSim.Region.Environment.Modules
 
                 }
             }
-            
-        }
 
+        }
+        #region FriendRequestHandling
         private void OnInstantMessage(IClientAPI client,LLUUID fromAgentID,
                                       LLUUID fromAgentSession, LLUUID toAgentID,
                                       LLUUID imSessionID, uint timestamp, string fromAgentName,
@@ -293,7 +286,7 @@ namespace OpenSim.Region.Environment.Modules
                 new LLVector3(msg.Position.x, msg.Position.y, msg.Position.z), new LLUUID(msg.RegionID),
                 msg.binaryBucket);
         }
-
+        #endregion
         private ScenePresence GetPresenceFromAgentID(LLUUID AgentID)
         {
             ScenePresence returnAgent = null;

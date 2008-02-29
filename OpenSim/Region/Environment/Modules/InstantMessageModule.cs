@@ -26,27 +26,39 @@
 * 
 */
 
+using System.Collections;
 using System.Collections.Generic;
 using libsecondlife;
 using Nini.Config;
+using Nwc.XmlRpc;
 using OpenSim.Framework;
 using OpenSim.Framework.Console;
 using OpenSim.Region.Environment.Interfaces;
 using OpenSim.Region.Environment.Scenes;
+
 
 namespace OpenSim.Region.Environment.Modules
 {
     public class InstantMessageModule : IRegionModule
     {
         private List<Scene> m_scenes = new List<Scene>();
+        private Hashtable m_RegionInfoCache = new Hashtable();
 
         public void Initialise(Scene scene, IConfigSource config)
         {
-            if (!m_scenes.Contains(scene))
+            lock (m_scenes)
             {
-                m_scenes.Add(scene);
-                scene.EventManager.OnNewClient += OnNewClient;
-                scene.EventManager.OnGridInstantMessageToIMModule += OnGridInstantMessage;
+                if (m_scenes.Count == 0)
+                {
+                    //scene.AddXmlRPCHandler("avatar_location_update", processPresenceUpdate);
+                }
+
+                if (!m_scenes.Contains(scene))
+                {
+                    m_scenes.Add(scene);
+                    scene.EventManager.OnNewClient += OnNewClient;
+                    scene.EventManager.OnGridInstantMessageToIMModule += OnGridInstantMessage;
+                }
             }
         }
 

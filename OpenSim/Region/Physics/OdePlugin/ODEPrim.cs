@@ -353,6 +353,176 @@ namespace OpenSim.Region.Physics.OdePlugin
                     }
 
                     break;
+                case ProfileShape.Circle:
+                    if (_pbs.PathCurve == (byte)Extrusion.Straight)
+                    {
+                        // Cylinder
+                        float volume1 = (float)(Math.PI * Math.Pow(_size.X, 2) * _size.Z);
+                        float volume2 = (float)(Math.PI * Math.Pow(_size.Y, 2) * _size.Z);
+
+                        // Approximating the cylinder's irregularity.
+                        if (volume1 > volume2)
+                        {
+                            volume = (float)volume1 - (volume1 - volume2);
+                        }
+                        else if (volume2 > volume1)
+                        {
+                            volume = (float)volume2 - (volume2 - volume1);
+                        }
+                        else
+                        {
+                            // Regular cylinder
+                            volume = volume1;
+                        }
+                    }
+                    else
+                    {
+                        // We don't know what the shape is yet, so use default
+                        volume = _size.X * _size.Y * _size.Z;
+                    }
+                    // If the user has 'hollowed out' 
+                    // ProfileHollow is one of those 0 to 50000 values :P
+                    // we like percentages better..   so turning into a percentage
+
+                    if (((float)_pbs.ProfileHollow / 50000f) > 0.0)
+                    {
+                        float hollowAmount = (float)_pbs.ProfileHollow / 50000f;
+
+                        // calculate the hollow volume by it's shape compared to the prim shape
+                        float hollowVolume = 0;
+                        switch (_pbs.HollowShape)
+                        {
+                           
+                            case HollowShape.Same: 
+                            case HollowShape.Circle:
+                                // Hollow shape is a perfect cyllinder in respect to the cube's scale
+                                // Cyllinder hollow volume calculation
+                                float hRadius = _size.X / 2;
+                                float hLength = _size.Z;
+
+                                // pi * r2 * h
+                                hollowVolume = ((float)(Math.PI * Math.Pow(hRadius, 2) * hLength) * hollowAmount);
+                                break;
+
+                            case HollowShape.Square:
+                                // Cube Hollow volume calculation
+                                float hollowsizex = _size.X * hollowAmount;
+                                float hollowsizey = _size.Y * hollowAmount;
+                                float hollowsizez = _size.Z * hollowAmount;
+                                hollowVolume = hollowsizex * hollowsizey * hollowsizez;
+                                break;
+
+                            
+
+                            case HollowShape.Triangle:
+                                // Equilateral Triangular Prism volume hollow calculation
+                                // Triangle is an Equilateral Triangular Prism with aLength = to _size.Y
+
+                                float aLength = _size.Y;
+                                // 1/2 abh
+                                hollowVolume = (float)((0.5 * aLength * _size.X * _size.Z) * hollowAmount);
+                                break;
+
+                            default:
+                                hollowVolume = 0;
+                                break;
+                        }
+                        volume = volume - hollowVolume;
+                    }
+                    break;
+            
+                case ProfileShape.HalfCircle:
+                    if (_pbs.PathCurve == (byte)Extrusion.Curve1)
+                    {
+                        if (_size.X == _size.Z && _size.Z == _size.X)
+                        {
+                            // regular sphere
+                            // v = 4/3 * pi * r^3
+                            float sradius3 = (float)Math.Pow((_size.X / 2), 3);
+                            volume = (float)((4 / 3) * Math.PI * sradius3);
+                        }
+                        else
+                        {
+                            // we treat this as a box currently
+                            volume = _size.X * _size.Y * _size.Z;
+                        }
+
+                    }
+                    else
+                    {
+                        // We don't know what the shape is yet, so use default
+                        volume = _size.X * _size.Y * _size.Z;
+                    }
+                    break;
+                case ProfileShape.EquilateralTriangle:
+                    /* 
+                        v = (abs((xB*yA-xA*yB)+(xC*yB-xB*yC)+(xA*yC-xC*yA))/2) * h
+                        
+                        // seed mesh
+                        Vertex MM = new Vertex(-0.25f, -0.45f, 0.0f);
+                        Vertex PM = new Vertex(+0.5f, 0f, 0.0f);
+                        Vertex PP = new Vertex(-0.25f, +0.45f, 0.0f); 
+                     */
+                    float xA = -0.25f * _size.X;
+                    float yA = -0.45f * _size.Y;
+
+                    float xB = 0.5f * _size.X;
+                    float yB = 0;
+
+                    float xC = -0.25f * _size.X;
+                    float yC = 0.45f * _size.Y;
+
+                    volume = (float)((Math.Abs((xB * yA - xA * yB) + (xC * yB - xB * yC) + (xA * yC - xC * yA)) / 2) * _size.Z);
+
+                    // If the user has 'hollowed out' 
+                    // ProfileHollow is one of those 0 to 50000 values :P
+                    // we like percentages better..   so turning into a percentage
+                    float fhollowFactor = ((float)_pbs.ProfileHollow / 1.9f);
+                    if (((float)fhollowFactor / 50000f) > 0.0)
+                    {
+                        float hollowAmount = (float)fhollowFactor / 50000f;
+
+                        // calculate the hollow volume by it's shape compared to the prim shape
+                        float hollowVolume = 0;
+                        switch (_pbs.HollowShape)
+                        {
+                           
+                            case HollowShape.Same:
+                            case HollowShape.Triangle:
+                                // Equilateral Triangular Prism volume hollow calculation
+                                // Triangle is an Equilateral Triangular Prism with aLength = to _size.Y
+
+                                float aLength = _size.Y;
+                                // 1/2 abh
+                                hollowVolume = (float)((0.5 * aLength * _size.X * _size.Z) * hollowAmount);
+                                break;
+
+                            case HollowShape.Square:
+                                // Cube Hollow volume calculation
+                                float hollowsizex = _size.X * hollowAmount;
+                                float hollowsizey = _size.Y * hollowAmount;
+                                float hollowsizez = _size.Z * hollowAmount;
+                                hollowVolume = hollowsizex * hollowsizey * hollowsizez;
+                                break;
+
+                            case HollowShape.Circle:
+                                // Hollow shape is a perfect cyllinder in respect to the cube's scale
+                                // Cyllinder hollow volume calculation
+                                float hRadius = _size.X / 2;
+                                float hLength = _size.Z;
+
+                                // pi * r2 * h
+                                hollowVolume = ((float)((Math.PI * Math.Pow(hRadius, 2) * hLength)/2) * hollowAmount);
+                                break;
+
+                            
+                            default:
+                                hollowVolume = 0;
+                                break;
+                        }
+                        volume = volume - hollowVolume;
+                    }
+                    break;
 
                 default:
                     // we don't have all of the volume formulas yet so 
@@ -383,9 +553,41 @@ namespace OpenSim.Region.Physics.OdePlugin
 
                 volume = volume - (volume*pathCutAmount);
             }
+            UInt16 taperX = _pbs.PathScaleX;
+            UInt16 taperY = _pbs.PathScaleY;
+            float taperFactorX = 0;
+            float taperFactorY = 0;
 
             // Mass = density * volume
+            if (taperX != 100)
+            {
+                if (taperX > 100)
+                {
+                    taperFactorX = 1.0f - ((float)taperX / 200);
+                    //m_log.Warn("taperTopFactorX: " + extr.taperTopFactorX.ToString());
+                }
+                else
+                {
+                    taperFactorX = 1.0f - ((100 - (float)taperX) / 100);
+                    //m_log.Warn("taperBotFactorX: " + extr.taperBotFactorX.ToString());
+                }
+                volume = (float)volume * ((taperFactorX / 3f) + 0.001f);
+            }
 
+            if (taperY != 100)
+            {
+                if (taperY > 100)
+                {
+                    taperFactorY = 1.0f - ((float)taperY / 200);
+                    //m_log.Warn("taperTopFactorY: " + extr.taperTopFactorY.ToString());
+                }
+                else
+                {
+                    taperFactorY = 1.0f - ((100 - (float)taperY) / 100);
+                    //m_log.Warn("taperBotFactorY: " + extr.taperBotFactorY.ToString());
+                }
+                volume = (float)volume * ((taperFactorY / 3f) + 0.001f);
+            }
             returnMass = m_density*volume;
 
             return returnMass;
@@ -395,7 +597,11 @@ namespace OpenSim.Region.Physics.OdePlugin
         {
             if (Body != (IntPtr) 0)
             {
-                d.MassSetBoxTotal(out pMass, CalculateMass(), _size.X, _size.Y, _size.Z);
+                float newmass = CalculateMass();
+                m_log.Info("[PHYSICS]: New Mass: " + newmass.ToString());
+
+                if (newmass <= 0) newmass = 0.0001f;
+                d.MassSetBoxTotal(out pMass, newmass, _size.X, _size.Y, _size.Z);
                 d.BodySetMass(Body, ref pMass);
             }
         }
