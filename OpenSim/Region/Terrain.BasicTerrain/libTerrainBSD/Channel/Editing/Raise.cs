@@ -127,5 +127,67 @@ namespace libTerrain
                 }
             }
         }
+
+        public double SphericalFactor(double x, double y, double rx, double ry, double size)
+        {
+            double z = size * size - ((x - rx) * (x - rx) + (y - ry) * (y - ry));
+            return z;
+        }
+        
+        public void SmoothRegion(double rx, double ry, double size, double amount)
+        {
+            int x, y;
+            double[,] tweak = new double[w, h];
+            
+            double n, l;
+            double area = size;
+            double step = size / 4.0;
+            
+            // compute delta map 
+            for (x = 0; x < w; x++)
+            {
+                for (y = 0; y < h; y++)
+                {
+                    double z = SphericalFactor(x, y, rx, ry, size);
+                    
+                    if (z > 0) // add in non-zero amount 
+                    {
+                        double average = 0.0;
+                        int avgsteps = 0;
+                        
+                        for (n = 0.0 - area; n < area; n += step)
+                        {
+                            for (l = 0.0 - area; l < area; l += step)
+                            {
+                                avgsteps++;
+                                average += GetBilinearInterpolate(x + n, y + l);
+                            }
+                        }
+                        tweak[x, y] = average / avgsteps;
+                        //if (x == rx && y == ry)
+                        //    Console.WriteLine("tweak[ " + x + " , " + y + " ] = " + tweak[x, y]);
+                    }
+                }
+            }
+            // blend in map 
+            for (x = 0; x < w; x++)
+            {
+                for (y = 0; y < h; y++)
+                {
+                    double z = SphericalFactor(x, y, rx, ry, size);
+                    
+                    if (z > 0) // add in non-zero amount 
+                    {
+                        double da = z * amount;
+                        double a = (map[x, y] - tweak[x, y]) * da;
+                        double newz = map[x, y] - a;
+                        //if (rx == x || ry == y)
+                        //    Console.WriteLine("map[ " + x + " , " + y + " ] = " + map[x, y] + " tweak, a , da, z, size, amount = " + tweak[x, y] + " " + a + " " + da + " " + z + " " + size + " " + amount);
+                        if (newz > 0.0)
+                            Set(x, y, newz);
+                    }
+                }
+            }
+        }
     }
 }

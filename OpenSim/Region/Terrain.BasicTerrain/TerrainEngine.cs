@@ -251,7 +251,6 @@ namespace OpenSim.Region.Terrain
                     //SmoothTerrain(y, x , size, (double)seconds / 5.0);
                     //}
                     //}
-
                     SmoothTerrain(west, north, size, (double) seconds/5.0);
 
                     break;
@@ -1331,14 +1330,9 @@ namespace OpenSim.Region.Terrain
         {
             lock (heightmap)
             {
-                Channel smoothed = heightmap.Copy();
-                smoothed.Smooth(amount);
-
-                Channel mask = new Channel();
-                mask.Raise(rx, ry, size, amount);
-
-                heightmap.Blend(smoothed, mask);
-            }
+                // perform essential computation as a channel method    
+                heightmap.SmoothRegion(rx, ry, size, amount);
+            }   
 
             tainted++;
         }
