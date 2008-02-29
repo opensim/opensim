@@ -75,6 +75,7 @@ namespace OpenSim.Region.Environment.Modules
                 catch (Exception)
                 {
                 }
+
                 try
                 {
                     m_defaultzone = config.Configs["IRC"].GetString("nick","Sim");
@@ -97,7 +98,6 @@ namespace OpenSim.Region.Environment.Modules
                     m_irc_connector.Name = "IRCConnectorThread";
                     m_irc_connector.IsBackground = true;
                 }
-
             }
         }
 
@@ -118,10 +118,9 @@ namespace OpenSim.Region.Environment.Modules
                         OpenSim.Framework.ThreadTracker.Add(m_irc_connector);
                     }
                 }
-                catch (Exception ex)
+                catch (Exception)
                 {
                 }
-
             }
         }
 
@@ -195,8 +194,8 @@ namespace OpenSim.Region.Environment.Modules
                     m_log.Error("[IRC]: ClientLoggedOut exception trap:" + ex.ToString());
                 }
             }
-
         }
+
         private void TrySendChatMessage(ScenePresence presence, LLVector3 fromPos, LLVector3 regionPos,
                                         LLUUID fromAgentID, string fromName, ChatTypeEnum type, string message)
         {
@@ -253,7 +252,7 @@ namespace OpenSim.Region.Environment.Modules
             }
 
             // Try to reconnect to server if not connected
-            if ((m_irc.Enabled)&&(!m_irc.Connected))
+            if (m_irc.Enabled && !m_irc.Connected)
             {
                 // In a non-blocking way. Eventually the connector will get it started
                 try
@@ -267,7 +266,7 @@ namespace OpenSim.Region.Environment.Modules
                         OpenSim.Framework.ThreadTracker.Add(m_irc_connector);
                     }
                 }
-                catch (Exception ex)
+                catch (Exception)
                 {
                 }
             }
@@ -285,10 +284,10 @@ namespace OpenSim.Region.Environment.Modules
                 foreach (Scene s in m_scenes)
                 {
                     s.ForEachScenePresence(delegate(ScenePresence presence)
-                                               {
-                                                   TrySendChatMessage(presence, fromPos, regionPos,
-                                                                      fromAgentID, fromName, e.Type, message);
-                                               });
+                                           {
+                                               TrySendChatMessage(presence, fromPos, regionPos,
+                                                                  fromAgentID, fromName, e.Type, message);
+                                           });
                 }
             }
         }
@@ -312,18 +311,18 @@ namespace OpenSim.Region.Environment.Modules
             string sourceRegion = null;
             foreach (Scene s in m_scenes)
             {
-                     s.ForEachScenePresence(delegate(ScenePresence presence)
-                                               {
-                                                   if ((presence.IsChildAgent==false)
-                                                       &&(presence.Firstname==client_FirstName)
-                                                       &&(presence.Lastname==client_LastName))
-                                                   {
-                                                       sourceRegion = presence.Scene.RegionInfo.RegionName;
-                                                       //sourceRegion= s.RegionInfo.RegionName;
-                                                   }
-                                               });
-                     if (sourceRegion != null) return sourceRegion; 
-           }
+                s.ForEachScenePresence(delegate(ScenePresence presence)
+                                       {
+                                           if ((presence.IsChildAgent==false)
+                                               &&(presence.Firstname==client_FirstName)
+                                               &&(presence.Lastname==client_LastName))
+                                           {
+                                               sourceRegion = presence.Scene.RegionInfo.RegionName;
+                                               //sourceRegion= s.RegionInfo.RegionName;
+                                           }
+                                       });
+                if (sourceRegion != null) return sourceRegion; 
+            }
             if (m_defaultzone == null) { m_defaultzone = "Sim"; }
             return m_defaultzone;
         }
@@ -475,7 +474,6 @@ namespace OpenSim.Region.Environment.Modules
             m_reader.Close();
             m_tcp.Close();
             if (m_enabled) { Connect(m_last_scenes); }
-       
         }
 
         public void PrivMsg(string from, string region, string msg)
@@ -539,9 +537,9 @@ namespace OpenSim.Region.Environment.Modules
 
         public void PingRun()
         {
-         // IRC keep alive thread
-         // send PING ever 15 seconds
-           while (true)
+            // IRC keep alive thread
+            // send PING ever 15 seconds
+            while (true)
             {
                 try
                 {
@@ -594,8 +592,6 @@ namespace OpenSim.Region.Environment.Modules
                                                                      }
                                                                  });
                                 }
-                                                                
-
                             }
                             else
                             {
@@ -645,7 +641,6 @@ namespace OpenSim.Region.Environment.Modules
             catch (Exception ex) // IRC gate should not crash Sim
             {
                 m_log.Error("[IRC]: BroadcastSim Exception Trap:" + ex.ToString() + "\n" + ex.StackTrace);
-
             }
         }
 
@@ -701,7 +696,6 @@ namespace OpenSim.Region.Environment.Modules
 
                 m_writer.WriteLine("PONG " + p_reply);
                 m_writer.Flush();
-
             }
             else if (commArgs[0] == c_server)
             {
@@ -727,10 +721,9 @@ namespace OpenSim.Region.Environment.Modules
                             break;
                     }
                 }
-                catch (Exception ex)
+                catch (Exception)
                 {
                 }
-
             }
             else 
             { 
@@ -746,8 +739,6 @@ namespace OpenSim.Region.Environment.Modules
                     case "QUIT": eventIrcQuit(commArgs); break;
                     case "PONG":  break; // that's nice
                 }
-
-
             }
         }
 
@@ -756,7 +747,6 @@ namespace OpenSim.Region.Environment.Modules
             string IrcChannel = commArgs[2];
             string IrcUser = commArgs[0].Split('!')[0];
             BroadcastSim(IrcUser + " is joining " + IrcChannel, m_nick);
-
         }
 
         public void eventIrcPart(string[] commArgs)
@@ -764,8 +754,8 @@ namespace OpenSim.Region.Environment.Modules
             string IrcChannel = commArgs[2];
             string IrcUser = commArgs[0].Split('!')[0];
             BroadcastSim(IrcUser + " is parting " + IrcChannel, m_nick);
-
         }
+
         public void eventIrcMode(string[] commArgs)
         {
             string IrcChannel = commArgs[2];
@@ -780,14 +770,13 @@ namespace OpenSim.Region.Environment.Modules
             {
                 UserMode = UserMode.Remove(0, 1);
             }
-
         }
+
         public void eventIrcNickChange(string[] commArgs)
         {
             string UserOldNick = commArgs[0].Split('!')[0];
             string UserNewNick = commArgs[2].Remove(0, 1);
             BroadcastSim(UserOldNick + " changed their nick to " + UserNewNick, m_nick);
-
         }
 
         public void eventIrcKick(string[] commArgs)
@@ -804,7 +793,6 @@ namespace OpenSim.Region.Environment.Modules
             if (UserKicked == m_nick)
             {
                 BroadcastSim("Hey, that was me!!!", m_nick);
-
             }
         }
 
@@ -818,9 +806,7 @@ namespace OpenSim.Region.Environment.Modules
                 QuitMessage += commArgs[i] + " ";
             }
             BroadcastSim(IrcUser + " quits saying " + QuitMessage, m_nick);
-
         }
-
 
         public void Close()
         {

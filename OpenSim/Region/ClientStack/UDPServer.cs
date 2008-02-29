@@ -127,7 +127,6 @@ namespace OpenSim.Region.ClientStack
                     case SocketError.AlreadyInProgress:
                     case SocketError.NetworkReset:
                     case SocketError.ConnectionReset:
-
                         try
                         {
                             CloseEndPoint(epSender);
@@ -217,7 +216,6 @@ namespace OpenSim.Region.ClientStack
             try
             {
                packet = PacketPool.Instance.GetPacket(RecvBuffer, ref packetEnd, ZeroBuffer);
-               
             }
             catch (Exception e)
             {
@@ -228,7 +226,7 @@ namespace OpenSim.Region.ClientStack
             {
                 Server.BeginReceiveFrom(RecvBuffer, 0, RecvBuffer.Length, SocketFlags.None, ref epSender, ReceivedData, null);
             }
-            catch (SocketException e4)
+            catch (SocketException)
             {
                 try
                 {
@@ -254,7 +252,6 @@ namespace OpenSim.Region.ClientStack
                 {
                     m_log.Error("[UDPSERVER]: " + e5.ToString());
                 }
-
             }
 
             if (packet != null)
@@ -286,10 +283,9 @@ namespace OpenSim.Region.ClientStack
                         // invalid client
                         //CFK: This message seems to have served its usefullness as of 12-15 so I am commenting it out for now
                         //m_log.Warn("[UDPSERVER]: Got a packet from an invalid client - " + packet.ToString());
-
                     }
                 }
-                catch (Exception ex)
+                catch (Exception)
                 {
                     m_log.Error("[UDPSERVER]: Exception in processing packet.");
                     m_log.Debug("[UDPSERVER]: Adding New Client");
@@ -406,7 +402,6 @@ namespace OpenSim.Region.ClientStack
                 if (clientCircuits_reverse.TryGetValue(circuitcode, out sendto))
                 {
                     clientCircuits.Remove(sendto);
-
 
                     clientCircuits_reverse.Remove(circuitcode);
                 }
