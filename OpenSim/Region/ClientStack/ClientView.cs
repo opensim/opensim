@@ -201,17 +201,17 @@ namespace OpenSim.Region.ClientStack
         private ParcelSelectObjects handler077 = null; //OnParcelSelectObjects;
         private ParcelObjectOwnerRequest handler078 = null; //OnParcelObjectOwnerRequest;
         private EstateOwnerMessageRequest handler079 = null; //OnEstateOwnerMessage;
-        private RegionInfoRequest handler080 = null; //OnRegionInfoRequest;
-        private EstateCovenantRequest handler081 = null; //OnEstateCovenantRequest;
-        private RequestGodlikePowers handler082 = null; //OnRequestGodlikePowers;
+        private RegionInfoRequest handlerRegionInfoRequest = null; //OnRegionInfoRequest;
+        private EstateCovenantRequest handlerEstateCovenantRequest = null; //OnEstateCovenantRequest;
+        private RequestGodlikePowers handlerReqGodlikePowers = null; //OnRequestGodlikePowers;
         private GodKickUser handlerGodKickUser = null; //OnGodKickUser;
-        private ViewerEffectEventHandler handler083 = null; //OnViewerEffect;
-        private Action<IClientAPI> handler084 = null; //OnLogout;
-        private MoneyTransferRequest handler085 = null; //OnMoneyTransferRequest;
-        private UpdateVector handler086 = null; //OnUpdatePrimSinglePosition;
-        private UpdatePrimSingleRotation handler087 = null; //OnUpdatePrimSingleRotation;
-        private UpdateVector handler088 = null; //OnUpdatePrimScale;
-        private UpdateVector handler089 = null; //OnUpdatePrimGroupPosition;
+        private ViewerEffectEventHandler handlerViewerEffect = null; //OnViewerEffect;
+        private Action<IClientAPI> handlerLogout = null; //OnLogout;
+        private MoneyTransferRequest handlerMoneyTransferRequest = null; //OnMoneyTransferRequest;
+        private UpdateVector handlerUpdatePrimSinglePosition = null; //OnUpdatePrimSinglePosition;
+        private UpdatePrimSingleRotation handlerUpdatePrimSingleRotation = null; //OnUpdatePrimSingleRotation;
+        private UpdateVector handlerUpdatePrimScale = null; //OnUpdatePrimScale;
+        private UpdateVector handlerUpdateVector = null; //OnUpdatePrimGroupPosition;
         private UpdatePrimRotation handlerUpdatePrimRotation = null; //OnUpdatePrimGroupRotation;
         private UpdatePrimGroupRotation handlerUpdatePrimGroupRotation = null; //OnUpdatePrimGroupMouseRotation;
         private PacketStats handlerPacketStats = null; // OnPacketStats;#
@@ -2240,10 +2240,10 @@ namespace OpenSim.Region.ClientStack
             // validate the agent owns the agentID and sessionID
             if (money.MoneyData.SourceID == sender.AgentId && money.AgentData.AgentID == sender.AgentId && money.AgentData.SessionID == sender.SessionId)
             {
-                handler085 = OnMoneyTransferRequest;
-                if (handler085 != null)
+                handlerMoneyTransferRequest = OnMoneyTransferRequest;
+                if (handlerMoneyTransferRequest != null)
                 {
-                    handler085(money.MoneyData.SourceID, money.MoneyData.DestID,
+                    handlerMoneyTransferRequest(money.MoneyData.SourceID, money.MoneyData.DestID,
                         money.MoneyData.Amount, money.MoneyData.TransactionType,
                         Util.FieldToString(money.MoneyData.Description));
                 }
@@ -2259,10 +2259,10 @@ namespace OpenSim.Region.ClientStack
         private bool HandleViewerEffect(IClientAPI sender, Packet Pack)
         {
             ViewerEffectPacket viewer = (ViewerEffectPacket)Pack;
-            handler083 = OnViewerEffect;
-            if (handler083 != null)
+            handlerViewerEffect = OnViewerEffect;
+            if (handlerViewerEffect != null)
             {
-                handler083(sender, viewer.Effect);
+                handlerViewerEffect(sender, viewer.Effect);
             }
 
             return true;
@@ -2272,11 +2272,11 @@ namespace OpenSim.Region.ClientStack
         {
             m_log.Info("[CLIENT]: Got a logout request");
 
-            handler084 = OnLogout;
+            handlerLogout = OnLogout;
 
-            if (handler084 != null)
+            if (handlerLogout != null)
             {
-                handler084(client);
+                handlerLogout(client);
             }
 
             return true;
@@ -2343,57 +2343,57 @@ namespace OpenSim.Region.ClientStack
                             case 1:
                                 LLVector3 pos1 = new LLVector3(block.Data, 0);
 
-                                handler086 = OnUpdatePrimSinglePosition;
-                                if (handler086 != null)
+                                handlerUpdatePrimSinglePosition = OnUpdatePrimSinglePosition;
+                                if (handlerUpdatePrimSinglePosition != null)
                                 {
 
                                     // System.Console.WriteLine("new movement position is " + pos.X + " , " + pos.Y + " , " + pos.Z);
-                                    handler086(localId, pos1, this);
+                                    handlerUpdatePrimSinglePosition(localId, pos1, this);
                                 }
                                 break;
                             case 2:
                                 LLQuaternion rot1 = new LLQuaternion(block.Data, 0, true);
 
-                                handler087 = OnUpdatePrimSingleRotation;
-                                if (handler087 != null)
+                                handlerUpdatePrimSingleRotation = OnUpdatePrimSingleRotation;
+                                if (handlerUpdatePrimSingleRotation != null)
                                 {
 
                                     //System.Console.WriteLine("new tab rotation is " + rot.X + " , " + rot.Y + " , " + rot.Z + " , " + rot.W);
-                                    handler087(localId, rot1, this);
+                                    handlerUpdatePrimSingleRotation(localId, rot1, this);
                                 }
                                 break;
                             case 3:
 
                                 LLQuaternion rot2 = new LLQuaternion(block.Data, 12, true);
-                                handler087 = OnUpdatePrimSingleRotation;
-                                if (handler087 != null)
+                                handlerUpdatePrimSingleRotation = OnUpdatePrimSingleRotation;
+                                if (handlerUpdatePrimSingleRotation != null)
                                 {
 
                                     //System.Console.WriteLine("new mouse rotation is " + rot.X + " , " + rot.Y + " , " + rot.Z + " , " + rot.W);
-                                    handler087(localId, rot2, this);
+                                    handlerUpdatePrimSingleRotation(localId, rot2, this);
                                 }
                                 break;
                             case 5:
 
                                 LLVector3 scale1 = new LLVector3(block.Data, 12);
 
-                                handler088 = OnUpdatePrimScale;
-                                if (handler088 != null)
+                                handlerUpdatePrimScale = OnUpdatePrimScale;
+                                if (handlerUpdatePrimScale != null)
                                 {
 
                                     // Console.WriteLine("new scale is " + scale.X + " , " + scale.Y + " , " + scale.Z);
-                                    handler088(localId, scale1, this);
+                                    handlerUpdatePrimScale(localId, scale1, this);
                                 }
                                 break;
                             case 9:
                                 LLVector3 pos2 = new LLVector3(block.Data, 0);
 
-                                handler089 = OnUpdatePrimGroupPosition;
+                                handlerUpdateVector = OnUpdatePrimGroupPosition;
 
-                                if (handler089 != null)
+                                if (handlerUpdateVector != null)
                                 {
 
-                                    handler089(localId, pos2, this);
+                                    handlerUpdateVector(localId, pos2, this);
                                 }
                                 break;
                             case 10:
@@ -2427,19 +2427,19 @@ namespace OpenSim.Region.ClientStack
                                 LLVector3 scale2 = new LLVector3(block.Data, 12);
                                 LLVector3 pos4 = new LLVector3(block.Data, 0);
 
-                                handler088 = OnUpdatePrimScale;
-                                if (handler088 != null)
+                                handlerUpdatePrimScale = OnUpdatePrimScale;
+                                if (handlerUpdatePrimScale != null)
                                 {
 
                                     //Console.WriteLine("new scale is " + scale.X + " , " + scale.Y + " , " + scale.Z);
-                                    handler088(localId, scale2, this);
+                                    handlerUpdatePrimScale(localId, scale2, this);
 
                                     // Change the position based on scale (for bug number 246)
-                                    handler086 = OnUpdatePrimSinglePosition;
+                                    handlerUpdatePrimSinglePosition = OnUpdatePrimSinglePosition;
                                     // System.Console.WriteLine("new movement position is " + pos.X + " , " + pos.Y + " , " + pos.Z);
-                                    if (handler086 != null)
+                                    if (handlerUpdatePrimSinglePosition != null)
                                     {
-                                        handler086(localId, pos4, this);
+                                        handlerUpdatePrimSinglePosition(localId, pos4, this);
                                     }
                                 }
                                 break;
@@ -2447,27 +2447,27 @@ namespace OpenSim.Region.ClientStack
                                 LLVector3 scale5 = new LLVector3(block.Data, 12);
                                 LLVector3 pos5 = new LLVector3(block.Data, 0);
 
-                                handler088 = OnUpdatePrimScale;
-                                if (handler088 != null)
+                                handlerUpdatePrimScale = OnUpdatePrimScale;
+                                if (handlerUpdatePrimScale != null)
                                 {
 
                                     // Console.WriteLine("new scale is " + scale.X + " , " + scale.Y + " , " + scale.Z );
-                                    handler088(localId, scale5, this);
+                                    handlerUpdatePrimScale(localId, scale5, this);
 
-                                    handler086 = OnUpdatePrimSinglePosition;
-                                    if (handler086 != null)
+                                    handlerUpdatePrimSinglePosition = OnUpdatePrimSinglePosition;
+                                    if (handlerUpdatePrimSinglePosition != null)
                                     {
-                                        handler086(localId, pos5, this);
+                                        handlerUpdatePrimSinglePosition(localId, pos5, this);
                                     }
                                 }
                                 break;
                             case 21:
                                 LLVector3 scale6 = new LLVector3(block.Data, 12);
-                                handler088 = OnUpdatePrimScale;
-                                if (handler088 != null)
+                                handlerUpdatePrimScale = OnUpdatePrimScale;
+                                if (handlerUpdatePrimScale != null)
                                 {
                                     // Console.WriteLine("new scale is " + scale.X + " , " + scale.Y + " , " + scale.Z);
-                                    handler088(localId, scale6, this);
+                                    handlerUpdatePrimScale(localId, scale6, this);
                                 }
                                 break;
                         }
@@ -4129,10 +4129,10 @@ namespace OpenSim.Region.ClientStack
                     case PacketType.RequestRegionInfo:
                         RequestRegionInfoPacket.AgentDataBlock mPacket = ((RequestRegionInfoPacket)Pack).AgentData;
 
-                        handler080 = OnRegionInfoRequest;
-                        if (handler080 != null)
+                        handlerRegionInfoRequest = OnRegionInfoRequest;
+                        if (handlerRegionInfoRequest != null)
                         {
-                            handler080(this, mPacket.SessionID);
+                            handlerRegionInfoRequest(this, mPacket.SessionID);
                         }
                         break;
                     case PacketType.EstateCovenantRequest:
@@ -4140,10 +4140,10 @@ namespace OpenSim.Region.ClientStack
                         EstateCovenantRequestPacket.AgentDataBlock epack =
                             ((EstateCovenantRequestPacket)Pack).AgentData;
 
-                        handler081 = OnEstateCovenantRequest;
-                        if (handler081 != null)
+                        handlerEstateCovenantRequest = OnEstateCovenantRequest;
+                        if (handlerEstateCovenantRequest != null)
                         {
-                            handler081(this, epack.SessionID);
+                            handlerEstateCovenantRequest(this, epack.SessionID);
                         }
                         break;
 
@@ -4158,11 +4158,11 @@ namespace OpenSim.Region.ClientStack
                         LLUUID token = rblock.Token;
                         RequestGodlikePowersPacket.AgentDataBlock ablock = rglpPack.AgentData;
 
-                        handler082 = OnRequestGodlikePowers;
+                        handlerReqGodlikePowers = OnRequestGodlikePowers;
 
-                        if (handler082 != null)
+                        if (handlerReqGodlikePowers != null)
                         {
-                            handler082(ablock.AgentID, ablock.SessionID, token, this);
+                            handlerReqGodlikePowers(ablock.AgentID, ablock.SessionID, token, this);
                         }
 
                         break;
