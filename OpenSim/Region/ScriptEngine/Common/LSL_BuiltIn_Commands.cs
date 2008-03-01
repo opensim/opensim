@@ -40,6 +40,7 @@ using OpenSim.Region.Environment.Interfaces;
 using OpenSim.Region.Environment.Scenes;
 using OpenSim.Region.ScriptEngine.Common;
 using OpenSim.Region.ScriptEngine.Common.ScriptEngineBase;
+using OpenSim.Region.Environment;
 //using OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL;
 
 namespace OpenSim.Region.ScriptEngine.Common
@@ -402,23 +403,43 @@ namespace OpenSim.Region.ScriptEngine.Common
            // NotImplemented("llSensorRemove");
         }
 
+        public string resolveName(LLUUID objecUUID)
+        {
+            // try avatar username surname
+            UserProfileData profile = World.CommsManager.UserService.GetUserProfile(objecUUID);
+            if (profile != null)
+            {
+                string avatarname = profile.username + " " + profile.surname;
+                return avatarname;
+            }
+            // try an scene object
+            SceneObjectPart SOP = World.GetSceneObjectPart(objecUUID);
+            if (SOP != null)
+            {
+                string objectname = SOP.Name;
+                return objectname;
+            }
+
+            EntityBase SensedObject = null;
+            lock (World.Entities)
+            {
+                World.Entities.TryGetValue(objecUUID, out SensedObject);
+            }
+
+            if (SensedObject == null)
+                return String.Empty;
+            return SensedObject.Name;
+
+        }
+
         public string llDetectedName(int number)
         {
             m_host.AddScriptLPS(1);
             LSL_Types.list SenseList = m_ScriptEngine.m_ASYNCLSLCommandManager.m_SensorRepeat.GetSensorList(m_localID, m_itemID);
-            if ((number>0)&&(number <= SenseList.Length))
+            if ((number>=0)&&(number <= SenseList.Length))
             {
                 LLUUID SensedUUID = (LLUUID)SenseList.Data[number];
-                //ScenePresence SensedObject = World.GetScenePresence(SensedUUID);
-                EntityBase SensedObject=null;
-                lock (World.Entities)
-                {
-                World.Entities.TryGetValue(SensedUUID, out SensedObject);
-                }
-
-                if (SensedObject == null)
-                    return String.Empty;
-                return SensedObject.Name;
+                return resolveName(SensedUUID);
             }
             else
                 return String.Empty;
@@ -464,6 +485,7 @@ namespace OpenSim.Region.ScriptEngine.Common
 
         public string llDetectedOwner(int number)
         {
+            // returns UUID of owner of object detected
             m_host.AddScriptLPS(1);
             EntityBase SensedObject = entityDetectedKey(number);
             if (SensedObject ==null)
@@ -1413,16 +1435,47 @@ namespace OpenSim.Region.ScriptEngine.Common
         public void llInstantMessage(string user, string message)
         {
             m_host.AddScriptLPS(1);
-            NotImplemented("llInstantMessage");
 
             // We may be able to use ClientView.SendInstantMessage here, but we need a client instance.
             // InstantMessageModule.OnInstantMessage searches through a list of scenes for a client matching the toAgent,
             // but I don't think we have a list of scenes available from here.
             // (We also don't want to duplicate the code in OnInstantMessage if we can avoid it.)
+            
+            // user is a UUID
 
             // TODO: figure out values for client, fromSession, and imSessionID
             // client.SendInstantMessage(m_host.UUID, fromSession, message, user, imSessionID, m_host.Name, AgentManager.InstantMessageDialog.MessageFromAgent, (uint)Util.UnixTimeSinceEpoch());
-        }
+            LLUUID friendTransactionID = LLUUID.Random();
+
+            //m_pendingFriendRequests.Add(friendTransactionID, fromAgentID);
+
+            GridInstantMessage msg = new GridInstantMessage();
+            msg.fromAgentID = new System.Guid(m_host.UUID.ToString()); // fromAgentID.UUID;
+            msg.fromAgentSession = new System.Guid(friendTransactionID.ToString());// fromAgentSession.UUID;
+            msg.toAgentID = new System.Guid(user); // toAgentID.UUID;
+            msg.imSessionID = new System.Guid(friendTransactionID.ToString()); // This is the item we're mucking with here
+            Console.WriteLine("[Scripting IM]: From:" + msg.fromAgentID.ToString() + " To: " + msg.toAgentID.ToString() + " Session:" + msg.imSessionID.ToString() + " Message:" + message);
+            Console.WriteLine("[Scripting IM]: Filling Session: " + msg.imSessionID.ToString());
+            msg.timestamp = (uint)Util.UnixTimeSinceEpoch();// timestamp;
+            //if (client != null)
+            //{
+                msg.fromAgentName = m_host.Name;//client.FirstName + " " + client.LastName;// fromAgentName;
+            //}
+            //else
+            //{
+            //    msg.fromAgentName = "(hippos)";// Added for posterity.  This means that we can't figure out who sent it
+            //}
+            msg.message = message;
+            msg.dialog = (byte)19; // messgage from script ??? // dialog;
+            msg.fromGroup = false;// fromGroup;
+            msg.offline = (byte)0; //offline;
+            msg.ParentEstateID = 0; //ParentEstateID;
+            msg.Position = new sLLVector3();// new sLLVector3(m_host.AbsolutePosition);
+            msg.RegionID = World.RegionInfo.RegionID.UUID;//RegionID.UUID;
+            msg.binaryBucket = new byte[0];// binaryBucket;
+            World.TriggerGridInstantMessage(msg, InstantMessageReceiver.IMModule);
+            //  NotImplemented("llInstantMessage");
+      }
 
         public void llEmail(string address, string subject, string message)
         {
@@ -3733,13 +3786,15 @@ namespace OpenSim.Region.ScriptEngine.Common
 
         public void llOwnerSay(string msg)
         {
-            m_host.AddScriptLPS(1);
+            //m_host.AddScriptLPS(1); // since we reuse llInstantMessage
             //temp fix so that lsl wiki examples aren't annoying to use to test other functions
             //should be similar to : llInstantMessage(llGetOwner(),msg)
             // llGetOwner ==> m_host.ObjectOwner.ToString()
-            World.SimChat(Helpers.StringToField(msg), ChatTypeEnum.Say, 0, m_host.AbsolutePosition, m_host.Name, m_host.UUID);
-            IWorldComm wComm = m_ScriptEngine.World.RequestModuleInterface<IWorldComm>();
-            wComm.DeliverMessage(m_host.UUID.ToString(), ChatTypeEnum.Say, 0, m_host.Name, msg);
+            llInstantMessage(m_host.ObjectOwner.ToString(),msg);
+            
+            //World.SimChat(Helpers.StringToField(msg), ChatTypeEnum.Say, 0, m_host.AbsolutePosition, m_host.Name, m_host.UUID);
+            //IWorldComm wComm = m_ScriptEngine.World.RequestModuleInterface<IWorldComm>();
+            //wComm.DeliverMessage(m_host.UUID.ToString(), ChatTypeEnum.Say, 0, m_host.Name, msg);
         }
 
         public void llRequestSimulatorData(string simulator, int data)

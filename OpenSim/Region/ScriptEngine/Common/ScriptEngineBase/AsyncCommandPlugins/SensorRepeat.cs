@@ -236,7 +236,7 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase.AsyncCommandPlugin
 
                         // Right type too, what about the other params , key and name ?
                         bool keep = true;
-                        if (ts.arc != Math.PI)
+                        if (ts.arc < Math.PI)
                         {
                             // not omni-directional. Can you see it ?
                             // vec forward_dir = llRot2Fwd(llGetRot())
@@ -261,15 +261,40 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase.AsyncCommandPlugin
                             if (ang_obj > ts.arc) keep = false;
                         }
 
-                        if (keep && (ts.name.Length > 0) && (ts.name != ent.Name))
-                        {
-                            keep = false;
-                        }
 
                         if (keep && (ts.keyID != null) && (ts.keyID != LLUUID.Zero) && (ts.keyID != ent.UUID))
                         {
                             keep = false;
                         }
+
+                        if (keep&& (ts.name.Length > 0))
+                        {
+                            string avatarname=null;
+                            string objectname=null;
+                            string entname =ent.Name;
+
+                            // try avatar username surname
+                            UserProfileData profile = m_CmdManager.m_ScriptEngine.World.CommsManager.UserService.GetUserProfile(ent.UUID);
+                            if (profile != null)
+                            {
+                               avatarname = profile.username + " " + profile.surname;
+                            }
+                            // try an scene object
+                            SceneObjectPart SOP = m_CmdManager.m_ScriptEngine.World.GetSceneObjectPart(ent.UUID);
+                            if (SOP != null)
+                            {
+                                objectname = SOP.Name;
+                            }
+
+
+                            if ((ts.name != entname) && (ts.name != avatarname) && (ts.name != objectname))
+                            {
+                               keep = false;
+                            }
+
+
+                        }
+
                         if (keep == true) SensedObjects.Add(ent.UUID);
                     }
                 }
