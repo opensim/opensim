@@ -204,7 +204,7 @@ namespace OpenSim.Region.ClientStack
         private RegionInfoRequest handler080 = null; //OnRegionInfoRequest;
         private EstateCovenantRequest handler081 = null; //OnEstateCovenantRequest;
         private RequestGodlikePowers handler082 = null; //OnRequestGodlikePowers;
-        private GodKickUser handler092 = null; //OnGodKickUser;
+        private GodKickUser handlerGodKickUser = null; //OnGodKickUser;
         private ViewerEffectEventHandler handler083 = null; //OnViewerEffect;
         private Action<IClientAPI> handler084 = null; //OnLogout;
         private MoneyTransferRequest handler085 = null; //OnMoneyTransferRequest;
@@ -212,10 +212,10 @@ namespace OpenSim.Region.ClientStack
         private UpdatePrimSingleRotation handler087 = null; //OnUpdatePrimSingleRotation;
         private UpdateVector handler088 = null; //OnUpdatePrimScale;
         private UpdateVector handler089 = null; //OnUpdatePrimGroupPosition;
-        private UpdatePrimRotation handler090 = null; //OnUpdatePrimGroupRotation;
-        private UpdatePrimGroupRotation handler091 = null; //OnUpdatePrimGroupMouseRotation;
-        private PacketStats handler093 = null; // OnPacketStats;#
-        private RequestAsset handler094 = null; // OnRequestAsset;
+        private UpdatePrimRotation handlerUpdatePrimRotation = null; //OnUpdatePrimGroupRotation;
+        private UpdatePrimGroupRotation handlerUpdatePrimGroupRotation = null; //OnUpdatePrimGroupMouseRotation;
+        private PacketStats handlerPacketStats = null; // OnPacketStats;#
+        private RequestAsset handlerRequestAsset = null; // OnRequestAsset;
 
 
         /* Properties */
@@ -2335,8 +2335,8 @@ namespace OpenSim.Region.ClientStack
 
 
 
-                        UpdatePrimRotation handler090 = OnUpdatePrimGroupRotation;
-                        UpdatePrimGroupRotation handler091 = OnUpdatePrimGroupMouseRotation;
+                        UpdatePrimRotation handlerUpdatePrimRotation = OnUpdatePrimGroupRotation;
+                        UpdatePrimGroupRotation handlerUpdatePrimGroupRotation = OnUpdatePrimGroupMouseRotation;
 
                         switch (block.Type)
                         {
@@ -2400,12 +2400,12 @@ namespace OpenSim.Region.ClientStack
 
                                 LLQuaternion rot3 = new LLQuaternion(block.Data, 0, true);
 
-                                handler090 = OnUpdatePrimGroupRotation;
-                                if (handler090 != null)
+                                handlerUpdatePrimRotation = OnUpdatePrimGroupRotation;
+                                if (handlerUpdatePrimRotation != null)
                                 {
 
                                     //  Console.WriteLine("new rotation is " + rot.X + " , " + rot.Y + " , " + rot.Z + " , " + rot.W);
-                                    handler090(localId, rot3, this);
+                                    handlerUpdatePrimRotation(localId, rot3, this);
                                 }
                                 break;
                             case 11:
@@ -2413,14 +2413,13 @@ namespace OpenSim.Region.ClientStack
                                 LLVector3 pos3 = new LLVector3(block.Data, 0);
                                 LLQuaternion rot4 = new LLQuaternion(block.Data, 12, true);
 
-                                handler091 = OnUpdatePrimGroupMouseRotation;
-                                if (handler091 != null)
+                                handlerUpdatePrimGroupRotation = OnUpdatePrimGroupMouseRotation;
+                                if (handlerUpdatePrimGroupRotation != null)
                                 {
 
                                     //Console.WriteLine("new rotation position is " + pos.X + " , " + pos.Y + " , " + pos.Z);
                                     // Console.WriteLine("new rotation is " + rot.X + " , " + rot.Y + " , " + rot.Z + " , " + rot.W);
-                                    handler091(localId, pos3, rot4,
-                                                                   this);
+                                    handlerUpdatePrimGroupRotation(localId, pos3, rot4, this);
                                 }
                                 break;
                             case 13:
@@ -2819,10 +2818,10 @@ namespace OpenSim.Region.ClientStack
 
         protected void SendPacketStats()
         {
-            handler093 = OnPacketStats;
-            if (handler093 != null)
+            handlerPacketStats = OnPacketStats;
+            if (handlerPacketStats != null)
             {
-                handler093(m_packetsReceived - m_lastPacketsReceivedSentToScene, m_packetsSent - m_lastPacketsSentSentToScene, m_unAckedBytes);
+                handlerPacketStats(m_packetsReceived - m_lastPacketsReceivedSentToScene, m_packetsSent - m_lastPacketsSentSentToScene, m_unAckedBytes);
                 m_lastPacketsReceivedSentToScene = m_packetsReceived;
                 m_lastPacketsSentSentToScene = m_packetsSent;
             }
@@ -3565,11 +3564,11 @@ namespace OpenSim.Region.ClientStack
                         //Console.WriteLine("ClientView.ProcessPackets.cs:ProcessInPacket() - Got transfer request");
                         TransferRequestPacket transfer = (TransferRequestPacket)Pack;
                         m_assetCache.AddAssetRequest(this, transfer);
-                       /* handler094 = OnRequestAsset;
-                        if (handler094 != null)
-                        {
-                            handler094(this, transfer);
-                        }*/
+                        /* RequestAsset = OnRequestAsset;
+                         if (RequestAsset != null)
+                         {
+                             RequestAsset(this, transfer);
+                         }*/
                         break;
                     case PacketType.AssetUploadRequest:
                         AssetUploadRequestPacket request = (AssetUploadRequestPacket)Pack;
@@ -4175,10 +4174,10 @@ namespace OpenSim.Region.ClientStack
 
                         if (gkupack.UserInfo.GodSessionID == SessionId && AgentId == gkupack.UserInfo.GodID)
                         {
-                            handler092 = OnGodKickUser;
-                            if (handler092 != null)
+                            handlerGodKickUser = OnGodKickUser;
+                            if (handlerGodKickUser != null)
                             {
-                                handler092(gkupack.UserInfo.GodID, gkupack.UserInfo.GodSessionID,
+                                handlerGodKickUser(gkupack.UserInfo.GodID, gkupack.UserInfo.GodSessionID,
                                               gkupack.UserInfo.AgentID, (uint)0, gkupack.UserInfo.Reason);
                             }
                         }
