@@ -191,16 +191,16 @@ namespace OpenSim.Region.ClientStack
         private RequestMapName handler067 = null; //OnMapNameRequest;
         private TeleportLocationRequest handler068 = null; //OnTeleportLocationRequest;
         private MoneyBalanceRequest handler069 = null; //OnMoneyBalanceRequest;
-        private UUIDNameRequest handler070 = null;
-        private ParcelAccessListRequest handler071 = null; //OnParcelAccessListRequest;
-        private ParcelAccessListUpdateRequest handler072 = null; //OnParcelAccessListUpdateRequest;
-        private ParcelPropertiesRequest handler073 = null; //OnParcelPropertiesRequest;
-        private ParcelDivideRequest handler074 = null; //OnParcelDivideRequest;
-        private ParcelJoinRequest handler075 = null; //OnParcelJoinRequest;
-        private ParcelPropertiesUpdateRequest handler076 = null; //OnParcelPropertiesUpdateRequest;
-        private ParcelSelectObjects handler077 = null; //OnParcelSelectObjects;
-        private ParcelObjectOwnerRequest handler078 = null; //OnParcelObjectOwnerRequest;
-        private EstateOwnerMessageRequest handler079 = null; //OnEstateOwnerMessage;
+        private UUIDNameRequest handlerNameRequest = null;
+        private ParcelAccessListRequest handlerParcelAccessListRequest = null; //OnParcelAccessListRequest;
+        private ParcelAccessListUpdateRequest handlerParcelAccessListUpdateRequest = null; //OnParcelAccessListUpdateRequest;
+        private ParcelPropertiesRequest handlerParcelPropertiesRequest = null; //OnParcelPropertiesRequest;
+        private ParcelDivideRequest handlerParcelDivideRequest = null; //OnParcelDivideRequest;
+        private ParcelJoinRequest handlerParcelJoinRequest = null; //OnParcelJoinRequest;
+        private ParcelPropertiesUpdateRequest handlerParcelPropertiesUpdateRequest = null; //OnParcelPropertiesUpdateRequest;
+        private ParcelSelectObjects handlerParcelSelectObjects = null; //OnParcelSelectObjects;
+        private ParcelObjectOwnerRequest handlerParcelObjectOwnerRequest = null; //OnParcelObjectOwnerRequest;
+        private EstateOwnerMessageRequest handlerEstateOwnerMessage = null; //OnEstateOwnerMessage;
         private RegionInfoRequest handlerRegionInfoRequest = null; //OnRegionInfoRequest;
         private EstateCovenantRequest handlerEstateCovenantRequest = null; //OnEstateCovenantRequest;
         private RequestGodlikePowers handlerReqGodlikePowers = null; //OnRequestGodlikePowers;
@@ -3996,10 +3996,10 @@ namespace OpenSim.Region.ClientStack
                         UUIDNameRequestPacket incoming = (UUIDNameRequestPacket)Pack;
                         foreach (UUIDNameRequestPacket.UUIDNameBlockBlock UUIDBlock in incoming.UUIDNameBlock)
                         {
-                            handler070 = OnNameFromUUIDRequest;
-                            if (handler070 != null)
+                            handlerNameRequest = OnNameFromUUIDRequest;
+                            if (handlerNameRequest != null)
                             {
-                                handler070(UUIDBlock.ID, this);
+                                handlerNameRequest(UUIDBlock.ID, this);
                             }
                         }
                         break;
@@ -4009,11 +4009,11 @@ namespace OpenSim.Region.ClientStack
                     case PacketType.ParcelAccessListRequest:
                         ParcelAccessListRequestPacket requestPacket = (ParcelAccessListRequestPacket)Pack;
 
-                        handler071 = OnParcelAccessListRequest;
+                        handlerParcelAccessListRequest = OnParcelAccessListRequest;
 
-                        if (handler071 != null)
+                        if (handlerParcelAccessListRequest != null)
                         {
-                            handler071(requestPacket.AgentData.AgentID, requestPacket.AgentData.SessionID,
+                            handlerParcelAccessListRequest(requestPacket.AgentData.AgentID, requestPacket.AgentData.SessionID,
                                           requestPacket.Data.Flags, requestPacket.Data.SequenceID,
                                           requestPacket.Data.LocalID, this);
                         }
@@ -4031,10 +4031,10 @@ namespace OpenSim.Region.ClientStack
                             entries.Add(entry);
                         }
 
-                        handler072 = OnParcelAccessListUpdateRequest;
-                        if (handler072 != null)
+                        handlerParcelAccessListUpdateRequest = OnParcelAccessListUpdateRequest;
+                        if (handlerParcelAccessListUpdateRequest != null)
                         {
-                            handler072(updatePacket.AgentData.AgentID,
+                            handlerParcelAccessListUpdateRequest(updatePacket.AgentData.AgentID,
                                         updatePacket.AgentData.SessionID, updatePacket.Data.Flags,
                                         updatePacket.Data.LocalID, entries, this);
                         }
@@ -4043,10 +4043,10 @@ namespace OpenSim.Region.ClientStack
 
                         ParcelPropertiesRequestPacket propertiesRequest = (ParcelPropertiesRequestPacket)Pack;
 
-                        handler073 = OnParcelPropertiesRequest;
-                        if (handler073 != null)
+                        handlerParcelPropertiesRequest = OnParcelPropertiesRequest;
+                        if (handlerParcelPropertiesRequest != null)
                         {
-                            handler073((int)Math.Round(propertiesRequest.ParcelData.West),
+                            handlerParcelPropertiesRequest((int)Math.Round(propertiesRequest.ParcelData.West),
                                       (int)Math.Round(propertiesRequest.ParcelData.South),
                                       (int)Math.Round(propertiesRequest.ParcelData.East),
                                       (int)Math.Round(propertiesRequest.ParcelData.North),
@@ -4057,10 +4057,10 @@ namespace OpenSim.Region.ClientStack
                     case PacketType.ParcelDivide:
                         ParcelDividePacket landDivide = (ParcelDividePacket)Pack;
 
-                        handler074 = OnParcelDivideRequest;
-                        if (handler074 != null)
+                        handlerParcelDivideRequest = OnParcelDivideRequest;
+                        if (handlerParcelDivideRequest != null)
                         {
-                            handler074((int)Math.Round(landDivide.ParcelData.West),
+                            handlerParcelDivideRequest((int)Math.Round(landDivide.ParcelData.West),
                                       (int)Math.Round(landDivide.ParcelData.South),
                                       (int)Math.Round(landDivide.ParcelData.East),
                                       (int)Math.Round(landDivide.ParcelData.North), this);
@@ -4069,34 +4069,34 @@ namespace OpenSim.Region.ClientStack
                     case PacketType.ParcelJoin:
                         ParcelJoinPacket landJoin = (ParcelJoinPacket)Pack;
 
-                        handler075 = OnParcelJoinRequest;
+                        handlerParcelJoinRequest = OnParcelJoinRequest;
 
-                        if (handler075 != null)
+                        if (handlerParcelJoinRequest != null)
                         {
-                            handler075((int)Math.Round(landJoin.ParcelData.West),
-                                        (int)Math.Round(landJoin.ParcelData.South),
-                                        (int)Math.Round(landJoin.ParcelData.East),
-                                        (int)Math.Round(landJoin.ParcelData.North), this);
+                            handlerParcelJoinRequest((int)Math.Round(landJoin.ParcelData.West),
+                                                    (int)Math.Round(landJoin.ParcelData.South),
+                                                    (int)Math.Round(landJoin.ParcelData.East),
+                                                    (int)Math.Round(landJoin.ParcelData.North), this);
                         }
                         break;
                     case PacketType.ParcelPropertiesUpdate:
                         ParcelPropertiesUpdatePacket parcelPropertiesPacket = (ParcelPropertiesUpdatePacket)Pack;
 
-                        handler076 = OnParcelPropertiesUpdateRequest;
+                        handlerParcelPropertiesUpdateRequest = OnParcelPropertiesUpdateRequest;
 
-                        if (handler076 != null)
+                        if (handlerParcelPropertiesUpdateRequest != null)
                         {
-                            handler076(parcelPropertiesPacket, this);
+                            handlerParcelPropertiesUpdateRequest(parcelPropertiesPacket, this);
                         }
                         break;
                     case PacketType.ParcelSelectObjects:
                         ParcelSelectObjectsPacket selectPacket = (ParcelSelectObjectsPacket)Pack;
 
-                        handler077 = OnParcelSelectObjects;
+                        handlerParcelSelectObjects = OnParcelSelectObjects;
 
-                        if (handler077 != null)
+                        if (handlerParcelSelectObjects != null)
                         {
-                            handler077(selectPacket.ParcelData.LocalID,
+                            handlerParcelSelectObjects(selectPacket.ParcelData.LocalID,
                                         Convert.ToInt32(selectPacket.ParcelData.ReturnType), this);
                         }
                         break;
@@ -4104,11 +4104,11 @@ namespace OpenSim.Region.ClientStack
                         //System.Console.WriteLine(Pack.ToString());
                         ParcelObjectOwnersRequestPacket reqPacket = (ParcelObjectOwnersRequestPacket)Pack;
 
-                        handler078 = OnParcelObjectOwnerRequest;
+                        handlerParcelObjectOwnerRequest = OnParcelObjectOwnerRequest;
 
-                        if (handler078 != null)
+                        if (handlerParcelObjectOwnerRequest != null)
                         {
-                            handler078(reqPacket.ParcelData.LocalID, this);
+                            handlerParcelObjectOwnerRequest(reqPacket.ParcelData.LocalID, this);
                         }
                         break;
 
@@ -4119,11 +4119,11 @@ namespace OpenSim.Region.ClientStack
                     case PacketType.EstateOwnerMessage:
                         EstateOwnerMessagePacket messagePacket = (EstateOwnerMessagePacket)Pack;
 
-                        handler079 = OnEstateOwnerMessage;
+                        handlerEstateOwnerMessage = OnEstateOwnerMessage;
 
-                        if (handler079 != null)
+                        if (handlerEstateOwnerMessage != null)
                         {
-                            handler079(messagePacket, this);
+                            handlerEstateOwnerMessage(messagePacket, this);
                         }
                         break;
                     case PacketType.RequestRegionInfo:
