@@ -31,6 +31,7 @@ CREATE TABLE [dbo].[regions](
  [regionMapTexture] [varchar](255) COLLATE Latin1_General_CI_AS NULL,
  [serverHttpPort] [varchar](255) COLLATE Latin1_General_CI_AS NULL,
  [serverRemotingPort] [varchar](255) COLLATE Latin1_General_CI_AS NULL,
+ [owner_uuid] [varchar](36) COLLATE Latin1_General_CI_AS NULL,
 PRIMARY KEY CLUSTERED 
 (
  [uuid] ASC

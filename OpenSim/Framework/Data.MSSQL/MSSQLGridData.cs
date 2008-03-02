@@ -224,13 +224,13 @@ namespace OpenSim.Framework.Data.MSSQL
             sql +=
                 "[serverIP], [serverPort], [serverURI], [locX], [locY], [locZ], [eastOverrideHandle], [westOverrideHandle], [southOverrideHandle], [northOverrideHandle], [regionAssetURI], [regionAssetRecvKey], ";
             sql +=
-                "[regionAssetSendKey], [regionUserURI], [regionUserRecvKey], [regionUserSendKey], [regionMapTexture], [serverHttpPort], [serverRemotingPort]) VALUES ";
+                "[regionAssetSendKey], [regionUserURI], [regionUserRecvKey], [regionUserSendKey], [regionMapTexture], [serverHttpPort], [serverRemotingPort], [owner_uuid]) VALUES ";
 
             sql += "(@regionHandle, @regionName, @uuid, @regionRecvKey, @regionSecret, @regionSendKey, @regionDataURI, ";
             sql +=
                 "@serverIP, @serverPort, @serverURI, @locX, @locY, @locZ, @eastOverrideHandle, @westOverrideHandle, @southOverrideHandle, @northOverrideHandle, @regionAssetURI, @regionAssetRecvKey, ";
             sql +=
-                "@regionAssetSendKey, @regionUserURI, @regionUserRecvKey, @regionUserSendKey, @regionMapTexture, @serverHttpPort, @serverRemotingPort);";
+                "@regionAssetSendKey, @regionUserURI, @regionUserRecvKey, @regionUserSendKey, @regionMapTexture, @serverHttpPort, @serverRemotingPort, @owner_uuid);";
 
             Dictionary<string, string> parameters = new Dictionary<string, string>();
 
@@ -260,7 +260,7 @@ namespace OpenSim.Framework.Data.MSSQL
             parameters["regionMapTexture"] = profile.regionMapTextureID.ToString();
             parameters["serverHttpPort"] = profile.httpPort.ToString();
             parameters["serverRemotingPort"] = profile.remotingPort.ToString();
-
+            parameters["owner_uuid"] = profile.owner_uuid.ToString();
 
             bool returnval = false;
 
