@@ -181,16 +181,16 @@ namespace OpenSim.Region.ClientStack
         private UpdateInventoryItem handler057 = null;
         private CopyInventoryItem handler058 = null;
         private MoveInventoryItem handler059 = null;
-        private RemoveInventoryItem handler060 = null;
-        private RemoveInventoryFolder handler061 = null;
-        private RequestTaskInventory handler062 = null; //OnRequestTaskInventory;
-        private UpdateTaskInventory handler063 = null; //OnUpdateTaskInventory;
-        private RemoveTaskInventory handler064 = null; //OnRemoveTaskItem;
-        private RezScript handler065 = null; //OnRezScript;
-        private RequestMapBlocks handler066 = null; //OnRequestMapBlocks;
-        private RequestMapName handler067 = null; //OnMapNameRequest;
-        private TeleportLocationRequest handler068 = null; //OnTeleportLocationRequest;
-        private MoneyBalanceRequest handler069 = null; //OnMoneyBalanceRequest;
+        private RemoveInventoryItem handlerRemoveInventoryItem = null;
+        private RemoveInventoryFolder handlerRemoveInventoryFolder = null;
+        private RequestTaskInventory handlerRequestTaskInventory = null; //OnRequestTaskInventory;
+        private UpdateTaskInventory handlerUpdateTaskInventory = null; //OnUpdateTaskInventory;
+        private RemoveTaskInventory handlerRemoveTaskItem = null; //OnRemoveTaskItem;
+        private RezScript handlerRezScript = null; //OnRezScript;
+        private RequestMapBlocks handlerRequestMapBlocks = null; //OnRequestMapBlocks;
+        private RequestMapName handlerMapNameRequest = null; //OnMapNameRequest;
+        private TeleportLocationRequest handlerTeleportLocationRequest = null; //OnTeleportLocationRequest;
+        private MoneyBalanceRequest handlerMoneyBalanceRequest = null; //OnMoneyBalanceRequest;
         private UUIDNameRequest handlerNameRequest = null;
         private ParcelAccessListRequest handlerParcelAccessListRequest = null; //OnParcelAccessListRequest;
         private ParcelAccessListUpdateRequest handlerParcelAccessListUpdateRequest = null; //OnParcelAccessListUpdateRequest;
@@ -3812,13 +3812,13 @@ namespace OpenSim.Region.ClientStack
                         RemoveInventoryItemPacket removeItem = (RemoveInventoryItemPacket)Pack;
                         if (OnRemoveInventoryItem != null)
                         {
-                            handler060 = null;
+                            handlerRemoveInventoryItem = null;
                             foreach (RemoveInventoryItemPacket.InventoryDataBlock datablock in removeItem.InventoryData)
                             {
-                                handler060 = OnRemoveInventoryItem;
-                                if (handler060 != null)
+                                handlerRemoveInventoryItem = OnRemoveInventoryItem;
+                                if (handlerRemoveInventoryItem != null)
                                 {
-                                    handler060(this, datablock.ItemID);
+                                    handlerRemoveInventoryItem(this, datablock.ItemID);
                                 }
                             }
                         }
@@ -3827,14 +3827,14 @@ namespace OpenSim.Region.ClientStack
                         RemoveInventoryFolderPacket removeFolder = (RemoveInventoryFolderPacket)Pack;
                         if (OnRemoveInventoryFolder != null)
                         {
-                            handler061 = null;
+                            handlerRemoveInventoryFolder = null;
                             foreach (RemoveInventoryFolderPacket.FolderDataBlock datablock in removeFolder.FolderData)
                             {
-                                handler061 = OnRemoveInventoryFolder;
+                                handlerRemoveInventoryFolder = OnRemoveInventoryFolder;
 
-                                if (handler061 != null)
+                                if (handlerRemoveInventoryFolder != null)
                                 {
-                                    handler061(this, datablock.FolderID);
+                                    handlerRemoveInventoryFolder(this, datablock.FolderID);
                                 }
                             }
                         }
@@ -3842,10 +3842,10 @@ namespace OpenSim.Region.ClientStack
                     case PacketType.RequestTaskInventory:
                         RequestTaskInventoryPacket requesttask = (RequestTaskInventoryPacket)Pack;
 
-                        handler062 = OnRequestTaskInventory;
-                        if (handler062 != null)
+                        handlerRequestTaskInventory = OnRequestTaskInventory;
+                        if (handlerRequestTaskInventory != null)
                         {
-                            handler062(this, requesttask.InventoryData.LocalID);
+                            handlerRequestTaskInventory(this, requesttask.InventoryData.LocalID);
                         }
                         break;
                     case PacketType.UpdateTaskInventory:
@@ -3854,10 +3854,10 @@ namespace OpenSim.Region.ClientStack
                         {
                             if (updatetask.UpdateData.Key == 0)
                             {
-                                handler063 = OnUpdateTaskInventory;
-                                if (handler063 != null)
+                                handlerUpdateTaskInventory = OnUpdateTaskInventory;
+                                if (handlerUpdateTaskInventory != null)
                                 {
-                                    handler063(this, updatetask.InventoryData.ItemID,
+                                    handlerUpdateTaskInventory(this, updatetask.InventoryData.ItemID,
                                                 updatetask.InventoryData.FolderID, updatetask.UpdateData.LocalID);
                                 }
                             }
@@ -3866,11 +3866,11 @@ namespace OpenSim.Region.ClientStack
                     case PacketType.RemoveTaskInventory:
                         RemoveTaskInventoryPacket removeTask = (RemoveTaskInventoryPacket)Pack;
 
-                        handler064 = OnRemoveTaskItem;
+                        handlerRemoveTaskItem = OnRemoveTaskItem;
 
-                        if (handler064 != null)
+                        if (handlerRemoveTaskItem != null)
                         {
-                            handler064(this, removeTask.InventoryData.ItemID, removeTask.InventoryData.LocalID);
+                            handlerRemoveTaskItem(this, removeTask.InventoryData.ItemID, removeTask.InventoryData.LocalID);
                         }
                         break;
                     case PacketType.MoveTaskInventory:
@@ -3880,11 +3880,11 @@ namespace OpenSim.Region.ClientStack
                         //Console.WriteLine(Pack.ToString());
                         RezScriptPacket rezScriptx = (RezScriptPacket)Pack;
 
-                        handler065 = OnRezScript;
+                        handlerRezScript = OnRezScript;
 
-                        if (handler065 != null)
+                        if (handlerRezScript != null)
                         {
-                            handler065(this, rezScriptx.InventoryBlock.ItemID, rezScriptx.UpdateBlock.ObjectLocalID);
+                            handlerRezScript(this, rezScriptx.InventoryBlock.ItemID, rezScriptx.UpdateBlock.ObjectLocalID);
                         }
                         break;
                     case PacketType.MapLayerRequest:
@@ -3893,10 +3893,10 @@ namespace OpenSim.Region.ClientStack
                     case PacketType.MapBlockRequest:
                         MapBlockRequestPacket MapRequest = (MapBlockRequestPacket)Pack;
 
-                        handler066 = OnRequestMapBlocks;
-                        if (handler066 != null)
+                        handlerRequestMapBlocks = OnRequestMapBlocks;
+                        if (handlerRequestMapBlocks != null)
                         {
-                            handler066(this, MapRequest.PositionData.MinX, MapRequest.PositionData.MinY,
+                            handlerRequestMapBlocks(this, MapRequest.PositionData.MinX, MapRequest.PositionData.MinY,
                                                MapRequest.PositionData.MaxX, MapRequest.PositionData.MaxY);
                         }
                         break;
@@ -3904,10 +3904,10 @@ namespace OpenSim.Region.ClientStack
                         MapNameRequestPacket map = (MapNameRequestPacket)Pack;
                         string mapName = UTF8Encoding.UTF8.GetString(map.NameData.Name, 0,
                                                                      map.NameData.Name.Length - 1);
-                        handler067 = OnMapNameRequest;
-                        if (handler067 != null)
+                        handlerMapNameRequest = OnMapNameRequest;
+                        if (handlerMapNameRequest != null)
                         {
-                            handler067(this, mapName);
+                            handlerMapNameRequest(this, mapName);
                         }
                         break;
                     case PacketType.TeleportLandmarkRequest:
@@ -3962,10 +3962,10 @@ namespace OpenSim.Region.ClientStack
                         TeleportLocationRequestPacket tpLocReq = (TeleportLocationRequestPacket)Pack;
                         // Console.WriteLine(tpLocReq.ToString());
 
-                        handler068 = OnTeleportLocationRequest;
-                        if (handler068 != null)
+                        handlerTeleportLocationRequest = OnTeleportLocationRequest;
+                        if (handlerTeleportLocationRequest != null)
                         {
-                            handler068(this, tpLocReq.Info.RegionHandle, tpLocReq.Info.Position,
+                            handlerTeleportLocationRequest(this, tpLocReq.Info.RegionHandle, tpLocReq.Info.Position,
                                                       tpLocReq.Info.LookAt, 16);
                         }
                         else
@@ -3983,11 +3983,11 @@ namespace OpenSim.Region.ClientStack
                     case PacketType.MoneyBalanceRequest:
                         MoneyBalanceRequestPacket moneybalancerequestpacket = (MoneyBalanceRequestPacket)Pack;
 
-                        handler069 = OnMoneyBalanceRequest;
+                        handlerMoneyBalanceRequest = OnMoneyBalanceRequest;
 
-                        if (handler069 != null)
+                        if (handlerMoneyBalanceRequest != null)
                         {
-                            handler069(this, moneybalancerequestpacket.AgentData.AgentID, moneybalancerequestpacket.AgentData.SessionID, moneybalancerequestpacket.MoneyData.TransactionID);
+                            handlerMoneyBalanceRequest(this, moneybalancerequestpacket.AgentData.AgentID, moneybalancerequestpacket.AgentData.SessionID, moneybalancerequestpacket.MoneyData.TransactionID);
                         }
 
 
