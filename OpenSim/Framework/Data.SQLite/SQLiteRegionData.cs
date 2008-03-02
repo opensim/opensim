@@ -496,13 +496,14 @@ namespace OpenSim.Framework.Data.SQLite
                 {
                     fillLandRow(landRow, parcel.landData, regionUUID);
                 }
-
-                using (
-                    SqliteCommand cmd = new SqliteCommand("delete from landaccesslist where LandUUID=:LandUUID", m_conn))
-                {
-                    cmd.Parameters.Add(new SqliteParameter(":LandUUID", Util.ToRawUuidString(parcel.landData.globalID)));
-                    cmd.ExecuteNonQuery();
-                }
+                //m_conn.Open();
+                //using (
+                    //SqliteCommand cmd = new SqliteCommand("delete from landaccesslist where LandUUID=:LandUUID", m_conn))
+                //{
+                    //cmd.Parameters.Add(new SqliteParameter(":LandUUID", Util.ToRawUuidString(parcel.landData.globalID)));
+                    //cmd.ExecuteNonQuery();
+                //}
+                //m_conn.Close();
 
                 foreach (ParcelManager.ParcelAccessEntry entry in parcel.landData.parcelAccessList)
                 {
