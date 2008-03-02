@@ -182,7 +182,7 @@ namespace OpenSim.Region.ClientStack
             return SendQueue.Dequeue();
         }
 
-        private void Flush()
+        public void Flush()
         {
             lock (this)
             {

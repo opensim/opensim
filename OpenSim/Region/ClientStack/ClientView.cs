@@ -384,6 +384,7 @@ namespace OpenSim.Region.ClientStack
         {
             // Pull Client out of Region
             m_log.Info("[CLIENT]: Close has been called");
+            m_packetQueue.Flush();
 
             //raiseevent on the packet server to Shutdown the circuit
             if (shutdownCircuit)
