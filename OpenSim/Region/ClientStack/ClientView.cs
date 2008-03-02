@@ -151,16 +151,16 @@ namespace OpenSim.Region.ClientStack
         private TeleportLocationRequest handler027 = null; //OnSetStartLocationRequest;
         private LinkObjects handler028 = null; //OnLinkObjects;
         private DelinkObjects handler029 = null; //OnDelinkObjects;
-        private AddNewPrim handler030 = null; //OnAddPrim;
-        private UpdateShape handler031 = null; //null;
-        private ObjectExtraParams handler032 = null; //OnUpdateExtraParams;
-        private ObjectDuplicate handler033 = null;
-        private ObjectSelect handler034 = null;
-        private ObjectDeselect handler035 = null;
-        private UpdatePrimFlags handler036 = null; //OnUpdatePrimFlags;
-        private UpdatePrimTexture handler037 = null;
-        private UpdateVector handler038 = null; //OnGrabObject;
-        private MoveObject handler039 = null; //OnGrabUpdate;
+        private AddNewPrim handlerAddPrim = null; //OnAddPrim;
+        private UpdateShape handlerUpdatePrimShape = null; //null;
+        private ObjectExtraParams handlerUpdateExtraParams = null; //OnUpdateExtraParams;
+        private ObjectDuplicate handlerObjectDuplicate = null;
+        private ObjectSelect handlerObjectSelect = null;
+        private ObjectDeselect handlerObjectDeselect = null;
+        private UpdatePrimFlags handlerUpdatePrimFlags = null; //OnUpdatePrimFlags;
+        private UpdatePrimTexture handlerUpdatePrimTexture = null;
+        private UpdateVector handlerGrabObject = null; //OnGrabObject;
+        private MoveObject handlerGrabUpdate = null; //OnGrabUpdate;
         private ObjectSelect handlerDeGrabObject = null; //OnDeGrabObject;
         private GenericCall7 handlerObjectDescription = null;
         private GenericCall7 handlerObjectName = null;
@@ -3315,20 +3315,20 @@ namespace OpenSim.Region.ClientStack
                             //RayEnd: <61.97724, 141.995, 92.58341>   
                             //RayTargetID: 00000000-0000-0000-0000-000000000000
 
-                            handler030 = OnAddPrim;
-                            if (handler030 != null)
-                                handler030(AgentId, addPacket.ObjectData.RayEnd, addPacket.ObjectData.Rotation, shape, addPacket.ObjectData.BypassRaycast, addPacket.ObjectData.RayStart, addPacket.ObjectData.RayTargetID, addPacket.ObjectData.RayEndIsIntersection);
+                            handlerAddPrim = OnAddPrim;
+                            if (handlerAddPrim != null)
+                                handlerAddPrim(AgentId, addPacket.ObjectData.RayEnd, addPacket.ObjectData.Rotation, shape, addPacket.ObjectData.BypassRaycast, addPacket.ObjectData.RayStart, addPacket.ObjectData.RayTargetID, addPacket.ObjectData.RayEndIsIntersection);
                         }
                         break;
                     case PacketType.ObjectShape:
                         ObjectShapePacket shapePacket = (ObjectShapePacket)Pack;
-                        handler031 = null;
+                        handlerUpdatePrimShape = null;
                         for (int i = 0; i < shapePacket.ObjectData.Length; i++)
                         {
-                            handler031 = OnUpdatePrimShape;
-                            if (handler031 != null)
+                            handlerUpdatePrimShape = OnUpdatePrimShape;
+                            if (handlerUpdatePrimShape != null)
                             {
-                                handler031(m_agentId, shapePacket.ObjectData[i].ObjectLocalID,
+                                handlerUpdatePrimShape(m_agentId, shapePacket.ObjectData[i].ObjectLocalID,
                                                   shapePacket.ObjectData[i]);
                             }
                         }
@@ -3336,10 +3336,10 @@ namespace OpenSim.Region.ClientStack
                     case PacketType.ObjectExtraParams:
                         ObjectExtraParamsPacket extraPar = (ObjectExtraParamsPacket)Pack;
 
-                        handler032 = OnUpdateExtraParams;
-                        if (handler032 != null)
+                        handlerUpdateExtraParams = OnUpdateExtraParams;
+                        if (handlerUpdateExtraParams != null)
                         {
-                            handler032(m_agentId, extraPar.ObjectData[0].ObjectLocalID,
+                            handlerUpdateExtraParams(m_agentId, extraPar.ObjectData[0].ObjectLocalID,
                                             extraPar.ObjectData[0].ParamType,
                                             extraPar.ObjectData[0].ParamInUse, extraPar.ObjectData[0].ParamData);
                         }
@@ -3348,14 +3348,14 @@ namespace OpenSim.Region.ClientStack
                         ObjectDuplicatePacket dupe = (ObjectDuplicatePacket)Pack;
                         ObjectDuplicatePacket.AgentDataBlock AgentandGroupData = dupe.AgentData;
 
-                        handler033 = null;
+                        handlerObjectDuplicate = null;
 
                         for (int i = 0; i < dupe.ObjectData.Length; i++)
                         {
-                            handler033 = OnObjectDuplicate;
-                            if (handler033 != null)
+                            handlerObjectDuplicate = OnObjectDuplicate;
+                            if (handlerObjectDuplicate != null)
                             {
-                                handler033(dupe.ObjectData[i].ObjectLocalID, dupe.SharedData.Offset,
+                                handlerObjectDuplicate(dupe.ObjectData[i].ObjectLocalID, dupe.SharedData.Offset,
                                                   dupe.SharedData.DuplicateFlags, AgentandGroupData.AgentID,
                                                   AgentandGroupData.GroupID);
                             }
@@ -3366,26 +3366,26 @@ namespace OpenSim.Region.ClientStack
                     case PacketType.ObjectSelect:
                         ObjectSelectPacket incomingselect = (ObjectSelectPacket)Pack;
 
-                        handler034 = null;
+                        handlerObjectSelect = null;
 
                         for (int i = 0; i < incomingselect.ObjectData.Length; i++)
                         {
-                            handler034 = OnObjectSelect;
-                            if (handler034 != null)
+                            handlerObjectSelect = OnObjectSelect;
+                            if (handlerObjectSelect != null)
                             {
-                                handler034(incomingselect.ObjectData[i].ObjectLocalID, this);
+                                handlerObjectSelect(incomingselect.ObjectData[i].ObjectLocalID, this);
                             }
                         }
                         break;
                     case PacketType.ObjectDeselect:
                         ObjectDeselectPacket incomingdeselect = (ObjectDeselectPacket)Pack;
 
-                        handler035 = null;
+                        handlerObjectDeselect = null;
 
                         for (int i = 0; i < incomingdeselect.ObjectData.Length; i++)
                         {
-                            handler035 = OnObjectDeselect;
-                            if (handler035 != null)
+                            handlerObjectDeselect = OnObjectDeselect;
+                            if (handlerObjectDeselect != null)
                             {
                                 OnObjectDeselect(incomingdeselect.ObjectData[i].ObjectLocalID, this);
                             }
@@ -3394,23 +3394,23 @@ namespace OpenSim.Region.ClientStack
                     case PacketType.ObjectFlagUpdate:
                         ObjectFlagUpdatePacket flags = (ObjectFlagUpdatePacket)Pack;
 
-                        handler036 = OnUpdatePrimFlags;
+                        handlerUpdatePrimFlags = OnUpdatePrimFlags;
 
-                        if (handler036 != null)
+                        if (handlerUpdatePrimFlags != null)
                         {
-                            handler036(flags.AgentData.ObjectLocalID, Pack, this);
+                            handlerUpdatePrimFlags(flags.AgentData.ObjectLocalID, Pack, this);
                         }
                         break;
                     case PacketType.ObjectImage:
                         ObjectImagePacket imagePack = (ObjectImagePacket)Pack;
 
-                        handler037 = null;
+                        handlerUpdatePrimTexture = null;
                         for (int i = 0; i < imagePack.ObjectData.Length; i++)
                         {
-                            handler037 = OnUpdatePrimTexture;
-                            if (handler037 != null)
+                            handlerUpdatePrimTexture = OnUpdatePrimTexture;
+                            if (handlerUpdatePrimTexture != null)
                             {
-                                handler037(imagePack.ObjectData[i].ObjectLocalID,
+                                handlerUpdatePrimTexture(imagePack.ObjectData[i].ObjectLocalID,
                                            imagePack.ObjectData[i].TextureEntry, this);
                             }
                         }
@@ -3418,21 +3418,21 @@ namespace OpenSim.Region.ClientStack
                     case PacketType.ObjectGrab:
                         ObjectGrabPacket grab = (ObjectGrabPacket)Pack;
 
-                        handler038 = OnGrabObject;
+                        handlerGrabObject = OnGrabObject;
 
-                        if (handler038 != null)
+                        if (handlerGrabObject != null)
                         {
-                            handler038(grab.ObjectData.LocalID, grab.ObjectData.GrabOffset, this);
+                            handlerGrabObject(grab.ObjectData.LocalID, grab.ObjectData.GrabOffset, this);
                         }
                         break;
                     case PacketType.ObjectGrabUpdate:
                         ObjectGrabUpdatePacket grabUpdate = (ObjectGrabUpdatePacket)Pack;
 
-                        handler039 = OnGrabUpdate;
+                        handlerGrabUpdate = OnGrabUpdate;
 
-                        if (handler039 != null)
+                        if (handlerGrabUpdate != null)
                         {
-                            handler039(grabUpdate.ObjectData.ObjectID, grabUpdate.ObjectData.GrabOffsetInitial,
+                            handlerGrabUpdate(grabUpdate.ObjectData.ObjectID, grabUpdate.ObjectData.GrabOffsetInitial,
                                        grabUpdate.ObjectData.GrabPosition, this);
                         }
                         break;
