@@ -293,10 +293,14 @@ namespace OpenSim.Framework.Data.MySQL
 
             if (reader.Read())
             {
-                // Region Main
-                retval.regionHandle = Convert.ToUInt64(reader["regionHandle"].ToString());
-                retval.regionName = (string) reader["regionName"];
-                retval.UUID = new LLUUID((string) reader["uuid"]);
+                // Region Main gotta-have-or-we-return-null parts
+                if (!UInt64.TryParse(reader["regionHandle"].ToString(), out retval.regionHandle))
+                    return null;
+                if (!LLUUID.TryParse((string)reader["uuid"], out retval.UUID))
+                    return null;
+
+                // non-critical parts
+                retval.regionName = (string)reader["regionName"];
 
                 // Secrets
                 retval.regionRecvKey = (string) reader["regionRecvKey"];
@@ -334,33 +338,9 @@ namespace OpenSim.Framework.Data.MySQL
                 retval.regionUserSendKey = (string) reader["regionUserSendKey"];
 
                 // World Map Addition
-                string tempRegionMap = reader["regionMapTexture"].ToString();
-                if (tempRegionMap != String.Empty)
-                {
-                    retval.regionMapTextureID = new LLUUID(tempRegionMap);
-                }
-                else
-                {
-                    retval.regionMapTextureID = LLUUID.Zero;
-                }
-
-                // part of an initial brutish effort to provide accurate information (as per the xml region spec)
-                // wrt the ownership of a given region
-                // the (very bad) assumption is that this value is being read and handled inconsistently or
-                // not at all. Current strategy is to put the code in place to support the validity of this information
-                // and to roll forward debugging any issues from that point
-                //
-                // this particular section of the mod attempts to supply a value from the region table to the caller of 'readSimRow()' 
-                // for the UUID of the region's owner (master avatar)
-                try
-                {
-                    retval.owner_uuid = new LLUUID((string)reader["owner_uuid"]);
-                }
-                catch
-                {
-                    retval.owner_uuid = LLUUID.Zero;
-                }
-            }
+                LLUUID.TryParse((string)reader["regionMapTexture"], out retval.regionMapTextureID);
+                LLUUID.TryParse((string)reader["owner_uuid"], out retval.owner_uuid);            
+            }        
             else
             {
                 return null;
@@ -387,7 +367,7 @@ namespace OpenSim.Framework.Data.MySQL
                 retval.reservationMinY = Convert.ToInt32(reader["resYMin"].ToString());
                 retval.reservationName = (string) reader["resName"];
                 retval.status = Convert.ToInt32(reader["status"].ToString()) == 1;
-                retval.userUUID = new LLUUID((string) reader["userUUID"]);
+               LLUUID.TryParse((string) reader["userUUID"], out retval.userUUID);
             }
             else
             {
@@ -408,9 +388,10 @@ namespace OpenSim.Framework.Data.MySQL
             if (reader.Read())
             {
                 // Agent IDs
-                retval.UUID = new LLUUID((string) reader["UUID"]);
-                retval.sessionID = new LLUUID((string) reader["sessionID"]);
-                retval.secureSessionID = new LLUUID((string) reader["secureSessionID"]);
+                if (!LLUUID.TryParse((string)reader["UUID"], out retval.UUID))
+                    return null;
+                LLUUID.TryParse((string) reader["sessionID"], out retval.sessionID);
+                LLUUID.TryParse((string)reader["secureSessionID"], out retval.secureSessionID);
 
                 // Agent Who?
                 retval.agentIP = (string) reader["agentIP"];
@@ -444,7 +425,8 @@ namespace OpenSim.Framework.Data.MySQL
 
             if (reader.Read())
             {
-                retval.UUID = new LLUUID((string) reader["UUID"]);
+                if (!LLUUID.TryParse((string)reader["UUID"], out retval.UUID))
+                    return null;
                 retval.username = (string) reader["username"];
                 retval.surname = (string) reader["lastname"];
 
@@ -473,8 +455,8 @@ namespace OpenSim.Framework.Data.MySQL
                 retval.profileAboutText = (string) reader["profileAboutText"];
                 retval.profileFirstText = (string) reader["profileFirstText"];
 
-                retval.profileImage = new LLUUID((string) reader["profileImage"]);
-                retval.profileFirstImage = new LLUUID((string) reader["profileFirstImage"]);
+                LLUUID.TryParse((string)reader["profileImage"], out retval.profileImage);
+                LLUUID.TryParse((string)reader["profileFirstImage"], out retval.profileFirstImage);
                 
                 if( reader.IsDBNull( reader.GetOrdinal( "webLoginKey" ) ) )
                 {
@@ -482,7 +464,7 @@ namespace OpenSim.Framework.Data.MySQL
                 }
                 else
                 {
-                    retval.webLoginKey = new LLUUID((string)reader["webLoginKey"]);
+                    LLUUID.TryParse((string)reader["webLoginKey"], out retval.webLoginKey);
                 }
             }
             else
@@ -605,11 +587,11 @@ namespace OpenSim.Framework.Data.MySQL
             parameters["?userAssetURI"] = String.Empty;
             parameters["?profileCanDoMask"] = "0";
             parameters["?profileWantDoMask"] = "0";
-            parameters["?profileAboutText"] = String.Empty;
-            parameters["?profileFirstText"] = String.Empty;
-            parameters["?profileImage"] = LLUUID.Zero.ToString();
-            parameters["?profileFirstImage"] = LLUUID.Zero.ToString();
-            parameters["?webLoginKey"] = LLUUID.Random().ToString();
+            parameters["?profileAboutText"] = aboutText;
+            parameters["?profileFirstText"] = firstText;
+            parameters["?profileImage"] = profileImage.ToString();
+            parameters["?profileFirstImage"] = firstImage.ToString();
+            parameters["?webLoginKey"] = string.Empty;
 
             bool returnval = false;
 

@@ -123,17 +123,11 @@ namespace OpenSim.Framework.Data
         /// </summary>
         public LLUUID regionMapTextureID = new LLUUID("00000000-0000-0000-9999-000000000006");
 
-        // part of an initial brutish effort to provide accurate information (as per the xml region spec)
-        // wrt the ownership of a given region
-        // the (very bad) assumption is that this value is being read and handled inconsistently or
-        // not at all. Current strategy is to put the code in place to support the validity of this information
-        // and to roll forward debugging any issues from that point
-        //
         /// <summary>
         /// this particular mod to the file provides support within the spec for RegionProfileData for the 
         /// owner_uuid for the region
         /// </summary>
-        public LLUUID owner_uuid;
+        public LLUUID owner_uuid = LLUUID.Zero;
 
         /// <summary>
         /// Get Sim profile data from grid server when in grid mode
