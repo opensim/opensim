@@ -171,16 +171,16 @@ namespace OpenSim.Region.ClientStack
         private RequestXfer handler047 = null; //OnRequestXfer;
         private XferReceive handler048 = null; //OnXferReceive;
         private ConfirmXfer handler049 = null; //OnConfirmXfer;
-        private CreateInventoryFolder handler050 = null; //OnCreateNewInventoryFolder;
-        private UpdateInventoryFolder handler051 = null;
-        private MoveInventoryFolder handler052 = null;
-        private CreateNewInventoryItem handler053 = null; //OnCreateNewInventoryItem;
-        private FetchInventory handler054 = null;
-        private FetchInventoryDescendents handler055 = null; //OnFetchInventoryDescendents;
-        private PurgeInventoryDescendents handler056 = null; //OnPurgeInventoryDescendents;
-        private UpdateInventoryItem handler057 = null;
-        private CopyInventoryItem handler058 = null;
-        private MoveInventoryItem handler059 = null;
+        private CreateInventoryFolder handlerCreateInventoryFolder = null; //OnCreateNewInventoryFolder;
+        private UpdateInventoryFolder handlerUpdateInventoryFolder = null;
+        private MoveInventoryFolder handlerMoveInventoryFolder = null;
+        private CreateNewInventoryItem handlerCreateNewInventoryItem = null; //OnCreateNewInventoryItem;
+        private FetchInventory handlerFetchInventory = null;
+        private FetchInventoryDescendents handlerFetchInventoryDescendents = null; //OnFetchInventoryDescendents;
+        private PurgeInventoryDescendents handlerPurgeInventoryDescendents = null; //OnPurgeInventoryDescendents;
+        private UpdateInventoryItem handlerUpdateInventoryItem = null;
+        private CopyInventoryItem handlerCopyInventoryItem = null;
+        private MoveInventoryItem handlerMoveInventoryItem = null;
         private RemoveInventoryItem handlerRemoveInventoryItem = null;
         private RemoveInventoryFolder handlerRemoveInventoryFolder = null;
         private RequestTaskInventory handlerRequestTaskInventory = null; //OnRequestTaskInventory;
@@ -3618,11 +3618,11 @@ namespace OpenSim.Region.ClientStack
                     case PacketType.CreateInventoryFolder:
                         CreateInventoryFolderPacket invFolder = (CreateInventoryFolderPacket)Pack;
 
-                        handler050 = OnCreateNewInventoryFolder;
-                        if (handler050 != null)
+                        handlerCreateInventoryFolder = OnCreateNewInventoryFolder;
+                        if (handlerCreateInventoryFolder != null)
                         {
 
-                            handler050(this, invFolder.FolderData.FolderID,
+                            handlerCreateInventoryFolder(this, invFolder.FolderData.FolderID,
                                        (ushort)invFolder.FolderData.Type,
                                        Util.FieldToString(invFolder.FolderData.Name),
                                        invFolder.FolderData.ParentID);
@@ -3633,12 +3633,12 @@ namespace OpenSim.Region.ClientStack
                         {
                             UpdateInventoryFolderPacket invFolderx = (UpdateInventoryFolderPacket)Pack;
 
-                            handler051 = null;
+                            handlerUpdateInventoryFolder = null;
 
                             for (int i = 0; i < invFolderx.FolderData.Length; i++)
                             {
-                                handler051 = OnUpdateInventoryFolder;
-                                if (handler051 != null)
+                                handlerUpdateInventoryFolder = OnUpdateInventoryFolder;
+                                if (handlerUpdateInventoryFolder != null)
                                 {
                                     OnUpdateInventoryFolder(this, invFolderx.FolderData[i].FolderID,
                                                             (ushort)invFolderx.FolderData[i].Type,
@@ -3653,12 +3653,12 @@ namespace OpenSim.Region.ClientStack
                         {
                             MoveInventoryFolderPacket invFoldery = (MoveInventoryFolderPacket)Pack;
 
-                            handler052 = null;
+                            handlerMoveInventoryFolder = null;
 
                             for (int i = 0; i < invFoldery.InventoryData.Length; i++)
                             {
-                                handler052 = OnMoveInventoryFolder;
-                                if (handler052 != null)
+                                handlerMoveInventoryFolder = OnMoveInventoryFolder;
+                                if (handlerMoveInventoryFolder != null)
                                 {
                                     OnMoveInventoryFolder(this, invFoldery.InventoryData[i].FolderID,
                                                           invFoldery.InventoryData[i].ParentID);
@@ -3669,10 +3669,10 @@ namespace OpenSim.Region.ClientStack
                     case PacketType.CreateInventoryItem:
                         CreateInventoryItemPacket createItem = (CreateInventoryItemPacket)Pack;
 
-                        handler053 = OnCreateNewInventoryItem;
-                        if (handler053 != null)
+                        handlerCreateNewInventoryItem = OnCreateNewInventoryItem;
+                        if (handlerCreateNewInventoryItem != null)
                         {
-                            handler053(this, createItem.InventoryBlock.TransactionID,
+                            handlerCreateNewInventoryItem(this, createItem.InventoryBlock.TransactionID,
                                          createItem.InventoryBlock.FolderID,
                                          createItem.InventoryBlock.CallbackID,
                                          Util.FieldToString(createItem.InventoryBlock.Description),
@@ -3688,13 +3688,13 @@ namespace OpenSim.Region.ClientStack
                         {
                             FetchInventoryPacket FetchInventoryx = (FetchInventoryPacket)Pack;
 
-                            handler054 = null;
+                            handlerFetchInventory = null;
 
                             for (int i = 0; i < FetchInventoryx.InventoryData.Length; i++)
                             {
-                                handler054 = OnFetchInventory;
+                                handlerFetchInventory = OnFetchInventory;
 
-                                if (handler054 != null)
+                                if (handlerFetchInventory != null)
                                 {
                                     OnFetchInventory(this, FetchInventoryx.InventoryData[i].ItemID,
                                                      FetchInventoryx.InventoryData[i].OwnerID);
@@ -3705,11 +3705,11 @@ namespace OpenSim.Region.ClientStack
                     case PacketType.FetchInventoryDescendents:
                         FetchInventoryDescendentsPacket Fetch = (FetchInventoryDescendentsPacket)Pack;
 
-                        handler055 = OnFetchInventoryDescendents;
-                        if (handler055 != null)
+                        handlerFetchInventoryDescendents = OnFetchInventoryDescendents;
+                        if (handlerFetchInventoryDescendents != null)
                         {
 
-                            handler055(this, Fetch.InventoryData.FolderID, Fetch.InventoryData.OwnerID,
+                            handlerFetchInventoryDescendents(this, Fetch.InventoryData.FolderID, Fetch.InventoryData.OwnerID,
                                         Fetch.InventoryData.FetchFolders, Fetch.InventoryData.FetchItems,
                                         Fetch.InventoryData.SortOrder);
                         }
@@ -3718,22 +3718,22 @@ namespace OpenSim.Region.ClientStack
 
                         PurgeInventoryDescendentsPacket Purge = (PurgeInventoryDescendentsPacket)Pack;
 
-                        handler056 = OnPurgeInventoryDescendents;
-                        if (handler056 != null)
+                        handlerPurgeInventoryDescendents = OnPurgeInventoryDescendents;
+                        if (handlerPurgeInventoryDescendents != null)
                         {
-                            handler056(this, Purge.InventoryData.FolderID);
+                            handlerPurgeInventoryDescendents(this, Purge.InventoryData.FolderID);
                         }
                         break;
                     case PacketType.UpdateInventoryItem:
                         UpdateInventoryItemPacket update = (UpdateInventoryItemPacket)Pack;
                         if (OnUpdateInventoryItem != null)
                         {
-                            handler057 = null;
+                            handlerUpdateInventoryItem = null;
                             for (int i = 0; i < update.InventoryData.Length; i++)
                             {
-                                handler057 = OnUpdateInventoryItem;
+                                handlerUpdateInventoryItem = OnUpdateInventoryItem;
 
-                                if (handler057 != null)
+                                if (handlerUpdateInventoryItem != null)
                                 {
                                     OnUpdateInventoryItem(this, update.InventoryData[i].TransactionID,
                                                           update.InventoryData[i].ItemID,
@@ -3777,15 +3777,15 @@ namespace OpenSim.Region.ClientStack
                     case PacketType.CopyInventoryItem:
                         CopyInventoryItemPacket copyitem = (CopyInventoryItemPacket)Pack;
 
-                        handler058 = null;
+                        handlerCopyInventoryItem = null;
                         if (OnCopyInventoryItem != null)
                         {
                             foreach (CopyInventoryItemPacket.InventoryDataBlock datablock in copyitem.InventoryData)
                             {
-                                handler058 = OnCopyInventoryItem;
-                                if (handler058 != null)
+                                handlerCopyInventoryItem = OnCopyInventoryItem;
+                                if (handlerCopyInventoryItem != null)
                                 {
-                                    handler058(this, datablock.CallbackID, datablock.OldAgentID,
+                                    handlerCopyInventoryItem(this, datablock.CallbackID, datablock.OldAgentID,
                                                         datablock.OldItemID, datablock.NewFolderID,
                                                         Util.FieldToString(datablock.NewName));
                                 }
@@ -3796,13 +3796,13 @@ namespace OpenSim.Region.ClientStack
                         MoveInventoryItemPacket moveitem = (MoveInventoryItemPacket)Pack;
                         if (OnMoveInventoryItem != null)
                         {
-                            handler059 = null;
+                            handlerMoveInventoryItem = null;
                             foreach (MoveInventoryItemPacket.InventoryDataBlock datablock in moveitem.InventoryData)
                             {
-                                handler059 = OnMoveInventoryItem;
-                                if (handler059 != null)
+                                handlerMoveInventoryItem = OnMoveInventoryItem;
+                                if (handlerMoveInventoryItem != null)
                                 {
-                                    handler059(this, datablock.FolderID, datablock.ItemID, datablock.Length,
+                                    handlerMoveInventoryItem(this, datablock.FolderID, datablock.ItemID, datablock.Length,
                                                 Util.FieldToString(datablock.NewName));
                                 }
                             }
