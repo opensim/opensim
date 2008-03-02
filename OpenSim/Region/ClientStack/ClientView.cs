@@ -161,16 +161,16 @@ namespace OpenSim.Region.ClientStack
         private UpdatePrimTexture handler037 = null;
         private UpdateVector handler038 = null; //OnGrabObject;
         private MoveObject handler039 = null; //OnGrabUpdate;
-        private ObjectSelect handler040 = null; //OnDeGrabObject;
-        private GenericCall7 handler041 = null;
-        private GenericCall7 handler042 = null;
-        private ObjectPermissions handler043 = null;
-        private RequestObjectPropertiesFamily handler044 = null; //OnRequestObjectPropertiesFamily;
-        private TextureRequest handler045 = null;
-        private UDPAssetUploadRequest handler046 = null; //OnAssetUploadRequest;
-        private RequestXfer handler047 = null; //OnRequestXfer;
-        private XferReceive handler048 = null; //OnXferReceive;
-        private ConfirmXfer handler049 = null; //OnConfirmXfer;
+        private ObjectSelect handlerDeGrabObject = null; //OnDeGrabObject;
+        private GenericCall7 handlerObjectDescription = null;
+        private GenericCall7 handlerObjectName = null;
+        private ObjectPermissions handlerObjectPermissions = null;
+        private RequestObjectPropertiesFamily handlerRequestObjectPropertiesFamily = null; //OnRequestObjectPropertiesFamily;
+        private TextureRequest handlerTextureRequest = null;
+        private UDPAssetUploadRequest handlerAssetUploadRequest = null; //OnAssetUploadRequest;
+        private RequestXfer handlerRequestXfer = null; //OnRequestXfer;
+        private XferReceive handlerXferReceive = null; //OnXferReceive;
+        private ConfirmXfer handlerConfirmXfer = null; //OnConfirmXfer;
         private CreateInventoryFolder handlerCreateInventoryFolder = null; //OnCreateNewInventoryFolder;
         private UpdateInventoryFolder handlerUpdateInventoryFolder = null;
         private MoveInventoryFolder handlerMoveInventoryFolder = null;
@@ -3439,23 +3439,23 @@ namespace OpenSim.Region.ClientStack
                     case PacketType.ObjectDeGrab:
                         ObjectDeGrabPacket deGrab = (ObjectDeGrabPacket)Pack;
 
-                        handler040 = OnDeGrabObject;
-                        if (handler040 != null)
+                        handlerDeGrabObject = OnDeGrabObject;
+                        if (handlerDeGrabObject != null)
                         {
-                            handler040(deGrab.ObjectData.LocalID, this);
+                            handlerDeGrabObject(deGrab.ObjectData.LocalID, this);
                         }
                         break;
                     case PacketType.ObjectDescription:
                         ObjectDescriptionPacket objDes = (ObjectDescriptionPacket)Pack;
 
-                        handler041 = null;
+                        handlerObjectDescription = null;
 
                         for (int i = 0; i < objDes.ObjectData.Length; i++)
                         {
-                            handler041 = OnObjectDescription;
-                            if (handler041 != null)
+                            handlerObjectDescription = OnObjectDescription;
+                            if (handlerObjectDescription != null)
                             {
-                                handler041(this, objDes.ObjectData[i].LocalID,
+                                handlerObjectDescription(this, objDes.ObjectData[i].LocalID,
                                            m_encoding.GetString(objDes.ObjectData[i].Description));
                             }
                         }
@@ -3463,13 +3463,13 @@ namespace OpenSim.Region.ClientStack
                     case PacketType.ObjectName:
                         ObjectNamePacket objName = (ObjectNamePacket)Pack;
 
-                        handler042 = null;
+                        handlerObjectName = null;
                         for (int i = 0; i < objName.ObjectData.Length; i++)
                         {
-                            handler042 = OnObjectName;
-                            if (handler042 != null)
+                            handlerObjectName = OnObjectName;
+                            if (handlerObjectName != null)
                             {
-                                handler042(this, objName.ObjectData[i].LocalID,
+                                handlerObjectName(this, objName.ObjectData[i].LocalID,
                                            m_encoding.GetString(objName.ObjectData[i].Name));
                             }
                         }
@@ -3482,7 +3482,7 @@ namespace OpenSim.Region.ClientStack
                             LLUUID AgentID = newobjPerms.AgentData.AgentID;
                             LLUUID SessionID = newobjPerms.AgentData.SessionID;
 
-                            handler043 = null;
+                            handlerObjectPermissions = null;
 
                             for (int i = 0; i < newobjPerms.ObjectData.Length; i++)
                             {
@@ -3494,9 +3494,9 @@ namespace OpenSim.Region.ClientStack
                                 uint mask = permChanges.Mask;
                                 byte set = permChanges.Set;
 
-                                handler043 = OnObjectPermissions;
+                                handlerObjectPermissions = OnObjectPermissions;
 
-                                if (handler043 != null)
+                                if (handlerObjectPermissions != null)
                                     OnObjectPermissions(this, AgentID, SessionID, field, localID, mask, set);
                             }
                         }
@@ -3523,11 +3523,11 @@ namespace OpenSim.Region.ClientStack
 
                         RequestObjectPropertiesFamilyPacket.ObjectDataBlock packObjBlock = packToolTip.ObjectData;
 
-                        handler044 = OnRequestObjectPropertiesFamily;
+                        handlerRequestObjectPropertiesFamily = OnRequestObjectPropertiesFamily;
 
-                        if (handler044 != null)
+                        if (handlerRequestObjectPropertiesFamily != null)
                         {
-                            handler044(this, m_agentId, packObjBlock.RequestFlags,
+                            handlerRequestObjectPropertiesFamily(this, m_agentId, packObjBlock.RequestFlags,
                                        packObjBlock.ObjectID);
                         }
 
@@ -3541,7 +3541,7 @@ namespace OpenSim.Region.ClientStack
                         RequestImagePacket imageRequest = (RequestImagePacket)Pack;
                         //Console.WriteLine("image request: " + Pack.ToString());
 
-                        handler045 = null;
+                        handlerTextureRequest = null;
 
                         for (int i = 0; i < imageRequest.RequestImage.Length; i++)
                         {
@@ -3553,9 +3553,9 @@ namespace OpenSim.Region.ClientStack
                                 args.PacketNumber = imageRequest.RequestImage[i].Packet;
                                 args.Priority = imageRequest.RequestImage[i].DownloadPriority;
 
-                                handler045 = OnRequestTexture;
+                                handlerTextureRequest = OnRequestTexture;
 
-                                if (handler045 != null)
+                                if (handlerTextureRequest != null)
                                     OnRequestTexture(this, args);
                             }
                         }
@@ -3576,12 +3576,12 @@ namespace OpenSim.Region.ClientStack
                         // Console.WriteLine("upload request was for assetid: " + request.AssetBlock.TransactionID.Combine(this.SecureSessionId).ToString());
                         LLUUID temp = LLUUID.Combine(request.AssetBlock.TransactionID, SecureSessionId);
 
-                        handler046 = OnAssetUploadRequest;
+                        handlerAssetUploadRequest = OnAssetUploadRequest;
 
-                        if (handler046 != null)
+                        if (handlerAssetUploadRequest != null)
                         {
 
-                            handler046(this, temp,
+                            handlerAssetUploadRequest(this, temp,
                                                  request.AssetBlock.TransactionID, request.AssetBlock.Type,
                                                  request.AssetBlock.AssetData, request.AssetBlock.StoreLocal,
                                                  request.AssetBlock.Tempfile);
@@ -3590,29 +3590,29 @@ namespace OpenSim.Region.ClientStack
                     case PacketType.RequestXfer:
                         RequestXferPacket xferReq = (RequestXferPacket)Pack;
 
-                        handler047 = OnRequestXfer;
+                        handlerRequestXfer = OnRequestXfer;
 
-                        if (handler047 != null)
+                        if (handlerRequestXfer != null)
                         {
-                            handler047(this, xferReq.XferID.ID, Util.FieldToString(xferReq.XferID.Filename));
+                            handlerRequestXfer(this, xferReq.XferID.ID, Util.FieldToString(xferReq.XferID.Filename));
                         }
                         break;
                     case PacketType.SendXferPacket:
                         SendXferPacketPacket xferRec = (SendXferPacketPacket)Pack;
 
-                        handler048 = OnXferReceive;
-                        if (handler048 != null)
+                        handlerXferReceive = OnXferReceive;
+                        if (handlerXferReceive != null)
                         {
-                            handler048(this, xferRec.XferID.ID, xferRec.XferID.Packet, xferRec.DataPacket.Data);
+                            handlerXferReceive(this, xferRec.XferID.ID, xferRec.XferID.Packet, xferRec.DataPacket.Data);
                         }
                         break;
                     case PacketType.ConfirmXferPacket:
                         ConfirmXferPacketPacket confirmXfer = (ConfirmXferPacketPacket)Pack;
 
-                        handler049 = OnConfirmXfer;
-                        if (handler049 != null)
+                        handlerConfirmXfer = OnConfirmXfer;
+                        if (handlerConfirmXfer != null)
                         {
-                            handler049(this, confirmXfer.XferID.ID, confirmXfer.XferID.Packet);
+                            handlerConfirmXfer(this, confirmXfer.XferID.ID, confirmXfer.XferID.Packet);
                         }
                         break;
                     case PacketType.CreateInventoryFolder:
