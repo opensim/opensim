@@ -164,15 +164,15 @@ namespace OpenSim.Region.Environment.Scenes
 
         /* Designated Event Deletage Instances */
 
-        private ScriptChangedEvent handler001 = null; //OnScriptChangedEvent;
-        private ClientMovement handler002 = null; //OnClientMovement;
-        private OnPermissionErrorDelegate handler003 = null; //OnPermissionError;
-        private OnPluginConsoleDelegate handler004 = null; //OnPluginConsole;
-        private OnFrameDelegate handler005 = null; //OnFrame;
-        private OnNewClientDelegate handler006 = null; //OnNewClient;
-        private OnNewPresenceDelegate handler007 = null; //OnNewPresence;
-        private OnRemovePresenceDelegate handler008 = null; //OnRemovePresence;
-        private OnBackupDelegate handler009 = null; //OnBackup;
+        private ScriptChangedEvent handlerScriptChangedEvent = null; //OnScriptChangedEvent;
+        private ClientMovement handlerClientMovement = null; //OnClientMovement;
+        private OnPermissionErrorDelegate handlerPermissionError = null; //OnPermissionError;
+        private OnPluginConsoleDelegate handlerPluginConsole = null; //OnPluginConsole;
+        private OnFrameDelegate handlerFrame = null; //OnFrame;
+        private OnNewClientDelegate handlerNewClient = null; //OnNewClient;
+        private OnNewPresenceDelegate handlerNewPresence = null; //OnNewPresence;
+        private OnRemovePresenceDelegate handlerRemovePresence = null; //OnRemovePresence;
+        private OnBackupDelegate handlerBackup = null; //OnBackup;
         private OnParcelPrimCountUpdateDelegate handlerParcelPrimCountUpdate = null; //OnParcelPrimCountUpdate;
         private MoneyTransferEvent handlerMoneyTransfer = null; //OnMoneyTransfer;
         private OnParcelPrimCountAddDelegate handlerParcelPrimCountAdd = null; //OnParcelPrimCountAdd;
@@ -192,70 +192,70 @@ namespace OpenSim.Region.Environment.Scenes
 
         public void TriggerOnScriptChangedEvent(uint localID, uint change)
         {
-            handler001 = OnScriptChangedEvent;
-            if (handler001 != null)
-                handler001(localID, change);
+            handlerScriptChangedEvent = OnScriptChangedEvent;
+            if (handlerScriptChangedEvent != null)
+                handlerScriptChangedEvent(localID, change);
         }
 
         public void TriggerOnClientMovement(ScenePresence avatar)
         {
-            handler002 = OnClientMovement;
-            if (handler002 != null)
-                handler002(avatar);
+            handlerClientMovement = OnClientMovement;
+            if (handlerClientMovement != null)
+                handlerClientMovement(avatar);
         }
 
         public void TriggerPermissionError(LLUUID user, string reason)
         {
-            handler003 = OnPermissionError;
-            if (handler003 != null)
-                handler003(user, reason);
+            handlerPermissionError = OnPermissionError;
+            if (handlerPermissionError != null)
+                handlerPermissionError(user, reason);
         }
 
         public void TriggerOnPluginConsole(string[] args)
         {
-            handler004 = OnPluginConsole;
-            if (handler004 != null)
-                handler004(args);
+            handlerPluginConsole = OnPluginConsole;
+            if (handlerPluginConsole != null)
+                handlerPluginConsole(args);
         }
 
         public void TriggerOnFrame()
         {
-            handler005 = OnFrame;
-            if (handler005 != null)
+            handlerFrame = OnFrame;
+            if (handlerFrame != null)
             {
-                handler005();
+                handlerFrame();
             }
         }
 
         public void TriggerOnNewClient(IClientAPI client)
         {
-            handler006 = OnNewClient;
-            if (handler006 != null)
-                handler006(client);
+            handlerNewClient = OnNewClient;
+            if (handlerNewClient != null)
+                handlerNewClient(client);
         }
 
         public void TriggerOnNewPresence(ScenePresence presence)
         {
-            handler007 = OnNewPresence;
-            if (handler007 != null)
-                handler007(presence);
+            handlerNewPresence = OnNewPresence;
+            if (handlerNewPresence != null)
+                handlerNewPresence(presence);
         }
 
         public void TriggerOnRemovePresence(LLUUID agentId)
         {
-            handler008 = OnRemovePresence;
-            if (handler008 != null)
+            handlerRemovePresence = OnRemovePresence;
+            if (handlerRemovePresence != null)
             {
-                handler008(agentId);
+                handlerRemovePresence(agentId);
             }
         }
 
         public void TriggerOnBackup(IRegionDataStore dstore)
         {
-            handler009 = OnBackup;
-            if (handler009 != null)
+            handlerBackup = OnBackup;
+            if (handlerBackup != null)
             {
-                handler009(dstore);
+                handlerBackup(dstore);
             }
         }
 

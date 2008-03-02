@@ -54,7 +54,7 @@ namespace OpenSim.Grid.UserServer
 
         public event UserLoggedInAtLocation OnUserLoggedInAtLocation;
 
-        private UserLoggedInAtLocation handler001 = null;
+        private UserLoggedInAtLocation handlerUserLoggedInAtLocation = null;
        
         public UserConfig m_config;
 
@@ -147,11 +147,11 @@ namespace OpenSim.Grid.UserServer
                         "[LOGIN]: XMLRPC request for {0} failed, fault code: {1}, reason: {2}", 
                         SimInfo.httpServerURI, GridResp.FaultCode, GridResp.FaultString);
                 }
-                handler001 = OnUserLoggedInAtLocation;
-                if (handler001 != null)
+                handlerUserLoggedInAtLocation = OnUserLoggedInAtLocation;
+                if (handlerUserLoggedInAtLocation != null)
                 {
                     m_log.Info("[LOGIN]: Letting other objects know about login");
-                    handler001(theUser.UUID, theUser.currentAgent.sessionID, theUser.currentAgent.currentRegion, 
+                    handlerUserLoggedInAtLocation(theUser.UUID, theUser.currentAgent.sessionID, theUser.currentAgent.currentRegion, 
                         theUser.currentAgent.currentHandle, theUser.currentAgent.currentPos.X,theUser.currentAgent.currentPos.Y,theUser.currentAgent.currentPos.Z,
                         theUser.username,theUser.surname);
                 }
@@ -226,11 +226,11 @@ namespace OpenSim.Grid.UserServer
                     // Send
                     XmlRpcRequest GridReq = new XmlRpcRequest("expect_user", SendParams);
                     XmlRpcResponse GridResp = GridReq.Send(SimInfo.httpServerURI, 6000);
-                    handler001 = OnUserLoggedInAtLocation;
-                    if (handler001 != null)
+                    handlerUserLoggedInAtLocation = OnUserLoggedInAtLocation;
+                    if (handlerUserLoggedInAtLocation != null)
                     {
                         m_log.Info("[LOGIN]: Letting other objects know about login");
-                        handler001(theUser.UUID, theUser.currentAgent.sessionID, theUser.currentAgent.currentRegion,
+                        handlerUserLoggedInAtLocation(theUser.UUID, theUser.currentAgent.sessionID, theUser.currentAgent.currentRegion,
                         theUser.currentAgent.currentHandle, theUser.currentAgent.currentPos.X, theUser.currentAgent.currentPos.Y, theUser.currentAgent.currentPos.Z,
                         theUser.username, theUser.surname);
                     }

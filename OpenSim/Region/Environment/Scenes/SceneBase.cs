@@ -160,9 +160,9 @@ namespace OpenSim.Region.Environment.Scenes
         public virtual void Restart(int seconds)
         {
             m_log.Error("[REGION]: passing Restart Message up the namespace");
-            restart handler001 = OnRestart;
-            if (handler001 != null) 
-                handler001(RegionInfo);
+            restart handlerPhysicsCrash = OnRestart;
+            if (handlerPhysicsCrash != null)
+                handlerPhysicsCrash(RegionInfo);
         }
 
         public virtual bool PresenceChildStatus(LLUUID avatarID)

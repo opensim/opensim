@@ -475,7 +475,7 @@ namespace OpenSim.Region.Capabilities
         public class AssetUploader
         {
             public event UpLoadedAsset OnUpLoad;
-            private UpLoadedAsset handler001 = null;
+            private UpLoadedAsset handlerUpLoad = null;
 
             private string uploaderPath = String.Empty;
             private LLUUID newAssetID;
@@ -529,10 +529,10 @@ namespace OpenSim.Region.Capabilities
                 {
                     SaveAssetToFile(m_assetName + ".jp2", data);
                 }
-                handler001 = OnUpLoad;
-                if (handler001 != null)
+                handlerUpLoad = OnUpLoad;
+                if (handlerUpLoad != null)
                 {
-                    handler001(m_assetName, m_assetDes, newAssetID, inv, parentFolder, data, m_invType, m_assetType);
+                    handlerUpLoad(m_assetName, m_assetDes, newAssetID, inv, parentFolder, data, m_invType, m_assetType);
                 }
 
                 return res;
@@ -569,7 +569,7 @@ namespace OpenSim.Region.Capabilities
         {
             public event UpdateItem OnUpLoad;
 
-            private UpdateItem handler001 = null;
+            private UpdateItem handlerUpdateItem = null;
 
             private string uploaderPath = String.Empty;
             private LLUUID inventoryItemID;
@@ -598,10 +598,10 @@ namespace OpenSim.Region.Capabilities
                 string res = String.Empty;
                 LLSDAssetUploadComplete uploadComplete = new LLSDAssetUploadComplete();
                 LLUUID assetID = LLUUID.Zero;
-                handler001 = OnUpLoad;
-                if (handler001 != null)
+                handlerUpdateItem = OnUpLoad;
+                if (handlerUpdateItem != null)
                 {
-                    assetID = handler001(inv, data);
+                    assetID = handlerUpdateItem(inv, data);
                 }
 
                 uploadComplete.new_asset = assetID.ToString();
@@ -651,7 +651,7 @@ namespace OpenSim.Region.Capabilities
         {
             public event UpdateTaskScript OnUpLoad;
 
-            private UpdateTaskScript handler001 = null;
+            private UpdateTaskScript handlerUpdateTaskScript = null;
 
             private string uploaderPath = String.Empty;
             private LLUUID inventoryItemID;
@@ -693,10 +693,10 @@ namespace OpenSim.Region.Capabilities
                     string res = String.Empty;
                     LLSDTaskInventoryUploadComplete uploadComplete = new LLSDTaskInventoryUploadComplete();
 
-                    handler001 = OnUpLoad;
-                    if (handler001 != null)
+                    handlerUpdateTaskScript = OnUpLoad;
+                    if (handlerUpdateTaskScript != null)
                     {
-                        handler001(inventoryItemID, primID, isScriptRunning, data);
+                        handlerUpdateTaskScript(inventoryItemID, primID, isScriptRunning, data);
                     }
 
                     uploadComplete.item_id = inventoryItemID;

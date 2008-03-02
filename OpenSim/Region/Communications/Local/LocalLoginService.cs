@@ -55,7 +55,7 @@ namespace OpenSim.Region.Communications.Local
 
         public event LoginToRegionEvent OnLoginToRegion;
 
-        private LoginToRegionEvent handler001 = null; // OnLoginToRegion;
+        private LoginToRegionEvent handlerLoginToRegion = null; // OnLoginToRegion;
 
         public LocalLoginService(UserManagerBase userManager, string welcomeMess, 
                                  CommunicationsLocal parent, NetworkServersInfo serversInfo, 
@@ -163,10 +163,10 @@ namespace OpenSim.Region.Communications.Local
                 _login.StartPos = new LLVector3(128, 128, 70);
                 _login.CapsPath = capsPath;
 
-                handler001 = OnLoginToRegion;
-                if (handler001 != null)
+                handlerLoginToRegion = OnLoginToRegion;
+                if (handlerLoginToRegion != null)
                 {
-                    handler001(currentRegion, _login);
+                    handlerLoginToRegion(currentRegion, _login);
                 }
             }
             else

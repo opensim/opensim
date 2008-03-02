@@ -58,14 +58,14 @@ namespace OpenSim.Region.Environment.Scenes
         public event ChildAgentUpdate OnChildAgentUpdate;
         public event RemoveKnownRegionsFromAvatarList OnRemoveKnownRegionFromAvatar;
 
-        private AgentCrossing handler001 = null; // OnAvatarCrossingIntoRegion;
-        private ExpectUserDelegate handler002 = null; // OnExpectUser;
-        private ExpectPrimDelegate handler003 = null; // OnExpectPrim;
-        private CloseAgentConnection handler004 = null; // OnCloseAgentConnection;
-        private PrimCrossing handler005 = null; // OnPrimCrossingIntoRegion;
-        private RegionUp handler006 = null; // OnRegionUp;
-        private ChildAgentUpdate handler007 = null; // OnChildAgentUpdate;
-        private RemoveKnownRegionsFromAvatarList handler008 = null; // OnRemoveKnownRegionFromAvatar;
+        private AgentCrossing handlerAvatarCrossingIntoRegion = null; // OnAvatarCrossingIntoRegion;
+        private ExpectUserDelegate handlerExpectUser = null; // OnExpectUser;
+        private ExpectPrimDelegate handlerExpectPrim = null; // OnExpectPrim;
+        private CloseAgentConnection handlerCloseAgentConnection = null; // OnCloseAgentConnection;
+        private PrimCrossing handlerPrimCrossingIntoRegion = null; // OnPrimCrossingIntoRegion;
+        private RegionUp handlerRegionUp = null; // OnRegionUp;
+        private ChildAgentUpdate handlerChildAgentUpdate = null; // OnChildAgentUpdate;
+        private RemoveKnownRegionsFromAvatarList handlerRemoveKnownRegionFromAvatar = null; // OnRemoveKnownRegionFromAvatar;
 
         public KillObjectDelegate KillObject;
         public string _debugRegionName = String.Empty;
@@ -132,30 +132,30 @@ namespace OpenSim.Region.Environment.Scenes
         ///
         protected void NewUserConnection(ulong regionHandle, AgentCircuitData agent)
         {
-            handler002 = OnExpectUser;
-            if (handler002 != null)
+            handlerExpectUser = OnExpectUser;
+            if (handlerExpectUser != null)
             {
                 //m_log.Info("[INTER]: " + debugRegionName + ": SceneCommunicationService: OnExpectUser Fired for User:" + agent.firstname + " " + agent.lastname);
-                handler002(regionHandle, agent);
+                handlerExpectUser(regionHandle, agent);
             }
         }
 
         protected bool newRegionUp(RegionInfo region)
         {
-            handler006 = OnRegionUp;
-            if (handler006 != null)
+            handlerRegionUp = OnRegionUp;
+            if (handlerRegionUp != null)
             {
                 //m_log.Info("[INTER]: " + debugRegionName + ": SceneCommunicationService: newRegionUp Fired for User:" + region.RegionName);
-                handler006(region);
+                handlerRegionUp(region);
             }
             return true;
         }
 
         protected bool ChildAgentUpdate(ulong regionHandle, ChildAgentDataUpdate cAgentData)
         {
-            handler007 = OnChildAgentUpdate;
-            if (handler007 != null)
-                handler007(regionHandle, cAgentData);
+            handlerChildAgentUpdate = OnChildAgentUpdate;
+            if (handlerChildAgentUpdate != null)
+                handlerChildAgentUpdate(regionHandle, cAgentData);
 
 
             return true;
@@ -163,39 +163,39 @@ namespace OpenSim.Region.Environment.Scenes
 
         protected void AgentCrossing(ulong regionHandle, LLUUID agentID, LLVector3 position, bool isFlying)
         {
-            handler001 = OnAvatarCrossingIntoRegion;
-            if (handler001 != null)
+            handlerAvatarCrossingIntoRegion = OnAvatarCrossingIntoRegion;
+            if (handlerAvatarCrossingIntoRegion != null)
             {
-                handler001(regionHandle, agentID, position, isFlying);
+                handlerAvatarCrossingIntoRegion(regionHandle, agentID, position, isFlying);
             }
         }
 
         protected void IncomingPrimCrossing(ulong regionHandle, LLUUID primID, String objXMLData)
         {
-            handler003 = OnExpectPrim;
-            if (handler003 != null)
+            handlerExpectPrim = OnExpectPrim;
+            if (handlerExpectPrim != null)
             {
-                handler003(regionHandle, primID, objXMLData);
+                handlerExpectPrim(regionHandle, primID, objXMLData);
             }
 
         }
 
         protected void PrimCrossing(ulong regionHandle, LLUUID primID, LLVector3 position, bool isPhysical)
         {
-            handler005 = OnPrimCrossingIntoRegion;
-            if (handler005 != null)
+            handlerPrimCrossingIntoRegion = OnPrimCrossingIntoRegion;
+            if (handlerPrimCrossingIntoRegion != null)
             {
-                handler005(regionHandle, primID, position, isPhysical);
+                handlerPrimCrossingIntoRegion(regionHandle, primID, position, isPhysical);
             }
         }
 
         protected bool CloseConnection(ulong regionHandle, LLUUID agentID)
         {
             m_log.Info("[INTERREGION]: Incoming Agent Close Request for agent: " + agentID.ToString());
-            handler004 = OnCloseAgentConnection;
-            if (handler004 != null)
+            handlerCloseAgentConnection = OnCloseAgentConnection;
+            if (handlerCloseAgentConnection != null)
             {
-                return handler004(regionHandle, agentID);
+                return handlerCloseAgentConnection(regionHandle, agentID);
             }
             return false;
         }
@@ -437,10 +437,10 @@ namespace OpenSim.Region.Environment.Scenes
             // We remove the list of known regions from the agent's known region list through an event
             // to scene, because, if an agent logged of, it's likely that there will be no scene presence
             // by the time we get to this part of the method.
-            handler008 = OnRemoveKnownRegionFromAvatar;
-            if (handler008 != null)
+            handlerRemoveKnownRegionFromAvatar = OnRemoveKnownRegionFromAvatar;
+            if (handlerRemoveKnownRegionFromAvatar != null)
             {
-                handler008(agentID, regionlst);
+                handlerRemoveKnownRegionFromAvatar(agentID, regionlst);
             }
         }
 

@@ -122,15 +122,15 @@ namespace OpenSim.Region.ClientStack
         /* Instantiated Designated Event Delegates */
         //- used so we don't create new objects for each incoming packet and then toss it out later */
 
-        private RequestAvatarProperties handler001 = null; //OnRequestAvatarProperties;
-        private ChatFromViewer handler002 = null; //OnChatFromViewer;
-        private ChatFromViewer handler003 = null; //OnChatFromViewer;
-        private ImprovedInstantMessage handler004 = null; //OnInstantMessage;
-        private FriendActionDelegate handler005 = null; //OnApproveFriendRequest;
-        private FriendshipTermination handler006 = null; //OnTerminateFriendship;
-        private RezObject handler007 = null; //OnRezObject;
-        private GenericCall4 handler008 = null; //OnDeRezObject;
-        private ModifyTerrain handler009 = null;
+        private RequestAvatarProperties handlerRequestAvatarProperties = null; //OnRequestAvatarProperties;
+        private ChatFromViewer handlerChatFromViewer = null; //OnChatFromViewer;
+        private ChatFromViewer handlerChatFromViewer2 = null; //OnChatFromViewer;
+        private ImprovedInstantMessage handlerInstantMessage = null; //OnInstantMessage;
+        private FriendActionDelegate handlerApproveFriendRequest = null; //OnApproveFriendRequest;
+        private FriendshipTermination handlerTerminateFriendship = null; //OnTerminateFriendship;
+        private RezObject handlerRezObject = null; //OnRezObject;
+        private GenericCall4 handlerDeRezObject = null; //OnDeRezObject;
+        private ModifyTerrain handlerModifyTerrain = null;
         private Action<IClientAPI> handlerRegionHandShakeReply = null; //OnRegionHandShakeReply;
         private GenericCall2 handlerRequestWearables = null; //OnRequestWearables;
         private Action<IClientAPI> handlerRequestAvatarsData = null; //OnRequestAvatarsData;
@@ -2866,10 +2866,10 @@ namespace OpenSim.Region.ClientStack
                     case PacketType.AvatarPropertiesRequest:
                         AvatarPropertiesRequestPacket avatarProperties = (AvatarPropertiesRequestPacket)Pack;
 
-                        handler001 = OnRequestAvatarProperties;
-                        if (handler001 != null)
+                        handlerRequestAvatarProperties = OnRequestAvatarProperties;
+                        if (handlerRequestAvatarProperties != null)
                         {
-                            handler001(this, avatarProperties.AgentData.AvatarID);
+                            handlerRequestAvatarProperties(this, avatarProperties.AgentData.AvatarID);
                         }
 
 
@@ -2897,9 +2897,9 @@ namespace OpenSim.Region.ClientStack
                             args.Scene = Scene;
                             args.Sender = this;
 
-                            handler002 = OnChatFromViewer;
-                            if (handler002 != null)
-                                handler002(this, args);
+                            handlerChatFromViewer = OnChatFromViewer;
+                            if (handlerChatFromViewer != null)
+                                handlerChatFromViewer(this, args);
                         }
 
 
@@ -2919,9 +2919,9 @@ namespace OpenSim.Region.ClientStack
                             args.Position = new LLVector3();
                             args.Scene = Scene;
                             args.Sender = this;
-                            handler003 = OnChatFromViewer;
-                            if (handler003 != null)
-                                handler003(this, args);
+                            handlerChatFromViewer2 = OnChatFromViewer;
+                            if (handlerChatFromViewer2 != null)
+                                handlerChatFromViewer2(this, args);
                         }
 
                         break;
@@ -2929,11 +2929,11 @@ namespace OpenSim.Region.ClientStack
                         ImprovedInstantMessagePacket msgpack = (ImprovedInstantMessagePacket)Pack;
                         string IMfromName = Util.FieldToString(msgpack.MessageBlock.FromAgentName);
                         string IMmessage = Helpers.FieldToUTF8String(msgpack.MessageBlock.Message);
-                        handler004 = OnInstantMessage;
+                        handlerInstantMessage = OnInstantMessage;
 
-                        if (handler004 != null)
+                        if (handlerInstantMessage != null)
                         {
-                            handler004(this, msgpack.AgentData.AgentID, msgpack.AgentData.SessionID,
+                            handlerInstantMessage(this, msgpack.AgentData.AgentID, msgpack.AgentData.SessionID,
                                              msgpack.MessageBlock.ToAgentID, msgpack.MessageBlock.ID,
                                              msgpack.MessageBlock.Timestamp, IMfromName, IMmessage,
                                              msgpack.MessageBlock.Dialog, msgpack.MessageBlock.FromGroup,
@@ -2959,10 +2959,10 @@ namespace OpenSim.Region.ClientStack
                             callingCardFolders.Add(afriendpack.FolderData[fi].FolderID);
                         }
 
-                        handler005 = OnApproveFriendRequest;
-                        if (handler005 != null)
+                        handlerApproveFriendRequest = OnApproveFriendRequest;
+                        if (handlerApproveFriendRequest != null)
                         {
-                            handler005(this, agentID, transactionID, callingCardFolders);
+                            handlerApproveFriendRequest(this, agentID, transactionID, callingCardFolders);
                         }
 
 
@@ -2974,10 +2974,10 @@ namespace OpenSim.Region.ClientStack
                         LLUUID listOwnerAgentID = tfriendpack.AgentData.AgentID;
                         LLUUID exFriendID = tfriendpack.ExBlock.OtherID;
 
-                        handler006 = OnTerminateFriendship;
-                        if (handler006 != null)
+                        handlerTerminateFriendship = OnTerminateFriendship;
+                        if (handlerTerminateFriendship != null)
                         {
-                            handler006(this, listOwnerAgentID, exFriendID);
+                            handlerTerminateFriendship(this, listOwnerAgentID, exFriendID);
                         }
 
 
@@ -2985,8 +2985,8 @@ namespace OpenSim.Region.ClientStack
                     case PacketType.RezObject:
                         RezObjectPacket rezPacket = (RezObjectPacket)Pack;
 
-                        handler007 = OnRezObject;
-                        if (handler007 != null)
+                        handlerRezObject = OnRezObject;
+                        if (handlerRezObject != null)
                         {
                             //rezPacket.RezData.BypassRaycast;
                             //rezPacket.RezData.RayEnd;
@@ -2998,7 +2998,7 @@ namespace OpenSim.Region.ClientStack
                             //rezPacket.RezData.FromTaskID;
                             //m_log.Info("[REZData]: " + rezPacket.ToString());
 
-                            handler007(this, rezPacket.InventoryData.ItemID, rezPacket.RezData.RayEnd,
+                            handlerRezObject(this, rezPacket.InventoryData.ItemID, rezPacket.RezData.RayEnd,
                                 rezPacket.RezData.RayStart, rezPacket.RezData.RayTargetID,
                                 rezPacket.RezData.BypassRaycast, rezPacket.RezData.RayEndIsIntersection,
                                 rezPacket.RezData.EveryoneMask, rezPacket.RezData.GroupMask,
@@ -3009,10 +3009,10 @@ namespace OpenSim.Region.ClientStack
 
                         break;
                     case PacketType.DeRezObject:
-                        handler008 = OnDeRezObject;
-                        if (handler008 != null)
+                        handlerDeRezObject = OnDeRezObject;
+                        if (handlerDeRezObject != null)
                         {
-                            handler008(Pack, this);
+                            handlerDeRezObject(Pack, this);
                         }
 
                         break;
@@ -3026,10 +3026,10 @@ namespace OpenSim.Region.ClientStack
 
                                 for (int i = 0; i < modify.ParcelData.Length; i++)
                                 {
-                                    handler009 = OnModifyTerrain;
-                                    if (handler009 != null)
+                                    handlerModifyTerrain = OnModifyTerrain;
+                                    if (handlerModifyTerrain != null)
                                     {
-                                        OnModifyTerrain(modify.ModifyBlock.Height, modify.ModifyBlock.Seconds,
+                                        handlerModifyTerrain(modify.ModifyBlock.Height, modify.ModifyBlock.Seconds,
                                                         modify.ModifyBlock.BrushSize,
                                                         modify.ModifyBlock.Action, modify.ParcelData[i].North,
                                                         modify.ParcelData[i].West, modify.ParcelData[i].South,

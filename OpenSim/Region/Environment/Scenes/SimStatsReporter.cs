@@ -39,7 +39,7 @@ namespace OpenSim.Region.Environment.Scenes
 
         public event SendStatResult OnSendStatsResult;
 
-        private SendStatResult handler001 = null;
+        private SendStatResult handlerSendStatResult = null;
 
         private enum Stats : uint
         {
@@ -247,10 +247,10 @@ namespace OpenSim.Region.Environment.Scenes
 
             statpack.Stat = sb;
 
-            handler001 = OnSendStatsResult;
-            if (handler001 != null)
+            handlerSendStatResult = OnSendStatsResult;
+            if (handlerSendStatResult != null)
             {
-                handler001(statpack);
+                handlerSendStatResult(statpack);
             }
             resetvalues();
             m_report.Enabled = true;
