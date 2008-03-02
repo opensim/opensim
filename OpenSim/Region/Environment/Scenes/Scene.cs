@@ -120,8 +120,8 @@ namespace OpenSim.Region.Environment.Scenes
 
         private int m_update_physics = 1;
         private int m_update_entitymovement = 1;
-        private int m_update_entities = 20; // Run through all objects checking for updates
-        private int m_update_entitiesquick = 1; // Run through objects that have scheduled updates checking for updates
+        private int m_update_entities = 1; // Run through all objects checking for updates
+        private int m_update_entitiesquick = 200; // Run through objects that have scheduled updates checking for updates
         private int m_update_presences = 1; // Update scene presence movements
         private int m_update_events = 1;
         private int m_update_backup = 200;

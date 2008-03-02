@@ -132,6 +132,10 @@ namespace OpenSim.Region.Physics.Manager
 
         public abstract void CrossingFailure();
 
+        public abstract void link(PhysicsActor obj);
+
+        public abstract void delink();
+
         public virtual void RequestPhysicsterseUpdate()
         {
             // Make a temporary copy of the event to avoid possibility of
@@ -351,6 +355,16 @@ namespace OpenSim.Region.Physics.Manager
         {
             get { return true; }
             set { return; }
+        }
+
+        public override void link(PhysicsActor obj)
+        {
+
+        }
+
+        public override void delink()
+        {
+
         }
 
         public override void AddForce(PhysicsVector force)

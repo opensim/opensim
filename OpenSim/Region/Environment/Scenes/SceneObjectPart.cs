@@ -1306,9 +1306,12 @@ namespace OpenSim.Region.Environment.Scenes
 
                         PhysActor.OnRequestTerseUpdate -= PhysicsRequestingTerseUpdate;
                         PhysActor.OnOutOfBounds -= PhysicsOutOfBounds;
+                        PhysActor.delink();
                     }
 
                     PhysActor.IsPhysical = UsePhysics;
+
+
                     // If we're not what we're supposed to be in the physics scene, recreate ourselves.
                     //m_parentGroup.Scene.PhysicsScene.RemovePrim(PhysActor);
                     /// that's not wholesome.  Had to make Scene public
@@ -1331,6 +1334,14 @@ namespace OpenSim.Region.Environment.Scenes
 
                             PhysActor.OnRequestTerseUpdate += PhysicsRequestingTerseUpdate;
                             PhysActor.OnOutOfBounds += PhysicsOutOfBounds;
+                            if (ParentID != 0 && ParentID != LocalID)
+                            {
+                                if (ParentGroup.RootPart.PhysActor != null)
+                                {
+                                    PhysActor.link(ParentGroup.RootPart.PhysActor);
+                                }
+                            }
+
                         }
                     }
                 }

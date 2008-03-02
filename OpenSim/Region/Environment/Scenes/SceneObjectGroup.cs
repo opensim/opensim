@@ -1758,10 +1758,13 @@ namespace OpenSim.Region.Environment.Scenes
             {
                 lock (m_parts)
                 {
+                    m_rootPart.ApplyPhysics(m_rootPart.ObjectFlags, m_physicalPrim);
                     foreach (SceneObjectPart part in m_parts.Values)
                     {
-                        part.ApplyPhysics(m_rootPart.ObjectFlags, m_physicalPrim);
-
+                        if (part.LocalID != m_rootPart.LocalID)
+                        {
+                            part.ApplyPhysics(m_rootPart.ObjectFlags, m_physicalPrim);
+                        }
                         // Hack to get the physics scene geometries in the right spot
                         ResetChildPrimPhysicsPositions();
 

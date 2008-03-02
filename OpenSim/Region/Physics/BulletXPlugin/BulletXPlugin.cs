@@ -832,7 +832,15 @@ namespace OpenSim.Region.Physics.BulletXPlugin
                 }
             }
         }
+        public override void link(PhysicsActor obj)
+        {
 
+        }
+
+        public override void delink()
+        {
+
+        }
         public override float Mass
         {
             get { return ActorMass; }

@@ -349,7 +349,15 @@ namespace OpenSim.Region.Physics.BasicPhysicsPlugin
             get { return true; }
             set { }
         }
+        public override void link(PhysicsActor obj)
+        {
 
+        }
+
+        public override void delink()
+        {
+
+        }
         public void SetAcceleration(PhysicsVector accel)
         {
             _acceleration = accel;

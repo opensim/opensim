@@ -90,6 +90,11 @@ namespace OpenSim.Region.Physics.OdePlugin
         public IntPtr prev_geom;
         public IntPtr _triMeshData;
 
+        private IntPtr _linkJointGroup = (IntPtr)0;
+        private PhysicsActor _parent = null;
+        private PhysicsActor m_taintparent = null;
+        
+
         private bool iscolliding = false;
         private bool m_isphysical = false;
         private bool m_isSelected = false;
@@ -112,6 +117,8 @@ namespace OpenSim.Region.Physics.OdePlugin
         private String m_primName;
         private PhysicsVector _target_velocity;
         public d.Mass pMass;
+
+        private IntPtr m_linkJoint = (IntPtr)0;
 
         private int debugcounter = 0;
 
@@ -719,6 +726,45 @@ namespace OpenSim.Region.Physics.OdePlugin
 
             if (m_taintVelocity != PhysicsVector.Zero)
                 changevelocity(timestep);
+
+            if (m_taintparent != _parent)
+                changelink(timestep);
+        }
+
+        private void changelink(float timestep)
+        {
+            while (ode.lockquery())
+            {
+            }
+            ode.dlock(_parent_scene.world);
+
+            if (_parent == null && m_taintparent != null)
+            {
+                if (m_taintparent.PhysicsActorType == (int)ActorTypes.Prim)
+                {
+                    OdePrim obj = (OdePrim)m_taintparent;
+                    if (obj.Body != (IntPtr)0 && Body != (IntPtr)0)
+                    {
+                        _linkJointGroup = d.JointGroupCreate(0);
+                        m_linkJoint = d.JointCreateFixed(_parent_scene.world, _linkJointGroup);
+                        d.JointAttach(m_linkJoint, obj.Body, Body);
+                        d.JointSetFixed(m_linkJoint);
+                    }
+                }
+
+            }
+            else if (_parent != null && m_taintparent == null)
+            {
+                if (Body != (IntPtr)0 && _linkJointGroup != (IntPtr)0)
+                    d.JointGroupDestroy(_linkJointGroup);
+
+                _linkJointGroup = (IntPtr)0;
+                m_linkJoint = (IntPtr)0;
+
+            }
+            ode.dunlock(_parent_scene.world);
+
+            _parent = m_taintparent;
         }
 
         private void changeSelectedStatus(float timestep)
@@ -970,8 +1016,25 @@ namespace OpenSim.Region.Physics.OdePlugin
                     enableBody();
                 //Prim auto disable after 20 frames, 
                 //if you move it, re-enable the prim manually.
-               
+                if (_parent != null)
+                {
+                    if (m_linkJoint != (IntPtr)0)
+                    {
+                        d.JointDestroy(m_linkJoint);
+                        m_linkJoint = (IntPtr)0;
+                    }
+                }
                 d.BodySetPosition(Body, _position.X, _position.Y, _position.Z);
+                if (_parent != null)
+                {
+                    OdePrim odParent = (OdePrim)_parent;
+                    if (Body != (IntPtr)0 && odParent.Body != (IntPtr)0)
+                    {
+                        m_linkJoint = d.JointCreateFixed(_parent_scene.world, _linkJointGroup);
+                        d.JointAttach(m_linkJoint, Body, odParent.Body);
+                        d.JointSetFixed(m_linkJoint);
+                    }
+                }
                 d.BodyEnable(Body);
                 
             }
@@ -1652,154 +1715,172 @@ namespace OpenSim.Region.Physics.OdePlugin
                 m_log.Warn("[PHYSICS]: Too many crossing failures for: " + m_primName);
             }
         }
+
+        public override void link(PhysicsActor obj)
+        {
+            m_taintparent = obj;
+        }
+
+        public override void delink()
+        {
+            m_taintparent = null;
+        }
+
         public void UpdatePositionAndVelocity()
         { 
             //  no lock; called from Simulate() -- if you call this from elsewhere, gotta lock or do Monitor.Enter/Exit!
-            PhysicsVector pv = new PhysicsVector(0, 0, 0);
-            bool lastZeroFlag = _zeroFlag;
-            if (Body != (IntPtr) 0)
+            if (_parent != null)
             {
-                d.Vector3 vec = d.BodyGetPosition(Body);
-                d.Quaternion ori = d.BodyGetQuaternion(Body);
-                d.Vector3 vel = d.BodyGetLinearVel(Body);
-                d.Vector3 rotvel = d.BodyGetAngularVel(Body);
 
-                PhysicsVector l_position = new PhysicsVector();
-
-                
-                //  kluge to keep things in bounds.  ODE lets dead avatars drift away (they should be removed!)
-                //if (vec.X < 0.0f) { vec.X = 0.0f; if (Body != (IntPtr)0) d.BodySetAngularVel(Body, 0, 0, 0); }
-                //if (vec.Y < 0.0f) { vec.Y = 0.0f; if (Body != (IntPtr)0) d.BodySetAngularVel(Body, 0, 0, 0); }
-                //if (vec.X > 255.95f) { vec.X = 255.95f; if (Body != (IntPtr)0) d.BodySetAngularVel(Body, 0, 0, 0); }
-                //if (vec.Y > 255.95f) { vec.Y = 255.95f; if (Body != (IntPtr)0) d.BodySetAngularVel(Body, 0, 0, 0); }
-
-                m_lastposition = _position;
-
-                l_position.X = vec.X;
-                l_position.Y = vec.Y;
-                l_position.Z = vec.Z;
-
-                if (l_position.X > 255.95f || l_position.X < 0f || l_position.Y > 255.95f || l_position.Y < 0f)
+            }
+            else
+            {
+                PhysicsVector pv = new PhysicsVector(0, 0, 0);
+                bool lastZeroFlag = _zeroFlag;
+                if (Body != (IntPtr)0)
                 {
-                    base.RaiseOutOfBounds(_position);
-                }
+                    d.Vector3 vec = d.BodyGetPosition(Body);
+                    d.Quaternion ori = d.BodyGetQuaternion(Body);
+                    d.Vector3 vel = d.BodyGetLinearVel(Body);
+                    d.Vector3 rotvel = d.BodyGetAngularVel(Body);
+
+                    PhysicsVector l_position = new PhysicsVector();
+
+
+                    //  kluge to keep things in bounds.  ODE lets dead avatars drift away (they should be removed!)
+                    //if (vec.X < 0.0f) { vec.X = 0.0f; if (Body != (IntPtr)0) d.BodySetAngularVel(Body, 0, 0, 0); }
+                    //if (vec.Y < 0.0f) { vec.Y = 0.0f; if (Body != (IntPtr)0) d.BodySetAngularVel(Body, 0, 0, 0); }
+                    //if (vec.X > 255.95f) { vec.X = 255.95f; if (Body != (IntPtr)0) d.BodySetAngularVel(Body, 0, 0, 0); }
+                    //if (vec.Y > 255.95f) { vec.Y = 255.95f; if (Body != (IntPtr)0) d.BodySetAngularVel(Body, 0, 0, 0); }
+
+                    m_lastposition = _position;
+
+                    l_position.X = vec.X;
+                    l_position.Y = vec.Y;
+                    l_position.Z = vec.Z;
+
+                    if (l_position.X > 255.95f || l_position.X < 0f || l_position.Y > 255.95f || l_position.Y < 0f)
+                    {
+                        base.RaiseOutOfBounds(_position);
+                    }
                     //if (m_crossingfailures < 5)
                     //{
-                        //base.RequestPhysicsterseUpdate();
+                    //base.RequestPhysicsterseUpdate();
                     //}
-                //}
+                    //}
 
-                if (l_position.Z < 0)
+                    if (l_position.Z < 0)
+                    {
+                        // This is so prim that get lost underground don't fall forever and suck up 
+                        // 
+                        // Sim resources and memory.
+                        // Disables the prim's movement physics....  
+                        // It's a hack and will generate a console message if it fails.
+
+
+                        //IsPhysical = false;
+                        base.RaiseOutOfBounds(_position);
+                        _velocity.X = 0;
+                        _velocity.Y = 0;
+                        _velocity.Z = 0;
+                        m_rotationalVelocity.X = 0;
+                        m_rotationalVelocity.Y = 0;
+                        m_rotationalVelocity.Z = 0;
+                        base.RequestPhysicsterseUpdate();
+                        m_throttleUpdates = false;
+                        throttleCounter = 0;
+                        _zeroFlag = true;
+                        //outofBounds = true;
+                    }
+
+                    if ((Math.Abs(m_lastposition.X - l_position.X) < 0.02)
+                        && (Math.Abs(m_lastposition.Y - l_position.Y) < 0.02)
+                        && (Math.Abs(m_lastposition.Z - l_position.Z) < 0.02))
+                    {
+                        _zeroFlag = true;
+                        m_throttleUpdates = false;
+                    }
+                    else
+                    {
+                        //System.Console.WriteLine(Math.Abs(m_lastposition.X - l_position.X).ToString());
+                        _zeroFlag = false;
+                    }
+
+
+                    if (_zeroFlag)
+                    {
+                        // Supposedly this is supposed to tell SceneObjectGroup that 
+                        // no more updates need to be sent..  
+                        // but it seems broken.
+                        _velocity.X = 0.0f;
+                        _velocity.Y = 0.0f;
+                        _velocity.Z = 0.0f;
+                        //_orientation.w = 0f;
+                        //_orientation.x = 0f;
+                        //_orientation.y = 0f;
+                        //_orientation.z = 0f;
+                        m_rotationalVelocity.X = 0;
+                        m_rotationalVelocity.Y = 0;
+                        m_rotationalVelocity.Z = 0;
+                        if (!m_lastUpdateSent)
+                        {
+                            m_throttleUpdates = false;
+                            throttleCounter = 0;
+                            m_rotationalVelocity = pv;
+                            base.RequestPhysicsterseUpdate();
+                            m_lastUpdateSent = true;
+                        }
+                    }
+                    else
+                    {
+                        if (lastZeroFlag != _zeroFlag)
+                            base.RequestPhysicsterseUpdate();
+
+                        m_lastVelocity = _velocity;
+
+                        _position = l_position;
+
+                        _velocity.X = vel.X;
+                        _velocity.Y = vel.Y;
+                        _velocity.Z = vel.Z;
+                        if (_velocity.IsIdentical(pv, 0.5f))
+                        {
+                            m_rotationalVelocity = pv;
+                        }
+                        else
+                        {
+                            m_rotationalVelocity.setValues(rotvel.X, rotvel.Y, rotvel.Z);
+                        }
+
+                        //System.Console.WriteLine("ODE: " + m_rotationalVelocity.ToString());
+                        _orientation.w = ori.W;
+                        _orientation.x = ori.X;
+                        _orientation.y = ori.Y;
+                        _orientation.z = ori.Z;
+                        m_lastUpdateSent = false;
+                        if (!m_throttleUpdates || throttleCounter > 15)
+                        {
+
+                            base.RequestPhysicsterseUpdate();
+                        }
+                        else
+                        {
+                            throttleCounter++;
+                        }
+                    }
+                    m_lastposition = l_position;
+                }
+                else
                 {
-                    // This is so prim that get lost underground don't fall forever and suck up 
-                    // 
-                    // Sim resources and memory.
-                    // Disables the prim's movement physics....  
-                    // It's a hack and will generate a console message if it fails.
-
-
-                    //IsPhysical = false;
-                    base.RaiseOutOfBounds(_position);
+                    // Not a body..   so Make sure the client isn't interpolating
                     _velocity.X = 0;
                     _velocity.Y = 0;
                     _velocity.Z = 0;
                     m_rotationalVelocity.X = 0;
                     m_rotationalVelocity.Y = 0;
                     m_rotationalVelocity.Z = 0;
-                    base.RequestPhysicsterseUpdate();
-                    m_throttleUpdates = false;
-                    throttleCounter = 0;
                     _zeroFlag = true;
-                    //outofBounds = true;
                 }
-
-                if ((Math.Abs(m_lastposition.X - l_position.X) < 0.02)
-                    && (Math.Abs(m_lastposition.Y - l_position.Y) < 0.02)
-                    && (Math.Abs(m_lastposition.Z - l_position.Z) < 0.02))
-                {
-                    _zeroFlag = true;
-                    m_throttleUpdates = false;
-                }
-                else
-                {
-                    //System.Console.WriteLine(Math.Abs(m_lastposition.X - l_position.X).ToString());
-                    _zeroFlag = false;
-                }
-
-
-                if (_zeroFlag)
-                {
-                    // Supposedly this is supposed to tell SceneObjectGroup that 
-                    // no more updates need to be sent..  
-                    // but it seems broken.
-                    _velocity.X = 0.0f;
-                    _velocity.Y = 0.0f;
-                    _velocity.Z = 0.0f;
-                    //_orientation.w = 0f;
-                    //_orientation.x = 0f;
-                    //_orientation.y = 0f;
-                    //_orientation.z = 0f;
-                    m_rotationalVelocity.X = 0;
-                    m_rotationalVelocity.Y = 0;
-                    m_rotationalVelocity.Z = 0;
-                    if (!m_lastUpdateSent)
-                    {
-                        m_throttleUpdates = false;
-                        throttleCounter = 0;
-                        m_rotationalVelocity = pv;
-                        base.RequestPhysicsterseUpdate();
-                        m_lastUpdateSent = true;
-                    }
-                }
-                else
-                {
-                    if (lastZeroFlag != _zeroFlag)
-                        base.RequestPhysicsterseUpdate();
-
-                    m_lastVelocity = _velocity;
-
-                    _position = l_position;
-
-                    _velocity.X = vel.X;
-                    _velocity.Y = vel.Y;
-                    _velocity.Z = vel.Z;
-                    if (_velocity.IsIdentical(pv, 0.5f))
-                    {
-                        m_rotationalVelocity = pv;
-                    }
-                    else
-                    {
-                        m_rotationalVelocity.setValues(rotvel.X, rotvel.Y, rotvel.Z);
-                    }
-                    
-                    //System.Console.WriteLine("ODE: " + m_rotationalVelocity.ToString());
-                    _orientation.w = ori.W;
-                    _orientation.x = ori.X;
-                    _orientation.y = ori.Y;
-                    _orientation.z = ori.Z;
-                    m_lastUpdateSent = false;
-                    if (!m_throttleUpdates || throttleCounter > 15)
-                    {
-                        
-                        base.RequestPhysicsterseUpdate();
-                    }
-                    else
-                    {
-                        throttleCounter++;
-                    }
-                }
-                m_lastposition = l_position;
-            }
-            else
-            {
-                // Not a body..   so Make sure the client isn't interpolating
-                _velocity.X = 0;
-                _velocity.Y = 0;
-                _velocity.Z = 0;
-                m_rotationalVelocity.X = 0;
-                m_rotationalVelocity.Y = 0;
-                m_rotationalVelocity.Z = 0;
-                _zeroFlag = true;
             }
         }
 

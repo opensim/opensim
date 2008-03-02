@@ -366,6 +366,16 @@ namespace OpenSim.Region.Physics.PhysXPlugin
         {
         }
 
+        public override void link(PhysicsActor obj)
+        {
+
+        }
+
+        public override void delink()
+        {
+
+        }
+
         public override void SetMomentum(PhysicsVector momentum)
         {
         }
@@ -580,6 +590,16 @@ namespace OpenSim.Region.Physics.PhysXPlugin
         {
             get { return PhysicsVector.Zero; }
             set { }
+        }
+
+        public override void link(PhysicsActor obj)
+        {
+
+        }
+
+        public override void delink()
+        {
+
         }
 
         public override float Mass

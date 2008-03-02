@@ -490,7 +490,15 @@ namespace OpenSim.Region.Physics.OdePlugin
                 return m_density*AVvolume;
             }
         }
+        public override void link(PhysicsActor obj)
+        {
 
+        }
+
+        public override void delink()
+        {
+
+        }
         private void standupStraight()
         {
 
