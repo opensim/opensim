@@ -131,16 +131,16 @@ namespace OpenSim.Region.ClientStack
         private RezObject handler007 = null; //OnRezObject;
         private GenericCall4 handler008 = null; //OnDeRezObject;
         private ModifyTerrain handler009 = null;
-        private Action<IClientAPI> handler010 = null; //OnRegionHandShakeReply;
-        private GenericCall2 handler011 = null; //OnRequestWearables;
-        private Action<IClientAPI> handler012 = null; //OnRequestAvatarsData;
-        private SetAppearance handler013 = null; //OnSetAppearance;
-        private AvatarNowWearing handler014 = null; //OnAvatarNowWearing;
-        private RezSingleAttachmentFromInv handler015 = null; //OnRezSingleAttachmentFromInv;
-        private ObjectAttach handler016 = null; //OnObjectAttach;
-        private SetAlwaysRun handler017 = null; //OnSetAlwaysRun;
-        private GenericCall2 handler018 = null; //OnCompleteMovementToRegion;
-        private UpdateAgent handler019 = null; //OnAgentUpdate;
+        private Action<IClientAPI> handlerRegionHandShakeReply = null; //OnRegionHandShakeReply;
+        private GenericCall2 handlerRequestWearables = null; //OnRequestWearables;
+        private Action<IClientAPI> handlerRequestAvatarsData = null; //OnRequestAvatarsData;
+        private SetAppearance handlerSetAppearance = null; //OnSetAppearance;
+        private AvatarNowWearing handlerAvatarNowWearing = null; //OnAvatarNowWearing;
+        private RezSingleAttachmentFromInv handlerRezSingleAttachment = null; //OnRezSingleAttachmentFromInv;
+        private ObjectAttach handlerObjectAttach = null; //OnObjectAttach;
+        private SetAlwaysRun handlerSetAlwaysRun = null; //OnSetAlwaysRun;
+        private GenericCall2 handlerCompleteMovementToRegion = null; //OnCompleteMovementToRegion;
+        private UpdateAgent handlerAgentUpdate = null; //OnAgentUpdate;
         private StartAnim handlerStartAnim = null;
         private StopAnim handlerStopAnim = null;
         private AgentRequestSit handlerAgentRequestSit = null; //OnAgentRequestSit;
@@ -3042,27 +3042,27 @@ namespace OpenSim.Region.ClientStack
                         break;
                     case PacketType.RegionHandshakeReply:
 
-                        handler010 = OnRegionHandShakeReply;
-                        if (handler010 != null)
+                        handlerRegionHandShakeReply = OnRegionHandShakeReply;
+                        if (handlerRegionHandShakeReply != null)
                         {
-                            handler010(this);
+                            handlerRegionHandShakeReply(this);
                         }
 
                         break;
                     case PacketType.AgentWearablesRequest:
-                        handler011 = OnRequestWearables;
+                        handlerRequestWearables = OnRequestWearables;
 
-                        if (handler011 != null)
+                        if (handlerRequestWearables != null)
                         {
-                            handler011();
+                            handlerRequestWearables();
                         }
 
 
-                        handler012 = OnRequestAvatarsData;
+                        handlerRequestAvatarsData = OnRequestAvatarsData;
 
-                        if (handler012 != null)
+                        if (handlerRequestAvatarsData != null)
                         {
-                            handler012(this);
+                            handlerRequestAvatarsData(this);
                         }
 
 
@@ -3070,10 +3070,10 @@ namespace OpenSim.Region.ClientStack
                     case PacketType.AgentSetAppearance:
                         AgentSetAppearancePacket appear = (AgentSetAppearancePacket)Pack;
 
-                        handler013 = OnSetAppearance;
-                        if (handler013 != null)
+                        handlerSetAppearance = OnSetAppearance;
+                        if (handlerSetAppearance != null)
                         {
-                            handler013(appear.ObjectData.TextureEntry, appear.VisualParam);
+                            handlerSetAppearance(appear.ObjectData.TextureEntry, appear.VisualParam);
                         }
 
                         break;
@@ -3090,10 +3090,10 @@ namespace OpenSim.Region.ClientStack
                                 wearingArgs.NowWearing.Add(wearable);
                             }
 
-                            handler014 = OnAvatarNowWearing;
-                            if (handler014 != null)
+                            handlerAvatarNowWearing = OnAvatarNowWearing;
+                            if (handlerAvatarNowWearing != null)
                             {
-                                handler014(this, wearingArgs);
+                                handlerAvatarNowWearing(this, wearingArgs);
                             }
 
 
@@ -3101,11 +3101,11 @@ namespace OpenSim.Region.ClientStack
                         break;
                     case PacketType.RezSingleAttachmentFromInv:
 
-                        handler015 = OnRezSingleAttachmentFromInv;
-                        if (handler015 != null)
+                        handlerRezSingleAttachment = OnRezSingleAttachmentFromInv;
+                        if (handlerRezSingleAttachment != null)
                         {
                             RezSingleAttachmentFromInvPacket rez = (RezSingleAttachmentFromInvPacket)Pack;
-                            handler015(this, rez.ObjectData.ItemID,
+                            handlerRezSingleAttachment(this, rez.ObjectData.ItemID,
                                         rez.ObjectData.AttachmentPt, rez.ObjectData.ItemFlags, rez.ObjectData.NextOwnerMask);
                         }
 
@@ -3117,11 +3117,11 @@ namespace OpenSim.Region.ClientStack
                         {
                             ObjectAttachPacket att = (ObjectAttachPacket)Pack;
 
-                            handler016 = OnObjectAttach;
+                            handlerObjectAttach = OnObjectAttach;
 
-                            if (handler016 != null)
+                            if (handlerObjectAttach != null)
                             {
-                                handler016(this, att.ObjectData[0].ObjectLocalID, att.AgentData.AttachmentPoint, att.ObjectData[0].Rotation);
+                                handlerObjectAttach(this, att.ObjectData[0].ObjectLocalID, att.AgentData.AttachmentPoint, att.ObjectData[0].Rotation);
                             }
                         }
 
@@ -3129,21 +3129,21 @@ namespace OpenSim.Region.ClientStack
                     case PacketType.SetAlwaysRun:
                         SetAlwaysRunPacket run = (SetAlwaysRunPacket)Pack;
 
-                        handler017 = OnSetAlwaysRun;
-                        if (handler017 != null)
-                            handler017(this, run.AgentData.AlwaysRun);
+                        handlerSetAlwaysRun = OnSetAlwaysRun;
+                        if (handlerSetAlwaysRun != null)
+                            handlerSetAlwaysRun(this, run.AgentData.AlwaysRun);
 
 
 
                         break;
                     case PacketType.CompleteAgentMovement:
 
-                        handler018 = OnCompleteMovementToRegion;
-                        if (handler018 != null)
+                        handlerCompleteMovementToRegion = OnCompleteMovementToRegion;
+                        if (handlerCompleteMovementToRegion != null)
                         {
-                            handler018();
+                            handlerCompleteMovementToRegion();
                         }
-                        handler018 = null;
+                        handlerCompleteMovementToRegion = null;
 
                         break;
                     case PacketType.AgentUpdate:
@@ -3151,11 +3151,11 @@ namespace OpenSim.Region.ClientStack
                         {
                             AgentUpdatePacket agenUpdate = (AgentUpdatePacket)Pack;
 
-                            handler019 = OnAgentUpdate;
-                            if (handler019 != null)
+                            handlerAgentUpdate = OnAgentUpdate;
+                            if (handlerAgentUpdate != null)
                                 OnAgentUpdate(this, agenUpdate);
 
-                            handler019 = null;
+                            handlerAgentUpdate = null;
                             //agenUpdate.AgentData.ControlFlags, agenUpdate.AgentData.BodyRotationa);
                         }
                         break;

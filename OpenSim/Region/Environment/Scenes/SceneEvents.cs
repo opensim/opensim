@@ -173,15 +173,15 @@ namespace OpenSim.Region.Environment.Scenes
         private OnNewPresenceDelegate handler007 = null; //OnNewPresence;
         private OnRemovePresenceDelegate handler008 = null; //OnRemovePresence;
         private OnBackupDelegate handler009 = null; //OnBackup;
-        private OnParcelPrimCountUpdateDelegate handler010 = null; //OnParcelPrimCountUpdate;
-        private MoneyTransferEvent handler011 = null; //OnMoneyTransfer;
-        private OnParcelPrimCountAddDelegate handler012 = null; //OnParcelPrimCountAdd;
-        private OnShutdownDelegate handler013 = null; //OnShutdown;
-        private ObjectGrabDelegate handler014 = null; //OnObjectGrab;
-        private NewRezScript handler015 = null; //OnRezScript;
-        private RemoveScript handler016 = null; //OnRemoveScript;
-        private SceneGroupMoved handler017 = null; //OnSceneGroupMove;
-        private SceneGroupGrabed handler018 = null; //OnSceneGroupGrab;
+        private OnParcelPrimCountUpdateDelegate handlerParcelPrimCountUpdate = null; //OnParcelPrimCountUpdate;
+        private MoneyTransferEvent handlerMoneyTransfer = null; //OnMoneyTransfer;
+        private OnParcelPrimCountAddDelegate handlerParcelPrimCountAdd = null; //OnParcelPrimCountAdd;
+        private OnShutdownDelegate handlerShutdown = null; //OnShutdown;
+        private ObjectGrabDelegate handlerObjectGrab = null; //OnObjectGrab;
+        private NewRezScript handlerRezScript = null; //OnRezScript;
+        private RemoveScript handlerRemoveScript = null; //OnRemoveScript;
+        private SceneGroupMoved handlerSceneGroupMove = null; //OnSceneGroupMove;
+        private SceneGroupGrabed handlerSceneGroupGrab = null; //OnSceneGroupGrab;
         private LandObjectAdded handlerLandObjectAdded = null; //OnLandObjectAdded;
         private LandObjectRemoved handlerLandObjectRemoved = null; //OnLandObjectRemoved;
         private AvatarEnteringNewParcel handlerAvatarEnteringNewParcel = null; //OnAvatarEnteringNewParcel;
@@ -261,83 +261,83 @@ namespace OpenSim.Region.Environment.Scenes
 
         public void TriggerParcelPrimCountUpdate()
         {
-            handler010 = OnParcelPrimCountUpdate;
-            if (handler010 != null)
+            handlerParcelPrimCountUpdate = OnParcelPrimCountUpdate;
+            if (handlerParcelPrimCountUpdate != null)
             {
-                handler010();
+                handlerParcelPrimCountUpdate();
             }    
         }
 
         public void TriggerMoneyTransfer(Object sender, MoneyTransferArgs e)
         {
-            handler011 = OnMoneyTransfer;
-            if (handler011 != null)
+            handlerMoneyTransfer = OnMoneyTransfer;
+            if (handlerMoneyTransfer != null)
             {
-                handler011(sender, e);
+                handlerMoneyTransfer(sender, e);
             }
         }
 
 
         public void TriggerParcelPrimCountAdd(SceneObjectGroup obj)
         {
-            handler012 = OnParcelPrimCountAdd;
-            if (handler012 != null)
+            handlerParcelPrimCountAdd = OnParcelPrimCountAdd;
+            if (handlerParcelPrimCountAdd != null)
             {
-                handler012(obj);
+                handlerParcelPrimCountAdd(obj);
             }
         }
 
         public void TriggerShutdown()
         {
-            handler013 = OnShutdown;
-            if (handler013 != null)
-                handler013();
+            handlerShutdown = OnShutdown;
+            if (handlerShutdown != null)
+                handlerShutdown();
         }
 
         public void TriggerObjectGrab(uint localID, LLVector3 offsetPos, IClientAPI remoteClient)
         {
-            handler014 = OnObjectGrab;
-            if (handler014 != null)
+            handlerObjectGrab = OnObjectGrab;
+            if (handlerObjectGrab != null)
             {
-                handler014(localID, offsetPos, remoteClient);
+                handlerObjectGrab(localID, offsetPos, remoteClient);
             }
         }
 
         public void TriggerRezScript(uint localID, LLUUID itemID, string script)
         {
-            handler015 = OnRezScript;
-            if (handler015 != null)
+            handlerRezScript = OnRezScript;
+            if (handlerRezScript != null)
             {
-                handler015(localID, itemID, script);
+                handlerRezScript(localID, itemID, script);
             }
         }
 
         public void TriggerRemoveScript(uint localID, LLUUID itemID)
         {
-            handler016 = OnRemoveScript;
-            if (handler016 != null)
+            handlerRemoveScript = OnRemoveScript;
+            if (handlerRemoveScript != null)
             {
-                handler016(localID, itemID);
+                handlerRemoveScript(localID, itemID);
             }
         }
 
         public bool TriggerGroupMove(LLUUID groupID, LLVector3 delta)
         {
-            handler017 = OnSceneGroupMove;
+            handlerSceneGroupMove = OnSceneGroupMove;
 
-            if (handler017 != null)
+            if (handlerSceneGroupMove != null)
             {
-                return handler017(groupID, delta);
+                return handlerSceneGroupMove(groupID, delta);
             }
             return true;
         }
 
         public void TriggerGroupGrab(LLUUID groupID, LLVector3 offset, LLUUID userID)
         {
-            handler018 = OnSceneGroupGrab;
-            if (handler018 != null)
+            handlerSceneGroupGrab = OnSceneGroupGrab;
+            if (handlerSceneGroupGrab != null)
             {
-                handler018(groupID, offset, userID);
+                handlerSceneGroupGrab(groupID, offset, userID);
             }
         }
 

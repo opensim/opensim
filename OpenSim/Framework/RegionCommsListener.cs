@@ -55,8 +55,8 @@ namespace OpenSim.Framework
         private AcknowledgeAgentCross handler007 = null; // OnAcknowledgeAgentCrossed;
         private AcknowledgePrimCross handler008 = null; // OnAcknowledgePrimCrossed;
         private CloseAgentConnection handler009 = null; // OnCloseAgentConnection;
-        private RegionUp handler010 = null; // OnRegionUp;
-        private ChildAgentUpdate handler011 = null; // OnChildAgentUpdate;
+        private RegionUp handlerRegionUp = null; // OnRegionUp;
+        private ChildAgentUpdate handlerChildAgentUpdate = null; // OnChildAgentUpdate;
 
         public string debugRegionName = String.Empty;
 
@@ -92,10 +92,10 @@ namespace OpenSim.Framework
 
         public virtual bool TriggerRegionUp(RegionInfo region)
         {
-            handler010 = OnRegionUp;
-            if (handler010 != null)
+            handlerRegionUp = OnRegionUp;
+            if (handlerRegionUp != null)
             {
-                handler010(region);
+                handlerRegionUp(region);
                 return true;
             }
             return false;
@@ -103,10 +103,10 @@ namespace OpenSim.Framework
 
         public virtual bool TriggerChildAgentUpdate(ulong regionHandle, ChildAgentDataUpdate cAgentData)
         {
-            handler011 = OnChildAgentUpdate;
-            if (handler011 != null)
+            handlerChildAgentUpdate = OnChildAgentUpdate;
+            if (handlerChildAgentUpdate != null)
             {
-                handler011(regionHandle, cAgentData);
+                handlerChildAgentUpdate(regionHandle, cAgentData);
                 return true;
             }
             return false;
