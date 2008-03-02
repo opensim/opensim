@@ -182,13 +182,13 @@ namespace OpenSim.Region.Environment.Scenes
         private RemoveScript handler016 = null; //OnRemoveScript;
         private SceneGroupMoved handler017 = null; //OnSceneGroupMove;
         private SceneGroupGrabed handler018 = null; //OnSceneGroupGrab;
-        private LandObjectAdded handler020 = null; //OnLandObjectAdded;
-        private LandObjectRemoved handler021 = null; //OnLandObjectRemoved;
-        private AvatarEnteringNewParcel handler022 = null; //OnAvatarEnteringNewParcel;
-        private NewGridInstantMessage handler023 = null; //OnGridInstantMessageToIMModule;
-        private NewGridInstantMessage handler024 = null; //OnGridInstantMessageToFriendsModule;
-        private ClientClosed handler025 = null; //OnClientClosed;
-        private OnNewPresenceDelegate handler026 = null; //OnMakeChildAgent;
+        private LandObjectAdded handlerLandObjectAdded = null; //OnLandObjectAdded;
+        private LandObjectRemoved handlerLandObjectRemoved = null; //OnLandObjectRemoved;
+        private AvatarEnteringNewParcel handlerAvatarEnteringNewParcel = null; //OnAvatarEnteringNewParcel;
+        private NewGridInstantMessage handlerGridInstantMessageToIM = null; //OnGridInstantMessageToIMModule;
+        private NewGridInstantMessage handlerGridInstantMessageToFriends = null; //OnGridInstantMessageToFriendsModule;
+        private ClientClosed handlerClientClosed = null; //OnClientClosed;
+        private OnNewPresenceDelegate handlerMakeChildAgent = null; //OnMakeChildAgent;
 
         public void TriggerOnScriptChangedEvent(uint localID, uint change)
         {
@@ -343,20 +343,20 @@ namespace OpenSim.Region.Environment.Scenes
 
         public void TriggerLandObjectAdded(Land newParcel, LLUUID regionID)
         {
-            handler020 = OnLandObjectAdded;
+            handlerLandObjectAdded = OnLandObjectAdded;
 
-            if (handler020 != null)
+            if (handlerLandObjectAdded != null)
             {
-                handler020(newParcel, regionID);
+                handlerLandObjectAdded(newParcel, regionID);
             }
         }
 
         public void TriggerLandObjectRemoved(LLUUID globalID)
         {
-            handler021 = OnLandObjectRemoved;
-            if (handler021 != null)
+            handlerLandObjectRemoved = OnLandObjectRemoved;
+            if (handlerLandObjectRemoved != null)
             {
-                handler021(globalID);
+                handlerLandObjectRemoved(globalID);
             }
         }
 
@@ -369,11 +369,11 @@ namespace OpenSim.Region.Environment.Scenes
 
         public void TriggerAvatarEnteringNewParcel(ScenePresence avatar, int localLandID, LLUUID regionID)
         {
-            handler022 = OnAvatarEnteringNewParcel;
+            handlerAvatarEnteringNewParcel = OnAvatarEnteringNewParcel;
 
-            if (handler022 != null)
+            if (handlerAvatarEnteringNewParcel != null)
             {
-                handler022(avatar, localLandID, regionID);
+                handlerAvatarEnteringNewParcel(avatar, localLandID, regionID);
             }
         }
 
@@ -384,18 +384,18 @@ namespace OpenSim.Region.Environment.Scenes
         {
             if ((whichModule & InstantMessageReceiver.IMModule) != 0)
             {
-                handler023 = OnGridInstantMessageToIMModule;
-                if (handler023 != null)
+                handlerGridInstantMessageToIM = OnGridInstantMessageToIMModule;
+                if (handlerGridInstantMessageToIM != null)
                 {
-                    handler023(message);
+                    handlerGridInstantMessageToIM(message);
                 }
             }
             if ((whichModule & InstantMessageReceiver.FriendsModule) != 0)
             {
-                handler024 = OnGridInstantMessageToFriendsModule;
-                if (handler024 != null)
+                handlerGridInstantMessageToFriends = OnGridInstantMessageToFriendsModule;
+                if (handlerGridInstantMessageToFriends != null)
                 {
-                    handler024(message);
+                    handlerGridInstantMessageToFriends(message);
                 }
 
             }
@@ -403,19 +403,19 @@ namespace OpenSim.Region.Environment.Scenes
 
         public void TriggerClientClosed(LLUUID ClientID)
         {
-            handler025 = OnClientClosed;
-            if (handler025 != null)
+            handlerClientClosed = OnClientClosed;
+            if (handlerClientClosed != null)
             {
-                handler025(ClientID);
+                handlerClientClosed(ClientID);
             }
         }
 
         public void TriggerOnMakeChildAgent(ScenePresence presence)
         {
-            handler026 = OnMakeChildAgent;
-            if (handler026 != null)
+            handlerMakeChildAgent = OnMakeChildAgent;
+            if (handlerMakeChildAgent != null)
             {
-                handler026(presence);
+                handlerMakeChildAgent(presence);
             }
 
         }

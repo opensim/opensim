@@ -141,16 +141,16 @@ namespace OpenSim.Region.ClientStack
         private SetAlwaysRun handler017 = null; //OnSetAlwaysRun;
         private GenericCall2 handler018 = null; //OnCompleteMovementToRegion;
         private UpdateAgent handler019 = null; //OnAgentUpdate;
-        private StartAnim handler020 = null;
-        private StopAnim handler021 = null;
-        private AgentRequestSit handler022 = null; //OnAgentRequestSit;
-        private AgentSit handler023 = null; //OnAgentSit;
-        private AvatarPickerRequest handler024 = null; //OnAvatarPickerRequest;
-        private FetchInventory handler025 = null; //OnAgentDataUpdateRequest;
-        private FetchInventory handler026 = null; //OnUserInfoRequest;
-        private TeleportLocationRequest handler027 = null; //OnSetStartLocationRequest;
-        private LinkObjects handler028 = null; //OnLinkObjects;
-        private DelinkObjects handler029 = null; //OnDelinkObjects;
+        private StartAnim handlerStartAnim = null;
+        private StopAnim handlerStopAnim = null;
+        private AgentRequestSit handlerAgentRequestSit = null; //OnAgentRequestSit;
+        private AgentSit handlerAgentSit = null; //OnAgentSit;
+        private AvatarPickerRequest handlerAvatarPickerRequest = null; //OnAvatarPickerRequest;
+        private FetchInventory handlerAgentDataUpdateRequest = null; //OnAgentDataUpdateRequest;
+        private FetchInventory handlerUserInfoRequest = null; //OnUserInfoRequest;
+        private TeleportLocationRequest handlerSetStartLocationRequest = null; //OnSetStartLocationRequest;
+        private LinkObjects handlerLinkObjects = null; //OnLinkObjects;
+        private DelinkObjects handlerDelinkObjects = null; //OnDelinkObjects;
         private AddNewPrim handlerAddPrim = null; //OnAddPrim;
         private UpdateShape handlerUpdatePrimShape = null; //null;
         private ObjectExtraParams handlerUpdateExtraParams = null; //OnUpdateExtraParams;
@@ -3161,25 +3161,25 @@ namespace OpenSim.Region.ClientStack
                     case PacketType.AgentAnimation:
                         AgentAnimationPacket AgentAni = (AgentAnimationPacket)Pack;
 
-                        handler020 = null;
-                        handler021 = null;
+                        handlerStartAnim = null;
+                        handlerStopAnim = null;
 
                         for (int i = 0; i < AgentAni.AnimationList.Length; i++)
                         {
                             if (AgentAni.AnimationList[i].StartAnim)
                             {
-                                handler020 = OnStartAnim;
-                                if (handler020 != null)
+                                handlerStartAnim = OnStartAnim;
+                                if (handlerStartAnim != null)
                                 {
-                                    handler020(this, AgentAni.AnimationList[i].AnimID, 1);
+                                    handlerStartAnim(this, AgentAni.AnimationList[i].AnimID, 1);
                                 }
                             }
                             else
                             {
-                                handler021 = OnStopAnim;
-                                if (handler021 != null)
+                                handlerStopAnim = OnStopAnim;
+                                if (handlerStopAnim != null)
                                 {
-                                    handler021(this, AgentAni.AnimationList[i].AnimID);
+                                    handlerStopAnim(this, AgentAni.AnimationList[i].AnimID);
                                 }
                             }
                         }
@@ -3189,9 +3189,9 @@ namespace OpenSim.Region.ClientStack
                         {
                             AgentRequestSitPacket agentRequestSit = (AgentRequestSitPacket)Pack;
 
-                            handler022 = OnAgentRequestSit;
-                            if (handler022 != null)
-                                handler022(this, agentRequestSit.AgentData.AgentID,
+                            handlerAgentRequestSit = OnAgentRequestSit;
+                            if (handlerAgentRequestSit != null)
+                                handlerAgentRequestSit(this, agentRequestSit.AgentData.AgentID,
                                               agentRequestSit.TargetObject.TargetID, agentRequestSit.TargetObject.Offset);
                         }
                         break;
@@ -3200,8 +3200,8 @@ namespace OpenSim.Region.ClientStack
                         {
                             AgentSitPacket agentSit = (AgentSitPacket)Pack;
 
-                            handler023 = OnAgentSit;
-                            if (handler023 != null)
+                            handlerAgentSit = OnAgentSit;
+                            if (handlerAgentSit != null)
                             {
                                 OnAgentSit(this, agentSit.AgentData.AgentID);
                             }
@@ -3213,31 +3213,31 @@ namespace OpenSim.Region.ClientStack
                         AvatarPickerRequestPacket.DataBlock querydata = avRequestQuery.Data;
                         //System.Console.WriteLine("Agent Sends:" + Helpers.FieldToUTF8String(querydata.Name));
 
-                        handler024 = OnAvatarPickerRequest;
-                        if (handler024 != null)
+                        handlerAvatarPickerRequest = OnAvatarPickerRequest;
+                        if (handlerAvatarPickerRequest != null)
                         {
-                            handler024(this, Requestdata.AgentID, Requestdata.QueryID,
+                            handlerAvatarPickerRequest(this, Requestdata.AgentID, Requestdata.QueryID,
                                                   Helpers.FieldToUTF8String(querydata.Name));
                         }
                         break;
                     case PacketType.AgentDataUpdateRequest:
                         AgentDataUpdateRequestPacket avRequestDataUpdatePacket = (AgentDataUpdateRequestPacket)Pack;
 
-                        handler025 = OnAgentDataUpdateRequest;
+                        handlerAgentDataUpdateRequest = OnAgentDataUpdateRequest;
 
-                        if (handler025 != null)
+                        if (handlerAgentDataUpdateRequest != null)
                         {
-                            handler025(this, avRequestDataUpdatePacket.AgentData.AgentID, avRequestDataUpdatePacket.AgentData.SessionID);
+                            handlerAgentDataUpdateRequest(this, avRequestDataUpdatePacket.AgentData.AgentID, avRequestDataUpdatePacket.AgentData.SessionID);
                         }
 
                         break;
                     case PacketType.UserInfoRequest:
                         UserInfoRequestPacket avUserInfoRequestPacket = (UserInfoRequestPacket)Pack;
 
-                        handler026 = OnUserInfoRequest;
-                        if (handler026 != null)
+                        handlerUserInfoRequest = OnUserInfoRequest;
+                        if (handlerUserInfoRequest != null)
                         {
-                            handler026(this, avUserInfoRequestPacket.AgentData.AgentID, avUserInfoRequestPacket.AgentData.SessionID);
+                            handlerUserInfoRequest(this, avUserInfoRequestPacket.AgentData.AgentID, avUserInfoRequestPacket.AgentData.SessionID);
 
                         }
                         break;
@@ -3247,10 +3247,10 @@ namespace OpenSim.Region.ClientStack
 
                         if (avSetStartLocationRequestPacket.AgentData.AgentID == AgentId && avSetStartLocationRequestPacket.AgentData.SessionID == SessionId)
                         {
-                            handler027 = OnSetStartLocationRequest;
-                            if (handler027 != null)
+                            handlerSetStartLocationRequest = OnSetStartLocationRequest;
+                            if (handlerSetStartLocationRequest != null)
                             {
-                                handler027(this, 0, avSetStartLocationRequestPacket.StartLocationData.LocationPos,
+                                handlerSetStartLocationRequest(this, 0, avSetStartLocationRequestPacket.StartLocationData.LocationPos,
                                                             avSetStartLocationRequestPacket.StartLocationData.LocationLookAt,
                                                             avSetStartLocationRequestPacket.StartLocationData.LocationID);
                             }
@@ -3279,10 +3279,10 @@ namespace OpenSim.Region.ClientStack
                                 childrenprims.Add(link.ObjectData[i].ObjectLocalID);
                             }
                         }
-                        handler028 = OnLinkObjects;
-                        if (handler028 != null)
+                        handlerLinkObjects = OnLinkObjects;
+                        if (handlerLinkObjects != null)
                         {
-                            handler028(parentprimid, childrenprims);
+                            handlerLinkObjects(parentprimid, childrenprims);
                         }
                         break;
                     case PacketType.ObjectDelink:
@@ -3297,10 +3297,10 @@ namespace OpenSim.Region.ClientStack
                         {
                             prims.Add(delink.ObjectData[i].ObjectLocalID);
                         }
-                        handler029 = OnDelinkObjects;
-                        if (handler029 != null)
+                        handlerDelinkObjects = OnDelinkObjects;
+                        if (handlerDelinkObjects != null)
                         {
-                            handler029(prims);
+                            handlerDelinkObjects(prims);
                         }
 
                         break;
