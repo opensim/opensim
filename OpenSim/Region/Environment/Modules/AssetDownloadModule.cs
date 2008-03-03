@@ -29,12 +29,12 @@
 using System;
 using System.Collections.Generic;
 using System.Threading;
+using libsecondlife;
+using libsecondlife.Packets;
 using Nini.Config;
 using OpenSim.Framework;
 using OpenSim.Region.Environment.Interfaces;
 using OpenSim.Region.Environment.Scenes;
-using libsecondlife;
-using libsecondlife.Packets;
 
 namespace OpenSim.Region.Environment.Modules
 {

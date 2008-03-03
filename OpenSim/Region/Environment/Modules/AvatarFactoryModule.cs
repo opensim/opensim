@@ -33,10 +33,9 @@ using libsecondlife;
 using Nini.Config;
 using OpenSim.Framework;
 using OpenSim.Framework.Communications.Cache;
-using OpenSim.Framework.Console;
+using OpenSim.Framework.Data;
 using OpenSim.Region.Environment.Interfaces;
 using OpenSim.Region.Environment.Scenes;
-using OpenSim.Framework.Data;
 using OpenSim.Framework.Data.Base;
 
 namespace OpenSim.Region.Environment.Modules

@@ -261,7 +261,7 @@ namespace OpenSim.Region.Environment.Modules.VoiceChat
                             }
                         }
                     }
-                    catch(ObjectDisposedException e)
+                    catch(ObjectDisposedException)
                     {
                         m_log.Warn("[VOICECHAT]: Connection has been already closed");
                     }

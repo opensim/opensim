@@ -26,15 +26,13 @@
 * 
 */
 
-using Nini.Config;
 using System;
-using System.Collections;
 using System.Collections.Generic;
+using libsecondlife;
+using Nini.Config;
 using OpenSim.Framework;
-using OpenSim.Framework.Console;
 using OpenSim.Region.Environment.Interfaces;
 using OpenSim.Region.Environment.Scenes;
-using libsecondlife;
 using MoneyTransferArgs = OpenSim.Region.Environment.Scenes.EventManager.MoneyTransferArgs;
 
 namespace OpenSim.Region.Environment.Modules

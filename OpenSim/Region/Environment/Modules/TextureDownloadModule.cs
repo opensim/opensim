@@ -29,10 +29,8 @@ using System;
 using System.Collections.Generic;
 using System.Threading;
 using libsecondlife;
-using libsecondlife.Packets;
 using Nini.Config;
 using OpenSim.Framework;
-using OpenSim.Framework.Console;
 using OpenSim.Region.Environment.Interfaces;
 using OpenSim.Region.Environment.Scenes;
 

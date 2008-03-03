@@ -31,14 +31,12 @@ using System.Drawing;
 using System.Drawing.Imaging;
 using System.Threading;
 using System.Timers;
-using Axiom.Math;
 using libsecondlife;
 using libsecondlife.Packets;
 using OpenJPEGNet;
 using OpenSim.Framework;
 using OpenSim.Framework.Communications;
 using OpenSim.Framework.Communications.Cache;
-using OpenSim.Framework.Console;
 using OpenSim.Framework.Servers;
 using OpenSim.Region.Environment.Interfaces;
 using OpenSim.Region.Environment.LandManagement;
@@ -1002,6 +1000,8 @@ namespace OpenSim.Region.Environment.Scenes
                 }
                 else
                 {
+                    // TODO: Install 'GetDefaultTerrainProvider' method here?
+                    Heightmap = new Modules.Terrain.TerrainChannel(map);
                     Terrain.SetHeights2D(map);
                 }
 

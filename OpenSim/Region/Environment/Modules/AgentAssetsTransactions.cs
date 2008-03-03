@@ -28,11 +28,9 @@
 
 using System;
 using System.Collections.Generic;
-using System.Text;
 using System.IO;
 using libsecondlife;
 using libsecondlife.Packets;
-using OpenSim.Framework.Servers;
 using OpenSim.Framework;
 using OpenSim.Framework.Communications.Cache;
 

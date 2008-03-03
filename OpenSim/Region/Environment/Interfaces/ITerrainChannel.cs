@@ -26,7 +26,6 @@
 * 
 */
 
-using System;
 namespace OpenSim.Region.Environment.Interfaces
 {
     public interface ITerrainChannel
@@ -34,5 +33,6 @@ namespace OpenSim.Region.Environment.Interfaces
         int Height { get; }
         double this[int x, int y] { get; set; }
         int Width { get; }
+        float[] GetFloatsSerialised();
     }
 }

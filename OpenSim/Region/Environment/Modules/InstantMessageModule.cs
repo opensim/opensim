@@ -30,9 +30,7 @@ using System.Collections;
 using System.Collections.Generic;
 using libsecondlife;
 using Nini.Config;
-using Nwc.XmlRpc;
 using OpenSim.Framework;
-using OpenSim.Framework.Console;
 using OpenSim.Region.Environment.Interfaces;
 using OpenSim.Region.Environment.Scenes;
 

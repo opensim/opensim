@@ -26,16 +26,13 @@
 * 
 */
 
-using Nini.Config;
 using System;
-using System.Collections;
 using System.Collections.Generic;
+using libsecondlife;
+using Nini.Config;
 using OpenSim.Framework;
-using OpenSim.Framework.Console;
-using OpenSim.Region.Environment.Modules;
 using OpenSim.Region.Environment.Interfaces;
 using OpenSim.Region.Environment.Scenes;
-using libsecondlife;
 
 namespace OpenSim.Region.Environment.Modules.Terrain
 {
@@ -57,7 +54,7 @@ namespace OpenSim.Region.Environment.Modules.Terrain
     public interface ITerrainLoader 
     {
         ITerrainChannel LoadFile(string filename);
-        void SaveFile(string filename);
+        void SaveFile(string filename, ITerrainChannel map);
     }
 
     /// <summary>
@@ -85,6 +82,19 @@ namespace OpenSim.Region.Environment.Modules.Terrain
             return copy;
         }
 
+        public float[] GetFloatsSerialised()
+        {
+            float[] heights = new float[Width * Height];
+            int i;
+
+            for (i = 0; i < Width * Height; i++)
+            {
+                heights[i] = (float)map[i % Width, i / Width];
+            }
+
+            return heights;
+        }
+
         public double this[int x, int y]
         {
             get
@@ -100,6 +110,11 @@ namespace OpenSim.Region.Environment.Modules.Terrain
         public TerrainChannel()
         {
             map = new double[Constants.RegionSize, Constants.RegionSize];
+        }
+
+        public TerrainChannel(double[,] import)
+        {
+            map = import;
         }
 
         public TerrainChannel(bool createMap)
@@ -139,13 +154,27 @@ namespace OpenSim.Region.Environment.Modules.Terrain
 
         private void InstallDefaultEffects()
         {
-            m_painteffects[StandardTerrainEffects.Raise] = new PaintBrushes.RaiseSphere();
-            m_floodeffects[StandardTerrainEffects.Raise] = new FloodBrushes.RaiseArea();
+            // Draggable Paint Brush Effects
+            m_painteffects[StandardTerrainEffects.Raise]    = new PaintBrushes.RaiseSphere();
+            m_painteffects[StandardTerrainEffects.Lower]    = new PaintBrushes.LowerSphere();
+            m_painteffects[StandardTerrainEffects.Smooth]   = new PaintBrushes.SmoothSphere();
+            m_painteffects[StandardTerrainEffects.Noise]    = new PaintBrushes.NoiseSphere();
+            m_painteffects[StandardTerrainEffects.Flatten]  = new PaintBrushes.FlattenSphere();
 
-            // Float[256,256] array format (RAW32)
+            // Area of effect selection effects
+            m_floodeffects[StandardTerrainEffects.Raise]    = new FloodBrushes.RaiseArea();
+            m_floodeffects[StandardTerrainEffects.Lower]    = new FloodBrushes.LowerArea();
+            m_floodeffects[StandardTerrainEffects.Smooth]   = new FloodBrushes.SmoothArea();
+            m_floodeffects[StandardTerrainEffects.Noise]    = new FloodBrushes.NoiseArea();
+            m_floodeffects[StandardTerrainEffects.Flatten]  = new FloodBrushes.FlattenArea();
+
+            // Filesystem load/save loaders
             m_loaders[".r32"] = new FileLoaders.RAW32();
             m_loaders[".f32"] = m_loaders[".r32"];
             m_loaders[".ter"] = new FileLoaders.Terragen();
+            m_loaders[".raw"] = new FileLoaders.LLRAW();
+            m_loaders[".jpg"] = new FileLoaders.JPEG();
+            m_loaders[".jpeg"] = m_loaders[".jpg"];
         }
 
         public void LoadFromFile(string filename)
@@ -162,13 +191,20 @@ namespace OpenSim.Region.Environment.Modules.Terrain
 
         public void SaveToFile(string filename)
         {
-            foreach (KeyValuePair<string, ITerrainLoader> loader in m_loaders)
+            try
             {
-                if (filename.EndsWith(loader.Key))
+                foreach (KeyValuePair<string, ITerrainLoader> loader in m_loaders)
                 {
-                    loader.Value.SaveFile(filename);
-                    return;
+                    if (filename.EndsWith(loader.Key))
+                    {
+                        loader.Value.SaveFile(filename, m_channel);
+                        return;
+                    }
                 }
+            }
+            catch (NotImplementedException)
+            {
+                m_log.Error("Unable to save to " + filename + ", saving of this file format has not been implemented.");
             }
         }
 
@@ -177,7 +213,20 @@ namespace OpenSim.Region.Environment.Modules.Terrain
             m_scene = scene;
             m_gConfig = config;
 
-            m_channel = new TerrainChannel();
+            // Install terrain module in the simulator
+            if (m_scene.Heightmap == null)
+            {
+                lock (m_scene)
+                {
+                    m_channel = new TerrainChannel();
+                    m_scene.Heightmap = m_channel;
+                }
+            }
+            else
+            {
+                m_channel = m_scene.Heightmap;
+            }
+
             m_scene.EventManager.OnNewClient += EventManager_OnNewClient;
         }
 
