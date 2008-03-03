@@ -159,13 +159,13 @@
       <Configuration name="Debug">
         <Options>
           <OutputPath>../../../bin/</OutputPath>
-          <KeyFile>TribalMedia.Framework.Data.snk</KeyFile>
+          <KeyFile>OpenSim.Framework.Data.Base.snk</KeyFile>
         </Options>
       </Configuration>
       <Configuration name="Release">
         <Options>
           <OutputPath>../../../bin/</OutputPath>
-          <KeyFile>TribalMedia.Framework.Data.snk</KeyFile>
+          <KeyFile>OpenSim.Framework.Data.Base.snk</KeyFile>
         </Options>
       </Configuration>
 
