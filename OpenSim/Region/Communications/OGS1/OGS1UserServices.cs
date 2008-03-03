@@ -70,6 +70,7 @@ namespace OpenSim.Region.Communications.OGS1
             userData.profileFirstImage = new LLUUID((string) data["profile_firstlife_image"]);
             userData.profileCanDoMask = Convert.ToUInt32((string) data["profile_can_do"]);
             userData.profileWantDoMask = Convert.ToUInt32(data["profile_want_do"]);
+            userData.profileAboutText = (string)data["profile_about"];
             userData.profileImage = new LLUUID((string) data["profile_image"]);
             userData.lastLogin = Convert.ToInt32((string) data["profile_lastlogin"]);
             userData.homeRegion = Convert.ToUInt64((string) data["home_region"]);

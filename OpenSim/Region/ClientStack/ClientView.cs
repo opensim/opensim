@@ -1589,7 +1589,10 @@ namespace OpenSim.Region.ClientStack
             AvatarPropertiesReplyPacket avatarReply = (AvatarPropertiesReplyPacket)PacketPool.Instance.GetPacket(PacketType.AvatarPropertiesReply);
             avatarReply.AgentData.AgentID = AgentId;
             avatarReply.AgentData.AvatarID = avatarID;
-            avatarReply.PropertiesData.AboutText = Helpers.StringToField(aboutText);
+            if (aboutText != null)
+                avatarReply.PropertiesData.AboutText = Helpers.StringToField(aboutText);
+            else
+                avatarReply.PropertiesData.AboutText = Helpers.StringToField("");
             avatarReply.PropertiesData.BornOn = Helpers.StringToField(bornOn);
             avatarReply.PropertiesData.CharterMember = Helpers.StringToField(charterMember);
             if (flAbout != null)
