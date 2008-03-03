@@ -47,7 +47,7 @@ namespace OpenSim.Region.Environment.Modules.Terrain.FileLoaders
 
             int pallete = gradientmapLd.Height;
 
-            Bitmap bmp = new Bitmap(heightmap.w, heightmap.h);
+            Bitmap bmp = new Bitmap(map.Width, map.Height);
             Color[] colours = new Color[pallete];
 
             for (int i = 0; i < pallete; i++)
@@ -55,9 +55,9 @@ namespace OpenSim.Region.Environment.Modules.Terrain.FileLoaders
                 colours[i] = gradientmapLd.GetPixel(0, i);
             }
 
-            for (int y = 0; y < copy.h; y++)
+            for (int y = 0; y < map.Height; y++)
             {
-                for (int x = 0; x < copy.w; x++)
+                for (int x = 0; x < map.Width; x++)
                 {
                     // 512 is the largest possible height before colours clamp
                     int colorindex = (int)(Math.Max(Math.Min(1.0, map[x, y] / 512.0), 0.0) * (pallete - 1));
