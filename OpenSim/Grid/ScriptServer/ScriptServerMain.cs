@@ -67,7 +67,7 @@ namespace OpenSim.Grid.ScriptServer
 
             // Load DotNetEngine
             Engine = ScriptEngines.LoadEngine("DotNetEngine");
-                    IConfigSource config = null;
+
             Engine.InitializeEngine(null, null, false, Engine.GetScriptManager());
                     
 

@@ -169,7 +169,7 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
                             DoProcessQueue();
                         }
                     }
-                    catch (ThreadAbortException tae)
+                    catch (ThreadAbortException)
                     {
                         if (lastScriptEngine != null)
                         lastScriptEngine.Log.Info("[" + ScriptEngineName + "]: ThreadAbortException while executing function.");

@@ -116,7 +116,7 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
                     MaintenanceThreadThread.Abort();
                 }
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 //m_ScriptEngine.Log.Error("[" + m_ScriptEngine.ScriptEngineName + "]: Exception stopping maintenence thread: " + ex.ToString());
             }

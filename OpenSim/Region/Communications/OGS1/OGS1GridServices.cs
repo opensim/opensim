@@ -1255,7 +1255,6 @@ namespace OpenSim.Region.Communications.OGS1
                 m_log.Error("Remoting Error: Unable to connect to adjacent region.\n" + e.ToString());
                 return false;
             }
-            return false;
         }
 
         /// <summary>

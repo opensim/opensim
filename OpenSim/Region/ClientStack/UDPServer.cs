@@ -359,7 +359,7 @@ namespace OpenSim.Region.ClientStack
                         throw (ex);
 
                     // We are looking for alternate ports!
-                    m_log.Info("[SERVER]: UDP socket on " + listenIP.ToString() + " " + listenPort.ToString() + " is not available, trying next.");
+                    //m_log.Info("[SERVER]: UDP socket on " + listenIP.ToString() + " " + listenPort.ToString() + " is not available, trying next.");
                 }
                 System.Threading.Thread.Sleep(100); // Wait before we retry socket
             }

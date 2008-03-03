@@ -616,7 +616,7 @@ namespace OpenSim.Region.ScriptEngine.Common
             {
                 list j = this;
                 j.NumericSort();
-                double ret;
+
                 if (Math.Ceiling(this.Length * i) == this.Length * i)
                 {
                     return (double)((double)j.Data[(int)(this.Length * i - 1)] + (double)j.Data[(int)(this.Length * i)]) / 2;

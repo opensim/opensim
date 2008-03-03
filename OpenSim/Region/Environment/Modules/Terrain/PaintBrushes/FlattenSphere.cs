@@ -77,7 +77,6 @@ namespace OpenSim.Region.Environment.Modules.Terrain.PaintBrushes
             int x, y;
             double[,] tweak = new double[map.Width, map.Height];
 
-            double n, l;
             double area = strength;
             double step = strength / 4.0;
 

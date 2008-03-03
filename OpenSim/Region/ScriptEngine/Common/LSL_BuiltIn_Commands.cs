@@ -3494,7 +3494,6 @@ namespace OpenSim.Region.ScriptEngine.Common
 
             int number = 0;
             int digit;
-            int baddigit = 0;
 
             m_host.AddScriptLPS(1);
 

@@ -42,7 +42,7 @@ namespace OpenSim.Tests.Common
             {
                 d();
             }
-            catch(ArgumentException e)
+            catch(ArgumentException)
             {
                 return true;
             }

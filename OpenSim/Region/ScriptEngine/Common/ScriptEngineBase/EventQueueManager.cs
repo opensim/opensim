@@ -245,7 +245,7 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
             {
                 threadClass.Stop();
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 //m_ScriptEngine.Log.Error("[" + m_ScriptEngine.ScriptEngineName + ":EventQueueManager]: If you see this, could you please report it to Tedd:");
                 //m_ScriptEngine.Log.Error("[" + m_ScriptEngine.ScriptEngineName + ":EventQueueManager]: Script thread execution timeout kill ended in exception: " + ex.ToString());
