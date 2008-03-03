@@ -127,6 +127,7 @@ namespace OpenSim.Grid.UserServer
             httpServer.AddStreamHandler(
                 new RestStreamHandler("DELETE", "/usersessions/", m_userManager.RestDeleteUserSessionMethod));
 
+            httpServer.AddXmlRPCHandler("update_user_profile", m_userManager.XmlRpcResponseXmlRPCUpdateUserProfile);
             httpServer.Start();
             m_log.Info("[SERVER]: Userserver 0.5 - Startup complete");
         }

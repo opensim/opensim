@@ -181,9 +181,25 @@ namespace OpenSim.Framework
 
         public static int UnixTimeSinceEpoch()
         {
-            TimeSpan t = (DateTime.UtcNow - new DateTime(1970, 1, 1));
-            int timestamp = (int) t.TotalSeconds;
-            return timestamp;
+            return ToUnixTime(DateTime.UtcNow);
+        }
+
+        public static int ToUnixTime(DateTime stamp)
+        {
+            TimeSpan t = (stamp.ToUniversalTime() - Convert.ToDateTime("1/1/1970 8:00:00 AM"));
+            return (int)t.TotalSeconds;
+        }
+
+        public static DateTime ToDateTime(ulong seconds)
+        {
+            DateTime epoch = Convert.ToDateTime("1/1/1970 8:00:00 AM");
+            return epoch.AddSeconds(seconds);
+        }
+
+        public static DateTime ToDateTime(int seconds)
+        {
+            DateTime epoch = Convert.ToDateTime("1/1/1970 8:00:00 AM");
+            return epoch.AddSeconds(seconds);
         }
 
         public static string Md5Hash(string pass)

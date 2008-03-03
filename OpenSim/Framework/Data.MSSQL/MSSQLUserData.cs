@@ -588,10 +588,10 @@ namespace OpenSim.Framework.Data.MSSQL
             parameters["userAssetURI"] = String.Empty;
             parameters["profileCanDoMask"] = "0";
             parameters["profileWantDoMask"] = "0";
-            parameters["profileAboutText"] = String.Empty;
-            parameters["profileFirstText"] = String.Empty;
-            parameters["profileImage"] = LLUUID.Zero.ToString();
-            parameters["profileFirstImage"] = LLUUID.Zero.ToString();
+            parameters["profileAboutText"] = aboutText;
+            parameters["profileFirstText"] = firstText;
+            parameters["profileImage"] = profileImage.ToString();
+            parameters["profileFirstImage"] = firstImage.ToString();
             parameters["webLoginKey"] = LLUUID.Random().ToString();
 
             bool returnval = false;
@@ -670,8 +670,8 @@ namespace OpenSim.Framework.Data.MSSQL
             SqlParameter param18 = new SqlParameter("@profileWantDoMask", Convert.ToInt32(user.profileWantDoMask));
             SqlParameter param19 = new SqlParameter("@profileAboutText", user.profileAboutText);
             SqlParameter param20 = new SqlParameter("@profileFirstText", user.profileFirstText);
-            SqlParameter param21 = new SqlParameter("@profileImage", LLUUID.Zero.ToString());
-            SqlParameter param22 = new SqlParameter("@profileFirstImage", LLUUID.Zero.ToString());
+            SqlParameter param21 = new SqlParameter("@profileImage", user.profileImage.ToString());
+            SqlParameter param22 = new SqlParameter("@profileFirstImage", user.profileFirstImage.ToString());
             SqlParameter param23 = new SqlParameter("@keyUUUID", user.UUID.ToString());
             SqlParameter param24 = new SqlParameter("@webLoginKey", user.webLoginKey.UUID.ToString());
             command.Parameters.Add(param1);

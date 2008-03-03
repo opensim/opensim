@@ -452,11 +452,25 @@ namespace OpenSim.Framework.Data.MySQL
                 retval.profileCanDoMask = Convert.ToUInt32(reader["profileCanDoMask"].ToString());
                 retval.profileWantDoMask = Convert.ToUInt32(reader["profileWantDoMask"].ToString());
 
-                retval.profileAboutText = (string) reader["profileAboutText"];
-                retval.profileFirstText = (string) reader["profileFirstText"];
+                if (reader.IsDBNull(reader.GetOrdinal("profileAboutText")))
+                    retval.profileAboutText = "";
+                else 
+                    retval.profileAboutText = (string) reader["profileAboutText"];
 
-                LLUUID.TryParse((string)reader["profileImage"], out retval.profileImage);
-                LLUUID.TryParse((string)reader["profileFirstImage"], out retval.profileFirstImage);
+                if (reader.IsDBNull( reader.GetOrdinal( "profileFirstText" ) ) )
+                    retval.profileFirstText = "";
+                else
+                    retval.profileFirstText = (string)reader["profileFirstText"];
+
+                if (reader.IsDBNull( reader.GetOrdinal( "profileImage" ) ) )
+                    retval.profileImage = LLUUID.Zero;
+                else 
+                    LLUUID.TryParse((string)reader["profileImage"], out retval.profileImage);
+
+                if (reader.IsDBNull( reader.GetOrdinal( "profileFirstImage" ) ) )
+                    retval.profileFirstImage = LLUUID.Zero;
+                else 
+                    LLUUID.TryParse((string)reader["profileFirstImage"], out retval.profileFirstImage);
                 
                 if( reader.IsDBNull( reader.GetOrdinal( "webLoginKey" ) ) )
                 {
@@ -553,6 +567,7 @@ namespace OpenSim.Framework.Data.MySQL
                                   string aboutText, string firstText,
                                   LLUUID profileImage, LLUUID firstImage, LLUUID webLoginKey)
         {
+            m_log.Debug("[MySQLManager]: Fetching profile for " + uuid.ToString());
             string sql =
                 "INSERT INTO users (`UUID`, `username`, `lastname`, `passwordHash`, `passwordSalt`, `homeRegion`, ";
             sql +=
@@ -610,9 +625,99 @@ namespace OpenSim.Framework.Data.MySQL
                 return false;
             }
 
+            m_log.Debug("[MySQLManager]: Fetch user retval == " + returnval.ToString());
             return returnval;
         }
 
+                /// <summary>
+        /// Creates a new user and inserts it into the database
+        /// </summary>
+        /// <param name="uuid">User ID</param>
+        /// <param name="username">First part of the login</param>
+        /// <param name="lastname">Second part of the login</param>
+        /// <param name="passwordHash">A salted hash of the users password</param>
+        /// <param name="passwordSalt">The salt used for the password hash</param>
+        /// <param name="homeRegion">A regionHandle of the users home region</param>
+        /// <param name="homeLocX">Home region position vector</param>
+        /// <param name="homeLocY">Home region position vector</param>
+        /// <param name="homeLocZ">Home region position vector</param>
+        /// <param name="homeLookAtX">Home region 'look at' vector</param>
+        /// <param name="homeLookAtY">Home region 'look at' vector</param>
+        /// <param name="homeLookAtZ">Home region 'look at' vector</param>
+        /// <param name="created">Account created (unix timestamp)</param>
+        /// <param name="lastlogin">Last login (unix timestamp)</param>
+        /// <param name="inventoryURI">Users inventory URI</param>
+        /// <param name="assetURI">Users asset URI</param>
+        /// <param name="canDoMask">I can do mask</param>
+        /// <param name="wantDoMask">I want to do mask</param>
+        /// <param name="aboutText">Profile text</param>
+        /// <param name="firstText">Firstlife text</param>
+        /// <param name="profileImage">UUID for profile image</param>
+        /// <param name="firstImage">UUID for firstlife image</param>
+        /// <returns>Success?</returns>
+        public bool updateUserRow(LLUUID uuid, string username, string lastname, string passwordHash,
+                                  string passwordSalt, UInt64 homeRegion, float homeLocX, float homeLocY, float homeLocZ,
+                                  float homeLookAtX, float homeLookAtY, float homeLookAtZ, int created, int lastlogin,
+                                  string inventoryURI, string assetURI, uint canDoMask, uint wantDoMask,
+                                  string aboutText, string firstText,
+                                  LLUUID profileImage, LLUUID firstImage, LLUUID webLoginKey)
+        {
+            string sql = "UPDATE users SET `username` = ?username , `lastname` = ?lastname ";
+            sql += ", `passwordHash` = ?passwordHash , `passwordSalt` = ?passwordSalt , ";
+            sql += "`homeRegion` = ?homeRegion , `homeLocationX` = ?homeLocationX , ";
+            sql += "`homeLocationY`  = ?homeLocationY , `homeLocationZ` = ?homeLocationZ , ";
+            sql += "`homeLookAtX` = ?homeLookAtX , `homeLookAtY` = ?homeLookAtY , ";
+            sql += "`homeLookAtZ` = ?homeLookAtZ , `created` = ?created , `lastLogin` = ?lastLogin , ";
+            sql += "`userInventoryURI` = ?userInventoryURI , `userAssetURI` = ?userAssetURI , ";
+            sql += "`profileCanDoMask` = ?profileCanDoMask , `profileWantDoMask` = ?profileWantDoMask , ";
+            sql += "`profileAboutText` = ?profileAboutText , `profileFirstText` = ?profileFirstText, ";
+            sql += "`profileImage` = ?profileImage , `profileFirstImage` = ?profileFirstImage , ";
+            sql += "`webLoginKey` = ?webLoginKey WHERE UUID = ?UUID";
+
+            Dictionary<string, string> parameters = new Dictionary<string, string>();
+            parameters["?UUID"] = uuid.ToString();
+            parameters["?username"] = username.ToString();
+            parameters["?lastname"] = lastname.ToString();
+            parameters["?passwordHash"] = passwordHash.ToString();
+            parameters["?passwordSalt"] = passwordSalt.ToString();
+            parameters["?homeRegion"] = homeRegion.ToString();
+            parameters["?homeLocationX"] = homeLocX.ToString();
+            parameters["?homeLocationY"] = homeLocY.ToString();
+            parameters["?homeLocationZ"] = homeLocZ.ToString();
+            parameters["?homeLookAtX"] = homeLookAtX.ToString();
+            parameters["?homeLookAtY"] = homeLookAtY.ToString();
+            parameters["?homeLookAtZ"] = homeLookAtZ.ToString();
+            parameters["?created"] = created.ToString();
+            parameters["?lastLogin"] = lastlogin.ToString();
+            parameters["?userInventoryURI"] = inventoryURI;
+            parameters["?userAssetURI"] = assetURI;
+            parameters["?profileCanDoMask"] = "0";
+            parameters["?profileWantDoMask"] = "0";
+            parameters["?profileAboutText"] = aboutText;
+            parameters["?profileFirstText"] = firstText;
+            parameters["?profileImage"] = profileImage.ToString();
+            parameters["?profileFirstImage"] = firstImage.ToString();
+            parameters["?webLoginKey"] = webLoginKey.ToString();
+
+            bool returnval = false;
+            try
+            {
+                IDbCommand result = Query(sql, parameters);
+
+                if (result.ExecuteNonQuery() == 1)
+                    returnval = true;
+
+                result.Dispose();
+            }
+            catch (Exception e)
+            {
+                m_log.Error(e.ToString());
+                return false;
+            }
+
+            m_log.Debug("[MySQLManager]: update user retval == " + returnval.ToString());
+            return returnval;
+        }
 
         /// <summary>
         /// Inserts a new region into the database

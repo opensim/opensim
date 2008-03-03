@@ -229,6 +229,12 @@ namespace OpenSim.Framework.Communications
 
         #region Packet Handlers
 
+        public void UpdateAvatarPropertiesRequest(IClientAPI remote_client, UserProfileData UserProfile)
+        {
+            m_userService.UpdateUserProfileProperties(UserProfile);                
+            return;
+        }
+
         public void HandleUUIDNameRequest(LLUUID uuid, IClientAPI remote_client)
         {
             if (uuid == m_userProfileCacheService.libraryRoot.agentID)

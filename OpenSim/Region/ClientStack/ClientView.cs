@@ -123,6 +123,7 @@ namespace OpenSim.Region.ClientStack
         //- used so we don't create new objects for each incoming packet and then toss it out later */
 
         private RequestAvatarProperties handlerRequestAvatarProperties = null; //OnRequestAvatarProperties;
+        private UpdateAvatarProperties handlerUpdateAvatarProperties = null; // OnUpdateAvatarProperties;
         private ChatFromViewer handlerChatFromViewer = null; //OnChatFromViewer;
         private ChatFromViewer handlerChatFromViewer2 = null; //OnChatFromViewer;
         private ImprovedInstantMessage handlerInstantMessage = null; //OnInstantMessage;
@@ -216,7 +217,6 @@ namespace OpenSim.Region.ClientStack
         private UpdatePrimGroupRotation handlerUpdatePrimGroupRotation = null; //OnUpdatePrimGroupMouseRotation;
         private PacketStats handlerPacketStats = null; // OnPacketStats;#
         private RequestAsset handlerRequestAsset = null; // OnRequestAsset;
-
 
         /* Properties */
 
@@ -670,6 +670,7 @@ namespace OpenSim.Region.ClientStack
         public event FetchInventory OnAgentDataUpdateRequest;
         public event FetchInventory OnUserInfoRequest;
         public event TeleportLocationRequest OnSetStartLocationRequest;
+        public event UpdateAvatarProperties OnUpdateAvatarProperties;
 
 
         public event CreateNewInventoryItem OnCreateNewInventoryItem;
@@ -1591,7 +1592,10 @@ namespace OpenSim.Region.ClientStack
             avatarReply.PropertiesData.AboutText = Helpers.StringToField(aboutText);
             avatarReply.PropertiesData.BornOn = Helpers.StringToField(bornOn);
             avatarReply.PropertiesData.CharterMember = Helpers.StringToField(charterMember);
-            avatarReply.PropertiesData.FLAboutText = Helpers.StringToField(flAbout);
+            if (flAbout != null)
+                avatarReply.PropertiesData.FLAboutText = Helpers.StringToField(flAbout);
+            else
+                avatarReply.PropertiesData.FLAboutText = Helpers.StringToField("");
             avatarReply.PropertiesData.Flags = 0;
             avatarReply.PropertiesData.FLImageID = flImageID;
             avatarReply.PropertiesData.ImageID = imageID;
@@ -2901,10 +2905,25 @@ namespace OpenSim.Region.ClientStack
                             if (handlerChatFromViewer != null)
                                 handlerChatFromViewer(this, args);
                         }
-
-
-
                         break;
+                     case PacketType.AvatarPropertiesUpdate:
+                         AvatarPropertiesUpdatePacket Packet = (AvatarPropertiesUpdatePacket)Pack;
+
+                         handlerUpdateAvatarProperties = OnUpdateAvatarProperties;
+                         if (handlerUpdateAvatarProperties != null)
+                         {
+                             AvatarPropertiesUpdatePacket.PropertiesDataBlock Properties = Packet.PropertiesData;
+                             UserProfileData UserProfile = new UserProfileData();
+                             UserProfile.UUID = AgentId;
+                             UserProfile.profileAboutText = Util.FieldToString(Properties.AboutText);
+                             UserProfile.profileFirstText = Util.FieldToString(Properties.FLAboutText);
+                             UserProfile.profileFirstImage = Properties.FLImageID;
+                             UserProfile.profileImage = Properties.ImageID;
+
+                             handlerUpdateAvatarProperties(this, UserProfile);
+                          }
+                        break;
+
                     case PacketType.ScriptDialogReply:
                         ScriptDialogReplyPacket rdialog = (ScriptDialogReplyPacket)Pack;
                         int ch = rdialog.Data.ChatChannel;

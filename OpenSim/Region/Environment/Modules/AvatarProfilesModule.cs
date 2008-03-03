@@ -36,6 +36,7 @@ namespace OpenSim.Region.Environment.Modules
 {
     public class AvatarProfilesModule : IRegionModule
     {
+        private static readonly log4net.ILog m_log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
         private Scene m_scene;
 
         public AvatarProfilesModule()
@@ -69,11 +70,13 @@ namespace OpenSim.Region.Environment.Modules
         public void NewClient(IClientAPI client)
         {
             client.OnRequestAvatarProperties += RequestAvatarProperty;
+            client.OnUpdateAvatarProperties += UpdateAvatarProperties;
         }
 
         public void RemoveClient(IClientAPI client)
         {
             client.OnRequestAvatarProperties -= RequestAvatarProperty;
+            client.OnUpdateAvatarProperties -= UpdateAvatarProperties;
         }
 
         /// <summary>
@@ -83,12 +86,42 @@ namespace OpenSim.Region.Environment.Modules
         /// <param name="avatarID"></param>
         public void RequestAvatarProperty(IClientAPI remoteClient, LLUUID avatarID)
         {
-            string about = "OpenSim crash test dummy";
-            string bornOn = "Before now";
-            string flAbout = "First life? What is one of those? OpenSim is my life!";
+            // FIXME: finish adding fields such as url, masking, etc.
             LLUUID partner = new LLUUID("11111111-1111-0000-0000-000100bba000");
-            remoteClient.SendAvatarProperties(avatarID, about, bornOn, System.String.Empty, flAbout, 0, LLUUID.Zero, LLUUID.Zero, System.String.Empty,
-                                              partner);
+            UserProfileData profile = m_scene.CommsManager.UserService.GetUserProfile(avatarID);
+            if (null != profile)
+            {
+                remoteClient.SendAvatarProperties(profile.UUID, profile.profileAboutText,
+                    Util.ToDateTime(profile.created).ToString(),
+                    System.String.Empty, profile.profileFirstText, profile.profileCanDoMask,
+                    profile.profileFirstImage, profile.profileImage, System.String.Empty, partner);
+            }
+            else
+            {
+                m_log.Debug("[AvatarProfilesModule]: Got null for profile for " + avatarID.ToString());
+            }
+        }
+
+        public void UpdateAvatarProperties(IClientAPI remoteClient, UserProfileData newProfile)
+        {
+            UserProfileData Profile = m_scene.CommsManager.UserService.GetUserProfile(newProfile.UUID);
+           
+            // if it's the profile of the user requesting the update, then we change only a few things.
+            if (remoteClient.AgentId.CompareTo(Profile.UUID) == 0)
+            {
+                Profile.profileImage = newProfile.profileImage;
+                Profile.profileFirstImage = newProfile.profileFirstImage;
+                Profile.profileAboutText = newProfile.profileAboutText;
+                Profile.profileFirstText = newProfile.profileFirstText;
+            }
+            else
+            {
+                return;
+            }
+            if (m_scene.CommsManager.UserService.UpdateUserProfileProperties(Profile))
+            {
+                RequestAvatarProperty(remoteClient, newProfile.UUID);
+            }
         }
     }
 }

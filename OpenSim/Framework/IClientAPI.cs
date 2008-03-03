@@ -264,6 +264,8 @@ namespace OpenSim.Framework
 
     public delegate void RequestAvatarProperties(IClientAPI remoteClient, LLUUID avatarID);
 
+    public delegate void UpdateAvatarProperties(IClientAPI remoteClient, UserProfileData ProfileData);
+
     public delegate void SetAlwaysRun(IClientAPI remoteClient, bool SetAlwaysRun);
 
     public delegate void GenericCall2();
@@ -530,6 +532,7 @@ namespace OpenSim.Framework
         event MoneyTransferRequest OnMoneyTransferRequest;
 
         event MoneyBalanceRequest OnMoneyBalanceRequest;
+        event UpdateAvatarProperties OnUpdateAvatarProperties;
 
          
         LLVector3 StartPos { get; set; }

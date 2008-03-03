@@ -154,6 +154,8 @@ namespace SimpleApp
         public event FriendshipTermination OnTerminateFriendship;
         public event PacketStats OnPacketStats;
         public event MoneyBalanceRequest OnMoneyBalanceRequest;
+        public event UpdateAvatarProperties OnUpdateAvatarProperties;
+
 
 #pragma warning restore 67
 

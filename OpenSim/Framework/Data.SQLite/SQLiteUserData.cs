@@ -590,7 +590,7 @@ namespace OpenSim.Framework.Data.SQLite
             // interesting has to be done to actually get these values
             // back out.  Not enough time to figure it out yet.
             UserProfileData user = new UserProfileData();
-            user.UUID = new LLUUID((String) row["UUID"]);
+            LLUUID.TryParse((String)row["UUID"], out user.UUID);
             user.username = (String) row["username"];
             user.surname = (String) row["surname"];
             user.passwordHash = (String) row["passwordHash"];
@@ -617,8 +617,8 @@ namespace OpenSim.Framework.Data.SQLite
             user.profileWantDoMask = Convert.ToUInt32(row["profileWantDoMask"]);
             user.profileAboutText = (String) row["profileAboutText"];
             user.profileFirstText = (String) row["profileFirstText"];
-            user.profileImage = new LLUUID((String) row["profileImage"]);
-            user.profileFirstImage = new LLUUID((String) row["profileFirstImage"]);
+            LLUUID.TryParse((String)row["profileImage"], out user.profileImage);
+            LLUUID.TryParse((String)row["profileFirstImage"], out user.profileFirstImage);
             user.webLoginKey = new LLUUID((String) row["webLoginKey"]);
 
             return user;

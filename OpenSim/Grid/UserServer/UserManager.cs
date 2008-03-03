@@ -313,6 +313,61 @@ namespace OpenSim.Grid.UserServer
             return ProfileToXmlRPCResponse(userProfile);
         }
 
+
+        public XmlRpcResponse XmlRpcResponseXmlRPCUpdateUserProfile(XmlRpcRequest request)
+        {
+            m_log.Debug("[UserManager]: Got request to update user profile");
+            XmlRpcResponse response = new XmlRpcResponse();
+            Hashtable requestData = (Hashtable)request.Params[0];
+            Hashtable responseData = new Hashtable();
+
+            UserProfileData userProfile;
+            if (!requestData.Contains("avatar_uuid"))
+            {
+                return CreateUnknownUserErrorResponse();
+            }
+
+            LLUUID UserUUID = new LLUUID((string)requestData["avatar_uuid"]);
+            userProfile = GetUserProfile(UserUUID);
+            if (null == userProfile)
+            {
+                return CreateUnknownUserErrorResponse();
+            }
+            // don't know how yet.
+            if (requestData.Contains("AllowPublish"))
+            {
+            }
+            if (requestData.Contains("FLImageID"))
+            {
+                userProfile.profileFirstImage = new LLUUID((string)requestData["FLImageID"]);
+            }
+            if (requestData.Contains("ImageID"))
+            {
+                userProfile.profileImage = new LLUUID((string)requestData["ImageID"]);
+            }
+            // dont' know how yet
+            if (requestData.Contains("MaturePublish"))
+            {                
+            }
+            if (requestData.Contains("AboutText"))
+            {
+                userProfile.profileAboutText = (string)requestData["AboutText"];
+            }
+            if (requestData.Contains("FLAboutText"))
+            {
+                userProfile.profileFirstText = (string)requestData["FLAboutText"];
+            }
+            // not in DB yet.
+            if (requestData.Contains("ProfileURL"))
+            {                
+            }
+            // call plugin!
+            bool ret = UpdateUserProfileProperties(userProfile);
+            responseData["returnString"] = ret.ToString();
+            response.Value = responseData;
+            return response;
+        }
+
         public XmlRpcResponse XmlRPCLogOffUserMethodUUID(XmlRpcRequest request)
         {
             XmlRpcResponse response = new XmlRpcResponse();

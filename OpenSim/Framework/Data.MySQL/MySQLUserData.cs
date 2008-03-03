@@ -594,7 +594,11 @@ namespace OpenSim.Framework.Data.MySQL
         /// <param name="user">The profile data to use to update the DB</param>
         public bool UpdateUserProfile(UserProfileData user)
         {
-            // TODO: implement
+            database.updateUserRow(user.UUID, user.username, user.surname, user.passwordHash, user.passwordSalt
+            , user.homeRegion, user.homeLocation.X, user.homeLocation.Y, user.homeLocation.Z, user.homeLookAt.X
+            , user.homeLookAt.Y, user.homeLookAt.Z, user.created, user.lastLogin, user.userInventoryURI
+            , user.userAssetURI, user.profileCanDoMask, user.profileWantDoMask, user.profileAboutText
+            , user.profileFirstText, user.profileImage, user.profileFirstImage, user.webLoginKey);
             return true;
         }
 

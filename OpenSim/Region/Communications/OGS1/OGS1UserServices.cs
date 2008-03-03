@@ -270,6 +270,48 @@ namespace OpenSim.Region.Communications.OGS1
             throw new Exception("The method or operation is not implemented.");
         }
 
+        public bool UpdateUserProfileProperties(UserProfileData UserProfile)
+        {
+            m_log.Debug("[OGS1UserService]: Asking UserServer to update profile.");
+            Hashtable param = new Hashtable();
+            param["avatar_uuid"] = UserProfile.UUID.ToString();
+            //param["AllowPublish"] = UserProfile.ToString();
+            param["FLImageID"] = UserProfile.profileFirstImage.ToString();
+            param["ImageID"] = UserProfile.profileImage.ToString();
+            //param["MaturePublish"] = MaturePublish.ToString();
+            param["AboutText"] = UserProfile.profileAboutText;
+            param["FLAboutText"] = UserProfile.profileFirstText;
+            //param["ProfileURL"] = UserProfile.ProfileURL.ToString();
+            IList parameters = new ArrayList();
+            parameters.Add(param);
+
+            XmlRpcRequest req = new XmlRpcRequest("update_user_profile", parameters);
+            XmlRpcResponse resp = req.Send(m_parent.NetworkServersInfo.UserURL, 3000);
+            Hashtable respData = (Hashtable)resp.Value;
+            if (respData != null)
+            {
+                if (respData.Contains("returnString"))
+                {
+                    if (((string)respData["returnString"]).ToUpper() != "TRUE")
+                    {
+                        m_log.Warn("[GRID]: Unable to update user profile, User Server Reported an issue");
+                        return false;
+                    }
+                }
+                else
+                {
+                    m_log.Warn("[GRID]: Unable to update user profile, UserServer didn't understand me!");
+                    return false;
+                }
+            }
+            else
+            {
+                m_log.Warn("[GRID]: Unable to update user profile, UserServer didn't understand me!");
+                return false;
+            }
+            return true;
+        }
+
         #region IUserServices Friend Methods
         /// <summary>
         /// Adds a new friend to the database for XUser

@@ -87,6 +87,13 @@ namespace OpenSim.Framework
         void UpdateUserFriendPerms(LLUUID friendlistowner, LLUUID friend, uint perms);
 
         /// <summary>
+        /// Updates a user profile
+        /// </summary>
+        /// <param name="UserProfile">Profile to update</param>
+        /// <returns></returns>
+        bool UpdateUserProfileProperties(UserProfileData UserProfile);
+
+        /// <summary>
         /// Logs off a user on the user server
         /// </summary>
         /// <param name="UserID">UUID of the user</param>

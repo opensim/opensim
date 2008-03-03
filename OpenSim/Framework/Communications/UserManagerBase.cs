@@ -139,11 +139,10 @@ namespace OpenSim.Framework.UserManagement
         }
 
         /// <summary>
-        /// Set's user profile from object
+        /// Set's user profile from data object
         /// </summary>
-        /// <param name="fname">First name</param>
-        /// <param name="lname">Last name</param>
-        /// <returns>A user profile</returns>
+        /// <param name="data"></param>
+        /// <returns></returns>
         public bool setUserProfile(UserProfileData data)
         {
             foreach (KeyValuePair<string, IUserData> plugin in _plugins)
@@ -158,7 +157,6 @@ namespace OpenSim.Framework.UserManagement
                     m_log.Info("[USERSTORAGE]: Unable to set user via " + plugin.Key + "(" + e.ToString() + ")");
                 }
             }
-
             return false;
         }
 
@@ -532,6 +530,29 @@ namespace OpenSim.Framework.UserManagement
             }
 
             return user.UUID;
+        }
+
+        public bool UpdateUserProfileProperties(UserProfileData UserProfile)
+        {
+            if (null == GetUserProfile(UserProfile.UUID))
+            {
+                m_log.Info("[USERSTORAGE]: Failed to find User by UUID " + UserProfile.UUID.ToString());
+                return false;
+            }
+            foreach (KeyValuePair<string, IUserData> plugin in _plugins)
+            {
+                try
+                {
+                    plugin.Value.UpdateUserProfile(UserProfile);
+                }
+                catch (Exception e)
+                {
+                    m_log.Info("[USERSTORAGE]: Unable to update user " + UserProfile.UUID.ToString()
+                        + " via " + plugin.Key + "(" + e.ToString() + ")");
+                    return false;
+                }
+            }
+            return true;
         }
 
         public abstract UserProfileData SetupMasterUser(string firstName, string lastName);
