@@ -64,9 +64,9 @@ namespace OpenSim.Region.Environment.Modules.Terrain.FileLoaders
             BinaryWriter bs = new BinaryWriter(s);
 
             int x, y;
-            for (y = 0; y < h; y++)
+            for (y = 0; y < map.Height; y++)
             {
-                for (x = 0; x < w; x++)
+                for (x = 0; x < map.Width; x++)
                 {
                     bs.Write((float)map[x, y]);
                 }
