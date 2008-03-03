@@ -372,8 +372,6 @@ namespace OpenSim.Grid.UserServer
         {
             XmlRpcResponse response = new XmlRpcResponse();
             Hashtable requestData = (Hashtable)request.Params[0];
-            
-            UserProfileData userProfile;
 
             if (requestData.Contains("avatar_uuid"))
             {

@@ -268,7 +268,7 @@ namespace OpenSim.Framework.Data.MSSQL
                 {
                     regionprofile.owner_uuid = new LLUUID((string)reader["owner_uuid"]);
                 }
-                catch(Exception ex)
+                catch(Exception)
                 {}
                 // World Map Addition
                 string tempRegionMap = reader["regionMapTexture"].ToString();
