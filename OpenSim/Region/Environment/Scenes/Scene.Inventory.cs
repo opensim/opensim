@@ -606,16 +606,47 @@ namespace OpenSim.Region.Environment.Scenes
         public void UpdateTaskInventory(IClientAPI remoteClient, LLUUID itemID, LLUUID folderID,
                                         uint primLocalID)
         {
+
             SceneObjectGroup group = GetGroupByPrim(primLocalID);
+
             if (group != null)
             {
-                // TODO Retrieve itemID from client's inventory to pass on
-                //group.AddInventoryItem(remoteClient, primLocalID, null);
-                m_log.InfoFormat(
-                    "[PRIM INVENTORY]: " +
-                    "Non script prim inventory not yet implemented!"
-                    + "\nUpdateTaskInventory called with item {0}, folder {1}, primLocalID {2}, user {3}",
-                    itemID, folderID, primLocalID, remoteClient.Name);
+                LLUUID copyID = LLUUID.Random();
+                if (itemID != LLUUID.Zero)
+                {
+                    CachedUserInfo userInfo = CommsManager.UserProfileCacheService.GetUserDetails(remoteClient.AgentId);
+
+                    if (userInfo != null && userInfo.RootFolder != null)
+                    {
+                        InventoryItemBase item = userInfo.RootFolder.HasItem(itemID);
+
+                        // Try library
+                        // XXX clumsy, possibly should be one call
+                        if (null == item)
+                        {
+                            item = CommsManager.UserProfileCacheService.libraryRoot.HasItem(itemID);
+                        }
+
+                        if (item != null)
+                        {
+
+                            group.AddInventoryItem(remoteClient, primLocalID, item, copyID);
+                            m_log.InfoFormat("[PRIMINVENTORY]: Update with item {0} requested of prim {1} for {2}", item.inventoryName, primLocalID, remoteClient.Name);
+                            group.GetProperties(remoteClient);
+
+                        }
+                        else
+                        {
+                            m_log.ErrorFormat(
+                                "[PRIM INVENTORY]: Could not find inventory item {0} to update for {1}!",
+                                itemID, remoteClient.Name);
+                        }
+
+                    }
+
+                }
+
+
             }
             else
             {

@@ -1844,7 +1844,7 @@ namespace OpenSim.Region.Environment.Scenes
             m_log.Info("[PHYSICS]: Physical Object went out of bounds.");
             RemFlag(LLObject.ObjectFlags.Physics);
             DoPhysicsPropertyUpdate(false, true);
-            m_parentGroup.Scene.PhysicsScene.AddPhysicsActorTaint(PhysActor);
+            //m_parentGroup.Scene.PhysicsScene.AddPhysicsActorTaint(PhysActor);
         }
 
         public virtual void OnGrab(LLVector3 offsetPos, IClientAPI remoteClient)

@@ -46,6 +46,7 @@ Patches
 * jimbo2120 (International Business Machines Corp.)
 * brianw/Sir_Ahzz
 * ChrisDown
+* devalnor-#708
 
 
 LSL Devs

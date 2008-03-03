@@ -617,20 +617,23 @@ namespace OpenSim.Region.Physics.OdePlugin
         public void disableBody()
         {
             //this kills the body so things like 'mesh' can re-create it.
-            if (Body != (IntPtr) 0)
+            lock (this)
             {
-                m_collisionCategories &= ~CollisionCategories.Body;
-                m_collisionFlags &= ~(CollisionCategories.Wind | CollisionCategories.Land);
-
-                if (prim_geom != (IntPtr)0)
+                if (Body != (IntPtr)0)
                 {
-                    d.GeomSetCategoryBits(prim_geom, (int)m_collisionCategories);
-                    d.GeomSetCollideBits(prim_geom, (int)m_collisionFlags);
-                }   
+                    m_collisionCategories &= ~CollisionCategories.Body;
+                    m_collisionFlags &= ~(CollisionCategories.Wind | CollisionCategories.Land);
 
-                _parent_scene.remActivePrim(this);
-                d.BodyDestroy(Body);
-                Body = (IntPtr) 0;
+                    if (prim_geom != (IntPtr)0)
+                    {
+                        d.GeomSetCategoryBits(prim_geom, (int)m_collisionCategories);
+                        d.GeomSetCollideBits(prim_geom, (int)m_collisionFlags);
+                    }
+
+                    _parent_scene.remActivePrim(this);
+                    d.BodyDestroy(Body);
+                    Body = (IntPtr)0;
+                }
             }
             m_disabled = true;
             m_collisionscore = 0;
