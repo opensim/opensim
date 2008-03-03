@@ -32,12 +32,12 @@ using System.Security;
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
 
-[assembly : AssemblyTitle("TribalMedia.Framework.Data")]
+[assembly : AssemblyTitle("OpenSim.Framework.Data.Base")]
 [assembly : AssemblyDescription("Generic Database Abstraction Layer")]
 [assembly : AssemblyConfiguration("")]
-[assembly : AssemblyCompany("TribalMedia")]
-[assembly : AssemblyProduct("TribalMedia.Framework.Data")]
-[assembly: AssemblyCopyright("Copyright © 2007 Tribal Media")]
+[assembly : AssemblyCompany("OpenSim Project (www.opensimulator.org)")]
+[assembly: AssemblyProduct("OpenSim.Framework.Data.Base")]
+[assembly: AssemblyCopyright("Copyright © 2007 OpenSim Project (www.opensimulator.org)")]
 [assembly : AssemblyTrademark("")]
 [assembly : AssemblyCulture("")]
 
