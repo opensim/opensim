@@ -155,7 +155,7 @@
       </Files>
     </Project>
 
-    <Project name="TribalMedia.Framework.Data" path="ThirdParty/TribalMedia/TribalMedia.Framework.Data" type="Library">
+    <Project name="OpenSim.Framework.Data.Base" path="OpenSim/Framework/Data.Base" type="Library">
       <Configuration name="Debug">
         <Options>
           <OutputPath>../../../bin/</OutputPath>
@@ -197,7 +197,7 @@
       <Reference name="libsecondlife.dll"/>
       <Reference name="OpenSim.Framework"/>
       <Reference name="MySql.Data.dll"/>
-      <Reference name="TribalMedia.Framework.Data"/>
+      <Reference name="OpenSim.Framework.Data.Base"/>
       <Reference name="log4net"/>
       <Files>
         <Match pattern="*.cs" recurse="true"/>
@@ -722,7 +722,7 @@
       <Reference name="Microsoft.JScript"/>
       <Reference name="XMLRPC.dll"/>
       <Reference name="OpenSim.Framework.Communications"/>
-      <Reference name="TribalMedia.Framework.Data"/>
+      <Reference name="OpenSim.Framework.Data.Base"/>
       <Reference name="Nini.dll" />
       <Reference name="log4net"/>
       <Files>
@@ -1018,7 +1018,6 @@
       <Reference name="System.Data"/>
       <Reference name="OpenSim.Framework"/>
       <Reference name="OpenSim.Framework.Data"/>
-      <!--      <Reference name="TribalMedia.Framework.Data"/> -->
       <Reference name="libsecondlife.dll"/>
       <Reference name="MySql.Data.dll"/>
       <Reference name="OpenSim.Framework.Console"/>
