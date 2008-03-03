@@ -28,7 +28,7 @@ using System;
 using System.Data;
 using System.IO;
 
-namespace TribalMedia.Framework.Data
+namespace OpenSim.Framework.Data.Base
 {
     public class BaseDataReader
     {

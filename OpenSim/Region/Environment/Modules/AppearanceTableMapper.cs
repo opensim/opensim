@@ -31,7 +31,7 @@ using System.Collections.Generic;
 using System.Text;
 using OpenSim.Region.Environment.Scenes;
 using OpenSim.Framework;
-using TribalMedia.Framework.Data;
+using OpenSim.Framework.Data.Base;
 
 namespace OpenSim.Region.Environment.Modules
 {

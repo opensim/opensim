@@ -37,7 +37,7 @@ using OpenSim.Framework.Console;
 using OpenSim.Region.Environment.Interfaces;
 using OpenSim.Region.Environment.Scenes;
 using OpenSim.Framework.Data;
-using TribalMedia.Framework.Data;
+using OpenSim.Framework.Data.Base;
 
 namespace OpenSim.Region.Environment.Modules
 {

@@ -27,9 +27,9 @@
 using System;
 using System.Data;
 using System.Data.Common;
-using TribalMedia.Framework.Data;
+using OpenSim.Framework.Data.Base;
 
-namespace TribalMedia.Framework.Data
+namespace OpenSim.Framework.Data.Base
 {
     public abstract class BaseTableMapper
     {

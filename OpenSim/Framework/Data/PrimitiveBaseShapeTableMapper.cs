@@ -28,7 +28,7 @@
 
 using System;
 using OpenSim.Framework;
-using TribalMedia.Framework.Data;
+using OpenSim.Framework.Data.Base;
 using libsecondlife;
 
 namespace OpenSim.Framework.Data

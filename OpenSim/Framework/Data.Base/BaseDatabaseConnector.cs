@@ -29,7 +29,7 @@ using System.Collections.Generic;
 using System.Data;
 using System.Data.Common;
 
-namespace TribalMedia.Framework.Data
+namespace OpenSim.Framework.Data.Base
 {
     public abstract class BaseDatabaseConnector
     {

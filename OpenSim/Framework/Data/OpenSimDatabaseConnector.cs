@@ -31,7 +31,7 @@ using System.Data.Common;
 using libsecondlife;
 using MySql.Data.MySqlClient;
 
-using TribalMedia.Framework.Data;
+using OpenSim.Framework.Data.Base;
 
 namespace OpenSim.Framework.Data
 {

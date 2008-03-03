@@ -28,7 +28,7 @@
 
 using System.Data;
 
-using TribalMedia.Framework.Data;
+using OpenSim.Framework.Data.Base;
 
 namespace OpenSim.Framework.Data
 {

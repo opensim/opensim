@@ -32,7 +32,7 @@ using System.Data;
 using System.Text;
 using libsecondlife;
 
-using TribalMedia.Framework.Data;
+using OpenSim.Framework.Data.Base;
 
 namespace OpenSim.Framework.Data
 {
