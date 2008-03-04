@@ -175,7 +175,7 @@ namespace OpenSim.ApplicationPlugins.LoadBalancer {
                 } // while (true)
 
             }
-            catch (Exception e)
+            catch (Exception)
             {
                 //MainLog.Instance.Verbose("TCPSERVER", e.ToString());
                 //MainLog.Instance.Verbose("TCPSERVER", e.StackTrace);

@@ -193,7 +193,6 @@ namespace OpenSim.Framework
                     packet.Header.Reliable = false;
                     LocalClients[i].OutPacket(packet, ThrottleOutPacketType.Task);
                 }
-
             }
         }
 

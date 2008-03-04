@@ -522,7 +522,7 @@ namespace OpenSim.Grid.GridServer
             //RegionProfileData TheSim = null;
             string uuid = String.Empty;;
             Hashtable requestData = (Hashtable) request.Params[0];
-            string myword;
+
             if (requestData.ContainsKey("UUID")) {
                 //TheSim = getRegion(new LLUUID((string) requestData["UUID"]));
                 uuid = requestData["UUID"].ToString();
@@ -559,7 +559,8 @@ namespace OpenSim.Grid.GridServer
                             break;
                     }
                 }
-                catch (Exception e) {
+                catch (Exception)
+                {
                     m_log.Error("storage Unable to delete region " + uuid + " via MySQL");
                     //MainLog.Instance.Warn("storage", e.ToString());
                 }

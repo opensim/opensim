@@ -738,11 +738,11 @@ namespace OpenSim.ApplicationPlugins.LoadBalancer
                     IClientAPI controller = null;
 
                     foreach (uint code in circuits)
-                      {
+                    {
                         m_log.InfoFormat("[BALANCER] "+"circuit code : {0}", code);
 
                         if (scene.ClientManager.TryGetClient(code, out controller))
-                          {
+                        {
                             // Divide the presences evenly over the set of subscenes
                             ClientView client = (ClientView) controller;
                             client.PacketProcessingEnabled = (( (i + myID) % sceneURL.Length) == 0);
@@ -750,15 +750,15 @@ namespace OpenSim.ApplicationPlugins.LoadBalancer
                             m_log.InfoFormat("[SPLITSCENE] === SplitRegion {0}: SP.PacketEnabled {1}", region.RegionID, client.PacketProcessingEnabled);
 
                             if (!client.PacketProcessingEnabled)
-                               {
+                            {
                                 // stopping clientview thread
                                 client.Stop();
-                               }
+                            }
 
-                           ++i;
-                          }
-                      }
-					
+                            ++i;
+                        }
+                    }
+
                     scene.splitID = myID;
                     scene.SynchronizeScene = new Scene.SynchronizeSceneHandler(SynchronizeScenes);
                     isSplit = true;
