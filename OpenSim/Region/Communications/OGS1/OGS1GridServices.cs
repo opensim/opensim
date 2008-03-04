@@ -111,6 +111,8 @@ namespace OpenSim.Region.Communications.OGS1
             GridParams["http_port"] = serversInfo.HttpListenerPort.ToString();
             GridParams["remoting_port"] = NetworkServersInfo.RemotingListenerPort.ToString();
             GridParams["map-image-id"] = regionInfo.EstateSettings.terrainImageID.ToString();
+            GridParams["originUUID"] = regionInfo.originRegionID.ToString();
+			GridParams["server_uri"] = regionInfo.ServerURI;
 
             // part of an initial brutish effort to provide accurate information (as per the xml region spec)
             // wrt the ownership of a given region
@@ -165,7 +167,30 @@ namespace OpenSim.Region.Communications.OGS1
 
         public bool DeregisterRegion(RegionInfo regionInfo)
         {
-            return false;
+            Hashtable GridParams = new Hashtable();
+
+            GridParams["UUID"] = regionInfo.RegionID.ToString();
+
+            // Package into an XMLRPC Request
+            ArrayList SendParams = new ArrayList();
+            SendParams.Add(GridParams);
+
+            // Send Request
+            XmlRpcRequest GridReq = new XmlRpcRequest("simulator_after_region_moved", SendParams);
+            XmlRpcResponse GridResp = GridReq.Send(serversInfo.GridURL, 10000);
+            Hashtable GridRespData = (Hashtable) GridResp.Value;
+
+            Hashtable griddatahash = GridRespData;
+
+            // Process Response
+            if (GridRespData.ContainsKey("error")) {
+                string errorstring = (string)GridRespData["error"];
+                m_log.Error("Unable to connect to grid: " + errorstring);
+                return false;
+            }
+
+			// What does DeregisterRegion() do?
+            return m_localBackend.DeregisterRegion(regionInfo);
         }
 
         public virtual Dictionary<string, string> GetGridSettings()
@@ -1209,7 +1234,6 @@ namespace OpenSim.Region.Communications.OGS1
                 }
 
                 return m_localBackend.TriggerRegionUp(new RegionInfo(regionData), regionhandle);
-                
             }
 
             catch (RemotingException e)

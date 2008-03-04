@@ -1111,6 +1111,7 @@
       <Reference name="OpenSim.Framework.Console"/>
       <Reference name="OpenSim.Framework.Servers"/>
       <Reference name="OpenSim.Framework.Data"/>
+      <Reference name="OpenSim.Framework.Data.MySQL"/>
       <Reference name="libsecondlife.dll"/>
       <Reference name="Db4objects.Db4o.dll"/>
       <Reference name="XMLRPC.dll"/>
@@ -1504,6 +1505,69 @@
       <Reference name="Nini.dll" />
       <Reference name="log4net"/>
 
+      <Files>
+        <Match pattern="*.cs" recurse="true"/>
+      </Files>
+    </Project>
+
+    <Project name="OpenSim.ApplicationPlugins.RegionProxy" path="ThirdParty/3Di/RegionProxy" type="Library">
+      <Configuration name="Debug">
+        <Options>
+          <OutputPath>../../../bin/</OutputPath>
+        </Options>
+      </Configuration>
+      <Configuration name="Release">
+        <Options>
+          <OutputPath>../../../bin/</OutputPath>
+        </Options>
+      </Configuration>
+
+      <ReferencePath>../../../bin/</ReferencePath>
+      <Reference name="log4net" />
+      <Reference name="Mono.Addins.dll" />
+      <Reference name="System"/>
+      <Reference name="System.Xml"/>
+      <Reference name="XMLRPC.dll"/>
+      <Reference name="Nini.dll" />
+      <Reference name="OpenSim"/>
+      <Reference name="OpenSim.Framework"/>
+      <Reference name="OpenSim.Framework.Data"/>
+      <Reference name="OpenSim.Framework.Servers"/>
+      <Reference name="OpenSim.Framework.Console"/>
+      <Reference name="OpenSim.Region.ClientStack"/>
+      <Files>
+        <Match pattern="*.cs" recurse="true"/>
+      </Files>
+    </Project>
+
+    <Project name="OpenSim.ApplicationPlugins.LoadBalancer" path="ThirdParty/3Di/LoadBalancer" type="Library">
+      <Configuration name="Debug">
+        <Options>
+          <OutputPath>../../../bin/</OutputPath>
+        </Options>
+      </Configuration>
+      <Configuration name="Release">
+        <Options>
+          <OutputPath>../../../bin/</OutputPath>
+        </Options>
+      </Configuration>
+
+      <ReferencePath>../../../bin/</ReferencePath>
+      <Reference name="log4net" />
+      <Reference name="Mono.Addins.dll" />
+      <Reference name="System"/>
+      <Reference name="System.Xml"/>
+      <Reference name="XMLRPC.dll"/>
+      <Reference name="Nini.dll" />
+      <Reference name="OpenSim"/>
+      <Reference name="OpenSim.Framework"/>
+      <Reference name="OpenSim.Framework.Data"/>
+      <Reference name="OpenSim.Framework.Servers"/>
+      <Reference name="OpenSim.Framework.Console"/>
+      <Reference name="OpenSim.Region.Environment"/>
+      <Reference name="OpenSim.Region.ClientStack"/>
+      <Reference name="OpenSim.Region.Physics.Manager"/>
+      <Reference name="libsecondlife.dll"/>
       <Files>
         <Match pattern="*.cs" recurse="true"/>
       </Files>

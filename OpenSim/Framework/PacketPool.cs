@@ -26,6 +26,7 @@
 * 
 */
 using System;
+using System.Net;
 using System.Collections;
 using libsecondlife.Packets;
 
@@ -33,29 +34,68 @@ namespace OpenSim.Framework
 {
     public sealed class PacketPool
     {
+		static public void EncodeProxyMessage(byte[] bytes, ref int numBytes, EndPoint trueEP)
+		{
+			if( numBytes > 4090 ) // max UPD size = 4096
+			{
+				throw new Exception("ERROR: No space to encode the proxy EP");
+			}
+
+            ushort port = (ushort) ((IPEndPoint) trueEP).Port;
+            bytes[numBytes++] = (byte)(port % 256);
+            bytes[numBytes++] = (byte)(port / 256);
+            
+            foreach (byte b in ((IPEndPoint)trueEP).Address.GetAddressBytes())
+            {
+                bytes[numBytes++] = b;
+            }
+
+            int x = numBytes;
+
+            DecodeProxyMessage(bytes, ref numBytes);
+
+            numBytes = x;
+		}
+		
+		static public EndPoint DecodeProxyMessage(byte[] bytes, ref int numBytes)
+		{
+            // IPv4 Only
+            byte[] addr = new byte[4];
+
+            addr[3] = bytes[--numBytes];
+            addr[2] = bytes[--numBytes];
+            addr[1] = bytes[--numBytes];
+            addr[0] = bytes[--numBytes];
+
+            ushort port = (ushort)(bytes[--numBytes] * 256);
+            port += (ushort)bytes[--numBytes];
+
+            return (EndPoint) new IPEndPoint(new IPAddress(addr), (int)port);
+        }
+
         // Set up a thread-safe singleton pattern
         static PacketPool()
         {
         }
 
-        private static readonly PacketPool instance = new PacketPool();
+        static readonly PacketPool instance = new PacketPool();
 
         public static PacketPool Instance
         {
-            get { return instance; }
+            get
+            {
+                return instance;
+            }
         }
 
         private Hashtable pool = new Hashtable();
 
-        public Packet GetPacket(PacketType type)
-        {
-            return Packet.BuildPacket(type);
-/* Skip until PacketPool performance problems have been resolved (mantis 281)
+        public Packet GetPacket(PacketType type) {
             Packet packet = null;
 
-            lock (pool)
+            lock(pool)
             {
-                if (pool[type] == null || ((Stack) pool[type]).Count == 0)
+                if(pool[type] == null || ((Stack) pool[type]).Count == 0)
                 {
                     // Creating a new packet if we cannot reuse an old package
                     packet = Packet.BuildPacket(type);
@@ -63,39 +103,16 @@ namespace OpenSim.Framework
                 else
                 {
                     // Recycle old packages
-                    packet = (Packet) ((Stack) pool[type]).Pop();
+                    packet=(Packet) ((Stack) pool[type]).Pop();
                 }
             }
 
             return packet;
-*/
         }
 
-        // Copied from LibSL, and added a check to avoid overwriting the
-        // buffer
-        private void ZeroDecodeCommand(byte[] src, byte[] dest)
-        {
-            for (int srcPos = 6, destPos = 6; destPos < 10; ++srcPos)
-            {
-                if (src[srcPos] == 0x00)
-                {
-                    for (byte j = 0; j < src[srcPos + 1] && destPos < 10; ++j)
-                    {
-                        dest[destPos++] = 0x00;
-                    }
-                    ++srcPos;
-                                                                                                }
-                else
-                {
-                    dest[destPos++] = src[srcPos];
-                }
-            }
-        }
-
+        private byte[] decoded_header = new byte[10];
         private PacketType GetType(byte[] bytes)
         {
-            byte[] decoded_header = new byte[10];
-
             ushort id;
             libsecondlife.PacketFrequency freq;
 
@@ -103,7 +120,7 @@ namespace OpenSim.Framework
 
             if((bytes[0] & libsecondlife.Helpers.MSG_ZEROCODED)!=0)
             {
-                ZeroDecodeCommand(bytes, decoded_header);
+                libsecondlife.Helpers.ZeroDecodeCommand(bytes, decoded_header);
             }
 
             if (decoded_header[6] == 0xFF)
@@ -138,21 +155,22 @@ namespace OpenSim.Framework
             return packet;
         }
 
-        public void ReturnPacket(Packet packet) 
-        {
-/* Skip until PacketPool performance problems have been resolved (mantis 281)
-            lock (pool)
-            {
-                PacketType type = packet.Type;
+        public void ReturnPacket(Packet packet) {
+            return; // packet pool disabled
 
-                if (pool[type] == null)
+            lock(pool)
+            {
+                PacketType type=packet.Type;
+
+                if(pool[type] == null)
                 {
                     pool[type] = new Stack();
                 }
-
-                ((Stack) pool[type]).Push(packet);
+                if (((Stack)pool[type]).Count < 50)
+                {
+                    ((Stack)pool[type]).Push(packet);
+                }
             }
-*/
         }
     }
 }

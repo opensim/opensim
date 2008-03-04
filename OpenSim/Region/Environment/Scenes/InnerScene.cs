@@ -57,6 +57,7 @@ namespace OpenSim.Region.Environment.Scenes
         // SceneObjects is not currently populated or used.
         //public Dictionary<LLUUID, SceneObjectGroup> SceneObjects;
         public Dictionary<LLUUID, EntityBase> Entities;
+        public Dictionary<LLUUID, ScenePresence> RestorePresences;
 
         public BasicQuadTreeNode QuadTree;
 
@@ -454,6 +455,48 @@ namespace OpenSim.Region.Environment.Scenes
 
             return newAvatar;
         }
+
+        public void AddScenePresence(ScenePresence presence)
+        {
+            bool child = presence.IsChildAgent;
+
+            if (child)
+            {
+                m_numChildAgents++;
+                m_log.Info("[SCENE]"+ m_regInfo.RegionName + ": Creating new child agent.");
+            }
+            else
+            {
+                m_numRootAgents++;
+                m_log.Info("[SCENE] "+ m_regInfo.RegionName + ": Creating new root agent.");
+                m_log.Info("[SCENE] "+ m_regInfo.RegionName + ": Adding Physical agent.");
+
+                presence.AddToPhysicalScene();
+            }
+
+            lock (Entities)
+            {
+                if (!Entities.ContainsKey(presence.m_uuid))
+                {
+                    Entities.Add(presence.m_uuid, presence);
+                }
+                else
+                {
+                    Entities[presence.m_uuid] = presence;
+                }
+            }
+            lock (ScenePresences)
+            {
+                if (ScenePresences.ContainsKey(presence.m_uuid))
+                {
+                    ScenePresences[presence.m_uuid] = presence;
+                }
+                else
+                {
+                    ScenePresences.Add(presence.m_uuid, presence);
+                }
+            }
+        }        
 
         public void SwapRootChildAgent(bool direction_RC_CR_T_F)
         {

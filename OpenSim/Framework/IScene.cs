@@ -38,7 +38,8 @@ namespace OpenSim.Framework
         Down = 0,
         Up = 1,
         Crashed = 2,
-        Starting = 3
+        Starting = 3,
+		SlaveScene = 4 
     } ;
 
     public interface IScene

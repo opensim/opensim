@@ -113,6 +113,7 @@ namespace OpenSim.Grid.GridServer
 
             httpServer.AddXmlRPCHandler("simulator_login", m_gridManager.XmlRpcSimulatorLoginMethod);
             httpServer.AddXmlRPCHandler("simulator_data_request", m_gridManager.XmlRpcSimulatorDataRequestMethod);
+            httpServer.AddXmlRPCHandler("simulator_after_region_moved", m_gridManager.XmlRpcDeleteRegionMethod);
             httpServer.AddXmlRPCHandler("map_block", m_gridManager.XmlRpcMapBlockMethod);
 
             // Message Server ---> Grid Server

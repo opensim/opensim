@@ -142,8 +142,13 @@ namespace OpenSim.Region.ClientStack
             // We could micro lock, but that will tend to actually
             // probably be worse than just synchronizing on SendQueue
 
-            lock (this)
+            if (item == null)
             {
+                SendQueue.Enqueue(item);
+                return;
+            }
+
+            lock (this) {
                 switch (item.throttleType)
                 {
                     case ThrottleOutPacketType.Resend:
@@ -517,6 +522,11 @@ namespace OpenSim.Region.ClientStack
                                  TaskOutgoingPacketQueue.Count,
                                  TextureOutgoingPacketQueue.Count,
                                  AssetOutgoingPacketQueue.Count);                                     
+        }
+
+        public QueItem[] GetQueueArray()
+        {
+            return SendQueue.GetQueueArray();
         }
     }
 }

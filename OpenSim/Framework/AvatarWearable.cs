@@ -26,10 +26,14 @@
 * 
 */
 using libsecondlife;
+using System;
+using System.Runtime.Serialization;
+using System.Security.Permissions;
 
 namespace OpenSim.Framework
 {
-    public class AvatarWearable
+    [Serializable]
+    public class AvatarWearable : ISerializable
     {
         public LLUUID AssetID = new LLUUID("00000000-0000-0000-0000-000000000000");
         public LLUUID ItemID = new LLUUID("00000000-0000-0000-0000-000000000000");
@@ -66,6 +70,33 @@ namespace OpenSim.Framework
                 defaultWearables[5].AssetID = new LLUUID("00000000-38f9-1111-024e-222222111120");
                 return defaultWearables;
             }
+        }
+        protected AvatarWearable(SerializationInfo info, StreamingContext context)
+        {
+            //System.Console.WriteLine("AvatarWearable Deserialize BGN");
+            if (info == null)
+            {
+                throw new System.ArgumentNullException("info");
+            }
+
+            AssetID = new LLUUID((Guid)info.GetValue("AssetID", typeof(Guid)));
+            ItemID = new LLUUID((Guid)info.GetValue("ItemID", typeof(Guid)));
+
+            //System.Console.WriteLine("AvatarWearable Deserialize END");
+        }
+
+        [SecurityPermission(SecurityAction.LinkDemand,
+            Flags = SecurityPermissionFlag.SerializationFormatter)]
+        public virtual void GetObjectData(
+                        SerializationInfo info, StreamingContext context)
+        {
+            if (info == null)
+            {
+                throw new System.ArgumentNullException("info");
+            }
+
+            info.AddValue("AssetID", AssetID.UUID);
+            info.AddValue("ItemID", ItemID.UUID);
         }
     }
 }

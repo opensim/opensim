@@ -51,6 +51,10 @@ namespace OpenSim.Framework
             m_remotingPort = ConvertFrom.RemotingPort;
             m_allow_alternate_ports = ConvertFrom.m_allow_alternate_ports;
             RemotingAddress = ConvertFrom.RemotingAddress;
+            m_proxyUrl = ConvertFrom.proxyUrl; 
+            OriginRegionID = ConvertFrom.originRegionID;
+            RegionName = ConvertFrom.RegionName;
+            ServerURI = ConvertFrom.ServerURI;
         }
 
         public SearializableRegionInfo(uint regionLocX, uint regionLocY, IPEndPoint internalEndPoint, string externalUri)
@@ -157,5 +161,57 @@ namespace OpenSim.Framework
         {
             get { return Util.UIntsToLong((RegionLocX * (uint)Constants.RegionSize), (RegionLocY * (uint)Constants.RegionSize)); }
         }
-    }
+
+        protected string m_proxyUrl;
+        public string ProxyUrl
+        {
+            get
+            {
+                return m_proxyUrl;
+            }
+            set
+            {
+                m_proxyUrl = value;
+            }
+        }
+
+        protected Guid m_originRegionID = LLUUID.Zero.UUID;
+        public LLUUID OriginRegionID
+        {
+            get
+            {
+                return new LLUUID(m_originRegionID);
+            }
+            set
+            {
+                m_originRegionID = value.UUID;
+            }
+        }
+
+        protected string m_regionName;
+        public string RegionName
+        {
+            get
+            {
+                return m_regionName;
+            }
+            set
+            {
+                m_regionName = value;
+            }
+        }
+
+        protected string m_serverURI;
+        public string ServerURI
+        {
+            get
+            {
+                return m_serverURI;
+            }
+            set
+            {
+                m_serverURI = value;
+            }
+        }
+   }
 }

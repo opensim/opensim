@@ -54,6 +54,10 @@ namespace OpenSim.Region.Environment.Scenes
 
     public partial class Scene : SceneBase
     {
+        public delegate void SynchronizeSceneHandler(Scene scene);
+        public SynchronizeSceneHandler SynchronizeScene = null;
+        public int splitID = 0;
+
         #region Fields
 
         protected Timer m_heartbeatTimer = new Timer();
@@ -216,7 +220,11 @@ namespace OpenSim.Region.Environment.Scenes
             get { return m_innerScene.Entities; }
             set { m_innerScene.Entities = value; }
         }
-
+        public Dictionary<LLUUID, ScenePresence> m_restorePresences
+        {
+            get { return m_innerScene.RestorePresences; }
+            set { m_innerScene.RestorePresences = value; }
+        }
         #endregion
 
         #region Constructors
@@ -276,6 +284,7 @@ namespace OpenSim.Region.Environment.Scenes
             Entities = new Dictionary<LLUUID, EntityBase>();
             m_scenePresences = new Dictionary<LLUUID, ScenePresence>();
             //m_sceneObjects = new Dictionary<LLUUID, SceneObjectGroup>();
+            m_restorePresences = new Dictionary<LLUUID, ScenePresence>();
 
             m_log.Info("[SCENE]: Creating LandMap");
             Terrain = new TerrainEngine((int)RegionInfo.RegionLocX, (int)RegionInfo.RegionLocY);
@@ -701,6 +710,8 @@ namespace OpenSim.Region.Environment.Scenes
                     physicsFPS = m_innerScene.UpdatePhysics(
                         Math.Max(SinceLastFrame.TotalSeconds, m_timespan)
                         );
+                if (m_frame % m_update_physics == 0 && SynchronizeScene != null)
+                    SynchronizeScene(this);
 
                 physicsMS = System.Environment.TickCount - physicsMS;
                 physicsMS += physicsMS2;
@@ -719,6 +730,8 @@ namespace OpenSim.Region.Environment.Scenes
                 if (m_frame % m_update_presences == 0)
                     m_innerScene.UpdatePresences();
 
+                if (Region_Status != RegionStatus.SlaveScene)
+                {
                 if (m_frame % m_update_events == 0)
                     UpdateEvents();
 
@@ -747,7 +760,7 @@ namespace OpenSim.Region.Environment.Scenes
                 m_statsReporter.addOtherMS(otherMS);
                 m_statsReporter.SetActiveScripts(m_innerScene.GetActiveScripts());
                 m_statsReporter.addScriptLines(m_innerScene.GetScriptLPS());
-
+                }
             }
             catch (NotImplementedException)
             {
@@ -1058,10 +1071,10 @@ namespace OpenSim.Region.Environment.Scenes
 
         #region Load Land
 
-        public void loadAllLandObjectsFromStorage()
+        public void loadAllLandObjectsFromStorage(LLUUID regionID)
         {
             m_log.Info("[SCENE]: Loading land objects from storage");
-            List<LandData> landData = m_storageManager.DataStore.LoadLandObjects(RegionInfo.RegionID);
+            List<LandData> landData = m_storageManager.DataStore.LoadLandObjects(regionID);
 
             if (landData.Count == 0)
             {
@@ -1080,11 +1093,11 @@ namespace OpenSim.Region.Environment.Scenes
         /// <summary>
         /// Loads the World's objects
         /// </summary>
-        public virtual void LoadPrimsFromStorage(bool m_permissions)
+        public virtual void LoadPrimsFromStorage(bool m_permissions, LLUUID regionID)
         {
             m_log.Info("[SCENE]: Loading objects from datastore");
 
-            List<SceneObjectGroup> PrimsFromDB = m_storageManager.DataStore.LoadObjects(m_regInfo.RegionID);
+            List<SceneObjectGroup> PrimsFromDB = m_storageManager.DataStore.LoadObjects(regionID);
             foreach (SceneObjectGroup group in PrimsFromDB)
             {
                 AddEntityFromStorage(group);
@@ -1339,13 +1352,35 @@ namespace OpenSim.Region.Environment.Scenes
         {
             m_log.Warn("[CONNECTION DEBUGGING]: Creating new client for " + client.AgentId.ToString());
             SubscribeToClientEvents(client);
+            ScenePresence presence = null;
 
-            m_estateManager.sendRegionHandshake(client);
+            if (m_restorePresences.ContainsKey(client.AgentId))
+            {
+                m_log.Info("REGION Restore Scene Presence");
 
-            CreateAndAddScenePresence(client, child);
+                presence = m_restorePresences[client.AgentId];
+                m_restorePresences.Remove(client.AgentId);
 
-            m_LandManager.sendParcelOverlay(client);
-            CommsManager.UserProfileCacheService.AddNewUser(client.AgentId);
+                presence.initializeScenePresence(client, RegionInfo, this);
+
+                m_innerScene.AddScenePresence(presence);
+
+				  lock (m_restorePresences)
+				{
+					Monitor.PulseAll(m_restorePresences);
+				}
+			}
+            else
+            {
+                m_log.Info("REGION Add New Scene Presence");
+
+                m_estateManager.sendRegionHandshake(client);
+
+                CreateAndAddScenePresence(client, child);
+
+                m_LandManager.sendParcelOverlay(client);
+                CommsManager.UserProfileCacheService.AddNewUser(client.AgentId);
+            }
         }
 
         protected virtual void SubscribeToClientEvents(IClientAPI client)

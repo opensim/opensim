@@ -39,6 +39,8 @@ using OpenSim.Framework.Console;
 using OpenSim.Region.Environment.Interfaces;
 using OpenSim.Region.Environment.Scenes.Scripting;
 using OpenSim.Region.Physics.Manager;
+using System.Runtime.Serialization;
+using System.Security.Permissions;
 
 namespace OpenSim.Region.Environment.Scenes
 {
@@ -82,7 +84,8 @@ namespace OpenSim.Region.Environment.Scenes
         SCALE = 0x40
     }
 
-    public partial class SceneObjectPart : IScriptHost
+    [Serializable]
+    public partial class SceneObjectPart : IScriptHost, ISerializable
     {
 
         [XmlIgnore] public PhysicsActor PhysActor = null;
@@ -1858,6 +1861,120 @@ namespace OpenSim.Region.Environment.Scenes
                                    (int) (color.y*0xff),
                                    (int) (color.z*0xff));
             Text = text;
+        }
+
+        protected SceneObjectPart(SerializationInfo info, StreamingContext context)
+        {
+            //System.Console.WriteLine("SceneObjectPart Deserialize BGN");
+
+            if (info == null)
+            {
+                throw new System.ArgumentNullException("info");
+            }
+
+            /*
+            m_queue = (Queue<SceneObjectPart>)info.GetValue("m_queue", typeof(Queue<SceneObjectPart>));
+            m_ids = (List<LLUUID>)info.GetValue("m_ids", typeof(List<LLUUID>));
+            */
+
+            //System.Console.WriteLine("SceneObjectPart Deserialize END");
+        }
+
+        [SecurityPermission(SecurityAction.LinkDemand,
+            Flags = SecurityPermissionFlag.SerializationFormatter)]
+        public virtual void GetObjectData(
+                        SerializationInfo info, StreamingContext context)
+        {
+            if (info == null)
+            {
+                throw new System.ArgumentNullException("info");
+            }
+
+            info.AddValue("m_inventoryFileName", m_inventoryFileName);
+            info.AddValue("m_folderID", m_folderID.UUID);
+            info.AddValue("PhysActor", PhysActor);
+
+            Dictionary<Guid, TaskInventoryItem> TaskInventory_work = new Dictionary<Guid, TaskInventoryItem>();
+
+            foreach (LLUUID id in TaskInventory.Keys)
+            {
+                TaskInventory_work.Add(id.UUID, TaskInventory[id]);
+            }
+
+            info.AddValue("TaskInventory", TaskInventory_work);
+
+            info.AddValue("LastOwnerID", LastOwnerID.UUID);
+            info.AddValue("OwnerID", OwnerID.UUID);
+            info.AddValue("GroupID", GroupID.UUID);
+
+            info.AddValue("OwnershipCost", OwnershipCost);
+            info.AddValue("ObjectSaleType", ObjectSaleType);
+            info.AddValue("SalePrice", SalePrice);
+            info.AddValue("Category", Category);
+
+            info.AddValue("CreationDate", CreationDate);
+            info.AddValue("ParentID", ParentID);
+
+            info.AddValue("OwnerMask", OwnerMask);
+            info.AddValue("NextOwnerMask", NextOwnerMask);
+            info.AddValue("GroupMask", GroupMask);
+            info.AddValue("EveryoneMask", EveryoneMask);
+            info.AddValue("BaseMask", BaseMask);
+
+            info.AddValue("m_particleSystem", m_particleSystem);
+
+            info.AddValue("TimeStampFull", TimeStampFull);
+            info.AddValue("TimeStampTerse", TimeStampTerse);
+            info.AddValue("TimeStampLastActivity", TimeStampLastActivity);
+
+            info.AddValue("m_updateFlag", m_updateFlag);
+            info.AddValue("CreatorID", CreatorID.UUID);
+
+            info.AddValue("m_inventorySerial", m_inventorySerial);
+            info.AddValue("m_uuid", m_uuid.UUID);
+            info.AddValue("m_localID", m_localID);
+            info.AddValue("m_name", m_name);
+            info.AddValue("m_flags", Flags);
+            info.AddValue("m_material", m_material);
+            info.AddValue("m_regionHandle", m_regionHandle);
+
+            info.AddValue("m_groupPosition.X", m_groupPosition.X);
+            info.AddValue("m_groupPosition.Y", m_groupPosition.Y);
+            info.AddValue("m_groupPosition.Z", m_groupPosition.Z);
+
+            info.AddValue("m_offsetPosition.X", m_offsetPosition.X);
+            info.AddValue("m_offsetPosition.Y", m_offsetPosition.Y);
+            info.AddValue("m_offsetPosition.Z", m_offsetPosition.Z);
+
+            info.AddValue("m_rotationOffset.W", m_rotationOffset.W);
+            info.AddValue("m_rotationOffset.X", m_rotationOffset.X);
+            info.AddValue("m_rotationOffset.Y", m_rotationOffset.Y);
+            info.AddValue("m_rotationOffset.Z", m_rotationOffset.Z);
+
+            info.AddValue("m_velocity.X", m_velocity.X);
+            info.AddValue("m_velocity.Y", m_velocity.Y);
+            info.AddValue("m_velocity.Z", m_velocity.Z);
+
+            info.AddValue("m_rotationalvelocity.X", m_rotationalvelocity.X);
+            info.AddValue("m_rotationalvelocity.Y", m_rotationalvelocity.Y);
+            info.AddValue("m_rotationalvelocity.Z", m_rotationalvelocity.Z);
+
+            info.AddValue("m_angularVelocity.X", m_angularVelocity.X);
+            info.AddValue("m_angularVelocity.Y", m_angularVelocity.Y);
+            info.AddValue("m_angularVelocity.Z", m_angularVelocity.Z);
+
+            info.AddValue("m_acceleration.X", m_acceleration.X);
+            info.AddValue("m_acceleration.Y", m_acceleration.Y);
+            info.AddValue("m_acceleration.Z", m_acceleration.Z);
+
+            info.AddValue("m_description", m_description);
+            info.AddValue("m_color", m_color);
+            info.AddValue("m_text", m_text);
+            info.AddValue("m_sitName", m_sitName);
+            info.AddValue("m_touchName", m_touchName);
+            info.AddValue("m_clickAction", m_clickAction);
+            info.AddValue("m_shape", m_shape);
+            info.AddValue("m_parentGroup", m_parentGroup);
         }
     }
 }

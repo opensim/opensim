@@ -71,6 +71,7 @@ namespace OpenSim.Framework
             m_allow_alternate_ports = ConvertFrom.m_allow_alternate_ports;
             RemotingAddress = ConvertFrom.RemotingAddress;
             RegionID = LLUUID.Zero;
+            ServerURI = ConvertFrom.ServerURI; 
         }
 
         public LLUUID RegionID = LLUUID.Zero;
@@ -83,6 +84,19 @@ namespace OpenSim.Framework
             set { m_remotingPort = value; }
         }
         public bool m_allow_alternate_ports;
+
+        public string m_serverURI;
+        public string ServerURI
+        {
+            get
+            {
+                return m_serverURI;
+            }
+            set
+            {
+                m_serverURI = value;
+            }
+        }
 
         public string RemotingAddress;
 
@@ -175,6 +189,8 @@ namespace OpenSim.Framework
         public string MasterAvatarFirstName = String.Empty;
         public string MasterAvatarLastName = String.Empty;
         public string MasterAvatarSandboxPassword = String.Empty;
+        public string proxyUrl = ""; 
+        public LLUUID originRegionID = LLUUID.Zero;
 
         // Apparently, we're applying the same estatesettings regardless of whether it's local or remote.
         private EstateSettings m_estateSettings;
@@ -227,6 +243,10 @@ namespace OpenSim.Framework
             m_allow_alternate_ports = ConvertFrom.m_allow_alternate_ports;
             RemotingAddress = ConvertFrom.RemotingAddress;
             RegionID = LLUUID.Zero;
+            proxyUrl = ConvertFrom.ProxyUrl;
+            originRegionID = ConvertFrom.OriginRegionID;
+            RegionName = ConvertFrom.RegionName;
+            ServerURI = ConvertFrom.ServerURI;
         }
 
         public RegionInfo(SimpleRegionInfo ConvertFrom)
@@ -239,6 +259,7 @@ namespace OpenSim.Framework
             m_allow_alternate_ports = ConvertFrom.m_allow_alternate_ports;
             RemotingAddress = ConvertFrom.RemotingAddress;
             RegionID = LLUUID.Zero;
+            ServerURI = ConvertFrom.ServerURI; 
         }
 
         //not in use, should swap to nini though.

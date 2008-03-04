@@ -269,7 +269,7 @@ namespace OpenSim.ApplicationPlugins.LoadRegions
                     newRegionData.MasterAvatarFirstName = (string) requestData["region_master_first"];
                     newRegionData.MasterAvatarLastName = (string) requestData["region_master_last"];
 
-                    m_app.CreateRegion(newRegionData);
+                    m_app.CreateRegion(newRegionData, true);
 
                     responseData["created"] = "true";
                     response.Value = responseData;

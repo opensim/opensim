@@ -37,6 +37,8 @@ using System.Text;
 using libsecondlife;
 using Nini.Config;
 
+using System.Runtime.Serialization; 
+using System.Runtime.Serialization.Formatters.Binary; 
 namespace OpenSim.Framework
 {
     public class Util
@@ -509,7 +511,63 @@ namespace OpenSim.Framework
             {
                 return "";
             }
+        }
 
+        public static void SerializeToFile(string filename, Object obj)
+        {
+            IFormatter formatter = new BinaryFormatter();
+            Stream stream = null;
+
+            try
+            {
+                stream = new FileStream(
+                                    filename, FileMode.Create,
+                                    FileAccess.Write, FileShare.None);
+
+                formatter.Serialize(stream, obj);
+            }
+            catch (Exception e)
+            {
+                System.Console.WriteLine(e.Message);
+                System.Console.WriteLine(e.StackTrace);
+            }
+            finally
+            {
+                if (stream != null)
+                {
+                    stream.Close();
+                }
+            }
+        }
+
+        public static Object DeserializeFromFile(string filename)
+        {
+            IFormatter formatter = new BinaryFormatter();
+            Stream stream = null;
+            Object ret = null;
+
+            try
+            {
+                stream = new FileStream(
+                                    filename, FileMode.Open,
+                                    FileAccess.Read, FileShare.None);
+
+                ret = formatter.Deserialize(stream);
+            }
+            catch (Exception e)
+            {
+                System.Console.WriteLine(e.Message);
+                System.Console.WriteLine(e.StackTrace);
+            }
+            finally
+            {
+                if (stream != null)
+                {
+                    stream.Close();
+                }
+            }
+
+            return ret;
         }
     }
 }

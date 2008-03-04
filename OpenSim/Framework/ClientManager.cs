@@ -137,7 +137,7 @@ namespace OpenSim.Framework
             }
         }
 
-        private uint[] GetAllCircuits(LLUUID agentId)
+        public uint[] GetAllCircuits(LLUUID agentId) 
         {
             List<uint> circuits = new List<uint>();
             // Wasteful, I know

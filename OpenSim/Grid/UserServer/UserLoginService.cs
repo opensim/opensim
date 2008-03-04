@@ -99,8 +99,8 @@ namespace OpenSim.Grid.UserServer
                 //CFK: the next one for X & Y and comment this one.
                 //CFK: m_log.Info("[LOGIN]: CUSTOMISERESPONSE: Region X: " + SimInfo.regionLocX + 
                 //CFK: "; Region Y: " + SimInfo.regionLocY);
-                response.SimAddress = Util.GetHostFromDNS(SimInfo.serverIP).ToString();
-                response.SimPort = (uint) SimInfo.serverPort;
+                response.SimAddress = Util.GetHostFromDNS(SimInfo.serverURI.Split(new char[] { '/', ':' })[3]).ToString();
+                response.SimPort = uint.Parse(SimInfo.serverURI.Split(new char[] { '/', ':' })[4]);
                 response.RegionX = SimInfo.regionLocX;
                 response.RegionY = SimInfo.regionLocY;
 
@@ -190,8 +190,8 @@ namespace OpenSim.Grid.UserServer
                     m_log.Info("[LOGIN]: " +
                                "CUSTOMISERESPONSE: Region X: " + SimInfo.regionLocX + "; Region Y: " +
                                SimInfo.regionLocY);
-                    response.SimAddress = Util.GetHostFromDNS(SimInfo.serverIP).ToString();
-                    response.SimPort = (uint) SimInfo.serverPort;
+                    response.SimAddress = Util.GetHostFromDNS(SimInfo.serverURI.Split(new char[] { '/', ':' })[3]).ToString();
+                    response.SimPort = uint.Parse(SimInfo.serverURI.Split(new char[] { '/', ':' })[4]);
                     response.RegionX = SimInfo.regionLocX;
                     response.RegionY = SimInfo.regionLocY;
 

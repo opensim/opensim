@@ -43,12 +43,15 @@ namespace OpenSim.Region.ClientStack
 
         protected Dictionary<EndPoint, uint> clientCircuits = new Dictionary<EndPoint, uint>();
         public Dictionary<uint, EndPoint> clientCircuits_reverse = new Dictionary<uint, EndPoint>();
+        protected Dictionary<uint, EndPoint> proxyCircuits = new Dictionary<uint, EndPoint>();
         public Socket Server;
         protected IPEndPoint ServerIncoming;
         protected byte[] RecvBuffer = new byte[4096];
         protected byte[] ZeroBuffer = new byte[8192];
         protected IPEndPoint ipeSender;
         protected EndPoint epSender;
+        protected EndPoint epProxy;
+        protected int proxyPortOffset;
         protected AsyncCallback ReceivedData;
         protected PacketServer m_packetServer;
         protected ulong m_regionHandle;
@@ -85,10 +88,11 @@ namespace OpenSim.Region.ClientStack
         {
         }
 
-        public UDPServer(IPAddress _listenIP, ref uint port, bool allow_alternate_port, AssetCache assetCache, AgentCircuitManager authenticateClass)
+        public UDPServer(IPAddress _listenIP, ref uint port, int proxyPortOffset, bool allow_alternate_port, AssetCache assetCache, AgentCircuitManager authenticateClass)
         {
+            this.proxyPortOffset = proxyPortOffset;
+            listenPort = (uint) (port + proxyPortOffset);
             listenIP = _listenIP;
-            listenPort = port;
             Allow_Alternate_Port = allow_alternate_port;
             m_assetCache = assetCache;
             m_authenticateSessionsClass = authenticateClass;
@@ -97,7 +101,7 @@ namespace OpenSim.Region.ClientStack
             // Return new port
             // This because in Grid mode it is not really important what port the region listens to as long as it is correctly registered.
             // So the option allow_alternate_ports="true" was added to default.xml
-            port = listenPort;
+            port = (uint)(listenPort - proxyPortOffset);
         }
 
         protected virtual void CreatePacketServer()
@@ -211,6 +215,13 @@ namespace OpenSim.Region.ClientStack
                 //return;
             }
 
+            //System.Console.WriteLine("UDPServer : recieved message from {0}", epSender.ToString());
+            epProxy = epSender;
+            if (proxyPortOffset != 0)
+            {
+                epSender = PacketPool.DecodeProxyMessage(RecvBuffer, ref numBytes);
+            }
+
             int packetEnd = numBytes - 1;
 
             try
@@ -318,6 +329,9 @@ namespace OpenSim.Region.ClientStack
 
         protected virtual void AddNewClient(Packet packet)
         {
+            //Slave regions don't accept new clients
+            if(m_localScene.Region_Status != RegionStatus.SlaveScene)
+            {
             UseCircuitCodePacket useCircuit = (UseCircuitCodePacket) packet;
             lock (clientCircuits)
             {
@@ -334,7 +348,17 @@ namespace OpenSim.Region.ClientStack
                     m_log.Error("[UDPSERVER]: clientCurcuits_reverse already contains entry for user " + useCircuit.CircuitCode.Code.ToString() + ". NOT adding.");
             }
 
-            PacketServer.AddNewClient(epSender, useCircuit, m_assetCache, m_authenticateSessionsClass);
+            lock (proxyCircuits)
+            {
+                if (!proxyCircuits.ContainsKey(useCircuit.CircuitCode.Code))
+                    proxyCircuits.Add(useCircuit.CircuitCode.Code, epProxy);
+                else
+                    m_log.Error("[UDPSERVER]: proxyCircuits already contains entry for user " + useCircuit.CircuitCode.Code.ToString() + ". NOT adding.");
+            }
+
+	        PacketServer.AddNewClient(epSender, useCircuit, m_assetCache, m_authenticateSessionsClass, epProxy);
+            }
+            PacketPool.Instance.ReturnPacket(packet);
         }
 
         public void ServerListener()
@@ -387,10 +411,20 @@ namespace OpenSim.Region.ClientStack
             lock (clientCircuits_reverse)
             {
                 if (clientCircuits_reverse.TryGetValue(circuitcode, out sendto))
-                {
-                    //we found the endpoint so send the packet to it
-                    Server.SendTo(buffer, size, flags, sendto);
-                }
+				{
+	                //we found the endpoint so send the packet to it
+	                if (proxyPortOffset != 0)
+	                {
+	                    //MainLog.Instance.Verbose("UDPSERVER", "SendPacketTo proxy " + proxyCircuits[circuitcode].ToString() + ": client " + sendto.ToString());
+	                    PacketPool.EncodeProxyMessage(buffer, ref size, sendto);
+	                    Server.SendTo(buffer, size, flags, proxyCircuits[circuitcode]);
+	                }
+	                else
+	                {
+	                    //MainLog.Instance.Verbose("UDPSERVER", "SendPacketTo : client " + sendto.ToString());
+	                    Server.SendTo(buffer, size, flags, sendto);
+	                }
+				}
             }
         }
 
@@ -404,8 +438,50 @@ namespace OpenSim.Region.ClientStack
                     clientCircuits.Remove(sendto);
 
                     clientCircuits_reverse.Remove(circuitcode);
+	                proxyCircuits.Remove(circuitcode);
                 }
             }
+        }
+
+        public void RestoreClient(AgentCircuitData circuit, EndPoint userEP, EndPoint proxyEP)
+        {
+            //MainLog.Instance.Verbose("UDPSERVER", "RestoreClient");
+            
+            UseCircuitCodePacket useCircuit = new UseCircuitCodePacket();
+            useCircuit.CircuitCode.Code = circuit.circuitcode;
+            useCircuit.CircuitCode.ID = circuit.AgentID;
+            useCircuit.CircuitCode.SessionID = circuit.SessionID;
+
+	            lock (clientCircuits)
+            {
+                if (!clientCircuits.ContainsKey(userEP))
+                    clientCircuits.Add(userEP, useCircuit.CircuitCode.Code);
+                else
+                    m_log.Error("[UDPSERVER]: clientCircuits already contans entry for user " + useCircuit.CircuitCode.Code.ToString() + ". NOT adding.");
+            }
+            lock (clientCircuits_reverse)
+            {
+                if (!clientCircuits_reverse.ContainsKey(useCircuit.CircuitCode.Code))
+                    clientCircuits_reverse.Add(useCircuit.CircuitCode.Code, userEP);
+                else
+                    m_log.Error("[UDPSERVER]: clientCurcuits_reverse already contains entry for user " + useCircuit.CircuitCode.Code.ToString() + ". NOT adding.");
+            }
+
+            lock (proxyCircuits)
+            {
+                if (!proxyCircuits.ContainsKey(useCircuit.CircuitCode.Code))
+				{
+                    proxyCircuits.Add(useCircuit.CircuitCode.Code, proxyEP);
+				}
+                else
+				{
+					// re-set proxy endpoint
+	                proxyCircuits.Remove(useCircuit.CircuitCode.Code);
+                    proxyCircuits.Add(useCircuit.CircuitCode.Code, proxyEP);
+				}
+            }
+
+            PacketServer.AddNewClient(userEP, useCircuit, m_assetCache, m_authenticateSessionsClass, proxyEP);
         }
     }
 }

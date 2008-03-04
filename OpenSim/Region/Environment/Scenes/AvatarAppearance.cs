@@ -26,13 +26,16 @@
 * 
 */
 
+using System;
 using libsecondlife;
 using libsecondlife.Packets;
 using OpenSim.Framework;
-
+using System.Runtime.Serialization;
+using System.Security.Permissions;
 namespace OpenSim.Region.Environment.Scenes
 {
-    public class AvatarAppearance
+    [Serializable]
+    public class AvatarAppearance : ISerializable
     {
         protected LLUUID m_scenePresenceID;
 
@@ -148,6 +151,46 @@ namespace OpenSim.Region.Environment.Scenes
             textu.CreateFace(5).TextureID = new LLUUID("00000000-0000-1111-9999-000000000010");
             textu.CreateFace(6).TextureID = new LLUUID("00000000-0000-1111-9999-000000000011");
             return textu;
+        }
+
+        protected AvatarAppearance(SerializationInfo info, StreamingContext context)
+        {
+            //System.Console.WriteLine("AvatarAppearance Deserialize BGN");
+
+            if (info == null)
+            {
+                throw new System.ArgumentNullException("info");
+            }
+
+            m_scenePresenceID = new LLUUID((Guid)info.GetValue("m_scenePresenceID", typeof(Guid)));
+            m_wearablesSerial = (int)info.GetValue("m_wearablesSerial", typeof(int));
+            m_visualParams = (byte[])info.GetValue("m_visualParams", typeof(byte[]));
+            m_wearables = (AvatarWearable[])info.GetValue("m_wearables", typeof(AvatarWearable[]));
+
+            byte[] m_textureEntry_work = (byte[])info.GetValue("m_textureEntry", typeof(byte[]));
+            m_textureEntry = new LLObject.TextureEntry(m_textureEntry_work, 0, m_textureEntry_work.Length);
+
+            m_avatarHeight = (float)info.GetValue("m_avatarHeight", typeof(float));
+
+            //System.Console.WriteLine("AvatarAppearance Deserialize END");
+        }
+
+        [SecurityPermission(SecurityAction.LinkDemand,
+            Flags = SecurityPermissionFlag.SerializationFormatter)]
+        public virtual void GetObjectData(
+                        SerializationInfo info, StreamingContext context)
+        {
+            if (info == null)
+            {
+                throw new System.ArgumentNullException("info");
+            }
+
+            info.AddValue("m_scenePresenceID", m_scenePresenceID.UUID);
+            info.AddValue("m_wearablesSerial", m_wearablesSerial);
+            info.AddValue("m_visualParams", m_visualParams);
+            info.AddValue("m_wearables", m_wearables);
+            info.AddValue("m_textureEntry", m_textureEntry.ToBytes());
+            info.AddValue("m_avatarHeight", m_avatarHeight);
         }
     }
 }

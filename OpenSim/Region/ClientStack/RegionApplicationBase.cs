@@ -104,13 +104,18 @@ namespace OpenSim.Region.ClientStack
 
         protected Scene SetupScene(RegionInfo regionInfo, out UDPServer udpServer, bool m_permissions)
         {
+            return SetupScene(regionInfo, 0, out udpServer, m_permissions);
+        }
+
+        protected Scene SetupScene(RegionInfo regionInfo, int proxyOffset, out UDPServer udpServer, bool m_permissions)
+        {
             AgentCircuitManager circuitManager = new AgentCircuitManager();
             IPAddress listenIP = regionInfo.InternalEndPoint.Address;
             //if (!IPAddress.TryParse(regionInfo.InternalEndPoint, out listenIP))
             //    listenIP = IPAddress.Parse("0.0.0.0");
 
             uint port = (uint) regionInfo.InternalEndPoint.Port;
-            udpServer = new UDPServer(listenIP, ref port, regionInfo.m_allow_alternate_ports, m_assetCache, circuitManager);
+            udpServer = new UDPServer(listenIP, ref port, proxyOffset, regionInfo.m_allow_alternate_ports, m_assetCache, circuitManager);
             regionInfo.InternalEndPoint.Port = (int)port;
 
             Scene scene = CreateScene(regionInfo, m_storageManager, circuitManager);
@@ -148,8 +153,8 @@ namespace OpenSim.Region.ClientStack
                 scene.RegionInfo.MasterAvatarAssignedUUID = LLUUID.Zero;
             }
 
-            scene.LoadPrimsFromStorage(m_permissions);
-            scene.loadAllLandObjectsFromStorage();
+            scene.LoadPrimsFromStorage(m_permissions, regionInfo.originRegionID);
+            scene.loadAllLandObjectsFromStorage(regionInfo.originRegionID);
             scene.performParcelPrimCountUpdate();
             scene.StartTimer();
             return scene;

@@ -74,14 +74,14 @@ namespace OpenSim.Region.ClientStack
         protected virtual IClientAPI CreateNewClient(EndPoint remoteEP, UseCircuitCodePacket initialcirpack,
                                                      ClientManager clientManager, IScene scene, AssetCache assetCache,
                                                      PacketServer packServer, AgentCircuitManager authenSessions,
-                                                     LLUUID agentId, LLUUID sessionId, uint circuitCode)
+                                                     LLUUID agentId, LLUUID sessionId, uint circuitCode, EndPoint proxyEP)
         {
             return
-                new ClientView(remoteEP, scene, assetCache, packServer, authenSessions, agentId, sessionId, circuitCode);
+                new ClientView(remoteEP, scene, assetCache, packServer, authenSessions, agentId, sessionId, circuitCode, proxyEP);
         }
 
         public virtual bool AddNewClient(EndPoint epSender, UseCircuitCodePacket useCircuit, AssetCache assetCache,
-                                         AgentCircuitManager authenticateSessionsClass)
+                                         AgentCircuitManager authenticateSessionsClass, EndPoint proxyEP)
         {
             IClientAPI newuser;
 
@@ -93,7 +93,7 @@ namespace OpenSim.Region.ClientStack
             {
                 newuser = CreateNewClient(epSender, useCircuit, m_scene.ClientManager, m_scene, assetCache, this,
                                           authenticateSessionsClass, useCircuit.CircuitCode.ID,
-                                          useCircuit.CircuitCode.SessionID, useCircuit.CircuitCode.Code);
+                                          useCircuit.CircuitCode.SessionID, useCircuit.CircuitCode.Code, proxyEP);
 
                 m_scene.ClientManager.Add(useCircuit.CircuitCode.Code, newuser);
 

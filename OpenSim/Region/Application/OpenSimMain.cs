@@ -33,8 +33,6 @@ using System.IO;
 using System.Text;
 using System.Threading;
 using System.Timers;
-using libsecondlife;
-using Mono.Addins;
 using Nini.Config;
 using OpenSim.Framework;
 using OpenSim.Framework.Communications.Cache;
@@ -49,6 +47,13 @@ using OpenSim.Region.Environment.Interfaces;
 using OpenSim.Region.Environment.Scenes;
 using OpenSim.Region.Physics.Manager;
 using Timer=System.Timers.Timer;
+using System.Net;
+using Nwc.XmlRpc;
+using System.Collections;
+using System.Reflection;
+using libsecondlife;
+using Mono.Addins;
+using Mono.Addins.Description;
 
 namespace OpenSim
 {
@@ -57,6 +62,8 @@ namespace OpenSim
     public class OpenSimMain : RegionApplicationBase, conscmd_callback
     {
         private static readonly log4net.ILog m_log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+        private string proxyUrl;
+        private int proxyOffset = 0;
 
         private const string DEFAULT_PRIM_BACKUP_FILENAME = "prim-backup.xml";
 
@@ -108,6 +115,16 @@ namespace OpenSim
         public BaseHttpServer HttpServer
         {
             get { return m_httpServer; }
+        }
+
+        public List<UDPServer> UdpServers
+        {
+            get { return m_udpServers; }
+        }
+
+        public List<RegionInfo> RegionData
+        {
+            get { return m_regionData; }
         }
 
         private ModuleLoader m_moduleLoader;
@@ -350,20 +367,34 @@ namespace OpenSim
                 m_httpServer.AddStreamHandler(new SimStatusHandler());
             }
 
+            proxyUrl = ConfigSource.Configs["Network"].GetString("proxy_url", "");
+            proxyOffset = Int32.Parse(ConfigSource.Configs["Network"].GetString("proxy_offset", "0"));
+
             // Create a ModuleLoader instance
             m_moduleLoader = new ModuleLoader(m_config);
 
             ExtensionNodeList nodes = AddinManager.GetExtensionNodes("/OpenSim/Startup");
             m_log.InfoFormat("[PLUGINS]: Loading {0} OpenSim application plugins", nodes.Count);
-
             foreach (TypeExtensionNode node in nodes)
             {
-                IApplicationPlugin plugin = (IApplicationPlugin)node.CreateInstance();
-                
-                plugin.Initialise(this);
-                m_plugins.Add(plugin);
+                // First load the proxy server (if present)
+                if(node.Path.Contains("Proxy"))
+                {
+                    IApplicationPlugin plugin = (IApplicationPlugin)node.CreateInstance();
+                    plugin.Initialise(this);
+                    m_plugins.Add(plugin);
+                }
             }
-
+            // then load the other modules
+            foreach (TypeExtensionNode node in nodes)
+            {
+                if(!node.Path.Contains("Proxy"))
+                {
+	                IApplicationPlugin plugin = (IApplicationPlugin)node.CreateInstance();
+	                plugin.Initialise(this);
+	                m_plugins.Add(plugin);
+                }
+            }
             // Start UDP servers
             //for (int i = 0; i < m_udpServers.Count; i++)
             //{
@@ -436,10 +467,25 @@ namespace OpenSim
             return m_commsManager.AddUser(tempfirstname,templastname,tempPasswd,regX,regY);
         }
 
-        public UDPServer CreateRegion(RegionInfo regionInfo)
+        public UDPServer CreateRegion(RegionInfo regionInfo, bool portadd_flag)
         {
+            int port = regionInfo.InternalEndPoint.Port;
+            if ((proxyOffset != 0) && (portadd_flag)) 
+            {
+                // set proxy url to RegionInfo
+                regionInfo.proxyUrl = proxyUrl;
+
+                // set initial RegionID to originRegionID in RegionInfo. (it needs for loding prims)
+                regionInfo.originRegionID = regionInfo.RegionID;
+
+                // set initial ServerURI
+                regionInfo.ServerURI = "http://" + regionInfo.ExternalHostName 
+                                            + ":" + regionInfo.InternalEndPoint.Port.ToString();
+
+                ProxyCommand(proxyUrl, "AddPort", port, port + proxyOffset, regionInfo.ExternalHostName);
+            }
             UDPServer udpServer;
-            Scene scene = SetupScene(regionInfo, out udpServer, m_permissions);
+            Scene scene = SetupScene(regionInfo, proxyOffset, out udpServer, m_permissions);
 
             m_log.Info("[MODULES]: Loading Region's modules");
 
@@ -546,7 +592,7 @@ namespace OpenSim
                 m_regionData.RemoveAt(RegionHandleElement);
             }
 
-            CreateRegion(whichRegion);
+            CreateRegion(whichRegion, true);
             //UDPServer restartingRegion = CreateRegion(whichRegion);
             //restartingRegion.ServerListener();
             //m_sceneManager.SendSimOnlineNotification(restartingRegion.RegionHandle);
@@ -594,6 +640,8 @@ namespace OpenSim
         /// </summary>
         public virtual void Shutdown()
         {
+            ProxyCommand(proxyUrl, "Stop"); 
+			
             if (m_startupCommandsFile != String.Empty)
             {
                 RunCommandScript(m_shutdownCommandsFile);
@@ -609,7 +657,7 @@ namespace OpenSim
 
             m_console.Close();
             Environment.Exit(0);
-        }
+		}
 
         private void RunAutoTimerScript(object sender, EventArgs e)
         {
@@ -882,9 +930,8 @@ namespace OpenSim
                     break;
 
                 case "create-region":
-                    CreateRegion(new RegionInfo(cmdparams[0], "Regions/" + cmdparams[1],false));
+                    CreateRegion(new RegionInfo(cmdparams[0], "Regions/" + cmdparams[1],false), true);
                     break;
-
                 case "remove-region":
                     string regName = CombineParams(cmdparams, 0);
 
@@ -1120,6 +1167,8 @@ namespace OpenSim
                                           presence.ControllingClient.CircuitCode,
                                           ep,
                                           regionName));
+                        m_console.Notice("        {0}", (((ClientView)presence.ControllingClient).PacketProcessingEnabled)?"Active client":"Standby client");
+
                     }
 
                     break;
@@ -1167,5 +1216,80 @@ namespace OpenSim
         }
 
         #endregion
+		// TODO: remove me!! (almost same as XmlRpcCommand)
+        public object ProxyCommand(string url, string methodName, params object[] args)
+        {
+            if(proxyUrl.Length==0) return null;
+            return SendXmlRpcCommand(url, methodName, args);
+        }
+
+        public object XmlRpcCommand(uint port, string methodName, params object[] args)
+        {
+            return SendXmlRpcCommand("http://localhost:"+port, methodName, args);
+        }
+
+        public object XmlRpcCommand(string url, string methodName, params object[] args)
+        {
+            return SendXmlRpcCommand(url, methodName, args);
+        }
+
+        private object SendXmlRpcCommand(string url, string methodName, object[] args)
+        {
+            try {
+                //MainLog.Instance.Verbose("XMLRPC", "Sending command {0} to {1}", methodName, url);
+                XmlRpcRequest client = new XmlRpcRequest(methodName, args);
+                //MainLog.Instance.Verbose("XMLRPC", client.ToString());
+                XmlRpcResponse response = client.Send(url, 6000);
+                if(!response.IsFault) return response.Value;
+            }
+            catch(Exception e)
+            {
+                m_log.ErrorFormat("XMLRPC Failed to send command {0} to {1}: {2}", methodName, url, e.Message);
+            }
+            return null;
+        }
+
+        /// <summary>
+        /// Get the start time and up time of Region server
+        /// </summary>
+        /// <param name="starttime">The first out parameter describing when the Region server started</param>
+        /// <param name="uptime">The second out parameter describing how long the Region server has run</param>
+        public void GetRunTime(out string starttime, out string uptime)
+		{
+			starttime = m_startuptime.ToString();
+			uptime = (DateTime.Now - m_startuptime).ToString();
+		}
+
+        /// <summary>
+        /// Get the number of the avatars in the Region server
+        /// </summary>
+        /// <param name="usernum">The first out parameter describing the number of all the avatars in the Region server</param>
+        public void GetAvatarNumber(out int usernum)
+		{
+			int accounter = 0;
+
+			foreach (ScenePresence presence in m_sceneManager.GetCurrentSceneAvatars()) {
+				//presence.RegionHandle;
+				accounter++;
+			}
+
+			usernum = accounter;
+		}
+
+        /// <summary>
+        /// Get the number of the avatars in the Region server
+        /// </summary>
+        /// <param name="usernum">The first out parameter describing the number of all the avatars in the Region server</param>
+        public void GetRegionNumber(out int regionnum)
+		{
+			int accounter = 0;
+			//List<string> regionNameList = new List<string>();
+
+			m_sceneManager.ForEachScene(delegate(Scene scene) {
+				accounter++;
+			});
+			regionnum = accounter;
+
+		}
     }
 }

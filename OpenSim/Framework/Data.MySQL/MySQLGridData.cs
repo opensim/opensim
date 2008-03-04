@@ -97,6 +97,11 @@ namespace OpenSim.Framework.Data.MySQL
                 database.ExecuteResourceSql("CreateRegionsTable.sql");
                 return;
             }
+            else if (oldVersion.Contains("Rev. 1"))
+            {
+                database.ExecuteResourceSql("UpgradeRegionsTableToVersion2.sql");
+                return;
+            }
         }
 
         #endregion
@@ -249,6 +254,27 @@ namespace OpenSim.Framework.Data.MySQL
             lock (database)
             {
                 if (database.insertRegion(profile))
+                {
+                    return DataResponse.RESPONSE_OK;
+                }
+                else
+                {
+                    return DataResponse.RESPONSE_ERROR;
+                }
+            }
+        }
+
+        /// <summary>
+        /// Deletes a profile from the database
+        /// </summary>
+        /// <param name="profile">The profile to delete</param>
+        /// <returns>Successful?</returns>
+        //public DataResponse DeleteProfile(RegionProfileData profile)
+        public DataResponse DeleteProfile(string uuid)
+        {
+            lock (database)
+            {
+                if (database.deleteRegion(uuid))
                 {
                     return DataResponse.RESPONSE_OK;
                 }

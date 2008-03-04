@@ -130,6 +130,12 @@ namespace OpenSim.Framework.Data
         public LLUUID owner_uuid = LLUUID.Zero;
 
         /// <summary>
+        /// OGS/OpenSim Specific original ID for a region after move/split
+        /// </summary>
+        public LLUUID originUUID; 
+
+
+        /// <summary>
         /// Get Sim profile data from grid server when in grid mode
         /// </summary>
         /// <param name="region_uuid"></param>
@@ -162,7 +168,7 @@ namespace OpenSim.Framework.Data
             simData.serverPort = Convert.ToUInt32((string) responseData["sim_port"]);
             simData.httpPort = Convert.ToUInt32((string) responseData["http_port"]);
             simData.remotingPort = Convert.ToUInt32((string) responseData["remoting_port"]);
-            simData.serverURI = "http://" + simData.serverIP + ":" + simData.serverPort.ToString() + "/";
+			simData.serverURI = (string)responseData["server_uri"]; 
             simData.httpServerURI = "http://" + simData.serverIP + ":" + simData.httpPort.ToString() + "/";
             simData.UUID = new LLUUID((string) responseData["region_UUID"]);
             simData.regionName = (string) responseData["region_name"];
@@ -205,7 +211,7 @@ namespace OpenSim.Framework.Data
             simData.httpPort = Convert.ToUInt32((string) responseData["http_port"]);
             simData.remotingPort = Convert.ToUInt32((string) responseData["remoting_port"]);
             simData.httpServerURI = "http://" + simData.serverIP + ":" + simData.httpPort.ToString() + "/";
-            simData.serverURI = "http://" + simData.serverIP + ":" + simData.serverPort.ToString() + "/";
+			simData.serverURI = (string)responseData["server_uri"]; 
             simData.UUID = new LLUUID((string) responseData["region_UUID"]);
             simData.regionName = (string) responseData["region_name"];
 

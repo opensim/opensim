@@ -69,5 +69,10 @@ namespace OpenSim.Framework
         {
             return m_queue.Count;
         }
+
+        public T[] GetQueueArray()
+        {
+            return m_queue.ToArray();
+        }
     }
 }

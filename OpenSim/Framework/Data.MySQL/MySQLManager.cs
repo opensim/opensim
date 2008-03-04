@@ -301,6 +301,7 @@ namespace OpenSim.Framework.Data.MySQL
 
                 // non-critical parts
                 retval.regionName = (string)reader["regionName"];
+                retval.originUUID = new LLUUID((string) reader["originUUID"]); 
 
                 // Secrets
                 retval.regionRecvKey = (string) reader["regionRecvKey"];
@@ -752,13 +753,13 @@ namespace OpenSim.Framework.Data.MySQL
             // server for the UUID of the region's owner (master avatar). It consists of the addition of the column and value to the relevant sql,
             // as well as the related parameterization
             sql +=
-                "regionAssetSendKey, regionUserURI, regionUserRecvKey, regionUserSendKey, regionMapTexture, serverHttpPort, serverRemotingPort, owner_uuid) VALUES ";
+                "regionAssetSendKey, regionUserURI, regionUserRecvKey, regionUserSendKey, regionMapTexture, serverHttpPort, serverRemotingPort, owner_uuid, originUUID) VALUES ";
 
             sql += "(?regionHandle, ?regionName, ?uuid, ?regionRecvKey, ?regionSecret, ?regionSendKey, ?regionDataURI, ";
             sql +=
                 "?serverIP, ?serverPort, ?serverURI, ?locX, ?locY, ?locZ, ?eastOverrideHandle, ?westOverrideHandle, ?southOverrideHandle, ?northOverrideHandle, ?regionAssetURI, ?regionAssetRecvKey, ";
             sql +=
-                "?regionAssetSendKey, ?regionUserURI, ?regionUserRecvKey, ?regionUserSendKey, ?regionMapTexture, ?serverHttpPort, ?serverRemotingPort, ?owner_uuid)";
+                "?regionAssetSendKey, ?regionUserURI, ?regionUserRecvKey, ?regionUserSendKey, ?regionMapTexture, ?serverHttpPort, ?serverRemotingPort, ?owner_uuid, ?originUUID)";
 
             if (GRID_ONLY_UPDATE_NECESSARY_DATA)
             {
@@ -798,6 +799,7 @@ namespace OpenSim.Framework.Data.MySQL
             parameters["?serverHttpPort"] = regiondata.httpPort.ToString();
             parameters["?serverRemotingPort"] = regiondata.remotingPort.ToString();
             parameters["?owner_uuid"] = regiondata.owner_uuid.ToString();
+            parameters["?originUUID"] = regiondata.originUUID.ToString();
 
             bool returnval = false;
 
@@ -806,6 +808,42 @@ namespace OpenSim.Framework.Data.MySQL
                 IDbCommand result = Query(sql, parameters);
 
                 //Console.WriteLine(result.CommandText);
+                int x;
+                if ((x = result.ExecuteNonQuery()) > 0)
+                {
+                    returnval = true;
+                }
+                result.Dispose();
+            }
+            catch (Exception e)
+            {
+                m_log.Error(e.ToString());
+                return false;
+            }
+
+            return returnval;
+        }
+        /// <summary>
+        /// Delete a region from the database
+        /// </summary>
+        /// <param name="profile">The region to insert</param>
+        /// <returns>Success?</returns>
+        //public bool deleteRegion(RegionProfileData regiondata)
+        public bool deleteRegion(string uuid)
+        {
+            bool returnval = false;
+
+            string sql =
+                "DELETE FROM regions WHERE uuid = ?uuid;";
+
+            Dictionary<string, string> parameters = new Dictionary<string, string>();
+
+            try
+            {
+	            parameters["?uuid"] = uuid;
+
+                IDbCommand result = Query(sql, parameters);
+
                 int x;
                 if ((x = result.ExecuteNonQuery()) > 0)
                 {

@@ -665,5 +665,24 @@ namespace OpenSim.Framework
         void SendBlueBoxMessage(LLUUID FromAvatarID, LLUUID fromSessionID, String FromAvatarName, String Message);
 
         void SendLogoutPacket();
+        ClientInfo GetClientInfo();
+        void SetClientInfo(ClientInfo info);
+        void Terminate();
+    }
+
+    [Serializable]
+    public class ClientInfo
+    {
+        public byte[] usecircuit;
+        public EndPoint userEP;
+        public EndPoint proxyEP;
+        public sAgentCircuitData agentcircuit;
+
+        public Dictionary<uint, uint> pendingAcks;
+        public Dictionary<uint, byte[]> needAck;
+
+        public List<byte[]> out_packets;
+
+        public uint sequence;
     }
 }

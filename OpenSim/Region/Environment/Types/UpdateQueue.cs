@@ -30,9 +30,14 @@ using System.Collections.Generic;
 using libsecondlife;
 using OpenSim.Region.Environment.Scenes;
 
+using System; 
+using System.Runtime.Serialization;
+using System.Security.Permissions;
+
 namespace OpenSim.Region.Environment.Types
 {
-    public class UpdateQueue
+    [Serializable] 
+    public class UpdateQueue : ISerializable 
     {
         private Queue<SceneObjectPart> m_queue;
 
@@ -85,6 +90,47 @@ namespace OpenSim.Region.Environment.Types
             }
 
             return part;
+        }
+
+        protected UpdateQueue(SerializationInfo info, StreamingContext context)
+        {
+            //System.Console.WriteLine("UpdateQueue Deserialize BGN");
+
+            if (info == null)
+            {
+                throw new System.ArgumentNullException("info");
+            }
+
+            m_queue = (Queue<SceneObjectPart>)info.GetValue("m_queue", typeof(Queue<SceneObjectPart>));
+            List<Guid> ids_work = (List<Guid>)info.GetValue("m_ids", typeof(List<Guid>));
+
+            foreach (Guid guid in ids_work)
+            {
+                m_ids.Add(new LLUUID(guid));
+            }
+
+            //System.Console.WriteLine("UpdateQueue Deserialize END");
+        }
+
+        [SecurityPermission(SecurityAction.LinkDemand,
+            Flags = SecurityPermissionFlag.SerializationFormatter)]
+        public virtual void GetObjectData(
+                        SerializationInfo info, StreamingContext context)
+        {
+            if (info == null)
+            {
+                throw new System.ArgumentNullException("info");
+            }
+
+            List<Guid> ids_work = new List<Guid>();
+
+            foreach (LLUUID uuid in m_ids)
+            {
+                ids_work.Add(uuid.UUID);
+            }
+
+            info.AddValue("m_queue", m_queue);
+            info.AddValue("m_ids", ids_work);
         }
     }
 }

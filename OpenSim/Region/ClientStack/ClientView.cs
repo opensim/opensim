@@ -61,6 +61,8 @@ namespace OpenSim.Region.ClientStack
         /* static variables */
         public static TerrainManager TerrainManager;
 
+        public delegate bool SynchronizeClientHandler(IScene scene, Packet packet, LLUUID agentID, ThrottleOutPacketType throttlePacketType);
+        public static SynchronizeClientHandler SynchronizeClient = null; 
         /* private variables */
         private readonly LLUUID m_sessionId;
         private LLUUID m_secureSessionId = LLUUID.Zero;
@@ -118,6 +120,7 @@ namespace OpenSim.Region.ClientStack
         protected Thread m_clientThread;
         protected LLVector3 m_startpos;
         protected EndPoint m_userEndPoint;
+        protected EndPoint m_proxyEndPoint;
 
         /* Instantiated Designated Event Delegates */
         //- used so we don't create new objects for each incoming packet and then toss it out later */
@@ -291,7 +294,7 @@ namespace OpenSim.Region.ClientStack
         /* METHODS */
 
         public ClientView(EndPoint remoteEP, IScene scene, AssetCache assetCache, PacketServer packServer,
-                          AgentCircuitManager authenSessions, LLUUID agentId, LLUUID sessionId, uint circuitCode)
+                          AgentCircuitManager authenSessions, LLUUID agentId, LLUUID sessionId, uint circuitCode, EndPoint proxyEP) 
         {
             m_moneyBalance = 1000;
 
@@ -311,6 +314,7 @@ namespace OpenSim.Region.ClientStack
             m_circuitCode = circuitCode;
 
             m_userEndPoint = remoteEP;
+            m_proxyEndPoint = proxyEP;
 
             m_startpos = m_authenticateSessionsHandler.GetPosition(circuitCode);
 
@@ -411,7 +415,37 @@ namespace OpenSim.Region.ClientStack
 
         public void Stop()
         {
-            m_log.Info("[BUG]: Stop called, please find out where and remove it");
+            // Shut down timers
+            m_ackTimer.Stop();
+            m_clientPingTimer.Stop();
+        }
+
+        public void Restart()
+        {
+            // re-construct
+            m_pendingAcks = new Dictionary<uint, uint>();
+            m_needAck = new Dictionary<uint, Packet>();
+            m_sequence += 1000000;
+
+            m_ackTimer = new Timer(750);
+            m_ackTimer.Elapsed += new ElapsedEventHandler(AckTimer_Elapsed);
+            m_ackTimer.Start();
+
+            m_clientPingTimer = new Timer(5000);
+            m_clientPingTimer.Elapsed += new ElapsedEventHandler(CheckClientConnectivity);
+            m_clientPingTimer.Enabled = true;
+        }
+
+        public void Terminate()
+        {
+            // disable blocking queue
+            m_packetQueue.Enqueue(null);
+
+            // wait for thread stoped
+            m_clientThread.Join();
+
+            // delete circuit code
+            m_networkServer.CloseClient(this);
         }
 
         #endregion
@@ -507,6 +541,10 @@ namespace OpenSim.Region.ClientStack
             while (true)
             {
                 QueItem nextPacket = m_packetQueue.Dequeue();
+                if (nextPacket == null)
+                {
+                    break;
+                }
                 if (nextPacket.Incoming)
                 {
                     if (nextPacket.Packet.Type != PacketType.AgentUpdate)
@@ -2642,7 +2680,7 @@ namespace OpenSim.Region.ClientStack
             try
             {
                 byte[] sendbuffer = Pack.ToBytes();
-                PacketPool.Instance.ReturnPacket(Pack);
+                PacketPool.Instance.ReturnPacket(Pack); 
 
                 if (Pack.Header.Zerocoded)
                 {
@@ -2651,8 +2689,11 @@ namespace OpenSim.Region.ClientStack
                 }
                 else
                 {
-                    m_networkServer.SendPacketTo(sendbuffer, sendbuffer.Length, SocketFlags.None, m_circuitCode);
+	              //Need some extra space in case we need to add proxy information to the message later
+                  Buffer.BlockCopy(sendbuffer, 0, ZeroOutBuffer, 0, sendbuffer.Length);
+                  m_networkServer.SendPacketTo(ZeroOutBuffer, sendbuffer.Length, SocketFlags.None, m_circuitCode);
                 }
+
             }
             catch (Exception e)
             {
@@ -2666,6 +2707,12 @@ namespace OpenSim.Region.ClientStack
 
         public virtual void InPacket(Packet NewPack)
         {
+            if(!m_packetProcessingEnabled && NewPack.Type != PacketType.LogoutRequest)
+            {
+                PacketPool.Instance.ReturnPacket(NewPack);
+                return;
+            }
+
             // Handle appended ACKs
             if (NewPack != null)
             {
@@ -2726,6 +2773,15 @@ namespace OpenSim.Region.ClientStack
 
         public virtual void OutPacket(Packet NewPack, ThrottleOutPacketType throttlePacketType)
         {
+            if ((SynchronizeClient != null) && (!PacketProcessingEnabled))
+            {
+               // Sending packet to active client's server.
+               if (SynchronizeClient(m_scene, NewPack, m_agentId, throttlePacketType))
+                {
+                   return;
+                }
+            }
+
             QueItem item = new QueItem();
             item.Packet = NewPack;
             item.Incoming = false;
@@ -2851,6 +2907,13 @@ namespace OpenSim.Region.ClientStack
             {
                 return false;
             }
+        }
+
+        private bool m_packetProcessingEnabled = true; 
+
+        public bool PacketProcessingEnabled {
+            get { return m_packetProcessingEnabled; }
+            set { m_packetProcessingEnabled = value; }
         }
 
         protected void ProcessInPacket(Packet Pack)
@@ -4372,6 +4435,80 @@ namespace OpenSim.Region.ClientStack
             logReply.InventoryData[0].ItemID = LLUUID.Zero;
 
             OutPacket(logReply, ThrottleOutPacketType.Task);
+        }
+
+        public ClientInfo GetClientInfo()
+        {
+            //MainLog.Instance.Verbose("CLIENT", "GetClientInfo BGN");
+            
+            ClientInfo info = new ClientInfo();
+            info.userEP = this.m_userEndPoint;
+            info.proxyEP = this.m_proxyEndPoint;
+            info.agentcircuit = new sAgentCircuitData(RequestClientInfo());
+
+            info.pendingAcks = m_pendingAcks;
+
+            info.needAck = new Dictionary<uint,byte[]>();
+
+            lock (m_needAck)
+            {
+                foreach (uint key in m_needAck.Keys)
+                {
+                    info.needAck.Add(key, m_needAck[key].ToBytes());
+                }
+            }
+
+/* pending
+            QueItem[] queitems = m_packetQueue.GetQueueArray();
+
+            MainLog.Instance.Verbose("CLIENT", "Queue Count : [{0}]", queitems.Length);
+            
+            for (int i = 0; i < queitems.Length; i++)
+            {
+                if (queitems[i].Incoming == false)
+                {
+                    info.out_packets.Add(queitems[i].Packet.ToBytes());
+                    MainLog.Instance.Verbose("CLIENT", "Add OutPacket [{0}]", queitems[i].Packet.Type.ToString());
+                }
+            }
+*/
+
+            info.sequence = m_sequence;
+
+            //MainLog.Instance.Verbose("CLIENT", "GetClientInfo END");
+
+            return info;
+        }
+
+        public void SetClientInfo(ClientInfo info)
+        {
+            m_pendingAcks = info.pendingAcks;
+
+            m_needAck = new Dictionary<uint,Packet>();
+
+            Packet packet = null;
+            int packetEnd = 0;
+            byte[] zero = new byte[3000];
+
+            foreach (uint key in info.needAck.Keys)
+            {
+                byte[] buff = info.needAck[key];
+
+                packetEnd = buff.Length - 1;
+
+                try
+                {
+                    packet = PacketPool.Instance.GetPacket(buff, ref packetEnd, zero);
+                }
+                catch (Exception)
+                {
+                    //MainLog.Instance.Debug("UDPSERVER", e.ToString());
+                }
+
+                m_needAck.Add(key, packet);
+            }
+
+            m_sequence = info.sequence;
         }
     }
 }

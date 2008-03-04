@@ -538,5 +538,18 @@ namespace SimpleApp
         public void SendLogoutPacket()
         {
         }
+
+        public void Terminate()
+        {
+        }
+
+        public ClientInfo GetClientInfo()
+        {
+            return null;
+        }
+
+        public void SetClientInfo(ClientInfo info)
+        {
+        }
     }
 }

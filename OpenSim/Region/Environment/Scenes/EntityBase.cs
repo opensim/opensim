@@ -30,9 +30,14 @@ using System.Collections.Generic;
 using Axiom.Math;
 using libsecondlife;
 
+using System;
+using System.Runtime.Serialization;
+using System.Security.Permissions;
+
 namespace OpenSim.Region.Environment.Scenes
 {
-    public abstract class EntityBase
+    [Serializable]
+    public abstract class EntityBase : ISerializable
     {
         protected Scene m_scene;
         
@@ -134,6 +139,90 @@ namespace OpenSim.Region.Environment.Scenes
 
 
         public abstract void SetText(string text, Vector3 color, double alpha);
+
+        protected EntityBase(SerializationInfo info, StreamingContext context)
+        {
+            //System.Console.WriteLine("EntityBase Deserialize BGN");
+
+            if (info == null)
+            {
+                throw new System.ArgumentNullException("info");
+            }
+
+            //JB m_children = (List<EntityBase>)info.GetValue("m_children", typeof(List<EntityBase>));
+//            m_scene = (Scene)info.GetValue("m_scene", typeof(Scene));
+            m_uuid = new LLUUID((Guid)info.GetValue("m_uuid", typeof(Guid)));
+            m_name = (string)info.GetValue("m_name", typeof(string));
+
+            m_pos
+                = new LLVector3(
+                        (float)info.GetValue("m_pos.X", typeof(float)),
+                        (float)info.GetValue("m_pos.Y", typeof(float)),
+                        (float)info.GetValue("m_pos.Z", typeof(float)));
+
+            m_velocity
+                = new LLVector3(
+                        (float)info.GetValue("m_velocity.X", typeof(float)),
+                        (float)info.GetValue("m_velocity.Y", typeof(float)),
+                        (float)info.GetValue("m_velocity.Z", typeof(float)));
+
+            m_rotationalvelocity
+                = new LLVector3(
+                        (float)info.GetValue("m_rotationalvelocity.X", typeof(float)),
+                        (float)info.GetValue("m_rotationalvelocity.Y", typeof(float)),
+                        (float)info.GetValue("m_rotationalvelocity.Z", typeof(float)));
+
+            m_rotation
+                = new Quaternion(
+                        (float)info.GetValue("m_rotation.w", typeof(float)),
+                        (float)info.GetValue("m_rotation.x", typeof(float)),
+                        (float)info.GetValue("m_rotation.y", typeof(float)),
+                        (float)info.GetValue("m_rotation.z", typeof(float)));
+
+            m_localId = (uint)info.GetValue("m_localId", typeof(uint));
+
+            //System.Console.WriteLine("EntityBase Deserialize END");
+        }
+
+        [SecurityPermission(SecurityAction.LinkDemand,
+            Flags = SecurityPermissionFlag.SerializationFormatter)]
+        public virtual void GetObjectData(
+                        SerializationInfo info, StreamingContext context)
+        {
+            if (info == null)
+            {
+                throw new System.ArgumentNullException("info");
+            }
+
+            //JB info.AddValue("m_children", m_children);
+
+//            info.AddValue("m_scene", m_scene);
+            info.AddValue("m_uuid", m_uuid.UUID);
+            info.AddValue("m_name", m_name);
+
+            // LLVector3
+            info.AddValue("m_pos.X", m_pos.X);
+            info.AddValue("m_pos.Y", m_pos.Y);
+            info.AddValue("m_pos.Z", m_pos.Z);
+
+            // LLVector3
+            info.AddValue("m_velocity.X", m_velocity.X);
+            info.AddValue("m_velocity.Y", m_velocity.Y);
+            info.AddValue("m_velocity.Z", m_velocity.Z);
+
+            // LLVector3
+            info.AddValue("m_rotationalvelocity.X", m_rotationalvelocity.X);
+            info.AddValue("m_rotationalvelocity.Y", m_rotationalvelocity.Y);
+            info.AddValue("m_rotationalvelocity.Z", m_rotationalvelocity.Z);
+
+            // Quaternion
+            info.AddValue("m_rotation.w", m_rotation.w);
+            info.AddValue("m_rotation.x", m_rotation.x);
+            info.AddValue("m_rotation.y", m_rotation.y);
+            info.AddValue("m_rotation.z", m_rotation.z);
+
+            info.AddValue("m_localId", m_localId);
+        }
     }
 
     //Nested Classes

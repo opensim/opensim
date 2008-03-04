@@ -37,6 +37,7 @@ using OpenSim.Framework;
 using OpenSim.Framework.Console;
 using OpenSim.Framework.Data;
 using OpenSim.Framework.Servers;
+using OpenSim.Framework.Data.MySQL;
 
 namespace OpenSim.Grid.GridServer
 {
@@ -301,16 +302,20 @@ namespace OpenSim.Grid.GridServer
             catch (KeyNotFoundException) { }
 
             TheSim.regionHandle = Helpers.UIntsToLong((TheSim.regionLocX * Constants.RegionSize), (TheSim.regionLocY * Constants.RegionSize));
-            TheSim.serverURI = "http://" + TheSim.serverIP + ":" + TheSim.serverPort + "/";
+			TheSim.serverURI = (string)requestData["server_uri"];
+			Console.WriteLine("adding region " + TheSim.regionLocX + " , " + TheSim.regionLocY + " , " +
+                              TheSim.serverURI);
 
             TheSim.httpServerURI = "http://" + TheSim.serverIP + ":" + TheSim.httpPort + "/";
 
             TheSim.regionName = (string)requestData["sim_name"];
             TheSim.UUID = new LLUUID((string)requestData["UUID"]);
+            TheSim.originUUID = new LLUUID((string) requestData["originUUID"]);
 
             //make sure there is not an existing region at this location
             OldSim = getRegion(TheSim.regionHandle);
-            if (OldSim == null || OldSim.UUID == TheSim.UUID)
+            //if (OldSim == null || OldSim.UUID == TheSim.UUID)
+            if (OldSim == null || OldSim.UUID == TheSim.UUID || TheSim.UUID != TheSim.originUUID)
             {
                 bool brandNew = ( OldSim == null && TheSim.regionRecvKey == config.SimSendKey &&
                                  TheSim.regionSendKey == config.SimRecvKey);
@@ -502,6 +507,69 @@ namespace OpenSim.Grid.GridServer
 
         /// <summary>
         /// Returns an XML RPC response to a simulator profile request
+        /// Performed after moving a region.
+        /// </summary>
+        /// <param name="request"></param>
+        /// <returns></returns>
+        /// <param name="request">The XMLRPC Request</param>
+        /// <returns>Processing parameters</returns>
+        public XmlRpcResponse XmlRpcDeleteRegionMethod(XmlRpcRequest request)
+        {
+            XmlRpcResponse response = new XmlRpcResponse();
+            Hashtable responseData = new Hashtable();
+            response.Value = responseData;
+
+            //RegionProfileData TheSim = null;
+            string uuid = String.Empty;;
+            Hashtable requestData = (Hashtable) request.Params[0];
+            string myword;
+            if (requestData.ContainsKey("UUID")) {
+                //TheSim = getRegion(new LLUUID((string) requestData["UUID"]));
+                uuid = requestData["UUID"].ToString();
+				Console.WriteLine("deleting region " + uuid);
+//                logToDB((new LLUUID((string)requestData["UUID"])).ToString(),"XmlRpcDeleteRegionMethod","", 5,"Attempting delete with UUID.");
+            }
+            else {
+                responseData["error"] = "No UUID or region_handle passed to grid server - unable to delete";
+                return response;
+            }
+
+            foreach (KeyValuePair<string, IGridData> kvp in _plugins) {
+            //OpenSim.Framework.Data.MySQL.MySQLGridData dbengine = new OpenSim.Framework.Data.MySQL.MySQLGridData();
+                try {
+					OpenSim.Framework.Data.MySQL.MySQLGridData mysqldata = (OpenSim.Framework.Data.MySQL.MySQLGridData)(kvp.Value);
+					//DataResponse insertResponse = mysqldata.DeleteProfile(TheSim);
+					DataResponse insertResponse = mysqldata.DeleteProfile(uuid);
+                    switch (insertResponse) {
+                        case DataResponse.RESPONSE_OK:
+                            //MainLog.Instance.Verbose("grid", "Deleting region successful: " + uuid);
+                            responseData["status"] = "Deleting region successful: " + uuid;
+                            break;
+                        case DataResponse.RESPONSE_ERROR:
+                            //MainLog.Instance.Warn("storage", "Deleting region failed (Error): " + uuid);
+                            responseData["status"] = "Deleting region failed (Error): " + uuid;
+                            break;
+                        case DataResponse.RESPONSE_INVALIDCREDENTIALS:
+                            //MainLog.Instance.Warn("storage", "Deleting region failed (Invalid Credentials): " + uuid);
+                            responseData["status"] = "Deleting region (Invalid Credentials): " + uuid;
+                            break;
+                        case DataResponse.RESPONSE_AUTHREQUIRED:
+                            //MainLog.Instance.Warn("storage", "Deleting region failed (Authentication Required): " + uuid);
+                            responseData["status"] = "Deleting region (Authentication Required): " + uuid;
+                            break;
+                    }
+                }
+                catch (Exception e) {
+                    m_log.Error("storage Unable to delete region " + uuid + " via MySQL");
+                    //MainLog.Instance.Warn("storage", e.ToString());
+                }
+            }
+
+            return response;
+        }
+
+        /// <summary>
+        /// Returns an XML RPC response to a simulator profile request
         /// </summary>
         /// <param name="request"></param>
         /// <returns></returns>
@@ -533,6 +601,7 @@ namespace OpenSim.Grid.GridServer
                                                  (string) requestData["region_handle"]);
                 responseData["sim_ip"] = Util.GetHostFromDNS(simData.serverIP).ToString();
                 responseData["sim_port"] = simData.serverPort.ToString();
+				responseData["server_uri"] = simData.serverURI;
                 responseData["http_port"] = simData.httpPort.ToString();
                 responseData["remoting_port"] = simData.remotingPort.ToString();
                 responseData["region_locx"] = simData.regionLocX.ToString();
@@ -798,8 +867,7 @@ namespace OpenSim.Grid.GridServer
                 }
             }
 
-            TheSim.serverURI = "http://" + TheSim.serverIP + ":" + TheSim.serverPort + "/";
-
+			TheSim.serverURI = "http://" + TheSim.serverIP + ":" + TheSim.serverPort + "/";
             bool requirePublic = false;
             bool requireValid = true;
 
