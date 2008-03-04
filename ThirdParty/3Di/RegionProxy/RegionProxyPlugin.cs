@@ -77,7 +77,7 @@ namespace OpenSim.ApplicationPlugins.RegionProxy
         {
             Console.WriteLine("Starting proxy");
             string proxyURL = openSim.ConfigSource.Configs["Network"].GetString("proxy_url", "");
-	        if(proxyURL.Length==0) return;
+            if(proxyURL.Length==0) return;
 
             uint port = (uint) Int32.Parse(proxyURL.Split(new char[] { ':' })[2]);
             command_server = new BaseHttpServer(port);
@@ -112,7 +112,7 @@ namespace OpenSim.ApplicationPlugins.RegionProxy
         }
 
         private XmlRpcResponse AddPort(XmlRpcRequest request)
-	    {
+        {
             try {
                 int clientPort = (int) request.Params[0];
                 int regionPort = (int) request.Params[1];
@@ -122,8 +122,8 @@ namespace OpenSim.ApplicationPlugins.RegionProxy
                 m_log.Error("[PROXY]"+e.Message);
                 m_log.Error("[PROXY]"+e.StackTrace);
             }
-	        return new XmlRpcResponse();
-	    }
+            return new XmlRpcResponse();
+        }
 
         private XmlRpcResponse AddRegion(XmlRpcRequest request)
         {
@@ -137,8 +137,8 @@ namespace OpenSim.ApplicationPlugins.RegionProxy
                 m_log.Error("[PROXY]"+e.Message);
                 m_log.Error("[PROXY]"+e.StackTrace);
             }
-	        return new XmlRpcResponse();
-	    }
+            return new XmlRpcResponse();
+        }
 
         private XmlRpcResponse ChangeRegion(XmlRpcRequest request)
         {
@@ -152,9 +152,9 @@ namespace OpenSim.ApplicationPlugins.RegionProxy
                 m_log.Error("[PROXY]"+e.Message);
                 m_log.Error("[PROXY]"+e.StackTrace);
             }
-	        return new XmlRpcResponse();
-	    }
-		
+            return new XmlRpcResponse();
+        }
+        
         private XmlRpcResponse DeleteRegion(XmlRpcRequest request)
         {
             try {
@@ -165,8 +165,8 @@ namespace OpenSim.ApplicationPlugins.RegionProxy
                 m_log.Error("[PROXY]"+e.Message);
                 m_log.Error("[PROXY]"+e.StackTrace);
             }
-	        return new XmlRpcResponse();
-	    }
+            return new XmlRpcResponse();
+        }
 
         private XmlRpcResponse BlockClientMessages(XmlRpcRequest request)
         {
@@ -178,8 +178,8 @@ namespace OpenSim.ApplicationPlugins.RegionProxy
                 m_log.Error("[PROXY]"+e.Message);
                 m_log.Error("[PROXY]"+e.StackTrace);
             }
-	        return new XmlRpcResponse();
-	    }
+            return new XmlRpcResponse();
+        }
 
         private XmlRpcResponse UnblockClientMessages(XmlRpcRequest request)
         {
@@ -191,8 +191,8 @@ namespace OpenSim.ApplicationPlugins.RegionProxy
                 m_log.Error("[PROXY]"+e.Message); 
                 m_log.Error("[PROXY]"+e.StackTrace);
             }
-	        return new XmlRpcResponse();
-	    }
+            return new XmlRpcResponse();
+        }
     }
 
 
@@ -322,14 +322,14 @@ namespace OpenSim.ApplicationPlugins.RegionProxy
             data.regions.Clear();
             data.regions.Add(new IPEndPoint(IPAddress.Parse(newRegionUrl), newRegionPort));
         }
-		
+        
         public void DeleteRegion(int oldRegionPort, string oldRegionUrl)
         {
             m_log.InfoFormat("[PROXY]"+"DeleteRegion {0} {1}", oldRegionPort, oldRegionUrl);
-			EndPoint regionEP = new IPEndPoint(IPAddress.Parse(oldRegionUrl), oldRegionPort);
+            EndPoint regionEP = new IPEndPoint(IPAddress.Parse(oldRegionUrl), oldRegionPort);
             EndPoint client = proxy_map.GetClient(regionEP);
             ProxyMap.RegionData data = proxy_map.GetRegionData(client);
-			data.regions.Remove(regionEP);
+            data.regions.Remove(regionEP);
         }
 
         public void AddPort(int clientPort, int regionPort, string regionUrl)
@@ -405,10 +405,10 @@ namespace OpenSim.ApplicationPlugins.RegionProxy
             try
             {
                 int numBytes = sd.server.EndReceiveFrom(result, ref sd.senderEP);
-				if (numBytes > 0)
-				{
-					SendMessage(sd.recvBuffer, numBytes, sd.senderEP, sd);
-				}
+                if (numBytes > 0)
+                {
+                    SendMessage(sd.recvBuffer, numBytes, sd.senderEP, sd);
+                }
             }
             catch (Exception e)
             {
