@@ -42,6 +42,7 @@ def binary_or_text(file):
 
 property_map = {
     ".bat" : script,
+    ".cgi" : textfile,
     ".config" : textfile,
     ".cs" : textfile,
     ".csproj" : textfile,
@@ -64,6 +65,7 @@ property_map = {
     ".php" : script,
     ".pidb" : binary,
     ".pl" : script,
+    ".pm" : textfile,
     ".png" : binary,
     ".py" : script,
     ".rb" : script,

@@ -84,12 +84,12 @@
     <Project name="OpenSim.Tests.Common" path="OpenSim/Tests/Common" type="Library">
       <Configuration name="Debug">
         <Options>
-	<OutputPath>../../../bin/</OutputPath>
+          <OutputPath>../../../bin/</OutputPath>
         </Options>
       </Configuration>
       <Configuration name="Release">
         <Options>
-	  <OutputPath>../../../bin/</OutputPath>
+          <OutputPath>../../../bin/</OutputPath>
         </Options>
       </Configuration>
 
@@ -107,12 +107,12 @@
     <Project name="OpenSim.Framework.Tests" path="OpenSim/Tests/OpenSim/Framework" type="Library">
       <Configuration name="Debug">
         <Options>
-		<OutputPath>../../../../bin/</OutputPath>
+          <OutputPath>../../../../bin/</OutputPath>
         </Options>
       </Configuration>
       <Configuration name="Release">
         <Options>
-	  <OutputPath>../../../../bin/</OutputPath>
+          <OutputPath>../../../../bin/</OutputPath>
         </Options>
       </Configuration>
 

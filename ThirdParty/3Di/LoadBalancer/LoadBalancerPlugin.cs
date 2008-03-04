@@ -1,30 +1,29 @@
 /*
-* Copyright (c) Contributors, http://opensimulator.org/
-* See CONTRIBUTORS.TXT for a full list of copyright holders.
-*
-* Redistribution and use in source and binary forms, with or without
-* modification, are permitted provided that the following conditions are met:
-*     * Redistributions of source code must retain the above copyright
-*       notice, this list of conditions and the following disclaimer.
-*     * Redistributions in binary form must reproduce the above copyright
-*       notice, this list of conditions and the following disclaimer in the
-*       documentation and/or other materials provided with the distribution.
-*     * Neither the name of the OpenSim Project nor the
-*       names of its contributors may be used to endorse or promote products
-*       derived from this software without specific prior written permission.
-*
-* THIS SOFTWARE IS PROVIDED BY THE DEVELOPERS ``AS IS'' AND ANY
-* EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
-* WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
-* DISCLAIMED. IN NO EVENT SHALL THE CONTRIBUTORS BE LIABLE FOR ANY
-* DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
-* (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
-* LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
-* ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
-* (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
-* SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-* 
-*/
+ * Copyright (c) Contributors, http://opensimulator.org/
+ * See CONTRIBUTORS.TXT for a full list of copyright holders.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *     * Redistributions of source code must retain the above copyright
+ *       notice, this list of conditions and the following disclaimer.
+ *     * Redistributions in binary form must reproduce the above copyright
+ *       notice, this list of conditions and the following disclaimer in the
+ *       documentation and/or other materials provided with the distribution.
+ *     * Neither the name of the OpenSim Project nor the
+ *       names of its contributors may be used to endorse or promote products
+ *       derived from this software without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE DEVELOPERS ``AS IS'' AND ANY
+ * EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+ * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ * DISCLAIMED. IN NO EVENT SHALL THE CONTRIBUTORS BE LIABLE FOR ANY
+ * DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
+ * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+ * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
 
 using System;
 using System.IO;
@@ -72,7 +71,7 @@ namespace OpenSim.ApplicationPlugins.LoadBalancer
         private int proxyOffset;
         private string proxyURL;
         private SceneManager sceneManager;
-    	 private string serializeDir;
+        private string serializeDir;
 
         private TcpServer mTcpServer;
         private TcpClient mTcpClient;
@@ -81,7 +80,7 @@ namespace OpenSim.ApplicationPlugins.LoadBalancer
         {
             m_log.Info("[BALANCER] "+"Entering Initialize()");
 
-    	     StartTcpServer();
+            StartTcpServer();
             ClientView.SynchronizeClient = new ClientView.SynchronizeClientHandler(SynchronizePackets);
             AsynchronousSocketListener.PacketHandler = new AsynchronousSocketListener.PacketRecieveHandler(SynchronizePacketRecieve);
 
@@ -113,10 +112,10 @@ namespace OpenSim.ApplicationPlugins.LoadBalancer
         private void StartTcpServer()
         {
             Thread server_thread = new Thread(new ThreadStart( 
-						delegate {
-							mTcpServer = new TcpServer(10001);
-							mTcpServer.start();
-						}));
+                                                  delegate {
+                                                      mTcpServer = new TcpServer(10001);
+                                                      mTcpServer.start();
+                                                  }));
             server_thread.Start();
         }
 
@@ -126,67 +125,67 @@ namespace OpenSim.ApplicationPlugins.LoadBalancer
 
         private XmlRpcResponse GetStatus(XmlRpcRequest request)
         {
-			XmlRpcResponse response = new XmlRpcResponse();
-			try
+            XmlRpcResponse response = new XmlRpcResponse();
+            try
             {
                 m_log.Info("[BALANCER] "+"Entering RegionStatus()");
 
                 int src_port = (int)request.Params[0];
-	            Scene scene = null;
-	            // try to get the scene object
-				RegionInfo src_region = SearchRegionFromPortNum(src_port);
-	            if (sceneManager.TryGetScene(src_region.RegionID, out scene) == false)
-	            {
-	                m_log.Error("[BALANCER] "+"The Scene is not found");
-					return response;
-	            }
-	            // serialization of client's informations
+                Scene scene = null;
+                // try to get the scene object
+                RegionInfo src_region = SearchRegionFromPortNum(src_port);
+                if (sceneManager.TryGetScene(src_region.RegionID, out scene) == false)
+                {
+                    m_log.Error("[BALANCER] "+"The Scene is not found");
+                    return response;
+                }
+                // serialization of client's informations
                 List<ScenePresence> presences = scene.GetScenePresences();
-				int get_scene_presence = presences.Count;
-				int get_scene_presence_filter = 0;
-				foreach (ScenePresence pre in presences)
+                int get_scene_presence = presences.Count;
+                int get_scene_presence_filter = 0;
+                foreach (ScenePresence pre in presences)
                 {
                     ClientView client = (ClientView) pre.ControllingClient;
                     //if(pre.MovementFlag!=0 && client.PacketProcessingEnabled==true) {
-					if(client.PacketProcessingEnabled==true) {
-						get_scene_presence_filter++;
-					}
+                    if(client.PacketProcessingEnabled==true) {
+                        get_scene_presence_filter++;
+                    }
                 }
-				List<ScenePresence> avatars = scene.GetAvatars();
-				int get_avatar = avatars.Count;
-				int get_avatar_filter = 0;
-				string avatar_names = "";
-				foreach (ScenePresence pre in avatars)
+                List<ScenePresence> avatars = scene.GetAvatars();
+                int get_avatar = avatars.Count;
+                int get_avatar_filter = 0;
+                string avatar_names = "";
+                foreach (ScenePresence pre in avatars)
                 {
                     ClientView client = (ClientView) pre.ControllingClient;
                     //if(pre.MovementFlag!=0 && client.PacketProcessingEnabled==true) {
-					if(client.PacketProcessingEnabled==true) {
-						get_avatar_filter++;
-						avatar_names += pre.Firstname + " " + pre.Lastname + "; ";
-					}
+                    if(client.PacketProcessingEnabled==true) {
+                        get_avatar_filter++;
+                        avatar_names += pre.Firstname + " " + pre.Lastname + "; ";
+                    }
                 }
-				
-				Hashtable responseData = new Hashtable();
-	            responseData["get_scene_presence_filter"] = get_scene_presence_filter;
-				responseData["get_scene_presence"] = get_scene_presence;
-	            responseData["get_avatar_filter"] = get_avatar_filter;
-				responseData["get_avatar"] = get_avatar;
-				responseData["avatar_names"] = avatar_names;
-	            response.Value = responseData;
+                
+                Hashtable responseData = new Hashtable();
+                responseData["get_scene_presence_filter"] = get_scene_presence_filter;
+                responseData["get_scene_presence"] = get_scene_presence;
+                responseData["get_avatar_filter"] = get_avatar_filter;
+                responseData["get_avatar"] = get_avatar;
+                responseData["avatar_names"] = avatar_names;
+                response.Value = responseData;
 
-				m_log.Info("[BALANCER] "+"Exiting RegionStatus()");
+                m_log.Info("[BALANCER] "+"Exiting RegionStatus()");
             }
             catch (Exception e)
             {
                 m_log.Error("[BALANCER] "+e.ToString());
                 m_log.Error("[BALANCER] "+e.StackTrace);
             }
-			return response;
+            return response;
         }
 
         private XmlRpcResponse SerializeRegion(XmlRpcRequest request)
         {
-			try
+            try
             {
                 m_log.Info("[BALANCER] "+"Entering SerializeRegion()");
 
@@ -431,7 +430,7 @@ namespace OpenSim.ApplicationPlugins.LoadBalancer
             //scene.Backup();
 
             m_log.InfoFormat("[BALANCER] "+"region serialization completed [{0}]",
-                    src_region.RegionID.ToString());
+                             src_region.RegionID.ToString());
         }
 
         private void SerializeClient(int idx, Scene scene, ScenePresence pre, string export_dir)
@@ -499,7 +498,7 @@ namespace OpenSim.ApplicationPlugins.LoadBalancer
                 DeserializeClient(dst_region, import_dir);
 
                 m_log.InfoFormat("[BALANCER] "+"region deserialization completed [{0}]", 
-                        dst_region.ToString());
+                                 dst_region.ToString());
             }
             catch (Exception e)
             {
@@ -527,19 +526,19 @@ namespace OpenSim.ApplicationPlugins.LoadBalancer
 
                 // restore the scene presence
 /*
-                files = Directory.GetFiles(import_dir, "Presence_*.bin");
-                Array.Sort(files);
-				
-                foreach (string filename in files)
-                {
-                    sp = (ScenePresence)Util.DeserializeFromFile(filename);
-                    Console.WriteLine("agent id = {0}", sp.m_uuid);
+  files = Directory.GetFiles(import_dir, "Presence_*.bin");
+  Array.Sort(files);
 
-                    scene.m_restorePresences.Add(sp.m_uuid, sp);
-                    File.Delete(filename);
+  foreach (string filename in files)
+  {
+  sp = (ScenePresence)Util.DeserializeFromFile(filename);
+  Console.WriteLine("agent id = {0}", sp.m_uuid);
 
-                    m_log.InfoFormat("[BALANCER] "+"scene presence deserialized [{0}]", sp.m_uuid);
-                }
+  scene.m_restorePresences.Add(sp.m_uuid, sp);
+  File.Delete(filename);
+
+  m_log.InfoFormat("[BALANCER] "+"scene presence deserialized [{0}]", sp.m_uuid);
+  }
 */
                 for (int i = 0; ; i++)
                 {
@@ -576,17 +575,17 @@ namespace OpenSim.ApplicationPlugins.LoadBalancer
 
                         udpserv.RestoreClient(agentdata, data.userEP, data.proxyEP);
 
-							// waiting for the scene-presense restored
-						    lock (scene.m_restorePresences)
-						    {
-							    Monitor.Wait(scene.m_restorePresences, 3000);
-						    }
-			
-	                      if (scene.ClientManager.TryGetClient(circuit_code, out controller))
-							{
-	                            m_log.InfoFormat("[BALANCER] " + "get client [{0}]", circuit_code);
-	                            controller.SetClientInfo(data);
-	                        }
+                        // waiting for the scene-presense restored
+                        lock (scene.m_restorePresences)
+                        {
+                            Monitor.Wait(scene.m_restorePresences, 3000);
+                        }
+
+                        if (scene.ClientManager.TryGetClient(circuit_code, out controller))
+                        {
+                            m_log.InfoFormat("[BALANCER] " + "get client [{0}]", circuit_code);
+                            controller.SetClientInfo(data);
+                        }
 
                         File.Delete(fname);
 
@@ -622,7 +621,7 @@ namespace OpenSim.ApplicationPlugins.LoadBalancer
                 Console.WriteLine("scene found.");
 
                 if ((sceneManager.CurrentScene != null) 
-                        && (sceneManager.CurrentScene.RegionInfo.RegionID == killScene.RegionInfo.RegionID))
+                    && (sceneManager.CurrentScene.RegionInfo.RegionID == killScene.RegionInfo.RegionID))
                 {
                     sceneManager.TrySetCurrentScene("..");
                 }
@@ -671,10 +670,10 @@ namespace OpenSim.ApplicationPlugins.LoadBalancer
                     {
                         // stopping clientview thread
                         if (((ClientView)controller).PacketProcessingEnabled)
-                           {
+                        {
                             controller.Stop();
                             ((ClientView)controller).PacketProcessingEnabled = false;
-                           }
+                        }
                         // teminateing clientview thread
                         controller.Terminate();
                         m_log.Info("[BALANCER] "+"client thread stopped");
@@ -698,90 +697,90 @@ namespace OpenSim.ApplicationPlugins.LoadBalancer
 
         private XmlRpcResponse SplitRegion(XmlRpcRequest request)
         {
-        		try
-        		{
-                    int myID = (int) request.Params[0];
-                    int numRegions = (int) request.Params[1];
-                    regionPortList = new int[numRegions];
-                    sceneURL = new string[numRegions];
-                    tcpClientList = new TcpClient[numRegions];
+            try
+            {
+                int myID = (int) request.Params[0];
+                int numRegions = (int) request.Params[1];
+                regionPortList = new int[numRegions];
+                sceneURL = new string[numRegions];
+                tcpClientList = new TcpClient[numRegions];
 
-                    for(int i=0; i<numRegions; i++)
+                for(int i=0; i<numRegions; i++)
+                {
+                    regionPortList[i]=(int) request.Params[i+2];
+                    sceneURL[i]=(string) request.Params[i+2+numRegions];
+                }
+
+                string hostname;
+
+                for(int i=0; i<numRegions; i++)
+                {
+                    hostname = sceneURL[i].Split(new char[] { '/', ':' })[3];
+                    m_log.InfoFormat("[SPLITSCENE] "+"creating tcp client host:{0}", hostname);
+                    tcpClientList[i] = new TcpClient(hostname, 10001);
+                }
+   
+                bool isMaster = (myID == 0);
+
+                isLocalNeighbour = new bool[numRegions];
+                for(int i=0; i<numRegions; i++) isLocalNeighbour[i] = (sceneURL[i] == sceneURL[myID]);
+
+                RegionInfo region = SearchRegionFromPortNum(regionPortList[myID]);
+
+                //Console.WriteLine("\n === SplitRegion {0}\n", region.RegionID);
+
+                Scene scene;
+                if (sceneManager.TryGetScene(region.RegionID, out scene))
+                {
+                    // Disable event updates, backups etc in the slave(s)
+                    if (isMaster) {
+                        scene.Region_Status = RegionStatus.Up;
+                    }
+                    else 
+                    {
+                        scene.Region_Status = RegionStatus.SlaveScene;
+                    }
+
+                    //Console.WriteLine("=== SplitRegion {0}: Scene found, status {1}", region.RegionID, scene.Region_Status);
+
+                    // Disabling half of the avatars in master, and the other half in slave
+
+                    int i = 0;
+                    List<ScenePresence> presences = scene.GetScenePresences();
+                    presences.Sort();
+                    foreach (ScenePresence pre in presences)
+                    {
+                        // Divide the presences evenly over the set of subscenes
+                        ClientView client = (ClientView) pre.ControllingClient;
+                        client.PacketProcessingEnabled = (( (i + myID) % sceneURL.Length) == 0);
+
+                        m_log.InfoFormat("[SPLITSCENE] === SplitRegion {0}: SP.PacketEnabled {1}", region.RegionID, client.PacketProcessingEnabled);
+
+                        if (!client.PacketProcessingEnabled)
                         {
-                        regionPortList[i]=(int) request.Params[i+2];
-                        sceneURL[i]=(string) request.Params[i+2+numRegions];
+                            // stopping clientview thread
+                            client.Stop();
                         }
 
-                    string hostname;
-
-                    for(int i=0; i<numRegions; i++)
-                       {
-                    		hostname = sceneURL[i].Split(new char[] { '/', ':' })[3];
-                         m_log.InfoFormat("[SPLITSCENE] "+"creating tcp client host:{0}", hostname);
-                    		tcpClientList[i] = new TcpClient(hostname, 10001);
-                       }
-   
-                    bool isMaster = (myID == 0);
-
-                    isLocalNeighbour = new bool[numRegions];
-                    for(int i=0; i<numRegions; i++) isLocalNeighbour[i] = (sceneURL[i] == sceneURL[myID]);
-
-                    RegionInfo region = SearchRegionFromPortNum(regionPortList[myID]);
-
-                    //Console.WriteLine("\n === SplitRegion {0}\n", region.RegionID);
-
-                    Scene scene;
-                    if (sceneManager.TryGetScene(region.RegionID, out scene))
-                      {
-                        // Disable event updates, backups etc in the slave(s)
-                        if (isMaster) {
-                            scene.Region_Status = RegionStatus.Up;
-                           }
-                        else 
-                           {
-                            scene.Region_Status = RegionStatus.SlaveScene;
-                           }
-
-                        //Console.WriteLine("=== SplitRegion {0}: Scene found, status {1}", region.RegionID, scene.Region_Status);
-
-                        // Disabling half of the avatars in master, and the other half in slave
-
-                        int i = 0;
-                        List<ScenePresence> presences = scene.GetScenePresences();
-presences.Sort();
-                        foreach (ScenePresence pre in presences)
-                           {
-                            // Divide the presences evenly over the set of subscenes
-                            ClientView client = (ClientView) pre.ControllingClient;
-                            client.PacketProcessingEnabled = (( (i + myID) % sceneURL.Length) == 0);
-
-                            m_log.InfoFormat("[SPLITSCENE] === SplitRegion {0}: SP.PacketEnabled {1}", region.RegionID, client.PacketProcessingEnabled);
-
-                              if (!client.PacketProcessingEnabled)
-                               {
-                                // stopping clientview thread
-                                client.Stop();
-                               }
-
-                            ++i;
-                            }
-
-                        scene.splitID = myID;
-                        scene.SynchronizeScene = new Scene.SynchronizeSceneHandler(SynchronizeScenes);
-                        isSplit = true;
+                        ++i;
                     }
-                    else
-                    {
-                        m_log.Error("[SPLITSCENE] "+String.Format("Scene not found {0}", region.RegionID));
-                    }
-        	}
-        	catch (Exception e)
-        	{
-                        m_log.Error("[SPLITSCENE] "+e.ToString());
-                        m_log.Error("[SPLITSCENE] "+e.StackTrace);
-        	}
 
-           return new XmlRpcResponse();
+                    scene.splitID = myID;
+                    scene.SynchronizeScene = new Scene.SynchronizeSceneHandler(SynchronizeScenes);
+                    isSplit = true;
+                }
+                else
+                {
+                    m_log.Error("[SPLITSCENE] "+String.Format("Scene not found {0}", region.RegionID));
+                }
+            }
+            catch (Exception e)
+            {
+                m_log.Error("[SPLITSCENE] "+e.ToString());
+                m_log.Error("[SPLITSCENE] "+e.StackTrace);
+            }
+
+            return new XmlRpcResponse();
         }
 
         private XmlRpcResponse MergeRegions(XmlRpcRequest request)
@@ -794,40 +793,40 @@ presences.Sort();
                 string src_url = (string) request.Params[0];
                 int src_port = (int) request.Params[1];
             
-	            RegionInfo region = SearchRegionFromPortNum(src_port);
-										
-	            simMain.ProxyCommand(region.proxyUrl, "BlockClientMessages", src_url, src_port + proxyOffset);
+                RegionInfo region = SearchRegionFromPortNum(src_port);
 
-	            Scene scene;
-	            if (sceneManager.TryGetScene(region.RegionID, out scene))
-	            {
-	                isSplit = false;
+                simMain.ProxyCommand(region.proxyUrl, "BlockClientMessages", src_url, src_port + proxyOffset);
 
-	                scene.SynchronizeScene = null;
-	                scene.Region_Status = RegionStatus.Up;
+                Scene scene;
+                if (sceneManager.TryGetScene(region.RegionID, out scene))
+                {
+                    isSplit = false;
 
-	                List<ScenePresence> presences = scene.GetScenePresences();
-	                foreach (ScenePresence pre in presences)
-	                {
-	                    ClientView client = (ClientView) pre.ControllingClient;
-	                    if (!client.PacketProcessingEnabled)
-	                    {
-	                       client.Restart();
-	                       client.PacketProcessingEnabled = true;
-	                    }
-	                }
-	            }
-				
-				// Delete the slave scenes
-				for(int i=1; i<sceneURL.Length; i++)
-				{
-					string url = (sceneURL[i].Split('/')[2]).Split(':')[0]; // get URL part from EP
-					simMain.ProxyCommand(region.proxyUrl, "DeleteRegion", regionPortList[i] + proxyOffset, url);
-					Thread.Sleep(1000);
-					simMain.XmlRpcCommand(sceneURL[i], "TerminateRegion",  regionPortList[i]); // TODO: need + proxyOffset?				
-				}
+                    scene.SynchronizeScene = null;
+                    scene.Region_Status = RegionStatus.Up;
 
-	            simMain.ProxyCommand(region.proxyUrl, "UnblockClientMessages", src_url, src_port + proxyOffset);			
+                    List<ScenePresence> presences = scene.GetScenePresences();
+                    foreach (ScenePresence pre in presences)
+                    {
+                        ClientView client = (ClientView) pre.ControllingClient;
+                        if (!client.PacketProcessingEnabled)
+                        {
+                            client.Restart();
+                            client.PacketProcessingEnabled = true;
+                        }
+                    }
+                }
+
+                // Delete the slave scenes
+                for(int i=1; i<sceneURL.Length; i++)
+                {
+                    string url = (sceneURL[i].Split('/')[2]).Split(':')[0]; // get URL part from EP
+                    simMain.ProxyCommand(region.proxyUrl, "DeleteRegion", regionPortList[i] + proxyOffset, url);
+                    Thread.Sleep(1000);
+                    simMain.XmlRpcCommand(sceneURL[i], "TerminateRegion",  regionPortList[i]); // TODO: need + proxyOffset?
+                }
+
+                simMain.ProxyCommand(region.proxyUrl, "UnblockClientMessages", src_url, src_port + proxyOffset);
             }
             catch (Exception e)
             {
@@ -835,7 +834,7 @@ presences.Sort();
                 m_log.Error("[BALANCER] "+e.StackTrace);
                 throw e;
             }
-			
+
             return new XmlRpcResponse();
         }
 
@@ -870,11 +869,11 @@ presences.Sort();
             {
                 ScenePresence pre = scene.GetScenePresences().Find(delegate(ScenePresence x) { return x.UUID == scenePresenceID; }); 
 
-                  if (pre == null)
-                  {
+                if (pre == null)
+                {
                     m_log.ErrorFormat("[SPLITSCENE] [LocalUpdatePhysics] ScenePresence is missing... ({0})", scenePresenceID.ToString());
                     return;
-                  }
+                }
 
 //                m_log.Info("[SPLITSCENE] "+"LocalUpdatePhysics [region:{0}, client:{1}]", 
 //                                                                             regionID.ToString(), pre.UUID.ToString());
@@ -905,56 +904,56 @@ presences.Sort();
                     // Because data changes by the physics simulation when the client doesn't move, 
                     // if MovementFlag is false, It is necessary to synchronize.
                     //if(pre.MovementFlag!=0 && client.PacketProcessingEnabled==true) 
-                  if(client.PacketProcessingEnabled==true) 
+                    if(client.PacketProcessingEnabled==true) 
                     {
                         //m_log.Info("[SPLITSCENE] "+String.Format("Client moving in {0} {1}", scene.RegionInfo.RegionID, pre.AbsolutePosition));
 
-	                    for (int i = 0; i < sceneURL.Length; i++)
-	                       {
-            					if (i == scene.splitID)
-            					{
-            						continue;
-            					}
-	                           
-		                        if(isLocalNeighbour[i])
-		                        {
-                                   //m_log.Info("[SPLITSCENE] "+"Synchronize ScenePresence (Local) [region:{0}=>{1}, client:{2}]", 
-                                   //                                             scene.RegionInfo.RegionID, regionPortList[i], pre.UUID.ToString());
-		                            LocalUpdatePhysics(regionPortList[i], pre.UUID, pre.AbsolutePosition, pre.Velocity, pre.PhysicsActor.Flying);
-		                        }
-		                        else
-		                        {
-                                   //m_log.Info("[SPLITSCENE] "+"Synchronize ScenePresence (Remote) [region port:{0}, client:{1}, position:{2}, velocity:{3}, flying:{4}]", 
-                                   //                                   regionPortList[i], pre.UUID.ToString(), pre.AbsolutePosition.ToString(), 
-                                   //                                   pre.Velocity.ToString(), pre.PhysicsActor.Flying);
+                        for (int i = 0; i < sceneURL.Length; i++)
+                        {
+                            if (i == scene.splitID)
+                            {
+                                continue;
+                            }
+                               
+                            if(isLocalNeighbour[i])
+                            {
+                                //m_log.Info("[SPLITSCENE] "+"Synchronize ScenePresence (Local) [region:{0}=>{1}, client:{2}]", 
+                                //                                             scene.RegionInfo.RegionID, regionPortList[i], pre.UUID.ToString());
+                                LocalUpdatePhysics(regionPortList[i], pre.UUID, pre.AbsolutePosition, pre.Velocity, pre.PhysicsActor.Flying);
+                            }
+                            else
+                            {
+                                //m_log.Info("[SPLITSCENE] "+"Synchronize ScenePresence (Remote) [region port:{0}, client:{1}, position:{2}, velocity:{3}, flying:{4}]", 
+                                //                                   regionPortList[i], pre.UUID.ToString(), pre.AbsolutePosition.ToString(), 
+                                //                                   pre.Velocity.ToString(), pre.PhysicsActor.Flying);
 
 
-		                            simMain.XmlRpcCommand(sceneURL[i], "UpdatePhysics", 
-			                                regionPortList[i], pre.UUID.GetBytes(),
-			                                pre.AbsolutePosition.GetBytes(), pre.Velocity.GetBytes(),
-			                                pre.PhysicsActor.Flying);
+                                simMain.XmlRpcCommand(sceneURL[i], "UpdatePhysics", 
+                                                      regionPortList[i], pre.UUID.GetBytes(),
+                                                      pre.AbsolutePosition.GetBytes(), pre.Velocity.GetBytes(),
+                                                      pre.PhysicsActor.Flying);
 
 /*
-	                                byte[] buff = new byte[12+12+1];
+  byte[] buff = new byte[12+12+1];
 
-                                    Buffer.BlockCopy(pre.AbsolutePosition.GetBytes(), 0, buff, 0, 12); 
-                                    Buffer.BlockCopy(pre.Velocity.GetBytes(), 0, buff, 12, 12); 
-                                    buff[24] = (byte)((pre.PhysicsActor.Flying)?1:0);
+  Buffer.BlockCopy(pre.AbsolutePosition.GetBytes(), 0, buff, 0, 12); 
+  Buffer.BlockCopy(pre.Velocity.GetBytes(), 0, buff, 12, 12); 
+  buff[24] = (byte)((pre.PhysicsActor.Flying)?1:0);
 
-                     				// create header
-                    					InternalPacketHeader header = new InternalPacketHeader();
+  // create header
+  InternalPacketHeader header = new InternalPacketHeader();
 
-                                  header.type = 1;
-                                  header.throttlePacketType = 0;
-                                  header.numbytes = buff.Length;
-                                  header.agent_id = pre.UUID.UUID;
-                                  header.region_port = regionPortList[i];
+  header.type = 1;
+  header.throttlePacketType = 0;
+  header.numbytes = buff.Length;
+  header.agent_id = pre.UUID.UUID;
+  header.region_port = regionPortList[i];
 
-                      				//Send
-                       				tcpClientList[i].send(header, buff);
+  //Send
+  tcpClientList[i].send(header, buff);
 */
-	                        }
-           		 		}
+                            }
+                        }
                     }
 //                    ++i;
                 }
@@ -968,41 +967,41 @@ presences.Sort();
                 return false;
             }
 
-           Scene localScene = (Scene)scene;
+            Scene localScene = (Scene)scene;
 
-    		for (int i = 0; i < sceneURL.Length; i++)
-	    	{
-	    		if (i == localScene.splitID)
-	    		{
-	    			continue;
-	    		}
-	                           
-              if(isLocalNeighbour[i])
+            for (int i = 0; i < sceneURL.Length; i++)
+            {
+                if (i == localScene.splitID)
                 {
-                   //m_log.Info("[SPLITSCENE] "+"Synchronize Packet (Local) [type:{0}, client:{1}]", 
-					  //				packet.Type.ToString(), agentID.ToString());
-		            LocalUpdatePacket(regionPortList[i], agentID, packet, throttlePacketType);
+                    continue;
                 }
-              else
+                               
+                if(isLocalNeighbour[i])
                 {
-                  //m_log.Info("[SPLITSCENE] "+"Synchronize Packet (Remote) [type:{0}, client:{1}]", 
-					//							packet.Type.ToString(), agentID.ToString());
-      				// to bytes
-      				byte[] buff = packet.ToBytes();
+                    //m_log.Info("[SPLITSCENE] "+"Synchronize Packet (Local) [type:{0}, client:{1}]", 
+                    //                packet.Type.ToString(), agentID.ToString());
+                    LocalUpdatePacket(regionPortList[i], agentID, packet, throttlePacketType);
+                }
+                else
+                {
+                    //m_log.Info("[SPLITSCENE] "+"Synchronize Packet (Remote) [type:{0}, client:{1}]", 
+                    //                            packet.Type.ToString(), agentID.ToString());
+                    // to bytes
+                    byte[] buff = packet.ToBytes();
 
-     				// create header
-					InternalPacketHeader header = new InternalPacketHeader();
+                    // create header
+                    InternalPacketHeader header = new InternalPacketHeader();
 
-                  header.type = 0;
-                  header.throttlePacketType = (int)throttlePacketType;
-                  header.numbytes = buff.Length;
-                  header.agent_id = agentID.UUID;
-                  header.region_port = regionPortList[i];
+                    header.type = 0;
+                    header.throttlePacketType = (int)throttlePacketType;
+                    header.numbytes = buff.Length;
+                    header.agent_id = agentID.UUID;
+                    header.region_port = regionPortList[i];
 
-    				//Send
-    				tcpClientList[i].send(header, buff);
+                    //Send
+                    tcpClientList[i].send(header, buff);
 
-    				PacketPool.Instance.ReturnPacket(packet);
+                    PacketPool.Instance.ReturnPacket(packet);
                 }
             }
 
@@ -1022,20 +1021,20 @@ presences.Sort();
             {
                 ScenePresence pre = scene.GetScenePresences().Find(delegate(ScenePresence x) { return x.UUID == agentID; }); 
 
-                  if (pre == null)
-                  {
+                if (pre == null)
+                {
                     m_log.ErrorFormat("[SPLITSCENE] [LocalUpdatePacket] ScenePresence is missing... ({0})", agentID.ToString());
                     return;
-                  }
+                }
 
-        		if (((ClientView)pre.ControllingClient).PacketProcessingEnabled==true)
-        		{
-        			pre.ControllingClient.OutPacket(packet, throttlePacketType);
-        		}
-        		else
-        		{
-        			PacketPool.Instance.ReturnPacket(packet);
-        		}
+                if (((ClientView)pre.ControllingClient).PacketProcessingEnabled==true)
+                {
+                    pre.ControllingClient.OutPacket(packet, throttlePacketType);
+                }
+                else
+                {
+                    PacketPool.Instance.ReturnPacket(packet);
+                }
             }
         }
 
@@ -1061,22 +1060,22 @@ presences.Sort();
 //                    packetEnd = buff.Length;
 
                     try
-                     {
+                    {
                         //m_log.Info("[SPLITSCENE] "+"PacketPool.Instance : {0}", (PacketPool.Instance == null)?"null":"not null");
                         //m_log.Info("[SPLITSCENE] "+"buff length={0}", buff.Length);
 
                         packet = PacketPool.Instance.GetPacket(buff, ref packetEnd, zero);
 
                         LocalUpdatePacket(header.region_port, new LLUUID(header.agent_id), 
-                                        packet, (ThrottleOutPacketType)header.throttlePacketType);
-                     }
+                                          packet, (ThrottleOutPacketType)header.throttlePacketType);
+                    }
                     catch (Exception e)
-                     {
+                    {
                         m_log.Error("[SPLITSCENE] "+e.ToString());
                         m_log.Error("[SPLITSCENE] "+e.StackTrace);
-                     }
+                    }
 
-                  break;
+                    break;
 
                 case 1:
 
