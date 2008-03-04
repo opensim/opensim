@@ -158,6 +158,17 @@ namespace OpenSim.Framework
             return circuits.ToArray();
         }
 
+        public List<uint> GetAllCircuitCodes()
+        {
+            List<uint> circuits;
+
+            lock (m_clients)
+            {
+                circuits = new List<uint>(m_clients.Keys);
+            }
+
+            return circuits;
+        }
 
         public void ViewerEffectHandler(IClientAPI sender, ViewerEffectPacket.EffectBlock[] effectBlock)
         {

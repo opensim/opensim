@@ -525,21 +525,6 @@ namespace OpenSim.ApplicationPlugins.LoadBalancer
                 udpserv = SearchUDPServerFromPortNum(scene.RegionInfo.InternalEndPoint.Port);
 
                 // restore the scene presence
-/*
-  files = Directory.GetFiles(import_dir, "Presence_*.bin");
-  Array.Sort(files);
-
-  foreach (string filename in files)
-  {
-  sp = (ScenePresence)Util.DeserializeFromFile(filename);
-  Console.WriteLine("agent id = {0}", sp.m_uuid);
-
-  scene.m_restorePresences.Add(sp.m_uuid, sp);
-  File.Delete(filename);
-
-  m_log.InfoFormat("[BALANCER] "+"scene presence deserialized [{0}]", sp.m_uuid);
-  }
-*/
                 for (int i = 0; ; i++)
                 {
                     string filename = import_dir + "Presence_" + String.Format("{0:0000}", i) + ".bin";
@@ -746,25 +731,34 @@ namespace OpenSim.ApplicationPlugins.LoadBalancer
                     // Disabling half of the avatars in master, and the other half in slave
 
                     int i = 0;
-                    List<ScenePresence> presences = scene.GetScenePresences();
-                    presences.Sort();
-                    foreach (ScenePresence pre in presences)
-                    {
-                        // Divide the presences evenly over the set of subscenes
-                        ClientView client = (ClientView) pre.ControllingClient;
-                        client.PacketProcessingEnabled = (( (i + myID) % sceneURL.Length) == 0);
 
-                        m_log.InfoFormat("[SPLITSCENE] === SplitRegion {0}: SP.PacketEnabled {1}", region.RegionID, client.PacketProcessingEnabled);
+                    List<uint> circuits = scene.ClientManager.GetAllCircuitCodes();
+                    circuits.Sort();
 
-                        if (!client.PacketProcessingEnabled)
-                        {
-                            // stopping clientview thread
-                            client.Stop();
-                        }
+                    IClientAPI controller = null;
 
-                        ++i;
-                    }
+                    foreach (uint code in circuits)
+                      {
+                        m_log.InfoFormat("[BALANCER] "+"circuit code : {0}", code);
 
+                        if (scene.ClientManager.TryGetClient(code, out controller))
+                          {
+                            // Divide the presences evenly over the set of subscenes
+                            ClientView client = (ClientView) controller;
+                            client.PacketProcessingEnabled = (( (i + myID) % sceneURL.Length) == 0);
+
+                            m_log.InfoFormat("[SPLITSCENE] === SplitRegion {0}: SP.PacketEnabled {1}", region.RegionID, client.PacketProcessingEnabled);
+
+                            if (!client.PacketProcessingEnabled)
+                               {
+                                // stopping clientview thread
+                                client.Stop();
+                               }
+
+                           ++i;
+                          }
+                      }
+					
                     scene.splitID = myID;
                     scene.SynchronizeScene = new Scene.SynchronizeSceneHandler(SynchronizeScenes);
                     isSplit = true;
