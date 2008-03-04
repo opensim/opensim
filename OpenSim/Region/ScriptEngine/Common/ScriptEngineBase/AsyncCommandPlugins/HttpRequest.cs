@@ -1,4 +1,4 @@
-﻿/*
+/*
 * Copyright (c) Contributors, http://opensimulator.org/
 * See CONTRIBUTORS.TXT for a full list of copyright holders.
 *
@@ -49,7 +49,6 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase.AsyncCommandPlugin
             m_CmdManager = CmdManager;
         }
 
-
         public void CheckHttpRequests()
         {
             if (m_CmdManager.m_ScriptEngine.World == null)
@@ -91,7 +90,5 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase.AsyncCommandPlugin
                 httpInfo = iHttpReq.GetNextCompletedRequest();
             }
         }
-
-
     }
 }

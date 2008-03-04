@@ -1,4 +1,4 @@
-﻿/*
+/*
 * Copyright (c) Contributors, http://opensimulator.org/
 * See CONTRIBUTORS.TXT for a full list of copyright holders.
 *
@@ -44,19 +44,19 @@ namespace OpenSim.Region.ScriptEngine.Common
         public event ReceiveCommandDelegate ReceiveCommand;
         System.Collections.Generic.Dictionary<string, Type> TypeDictionary = new Dictionary<string, Type>();
         Type[] Types = 
-                            {
-                                typeof(System.String),
-                                typeof(System.Int16),
-                                typeof(System.Int32),
-                                typeof(System.Int64),
-                                typeof(System.Double),
-                                typeof(System.Decimal),
-                                typeof(System.Array),
-                                typeof(LLUUID),
-                                typeof(System.UInt16),
-                                typeof(System.UInt32),
-                                typeof(System.UInt64)
-                            };
+        {
+            typeof(System.String),
+            typeof(System.Int16),
+            typeof(System.Int32),
+            typeof(System.Int64),
+            typeof(System.Double),
+            typeof(System.Decimal),
+            typeof(System.Array),
+            typeof(LLUUID),
+            typeof(System.UInt16),
+            typeof(System.UInt32),
+            typeof(System.UInt64)
+        };
 
         // TODO: Maybe we should move queue into TCPSocket so we won't have to keep one queue instance per connection
         private System.Collections.Generic.Dictionary<int, InQueueStruct> InQueue = new Dictionary<int, InQueueStruct>();
@@ -112,7 +112,6 @@ namespace OpenSim.Region.ScriptEngine.Common
 
         private void ProcessQueue(int ID)
         {
-
             // This is just a temp implementation -- not so fast :)
 
             InQueueStruct myIQS = InQueue[ID];
@@ -121,7 +120,6 @@ namespace OpenSim.Region.ScriptEngine.Common
 
             string receivedData = Encoding.ASCII.GetString(myIQS.Queue, 0, myIQS.QueueSize);
             Debug.WriteLine("RAW: " + receivedData);
-
 
             byte newLine = 10;
             while (true)

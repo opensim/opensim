@@ -1,4 +1,4 @@
-﻿/*
+/*
 * Copyright (c) Contributors, http://opensimulator.org/
 * See CONTRIBUTORS.TXT for a full list of copyright holders.
 *
@@ -33,7 +33,6 @@ namespace OpenSim.Region.ScriptEngine.Common.TRPC
 {
     public class TCPSocket
     {
-
         public readonly Socket Client;
         public readonly int ID;
 
@@ -52,6 +51,7 @@ namespace OpenSim.Region.ScriptEngine.Common.TRPC
             ID = id;
             Client = client;
         }
+
         public void Start()
         {
             // Start listening
@@ -85,9 +85,7 @@ namespace OpenSim.Region.ScriptEngine.Common.TRPC
 
             // Start new receive
             BeginReceive();
-
         }
-
 
         public void Send(int clientID, byte[] data, int offset, int len)
         {

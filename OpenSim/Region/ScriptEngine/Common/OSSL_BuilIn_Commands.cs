@@ -1,4 +1,4 @@
-﻿/*
+/*
 * Copyright (c) Contributors, http://opensimulator.org/
 * See CONTRIBUTORS.TXT for a full list of copyright holders.
 *
@@ -43,7 +43,6 @@ namespace OpenSim.Region.ScriptEngine.Common
 
         }
 
-
         public OSSLPrim Prim;
 
         [Serializable]
@@ -56,7 +55,6 @@ namespace OpenSim.Region.ScriptEngine.Common
                 Position = new OSSLPrim_Position(this);
                 Rotation = new OSSLPrim_Rotation(this);
             }
-
 
             public OSSLPrim_Position Position;
             public OSSLPrim_Rotation Rotation;
@@ -163,6 +161,7 @@ namespace OpenSim.Region.ScriptEngine.Common
                 }
             }
         }
+
         [Serializable]
         public class OSSLPrim_Rotation
         {
@@ -245,7 +244,5 @@ namespace OpenSim.Region.ScriptEngine.Common
         //    public double Z;
         //    public double R;
         //}
-
-
     }
 }

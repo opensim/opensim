@@ -1,4 +1,4 @@
-﻿/*
+/*
 * Copyright (c) Contributors, http://opensimulator.org/
 * See CONTRIBUTORS.TXT for a full list of copyright holders.
 *
@@ -36,7 +36,6 @@ namespace OpenSim.Region.ScriptEngine.Common.TRPC
         public delegate void CloseDelegate(int ID);
         public delegate void ConnectErrorDelegate(string Reason);
 
-
         public interface ServerAndClientInterface
         {
             void Send(int clientID, byte[] data, int offset, int len);
@@ -45,17 +44,18 @@ namespace OpenSim.Region.ScriptEngine.Common.TRPC
             event DataSentDelegate DataSent;
             event CloseDelegate Close;
         }
+
         public interface ClientInterface : ServerAndClientInterface
         {
             event TCPCommon.ConnectErrorDelegate ConnectError;
             void Connect(string RemoteHost, int RemotePort);
             void Disconnect(int ID);
         }
+
         public interface ServerInterface : ServerAndClientInterface
         {
             void StartListen();
             void StopListen();
         }
-
     }
 }

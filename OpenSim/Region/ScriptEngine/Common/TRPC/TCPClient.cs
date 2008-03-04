@@ -1,4 +1,4 @@
-﻿/*
+/*
 * Copyright (c) Contributors, http://opensimulator.org/
 * See CONTRIBUTORS.TXT for a full list of copyright holders.
 *
@@ -37,20 +37,18 @@ namespace OpenSim.Region.ScriptEngine.Common.TRPC
 {
     public class TCPClient : TCPCommon.ClientInterface
     {
-
         public TCPClient()
         {
         }
+
         private readonly Dictionary<int, TCPSocket> Clients = new Dictionary<int, TCPSocket>();
         private int ClientCount = 0;
-
 
         public event TCPCommon.ClientConnectedDelegate ClientConnected;
         public event TCPCommon.DataReceivedDelegate DataReceived;
         public event TCPCommon.DataSentDelegate DataSent;
         public event TCPCommon.CloseDelegate Close;
         public event TCPCommon.ConnectErrorDelegate ConnectError;
-
 
         /// <summary>
         /// Creates client connection
@@ -62,6 +60,7 @@ namespace OpenSim.Region.ScriptEngine.Common.TRPC
             //newsock.BeginConnect(ipe, new AsyncCallback(asyncConnected), newsock);
             newsock.Connect(ipe);
         }
+
         public int ConnectAndReturnID(string RemoteHost, int RemotePort)
         {
             Socket newsock = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
@@ -70,7 +69,6 @@ namespace OpenSim.Region.ScriptEngine.Common.TRPC
             newsock.Connect(ipe);
             return ProcessConnection(newsock);
         }
-
 
         public void Disconnect(int ID)
         {
@@ -88,9 +86,6 @@ namespace OpenSim.Region.ScriptEngine.Common.TRPC
         {
             try
             {
-                
-
-
                 int id = ClientCount++;
                 TCPSocket S = new TCPSocket(id, client);
 
@@ -121,9 +116,6 @@ namespace OpenSim.Region.ScriptEngine.Common.TRPC
             return -1;
         }
 
-
-
-
         void S_DataSent(int ID, int length)
         {
             if (DataSent != null)
@@ -147,7 +139,5 @@ namespace OpenSim.Region.ScriptEngine.Common.TRPC
         {
             Clients[clientID].Send(clientID, data, offset, len);
         }
-
-
     }
 }

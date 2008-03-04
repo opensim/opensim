@@ -1,4 +1,4 @@
-﻿/*
+/*
 * Copyright (c) Contributors, http://opensimulator.org/
 * See CONTRIBUTORS.TXT for a full list of copyright holders.
 *
@@ -103,6 +103,5 @@ namespace OpenSim.Region.ScriptEngine.Common
         {
             m_Running = false;
         }
-
     }
 }

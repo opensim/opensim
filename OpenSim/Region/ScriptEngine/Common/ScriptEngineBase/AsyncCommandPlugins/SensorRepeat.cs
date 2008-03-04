@@ -1,4 +1,4 @@
-﻿/*
+/*
 * Copyright (c) Contributors, http://opensimulator.org/
 * See CONTRIBUTORS.TXT for a full list of copyright holders.
 *
@@ -36,7 +36,6 @@ using OpenSim.Region.Environment.Interfaces;
 using OpenSim.Region.Environment.Modules;
 using OpenSim.Region.Environment.Scenes;
 using OpenSim.Framework;
-using OpenSim.Region.ScriptEngine.Common.ScriptEngineBase.AsyncCommandPlugins;
 
 namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase.AsyncCommandPlugins
 {
@@ -48,7 +47,6 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase.AsyncCommandPlugin
         {
             m_CmdManager = CmdManager;
         }
-
 
         public Dictionary<uint, Dictionary<LLUUID, LSL_Types.list>> SenseEvents =
             new Dictionary<uint, Dictionary<LLUUID, LSL_Types.list>>();
@@ -183,7 +181,6 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase.AsyncCommandPlugin
                     return SenseList;
                 }
             }
-
         }
 
         private void SensorSweep(SenseRepeatClass ts)
@@ -261,7 +258,6 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase.AsyncCommandPlugin
                             if (ang_obj > ts.arc) keep = false;
                         }
 
-
                         if (keep && (ts.keyID != null) && (ts.keyID != LLUUID.Zero) && (ts.keyID != ent.UUID))
                         {
                             keep = false;
@@ -286,13 +282,10 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase.AsyncCommandPlugin
                                 objectname = SOP.Name;
                             }
 
-
                             if ((ts.name != entname) && (ts.name != avatarname) && (ts.name != objectname))
                             {
                                keep = false;
                             }
-
-
                         }
 
                         if (keep == true) SensedObjects.Add(ent.UUID);
@@ -326,7 +319,6 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase.AsyncCommandPlugin
                 }
                 else
                 {
-
                     m_CmdManager.m_ScriptEngine.m_EventQueueManager.AddToScriptQueue(ts.localID, ts.itemID, "sensor", EventQueueManager.llDetectNull,
                                                                         new object[] { SensedObjects.Length });
                 }

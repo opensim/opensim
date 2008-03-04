@@ -1,4 +1,4 @@
-﻿/*
+/*
 * Copyright (c) Contributors, http://opensimulator.org/
 * See CONTRIBUTORS.TXT for a full list of copyright holders.
 *
@@ -36,7 +36,7 @@ namespace OpenSim.Region.ScriptEngine.Common
     /// <summary>
     /// This is the end of a chain of inherited builtin command implementations. This module will be instanced by script engines.
     /// </summary>
-    public class BuilIn_Commands: OSSL_BuilIn_Commands
+    public class BuilIn_Commands : OSSL_BuilIn_Commands
     {
         public BuilIn_Commands(ScriptEngineBase.ScriptEngine scriptEngine, SceneObjectPart host, uint localID,
                                LLUUID itemID) : base(scriptEngine, host, localID, itemID)

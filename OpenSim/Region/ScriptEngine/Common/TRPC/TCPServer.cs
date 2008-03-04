@@ -1,4 +1,4 @@
-﻿/*
+/*
 * Copyright (c) Contributors, http://opensimulator.org/
 * See CONTRIBUTORS.TXT for a full list of copyright holders.
 *
@@ -68,7 +68,6 @@ namespace OpenSim.Region.ScriptEngine.Common.TRPC
         private readonly Dictionary<int, TCPSocket> Clients = new Dictionary<int, TCPSocket>();
         private int ClientCount = 0;
 
-
         public event TCPCommon.ClientConnectedDelegate ClientConnected;
         public event TCPCommon.DataReceivedDelegate DataReceived;
         public event TCPCommon.DataSentDelegate DataSent;
@@ -127,8 +126,5 @@ namespace OpenSim.Region.ScriptEngine.Common.TRPC
         {
             Clients[clientID].Send(clientID, data, offset, len);
         }
-
-
-
     }
 }

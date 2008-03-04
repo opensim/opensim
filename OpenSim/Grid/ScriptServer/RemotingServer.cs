@@ -1,4 +1,4 @@
-﻿/*
+/*
 * Copyright (c) Contributors, http://opensimulator.org/
 * See CONTRIBUTORS.TXT for a full list of copyright holders.
 *
@@ -34,7 +34,6 @@ using System.Runtime.Remoting.Channels;
 using System.Runtime.Remoting.Channels.Tcp;
 using OpenSim.Region.ScriptEngine.Common;
 
-
 namespace OpenSim.Grid.ScriptServer
 {
     class RemotingServer
@@ -51,7 +50,6 @@ namespace OpenSim.Grid.ScriptServer
                 typeof(RemotingObject),
                 instanceName,
                 WellKnownObjectMode.Singleton);
-
         }
     }
 }

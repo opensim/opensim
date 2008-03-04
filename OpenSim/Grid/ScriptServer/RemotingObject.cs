@@ -1,4 +1,4 @@
-﻿/*
+/*
 * Copyright (c) Contributors, http://opensimulator.org/
 * See CONTRIBUTORS.TXT for a full list of copyright holders.
 *
@@ -37,7 +37,6 @@ namespace OpenSim.Grid.ScriptServer
     public class RemotingObject : MarshalByRefObject, ScriptServerInterfaces.ServerRemotingObject
     {
         // This object will be exposed over remoting. It is a singleton, so it exists only in as one instance.
-
 
         ScriptServerInterfaces.RemoteEvents ScriptServerInterfaces.ServerRemotingObject.Events()
         {

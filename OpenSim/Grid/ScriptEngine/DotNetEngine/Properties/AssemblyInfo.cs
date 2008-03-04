@@ -1,4 +1,4 @@
-﻿/*
+/*
 * Copyright (c) Contributors, http://opensimulator.org/
 * See CONTRIBUTORS.TXT for a full list of copyright holders.
 *
@@ -38,7 +38,7 @@ using System.Runtime.InteropServices;
 [assembly : AssemblyConfiguration("")]
 [assembly : AssemblyCompany("")]
 [assembly : AssemblyProduct("OpenSim.Grid.ScriptEngine.DotNetEngine")]
-[assembly : AssemblyCopyright("Copyright © 2007")]
+[assembly : AssemblyCopyright("Copyright (c) 2007")]
 [assembly : AssemblyTrademark("")]
 [assembly : AssemblyCulture("")]
 
