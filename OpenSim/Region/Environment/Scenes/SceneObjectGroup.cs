@@ -1635,9 +1635,15 @@ namespace OpenSim.Region.Environment.Scenes
         /// <param name="part"></param>
         public void AddPart(SceneObjectPart part)
         {
-            part.SetParent(this);
-            part.LinkNum = m_parts.Count;
-            m_parts.Add(part.UUID, part);
+            lock (m_parts) {
+                part.SetParent(this);
+                part.LinkNum = m_parts.Count;
+                try {
+                    m_parts.Add(part.UUID, part);
+                } catch (Exception e) {
+                    m_log.Error("Failed to add scened object part", e);
+                }
+            }
         }
 
         /// <summary>
