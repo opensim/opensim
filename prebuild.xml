@@ -972,7 +972,6 @@
       </Configuration>
 
       <ReferencePath>../../../../bin/</ReferencePath>
-      <ReferencePath>../../../../bin/Physics/</ReferencePath>
 
       <Reference name="libsecondlife.dll"/>
       <Reference name="Axiom.MathLib.dll" localCopy="false"/>
