@@ -3,7 +3,6 @@ for your effort!)
 
 Add your name in here if you have committed to OpenSim
 
-
 OpenSim Developers 
 
 * MW (Tribal Media AB)
