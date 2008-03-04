@@ -10,14 +10,14 @@ OpenSim Developers
 * Adam Frisby 	(DeepThink Pty Ltd)
 * MingChen 	(DeepThink Pty Ltd)
 * lbsa71 (Tribal Media AB)
-* sdague (International Business Machines Corp.)
+* sdague (IBM)
 * Andy-	
 * Gareth
 * MorphW
 * CW
 * Babblefrog
 * Tedd
-* justincc (International Business Machines Corp.)
+* justincc (IBM)
 * Teravus (w3z)
 * Johan Berntsson (3Di)
 * Ckrinke (Charles Krinke)
@@ -39,11 +39,12 @@ Patches
 * daTwitch 
 * mikkopa/_someone - RealXtend
 * openlifegrid.com
-* Dr Scofield (International Business Machines Corp.)
+* Dr Scofield (IBM)
 * Daedius
 * alex_carnell
-* webmage (International Business Machines Corp.)
-* jimbo2120 (International Business Machines Corp.)
+* webmage (IBM)
+* jimbo2120 (IBM)
+* awebb (IBM)
 * brianw/Sir_Ahzz
 * ChrisDown
 * devalnor-#708
