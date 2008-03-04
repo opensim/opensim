@@ -235,7 +235,6 @@ namespace OpenSim.Region.Environment.Scenes
                      ModuleLoader moduleLoader, bool dumpAssetsToFile, bool physicalPrim, bool SeeIntoRegionFromNeighbor)
         {
             updateLock = new Mutex(false);
-
             m_moduleLoader = moduleLoader;
             m_authenticateHandler = authen;
             CommsManager = commsMan;

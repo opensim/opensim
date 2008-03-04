@@ -372,6 +372,7 @@ namespace OpenSim.Framework
             {
                 case "sim_UUID":
                     RegionID = (LLUUID) configuration_result;
+                    originRegionID = (LLUUID)configuration_result;
                     break;
                 case "sim_name":
                     RegionName = (string) configuration_result;
