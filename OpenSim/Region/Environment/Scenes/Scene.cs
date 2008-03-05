@@ -129,7 +129,6 @@ namespace OpenSim.Region.Environment.Scenes
         private int m_update_backup = 200;
         private int m_update_terrain = 50;
         private int m_update_land = 1;
-        private int m_update_avatars = 1;
 
         private int frameMS = 0;
         private int physicsMS2 = 0;
@@ -137,7 +136,6 @@ namespace OpenSim.Region.Environment.Scenes
         private int otherMS = 0;
 
         private bool m_physics_enabled = true;
-        private bool m_physics_collisions_enabled = true;
         private bool m_scripts_enabled = true;
 
 
@@ -669,7 +667,6 @@ namespace OpenSim.Region.Environment.Scenes
             {
                 if (m_update_entities == 1)
                 {
-                    m_update_avatars = 5;
                     m_update_entities = 5;
                     m_statsReporter.SetUpdateMS(6000);
                 }
@@ -678,7 +675,6 @@ namespace OpenSim.Region.Environment.Scenes
             {
                 if (m_update_entities == 5)
                 {
-                    m_update_avatars = 1;
                     m_update_entities = 1;
                     m_statsReporter.SetUpdateMS(3000);
                 }

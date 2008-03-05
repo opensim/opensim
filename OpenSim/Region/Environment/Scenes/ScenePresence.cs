@@ -82,8 +82,6 @@ namespace OpenSim.Region.Environment.Scenes
         private bool m_newCoarseLocations = true;
         private bool m_gotAllObjectsInScene = false;
 
-        private bool m_lastPhysicsStoppedStatus = false;
-
         private LLVector3 m_lastVelocity = LLVector3.Zero;
         
         // Default AV Height

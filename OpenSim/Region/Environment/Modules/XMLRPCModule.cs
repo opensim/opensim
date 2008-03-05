@@ -77,7 +77,6 @@ namespace OpenSim.Region.Environment.Modules
     {
         private static readonly log4net.ILog m_log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 
-        private Scene m_scene;
         private object XMLRPCListLock = new object();
         private string m_name = "XMLRPCModule";
         private int RemoteReplyScriptWait = 300;

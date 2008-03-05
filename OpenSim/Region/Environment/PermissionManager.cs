@@ -37,11 +37,12 @@ namespace OpenSim.Region.Environment
         protected Scene m_scene;
 
         // These are here for testing.  They will be taken out
-        private uint PERM_ALL = (uint)2147483647;
+        
+        //private uint PERM_ALL = (uint)2147483647;
         private uint PERM_COPY = (uint)32768;
-        private uint PERM_MODIFY = (uint)16384;
+        //private uint PERM_MODIFY = (uint)16384;
         private uint PERM_MOVE = (uint)524288;
-        private uint PERM_TRANS = (uint)8192;
+        //private uint PERM_TRANS = (uint)8192;
         private uint PERM_LOCKED = (uint)540672;
         // Bypasses the permissions engine (always returns OK)
         // disable in any production environment

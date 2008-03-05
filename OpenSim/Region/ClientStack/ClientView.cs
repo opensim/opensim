@@ -1163,7 +1163,6 @@ namespace OpenSim.Region.ClientStack
             int MAX_ITEMS_PER_PACKET = 6;
 
             Encoding enc = Encoding.ASCII;
-            uint FULL_MASK_PERMISSIONS = (uint)PermissionMask.All;
             InventoryDescendentsPacket descend;
             int i;
             int count;

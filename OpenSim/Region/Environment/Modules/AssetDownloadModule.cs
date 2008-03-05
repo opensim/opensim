@@ -52,8 +52,6 @@ namespace OpenSim.Region.Environment.Modules
         /// </summary>
         private List<AssetRequest> AssetRequests;
 
-        private Thread m_thread;
-
         public AssetDownloadModule()
         {
             RequestedAssets = new Dictionary<LLUUID, Dictionary<LLUUID, AssetRequest>>();

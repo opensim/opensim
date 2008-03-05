@@ -158,6 +158,7 @@ namespace OpenSim.Framework
         public void ReturnPacket(Packet packet) {
             return; // packet pool disabled
 
+            /* // Commented out to remove a compiler warning. :)
             lock(pool)
             {
                 PacketType type=packet.Type;
@@ -171,6 +172,7 @@ namespace OpenSim.Framework
                     ((Stack)pool[type]).Push(packet);
                 }
             }
+            */
         }
     }
 }
