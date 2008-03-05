@@ -364,33 +364,28 @@ namespace OpenSim.Region.ClientStack
         public void ServerListener()
         {
             uint newPort = listenPort;
-            for (uint i = 0; i < 20; i++)
+            m_log.Info("[SERVER]: Opening UDP socket on " + listenIP.ToString() + " " + newPort + ".");// Allow alternate ports: " + Allow_Alternate_Port.ToString());
+            try
             {
-                newPort = listenPort + i;
-                m_log.Info("[SERVER]: Opening UDP socket on " + listenIP.ToString() + " " + newPort + ".");// Allow alternate ports: " + Allow_Alternate_Port.ToString());
-                try
-                {
-                    ServerIncoming = new IPEndPoint(listenIP, (int) newPort);
-                    Server = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
-                    Server.Bind(ServerIncoming);
-                    listenPort = newPort;
-                    break;
-                }
-                catch (Exception ex)
-                {
-                    // We are not looking for alternate ports?
-                    //if (!Allow_Alternate_Port)
-                        throw (ex);
+                ServerIncoming = new IPEndPoint(listenIP, (int)newPort);
+                Server = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
+                Server.Bind(ServerIncoming);
+                listenPort = newPort;
+            }
+            catch (Exception ex)
+            {
+                // We are not looking for alternate ports?
+                //if (!Allow_Alternate_Port)
+                throw (ex);
 
-                    // We are looking for alternate ports!
-                    //m_log.Info("[SERVER]: UDP socket on " + listenIP.ToString() + " " + listenPort.ToString() + " is not available, trying next.");
-                }
+                // We are looking for alternate ports!
+                //m_log.Info("[SERVER]: UDP socket on " + listenIP.ToString() + " " + listenPort.ToString() + " is not available, trying next.");
             }
 
             m_log.Info("[SERVER]: UDP socket bound, getting ready to listen");
 
             ipeSender = new IPEndPoint(listenIP, 0);
-            epSender = (EndPoint) ipeSender;
+            epSender = (EndPoint)ipeSender;
             ReceivedData = new AsyncCallback(OnReceivedData);
             Server.BeginReceiveFrom(RecvBuffer, 0, RecvBuffer.Length, SocketFlags.None, ref epSender, ReceivedData, null);
 

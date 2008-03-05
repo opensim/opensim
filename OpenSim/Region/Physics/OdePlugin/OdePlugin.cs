@@ -103,10 +103,7 @@ namespace OpenSim.Region.Physics.OdePlugin
         private const uint m_regionHeight = Constants.RegionSize;
 
         private static float ODE_STEPSIZE = 0.020f;
-        private static bool RENDER_FLAG = false;
         private static float metersInSpace = 29.9f;
-
-        private int interpenetrations_before_disable = 35;
 
         private IntPtr contactgroup;
         private IntPtr LandGeom = (IntPtr) 0;
