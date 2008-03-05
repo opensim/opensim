@@ -34,7 +34,7 @@ namespace OpenSim.Region.Environment.Modules.Terrain.PaintBrushes
     {
         #region ITerrainPaintableEffect Members
 
-        public void PaintEffect(ITerrainChannel map, double rx, double ry, double strength)
+        public void PaintEffect(ITerrainChannel map, double rx, double ry, double strength, double duration)
         {
             int x, y;
             for (x = 0; x < map.Width; x++)
@@ -55,7 +55,7 @@ namespace OpenSim.Region.Environment.Modules.Terrain.PaintBrushes
                     z -= ((x - rx) * (x - rx)) + ((y - ry) * (y - ry));
 
                     if (z > 0.0)
-                        map[x, y] -= z;
+                        map[x, y] -= z * duration;
                 }
             }
         }

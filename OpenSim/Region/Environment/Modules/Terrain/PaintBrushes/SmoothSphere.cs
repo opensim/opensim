@@ -72,7 +72,7 @@ namespace OpenSim.Region.Environment.Modules.Terrain.PaintBrushes
 
         #region ITerrainPaintableEffect Members
 
-        public void PaintEffect(ITerrainChannel map, double rx, double ry, double strength)
+        public void PaintEffect(ITerrainChannel map, double rx, double ry, double strength, double duration)
         {
             int x, y;
             double[,] tweak = new double[map.Width, map.Height];
@@ -116,7 +116,7 @@ namespace OpenSim.Region.Environment.Modules.Terrain.PaintBrushes
                     {
                         double da = z;
                         double a = (map[x, y] - tweak[x, y]) * da;
-                        double newz = map[x, y] - a;
+                        double newz = map[x, y] - (a * duration);
 
                         if (newz > 0.0)
                             map[x, y] = newz;

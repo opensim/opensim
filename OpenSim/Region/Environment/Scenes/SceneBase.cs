@@ -112,7 +112,7 @@ namespace OpenSim.Region.Environment.Scenes
         /// <param name="RemoteClient">Client to send to</param>
         public virtual void SendLayerData(IClientAPI RemoteClient)
         {
-            bool usingTerrainModule = true;
+            bool usingTerrainModule = false;
 
             if (usingTerrainModule)
             {

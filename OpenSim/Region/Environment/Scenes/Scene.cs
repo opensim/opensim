@@ -869,7 +869,7 @@ namespace OpenSim.Region.Environment.Scenes
 
         public void SendTerrainUpdate(bool checkForTainted)
         {
-            float[] terData = Terrain.GetHeights1D();
+            float[] terData = Heightmap.GetFloatsSerialised();
 
             Broadcast(delegate(IClientAPI client)
             {

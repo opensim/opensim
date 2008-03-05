@@ -297,9 +297,14 @@ namespace OpenSim.Region.Terrain
                 {
                     for (int y = 0; y < 16; y++)
                     {
-                        if (IsTainted(x*16, y*16))
+                        if (IsTainted(x * 16, y * 16))
                         {
-                            remoteUser.SendLayerData(x, y, GetHeights1D());
+                            bool usingTerrainModule = false;
+
+                            if (!usingTerrainModule)
+                            {
+                                remoteUser.SendLayerData(x, y, GetHeights1D());
+                            }
                         }
                     }
                 }

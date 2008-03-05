@@ -38,7 +38,7 @@ namespace OpenSim.Region.Environment.Modules.Terrain
 {
     public interface ITerrainPaintableEffect
     {
-        void PaintEffect(ITerrainChannel map, double x, double y, double strength);
+        void PaintEffect(ITerrainChannel map, double x, double y, double strength, double duration);
     }
 
     public interface ITerrainFloodEffect
@@ -63,6 +63,7 @@ namespace OpenSim.Region.Environment.Modules.Terrain
     public class TerrainChannel : ITerrainChannel
     {
         private double[,] map;
+        private bool[,] taint;
 
         public int Width
         {
@@ -103,29 +104,41 @@ namespace OpenSim.Region.Environment.Modules.Terrain
             }
             set
             {
+                taint[x / 16, y / 16] = true;
                 map[x, y] = value;
             }
+        }
+
+        public bool Tainted(int x, int y)
+        {
+            return taint[x / 16, y / 16];
         }
 
         public TerrainChannel()
         {
             map = new double[Constants.RegionSize, Constants.RegionSize];
+            taint = new bool[Constants.RegionSize / 16, Constants.RegionSize / 16];
         }
 
         public TerrainChannel(double[,] import)
         {
             map = import;
+            taint = new bool[import.GetLength(0), import.GetLength(1)];
         }
 
         public TerrainChannel(bool createMap)
         {
             if (createMap)
+            {
                 map = new double[Constants.RegionSize, Constants.RegionSize];
+                taint = new bool[Constants.RegionSize / 16, Constants.RegionSize / 16];
+            }
         }
 
         public TerrainChannel(int w, int h)
         {
             map = new double[w, h];
+            taint = new bool[w / 16, h / 16];
         }
     }
 
@@ -246,7 +259,14 @@ namespace OpenSim.Region.Environment.Modules.Terrain
                     if (m_painteffects.ContainsKey((StandardTerrainEffects)action))
                     {
                         m_painteffects[(StandardTerrainEffects)action].PaintEffect(
-                            m_channel, west, south, Math.Pow(size, 2.0));
+                            m_channel, west, south, Math.Pow(size, 2.0), seconds);
+
+                        bool usingTerrainModule = false;
+
+                        if (usingTerrainModule)
+                        {
+                            remoteClient.SendLayerData(m_channel.GetFloatsSerialised());
+                        }
                     }
                     else
                     {
@@ -258,20 +278,32 @@ namespace OpenSim.Region.Environment.Modules.Terrain
                     if (m_floodeffects.ContainsKey((StandardTerrainEffects)action))
                     {
                         bool[,] fillArea = new bool[m_channel.Width, m_channel.Height];
-
                         fillArea.Initialize();
 
                         int x, y;
+
                         for (x = 0; x < m_channel.Width; x++)
                         {
                             for (y = 0; y < m_channel.Height; y++)
                             {
-                                fillArea[x, y] = true;
+                                if (x < east && x > west)
+                                {
+                                    if (y < south && y > north)
+                                    {
+                                        fillArea[x, y] = true;
+                                    }
+                                }
                             }
                         }
 
                         m_floodeffects[(StandardTerrainEffects)action].FloodEffect(
                             m_channel, fillArea, Math.Pow(size, 2.0));
+                        bool usingTerrainModule = false;
+
+                        if (usingTerrainModule)
+                        {
+                            remoteClient.SendLayerData(m_channel.GetFloatsSerialised());
+                        }
                     }
                     else
                     {
