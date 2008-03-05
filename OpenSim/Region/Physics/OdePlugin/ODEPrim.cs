@@ -120,8 +120,6 @@ namespace OpenSim.Region.Physics.OdePlugin
 
         private IntPtr m_linkJoint = (IntPtr)0;
 
-        private int debugcounter = 0;
-
         public OdePrim(String primName, OdeScene parent_scene, PhysicsVector pos, PhysicsVector size,
                        Quaternion rotation, IMesh mesh, PrimitiveBaseShape pbs, bool pisPhysical, CollisionLocker dode)
         {

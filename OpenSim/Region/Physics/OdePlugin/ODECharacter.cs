@@ -82,11 +82,9 @@ namespace OpenSim.Region.Physics.OdePlugin
         private bool m_wascolliding = false;
         private bool m_wascollidingGround = false;
         private bool m_iscollidingObj = false;
-        private bool m_wascollidingObj = false;
         private bool m_alwaysRun = false;
         private bool m_hackSentFall = false;
         private bool m_hackSentFly = false;
-        private bool m_foundDebian = false;
         public uint m_localID = 0;
 
         private CollisionLocker ode;
@@ -105,9 +103,6 @@ namespace OpenSim.Region.Physics.OdePlugin
                                                         | CollisionCategories.Body
                                                         | CollisionCategories.Character 
                                                         | CollisionCategories.Land);
-
-        private bool jumping = false;
-        //private float gravityAccel;
         public IntPtr Body;
         private OdeScene _parent_scene;
         public IntPtr Shell;
@@ -126,7 +121,6 @@ namespace OpenSim.Region.Physics.OdePlugin
 
             if (System.Environment.OSVersion.Platform == PlatformID.Unix)
             {
-                m_foundDebian = true;
                 m_tensor = 2000000f;
             }
             else
@@ -409,7 +403,6 @@ namespace OpenSim.Region.Physics.OdePlugin
 
             if (System.Environment.OSVersion.Platform == PlatformID.Unix)
             {
-                m_foundDebian = true;
                 m_tensor = 2000000f;
             }
             else

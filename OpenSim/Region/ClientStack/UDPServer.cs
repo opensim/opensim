@@ -364,23 +364,12 @@ namespace OpenSim.Region.ClientStack
         public void ServerListener()
         {
             uint newPort = listenPort;
-            m_log.Info("[SERVER]: Opening UDP socket on " + listenIP.ToString() + " " + newPort + ".");// Allow alternate ports: " + Allow_Alternate_Port.ToString());
-            try
-            {
-                ServerIncoming = new IPEndPoint(listenIP, (int)newPort);
-                Server = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
-                Server.Bind(ServerIncoming);
-                listenPort = newPort;
-            }
-            catch (Exception ex)
-            {
-                // We are not looking for alternate ports?
-                //if (!Allow_Alternate_Port)
-                throw (ex);
+            m_log.Info("[SERVER]: Opening UDP socket on " + listenIP.ToString() + " " + newPort + ".");
 
-                // We are looking for alternate ports!
-                //m_log.Info("[SERVER]: UDP socket on " + listenIP.ToString() + " " + listenPort.ToString() + " is not available, trying next.");
-            }
+            ServerIncoming = new IPEndPoint(listenIP, (int)newPort);
+            Server = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
+            Server.Bind(ServerIncoming);
+            listenPort = newPort;
 
             m_log.Info("[SERVER]: UDP socket bound, getting ready to listen");
 
