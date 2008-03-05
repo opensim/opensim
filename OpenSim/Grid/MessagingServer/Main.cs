@@ -163,8 +163,9 @@ namespace OpenSim.Grid.MessagingServer
             }
         }
 
-        public void Show(string ShowWhat)
+        public override void Show(string ShowWhat)
         {
+            base.Show(ShowWhat);
         }
     }
 }

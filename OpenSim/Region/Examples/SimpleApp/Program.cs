@@ -197,14 +197,14 @@ namespace SimpleApp
 
         #region conscmd_callback Members
 
-        public void RunCmd(string cmd, string[] cmdparams)
+        public override void RunCmd(string cmd, string[] cmdparams)
         {
-            throw new Exception("The method or operation is not implemented.");
+            base.RunCmd(cmd, cmdparams);
         }
 
-        public void Show(string ShowWhat)
+        public override void Show(string ShowWhat)
         {
-            throw new Exception("The method or operation is not implemented.");
+            base.Show(ShowWhat);
         }
 
         #endregion

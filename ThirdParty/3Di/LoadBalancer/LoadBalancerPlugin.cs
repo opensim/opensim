@@ -74,7 +74,6 @@ namespace OpenSim.ApplicationPlugins.LoadBalancer
         private string serializeDir;
 
         private TcpServer mTcpServer;
-        private TcpClient mTcpClient;
 
         public void Initialise(OpenSimMain openSim)
         {
