@@ -186,7 +186,7 @@ namespace OpenSim.Region.Environment.Scenes
             sceneObject.SetScene(m_parentScene);
             foreach (SceneObjectPart part in sceneObject.Children.Values)
             {
-                part.LocalID = m_parentScene.PrimIDAllocate();
+                part.LocalId = m_parentScene.PrimIDAllocate();
 
             }
             sceneObject.UpdateParentIDs();
@@ -378,7 +378,7 @@ namespace OpenSim.Region.Environment.Scenes
 
 
                 objupdate.ObjectData[1].UpdateFlags = 276957500; // flags;  // ??
-                objupdate.ObjectData[1].ID = p.LocalID;
+                objupdate.ObjectData[1].ID = p.LocalId;
                 objupdate.ObjectData[1].FullID = p.UUID;
                 objupdate.ObjectData[1].OwnerID = p.OwnerID;
                 objupdate.ObjectData[1].Text = Helpers.StringToField(p.Text);

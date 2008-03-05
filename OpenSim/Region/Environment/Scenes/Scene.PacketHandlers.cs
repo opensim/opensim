@@ -177,7 +177,7 @@ namespace OpenSim.Region.Environment.Scenes
                         // trigger a touch_start for a script in the root prim
                         foreach (SceneObjectPart part in obj.Children.Values)
                         {
-                            EventManager.TriggerObjectGrab(part.LocalID, part.OffsetPosition, remoteClient);
+                            EventManager.TriggerObjectGrab(part.LocalId, part.OffsetPosition, remoteClient);
                         }
 
                         return;

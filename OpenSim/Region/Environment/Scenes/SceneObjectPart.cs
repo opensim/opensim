@@ -153,12 +153,12 @@ namespace OpenSim.Region.Environment.Scenes
             set { m_uuid = value; }
         }
 
-        protected uint m_localID;
+        protected uint m_localId;
 
-        public uint LocalID
+        public uint LocalId
         {
-            get { return m_localID; }
-            set { m_localID = value; }
+            get { return m_localId; }
+            set { m_localId = value; }
         }
 
         protected string m_name;
@@ -571,7 +571,7 @@ namespace OpenSim.Region.Environment.Scenes
             if (m_parentGroup != null)
             {
                 if (m_parentGroup.Scene != null)
-                    m_parentGroup.Scene.TriggerObjectChanged(LocalID, (uint)val);
+                    m_parentGroup.Scene.TriggerObjectChanged(LocalId, (uint)val);
             }
 
         }
@@ -671,7 +671,7 @@ namespace OpenSim.Region.Environment.Scenes
             CreatorID = OwnerID;
             LastOwnerID = LLUUID.Zero;
             UUID = LLUUID.Random();
-            LocalID = (uint) (localID);
+            LocalId = (uint) (localID);
             Shape = shape;
             // Todo: Add More Object Parameter from above!
             OwnershipCost = 0;
@@ -724,7 +724,7 @@ namespace OpenSim.Region.Environment.Scenes
             CreatorID = creatorID;
             LastOwnerID = lastOwnerID;
             UUID = LLUUID.Random();
-            LocalID = (uint) (localID);
+            LocalId = (uint) (localID);
             Shape = shape;
             OwnershipCost = 0;
             ObjectSaleType = (byte) 0;
@@ -1015,7 +1015,7 @@ namespace OpenSim.Region.Environment.Scenes
             dupe.m_shape = m_shape.Copy();
             dupe.m_regionHandle = m_regionHandle;
             dupe.UUID = LLUUID.Random();
-            dupe.LocalID = localID;
+            dupe.LocalId = localID;
             dupe.OwnerID = AgentID;
             dupe.GroupID = GroupID;
             dupe.GroupPosition = new LLVector3(GroupPosition.X, GroupPosition.Y, GroupPosition.Z);
@@ -1337,7 +1337,7 @@ namespace OpenSim.Region.Environment.Scenes
 
                             PhysActor.OnRequestTerseUpdate += PhysicsRequestingTerseUpdate;
                             PhysActor.OnOutOfBounds += PhysicsOutOfBounds;
-                            if (ParentID != 0 && ParentID != LocalID)
+                            if (ParentID != 0 && ParentID != LocalId)
                             {
                                 if (ParentGroup.RootPart.PhysActor != null)
                                 {
@@ -1742,7 +1742,7 @@ namespace OpenSim.Region.Environment.Scenes
 
 
             byte[] color = new byte[] {m_color.R, m_color.G, m_color.B, m_color.A};
-            remoteClient.SendPrimitiveToClient(m_regionHandle, (ushort)(m_parentGroup.GetTimeDilation() * (float)ushort.MaxValue), LocalID, m_shape, lPos, clientFlags, m_uuid,
+            remoteClient.SendPrimitiveToClient(m_regionHandle, (ushort)(m_parentGroup.GetTimeDilation() * (float)ushort.MaxValue), LocalId, m_shape, lPos, clientFlags, m_uuid,
                                                OwnerID,
                                                m_text, color, ParentID, m_particleSystem, lRot, m_clickAction, m_TextureAnimation);
         }
@@ -1790,11 +1790,11 @@ namespace OpenSim.Region.Environment.Scenes
             LLQuaternion mRot = RotationOffset;
             if ((ObjectFlags & (uint) LLObject.ObjectFlags.Physics) == 0)
             {
-                remoteClient.SendPrimTerseUpdate(m_regionHandle, (ushort)(m_parentGroup.GetTimeDilation() * (float)ushort.MaxValue), LocalID, lPos, mRot);
+                remoteClient.SendPrimTerseUpdate(m_regionHandle, (ushort)(m_parentGroup.GetTimeDilation() * (float)ushort.MaxValue), LocalId, lPos, mRot);
             }
             else
             {
-                remoteClient.SendPrimTerseUpdate(m_regionHandle, (ushort)(m_parentGroup.GetTimeDilation() * (float)ushort.MaxValue), LocalID, lPos, mRot, Velocity,
+                remoteClient.SendPrimTerseUpdate(m_regionHandle, (ushort)(m_parentGroup.GetTimeDilation() * (float)ushort.MaxValue), LocalId, lPos, mRot, Velocity,
                                                  RotationalVelocity);
                 //System.Console.WriteLine("LID: " + LocalID + " RVel:" + RotationalVelocity.ToString() + " TD: " + ((ushort)(m_parentGroup.Scene.TimeDilation * 500000f)).ToString() + ":" + m_parentGroup.Scene.TimeDilation.ToString());
             }
@@ -1805,11 +1805,11 @@ namespace OpenSim.Region.Environment.Scenes
             LLQuaternion mRot = RotationOffset;
             if ((ObjectFlags & (uint) LLObject.ObjectFlags.Physics) == 0)
             {
-                remoteClient.SendPrimTerseUpdate(m_regionHandle, (ushort)(m_parentGroup.GetTimeDilation() * (float)ushort.MaxValue), LocalID, lPos, mRot);
+                remoteClient.SendPrimTerseUpdate(m_regionHandle, (ushort)(m_parentGroup.GetTimeDilation() * (float)ushort.MaxValue), LocalId, lPos, mRot);
             }
             else
             {
-                remoteClient.SendPrimTerseUpdate(m_regionHandle, (ushort)(m_parentGroup.GetTimeDilation() * (float)ushort.MaxValue), LocalID, lPos, mRot, Velocity,
+                remoteClient.SendPrimTerseUpdate(m_regionHandle, (ushort)(m_parentGroup.GetTimeDilation() * (float)ushort.MaxValue), LocalId, lPos, mRot, Velocity,
                                                  RotationalVelocity);
                 //System.Console.WriteLine("LID: " + LocalID + "RVel:" + RotationalVelocity.ToString() + " TD: " + ((ushort)(m_parentGroup.Scene.TimeDilation * 500000f)).ToString() + ":" + m_parentGroup.Scene.TimeDilation.ToString());
             }
@@ -1932,7 +1932,7 @@ namespace OpenSim.Region.Environment.Scenes
 
             info.AddValue("m_inventorySerial", m_inventorySerial);
             info.AddValue("m_uuid", m_uuid.UUID);
-            info.AddValue("m_localID", m_localID);
+            info.AddValue("m_localID", m_localId);
             info.AddValue("m_name", m_name);
             info.AddValue("m_flags", Flags);
             info.AddValue("m_material", m_material);

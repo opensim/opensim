@@ -186,7 +186,7 @@ namespace OpenSim.Region.Environment.Scenes
             }
                         
             // Retrieve item
-            TaskInventoryItem item = group.GetInventoryItem(part.LocalID, itemId);
+            TaskInventoryItem item = group.GetInventoryItem(part.LocalId, itemId);
             if (null == item)
             {
                 return;
@@ -206,8 +206,8 @@ namespace OpenSim.Region.Environment.Scenes
             // Trigger rerunning of script (use TriggerRezScript event, see RezScript)           
             if (isScriptRunning)
             {
-                group.StopScript(part.LocalID, item.ItemID);
-                group.StartScript(part.LocalID, item.ItemID);            
+                group.StopScript(part.LocalId, item.ItemID);
+                group.StartScript(part.LocalId, item.ItemID);            
             }
         }
 

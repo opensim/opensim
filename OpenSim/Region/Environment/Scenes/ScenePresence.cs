@@ -956,7 +956,7 @@ namespace OpenSim.Region.Environment.Scenes
 
             if (part != null)
             {
-                m_requestedSitTargetID = part.LocalID;
+                m_requestedSitTargetID = part.LocalId;
                 m_requestedSitOffset = offset;
             }
             else

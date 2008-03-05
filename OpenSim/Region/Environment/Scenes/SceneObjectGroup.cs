@@ -152,8 +152,8 @@ namespace OpenSim.Region.Environment.Scenes
 
         public override uint LocalId
         {
-            get { return m_rootPart.LocalID; }
-            set { m_rootPart.LocalID = value; }
+            get { return m_rootPart.LocalId; }
+            set { m_rootPart.LocalId = value; }
         }
 
         public override LLUUID UUID
@@ -289,7 +289,7 @@ namespace OpenSim.Region.Environment.Scenes
                         {
                             reader.Read();
                             SceneObjectPart part = SceneObjectPart.FromXml(reader);
-                            part.LocalID = m_scene.PrimIDAllocate();
+                            part.LocalId = m_scene.PrimIDAllocate();
                             AddPart(part);
                             part.RegionHandle = m_regionHandle;
 
@@ -304,7 +304,7 @@ namespace OpenSim.Region.Environment.Scenes
             sr.Close();
 
 
-            m_rootPart.LocalID = m_scene.PrimIDAllocate();
+            m_rootPart.LocalId = m_scene.PrimIDAllocate();
             m_rootPart.ParentID = 0;
             m_rootPart.RegionHandle = m_regionHandle;
             UpdateParentIDs();
@@ -834,7 +834,7 @@ namespace OpenSim.Region.Environment.Scenes
         {
             foreach (SceneObjectPart part in m_parts.Values)
             {
-                if (part.LocalID == localID)
+                if (part.LocalId == localID)
                 {
                     return part;
                 }
@@ -867,7 +867,7 @@ namespace OpenSim.Region.Environment.Scenes
         {
             foreach (SceneObjectPart part in m_parts.Values)
             {
-                if (part.LocalID == localID)
+                if (part.LocalId == localID)
                 {
                     return true;
                 }
@@ -909,7 +909,7 @@ namespace OpenSim.Region.Environment.Scenes
             Quaternion newRot = parentRot.Inverse()*oldRot;
             linkPart.RotationOffset = new LLQuaternion(newRot.x, newRot.y, newRot.z, newRot.w);
             
-            linkPart.ParentID = m_rootPart.LocalID;
+            linkPart.ParentID = m_rootPart.LocalId;
             linkPart.LinkNum = m_parts.Count;
             
             m_parts.Add(linkPart.UUID, linkPart);
@@ -1035,7 +1035,7 @@ namespace OpenSim.Region.Environment.Scenes
         private void LinkNonRootPart(SceneObjectPart part, Vector3 oldGroupPosition, Quaternion oldGroupRotation)
         {
             part.SetParent(this);
-            part.ParentID = m_rootPart.LocalID;
+            part.ParentID = m_rootPart.LocalId;
             part.LinkNum = m_parts.Count;
             m_parts.Add(part.UUID, part);
 
@@ -1515,7 +1515,7 @@ namespace OpenSim.Region.Environment.Scenes
         /// <param name="part"></param>
         private void SetPartAsNonRoot(SceneObjectPart part)
         {
-            part.ParentID = m_rootPart.LocalID;
+            part.ParentID = m_rootPart.LocalId;
         }
 
         /// <summary>
@@ -1655,7 +1655,7 @@ namespace OpenSim.Region.Environment.Scenes
             {
                 if (part.UUID != m_rootPart.UUID)
                 {
-                    part.ParentID = m_rootPart.LocalID;
+                    part.ParentID = m_rootPart.LocalId;
                 }
             }
         }
@@ -1692,7 +1692,7 @@ namespace OpenSim.Region.Environment.Scenes
 
         public void ObjectGrabHandler(uint localId, LLVector3 offsetPos, IClientAPI remoteClient)
         {
-            if (m_rootPart.LocalID == localId)
+            if (m_rootPart.LocalId == localId)
             {
                 OnGrabGroup(offsetPos, remoteClient);
             }
@@ -1726,7 +1726,7 @@ namespace OpenSim.Region.Environment.Scenes
                         avatars[i].StandUp();
                     }
 
-                    avatars[i].ControllingClient.SendKillObject(m_regionHandle, part.LocalID);
+                    avatars[i].ControllingClient.SendKillObject(m_regionHandle, part.LocalId);
                 }
             }
         }
@@ -1767,7 +1767,7 @@ namespace OpenSim.Region.Environment.Scenes
                     m_rootPart.ApplyPhysics(m_rootPart.ObjectFlags, m_physicalPrim);
                     foreach (SceneObjectPart part in m_parts.Values)
                     {
-                        if (part.LocalID != m_rootPart.LocalID)
+                        if (part.LocalId != m_rootPart.LocalId)
                         {
                             part.ApplyPhysics(m_rootPart.ObjectFlags, m_physicalPrim);
                         }

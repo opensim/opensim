@@ -162,7 +162,7 @@ namespace OpenSim.Region.Environment.Modules
                         m_scene.ForEachClient(delegate(IClientAPI controller)
                                 {
                                     controller.SendKillObject(m_scene.RegionInfo.RegionHandle,
-                                        selectedTree.LocalID);
+                                        selectedTree.LocalId);
                                 });
 
                         break;

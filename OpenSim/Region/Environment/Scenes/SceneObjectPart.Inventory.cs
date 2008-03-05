@@ -170,7 +170,7 @@ namespace OpenSim.Region.Environment.Scenes
                        else
                        {
                            string script = Helpers.FieldToUTF8String(asset.Data);
-                           m_parentGroup.Scene.EventManager.TriggerRezScript(LocalID,item.ItemID,script);
+                           m_parentGroup.Scene.EventManager.TriggerRezScript(LocalId,item.ItemID,script);
                            m_parentGroup.AddActiveScriptCount(1);
                            ScheduleFullUpdate();
                        }
@@ -211,7 +211,7 @@ namespace OpenSim.Region.Environment.Scenes
         {
             if (m_taskInventory.ContainsKey(itemId))
             {
-                m_parentGroup.Scene.EventManager.TriggerRemoveScript(LocalID, itemId);
+                m_parentGroup.Scene.EventManager.TriggerRemoveScript(LocalId, itemId);
                 m_parentGroup.AddActiveScriptCount(-1);
             }
             else
