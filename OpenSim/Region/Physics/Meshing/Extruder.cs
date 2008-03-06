@@ -45,6 +45,8 @@ namespace OpenSim.Region.Physics.Meshing
 
         public Mesh Extrude(Mesh m)
         {
+            startParameter = float.MinValue;
+            stopParameter = float.MaxValue;
             // Currently only works for iSteps=1;
             Mesh result = new Mesh();
 

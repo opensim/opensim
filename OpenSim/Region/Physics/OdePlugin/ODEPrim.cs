@@ -124,7 +124,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                        Quaternion rotation, IMesh mesh, PrimitiveBaseShape pbs, bool pisPhysical, CollisionLocker dode)
         {
 
-
+            _target_velocity = new PhysicsVector(0, 0, 0);
             gc = GCHandle.Alloc(prim_geom, GCHandleType.Pinned);
             ode = dode;
             _velocity = new PhysicsVector();
