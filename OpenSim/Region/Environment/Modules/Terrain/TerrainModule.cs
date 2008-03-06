@@ -269,8 +269,6 @@ namespace OpenSim.Region.Environment.Modules.Terrain
                 m_tainted = false;
                 m_scene.PhysicsScene.SetTerrain(m_channel.GetFloatsSerialised());
                 m_scene.SaveTerrain();
-
-                //m_scene.CreateTerrainTexture(true);
             }
         }
 
