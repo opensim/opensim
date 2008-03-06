@@ -34,6 +34,7 @@ namespace OpenSim.Region.Environment.Interfaces
         double this[int x, int y] { get; set; }
         int Width { get; }
         float[] GetFloatsSerialised();
+        double[,] GetDoubles();
         bool Tainted(int x, int y);
     }
 }

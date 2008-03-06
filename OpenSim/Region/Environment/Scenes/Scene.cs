@@ -283,9 +283,6 @@ namespace OpenSim.Region.Environment.Scenes
             //m_sceneObjects = new Dictionary<LLUUID, SceneObjectGroup>();
             m_restorePresences = new Dictionary<LLUUID, ScenePresence>();
 
-            m_log.Info("[SCENE]: Creating LandMap");
-            Terrain = new TerrainEngine((int)RegionInfo.RegionLocX, (int)RegionInfo.RegionLocY);
-
             m_httpListener = httpServer;
             m_dumpAssetsToFile = dumpAssetsToFile;
 
@@ -843,43 +840,7 @@ namespace OpenSim.Region.Environment.Scenes
 
         private void UpdateTerrain()
         {
-            if (Terrain.IsTainted() && !Terrain.IsUserStillEditing())
-            {
-                CreateTerrainTexture(true);
-
-                lock (Terrain.heightmap)
-                {
-                    lock (SyncRoot)
-                    {
-                        PhysicsScene.SetTerrain(Terrain.GetHeights1D());
-                    }
-
-                    m_storageManager.DataStore.StoreTerrain(Terrain.GetHeights2DD(), RegionInfo.RegionID);
-
-                    SendTerrainUpdate(true);
-
-                    Terrain.ResetTaint();
-                }
-            }
-        }
-
-        public void SendTerrainUpdate(bool checkForTainted)
-        {
-            float[] terData = Heightmap.GetFloatsSerialised();
-
-            Broadcast(delegate(IClientAPI client)
-            {
-                for (int x = 0; x < 16; x++)
-                {
-                    for (int y = 0; y < 16; y++)
-                    {
-                        if ((!checkForTainted) || (Terrain.IsTainted(x * 16, y * 16)))
-                        {
-                            client.SendLayerData(x, y, terData);
-                        }
-                    }
-                }
-            });
+            EventManager.TriggerTerrainTick();
         }
 
         private void UpdateStorageBackup()
@@ -963,14 +924,9 @@ namespace OpenSim.Region.Environment.Scenes
             mapTexture.Save(fileName, ImageFormat.Jpeg);
         }
 
-        /// <summary>
-        /// Loads a world map from a specified R32 file
-        /// </summary>
-        /// <param name="filename">A working R32 file</param>
-        public void LoadWorldMap(string filename)
+        public void SaveTerrain()
         {
-            Terrain.LoadFromFileF32(filename);
-            Terrain.SaveRevertMap();
+            m_storageManager.DataStore.StoreTerrain(Heightmap.GetDoubles(), RegionInfo.RegionID);
         }
 
         /// <summary>
@@ -984,37 +940,15 @@ namespace OpenSim.Region.Environment.Scenes
                 double[,] map = m_storageManager.DataStore.LoadTerrain(RegionInfo.RegionID);
                 if (map == null)
                 {
-                    if (string.IsNullOrEmpty(m_regInfo.EstateSettings.terrainFile))
-                    {
-                        m_log.Info("[TERRAIN]: No default terrain. Generating a new terrain.");
-                        Terrain.SetDefaultTerrain();
+                    m_log.Info("[TERRAIN]: No default terrain. Generating a new terrain.");
+                    Heightmap = new Modules.Terrain.TerrainChannel();
 
-                        m_storageManager.DataStore.StoreTerrain(Terrain.GetHeights2DD(), RegionInfo.RegionID);
-                    }
-                    else
-                    {
-                        try
-                        {
-                            Terrain.LoadFromFileF32(m_regInfo.EstateSettings.terrainFile);
-                            Terrain *= m_regInfo.EstateSettings.terrainMultiplier;
-                        }
-                        catch
-                        {
-                            m_log.Info("[TERRAIN]: No terrain found in database or default. Generating a new terrain.");
-                            Terrain.SetDefaultTerrain();
-                        }
-                        m_storageManager.DataStore.StoreTerrain(Terrain.GetHeights2DD(), RegionInfo.RegionID);
-                    }
+                    m_storageManager.DataStore.StoreTerrain(Heightmap.GetDoubles(), RegionInfo.RegionID);
                 }
                 else
                 {
-                    // TODO: Install 'GetDefaultTerrainProvider' method here?
                     Heightmap = new Modules.Terrain.TerrainChannel(map);
-                    Terrain.SetHeights2D(map);
                 }
-
-                CreateTerrainTexture(true);
-                //CommsManager.GridService.RegisterRegion(RegionInfo); //hack to update the terrain texture in grid mode so it shows on world map
             }
             catch (Exception e)
             {
@@ -1049,6 +983,8 @@ namespace OpenSim.Region.Environment.Scenes
         /// </summary>
         public void CreateTerrainTexture(bool temporary)
         {
+            //TODOADAM: Move this to TerrainModule
+            /*
             //create a texture asset of the terrain 
             byte[] data = Terrain.WriteJpegImage("defaultstripe.png");
             m_regInfo.EstateSettings.terrainImageID = LLUUID.Random();
@@ -1060,6 +996,7 @@ namespace OpenSim.Region.Environment.Scenes
             asset.Type = 0;
             asset.Temporary = temporary;
             AssetCache.AddAsset(asset);
+            */
         }
 
         #endregion
@@ -1382,7 +1319,6 @@ namespace OpenSim.Region.Environment.Scenes
         {
             client.OnRegionHandShakeReply += SendLayerData;
             //remoteClient.OnRequestWearables += new GenericCall(this.GetInitialPrims);
-            client.OnModifyTerrain += ModifyTerrain;
             // client.OnRequestWearables += InformClientOfNeighbours;
             client.OnAddPrim += AddNewPrim;
             client.OnUpdatePrimGroupPosition += m_innerScene.UpdatePrimPosition;
@@ -2443,7 +2379,7 @@ namespace OpenSim.Region.Environment.Scenes
 
         public double GetLandHeight(int x, int y)
         {
-            return Terrain.GetHeight(x, y);
+            return Heightmap[x, y];
         }
 
         public LLUUID GetLandOwner(float x, float y)

@@ -54,15 +54,7 @@ namespace SimpleApp
 
         public override void LoadWorldMap()
         {
-            float[] map = new float[65536];
 
-            for (int i = 0; i < 65536; i++)
-            {
-                map[i] = 25f;
-            }
-
-            Terrain.GetHeights1D(map);
-            CreateTerrainTexture(true);
         }
 
         public override void AddNewClient(IClientAPI client, bool child)

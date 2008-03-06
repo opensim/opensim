@@ -137,13 +137,10 @@ namespace OpenSim.Region.Environment
         {
             // Water Height
             m_regInfo.EstateSettings.waterHeight = WaterHeight;
-            m_scene.Terrain.watermap.Fill(WaterHeight);
 
             // Terraforming limits
             m_regInfo.EstateSettings.terrainRaiseLimit = TerrainRaiseLimit;
             m_regInfo.EstateSettings.terrainLowerLimit = TerrainLowerLimit;
-            m_scene.Terrain.maxRaise = TerrainRaiseLimit;
-            m_scene.Terrain.minLower = TerrainLowerLimit;
 
             // Time of day / fixed sun
             m_regInfo.EstateSettings.useFixedSun = UseFixedSun;

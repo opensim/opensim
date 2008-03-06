@@ -48,6 +48,10 @@ namespace OpenSim.Region.Environment.Scenes
 
         public event ClientMovement OnClientMovement;
 
+        public delegate void OnTerrainTickDelegate();
+
+        public event OnTerrainTickDelegate OnTerrainTick;
+
         public delegate void OnBackupDelegate(IRegionDataStore datastore);
 
         public event OnBackupDelegate OnBackup;
@@ -189,6 +193,7 @@ namespace OpenSim.Region.Environment.Scenes
         private NewGridInstantMessage handlerGridInstantMessageToFriends = null; //OnGridInstantMessageToFriendsModule;
         private ClientClosed handlerClientClosed = null; //OnClientClosed;
         private OnNewPresenceDelegate handlerMakeChildAgent = null; //OnMakeChildAgent;
+        private OnTerrainTickDelegate handlerTerrainTick = null; // OnTerainTick;
 
         public void TriggerOnScriptChangedEvent(uint localID, uint change)
         {
@@ -277,6 +282,14 @@ namespace OpenSim.Region.Environment.Scenes
             }
         }
 
+        public void TriggerTerrainTick()
+        {
+            handlerTerrainTick = OnTerrainTick;
+            if (handlerTerrainTick != null)
+            {
+                handlerTerrainTick();
+            }
+        }
 
         public void TriggerParcelPrimCountAdd(SceneObjectGroup obj)
         {

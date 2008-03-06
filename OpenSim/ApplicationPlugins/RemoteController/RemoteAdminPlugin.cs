@@ -164,7 +164,7 @@ namespace OpenSim.ApplicationPlugins.LoadRegions
 
                 if (m_app.SceneManager.TryGetScene(regionID, out region))
                 {
-                    region.LoadWorldMap(file);
+                    //region.LoadWorldMap(file);
                     responseData["success"] = "true";
                 }
                 else

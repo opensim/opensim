@@ -96,6 +96,11 @@ namespace OpenSim.Region.Environment.Modules.Terrain
             return heights;
         }
 
+        public double[,] GetDoubles()
+        {
+            return map;
+        }
+
         public double this[int x, int y]
         {
             get
@@ -104,14 +109,25 @@ namespace OpenSim.Region.Environment.Modules.Terrain
             }
             set
             {
-                taint[x / 16, y / 16] = true;
-                map[x, y] = value;
+                if (map[x, y] != value)
+                {
+                    taint[x / 16, y / 16] = true;
+                    map[x, y] = value;
+                }
             }
         }
 
         public bool Tainted(int x, int y)
         {
-            return taint[x / 16, y / 16];
+            if (taint[x / 16, y / 16] != false)
+            {
+                taint[x / 16, y / 16] = false;
+                return true;
+            }
+            else
+            {
+                return false;
+            }
         }
 
         public TerrainChannel()
@@ -163,6 +179,7 @@ namespace OpenSim.Region.Environment.Modules.Terrain
         private Dictionary<string, ITerrainLoader> m_loaders = new Dictionary<string, ITerrainLoader>();
         Scene m_scene;
         ITerrainChannel m_channel;
+        bool m_tainted = false;
         private IConfigSource m_gConfig;
 
         private void InstallDefaultEffects()
@@ -241,11 +258,74 @@ namespace OpenSim.Region.Environment.Modules.Terrain
             }
 
             m_scene.EventManager.OnNewClient += EventManager_OnNewClient;
+            m_scene.EventManager.OnPluginConsole += EventManager_OnPluginConsole;
+            m_scene.EventManager.OnTerrainTick += EventManager_OnTerrainTick;
+        }
+
+        void EventManager_OnTerrainTick()
+        {
+            if (m_tainted)
+            {
+                m_tainted = false;
+                m_scene.PhysicsScene.SetTerrain(m_channel.GetFloatsSerialised());
+                m_scene.SaveTerrain();
+
+                //m_scene.CreateTerrainTexture(true);
+            }
+        }
+
+        void EventManager_OnPluginConsole(string[] args)
+        {
+            if (args[0] == "terrain")
+            {
+                string command = args[1];
+                string param = args[2];
+
+
+                switch (command)
+                {
+                    case "load":
+                        LoadFromFile(param);
+                        SendUpdatedLayerData();
+                        break;
+                    case "save":
+                        SaveToFile(param);
+                        break;
+                    default:
+                        m_log.Warn("Unknown terrain command.");
+                        break;
+                }
+            }
         }
 
         void EventManager_OnNewClient(IClientAPI client)
         {
             client.OnModifyTerrain += client_OnModifyTerrain;
+        }
+
+        void SendUpdatedLayerData()
+        {
+            bool shouldTaint = false;
+            float[] serialised = m_channel.GetFloatsSerialised();
+            int x, y;
+            for (x = 0; x < m_channel.Width; x += Constants.TerrainPatchSize)
+            {
+                for (y = 0; y < m_channel.Height; y += Constants.TerrainPatchSize)
+                {
+                    if (m_channel.Tainted(x, y))
+                    {
+                        m_scene.ForEachClient(delegate(IClientAPI controller)
+                        {
+                            controller.SendLayerData(x / Constants.TerrainPatchSize, y / Constants.TerrainPatchSize, serialised);
+                        });
+                        shouldTaint = true;
+                    }
+                }
+            }
+            if (shouldTaint)
+            {
+                m_tainted = true;
+            }
         }
 
         void client_OnModifyTerrain(float height, float seconds, byte size, byte action, float north, float west, float south, float east, IClientAPI remoteClient)
@@ -261,11 +341,11 @@ namespace OpenSim.Region.Environment.Modules.Terrain
                         m_painteffects[(StandardTerrainEffects)action].PaintEffect(
                             m_channel, west, south, Math.Pow(size, 2.0), seconds);
 
-                        bool usingTerrainModule = false;
+                        bool usingTerrainModule = true;
 
                         if (usingTerrainModule)
                         {
-                            remoteClient.SendLayerData(m_channel.GetFloatsSerialised());
+                            SendUpdatedLayerData();
                         }
                     }
                     else
@@ -298,11 +378,11 @@ namespace OpenSim.Region.Environment.Modules.Terrain
 
                         m_floodeffects[(StandardTerrainEffects)action].FloodEffect(
                             m_channel, fillArea, Math.Pow(size, 2.0));
-                        bool usingTerrainModule = false;
+                        bool usingTerrainModule = true;
 
                         if (usingTerrainModule)
                         {
-                            remoteClient.SendLayerData(m_channel.GetFloatsSerialised());
+                            SendUpdatedLayerData();
                         }
                     }
                     else

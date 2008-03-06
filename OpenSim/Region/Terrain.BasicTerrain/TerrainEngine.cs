@@ -299,7 +299,7 @@ namespace OpenSim.Region.Terrain
                     {
                         if (IsTainted(x * 16, y * 16))
                         {
-                            bool usingTerrainModule = false;
+                            bool usingTerrainModule = true;
 
                             if (!usingTerrainModule)
                             {

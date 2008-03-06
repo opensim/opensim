@@ -58,7 +58,7 @@ namespace OpenSim.Region.Environment.Scenes
         protected string m_regionName;
         protected RegionInfo m_regInfo;
 
-        public TerrainEngine Terrain;
+        //public TerrainEngine Terrain;
         public ITerrainChannel Heightmap;
 
         protected EventManager m_eventManager;
@@ -112,16 +112,7 @@ namespace OpenSim.Region.Environment.Scenes
         /// <param name="RemoteClient">Client to send to</param>
         public virtual void SendLayerData(IClientAPI RemoteClient)
         {
-            bool usingTerrainModule = false;
-
-            if (usingTerrainModule)
-            {
-                RemoteClient.SendLayerData(Heightmap.GetFloatsSerialised());
-            }
-            else
-            {
-                RemoteClient.SendLayerData(Terrain.GetHeights1D());
-            }
+            RemoteClient.SendLayerData(Heightmap.GetFloatsSerialised());
         }
 
         #endregion

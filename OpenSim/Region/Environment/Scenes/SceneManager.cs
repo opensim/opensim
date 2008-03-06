@@ -178,29 +178,8 @@ namespace OpenSim.Region.Environment.Scenes
 
         public bool RunTerrainCmdOnCurrentScene(string[] cmdparams, ref string result)
         {
-            if (m_currentScene == null)
-            {
-                bool success = true;
-                foreach (Scene scene in m_localScenes)
-                {
-                    if (!scene.Terrain.RunTerrainCmd(cmdparams, ref result, scene.RegionInfo.RegionName))
-                    {
-                        success = false;
-                    }
-                    
-                    // Messy way of preventing us printing out the same help text for each scene
-                    if (cmdparams.Length <= 0 || cmdparams[0] == "help")
-                    {
-                        break;
-                    }
-                }
-
-                return success;
-            }
-            else
-            {
-                return m_currentScene.Terrain.RunTerrainCmd(cmdparams, ref result, m_currentScene.RegionInfo.RegionName);
-            }
+            m_log.Warn("Terrain commands have been depreciated.");
+            return false;
         }
 
         public void SendCommandToCurrentSceneScripts(string[] cmdparams)

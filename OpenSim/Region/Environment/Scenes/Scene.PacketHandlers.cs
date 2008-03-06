@@ -37,29 +37,6 @@ namespace OpenSim.Region.Environment.Scenes
     public partial class Scene
     {
         /// <summary>
-        /// Modifies terrain using the specified information
-        /// </summary>
-        /// <param name="height">The height at which the user started modifying the terrain</param>
-        /// <param name="seconds">The number of seconds the modify button was pressed</param>
-        /// <param name="brushsize">The size of the brush used</param>
-        /// <param name="action">The action to be performed</param>
-        /// <param name="north">Distance from the north border where the cursor is located</param>
-        /// <param name="west">Distance from the west border where the cursor is located</param>
-        public void ModifyTerrain(float height, float seconds, byte brushsize, byte action, float north, float west,
-                                  float south, float east,
-                                  IClientAPI remoteUser)
-        {
-            // Do a permissions check before allowing terraforming.
-            // random users are now no longer allowed to terraform
-            // if permissions are enabled.
-            if (!PermissionsMngr.CanTerraform(remoteUser.AgentId, new LLVector3(north, west, 0)))
-                return;
-
-            //if it wasn't for the permission checking we could have the terrain module directly subscribe to the OnModifyTerrain event
-            Terrain.ModifyTerrain(height, seconds, brushsize, action, north, west, south, east, remoteUser);
-        }
-
-        /// <summary>
         /// 
         /// </summary>
         /// <param name="message"></param>

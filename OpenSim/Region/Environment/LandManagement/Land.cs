@@ -440,11 +440,11 @@ namespace OpenSim.Region.Environment.LandManagement
                 }
             }
             landData.AABBMin =
-                new LLVector3((float) (min_x*4), (float) (min_y*4),
-                              (float) m_scene.Terrain.GetHeight((min_x*4), (min_y*4)));
+                new LLVector3((float)(min_x * 4), (float)(min_y * 4),
+                              (float)m_scene.Heightmap[(min_x * 4), (min_y * 4)]);
             landData.AABBMax =
-                new LLVector3((float) (max_x*4), (float) (max_y*4),
-                              (float) m_scene.Terrain.GetHeight((max_x*4), (max_y*4)));
+                new LLVector3((float)(max_x * 4), (float)(max_y * 4),
+                              (float)m_scene.Heightmap[(max_x * 4), (max_y * 4)]);
             landData.area = tempArea;
         }
 

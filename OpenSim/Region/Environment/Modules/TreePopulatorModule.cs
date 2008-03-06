@@ -205,7 +205,7 @@ namespace OpenSim.Region.Environment.Modules
 
         private void CreateTree(LLVector3 position)
         {
-            position.Z = (float)m_scene.Terrain.heightmap.Get((int)position.X, (int)position.Y);
+            position.Z = (float)m_scene.Heightmap[(int)position.X, (int)position.Y];
 
             SceneObjectGroup tree =
                 m_scene.AddTree(new LLVector3(0.1f, 0.1f, 0.1f),

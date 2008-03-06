@@ -35,5 +35,6 @@ namespace OpenSim.Framework
     public class Constants
     {
         public const uint RegionSize = 256;
+        public const byte TerrainPatchSize = 16;
     }
 }
