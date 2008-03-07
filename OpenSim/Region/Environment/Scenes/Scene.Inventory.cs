@@ -606,7 +606,6 @@ namespace OpenSim.Region.Environment.Scenes
         public void UpdateTaskInventory(IClientAPI remoteClient, LLUUID itemID, LLUUID folderID,
                                         uint primLocalID)
         {
-
             SceneObjectGroup group = GetGroupByPrim(primLocalID);
 
             if (group != null)
@@ -629,11 +628,25 @@ namespace OpenSim.Region.Environment.Scenes
 
                         if (item != null)
                         {
-
-                            group.AddInventoryItem(remoteClient, primLocalID, item, copyID);
-                            m_log.InfoFormat("[PRIMINVENTORY]: Update with item {0} requested of prim {1} for {2}", item.inventoryName, primLocalID, remoteClient.Name);
-                            group.GetProperties(remoteClient);
-
+                            if (item.assetType == 0 || item.assetType == 1 || item.assetType == 10)
+                            {
+                                group.AddInventoryItem(remoteClient, primLocalID, item, copyID);
+                                m_log.InfoFormat(
+                                    "[PRIM INVENTORY]: Update with item {0} requested of prim {1} for {2}", 
+                                    item.inventoryName, primLocalID, remoteClient.Name);
+                                group.GetProperties(remoteClient);
+                            }
+                            else
+                            { 
+                                // XXX Nasty temporary way of stopping things other than sounds, textures and scripts
+                                // from going in a prim's inventory, since other things will not currently work
+                                // See http://opensimulator.org/mantis/view.php?id=711 for the error caused later on
+                                // - to implement requires changes to TaskInventoryItem (which really requires the current
+                                // nasty way it is done to be changed).
+                                m_log.WarnFormat(
+                                    "[PRIM INVENTORY]: Sorry, prim inventory storage of asset type {0} is not yet supported", 
+                                    item.assetType);
+                            }
                         }
                         else
                         {
@@ -641,12 +654,8 @@ namespace OpenSim.Region.Environment.Scenes
                                 "[PRIM INVENTORY]: Could not find inventory item {0} to update for {1}!",
                                 itemID, remoteClient.Name);
                         }
-
                     }
-
                 }
-
-
             }
             else
             {
