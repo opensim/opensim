@@ -95,7 +95,7 @@ namespace OpenSim.Region.Communications.Local
                 RegionCommsListener regionHost = new RegionCommsListener();
                 if (m_regionListeners.ContainsKey(regionInfo.RegionHandle))
                 {
-                    m_log.Error("[INTERREGION]: " +
+                    m_log.Error("[INTERREGION STANDALONE]: " +
                                 "Error:Region registered twice as an Events listener for Interregion Communications but not as a listed region.  " +
                                 "In Standalone mode this will cause BIG issues.  In grid mode, it means a region went down and came back up.");
                     m_regionListeners.Remove(regionInfo.RegionHandle);
@@ -108,7 +108,7 @@ namespace OpenSim.Region.Communications.Local
             {
                 // Already in our list, so the region went dead and restarted.
                 m_regions.Remove(regionInfo.RegionHandle);
-                m_log.Warn("[INTERREGION]: Region registered twice. Region went down and came back up.");
+                m_log.Warn("[INTERREGION STANDALONE]: Region registered twice. Region went down and came back up.");
 
                 RegionCommsListener regionHost = new RegionCommsListener();
                 if (m_regionListeners.ContainsKey(regionInfo.RegionHandle))
