@@ -11,7 +11,7 @@ CREATE TABLE [inventoryitems] (
   [parentFolderID] [varchar](36) default NULL,
   [avatarID] [varchar](36) default NULL,
   [inventoryName] [varchar](64) default NULL,
-  [inventoryDescription] [varchar](64) default NULL,
+  [inventoryDescription] [varchar](128) default NULL,
   [inventoryNextPermissions] [int] default NULL,
   [inventoryCurrentPermissions] [int] default NULL,
   [invType] [int] default NULL,
