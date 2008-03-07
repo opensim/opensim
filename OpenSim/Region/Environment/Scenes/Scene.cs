@@ -2339,13 +2339,13 @@ namespace OpenSim.Region.Environment.Scenes
                     m_log.ErrorFormat("{0,-16}{1,-16}{2,-25}{3,-25}{4,-16}{5,-16}{6,-16}", "Firstname", "Lastname",
                                       "Agent ID", "Session ID", "Circuit", "IP", "World");
 
-                    foreach (ScenePresence scenePrescence in GetAvatars())
+                    foreach (ScenePresence scenePresence in GetAvatars())
                     {
                         m_log.ErrorFormat("{0,-16}{1,-16}{2,-25}{3,-25}{4,-16},{5,-16}{6,-16}",
-                                          scenePrescence.Firstname,
-                                          scenePrescence.Lastname,
-                                          scenePrescence.UUID,
-                                          scenePrescence.ControllingClient.AgentId,
+                                          scenePresence.Firstname,
+                                          scenePresence.Lastname,
+                                          scenePresence.UUID,
+                                          scenePresence.ControllingClient.AgentId,
                                           "Unknown",
                                           "Unknown",
                                           RegionInfo.RegionName);
