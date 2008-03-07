@@ -1429,6 +1429,7 @@ namespace OpenSim.Region.ScriptEngine.Common
         public string llGetOwner()
         {
             m_host.AddScriptLPS(1);
+
             return m_host.ObjectOwner.ToString();
         }
 
@@ -2009,8 +2010,8 @@ namespace OpenSim.Region.ScriptEngine.Common
         public string llGetOwnerKey(string id)
         {
             m_host.AddScriptLPS(1);
-            NotImplemented("llGetOwnerKey");
-            return String.Empty;
+
+            return m_host.OwnerID.ToString();
         }
 
         public LSL_Types.Vector3 llGetCenterOfMass()
