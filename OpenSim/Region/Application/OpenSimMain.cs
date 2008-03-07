@@ -470,20 +470,21 @@ namespace OpenSim
         public UDPServer CreateRegion(RegionInfo regionInfo, bool portadd_flag)
         {
             int port = regionInfo.InternalEndPoint.Port;
-            if ((proxyOffset != 0) && (portadd_flag)) 
+
+            // set initial RegionID to originRegionID in RegionInfo. (it needs for loding prims)
+            regionInfo.originRegionID = regionInfo.RegionID;
+
+            // set initial ServerURI
+            regionInfo.ServerURI = "http://" + regionInfo.ExternalHostName 
+                                        + ":" + regionInfo.InternalEndPoint.Port.ToString();
+
+            if ((proxyUrl.Length > 0) && (portadd_flag)) 
             {
                 // set proxy url to RegionInfo
                 regionInfo.proxyUrl = proxyUrl;
-
-                // set initial RegionID to originRegionID in RegionInfo. (it needs for loding prims)
-                regionInfo.originRegionID = regionInfo.RegionID;
-
-                // set initial ServerURI
-                regionInfo.ServerURI = "http://" + regionInfo.ExternalHostName 
-                                            + ":" + regionInfo.InternalEndPoint.Port.ToString();
-
                 ProxyCommand(proxyUrl, "AddPort", port, port + proxyOffset, regionInfo.ExternalHostName);
             }
+
             UDPServer udpServer;
             Scene scene = SetupScene(regionInfo, proxyOffset, out udpServer, m_permissions);
 

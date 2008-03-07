@@ -23,9 +23,10 @@ CREATE TABLE `regions` (
   `regionUserRecvKey` varchar(128) default NULL,
   `regionUserSendKey` varchar(128) default NULL, `regionMapTexture` varchar(36) default NULL,
   `serverHttpPort` int(10) default NULL, `serverRemotingPort` int(10) default NULL,
+  `owner_uuid` varchar(36) default '00000000-0000-0000-0000-000000000000' not null,
   `originUUID` varchar(36),
   PRIMARY KEY  (`uuid`),
   KEY `regionName` (`regionName`),
   KEY `regionHandle` (`regionHandle`),
   KEY `overrideHandles` (`eastOverrideHandle`,`westOverrideHandle`,`southOverrideHandle`,`northOverrideHandle`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 ROW_FORMAT=FIXED COMMENT='Rev. 2';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 ROW_FORMAT=FIXED COMMENT='Rev. 3';

@@ -97,9 +97,14 @@ namespace OpenSim.Framework.Data.MySQL
                 database.ExecuteResourceSql("CreateRegionsTable.sql");
                 return;
             }
-            else if (oldVersion.Contains("Rev. 1"))
+            if (oldVersion.Contains("Rev. 1"))
             {
                 database.ExecuteResourceSql("UpgradeRegionsTableToVersion2.sql");
+                return;
+            }
+            if (oldVersion.Contains("Rev. 2"))
+            {
+                database.ExecuteResourceSql("UpgradeRegionsTableToVersion3.sql");
                 return;
             }
         }
