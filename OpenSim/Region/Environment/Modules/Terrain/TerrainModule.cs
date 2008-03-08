@@ -134,6 +134,17 @@ namespace OpenSim.Region.Environment.Modules.Terrain
         {
             map = new double[Constants.RegionSize, Constants.RegionSize];
             taint = new bool[Constants.RegionSize / 16, Constants.RegionSize / 16];
+
+            int x, y;
+            for (x = 0; x < Constants.RegionSize; x++)
+            {
+                for (y = 0; y < Constants.RegionSize; y++)
+                {
+                    map[x, y] = 60.0 - // 60 = Sphere Radius
+                        ((x - (Constants.RegionSize / 2)) * (x - (Constants.RegionSize / 2)) +
+                        (y - (Constants.RegionSize / 2)) * (y - (Constants.RegionSize / 2)));
+                }
+            }
         }
 
         public TerrainChannel(double[,] import)
