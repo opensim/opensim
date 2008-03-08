@@ -1899,6 +1899,7 @@ namespace OpenSim.Region.ScriptEngine.Common
         public string llGetScriptName()
         {
             m_host.AddScriptLPS(1);
+
             return String.Empty;
         }
 
@@ -2942,7 +2943,8 @@ namespace OpenSim.Region.ScriptEngine.Common
         public int llGetScriptState(string name)
         {
             m_host.AddScriptLPS(1);
-            NotImplemented("llGetScriptState");
+
+            //NotImplemented("llGetScriptState");
             return 0;
         }
 
@@ -3094,6 +3096,24 @@ namespace OpenSim.Region.ScriptEngine.Common
                 return;
             }
             World.SetLandMusicURL(m_host.AbsolutePosition.X, m_host.AbsolutePosition.Y, url);
+        }
+
+        public void osSetParcelMediaURL(string url)
+        {
+            m_host.AddScriptLPS(1);
+            LLUUID landowner = World.GetLandOwner(m_host.AbsolutePosition.X, m_host.AbsolutePosition.Y);
+
+            if(landowner.Equals(null))
+            {
+                return;
+            }
+        
+            if(landowner != m_host.ObjectOwner)
+            {
+                return;
+            }
+
+            World.SetLandMediaURL(m_host.AbsolutePosition.X, m_host.AbsolutePosition.Y, url);
         }
 
         public LSL_Types.Vector3 llGetRootPosition()
@@ -3441,6 +3461,7 @@ namespace OpenSim.Region.ScriptEngine.Common
 
             int number = 0;
             int digit;
+            int baddigit = 0;
 
             m_host.AddScriptLPS(1);
 
@@ -4004,7 +4025,65 @@ namespace OpenSim.Region.ScriptEngine.Common
         public int llGetParcelPrimCount(LSL_Types.Vector3 pos, int category, int sim_wide)
         {
             m_host.AddScriptLPS(1);
-            NotImplemented("llGetParcelPrimCount");
+
+            LandData land = World.GetLandData((float)pos.x, (float)pos.y);
+
+            if(land == null)
+            {
+                return 0;
+            }
+
+            else
+            {
+                if(sim_wide == 1)
+                {
+                    if (category == 0)
+                    {
+                        return land.simwidePrims;
+                    }
+
+                    else
+                    {
+                        //public int simwideArea = 0;
+                        return 0;
+                    }
+                }
+
+                else
+                {
+                    if(category == 0)//Total Prims
+                    {
+                        return 0;//land.
+                    }
+
+                    else if(category == 1)//Owner Prims
+                    {
+                        return land.ownerPrims;
+                    }
+
+                    else if(category == 2)//Group Prims
+                    {
+                        return land.groupPrims;
+                    }
+
+                    else if(category == 3)//Other Prims
+                    {
+                        return land.otherPrims;
+                    }
+
+                    else if(category == 4)//Selected
+                    {
+                        return land.selectedPrims;
+                    }
+
+                    else if(category == 5)//Temp
+                    {
+                        return 0;//land.
+                    }
+                }
+            }
+
+            //NotImplemented("llGetParcelPrimCount");
             return 0;
         }
 
@@ -4035,19 +4114,25 @@ namespace OpenSim.Region.ScriptEngine.Common
             // Alondria: This currently just is utilizing the normal grid's 0.22 prims/m2 calculation
             // Which probably will be irrelevent in OpenSim....
             LandData land = World.GetLandData((float)pos.x, (float)pos.y);
+
             float bonusfactor = World.RegionInfo.EstateSettings.objectBonusFactor;
+
             if (land == null)
             {
                 return 0;
             }
+
             if (sim_wide == 1)
             {
                 decimal v = land.simwideArea * (decimal)(0.22) * (decimal)bonusfactor;
+
                 return (int)v;
             }
+
             else
             {
                 decimal v = land.area * (decimal)(0.22) * (decimal)bonusfactor;
+
                 return (int)v;
             }
 

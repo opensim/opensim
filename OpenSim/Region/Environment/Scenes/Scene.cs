@@ -2414,6 +2414,22 @@ namespace OpenSim.Region.Environment.Scenes
             }
         }
 
+        public void SetLandMediaURL(float x, float y, string url)
+        {
+            Land land = LandManager.getLandObject(x, y);
+
+            if (land == null)
+            {
+                return;
+            }
+
+            else
+            {
+                land.landData.mediaURL = url;
+                return;
+            }
+        }
+
         #endregion
 
         #region Script Engine

@@ -1874,6 +1874,11 @@ namespace OpenSim.Region.ScriptEngine.Common
             return m_LSL_Functions.osConsoleCommand(Command);
         }
 
+        public void osSetParcelMediaURL(string url)
+        {
+            m_LSL_Functions.osSetParcelMediaURL(url);
+        }
+
         public double llList2Float(LSL_Types.list src, int index)
         {
             return m_LSL_Functions.llList2Float(src, index);
@@ -1882,6 +1887,7 @@ namespace OpenSim.Region.ScriptEngine.Common
         // LSL CONSTANTS
         public const int TRUE = 1;
         public const int FALSE = 0;
+
         public const int STATUS_PHYSICS = 1;
         public const int STATUS_ROTATE_X = 2;
         public const int STATUS_ROTATE_Y = 4;
@@ -1892,10 +1898,12 @@ namespace OpenSim.Region.ScriptEngine.Common
         public const int STATUS_DIE_AT_EDGE = 128;
         public const int STATUS_RETURN_AT_EDGE = 256;
         public const int STATUS_CAST_SHADOWS = 512;
+
         public const int AGENT = 1;
         public const int ACTIVE = 2;
         public const int PASSIVE = 4;
         public const int SCRIPTED = 8;
+
         public const int CONTROL_FWD = 1;
         public const int CONTROL_BACK = 2;
         public const int CONTROL_LEFT = 4;
@@ -1906,6 +1914,8 @@ namespace OpenSim.Region.ScriptEngine.Common
         public const int CONTROL_ROT_RIGHT = 512;
         public const int CONTROL_LBUTTON = 268435456;
         public const int CONTROL_ML_LBUTTON = 1073741824;
+
+        //Permissions
         public const int PERMISSION_DEBIT = 2;
         public const int PERMISSION_TAKE_CONTROLS = 4;
         public const int PERMISSION_REMAP_CONTROLS = 8;
@@ -1916,6 +1926,7 @@ namespace OpenSim.Region.ScriptEngine.Common
         public const int PERMISSION_CHANGE_JOINTS = 256;
         public const int PERMISSION_CHANGE_PERMISSIONS = 512;
         public const int PERMISSION_TRACK_CAMERA = 1024;
+
         public const int AGENT_FLYING = 1;
         public const int AGENT_ATTACHMENTS = 2;
         public const int AGENT_SCRIPTED = 4;
@@ -1929,6 +1940,8 @@ namespace OpenSim.Region.ScriptEngine.Common
         public const int AGENT_CROUCHING = 1024;
         public const int AGENT_BUSY = 2048;
         public const int AGENT_ALWAYS_RUN = 4096;
+
+        //Particle Systems
         public const int PSYS_PART_INTERP_COLOR_MASK = 1;
         public const int PSYS_PART_INTERP_SCALE_MASK = 2;
         public const int PSYS_PART_BOUNCE_MASK = 4;
@@ -1966,6 +1979,7 @@ namespace OpenSim.Region.ScriptEngine.Common
         public const int PSYS_SRC_PATTERN_ANGLE = 4;
         public const int PSYS_SRC_PATTERN_ANGLE_CONE = 8;
         public const int PSYS_SRC_PATTERN_ANGLE_CONE_EMPTY = 16;
+
         public const int VEHICLE_TYPE_NONE = 0;
         public const int VEHICLE_TYPE_SLED = 1;
         public const int VEHICLE_TYPE_CAR = 2;
@@ -2005,6 +2019,7 @@ namespace OpenSim.Region.ScriptEngine.Common
         public const int VEHICLE_FLAG_MOUSELOOK_STEER = 128;
         public const int VEHICLE_FLAG_MOUSELOOK_BANK = 256;
         public const int VEHICLE_FLAG_CAMERA_DECOUPLED = 512;
+
         public const int INVENTORY_ALL = -1;
         public const int INVENTORY_NONE = -1;
         public const int INVENTORY_TEXTURE = 0;
@@ -2017,6 +2032,7 @@ namespace OpenSim.Region.ScriptEngine.Common
         public const int INVENTORY_BODYPART = 13;
         public const int INVENTORY_ANIMATION = 20;
         public const int INVENTORY_GESTURE = 21;
+
         public const int ATTACH_CHEST = 1;
         public const int ATTACH_HEAD = 2;
         public const int ATTACH_LSHOULDER = 3;
@@ -2047,6 +2063,7 @@ namespace OpenSim.Region.ScriptEngine.Common
         public const int ATTACH_BELLY = 28;
         public const int ATTACH_RPEC = 29;
         public const int ATTACH_LPEC = 30;
+
         public const int LAND_LEVEL = 0;
         public const int LAND_RAISE = 1;
         public const int LAND_LOWER = 2;
@@ -2056,6 +2073,8 @@ namespace OpenSim.Region.ScriptEngine.Common
         public const int LAND_SMALL_BRUSH = 1;
         public const int LAND_MEDIUM_BRUSH = 2;
         public const int LAND_LARGE_BRUSH = 3;
+
+        //Agent Dataserver
         public const int DATA_ONLINE = 1;
         public const int DATA_NAME = 2;
         public const int DATA_BORN = 3;
@@ -2063,6 +2082,7 @@ namespace OpenSim.Region.ScriptEngine.Common
         public const int DATA_SIM_POS = 5;
         public const int DATA_SIM_STATUS = 6;
         public const int DATA_SIM_RATING = 7;
+
         public const int ANIM_ON = 1;
         public const int LOOP = 2;
         public const int REVERSE = 4;
@@ -2091,9 +2111,13 @@ namespace OpenSim.Region.ScriptEngine.Common
         public const int TYPE_KEY = 4;
         public const int TYPE_VECTOR = 5;
         public const int TYPE_ROTATION = 6;
+
+        //XML RPC Remote Data Channel
         public const int REMOTE_DATA_CHANNEL = 1;
         public const int REMOTE_DATA_REQUEST = 2;
         public const int REMOTE_DATA_REPLY = 3;
+
+        //llHTTPRequest
         public const int HTTP_METHOD = 0;
         public const int HTTP_MIMETYPE = 1;
         public const int HTTP_BODY_MAXLENGTH = 2;
@@ -2117,6 +2141,7 @@ namespace OpenSim.Region.ScriptEngine.Common
         public const int PRIM_POINT_LIGHT = 23; // Huh?
         public const int PRIM_TEXGEN_DEFAULT = 0;
         public const int PRIM_TEXGEN_PLANAR = 1;
+
         public const int PRIM_TYPE_BOX = 0;
         public const int PRIM_TYPE_CYLINDER = 1;
         public const int PRIM_TYPE_PRISM = 2;
@@ -2125,10 +2150,12 @@ namespace OpenSim.Region.ScriptEngine.Common
         public const int PRIM_TYPE_TUBE = 5;
         public const int PRIM_TYPE_RING = 6;
         public const int PRIM_TYPE_SCULPT = 7;
+
         public const int PRIM_HOLE_DEFAULT = 0;
         public const int PRIM_HOLE_CIRCLE = 16;
         public const int PRIM_HOLE_SQUARE = 32;
         public const int PRIM_HOLE_TRIANGLE = 48;
+
         public const int PRIM_MATERIAL_STONE = 0;
         public const int PRIM_MATERIAL_METAL = 1;
         public const int PRIM_MATERIAL_GLASS = 2;
@@ -2137,6 +2164,7 @@ namespace OpenSim.Region.ScriptEngine.Common
         public const int PRIM_MATERIAL_PLASTIC = 5;
         public const int PRIM_MATERIAL_RUBBER = 6;
         public const int PRIM_MATERIAL_LIGHT = 7;
+
         public const int PRIM_SHINY_NONE = 0;
         public const int PRIM_SHINY_LOW = 1;
         public const int PRIM_SHINY_MEDIUM = 2;
@@ -2170,11 +2198,13 @@ namespace OpenSim.Region.ScriptEngine.Common
         public const int MASK_GROUP = 2;
         public const int MASK_EVERYONE = 3;
         public const int MASK_NEXT = 4;
+
         public const int PERM_TRANSFER = 8192;
         public const int PERM_MODIFY = 16384;
         public const int PERM_COPY = 32768;
         public const int PERM_MOVE = 524288;
         public const int PERM_ALL = 2147483647;
+
         public const int PARCEL_MEDIA_COMMAND_STOP = 0;
         public const int PARCEL_MEDIA_COMMAND_PAUSE = 1;
         public const int PARCEL_MEDIA_COMMAND_PLAY = 2;
@@ -2185,8 +2215,10 @@ namespace OpenSim.Region.ScriptEngine.Common
         public const int PARCEL_MEDIA_COMMAND_AGENT = 7;
         public const int PARCEL_MEDIA_COMMAND_UNLOAD = 8;
         public const int PARCEL_MEDIA_COMMAND_AUTO_ALIGN = 9;
+
         public const int PAY_HIDE = -1;
         public const int PAY_DEFAULT = -2;
+
         public const string NULL_KEY = "00000000-0000-0000-0000-000000000000";
         public const string EOF = "\n\n\n";
         public const double PI = 3.14159274f;
@@ -2209,6 +2241,15 @@ namespace OpenSim.Region.ScriptEngine.Common
         public const int LIST_STAT_NUM_COUNT = 8;
         public const int LIST_STAT_GEOMETRIC_MEAN = 9;
         public const int LIST_STAT_HARMONIC_MEAN = 100;
+
+        //ParcelPrim Categories
+        public const int PARCEL_COUNT_TOTAL = 0;
+        public const int PARCEL_COUNT_OWNER = 1;
+        public const int PARCEL_COUNT_GROUP = 2;
+        public const int PARCEL_COUNT_OTHER = 3;
+        public const int PARCEL_COUNT_SELECTED = 4;
+        public const int PARCEL_COUNT_TEMP = 5;
+
         // Can not be public const?
         public vector ZERO_VECTOR = new vector(0.0, 0.0, 0.0);
         public rotation ZERO_ROTATION = new rotation(0.0, 0, 0.0, 1.0);
