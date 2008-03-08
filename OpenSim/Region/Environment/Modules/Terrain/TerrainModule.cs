@@ -330,6 +330,7 @@ namespace OpenSim.Region.Environment.Modules.Terrain
                         for (x = 0; x < m_channel.Width; x++)
                             for (y = 0; y < m_channel.Height; y++)
                                 m_channel[x, y] = Double.Parse(param);
+                        SendUpdatedLayerData();
                         break;
                     default:
                         m_log.Warn("Unknown terrain command.");
