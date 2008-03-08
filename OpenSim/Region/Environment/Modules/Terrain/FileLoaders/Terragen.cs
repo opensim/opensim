@@ -52,8 +52,7 @@ namespace OpenSim.Region.Environment.Modules.Terrain.FileLoaders
             BinaryReader bs = new BinaryReader(s);
 
             bool eof = false;
-
-            if (ASCIIEncoding.ASCII.GetString(bs.ReadBytes(16)) == "TERRAGENTERRAIN")
+            if (ASCIIEncoding.ASCII.GetString(bs.ReadBytes(16)) == "TERRAGENTERRAIN ")
             {
                 // Terragen file
                 while (eof == false)
