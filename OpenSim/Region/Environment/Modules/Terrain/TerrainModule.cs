@@ -315,6 +315,7 @@ namespace OpenSim.Region.Environment.Modules.Terrain
                 string command = args[1];
                 string param = args[2];
 
+                int x, y;
 
                 switch (command)
                 {
@@ -324,6 +325,11 @@ namespace OpenSim.Region.Environment.Modules.Terrain
                         break;
                     case "save":
                         SaveToFile(param);
+                        break;
+                    case "fill":
+                        for (x = 0; x < m_channel.Width; x++)
+                            for (y = 0; y < m_channel.Height; y++)
+                                m_channel[x, y] = Double.Parse(param);
                         break;
                     default:
                         m_log.Warn("Unknown terrain command.");
