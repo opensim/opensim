@@ -3722,14 +3722,65 @@ namespace OpenSim.Region.ScriptEngine.Common
         public int llGetObjectPermMask(int mask)
         {
             m_host.AddScriptLPS(1);
-            NotImplemented("llGetObjectPermMask");
-            return 0;
+
+            int permmask = 0;
+
+            if (mask == BuiltIn_Commands_BaseClass.MASK_BASE)//0
+            {
+                permmask = (int)m_host.BaseMask;
+            }
+
+            else if (mask == BuiltIn_Commands_BaseClass.MASK_OWNER)//1
+            {
+                permmask = (int)m_host.OwnerMask;
+            }
+
+            else if (mask == BuiltIn_Commands_BaseClass.MASK_GROUP)//2
+            {
+                permmask = (int)m_host.GroupMask;
+            }
+
+            else if (mask == BuiltIn_Commands_BaseClass.MASK_EVERYONE)//3
+            {
+                permmask = (int)m_host.EveryoneMask;
+            }
+
+            else if (mask == BuiltIn_Commands_BaseClass.MASK_NEXT)//4
+            {
+                permmask = (int)m_host.NextOwnerMask;
+            }
+
+            return permmask;
         }
 
         public void llSetObjectPermMask(int mask, int value)
         {
             m_host.AddScriptLPS(1);
-            NotImplemented("llSetObjectPermMask");
+
+            if (mask == BuiltIn_Commands_BaseClass.MASK_BASE)//0
+            {
+                m_host.BaseMask = (uint)value;
+            }
+
+            else if (mask == BuiltIn_Commands_BaseClass.MASK_OWNER)//1
+            {
+                m_host.OwnerMask = (uint)value;
+            }
+
+            else if (mask == BuiltIn_Commands_BaseClass.MASK_GROUP)//2
+            {
+                m_host.GroupMask = (uint)value;
+            }
+
+            else if (mask == BuiltIn_Commands_BaseClass.MASK_EVERYONE)//3
+            {
+                m_host.EveryoneMask = (uint)value;
+            }
+
+            else if (mask == BuiltIn_Commands_BaseClass.MASK_NEXT)//4
+            {
+                m_host.NextOwnerMask = (uint)value;
+            }
         }
 
         public void llGetInventoryPermMask(string item, int mask)
