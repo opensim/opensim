@@ -211,13 +211,13 @@ namespace OpenSim.Region.Environment.Modules.Terrain.PaintBrushes
                                 coords[1] += y;
 
                                 if (coords[0] > map.Width - 1)
-                                    coords[0] = map.Width - 1;
+                                    continue;
                                 if (coords[1] > map.Height - 1)
-                                    coords[1] = map.Height - 1;
+                                    continue;
                                 if (coords[0] < 0)
-                                    coords[0] = 0;
+                                    continue;
                                 if (coords[1] < 0)
-                                    coords[1] = 0;
+                                    continue;
 
                                 double heightF = map[x, y];
                                 double target = map[coords[0], coords[1]];

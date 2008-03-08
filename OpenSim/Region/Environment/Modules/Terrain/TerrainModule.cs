@@ -332,6 +332,16 @@ namespace OpenSim.Region.Environment.Modules.Terrain
                                 m_channel[x, y] = Double.Parse(param);
                         SendUpdatedLayerData();
                         break;
+                    case "newbrushes":
+                        if (Boolean.Parse(param))
+                        {
+                            m_painteffects[StandardTerrainEffects.Revert] = new PaintBrushes.WeatherSphere();
+                        }
+                        else
+                        {
+                            InstallDefaultEffects();
+                        }
+                        break;
                     default:
                         m_log.Warn("Unknown terrain command.");
                         break;
