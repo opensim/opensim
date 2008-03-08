@@ -190,6 +190,7 @@ namespace OpenSim.Region.Environment.Modules.Terrain
         private Dictionary<string, ITerrainLoader> m_loaders = new Dictionary<string, ITerrainLoader>();
         Scene m_scene;
         ITerrainChannel m_channel;
+        ITerrainChannel m_revert;
         bool m_tainted = false;
         private IConfigSource m_gConfig;
 
@@ -201,6 +202,7 @@ namespace OpenSim.Region.Environment.Modules.Terrain
             m_painteffects[StandardTerrainEffects.Smooth]   = new PaintBrushes.SmoothSphere();
             m_painteffects[StandardTerrainEffects.Noise]    = new PaintBrushes.NoiseSphere();
             m_painteffects[StandardTerrainEffects.Flatten]  = new PaintBrushes.FlattenSphere();
+            m_painteffects[StandardTerrainEffects.Revert]   = new PaintBrushes.RevertSphere(m_revert);
 
             // Area of effect selection effects
             m_floodeffects[StandardTerrainEffects.Raise]    = new FloodBrushes.RaiseArea();
@@ -208,6 +210,7 @@ namespace OpenSim.Region.Environment.Modules.Terrain
             m_floodeffects[StandardTerrainEffects.Smooth]   = new FloodBrushes.SmoothArea();
             m_floodeffects[StandardTerrainEffects.Noise]    = new FloodBrushes.NoiseArea();
             m_floodeffects[StandardTerrainEffects.Flatten]  = new FloodBrushes.FlattenArea();
+            m_floodeffects[StandardTerrainEffects.Revert]   = new FloodBrushes.RevertArea(m_revert);
 
             // Filesystem load/save loaders
             m_loaders[".r32"] = new FileLoaders.RAW32();
@@ -216,6 +219,18 @@ namespace OpenSim.Region.Environment.Modules.Terrain
             m_loaders[".raw"] = new FileLoaders.LLRAW();
             m_loaders[".jpg"] = new FileLoaders.JPEG();
             m_loaders[".jpeg"] = m_loaders[".jpg"];
+        }
+
+        public void UpdateRevertMap()
+        {
+            int x, y;
+            for (x = 0; x < m_channel.Width; x++)
+            {
+                for (y = 0; y < m_channel.Height; y++)
+                {
+                    m_revert[x, y] = m_channel[x, y];
+                }
+            }
         }
 
         public void LoadFromFile(string filename)
@@ -229,6 +244,7 @@ namespace OpenSim.Region.Environment.Modules.Terrain
                         ITerrainChannel channel = loader.Value.LoadFile(filename);
                         m_scene.Heightmap = channel;
                         m_channel = channel;
+                        UpdateRevertMap();
                     }
                     return;
                 }
@@ -266,11 +282,15 @@ namespace OpenSim.Region.Environment.Modules.Terrain
                 {
                     m_channel = new TerrainChannel();
                     m_scene.Heightmap = m_channel;
+                    m_revert = new TerrainChannel();
+                    UpdateRevertMap();
                 }
             }
             else
             {
                 m_channel = m_scene.Heightmap;
+                m_revert = new TerrainChannel();
+                UpdateRevertMap();
             }
 
             m_scene.EventManager.OnNewClient += EventManager_OnNewClient;
