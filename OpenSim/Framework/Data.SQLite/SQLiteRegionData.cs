@@ -685,6 +685,7 @@ namespace OpenSim.Framework.Data.SQLite
             createCol(shapes, "ProfileEnd", typeof (Int32));
             createCol(shapes, "ProfileCurve", typeof (Int32));
             createCol(shapes, "ProfileHollow", typeof (Int32));
+            createCol(shapes, "State", typeof(Int32));
             // text TODO: this isn't right, but I'm not sure the right
             // way to specify this as a blob atm
             createCol(shapes, "Texture", typeof (Byte[]));
@@ -1170,6 +1171,7 @@ namespace OpenSim.Framework.Data.SQLite
             s.ProfileEnd = Convert.ToUInt16(row["ProfileEnd"]);
             s.ProfileCurve = Convert.ToByte(row["ProfileCurve"]);
             s.ProfileHollow = Convert.ToUInt16(row["ProfileHollow"]);
+            s.State = Convert.ToByte(row["State"]);
             // text TODO: this isn't right] = but I'm not sure the right
             // way to specify this as a blob atm
 
@@ -1227,6 +1229,7 @@ namespace OpenSim.Framework.Data.SQLite
             row["ProfileEnd"] = s.ProfileEnd;
             row["ProfileCurve"] = s.ProfileCurve;
             row["ProfileHollow"] = s.ProfileHollow;
+            row["State"] = s.State;
 
             row["Texture"] = s.TextureEntry;
             row["ExtraParams"] = s.ExtraParams;

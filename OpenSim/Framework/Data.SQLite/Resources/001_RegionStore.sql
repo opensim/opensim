@@ -72,6 +72,7 @@ CREATE TABLE primshapes(UUID varchar(255) primary key,
         ProfileEnd integer,
         ProfileCurve integer,
         ProfileHollow integer,
+        State integer,
         Texture blob,
         ExtraParams blob);
 
