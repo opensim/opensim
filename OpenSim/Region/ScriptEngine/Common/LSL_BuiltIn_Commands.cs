@@ -1849,7 +1849,6 @@ namespace OpenSim.Region.ScriptEngine.Common
         public void llModifyLand(int action, int brush)
         {
             m_host.AddScriptLPS(1);
-            double dsize;
             if (World.PermissionsMngr.CanTerraform(m_host.OwnerID, new LLVector3(m_host.AbsolutePosition.X, m_host.AbsolutePosition.Y, 0)))
             {
                 NotImplemented("llModifyLand");
@@ -3461,7 +3460,6 @@ namespace OpenSim.Region.ScriptEngine.Common
 
             int number = 0;
             int digit;
-            int baddigit = 0;
 
             m_host.AddScriptLPS(1);
 
