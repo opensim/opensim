@@ -140,7 +140,7 @@ namespace OpenSim.Region.Environment.Modules
             foreach (string line in lines)
             {
                 string nextLine = line.Trim();
-
+                //replace with switch, or even better, do some proper parsing 
                 if (nextLine.StartsWith("MoveTo"))
                 {
                     float x = 0;
@@ -224,6 +224,17 @@ namespace OpenSim.Region.Environment.Modules
                     nextLine = nextLine.Trim();
                     float size = Convert.ToSingle(nextLine, CultureInfo.InvariantCulture);
                     drawPen.Width = size;
+                }
+                else if (nextLine.StartsWith("PenColour"))
+                {
+                    nextLine = nextLine.Remove(0, 9);
+                    nextLine = nextLine.Trim();
+                    Color newColour = Color.FromName(nextLine);
+                    if (newColour != null)
+                    {
+                        myBrush.Color = newColour;
+                        drawPen.Color = newColour;
+                    }
                 }
             }
         }
