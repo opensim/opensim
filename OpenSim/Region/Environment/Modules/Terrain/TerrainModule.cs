@@ -224,7 +224,12 @@ namespace OpenSim.Region.Environment.Modules.Terrain
             {
                 if (filename.EndsWith(loader.Key))
                 {
-                    loader.Value.LoadFile(filename);
+                    lock (m_scene)
+                    {
+                        ITerrainChannel channel = loader.Value.LoadFile(filename);
+                        m_scene.Heightmap = channel;
+                        m_channel = channel;
+                    }
                     return;
                 }
             }
