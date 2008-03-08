@@ -27,12 +27,14 @@
 */
 
 using System;
+using System.Drawing;
 using System.Collections.Generic;
 using libsecondlife;
 using Nini.Config;
 using OpenSim.Framework;
 using OpenSim.Region.Environment.Interfaces;
 using OpenSim.Region.Environment.Scenes;
+using OpenJPEGNet;
 
 namespace OpenSim.Region.Environment.Modules
 {
@@ -93,8 +95,15 @@ namespace OpenSim.Region.Environment.Modules
             }
         }
 
+
         public LLUUID AddDynamicTextureURL(LLUUID simID, LLUUID primID, string contentType, string url,
                                            string extraParams, int updateTimer)
+        {
+            return AddDynamicTextureURL(simID, primID, contentType, url, extraParams, updateTimer, false, 255);
+        }
+
+        public LLUUID AddDynamicTextureURL(LLUUID simID, LLUUID primID, string contentType, string url,
+                                           string extraParams, int updateTimer, bool SetBlending, byte AlphaValue)
         {
             if (RenderPlugins.ContainsKey(contentType))
             {
@@ -108,6 +117,8 @@ namespace OpenSim.Region.Environment.Modules
                 updater.UpdateTimer = updateTimer;
                 updater.UpdaterID = LLUUID.Random();
                 updater.Params = extraParams;
+                updater.BlendWithOldTexture = SetBlending;
+                updater.FrontAlpha = AlphaValue;
 
                 if (!Updaters.ContainsKey(updater.UpdaterID))
                 {
@@ -121,7 +132,13 @@ namespace OpenSim.Region.Environment.Modules
         }
 
         public LLUUID AddDynamicTextureData(LLUUID simID, LLUUID primID, string contentType, string data,
-                                            string extraParams, int updateTimer)
+                                           string extraParams, int updateTimer)
+        {
+          return AddDynamicTextureData(simID, primID, contentType, data, extraParams, updateTimer, false, 255);
+        }
+
+        public LLUUID AddDynamicTextureData(LLUUID simID, LLUUID primID, string contentType, string data,
+                                            string extraParams, int updateTimer, bool SetBlending, byte AlphaValue)
         {
             if (RenderPlugins.ContainsKey(contentType))
             {
@@ -133,6 +150,8 @@ namespace OpenSim.Region.Environment.Modules
                 updater.UpdateTimer = updateTimer;
                 updater.UpdaterID = LLUUID.Random();
                 updater.Params = extraParams;
+                updater.BlendWithOldTexture = SetBlending;
+                updater.FrontAlpha = AlphaValue;
 
                 if (!Updaters.ContainsKey(updater.UpdaterID))
                 {
@@ -156,6 +175,9 @@ namespace OpenSim.Region.Environment.Modules
             public int UpdateTimer;
             public LLUUID LastAssetID;
             public string Params;
+            public bool BlendWithOldTexture = false;
+            public bool SetNewFrontAlpha = false;
+            public byte FrontAlpha = 255;
 
             public DynamicTextureUpdater()
             {
@@ -166,9 +188,30 @@ namespace OpenSim.Region.Environment.Modules
 
             public void DataReceived(byte[] data, Scene scene)
             {
+                SceneObjectPart part = scene.GetSceneObjectPart(PrimID);
+                byte[] assetData;
+                AssetBase oldAsset = null;
+                if (BlendWithOldTexture)
+                {
+                   LLUUID lastTextureID = part.Shape.Textures.DefaultTexture.TextureID;
+                   oldAsset = scene.AssetCache.GetAsset(lastTextureID, true);
+                   if (oldAsset != null)
+                   {
+                       assetData = BlendTextures(data, oldAsset.Data, SetNewFrontAlpha, FrontAlpha);
+                   }
+                   else
+                   {
+                       assetData = new byte[data.Length];
+                       Array.Copy(data, assetData, data.Length);
+                   }
+                }
+                else
+                {
+                    assetData = new byte[data.Length];
+                    Array.Copy(data, assetData, data.Length);
+                }
+
                 //TODO delete the last asset(data), if it was a dynamic texture
-                byte[] assetData = new byte[data.Length];
-                Array.Copy(data, assetData, data.Length);
                 AssetBase asset = new AssetBase();
                 asset.FullID = LLUUID.Random();
                 asset.Data = assetData;
@@ -181,9 +224,52 @@ namespace OpenSim.Region.Environment.Modules
 
                 LastAssetID = asset.FullID;
 
-                SceneObjectPart part = scene.GetSceneObjectPart(PrimID);
+               
                 part.Shape.Textures = new LLObject.TextureEntry(asset.FullID);
                 part.ScheduleFullUpdate();
+            }
+
+            private byte[] BlendTextures(byte[] frontImage, byte[] backImage)
+            {
+                return BlendTextures(frontImage, backImage, false, 0);
+            }
+
+            private byte[] BlendTextures(byte[] frontImage, byte[] backImage, bool setNewAlpha, byte newAlpha)
+            {
+                Bitmap image1 = new Bitmap(OpenJPEG.DecodeToImage(frontImage));
+                Bitmap image2 = new Bitmap(OpenJPEG.DecodeToImage(backImage));
+                if (setNewAlpha)
+                {
+                    SetAlpha(ref image1, newAlpha);
+                }
+                Bitmap joint = MergeBitMaps(image1, image2);
+
+                return OpenJPEG.EncodeFromImage(joint, true);
+            }
+
+            public Bitmap MergeBitMaps(Bitmap front, Bitmap back)
+            {
+                Bitmap joint;
+                Graphics jG;
+
+                joint = new Bitmap(back.Width, back.Height, System.Drawing.Imaging.PixelFormat.Format32bppArgb);
+                jG = Graphics.FromImage(joint);
+
+                jG.DrawImage(back, 0, 0, back.Width, back.Height);
+                jG.DrawImage(front, 0, 0, back.Width, back.Height);
+
+                return joint;
+            }
+
+            private void SetAlpha(ref Bitmap b, byte alpha)
+            {
+                for (int w = 0; w < b.Width; w++)
+                {
+                    for (int h = 0; h < b.Height; h++)
+                    {
+                        b.SetPixel(w, h, Color.FromArgb(alpha, b.GetPixel(w, h)));
+                    }
+                }
             }
         }
     }

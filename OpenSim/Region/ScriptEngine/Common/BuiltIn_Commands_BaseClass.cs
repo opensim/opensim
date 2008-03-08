@@ -1849,6 +1849,24 @@ namespace OpenSim.Region.ScriptEngine.Common
             return m_LSL_Functions.osSetDynamicTextureURL(dynamicID, contentType, url, extraParams, timer);
         }
 
+        public string osSetDynamicTextureData(string dynamicID, string contentType, string data, string extraParams,
+                                             int timer)
+        {
+            return m_LSL_Functions.osSetDynamicTextureData(dynamicID, contentType, data, extraParams, timer);
+        }
+
+        public string osSetDynamicTextureURLBlend(string dynamicID, string contentType, string url, string extraParams,
+                                           int timer, int alpha)
+        {
+            return m_LSL_Functions.osSetDynamicTextureURLBlend(dynamicID, contentType, url, extraParams, timer, alpha);
+        }
+
+        public string osSetDynamicTextureDataBlend(string dynamicID, string contentType, string data, string extraParams,
+                                             int timer, int alpha)
+        {
+            return m_LSL_Functions.osSetDynamicTextureDataBlend(dynamicID, contentType, data, extraParams, timer, alpha);
+        }
+
         public double osTerrainGetHeight(int x, int y)
         {
             return m_LSL_Functions.osTerrainGetHeight(x, y);

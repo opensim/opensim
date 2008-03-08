@@ -38,9 +38,12 @@ namespace OpenSim.Region.Environment.Interfaces
 
         LLUUID AddDynamicTextureURL(LLUUID simID, LLUUID primID, string contentType, string url, string extraParams,
                                     int updateTimer);
-
+        LLUUID AddDynamicTextureURL(LLUUID simID, LLUUID primID, string contentType, string url, string extraParams,
+                                   int updateTimer, bool SetBlending, byte AlphaValue);
         LLUUID AddDynamicTextureData(LLUUID simID, LLUUID primID, string contentType, string data, string extraParams,
                                      int updateTimer);
+        LLUUID AddDynamicTextureData(LLUUID simID, LLUUID primID, string contentType, string data, string extraParams,
+                                    int updateTimer, bool SetBlending, byte AlphaValue);
     }
 
     public interface IDynamicTextureRender

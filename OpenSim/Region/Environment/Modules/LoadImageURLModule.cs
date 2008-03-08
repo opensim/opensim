@@ -38,6 +38,7 @@ using OpenSim.Region.Environment.Scenes;
 
 namespace OpenSim.Region.Environment.Modules
 {
+    
     public class LoadImageURLModule : IRegionModule, IDynamicTextureRender
     {
         private string m_name = "LoadImageURL";
@@ -55,7 +56,10 @@ namespace OpenSim.Region.Environment.Modules
         public void PostInitialise()
         {
             m_textureManager = m_scene.RequestModuleInterface<IDynamicTextureManager>();
-            m_textureManager.RegisterRender(GetContentType(), this);
+            if (m_textureManager != null)
+            {
+                m_textureManager.RegisterRender(GetContentType(), this);
+            }
         }
 
         public void Close()

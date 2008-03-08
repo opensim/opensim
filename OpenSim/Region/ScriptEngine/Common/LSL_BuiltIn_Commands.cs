@@ -4265,6 +4265,72 @@ namespace OpenSim.Region.ScriptEngine.Common
             return LLUUID.Zero.ToString();
         }
 
+        public string osSetDynamicTextureURLBlend(string dynamicID, string contentType, string url, string extraParams,
+                                             int timer, int alpha)
+        {
+            m_host.AddScriptLPS(1);
+            if (dynamicID == String.Empty)
+            {
+                IDynamicTextureManager textureManager = World.RequestModuleInterface<IDynamicTextureManager>();
+                LLUUID createdTexture =
+                    textureManager.AddDynamicTextureURL(World.RegionInfo.RegionID, m_host.UUID, contentType, url,
+                                                        extraParams, timer, true, (byte) alpha );
+                return createdTexture.ToString();
+            }
+            else
+            {
+                //TODO update existing dynamic textures
+            }
+
+            return LLUUID.Zero.ToString();
+        }
+
+        public string osSetDynamicTextureData(string dynamicID, string contentType, string data, string extraParams,
+                                           int timer)
+        {
+            m_host.AddScriptLPS(1);
+            if (dynamicID == String.Empty)
+            {
+                IDynamicTextureManager textureManager = World.RequestModuleInterface<IDynamicTextureManager>();
+                if (textureManager != null)
+                {
+                    LLUUID createdTexture =
+                        textureManager.AddDynamicTextureData(World.RegionInfo.RegionID, m_host.UUID, contentType, data,
+                                                            extraParams, timer);
+                    return createdTexture.ToString();
+                }
+            }
+            else
+            {
+                //TODO update existing dynamic textures
+            }
+
+            return LLUUID.Zero.ToString();
+        }
+
+        public string osSetDynamicTextureDataBlend(string dynamicID, string contentType, string data, string extraParams,
+                                          int timer, int alpha)
+        {
+            m_host.AddScriptLPS(1);
+            if (dynamicID == String.Empty)
+            {
+                IDynamicTextureManager textureManager = World.RequestModuleInterface<IDynamicTextureManager>();
+                if (textureManager != null)
+                {
+                    LLUUID createdTexture =
+                        textureManager.AddDynamicTextureData(World.RegionInfo.RegionID, m_host.UUID, contentType, data,
+                                                            extraParams, timer, true, (byte) alpha);
+                    return createdTexture.ToString();
+                }
+            }
+            else
+            {
+                //TODO update existing dynamic textures
+            }
+
+            return LLUUID.Zero.ToString();
+        }
+
         public bool osConsoleCommand(string command)
         {
             m_host.AddScriptLPS(1);

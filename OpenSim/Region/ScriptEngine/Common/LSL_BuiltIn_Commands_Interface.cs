@@ -637,6 +637,11 @@ namespace OpenSim.Region.ScriptEngine.Common
         string llStringTrim(string src, int type);
         //OpenSim functions
         string osSetDynamicTextureURL(string dynamicID, string contentType, string url, string extraParams, int timer);
+        string osSetDynamicTextureURLBlend(string dynamicID, string contentType, string url, string extraParams,
+                                             int timer, int alpha);
+        string osSetDynamicTextureData(string dynamicID, string contentType, string data, string extraParams, int timer);
+        string osSetDynamicTextureDataBlend(string dynamicID, string contentType, string data, string extraParams,
+                                         int timer, int alpha);
         double osTerrainGetHeight(int x, int y);
         int osTerrainSetHeight(int x, int y, double val);
         int osRegionRestart(double seconds);
