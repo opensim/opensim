@@ -696,45 +696,51 @@ namespace OpenSim.Region.Physics.OdePlugin
         public void ProcessTaints(float timestep)
         {
 
-
+            
             if (m_taintadd)
             {
                 changeadd(timestep);
             }
+            if (prim_geom != (IntPtr)0)
+            {
+                if (m_taintposition != _position)
+                    Move(timestep);
 
-            if (m_taintposition != _position)
-                Move(timestep);
+                if (m_taintrot != _orientation)
+                    rotate(timestep);
+                //
 
-            if (m_taintrot != _orientation)
-                rotate(timestep);
-            //
+                if (m_taintPhysics != m_isphysical)
+                    changePhysicsStatus(timestep);
+                //
 
-            if (m_taintPhysics != m_isphysical)
-                changePhysicsStatus(timestep);
-            //
+                if (m_taintsize != _size)
+                    changesize(timestep);
+                //
 
-            if (m_taintsize != _size)
-                changesize(timestep);
-            //
+                if (m_taintshape)
+                    changeshape(timestep);
+                //
 
-            if (m_taintshape)
-                changeshape(timestep);
-            //
+                if (m_taintforce)
+                    changeAddForce(timestep);
 
-            if (m_taintforce)
-                changeAddForce(timestep);
+                if (m_taintdisable)
+                    changedisable(timestep);
 
-            if (m_taintdisable)
-                changedisable(timestep);
+                if (m_taintselected != m_isSelected)
+                    changeSelectedStatus(timestep);
 
-            if (m_taintselected != m_isSelected)
-                changeSelectedStatus(timestep);
+                if (m_taintVelocity != PhysicsVector.Zero)
+                    changevelocity(timestep);
 
-            if (m_taintVelocity != PhysicsVector.Zero)
-                changevelocity(timestep);
-
-            if (m_taintparent != _parent)
-                changelink(timestep);
+                if (m_taintparent != _parent)
+                    changelink(timestep);
+            }
+            else
+            {
+                m_log.Error("[PHYISCS]: The scene reused a disposed PhysActor! *waves finger*, Don't be evil.");
+            }
         }
 
         private void changelink(float timestep)

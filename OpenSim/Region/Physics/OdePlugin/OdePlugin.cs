@@ -238,7 +238,8 @@ namespace OpenSim.Region.Physics.OdePlugin
 
         internal void waitForSpaceUnlock(IntPtr space)
         {
-            while (d.SpaceLockQuery(space)){  } // Wait and do nothing
+            if (space != (IntPtr)0)
+                while (d.SpaceLockQuery(space)){  } // Wait and do nothing
         }
 
         /// <summary>
@@ -1014,6 +1015,11 @@ namespace OpenSim.Region.Physics.OdePlugin
             System.Threading.Thread.Sleep(20);
             if (currentspace != space)
             {
+                m_log.Info("[SPACE]: C:" + currentspace.ToString() + " g:" + geom.ToString());
+                if (currentspace == (IntPtr) 0)
+                {
+                    int adfadf = 0;
+                }
                 if (d.SpaceQuery(currentspace, geom) && currentspace != (IntPtr) 0)
                 {
                     if (d.GeomIsSpace(currentspace))
