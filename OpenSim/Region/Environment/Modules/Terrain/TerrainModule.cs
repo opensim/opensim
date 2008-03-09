@@ -337,6 +337,7 @@ namespace OpenSim.Region.Environment.Modules.Terrain
                         {
                             m_painteffects[StandardTerrainEffects.Revert] = new PaintBrushes.WeatherSphere();
                             m_painteffects[StandardTerrainEffects.Flatten] = new PaintBrushes.OlsenSphere();
+                            m_painteffects[StandardTerrainEffects.Smooth] = new PaintBrushes.ErodeSphere();
                         }
                         else
                         {

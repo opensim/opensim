@@ -40,7 +40,7 @@ namespace OpenSim.Region.Environment.Modules.Terrain.PaintBrushes
     {
         NeighbourSystem type = NeighbourSystem.Moore; // Parameter
 
-        double nConst = 256.0;
+        double nConst = 1024.0;
 
         #region Supporting Functions
         private enum NeighbourSystem
