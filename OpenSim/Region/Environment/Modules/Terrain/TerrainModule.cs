@@ -336,6 +336,7 @@ namespace OpenSim.Region.Environment.Modules.Terrain
                         if (Boolean.Parse(param))
                         {
                             m_painteffects[StandardTerrainEffects.Revert] = new PaintBrushes.WeatherSphere();
+                            m_painteffects[StandardTerrainEffects.Flatten] = new PaintBrushes.OlsenSphere();
                         }
                         else
                         {
