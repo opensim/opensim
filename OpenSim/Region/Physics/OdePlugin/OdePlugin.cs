@@ -119,7 +119,7 @@ namespace OpenSim.Region.Physics.OdePlugin
         private List<OdePrim> _taintedPrim = new List<OdePrim>();
         public Dictionary<IntPtr, String> geom_name_map = new Dictionary<IntPtr, String>();
         public Dictionary<IntPtr, PhysicsActor> actor_name_map = new Dictionary<IntPtr, PhysicsActor>();
-        private d.ContactGeom[] contacts = new d.ContactGeom[30];
+        private d.ContactGeom[] contacts = new d.ContactGeom[80];
         private d.Contact contact;
         private d.Contact TerrainContact;
         private d.Contact AvatarMovementprimContact;
@@ -291,23 +291,13 @@ namespace OpenSim.Region.Physics.OdePlugin
                 //if (d.GeomIsSpace(g2)) d.SpaceCollide(g2, IntPtr.Zero, nearCallback);
                 return;
             }
-            
-            
-            // Colliding Geom To Geom
-            // This portion of the function 'was' blatantly ripped off from BoxStack.cs
+
+
             if (g1 == (IntPtr)0 || g2 == (IntPtr)0)
                 return;
 
             IntPtr b1 = d.GeomGetBody(g1);
             IntPtr b2 = d.GeomGetBody(g2);
-
-            if (g1 == g2)
-                return; // Can't collide with yourself
-
-            if (b1 != IntPtr.Zero && b2 != IntPtr.Zero && d.AreConnectedExcluding(b1, b2, d.JointType.Contact))
-                return;
-
-            
 
             d.GeomClassID id = d.GeomGetClass(g1);
 
@@ -334,7 +324,27 @@ namespace OpenSim.Region.Physics.OdePlugin
             try
             {
                 //m_log.Warn(g1.ToString() + "|" + g2.ToString());
-                count = d.Collide(g1, g2, contacts.GetLength(0), contacts, d.ContactGeom.SizeOf);
+                // Colliding Geom To Geom
+                // This portion of the function 'was' blatantly ripped off from BoxStack.cs
+                
+
+                
+
+                if (g1 == g2)
+                    return; // Can't collide with yourself
+
+                if (b1 != IntPtr.Zero && b2 != IntPtr.Zero && d.AreConnectedExcluding(b1, b2, d.JointType.Contact))
+                    return;
+                
+                lock (contacts)
+                {
+                    if (g1 == (IntPtr)0)
+                        m_log.Info("g1=0");
+                    if (g2 == (IntPtr)0)
+                        m_log.Info("g2=0");
+
+                    count = d.Collide(g1, g2, contacts.GetLength(0), contacts, d.ContactGeom.SizeOf);
+                }
             }
             catch (SEHException)
             {
@@ -686,47 +696,55 @@ namespace OpenSim.Region.Physics.OdePlugin
             // don't process collision for prim!
             if (timeStep < (m_SkipFramesAtms/3))
             {
-                foreach (OdePrim chr in _activeprims)
+                lock (_activeprims)
                 {
-                    // This if may not need to be there..    it might be skipped anyway.
-                    if (d.BodyIsEnabled(chr.Body) && (!chr.m_disabled))
+
+                    foreach (OdePrim chr in _activeprims)
                     {
-                        try 
+                        // This if may not need to be there..    it might be skipped anyway.
+                        if (d.BodyIsEnabled(chr.Body) && (!chr.m_disabled))
                         {
-                            
-                                d.SpaceCollide2(space, chr.prim_geom, IntPtr.Zero, nearCallback);
-                           
+                            try
+                            {
+                                lock (chr)
+                                {
+                                    if (space != (IntPtr)0 && chr.prim_geom != (IntPtr)0)
+                                        d.SpaceCollide2(space, chr.prim_geom, IntPtr.Zero, nearCallback);
+                                }
+
+                            }
+                            catch (AccessViolationException)
+                            {
+                                m_log.Warn("[PHYSICS]: Unable to space collide");
+                            }
+                            //calculateSpaceForGeom(chr.Position)
+                            //foreach (OdePrim ch2 in _prims)
+                            /// should be a separate space -- lots of avatars will be N**2 slow
+                            //{
+                            //if (ch2.IsPhysical && d.BodyIsEnabled(ch2.Body))
+                            //{
+                            // Only test prim that are 0.03 meters away in one direction.
+                            // This should be Optimized!
+
+                            //if ((Math.Abs(ch2.Position.X - chr.Position.X) < 0.03) || (Math.Abs(ch2.Position.Y - chr.Position.Y) < 0.03) || (Math.Abs(ch2.Position.X - chr.Position.X) < 0.03))
+                            //{
+                            //d.SpaceCollide2(chr.prim_geom, ch2.prim_geom, IntPtr.Zero, nearCallback);
+                            //}
+                            //}
+                            //}
+                        }
+                        try
+                        {
+                            lock (chr)
+                            {
+                                if (LandGeom != (IntPtr)0 && chr.prim_geom != (IntPtr)0)
+                                    d.SpaceCollide2(LandGeom, chr.prim_geom, IntPtr.Zero, nearCallback);
+                            }
                         }
                         catch (AccessViolationException)
                         {
                             m_log.Warn("[PHYSICS]: Unable to space collide");
                         }
-                        //calculateSpaceForGeom(chr.Position)
-                        //foreach (OdePrim ch2 in _prims)
-                        /// should be a separate space -- lots of avatars will be N**2 slow
-                        //{
-                        //if (ch2.IsPhysical && d.BodyIsEnabled(ch2.Body))
-                        //{
-                        // Only test prim that are 0.03 meters away in one direction.
-                        // This should be Optimized!
-
-                        //if ((Math.Abs(ch2.Position.X - chr.Position.X) < 0.03) || (Math.Abs(ch2.Position.Y - chr.Position.Y) < 0.03) || (Math.Abs(ch2.Position.X - chr.Position.X) < 0.03))
-                        //{
-                        //d.SpaceCollide2(chr.prim_geom, ch2.prim_geom, IntPtr.Zero, nearCallback);
-                        //}
-                        //}
-                        //}
-                    }
-                    try 
-                    {
-                        lock (chr)
-                        {
-                            d.SpaceCollide2(LandGeom, chr.prim_geom, IntPtr.Zero, nearCallback);
-                        }
-                    }
-                    catch (AccessViolationException)
-                    {
-                        m_log.Warn("[PHYSICS]: Unable to space collide");
                     }
                 }
             }
@@ -1015,11 +1033,11 @@ namespace OpenSim.Region.Physics.OdePlugin
             System.Threading.Thread.Sleep(20);
             if (currentspace != space)
             {
-                m_log.Info("[SPACE]: C:" + currentspace.ToString() + " g:" + geom.ToString());
-                if (currentspace == (IntPtr) 0)
-                {
-                    int adfadf = 0;
-                }
+                //m_log.Info("[SPACE]: C:" + currentspace.ToString() + " g:" + geom.ToString());
+                //if (currentspace == (IntPtr) 0)
+               //{
+                    //int adfadf = 0;
+                //}
                 if (d.SpaceQuery(currentspace, geom) && currentspace != (IntPtr) 0)
                 {
                     if (d.GeomIsSpace(currentspace))
@@ -1328,9 +1346,10 @@ namespace OpenSim.Region.Physics.OdePlugin
                                         {
                                             RemovePrimThreadLocked(prim);
                                         }
-
-                                        prim.ProcessTaints(timeStep);
-
+                                        else
+                                        {
+                                            prim.ProcessTaints(timeStep);
+                                        }
                                         processedtaints = true;
                                         prim.m_collisionscore = 0;
                                     }

@@ -739,7 +739,7 @@ namespace OpenSim.Region.Physics.OdePlugin
             }
             else
             {
-                m_log.Error("[PHYISCS]: The scene reused a disposed PhysActor! *waves finger*, Don't be evil.");
+                m_log.Error("[PHYSICS]: The scene reused a disposed PhysActor! *waves finger*, Don't be evil.");
             }
         }
 
