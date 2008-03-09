@@ -229,12 +229,17 @@ namespace OpenSim.Region.Environment.Modules
                 {
                     nextLine = nextLine.Remove(0, 9);
                     nextLine = nextLine.Trim();
+                    
+                    // Linux Compile error if Color is compared against null
+                    // Documentation for System.Drawing.Color says it returns 
+                    // a Color with all Components as 0 if the String passed 
+                    // isn't a known color
                     Color newColour = Color.FromName(nextLine);
-                    if (newColour != null)
-                    {
+                    //if (newColour != null)
+                    //{
                         myBrush.Color = newColour;
                         drawPen.Color = newColour;
-                    }
+                    //}
                 }
             }
         }
