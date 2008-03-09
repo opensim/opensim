@@ -37,9 +37,9 @@ namespace OpenSim.Region.Environment.Modules.Terrain.PaintBrushes
     {
         NeighbourSystem type = NeighbourSystem.Moore; // Parameter
 
-        double rainHeight = 1.0;
+        double rainHeight = 0.2;
         int rounds = 10;
-        double waterSaturation = 0.01; // Can carry 1% of water in height
+        double waterSaturation = 0.30; // Can carry 1% of water in height
 
         #region Supporting Functions
         private enum NeighbourSystem
@@ -257,7 +257,7 @@ namespace OpenSim.Region.Environment.Modules.Terrain.PaintBrushes
                                 double altitudeNeighbour = water[coords[0], coords[1]] + map[coords[0], coords[1]];
 
                                 // If it's greater than me...
-                                if (altitudeNeighbour - altitudeMe > 0)
+                                if (altitudeNeighbour - altitudeMe < 0)
                                 {
                                     // Add it to our calculations
                                     neighbours++;
@@ -290,13 +290,20 @@ namespace OpenSim.Region.Environment.Modules.Terrain.PaintBrushes
                                 if (coords[1] < 0)
                                     continue;
 
+                                // Skip if we dont have water to begin with.
+                                if (water[x, y] < 0)
+                                    continue;
+
                                 // Calculate our delta average
                                 double altitudeDelta = altitudeMe - altitudeAvg;
 
+                                if (altitudeDelta < 0)
+                                    continue;
+
                                 // Calculate how much water we can move
-                                double waterDelta = Math.Min(water[x, y], altitudeDelta)
-                                    * (water[coords[0], coords[1]] + map[coords[0], coords[1]])
-                                    / altitudeTotal;
+                                double waterMin = Math.Min(water[x, y], altitudeDelta);
+                                double waterDelta = waterMin * ((water[coords[0], coords[1]] + map[coords[0], coords[1]])
+                                    / altitudeTotal);
 
                                 double sedimentDelta = sediment[x, y] * (waterDelta / water[x, y]);
 
@@ -320,9 +327,12 @@ namespace OpenSim.Region.Environment.Modules.Terrain.PaintBrushes
 
                         double waterCapacity = waterSaturation * water[x, y];
 
-                        double sedimentDeposit = Math.Max(0, sediment[x, y] - waterCapacity);
-                        sediment[x, y] -= sedimentDeposit;
-                        map[x, y] += sedimentDeposit;
+                        double sedimentDeposit = sediment[x, y] - waterCapacity;
+                        if (sedimentDeposit > 0)
+                        {
+                            sediment[x, y] -= sedimentDeposit;
+                            map[x, y] += sedimentDeposit;
+                        }
                     }
                 }
             }
