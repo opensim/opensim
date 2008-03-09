@@ -229,14 +229,7 @@ namespace OpenSim.Region.Physics.OdePlugin
             }
         }
 
-        public void starttiming()
-        {
-            ms = Environment.TickCount;
-        }
-        public int stoptiming()
-        {
-            return Environment.TickCount - ms;
-        }
+        
         // Initialize the mesh plugin
         public override void Initialise(IMesher meshmerizer)
         {
@@ -245,15 +238,9 @@ namespace OpenSim.Region.Physics.OdePlugin
 
         internal void waitForSpaceUnlock(IntPtr space)
         {
-           
-                while (d.SpaceLockQuery(space))
-                {
-                    
-                }
-            
-           
-
+            while (d.SpaceLockQuery(space)){  } // Wait and do nothing
         }
+
         /// <summary>
         /// Debug space message for printing the space that a prim/avatar is in.
         /// </summary>
@@ -263,6 +250,8 @@ namespace OpenSim.Region.Physics.OdePlugin
         {
             return calculateSpaceForGeom(pos).ToString();
         }
+
+        #region Collision Detection
 
         /// <summary>
         /// This is our near callback.  A geometry is near a body
@@ -299,314 +288,359 @@ namespace OpenSim.Region.Physics.OdePlugin
                 //Collide all geoms in each space..   
                 //if (d.GeomIsSpace(g1)) d.SpaceCollide(g1, IntPtr.Zero, nearCallback);
                 //if (d.GeomIsSpace(g2)) d.SpaceCollide(g2, IntPtr.Zero, nearCallback);
+                return;
             }
-            else
+            
+            
+            // Colliding Geom To Geom
+            // This portion of the function 'was' blatantly ripped off from BoxStack.cs
+            if (g1 == (IntPtr)0 || g2 == (IntPtr)0)
+                return;
+
+            IntPtr b1 = d.GeomGetBody(g1);
+            IntPtr b2 = d.GeomGetBody(g2);
+
+            if (g1 == g2)
+                return; // Can't collide with yourself
+
+            if (b1 != IntPtr.Zero && b2 != IntPtr.Zero && d.AreConnectedExcluding(b1, b2, d.JointType.Contact))
+                return;
+
+            
+
+            d.GeomClassID id = d.GeomGetClass(g1);
+
+            String name1 = null;
+            String name2 = null;
+
+            if (!geom_name_map.TryGetValue(g1, out name1))
             {
-                // Colliding Geom To Geom
-                // This portion of the function 'was' blatantly ripped off from BoxStack.cs
-                if (g1 == (IntPtr)0 || g2 == (IntPtr)0)
-                    return;
+                name1 = "null";
+            }
+            if (!geom_name_map.TryGetValue(g2, out name2))
+            {
+                name2 = "null";
+            }
 
-                IntPtr b1 = d.GeomGetBody(g1);
-                IntPtr b2 = d.GeomGetBody(g2);
+            //if (id == d.GeomClassId.TriMeshClass)
+            //{
+                //               m_log.InfoFormat("near: A collision was detected between {1} and {2}", 0, name1, name2);
+                //System.Console.WriteLine("near: A collision was detected between {1} and {2}", 0, name1, name2);
+            //}
 
-                if (g1 == g2)
-                    return; // Can't collide with yourself
-
-                if (b1 != IntPtr.Zero && b2 != IntPtr.Zero && d.AreConnectedExcluding(b1, b2, d.JointType.Contact))
-                    return;
-
+            // Figure out how many contact points we have
+            int count = 0;
+            try
+            {
+                //m_log.Warn(g1.ToString() + "|" + g2.ToString());
+                count = d.Collide(g1, g2, contacts.GetLength(0), contacts, d.ContactGeom.SizeOf);
+            }
+            catch (SEHException)
+            {
+                m_log.Error("[PHYSICS]: The Operating system shut down ODE because of corrupt memory.  This could be a result of really irregular terrain.  If this repeats continuously, restart using Basic Physics and terrain fill your terrain.  Restarting the sim.");
+                ode.drelease(world);
+                base.TriggerPhysicsBasedRestart();
+            }
+            catch (System.AccessViolationException)
+            {
                 
+                m_log.Warn("[PHYSICS]: Unable to collide test an object");
+                return;
+            }
 
-                d.GeomClassID id = d.GeomGetClass(g1);
+            PhysicsActor p1;
+            PhysicsActor p2;
 
-                String name1 = null;
-                String name2 = null;
+            for (int i = 0; i < count; i++)
+            {
+                //m_log.Warn("[CCOUNT]: " + count);
+                IntPtr joint;
+                // If we're colliding with terrain, use 'TerrainContact' instead of contact.
+                // allows us to have different settings
 
-                if (!geom_name_map.TryGetValue(g1, out name1))
+                if (!actor_name_map.TryGetValue(g1, out p1))
                 {
-                    name1 = "null";
+                    p1 = PANull;
                 }
-                if (!geom_name_map.TryGetValue(g2, out name2))
+                if (!actor_name_map.TryGetValue(g2, out p2))
                 {
-                    name2 = "null";
-                }
-
-                //if (id == d.GeomClassId.TriMeshClass)
-                //{
-                    //               m_log.InfoFormat("near: A collision was detected between {1} and {2}", 0, name1, name2);
-                    //System.Console.WriteLine("near: A collision was detected between {1} and {2}", 0, name1, name2);
-                //}
-
-                // Figure out how many contact points we have
-                int count = 0;
-                try
-                {
-                    //m_log.Warn(g1.ToString() + "|" + g2.ToString());
-                    count = d.Collide(g1, g2, contacts.GetLength(0), contacts, d.ContactGeom.SizeOf);
-                }
-                catch (SEHException)
-                {
-                    m_log.Error("[PHYSICS]: The Operating system shut down ODE because of corrupt memory.  This could be a result of really irregular terrain.  If this repeats continuously, restart using Basic Physics and terrain fill your terrain.  Restarting the sim.");
-                    ode.drelease(world);
-                    base.TriggerPhysicsBasedRestart();
-                }
-                catch (System.AccessViolationException)
-                {
-                    
-                    m_log.Warn("[PHYSICS]: Unable to collide test an object");
-                    return;
+                    p2 = PANull;
                 }
 
-                PhysicsActor p1;
-                PhysicsActor p2;
+                // We only need to test p2 for 'jump crouch purposes'
+                p2.IsColliding = true;
 
-                for (int i = 0; i < count; i++)
+                switch (p1.PhysicsActorType)
                 {
-                    //m_log.Warn("[CCOUNT]: " + count);
-                    IntPtr joint;
-                    // If we're colliding with terrain, use 'TerrainContact' instead of contact.
-                    // allows us to have different settings
-
-                    if (!actor_name_map.TryGetValue(g1, out p1))
-                    {
-                        p1 = PANull;
-                    }
-                    if (!actor_name_map.TryGetValue(g2, out p2))
-                    {
-                        p2 = PANull;
-                    }
-
-                    // We only need to test p2 for 'jump crouch purposes'
-                    p2.IsColliding = true;
-
-                    switch (p1.PhysicsActorType)
-                    {
-                        case (int)ActorTypes.Agent:
+                    case (int)ActorTypes.Agent:
+                        p2.CollidingObj = true;
+                        break;
+                    case (int)ActorTypes.Prim:
+                        if (p2.Velocity.X > 0 || p2.Velocity.Y > 0 || p2.Velocity.Z > 0)
                             p2.CollidingObj = true;
-                            break;
-                        case (int)ActorTypes.Prim:
-                            if (p2.Velocity.X > 0 || p2.Velocity.Y > 0 || p2.Velocity.Z > 0)
-                                p2.CollidingObj = true;
-                            break;
-                        case (int)ActorTypes.Unknown:
-                            p2.CollidingGround = true;
-                            break;
-                        default:
-                            p2.CollidingGround = true;
-                            break;
-                    }
+                        break;
+                    case (int)ActorTypes.Unknown:
+                        p2.CollidingGround = true;
+                        break;
+                    default:
+                        p2.CollidingGround = true;
+                        break;
+                }
 
-                    // we don't want prim or avatar to explode
+                // we don't want prim or avatar to explode
 
-                    #region InterPenetration Handling - Unintended physics explosions
+                #region InterPenetration Handling - Unintended physics explosions
 
-                    if (contacts[i].depth >= 0.08f)
+                if (contacts[i].depth >= 0.08f)
+                {
+                    //This is disabled at the moment only because it needs more tweaking
+                    //It will eventually be uncommented
+                     
+                    if (contacts[i].depth >= 1.00f)
                     {
-                        //This is disabled at the moment only because it needs more tweaking
-                        //It will eventually be uncommented
-                         
-                        if (contacts[i].depth >= 1.00f)
-                        {
-                            //m_log.Debug("[PHYSICS]: " + contacts[i].depth.ToString());
-                        }
-                         
-                        //If you interpenetrate a prim with an agent
-                        if ((p2.PhysicsActorType == (int) ActorTypes.Agent &&
-                             p1.PhysicsActorType == (int) ActorTypes.Prim) ||
-                            (p1.PhysicsActorType == (int) ActorTypes.Agent &&
-                             p2.PhysicsActorType == (int) ActorTypes.Prim))
-                        {
-                            //contacts[i].depth = contacts[i].depth * 4.15f;
-                            /*
-                            if (p2.PhysicsActorType == (int) ActorTypes.Agent)
-                            {   
-                                p2.CollidingObj = true;
-                                contacts[i].depth = 0.003f;
-                                p2.Velocity = p2.Velocity + new PhysicsVector(0, 0, 2.5f);
-                                OdeCharacter character = (OdeCharacter) p2;
-                                character.SetPidStatus(true);
-                                contacts[i].pos = new d.Vector3(contacts[i].pos.X + (p1.Size.X / 2), contacts[i].pos.Y + (p1.Size.Y / 2), contacts[i].pos.Z + (p1.Size.Z / 2));
-                                
-                            }
-                            else
-                            {
-                                
-                                //contacts[i].depth = 0.0000000f;
-                            }
-                            if (p1.PhysicsActorType == (int) ActorTypes.Agent)
-                            {
-                                
-                                p1.CollidingObj = true;
-                                contacts[i].depth = 0.003f;
-                                p1.Velocity = p1.Velocity + new PhysicsVector(0, 0, 2.5f);
-                                contacts[i].pos = new d.Vector3(contacts[i].pos.X + (p2.Size.X / 2), contacts[i].pos.Y + (p2.Size.Y / 2), contacts[i].pos.Z + (p2.Size.Z / 2));
-                                OdeCharacter character = (OdeCharacter)p1;
-                                character.SetPidStatus(true);
-                            }
-                            else
-                            {
-                                
-                                //contacts[i].depth = 0.0000000f;
-                            }
-                              */
-                        }
-                        
-
-                        // If you interpenetrate a prim with another prim
-                        if (p1.PhysicsActorType == (int) ActorTypes.Prim && p2.PhysicsActorType == (int) ActorTypes.Prim)
-                        {
-                            //OdePrim op1 = (OdePrim)p1;
-                            //OdePrim op2 = (OdePrim)p2;
-                            //op1.m_collisionscore++;
-                            //op2.m_collisionscore++;
+                        //m_log.Debug("[PHYSICS]: " + contacts[i].depth.ToString());
+                    }
+                     
+                    //If you interpenetrate a prim with an agent
+                    if ((p2.PhysicsActorType == (int) ActorTypes.Agent &&
+                         p1.PhysicsActorType == (int) ActorTypes.Prim) ||
+                        (p1.PhysicsActorType == (int) ActorTypes.Agent &&
+                         p2.PhysicsActorType == (int) ActorTypes.Prim))
+                    {
+                        # region disabled code1
+                        //contacts[i].depth = contacts[i].depth * 4.15f;
+                        /*
+                        if (p2.PhysicsActorType == (int) ActorTypes.Agent)
+                        {   
+                            p2.CollidingObj = true;
+                            contacts[i].depth = 0.003f;
+                            p2.Velocity = p2.Velocity + new PhysicsVector(0, 0, 2.5f);
+                            OdeCharacter character = (OdeCharacter) p2;
+                            character.SetPidStatus(true);
+                            contacts[i].pos = new d.Vector3(contacts[i].pos.X + (p1.Size.X / 2), contacts[i].pos.Y + (p1.Size.Y / 2), contacts[i].pos.Z + (p1.Size.Z / 2));
                             
-
-                            //if (op1.m_collisionscore > 8000 || op2.m_collisionscore > 8000)
-                            //{
-                                //op1.m_taintdisable = true;
-                                //AddPhysicsActorTaint(p1);
-                                //op2.m_taintdisable = true;
-                                //AddPhysicsActorTaint(p2);
-                            //}
-                           
-                            //if (contacts[i].depth >= 0.25f)
-                            //{
-                                // Don't collide, one or both prim will expld.
-                                
-
-                                //op1.m_interpenetrationcount++;
-                                //op2.m_interpenetrationcount++;
-                                //interpenetrations_before_disable = 200;
-                                //if (op1.m_interpenetrationcount >= interpenetrations_before_disable)
-                                //{
-                                    //op1.m_taintdisable = true;
-                                    //AddPhysicsActorTaint(p1);
-                                //}
-                                //if (op2.m_interpenetrationcount >= interpenetrations_before_disable)
-                                //{
-                                   // op2.m_taintdisable = true;
-                                    //AddPhysicsActorTaint(p2);
-                                //}
-
-                               
-                                //contacts[i].depth = contacts[i].depth / 8f;
-                                //contacts[i].normal = new d.Vector3(0, 0, 1);
-                            //}
-                            //if (op1.m_disabled || op2.m_disabled)
-                            //{
-                                //Manually disabled objects stay disabled 
-                                //contacts[i].depth = 0f;
-                            //}
-                        }
-                        if (contacts[i].depth >= 1.00f)
-                        {
-                            //m_log.Info("[P]: " + contacts[i].depth.ToString());
-                            if ((p2.PhysicsActorType == (int) ActorTypes.Agent &&
-                                 p1.PhysicsActorType == (int) ActorTypes.Unknown) ||
-                                (p1.PhysicsActorType == (int) ActorTypes.Agent &&
-                                 p2.PhysicsActorType == (int) ActorTypes.Unknown))
-                            {
-                                if (p2.PhysicsActorType == (int) ActorTypes.Agent)
-                                {
-                                    OdeCharacter character = (OdeCharacter) p2;
-
-                                    //p2.CollidingObj = true;
-                                    contacts[i].depth = 0.00000003f;
-                                    p2.Velocity = p2.Velocity + new PhysicsVector(0, 0, 0.5f);
-                                    contacts[i].pos =
-                                        new d.Vector3(contacts[i].pos.X + (p1.Size.X/2),
-                                                      contacts[i].pos.Y + (p1.Size.Y/2),
-                                                      contacts[i].pos.Z + (p1.Size.Z/2));
-                                    character.SetPidStatus(true);
-                                }
-                                else
-                                {
-                                }
-                                if (p1.PhysicsActorType == (int) ActorTypes.Agent)
-                                {
-                                    OdeCharacter character = (OdeCharacter)p1;
-
-                                    //p2.CollidingObj = true;
-                                    contacts[i].depth = 0.00000003f;
-                                    p1.Velocity = p1.Velocity + new PhysicsVector(0, 0, 0.5f);
-                                    contacts[i].pos =
-                                        new d.Vector3(contacts[i].pos.X + (p1.Size.X/2),
-                                                      contacts[i].pos.Y + (p1.Size.Y/2),
-                                                      contacts[i].pos.Z + (p1.Size.Z/2));
-                                    character.SetPidStatus(true);
-                                }
-                                else
-                                {
-                                    //contacts[i].depth = 0.0000000f;
-                                }
-                            }
-                        }
-                    }
-
-                    #endregion
-
-                    if (contacts[i].depth >= 0f)
-                    {
-                        // If we're collidng against terrain
-                        if (name1 == "Terrain" || name2 == "Terrain")
-                        {
-                            // If we're moving
-                            if ((p2.PhysicsActorType == (int) ActorTypes.Agent) &&
-                                (Math.Abs(p2.Velocity.X) > 0.01f || Math.Abs(p2.Velocity.Y) > 0.01f))
-                            {
-                                // Use the movement terrain contact
-                                AvatarMovementTerrainContact.geom = contacts[i];
-                                joint = d.JointCreateContact(world, contactgroup, ref AvatarMovementTerrainContact);
-                            }
-                            else
-                            {
-                                // Use the non moving terrain contact
-                                TerrainContact.geom = contacts[i];
-                                joint = d.JointCreateContact(world, contactgroup, ref TerrainContact);
-                            }
                         }
                         else
                         {
-                            // we're colliding with prim or avatar
+                            
+                            //contacts[i].depth = 0.0000000f;
+                        }
+                        if (p1.PhysicsActorType == (int) ActorTypes.Agent)
+                        {
+                            
+                            p1.CollidingObj = true;
+                            contacts[i].depth = 0.003f;
+                            p1.Velocity = p1.Velocity + new PhysicsVector(0, 0, 2.5f);
+                            contacts[i].pos = new d.Vector3(contacts[i].pos.X + (p2.Size.X / 2), contacts[i].pos.Y + (p2.Size.Y / 2), contacts[i].pos.Z + (p2.Size.Z / 2));
+                            OdeCharacter character = (OdeCharacter)p1;
+                            character.SetPidStatus(true);
+                        }
+                        else
+                        {
+                            
+                            //contacts[i].depth = 0.0000000f;
+                        }
+                          */
+                        #endregion
+                    }
+                    
 
-                            // check if we're moving
-                            if ((p2.PhysicsActorType == (int) ActorTypes.Agent) &&
-                                (Math.Abs(p2.Velocity.X) > 0.01f || Math.Abs(p2.Velocity.Y) > 0.01f))
+                    // If you interpenetrate a prim with another prim
+                    if (p1.PhysicsActorType == (int) ActorTypes.Prim && p2.PhysicsActorType == (int) ActorTypes.Prim)
+                    {
+                        #region disabledcode2
+                        //OdePrim op1 = (OdePrim)p1;
+                        //OdePrim op2 = (OdePrim)p2;
+                        //op1.m_collisionscore++;
+                        //op2.m_collisionscore++;
+                        
+
+                        //if (op1.m_collisionscore > 8000 || op2.m_collisionscore > 8000)
+                        //{
+                            //op1.m_taintdisable = true;
+                            //AddPhysicsActorTaint(p1);
+                            //op2.m_taintdisable = true;
+                            //AddPhysicsActorTaint(p2);
+                        //}
+                       
+                        //if (contacts[i].depth >= 0.25f)
+                        //{
+                            // Don't collide, one or both prim will expld.
+                            
+
+                            //op1.m_interpenetrationcount++;
+                            //op2.m_interpenetrationcount++;
+                            //interpenetrations_before_disable = 200;
+                            //if (op1.m_interpenetrationcount >= interpenetrations_before_disable)
+                            //{
+                                //op1.m_taintdisable = true;
+                                //AddPhysicsActorTaint(p1);
+                            //}
+                            //if (op2.m_interpenetrationcount >= interpenetrations_before_disable)
+                            //{
+                               // op2.m_taintdisable = true;
+                                //AddPhysicsActorTaint(p2);
+                            //}
+
+                           
+                            //contacts[i].depth = contacts[i].depth / 8f;
+                            //contacts[i].normal = new d.Vector3(0, 0, 1);
+                        //}
+                        //if (op1.m_disabled || op2.m_disabled)
+                        //{
+                            //Manually disabled objects stay disabled 
+                            //contacts[i].depth = 0f;
+                        //}
+                        #endregion
+                    }
+                    if (contacts[i].depth >= 1.00f)
+                    {
+                        //m_log.Info("[P]: " + contacts[i].depth.ToString());
+                        if ((p2.PhysicsActorType == (int) ActorTypes.Agent &&
+                             p1.PhysicsActorType == (int) ActorTypes.Unknown) ||
+                            (p1.PhysicsActorType == (int) ActorTypes.Agent &&
+                             p2.PhysicsActorType == (int) ActorTypes.Unknown))
+                        {
+                            if (p2.PhysicsActorType == (int) ActorTypes.Agent)
                             {
-                                // Use the Movement prim contact
-                                AvatarMovementprimContact.geom = contacts[i];
-                                joint = d.JointCreateContact(world, contactgroup, ref AvatarMovementprimContact);
+                                OdeCharacter character = (OdeCharacter) p2;
+
+                                //p2.CollidingObj = true;
+                                contacts[i].depth = 0.00000003f;
+                                p2.Velocity = p2.Velocity + new PhysicsVector(0, 0, 0.5f);
+                                contacts[i].pos =
+                                    new d.Vector3(contacts[i].pos.X + (p1.Size.X/2),
+                                                  contacts[i].pos.Y + (p1.Size.Y/2),
+                                                  contacts[i].pos.Z + (p1.Size.Z/2));
+                                character.SetPidStatus(true);
                             }
                             else
                             {
-                                // Use the non movement contact
-                                contact.geom = contacts[i];
-                                joint = d.JointCreateContact(world, contactgroup, ref contact);
+                            }
+                            if (p1.PhysicsActorType == (int) ActorTypes.Agent)
+                            {
+                                OdeCharacter character = (OdeCharacter)p1;
+
+                                //p2.CollidingObj = true;
+                                contacts[i].depth = 0.00000003f;
+                                p1.Velocity = p1.Velocity + new PhysicsVector(0, 0, 0.5f);
+                                contacts[i].pos =
+                                    new d.Vector3(contacts[i].pos.X + (p1.Size.X/2),
+                                                  contacts[i].pos.Y + (p1.Size.Y/2),
+                                                  contacts[i].pos.Z + (p1.Size.Z/2));
+                                character.SetPidStatus(true);
+                            }
+                            else
+                            {
+                                //contacts[i].depth = 0.0000000f;
                             }
                         }
-                        d.JointAttach(joint, b1, b2);
                     }
-
-                    if (count > 3)
-                    {
-                        // If there are more then 3 contact points, it's likely
-                        // that we've got a pile of objects
-                        // 
-                        // We don't want to send out hundreds of terse updates over and over again
-                        // so lets throttle them and send them again after it's somewhat sorted out.
-                        p2.ThrottleUpdates = true;
-                    }
-                    //System.Console.WriteLine(count.ToString());
-                    //System.Console.WriteLine("near: A collision was detected between {1} and {2}", 0, name1, name2);
                 }
-            }
-        }
-        private float GetTerrainHeightAtXY(float x, float y) 
-        {
-            return (float)_origheightmap[(int)y * Constants.RegionSize + (int)x];
-            
 
+                #endregion
+
+                if (contacts[i].depth >= 0f)
+                {
+                    // If we're collidng against terrain
+                    if (name1 == "Terrain" || name2 == "Terrain")
+                    {
+                        // If we're moving
+                        if ((p2.PhysicsActorType == (int) ActorTypes.Agent) &&
+                            (Math.Abs(p2.Velocity.X) > 0.01f || Math.Abs(p2.Velocity.Y) > 0.01f))
+                        {
+                            // Use the movement terrain contact
+                            AvatarMovementTerrainContact.geom = contacts[i];
+                            joint = d.JointCreateContact(world, contactgroup, ref AvatarMovementTerrainContact);
+                        }
+                        else
+                        {
+                            // Use the non moving terrain contact
+                            TerrainContact.geom = contacts[i];
+                            joint = d.JointCreateContact(world, contactgroup, ref TerrainContact);
+                        }
+                    }
+                    else
+                    {
+                        // we're colliding with prim or avatar
+
+                        // check if we're moving
+                        if ((p2.PhysicsActorType == (int) ActorTypes.Agent) &&
+                            (Math.Abs(p2.Velocity.X) > 0.01f || Math.Abs(p2.Velocity.Y) > 0.01f))
+                        {
+                            // Use the Movement prim contact
+                            AvatarMovementprimContact.geom = contacts[i];
+                            joint = d.JointCreateContact(world, contactgroup, ref AvatarMovementprimContact);
+                        }
+                        else
+                        {
+                            // Use the non movement contact
+                            contact.geom = contacts[i];
+                            joint = d.JointCreateContact(world, contactgroup, ref contact);
+                        }
+                    }
+                    d.JointAttach(joint, b1, b2);
+                }
+
+                if (count > 3)
+                {
+                    // If there are more then 3 contact points, it's likely
+                    // that we've got a pile of objects
+                    // 
+                    // We don't want to send out hundreds of terse updates over and over again
+                    // so lets throttle them and send them again after it's somewhat sorted out.
+                    p2.ThrottleUpdates = true;
+                }
+                //System.Console.WriteLine(count.ToString());
+                //System.Console.WriteLine("near: A collision was detected between {1} and {2}", 0, name1, name2);
+            }
+            
+        }
+
+        public int TriArrayCallback(IntPtr trimesh, IntPtr refObject, int[] triangleIndex, int triCount)
+        {
+            /*            String name1 = null;
+                        String name2 = null;
+
+                        if (!geom_name_map.TryGetValue(trimesh, out name1))
+                        {
+                            name1 = "null";
+                        }
+                        if (!geom_name_map.TryGetValue(refObject, out name2))
+                        {
+                            name2 = "null";
+                        }
+
+                        m_log.InfoFormat("TriArrayCallback: A collision was detected between {1} and {2}", 0, name1, name2);
+            */
+            return 1;
+        }
+
+        public int TriCallback(IntPtr trimesh, IntPtr refObject, int triangleIndex)
+        {
+            String name1 = null;
+            String name2 = null;
+
+            if (!geom_name_map.TryGetValue(trimesh, out name1))
+            {
+                name1 = "null";
+            }
+
+            if (!geom_name_map.TryGetValue(refObject, out name2))
+            {
+                name2 = "null";
+            }
+
+            //            m_log.InfoFormat("TriCallback: A collision was detected between {1} and {2}. Index was {3}", 0, name1, name2, triangleIndex);
+
+            d.Vector3 v0 = new d.Vector3();
+            d.Vector3 v1 = new d.Vector3();
+            d.Vector3 v2 = new d.Vector3();
+
+            d.GeomTriMeshGetTriangle(trimesh, 0, ref v0, ref v1, ref v2);
+            //            m_log.DebugFormat("Triangle {0} is <{1},{2},{3}>, <{4},{5},{6}>, <{7},{8},{9}>", triangleIndex, v0.X, v0.Y, v0.Z, v1.X, v1.Y, v1.Z, v2.X, v2.Y, v2.Z);
+
+            return 1;
         }
 
         /// <summary>
@@ -715,6 +749,17 @@ namespace OpenSim.Region.Physics.OdePlugin
             }
         }
 
+        #endregion
+
+        private float GetTerrainHeightAtXY(float x, float y)
+        {
+            return (float)_origheightmap[(int)y * Constants.RegionSize + (int)x];
+
+
+        }
+
+        #region Add/Remove Entities
+
         public override PhysicsActor AddAvatar(string avName, PhysicsVector position, PhysicsVector size)
         {
             PhysicsVector pos = new PhysicsVector();
@@ -733,6 +778,80 @@ namespace OpenSim.Region.Physics.OdePlugin
                 ((OdeCharacter) actor).Destroy();
                 _characters.Remove((OdeCharacter) actor);
             }
+        }
+
+        private PhysicsActor AddPrim(String name, PhysicsVector position, PhysicsVector size, Quaternion rotation,
+                                     IMesh mesh, PrimitiveBaseShape pbs, bool isphysical)
+        {
+            PhysicsVector pos = new PhysicsVector();
+            pos.X = position.X;
+            pos.Y = position.Y;
+            pos.Z = position.Z;
+            PhysicsVector siz = new PhysicsVector();
+            siz.X = size.X;
+            siz.Y = size.Y;
+            siz.Z = size.Z;
+            Quaternion rot = new Quaternion();
+            rot.w = rotation.w;
+            rot.x = rotation.x;
+            rot.y = rotation.y;
+            rot.z = rotation.z;
+
+
+
+            OdePrim newPrim;
+            lock (OdeLock)
+            {
+                newPrim = new OdePrim(name, this, pos, siz, rot, mesh, pbs, isphysical, ode);
+
+                _prims.Add(newPrim);
+            }
+
+
+            return newPrim;
+        }
+
+        public void addActivePrim(OdePrim activatePrim)
+        {
+            // adds active prim..   (ones that should be iterated over in collisions_optimized
+
+            _activeprims.Add(activatePrim);
+        }
+
+        public override PhysicsActor AddPrimShape(string primName, PrimitiveBaseShape pbs, PhysicsVector position,
+                                                  PhysicsVector size, Quaternion rotation) //To be removed
+        {
+            return AddPrimShape(primName, pbs, position, size, rotation, false);
+        }
+
+        public override PhysicsActor AddPrimShape(string primName, PrimitiveBaseShape pbs, PhysicsVector position,
+                                                  PhysicsVector size, Quaternion rotation, bool isPhysical)
+        {
+            PhysicsActor result;
+            IMesh mesh = null;
+
+            switch (pbs.ProfileShape)
+            {
+                case ProfileShape.Square:
+                    /// support simple box & hollow box now; later, more shapes
+                    if (needsMeshing(pbs))
+                    {
+                        mesh = mesher.CreateMesh(primName, pbs, size);
+                    }
+
+                    break;
+            }
+
+            result = AddPrim(primName, position, size, rotation, mesh, pbs, isPhysical);
+
+
+            return result;
+        }
+
+
+        public void remActivePrim(OdePrim deactivatePrim)
+        {
+            _activeprims.Remove(deactivatePrim);
         }
 
         public override void RemovePrim(PhysicsActor prim)
@@ -767,10 +886,8 @@ namespace OpenSim.Region.Physics.OdePlugin
                 {
                     if (prim.prim_geom != (IntPtr)0)
                     {
-                        while (ode.lockquery())
-                        {
-                        }
-                        ode.dlock(world);
+
+                        
                         //System.Threading.Thread.Sleep(20);
                         prim.ResetTaints();
 
@@ -846,10 +963,14 @@ namespace OpenSim.Region.Physics.OdePlugin
                         //}
                     }
 
-                    ode.dunlock(world);
+                    
                 }
             }
         }
+
+        #endregion
+
+        #region Space Separation Calculation
 
         /// <summary>
         /// Takes a space pointer and zeros out the array we're using to hold the spaces
@@ -1065,95 +1186,10 @@ namespace OpenSim.Region.Physics.OdePlugin
 
             return returnint;
         }
-
-        private PhysicsActor AddPrim(String name, PhysicsVector position, PhysicsVector size, Quaternion rotation,
-                                     IMesh mesh, PrimitiveBaseShape pbs, bool isphysical)
-        {
-            PhysicsVector pos = new PhysicsVector();
-            pos.X = position.X;
-            pos.Y = position.Y;
-            pos.Z = position.Z;
-            PhysicsVector siz = new PhysicsVector();
-            siz.X = size.X;
-            siz.Y = size.Y;
-            siz.Z = size.Z;
-            Quaternion rot = new Quaternion();
-            rot.w = rotation.w;
-            rot.x = rotation.x;
-            rot.y = rotation.y;
-            rot.z = rotation.z;
+        #endregion
 
 
-            
-            OdePrim newPrim;
-            lock (OdeLock)
-            {
-                newPrim = new OdePrim(name, this, pos, siz, rot, mesh, pbs, isphysical, ode);
 
-                _prims.Add(newPrim);
-            }
-           
-
-            return newPrim;
-        }
-
-        public void addActivePrim(OdePrim activatePrim)
-        {
-            // adds active prim..   (ones that should be iterated over in collisions_optimized
-
-            _activeprims.Add(activatePrim);
-        }
-
-        public void remActivePrim(OdePrim deactivatePrim)
-        {
-            _activeprims.Remove(deactivatePrim);
-        }
-
-        public int TriArrayCallback(IntPtr trimesh, IntPtr refObject, int[] triangleIndex, int triCount)
-        {
-/*            String name1 = null;
-            String name2 = null;
-
-            if (!geom_name_map.TryGetValue(trimesh, out name1))
-            {
-                name1 = "null";
-            }
-            if (!geom_name_map.TryGetValue(refObject, out name2))
-            {
-                name2 = "null";
-            }
-
-            m_log.InfoFormat("TriArrayCallback: A collision was detected between {1} and {2}", 0, name1, name2);
-*/
-            return 1;
-        }
-
-        public int TriCallback(IntPtr trimesh, IntPtr refObject, int triangleIndex)
-        {
-            String name1 = null;
-            String name2 = null;
-
-            if (!geom_name_map.TryGetValue(trimesh, out name1))
-            {
-                name1 = "null";
-            }
-
-            if (!geom_name_map.TryGetValue(refObject, out name2))
-            {
-                name2 = "null";
-            }
-
-//            m_log.InfoFormat("TriCallback: A collision was detected between {1} and {2}. Index was {3}", 0, name1, name2, triangleIndex);
-
-            d.Vector3 v0 = new d.Vector3();
-            d.Vector3 v1 = new d.Vector3();
-            d.Vector3 v2 = new d.Vector3();
-
-            d.GeomTriMeshGetTriangle(trimesh, 0, ref v0, ref v1, ref v2);
-//            m_log.DebugFormat("Triangle {0} is <{1},{2},{3}>, <{4},{5},{6}>, <{7},{8},{9}>", triangleIndex, v0.X, v0.Y, v0.Z, v1.X, v1.Y, v1.Z, v2.X, v2.Y, v2.Z);
-
-            return 1;
-        }
 
         /// <summary>
         /// Routine to figure out if we need to mesh this prim with our mesher
@@ -1183,36 +1219,7 @@ namespace OpenSim.Region.Physics.OdePlugin
             return false;
         }
 
-        public override PhysicsActor AddPrimShape(string primName, PrimitiveBaseShape pbs, PhysicsVector position,
-                                                  PhysicsVector size, Quaternion rotation) //To be removed
-        {
-            return AddPrimShape(primName, pbs, position, size, rotation, false);
-        }
-
-        public override PhysicsActor AddPrimShape(string primName, PrimitiveBaseShape pbs, PhysicsVector position,
-                                                  PhysicsVector size, Quaternion rotation, bool isPhysical)
-        {
-            PhysicsActor result;
-            IMesh mesh = null;
-
-            switch (pbs.ProfileShape)
-            {
-                case ProfileShape.Square:
-                    /// support simple box & hollow box now; later, more shapes
-                    if (needsMeshing(pbs))
-                    {
-                        mesh = mesher.CreateMesh(primName, pbs, size);
-                    }
-
-                    break;
-            }
-
-            result = AddPrim(primName, position, size, rotation, mesh, pbs, isPhysical);
-
-
-            return result;
-        }
-
+        
         /// <summary>
         /// Called after our prim properties are set Scale, position etc.
         /// We use this event queue like method to keep changes to the physical scene occuring in the threadlocked mutex
@@ -1224,8 +1231,11 @@ namespace OpenSim.Region.Physics.OdePlugin
             if (prim is OdePrim)
             {
                 OdePrim taintedprim = ((OdePrim) prim);
-                if (!(_taintedPrim.Contains(taintedprim)))
-                    _taintedPrim.Add(taintedprim);
+                lock (_taintedPrim)
+                {
+                    if (!(_taintedPrim.Contains(taintedprim)))
+                        _taintedPrim.Add(taintedprim);
+                }
             }
         }
 
@@ -1292,11 +1302,49 @@ namespace OpenSim.Region.Physics.OdePlugin
                             ode.dlock(world);
                             try
                             {
-                                foreach (OdeCharacter actor in _characters)
+                                lock (_characters)
                                 {
-                                    if (actor != null) 
-                                        actor.Move(timeStep);
+                                    foreach (OdeCharacter actor in _characters)
+                                    {
+                                        if (actor != null)
+                                            actor.Move(timeStep);
+                                    }
                                 }
+
+                                
+                                bool processedtaints = false;
+                                
+                                lock (_taintedPrim)
+                                {
+                                    foreach (OdePrim prim in _taintedPrim)
+                                    {
+                                        if (prim.m_taintremove)
+                                        {
+                                            RemovePrimThreadLocked(prim);
+                                        }
+
+                                        prim.ProcessTaints(timeStep);
+
+                                        processedtaints = true;
+                                        prim.m_collisionscore = 0;
+                                    }
+                                
+                                    if (processedtaints)
+                                        _taintedPrim = new List<OdePrim>();
+
+                                }
+
+                                lock (_activeprims)
+                                {
+                                    foreach (OdePrim prim in _activeprims)
+                                    {
+                                        prim.m_collisionscore = 0;
+                                    }
+                                }
+
+
+
+                                
 
                                 collision_optimized(timeStep);
 
@@ -1321,47 +1369,29 @@ namespace OpenSim.Region.Physics.OdePlugin
                     }
                 }
 
-                foreach (OdeCharacter actor in _characters)
+                lock (_characters)
                 {
-                    if (actor != null)
-                        actor.UpdatePositionAndVelocity();
-                }
-
-                if (!ode.lockquery())
-                {
-                    bool processedtaints = false;
-                    foreach (OdePrim prim in _taintedPrim)
-                    {   
-                        if (prim.m_taintremove)
-                        {
-                            RemovePrimThreadLocked(prim);
-                        }
-                        
-                        prim.ProcessTaints(timeStep);
-
-                        processedtaints = true;
-                        prim.m_collisionscore = 0;
-                    }  
-                    if (processedtaints)
-                        _taintedPrim = new List<OdePrim>();
-                }
-                foreach (OdePrim prim in _activeprims)
-                {
-                    prim.m_collisionscore = 0;
-                }
-
-              
-
-                if (timeStep < 0.2f)
-                {
-                    foreach (OdePrim actor in _activeprims)
+                    foreach (OdeCharacter actor in _characters)
                     {
-                        if (actor.IsPhysical && (d.BodyIsEnabled(actor.Body) || !actor._zeroFlag))
-                        {
+                        if (actor != null)
                             actor.UpdatePositionAndVelocity();
+                    }
+                }
+
+                lock (_activeprims)
+                {
+                    if (timeStep < 0.2f)
+                    {
+                        foreach (OdePrim actor in _activeprims)
+                        {
+                            if (actor.IsPhysical && (d.BodyIsEnabled(actor.Body) || !actor._zeroFlag))
+                            {
+                                actor.UpdatePositionAndVelocity();
+                            }
                         }
                     }
                 }
+                
             }
             return fps;
         }
@@ -1375,6 +1405,8 @@ namespace OpenSim.Region.Physics.OdePlugin
             // for now we won't be multithreaded
             get { return (false); }
         }
+
+        #region ODE Specific Terrain Fixes 
         public float[] ResizeTerrain512NearestNeighbour(float[] heightMap)
         {
             float[] returnarr = new float[262144];
@@ -1637,11 +1669,12 @@ namespace OpenSim.Region.Physics.OdePlugin
             return returnarr;
         }
 
+        #endregion
+
         public override void SetTerrain(float[] heightMap)
         {
             // this._heightmap[i] = (double)heightMap[i];
-            // dbm (danx0r) -- heightmap x,y must be swapped for Ode (should fix ODE, but for now...)
-            // also, creating a buffer zone of one extra sample all around
+            // dbm (danx0r) -- creating a buffer zone of one extra sample all around
             _origheightmap = heightMap;
             const uint heightmapWidth = m_regionWidth + 2;
             const uint heightmapHeight = m_regionHeight + 2;
@@ -1654,6 +1687,7 @@ namespace OpenSim.Region.Physics.OdePlugin
 
             //Double resolution
             heightMap = ResizeTerrain512Interpolation(heightMap);
+
             for (int x = 0; x < heightmapWidthSamples; x++)
             {
                 for (int y = 0; y < heightmapHeightSamples; y++)

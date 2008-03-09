@@ -293,6 +293,8 @@ namespace OpenSim.Region.Physics.OdePlugin
             _parent_scene.addActivePrim(this);
         }
 
+        #region Mass Calculation
+
         private float CalculateMass()
         {
             float volume = 0;
@@ -598,6 +600,9 @@ namespace OpenSim.Region.Physics.OdePlugin
             return returnMass;
         }
 
+        #endregion
+
+
         public void setMass()
         {
             if (Body != (IntPtr) 0)
@@ -734,11 +739,7 @@ namespace OpenSim.Region.Physics.OdePlugin
 
         private void changelink(float timestep)
         {
-            while (ode.lockquery())
-            {
-            }
-            ode.dlock(_parent_scene.world);
-
+            
             if (_parent == null && m_taintparent != null)
             {
                 if (m_taintparent.PhysicsActorType == (int)ActorTypes.Prim)
@@ -763,18 +764,14 @@ namespace OpenSim.Region.Physics.OdePlugin
                 m_linkJoint = (IntPtr)0;
 
             }
-            ode.dunlock(_parent_scene.world);
+            
 
             _parent = m_taintparent;
         }
 
         private void changeSelectedStatus(float timestep)
         {
-            while (ode.lockquery())
-            {
-            }
-            ode.dlock(_parent_scene.world);
-
+            
             if (m_taintselected)
             {
 
@@ -831,7 +828,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                 
             }
 
-            ode.dunlock(_parent_scene.world);
+           
             resetCollisionAccounting();
             m_isSelected = m_taintselected;
         }
@@ -860,10 +857,8 @@ namespace OpenSim.Region.Physics.OdePlugin
         }
         public void changeadd(float timestep)
         {
-            while (ode.lockquery())
-            {
-            }
-            ode.dlock(_parent_scene.world);
+            
+            
             
             int[] iprimspaceArrItem = _parent_scene.calculateSpaceArrayItemFromPos(_position);
             IntPtr targetspace = _parent_scene.calculateSpaceForGeom(_position);
@@ -992,7 +987,7 @@ namespace OpenSim.Region.Physics.OdePlugin
 
 
             }
-            ode.dunlock(_parent_scene.world);
+            
             _parent_scene.geom_name_map[prim_geom] = this.m_primName;
             _parent_scene.actor_name_map[prim_geom] = (PhysicsActor)this;
 
@@ -1004,10 +999,7 @@ namespace OpenSim.Region.Physics.OdePlugin
         }
         public void Move(float timestep)
         {
-            while (ode.lockquery())
-            {
-            }
-            ode.dlock(_parent_scene.world);
+            
 
 
             if (m_isphysical)
@@ -1057,7 +1049,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                     d.SpaceAdd(m_targetSpace, prim_geom);
                 }
             }
-            ode.dunlock(_parent_scene.world);
+            
 
             changeSelectedStatus(timestep);
             
@@ -1067,10 +1059,7 @@ namespace OpenSim.Region.Physics.OdePlugin
 
         public void rotate(float timestep)
         {
-            while (ode.lockquery())
-            {
-            }
-            ode.dlock(_parent_scene.world);
+            
 
             d.Quaternion myrot = new d.Quaternion();
             myrot.W = _orientation.w;
@@ -1082,8 +1071,6 @@ namespace OpenSim.Region.Physics.OdePlugin
             {
                 d.BodySetQuaternion(Body, ref myrot);
             }
-
-            ode.dunlock(_parent_scene.world);
             
             resetCollisionAccounting();
             m_taintrot = _orientation;
@@ -1098,46 +1085,35 @@ namespace OpenSim.Region.Physics.OdePlugin
 
         public void changedisable(float timestep)
         {
-            while (ode.lockquery())
-            {
-            }
-            ode.dlock(_parent_scene.world);
+           
             m_disabled = true;
             if (Body != (IntPtr)0)
             {
                 d.BodyDisable(Body);
                 Body = (IntPtr)0;
             }
-            ode.dunlock(_parent_scene.world);
+           
 
             m_taintdisable = false;
         }
 
         public void changePhysicsStatus(float timestep)
         {
-            lock (ode)
+            
+
+            if (m_isphysical == true)
             {
-                while (ode.lockquery())
+                if (Body == (IntPtr)0)
                 {
+                    enableBody();
                 }
-                ode.dlock(_parent_scene.world);
-
-                if (m_isphysical == true)
+            }
+            else
+            {
+                if (Body != (IntPtr)0)
                 {
-                    if (Body == (IntPtr)0)
-                    {
-                        enableBody();
-                    }
+                    disableBody();
                 }
-                else
-                {
-                    if (Body != (IntPtr)0)
-                    {
-                        disableBody();
-                    }
-                }
-
-                ode.dunlock(_parent_scene.world);
             }
 
             changeSelectedStatus(timestep);
@@ -1148,10 +1124,7 @@ namespace OpenSim.Region.Physics.OdePlugin
 
         public void changesize(float timestamp)
         {
-            while (ode.lockquery())
-            {
-            }
-            ode.dlock(_parent_scene.world);
+           
             //if (!_parent_scene.geom_name_map.ContainsKey(prim_geom))
             //{
                // m_taintsize = _size;
@@ -1311,8 +1284,6 @@ namespace OpenSim.Region.Physics.OdePlugin
 
             _parent_scene.geom_name_map[prim_geom] = oldname;
 
-            ode.dunlock(_parent_scene.world);
-
             changeSelectedStatus(timestamp);
 
             resetCollisionAccounting();
@@ -1321,12 +1292,7 @@ namespace OpenSim.Region.Physics.OdePlugin
 
         public void changeshape(float timestamp)
         {
-            while (ode.lockquery())
-            {
-            }
-            ode.dlock(_parent_scene.world);
-
-
+           
             string oldname = _parent_scene.geom_name_map[prim_geom];
 
             // Cleanup of old prim geometry and Bodies
@@ -1471,8 +1437,6 @@ namespace OpenSim.Region.Physics.OdePlugin
 
             _parent_scene.geom_name_map[prim_geom] = oldname;
 
-            ode.dunlock(_parent_scene.world);
-
             changeSelectedStatus(timestamp);
 
             resetCollisionAccounting();
@@ -1483,10 +1447,7 @@ namespace OpenSim.Region.Physics.OdePlugin
         {
             if (!m_isSelected)
             {
-                while (ode.lockquery())
-                {
-                }
-                ode.dlock(_parent_scene.world);
+                
 
 
                 lock (m_forcelist)
@@ -1505,7 +1466,6 @@ namespace OpenSim.Region.Physics.OdePlugin
                     m_forcelist.Clear();
                 }
 
-                ode.dunlock(_parent_scene.world);
 
                 m_collisionscore = 0;
                 m_interpenetrationcount = 0;
@@ -1517,24 +1477,17 @@ namespace OpenSim.Region.Physics.OdePlugin
         {
             if (!m_isSelected)
             {
-                lock (ode)
+                
+
+                System.Threading.Thread.Sleep(20);
+                if (IsPhysical)
                 {
-                    while (ode.lockquery())
+                    if (Body != (IntPtr)0)
                     {
+                        d.BodySetLinearVel(Body, m_taintVelocity.X, m_taintVelocity.Y, m_taintVelocity.Z);
                     }
-                    ode.dlock(_parent_scene.world);
-
-                    System.Threading.Thread.Sleep(20);
-                    if (IsPhysical)
-                    {
-                        if (Body != (IntPtr)0)
-                        {
-                            d.BodySetLinearVel(Body, m_taintVelocity.X, m_taintVelocity.Y, m_taintVelocity.Z);
-                        }
-                    }
-
-                    ode.dunlock(_parent_scene.world);
-                }
+                }    
+               
                 //resetCollisionAccounting();
             }
             m_taintVelocity = PhysicsVector.Zero;
@@ -1763,12 +1716,16 @@ namespace OpenSim.Region.Physics.OdePlugin
                     if (l_position.X > 255.95f || l_position.X < 0f || l_position.Y > 255.95f || l_position.Y < 0f)
                     {
                         base.RaiseOutOfBounds(_position);
+
+                        //if (m_crossingfailures < 5)
+                        //{
+                            //base.RequestPhysicsterseUpdate();
+                        //}
+                        //else
+                        //{
+                            //base.RaiseOutOfBounds(_position);
+                        //}
                     }
-                    //if (m_crossingfailures < 5)
-                    //{
-                    //base.RequestPhysicsterseUpdate();
-                    //}
-                    //}
 
                     if (l_position.Z < 0)
                     {
