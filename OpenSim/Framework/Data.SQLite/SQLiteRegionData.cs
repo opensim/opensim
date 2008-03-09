@@ -1171,7 +1171,17 @@ namespace OpenSim.Framework.Data.SQLite
             s.ProfileEnd = Convert.ToUInt16(row["ProfileEnd"]);
             s.ProfileCurve = Convert.ToByte(row["ProfileCurve"]);
             s.ProfileHollow = Convert.ToUInt16(row["ProfileHollow"]);
-            s.State = Convert.ToByte(row["State"]);
+            try
+            {
+                s.State = Convert.ToByte(row["State"]);
+            }
+            catch (InvalidCastException)
+            {
+                m_conn.Open();
+                SqliteCommand cmd =
+                    new SqliteCommand("ALTER TABLE primshapes ADD COLUMN State Integer NOT NULL default 0;", m_conn);
+                cmd.ExecuteNonQuery();
+            }
             // text TODO: this isn't right] = but I'm not sure the right
             // way to specify this as a blob atm
 
