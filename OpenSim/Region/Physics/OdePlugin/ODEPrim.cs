@@ -1721,16 +1721,20 @@ namespace OpenSim.Region.Physics.OdePlugin
 
                     if (l_position.X > 255.95f || l_position.X < 0f || l_position.Y > 255.95f || l_position.Y < 0f)
                     {
-                        base.RaiseOutOfBounds(_position);
+                        //base.RaiseOutOfBounds(l_position);
 
-                        //if (m_crossingfailures < 5)
-                        //{
-                            //base.RequestPhysicsterseUpdate();
-                        //}
-                        //else
-                        //{
-                            //base.RaiseOutOfBounds(_position);
-                        //}
+                        if (m_crossingfailures < 5)
+                        {
+                            _position = l_position;
+                            //_parent_scene.remActivePrim(this);
+                            base.RequestPhysicsterseUpdate();
+                            return;
+                        }
+                        else
+                        {
+                            base.RaiseOutOfBounds(l_position);
+                            return;
+                        }
                     }
 
                     if (l_position.Z < 0)

@@ -694,78 +694,80 @@ namespace OpenSim.Region.Physics.OdePlugin
 
             // If the sim is running slow this frame, 
             // don't process collision for prim!
-            if (timeStep < (m_SkipFramesAtms/3))
+            //if (timeStep < (m_SkipFramesAtms/3))
+            //{
+            lock (_activeprims)
             {
-                lock (_activeprims)
+
+                foreach (OdePrim chr in _activeprims)
                 {
-
-                    foreach (OdePrim chr in _activeprims)
+                    // This if may not need to be there..    it might be skipped anyway.
+                    if (d.BodyIsEnabled(chr.Body) && (!chr.m_disabled))
                     {
-                        // This if may not need to be there..    it might be skipped anyway.
-                        if (d.BodyIsEnabled(chr.Body) && (!chr.m_disabled))
-                        {
-                            try
-                            {
-                                lock (chr)
-                                {
-                                    if (space != (IntPtr)0 && chr.prim_geom != (IntPtr)0)
-                                        d.SpaceCollide2(space, chr.prim_geom, IntPtr.Zero, nearCallback);
-                                }
-
-                            }
-                            catch (AccessViolationException)
-                            {
-                                m_log.Warn("[PHYSICS]: Unable to space collide");
-                            }
-                            //calculateSpaceForGeom(chr.Position)
-                            //foreach (OdePrim ch2 in _prims)
-                            /// should be a separate space -- lots of avatars will be N**2 slow
-                            //{
-                            //if (ch2.IsPhysical && d.BodyIsEnabled(ch2.Body))
-                            //{
-                            // Only test prim that are 0.03 meters away in one direction.
-                            // This should be Optimized!
-
-                            //if ((Math.Abs(ch2.Position.X - chr.Position.X) < 0.03) || (Math.Abs(ch2.Position.Y - chr.Position.Y) < 0.03) || (Math.Abs(ch2.Position.X - chr.Position.X) < 0.03))
-                            //{
-                            //d.SpaceCollide2(chr.prim_geom, ch2.prim_geom, IntPtr.Zero, nearCallback);
-                            //}
-                            //}
-                            //}
-                        }
                         try
                         {
                             lock (chr)
                             {
-                                if (LandGeom != (IntPtr)0 && chr.prim_geom != (IntPtr)0)
-                                    d.SpaceCollide2(LandGeom, chr.prim_geom, IntPtr.Zero, nearCallback);
+                                if (space != (IntPtr)0 && chr.prim_geom != (IntPtr)0 && chr.m_taintremove == false)
+                                    d.SpaceCollide2(space, chr.prim_geom, IntPtr.Zero, nearCallback);
                             }
+
                         }
                         catch (AccessViolationException)
                         {
                             m_log.Warn("[PHYSICS]: Unable to space collide");
                         }
+                        //calculateSpaceForGeom(chr.Position)
+                        //foreach (OdePrim ch2 in _prims)
+                        /// should be a separate space -- lots of avatars will be N**2 slow
+                        //{
+                        //if (ch2.IsPhysical && d.BodyIsEnabled(ch2.Body))
+                        //{
+                        // Only test prim that are 0.03 meters away in one direction.
+                        // This should be Optimized!
+
+                        //if ((Math.Abs(ch2.Position.X - chr.Position.X) < 0.03) || (Math.Abs(ch2.Position.Y - chr.Position.Y) < 0.03) || (Math.Abs(ch2.Position.X - chr.Position.X) < 0.03))
+                        //{
+                        //d.SpaceCollide2(chr.prim_geom, ch2.prim_geom, IntPtr.Zero, nearCallback);
+                        //}
+                        //}
+                        //}
                     }
+                    //try
+                    //{
+                        //lock (chr)
+                        //{
+                            //if (LandGeom != (IntPtr)0 && chr.prim_geom != (IntPtr)0)
+                                //d.SpaceCollide2(LandGeom, chr.prim_geom, IntPtr.Zero, nearCallback);
+                        //}
+                    //}
+                    //catch (AccessViolationException)
+                   // {
+                        //m_log.Warn("[PHYSICS]: Unable to space collide");
+                    //}
                 }
             }
-            else
-            {
-                // Everything is going slow, so we're skipping object to object collisions
-                // At least collide test against the ground.
-                foreach (OdePrim chr in _activeprims)
-                {
-                    // This if may not need to be there..    it might be skipped anyway.
-                    if (d.BodyIsEnabled(chr.Body))
-                    {
-                        // Collide test the prims with the terrain..   since if you don't do this, 
-                        // next frame, all of the physical prim in the scene will awaken and explode upwards
-                        tmpSpace = calculateSpaceForGeom(chr.Position);
-                        if (tmpSpace != (IntPtr) 0 && d.GeomIsSpace(tmpSpace))
-                        d.SpaceCollide2(calculateSpaceForGeom(chr.Position), chr.prim_geom, IntPtr.Zero, nearCallback);
-                        d.SpaceCollide2(LandGeom, chr.prim_geom, IntPtr.Zero, nearCallback);
-                    }
-                }
-            }
+            #region disabled code
+            //}
+        //else
+        //{
+            // Everything is going slow, so we're skipping object to object collisions
+            // At least collide test against the ground.
+            //foreach (OdePrim chr in _activeprims)
+            //{
+                // This if may not need to be there..    it might be skipped anyway.
+                //if (d.BodyIsEnabled(chr.Body))
+                //{
+                    // Collide test the prims with the terrain..   since if you don't do this, 
+                    // next frame, all of the physical prim in the scene will awaken and explode upwards
+                    //tmpSpace = calculateSpaceForGeom(chr.Position);
+                    //if (tmpSpace != (IntPtr) 0 && d.GeomIsSpace(tmpSpace))
+                    //d.SpaceCollide2(calculateSpaceForGeom(chr.Position), chr.prim_geom, IntPtr.Zero, nearCallback);
+                    //d.SpaceCollide2(LandGeom, chr.prim_geom, IntPtr.Zero, nearCallback);
+                //}
+            //}
+            //}
+            #endregion
         }
 
         #endregion
@@ -870,7 +872,10 @@ namespace OpenSim.Region.Physics.OdePlugin
 
         public void remActivePrim(OdePrim deactivatePrim)
         {
-            _activeprims.Remove(deactivatePrim);
+            lock (_activeprims)
+            {
+                _activeprims.Remove(deactivatePrim);
+            }
         }
 
         public override void RemovePrim(PhysicsActor prim)
