@@ -204,6 +204,8 @@ namespace OpenSim.Region.Physics.Manager
         public abstract bool CollidingGround { get; set; }
         public abstract bool CollidingObj { get; set; }
 
+        public abstract bool FloatOnWater { set; }
+
         public abstract PhysicsVector RotationalVelocity { get; set; }
 
         public abstract bool Kinematic { get; set; }
@@ -255,6 +257,12 @@ namespace OpenSim.Region.Physics.Manager
             get { return 0f; }
             set { return; } 
         }
+
+        public override bool  FloatOnWater
+        {
+            set { return; }
+        }
+      
 
         public override bool CollidingGround
         {

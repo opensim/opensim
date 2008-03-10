@@ -254,6 +254,11 @@ namespace OpenSim.Region.Physics.BasicPhysicsPlugin
             set { return; }
         }
 
+        public override bool FloatOnWater
+        {
+            set { return; }
+        }
+
         public override bool IsPhysical
         {
             get { return false; }

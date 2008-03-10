@@ -73,6 +73,7 @@ namespace OpenSim.Region.Physics.OdePlugin
         public bool m_disabled = false;
         public bool m_taintadd = false;
         public bool m_taintselected = false;
+        public bool m_taintCollidesWater = false;
 
 
         public uint m_localID = 0;
@@ -739,6 +740,11 @@ namespace OpenSim.Region.Physics.OdePlugin
 
                 if (m_taintparent != _parent)
                     changelink(timestep);
+
+                if (m_taintCollidesWater != m_collidesWater)
+                    changefloatonwater(timestep);
+
+
             }
             else
             {
@@ -1333,6 +1339,24 @@ namespace OpenSim.Region.Physics.OdePlugin
             m_taintsize = _size;
         }
 
+        public void changefloatonwater(float timestep)
+        {
+            m_collidesWater = m_taintCollidesWater;
+
+            if (prim_geom != (IntPtr)0)
+            {
+                if (m_collidesWater)
+                {
+                    m_collisionFlags |= CollisionCategories.Water;
+                }
+                else 
+                {
+                    m_collisionFlags &= ~CollisionCategories.Water;
+                }
+                d.GeomSetCollideBits(prim_geom, (int)m_collisionFlags);
+            }
+        }
+
         public void changeshape(float timestamp)
         {
            
@@ -1892,6 +1916,14 @@ namespace OpenSim.Region.Physics.OdePlugin
                     m_rotationalVelocity.Z = 0;
                     _zeroFlag = true;
                 }
+            }
+        }
+
+        public override bool FloatOnWater
+        {
+            set {
+                m_taintCollidesWater = value;
+                _parent_scene.AddPhysicsActorTaint(this);
             }
         }
 

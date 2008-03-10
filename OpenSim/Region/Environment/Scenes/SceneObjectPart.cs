@@ -942,6 +942,22 @@ namespace OpenSim.Region.Environment.Scenes
             }
         }
 
+        public void SetFloatOnWater(int floatYN)
+        {
+            if (PhysActor != null)
+            {
+                if (floatYN == 1)
+                {
+                    PhysActor.FloatOnWater = true;
+                }
+                else
+                {
+                    PhysActor.FloatOnWater = false;
+                }
+
+            }
+        }
+
         public LLVector3 GetSitTargetPositionLL()
         {
             return new LLVector3(m_sitTargetPosition.x, m_sitTargetPosition.y, m_sitTargetPosition.z);

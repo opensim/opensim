@@ -648,6 +648,7 @@ namespace OpenSim.Region.ScriptEngine.Common
         void osRegionNotice(string msg);
 	    bool osConsoleCommand(string Command);
         void osSetParcelMediaURL(string url);
+        void osSetPrimFloatOnWater(int floatYN);
 
     }
 }

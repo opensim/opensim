@@ -930,6 +930,11 @@ namespace OpenSim.Region.Physics.BulletXPlugin
             set { return; }
         }
 
+        public override bool FloatOnWater
+        {
+            set { return; }
+        }
+
         public virtual void SetAcceleration(PhysicsVector accel)
         {
             lock (BulletXScene.BulletXLock)

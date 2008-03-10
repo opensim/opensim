@@ -1508,6 +1508,8 @@ namespace OpenSim.Region.ScriptEngine.Common
             }
         }
 
+         
+
         public void llSetHoverHeight(double height, int water, double tau)
         {
             m_host.AddScriptLPS(1);
@@ -4403,6 +4405,18 @@ namespace OpenSim.Region.ScriptEngine.Common
                 return false;
             }
             return false;
+        }
+
+        public void osSetPrimFloatOnWater(int floatYN)
+        {
+            m_host.AddScriptLPS(1);
+            if (m_host.ParentGroup != null)
+            {
+                if (m_host.ParentGroup.RootPart != null)
+                {
+                    m_host.ParentGroup.RootPart.SetFloatOnWater(floatYN);
+                }
+            }
         }
 
         private void NotImplemented(string command)

@@ -383,6 +383,11 @@ namespace OpenSim.Region.Physics.POSPlugin
             set { return; }
         }
 
+        public override bool FloatOnWater
+        {
+            set { return; }
+        }
+
         public override bool IsPhysical
         {
             get { return false; }
@@ -619,6 +624,11 @@ namespace OpenSim.Region.Physics.POSPlugin
         public override float Buoyancy
         {
             get { return 0f; }
+            set { return; }
+        }
+
+        public override bool FloatOnWater
+        {
             set { return; }
         }
 
