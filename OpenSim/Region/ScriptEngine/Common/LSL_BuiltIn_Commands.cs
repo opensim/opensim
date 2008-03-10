@@ -1163,8 +1163,7 @@ namespace OpenSim.Region.ScriptEngine.Common
         public LSL_Types.Vector3 llGetOmega()
         {
             m_host.AddScriptLPS(1);
-            NotImplemented("llGetOmega");
-            return new LSL_Types.Vector3();
+            return new LSL_Types.Vector3(m_host.RotationalVelocity.X, m_host.RotationalVelocity.Y, m_host.RotationalVelocity.Z);
         }
 
         public double llGetTimeOfDay()

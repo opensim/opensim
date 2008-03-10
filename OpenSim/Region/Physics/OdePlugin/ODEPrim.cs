@@ -1770,7 +1770,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                     d.Quaternion ori = d.BodyGetQuaternion(Body);
                     d.Vector3 vel = d.BodyGetLinearVel(Body);
                     d.Vector3 rotvel = d.BodyGetAngularVel(Body);
-
+                    
                     PhysicsVector l_position = new PhysicsVector();
 
 
@@ -1815,6 +1815,11 @@ namespace OpenSim.Region.Physics.OdePlugin
 
                         //IsPhysical = false;
                         base.RaiseOutOfBounds(_position);
+                        
+                        _acceleration.X = 0;
+                        _acceleration.Y = 0;
+                        _acceleration.Z = 0;
+
                         _velocity.X = 0;
                         _velocity.Y = 0;
                         _velocity.Z = 0;
@@ -1850,6 +1855,11 @@ namespace OpenSim.Region.Physics.OdePlugin
                         _velocity.X = 0.0f;
                         _velocity.Y = 0.0f;
                         _velocity.Z = 0.0f;
+
+                        _acceleration.X = 0;
+                        _acceleration.Y = 0;
+                        _acceleration.Z = 0;
+
                         //_orientation.w = 0f;
                         //_orientation.x = 0f;
                         //_orientation.y = 0f;
@@ -1878,6 +1888,11 @@ namespace OpenSim.Region.Physics.OdePlugin
                         _velocity.X = vel.X;
                         _velocity.Y = vel.Y;
                         _velocity.Z = vel.Z;
+                        
+                        _acceleration = ((_velocity - m_lastVelocity) / 0.1f);
+                        _acceleration = new PhysicsVector(_velocity.X - m_lastVelocity.X / 0.1f, _velocity.Y - m_lastVelocity.Y / 0.1f, _velocity.Z - m_lastVelocity.Z / 0.1f);
+                        //m_log.Info("[PHYSICS]: V1: " + _velocity + " V2: " + m_lastVelocity + " Acceleration: " + _acceleration.ToString());
+                        
                         if (_velocity.IsIdentical(pv, 0.5f))
                         {
                             m_rotationalVelocity = pv;
@@ -1911,6 +1926,11 @@ namespace OpenSim.Region.Physics.OdePlugin
                     _velocity.X = 0;
                     _velocity.Y = 0;
                     _velocity.Z = 0;
+
+                    _acceleration.X = 0;
+                    _acceleration.Y = 0;
+                    _acceleration.Z = 0;
+
                     m_rotationalVelocity.X = 0;
                     m_rotationalVelocity.Y = 0;
                     m_rotationalVelocity.Z = 0;
