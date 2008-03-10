@@ -412,6 +412,12 @@ namespace OpenSim.Region.Physics.BulletXPlugin
         {
 
         }
+
+        public override void SetWaterLevel(float baseheight)
+        {
+
+        }
+
         public override PhysicsActor AddAvatar(string avName, PhysicsVector position, PhysicsVector size)
         {
             PhysicsVector pos = new PhysicsVector();
@@ -915,6 +921,12 @@ namespace OpenSim.Region.Physics.BulletXPlugin
 
         public override bool Selected
         {
+            set { return; }
+        }
+
+        public override float Buoyancy
+        {
+            get { return 0f; }
             set { return; }
         }
 

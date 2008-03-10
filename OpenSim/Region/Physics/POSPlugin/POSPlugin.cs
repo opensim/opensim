@@ -89,6 +89,11 @@ namespace OpenSim.Region.Physics.POSPlugin
             return act;
         }
 
+        public override void SetWaterLevel(float baseheight)
+        {
+
+        }
+
         public override void RemovePrim(PhysicsActor prim)
         {
             POSPrim p = (POSPrim) prim;
@@ -372,6 +377,12 @@ namespace OpenSim.Region.Physics.POSPlugin
             set { return; }
         }
 
+        public override float Buoyancy
+        {
+            get { return 0f; }
+            set { return; }
+        }
+
         public override bool IsPhysical
         {
             get { return false; }
@@ -602,6 +613,12 @@ namespace OpenSim.Region.Physics.POSPlugin
 
         public override PrimitiveBaseShape Shape
         {
+            set { return; }
+        }
+
+        public override float Buoyancy
+        {
+            get { return 0f; }
             set { return; }
         }
 

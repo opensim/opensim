@@ -79,6 +79,8 @@ namespace OpenSim.Region.Physics.Manager
 
         public abstract void SetTerrain(float[] heightMap);
 
+        public abstract void SetWaterLevel(float baseheight);
+
         public abstract void DeleteTerrain();
 
         public abstract void Dispose();
@@ -107,6 +109,10 @@ namespace OpenSim.Region.Physics.Manager
 
             public override void RemovePrim(PhysicsActor prim)
             {
+            }
+            public override void SetWaterLevel(float baseheight)
+            {
+
             }
 
 /*

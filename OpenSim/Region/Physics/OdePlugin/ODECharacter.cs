@@ -87,6 +87,8 @@ namespace OpenSim.Region.Physics.OdePlugin
         private bool m_hackSentFly = false;
         public uint m_localID = 0;
 
+        private float m_buoyancy = 0f;
+
         private CollisionLocker ode;
 
         private string m_name = String.Empty;
@@ -177,6 +179,11 @@ namespace OpenSim.Region.Physics.OdePlugin
             set { return; }
         }
 
+        public override float Buoyancy
+        {
+            get { return m_buoyancy; }
+            set { m_buoyancy = value; }
+        }
 
         public override bool IsPhysical
         {

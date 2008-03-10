@@ -934,6 +934,14 @@ namespace OpenSim.Region.Environment.Scenes
             m_sitTargetOrientation = orientation;
         }
 
+        public void SetBuoyancy(float fvalue)
+        {
+            if (PhysActor != null)
+            {
+                PhysActor.Buoyancy = fvalue;
+            }
+        }
+
         public LLVector3 GetSitTargetPositionLL()
         {
             return new LLVector3(m_sitTargetPosition.x, m_sitTargetPosition.y, m_sitTargetPosition.z);

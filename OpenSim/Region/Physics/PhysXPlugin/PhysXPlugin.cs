@@ -93,6 +93,11 @@ namespace OpenSim.Region.Physics.PhysXPlugin
 
         }
 
+        public override void SetWaterLevel(float baseheight)
+        {
+
+        }
+
         public override PhysicsActor AddAvatar(string avName, PhysicsVector position, PhysicsVector size)
         {
             Vec3 pos = new Vec3();
@@ -239,6 +244,12 @@ namespace OpenSim.Region.Physics.PhysXPlugin
 
         public override bool Selected
         {
+            set { return; }
+        }
+
+        public override float Buoyancy
+        {
+            get { return 0f; }
             set { return; }
         }
 
@@ -464,6 +475,12 @@ namespace OpenSim.Region.Physics.PhysXPlugin
 
         public override bool Selected
         {
+            set { return; }
+        }
+
+        public override float Buoyancy
+        {
+            get { return 0f; }
             set { return; }
         }
 

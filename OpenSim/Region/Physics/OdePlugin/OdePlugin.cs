@@ -49,6 +49,7 @@ namespace OpenSim.Region.Physics.OdePlugin
         private CollisionLocker ode;
         private OdeScene _mScene;
 
+
         public OdePlugin()
         {
             ode = new CollisionLocker();
@@ -98,16 +99,26 @@ namespace OpenSim.Region.Physics.OdePlugin
         private static readonly log4net.ILog m_log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 
         CollisionLocker ode;
-        
+
+        protected Random fluidRandomizer = new Random(System.Environment.TickCount);
+
         private const uint m_regionWidth = Constants.RegionSize;
         private const uint m_regionHeight = Constants.RegionSize;
 
         private static float ODE_STEPSIZE = 0.020f;
         private static float metersInSpace = 29.9f;
 
+        private float waterlevel = 0f;
+        private int framecount = 0;
         private IntPtr contactgroup;
         private IntPtr LandGeom = (IntPtr) 0;
+
+        private IntPtr WaterGeom = (IntPtr)0;
+
         private float[] _heightmap;
+
+        private float[] _watermap;
+
         private float[] _origheightmap;
         
         private d.NearCallback nearCallback;
@@ -120,13 +131,15 @@ namespace OpenSim.Region.Physics.OdePlugin
         public Dictionary<IntPtr, String> geom_name_map = new Dictionary<IntPtr, String>();
         public Dictionary<IntPtr, PhysicsActor> actor_name_map = new Dictionary<IntPtr, PhysicsActor>();
         private d.ContactGeom[] contacts = new d.ContactGeom[80];
+
         private d.Contact contact;
         private d.Contact TerrainContact;
         private d.Contact AvatarMovementprimContact;
         private d.Contact AvatarMovementTerrainContact;
+        private d.Contact WaterContact;
 
-        
 
+        private int m_randomizeWater = 200;
         private int m_physicsiterations = 10;
         private float m_SkipFramesAtms = 0.40f; // Drop frames gracefully at a 400 ms lag
         private PhysicsActor PANull = new NullPhysicsActor();
@@ -176,6 +189,12 @@ namespace OpenSim.Region.Physics.OdePlugin
             TerrainContact.surface.bounce = 0.1f;
             TerrainContact.surface.soft_erp = 0.1025f;
 
+            WaterContact.surface.mode |= (d.ContactFlags.SoftERP | d.ContactFlags.SoftCFM);
+            WaterContact.surface.mu = 0f; // No friction
+            WaterContact.surface.bounce = 0.0f; // No bounce
+            WaterContact.surface.soft_cfm = 0.01f;
+            WaterContact.surface.soft_erp = 0.010f;
+
             // Prim contact friction and bounce
             // THis is the *non* moving version of friction and bounce 
             // Use this when an avatar comes in contact with a prim
@@ -187,8 +206,8 @@ namespace OpenSim.Region.Physics.OdePlugin
             // Use this when an avatar is in contact with the terrain and moving.
             AvatarMovementTerrainContact.surface.mode |= d.ContactFlags.SoftERP;
             AvatarMovementTerrainContact.surface.mu = 75.0f;
-            AvatarMovementTerrainContact.surface.bounce = 0.1f;
-            AvatarMovementTerrainContact.surface.soft_erp = 0.1025f;
+            AvatarMovementTerrainContact.surface.bounce = 0.05f;
+            AvatarMovementTerrainContact.surface.soft_erp = 0.05025f;
 
             lock (OdeLock)
             {
@@ -216,7 +235,7 @@ namespace OpenSim.Region.Physics.OdePlugin
 
             // zero out a heightmap array float array (single dimention [flattened]))
             _heightmap = new float[514*514];
-
+            _watermap = new float[258 * 258];
 
             // Zero out the prim spaces array (we split our space into smaller spaces so 
             // we can hit test less.
@@ -571,12 +590,36 @@ namespace OpenSim.Region.Physics.OdePlugin
                             joint = d.JointCreateContact(world, contactgroup, ref TerrainContact);
                         }
                     }
+                    else if (name1 == "Water" || name2 == "Water")
+                    {
+                        if ((p2.PhysicsActorType == (int)ActorTypes.Prim))
+                        {
+
+                        }
+                        else
+                        {
+
+                        }
+                        WaterContact.surface.soft_cfm = 0.0000f;
+                        WaterContact.surface.soft_erp = 0.00000f;
+                        if (contacts[i].depth > 0.1f)
+                        {
+                            contacts[i].depth *= 52;
+                            //contacts[i].normal = new d.Vector3(0, 0, 1);
+                            //contacts[i].pos = new d.Vector3(0, 0, contacts[i].pos.Z - 5f);
+                        }
+                        WaterContact.geom = contacts[i];
+                        
+                        joint = d.JointCreateContact(world, contactgroup, ref WaterContact);
+
+                        //m_log.Info("[PHYSICS]: Prim Water Contact" + contacts[i].depth);
+                    }
                     else
                     {
                         // we're colliding with prim or avatar
 
                         // check if we're moving
-                        if ((p2.PhysicsActorType == (int) ActorTypes.Agent) &&
+                        if ((p2.PhysicsActorType == (int)ActorTypes.Agent) &&
                             (Math.Abs(p2.Velocity.X) > 0.01f || Math.Abs(p2.Velocity.Y) > 0.01f))
                         {
                             // Use the Movement prim contact
@@ -1279,6 +1322,11 @@ namespace OpenSim.Region.Physics.OdePlugin
         /// <returns></returns>
         public override float Simulate(float timeStep)
         {
+            if (framecount >= int.MaxValue)
+                framecount = 0;
+            
+            framecount++;
+
             float fps = 0;
             //m_log.Info(timeStep.ToString());
             step_time += timeStep;
@@ -1369,11 +1417,12 @@ namespace OpenSim.Region.Physics.OdePlugin
                                     foreach (OdePrim prim in _activeprims)
                                     {
                                         prim.m_collisionscore = 0;
+                                        prim.Move(timeStep);
                                     }
                                 }
 
-
-
+                                //if ((framecount % m_randomizeWater) == 0)
+                                   // randomizeWater(waterlevel);
                                 
 
                                 collision_optimized(timeStep);
@@ -1770,6 +1819,69 @@ namespace OpenSim.Region.Physics.OdePlugin
 
         public override void DeleteTerrain()
         {
+        }
+
+        public override void SetWaterLevel(float baseheight)
+        {
+            waterlevel = baseheight;
+            randomizeWater(waterlevel);
+        }
+
+        public void randomizeWater(float baseheight)
+        {
+            const uint heightmapWidth = m_regionWidth + 2;
+            const uint heightmapHeight = m_regionHeight + 2;
+            const uint heightmapWidthSamples = m_regionWidth + 2;
+            const uint heightmapHeightSamples = m_regionHeight + 2;
+            const float scale = 1.0f;
+            const float offset = 0.0f;
+            const float thickness = 2.9f;
+            const int wrap = 0;
+
+            for (int i = 0; i < (258 * 258); i++)
+            {
+                _watermap[i] = (baseheight-0.1f) + ((float)fluidRandomizer.Next(1,9) / 10f);
+               // m_log.Info((baseheight - 0.1f) + ((float)fluidRandomizer.Next(1, 9) / 10f));
+            }
+
+            
+            lock (OdeLock)
+            {
+                if (!(WaterGeom == (IntPtr)0))
+                {
+                    d.SpaceRemove(space, WaterGeom);
+                }
+                IntPtr HeightmapData = d.GeomHeightfieldDataCreate();
+                d.GeomHeightfieldDataBuildSingle(HeightmapData, _watermap, 0, heightmapWidth, heightmapHeight,
+                                                 (int)heightmapWidthSamples, (int)heightmapHeightSamples, scale,
+                                                 offset, thickness, wrap);
+                d.GeomHeightfieldDataSetBounds(HeightmapData, m_regionWidth, m_regionHeight);
+                WaterGeom = d.CreateHeightfield(space, HeightmapData, 1);
+                if (WaterGeom != (IntPtr)0)
+                {
+                    d.GeomSetCategoryBits(WaterGeom, (int)(CollisionCategories.Water));
+                    d.GeomSetCollideBits(WaterGeom, (int)(CollisionCategories.Space));
+
+                }
+                geom_name_map[WaterGeom] = "Water";
+
+                d.Matrix3 R = new d.Matrix3();
+
+                Quaternion q1 = Quaternion.FromAngleAxis(1.5707f, new Vector3(1, 0, 0));
+                Quaternion q2 = Quaternion.FromAngleAxis(1.5707f, new Vector3(0, 1, 0));
+                //Axiom.Math.Quaternion q3 = Axiom.Math.Quaternion.FromAngleAxis(3.14f, new Axiom.Math.Vector3(0, 0, 1));
+
+                q1 = q1 * q2;
+                //q1 = q1 * q3;
+                Vector3 v3 = new Vector3();
+                float angle = 0;
+                q1.ToAngleAxis(ref angle, ref v3);
+
+                d.RFromAxisAndAngle(out R, v3.x, v3.y, v3.z, angle);
+                d.GeomSetRotation(WaterGeom, ref R);
+                d.GeomSetPosition(WaterGeom, 128, 128, 0);
+            }
+
         }
 
         public override void Dispose()

@@ -189,6 +189,11 @@ namespace OpenSim.Region.Physics.BasicPhysicsPlugin
             _heightMap = heightMap;
         }
 
+        public override void SetWaterLevel(float baseheight)
+        {
+
+        }
+
         public override void DeleteTerrain()
         {
         }
@@ -240,6 +245,12 @@ namespace OpenSim.Region.Physics.BasicPhysicsPlugin
 
         public override bool Selected
         {
+            set { return; }
+        }
+
+        public override float Buoyancy
+        {
+            get { return 0f; }
             set { return; }
         }
 

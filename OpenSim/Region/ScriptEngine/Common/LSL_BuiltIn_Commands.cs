@@ -1499,7 +1499,13 @@ namespace OpenSim.Region.ScriptEngine.Common
         public void llSetBuoyancy(double buoyancy)
         {
             m_host.AddScriptLPS(1);
-            NotImplemented("llSetBuoyancy");
+            if (m_host.ParentGroup != null)
+            {
+                if (m_host.ParentGroup.RootPart != null)
+                {
+                    m_host.ParentGroup.RootPart.SetBuoyancy((float)buoyancy);
+                }
+            }
         }
 
         public void llSetHoverHeight(double height, int water, double tau)

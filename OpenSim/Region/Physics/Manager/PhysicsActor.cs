@@ -208,6 +208,8 @@ namespace OpenSim.Region.Physics.Manager
 
         public abstract bool Kinematic { get; set; }
 
+        public abstract float Buoyancy { get; set; }
+
         public abstract void AddForce(PhysicsVector force);
 
         public abstract void SetMomentum(PhysicsVector momentum);
@@ -249,6 +251,10 @@ namespace OpenSim.Region.Physics.Manager
             set { return; }
         }
 
+        public override float Buoyancy {
+            get { return 0f; }
+            set { return; } 
+        }
 
         public override bool CollidingGround
         {

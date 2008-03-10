@@ -55,7 +55,8 @@ namespace OpenSim.Region.Physics.OdePlugin
         private const CollisionCategories m_default_collisionFlags = (CollisionCategories.Geom
                                                         | CollisionCategories.Space
                                                         | CollisionCategories.Body
-                                                        | CollisionCategories.Character);
+                                                        | CollisionCategories.Character
+                                                        );
         private bool m_taintshape = false;
         private bool m_taintPhysics = false;
         private bool m_collidesLand = true;
@@ -105,6 +106,8 @@ namespace OpenSim.Region.Physics.OdePlugin
         public int m_collisionscore = 0;
         public int m_roundsUnderMotionThreshold = 0;
         private int m_crossingfailures = 0;
+
+        public float m_buoyancy = 0f;
 
         public bool outofBounds = false;
         private float m_density = 10.000006836f; // Aluminum g/cm3;
@@ -704,7 +707,7 @@ namespace OpenSim.Region.Physics.OdePlugin
             if (prim_geom != (IntPtr)0)
             {
                 if (m_taintposition != _position)
-                    Move(timestep);
+                    changemove(timestep);
 
                 if (m_taintrot != _orientation)
                     rotate(timestep);
@@ -829,7 +832,10 @@ namespace OpenSim.Region.Physics.OdePlugin
                     d.GeomSetCollideBits(prim_geom, (int)m_collisionFlags);
                 }
                 if (m_isphysical)
+                {
+                    d.BodySetLinearVel(Body, 0f, 0f, 0f);
                     enableBodySoft();
+                }
 
                 
             }
@@ -1003,7 +1009,7 @@ namespace OpenSim.Region.Physics.OdePlugin
 
 
         }
-        public void Move(float timestep)
+        public void changemove(float timestep)
         {
             
 
@@ -1061,6 +1067,37 @@ namespace OpenSim.Region.Physics.OdePlugin
             
             resetCollisionAccounting();
             m_taintposition = _position;
+        }
+
+        public void Move(float timestep)
+        {
+
+            if (IsPhysical && Body != (IntPtr)0 && !m_isSelected)
+            {
+                float m_mass = CalculateMass();
+                    //m_log.Info(m_collisionFlags.ToString());
+                if (m_buoyancy != 0)
+                {
+                    float buoyancy = 0f;
+                    if (m_buoyancy > 0)
+                    {
+                         buoyancy = ((9.8f * m_buoyancy) * m_mass);
+                         
+                        //d.Vector3 l_velocity = d.BodyGetLinearVel(Body);
+                        //m_log.Info("Using Buoyancy: " + buoyancy + " G: " + (9.8f * m_buoyancy) + "mass:" + m_mass + "  Pos: " + Position.ToString());
+                    }
+                    else 
+                    {
+                        buoyancy = (-1 * ((9.8f * (-1 * m_buoyancy)) * m_mass));
+                    }
+                    d.BodyAddForce(Body, 0, 0, buoyancy);
+
+                }
+            }
+            else
+            {
+                return;
+            }
         }
 
         public void rotate(float timestep)
@@ -1674,6 +1711,12 @@ namespace OpenSim.Region.Physics.OdePlugin
             {
                 m_log.Warn("[PHYSICS]: Too many crossing failures for: " + m_primName);
             }
+        }
+
+        public override float Buoyancy
+        {
+            get { return m_buoyancy; }
+            set { m_buoyancy = value; }
         }
 
         public override void link(PhysicsActor obj)
