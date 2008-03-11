@@ -191,13 +191,13 @@ namespace OpenSim.Region.ScriptEngine.Common
         public double llVecMag(LSL_Types.Vector3 v)
         {
             m_host.AddScriptLPS(1);
-            return (v.x * v.x + v.y * v.y + v.z * v.z);
+            return Math.Sqrt(v.x * v.x + v.y * v.y + v.z * v.z);
         }
 
         public LSL_Types.Vector3 llVecNorm(LSL_Types.Vector3 v)
         {
             m_host.AddScriptLPS(1);
-            double mag = v.x * v.x + v.y * v.y + v.z * v.z;
+            double mag = Math.Sqrt(v.x * v.x + v.y * v.y + v.z * v.z);
             LSL_Types.Vector3 nor = new LSL_Types.Vector3();
             nor.x = v.x / mag;
             nor.y = v.y / mag;
