@@ -231,14 +231,14 @@ namespace OpenSim.Region.ScriptEngine.Common
                     );
             }
 
-            public static float Mag(Vector3 v)
+            public static double Mag(Vector3 v)
             {
-                return (float)Math.Sqrt(v.x * v.x + v.y * v.y + v.z * v.z);
+                return Math.Sqrt(v.x * v.x + v.y * v.y + v.z * v.z);
             }
 
             public static Vector3 Norm(Vector3 vector)
             {
-                float mag = Mag(vector);
+                double mag = Mag(vector);
                 return new Vector3(vector.x / mag, vector.y / mag, vector.z / mag);
             }
 
