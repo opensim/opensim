@@ -49,7 +49,7 @@ namespace OpenSim.Framework.Data.SQLite
         private const string itemsSelect = "select * from primitems";
         private const string terrainSelect = "select * from terrain limit 1";
         private const string landSelect = "select * from land";
-        private const string landAccessListSelect = "select * from landaccesslist";
+        private const string landAccessListSelect = "select distinct * from landaccesslist";
 
         private DataSet ds;
         private SqliteDataAdapter primDa;
@@ -496,14 +496,13 @@ namespace OpenSim.Framework.Data.SQLite
                 {
                     fillLandRow(landRow, parcel.landData, regionUUID);
                 }
-                //m_conn.Open();
-                //using (
-                    //SqliteCommand cmd = new SqliteCommand("delete from landaccesslist where LandUUID=:LandUUID", m_conn))
-                //{
-                    //cmd.Parameters.Add(new SqliteParameter(":LandUUID", Util.ToRawUuidString(parcel.landData.globalID)));
-                    //cmd.ExecuteNonQuery();
-                //}
-                //m_conn.Close();
+
+                // I know this caused someone issues before, but OpenSim is unusable if we leave this stuff around
+                using (SqliteCommand cmd = new SqliteCommand("delete from landaccesslist where LandUUID=:LandUUID", m_conn))
+                {
+                    cmd.Parameters.Add(new SqliteParameter(":LandUUID", Util.ToRawUuidString(parcel.landData.globalID)));
+                    cmd.ExecuteNonQuery();
+                }
 
                 foreach (ParcelManager.ParcelAccessEntry entry in parcel.landData.parcelAccessList)
                 {
