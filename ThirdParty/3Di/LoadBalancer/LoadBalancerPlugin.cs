@@ -79,6 +79,9 @@ namespace OpenSim.ApplicationPlugins.LoadBalancer
         {
             m_log.Info("[BALANCER] "+"Entering Initialize()");
 
+            proxyURL = openSim.ConfigSource.Configs["Network"].GetString("proxy_url", "");
+            if(proxyURL.Length==0) return;
+
             StartTcpServer();
             ClientView.SynchronizeClient = new ClientView.SynchronizeClientHandler(SynchronizePackets);
             AsynchronousSocketListener.PacketHandler = new AsynchronousSocketListener.PacketRecieveHandler(SynchronizePacketRecieve);
@@ -90,9 +93,6 @@ namespace OpenSim.ApplicationPlugins.LoadBalancer
             this.commandServer = openSim.HttpServer;
 
             proxyOffset = Int32.Parse(openSim.ConfigSource.Configs["Network"].GetString("proxy_offset", "0"));
-            proxyURL = openSim.ConfigSource.Configs["Network"].GetString("proxy_url", "");
-            if(proxyURL.Length==0) return;
-
             serializeDir = openSim.ConfigSource.Configs["Network"].GetString("serialize_dir", "/tmp/");
 
             commandServer.AddXmlRPCHandler("SerializeRegion", SerializeRegion);
