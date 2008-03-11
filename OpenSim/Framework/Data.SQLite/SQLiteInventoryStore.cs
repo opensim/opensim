@@ -48,11 +48,6 @@ namespace OpenSim.Framework.Data.SQLite
         private SqliteDataAdapter invFoldersDa;
 
         /// <summary>
-        /// used to manage concurrent access tothe sqlite database files. Only one thread may open, read, write at a time.
-        /// </summary>
-        private object InventoryLock = new object();
-
-        /// <summary>
         /// Initialises the interface
         /// </summary>
         public void Initialise()
@@ -131,7 +126,7 @@ namespace OpenSim.Framework.Data.SQLite
 
         private void addFolder(InventoryFolderBase folder)
         {
-            lock (InventoryLock)
+            lock (ds)
             {
                 DataTable inventoryFolderTable = ds.Tables["inventoryfolders"];
 
@@ -153,7 +148,7 @@ namespace OpenSim.Framework.Data.SQLite
 
         private void moveFolder(InventoryFolderBase folder)
         {
-            lock (InventoryLock)
+            lock (ds)
             {
                 DataTable inventoryFolderTable = ds.Tables["inventoryfolders"];
 
@@ -175,7 +170,7 @@ namespace OpenSim.Framework.Data.SQLite
 
         private void addItem(InventoryItemBase item)
         {
-            lock (InventoryLock)
+            lock (ds)
             {
                 DataTable inventoryItemTable = ds.Tables["inventoryitems"];
 
@@ -238,7 +233,7 @@ namespace OpenSim.Framework.Data.SQLite
         /// <returns>A List of InventoryItemBase items</returns>
         public List<InventoryItemBase> getInventoryInFolder(LLUUID folderID)
         {
-            lock (InventoryLock)
+            lock (ds)
             {
                 List<InventoryItemBase> retval = new List<InventoryItemBase>();
                 DataTable inventoryItemTable = ds.Tables["inventoryitems"];
@@ -266,7 +261,7 @@ namespace OpenSim.Framework.Data.SQLite
         // see InventoryItemBase.getUserRootFolder
         public InventoryFolderBase getUserRootFolder(LLUUID user)
         {
-            lock (InventoryLock)
+            lock (ds)
             {
                 List<InventoryFolderBase> folders = new List<InventoryFolderBase>();
                 DataTable inventoryFolderTable = ds.Tables["inventoryfolders"];
@@ -299,7 +294,7 @@ namespace OpenSim.Framework.Data.SQLite
         /// <param name="parentID">ID of parent</param>
         protected void getInventoryFolders(ref List<InventoryFolderBase> folders, LLUUID parentID)
         {
-            lock (InventoryLock)
+            lock (ds)
             {
                 DataTable inventoryFolderTable = ds.Tables["inventoryfolders"];
                 string selectExp = "parentID = '" + Util.ToRawUuidString(parentID) + "'";
@@ -346,7 +341,7 @@ namespace OpenSim.Framework.Data.SQLite
         /// <returns>A class containing item information</returns>
         public InventoryItemBase getInventoryItem(LLUUID item)
         {
-            lock (InventoryLock)
+            lock (ds)
             {
                 DataRow row = ds.Tables["inventoryitems"].Rows.Find(Util.ToRawUuidString(item));
                 if (row != null)
@@ -372,7 +367,7 @@ namespace OpenSim.Framework.Data.SQLite
             // better to leave multi region at this point.  It does mean
             // that you don't get to see system textures why creating
             // clothes and the like. :(
-            lock (InventoryLock)
+            lock (ds)
             {
                 DataRow row = ds.Tables["inventoryfolders"].Rows.Find(Util.ToRawUuidString(folder));
                 if (row != null)
@@ -410,7 +405,7 @@ namespace OpenSim.Framework.Data.SQLite
         /// <param name="item"></param>
         public void deleteInventoryItem(LLUUID itemID)
         {
-            lock (InventoryLock)
+            lock (ds)
             {
                 DataTable inventoryItemTable = ds.Tables["inventoryitems"];
 
@@ -473,7 +468,7 @@ namespace OpenSim.Framework.Data.SQLite
         /// <param name="item"></param>
         public void deleteInventoryFolder(LLUUID folderID)
         {
-            lock (InventoryLock)
+            lock (ds)
             {
                 List<InventoryFolderBase> subFolders = getFolderHierarchy(Util.ToRawUuidString(folderID));
 
@@ -550,7 +545,7 @@ namespace OpenSim.Framework.Data.SQLite
 
         private void setupItemsCommands(SqliteDataAdapter da, SqliteConnection conn)
         {
-            lock (InventoryLock)
+            lock (ds)
             {
                 da.InsertCommand = createInsertCommand("inventoryitems", ds.Tables["inventoryitems"]);
                 da.InsertCommand.Connection = conn;
@@ -567,7 +562,7 @@ namespace OpenSim.Framework.Data.SQLite
 
         private void setupFoldersCommands(SqliteDataAdapter da, SqliteConnection conn)
         {
-            lock (InventoryLock)
+            lock (ds)
             {
                 da.InsertCommand = createInsertCommand("inventoryfolders", ds.Tables["inventoryfolders"]);
                 da.InsertCommand.Connection = conn;
@@ -618,7 +613,7 @@ namespace OpenSim.Framework.Data.SQLite
 
         private void InitDB(SqliteConnection conn)
         {
-            lock (InventoryLock)
+            lock (ds)
             {
                 string createInventoryItems = defineTable(createInventoryItemsTable());
                 string createInventoryFolders = defineTable(createInventoryFoldersTable());
