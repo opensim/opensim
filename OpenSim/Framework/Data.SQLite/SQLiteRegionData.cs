@@ -1515,8 +1515,6 @@ namespace OpenSim.Framework.Data.SQLite
             SqliteCommand lcmd = new SqliteCommand(createLand, conn);
             SqliteCommand lalcmd = new SqliteCommand(createLandAccessList, conn);
 
-            conn.Open();
-
             try
             {
                 pcmd.ExecuteNonQuery();
@@ -1573,7 +1571,6 @@ namespace OpenSim.Framework.Data.SQLite
             {
                 m_log.Warn("[SQLITE]: LandAccessList Table Already Exists");
             }
-            conn.Close();
         }
 
         private bool TestTables(SqliteConnection conn)
