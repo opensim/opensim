@@ -37,7 +37,7 @@ using log4net.Config;
 using System.Threading;
 using OpenSim.Framework.Console;
 
-namespace pCampBot
+namespace OpenSim.TestSuite
 {
     /// <summary>
     /// Event Types from the BOT.  Add new events here
@@ -49,17 +49,16 @@ namespace pCampBot
         DISCONNECTED = 2
     }
 
-    public class pCampBot
+    public class TestSuite
     {
-        
-        private static readonly ILog m_log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
-        
-        [STAThread]
         public static void Main(string[] args)
         {
-            // log4net.ILog m_log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
-            // log4net call
-            // BasicConfigurator.Configure();
+
+            // TODO: config parser
+
+            // TODO: load tests from addings
+
+            // TODO: create base bot cloud for use in tests
 
             IConfig config = ParseConfig(args);
             if (config.Get("help") != null || config.Get("loginuri") == null) {
@@ -67,17 +66,9 @@ namespace pCampBot
             } else {
                 int botcount = config.GetInt("botcount", 1);
                 
-                BotManager bm = new BotManager();
+                // BotManager bm = new BotManager();
                 
-                System.Console.WriteLine("Error enabled: {0}", m_log.IsErrorEnabled);
-                //startup specified number of bots.  1 is the default
-                m_log.Error("pCampBot started with " + botcount + "bots");
-
-//                 bm.dobotStartup(botcount, config);
-//                 while (true)
-//                 {
-//                     MainConsole.Instance.Prompt();
-//                 }
+                Utils.TestPass("Completed Startup");
             }
         }
 

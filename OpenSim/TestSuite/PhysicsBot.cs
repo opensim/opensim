@@ -37,8 +37,9 @@ using System.Threading;
 using OpenSim.Framework;
 using OpenSim.Framework.Console;
 using Timer = System.Timers.Timer;
+using log4net;
 
-namespace pCampBot
+namespace OpenSim.TestSuite
 {
     public class PhysicsBot
     {

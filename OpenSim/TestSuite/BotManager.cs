@@ -37,7 +37,7 @@ using System.Threading;
 using OpenSim.Framework;
 using OpenSim.Framework.Console;
 
-namespace pCampBot
+namespace OpenSim.TestSuite
 {
     /// <summary>
     /// Thread/Bot manager for the application
