@@ -74,9 +74,7 @@ namespace OpenSim.Framework.Communications.Cache
             }
             catch (Exception e)
             {
-                m_log.Error("[GRID ASSET CLIENT]: " + e.Message);
-                m_log.DebugFormat("[GRID ASSET CLIENT]: Getting asset {0}", req.AssetID.ToString());
-                m_log.Error("[GRID ASSET CLIENT]: " + e.StackTrace);
+                m_log.ErrorFormat("[GRID ASSET CLIENT]: Failed to get asset {0}, {1}", req.AssetID, e);
             }
 
             return null;
