@@ -239,9 +239,10 @@ namespace OpenSim.Grid.GridServer
 
             Hashtable requestData = (Hashtable)request.Params[0];
             string myword;
-            if (requestData.ContainsKey("UUID"))
+            LLUUID uuid;
+            if (requestData.ContainsKey("UUID") && LLUUID.TryParse((string)requestData["UUID"], out uuid))
             {
-                TheSim = getRegion(new LLUUID((string)requestData["UUID"]));
+                TheSim = getRegion(uuid);
 
                 //                logToDB((new LLUUID((string)requestData["UUID"])).ToString(),"XmlRpcSimulatorLoginMethod",String.Empty, 5,"Region attempting login with UUID.");
             }
@@ -275,14 +276,25 @@ namespace OpenSim.Grid.GridServer
             TheSim.regionUserSendKey = config.UserSendKey;
             TheSim.regionUserRecvKey = config.UserRecvKey;
 
-            TheSim.serverIP = (string)requestData["sim_ip"];
-            TheSim.serverPort = Convert.ToUInt32((string)requestData["sim_port"]);
-            TheSim.httpPort = Convert.ToUInt32((string)requestData["http_port"]);
-            TheSim.remotingPort = Convert.ToUInt32((string)requestData["remoting_port"]);
-            TheSim.regionLocX = Convert.ToUInt32((string)requestData["region_locx"]);
-            TheSim.regionLocY = Convert.ToUInt32((string)requestData["region_locy"]);
-            TheSim.regionLocZ = 0;
-            TheSim.regionMapTextureID = new LLUUID((string)requestData["map-image-id"]);
+            try
+            {
+                TheSim.serverIP = (string)requestData["sim_ip"];
+                TheSim.serverPort = Convert.ToUInt32((string)requestData["sim_port"]);
+                TheSim.httpPort = Convert.ToUInt32((string)requestData["http_port"]);
+                TheSim.remotingPort = Convert.ToUInt32((string)requestData["remoting_port"]);
+                TheSim.regionLocX = Convert.ToUInt32((string)requestData["region_locx"]);
+                TheSim.regionLocY = Convert.ToUInt32((string)requestData["region_locy"]);
+                TheSim.regionLocZ = 0;
+            }
+            catch (FormatException)
+            {
+                m_log.Info("[GRID]: invalid login parameters, ignoring.");
+                responseData["error"] = "Wrong format in login parameters. Please verify them.";
+                return response;
+            }
+            LLUUID textureID = LLUUID.Zero;
+            if (LLUUID.TryParse((string)requestData["map-image-id"], out textureID))
+                TheSim.regionMapTextureID = textureID;
 
     	    // part of an initial brutish effort to provide accurate information (as per the xml region spec)
     	    // wrt the ownership of a given region
