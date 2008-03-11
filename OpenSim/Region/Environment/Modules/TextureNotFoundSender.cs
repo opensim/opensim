@@ -82,7 +82,10 @@ namespace OpenSim.Region.Environment.Modules
             
             ImageNotInDatabasePacket notFound = new ImageNotInDatabasePacket();
             notFound.ImageID.ID = m_textureId;
-            m_client.OutPacket(notFound, ThrottleOutPacketType.Unknown);
+            
+            // XXX Temporarily disabling as this appears to be causing client crashes on at least
+            // 1.19.0(5) of the Linden Second Life client.
+            // m_client.OutPacket(notFound, ThrottleOutPacketType.Unknown);
             
             return true;
         }
