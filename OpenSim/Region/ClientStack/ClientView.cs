@@ -2339,6 +2339,7 @@ namespace OpenSim.Region.ClientStack
             m_cachedTextureSerial++;
             cachedresp.WearableData =
                 new AgentCachedTextureResponsePacket.WearableDataBlock[chechedtex.WearableData.Length];
+            
             for (int i = 0; i < chechedtex.WearableData.Length; i++)
             {
                 cachedresp.WearableData[i] = new AgentCachedTextureResponsePacket.WearableDataBlock();
@@ -2346,7 +2347,10 @@ namespace OpenSim.Region.ClientStack
                 cachedresp.WearableData[i].TextureID = LLUUID.Zero;
                 cachedresp.WearableData[i].HostName = new byte[0];
             }
-            OutPacket(cachedresp, ThrottleOutPacketType.Texture);
+            
+            // Temporarily throw these packets on to the wind queue, so we can identify whether these 
+            // are somehow the source of the packet bloat.
+            OutPacket(cachedresp, ThrottleOutPacketType.Wind);
             return true;
         }
 
