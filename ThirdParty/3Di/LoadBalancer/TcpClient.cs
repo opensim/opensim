@@ -37,8 +37,6 @@ namespace OpenSim.ApplicationPlugins.LoadBalancer {
     public class AsynchronousClient {
         private static ManualResetEvent connectDone = new ManualResetEvent(false);
         private static ManualResetEvent sendDone = new ManualResetEvent(false);
-        private static ManualResetEvent receiveDone = new ManualResetEvent(false);
-        private static String response = String.Empty;
 
         public static Socket StartClient(string hostname, int port) {
             try {
@@ -114,7 +112,10 @@ namespace OpenSim.ApplicationPlugins.LoadBalancer {
             try {
                 Socket client = (Socket) ar.AsyncState;
                 int bytesSent = client.EndSend(ar);
-                //Console.WriteLine("Sent {0} bytes to server.", bytesSent);
+                if(bytesSent > 0)
+                {
+                    //Console.WriteLine("Sent {0} bytes to server.", bytesSent);
+                }
                 sendDone.Set();
             } catch (Exception e) {
                 Console.WriteLine(e.ToString());

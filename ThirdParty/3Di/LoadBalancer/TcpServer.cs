@@ -89,7 +89,6 @@ namespace OpenSim.ApplicationPlugins.LoadBalancer {
         }
 
         public static void ReadCallback(IAsyncResult ar) {
-            String content = String.Empty;
             StateObject state = (StateObject) ar.AsyncState;
             Socket handler = state.workSocket;
 
@@ -182,23 +181,6 @@ namespace OpenSim.ApplicationPlugins.LoadBalancer {
             }
 
             handler.BeginReceive( state.buffer, 0, StateObject.BufferSize, 0, new AsyncCallback(ReadCallback), state);
-        }
-        
-        private static void Send(Socket handler, String data) {
-            byte[] byteData = Encoding.ASCII.GetBytes(data);
-            handler.BeginSend(byteData, 0, byteData.Length, 0, new AsyncCallback(SendCallback), handler);
-        }
-
-        private static void SendCallback(IAsyncResult ar) {
-            try {
-                Socket handler = (Socket) ar.AsyncState;
-                int bytesSent = handler.EndSend(ar);
-                //Console.WriteLine("Sent {0} bytes to client.", bytesSent);
-                handler.Shutdown(SocketShutdown.Both);
-                handler.Close();
-            } catch (Exception e) {
-                Console.WriteLine(e.ToString());
-            }
         }
     }
 

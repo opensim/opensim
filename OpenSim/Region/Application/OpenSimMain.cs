@@ -521,11 +521,6 @@ namespace OpenSim
             return udpServer;
         }
 
-        private static void CreateDefaultRegionInfoXml(string fileName)
-        {
-            new RegionInfo("DEFAULT REGION CONFIG", fileName,false);
-        }
-
         protected override StorageManager CreateStorageManager(string connectionstring)
         {
             return new StorageManager(m_storageDll, connectionstring, m_storagePersistPrimInventories);
@@ -1254,14 +1249,7 @@ namespace OpenSim
         /// <param name="usernum">The first out parameter describing the number of all the avatars in the Region server</param>
         public void GetAvatarNumber(out int usernum)
 		{
-			int accounter = 0;
-
-			foreach (ScenePresence presence in m_sceneManager.GetCurrentSceneAvatars()) {
-				//presence.RegionHandle;
-				accounter++;
-			}
-
-			usernum = accounter;
+			usernum = m_sceneManager.GetCurrentSceneAvatars().Count;
 		}
 
         /// <summary>
