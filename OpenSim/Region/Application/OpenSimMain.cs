@@ -374,27 +374,14 @@ namespace OpenSim
             m_moduleLoader = new ModuleLoader(m_config);
 
             ExtensionNodeList nodes = AddinManager.GetExtensionNodes("/OpenSim/Startup");
-            m_log.InfoFormat("[PLUGINS]: Loading {0} OpenSim application plugins", nodes.Count);
             foreach (TypeExtensionNode node in nodes)
             {
-                // First load the proxy server (if present)
-                if(node.Path.Contains("Proxy"))
-                {
-                    IApplicationPlugin plugin = (IApplicationPlugin)node.CreateInstance();
-                    plugin.Initialise(this);
-                    m_plugins.Add(plugin);
-                }
+                m_log.InfoFormat("[PLUGINS]: Loading OpenSim application plugin {0}", node.Path);
+                IApplicationPlugin plugin = (IApplicationPlugin)node.CreateInstance();
+                plugin.Initialise(this);
+                m_plugins.Add(plugin);
             }
-            // then load the other modules
-            foreach (TypeExtensionNode node in nodes)
-            {
-                if(!node.Path.Contains("Proxy"))
-                {
-	                IApplicationPlugin plugin = (IApplicationPlugin)node.CreateInstance();
-	                plugin.Initialise(this);
-	                m_plugins.Add(plugin);
-                }
-            }
+
             // Start UDP servers
             //for (int i = 0; i < m_udpServers.Count; i++)
             //{

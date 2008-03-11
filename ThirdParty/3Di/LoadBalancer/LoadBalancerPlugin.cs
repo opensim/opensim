@@ -54,6 +54,7 @@ using libsecondlife.Packets;
 
 [assembly:Addin]
 [assembly:AddinDependency ("OpenSim", "0.5")]
+[assembly:AddinDependency ("RegionProxy", "0.1")]
 
 namespace OpenSim.ApplicationPlugins.LoadBalancer
 {
