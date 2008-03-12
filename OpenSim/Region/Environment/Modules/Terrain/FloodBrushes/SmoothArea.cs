@@ -100,6 +100,9 @@ namespace OpenSim.Region.Environment.Modules.Terrain.FloodBrushes
             {
                 for (y = 0; y < map.Height; y++)
                 {
+                    if (!fillArea[x, y])
+                        continue;
+
                     map[x, y] = manipulate[x, y];
                 }
             }
