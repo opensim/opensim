@@ -41,7 +41,7 @@ using OpenSim.Framework.Data.MySQL;
 
 namespace OpenSim.Grid.GridServer
 {
-    internal class GridManager
+    public class GridManager
     {
         private static readonly log4net.ILog m_log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 
