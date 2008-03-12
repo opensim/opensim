@@ -62,6 +62,8 @@ namespace OpenSim.Framework.Data.SQLite
             m_log.Info("[Inventory]: Sqlite - connecting: " + dbfile);
             SqliteConnection conn = new SqliteConnection(connectionString);
 
+            conn.Open();
+
             TestTables(conn);
 
             SqliteCommand itemsSelectCmd = new SqliteCommand(invItemsSelect, conn);
@@ -613,18 +615,14 @@ namespace OpenSim.Framework.Data.SQLite
 
         private void InitDB(SqliteConnection conn)
         {
-            lock (ds)
-            {
-                string createInventoryItems = defineTable(createInventoryItemsTable());
-                string createInventoryFolders = defineTable(createInventoryFoldersTable());
+            string createInventoryItems = defineTable(createInventoryItemsTable());
+            string createInventoryFolders = defineTable(createInventoryFoldersTable());
+            
+            SqliteCommand pcmd = new SqliteCommand(createInventoryItems, conn);
+            SqliteCommand scmd = new SqliteCommand(createInventoryFolders, conn);
 
-                SqliteCommand pcmd = new SqliteCommand(createInventoryItems, conn);
-                SqliteCommand scmd = new SqliteCommand(createInventoryFolders, conn);
-                conn.Open();
-                pcmd.ExecuteNonQuery();
-                scmd.ExecuteNonQuery();
-                conn.Close();
-            }
+            pcmd.ExecuteNonQuery();
+            scmd.ExecuteNonQuery();
         }
 
         private bool TestTables(SqliteConnection conn)
