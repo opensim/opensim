@@ -37,8 +37,8 @@ using System.Text;
 using libsecondlife;
 using Nini.Config;
 
-using System.Runtime.Serialization; 
-using System.Runtime.Serialization.Formatters.Binary; 
+using System.Runtime.Serialization;
+using System.Runtime.Serialization.Formatters.Binary;
 namespace OpenSim.Framework
 {
     public class Util
@@ -48,7 +48,13 @@ namespace OpenSim.Framework
         private static object XferLock = new object();
         private static Dictionary<LLUUID, string> capsURLS = new Dictionary<LLUUID, string>();
 
-     #region Vector Equasions
+        // Get a list of invalid path characters (OS dependent)
+        private static string regexInvalidPathChars = "[" + new String(Path.GetInvalidPathChars()) + "]";
+        // Get a list of invalid file characters (OS dependent)
+        private static string regexInvalidFileChars = "[" + new String(Path.GetInvalidFileNameChars()) + "]";
+
+
+        #region Vector Equasions
         /// <summary>
         /// Get the distance between two 3d vectors
         /// </summary>
@@ -60,7 +66,7 @@ namespace OpenSim.Framework
             float dx = a.X - b.X;
             float dy = a.Y - b.Y;
             float dz = a.Z - b.Z;
-            return Math.Sqrt(dx*dx + dy*dy + dz*dz);
+            return Math.Sqrt(dx * dx + dy * dy + dz * dz);
         }
 
         /// <summary>
@@ -68,7 +74,8 @@ namespace OpenSim.Framework
         /// </summary>
         /// <param name="a">A 3d vector</param>
         /// <returns>The magnitude of the vector</returns>
-        public static double GetMagnitude(LLVector3 a) {
+        public static double GetMagnitude(LLVector3 a)
+        {
             return Math.Sqrt((a.X * a.X) + (a.Y * a.Y) + (a.Z * a.Z));
         }
 
@@ -91,16 +98,16 @@ namespace OpenSim.Framework
         /// Returns if a vector is a zero vector (has all zero components)
         /// </summary>
         /// <returns></returns>
-        public static bool IsZeroVector( LLVector3 v )
+        public static bool IsZeroVector(LLVector3 v)
         {
-            if( v.X == 0 && v.Y == 0 && v.Z == 0)
+            if (v.X == 0 && v.Y == 0 && v.Z == 0)
             {
                 return true;
             }
-                
+
             return false;
         }
-     # endregion
+        # endregion
 
         public static ulong UIntsToLong(uint X, uint Y)
         {
@@ -299,7 +306,7 @@ namespace OpenSim.Framework
                     for (int j = 0; j < 16 && (i + j) < bytes.Length; j++)
                     {
                         if (bytes[i + j] >= 0x20 && bytes[i + j] < 0x7E)
-                            output.Append((char) bytes[i + j]);
+                            output.Append((char)bytes[i + j]);
                         else
                             output.Append(".");
                     }
@@ -358,6 +365,28 @@ namespace OpenSim.Framework
             return null;
         }
 
+        /// <summary>
+        /// Removes all invalid path chars (OS dependent)
+        /// </summary>
+        /// <param name="path">path</param>
+        /// <returns>safe path</returns>
+        public static string safePath(string path)
+        {
+            return System.Text.RegularExpressions.Regex.Replace(path, @regexInvalidPathChars, string.Empty);
+        }
+
+        /// <summary>
+        /// Removes all invalid filename chars (OS dependent)
+        /// </summary>
+        /// <param name="path">filename</param>
+        /// <returns>safe filename</returns>
+        public static string safeFileName(string filename)
+        {
+            return System.Text.RegularExpressions.Regex.Replace(filename, @regexInvalidFileChars, string.Empty); ;
+        }
+
+
+
         //
         // directory locations
         //
@@ -365,12 +394,12 @@ namespace OpenSim.Framework
         public static string homeDir()
         {
             string temp;
-//            string personal=(Environment.GetFolderPath(Environment.SpecialFolder.Personal));
-//            temp = Path.Combine(personal,".OpenSim");
+            //            string personal=(Environment.GetFolderPath(Environment.SpecialFolder.Personal));
+            //            temp = Path.Combine(personal,".OpenSim");
             temp = ".";
             return temp;
         }
-        
+
         public static string assetsDir()
         {
             return Path.Combine(configDir(), "assets");
@@ -439,10 +468,10 @@ namespace OpenSim.Framework
 
         public static void AddDataRowToConfig(IConfigSource config, DataRow row)
         {
-            config.Configs.Add((string) row[0]);
+            config.Configs.Add((string)row[0]);
             for (int i = 0; i < row.Table.Columns.Count; i++)
             {
-                config.Configs[(string) row[0]].Set(row.Table.Columns[i].ColumnName, row[i]);
+                config.Configs[(string)row[0]].Set(row.Table.Columns[i].ColumnName, row[i]);
             }
         }
 
@@ -468,25 +497,25 @@ namespace OpenSim.Framework
 
         public static string CleanString(string input)
         {
-            if(input.Length == 0)
+            if (input.Length == 0)
                 return input;
 
-            int clip=input.Length;
+            int clip = input.Length;
 
             // Test for ++ string terminator
-            int pos=input.IndexOf("\0");
-            if(pos != -1 && pos < clip)
-                clip=pos;
+            int pos = input.IndexOf("\0");
+            if (pos != -1 && pos < clip)
+                clip = pos;
 
             // Test for CR
-            pos=input.IndexOf("\r");
-            if(pos != -1 && pos < clip)
-                clip=pos;
+            pos = input.IndexOf("\r");
+            if (pos != -1 && pos < clip)
+                clip = pos;
 
             // Test for LF
-            pos=input.IndexOf("\n");
-            if(pos != -1 && pos < clip)
-                clip=pos;
+            pos = input.IndexOf("\n");
+            if (pos != -1 && pos < clip)
+                clip = pos;
 
             // Truncate string before first end-of-line character found
             return input.Substring(0, clip);

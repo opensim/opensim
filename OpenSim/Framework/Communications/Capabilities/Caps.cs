@@ -553,7 +553,7 @@ namespace OpenSim.Region.Capabilities
                 {
                     Directory.CreateDirectory(assetPath);
                 }
-                FileStream fs = File.Create(Path.Combine(assetPath, filename));
+                FileStream fs = File.Create(Path.Combine(assetPath, Util.safeFileName(filename)));
                 BinaryWriter bw = new BinaryWriter(fs);
                 bw.Write(data);
                 bw.Close();
