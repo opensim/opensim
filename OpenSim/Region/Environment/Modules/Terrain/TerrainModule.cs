@@ -392,7 +392,7 @@ namespace OpenSim.Region.Environment.Modules.Terrain
                     if (m_painteffects.ContainsKey((StandardTerrainEffects)action))
                     {
                         m_painteffects[(StandardTerrainEffects)action].PaintEffect(
-                            m_channel, west, south, Math.Pow(size, 2.0), seconds);
+                            m_channel, west, south, size, seconds);
 
                         bool usingTerrainModule = true;
 
@@ -421,7 +421,7 @@ namespace OpenSim.Region.Environment.Modules.Terrain
                             {
                                 if (x < east && x > west)
                                 {
-                                    if (y < south && y > north)
+                                    if (y < north && y > south)
                                     {
                                         fillArea[x, y] = true;
                                     }
@@ -430,7 +430,7 @@ namespace OpenSim.Region.Environment.Modules.Terrain
                         }
 
                         m_floodeffects[(StandardTerrainEffects)action].FloodEffect(
-                            m_channel, fillArea, Math.Pow(size, 2.0));
+                            m_channel, fillArea, size);
                         bool usingTerrainModule = true;
 
                         if (usingTerrainModule)
