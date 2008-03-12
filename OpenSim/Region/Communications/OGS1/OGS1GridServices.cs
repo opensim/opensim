@@ -605,39 +605,55 @@ namespace OpenSim.Region.Communications.OGS1
                 catch (RemotingException e)
                 {
                     NoteDeadRegion(regionHandle);
-                    m_log.Warn("Remoting Error: Unable to connect to adjacent region: " + 
-                                          " " + regInfo.RegionLocX + "," + regInfo.RegionLocY);
-                    m_log.Debug(e.ToString());
+                
+                    m_log.WarnFormat(
+                        "Remoting Error: Unable to connect to adjacent region: {0} {1},{2}",
+                        regInfo.RegionName, regInfo.RegionLocX, regInfo.RegionLocY);
+                    m_log.DebugFormat("Remoting Error: {0} {1}", e.Source, e.Message);
+                
                     return false;
                 }
                 catch (SocketException e)
                 {
                     NoteDeadRegion(regionHandle);
-                    m_log.Warn("Socket Error: Unable to connect to adjacent region: " + " " +
-                                          regInfo.RegionLocX + "," + regInfo.RegionLocY);
-                    m_log.Debug(e.ToString());
+                
+                    m_log.WarnFormat(
+                        "Remoting Error: Unable to connect to adjacent region: {0} {1},{2}",
+                        regInfo.RegionName, regInfo.RegionLocX, regInfo.RegionLocY);
+                    m_log.DebugFormat("Remoting Error: {0} {1}", e.Source, e.Message);
+                
                     return false;
                 }
                 catch (InvalidCredentialException e)
                 {
                     NoteDeadRegion(regionHandle);
-                    m_log.Warn("Invalid Credentials: Unable to connect to adjacent region: " + 
-                                          " " + regInfo.RegionLocX + "," + regInfo.RegionLocY);
-                    m_log.Debug(e.ToString());
+                
+                    m_log.WarnFormat(
+                        "Remoting Error: Unable to connect to adjacent region: {0} {1},{2}",
+                        regInfo.RegionName, regInfo.RegionLocX, regInfo.RegionLocY);
+                    m_log.DebugFormat("Remoting Error: {0} {1}", e.Source, e.Message);
+                
                     return false;
                 }
                 catch (AuthenticationException e)
                 {
                     NoteDeadRegion(regionHandle);
-                    m_log.Warn("Authentication exception: Unable to connect to adjacent region: " +
-                                          " " + regInfo.RegionLocX + "," + regInfo.RegionLocY);
-                    m_log.Debug(e.ToString());
+                
+                    m_log.WarnFormat(
+                        "Remoting Error: Unable to connect to adjacent region: {0} {1},{2}",
+                        regInfo.RegionName, regInfo.RegionLocX, regInfo.RegionLocY);
+                    m_log.DebugFormat("Remoting Error: {0} {1}", e.Source, e.Message);
+                
                     return false;
                 }
                 catch (Exception e)
                 {
                     NoteDeadRegion(regionHandle);
-                    m_log.Debug(e.ToString());
+                
+                    m_log.WarnFormat("Unable to connect to adjacent region: {0} {1},{2}",
+                        regInfo.RegionName, regInfo.RegionLocX, regInfo.RegionLocY);
+                    m_log.DebugFormat("{0} {1}", e.Source, e.Message);
+                
                     return false;
                 }
             }
@@ -700,41 +716,56 @@ namespace OpenSim.Region.Communications.OGS1
             catch (RemotingException e)
             {
                 NoteDeadRegion(regionHandle);
-                m_log.Warn("Remoting Error: Unable to connect to adjacent region: " + regInfo.RegionName +
-                           " " + regInfo.RegionLocX + "," + regInfo.RegionLocY);
-                m_log.Debug(e.ToString());
+                
+                m_log.WarnFormat(
+                    "Remoting Error: Unable to connect to adjacent region: {0} {1},{2}",
+                    regInfo.RegionName, regInfo.RegionLocX, regInfo.RegionLocY);
+                m_log.DebugFormat("Remoting Error: {0} {1}", e.Source, e.Message);
+                
                 return false;
             }
             catch (SocketException e)
             {
                 NoteDeadRegion(regionHandle);
-                m_log.Warn("Socket Error: Unable to connect to adjacent region: " + regInfo.RegionName + " " +
-                                      regInfo.RegionLocX + "," + regInfo.RegionLocY);
-                m_log.Debug(e.ToString());
+                
+                m_log.WarnFormat(
+                    "Remoting Error: Unable to connect to adjacent region: {0} {1},{2}",
+                    regInfo.RegionName, regInfo.RegionLocX, regInfo.RegionLocY);
+                m_log.DebugFormat("Remoting Error: {0} {1}", e.Source, e.Message);
+                
                 return false;
             }
             catch (InvalidCredentialException e)
             {
                 NoteDeadRegion(regionHandle);
-                m_log.Warn("Invalid Credentials: Unable to connect to adjacent region: " + regInfo.RegionName +
-                                      " " + regInfo.RegionLocX + "," + regInfo.RegionLocY);
-                m_log.Debug(e.ToString());
+                
+                m_log.WarnFormat(
+                    "Remoting Error: Unable to connect to adjacent region: {0} {1},{2}",
+                    regInfo.RegionName, regInfo.RegionLocX, regInfo.RegionLocY);
+                m_log.DebugFormat("Remoting Error: {0} {1}", e.Source, e.Message);
+                
                 return false;
             }
             catch (AuthenticationException e)
             {
                 NoteDeadRegion(regionHandle);
-                m_log.Warn("Authentication exception: Unable to connect to adjacent region: " +
-                                      regInfo.RegionName + " " + regInfo.RegionLocX + "," + regInfo.RegionLocY);
-                m_log.Debug(e.ToString());
+                
+                m_log.WarnFormat(
+                    "Remoting Error: Unable to connect to adjacent region: {0} {1},{2}",
+                    regInfo.RegionName, regInfo.RegionLocX, regInfo.RegionLocY);
+                m_log.DebugFormat("Remoting Error: {0} {1}", e.Source, e.Message);
+                
                 return false;
             }
             catch (Exception e)
             {
                 NoteDeadRegion(regionHandle);
-                m_log.Warn("Unknown exception: Unable to connect to adjacent region: " + regInfo.RegionName +
-                                      " " + regInfo.RegionLocX + "," + regInfo.RegionLocY);
-                m_log.Debug(e.ToString());
+                
+                m_log.WarnFormat(
+                    "Remoting Error: Unable to connect to adjacent region: {0} {1},{2}",
+                    regInfo.RegionName, regInfo.RegionLocX, regInfo.RegionLocY);
+                m_log.DebugFormat("Remoting Error: {0} {1}", e.Source, e.Message);
+                
                 return false;
             }
         }
@@ -994,9 +1025,12 @@ namespace OpenSim.Region.Communications.OGS1
             catch (RemotingException e)
             {
                 NoteDeadRegion(regionHandle);
-                m_log.Warn("Remoting Error: Unable to connect to adjacent region: " + regInfo.RegionName +
-                           " " + regInfo.RegionLocX + "," + regInfo.RegionLocY);
-                m_log.Debug(e.ToString());
+                
+                m_log.WarnFormat(
+                    "Remoting Error: Unable to connect to adjacent region: {0} {1},{2}",
+                    regInfo.RegionName, regInfo.RegionLocX, regInfo.RegionLocY);
+                m_log.DebugFormat("Remoting Error: {0} {1}", e.Source, e.Message);
+                
                 return false;
             }
             catch
