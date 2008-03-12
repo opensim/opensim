@@ -414,7 +414,7 @@ namespace OpenSim.Region.Environment.Modules.Terrain
                         fillArea.Initialize();
 
                         int x, y;
-
+    
                         for (x = 0; x < m_channel.Width; x++)
                         {
                             for (y = 0; y < m_channel.Height; y++)

@@ -78,6 +78,9 @@ namespace OpenSim.Region.Environment.Modules.Terrain.FloodBrushes
             {
                 for (y = 0; y < map.Height; y++)
                 {
+                    if (!fillArea[x, y])
+                        continue;
+
                     double average = 0.0;
                     int avgsteps = 0;
 
