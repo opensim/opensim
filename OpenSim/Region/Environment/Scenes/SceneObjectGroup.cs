@@ -935,8 +935,10 @@ namespace OpenSim.Region.Environment.Scenes
 
             m_scene.DeleteEntity(objectGroup.UUID);
 
-            objectGroup.DeleteParts();
-            AbsolutePosition = AbsolutePosition;
+            // TODO justincc Left here as a remind to myself to see if we can stop sending out
+            // useless updates for this group once it has been deleted.
+            //objectGroup.DeleteParts();
+
             ScheduleGroupForFullUpdate();
         }
 
@@ -1021,9 +1023,9 @@ namespace OpenSim.Region.Environment.Scenes
             }
             else
             {
-                m_log.InfoFormat("[SCENE]: " +
-                                 "DelinkFromGroup(): Child prim local id {0} not found in object with root prim id {1}",
-                                 partID, LocalId);
+                m_log.InfoFormat("[SCENE OBJECT GROUP]: " +
+                                 "DelinkFromGroup(): Child prim {0} not found in object {1}, {2}",
+                                 partID, LocalId, UUID);
             }
         }
 

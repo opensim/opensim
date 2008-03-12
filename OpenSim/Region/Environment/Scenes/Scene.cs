@@ -2566,6 +2566,30 @@ namespace OpenSim.Region.Environment.Scenes
                 }
             }
         }
+        
+        /// <summary>
+        /// Delete this object from the scene.
+        /// </summary>
+        /// <param name="group"></param>
+        public void DeleteSceneObjectGroup(SceneObjectGroup group)
+        {
+            SceneObjectPart rootPart = (group).GetChildPart(group.UUID);
+            if (rootPart.PhysActor != null)
+            {
+                PhysicsScene.RemovePrim(rootPart.PhysActor);
+                rootPart.PhysActor = null;
+            }
+
+            m_storageManager.DataStore.RemoveObject(group.UUID, m_regInfo.RegionID);
+            group.DeleteGroup();
+
+            lock (Entities)
+            {
+                Entities.Remove(group.UUID);
+                m_innerScene.RemoveAPrimCount();
+            }
+            group.DeleteParts();
+        }        
 
         /// <summary>
         /// 

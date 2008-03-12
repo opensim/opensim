@@ -806,26 +806,6 @@ namespace OpenSim.Region.Environment.Scenes
             }
         }
 
-        public void DeleteSceneObjectGroup(SceneObjectGroup group)
-        {
-            SceneObjectPart rootPart = (group).GetChildPart(group.UUID);
-            if (rootPart.PhysActor != null)
-            {
-                PhysicsScene.RemovePrim(rootPart.PhysActor);
-                rootPart.PhysActor = null;
-            }
-
-            m_storageManager.DataStore.RemoveObject(group.UUID, m_regInfo.RegionID);
-            group.DeleteGroup();
-
-            lock (Entities)
-            {
-                Entities.Remove(group.UUID);
-                m_innerScene.RemoveAPrimCount();
-            }
-            group.DeleteParts();
-        }
-
         public virtual void RezObject(IClientAPI remoteClient, LLUUID itemID, LLVector3 RayEnd, LLVector3 RayStart,
                                     LLUUID RayTargetID, byte BypassRayCast, bool RayEndIsIntersection,
                                     uint EveryoneMask, uint GroupMask, uint NextOwnerMask, uint ItemFlags,
