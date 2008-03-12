@@ -91,8 +91,7 @@ namespace OpenSim.Framework.Data.SQLite
             m_log.Info("[SQLITE]: Creating Asset " + Util.ToRawUuidString(asset.FullID));
             if (ExistsAsset(asset.FullID))
             {
-                m_log.Info("[SQLITE]: Asset exists, updating instead.  You should fix the caller for this!");
-                UpdateAsset(asset);
+                m_log.Info("[SQLITE]: Asset exists already, ignoring.");
             }
             else 
             {
