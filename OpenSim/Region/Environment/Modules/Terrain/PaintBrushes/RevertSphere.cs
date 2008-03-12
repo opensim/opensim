@@ -43,6 +43,13 @@ namespace OpenSim.Region.Environment.Modules.Terrain.PaintBrushes
 
         public void PaintEffect(ITerrainChannel map, double rx, double ry, double strength, double duration)
         {
+            strength = TerrainUtil.MetersToSphericalStrength(strength);
+
+            if (duration > 1.0)
+                duration = 1.0;
+            if (duration < 0)
+                return;
+
             int x, y;
             for (x = 0; x < map.Width; x++)
             {
