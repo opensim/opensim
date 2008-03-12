@@ -240,7 +240,7 @@ namespace OpenSim.Framework.Communications
                 }
             }
             realuri = sb.ToString();
-            m_log.InfoFormat("[REST]: RestURL: {0}", realuri);
+            //m_log.InfoFormat("[REST CLIENT]: RestURL: {0}", realuri);
             return new Uri(sb.ToString());
         }
 

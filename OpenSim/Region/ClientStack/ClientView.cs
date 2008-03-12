@@ -2329,10 +2329,19 @@ namespace OpenSim.Region.ClientStack
             return true;
         }
 
+        /// <summary>
+        /// Send a response back to a client when it asks the asset server (via the region server) if it has
+        /// its appearance texture cached.
+        /// 
+        /// At the moment, we always reply that there is no cached texture.
+        /// </summary>
+        /// <param name="simclient"></param>
+        /// <param name="packet"></param>
+        /// <returns></returns>
         protected bool AgentTextureCached(IClientAPI simclient, Packet packet)
         {
             //System.Console.WriteLine("texture cached: " + packet.ToString());
-            AgentCachedTexturePacket chechedtex = (AgentCachedTexturePacket)packet;
+            AgentCachedTexturePacket cachedtex = (AgentCachedTexturePacket)packet;
             AgentCachedTextureResponsePacket cachedresp = (AgentCachedTextureResponsePacket)PacketPool.Instance.GetPacket(PacketType.AgentCachedTextureResponse);
             // TODO: don't create new blocks if recycling an old packet
             cachedresp.AgentData.AgentID = AgentId;
@@ -2340,12 +2349,12 @@ namespace OpenSim.Region.ClientStack
             cachedresp.AgentData.SerialNum = m_cachedTextureSerial;
             m_cachedTextureSerial++;
             cachedresp.WearableData =
-                new AgentCachedTextureResponsePacket.WearableDataBlock[chechedtex.WearableData.Length];
+                new AgentCachedTextureResponsePacket.WearableDataBlock[cachedtex.WearableData.Length];
             
-            for (int i = 0; i < chechedtex.WearableData.Length; i++)
+            for (int i = 0; i < cachedtex.WearableData.Length; i++)
             {
                 cachedresp.WearableData[i] = new AgentCachedTextureResponsePacket.WearableDataBlock();
-                cachedresp.WearableData[i].TextureIndex = chechedtex.WearableData[i].TextureIndex;
+                cachedresp.WearableData[i].TextureIndex = cachedtex.WearableData[i].TextureIndex;
                 cachedresp.WearableData[i].TextureID = LLUUID.Zero;
                 cachedresp.WearableData[i].HostName = new byte[0];
             }

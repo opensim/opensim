@@ -85,7 +85,7 @@ namespace OpenSim.Region.Environment.Modules
             
             // XXX Temporarily disabling as this appears to be causing client crashes on at least
             // 1.19.0(5) of the Linden Second Life client.
-            // m_client.OutPacket(notFound, ThrottleOutPacketType.Unknown);
+            // m_client.OutPacket(notFound, ThrottleOutPacketType.Texture);
             
             return true;
         }

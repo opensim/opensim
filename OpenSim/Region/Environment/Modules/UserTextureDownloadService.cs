@@ -139,8 +139,8 @@ namespace OpenSim.Region.Environment.Modules
                     if (texture == null || texture.Data == null)
                     {
                         m_log.DebugFormat(
-                            "[USER TEXTURE DOWNLOAD SERVICE]: Queueing TextureNotFoundSender for {0}", 
-                            textureID);
+                            "[USER TEXTURE DOWNLOAD SERVICE]: Queueing TextureNotFoundSender for {0}, client {1}", 
+                            textureID, m_client.AgentId);
                        
                         ITextureSender textureNotFoundSender = new TextureNotFoundSender(m_client, textureID);
                         EnqueueTextureSender(textureNotFoundSender);

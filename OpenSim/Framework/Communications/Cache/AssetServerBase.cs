@@ -77,7 +77,7 @@ namespace OpenSim.Framework.Communications.Cache
             }
             else
             {
-                m_log.ErrorFormat("[ASSET SERVER]: Asset {0} not found by asset server", req.AssetID);
+                //m_log.ErrorFormat("[ASSET SERVER]: Asset {0} not found by asset server", req.AssetID);
 
                 m_receiver.AssetNotFound(req.AssetID);
             }
@@ -138,7 +138,7 @@ namespace OpenSim.Framework.Communications.Cache
             m_assetRequests.Enqueue(req);
 
             #if DEBUG
-            m_log.InfoFormat("[ASSET SERVER]: Added {0} to request queue", assetID);
+            //m_log.InfoFormat("[ASSET SERVER]: Added {0} to request queue", assetID);
             #endif
         }
 
