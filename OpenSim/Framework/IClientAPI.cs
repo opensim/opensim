@@ -608,7 +608,7 @@ namespace OpenSim.Framework
                                    uint parentID, byte[] particleSystem, LLQuaternion rotation, byte clickAction);
 
         void SendPrimTerseUpdate(ulong regionHandle, ushort timeDilation, uint localID, LLVector3 position,
-                                 LLQuaternion rotation);
+                                 LLQuaternion rotation, byte state);
 
         void SendPrimTerseUpdate(ulong regionHandle, ushort timeDilation, uint localID, LLVector3 position,
                                  LLQuaternion rotation, LLVector3 velocity, LLVector3 rotationalvelocity);

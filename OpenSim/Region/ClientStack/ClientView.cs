@@ -1898,7 +1898,7 @@ namespace OpenSim.Region.ClientStack
         /// <param name="position"></param>
         /// <param name="rotation"></param>
         public void SendPrimTerseUpdate(ulong regionHandle, ushort timeDilation, uint localID, LLVector3 position,
-                                        LLQuaternion rotation)
+                                        LLQuaternion rotation, byte state)
         {
             LLVector3 velocity = new LLVector3(0f, 0f, 0f);
             LLVector3 rotationalvelocity = new LLVector3(0f, 0f, 0f);
@@ -1907,7 +1907,7 @@ namespace OpenSim.Region.ClientStack
             terse.RegionData.RegionHandle = regionHandle;
             terse.RegionData.TimeDilation = timeDilation;
             terse.ObjectData = new ImprovedTerseObjectUpdatePacket.ObjectDataBlock[1];
-            terse.ObjectData[0] = CreatePrimImprovedBlock(localID, position, rotation, velocity, rotationalvelocity);
+            terse.ObjectData[0] = CreatePrimImprovedBlock(localID, position, rotation, velocity, rotationalvelocity, state);
             terse.Header.Reliable = false;
             OutPacket(terse, ThrottleOutPacketType.Task);
         }
@@ -1920,7 +1920,7 @@ namespace OpenSim.Region.ClientStack
             terse.RegionData.RegionHandle = regionHandle;
             terse.RegionData.TimeDilation = timeDilation;
             terse.ObjectData = new ImprovedTerseObjectUpdatePacket.ObjectDataBlock[1];
-            terse.ObjectData[0] = CreatePrimImprovedBlock(localID, position, rotation, velocity, rotationalvelocity);
+            terse.ObjectData[0] = CreatePrimImprovedBlock(localID, position, rotation, velocity, rotationalvelocity, 0);
             terse.Header.Reliable = false;
             OutPacket(terse, ThrottleOutPacketType.Task);
         }
@@ -2027,7 +2027,8 @@ namespace OpenSim.Region.ClientStack
                                                                                           LLVector3 position,
                                                                                           LLQuaternion rotation,
                                                                                           LLVector3 velocity,
-                                                                                          LLVector3 rotationalvelocity)
+                                                                                          LLVector3 rotationalvelocity,
+                                                                                          byte state)
         {
             uint ID = localID;
             byte[] bytes = new byte[60];
@@ -2039,7 +2040,7 @@ namespace OpenSim.Region.ClientStack
             bytes[i++] = (byte)((ID >> 8) % 256);
             bytes[i++] = (byte)((ID >> 16) % 256);
             bytes[i++] = (byte)((ID >> 24) % 256);
-            bytes[i++] = 0;
+            bytes[i++] = state;
             bytes[i++] = 0;
 
             byte[] pb = position.GetBytes();
@@ -2125,7 +2126,8 @@ namespace OpenSim.Region.ClientStack
             SetDefaultPrimPacketValues(objupdate);
             objupdate.UpdateFlags = flags;
             SetPrimPacketShapeData(objupdate, primShape);
-            if ((primShape.PCode == 111) || (primShape.PCode == 255))
+            // if ((primShape.PCode == 111) || (primShape.PCode == 255))
+            if ((primShape.PCode == (byte)PCode.NewTree) || (primShape.PCode == (byte)PCode.Tree) || (primShape.PCode == (byte)PCode.Grass))
             {
                 objupdate.Data = new byte[1];
                 objupdate.Data[0] = primShape.State;

@@ -1814,7 +1814,7 @@ namespace OpenSim.Region.Environment.Scenes
             LLQuaternion mRot = RotationOffset;
             if ((ObjectFlags & (uint) LLObject.ObjectFlags.Physics) == 0)
             {
-                remoteClient.SendPrimTerseUpdate(m_regionHandle, (ushort)(m_parentGroup.GetTimeDilation() * (float)ushort.MaxValue), LocalId, lPos, mRot);
+                remoteClient.SendPrimTerseUpdate(m_regionHandle, (ushort)(m_parentGroup.GetTimeDilation() * (float)ushort.MaxValue), LocalId, lPos, mRot, Shape.State);
             }
             else
             {
@@ -1829,7 +1829,7 @@ namespace OpenSim.Region.Environment.Scenes
             LLQuaternion mRot = RotationOffset;
             if ((ObjectFlags & (uint) LLObject.ObjectFlags.Physics) == 0)
             {
-                remoteClient.SendPrimTerseUpdate(m_regionHandle, (ushort)(m_parentGroup.GetTimeDilation() * (float)ushort.MaxValue), LocalId, lPos, mRot);
+                remoteClient.SendPrimTerseUpdate(m_regionHandle, (ushort)(m_parentGroup.GetTimeDilation() * (float)ushort.MaxValue), LocalId, lPos, mRot, Shape.State);
             }
             else
             {
