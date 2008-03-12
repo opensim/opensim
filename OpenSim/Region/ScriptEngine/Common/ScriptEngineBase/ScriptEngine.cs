@@ -45,7 +45,7 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
     [Serializable]
     public abstract class ScriptEngine : IRegionModule, OpenSim.Region.ScriptEngine.Common.ScriptServerInterfaces.ScriptEngine, iScriptEngineFunctionModule
     {
-        private readonly log4net.ILog m_log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+        private static readonly log4net.ILog m_log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 
         public static List<ScriptEngine> ScriptEngines = new List<ScriptEngine>();
         public Scene World;
