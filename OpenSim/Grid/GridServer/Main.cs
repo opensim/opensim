@@ -39,32 +39,10 @@ namespace OpenSim.Grid.GridServer
     /// </summary>
     public class OpenGrid_Main : BaseOpenSimServer, conscmd_callback
     {
-        private static readonly log4net.ILog m_log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
         private GridConfig m_config;
         private GridManager m_gridManager;
 
-        [STAThread]
-        public static void Main(string[] args)
-        {
-            log4net.Config.XmlConfigurator.Configure();
-
-            OpenGrid_Main app = new OpenGrid_Main();
-
-            if (args.Length > 0 && args[0] == "-setuponly")
-            {
-                app.Config();
-            }
-            else
-            {
-                m_log.Info("Starting...\n");
-
-                app.Startup();
-
-                app.Work();
-            }
-        }
-
-        private void Work()
+        public void Work()
         {
             m_console.Notice("Enter help for a list of commands\n");
 
@@ -74,7 +52,7 @@ namespace OpenSim.Grid.GridServer
             }
         }
 
-        private OpenGrid_Main()
+        public OpenGrid_Main( )
         {
             m_console = new ConsoleBase("OpenGrid", this);
             MainConsole.Instance = m_console;
@@ -92,14 +70,13 @@ namespace OpenSim.Grid.GridServer
 
         public void Startup()
         {
+            m_console.Status("Starting...\n");
+
             Config();
 
-            m_log.Info("[GRID]: Connecting to Storage Server");
-            m_gridManager = new GridManager();
-            m_gridManager.AddPlugin(m_config.DatabaseProvider); // Made of win
-            m_gridManager.Config = m_config;
+            SetupGridManager();
 
-            m_log.Info("[GRID]: Starting HTTP process");
+            m_console.Status("[GRID]: Starting HTTP process");
             BaseHttpServer httpServer = new BaseHttpServer(m_config.HttpPort);
             //GridManagementAgent GridManagerAgent = new GridManagementAgent(httpServer, "gridserver", m_config.SimSendKey, m_config.SimRecvKey, managercallback);
 
@@ -125,14 +102,22 @@ namespace OpenSim.Grid.GridServer
 
             httpServer.Start();
 
-            m_log.Info("[GRID]: Starting sim status checker");
+            m_console.Status("[GRID]: Starting sim status checker");
 
             Timer simCheckTimer = new Timer(3600000*3); // 3 Hours between updates.
             simCheckTimer.Elapsed += new ElapsedEventHandler(CheckSims);
             simCheckTimer.Enabled = true;
         }
 
-        private void Config()
+        protected virtual void SetupGridManager()
+        {
+            m_console.Status("[GRID]: Connecting to Storage Server");
+            m_gridManager = new GridManager();
+            m_gridManager.AddPlugin(m_config.DatabaseProvider);
+            m_gridManager.Config = m_config;
+        }
+
+        public void Config()
         {
             m_config = new GridConfig("GRID SERVER", (Path.Combine(Util.configDir(), "GridServer_Config.xml")));
         }
@@ -190,28 +175,5 @@ namespace OpenSim.Grid.GridServer
                     break;
             }
         }
-
-        /*private void ConfigDB(IGenericConfig configData)
-        {
-            try
-            {
-                string attri = String.Empty;
-                attri = configData.GetAttribute("DataBaseProvider");
-                if (attri == String.Empty)
-                {
-                    GridDll = "OpenSim.Framework.Data.DB4o.dll";
-                    configData.SetAttribute("DataBaseProvider", "OpenSim.Framework.Data.DB4o.dll");
-                }
-                else
-                {
-                    GridDll = attri;
-                }
-                configData.Commit();
-            }
-            catch
-            {
-
-            }
-        }*/
     }
 }
