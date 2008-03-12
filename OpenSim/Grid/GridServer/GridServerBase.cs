@@ -37,7 +37,7 @@ namespace OpenSim.Grid.GridServer
 {
     /// <summary>
     /// </summary>
-    public class OpenGrid_Main : BaseOpenSimServer, conscmd_callback
+    public class GridServerBase : BaseOpenSimServer, conscmd_callback
     {
         private GridConfig m_config;
         private GridManager m_gridManager;
@@ -52,7 +52,7 @@ namespace OpenSim.Grid.GridServer
             }
         }
 
-        public OpenGrid_Main( )
+        public GridServerBase( )
         {
             m_console = new ConsoleBase("OpenGrid", this);
             MainConsole.Instance = m_console;

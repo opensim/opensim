@@ -12,7 +12,7 @@ namespace OpenSim.Grid.GridServer
         {
             log4net.Config.XmlConfigurator.Configure();
 
-            OpenGrid_Main app = new OpenGrid_Main();
+            GridServerBase app = new GridServerBase();
 
             if (args.Length > 0 && args[0] == "-setuponly")
             {
