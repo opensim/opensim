@@ -105,7 +105,7 @@ namespace OpenSim.Grid.GridServer
             m_log.Info("[GRID]: Connecting to Storage Server");
             m_gridManager = new GridManager();
             m_gridManager.AddPlugin(Cfg.DatabaseProvider); // Made of win
-            m_gridManager.config = Cfg;
+            m_gridManager.Config = Cfg;
 
             m_log.Info("[GRID]: Starting HTTP process");
             BaseHttpServer httpServer = new BaseHttpServer(Cfg.HttpPort);
@@ -119,7 +119,6 @@ namespace OpenSim.Grid.GridServer
             // Message Server ---> Grid Server
             httpServer.AddXmlRPCHandler("register_messageserver", m_gridManager.XmlRPCRegisterMessageServer);
             httpServer.AddXmlRPCHandler("deregister_messageserver", m_gridManager.XmlRPCDeRegisterMessageServer);
-
 
             httpServer.AddStreamHandler(new RestStreamHandler("GET", "/sims/", m_gridManager.RestGetSimMethod));
             httpServer.AddStreamHandler(new RestStreamHandler("POST", "/sims/", m_gridManager.RestSetSimMethod));
