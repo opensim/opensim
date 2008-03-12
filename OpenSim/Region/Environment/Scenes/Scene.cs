@@ -724,34 +724,34 @@ namespace OpenSim.Region.Environment.Scenes
 
                 if (Region_Status != RegionStatus.SlaveScene)
                 {
-                if (m_frame % m_update_events == 0)
-                    UpdateEvents();
-
-                if (m_frame % m_update_backup == 0)
-                    UpdateStorageBackup();
-
-                if (m_frame % m_update_terrain == 0)
-                    UpdateTerrain();
-
-                if (m_frame % m_update_land == 0)
-                    UpdateLand();
-                otherMS = System.Environment.TickCount - otherMS;
-                // if (m_frame%m_update_avatars == 0)
-                //   UpdateInWorldTime();
-                m_statsReporter.AddPhysicsFPS(physicsFPS);
-                m_statsReporter.AddTimeDilation(m_timedilation);
-                m_statsReporter.AddFPS(1);
-                m_statsReporter.AddInPackets(0);
-                m_statsReporter.SetRootAgents(m_innerScene.GetRootAgentCount());
-                m_statsReporter.SetChildAgents(m_innerScene.GetChildAgentCount());
-                m_statsReporter.SetObjects(m_innerScene.GetTotalObjects());
-                m_statsReporter.SetActiveObjects(m_innerScene.GetActiveObjects());
-                frameMS = System.Environment.TickCount - frameMS;
-                m_statsReporter.addFrameMS(frameMS);
-                m_statsReporter.addPhysicsMS(physicsMS);
-                m_statsReporter.addOtherMS(otherMS);
-                m_statsReporter.SetActiveScripts(m_innerScene.GetActiveScripts());
-                m_statsReporter.addScriptLines(m_innerScene.GetScriptLPS());
+                    if (m_frame % m_update_events == 0)
+                        UpdateEvents();
+    
+                    if (m_frame % m_update_backup == 0)
+                        UpdateStorageBackup();
+    
+                    if (m_frame % m_update_terrain == 0)
+                        UpdateTerrain();
+    
+                    if (m_frame % m_update_land == 0)
+                        UpdateLand();
+                    otherMS = System.Environment.TickCount - otherMS;
+                    // if (m_frame%m_update_avatars == 0)
+                    //   UpdateInWorldTime();
+                    m_statsReporter.AddPhysicsFPS(physicsFPS);
+                    m_statsReporter.AddTimeDilation(m_timedilation);
+                    m_statsReporter.AddFPS(1);
+                    m_statsReporter.AddInPackets(0);
+                    m_statsReporter.SetRootAgents(m_innerScene.GetRootAgentCount());
+                    m_statsReporter.SetChildAgents(m_innerScene.GetChildAgentCount());
+                    m_statsReporter.SetObjects(m_innerScene.GetTotalObjects());
+                    m_statsReporter.SetActiveObjects(m_innerScene.GetActiveObjects());
+                    frameMS = System.Environment.TickCount - frameMS;
+                    m_statsReporter.addFrameMS(frameMS);
+                    m_statsReporter.addPhysicsMS(physicsMS);
+                    m_statsReporter.addOtherMS(otherMS);
+                    m_statsReporter.SetActiveScripts(m_innerScene.GetActiveScripts());
+                    m_statsReporter.addScriptLines(m_innerScene.GetScriptLPS());
                 }
             }
             catch (NotImplementedException)
@@ -1288,7 +1288,7 @@ namespace OpenSim.Region.Environment.Scenes
 
             if (m_restorePresences.ContainsKey(client.AgentId))
             {
-                m_log.Info("REGION Restore Scene Presence");
+                m_log.Info("[REGION]: Restore Scene Presence");
 
                 presence = m_restorePresences[client.AgentId];
                 m_restorePresences.Remove(client.AgentId);
@@ -1304,7 +1304,7 @@ namespace OpenSim.Region.Environment.Scenes
 			}
             else
             {
-                m_log.Info("REGION Add New Scene Presence");
+                m_log.Info("[REGION]: Add New Scene Presence");
 
                 m_estateManager.sendRegionHandshake(client);
 

@@ -217,13 +217,26 @@ namespace OpenSim.Region.Environment.Scenes
             }
         }
 
+        /// <summary>
+        /// Process all pending updates
+        /// </summary>
         internal void ProcessUpdates()
         {
             lock (m_updateList)
             {
                 for (int i = 0; i < m_updateList.Count; i++)
                 {
-                    m_updateList[i].Update();
+                    EntityBase entity = m_updateList[i];
+                    
+                    // Don't abort the whole update if one entity happens to give us an exception.
+                    try
+                    {
+                        m_updateList[i].Update();
+                    }
+                    catch (Exception e)
+                    {
+                        m_log.ErrorFormat("[INNERSCENE]: Failed to update {0}, {1} - {2}", entity.Name, entity.m_uuid, e);
+                    }
                 }
                 m_updateList.Clear();
             }
