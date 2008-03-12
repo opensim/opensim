@@ -39,8 +39,8 @@ namespace OpenSim.Grid.GridServer
     /// </summary>
     public class GridServerBase : BaseOpenSimServer, conscmd_callback
     {
-        private GridConfig m_config;
-        private GridManager m_gridManager;
+        protected GridConfig m_config;
+        protected GridManager m_gridManager;
 
         public void Work()
         {
