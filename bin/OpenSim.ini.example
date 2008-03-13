@@ -91,12 +91,18 @@ script_engine = OpenSim.Region.ScriptEngine.DotNetEngine.dll
 [StandAlone]
 accounts_authenticate = true
 welcome_message = "Welcome to OpenSim"
+
+; Asset database provider
+asset_plugin = "OpenSim.Framework.Data.SQLite.dll"
+; asset_plugin = "OpenSim.Framework.Data.MySQL.dll"
+
+; Inventory database provider
 inventory_plugin = "OpenSim.Framework.Data.SQLite.dll"
+; inventory_plugin = "OpenSim.Framework.Data.MySQL.dll"
 
 ; User Data Database provider
-; userDatabase_plugin = "OpenSim.Framework.Data.DB4o.dll"
-; userDatabase_plugin = "OpenSim.Framework.Data.MySQL.dll"
 userDatabase_plugin = "OpenSim.Framework.Data.SQLite.dll"
+; userDatabase_plugin = "OpenSim.Framework.Data.MySQL.dll"
 
 default_location_x = 1000
 default_location_y = 1000
