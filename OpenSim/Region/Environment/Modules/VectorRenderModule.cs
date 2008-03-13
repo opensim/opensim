@@ -57,7 +57,18 @@ namespace OpenSim.Region.Environment.Modules
 
         private void Draw(string data, LLUUID id, string extraParams)
         {
-            Bitmap bitmap = new Bitmap(256, 256, System.Drawing.Imaging.PixelFormat.Format32bppArgb);
+            // TODO: this is a brutal hack.  extraParams should actually be parsed reasonably.
+            int size = 256;
+            try {
+                size = Convert.ToInt32(extraParams);
+            } catch (Exception e) {
+
+            }
+            
+            if ((size < 128) || (size > 1024))
+                size = 256;
+            
+            Bitmap bitmap = new Bitmap(size, size, System.Drawing.Imaging.PixelFormat.Format32bppArgb);
 
             System.Drawing.Graphics graph = System.Drawing.Graphics.FromImage(bitmap);
 
@@ -69,7 +80,7 @@ namespace OpenSim.Region.Environment.Modules
             }
             else
             {
-                graph.FillRectangle(new SolidBrush(Color.White), 0, 0, 256, 256);
+                graph.FillRectangle(new SolidBrush(Color.White), 0, 0, size, size);
             }
 
             for (int w = 0; w < bitmap.Width; w++)
