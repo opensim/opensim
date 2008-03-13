@@ -94,7 +94,11 @@ namespace OpenSim.Region.Environment.Scenes
         protected SceneCommunicationService m_sceneGridService;
         protected SceneXmlLoader m_sceneXmlLoader;
 
+        /// <summary>
+        /// Each agent has its own capabilities handler.
+        /// </summary>
         protected Dictionary<LLUUID, Caps> m_capsHandlers = new Dictionary<LLUUID, Caps>();
+        
         protected BaseHttpServer m_httpListener;
 
         protected Dictionary<string, IRegionModule> Modules = new Dictionary<string, IRegionModule>();
@@ -614,7 +618,7 @@ namespace OpenSim.Region.Environment.Scenes
         }
 
         /// <summary>
-        /// Start the timer which triggers regular scene updates
+        /// 
         /// </summary>
         public void StartTimer()
         {

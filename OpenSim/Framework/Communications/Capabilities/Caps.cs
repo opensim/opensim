@@ -266,8 +266,7 @@ namespace OpenSim.Region.Capabilities
         #endregion
 
         /// <summary>
-        /// Callback for a client request for an upload url for a script task 
-        /// inventory update
+        /// Called by the script task update handler.  Provides a URL to which the client can upload a new asset.
         /// </summary>
         /// <param name="request"></param>
         /// <param name="path"></param>
@@ -320,8 +319,7 @@ namespace OpenSim.Region.Capabilities
         }
 
         /// <summary>
-        /// Callback for a client request for an upload url for a notecard (or script) 
-        /// agent inventory update
+        /// Called by the notecard update handler.  Provides a URL to which the client can upload a new asset.
         /// </summary>
         /// <param name="request"></param>
         /// <param name="path"></param>
