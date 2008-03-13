@@ -206,6 +206,12 @@ namespace OpenSim.Region.Environment.Scenes
             }
         }
 
+        /// <summary>
+        /// Add an entity to the list of prims to process on the next update
+        /// </summary>
+        /// <param name="obj">
+        /// A <see cref="EntityBase"/>
+        /// </param>
         internal void AddToUpdateList(EntityBase obj)
         {
             lock (m_updateList)

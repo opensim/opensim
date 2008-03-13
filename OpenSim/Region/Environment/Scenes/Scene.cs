@@ -614,7 +614,7 @@ namespace OpenSim.Region.Environment.Scenes
         }
 
         /// <summary>
-        /// 
+        /// Start the timer which triggers regular scene updates
         /// </summary>
         public void StartTimer()
         {

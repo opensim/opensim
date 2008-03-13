@@ -247,9 +247,11 @@ namespace OpenSim.Region.Environment.Scenes
         public SceneObjectGroup(Scene scene, ulong regionHandle, SceneObjectPart part)
         {
             m_scene = scene;
+            
             part.SetParent(this);
             part.ParentID = 0;
             part.LinkNum = 0;
+            
             m_parts.Add(part.UUID, part);
 
             SetPartAsRoot(part);
@@ -691,7 +693,7 @@ namespace OpenSim.Region.Environment.Scenes
         #region Scheduling
 
         /// <summary>
-        /// 
+        /// Examine this object's parts to see if they've changed sufficiently to warrant an update
         /// </summary>
         public override void Update()
         {
@@ -703,6 +705,7 @@ namespace OpenSim.Region.Environment.Scenes
                 }
                 lastPhysGroupPos = AbsolutePosition;
             }
+            
             if ((Math.Abs(lastPhysGroupRot.W - GroupRotation.W) > 0.1)
                 || (Math.Abs(lastPhysGroupRot.X - GroupRotation.X) > 0.1)
                 || (Math.Abs(lastPhysGroupRot.Y - GroupRotation.Y) > 0.1)
@@ -714,6 +717,7 @@ namespace OpenSim.Region.Environment.Scenes
                 }
                 lastPhysGroupRot = GroupRotation;
             }
+            
             foreach (SceneObjectPart part in m_parts.Values)
             {
                 part.SendScheduledUpdates();
@@ -737,7 +741,7 @@ namespace OpenSim.Region.Environment.Scenes
         }
 
         /// <summary>
-        /// 
+        /// Schedule a full update for every part in this object
         /// </summary>
         public void ScheduleGroupForFullUpdate()
         {
@@ -910,6 +914,7 @@ namespace OpenSim.Region.Environment.Scenes
             linkPart.RotationOffset = new LLQuaternion(newRot.x, newRot.y, newRot.z, newRot.w);
             
             linkPart.ParentID = m_rootPart.LocalId;
+            
             linkPart.LinkNum = m_parts.Count;
             
             m_parts.Add(linkPart.UUID, linkPart);
@@ -1015,7 +1020,7 @@ namespace OpenSim.Region.Environment.Scenes
                     //m_rootPart.DoPhysicsPropertyUpdate(m_rootPart.PhysActor.IsPhysical, true);
                 //}
 
-                SceneObjectGroup objectGroup = new SceneObjectGroup(m_scene, m_regionHandle, linkPart);
+                SceneObjectGroup objectGroup = new SceneObjectGroup(m_scene, m_regionHandle, linkPart);                
 
                 m_scene.AddEntity(objectGroup);
 
@@ -1715,6 +1720,9 @@ namespace OpenSim.Region.Environment.Scenes
             m_scene.EventManager.TriggerGroupGrab(UUID, offsetPos, remoteClient.AgentId);
         }
 
+        /// <summary>
+        /// Completely delete this group and tell all the scene presences about that deletion.
+        /// </summary>
         public void DeleteGroup()
         {
             DetachFromBackup(this);

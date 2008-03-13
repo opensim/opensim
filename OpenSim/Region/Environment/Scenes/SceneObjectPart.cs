@@ -132,7 +132,12 @@ namespace OpenSim.Region.Environment.Scenes
         [XmlIgnore] public uint TimeStampLastActivity = 0; // Will be used for AutoReturn
 
         /// <summary>
-        /// Only used internally to schedule client updates
+        /// Only used internally to schedule client updates.
+        /// 0 - no update is scheduled
+        /// 1 - terse update scheduled
+        /// 2 - full update scheduled
+        /// 
+        /// TODO - This should be an enumeration
         /// </summary>
         private byte m_updateFlag;
 
@@ -1090,7 +1095,7 @@ namespace OpenSim.Region.Environment.Scenes
         #region Update Scheduling
 
         /// <summary>
-        /// 
+        /// Clear all pending updates
         /// </summary>
         private void ClearUpdateSchedule()
         {
@@ -1098,7 +1103,7 @@ namespace OpenSim.Region.Environment.Scenes
         }
 
         /// <summary>
-        /// 
+        /// Schedules this prim for a full update
         /// </summary>
         public void ScheduleFullUpdate()
         {
@@ -1107,6 +1112,7 @@ namespace OpenSim.Region.Environment.Scenes
                 m_parentGroup.HasGroupChanged = true;
                 m_parentGroup.QueueForUpdateCheck();
             }
+            
             TimeStampFull = (uint) Util.UnixTimeSinceEpoch();
             m_updateFlag = 2;
         }
@@ -1156,7 +1162,7 @@ namespace OpenSim.Region.Environment.Scenes
         }
 
         /// <summary>
-        /// 
+        /// Tell all the prims which have had updates scheduled 
         /// </summary>
         public void SendScheduledUpdates()
         {
@@ -1688,7 +1694,10 @@ namespace OpenSim.Region.Environment.Scenes
         }
 
         #region Client Update Methods
-
+        
+        /// <summary>
+        /// Tell all scene presences that they should send updates for this part to their clients
+        /// </summary>
         public void AddFullUpdateToAllAvatars()
         {
             List<ScenePresence> avatars = m_parentGroup.GetScenePresences();
@@ -1697,6 +1706,7 @@ namespace OpenSim.Region.Environment.Scenes
                 avatars[i].QueuePartForUpdate(this);
             }
         }
+
         public void SendFullUpdateToAllClientsExcept(LLUUID agentID)
         {
             List<ScenePresence> avatars = m_parentGroup.GetScenePresences();
@@ -1710,6 +1720,8 @@ namespace OpenSim.Region.Environment.Scenes
                 }
             }
         }
+    
+
         public void AddFullUpdateToAvatar(ScenePresence presence)
         {
             presence.QueuePartForUpdate(this);

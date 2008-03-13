@@ -418,6 +418,10 @@ namespace OpenSim.Region.Environment.Scenes
 
         #endregion
 
+        /// <summary>
+        /// Add the part to the queue of parts for which we need to send an update to the client
+        /// </summary>
+        /// <param name="part"></param>
         public void QueuePartForUpdate(SceneObjectPart part)
         {
             //if (InterestList.Contains(part.ParentGroup))
@@ -434,6 +438,11 @@ namespace OpenSim.Region.Environment.Scenes
             return m_scene.PermissionsMngr.GenerateClientFlags(m_uuid, ObjectID);
         }
 
+        /// <summary>
+        /// Send updates to the client about prims which have been placed on the update queue.  We don't 
+        /// necessarily send updates for all the parts on the queue, e.g. if an updates with a more recent
+        /// timestamp has already been sent.
+        /// </summary>
         public void SendPrimUpdates()
         {
             // if (m_scene.QuadTree.GetNodeID(this.AbsolutePosition.X, this.AbsolutePosition.Y) != m_currentQuadNode)
@@ -446,13 +455,12 @@ namespace OpenSim.Region.Environment.Scenes
             if (!m_gotAllObjectsInScene)
             {
                 if (!m_isChildAgent || m_scene.m_seeIntoRegionFromNeighbor)
-                {
-                    
+                {                    
                     m_scene.SendAllSceneObjectsToClient(this);
-                    m_gotAllObjectsInScene = true;
-                    
+                    m_gotAllObjectsInScene = true;                    
                 }
             }
+            
             if (m_partsUpdateQueue.Count > 0)
             {
                 bool runUpdate = true;
@@ -465,16 +473,18 @@ namespace OpenSim.Region.Environment.Scenes
                         ScenePartUpdate update = m_updateTimes[part.UUID];
 
                         // Two updates can occur with the same timestamp (especially
-                        // since our timestamp resolution is to the nearest second).  The first
-                        // could have been sent in the last update - we still need to send the 
-                        // second here.
-
-                        if (update.LastFullUpdateTime < part.TimeStampFull)
+                        // since our timestamp resolution is to the nearest second).  Therefore, we still need
+                        // to send an update even if the last full update time is identical to the part's 
+                        // update timestamp.
+                        //
+                        // If we don't do this, various events (such as linking and delinking in the same
+                        // second), will stop working properly!
+                        if (update.LastFullUpdateTime <= part.TimeStampFull)
                         {
                             //need to do a full update
                             part.SendFullUpdate(ControllingClient, GenerateClientFlags(part.UUID));
 
-                            // We'll update to the part's timestamp rather than the current to 
+                            // We'll update to the part's timestamp rather than the current time to 
                             // avoid the race condition whereby the next tick occurs while we are
                             // doing this update.  If this happened, then subsequent updates which occurred
                             // on the same tick or the next tick of the last update would be ignored.
