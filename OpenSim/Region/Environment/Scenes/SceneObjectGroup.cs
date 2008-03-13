@@ -940,8 +940,10 @@ namespace OpenSim.Region.Environment.Scenes
 
             m_scene.DeleteEntity(objectGroup.UUID);
 
-            // TODO justincc Left here as a remind to myself to see if we can stop sending out
-            // useless updates for this group once it has been deleted.
+            // TODO Deleting the parts may cause problems later on if they have already
+            // made it into the update queue.  However, sending out updates for those parts is now
+            // spurious, so it would be good not to send them at some point.
+            // The traffic caused is always going to be pretty minor, so it's not high priority
             //objectGroup.DeleteParts();
 
             ScheduleGroupForFullUpdate();
