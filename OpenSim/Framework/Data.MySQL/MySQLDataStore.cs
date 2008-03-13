@@ -158,9 +158,8 @@ namespace OpenSim.Framework.Data.MySQL
                         // m_log.Info("[DATASTORE]: Ignoring Physical obj: " + obj.UUID + " in region: " + regionUUID);
                     }
                 }
+                Commit();
             }
-
-            Commit();
         }
 
         public void RemoveObject(LLUUID obj, LLUUID regionUUID)
@@ -192,9 +191,8 @@ namespace OpenSim.Framework.Data.MySQL
                     // Remove prim row
                     row.Delete();
                 }
+                Commit();
             }
-
-            Commit();
         }
 
         /// <summary>
@@ -368,32 +366,34 @@ namespace OpenSim.Framework.Data.MySQL
             {
                 m_connection.Open();
             }
-
-            using (MySqlDataReader row = cmd.ExecuteReader())
+            
+            lock (m_dataSet) 
             {
-                int rev = 0;
-                if (row.Read())
+                using (MySqlDataReader row = cmd.ExecuteReader())
                 {
-                    MemoryStream str = new MemoryStream((byte[]) row["Heightfield"]);
-                    BinaryReader br = new BinaryReader(str);
-                    for (int x = 0; x < 256; x++)
+                    int rev = 0;
+                    if (row.Read())
                     {
-                        for (int y = 0; y < 256; y++)
+                        MemoryStream str = new MemoryStream((byte[]) row["Heightfield"]);
+                        BinaryReader br = new BinaryReader(str);
+                        for (int x = 0; x < 256; x++)
                         {
-                            terret[x, y] = br.ReadDouble();
+                            for (int y = 0; y < 256; y++)
+                            {
+                                terret[x, y] = br.ReadDouble();
+                            }
                         }
+                        rev = (int) row["Revision"];
                     }
-                    rev = (int) row["Revision"];
+                    else
+                    {
+                        m_log.Info("[DATASTORE]: No terrain found for region");
+                        return null;
+                    }
+                    
+                    m_log.Info("[DATASTORE]: Loaded terrain revision r" + rev.ToString());
                 }
-                else
-                {
-                    m_log.Info("[DATASTORE]: No terrain found for region");
-                    return null;
-                }
-
-                m_log.Info("[DATASTORE]: Loaded terrain revision r" + rev.ToString());
             }
-
             return terret;
         }
 
@@ -417,13 +417,8 @@ namespace OpenSim.Framework.Data.MySQL
             }
         }
 
-        static Random rnd = new Random();
         public void StoreLandObject(Land parcel, LLUUID regionUUID)
         {
-            // Does the new locking fix it?
-            m_log.Info("[DATASTORE]: Tedds temp fix: Waiting 3 seconds to avoid others writing to table while we hold a dataset of it. (Someone please fix! :))");
-            System.Threading.Thread.Sleep(2500 + rnd.Next(0, 1000));
-            
             lock (m_dataSet)
             {
                 DataTable land = m_landTable;
@@ -455,9 +450,9 @@ namespace OpenSim.Framework.Data.MySQL
                     fillLandAccessRow(newAccessRow, entry, parcel.landData.globalID);
                     landaccesslist.Rows.Add(newAccessRow);
                 }
-
+                
+                Commit();
             }
-            Commit();
         }
 
         public List<LandData> LoadLandObjects(LLUUID regionUUID)
