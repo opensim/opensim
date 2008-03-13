@@ -959,41 +959,26 @@
 
     <!-- Scene Server API Example Apps -->
 
-    <Project name="SimpleApp" path="OpenSim/Region/Examples/SimpleApp" type="Exe">
+    <Project name="OpenSim.Region.Examples.SimpleModule" path="OpenSim/Region/Examples/SimpleModule" type="Library">
       <Configuration name="Debug">
         <Options>
-          <OutputPath>../../../../bin/</OutputPath>
+          <OutputPath>bin/</OutputPath>
         </Options>
       </Configuration>
       <Configuration name="Release">
         <Options>
-          <OutputPath>../../../../bin/</OutputPath>
+          <OutputPath>bin/</OutputPath>
         </Options>
       </Configuration>
 
       <ReferencePath>../../../../bin/</ReferencePath>
 
       <Reference name="libsecondlife.dll"/>
-      <Reference name="Axiom.MathLib.dll" localCopy="false"/>
       <Reference name="System" localCopy="false"/>
-      <Reference name="System.Data"/>
-      <Reference name="System.Xml"/>
-
-      <Reference name="OpenSim.Framework.Console"/>
       <Reference name="OpenSim.Framework"/>
-      <Reference name="OpenSim.Framework.Data"/>
-      <Reference name="OpenSim.Region.Physics.Manager"/>
-      <Reference name="XMLRPC.dll"/>
-      <Reference name="OpenSim.Framework.Servers"/>
-      <Reference name="OpenSim.Framework.Statistics"/>
-      <Reference name="OpenSim.Framework.Communications"/>
-      <Reference name="OpenSim.Region.Communications.Local"/>
-      <Reference name="OpenSim.Region.ClientStack"/>
       <Reference name="OpenSim.Region.Environment"/>
-      <Reference name="OpenSim.Region.Terrain.BasicTerrain"/>
       <Reference name="Nini.dll" />
       <Reference name="log4net"/>
-
       <Files>
         <Match pattern="*.cs" recurse="true"/>
       </Files>
