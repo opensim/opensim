@@ -94,7 +94,7 @@ namespace OpenSim
         private string m_standaloneAssetPlugin;
         private string m_standaloneUserPlugin;
 
-        private string m_assetStorage = "sqlite";
+        private string m_assetStorage = "local";
 
         private string m_timedScript = "disabled";
         private Timer m_scriptTimer;
@@ -278,7 +278,7 @@ namespace OpenSim
                 m_shutdownCommandsFile = startupConfig.GetString("shutdown_console_commands_file", String.Empty);
 
                 m_scriptEngine = startupConfig.GetString("script_engine", "OpenSim.Region.ScriptEngine.DotNetEngine.dll");
-                m_assetStorage = startupConfig.GetString("asset_database", "sqlite");
+                m_assetStorage = startupConfig.GetString("asset_database", "local");
 
                 m_timedScript = startupConfig.GetString("timer_Script", "disabled");
             }
@@ -429,13 +429,6 @@ namespace OpenSim
             {
                 assetServer = new GridAssetClient(m_networkServersInfo.AssetURL);
             }
-            else if (m_assetStorage == "mssql")
-            {
-                SQLAssetServer sqlAssetServer = new SQLAssetServer("OpenSim.Framework.Data.MSSQL.dll");
-                sqlAssetServer.LoadDefaultAssets();
-                assetServer = sqlAssetServer;
-                //assetServer = new GridAssetClient(String.Empty);
-            }
             else
             {
                 SQLAssetServer sqlAssetServer = new SQLAssetServer(m_standaloneAssetPlugin);
@@ -444,7 +437,6 @@ namespace OpenSim
             }
 
             m_assetCache = new AssetCache(assetServer);
-            // m_assetCache = new assetCache("OpenSim.Region.GridInterfaces.Local.dll", m_networkServersInfo.AssetURL, m_networkServersInfo.AssetSendKey);
 
             m_sceneManager.OnRestartSim += handleRestartRegion;
         }

@@ -32,11 +32,16 @@ storage_prim_inventories = true
 appearance_persist = false
 appearance_connection_string = "Data Source=localhost;Database=avatar_appearance;User ID=root;Password=xxxx;pooling=false;"
 
-; Select the type of database to use for asset storage
-;asset_database = "db4o"
-asset_database = "sqlite"
+; Select whether you want to use local or grid asset storage.
+;
+; If you're running in standalone, you definitely want local, since there is no grid (hence this is redundant, and should
+; really be eliminated).  The database itself is defined in asset_plugin below
+;
+; If you're running a region server connecting to a grid, you probably want grid mode, since this will use the 
+; grid asset server.  If you select local in grid mode, then you will use a database as specified in asset_plugin to store assets
+; locally.  This will mean you won't be able to take items using your assets to other people's regions.
+asset_database = "local"
 ;asset_database = "grid"
-;asset_database = "mssql"
 
 ; Should avatars in neighbor sims see objects in this sim?
 see_into_this_sim_from_neighbor = True
