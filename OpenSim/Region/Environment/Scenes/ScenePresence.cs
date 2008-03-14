@@ -472,20 +472,14 @@ namespace OpenSim.Region.Environment.Scenes
                     {
                         ScenePartUpdate update = m_updateTimes[part.UUID];
 
-                        // Two updates can occur with the same timestamp (especially
-                        // since our timestamp resolution is to the nearest second).  Therefore, we still need
-                        // to send an update even if the last full update time is identical to the part's 
-                        // update timestamp.
-                        //
-                        // If we don't do this, various events (such as linking and delinking in the same
-                        // second), will stop working properly!
+                        // We deal with the possibility that two updates occur at the same unix time
+                        // at the update point itself.
                         if (update.LastFullUpdateTime < part.TimeStampFull)
                         {
 //                            m_log.DebugFormat(
 //                                "[SCENE PRESENCE]: Fully   updating prim {0}, {1} - part timestamp {2}", 
 //                                part.Name, part.UUID, part.TimeStampFull);
                             
-                            //need to do a full update
                             part.SendFullUpdate(ControllingClient, GenerateClientFlags(part.UUID));
 
                             // We'll update to the part's timestamp rather than the current time to 
@@ -1658,7 +1652,7 @@ namespace OpenSim.Region.Environment.Scenes
                 gdb.GodLevel = (byte)0;
                 m_godlevel = 0;
             }
-
+            
             gdb.Token = token;
             //respondPacket.AgentData = (GrantGodlikePowersPacket.AgentDataBlock)ablock;
             respondPacket.GrantData = gdb;

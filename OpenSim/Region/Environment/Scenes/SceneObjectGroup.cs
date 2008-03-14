@@ -948,7 +948,18 @@ namespace OpenSim.Region.Environment.Scenes
         public void LinkToGroup(SceneObjectGroup objectGroup)
         {
             if (objectGroup.RootPart.UpdateFlag > 0)
+            {
+                // I've never actually seen this happen, though I think it's theoretically possible                
+                m_log.ErrorFormat(
+                    "[SCENE OBJECT GROUP]: Aborted linking {0}, {1} to {2}, {3} as it has yet to finish delinking", 
+                    objectGroup.RootPart.Name, objectGroup.RootPart.UUID, RootPart.Name, RootPart.UUID);
+                                
                 return;
+            }
+            
+//            m_log.DebugFormat(
+//                "[SCENE OBJECT GROUP]: Linking group with root part {0}, {1} to group with root part {2}, {3}", 
+//                objectGroup.RootPart.Name, objectGroup.RootPart.UUID, RootPart.Name, RootPart.UUID);
 
             SceneObjectPart linkPart = objectGroup.m_rootPart;
             
@@ -1017,13 +1028,25 @@ namespace OpenSim.Region.Environment.Scenes
         /// <param name="partID"></param>
         public void DelinkFromGroup(uint partID)
         {
+            // Don't try and update if we're already in the middle of updating
             if (RootPart.UpdateFlag > 0)
+            {
+                // I've never actually seen this happen, though I think it's theoretically possible
+                m_log.WarnFormat(
+                    "[SCENE OBJECT GROUP]: Aborted delink update for {0}, {1} as it has yet to finish linking", 
+                    RootPart.Name, RootPart.UUID);
+                
                 return;
+            }
             
             SceneObjectPart linkPart = GetChildPart(partID);
 
             if (null != linkPart)
-            {                
+            {      
+//                m_log.DebugFormat(
+//                    "[SCENE OBJECT GROUP]: Delinking part {0}, {1} from group with root part {2}, {3}", 
+//                    linkPart.Name, linkPart.UUID, RootPart.Name, RootPart.UUID);
+                
                 LLQuaternion worldRot = linkPart.GetWorldRotation();  
     
                 // Remove the part from this object
@@ -1645,7 +1668,7 @@ namespace OpenSim.Region.Environment.Scenes
         }
 
         /// <summary>
-        /// 
+        /// Send a full update to the client for the given part
         /// </summary>
         /// <param name="remoteClient"></param>
         /// <param name="part"></param>
@@ -1662,7 +1685,7 @@ namespace OpenSim.Region.Environment.Scenes
         }
 
         /// <summary>
-        /// 
+        /// Send a terse update to the client for the given part
         /// </summary>
         /// <param name="remoteClient"></param>
         /// <param name="part"></param>

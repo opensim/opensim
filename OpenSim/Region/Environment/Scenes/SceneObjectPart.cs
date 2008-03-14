@@ -270,7 +270,6 @@ namespace OpenSim.Region.Environment.Scenes
                     m_groupPosition.Y = PhysActor.Position.Y;
                     m_groupPosition.Z = PhysActor.Position.Z;
                 }
-
                 return m_groupPosition;
             }
             set
@@ -1116,7 +1115,10 @@ namespace OpenSim.Region.Environment.Scenes
             
             int timeNow = Util.UnixTimeSinceEpoch();
                         
-            if (timeNow == TimeStampFull)
+            // If multiple updates are scheduled on the same second, we still need to perform all of them
+            // So we'll force the issue by bumping up the timestamp so that later processing sees these need
+            // to be peformed.
+            if (timeNow <= TimeStampFull)
             {
                 TimeStampFull += 1;
             }
@@ -1126,6 +1128,10 @@ namespace OpenSim.Region.Environment.Scenes
             }
             
             m_updateFlag = 2;
+            
+//            m_log.DebugFormat(
+//                "[SCENE OBJECT PART]: Scheduling full  update for {0}, {1} at {2}", 
+//                UUID, Name, TimeStampFull);
         }
 
         public void AddFlag(LLObject.ObjectFlags flag)
@@ -1155,7 +1161,8 @@ namespace OpenSim.Region.Environment.Scenes
         }
 
         /// <summary>
-        /// 
+        /// Schedule a terse update for this prim.  Terse updates only send position,
+        /// rotation, velocity, rotational velocity and shape information.
         /// </summary>
         public void ScheduleTerseUpdate()
         {
@@ -1169,6 +1176,9 @@ namespace OpenSim.Region.Environment.Scenes
                 TimeStampTerse = (uint) Util.UnixTimeSinceEpoch();
                 m_updateFlag = 1;
 
+//                m_log.DebugFormat(
+//                    "[SCENE OBJECT PART]: Scheduling terse update for {0}, {1} at {2}", 
+//                    UUID, Name, TimeStampTerse);
             }
         }
 
@@ -1836,7 +1846,7 @@ namespace OpenSim.Region.Environment.Scenes
         }
 
         /// <summary>
-        /// 
+        /// Send a terse update to the client.
         /// </summary>
         /// <param name="remoteClient"></param>
         public void SendTerseUpdate(IClientAPI remoteClient)
