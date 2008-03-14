@@ -479,8 +479,12 @@ namespace OpenSim.Region.Environment.Scenes
                         //
                         // If we don't do this, various events (such as linking and delinking in the same
                         // second), will stop working properly!
-                        if (update.LastFullUpdateTime <= part.TimeStampFull)
+                        if (update.LastFullUpdateTime < part.TimeStampFull)
                         {
+//                            m_log.DebugFormat(
+//                                "[SCENE PRESENCE]: Fully   updating prim {0}, {1} - part timestamp {2}", 
+//                                part.Name, part.UUID, part.TimeStampFull);
+                            
                             //need to do a full update
                             part.SendFullUpdate(ControllingClient, GenerateClientFlags(part.UUID));
 
@@ -494,6 +498,10 @@ namespace OpenSim.Region.Environment.Scenes
                         }
                         else if (update.LastTerseUpdateTime <= part.TimeStampTerse)
                         {
+//                            m_log.DebugFormat(
+//                                "[SCENE PRESENCE]: Tersely updating prim {0}, {1} - part timestamp {2}", 
+//                                part.Name, part.UUID, part.TimeStampTerse);
+                            
                             part.SendTerseUpdate(ControllingClient);
 
                             update.LastTerseUpdateTime = part.TimeStampTerse;

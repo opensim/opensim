@@ -947,6 +947,9 @@ namespace OpenSim.Region.Environment.Scenes
         /// <param name="objectGroup">The group of prims which should be linked to this group</param>
         public void LinkToGroup(SceneObjectGroup objectGroup)
         {
+            if (objectGroup.RootPart.UpdateFlag > 0)
+                return;
+
             SceneObjectPart linkPart = objectGroup.m_rootPart;
             
             Vector3 oldGroupPosition =
@@ -1014,10 +1017,13 @@ namespace OpenSim.Region.Environment.Scenes
         /// <param name="partID"></param>
         public void DelinkFromGroup(uint partID)
         {
+            if (RootPart.UpdateFlag > 0)
+                return;
+            
             SceneObjectPart linkPart = GetChildPart(partID);
 
             if (null != linkPart)
-            {
+            {                
                 LLQuaternion worldRot = linkPart.GetWorldRotation();  
     
                 // Remove the part from this object

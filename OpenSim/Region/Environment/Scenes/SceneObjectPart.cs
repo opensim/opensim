@@ -1114,7 +1114,17 @@ namespace OpenSim.Region.Environment.Scenes
                 m_parentGroup.QueueForUpdateCheck();
             }
             
-            TimeStampFull = (uint) Util.UnixTimeSinceEpoch();
+            int timeNow = Util.UnixTimeSinceEpoch();
+                        
+            if (timeNow == TimeStampFull)
+            {
+                TimeStampFull += 1;
+            }
+            else
+            {
+                TimeStampFull = (uint)timeNow;
+            }
+            
             m_updateFlag = 2;
         }
 
