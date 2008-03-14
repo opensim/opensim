@@ -590,6 +590,53 @@ namespace OpenSim.Region.Environment.Scenes
             SetPartAsRoot(newPart);
         }
 
+        public void ScriptSetPhysicsStatus(bool UsePhysics)
+        {   
+            if (m_scene.m_physicalPrim)
+            {
+                lock (m_parts)
+                {
+                    foreach (SceneObjectPart part in m_parts.Values)
+                    {
+                        if (UsePhysics)
+                            part.AddFlag(LLObject.ObjectFlags.Physics);
+                        else
+                            part.RemFlag(LLObject.ObjectFlags.Physics);
+
+                        part.DoPhysicsPropertyUpdate(UsePhysics, false);
+                        IsSelected = false;
+                    }
+                }
+            }
+
+        }
+
+        public void ScriptSetPhantomStatus(bool PhantomStatus)
+        {
+            lock (m_parts)
+            {
+                foreach (SceneObjectPart part in m_parts.Values)
+                {
+                    if (PhantomStatus)
+                    {
+                        part.AddFlag(LLObject.ObjectFlags.Phantom);
+                        if (part.PhysActor != null)
+                        {
+                            m_scene.PhysicsScene.RemovePrim(part.PhysActor);
+                        }
+                    }
+                    else
+                    {
+                        part.RemFlag(LLObject.ObjectFlags.Phantom);
+                        if ((part.ObjectFlags & (int)LLObject.ObjectFlags.Physics) != 0)
+                        {
+                            part.DoPhysicsPropertyUpdate(true, false);
+                        }
+                    }
+                }
+            }
+        }
+
         public void applyImpulse(PhysicsVector impulse)
         {
             // We check if rootpart is null here because scripts don't delete if you delete the host.

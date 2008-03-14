@@ -1326,7 +1326,20 @@ namespace OpenSim.Region.Environment.Scenes
             //            System.Console.WriteLine("Update:  PHY:" + UsePhysics.ToString() + ", T:" + IsTemporary.ToString() + ", PHA:" + IsPhantom.ToString() + " S:" + CastsShadows.ToString());
             ScheduleFullUpdate();
         }
-
+        public void ScriptSetPhysicsStatus(bool UsePhysics)
+        {
+            if (m_parentGroup != null)
+            {
+                m_parentGroup.ScriptSetPhysicsStatus(UsePhysics);
+            }
+        }
+        public void ScriptSetPhantomStatus(bool Phantom)
+        {
+            if (m_parentGroup != null)
+            {
+                m_parentGroup.ScriptSetPhantomStatus(Phantom);
+            }
+        }
         public void DoPhysicsPropertyUpdate(bool UsePhysics, bool isNew)
         {
             if (PhysActor != null)

@@ -609,11 +609,18 @@ namespace OpenSim.Region.ScriptEngine.Common
             m_host.AddScriptLPS(1);
             if ((status & BuiltIn_Commands_BaseClass.STATUS_PHYSICS) == BuiltIn_Commands_BaseClass.STATUS_PHYSICS)
             {
-                m_host.AddFlag(LLObject.ObjectFlags.Physics);
+                if (value == 1)
+                    m_host.ScriptSetPhysicsStatus(true);
+                else
+                    m_host.ScriptSetPhysicsStatus(false);
+
             }
             if ((status & BuiltIn_Commands_BaseClass.STATUS_PHANTOM) == BuiltIn_Commands_BaseClass.STATUS_PHANTOM)
             {
-                m_host.AddFlag(LLObject.ObjectFlags.Phantom);
+                if (value == 1)
+                    m_host.ScriptSetPhantomStatus(true);
+                else
+                    m_host.ScriptSetPhantomStatus(false);
             }
             if ((status & BuiltIn_Commands_BaseClass.STATUS_CAST_SHADOWS) == BuiltIn_Commands_BaseClass.STATUS_CAST_SHADOWS)
             {
