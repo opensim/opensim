@@ -4256,13 +4256,14 @@ namespace OpenSim.Region.ClientStack
                         RequestGodlikePowersPacket rglpPack = (RequestGodlikePowersPacket)Pack;
                         RequestGodlikePowersPacket.RequestBlockBlock rblock = rglpPack.RequestBlock;
                         LLUUID token = rblock.Token;
+                        
                         RequestGodlikePowersPacket.AgentDataBlock ablock = rglpPack.AgentData;
 
                         handlerReqGodlikePowers = OnRequestGodlikePowers;
 
                         if (handlerReqGodlikePowers != null)
                         {
-                            handlerReqGodlikePowers(ablock.AgentID, ablock.SessionID, token, this);
+                            handlerReqGodlikePowers(ablock.AgentID, ablock.SessionID, token, rblock.Godlike, this);
                         }
 
                         break;

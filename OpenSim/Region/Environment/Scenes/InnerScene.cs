@@ -241,7 +241,7 @@ namespace OpenSim.Region.Environment.Scenes
                     }
                     catch (Exception e)
                     {
-                        m_log.ErrorFormat("[INNER SCENE]: Failed to update {0}, {1} - {2}", entity.Name, entity.m_uuid, e);
+                        m_log.ErrorFormat("[INNER SCENE]: Failed to update {0}, - {1}", entity.Name, e);//entity.m_uuid
                     }
                 }
                 m_updateList.Clear();

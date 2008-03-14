@@ -1631,7 +1631,7 @@ namespace OpenSim.Region.Environment.Scenes
         /// This allows the Sim owner the abiility to kick users from their sim currently.
         /// It tells the client that the agent has permission to do so.
         /// </summary>
-        public void GrantGodlikePowers(LLUUID agentID, LLUUID sessionID, LLUUID token)
+        public void GrantGodlikePowers(LLUUID agentID, LLUUID sessionID, LLUUID token, bool godStatus)
         {
             GrantGodlikePowersPacket respondPacket = new GrantGodlikePowersPacket();
             GrantGodlikePowersPacket.GrantDataBlock gdb = new GrantGodlikePowersPacket.GrantDataBlock();
@@ -1640,7 +1640,17 @@ namespace OpenSim.Region.Environment.Scenes
             adb.AgentID = agentID;
             adb.SessionID = sessionID; // More security
 
-            gdb.GodLevel = (byte) 250;
+            if (godStatus)
+            {
+                gdb.GodLevel = (byte)250;
+                m_godlevel = 250;
+            }
+            else
+            {
+                gdb.GodLevel = (byte)0;
+                m_godlevel = 0;
+            }
+
             gdb.Token = token;
             //respondPacket.AgentData = (GrantGodlikePowersPacket.AgentDataBlock)ablock;
             respondPacket.GrantData = gdb;

@@ -2087,7 +2087,7 @@ namespace OpenSim.Region.Environment.Scenes
         /// <param name="sessionID"></param>
         /// <param name="token"></param>
         /// <param name="controllingClient"></param>
-        public void handleRequestGodlikePowers(LLUUID agentID, LLUUID sessionID, LLUUID token,
+        public void handleRequestGodlikePowers(LLUUID agentID, LLUUID sessionID, LLUUID token, bool godLike,
                                                IClientAPI controllingClient)
         {
             // First check that this is the sim owner
@@ -2102,7 +2102,8 @@ namespace OpenSim.Region.Environment.Scenes
                     {
                         if (sessionID == controllingClient.SessionId)
                         {
-                            m_scenePresences[agentID].GrantGodlikePowers(agentID, testSessionID, token);
+                            //m_log.Info("godlike: " + godLike.ToString());
+                            m_scenePresences[agentID].GrantGodlikePowers(agentID, testSessionID, token, godLike);
                         }
                     }
                 }

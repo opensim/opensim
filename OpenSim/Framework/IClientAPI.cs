@@ -347,7 +347,7 @@ namespace OpenSim.Framework
 
     public delegate void AddNewPrim(LLUUID ownerID, LLVector3 RayEnd, LLQuaternion rot, PrimitiveBaseShape shape, byte bypassRaycast, LLVector3 RayStart, LLUUID RayTargetID, byte RayEndIsIntersection);
 
-    public delegate void RequestGodlikePowers(LLUUID AgentID, LLUUID SessionID, LLUUID token, IClientAPI remote_client);
+    public delegate void RequestGodlikePowers(LLUUID AgentID, LLUUID SessionID, LLUUID token, bool GodLike, IClientAPI remote_client);
 
     public delegate void GodKickUser(
         LLUUID GodAgentID, LLUUID GodSessionID, LLUUID AgentID, uint kickflags, byte[] reason);
