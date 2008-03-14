@@ -2551,7 +2551,7 @@ namespace OpenSim.Region.ClientStack
             mapReply.LayerData[0].Left = 0;
             mapReply.LayerData[0].Top = 30000;
             mapReply.LayerData[0].Right = 30000;
-            mapReply.LayerData[0].ImageID = new LLUUID("00000000-0000-0000-9999-000000000006");
+            mapReply.LayerData[0].ImageID = new LLUUID("00000000-0000-1111-9999-000000000006");
             OutPacket(mapReply, ThrottleOutPacketType.Land);
         }
 

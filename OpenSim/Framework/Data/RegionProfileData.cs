@@ -121,7 +121,7 @@ namespace OpenSim.Framework.Data
         /// <summary>
         /// Region Map Texture Asset
         /// </summary>
-        public LLUUID regionMapTextureID = new LLUUID("00000000-0000-0000-9999-000000000006");
+        public LLUUID regionMapTextureID = new LLUUID("00000000-0000-1111-9999-000000000006");
 
         /// <summary>
         /// this particular mod to the file provides support within the spec for RegionProfileData for the 

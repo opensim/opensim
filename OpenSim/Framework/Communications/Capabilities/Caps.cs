@@ -184,7 +184,7 @@ namespace OpenSim.Region.Capabilities
             LLSDMapLayer mapLayer = new LLSDMapLayer();
             mapLayer.Right = 5000;
             mapLayer.Top = 5000;
-            mapLayer.ImageID = new LLUUID("00000000-0000-0000-9999-000000000006");
+            mapLayer.ImageID = new LLUUID("00000000-0000-1111-9999-000000000006");
             return mapLayer;
         }
 
