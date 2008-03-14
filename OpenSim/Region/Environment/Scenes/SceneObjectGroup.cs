@@ -123,7 +123,15 @@ namespace OpenSim.Region.Environment.Scenes
 
         public override LLVector3 AbsolutePosition
         {
-            get { return m_rootPart.GroupPosition; }
+            get
+            {
+                if( m_rootPart == null )
+                {
+                    throw new NullReferenceException(string.Format("Object {0} has no root part.", m_uuid));
+                }
+
+                return m_rootPart.GroupPosition;
+            }
             set
             {
                 LLVector3 val = value;

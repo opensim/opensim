@@ -489,40 +489,27 @@ namespace OpenSim.Region.Environment.Scenes
             if (child)
             {
                 m_numChildAgents++;
-                m_log.Info("[SCENE]"+ m_regInfo.RegionName + ": Creating new child agent.");
+                m_log.Info("[SCENE]" + m_regInfo.RegionName + ": Creating new child agent.");
             }
             else
             {
                 m_numRootAgents++;
-                m_log.Info("[SCENE] "+ m_regInfo.RegionName + ": Creating new root agent.");
-                m_log.Info("[SCENE] "+ m_regInfo.RegionName + ": Adding Physical agent.");
+                m_log.Info("[SCENE] " + m_regInfo.RegionName + ": Creating new root agent.");
+                m_log.Info("[SCENE] " + m_regInfo.RegionName + ": Adding Physical agent.");
 
                 presence.AddToPhysicalScene();
             }
 
             lock (Entities)
             {
-                if (!Entities.ContainsKey(presence.m_uuid))
-                {
-                    Entities.Add(presence.m_uuid, presence);
-                }
-                else
-                {
-                    Entities[presence.m_uuid] = presence;
-                }
+                Entities[presence.UUID] = presence;
             }
+
             lock (ScenePresences)
             {
-                if (ScenePresences.ContainsKey(presence.m_uuid))
-                {
-                    ScenePresences[presence.m_uuid] = presence;
-                }
-                else
-                {
-                    ScenePresences.Add(presence.m_uuid, presence);
-                }
+                ScenePresences[presence.UUID] = presence;
             }
-        }        
+        }
 
         public void SwapRootChildAgent(bool direction_RC_CR_T_F)
         {

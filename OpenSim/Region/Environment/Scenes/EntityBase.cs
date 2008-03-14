@@ -46,7 +46,7 @@ namespace OpenSim.Region.Environment.Scenes
             get { return m_scene; }
         }
 
-        public LLUUID m_uuid;
+        protected LLUUID m_uuid;
 
         public virtual LLUUID UUID
         {

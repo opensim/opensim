@@ -438,9 +438,9 @@ namespace OpenSim.ApplicationPlugins.LoadBalancer
             string filename;
             IClientAPI controller = null;
 
-            m_log.InfoFormat("[BALANCER] "+"agent id : {0}", pre.m_uuid);
+            m_log.InfoFormat("[BALANCER] "+"agent id : {0}", pre.UUID);
 
-            uint[] circuits = scene.ClientManager.GetAllCircuits(pre.m_uuid);
+            uint[] circuits = scene.ClientManager.GetAllCircuits(pre.UUID);
 
             foreach (uint code in circuits)
             {
@@ -535,12 +535,12 @@ namespace OpenSim.ApplicationPlugins.LoadBalancer
                     }
 
                     sp = (ScenePresence)Util.DeserializeFromFile(filename);
-                    Console.WriteLine("agent id = {0}", sp.m_uuid);
+                    Console.WriteLine("agent id = {0}", sp.UUID);
 
-                    scene.m_restorePresences.Add(sp.m_uuid, sp);
+                    scene.m_restorePresences.Add(sp.UUID, sp);
                     File.Delete(filename);
 
-                    m_log.InfoFormat("[BALANCER] " + "scene presence deserialized [{0}]", sp.m_uuid);
+                    m_log.InfoFormat("[BALANCER] " + "scene presence deserialized [{0}]", sp.UUID);
 
                     // restore the ClientView
 
@@ -645,7 +645,7 @@ namespace OpenSim.ApplicationPlugins.LoadBalancer
             // remove all scene presences
             foreach (ScenePresence pre in presences)
             {
-                uint[] circuits = scene.ClientManager.GetAllCircuits(pre.m_uuid);
+                uint[] circuits = scene.ClientManager.GetAllCircuits(pre.UUID);
 
                 foreach (uint code in circuits)
                 {
@@ -666,7 +666,7 @@ namespace OpenSim.ApplicationPlugins.LoadBalancer
                 }
 
                 // remove scene presence
-                scene.RemoveClient(pre.m_uuid);
+                scene.RemoveClient(pre.UUID);
             }
         }
 
