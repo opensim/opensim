@@ -1117,7 +1117,7 @@ namespace OpenSim.Region.Environment.Scenes
                         
             // If multiple updates are scheduled on the same second, we still need to perform all of them
             // So we'll force the issue by bumping up the timestamp so that later processing sees these need
-            // to be peformed.
+            // to be performed.
             if (timeNow <= TimeStampFull)
             {
                 TimeStampFull += 1;

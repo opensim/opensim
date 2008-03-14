@@ -950,7 +950,7 @@ namespace OpenSim.Region.Environment.Scenes
             if (objectGroup.RootPart.UpdateFlag > 0)
             {
                 // I've never actually seen this happen, though I think it's theoretically possible                
-                m_log.ErrorFormat(
+                m_log.WarnFormat(
                     "[SCENE OBJECT GROUP]: Aborted linking {0}, {1} to {2}, {3} as it has yet to finish delinking", 
                     objectGroup.RootPart.Name, objectGroup.RootPart.UUID, RootPart.Name, RootPart.UUID);
                                 
