@@ -1027,18 +1027,7 @@ namespace OpenSim.Region.Environment.Scenes
         /// </summary>
         /// <param name="partID"></param>
         public void DelinkFromGroup(uint partID)
-        {
-            // Don't try and update if we're already in the middle of updating
-            if (RootPart.UpdateFlag > 0)
-            {
-                // I've never actually seen this happen, though I think it's theoretically possible
-                m_log.WarnFormat(
-                    "[SCENE OBJECT GROUP]: Aborted delink update for {0}, {1} as it has yet to finish linking", 
-                    RootPart.Name, RootPart.UUID);
-                
-                return;
-            }
-            
+        {        
             SceneObjectPart linkPart = GetChildPart(partID);
 
             if (null != linkPart)
