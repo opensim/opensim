@@ -43,6 +43,8 @@ namespace OpenSim.Region.Environment.Types
 
         private List<LLUUID> m_ids;
 
+        private object m_syncObject = new object();
+
         public int Count
         {
             get { return m_queue.Count; }
@@ -53,21 +55,19 @@ namespace OpenSim.Region.Environment.Types
             m_queue = new Queue<SceneObjectPart>();
             m_ids = new List<LLUUID>();
         }
+
         public void Clear()
         {
-            lock (m_ids)
+            lock (m_syncObject)
             {
                 m_ids.Clear();
-            }
-            lock (m_queue)
-            {
                 m_queue.Clear();
             }
         }
 
         public void Enqueue(SceneObjectPart part)
         {
-            lock (m_ids)
+            lock (m_syncObject)
             {
                 if (!m_ids.Contains(part.UUID))
                 {
@@ -80,11 +80,11 @@ namespace OpenSim.Region.Environment.Types
         public SceneObjectPart Dequeue()
         {
             SceneObjectPart part = null;
-            if (m_queue.Count > 0)
+            lock (m_syncObject)
             {
-                part = m_queue.Dequeue();
-                lock (m_ids)
+                if (m_queue.Count > 0)
                 {
+                    part = m_queue.Dequeue();
                     m_ids.Remove(part.UUID);
                 }
             }
