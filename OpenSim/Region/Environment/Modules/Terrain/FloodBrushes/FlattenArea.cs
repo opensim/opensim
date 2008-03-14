@@ -58,12 +58,14 @@ namespace OpenSim.Region.Environment.Modules.Terrain.FloodBrushes
 
             avg = sum / steps;
 
+            double str = 0.1 * strength; // == 0.2 in the default client
+
             for (x = 0; x < map.Width; x++)
             {
                 for (y = 0; y < map.Height; y++)
                 {
                     if (fillArea[x, y] == true)
-                        map[x, y] = avg;
+                        map[x, y] = (map[x, y] * (1.0 - str)) + (avg * str);
                 }
             }
         }

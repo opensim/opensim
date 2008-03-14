@@ -57,15 +57,10 @@ namespace OpenSim.Region.Environment.Modules.Terrain.PaintBrushes
                     z *= z;
                     z -= ((x - rx) * (x - rx)) + ((y - ry) * (y - ry));
 
-                    double noise;
-
-                    lock (Util.RandomClass)
-                    {
-                        noise = Util.RandomClass.NextDouble();
-                    }
+                    double noise = TerrainUtil.PerlinNoise2D((double)x / (double)Framework.Constants.RegionSize, (double)y / (double)Framework.Constants.RegionSize, 8, 1.0);
 
                     if (z > 0.0)
-                        map[x, y] += (noise - 0.5) * z * duration;
+                        map[x, y] += noise * z * duration;
                 }
             }
         }
