@@ -79,6 +79,25 @@ namespace OpenSim.Region.Physics.OdePlugin
         }
     }
 
+
+    public enum StatusIndicators : int 
+    {
+        Generic = 0,
+        Start = 1,
+        End = 2
+    }
+
+
+    public struct sCollisionData
+    {
+        public uint ColliderLocalId;
+        public uint CollidedWithLocalId;
+        public int NumberOfCollisions;
+        public int CollisionType;
+        public int StatusIndicator;
+        public int lastframe;
+    }
+
     [Flags]
     public enum CollisionCategories : int
     {
@@ -97,6 +116,7 @@ namespace OpenSim.Region.Physics.OdePlugin
     public class OdeScene : PhysicsScene
     {
         private static readonly log4net.ILog m_log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+        private Dictionary<string, sCollisionData> m_storedCollisions = new Dictionary<string, sCollisionData>();
 
         CollisionLocker ode;
 
@@ -110,6 +130,8 @@ namespace OpenSim.Region.Physics.OdePlugin
 
         private float waterlevel = 0f;
         private int framecount = 0;
+        private int m_returncollisions = 10;
+
         private IntPtr contactgroup;
         private IntPtr LandGeom = (IntPtr) 0;
 
@@ -146,10 +168,20 @@ namespace OpenSim.Region.Physics.OdePlugin
         private float step_time = 0.0f;
         private int ms = 0;
         public IntPtr world;
+        private bool returncollisions = false;
+        private uint obj1LocalID = 0;
+        private uint obj2LocalID = 0;
+        private int ctype = 0;
+        private OdeCharacter cc1;
+        private OdePrim cp1;
+        private OdeCharacter cc2;
+        private OdePrim cp2;
+        private int cStartStop = 0;
+        private string cDictKey = "";
 
         public IntPtr space;
 
-        private IntPtr tmpSpace;
+        //private IntPtr tmpSpace;
         // split static geometry collision handling into spaces of 30 meters
         public IntPtr[,] staticPrimspace = new IntPtr[(int) (300/metersInSpace),(int) (300/metersInSpace)];
 
@@ -357,10 +389,10 @@ namespace OpenSim.Region.Physics.OdePlugin
                 
                 lock (contacts)
                 {
-                    if (g1 == (IntPtr)0)
-                        m_log.Info("g1=0");
-                    if (g2 == (IntPtr)0)
-                        m_log.Info("g2=0");
+                    //if (g1 == (IntPtr)0)
+                        //m_log.Info("g1=0");
+                    //if (g2 == (IntPtr)0)
+                        //m_log.Info("g2=0");
 
                     count = d.Collide(g1, g2, contacts.GetLength(0), contacts, d.ContactGeom.SizeOf);
                 }
@@ -400,6 +432,10 @@ namespace OpenSim.Region.Physics.OdePlugin
                 // We only need to test p2 for 'jump crouch purposes'
                 p2.IsColliding = true;
 
+                if ((framecount % m_returncollisions) == 0)
+                    collision_accounting_events(p1, p2);
+
+
                 switch (p1.PhysicsActorType)
                 {
                     case (int)ActorTypes.Agent:
@@ -437,6 +473,8 @@ namespace OpenSim.Region.Physics.OdePlugin
                         (p1.PhysicsActorType == (int) ActorTypes.Agent &&
                          p2.PhysicsActorType == (int) ActorTypes.Prim))
                     {
+
+                        
                         # region disabled code1
                         //contacts[i].depth = contacts[i].depth * 4.15f;
                         /*
@@ -472,6 +510,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                         }
                           */
                         #endregion
+                        
                     }
                     
 
@@ -649,6 +688,132 @@ namespace OpenSim.Region.Physics.OdePlugin
                 //System.Console.WriteLine("near: A collision was detected between {1} and {2}", 0, name1, name2);
             }
             
+        }
+
+        private void collision_accounting_events(PhysicsActor p1, PhysicsActor p2)
+        {
+            obj1LocalID = 0;
+            returncollisions = false;
+            obj2LocalID = 0;
+            ctype = 0;
+            cStartStop = 0;
+
+            switch ((ActorTypes)p2.PhysicsActorType)
+            {
+                case ActorTypes.Agent:
+                    cc2 = (OdeCharacter)p2;
+                    if (cc2.m_returnCollisions)
+                    {
+                        obj1LocalID = cc2.m_localID;
+                        switch ((ActorTypes)p1.PhysicsActorType)
+                        {
+                            case ActorTypes.Agent:
+                                cc1 = (OdeCharacter)p1;
+                                obj2LocalID = cc1.m_localID;
+                                ctype = (int)CollisionCategories.Character;
+                                
+                                if (cc1.CollidingObj)
+                                    cStartStop = (int)StatusIndicators.Generic;
+                                else
+                                    cStartStop = (int)StatusIndicators.Start;
+
+                                returncollisions = true;
+                                break;
+                            case ActorTypes.Prim:
+                                cp1 = (OdePrim)p1;
+                                obj2LocalID = cp1.m_localID;
+                                ctype = (int)CollisionCategories.Geom;
+
+                                if (cp1.CollidingObj)
+                                    cStartStop = (int)StatusIndicators.Generic;
+                                else
+                                    cStartStop = (int)StatusIndicators.Start;
+                                
+                                returncollisions = true;
+                                break;
+
+                            case ActorTypes.Ground:
+                            case ActorTypes.Unknown:
+                                obj2LocalID = 0;
+                                ctype = (int)CollisionCategories.Land;
+                                returncollisions = true;
+                                break;
+                        }
+                        
+
+                    }
+
+                    break;
+                case ActorTypes.Prim:
+                    cp2 = (OdePrim)p2;
+                    if (cp2.m_returnCollisions)
+                    {
+                        obj1LocalID = cp2.m_localID;
+                        switch ((ActorTypes)p1.PhysicsActorType)
+                        {
+                            case ActorTypes.Agent:
+                                cc1 = (OdeCharacter)p1;
+                                obj2LocalID = cc1.m_localID;
+                                ctype = (int)CollisionCategories.Character;
+
+                                if (cc1.CollidingObj)
+                                    cStartStop = (int)StatusIndicators.Generic;
+                                else
+                                    cStartStop = (int)StatusIndicators.Start;
+                                returncollisions = true;
+                                
+                                break;
+                            case ActorTypes.Prim:
+                                cp1 = (OdePrim)p1;
+                                obj2LocalID = cp1.m_localID;
+                                ctype = (int)CollisionCategories.Geom;
+
+                                if (cp1.CollidingObj)
+                                    cStartStop = (int)StatusIndicators.Generic;
+                                else
+                                    cStartStop = (int)StatusIndicators.Start;
+                                
+                                returncollisions = true;
+                                break;
+
+                            case ActorTypes.Ground:
+                            case ActorTypes.Unknown:
+                                obj2LocalID = 0;
+                                ctype = (int)CollisionCategories.Land;
+                                
+                                returncollisions = true;
+                                break;
+                        }
+                    }
+
+                    break;
+            }
+            if (returncollisions)
+            {
+
+                lock (m_storedCollisions)
+                {
+                    cDictKey = obj1LocalID.ToString() + obj2LocalID.ToString() + cStartStop.ToString() + ctype.ToString();
+                    if (m_storedCollisions.ContainsKey(cDictKey))
+                    {
+                        sCollisionData objd = m_storedCollisions[cDictKey];
+                        objd.NumberOfCollisions += 1;
+                        objd.lastframe = framecount;
+                        m_storedCollisions[cDictKey] = objd;
+                    }
+                    else
+                    {
+                        sCollisionData objd = new sCollisionData();
+                        objd.ColliderLocalId = obj1LocalID;
+                        objd.CollidedWithLocalId = obj2LocalID;
+                        objd.CollisionType = ctype;
+                        objd.NumberOfCollisions = 1;
+                        objd.lastframe = framecount;
+                        objd.StatusIndicator = cStartStop;
+                        m_storedCollisions.Add(cDictKey, objd);
+                    }
+                }
+            }
         }
 
         public int TriArrayCallback(IntPtr trimesh, IntPtr refObject, int[] triangleIndex, int triCount)

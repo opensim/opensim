@@ -134,17 +134,17 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
 
         public void collision_start(uint localID, LLUUID itemID)
         {
-            myScriptEngine.m_EventQueueManager.AddToScriptQueue(localID, itemID, "collision_start", EventQueueManager.llDetectNull);
+            myScriptEngine.m_EventQueueManager.AddToScriptQueue(localID, itemID, "collision_start", EventQueueManager.llDetectNull, new object[] { (int)1 });
         }
 
         public void collision(uint localID, LLUUID itemID)
         {
-            myScriptEngine.m_EventQueueManager.AddToScriptQueue(localID, itemID, "collision", EventQueueManager.llDetectNull);
+            myScriptEngine.m_EventQueueManager.AddToScriptQueue(localID, itemID, "collision", EventQueueManager.llDetectNull, new object[] { (int)1 });
         }
 
         public void collision_end(uint localID, LLUUID itemID)
         {
-            myScriptEngine.m_EventQueueManager.AddToScriptQueue(localID, itemID, "collision_end", EventQueueManager.llDetectNull);
+            myScriptEngine.m_EventQueueManager.AddToScriptQueue(localID, itemID, "collision_end", EventQueueManager.llDetectNull, new object[] { (int)1 });
         }
 
         public void land_collision_start(uint localID, LLUUID itemID)

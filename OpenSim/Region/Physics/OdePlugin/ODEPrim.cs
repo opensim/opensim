@@ -61,6 +61,7 @@ namespace OpenSim.Region.Physics.OdePlugin
         private bool m_taintPhysics = false;
         private bool m_collidesLand = true;
         private bool m_collidesWater = false;
+        public bool m_returnCollisions = false;
 
         // Default we're a Geometry
         private CollisionCategories m_collisionCategories = (CollisionCategories.Geom );
@@ -203,7 +204,9 @@ namespace OpenSim.Region.Physics.OdePlugin
 
         public override uint LocalID
         {
-            set { m_localID = value; }
+            set {
+                //m_log.Info("[PHYSICS]: Setting TrackerID: " + value);
+                m_localID = value; }
         }
 
         public override bool Grabbed

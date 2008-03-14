@@ -86,6 +86,7 @@ namespace OpenSim.Region.Physics.OdePlugin
         private bool m_hackSentFall = false;
         private bool m_hackSentFly = false;
         public uint m_localID = 0;
+        public bool m_returnCollisions = false;
 
         private float m_buoyancy = 0f;
 

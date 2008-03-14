@@ -1809,6 +1809,7 @@ namespace OpenSim.Region.Environment.Scenes
             }
             //m_physicsActor.OnRequestTerseUpdate += SendTerseUpdateToAllClients;
             m_physicsActor.OnCollisionUpdate += PhysicsCollisionUpdate;
+            m_physicsActor.LocalID = LocalId;
         }
 
         // Event called by the physics plugin to tell the avatar about a collision.

@@ -52,28 +52,28 @@ namespace OpenSim.Region.Physics.Manager
 
 
         public int m_colliderType;
-        public bool m_startOrEnd;
+        public int m_GenericStartEnd;
         //public uint m_LocalID;
         public List<uint> m_objCollisionList;
 
-        public CollisionEventUpdate(uint localID, int colliderType, bool startOrEnd, List<uint> objCollisionList)
+        public CollisionEventUpdate(uint localID, int colliderType, int GenericStartEnd, List<uint> objCollisionList)
         {
             m_colliderType = colliderType;
-            m_startOrEnd = startOrEnd;
+            m_GenericStartEnd = GenericStartEnd;
             m_objCollisionList = objCollisionList;
         }
 
         public CollisionEventUpdate(bool startOrEnd)
         {
             m_colliderType = (int) ActorTypes.Unknown;
-            m_startOrEnd = startOrEnd;
+            m_GenericStartEnd = m_GenericStartEnd;
             m_objCollisionList = null;
         }
 
         public CollisionEventUpdate()
         {
             m_colliderType = (int) ActorTypes.Unknown;
-            m_startOrEnd = false;
+            m_GenericStartEnd = 1;
             m_objCollisionList = null;
         }
 
@@ -83,10 +83,10 @@ namespace OpenSim.Region.Physics.Manager
             set { m_colliderType = value; }
         }
 
-        public bool startOrEnd
+        public int GenericStartEnd
         {
-            get { return m_startOrEnd; }
-            set { m_startOrEnd = value; }
+            get { return m_GenericStartEnd; }
+            set { m_GenericStartEnd = value; }
         }
 
         public void addCollider(uint localID)

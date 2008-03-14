@@ -545,6 +545,9 @@ namespace OpenSim.Region.Environment.Scenes
                     new Quaternion(dupe.RootPart.RotationOffset.W, dupe.RootPart.RotationOffset.X,
                                    dupe.RootPart.RotationOffset.Y, dupe.RootPart.RotationOffset.Z),
                     dupe.RootPart.PhysActor.IsPhysical);
+                
+                dupe.RootPart.PhysActor.LocalID = dupe.RootPart.LocalId;
+
                 dupe.RootPart.DoPhysicsPropertyUpdate(dupe.RootPart.PhysActor.IsPhysical, true);
             }
             // Now we've made a copy that replaces this one, we need to 
