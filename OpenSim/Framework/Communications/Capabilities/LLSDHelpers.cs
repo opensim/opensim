@@ -66,14 +66,18 @@ namespace OpenSim.Region.Capabilities
                             if (fieldAttributes.Length > 0)
                             {
                                 writer.WriteStartElement(String.Empty, "key", String.Empty);
-                                writer.WriteString(fields[i].Name);
+                                string fieldName = fields[i].Name;
+                                fieldName = fieldName.Replace("___", "-");
+                                writer.WriteString(fieldName);
                                 writer.WriteEndElement();
                                 SerializeLLSDType(writer, fieldValue);
                             }
                             else
                             {
                                 writer.WriteStartElement(String.Empty, "key", String.Empty);
-                                writer.WriteString(fields[i].Name);
+                                string fieldName = fields[i].Name;
+                                fieldName = fieldName.Replace("___", "-");
+                                writer.WriteString(fieldName);
                                 writer.WriteEndElement();
                                 LLSD.LLSDWriteOne(writer, fieldValue);
                                 // libsecondlife.StructuredData.LLSDParser.SerializeXmlElement(
@@ -118,7 +122,9 @@ namespace OpenSim.Region.Capabilities
                         IDictionaryEnumerator enumerator = llsd.GetEnumerator();
                         while (enumerator.MoveNext())
                         {
-                            FieldInfo field = myType.GetField((string) enumerator.Key);
+                            string keyName = (string)enumerator.Key;
+                            keyName = keyName.Replace("-","_");
+                            FieldInfo field = myType.GetField(keyName);
                             if (field != null)
                             {
                                 // if (enumerator.Value is libsecondlife.StructuredData.LLSDMap)

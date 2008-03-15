@@ -66,6 +66,7 @@ namespace OpenSim.Region.Capabilities
         //private string m_requestTexture = "0003/";
         private string m_notecardUpdatePath = "0004/";
         private string m_notecardTaskUpdatePath = "0005/";
+        private string m_fetchInventoryPath = "0006/";
 
         //private string eventQueue = "0100/";
         private BaseHttpServer m_httpListener;
@@ -110,10 +111,17 @@ namespace OpenSim.Region.Capabilities
                                                                                            capsBase + m_newInventory,
                                                                                            NewAgentInventoryRequest));
 
+               // m_httpListener.AddStreamHandler(
+                 //  new LLSDStreamhandler<LLSDFetchInventoryDescendents, LLSDInventoryDescendents>("POST",
+              //                                                                            capsBase + m_fetchInventory,
+              //                                                                            FetchInventory));
+
+
                 AddLegacyCapsHandler(m_httpListener, m_requestPath, CapsRequest);
                 //AddLegacyCapsHandler(m_httpListener, m_requestTexture , RequestTexture);
                 AddLegacyCapsHandler(m_httpListener, m_notecardUpdatePath, NoteCardAgentInventory);
                 AddLegacyCapsHandler(m_httpListener, m_notecardTaskUpdatePath, ScriptTaskInventory);
+                AddLegacyCapsHandler(m_httpListener, m_fetchInventoryPath, FetchInventoryRequest);
             }
             catch (Exception e)
             {
@@ -160,7 +168,35 @@ namespace OpenSim.Region.Capabilities
             caps.UpdateNotecardAgentInventory = capsBaseUrl + m_notecardUpdatePath;
             caps.UpdateScriptAgentInventory = capsBaseUrl + m_notecardUpdatePath;
             caps.UpdateScriptTaskInventory = capsBaseUrl + m_notecardTaskUpdatePath;
+            caps.FetchInventoryDescendents = capsBaseUrl + m_fetchInventoryPath;
             return caps;
+        }
+
+        public string FetchInventoryRequest(string request, string path, string param)
+        {
+            request = request.Replace("<llsd><map><key>folders</key><array>", "<llsd>");
+            request = request.Replace("</map></array></map>", "</map>");
+
+            //Console.WriteLine("inventory request " + request);
+            Hashtable hash = (Hashtable)LLSD.LLSDDeserialize(Helpers.StringToField(request));
+            LLSDFetchInventoryDescendents llsdRequest = new LLSDFetchInventoryDescendents();
+            LLSDHelpers.DeserialiseLLSDMap(hash, llsdRequest);
+            LLSDInventoryDescendents reply = FetchInventory(llsdRequest);
+            string response = LLSDHelpers.SerialiseLLSDReply(reply);
+            return response;
+        }
+
+        private LLSDInventoryDescendents FetchInventory(LLSDFetchInventoryDescendents invFetch)
+        {
+            LLSDInventoryDescendents reply = new LLSDInventoryDescendents();
+            LLSDInventoryFolderContents contents = new LLSDInventoryFolderContents();
+            contents.agent___id = m_agentID;
+            contents.owner___id = m_agentID;
+            contents.folder___id = invFetch.folder_id;
+            contents.version = 1;
+            contents.descendents = 0;
+            reply.folders.Array.Add(contents);
+            return reply;
         }
 
         /// <summary>
