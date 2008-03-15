@@ -140,7 +140,7 @@ namespace OpenSim.Framework.Data.MSSQL
 
         // this is something we'll need to implement for each db
         // slightly differently.
-        private static string SqlType(Type type)
+        public static string SqlType(Type type)
         {
             if (type == typeof(String))
             {
