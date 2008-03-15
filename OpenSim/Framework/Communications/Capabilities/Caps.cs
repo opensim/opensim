@@ -52,6 +52,9 @@ namespace OpenSim.Region.Capabilities
     public delegate void TaskScriptUpdatedCallback(LLUUID userID, LLUUID itemID, LLUUID primID,
                                                    bool isScriptRunning, byte[] data);
 
+    public delegate List<InventoryItemBase> FetchInventoryDescendentsCAPS(LLUUID agentID, LLUUID folderID, LLUUID ownerID,
+                                                   bool fetchFolders, bool fetchItems, int sortOrder);
+
     public class Caps
     {
         private static readonly log4net.ILog m_log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
@@ -81,6 +84,9 @@ namespace OpenSim.Region.Capabilities
         public NewInventoryItem AddNewInventoryItem = null;
         public ItemUpdatedCallback ItemUpdatedCall = null;
         public TaskScriptUpdatedCallback TaskScriptUpdatedCall = null;
+        //
+        public FetchInventoryDescendentsCAPS CAPSFetchInventoryDescendents = null;
+
 
         public Caps(AssetCache assetCache, BaseHttpServer httpServer, string httpListen, uint httpPort, string capsPath,
                     LLUUID agent, bool dumpAssetsToFile)
@@ -191,12 +197,54 @@ namespace OpenSim.Region.Capabilities
             LLSDInventoryDescendents reply = new LLSDInventoryDescendents();
             LLSDInventoryFolderContents contents = new LLSDInventoryFolderContents();
             contents.agent___id = m_agentID;
-            contents.owner___id = m_agentID;
+            contents.owner___id =  invFetch.owner_id;
             contents.folder___id = invFetch.folder_id;
-            contents.version = 1;
+            contents.version = 1; //FixMe
             contents.descendents = 0;
             reply.folders.Array.Add(contents);
+            List<InventoryItemBase> itemList = null;
+            if (CAPSFetchInventoryDescendents != null)
+            {
+                itemList = CAPSFetchInventoryDescendents(m_agentID, invFetch.folder_id, invFetch.owner_id, invFetch.fetch_folders, invFetch.fetch_items, invFetch.sort_order);
+            }
+            if (itemList != null)
+            {
+                foreach (InventoryItemBase invItem in itemList)
+                {
+                    contents.items.Array.Add(ConvertInventoryItem(invItem));
+                }
+            }
+            contents.descendents = contents.items.Array.Count;
             return reply;
+        }
+
+        private LLSDInventoryItem ConvertInventoryItem(InventoryItemBase invItem)
+        {
+            LLSDInventoryItem llsdItem = new LLSDInventoryItem();
+            llsdItem.asset_id = invItem.assetID;
+            llsdItem.created_at = 1000;
+            llsdItem.desc = invItem.inventoryDescription;
+            llsdItem.flags = 0;
+            llsdItem.item_id = invItem.inventoryID;
+            llsdItem.name = invItem.inventoryName;
+            llsdItem.parent_id = invItem.parentFolderID;
+            llsdItem.type = Enum.GetName(typeof(AssetType), invItem.assetType).ToLower();
+            llsdItem.inv_type = Enum.GetName(typeof(InventoryType), invItem.invType).ToLower();
+            llsdItem.permissions = new LLSDPermissions();
+            llsdItem.permissions.creator_id = invItem.creatorsID;
+            llsdItem.permissions.base_mask = (int)invItem.inventoryBasePermissions;
+            llsdItem.permissions.everyone_mask = (int)invItem.inventoryEveryOnePermissions;
+            llsdItem.permissions.group_id = LLUUID.Zero;
+            llsdItem.permissions.group_mask = 0;
+            llsdItem.permissions.is_owner_group = false;
+            llsdItem.permissions.next_owner_mask = (int)invItem.inventoryNextPermissions;
+            llsdItem.permissions.owner_id = m_agentID; // FixMe
+            llsdItem.permissions.owner_mask = (int)invItem.inventoryCurrentPermissions;
+            llsdItem.sale_info = new LLSDSaleInfo();
+            llsdItem.sale_info.sale_price = 10;
+            llsdItem.sale_info.sale_type = "not";
+
+            return llsdItem;
         }
 
         /// <summary>

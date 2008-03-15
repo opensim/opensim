@@ -4,15 +4,15 @@ using System.Text;
 using libsecondlife;
 
 namespace OpenSim.Region.Capabilities
-{ 
+{
     [LLSDMap]
     public class LLSDInventoryItem
     {
         public LLUUID parent_id;
-       
+
         public LLUUID asset_id;
         public LLUUID item_id;
-       
+        public LLSDPermissions permissions;
         public string type;
         public string inv_type;
         public int flags;
@@ -45,19 +45,19 @@ namespace OpenSim.Region.Capabilities
         public string sale_type;
     }
 
-  /*  [LLSDMap]
-    public class LLSDFolderItem
-    {
-        public LLUUID folder_id;
-        public LLUUID parent_id;
-        public int type;
-        public string name;
-    }*/
+    /*  [LLSDMap]
+      public class LLSDFolderItem
+      {
+          public LLUUID folder_id;
+          public LLUUID parent_id;
+          public int type;
+          public string name;
+      }*/
 
     [LLSDMap]
     public class LLSDInventoryDescendents
     {
-        public LLSDArray folders= new LLSDArray();
+        public LLSDArray folders = new LLSDArray();
     }
 
     [LLSDMap]
@@ -73,11 +73,11 @@ namespace OpenSim.Region.Capabilities
     [LLSDMap]
     public class LLSDInventoryFolderContents
     {
-        public LLUUID agent___id;
+        public LLUUID agent___id; // the (three "_") "___" so the serialising knows to change this to a "-"
         public int descendents;
-        public LLUUID folder___id; // the (three "_") "___" so the serialising knows to change this to a "-"
+        public LLUUID folder___id; //as LL can't decide if they are going to use "_" or "-" to separate words in the field names
         public LLSDArray items = new LLSDArray();
-        public LLUUID owner___id;
+        public LLUUID owner___id; // and of course we can't have field names with "-" in 
         public int version;
     }
 }

@@ -1656,6 +1656,7 @@ namespace OpenSim.Region.Environment.Scenes
                     cap.AddNewInventoryItem = AddInventoryItem;
                     cap.ItemUpdatedCall = CapsUpdateInventoryItemAsset;
                     cap.TaskScriptUpdatedCall = CapsUpdateTaskInventoryScriptAsset;
+                    cap.CAPSFetchInventoryDescendents = CommsManager.UserProfileCacheService.HandleFetchInventoryDescendentsCAPS;
 
                     if (m_capsHandlers.ContainsKey(agent.AgentID))
                     {
