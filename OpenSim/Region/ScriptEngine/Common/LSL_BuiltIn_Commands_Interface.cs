@@ -650,5 +650,18 @@ namespace OpenSim.Region.ScriptEngine.Common
         void osSetParcelMediaURL(string url);
         void osSetPrimFloatOnWater(int floatYN);
 
+        //texture draw functions
+        string osMovePen(string drawList, int x, int y);
+        string osDrawLine(string drawList, int startX, int startY, int endX, int endY);
+        string osDrawLine(string drawList, int endX, int endY);
+        string osDrawText(string drawList, string text);
+        string osDrawEllipse(string drawList, int width, int height);
+        string osDrawRectangle(string drawList, int width, int height);
+        string osDrawFilledRectangle(string drawList, int width, int height);
+        string osSetFontSize(string drawList, int fontSize);
+        string osSetPenSize(string drawList, int penSize);
+        string osSetPenColour(string drawList, string colour);
+        string osDrawImage(string drawList, int width, int height, string imageUrl);
+
     }
 }

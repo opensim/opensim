@@ -1902,6 +1902,66 @@ namespace OpenSim.Region.ScriptEngine.Common
             m_LSL_Functions.osSetPrimFloatOnWater(floatYN);
         }
 
+        //Texture Draw functions
+
+        public string osMovePen(string drawList, int x, int y)
+        {
+            return m_LSL_Functions.osMovePen(drawList, x, y);
+        }
+
+        public string osDrawLine(string drawList, int startX, int startY, int endX, int endY)
+        {
+            return m_LSL_Functions.osDrawLine(drawList, startX, startY, endX, endY);
+        }
+
+        public string osDrawLine(string drawList, int endX, int endY)
+        {
+            return m_LSL_Functions.osDrawLine(drawList, endX, endY);
+        }
+
+        public string osDrawText(string drawList, string text)
+        {
+            return m_LSL_Functions.osDrawText(drawList, text);
+        }
+
+        public string osDrawEllipse(string drawList, int width, int height)
+        {
+            return m_LSL_Functions.osDrawEllipse(drawList, width, height);
+        }
+
+        public string osDrawRectangle(string drawList, int width, int height)
+        {
+            return osDrawRectangle(drawList, width, height);
+        }
+
+        public string osDrawFilledRectangle(string drawList, int width, int height)
+        {
+            return osDrawFilledRectangle(drawList, width, height);
+        }
+
+        public string osSetFontSize(string drawList, int fontSize)
+        {
+            return m_LSL_Functions.osSetFontSize(drawList, fontSize);
+        }
+
+        public string osSetPenSize(string drawList, int penSize)
+        {
+            return m_LSL_Functions.osSetPenSize(drawList, penSize);
+        }
+
+        public string osSetPenColour(string drawList, string colour)
+        {
+            return m_LSL_Functions.osSetPenColour(drawList, colour);
+        }
+
+        public string osDrawImage(string drawList, int width, int height, string imageUrl)
+        {
+            return m_LSL_Functions.osDrawImage(drawList, width, height, imageUrl);
+        }
+
+
+        //
+
         public double llList2Float(LSL_Types.list src, int index)
         {
             return m_LSL_Functions.llList2Float(src, index);

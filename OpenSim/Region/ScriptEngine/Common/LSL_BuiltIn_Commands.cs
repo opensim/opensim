@@ -4425,6 +4425,73 @@ namespace OpenSim.Region.ScriptEngine.Common
             }
         }
 
+        //Texture draw functions 
+        public string osMovePen(string drawList, int x, int y)
+        {
+            drawList += "MoveTo " + x + "," + y + ";";
+            return drawList;
+        }
+
+        public string osDrawLine(string drawList, int startX, int startY, int endX, int endY)
+        {
+            drawList += "MoveTo "+ startX+","+ startY +"; LineTo "+endX +","+endY +"; ";
+            return drawList;
+        }
+
+        public string osDrawLine(string drawList, int endX, int endY)
+        {
+            drawList += "LineTo " + endX + "," + endY + "; ";
+            return drawList;
+        }
+
+        public string osDrawText(string drawList, string text)
+        {
+            drawList += "Text " + text + "; ";
+            return drawList;
+        }
+
+        public string osDrawEllipse(string drawList, int width, int height)
+        {
+            drawList += "Ellipse " + width + "," + height + "; ";
+            return drawList;
+        }
+
+        public string osDrawRectangle(string drawList, int width, int height)
+        {
+            drawList += "Rectangle " + width + "," + height + "; ";
+            return drawList;
+        }
+
+        public string osDrawFilledRectangle(string drawList, int width, int height)
+        {
+            drawList += "FillRectangle " + width + "," + height + "; ";
+            return drawList;
+        }
+
+        public string osSetFontSize(string drawList, int fontSize)
+        {
+            drawList += "FontSize "+ fontSize +"; ";
+            return drawList;
+        }
+
+        public string osSetPenSize(string drawList, int penSize)
+        {
+            drawList += "PenSize " + penSize + "; ";
+            return drawList;
+        }
+
+        public string osSetPenColour(string drawList, string colour)
+        {
+            drawList += "PenColour " + colour + "; ";
+            return drawList;
+        }
+
+        public string osDrawImage(string drawList, int width, int height, string imageUrl)
+        {
+           drawList +="Image " +width + "," + height+ ","+ imageUrl +"; " ;
+           return drawList;
+        }
+
         private void NotImplemented(string command)
         {
             m_host.AddScriptLPS(1);
