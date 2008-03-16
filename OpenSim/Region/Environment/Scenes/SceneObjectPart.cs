@@ -785,9 +785,13 @@ namespace OpenSim.Region.Environment.Scenes
                     new PhysicsVector(Scale.X, Scale.Y, Scale.Z),
                     new Quaternion(RotationOffset.W, RotationOffset.X,
                                    RotationOffset.Y, RotationOffset.Z), RigidBody);
-                PhysActor.LocalID = LocalId;
-
-                DoPhysicsPropertyUpdate(RigidBody, true);
+                
+                // Basic Physics returns null..  joy joy joy.
+                if (PhysActor != null)
+                {
+                    PhysActor.LocalID = LocalId;
+                    DoPhysicsPropertyUpdate(RigidBody, true);
+                }
             }
         }
 
