@@ -101,14 +101,32 @@ namespace OpenSim.Region.Environment.Modules
                     }
                     else
                     {
-                        //m_log.DebugFormat("[USER TEXTURE DOWNLOAD]: Adding download stat {0}", e.RequestedAssetID);                
-                        m_scene.AddPendingDownloads(1);
-                
-                        TextureSender requestHandler =
-                            new TextureSender(m_client, e.DiscardLevel, e.PacketNumber);                        
-                        m_textureSenders.Add(e.RequestedAssetID, requestHandler);
-                        
-                        m_scene.AssetCache.GetAsset(e.RequestedAssetID, TextureCallback, true);
+                        // If we've already told the client we're missing the texture, then don't ask the 
+                        // asset server for it again - record the fact that it's missing instead.
+                        if (missingTextureRequests.ContainsKey(e.RequestedAssetID))
+                        {
+                            int requests = missingTextureRequests[e.RequestedAssetID] + 1;
+                            
+                            if (requests % 20 == 0)
+                            {
+                                m_log.WarnFormat(
+                                    "[USER TEXTURE DOWNLOAD SERVICE]: Received {0} requests for the missing texture {1} from client {2}", 
+                                    requests, e.RequestedAssetID, m_client.AgentId);
+                            }
+                                                        
+                            missingTextureRequests[e.RequestedAssetID] = requests;                            
+                        }
+                        else
+                        {                        
+                            //m_log.DebugFormat("[USER TEXTURE DOWNLOAD]: Adding download stat {0}", e.RequestedAssetID);                
+                            m_scene.AddPendingDownloads(1);
+                    
+                            TextureSender requestHandler =
+                                new TextureSender(m_client, e.DiscardLevel, e.PacketNumber);                        
+                            m_textureSenders.Add(e.RequestedAssetID, requestHandler);
+                            
+                            m_scene.AssetCache.GetAsset(e.RequestedAssetID, TextureCallback, true);
+                        }
                     }
                 }
             }
@@ -158,19 +176,6 @@ namespace OpenSim.Region.Environment.Modules
                             ITextureSender textureNotFoundSender = new TextureNotFoundSender(m_client, textureID);
                             EnqueueTextureSender(textureNotFoundSender);
                             missingTextureRequests.Add(textureID, 1);
-                        }
-                        else
-                        {
-                            int requests = missingTextureRequests[textureID] + 1;
-                            
-                            if (requests % 20 == 0)
-                            {
-                                m_log.WarnFormat(
-                                    "[USER TEXTURE DOWNLOAD SERVICE]: Received {0} requests for the missing texture {1} from client {2}", 
-                                    requests, textureID, m_client.AgentId);
-                            }
-                                                        
-                            missingTextureRequests[textureID] = requests;                            
                         }
                     }
                     else
