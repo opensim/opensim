@@ -26,9 +26,9 @@ IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY O
 #region CVS Information
 /*
  * $Source$
- * $Author: jendave $
- * $Date: 2006-01-31 16:35:39 +0100 (ti, 31 jan 2006) $
- * $Revision: 74 $
+ * $Author: borrillis $
+ * $Date: 2007-05-25 01:03:16 +0900 (Fri, 25 May 2007) $
+ * $Revision: 243 $
  */
 #endregion
 
@@ -49,7 +49,7 @@ namespace Prebuild.Core.Nodes
 	{
 		#region Fields
 
-		private string m_Name = "unknown";
+        private string m_Pattern = "";
 
 		#endregion
 
@@ -63,11 +63,23 @@ namespace Prebuild.Core.Nodes
 		{
 			get
 			{
-				return m_Name;
+				return m_Pattern;
 			}
 		}
 
-		#endregion
+        /// <summary>
+        /// Gets the pattern.
+        /// </summary>
+        /// <value>The pattern.</value>
+        public string Pattern
+        {
+            get
+            {
+                return m_Pattern;
+            }
+        }
+
+        #endregion
 
 		#region Public Methods
 
@@ -77,7 +89,8 @@ namespace Prebuild.Core.Nodes
 		/// <param name="node">The node.</param>
 		public override void Parse(XmlNode node)
 		{
-			m_Name = Helper.AttributeValue(node, "name", m_Name);
+            m_Pattern = Helper.AttributeValue( node, "name", m_Pattern );
+            m_Pattern = Helper.AttributeValue(node, "pattern", m_Pattern );
 		}
 
 		#endregion

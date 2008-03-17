@@ -1,34 +1,47 @@
 #region BSD License
 /*
-Copyright (c) 2004-2005 Matthew Holmes (matthew@wildfiregames.com), Dan Moorehead (dan05a@gmail.com)
+Copyright (c) 2004-2008
+Matthew Holmes (matthew@wildfiregames.com),
+Dan Moorehead (dan05a@gmail.com),
+Rob Loach (http://www.robloach.net),
+C.J. Adams-Collier (cjac@colliertech.org)
 
-Redistribution and use in source and binary forms, with or without modification, are permitted
-provided that the following conditions are met:
+Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions are
+met:
 
-* Redistributions of source code must retain the above copyright notice, this list of conditions 
-  and the following disclaimer. 
-* Redistributions in binary form must reproduce the above copyright notice, this list of conditions 
-  and the following disclaimer in the documentation and/or other materials provided with the 
-  distribution. 
-* The name of the author may not be used to endorse or promote products derived from this software 
-  without specific prior written permission. 
+* Redistributions of source code must retain the above copyright
+  notice, this list of conditions and the following disclaimer.
 
-THIS SOFTWARE IS PROVIDED BY THE AUTHOR ``AS IS'' AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, 
-BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE 
-ARE DISCLAIMED. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
-OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY
-OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING
-IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+* Redistributions in binary form must reproduce the above copyright
+  notice, this list of conditions and the following disclaimer in the
+  documentation and/or other materials provided with the distribution.
+
+* The name of the author may not be used to endorse or promote
+  products derived from this software without specific prior written
+  permission.
+
+THIS SOFTWARE IS PROVIDED BY THE AUTHOR ``AS IS'' AND ANY EXPRESS OR
+IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+DISCLAIMED. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY DIRECT,
+INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+(INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT,
+STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING
+IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+POSSIBILITY OF SUCH DAMAGE.
+
 */
 #endregion
 
 #region CVS Information
 /*
  * $Source$
- * $Author: robloach $
- * $Date: 2006-09-26 00:30:53 +0200 (ti, 26 sep 2006) $
- * $Revision: 165 $
+ * $Author: cjcollier $
+ * $Date: 2008-02-08 01:31:29 +0900 (Fri, 08 Feb 2008) $
+ * $Revision: 256 $
  */
 #endregion
 
@@ -91,6 +104,7 @@ namespace Prebuild.Core
 		string m_Clean;
 		string[] m_RemoveDirectories;
 		string m_CurrentFile;
+		XmlDocument m_CurrentDoc;
 		bool m_PauseAfterFinish;
 		string[] m_ProjectGroups;
 		StringCollection m_Refs;
@@ -203,6 +217,19 @@ namespace Prebuild.Core
 				return m_Solutions;
 			}
 		}
+		
+		/// <summary>
+		/// Gets the XmlDocument object representing the prebuild.xml
+		/// being processed
+		/// </summary>
+		/// <value>The XmlDocument object</value>
+		public XmlDocument CurrentDoc
+		{
+			get
+			{
+				return m_CurrentDoc;
+			}
+		}
 
 		#endregion
 
@@ -304,10 +331,16 @@ namespace Prebuild.Core
 
 		private void LogBanner()
 		{
-			m_Log.Write("Prebuild v" + this.Version);
-			m_Log.Write("Copyright (c) Matthew Holmes, Dan Moorehead and David Hudson");
-			m_Log.Write("See 'prebuild /usage' for help");
-			m_Log.Write();
+                  m_Log.Write("Prebuild v" + this.Version);
+                  m_Log.Write("Copyright (c) 2004-2008");
+                  m_Log.Write("Matthew Holmes (matthew@wildfiregames.com),");
+                  m_Log.Write("Dan Moorehead (dan05a@gmail.com),");
+                  m_Log.Write("David Hudson (jendave@yahoo.com),");
+                  m_Log.Write("Rob Loach (http://www.robloach.net),");
+                  m_Log.Write("C.J. Adams-Collier (cjac@colliertech.org),");
+
+                  m_Log.Write("See 'prebuild /usage' for help");
+                  m_Log.Write();
 		}
 
 		private void ProcessFile(string file)
@@ -330,7 +363,6 @@ namespace Prebuild.Core
 
 				m_CurrentFile = path;
 				Helper.SetCurrentDir(Path.GetDirectoryName(path));
-            
 				
 				XmlTextReader reader = new XmlTextReader(path);
 
@@ -348,7 +380,7 @@ namespace Prebuild.Core
 				string xml = pre.Process(reader);//remove script and evaulate pre-proccessing to get schema-conforming XML
 
 				
-				XmlDocument doc = new XmlDocument();
+				m_CurrentDoc = new XmlDocument();
 				try
 				{
 					XmlValidatingReader validator = new XmlValidatingReader(new XmlTextReader(new StringReader(xml)));
@@ -358,7 +390,7 @@ namespace Prebuild.Core
 					{
 						validator.Schemas.Add(schema);
 					}
-					doc.Load(validator);
+					m_CurrentDoc.Load(validator);
 				} 
 				catch(XmlException e) 
 				{
@@ -394,7 +426,7 @@ namespace Prebuild.Core
 					return;
 				}
 				//start reading the xml config file
-				XmlElement rootNode = doc.DocumentElement;
+				XmlElement rootNode = m_CurrentDoc.DocumentElement;
 				//string suggestedVersion = Helper.AttributeValue(rootNode,"version","1.0");
 				Helper.CheckForOSVariables = Helper.ParseBoolean(rootNode,"checkOsVars",false);
 
@@ -681,17 +713,21 @@ namespace Prebuild.Core
 			}
 			else
 			{
-                ITarget targ = (ITarget)m_Targets[target];
+				if (!m_Targets.Contains(target)) {
+					m_Log.Write(LogType.Error, "Unknown Target \"{0}\"", target);
+					return;
+				}
+				ITarget targ = (ITarget)m_Targets[target];
 
-                if(clean)
-                {
-                    targ.Clean(this);
-                }
-                else
-                {
-                    targ.Write(this);
-                }
-            }
+				if(clean)
+				{
+					targ.Clean(this);
+				}
+				else
+				{
+					targ.Write(this);
+				}
+			}
 
 			m_Log.Flush();
 		}

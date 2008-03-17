@@ -2,14 +2,16 @@ Prebuild Instructions
 
 Prebuild is an XML-driven pre-build tool allowing developers to easily generate project or make files for major IDE's and .NET development tools including: Visual Studio 2005, Visual Studio 2003, Visual Studio 2002, SharpDevelop, SharpDevelop2, MonoDevelop, and NAnt.
 
-_________________________________________________________________________________
+_______________________________________________________________________________
 Overview
 
-Prebuild can be either be run from the command line to generate the project and make files or you can execute the included batch (*.bat) and Unix Shell script (*.sh) files.
-The Prebuild file
+Prebuild can be either be run from the command line to generate the
+project and make files or you can execute the included batch (*.bat)
+and Unix Shell script (*.sh) files.
 
-_________________________________________________________________________________
-The currently supported developement tools and their associated batch and shell script files.
+_______________________________________________________________________________
+The currently supported developement tools and their associated batch
+and shell script files.
 
 Visual Studio .NET 2005 (VS2005.bat)
 Visual Studio .NET 2003 (VS2003.bat)
@@ -18,70 +20,102 @@ SharpDevelop (SharpDevelop.bat) - http://www.icsharpcode.net/OpenSource/SD/
 SharpDevelop2 (SharpDevelop.bat) - http://www.icsharpcode.net/OpenSource/SD/
 MonoDevelop (MonoDevelop.sh) - http://www.monodevelop.com/
 NAnt (nant.sh and nant.bat) - http://nant.sourceforge.net/
-Autotools (autotools.bat and autotools.sh) http://www.gnu.org. Only partial support
+Autotools (autotools.bat and autotools.sh) - http://en.wikipedia.org/wiki/GNU_build_system
 
 Notes:
-A Unix Shell script is provided for MonoDevelop, as this is more appropriate than a windows batch file.
-Visual Studio .NET 2005 and the Visual Express IDE's can import solutions from older versions of Visual Studio .NET.
+
+A Unix Shell script is provided for MonoDevelop, as it does not run on
+Windows at this time.
+
+Visual Studio .NET 2005 and the Visual Express IDE's can import
+solutions from older versions of Visual Studio .NET.
+
 Makefiles are not currently supported.
 
-_________________________________________________________________________________
+_______________________________________________________________________________
 Command Line Syntax:
  
 Example:
->Prebuild /target vs2003
+> Prebuild /target vs2003
 
-This will generate the project files for Visual Studio.NET 2003 and place the redirect the log to a file named PrebuildLog.txt in the parent directory
+This will generate the project files for Visual Studio.NET 2003 and
+place the redirect the log to a file named PrebuildLog.txt in the
+parent directory
 
 
-The syntax structure is as below, where commandParameter is optional depending on the command and you can provide several option-value pairs.
-Note: The '>' signified the command line, do not actually enter this manually
+The syntax structure is as below, where commandParameter is optional
+depending on the command and you can provide several option-value
+pairs.
 
->Prebuild /<option> <commandParameter>
+Note: The '> ' signifies the command prompt, do not enter this literally
 
->Prebuild /target vs2003 /pause
+> Prebuild /<option> <commandParameter>
 
->Prebuild /target vs2003 /log ../Log.txt /pause /ppo /file ProjectConfig.xml
+> Prebuild /target vs2003 /pause
 
->Prebuild /target sharpdev /log
+> Prebuild /target vs2003 /log ../Log.txt /pause /ppo /file ProjectConfig.xml
 
->Prebuild /removedir obj|bin
+> Prebuild /target sharpdev /log
 
->Prebuild /target vs2003 /allowedgroups Group1|Group2
+> Prebuild /removedir obj|bin
 
->Prebuild /clean
+> Prebuild /target vs2003 /allowedgroups Group1|Group2
 
->Prebuild /clean /yes
+> Prebuild /clean
 
->Prebuild /clean vs2003
+> Prebuild /clean /yes
 
-_________________________________________________________________________________
+> Prebuild /clean vs2003
+
+_______________________________________________________________________________
 Command Line Options:
 
-/usage  - Shows the help information on how to use Prebuild and what the different options are and what they do
+/usage - Shows the help information on how to use Prebuild and what
+the different options are and what they do
 
-/clean - The project files generated for the target type specified as a parameter for this option will be deleted.  If no value is specified or if 'all' is specified, then project files for all the target types will be deleted.
+/clean - The project files generated for the target type specified as
+a parameter for this option will be deleted.  If no value is specified
+or if 'all' is specified, then project files for all the target types
+will be deleted.
 
-/target - Specified the name of the development tool for which project or make files will be generated.  Possible parameter values include:  vs2003, vs2002, sharpdev
+/target - Specified the name of the development tool for which project
+or make files will be generated.  Possible parameter values include:
+vs2003, vs2002, sharpdev
 
-/file - Specifies the name of the XML which defines what files are to be referenced by the generated project files as well as configures the options for them.  If not specified, prebuild.xml will be used as the default.
+/file - Specifies the name of the XML which defines what files are to
+be referenced by the generated project files as well as configures the
+options for them.  If not specified, prebuild.xml in the current
+directory will be used as the default.
 
-/log - Specified the log file that should be written to for build errors.  If this option is not specified, no log file is generated, but if just no value is specified, then the defaul filename will be used for the log (Prebuild.log).
+/log - Specified the log file that should be written to for build
+errors.  If this option is not specified, no log file is generated,
+but if just no value is specified, then the defaul filename will be
+used for the log (Prebuild.log).
 
-/ppo - Preprocesses the xml file to test for syntax errors or problems but doesn't generate the files
+/ppo - Preprocesses the xml file to test for syntax errors or problems
+but doesn't generate the files
 
-/pause - Shows the console until you press a key so that you can view the messages written while performing the specified actions.
-This allows you to check if an errors occurred and - if so - what it was.
+/pause - Shows the console until you press a key so that you can view
+the messages written while performing the specified actions.
 
-/showtargets - Shows a list of all the targets that can be specified as values for the /clean and /target commands.
+This allows you to check if an errors occurred and - if so - what it
+was.
 
-/allowedgroups - This is followed by a pipe-delimited list of project group filter flags (eg. Group1|Group2) allow optional filtering of all projects that dont have at least one of these flags
+/showtargets - Shows a list of all the targets that can be specified
+as values for the /clean and /target commands.
 
-/removedir - This is followed by a pipe-delimited list of directory names that will be deleted while recursivly searching the directory of the prebuild application and its child directories (eg. use obj|bin to delete all output and temporary directories before file releases)
+/allowedgroups - This is followed by a pipe-delimited list of project
+group filter flags (eg. Group1|Group2) allow optional filtering of all
+projects that dont have at least one of these flags
+
+/removedir - This is followed by a pipe-delimited list of directory
+names that will be deleted while recursivly searching the directory of
+the prebuild application and its child directories (eg. use obj|bin to
+delete all output and temporary directories before file releases)
 
 /yes - Answer yes to any warnings (e.g. when cleaning all projects).
 
-_________________________________________________________________________________
+_______________________________________________________________________________
 Example Batch Files and Shell Scripts
 
 NOTE: Common batch and shell script files are included with Prebuild source and file releases.
@@ -89,9 +123,12 @@ ______________________________
 MonoDevelop
 
 #!/bin/sh
-# Generates a combine (.cmbx) and a set of project files (.prjx) 
-# for MonoDevelop, a Mono port of SharpDevelop (http://icsharpcode.net/OpenSource/SD/Default.aspx)
-./Prebuild /target sharpdev /pause
+# Generates a solution (.mds) and a set of project files (.mdp) 
+
+# for MonoDevelop, a Mono port of SharpDevelop
+#  (http://icsharpcode.net/OpenSource/SD/Default.aspx)
+
+./Prebuild /target monodev /pause
 
 ______________________________
 Visual Studio .NET 2003
@@ -104,13 +141,20 @@ Notes:
 Text after lines that start with @rem are comments and are not evaluated
 You can also place pause on the last line instead of specifing the /pause command.
 
-________________________________________________________________________________
+_______________________________________________________________________________
 Example XML Configuration File
 
 Note:
-XML Comments (<!-- Comment -->) are used to markup the prebuild.xml file with notes
-The below file may be out-of-date, however the RealmForge Prebuild file serves as an up-to-date and extensive example.
-It can be viewed using Tigris.org's WebSVN (http://realmforge.tigris.org/source/browse/realmforge/trunk/src/prebuild.xml) by just clicking on the "view file" link for the latest revision.
+
+XML Comments (<!-- Comment -->) are used to markup the prebuild.xml
+file with notes
+
+The below file may be out-of-date, however the RealmForge Prebuild
+file serves as an up-to-date and extensive example.
+
+It can be viewed using Tigris.org's WebSVN
+(http://realmforge.tigris.org/source/browse/realmforge/trunk/src/prebuild.xml)
+by just clicking on the "view file" link for the latest revision.
 
 _________________________________
 

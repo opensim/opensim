@@ -26,9 +26,9 @@ IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY O
 #region CVS Information
 /*
  * $Source$
- * $Author: jendave $
- * $Date: 2007-01-08 17:55:40 +0100 (må, 08 jan 2007) $
- * $Revision: 197 $
+ * $Author: borrillis $
+ * $Date: 2007-05-25 01:03:16 +0900 (Fri, 25 May 2007) $
+ * $Revision: 243 $
  */
 #endregion
 
@@ -118,6 +118,8 @@ namespace Prebuild.Core.Nodes
 		private SubType m_SubType = SubType.Code;
 		private CopyToOutput m_CopyToOutput = CopyToOutput.Never;
 		private bool m_Link = false;
+		private string m_LinkPath = string.Empty;
+        private bool m_PreservePath = false;
 
 
 		#endregion
@@ -173,6 +175,13 @@ namespace Prebuild.Core.Nodes
 			}
 		}
 
+		public string LinkPath
+		{
+			get
+			{
+				return this.m_LinkPath;
+			}
+		}
 		/// <summary>
 		/// 
 		/// </summary>
@@ -195,6 +204,19 @@ namespace Prebuild.Core.Nodes
 			}
 		}
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="file"></param>
+        /// <returns></returns>
+        public bool PreservePath
+        {
+            get
+            {
+                return m_PreservePath;
+            }
+        }
+
 		#endregion
 
 		#region Public Methods
@@ -211,7 +233,12 @@ namespace Prebuild.Core.Nodes
 				Helper.AttributeValue(node, "subType", m_SubType.ToString()));
 			m_ResourceName = Helper.AttributeValue(node, "resourceName", m_ResourceName.ToString());
 			this.m_Link = bool.Parse(Helper.AttributeValue(node, "link", bool.FalseString));
+			if ( this.m_Link == true )
+			{
+				this.m_LinkPath = Helper.AttributeValue( node, "linkPath", string.Empty );
+			}
 			this.m_CopyToOutput = (CopyToOutput) Enum.Parse(typeof(CopyToOutput), Helper.AttributeValue(node, "copyToOutput", this.m_CopyToOutput.ToString()));
+            this.m_PreservePath = bool.Parse( Helper.AttributeValue( node, "preservePath", bool.FalseString ) );
 
 			if( node == null )
 			{

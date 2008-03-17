@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="utf-8" ?> 
+<Prebuild xmlns="http://dnpb.sourceforge.net/schemas/prebuild-1.7.xsd" version="1.7">
+    <Solution name="Prebuild" version="2.0.3">
+	<Configuration name="Debug">
+	    <Options>
+		<CompilerDefines>DEBUG;TRACE</CompilerDefines>
+		<OptimizeCode>false</OptimizeCode>
+		<OutputPath>bin/Debug</OutputPath>
+		<DebugInformation>true</DebugInformation>
+		<SuppressWarnings>1595</SuppressWarnings>
+	    </Options>
+	</Configuration>
+	<Configuration name="Release">
+	    <Options>
+		<CompilerDefines>TRACE</CompilerDefines>
+		<OutputPath>bin/Release</OutputPath>
+		<OptimizeCode>true</OptimizeCode>
+		<DebugInformation>false</DebugInformation>
+		<SuppressWarnings>1595</SuppressWarnings>
+	    </Options>
+	</Configuration>
+	<Files>
+	    <File>prebuild.xml</File>
+	    <File>prebuild</File>
+	</Files>
+	<Project name="Prebuild"
+                 path="src"
+                 language="C#"
+                 assemblyName="prebuild"
+                 icon="App.ico"
+                 type="Exe"
+                 rootNamespace="Prebuild"
+                 startupObject="Prebuild.Prebuild"
+                 version="2.0.3"
+                 >
+	    <Author>Matthew Holmes (matthew@wildfiregames.com)</Author>
+	    <Author>Dan Moorehead (dan05a@gmail.com)</Author>
+	    <Author>Dave Hudson (jendave@yahoo.com)</Author>
+	    <Author>Rob Loach (http://robloach.net)</Author>
+	    <Author>C.J. Adams-Collier (cjac@colliertech.org)</Author>
+	    <Description>The Prebuild project generator</Description>
+	    <Configuration name="Debug">
+		<Options>
+		    <CompilerDefines>DEBUG;TRACE</CompilerDefines>
+		    <OptimizeCode>false</OptimizeCode>
+		    <OutputPath>bin/Debug</OutputPath>
+		    <DebugInformation>true</DebugInformation>
+		    <KeyFile>Prebuild.snk</KeyFile>
+		    <SuppressWarnings>1595</SuppressWarnings>
+		</Options>
+	    </Configuration>
+	    <Configuration name="Release">
+		<Options>
+		    <CompilerDefines>TRACE</CompilerDefines>
+		    <OutputPath>bin/Release</OutputPath>
+		    <OptimizeCode>true</OptimizeCode>
+		    <DebugInformation>false</DebugInformation>
+		    <KeyFile>Prebuild.snk</KeyFile>
+		    <SuppressWarnings>1595</SuppressWarnings>
+		</Options>
+	    </Configuration>
+	    <Reference name="System.EnterpriseServices" />
+	    <Reference name="System.Xml" />
+	    <Reference name="System" />
+	    <Files>
+		<Match pattern="App.ico" buildAction="EmbeddedResource"/>
+		<Match path="data" pattern="prebuild-1.7.xsd" buildAction="EmbeddedResource"/>
+		<Match path="data" pattern="autotools.xml" buildAction="EmbeddedResource"/>
+		<Match pattern="*.cs" recurse="true"/>			
+	    </Files>
+	</Project>
+    </Solution>
+</Prebuild>

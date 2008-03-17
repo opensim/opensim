@@ -27,7 +27,7 @@ IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,	EVEN IF	ADVISED	OF THE POSSIBILITY O
 /*
  * $Source$
  * $Author: jendave $
- * $Date: 2006-09-26 23:43:35 +0200 (ti, 26 sep 2006) $
+ * $Date: 2006-09-27 06:43:35 +0900 (Wed, 27 Sep 2006) $
  * $Revision: 168 $
  */
 #endregion

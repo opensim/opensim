@@ -27,8 +27,8 @@ IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY O
 /*
  * $Source$
  * $Author: jendave $
- * $Date: 2006-11-11 05:43:20 +0100 (lö, 11 nov 2006) $
- * $Revision: 192 $
+ * $Date: 2007-05-26 06:58:26 +0900 (Sat, 26 May 2007) $
+ * $Revision: 244 $
  */
 #endregion
 
@@ -44,20 +44,20 @@ using Prebuild.Core.Utilities;
 namespace Prebuild.Core.Nodes
 {
 	/// <summary>
-	/// 
+	/// A set of values that the Project's type can be
 	/// </summary>
 	public enum ProjectType
 	{
 		/// <summary>
-		/// 
+		/// The project is a console executable
 		/// </summary>
 		Exe,
 		/// <summary>
-		/// 
+		/// The project is a windows executable
 		/// </summary>
 		WinExe,
 		/// <summary>
-		/// 
+		/// The project is a library
 		/// </summary>
 		Library
 	}
@@ -78,7 +78,7 @@ namespace Prebuild.Core.Nodes
 	}
 
 	/// <summary>
-	/// 
+	/// The Node object representing /Prebuild/Solution/Project elements
 	/// </summary>
 	[DataNode("Project")]
 	public class ProjectNode : DataNode, IComparable
@@ -90,6 +90,7 @@ namespace Prebuild.Core.Nodes
 		private string m_FullPath = "";
 		private string m_AssemblyName;
 		private string m_AppIcon = "";
+        private string m_ConfigFile = "";
 		private string m_DesignerFolder = "";
 		private string m_Language = "C#";
 		private ProjectType m_Type = ProjectType.Exe;
@@ -97,11 +98,13 @@ namespace Prebuild.Core.Nodes
 		private string m_StartupObject = "";
 		private string m_RootNamespace;
 		private string m_FilterGroups = "";
+		private string m_Version = "";
 		private Guid m_Guid;
 
 		private Hashtable m_Configurations;
 		private ArrayList m_ReferencePaths;
 		private ArrayList m_References;
+		private ArrayList m_Authors;
 		private FilesNode m_Files;
 
 		#endregion
@@ -116,6 +119,7 @@ namespace Prebuild.Core.Nodes
 			m_Configurations = new Hashtable();
 			m_ReferencePaths = new ArrayList();
 			m_References = new ArrayList();
+			m_Authors = new ArrayList();
 		}
 
 		#endregion
@@ -159,6 +163,18 @@ namespace Prebuild.Core.Nodes
 		}
 
 		/// <summary>
+		/// Gets the project's version
+		/// </summary>
+		/// <value>The project's version.</value>
+		public string Version 
+		{ 
+			get 
+			{ 
+				return m_Version; 
+			} 
+		}		
+
+		/// <summary>
 		/// Gets the full path.
 		/// </summary>
 		/// <value>The full path.</value>
@@ -193,6 +209,18 @@ namespace Prebuild.Core.Nodes
 				return m_AppIcon;
 			}
 		}
+
+        /// <summary>
+        /// Gets the app icon.
+        /// </summary>
+        /// <value>The app icon.</value>
+        public string ConfigFile
+        {
+            get
+            {
+                return m_ConfigFile;
+            }
+        }
 
 		/// <summary>
 		/// 
@@ -290,9 +318,9 @@ namespace Prebuild.Core.Nodes
 		{
 			get
 			{
-                ArrayList tmp = new ArrayList( ConfigurationsTable.Values);
-			    tmp.Sort();
-				return tmp;
+                ArrayList tmp = new ArrayList(ConfigurationsTable.Values);
+                tmp.Sort();
+                return tmp;
 			}
 		}
 
@@ -319,7 +347,7 @@ namespace Prebuild.Core.Nodes
                 ArrayList tmp = new ArrayList(m_ReferencePaths);
                 tmp.Sort();
                 return tmp;
-            }
+			}
 		}
 
 		/// <summary>
@@ -333,6 +361,18 @@ namespace Prebuild.Core.Nodes
                 ArrayList tmp = new ArrayList(m_References);
                 tmp.Sort();
                 return tmp;
+			}
+		}
+		
+		/// <summary>
+		/// Gets the Authors list.
+		/// </summary>
+		/// <value>The list of the project's authors.</value>
+		public ArrayList Authors
+		{
+			get
+			{
+				return m_Authors;
 			}
 		}
 
@@ -422,7 +462,9 @@ namespace Prebuild.Core.Nodes
 			m_Name = Helper.AttributeValue(node, "name", m_Name);
 			m_Path = Helper.AttributeValue(node, "path", m_Path);
 			m_FilterGroups = Helper.AttributeValue(node, "filterGroups", m_FilterGroups);
+			m_Version = Helper.AttributeValue(node, "version", m_Version);
 			m_AppIcon = Helper.AttributeValue(node, "icon", m_AppIcon);
+            m_ConfigFile = Helper.AttributeValue(node, "configFile", m_ConfigFile);
 			m_DesignerFolder = Helper.AttributeValue(node, "designerFolder", m_DesignerFolder);
 			m_AssemblyName = Helper.AttributeValue(node, "assemblyName", m_AssemblyName);
 			m_Language = Helper.AttributeValue(node, "language", m_Language);
@@ -430,13 +472,11 @@ namespace Prebuild.Core.Nodes
 			m_Runtime = (ClrRuntime)Helper.EnumAttributeValue(node, "runtime", typeof(ClrRuntime), m_Runtime);
 			m_StartupObject = Helper.AttributeValue(node, "startupObject", m_StartupObject);
 			m_RootNamespace = Helper.AttributeValue(node, "rootNamespace", m_RootNamespace);
-		    
-            int hash = m_Name.GetHashCode();
-
-		    m_Guid = new Guid( hash, 0, 0, 0, 0, 0, 0,0,0,0,0 );
-		    
             m_GenerateAssemblyInfoFile = Helper.ParseBoolean(node, "generateAssemblyInfoFile", false);
-            
+
+            int hash = m_Name.GetHashCode();
+			m_Guid = new Guid(hash, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
+
 			if(m_AssemblyName == null || m_AssemblyName.Length < 1)
 			{
 				m_AssemblyName = m_Name;
@@ -482,6 +522,10 @@ namespace Prebuild.Core.Nodes
 					{
 						m_References.Add(dataNode);
 					}
+					else if(dataNode is AuthorNode)
+					{
+						m_Authors.Add(dataNode);
+					}
 					else if(dataNode is FilesNode)
 					{
 						m_Files = (FilesNode)dataNode;
@@ -494,7 +538,6 @@ namespace Prebuild.Core.Nodes
 			}
 		}
 
-
 		#endregion
 
         #region IComparable Members
@@ -506,5 +549,5 @@ namespace Prebuild.Core.Nodes
         }
 
         #endregion
-    }
+	}
 }

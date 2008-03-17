@@ -26,9 +26,9 @@ IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY O
 #region CVS Information
 /*
  * $Source$
- * $Author: jendave $
- * $Date: 2006-09-20 09:42:51 +0200 (on, 20 sep 2006) $
- * $Revision: 164 $
+ * $Author: borrillis $
+ * $Date: 2007-05-25 01:03:16 +0900 (Fri, 25 May 2007) $
+ * $Revision: 243 $
  */
 #endregion
 
@@ -41,6 +41,7 @@ using System.Xml;
 using Prebuild.Core.Attributes;
 using Prebuild.Core.Interfaces;
 using Prebuild.Core.Utilities;
+using System.Collections;
 
 namespace Prebuild.Core.Nodes
 {
@@ -59,7 +60,9 @@ namespace Prebuild.Core.Nodes
 		string m_ResourceName = "";
 		private CopyToOutput m_CopyToOutput;
 		private bool m_Link;
-
+		private string m_LinkPath;
+        private bool m_PreservePath;
+        private ArrayList m_Exclusions;
 
 		#endregion
 
@@ -71,6 +74,7 @@ namespace Prebuild.Core.Nodes
 		public MatchNode()
 		{
 			m_Files = new StringCollection();
+            m_Exclusions = new ArrayList();
 		}
 
 		#endregion
@@ -126,6 +130,13 @@ namespace Prebuild.Core.Nodes
 			}
 		}
 
+		public string LinkPath
+		{
+			get
+			{
+				return this.m_LinkPath;
+			}
+		}
 		/// <summary>
 		/// 
 		/// </summary>
@@ -137,6 +148,13 @@ namespace Prebuild.Core.Nodes
 			}
 		}
 
+        public bool PreservePath
+        {
+            get
+            {
+                return m_PreservePath;
+            }
+        }
 
 		#endregion
 
@@ -149,8 +167,10 @@ namespace Prebuild.Core.Nodes
 		/// <param name="pattern">The pattern.</param>
 		/// <param name="recurse">if set to <c>true</c> [recurse].</param>
 		/// <param name="useRegex">if set to <c>true</c> [use regex].</param>
-		private void RecurseDirectories(string path, string pattern, bool recurse, bool useRegex)
+		private void RecurseDirectories(string path, string pattern, bool recurse, bool useRegex, ArrayList exclusions)
 		{
+			Match match;
+            Boolean excludeFile;
 			try
 			{
 				string[] files;
@@ -163,6 +183,7 @@ namespace Prebuild.Core.Nodes
 						string fileTemp;
 						foreach (string file in files)
 						{
+                            excludeFile = false;
 							if (file.Substring(0,2) == "./" || file.Substring(0,2) == ".\\")
 							{
 								fileTemp = file.Substring(2);
@@ -171,8 +192,20 @@ namespace Prebuild.Core.Nodes
 							{
 								fileTemp = file;
 							}
-							
-							m_Files.Add(fileTemp);
+
+                            // Check all excludions and set flag if there are any hits.
+                            foreach ( ExcludeNode exclude in exclusions )
+                            {
+                                Regex exRegEx = new Regex( exclude.Pattern );
+                                match = exRegEx.Match( file );
+                                excludeFile |= match.Success;
+                            }
+
+                            if ( !excludeFile )
+                            {
+                                m_Files.Add( fileTemp );
+                            }
+
 						}
 					}
 					else
@@ -182,14 +215,26 @@ namespace Prebuild.Core.Nodes
 				}
 				else
 				{
-					Match match;
 					files = Directory.GetFiles(path);
 					foreach(string file in files)
 					{
+                        excludeFile = false;
+
 						match = m_Regex.Match(file);
 						if(match.Success)
 						{
-							m_Files.Add(file);
+                            // Check all excludions and set flag if there are any hits.
+                            foreach ( ExcludeNode exclude in exclusions )
+                            {
+                                Regex exRegEx = new Regex( exclude.Pattern );
+                                match = exRegEx.Match( file );
+                                excludeFile |= !match.Success;
+                            }
+
+                            if ( !excludeFile )
+                            {
+                                m_Files.Add( file );
+                            }
 						}
 					}
 				}
@@ -201,7 +246,7 @@ namespace Prebuild.Core.Nodes
 					{
 						foreach(string str in dirs)
 						{
-							RecurseDirectories(Helper.NormalizePath(str), pattern, recurse, useRegex);
+							RecurseDirectories(Helper.NormalizePath(str), pattern, recurse, useRegex, exclusions);
 						}
 					}
 				}
@@ -241,6 +286,11 @@ namespace Prebuild.Core.Nodes
 			m_ResourceName = Helper.AttributeValue(node, "resourceName", m_ResourceName.ToString());
 			this.m_CopyToOutput = (CopyToOutput) Enum.Parse(typeof(CopyToOutput), Helper.AttributeValue(node, "copyToOutput", this.m_CopyToOutput.ToString()));
 			this.m_Link = bool.Parse(Helper.AttributeValue(node, "link", bool.FalseString));
+			if ( this.m_Link == true )
+			{
+				this.m_LinkPath = Helper.AttributeValue( node, "linkPath", string.Empty );
+			}
+            this.m_PreservePath = bool.Parse( Helper.AttributeValue( node, "preservePath", bool.FalseString ) );
 
 
 			if(path != null && path.Length == 0)
@@ -272,7 +322,6 @@ namespace Prebuild.Core.Nodes
 				throw new WarningException("Could not compile regex pattern: {0}", ex.Message);
 			}
 
-			RecurseDirectories(path, pattern, recurse, useRegex);
 
 			foreach(XmlNode child in node.ChildNodes)
 			{
@@ -280,12 +329,11 @@ namespace Prebuild.Core.Nodes
 				if(dataNode is ExcludeNode)
 				{
 					ExcludeNode excludeNode = (ExcludeNode)dataNode;
-					if (m_Files.Contains(Helper.NormalizePath(excludeNode.Name)))
-					{
-						m_Files.Remove(Helper.NormalizePath(excludeNode.Name));
-					}
+                    m_Exclusions.Add( dataNode );
 				}
 			}
+
+            RecurseDirectories( path, pattern, recurse, useRegex, m_Exclusions );
 
 			if(m_Files.Count < 1)
 			{

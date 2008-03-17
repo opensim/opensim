@@ -1,2 +1,5 @@
 #!/bin/sh
-prebuild /target autotools /file ../prebuild.xml /build NET_2_0 /pause
+RUNTIME=`which mono`
+
+SCRIPTDIR=`dirname $0`
+${RUNTIME} ${SCRIPTDIR}/../Prebuild.exe /target autotools /file ${SCRIPTDIR}/../prebuild.xml /build NET_2_0

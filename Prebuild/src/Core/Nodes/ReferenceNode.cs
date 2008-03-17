@@ -27,7 +27,7 @@ IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY O
 /*
  * $Source$
  * $Author: jendave $
- * $Date: 2006-07-25 18:56:49 +0200 (ti, 25 jul 2006) $
+ * $Date: 2006-07-26 01:56:49 +0900 (Wed, 26 Jul 2006) $
  * $Revision: 132 $
  */
 #endregion
@@ -149,5 +149,5 @@ namespace Prebuild.Core.Nodes
         }
 
         #endregion
-    }
+	}
 }

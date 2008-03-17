@@ -26,9 +26,9 @@ IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY O
 #region CVS Information
 /*
  * $Source$
- * $Author: robloach $
- * $Date: 2007-02-27 19:52:34 +0100 (ti, 27 feb 2007) $
- * $Revision: 207 $
+ * $Author: borrillis $
+ * $Date: 2007-05-25 01:03:16 +0900 (Fri, 25 May 2007) $
+ * $Revision: 243 $
  */
 #endregion
 
@@ -36,6 +36,7 @@ using System;
 using System.Collections;
 using System.Collections.Specialized;
 using System.IO;
+using System.Text;
 
 using Prebuild.Core.Attributes;
 using Prebuild.Core.Interfaces;
@@ -235,7 +236,7 @@ namespace Prebuild.Core.Targets
 
         Hashtable tools;
         Kernel kernel;
-        
+
         protected virtual string ToolsVersionXml
         {
             get
@@ -249,7 +250,7 @@ namespace Prebuild.Core.Targets
             get { return "# Visual Studio 2005"; }
         }
 
-            /// <summary>
+        /// <summary>
         /// Gets or sets the solution version.
         /// </summary>
         /// <value>The solution version.</value>
@@ -260,6 +261,7 @@ namespace Prebuild.Core.Targets
                 return "9.00";
             }
         }
+
         /// <summary>
         /// Gets or sets the product version.
         /// </summary>
@@ -287,6 +289,7 @@ namespace Prebuild.Core.Targets
                 this.schemaVersion = value;
             }
         }
+
         /// <summary>
         /// Gets or sets the name of the version.
         /// </summary>
@@ -298,6 +301,7 @@ namespace Prebuild.Core.Targets
                 return "Visual C# 2005";
             }
         }
+
         /// <summary>
         /// Gets or sets the version.
         /// </summary>
@@ -377,7 +381,7 @@ namespace Prebuild.Core.Targets
             #region Project File
             using (ps)
             {
-                ps.WriteLine("<Project DefaultTargets=\"Build\" xmlns=\"http://schemas.microsoft.com/developer/msbuild/2003\"{0}>", ToolsVersionXml );
+                ps.WriteLine("<Project DefaultTargets=\"Build\" xmlns=\"http://schemas.microsoft.com/developer/msbuild/2003\"{0}>", ToolsVersionXml);
                 //ps.WriteLine("  <{0}", toolInfo.XMLTag);
                 ps.WriteLine("  <PropertyGroup>");
                 ps.WriteLine("    <ProjectType>Local</ProjectType>");
@@ -431,7 +435,7 @@ namespace Prebuild.Core.Targets
                     ps.WriteLine("    <ConfigurationOverrideFile>");
                     ps.WriteLine("    </ConfigurationOverrideFile>");
                     ps.WriteLine("    <DefineConstants>{0}</DefineConstants>", conf.Options["CompilerDefines"]);
-                    ps.WriteLine("    <DocumentationFile>{0}</DocumentationFile>", conf.Options["XmlDocFile"]);
+                    ps.WriteLine("    <DocumentationFile>{0}</DocumentationFile>", Helper.NormalizePath(conf.Options["XmlDocFile"].ToString()));
                     ps.WriteLine("    <DebugSymbols>{0}</DebugSymbols>", conf.Options["DebugInformation"]);
                     ps.WriteLine("    <FileAlignment>{0}</FileAlignment>", conf.Options["FileAlignment"]);
                     //                    ps.WriteLine("    <IncrementalBuild = \"{0}\"", conf.Options["IncrementalBuild"]);
@@ -458,7 +462,7 @@ namespace Prebuild.Core.Targets
                 // Assembly References
                 ps.WriteLine("  <ItemGroup>");
                 string refPath = ((ReferencePathNode) project.ReferencePaths[0]).Path;
-                
+
                 foreach (ReferenceNode refr in project.References)
                 {
                     if (!solution.ProjectsTable.ContainsKey(refr.Name))
@@ -471,7 +475,7 @@ namespace Prebuild.Core.Targets
 
                         string path;
                         
-                        if( refr.Name.EndsWith(".dll", StringComparison.InvariantCultureIgnoreCase ))
+                        if (refr.Name.EndsWith(".dll", StringComparison.InvariantCultureIgnoreCase))
                         {
                             path = Helper.NormalizePath(Path.Combine( refPath, refr.Name), '\\');
                         }
@@ -479,7 +483,7 @@ namespace Prebuild.Core.Targets
                         {
                             path = refr.Name + ".dll";
                         }
-                        
+
                         // TODO: Allow reference to *.exe files
                         ps.WriteLine("      <HintPath>{0}</HintPath>", path );
                         ps.WriteLine("      <Private>{0}</Private>", refr.LocalCopy);
@@ -602,34 +606,52 @@ namespace Prebuild.Core.Targets
                     {
                         if (!list.Contains(file))
                         {
-                            ps.Write("    <{0} ", project.Files.GetBuildAction(file));
-                            ps.WriteLine("Include=\"{0}\">", file);
+                        ps.Write("    <{0} ", project.Files.GetBuildAction(file));
 
+                        int startPos = 0;
+                        if ( project.Files.GetPreservePath( file ) )
+                        {
+                            while ( ( @"./\" ).IndexOf( file.Substring( startPos, 1 ) ) != -1 )
+                                startPos++;
 
-                            if (file.Contains("Designer.cs"))
-                            {
-                                ps.WriteLine("      <DependentUpon>{0}</DependentUpon>", file.Substring(0, file.IndexOf(".Designer.cs")) + ".cs");
-                            }
-
-                            if (project.Files.GetIsLink(file))
-                            {
-                                ps.WriteLine("      <Link>{0}</Link>", Path.GetFileName(file));
-                            }
-                            else if (project.Files.GetBuildAction(file) != BuildAction.None)
-                            {
-                                if (project.Files.GetBuildAction(file) != BuildAction.EmbeddedResource)
-                                {
-                                    ps.WriteLine("      <SubType>{0}</SubType>", project.Files.GetSubType(file));
-                                }
-                            }
-                            if (project.Files.GetCopyToOutput(file) != CopyToOutput.Never)
-                            {
-                                ps.WriteLine("      <CopyToOutputDirectory>{0}</CopyToOutputDirectory>", project.Files.GetCopyToOutput(file));
-                            }
-
-                            ps.WriteLine("    </{0}>", project.Files.GetBuildAction(file));
                         }
+                        else
+                        {
+                            startPos = file.LastIndexOf( Path.GetFileName( file ) );
+                        }
+                        ps.WriteLine("Include=\"{0}\">", Helper.NormalizePath(file));
+
+
+                        if (file.Contains("Designer.cs"))
+                        {
+                                string d = ".Designer.cs";
+                                int index = file.Contains("\\") ? file.IndexOf("\\") + 1 : 0;
+                                ps.WriteLine("      <DependentUpon>{0}</DependentUpon>", file.Substring(index, file.Length - index - d.Length) + ".cs");
+                        }
+
+                        if (project.Files.GetIsLink(file))
+                        {
+							string alias = project.Files.GetLinkPath( file );
+							alias += file.Substring( startPos );
+							alias = Helper.NormalizePath( alias );
+                            ps.WriteLine( "      <Link>{0}</Link>", alias );
+                        }
+                        else if (project.Files.GetBuildAction(file) != BuildAction.None)
+                        {
+                            if (project.Files.GetBuildAction(file) != BuildAction.EmbeddedResource)
+                            {
+								ps.WriteLine("      <SubType>{0}</SubType>", project.Files.GetSubType(file));
+							}
+                        }
+
+                        if (project.Files.GetCopyToOutput(file) != CopyToOutput.Never)
+                        {
+                            ps.WriteLine("      <CopyToOutputDirectory>{0}</CopyToOutputDirectory>", project.Files.GetCopyToOutput(file));
+                        }
+
+                        ps.WriteLine("    </{0}>", project.Files.GetBuildAction(file));
                     }
+                }
                 }
                 //                ps.WriteLine("      </Include>");
 
@@ -658,15 +680,14 @@ namespace Prebuild.Core.Targets
                 ps.WriteLine("  <PropertyGroup>");
                 //ps.WriteLine("      <Settings ReferencePath=\"{0}\">", MakeRefPath(project));
 
-
                 ps.WriteLine("    <Configuration Condition=\" '$(Configuration)' == '' \">Debug</Configuration>");
-                ps.WriteLine("    <Platform Condition=\" '$(Platform)' == '' \">AnyCPU</Platform>");
 
                 if (projectFile.Contains( "OpenSim.csproj" ))
                 {
                     ps.WriteLine("    <StartArguments>-loginserver -sandbox -accounts</StartArguments>");
                 }
 
+                ps.WriteLine("    <Platform Condition=\" '$(Platform)' == '' \">AnyCPU</Platform>");
                 ps.WriteLine("    <ReferencePath>{0}</ReferencePath>", MakeRefPath(project));
                 ps.WriteLine("    <LastOpenVersion>{0}</LastOpenVersion>", this.ProductVersion);
                 ps.WriteLine("    <ProjectView>ProjectFiles</ProjectView>");
@@ -678,7 +699,7 @@ namespace Prebuild.Core.Targets
                     ps.Write(" Condition = \" '$(Configuration)|$(Platform)' == '{0}|AnyCPU' \"", conf.Name);
                     ps.WriteLine(" />");
                 }
-                
+
                 ps.WriteLine("</Project>");
             }
             #endregion

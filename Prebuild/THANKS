@@ -1,0 +1,18 @@
+Gryc Ueusp <gryc.ueusp@gmail.com>
+
+  caught a problem with the NAnt target's .build output which caused
+  the Ubuntu build servers to choke on prebuild-generated packages
+
+Todd Berman <tberman@sevenl.net>
+Lluis Sanchez Gual <lluis@novell.com>
+
+  pkg-config .pc file parser used in AutotoolsTarget.cs was ripped off
+  from work contributed to MonoDevelop by Lluis and Todd.  It came
+  from
+
+src/core/MonoDevelop.Core/MonoDevelop.Core/SystemPackage.cs (Lluis)
+
+  and
+
+src/core/MonoDevelop.Core/MonoDevelop.Core/SystemAssemblyService.cs
+  (Lluis && Todd)

@@ -1,6 +1,6 @@
 #region BSD License
 /*
-Copyright (c) 2004-2005 Matthew Holmes (matthew@wildfiregames.com), Dan Moorehead (dan05a@gmail.com)
+Copyright (c) 2007 C.J. Adams-Collier (cjac@colliertech.org)
 
 Redistribution and use in source and binary forms, with or without modification, are permitted
 provided that the following conditions are met:
@@ -25,45 +25,72 @@ IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY O
 
 #region CVS Information
 /*
- * $Source$
- * $Author: jendave $
- * $Date: 2006-01-27 16:49:58 -0800 (Fri, 27 Jan 2006) $
- * $Revision: 71 $
+ * $Source $
+ * $Author:  $
+ * $Date:  $
+ * $Revision:  $
  */
 #endregion
 
 using System;
+using System.Collections;
+using System.Collections.Specialized;
+using System.Xml;
 
 using Prebuild.Core.Attributes;
+using Prebuild.Core.Interfaces;
+using Prebuild.Core.Utilities;
 
-namespace Prebuild.Core.Targets
+namespace Prebuild.Core.Nodes
 {
 	/// <summary>
-	/// 
+	/// The object representing the /Prebuild/Solution/Project/Description element
 	/// </summary>
-	[Target("sharpdev2")]
-	public class SharpDevelop2Target : VS2005Target
+	[DataNode("Description")]
+	public class DescriptionNode : DataNode
 	{
-        protected override string VersionName
-        {
-            get
-            {
-                return "SharpDevelop2";
-            }
-        }
+		#region Fields
+
+		private string m_Value;
+
+		#endregion
+
+		#region Properties
+
+		/// <summary>
+		/// Gets the description Value.
+		/// </summary>
+		/// <value>The description Value.</value>
+		public string Value
+		{
+			get
+			{
+				return m_Value;
+			}
+		}
+
+		#endregion
 
 		#region Public Methods
 
 		/// <summary>
-		/// Gets the name.
+		/// Parses the specified node.
 		/// </summary>
-		/// <value>The name.</value>
-		public override string Name
+		/// <param name="node">The node.</param>
+		public override void Parse(XmlNode node)
 		{
-			get
+			if( node == null )
 			{
-				return "sharpdev2";
+				throw new ArgumentNullException("node");
 			}
+
+			m_Value = Helper.InterpolateForEnvironmentVariables(node.InnerText);
+			if(m_Value == null)
+			{
+				m_Value = "";
+			}
+
+			m_Value = m_Value.Trim();
 		}
 
 		#endregion

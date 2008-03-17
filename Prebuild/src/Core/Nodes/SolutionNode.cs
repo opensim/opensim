@@ -27,7 +27,7 @@ IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY O
 /*
  * $Source$
  * $Author: jendave $
- * $Date: 2006-02-28 17:15:42 +0100 (ti, 28 feb 2006) $
+ * $Date: 2006-03-01 01:15:42 +0900 (Wed, 01 Mar 2006) $
  * $Revision: 92 $
  */
 #endregion
@@ -53,11 +53,11 @@ namespace Prebuild.Core.Nodes
 		#region Fields
         
 		private string m_Name = "unknown";
-		private string m_Version = "1.0.0";
 		private string m_Path = "";
 		private string m_FullPath = "";
 		private string m_ActiveConfig = "Debug";
-        
+        private string m_Version = "1.0.0";
+
 		private OptionsNode m_Options;
 		private FilesNode m_Files;
 		private Hashtable m_Configurations;
@@ -111,18 +111,6 @@ namespace Prebuild.Core.Nodes
 		}
 
 		/// <summary>
-		/// Gets the version.
-		/// </summary>
-		/// <value>The version.</value>
-		public string Version 
-		{
-			get 
-			{
-				return m_Version;
-			}
-		}
-
-		/// <summary>
 		/// Gets the path.
 		/// </summary>
 		/// <value>The path.</value>
@@ -143,6 +131,18 @@ namespace Prebuild.Core.Nodes
 			get
 			{
 				return m_FullPath;
+			}
+		}
+
+		/// <summary>
+		/// Gets the version.
+		/// </summary>
+		/// <value>The version.</value>
+		public string Version 
+		{
+			get 
+			{
+				return m_Version;
 			}
 		}
 
@@ -181,7 +181,7 @@ namespace Prebuild.Core.Nodes
                 ArrayList tmp = new ArrayList(ConfigurationsTable.Values);
                 tmp.Sort();
                 return tmp;
-            }
+			}
 		}
 
 		/// <summary>
@@ -245,9 +245,9 @@ namespace Prebuild.Core.Nodes
 		public override void Parse(XmlNode node)
 		{
 			m_Name = Helper.AttributeValue(node, "name", m_Name);
-			m_Version = Helper.AttributeValue(node, "version", m_Version);
 			m_ActiveConfig = Helper.AttributeValue(node, "activeConfig", m_ActiveConfig);
 			m_Path = Helper.AttributeValue(node, "path", m_Path);
+			m_Version = Helper.AttributeValue(node, "version", m_Version);
 
 			m_FullPath = m_Path;
 			try

@@ -26,9 +26,9 @@ IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY O
 #region CVS Information
 /*
  * $Source$
- * $Author: jendave $
- * $Date: 2007-02-13 22:07:07 +0100 (ti, 13 feb 2007) $
- * $Revision: 206 $
+ * $Author: cjcollier $
+ * $Date: 2007-04-11 07:10:35 +0900 (Wed, 11 Apr 2007) $
+ * $Revision: 231 $
  */
 #endregion
 
@@ -106,9 +106,24 @@ namespace Prebuild.Core.Targets
 				ret += " refto=\"";
 				try
 				{
-					//Assembly assem = Assembly.Load(refr.Name);
-					//ret += assem.FullName;
-                    ret += refr.Name;
+					/*
+					Day changed to 28 Mar 2007
+					...
+					08:09 < cj> is there anything that replaces Assembly.LoadFromPartialName() ?
+					08:09 < jonp> no
+					08:10 < jonp> in their infinite wisdom [sic], microsoft decided that the 
+					              ability to load any assembly version by-name was an inherently 
+					              bad idea
+					08:11 < cj> I'm thinking of a bunch of four-letter words right now...
+					08:11 < cj> security through making it difficult for the developer!!!
+					08:12 < jonp> just use the Obsolete API
+					08:12 < jonp> it should still work
+					08:12 < cj> alrighty.
+					08:12 < jonp> you just get warnings when using it
+					*/
+					Assembly assem = Assembly.LoadWithPartialName(refr.Name);
+					ret += assem.FullName;
+                    //ret += refr.Name;
 				}
 				catch (System.NullReferenceException e)
 				{
