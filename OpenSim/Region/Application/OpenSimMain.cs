@@ -315,6 +315,7 @@ namespace OpenSim
             m_log.Info("====================================================================");
             m_log.Info("========================= STARTING OPENSIM =========================");
             m_log.Info("====================================================================");
+            m_log.InfoFormat("[OPENSIM MAIN]: Running in {0} mode", (m_sandbox ? "sandbox" : "grid"));
             
             m_console = CreateConsole();
             MainConsole.Instance = m_console;
@@ -409,7 +410,7 @@ namespace OpenSim
 
             // We are done with startup
             PrintFileToConsole("startuplogo.txt");
-            m_log.Info("[STARTUP]: Startup complete, serving " + m_udpServers.Count.ToString() + " region(s)");
+            m_log.Info("[OPENSIM MAIN]: Startup complete, serving " + m_udpServers.Count.ToString() + " region(s)");
         }
 
         protected override void Initialize()
@@ -532,7 +533,7 @@ namespace OpenSim
 
         public void handleRestartRegion(RegionInfo whichRegion)
         {
-            m_log.Error("[MAIN]: Got restart signal from SceneManager");
+            m_log.Error("[OPENSIM MAIN]: Got restart signal from SceneManager");
             // Shutting down the UDP server
             bool foundUDPServer = false;
             int UDPServerElement = 0;

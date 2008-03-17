@@ -42,7 +42,6 @@ namespace OpenSim.Region.Communications.Local
         private readonly uint m_defaultHomeY;
         private IInventoryServices m_inventoryService;
 
-
         /// <summary>
         /// 
         /// </summary>
@@ -82,7 +81,7 @@ namespace OpenSim.Region.Communications.Local
 
             if (profile == null)
             {
-                Console.WriteLine("Unknown Master User after creation attempt. No clue what to do here.");
+                Console.WriteLine("[LOCAL USER SERVICES]: Unknown Master User after creation attempt. No clue what to do here.");
             }
             else
             {
@@ -97,7 +96,7 @@ namespace OpenSim.Region.Communications.Local
             UserProfileData data = GetUserProfile(uuid);
             if (data == null)
             {
-                throw new Exception("Unknown master user UUID. Possible reason: UserServer is not running.");
+                throw new Exception("[LOCAL USER SERVICES]: Unknown master user UUID. Possible reason: UserServer is not running.");
             }
             return data;
         }
