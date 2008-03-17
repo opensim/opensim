@@ -83,7 +83,7 @@ namespace OpenSim.Region.Environment
             }
 
             // If there is no master avatar, return false
-            if (m_scene.RegionInfo.MasterAvatarAssignedUUID != null)
+            if (!m_scene.RegionInfo.MasterAvatarAssignedUUID.Equals(null))
             {
                 return m_scene.RegionInfo.MasterAvatarAssignedUUID == user;
             }
@@ -97,7 +97,7 @@ namespace OpenSim.Region.Environment
             {
                 return true;
             }
-            if (user != null)
+            if (!user.Equals(null))
             {
                 LLUUID[] estatemanagers = m_scene.RegionInfo.EstateSettings.estateManagers;
                 for (int i = 0; i < estatemanagers.Length; i++)

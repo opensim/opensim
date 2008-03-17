@@ -258,7 +258,7 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase.AsyncCommandPlugin
                             if (ang_obj > ts.arc) keep = false;
                         }
 
-                        if (keep && (ts.keyID != null) && (ts.keyID != LLUUID.Zero) && (ts.keyID != ent.UUID))
+                        if (keep && (!ts.keyID.Equals(null)) && (ts.keyID != LLUUID.Zero) && (ts.keyID != ent.UUID))
                         {
                             keep = false;
                         }

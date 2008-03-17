@@ -342,7 +342,7 @@ namespace OpenSim.Region.Environment.Scenes
             asset.Description = description;
             asset.InvType = invType;
             asset.Type = assetType;
-            asset.FullID = LLUUID.Random(); // TODO: check for conflicts
+            asset.FullID = LLUUID.Random();
             asset.Data = (data == null) ? new byte[1] : data;
             return asset;
         }
@@ -781,7 +781,7 @@ namespace OpenSim.Region.Environment.Scenes
                                 InventoryItemBase item = new InventoryItemBase();
                                 item.avatarID = remoteClient.AgentId;
                                 item.creatorsID = remoteClient.AgentId;
-                                item.inventoryID = LLUUID.Random(); // TODO: check for conflicts
+                                item.inventoryID = LLUUID.Random();
                                 item.assetID = asset.FullID;
                                 item.inventoryDescription = asset.Description;
                                 item.inventoryName = asset.Name;
