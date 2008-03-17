@@ -261,7 +261,7 @@ namespace OpenSim.Region.Communications.OGS1
             UserProfileData data = GetUserProfile(uuid);
             if (data == null)
             {
-                throw new Exception("Unknown master user UUID");
+                throw new Exception("[OGS1 USER SERVICES]: Unknown master user UUID");
             }
             return data;
         }
@@ -273,7 +273,7 @@ namespace OpenSim.Region.Communications.OGS1
 
         public bool UpdateUserProfileProperties(UserProfileData UserProfile)
         {
-            m_log.Debug("[OGS1UserService]: Asking UserServer to update profile.");
+            m_log.Debug("[OGS1 USER SERVICES]: Asking UserServer to update profile.");
             Hashtable param = new Hashtable();
             param["avatar_uuid"] = UserProfile.UUID.ToString();
             //param["AllowPublish"] = UserProfile.ToString();
