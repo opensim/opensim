@@ -60,6 +60,13 @@ namespace OpenSim.Region.Environment.Modules
         /// </summary>
         private readonly BlockingQueue<ITextureSender> m_sharedSendersQueue;
         
+        /// <summary>
+        /// We're going to record when we get a request for a particular missing texture for each client
+        /// XXX This is really a temporary solution to deal with the situation where a client continually requests
+        /// the same missing textures
+        /// </summary>
+        private readonly Dictionary<LLUUID, int> missingTextureRequests = new Dictionary<LLUUID, int>();
+        
         private readonly Scene m_scene;
         
         private readonly IClientAPI m_client;
@@ -138,12 +145,33 @@ namespace OpenSim.Region.Environment.Modules
                     // Needs investigation.
                     if (texture == null || texture.Data == null)
                     {
-                        m_log.DebugFormat(
-                            "[USER TEXTURE DOWNLOAD SERVICE]: Queueing TextureNotFoundSender for {0}, client {1}", 
-                            textureID, m_client.AgentId);
-                       
-                        ITextureSender textureNotFoundSender = new TextureNotFoundSender(m_client, textureID);
-                        EnqueueTextureSender(textureNotFoundSender);
+                        // We're only going to tell the client once about a missing texture, even if it keeps asking
+                        // XXX This is to reduce (but not resolve) a current problem where some clients keep requesting the same textures
+                        // - one might want to do this for all asset requests (or allow a number of retries) in the 
+                        // longer term.
+                        if (!missingTextureRequests.ContainsKey(textureID))
+                        {
+                            m_log.DebugFormat(
+                                "[USER TEXTURE DOWNLOAD SERVICE]: Queueing TextureNotFoundSender for {0}, client {1}", 
+                                textureID, m_client.AgentId);
+                           
+                            ITextureSender textureNotFoundSender = new TextureNotFoundSender(m_client, textureID);
+                            EnqueueTextureSender(textureNotFoundSender);
+                            missingTextureRequests.Add(textureID, 1);
+                        }
+                        else
+                        {
+                            int requests = missingTextureRequests[textureID] + 1;
+                            
+                            if (requests % 20 == 0)
+                            {
+                                m_log.WarnFormat(
+                                    "[USER TEXTURE DOWNLOAD SERVICE]: Received {0} requests for the missing texture {1} from client {2}", 
+                                    requests, textureID, m_client.AgentId);
+                            }
+                                                        
+                            missingTextureRequests[textureID] = requests;                            
+                        }
                     }
                     else
                     {
