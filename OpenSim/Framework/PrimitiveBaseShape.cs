@@ -53,7 +53,11 @@ namespace OpenSim.Framework
     public enum PCodeEnum : byte
     {
         Primitive = 9,
-        Avatar = 47
+        Avatar = 47,
+        Grass = 95,
+        NewTree = 111,
+        ParticleSystem = 143,
+        Tree = 255
     }
 
     public enum Extrusion : byte

@@ -1121,7 +1121,7 @@ namespace OpenSim.Region.Environment.Scenes
             SceneObjectPart rootPart = sceneOb.GetChildPart(sceneOb.UUID);
             // if grass or tree, make phantom
             //rootPart.TrimPermissions();
-            if ((rootPart.Shape.PCode == 95) || (rootPart.Shape.PCode == 255) || (rootPart.Shape.PCode == 111))
+            if ((rootPart.Shape.PCode == (byte)PCode.Grass) || (rootPart.Shape.PCode == (byte)PCode.Tree) || (rootPart.Shape.PCode == (byte)PCode.NewTree))
             {
                 rootPart.AddFlag(LLObject.ObjectFlags.Phantom);
                 //rootPart.ObjectFlags += (uint)LLObject.ObjectFlags.Phantom;

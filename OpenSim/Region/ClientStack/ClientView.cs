@@ -2126,7 +2126,7 @@ namespace OpenSim.Region.ClientStack
             SetDefaultPrimPacketValues(objupdate);
             objupdate.UpdateFlags = flags;
             SetPrimPacketShapeData(objupdate, primShape);
-            // if ((primShape.PCode == 111) || (primShape.PCode == 255))
+
             if ((primShape.PCode == (byte)PCode.NewTree) || (primShape.PCode == (byte)PCode.Tree) || (primShape.PCode == (byte)PCode.Grass))
             {
                 objupdate.Data = new byte[1];
@@ -2206,7 +2206,7 @@ namespace OpenSim.Region.ClientStack
             objdata.ParentID = 0;
             objdata.OwnerID = LLUUID.Zero;
             objdata.Scale = new LLVector3(1, 1, 1);
-            objdata.PCode = 47;
+            objdata.PCode = (byte)PCode.Avatar;
             if (textureEntry != null)
             {
                 objdata.TextureEntry = textureEntry;

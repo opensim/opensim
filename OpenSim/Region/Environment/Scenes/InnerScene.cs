@@ -335,7 +335,7 @@ namespace OpenSim.Region.Environment.Scenes
                     objupdate.ObjectData[0].ParentID = 0;
                     objupdate.ObjectData[0].OwnerID = LLUUID.Zero;
                     objupdate.ObjectData[0].Scale = new LLVector3(1, 1, 1);
-                    objupdate.ObjectData[0].PCode = 47;
+                    objupdate.ObjectData[0].PCode = (byte)PCode.Avatar;
                     objupdate.ObjectData[0].TextureEntry = ScenePresence.DefaultTexture;
 
                     objupdate.ObjectData[0].ID = av.LocalId;
