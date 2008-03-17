@@ -1431,7 +1431,7 @@ namespace OpenSim.Region.Environment.Scenes
         }
 
         /// <summary>
-        /// 
+        /// Remove the given presence from the scene.
         /// </summary>
         /// <param name="agentID"></param>
         public override void RemoveClient(LLUUID agentID)
@@ -1461,6 +1461,11 @@ namespace OpenSim.Region.Environment.Scenes
                         childknownRegions.Add(ckn[i]);
                     }
                     m_sceneGridService.SendCloseChildAgentConnections(agentID, childknownRegions);
+
+                    if (m_capsHandlers.ContainsKey(agentID))
+                    {
+                        m_capsHandlers.Remove(agentID);
+                    }
                 }
 
                 m_eventManager.TriggerClientClosed(agentID);
