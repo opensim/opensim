@@ -328,7 +328,7 @@ namespace OpenSim.Region.Communications.OGS1
 
                     if (responseData.ContainsKey("error"))
                     {
-                        Console.WriteLine("error received from grid server" + responseData["error"]);
+                        Console.WriteLine("[OGS1 GRID SERVICES]: Error received from grid server" + responseData["error"]);
                         return null;
                     }
 
@@ -352,7 +352,7 @@ namespace OpenSim.Region.Communications.OGS1
                 }
                 catch (WebException)
                 {
-                    m_log.Error("[GRID]: " +
+                    m_log.Error("[OGS1 GRID SERVICES]: " +
                                 "Region lookup failed for: " + regionHandle.ToString() +
                                 " - Is the GridServer down?");
                     return null;
@@ -509,7 +509,7 @@ namespace OpenSim.Region.Communications.OGS1
             m_log.Debug("[CONNECTION DEBUGGING]: Triggering welcome for " + agentData.AgentID.ToString() + " into " + regionHandle.ToString());
             m_localBackend.TriggerExpectUser(regionHandle, agentData);
 
-            m_log.Info("[GRID]: Welcoming new user...");
+            m_log.Info("[OGS1 GRID SERVICES]: Welcoming new user...");
 
             return new XmlRpcResponse();
         }
@@ -529,7 +529,7 @@ namespace OpenSim.Region.Communications.OGS1
             }
             catch (Exception ex)
             {
-                m_log.Error("Exception while attempting to listen on TCP port " + (int)NetworkServersInfo.RemotingListenerPort + ".");
+                m_log.Error("[OGS1 GRID SERVICES]: Exception while attempting to listen on TCP port " + (int)NetworkServersInfo.RemotingListenerPort + ".");
                 throw (ex);
             }
 
@@ -607,9 +607,9 @@ namespace OpenSim.Region.Communications.OGS1
                     NoteDeadRegion(regionHandle);
                 
                     m_log.WarnFormat(
-                        "Remoting Error: Unable to connect to adjacent region: {0} {1},{2}",
+                        "[OGS1 GRID SERVICES]: Remoting Error: Unable to connect to adjacent region: {0} {1},{2}",
                         regInfo.RegionName, regInfo.RegionLocX, regInfo.RegionLocY);
-                    m_log.DebugFormat("Remoting Error: {0} {1}", e.Source, e.Message);
+                    m_log.DebugFormat("[OGS1 GRID SERVICES]: {0} {1}", e.Source, e.Message);
                 
                     return false;
                 }
@@ -618,9 +618,9 @@ namespace OpenSim.Region.Communications.OGS1
                     NoteDeadRegion(regionHandle);
                 
                     m_log.WarnFormat(
-                        "Remoting Error: Unable to connect to adjacent region: {0} {1},{2}",
+                        "[OGS1 GRID SERVICES]: Remoting Error: Unable to connect to adjacent region: {0} {1},{2}",
                         regInfo.RegionName, regInfo.RegionLocX, regInfo.RegionLocY);
-                    m_log.DebugFormat("Remoting Error: {0} {1}", e.Source, e.Message);
+                    m_log.DebugFormat("[OGS1 GRID SERVICES]: {0} {1}", e.Source, e.Message);
                 
                     return false;
                 }
@@ -629,9 +629,9 @@ namespace OpenSim.Region.Communications.OGS1
                     NoteDeadRegion(regionHandle);
                 
                     m_log.WarnFormat(
-                        "Remoting Error: Unable to connect to adjacent region: {0} {1},{2}",
+                        "[OGS1 GRID SERVICES]: Remoting Error: Unable to connect to adjacent region: {0} {1},{2}",
                         regInfo.RegionName, regInfo.RegionLocX, regInfo.RegionLocY);
-                    m_log.DebugFormat("Remoting Error: {0} {1}", e.Source, e.Message);
+                    m_log.DebugFormat("[OGS1 GRID SERVICES]: {0} {1}", e.Source, e.Message);
                 
                     return false;
                 }
@@ -640,9 +640,9 @@ namespace OpenSim.Region.Communications.OGS1
                     NoteDeadRegion(regionHandle);
                 
                     m_log.WarnFormat(
-                        "Remoting Error: Unable to connect to adjacent region: {0} {1},{2}",
+                        "[OGS1 GRID SERVICES]: Remoting Error: Unable to connect to adjacent region: {0} {1},{2}",
                         regInfo.RegionName, regInfo.RegionLocX, regInfo.RegionLocY);
-                    m_log.DebugFormat("Remoting Error: {0} {1}", e.Source, e.Message);
+                    m_log.DebugFormat("[OGS1 GRID SERVICES]: {0} {1}", e.Source, e.Message);
                 
                     return false;
                 }
@@ -650,9 +650,9 @@ namespace OpenSim.Region.Communications.OGS1
                 {
                     NoteDeadRegion(regionHandle);
                 
-                    m_log.WarnFormat("Unable to connect to adjacent region: {0} {1},{2}",
+                    m_log.WarnFormat("[OGS1 GRID SERVICES]: Unable to connect to adjacent region: {0} {1},{2}",
                         regInfo.RegionName, regInfo.RegionLocX, regInfo.RegionLocY);
-                    m_log.DebugFormat("{0} {1}", e.Source, e.Message);
+                    m_log.DebugFormat("[OGS1 GRID SERVICES]: {0} {1}", e.Source, e.Message);
                 
                     return false;
                 }
@@ -699,10 +699,10 @@ namespace OpenSim.Region.Communications.OGS1
                         }
                         else
                         {
-                            Console.WriteLine("remoting object not found");
+                            Console.WriteLine("[OGS1 GRID SERVICES]: remoting object not found");
                         }
                         remObject = null;
-                        m_log.Info("[INTER]: " +
+                        m_log.Info("[OGS1 GRID SERVICES]: " +
                                    gdebugRegionName + ": OGS1 tried to InformRegionOfChildAgent for " +
                                    agentData.firstname + " " + agentData.lastname + " and got " +
                                    retValue.ToString());
@@ -718,9 +718,9 @@ namespace OpenSim.Region.Communications.OGS1
                 NoteDeadRegion(regionHandle);
                 
                 m_log.WarnFormat(
-                    "Remoting Error: Unable to connect to adjacent region: {0} {1},{2}",
+                    "[OGS1 GRID SERVICES]: Remoting Error: Unable to connect to adjacent region: {0} {1},{2}",
                     regInfo.RegionName, regInfo.RegionLocX, regInfo.RegionLocY);
-                m_log.DebugFormat("Remoting Error: {0} {1}", e.Source, e.Message);
+                m_log.DebugFormat("[OGS1 GRID SERVICES]: {0} {1}", e.Source, e.Message);
                 
                 return false;
             }
@@ -729,9 +729,9 @@ namespace OpenSim.Region.Communications.OGS1
                 NoteDeadRegion(regionHandle);
                 
                 m_log.WarnFormat(
-                    "Remoting Error: Unable to connect to adjacent region: {0} {1},{2}",
+                    "[OGS1 GRID SERVICES]: Remoting Error: Unable to connect to adjacent region: {0} {1},{2}",
                     regInfo.RegionName, regInfo.RegionLocX, regInfo.RegionLocY);
-                m_log.DebugFormat("Remoting Error: {0} {1}", e.Source, e.Message);
+                m_log.DebugFormat("[OGS1 GRID SERVICES]: {0} {1}", e.Source, e.Message);
                 
                 return false;
             }
@@ -740,9 +740,9 @@ namespace OpenSim.Region.Communications.OGS1
                 NoteDeadRegion(regionHandle);
                 
                 m_log.WarnFormat(
-                    "Remoting Error: Unable to connect to adjacent region: {0} {1},{2}",
+                    "[OGS1 GRID SERVICES]: Remoting Error: Unable to connect to adjacent region: {0} {1},{2}",
                     regInfo.RegionName, regInfo.RegionLocX, regInfo.RegionLocY);
-                m_log.DebugFormat("Remoting Error: {0} {1}", e.Source, e.Message);
+                m_log.DebugFormat("[OGS1 GRID SERVICES]: {0} {1}", e.Source, e.Message);
                 
                 return false;
             }
@@ -751,9 +751,9 @@ namespace OpenSim.Region.Communications.OGS1
                 NoteDeadRegion(regionHandle);
                 
                 m_log.WarnFormat(
-                    "Remoting Error: Unable to connect to adjacent region: {0} {1},{2}",
+                    "[OGS1 GRID SERVICES]: Remoting Error: Unable to connect to adjacent region: {0} {1},{2}",
                     regInfo.RegionName, regInfo.RegionLocX, regInfo.RegionLocY);
-                m_log.DebugFormat("Remoting Error: {0} {1}", e.Source, e.Message);
+                m_log.DebugFormat("[OGS1 GRID SERVICES]: {0} {1}", e.Source, e.Message);
                 
                 return false;
             }
@@ -762,9 +762,9 @@ namespace OpenSim.Region.Communications.OGS1
                 NoteDeadRegion(regionHandle);
                 
                 m_log.WarnFormat(
-                    "Remoting Error: Unable to connect to adjacent region: {0} {1},{2}",
+                    "[OGS1 GRID SERVICES]: Remoting Error: Unable to connect to adjacent region: {0} {1},{2}",
                     regInfo.RegionName, regInfo.RegionLocX, regInfo.RegionLocY);
-                m_log.DebugFormat("Remoting Error: {0} {1}", e.Source, e.Message);
+                m_log.DebugFormat("[OGS1 GRID SERVICES]: {0} {1}", e.Source, e.Message);
                 
                 return false;
             }
@@ -832,40 +832,40 @@ namespace OpenSim.Region.Communications.OGS1
             }
             catch (RemotingException e)
             {
-                m_log.Warn("Remoting Error: Unable to connect to adjacent region using tcp://" +
+                m_log.Warn("[OGS1 GRID SERVICES]: Remoting Error: Unable to connect to adjacent region using tcp://" +
                            regInfo.RemotingAddress +
                            ":" + regInfo.RemotingPort +
                            "/InterRegions - @ " + regInfo.RegionLocX + "," + regInfo.RegionLocY +
                            " - Is this neighbor up?");
-                m_log.Debug(e.ToString());
+                m_log.DebugFormat("[OGS1 GRID SERVICES]: {0} {1}", e.Source, e.Message);
                 return false;
             }
             catch (SocketException e)
             {
-                m_log.Warn("Socket Error: Unable to connect to adjacent region using tcp://" +
+                m_log.Warn("[OGS1 GRID SERVICES]: Socket Error: Unable to connect to adjacent region using tcp://" +
                            regInfo.RemotingAddress +
                            ":" + regInfo.RemotingPort +
                            "/InterRegions - @ " + regInfo.RegionLocX + "," + regInfo.RegionLocY +
                            " - Is this neighbor up?");
-                m_log.Debug(e.ToString());
+                m_log.DebugFormat("[OGS1 GRID SERVICES]: {0} {1}", e.Source, e.Message);
                 return false;
             }
             catch (InvalidCredentialException e)
             {
-                m_log.Warn("Invalid Credentials: Unable to connect to adjacent region using tcp://" +
+                m_log.Warn("[OGS1 GRID SERVICES]: Invalid Credentials: Unable to connect to adjacent region using tcp://" +
                            regInfo.RemotingAddress +
                            ":" + regInfo.RemotingPort +
                            "/InterRegions - @ " + regInfo.RegionLocX + "," + regInfo.RegionLocY);
-                m_log.Debug(e.ToString());
+                m_log.DebugFormat("[OGS1 GRID SERVICES]: {0} {1}", e.Source, e.Message);
                 return false;
             }
             catch (AuthenticationException e)
             {
-                m_log.Warn("Authentication exception: Unable to connect to adjacent region using tcp://" +
+                m_log.Warn("[OGS1 GRID SERVICES]: Authentication exception: Unable to connect to adjacent region using tcp://" +
                            regInfo.RemotingAddress +
                            ":" + regInfo.RemotingPort +
                            "/InterRegions - @ " + regInfo.RegionLocX + "," + regInfo.RegionLocY);
-                m_log.Debug(e.ToString());
+                m_log.DebugFormat("[OGS1 GRID SERVICES]: {0} {1}", e.Source, e.Message);
                 return false;
             }
             catch (Exception e)
@@ -924,7 +924,7 @@ namespace OpenSim.Region.Communications.OGS1
                         }
                         else
                         {
-                            Console.WriteLine("remoting object not found");
+                            Console.WriteLine("[OGS1 GRID SERVICES]: Remoting object not found");
                         }
                         remObject = null;
 
@@ -937,37 +937,36 @@ namespace OpenSim.Region.Communications.OGS1
                 catch (RemotingException e)
                 {
                     NoteDeadRegion(regionHandle);
-                    m_log.Warn("Remoting Error: Unable to connect to adjacent region: " + regionHandle);
-                    m_log.Debug(e.ToString());
+                    m_log.Warn("[OGS1 GRID SERVICES]: Remoting Error: Unable to connect to adjacent region: " + regionHandle);
+                    m_log.DebugFormat("[OGS1 GRID SERVICES]: {0} {1}", e.Source, e.Message);
                     return false;
                 }
                 catch (SocketException e)
                 {
                     NoteDeadRegion(regionHandle);
-                    m_log.Warn("Remoting Error: Unable to connect to adjacent region: " + regionHandle);
-                    m_log.Debug(e.ToString());
+                    m_log.Warn("[OGS1 GRID SERVICES]: Remoting Error: Unable to connect to adjacent region: " + regionHandle);
+                    m_log.DebugFormat("[OGS1 GRID SERVICES]: {0} {1}", e.Source, e.Message);
                     return false;
                 }
                 catch (InvalidCredentialException e)
                 {
                     NoteDeadRegion(regionHandle);
-                    m_log.Warn("Invalid Credential Exception: Invalid Credentials : " + regionHandle);
-                    m_log.Debug(e.ToString());
+                    m_log.Warn("[OGS1 GRID SERVICES]: Invalid Credential Exception: Invalid Credentials : " + regionHandle);
+                    m_log.DebugFormat("[OGS1 GRID SERVICES]: {0} {1}", e.Source, e.Message);
                     return false;
                 }
                 catch (AuthenticationException e)
                 {
                     NoteDeadRegion(regionHandle);
-                    m_log.Warn("Authentication exception: Unable to connect to adjacent region: " + regionHandle);
-
-                    m_log.Debug(e.ToString());
+                    m_log.Warn("[OGS1 GRID SERVICES]: Authentication exception: Unable to connect to adjacent region: " + regionHandle);
+                    m_log.DebugFormat("[OGS1 GRID SERVICES]: {0} {1}", e.Source, e.Message);
                     return false;
                 }
                 catch (Exception e)
                 {
                     NoteDeadRegion(regionHandle);
-                    m_log.Warn("Unknown exception: Unable to connect to adjacent region: " + regionHandle);
-                    m_log.Debug(e.ToString());
+                    m_log.Warn("[OGS1 GRID SERVICES]: Unknown exception: Unable to connect to adjacent region: " + regionHandle);
+                    m_log.DebugFormat("[OGS1 GRID SERVICES]: {0}", e);
                     return false;
                 }
             }
@@ -1011,7 +1010,7 @@ namespace OpenSim.Region.Communications.OGS1
                     }
                     else
                     {
-                        Console.WriteLine("remoting object not found");
+                        Console.WriteLine("[OGS1 GRID SERVICES]: Remoting object not found");
                     }
                     remObject = null;
 
@@ -1027,9 +1026,9 @@ namespace OpenSim.Region.Communications.OGS1
                 NoteDeadRegion(regionHandle);
                 
                 m_log.WarnFormat(
-                    "Remoting Error: Unable to connect to adjacent region: {0} {1},{2}",
+                    "[OGS1 GRID SERVICES]: Remoting Error: Unable to connect to adjacent region: {0} {1},{2}",
                     regInfo.RegionName, regInfo.RegionLocX, regInfo.RegionLocY);
-                m_log.DebugFormat("Remoting Error: {0} {1}", e.Source, e.Message);
+                m_log.DebugFormat("[OGS1 GRID SERVICES]: {0} {1}", e.Source, e.Message);
                 
                 return false;
             }
@@ -1067,7 +1066,7 @@ namespace OpenSim.Region.Communications.OGS1
                     }
                     else
                     {
-                        Console.WriteLine("remoting object not found");
+                        Console.WriteLine("[OGS1 GRID SERVICES]: Remoting object not found");
                     }
                     remObject = null;
 
@@ -1081,37 +1080,36 @@ namespace OpenSim.Region.Communications.OGS1
             catch (RemotingException e)
             {
                 NoteDeadRegion(regionHandle);
-                m_log.Warn("Remoting Error: Unable to connect to adjacent region: " + regionHandle);
-                m_log.Debug(e.ToString());
+                m_log.Warn("[OGS1 GRID SERVICES]: Remoting Error: Unable to connect to adjacent region: " + regionHandle);
+                m_log.DebugFormat("[OGS1 GRID SERVICES]: {0} {1}", e.Source, e.Message);
                 return false;
             }
             catch (SocketException e)
             {
                 NoteDeadRegion(regionHandle);
-                m_log.Warn("Remoting Error: Unable to connect to adjacent region: " + regionHandle);
-                m_log.Debug(e.ToString());
+                m_log.Warn("[OGS1 GRID SERVICES]: Remoting Error: Unable to connect to adjacent region: " + regionHandle);
+                m_log.DebugFormat("[OGS1 GRID SERVICES]: {0} {1}", e.Source, e.Message);
                 return false;
             }
             catch (InvalidCredentialException e)
             {
                 NoteDeadRegion(regionHandle);
-                m_log.Warn("Invalid Credential Exception: Invalid Credentials : " + regionHandle);
-                m_log.Debug(e.ToString());
+                m_log.Warn("[OGS1 GRID SERVICES]: Invalid Credential Exception: Invalid Credentials : " + regionHandle);
+                m_log.DebugFormat("[OGS1 GRID SERVICES]: {0} {1}", e.Source, e.Message);
                 return false;
             }
             catch (AuthenticationException e)
             {
                 NoteDeadRegion(regionHandle);
-                m_log.Warn("Authentication exception: Unable to connect to adjacent region: " + regionHandle);
-                         
-                m_log.Debug(e.ToString());
+                m_log.Warn("[OGS1 GRID SERVICES]: Authentication exception: Unable to connect to adjacent region: " + regionHandle);                         
+                m_log.DebugFormat("[OGS1 GRID SERVICES]: {0} {1}", e.Source, e.Message);
                 return false;
             }
             catch (Exception e)
             {
                 NoteDeadRegion(regionHandle);
-                m_log.Warn("Unknown exception: Unable to connect to adjacent region: " + regionHandle);
-                m_log.Debug(e.ToString());
+                m_log.Warn("[OGS1 GRID SERVICES]: Unknown exception: Unable to connect to adjacent region: " + regionHandle);
+                m_log.DebugFormat("[OGS1 GRID SERVICES]: {0}", e);
                 return false;
             }
         }
@@ -1142,7 +1140,7 @@ namespace OpenSim.Region.Communications.OGS1
                     }
                     else
                     {
-                        Console.WriteLine("remoting object not found");
+                        Console.WriteLine("[OGS1 GRID SERVICES]: Remoting object not found");
                     }
                     remObject = null;
 
@@ -1156,7 +1154,7 @@ namespace OpenSim.Region.Communications.OGS1
             catch (RemotingException)
             {
                 NoteDeadRegion(regionHandle);
-                m_log.Warn("Remoting Error: Unable to connect to adjacent region to tell it to close child agents: " + regInfo.RegionName +
+                m_log.Warn("[OGS1 GRID SERVICES]: Remoting Error: Unable to connect to adjacent region to tell it to close child agents: " + regInfo.RegionName +
                                       " " + regInfo.RegionLocX + "," + regInfo.RegionLocY);
                 //m_log.Debug(e.ToString());
                 return false;
@@ -1165,42 +1163,42 @@ namespace OpenSim.Region.Communications.OGS1
             catch (SocketException e)
             {
                 NoteDeadRegion(regionHandle);
-                m_log.Warn("Socket Error: Unable to connect to adjacent region using tcp://" +
+                m_log.Warn("[OGS1 GRID SERVICES]: Socket Error: Unable to connect to adjacent region using tcp://" +
                                       regInfo.RemotingAddress +
                                       ":" + regInfo.RemotingPort +
                                       "/InterRegions - @ " + regInfo.RegionLocX + "," + regInfo.RegionLocY +
                                       " - Is this neighbor up?");
-                m_log.Debug(e.ToString());
+                m_log.DebugFormat("[OGS1 GRID SERVICES]: {0} {1}", e.Source, e.Message);
                 return false;
             }
             catch (InvalidCredentialException e)
             {
                 NoteDeadRegion(regionHandle);
-                m_log.Warn("Invalid Credentials: Unable to connect to adjacent region using tcp://" +
+                m_log.Warn("[OGS1 GRID SERVICES]: Invalid Credentials: Unable to connect to adjacent region using tcp://" +
                                       regInfo.RemotingAddress +
                                       ":" + regInfo.RemotingPort +
                                       "/InterRegions - @ " + regInfo.RegionLocX + "," + regInfo.RegionLocY);
-                m_log.Debug(e.ToString());
+                m_log.DebugFormat("[OGS1 GRID SERVICES]: {0} {1}", e.Source, e.Message);
                 return false;
             }
             catch (AuthenticationException e)
             {
                 NoteDeadRegion(regionHandle);
-                m_log.Warn("Authentication exception: Unable to connect to adjacent region using tcp://" +
+                m_log.Warn("[OGS1 GRID SERVICES]: Authentication exception: Unable to connect to adjacent region using tcp://" +
                                       regInfo.RemotingAddress +
                                       ":" + regInfo.RemotingPort +
                                       "/InterRegions - @ " + regInfo.RegionLocX + "," + regInfo.RegionLocY);
-                m_log.Debug(e.ToString());
+                m_log.DebugFormat("[OGS1 GRID SERVICES]: {0} {1}", e.Source, e.Message);
                 return false;
             }
             catch (WebException e)
             {
                 NoteDeadRegion(regionHandle);
-                m_log.Warn("WebException exception: Unable to connect to adjacent region using tcp://" +
+                m_log.Warn("[OGS1 GRID SERVICES]: WebException exception: Unable to connect to adjacent region using tcp://" +
                                       regInfo.RemotingAddress +
                                       ":" + regInfo.RemotingPort +
                                       "/InterRegions - @ " + regInfo.RegionLocX + "," + regInfo.RegionLocY);
-                m_log.Debug(e.ToString());
+                m_log.DebugFormat("[OGS1 GRID SERVICES]: {0} {1}", e.Source, e.Message);
                 return false;
             }
             catch (Exception e)
@@ -1210,7 +1208,7 @@ namespace OpenSim.Region.Communications.OGS1
                 //m_log.Warn("Unknown exception: Unable to connect to adjacent region using tcp://" + regInfo.RemotingAddress +
                 // ":" + regInfo.RemotingPort +
                 //"/InterRegions - @ " + regInfo.RegionLocX + "," + regInfo.RegionLocY + " - This is likely caused by an incompatibility in the protocol between this sim and that one");
-                m_log.Debug(e.ToString());
+                m_log.DebugFormat("[OGS1 GRID SERVICES]: {0}", e);
                 return false;
             }
         }
@@ -1252,7 +1250,7 @@ namespace OpenSim.Region.Communications.OGS1
 
         public bool TriggerRegionUp(SearializableRegionInfo regionData, ulong regionhandle)
         {
-            m_log.Info("[INTER]: " +
+            m_log.Info("[OGS1 GRID SERVICES]: " +
                        gdebugRegionName + "Incoming OGS1 RegionUpReport:  " + "(" + regionData.RegionLocX +
                        "," + regionData.RegionLocY + "). Giving this region a fresh set of 'dead' tries");
 
@@ -1272,7 +1270,7 @@ namespace OpenSim.Region.Communications.OGS1
 
             catch (RemotingException e)
             {
-                m_log.Error("Remoting Error: Unable to connect to adjacent region.\n" + e.ToString());
+                m_log.Error("[OGS1 GRID SERVICES]: Remoting Error: Unable to connect to adjacent region.\n" + e.ToString());
                 return false;
             }
         }
@@ -1287,7 +1285,7 @@ namespace OpenSim.Region.Communications.OGS1
             }
             catch (RemotingException e)
             {
-                m_log.Error("Remoting Error: Unable to connect to adjacent region.\n" + e.ToString());
+                m_log.Error("[OGS1 GRID SERVICES]: Remoting Error: Unable to connect to adjacent region.\n" + e.ToString());
                 return false;
             }
         }
@@ -1310,7 +1308,7 @@ namespace OpenSim.Region.Communications.OGS1
             }
             catch (RemotingException e)
             {
-                m_log.Error("Remoting Error: Unable to connect to adjacent region.\n" + e.ToString());
+                m_log.Error("[OGS1 GRID SERVICES]: Remoting Error: Unable to connect to adjacent region.\n" + e.ToString());
                 return false;
             }
         }
@@ -1330,7 +1328,7 @@ namespace OpenSim.Region.Communications.OGS1
             }
             catch (RemotingException e)
             {
-                m_log.Error("Remoting Error: Unable to connect to adjacent region.\n" + e.ToString());
+                m_log.Error("[OGS1 GRID SERVICES]: Remoting Error: Unable to connect to adjacent region.\n" + e.ToString());
                 return false;
             }
         }
@@ -1343,7 +1341,7 @@ namespace OpenSim.Region.Communications.OGS1
             }
             catch (RemotingException e)
             {
-                m_log.Error("Remoting Error: Unable to connect to adjacent region.\n" + e.ToString());
+                m_log.Error("[OGS1 GRID SERVICES]: Remoting Error: Unable to connect to adjacent region.\n" + e.ToString());
                 return false;
             }
         }
@@ -1356,7 +1354,7 @@ namespace OpenSim.Region.Communications.OGS1
             }
             catch (RemotingException)
             {
-                m_log.Info("[INTERREGION]: Remoting Error: Unable to connect to neighbour to tell it to close a child connection");
+                m_log.Info("[OGS1 GRID SERVICES]: Remoting Error: Unable to connect to neighbour to tell it to close a child connection");
                 return false;
             }
 
