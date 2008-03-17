@@ -328,7 +328,7 @@ namespace OpenSim.Region.Communications.OGS1
 
                     if (responseData.ContainsKey("error"))
                     {
-                        Console.WriteLine("[OGS1 GRID SERVICES]: Error received from grid server" + responseData["error"]);
+                        m_log.Error("[OGS1 GRID SERVICES]: Error received from grid server" + responseData["error"]);
                         return null;
                     }
 
@@ -588,7 +588,7 @@ namespace OpenSim.Region.Communications.OGS1
                         }
                         else
                         {
-                            Console.WriteLine("remoting object not found");
+                            m_log.Warn("[OGS1 GRID SERVICES]: remoting object not found");
                         }
                         remObject = null;
                         //m_log.Info("[INTER]: " +
@@ -699,7 +699,7 @@ namespace OpenSim.Region.Communications.OGS1
                         }
                         else
                         {
-                            Console.WriteLine("[OGS1 GRID SERVICES]: remoting object not found");
+                            m_log.Warn("[OGS1 GRID SERVICES]: remoting object not found");
                         }
                         remObject = null;
                         m_log.Info("[OGS1 GRID SERVICES]: " +
@@ -812,7 +812,7 @@ namespace OpenSim.Region.Communications.OGS1
                         }
                         else
                         {
-                            Console.WriteLine("remoting object not found");
+                            m_log.Warn("[OGS1 GRID SERVICES]: remoting object not found");
                         }
                         remObject = null;
                         m_log.Info("[INTER]: " + gdebugRegionName + ": OGS1 tried to inform region I'm up");
@@ -924,7 +924,7 @@ namespace OpenSim.Region.Communications.OGS1
                         }
                         else
                         {
-                            Console.WriteLine("[OGS1 GRID SERVICES]: Remoting object not found");
+                            m_log.Warn("[OGS1 GRID SERVICES]: Remoting object not found");
                         }
                         remObject = null;
 
@@ -1010,7 +1010,7 @@ namespace OpenSim.Region.Communications.OGS1
                     }
                     else
                     {
-                        Console.WriteLine("[OGS1 GRID SERVICES]: Remoting object not found");
+                        m_log.Warn("[OGS1 GRID SERVICES]: Remoting object not found");
                     }
                     remObject = null;
 
@@ -1066,7 +1066,7 @@ namespace OpenSim.Region.Communications.OGS1
                     }
                     else
                     {
-                        Console.WriteLine("[OGS1 GRID SERVICES]: Remoting object not found");
+                        m_log.Warn("[OGS1 GRID SERVICES]: Remoting object not found");
                     }
                     remObject = null;
 
@@ -1140,7 +1140,7 @@ namespace OpenSim.Region.Communications.OGS1
                     }
                     else
                     {
-                        Console.WriteLine("[OGS1 GRID SERVICES]: Remoting object not found");
+                        m_log.Warn("[OGS1 GRID SERVICES]: Remoting object not found");
                     }
                     remObject = null;
 

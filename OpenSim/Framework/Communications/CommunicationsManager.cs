@@ -165,12 +165,13 @@ namespace OpenSim.Framework.Communications
             else
             {
                 m_inventoryService.CreateNewUserInventory(userProf.UUID);
-                System.Console.WriteLine("[USERS]: Created new inventory set for " + firstName + " " + lastName);
+                m_log.Info("[USERS]: Created new inventory set for " + firstName + " " + lastName);
                 return userProf.UUID;
             }
         }
 
         #region Friend Methods
+
         /// <summary>
         /// Adds a new friend to the database for XUser
         /// </summary>
@@ -181,6 +182,7 @@ namespace OpenSim.Framework.Communications
         {
             m_userService.AddNewUserFriend(friendlistowner, friend, perms);
         }
+
         /// <summary>
         /// Logs off a user and does the appropriate communications
         /// </summary>
@@ -216,6 +218,7 @@ namespace OpenSim.Framework.Communications
         {
             m_userService.UpdateUserFriendPerms(friendlistowner, friend, perms);
         }
+
         /// <summary>
         /// Returns a list of FriendsListItems that describe the friends and permissions in the friend relationship for LLUUID friendslistowner
         /// </summary>

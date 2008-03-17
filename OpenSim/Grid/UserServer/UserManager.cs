@@ -42,8 +42,10 @@ namespace OpenSim.Grid.UserServer
     public class UserManager : UserManagerBase
     {            
         private static readonly log4net.ILog m_log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+
         public event logOffUser OnLogOffUser;
         private logOffUser handlerLogOffUser = null;
+
         /// <summary>
         /// Deletes an active agent session
         /// </summary>
@@ -168,7 +170,7 @@ namespace OpenSim.Grid.UserServer
                 returnAvatar = GenerateAgentPickerRequestResponse(queryID, (string) requestData["avquery"]);
             }
 
-            Console.WriteLine("[AVATARINFO]: Servicing Avatar Query: " + (string) requestData["avquery"]);
+            m_log.InfoFormat("[AVATARINFO]: Servicing Avatar Query: " + (string) requestData["avquery"]);
             return AvatarPickerListtoXmlRPCResponse(queryID, returnAvatar);
         }
 

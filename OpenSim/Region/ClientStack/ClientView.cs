@@ -51,12 +51,12 @@ namespace OpenSim.Region.ClientStack
     /// </summary>
     public class ClientView : IClientAPI
     {
+        private static readonly log4net.ILog m_log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+
         //                ~ClientView()
         //                {
-        //                    System.Console.WriteLine("[CLIENTVIEW]: Destructor called");                       
+        //                    m_log.Info("[CLIENTVIEW]: Destructor called");                       
         //                }
-
-        private static readonly log4net.ILog m_log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 
         /* static variables */
         public static TerrainManager TerrainManager;
@@ -1820,7 +1820,7 @@ namespace OpenSim.Region.ClientStack
         public void AttachObject(uint localID, LLQuaternion rotation, byte attachPoint)
         {
             ObjectAttachPacket attach = (ObjectAttachPacket)PacketPool.Instance.GetPacket(PacketType.ObjectAttach);
-            System.Console.WriteLine("Attach object!");
+            Console.WriteLine("Attach object!");
             // TODO: don't create new blocks if recycling an old packet
             attach.AgentData.AgentID = AgentId;
             attach.AgentData.SessionID = m_sessionId;
@@ -2340,7 +2340,7 @@ namespace OpenSim.Region.ClientStack
         /// <returns></returns>
         protected bool AgentTextureCached(IClientAPI simclient, Packet packet)
         {
-            //System.Console.WriteLine("texture cached: " + packet.ToString());
+            //Console.WriteLine("texture cached: " + packet.ToString());
             AgentCachedTexturePacket cachedtex = (AgentCachedTexturePacket)packet;
             AgentCachedTextureResponsePacket cachedresp = (AgentCachedTextureResponsePacket)PacketPool.Instance.GetPacket(PacketType.AgentCachedTextureResponse);
             // TODO: don't create new blocks if recycling an old packet
@@ -2368,7 +2368,7 @@ namespace OpenSim.Region.ClientStack
         protected bool MultipleObjUpdate(IClientAPI simClient, Packet packet)
         {
             MultipleObjectUpdatePacket multipleupdate = (MultipleObjectUpdatePacket)packet;
-            // System.Console.WriteLine("new multi update packet " + multipleupdate.ToString());
+            // Console.WriteLine("new multi update packet " + multipleupdate.ToString());
             Scene tScene = (Scene)m_scene;
 
             for (int i = 0; i < multipleupdate.ObjectData.Length; i++)
@@ -2407,7 +2407,7 @@ namespace OpenSim.Region.ClientStack
                                 if (handlerUpdatePrimSinglePosition != null)
                                 {
 
-                                    // System.Console.WriteLine("new movement position is " + pos.X + " , " + pos.Y + " , " + pos.Z);
+                                    // Console.WriteLine("new movement position is " + pos.X + " , " + pos.Y + " , " + pos.Z);
                                     handlerUpdatePrimSinglePosition(localId, pos1, this);
                                 }
                                 break;
@@ -2418,7 +2418,7 @@ namespace OpenSim.Region.ClientStack
                                 if (handlerUpdatePrimSingleRotation != null)
                                 {
 
-                                    //System.Console.WriteLine("new tab rotation is " + rot.X + " , " + rot.Y + " , " + rot.Z + " , " + rot.W);
+                                    //Console.WriteLine("new tab rotation is " + rot.X + " , " + rot.Y + " , " + rot.Z + " , " + rot.W);
                                     handlerUpdatePrimSingleRotation(localId, rot1, this);
                                 }
                                 break;
@@ -2429,7 +2429,7 @@ namespace OpenSim.Region.ClientStack
                                 if (handlerUpdatePrimSingleRotation != null)
                                 {
 
-                                    //System.Console.WriteLine("new mouse rotation is " + rot.X + " , " + rot.Y + " , " + rot.Z + " , " + rot.W);
+                                    //Console.WriteLine("new mouse rotation is " + rot.X + " , " + rot.Y + " , " + rot.Z + " , " + rot.W);
                                     handlerUpdatePrimSingleRotation(localId, rot2, this);
                                 }
                                 break;
@@ -2496,7 +2496,7 @@ namespace OpenSim.Region.ClientStack
 
                                     // Change the position based on scale (for bug number 246)
                                     handlerUpdatePrimSinglePosition = OnUpdatePrimSinglePosition;
-                                    // System.Console.WriteLine("new movement position is " + pos.X + " , " + pos.Y + " , " + pos.Z);
+                                    // Console.WriteLine("new movement position is " + pos.X + " , " + pos.Y + " , " + pos.Z);
                                     if (handlerUpdatePrimSinglePosition != null)
                                     {
                                         handlerUpdatePrimSinglePosition(localId, pos4, this);
@@ -3311,7 +3311,7 @@ namespace OpenSim.Region.ClientStack
                         AvatarPickerRequestPacket avRequestQuery = (AvatarPickerRequestPacket)Pack;
                         AvatarPickerRequestPacket.AgentDataBlock Requestdata = avRequestQuery.AgentData;
                         AvatarPickerRequestPacket.DataBlock querydata = avRequestQuery.Data;
-                        //System.Console.WriteLine("Agent Sends:" + Helpers.FieldToUTF8String(querydata.Name));
+                        //Console.WriteLine("Agent Sends:" + Helpers.FieldToUTF8String(querydata.Name));
 
                         handlerAvatarPickerRequest = OnAvatarPickerRequest;
                         if (handlerAvatarPickerRequest != null)
@@ -4201,7 +4201,7 @@ namespace OpenSim.Region.ClientStack
                         }
                         break;
                     case PacketType.ParcelObjectOwnersRequest:
-                        //System.Console.WriteLine(Pack.ToString());
+                        //Console.WriteLine(Pack.ToString());
                         ParcelObjectOwnersRequestPacket reqPacket = (ParcelObjectOwnersRequestPacket)Pack;
 
                         handlerParcelObjectOwnerRequest = OnParcelObjectOwnerRequest;
