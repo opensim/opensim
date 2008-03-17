@@ -93,7 +93,7 @@ namespace OpenSim.Region.Environment.Scenes
         /// Reset LLUUIDs for all the items in the prim's inventory.  This involves either generating
         /// new ones or setting existing UUIDs to the correct parent UUIDs
         /// </summary>
-        /// <param name="linkNum'>Link number for the part</param>
+        /// <param name="linkNum">Link number for the part</param>
         public void ResetInventoryIDs()
         {
             lock (TaskInventory)

@@ -2115,6 +2115,8 @@ namespace OpenSim.Grid.ScriptEngine.DotNetEngine.Compiler.LSL
         public const double DEG_TO_RAD = 0.01745329238f;
         public const double RAD_TO_DEG = 57.29578f;
         public const double SQRT2 = 1.414213538f;
+        public const int DEBUG_CHANNEL  0x7FFFFFFF;
+        public const int PUBLIC_CHANNEL 0x00000000
 
         // Can not be public const?
         public vector ZERO_VECTOR = new vector(0, 0, 0);

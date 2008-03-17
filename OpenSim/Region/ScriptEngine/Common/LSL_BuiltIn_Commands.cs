@@ -50,9 +50,9 @@ namespace OpenSim.Region.ScriptEngine.Common
     /// </summary>
     public class LSL_BuiltIn_Commands : MarshalByRefObject, LSL_BuiltIn_Commands_Interface
     {
-        //private static readonly log4net.ILog m_log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+        // private static readonly log4net.ILog m_log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 
-        private ASCIIEncoding enc = new ASCIIEncoding();
+        // private ASCIIEncoding enc = new ASCIIEncoding();
         private ScriptEngineBase.ScriptEngine m_ScriptEngine;
         private SceneObjectPart m_host;
         private uint m_localID;
@@ -76,14 +76,10 @@ namespace OpenSim.Region.ScriptEngine.Common
         {
             get { return m_state; }
             set {
-                bool changed = false;
+                // Set it if it changed
                 if (m_state != value)
-                    changed = true;
-                // Set it
-                m_state = value;
-
-                if (changed)
                 {
+                    m_state = value;
                     m_ScriptEngine.m_EventManager.state_entry(m_localID);
                 }
             }
@@ -1793,8 +1789,33 @@ namespace OpenSim.Region.ScriptEngine.Common
 
         public void llSetScriptState(string name, int run)
         {
+
+            LLUUID item;
+            ScriptManager sm;
+            IScript script = null;
+
             m_host.AddScriptLPS(1);
-            NotImplemented("llSetScriptState");
+
+            // These functions are supposed to be robust,
+            // so get the state one step at a time.
+ 
+            if((item = ScriptByName(name)) != LLUUID.Zero)
+                if((sm = m_ScriptEngine.m_ScriptManager) != null)
+                    if(sm.Scripts.ContainsKey(m_localID))
+                        if((script = sm.GetScript(m_localID, item)) != null)
+                                script.Exec.Running = (run==0) ? false : true;
+                
+
+            // Required by SL
+
+            if(script == null)
+                ShoutError("llSetScriptState: script "+name+" not found");
+
+            // If we didn;t find it, then it's safe to 
+            // assume it is not running.
+
+            return;
+
         }
 
         public double llGetEnergy()
@@ -1911,9 +1932,22 @@ namespace OpenSim.Region.ScriptEngine.Common
 
         public string llGetScriptName()
         {
+
+            string result = null;
+
             m_host.AddScriptLPS(1);
 
-            return String.Empty;
+            foreach (TaskInventoryItem item in m_host.TaskInventory.Values)
+            {
+                if(item.Type == 10 && item.ItemID == m_itemID)
+                {
+                    result =  item.Name;
+                    break;
+                }
+            }
+
+            return result;
+
         }
 
         public int llGetNumberOfSides()
@@ -2269,81 +2303,216 @@ namespace OpenSim.Region.ScriptEngine.Common
             return ret;
         }
 
+        /// <summary>
+        /// The supplied string is scanned for commas
+        /// and converted into a list. Commas are only
+        /// effective if they are encountered outside 
+        /// of '<' '>' delimiters. Any whitespace
+        /// before or after an element is trimmed.
+        /// </summary>
+
         public LSL_Types.list llCSV2List(string src)
         {
+
+            LSL_Types.list result = new LSL_Types.list();
+            int parens = 0;
+            int start  = 0;
+            int length = 0;
+
             m_host.AddScriptLPS(1);
-            return new LSL_Types.list(src.Split(",".ToCharArray()));
+
+            for(int i=0; i<src.Length; i++)
+            {
+                switch(src[i])
+                {
+                    case '<' :
+                        parens++;
+                        length++;
+                        break;
+                    case '>' :
+                        if(parens > 0)
+                            parens--;
+                        length++;
+                        break;
+                    case ',' :
+                        if(parens == 0)
+                        {
+                            result.Add(src.Substring(start,length).Trim());
+                            start += length+1;
+                            length = 0;
+                        } else
+                            length++;
+                        break;
+                    default  :
+                        length++;
+                        break;
+                }
+            }
+
+            result.Add(src.Substring(start,length).Trim());
+
+            return result;
+
         }
 
+        ///  <summary>
+        ///  Randomizes the list, be arbitrarily reordering 
+        ///  sublists of stride elements. As the stride approaches
+        ///  the size of the list, the options become very
+        ///  limited.
+        ///  </summary>
+        ///  <remarks>
+        ///  This could take a while for very large list
+        ///  sizes.
+        ///  </remarks>
+ 
         public LSL_Types.list llListRandomize(LSL_Types.list src, int stride)
         {
+
+            LSL_Types.list result;
+            Random rand           = new Random();
+
+            int   chunkk;
+            int[] chunks;
+            int   index1;
+            int   index2;
+            int   tmp;
+
             m_host.AddScriptLPS(1);
-            //int s = stride;
-            //if (s < 1)
-            //    s = 1;
 
-            // This is a cowardly way of doing it ;)
-            // TODO: Instead, randomize and check if random is mod stride or if it can not be, then array.removerange
-            //List<LSL_Types.list> tmp = new List<LSL_Types.list>();
+            if(stride == 0)
+                stride = 1;
 
-            // Add chunks to an array
-            //int c = 0;
-            //LSL_Types.list chunk = new LSL_Types.list();
-            //foreach (string element in src)
-            //{
-            //    c++;
-            //    if (c > s)
-            //    {
-            //        tmp.Add(chunk);
-            //        chunk = new LSL_Types.list();
-            //        c = 0;
-            //    }
-            //    chunk.Add(element);
-            //}
-            //if (chunk.Count > 0)
-            //    tmp.Add(chunk);
+            // Stride MUST be a factor of the list length
+            // If not, then return the src list. This also
+            // traps those cases where stride > length.
+ 
+            if(src.Length != stride && src.Length%stride == 0)
+            {
 
-            // Decreate (<- what kind of word is that? :D ) array back into a list
-            //int rnd;
-            //LSL_Types.list ret = new LSL_Types.list();
-            //while (tmp.Count > 0)
-            //{
-            //    rnd = Util.RandomClass.Next(tmp.Count);
-            //    foreach (string str in tmp[rnd])
-            //    {
-            //       ret.Add(str);
-            //    }
-            //    tmp.RemoveAt(rnd);
-            //}
+                chunkk = src.Length/stride;
 
-            //return ret;
-            NotImplemented("llListRandomize");
-            return src;
+                chunks = new int[chunkk];
+
+                for(int i=0;i<chunkk;i++)
+                    chunks[i] = i;
+
+                for(int i=0; i<chunkk-1; i++)
+                {
+                    //  randomly select 2 chunks
+                    index1 = rand.Next(rand.Next(65536));
+                    index1 = index1%chunkk;
+                    index2 = rand.Next(rand.Next(65536));
+                    index2 = index2%chunkk;
+
+                    //  and swap their relative positions
+                    tmp = chunks[index1];
+                    chunks[index1] = chunks[index2];
+                    chunks[index2] = tmp;
+                }
+
+                // Construct the randomized list
+
+                result = new LSL_Types.list();
+
+                for(int i=0; i<chunkk; i++)
+                    for(int j=0;j<stride;j++)
+                        result.Add(src.Data[chunks[i]*stride+j]);
+
+            }
+            else {
+                object[] array = new object[src.Length];
+                Array.Copy(src.Data, 0, array, 0, src.Length);
+                result = new LSL_Types.list(array);
+            }    
+
+            return result;
+
         }
 
+        /// <summary>
+        /// Elements in the source list starting with 0 and then
+        /// every i+stride. If the stride is negative then the scan
+        /// is backwards producing an inverted result.
+        /// Only those elements that are also in the specified 
+        /// range are included in the result.
+        /// </summary>
+ 
         public LSL_Types.list llList2ListStrided(LSL_Types.list src, int start, int end, int stride)
         {
-            m_host.AddScriptLPS(1);
-            LSL_Types.list ret = new LSL_Types.list();
-            //int s = stride;
-            //if (s < 1)
-            //    s = 1;
 
-            //int sc = s;
-            //for (int i = start; i < src.Count; i++)
-            //{
-            //    sc--;
-            //    if (sc == 0)
-            //    {
-            //        sc = s;
-            //       // Addthis
-            //        ret.Add(src[i]);
-            //    }
-            //    if (i == end)
-            //        break;
-            //}
-            NotImplemented("llList2ListStrided");
-            return ret;
+            LSL_Types.list result = new LSL_Types.list();
+            int[] si = new int[2];
+            int[] ei = new int[2];
+            bool twopass = false;
+
+            m_host.AddScriptLPS(1);
+
+            //  First step is always to deal with negative indices
+
+            if(start < 0)
+                start = src.Length+start;
+            if(end   < 0)
+                end   = src.Length+end;
+
+            //  Out of bounds indices are OK, just trim them 
+            //  accordingly
+
+            if(start > src.Length)
+                start = src.Length;
+
+            if(end > src.Length)
+                end = src.Length;
+
+            //  There may be one or two ranges to be considered
+
+            if(start != end)
+            {
+
+                if(start <= end) 
+                {
+                   si[0] = start;
+                   ei[0] = end;
+                }
+                else
+                {
+                   si[1] = start;
+                   ei[1] = src.Length;
+                   si[0] = 0;
+                   ei[0] = end;
+                   twopass = true;
+                }
+
+                //  The scan always starts from the beginning of the
+                //  source list, but members are only selected if they
+                //  fall within the specified sub-range. The specified
+                //  range values are inclusive.
+                //  A negative stride reverses the direction of the
+                //  scan producing an inverted list as a result. 
+                
+                if(stride == 0)
+                    stride = 1;
+
+                if(stride > 0)
+                    for(int i=0;i<src.Length;i+=stride)
+                    {
+                        if(i<=ei[0] && i>=si[0])
+                            result.Add(src.Data[i]);
+                        if(twopass && i>=si[1] && i<=ei[1])
+                            result.Add(src.Data[i]);
+                    }
+                else if(stride < 0)
+                    for(int i=src.Length-1;i>=0;i+=stride)
+                    {
+                        if(i<=ei[0] && i>=si[0])
+                            result.Add(src.Data[i]);
+                        if(twopass && i>=si[1] && i<=ei[1])
+                            result.Add(src.Data[i]);
+                    }
+            }
+
+            return result;
+
         }
 
         public LSL_Types.Vector3 llGetRegionCorner()
@@ -2358,19 +2527,42 @@ namespace OpenSim.Region.ScriptEngine.Common
             return dest.GetSublist(0, start - 1) + src + dest.GetSublist(start, -1);
         }
 
+        /// <summary>
+        /// Returns the index of the first occurrence of test
+        /// in src.
+        /// </summary>
+ 
         public int llListFindList(LSL_Types.list src, LSL_Types.list test)
         {
+
+            int index  = -1;
+            int length = src.Length - test.Length + 1;
+
             m_host.AddScriptLPS(1);
-            //foreach (string s in test)
-            //{
-            //    for (int ci = 0; ci < src.Count; ci++)
-            //    {
-            //        if (s == src[ci])
-            //            return ci;
-            //    }
-            //}
-            NotImplemented("llListFindList");
-            return -1;
+
+            // If either list is empty, do not match
+
+            if(src.Length != 0 && test.Length != 0)
+            {
+                for(int i=0; i< length; i++)
+                {
+                   if(src.Data[i].Equals(test.Data[0]))
+                   {
+                       int j;
+                       for(j=1;j<test.Length;j++)
+                           if(!src.Data[i+j].Equals(test.Data[j]))
+                               break;
+                       if(j == test.Length)
+                       {
+                           index = i;
+                           break;
+                       }
+                   }
+                }
+            }
+ 
+            return index;
+
         }
 
         public string llGetObjectName()
@@ -2947,24 +3139,72 @@ namespace OpenSim.Region.ScriptEngine.Common
             NotImplemented("llVolumeDetect");
         }
 
+        /// <summary>
+        /// Reset the named script. The script must be present
+        /// in the same prim.
+        /// </summary>
+
         public void llResetOtherScript(string name)
         {
+
+            LLUUID item;
+            ScriptManager sm;
+            IScript script = null;
+
             m_host.AddScriptLPS(1);
-            NotImplemented("llResetOtherScript");
+
+            // These functions are supposed to be robust,
+            // so get the state one step at a time.
+ 
+            if((item = ScriptByName(name)) != LLUUID.Zero)
+                if((sm = m_ScriptEngine.m_ScriptManager) != null)
+                    sm.ResetScript(m_localID, item);
+
+            // Required by SL
+
+            if(script == null)
+                ShoutError("llResetOtherScript: script "+name+" not found");
+
+            // If we didn;t find it, then it's safe to 
+            // assume it is not running.
+
+            return;
+
         }
 
         public int llGetScriptState(string name)
         {
+
+            LLUUID item;
+            ScriptManager sm;
+            IScript script = null;
+
             m_host.AddScriptLPS(1);
 
-            //NotImplemented("llGetScriptState");
+            // These functions are supposed to be robust,
+            // so get the state one step at a time.
+ 
+            if((item = ScriptByName(name)) != LLUUID.Zero)
+                if((sm = m_ScriptEngine.m_ScriptManager) != null)
+                    if((script = sm.GetScript(m_localID, item)) != null)
+                        return script.Exec.Running?1:0;
+
+            // Required by SL
+
+            if(script == null)
+                ShoutError("llGetScriptState: script "+name+" not found");
+
+            // If we didn;t find it, then it's safe to 
+            // assume it is not running.
+
             return 0;
+
         }
 
         public void llRemoteLoadScript()
         {
             m_host.AddScriptLPS(1);
-            NotImplemented("llRemoteLoadScript");
+            ShoutError("llRemoteLoadScript: deprecated");
         }
 
         public void llSetRemoteScriptAccessPin(int pin)
@@ -3880,7 +4120,7 @@ namespace OpenSim.Region.ScriptEngine.Common
         {
             m_host.AddScriptLPS(1);
             Int64 tmp = 0;
-            Int64 val = Math.DivRem(Convert.ToInt64(Math.Pow(a, b)), c, out tmp);
+            Math.DivRem(Convert.ToInt64(Math.Pow(a, b)), c, out tmp);
             return Convert.ToInt32(tmp);
         }
 
@@ -4237,18 +4477,19 @@ namespace OpenSim.Region.ScriptEngine.Common
             return ret;
         }
 
-	    public string llStringTrim(string src, int type)
+        public string llStringTrim(string src, int type)
         {
             m_host.AddScriptLPS(1);
-	        if (type == (int)BuiltIn_Commands_BaseClass.STRING_TRIM_HEAD) { return src.TrimStart(); }
-	        if (type == (int)BuiltIn_Commands_BaseClass.STRING_TRIM_TAIL) { return src.TrimEnd(); }
-	        if (type == (int)BuiltIn_Commands_BaseClass.STRING_TRIM) { return src.Trim(); }
-	        return src;
-	    }
+            if (type == (int)BuiltIn_Commands_BaseClass.STRING_TRIM_HEAD) { return src.TrimStart(); }
+            if (type == (int)BuiltIn_Commands_BaseClass.STRING_TRIM_TAIL) { return src.TrimEnd(); }
+            if (type == (int)BuiltIn_Commands_BaseClass.STRING_TRIM) { return src.Trim(); }
+            return src;
+        }
 
         //
         // OpenSim functions
         //
+
         public int osTerrainSetHeight(int x, int y, double val)
         {
             m_host.AddScriptLPS(1);
@@ -4411,6 +4652,21 @@ namespace OpenSim.Region.ScriptEngine.Common
                 return false;
             }
             return false;
+        }
+
+        private LLUUID ScriptByName(string name)
+        {
+            foreach (TaskInventoryItem item in m_host.TaskInventory.Values)
+            {
+                if(item.Type == 10 && item.Name == name)
+                    return item.ItemID;
+            }
+            return LLUUID.Zero;
+        }
+
+        private void ShoutError(string msg)
+        {
+            llShout(BuiltIn_Commands_BaseClass.DEBUG_CHANNEL,msg);
         }
 
         public void osSetPrimFloatOnWater(int floatYN)

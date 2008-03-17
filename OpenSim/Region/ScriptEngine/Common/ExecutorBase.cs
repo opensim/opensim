@@ -42,6 +42,25 @@ namespace OpenSim.Region.ScriptEngine.Common
         /// If set to False events will not be executed.
         /// </summary>
         protected bool m_Running = true;
+        /// <summary>
+        /// True indicates that the ScriptManager has stopped 
+        /// this script. This prevents a script that has been
+        /// stopped as part of deactivation from being
+        /// resumed by a pending llSetScriptState request.
+        /// </summary>
+        protected bool m_Disable = false;
+
+        /// <summary>
+        /// Indicate the scripts current running status.
+        /// </summary>
+        public bool Running
+        {
+            get { return m_Running; }
+            set {
+                  if(!m_Disable)
+                      m_Running = value;
+                }
+        }
 
         /// <summary>
         /// Create a new instance of ExecutorBase
@@ -102,6 +121,8 @@ namespace OpenSim.Region.ScriptEngine.Common
         public void StopScript()
         {
             m_Running = false;
+            m_Disable = true;
         }
+
     }
 }
