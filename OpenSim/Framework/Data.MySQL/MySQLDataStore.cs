@@ -718,6 +718,7 @@ namespace OpenSim.Framework.Data.MySQL
             createCol(shapes, "ProfileEnd", typeof (Int32));
             createCol(shapes, "ProfileCurve", typeof (Int32));
             createCol(shapes, "ProfileHollow", typeof (Int32));
+            createCol(shapes, "State", typeof(Int32));
             createCol(shapes, "Texture", typeof (Byte[]));
             createCol(shapes, "ExtraParams", typeof (Byte[]));
 
@@ -1137,6 +1138,24 @@ namespace OpenSim.Framework.Data.MySQL
 
             s.ExtraParams = (byte[]) row["ExtraParams"];
 
+            try
+            {
+                s.State = Convert.ToByte(row["State"]);
+            }
+            catch (InvalidCastException)
+            {
+                // Database table was created before we got here and needs to be created! :P
+
+                using (
+                    MySqlCommand cmd =
+                        new MySqlCommand(
+                            "ALTER TABLE `primshapes` ADD COLUMN `State` int NOT NULL default 0;",
+                            m_connection))
+                {
+                    cmd.ExecuteNonQuery();
+                }
+            }
+
             return s;
         }
 
@@ -1173,6 +1192,22 @@ namespace OpenSim.Framework.Data.MySQL
             row["ProfileHollow"] = s.ProfileHollow;
             row["Texture"] = s.TextureEntry;
             row["ExtraParams"] = s.ExtraParams;
+            try
+            {
+                row["State"] = s.State;
+            }
+            catch (MySqlException)
+            {
+                // Database table was created before we got here and needs to be created! :P
+                using (
+                    MySqlCommand cmd =
+                        new MySqlCommand(
+                            "ALTER TABLE `primshapes` ADD COLUMN `State` int NOT NULL default 0;",
+                            m_connection))
+                {
+                    cmd.ExecuteNonQuery();
+                }
+            }
         }
 
         private void addPrim(SceneObjectPart prim, LLUUID sceneGroupID, LLUUID regionUUID)
