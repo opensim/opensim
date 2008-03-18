@@ -34,12 +34,12 @@ namespace OpenSim.Framework
 {
     public sealed class PacketPool
     {
-		static public void EncodeProxyMessage(byte[] bytes, ref int numBytes, EndPoint trueEP)
-		{
-			if( numBytes > 4090 ) // max UPD size = 4096
-			{
-				throw new Exception("ERROR: No space to encode the proxy EP");
-			}
+        static public void EncodeProxyMessage(byte[] bytes, ref int numBytes, EndPoint trueEP)
+        {
+            if( numBytes > 4090 ) // max UPD size = 4096
+            {
+                throw new Exception("ERROR: No space to encode the proxy EP");
+            }
 
             ushort port = (ushort) ((IPEndPoint) trueEP).Port;
             bytes[numBytes++] = (byte)(port % 256);
@@ -55,10 +55,10 @@ namespace OpenSim.Framework
             DecodeProxyMessage(bytes, ref numBytes);
 
             numBytes = x;
-		}
-		
-		static public EndPoint DecodeProxyMessage(byte[] bytes, ref int numBytes)
-		{
+        }
+        
+        static public EndPoint DecodeProxyMessage(byte[] bytes, ref int numBytes)
+        {
             // IPv4 Only
             byte[] addr = new byte[4];
 

@@ -91,7 +91,8 @@ namespace OpenSim.Region.Environment.Modules
 
                 // setup IRC Relay
                 if (m_irc == null) { m_irc = new IRCChatModule(config); }
-                if (m_irc_connector == null) { 
+                if (m_irc_connector == null)
+                {
                     m_irc_connector = new Thread(IRCConnectRun);
                     m_irc_connector.Name = "IRCConnectorThread";
                     m_irc_connector.IsBackground = true;
@@ -106,12 +107,14 @@ namespace OpenSim.Region.Environment.Modules
                 try
                 {
                     //m_irc.Connect(m_scenes);
-                    if (m_irc_connector == null) { 
+                    if (m_irc_connector == null)
+                    {
                         m_irc_connector = new Thread(IRCConnectRun);
                         m_irc_connector.Name = "IRCConnectorThread";
                         m_irc_connector.IsBackground = true;
                     }
-                    if (!m_irc_connector.IsAlive) { 
+                    if (!m_irc_connector.IsAlive)
+                    {
                         m_irc_connector.Start();
                         OpenSim.Framework.ThreadTracker.Add(m_irc_connector);
                     }
@@ -255,11 +258,14 @@ namespace OpenSim.Region.Environment.Modules
                 // In a non-blocking way. Eventually the connector will get it started
                 try
                 {
-                    if (m_irc_connector == null) { m_irc_connector = new Thread(IRCConnectRun);
-                    m_irc_connector.Name = "IRCConnectorThread";
-                    m_irc_connector.IsBackground = true;
+                    if (m_irc_connector == null)
+                    {
+                        m_irc_connector = new Thread(IRCConnectRun);
+                        m_irc_connector.Name = "IRCConnectorThread";
+                        m_irc_connector.IsBackground = true;
                     }
-                    if (!m_irc_connector.IsAlive) { 
+                    if (!m_irc_connector.IsAlive)
+                    {
                         m_irc_connector.Start();
                         OpenSim.Framework.ThreadTracker.Add(m_irc_connector);
                     }
@@ -298,7 +304,6 @@ namespace OpenSim.Region.Environment.Modules
                 if ((m_irc.Enabled)&&(!m_irc.Connected))
                 {
                     m_irc.Connect(m_scenes);
-
                 }
                 Thread.Sleep(15000);
             }
@@ -625,15 +630,15 @@ namespace OpenSim.Region.Environment.Modules
                 foreach (Scene m_scene in m_scenes)
                 {
                     m_scene.ForEachScenePresence(delegate(ScenePresence avatar)
-                    {
-                        if (!avatar.IsChildAgent)
-                        {
-                            avatar.ControllingClient.SendChatMessage(
-                                Helpers.StringToField(message), 255,
-                                pos, sender,
-                                LLUUID.Zero);
-                        }
-                    });
+                                                 {
+                                                     if (!avatar.IsChildAgent)
+                                                     {
+                                                         avatar.ControllingClient.SendChatMessage(
+                                                             Helpers.StringToField(message), 255,
+                                                             pos, sender,
+                                                             LLUUID.Zero);
+                                                     }
+                                                 });
                 }
             }
             catch (Exception ex) // IRC gate should not crash Sim
@@ -644,15 +649,15 @@ namespace OpenSim.Region.Environment.Modules
 
         public enum ErrorReplies
         {
-            NotRegistered = 451,	// ":You have not registered"
-            NicknameInUse = 433		// "<nick> :Nickname is already in use"
+            NotRegistered = 451,  // ":You have not registered"
+            NicknameInUse = 433   // "<nick> :Nickname is already in use"
         }
 
         public enum Replies
         {
-            MotdStart = 375,		// ":- <server> Message of the day - "
-            Motd = 372,				// ":- <text>"
-            EndOfMotd = 376			// ":End of /MOTD command"
+            MotdStart = 375,  // ":- <server> Message of the day - "
+            Motd = 372,       // ":- <text>"
+            EndOfMotd = 376   // ":End of /MOTD command"
         }
 
         public void ProcessIRCCommand(string command)

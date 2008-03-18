@@ -111,7 +111,7 @@ namespace OpenSim.Region.Communications.OGS1
             GridParams["remoting_port"] = NetworkServersInfo.RemotingListenerPort.ToString();
             GridParams["map-image-id"] = regionInfo.EstateSettings.terrainImageID.ToString();
             GridParams["originUUID"] = regionInfo.originRegionID.ToString();
-			GridParams["server_uri"] = regionInfo.ServerURI;
+            GridParams["server_uri"] = regionInfo.ServerURI;
 
             // part of an initial brutish effort to provide accurate information (as per the xml region spec)
             // wrt the ownership of a given region
@@ -190,7 +190,7 @@ namespace OpenSim.Region.Communications.OGS1
                 return false;
             }
 
-			// What does DeregisterRegion() do?
+            // What does DeregisterRegion() do?
             return m_localBackend.DeregisterRegion(regionInfo);
         }
 
@@ -633,10 +633,10 @@ namespace OpenSim.Region.Communications.OGS1
                             m_log.Warn("[OGS1 GRID SERVICES]: remoting object not found");
                         }
                         remObject = null;
-                        //m_log.Info("[INTER]: " +
-                                                 //gdebugRegionName +
-                                                 //": OGS1 tried to Update Child Agent data on outside region and got " +
-                                                 //retValue.ToString());
+//                         m_log.Info("[INTER]: " +
+//                                    gdebugRegionName +
+//                                    ": OGS1 tried to Update Child Agent data on outside region and got " +
+//                                    retValue.ToString());
 
                         return retValue;
                     }
@@ -693,7 +693,7 @@ namespace OpenSim.Region.Communications.OGS1
                     NoteDeadRegion(regionHandle);
                 
                     m_log.WarnFormat("[OGS1 GRID SERVICES]: Unable to connect to adjacent region: {0} {1},{2}",
-                        regInfo.RegionName, regInfo.RegionLocX, regInfo.RegionLocY);
+                                     regInfo.RegionName, regInfo.RegionLocX, regInfo.RegionLocY);
                     m_log.DebugFormat("[OGS1 GRID SERVICES]: {0} {1}", e.Source, e.Message);
                 
                     return false;
@@ -1194,7 +1194,7 @@ namespace OpenSim.Region.Communications.OGS1
             {
                 NoteDeadRegion(regionHandle);
                 m_log.Warn("[OGS1 GRID SERVICES]: Remoting Error: Unable to connect to adjacent region to tell it to close child agents: " + regInfo.RegionName +
-                                      " " + regInfo.RegionLocX + "," + regInfo.RegionLocY);
+                           " " + regInfo.RegionLocX + "," + regInfo.RegionLocY);
                 //m_log.Debug(e.ToString());
                 return false;
             }
@@ -1202,10 +1202,10 @@ namespace OpenSim.Region.Communications.OGS1
             {
                 NoteDeadRegion(regionHandle);
                 m_log.Warn("[OGS1 GRID SERVICES]: Socket Error: Unable to connect to adjacent region using tcp://" +
-                                      regInfo.RemotingAddress +
-                                      ":" + regInfo.RemotingPort +
-                                      "/InterRegions - @ " + regInfo.RegionLocX + "," + regInfo.RegionLocY +
-                                      " - Is this neighbor up?");
+                           regInfo.RemotingAddress +
+                           ":" + regInfo.RemotingPort +
+                           "/InterRegions - @ " + regInfo.RegionLocX + "," + regInfo.RegionLocY +
+                           " - Is this neighbor up?");
                 m_log.DebugFormat("[OGS1 GRID SERVICES]: {0} {1}", e.Source, e.Message);
                 return false;
             }
@@ -1213,9 +1213,9 @@ namespace OpenSim.Region.Communications.OGS1
             {
                 NoteDeadRegion(regionHandle);
                 m_log.Warn("[OGS1 GRID SERVICES]: Invalid Credentials: Unable to connect to adjacent region using tcp://" +
-                                      regInfo.RemotingAddress +
-                                      ":" + regInfo.RemotingPort +
-                                      "/InterRegions - @ " + regInfo.RegionLocX + "," + regInfo.RegionLocY);
+                           regInfo.RemotingAddress +
+                           ":" + regInfo.RemotingPort +
+                           "/InterRegions - @ " + regInfo.RegionLocX + "," + regInfo.RegionLocY);
                 m_log.DebugFormat("[OGS1 GRID SERVICES]: {0} {1}", e.Source, e.Message);
                 return false;
             }
@@ -1223,9 +1223,9 @@ namespace OpenSim.Region.Communications.OGS1
             {
                 NoteDeadRegion(regionHandle);
                 m_log.Warn("[OGS1 GRID SERVICES]: Authentication exception: Unable to connect to adjacent region using tcp://" +
-                                      regInfo.RemotingAddress +
-                                      ":" + regInfo.RemotingPort +
-                                      "/InterRegions - @ " + regInfo.RegionLocX + "," + regInfo.RegionLocY);
+                           regInfo.RemotingAddress +
+                           ":" + regInfo.RemotingPort +
+                           "/InterRegions - @ " + regInfo.RegionLocX + "," + regInfo.RegionLocY);
                 m_log.DebugFormat("[OGS1 GRID SERVICES]: {0} {1}", e.Source, e.Message);
                 return false;
             }
@@ -1233,9 +1233,9 @@ namespace OpenSim.Region.Communications.OGS1
             {
                 NoteDeadRegion(regionHandle);
                 m_log.Warn("[OGS1 GRID SERVICES]: WebException exception: Unable to connect to adjacent region using tcp://" +
-                                      regInfo.RemotingAddress +
-                                      ":" + regInfo.RemotingPort +
-                                      "/InterRegions - @ " + regInfo.RegionLocX + "," + regInfo.RegionLocY);
+                           regInfo.RemotingAddress +
+                           ":" + regInfo.RemotingPort +
+                           "/InterRegions - @ " + regInfo.RegionLocX + "," + regInfo.RegionLocY);
                 m_log.DebugFormat("[OGS1 GRID SERVICES]: {0} {1}", e.Source, e.Message);
                 return false;
             }

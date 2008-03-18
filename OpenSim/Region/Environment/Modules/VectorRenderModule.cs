@@ -126,41 +126,43 @@ namespace OpenSim.Region.Environment.Modules
 
         }
 
-        /* private void CairoDraw(string data, System.Drawing.Graphics graph)
-         {
-             using (Win32Surface draw = new Win32Surface(graph.GetHdc()))
-             {
-                 Context contex = new Context(draw);
+/*
+        private void CairoDraw(string data, System.Drawing.Graphics graph)
+        {
+            using (Win32Surface draw = new Win32Surface(graph.GetHdc()))
+            {
+                Context contex = new Context(draw);
 
-                 contex.Antialias = Antialias.None;	//fastest method but low quality
-                 contex.LineWidth = 7;
-                 char[] lineDelimiter = { ';' };
-                 char[] partsDelimiter = { ',' };
-                 string[] lines = data.Split(lineDelimiter);
+                contex.Antialias = Antialias.None;    //fastest method but low quality
+                contex.LineWidth = 7;
+                char[] lineDelimiter = { ';' };
+                char[] partsDelimiter = { ',' };
+                string[] lines = data.Split(lineDelimiter);
 
-                 foreach (string line in lines)
-                 {
-                     string nextLine = line.Trim();
+                foreach (string line in lines)
+                {
+                    string nextLine = line.Trim();
 
-                     if (nextLine.StartsWith("MoveTO"))
-                     {
-                         float x = 0;
-                         float y = 0;
-                         GetParams(partsDelimiter, ref nextLine, ref x, ref y);
-                         contex.MoveTo(x, y);
-                     }
-                     else if (nextLine.StartsWith("LineTo"))
-                     {
-                         float x = 0;
-                         float y = 0;
-                         GetParams(partsDelimiter, ref nextLine, ref x, ref y);
-                         contex.LineTo(x, y);
-                         contex.Stroke();
-                     }
-                 }
-             }
-             graph.ReleaseHdc();
-         }*/
+                    if (nextLine.StartsWith("MoveTO"))
+                    {
+                        float x = 0;
+                        float y = 0;
+                        GetParams(partsDelimiter, ref nextLine, ref x, ref y);
+                        contex.MoveTo(x, y);
+                    }
+                    else if (nextLine.StartsWith("LineTo"))
+                    {
+                        float x = 0;
+                        float y = 0;
+                        GetParams(partsDelimiter, ref nextLine, ref x, ref y);
+                        contex.LineTo(x, y);
+                        contex.Stroke();
+                    }
+                }
+            }
+            graph.ReleaseHdc();
+        }
+*/
 
         private void GDIDraw(string data, System.Drawing.Graphics graph)
         {
@@ -172,7 +174,6 @@ namespace OpenSim.Region.Environment.Modules
             char[] lineDelimiter = { ';' };
             char[] partsDelimiter = { ',' };
             string[] lines = data.Split(lineDelimiter);
-
              
             foreach (string line in lines)
             {

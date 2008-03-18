@@ -115,11 +115,10 @@ namespace OpenSim.Region.Environment.Scenes
 
         protected AvatarAppearance m_appearance;
 
+        //neighbouring regions we have enabled a child agent in
         private readonly List<ulong> m_knownChildRegions = new List<ulong>();
-                                     //neighbouring regions we have enabled a child agent in
 
         private SignificantClientMovement handlerSignificantClientMovement = null; //OnSignificantClientMovement;
-
 
         /// <summary>
         /// Implemented Control Flags
@@ -1447,12 +1446,12 @@ namespace OpenSim.Region.Environment.Scenes
             m_perfMonMS=System.Environment.TickCount;
 
             m_scene.ForEachScenePresence(delegate(ScenePresence scenePresence)
+                                         {
+                                             if (scenePresence.UUID != UUID)
                                              {
-                                                 if (scenePresence.UUID != UUID)
-                                                 {
-                                                     m_appearance.SendAppearanceToOtherAgent(scenePresence);
-                                                 }
-                                             });
+                                                 m_appearance.SendAppearanceToOtherAgent(scenePresence);
+                                             }
+                                         });
             m_scene.AddAgentTime(System.Environment.TickCount - m_perfMonMS);
         }
 
@@ -1780,9 +1779,9 @@ namespace OpenSim.Region.Environment.Scenes
             }
 
             [SecurityPermission(SecurityAction.LinkDemand,
-                Flags = SecurityPermissionFlag.SerializationFormatter)]
+                                Flags = SecurityPermissionFlag.SerializationFormatter)]
             public virtual void GetObjectData(
-                            SerializationInfo info, StreamingContext context)
+                SerializationInfo info, StreamingContext context)
             {
                 if (info == null)
                 {
@@ -1792,7 +1791,6 @@ namespace OpenSim.Region.Environment.Scenes
                 info.AddValue("FullID", FullID.UUID);
                 info.AddValue("LastFullUpdateTime", LastFullUpdateTime);
                 info.AddValue("LastTerseUpdateTime", LastTerseUpdateTime);
-
             }
         }
 
@@ -1929,9 +1927,9 @@ namespace OpenSim.Region.Environment.Scenes
 
             m_requestedSitOffset
                 = new LLVector3(
-                        (float)info.GetValue("m_requestedSitOffset.X", typeof(float)),
-                        (float)info.GetValue("m_requestedSitOffset.Y", typeof(float)),
-                        (float)info.GetValue("m_requestedSitOffset.Z", typeof(float)));
+                    (float)info.GetValue("m_requestedSitOffset.X", typeof(float)),
+                    (float)info.GetValue("m_requestedSitOffset.Y", typeof(float)),
+                    (float)info.GetValue("m_requestedSitOffset.Z", typeof(float)));
 
             m_sitAvatarHeight = (float)info.GetValue("m_sitAvatarHeight", typeof(float));
             m_godlevel = (float)info.GetValue("m_godlevel", typeof(float));
@@ -1939,10 +1937,10 @@ namespace OpenSim.Region.Environment.Scenes
 
             m_bodyRot
                 = new Quaternion(
-                        (float)info.GetValue("m_bodyRot.w", typeof(float)),
-                        (float)info.GetValue("m_bodyRot.x", typeof(float)),
-                        (float)info.GetValue("m_bodyRot.y", typeof(float)),
-                        (float)info.GetValue("m_bodyRot.z", typeof(float)));
+                    (float)info.GetValue("m_bodyRot.w", typeof(float)),
+                    (float)info.GetValue("m_bodyRot.x", typeof(float)),
+                    (float)info.GetValue("m_bodyRot.y", typeof(float)),
+                    (float)info.GetValue("m_bodyRot.z", typeof(float)));
 
             IsRestrictedToRegion = (bool)info.GetValue("IsRestrictedToRegion", typeof(bool));
             m_newForce = (bool)info.GetValue("m_newForce", typeof(bool));
@@ -1964,33 +1962,33 @@ namespace OpenSim.Region.Environment.Scenes
 
             lastPhysPos
                 = new LLVector3(
-                        (float)info.GetValue("lastPhysPos.X", typeof(float)),
-                        (float)info.GetValue("lastPhysPos.Y", typeof(float)),
-                        (float)info.GetValue("lastPhysPos.Z", typeof(float)));
+                    (float)info.GetValue("lastPhysPos.X", typeof(float)),
+                    (float)info.GetValue("lastPhysPos.Y", typeof(float)),
+                    (float)info.GetValue("lastPhysPos.Z", typeof(float)));
 
             m_CameraCenter
                 = new Vector3(
-                        (float)info.GetValue("m_CameraCenter.X", typeof(float)),
-                        (float)info.GetValue("m_CameraCenter.Y", typeof(float)),
-                        (float)info.GetValue("m_CameraCenter.Z", typeof(float)));
+                    (float)info.GetValue("m_CameraCenter.X", typeof(float)),
+                    (float)info.GetValue("m_CameraCenter.Y", typeof(float)),
+                    (float)info.GetValue("m_CameraCenter.Z", typeof(float)));
 
             m_CameraAtAxis
                 = new Vector3(
-                        (float)info.GetValue("m_CameraAtAxis.X", typeof(float)),
-                        (float)info.GetValue("m_CameraAtAxis.Y", typeof(float)),
-                        (float)info.GetValue("m_CameraAtAxis.Z", typeof(float)));
+                    (float)info.GetValue("m_CameraAtAxis.X", typeof(float)),
+                    (float)info.GetValue("m_CameraAtAxis.Y", typeof(float)),
+                    (float)info.GetValue("m_CameraAtAxis.Z", typeof(float)));
 
             m_CameraLeftAxis
                 = new Vector3(
-                        (float)info.GetValue("m_CameraLeftAxis.X", typeof(float)),
-                        (float)info.GetValue("m_CameraLeftAxis.Y", typeof(float)),
-                        (float)info.GetValue("m_CameraLeftAxis.Z", typeof(float)));
+                    (float)info.GetValue("m_CameraLeftAxis.X", typeof(float)),
+                    (float)info.GetValue("m_CameraLeftAxis.Y", typeof(float)),
+                    (float)info.GetValue("m_CameraLeftAxis.Z", typeof(float)));
 
             m_CameraUpAxis
                 = new Vector3(
-                        (float)info.GetValue("m_CameraUpAxis.X", typeof(float)),
-                        (float)info.GetValue("m_CameraUpAxis.Y", typeof(float)),
-                        (float)info.GetValue("m_CameraUpAxis.Z", typeof(float)));
+                    (float)info.GetValue("m_CameraUpAxis.X", typeof(float)),
+                    (float)info.GetValue("m_CameraUpAxis.Y", typeof(float)),
+                    (float)info.GetValue("m_CameraUpAxis.Z", typeof(float)));
 
             m_DrawDistance = (float)info.GetValue("m_DrawDistance", typeof(float));
             m_appearance = (AvatarAppearance)info.GetValue("m_appearance", typeof(AvatarAppearance));
@@ -1998,9 +1996,9 @@ namespace OpenSim.Region.Environment.Scenes
 
             posLastSignificantMove
                 = new LLVector3(
-                        (float)info.GetValue("posLastSignificantMove.X", typeof(float)),
-                        (float)info.GetValue("posLastSignificantMove.Y", typeof(float)),
-                        (float)info.GetValue("posLastSignificantMove.Z", typeof(float)));
+                    (float)info.GetValue("posLastSignificantMove.X", typeof(float)),
+                    (float)info.GetValue("posLastSignificantMove.Y", typeof(float)),
+                    (float)info.GetValue("posLastSignificantMove.Z", typeof(float)));
 
             // m_partsUpdateQueue = (UpdateQueue)info.GetValue("m_partsUpdateQueue", typeof(UpdateQueue));
 
@@ -2018,41 +2016,41 @@ namespace OpenSim.Region.Environment.Scenes
             m_lastname = (string)info.GetValue("m_lastname", typeof(string));
             m_allowMovement = (bool)info.GetValue("m_allowMovement", typeof(bool));
             m_parentPosition = new LLVector3((float)info.GetValue("m_parentPosition.X", typeof(float)),
-                                            (float)info.GetValue("m_parentPosition.Y", typeof(float)),
-                                            (float)info.GetValue("m_parentPosition.Z", typeof(float)));
+                                             (float)info.GetValue("m_parentPosition.Y", typeof(float)),
+                                             (float)info.GetValue("m_parentPosition.Z", typeof(float)));
 
             m_isChildAgent = (bool)info.GetValue("m_isChildAgent", typeof(bool));
             m_parentID = (uint)info.GetValue("m_parentID", typeof(uint));
 
 // for OpenSim_v0.5
             currentParcelUUID = new LLUUID((Guid)info.GetValue("currentParcelUUID", typeof(Guid)));
-			
+
             lastKnownAllowedPosition
                 = new Vector3(
-                        (float)info.GetValue("lastKnownAllowedPosition.X", typeof(float)),
-                        (float)info.GetValue("lastKnownAllowedPosition.Y", typeof(float)),
-                        (float)info.GetValue("lastKnownAllowedPosition.Z", typeof(float)));
-			
+                    (float)info.GetValue("lastKnownAllowedPosition.X", typeof(float)),
+                    (float)info.GetValue("lastKnownAllowedPosition.Y", typeof(float)),
+                    (float)info.GetValue("lastKnownAllowedPosition.Z", typeof(float)));
+            
             sentMessageAboutRestrictedParcelFlyingDown = (bool)info.GetValue("sentMessageAboutRestrictedParcelFlyingDown", typeof(bool));
-			
+
             m_LastChildAgentUpdatePosition
                 = new LLVector3(
-                        (float)info.GetValue("m_LastChildAgentUpdatePosition.X", typeof(float)),
-                        (float)info.GetValue("m_LastChildAgentUpdatePosition.Y", typeof(float)),
-                        (float)info.GetValue("m_LastChildAgentUpdatePosition.Z", typeof(float)));
-			
+                    (float)info.GetValue("m_LastChildAgentUpdatePosition.X", typeof(float)),
+                    (float)info.GetValue("m_LastChildAgentUpdatePosition.Y", typeof(float)),
+                    (float)info.GetValue("m_LastChildAgentUpdatePosition.Z", typeof(float)));
+            
             m_perfMonMS = (int)info.GetValue("m_perfMonMS", typeof(int));
             m_AgentControlFlags = (uint)info.GetValue("m_AgentControlFlags", typeof(uint));
-			
+
             m_headrotation
                 = new LLQuaternion(
-                        (float)info.GetValue("m_headrotation.W", typeof(float)),
-                        (float)info.GetValue("m_headrotation.X", typeof(float)),
-                        (float)info.GetValue("m_headrotation.Y", typeof(float)),
-                        (float)info.GetValue("m_headrotation.Z", typeof(float)));
-			
+                    (float)info.GetValue("m_headrotation.W", typeof(float)),
+                    (float)info.GetValue("m_headrotation.X", typeof(float)),
+                    (float)info.GetValue("m_headrotation.Y", typeof(float)),
+                    (float)info.GetValue("m_headrotation.Z", typeof(float)));
+
             m_state = (byte)info.GetValue("m_state", typeof(byte));
-			
+
             List<Guid> knownPrimUUID_work = (List<Guid>)info.GetValue("m_knownPrimUUID", typeof(List<Guid>));
 
             foreach (Guid id in knownPrimUUID_work)
@@ -2064,9 +2062,9 @@ namespace OpenSim.Region.Environment.Scenes
         }
 
         [SecurityPermission(SecurityAction.LinkDemand,
-            Flags = SecurityPermissionFlag.SerializationFormatter)]
+                            Flags = SecurityPermissionFlag.SerializationFormatter)]
         public override void GetObjectData(
-                        SerializationInfo info, StreamingContext context)
+            SerializationInfo info, StreamingContext context)
         {
             if (info == null)
             {
@@ -2196,17 +2194,17 @@ namespace OpenSim.Region.Environment.Scenes
             info.AddValue("m_LastChildAgentUpdatePosition.X", m_LastChildAgentUpdatePosition.X);
             info.AddValue("m_LastChildAgentUpdatePosition.Y", m_LastChildAgentUpdatePosition.Y);
             info.AddValue("m_LastChildAgentUpdatePosition.Z", m_LastChildAgentUpdatePosition.Z);
-			
+
             info.AddValue("m_perfMonMS", m_perfMonMS);
             info.AddValue("m_AgentControlFlags", m_AgentControlFlags);
-			
+
             info.AddValue("m_headrotation.W", m_headrotation.W);
             info.AddValue("m_headrotation.X", m_headrotation.X);
             info.AddValue("m_headrotation.Y", m_headrotation.Y);
             info.AddValue("m_headrotation.Z", m_headrotation.Z);
-			
+
             info.AddValue("m_state", m_state);
-			
+
             List<Guid> knownPrimUUID_work = new List<Guid>();
 
             foreach (LLUUID id in m_knownPrimUUID)
@@ -2215,6 +2213,6 @@ namespace OpenSim.Region.Environment.Scenes
             }
 
             info.AddValue("m_knownPrimUUID", knownPrimUUID_work);
-		}
+        }
     }
 }

@@ -306,7 +306,7 @@ namespace OpenSim.ApplicationPlugins.LoadRegions
                     uint   regX          = Convert.ToUInt32((Int32) requestData["start_region_x"]);
                     uint   regY          = Convert.ToUInt32((Int32) requestData["start_region_y"]);
 
-     	            LLUUID tempuserID = m_app.CreateUser(tempfirstname, templastname, tempPasswd, regX, regY);
+                    LLUUID tempuserID = m_app.CreateUser(tempfirstname, templastname, tempPasswd, regX, regY);
 
                     if (tempuserID == LLUUID.Zero)
                     {

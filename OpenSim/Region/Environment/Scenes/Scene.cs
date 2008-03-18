@@ -227,6 +227,7 @@ namespace OpenSim.Region.Environment.Scenes
             get { return m_innerScene.RestorePresences; }
             set { m_innerScene.RestorePresences = value; }
         }
+
         #endregion
 
         #region Constructors
@@ -395,15 +396,15 @@ namespace OpenSim.Region.Environment.Scenes
                     try
                     {
                         ForEachScenePresence(delegate(ScenePresence agent)
+                                             {
+                                                 // If agent is a root agent.
+                                                 if (!agent.IsChildAgent)
                                                  {
-                                                     // If agent is a root agent.
-                                                     if (!agent.IsChildAgent)
-                                                     {
-                                                         //agent.ControllingClient.new
-                                                         //this.CommsManager.InterRegion.InformRegionOfChildAgent(otherRegion.RegionHandle, agent.ControllingClient.RequestClientInfo());
-                                                         InformClientOfNeighbor(agent, otherRegion);
-                                                     }
+                                                     //agent.ControllingClient.new
+                                                     //this.CommsManager.InterRegion.InformRegionOfChildAgent(otherRegion.RegionHandle, agent.ControllingClient.RequestClientInfo());
+                                                     InformClientOfNeighbor(agent, otherRegion);
                                                  }
+                                             }
                             );
                     }
                     catch (NullReferenceException)
@@ -463,7 +464,7 @@ namespace OpenSim.Region.Environment.Scenes
             {
                 if (m_RestartTimerCounter == 4 || m_RestartTimerCounter == 6 || m_RestartTimerCounter == 7)
                     SendRegionMessageFromEstateTools(LLUUID.Random(), LLUUID.Random(), String.Empty, RegionInfo.RegionName + ": Restarting in " +
-                        ((8 - m_RestartTimerCounter) * 15) + " seconds");
+                                                     ((8 - m_RestartTimerCounter) * 15) + " seconds");
 
                 // SendGeneralAlert(RegionInfo.RegionName + ": Restarting in " + ((8 - m_RestartTimerCounter)*15) +
                 //" seconds");
@@ -505,15 +506,15 @@ namespace OpenSim.Region.Environment.Scenes
                     try
                     {
                         ForEachScenePresence(delegate(ScenePresence agent)
+                                             {
+                                                 // If agent is a root agent.
+                                                 if (!agent.IsChildAgent)
                                                  {
-                                                     // If agent is a root agent.
-                                                     if (!agent.IsChildAgent)
-                                                     {
-                                                         //agent.ControllingClient.new
-                                                         //this.CommsManager.InterRegion.InformRegionOfChildAgent(otherRegion.RegionHandle, agent.ControllingClient.RequestClientInfo());
-                                                         InformClientOfNeighbor(agent, region);
-                                                     }
+                                                     //agent.ControllingClient.new
+                                                     //this.CommsManager.InterRegion.InformRegionOfChildAgent(otherRegion.RegionHandle, agent.ControllingClient.RequestClientInfo());
+                                                     InformClientOfNeighbor(agent, region);
                                                  }
+                                             }
                             );
                     }
                     catch (NullReferenceException)
@@ -580,16 +581,16 @@ namespace OpenSim.Region.Environment.Scenes
             m_log.Warn("[SCENE]: Closing down the single simulator: " + RegionInfo.RegionName);
             // Kick all ROOT agents with the message, 'The simulator is going down'
             ForEachScenePresence(delegate(ScenePresence avatar)
-                                     {
-                                         if (avatar.KnownChildRegions.Contains(RegionInfo.RegionHandle))
-                                             avatar.KnownChildRegions.Remove(RegionInfo.RegionHandle);
+                                 {
+                                     if (avatar.KnownChildRegions.Contains(RegionInfo.RegionHandle))
+                                         avatar.KnownChildRegions.Remove(RegionInfo.RegionHandle);
 
-                                         if (!avatar.IsChildAgent)
-                                             avatar.ControllingClient.Kick("The simulator is going down.");
+                                     if (!avatar.IsChildAgent)
+                                         avatar.ControllingClient.Kick("The simulator is going down.");
 
-                                         avatar.ControllingClient.OutPacket(PacketPool.Instance.GetPacket(libsecondlife.Packets.PacketType.DisableSimulator),
-                                                                            ThrottleOutPacketType.Task);
-                                     });
+                                     avatar.ControllingClient.OutPacket(PacketPool.Instance.GetPacket(libsecondlife.Packets.PacketType.DisableSimulator),
+                                                                        ThrottleOutPacketType.Task);
+                                 });
 
             // Wait here, or the kick messages won't actually get to the agents before the scene terminates.
             Thread.Sleep(500);
@@ -793,7 +794,7 @@ namespace OpenSim.Region.Environment.Scenes
                 {
                     tmpval = tmpval - (tmpval - 1.0f);
                 }
-                    m_timedilation = tmpval;
+                m_timedilation = tmpval;
                
                 m_lastupdate = DateTime.Now;
             }
@@ -884,9 +885,9 @@ namespace OpenSim.Region.Environment.Scenes
         {
             List<MapBlockData> mapBlocks =
                 m_sceneGridService.RequestNeighbourMapBlocks((int)(RegionInfo.RegionLocX - 9),
-                                                                   (int)(RegionInfo.RegionLocY - 9),
-                                                                   (int)(RegionInfo.RegionLocX + 9),
-                                                                   (int)(RegionInfo.RegionLocY + 9));
+                                                             (int)(RegionInfo.RegionLocY - 9),
+                                                             (int)(RegionInfo.RegionLocX + 9),
+                                                             (int)(RegionInfo.RegionLocY + 9));
             List<AssetBase> textures = new List<AssetBase>();
             List<Image> bitImages = new List<Image>();
 
@@ -1048,7 +1049,6 @@ namespace OpenSim.Region.Environment.Scenes
             m_log.Info("[SCENE]: Loaded " + PrimsFromDB.Count.ToString() + " SceneObject(s)");
         }
 
-
         /// <summary>
         /// Returns a new unallocated primitive ID
         /// </summary>
@@ -1134,7 +1134,7 @@ namespace OpenSim.Region.Environment.Scenes
         }
 
         public SceneObjectGroup AddTree(LLVector3 scale, LLQuaternion rotation, LLVector3 position,
-                            Tree treeType, bool newTree)
+                                        Tree treeType, bool newTree)
         {
             LLUUID uuid = this.RegionInfo.MasterAvatarAssignedUUID;
             PrimitiveBaseShape treeShape = new PrimitiveBaseShape();
@@ -1228,7 +1228,7 @@ namespace OpenSim.Region.Environment.Scenes
             {
                 pos.Y = ((pos.Y - Constants.RegionSize));
                 newRegionHandle = Util.UIntsToLong((uint)(thisx * Constants.RegionSize), (uint)((thisy + 1) * Constants.RegionSize));
-               // y + 1
+                // y + 1
             }
             else if (position.Y < -1f)
             {
@@ -1269,12 +1269,14 @@ namespace OpenSim.Region.Environment.Scenes
                 }
             }
         }
+
         public void IncomingInterRegionPrimGroup(ulong regionHandle, LLUUID primID, string objXMLData)
         {
             m_log.Warn("{[INTERREGION]: A new prim arrived from a neighbor");
             m_sceneXmlLoader.LoadGroupFromXml2String(objXMLData);
 
         }
+
         #endregion
 
         #region Add/Remove Avatar Methods
@@ -1301,11 +1303,11 @@ namespace OpenSim.Region.Environment.Scenes
 
                 m_innerScene.AddScenePresence(presence);
 
-				  lock (m_restorePresences)
-				{
-					Monitor.PulseAll(m_restorePresences);
-				}
-			}
+                lock (m_restorePresences)
+                {
+                    Monitor.PulseAll(m_restorePresences);
+                }
+            }
             else
             {
                 m_log.Info("[REGION]: Add New Scene Presence");
@@ -1382,8 +1384,8 @@ namespace OpenSim.Region.Environment.Scenes
             client.OnMoveInventoryItem += MoveInventoryItem;
             client.OnRemoveInventoryItem += RemoveInventoryItem;
             client.OnRemoveInventoryFolder += RemoveInventoryFolder;
-           // client.OnAssetUploadRequest += CommsManager.TransactionsManager.HandleUDPUploadRequest;
-          //  client.OnXferReceive += CommsManager.TransactionsManager.HandleXfer;
+            // client.OnAssetUploadRequest += CommsManager.TransactionsManager.HandleUDPUploadRequest;
+            //  client.OnXferReceive += CommsManager.TransactionsManager.HandleXfer;
             client.OnRezScript += RezScript;
 
             client.OnRequestTaskInventory += RequestTaskInventory;
@@ -1452,8 +1454,8 @@ namespace OpenSim.Region.Environment.Scenes
                 {
                     m_innerScene.removeUserCount(true);
                     m_sceneGridService.LogOffUser(agentID, RegionInfo.RegionID, RegionInfo.RegionHandle,
-                                                avatar.AbsolutePosition.X, avatar.AbsolutePosition.Y,
-                                                avatar.AbsolutePosition.Z);
+                                                  avatar.AbsolutePosition.X, avatar.AbsolutePosition.Y,
+                                                  avatar.AbsolutePosition.Z);
                     List<ulong> childknownRegions = new List<ulong>();
                     List<ulong> ckn = avatar.GetKnownRegionList();
                     for (int i = 0; i < ckn.Count; i++)
@@ -1477,16 +1479,16 @@ namespace OpenSim.Region.Environment.Scenes
             }
             m_eventManager.TriggerOnRemovePresence(agentID);
             Broadcast(delegate(IClientAPI client)
+                      {
+                          try
                           {
-                              try
-                              {
-                                  client.SendKillObject(avatar.RegionHandle, avatar.LocalId);
-                              }
-                              catch (System.NullReferenceException)
-                              {
-                                  //We can safely ignore null reference exceptions.  It means the avatar are dead and cleaned up anyway.
-                              }
-                          });
+                              client.SendKillObject(avatar.RegionHandle, avatar.LocalId);
+                          }
+                          catch (System.NullReferenceException)
+                          {
+                              //We can safely ignore null reference exceptions.  It means the avatar are dead and cleaned up anyway.
+                          }
+                      });
 
             ForEachScenePresence(
                 delegate(ScenePresence presence) { presence.CoarseLocationChange(); });
@@ -1903,8 +1905,6 @@ namespace OpenSim.Region.Environment.Scenes
             }
         }
 
-
-
         #endregion
 
         #region Other Methods
@@ -2152,10 +2152,10 @@ namespace OpenSim.Region.Environment.Scenes
         {
 
             ClientManager.ForEachClient(delegate(IClientAPI controller)
-                    {
-                        controller.SendBlueBoxMessage(FromAvatarID, fromSessionID, FromAvatarName, Message);
-                    }
-            );
+                                        {
+                                            controller.SendBlueBoxMessage(FromAvatarID, fromSessionID, FromAvatarName, Message);
+                                        }
+                );
         }
 
         /// <summary>
@@ -2180,27 +2180,27 @@ namespace OpenSim.Region.Environment.Scenes
                     if (agentID == kickUserID)
                     {
                         ClientManager.ForEachClient(delegate(IClientAPI controller)
-                                                        {
-                                                            if (controller.AgentId != godID)
-                                                                controller.Kick(Helpers.FieldToUTF8String(reason));
+                                                    {
+                                                        if (controller.AgentId != godID)
+                                                            controller.Kick(Helpers.FieldToUTF8String(reason));
 
 
 
-                                                        }
+                                                    }
                             );
                         // This is a bit crude.   It seems the client will be null before it actually stops the thread
                         // The thread will kill itself eventually :/
                         // Is there another way to make sure *all* clients get this 'inter region' message?
                         ClientManager.ForEachClient(delegate(IClientAPI controller)
-                                                        {
-                                                            ScenePresence p = GetScenePresence(controller.AgentId);
-                                                            bool childagent = !p.Equals(null) && p.IsChildAgent;
-                                                            if (controller.AgentId != godID && !childagent)
+                                                    {
+                                                        ScenePresence p = GetScenePresence(controller.AgentId);
+                                                        bool childagent = !p.Equals(null) && p.IsChildAgent;
+                                                        if (controller.AgentId != godID && !childagent)
                                                             // Do we really want to kick the initiator of this madness?
-                                                            {
-                                                                controller.Close(true);
-                                                            }
+                                                        {
+                                                            controller.Close(true);
                                                         }
+                                                    }
                             );
                     }
                     else

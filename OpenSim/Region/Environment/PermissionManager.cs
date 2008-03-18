@@ -201,12 +201,12 @@ namespace OpenSim.Region.Environment
 
             objflags &= (uint)
                 ~(LLObject.ObjectFlags.ObjectCopy | // Tells client you can copy the object
-                LLObject.ObjectFlags.ObjectModify | // tells client you can modify the object
-                LLObject.ObjectFlags.ObjectMove |   // tells client that you can move the object (only, no mod)
-                LLObject.ObjectFlags.ObjectTransfer | // tells the client that you can /take/ the object if you don't own it
-                LLObject.ObjectFlags.ObjectYouOwner | // Tells client that you're the owner of the object
-                LLObject.ObjectFlags.ObjectYouOfficer // Tells client that you've got group object editing permission. Used when ObjectGroupOwned is set
-                );
+                  LLObject.ObjectFlags.ObjectModify | // tells client you can modify the object
+                  LLObject.ObjectFlags.ObjectMove |   // tells client that you can move the object (only, no mod)
+                  LLObject.ObjectFlags.ObjectTransfer | // tells the client that you can /take/ the object if you don't own it
+                  LLObject.ObjectFlags.ObjectYouOwner | // Tells client that you're the owner of the object
+                  LLObject.ObjectFlags.ObjectYouOfficer // Tells client that you've got group object editing permission. Used when ObjectGroupOwned is set
+                    );
 
             // Creating the three ObjectFlags options for this method to choose from.
             // Customize the OwnerMask
@@ -495,10 +495,10 @@ namespace OpenSim.Region.Environment
             return IsAdministrator(user);
         }
 
-	public virtual bool CanRunConsoleCommand(LLUUID user)
-	{
-		return IsAdministrator(user);
-	}
+        public virtual bool CanRunConsoleCommand(LLUUID user)
+        {
+            return IsAdministrator(user);
+        }
 
         public virtual bool CanTerraform(LLUUID user, LLVector3 position)
         {

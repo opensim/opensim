@@ -455,7 +455,7 @@ namespace OpenSim
 
             // set initial ServerURI
             regionInfo.ServerURI = "http://" + regionInfo.ExternalHostName 
-                                        + ":" + regionInfo.InternalEndPoint.Port.ToString();
+                + ":" + regionInfo.InternalEndPoint.Port.ToString();
 
             if ((proxyUrl.Length > 0) && (portadd_flag)) 
             {
@@ -616,7 +616,7 @@ namespace OpenSim
         public virtual void Shutdown()
         {
             ProxyCommand(proxyUrl, "Stop"); 
-			
+
             if (m_startupCommandsFile != String.Empty)
             {
                 RunCommandScript(m_shutdownCommandsFile);
@@ -632,7 +632,7 @@ namespace OpenSim
 
             m_console.Close();
             Environment.Exit(0);
-		}
+        }
 
         private void RunAutoTimerScript(object sender, EventArgs e)
         {
@@ -722,17 +722,23 @@ namespace OpenSim
                     }
                     break;
 
-		case "scene-debug":
-			if (cmdparams.Length == 3) {
-				if (m_sceneManager.CurrentScene == null) {
-					m_console.Error("CONSOLE", "Please use 'change-region <regioname>' first");
-				} else {
-					m_sceneManager.CurrentScene.SetSceneCoreDebug(!System.Convert.ToBoolean(cmdparams[0]), !System.Convert.ToBoolean(cmdparams[1]), !System.Convert.ToBoolean(cmdparams[2]));
-				}
-			} else {
-				m_console.Error("scene-debug <scripting> <collisions> <physics> (where inside <> is true/false)");
-			}
-			break;
+                case "scene-debug":
+                    if (cmdparams.Length == 3)
+                    {
+                        if (m_sceneManager.CurrentScene == null)
+                        {
+                            m_console.Error("CONSOLE", "Please use 'change-region <regioname>' first");
+                        }
+                        else
+                        {
+                            m_sceneManager.CurrentScene.SetSceneCoreDebug(!System.Convert.ToBoolean(cmdparams[0]), !System.Convert.ToBoolean(cmdparams[1]), !System.Convert.ToBoolean(cmdparams[2]));
+                        }
+                    }
+                    else
+                    {
+                        m_console.Error("scene-debug <scripting> <collisions> <physics> (where inside <> is true/false)");
+                    }
+                    break;
 
                 case "help":
                     m_console.Notice("alert - send alert to a designated user or all users.");
@@ -772,15 +778,15 @@ namespace OpenSim
                     break;
 
                 case "threads":
-                        //m_console.Notice("THREAD", Process.GetCurrentProcess().Threads.Count + " threads running:");
-                        //int _tc = 0;
+//                     m_console.Notice("THREAD", Process.GetCurrentProcess().Threads.Count + " threads running:");
+//                     int _tc = 0;
                     
-                        //foreach (ProcessThread pt in Process.GetCurrentProcess().Threads)
-                        //{
-                        //    _tc++;
-                        //    m_console.Notice("THREAD", _tc + ": ID: " + pt.Id + ", Started: " + pt.StartTime.ToString() + ", CPU time: " + pt.TotalProcessorTime + ", Pri: " + pt.BasePriority.ToString() + ", State: " + pt.ThreadState.ToString());
-                            
-                        //}
+//                     foreach (ProcessThread pt in Process.GetCurrentProcess().Threads)
+//                     {
+//                         _tc++;
+//                         m_console.Notice("THREAD", _tc + ": ID: " + pt.Id + ", Started: " + pt.StartTime.ToString() + ", CPU time: " + pt.TotalProcessorTime + ", Pri: " + pt.BasePriority.ToString() + ", State: " + pt.ThreadState.ToString());
+//                     }
+
                     List<Thread> threads = OpenSim.Framework.ThreadTracker.GetThreads();
                     if (threads == null)
                     {
@@ -796,7 +802,6 @@ namespace OpenSim
                             m_console.Notice("THREAD", _tc + ": ID: " + t.ManagedThreadId.ToString() + ", Name: " + t.Name + ", Alive: " + t.IsAlive.ToString() + ", Pri: " + t.Priority.ToString() + ", State: " + t.ThreadState.ToString());
                         }
                     }
-
 
                     break;
                 case "save-xml":
@@ -833,7 +838,7 @@ namespace OpenSim
                                     loadOffset.Z = (float) Convert.ToDecimal(cmdparams[4]);
                                 }
                                 m_console.Error("loadOffsets <X,Y,Z> = <" + loadOffset.X + "," + loadOffset.Y + "," +
-                                                    loadOffset.Z + ">");
+                                                loadOffset.Z + ">");
                             }
                         }
                         m_sceneManager.LoadCurrentSceneFromXml(cmdparams[0], generateNewIDS, loadOffset);
@@ -1158,11 +1163,11 @@ namespace OpenSim
                 case "regions":
                     m_sceneManager.ForEachScene(
                         delegate(Scene scene)
-                            {
-                                m_console.Notice("Region Name: " + scene.RegionInfo.RegionName + " , Region XLoc: " +
-                                                 scene.RegionInfo.RegionLocX + " , Region YLoc: " +
-                                                 scene.RegionInfo.RegionLocY);
-                            });
+                        {
+                            m_console.Notice("Region Name: " + scene.RegionInfo.RegionName + " , Region XLoc: " +
+                                             scene.RegionInfo.RegionLocX + " , Region YLoc: " +
+                                             scene.RegionInfo.RegionLocY);
+                        });
                     break;
                                     
                 case "stats":
@@ -1191,7 +1196,8 @@ namespace OpenSim
         }
 
         #endregion
-		// TODO: remove me!! (almost same as XmlRpcCommand)
+
+        // TODO: remove me!! (almost same as XmlRpcCommand)
         public object ProxyCommand(string url, string methodName, params object[] args)
         {
             if(proxyUrl.Length==0) return null;
@@ -1230,34 +1236,33 @@ namespace OpenSim
         /// <param name="starttime">The first out parameter describing when the Region server started</param>
         /// <param name="uptime">The second out parameter describing how long the Region server has run</param>
         public void GetRunTime(out string starttime, out string uptime)
-		{
-			starttime = m_startuptime.ToString();
-			uptime = (DateTime.Now - m_startuptime).ToString();
-		}
+        {
+            starttime = m_startuptime.ToString();
+            uptime = (DateTime.Now - m_startuptime).ToString();
+        }
 
         /// <summary>
         /// Get the number of the avatars in the Region server
         /// </summary>
         /// <param name="usernum">The first out parameter describing the number of all the avatars in the Region server</param>
         public void GetAvatarNumber(out int usernum)
-		{
-			usernum = m_sceneManager.GetCurrentSceneAvatars().Count;
-		}
+        {
+            usernum = m_sceneManager.GetCurrentSceneAvatars().Count;
+        }
 
         /// <summary>
         /// Get the number of the avatars in the Region server
         /// </summary>
         /// <param name="usernum">The first out parameter describing the number of all the avatars in the Region server</param>
         public void GetRegionNumber(out int regionnum)
-		{
-			int accounter = 0;
-			//List<string> regionNameList = new List<string>();
+        {
+            int accounter = 0;
+            //List<string> regionNameList = new List<string>();
 
-			m_sceneManager.ForEachScene(delegate(Scene scene) {
-				accounter++;
-			});
-			regionnum = accounter;
-
-		}
+            m_sceneManager.ForEachScene(delegate(Scene scene) {
+                    accounter++;
+                });
+            regionnum = accounter;
+        }
     }
 }
