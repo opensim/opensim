@@ -154,6 +154,10 @@ namespace OpenSim.Framework.UserManagement
 
                     if (userProfile.currentAgent != null && userProfile.currentAgent.agentOnline)
                     {
+                        //TODO: The following statements can cause trouble:
+                        //      If agentOnline could not turn from true back to false normally
+                        //      because of some problem, for instance, the crashment of server or client,
+                        //      the user cannot log in any longer.
                         userProfile.currentAgent = null;
                         m_userManager.CommitAgent(ref userProfile);
 

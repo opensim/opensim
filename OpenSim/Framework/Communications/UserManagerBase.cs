@@ -27,6 +27,7 @@
 */
 
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Reflection;
 using System.Security.Cryptography;
@@ -337,7 +338,7 @@ namespace OpenSim.Framework.UserManagement
         /// <param name="request">The users loginrequest</param>
         public void CreateAgent(UserProfileData profile, XmlRpcRequest request)
         {
-            //Hashtable requestData = (Hashtable) request.Params[0];
+            Hashtable requestData = (Hashtable) request.Params[0];
 
             UserAgentData agent = new UserAgentData();
 
@@ -362,9 +363,24 @@ namespace OpenSim.Framework.UserManagement
             agent.currentPos = profile.homeLocation;
 
             // If user specified additional start, use that
-//            if (requestData.ContainsKey("start"))
-//            {
-//                string startLoc = ((string) requestData["start"]).Trim();
+            if (requestData.ContainsKey("start"))
+            {
+                string startLoc = ((string)requestData["start"]).Trim();
+                if (("last" == startLoc) && (profile.currentAgent != null))
+                {
+                    if ((profile.currentAgent.currentPos.X > 0)
+                        && (profile.currentAgent.currentPos.Y > 0)
+                        && (profile.currentAgent.currentPos.Z > 0)
+                       )
+                    {
+                        // TODO: Right now, currentRegion has not been used in GridServer for requesting region.
+                        // TODO: It is only using currentHandle.
+                        agent.currentRegion = profile.currentAgent.currentRegion;
+                        agent.currentHandle = profile.currentAgent.currentHandle;
+                        agent.currentPos = profile.currentAgent.currentPos;
+                    }
+                }
+
 //                if (!(startLoc == "last" || startLoc == "home"))
 //                {
 //                    // Format: uri:Ahern&162&213&34
@@ -381,7 +397,7 @@ namespace OpenSim.Framework.UserManagement
 //                    {
 //                    }
 //                }
-//            }
+            }
 
             // What time did the user login?
             agent.loginTime = Util.UnixTimeSinceEpoch();
@@ -424,7 +440,7 @@ namespace OpenSim.Framework.UserManagement
                 {
                     userAgent.agentOnline = false;
                     userAgent.logoutTime = Util.UnixTimeSinceEpoch();
-                    userAgent.sessionID = LLUUID.Zero;
+                    //userAgent.sessionID = LLUUID.Zero;
                     if (regionid != null)
                     {
                         userAgent.currentRegion = regionid;
@@ -493,8 +509,12 @@ namespace OpenSim.Framework.UserManagement
         /// <returns>Successful?</returns>
         public bool CommitAgent(ref UserProfileData profile)
         {
-            // TODO: how is this function different from setUserProfile?
-            return setUserProfile(profile);
+            // TODO: how is this function different from setUserProfile?  -> Add AddUserAgent() here and commit both tables "users" and "agents"
+            // TODO: what is the logic should be?
+            bool ret = false;
+            ret = AddUserAgent(profile.currentAgent);
+            ret = ret & setUserProfile(profile);
+            return ret;
         }
 
         #endregion
@@ -558,5 +578,26 @@ namespace OpenSim.Framework.UserManagement
         public abstract UserProfileData SetupMasterUser(string firstName, string lastName);
         public abstract UserProfileData SetupMasterUser(string firstName, string lastName, string password);
         public abstract UserProfileData SetupMasterUser(LLUUID uuid);
+
+        /// <summary>
+        /// Add agent to DB
+        /// </summary>
+        /// <param name="agentdata">The agent data to be added</param>
+        public bool AddUserAgent(UserAgentData agentdata)
+        {
+            foreach (KeyValuePair<string, IUserData> plugin in _plugins)
+            {
+                try
+                {
+                    plugin.Value.AddNewUserAgent(agentdata);
+                    return true;
+                }
+                catch (Exception e)
+                {
+                    m_log.Info("[USERSTORAGE]: Unable to add agent via " + plugin.Key + "(" + e.ToString() + ")");
+                }
+            }
+            return false;
+        }
     }
 }

@@ -397,14 +397,14 @@ namespace OpenSim.Framework.Data.MySQL
                 // Agent Who?
                 retval.agentIP = (string) reader["agentIP"];
                 retval.agentPort = Convert.ToUInt32(reader["agentPort"].ToString());
-                retval.agentOnline = Convert.ToBoolean(reader["agentOnline"].ToString());
+                retval.agentOnline = Convert.ToBoolean(Convert.ToInt16(reader["agentOnline"].ToString()));
 
                 // Login/Logout times (UNIX Epoch)
                 retval.loginTime = Convert.ToInt32(reader["loginTime"].ToString());
                 retval.logoutTime = Convert.ToInt32(reader["logoutTime"].ToString());
 
                 // Current position
-                retval.currentRegion = (string) reader["currentRegion"];
+                retval.currentRegion = new LLUUID((string)reader["currentRegion"]);
                 retval.currentHandle = Convert.ToUInt64(reader["currentHandle"].ToString());
                 LLVector3.TryParse((string) reader["currentPos"], out retval.currentPos);
             }
@@ -844,6 +844,54 @@ namespace OpenSim.Framework.Data.MySQL
 
                 IDbCommand result = Query(sql, parameters);
 
+                int x;
+                if ((x = result.ExecuteNonQuery()) > 0)
+                {
+                    returnval = true;
+                }
+                result.Dispose();
+            }
+            catch (Exception e)
+            {
+                m_log.Error(e.ToString());
+                return false;
+            }
+
+            return returnval;
+        }
+
+        /// <summary>
+        /// Creates a new agent and inserts it into the database
+        /// </summary>
+        /// <param name="agentdata">The agent data to be inserted</param>
+        /// <returns>Success?</returns>
+        public bool insertAgentRow(UserAgentData agentdata)
+        {
+            string sql = String.Empty;
+            sql += "REPLACE INTO ";
+            sql += "agents (UUID, sessionID, secureSessionID, agentIP, agentPort, agentOnline, loginTime, logoutTime, currentRegion, currentHandle, currentPos) VALUES ";
+            sql += "(?UUID, ?sessionID, ?secureSessionID, ?agentIP, ?agentPort, ?agentOnline, ?loginTime, ?logoutTime, ?currentRegion, ?currentHandle, ?currentPos);";
+            Dictionary<string, string> parameters = new Dictionary<string, string>();
+
+            parameters["?UUID"] = agentdata.UUID.ToString();
+            parameters["?sessionID"] = agentdata.sessionID.ToString();
+            parameters["?secureSessionID"] = agentdata.secureSessionID.ToString();
+            parameters["?agentIP"] = agentdata.agentIP.ToString();
+            parameters["?agentPort"] = agentdata.agentPort.ToString();
+            parameters["?agentOnline"] = (agentdata.agentOnline == true) ? "1" : "0";
+            parameters["?loginTime"] = agentdata.loginTime.ToString();
+            parameters["?logoutTime"] = agentdata.logoutTime.ToString();
+            parameters["?currentRegion"] = agentdata.currentRegion.ToString();
+            parameters["?currentHandle"] = agentdata.currentHandle.ToString();
+            parameters["?currentPos"] = "<" + ((int)agentdata.currentPos.X).ToString() + "," + ((int)agentdata.currentPos.Y).ToString() + "," + ((int)agentdata.currentPos.Z).ToString() + ">";
+
+            bool returnval = false;
+
+            try
+            {
+                IDbCommand result = Query(sql, parameters);
+
+                //Console.WriteLine(result.CommandText);
                 int x;
                 if ((x = result.ExecuteNonQuery()) > 0)
                 {

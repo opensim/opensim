@@ -585,7 +585,18 @@ namespace OpenSim.Framework.Data.MySQL
         /// <param name="agent">The agent to create</param>
         public void AddNewUserAgent(UserAgentData agent)
         {
-            // Do nothing.
+            try
+            {
+                lock (database)
+                {
+                    database.insertAgentRow(agent);
+                }
+            }
+            catch (Exception e)
+            {
+                database.Reconnect();
+                m_log.Error(e.ToString());
+            }
         }
 
         /// <summary>
