@@ -176,6 +176,12 @@ namespace OpenSim.Region.Communications.Local
             return null;
         }
 
+        public RegionInfo RequestClosestRegion(string regionName)
+        {
+            // Don't use this method.  It's only for SLURLS and Logins
+            return null;
+        }
+
         /// <summary>
         /// 
         /// </summary>

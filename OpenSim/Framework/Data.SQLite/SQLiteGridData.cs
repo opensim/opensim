@@ -112,6 +112,38 @@ namespace OpenSim.Framework.Data.SQLite
         }
 
         /// <summary>
+        /// Returns a sim profile from it's Region name string
+        /// </summary>
+        /// <param name="uuid">The region name search query</param>
+        /// <returns>The sim profile</returns>
+        public RegionProfileData GetProfileByString(string regionName)
+        {
+            if (regionName.Length > 2)
+            {
+                
+                Dictionary<string, string> param = new Dictionary<string, string>();
+                // Add % because this is a like query.
+                param["?regionName"] = regionName + "%";
+                // Only returns one record or no record.
+                IDbCommand result = database.Query("SELECT * FROM regions WHERE regionName like ?regionName LIMIT 1", param);
+                IDataReader reader = result.ExecuteReader();
+
+                RegionProfileData row = database.getRow(reader);
+                reader.Close();
+                result.Dispose();
+
+                return row;
+              
+            }
+            else
+            {
+                //m_log.Error("[DATABASE]: Searched for a Region Name shorter then 3 characters");
+                return null;
+            }
+        }
+
+
+        /// <summary>
         /// Returns a sim profile from it's UUID
         /// </summary>
         /// <param name="uuid">The region UUID</param>

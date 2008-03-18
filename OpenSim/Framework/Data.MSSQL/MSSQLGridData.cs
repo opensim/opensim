@@ -180,6 +180,49 @@ namespace OpenSim.Framework.Data.MSSQL
             return row;
         }
 
+
+        /// <summary>
+        /// Returns a sim profile from it's Region name string
+        /// </summary>
+        /// <param name="uuid">The region name search query</param>
+        /// <returns>The sim profile</returns>
+        public RegionProfileData GetProfileByString(string regionName)
+        {
+            if (regionName.Length > 2)
+            {
+                try
+                {
+                    lock (database)
+                    {
+                        Dictionary<string, string> param = new Dictionary<string, string>();
+                        // Add % because this is a like query.
+                        param["?regionName"] = regionName + "%";
+                        // Order by statement will return shorter matches first.  Only returns one record or no record.
+                        IDbCommand result = database.Query("SELECT top 1 * FROM " + m_regionsTableName + " WHERE regionName like ?regionName order by regionName", param);
+                        IDataReader reader = result.ExecuteReader();
+
+                        RegionProfileData row = database.getRegionRow(reader);
+                        reader.Close();
+                        result.Dispose();
+
+                        return row;
+                    }
+                }
+                catch (Exception e)
+                {
+                    database.Reconnect();
+                    m_log.Error(e.ToString());
+                    return null;
+                }
+            }
+            else
+            {
+                m_log.Error("[DATABASE]: Searched for a Region Name shorter then 3 characters");
+                return null;
+            }
+        }
+
+
         /// <summary>
         /// Adds a new specified region to the database
         /// </summary>

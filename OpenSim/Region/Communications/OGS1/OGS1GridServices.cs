@@ -361,6 +361,59 @@ namespace OpenSim.Region.Communications.OGS1
             return regionInfo;
         }
 
+        public RegionInfo RequestClosestRegion(string regionName)
+        {
+            // Don't use this method.  It's only for SLURLS and Logins
+            RegionInfo regionInfo = null;
+            try
+                {
+                    Hashtable requestData = new Hashtable();
+                    requestData["region_name_search"] = regionName;
+                    requestData["authkey"] = serversInfo.GridSendKey;
+                    ArrayList SendParams = new ArrayList();
+                    SendParams.Add(requestData);
+                    XmlRpcRequest GridReq = new XmlRpcRequest("simulator_data_request", SendParams);
+                    XmlRpcResponse GridResp = GridReq.Send(serversInfo.GridURL, 3000);
+
+                    Hashtable responseData = (Hashtable) GridResp.Value;
+
+                    if (responseData.ContainsKey("error"))
+                    {
+                        m_log.Error("[OGS1 GRID SERVICES]: Error received from grid server" + responseData["error"]);
+                        return null;
+                    }
+
+                    uint regX = Convert.ToUInt32((string) responseData["region_locx"]);
+                    uint regY = Convert.ToUInt32((string) responseData["region_locy"]);
+                    string internalIpStr = (string) responseData["sim_ip"];
+                    uint port = Convert.ToUInt32(responseData["sim_port"]);
+                    string externalUri = (string) responseData["sim_uri"];
+
+                    IPEndPoint neighbourInternalEndPoint = new IPEndPoint(IPAddress.Parse(internalIpStr), (int) port);
+                    string neighbourExternalUri = externalUri;
+                    regionInfo = new RegionInfo(regX, regY, neighbourInternalEndPoint, internalIpStr);
+
+                    regionInfo.RemotingPort = Convert.ToUInt32((string) responseData["remoting_port"]);
+                    regionInfo.RemotingAddress = internalIpStr;
+
+                    regionInfo.RegionID = new LLUUID((string) responseData["region_UUID"]);
+                    regionInfo.RegionName = (string) responseData["region_name"];
+
+                    m_remoteRegionInfoCache.Add(regionInfo.RegionHandle, regionInfo);
+                }
+                catch (WebException)
+                {
+                    m_log.Error("[OGS1 GRID SERVICES]: " +
+                                "Region lookup failed for: " + regionName +
+                                " - Is the GridServer down?");
+                }
+            
+
+            return regionInfo;
+            
+        }
+
+
         /// <summary>
         /// 
         /// </summary>

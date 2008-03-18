@@ -597,5 +597,53 @@ namespace OpenSim.Framework
 
             return ret;
         }
+        public static string[] ParseStartLocationRequest(string startLocationRequest)
+        {
+            string[] returnstring = new string[4];
+            // format uri:RegionName&X&Y&Z
+            returnstring[0] = "last";
+            returnstring[1] = "127";
+            returnstring[2] = "127";
+            returnstring[3] = "0";
+            // This is the crappy way of doing it.
+            
+            if (startLocationRequest.Contains(":") && startLocationRequest.Contains("&"))
+            {
+                //System.Console.WriteLine("StartLocationRequest Contains proper elements");
+
+                string[] splitstr = startLocationRequest.Split(':');//,2,StringSplitOptions.RemoveEmptyEntries);
+                
+                //System.Console.WriteLine("Found " + splitstr.GetLength(0) + " elements in 1st split result");
+                
+                if (splitstr.GetLength(0) == 2)
+                {
+                    
+                    string[] splitstr2 = splitstr[1].Split('&');//, 4, StringSplitOptions.RemoveEmptyEntries);
+                    
+                    //System.Console.WriteLine("Found " + splitstr2.GetLength(0) + " elements in 2nd split result");
+
+                    if (splitstr2.GetLength(0) >= 1)
+                    {
+                        returnstring[0] = splitstr2[0];
+                    }
+                    if (splitstr2.GetLength(0) >= 2)
+                    {
+                        returnstring[1] = splitstr2[1];
+                    }
+                    if (splitstr2.GetLength(0) >= 3)
+                    {
+                        returnstring[2] = splitstr2[2];
+                    }
+                    if (splitstr2.GetLength(0) >= 4)
+                    {
+                        returnstring[3] = splitstr2[3];
+                    }
+                }
+
+            }
+            return returnstring;
+            
+
+        }
     }
 }

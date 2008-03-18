@@ -135,6 +135,8 @@ namespace OpenSim.Region.Communications.Local
             }
             else
             {
+                m_log.Info("[LOGIN]: Got Custom Login URL, but can't process it");
+                // LocalBackEndServices can't possibly look up a region by name :(
                 // TODO: Parse string in the following format: 'uri:RegionName&X&Y&Z'
                 currentRegion = theUser.currentAgent.currentHandle;
             }

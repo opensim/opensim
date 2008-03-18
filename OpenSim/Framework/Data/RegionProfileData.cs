@@ -216,5 +216,47 @@ namespace OpenSim.Framework.Data
 
             return simData;
         }
+
+        /// <summary>
+        /// Request sim profile information from a grid server
+        /// </summary>
+        /// <param name="region_handle"></param>
+        /// <param name="gridserver_url"></param>
+        /// <param name="gridserver_sendkey"></param>
+        /// <param name="gridserver_recvkey"></param>
+        /// <returns>The sim profile.  Null if there was a request failure</returns>
+        public static RegionProfileData RequestSimProfileData(string regionName, string gridserver_url,
+                                                       string gridserver_sendkey, string gridserver_recvkey)
+        {
+            Hashtable requestData = new Hashtable();
+            requestData["region_name_search"] = regionName;
+            requestData["authkey"] = gridserver_sendkey;
+            ArrayList SendParams = new ArrayList();
+            SendParams.Add(requestData);
+            XmlRpcRequest GridReq = new XmlRpcRequest("simulator_data_request", SendParams);
+            XmlRpcResponse GridResp = GridReq.Send(gridserver_url, 3000);
+
+            Hashtable responseData = (Hashtable)GridResp.Value;
+
+            if (responseData.ContainsKey("error"))
+            {
+                return null;
+            }
+
+            RegionProfileData simData = new RegionProfileData();
+            simData.regionLocX = Convert.ToUInt32((string)responseData["region_locx"]);
+            simData.regionLocY = Convert.ToUInt32((string)responseData["region_locy"]);
+            simData.regionHandle = Helpers.UIntsToLong((simData.regionLocX * Constants.RegionSize), (simData.regionLocY * Constants.RegionSize));
+            simData.serverIP = (string)responseData["sim_ip"];
+            simData.serverPort = Convert.ToUInt32((string)responseData["sim_port"]);
+            simData.httpPort = Convert.ToUInt32((string)responseData["http_port"]);
+            simData.remotingPort = Convert.ToUInt32((string)responseData["remoting_port"]);
+            simData.httpServerURI = "http://" + simData.serverIP + ":" + simData.httpPort.ToString() + "/";
+            simData.serverURI = (string)responseData["server_uri"];
+            simData.UUID = new LLUUID((string)responseData["region_UUID"]);
+            simData.regionName = (string)responseData["region_name"];
+
+            return simData;
+        }
     }
 }

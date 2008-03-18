@@ -36,6 +36,7 @@ namespace OpenSim.Framework.Communications
         bool DeregisterRegion(RegionInfo regionInfo);
         List<SimpleRegionInfo> RequestNeighbours(uint x, uint y);
         RegionInfo RequestNeighbourInfo(ulong regionHandle);
+        RegionInfo RequestClosestRegion(string regionName);
         Dictionary<string, string> GetGridSettings();
         List<MapBlockData> RequestNeighbourMapBlocks(int minX, int minY, int maxX, int maxY);
     }

@@ -64,6 +64,8 @@ namespace OpenSim.Grid.UserServer
             m_config = config;
         }
 
+        
+
         /// <summary>
         /// Customises the login response and fills in missing values.
         /// </summary>
@@ -95,11 +97,34 @@ namespace OpenSim.Grid.UserServer
                 }
                 else
                 {
-                    // TODO: Parse out startlocationrequest string in the format; 'uri:RegionName&X&Y&Z'
-                    SimInfo =
+                    string[] startLocationRequestParsed = Util.ParseStartLocationRequest(startLocationRequest);
+                    m_log.Info("[DEBUGLOGINPARSE]: 1:" + startLocationRequestParsed[0] + ", 2:" + startLocationRequestParsed[1] + ", 3:" + startLocationRequestParsed[2] + ", 4:" + startLocationRequestParsed[3]);
+                    if (startLocationRequestParsed[0] == "last")
+                    {
+                        // TODO: Parse out startlocationrequest string in the format; 'uri:RegionName&X&Y&Z'
+                        SimInfo =
+                            RegionProfileData.RequestSimProfileData(
+                                theUser.currentAgent.currentHandle, m_config.GridServerURL,
+                                m_config.GridSendKey, m_config.GridRecvKey);
+                    }
+                    else
+                    {
+                        m_log.Info("[LOGIN]: Looking up Sim: " + startLocationRequestParsed[0]);
+                        SimInfo =
                         RegionProfileData.RequestSimProfileData(
-                            theUser.currentAgent.currentHandle, m_config.GridServerURL,
+                            startLocationRequestParsed[0], m_config.GridServerURL,
                             m_config.GridSendKey, m_config.GridRecvKey);
+
+                        if (SimInfo == null)
+                        {
+                            m_log.Info("[LOGIN]: Didn't find region with a close name match sending to home location");
+                            SimInfo =
+                                RegionProfileData.RequestSimProfileData(
+                                    theUser.homeRegion, m_config.GridServerURL,
+                                    m_config.GridSendKey, m_config.GridRecvKey);
+                        }
+
+                    }
                 }
 
                 // Customise the response
@@ -132,6 +157,9 @@ namespace OpenSim.Grid.UserServer
                 //CFK: m_log.Info("[LOGIN]: " + SimInfo.regionName + " (" + SimInfo.serverURI + ")  " + 
                 //CFK:    SimInfo.regionLocX + "," + SimInfo.regionLocY);
 
+                theUser.currentAgent.currentRegion = SimInfo.UUID;
+                theUser.currentAgent.currentHandle = SimInfo.regionHandle;
+                
                 // Prepare notification
                 Hashtable SimParams = new Hashtable();
                 SimParams["session_id"] = theUser.currentAgent.sessionID.ToString();
@@ -149,8 +177,7 @@ namespace OpenSim.Grid.UserServer
                 SendParams.Add(SimParams);
 
                 // Update agent with target sim
-                theUser.currentAgent.currentRegion = SimInfo.UUID;
-                theUser.currentAgent.currentHandle = SimInfo.regionHandle;
+
 
                 m_log.Info("[LOGIN]: Telling "
                            + SimInfo.regionName + " @ " + SimInfo.httpServerURI + "  " +
@@ -175,6 +202,7 @@ namespace OpenSim.Grid.UserServer
                 }
             }
             catch (Exception)
+            //catch (System.AccessViolationException)
             {
                 tryDefault = true;
             }

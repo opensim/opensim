@@ -69,6 +69,13 @@ namespace OpenSim.Framework.Data
         RegionProfileData GetProfileByLLUUID(LLUUID UUID);
 
         /// <summary>
+        /// Returns a sim profile from a string match
+        /// </summary>
+        /// <param name="regionName">A string for a partial region name match</param>
+        /// <returns>A sim profile</returns>
+        RegionProfileData GetProfileByString(string regionName);
+
+        /// <summary>
         /// Returns all profiles within the specified range
         /// </summary>
         /// <param name="Xmin">Minimum sim coordinate (X)</param>

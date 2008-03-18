@@ -98,6 +98,11 @@ namespace OpenSim.Framework.Data.DB4o
                                 "). Total Registered Regions: " + manager.simProfiles.Count);
         }
 
+        public RegionProfileData GetProfileByString(string regionName)
+        {
+            throw new Exception("GetProfileByString Not supported in DB4oGridData");
+            //return null;
+        }
         /// <summary>
         /// Adds a new specified region to the database
         /// </summary>

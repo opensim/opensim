@@ -164,6 +164,27 @@ namespace OpenSim.Grid.GridServer
             return null;
         }
 
+        /// <summary>
+        /// Returns a region by argument
+        /// </summary>
+        /// <param name="regionName">A partial regionName of the region to return</param>
+        /// <returns>A SimProfileData for the region</returns>
+        public RegionProfileData getRegion(string regionName)
+        {
+            foreach (KeyValuePair<string, IGridData> kvp in _plugins)
+            {
+                try
+                {
+                    return kvp.Value.GetProfileByString(regionName);
+                }
+                catch
+                {
+                    m_log.Warn("[storage]: Unable to find region " + regionName + " via " + kvp.Key);
+                }
+            }
+            return null;
+        }
+
         public Dictionary<ulong, RegionProfileData> getRegions(uint xmin, uint ymin, uint xmax, uint ymax)
         {
             Dictionary<ulong, RegionProfileData> regions = new Dictionary<ulong, RegionProfileData>();
@@ -614,6 +635,10 @@ namespace OpenSim.Grid.GridServer
                 //CFK: The if/else below this makes this message redundant.
                 //CFK: Console.WriteLine("requesting data for region " + (string) requestData["region_handle"]);
                 simData = getRegion(Convert.ToUInt64((string)requestData["region_handle"]));
+            }
+            else if (requestData.ContainsKey("region_name_search"))
+            {
+                simData = getRegion((string)requestData["region_name_search"]);
             }
 
             if (simData == null)
