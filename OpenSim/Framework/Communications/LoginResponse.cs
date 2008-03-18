@@ -244,7 +244,7 @@ namespace OpenSim.Framework.UserManagement
         {
             return
                 (GenerateFailureResponse("presence",
-                                         "You appear to be already logged in, if this is not the case please wait for your session to timeout, if this takes longer than a few minutes please contact the grid owner",
+                                         "You appear to be already logged in, if this is not the case please wait for your session to timeout, if this takes longer than a few minutes please contact the grid owner. Please wait 5 minutes if you are going to connect to a region nearby to the region you were at previously.",
                                          "false"));
         }
 
