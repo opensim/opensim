@@ -126,6 +126,9 @@ namespace OpenSim.Region.Environment.Scenes
             }
         }
 
+        /// <summary>
+        /// Stop all the scripts in this prim.
+        /// </summary>
         public void StopScripts()
         {
             lock (m_taskInventory)

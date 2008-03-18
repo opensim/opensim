@@ -1818,8 +1818,19 @@ namespace OpenSim.Region.Environment.Scenes
             }
         }
 
+        /// <summary>
+        /// Delete all the parts in this group.
+        /// </summary>
         public void DeleteParts()
         {
+            lock (m_parts)
+            {
+                foreach (SceneObjectPart part in m_parts.Values)
+                {
+                    part.StopScripts();
+                }
+            }
+            
             m_rootPart = null;
             m_parts.Clear();
         }
