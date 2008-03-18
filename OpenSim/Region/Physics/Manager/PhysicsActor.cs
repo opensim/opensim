@@ -63,13 +63,6 @@ namespace OpenSim.Region.Physics.Manager
             m_objCollisionList = objCollisionList;
         }
 
-        public CollisionEventUpdate(bool startOrEnd)
-        {
-            m_colliderType = (int) ActorTypes.Unknown;
-            m_GenericStartEnd = m_GenericStartEnd;
-            m_objCollisionList = null;
-        }
-
         public CollisionEventUpdate()
         {
             m_colliderType = (int) ActorTypes.Unknown;
