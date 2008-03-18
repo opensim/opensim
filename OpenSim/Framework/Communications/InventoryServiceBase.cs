@@ -128,6 +128,7 @@ namespace OpenSim.Framework.Communications
             }
         }
         
+        // See IInventoryServices
         public virtual bool HasInventoryForUser(LLUUID userID)
         {
             return false;
@@ -200,6 +201,9 @@ namespace OpenSim.Framework.Communications
 
         protected void AddFolder(InventoryFolderBase folder)
         {
+            m_log.DebugFormat(
+                "[INVENTORY SERVICE BASE]: Adding folder {0}, {1} to {2}", folder.name, folder.folderID, folder.parentID);
+            
             foreach (KeyValuePair<string, IInventoryData> plugin in m_plugins)
             {
                 plugin.Value.addInventoryFolder(folder);
