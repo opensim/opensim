@@ -93,6 +93,14 @@ namespace OpenSim.Framework.UserManagement
                                 (requestData.Contains("passwd") || requestData.Contains("web_login_key")));
                 bool GoodLogin = false;
 
+                string startLocationRequest = "last";
+
+                if (requestData.Contains("start"))
+                {
+                    startLocationRequest = (string)requestData["start"];
+                    m_log.Info("[LOGIN]: Client Requested Start: " + (string)requestData["start"]);
+                }
+
                 UserProfileData userProfile;
                 LoginResponse logResponse = new LoginResponse();
 
@@ -213,7 +221,7 @@ namespace OpenSim.Framework.UserManagement
 
                         try
                         {
-                            CustomiseResponse(logResponse, userProfile);
+                            CustomiseResponse(logResponse, userProfile, startLocationRequest);
                         }
                         catch (Exception e)
                         {
@@ -252,6 +260,8 @@ namespace OpenSim.Framework.UserManagement
             {
                 bool GoodLogin = false;
 
+                string startLocationRequest = "last";
+
                 UserProfileData userProfile = null;
                 LoginResponse logResponse = new LoginResponse();
 
@@ -264,6 +274,12 @@ namespace OpenSim.Framework.UserManagement
                         string firstname = map["first"].AsString();
                         string lastname = map["last"].AsString();
                         string passwd = map["passwd"].AsString();
+
+                        if (map.ContainsKey("start"))
+                        {
+                            m_log.Info("[LOGIN]: StartLocation Requested: " + map["start"].AsString());
+                            startLocationRequest = map["start"].AsString();
+                        }
 
                         userProfile = GetTheUser(firstname, lastname);
                         if (userProfile == null)
@@ -342,7 +358,7 @@ namespace OpenSim.Framework.UserManagement
 
                         try
                         {
-                            CustomiseResponse(logResponse, userProfile);
+                            CustomiseResponse(logResponse, userProfile, startLocationRequest);
                         }
                         catch (Exception ex)
                         {
@@ -376,7 +392,7 @@ namespace OpenSim.Framework.UserManagement
         /// </summary>
         /// <param name="response">The existing response</param>
         /// <param name="theUser">The user profile</param>
-        public virtual void CustomiseResponse(LoginResponse response, UserProfileData theUser)
+        public virtual void CustomiseResponse(LoginResponse response, UserProfileData theUser, string startLocationRequest)
         {
         }
 

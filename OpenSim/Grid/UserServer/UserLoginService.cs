@@ -71,7 +71,7 @@ namespace OpenSim.Grid.UserServer
         /// </summary>
         /// <param name="response">The existing response</param>
         /// <param name="theUser">The user profile</param>
-        public override void CustomiseResponse(LoginResponse response, UserProfileData theUser)
+        public override void CustomiseResponse(LoginResponse response, UserProfileData theUser, string startLocationRequest)
         {
             bool tryDefault = false;
             //CFK: Since the try is always "tried", the "Home Location" message should always appear, so comment this one.
@@ -79,10 +79,30 @@ namespace OpenSim.Grid.UserServer
 
             try
             {
-                RegionProfileData SimInfo =
-                    RegionProfileData.RequestSimProfileData(
-                        theUser.currentAgent.currentHandle, m_config.GridServerURL,
-                        m_config.GridSendKey, m_config.GridRecvKey);
+                RegionProfileData SimInfo = null;
+                if (startLocationRequest == "last")
+                {
+                    SimInfo =
+                        RegionProfileData.RequestSimProfileData(
+                            theUser.currentAgent.currentHandle, m_config.GridServerURL,
+                            m_config.GridSendKey, m_config.GridRecvKey);
+                }
+                else if (startLocationRequest == "home")
+                {
+                    SimInfo =
+                        RegionProfileData.RequestSimProfileData(
+                            theUser.homeRegion, m_config.GridServerURL,
+                            m_config.GridSendKey, m_config.GridRecvKey);
+
+                }
+                else
+                {
+                    // TODO: Parse out startlocationrequest string in the format; 'uri:RegionName&X&Y&Z'
+                    SimInfo =
+                        RegionProfileData.RequestSimProfileData(
+                            theUser.currentAgent.currentHandle, m_config.GridServerURL,
+                            m_config.GridSendKey, m_config.GridRecvKey);
+                }
 
                 // Customise the response
                 //CFK: This is redundant and the next message should always appear.

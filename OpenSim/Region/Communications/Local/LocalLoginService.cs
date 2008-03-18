@@ -123,9 +123,23 @@ namespace OpenSim.Region.Communications.Local
             }
         }
 
-        public override void CustomiseResponse(LoginResponse response, UserProfileData theUser)
+        public override void CustomiseResponse(LoginResponse response, UserProfileData theUser, string startLocationRequest)
         {
-            ulong currentRegion = theUser.currentAgent.currentHandle;
+            ulong currentRegion = 0;
+            if (startLocationRequest == "last")
+            {
+                currentRegion = theUser.currentAgent.currentHandle;
+            }
+            else if (startLocationRequest == "home")
+            {
+                currentRegion = theUser.homeRegion;
+            }
+            else
+            {
+                // TODO: Parse string in the following format: 'uri:RegionName&X&Y&Z'
+                currentRegion = theUser.currentAgent.currentHandle;
+            }
+
             RegionInfo reg = m_Parent.GridService.RequestNeighbourInfo(currentRegion);
 
             if (reg != null)
