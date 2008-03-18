@@ -173,15 +173,15 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
                         {
                             // Remove from internal list
                             appDomains.Remove(ads);
-#if DEBUG
-                            Console.WriteLine("Found empty AppDomain, unloading");
-                            long m = GC.GetTotalMemory(true);
-#endif
+//#if DEBUG
+                            //Console.WriteLine("Found empty AppDomain, unloading");
+                            //long m = GC.GetTotalMemory(true); // This force a garbage collect that freezes some windows plateforms
+//#endif
                             // Unload
                             AppDomain.Unload(ads.CurrentAppDomain);
-#if DEBUG
-                            m_scriptEngine.Log.Info("[" + m_scriptEngine.ScriptEngineName + "]: AppDomain unload freed " + (m - GC.GetTotalMemory(true)) + " bytes of memory");
-#endif
+//#if DEBUG
+                            //m_scriptEngine.Log.Info("[" + m_scriptEngine.ScriptEngineName + "]: AppDomain unload freed " + (m - GC.GetTotalMemory(true)) + " bytes of memory");
+//#endif
                         }
                     }
                 }

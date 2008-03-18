@@ -70,17 +70,17 @@ namespace OpenSim.Region.ScriptEngine.LSOEngine
                 // Compile (We assume LSL)
                 //ScriptSource = LSLCompiler.CompileFromLSLText(Script);
 
-#if DEBUG
-                long before;
-                before = GC.GetTotalMemory(true);
-#endif
+//#if DEBUG
+                //long before;
+                //before = GC.GetTotalMemory(true); // This force a garbage collect that freezes some windows plateforms
+//#endif
 
                 IScript CompiledScript;
                 CompiledScript = m_scriptEngine.m_AppDomainManager.LoadScript(ScriptSource);
 
-#if DEBUG
-                Console.WriteLine("Script " + itemID + " occupies {0} bytes", GC.GetTotalMemory(true) - before);
-#endif
+//#if DEBUG
+                //Console.WriteLine("Script " + itemID + " occupies {0} bytes", GC.GetTotalMemory(true) - before);
+//#endif
 
                 CompiledScript.Source = ScriptSource;
                 // Add it to our script memstruct
