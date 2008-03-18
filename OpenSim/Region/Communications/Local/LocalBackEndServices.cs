@@ -212,6 +212,7 @@ namespace OpenSim.Region.Communications.Local
             }
             return mapBlocks;
         }
+
         public bool TellRegionToCloseChildConnection(ulong regionHandle, LLUUID agentID)
         {
             if (m_regionListeners.ContainsKey(regionHandle))
@@ -245,7 +246,7 @@ namespace OpenSim.Region.Communications.Local
             return false;
         }
 
-        // This function Is only here to keep this class in line with the Grid Interface.
+        // This function is only here to keep this class in line with the Grid Interface.
         // It never gets called.
         public virtual Dictionary<string, string> GetGridSettings()
         {
@@ -291,14 +292,15 @@ namespace OpenSim.Region.Communications.Local
             }
             return false;
         }
-        /// <summary> 
+
+        /// <summary>
+        /// 
         /// </summary>
         /// <param name="regionHandle"></param>
         /// <param name="agentData"></param>
         /// <returns></returns>
-        /// 
         public bool InformRegionOfChildAgent(ulong regionHandle, AgentCircuitData agentData)
-            //should change from agentCircuitData
+            // TODO: should change from agentCircuitData
         {
             //Console.WriteLine("CommsManager- Trying to Inform a region to expect child agent");
             //m_log.Info("[INTER]: " + rdebugRegionName + ":Local BackEnd: Trying to inform region of child agent: " + agentData.firstname + " " + agentData.lastname);
@@ -351,8 +353,6 @@ namespace OpenSim.Region.Communications.Local
             }
             return false;
         }
-
-       
 
         public bool AcknowledgeAgentCrossed(ulong regionHandle, LLUUID agentId)
         {

@@ -134,7 +134,8 @@ namespace OpenSim.Region.Communications.OGS1
             {
                 GridReq = new XmlRpcRequest("simulator_login", SendParams);
                 GridResp = GridReq.Send(serversInfo.GridURL, 16000);
-            } catch (Exception ex)
+            }
+            catch (Exception ex)
             {
                 m_log.Error("Unable to connect to grid. Grid server not running?");
                 throw(ex);
@@ -182,7 +183,8 @@ namespace OpenSim.Region.Communications.OGS1
             Hashtable griddatahash = GridRespData;
 
             // Process Response
-            if (GridRespData.ContainsKey("error")) {
+            if (GridRespData.ContainsKey("error"))
+            {
                 string errorstring = (string)GridRespData["error"];
                 m_log.Error("Unable to connect to grid: " + errorstring);
                 return false;
@@ -201,7 +203,6 @@ namespace OpenSim.Region.Communications.OGS1
                 {
                     returnGridSettings.Add(Dictkey, m_queuedGridSettings[Dictkey]);
                 }
-
 
                 m_queuedGridSettings.Clear();
             }
@@ -308,10 +309,7 @@ namespace OpenSim.Region.Communications.OGS1
                 return regionInfo;
             }
 
-            if (m_remoteRegionInfoCache.TryGetValue(regionHandle, out regionInfo))
-            {
-            }
-            else
+            if (!m_remoteRegionInfoCache.TryGetValue(regionHandle, out regionInfo))
             {
                 try
                 {
@@ -366,53 +364,50 @@ namespace OpenSim.Region.Communications.OGS1
             // Don't use this method.  It's only for SLURLS and Logins
             RegionInfo regionInfo = null;
             try
+            {
+                Hashtable requestData = new Hashtable();
+                requestData["region_name_search"] = regionName;
+                requestData["authkey"] = serversInfo.GridSendKey;
+                ArrayList SendParams = new ArrayList();
+                SendParams.Add(requestData);
+                XmlRpcRequest GridReq = new XmlRpcRequest("simulator_data_request", SendParams);
+                XmlRpcResponse GridResp = GridReq.Send(serversInfo.GridURL, 3000);
+
+                Hashtable responseData = (Hashtable) GridResp.Value;
+
+                if (responseData.ContainsKey("error"))
                 {
-                    Hashtable requestData = new Hashtable();
-                    requestData["region_name_search"] = regionName;
-                    requestData["authkey"] = serversInfo.GridSendKey;
-                    ArrayList SendParams = new ArrayList();
-                    SendParams.Add(requestData);
-                    XmlRpcRequest GridReq = new XmlRpcRequest("simulator_data_request", SendParams);
-                    XmlRpcResponse GridResp = GridReq.Send(serversInfo.GridURL, 3000);
-
-                    Hashtable responseData = (Hashtable) GridResp.Value;
-
-                    if (responseData.ContainsKey("error"))
-                    {
-                        m_log.Error("[OGS1 GRID SERVICES]: Error received from grid server" + responseData["error"]);
-                        return null;
-                    }
-
-                    uint regX = Convert.ToUInt32((string) responseData["region_locx"]);
-                    uint regY = Convert.ToUInt32((string) responseData["region_locy"]);
-                    string internalIpStr = (string) responseData["sim_ip"];
-                    uint port = Convert.ToUInt32(responseData["sim_port"]);
-                    string externalUri = (string) responseData["sim_uri"];
-
-                    IPEndPoint neighbourInternalEndPoint = new IPEndPoint(IPAddress.Parse(internalIpStr), (int) port);
-                    string neighbourExternalUri = externalUri;
-                    regionInfo = new RegionInfo(regX, regY, neighbourInternalEndPoint, internalIpStr);
-
-                    regionInfo.RemotingPort = Convert.ToUInt32((string) responseData["remoting_port"]);
-                    regionInfo.RemotingAddress = internalIpStr;
-
-                    regionInfo.RegionID = new LLUUID((string) responseData["region_UUID"]);
-                    regionInfo.RegionName = (string) responseData["region_name"];
-
-                    m_remoteRegionInfoCache.Add(regionInfo.RegionHandle, regionInfo);
+                    m_log.Error("[OGS1 GRID SERVICES]: Error received from grid server" + responseData["error"]);
+                    return null;
                 }
-                catch (WebException)
-                {
-                    m_log.Error("[OGS1 GRID SERVICES]: " +
-                                "Region lookup failed for: " + regionName +
-                                " - Is the GridServer down?");
-                }
-            
+
+                uint regX = Convert.ToUInt32((string) responseData["region_locx"]);
+                uint regY = Convert.ToUInt32((string) responseData["region_locy"]);
+                string internalIpStr = (string) responseData["sim_ip"];
+                uint port = Convert.ToUInt32(responseData["sim_port"]);
+                string externalUri = (string) responseData["sim_uri"];
+
+                IPEndPoint neighbourInternalEndPoint = new IPEndPoint(IPAddress.Parse(internalIpStr), (int) port);
+                string neighbourExternalUri = externalUri;
+                regionInfo = new RegionInfo(regX, regY, neighbourInternalEndPoint, internalIpStr);
+
+                regionInfo.RemotingPort = Convert.ToUInt32((string) responseData["remoting_port"]);
+                regionInfo.RemotingAddress = internalIpStr;
+
+                regionInfo.RegionID = new LLUUID((string) responseData["region_UUID"]);
+                regionInfo.RegionName = (string) responseData["region_name"];
+
+                m_remoteRegionInfoCache.Add(regionInfo.RegionHandle, regionInfo);
+            }
+            catch (WebException)
+            {
+                m_log.Error("[OGS1 GRID SERVICES]: " +
+                            "Region lookup failed for: " + regionName +
+                            " - Is the GridServer down?");
+            }
 
             return regionInfo;
-            
         }
-
 
         /// <summary>
         /// 
@@ -465,9 +460,6 @@ namespace OpenSim.Region.Communications.OGS1
             return neighbours;
         }
 
-
-        
-
         /// <summary>
         /// Performs a XML-RPC query against the grid server returning mapblock information in the specified coordinates
         /// </summary>
@@ -518,7 +510,6 @@ namespace OpenSim.Region.Communications.OGS1
 
             return response;
         }
-
 
         // Grid Request Processing
         /// <summary>
@@ -596,7 +587,6 @@ namespace OpenSim.Region.Communications.OGS1
             InterRegionSingleton.Instance.OnRegionUp += TriggerRegionUp;
             InterRegionSingleton.Instance.OnChildAgentUpdate += TriggerChildAgentUpdate;
             InterRegionSingleton.Instance.OnTellRegionToCloseChildConnection += TriggerTellRegionToCloseChildConnection;
-            
         }
 
         #region Methods called by regions in this instance
@@ -629,10 +619,10 @@ namespace OpenSim.Region.Communications.OGS1
 
 
                         OGS1InterRegionRemoting remObject = (OGS1InterRegionRemoting)Activator.GetObject(
-                                                                                          typeof(OGS1InterRegionRemoting),
-                                                                                          "tcp://" + regInfo.RemotingAddress +
-                                                                                          ":" + regInfo.RemotingPort +
-                                                                                          "/InterRegions");
+                            typeof(OGS1InterRegionRemoting),
+                            "tcp://" + regInfo.RemotingAddress +
+                            ":" + regInfo.RemotingPort +
+                            "/InterRegions");
 
                         if (remObject != null)
                         {
@@ -738,29 +728,27 @@ namespace OpenSim.Region.Communications.OGS1
                     //don't want to be creating a new link to the remote instance every time like we are here
                     bool retValue = false;
 
+                    OGS1InterRegionRemoting remObject = (OGS1InterRegionRemoting)Activator.GetObject(
+                        typeof(OGS1InterRegionRemoting),
+                        "tcp://" + regInfo.RemotingAddress +
+                        ":" + regInfo.RemotingPort +
+                        "/InterRegions");
 
-                        OGS1InterRegionRemoting remObject = (OGS1InterRegionRemoting)Activator.GetObject(
-                                                                                          typeof(OGS1InterRegionRemoting),
-                                                                                          "tcp://" + regInfo.RemotingAddress +
-                                                                                          ":" + regInfo.RemotingPort +
-                                                                                          "/InterRegions");
+                    if (remObject != null)
+                    {
+                        retValue = remObject.InformRegionOfChildAgent(regionHandle, new sAgentCircuitData(agentData));
+                    }
+                    else
+                    {
+                        m_log.Warn("[OGS1 GRID SERVICES]: remoting object not found");
+                    }
+                    remObject = null;
+                    m_log.Info("[OGS1 GRID SERVICES]: " +
+                               gdebugRegionName + ": OGS1 tried to InformRegionOfChildAgent for " +
+                               agentData.firstname + " " + agentData.lastname + " and got " +
+                               retValue.ToString());
 
-                        if (remObject != null)
-                        {
-                            retValue = remObject.InformRegionOfChildAgent(regionHandle, new sAgentCircuitData(agentData));
-                        }
-                        else
-                        {
-                            m_log.Warn("[OGS1 GRID SERVICES]: remoting object not found");
-                        }
-                        remObject = null;
-                        m_log.Info("[OGS1 GRID SERVICES]: " +
-                                   gdebugRegionName + ": OGS1 tried to InformRegionOfChildAgent for " +
-                                   agentData.firstname + " " + agentData.lastname + " and got " +
-                                   retValue.ToString());
-
-                        return retValue;
-
+                    return retValue;
                 }
                 NoteDeadRegion(regionHandle);
                 return false;
@@ -849,14 +837,12 @@ namespace OpenSim.Region.Communications.OGS1
                         //don't want to be creating a new link to the remote instance every time like we are here
                         bool retValue = false;
 
-
                         OGS1InterRegionRemoting remObject = (OGS1InterRegionRemoting) Activator.GetObject(
-                                                                                          typeof (
-                                                                                              OGS1InterRegionRemoting),
-                                                                                          "tcp://" +
-                                                                                          regInfo.RemotingAddress +
-                                                                                          ":" + regInfo.RemotingPort +
-                                                                                          "/InterRegions");
+                            typeof(OGS1InterRegionRemoting),
+                            "tcp://" +
+                            regInfo.RemotingAddress +
+                            ":" + regInfo.RemotingPort +
+                            "/InterRegions");
 
                         if (remObject != null)
                         {
@@ -939,7 +925,7 @@ namespace OpenSim.Region.Communications.OGS1
         /// <returns></returns>
         public bool InformRegionOfPrimCrossing(ulong regionHandle, LLUUID primID, string objData)
         {
-             int failures = 0;
+            int failures = 0;
             lock (m_deadRegionCache)
             {
                 if (m_deadRegionCache.ContainsKey(regionHandle))
@@ -963,12 +949,11 @@ namespace OpenSim.Region.Communications.OGS1
                         //don't want to be creating a new link to the remote instance every time like we are here
                         bool retValue = false;
 
-
                         OGS1InterRegionRemoting remObject = (OGS1InterRegionRemoting)Activator.GetObject(
-                                                                                          typeof(OGS1InterRegionRemoting),
-                                                                                          "tcp://" + regInfo.RemotingAddress +
-                                                                                          ":" + regInfo.RemotingPort +
-                                                                                          "/InterRegions");
+                            typeof(OGS1InterRegionRemoting),
+                            "tcp://" + regInfo.RemotingAddress +
+                            ":" + regInfo.RemotingPort +
+                            "/InterRegions");
 
                         if (remObject != null)
                         {
@@ -979,7 +964,6 @@ namespace OpenSim.Region.Communications.OGS1
                             m_log.Warn("[OGS1 GRID SERVICES]: Remoting object not found");
                         }
                         remObject = null;
-
 
                         return retValue;
                     }
@@ -1050,10 +1034,11 @@ namespace OpenSim.Region.Communications.OGS1
                 {
                     bool retValue = false;
                     OGS1InterRegionRemoting remObject = (OGS1InterRegionRemoting) Activator.GetObject(
-                                                                                      typeof (OGS1InterRegionRemoting),
-                                                                                      "tcp://" + regInfo.RemotingAddress +
-                                                                                      ":" + regInfo.RemotingPort +
-                                                                                      "/InterRegions");
+                        typeof (OGS1InterRegionRemoting),
+                        "tcp://" + regInfo.RemotingAddress +
+                        ":" + regInfo.RemotingPort +
+                        "/InterRegions");
+
                     if (remObject != null)
                     {
                         retValue =
@@ -1106,10 +1091,11 @@ namespace OpenSim.Region.Communications.OGS1
                 {
                     bool retValue = false;
                     OGS1InterRegionRemoting remObject = (OGS1InterRegionRemoting) Activator.GetObject(
-                                                                                      typeof (OGS1InterRegionRemoting),
-                                                                                      "tcp://" + regInfo.RemotingAddress +
-                                                                                      ":" + regInfo.RemotingPort +
-                                                                                      "/InterRegions");
+                        typeof (OGS1InterRegionRemoting),
+                        "tcp://" + regInfo.RemotingAddress +
+                        ":" + regInfo.RemotingPort +
+                        "/InterRegions");
+
                     if (remObject != null)
                     {
                         retValue =
@@ -1181,10 +1167,11 @@ namespace OpenSim.Region.Communications.OGS1
                 {
                     bool retValue = false;
                     OGS1InterRegionRemoting remObject = (OGS1InterRegionRemoting)Activator.GetObject(
-                                                                                      typeof(OGS1InterRegionRemoting),
-                                                                                      "tcp://" + regInfo.RemotingAddress +
-                                                                                      ":" + regInfo.RemotingPort +
-                                                                                      "/InterRegions");
+                        typeof(OGS1InterRegionRemoting),
+                        "tcp://" + regInfo.RemotingAddress +
+                        ":" + regInfo.RemotingPort +
+                        "/InterRegions");
+
                     if (remObject != null)
                     {
                         retValue =
@@ -1211,7 +1198,6 @@ namespace OpenSim.Region.Communications.OGS1
                 //m_log.Debug(e.ToString());
                 return false;
             }
-            
             catch (SocketException e)
             {
                 NoteDeadRegion(regionHandle);
@@ -1312,7 +1298,6 @@ namespace OpenSim.Region.Communications.OGS1
                 {
                     if (m_deadRegionCache.ContainsKey(regionData.RegionHandle))
                     {
-                        
                         m_deadRegionCache.Remove(regionData.RegionHandle);
                     }
                 }
@@ -1356,7 +1341,6 @@ namespace OpenSim.Region.Communications.OGS1
                 m_localBackend.TriggerExpectPrim(regionHandle, primID, objData);
                 return true;
                 //m_localBackend.
-
             }
             catch (RemotingException e)
             {

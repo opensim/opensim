@@ -103,6 +103,7 @@ namespace OpenSim.Framework.Data.DB4o
             throw new Exception("GetProfileByString Not supported in DB4oGridData");
             //return null;
         }
+
         /// <summary>
         /// Adds a new specified region to the database
         /// </summary>

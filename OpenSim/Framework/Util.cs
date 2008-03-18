@@ -52,7 +52,6 @@ namespace OpenSim.Framework
         // Get a list of invalid file characters (OS dependent)
         private static string regexInvalidFileChars = "[" + new String(Path.GetInvalidFileNameChars()) + "]";
 
-
         #region Vector Equasions
         /// <summary>
         /// Get the distance between two 3d vectors
@@ -106,6 +105,7 @@ namespace OpenSim.Framework
 
             return false;
         }
+
         # endregion
 
         public static ulong UIntsToLong(uint X, uint Y)
@@ -384,8 +384,6 @@ namespace OpenSim.Framework
             return System.Text.RegularExpressions.Regex.Replace(filename, @regexInvalidFileChars, string.Empty); ;
         }
 
-
-
         //
         // directory locations
         //
@@ -411,23 +409,17 @@ namespace OpenSim.Framework
 
         public static string configDir()
         {
-            string temp;
-            temp = ".";
-            return temp;
+            return ".";
         }
 
         public static string dataDir()
         {
-            string temp;
-            temp = ".";
-            return temp;
+            return ".";
         }
 
         public static string logDir()
         {
-            string temp;
-            temp = ".";
-            return temp;
+            return ".";
         }
 
         public static string GetCapsURL(LLUUID userID)
@@ -549,8 +541,8 @@ namespace OpenSim.Framework
             try
             {
                 stream = new FileStream(
-                                    filename, FileMode.Create,
-                                    FileAccess.Write, FileShare.None);
+                    filename, FileMode.Create,
+                    FileAccess.Write, FileShare.None);
 
                 formatter.Serialize(stream, obj);
             }
@@ -577,8 +569,8 @@ namespace OpenSim.Framework
             try
             {
                 stream = new FileStream(
-                                    filename, FileMode.Open,
-                                    FileAccess.Read, FileShare.None);
+                    filename, FileMode.Open,
+                    FileAccess.Read, FileShare.None);
 
                 ret = formatter.Deserialize(stream);
             }
@@ -597,6 +589,7 @@ namespace OpenSim.Framework
 
             return ret;
         }
+
         public static string[] ParseStartLocationRequest(string startLocationRequest)
         {
             string[] returnstring = new string[4];
@@ -617,33 +610,22 @@ namespace OpenSim.Framework
                 
                 if (splitstr.GetLength(0) == 2)
                 {
-                    
                     string[] splitstr2 = splitstr[1].Split('&');//, 4, StringSplitOptions.RemoveEmptyEntries);
                     
                     //System.Console.WriteLine("Found " + splitstr2.GetLength(0) + " elements in 2nd split result");
 
-                    if (splitstr2.GetLength(0) >= 1)
+                    int len = Math.Min(splitstr2.GetLength(0), 4);
+
+                    for (int i = 0; i < 4; ++i)
                     {
-                        returnstring[0] = splitstr2[0];
-                    }
-                    if (splitstr2.GetLength(0) >= 2)
-                    {
-                        returnstring[1] = splitstr2[1];
-                    }
-                    if (splitstr2.GetLength(0) >= 3)
-                    {
-                        returnstring[2] = splitstr2[2];
-                    }
-                    if (splitstr2.GetLength(0) >= 4)
-                    {
-                        returnstring[3] = splitstr2[3];
+                        if (len > i)
+                        {
+                            returnstring[i] = splitstr2[i];
+                        }
                     }
                 }
-
             }
             return returnstring;
-            
-
         }
     }
 }

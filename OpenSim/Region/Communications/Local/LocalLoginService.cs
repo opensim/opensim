@@ -68,7 +68,6 @@ namespace OpenSim.Region.Communications.Local
             authUsers = authenticate;
         }
 
-
         public override UserProfileData GetTheUser(string firstname, string lastname)
         {
             UserProfileData profile = m_userManager.GetUserProfile(firstname, lastname);
@@ -189,6 +188,7 @@ namespace OpenSim.Region.Communications.Local
                 m_log.Warn("[LOGIN]: Not found region " + currentRegion);
             }
         }
+
         private LoginResponse.BuddyList ConvertFriendListItem(List<FriendListItem> LFL)
         {
             LoginResponse.BuddyList buddylistreturn = new LoginResponse.BuddyList();
@@ -199,10 +199,10 @@ namespace OpenSim.Region.Communications.Local
                 buddyitem.BuddyRightsHave = (int)fl.FriendListOwnerPerms;
                 buddyitem.BuddyRightsGiven = (int)fl.FriendPerms;
                 buddylistreturn.AddNewBuddy(buddyitem);
-
             }
             return buddylistreturn;
         }
+
         protected override InventoryData CreateInventoryData(LLUUID userID)
         {
             List<InventoryFolderBase> folders = m_Parent.InventoryService.RequestFirstLevelFolders(userID);

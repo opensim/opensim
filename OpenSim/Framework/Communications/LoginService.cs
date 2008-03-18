@@ -121,6 +121,7 @@ namespace OpenSim.Framework.UserManagement
 
                         return logResponse.CreateLoginFailedResponse();
                     }
+
                     if (requestData.Contains("passwd"))
                     {
                         string passwd = (string)requestData["passwd"];
@@ -494,8 +495,8 @@ namespace OpenSim.Framework.UserManagement
         }
 
         public string GetLoginForm(string firstname, string lastname, string location, string region, 
-                                    string grid, string channel, string version, string lang, 
-                                    string password, string errormessages)
+                                   string grid, string channel, string version, string lang, 
+                                   string password, string errormessages)
         {
             // inject our values in the form at the markers
 
@@ -522,6 +523,7 @@ namespace OpenSim.Framework.UserManagement
             loginform = loginform.Replace("[$lang]", lang);
             loginform = loginform.Replace("[$password]", password);
             loginform = loginform.Replace("[$errors]", errormessages);
+
             return loginform;
         }
 
@@ -588,6 +590,7 @@ namespace OpenSim.Framework.UserManagement
             responseString += "</div>";
             responseString += "</body>";
             responseString += "</html>";
+
             return responseString;
         }
 

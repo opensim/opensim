@@ -180,7 +180,6 @@ namespace OpenSim.Framework.Data.MSSQL
             return row;
         }
 
-
         /// <summary>
         /// Returns a sim profile from it's Region name string
         /// </summary>
@@ -222,7 +221,6 @@ namespace OpenSim.Framework.Data.MSSQL
             }
         }
 
-
         /// <summary>
         /// Adds a new specified region to the database
         /// </summary>
@@ -242,7 +240,7 @@ namespace OpenSim.Framework.Data.MSSQL
                 System.Console.WriteLine("No regions found. Create new one.");
             }
 
-            if ( insertRegionRow(profile))
+            if (insertRegionRow(profile))
             {
                 return DataResponse.RESPONSE_OK;
             }
@@ -251,7 +249,6 @@ namespace OpenSim.Framework.Data.MSSQL
                 return DataResponse.RESPONSE_ERROR;
             }
         }
-
 
         /// <summary>
         /// Creates a new region in the database
@@ -324,7 +321,7 @@ namespace OpenSim.Framework.Data.MSSQL
         }
 
         /// <summary>
-        /// DEPRECIATED. Attempts to authenticate a region by comparing a shared secret.
+        /// DEPRECATED. Attempts to authenticate a region by comparing a shared secret.
         /// </summary>
         /// <param name="uuid">The UUID of the challenger</param>
         /// <param name="handle">The attempted regionHandle of the challenger</param>

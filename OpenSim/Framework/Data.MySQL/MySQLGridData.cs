@@ -331,7 +331,7 @@ namespace OpenSim.Framework.Data.MySQL
         }
 
         /// <summary>
-        /// DEPRECIATED. Attempts to authenticate a region by comparing a shared secret.
+        /// DEPRECATED. Attempts to authenticate a region by comparing a shared secret.
         /// </summary>
         /// <param name="uuid">The UUID of the challenger</param>
         /// <param name="handle">The attempted regionHandle of the challenger</param>

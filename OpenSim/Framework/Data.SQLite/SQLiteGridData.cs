@@ -114,13 +114,12 @@ namespace OpenSim.Framework.Data.SQLite
         /// <summary>
         /// Returns a sim profile from it's Region name string
         /// </summary>
-        /// <param name="uuid">The region name search query</param>
+        /// <param name="regionName">The region name search query</param>
         /// <returns>The sim profile</returns>
         public RegionProfileData GetProfileByString(string regionName)
         {
             if (regionName.Length > 2)
             {
-                
                 Dictionary<string, string> param = new Dictionary<string, string>();
                 // Add % because this is a like query.
                 param["?regionName"] = regionName + "%";
@@ -133,7 +132,6 @@ namespace OpenSim.Framework.Data.SQLite
                 result.Dispose();
 
                 return row;
-              
             }
             else
             {
@@ -141,7 +139,6 @@ namespace OpenSim.Framework.Data.SQLite
                 return null;
             }
         }
-
 
         /// <summary>
         /// Returns a sim profile from it's UUID
@@ -191,7 +188,7 @@ namespace OpenSim.Framework.Data.SQLite
         }
 
         /// <summary>
-        /// DEPRECIATED. Attempts to authenticate a region by comparing a shared secret.
+        /// DEPRECATED. Attempts to authenticate a region by comparing a shared secret.
         /// </summary>
         /// <param name="uuid">The UUID of the challenger</param>
         /// <param name="handle">The attempted regionHandle of the challenger</param>

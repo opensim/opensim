@@ -142,7 +142,8 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase.AsyncCommandPlugin
         }
 
         public void SenseOnce(uint m_localID, LLUUID m_itemID,
-            string name, LLUUID keyID, int type, double range, double arc, SceneObjectPart host)
+                              string name, LLUUID keyID, int type,
+                              double range, double arc, SceneObjectPart host)
         {
             // Add to timer
             SenseRepeatClass ts = new SenseRepeatClass();
@@ -210,7 +211,6 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase.AsyncCommandPlugin
 
             foreach (EntityBase ent in m_CmdManager.m_ScriptEngine.World.Entities.Values)
             {
-
                 LLVector3 toRegionPos = ent.AbsolutePosition + regionPos;
                 double dis = Math.Abs((double)Util.GetDistanceTo(toRegionPos, fromRegionPos));
                 if (dis <= ts.range)

@@ -170,7 +170,6 @@ namespace OpenSim.Framework.UserManagement
             AddClassifiedCategory((Int32) 8, "Service");
             AddClassifiedCategory((Int32) 9, "Personal");
 
-
             SessionID = LLUUID.Random();
             SecureSessionID = LLUUID.Random();
             AgentID = LLUUID.Random();
@@ -244,7 +243,10 @@ namespace OpenSim.Framework.UserManagement
         {
             return
                 (GenerateFailureResponse("presence",
-                                         "You appear to be already logged in, if this is not the case please wait for your session to timeout, if this takes longer than a few minutes please contact the grid owner. Please wait 5 minutes if you are going to connect to a region nearby to the region you were at previously.",
+                                         "You appear to be already logged in. " +
+                                         "If this is not the case please wait for your session to timeout. " +
+                                         "If this takes longer than a few minutes please contact the grid owner. " +
+                                         "Please wait 5 minutes if you are going to connect to a region nearby to the region you were at previously.",
                                          "false"));
         }
 
@@ -252,7 +254,9 @@ namespace OpenSim.Framework.UserManagement
         {
             return GenerateFailureResponseLLSD(
                 "presence",
-                "You appear to be already logged in, if this is not the case please wait for your session to timeout, if this takes longer than a few minutes please contact the grid owner",
+                "You appear to be already logged in. " +
+                "If this is not the case please wait for your session to timeout. " +
+                "If this takes longer than a few minutes please contact the grid owner",
                 "false");
         }
 

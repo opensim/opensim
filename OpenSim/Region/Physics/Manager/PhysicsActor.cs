@@ -33,9 +33,7 @@ using OpenSim.Framework;
 namespace OpenSim.Region.Physics.Manager
 {
     public delegate void PositionUpdate(PhysicsVector position);
-
     public delegate void VelocityUpdate(PhysicsVector velocity);
-
     public delegate void OrientationUpdate(Quaternion orientation);
 
     public enum ActorTypes : int
@@ -49,7 +47,6 @@ namespace OpenSim.Region.Physics.Manager
     public class CollisionEventUpdate : EventArgs
     {
         // Raising the event on the object, so don't need to provide location..  further up the tree knows that info.
-
 
         public int m_colliderType;
         public int m_GenericStartEnd;
@@ -88,13 +85,10 @@ namespace OpenSim.Region.Physics.Manager
         }
     }
 
-
     public abstract class PhysicsActor
     {
         public delegate void RequestTerseUpdate();
-
         public delegate void CollisionUpdate(EventArgs e);
-
         public delegate void OutOfBounds(PhysicsVector pos);
 
 #pragma warning disable 67
@@ -138,9 +132,7 @@ namespace OpenSim.Region.Physics.Manager
             
             if (handler != null)
             {
-                
-                    handler();
-               
+                handler();
             }
         }
 
@@ -150,9 +142,10 @@ namespace OpenSim.Region.Physics.Manager
             // a race condition if the last subscriber unsubscribes
             // immediately after the null check and before the event is raised.
             OutOfBounds handler = OnOutOfBounds;
+
             if (handler != null)
             {
-                    handler(pos);
+                handler(pos);
             }
         }
 
@@ -162,54 +155,34 @@ namespace OpenSim.Region.Physics.Manager
       
             if (handler != null)
             { 
-                    handler(e);
+                handler(e);
             }
-            
         }
 
-
         public abstract PhysicsVector Position { get; set; }
-
         public abstract float Mass { get; }
-
         public abstract PhysicsVector Force { get; }
-
         public abstract PhysicsVector GeometricCenter { get; }
-
         public abstract PhysicsVector CenterOfMass { get; }
-
         public abstract PhysicsVector Velocity { get; set; }
-
         public abstract float CollisionScore { get;}
-
         public abstract PhysicsVector Acceleration { get; }
-
         public abstract Quaternion Orientation { get; set; }
         public abstract int PhysicsActorType { get; set; }
-
         public abstract bool IsPhysical { get; set; }
-
         public abstract bool Flying { get; set; }
         public abstract bool SetAlwaysRun { get; set; }
         public abstract bool ThrottleUpdates { get; set; }
-
         public abstract bool IsColliding { get; set; }
         public abstract bool CollidingGround { get; set; }
         public abstract bool CollidingObj { get; set; }
-
         public abstract bool FloatOnWater { set; }
-
         public abstract PhysicsVector RotationalVelocity { get; set; }
-
         public abstract bool Kinematic { get; set; }
-
         public abstract float Buoyancy { get; set; }
 
         public abstract void AddForce(PhysicsVector force);
-
         public abstract void SetMomentum(PhysicsVector momentum);
-
-        
     }
 
     public class NullPhysicsActor : PhysicsActor
@@ -246,7 +219,8 @@ namespace OpenSim.Region.Physics.Manager
             set { return; }
         }
 
-        public override float Buoyancy {
+        public override float Buoyancy
+        {
             get { return 0f; }
             set { return; } 
         }
@@ -256,7 +230,6 @@ namespace OpenSim.Region.Physics.Manager
             set { return; }
         }
       
-
         public override bool CollidingGround
         {
             get { return false; }
@@ -313,9 +286,7 @@ namespace OpenSim.Region.Physics.Manager
 
         public override void CrossingFailure()
         {
-
         }
-
 
         public override Quaternion Orientation
         {
@@ -366,17 +337,14 @@ namespace OpenSim.Region.Physics.Manager
 
         public override void link(PhysicsActor obj)
         {
-
         }
 
         public override void delink()
         {
-
         }
 
         public override void AddForce(PhysicsVector force)
         {
-            return;
         }
 
         public override PhysicsVector RotationalVelocity
@@ -387,7 +355,6 @@ namespace OpenSim.Region.Physics.Manager
 
         public override void SetMomentum(PhysicsVector momentum)
         {
-            return;
         }
     }
 }

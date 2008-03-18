@@ -64,8 +64,6 @@ namespace OpenSim.Grid.UserServer
             m_config = config;
         }
 
-        
-
         /// <summary>
         /// Customises the login response and fills in missing values.
         /// </summary>
@@ -93,7 +91,6 @@ namespace OpenSim.Grid.UserServer
                         RegionProfileData.RequestSimProfileData(
                             theUser.homeRegion, m_config.GridServerURL,
                             m_config.GridSendKey, m_config.GridRecvKey);
-
                 }
                 else
                 {
@@ -123,7 +120,6 @@ namespace OpenSim.Grid.UserServer
                                     theUser.homeRegion, m_config.GridServerURL,
                                     m_config.GridSendKey, m_config.GridRecvKey);
                         }
-
                     }
                 }
 
@@ -177,7 +173,6 @@ namespace OpenSim.Grid.UserServer
                 SendParams.Add(SimParams);
 
                 // Update agent with target sim
-
 
                 m_log.Info("[LOGIN]: Telling "
                            + SimInfo.regionName + " @ " + SimInfo.httpServerURI + "  " +

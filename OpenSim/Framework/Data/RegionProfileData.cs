@@ -56,7 +56,6 @@ namespace OpenSim.Framework.Data
         /// Coordinates of the region
         /// </summary>
         public uint regionLocX;
-
         public uint regionLocY;
         public uint regionLocZ; // Reserved (round-robin, layers, etc)
 
@@ -65,7 +64,6 @@ namespace OpenSim.Framework.Data
         /// </summary>
         /// <remarks>Not very secure, needs improvement.</remarks>
         public string regionSendKey = String.Empty;
-
         public string regionRecvKey = String.Empty;
         public string regionSecret = String.Empty;
 
@@ -78,7 +76,6 @@ namespace OpenSim.Framework.Data
         /// Information about the server that the region is currently hosted on
         /// </summary>
         public string serverIP = String.Empty;
-
         public uint serverPort;
         public string serverURI = String.Empty;
 
@@ -90,7 +87,6 @@ namespace OpenSim.Framework.Data
         /// Set of optional overrides. Can be used to create non-eulicidean spaces.
         /// </summary>
         public ulong regionNorthOverrideHandle;
-
         public ulong regionSouthOverrideHandle;
         public ulong regionEastOverrideHandle;
         public ulong regionWestOverrideHandle;
@@ -132,7 +128,6 @@ namespace OpenSim.Framework.Data
         /// OGS/OpenSim Specific original ID for a region after move/split
         /// </summary>
         public LLUUID originUUID; 
-
 
         /// <summary>
         /// Get Sim profile data from grid server when in grid mode
@@ -184,7 +179,7 @@ namespace OpenSim.Framework.Data
         /// <param name="gridserver_recvkey"></param>
         /// <returns>The sim profile.  Null if there was a request failure</returns>
         public static RegionProfileData RequestSimProfileData(ulong region_handle, string gridserver_url,
-                                                       string gridserver_sendkey, string gridserver_recvkey)
+                                                              string gridserver_sendkey, string gridserver_recvkey)
         {
             Hashtable requestData = new Hashtable();
             requestData["region_handle"] = region_handle.ToString();
@@ -226,7 +221,7 @@ namespace OpenSim.Framework.Data
         /// <param name="gridserver_recvkey"></param>
         /// <returns>The sim profile.  Null if there was a request failure</returns>
         public static RegionProfileData RequestSimProfileData(string regionName, string gridserver_url,
-                                                       string gridserver_sendkey, string gridserver_recvkey)
+                                                              string gridserver_sendkey, string gridserver_recvkey)
         {
             Hashtable requestData = new Hashtable();
             requestData["region_name_search"] = regionName;

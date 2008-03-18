@@ -177,7 +177,7 @@ namespace OpenSim.Region.Environment.Scenes
 
         public bool RunTerrainCmdOnCurrentScene(string[] cmdparams, ref string result)
         {
-            m_log.Warn("Terrain commands have been depreciated.");
+            m_log.Warn("Terrain commands have been deprecated.");
             return false;
         }
 
@@ -332,11 +332,11 @@ namespace OpenSim.Region.Environment.Scenes
         public void SetCurrentSceneTimePhase(int timePhase)
         {
             ForEachCurrentScene(delegate(Scene scene)
-                                    {
-                                        scene.SetTimePhase(
-                                            timePhase)
-                                            ;
-                                    });
+                                {
+                                    scene.SetTimePhase(
+                                        timePhase)
+                                        ;
+                                });
         }
 
         public void ForceCurrentSceneClientUpdate()

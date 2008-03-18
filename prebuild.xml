@@ -1558,7 +1558,7 @@
       </Files>
     </Project>
 
-<!-- Test Suite -->
+    <!-- Test Suite -->
     <Project name="OpenSim.TestSuite" path="OpenSim/TestSuite" type="Exe">
       <Configuration name="Debug">
         <Options>
@@ -1583,8 +1583,6 @@
         <Match pattern="*.cs" recurse="true"/>
       </Files>
     </Project>
-
-
 
   </Solution>
 
