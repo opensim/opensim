@@ -138,12 +138,10 @@ namespace OpenSim.Framework.Data.MySQL
             string dllName = module.Assembly.ManifestModule.Name;
             Version dllVersion = module.Assembly.GetName().Version;
 
-
             return
                 string.Format("{0}.{1}.{2}.{3}", dllVersion.Major, dllVersion.Minor, dllVersion.Build,
                               dllVersion.Revision);
         }
-
 
         /// <summary>
         /// Extract a named string resource from the embedded resources
@@ -156,7 +154,9 @@ namespace OpenSim.Framework.Data.MySQL
             string[] names = assem.GetManifestResourceNames();
 
             foreach (string s in names)
+            {
                 if (s.EndsWith(name))
+                {
                     using (Stream resource = assem.GetManifestResourceStream(s))
                     {
                         using (StreamReader resourceReader = new StreamReader(resource))
@@ -165,6 +165,8 @@ namespace OpenSim.Framework.Data.MySQL
                             return resourceString;
                         }
                     }
+                }
+            }
             throw new Exception(string.Format("Resource '{0}' was not found", name));
         }
 
@@ -214,8 +216,7 @@ namespace OpenSim.Framework.Data.MySQL
             }
         }
 
-
-        // at some time this code should be cleaned up
+        // TODO: at some time this code should be cleaned up
 
         /// <summary>
         /// Runs a query with protection against SQL Injection by using parameterised input.
@@ -249,7 +250,7 @@ namespace OpenSim.Framework.Data.MySQL
                     {
                     }
 
-                    // Try reopen it
+                    // Try to reopen it
                     try
                     {
                         dbcon = new MySqlConnection(connectionString);
@@ -368,7 +369,7 @@ namespace OpenSim.Framework.Data.MySQL
                 retval.reservationMinY = Convert.ToInt32(reader["resYMin"].ToString());
                 retval.reservationName = (string) reader["resName"];
                 retval.status = Convert.ToInt32(reader["status"].ToString()) == 1;
-               LLUUID.TryParse((string) reader["userUUID"], out retval.userUUID);
+                LLUUID.TryParse((string) reader["userUUID"], out retval.userUUID);
             }
             else
             {
@@ -458,22 +459,22 @@ namespace OpenSim.Framework.Data.MySQL
                 else 
                     retval.profileAboutText = (string) reader["profileAboutText"];
 
-                if (reader.IsDBNull( reader.GetOrdinal( "profileFirstText" ) ) )
+                if (reader.IsDBNull(reader.GetOrdinal("profileFirstText")))
                     retval.profileFirstText = "";
                 else
                     retval.profileFirstText = (string)reader["profileFirstText"];
 
-                if (reader.IsDBNull( reader.GetOrdinal( "profileImage" ) ) )
+                if (reader.IsDBNull(reader.GetOrdinal("profileImage")))
                     retval.profileImage = LLUUID.Zero;
                 else 
                     LLUUID.TryParse((string)reader["profileImage"], out retval.profileImage);
 
-                if (reader.IsDBNull( reader.GetOrdinal( "profileFirstImage" ) ) )
+                if (reader.IsDBNull(reader.GetOrdinal("profileFirstImage")))
                     retval.profileFirstImage = LLUUID.Zero;
                 else 
                     LLUUID.TryParse((string)reader["profileFirstImage"], out retval.profileFirstImage);
                 
-                if( reader.IsDBNull( reader.GetOrdinal( "webLoginKey" ) ) )
+                if(reader.IsDBNull(reader.GetOrdinal("webLoginKey")))
                 {
                     retval.webLoginKey = LLUUID.Zero;
                 }
@@ -488,7 +489,6 @@ namespace OpenSim.Framework.Data.MySQL
             }
             return retval;
         }
-
 
         /// <summary>
         /// Inserts a new row into the log database
@@ -533,7 +533,6 @@ namespace OpenSim.Framework.Data.MySQL
 
             return returnval;
         }
-
 
         /// <summary>
         /// Creates a new user and inserts it into the database
@@ -630,7 +629,7 @@ namespace OpenSim.Framework.Data.MySQL
             return returnval;
         }
 
-                /// <summary>
+        /// <summary>
         /// Creates a new user and inserts it into the database
         /// </summary>
         /// <param name="uuid">User ID</param>
@@ -823,6 +822,7 @@ namespace OpenSim.Framework.Data.MySQL
 
             return returnval;
         }
+
         /// <summary>
         /// Delete a region from the database
         /// </summary>
@@ -833,14 +833,13 @@ namespace OpenSim.Framework.Data.MySQL
         {
             bool returnval = false;
 
-            string sql =
-                "DELETE FROM regions WHERE uuid = ?uuid;";
+            string sql = "DELETE FROM regions WHERE uuid = ?uuid;";
 
             Dictionary<string, string> parameters = new Dictionary<string, string>();
 
             try
             {
-	            parameters["?uuid"] = uuid;
+                parameters["?uuid"] = uuid;
 
                 IDbCommand result = Query(sql, parameters);
 

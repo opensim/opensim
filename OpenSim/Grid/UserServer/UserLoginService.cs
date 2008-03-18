@@ -44,7 +44,6 @@ using InventoryFolder=OpenSim.Framework.InventoryFolder;
 
 namespace OpenSim.Grid.UserServer
 {
-   
     public delegate void UserLoggedInAtLocation(LLUUID agentID, LLUUID sessionID, LLUUID RegionID,
     ulong regionhandle, float positionX, float positionY, float positionZ, string firstname, string lastname);
 

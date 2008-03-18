@@ -194,7 +194,6 @@ namespace OpenSim.Framework.UserManagement
         /// <returns>A List of FriendListItems that contains info about the user's friends</returns>
         public List<FriendListItem> GetUserFriendList(LLUUID ownerID)
         {
-
             foreach (KeyValuePair<string, IUserData> plugin in _plugins)
             {
                 try
@@ -208,12 +207,10 @@ namespace OpenSim.Framework.UserManagement
             }
 
             return null;
-
         }
 
         public void StoreWebLoginKey(LLUUID agentID, LLUUID webLoginKey)
         {
-
             foreach (KeyValuePair<string, IUserData> plugin in _plugins)
             {
                 try
@@ -240,9 +237,7 @@ namespace OpenSim.Framework.UserManagement
                     m_log.Info("[USERSTORAGE]: Unable to AddNewUserFriend via " + plugin.Key + "(" + e.ToString() + ")");
                 }
             }
-
         }
-
 
         public void RemoveUserFriend(LLUUID friendlistowner, LLUUID friend)
         {
@@ -273,6 +268,7 @@ namespace OpenSim.Framework.UserManagement
                 }
             }
         }
+
         /// <summary>
         /// Loads a user agent by name (not called directly)
         /// </summary>
@@ -295,7 +291,10 @@ namespace OpenSim.Framework.UserManagement
             return null;
         }
 
-        // TODO: document
+        /// <summary>
+        /// Resets the currentAgent in the user profile
+        /// </summary>
+        /// <param name="agentID">The agent's ID</param>
         public void clearUserAgent(LLUUID agentID)
         {
             UserProfileData profile = GetUserProfile(agentID);
@@ -459,7 +458,6 @@ namespace OpenSim.Framework.UserManagement
                     // If currentagent is null, we can't reference it here or the UserServer crashes!
                     m_log.Info("[LOGOUT]: didn't save logout position: " + userid.ToString());
                 }
-                
             }
             else
             {

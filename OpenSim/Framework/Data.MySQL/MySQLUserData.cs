@@ -108,7 +108,6 @@ namespace OpenSim.Framework.Data.MySQL
             UpgradeAgentsTable(tableList[m_agentsTableName]);
             UpgradeUsersTable(tableList[m_usersTableName]);
             UpgradeFriendsTable(tableList[m_userFriendsTableName]);
-
         }
 
         /// <summary>
@@ -227,7 +226,6 @@ namespace OpenSim.Framework.Data.MySQL
                         "(?friendID,?ownerID,?friendPerms,?datetimestamp)",
                             param);
                     adder.ExecuteNonQuery();
-
                 }
             }
             catch (Exception e)
@@ -244,23 +242,21 @@ namespace OpenSim.Framework.Data.MySQL
             param["?ownerID"] = friendlistowner.UUID.ToString();
             param["?friendID"] = friend.UUID.ToString();
 
-
             try
             {
                 lock (database)
                 {
                     IDbCommand updater =
                         database.Query(
-                        "delete from " + m_userFriendsTableName + " where ownerID = ?ownerID and friendID = ?friendID",
+                            "delete from " + m_userFriendsTableName + " where ownerID = ?ownerID and friendID = ?friendID",
                             param);
                     updater.ExecuteNonQuery();
 
                     updater =
                         database.Query(
-                        "delete from " + m_userFriendsTableName + " where ownerID = ?friendID and friendID = ?ownerID",
+                            "delete from " + m_userFriendsTableName + " where ownerID = ?friendID and friendID = ?ownerID",
                             param);
                     updater.ExecuteNonQuery();
-
                 }
             }
             catch (Exception e)
@@ -270,13 +266,13 @@ namespace OpenSim.Framework.Data.MySQL
                 return;
             }
         }
+
         public void UpdateUserFriendPerms(LLUUID friendlistowner, LLUUID friend, uint perms)
         {
             Dictionary<string, string> param = new Dictionary<string, string>();
             param["?ownerID"] = friendlistowner.UUID.ToString();
             param["?friendID"] = friend.UUID.ToString();
             param["?friendPerms"] = perms.ToString();
-            
 
             try
             {
@@ -284,12 +280,11 @@ namespace OpenSim.Framework.Data.MySQL
                 {
                     IDbCommand updater =
                         database.Query(
-                        "update " + m_userFriendsTableName +
-                        " SET friendPerms = ?friendPerms " +
-                        "where ownerID = ?ownerID and friendID = ?friendID",
+                            "update " + m_userFriendsTableName +
+                            " SET friendPerms = ?friendPerms " +
+                            "where ownerID = ?ownerID and friendID = ?friendID",
                             param);
                     updater.ExecuteNonQuery();
-
                 }
             }
             catch (Exception e)
@@ -299,7 +294,6 @@ namespace OpenSim.Framework.Data.MySQL
                 return;
             }
         }
-
 
         public List<FriendListItem> GetUserFriendList(LLUUID friendlistowner)
         {
@@ -315,11 +309,10 @@ namespace OpenSim.Framework.Data.MySQL
                     //Left Join userfriends to itself
                     IDbCommand result =
                         database.Query(
-                        "select a.ownerID,a.friendID,a.friendPerms,b.friendPerms as ownerperms from " + m_userFriendsTableName + " as a, " + m_userFriendsTableName + " as b" +
-                        " where a.ownerID = ?ownerID and b.ownerID = a.friendID and b.friendID = a.ownerID",
+                            "select a.ownerID,a.friendID,a.friendPerms,b.friendPerms as ownerperms from " + m_userFriendsTableName + " as a, " + m_userFriendsTableName + " as b" +
+                            " where a.ownerID = ?ownerID and b.ownerID = a.friendID and b.friendID = a.ownerID",
                             param);
                     IDataReader reader = result.ExecuteReader();
-
 
                     while (reader.Read())
                     {
@@ -354,7 +347,6 @@ namespace OpenSim.Framework.Data.MySQL
             m_log.Info("[USER]: Stub UpdateUserCUrrentRegion called");
         }
 
-
         public List<Framework.AvatarPickerAvatar> GeneratePickerResults(LLUUID queryID, string query)
         {
             List<Framework.AvatarPickerAvatar> returnlist = new List<Framework.AvatarPickerAvatar>();
@@ -377,7 +369,6 @@ namespace OpenSim.Framework.Data.MySQL
                                 "SELECT UUID,username,lastname FROM " + m_usersTableName + " WHERE username like ?first AND lastname like ?second LIMIT 100",
                                 param);
                         IDataReader reader = result.ExecuteReader();
-
 
                         while (reader.Read())
                         {
@@ -412,7 +403,6 @@ namespace OpenSim.Framework.Data.MySQL
                                 "SELECT UUID,username,lastname FROM " + m_usersTableName + " WHERE username like ?first OR lastname like ?first LIMIT 100",
                                 param);
                         IDataReader reader = result.ExecuteReader();
-
 
                         while (reader.Read())
                         {
@@ -489,7 +479,6 @@ namespace OpenSim.Framework.Data.MySQL
 
         public void StoreWebLoginKey(LLUUID AgentID, LLUUID WebLoginKey)
         {
-            
             Dictionary<string, string> param = new Dictionary<string, string>();
             param["?UUID"] = AgentID.UUID.ToString();
             param["?webLoginKey"] = WebLoginKey.UUID.ToString();
@@ -500,11 +489,10 @@ namespace OpenSim.Framework.Data.MySQL
                 {
                     IDbCommand updater =
                         database.Query(
-                        "update " + m_usersTableName + " SET webLoginKey = ?webLoginKey " +
-                        "where UUID = ?UUID",
+                            "update " + m_usersTableName + " SET webLoginKey = ?webLoginKey " +
+                            "where UUID = ?UUID",
                             param);
                     updater.ExecuteNonQuery();
-
                 }
             }
             catch (Exception e)
@@ -513,10 +501,6 @@ namespace OpenSim.Framework.Data.MySQL
                 m_log.Error(e.ToString());
                 return;
             }
-
-                
-            
-
         }
 
         /// <summary>
@@ -605,11 +589,11 @@ namespace OpenSim.Framework.Data.MySQL
         /// <param name="user">The profile data to use to update the DB</param>
         public bool UpdateUserProfile(UserProfileData user)
         {
-            database.updateUserRow(user.UUID, user.username, user.surname, user.passwordHash, user.passwordSalt
-            , user.homeRegion, user.homeLocation.X, user.homeLocation.Y, user.homeLocation.Z, user.homeLookAt.X
-            , user.homeLookAt.Y, user.homeLookAt.Z, user.created, user.lastLogin, user.userInventoryURI
-            , user.userAssetURI, user.profileCanDoMask, user.profileWantDoMask, user.profileAboutText
-            , user.profileFirstText, user.profileImage, user.profileFirstImage, user.webLoginKey);
+            database.updateUserRow(user.UUID, user.username, user.surname, user.passwordHash, user.passwordSalt,
+                                   user.homeRegion, user.homeLocation.X, user.homeLocation.Y, user.homeLocation.Z, user.homeLookAt.X,
+                                   user.homeLookAt.Y, user.homeLookAt.Z, user.created, user.lastLogin, user.userInventoryURI,
+                                   user.userAssetURI, user.profileCanDoMask, user.profileWantDoMask, user.profileAboutText,
+                                   user.profileFirstText, user.profileImage, user.profileFirstImage, user.webLoginKey);
             return true;
         }
 

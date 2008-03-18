@@ -114,7 +114,6 @@ namespace OpenSim.Framework.UserManagement
                         string clientversion = (string)requestData["version"];
                         m_log.Info("[LOGIN]: Client Version " + clientversion + " for " + firstname + " " + lastname);
                     }
-                    
 
                     userProfile = GetTheUser(firstname, lastname);
                     if (userProfile == null)
@@ -398,7 +397,6 @@ namespace OpenSim.Framework.UserManagement
 
         public Hashtable ProcessHTMLLogin(Hashtable keysvals)
         {
-
             // Matches all unspecified characters
             // Currently specified,; lowercase letters, upper case letters, numbers, underline
             //    period, space, parens, and dash.
@@ -422,44 +420,42 @@ namespace OpenSim.Framework.UserManagement
             // the client requires the HTML form field be named 'username'
             // however, the data it sends when it loads the first time is 'firstname'
             // another one of those little nuances.
-
             
             if (keysvals.Contains("firstname"))
-                firstname = wfcut.Replace((string)keysvals["firstname"],String.Empty,99999);
+                firstname = wfcut.Replace((string)keysvals["firstname"], String.Empty, 99999);
+
             if (keysvals.Contains("username"))
-                firstname = wfcut.Replace((string)keysvals["username"],String.Empty,99999);
+                firstname = wfcut.Replace((string)keysvals["username"], String.Empty, 99999);
 
             if (keysvals.Contains("lastname"))
-                lastname = wfcut.Replace((string)keysvals["lastname"],String.Empty,99999);
+                lastname = wfcut.Replace((string)keysvals["lastname"], String.Empty, 99999);
 
             if (keysvals.Contains("location"))
-                location = wfcut.Replace((string)keysvals["location"],String.Empty,99999);
+                location = wfcut.Replace((string)keysvals["location"], String.Empty, 99999);
 
             if (keysvals.Contains("region"))
-                region = wfcut.Replace((string)keysvals["region"],String.Empty,99999);
+                region = wfcut.Replace((string)keysvals["region"], String.Empty, 99999);
 
             if (keysvals.Contains("grid"))
-                grid = wfcut.Replace((string)keysvals["grid"],String.Empty,99999);
+                grid = wfcut.Replace((string)keysvals["grid"], String.Empty, 99999);
 
             if (keysvals.Contains("channel"))
-                channel = wfcut.Replace((string)keysvals["channel"],String.Empty,99999);
+                channel = wfcut.Replace((string)keysvals["channel"], String.Empty, 99999);
 
             if (keysvals.Contains("version"))
-                version = wfcut.Replace((string)keysvals["version"],String.Empty,99999);
+                version = wfcut.Replace((string)keysvals["version"], String.Empty, 99999);
 
             if (keysvals.Contains("lang"))
-                lang = wfcut.Replace((string)keysvals["lang"],String.Empty,99999);
+                lang = wfcut.Replace((string)keysvals["lang"], String.Empty, 99999);
            
             if (keysvals.Contains("password"))
-                password = wfcut.Replace((string)keysvals["password"], String.Empty, 99999);
+                password = wfcut.Replace((string)keysvals["password"],  String.Empty, 99999);
 
-            
             // load our login form.
-            string loginform = GetLoginForm(firstname,lastname,location,region,grid,channel,version,lang,password,errormessages);
+            string loginform = GetLoginForm(firstname, lastname, location, region, grid, channel, version, lang, password, errormessages);
 
             if (keysvals.ContainsKey("show_login_form"))
             {
-                
                 UserProfileData user = GetTheUser(firstname, lastname);
                 bool goodweblogin = false;
 
@@ -472,9 +468,10 @@ namespace OpenSim.Framework.UserManagement
                     m_userManager.StoreWebLoginKey(user.UUID, webloginkey);
                     statuscode = 301;
 
-                    string redirectURL = "about:blank?redirect-http-hack=" + System.Web.HttpUtility.UrlEncode("secondlife:///app/login?first_name=" + firstname + "&last_name=" +
-                                                lastname +
-                                                "&location=" + location + "&grid=Other&web_login_key=" + webloginkey.ToString());
+                    string redirectURL = "about:blank?redirect-http-hack=" +
+                        System.Web.HttpUtility.UrlEncode("secondlife:///app/login?first_name=" + firstname + "&last_name=" +
+                                                         lastname +
+                                                         "&location=" + location + "&grid=Other&web_login_key=" + webloginkey.ToString());
                     //m_log.Info("[WEB]: R:" + redirectURL);
                     returnactions["int_response_code"] = statuscode;
                     returnactions["str_redirect_location"] = redirectURL;
@@ -487,11 +484,7 @@ namespace OpenSim.Framework.UserManagement
                     loginform = GetLoginForm(firstname, lastname, location, region, grid, channel, version, lang, password, errormessages);
                     returnactions["int_response_code"] = statuscode;
                     returnactions["str_response_string"] = loginform;
-
                 }
-
-                
-
             }
             else
             {
@@ -499,7 +492,6 @@ namespace OpenSim.Framework.UserManagement
                 returnactions["str_response_string"] = loginform;
             }
             return returnactions;
-             
         }
 
         public string GetLoginForm(string firstname, string lastname, string location, string region, 
@@ -537,67 +529,66 @@ namespace OpenSim.Framework.UserManagement
         public string GetDefaultLoginForm()
         {
             string responseString =
-           "<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.0 Transitional//EN\" \"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd\">";
-                responseString = responseString + "<html xmlns=\"http://www.w3.org/1999/xhtml\">";
-                responseString = responseString + "<head>";
-                responseString = responseString +
-                                 "<meta http-equiv=\"Content-Type\" content=\"text/html; charset=utf-8\" />";
-                responseString = responseString + "<meta http-equiv=\"cache-control\" content=\"no-cache\">";
-                responseString = responseString + "<meta http-equiv=\"Pragma\" content=\"no-cache\">";
-                responseString = responseString + "<title>OpenSim Login</title>";
-                responseString = responseString + "<body><br />";
-                responseString = responseString + "<div id=\"login_box\">";
+                "<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.0 Transitional//EN\" \"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd\">";
+            responseString += "<html xmlns=\"http://www.w3.org/1999/xhtml\">";
+            responseString += "<head>";
+            responseString += "<meta http-equiv=\"Content-Type\" content=\"text/html; charset=utf-8\" />";
+            responseString += "<meta http-equiv=\"cache-control\" content=\"no-cache\">";
+            responseString += "<meta http-equiv=\"Pragma\" content=\"no-cache\">";
+            responseString += "<title>OpenSim Login</title>";
+            responseString += "<body><br />";
+            responseString += "<div id=\"login_box\">";
                 
-                responseString = responseString + "<form action=\"/go.cgi\" method=\"GET\" id=\"login-form\">";
+            responseString += "<form action=\"/go.cgi\" method=\"GET\" id=\"login-form\">";
 
-                responseString = responseString + "<div id=\"message\">[$errors]</div>";
-                responseString = responseString + "<fieldset id=\"firstname\">";
-                responseString = responseString + "<legend>First Name:</legend>";
-                responseString = responseString + "<input type=\"text\" id=\"firstname_input\" size=\"15\" maxlength=\"100\" name=\"username\" value=\"[$firstname]\" />";
-                responseString = responseString + "</fieldset>";
-                responseString = responseString + "<fieldset id=\"lastname\">";
-                responseString = responseString + "<legend>Last Name:</legend>";
-                responseString = responseString + "<input type=\"text\" size=\"15\" maxlength=\"100\" name=\"lastname\" value=\"[$lastname]\" />";
-                responseString = responseString + "</fieldset>";
-                responseString = responseString + "<fieldset id=\"password\">";
-                responseString = responseString + "<legend>Password:</legend>";
-                responseString = responseString + "<table cellspacing=\"0\" cellpadding=\"0\" border=\"0\">";
-                responseString = responseString + "<tr>";
-                responseString = responseString + "<td colspan=\"2\"><input type=\"password\" size=\"15\" maxlength=\"100\" name=\"password\" value=\"[$password]\" /></td>";
-                responseString = responseString + "</tr>";
-                responseString = responseString + "<tr>";
-                responseString = responseString + "<td valign=\"middle\"><input type=\"checkbox\" name=\"remember_password\" id=\"remember_password\" [$remember_password] style=\"margin-left:0px;\"/></td>";
-                responseString = responseString + "<td><label for=\"remember_password\">Remember password</label></td>";
-                responseString = responseString + "</tr>";
-                responseString = responseString + "</table>";
-                responseString = responseString + "</fieldset>";
-                responseString = responseString + "<input type=\"hidden\" name=\"show_login_form\" value=\"FALSE\" />";
-                responseString = responseString + "<input type=\"hidden\" name=\"method\" value=\"login\" />";
-                responseString = responseString + "<input type=\"hidden\" id=\"grid\" name=\"grid\" value=\"[$grid]\" />";
-                responseString = responseString + "<input type=\"hidden\" id=\"region\" name=\"region\" value=\"[$region]\" />";
-                responseString = responseString + "<input type=\"hidden\" id=\"location\" name=\"location\" value=\"[$location]\" />";
-                responseString = responseString + "<input type=\"hidden\" id=\"channel\" name=\"channel\" value=\"[$channel]\" />";
-                responseString = responseString + "<input type=\"hidden\" id=\"version\" name=\"version\" value=\"[$version]\" />";
-                responseString = responseString + "<input type=\"hidden\" id=\"lang\" name=\"lang\" value=\"[$lang]\" />";
-                responseString = responseString + "<div id=\"submitbtn\">";
-                responseString = responseString + "<input class=\"input_over\" type=\"submit\" value=\"Connect\" />";
-                responseString = responseString + "</div>";
-                responseString = responseString + "<div id=\"connecting\" style=\"visibility:hidden\"> Connecting...</div>";
+            responseString += "<div id=\"message\">[$errors]</div>";
+            responseString += "<fieldset id=\"firstname\">";
+            responseString += "<legend>First Name:</legend>";
+            responseString += "<input type=\"text\" id=\"firstname_input\" size=\"15\" maxlength=\"100\" name=\"username\" value=\"[$firstname]\" />";
+            responseString += "</fieldset>";
+            responseString += "<fieldset id=\"lastname\">";
+            responseString += "<legend>Last Name:</legend>";
+            responseString += "<input type=\"text\" size=\"15\" maxlength=\"100\" name=\"lastname\" value=\"[$lastname]\" />";
+            responseString += "</fieldset>";
+            responseString += "<fieldset id=\"password\">";
+            responseString += "<legend>Password:</legend>";
+            responseString += "<table cellspacing=\"0\" cellpadding=\"0\" border=\"0\">";
+            responseString += "<tr>";
+            responseString += "<td colspan=\"2\"><input type=\"password\" size=\"15\" maxlength=\"100\" name=\"password\" value=\"[$password]\" /></td>";
+            responseString += "</tr>";
+            responseString += "<tr>";
+            responseString += "<td valign=\"middle\"><input type=\"checkbox\" name=\"remember_password\" id=\"remember_password\" [$remember_password] style=\"margin-left:0px;\"/></td>";
+            responseString += "<td><label for=\"remember_password\">Remember password</label></td>";
+            responseString += "</tr>";
+            responseString += "</table>";
+            responseString += "</fieldset>";
+            responseString += "<input type=\"hidden\" name=\"show_login_form\" value=\"FALSE\" />";
+            responseString += "<input type=\"hidden\" name=\"method\" value=\"login\" />";
+            responseString += "<input type=\"hidden\" id=\"grid\" name=\"grid\" value=\"[$grid]\" />";
+            responseString += "<input type=\"hidden\" id=\"region\" name=\"region\" value=\"[$region]\" />";
+            responseString += "<input type=\"hidden\" id=\"location\" name=\"location\" value=\"[$location]\" />";
+            responseString += "<input type=\"hidden\" id=\"channel\" name=\"channel\" value=\"[$channel]\" />";
+            responseString += "<input type=\"hidden\" id=\"version\" name=\"version\" value=\"[$version]\" />";
+            responseString += "<input type=\"hidden\" id=\"lang\" name=\"lang\" value=\"[$lang]\" />";
+            responseString += "<div id=\"submitbtn\">";
+            responseString += "<input class=\"input_over\" type=\"submit\" value=\"Connect\" />";
+            responseString += "</div>";
+            responseString += "<div id=\"connecting\" style=\"visibility:hidden\"> Connecting...</div>";
 
-                responseString = responseString + "<div id=\"helplinks\">";
-                responseString = responseString + "<a href=\"#join now link\" target=\"_blank\"></a> | ";
-                responseString = responseString + "<a href=\"#forgot password link\" target=\"_blank\"></a>";
-                responseString = responseString + "</div>";
+            responseString += "<div id=\"helplinks\">";
+            responseString += "<a href=\"#join now link\" target=\"_blank\"></a> | ";
+            responseString += "<a href=\"#forgot password link\" target=\"_blank\"></a>";
+            responseString += "</div>";
 
-                responseString = responseString + "<div id=\"channelinfo\"> [$channel] | [$version]=[$lang]</div>";
-                responseString = responseString + "</form>";
-                responseString = responseString + "<script language=\"JavaScript\">";
-                responseString = responseString + "document.getElementById('firstname_input').focus();";
-                responseString = responseString + "</script>";
-                responseString = responseString + "</div>";
-                responseString = responseString + "</div>";
-                responseString = responseString + "</body>";
-                responseString = responseString + "</html>";
+            responseString += "<div id=\"channelinfo\"> [$channel] | [$version]=[$lang]</div>";
+            responseString += "</form>";
+            responseString += "<script language=\"JavaScript\">";
+            responseString += "document.getElementById('firstname_input').focus();";
+            responseString += "</script>";
+            responseString += "</div>";
+            responseString += "</div>";
+            responseString += "</body>";
+            responseString += "</html>";
             return responseString;
         }
 
@@ -610,7 +601,6 @@ namespace OpenSim.Framework.UserManagement
         {
             return m_userManager.CommitAgent(ref profile);
         }
-
 
         /// <summary>
         /// Checks a user against it's password hash
@@ -638,7 +628,7 @@ namespace OpenSim.Framework.UserManagement
             //m_log.Info("[LOGIN]: userprofile:" + profile.passwordHash + " SubCT:" + password);
 
             passwordSuccess = (profile.passwordHash.Equals(s.ToString(), StringComparison.InvariantCultureIgnoreCase) 
-                            || profile.passwordHash.Equals(password,StringComparison.InvariantCultureIgnoreCase));
+                            || profile.passwordHash.Equals(password, StringComparison.InvariantCultureIgnoreCase));
 
             return passwordSuccess;
         }
@@ -699,7 +689,6 @@ namespace OpenSim.Framework.UserManagement
                 buddyitem.BuddyRightsHave = (int)fl.FriendListOwnerPerms;
                 buddyitem.BuddyRightsGiven = (int) fl.FriendPerms;
                 buddylistreturn.AddNewBuddy(buddyitem);
-
             }
             return buddylistreturn;
         }

@@ -246,7 +246,6 @@ namespace OpenSim.Region.Communications.Local
 
                 return new InventoryData(AgentInventoryArray, userInventory.InventoryRoot.FolderID);
             }
-            
         }
     }
 }
